@@ -1,0 +1,28 @@
+# Phoenix OS Configuration
+
+project:
+  name: Phoenix OS
+  type: Agentic Framework
+
+platform: github
+
+github:
+  repo: https://github.com/nagarro-digital/phoenix-os.git
+
+# Source of truth locations
+components:
+  skills: ./core/components/skills/
+  recipes: ./core/components/recipes/
+  agents: ./core/components/agents/
+  memory: ./core/components/memory/
+
+# Claude Code derived locations (populated by /sync-claude)
+claude:
+  skills: ./.claude/skills/
+  agents: ./.claude/agents/
+
+# Project artifacts
+checkpoints:
+  base-path: .phoenix-os/project/checkpoints/
+  commit-code: "{YYYYMMDD-HHMMSS}.md"
+  create-pr: "{branch-name}.md"

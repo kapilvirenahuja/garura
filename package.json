@@ -1,0 +1,67 @@
+{
+  "name": "phoenix-os",
+  "version": "2.0.6",
+  "description": "Agentic Framework for Intent-Driven Development",
+  "main": "lib/installer.js",
+  "bin": {
+    "phoenix": "./bin/phoenix.js"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "test:verbose": "jest --verbose",
+    "lint": "eslint lib/ bin/",
+    "lint:fix": "eslint lib/ bin/ --fix",
+    "build": "node bin/phoenix.js --version",
+    "quality-gate": "npm run lint && npm run test:coverage && npm run build"
+  },
+  "keywords": [
+    "ai",
+    "copilot",
+    "intent-driven",
+    "agentic",
+    "framework",
+    "code-generation",
+    "claude",
+    "phoenix-os"
+  ],
+  "author": "Nagarro Digital <digital@nagarro.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nagarro-digital/phoenix-os.git"
+  },
+  "homepage": "https://github.com/nagarro-digital/phoenix-os",
+  "bugs": {
+    "url": "https://github.com/nagarro-digital/phoenix-os/issues"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^8.57.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.js"
+    ],
+    "collectCoverageFrom": [
+      "lib/**/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 75,
+        "branches": 65,
+        "functions": 55,
+        "statements": 75
+      }
+    },
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/bin/"
+    ]
+  }
+}

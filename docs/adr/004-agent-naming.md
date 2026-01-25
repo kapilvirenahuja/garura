@@ -1,0 +1,99 @@
+# ADR 004: Agent Naming Convention
+
+## Status
+
+Accepted
+
+## Date
+
+2026-01-23
+
+## Context
+
+Phoenix OS originally documented a `{domain}-keeper` pattern but used inconsistent naming:
+
+| Documented | Actual Usage |
+|------------|--------------|
+| `{domain}-keeper` | `project-keeper`, `repo-keeper` |
+| — | `bug-analyzer`, `bug-implementer` (specialist pattern) |
+
+Three patterns were in use:
+
+| Pattern | Type | Examples | Problem |
+|---------|------|----------|---------|
+| `{domain}-keeper` | Domain Stewards | `project-keeper` | Good for API domains |
+| `{role}` | SDLC Roles | `developer` | Too broad, unclear domain |
+| `{domain}-{action}er` | Specialists | `bug-analyzer` | Creates agent explosion |
+
+## Decision
+
+Consolidate to the **`{domain}-{role}` pattern** with two categories:
+
+### 1. Domain-Role Agents (SDLC)
+
+Core agents follow `{domain}-{role}`:
+
+| Agent | Domain | Role | Responsibility |
+|-------|--------|------|----------------|
+| `code-builder` | code | builder | Write code, implement features, fix bugs |
+| `quality-validator` | quality | validator | Test, review, validate, quality gates |
+| `tech-designer` | tech | designer | Technical design, RCA, architecture |
+| `project-orchestrator` | project | orchestrator | Issues, tracking, project coordination |
+| `repo-orchestrator` | repo | orchestrator | Git operations, commits, branches |
+
+### 2. Special-Purpose Agents
+
+| Agent | Purpose |
+|-------|---------|
+| `workflow-guardian` | Validates approval bypass in L2 recipes |
+
+### Deprecated Patterns
+
+| Old (Deprecated) | New | Reason |
+|------------------|-----|--------|
+| `bug-analyzer` | `tech-designer` | RCA is design work |
+| `bug-implementer` | `code-builder` | Implementation is building |
+| `test-keeper` | `quality-validator` | Testing is validation |
+| `grooming-keeper` | `project-orchestrator` | Refinement is coordination |
+
+### Naming Rules
+
+1. **Domain** = area of expertise (code, quality, tech, project, repo, workflow)
+2. **Role** = SDLC function (builder, validator, designer, orchestrator, guardian)
+3. **One agent = one domain** (not one task)
+4. **Total: 6 agents** (5 SDLC + 1 special)
+
+### Right Granularity
+
+| Too Narrow | Too Granular | Right Level |
+|------------|--------------|-------------|
+| `builder` | `bug-analyzer` | `code-builder` |
+| `designer` | `bug-implementer` | `tech-designer` |
+| `validator` | `test-writer` | `quality-validator` |
+
+## Consequences
+
+### Positive
+
+- Single consistent pattern
+- Clear domain ownership
+- Reduced agent explosion (6 total vs. 10+)
+- Maps to SDLC roles teams understand
+
+### Negative
+
+- Requires migration of existing agent references
+- CLAUDE.md documentation must be updated
+- Existing `bug-analyzer`, `bug-implementer` agents deprecated
+
+### Migration Path
+
+1. Create new agents with `{domain}-{role}` names
+2. Update CLAUDE.md to document new pattern
+3. Deprecate old specialist agents
+4. Update recipes to use new agents
+
+## Related ADRs
+
+- [ADR 001: Three-Layer Hierarchy](./001-three-layer-hierarchy.md)
+- [ADR 006: Naming Conventions](./006-naming-conventions.md)
