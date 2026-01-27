@@ -1,8 +1,28 @@
 # CLAUDE.md
 
-Behavioral rules for Claude Code in Phoenix OS.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Rules
+## Overview
+
+Phoenix OS is an agentic framework implementing **Fluidic SDLC** principles for intent-driven, deterministic AI-assisted development. It uses a three-layer hierarchy: **Recipes** (L1/L2 workflows) → **Agents** (domain experts) → **Skills** (learned capabilities).
+
+## Architecture
+
+```
+core/components/           # Source of truth (edit here)
+├── agents/               # Agent definitions (6 agents)
+├── skills/               # Skills (model-invocable only)
+├── recipes/              # L1/L2 recipes
+└── memory/               # LTM: practices, templates, standards
+
+.claude/                   # Synced output (never edit directly)
+├── agents/               # Deployed agents
+└── skills/               # Deployed skills + recipes
+```
+
+**Data Flow:** L2 Recipe → chains L1s → L1 invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`.phoenix-os/project/`)
+
+## Behavioral Rules
 
 ### 1. Source of Truth
 
@@ -16,23 +36,32 @@ core/components/agents/   → .claude/agents/  (via /sync-claude)
 
 After editing source, run `/sync-claude`.
 
-### 2. Agent-First
+### 2. Execution Model
 
-Always delegate to Phoenix OS agents. Never use tools directly when an agent exists.
+**Recipes run in Claude Code.** Claude Code orchestrates recipes and invokes agents for domain-specific tasks.
 
-| Task | Agent |
-|------|-------|
-| Issues, tracking | `repo-orchestrator` with `project-orchestrator` context |
+```
+Claude Code (orchestrator)
+    └── runs Recipe (L1/L2)
+            └── invokes Agent via Task tool
+                    └── agent invokes Skills
+```
+
+**Agent-First:** Within recipes, delegate domain tasks to agents. Never use tools directly when an agent covers that domain.
+
+| Domain Task | Agent |
+|-------------|-------|
 | Git, commits, branches | `repo-orchestrator` |
+| Issues, tracking | `repo-orchestrator` + `project-orchestrator` context |
 | Technical design, RCA | `tech-designer` |
 | Implementation | `code-builder` |
 | Testing, validation | `quality-validator` |
 
 ```
-# ❌ WRONG
-mcp__github__create_issue directly
+# ❌ WRONG — bypassing agent
+git commit -m "..." directly in recipe
 
-# ✅ CORRECT
+# ✅ CORRECT — delegate to agent
 Task tool → subagent_type: "repo-orchestrator"
 ```
 
@@ -96,10 +125,9 @@ TaskCreate: "Verify Y" (agent: quality-validator) → blockedBy: [implement Y]
 - Agents and skills MUST NEVER abandon a task — always complete or escalate
 - If blocked, create a new task describing the blocker and link with `addBlockedBy`
 
-## Configuration
-
-See `core/config.yaml` for paths and settings.
-
 ## Reference
 
-See `README.md` for architecture, agent roster, and concepts.
+- `core/config.yaml` — Paths and settings
+- `docs/adr/` — Architecture Decision Records (7 ADRs)
+- `docs/philosophy/` — Core architecture philosophy
+- `docs/components/` — Agent, skill, recipe, memory documentation
