@@ -2,15 +2,15 @@
 
 **Your OS for intent-driven development** - An agentic system that defines how to build software deterministically for enterprise-grade delivery.
 
-## What is Fluidic SDLC
+## What is AI-native SDLC
 
-**Fluidic SDLC** is a philosophy that prioritizes adaptive execution over rigid workflows. Unlike traditional methodologies that prescribe specific tools and rigid processes, Fluidic SDLC adapts to available tools, contexts, and constraints while maintaining deterministic outcomes.
+**AI-native SDLC** is a philosophy that prioritizes adaptive execution over rigid workflows. Unlike traditional methodologies that prescribe specific tools and rigid processes, AI-native SDLC adapts to available tools, contexts, and constraints while maintaining deterministic outcomes.
 
 ### Core Philosophy
 
 Traditional approach: `Tool Required → Process Fails if Unavailable → Developer Blocked`
 
-Fluidic approach: `Start with intent → Agentic System selects method → Workflows adapt to needs → Consistent memory and context → Deliver consistent outcomes`
+AI-native approach: `Start with intent → Agentic System selects method → Workflows adapt to needs → Consistent memory and context → Deliver consistent outcomes`
 
 ### Three Core Tenets
 
@@ -32,7 +32,7 @@ Read more: [`docs/philosophy/index.md`](docs/philosophy/index.md)
 
 ## What is Phoenix OS
 
-Phoenix OS is an agentic framework that implements Fluidic SDLC principles for intent-driven development. It orchestrates specialized AI agents through cognitive flows to deliver enterprise-grade code generation.
+Phoenix OS is an agentic framework that implements AI-native SDLC principles for intent-driven development. It orchestrates specialized AI agents through cognitive flows to deliver enterprise-grade code generation.
 
 ### Key Features
 
@@ -105,7 +105,7 @@ Phoenix OS is a Claude Code plugin. To use it:
 
 ```bash
 # Clone the repository
-git clone https://github.com/nagarro-digital/phoenix-os.git
+git clone https://github.com/kapilvirenahuja/phoenix-os.git
 
 # Use with Claude Code by navigating to the directory
 cd phoenix-os
@@ -176,7 +176,7 @@ We welcome contributions to Phoenix OS! Whether you're fixing bugs, improving do
 
 1. Read our [Code of Conduct](CODE_OF_CONDUCT.md)
 2. Check the [Contributing Guide](CONTRIBUTING.md) for development setup
-3. Browse [good first issues](https://github.com/nagarro-digital/phoenix-os/labels/good-first-issue)
+3. Browse [good first issues](https://github.com/kapilvirenahuja/phoenix-os/labels/good-first-issue)
 4. Submit your first pull request!
 
 ## Contributors
@@ -227,4 +227,4 @@ SOFTWARE.
 
 ## Support
 
-For issues and questions, please visit: https://github.com/nagarro-digital/phoenix-os/issues
+For issues and questions, please visit: https://github.com/kapilvirenahuja/phoenix-os/issues

@@ -1,8 +1,12 @@
 {
   "name": "phoenix-os",
-  "description": "Agentic framework for intent-driven, deterministic AI-assisted development",
+  "description": "Agentic framework for intent-driven, deterministic AI-assisted development implementing AI-native SDLC principles",
   "version": "2.0.0",
   "author": {
     "name": "Phoenix OS"
-  }
+  },
+  "homepage": "https://github.com/kapilvirenahuja/phoenix-os",
+  "repository": "https://github.com/kapilvirenahuja/phoenix-os",
+  "license": "MIT",
+  "keywords": ["agentic", "sdlc", "ai-native", "commits", "pr", "workflow"]
 }
