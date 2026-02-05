@@ -105,7 +105,7 @@ Phoenix OS is a Claude Code plugin. To use it:
 
 ```bash
 # Clone the repository
-git clone https://github.com/nagarro-digital/phoenix-os.git
+git clone https://github.com/kapilvirenahuja/phoenix-os.git
 
 # Use with Claude Code by navigating to the directory
 cd phoenix-os
@@ -176,7 +176,7 @@ We welcome contributions to Phoenix OS! Whether you're fixing bugs, improving do
 
 1. Read our [Code of Conduct](CODE_OF_CONDUCT.md)
 2. Check the [Contributing Guide](CONTRIBUTING.md) for development setup
-3. Browse [good first issues](https://github.com/nagarro-digital/phoenix-os/labels/good-first-issue)
+3. Browse [good first issues](https://github.com/kapilvirenahuja/phoenix-os/labels/good-first-issue)
 4. Submit your first pull request!
 
 ## Contributors
@@ -227,4 +227,4 @@ SOFTWARE.
 
 ## Support
 
-For issues and questions, please visit: https://github.com/nagarro-digital/phoenix-os/issues
+For issues and questions, please visit: https://github.com/kapilvirenahuja/phoenix-os/issues

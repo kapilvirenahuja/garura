@@ -5,8 +5,8 @@
   "author": {
     "name": "Phoenix OS"
   },
-  "homepage": "https://github.com/nagarro-digital/phoenix-os",
-  "repository": "https://github.com/nagarro-digital/phoenix-os",
+  "homepage": "https://github.com/kapilvirenahuja/phoenix-os",
+  "repository": "https://github.com/kapilvirenahuja/phoenix-os",
   "license": "MIT",
   "keywords": ["agentic", "sdlc", "ai-native", "commits", "pr", "workflow"]
 }
