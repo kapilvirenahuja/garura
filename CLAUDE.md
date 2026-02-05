@@ -1,38 +1,67 @@
 # CLAUDE.md
 
-Behavioral rules for Claude Code in Phoenix OS.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Rules
+## Overview
+
+Phoenix OS is an agentic framework implementing **Fluidic SDLC** principles for intent-driven, deterministic AI-assisted development. It uses a three-layer hierarchy: **Commands** (user workflows) → **Agents** (domain experts) → **Skills** (learned capabilities).
+
+## Architecture
+
+Phoenix OS uses the native Claude Code plugin format:
+
+```
+phoenix-os/
+├── .claude-plugin/           # Plugin manifest
+│   └── plugin.json
+├── skills/                   # Model-invocable capabilities
+│   ├── analyze-changes/      # Analyze uncommitted changes
+│   ├── analyze-pr/           # Analyze PR readiness
+│   ├── create-commit/        # Create commits
+│   ├── submit-pr/            # Submit pull requests
+│   └── memory/               # Repository standards & conventions
+├── commands/                 # User-invocable workflows
+│   ├── commit-code.md        # Commit workflow
+│   └── create-pr.md          # PR creation workflow
+├── agents/                   # Domain experts
+│   └── repo-orchestrator.md  # Repository operations
+├── CLAUDE.md                 # This file
+└── README.md                 # Project documentation
+```
+
+**Data Flow:** Command → invokes agents → agents invoke skills → skills produce artifacts to STM (`.phoenix-os/project/`)
+
+## Behavioral Rules
 
 ### 1. Source of Truth
 
-Author all components in `core/components/`. Never edit `.claude/` directly.
+All components are in their respective root-level directories:
+- `skills/` — Model-invocable skills
+- `commands/` — User-invocable commands
+- `agents/` — Domain expert agents
+
+### 2. Execution Model
+
+**Commands run in Claude Code.** Claude Code orchestrates commands and invokes agents for domain-specific tasks.
 
 ```
-core/components/skills/   → .claude/skills/  (via /sync-claude)
-core/components/recipes/  → .claude/skills/  (via /sync-claude)
-core/components/agents/   → .claude/agents/  (via /sync-claude)
+Claude Code (orchestrator)
+    └── runs Command
+            └── invokes Agent via Task tool
+                    └── agent invokes Skills
 ```
 
-After editing source, run `/sync-claude`.
+**Agent-First:** Within commands, delegate domain tasks to agents. Never use tools directly when an agent covers that domain.
 
-### 2. Agent-First
-
-Always delegate to Phoenix OS agents. Never use tools directly when an agent exists.
-
-| Task | Agent |
-|------|-------|
-| Issues, tracking | `repo-orchestrator` with `project-orchestrator` context |
-| Git, commits, branches | `repo-orchestrator` |
-| Technical design, RCA | `tech-designer` |
-| Implementation | `code-builder` |
-| Testing, validation | `quality-validator` |
+| Domain Task | Agent |
+|-------------|-------|
+| Git, commits, branches, PRs | `repo-orchestrator` |
 
 ```
-# ❌ WRONG
-mcp__github__create_issue directly
+# ❌ WRONG — bypassing agent
+git commit -m "..." directly in command
 
-# ✅ CORRECT
+# ✅ CORRECT — delegate to agent
 Task tool → subagent_type: "repo-orchestrator"
 ```
 
@@ -54,12 +83,12 @@ Parse: `Approve`/`approve` → proceed. `Reject`/`reject` → cancel. Else → c
 
 Applies to: commits, PRs, protected branches, destructive actions.
 
-### 4. Recipe Constraints
+### 4. Command Constraints
 
-| Level | Invocability | Max Agent Calls |
-|-------|--------------|-----------------|
-| L1 | Human OR Model | ≤2 |
-| L2 | Human only | ≤5 (ideal 3) |
+Commands are user-invocable workflows that orchestrate agents:
+- Max 2 agent calls per command
+- Always produce checkpoint for user approval
+- Never execute git/gh commands directly
 
 ### 5. Task-Driven Workflow
 
@@ -96,10 +125,8 @@ TaskCreate: "Verify Y" (agent: quality-validator) → blockedBy: [implement Y]
 - Agents and skills MUST NEVER abandon a task — always complete or escalate
 - If blocked, create a new task describing the blocker and link with `addBlockedBy`
 
-## Configuration
-
-See `core/config.yaml` for paths and settings.
-
 ## Reference
 
-See `README.md` for architecture, agent roster, and concepts.
+- `docs/adr/` — Architecture Decision Records
+- `docs/philosophy/` — Core architecture philosophy
+- `docs/components/` — Agent, skill, command documentation

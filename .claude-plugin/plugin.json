@@ -1,0 +1,8 @@
+{
+  "name": "phoenix-os",
+  "description": "Agentic framework for intent-driven, deterministic AI-assisted development",
+  "version": "2.0.0",
+  "author": {
+    "name": "Phoenix OS"
+  }
+}
