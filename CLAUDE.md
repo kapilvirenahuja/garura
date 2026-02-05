@@ -4,62 +4,62 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Phoenix OS is an agentic framework implementing **Fluidic SDLC** principles for intent-driven, deterministic AI-assisted development. It uses a three-layer hierarchy: **Recipes** (L1/L2 workflows) → **Agents** (domain experts) → **Skills** (learned capabilities).
+Phoenix OS is an agentic framework implementing **Fluidic SDLC** principles for intent-driven, deterministic AI-assisted development. It uses a three-layer hierarchy: **Commands** (user workflows) → **Agents** (domain experts) → **Skills** (learned capabilities).
 
 ## Architecture
 
-```
-core/components/           # Source of truth (edit here)
-├── agents/               # Agent definitions (6 agents)
-├── skills/               # Skills (model-invocable only)
-├── recipes/              # L1/L2 recipes
-└── memory/               # LTM: practices, templates, standards
+Phoenix OS uses the native Claude Code plugin format:
 
-.claude/                   # Synced output (never edit directly)
-├── agents/               # Deployed agents
-└── skills/               # Deployed skills + recipes
+```
+phoenix-os/
+├── .claude-plugin/           # Plugin manifest
+│   └── plugin.json
+├── skills/                   # Model-invocable capabilities
+│   ├── analyze-changes/      # Analyze uncommitted changes
+│   ├── analyze-pr/           # Analyze PR readiness
+│   ├── create-commit/        # Create commits
+│   ├── submit-pr/            # Submit pull requests
+│   └── memory/               # Repository standards & conventions
+├── commands/                 # User-invocable workflows
+│   ├── commit-code.md        # Commit workflow
+│   └── create-pr.md          # PR creation workflow
+├── agents/                   # Domain experts
+│   └── repo-orchestrator.md  # Repository operations
+├── CLAUDE.md                 # This file
+└── README.md                 # Project documentation
 ```
 
-**Data Flow:** L2 Recipe → chains L1s → L1 invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`.phoenix-os/project/`)
+**Data Flow:** Command → invokes agents → agents invoke skills → skills produce artifacts to STM (`.phoenix-os/project/`)
 
 ## Behavioral Rules
 
 ### 1. Source of Truth
 
-Author all components in `core/components/`. Never edit `.claude/` directly.
-
-```
-core/components/skills/   → .claude/skills/  (via /sync-claude)
-core/components/recipes/  → .claude/skills/  (via /sync-claude)
-core/components/agents/   → .claude/agents/  (via /sync-claude)
-```
-
-After editing source, run `/sync-claude`.
+All components are in their respective root-level directories:
+- `skills/` — Model-invocable skills
+- `commands/` — User-invocable commands
+- `agents/` — Domain expert agents
 
 ### 2. Execution Model
 
-**Recipes run in Claude Code.** Claude Code orchestrates recipes and invokes agents for domain-specific tasks.
+**Commands run in Claude Code.** Claude Code orchestrates commands and invokes agents for domain-specific tasks.
 
 ```
 Claude Code (orchestrator)
-    └── runs Recipe (L1/L2)
+    └── runs Command
             └── invokes Agent via Task tool
                     └── agent invokes Skills
 ```
 
-**Agent-First:** Within recipes, delegate domain tasks to agents. Never use tools directly when an agent covers that domain.
+**Agent-First:** Within commands, delegate domain tasks to agents. Never use tools directly when an agent covers that domain.
 
 | Domain Task | Agent |
 |-------------|-------|
-| Git, commits, branches | `repo-orchestrator` |
-| Issues, tracking | `repo-orchestrator` + `project-orchestrator` context |
-| Technical design, RCA | `tech-designer` |
-| Implementation | `code-builder` |
-| Testing, validation | `quality-validator` |
+| Git, commits, branches, PRs | `repo-orchestrator` |
 
 ```
 # ❌ WRONG — bypassing agent
-git commit -m "..." directly in recipe
+git commit -m "..." directly in command
 
 # ✅ CORRECT — delegate to agent
 Task tool → subagent_type: "repo-orchestrator"
@@ -83,12 +83,12 @@ Parse: `Approve`/`approve` → proceed. `Reject`/`reject` → cancel. Else → c
 
 Applies to: commits, PRs, protected branches, destructive actions.
 
-### 4. Recipe Constraints
+### 4. Command Constraints
 
-| Level | Invocability | Max Agent Calls |
-|-------|--------------|-----------------|
-| L1 | Human OR Model | ≤2 |
-| L2 | Human only | ≤5 (ideal 3) |
+Commands are user-invocable workflows that orchestrate agents:
+- Max 2 agent calls per command
+- Always produce checkpoint for user approval
+- Never execute git/gh commands directly
 
 ### 5. Task-Driven Workflow
 
@@ -127,7 +127,6 @@ TaskCreate: "Verify Y" (agent: quality-validator) → blockedBy: [implement Y]
 
 ## Reference
 
-- `core/config.yaml` — Paths and settings
-- `docs/adr/` — Architecture Decision Records (7 ADRs)
+- `docs/adr/` — Architecture Decision Records
 - `docs/philosophy/` — Core architecture philosophy
-- `docs/components/` — Agent, skill, recipe, memory documentation
+- `docs/components/` — Agent, skill, command documentation
