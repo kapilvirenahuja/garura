@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "phoenix-os",
-      "description": "Agentic framework for intent-driven, deterministic AI-assisted development implementing Fluidic SDLC principles",
+      "description": "Agentic framework for intent-driven, deterministic AI-assisted development implementing AI-native SDLC principles",
       "version": "2.0.0",
       "author": {
         "name": "Phoenix OS"

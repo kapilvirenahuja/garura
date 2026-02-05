@@ -2,15 +2,15 @@
 
 **Your OS for intent-driven development** - An agentic system that defines how to build software deterministically for enterprise-grade delivery.
 
-## What is Fluidic SDLC
+## What is AI-native SDLC
 
-**Fluidic SDLC** is a philosophy that prioritizes adaptive execution over rigid workflows. Unlike traditional methodologies that prescribe specific tools and rigid processes, Fluidic SDLC adapts to available tools, contexts, and constraints while maintaining deterministic outcomes.
+**AI-native SDLC** is a philosophy that prioritizes adaptive execution over rigid workflows. Unlike traditional methodologies that prescribe specific tools and rigid processes, AI-native SDLC adapts to available tools, contexts, and constraints while maintaining deterministic outcomes.
 
 ### Core Philosophy
 
 Traditional approach: `Tool Required → Process Fails if Unavailable → Developer Blocked`
 
-Fluidic approach: `Start with intent → Agentic System selects method → Workflows adapt to needs → Consistent memory and context → Deliver consistent outcomes`
+AI-native approach: `Start with intent → Agentic System selects method → Workflows adapt to needs → Consistent memory and context → Deliver consistent outcomes`
 
 ### Three Core Tenets
 
@@ -32,7 +32,7 @@ Read more: [`docs/philosophy/index.md`](docs/philosophy/index.md)
 
 ## What is Phoenix OS
 
-Phoenix OS is an agentic framework that implements Fluidic SDLC principles for intent-driven development. It orchestrates specialized AI agents through cognitive flows to deliver enterprise-grade code generation.
+Phoenix OS is an agentic framework that implements AI-native SDLC principles for intent-driven development. It orchestrates specialized AI agents through cognitive flows to deliver enterprise-grade code generation.
 
 ### Key Features
 

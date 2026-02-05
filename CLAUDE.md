@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Phoenix OS is an agentic framework implementing **Fluidic SDLC** principles for intent-driven, deterministic AI-assisted development. It uses a three-layer hierarchy: **Commands** (user workflows) → **Agents** (domain experts) → **Skills** (learned capabilities).
+Phoenix OS is an agentic framework implementing **AI-native SDLC** principles for intent-driven, deterministic AI-assisted development. It uses a three-layer hierarchy: **Commands** (user workflows) → **Agents** (domain experts) → **Skills** (learned capabilities).
 
 ## Architecture
 
