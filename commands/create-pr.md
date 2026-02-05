@@ -1,5 +1,4 @@
 ---
-name: create-pr
 description: Create pull request with dynamic, context-aware quality checklist
 ---
 

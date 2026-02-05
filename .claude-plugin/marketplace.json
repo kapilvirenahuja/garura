@@ -1,0 +1,23 @@
+{
+  "name": "phoenix-os-marketplace",
+  "description": "Phoenix OS plugin marketplace",
+  "owner": {
+    "name": "Phoenix OS"
+  },
+  "plugins": [
+    {
+      "name": "phoenix-os",
+      "description": "Agentic framework for intent-driven, deterministic AI-assisted development implementing AI-native SDLC principles",
+      "version": "2.0.0",
+      "author": {
+        "name": "Phoenix OS"
+      },
+      "source": {
+        "source": "url",
+        "url": "https://github.com/kapilvirenahuja/phoenix-os.git"
+      },
+      "category": "development",
+      "homepage": "https://github.com/kapilvirenahuja/phoenix-os"
+    }
+  ]
+}

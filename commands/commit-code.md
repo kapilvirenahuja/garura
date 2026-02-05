@@ -1,5 +1,4 @@
 ---
-name: commit-code
 description: Commit code changes grouped by issue type with conventional messages
 ---
 
