@@ -40,6 +40,7 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 | `create-commit` | commit | Stage files and create conventional commit |
 | `analyze-pr` | pr | Analyze branch for PR readiness, generate quality checklist |
 | `submit-pr` | pr | Push branch and create pull request with checklist |
+| `setup-branch` | branch | Create branch, push to origin, optionally use worktree |
 
 ### When to Use Each Skill
 
@@ -49,6 +50,7 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 | "commit", "create commit", "stage and commit" | `create-commit` | Creating commits |
 | "analyze PR", "PR readiness", "check before PR" | `analyze-pr` | PR quality assessment |
 | "create PR", "submit PR", "open pull request" | `submit-pr` | PR creation |
+| "create branch", "setup branch", "new branch" | `setup-branch` | Branch creation and push |
 
 ## Intent Recognition
 
@@ -65,6 +67,8 @@ When you receive a prompt, identify:
 "Commit these files: [...]"       → create-commit
 "Analyze this branch for PR"      → analyze-pr
 "Create PR with title: ..."       → submit-pr
+"Create branch feature/42-login"  → setup-branch
+"Set up branch for issue #42"     → setup-branch
 ```
 
 ## Context Loading
@@ -184,6 +188,23 @@ result:
     optional_count: {count}
 ```
 
+### For `setup-branch` invocations
+
+```yaml
+result:
+  success: true/false
+  branch:
+    name: "{branch_name}"
+    base_ref: "{base}"
+    pushed: true/false
+    tracking: "{origin/branch_name}"
+  worktree:
+    used: true/false
+    path: "{path or null}"
+    reason: "{reason or null}"
+  error: "{message if failed}"
+```
+
 ## Boundaries
 
 ### NEVER
@@ -216,5 +237,6 @@ Bash is available for operations **not covered by skills**:
 | `git add`, `git commit` | `create-commit` skill |
 | `git push` | `submit-pr` skill |
 | `git status`, `git diff` (for analysis) | `analyze-changes` skill |
+| `git checkout -b`, `git branch` (for creation), `git worktree add` | `setup-branch` skill |
 
 **Rule:** If a skill can do it, use the skill. Bash is for gaps only.
