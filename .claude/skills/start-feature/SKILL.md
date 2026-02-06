@@ -278,6 +278,6 @@ Type **Approve** to create the branch or **Reject** to cancel.
 | Field | Value |
 |-------|-------|
 | Level | L1 |
-| Version | 2.0.0 |
+| Version | 1.0.1 |
 | Agent Calls | 2 |
 | Checkpoint | Always |
