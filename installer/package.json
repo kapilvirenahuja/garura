@@ -5,7 +5,7 @@
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nagarro-digital/phoenix-os.git"
+    "url": "https://github.com/kapilvirenahuja/phoenix-os.git"
   },
   "bin": {
     "phoenix": "bin/phoenix.js"

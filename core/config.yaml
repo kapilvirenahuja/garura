@@ -7,7 +7,7 @@ project:
 platform: github
 
 github:
-  repo: https://github.com/nagarro-digital/phoenix-os.git
+  repo: https://github.com/kapilvirenahuja/phoenix-os.git
 
 # Source of truth locations
 components:

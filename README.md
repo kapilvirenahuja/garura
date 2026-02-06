@@ -144,7 +144,7 @@ Phoenix OS is designed to work with multiple AI agent platforms:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/phoenix-os/phoenix-os.git
+   git clone https://github.com/kapilvirenahuja/phoenix-os.git
    cd phoenix-os
    ```
 
@@ -219,23 +219,10 @@ We welcome contributions to Phoenix OS! Whether you're fixing bugs, improving do
 3. Include tests for new functionality
 4. Submit your pull request with a clear description of changes
 
-### Core Team
-
-- **🔥 Phoenix Eternal** (Owners)
-  - **[Kapil Viren Ahuja](https://github.com/kapilvirenahuja)** - Primary Maintainer
-  - **[Nitesh Soni](https://github.com/niteshsoni11)** - Core Owner
-
-- **🌟 Phoenix Rising** (Elite Contributors)
-  - **[Karry Reddy](https://github.com/karri-reddy)** - Elite Contributor
-  - **[Madhur Madan](https://github.com/madhurmadan)** - Core Contributor
-
-Your contributions help Phoenix OS rise stronger! Start your journey from Spark 🔥 to Phoenix today.
 
 ## Maintainers
 
 - **Kapil Viren Ahuja** - Primary maintainer
-- **Madhur Madan** - Core contributor
-- **Vinay Singh** - Core contributor
 
 ## License
 
@@ -263,4 +250,4 @@ SOFTWARE.
 
 ## Support
 
-For issues and questions, please visit: https://github.com/phoenix-os/phoenix-os/issues
+For issues and questions, please visit: https://github.com/kapilvirenahuja/phoenix-os/issues
