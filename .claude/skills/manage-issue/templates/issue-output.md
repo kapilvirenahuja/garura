@@ -13,6 +13,7 @@ issue:
   body_summary: "{first 200 chars of body}"
   url: "{html_url}"
   created: {true|false}
+  closed: {true|false}
   parent_issue: {parent_number or null}
 ```
 
@@ -27,4 +28,5 @@ issue:
 | `body_summary` | First 200 characters of the issue body |
 | `url` | Full HTML URL to the issue |
 | `created` | `true` if this skill created the issue, `false` if it already existed |
+| `closed` | `true` if this skill closed the issue, `false` otherwise |
 | `parent_issue` | Parent issue number if attached as sub-issue, `null` otherwise |

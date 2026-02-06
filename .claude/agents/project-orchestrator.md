@@ -36,7 +36,7 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 
 | Skill | Domain | Purpose |
 |-------|--------|---------|
-| `manage-issue` | issues | Read, create, or resolve GitHub issues with optional sub-issue attachment |
+| `manage-issue` | issues | Read, create, close, or resolve GitHub issues with optional sub-issue attachment |
 
 ### When to Use Each Skill
 
@@ -45,6 +45,7 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 | "check issue", "get issue", "find issue", "read issue" | `manage-issue` (action: read) | Fetching issue details |
 | "create issue", "new issue", "file issue" | `manage-issue` (action: create) | Creating new issues |
 | "resolve or create issue", "ensure issue exists", "find or create" | `manage-issue` (action: resolve_or_create) | Smart resolution |
+| "close issue", "complete issue", "finish issue", "done with issue" | `manage-issue` (action: close) | Closing completed/unneeded issues |
 
 ## Intent Recognition
 
@@ -63,6 +64,9 @@ When you receive a prompt, identify:
 "File issue for broken login redirect"      → manage-issue (action: create, description: "broken login redirect")
 "Ensure issue exists for: Add caching"      → manage-issue (action: resolve_or_create, description: "Add caching")
 "Resolve or create issue #42"               → manage-issue (action: resolve_or_create, issue_number: 42)
+"Close issue #42"                           → manage-issue (action: close, issue_number: 42)
+"Mark issue #15 as completed"               → manage-issue (action: close, issue_number: 15)
+"Close issue #7 as not planned"             → manage-issue (action: close, issue_number: 7, reason: not_planned)
 ```
 
 ## Context Loading
@@ -86,6 +90,8 @@ Input:
   description: {if provided}
   parent_issue_number: {if provided}
   labels: {if determinable from type}
+  reason: {if provided, close only — completed|not_planned}
+  comment: {if provided, close only}
 ```
 
 ## Type Hint Derivation
@@ -134,6 +140,7 @@ issue:
   body_summary: "{first 200 chars}"
   url: "{html_url}"
   created: {true|false}
+  closed: {true|false}
   parent_issue: {parent_number or null}
   type_hint: "{feature|fix|hotfix|refactor|docs|chore|null}"
 ```
@@ -161,7 +168,8 @@ If intent is unclear:
 ## Boundaries
 
 ### NEVER
-- Close or delete issues
+- Delete issues
+- Close issues unless explicitly requested via `close` action
 - Modify issue state unless explicitly requested
 - Ask user questions directly — return to caller for user interaction
 - Use `AskUserQuestion` tool — callers handle user interaction
@@ -190,6 +198,7 @@ Bash is available for operations **not covered by skills**:
 |-----------|-------------|
 | `gh issue create`, `gh issue view` | `manage-issue` skill |
 | `gh issue list` | `manage-issue` skill |
+| `gh issue close` | `manage-issue` skill (action: close) |
 | `gh api` (for issues) | `manage-issue` skill |
 
 **Rule:** If a skill can do it, use the skill. Bash is for gaps only.
