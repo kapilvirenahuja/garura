@@ -21,6 +21,7 @@ You are the orchestrator. You delegate to agents, never execute directly.
 | Task | Agent | Verification |
 |------|-------|--------------|
 | Analyze uncommitted changes | repo-orchestrator | Groups extracted, risks identified |
+| NWWI gate | orchestrator | Issue ID resolved from branch or user |
 | Checkpoint decision | orchestrator | User approved (or auto-approved) |
 | Execute commits | repo-orchestrator | Clean working tree |
 
@@ -46,9 +47,25 @@ analysis:
     breaking_changes: [list]
 ```
 
-### 2. Checkpoint
+### 2. NWWI Gate
 
-Write artifact to STM: `.phoenix-os/project/checkpoints/commit-code/{YYYYMMDD-HHMMSS}.md`
+Before writing any checkpoint, verify an issue ID is available:
+
+1. Extract issue number from the current branch name (e.g., `feature/7-...` → issue #7)
+2. If no issue number found in branch name, prompt the user:
+   ```
+   No issue ID found in branch name. NWWI requires an issue for commits.
+   Please provide an issue number or type "create" to create a new issue.
+   ```
+3. If user provides a number, validate it exists via `project-orchestrator`
+4. If user types "create", invoke `project-orchestrator` to create an issue
+5. Store the resolved `{issue-number}` for checkpoint path construction
+
+**This is a hard gate. Do not proceed to checkpoint without a valid issue ID.**
+
+### 3. Checkpoint
+
+Write artifact to STM: `.phoenix-os/{issue-number}/checkpoint/commit-code/{YYYYMMDD-HHMMSS}.md`
 
 **Auto-approve when ALL:**
 - Single logical group
@@ -66,7 +83,7 @@ Write artifact to STM: `.phoenix-os/project/checkpoints/commit-code/{YYYYMMDD-HH
 
 **If checkpoint needed**, present summary and wait for `Approve` or `Reject`.
 
-### 3. Execute
+### 4. Execute
 
 Invoke `repo-orchestrator` to run `create-commit` skill for each approved group.
 
@@ -85,7 +102,7 @@ result:
     conventional_format: true/false
 ```
 
-### 4. Report
+### 5. Report
 
 Present summary with commit hashes, files changed, and validation status.
 
@@ -94,11 +111,27 @@ Present summary with commit hashes, files changed, and validation status.
 ### Checkpoint Artifact
 
 ```markdown
-# Commit Checkpoint
+# Commit Code Checkpoint
 
-**Created:** {YYYY-MM-DD HH:MM:SS}
-**Branch:** {branch_name}
-**Status:** {PENDING_APPROVAL|APPROVED|REJECTED}
+## Metadata
+- **Issue:** #{issue-number}
+- **Recipe:** commit-code
+- **Step:** {current-step} of 5
+- **Created:** {YYYY-MM-DD HH:MM:SS}
+- **Status:** {PENDING_APPROVAL|APPROVED|REJECTED}
+- **Branch:** {branch_name}
+
+## Task List
+| Task | Status | Agent |
+|------|--------|-------|
+| Analyze changes | {pending|completed} | repo-orchestrator |
+| NWWI gate | {pending|completed} | orchestrator |
+| Checkpoint approval | {pending|completed} | orchestrator |
+| Execute commits | {pending|completed} | repo-orchestrator |
+| Report | {pending|completed} | orchestrator |
+
+## Completed Outputs
+{Analysis results from step 1: groups, risks, branch info}
 
 ## Proposed Commits
 
@@ -107,8 +140,13 @@ Present summary with commit hashes, files changed, and validation status.
 - Files: {file_list}
 {end for}
 
-## Decision
+## Current Step
+Awaiting user approval for proposed commits.
 
+## Inputs Needed to Continue
+- User approval (Approve/Reject)
+
+## Decision
 - **Auto-Approved:** {yes/no}
 - **Approval Status:** {status}
 ```
@@ -175,6 +213,6 @@ Type **Approve** to proceed or **Reject** to cancel.
 | Field | Value |
 |-------|-------|
 | Level | L1 |
-| Version | 2.0.0 |
+| Version | 3.0.0 |
 | Agent Calls | 2 |
 | Checkpoint | Conditional |

@@ -56,7 +56,9 @@ analysis:
 
 ### 2. Checkpoint
 
-Write artifact to STM: `.phoenix-os/project/checkpoints/create-pr/{branch-name}.md`
+**Issue context:** Extract issue number from the current branch name (e.g., `feature/7-...` → issue #7). The issue number is required for the checkpoint path. If no issue number can be extracted, this recipe cannot proceed — NWWI principle applies.
+
+Write artifact to STM: `.phoenix-os/{issue-number}/checkpoint/create-pr/{YYYYMMDD-HHMMSS}.md`
 
 **Always checkpoint.** PRs are externally visible.
 
@@ -89,36 +91,46 @@ Present summary with PR URL, checklist summary, and next steps.
 ### Checkpoint Artifact
 
 ```markdown
-# PR Checkpoint
+# Create PR Checkpoint
 
-**Created:** {YYYY-MM-DD HH:MM:SS}
-**Branch:** {branch_name}
-**Status:** {PENDING_APPROVAL|APPROVED|REJECTED}
+## Metadata
+- **Issue:** #{issue-number}
+- **Recipe:** create-pr
+- **Step:** {current-step} of 4
+- **Created:** {YYYY-MM-DD HH:MM:SS}
+- **Status:** {PENDING_APPROVAL|APPROVED|REJECTED}
+- **Branch:** {branch_name}
 
-## Analysis Summary
+## Task List
+| Task | Status | Agent |
+|------|--------|-------|
+| Analyze PR readiness | {pending|completed} | repo-orchestrator |
+| Checkpoint approval | {pending|completed} | orchestrator |
+| Create pull request | {pending|completed} | repo-orchestrator |
+| Report | {pending|completed} | orchestrator |
 
-| Field | Value |
-|-------|-------|
-| Title | {suggested_title} |
-| Base | {base_branch} |
-| Head | {current_branch} |
+## Completed Outputs
+{Analysis results: branch, base, suggested title, checklist}
 
 ## Quality Checklist
 
 ### Must-Have (blocking)
-
 | Item | Trigger | Status | Evidence |
 |------|---------|--------|----------|
 | {item} | {trigger} | {status} | {evidence} |
 
 ### Nice-to-Have (optional)
-
 | Item | Trigger | Status | Evidence |
 |------|---------|--------|----------|
 | {item} | {trigger} | {status} | {evidence} |
 
-## Decision
+## Current Step
+Awaiting user approval for PR creation.
 
+## Inputs Needed to Continue
+- User approval (Approve/Reject)
+
+## Decision
 - **Approval Status:** {status}
 ```
 
@@ -196,6 +208,6 @@ Type **Approve** to create the PR or **Reject** to cancel.
 | Field | Value |
 |-------|-------|
 | Level | L1 |
-| Version | 2.0.0 |
+| Version | 3.0.0 |
 | Agent Calls | 2 |
 | Checkpoint | Always |
