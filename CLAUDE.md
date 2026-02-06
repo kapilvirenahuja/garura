@@ -20,7 +20,7 @@ core/components/           # Source of truth (edit here)
 └── skills/               # Deployed skills + recipes
 ```
 
-**Data Flow:** L2 Recipe → chains L1s → L1 invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`.phoenix-os/project/`)
+**Data Flow:** L2 Recipe → chains L1s → L1 invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`.phoenix-os/{issue}/`)
 
 ## Behavioral Rules
 
@@ -128,6 +128,6 @@ TaskCreate: "Verify Y" (agent: quality-validator) → blockedBy: [implement Y]
 ## Reference
 
 - `core/config.yaml` — Paths and settings
-- `docs/adr/` — Architecture Decision Records (7 ADRs)
+- `docs/adr/` — Architecture Decision Records (8 ADRs)
 - `docs/philosophy/` — Core architecture philosophy
 - `docs/components/` — Agent, skill, recipe, memory documentation

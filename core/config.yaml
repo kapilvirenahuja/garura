@@ -21,9 +21,11 @@ claude:
   skills: ./.claude/skills/
   agents: ./.claude/agents/
 
-# Project artifacts
-checkpoints:
-  base-path: .phoenix-os/project/checkpoints/
-  commit-code: "{YYYYMMDD-HHMMSS}.md"
-  create-pr: "{branch-name}.md"
-  start-feature: "{issue-number}-{YYYYMMDD-HHMMSS}.md"
+# Short-Term Memory (STM) — Issue-centric artifacts (ADR 008)
+stm:
+  base-path: .phoenix-os/
+  pending-path: .phoenix-os/_pending/
+  structure:
+    docs: "{issue-number}/docs/"
+    evidence: "{issue-number}/evidence/"
+    checkpoint: "{issue-number}/checkpoint/{recipe-name}/{YYYYMMDD-HHMMSS}.md"

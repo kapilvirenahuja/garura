@@ -108,7 +108,18 @@ Reference branch naming conventions from: `core/components/memory/practices/git/
 
 ### 3. Checkpoint
 
-Write artifact to STM: `.phoenix-os/project/checkpoints/start-feature/{issue-number}-{YYYYMMDD-HHMMSS}.md`
+Write artifact to STM using **two-phase write** (ADR 008):
+
+**Phase 1 (pre-issue):** If issue is being created (not yet resolved):
+- Write checkpoint to: `.phoenix-os/_pending/{YYYYMMDD-HHMMSS}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md`
+- This is a temporary location
+
+**Phase 2 (post-issue):** After issue is resolved/created and issue number is known:
+- Move from `_pending/` to: `.phoenix-os/{issue-number}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md`
+- Delete the `_pending/{timestamp}/` directory
+
+**If issue number is provided upfront** (e.g., `/start-feature 7`):
+- Skip Phase 1, write directly to: `.phoenix-os/{issue-number}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md`
 
 **Always checkpoint.** Branch creation is externally visible.
 
@@ -158,11 +169,24 @@ Present final summary with all results.
 ```markdown
 # Start Feature Checkpoint
 
-**Created:** {YYYY-MM-DD HH:MM:SS}
-**Status:** {PENDING_APPROVAL|APPROVED|REJECTED}
+## Metadata
+- **Issue:** #{issue-number}
+- **Recipe:** start-feature
+- **Step:** {current-step} of 5
+- **Created:** {YYYY-MM-DD HH:MM:SS}
+- **Status:** {PENDING_APPROVAL|APPROVED|REJECTED}
 
-## Issue
+## Task List
+| Task | Status | Agent |
+|------|--------|-------|
+| Resolve/create issue | {pending|completed} | project-orchestrator |
+| Derive branch name | {pending|completed} | orchestrator |
+| Checkpoint approval | {pending|completed} | orchestrator |
+| Create and push branch | {pending|completed} | repo-orchestrator |
+| Report | {pending|completed} | orchestrator |
 
+## Completed Outputs
+### Issue
 | Field | Value |
 |-------|-------|
 | Number | #{number} |
@@ -174,15 +198,20 @@ Present final summary with all results.
 | Parent | {parent or N/A} |
 
 ## Proposed Branch
-
 | Field | Value |
 |-------|-------|
 | Type | {type_hint or NEEDS SELECTION} |
 | Branch | `{branch_name}` |
 | Convention | `{type}/{issue_number}-{slug}` |
 
-## Decision
+## Current Step
+Awaiting user approval for branch creation.
 
+## Inputs Needed to Continue
+- User approval (Approve/Reject)
+- Type selection (if type_hint is null)
+
+## Decision
 - **Approval Status:** {status}
 ```
 
@@ -249,6 +278,6 @@ Type **Approve** to create the branch or **Reject** to cancel.
 | Field | Value |
 |-------|-------|
 | Level | L1 |
-| Version | 1.0.0 |
+| Version | 1.0.1 |
 | Agent Calls | 2 |
 | Checkpoint | Always |

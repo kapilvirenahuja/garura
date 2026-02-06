@@ -4,6 +4,8 @@
 
 Accepted
 
+**Note:** The checkpoint storage location defined in this ADR has been superseded by [ADR 008: Issue-Centric STM and NWWI](./008-issue-centric-stm-and-nwwi.md). Checkpoints now use `.phoenix-os/{issue}/checkpoint/{recipe}/{timestamp}.md` instead of the legacy path. The core model (artifact + checkpoint) remains unchanged.
+
 ## Date
 
 2026-01-23
@@ -74,3 +76,4 @@ L1 Recipe: {name}
 
 - [ADR 001: Three-Layer Hierarchy](./001-three-layer-hierarchy.md)
 - [ADR 003: Guardian Approval Model](./003-guardian-approval.md)
+- [ADR 008: Issue-Centric STM and NWWI](./008-issue-centric-stm-and-nwwi.md) — Supersedes checkpoint location

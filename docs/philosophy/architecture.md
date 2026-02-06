@@ -189,25 +189,32 @@ Phoenix OS uses a **dual memory system**:
 **Location:** `.phoenix-os/{issue_number}/`
 
 **Contains:**
-- Artifacts created during recipe execution
 - Documentation (specs, designs, RCA)
 - Evidence (tests, validation)
+- Checkpoints (recipe execution state for approval and resumption)
 
-**Lifecycle:** Recipe start → recipe end
+**Lifecycle:** Persists forever (version controlled audit trail)
+
+**Principle:** NWWI (No Work Without an Issue) — all checkpoint-producing work must be associated with an issue. Enforcement point is `commit-code`: no commit without an issue ID.
 
 ### STM Folder Structure
 
 ```
 .phoenix-os/
+├── _pending/                # Temporary, pre-issue (two-phase write)
+│   └── {timestamp}/
 └── {issue_number}/
-    ├── docs/           # Specs, designs, plans
+    ├── docs/                # Specs, designs, plans
     │   ├── spec.md
     │   ├── tech-design.md
     │   └── rca.md
-    └── evidence/       # Implementation evidence
-        ├── changes.md
-        ├── tests.md
-        └── validation.md
+    ├── evidence/            # Implementation evidence
+    │   ├── changes.md
+    │   ├── tests.md
+    │   └── validation.md
+    └── checkpoint/          # Recipe execution state
+        └── {recipe-name}/
+            └── {timestamp}.md
 ```
 
 ### Memory Flow
@@ -236,9 +243,9 @@ Phoenix OS uses a **dual memory system**:
 ┌─────────────────────────────────────────────────────────────┐
 │                    STM (Short-Term Memory)                  │
 │  Created: When recipe starts                                │
-│  Contains: Artifacts (docs, evidence) for this issue        │
+│  Contains: Artifacts (docs, evidence, checkpoint) per issue │
 │  Location: .phoenix-os/{issue_number}/                      │
-│  Lifecycle: Recipe execution                                │
+│  Lifecycle: Persists forever (audit trail)                  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -252,6 +259,7 @@ Phoenix OS uses a **dual memory system**:
 | **Agent produces** | Artifacts | Agent does work, recipe orchestrates |
 | **Learned capabilities** | Skills | Technology/methodology specific knowledge |
 | **Never forked** | Recipes & Skills | Recipes are steps; skills share context |
+| **NWWI** | Recipes | No Work Without an Issue — commit-code is the hard gate |
 
 ## Why This Architecture?
 
@@ -280,3 +288,4 @@ Traditional AI copilots are non-deterministic — same prompt, different results
 - [ADR 005: Skills as Capabilities](../adr/005-skills-as-capabilities.md)
 - [ADR 006: Naming Conventions](../adr/006-naming-conventions.md)
 - [ADR 007: Skill-Local References](../adr/007-skill-local-references.md)
+- [ADR 008: Issue-Centric STM and NWWI](../adr/008-issue-centric-stm-and-nwwi.md)
