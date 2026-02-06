@@ -34,7 +34,7 @@ Receive from agent:
 
 2. **Categorize Each File**
 
-   Load categories from: `core/memory/skills/references/commit-categories.md`
+   Load categories from: `reference/commit-categories.md`
 
 3. **Detect Risks**
 

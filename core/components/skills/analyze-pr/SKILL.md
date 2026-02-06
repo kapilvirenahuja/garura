@@ -46,7 +46,7 @@ Determine which file patterns are affected:
 
 Determine branch pattern using: `reference/branch-patterns.md`
 
-Determine commit types from commit messages using: `core/memory/skills/references/commit-categories.md`
+Determine commit types from commit messages using: `reference/commit-categories.md`
 
 ### 3. Load Rules
 
