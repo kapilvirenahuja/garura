@@ -118,7 +118,7 @@ Phoenix OS agents follow the `{domain}-{role}` naming pattern:
 
 Phoenix OS uses a dual memory architecture:
 
-- **Short-Term Memory (STM)**: Task-specific context stored in `.phoenix-os/project/work/` - created per branch/worktree
+- **Short-Term Memory (STM)**: Issue-specific artifacts stored in `.phoenix-os/{issue}/` with subdirectories for `docs/`, `evidence/`, and `checkpoint/` (see ADR 008)
 - **Long-Term Memory (LTM)**: Organizational knowledge in `core/components/memory/` - skill overrides, standards, templates, practices
 
 **Skill-Memory Pattern**: Skills embed their own references locally. LTM contains overrides that are synced to skills at deployment time. Skills never read from LTM at runtime — they are self-contained.
