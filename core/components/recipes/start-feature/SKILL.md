@@ -127,6 +127,14 @@ If `type_hint` is `null`, the checkpoint MUST prompt the user to select a type b
 
 Present summary and wait for `Approve` or `Reject`.
 
+**After user responds**, update the checkpoint artifact:
+1. Set `Status` to `APPROVED` or `REJECTED`
+2. Set `Approval Status` to `APPROVED` or `REJECTED`
+3. Mark `Checkpoint approval` task as `completed`
+4. Advance `Step` to `4 of 5`
+
+If `REJECTED`, stop execution — do not proceed to Step 4.
+
 ### 4. Create Branch
 
 Invoke `repo-orchestrator` via Task tool:
@@ -161,6 +169,10 @@ result:
 ### 5. Report
 
 Present final summary with all results.
+
+**After reporting**, update the checkpoint artifact:
+1. Mark all remaining tasks (`Create and push branch`, `Report`) as `completed`
+2. Set `Step` to `5 of 5`
 
 ## Artifact Templates
 
@@ -278,6 +290,6 @@ Type **Approve** to create the branch or **Reject** to cancel.
 | Field | Value |
 |-------|-------|
 | Level | L1 |
-| Version | 1.0.1 |
+| Version | 1.0.2 |
 | Agent Calls | 2 |
 | Checkpoint | Always |
