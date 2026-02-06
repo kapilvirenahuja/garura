@@ -83,6 +83,17 @@ Write artifact to STM: `.phoenix-os/{issue-number}/checkpoint/commit-code/{YYYYM
 
 **If checkpoint needed**, present summary and wait for `Approve` or `Reject`.
 
+**After user responds (or auto-approve)**, update the checkpoint artifact:
+1. Set `Status` to `APPROVED` or `REJECTED`
+2. Set `Approval Status` to `APPROVED`, `REJECTED`, or `Auto-Approved`
+3. Set `Auto-Approved` to `yes` or `no`
+4. Mark `Checkpoint approval` task as `completed`
+5. Advance `Step` to `4 of 5`
+
+If auto-approved, write the checkpoint directly with `Status: APPROVED` and `Auto-Approved: yes`.
+
+If `REJECTED`, stop execution — do not proceed to Step 4.
+
 ### 4. Execute
 
 Invoke `repo-orchestrator` to run `create-commit` skill for each approved group.
@@ -105,6 +116,10 @@ result:
 ### 5. Report
 
 Present summary with commit hashes, files changed, and validation status.
+
+**After reporting**, update the checkpoint artifact:
+1. Mark all remaining tasks (`Execute commits`, `Report`) as `completed`
+2. Set `Step` to `5 of 5`
 
 ## Artifact Templates
 
@@ -213,6 +228,6 @@ Type **Approve** to proceed or **Reject** to cancel.
 | Field | Value |
 |-------|-------|
 | Level | L1 |
-| Version | 2.0.1 |
+| Version | 2.0.2 |
 | Agent Calls | 2 |
 | Checkpoint | Conditional |
