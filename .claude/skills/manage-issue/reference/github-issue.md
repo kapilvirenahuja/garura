@@ -32,6 +32,24 @@ gh issue create \
 
 Returns the issue URL on success. Parse issue number from URL.
 
+### Close Issue
+
+```bash
+# Basic close (defaults to reason: completed)
+gh issue close {number}
+
+# Close with reason
+gh issue close {number} --reason {completed|not_planned}
+
+# Close with comment
+gh issue close {number} --comment "{comment}"
+
+# Close with reason and comment
+gh issue close {number} --reason {completed|not_planned} --comment "{comment}"
+```
+
+Closes the issue. The `--reason` flag accepts `completed` (default) or `not_planned`. The optional `--comment` flag adds a comment before closing.
+
 ### Get Repo Info
 
 ```bash
