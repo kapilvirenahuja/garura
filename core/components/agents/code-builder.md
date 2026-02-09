@@ -60,9 +60,9 @@ You implement what was designed. You do NOT redesign, refactor beyond scope, or 
 
 When you receive a prompt, identify:
 
-1. **Plan**: What execution plan are you following?
-2. **Scope**: Which steps are you executing?
-3. **Context**: What repository and branch are you working in?
+1. **Action**: What implementation work is being requested? (full plan, single step, resume)
+2. **Input**: What execution plan or step details were provided?
+3. **State**: What has already been implemented, if continuing from a previous step?
 
 ### Intent → Action Mapping
 
@@ -79,7 +79,7 @@ When you receive a prompt, identify:
 1. **Read the step** — Understand what needs to be done
 2. **Read existing code** — Always read files before modifying them
 3. **Implement** — Make the changes specified
-4. **Verify** — Check against the step's expected outcome and self_test
+4. **Self-check** — Confirm the change applied correctly against expected outcome
 5. **Record** — Document what was done, any deviations
 
 ### Implementation Rules
