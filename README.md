@@ -131,39 +131,27 @@ Phoenix OS is designed to work with multiple AI agent platforms:
 - **Claude Code**: Anthropic's official CLI for Claude
 - **Factory Droids**: Factory.AI Droid platform
 
-## Installation Instructions
+## Installation
 
 ### Prerequisites
 
-- **Node.js** >= 18
 - **Claude Code CLI** (for AI-assisted development)
 - **GitHub CLI** (`gh`) — [Install from cli.github.com](https://cli.github.com)
+- **curl** (pre-installed on macOS/Linux)
 
 ### Install into an Existing Project
 
-Install Phoenix OS globally, then initialize it in your project directory:
+Run the installer in your project directory:
 
 ```bash
-# Install globally from GitHub
-npm install -g github:kapilvirenahuja/phoenix-os
-
-# Navigate to your project
 cd /path/to/your-project
-
-# Initialize Phoenix OS
-phoenix init
+curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/phoenix-os/main/installer/install.sh | bash
 ```
 
-Or install from a published release:
+Optionally specify a project name:
 
 ```bash
-npm install -g phoenix-os
-```
-
-You can optionally specify a project name:
-
-```bash
-phoenix init --project-name my-app
+curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/phoenix-os/main/installer/install.sh | bash -s -- --project-name my-app
 ```
 
 This scaffolds the following structure in your project:
@@ -183,11 +171,32 @@ your-project/
 └── CLAUDE.md              # AI instructions (customizable)
 ```
 
-**After initialization:**
+**After installation:**
 
 1. Review and customize `CLAUDE.md` for your project
 2. Update `.phoenix-os/core/config.yaml` with your repository details
 3. Start developing with Claude Code
+
+### Upgrade an Existing Installation
+
+Run the same installer again — it detects the existing installation and performs a non-destructive upgrade:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/phoenix-os/main/installer/install.sh | bash
+```
+
+**What gets upgraded (overwritten):**
+- `.claude/agents/` — Agent definitions
+- `.claude/skills/` — Skills and recipes
+- `.phoenix-os/core/memory/` — Memory (practices, templates)
+
+**What gets preserved:**
+- `.phoenix-os/project/` — Your project artifacts
+- `.phoenix-os/core/config.yaml` — Your config (new version written as `config.yaml.new`)
+- `CLAUDE.md` — Your AI instructions (new version written as `CLAUDE.md.new`)
+- `.claude/settings.json` — Your Claude settings
+
+Review the `.new` files and merge any changes you want to keep.
 
 ### Install from Source (for Contributors)
 
@@ -202,42 +211,20 @@ cd phoenix-os
 claude /sync-claude
 ```
 
-### Build a Distributable Package
-
-To create a distributable `.tgz` package from source:
-
-```bash
-./pack.sh
-```
-
-This produces a `phoenix-os-<version>.tgz` tarball at the repository root, which can be installed via `npm install -g phoenix-os-<version>.tgz`.
-
-### CLI Reference
-
-```
-phoenix init [options]    Initialize Phoenix OS in the current directory
-phoenix --version         Show version
-phoenix --help            Show this help
-
-Options:
-  --project-name <name>   Project name (default: directory name)
-```
-
-
 ## Repository Structure
 
 ```
 phoenix-os/
-├── bin/
-│   └── phoenix.js          # CLI entry point
-├── lib/
-│   └── installer.js        # Init/scaffolding logic
+├── installer/
+│   └── install.sh             # Curl-based installer script
 ├── core/
-│   ├── components/         # Source of truth (agents, skills, recipes, memory)
-│   │   ├── agents/         # Agent definitions (2 agents)
+│   ├── components/            # Source of truth (agents, skills, recipes, memory)
+│   │   ├── agents/            # Agent definitions
+│   │   │   ├── code-builder.md
 │   │   │   ├── project-orchestrator.md
-│   │   │   └── repo-orchestrator.md
-│   │   ├── skills/         # Skills (self-contained capabilities)
+│   │   │   ├── repo-orchestrator.md
+│   │   │   └── tech-designer.md
+│   │   ├── skills/            # Skills (self-contained capabilities)
 │   │   │   ├── analyze-changes/
 │   │   │   ├── analyze-pr/
 │   │   │   ├── create-commit/
@@ -245,29 +232,28 @@ phoenix-os/
 │   │   │   ├── setup-branch/
 │   │   │   ├── submit-pr/
 │   │   │   └── sync-claude/
-│   │   ├── recipes/        # L1 recipes (atomic activities)
+│   │   ├── recipes/           # L1 recipes (atomic activities)
 │   │   │   ├── commit-code/
 │   │   │   ├── create-pr/
-│   │   │   └── start-feature/
-│   │   └── memory/         # Long-Term Memory (LTM)
-│   │       ├── practices/  # Workflows, quality gates, standards
+│   │   │   ├── start-feature/
+│   │   │   └── start-planned-feature/
+│   │   └── memory/            # Long-Term Memory (LTM)
+│   │       ├── practices/     # Workflows, quality gates, standards
 │   │       ├── quality-gates/
 │   │       ├── references/
-│   │       └── templates/  # Output templates
-│   └── config.yaml         # Configuration
-├── .claude/                # Deployed artifacts (synced from core/components/)
-│   ├── agents/             # Deployed agents
-│   ├── skills/             # Deployed skills and recipes
-│   └── plans/              # Planning artifacts
+│   │       └── templates/     # Output templates
+│   └── config.yaml            # Configuration
+├── .claude/                   # Deployed artifacts (synced from core/components/)
+│   ├── agents/                # Deployed agents
+│   ├── skills/                # Deployed skills and recipes
+│   └── plans/                 # Planning artifacts
 ├── docs/
-│   ├── adr/                # Architecture Decision Records
-│   ├── philosophy/         # Core architecture philosophy
-│   ├── components/         # Component-level documentation
-│   └── usage/              # Usage guides and recipes
-├── package.json            # npm package manifest
-├── pack.sh                 # Build distributable tarball
-├── CLAUDE.md               # Project configuration
-└── README.md               # This file
+│   ├── adr/                   # Architecture Decision Records
+│   ├── philosophy/            # Core architecture philosophy
+│   ├── components/            # Component-level documentation
+│   └── usage/                 # Usage guides and recipes
+├── CLAUDE.md                  # Project configuration
+└── README.md                  # This file
 ```
 
 ## Documentation
@@ -282,7 +268,7 @@ phoenix-os/
 - **Skills**: [`docs/components/phx-skills.md`](docs/components/phx-skills.md)
 - **Memory**: [`docs/components/phx-memory.md`](docs/components/phx-memory.md)
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions to Phoenix OS! Whether you're fixing bugs, improving documentation, or proposing new features, please submit pull requests to the main branch.
 
