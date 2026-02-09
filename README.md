@@ -135,25 +135,88 @@ Phoenix OS is designed to work with multiple AI agent platforms:
 
 ### Prerequisites
 
-- Git
-- Claude Code CLI (for integration with Claude)
-- GitHub CLI (`gh`) - [Install from cli.github.com](https://cli.github.com)
-- Access to the Phoenix OS repository
+- **Node.js** >= 18
+- **Claude Code CLI** (for AI-assisted development)
+- **GitHub CLI** (`gh`) — [Install from cli.github.com](https://cli.github.com)
 
-### Setup
+### Install into an Existing Project
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/kapilvirenahuja/phoenix-os.git
-   cd phoenix-os
-   ```
+Install Phoenix OS globally from the published package, then initialize it in your project directory:
 
-2. Configure Claude Code (optional, for agent synchronization):
-   ```bash
-   claude sync-claude
-   ```
+```bash
+# Install globally
+npm install -g phoenix-os
 
-3. Review the CLAUDE.md file for project-specific instructions
+# Navigate to your project
+cd /path/to/your-project
+
+# Initialize Phoenix OS
+phoenix init
+```
+
+You can optionally specify a project name:
+
+```bash
+phoenix init --project-name my-app
+```
+
+This scaffolds the following structure in your project:
+
+```
+your-project/
+├── .claude/
+│   ├── agents/            # Agent definitions (deployed)
+│   └── skills/            # Skills and recipes (deployed)
+├── .phoenix-os/
+│   ├── core/
+│   │   ├── config.yaml    # Project configuration (customizable)
+│   │   └── memory/        # LTM: practices, templates, standards
+│   └── project/
+│       └── specs/         # Project artifacts (STM)
+├── src/                   # Source code directory
+└── CLAUDE.md              # AI instructions (customizable)
+```
+
+**After initialization:**
+
+1. Review and customize `CLAUDE.md` for your project
+2. Update `.phoenix-os/core/config.yaml` with your repository details
+3. Start developing with Claude Code
+
+### Install from Source (for Contributors)
+
+If you want to develop Phoenix OS itself:
+
+```bash
+# Clone the repository
+git clone https://github.com/kapilvirenahuja/phoenix-os.git
+cd phoenix-os
+
+# Sync components to .claude/ directory
+claude /sync-claude
+```
+
+### Build a Distributable Package
+
+To create a distributable `.tgz` package from source:
+
+```bash
+cd installer
+./pack.sh
+```
+
+This produces a `phoenix-os-<version>.tgz` tarball at the repository root, which can be installed via `npm install -g phoenix-os-<version>.tgz`.
+
+### CLI Reference
+
+```
+phoenix init [options]    Initialize Phoenix OS in the current directory
+phoenix --version         Show version
+phoenix --help            Show this help
+
+Options:
+  --project-name <name>   Project name (default: directory name)
+```
 
 
 ## Repository Structure
