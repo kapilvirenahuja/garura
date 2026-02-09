@@ -141,17 +141,23 @@ Phoenix OS is designed to work with multiple AI agent platforms:
 
 ### Install into an Existing Project
 
-Install Phoenix OS globally from the published package, then initialize it in your project directory:
+Install Phoenix OS globally, then initialize it in your project directory:
 
 ```bash
-# Install globally
-npm install -g phoenix-os
+# Install globally from GitHub
+npm install -g github:kapilvirenahuja/phoenix-os
 
 # Navigate to your project
 cd /path/to/your-project
 
 # Initialize Phoenix OS
 phoenix init
+```
+
+Or install from a published release:
+
+```bash
+npm install -g phoenix-os
 ```
 
 You can optionally specify a project name:
@@ -201,7 +207,6 @@ claude /sync-claude
 To create a distributable `.tgz` package from source:
 
 ```bash
-cd installer
 ./pack.sh
 ```
 
@@ -223,6 +228,10 @@ Options:
 
 ```
 phoenix-os/
+├── bin/
+│   └── phoenix.js          # CLI entry point
+├── lib/
+│   └── installer.js        # Init/scaffolding logic
 ├── core/
 │   ├── components/         # Source of truth (agents, skills, recipes, memory)
 │   │   ├── agents/         # Agent definitions (2 agents)
@@ -255,6 +264,8 @@ phoenix-os/
 │   ├── philosophy/         # Core architecture philosophy
 │   ├── components/         # Component-level documentation
 │   └── usage/              # Usage guides and recipes
+├── package.json            # npm package manifest
+├── pack.sh                 # Build distributable tarball
 ├── CLAUDE.md               # Project configuration
 └── README.md               # This file
 ```
