@@ -49,7 +49,7 @@ Parse the user's input to determine the intent:
 Invoke `project-orchestrator` via Task tool:
 
 ```
-subagent_type: "repo-orchestrator"  # uses Task tool with agent
+subagent_type: "project-orchestrator"
 Agent: project-orchestrator
 
 Intent: resolve or create issue
@@ -59,6 +59,8 @@ Input:
   description: {if provided}
   parent_issue_number: {if provided}
 ```
+
+**Important:** If a description is provided without an issue number, the agent MUST create a new GitHub issue using the `manage-issue` skill with `action: create`. Do not skip issue creation.
 
 **Expected output:**
 ```yaml
@@ -143,12 +145,14 @@ Invoke `repo-orchestrator` via Task tool:
 subagent_type: "repo-orchestrator"
 Agent: repo-orchestrator
 
-Intent: create branch
+Intent: create branch and push to origin using the setup-branch skill
 Input:
   branch_name: "{derived_branch_name}"
   issue_number: {issue_number}
   push_to_origin: true
 ```
+
+**Important:** The agent MUST use the `setup-branch` skill, which handles worktree creation for dirty working trees, stashing for small changes, and pushing to origin.
 
 **Expected output:**
 ```yaml
