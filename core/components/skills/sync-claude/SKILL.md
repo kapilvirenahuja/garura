@@ -36,13 +36,14 @@ Determine target directory based on arguments:
 | `core/components/recipes/*` | `{TARGET_DIR}/skills/` | Recipes (workflows) |
 | `core/components/agents/*.md` | `{TARGET_DIR}/agents/` | Agent definitions |
 
-### Memory (always to project folder)
+### Memory (mode dependent)
 
-| Source | Destination | Contains |
-|--------|-------------|----------|
-| `core/components/memory/*` | `.phoenix-os/core/memory/` | LTM: practices, templates, quality-gates, references |
+| Source | Global Destination | Project Destination | Contains |
+|--------|-------------------|---------------------|----------|
+| `core/components/memory/*` | `~/.phoenix-os/core/memory/` | `.phoenix-os/core/memory/` | LTM: practices, templates, quality-gates, references |
 
-Memory is **always** synced to the project's `.phoenix-os/core/memory/` regardless of mode. This ensures every project has access to LTM (Long-Term Memory) locally.
+In **global mode** (default): Memory syncs to `~/.phoenix-os/core/memory/` — shared across all projects.
+In **project mode**: Memory syncs to `.phoenix-os/core/memory/` — project-specific LTM.
 
 ## Process
 
@@ -82,17 +83,24 @@ Copy agent definitions:
 cp core/components/agents/*.md "$TARGET_DIR/agents/" 2>/dev/null || true
 ```
 
-### Step 5: Sync Memory to Project
+### Step 5: Sync Memory
 
-Sync LTM (Long-Term Memory) to the project's `.phoenix-os/core/memory/` directory. This happens in **both modes** — memory always lives in the project folder.
+Sync LTM (Long-Term Memory) to the appropriate location based on mode.
 
 ```bash
-# Create project memory directory
-mkdir -p .phoenix-os/core/memory
+# Determine memory target
+if [ "$MODE" = "global" ]; then
+  MEMORY_TARGET="$HOME/.phoenix-os/core/memory"
+else
+  MEMORY_TARGET=".phoenix-os/core/memory"
+fi
+
+# Create memory directory
+mkdir -p "$MEMORY_TARGET"
 
 # Clean and sync memory
-rm -rf .phoenix-os/core/memory/* 2>/dev/null || true
-cp -R core/components/memory/* .phoenix-os/core/memory/ 2>/dev/null || true
+rm -rf "$MEMORY_TARGET"/* 2>/dev/null || true
+cp -R core/components/memory/* "$MEMORY_TARGET"/ 2>/dev/null || true
 ```
 
 ### Step 6: Remove Artifacts
@@ -126,8 +134,8 @@ echo "=== Agents ==="
 ls -1 "$TARGET_DIR/agents/"
 
 echo ""
-echo "=== Memory (always project-local: .phoenix-os/core/memory/) ==="
-ls -1 .phoenix-os/core/memory/
+echo "=== Memory (target: $MEMORY_TARGET) ==="
+ls -1 "$MEMORY_TARGET"/
 ```
 
 ## Output
@@ -138,7 +146,7 @@ Report the synced components:
 Synced to {TARGET_DIR} ({mode} mode):
 - Skills: {count} ({list})
 - Agents: {count} ({list})
-- Memory: synced to .phoenix-os/core/memory/ ({list})
+- Memory: synced to {MEMORY_TARGET} ({list})
 ```
 
 ## Constraints
@@ -149,4 +157,5 @@ Synced to {TARGET_DIR} ({mode} mode):
 - ALWAYS create target directories before copying (`mkdir -p`)
 - ALWAYS report which mode was used and the target path
 - In global mode, NEVER sync `sync-claude` skill (framework-only)
-- In global mode, NEVER create `.phoenix-os/` or memory directories in `~/`
+- In global mode, memory goes to `~/.phoenix-os/core/memory/` (shared across all projects)
+- In project mode, memory goes to `.phoenix-os/core/memory/` (project-specific)

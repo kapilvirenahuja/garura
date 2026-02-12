@@ -106,7 +106,7 @@ Using the issue data, construct a branch name:
 
 **Example:** Issue #42 "Add OAuth Login Flow" with type_hint `feature` → `feature/42-add-oauth-login-flow`
 
-Reference branch naming conventions from: `core/components/memory/practices/git/branching.md`
+Reference branch naming conventions from: `~/.phoenix-os/core/memory/practices/git/branching.md`
 
 ### 3. Checkpoint
 
