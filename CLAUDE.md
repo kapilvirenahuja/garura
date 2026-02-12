@@ -29,12 +29,16 @@ core/components/           # Source of truth (edit here)
 Author all components in `core/components/`. Never edit `.claude/` directly.
 
 ```
-core/components/skills/   → .claude/skills/  (via /sync-claude)
-core/components/recipes/  → .claude/skills/  (via /sync-claude)
-core/components/agents/   → .claude/agents/  (via /sync-claude)
+core/components/skills/   → ~/.claude/skills/     (via /sync-claude, default)
+core/components/recipes/  → ~/.claude/skills/     (via /sync-claude, default)
+core/components/agents/   → ~/.claude/agents/     (via /sync-claude, default)
+
+core/components/skills/   → .claude/skills/       (via /sync-claude --project)
+core/components/recipes/  → .claude/skills/       (via /sync-claude --project)
+core/components/agents/   → .claude/agents/       (via /sync-claude --project)
 ```
 
-After editing source, run `/sync-claude`.
+After editing source, run `/sync-claude` (syncs globally to `~/.claude/`) or `/sync-claude --project` (syncs to project `.claude/`).
 
 ### 2. Execution Model
 
