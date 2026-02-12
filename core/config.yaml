@@ -26,6 +26,11 @@ global-claude:
   skills: ~/.claude/skills/
   agents: ~/.claude/agents/
 
+# Long-Term Memory (LTM) — always synced to project folder regardless of mode
+ltm:
+  source: ./core/components/memory/
+  target: ./.phoenix-os/core/memory/
+
 # Short-Term Memory (STM) — Issue-centric artifacts (ADR 008)
 stm:
   base-path: .phoenix-os/

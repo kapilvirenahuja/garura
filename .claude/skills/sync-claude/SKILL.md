@@ -28,11 +28,21 @@ Determine target directory based on arguments:
 
 ## What Gets Synced
 
+### Skills & Agents (to TARGET_DIR)
+
 | Source | Destination | Contains |
 |--------|-------------|----------|
 | `core/components/skills/*` | `{TARGET_DIR}/skills/` | True skills (model-invocable) |
 | `core/components/recipes/*` | `{TARGET_DIR}/skills/` | Recipes (workflows) |
 | `core/components/agents/*.md` | `{TARGET_DIR}/agents/` | Agent definitions |
+
+### Memory (always to project folder)
+
+| Source | Destination | Contains |
+|--------|-------------|----------|
+| `core/components/memory/*` | `.phoenix-os/core/memory/` | LTM: practices, templates, quality-gates, references |
+
+Memory is **always** synced to the project's `.phoenix-os/core/memory/` regardless of mode. This ensures every project has access to LTM (Long-Term Memory) locally.
 
 ## Process
 
@@ -72,7 +82,20 @@ Copy agent definitions:
 cp core/components/agents/*.md "$TARGET_DIR/agents/" 2>/dev/null || true
 ```
 
-### Step 5: Remove Artifacts
+### Step 5: Sync Memory to Project
+
+Sync LTM (Long-Term Memory) to the project's `.phoenix-os/core/memory/` directory. This happens in **both modes** — memory always lives in the project folder.
+
+```bash
+# Create project memory directory
+mkdir -p .phoenix-os/core/memory
+
+# Clean and sync memory
+rm -rf .phoenix-os/core/memory/* 2>/dev/null || true
+cp -R core/components/memory/* .phoenix-os/core/memory/ 2>/dev/null || true
+```
+
+### Step 6: Remove Artifacts
 
 Clean up unwanted files:
 
@@ -88,7 +111,7 @@ if [ "$MODE" = "global" ]; then
 fi
 ```
 
-### Step 6: Report
+### Step 7: Report
 
 List what was synced:
 
@@ -101,6 +124,10 @@ ls -1 "$TARGET_DIR/skills/"
 echo ""
 echo "=== Agents ==="
 ls -1 "$TARGET_DIR/agents/"
+
+echo ""
+echo "=== Memory (always project-local: .phoenix-os/core/memory/) ==="
+ls -1 .phoenix-os/core/memory/
 ```
 
 ## Output
@@ -111,6 +138,7 @@ Report the synced components:
 Synced to {TARGET_DIR} ({mode} mode):
 - Skills: {count} ({list})
 - Agents: {count} ({list})
+- Memory: synced to .phoenix-os/core/memory/ ({list})
 ```
 
 ## Constraints
