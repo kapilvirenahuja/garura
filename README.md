@@ -90,7 +90,8 @@ Phoenix OS uses a **three-layer hierarchy** for deterministic workflows:
         │ (overrides)
 ┌─────────────────────────────────────────────────────────────┐
 │                      MEMORY                                 │
-│  LTM: Skill overrides, standards (core/components/memory/)  │
+│  LTM (authoring): core/components/memory/                   │
+│  LTM (runtime): ~/.phoenix-os/core/memory/ (global default) │
 │  STM: Artifacts per issue (.phoenix-os/{issue}/)            │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -119,7 +120,7 @@ Phoenix OS agents follow the `{domain}-{role}` naming pattern:
 Phoenix OS uses a dual memory architecture:
 
 - **Short-Term Memory (STM)**: Issue-specific artifacts stored in `.phoenix-os/{issue}/` with subdirectories for `docs/`, `evidence/`, and `checkpoint/` (see ADR 008)
-- **Long-Term Memory (LTM)**: Organizational knowledge in `core/components/memory/` - skill overrides, standards, templates, practices
+- **Long-Term Memory (LTM)**: Organizational knowledge — authored in `core/components/memory/`, synced to `~/.phoenix-os/core/memory/` (global) or `.phoenix-os/core/memory/` (project). Contains skill overrides, standards, templates, practices.
 
 **Skill-Memory Pattern**: Skills embed their own references locally. LTM contains overrides that are synced to skills at deployment time. Skills never read from LTM at runtime — they are self-contained.
 
@@ -188,7 +189,7 @@ curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/phoenix-os/main/ins
 **What gets upgraded (overwritten):**
 - `.claude/agents/` — Agent definitions
 - `.claude/skills/` — Skills and recipes
-- `.phoenix-os/core/memory/` — Memory (practices, templates)
+- `~/.phoenix-os/core/memory/` — Memory (practices, templates)
 
 **What gets preserved:**
 - `.phoenix-os/project/` — Your project artifacts
