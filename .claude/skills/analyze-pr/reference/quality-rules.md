@@ -86,7 +86,7 @@ This ruleset is designed for projects where the primary artifacts are:
 
 | ID | Priority | Item | Verification |
 |----|----------|------|--------------|
-| `sync-claude` | must-have | `.claude/` synced with `core/components/` | Run `/sync-claude` |
+| `sync-claude` | must-have | Components synced with `core/components/` | Run `/sync-claude` (global) or `/sync-claude --project` |
 
 ---
 
