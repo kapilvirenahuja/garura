@@ -159,18 +159,17 @@ This scaffolds the following structure in your project:
 
 ```
 your-project/
-├── .claude/
-│   ├── agents/            # Agent definitions (deployed)
-│   └── skills/            # Skills and recipes (deployed)
 ├── .phoenix-os/
 │   ├── core/
 │   │   ├── config.yaml    # Project configuration (customizable)
-│   │   └── memory/        # LTM: practices, templates, standards
+│   │   └── memory/        # LTM: practices, templates, standards (gitignored ephemeral copy)
 │   └── project/
 │       └── specs/         # Project artifacts (STM)
 ├── src/                   # Source code directory
 └── CLAUDE.md              # AI instructions (customizable)
 ```
+
+**Note:** Skills, agents, and recipes deploy to `~/.claude/` (global, shared across all projects) by default. The `.claude/` directory is no longer tracked in git.
 
 **After installation:**
 
@@ -187,9 +186,9 @@ curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/phoenix-os/main/ins
 ```
 
 **What gets upgraded (overwritten):**
-- `.claude/agents/` — Agent definitions
-- `.claude/skills/` — Skills and recipes
-- `~/.phoenix-os/core/memory/` — Memory (practices, templates)
+- `~/.claude/agents/` — Agent definitions (global deployment)
+- `~/.claude/skills/` — Skills and recipes (global deployment)
+- `~/.phoenix-os/core/memory/` — Memory (practices, templates, global)
 
 **What gets preserved:**
 - `.phoenix-os/project/` — Your project artifacts
@@ -244,9 +243,9 @@ phoenix-os/
 │   │       ├── references/
 │   │       └── templates/     # Output templates
 │   └── config.yaml            # Configuration
-├── .claude/                   # Deployed artifacts (synced from core/components/)
-│   ├── agents/                # Deployed agents
-│   ├── skills/                # Deployed skills and recipes
+├── .claude/                   # NO LONGER IN REPO (gitignored, use ~/.claude/ global deployment)
+│   ├── agents/                # Use ~/.claude/agents/ (via /sync-claude)
+│   ├── skills/                # Use ~/.claude/skills/ (via /sync-claude)
 │   └── plans/                 # Planning artifacts
 ├── docs/
 │   ├── adr/                   # Architecture Decision Records

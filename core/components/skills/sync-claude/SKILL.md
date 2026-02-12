@@ -13,8 +13,8 @@ Meta skill for syncing Phoenix OS components to Claude Code's skill/agent direct
 ## Purpose
 
 Copy all Phoenix OS skills and agents from source of truth (`core/components/`) to either:
-- **Global mode** (default): `~/.claude/` — Makes components available to ALL projects
-- **Project mode**: `.claude/` — Makes components available only to this project
+- **Global mode** (default): `~/.claude/` and `~/.phoenix-os/core/memory/` — Makes components available to ALL projects. This is the permanent, shared deployment path.
+- **Project mode**: `.claude/` and `.phoenix-os/core/memory/` — Creates ephemeral local copies (gitignored) for project-specific use only.
 
 ## Input Parsing
 
@@ -159,3 +159,5 @@ Synced to {TARGET_DIR} ({mode} mode):
 - In global mode, NEVER sync `sync-claude` skill (framework-only)
 - In global mode, memory goes to `~/.phoenix-os/core/memory/` (shared across all projects)
 - In project mode, memory goes to `.phoenix-os/core/memory/` (project-specific)
+- Project mode creates ephemeral local copies in `.claude/` and `.phoenix-os/core/memory/` that are gitignored
+- Global mode is the canonical deployment path for components
