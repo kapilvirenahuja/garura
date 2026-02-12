@@ -127,7 +127,7 @@ Write artifact to STM using **two-phase write** (ADR 008):
 
 If `type_hint` is `null`, the checkpoint MUST prompt the user to select a type before proceeding.
 
-Present summary and wait for `Approve` or `Reject`.
+Present summary and wait for `Tether` or `Vanish`.
 
 **After user responds**, update the checkpoint artifact:
 1. Set `Status` to `APPROVED` or `REJECTED`
@@ -224,7 +224,7 @@ Present final summary with all results.
 Awaiting user approval for branch creation.
 
 ## Inputs Needed to Continue
-- User approval (Approve/Reject)
+- User approval (Tether/Vanish)
 - Type selection (if type_hint is null)
 
 ## Decision
@@ -255,7 +255,7 @@ Awaiting user approval for branch creation.
 
 ---
 
-Type **Approve** to create the branch or **Reject** to cancel.
+Type **Tether** to create the branch or **Vanish** to cancel.
 ```
 
 ### Final Report

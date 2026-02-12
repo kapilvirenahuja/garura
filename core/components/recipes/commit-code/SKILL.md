@@ -81,7 +81,7 @@ Write artifact to STM: `.phoenix-os/{issue-number}/checkpoint/commit-code/{YYYYM
 - Ambiguous/mixed issue types
 - Branch is `hotfix/*` or `hotfix-*`
 
-**If checkpoint needed**, present summary and wait for `Approve` or `Reject`.
+**If checkpoint needed**, present summary and wait for `Tether` or `Vanish`.
 
 **After user responds (or auto-approve)**, update the checkpoint artifact:
 1. Set `Status` to `APPROVED` or `REJECTED`
@@ -159,7 +159,7 @@ Present summary with commit hashes, files changed, and validation status.
 Awaiting user approval for proposed commits.
 
 ## Inputs Needed to Continue
-- User approval (Approve/Reject)
+- User approval (Tether/Vanish)
 
 ## Decision
 - **Auto-Approved:** {yes/no}
@@ -187,7 +187,7 @@ Awaiting user approval for proposed commits.
 
 ---
 
-Type **Approve** to proceed or **Reject** to cancel.
+Type **Tether** to proceed or **Vanish** to cancel.
 ```
 
 ### Final Report
