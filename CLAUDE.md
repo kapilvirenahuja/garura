@@ -10,15 +10,21 @@ Phoenix OS is an agentic framework implementing **Fluidic SDLC** principles for 
 
 ```
 core/components/           # Source of truth (edit here)
-├── agents/               # Agent definitions (6 agents)
+├── agents/               # Agent definitions
 ├── skills/               # Skills (model-invocable only)
 ├── recipes/              # L1/L2 recipes
 └── memory/               # LTM: practices, templates, standards
 
-.claude/                   # Synced output (never edit directly)
+~/.claude/                 # Global deployment (via /sync-claude, default)
 ├── agents/               # Deployed agents
 └── skills/               # Deployed skills + recipes
+
+~/.phoenix-os/core/memory/ # Global LTM (via /sync-claude, default)
 ```
+
+**Note:** `.claude/` and `.phoenix-os/core/memory/` are NO LONGER tracked in the repository. They are gitignored.
+- Components deploy to `~/.claude/` (global mode, default) or `.claude/` (project mode, ephemeral)
+- Memory deploys to `~/.phoenix-os/core/memory/` (global mode, default) or `.phoenix-os/core/memory/` (project mode, ephemeral)
 
 **Data Flow:** L2 Recipe → chains L1s → L1 invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`.phoenix-os/{issue}/`)
 
@@ -26,15 +32,25 @@ core/components/           # Source of truth (edit here)
 
 ### 1. Source of Truth
 
-Author all components in `core/components/`. Never edit `.claude/` directly.
+Author all components in `core/components/`. The canonical deployment is `~/.claude/` (global).
 
+**Global mode (default):**
 ```
-core/components/skills/   → .claude/skills/  (via /sync-claude)
-core/components/recipes/  → .claude/skills/  (via /sync-claude)
-core/components/agents/   → .claude/agents/  (via /sync-claude)
+core/components/skills/   → ~/.claude/skills/          (via /sync-claude)
+core/components/recipes/  → ~/.claude/skills/          (via /sync-claude)
+core/components/agents/   → ~/.claude/agents/          (via /sync-claude)
+core/components/memory/   → ~/.phoenix-os/core/memory/ (via /sync-claude)
 ```
 
-After editing source, run `/sync-claude`.
+**Project mode (ephemeral):**
+```
+core/components/skills/   → .claude/skills/               (via /sync-claude --project, gitignored)
+core/components/recipes/  → .claude/skills/               (via /sync-claude --project, gitignored)
+core/components/agents/   → .claude/agents/               (via /sync-claude --project, gitignored)
+core/components/memory/   → .phoenix-os/core/memory/      (via /sync-claude --project, gitignored)
+```
+
+After editing source, run `/sync-claude` to deploy globally. Use `/sync-claude --project` for ephemeral local copies (gitignored).
 
 ### 2. Execution Model
 

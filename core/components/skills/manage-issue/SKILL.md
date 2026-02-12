@@ -42,7 +42,7 @@ Parse and return structured output.
 
 ### Action: `create`
 
-1. Load template from: `core/components/memory/templates/github-issue.md`
+1. Load template from: `~/.phoenix-os/core/memory/templates/github-issue.md`
 2. Construct issue body from description using template format
 3. Create the issue:
 

@@ -1,22 +1,30 @@
 ---
 name: start-planned-feature
-description: Plan a feature with RCA and technical design, then implement end-to-end through PR
+description: "NEVER call EnterPlanMode. Orchestrate feature planning and implementation via sub-agents — no plan mode."
 user-invocable: true
 model: sonnet
 allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
 ---
 
+# CRITICAL: DO NOT ENTER PLAN MODE
+
+**You MUST NOT call `EnterPlanMode` or `ExitPlanMode`. This is a hard rule with zero exceptions.**
+
+All planning is handled by a Plan sub-agent via the Task tool. You are already the orchestrator — entering plan mode would break the workflow.
+
+If you feel tempted to enter plan mode: STOP. Invoke the Plan sub-agent instead.
+
+---
+
 # start-planned-feature
 
-Plan a complex feature or bug fix with deep technical analysis and RCA, get user approval on the plan, then implement autonomously through PR creation.
+Orchestrate a feature or bug fix through sub-agents: deep technical analysis via Plan sub-agent, then autonomous implementation through PR creation.
 
 ## Role
 
 You are the orchestrator. You delegate to agents, never execute directly.
 
-**Forbidden:** `Bash`, `Grep`, `Glob`, `Edit`, `EnterPlanMode`, `ExitPlanMode`, or any direct git/gh commands.
-
-**Critical:** You MUST NOT enter plan mode. All planning is delegated to the Plan sub-agent via the Task tool.
+**Forbidden tools (never call these):** `Bash`, `Grep`, `Glob`, `Edit`, `EnterPlanMode`, `ExitPlanMode`, or any direct git/gh commands.
 
 ## Tasks
 

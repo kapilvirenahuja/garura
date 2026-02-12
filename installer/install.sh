@@ -95,7 +95,7 @@ transform_config() {
     | sed -E "s|^([[:space:]]*skills:[[:space:]]*).+$|\1./.claude/skills/|" \
     | sed -E "s|^([[:space:]]*recipes:[[:space:]]*).+$|\1./.claude/skills/|" \
     | sed -E "s|^([[:space:]]*agents:[[:space:]]*).+$|\1./.claude/agents/|" \
-    | sed -E "s|^([[:space:]]*memory:[[:space:]]*).+$|\1./.phoenix-os/core/memory/|" \
+    | sed -E "s|^([[:space:]]*memory:[[:space:]]*).+$|\1~/.phoenix-os/core/memory/|" \
     | sed -E '/^platform:/d' \
     | sed -E '/^github:/,/^[^ ]/{ /^github:/d; /^  /d; }' \
     | sed -E '/^$/N;/^\n$/d'
@@ -206,7 +206,7 @@ if [ "$MODE" = "init" ]; then
   # 4. Deploy memory
   if [ -d "$COMPONENTS_DIR/memory" ]; then
     info "  Deploying memory..."
-    copy_dir "$COMPONENTS_DIR/memory" "$TARGET_DIR/.phoenix-os/core/memory"
+    copy_dir "$COMPONENTS_DIR/memory" "$HOME/.phoenix-os/core/memory"
   fi
 
   # 5. Transform and write config.yaml
@@ -277,7 +277,7 @@ else
   # 4. Upgrade memory
   if [ -d "$COMPONENTS_DIR/memory" ]; then
     info "  Upgrading memory..."
-    copy_dir "$COMPONENTS_DIR/memory" "$TARGET_DIR/.phoenix-os/core/memory"
+    copy_dir "$COMPONENTS_DIR/memory" "$HOME/.phoenix-os/core/memory"
   fi
 
   # 5. Write config.yaml.new for user to diff/merge
@@ -298,9 +298,9 @@ else
   ok "Phoenix OS upgraded successfully!"
   ok ""
   ok "Updated (overwritten):"
-  ok "  .claude/agents/          — Agent definitions"
-  ok "  .claude/skills/          — Skills and recipes"
-  ok "  .phoenix-os/core/memory/ — Memory (practices, templates)"
+  ok "  .claude/agents/              — Agent definitions"
+  ok "  .claude/skills/              — Skills and recipes"
+  ok "  ~/.phoenix-os/core/memory/   — Memory (practices, templates)"
   ok ""
   ok "Review these files for changes:"
   ok "  .phoenix-os/core/config.yaml.new  — diff with config.yaml"

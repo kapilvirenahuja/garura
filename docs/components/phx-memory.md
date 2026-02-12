@@ -17,10 +17,10 @@ Memory is **project contextual information** that enables consistent, knowledge-
 
 ## Memory Types
 
-| Type | Lifecycle | Purpose | Location |
-|------|-----------|---------|----------|
-| **LTM** | Project setup → persists | Practices, standards, templates | `core/components/memory/` |
-| **STM** | Recipe start → recipe end | Artifacts created during recipe | `.phoenix-os/{issue}/` |
+| Type | Lifecycle | Purpose | Authoring Location | Runtime Location |
+|------|-----------|---------|---------------------|------------------|
+| **LTM** | Project setup → persists | Practices, standards, templates | `core/components/memory/` | `~/.phoenix-os/core/memory/` (global), `.phoenix-os/core/memory/` (project) |
+| **STM** | Recipe start → recipe end | Artifacts created during recipe | N/A | `.phoenix-os/{issue}/` |
 
 ## Long-Term Memory (LTM)
 
@@ -44,7 +44,7 @@ Agents and skills read from LTM to:
 ```
 Agent invoked
     │
-    └── Reads LTM:
+    └── Reads LTM from ~/.phoenix-os/core/memory/:
           ├── practices/{domain}/
           ├── templates/{type}/
           └── tools/{platform}/
@@ -54,11 +54,18 @@ Agent invoked
 
 ### LTM Organization
 
+**Authoring (source of truth):**
 ```
 core/components/memory/
 ├── practices/       # How to do things
 ├── templates/       # Output formats
 └── tools/           # Tool-specific patterns
+```
+
+**Runtime (where agents read from):**
+```
+~/.phoenix-os/core/memory/    # Global mode (default)
+.phoenix-os/core/memory/      # Project mode
 ```
 
 ## Short-Term Memory (STM)
@@ -177,14 +184,17 @@ L2 Recipe
 
 ## Memory Location
 
-Memory definitions are stored in:
-
+**Authoring:** Memory is authored in:
 ```
 core/components/memory/
 ├── practices/       # Guidelines, standards
 ├── templates/       # Output templates
 └── tools/           # Tool-specific patterns
 ```
+
+**Runtime:** Agents read memory from:
+- `~/.phoenix-os/core/memory/` (global mode, default — shared across all projects)
+- `.phoenix-os/core/memory/` (project mode — project-specific)
 
 See: [docs/usage/memory/](../usage/memory/) for concrete implementations.
 
