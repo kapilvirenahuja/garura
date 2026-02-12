@@ -76,10 +76,10 @@ Never use `AskUserQuestion` for checkpoints. Output summary, wait for typed resp
 
 ---
 
-Type **Approve** to proceed or **Reject** to cancel.
+Type **Tether** to proceed or **Vanish** to cancel.
 ```
 
-Parse: `Approve`/`approve` → proceed. `Reject`/`reject` → cancel. Else → clarify.
+Parse: `Tether`/`tether` → proceed. `Vanish`/`vanish` → cancel. Else → clarify.
 
 Applies to: commits, PRs, protected branches, destructive actions.
 

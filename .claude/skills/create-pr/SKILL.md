@@ -62,7 +62,7 @@ Write artifact to STM: `.phoenix-os/{issue-number}/checkpoint/create-pr/{YYYYMMD
 
 **Always checkpoint.** PRs are externally visible.
 
-Present summary and wait for `Approve` or `Reject`.
+Present summary and wait for `Tether` or `Vanish`.
 
 **After user responds**, update the checkpoint artifact:
 1. Set `Status` to `APPROVED` or `REJECTED`
@@ -140,7 +140,7 @@ Present summary with PR URL, checklist summary, and next steps.
 Awaiting user approval for PR creation.
 
 ## Inputs Needed to Continue
-- User approval (Approve/Reject)
+- User approval (Tether/Vanish)
 
 ## Decision
 - **Approval Status:** {status}
@@ -181,7 +181,7 @@ Awaiting user approval for PR creation.
 
 ---
 
-Type **Approve** to create the PR or **Reject** to cancel.
+Type **Tether** to create the PR or **Vanish** to cancel.
 ```
 
 **Status emoji mapping:** PASS → ✅, FAIL → ❌, REVIEW → ⏳

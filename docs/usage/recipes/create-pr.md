@@ -105,9 +105,9 @@ Dynamic checklists show only what matters:
 
 ---
 
-Type **Approve** to create the PR or **Reject** to cancel.
+Type **Tether** to create the PR or **Vanish** to cancel.
 
-> Approve
+> Tether
 
 [Creating pull request...]
 
