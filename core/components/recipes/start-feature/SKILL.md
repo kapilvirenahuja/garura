@@ -4,6 +4,26 @@ description: Start feature work by resolving/creating an issue, deriving a branc
 user-invocable: true
 model: sonnet
 allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
+
+# === Three Elements of Intent (IDD) ===
+intent: >
+  Begin tracked, governed work on a defined goal by establishing an issue
+  and a type-aware branch pushed to origin.
+
+constraints:
+  - Branch name MUST follow convention: {type}/{issue_number}-{slug}
+  - Slug max 40 characters, lowercase, hyphenated, derived from issue title
+  - Always checkpoint before branch creation — branches are externally visible
+  - If type_hint is null, user MUST select type before proceeding
+  - Two-phase STM write when issue does not yet exist (ADR 008)
+  - Orchestrator MUST delegate to agents — never execute git/gh commands directly
+  - Maximum 2 agent calls per execution
+
+failure_conditions:
+  - User rejects proposed branch at checkpoint (Vanish)
+  - Branch creation fails on origin
+  - Issue cannot be resolved or created on GitHub
+  - type_hint is null and user does not provide a selection
 ---
 
 # start-feature

@@ -4,6 +4,28 @@ description: "NEVER call EnterPlanMode. Orchestrate feature planning and impleme
 user-invocable: true
 model: sonnet
 allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
+
+# === Three Elements of Intent (IDD) ===
+intent: >
+  Deliver a complete feature or bug fix — from analysis through implementation
+  to pull request — with a structured plan approved by the user before any
+  code changes.
+
+constraints:
+  - MUST NOT call EnterPlanMode or ExitPlanMode — all planning via Plan sub-agent
+  - Single approval gate only (Tether/Vanish at plan review) — execution is autonomous after
+  - Planning phase is read-only — no code changes until plan is approved
+  - Plan output MUST be persisted as three artifacts (spec.md, verify.md, tasks.md)
+  - Orchestrator MUST delegate to agents — never execute tools directly
+  - Maximum 5 agent calls (L2 limit)
+  - Null type_hint defaults to feature/ prefix
+
+failure_conditions:
+  - User rejects plan at approval gate (Vanish)
+  - Code-builder reports success: false with unresolvable issues
+  - Branch creation fails on origin
+  - PR creation fails after commits are made
+  - Plan sub-agent fails to produce all three required sections (SPEC, VERIFY, TASKS)
 ---
 
 # CRITICAL: DO NOT ENTER PLAN MODE

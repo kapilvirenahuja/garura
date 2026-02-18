@@ -4,6 +4,24 @@ description: Create pull request with dynamic, context-aware quality checklist
 user-invocable: true
 model: sonnet
 allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
+
+# === Three Elements of Intent (IDD) ===
+intent: >
+  Submit work for peer review via a pull request with dynamically generated,
+  evidence-based quality assurance.
+
+constraints:
+  - MUST be associated with a GitHub issue extracted from branch name (NWWI)
+  - Always checkpoint before PR creation — PRs are externally visible
+  - Quality checklist MUST distinguish must-have (blocking) from nice-to-have items
+  - Orchestrator MUST delegate to agents — never execute gh commands directly
+  - Maximum 2 agent calls per execution
+
+failure_conditions:
+  - No issue number extractable from the current branch name
+  - User rejects proposed PR at checkpoint (Vanish)
+  - Blocking quality checklist items have FAIL status
+  - PR creation fails on the remote
 ---
 
 # create-pr

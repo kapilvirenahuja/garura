@@ -4,6 +4,25 @@ description: Commit code changes grouped by issue type with conventional message
 user-invocable: true
 model: sonnet
 allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
+
+# === Three Elements of Intent (IDD) ===
+intent: >
+  Safely persist completed work as conventional commits with full traceability
+  to a tracked issue.
+
+constraints:
+  - All commits MUST reference a valid GitHub issue (NWWI principle)
+  - Commits MUST use conventional commit format (type(scope): subject)
+  - One logical change type per commit
+  - Sensitive files (credentials, secrets, env) require explicit human approval
+  - Orchestrator MUST delegate to agents — never execute git commands directly
+  - Maximum 2 agent calls per execution
+
+failure_conditions:
+  - No valid issue ID resolvable from branch name or user input
+  - User rejects proposed commits at checkpoint (Vanish)
+  - Working tree is not clean after commit execution
+  - Commit does not pass conventional format validation
 ---
 
 # commit-code
