@@ -133,6 +133,22 @@ The level (L1/L2) is indicated in the recipe metadata, not the name.
 
 Recipes follow Claude's skill/command format:
 
+### Three Elements of Intent (Required)
+
+Every recipe MUST declare the Three Elements of Intent in its YAML front-matter. This is a foundational IDD requirement — see [Intent-Driven Development](../philosophy/intent-driven-development.md#the-three-elements-of-intent).
+
+| Element | What It Captures | Purpose |
+|---------|-----------------|---------|
+| **intent** | The positive space — what outcome this recipe achieves | Agents check: "Am I moving toward this?" / "Have I achieved this?" |
+| **constraints** | The boundaries the solution must respect | Agents check: "Am I within these?" |
+| **failure_conditions** | The halt signals — when to abort execution | Agents check: "Has any of these been triggered?" → HALT |
+
+**Rules:**
+- `intent` is a single string in business language (not technical). It must be self-evidently testable.
+- `constraints` is an ordered list (hardest first). Use MUST/SHOULD for severity.
+- `failure_conditions` is a list of halt triggers. If any is true, the recipe stops.
+- `description` is kept alongside `intent` — it serves Claude Code's skill discovery; `intent` serves IDD agent decision-making.
+
 ### L1 Recipe Structure
 
 ```yaml
@@ -140,9 +156,21 @@ Recipes follow Claude's skill/command format:
 name: {action}-{object}
 level: L1
 invocable: human OR model
-description: {what this recipe does}
+description: {short summary for CLI/tooling discovery}
 agent: {agent to invoke}
 artifact: {path to artifact}
+
+# === Three Elements of Intent (IDD) ===
+intent: >
+  {Business outcome this recipe achieves. WHY/WHAT, never HOW.}
+
+constraints:
+  - {Boundary the solution must respect}
+  - {Another boundary}
+
+failure_conditions:
+  - {Condition that means HALT — intent is unreachable}
+  - {Another halt condition}
 ---
 
 # Recipe Instructions
@@ -165,11 +193,23 @@ artifact: {path to artifact}
 name: {action}-{object}
 level: L2
 invocable: human
-description: {what this workflow accomplishes}
+description: {short summary for CLI/tooling discovery}
 l1-recipes:
   - {first L1}
   - {second L1}
   - {third L1}
+
+# === Three Elements of Intent (IDD) ===
+intent: >
+  {Business outcome this workflow achieves. WHY/WHAT, never HOW.}
+
+constraints:
+  - {Boundary the solution must respect}
+  - {Another boundary}
+
+failure_conditions:
+  - {Condition that means HALT — intent is unreachable}
+  - {Another halt condition}
 ---
 
 # Workflow Instructions
