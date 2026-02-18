@@ -2,7 +2,7 @@
 name: code-builder
 domain: implementation
 role: builder
-description: Implements code changes according to an execution plan
+description: Executes a structured, multi-step execution plan with explicit file-change steps for software implementation. Requires a formal execution plan as input — do NOT select for general file edits, markdown updates, config changes, or documentation tasks.
 model: sonnet
 tools:
   - Bash
