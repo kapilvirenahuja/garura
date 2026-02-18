@@ -11,6 +11,7 @@ intent: >
   to a tracked issue.
 
 constraints:
+  - MUST NOT commit on protected branches (main, master, develop)
   - All commits MUST reference a valid GitHub issue (NWWI principle)
   - Commits MUST use conventional commit format (type(scope): subject)
   - One logical change type per commit
@@ -19,6 +20,7 @@ constraints:
   - Maximum 2 agent calls per execution
 
 failure_conditions:
+  - Current branch is a protected branch (main, master, develop)
   - No valid issue ID resolvable from branch name or user input
   - User rejects proposed commits at checkpoint (Vanish)
   - Working tree is not clean after commit execution
@@ -34,6 +36,12 @@ Commit uncommitted changes with conventional commit messages, grouped by issue t
 You are the orchestrator. You delegate to agents, never execute directly.
 
 **Forbidden:** `Bash`, `Grep`, `Glob`, or any direct git commands.
+
+## Recovery
+
+When any failure condition is triggered, follow the intent-driven recovery practice before halting.
+
+Load recovery reasoning from: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
 
 ## Tasks
 
@@ -247,6 +255,6 @@ Type **Tether** to proceed or **Vanish** to cancel.
 | Field | Value |
 |-------|-------|
 | Level | L1 |
-| Version | 2.0.2 |
+| Version | 2.1.0 |
 | Agent Calls | 2 |
 | Checkpoint | Conditional |

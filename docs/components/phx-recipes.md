@@ -141,13 +141,77 @@ Every recipe MUST declare the Three Elements of Intent in its YAML front-matter.
 |---------|-----------------|---------|
 | **intent** | The positive space — what outcome this recipe achieves | Agents check: "Am I moving toward this?" / "Have I achieved this?" |
 | **constraints** | The boundaries the solution must respect | Agents check: "Am I within these?" |
-| **failure_conditions** | The halt signals — when to abort execution | Agents check: "Has any of these been triggered?" → HALT |
+| **failure_conditions** | The halt signals — when to assess recovery or abort | Agents check: "Has any of these been triggered?" → assess recovery → HALT if unrecoverable |
 
 **Rules:**
 - `intent` is a single string in business language (not technical). It must be self-evidently testable.
 - `constraints` is an ordered list (hardest first). Use MUST/SHOULD for severity.
-- `failure_conditions` is a list of halt triggers. If any is true, the recipe stops.
+- `failure_conditions` is a list of halt triggers. When triggered, the agent enters the **recovery reasoning loop** (see below) before halting.
 - `description` is kept alongside `intent` — it serves Claude Code's skill discovery; `intent` serves IDD agent decision-making.
+
+### Intent-Driven Recovery
+
+When a failure condition is triggered during recipe execution, the agent MUST NOT halt immediately. Instead, it follows the **recovery reasoning loop** — deriving recovery paths from the IDD elements themselves.
+
+#### Recovery Reasoning Loop
+
+```
+Failure condition triggered
+    │
+    ├── Read intent: "What am I trying to achieve?"
+    ├── Read constraint violated: "What boundary was hit?"
+    ├── Assess: "Can I satisfy this constraint through another path?"
+    │
+    ├── YES → Propose recovery (with checkpoint approval)
+    │         User approves (Tether) → Execute recovery → Continue workflow
+    │         User rejects (Vanish) → HALT
+    │
+    └── NO → HALT (intent is unreachable)
+```
+
+#### Recovery Principles
+
+| Principle | Description |
+|-----------|-------------|
+| **Intent-first** | Recovery serves the declared intent, not a prescribed procedure |
+| **Constraint-respecting** | Recovery must satisfy ALL constraints — never bypass them |
+| **Agent-reasoned** | Recovery paths are derived at runtime, not hardcoded in recipes |
+| **Checkpoint-gated** | Recovery always requires user approval before execution |
+| **Skill-delegated** | Recovery actions delegate to existing skills and agents |
+
+#### How It Works
+
+The agent uses the Three Elements of Intent as its reasoning inputs:
+
+- **Intent** tells the agent WHAT to achieve — the goal doesn't change because of an obstacle
+- **Constraints** tell the agent WHERE the boundaries are — recovery must find a path within them
+- **Failure conditions** tell the agent WHEN to start recovery reasoning — they are triggers, not stop signs
+
+Recipes MUST NOT hardcode recovery procedures. The agent reasons about recovery dynamically. This keeps recipes declarative and lets agent intelligence handle the "how".
+
+#### What Recipes Declare vs. What Agents Derive
+
+| Recipes declare (static) | Agents derive (dynamic) |
+|--------------------------|------------------------|
+| Intent — the outcome | Whether the intent is still achievable |
+| Constraints — the boundaries | Which constraint is blocking and how to satisfy it |
+| Failure conditions — the triggers | Whether recovery is possible and what it looks like |
+
+#### Example: Agent Recovery Reasoning
+
+```
+Triggered: "Current branch is a protected branch"
+Intent:    "Persist completed work as conventional commits with traceability"
+Violated:  "MUST NOT commit on protected branches"
+
+Agent reasons:
+  - Intent is to commit code. That hasn't changed.
+  - The constraint says I need a feature branch, not that I should stop.
+  - I know the setup-branch skill exists. I need an issue ID to name the branch.
+  - Recovery: resolve issue ID → create feature branch → continue workflow.
+  - This satisfies the constraint without abandoning the intent.
+  → Propose recovery to user.
+```
 
 ### L1 Recipe Structure
 
