@@ -55,7 +55,7 @@ VIBE CODING                          SPEC-DRIVEN DEVELOPMENT
 | Dimension | Spec-Driven (SDD) | Intent-Driven (IDD) |
 |-----------|-------------------|---------------------|
 | **Primary Focus** | WHAT + HOW (requirements & technical specs) | WHY (goals, rationale, outcomes) |
-| **Source of Truth** | Markdown files, YAML, spec documents | Business outcomes & constraints |
+| **Source of Truth** | Markdown files, YAML, spec documents | Business outcomes, constraints & failure conditions |
 | **Direction** | Bottom-up (specs → code) | Top-down (intent → specs → code) |
 | **Change Handling** | Requires spec rewrites; change-resistant | Intent stable; specs regenerated |
 | **Documentation** | Heavy upfront; 8× increase typical | Minimal at intent layer; specs generated as intermediate artifacts |
@@ -109,15 +109,35 @@ IDD consists of eight core elements. Each maps directly to a Phoenix OS componen
 
 Recipes capture the intent — the goal and high-level steps — without prescribing implementation. The intent remains stable even when requirements change; only the generated specifications downstream adapt.
 
+#### The Three Elements of Intent
+
+Every well-formed intent consists of exactly three elements:
+
+| Element | What It Captures | Why It Can't Be Generated |
+|---------|-----------------|--------------------------|
+| **Intent** | The positive space — what outcome we want | It's the root input; everything derives from it |
+| **Constraints** | The boundaries — what the solution must respect | Business decisions, compliance, risk tolerance — only humans know these |
+| **Failure Conditions** | The halt signals — when to abort execution | Risk appetite is a human judgment; agents can't infer when "enough is enough" |
+
+**Why not Success Criteria?** In IDD, the intent itself defines success — achieving the stated outcome IS success. Success criteria are an **operationalized decomposition** of intent (e.g., "registration completes in < 2s, works on mobile, sends confirmation email"). That operationalization is the Specifier agent's job, informed by organizational memory and context. Success criteria belong in the **generated spec layer**, not the human-authored intent layer. Adding them to intent does the Specifier's work for it — which is exactly the SDD pattern IDD rejects.
+
+**The three elements create a complete decision space for agents:**
+- Am I moving toward the intent? → continue
+- Am I within constraints? → continue
+- Have I hit a failure condition? → halt
+- Have I achieved the intent? → done (success is implicit in intent)
+
+**Intent quality rule**: An intent must be clear enough that success is self-evident from its statement. If you cannot tell whether the intent has been achieved, the intent is poorly formed — the fix is upstream (sharpen the intent), not downstream (bolt on success criteria).
+
 **What Makes Intent Different from a Spec**:
 
 | Aspect | Specification (SDD) | Intent (IDD) |
 |--------|---------------------|--------------|
 | Abstraction | Implementation-level detail | Business outcome-level |
-| Language | Technical (APIs, schemas, file structures) | Business (goals, constraints, success criteria) |
+| Language | Technical (APIs, schemas, file structures) | Business (goals, constraints, failure conditions) |
 | Stability | Brittle — changes with every requirement shift | Stable — survives requirement changes |
 | Authorship | Human-written, human-maintained | Human-defined, machine-consumed |
-| Volume | 1,300+ lines for simple features | Concise goal + constraints + success criteria |
+| Volume | 1,300+ lines for simple features | Concise: intent + constraints + failure conditions |
 
 **Example — SDD Spec**:
 ```
@@ -131,17 +151,19 @@ File: src/controllers/userController.ts
 **Example — IDD Intent (Recipe)**:
 ```
 Intent: Users need to register and manage their profiles.
-Constraints: Must support SSO. Must comply with GDPR.
-Success Criteria: User can register, login, update profile within 3 clicks.
-Integration: Must work with existing identity provider.
+Constraints: Must support SSO. Must comply with GDPR. Must work with existing identity provider.
+Failure Conditions: Registration fails silently. PII is logged to stdout. User data persists after deletion request.
 ```
 
 **Rules**:
 - Intent captures WHY and WHAT outcome, never HOW
 - Intent is authored in business language accessible to non-technical stakeholders
 - Intent remains stable across implementation changes
+- Every intent must have all three elements: intent, constraints, failure conditions
+- Success criteria are generated intermediates — they belong in specs, not intents
+- An intent that requires success criteria to be understood is a poorly formed intent
 - Recipes translate intent into structured goals with high-level steps
-- Agents are responsible for translating intent into specifications (via the Specifier Agent)
+- Agents are responsible for translating intent into specifications (including derived success criteria)
 
 ---
 
@@ -571,50 +593,6 @@ HUMAN DEFINES INTENT
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
-
----
-
-## How IDD Addresses SDD Limitations
-
-| SDD Limitation | IDD Solution | Phoenix OS Implementation |
-|----------------|-------------|--------------------------|
-| **Documentation Overhead** | Intent captures WHY at higher abstraction; specs generated, not written | Recipes define goals; Specifier Agent generates specs as intermediate artifacts |
-| **Brownfield Failure** | Intent describes outcomes, not implementation paths | LTM captures existing architecture; agents adapt to what exists |
-| **Change Resistance** | Intent stable across changes; specs regenerate | Recipe layer unchanged; agents regenerate specs from updated context |
-| **Skill Barrier** | Business language for intent; AI handles spec generation | Non-technical stakeholders can define recipes; Specifier translates |
-| **Exploration Blocked** | Multiple approaches possible from same intent | Same recipe can produce different spec variations based on context |
-| **False Security** | Verification loops at every phase, not just spec compliance | Quality Gates + Validator Agent at each SDLC phase |
-| **Adoption Friction** | Graduated autonomy levels; teams start at Level 1 | Three adoption phases: Prototype (10%, 2-3 weeks) → Pilot (10-30%, 2-3 months) → Scale (2-10x, 9-12 months) |
-
----
-
-## Adoption Phases
-
-IDD adoption in Phoenix OS follows three phases aligned with organizational readiness:
-
-| Phase | Duration | Gains | Agent Model | IDD Elements Active |
-|-------|----------|-------|-------------|---------------------|
-| **Prototype** | 2-3 weeks | ~10% | Singular, independent agents | Signals, Recipes (L1), Skills, basic STM |
-| **Pilot** | 2-3 months | 10-30% | Connected agents | + LTM, Cognitive Engine, Recipes (L2), Quality Gates |
-| **Scale** | 9-12 months | 2-10x | Fully autonomous orchestrations | All 8 elements, Recipes (L3), Memory Federation, full Validator |
-
-**Critical Insight**: Teams often plateau at Pilot or even after Prototype. The transition to Scale requires all eight IDD elements operating together — particularly Memory Federation and Level 3 autonomous execution.
-
----
-
-## Key Statistics
-
-| Metric | Value | Source |
-|--------|-------|--------|
-| Teams experiencing SDD adoption friction | 67% | Industry surveys |
-| Documentation increase with spec-kit approaches | 8× | GitHub Spec Kit analysis |
-| Time before SDD shows productivity gains | 3-6 months | Practitioner reports |
-| Experienced devs slower with AI tools (vs expectations) | 19% | METR study |
-| TDD adoption after 20 years | <20% | Marmelab analysis |
-| Traditional SDLC handoff points | 20+ | AI Squad Framework research |
-| AI Squad handoff points (IDD model) | 3 gates | Phoenix OS architecture |
-| SDLC phase time reduction with AI-Native approach | 33-50% | Phoenix OS pilot data |
-| Leaders expecting AI to reshape jobs within 12 months | 87% | McKinsey, Gartner, Deloitte |
 
 ---
 
