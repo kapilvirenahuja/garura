@@ -55,7 +55,7 @@ VIBE CODING                          SPEC-DRIVEN DEVELOPMENT
 | Dimension | Spec-Driven (SDD) | Intent-Driven (IDD) |
 |-----------|-------------------|---------------------|
 | **Primary Focus** | WHAT + HOW (requirements & technical specs) | WHY (goals, rationale, outcomes) |
-| **Source of Truth** | Markdown files, YAML, spec documents | Business outcomes & constraints |
+| **Source of Truth** | Markdown files, YAML, spec documents | Business outcomes, constraints & failure conditions |
 | **Direction** | Bottom-up (specs → code) | Top-down (intent → specs → code) |
 | **Change Handling** | Requires spec rewrites; change-resistant | Intent stable; specs regenerated |
 | **Documentation** | Heavy upfront; 8× increase typical | Minimal at intent layer; specs generated as intermediate artifacts |
@@ -109,15 +109,35 @@ IDD consists of eight core elements. Each maps directly to a Phoenix OS componen
 
 Recipes capture the intent — the goal and high-level steps — without prescribing implementation. The intent remains stable even when requirements change; only the generated specifications downstream adapt.
 
+#### The Three Elements of Intent
+
+Every well-formed intent consists of exactly three elements:
+
+| Element | What It Captures | Why It Can't Be Generated |
+|---------|-----------------|--------------------------|
+| **Intent** | The positive space — what outcome we want | It's the root input; everything derives from it |
+| **Constraints** | The boundaries — what the solution must respect | Business decisions, compliance, risk tolerance — only humans know these |
+| **Failure Conditions** | The halt signals — when to abort execution | Risk appetite is a human judgment; agents can't infer when "enough is enough" |
+
+**Why not Success Criteria?** In IDD, the intent itself defines success — achieving the stated outcome IS success. Success criteria are an **operationalized decomposition** of intent (e.g., "registration completes in < 2s, works on mobile, sends confirmation email"). That operationalization is the Specifier agent's job, informed by organizational memory and context. Success criteria belong in the **generated spec layer**, not the human-authored intent layer. Adding them to intent does the Specifier's work for it — which is exactly the SDD pattern IDD rejects.
+
+**The three elements create a complete decision space for agents:**
+- Am I moving toward the intent? → continue
+- Am I within constraints? → continue
+- Have I hit a failure condition? → halt
+- Have I achieved the intent? → done (success is implicit in intent)
+
+**Intent quality rule**: An intent must be clear enough that success is self-evident from its statement. If you cannot tell whether the intent has been achieved, the intent is poorly formed — the fix is upstream (sharpen the intent), not downstream (bolt on success criteria).
+
 **What Makes Intent Different from a Spec**:
 
 | Aspect | Specification (SDD) | Intent (IDD) |
 |--------|---------------------|--------------|
 | Abstraction | Implementation-level detail | Business outcome-level |
-| Language | Technical (APIs, schemas, file structures) | Business (goals, constraints, success criteria) |
+| Language | Technical (APIs, schemas, file structures) | Business (goals, constraints, failure conditions) |
 | Stability | Brittle — changes with every requirement shift | Stable — survives requirement changes |
 | Authorship | Human-written, human-maintained | Human-defined, machine-consumed |
-| Volume | 1,300+ lines for simple features | Concise goal + constraints + success criteria |
+| Volume | 1,300+ lines for simple features | Concise: intent + constraints + failure conditions |
 
 **Example — SDD Spec**:
 ```
@@ -131,17 +151,19 @@ File: src/controllers/userController.ts
 **Example — IDD Intent (Recipe)**:
 ```
 Intent: Users need to register and manage their profiles.
-Constraints: Must support SSO. Must comply with GDPR.
-Success Criteria: User can register, login, update profile within 3 clicks.
-Integration: Must work with existing identity provider.
+Constraints: Must support SSO. Must comply with GDPR. Must work with existing identity provider.
+Failure Conditions: Registration fails silently. PII is logged to stdout. User data persists after deletion request.
 ```
 
 **Rules**:
 - Intent captures WHY and WHAT outcome, never HOW
 - Intent is authored in business language accessible to non-technical stakeholders
 - Intent remains stable across implementation changes
+- Every intent must have all three elements: intent, constraints, failure conditions
+- Success criteria are generated intermediates — they belong in specs, not intents
+- An intent that requires success criteria to be understood is a poorly formed intent
 - Recipes translate intent into structured goals with high-level steps
-- Agents are responsible for translating intent into specifications (via the Specifier Agent)
+- Agents are responsible for translating intent into specifications (including derived success criteria)
 
 ---
 
