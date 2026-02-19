@@ -21,8 +21,8 @@ Phoenix OS has a three-layer hierarchy:
 
 | Level | Invocability | Constraints | Purpose |
 |-------|--------------|-------------|---------|
-| **L1** | Human OR Model | ≤2 agent calls | Atomic activities |
-| **L2** | Human only | ≤5 agent calls (ideal 3) | High-order workflows |
+| **L1** | Human OR Model | ≤2 distinct agents | Atomic activities |
+| **L2** | Human only | ≤5 distinct agents (ideal 3) | High-order workflows |
 | **L3** | TBD | TBD | Not yet designed |
 
 ### When to Use Each Level
@@ -61,10 +61,10 @@ L1 Recipe
 
 ### L1 Constraints
 
-- Maximum 2 skill calls (to keep atomic)
-- Exactly one agent invocation
+- Maximum 2 distinct agents (an agent may be called multiple times)
 - Exactly one artifact produced
 - Must end at a checkpoint
+- Recovery agent calls are exempt from the agent limit
 
 ## L2 Recipes (High-Order Workflows)
 
@@ -113,10 +113,11 @@ ANY criterion fails → Stop for human approval
 
 ### L2 Constraints
 
-- Maximum 5 agent calls (ideal 3)
+- Maximum 5 distinct agents (ideal 3; each may be called multiple times)
 - Human-invocable only
 - Each L1 must complete before next starts
 - Guardian validates between L1s
+- Recovery agent calls are exempt from the agent limit
 
 ## Naming Conventions
 
