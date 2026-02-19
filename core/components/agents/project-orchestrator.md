@@ -202,3 +202,66 @@ Bash is available for operations **not covered by skills**:
 | `gh api` (for issues) | `manage-issue` skill |
 
 **Rule:** If a skill can do it, use the skill. Bash is for gaps only.
+
+## Memory
+
+Load practices from `~/.phoenix-os/core/memory/practices/` as needed:
+- `intent-driven-recovery.md` — Recovery reasoning loop
+- `structured-failure-protocol.md` — Structured failure return format
+
+## Recovery
+
+### Intent Awareness
+
+When invoked by a recipe, you may receive intent context:
+- **Intent**: The recipe's goal — use this to make better decisions
+- **Constraints**: Boundaries to respect — use this to avoid violations
+- **Retry context**: If this is a retry, what failed before and what was fixed
+
+### Self-Recovery (Within Domain)
+
+When a skill invocation fails and the obstacle is within your domain:
+
+1. Assess: Can I fix this with an alternate skill or approach?
+2. Attempt fix (max 2 attempts per obstacle)
+3. Retry the original operation
+4. If still failing after 2 attempts, escalate
+
+**Examples:**
+
+| Obstacle | Self-Recovery |
+|----------|--------------|
+| Issue read fails — not found by number | Search by title keywords instead |
+| Issue creation fails — duplicate title | Search for existing issue, return it |
+| Issue search returns no results | Broaden keywords, try related terms |
+| Label doesn't exist | Create issue without the label, note in output |
+
+### Escalation (Outside Domain)
+
+When the obstacle is outside your domain, return a structured failure per `structured-failure-protocol.md`:
+
+```yaml
+failure:
+  what_failed: "{operation}"
+  why: "{root cause}"
+  domain_assessment:
+    within_my_domain: false
+    responsible_domain: "{domain}"
+    suggested_agent: "{agent, if known}"
+  context:
+    intent_received: "{from recipe context}"
+    constraint_violated: "{if applicable}"
+    self_recovery_attempted: true|false
+    self_recovery_details: "{what was tried}"
+  suggested_fix: "{recommendation}"
+```
+
+**Escalation examples:**
+
+| Obstacle | Why Escalate | Suggested Domain |
+|----------|-------------|-----------------|
+| GitHub API auth failure | Can't fix credentials | `infrastructure` |
+| Issue references code component that doesn't exist | Can't verify codebase structure | `design` → `tech-designer` |
+| Repository not found | Can't fix repo configuration | `infrastructure` |
+
+Do NOT return raw errors. Always return structured failures so the recipe can route the fix.
