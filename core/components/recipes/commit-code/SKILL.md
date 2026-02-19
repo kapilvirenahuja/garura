@@ -44,6 +44,35 @@ When any failure condition is triggered, follow the intent-driven recovery pract
 
 Load recovery reasoning from: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
 
+### Agent Failure Handling
+
+When an agent returns a structured failure (per `structured-failure-protocol.md`):
+
+1. Read `domain_assessment.responsible_domain` to identify which agent can fix it
+2. Invoke the responsible agent with fix context + the original intent
+3. Retry the failed agent with updated context (include `retry` block per intent propagation template)
+4. Max 2 retry cycles per agent. After that, HALT with full failure context.
+
+### Intent Propagation
+
+When invoking agents, append recipe context to the prompt:
+
+```
+---
+Recipe context:
+  intent: "Safely persist completed work as conventional commits with traceability"
+  constraints: ["{relevant constraints for this agent's task}"]
+```
+
+For retries, include previous failure context:
+
+```
+  retry:
+    previous_failure: "{what_failed}"
+    fix_applied: "{what was done to fix it}"
+    attempt: {N}
+```
+
 ## Tasks
 
 | Task | Agent | Verification |
