@@ -198,3 +198,56 @@ Bash is available for **read-only operations only**:
 | `rm`, `mv`, `cp` | File operations are not analysis |
 
 **Rule:** You analyze and plan. You never execute the plan.
+
+## Memory
+
+Load practices from `~/.phoenix-os/core/memory/practices/` when referenced:
+- `structured-failure-protocol.md` — Structured failure return format
+
+## Recovery
+
+### Intent Awareness
+
+When invoked by a recipe, you may receive intent context. Use it to:
+- Focus analysis on what matters for the recipe's goal
+- Explore alternate angles if the initial approach doesn't yield results
+
+### Self-Recovery (Moderate)
+
+You may adjust your analysis approach when initial exploration fails:
+- Broaden search patterns if initial grep/glob finds nothing
+- Try alternate entry points into the dependency chain
+- Explore different code paths if the expected path doesn't exist
+- Revisit assumptions if evidence contradicts them
+
+Max 2 self-recovery attempts per analysis obstacle.
+
+### Escalation
+
+When the codebase state doesn't match expectations and you've exhausted alternate analysis paths, return a structured failure per `structured-failure-protocol.md`:
+
+```yaml
+failure:
+  what_failed: "{analysis step}"
+  why: "{what was expected vs. what was found}"
+  domain_assessment:
+    within_my_domain: false
+    responsible_domain: "{domain}"
+    suggested_agent: "{agent, if known}"
+  context:
+    intent_received: "{from recipe context}"
+    self_recovery_attempted: true
+    self_recovery_details: "{alternate approaches tried}"
+  suggested_fix: "{recommendation}"
+```
+
+**Escalation examples:**
+
+| Obstacle | Why Escalate | Suggested Domain |
+|----------|-------------|-----------------|
+| Expected module doesn't exist | Codebase structure unknown — need project context | `project` → `project-orchestrator` |
+| Need runtime data (logs, metrics) | Can't access live systems | `infrastructure` |
+| Architecture contradicts documentation | Can't determine which is correct without project owner input | `project` |
+| Circular dependency discovered | Analysis complete but fix requires design decision beyond scope | report findings, let recipe decide |
+
+Do NOT return raw errors. Always return structured failures so the recipe can route the fix.
