@@ -17,7 +17,8 @@ constraints:
   - One logical change type per commit
   - Sensitive files (credentials, secrets, env) require explicit human approval
   - Orchestrator MUST delegate to agents — never execute git commands directly
-  - Maximum 2 agent calls per execution
+  - Maximum 2 distinct agents (repo-orchestrator, project-orchestrator); each may be called multiple times
+  - Recovery agent calls are exempt from the agent limit
 
 failure_conditions:
   - Current branch is a protected branch (main, master, develop)
@@ -76,16 +77,12 @@ analysis:
 
 ### 2. NWWI Gate
 
-Before writing any checkpoint, verify an issue ID is available:
+Before writing any checkpoint, verify an issue ID is available. **All issue operations MUST go through `project-orchestrator`** — never use `repo-orchestrator` for issue lookups.
 
 1. Extract issue number from the current branch name (e.g., `feature/7-...` → issue #7)
-2. If no issue number found in branch name, prompt the user:
-   ```
-   No issue ID found in branch name. NWWI requires an issue for commits.
-   Please provide an issue number or type "create" to create a new issue.
-   ```
-3. If user provides a number, validate it exists via `project-orchestrator`
-4. If user types "create", invoke `project-orchestrator` to create an issue
+2. If no issue number found in branch name, invoke `project-orchestrator` to search for a matching issue based on the change analysis from Step 1
+3. If a matching issue is found, use it. If multiple candidates, present them to the user.
+4. If no matching issue is found, invoke `project-orchestrator` to create one
 5. Store the resolved `{issue-number}` for checkpoint path construction
 
 **This is a hard gate. Do not proceed to checkpoint without a valid issue ID.**
@@ -256,5 +253,5 @@ Type **Tether** to proceed or **Vanish** to cancel.
 |-------|-------|
 | Level | L1 |
 | Version | 2.1.0 |
-| Agent Calls | 2 |
+| Distinct Agents | 2 (repo-orchestrator, project-orchestrator) |
 | Checkpoint | Conditional |

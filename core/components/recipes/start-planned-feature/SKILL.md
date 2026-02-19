@@ -17,7 +17,8 @@ constraints:
   - Planning phase is read-only — no code changes until plan is approved
   - Plan output MUST be persisted as three artifacts (spec.md, verify.md, tasks.md)
   - Orchestrator MUST delegate to agents — never execute tools directly
-  - Maximum 5 agent calls (L2 limit)
+  - Maximum 3 distinct agents (project-orchestrator, repo-orchestrator, code-builder); each may be called multiple times
+  - Recovery agent calls are exempt from the agent limit
   - Null type_hint defaults to feature/ prefix
 
 failure_conditions:
@@ -519,7 +520,7 @@ The recipe halts if:
 | 4 | `code-builder` | Execution | Implement all changes per execution plan |
 | 5 | `repo-orchestrator` | Execution | Commit all changes + create PR |
 
-**Total: 5 agent calls** (within L2 ≤5 limit)
+**Total: 3 distinct agents** (5 invocations, within L2 ≤5 distinct agents limit)
 
 ---
 
@@ -529,5 +530,5 @@ The recipe halts if:
 |-------|-------|
 | Level | L2 |
 | Version | 2.0.0 |
-| Agent Calls | 5 |
+| Distinct Agents | 3 (project-orchestrator, repo-orchestrator, code-builder) |
 | Checkpoint | Single (plan approval via Tether/Vanish) |

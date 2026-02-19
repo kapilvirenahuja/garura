@@ -17,7 +17,8 @@ constraints:
   - If type_hint is null, user MUST select type before proceeding
   - Two-phase STM write when issue does not yet exist (ADR 008)
   - Orchestrator MUST delegate to agents — never execute git/gh commands directly
-  - Maximum 2 agent calls per execution
+  - Maximum 2 distinct agents (project-orchestrator, repo-orchestrator); each may be called multiple times
+  - Recovery agent calls are exempt from the agent limit
 
 failure_conditions:
   - User rejects proposed branch at checkpoint (Vanish)
@@ -315,5 +316,5 @@ Type **Tether** to create the branch or **Vanish** to cancel.
 |-------|-------|
 | Level | L1 |
 | Version | 1.0.2 |
-| Agent Calls | 2 |
+| Distinct Agents | 2 (project-orchestrator, repo-orchestrator) |
 | Checkpoint | Always |

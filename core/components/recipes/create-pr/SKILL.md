@@ -15,7 +15,8 @@ constraints:
   - Always checkpoint before PR creation — PRs are externally visible
   - Quality checklist MUST distinguish must-have (blocking) from nice-to-have items
   - Orchestrator MUST delegate to agents — never execute gh commands directly
-  - Maximum 2 agent calls per execution
+  - Maximum 1 distinct agent (repo-orchestrator); may be called multiple times
+  - Recovery agent calls are exempt from the agent limit
 
 failure_conditions:
   - No issue number extractable from the current branch name
@@ -239,5 +240,5 @@ Type **Tether** to create the PR or **Vanish** to cancel.
 |-------|-------|
 | Level | L1 |
 | Version | 2.0.2 |
-| Agent Calls | 2 |
+| Distinct Agents | 1 (repo-orchestrator) |
 | Checkpoint | Always |
