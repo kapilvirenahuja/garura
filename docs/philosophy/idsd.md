@@ -151,7 +151,7 @@ Agent → Skill → Artifact
 
 ## SDLC Phases
 
-IDSD defines 8 SDLC phases (+ 2 cross-cutting):
+IDSD defines 8 phases (5 primary, 3 supporting):
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────────┐
@@ -167,6 +167,8 @@ IDSD defines 8 SDLC phases (+ 2 cross-cutting):
     │                      │                         │
     ▼                      ▼                         ▼
 
+Primary Phases (linear pipeline)
+────────────────────────────────────────────────────────────────────────────────
 Product-2-Design  Design-2-Spec  Spec-2-Code  Code-2-Test  Test-2-Run
 ┌──────────────┐ ┌────────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
 │discover-     │ │define-     │ │build-    │ │verify-   │ │create-pr │
@@ -178,26 +180,54 @@ Product-2-Design  Design-2-Spec  Spec-2-Code  Code-2-Test  Test-2-Run
 │backlog       │ │create-adr  │ │          │ │          │ │          │
 └──────────────┘ └────────────┘ └──────────┘ └──────────┘ └──────────┘
 
-Incident-2-Fix    Audit (cross-cutting)     Run-2-Learn (cross-cutting)
+Supporting Phases (continuous)
+────────────────────────────────────────────────────────────────────────────────
+Run-2-Monitor     Audit-2-Fix                Learn-2-Memory
 ┌──────────────┐ ┌──────────────┐           ┌──────────────┐
 │fix-bug       │ │review-arch   │           │run-retro     │
 │hotfix        │ │audit-security│           │capture-      │
 │              │ │audit-perf    │           │learning      │
 │              │ │audit-a11y    │           │run-standup   │
+│              │ │generate-docs │           │              │
 └──────────────┘ └──────────────┘           └──────────────┘
 ```
 
-| Phase | Focus | Example Recipes |
-|-------|-------|-----------------|
-| Product-2-Design | Discovery, vision, roadmap, backlog | discover-product, plan-roadmap, manage-backlog |
-| Design-2-Spec | Feature definition, wireframes, ADRs | define-feature, create-wireframes, create-adr |
-| Spec-2-Code | Implementation from spec or intent | build-feature |
-| Code-2-Test | Verification, commits, review | verify-feature, commit-code, review-pr |
-| Test-2-Run | Delivery, demos, releases | create-pr, deliver-feature, run-demo, release |
-| Incident-2-Fix | Bug diagnosis and fix | fix-bug, hotfix |
-| Audit (cross-cutting) | Architecture, security, perf review | review-architecture, audit-security |
-| Run-2-Learn (cross-cutting) | Retrospectives, knowledge capture | capture-learning, run-retro |
-| Docs (cross-cutting) | Documentation generation | generate-docs |
+#### Planned Phase: Monitor-to-Design
+
+> **Status**: Concept only — not specified, not on near-term roadmap. Timeline: 18-24 months.
+
+Monitor-to-Design closes the feedback loop from production back to the design phase:
+
+```
+Production monitoring signals (latency, errors, usage patterns)
+        │
+        ▼
+Pattern correlation against LTM
+        │
+        ▼
+Auto-generated intent candidates
+        │
+        ▼
+Human review and approval (Tether/Vanish)
+        │
+        ▼
+Approved intents enter SDLC pipeline
+```
+
+This phase is the operational mechanism for IDD Hypothesis H1 (Memory-Driven Intent Self-Generation). It requires: production monitoring integration, pattern correlation capability, and well-formed intent generation from observed signals. None of these are currently designed.
+
+**Why it matters**: Without Monitor-to-Design, the SDLC lifecycle is forward-only — humans author all intents. With it, the system can propose intents from production reality, moving IDSD from L3 (human-in-loop) toward L4 (spec-driven, where the system generates lightweight specs from observed patterns).
+
+| Phase | Type | Focus | Example Recipes |
+|-------|------|-------|-----------------|
+| Product-2-Design | Primary | Discovery, vision, roadmap, backlog | discover-product, plan-roadmap, manage-backlog |
+| Design-2-Spec | Primary | Feature definition, wireframes, ADRs | define-feature, create-wireframes, create-adr |
+| Spec-2-Code | Primary | Implementation from spec or intent | build-feature |
+| Code-2-Test | Primary | Verification, commits, review | verify-feature, commit-code, review-pr |
+| Test-2-Run | Primary | Delivery, demos, releases | create-pr, deliver-feature, run-demo, release |
+| Run-2-Monitor | Supporting | Post-deployment monitoring and incident response | fix-bug, hotfix |
+| Audit-2-Fix | Supporting | Quality audits and documentation | audit-security, audit-perf, audit-a11y, review-arch, generate-docs |
+| Learn-2-Memory | Supporting | Retrospectives, knowledge capture, STM→LTM promotion | capture-learning, run-retro, run-standup |
 
 ### Three Execution Speeds
 
@@ -238,13 +268,64 @@ IDSD maps the AI Squad Framework roles to 8 concrete Phoenix OS agents:
 | Agent | Domain | Role | SDLC Phases |
 |-------|--------|------|-------------|
 | product-strategist | product | strategist | Product-2-Design |
-| specifier | specification | specifier | Design-2-Spec, Docs |
+| specifier | specification | specifier | Design-2-Spec, Audit-2-Fix |
 | designer | design | designer | Design-2-Spec |
-| validator | quality | validator | Code-2-Test, Test-2-Run, Audit |
+| validator | quality | validator | Code-2-Test, Test-2-Run, Audit-2-Fix |
 | code-builder | implementation | builder | Spec-2-Code |
-| tech-designer | design | designer | Design-2-Code, Incident-2-Fix, Audit |
+| tech-designer | design | designer | Design-2-Code, Run-2-Monitor, Audit-2-Fix |
 | repo-orchestrator | repository | orchestrator | Universal |
 | project-orchestrator | project | orchestrator | Universal |
+
+#### Compartmented Evaluation Classification
+
+Under IDD Principle 4, agents are classified by their role in the information barrier:
+
+| Classification | Agents | What They Receive | When Barrier Active |
+|---------------|--------|-------------------|-------------------|
+| **Builders** | code-builder, tech-designer, specifier, designer | Goal + Constraints (no failure conditions) | In barrier-eligible recipes |
+| **Validators** | validator | Failure Conditions + Builder Output (no goal/constraints) | In barrier-eligible recipes |
+| **Neutral** | product-strategist, repo-orchestrator, project-orchestrator | Full intent (all elements) | Always — these agents perform mechanical or discovery operations |
+
+In barrier-exempt recipes (commit-code, create-pr, etc.), all agents receive the full intent regardless of classification.
+
+### Recipe Invocation Model Under Compartmented Evaluation
+
+When a barrier-eligible recipe is invoked, the recipe orchestration layer splits the intent before routing to agents:
+
+```
+User invokes recipe with business intent
+        │
+        ▼
+┌─────────────────────────────────────┐
+│  RECIPE ORCHESTRATION LAYER         │
+│                                     │
+│  1. Receive full intent             │
+│     (goal + constraints + failure)  │
+│                                     │
+│  2. Classify recipe:                │
+│     barrier-eligible? → split       │
+│     barrier-exempt? → pass through  │
+│                                     │
+│  3. If barrier-eligible:            │
+│     ┌────────────┐ ┌──────────────┐ │
+│     │ Builder    │ │ Validator    │ │
+│     │ gets:      │ │ gets:        │ │
+│     │ goal +     │ │ failure_cond │ │
+│     │ constraints│ │ + output     │ │
+│     └─────┬──────┘ └──────┬───────┘ │
+│           │               │         │
+│           ▼               ▼         │
+│     Build output → Validate →       │
+│     symptom feedback loop           │
+│           │                         │
+│     Converge or escalate            │
+└─────────────────────────────────────┘
+        │
+        ▼
+Output (DRAFT → VALIDATE → LOCKED)
+```
+
+**Key rule:** The recipe orchestration layer is the ONLY component that ever sees the complete intent during barrier-eligible execution. Neither the builder nor the validator has the full picture — this is by design.
 
 ### Memory Architecture (IDSD-specific)
 
@@ -295,6 +376,62 @@ IDSD maps the AI Squad Framework roles to 8 concrete Phoenix OS agents:
 └─────────────────────────────────────────────────────────┘
 ```
 
+#### LTM Governance via Git
+
+In IDSD, LTM is version-controlled in Git repositories. This provides natural infrastructure for governance:
+
+**File-Level Conflict Resolution**: Competing changes to the same LTM practice file surface as Git merge conflicts. Two developers capturing contradictory learnings about the same subsystem must resolve the conflict explicitly — Git's merge mechanism enforces this automatically.
+
+**STM→LTM Promotion Workflow**: Promotion follows a PR-based governance model with tiered review:
+
+```
+Developer captures learning (STM)
+        │
+        ▼
+capture-learning recipe extracts pattern
+        │
+        ▼
+draft-ltm-entry skill creates LTM file
+        │
+        ▼
+PR created for review
+        │
+        ├── Project-level LTM → Team leads review
+        │   (e.g., "this service uses connection pooling")
+        │
+        └── Org-level LTM → Engineering leaders / CTOs review
+            (e.g., "all services use structured JSON logging")
+        │
+        ▼
+Merged → deployed to ~/.phoenix-os/core/memory/ via /sync-claude
+```
+
+**Semantic Conflict Detection**: Git catches file-level conflicts, but not semantic contradictions (e.g., one practice says "always use retry logic" while another says "never retry inside transactions"). The `capture-learning` recipe is designed with an `extract-patterns` skill that should detect semantic overlap with existing LTM entries — but this capability is not yet built. Current state: manual review during PR process.
+
+**Cross-Developer Visibility**: All LTM changes are visible in the Git history. All STM artifacts are committed to feature branches and visible via GitHub (issues, branches, PRs). The NWWI (No Work Without Issue) gate ensures every piece of work is trackable.
+
+#### Memory Evolution Trajectory
+
+> **Status**: Concept to early design. Timeline: 12-24 months.
+
+The current Git-based memory architecture is the foundation. The evolution path:
+
+| Stage | Storage | Access | Search | Status |
+|-------|---------|--------|--------|--------|
+| **Stage 1** (current) | Git repository files | File read at agent context assembly | File path + glob patterns | Implemented |
+| **Stage 2** | Git + MCP server | MCP protocol | Keyword + structured query | Concept — 6-12 months |
+| **Stage 3** | Server-based + semantic index | MCP + API | Semantic search (vector embeddings) | Concept — 12-18 months |
+| **Stage 4** | Federated (org-wide) | MCP + API + federation protocol | Cross-project semantic search | Vision — 18-24 months |
+
+Each stage is additive — Stage 2 does not replace Stage 1; it adds a server layer on top of the same Git-backed storage. This means the core memory format (markdown files in Git) remains the source of truth throughout evolution.
+
+**LTM Quality & Decay**: As LTM grows beyond the 20-file audit threshold (IDD P5), automated quality mechanisms become necessary:
+- **Freshness scoring**: Track when each LTM entry was last validated against production reality
+- **Relevance decay**: Flag practices that haven't been referenced by agents in N months
+- **Contradiction detection**: Semantic analysis of LTM entries for conflicting guidance
+
+Status: Planned, not designed. Currently relies on manual PR review and the P5 hygiene rule.
+
 Storage paths:
 - LTM: `core/components/memory/{dimension}/` → deployed to `~/.phoenix-os/core/memory/`
 - STM: `.phoenix-os/{issue}/` — per-issue, branch-scoped
@@ -324,6 +461,178 @@ Tier 3: Orchestration   → tasks.md, verify.md
 
 ---
 
+## Intent Complexity Scoring in IDSD
+
+ICS (defined in IDD — see `intent-driven-development.md`) is operationalized in IDSD as an agent-level assessment that runs during P7 (Verify Understanding) before any agent begins execution.
+
+### Where ICS Runs in the Pipeline
+
+```
+Recipe invoked with business intent
+        │
+        ▼
+Agent receives intent from recipe
+        │
+        ▼
+┌─────────────────────────────────┐
+│  ICS ASSESSMENT (agent step)    │
+│                                 │
+│  1. Restate intent (P7)         │
+│  2. Score 6 ICS dimensions      │
+│     (incl. Barrier Integrity    │
+│     per P4)                     │
+│  3. Determine balance profile   │
+│                                 │
+│  Balanced → proceed             │
+│  Non-Balanced → checkpoint      │
+└─────────────────────────────────┘
+        │
+        ▼
+Agent begins execution
+```
+
+### IDSD-Specific ICS Rules
+
+- ICS runs on **business intents**, not SDLC intents (SDLC intents are framework-authored and pre-validated)
+- ICS is mandatory for agents in **Spec-2-Code** and **Design-2-Spec** phases (where intent ambiguity is most costly)
+- ICS is optional for mechanical recipes (`commit-code`, `create-pr`) per P7's "when to skip" guidance
+- ICS results are written to STM as evidence: `.phoenix-os/{issue}/ics-assessment.md`
+- Non-Balanced profiles generate a checkpoint; the human can override with Tether or request decomposition
+- For barrier-eligible recipes, ICS includes a 6th dimension: **Barrier Integrity** — whether the constraint-failure partition is correctly classified per P4's Classification Rule. Misclassified items trigger the "Barrier Compromised" profile.
+
+### Future: ICS in Learn-2-Memory
+
+As the Learn-2-Memory phase matures, ICS data becomes a training signal:
+
+- Historical ICS profiles per author reveal growth patterns
+- Frequently triggered profiles (e.g., "Intent-Heavy" on 60% of intents) surface coaching opportunities
+- ICS pass rates contribute to P8 (Measure Intent Health) signals
+
+---
+
+## Compartmented Evaluation
+
+Compartmented evaluation operationalizes IDD Principle 4 (Builders and Validators Must Not Share Context) in IDSD. It establishes an information barrier between builder and validator agents to prevent Goodhart's Law — where builders optimize for passing specific checks rather than genuinely solving the problem.
+
+### The Information Barrier
+
+The recipe orchestration layer splits the intent and routes each element to the correct agent:
+
+```
+┌───────────────────────────────────────────────────┐
+│                RECIPE (Orchestrator)                │
+│                                                     │
+│  Receives full intent:                              │
+│    • Goal                                           │
+│    • Constraints                                    │
+│    • Failure Conditions                             │
+│                                                     │
+│  ┌─────────────────┐    ┌─────────────────┐        │
+│  │                 │    │                 │        │
+│  │  BUILDER AGENT  │    │ VALIDATOR AGENT │        │
+│  │                 │    │                 │        │
+│  │  Receives:      │    │  Receives:      │        │
+│  │  • Goal         │    │  • Failure      │        │
+│  │  • Constraints  │    │    Conditions   │        │
+│  │  • LTM context  │    │  • Builder      │        │
+│  │                 │    │    Output       │        │
+│  │  Does NOT see:  │    │  • LTM context  │        │
+│  │  • Failure      │    │                 │        │
+│  │    Conditions   │    │  Does NOT see:  │        │
+│  │                 │    │  • Goal         │        │
+│  │                 │    │  • Constraints  │        │
+│  └────────┬────────┘    └────────┬────────┘        │
+│           │                      │                  │
+│           │   Builder Output     │                  │
+│           │ ────────────────────►│                  │
+│           │                      │                  │
+│           │  Symptom Feedback    │                  │
+│           │ ◄────────────────────│                  │
+│           │                      │                  │
+│  Max 3 iterations, then escalate to human          │
+└───────────────────────────────────────────────────┘
+```
+
+| Why It Matters | Without Barrier | With Barrier |
+|----------------|----------------|--------------|
+| **Builder behavior** | Optimizes for known checks (Goodhart's Law) | Optimizes for the actual goal |
+| **Validator independence** | May rationalize builder's approach because it knows the goal | Evaluates output purely against failure conditions |
+| **Feedback quality** | "You violated FC-3" (condition-based) | "Line 47 has a hardcoded connection string" (symptom-based) |
+| **Convergence** | Fast but shallow — builder games the checks | Slower first iteration, but genuine fixes |
+
+### Barrier-Eligible vs Barrier-Exempt Recipes
+
+Not all recipes benefit from compartmented evaluation. The barrier applies to recipes where the builder makes judgment calls. Mechanical recipes use a single-agent model.
+
+| Recipe | Barrier? | Reasoning |
+|--------|----------|-----------|
+| build-feature | ✓ Eligible | Builder makes design and implementation decisions |
+| define-feature | ✓ Eligible | Specifier makes scoping and requirements decisions |
+| design-feature | ✓ Eligible | Designer makes architectural decisions |
+| fix-bug | ✓ Eligible | Builder chooses fix strategy |
+| commit-code | ✗ Exempt | Mechanical — deterministic output |
+| create-pr | ✗ Exempt | Mechanical — deterministic output |
+| create-branch | ✗ Exempt | Mechanical — deterministic output |
+| generate-docs | ✗ Exempt | Descriptive — output determined by input |
+| audit-security | ✗ Exempt | Audit IS validation — agent is already the validator |
+| review-pr | ✗ Exempt | Review IS validation — agent is already the validator |
+
+### Agent Roles in Compartmented Evaluation
+
+| Agent | Role in Barrier | Sees Goal+Constraints | Sees Failure Conditions | Notes |
+|-------|----------------|----------------------|------------------------|-------|
+| code-builder | Builder | ✓ | ✗ | Primary builder for Spec-2-Code |
+| tech-designer | Builder | ✓ | ✗ | Builder for design decisions |
+| specifier | Builder | ✓ | ✗ | Builder for specification generation |
+| designer | Builder | ✓ | ✗ | Builder for UX/design decisions |
+| validator | Validator | ✗ | ✓ | Primary validator across all phases |
+| product-strategist | Neutral | ✓ | ✓ | Operates at discovery level — no barrier needed |
+| repo-orchestrator | Neutral | ✓ | ✓ | Mechanical operations — no barrier needed |
+| project-orchestrator | Neutral | ✓ | ✓ | Coordination operations — no barrier needed |
+
+### Symptom-Based Reporting
+
+When the validator identifies issues, it reports symptoms — what the output does wrong — not condition identifiers.
+
+**Correct (symptom-based):**
+```
+"The processPayment() function does not handle the case where
+ the payment gateway returns a timeout response."
+
+"The API response for /users/export includes raw SQL column names
+ instead of human-readable field labels."
+
+"The test file imports a production database configuration
+ instead of a test fixture."
+```
+
+**Incorrect (condition-based):**
+```
+"Failed FC-2: Error handling coverage insufficient."
+"Violation of failure condition #4: Response format non-compliant."
+"FC-1 triggered: Test isolation violated."
+```
+
+### Convergence Bounds
+
+| Parameter | Default | Override Allowed? | Escalation |
+|-----------|---------|------------------|------------|
+| Max iterations | 3 | Yes, recipe can set 1-5 | After max: drop barrier, escalate to human |
+| Same-symptom repeat | 2 occurrences | No | Immediate escalation — structural misunderstanding |
+| Hard ceiling | 5 | No | Mandatory human intervention |
+| Escalation protocol | Human receives full intent + all outputs + all feedback | — | Human sees everything; barrier is agent-only |
+
+### Barrier in the Two-Layer Intent Model
+
+Compartmented evaluation applies to **business intents** (Layer 1), NOT **SDLC intents** (Layer 2).
+
+- **Business intents** are where judgment calls happen — the builder must decide HOW to achieve a business goal. The barrier prevents the builder from optimizing for validator checks.
+- **SDLC intents** are framework-authored, pre-validated, and mechanical. They define lifecycle operations (commit, branch, deploy) where the output is deterministic. No barrier needed.
+
+This alignment is natural: barrier-eligible recipes are exactly those where business intent drives creative decisions, and barrier-exempt recipes are exactly those where SDLC intent drives mechanical operations.
+
+---
+
 ## IDSD Development Loop
 
 The core development loop in IDSD:
@@ -344,9 +653,11 @@ The core development loop in IDSD:
 DRAFT → VALIDATE → LOCKED
 ```
 
-- `--phase draft`: Agent generates initial artifact
-- `--phase validate`: Agent runs validation, returns issues/score/checklist
-- `--phase lock`: Cascade sync → re-validate → set LOCKED
+- `--phase draft`: Builder agent generates initial artifact from **goal + constraints** (under barrier-eligible recipes, failure conditions are withheld)
+- `--phase validate`: Validator agent evaluates artifact against **failure conditions** (under barrier-eligible recipes, goal and constraints are withheld); returns symptom-based feedback
+- `--phase lock`: Recipe orchestrator confirms no symptoms remain; cascade sync → re-validate → set LOCKED
+
+**Note:** In barrier-exempt recipes (commit-code, create-pr, etc.), DRAFT and VALIDATE may use a single agent with full intent visibility. The barrier only applies when the recipe is classified as barrier-eligible.
 
 **Intent-sufficiency:** Upstream artifacts enrich, never block. If intent is clear, proceed. Any recipe can be called at any point if the three elements of intent (intent, constraints, failure conditions) are satisfied.
 
@@ -378,9 +689,32 @@ Lock phase MUST run cascade-sync before setting LOCKED status.
 │  Cognitive Engine  │ MCP Integration  │ Hive Mind (Tasks)   │
 │  Context assembly  │ Tool-agnostic    │ Cross-agent         │
 │  from LTM + STM   │ external access  │ coordination        │
+│                    │                  │                     │
+│  Barrier Integrity │                  │                     │
+│  Constraint-failure│                  │                     │
+│  partition audit   │                  │                     │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+**Tool Integration**: IDSD's architecture supports tool-agnostic execution through MCP (Model Context Protocol) integration. Current and planned integrations:
+
+| Tool | Status | Integration |
+|------|--------|-------------|
+| GitHub (Issues, PRs, Branches) | Built | Via `gh` CLI and MCP GitHub Server |
+| Git (Version Control, LTM Storage) | Built | Native CLI |
+| Jira | Architecture supports | MCP server — incremental addition |
+| Notion / Wikis | Architecture supports | MCP server — incremental addition |
+| Linear | Architecture supports | MCP server — incremental addition |
+| CI/CD (GitHub Actions) | Partial | Via `gh` CLI |
+
+Adding new tool integrations is incremental — each tool gets an MCP server; skills route through MCP; agents and recipes remain unchanged. This is IDD Principle 1's corollary (Intents Don't Know About Tools) in action.
+
+**CTO-Configurable Domain Parameters** *(concept stage)*: Enterprise governance requires per-project customization — quality thresholds, mandatory gates, approval workflows. Architecture envisions CTO-level configuration that sets domain parameters (e.g., "all fintech projects require security audit gate," "startup projects skip formal ADR gate"). Not yet designed.
+
+**Cross-Team Intent Visibility**: GitHub infrastructure provides cross-team visibility today — issues, branches, PRs, and STM artifacts committed to branches are all visible via standard GitHub workflows. Purpose-built dashboards for intent-level visibility across teams are a trajectory item.
+
+**Barrier Integrity Audit**: In enterprise contexts, the constraint-failure partition is a governance concern. Misclassification can either deprive builders of needed context (constraints classified as failure conditions) or compromise validation independence (failure conditions classified as constraints). Enterprise governance should periodically audit intent definitions for correct P4 classification, especially for high-risk or compliance-sensitive intents.
 
 ---
 

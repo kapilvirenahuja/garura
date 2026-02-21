@@ -116,13 +116,25 @@ Every well-formed intent consists of exactly three elements:
 | **Constraints** | The boundaries — what the solution must respect | Business decisions, compliance, risk tolerance — only humans know these |
 | **Failure Conditions** | The halt signals — when to abort execution | Risk appetite is a human judgment; agents can't infer when "enough is enough" |
 
+#### Routing Under Compartmented Evaluation (P4)
+
+When compartmented evaluation applies, the three elements are routed to different agents:
+
+| Element | Routed To | Purpose |
+|---------|-----------|---------|
+| **Goal** | Builder only | Defines what the builder is trying to achieve |
+| **Constraints** | Builder only | Defines the boundaries the builder must respect |
+| **Failure Conditions** | Validator only | Defines what the validator checks the output against |
+
+This routing is the operational mechanism of P4. The orchestration layer (recipes in IDSD) is responsible for splitting the intent and routing each element to the correct agent.
+
 **Why not Success Criteria?** In IDD, the intent itself defines success — achieving the stated outcome IS success. Success criteria are an **operationalized decomposition** of intent (e.g., "registration completes in < 2s, works on mobile, sends confirmation email"). That operationalization is the Specifier agent's job, informed by organizational memory and context. Success criteria belong in the **generated spec layer**, not the human-authored intent layer. Adding them to intent does the Specifier's work for it — which is exactly the SDD pattern IDD rejects.
 
 **The three elements create a complete decision space for agents:**
-- Am I moving toward the intent? → continue
-- Am I within constraints? → continue
-- Have I hit a failure condition? → halt
-- Have I achieved the intent? → done (success is implicit in intent)
+- Am I moving toward the intent? → continue *(builder evaluates)*
+- Am I within constraints? → continue *(builder evaluates)*
+- Have I hit a failure condition? → halt *(validator evaluates)*
+- Have I achieved the intent? → done — success is implicit in intent *(builder evaluates)*
 
 **Intent quality rule**: An intent must be clear enough that success is self-evident from its statement. If you cannot tell whether the intent has been achieved, the intent is poorly formed — the fix is upstream (sharpen the intent), not downstream (bolt on success criteria).
 
@@ -161,6 +173,7 @@ Failure Conditions: Registration fails silently. PII is logged to stdout. User d
 - An intent that requires success criteria to be understood is a poorly formed intent
 - Orchestration translates intent into structured goals with high-level steps
 - Agents are responsible for translating intent into specifications (including derived success criteria)
+- The goal must be interpretable by the builder without reference to failure conditions — if understanding the goal requires knowing the failure conditions, the intent is poorly structured (see P4)
 
 ---
 
@@ -362,7 +375,41 @@ Memory is the single biggest differentiator of IDD. No other approach implements
 - STM is ALWAYS created when working in a branch or Git worktree
 - STM is NEVER created outside of a branch/worktree
 - STM MAY be promoted to LTM
+- LTM promotion requires governance review proportional to blast radius (see LTM Governance)
+- LTM practices must be evaluated in context before application — blind application is an anti-pattern
 - Memory enables deterministic adaptation
+
+#### LTM Governance
+
+LTM updates carry organizational risk — a bad practice promoted to LTM affects every subsequent execution across all projects. LTM governance must be proportional to blast radius.
+
+**Promotion Workflow**: STM-to-LTM promotion should follow a tiered review model:
+
+| Scope | Reviewer | Example |
+|-------|----------|---------|
+| Project-level LTM | Team leads, senior developers | "This service uses connection pooling with max 20 connections" |
+| Org-level LTM | Engineering leaders, CTOs | "All services use structured JSON logging via the project logger" |
+
+The governance mechanism depends on the implementation. In Git-based systems, LTM version control provides natural file-level conflict resolution — competing changes to the same practice file surface as merge conflicts. Pull request workflows enforce review tiers. Other implementations may use different governance mechanisms, but the principle holds: LTM promotion must be reviewed, and review depth must scale with blast radius.
+
+**Contextual Application**: LTM practices are not rules to be applied blindly — they are contextual knowledge. The system must understand WHEN a practice applies, not just WHAT it says. A practice like "use retry logic for external calls" is correct for HTTP API calls and wrong for database transactions inside a transaction boundary. Agents must evaluate LTM practices against current context (Element 7) before applying them.
+
+**Anti-entropy**: As LTM grows, practices may conflict, become stale, or accumulate redundancy. LTM governance must include periodic review, freshness assessment, and contradiction detection. The P5 hygiene rule (audit at 20 practice files) is the minimum; enterprise-scale implementations need automated quality mechanisms.
+
+#### Memory as Foundation for Intent Self-Generation
+
+> **Status**: Trajectory — not designed, not implemented. This section describes the long-term vision for how memory enables higher autonomy levels.
+
+Memory is not just a context store — it is the accumulation mechanism that could eventually enable systems to generate their own intents. The path:
+
+1. **Capture** (current): STM records intent→outcome pairs during execution. What was the goal? What did the agent do? What was the result?
+2. **Promote** (current): Successful patterns are promoted from STM to LTM through governance workflows. The organization's knowledge base grows with each completed intent.
+3. **Contextualize** (designed): LTM practices are applied contextually — agents evaluate which practices apply to the current situation based on Element 7 (Context-Aware Decisions).
+4. **Generate** (vision): A system with rich enough LTM and production feedback could generate new intents from observed patterns — "this API endpoint has increasing latency; based on similar patterns in LTM, the likely cause is X; proposed intent: investigate and fix."
+
+Step 4 requires capabilities not yet designed: production monitoring integration, pattern correlation across LTM entries, and a mechanism to formulate well-formed intents (with goals, constraints, and failure conditions) from observed signals. This is the architectural path toward Dan Shapiro's L4-L5 levels — but the generation mechanism itself remains an open problem.
+
+**The key insight**: Memory architecture is a necessary precondition for intent self-generation, not a sufficient one. Building the accumulation mechanism (steps 1-3) now creates the foundation that generation (step 4) will eventually require.
 
 ---
 
@@ -483,12 +530,36 @@ This is the **handshake** between human oversight and AI execution. It maps dire
 - Verifies test coverage, security patterns, accessibility compliance
 - Operates at gates between SDLC phases
 - Can be shared across pods (1 Validator per 2-3 teams)
+- Under compartmented evaluation (P4): receives failure conditions + builder output only; provides symptom-based feedback without revealing which specific condition was violated
+
+**Builder-Validator Information Flow (when P4 applies)**:
+```
+┌──────────────┐                    ┌──────────────┐
+│              │                    │              │
+│   BUILDER    │                    │  VALIDATOR   │
+│              │                    │              │
+│ Receives:    │    Builder Output  │ Receives:    │
+│ • Goal       │ ──────────────────►│ • Failure    │
+│ • Constraints│                    │   Conditions │
+│              │  Symptom Feedback  │ • Builder    │
+│              │ ◄──────────────────│   Output     │
+│              │                    │              │
+└──────────────┘                    └──────────────┘
+        ▲                                   ▲
+        │                                   │
+        └───── ORCHESTRATION LAYER ─────────┘
+              (routes correct elements
+               to each agent)
+```
+
+**Rule**: The orchestration layer is responsible for routing the correct intent elements to each agent. The builder never constructs its own failure conditions, and the validator never infers the original goal.
 
 **Rules**:
 - Every SDLC phase has a quality gate before the next phase begins
 - The autonomy level determines how much human oversight is applied, not the quality of output
 - Validators access LTM standards to ensure organizational compliance
 - Generation-verification is a loop, not a pipeline — failures cycle back to the appropriate phase
+- Under compartmented evaluation (P4), the orchestration layer routes goal+constraints to the builder and failure_conditions+output to the validator — neither agent sees the other's context
 
 ---
 
@@ -614,13 +685,17 @@ Constraints define the walls of the solution space. Crossing a constraint is alw
 
 **The trap this prevents:** Constraint lists that grow to 15+ items per intent. When everything is a constraint, nothing is. Agents cannot distinguish real boundaries from nice-to-haves, and the system drifts toward SDD's worst failure mode — an interconnected web of requirements where missing one cascades.
 
+**Relationship to P4 (Compartmented Evaluation):** The Constraint-Failure Classification Rule (P4) provides a precise test for whether something belongs in constraints or failure conditions. If a requirement shapes the builder's design choices, it is a constraint. If it can only be evaluated after the output exists, it is a failure condition. Constraints that fail this test — requirements the builder doesn't need to make design decisions — should be reclassified as failure conditions. This prevents constraint lists from growing unbounded while ensuring the builder has every piece of information it genuinely needs.
+
 ---
 
 ### Principle 3: Failure Conditions Must Be Observable and Binary
 
-A failure condition must describe something that can be **detected programmatically or by inspection** and evaluated as **true or false**. Subjective, gradient, or aspirational failure conditions are not failure conditions — they are quality preferences.
+A failure condition must describe something that can be **detected programmatically or by inspection** and evaluated as **true or false**. Under compartmented evaluation (P4), failure conditions are **validator-only instruments** — they are routed exclusively to the validator agent and never shown to the builder. Subjective, gradient, or aspirational failure conditions are not failure conditions — they are quality preferences.
 
 **Test:** Can a validator agent determine whether this failure condition has been triggered without asking a human for an opinion? If not, it's not a failure condition.
+
+**Second test (P4 alignment):** Can this failure condition be evaluated from builder output alone, without knowing the goal or constraints that shaped the builder's decisions? If the validator needs to understand the builder's intent to evaluate the condition, it is not a proper failure condition — it may be a constraint in disguise.
 
 **Observable and binary:**
 - The generated code does not compile
@@ -639,7 +714,100 @@ A failure condition must describe something that can be **detected programmatica
 
 ---
 
-### Principle 4: Each Intent Is Self-Contained; Cross-Cutting Concerns Live in LTM
+### Principle 4: Builders and Validators Must Not Share Context
+
+When an agent builds a solution and the same agent (or a peer with the same context) validates it, a fundamental conflict arises: the builder optimizes for passing the specific checks it knows about, rather than genuinely solving the problem. This is Goodhart's Law applied to agentic verification — when the measure becomes the target, it ceases to be a good measure.
+
+The fix is an **information barrier**: the builder and validator operate with deliberately different context windows.
+
+#### The Routing Table
+
+| Intent Element | Builder Agent Receives | Validator Agent Receives |
+|----------------|----------------------|------------------------|
+| **Goal** | ✓ Yes | ✗ No |
+| **Constraints** | ✓ Yes | ✗ No |
+| **Failure Conditions** | ✗ No | ✓ Yes |
+| **Builder Output** | — (produces it) | ✓ Yes |
+
+The builder works from **goal + constraints** — it knows what to achieve and what boundaries to respect, but not what specific checks will be applied.
+
+The validator works from **failure conditions + builder output** — it knows what bad looks like and can evaluate the output, but doesn't know the original goal or constraints that shaped the builder's choices.
+
+#### The Constraint-Failure Classification Rule
+
+The partition between constraints and failure conditions is not arbitrary — it follows a single decision rule:
+
+> **"Would knowing this change how the builder writes code? Yes → constraint. No → failure condition."**
+
+If a requirement shapes the builder's design choices (API compatibility, dependency restrictions, performance budgets), it is a **constraint** — the builder needs it to make good decisions. If a requirement can only be evaluated after the output exists (compilation success, test coverage, security scan results), it is a **failure condition** — giving it to the builder only invites teaching-to-the-test.
+
+| Requirement | Classification | Reasoning |
+|-------------|---------------|-----------|
+| "Must not introduce new runtime dependencies" | Constraint | Shapes which libraries the builder considers |
+| "Must maintain backward compatibility with API v2" | Constraint | Shapes interface design decisions |
+| "Response time must not exceed current p99 by more than 10%" | Constraint | Shapes algorithmic and architectural choices |
+| "The generated code must compile" | Failure condition | Builder should try to write compilable code regardless — knowing this is a check doesn't help |
+| "Test coverage must not drop below threshold" | Failure condition | Evaluable only after code exists; giving it to builder invites coverage gaming |
+| "No secrets in source code" | Failure condition | Binary check on output; builder should follow secure coding practices from LTM |
+| "PR description must not be empty" | Failure condition | Evaluable only from output artifact |
+| "Must not modify files outside src/" | Constraint | Directly shapes which files the builder touches |
+
+**Misclassification is always worse in one direction:** Putting a failure condition into constraints drowns the builder in prescriptive rules and reduces its decision space (drift toward SDD). Putting a constraint into failure conditions deprives the builder of information it needs to make good design decisions. When in doubt, ask: "Does the builder need this to make a *design choice*, or is it something we check *after the fact*?"
+
+#### Symptom-Based Feedback Protocol
+
+When the validator finds issues, it reports **symptoms**, not **condition IDs**.
+
+**Correct (symptom-based):**
+```
+"The output contains a hardcoded database connection string at line 47."
+"The function processBatch() does not handle the case where the input array is empty."
+"Two API endpoints return different error response formats."
+```
+
+**Incorrect (condition-based):**
+```
+"Failed check FC-3: No secrets in source code."
+"Violation of failure condition #2: test coverage below threshold."
+"FC-7 triggered: API contract changed without version bump."
+```
+
+Symptom-based feedback tells the builder *what the output does wrong* without revealing *which specific condition was violated*. This preserves the barrier: the builder fixes the actual problem rather than reverse-engineering which check to pass.
+
+#### Convergence Protocol
+
+The builder-validator loop must converge. Unbounded iteration is both wasteful and a signal that the intent is poorly formed.
+
+| Parameter | Default | Rationale |
+|-----------|---------|-----------|
+| **Max iterations** | 3 | If 3 cycles don't converge, the problem is upstream |
+| **Escalation trigger** | 3 failures on same symptom | Repeating symptom = structural misunderstanding, not fixable by iteration |
+| **Escalation action** | Drop barrier; present full intent to human | Human sees everything and makes the judgment call |
+| **Hard ceiling** | 5 iterations | Absolute maximum before mandatory human intervention |
+
+**Escalation drops the barrier**: When the system escalates to a human, the human receives the complete intent (goal + constraints + failure conditions), all builder outputs, and all validator feedback. The information barrier exists for agents, not for humans.
+
+#### When Compartmented Evaluation Applies
+
+The barrier adds value when the builder must make **judgment calls** — creative, architectural, or design decisions where knowing the test criteria could bias the approach. It adds no value for **mechanical operations** where the output is deterministic.
+
+| Intent Type | Barrier? | Reasoning |
+|-------------|----------|-----------|
+| Build a feature from intent | ✓ Yes | Builder makes design decisions; knowing failure checks would bias them |
+| Fix a bug from RCA | ✓ Yes | Builder chooses a fix strategy; knowing validator checks would narrow exploration |
+| Design a technical architecture | ✓ Yes | Designer makes structural decisions that should not be test-shaped |
+| Commit code | ✗ No | Mechanical operation — no judgment calls, deterministic output |
+| Create a branch | ✗ No | Mechanical — deterministic |
+| Generate documentation from code | ✗ No | Descriptive, not creative — output is determined by input |
+| Run a security audit | ✗ No | Audit IS validation — the agent is already in the validator role |
+
+**Rule of thumb:** If the intent's goal can be satisfied by only one possible output, the barrier adds overhead without benefit. If multiple valid outputs exist and the builder must choose among them, the barrier prevents the builder from optimizing for the validator's specific checks rather than the actual goal.
+
+**Why this matters:** Without compartmented evaluation, every generation-verification loop in IDD is vulnerable to Goodhart's Law. The builder doesn't need to be "trying" to game the checks — LLMs naturally pattern-match toward satisfying visible criteria. The information barrier ensures that the builder optimizes for the *goal* (which it can see) while the validator independently evaluates against *failure conditions* (which only it can see). This is the same principle as separation of duties in financial controls and monitor-command in safety-critical systems, adapted for AI agent verification.
+
+---
+
+### Principle 5: Each Intent Is Self-Contained; Cross-Cutting Concerns Live in LTM
 
 An intent must not depend on another intent's internal state. If two intents need to share knowledge, that knowledge belongs in LTM (practices, standards, quality gates) or STM (issue-specific artifacts), not in the intent itself.
 
@@ -664,7 +832,7 @@ The logging and security concerns are not in the intent. They are in LTM, where 
 
 ---
 
-### Principle 5: Intents Scale Horizontally, Not Vertically
+### Principle 6: Intents Scale Horizontally, Not Vertically
 
 When a goal is too large for a single execution step, the answer is to decompose into multiple intents — not to make the intent more detailed. Vertical scaling (adding more detail to one intent) recreates SDD. Horizontal scaling (more intents, each small and focused) preserves IDD.
 
@@ -687,7 +855,7 @@ The vertical version has made design decisions (connection pooling, circuit brea
 
 ---
 
-### Principle 6: Verify Understanding Before Execution
+### Principle 7: Verify Understanding Before Execution
 
 Before an agent begins work on an intent, it must be able to restate the goal, constraints, and failure conditions in the context of the current codebase. If the agent's restatement reveals ambiguity, the system must checkpoint for clarification — not guess.
 
@@ -710,13 +878,35 @@ Agent restatement (before work begins):
 
 The restatement converts the abstract intent into a concrete plan anchored to real code. If the agent cannot produce this restatement, it doesn't understand the intent well enough to proceed.
 
+**Barrier-aware restatement (when P4 applies):**
+
+The builder's restatement must confirm it is working from goal + constraints only:
+```
+Builder restatement:
+  "Working from: goal (refactor payment module for testability)
+   + constraints (must not change public API signatures).
+   I do not have visibility into failure conditions.
+   My approach: extract dependencies to allow injection in 3 classes."
+```
+
+The validator's restatement must confirm it is working from failure conditions + builder output only:
+```
+Validator restatement:
+  "Evaluating against: failure conditions for payment module refactoring.
+   I have the builder's output (modified src/payments/ files).
+   I do not have visibility into the original goal or constraints.
+   My evaluation: run existing test suite, check for API signature changes."
+```
+
+These restatements serve as runtime verification that the information barrier is intact. If either agent's restatement references information it should not have, the barrier has been compromised.
+
 **Why this matters:** "Clearly understood" is the most dangerous phrase in IDD. An LLM can pattern-match to something close enough and proceed with confidence down the wrong path. Forced restatement surfaces misunderstandings *before* work begins, when correction is free — not after three agent calls, when it's expensive.
 
 **When to skip:** Intents with purely mechanical goals (commit code, create branch, open PR) where the action is unambiguous. The verification principle applies to intents where the agent must make judgment calls about *what* the codebase needs.
 
 ---
 
-### Principle 7: Feedback Is Continuous, Failure Is Cheap
+### Principle 8: Feedback Is Continuous, Failure Is Cheap
 
 Design intents so that failures are detected as early as possible, checkpoints are meaningful, and intent health is measured over time. This principle unifies three concerns: fail-fast design, checkpoint justification, and outcome measurement.
 
@@ -744,6 +934,8 @@ A successful outcome (code shipped, PR merged) does not mean the intent was well
 | Failure condition trigger rate | Occasional | Never triggered | Failure conditions may be too lenient |
 | Downstream rework | Rare | Frequent rejections in later steps | Early intents not catching problems |
 | LTM dependency count | 0-3 practices referenced | 10+ practices needed | Intent is underspecified, leaning on LTM as a crutch |
+| Builder-validator alignment rate | >80% converge within 2 iterations | <50% require 3+ iterations | Barrier partition quality or intent clarity |
+| Rework cycles per intent | 1-2 cycles | 3+ cycles | Intent may be ambiguous or barrier may be misconfigured |
 
 **Why this matters:** IDD's advantage over SDD is adaptability. But adaptability without feedback is drift. These signals tell you whether your intents are staying in the productive middle ground or drifting toward either over-specification or chaos.
 
@@ -776,6 +968,16 @@ A composed workflow where each step's success depends on the previous step produ
 
 **Symptom:** Modifying one step requires updating every downstream step in the chain.
 
+### Anti-Pattern 6: The Barrier Leak
+The builder has access to failure conditions — either because they were embedded in the goal text, because the validator's feedback included condition identifiers instead of symptoms, or because the same agent plays both roles. The builder optimizes for passing specific checks rather than solving the actual problem.
+
+**Symptom:** Builder outputs pass all failure conditions but miss the actual intent. Code that technically satisfies every check but doesn't solve the real problem. Validator feedback includes phrases like "FC-3 violated" instead of describing what the output does wrong.
+
+### Anti-Pattern 7: The Constraint Overload
+Failure conditions have been misclassified as constraints, drowning the builder in prescriptive rules that reduce its decision space to near-zero. The intent looks like it has many constraints and few failure conditions, but most "constraints" are actually output-evaluation criteria that the builder doesn't need for design decisions.
+
+**Symptom:** Constraint list exceeds 8+ items per intent. Builder always produces nearly identical outputs regardless of context. Removing half the "constraints" wouldn't change the builder's approach — they were evaluation criteria, not design-shaping boundaries.
+
 ---
 
 ## Decision Checklist: Before Adding a New Intent
@@ -789,20 +991,119 @@ Use this checklist when designing any new intent-based workflow or modifying an 
 | 3 | Is the intent free of tool/technology references? | P1 | Survives a complete toolchain swap |
 | 4 | Is every constraint a hard boundary you'd reject on? | P2 | No "should" or "prefer" language |
 | 5 | Can every failure condition be evaluated without human opinion? | P3 | A validator agent can check it |
-| 6 | Does the intent work without knowledge of other intents? | P4 | Delete all other intents — does this one still make sense? |
-| 7 | Can you state the goal in one sentence without "and"? | P5 | If not, decompose into multiple intents |
-| 8 | Can the agent restate this intent in concrete codebase terms? | P6 | Restatement surfaces no ambiguity or forces clarification |
-| 9 | Is this the earliest point this failure could be detected? | P7 | No cheaper place to catch this error |
-| 10 | Will the checkpoint add value (not rubber stamp)? | P7 | Expected approval rate 70-90% |
-| 11 | Can you measure this intent's health over time? | P7 | At least 3 signals from the health table are trackable |
+| 6 | Is every constraint something the builder needs to make design choices? | P4 | Passes the Classification Rule: "Would knowing this change how the builder writes code?" |
+| 7 | Are failure conditions evaluable from builder output alone? | P4 | Validator can check without knowing goal or constraints |
+| 8 | Is validator feedback symptom-based, not condition-based? | P4 | Feedback describes what output does wrong, not which condition ID failed |
+| 9 | Does the intent work without knowledge of other intents? | P5 | Delete all other intents — does this one still make sense? |
+| 10 | Can you state the goal in one sentence without "and"? | P6 | If not, decompose into multiple intents |
+| 11 | Can the agent restate this intent in concrete codebase terms? | P7 | Restatement surfaces no ambiguity or forces clarification |
+| 12 | Is this the earliest point this failure could be detected? | P8 | No cheaper place to catch this error |
+| 13 | Will the checkpoint add value (not rubber stamp)? | P8 | Expected approval rate 70-90% |
+| 14 | Can you measure this intent's health over time? | P8 | At least 3 signals from the health table are trackable |
+
+---
+
+## Intent Complexity Scoring (ICS)
+
+ICS is a feedback mechanism that scores how well-balanced an intent is across its three elements. It is not a quality gate — it is a **training tool** that helps humans learn to write well-formed intents and accelerates their maturity as intent authors.
+
+**Core insight:** The three-element model is self-balancing in theory — a larger intent demands proportionally larger constraints and failure conditions. ICS makes this balance *visible* so humans can calibrate before execution, not after failure.
+
+### The Balance Model
+
+ICS evaluates six dimensions, each mapped to an IDD principle:
+
+| Dimension | What It Measures | Principle | Scale |
+|-----------|-----------------|-----------|-------|
+| **Scope Breadth** | How many distinct outcomes the intent covers | P6 (Horizontal Scaling) | 1 (atomic) – 5 (compound) |
+| **Constraint Proportionality** | Whether constraints bound the solution space relative to scope | P2 (Boundaries Not Preferences) | Ratio: constraints per scope unit |
+| **Failure Observability** | Whether failure conditions are binary and programmatically evaluable | P3 (Observable and Binary) | % of conditions that pass the P3 test |
+| **Decision Space** | Whether the agent has meaningfully different approaches available | P1 + Corollary (Agent Says No) | 1 (scripted) – 5 (wide open) |
+| **Self-Containment** | Whether the intent depends on other intents or excessive LTM | P5 (Self-Contained) | 0 (fully independent) – 5 (heavily dependent) |
+| **Barrier Integrity** | Whether the constraint-failure partition is correctly classified | P4 (Compartmented Evaluation) | % of items passing the Classification Rule |
+
+### Balance Profiles
+
+ICS produces a **profile**, not a score. Numerical scoring creates false precision — balance is what matters.
+
+| Profile | Pattern | Diagnosis | Fix |
+|---------|---------|-----------|-----|
+| **Balanced** | Scope proportional to constraints and failures; agent has choices; intent is self-contained | Well-formed intent. Proceed. | None needed |
+| **Intent-Heavy** | Scope is broad (3+) but constraints and failures are thin (1-2 each) | Goal is too ambitious for its guardrails. Agent will make unconstrained decisions in critical areas. | Either decompose (P6) or add constraints and failure conditions proportional to scope |
+| **Over-Constrained** | Decision space is 1-2; constraints exceed scope breadth | Intent has become a specification. Agent is a typist, not a decision-maker. | Remove constraints that are actually preferences (P2). Move standards to LTM (P5). |
+| **Under-Guarded** | Failure observability below 50%; failure conditions are subjective or missing | System cannot detect bad outputs during execution. False confidence. | Rewrite failure conditions to be binary and observable (P3). If a condition can't be made observable, it's a quality preference — remove it from intent. |
+| **Leaky** | Self-containment score is 4+; intent references or assumes other intents | Hidden dependencies will cause cascade failures. | Extract shared knowledge to LTM. Make each intent independently executable (P5). |
+| **Barrier Compromised** | Constraint-failure partition has misclassified items; failure conditions in constraints or constraints in failure conditions | Barrier leak or constraint overload. Builder has information that biases output, or builder lacks information needed for design. | Apply P4 Classification Rule to each item. Reclassify: design-shaping requirements → constraints; output-evaluable requirements → failure conditions. |
+
+### How ICS Works
+
+ICS is not a manual scoring exercise. It is a structured assessment that an agent performs on an intent *before* execution begins. It operationalizes P7 (Verify Understanding) by adding balance validation to the agent's restatement step.
+
+```
+Agent receives intent
+        │
+        ▼
+Step 1: Restate intent in codebase context (P7)
+        │
+        ▼
+Step 2: Score 6 ICS dimensions (including barrier integrity for P4)
+        │
+        ▼
+Step 3: Determine balance profile
+        │
+        ├── Balanced → Proceed to execution
+        ├── Intent-Heavy → Checkpoint: recommend decomposition or additional constraints
+        ├── Over-Constrained → Checkpoint: flag loss of agent decision space
+        ├── Under-Guarded → Checkpoint: flag unobservable failure conditions
+        ├── Leaky → Checkpoint: flag hidden dependencies
+        └── Barrier Compromised → Checkpoint: flag misclassified constraint/failure partition
+```
+
+### ICS Maturity Curve
+
+ICS is designed to become less necessary over time. As humans gain experience writing intents, their natural balance improves and ICS assessments shift toward "Balanced" without intervention.
+
+| Stage | Human Behavior | ICS Role |
+|-------|---------------|----------|
+| **Novice** | Writes wish intents or spec intents. Little constraint/failure discipline. | Primary training tool. Most intents trigger non-Balanced profiles. |
+| **Practitioner** | Balances the three elements for standard-scope intents. Occasionally over-constrains. | Calibration check. Catches edge cases the author missed. |
+| **Expert** | Writes larger intents with proportionally complete constraints and failures. Knows when to decompose. | Sanity check. Rarely triggers. Confirms the author's judgment. |
+
+**The scaling thesis:** As humans mature, they write larger, more ambitious intents — and ICS confirms those intents are properly balanced. The system scales because the human's ability to balance the three elements scales. ICS is the feedback loop that makes that growth visible.
 
 ---
 
 ## Hypotheses
 
-> **Status:** PLACEHOLDER — To be defined.
+IDD rests on three testable hypotheses. These are not proven — they are the bets the paradigm makes. If any is falsified, the paradigm must adapt.
 
-*This section will capture testable hypotheses about IDD's impact, assumptions, and predicted outcomes. Target: 3 hypotheses.*
+### H1: Memory-Driven Intent Self-Generation
+
+**Hypothesis**: A system that accumulates enough structured intent→outcome pairs in LTM can eventually generate well-formed intents from observed production patterns, reducing human involvement from "author all intents" to "approve or refine generated intents."
+
+**Preconditions**: Rich LTM with contextual metadata. Production monitoring integration. Pattern correlation capability. Well-defined governance for generated vs human-authored intents.
+
+**Current state**: The accumulation mechanism (STM→LTM promotion) is designed. The generation mechanism is not. This hypothesis cannot be tested until steps 1-3 of the Memory Evolution path (Element 5) are operational and producing a critical mass of intent→outcome data.
+
+**Falsification signal**: If systems with rich LTM consistently generate intents that humans reject >80% of the time, the hypothesis is falsified — memory accumulation does not lead to generation capability.
+
+### H2: Hypothesis Layer Above Intents
+
+**Hypothesis**: There exists a useful abstraction above intents — a "purpose" or "hypothesis" layer that connects business hypotheses to the intents that test them. Example: "We hypothesize that adding social login will increase registration by 30%" → generates intents for implementation, measurement, and evaluation.
+
+**Why it matters**: Intents describe WHAT to build. Hypotheses describe WHY to build it. If the system can track hypothesis→intent→outcome chains, it can learn which types of business bets succeed and which fail — informing future hypothesis generation.
+
+**Current state**: Not designed. Conceptual only. IDD currently treats intent as the highest abstraction layer. Whether a hypothesis layer adds genuine value or unnecessary ceremony is an open question.
+
+**Falsification signal**: If adding a hypothesis layer increases authorship burden without improving intent quality or outcome prediction, the abstraction is not useful.
+
+### H3: Cross-Domain Applicability
+
+**Hypothesis**: The IDD paradigm — intent triples, constraints vs failure conditions, compartmented evaluation, memory architecture — applies beyond software development. Initial domains: UX design, supply chain management, agentic system design.
+
+**Current state**: Preliminary exploration in UX contexts shows the intent triple (goal + constraints + failure conditions) transfers naturally. Failure conditions for UX are harder to make binary and observable (P3 challenge). No exploration in other domains.
+
+**Falsification signal**: If adapting IDD to a non-software domain requires modifying more than 2 of the 8 principles, the paradigm is software-specific, not universal.
 
 ---
 
