@@ -1,10 +1,10 @@
-# Fluidic SDLC — Execution Plan (Tasks)
+# IDSD — Execution Plan (Tasks)
 
 **Version:** 2.0.0
 **Date:** 2026-02-20
 **Status:** Draft — Pending Review
-**Spec Reference:** `fluidic-sdlc.md`
-**Verify Reference:** `fluidic-sdlc-verify.md`
+**Spec Reference:** `idsd.md`
+**Verify Reference:** `idsd-verify.md`
 
 ---
 
@@ -89,7 +89,7 @@ T-900+ are cross-cutting tasks that run after all recipe groups.
 
 | ID | Task | Description | Depends On | Agent | Gate |
 |----|------|-------------|------------|-------|------|
-| T-010 | Design capture-learning skill contracts | Write brief design stub defining input/output contracts for: `extract-patterns` (analyze completed STM artifacts, identify reusable patterns; input: source_path; output: patterns list with type, description, context) and `draft-ltm-entry` (produce structured LTM entry from patterns; input: patterns, entry_type: practice\|standard\|template; output: ltm_entry with path, type, content). Stub can be inline notes or a short markdown file at `.claude/specs/fluidic-sdlc/stubs/capture-learning-skills.md`. | — | code-builder | G-901 |
+| T-010 | Design capture-learning skill contracts | Write brief design stub defining input/output contracts for: `extract-patterns` (analyze completed STM artifacts, identify reusable patterns; input: source_path; output: patterns list with type, description, context) and `draft-ltm-entry` (produce structured LTM entry from patterns; input: patterns, entry_type: practice\|standard\|template; output: ltm_entry with path, type, content). Stub can be inline notes or a short markdown file at `.claude/specs/idsd/stubs/capture-learning-skills.md`. | — | code-builder | G-901 |
 | T-011 | Create extract-patterns skill | Write `core/components/skills/extract-patterns/SKILL.md` — input contract: source_path (completed STM directory or file), artifact_types (optional filter). Output contract: patterns list with name, type (architecture\|process\|testing\|tooling), description, evidence_source, reusability (high\|medium\|low). Skill reads STM artifacts (specs, evidence, ADRs, retro notes) and identifies structural or procedural patterns worth preserving in LTM. | T-010 | code-builder | G-901 |
 | T-012 | Create draft-ltm-entry skill | Write `core/components/skills/draft-ltm-entry/SKILL.md` — input contract: patterns (from extract-patterns), entry_type: practice\|standard\|template, proposed_path. Output contract: ltm_entry with path, type, content_summary, conflicts_detected (boolean), conflict_details (if any). Skill produces structured LTM entry. MUST check for conflicts with existing LTM entries at proposed path. If conflict detected, returns conflict_details and does NOT overwrite — proposes merge strategy instead. | T-010 | code-builder | G-901 |
 | T-013 | Create capture-learning recipe | Write `core/components/recipes/capture-learning/SKILL.md` — L1 recipe, ≤1 agent call (product-strategist or generic knowledge agent). IDD intent header. Arguments: `--source <path>` (optional, STM directory), `--type <practice\|standard\|template>` (optional), and free-form intent. Execution: (1) invoke agent → extract-patterns from source or derive from intent, (2) invoke agent → draft-ltm-entry, (3) present proposed LTM entry for review, Tether/Vanish checkpoint, (4) on Tether: write entry to `core/components/memory/`. Uses existing agents — repo-orchestrator or project-orchestrator if agent call needed for STM read. Note: if no agent is needed (skills invoked directly by recipe), agent count is 0. Cap: ≤1 agent call. | T-011, T-012 | code-builder | G-901, G-904 |
@@ -390,7 +390,7 @@ T-900+ are cross-cutting tasks that run after all recipe groups.
 | T-901 | Verify IDD intent propagation in all recipes | Check all 19 recipes for: IDD intent header present (intent/constraints/failure_conditions). Intent string propagated to each agent call (not implicit). Intent format: `"Intent: {action}: {artifact_or_path}"`. Verify all EXISTING recipes updated in P1, P4, P11, P12 have intent headers added. | T-184 | code-builder | G-901 |
 | T-902 | Verify Tether/Vanish checkpoint pattern in all recipes | Check all 19 recipes: all approval points use Tether/Vanish output-and-wait pattern. No AskUserQuestion tool usage in any recipe. Parse rules documented: Tether/tether → proceed, Vanish/vanish → cancel, else → clarify. | T-184 | code-builder | G-904 |
 | T-903 | Verify universal precursor (start-feature always first) | Check that start-planned-feature (P4) calls start-feature as first step. Check that implement-feature (P3) recipe documents start-feature as prerequisite or calls it. Check that build-feature (P9) and fix-bug (P17) document that start-feature should precede them. Verify spec dependency graph section is accurate. | T-184 | code-builder | G-905 |
-| T-904 | Full lifecycle smoke test | Trace the complete Fluidic SDLC end-to-end for two tracks: (A) Strategic track: discover-product → plan-roadmap → manage-backlog (LOCKED epic) → implement-feature (gates passed) → deliver-feature (PR). (B) Fast track: start-feature → build-feature → commit-code → create-pr. For each track: verify all recipe files exist, all referenced skills exist, all referenced agents exist, handoff points are documented, no broken links in the chain. Document any gaps. All new recipes must appear in the SDLC phases diagram in spec. | T-900, T-901, T-902, T-903 | code-builder | G-905 |
+| T-904 | Full lifecycle smoke test | Trace the complete IDSD (Intent Driven Software Development) end-to-end for two tracks: (A) Strategic track: discover-product → plan-roadmap → manage-backlog (LOCKED epic) → implement-feature (gates passed) → deliver-feature (PR). (B) Fast track: start-feature → build-feature → commit-code → create-pr. For each track: verify all recipe files exist, all referenced skills exist, all referenced agents exist, handoff points are documented, no broken links in the chain. Document any gaps. All new recipes must appear in the SDLC phases diagram in spec. | T-900, T-901, T-902, T-903 | code-builder | G-905 |
 | T-905 | Update CLAUDE.md with all new recipes and agents | Edit `CLAUDE.md` in the repository root — add product-strategist and validator to the domain task table under Behavioral Rules > Execution Model. Add all 15 new recipes (P2–P10, P13–P19) to relevant sections. Update storage layout section to include `.phoenix-os/project/product/{slug}/` paths for product management artifacts. | T-904 | code-builder | G-905 |
 
 ---
@@ -620,7 +620,7 @@ Skill: analyze-pr
 
 ## Gate Coverage Matrix
 
-Every task maps to at least one gate from `fluidic-sdlc-verify.md`.
+Every task maps to at least one gate from `idsd-verify.md`.
 
 | Task Range | Gates Covered |
 |------------|---------------|

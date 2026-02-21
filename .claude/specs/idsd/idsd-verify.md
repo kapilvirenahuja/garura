@@ -1,10 +1,10 @@
-# Fluidic SDLC — Verification Gates
+# IDSD — Verification Gates
 
 **Version:** 2.0.0
 **Date:** 2026-02-20
 **Status:** DRAFT — Pending Review
-**Tasks Reference:** `fluidic-sdlc-tasks.md`
-**Spec Reference:** `fluidic-sdlc.md`
+**Tasks Reference:** `idsd-tasks.md`
+**Spec Reference:** `idsd.md`
 
 ---
 
