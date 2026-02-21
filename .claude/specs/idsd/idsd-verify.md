@@ -1,7 +1,7 @@
 # IDSD — Verification Gates
 
-**Version:** 2.0.0
-**Date:** 2026-02-20
+**Version:** 2.1.0
+**Date:** 2026-02-21
 **Status:** DRAFT — Pending Review
 **Tasks Reference:** `idsd-tasks.md`
 **Spec Reference:** `idsd.md`
@@ -297,7 +297,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | Property | Value |
 |----------|-------|
 | Recipe Priority | P2 — capture-learning |
-| SDLC Phase | Run-2-Learn |
+| SDLC Phase | Learn-2-Memory |
 | Mandatory | YES |
 | Depends On | — |
 
@@ -319,6 +319,12 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `draft-ltm-entry` skill output contract declares: ltm_entry with path, title, content, append_or_merge
 - [ ] Generated LTM entries target `core/components/memory/` directory (not STM)
 - [ ] Recipe does NOT overwrite existing LTM — output contract specifies append or propose merge
+- [ ] Recipe includes STM→LTM promotion step: issue-specific learnings captured in `.phoenix-os/{issue}/` STM are promoted into long-term organizational memory at `core/components/memory/`
+- [ ] Recipe documents LTM governance workflow: generated entries staged for PR-based review, NOT written directly to `core/components/memory/`
+- [ ] Recipe documents tiered review: project-level LTM → team leads review; org-level LTM → engineering leaders/CTOs review
+- [ ] `extract-patterns` skill contract documents semantic overlap detection with existing LTM entries (designed capability — may not be built in v1)
+- [ ] `draft-ltm-entry` skill contract documents conflict detection: checks for contradictions with existing LTM before proposing writes
+- [ ] Recipe references LTM governance section in `docs/philosophy/idsd.md`
 
 **Evidence:** `evidence/g-101-capture-learning.md` — recipe file, skill contracts, LTM output path, non-overwrite behavior
 
@@ -331,7 +337,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | Recipe Priority | P3 — implement-feature |
 | SDLC Phase | Spec-2-Test (Compound L2) |
 | Mandatory | YES |
-| Depends On | G-300, G-310, G-320 |
+| Depends On | G-020, G-021, G-022, G-023 |
 
 **Verification Steps:**
 - [ ] File exists at `core/components/recipes/implement-feature/SKILL.md`
@@ -572,7 +578,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | Property | Value |
 |----------|-------|
 | Recipe Priority | P10, P14, P13, P16, P18 — verify-feature, deliver-feature, review-pr, release, review-architecture |
-| SDLC Phase | Code-2-Test, Test-2-Run, Audit |
+| SDLC Phase | Code-2-Test, Test-2-Run, Audit-2-Fix |
 | Mandatory | YES |
 | Depends On | — |
 
@@ -1041,7 +1047,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | Property | Value |
 |----------|-------|
 | Recipe Priority | P17 — fix-bug |
-| SDLC Phase | Incident-2-Fix |
+| SDLC Phase | Run-2-Monitor |
 | Mandatory | YES |
 | Depends On | G-100 |
 
@@ -1074,7 +1080,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | Property | Value |
 |----------|-------|
 | Recipe Priority | P18 — review-architecture |
-| SDLC Phase | Audit |
+| SDLC Phase | Audit-2-Fix |
 | Mandatory | YES |
 | Depends On | G-110 |
 
@@ -1106,7 +1112,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | Property | Value |
 |----------|-------|
 | Recipe Priority | P19 — generate-docs |
-| SDLC Phase | Docs |
+| SDLC Phase | Audit-2-Fix |
 | Mandatory | YES |
 | Depends On | — |
 
@@ -1154,7 +1160,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Design artifacts stored at `.phoenix-os/{issue}/design/` (architecture, ux-design)
 - [ ] Evidence artifacts stored at `.phoenix-os/{issue}/evidence/g-{NNN}-*.md`
 - [ ] Delivery artifacts stored at `.phoenix-os/{issue}/delivery/delivery-report.md`
-- [ ] LTM (Run-2-Learn output) stored at `core/components/memory/` (practices/, standards/, templates/)
+- [ ] LTM (Learn-2-Memory output) stored at `core/components/memory/` (practices/, standards/, templates/)
 - [ ] No artifacts stored at paths that include `okrs.md` or OKR-related paths
 
 **Evidence:** `evidence/g-500-storage-layout.md` — path verification for each artifact type, OKR path absence
@@ -1229,8 +1235,8 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | G-008 | Agent-First Pattern in All Recipes | Cross-cutting | All | YES | — |
 | G-009 | L1 and L2 Recipe Level Constraints | Cross-cutting | All | YES | — |
 | G-100 | start-feature IDD Compliance and Resume Mode | P1 | Universal Precursor | YES | — |
-| G-101 | capture-learning Recipe and Skill Contracts | P2 | Run-2-Learn | YES | — |
-| G-102 | implement-feature L2 Multi-Vertical Orchestration | P3 | Spec-2-Test | YES | G-300, G-310, G-320 |
+| G-101 | capture-learning Recipe and Skill Contracts | P2 | Learn-2-Memory | YES | — |
+| G-102 | implement-feature L2 Multi-Vertical Orchestration | P3 | Spec-2-Test | YES | G-020, G-021, G-022, G-023 |
 | G-103 | start-planned-feature IDD Compliance Review | P4 | Design-2-Code | YES | G-100 |
 | G-104 | discover-product Full Phase Handling | P5 | Product-2-Design | YES | G-110 |
 | G-105 | product-strategist Agent Contract | P5-P8 | Product-2-Design | YES | — |
@@ -1238,7 +1244,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | G-107 | Product-2-Design Templates (no -document suffix, no OKRs) | P5-P8 | Product-2-Design | YES | G-106 |
 | G-108 | IDD Intent Headers on Product-2-Design Templates | P5-P8 | Product-2-Design | YES | G-107 |
 | G-109 | spec-structure LTM Practice Exists and Is Referenced | Cross-cutting | Product-2-Design, Spec-2-Code, Code-2-Test | YES | — |
-| G-110 | validator Agent Contract | P10, P14, P13, P16, P18 | Code-2-Test, Test-2-Run, Audit | YES | — |
+| G-110 | validator Agent Contract | P10, P14, P13, P16, P18 | Code-2-Test, Test-2-Run, Audit-2-Fix | YES | — |
 | G-200 | plan-roadmap Full Phase Handling | P6 | Product-2-Design | YES | G-104, G-105, G-106, G-107 |
 | G-210 | manage-backlog Full Phase Handling | P7 | Product-2-Design | YES | G-200, G-105, G-106, G-107 |
 | G-220 | refine-backlog Recipe and Skill Contracts | P8 | Product-2-Design | YES | G-210, G-105 |
@@ -1254,9 +1260,9 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | G-331 | generate-delivery-report Complete Output | P14 | Test-2-Run | YES | G-243 |
 | G-340 | run-demo Recipe and Skill Contracts | P15 | Test-2-Run | YES | G-105 |
 | G-400 | release Recipe and Skill Contracts | P16 | Test-2-Run | YES | G-110, G-340 |
-| G-410 | fix-bug Recipe with RCA and Regression Flow | P17 | Incident-2-Fix | YES | G-100 |
-| G-420 | review-architecture Recipe with Codebase Analysis | P18 | Audit | YES | G-110 |
-| G-430 | generate-docs Recipe with Accuracy Enforcement | P19 | Docs | YES | — |
+| G-410 | fix-bug Recipe with RCA and Regression Flow | P17 | Run-2-Monitor | YES | G-100 |
+| G-420 | review-architecture Recipe with Codebase Analysis | P18 | Audit-2-Fix | YES | G-110 |
+| G-430 | generate-docs Recipe with Accuracy Enforcement | P19 | Audit-2-Fix | YES | — |
 | G-500 | Storage Layout Matches Spec | Cross-cutting | All | YES | G-100 |
 | G-501 | bundler Skill Produces Bundles ≤12K Tokens | Cross-cutting | Spec-2-Code | YES | — |
 | G-502 | Existing Agent Files IDD-Compliant | Cross-cutting | All | YES | G-001 |
@@ -1296,9 +1302,10 @@ This matrix shows which gates cover which architectural rules and principles fro
 | **Parallel Execution** — backend/frontend of same vertical can run in parallel | G-102, G-004 |
 | **Cascade Sync at implement-feature Start** — check_only=true before building | G-005, G-102 |
 | **Business Review Generation** — PM-facing artifact callable from any phase | G-106, G-107 |
-| **capture-learning Feeds LTM** — Run-2-Learn output goes to core/components/memory | G-101 |
+| **capture-learning Feeds LTM** — Learn-2-Memory output goes to core/components/memory | G-101 |
+| **LTM Governance** — STM→LTM promotion goes through PR-based governance with tiered review | G-101 |
 | **Storage Layout** — STM per issue, project-level product artifacts, LTM in core/components/memory | G-500 |
 
 ---
 
-*End of Verification Gates v2.0.0*
+*End of Verification Gates v2.1.0*

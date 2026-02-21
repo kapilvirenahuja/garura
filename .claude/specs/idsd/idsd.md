@@ -1,7 +1,7 @@
 # IDSD — Intent Driven Software Development: Complete Lifecycle Specification
 
 **Version:** 2.1.0
-**Date:** 2026-02-20
+**Date:** 2026-02-21
 **Status:** DRAFT — Pending Review
 **Author:** Phoenix OS
 
@@ -44,9 +44,9 @@ Full IDD principles: `docs/philosophy/intent-driven-development.md`
 |---|-------------|--------------|---------------------|
 | 1 | Intent Layer | Capture WHY — business goals, outcomes, constraints — at a stable abstraction above specifications | Every recipe has an IDD intent header (intent/constraints/failure_conditions). Users provide business intent; recipes carry SDLC intent. Two-Layer Intent Model. |
 | 2 | Signals | System activates through event-driven triggers, not manual kickoffs | User CLI invocations (`/build-feature`, `/commit-code`) are the current signal mechanism. Recipes are the entry point for all signals. |
-| 3 | Orchestrated Intent | Recipes bridge intent and execution at graduated autonomy levels | L1 recipes (≤2 agents), L2 recipes (≤5 agents). Three speeds: Fast (minutes), Planned (hours), Strategic (days). 19 prioritized recipes across 8 SDLC phases. |
+| 3 | Orchestrated Intent | Recipes bridge intent and execution at graduated autonomy levels | L1 recipes (≤2 agents), L2 recipes (≤5 agents). Three speeds: Fast (minutes), Planned (hours), Strategic (days). 19 prioritized recipes across 8 phases (5 primary, 3 supporting). |
 | 4 | Agents | Autonomous decision-makers accept intent and determine HOW within their domain | 8 agents: product-strategist, specifier, designer, validator, code-builder, tech-designer, repo-orchestrator, project-orchestrator. Agent-first pattern enforced. |
-| 5 | Memory | Persistent organizational context across sessions | LTM (`core/components/memory/`) for practices, standards, templates. STM (`.phoenix-os/{issue}/`) for per-issue work context. Memory enables deterministic adaptation. |
+| 5 | Memory | Persistent organizational context across sessions | LTM (`core/components/memory/`) for practices, standards, templates. STM (`.phoenix-os/{issue}/`) for per-issue work context. LTM governance via Git: PR-based promotion with tiered review (project-level → team, org-level → engineering leaders). Memory enables deterministic adaptation. |
 | 6 | Skills | Bounded, repeatable execution capabilities that agents invoke | Skills execute work; they never decide when they run. Each recipe lists its skills with input/output contracts. |
 | 7 | Context-Aware Decisions | Every decision accounts for full environmental context | Context bundles ≤12K tokens per agent task. Audience separation (Tier 1/2/3). Agents read LTM + STM to build execution context. |
 | 8 | Generation-Verification Loops | Every output passes through quality gates | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per recipe. Evidence artifacts. Tether/Vanish checkpoints. |
@@ -85,27 +85,33 @@ Upstream artifacts enrich, never block. If intent is clear, proceed. If critical
     │                          │                         │
     ▼                          ▼                         ▼
 
-Product-2-Design  Design-2-Spec  Spec-2-Code  Code-2-Test  Test-2-Run
-┌──────────────┐ ┌────────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
-│discover-     │ │define-     │ │build-    │ │verify-   │ │create-pr │
-│product       │ │feature     │ │feature   │ │feature   │ │deliver-  │
-│plan-roadmap  │ │design-     │ │          │ │commit-   │ │feature   │
-│manage-       │ │feature     │ │          │ │code      │ │release   │
-│backlog       │ │create-     │ │          │ │review-pr │ │run-demo  │
-│refine-       │ │wireframes  │ │          │ │          │ │          │
-│backlog       │ │create-adr  │ │          │ │          │ │          │
-│plan-sprint   │ │evaluate-   │ │          │ │          │ │          │
-│              │ │tech        │ │          │ │          │ │          │
-└──────────────┘ └────────────┘ └──────────┘ └──────────┘ └──────────┘
+─── PRIMARY PIPELINE (linear) ──────────────────────────────────────────────────
 
-Incident-2-Fix    Audit              Run-2-Learn         Docs
-┌──────────────┐ ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-│fix-bug       │ │audit-        │  │run-retro     │  │generate-docs │
-│hotfix        │ │security      │  │capture-      │  │              │
-│              │ │audit-perf    │  │learning      │  │              │
-│              │ │audit-a11y    │  │run-standup   │  │              │
-│              │ │review-arch   │  │              │  │              │
-└──────────────┘ └──────────────┘  └──────────────┘  └──────────────┘
+Product-2-Design  Design-2-Spec  Spec-2-Code  Code-2-Test   Test-2-Run
+┌──────────────┐ ┌────────────┐ ┌──────────┐ ┌──────────┐  ┌──────────┐
+│discover-     │ │define-     │ │build-    │ │verify-   │  │create-pr │
+│product       │ │feature     │ │feature   │ │feature   │  │deliver-  │
+│plan-roadmap  │ │design-     │ │          │ │commit-   │  │feature   │
+│manage-       │ │feature     │ │          │ │code      │  │release   │
+│backlog       │ │create-     │ │          │ │review-pr │  │run-demo  │
+│refine-       │ │wireframes  │ │          │ │          │  │          │
+│backlog       │ │create-adr  │ │          │ │          │  │          │
+│plan-sprint   │ │evaluate-   │ │          │ │          │  │          │
+│              │ │tech        │ │          │ │          │  │          │
+└──────────────┘ └────────────┘ └──────────┘ └──────────┘  └──────────┘
+
+─── SUPPORTING (continuous) ────────────────────────────────────────────────────
+
+Run-2-Monitor     Audit-2-Fix                  Learn-2-Memory
+┌──────────────┐ ┌──────────────┐             ┌──────────────┐
+│fix-bug       │ │audit-        │             │run-retro     │
+│hotfix        │ │security      │             │capture-      │
+│              │ │audit-perf    │             │learning      │
+│              │ │audit-a11y    │             │run-standup   │
+│              │ │review-arch   │             │              │
+│              │ │generate-docs │             │+ STM→LTM     │
+│              │ │              │             │  promotion   │
+└──────────────┘ └──────────────┘             └──────────────┘
 
 Compound L2:
   implement-feature    Spec-2-Test     build → verify per vertical
@@ -178,7 +184,7 @@ Recipes are built one at a time. Priority set by user. Existing recipes marked f
 | P# | Recipe | Level | SDLC Phase | Status | Action |
 |----|--------|-------|------------|--------|--------|
 | 1 | `start-feature` | L1 | Universal Precursor | EXISTS | Review for IDD + add resume mode |
-| 2 | `capture-learning` | L1 | Run-2-Learn | NEW | Build |
+| 2 | `capture-learning` | L1 | Learn-2-Memory | NEW | Build |
 | 3 | `implement-feature` | L2 | Spec-2-Test | NEW (specced) | Build |
 | 4 | `start-planned-feature` | L2 | Design-2-Code | EXISTS | Review for IDD |
 | 5 | `discover-product` | L1 | Product-2-Design | NEW (specced) | Build |
@@ -193,9 +199,9 @@ Recipes are built one at a time. Priority set by user. Existing recipes marked f
 | 14 | `deliver-feature` | L2 | Test-2-Run | NEW (specced) | Build |
 | 15 | `run-demo` | L1 | Test-2-Run | NEW | Build |
 | 16 | `release` | L1 | Test-2-Run | NEW | Build |
-| 17 | `fix-bug` | L1 | Incident-2-Fix | NEW | Build |
-| 18 | `review-architecture` | L1 | Audit | NEW | Build |
-| 19 | `generate-docs` | L1 | Docs | NEW | Build |
+| 17 | `fix-bug` | L1 | Run-2-Monitor | NEW | Build |
+| 18 | `review-architecture` | L1 | Audit-2-Fix | NEW | Build |
+| 19 | `generate-docs` | L1 | Audit-2-Fix | NEW | Build |
 
 ### Backlog (unprioritized)
 
@@ -207,12 +213,12 @@ Recipes are built one at a time. Priority set by user. Existing recipes marked f
 | `create-wireframes` | L1 | Design-2-Spec | Standalone UX design |
 | `create-adr` | L1 | Design-2-Spec | Standalone ADR creation |
 | `evaluate-tech` | L1 | Design-2-Spec | Spike / tech evaluation |
-| `hotfix` | L1 | Incident-2-Fix | Emergency variant of fix-bug |
-| `audit-security` | L1 | Audit | OWASP scan, dependency audit |
-| `audit-performance` | L1 | Audit | Load testing, profiling |
-| `audit-accessibility` | L1 | Audit | WCAG compliance |
-| `run-retro` | L1 | Run-2-Learn | Retrospective ceremony |
-| `run-standup` | L1 | Run-2-Learn | Status generation |
+| `hotfix` | L1 | Run-2-Monitor | Emergency variant of fix-bug |
+| `audit-security` | L1 | Audit-2-Fix | OWASP scan, dependency audit |
+| `audit-performance` | L1 | Audit-2-Fix | Load testing, profiling |
+| `audit-accessibility` | L1 | Audit-2-Fix | WCAG compliance |
+| `run-retro` | L1 | Learn-2-Memory | Retrospective ceremony |
+| `run-standup` | L1 | Learn-2-Memory | Status generation |
 
 ---
 
@@ -261,7 +267,9 @@ Examples:
 
 ---
 
-## Recipe Specs — Run-2-Learn
+## Recipe Specs — Learn-2-Memory
+
+**Phase intent:** Learn-2-Memory closes the feedback loop by capturing what was learned during delivery and promoting it into long-term organizational memory. This includes retrospectives, standup summaries, and — critically — STM→LTM promotion: the process of taking issue-specific learnings from short-term memory (`.phoenix-os/{issue}/`) and promoting them into long-term memory (`core/components/memory/`) so they benefit future work.
 
 ### Recipe: `capture-learning` (P2 — NEW)
 
@@ -299,6 +307,18 @@ Examples:
 **Skills needed:**
 - `extract-patterns` — analyze completed work, identify reusable patterns
 - `draft-ltm-entry` — produce structured LTM entry from patterns
+
+**LTM Governance Integration:**
+
+The capture-learning recipe is the primary mechanism for STM→LTM promotion. It must integrate with the LTM governance workflow documented in `docs/philosophy/idsd.md`:
+
+- Generated LTM entries are NOT directly written to `core/components/memory/`. Instead, they are staged for PR-based review.
+- Project-level LTM entries are reviewed by team leads and senior developers.
+- Org-level LTM entries are reviewed by engineering leaders and CTOs.
+- The `extract-patterns` skill should detect semantic overlap with existing LTM entries (designed, not yet built in v1).
+- The `draft-ltm-entry` skill must check for conflicts with existing LTM entries before proposing writes.
+
+This governance workflow ensures that bad practices (e.g., "always add retry logic" applied blindly inside transactions) cannot poison LTM without human review proportional to blast radius.
 
 ---
 
@@ -868,7 +888,7 @@ failure_conditions:
 
 ---
 
-## Recipe Specs — Incident-2-Fix
+## Recipe Specs — Run-2-Monitor
 
 ### Recipe: `fix-bug` (P17 — NEW)
 
@@ -907,7 +927,7 @@ Checkpoint: Present RCA + fix summary
 
 ---
 
-## Recipe Specs — Audit
+## Recipe Specs — Audit-2-Fix
 
 ### Recipe: `review-architecture` (P18 — NEW)
 
@@ -939,7 +959,7 @@ failure_conditions:
 
 ---
 
-## Recipe Specs — Docs
+## Recipe Specs — Audit-2-Fix
 
 ### Recipe: `generate-docs` (P19 — NEW)
 
@@ -1169,7 +1189,7 @@ constraints: {technical or business}
     └── delivery/                     # Test-2-Run output
         └── delivery-report.md
 
-core/components/memory/               # LTM (Run-2-Learn output)
+core/components/memory/               # LTM (Learn-2-Memory output)
 ├── practices/
 ├── standards/
 └── templates/
@@ -1212,7 +1232,7 @@ start-feature (universal — always first)
   │  Spec-2-Test L2: implement-feature (build → verify)            │
   │                                                                │
   ▼                                                                │
-DONE ──→ capture-learning (Run-2-Learn, feeds back to LTM)        │
+DONE ──→ capture-learning (Learn-2-Memory, feeds back to LTM)        │
 ```
 
 ---
@@ -1227,9 +1247,15 @@ DONE ──→ capture-learning (Run-2-Learn, feeds back to LTM)        │
 | `create-wireframes` | L1 | Design-2-Spec | Standalone UX — screens, flows, prototypes |
 | `create-adr` | L1 | Design-2-Spec | Standalone architecture decision record |
 | `evaluate-tech` | L1 | Design-2-Spec | Spike / tech evaluation → produces ADR |
-| `hotfix` | L1 | Incident-2-Fix | Emergency variant of fix-bug, bypass normal flow |
-| `audit-security` | L1 | Audit | OWASP scan, dependency audit, secrets detection |
-| `audit-performance` | L1 | Audit | Load testing, profiling, bottleneck identification |
-| `audit-accessibility` | L1 | Audit | WCAG compliance check |
-| `run-retro` | L1 | Run-2-Learn | Retrospective — capture what worked/didn't |
-| `run-standup` | L1 | Run-2-Learn | Generate status from git/issues, surface blockers |
+| `hotfix` | L1 | Run-2-Monitor | Emergency variant of fix-bug, bypass normal flow |
+| `audit-security` | L1 | Audit-2-Fix | OWASP scan, dependency audit, secrets detection |
+| `audit-performance` | L1 | Audit-2-Fix | Load testing, profiling, bottleneck identification |
+| `audit-accessibility` | L1 | Audit-2-Fix | WCAG compliance check |
+| `run-retro` | L1 | Learn-2-Memory | Retrospective — capture what worked/didn't |
+| `run-standup` | L1 | Learn-2-Memory | Generate status from git/issues, surface blockers |
+| `monitor-to-design` | L1 | Monitor-2-Design (planned) | Production feedback → auto-generated intent candidates. Concept only — see `docs/philosophy/idsd.md` Monitor-to-Design section. 18-24 months. |
+| `bootstrap-codebase` | L1 | Learn-2-Memory | Brownfield bootstrap — "codebase-to-LTM" for cold-start on legacy codebases. Concept only. |
+| Memory Evolution (infrastructure) | — | Infrastructure | Server-based LTM (MCP), semantic search, org-wide federation. See `docs/philosophy/idsd.md` Memory Evolution Trajectory. 12-24 months. |
+| Tool Integration (MCP) | — | Infrastructure | Jira, Notion, Linear MCP server integrations. Architecture supports — incremental addition. See Enterprise Wrapper in `docs/philosophy/idsd.md`. |
+| CTO Domain Parameters | — | Infrastructure | Per-project quality thresholds, mandatory gates, approval workflows. Concept stage. |
+| LTM Quality/Decay Automation | — | Learn-2-Memory | Automated freshness scoring, relevance decay, contradiction detection for LTM. Planned, not designed. |
