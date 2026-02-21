@@ -1,12 +1,12 @@
-# Intent-Driven Development: Principles & Framework Mapping
+# Intent-Driven Development: The Paradigm
 
-> **Scope**: PhoenixOS Framework — Foundational Principle
+> **Scope**: Foundational Paradigm — Tool-Agnostic
 > **Status**: Active
-> **Last Updated**: 2026-02-18
+> **Last Updated**: 2026-02-21
 
 ## Overview
 
-Intent-Driven Development (IDD) is the foundational paradigm of Phoenix OS. It defines how humans and AI agents collaborate to deliver enterprise-grade software — where humans express **what** outcome they want, organizational memory provides **context**, and AI agents determine **how** to achieve it with full traceability.
+Intent-Driven Development (IDD) is the **paradigm** — the foundational principles for building any intent-based AI-assisted development system. IDD defines the WHY and WHAT: what elements every such system must have, and why those elements matter. IDD principles are stable, tool-agnostic, and applicable to any framework that takes human intent and converts it into governed software delivery.
 
 IDD occupies a distinct position in the AI-assisted development landscape — more structured than unstructured "vibe coding," less burdensome than documentation-heavy spec-driven development (SDD). It is not an incremental improvement on either; it is a separate paradigm.
 
@@ -27,7 +27,7 @@ The AI-assisted development landscape has bifurcated into two camps, each with f
 ```
 VIBE CODING                          SPEC-DRIVEN DEVELOPMENT
 (Cursor, Copilot, Claude Code)       (GitHub Spec Kit, AWS Kiro, Tessl)
-                                    
+
 ✓ Fast                               ✓ Structured
 ✓ Low friction                       ✓ Governed
 ✗ No organizational memory           ✗ Massive documentation overhead
@@ -70,29 +70,28 @@ VIBE CODING                          SPEC-DRIVEN DEVELOPMENT
 
 ## The Eight Elements of IDD
 
-IDD consists of eight core elements. Each maps directly to a Phoenix OS component.
+IDD consists of eight core elements spanning three domains: human, AI, and the handshake between them.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  HUMAN DOMAIN                                               │
 │                                                             │
-│  Element 1: Intent Layer ──────────► Recipes                │
-│  Element 2: Signals ───────────────► Signals                │
-│  Element 3: Orchestrated Intent ───► Recipe Levels (1/2/3)  │
+│  Element 1: Intent Layer                                    │
+│  Element 2: Signals                                         │
+│  Element 3: Orchestrated Intent                             │
 │                                                             │
 ├─────────────────────────────────────────────────────────────┤
 │  AI DOMAIN                                                  │
 │                                                             │
-│  Element 4: Agents ────────────────► Sub-Agents             │
-│  Element 5: Memory ────────────────► LTM + STM              │
-│  Element 6: Skills ────────────────► Skills                  │
-│  Element 7: Context-Aware Decisions► Cognitive Engine        │
+│  Element 4: Agents                                          │
+│  Element 5: Memory                                          │
+│  Element 6: Skills                                          │
+│  Element 7: Context-Aware Decisions                         │
 │                                                             │
 ├─────────────────────────────────────────────────────────────┤
 │  HANDSHAKE                                                  │
 │                                                             │
-│  Element 8: Generation-Verification► Quality Gates +        │
-│             Loops                    Validator Agent         │
+│  Element 8: Generation-Verification Loops                   │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -105,9 +104,7 @@ IDD consists of eight core elements. Each maps directly to a Phoenix OS componen
 
 **IDD Principle**: Capture WHY — business goals, outcomes, and constraints — at a stable abstraction above specifications. Intent is expressed in business language, not technical language.
 
-**Phoenix OS Component**: **Recipes**
-
-Recipes capture the intent — the goal and high-level steps — without prescribing implementation. The intent remains stable even when requirements change; only the generated specifications downstream adapt.
+The intent layer captures the goal and high-level direction — without prescribing implementation. The intent remains stable even when requirements change; only the generated specifications downstream adapt.
 
 #### The Three Elements of Intent
 
@@ -148,7 +145,7 @@ Use PostgreSQL schema: users(id UUID PK, email VARCHAR(255) UNIQUE, ...).
 File: src/controllers/userController.ts
 ```
 
-**Example — IDD Intent (Recipe)**:
+**Example — IDD Intent**:
 ```
 Intent: Users need to register and manage their profiles.
 Constraints: Must support SSO. Must comply with GDPR. Must work with existing identity provider.
@@ -162,26 +159,24 @@ Failure Conditions: Registration fails silently. PII is logged to stdout. User d
 - Every intent must have all three elements: intent, constraints, failure conditions
 - Success criteria are generated intermediates — they belong in specs, not intents
 - An intent that requires success criteria to be understood is a poorly formed intent
-- Recipes translate intent into structured goals with high-level steps
+- Orchestration translates intent into structured goals with high-level steps
 - Agents are responsible for translating intent into specifications (including derived success criteria)
 
 ---
 
 ### Element 2: Signals
 
-**IDD Principle**: The system activates through event-driven triggers, not manual kickoffs. Signals detect events, package them consistently, and route them into recipes.
+**IDD Principle**: The system activates through event-driven triggers, not manual kickoffs. Signals detect events, package them consistently, and route them into orchestration.
 
-**Phoenix OS Component**: **Signals**
+Signals are the perception layer for system awareness.
 
-This is a 1:1 mapping. Signals are the perception layer for system awareness.
-
-> **Current State**: Signals are currently limited to user CLI invocations (e.g., `/fix-bug`, `/start-feature`). The event types below represent the target architecture.
+> **Current State**: Signals are currently limited to user CLI invocations. The event types below represent the target architecture.
 
 **Characteristics**:
 - **Event-driven**: Triggered by external or internal events
 - **Stateless**: Carry information but hold no state
 - **Unidirectional**: Flow into the system, never out
-- **Recipe-bound**: Always enter through recipes, never directly to agents
+- **Orchestration-bound**: Always enter through orchestration, never directly to agents
 
 **Types**:
 
@@ -194,7 +189,7 @@ This is a 1:1 mapping. Signals are the perception layer for system awareness.
 | **Agent Output** | Internal | One agent triggering another | Specifier completing → Builder starting |
 
 **Rules**:
-- All signals enter via recipes
+- All signals enter via orchestration
 - Signals do not directly invoke agents
 - Signals do not update memory directly
 - Signals inform decisions without prescribing actions
@@ -203,11 +198,9 @@ This is a 1:1 mapping. Signals are the perception layer for system awareness.
 
 ### Element 3: Orchestrated Intent
 
-**IDD Principle**: Recipes bridge intent and execution. They define the goal and high-level steps while agents determine actual execution based on context. Recipes operate at graduated autonomy levels.
+**IDD Principle**: Orchestration bridges intent and execution. It defines the goal and high-level steps while agents determine actual execution based on context. Orchestration operates at graduated autonomy levels.
 
-**Phoenix OS Component**: **Recipes (Level 1, Level 2, Level 3)**
-
-All recipes follow the AI-Native SDLC:
+All orchestrated flows follow the AI-Native SDLC:
 
 ```
 DISCOVER ──► SPECIFY ──► DESIGN ──► BUILD ──► RUN
@@ -215,13 +208,13 @@ DISCOVER ──► SPECIFY ──► DESIGN ──► BUILD ──► RUN
 
 Each step follows the core flow:
 ```
-Recipe ──► Sub-Agent ──► Skill(s) ──► Execute
-               │
-               ▼
-         Read Memory (LTM + STM)
-               │
-               ▼
-         Build Context ──► Output ──► Write STM
+Orchestration ──► Agent ──► Skill(s) ──► Execute
+                    │
+                    ▼
+             Read Memory (LTM + STM)
+                    │
+                    ▼
+             Build Context ──► Output ──► Write STM
 ```
 
 **Autonomy Levels**:
@@ -232,20 +225,12 @@ Recipe ──► Sub-Agent ──► Skill(s) ──► Execute
 | **Level 2** | Composed Workflows | Multi-task workflows combining several steps | Human-in-the-loop | Implement a story with review checkpoints |
 | **Level 3** | Autonomous Execution | Goal-driven, runs to completion | Approval gates only | End-to-end bug fix → PR → deploy |
 
-> **Current State**: Level 1 and Level 2 recipes are implemented. Level 3 (Autonomous Execution) is planned.
-
-**Recipe Examples**:
-
-| Recipe | Goal | SDLC Flow |
-|--------|------|-----------|
-| `fix-bug` | Resolve a reported defect | Discover (RCA) → Specify (fix strategy) → Design (approach) → Build (TDD fix) → Run (deploy) |
-| `implement-react-component` | Build a UI component | Discover (prototype) → Specify (requirements) → Design (UX + tech) → Build (TDD) → Run (deploy) |
-| `product-feature-definition` | Define a new feature | Discover (intake) → Specify (PRD) → Design (feasibility) → Build (backlog) → Run (tracking) |
+> **Current State**: Level 1 and Level 2 are implemented. Level 3 (Autonomous Execution) is planned.
 
 **Rules**:
-- All system interactions start with a recipe
-- Recipes orchestrate flow but never build agent context
-- Recipes pass explicit intent and goals; agents determine execution
+- All system interactions start with orchestration
+- Orchestration defines flow but never builds agent context
+- Orchestration passes explicit intent and goals; agents determine execution
 - The autonomy level determines the degree of human involvement, not the quality of output
 
 ---
@@ -253,8 +238,6 @@ Recipe ──► Sub-Agent ──► Skill(s) ──► Execute
 ### Element 4: Agents
 
 **IDD Principle**: Autonomous decision-makers accept intent and determine HOW to achieve goals within their domain. Agents own outcomes, not procedures.
-
-**Phoenix OS Component**: **Sub-Agents**
 
 Agents follow the principle of **Explicit via Abstraction**: the task and expected outcome are explicit (deterministic); the tool selection, storage mechanisms, and execution methods are abstracted. This means the same agent produces identical logical outcomes whether the underlying platform is GitHub, Jira, or Linear.
 
@@ -280,7 +263,7 @@ Agents follow the principle of **Explicit via Abstraction**: the task and expect
 5 roles replace 12-16 traditional roles. AI handles execution; humans steer intent.
 
 **Agent Responsibilities**:
-1. Accept explicit intent from recipes
+1. Accept explicit intent from orchestration
 2. Read memory (STM + LTM) and build execution context
 3. Decide actions based on context and rules
 4. Select and invoke appropriate skills
@@ -290,7 +273,7 @@ Agents follow the principle of **Explicit via Abstraction**: the task and expect
 - ✗ Hardcoding specific tools
 - ✗ Encoding rigid workflows
 - ✗ Owning implementation details
-- ✗ Receiving signals directly (must go through recipes)
+- ✗ Receiving signals directly (must go through orchestration)
 
 **Context Dimensions Agents Evaluate**:
 - **Domain**: Business rules, compliance requirements, industry patterns
@@ -304,8 +287,8 @@ Agents follow the principle of **Explicit via Abstraction**: the task and expect
 **Rules**:
 - Standard agents may update STM freely
 - Only high-order agents may update LTM
-- Agents cannot receive signals directly (must go through recipes)
-- Agents own decisions, not procedures — they determine HOW based on context while recipes define WHAT
+- Agents cannot receive signals directly (must go through orchestration)
+- Agents own decisions, not procedures — they determine HOW based on context while orchestration defines WHAT
 
 ---
 
@@ -313,9 +296,7 @@ Agents follow the principle of **Explicit via Abstraction**: the task and expect
 
 **IDD Principle**: Persistent organizational context across sessions solves the "anterograde amnesia" problem in LLM-based development. Memory is what makes IDD fundamentally different from both vibe coding and SDD.
 
-**Phoenix OS Component**: **LTM (Long-Term Memory) + STM (Short-Term Memory)**
-
-This is the single biggest differentiator of IDD. No other CLI harness implements structured memory. Current approaches rely on flat `CLAUDE.md` or `AGENTS.md` files — Phoenix OS views these as primitive precursors to proper memory architecture.
+Memory is the single biggest differentiator of IDD. No other approach implements structured memory. Current ad-hoc approaches rely on flat context files — these are primitive precursors to proper memory architecture.
 
 **Memory Architecture**:
 
@@ -345,8 +326,7 @@ This is the single biggest differentiator of IDD. No other CLI harness implement
 │  │             │  │  Jira, etc.) │                     │
 │  └─────────────┘  └──────────────┘                     │
 │                                                         │
-│  Storage: core/memory/{dimension}/                      │
-│  Version controlled via Git repository                  │
+│  Version controlled; governs all projects               │
 └─────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐
@@ -376,7 +356,7 @@ This is the single biggest differentiator of IDD. No other CLI harness implement
 
 **Memory Rules**:
 - Memory contains **knowledge, not process**
-- Memory has no awareness of agents, recipes, or signals
+- Memory has no awareness of agents, orchestration, or signals
 - Agents may update **STM freely**
 - **LTM updates require high-order agent validation**
 - STM is ALWAYS created when working in a branch or Git worktree
@@ -389,8 +369,6 @@ This is the single biggest differentiator of IDD. No other CLI harness implement
 ### Element 6: Skills
 
 **IDD Principle**: Bounded, repeatable execution capabilities that agents invoke. Skills execute work; they never decide when they run.
-
-**Phoenix OS Component**: **Skills**
 
 Skills are the lowest-level building blocks — reusable capabilities that execute based on command intent, context, and memory patterns. They are tool-agnostic, following a primary → secondary → fallback execution pattern.
 
@@ -434,15 +412,11 @@ Result: Same PR created regardless of method selected
 
 **IDD Principle**: Every decision accounts for the full environmental context. The same intent produces different execution paths for different projects because context shapes implementation.
 
-**Phoenix OS Component**: **Cognitive Engine + Memory Federation**
-
-> **Current State**: Context assembly is currently handled by agents reading LTM and STM directly. The Cognitive Engine and Memory Federation described below represent the target architecture.
-
-The Cognitive Engine assembles context from LTM + STM and provides it to agents. Memory Federation ensures that LTM standards set by the Architect are deployed consistently across all projects.
+Context is assembled from LTM and STM and provided to agents before they act. Organizational standards set centrally are deployed consistently across all projects, ensuring that context-aware decisions respect enterprise governance.
 
 **Context Assembly Flow**:
 ```
-Agent receives intent from Recipe
+Agent receives intent from Orchestration
         │
         ▼
 Read LTM (organizational standards)
@@ -472,8 +446,8 @@ Decide actions + Select skills
 **Same intent, same quality gates, different implementation — determined by context, not by rewriting specs.**
 
 **Rules**:
-- Context is assembled by agents, not by recipes
-- Recipes pass explicit intent; agents are responsible for reading memory and building context
+- Context is assembled by agents, not by orchestration
+- Orchestration passes explicit intent; agents are responsible for reading memory and building context
 - Context dimensions include but are not limited to: Domain, Architecture, Technology, Environment, Tools, Expertise, Time Constraints
 - Context-aware decisions produce deterministic outcomes for the same context + intent combination
 
@@ -482,8 +456,6 @@ Decide actions + Select skills
 ### Element 8: Generation-Verification Loops
 
 **IDD Principle**: IDD embraces partial autonomy — humans validate outcomes while AI handles execution. Every output passes through quality gates. Trust is earned through verification, not assumed through specification.
-
-**Phoenix OS Component**: **Quality Gates + Validator Agent + SDLC Phases**
 
 This is the **handshake** between human oversight and AI execution. It maps directly to the Software 3.0 paradigm: partial autonomy with human oversight, not full automation.
 
@@ -520,20 +492,20 @@ This is the **handshake** between human oversight and AI execution. It maps dire
 
 ---
 
-## Complete IDD → PhoenixOS Mapping
+## IDD Element Summary
 
-### Element-to-Component Matrix
+### Element-to-Layer Mapping
 
-| # | IDD Element | Phoenix OS Component | Layer | Owner |
-|---|-------------|---------------------|-------|-------|
-| 1 | Intent Layer | Recipes | Orchestration | Human |
-| 2 | Signals | Signals | Perception | System |
-| 3 | Orchestrated Intent | Recipe Levels (1/2/3) | Orchestration | Human + System |
-| 4 | Agents | Sub-Agents | Decision | AI |
-| 5 | Memory | LTM + STM | Cognitive | AI (read), Human (LTM governance) |
-| 6 | Skills | Skills | Capability | AI |
-| 7 | Context-Aware Decisions | Cognitive Engine + Memory Federation | Cognitive | AI |
-| 8 | Generation-Verification | Quality Gates + Validator Agent | Handshake | Human + AI |
+| # | IDD Element | Layer | Owner |
+|---|-------------|-------|-------|
+| 1 | Intent Layer | Orchestration | Human |
+| 2 | Signals | Perception | System |
+| 3 | Orchestrated Intent | Orchestration | Human + System |
+| 4 | Agents | Decision | AI |
+| 5 | Memory | Cognitive | AI (read), Human (LTM governance) |
+| 6 | Skills | Capability | AI |
+| 7 | Context-Aware Decisions | Cognitive | AI |
+| 8 | Generation-Verification Loops | Handshake | Human + AI |
 
 ### Execution Flow
 
@@ -546,23 +518,23 @@ HUMAN DEFINES INTENT
    └────┬────┘     (User prompt, git event, webhook, schedule, agent output)
         │
         ▼
-   ┌─────────┐
-   │ RECIPE  │ ◄── Elements 1 + 3: Orchestration Layer
-   └────┬────┘     (Intent + Goal + Autonomy Level)
-        │
-        │    DISCOVER → SPECIFY → DESIGN → BUILD → RUN
-        │
-        ▼
+   ┌──────────────┐
+   │ ORCHESTRATION│ ◄── Elements 1 + 3: Orchestration Layer
+   └──────┬───────┘     (Intent + Goal + Autonomy Level)
+          │
+          │    DISCOVER → SPECIFY → DESIGN → BUILD → RUN
+          │
+          ▼
    ┌──────────┐         ┌──────────────┐
-   │ SUB-     │ ◄──────►│   MEMORY     │ ◄── Element 5: Cognitive Layer
-   │ AGENT    │         │  LTM + STM   │
+   │  AGENT   │ ◄──────►│   MEMORY     │ ◄── Element 5: Cognitive Layer
+   │          │         │  LTM + STM   │
    │          │ ◄── #4  │              │
    └────┬─────┘         └──────┬───────┘
         │                      │
         ▼                      ▼
    ┌──────────┐         ┌──────────────┐
-   │ SKILLS   │ ◄── #6  │  COGNITIVE   │ ◄── Element 7: Context Assembly
-   │          │◄───────►│  ENGINE      │
+   │ SKILLS   │ ◄── #6  │    CONTEXT   │ ◄── Element 7: Context Assembly
+   │          │◄───────►│   ASSEMBLY   │
    └────┬─────┘         └──────────────┘
         │
         ▼
@@ -575,24 +547,262 @@ HUMAN DEFINES INTENT
    OUTPUT → Write STM → Next SDLC Phase (or loop back on failure)
 ```
 
-### Enterprise Wrapper
+---
 
+## IDD Design Principles
+
+Governing principles for Intent-Driven Development. Every new intent, recipe, agent, and skill in any IDD-based system must be evaluated against these principles. If a design violates a principle, it must either be redesigned or the violation must be recorded with explicit rationale.
+
+IDD sits in a narrow band between two failure modes: over-specification (which recreates SDD) and under-specification (which produces non-deterministic prompting). These principles keep systems in that band.
+
+---
+
+### Principle 1: Intents Declare Outcomes, Not Instructions
+
+An intent must describe **what success looks like**, never **how to get there**. The moment an intent prescribes implementation steps, it has become a spec.
+
+**Test:** Can the intent be satisfied by two completely different implementations? If yes, it's an intent. If only one implementation path can satisfy it, it's a spec in disguise.
+
+**Good:**
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  PHOENIX INTERFACE (Enterprise Layer)                       │
-│                                                             │
-│  Governance        │ Quality Gates    │ Memory Federation   │
-│  Policies,         │ Validation       │ LTM deployed to     │
-│  guardrails,       │ checkpoints      │ all projects from   │
-│  approval          │ between SDLC     │ central standards   │
-│  workflows         │ phases           │ (set by Architect)  │
-│                    │                  │                     │
-│  Cognitive Engine  │ MCP Integration  │ Hive Mind (Tasks)   │
-│  Context assembly  │ Tool-agnostic    │ Cross-agent         │
-│  from LTM + STM   │ external access  │ coordination        │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+Goal: All API endpoints return consistent error responses
+Constraints: Must use existing error codes; must not break current clients
+Failure: Any endpoint returns an unstructured error body; any 5xx leaks stack traces
 ```
+
+**Bad:**
+```
+Goal: Wrap all controllers with ErrorHandlerMiddleware that catches exceptions and maps them to RFC 7807 responses using the ErrorMapper class
+```
+
+The bad example has already made the design decision. There is nothing left for the agent to decide, which defeats the purpose of having agents as autonomous decision-makers.
+
+**Why this matters:** Agents exist to make domain-specific decisions about *how*. If the intent already answers *how*, the agent becomes a typist, not a judge. You lose the adaptive execution that makes IDD superior to SDD.
+
+#### Corollary: The Agent Must Be Able to Say No
+
+An intent must leave enough decision space that an agent can legitimately reject an approach or request clarification. In the space defined by the goal, bounded by constraints, and guarded by failure conditions — the agent must have at least two meaningfully different approaches available. If not, the intent is over-constrained.
+
+If agents are just executors, you don't need agents — you need scripts. The entire value proposition of IDD over SDD is that intelligent agents make contextual decisions within bounded problem spaces. Protect that decision space.
+
+#### Corollary: Intents Don't Know About Tools
+
+An intent must never reference specific tools, CLIs, MCPs, or APIs. The intent declares what should happen; the agent decides how; the skill knows the tool.
+
+**Test:** If you swapped the entire toolchain (GitHub to GitLab, npm to yarn, Jest to Vitest), would the intent still be valid without any changes? If not, it contains tool coupling.
+
+Intents are stable across toolchain changes. Skills change when tools change. Agents decide which skills to use. If the intent names the tool, this entire abstraction collapses.
+
+---
+
+### Principle 2: Constraints Are Boundaries, Not Preferences
+
+Constraints define the walls of the solution space. Crossing a constraint is always a failure. If crossing it is sometimes acceptable, it is a preference, not a constraint, and it belongs in LTM as a practice — not in the intent.
+
+**Test:** If the system violates this constraint, do you reject the output unconditionally? If the answer is "it depends," it's not a constraint.
+
+**Examples of real constraints:**
+- Must not introduce new runtime dependencies
+- Must maintain backward compatibility with API v2 clients
+- Must not modify files outside the `src/` directory
+- Response time must not exceed current p99 by more than 10%
+
+**Examples of preferences masquerading as constraints:**
+- Should use TypeScript (preference — what if the project is Java?)
+- Should have test coverage above 80% (practice, belongs in LTM quality gates)
+- Should follow clean architecture (standard, belongs in LTM practices)
+
+**The trap this prevents:** Constraint lists that grow to 15+ items per intent. When everything is a constraint, nothing is. Agents cannot distinguish real boundaries from nice-to-haves, and the system drifts toward SDD's worst failure mode — an interconnected web of requirements where missing one cascades.
+
+---
+
+### Principle 3: Failure Conditions Must Be Observable and Binary
+
+A failure condition must describe something that can be **detected programmatically or by inspection** and evaluated as **true or false**. Subjective, gradient, or aspirational failure conditions are not failure conditions — they are quality preferences.
+
+**Test:** Can a validator agent determine whether this failure condition has been triggered without asking a human for an opinion? If not, it's not a failure condition.
+
+**Observable and binary:**
+- The generated code does not compile
+- Tests fail or test coverage drops below the project's configured threshold
+- The PR description is empty
+- The commit message does not follow conventional commit format
+- The API contract (OpenAPI spec) has changed without a version bump
+
+**Not observable or not binary:**
+- The code is "not clean" (subjective)
+- The design is "too complex" (gradient — complex relative to what?)
+- Performance is "acceptable" (unmeasured)
+- The solution is "not elegant" (aesthetic judgment)
+
+**Why this matters:** Failure conditions are the mechanism for catching bad outputs *during* execution, before they reach a checkpoint. This only works if the system can actually evaluate them. An unobservable failure condition is worse than no failure condition at all — it creates false confidence that problems will be caught.
+
+---
+
+### Principle 4: Each Intent Is Self-Contained; Cross-Cutting Concerns Live in LTM
+
+An intent must not depend on another intent's internal state. If two intents need to share knowledge, that knowledge belongs in LTM (practices, standards, quality gates) or STM (issue-specific artifacts), not in the intent itself.
+
+**Test:** Can this intent execute correctly if every other intent in the system is deleted? If not, you have a hidden dependency.
+
+**Correct separation:**
+```
+LTM (practices/logging.md):     "All services use structured JSON logging via the project logger"
+LTM (quality-gates/security.md): "No secrets in source; all credentials via environment variables"
+
+Intent (for a new endpoint):
+  Goal: Add a /users/export endpoint that returns CSV
+  Constraints: Must authenticate via existing auth middleware
+  Failure: Endpoint accessible without valid token; response not valid CSV
+```
+
+The logging and security concerns are not in the intent. They are in LTM, where they apply to all work implicitly. The intent focuses only on what is unique to this specific piece of work.
+
+**The trap this prevents:** LTM bloat. When cross-cutting concerns accumulate in LTM unchecked, LTM becomes a shadow spec. Guard against this by applying the same discipline to LTM entries: each practice must be independently valuable, not dependent on other practices to make sense.
+
+**LTM hygiene rule:** If LTM exceeds 20 practice files, audit for overlap, contradiction, and redundancy. Merge or remove entries. LTM should grow logarithmically with project complexity, not linearly.
+
+---
+
+### Principle 5: Intents Scale Horizontally, Not Vertically
+
+When a goal is too large for a single execution step, the answer is to decompose into multiple intents — not to make the intent more detailed. Vertical scaling (adding more detail to one intent) recreates SDD. Horizontal scaling (more intents, each small and focused) preserves IDD.
+
+**Test:** Can the goal of this intent be expressed in one sentence without conjunctions? If you need "and" to describe the goal, it's likely two intents.
+
+**Horizontal (correct):**
+```
+Intent 1: Goal — Identify the root cause of the payment timeout
+Intent 2: Goal — Design a fix that addresses the root cause
+Intent 3: Goal — Implement the designed fix
+Intent 4: Goal — Validate the fix resolves the original issue
+```
+
+**Vertical (drift toward SDD):**
+```
+Intent: Goal — Identify the root cause of the payment timeout, design a fix considering database connection pooling and retry logic, implement the fix using the circuit breaker pattern, and validate it resolves timeouts under load
+```
+
+The vertical version has made design decisions (connection pooling, circuit breaker) before any agent has analyzed anything. It has also chained four activities into one, making the checkpoint model meaningless.
+
+---
+
+### Principle 6: Verify Understanding Before Execution
+
+Before an agent begins work on an intent, it must be able to restate the goal, constraints, and failure conditions in the context of the current codebase. If the agent's restatement reveals ambiguity, the system must checkpoint for clarification — not guess.
+
+**Test:** Could two reasonable agents interpret this intent differently given the same codebase? If yes, the intent is ambiguous and must either be tightened or force a verification checkpoint.
+
+**What verification looks like:**
+```
+Intent received:
+  Goal: Refactor the payment module for better testability
+  Constraints: Must not change public API signatures
+  Failure: Any existing test fails after refactoring
+
+Agent restatement (before work begins):
+  "The payment module (src/payments/) has 3 classes with direct database calls
+   in constructor methods, making unit testing impossible without a live DB.
+   I will extract dependencies to allow injection. Public method signatures
+   on PaymentService, RefundHandler, and InvoiceGenerator will not change.
+   I will verify by running the existing 47 tests in payments.test.ts."
+```
+
+The restatement converts the abstract intent into a concrete plan anchored to real code. If the agent cannot produce this restatement, it doesn't understand the intent well enough to proceed.
+
+**Why this matters:** "Clearly understood" is the most dangerous phrase in IDD. An LLM can pattern-match to something close enough and proceed with confidence down the wrong path. Forced restatement surfaces misunderstandings *before* work begins, when correction is free — not after three agent calls, when it's expensive.
+
+**When to skip:** Intents with purely mechanical goals (commit code, create branch, open PR) where the action is unambiguous. The verification principle applies to intents where the agent must make judgment calls about *what* the codebase needs.
+
+---
+
+### Principle 7: Feedback Is Continuous, Failure Is Cheap
+
+Design intents so that failures are detected as early as possible, checkpoints are meaningful, and intent health is measured over time. This principle unifies three concerns: fail-fast design, checkpoint justification, and outcome measurement.
+
+#### Fail-Fast
+
+Front-load risky decisions. Put analysis before design, design before build. Make the first intent in any chain produce a verifiable artifact that a human can validate before expensive work begins.
+
+**Test:** If this intent fails, how many subsequent steps have already executed? If more than zero, consider whether the failure condition could have been checked earlier.
+
+#### Justify Every Checkpoint
+
+The checkpoint is where human judgment enters the system. An intent that always auto-approves is either too trivial to be an intent or has failure conditions that are too lenient. An intent that never auto-approves has constraints that are too tight or failure conditions that can't be evaluated programmatically.
+
+**Test:** Over time, does this intent's checkpoint get approved ~70-90% of the time? If it's 100%, the checkpoint is a rubber stamp. If it's under 50%, the intent is poorly defined.
+
+#### Measure Intent Health
+
+A successful outcome (code shipped, PR merged) does not mean the intent was well-designed. Track these signals per intent over time:
+
+| Signal | Healthy | Unhealthy | What It Means |
+|--------|---------|-----------|---------------|
+| Checkpoint approval rate | 70-90% | <50% or 100% | Intent clarity or checkpoint value |
+| Agent skill selection variance | 2-4 different skill paths | Always the same path | Intent is too prescriptive or agent is stuck |
+| Constraint violation frequency | Rare | Frequent | Constraints unclear or contradictory |
+| Failure condition trigger rate | Occasional | Never triggered | Failure conditions may be too lenient |
+| Downstream rework | Rare | Frequent rejections in later steps | Early intents not catching problems |
+| LTM dependency count | 0-3 practices referenced | 10+ practices needed | Intent is underspecified, leaning on LTM as a crutch |
+
+**Why this matters:** IDD's advantage over SDD is adaptability. But adaptability without feedback is drift. These signals tell you whether your intents are staying in the productive middle ground or drifting toward either over-specification or chaos.
+
+---
+
+## Anti-Patterns: How IDD Fails
+
+### Anti-Pattern 1: The Spec Intent
+An intent that is so detailed it leaves no decision space for the agent. Usually has 10+ constraints, prescribes implementation patterns, and has failure conditions that implicitly define the solution.
+
+**Symptom:** Agents always produce identical outputs regardless of context.
+
+### Anti-Pattern 2: The Wish Intent
+An intent with a vague goal ("make it better"), no real constraints, and subjective failure conditions. The agent has unlimited decision space but no way to know when it's done.
+
+**Symptom:** Checkpoints always require human intervention because the agent can't self-evaluate.
+
+### Anti-Pattern 3: The Leaky Intent
+An intent that works only because of implicit knowledge not captured in the intent, constraints, failure conditions, or LTM. The agent produces correct output because the LLM has seen similar patterns, not because the intent is well-defined.
+
+**Symptom:** Works with one LLM provider, breaks when you switch models or versions.
+
+### Anti-Pattern 4: The Shadow Spec (LTM Bloat)
+Cross-cutting concerns, standards, and practices accumulate in LTM until the combined weight of LTM + intent effectively recreates a full specification document. Individual intents look clean, but they're only interpretable in the context of dozens of LTM files.
+
+**Symptom:** Onboarding a new project requires reading all of LTM before any intent makes sense.
+
+### Anti-Pattern 5: The Chain Lock
+A composed workflow where each step's success depends on the previous step producing output in a very specific format. The intents are nominally independent, but practically they form a rigid pipeline where changing one breaks the chain.
+
+**Symptom:** Modifying one step requires updating every downstream step in the chain.
+
+---
+
+## Decision Checklist: Before Adding a New Intent
+
+Use this checklist when designing any new intent-based workflow or modifying an existing one.
+
+| # | Question | Principle | Pass Condition |
+|---|----------|-----------|----------------|
+| 1 | Does the goal describe an outcome, not an implementation? | P1 | Two different implementations could satisfy it |
+| 2 | Does the agent have meaningful choices to make? | P1 | At least two valid approaches exist |
+| 3 | Is the intent free of tool/technology references? | P1 | Survives a complete toolchain swap |
+| 4 | Is every constraint a hard boundary you'd reject on? | P2 | No "should" or "prefer" language |
+| 5 | Can every failure condition be evaluated without human opinion? | P3 | A validator agent can check it |
+| 6 | Does the intent work without knowledge of other intents? | P4 | Delete all other intents — does this one still make sense? |
+| 7 | Can you state the goal in one sentence without "and"? | P5 | If not, decompose into multiple intents |
+| 8 | Can the agent restate this intent in concrete codebase terms? | P6 | Restatement surfaces no ambiguity or forces clarification |
+| 9 | Is this the earliest point this failure could be detected? | P7 | No cheaper place to catch this error |
+| 10 | Will the checkpoint add value (not rubber stamp)? | P7 | Expected approval rate 70-90% |
+| 11 | Can you measure this intent's health over time? | P7 | At least 3 signals from the health table are trackable |
+
+---
+
+## Hypotheses
+
+> **Status:** PLACEHOLDER — To be defined.
+
+*This section will capture testable hypotheses about IDD's impact, assumptions, and predicted outcomes. Target: 3 hypotheses.*
 
 ---
 
@@ -601,12 +811,14 @@ HUMAN DEFINES INTENT
 - [Philosophy](./philosophy.md) — Fluidic SDLC, Three Tenets of AI-Native SDLC
 - [Design Principles](./principles.md) — Separation of Concerns, Explicit via Abstraction, Error Context Standard
 - [Naming Conventions](./naming-conventions.md) — Recipe, Agent, and Skill naming patterns
-- [AI Squad Framework](./AI_Squad_Framework_v1.docx) — Role definitions and transition paths
-- [Strategic Positioning](./phoenixos-positioning-executive-summary.md) — Competitive landscape and messaging
+
+---
+
+> For how these principles are implemented in Phoenix OS, see the IDSD methodology: `docs/philosophy/idsd.md`
 
 ---
 
 **Author**: Kapil Viren Ahuja
 **Version**: 1.0.0
-**Last Updated**: 2026-02-18
+**Last Updated**: 2026-02-21
 **Status**: Active
