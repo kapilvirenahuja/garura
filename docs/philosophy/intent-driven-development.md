@@ -554,6 +554,27 @@ This is the **handshake** between human oversight and AI execution. It maps dire
 
 **Rule**: The orchestration layer is responsible for routing the correct intent elements to each agent. The builder never constructs its own failure conditions, and the validator never infers the original goal.
 
+**Checkpoint Interaction Protocol:**
+
+When a recipe presents a checkpoint requiring human approval, the interaction follows a defined parse protocol:
+
+| Response | Parsed As | Action |
+|----------|-----------|--------|
+| `Tether` or `tether` (case-insensitive) | Approve | Proceed to next step |
+| `Vanish` or `vanish` (case-insensitive) | Reject | Halt; update checkpoint artifact to REJECTED |
+| Anything else | Unclear | Clarify — do not proceed and do not halt |
+
+This protocol applies universally across all recipes. The intent is to make approval explicit and unambiguous — neither a casual affirmative ("ok", "yes") nor silence counts as approval.
+
+**Evidence Artifacts:**
+
+Every recipe step that produces work writes an evidence artifact to `.phoenix-os/{issue}/evidence/{recipe-name}/{YYYYMMDD-HHMMSS}.md`. Evidence captures what was done, not how — it records the outcome for the audit trail:
+- What issue and branch the work was for
+- What was produced or executed (commits with hashes, branches created, etc.)
+- Validation results (clean tree, format checks, etc.)
+
+Evidence artifacts are permanent — they are the audit trail of every recipe execution.
+
 **Rules**:
 - Every SDLC phase has a quality gate before the next phase begins
 - The autonomy level determines how much human oversight is applied, not the quality of output

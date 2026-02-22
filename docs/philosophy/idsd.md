@@ -452,12 +452,102 @@ Tier 3: Orchestration   → tasks.md, verify.md
 
 ### Context Budget
 
-| Scope | Max Tokens |
-|-------|-----------|
-| Single bundle | ≤12K |
-| Gate subset per task | ≤3K |
-| Task context | ≤2K |
-| Total per agent task | ≤17K |
+Token budgets are directional targets, not hard constraints. They exist to keep context focused and prevent agents from receiving irrelevant information.
+
+| Scope | Target |
+|-------|--------|
+| Single bundle | ≤12K tokens |
+| Gate subset per task | ≤3K tokens |
+| Task context | ≤2K tokens |
+| Total per agent task | ≤17K tokens |
+
+### Recipe-to-Agent Context Bundle
+
+Every recipe invocation passes a structured YAML context bundle to the agent. This is the contract between the recipe (orchestrator) and the agent (domain executor).
+
+**Standard bundle structure:**
+```yaml
+---
+Recipe context:
+  intent: "{SDLC intent — what this recipe step is trying to achieve}"
+  pre_flight:            # Pre-flight check results from Step 0
+    C1: PASS | FAIL
+    C2: PASS | FAIL
+  task: "{Specific task this agent invocation must perform}"
+  mode: "{NEW | RESUME | null}"              # When applicable
+  input: "{User input or upstream artifact}" # When applicable
+  issue_number: {integer}                    # When known
+  parent: {parent_issue_number or null}      # When applicable
+  behavioral_constraints:                    # Subset of recipe constraints relevant to this agent call
+    - C3: "{constraint text}"
+    - C5: "{constraint text}"
+```
+
+**On retries, add:**
+```yaml
+  retry:
+    previous_failure: "{what the agent returned that failed}"
+    fix_applied: "{what was changed to address the failure}"
+    attempt: {N}
+```
+
+**Rules for context bundles:**
+- Include only the constraints relevant to this specific agent call — not all recipe constraints
+- Always pass `pre_flight` results so the agent knows what has already been verified
+- The `task` field must be a single, specific directive — not a general description
+- Agent boundaries must be enforced: pass only what the agent's domain covers
+
+---
+
+## Recovery Protocol
+
+When an agent returns a structured failure during recipe execution, IDSD applies a defined recovery loop before surfacing the failure to the human.
+
+### Structured Failure Protocol
+
+Agents are expected to return failures in a structured format that enables the recipe to route recovery correctly:
+
+```yaml
+failure:
+  type: "{error_type}"
+  message: "{what went wrong}"
+  domain_assessment:
+    responsible_domain: "{repo-orchestrator | project-orchestrator | code-builder | ...}"
+    fix_hint: "{what the responsible agent should try}"
+```
+
+The `domain_assessment.responsible_domain` field tells the recipe which agent to invoke for recovery.
+
+### Recovery Loop
+
+```
+Agent returns structured failure
+        │
+        ▼
+Recipe reads domain_assessment.responsible_domain
+        │
+        ▼
+Recipe invokes responsible agent with:
+  - fix context
+  - original intent
+  - retry metadata (attempt N, previous failure, fix applied)
+        │
+        ▼
+Max 2 retry cycles per agent
+        │
+        ├── Success → continue workflow
+        └── 2 retries exhausted → HALT with full failure context
+```
+
+### Recovery and the Agent Limit
+
+L1 recipes invoke ≤2 distinct agents. **Recovery calls are exempt from this limit.** A recipe in recovery may invoke an agent beyond the normal agent count without violating the L1 constraint. Recovery is a first-class mechanism, not an exception to the architecture.
+
+### Recovery Reasoning in LTM
+
+Recovery reasoning is loaded from: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
+
+This LTM file contains the structured-failure-protocol definition and domain-routing logic. Keeping this in LTM — rather than embedding it in each recipe — allows recovery behavior to be updated centrally without modifying individual recipes.
 
 ---
 

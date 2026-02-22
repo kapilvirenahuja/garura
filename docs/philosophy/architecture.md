@@ -72,13 +72,13 @@ L2: fix-bug
 
 ### L1 Recipes (Atomic Activities)
 
-L1 recipes are **atomic units** that produce artifacts and stop at checkpoints.
+L1 recipes are **atomic units** that produce artifacts and stop at conditional checkpoints.
 
 **Properties:**
 - Human OR model invocable
 - Invoke ≤2 agents
 - Always produce exactly one artifact
-- Always stop at checkpoint for approval
+- Conditional checkpoint: auto-approve when risk is low; require human approval when risk warrants it
 
 **Examples:** `analyze-bug`, `design-fix`, `commit-code`
 
@@ -94,6 +94,28 @@ L1 Recipe: analyze-bug
     │
     └── CHECKPOINT: Present RCA for approval
 ```
+
+#### Auto-Approval Logic
+
+L1 recipes evaluate risk criteria before presenting a checkpoint. When all criteria for low risk are met, the recipe auto-approves and proceeds without halting for user input. When any high-risk signal is present, the recipe requires explicit user approval (Tether/Vanish).
+
+**Auto-approve when ALL of:**
+- Single logical group or concern
+- No sensitive files (credentials, secrets, env vars)
+- No breaking changes
+- Clear, unambiguous operation type
+- Not a hotfix branch or high-risk context
+
+**Require user approval when ANY of:**
+- Multiple logical groups requiring separate decisions
+- Sensitive files present
+- Breaking changes detected
+- Ambiguous or mixed operation types
+- Hotfix branch or high-risk context
+
+**RESUME mode:** When a recipe is resuming existing work rather than starting new work, the checkpoint is skipped entirely — the prior approval remains valid.
+
+This model keeps low-risk, routine operations frictionless while surfacing human judgment exactly where it is needed.
 
 ### Skills (Learned Capabilities)
 
@@ -167,6 +189,23 @@ Agents are **autonomous decision-makers** with domain expertise.
 2. **Judges, not executors** — agents make decisions
 3. **Context sharing** — agents build and share context
 4. **Skill autonomy** — agents decide which skills to apply
+
+### Orchestrator Tool Restrictions
+
+Recipes are orchestrators. They coordinate workflow by delegating to agents — they never execute domain work directly.
+
+**Forbidden in recipes:** `Bash`, `Grep`, `Glob`, direct git commands, direct gh commands, or any tool that executes domain operations.
+
+**What recipes own directly:** checkpoint writes, approval logic, STM initialization, artifact writes, evidence reports, and final user-facing output.
+
+**What recipes delegate to agents:**
+- Git operations (branch, commit, push, status) → `repo-orchestrator`
+- Issue operations (create, resolve, link) → `project-orchestrator`
+- Code implementation → `code-builder`
+- Technical design and RCA → `tech-designer`
+- Validation and quality gates → `quality-validator`
+
+This boundary is not a style preference — it is an architectural rule. If a recipe executes git commands directly, the agent layer is bypassed and the audit trail breaks.
 
 ## Memory Architecture
 
@@ -249,11 +288,45 @@ Phoenix OS uses a **dual memory system**:
 └─────────────────────────────────────────────────────────────┘
 ```
 
+## Recovery Protocol
+
+When an agent returns a structured failure, recipes apply a defined recovery loop rather than propagating the failure immediately.
+
+**Recovery mechanics:**
+1. Agent returns a failure with `domain_assessment.responsible_domain` indicating which agent can address it
+2. Recipe invokes the responsible agent with fix context + original intent + retry metadata
+3. Maximum 2 retry cycles per agent. After 2 failed retries, halt with full failure context for human intervention
+
+**Retry context added to recipe context bundle:**
+```yaml
+retry:
+  previous_failure: "{what_failed}"
+  fix_applied: "{what was done to fix it}"
+  attempt: {N}
+```
+
+**Recovery calls are exempt from the agent limit.** A recipe that normally invokes ≤2 agents may invoke additional recovery calls beyond that limit without violating the L1/L2 agent count rule. Recovery calls are not counted as new agent invocations for the purpose of the constraint.
+
+Recovery reasoning is loaded from LTM: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`. This file defines the structured-failure-protocol that agents use to format their failure responses.
+
+### Checkpoint Artifact Status Lifecycle
+
+Every checkpoint artifact written to `.phoenix-os/{issue}/checkpoint/{recipe}/{timestamp}.md` follows a defined status lifecycle:
+
+| Status | Meaning |
+|--------|---------|
+| `PENDING_APPROVAL` | Written; awaiting user decision |
+| `APPROVED` | User responded Tether (or auto-approved) |
+| `REJECTED` | User responded Vanish |
+
+Recipes update the artifact status before proceeding to the next step. This creates an auditable record of every approval decision.
+
 ## Critical Rules
 
 | Rule | Applies To | Rationale |
 |------|------------|-----------|
 | **Produces artifact** | L1 Recipes | Clean checkpoint boundaries |
+| **Conditional checkpoint** | L1 Recipes | Auto-approve when risk is low; require user approval when risk signals are present |
 | **Chains L1s** | L2 Recipes | Workflow = sequence of atomic activities |
 | **Guardian validates** | L2 Recipes | Decides if human approval can be skipped |
 | **Agent produces** | Artifacts | Agent does work, recipe orchestrates |
