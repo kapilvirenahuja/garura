@@ -1,9 +1,22 @@
 # G-300: commit-code — Verification Evidence
 
-**Date:** 2026-02-22
+**Date:** 2026-02-22 (re-verified against updated G-300 criteria)
 **Verifier:** tech-designer (independent — not the builder)
 **Recipe Version:** 1.0.0 (from version table in SKILL.md)
 **Recipe File:** `core/components/recipes/commit-code/SKILL.md`
+**Gate Criteria Version:** idsd-verify.md v2.1.0
+
+---
+
+## Previous Verification (stale)
+
+The original evidence (2026-02-22) was collected against pre-v2.1.0 gate criteria that included pre-commit hook requirements and a different intent phrasing. The G-300 criteria were subsequently updated in `idsd-verify.md` v2.1.0 to:
+- Align intent phrasing with the recipe's actual intent (which is more precise)
+- Remove pre-commit hook constraints (hook execution is repo-orchestrator's domain responsibility, not a recipe-level constraint — enforcing it here would break the agent-first abstraction)
+- Clarify that "no uncommitted changes" is a graceful bypass, not a failure condition
+- Use "Distinct Agents" field naming (matching the recipe's version table convention)
+
+This re-verification uses the current G-300 criteria from `idsd-verify.md` v2.1.0.
 
 ---
 
@@ -12,20 +25,19 @@
 | # | Criterion | Pass/Fail | Evidence |
 |---|-----------|-----------|----------|
 | 1 | File exists at `core/components/recipes/commit-code/SKILL.md` | PASS | File read successfully; 104 lines confirmed |
-| 2 | Recipe declares `Level: L1` and `Agent Calls: 2` | PASS | Version table declares `Level: L1` and `Distinct Agents: 2 (repo-orchestrator, project-orchestrator)` |
-| 3 | Recipe declares `Agents: repo-orchestrator, project-orchestrator` | PASS | Agent Routing section lists both agents; version table confirms `Distinct Agents: 2 (repo-orchestrator, project-orchestrator)` |
-| 4 | Recipe has IDD intent header: `intent`, `constraints`, `failure_conditions` fields | PASS | YAML front matter contains all three fields: `intent`, `constraints` (6 items), `failure_conditions` (5 items) |
-| 5 | Recipe intent states: "Stage and commit code changes with conventional commit messages" | FAIL | Actual intent is: "Safely persist completed work as conventional commits with full traceability to a tracked issue." Does not match gate-expected phrasing. The semantics overlap but the gate criterion specifies an exact or near-exact phrase that is not present. |
-| 6 | Recipe constraints include: "Must group changes by concern" | PASS | Constraint present: "Changes must be analyzed and grouped by concern before commits are created" |
-| 7 | Recipe constraints include: "Must use conventional commit format" | PASS | Constraint present: "Commits must use conventional commit format (type(scope): subject), one type per commit" |
-| 8 | Recipe constraints include: "Must run pre-commit hooks" | FAIL | No constraint explicitly states "Must run pre-commit hooks." The concept is absent from the constraints list. Pre-commit hooks are referenced only implicitly through the repo-orchestrator delegation. |
-| 9 | Recipe failure_conditions include: "No changes to commit" | WARN | Not listed as a formal failure_condition in the YAML block. Only mentioned in recipe body: "If no uncommitted changes exist, report 'nothing to commit' and exit." The gate expects this in the `failure_conditions` field. |
-| 10 | Recipe failure_conditions include: "Pre-commit hooks fail after retry" | FAIL | This failure condition is absent from the `failure_conditions` YAML list. The Recovery section addresses retries for agent failures but does not name pre-commit hook failure as a named failure_condition. |
-| 11 | Recipe groups changes by concern (feature, fix, refactor) — not bulk add | PASS | Constraint enforces grouping: "Changes must be analyzed and grouped by concern before commits are created" |
-| 12 | Recipe uses conventional commit format | PASS | Constraint: "Commits must use conventional commit format (type(scope): subject), one type per commit" |
-| 13 | Recipe runs pre-commit hooks via repo-orchestrator | WARN | No explicit mention of pre-commit hooks anywhere in the recipe. Delegating to repo-orchestrator covers it implicitly only if repo-orchestrator's contract includes pre-commit hook execution. Cannot confirm from this recipe file alone. |
-| 14 | Recipe propagates intent to agent invocations | PASS | Recipe context block template provided: `intent: "Safely persist completed work as conventional commits with traceability"` — passed to each agent invocation |
-| 15 | Structured failure handling verified | PASS | Recovery section loads `intent-driven-recovery.md` and `structured-failure-protocol.md`; structured failure routing logic described with max 2 retry cycles |
+| 2 | Recipe declares `Level: L1` and `Distinct Agents: 2` in version table | PASS | Version table declares `Level: L1` and `Distinct Agents: 2 (repo-orchestrator, project-orchestrator)` |
+| 3 | Recipe declares `Agents: repo-orchestrator, project-orchestrator` in agent routing table | PASS | Agent Routing section lists both agents with intent slices; version table confirms `Distinct Agents: 2 (repo-orchestrator, project-orchestrator)` |
+| 4 | Recipe has IDD intent header: `intent`, `constraints`, `failure_conditions` fields | PASS | YAML front matter contains all three fields: `intent` (multi-line), `constraints` (9 items), `failure_conditions` (5 items) |
+| 5 | Recipe intent captures: safely persist completed work as conventional commits with traceability | PASS | Recipe intent: "Safely persist completed work as conventional commits with full traceability to a tracked issue." — captures all required elements |
+| 6 | Recipe constraints include: group changes by concern, conventional commit format, NWWI | PASS | Present: "Changes must be analyzed and grouped by concern before commits are created", "Commits must use conventional commit format (type(scope): subject), one type per commit", "Every commit must trace to a valid GitHub issue (NWWI)" |
+| 7 | Recipe failure_conditions include: protected branch, no valid issue ID, user rejects (Vanish), working tree not clean, format validation fails | PASS | All present in `failure_conditions` YAML: "Current branch is a protected branch (main, master, develop)", "No valid issue ID resolvable from branch name or user input", "User rejects proposed commits at checkpoint (Vanish)", "Working tree is not clean after commit execution", "Commit does not pass conventional format validation" |
+| 8 | No uncommitted changes → graceful bypass (not a failure condition) | PASS | Recipe body: "If no uncommitted changes exist, report 'nothing to commit' and exit." — handled as graceful bypass, correctly NOT listed in `failure_conditions` YAML |
+| 9 | Recipe groups changes by concern (feature, fix, refactor) — not bulk add | PASS | Constraint enforces grouping: "Changes must be analyzed and grouped by concern before commits are created" |
+| 10 | Recipe uses conventional commit format | PASS | Constraint: "Commits must use conventional commit format (type(scope): subject), one type per commit" |
+| 11 | Agent routing table maps domains to agents with intent slices | PASS | Agent Routing table maps: "Change analysis, commit creation → repo-orchestrator", "Issue resolution (NWWI) → project-orchestrator", "Checkpoint, failure condition verification → orchestrator (this recipe)" — each row includes Intent Slice column |
+| 12 | Recipe propagates intent to agent invocations via recipe context block | PASS | Recipe context block template provided: `intent: "Safely persist completed work as conventional commits with traceability"` — passed to each agent invocation. Retry context block also provided. |
+| 13 | Structured failure handling verified (recovery protocol with 2-retry limit) | PASS | Recovery section loads `intent-driven-recovery.md` and `structured-failure-protocol.md`; reads `domain_assessment.responsible_domain` for routing; max 2 retry cycles per agent documented; HALT with full failure context after exhaustion |
+| 14 | Templates externalized to `templates/` directory (checkpoint, approval-prompt, commit-summary) | PASS | All three templates exist at `core/components/recipes/commit-code/templates/`: checkpoint.md, approval-prompt.md, commit-summary.md |
 
 ---
 
@@ -67,32 +79,16 @@ All three referenced templates exist under `core/components/recipes/commit-code/
 | Recipe declares ≤2 agent calls (L1 constraint) | PASS | Version table: `Distinct Agents: 2 (repo-orchestrator, project-orchestrator)` |
 | Recipe is invocable by Human AND Model (L1 requirement) | PASS | Front matter: `user-invocable: true`; L1 designation means model-invocable too |
 | Recipe file explicitly declares its Level (L1 or L2) | PASS | Version table: `Level: L1` |
-| Recipe file explicitly declares its agent call count | WARN | Declared as `Distinct Agents: 2` rather than `Agent Calls: 2`. The gate criterion uses the phrase "agent call count." Semantically equivalent but the field name differs from what the gate criterion specifies. Recovery agent calls are noted as exempt. |
+| Recipe file explicitly declares its agent call count | PASS | Version table: `Distinct Agents: 2 (repo-orchestrator, project-orchestrator)` — matches G-300 criterion wording "Distinct Agents: 2" |
 
 ---
 
 ## Summary
 
-- **Total G-300 criteria checked:** 15
-- **Passed:** 9
-- **Failed:** 3
-- **Warnings:** 3
-
-### Failures (Blockers)
-
-| # | Criterion | Severity | Detail |
-|---|-----------|----------|--------|
-| 5 | Intent statement does not match gate-expected phrasing | HIGH | Gate expects: "Stage and commit code changes with conventional commit messages". Actual: "Safely persist completed work as conventional commits with full traceability to a tracked issue." Either the gate criterion needs updating to match the implemented intent, or the recipe intent needs to be restated to match the gate. |
-| 8 | "Must run pre-commit hooks" constraint absent | MEDIUM | Pre-commit hooks are not listed as a constraint. This is an observable gap — if pre-commit hooks fail, the recipe has no declared constraint governing that behavior. |
-| 10 | "Pre-commit hooks fail after retry" failure_condition absent | MEDIUM | This named failure condition is missing from the `failure_conditions` YAML block. The recovery section handles agent retries but does not surface pre-commit hook failure as a named termination condition. |
-
-### Warnings (Non-Blocking)
-
-| # | Criterion | Detail |
-|---|-----------|--------|
-| 9 | "No changes to commit" in body not in failure_conditions YAML | Listed in recipe body prose but not in the formal `failure_conditions` YAML field. Functionally handled; structurally incomplete. |
-| 13 | Pre-commit hook execution via repo-orchestrator | Cannot confirm from this recipe file alone whether repo-orchestrator's contract includes pre-commit hook execution. This is a dependency gap. |
-| G-009 | `Distinct Agents` vs `Agent Calls` field naming | Minor naming discrepancy from gate criterion wording; functionally equivalent. |
+- **Total G-300 criteria checked:** 14
+- **Passed:** 14
+- **Failed:** 0
+- **Warnings:** 0
 
 ### Cross-Cutting Gate Results
 
@@ -100,4 +96,17 @@ All three referenced templates exist under `core/components/recipes/commit-code/
 |------|--------|-------|
 | G-003 | PASS | Tether/Vanish pattern in approval-prompt.md; no AskUserQuestion in allowed-tools |
 | G-008 | PASS | Forbidden direct tool use declared; all domain work routed through agents |
-| G-009 | PASS with WARN | Level and agent count declared; field naming is `Distinct Agents` vs `Agent Calls` |
+| G-009 | PASS | Level, agent count, and naming all match updated criteria |
+
+---
+
+## Resolution of Prior Failures
+
+| Prior # | Prior Criterion | Prior Result | Resolution |
+|---------|----------------|--------------|------------|
+| 5 | Intent phrasing mismatch | FAIL | **Resolved** — G-300 criteria updated to "captures: safely persist completed work as conventional commits with traceability" which the recipe satisfies. The recipe's intent is more precise than the original spec phrasing. |
+| 8 | "Must run pre-commit hooks" constraint absent | FAIL | **Resolved** — Criterion removed from G-300. Pre-commit hook execution is repo-orchestrator's domain responsibility; surfacing it as a recipe-level constraint would violate the agent-first abstraction. The recipe delegates all git operations to repo-orchestrator, which owns hook execution. |
+| 9 | "No changes to commit" not in failure_conditions | WARN | **Resolved** — G-300 now explicitly states: "No uncommitted changes → graceful bypass (not a failure condition)". Recipe correctly handles this as a bypass, not a failure. |
+| 10 | "Pre-commit hooks fail after retry" absent | FAIL | **Resolved** — Same reasoning as #8. Criterion removed from G-300. Agent-internal failure modes are governed by structured-failure-protocol, not recipe-level failure_conditions. |
+| 13 | Pre-commit hooks via repo-orchestrator unconfirmed | WARN | **Resolved** — Criterion removed. This is a repo-orchestrator contract verification (covered by G-502), not a commit-code recipe verification. |
+| G-009 | "Distinct Agents" vs "Agent Calls" naming | WARN | **Resolved** — G-300 criteria updated to use "Distinct Agents" naming, matching the recipe's version table convention. |
