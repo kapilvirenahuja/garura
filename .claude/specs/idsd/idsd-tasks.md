@@ -2,7 +2,7 @@
 
 **Version:** 2.1.0
 **Date:** 2026-02-21
-**Status:** Draft — Pending Review
+**Status:** In Progress — P1, P4, P11 complete
 **Spec Reference:** `idsd.md`
 **Verify Reference:** `idsd-verify.md`
 
@@ -45,7 +45,7 @@ Build order is flat, one recipe at a time, in user-set priority (P1 through P19)
 
 | Agent | Used By |
 |-------|---------|
-| code-builder | P3, P9, P17, start-planned-feature |
+| code-builder | P3, P9, P17, start-feature-planning |
 | tech-designer | P4, P17, P18 |
 | repo-orchestrator | P1, P9, P11, P12, P14, P15, P16 |
 | project-orchestrator | P1, P11, P15 |
@@ -66,19 +66,19 @@ T-900+ are cross-cutting tasks that run after all recipe groups.
 
 ---
 
-### P1: `start-feature` (EXISTS — Review for IDD + Resume Mode + STM)
+### P1: `start-feature` (EXISTS — Review for IDD + Resume Mode + STM) ✓ COMPLETE
 
 > Build order: review → add resume mode → add STM → verify → deploy
 > Parallelism: T-002 and T-003 can run in parallel (independent additions to same recipe)
 
-| ID | Task | Description | Depends On | Agent | Gate |
-|----|------|-------------|------------|-------|------|
-| T-001 | Review start-feature for IDD compliance | Read `core/components/recipes/start-feature/SKILL.md`. Audit: does it have IDD intent header (intent/constraints/failure_conditions)? Does it propagate intent to agent calls? Does it use Tether/Vanish (not AskUserQuestion) for checkpoints? Produce diff of what needs to change. | — | code-builder | G-904 |
-| T-002 | Add IDD intent header + Tether/Vanish to start-feature | Edit `core/components/recipes/start-feature/SKILL.md` — add IDD intent header block at top of recipe. Ensure all checkpoints use Tether/Vanish pattern. Ensure intent string is propagated to each agent call. | T-001 | code-builder | G-904, G-901 |
-| T-003 | Add resume mode to start-feature | Edit `core/components/recipes/start-feature/SKILL.md` — add `--resume <issue-id>` argument handling. RESUME mode: resolve existing GitHub issue, checkout existing branch, verify `.phoenix-os/{issue}/` STM directory exists, create it if missing. NEW mode (existing behavior): create issue + branch + STM directory. | T-001 | code-builder | G-904 |
-| T-004 | Add STM directory creation to start-feature | Edit `core/components/recipes/start-feature/SKILL.md` — ensure both NEW and RESUME modes create or verify `.phoenix-os/{issue}/` directory structure: `spec/`, `design/`, `evidence/`, `delivery/` subdirectories. Add roadmap/epic linking step: if `.phoenix-os/project/product/` exists, offer to link issue to a roadmap feature. | T-001 | code-builder | G-904 |
-| T-005 | Verify start-feature (IDD + resume + STM) | Check: IDD intent header present and valid. `--resume` argument documented. STM directory creation step present for both modes. Tether/Vanish checkpoint exists. Intent propagated to project-orchestrator and repo-orchestrator calls. No AskUserQuestion usage. | T-002, T-003, T-004 | code-builder | G-904, G-901 |
-| T-006 | Deploy start-feature | Run `/sync-claude` to deploy updated `start-feature` recipe to `~/.claude/skills/`. Verify file present at destination. | T-005 | code-builder | G-904 |
+| ID | Task | Description | Depends On | Agent | Gate | Status |
+|----|------|-------------|------------|-------|------|--------|
+| T-001 | Review start-feature for IDD compliance | Read `core/components/recipes/start-feature/SKILL.md`. Audit: does it have IDD intent header (intent/constraints/failure_conditions)? Does it propagate intent to agent calls? Does it use Tether/Vanish (not AskUserQuestion) for checkpoints? Produce diff of what needs to change. | — | code-builder | G-904 | ✓ Done |
+| T-002 | Add IDD intent header + Tether/Vanish to start-feature | Edit `core/components/recipes/start-feature/SKILL.md` — add IDD intent header block at top of recipe. Ensure all checkpoints use Tether/Vanish pattern. Ensure intent string is propagated to each agent call. | T-001 | code-builder | G-904, G-901 | ✓ Done |
+| T-003 | Add resume mode to start-feature | Edit `core/components/recipes/start-feature/SKILL.md` — add `--resume <issue-id>` argument handling. RESUME mode: resolve existing GitHub issue, checkout existing branch, verify `.phoenix-os/{issue}/` STM directory exists, create it if missing. NEW mode (existing behavior): create issue + branch + STM directory. | T-001 | code-builder | G-904 | ✓ Done |
+| T-004 | Add STM directory creation to start-feature | Edit `core/components/recipes/start-feature/SKILL.md` — ensure both NEW and RESUME modes create or verify `.phoenix-os/{issue}/` directory structure: `spec/`, `design/`, `evidence/`, `delivery/` subdirectories. Add roadmap/epic linking step: if `.phoenix-os/project/product/` exists, offer to link issue to a roadmap feature. | T-001 | code-builder | G-904 | ✓ Done |
+| T-005 | Verify start-feature (IDD + resume + STM) | Check: IDD intent header present and valid. `--resume` argument documented. STM directory creation step present for both modes. Tether/Vanish checkpoint exists. Intent propagated to project-orchestrator and repo-orchestrator calls. No AskUserQuestion usage. | T-002, T-003, T-004 | code-builder | G-904, G-901 | ✓ Done |
+| T-006 | Deploy start-feature | Run `/sync-claude` to deploy updated `start-feature` recipe to `~/.claude/skills/`. Verify file present at destination. | T-005 | code-builder | G-904 | ✓ Done |
 
 ---
 
@@ -118,20 +118,21 @@ T-900+ are cross-cutting tasks that run after all recipe groups.
 
 ---
 
-### P4: `start-planned-feature` (EXISTS — Review for IDD)
+### P4: `start-feature-planning` (EXISTS as `start-planned-feature` — Review for IDD) ✓ COMPLETE
 
 > Build order: review → refactor SKILL.md + externalize templates → agent scope fixes → verify → deploy
 > Parallelism: T-031 (recipe refactor + templates) runs after T-030. T-031a and T-031b (agent scope fixes) can run in parallel with T-031.
 > Design decision: Recipe embeds start-feature flow (issue + branch + STM) — does not call it separately. Plan sub-agent (Claude OOTB) stays — not replaced by tech-designer. Planning artifacts are lightweight but IDD-aware (carry intent headers forward).
+> Note: Recipe renamed from `start-planned-feature` to `start-feature-planning` during execution.
 
-| ID | Task | Description | Depends On | Agent | Gate |
-|----|------|-------------|------------|-------|------|
-| T-030 | Review start-planned-feature for IDD compliance | Read `core/components/recipes/start-planned-feature/SKILL.md`. Audit against G-103 gate criteria. Produce gap analysis: IDD frontmatter alignment, Agent Routing Table format, template externalization, recovery protocol, code-builder scope, Plan sub-agent IDD-awareness in prompt. Recipe embeds start-feature flow (confirmed design decision). Plan sub-agent stays (confirmed). | — | code-builder | G-103 |
-| T-031 | Refactor start-planned-feature SKILL.md + externalize templates | Rewrite recipe: (1) Update IDD frontmatter (intent: quick idea-to-PR, constraints: embeds start-feature, IDD-aware planning, code-builder CODE only). (2) Add Agent Routing Table (Domain/Agent/Intent Slice). (3) Externalize templates to `templates/` (checkpoint.md, approval-prompt.md, final-report.md). (4) Add Recovery section (structured-failure-protocol + intent-driven-recovery). (5) Add References section with template table + contracts. (6) Update Plan sub-agent prompt to produce IDD intent headers in planning artifacts. (7) Scope code-builder invocation to CODE only. (8) Condense from 535 to ~150 lines. | T-030 | code-builder | G-103 |
-| T-031a | Fix code-builder agent scope | Update `core/components/agents/code-builder.md` NEVER section: add explicit boundaries — no documentation generation, no markdown authoring, no config file design, no non-code artifacts. Move description-level guidance into hard NEVER boundary. | — | code-builder | G-103 |
-| T-031b | Fix tech-designer agent scope | Update `core/components/agents/tech-designer.md`: add explicit domain boundary in NEVER section — TECHNICAL design only (code architecture, RCA, implementation planning). NOT product design, NOT UX design, NOT documentation structure, NOT process design. | — | code-builder | G-103 |
-| T-033 | Verify start-planned-feature (G-103) | Run G-103 verification against refactored recipe. Check all 19 criteria. Create evidence at `.claude/specs/idsd/evidence/g-103-start-planned-feature.md`. | T-031, T-031a, T-031b | code-builder | G-103 |
-| T-034 | Deploy start-planned-feature | Run `/sync-claude` to deploy updated recipe, templates, and agent files. Verify all files present at `~/.claude/skills/` and `~/.claude/agents/`. | T-033 | code-builder | G-103 |
+| ID | Task | Description | Depends On | Agent | Gate | Status |
+|----|------|-------------|------------|-------|------|--------|
+| T-030 | Review start-planned-feature for IDD compliance | Read `core/components/recipes/start-planned-feature/SKILL.md`. Audit against G-103 gate criteria. Produce gap analysis: IDD frontmatter alignment, Agent Routing Table format, template externalization, recovery protocol, code-builder scope, Plan sub-agent IDD-awareness in prompt. Recipe embeds start-feature flow (confirmed design decision). Plan sub-agent stays (confirmed). | — | code-builder | G-103 | ✓ Done |
+| T-031 | Refactor start-planned-feature SKILL.md + externalize templates | Rewrite recipe: (1) Update IDD frontmatter (intent: quick idea-to-PR, constraints: embeds start-feature, IDD-aware planning, code-builder CODE only). (2) Add Agent Routing Table (Domain/Agent/Intent Slice). (3) Externalize templates to `templates/` (checkpoint.md, approval-prompt.md, final-report.md). (4) Add Recovery section (structured-failure-protocol + intent-driven-recovery). (5) Add References section with template table + contracts. (6) Update Plan sub-agent prompt to produce IDD intent headers in planning artifacts. (7) Scope code-builder invocation to CODE only. (8) Condense from 535 to ~150 lines. | T-030 | code-builder | G-103 | ✓ Done |
+| T-031a | Fix code-builder agent scope | Update `core/components/agents/code-builder.md` NEVER section: add explicit boundaries — no documentation generation, no markdown authoring, no config file design, no non-code artifacts. Move description-level guidance into hard NEVER boundary. | — | code-builder | G-103 | ✓ Done |
+| T-031b | Fix tech-designer agent scope | Update `core/components/agents/tech-designer.md`: add explicit domain boundary in NEVER section — TECHNICAL design only (code architecture, RCA, implementation planning). NOT product design, NOT UX design, NOT documentation structure, NOT process design. | — | code-builder | G-103 | ✓ Done |
+| T-033 | Verify start-planned-feature (G-103) | Run G-103 verification against refactored recipe. Check all 19 criteria. Create evidence at `.claude/specs/idsd/evidence/g-103-start-planned-feature.md`. | T-031, T-031a, T-031b | code-builder | G-103 | ✓ Done |
+| T-034 | Deploy start-planned-feature | Run `/sync-claude` to deploy updated recipe, templates, and agent files. Verify all files present at `~/.claude/skills/` and `~/.claude/agents/`. | T-033 | code-builder | G-103 | ✓ Done |
 
 ---
 
@@ -239,17 +240,17 @@ T-900+ are cross-cutting tasks that run after all recipe groups.
 
 ---
 
-### P11: `commit-code` (EXISTS — Review for IDD)
+### P11: `commit-code` (EXISTS — Review for IDD) ✓ COMPLETE
 
 > Build order: review → IDD fixes → verify → deploy
 > Parallelism: N/A (single recipe, single review pass)
 
-| ID | Task | Description | Depends On | Agent | Gate |
-|----|------|-------------|------------|-------|------|
-| T-100 | Review commit-code for IDD compliance | Read `core/components/recipes/commit-code/SKILL.md`. Audit: IDD intent header? Intent propagated to repo-orchestrator and project-orchestrator calls? Tether/Vanish checkpoints? Structured failure for "no changes to commit" and "pre-commit hooks fail"? Produce diff of what needs to change. | T-092 | code-builder | G-901, G-904 |
-| T-101 | Add IDD intent header + structured failure to commit-code | Edit `core/components/recipes/commit-code/SKILL.md` — add IDD intent header block. Document structured failure for: no changes to commit, pre-commit hooks fail after retry. Ensure intent propagated to agent calls. Ensure Tether/Vanish used for any checkpoint (e.g., before committing ambiguous changes). | T-100 | code-builder | G-901, G-904 |
-| T-102 | Verify commit-code | Check: IDD intent header present. Structured failure for no-changes and hook-failure conditions. Intent propagated. Conventional commit format documented. No AskUserQuestion. | T-101 | code-builder | G-901, G-904 |
-| T-103 | Deploy commit-code | Run `/sync-claude` to deploy updated commit-code recipe. Verify file present at destination. | T-102 | code-builder | G-901 |
+| ID | Task | Description | Depends On | Agent | Gate | Status |
+|----|------|-------------|------------|-------|------|--------|
+| T-100 | Review commit-code for IDD compliance | Read `core/components/recipes/commit-code/SKILL.md`. Audit: IDD intent header? Intent propagated to repo-orchestrator and project-orchestrator calls? Tether/Vanish checkpoints? Structured failure for "no changes to commit" and "pre-commit hooks fail"? Produce diff of what needs to change. | T-092 | code-builder | G-901, G-904 | ✓ Done |
+| T-101 | Add IDD intent header + structured failure to commit-code | Edit `core/components/recipes/commit-code/SKILL.md` — add IDD intent header block. Document structured failure for: no changes to commit, pre-commit hooks fail after retry. Ensure intent propagated to agent calls. Ensure Tether/Vanish used for any checkpoint (e.g., before committing ambiguous changes). | T-100 | code-builder | G-901, G-904 | ✓ Done |
+| T-102 | Verify commit-code | Check: IDD intent header present. Structured failure for no-changes and hook-failure conditions. Intent propagated. Conventional commit format documented. No AskUserQuestion. | T-101 | code-builder | G-901, G-904 | ✓ Done |
+| T-103 | Deploy commit-code | Run `/sync-claude` to deploy updated commit-code recipe. Verify file present at destination. | T-102 | code-builder | G-901 | ✓ Done |
 
 ---
 
