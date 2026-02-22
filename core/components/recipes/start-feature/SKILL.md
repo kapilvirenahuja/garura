@@ -3,20 +3,19 @@ name: start-feature
 description: Create or resume a work context — issue + branch + STM directory
 user-invocable: true
 model: sonnet
-level: L1
-agent_calls: 2
 allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
 
-# === Three Elements of Intent (IDD) ===
 intent: >
   Create or resume a work context — issue + branch + STM directory —
   as the universal precursor to all tracked work.
 
 constraints:
   - Must always be the first step for any work
+  - Issue must be resolved or created on GitHub before any branch work
   - Branch name MUST follow convention: {type}/{issue_number}-{slug}
   - Slug max 40 characters, lowercase, hyphenated, derived from issue title
-  - Always checkpoint before branch creation — branches are externally visible
+  - User must approve before branch creation — branches are externally visible
+  - STM directory must be initialized with required subdirectories
   - If type_hint is null, user MUST select type before proceeding
   - Two-phase STM write when issue does not yet exist (ADR 008)
   - Orchestrator MUST delegate to agents — never execute git/gh commands directly
@@ -58,41 +57,38 @@ You are the orchestrator. You delegate to agents, never execute directly.
 /start-feature "Login validation" --parent 42       → NEW mode with parent
 ```
 
-## Outcomes by Mode
+## Agent Routing
 
-### NEW Mode
+| Domain | Agent | Intent Slice |
+|--------|-------|--------------|
+| Issue resolution/creation, epic linking | project-orchestrator | Resolve or create GitHub issue for tracking |
+| Branch creation, checkout, push to origin | repo-orchestrator | Create and push type-aware branch; or checkout existing branch (resume) |
+| Checkpoint, STM initialization, failure condition verification | orchestrator (this recipe) | Approve branch creation; initialize STM directory; check post-execution state |
 
-When done, the following must be true:
+When invoking agents, provide recipe context:
 
-1. **Issue exists on GitHub** — created or resolved from input. Has type_hint, labels, title.
-2. **Branch exists on origin** — follows naming convention, pushed with tracking. User approved at checkpoint.
-3. **STM directory initialized** — `.phoenix-os/{issue}/` with required subdirectories.
-4. **Checkpoint artifact written** — records decision trail in STM.
-5. **Roadmap link offered** — if `.phoenix-os/project/product/` exists, user was offered the option to link issue to a roadmap feature.
+```
+---
+Recipe context:
+  intent: "Create or resume a work context — issue + branch + STM directory"
+  constraints: ["{relevant constraints for this agent's task}"]
+```
 
-### RESUME Mode
+## References
 
-When done, the following must be true:
+### Templates
 
-1. **Issue resolved** — existing issue found and loaded. Fail if not found.
-2. **On the correct branch** — existing branch checked out, working tree ready.
-3. **STM directory verified** — exists with required subdirectories; created if missing.
-4. **No checkpoint needed** — branch already exists, no externally visible action.
+| Template | Path | Used For |
+|----------|------|----------|
+| Checkpoint | `templates/checkpoint.md` | STM artifact at `.phoenix-os/{issue}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md` |
+| Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation (NEW mode only) |
+| Feature Started | `templates/feature-started.md` | Final report with three-speeds routing |
 
-## Agents
+### Contracts
 
-| Agent | Domain | Invoked Via |
-|-------|--------|-------------|
-| project-orchestrator | Issue resolution/creation, epic linking | `Task` tool with `subagent_type: "project-orchestrator"` |
-| repo-orchestrator | Branch creation, checkout, push to origin | `Task` tool with `subagent_type: "repo-orchestrator"` |
+These are interfaces that downstream recipes depend on.
 
-Intent must be propagated to every agent invocation: `"Intent: {action}: {context}"`
-
-## Contracts
-
-These are interfaces that downstream recipes depend on. They must be honored exactly.
-
-### 1. STM Directory Structure
+**STM Directory Structure:**
 
 ```
 .phoenix-os/{issue}/
@@ -103,7 +99,7 @@ These are interfaces that downstream recipes depend on. They must be honored exa
 └── checkpoint/    # all recipes write checkpoint artifacts here
 ```
 
-### 2. Branch Naming Convention
+**Branch Naming Convention:**
 
 ```
 {type}/{issue_number}-{slug}
@@ -123,107 +119,13 @@ Slug: lowercase issue title, spaces/special chars → hyphens, no consecutive hy
 
 Reference: `~/.phoenix-os/core/memory/practices/git/branching.md`
 
-### 3. Two-Phase STM Write (ADR 008)
+**Two-Phase STM Write (ADR 008):**
 
 When issue number is not yet known (description-only input):
 - **Phase 1:** Write to `.phoenix-os/_pending/{YYYYMMDD-HHMMSS}/` (temporary)
 - **Phase 2:** After issue is created, move to `.phoenix-os/{issue}/` and delete `_pending/` entry
 
 When issue number is known upfront: write directly to `.phoenix-os/{issue}/`.
-
-### 4. Checkpoint Artifact
-
-Path: `.phoenix-os/{issue}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md`
-
-```markdown
-# Start Feature Checkpoint
-
-## Metadata
-- **Issue:** #{issue-number}
-- **Recipe:** start-feature
-- **Mode:** {NEW|RESUME}
-- **Created:** {YYYY-MM-DD HH:MM:SS}
-- **Status:** {PENDING_APPROVAL|APPROVED|REJECTED}
-
-## Issue
-| Field | Value |
-|-------|-------|
-| Number | #{number} |
-| Title | {title} |
-| Labels | {labels} |
-| State | {state} |
-| URL | {url} |
-| Created | {yes/no} |
-| Parent | {parent or N/A} |
-
-## Proposed Branch
-| Field | Value |
-|-------|-------|
-| Type | {type_hint or NEEDS SELECTION} |
-| Branch | `{branch_name}` |
-| Convention | `{type}/{issue_number}-{slug}` |
-
-## Decision
-- **Approval Status:** {PENDING|APPROVED|REJECTED}
-```
-
-### 5. User Approval (NEW Mode Only)
-
-```markdown
-## Proposed Feature Start
-
-### Issue
-
-| Field | Value |
-|-------|-------|
-| Number | #{number} |
-| Title | {title} |
-| URL | {url} |
-| Created | {new issue / existing issue} |
-
-### Proposed Branch
-
-**`{branch_name}`**
-
-{If type_hint is null:}
-> **Type selection required.** Could not determine branch type from issue labels or title.
-> Please specify: `feature`, `fix`, `hotfix`, `refactor`, `docs`, or `chore`
-
----
-
-Type **Tether** to create the branch or **Vanish** to cancel.
-Any other response → clarify before proceeding.
-```
-
-### 6. Final Report
-
-```markdown
-# Feature Started
-
-## Overview
-
-| Field | Value |
-|-------|-------|
-| Mode | {NEW / RESUME} |
-| Issue | #{number} — {title} |
-| URL | {issue_url} |
-| Branch | `{branch_name}` |
-| Tracking | `{origin/branch_name}` |
-| STM | `.phoenix-os/{issue}/` |
-| Worktree | {path or N/A} |
-
-## What Happened
-
-{Narrative summary of actions taken — not a prescribed list.}
-
-## Next Steps — Choose Your Speed
-
-| Speed | Time | Command | When to use |
-|-------|------|---------|-------------|
-| **Fast** | Minutes | `/build-feature` → `/commit-code` → `/deliver-feature` | Small change, no spec needed |
-| **Planned** | Hours | `/start-planned-feature` | Needs design but not full spec |
-| **Strategic** | Days | `/discover-product` → full SDLC pipeline | New product capability |
-```
 
 ---
 
