@@ -168,10 +168,16 @@ Invoke **Plan sub-agent** via Task tool (`subagent_type: "Plan"`).
 
 The prompt MUST instruct the Plan sub-agent to produce three sections, each beginning with an **IDD intent header**. The TASKS section MUST produce granular, implementable tasks with a dependency graph.
 
+If Plan sub-agent returns output missing any of the three sections (SPEC, VERIFY, TASKS) → halt with: "Plan sub-agent produced incomplete output — missing required section(s). Cannot proceed without complete planning artifacts."
+
 Plan sub-agent prompt structure:
 
 ```
 You are performing deep technical analysis for issue #{number} — {title}.
+
+Pre-flight:
+  C1: {PASS|FAIL}
+  C2: {PASS|FAIL}
 
 Issue body: {body}
 Type: {type_hint}
@@ -278,17 +284,40 @@ Each file header:
 
 **Orchestrator owns this step entirely. Do not delegate.**
 
+Write checkpoint artifact to `.phoenix-os/{issue}/checkpoint/start-feature-planning/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
+
 Present plan summary using `templates/approval-prompt.md`. Do NOT use EnterPlanMode or AskUserQuestion.
 
-Parse: `Tether`/`tether` → proceed to Step 5. `Vanish`/`vanish` → halt, checkpoint REJECTED. Else → clarify.
+Parse: `Tether`/`tether` → update artifact Status to `APPROVED`, proceed to Step 5. `Vanish`/`vanish` → update artifact Status to `REJECTED`, halt. Else → clarify.
 
 **This is the ONLY approval gate in the recipe.**
 
 ### Step 5 — Create Branch
 
-Write checkpoint artifact to `.phoenix-os/{issue}/checkpoint/start-feature-planning/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: APPROVED. Do not delegate this write.
+Invoke `repo-orchestrator`:
 
-Invoke `repo-orchestrator` with task: "Create and push branch `{type}/{issue_number}-{slug}` from main. Return branch name and push status."
+```
+---
+Recipe context:
+  intent: "Resolve issue, plan with IDD principles, create branch, deliver task graph"
+  pre_flight:
+    C1: PASS
+    C2: PASS
+  task: "Create and push branch `{type}/{issue_number}-{slug}` from main. Return branch name and push status."
+  behavioral_constraints:
+    - C4: "Embeds issue + branch + STM initialization — branch name must match: {type}/{issue_number}-{slug}"
+```
+
+**Expected output:**
+```yaml
+result:
+  success: true | false
+  branch: {branch_name}
+  status: {created_and_pushed | error}
+  error: {message if success: false}
+```
+
+If `success: false` → invoke recovery (see Recovery section). Max 2 retries.
 
 ### Step 6 — Report
 
@@ -297,7 +326,10 @@ Invoke `repo-orchestrator` with task: "Create and push branch `{type}/{issue_num
 Write evidence to `.phoenix-os/{issue}/evidence/start-feature-planning/{YYYYMMDD-HHMMSS}.md`:
 - Issue number and title
 - Branch created
-- Planning artifacts written (spec, verify, tasks)
+- Planning artifacts written (spec, verify, tasks — with file paths)
+
+Update checkpoint artifact `.phoenix-os/{issue}/checkpoint/start-feature-planning/{same-timestamp}.md`:
+- Append branch created and planning artifacts written with confirmation status
 
 Present final report to user using `templates/feature-started.md`.
 

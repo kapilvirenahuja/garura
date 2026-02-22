@@ -82,12 +82,34 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 ### Step 0 — Pre-flight
 
-Evaluate pre-flight constraints before invoking any agent:
+**C2** (orchestrator evaluates directly): Verify input is actionable — issue number, `--resume N`, or a non-empty description. If none, halt immediately with halt_message. No agent needed.
 
-- **C1 (RESUME only):** If `--resume` flag present, verify current branch is not `main`, `master`, or `develop` — halt immediately if so
-- **C2:** Verify input is actionable — issue number, `--resume N`, or a non-empty description. If none, halt.
+**C1** (requires git state — invoke `repo-orchestrator`): Check current branch.
 
-If any check fails: output the `halt_message` and exit.
+Provide recipe context:
+```
+---
+Recipe context:
+  intent: "Create or resume a work context — issue + branch + STM directory"
+  task: "Check current branch name. Return branch name and whether it is a protected branch (main/master/develop)."
+```
+
+**Expected output:**
+```yaml
+pre_flight:
+  branch: {branch_name or null}
+  C1: PASS | FAIL
+```
+
+If C1 is FAIL and mode is RESUME → halt with halt_message. If C1 is FAIL and mode is NEW → no action (not branching from current branch).
+If C2 fails → halt immediately with halt_message before invoking any agent.
+
+Pass pre-flight results to all subsequent agent invocations:
+```
+pre_flight:
+  C1: PASS | FAIL
+  C2: PASS
+```
 
 ### Step 1 — Resolve Issue
 
@@ -133,24 +155,57 @@ Derive branch name: `{type}/{issue_number}-{slug}`
 
 **NEW mode:**
 
-Write checkpoint artifact to `.phoenix-os/{issue}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md` with Status: `PENDING_APPROVAL`.
+Write checkpoint artifact to `.phoenix-os/{issue}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
 
 Present branch proposal using `templates/approval-prompt.md`:
 - Issue title and number
 - Proposed branch name
 - Type
 
-Parse response: `Tether`/`tether` → proceed to Step 3. `Vanish`/`vanish` → update artifact Status to REJECTED, halt. Anything else → clarify.
+Parse response: `Tether`/`tether` → proceed to Step 3. `Vanish`/`vanish` → update artifact Status to `REJECTED`, halt. Anything else → clarify.
 
-Update checkpoint artifact Status to `APPROVED`.
+Update checkpoint artifact Status to `APPROVED` before proceeding to Step 3.
 
 ### Step 3 — Branch + STM
 
 #### Branch
 
-**NEW mode:** Invoke `repo-orchestrator` with task: "Create and push branch `{branch_name}` from main. Return branch name and push status."
+**NEW mode:** Invoke `repo-orchestrator`:
 
-**RESUME mode:** Invoke `repo-orchestrator` with task: "Checkout existing branch `{existing_branch}`. Return branch name and current status."
+```
+---
+Recipe context:
+  intent: "Create or resume a work context — issue + branch + STM directory"
+  pre_flight:
+    C1: PASS
+    C2: PASS
+  task: "Create and push branch `{branch_name}` from main. Return branch name and push status."
+  behavioral_constraints:
+    - C4: "Branch name MUST follow convention: {type}/{issue_number}-{slug}"
+```
+
+**RESUME mode:** Invoke `repo-orchestrator`:
+
+```
+---
+Recipe context:
+  intent: "Create or resume a work context — issue + branch + STM directory"
+  pre_flight:
+    C1: PASS
+    C2: PASS
+  task: "Checkout existing branch `{existing_branch}`. Return branch name and current status."
+```
+
+**Expected output (both modes):**
+```yaml
+result:
+  success: true | false
+  branch: {branch_name}
+  status: {created_and_pushed | checked_out | error}
+  error: {message if success: false}
+```
+
+If `success: false` → invoke recovery (see Recovery section). Max 2 retries.
 
 #### STM Directory
 
@@ -181,6 +236,9 @@ Write evidence to `.phoenix-os/{issue}/evidence/start-feature/{YYYYMMDD-HHMMSS}.
 - Issue number and title
 - Branch created or checked out
 - STM initialized or verified
+
+Update checkpoint artifact `.phoenix-os/{issue}/checkpoint/start-feature/{same-timestamp}.md` (NEW mode only):
+- Append branch created and STM initialized with confirmation status
 
 Present final report to user using `templates/feature-started.md`.
 
