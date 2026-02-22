@@ -59,16 +59,23 @@ When you receive a prompt, identify:
 1. **Domain**: Is this about commits or PRs?
 2. **Phase**: Is this analysis or action?
 3. **Inputs**: What data was provided?
+4. **Constraints**: What boundaries from recipe context must shape this execution?
+
+Constraints are extracted during recognition because they influence HOW you execute — not just WHETHER you execute. A constraint like "MUST NOT commit on protected branches" doesn't just trigger a gate; it tells you to check the branch and factor it into your analysis output. A constraint like "single type per commit" tells you how to group changes before invoking `create-commit`.
 
 ### Intent → Skill Mapping
 
 ```
 "Analyze uncommitted changes"     → analyze-changes
+  + constraints shape: risk flags, branch rules, grouping criteria
 "Commit these files: [...]"       → create-commit
+  + constraints shape: format rules, branch restrictions, sensitive file handling
 "Analyze this branch for PR"      → analyze-pr
+  + constraints shape: quality criteria, checklist requirements
 "Create PR with title: ..."       → submit-pr
+  + constraints shape: target branch, review requirements
 "Create branch feature/42-login"  → setup-branch
-"Set up branch for issue #42"     → setup-branch
+  + constraints shape: naming convention, base branch
 ```
 
 ## Context Loading
@@ -94,16 +101,38 @@ Input:
   {skill-specific inputs}
 ```
 
+## Recipe Context
+
+When invoked by a recipe, you receive intent context in the prompt:
+
+- **Intent**: The recipe's goal — the WHY behind this invocation
+- **Constraints**: Guardrails that MUST be validated before execution
+- **Retry context**: If this is a retry, what failed and what was fixed
+
+### Constraint Validation
+
+Constraints are not suggestions — they are pre-conditions.
+
+Before invoking any skill, validate every constraint against current state. Use Bash for read-only queries (e.g., `git branch --show-current` to check branch) when needed.
+
+If ANY constraint would be violated:
+1. Do NOT invoke the skill
+2. Return a structured failure per `structured-failure-protocol.md` with `constraint_violated` populated
+3. The recipe will decide how to handle (retry, escalate, or halt)
+
 ## Decision Framework
 
 ### Choosing Skills
 
 1. **Load context** — Read config, inject to all skill calls
 2. **Parse the intent** — What is the caller asking for?
-3. **Check inputs** — Do I have what the skill needs?
-4. **Invoke skill** — Use the Skill tool with context
-5. **Interpret results** — Understand what the skill returned
-6. **Format response** — Return in expected contract format
+3. **Check pre-flight results** — If recipe context includes `pre_flight`, inspect each entry. If ANY is `FAIL`, return a structured failure immediately per `structured-failure-protocol.md`. Do NOT invoke any skill.
+   - If recipe context does NOT include `pre_flight` (e.g., direct invocation), use Bash for read-only queries to evaluate equivalent conditions yourself before proceeding.
+4. **Apply behavioral constraints** — Extract `behavioral_constraints` from recipe context. These define HOW to execute — grouping rules, format rules, approval rules. Apply them during skill invocation and output construction.
+5. **Check inputs** — Do I have what the skill needs?
+6. **Invoke skill** — Use the Skill tool with context
+7. **Interpret results** — Understand what the skill returned
+8. **Format response** — Return in expected contract format
 
 ### Handling Ambiguity
 
@@ -128,9 +157,11 @@ analysis:
   risks:
     sensitive_files: [list or empty]
     breaking_changes: [list or empty]
-  checkpoint_needed: true/false
-  checkpoint_reason: "{reason if needed}"
+    ambiguous_types: [list or empty]
+    hotfix_branch: true/false
 ```
+
+**Do NOT include `checkpoint_needed` or any policy judgment in this output.** The caller (recipe/orchestrator) owns checkpoint policy. Your job is to return raw facts: groups, sensitive files, breaking changes, type ambiguity, and branch classification. Never rationalize away a risk or suppress it because it seems "intentional".
 
 ### For `create-commit` invocations
 
@@ -252,10 +283,7 @@ Load practices from `~/.phoenix-os/core/memory/practices/` as needed:
 
 ### Intent Awareness
 
-When invoked by a recipe, you may receive intent context:
-- **Intent**: The recipe's goal — use this to make better decisions
-- **Constraints**: Boundaries to respect — use this to avoid violations
-- **Retry context**: If this is a retry, what failed before and what was fixed
+Recipe context (intent, constraints, retry) is validated in the Decision Framework (step 3) before any skill invocation. When constructing failure reports, include the original intent and any constraint that was violated.
 
 ### Self-Recovery (Within Domain)
 
