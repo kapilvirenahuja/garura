@@ -4,21 +4,37 @@ description: Commit code changes grouped by issue type with conventional message
 user-invocable: true
 model: sonnet
 allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
+---
 
-intent: >
-  Safely persist completed work as conventional commits with full traceability
-  to a tracked issue.
+# commit-code
+
+## Intent
+
+```yaml
+intent: "Safely persist completed work as conventional commits with full traceability to a tracked issue"
 
 constraints:
-  - Changes must be analyzed and grouped by concern before commits are created
-  - Every commit must trace to a valid GitHub issue (NWWI)
-  - User must approve proposed commits before execution (unless auto-approve criteria met)
-  - Commits must use conventional commit format (type(scope): subject), one type per commit
-  - MUST NOT commit on protected branches (main, master, develop)
-  - Sensitive files (credentials, secrets, env) require explicit human approval
-  - Orchestrator MUST delegate to agents — never execute git commands directly
-  - Maximum 2 distinct agents (repo-orchestrator, project-orchestrator); each may be called multiple times
-  - Recovery agent calls are exempt from the agent limit
+  pre_flight:
+    - id: C1
+      check: current branch NOT IN [main, master, develop]
+      halt_message: "Protected branch — commits are not allowed on this branch"
+    - id: C2
+      check: uncommitted changes exist
+      halt_message: "Nothing to commit — working tree is clean"
+
+  behavioral:
+    - id: C3
+      rule: "Analyze and group changes by concern before creating commits"
+    - id: C4
+      rule: "Every commit must trace to a valid GitHub issue (NWWI)"
+    - id: C5
+      rule: "Conventional commit format: type(scope): subject — one type per commit"
+    - id: C6
+      rule: "Sensitive files (credentials, secrets, env) require explicit human approval before staging"
+    - id: C7
+      rule: "Orchestrator MUST delegate to agents — never execute git commands directly"
+    - id: C8
+      rule: "Maximum 2 distinct agents (repo-orchestrator, project-orchestrator); recovery calls exempt"
 
 failure_conditions:
   - Current branch is a protected branch (main, master, develop)
@@ -26,55 +42,192 @@ failure_conditions:
   - User rejects proposed commits at checkpoint (Vanish)
   - Working tree is not clean after commit execution
   - Commit does not pass conventional format validation
----
-
-# commit-code
-
-Safely persist completed work as conventional commits with full traceability.
+```
 
 ## Role
 
-You are the orchestrator. You delegate to agents, never execute directly.
+You are the orchestrator. You own the workflow. You delegate domain tasks to agents — never execute directly.
 
 **Forbidden:** `Bash`, `Grep`, `Glob`, or any direct git commands.
 
-If no uncommitted changes exist, report "nothing to commit" and exit.
+**Agent boundaries:**
+- `repo-orchestrator` — git domain only: reads state, analyzes changes, creates commits
+- `project-orchestrator` — issue domain only: resolves issue IDs
+- Everything else (checkpoint writes, approval logic, artifact writes, reporting) — orchestrator owns it
 
-## Agent Routing
+## Phases
 
-| Domain | Agent | Intent Slice |
-|--------|-------|--------------|
-| Change analysis, commit creation | repo-orchestrator | Analyze and group changes by concern; create conventional commits |
-| Issue resolution (NWWI) | project-orchestrator | Resolve issue ID for traceability |
-| Checkpoint, failure condition verification | orchestrator (this recipe) | Approve/reject proposed commits; check post-execution state |
+| Step | Name | Agent |
+|------|------|-------|
+| Step 0 | Pre-flight | repo-orchestrator |
+| Step 1 | Analyze | repo-orchestrator |
+| Step 2 | Resolve Issue | project-orchestrator |
+| Step 3 | Checkpoint | orchestrator |
+| Step 4 | Execute | repo-orchestrator |
+| Step 5 | Report | orchestrator |
 
-When invoking agents, provide recipe context:
+## Workflow
 
+### Step 0 — Pre-flight
+
+Invoke `repo-orchestrator` to check current branch name and whether uncommitted changes exist.
+
+**C1:** Halt if branch is `main`, `master`, or `develop` — output halt_message, exit.
+**C2:** Halt if working tree is clean — output halt_message, exit.
+
+Pass pre-flight results forward:
+```
+pre_flight:
+  C1: PASS | FAIL
+  C2: PASS | FAIL
+```
+
+### Step 1 — Analyze
+
+Invoke `repo-orchestrator` to run the `analyze-changes` skill.
+
+Provide recipe context:
 ```
 ---
 Recipe context:
   intent: "Safely persist completed work as conventional commits with traceability"
-  constraints: ["{relevant constraints for this agent's task}"]
+  pre_flight:
+    C1: PASS
+    C2: PASS
+  task: "Analyze uncommitted changes. Group by concern. Identify risks. Return structured output only — do NOT create commits."
+  behavioral_constraints:
+    - C3: "Analyze and group changes by concern before creating commits"
+    - C5: "Conventional commit format: type(scope): subject — one type per commit"
+    - C6: "Sensitive files require explicit human approval before staging"
 ```
 
-For retries:
-
+**Expected output from agent:**
+```yaml
+analysis:
+  branch: {branch_name}
+  issue_number: {number_from_branch_or_null}
+  checkpoint_needed: true|false
+  checkpoint_reason: "{reason}"
+  groups:
+    - type: {feat|fix|refactor|docs|test|chore}
+      scope: {component}
+      subject: {description}
+      files: [list]
+  risks:
+    sensitive_files: [list]
+    breaking_changes: [list]
+    ambiguous_types: [list]
 ```
-  retry:
-    previous_failure: "{what_failed}"
-    fix_applied: "{what was done to fix it}"
-    attempt: {N}
+
+### Step 2 — Resolve Issue (NWWI)
+
+If `analysis.issue_number` is null, invoke `project-orchestrator` to resolve a valid issue ID from the branch name or halt.
+
+Provide recipe context:
+```
+---
+Recipe context:
+  intent: "Resolve issue ID for commit traceability (NWWI)"
+  task: "Extract or resolve a GitHub issue number from the current branch name. Return issue number only."
+  branch: {branch_name}
 ```
 
-## Policies
+**Expected output:**
+```yaml
+issue:
+  number: {integer}
+  title: {string}
+```
 
-### Auto-Approve
+If no issue is resolvable → halt with: "No valid issue ID resolvable — commits require traceability to a GitHub issue."
 
-Auto-approve when ALL: single group, no sensitive files, no breaking changes, clear type, not hotfix branch.
+### Step 3 — Checkpoint
 
-Checkpoint when ANY: multiple groups, sensitive files, breaking changes, ambiguous types, hotfix branch.
+**The orchestrator owns this step entirely. Do not delegate.**
 
-### Recovery
+#### Write STM artifact
+
+Write to `.phoenix-os/{issue}/checkpoint/commit-code/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md`.
+Status: `PENDING_APPROVAL`.
+
+#### Auto-approve decision
+
+**Auto-approve when ALL:**
+- Single logical group
+- No sensitive files
+- No breaking changes
+- Clear, unambiguous commit type
+- NOT a `hotfix/*` branch
+
+**Require user approval when ANY:**
+- Multiple logical groups
+- Sensitive files present
+- Breaking changes detected
+- Ambiguous or mixed commit types
+- Branch is `hotfix/*` or `hotfix-*`
+
+#### If approval required
+
+Present approval prompt using `templates/approval-prompt.md`.
+
+Parse response: `Tether`/`tether` → proceed to Step 4. `Vanish`/`vanish` → update artifact Status to REJECTED, halt. Anything else → clarify.
+
+Update STM artifact Status to `APPROVED` before proceeding.
+
+### Step 4 — Execute
+
+Invoke `repo-orchestrator` once per approved commit group — sequentially, in dependency order.
+
+Provide recipe context per invocation:
+```
+---
+Recipe context:
+  intent: "Safely persist completed work as conventional commits with traceability"
+  pre_flight:
+    C1: PASS
+    C2: PASS
+  task: "Create a single commit for the specified group only. Stage only the listed files."
+  issue_number: {number}
+  commit:
+    type: {type}
+    scope: {scope}
+    subject: {subject}
+    files: [list]
+  behavioral_constraints:
+    - C5: "Conventional commit format: type(scope): subject — one type per commit"
+    - C6: "Sensitive files require explicit human approval before staging"
+```
+
+**Expected output per commit:**
+```yaml
+result:
+  success: true|false
+  commit:
+    hash: {sha}
+    message: {full conventional message}
+  validation:
+    clean_tree: true|false
+    conventional_format: true|false
+```
+
+If `success: false` → invoke recovery (see Recovery section). Max 2 retries per commit.
+
+### Step 5 — Report
+
+**The orchestrator owns this step entirely. Do not delegate.**
+
+Verify working tree is clean (invoke `repo-orchestrator` for final status check).
+
+Update checkpoint artifact `.phoenix-os/{issue}/checkpoint/commit-code/{same-timestamp}.md` — append commits created with hashes and status.
+
+Write evidence to `.phoenix-os/{issue}/evidence/commit-code/{YYYYMMDD-HHMMSS}.md`:
+- Issue number and branch
+- Each commit: hash, message, files
+- Validation: clean tree, conventional format
+
+Present commit summary to user using `templates/commit-summary.md`.
+
+## Recovery
 
 Load recovery reasoning from: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
 
@@ -82,6 +235,14 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 - Read `domain_assessment.responsible_domain` to identify which agent can fix it
 - Invoke the responsible agent with fix context + the original intent
 - Max 2 retry cycles per agent. After that, HALT with full failure context.
+
+For retries, add to recipe context:
+```
+  retry:
+    previous_failure: "{what_failed}"
+    fix_applied: "{what was done to fix it}"
+    attempt: {N}
+```
 
 ## References
 

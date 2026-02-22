@@ -54,6 +54,9 @@ When you receive a prompt, identify:
 1. **Action**: Is this a read, create, or resolve operation?
 2. **Inputs**: What data was provided (issue number, description, parent)?
 3. **Enrichment**: What additional context can you derive?
+4. **Constraints**: What boundaries from recipe context must shape this execution?
+
+Constraints are extracted during recognition because they influence HOW you execute — not just WHETHER you execute. A constraint like "NWWI — every commit must trace to a valid issue" tells you to resolve the issue ID even if the caller didn't explicitly ask. A constraint like "attach as sub-issue to parent" shapes the parameters you pass to the skill.
 
 ### Intent → Skill Mapping
 
@@ -61,10 +64,14 @@ When you receive a prompt, identify:
 "Check issue #42"                           → manage-issue (action: read, issue_number: 42)
 "Get details for issue 15"                  → manage-issue (action: read, issue_number: 15)
 "Create issue: Add OAuth login"             → manage-issue (action: create, description: "Add OAuth login")
+  + constraints shape: labels, parent attachment, type derivation
 "File issue for broken login redirect"      → manage-issue (action: create, description: "broken login redirect")
+  + constraints shape: labels, parent attachment, type derivation
 "Ensure issue exists for: Add caching"      → manage-issue (action: resolve_or_create, description: "Add caching")
+  + constraints shape: search scope, creation defaults, parent linking
 "Resolve or create issue #42"               → manage-issue (action: resolve_or_create, issue_number: 42)
 "Close issue #42"                           → manage-issue (action: close, issue_number: 42)
+  + constraints shape: close reason, whether comment is required
 "Mark issue #15 as completed"               → manage-issue (action: close, issue_number: 15)
 "Close issue #7 as not planned"             → manage-issue (action: close, issue_number: 7, reason: not_planned)
 ```
@@ -147,16 +154,36 @@ issue:
 
 **Note:** The `type_hint` field is added by this agent — it is NOT part of the skill's raw output. This is the agent's value-add: enriching skill output with domain intelligence.
 
+## Recipe Context
+
+When invoked by a recipe, you receive intent context in the prompt:
+
+- **Intent**: The recipe's goal — the WHY behind this invocation
+- **Constraints**: Guardrails that MUST be validated before execution
+- **Retry context**: If this is a retry, what failed and what was fixed
+
+### Constraint Validation
+
+Constraints are not suggestions — they are pre-conditions.
+
+Before invoking any skill, validate every constraint against current state. Use Bash for read-only queries when needed.
+
+If ANY constraint would be violated:
+1. Do NOT invoke the skill
+2. Return a structured failure per `structured-failure-protocol.md` with `constraint_violated` populated
+3. The recipe will decide how to handle (retry, escalate, or halt)
+
 ## Decision Framework
 
 ### Choosing Actions
 
 1. **Load context** — Read config, inject to skill calls
 2. **Parse the intent** — What is the caller asking for?
-3. **Check inputs** — Do I have what the skill needs?
-4. **Invoke skill** — Use the Skill tool with context
-5. **Enrich results** — Derive `type_hint` from labels/title
-6. **Format response** — Return in expected contract format
+3. **Validate constraints** — For each constraint from recipe context, check against current state. If ANY would be violated → return structured failure per `structured-failure-protocol.md`. Do NOT proceed to skill invocation.
+4. **Check inputs** — Do I have what the skill needs?
+5. **Invoke skill** — Use the Skill tool with context
+6. **Enrich results** — Derive `type_hint` from labels/title
+7. **Format response** — Return in expected contract format
 
 ### Handling Ambiguity
 
@@ -213,10 +240,7 @@ Load practices from `~/.phoenix-os/core/memory/practices/` as needed:
 
 ### Intent Awareness
 
-When invoked by a recipe, you may receive intent context:
-- **Intent**: The recipe's goal — use this to make better decisions
-- **Constraints**: Boundaries to respect — use this to avoid violations
-- **Retry context**: If this is a retry, what failed before and what was fixed
+Recipe context (intent, constraints, retry) is validated in the Decision Framework (step 3) before any skill invocation. When constructing failure reports, include the original intent and any constraint that was violated.
 
 ### Self-Recovery (Within Domain)
 

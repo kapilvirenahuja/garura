@@ -387,30 +387,47 @@ Examples:
 **File:** `core/components/recipes/start-planned-feature/SKILL.md` (existing, evolve)
 
 ```yaml
-intent: "Plan and build a feature in one flow — design + implement without full spec ceremony"
+intent: "Quick idea-to-PR: create issue, plan with IDD principles, build, and deliver — lightweight planning without full spec ceremony"
 constraints:
-  - Must produce a lightweight design doc (not full audience-separated spec)
-  - Must build working code with tests
+  - Embeds start-feature flow (issue + branch + STM) — does not call it separately
+  - Plan sub-agent produces lightweight IDD-aware planning artifacts (intent header, not full gates/bundles)
+  - Planning artifacts are thin but intent-driven: every artifact carries intent/constraints/failure_conditions forward
+  - Must build working code with tests (code-builder scoped to CODE only)
   - Must commit via repo-orchestrator (agent-first)
+  - Single approval gate (Tether/Vanish at plan review) — execution is autonomous after
 failure_conditions:
-  - Intent too vague to derive design
+  - Intent too vague to derive design (Plan sub-agent cannot produce meaningful spec)
+  - User rejects plan at approval gate (Vanish)
   - Implementation fails tests
+  - Branch creation fails on origin
+  - PR creation fails after commits
 ```
 
 | Attribute | Value |
 |-----------|-------|
 | Level | L2 |
-| Agent Calls | ≤4 |
-| Agents | tech-designer, code-builder |
-| Status | EXISTS — needs IDD intent header review |
+| Agent Calls | ≤5 |
+| Agents | project-orchestrator, Plan sub-agent (Claude OOTB), code-builder, repo-orchestrator |
+| Status | EXISTS — IDD review: frontmatter, agent routing, templates, recovery |
 
-**Consumes:** Issue + plan OR intent
-**Generates:** Design doc, implementation, commits
+**Consumes:** Issue ID, description, or intent
+**Generates:** Lightweight planning artifacts (spec.md, verify.md, tasks.md in `.phoenix-os/{issue}/planning/`), implementation code, commits, PR
+
+**Planning Artifacts (IDD-aware but lightweight):**
+```
+.phoenix-os/{issue}/planning/
+├── spec.md      # IDD intent header + summary, approach, risks (NOT audience-separated)
+├── verify.md    # IDD intent header + acceptance criteria, verification steps (NOT formal gates)
+└── tasks.md     # IDD intent header + execution steps (NOT dependency graph)
+```
 
 **Evolution needed:**
-- Add IDD intent header
-- Verify structured failure handling
-- Ensure it calls start-feature first (universal precursor)
+- Update IDD frontmatter to match recipe's actual purpose
+- Add Agent Routing Table (Domain / Agent / Intent Slice)
+- Externalize templates to `templates/` directory
+- Add Recovery section (structured-failure-protocol + intent-driven-recovery)
+- Scope code-builder invocation to CODE only (no docs, no markdown)
+- Update Plan sub-agent prompt to produce IDD intent headers in planning artifacts
 
 ---
 

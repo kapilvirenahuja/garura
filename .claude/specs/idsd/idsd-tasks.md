@@ -120,16 +120,18 @@ T-900+ are cross-cutting tasks that run after all recipe groups.
 
 ### P4: `start-planned-feature` (EXISTS — Review for IDD)
 
-> Build order: review → IDD fixes → start-feature call verification → verify → deploy
-> Parallelism: T-031 can run in parallel with T-030 (independent edits if both are identified in review)
+> Build order: review → refactor SKILL.md + externalize templates → agent scope fixes → verify → deploy
+> Parallelism: T-031 (recipe refactor + templates) runs after T-030. T-031a and T-031b (agent scope fixes) can run in parallel with T-031.
+> Design decision: Recipe embeds start-feature flow (issue + branch + STM) — does not call it separately. Plan sub-agent (Claude OOTB) stays — not replaced by tech-designer. Planning artifacts are lightweight but IDD-aware (carry intent headers forward).
 
 | ID | Task | Description | Depends On | Agent | Gate |
 |----|------|-------------|------------|-------|------|
-| T-030 | Review start-planned-feature for IDD compliance | Read `core/components/recipes/start-planned-feature/SKILL.md`. Audit: IDD intent header present? Structured failure handling? Intent propagated to agent calls? Does it call start-feature first (universal precursor)? Tether/Vanish checkpoints? Produce diff of what needs to change. | — | code-builder | G-901, G-904 |
-| T-031 | Add IDD intent header + structured failure to start-planned-feature | Edit `core/components/recipes/start-planned-feature/SKILL.md` — add IDD intent header block. Ensure structured failure handling is documented (what to return if intent too vague, if implementation fails tests). Ensure intent string is propagated to tech-designer and code-builder agent calls. | T-030 | code-builder | G-901 |
-| T-032 | Ensure start-planned-feature calls start-feature first | Edit `core/components/recipes/start-planned-feature/SKILL.md` — verify or add explicit first step: invoke `/start-feature` (or `start-feature` recipe logic) before any design or implementation work. start-feature is the universal precursor. Add Tether/Vanish checkpoint after start-feature step. | T-030 | code-builder | G-904 |
-| T-033 | Verify start-planned-feature | Check: IDD intent header present. start-feature invocation is first step. tech-designer agent called for design. code-builder agent called for implementation. All checkpoints use Tether/Vanish. No AskUserQuestion. Structured failure documented. ≤4 agent calls total. | T-031, T-032 | code-builder | G-901, G-904 |
-| T-034 | Deploy start-planned-feature | Run `/sync-claude` to deploy updated `start-planned-feature` recipe. Verify file present at `~/.claude/skills/`. | T-033 | code-builder | G-901 |
+| T-030 | Review start-planned-feature for IDD compliance | Read `core/components/recipes/start-planned-feature/SKILL.md`. Audit against G-103 gate criteria. Produce gap analysis: IDD frontmatter alignment, Agent Routing Table format, template externalization, recovery protocol, code-builder scope, Plan sub-agent IDD-awareness in prompt. Recipe embeds start-feature flow (confirmed design decision). Plan sub-agent stays (confirmed). | — | code-builder | G-103 |
+| T-031 | Refactor start-planned-feature SKILL.md + externalize templates | Rewrite recipe: (1) Update IDD frontmatter (intent: quick idea-to-PR, constraints: embeds start-feature, IDD-aware planning, code-builder CODE only). (2) Add Agent Routing Table (Domain/Agent/Intent Slice). (3) Externalize templates to `templates/` (checkpoint.md, approval-prompt.md, final-report.md). (4) Add Recovery section (structured-failure-protocol + intent-driven-recovery). (5) Add References section with template table + contracts. (6) Update Plan sub-agent prompt to produce IDD intent headers in planning artifacts. (7) Scope code-builder invocation to CODE only. (8) Condense from 535 to ~150 lines. | T-030 | code-builder | G-103 |
+| T-031a | Fix code-builder agent scope | Update `core/components/agents/code-builder.md` NEVER section: add explicit boundaries — no documentation generation, no markdown authoring, no config file design, no non-code artifacts. Move description-level guidance into hard NEVER boundary. | — | code-builder | G-103 |
+| T-031b | Fix tech-designer agent scope | Update `core/components/agents/tech-designer.md`: add explicit domain boundary in NEVER section — TECHNICAL design only (code architecture, RCA, implementation planning). NOT product design, NOT UX design, NOT documentation structure, NOT process design. | — | code-builder | G-103 |
+| T-033 | Verify start-planned-feature (G-103) | Run G-103 verification against refactored recipe. Check all 19 criteria. Create evidence at `.claude/specs/idsd/evidence/g-103-start-planned-feature.md`. | T-031, T-031a, T-031b | code-builder | G-103 |
+| T-034 | Deploy start-planned-feature | Run `/sync-claude` to deploy updated recipe, templates, and agent files. Verify all files present at `~/.claude/skills/` and `~/.claude/agents/`. | T-033 | code-builder | G-103 |
 
 ---
 
