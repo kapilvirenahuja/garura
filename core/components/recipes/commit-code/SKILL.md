@@ -57,18 +57,18 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 ## Phases
 
-| Phase | Step | Agent |
-|-------|------|-------|
-| PRE-FLIGHT | Step 0 | repo-orchestrator |
-| PRE-EXECUTION: Analyze | Step 1 | repo-orchestrator |
-| PRE-EXECUTION: Resolve Issue | Step 2 | project-orchestrator |
-| CHECKPOINT | Step 3 | orchestrator |
-| EXECUTE | Step 4 | repo-orchestrator |
-| REPORT | Step 5 | orchestrator |
+| Step | Name | Agent |
+|------|------|-------|
+| Step 0 | Pre-flight | repo-orchestrator |
+| Step 1 | Analyze | repo-orchestrator |
+| Step 2 | Resolve Issue | project-orchestrator |
+| Step 3 | Checkpoint | orchestrator |
+| Step 4 | Execute | repo-orchestrator |
+| Step 5 | Report | orchestrator |
 
 ## Workflow
 
-### Step 0 — PRE-FLIGHT
+### Step 0 — Pre-flight
 
 Invoke `repo-orchestrator` to check current branch name and whether uncommitted changes exist.
 
@@ -82,7 +82,7 @@ pre_flight:
   C2: PASS | FAIL
 ```
 
-### Step 1 — PRE-EXECUTION: Analyze
+### Step 1 — Analyze
 
 Invoke `repo-orchestrator` to run the `analyze-changes` skill.
 
@@ -119,7 +119,7 @@ analysis:
     ambiguous_types: [list]
 ```
 
-### Step 2 — PRE-EXECUTION: Resolve Issue (NWWI)
+### Step 2 — Resolve Issue (NWWI)
 
 If `analysis.issue_number` is null, invoke `project-orchestrator` to resolve a valid issue ID from the branch name or halt.
 
@@ -141,7 +141,7 @@ issue:
 
 If no issue is resolvable → halt with: "No valid issue ID resolvable — commits require traceability to a GitHub issue."
 
-### Step 3 — CHECKPOINT
+### Step 3 — Checkpoint
 
 **The orchestrator owns this step entirely. Do not delegate.**
 
@@ -174,7 +174,7 @@ Parse response: `Tether`/`tether` → proceed to Step 4. `Vanish`/`vanish` → u
 
 Update STM artifact Status to `APPROVED` before proceeding.
 
-### Step 4 — EXECUTE
+### Step 4 — Execute
 
 Invoke `repo-orchestrator` once per approved commit group — sequentially, in dependency order.
 
@@ -212,7 +212,7 @@ result:
 
 If `success: false` → invoke recovery (see Recovery section). Max 2 retries per commit.
 
-### Step 5 — REPORT
+### Step 5 — Report
 
 **The orchestrator owns this step entirely. Do not delegate.**
 
