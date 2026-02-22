@@ -4,21 +4,37 @@ description: Commit code changes grouped by issue type with conventional message
 user-invocable: true
 model: sonnet
 allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
+---
 
-intent: >
-  Safely persist completed work as conventional commits with full traceability
-  to a tracked issue.
+# commit-code
+
+## Intent
+
+```yaml
+intent: "Safely persist completed work as conventional commits with full traceability to a tracked issue"
 
 constraints:
-  - Changes must be analyzed and grouped by concern before commits are created
-  - Every commit must trace to a valid GitHub issue (NWWI)
-  - User must approve proposed commits before execution (unless auto-approve criteria met)
-  - Commits must use conventional commit format (type(scope): subject), one type per commit
-  - MUST NOT commit on protected branches (main, master, develop)
-  - Sensitive files (credentials, secrets, env) require explicit human approval
-  - Orchestrator MUST delegate to agents — never execute git commands directly
-  - Maximum 2 distinct agents (repo-orchestrator, project-orchestrator); each may be called multiple times
-  - Recovery agent calls are exempt from the agent limit
+  pre_flight:
+    - id: C1
+      check: current branch NOT IN [main, master, develop]
+      halt_message: "Protected branch — commits are not allowed on this branch"
+    - id: C2
+      check: uncommitted changes exist
+      halt_message: "Nothing to commit — working tree is clean"
+
+  behavioral:
+    - id: C3
+      rule: "Analyze and group changes by concern before creating commits"
+    - id: C4
+      rule: "Every commit must trace to a valid GitHub issue (NWWI)"
+    - id: C5
+      rule: "Conventional commit format: type(scope): subject — one type per commit"
+    - id: C6
+      rule: "Sensitive files (credentials, secrets, env) require explicit human approval before staging"
+    - id: C7
+      rule: "Orchestrator MUST delegate to agents — never execute git commands directly"
+    - id: C8
+      rule: "Maximum 2 distinct agents (repo-orchestrator, project-orchestrator); recovery calls exempt"
 
 failure_conditions:
   - Current branch is a protected branch (main, master, develop)
@@ -26,11 +42,7 @@ failure_conditions:
   - User rejects proposed commits at checkpoint (Vanish)
   - Working tree is not clean after commit execution
   - Commit does not pass conventional format validation
----
-
-# commit-code
-
-Safely persist completed work as conventional commits with full traceability.
+```
 
 ## Role
 
@@ -38,7 +50,22 @@ You are the orchestrator. You delegate to agents, never execute directly.
 
 **Forbidden:** `Bash`, `Grep`, `Glob`, or any direct git commands.
 
-If no uncommitted changes exist, report "nothing to commit" and exit.
+## Step 0: Pre-flight Evaluation
+
+Before invoking any agent, evaluate all `pre_flight` constraints. Use the `repo-orchestrator` with intent "check pre-flight state" to verify:
+
+- **C1**: Read current branch — halt immediately if it is `main`, `master`, or `develop`
+- **C2**: Check for uncommitted changes — halt if working tree is clean
+
+If any pre-flight check fails: output the `halt_message`, write a structured failure artifact, and exit. **Do not proceed to analysis or commit creation.**
+
+Pass pre-flight results to all subsequent agent invocations:
+
+```
+pre_flight:
+  C1: PASS | FAIL
+  C2: PASS | FAIL
+```
 
 ## Agent Routing
 
@@ -54,7 +81,14 @@ When invoking agents, provide recipe context:
 ---
 Recipe context:
   intent: "Safely persist completed work as conventional commits with traceability"
-  constraints: ["{relevant constraints for this agent's task}"]
+  pre_flight:
+    C1: {PASS|FAIL}
+    C2: {PASS|FAIL}
+  behavioral_constraints:
+    - C3: "Analyze and group changes by concern before creating commits"
+    - C4: "Every commit must trace to a valid GitHub issue (NWWI)"
+    - C5: "Conventional commit format: type(scope): subject — one type per commit"
+    - C6: "Sensitive files require explicit human approval before staging"
 ```
 
 For retries:
