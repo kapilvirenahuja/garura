@@ -67,7 +67,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `capture-learning` recipe passes intent string to agent invocation
 - [ ] `implement-feature` recipe passes intent string including bundle id and vertical to code-builder invocation
 - [ ] `implement-feature` recipe passes intent string including gate subset to validator invocation
-- [ ] `start-planned-feature` recipe passes intent string to tech-designer and code-builder invocations
+- [ ] `start-planned-feature` recipe passes intent string to Plan sub-agent and code-builder invocations
 - [ ] `discover-product` recipe passes intent string to product-strategist invocation
 - [ ] `plan-roadmap` recipe passes intent string to product-strategist invocation
 - [ ] `manage-backlog` recipe passes intent string to product-strategist invocation
@@ -369,24 +369,30 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | Recipe Priority | P4 — start-planned-feature |
 | SDLC Phase | Design-2-Code (Compound L2) |
 | Mandatory | YES |
-| Depends On | G-100 |
+| Depends On | — |
 
 **Verification Steps:**
 - [ ] File exists at `core/components/recipes/start-planned-feature/SKILL.md`
-- [ ] Recipe declares `Level: L2` and `Agent Calls: ≤4`
-- [ ] Recipe declares `Agents: tech-designer, code-builder`
+- [ ] Recipe declares `Level: L2` and `Agent Calls: ≤5`
+- [ ] Recipe declares `Agents: project-orchestrator, Plan sub-agent (Claude OOTB), code-builder, repo-orchestrator`
 - [ ] Recipe has IDD intent header: `intent`, `constraints`, `failure_conditions` fields
-- [ ] Recipe intent states: "Plan and build a feature in one flow — design + implement without full spec ceremony"
-- [ ] Recipe constraints include: "Must produce a lightweight design doc (not full audience-separated spec)"
-- [ ] Recipe failure_conditions include: "Intent too vague to derive design", "Implementation fails tests"
-- [ ] Recipe produces lightweight design doc (not full audience-separated spec)
+- [ ] Recipe intent captures: quick idea-to-PR with lightweight IDD-aware planning
+- [ ] Recipe constraints include: embeds start-feature flow, lightweight IDD-aware planning artifacts, code-builder scoped to CODE only
+- [ ] Recipe failure_conditions include: "Intent too vague to derive design", "Implementation fails tests", "User rejects plan (Vanish)"
+- [ ] Recipe embeds start-feature flow: issue resolution + branch creation + STM initialization (does not call start-feature separately)
+- [ ] Plan sub-agent prompt instructs IDD intent header on each planning artifact (spec.md, verify.md, tasks.md)
+- [ ] Planning artifacts are lightweight: no formal gates, no bundles, no audience separation
+- [ ] Planning artifacts stored at `.phoenix-os/{issue}/planning/` (not `.phoenix-os/{issue}/spec/`)
+- [ ] code-builder invocation is scoped to CODE only (no docs, no markdown, no config)
 - [ ] Recipe builds working code with tests
 - [ ] Recipe commits via repo-orchestrator (agent-first — not direct git)
-- [ ] Recipe calls start-feature first (universal precursor — verified or documented)
-- [ ] Recipe has Tether/Vanish checkpoints
-- [ ] Structured failure handling verified (returns structured failure, not raw error)
+- [ ] Recipe has single Tether/Vanish checkpoint (after plan, before execution)
+- [ ] Agent Routing Table present (Domain / Agent / Intent Slice format)
+- [ ] Templates externalized to `templates/` directory (checkpoint, approval-prompt, final-report)
+- [ ] Recovery section present with structured-failure-protocol + intent-driven-recovery references
+- [ ] No AskUserQuestion usage — all checkpoints are output-and-wait
 
-**Evidence:** `evidence/g-103-start-planned-feature.md` — recipe file IDD header, agent delegation pattern, start-feature precursor reference
+**Evidence:** `evidence/g-103-start-planned-feature.md` — recipe file IDD header, agent routing table, embedded start-feature flow, IDD-aware planning artifacts, code-builder scope, template externalization
 
 ---
 
