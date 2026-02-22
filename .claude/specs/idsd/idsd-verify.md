@@ -844,19 +844,21 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 **Verification Steps:**
 - [ ] File exists at `core/components/recipes/commit-code/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 2`
-- [ ] Recipe declares `Agents: repo-orchestrator, project-orchestrator`
+- [ ] Recipe declares `Level: L1` and `Distinct Agents: 2` in version table
+- [ ] Recipe declares `Agents: repo-orchestrator, project-orchestrator` in agent routing table
 - [ ] Recipe has IDD intent header: `intent`, `constraints`, `failure_conditions` fields
-- [ ] Recipe intent states: "Stage and commit code changes with conventional commit messages"
-- [ ] Recipe constraints include: "Must group changes by concern", "Must use conventional commit format", "Must run pre-commit hooks"
-- [ ] Recipe failure_conditions include: "No changes to commit", "Pre-commit hooks fail after retry"
+- [ ] Recipe intent captures: safely persist completed work as conventional commits with traceability
+- [ ] Recipe constraints include: group changes by concern, conventional commit format, NWWI (every commit traces to valid issue)
+- [ ] Recipe failure_conditions include: protected branch, no valid issue ID, user rejects (Vanish), working tree not clean, format validation fails
+- [ ] No uncommitted changes → graceful bypass (not a failure condition)
 - [ ] Recipe groups changes by concern (feature, fix, refactor) — not bulk add
 - [ ] Recipe uses conventional commit format
-- [ ] Recipe runs pre-commit hooks via repo-orchestrator
-- [ ] Recipe propagates intent to agent invocations
-- [ ] Structured failure handling verified
+- [ ] Agent routing table maps domains to agents with intent slices
+- [ ] Recipe propagates intent to agent invocations via recipe context block
+- [ ] Structured failure handling verified (recovery protocol with 2-retry limit)
+- [ ] Templates externalized to `templates/` directory (checkpoint, approval-prompt, commit-summary)
 
-**Evidence:** `evidence/g-300-commit-code.md` — recipe file IDD header, conventional commit enforcement, pre-commit hook integration
+**Evidence:** `evidence/g-300-commit-code.md` — recipe file IDD header, agent routing, conventional commit enforcement, template verification
 
 ---
 
