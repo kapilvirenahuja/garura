@@ -218,7 +218,12 @@ If `success: false` → invoke recovery (see Recovery section). Max 2 retries pe
 
 Verify working tree is clean (invoke `repo-orchestrator` for final status check).
 
-Write final summary to `.phoenix-os/{issue}/checkpoint/commit-code/{same-timestamp}.md` — append commits section.
+Update checkpoint artifact `.phoenix-os/{issue}/checkpoint/commit-code/{same-timestamp}.md` — append commits created with hashes and status.
+
+Write evidence to `.phoenix-os/{issue}/evidence/commit-code/{YYYYMMDD-HHMMSS}.md`:
+- Issue number and branch
+- Each commit: hash, message, files
+- Validation: clean tree, conventional format
 
 Present commit summary to user using `templates/commit-summary.md`.
 
