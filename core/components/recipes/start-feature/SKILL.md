@@ -267,7 +267,7 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 
 ```
 .phoenix-os/{issue}/
-├── spec/          # define-feature, start-planned-feature write here
+├── spec/          # define-feature, start-feature-planning write here
 ├── design/        # design-feature, tech-designer write here
 ├── evidence/      # verify-feature, validator write here
 ├── delivery/      # deliver-feature, create-pr write here

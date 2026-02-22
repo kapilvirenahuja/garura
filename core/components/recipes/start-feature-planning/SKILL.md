@@ -3,7 +3,7 @@ name: start-feature-planning
 description: "NEVER call EnterPlanMode. Resolve issue, plan with IDD principles, create branch, deliver planning artifacts."
 user-invocable: true
 model: sonnet
-allowed-tools: Task, Read, Write
+allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
 ---
 
 # CRITICAL: DO NOT ENTER PLAN MODE
