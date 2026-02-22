@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDSD vs NeuroSDLC/Beacon — Comparative Analysis</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface-2: #1c2128;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent-blue: #58a6ff;
+    --accent-green: #3fb950;
+    --accent-orange: #d29922;
+    --accent-red: #f85149;
+    --accent-purple: #bc8cff;
+    --accent-cyan: #39d2c0;
+    --idsd: #58a6ff;
+    --neuro: #f0883e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 18px;
+  }
+
+  /* --- NAV --- */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    overflow-y: auto;
+    z-index: 100;
+  }
+
+  .nav-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+    padding: 0 20px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .nav a {
+    display: block;
+    padding: 8px 20px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 15px;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .nav a:hover, .nav a.active {
+    color: var(--text);
+    background: var(--surface-2);
+    border-left-color: var(--accent-blue);
+  }
+
+  .nav a.section-head {
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 8px;
+  }
+
+  /* --- MAIN --- */
+  .main {
+    margin-left: 280px;
+    max-width: 960px;
+    padding: 48px 56px 120px;
+  }
+
+  /* --- HEADER --- */
+  .hero {
+    margin-bottom: 56px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero h1 {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--idsd), var(--neuro));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero .subtitle {
+    font-size: 20px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 32px;
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .meta-grid span { color: var(--text); font-weight: 500; }
+
+  .info-asymmetry {
+    background: rgba(188, 140, 255, 0.08);
+    border: 1px solid rgba(188, 140, 255, 0.35);
+    border-left: 4px solid var(--accent-purple);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 20px;
+  }
+
+  .info-asymmetry strong {
+    color: var(--accent-purple);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  /* --- SECTION --- */
+  section {
+    margin-bottom: 56px;
+  }
+
+  h2 {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  h3 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 28px 0 12px;
+    color: var(--accent-blue);
+  }
+
+  h4 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 20px 0 8px;
+    color: var(--text);
+  }
+
+  p { margin-bottom: 14px; }
+
+  strong { color: var(--text); font-weight: 600; }
+
+  em { color: var(--text-muted); font-style: italic; }
+
+  /* --- CALLOUT BOXES --- */
+  .callout {
+    padding: 18px 24px;
+    border-radius: 8px;
+    margin: 16px 0;
+    border-left: 4px solid;
+    font-size: 17px;
+  }
+
+  .callout-insight {
+    background: rgba(88, 166, 255, 0.08);
+    border-color: var(--accent-blue);
+  }
+
+  .callout-warning {
+    background: rgba(210, 153, 34, 0.08);
+    border-color: var(--accent-orange);
+  }
+
+  .callout-verdict {
+    background: rgba(63, 185, 80, 0.08);
+    border-color: var(--accent-green);
+  }
+
+  .callout-critical {
+    background: rgba(248, 81, 73, 0.08);
+    border-color: var(--accent-red);
+  }
+
+  .callout-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .callout-insight .callout-label { color: var(--accent-blue); }
+  .callout-warning .callout-label { color: var(--accent-orange); }
+  .callout-verdict .callout-label { color: var(--accent-green); }
+  .callout-critical .callout-label { color: var(--accent-red); }
+
+  /* --- TABLES --- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 16px;
+  }
+
+  thead th {
+    background: var(--surface-2);
+    color: var(--text);
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--border);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tbody tr:hover { background: rgba(88, 166, 255, 0.04); }
+
+  td:first-child { font-weight: 500; color: var(--text); }
+
+  .tag-idsd {
+    display: inline-block;
+    background: rgba(88, 166, 255, 0.15);
+    color: var(--idsd);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .tag-neuro {
+    display: inline-block;
+    background: rgba(240, 136, 62, 0.15);
+    color: var(--neuro);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* --- SCORE BAR --- */
+  .score-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 24px 0 12px;
+    padding: 10px 16px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    border-left: 4px solid var(--border);
+  }
+
+  .score-section-title.idsd-leads { border-left-color: var(--idsd); }
+  .score-section-title.neuro-leads { border-left-color: var(--neuro); }
+
+  .score-legend {
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .score-legend span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+  }
+
+  .legend-dot.idsd { background: var(--idsd); }
+  .legend-dot.neuro { background: var(--neuro); }
+
+  .score-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 16px 0 24px;
+  }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 10px 0;
+    font-size: 14px;
+  }
+
+  .score-label {
+    width: 190px;
+    flex-shrink: 0;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .score-bar-wrap {
+    flex: 1;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .score-bar {
+    height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--bg);
+    min-width: 28px;
+    transition: width 0.6s ease;
+  }
+
+  .score-bar.idsd { background: var(--idsd); }
+  .score-bar.neuro { background: var(--neuro); }
+
+  .score-total-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0 4px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .score-total-row .score-label {
+    color: var(--text);
+  }
+
+  .score-total-chip {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .score-total-chip.idsd { background: rgba(88, 166, 255, 0.18); color: var(--idsd); }
+  .score-total-chip.neuro { background: rgba(240, 136, 62, 0.18); color: var(--neuro); }
+
+  /* --- MATURITY VISUAL --- */
+  .maturity-track {
+    position: relative;
+    background: var(--surface-2);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px 0;
+  }
+
+  .maturity-levels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .maturity-levels span { text-align: center; flex: 1; }
+
+  .maturity-bar-bg {
+    height: 32px;
+    background: var(--border);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .maturity-fill {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--bg);
+  }
+
+  .maturity-fill.idsd { background: linear-gradient(90deg, var(--idsd), #79c0ff); }
+  .maturity-fill.neuro { background: linear-gradient(90deg, var(--neuro), #ffa657); }
+
+  .maturity-marker {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+    padding-right: 4px;
+  }
+
+  /* --- VS SPLIT --- */
+  .vs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 20px 0;
+  }
+
+  .vs-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  .vs-card h4 {
+    margin: 0 0 12px;
+    font-size: 15px;
+  }
+
+  .vs-card.idsd-card { border-top: 3px solid var(--idsd); }
+  .vs-card.idsd-card h4 { color: var(--idsd); }
+  .vs-card.neuro-card { border-top: 3px solid var(--neuro); }
+  .vs-card.neuro-card h4 { color: var(--neuro); }
+
+  .vs-card ul {
+    padding-left: 18px;
+    font-size: 16px;
+    color: var(--text-muted);
+  }
+
+  .vs-card li { margin-bottom: 6px; }
+
+  /* --- CODE / MONOSPACE --- */
+  code {
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: var(--accent-cyan);
+  }
+
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 16px 0;
+    font-size: 15px;
+    line-height: 1.6;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  /* --- LISTS --- */
+  ul, ol {
+    padding-left: 24px;
+    margin-bottom: 14px;
+  }
+
+  li { margin-bottom: 6px; }
+
+  /* --- FOOTER --- */
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 15px;
+    color: var(--text-muted);
+  }
+
+  .footer a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-size: 16px;
+  }
+
+  .footer a:hover { text-decoration: underline; }
+
+  .footer li { font-size: 16px; }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 1100px) {
+    .nav { display: none; }
+    .main { margin-left: 0; padding: 32px 24px 80px; }
+  }
+
+  /* --- PRINT --- */
+  @media print {
+    .nav { display: none; }
+    .main { margin-left: 0; max-width: 100%; }
+    body { background: #fff; color: #111; }
+    h2 { border-color: #ccc; }
+    table, .vs-card, .maturity-track, .callout, pre { break-inside: avoid; }
+  }
+
+  /* --- SCROLL INDICATOR --- */
+  .section-num {
+    display: inline-block;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    text-align: center;
+    line-height: 32px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+
+  /* --- THREE-LAYER TABLE HEADERS --- */
+  .th-idsd { color: var(--idsd); }
+  .th-neuro { color: var(--neuro); }
+
+  thead th.idsd-col { background: rgba(88, 166, 255, 0.06); }
+  thead th.neuro-col { background: rgba(240, 136, 62, 0.06); }
+  tbody td.idsd-col { background: rgba(88, 166, 255, 0.03); }
+  tbody td.neuro-col { background: rgba(240, 136, 62, 0.03); }
+  tbody tr.total-row td { font-weight: 700; background: var(--surface-2); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-title">Sections</div>
+  <a href="#exec" class="section-head">Executive Summary</a>
+  <a href="#s1">1. Philosophical Foundations</a>
+  <a href="#s2">2. Two Architectures</a>
+  <a href="#s3">3. Artifact Architecture</a>
+  <a href="#s4">4. Agent Design &amp; Autonomy</a>
+  <a href="#s5">5. Organizational Scaling</a>
+  <a href="#s6">6. Brownfield Readiness</a>
+  <a href="#s7">7. Dark Factory Maturity</a>
+  <a href="#s8">8. Failure Modes &amp; Risk</a>
+  <a href="#s9">9. Where Each Wins/Fails</a>
+  <a href="#s10">10. The Uncomfortable Truth</a>
+  <a href="#s11">11. Recommendations</a>
+  <a href="#refs">References</a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HERO -->
+  <header class="hero">
+    <h1>IDSD vs NeuroSDLC/Beacon</h1>
+    <p class="subtitle">A Comparative Analysis of AI-Native SDLC Methodologies</p>
+    <div class="meta-grid">
+      <div>Date: <span>2026-02-21</span></div>
+      <div>Classification: <span>Strategic Analysis — Neutral Comparative</span></div>
+      <div>Maturity Framework: <span>Dan Shapiro's Five Levels (L0–L5)</span></div>
+      <div>Method: <span>7 research agents + 3 hypothesis-testing agents + 1 fairness auditor + 16-point evolution assessment</span></div>
+      <div>Sources: <span>Beacon PDF, P3-Hub Process PDF, IDD paradigm doc, IDSD methodology doc, Dan Shapiro's Five Levels blog</span></div>
+      <div>Bias Controls: <span>Three-layer separation, symmetric evolution assessment, confirmation bias audit, devil's advocate review (21 bias instances corrected)</span></div>
+    </div>
+
+    <div class="info-asymmetry">
+      <strong>Information Asymmetry Disclosure</strong>
+      This analysis has access to IDSD's complete internal architecture documentation, roadmaps, and insider knowledge of trajectory. For NeuroSDLC, the analysis relies on two external product documents (Beacon PDF, P3-Hub Process PDF) supplemented by insider knowledge of both systems' direction. NeuroSDLC's internal architecture documents and roadmaps were not available. Scores and trajectory assessments should be read with this asymmetry in mind — weight Implementation scores (where both systems are evaluated on what exists) more heavily than Architecture or Trajectory scores (where information asymmetry has the most impact).
+    </div>
+  </header>
+
+  <!-- EXECUTIVE SUMMARY -->
+  <section id="exec">
+    <h2>Executive Summary</h2>
+    <p>IDSD and NeuroSDLC/Beacon represent two fundamentally different bets on where intelligence should live in AI-native software development. <strong>IDSD places intelligence in agents</strong> — autonomous decision-makers that interpret intent and adapt to context. <strong>NeuroSDLC places intelligence in assets</strong> — codified process prompts that prescribe deterministic execution.</p>
+
+    <p>Neither is universally superior. The report separates Architecture (foundation strength), Implementation (who's further ahead today), and Trajectory (where each can go) to prevent conflating design with delivery.</p>
+
+    <div class="callout callout-insight">
+      <span class="callout-label">Key Finding</span>
+      IDSD's architecture is better positioned for higher-autonomy levels (L3+) but has less implementation maturity. NeuroSDLC has stronger implementation for team-scale adoption today but carries architectural limitations that become harder to evolve past L3. The industry needs both — architecture that scales with AI capability AND adoption machinery that works for enterprises today.
+    </div>
+  </section>
+
+  <!-- S1: PHILOSOPHICAL FOUNDATIONS -->
+  <section id="s1">
+    <h2><span class="section-num">1</span>Philosophical Foundations</h2>
+
+    <h3>Where Intelligence Lives</h3>
+
+    <div class="vs-grid">
+      <div class="vs-card idsd-card">
+        <h4>IDSD — Intelligence in Agents</h4>
+        <ul>
+          <li>Agents receive intent (goal + constraints), read memory (LTM + STM), evaluate context, and decide <strong>how</strong> to achieve the outcome</li>
+          <li>Quality ceiling rises with model capability — a better LLM produces a better result from the same intent, with no framework changes</li>
+          <li><strong>Risk:</strong> Higher ceiling, lower floor. When the model is weak, the agent has decision space it cannot competently fill</li>
+        </ul>
+      </div>
+      <div class="vs-card neuro-card">
+        <h4>NeuroSDLC — Intelligence in Assets</h4>
+        <ul>
+          <li>Cognitive assets (P3-Hub) encode expert knowledge into reusable playbooks. Agents execute these deterministically</li>
+          <li>Quality floor is stable regardless of model capability — a well-crafted asset works even with a mediocre model</li>
+          <li><strong>Risk:</strong> Stable floor, ceiling defined by the asset author's foresight</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>The Intent Model</h3>
+    <p>IDSD's formal triple (<code>{goal, constraints, failure_conditions}</code>) with the P4 Classification Rule and compartmented evaluation is the more rigorous formalization. The Classification Rule — <em>"Would knowing this change how the builder writes code? Yes → constraint. No → failure condition"</em> — creates a testable, binary partition.</p>
+
+    <p>NeuroSDLC's "Intent2Outcome" loop with X2Y cognitive asset chaining (Vision2Spec, Spec2Code, Code2Deploy) is more of an <strong>orchestration grammar</strong> than an intent formalization. It names transformations clearly, making the pipeline legible across large teams, but does not enforce structural discipline separating goal, constraints, and failure conditions.</p>
+
+    <div class="callout callout-verdict">
+      <span class="callout-label">Assessment</span>
+      IDSD wins on precision at the individual-intent level. NeuroSDLC wins on pipeline-level legibility across large teams.
+    </div>
+
+    <h3>The Spec Question</h3>
+    <p><strong>IDSD</strong> treats specs as <strong>generated intermediates</strong>. NeuroSDLC treats specs as the <strong>backbone</strong>. IDSD undervalues the spec as a coordination artifact between humans. NeuroSDLC overvalues the spec as a source of truth when the real source of truth is the running code.</p>
+
+    <h3>The AI Trajectory Bet</h3>
+    <div class="vs-grid">
+      <div class="vs-card idsd-card">
+        <h4>If IDSD's bet is wrong (models plateau)</h4>
+        <ul>
+          <li>Agents make mediocre decisions within their decision space</li>
+          <li>The information barrier becomes a liability</li>
+        </ul>
+      </div>
+      <div class="vs-card neuro-card">
+        <h4>If NeuroSDLC's bet is wrong (models improve)</h4>
+        <ul>
+          <li>The cognitive asset library becomes a ceiling</li>
+          <li>The framework becomes the bottleneck it was designed to eliminate</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- S2: TWO ARCHITECTURES -->
+  <section id="s2">
+    <h2><span class="section-num">2</span>Two Architectures, One Goal</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th class="idsd-col"><span class="tag-idsd">IDSD</span></th>
+          <th class="neuro-col"><span class="tag-neuro">NeuroSDLC</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Core abstraction</td><td class="idsd-col">Intent (goal + constraints + failure_conditions)</td><td class="neuro-col">Cognitive asset (process prompt + template)</td></tr>
+        <tr><td>Agent philosophy</td><td class="idsd-col">Autonomous decision-maker</td><td class="neuro-col">Deterministic executor</td></tr>
+        <tr><td>Artifacts per feature</td><td class="idsd-col">3–5</td><td class="neuro-col">15–20+ (up to 30–38 full chain)</td></tr>
+        <tr><td>Dependency depth</td><td class="idsd-col">1–4 steps</td><td class="neuro-col">5–8+ steps (up to 15–16)</td></tr>
+        <tr><td>Target user</td><td class="idsd-col">Enterprise teams (Nagarro, Capgemini, EPAM-type orgs)</td><td class="neuro-col">5–500 person teams</td></tr>
+        <tr><td>Verification model</td><td class="idsd-col">Compartmented (builder/validator information barrier)</td><td class="neuro-col">Unified (same context for generation and validation)</td></tr>
+        <tr><td>Memory model</td><td class="idsd-col">LTM (persistent org knowledge) + STM (session-scoped)</td><td class="neuro-col">P3-Hub (static cognitive asset library, project-scoped)</td></tr>
+        <tr><td>Brownfield on-ramp</td><td class="idsd-col">Learn-2-Memory (organic STM→LTM)</td><td class="neuro-col">Code2X agents (reverse-engineering)</td></tr>
+        <tr><td>Context budget</td><td class="idsd-col">≤17K tokens per agent task (enforced)</td><td class="neuro-col">No stated limit</td></tr>
+        <tr><td>Adoption model</td><td class="idsd-col">Platform-dependent (CLI today, relies on IDE/Co-Work evolution)</td><td class="neuro-col">Self-contained (IDE integration for all roles)</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size: 15px; color: var(--text-muted);">Note: IDD (Intent-Driven Development) is the universal paradigm applicable to any domain (UX, supply chain, agentic systems). IDSD (Intent-Driven Software Development) is the software development implementation. NeuroSDLC is both paradigm and implementation in one package.</p>
+  </section>
+
+  <!-- S3: ARTIFACT ARCHITECTURE -->
+  <section id="s3">
+    <h2><span class="section-num">3</span>Artifact Architecture &amp; Dependency Chains</h2>
+
+    <h3>The Artifact Weight Problem</h3>
+    <p>IDSD's 3–5 artifacts keep the consistency graph manageable. Hash-based staleness detection (<code>&lt;!-- sync: source={path} hash={hash} generated={timestamp} --&gt;</code>) provides concrete detection-and-repair. IDSD does not claim specs are "living" — it claims they are derived artifacts that can go stale, with a mechanism to detect it.</p>
+
+    <p>NeuroSDLC's 15–20+ artifacts per feature create a combinatorial consistency challenge. The full chain: vision.md → system.md → module.brd.md → feature.frd.md → user-story.story.md → Visual Designs → user-story.spec.md → user-story.plan.md → technology.md → architecture.md → user-story.tasks.md → Code → Tests → Deployment Pipeline. NeuroSDLC calls these "living specifications" but there is no stated mechanism for detecting when a parent artifact has changed without explicit re-invocation.</p>
+
+    <h3>Cascade Failure Risk</h3>
+    <div class="vs-grid">
+      <div class="vs-card neuro-card">
+        <h4>NeuroSDLC Scenario</h4>
+        <p style="font-size:16px; color: var(--text-muted);">Vision2System misidentifies a monolith as microservices. Error cascades through 10+ artifacts. All validators pass — each checks consistency with its parent, not correctness. Surfaces only at Task2Code.</p>
+      </div>
+      <div class="vs-card idsd-card">
+        <h4>IDSD Scenario</h4>
+        <p style="font-size:16px; color: var(--text-muted);">An intent with a missing constraint. ICS scores it as Balanced because the scope appears narrow. The builder implements a feature that works for the happy path but violates an unstated business rule. The validator can't catch it — the business rule was never formalized as a failure condition. The feature ships. The bug surfaces in production three weeks later. No artifact contains the missing constraint. Blast radius: smaller than NeuroSDLC's cascade (one feature, not 10+ artifacts), but the failure is silent and surfaces late.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-verdict">
+      <span class="callout-label">Bottom Line</span>
+      IDSD trades completeness for resilience. NeuroSDLC trades resilience for completeness. Most dangerous failure in IDSD: silent under-specification. Most dangerous failure in NeuroSDLC: silent error propagation through faithfully replicated downstream artifacts.
+    </div>
+  </section>
+
+  <!-- S4: AGENT DESIGN -->
+  <section id="s4">
+    <h2><span class="section-num">4</span>Agent Design &amp; Autonomy</h2>
+
+    <h3>The Autonomy Spectrum</h3>
+    <p><strong>IDSD agents</strong> occupy bounded problem spaces where they make genuine decisions — skill selection, implementation approach, tool chain — within an intent that specifies outcome without prescribing method.</p>
+    <p><strong>NeuroSDLC agents</strong> execute codified transformations deterministically. Immediate predictability — a team that adopted it yesterday gets the same output quality as one that adopted it a year ago. But a ceiling when the model outgrows the playbook.</p>
+
+    <h3>The Goodhart's Law Question</h3>
+    <p>IDSD's compartmented evaluation introduces an information barrier between builder and validator agents. The recipe orchestration layer splits the intent triple, routing goal+constraints to the builder and failure_conditions+output to the validator. Symptom-based feedback preserves the barrier during iteration. This is architecturally novel in the AI-native SDLC space — no other published methodology separates generation and validation context — though it has zero production testing.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th class="idsd-col"><span class="tag-idsd">IDSD</span></th>
+          <th class="neuro-col"><span class="tag-neuro">NeuroSDLC</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Architecture</td>
+          <td class="idsd-col">Compartmented evaluation designed with convergence bounds, escalation protocol</td>
+          <td class="neuro-col">No information barrier designed. Validators share full context with generators</td>
+        </tr>
+        <tr>
+          <td>Implementation</td>
+          <td class="idsd-col">Specified but not yet running in production</td>
+          <td class="neuro-col">9+ validators operational but sharing context</td>
+        </tr>
+        <tr>
+          <td>Trajectory</td>
+          <td class="idsd-col">Production deployment planned</td>
+          <td class="neuro-col">No plans for validator independence</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-warning">
+      <span class="callout-label">Caveat</span>
+      IDSD's barrier has an untested edge: if escalation happens frequently, the barrier becomes process overhead. Most valuable when intents are well-formed.
+    </div>
+
+    <p>NeuroSDLC has no information barrier. Its 9+ validators check artifacts with the same context that produced them. This creates a <strong>surface-level compliance pattern</strong>: every validator can pass while the system produces outputs that are formally correct and practically wrong. However, NeuroSDLC's 9+ type-specific validators do catch structural defects that a single generalist validator would miss — the quantity and specialization of validators is itself a genuine architectural choice, representing defense-in-depth at the artifact level.</p>
+
+    <h3>Validator Architecture</h3>
+    <p><strong>IDSD's single validator agent:</strong> lean but concentrates failure. <strong>NeuroSDLC's 9+ dedicated validators:</strong> catches more type-specific structural defects but at significant process overhead.</p>
+
+    <div class="callout callout-insight">
+      <span class="callout-label">Honest Assessment</span>
+      NeuroSDLC catches more defects in artifact structure ("is this well-formed?"). IDSD catches more defects in goal-satisfaction ("does this actually work?"). Both are necessary; neither alone is sufficient.
+    </div>
+  </section>
+
+  <!-- S5: ORGANIZATIONAL SCALING -->
+  <section id="s5">
+    <h2><span class="section-num">5</span>Organizational &amp; Team Scaling</h2>
+
+    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;"><em>This section required the most correction from the original report, which conflated "validated at one person" with "targets one person."</em></p>
+
+    <h3>Architecture Layer</h3>
+    <div class="vs-grid">
+      <div class="vs-card idsd-card">
+        <h4>IDSD — Enterprise Architecture</h4>
+        <ul>
+          <li>IDD doc: "Enable enterprise teams to leverage AI-assisted development with full governance and traceability"</li>
+          <li>Enterprise Wrapper documents governance, memory federation, and Hive Mind (cross-agent coordination)</li>
+          <li>5 AI Squad roles designed for team operation, including "Validator per 2-3 teams"</li>
+          <li>LTM globally deployable (<code>~/.phoenix-os/core/memory/</code>)</li>
+          <li>Recipes abstract all complexity — any developer invokes <code>/build-feature</code> without understanding internals</li>
+        </ul>
+      </div>
+      <div class="vs-card neuro-card">
+        <h4>NeuroSDLC — Enterprise Architecture</h4>
+        <ul>
+          <li>Role-based cognitive assets give each role (BA, QA, Dev, PO) specific workflows</li>
+          <li>IDE integration brings non-technical roles into the development environment</li>
+          <li>30+ cognitive assets mapped to roles and phases</li>
+          <li>Structured onboarding/training journeys per role</li>
+          <li>P3-Hub provides shared asset library across the org</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Implementation Layer</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Aspect</th>
+          <th class="idsd-col"><span class="tag-idsd">IDSD</span></th>
+          <th class="neuro-col"><span class="tag-neuro">NeuroSDLC</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Multi-person validated</td>
+          <td class="idsd-col">No — validated at single developer</td>
+          <td class="neuro-col">Yes — production deployments with teams</td>
+        </tr>
+        <tr>
+          <td>LTM conflict resolution</td>
+          <td class="idsd-col">Git handles file-level conflicts. Semantic conflict detection designed but not built. STM→LTM promotion through PR workflow — project-level reviewed by team, org-level reviewed by engineering leaders/CTOs</td>
+          <td class="neuro-col">P3-Hub is project-scoped. No cross-project knowledge sharing</td>
+        </tr>
+        <tr>
+          <td>Cross-developer visibility</td>
+          <td class="idsd-col">Present via Git/GitHub (issues, branches, PRs, STM artifacts). NWWI (No Work Without Issue) enforced in recipes</td>
+          <td class="neuro-col">Present via IDE integration and role-specific dashboards</td>
+        </tr>
+        <tr>
+          <td>Governance</td>
+          <td class="idsd-col">10+ mechanisms built: DRAFT/VALIDATE/LOCKED lifecycle, Tether/Vanish gates, Guardian Logic, NWWI gate, ICS, compartmented evaluation, protected branch enforcement. Recipe-enforced (agent-layer), not CI-enforced</td>
+          <td class="neuro-col">Built into cognitive asset workflows. IDE-enforced</td>
+        </tr>
+        <tr>
+          <td>Role-specific tooling</td>
+          <td class="idsd-col">Same CLI for all roles. Non-developer roles depend on platform evolution (Claude Co-Work, IDE integrations)</td>
+          <td class="neuro-col">BA gets BA tools, QA gets QA tools, PO gets PO tools. Purpose-built per role</td>
+        </tr>
+        <tr>
+          <td>Onboarding</td>
+          <td class="idsd-col">Learn to write intents. Conceptually simple, practically deep. Time-to-first-value: minutes (<code>/build-feature "Add CSV export"</code> works immediately)</td>
+          <td class="neuro-col">Learn 6D lifecycle, 30+ cognitive assets, IDE workflows. Time-to-first-value: weeks to months</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Trajectory Layer</h3>
+    <div class="vs-grid">
+      <div class="vs-card idsd-card">
+        <h4>IDSD Trajectory</h4>
+        <ul>
+          <li>LTM server-based deployment (MCP, semantic search, org-wide). 12-18 months. Concept to early design.</li>
+          <li>CTO-configurable domain parameters (quality thresholds per project type). Concept.</li>
+          <li>Tool integrations beyond GitHub (Jira, Notion, wikis). Architecture supports it; GitHub integration already exists.</li>
+          <li>Cross-team intent visibility dashboard. Plausible — GitHub integrations partially exist. Not purpose-built yet.</li>
+        </ul>
+      </div>
+      <div class="vs-card neuro-card">
+        <h4>NeuroSDLC Trajectory</h4>
+        <ul>
+          <li>No stated plans for cross-project knowledge sharing</li>
+          <li>No stated plans for adaptive cognitive assets</li>
+          <li>No stated plans for role evolution beyond augmentation</li>
+          <li>Fast-track bypass discussed for low-complexity features (skip full artifact chain). Not planned formally.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Scoring</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Aspect</th>
+          <th class="idsd-col"><span class="tag-idsd">IDSD</span></th>
+          <th class="neuro-col"><span class="tag-neuro">NeuroSDLC</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Architecture</td>
+          <td class="idsd-col">3.0 — enterprise-designed, governance-rich, recipe abstraction enables N-developer use</td>
+          <td class="neuro-col">3.5 — role-specific, IDE-integrated, structured onboarding, production-tested design</td>
+        </tr>
+        <tr>
+          <td>Implementation</td>
+          <td class="idsd-col">2.0 — validated at 1 person, 10+ governance mechanisms built, but no multi-person production evidence</td>
+          <td class="neuro-col">3.0 — production deployments with teams, role-based workflows operational</td>
+        </tr>
+        <tr>
+          <td>Trajectory</td>
+          <td class="idsd-col">3.0 — server LTM, domain parameters, tool integrations, dashboard all plausible with architectural support</td>
+          <td class="neuro-col">1.5 — no stated evolution plans for cross-project learning, adaptive assets, or role evolution</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- S6: BROWNFIELD -->
+  <section id="s6">
+    <h2><span class="section-num">6</span>Brownfield &amp; Legacy Readiness</h2>
+
+    <h3>Day-One Value</h3>
+    <p><strong>NeuroSDLC</strong> has a clear advantage: <strong>nine dedicated Code2X agents</strong> (Code2System, Code2Arch, Code2Tech, Code2Template, Code2Module, Code2Feature, Code2DataModel, Code2Spec, Spec2Story). For a 500K-line codebase, generates a documentation suite in hours.</p>
+    <p><strong>IDSD</strong> has no equivalent purpose-built mechanism. Brownfield approach is organic: work naturally, let STM capture patterns, promote to LTM over time. IDSD agents do read the actual codebase during execution, but without accumulated institutional knowledge on day one.</p>
+
+    <h3>The Quality Problem</h3>
+    <p>NeuroSDLC's Code2X agents produce artifacts reflecting what the code does, not what it was intended to do. A generated <code>system.md</code> faithfully documents every leaky abstraction, presenting accidental complexity as intentional architecture.</p>
+
+    <div class="callout callout-insight">
+      <span class="callout-label">Balanced Assessment</span>
+      Imperfect documentation generated in hours provides immediate navigational value that no organic accumulation process can match on day one. For teams inheriting unfamiliar codebases, Code2X's imperfect map is more useful than no map. The artifacts require human review and correction, but they provide a starting point.
+    </div>
+
+    <p>IDSD's slower approach grounds LTM in actual work experience. Knowledge that enters organically reflects reality. After three months: deep LTM coverage of touched subsystems, zero coverage of untouched ones — more transparent about its coverage gaps, but an untouched subsystem in a 500K-line codebase could contain critical bugs that this organic approach never surfaces.</p>
+
+    <h3>Three-Layer Assessment</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th class="idsd-col"><span class="tag-idsd">IDSD</span></th>
+          <th class="neuro-col"><span class="tag-neuro">NeuroSDLC</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Architecture</td>
+          <td class="idsd-col">Learn-2-Memory phase is a first-class SDLC phase. STM→LTM promotion mechanism designed.</td>
+          <td class="neuro-col">Code2X agents integrated into the 6D lifecycle. Reverse-engineering is architecturally supported.</td>
+        </tr>
+        <tr>
+          <td>Implementation</td>
+          <td class="idsd-col">No brownfield bootstrap recipe exists. Organic accumulation only.</td>
+          <td class="neuro-col">Nine Code2X agents operational. Day-one documentation generation available.</td>
+        </tr>
+        <tr>
+          <td>Trajectory</td>
+          <td class="idsd-col">Brownfield bootstrap recipe ("codebase-to-LTM") recognized as needed. Concept only — not specified, not on near-term roadmap.</td>
+          <td class="neuro-col">No stated plans for Code2X quality feedback (correcting wrong artifacts). No cross-project learning from brownfield exercises.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-verdict">
+      <span class="callout-label">Recommendation</span>
+      For brownfield adoption, NeuroSDLC offers faster time-to-first-understanding. IDSD offers higher long-term knowledge fidelity. The choice depends on urgency: if the team needs to ship within weeks, Code2X's imperfect map is more useful than no map. If the team has months, IDSD's organic approach produces more accurate knowledge. IDSD's brownfield bootstrap recipe is a concept-stage gap, not a structural limitation.
+    </div>
+  </section>
+
+  <!-- S7: DARK FACTORY MATURITY -->
+  <section id="s7">
+    <h2><span class="section-num">7</span>Dark Factory Maturity Mapping</h2>
+
+    <h3>Dan Shapiro's Five Levels</h3>
+    <pre>L0  Manual          ░░░░░░░░░░░░░░░░░░░░  No AI — human writes all code
+L1  Discrete Task   ████░░░░░░░░░░░░░░░░  AI handles bounded tasks (tests, docs)
+L2  Flow State      ████████░░░░░░░░░░░░  Human + AI pair programming (90% stop here)
+L3  Human-in-Loop   ████████████░░░░░░░░  Developer becomes code reviewer/manager
+L4  Spec-Driven     ████████████████░░░░  Human writes specs, AI runs for 12+ hours
+L5  Dark Factory    ████████████████████  AI generates and executes specs autonomously</pre>
+
+    <h4>Key Transitions</h4>
+    <ul>
+      <li><strong>L2→L3 trap:</strong> "Feels like you're done but you aren't." Nearly universal stopping point.</li>
+      <li><strong>L3→L4:</strong> Role transforms from developer to product manager. Many resist.</li>
+      <li><strong>L4→L5:</strong> Requires systems that generate their own specifications from observed outcomes.</li>
+    </ul>
+
+    <h3>Where Is Each Today?</h3>
+    <div class="maturity-track">
+      <div class="maturity-levels">
+        <span>L0<br>Manual</span>
+        <span>L1<br>Discrete</span>
+        <span>L2<br>Flow</span>
+        <span>L3<br>HiL</span>
+        <span>L4<br>Spec</span>
+        <span>L5<br>Dark</span>
+      </div>
+      <div class="maturity-bar-bg">
+        <div class="maturity-fill idsd" style="width: 55%;">IDSD ~L2–L3 (L4 in walls)</div>
+      </div>
+      <div class="maturity-marker" style="padding-right: calc(45% - 80px);">ceiling ~L4.5</div>
+      <div class="maturity-bar-bg" style="margin-top: 8px;">
+        <div class="maturity-fill neuro" style="width: 42%;">NeuroSDLC ~L2 (reaching L3)</div>
+      </div>
+      <div class="maturity-marker" style="padding-right: calc(58% - 80px);">ceiling ~L3.5</div>
+    </div>
+
+    <p><strong>IDSD:</strong> Implemented components operate at L2. Architecture contains L3 elements: <code>start-planned-feature</code> has an autonomous execution phase where, after one approval gate, the system runs implementation, commit, and PR without human intervention. The intent model is proto-L4 — intents are lightweight specs.</p>
+
+    <p><strong>NeuroSDLC:</strong> Cognitive assets give AI agents detailed playbooks — L2 pairing through prescribed processes. The 15–20+ artifact chain and 9+ validators suggest L3 aspiration, but the developer remains an active participant in artifact chain management, not a reviewer of autonomous output.</p>
+
+    <h3>Path to L3 — Three-Layer View</h3>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th class="idsd-col"><span class="tag-idsd">IDSD</span></th>
+          <th class="neuro-col"><span class="tag-neuro">NeuroSDLC</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Architecture</strong></td>
+          <td class="idsd-col">L3-ready. Intent model, compartmented evaluation, agent autonomy, Guardian Logic all designed for human-as-reviewer, not human-as-doer.</td>
+          <td class="neuro-col">L2 architecture with L3 aspirations. Cognitive assets prescribe execution; agents don't make autonomous decisions.</td>
+        </tr>
+        <tr>
+          <td><strong>Implementation</strong></td>
+          <td class="idsd-col">Partial. <code>start-planned-feature</code> has autonomous execution. 19 recipes specified, ~4 built.</td>
+          <td class="neuro-col">Partial. Full artifact chain and validators exist, but developer actively manages chain.</td>
+        </tr>
+        <tr>
+          <td><strong>Trajectory</strong></td>
+          <td class="idsd-col">3–6 months building specified components (author's estimate, not independently validated). Assumes specifications work as designed — untested.</td>
+          <td class="neuro-col">12–18 months of deliberate architectural evolution. Would require widening agent decision space within cognitive assets — significant but incremental, not a wholesale replacement.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Path to L4</h3>
+    <p><strong>IDSD:</strong> Intents ARE lightweight specs. The structural distance from L3 to L4: remove approval gates, add test-pass-as-success-criteria, let the system run overnight. <strong>Configuration change, not architecture change.</strong></p>
+    <p><strong>NeuroSDLC:</strong> Artifact chain IS heavyweight specs — but human-curated, not system-generated. L4 would mean the system generates cognitive assets from observed outcomes. Requires the P3-Hub to become an adaptive learning system.</p>
+
+    <h3>The L4→L5 Cliff — Three-Layer View</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th class="idsd-col"><span class="tag-idsd">IDSD</span></th>
+          <th class="neuro-col"><span class="tag-neuro">NeuroSDLC</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Architecture</strong></td>
+          <td class="idsd-col">Memory architecture (STM→LTM promotion) captures intent→outcome pairs. <code>capture-learning</code> recipe specified with concrete skill contracts. ICS designed as training signal. This is the accumulation path toward self-generation — architecturally present, not yet the generation step itself.</td>
+          <td class="neuro-col">P3-Hub is a static library. No architectural mechanism for assets to learn from execution outcomes. No feedback loop from deploy back to specify. The lifecycle ends at Deploy.</td>
+        </tr>
+        <tr>
+          <td><strong>Implementation</strong></td>
+          <td class="idsd-col"><code>capture-learning</code> recipe specified but not built. No production intent self-generation. Current mode: humans write intents.</td>
+          <td class="neuro-col">No implementation of any learning feedback loop. Cognitive assets are manually authored and updated.</td>
+        </tr>
+        <tr>
+          <td><strong>Trajectory</strong></td>
+          <td class="idsd-col">Monitoring-to-Design phase planned: production feedback → auto-generated intents. Pure concept, 18–24 months.</td>
+          <td class="neuro-col">No plans for adaptive cognitive assets. "Continuous improvement" in Beacon refers to running more stories under the same vision — not learning that changes the vision.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Hard Ceilings</h3>
+    <p><strong>IDSD ceiling: ~L4.5</strong> — transition from "human writes intents" to "system generates intents from observed outcomes." Requires adding new cognitive capabilities (Monitoring-to-Design phase, hypothesis layer) on top of a sound architectural foundation. The accumulation mechanism (memory) exists architecturally; the generation mechanism does not.</p>
+    <p><strong>NeuroSDLC ceiling: ~L3.5</strong> — transition from "human curates process, AI executes" to "AI makes autonomous decisions." Stated with a qualification: NeuroSDLC could evolve incrementally. The P3-Hub could evolve from prescriptive playbooks to parameterized templates giving agents wider decision space. However, no such evolution is currently planned or architecturally evidenced, and the current design shows zero mechanism for learning from execution outcomes.</p>
+
+    <h3>L4–L5 Readiness Scoring — Autonomy Readiness</h3>
+
+    <div class="callout callout-insight">
+      <span class="callout-label">Table Scope</span>
+      This table measures <strong>Autonomy Readiness</strong> (L4–L5) — a dimension where IDSD's architectural philosophy inherently scores higher. It does not measure Enterprise Readiness, where NeuroSDLC leads. See the Enterprise Readiness table below for the complementary view.
+    </div>
+
+    <!-- AUTONOMY READINESS SCORE BARS -->
+    <div class="score-section-title idsd-leads">Autonomy Readiness — IDSD leads</div>
+    <div class="score-legend">
+      <span><span class="legend-dot idsd"></span>IDSD (Arch / Impl / Traj combined)</span>
+      <span><span class="legend-dot neuro"></span>NeuroSDLC (Arch / Impl / Traj combined)</span>
+    </div>
+    <div class="score-group">
+      <div class="score-row">
+        <span class="score-label">Agent autonomy</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((3.5+2.5+3.5)/12*100%);">3.5/2.5/3.5</div>
+          <div class="score-bar neuro" style="width: calc((1.5+1.5+1.5)/12*100%);">1.5/1.5/1.5</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Self-healing on failure</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((3.0+2.0+3.5)/12*100%);">3.0/2.0/3.5</div>
+          <div class="score-bar neuro" style="width: calc((2.0+2.0+2.0)/12*100%);">2.0/2.0/2.0</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Spec self-generation</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((2.5+1.5+3.5)/12*100%);">2.5/1.5/3.5</div>
+          <div class="score-bar neuro" style="width: calc((1.0+1.0+1.0)/12*100%);">1.0/1.0/1.0</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Process self-evolution</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((2.5+1.5+3.0)/12*100%);">2.5/1.5/3.0</div>
+          <div class="score-bar neuro" style="width: calc((1.0+1.0+0.5)/12*100%);">1.0/1.0/0.5</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Vendor independence</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((3.0+3.0+3.0)/12*100%);">3.0/3.0/3.0</div>
+          <div class="score-bar neuro" style="width: calc((3.0+3.0+3.0)/12*100%);">3.0/3.0/3.0</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Org scalability</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((3.0+2.0+3.0)/12*100%);">3.0/2.0/3.0</div>
+          <div class="score-bar neuro" style="width: calc((3.5+3.0+1.5)/12*100%);">3.5/3.0/1.5</div>
+        </div>
+      </div>
+      <div class="score-total-row">
+        <span class="score-label">Total</span>
+        <span class="score-total-chip idsd">IDSD: Arch 17.5 / Impl 12.5 / Traj 19.5 (out of 24)</span>
+        <span class="score-total-chip neuro">Neuro: Arch 12.0 / Impl 12.0 / Traj 10.0 (out of 24)</span>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Criterion (0–4 scale)</th>
+          <th class="idsd-col">IDSD Arch</th>
+          <th class="idsd-col">IDSD Impl</th>
+          <th class="idsd-col">IDSD Traj</th>
+          <th class="neuro-col">Neuro Arch</th>
+          <th class="neuro-col">Neuro Impl</th>
+          <th class="neuro-col">Neuro Traj</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Agent autonomy</td>
+          <td class="idsd-col">3.5</td><td class="idsd-col">2.5</td><td class="idsd-col">3.5</td>
+          <td class="neuro-col">1.5</td><td class="neuro-col">1.5</td><td class="neuro-col">1.5</td>
+        </tr>
+        <tr>
+          <td>Self-healing on failure</td>
+          <td class="idsd-col">3.0</td><td class="idsd-col">2.0</td><td class="idsd-col">3.5</td>
+          <td class="neuro-col">2.0</td><td class="neuro-col">2.0</td><td class="neuro-col">2.0</td>
+        </tr>
+        <tr>
+          <td>Spec self-generation</td>
+          <td class="idsd-col">2.5</td><td class="idsd-col">1.5</td><td class="idsd-col">3.5</td>
+          <td class="neuro-col">1.0</td><td class="neuro-col">1.0</td><td class="neuro-col">1.0</td>
+        </tr>
+        <tr>
+          <td>Process self-evolution</td>
+          <td class="idsd-col">2.5</td><td class="idsd-col">1.5</td><td class="idsd-col">3.0</td>
+          <td class="neuro-col">1.0</td><td class="neuro-col">1.0</td><td class="neuro-col">0.5</td>
+        </tr>
+        <tr>
+          <td>Vendor independence</td>
+          <td class="idsd-col">3.0</td><td class="idsd-col">3.0</td><td class="idsd-col">3.0</td>
+          <td class="neuro-col">3.0</td><td class="neuro-col">3.0</td><td class="neuro-col">3.0</td>
+        </tr>
+        <tr>
+          <td>Org scalability</td>
+          <td class="idsd-col">3.0</td><td class="idsd-col">2.0</td><td class="idsd-col">3.0</td>
+          <td class="neuro-col">3.5</td><td class="neuro-col">3.0</td><td class="neuro-col">1.5</td>
+        </tr>
+        <tr class="total-row">
+          <td><strong>Total</strong></td>
+          <td class="idsd-col"><strong>17.5/24</strong></td><td class="idsd-col"><strong>12.5/24</strong></td><td class="idsd-col"><strong>19.5/24</strong></td>
+          <td class="neuro-col"><strong>12.0/24</strong></td><td class="neuro-col"><strong>12.0/24</strong></td><td class="neuro-col"><strong>10.0/24</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ENTERPRISE READINESS TABLE -->
+    <h3>Enterprise Readiness Scoring</h3>
+
+    <!-- ENTERPRISE READINESS SCORE BARS -->
+    <div class="score-section-title neuro-leads">Enterprise Readiness — NeuroSDLC leads</div>
+    <div class="score-legend">
+      <span><span class="legend-dot idsd"></span>IDSD (Arch / Impl / Traj combined)</span>
+      <span><span class="legend-dot neuro"></span>NeuroSDLC (Arch / Impl / Traj combined)</span>
+    </div>
+    <div class="score-group">
+      <div class="score-row">
+        <span class="score-label">Multi-role enablement</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((2.0+1.0+2.5)/12*100%);">2.0/1.0/2.5</div>
+          <div class="score-bar neuro" style="width: calc((3.5+3.5+3.5)/12*100%);">3.5/3.5/3.5</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Brownfield on-ramp</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((2.0+0.5+1.5)/12*100%);">2.0/0.5/1.5</div>
+          <div class="score-bar neuro" style="width: calc((3.0+3.0+3.0)/12*100%);">3.0/3.0/3.0</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Compliance/audit trail</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((1.5+1.0+2.0)/12*100%);">1.5/1.0/2.0</div>
+          <div class="score-bar neuro" style="width: calc((3.5+3.0+3.0)/12*100%);">3.5/3.0/3.0</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Team onboarding</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((1.5+1.0+2.0)/12*100%);">1.5/1.0/2.0</div>
+          <div class="score-bar neuro" style="width: calc((3.0+3.0+3.0)/12*100%);">3.0/3.0/3.0</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Production deployment maturity</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((2.0+1.0+2.5)/12*100%);">2.0/1.0/2.5</div>
+          <div class="score-bar neuro" style="width: calc((3.0+3.0+3.0)/12*100%);">3.0/3.0/3.0</div>
+        </div>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Cross-functional coordination</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar idsd" style="width: calc((2.0+1.0+2.5)/12*100%);">2.0/1.0/2.5</div>
+          <div class="score-bar neuro" style="width: calc((3.5+3.0+2.0)/12*100%);">3.5/3.0/2.0</div>
+        </div>
+      </div>
+      <div class="score-total-row">
+        <span class="score-label">Total</span>
+        <span class="score-total-chip idsd">IDSD: Arch 11.0 / Impl 5.5 / Traj 13.0 (out of 24)</span>
+        <span class="score-total-chip neuro">Neuro: Arch 19.5 / Impl 18.5 / Traj 17.5 (out of 24)</span>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Criterion (0–4 scale)</th>
+          <th class="idsd-col">IDSD Arch</th>
+          <th class="idsd-col">IDSD Impl</th>
+          <th class="idsd-col">IDSD Traj</th>
+          <th class="neuro-col">Neuro Arch</th>
+          <th class="neuro-col">Neuro Impl</th>
+          <th class="neuro-col">Neuro Traj</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Multi-role enablement</td>
+          <td class="idsd-col">2.0</td><td class="idsd-col">1.0</td><td class="idsd-col">2.5</td>
+          <td class="neuro-col">3.5</td><td class="neuro-col">3.5</td><td class="neuro-col">3.5</td>
+        </tr>
+        <tr>
+          <td>Brownfield on-ramp</td>
+          <td class="idsd-col">2.0</td><td class="idsd-col">0.5</td><td class="idsd-col">1.5</td>
+          <td class="neuro-col">3.0</td><td class="neuro-col">3.0</td><td class="neuro-col">3.0</td>
+        </tr>
+        <tr>
+          <td>Compliance/audit trail</td>
+          <td class="idsd-col">1.5</td><td class="idsd-col">1.0</td><td class="idsd-col">2.0</td>
+          <td class="neuro-col">3.5</td><td class="neuro-col">3.0</td><td class="neuro-col">3.0</td>
+        </tr>
+        <tr>
+          <td>Team onboarding</td>
+          <td class="idsd-col">1.5</td><td class="idsd-col">1.0</td><td class="idsd-col">2.0</td>
+          <td class="neuro-col">3.0</td><td class="neuro-col">3.0</td><td class="neuro-col">3.0</td>
+        </tr>
+        <tr>
+          <td>Production deployment maturity</td>
+          <td class="idsd-col">2.0</td><td class="idsd-col">1.0</td><td class="idsd-col">2.5</td>
+          <td class="neuro-col">3.0</td><td class="neuro-col">3.0</td><td class="neuro-col">3.0</td>
+        </tr>
+        <tr>
+          <td>Cross-functional coordination</td>
+          <td class="idsd-col">2.0</td><td class="idsd-col">1.0</td><td class="idsd-col">2.5</td>
+          <td class="neuro-col">3.5</td><td class="neuro-col">3.0</td><td class="neuro-col">2.0</td>
+        </tr>
+        <tr class="total-row">
+          <td><strong>Total</strong></td>
+          <td class="idsd-col"><strong>11.0/24</strong></td><td class="idsd-col"><strong>5.5/24</strong></td><td class="idsd-col"><strong>13.0/24</strong></td>
+          <td class="neuro-col"><strong>19.5/24</strong></td><td class="neuro-col"><strong>18.5/24</strong></td><td class="neuro-col"><strong>17.5/24</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-insight">
+      <span class="callout-label">Enterprise Readiness Justifications</span>
+      <ul style="margin-top: 8px; padding-left: 20px; font-size: 14px; color: var(--text-muted);">
+        <li><strong style="color: var(--text);">Multi-role enablement:</strong> NeuroSDLC provides role-specific cognitive assets (BA, QA, Dev, PO), IDE integration for non-technical roles, and structured per-role workflows. IDSD provides a single CLI interface for all roles, relying on recipe abstraction and platform evolution.</li>
+        <li><strong style="color: var(--text);">Brownfield on-ramp:</strong> NeuroSDLC's nine Code2X agents generate documentation for existing codebases in hours. IDSD has no equivalent — organic accumulation only, bootstrap recipe at concept stage.</li>
+        <li><strong style="color: var(--text);">Compliance/audit trail:</strong> NeuroSDLC's 15–20+ artifacts per feature create extensive audit trails. IDSD's 3–5 artifacts prioritize minimalism over traceability, with compliance mode at concept stage.</li>
+        <li><strong style="color: var(--text);">Team onboarding:</strong> NeuroSDLC has structured training journeys per role. IDSD onboarding is "learn to write intents" — conceptually simple but with a deep mastery curve.</li>
+        <li><strong style="color: var(--text);">Production deployment maturity:</strong> NeuroSDLC has production team deployments. IDSD is validated at single developer only.</li>
+        <li><strong style="color: var(--text);">Cross-functional coordination:</strong> NeuroSDLC co-locates all roles in IDEs with role-specific workflows. IDSD provides coordination via Git/GitHub infrastructure, which serves developers well but creates barriers for non-technical roles.</li>
+      </ul>
+    </div>
+
+    <div class="callout callout-warning">
+      <span class="callout-label">Gap Analysis — Both Tables Together</span>
+      The gap is widest on agent autonomy in favor of IDSD (3.5 arch vs 1.5) — this determines Dark Factory readiness. The gap reverses completely on enterprise readiness, where NeuroSDLC leads across all six dimensions. These two tables measure complementary things. Reading only one gives a misleading picture of either system.
+    </div>
+  </section>
+
+  <!-- S8: FAILURE MODES -->
+  <section id="s8">
+    <h2><span class="section-num">8</span>Failure Modes &amp; Risk Analysis</h2>
+
+    <h3>Self-Awareness</h3>
+    <p>IDSD documents 7 named anti-patterns, 5 failure scenarios, and builds ICS as a self-diagnostic tool. Self-diagnosis within its own documentation: <strong>high</strong>. <em>Caveat: these anti-patterns were authored by the system's creator — self-documented vulnerabilities are valuable but are a lower bar than externally discovered weaknesses.</em></p>
+
+    <p>NeuroSDLC focuses on capabilities in its available documentation. The existence of 9+ validators implies awareness the chain is fragile, but weaknesses are not framed as explicit vulnerabilities in the materials reviewed. Self-diagnosis in available materials: <strong>low to moderate</strong>. <em>Caveat: this assessment is based on external product documentation, not internal architecture docs. NeuroSDLC may have internal self-diagnosis artifacts not visible in the materials available to this analysis.</em></p>
+
+    <h3>Blind Spots Each Doesn't See</h3>
+    <div class="vs-grid">
+      <div class="vs-card idsd-card">
+        <h4>IDSD Blind Spots</h4>
+        <ul>
+          <li><strong>Intent authorship bottleneck:</strong> Writing well-formed intents is harder than writing specs. Learning curve may be longer than documented.</li>
+          <li><strong>Compartmented evaluation untested:</strong> Zero production evidence. Symptom-based feedback may be too decontextualized for complex features.</li>
+          <li><strong>Context budget as ceiling:</strong> 12K token bundle limit forces artificial decomposition for complex verticals.</li>
+          <li><strong>Multi-stakeholder intent negotiation:</strong> No mechanism for when two product owners disagree about goals. Not designed.</li>
+          <li><strong>Mental model gravity:</strong> IDD's internal elegance may blind practitioners to problems outside the model's vocabulary — organizational change management, political resistance, role-elimination anxiety are real enterprise barriers the intent model doesn't address.</li>
+        </ul>
+      </div>
+      <div class="vs-card neuro-card">
+        <h4>NeuroSDLC Blind Spots</h4>
+        <ul>
+          <li><strong>Validator independence is limited:</strong> Full artifact chain context available to every validator. No mechanism to detect confirmation bias in validation.</li>
+          <li><strong>Cognitive asset entropy:</strong> As the P3-Hub grows, assets may conflict. No conflict resolution mechanism.</li>
+          <li><strong>6D lifecycle is waterfall with AI:</strong> Linear Discover-to-Deliver with 15–16 dependency depth. Change in Discover cascades through everything downstream.</li>
+          <li><strong>Change velocity assumption:</strong> Assumes stable requirements within each cycle.</li>
+          <li><strong>No learning loop:</strong> The lifecycle ends at Deploy. "Continuous improvement" means running more stories under the same vision — not learning that changes the vision.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Catastrophic Failure Scenarios</h3>
+
+    <div class="callout callout-critical">
+      <span class="callout-label">IDSD — Silent LTM Poisoning</span>
+      A team captures a learning from a one-off incident ("always add retry logic to database calls") and promotes it to LTM. Over months, every feature adds retry logic to all DB calls — including inside transactions, creating deadlock conditions. Agents follow the practice faithfully. Validator doesn't catch it — the business rule was never formalized as a failure condition.
+      <br><br>
+      <strong>Mitigation (Architecture):</strong> STM→LTM promotion goes through PR workflow with governance. The system is designed to add intelligence for contextual application. <strong>Mitigation (Implementation):</strong> PR workflow exists via Git. AI intelligence for contextual application not yet built.
+    </div>
+
+    <div class="callout callout-critical">
+      <span class="callout-label">NeuroSDLC — Cascade Corruption</span>
+      A mid-lifecycle architecture decision is updated. 8 of 12 dependent artifacts update, 4 are missed. Feature ships with mismatched contracts. All validators passed.
+      <br><br>
+      <strong>Mitigation (Architecture):</strong> None. No cascade detection mechanism designed. <strong>Mitigation (Implementation):</strong> Manual review required.
+    </div>
+
+    <h3>The Goodhart's Law Exposure</h3>
+    <p><strong>IDSD</strong> addresses this with compartmented evaluation (Architecture: designed. Implementation: not yet running).</p>
+    <p><strong>NeuroSDLC</strong> has no structural defense at any layer. The same cognitive assets that guided generation also guide validation. However, NeuroSDLC's 9+ specialized validators do provide defense-in-depth at the artifact structure level — each validator is purpose-built for its artifact type. The limitation is that this defense checks whether the AI followed the playbook, not whether the playbook produced the right outcome.</p>
+
+    <h3>Model Regression Risk</h3>
+    <p><strong>IDSD</strong> is fragile to <strong>reasoning regression</strong> — the architecture bets on agents making good autonomous decisions.</p>
+    <p><strong>NeuroSDLC</strong> is resilient to reasoning regression (prescriptive playbooks still work) but fragile to <strong>instruction-following regression</strong> — if models get worse at following complex prompts, cognitive assets become unreliable.</p>
+  </section>
+
+  <!-- S9: WHERE EACH WINS -->
+  <section id="s9">
+    <h2><span class="section-num">9</span>Where Each Wins, Where Each Fails</h2>
+
+    <div class="vs-grid">
+      <div class="vs-card idsd-card">
+        <h4>Choose IDSD When</h4>
+        <ul>
+          <li>Velocity matters more than audit trails</li>
+          <li>Problem is novel — autonomous agents explore solution spaces prescriptive assets cannot reach</li>
+          <li>AI models are strong — architecture has proportional headroom</li>
+          <li>Greenfield projects — LTM grows organically</li>
+          <li>Solo developer or small technical team — time-to-value in minutes</li>
+          <li>Change velocity is high — intent stays stable, specs regenerate</li>
+          <li>Verification independence matters — compartmented evaluation prevents Goodhart's Law</li>
+          <li>Long-term architectural positioning matters — foundation for L4+</li>
+        </ul>
+      </div>
+      <div class="vs-card neuro-card">
+        <h4>Choose NeuroSDLC When</h4>
+        <ul>
+          <li>Regulated industries demand compliance evidence — 15–20+ artifacts provide audit trail</li>
+          <li>Large cross-functional teams need coordination today — role-specific assets give each role a clear workflow</li>
+          <li>Brownfield is the immediate need — Code2X gives day-one on-ramp (imperfect documentation in hours &gt; no documentation)</li>
+          <li>Process repeatability is the priority — deterministic execution from codified playbooks</li>
+          <li>Organization is conservative — every role keeps its title; AI augments rather than replaces</li>
+          <li>Stable requirements within cycles — dependency chain works when upstream doesn't change mid-cycle</li>
+          <li>Non-technical roles must participate — IDE integration removes accessibility barriers</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <span class="callout-label">Neither Wins When</span>
+      <ul style="margin: 8px 0 0; padding-left: 20px;">
+        <li>The human writes bad input — neither defends against wrong intent or wrong requirements</li>
+        <li>Full L5 autonomous operation — both ultimately need a human providing the "why" (hypothesis/purpose in IDSD, vision in NeuroSDLC)</li>
+      </ul>
+    </div>
+
+    <p>At L4+, IDSD holds a structural advantage: its intent model is a proto-specification, its memory architecture provides a pattern accumulation mechanism, and its compartmented evaluation enables independent verification. The architectural distance from L3 to L4 is shorter — capability addition rather than abstraction replacement. However, the critical mechanism for L4 — intent self-generation from observed outcomes — is absent from both systems today. IDSD's architecture is compatible with L4 evolution and has a shorter path to get there; it does not yet facilitate it. NeuroSDLC would require more extensive architectural evolution, but incremental paths exist (parameterized assets, outcome tracking). Neither has a validated L4 capability.</p>
+  </section>
+
+  <!-- S10: UNCOMFORTABLE TRUTH -->
+  <section id="s10">
+    <h2><span class="section-num">10</span>The Uncomfortable Truth</h2>
+
+    <div class="callout callout-insight" style="margin-bottom: 20px;">
+      <span class="callout-label">IDSD</span>
+      Architecturally better positioned for higher-autonomy AI development (L3+). Its intent model, compartmented evaluation, and memory architecture provide structural mechanisms that NeuroSDLC lacks for agent autonomy, self-verification, and process self-evolution. However, IDSD's organizational scaling exists primarily as architectural constructs — the Enterprise Wrapper, Memory Federation, and Hive Mind coordination are documented but unvalidated in multi-person environments.
+    </div>
+
+    <div class="callout callout-warning" style="margin-bottom: 20px;">
+      <span class="callout-label">NeuroSDLC</span>
+      Architecturally optimized for current-generation AI interaction (L2–L3) and practically robust. Its cognitive asset model provides stable, repeatable, role-specific workflows that work for enterprise teams today. Code2X gives immediate brownfield value. Role-based enablement solves real coordination problems. However, the architecture carries structural limitations: no learning loop, no validator independence, no adaptive assets, and a forward-only lifecycle that doesn't learn from outcomes.
+    </div>
+
+    <h3>What Both Get Right</h3>
+    <p>AI-native SDLC requires formal abstractions between human intent and AI execution. Ad-hoc prompting does not scale.</p>
+
+    <h3>What Both Get Wrong</h3>
+    <p>Neither has solved the L4–L5 transition today. IDSD's memory architecture creates the preconditions for intent self-generation but the generation mechanism itself is not yet designed. NeuroSDLC has no architectural path to self-generation without adding mechanisms currently outside its design direction.</p>
+
+    <div class="callout callout-verdict">
+      <span class="callout-label">The Structural Bet That Matters</span>
+      IDSD's evolution requires adding new capability on top of a sound foundation. NeuroSDLC's evolution requires significant architectural investment in areas (adaptive learning, agent autonomy, learning loops) that are outside its current design direction and have no stated roadmap.<br><br>
+      <strong>The adoption paradox:</strong> IDSD may have the better architecture for tomorrow but relies on external platform evolution (Claude Co-Work, IDE integrations) for enterprise adoption today. NeuroSDLC may have a constrained architecture but solves the adoption problem itself. The right tactical decision may be to invest in NeuroSDLC-style adoption while building IDSD-style architecture — adopting what works today while building for what scales tomorrow.
+    </div>
+
+    <div class="callout callout-insight">
+      <span class="callout-label">A Note on Mental Model Scope</span>
+      IDD (the paradigm behind IDSD) claims universal applicability beyond software — to UX, supply chain, agentic systems. Initial exploration in UX contexts shows promise (goals + constraints applied, failure conditions not yet). This universality claim is theoretical and untested outside software. It could be IDD's greatest strength (paradigm that scales across domains) or a blind spot (abstraction optimized for software incorrectly assumed to work everywhere). The comparison report takes no position — it requires evidence from non-software domains.
+    </div>
+  </section>
+
+  <!-- S11: RECOMMENDATIONS -->
+  <section id="s11">
+    <h2><span class="section-num">11</span>Recommendations</h2>
+
+    <div class="vs-grid">
+      <div class="vs-card idsd-card">
+        <h4>Key gaps for IDSD (priority order)</h4>
+        <ol style="padding-left: 18px; font-size: 14px; color: var(--text-muted);">
+          <li style="margin-bottom: 8px;"><strong style="color:var(--text);"><code>capture-learning</code> recipe — make it operational.</strong> This is the foundation for process self-evolution AND the precondition for eventual intent self-generation. Every other trajectory goal depends on LTM actually being populated from work. Highest leverage investment.</li>
+          <li style="margin-bottom: 8px;"><strong style="color:var(--text);">Brownfield bootstrap recipe.</strong> Purpose-built "codebase-to-LTM" for cold-start on legacy codebases. Currently concept-only. Real enterprises need this for adoption.</li>
+          <li style="margin-bottom: 8px;"><strong style="color:var(--text);">LTM quality/decay automation.</strong> As LTM grows, automated freshness scoring, relevance decay, and contradiction detection become critical. Planned but not designed.</li>
+          <li style="margin-bottom: 8px;"><strong style="color:var(--text);">Multi-stakeholder intent negotiation.</strong> Mechanism for resolving conflicting goals. Not designed. Real for enterprise contexts.</li>
+          <li><strong style="color:var(--text);">Compliance artifact mode.</strong> Optional expansion for regulated industries. Concept-stage. Additive to existing architecture.</li>
+        </ol>
+      </div>
+      <div class="vs-card neuro-card">
+        <h4>Key gaps for NeuroSDLC (priority order)</h4>
+        <ol style="padding-left: 18px; font-size: 14px; color: var(--text-muted);">
+          <li style="margin-bottom: 8px;"><strong style="color:var(--text);">Learning loop from execution to vision.</strong> The lifecycle currently ends at Deploy. Production outcomes don't inform the next cycle's vision or cognitive assets. The single highest-leverage gap — without it, the system produces more but never gets smarter.</li>
+          <li style="margin-bottom: 8px;"><strong style="color:var(--text);">Validator independence.</strong> Introduce information barriers between generation and validation. Without this, every validator confirmation is suspect at L3+.</li>
+          <li style="margin-bottom: 8px;"><strong style="color:var(--text);">Artifact chain compression.</strong> Reduce the 15–16 dependency depth. Identify load-bearing vs process-theater artifacts. The fast-track bypass discussion is a start.</li>
+          <li style="margin-bottom: 8px;"><strong style="color:var(--text);">Agent autonomy gradient.</strong> A dial (not switch) for granting agents more decision-making authority. Without this, the framework is architecturally capped at ~L3.5 regardless of how good models become.</li>
+          <li><strong style="color:var(--text);">Cross-project knowledge.</strong> Project-specific learnings should flow back to improve future projects. Currently, only shared cognitive assets (not learnings) transfer.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- METHODOLOGY -->
+  <section id="methodology">
+    <h2>Methodology Note</h2>
+
+    <p>This report applies four layers of bias control:</p>
+
+    <ol>
+      <li style="margin-bottom: 12px;"><strong>Three-layer separation:</strong> Every claim is attributed to Architecture (designed/documented), Implementation (built/running), or Trajectory (vision/planned). This prevents conflating design with delivery.</li>
+      <li style="margin-bottom: 12px;"><strong>Symmetric evolution assessment:</strong> 16 evolution areas (8 per system) were identified and evaluated with insider knowledge of both systems' direction. Both systems received the same treatment: credit for documented evidence, trajectory credit only where clearly labeled, no assumptions about undocumented capability.</li>
+      <li style="margin-bottom: 12px;"><strong>Confirmation bias audit:</strong> A dedicated fairness auditor reviewed all corrections to prevent over-correction in either direction. Key guardrail: NeuroSDLC's production maturity at L2–L3 team operation, brownfield on-ramps, and role-based enablement are genuine advantages that corrections to IDSD's scoring must not diminish.</li>
+      <li style="margin-bottom: 12px;"><strong>Devil's advocate review:</strong> A dedicated adversarial auditor examined the completed report for language bias, scoring bias, evidence asymmetry, structural bias, and the "no plans" problem. 21 bias instances were identified across 6 categories and corrected. Key corrections: removed emotionally charged language applied asymmetrically, added Enterprise Readiness scoring table to complement Autonomy Readiness table, equalized cascade failure scenario specificity, added information asymmetry disclosure, qualified self-awareness comparison.</li>
+    </ol>
+
+    <div class="callout callout-warning">
+      <span class="callout-label">Remaining Known Bias</span>
+      This analysis was produced inside the IDSD repository with access to IDSD's complete internal documentation. NeuroSDLC was evaluated from external product materials. Despite bias controls, this information asymmetry means IDSD's architectural potential may be overrepresented and NeuroSDLC's may be underrepresented. Readers should weight Implementation scores (where both systems are evaluated on what exists) more heavily than Architecture or Trajectory scores (where information asymmetry has the most impact).<br><br>
+      The author of one of these methodologies provided input to this analysis and explicitly requested confirmation bias controls, adversarial questioning, and neutral treatment. This note exists so readers know the analysis was conducted with that awareness.
+    </div>
+  </section>
+
+  <!-- REFERENCES -->
+  <footer class="footer" id="refs">
+    <h3 style="color: var(--text); margin-bottom: 16px;">References</h3>
+    <p><em>Analysis synthesized from: 7 parallel research agents (dimensional analysis), 3 hypothesis-testing agents (organizational scalability, L4–L5 maturity, fairness audit), 1 fairness auditor (over-correction prevention), 16-point symmetric evolution assessment with insider knowledge of both systems.</em></p>
+    <ul style="margin-top: 12px;">
+      <li><a href="https://www.danshapiro.com/blog/2026/01/the-five-levels-from-spicy-autocomplete-to-the-software-factory/">Dan Shapiro — The Five Levels: from Spicy Autocomplete to the Dark Factory</a></li>
+      <li><a href="https://simonwillison.net/2026/Feb/7/software-factory/">Simon Willison — How StrongDM's AI team builds software without looking at code</a></li>
+      <li><a href="https://law.stanford.edu/2026/02/08/built-by-agents-tested-by-agents-trusted-by-whom/">Stanford CodeX — Built by Agents, Tested by Agents, Trusted by Whom?</a></li>
+    </ul>
+    <p style="margin-top: 20px; font-size: 12px; color: var(--text-muted);">Generated 2026-02-21 | Phoenix OS / IDSD Evidence Artifact</p>
+  </footer>
+
+</div>
+
+<script>
+  // Active nav highlighting on scroll
+  const sections = document.querySelectorAll('section, footer');
+  const navLinks = document.querySelectorAll('.nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => link.classList.remove('active'));
+        const id = entry.target.id;
+        const activeLink = document.querySelector(`.nav a[href="#${id}"]`);
+        if (activeLink) activeLink.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(section => {
+    if (section.id) observer.observe(section);
+  });
+</script>
+</body>
+</html>
