@@ -152,6 +152,18 @@ constraints: [{boundaries}]
 failure_conditions: [{when to halt}]
 ```
 
+**Intent Propagation Format (required when invoking agents):**
+```
+Intent: {verb}: {artifact_or_scope} — {context_hint}
+
+Examples:
+  Intent: Draft product vision: QR-activation-feature — for B2B SaaS context
+  Intent: Build backend: v1-backend bundle — implement CSV export endpoint
+  Intent: Verify gates: verify.md gate-subset G-041,G-042 — post-vertical-1 check
+```
+
+Recipes MUST pass this formatted intent string as the first line of each agent invocation context block. Do not pass intent implicitly via recipe context alone.
+
 ### 4. Artifact Lifecycle
 
 ```
@@ -161,6 +173,25 @@ DRAFT → VALIDATE → LOCKED
 - `--phase draft`: Agent generates initial artifact
 - `--phase validate`: Agent runs validation, returns issues/score/checklist
 - `--phase lock`: Cascade sync → re-validate → set LOCKED
+
+**Cycle-Back on Reject:**
+- If user responds Vanish at validate phase → recipe outputs feedback prompt, returns to draft state
+- Agent re-enters draft with original context + validate phase issues as `feedback` input
+- Maximum 2 cycle-back iterations before escalating to user with structured failure
+- Recipes supporting cycle-back: discover-product, plan-roadmap, manage-backlog
+
+### 6. Compartmented Evaluation
+
+Build-phase and verify-phase agents operate under an information barrier — they must NOT share context:
+
+| Agent | Receives | Does NOT receive |
+|-------|----------|-----------------|
+| code-builder (build-feature) | Bundle context (≤12K) + LTM practices | verify.md, gate IDs, validation criteria |
+| validator (verify-feature) | Implementation output + verify.md gates | Bundle contents, builder's internal reasoning |
+
+**Why:** Information sharing between builder and validator creates confirmation bias. The validator must evaluate output independently — if it knows what the builder tried to do, it grades effort instead of outcome.
+
+**Implementation:** Recipes must construct agent invocations with scoped context. `build-feature` passes bundle ONLY. `verify-feature` passes implementation path + verify.md path ONLY.
 
 ### 5. Cascade Sync
 
@@ -173,7 +204,7 @@ DRAFT → VALIDATE → LOCKED
 | Recipe Phase | Calls cascade-sync | Context |
 |-------------|-------------------|---------|
 | Any `--phase lock` | YES (mandatory) | `spec_path` = current artifact directory |
-| `implement-feature` start | YES (check_only=true) | Verify bundles not stale before building |
+| `implement-feature` start | YES (check_only=true) | Verify bundles not stale before building. If stale → halt with structured failure: list stale artifacts, suggest running `--phase lock` on parent spec to regenerate. Do NOT auto-regenerate in check_only mode. |
 
 ---
 

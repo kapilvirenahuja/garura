@@ -83,7 +83,8 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `fix-bug` recipe passes intent string to tech-designer and code-builder invocations
 - [ ] `review-architecture` recipe passes intent string to tech-designer and validator invocations
 - [ ] `generate-docs` recipe passes intent string to agent invocation
-- [ ] Intent format in all recipes: `"Intent: {action}: {artifact_or_context}"`
+- [ ] Intent format in all recipes: `"Intent: {verb}: {artifact_or_scope} — {context_hint}"` (canonical format from idsd.md Intent Propagation Format section)
+- [ ] Intent is passed as first line of each agent invocation context block — not implicit
 
 **Evidence:** `evidence/g-002-intent-propagation.md` — intent string from each recipe's agent invocation blocks
 
@@ -165,6 +166,9 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Reference file exists: `cascade-sync/reference/sync-rules.md`
 - [ ] Anti-pattern blocked: locking Tier 1 without regenerating Tier 2 bundles
 - [ ] Anti-pattern blocked: running implement-feature with stale bundles (halts with error)
+- [ ] When check_only=true and stale artifacts found: recipe halts and lists stale files with regeneration instructions
+- [ ] Structured failure message includes: which artifacts are stale, their source spec path, command to regenerate (run `--phase lock` on parent spec)
+- [ ] Auto-regeneration does NOT happen in check_only mode — user must explicitly trigger lock phase
 
 **Evidence:** `evidence/g-005-cascade-sync.md` — skill file structure, sync detection logic, lock flow integration, anti-pattern enforcement
 
@@ -209,6 +213,10 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] roadmap LOCKED before backlog epic can DRAFT
 - [ ] backlog epic LOCKED before `define-feature` can start (backlog recipe for future use)
 - [ ] Attempting to LOCK with unresolved blockers returns structured failure
+- [ ] Validate-phase rejection (Vanish) cycles back to DRAFT with feedback — recipe does NOT halt
+- [ ] Cycle-back passes validation issues list as `feedback` to draft agent re-invocation
+- [ ] Maximum 2 cycle-back iterations before structured failure is returned
+- [ ] Recipes that support cycle-back: discover-product, plan-roadmap, manage-backlog
 - [ ] LOCKED artifacts cannot be directly edited without dropping to DRAFT first
 - [ ] Lock prerequisite chain does NOT require OKRs — vision LOCKED is sufficient for roadmap DRAFT
 
@@ -256,6 +264,27 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Each recipe file explicitly declares its agent call count
 
 **Evidence:** `evidence/g-009-recipe-level-constraints.md` — level declaration and agent call count from each recipe file
+
+---
+
+### G-010: Compartmented Evaluation — Builder/Validator Information Barrier
+
+| Property | Value |
+|----------|-------|
+| Recipe Priority | Cross-cutting — build-feature (P9), verify-feature (P10), implement-feature (P3) |
+| SDLC Phase | Spec-2-Code, Code-2-Test |
+| Mandatory | YES |
+| Depends On | G-230, G-240 |
+
+**Verification Steps:**
+- [ ] `build-feature` recipe invocation context for code-builder contains ONLY: bundle content (≤12K), LTM practices, codebase context
+- [ ] `build-feature` recipe does NOT pass verify.md, gate IDs, or validation criteria to code-builder
+- [ ] `verify-feature` recipe invocation context for validator contains ONLY: verify.md gates, implementation output path
+- [ ] `verify-feature` recipe does NOT pass bundle contents or design specs to validator
+- [ ] `implement-feature` recipe constructs separate scoped context for each sub-recipe invocation (no shared context bundle)
+- [ ] Agent invocation descriptions in all three recipes explicitly document what is and is not passed
+
+**Evidence:** `evidence/g-010-compartmented-evaluation.md` — recipe invocation context blocks, scope declarations for builder and validator
 
 ---
 
@@ -1242,6 +1271,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | G-007 | Artifact Lifecycle Enforcement (DRAFT → VALIDATE → LOCKED) | Cross-cutting | Product-2-Design | YES | G-110, G-200, G-210 |
 | G-008 | Agent-First Pattern in All Recipes | Cross-cutting | All | YES | — |
 | G-009 | L1 and L2 Recipe Level Constraints | Cross-cutting | All | YES | — |
+| G-010 | Compartmented Evaluation — Builder/Validator Information Barrier | Cross-cutting | Spec-2-Code, Code-2-Test | YES | G-230, G-240 |
 | G-100 | start-feature IDD Compliance and Resume Mode | P1 | Universal Precursor | YES | — |
 | G-101 | capture-learning Recipe and Skill Contracts | P2 | Learn-2-Memory | YES | — |
 | G-102 | implement-feature L2 Multi-Vertical Orchestration | P3 | Spec-2-Test | YES | G-020, G-021, G-022, G-023 |
@@ -1308,6 +1338,9 @@ This matrix shows which gates cover which architectural rules and principles fro
 | **New Agents** — product-strategist, validator created | G-105, G-110 |
 | **Existing Agents IDD-Compliant** — code-builder, tech-designer, repo-orchestrator, project-orchestrator reviewed | G-502, G-001 |
 | **Parallel Execution** — backend/frontend of same vertical can run in parallel | G-102, G-004 |
+| **Compartmented Evaluation** — builder receives bundle only; validator receives implementation output only; no shared context | G-010, G-102, G-230, G-240 |
+| **Validate-Lock Cycle-Back** — Vanish at validate returns to DRAFT with feedback, not halt; max 2 iterations | G-007, G-104, G-200, G-210 |
+| **Cascade Sync Staleness Halt** — stale bundles at implement-feature start halt with regeneration instructions | G-005, G-102 |
 | **Cascade Sync at implement-feature Start** — check_only=true before building | G-005, G-102 |
 | **Business Review Generation** — PM-facing artifact callable from any phase | G-106, G-107 |
 | **capture-learning Feeds LTM** — Learn-2-Memory output goes to core/components/memory | G-101 |
