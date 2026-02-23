@@ -170,7 +170,7 @@ Present the final report using `templates/final-report.md`.
 
 ## Recovery
 
-Load recovery reasoning from: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
+Load recovery reasoning from: `docs/framework/intent-driven-recovery.md`
 
 When an agent returns a structured failure (per `structured-failure-protocol.md`):
 - Read `domain_assessment.responsible_domain` to identify which agent can fix it

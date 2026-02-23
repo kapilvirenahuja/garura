@@ -200,7 +200,7 @@ Present final report to user using `templates/feature-started.md`.
 
 ## Recovery
 
-Load recovery reasoning from: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
+Load recovery reasoning from: `docs/framework/intent-driven-recovery.md`
 
 When an agent returns a structured failure (per `structured-failure-protocol.md`):
 - Read `domain_assessment.responsible_domain` to identify which agent can fix it
@@ -241,7 +241,7 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 | `chore` | `chore/` |
 | `null` | User selects during checkpoint |
 
-Reference: `~/.phoenix-os/core/memory/practices/git/branching.md`
+Reference: `~/.phoenix-os/core/memory/standards/git/branching.md`
 
 **Two-Phase STM Write (ADR 008):**
 
