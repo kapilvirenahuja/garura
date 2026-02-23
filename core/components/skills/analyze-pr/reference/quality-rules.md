@@ -47,7 +47,7 @@ This ruleset is designed for projects where the primary artifacts are:
 
 | ID | Priority | Item | Verification |
 |----|----------|------|--------------|
-| `recipe-frontmatter` | must-have | Recipe has valid frontmatter | Check: name, level, user-invocable |
+| `recipe-frontmatter` | must-have | Recipe has valid frontmatter | Check: name, description, user-invocable, allowed-tools. Note: `level` is in `## Version` metadata, not frontmatter |
 | `recipe-workflow` | must-have | Recipe defines workflow | Check for ## Workflow section |
 | `recipe-checkpoint` | must-have | Recipe defines checkpoint behavior | Check for checkpoint in workflow |
 | `recipe-agent-limit` | nice-to-have | Recipe respects agent call limits | L1 ≤2, L2 ≤5 |

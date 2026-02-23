@@ -46,7 +46,7 @@ Determine which file patterns are affected:
 
 Determine branch pattern using: `reference/branch-patterns.md`
 
-Determine commit types from commit messages using: `reference/commit-categories.md`
+Determine commit types from commit messages using: `~/.phoenix-os/core/memory/references/commit-categories.md`
 
 ### 3. Load Rules
 
@@ -92,3 +92,10 @@ Produce output using template: `templates/analysis-output.md`
 - NEVER modify any files — read-only analysis
 - ALWAYS show trigger reason for each checklist item
 - ALWAYS provide evidence for automated checks
+
+## Version
+
+| Field | Value |
+|-------|-------|
+| Version | 1.0.0 |
+| Category | analysis |

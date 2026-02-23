@@ -54,3 +54,10 @@ Return using template: `templates/commit-output.md`
 - ONLY stage files explicitly provided
 - NEVER use `git add .` or `git add -A`
 - ALWAYS use conventional commit format
+
+## Version
+
+| Field | Value |
+|-------|-------|
+| Version | 1.0.0 |
+| Category | operations |

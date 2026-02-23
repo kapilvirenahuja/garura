@@ -34,7 +34,7 @@ Receive from agent:
 
 2. **Categorize Each File**
 
-   Load categories from: `reference/commit-categories.md`
+   Load categories from: `~/.phoenix-os/core/memory/references/commit-categories.md`
 
 3. **Detect Risks**
 
@@ -52,3 +52,10 @@ Receive from agent:
 Produce output using template: `templates/analysis-output.md`
 
 **IMPORTANT**: This skill produces analysis data. The calling agent receives this output and decides what to do next. Do NOT instruct the agent to return or stop — the agent continues its workflow after receiving this analysis.
+
+## Version
+
+| Field | Value |
+|-------|-------|
+| Version | 1.0.0 |
+| Category | analysis |
