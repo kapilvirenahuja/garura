@@ -136,3 +136,10 @@ Load GitHub CLI and API reference from: `reference/github-issue.md`
 - NEVER assign to anyone other than `@me` on create
 - ALWAYS use `gh` CLI for issue operations, not raw API calls (except for sub-issues)
 - ALWAYS verify issue exists after creation
+
+## Version
+
+| Field | Value |
+|-------|-------|
+| Version | 1.0.0 |
+| Category | operations |

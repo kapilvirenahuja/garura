@@ -104,3 +104,10 @@ Load branching conventions from: `reference/branching.md`
 - NEVER modify existing branch content
 - ALWAYS verify branch was created successfully before reporting
 - ALWAYS check for existing branch before creating
+
+## Version
+
+| Field | Value |
+|-------|-------|
+| Version | 1.0.0 |
+| Category | operations |

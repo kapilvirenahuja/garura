@@ -140,14 +140,7 @@ ls -1 "$MEMORY_TARGET"/
 
 ## Output
 
-Report the synced components:
-
-```
-Synced to {TARGET_DIR} ({mode} mode):
-- Skills: {count} ({list})
-- Agents: {count} ({list})
-- Memory: synced to {MEMORY_TARGET} ({list})
-```
+Produce output using template: `templates/sync-output.md`
 
 ## Constraints
 
@@ -161,3 +154,10 @@ Synced to {TARGET_DIR} ({mode} mode):
 - In project mode, memory goes to `.phoenix-os/core/memory/` (project-specific)
 - Project mode creates ephemeral local copies in `.claude/` and `.phoenix-os/core/memory/` that are gitignored
 - Global mode is the canonical deployment path for components
+
+## Version
+
+| Field | Value |
+|-------|-------|
+| Version | 1.0.0 |
+| Category | operations |
