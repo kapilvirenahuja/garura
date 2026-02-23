@@ -1,0 +1,36 @@
+intent: "Submit work for peer review via a pull request with dynamically generated, evidence-based quality assurance"
+
+constraints:
+  pre_flight:
+    - id: C1
+      check: current branch NOT IN [main, master, develop]
+      halt_message: "Protected branch — PRs cannot be created from a protected branch"
+    - id: C2
+      check: branch has unpushed commits vs target
+      halt_message: "No commits to push — create commits before creating a PR"
+    - id: C3
+      check: no merge conflicts between branch and target
+      halt_message: "Branch conflicts with target — resolve conflicts before creating a PR"
+    - id: C4
+      check: issue number extractable from branch name (NWWI)
+      halt_message: "No issue number extractable from branch name — PRs require traceability to a GitHub issue"
+
+  behavioral:
+    - id: C5
+      rule: "Always checkpoint before PR creation — PRs are externally visible"
+    - id: C6
+      rule: "Quality checklist MUST distinguish must-have (blocking) from nice-to-have items"
+    - id: C7
+      rule: "Orchestrator MUST delegate to agents — never execute gh commands directly"
+    - id: C8
+      rule: "Maximum 1 distinct agent (repo-orchestrator); may be called multiple times"
+    - id: C9
+      rule: "Recovery agent calls are exempt from the agent limit"
+
+failure_conditions:
+  - No issue number extractable from the current branch name
+  - No commits to push (branch has no unpushed commits vs target)
+  - Branch conflicts with target branch (merge conflicts detected)
+  - User rejects proposed PR at checkpoint (Vanish)
+  - Blocking quality checklist items have FAIL status
+  - PR creation fails on the remote

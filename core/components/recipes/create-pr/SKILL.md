@@ -12,44 +12,7 @@ Create a pull request with a context-aware quality checklist based on what chang
 
 ## Intent
 
-```yaml
-intent: "Submit work for peer review via a pull request with dynamically generated, evidence-based quality assurance"
-
-constraints:
-  pre_flight:
-    - id: C1
-      check: current branch NOT IN [main, master, develop]
-      halt_message: "Protected branch — PRs cannot be created from a protected branch"
-    - id: C2
-      check: branch has unpushed commits vs target
-      halt_message: "No commits to push — create commits before creating a PR"
-    - id: C3
-      check: no merge conflicts between branch and target
-      halt_message: "Branch conflicts with target — resolve conflicts before creating a PR"
-    - id: C4
-      check: issue number extractable from branch name (NWWI)
-      halt_message: "No issue number extractable from branch name — PRs require traceability to a GitHub issue"
-
-  behavioral:
-    - id: C5
-      rule: "Always checkpoint before PR creation — PRs are externally visible"
-    - id: C6
-      rule: "Quality checklist MUST distinguish must-have (blocking) from nice-to-have items"
-    - id: C7
-      rule: "Orchestrator MUST delegate to agents — never execute gh commands directly"
-    - id: C8
-      rule: "Maximum 1 distinct agent (repo-orchestrator); may be called multiple times"
-    - id: C9
-      rule: "Recovery agent calls are exempt from the agent limit"
-
-failure_conditions:
-  - No issue number extractable from the current branch name
-  - No commits to push (branch has no unpushed commits vs target)
-  - Branch conflicts with target branch (merge conflicts detected)
-  - User rejects proposed PR at checkpoint (Vanish)
-  - Blocking quality checklist items have FAIL status
-  - PR creation fails on the remote
-```
+**BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1–C4), behavioral constraints (C5–C9), and failure conditions. All constraint IDs referenced in this recipe map to that file.
 
 ## Role
 
@@ -82,12 +45,7 @@ Provide recipe context:
 ---
 Recipe context:
   intent: "Verify preconditions before creating a pull request"
-  task: "Check all of the following and return pass/fail for each. Do NOT halt — just return results."
-  checks:
-    C1: "Is the current branch NOT main, master, or develop?"
-    C2: "Does the current branch have unpushed commits vs the target branch?"
-    C3: "Are there no merge conflicts between the current branch and the target branch?"
-    C4: "Is there an issue number extractable from the current branch name?"
+  task: "Read `reference/intent.yaml`. Run every check in `constraints.pre_flight`. Return pass/fail for each. Do NOT halt — just return results."
 ```
 
 **Expected output:**
@@ -96,13 +54,10 @@ pre_flight:
   branch: {current_branch_name}
   target: {target_branch_name}
   issue_number: {integer | null}
-  C1: PASS | FAIL
-  C2: PASS | FAIL
-  C3: PASS | FAIL
-  C4: PASS | FAIL
+  results: [{id: C1, status: PASS|FAIL}, ...]  # one entry per constraint in intent.yaml
 ```
 
-Pre-flight failures are **hard halts** — these are environmental conditions the agent cannot fix. See Recovery for all other failures.
+**Orchestrator validates results:** for any result with `status: FAIL`, halt immediately with that constraint's `halt_message` from `reference/intent.yaml`. Pre-flight failures are **hard halts** — these are environmental conditions the agent cannot fix. See Recovery for all other failures.
 
 ### Step 1 — Analyze
 
@@ -116,14 +71,8 @@ Recipe context:
   task: "Analyze the current branch vs target. Generate quality checklist distinguishing blocking (must-have) from optional (nice-to-have) items. Return structured output only — do NOT create the PR."
   branch: {current_branch_name}
   target: {target_branch_name}
-  pre_flight:
-    C1: PASS
-    C2: PASS
-    C3: PASS
-    C4: PASS
-  behavioral_constraints:
-    - C5: "Always checkpoint before PR creation — PRs are externally visible"
-    - C6: "Quality checklist MUST distinguish must-have (blocking) from nice-to-have items"
+  pre_flight: {all results from Step 0}
+  behavioral_constraints: {all behavioral constraints from reference/intent.yaml}
 ```
 
 **Expected output:**
@@ -156,7 +105,7 @@ If agent returns structured failure → see Recovery section.
 
 **The orchestrator owns this step entirely. Do not delegate.**
 
-Extract issue number from `pre_flight.issue_number` (already validated Step 0 C4: PASS).
+Extract issue number from `pre_flight.issue_number` (already validated in Step 0).
 
 Write checkpoint artifact to STM: `.phoenix-os/{issue-number}/checkpoint/create-pr/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
 
@@ -234,8 +183,9 @@ For retries, add to recipe context:
 
 ## References
 
-| Template | Path | Used For |
-|----------|------|----------|
+| File | Path | Used For |
+|------|------|----------|
+| Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
 | Checkpoint | `templates/checkpoint.md` | STM artifact at `.phoenix-os/{issue}/checkpoint/create-pr/{ts}.md` |
 | Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation |
 | Final Report | `templates/final-report.md` | Post-PR creation summary |
