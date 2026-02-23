@@ -150,11 +150,17 @@ result:
     optional_count: {count}
 ```
 
-If `result.success: false` → see Recovery section. Max 1 retry.
+If `result.success: false` → see Recovery section. Max 2 retries.
 
 ### Step 4 — Report
 
 **The orchestrator owns this step entirely. Do not delegate.**
+
+Write evidence to `.phoenix-os/{issue-number}/evidence/create-pr/{YYYYMMDD-HHMMSS}.md`:
+- Issue number and branch
+- PR number, URL, title, and state
+- Quality checklist summary (must-have count, nice-to-have count, any FAIL items)
+- Base and head branches
 
 Present the final report using `templates/final-report.md`.
 
@@ -169,7 +175,7 @@ Load recovery reasoning from: `~/.phoenix-os/core/memory/practices/intent-driven
 When an agent returns a structured failure (per `structured-failure-protocol.md`):
 - Read `domain_assessment.responsible_domain` to identify which agent can fix it
 - Invoke the responsible agent with fix context + original intent
-- Max 1 retry per step. After that, halt with full failure context.
+- Max 2 retries per step. After that, halt with full failure context.
 
 For retries, add to recipe context:
 ```yaml

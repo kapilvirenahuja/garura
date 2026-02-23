@@ -18,7 +18,7 @@ Commit code changes grouped by issue type with conventional commit messages.
 
 You are the orchestrator. You own the workflow. You delegate domain tasks to agents — never execute directly.
 
-**Forbidden:** `Bash`, `Grep`, `Glob`, or any direct git commands.
+**Forbidden:** `Bash`, `Grep`, `Glob`, or any direct git/gh commands.
 
 **Agent boundaries:**
 - `repo-orchestrator` — git domain only: reads state, analyzes changes, creates commits
