@@ -239,6 +239,16 @@ This phase is the operational mechanism for IDD Hypothesis H1 (Memory-Driven Int
 
 All speeds start with `start-feature` (universal precursor).
 
+### Intent Primacy
+
+Speed is one dimension of execution. The other is **autonomy** — how much of the workflow is prescribed vs derived from intent.
+
+Today, recipes prescribe every step. This is deliberate: prescribed execution builds the trust and memory depth needed for autonomous execution. But the architecture is designed so that auditability, predictability, and human oversight — currently structural properties of recipes — can migrate to declarative constraints in the intent schema over time.
+
+The `reference/intent.yaml` externalization pattern (see `create-pr` as golden standard) is a concrete step toward this: intent as a first-class, extensible schema that can grow to encompass workflow-level properties. When the constraint schema is expressive enough and memory is deep enough, the system can derive its own execution plan from intent alone.
+
+See [Intent Primacy and Recipe Evolution](./architecture.md#intent-primacy-and-recipe-evolution) for the full evolution path.
+
 ---
 
 ## Phoenix OS Architecture
@@ -465,23 +475,32 @@ Token budgets are directional targets, not hard constraints. They exist to keep 
 
 Every recipe invocation passes a structured YAML context bundle to the agent. This is the contract between the recipe (orchestrator) and the agent (domain executor).
 
+**Intent externalization:** Recipes externalize their intent schema to `reference/intent.yaml` as a first-class file. Context bundles reference this file dynamically — agent context blocks never hardcode constraint IDs. This means adding new constraints to `intent.yaml` is automatically picked up by all agent invocations without modifying SKILL.md. See `create-pr` as the golden standard implementation.
+
 **Standard bundle structure:**
 ```yaml
 ---
 Recipe context:
   intent: "{SDLC intent — what this recipe step is trying to achieve}"
-  pre_flight:            # Pre-flight check results from Step 0
-    C1: PASS | FAIL
-    C2: PASS | FAIL
+  pre_flight: {all results from Step 0}      # Dynamic — passed as a set, not enumerated
   task: "{Specific task this agent invocation must perform}"
   mode: "{NEW | RESUME | null}"              # When applicable
   input: "{User input or upstream artifact}" # When applicable
   issue_number: {integer}                    # When known
   parent: {parent_issue_number or null}      # When applicable
-  behavioral_constraints:                    # Subset of recipe constraints relevant to this agent call
-    - C3: "{constraint text}"
-    - C5: "{constraint text}"
+  behavioral_constraints: {all behavioral constraints from reference/intent.yaml}  # Dynamic reference
 ```
+
+**Pre-flight context (Step 0 — dynamic):**
+```yaml
+---
+Recipe context:
+  intent: "Verify preconditions before execution"
+  task: "Read `reference/intent.yaml`. Run every check in `constraints.pre_flight`.
+         Return pass/fail for each. Do NOT halt — just return results."
+```
+
+The agent reads the intent file and runs all pre-flight checks. The orchestrator validates results and halts on any failure using the constraint's `halt_message` from the intent file. This design means pre-flight checks can grow in `intent.yaml` without any recipe changes.
 
 **On retries, add:**
 ```yaml
@@ -492,8 +511,9 @@ Recipe context:
 ```
 
 **Rules for context bundles:**
-- Include only the constraints relevant to this specific agent call — not all recipe constraints
+- Reference `reference/intent.yaml` dynamically — never hardcode constraint IDs in context blocks
 - Always pass `pre_flight` results so the agent knows what has already been verified
+- Pass behavioral constraints as a dynamic set from `reference/intent.yaml`, not enumerated
 - The `task` field must be a single, specific directive — not a general description
 - Agent boundaries must be enforced: pass only what the agent's domain covers
 

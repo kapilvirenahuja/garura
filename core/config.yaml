@@ -37,6 +37,8 @@ stm:
   base-path: .phoenix-os/
   pending-path: .phoenix-os/_pending/
   structure:
-    docs: "{issue-number}/docs/"
-    evidence: "{issue-number}/evidence/"
+    spec: "{issue-number}/spec/"
+    design: "{issue-number}/design/"
+    evidence: "{issue-number}/evidence/{recipe-name}/{YYYYMMDD-HHMMSS}.md"
+    delivery: "{issue-number}/delivery/"
     checkpoint: "{issue-number}/checkpoint/{recipe-name}/{YYYYMMDD-HHMMSS}.md"
