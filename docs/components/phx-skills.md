@@ -238,7 +238,7 @@ Load patterns from: `reference/risks.md`
 Organizational standards that adopters customize — commit categories, issue templates, quality gates. These live in LTM and are referenced by well-known paths.
 
 ```markdown
-Load categories from: `~/.phoenix-os/core/memory/references/commit-categories.md`
+Load categories from: `~/.phoenix-os/core/memory/standards/commits/categories.md`
 ```
 
 | Knowledge Type | Location | Mutable By Adopter |
