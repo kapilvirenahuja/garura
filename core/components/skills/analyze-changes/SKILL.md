@@ -34,7 +34,7 @@ Receive from agent:
 
 2. **Categorize Each File**
 
-   Load categories from: `~/.phoenix-os/core/memory/references/commit-categories.md`
+   Load categories from: `~/.phoenix-os/core/memory/standards/commits/categories.md`
 
 3. **Detect Risks**
 

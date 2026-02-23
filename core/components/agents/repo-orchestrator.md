@@ -274,10 +274,12 @@ Bash is available for operations **not covered by skills**:
 
 ## Memory
 
-Load practices from `~/.phoenix-os/core/memory/practices/` as needed:
+Load from LTM (`~/.phoenix-os/core/memory/`) as needed:
+- `standards/git/branching.md` — Branch naming conventions
+
+Load framework protocols from `docs/framework/` as needed:
 - `intent-driven-recovery.md` — Recovery reasoning loop
 - `structured-failure-protocol.md` — Structured failure return format
-- `git/branching.md` — Branch naming conventions
 
 ## Recovery
 

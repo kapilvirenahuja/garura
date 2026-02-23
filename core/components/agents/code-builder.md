@@ -210,7 +210,7 @@ Bash is available for operations that support implementation:
 
 ## Memory
 
-Load practices from `~/.phoenix-os/core/memory/practices/` when referenced:
+Load framework protocols from `docs/framework/` when referenced:
 - `structured-failure-protocol.md` — Structured failure return format
 
 ## Recovery

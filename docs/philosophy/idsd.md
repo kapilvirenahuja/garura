@@ -565,9 +565,9 @@ L1 recipes invoke ≤2 distinct agents. **Recovery calls are exempt from this li
 
 ### Recovery Reasoning in LTM
 
-Recovery reasoning is loaded from: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
+Recovery reasoning is loaded from: `docs/framework/intent-driven-recovery.md`
 
-This LTM file contains the structured-failure-protocol definition and domain-routing logic. Keeping this in LTM — rather than embedding it in each recipe — allows recovery behavior to be updated centrally without modifying individual recipes.
+This file contains the recovery reasoning loop and domain-routing logic. Keeping this centralized — rather than embedding it in each recipe — allows recovery behavior to be updated without modifying individual recipes. The structured failure protocol is at `docs/framework/structured-failure-protocol.md`.
 
 ---
 

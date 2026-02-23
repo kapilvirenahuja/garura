@@ -305,7 +305,7 @@ retry:
 
 **Recovery calls are exempt from the agent limit.** A recipe that normally invokes ≤2 agents may invoke additional recovery calls beyond that limit without violating the L1/L2 agent count rule. Recovery calls are not counted as new agent invocations for the purpose of the constraint.
 
-Recovery reasoning is loaded from LTM: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`. This file defines the structured-failure-protocol that agents use to format their failure responses.
+Recovery reasoning is loaded from: `docs/framework/intent-driven-recovery.md`. This file defines the recovery reasoning loop. The structured-failure-protocol that agents use to format their failure responses is at `docs/framework/structured-failure-protocol.md`.
 
 ### Checkpoint Artifact Status Lifecycle
 

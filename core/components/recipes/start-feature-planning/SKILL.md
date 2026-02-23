@@ -117,7 +117,7 @@ issue:
 If `type_hint` is null → default to `feature/` (C10).
 
 Derive branch name: `{type}/{issue_number}-{slug}`
-- Slug: lowercase, hyphens, max 40 chars. Reference: `~/.phoenix-os/core/memory/practices/git/branching.md`
+- Slug: lowercase, hyphens, max 40 chars. Reference: `~/.phoenix-os/core/memory/standards/git/branching.md`
 
 **Orchestrator initializes STM directory** at `.phoenix-os/{issue}/` with subdirectories: `spec/`, `design/`, `evidence/`, `delivery/`, `checkpoint/`, `planning/`.
 
@@ -293,7 +293,7 @@ Present final report to user using `templates/feature-started.md`.
 
 ## Recovery
 
-Load recovery reasoning from: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
+Load recovery reasoning from: `docs/framework/intent-driven-recovery.md`
 
 When an agent returns a structured failure (per `structured-failure-protocol.md`):
 - Read `domain_assessment.responsible_domain` to identify which agent can fix it
@@ -325,7 +325,7 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 
 **Branch Naming Convention:** `{type}/{issue_number}-{slug}`
 
-Reference: `~/.phoenix-os/core/memory/practices/git/branching.md`
+Reference: `~/.phoenix-os/core/memory/standards/git/branching.md`
 
 ---
 

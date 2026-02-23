@@ -227,7 +227,7 @@ Agent returns structured failure
     └── Retries exhausted → HALT with full failure context
 ```
 
-Recovery reasoning is loaded from LTM: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
+Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md`
 
 **Retry context added to recipe context bundle:**
 ```yaml
@@ -373,7 +373,7 @@ constraint's `halt_message` from `reference/intent.yaml`.}
 ## Recovery
 
 Load recovery reasoning from:
-`~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
+`docs/framework/intent-driven-recovery.md`
 
 {Structured failure protocol — max N retries per step.}
 {Pre-flight failures are hard halts — not recoverable.}

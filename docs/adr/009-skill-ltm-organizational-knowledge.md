@@ -47,16 +47,20 @@ Allow skills to read from LTM at runtime for **organizational knowledge** — st
 
 ```
 ~/.phoenix-os/core/memory/
-├── references/              # Shared organizational standards
-│   └── commit-categories.md # Used by analyze-changes, analyze-pr, create-commit
-├── templates/               # Output/input templates for organizational format
+├── standards/               # Rules, conventions, quality criteria
+│   ├── commits/
+│   │   ├── categories.md    # Used by analyze-changes, analyze-pr, create-commit
+│   │   └── quality-rules.md # Used by analyze-pr, create-commit
+│   └── git/
+│       └── branching.md     # Used by repo-orchestrator, setup-branch
+├── formats/                 # Templates and output shapes
 │   └── github-issue.md      # Used by manage-issue
-├── practices/               # Organizational practices
-│   ├── intent-driven-recovery.md
-│   └── structured-failure-protocol.md
-└── quality-gates/           # Quality standards
-    └── commit.md
+└── knowledge/               # Searchable reference material
+    └── architecture/
+        └── evolutionary-scaling.md  # Application architecture decisions
 ```
+
+**Note:** Framework protocols (intent-driven-recovery.md, structured-failure-protocol.md, recipe-structure.md) are NOT organizational knowledge — they are Phoenix OS internals and live in `docs/framework/`.
 
 ### Skill Reference Pattern
 
@@ -67,7 +71,7 @@ Skills reference LTM with explicit load directives:
 
 1. **Categorize Each File**
 
-   Load categories from: `~/.phoenix-os/core/memory/references/commit-categories.md`
+   Load categories from: `~/.phoenix-os/core/memory/standards/commits/categories.md`
 ```
 
 Skills retain a `reference/` directory for skill-specific knowledge that is NOT organizational:
@@ -96,8 +100,11 @@ core/components/skills/{skill-name}/
 
 | Content | LTM Path | Used By |
 |---------|----------|---------|
-| Commit categories | `~/.phoenix-os/core/memory/references/commit-categories.md` | analyze-changes, analyze-pr |
-| Issue templates | `~/.phoenix-os/core/memory/templates/github-issue.md` | manage-issue |
+| Commit categories | `~/.phoenix-os/core/memory/standards/commits/categories.md` | analyze-changes, analyze-pr |
+| Commit quality rules | `~/.phoenix-os/core/memory/standards/commits/quality-rules.md` | analyze-pr |
+| Branch naming | `~/.phoenix-os/core/memory/standards/git/branching.md` | repo-orchestrator, setup-branch |
+| Issue templates | `~/.phoenix-os/core/memory/formats/github-issue.md` | manage-issue |
+| Architecture reference | `~/.phoenix-os/core/memory/knowledge/architecture/evolutionary-scaling.md` | tech-designer |
 
 ## Consequences
 

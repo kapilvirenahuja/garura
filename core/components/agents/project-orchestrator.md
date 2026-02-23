@@ -232,7 +232,7 @@ Bash is available for operations **not covered by skills**:
 
 ## Memory
 
-Load practices from `~/.phoenix-os/core/memory/practices/` as needed:
+Load framework protocols from `docs/framework/` as needed:
 - `intent-driven-recovery.md` — Recovery reasoning loop
 - `structured-failure-protocol.md` — Structured failure return format
 

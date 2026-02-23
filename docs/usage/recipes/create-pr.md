@@ -285,7 +285,7 @@ All failure handling is consolidated in a single `## Recovery` section in SKILL.
 
 - **Pre-flight failures** (C1–C4) are hard halts — environmental conditions agents cannot fix
 - **Runtime failures** (Steps 1–3) trigger the recovery loop — max 1 retry per step
-- Recovery reasoning loaded from LTM: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
+- Recovery reasoning loaded from: `docs/framework/intent-driven-recovery.md`
 
 ## Related
 

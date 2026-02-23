@@ -29,9 +29,9 @@ LTM contains **project contextual information** that persists across all recipes
 ### LTM Purpose
 
 LTM stores:
-- **Practices** — How to do things (guidelines, standards)
-- **Templates** — Output formats (document templates)
-- **Tools** — Tool-specific patterns (platform operations)
+- **Standards** — Rules, conventions, quality criteria ("What are the rules?")
+- **Formats** — Templates and output shapes ("What does the output look like?")
+- **Knowledge** — Searchable reference material for design decisions ("What should I consider?")
 
 ### LTM Usage
 
@@ -45,9 +45,9 @@ Agents and skills read from LTM to:
 Agent invoked
     │
     └── Reads LTM from ~/.phoenix-os/core/memory/:
-          ├── practices/{domain}/
-          ├── templates/{type}/
-          └── tools/{platform}/
+          ├── standards/{domain}/
+          ├── formats/{type}/
+          └── knowledge/{domain}/
     │
     └── Applies standards to work
 ```
@@ -57,9 +57,16 @@ Agent invoked
 **Authoring (source of truth):**
 ```
 core/components/memory/
-├── practices/       # How to do things
-├── templates/       # Output formats
-└── tools/           # Tool-specific patterns
+├── standards/       # Rules, conventions, quality criteria
+│   ├── _index.md
+│   ├── commits/    # Commit categorization and quality rules
+│   └── git/        # Branch naming conventions
+├── formats/         # Templates and output shapes
+│   ├── _index.md
+│   └── github-issue.md
+└── knowledge/       # Searchable reference material
+    ├── _index.md
+    └── architecture/
 ```
 
 **Runtime (where agents read from):**
@@ -162,8 +169,9 @@ Recipe completes
 L1 Recipe
     │
     ├── Agent reads LTM:
-    │     ├── practices/
-    │     └── templates/
+    │     ├── standards/
+    │     ├── formats/
+    │     └── knowledge/
     │
     ├── Agent does work
     │
@@ -194,9 +202,9 @@ L2 Recipe
 **Authoring:** Memory is authored in:
 ```
 core/components/memory/
-├── practices/       # Guidelines, standards
-├── templates/       # Output templates
-└── tools/           # Tool-specific patterns
+├── standards/       # Rules, conventions, quality criteria
+├── formats/         # Templates and output shapes
+└── knowledge/       # Searchable reference material
 ```
 
 **Runtime:** Agents read memory from:
