@@ -2,11 +2,10 @@
 
 ## Metadata
 - **Issue:** #{issue-number}
-- **Recipe:** start-planned-feature
-- **Phase:** {PLANNING|EXECUTION}
+- **Recipe:** start-feature-planning
 - **Step:** {current-step} of {total}
 - **Created:** {YYYY-MM-DD HH:MM:SS}
-- **Status:** {PENDING_APPROVAL|APPROVED|REJECTED|COMPLETED}
+- **Status:** {PENDING_APPROVAL|APPROVED|REJECTED}
 
 ## Issue
 | Field | Value |

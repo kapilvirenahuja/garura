@@ -8,6 +8,8 @@ allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
 
 # commit-code
 
+Commit code changes grouped by issue type with conventional commit messages.
+
 ## Intent
 
 **BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1–C2), behavioral constraints (C3–C8), and failure conditions. All constraint IDs referenced in this recipe map to that file.
@@ -62,7 +64,7 @@ pre_flight:
 Invoke `repo-orchestrator` to run the `analyze-changes` skill.
 
 Provide recipe context:
-```
+```yaml
 ---
 Recipe context:
   intent: "Safely persist completed work as conventional commits with traceability"
@@ -96,7 +98,7 @@ analysis:
 If `analysis.issue_number` is null, invoke `project-orchestrator` to resolve a valid issue ID from the branch name or halt.
 
 Provide recipe context:
-```
+```yaml
 ---
 Recipe context:
   intent: "Resolve issue ID for commit traceability (NWWI)"
@@ -151,7 +153,7 @@ Update STM artifact Status to `APPROVED` before proceeding.
 Invoke `repo-orchestrator` once per approved commit group — sequentially, in dependency order.
 
 Provide recipe context per invocation:
-```
+```yaml
 ---
 Recipe context:
   intent: "Safely persist completed work as conventional commits with traceability"

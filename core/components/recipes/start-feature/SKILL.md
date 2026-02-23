@@ -8,6 +8,8 @@ allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
 
 # start-feature
 
+Create or resume a work context — issue + branch + STM directory.
+
 ## Intent
 
 **BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1–C2), behavioral constraints (C3–C10), and failure conditions. All constraint IDs referenced in this recipe map to that file.
@@ -77,7 +79,7 @@ Invoke `project-orchestrator`:
 - **`--parent` modifier:** Attach new issue as sub-issue to parent after creation.
 
 Provide recipe context:
-```
+```yaml
 ---
 Recipe context:
   intent: "Create or resume a work context — issue + branch + STM directory"
@@ -127,7 +129,7 @@ Update checkpoint artifact Status to `APPROVED` before proceeding to Step 3.
 
 **NEW mode:** Invoke `repo-orchestrator`:
 
-```
+```yaml
 ---
 Recipe context:
   intent: "Create or resume a work context — issue + branch + STM directory"
@@ -140,7 +142,7 @@ Recipe context:
 
 **RESUME mode:** Invoke `repo-orchestrator`:
 
-```
+```yaml
 ---
 Recipe context:
   intent: "Create or resume a work context — issue + branch + STM directory"
@@ -206,8 +208,6 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 - Max 2 retry cycles per agent. After that, HALT with full failure context.
 
 ## References
-
-### Templates
 
 | File | Path | Used For |
 |------|------|----------|
