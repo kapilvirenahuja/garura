@@ -16,6 +16,8 @@ All planning is via the Plan sub-agent (Task tool). You are the orchestrator.
 
 # start-feature-planning
 
+Resolve issue, plan with IDD principles, create branch, and deliver a ready-to-execute task graph.
+
 ## Intent
 
 **BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1–C2), behavioral constraints (C3–C10), and failure conditions. All constraint IDs referenced in this recipe map to that file.
@@ -91,7 +93,7 @@ pre_flight:
 Invoke `project-orchestrator` — resolve or create issue.
 
 Provide recipe context:
-```
+```yaml
 ---
 Recipe context:
   intent: "Resolve issue, plan with IDD principles, create branch, deliver task graph"
@@ -253,7 +255,7 @@ Parse: `Tether`/`tether` → update artifact Status to `APPROVED`, proceed to St
 
 Invoke `repo-orchestrator`:
 
-```
+```yaml
 ---
 Recipe context:
   intent: "Resolve issue, plan with IDD principles, create branch, deliver task graph"
@@ -300,8 +302,6 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 
 ## References
 
-### Templates
-
 | File | Path | Used For |
 |------|------|----------|
 | Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
@@ -335,5 +335,5 @@ Reference: `~/.phoenix-os/core/memory/practices/git/branching.md`
 |-------|-------|
 | Level | L1 |
 | Version | 1.0.0 |
-| Distinct Agents | 3 (project-orchestrator, Plan, repo-orchestrator) |
+| Distinct Agents | 2 (project-orchestrator, repo-orchestrator) — Plan sub-agent is a Claude built-in tool, exempt from agent limits |
 | Checkpoint | Single (plan approval via Tether/Vanish) |

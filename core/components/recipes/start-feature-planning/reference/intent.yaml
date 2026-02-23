@@ -23,7 +23,7 @@ constraints:
     - id: C8
       rule: "Orchestrator MUST delegate to agents — never execute tools directly"
     - id: C9
-      rule: "Maximum 3 distinct agents (project-orchestrator, Plan, repo-orchestrator); recovery calls exempt"
+      rule: "Maximum 2 distinct agents (project-orchestrator, repo-orchestrator); Plan sub-agent is a Claude built-in tool (like Explore/Task), exempt from agent limits; recovery calls also exempt"
     - id: C10
       rule: "Null type_hint defaults to feature/ prefix"
 
