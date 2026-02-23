@@ -1,0 +1,35 @@
+intent: "Create or resume a work context — issue + branch + STM directory — as the universal precursor to all tracked work"
+
+constraints:
+  pre_flight:
+    - id: C1
+      check: RESUME mode → current branch NOT IN [main, master, develop]
+      halt_message: "Protected branch — cannot resume from a protected branch"
+    - id: C2
+      check: issue ID resolvable (NEW with existing issue or RESUME) OR description provided (NEW)
+      halt_message: "No issue reference or description provided — cannot create work context"
+
+  behavioral:
+    - id: C3
+      rule: "Issue must be resolved or created on GitHub before any branch work"
+    - id: C4
+      rule: "Branch name MUST follow convention: {type}/{issue_number}-{slug}"
+    - id: C5
+      rule: "If type_hint is null, user MUST select type before proceeding"
+    - id: C6
+      rule: "User must approve branch creation — branches are externally visible (NEW mode only)"
+    - id: C7
+      rule: "STM directory must be initialized with required subdirectories"
+    - id: C8
+      rule: "Two-phase STM write when issue does not yet exist (ADR 008)"
+    - id: C9
+      rule: "Orchestrator MUST delegate to agents — never execute git/gh commands directly"
+    - id: C10
+      rule: "Maximum 2 distinct agents (project-orchestrator, repo-orchestrator); recovery calls exempt"
+
+failure_conditions:
+  - User rejects proposed branch at checkpoint (Vanish)
+  - Branch creation fails on origin
+  - Issue cannot be resolved or created on GitHub
+  - Issue ID not found (resume mode)
+  - type_hint is null and user does not provide a selection
