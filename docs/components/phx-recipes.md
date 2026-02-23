@@ -50,11 +50,11 @@ L1 recipes are the building blocks of Phoenix OS workflows.
 ```
 L1 Recipe
     │
-    └── Agent: {single agent}
+    └── Agent(s): {≤2 distinct agents}
               │
-              └── Agent uses skills as needed
+              └── Agents use skills as needed
               │
-              └── Agent produces ARTIFACT
+              └── Agents produce ARTIFACT
     │
     └── CHECKPOINT: Present artifact for approval
 ```
@@ -518,9 +518,18 @@ core/components/recipes/
 │       └── final-report.md
 ├── commit-code/
 │   ├── SKILL.md
+│   ├── reference/
+│   │   └── intent.yaml
 │   └── templates/
 ├── start-feature/
 │   ├── SKILL.md
+│   ├── reference/
+│   │   └── intent.yaml
+│   └── templates/
+├── start-feature-planning/
+│   ├── SKILL.md
+│   ├── reference/
+│   │   └── intent.yaml
 │   └── templates/
 └── ...
 ```
