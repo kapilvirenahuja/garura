@@ -10,39 +10,7 @@ allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
 
 ## Intent
 
-```yaml
-intent: "Safely persist completed work as conventional commits with full traceability to a tracked issue"
-
-constraints:
-  pre_flight:
-    - id: C1
-      check: current branch NOT IN [main, master, develop]
-      halt_message: "Protected branch — commits are not allowed on this branch"
-    - id: C2
-      check: uncommitted changes exist
-      halt_message: "Nothing to commit — working tree is clean"
-
-  behavioral:
-    - id: C3
-      rule: "Analyze and group changes by concern before creating commits"
-    - id: C4
-      rule: "Every commit must trace to a valid GitHub issue (NWWI)"
-    - id: C5
-      rule: "Conventional commit format: type(scope): subject — one type per commit"
-    - id: C6
-      rule: "Sensitive files (credentials, secrets, env) require explicit human approval before staging"
-    - id: C7
-      rule: "Orchestrator MUST delegate to agents — never execute git commands directly"
-    - id: C8
-      rule: "Maximum 2 distinct agents (repo-orchestrator, project-orchestrator); recovery calls exempt"
-
-failure_conditions:
-  - Current branch is a protected branch (main, master, develop)
-  - No valid issue ID resolvable from branch name or user input
-  - User rejects proposed commits at checkpoint (Vanish)
-  - Working tree is not clean after commit execution
-  - Commit does not pass conventional format validation
-```
+**BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1–C2), behavioral constraints (C3–C8), and failure conditions. All constraint IDs referenced in this recipe map to that file.
 
 ## Role
 
@@ -70,17 +38,24 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 ### Step 0 — Pre-flight
 
-Invoke `repo-orchestrator` to check current branch name and whether uncommitted changes exist.
+Invoke `repo-orchestrator` to check commit preconditions.
 
-**C1:** Halt if branch is `main`, `master`, or `develop` — output halt_message, exit.
-**C2:** Halt if working tree is clean — output halt_message, exit.
-
-Pass pre-flight results forward:
+Provide recipe context:
+```yaml
+---
+Recipe context:
+  intent: "Verify preconditions before committing code"
+  task: "Read `reference/intent.yaml`. Run every check in `constraints.pre_flight`. Return pass/fail for each. Do NOT halt — just return results."
 ```
+
+**Expected output:**
+```yaml
 pre_flight:
-  C1: PASS | FAIL
-  C2: PASS | FAIL
+  branch: {current_branch_name}
+  results: [{id: C1, status: PASS|FAIL}, {id: C2, status: PASS|FAIL}]
 ```
+
+**Orchestrator validates results:** for any result with `status: FAIL`, halt immediately with that constraint's `halt_message` from `reference/intent.yaml`. Pre-flight failures are **hard halts** — these are environmental conditions the agent cannot fix.
 
 ### Step 1 — Analyze
 
@@ -95,10 +70,7 @@ Recipe context:
     C1: PASS
     C2: PASS
   task: "Analyze uncommitted changes. Group by concern. Identify risks. Return structured output only — do NOT create commits."
-  behavioral_constraints:
-    - C3: "Analyze and group changes by concern before creating commits"
-    - C5: "Conventional commit format: type(scope): subject — one type per commit"
-    - C6: "Sensitive files require explicit human approval before staging"
+  behavioral_constraints: {behavioral constraints C3, C5, C6 from reference/intent.yaml}
 ```
 
 **Expected output from agent:**
@@ -193,9 +165,7 @@ Recipe context:
     scope: {scope}
     subject: {subject}
     files: [list]
-  behavioral_constraints:
-    - C5: "Conventional commit format: type(scope): subject — one type per commit"
-    - C6: "Sensitive files require explicit human approval before staging"
+  behavioral_constraints: {behavioral constraints C5, C6 from reference/intent.yaml}
 ```
 
 **Expected output per commit:**
@@ -246,8 +216,9 @@ For retries, add to recipe context:
 
 ## References
 
-| Template | Path | Used For |
-|----------|------|----------|
+| File | Path | Used For |
+|------|------|----------|
+| Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
 | Checkpoint | `templates/checkpoint.md` | STM artifact at `.phoenix-os/{issue}/checkpoint/commit-code/{YYYYMMDD-HHMMSS}.md` |
 | Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation |
 | Commit Summary | `templates/commit-summary.md` | Final report after execution |

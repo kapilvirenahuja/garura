@@ -1,0 +1,34 @@
+intent: "Resolve or create issue, produce IDD-aware planning artifacts, create branch, and deliver a ready-to-execute task graph — stopping before implementation"
+
+constraints:
+  pre_flight:
+    - id: C1
+      check: current branch NOT IN [main, master, develop] OR no branch yet
+      halt_message: "Protected branch — start-feature-planning must not run from a protected branch"
+    - id: C2
+      check: intent is not empty and contains enough context for Plan sub-agent to derive a design
+      halt_message: "Intent too vague — provide a description or issue number to proceed"
+
+  behavioral:
+    - id: C3
+      rule: "MUST NOT call EnterPlanMode or ExitPlanMode — all planning via Plan sub-agent"
+    - id: C4
+      rule: "Embeds issue + branch + STM initialization — does not call start-feature separately"
+    - id: C5
+      rule: "Plan sub-agent produces IDD-aware artifacts (each section carries intent/constraints/failure_conditions)"
+    - id: C6
+      rule: "Planning artifacts are lightweight — no formal gates, no bundles, no audience separation"
+    - id: C7
+      rule: "Tasks must be granular enough for direct implementation with a dependency graph"
+    - id: C8
+      rule: "Orchestrator MUST delegate to agents — never execute tools directly"
+    - id: C9
+      rule: "Maximum 3 distinct agents (project-orchestrator, Plan, repo-orchestrator); recovery calls exempt"
+    - id: C10
+      rule: "Null type_hint defaults to feature/ prefix"
+
+failure_conditions:
+  - Intent too vague for Plan sub-agent to derive a meaningful design
+  - User rejects plan at approval gate (Vanish)
+  - Plan sub-agent fails to produce all three sections (SPEC, VERIFY, TASKS)
+  - Branch creation fails on origin

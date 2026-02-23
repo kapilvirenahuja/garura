@@ -18,42 +18,7 @@ All planning is via the Plan sub-agent (Task tool). You are the orchestrator.
 
 ## Intent
 
-```yaml
-intent: "Resolve or create issue, produce IDD-aware planning artifacts, create branch, and deliver a ready-to-execute task graph — stopping before implementation"
-
-constraints:
-  pre_flight:
-    - id: C1
-      check: current branch NOT IN [main, master, develop] OR no branch yet
-      halt_message: "Protected branch — start-feature-planning must not run from a protected branch"
-    - id: C2
-      check: intent is not empty and contains enough context for Plan sub-agent to derive a design
-      halt_message: "Intent too vague — provide a description or issue number to proceed"
-
-  behavioral:
-    - id: C3
-      rule: "MUST NOT call EnterPlanMode or ExitPlanMode — all planning via Plan sub-agent"
-    - id: C4
-      rule: "Embeds issue + branch + STM initialization — does not call start-feature separately"
-    - id: C5
-      rule: "Plan sub-agent produces IDD-aware artifacts (each section carries intent/constraints/failure_conditions)"
-    - id: C6
-      rule: "Planning artifacts are lightweight — no formal gates, no bundles, no audience separation"
-    - id: C7
-      rule: "Tasks must be granular enough for direct implementation with a dependency graph"
-    - id: C8
-      rule: "Orchestrator MUST delegate to agents — never execute tools directly"
-    - id: C9
-      rule: "Maximum 3 distinct agents (project-orchestrator, Plan, repo-orchestrator); recovery calls exempt"
-    - id: C10
-      rule: "Null type_hint defaults to feature/ prefix"
-
-failure_conditions:
-  - Intent too vague for Plan sub-agent to derive a meaningful design
-  - User rejects plan at approval gate (Vanish)
-  - Plan sub-agent fails to produce all three sections (SPEC, VERIFY, TASKS)
-  - Branch creation fails on origin
-```
+**BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1–C2), behavioral constraints (C3–C10), and failure conditions. All constraint IDs referenced in this recipe map to that file.
 
 ## Role
 
@@ -61,7 +26,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 **Forbidden:** `Bash`, `Grep`, `Glob`, `Edit`, `EnterPlanMode`, `ExitPlanMode`, or any direct git/gh commands.
 
-## Agent Routing
+## Phases
 
 Each agent is invoked for a single, scoped domain task at a specific workflow step. Agents do not own workflow logic.
 
@@ -85,8 +50,7 @@ Recipe context:
     C1: {PASS|FAIL}
     C2: {PASS|FAIL}
   task: "{single, scoped task for this agent — one step only}"
-  behavioral_constraints:
-    - "{relevant C-id rules for this agent's task}"
+  behavioral_constraints: {relevant behavioral constraints from reference/intent.yaml}
 ```
 
 ## Input Patterns
@@ -101,33 +65,26 @@ Recipe context:
 
 ### Step 0 — Pre-flight
 
-**C2** (orchestrator evaluates directly): Verify intent is actionable — if empty or fewer than 3 meaningful words with no issue reference, halt immediately with halt_message. No agent needed.
+**C2** (orchestrator evaluates directly): Verify intent is actionable — if empty or fewer than 3 meaningful words with no issue reference, halt immediately with C2's `halt_message` from `reference/intent.yaml`. No agent needed.
 
-**C1** (requires git state — invoke `repo-orchestrator`): Check current branch. If branch exists and is `main`, `master`, or `develop`, halt immediately with halt_message.
+**C1** (requires git state — invoke `repo-orchestrator`): Check current branch.
 
 Provide recipe context:
-```
+```yaml
 ---
 Recipe context:
-  intent: "Resolve issue, plan with IDD principles, create branch, deliver task graph"
-  task: "Check current branch name. Return branch name and whether it is a protected branch (main/master/develop)."
+  intent: "Verify preconditions before planning"
+  task: "Read `reference/intent.yaml`. Run the C1 check in `constraints.pre_flight`. Return pass/fail. Do NOT halt — just return results."
 ```
 
 **Expected output:**
 ```yaml
 pre_flight:
   branch: {branch_name or null}
-  C1: PASS | FAIL
+  results: [{id: C1, status: PASS|FAIL}]
 ```
 
-If any check fails: output the `halt_message` and exit. Do not proceed.
-
-Pass pre-flight results to all subsequent agent invocations:
-```
-pre_flight:
-  C1: PASS | FAIL
-  C2: PASS | FAIL
-```
+**Orchestrator validates results:** for any result with `status: FAIL`, halt immediately with that constraint's `halt_message` from `reference/intent.yaml`. Pre-flight failures are **hard halts**.
 
 ### Step 1 — Resolve Issue
 
@@ -304,8 +261,7 @@ Recipe context:
     C1: PASS
     C2: PASS
   task: "Create and push branch `{type}/{issue_number}-{slug}` from main. Return branch name and push status."
-  behavioral_constraints:
-    - C4: "Embeds issue + branch + STM initialization — branch name must match: {type}/{issue_number}-{slug}"
+  behavioral_constraints: {behavioral constraint C4 from reference/intent.yaml}
 ```
 
 **Expected output:**
@@ -346,8 +302,9 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 
 ### Templates
 
-| Template | Path | Used For |
-|----------|------|----------|
+| File | Path | Used For |
+|------|------|----------|
+| Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
 | Checkpoint | `templates/checkpoint.md` | STM artifact at `.phoenix-os/{issue}/checkpoint/start-feature-planning/{ts}.md` |
 | Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation |
 | Feature Started | `templates/feature-started.md` | Final report |

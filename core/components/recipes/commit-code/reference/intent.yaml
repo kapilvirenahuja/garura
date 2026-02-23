@@ -1,0 +1,31 @@
+intent: "Safely persist completed work as conventional commits with full traceability to a tracked issue"
+
+constraints:
+  pre_flight:
+    - id: C1
+      check: current branch NOT IN [main, master, develop]
+      halt_message: "Protected branch — commits are not allowed on this branch"
+    - id: C2
+      check: uncommitted changes exist
+      halt_message: "Nothing to commit — working tree is clean"
+
+  behavioral:
+    - id: C3
+      rule: "Analyze and group changes by concern before creating commits"
+    - id: C4
+      rule: "Every commit must trace to a valid GitHub issue (NWWI)"
+    - id: C5
+      rule: "Conventional commit format: type(scope): subject — one type per commit"
+    - id: C6
+      rule: "Sensitive files (credentials, secrets, env) require explicit human approval before staging"
+    - id: C7
+      rule: "Orchestrator MUST delegate to agents — never execute git commands directly"
+    - id: C8
+      rule: "Maximum 2 distinct agents (repo-orchestrator, project-orchestrator); recovery calls exempt"
+
+failure_conditions:
+  - Current branch is a protected branch (main, master, develop)
+  - No valid issue ID resolvable from branch name or user input
+  - User rejects proposed commits at checkpoint (Vanish)
+  - Working tree is not clean after commit execution
+  - Commit does not pass conventional format validation

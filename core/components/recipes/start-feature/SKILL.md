@@ -10,43 +10,7 @@ allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
 
 ## Intent
 
-```yaml
-intent: "Create or resume a work context — issue + branch + STM directory — as the universal precursor to all tracked work"
-
-constraints:
-  pre_flight:
-    - id: C1
-      check: RESUME mode → current branch NOT IN [main, master, develop]
-      halt_message: "Protected branch — cannot resume from a protected branch"
-    - id: C2
-      check: issue ID resolvable (NEW with existing issue or RESUME) OR description provided (NEW)
-      halt_message: "No issue reference or description provided — cannot create work context"
-
-  behavioral:
-    - id: C3
-      rule: "Issue must be resolved or created on GitHub before any branch work"
-    - id: C4
-      rule: "Branch name MUST follow convention: {type}/{issue_number}-{slug}"
-    - id: C5
-      rule: "If type_hint is null, user MUST select type before proceeding"
-    - id: C6
-      rule: "User must approve branch creation — branches are externally visible (NEW mode only)"
-    - id: C7
-      rule: "STM directory must be initialized with required subdirectories"
-    - id: C8
-      rule: "Two-phase STM write when issue does not yet exist (ADR 008)"
-    - id: C9
-      rule: "Orchestrator MUST delegate to agents — never execute git/gh commands directly"
-    - id: C10
-      rule: "Maximum 2 distinct agents (project-orchestrator, repo-orchestrator); recovery calls exempt"
-
-failure_conditions:
-  - User rejects proposed branch at checkpoint (Vanish)
-  - Branch creation fails on origin
-  - Issue cannot be resolved or created on GitHub
-  - Issue ID not found (resume mode)
-  - type_hint is null and user does not provide a selection
-```
+**BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1–C2), behavioral constraints (C3–C10), and failure conditions. All constraint IDs referenced in this recipe map to that file.
 
 ## Role
 
@@ -82,34 +46,26 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 ### Step 0 — Pre-flight
 
-**C2** (orchestrator evaluates directly): Verify input is actionable — issue number, `--resume N`, or a non-empty description. If none, halt immediately with halt_message. No agent needed.
+**C2** (orchestrator evaluates directly): Verify input is actionable — issue number, `--resume N`, or a non-empty description. If none, halt immediately with C2's `halt_message` from `reference/intent.yaml`. No agent needed.
 
 **C1** (requires git state — invoke `repo-orchestrator`): Check current branch.
 
 Provide recipe context:
-```
+```yaml
 ---
 Recipe context:
-  intent: "Create or resume a work context — issue + branch + STM directory"
-  task: "Check current branch name. Return branch name and whether it is a protected branch (main/master/develop)."
+  intent: "Verify preconditions before creating a work context"
+  task: "Read `reference/intent.yaml`. Run the C1 check in `constraints.pre_flight`. Return pass/fail. Do NOT halt — just return results."
 ```
 
 **Expected output:**
 ```yaml
 pre_flight:
   branch: {branch_name or null}
-  C1: PASS | FAIL
+  results: [{id: C1, status: PASS|FAIL}]
 ```
 
-If C1 is FAIL and mode is RESUME → halt with halt_message. If C1 is FAIL and mode is NEW → no action (not branching from current branch).
-If C2 fails → halt immediately with halt_message before invoking any agent.
-
-Pass pre-flight results to all subsequent agent invocations:
-```
-pre_flight:
-  C1: PASS | FAIL
-  C2: PASS
-```
+**Orchestrator validates results:** If C1 is FAIL and mode is RESUME → halt with C1's `halt_message` from `reference/intent.yaml`. If C1 is FAIL and mode is NEW → no action (not branching from current branch).
 
 ### Step 1 — Resolve Issue
 
@@ -129,8 +85,7 @@ Recipe context:
   mode: {NEW|RESUME}
   input: {description or issue number}
   parent: {parent_issue_number or null}
-  behavioral_constraints:
-    - C3: "Issue must be resolved or created on GitHub before any branch work"
+  behavioral_constraints: {behavioral constraint C3 from reference/intent.yaml}
 ```
 
 **Expected output:**
@@ -180,8 +135,7 @@ Recipe context:
     C1: PASS
     C2: PASS
   task: "Create and push branch `{branch_name}` from main. Return branch name and push status."
-  behavioral_constraints:
-    - C4: "Branch name MUST follow convention: {type}/{issue_number}-{slug}"
+  behavioral_constraints: {behavioral constraint C4 from reference/intent.yaml}
 ```
 
 **RESUME mode:** Invoke `repo-orchestrator`:
@@ -255,8 +209,9 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 
 ### Templates
 
-| Template | Path | Used For |
-|----------|------|----------|
+| File | Path | Used For |
+|------|------|----------|
+| Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
 | Checkpoint | `templates/checkpoint.md` | STM artifact at `.phoenix-os/{issue}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md` |
 | Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation (NEW mode only) |
 | Feature Started | `templates/feature-started.md` | Final report |
