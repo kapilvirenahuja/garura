@@ -65,6 +65,7 @@ L1 Recipe
 - Exactly one artifact produced
 - Must end at a checkpoint
 - Recovery agent calls are exempt from the agent limit
+- Claude built-in sub-agents (Plan, Explore, Task) are exempt from the agent limit — they are tools, not domain agents
 
 ## L2 Recipes (High-Order Workflows)
 
