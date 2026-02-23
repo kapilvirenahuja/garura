@@ -243,17 +243,15 @@ Phoenix OS uses a **dual memory system**:
 ├── _pending/                # Temporary, pre-issue (two-phase write)
 │   └── {timestamp}/
 └── {issue_number}/
-    ├── docs/                # Specs, designs, plans
-    │   ├── spec.md
-    │   ├── tech-design.md
-    │   └── rca.md
-    ├── evidence/            # Implementation evidence
-    │   ├── changes.md
-    │   ├── tests.md
-    │   └── validation.md
-    └── checkpoint/          # Recipe execution state
+    ├── spec/                # Specifications, requirements
+    ├── design/              # Technical design, architecture
+    ├── evidence/            # Implementation evidence per recipe
+    │   └── {recipe-name}/
+    │       └── {YYYYMMDD-HHMMSS}.md
+    ├── delivery/            # Delivery artifacts (PR details, release)
+    └── checkpoint/          # Recipe execution state per recipe
         └── {recipe-name}/
-            └── {timestamp}.md
+            └── {YYYYMMDD-HHMMSS}.md
 ```
 
 ### Memory Flow
@@ -351,6 +349,74 @@ Traditional AI copilots are non-deterministic — same prompt, different results
 3. **Guardian bypass** — Non-stop work when safe
 4. **Clear boundaries** — Artifacts mark completion
 5. **Audit trail** — STM captures all decisions
+
+## Intent Primacy and Recipe Evolution
+
+### The Core Principle
+
+**Intent is primary. Recipes are scaffolding.**
+
+The objective of a recipe — what it achieves — is permanent. "Submit work for peer review with quality assurance" will always be a valid objective. But the workflow that fulfills that objective — pre-flight checks, analysis, checkpoint, execution, reporting — is not inherent to the objective. It is a prescribed sequence that exists because we cannot yet trust the system to derive it autonomously.
+
+Recipes exist today because they provide the determinism needed to build trust on the path to autonomy. They are how we teach the system to walk before it runs.
+
+### The Constraint Migration
+
+The key insight is that properties currently baked into recipe structure will migrate over time to declarative constraints in the intent:
+
+```
+TODAY (structural)
+────────────────────────────────────────────────────
+Recipe prescribes:
+  Step 0: Pre-flight checks
+  Step 1: Analyze
+  Step 2: Checkpoint (always — PRs are externally visible)
+  Step 3: Execute
+  Step 4: Report with evidence
+
+Auditability = enforced by recipe steps
+Predictability = enforced by prescribed sequence
+Human oversight = enforced by checkpoint placement
+
+FUTURE (declarative)
+────────────────────────────────────────────────────
+Intent declares:
+  goal: "Submit work for peer review with quality assurance"
+  constraints:
+    - "Produce auditable evidence of every decision"
+    - "Halt for human approval before externally visible actions"
+    - "Verify environmental preconditions before work begins"
+
+Auditability = constraint the system satisfies however it chooses
+Predictability = emergent from intent + constraints + memory
+Human oversight = constraint, not a hardcoded step
+```
+
+The objective has not changed. The system still creates a PR with a quality checklist, still produces evidence, still stops for approval when actions are externally visible. What changes is **who decides the workflow**: today the recipe author prescribes it; tomorrow the system derives it from intent + constraints + accumulated memory.
+
+### The Evolution Path
+
+| Phase | Recipe Role | Intent Role | Trust Level |
+|-------|-----------|-------------|-------------|
+| **Current** | Recipes prescribe every step and agent assignment | Intent defines the objective; recipes define the how | Low — system proves reliability through prescribed execution |
+| **Lighter recipes** | Recipes define checkpoints and boundaries; agents choose their own workflow within steps | Intent drives agent behavior; recipes provide guardrails | Medium — system has demonstrated consistent execution |
+| **Intent-driven** | Recipes are generated at runtime from intent + constraints + memory | Intent is the primary input; workflow is emergent | High — auditability and predictability are satisfied as constraints, not as structure |
+
+### What Makes This Possible
+
+The migration from structural to declarative depends on three capabilities maturing together:
+
+1. **Memory depth** — LTM must be rich enough that the system knows *how* to satisfy "produce auditable evidence" without being told the specific artifact format and location. Today, recipes encode this knowledge. Tomorrow, memory carries it.
+
+2. **Agent maturity** — Agents must reliably produce the same quality of output when given intent + constraints as when given prescribed steps. The current recipe structure is training data for this capability — every successful recipe execution demonstrates what "good" looks like for a given intent.
+
+3. **Constraint expressiveness** — The intent schema must be expressive enough to capture properties like "halt for human approval before externally visible actions" as first-class constraints. The `reference/intent.yaml` externalization (see `create-pr` golden standard) is a step toward this — making constraints a first-class, extensible schema that can grow to encompass workflow-level properties.
+
+### Why This Matters Now
+
+The architectural decisions being made today — externalizing intent to `reference/intent.yaml`, making constraint references dynamic, keeping recipe structure declarative — are not just cleanup. They are **preparing the system for the point where recipes become optional**. An intent file that fully describes the objective, constraints, and failure conditions is already 80% of what a system needs to derive its own execution plan. The remaining 20% is trust — and that is built through the deterministic recipe executions happening now.
+
+The lighter recipes can be tested first on mechanical operations (`commit-code`, `create-pr`) where the workflow is predictable and the failure modes are well-understood. Success there builds confidence for creative operations (`build-feature`, `design-feature`) where the workflow is more variable.
 
 ## Related Documentation
 
