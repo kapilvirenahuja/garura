@@ -13,7 +13,7 @@ core/components/           # Source of truth (edit here)
 ├── agents/               # Agent definitions
 ├── skills/               # Skills (model-invocable only)
 ├── recipes/              # L1/L2 recipes
-└── memory/               # LTM: practices, templates, standards
+└── memory/               # LTM: standards, formats, knowledge
 
 ~/.claude/                 # Global deployment (via /sync-claude, default)
 ├── agents/               # Deployed agents
