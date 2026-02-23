@@ -4,50 +4,76 @@ description: Create pull request with dynamic, context-aware quality checklist
 user-invocable: true
 model: sonnet
 allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
-
-# === Three Elements of Intent (IDD) ===
-intent: >
-  Submit work for peer review via a pull request with dynamically generated,
-  evidence-based quality assurance.
-
-constraints:
-  - MUST be associated with a GitHub issue extracted from branch name (NWWI)
-  - Always checkpoint before PR creation — PRs are externally visible
-  - Quality checklist MUST distinguish must-have (blocking) from nice-to-have items
-  - Orchestrator MUST delegate to agents — never execute gh commands directly
-  - Maximum 1 distinct agent (repo-orchestrator); may be called multiple times
-  - Recovery agent calls are exempt from the agent limit
-
-failure_conditions:
-  - No issue number extractable from the current branch name
-  - User rejects proposed PR at checkpoint (Vanish)
-  - Blocking quality checklist items have FAIL status
-  - PR creation fails on the remote
 ---
 
 # create-pr
 
 Create a pull request with a context-aware quality checklist based on what changed.
 
+## Intent
+
+**BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1–C4), behavioral constraints (C5–C9), and failure conditions. All constraint IDs referenced in this recipe map to that file.
+
 ## Role
 
-You are the orchestrator. You delegate to agents, never execute directly.
+You are the orchestrator. You own the workflow. You delegate domain tasks to agents — never execute directly.
 
 **Forbidden:** `Bash`, `Grep`, `Glob`, or any direct git/gh commands.
 
-## Tasks
+**Agent boundaries:**
+- `repo-orchestrator` — git domain only: analyzes PR readiness, creates pull requests
+- Everything else (checkpoint writes, approval logic, artifact writes, reporting) — orchestrator owns it
 
-| Task | Agent | Verification |
-|------|-------|--------------|
-| Analyze PR readiness | repo-orchestrator | Checklist generated, blocking issues identified |
-| Checkpoint decision | orchestrator | User approved |
-| Create pull request | repo-orchestrator | PR created with checklist |
+## Phases
+
+| Step | Name | Agent |
+|------|------|-------|
+| Step 0 | Pre-flight | repo-orchestrator |
+| Step 1 | Analyze | repo-orchestrator |
+| Step 2 | Checkpoint | orchestrator |
+| Step 3 | Execute | repo-orchestrator |
+| Step 4 | Report | orchestrator |
 
 ## Workflow
 
-### 1. Analyze
+### Step 0 — Pre-flight
 
-Invoke `repo-orchestrator` to run `analyze-pr` skill.
+Invoke `repo-orchestrator` to check PR preconditions.
+
+Provide recipe context:
+```yaml
+---
+Recipe context:
+  intent: "Verify preconditions before creating a pull request"
+  task: "Read `reference/intent.yaml`. Run every check in `constraints.pre_flight`. Return pass/fail for each. Do NOT halt — just return results."
+```
+
+**Expected output:**
+```yaml
+pre_flight:
+  branch: {current_branch_name}
+  target: {target_branch_name}
+  issue_number: {integer | null}
+  results: [{id: C1, status: PASS|FAIL}, ...]  # one entry per constraint in intent.yaml
+```
+
+**Orchestrator validates results:** for any result with `status: FAIL`, halt immediately with that constraint's `halt_message` from `reference/intent.yaml`. Pre-flight failures are **hard halts** — these are environmental conditions the agent cannot fix. See Recovery for all other failures.
+
+### Step 1 — Analyze
+
+Invoke `repo-orchestrator` to run the `analyze-pr` skill.
+
+Provide recipe context:
+```yaml
+---
+Recipe context:
+  intent: "Analyze PR readiness with evidence-based quality checklist distinguishing blocking from optional items"
+  task: "Analyze the current branch vs target. Generate quality checklist distinguishing blocking (must-have) from optional (nice-to-have) items. Return structured output only — do NOT create the PR."
+  branch: {current_branch_name}
+  target: {target_branch_name}
+  pre_flight: {all results from Step 0}
+  behavioral_constraints: {all behavioral constraints from reference/intent.yaml}
+```
 
 **Expected output:**
 ```yaml
@@ -73,32 +99,47 @@ analysis:
   ready: true/false
 ```
 
-### 2. Checkpoint
+If agent returns structured failure → see Recovery section.
 
-**Issue context:** Extract issue number from the current branch name (e.g., `feature/7-...` → issue #7). The issue number is required for the checkpoint path. If no issue number can be extracted, this recipe cannot proceed — NWWI principle applies.
+### Step 2 — Checkpoint
 
-Write artifact to STM: `.phoenix-os/{issue-number}/checkpoint/create-pr/{YYYYMMDD-HHMMSS}.md`
+**The orchestrator owns this step entirely. Do not delegate.**
 
-**Always checkpoint.** PRs are externally visible.
+Extract issue number from `pre_flight.issue_number` (already validated in Step 0).
 
-Present summary and wait for `Tether` or `Vanish`.
+Write checkpoint artifact to STM: `.phoenix-os/{issue-number}/checkpoint/create-pr/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
+
+Present the approval prompt using `templates/approval-prompt.md`. Checklist blocking items with `status: FAIL` are visible to the user here — they can Vanish to abort or Tether to proceed knowing the risks.
+
+Parse: `Tether`/`tether` → proceed to Step 3. `Vanish`/`vanish` → halt. Else → clarify.
 
 **After user responds**, update the checkpoint artifact:
 1. Set `Status` to `APPROVED` or `REJECTED`
-2. Set `Approval Status` to `APPROVED` or `REJECTED`
-3. Mark `Checkpoint approval` task as `completed`
-4. Advance `Step` to `3 of 4`
+2. Mark `Checkpoint approval` task as `completed`
+3. Advance `Step` to `3 of 4`
 
-If `REJECTED`, stop execution — do not proceed to Step 3.
+### Step 3 — Execute
 
-### 3. Execute
+Invoke `repo-orchestrator` to run the `submit-pr` skill.
 
-Invoke `repo-orchestrator` to run `submit-pr` skill.
+Provide recipe context:
+```yaml
+---
+Recipe context:
+  intent: "Create pull request with quality checklist and issue link"
+  task: "Create a PR from the current branch to the target branch. Include quality checklist from analysis in the PR body. Include issue link. Return PR details."
+  issue_number: {issue-number}
+  branch: {current_branch_name}
+  target: {target_branch_name}
+  checklist: {analysis.checklist}
+  checkpoint_approved: true
+```
 
 **Expected output:**
 ```yaml
 result:
   success: true/false
+  error: "{error message if success is false}"
   pr:
     number: {number}
     url: "{url}"
@@ -109,128 +150,53 @@ result:
     optional_count: {count}
 ```
 
-### 4. Report
+If `result.success: false` → see Recovery section. Max 1 retry.
 
-Present summary with PR URL, checklist summary, and next steps.
+### Step 4 — Report
+
+**The orchestrator owns this step entirely. Do not delegate.**
+
+Present the final report using `templates/final-report.md`.
 
 **After reporting**, update the checkpoint artifact:
 1. Mark all remaining tasks (`Create pull request`, `Report`) as `completed`
 2. Set `Step` to `4 of 4`
 
-## Artifact Templates
+## Recovery
 
-### Checkpoint Artifact
+Load recovery reasoning from: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
 
-```markdown
-# Create PR Checkpoint
+When an agent returns a structured failure (per `structured-failure-protocol.md`):
+- Read `domain_assessment.responsible_domain` to identify which agent can fix it
+- Invoke the responsible agent with fix context + original intent
+- Max 1 retry per step. After that, halt with full failure context.
 
-## Metadata
-- **Issue:** #{issue-number}
-- **Recipe:** create-pr
-- **Step:** {current-step} of 4
-- **Created:** {YYYY-MM-DD HH:MM:SS}
-- **Status:** {PENDING_APPROVAL|APPROVED|REJECTED}
-- **Branch:** {branch_name}
-
-## Task List
-| Task | Status | Agent |
-|------|--------|-------|
-| Analyze PR readiness | {pending|completed} | repo-orchestrator |
-| Checkpoint approval | {pending|completed} | orchestrator |
-| Create pull request | {pending|completed} | repo-orchestrator |
-| Report | {pending|completed} | orchestrator |
-
-## Completed Outputs
-{Analysis results: branch, base, suggested title, checklist}
-
-## Quality Checklist
-
-### Must-Have (blocking)
-| Item | Trigger | Status | Evidence |
-|------|---------|--------|----------|
-| {item} | {trigger} | {status} | {evidence} |
-
-### Nice-to-Have (optional)
-| Item | Trigger | Status | Evidence |
-|------|---------|--------|----------|
-| {item} | {trigger} | {status} | {evidence} |
-
-## Current Step
-Awaiting user approval for PR creation.
-
-## Inputs Needed to Continue
-- User approval (Tether/Vanish)
-
-## Decision
-- **Approval Status:** {status}
+For retries, add to recipe context:
+```yaml
+  retry:
+    previous_failure: "{what_failed}"
+    fix_applied: "{what was done to fix it}"
+    attempt: {N}
 ```
 
-### User Approval Prompt
+**Pre-flight failures (C1–C4) are not recoverable** — hard halt with the constraint's `halt_message`.
 
-```markdown
-## Proposed Pull Request
+## References
 
-**Title:** {suggested_title}
+| File | Path | Used For |
+|------|------|----------|
+| Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
+| Checkpoint | `templates/checkpoint.md` | STM artifact at `.phoenix-os/{issue}/checkpoint/create-pr/{ts}.md` |
+| Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation |
+| Final Report | `templates/final-report.md` | Post-PR creation summary |
 
-### Details
+### Status Emoji Mapping
 
-| Field | Value |
-|-------|-------|
-| Base | {base_branch} |
-| Head | {current_branch} |
-| Commits | {commit_count} |
-
-### Quality Checklist (Generated)
-
-#### Must-Have (blocking)
-
-| Item | Trigger | Status | Evidence |
-|------|---------|--------|----------|
-| {item} | {trigger} | ✅/❌/⏳ {status} | {evidence} |
-
-#### Nice-to-Have (optional)
-
-| Item | Trigger | Status | Evidence |
-|------|---------|--------|----------|
-| {item} | {trigger} | ✅/❌/⏳ {status} | {evidence} |
-
-### Blocking Issues
-
-{list_or_None}
-
----
-
-Type **Tether** to create the PR or **Vanish** to cancel.
-```
-
-**Status emoji mapping:** PASS → ✅, FAIL → ❌, REVIEW → ⏳
-
-### Final Report
-
-```markdown
-# Pull Request Created
-
-## Overview
-
-| Field | Value |
-|-------|-------|
-| PR | #{number} |
-| URL | {url} |
-| Title | {title} |
-| Base | {base} ← {head} |
-| State | {open/draft} |
-
-## Checklist in PR
-
-**{required_count}** required items, **{optional_count}** optional items.
-
-## Next Steps
-
-1. Share PR link with reviewers
-2. Complete manual checklist items
-3. Address any failing automated checks
-4. Merge when all required items pass
-```
+| Status | Emoji |
+|--------|-------|
+| PASS | ✅ |
+| FAIL | ❌ |
+| REVIEW | ⏳ |
 
 ---
 
@@ -239,6 +205,6 @@ Type **Tether** to create the PR or **Vanish** to cancel.
 | Field | Value |
 |-------|-------|
 | Level | L1 |
-| Version | 2.0.2 |
+| Version | 1.0.0 |
 | Distinct Agents | 1 (repo-orchestrator) |
 | Checkpoint | Always |
