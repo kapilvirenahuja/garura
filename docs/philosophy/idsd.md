@@ -51,7 +51,7 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 | 1 | Intent Layer | Recipes — L1 (≤2 agents), L2 (≤5 agents). Every recipe has IDD intent header (intent/constraints/failure_conditions). |
 | 2 | Signals | User CLI invocations (`/build-feature`, `/commit-code`). All signals enter via recipes. |
 | 3 | Orchestrated Intent | Recipe Levels (L1/L2). Three speeds: Fast (minutes), Planned (hours), Strategic (days). |
-| 4 | Agents | 8 agents: product-strategist, specifier, designer, validator, code-builder, tech-designer, repo-orchestrator, project-orchestrator. Agent-first pattern. |
+| 4 | Agents | 8 agents (4 implemented, 4 planned): code-builder, tech-designer, repo-orchestrator, project-orchestrator. Planned: quality-validator, workflow-guardian, product-strategist, spec-author. Agent-first pattern. |
 | 5 | Memory | LTM: `core/components/memory/` (practices, standards, templates). STM: `.phoenix-os/{issue}/` (per-issue work). |
 | 6 | Skills | Bounded capabilities invoked by agents. Each skill has SKILL.md with input/output contracts. |
 | 7 | Context-Aware Decisions | Context bundles ≤12K tokens. Audience separation (Tier 1/2/3). Agents read LTM + STM. |
@@ -261,30 +261,30 @@ Recipes (L1/L2) → Agents → Skills → Memory (LTM + STM)
 
 ### Agent Taxonomy (IDSD-specific)
 
-IDSD maps the AI Squad Framework roles to 8 concrete Phoenix OS agents:
+IDSD maps the AI Squad Framework roles to 8 Phoenix OS agents (4 implemented, 4 planned):
 
 | AI Squad Role | Phoenix OS Agent(s) | IDD Element |
 |---------------|--------------------|----|
-| Specifier | specifier, product-strategist | Element 4 |
-| Designer | designer, tech-designer | Element 4 |
+| Specifier | product-strategist *(planned)*, spec-author *(planned)* | Element 4 |
+| Designer | tech-designer | Element 4 |
 | Builder | code-builder | Element 4 |
-| Validator | validator | Elements 4 + 8 |
+| Validator | quality-validator *(planned)* | Elements 4 + 8 |
 | Orchestrator | repo-orchestrator, project-orchestrator | Elements 3 + 4 |
 
 5 roles replace 12-16 traditional roles. AI handles execution; humans steer intent.
 
 **Full agent roster:**
 
-| Agent | Domain | Role | SDLC Phases |
-|-------|--------|------|-------------|
-| product-strategist | product | strategist | Product-2-Design |
-| specifier | specification | specifier | Design-2-Spec, Audit-2-Fix |
-| designer | design | designer | Design-2-Spec |
-| validator | quality | validator | Code-2-Test, Test-2-Run, Audit-2-Fix |
-| code-builder | implementation | builder | Spec-2-Code |
-| tech-designer | design | designer | Design-2-Code, Run-2-Monitor, Audit-2-Fix |
-| repo-orchestrator | repository | orchestrator | Universal |
-| project-orchestrator | project | orchestrator | Universal |
+| Agent | Domain | Role | SDLC Phases | Status |
+|-------|--------|------|-------------|--------|
+| code-builder | implementation | builder | Spec-2-Code | Implemented |
+| tech-designer | design | designer | Design-2-Code, Run-2-Monitor, Audit-2-Fix | Implemented |
+| repo-orchestrator | repo | orchestrator | Universal | Implemented |
+| project-orchestrator | project | orchestrator | Universal | Implemented |
+| quality-validator | quality | validator | Code-2-Test, Test-2-Run, Audit-2-Fix | Planned |
+| workflow-guardian | workflow | guardian | L2 checkpoint validation | Planned |
+| product-strategist | product | strategist | Product-2-Design | Planned |
+| spec-author | specification | author | Design-2-Spec, Audit-2-Fix | Planned |
 
 #### Compartmented Evaluation Classification
 
@@ -292,9 +292,9 @@ Under IDD Principle 4, agents are classified by their role in the information ba
 
 | Classification | Agents | What They Receive | When Barrier Active |
 |---------------|--------|-------------------|-------------------|
-| **Builders** | code-builder, tech-designer, specifier, designer | Goal + Constraints (no failure conditions) | In barrier-eligible recipes |
-| **Validators** | validator | Failure Conditions + Builder Output (no goal/constraints) | In barrier-eligible recipes |
-| **Neutral** | product-strategist, repo-orchestrator, project-orchestrator | Full intent (all elements) | Always — these agents perform mechanical or discovery operations |
+| **Builders** | code-builder, tech-designer, spec-author *(planned)* | Goal + Constraints (no failure conditions) | In barrier-eligible recipes |
+| **Validators** | quality-validator *(planned)* | Failure Conditions + Builder Output (no goal/constraints) | In barrier-eligible recipes |
+| **Neutral** | product-strategist *(planned)*, repo-orchestrator, project-orchestrator | Full intent (all elements) | Always — these agents perform mechanical or discovery operations |
 
 In barrier-exempt recipes (commit-code, create-pr, etc.), all agents receive the full intent regardless of classification.
 
@@ -693,10 +693,9 @@ Not all recipes benefit from compartmented evaluation. The barrier applies to re
 |-------|----------------|----------------------|------------------------|-------|
 | code-builder | Builder | ✓ | ✗ | Primary builder for Spec-2-Code |
 | tech-designer | Builder | ✓ | ✗ | Builder for design decisions |
-| specifier | Builder | ✓ | ✗ | Builder for specification generation |
-| designer | Builder | ✓ | ✗ | Builder for UX/design decisions |
-| validator | Validator | ✗ | ✓ | Primary validator across all phases |
-| product-strategist | Neutral | ✓ | ✓ | Operates at discovery level — no barrier needed |
+| spec-author *(planned)* | Builder | ✓ | ✗ | Builder for specification generation |
+| quality-validator *(planned)* | Validator | ✗ | ✓ | Primary validator across all phases |
+| product-strategist *(planned)* | Neutral | ✓ | ✓ | Operates at discovery level — no barrier needed |
 | repo-orchestrator | Neutral | ✓ | ✓ | Mechanical operations — no barrier needed |
 | project-orchestrator | Neutral | ✓ | ✓ | Coordination operations — no barrier needed |
 

@@ -33,13 +33,13 @@ Consolidate to the **`{domain}-{role}` pattern** with two categories:
 
 Core agents follow `{domain}-{role}`:
 
-| Agent | Domain | Role | Responsibility |
-|-------|--------|------|----------------|
-| `code-builder` | code | builder | Write code, implement features, fix bugs |
-| `quality-validator` | quality | validator | Test, review, validate, quality gates |
-| `tech-designer` | tech | designer | Technical design, RCA, architecture |
-| `project-orchestrator` | project | orchestrator | Issues, tracking, project coordination |
-| `repo-orchestrator` | repo | orchestrator | Git operations, commits, branches |
+| Agent | Domain | Role | Responsibility | Status |
+|-------|--------|------|----------------|--------|
+| `code-builder` | implementation | builder | Write code, implement features, fix bugs | Implemented |
+| `tech-designer` | design | designer | Technical design, RCA, architecture | Implemented |
+| `project-orchestrator` | project | orchestrator | Issues, tracking, project coordination | Implemented |
+| `repo-orchestrator` | repo | orchestrator | Git operations, commits, branches | Implemented |
+| `quality-validator` | quality | validator | Test, review, validate, quality gates | Planned |
 
 ### 2. Special-Purpose Agents
 
@@ -58,10 +58,10 @@ Core agents follow `{domain}-{role}`:
 
 ### Naming Rules
 
-1. **Domain** = area of expertise (code, quality, tech, project, repo, workflow)
+1. **Domain** = area of expertise (implementation, design, quality, project, repo, workflow)
 2. **Role** = SDLC function (builder, validator, designer, orchestrator, guardian)
 3. **One agent = one domain** (not one task)
-4. **Total: 6 agents** (5 SDLC + 1 special)
+4. **Current: 4 implemented** (code-builder, tech-designer, repo-orchestrator, project-orchestrator) + **2 planned** (quality-validator, workflow-guardian)
 
 ### Right Granularity
 

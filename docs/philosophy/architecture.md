@@ -174,14 +174,14 @@ Agents are **autonomous decision-makers** with domain expertise.
 
 ### Agent Naming: `{domain}-{role}`
 
-| Agent | Domain | Role | Responsibility |
-|-------|--------|------|----------------|
-| `code-builder` | code | builder | Write code, implement features, fix bugs |
-| `quality-validator` | quality | validator | Test, review, validate, quality gates |
-| `tech-designer` | tech | designer | Technical design, RCA, architecture |
-| `project-orchestrator` | project | orchestrator | Issues, tracking, project coordination |
-| `repo-orchestrator` | repo | orchestrator | Git operations, commits, branches |
-| `workflow-guardian` | workflow | guardian | Validates approval bypass in L2 |
+| Agent | Domain | Role | Responsibility | Status |
+|-------|--------|------|----------------|--------|
+| `code-builder` | implementation | builder | Write code, implement features, fix bugs | Implemented |
+| `tech-designer` | design | designer | Technical design, RCA, architecture | Implemented |
+| `project-orchestrator` | project | orchestrator | Issues, tracking, project coordination | Implemented |
+| `repo-orchestrator` | repo | orchestrator | Git operations, commits, branches | Implemented |
+| `quality-validator` | quality | validator | Test, review, validate, quality gates | Planned |
+| `workflow-guardian` | workflow | guardian | Validates approval bypass in L2 | Planned |
 
 ### Agent Principles
 

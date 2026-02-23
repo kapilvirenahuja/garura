@@ -93,6 +93,16 @@ L1 Recipe → invokes → Agent → uses → Skills
 
 Agent definitions follow Claude Code's agent format:
 
+Tool sets vary by role. Orchestrators use skills; builders and designers use direct tools.
+
+| Role | Typical Tools | Rationale |
+|------|--------------|-----------|
+| orchestrator | Task, Bash, Read, Write, Skill | Delegates work to skills |
+| builder | Bash, Read, Write, Edit, Grep, Glob | Direct file manipulation |
+| designer | Bash, Read, Grep, Glob, Write | Read-heavy exploration + plan output |
+| validator | *(planned)* | *(TBD)* |
+| guardian | *(planned)* | *(TBD)* |
+
 ```yaml
 ---
 name: {domain}-{role}
@@ -101,11 +111,13 @@ role: {role}
 description: {what this agent does}
 model: sonnet
 tools:
-  - Task
+  # Varies by role — see table above
   - Bash
   - Read
   - Write
-  - Skill
+  # Orchestrators add: Task, Skill
+  # Builders add: Edit, Grep, Glob
+  # Designers add: Grep, Glob
 ---
 
 # {domain}-{role}
