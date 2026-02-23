@@ -100,8 +100,15 @@ Recipe ends
 
 ```
 .phoenix-os/{issue}/
-├── docs/           # Documentation artifacts
-└── evidence/       # Implementation evidence
+├── spec/           # Specifications, requirements
+├── design/         # Technical design, architecture
+├── evidence/       # Implementation evidence per recipe
+│   └── {recipe-name}/
+│       └── {YYYYMMDD-HHMMSS}.md
+├── delivery/       # Delivery artifacts (PR details, release)
+└── checkpoint/     # Recipe execution state per recipe
+    └── {recipe-name}/
+        └── {YYYYMMDD-HHMMSS}.md
 ```
 
 ## Memory Flow
