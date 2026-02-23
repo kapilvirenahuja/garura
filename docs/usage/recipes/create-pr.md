@@ -2,6 +2,8 @@
 
 Create pull requests with dynamic, context-aware quality checklists.
 
+> **Golden standard:** `create-pr` is the reference implementation for the Phoenix OS recipe structure. All recipes should follow this pattern.
+
 ## Overview
 
 The `create-pr` recipe analyzes your branch, generates a quality checklist based on what actually changed, and creates a pull request with that checklist embedded.
@@ -22,13 +24,51 @@ Or invoke directly:
 Create a pull request for my current branch
 ```
 
-## What It Does
+## Recipe Structure
 
-1. **Analyzes your branch** against base (typically `main`)
-2. **Detects context** — which file patterns are affected, what commit types
-3. **Generates checklist** — only items relevant to what changed
-4. **Presents for approval** — checkpoint before external action
-5. **Creates PR** — with checklist embedded in body
+```
+core/components/recipes/create-pr/
+├── SKILL.md              # Recipe execution blueprint (5 phases)
+├── reference/
+│   └── intent.yaml       # First-class intent schema (operational contract)
+└── templates/
+    ├── checkpoint.md      # Checkpoint artifact template
+    ├── approval-prompt.md # User-facing Tether/Vanish prompt
+    └── final-report.md    # Post-PR creation summary
+```
+
+**Key patterns demonstrated:**
+- Intent externalized to `reference/intent.yaml` — grows independently of workflow
+- Agent context blocks reference `intent.yaml` dynamically — adding new constraints is automatically picked up
+- Templates externalized to `templates/` — change independently of workflow
+- Single `## Recovery` section — all failure handling in one place
+
+## Workflow (5 Steps)
+
+| Step | Name | Owner | Purpose |
+|------|------|-------|---------|
+| **Step 0** | Pre-flight | repo-orchestrator | Verify environmental preconditions (C1–C4) |
+| **Step 1** | Analyze | repo-orchestrator | Generate evidence-based quality checklist |
+| **Step 2** | Checkpoint | orchestrator | Present for approval (Tether/Vanish) |
+| **Step 3** | Execute | repo-orchestrator | Create the PR with checklist embedded |
+| **Step 4** | Report | orchestrator | Present summary, update STM artifacts |
+
+### Pre-flight (Step 0)
+
+Before any analysis, the recipe verifies four environmental conditions from `reference/intent.yaml`:
+
+| Check | What It Verifies |
+|-------|-----------------|
+| C1 | Current branch is not protected (main/master/develop) |
+| C2 | Branch has unpushed commits vs target |
+| C3 | No merge conflicts with target |
+| C4 | Issue number extractable from branch name (NWWI) |
+
+Pre-flight failures are **hard halts** — these are environmental conditions the agent cannot fix. The recipe stops immediately with the constraint's `halt_message`.
+
+### Analyze (Step 1)
+
+The `repo-orchestrator` agent analyzes the branch and generates a quality checklist distinguishing blocking (must-have) from optional (nice-to-have) items.
 
 ## Dynamic Checklist
 
@@ -211,9 +251,46 @@ PRs are externally visible. The 5-second approval pause prevents:
 - Notification noise to team
 - Premature visibility of work-in-progress
 
+## Intent Schema
+
+The operational contract lives in `reference/intent.yaml`:
+
+```yaml
+intent: "Submit work for peer review via a pull request with dynamically
+         generated, evidence-based quality assurance"
+
+constraints:
+  pre_flight:
+    - id: C1
+      check: current branch NOT IN [main, master, develop]
+      halt_message: "Protected branch — PRs cannot be created from a protected branch"
+    # C2, C3, C4 ...
+
+  behavioral:
+    - id: C5
+      rule: "Always checkpoint before PR creation — PRs are externally visible"
+    # C6–C9 ...
+
+failure_conditions:
+  - No issue number extractable from the current branch name
+  - PR creation fails on the remote
+  # ...
+```
+
+Adding new constraints to `intent.yaml` is automatically picked up — agent context blocks reference the file dynamically, not hardcoded constraint IDs.
+
+## Recovery
+
+All failure handling is consolidated in a single `## Recovery` section in SKILL.md:
+
+- **Pre-flight failures** (C1–C4) are hard halts — environmental conditions agents cannot fix
+- **Runtime failures** (Steps 1–3) trigger the recovery loop — max 1 retry per step
+- Recovery reasoning loaded from LTM: `~/.phoenix-os/core/memory/practices/intent-driven-recovery.md`
+
 ## Related
 
-- `/commit` — Commit changes (internal operation, may auto-approve)
+- `/commit-code` — Commit changes (internal operation, may auto-approve)
 - `repo-orchestrator` — Agent that executes PR operations
 - `analyze-pr` — Skill that generates the checklist
 - `submit-pr` — Skill that creates the PR
+- `docs/components/phx-recipes.md` — Recipe component guide with golden standard structure
