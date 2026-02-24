@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-The term "skill" was used loosely in Phoenix OS, sometimes referring to:
+The term "skill" was used loosely in Meridian, sometimes referring to:
 - Simple actions (fetch issue, commit code)
 - Complex workflows (analyze bug)
 - Technology-specific knowledge (write Java code)

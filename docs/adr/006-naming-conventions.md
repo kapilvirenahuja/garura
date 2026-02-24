@@ -10,14 +10,14 @@ Accepted
 
 ## Context
 
-Phoenix OS components (recipes, skills, agents) had inconsistent naming patterns, making it difficult to:
+Meridian components (recipes, skills, agents) had inconsistent naming patterns, making it difficult to:
 - Understand component type from name
 - Follow consistent creation patterns
 - Maintain documentation accuracy
 
 ## Decision
 
-Establish clear naming conventions for all Phoenix OS components.
+Establish clear naming conventions for all Meridian components.
 
 ### Recipe Naming: `{action}-{object}`
 

@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-Phoenix OS needed a clear architecture for organizing its workflows. The original design had a flat structure where recipes directly called sub-agents and skills without clear boundaries, leading to:
+Meridian needed a clear architecture for organizing its workflows. The original design had a flat structure where recipes directly called sub-agents and skills without clear boundaries, leading to:
 
 - Unclear invocability rules (what can humans invoke vs. models?)
 - No consistent checkpoint/approval model
@@ -19,7 +19,7 @@ Phoenix OS needed a clear architecture for organizing its workflows. The origina
 
 ## Decision
 
-Phoenix OS adopts a **three-layer hierarchy**:
+Meridian adopts a **three-layer hierarchy**:
 
 ```
 L2 Recipes (High-Order)     User intent: fix-bug, code-microservice

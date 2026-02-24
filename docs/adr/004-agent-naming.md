@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-Phoenix OS originally documented a `{domain}-keeper` pattern but used inconsistent naming:
+Meridian originally documented a `{domain}-keeper` pattern but used inconsistent naming:
 
 | Documented | Actual Usage |
 |------------|--------------|
