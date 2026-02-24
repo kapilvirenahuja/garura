@@ -568,7 +568,7 @@ This protocol applies universally across all recipes. The intent is to make appr
 
 **Evidence Artifacts:**
 
-Every recipe step that produces work writes an evidence artifact to `.phoenix-os/{issue}/evidence/{recipe-name}/{YYYYMMDD-HHMMSS}.md`. Evidence captures what was done, not how — it records the outcome for the audit trail:
+Every recipe step that produces work writes an evidence artifact to `.meridian/{issue}/evidence/{recipe-name}/{YYYYMMDD-HHMMSS}.md`. Evidence captures what was done, not how — it records the outcome for the audit trail:
 - What issue and branch the work was for
 - What was produced or executed (commits with hashes, branches created, etc.)
 - Validation results (clean tree, format checks, etc.)
@@ -1136,7 +1136,7 @@ IDD rests on three testable hypotheses. These are not proven — they are the be
 
 ---
 
-> For how these principles are implemented in Phoenix OS, see the IDSD methodology: `docs/philosophy/idsd.md`
+> For how these principles are implemented in Meridian, see the IDSD methodology: `docs/philosophy/idsd.md`
 
 ---
 

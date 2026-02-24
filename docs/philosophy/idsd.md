@@ -1,15 +1,15 @@
 # IDSD — Intent Driven Software Development
 
-> **Scope**: Phoenix OS Methodology
+> **Scope**: Meridian Methodology
 > **Status**: Active
 > **Last Updated**: 2026-02-21
 > **Foundation**: IDD (Intent-Driven Development) — see `intent-driven-development.md`
 
 ## Overview
 
-IDSD (Intent Driven Software Development) is the **methodology** that operationalizes IDD principles into a complete, enterprise-grade software development lifecycle within Phoenix OS.
+IDSD (Intent Driven Software Development) is the **methodology** that operationalizes IDD principles into a complete, enterprise-grade software development lifecycle within Meridian.
 
-**Analogy**: IDD is to IDSD as Agile is to Scrum. IDD defines the principles; IDSD defines how to follow them when building software with Phoenix OS.
+**Analogy**: IDD is to IDSD as Agile is to Scrum. IDD defines the principles; IDSD defines how to follow them when building software with Meridian.
 
 **One-liner**: IDD principles operationalized into a complete AI-native SDLC.
 
@@ -17,7 +17,7 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 
 ---
 
-## IDD → Phoenix OS Mapping
+## IDD → Meridian Mapping
 
 ### The 8 IDD Elements in IDSD
 
@@ -46,20 +46,20 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 └─────────────────────────────────────────────────────────────┘
 ```
 
-| # | IDD Element (Principle) | IDSD Implementation (Phoenix OS) |
+| # | IDD Element (Principle) | IDSD Implementation (Meridian) |
 |---|------------------------|----------------------------------|
 | 1 | Intent Layer | Recipes — L1 (≤2 agents), L2 (≤5 agents). Every recipe has IDD intent header (intent/constraints/failure_conditions). |
 | 2 | Signals | User CLI invocations (`/build-feature`, `/commit-code`). All signals enter via recipes. |
 | 3 | Orchestrated Intent | Recipe Levels (L1/L2). Three speeds: Fast (minutes), Planned (hours), Strategic (days). |
 | 4 | Agents | 8 agents (4 implemented, 4 planned): code-builder, tech-designer, repo-orchestrator, project-orchestrator. Planned: quality-validator, workflow-guardian, product-strategist, spec-author. Agent-first pattern. |
-| 5 | Memory | LTM: `core/components/memory/` (practices, standards, templates). STM: `.phoenix-os/{issue}/` (per-issue work). |
+| 5 | Memory | LTM: `core/components/memory/` (practices, standards, templates). STM: `.meridian/{issue}/` (per-issue work). |
 | 6 | Skills | Bounded capabilities invoked by agents. Each skill has SKILL.md with input/output contracts. |
 | 7 | Context-Aware Decisions | Context bundles ≤12K tokens. Audience separation (Tier 1/2/3). Agents read LTM + STM. |
 | 8 | Generation-Verification | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per recipe. Evidence artifacts. Tether/Vanish checkpoints. |
 
 ### Element-to-Component Matrix
 
-| # | IDD Element | Phoenix OS Component | Layer | Owner |
+| # | IDD Element | Meridian Component | Layer | Owner |
 |---|-------------|---------------------|-------|-------|
 | 1 | Intent Layer | Recipes | Orchestration | Human |
 | 2 | Signals | Signals | Perception | System |
@@ -251,7 +251,7 @@ See [Intent Primacy and Recipe Evolution](./architecture.md#intent-primacy-and-r
 
 ---
 
-## Phoenix OS Architecture
+## Meridian Architecture
 
 ### Component Hierarchy
 
@@ -261,9 +261,9 @@ Recipes (L1/L2) → Agents → Skills → Memory (LTM + STM)
 
 ### Agent Taxonomy (IDSD-specific)
 
-IDSD maps the AI Squad Framework roles to 8 Phoenix OS agents (4 implemented, 4 planned):
+IDSD maps the AI Squad Framework roles to 8 Meridian agents (4 implemented, 4 planned):
 
-| AI Squad Role | Phoenix OS Agent(s) | IDD Element |
+| AI Squad Role | Meridian Agent(s) | IDD Element |
 |---------------|--------------------|----|
 | Specifier | product-strategist *(planned)*, spec-author *(planned)* | Element 4 |
 | Designer | tech-designer | Element 4 |
@@ -366,7 +366,7 @@ Output (DRAFT → VALIDATE → LOCKED)
 │  └─────────────┘  └──────────────┘                     │
 │                                                         │
 │  Storage: core/components/memory/{dimension}/           │
-│  Deployed to: ~/.phoenix-os/core/memory/                │
+│  Deployed to: ~/.meridian/core/memory/                  │
 │  Version controlled via Git repository                  │
 └─────────────────────────────────────────────────────────┘
 
@@ -381,7 +381,7 @@ Output (DRAFT → VALIDATE → LOCKED)
 │  • Task context and evidence                            │
 │  • Design documents for current workflow                │
 │                                                         │
-│  Storage: .phoenix-os/{issue}/                          │
+│  Storage: .meridian/{issue}/                            │
 │  Lifecycle: Branch-scoped, may be promoted to LTM       │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -413,7 +413,7 @@ PR created for review
             (e.g., "all services use structured JSON logging")
         │
         ▼
-Merged → deployed to ~/.phoenix-os/core/memory/ via /sync-claude
+Merged → deployed to ~/.meridian/core/memory/ via /sync-claude
 ```
 
 **Semantic Conflict Detection**: Git catches file-level conflicts, but not semantic contradictions (e.g., one practice says "always use retry logic" while another says "never retry inside transactions"). The `capture-learning` recipe is designed with an `extract-patterns` skill that should detect semantic overlap with existing LTM entries — but this capability is not yet built. Current state: manual review during PR process.
@@ -443,8 +443,8 @@ Each stage is additive — Stage 2 does not replace Stage 1; it adds a server la
 Status: Planned, not designed. Currently relies on manual PR review and the P5 hygiene rule.
 
 Storage paths:
-- LTM: `core/components/memory/{dimension}/` → deployed to `~/.phoenix-os/core/memory/`
-- STM: `.phoenix-os/{issue}/` — per-issue, branch-scoped
+- LTM: `core/components/memory/{dimension}/` → deployed to `~/.meridian/core/memory/`
+- STM: `.meridian/{issue}/` — per-issue, branch-scoped
 
 ### Audience Separation
 
@@ -606,7 +606,7 @@ Agent begins execution
 - ICS runs on **business intents**, not SDLC intents (SDLC intents are framework-authored and pre-validated)
 - ICS is mandatory for agents in **Spec-2-Code** and **Design-2-Spec** phases (where intent ambiguity is most costly)
 - ICS is optional for mechanical recipes (`commit-code`, `create-pr`) per P7's "when to skip" guidance
-- ICS results are written to STM as evidence: `.phoenix-os/{issue}/ics-assessment.md`
+- ICS results are written to STM as evidence: `.meridian/{issue}/ics-assessment.md`
 - Non-Balanced profiles generate a checkpoint; the human can override with Tether or request decomposition
 - For barrier-eligible recipes, ICS includes a 6th dimension: **Barrier Integrity** — whether the constraint-failure partition is correctly classified per P4's Classification Rule. Misclassified items trigger the "Barrier Compromised" profile.
 
@@ -787,7 +787,7 @@ Lock phase MUST run cascade-sync before setting LOCKED status.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  PHOENIX INTERFACE (Enterprise Layer)                       │
+│  MERIDIAN INTERFACE (Enterprise Layer)                      │
 │                                                             │
 │  Governance        │ Quality Gates    │ Memory Federation   │
 │  Policies,         │ Validation       │ LTM deployed to     │

@@ -2,7 +2,7 @@
 
 Create pull requests with dynamic, context-aware quality checklists.
 
-> **Golden standard:** `create-pr` is the reference implementation for the Phoenix OS recipe structure. All recipes should follow this pattern.
+> **Golden standard:** `create-pr` is the reference implementation for the Meridian recipe structure. All recipes should follow this pattern.
 
 ## Overview
 
@@ -191,7 +191,7 @@ The created PR includes checkboxes grouped by trigger:
 
 ## Project Customization
 
-Override or extend rules in `.phoenix-os/config/quality-gates/pr/rules.md`.
+Override or extend rules in `.meridian/config/quality-gates/pr/rules.md`.
 
 ### Add Custom Rules
 
@@ -293,4 +293,4 @@ All failure handling is consolidated in a single `## Recovery` section in SKILL.
 - `repo-orchestrator` — Agent that executes PR operations
 - `analyze-pr` — Skill that generates the checklist
 - `submit-pr` — Skill that creates the PR
-- `docs/components/phx-recipes.md` — Recipe component guide with golden standard structure
+- `docs/components/recipes.md` — Recipe component guide with golden standard structure

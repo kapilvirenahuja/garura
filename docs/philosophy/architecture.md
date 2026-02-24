@@ -1,10 +1,10 @@
-# Phoenix OS Architecture
+# Meridian Architecture
 
-This document describes the core architecture philosophy of Phoenix OS.
+This document describes the core architecture philosophy of Meridian.
 
 ## Overview
 
-Phoenix OS implements Fluidic SDLC through a **three-layer hierarchy** that separates workflow orchestration from activity execution and learned capabilities.
+Meridian implements Fluidic SDLC through a **three-layer hierarchy** that separates workflow orchestration from activity execution and learned capabilities.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -39,7 +39,7 @@ Phoenix OS implements Fluidic SDLC through a **three-layer hierarchy** that sepa
 ┌─────────────────────────────────────────────────────────────┐
 │                        MEMORY                               │
 │  LTM: Practices, config (core/memory/, core/config.yaml)    │
-│  STM: Artifacts per issue (.phoenix-os/{issue}/)            │
+│  STM: Artifacts per issue (.meridian/{issue}/)              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -90,7 +90,7 @@ L1 Recipe: analyze-bug
               │
               └── Agent uses skills: do-rca-analysis
               │
-              └── Agent produces: .phoenix-os/{issue}/docs/rca.md
+              └── Agent produces: .meridian/{issue}/docs/rca.md
     │
     └── CHECKPOINT: Present RCA for approval
 ```
@@ -138,7 +138,7 @@ Skills use a **local references with deployment sync** pattern:
 ┌─────────────────────────────────────────────────────────────┐
 │                     DEPLOYMENT TIME                         │
 │                                                             │
-│   Memory (overrides)  ──► Phoenix Deploy ──► Skills (local) │
+│   Memory (overrides)  ──► Meridian Deploy ──► Skills (local) │
 │   core/memory/            checks & syncs     embedded refs  │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
@@ -156,7 +156,7 @@ Skills use a **local references with deployment sync** pattern:
 
 1. **Skills embed references locally** — All knowledge a skill needs is in the skill file or skill directory
 2. **Memory contains overrides** — Organizations can customize skill behavior via `core/memory/skill-overrides/`
-3. **Deployment syncs overrides** — Phoenix deployment copies memory overrides into skill-local locations
+3. **Deployment syncs overrides** — Meridian deployment copies memory overrides into skill-local locations
 4. **Skills never read LTM at runtime** — Skills are self-contained; no external path dependencies
 
 **Why this pattern:**
@@ -209,7 +209,7 @@ This boundary is not a style preference — it is an architectural rule. If a re
 
 ## Memory Architecture
 
-Phoenix OS uses a **dual memory system**:
+Meridian uses a **dual memory system**:
 
 ### Long-Term Memory (LTM)
 
@@ -225,7 +225,7 @@ Phoenix OS uses a **dual memory system**:
 
 ### Short-Term Memory (STM)
 
-**Location:** `.phoenix-os/{issue_number}/`
+**Location:** `.meridian/{issue_number}/`
 
 **Contains:**
 - Documentation (specs, designs, RCA)
@@ -239,7 +239,7 @@ Phoenix OS uses a **dual memory system**:
 ### STM Folder Structure
 
 ```
-.phoenix-os/
+.meridian/
 ├── _pending/                # Temporary, pre-issue (two-phase write)
 │   └── {timestamp}/
 └── {issue_number}/
@@ -281,7 +281,7 @@ Phoenix OS uses a **dual memory system**:
 │                    STM (Short-Term Memory)                  │
 │  Created: When recipe starts                                │
 │  Contains: Artifacts (docs, evidence, checkpoint) per issue │
-│  Location: .phoenix-os/{issue_number}/                      │
+│  Location: .meridian/{issue_number}/                        │
 │  Lifecycle: Persists forever (audit trail)                  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -309,7 +309,7 @@ Recovery reasoning is loaded from: `docs/framework/intent-driven-recovery.md`. T
 
 ### Checkpoint Artifact Status Lifecycle
 
-Every checkpoint artifact written to `.phoenix-os/{issue}/checkpoint/{recipe}/{timestamp}.md` follows a defined status lifecycle:
+Every checkpoint artifact written to `.meridian/{issue}/checkpoint/{recipe}/{timestamp}.md` follows a defined status lifecycle:
 
 | Status | Meaning |
 |--------|---------|
@@ -342,7 +342,7 @@ Traditional AI copilots are non-deterministic — same prompt, different results
 - Human oversight is required
 - Workflows must be auditable
 
-### Phoenix OS Solution
+### Meridian Solution
 
 1. **Deterministic workflows** — Recipes define exact steps
 2. **Checkpoint model** — Human review at defined points

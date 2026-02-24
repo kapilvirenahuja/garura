@@ -1,6 +1,6 @@
 # Usage
 
-Concrete implementations and examples for Phoenix OS components.
+Concrete implementations and examples for Meridian components.
 
 ## Structure
 
