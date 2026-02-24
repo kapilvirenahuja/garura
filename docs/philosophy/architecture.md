@@ -4,7 +4,7 @@ This document describes the core architecture philosophy of Meridian.
 
 ## Overview
 
-Meridian implements Fluidic SDLC through a **three-layer hierarchy** that separates workflow orchestration from activity execution and learned capabilities.
+Meridian implements Intent-Driven Software Development through a **three-layer hierarchy** that separates workflow orchestration from activity execution and learned capabilities.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

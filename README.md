@@ -2,15 +2,15 @@
 
 **Your OS for intent-driven development** - An agentic system that defines how to build software deterministically for enterprise-grade delivery.
 
-## What is Fluidic SDLC
+## What is Intent-Driven Software Development
 
-**Fluidic SDLC** is a philosophy that prioritizes adaptive execution over rigid workflows. Unlike traditional methodologies that prescribe specific tools and rigid processes, Fluidic SDLC adapts to available tools, contexts, and constraints while maintaining deterministic outcomes.
+**Intent-Driven Software Development (IDSD)** is a philosophy that prioritizes adaptive execution over rigid workflows. Unlike traditional methodologies that prescribe specific tools and rigid processes, IDSD adapts to available tools, contexts, and constraints while maintaining deterministic outcomes.
 
 ### Core Philosophy
 
 Traditional approach: `Tool Required → Process Fails if Unavailable → Developer Blocked`
 
-Fluidic approach: `Start with intent → Agentic System selects method → Workflows adapt to needs → Consistent memory and context → Deliver consistent outcomes`
+IDSD approach: `Start with intent → Agentic System selects method → Workflows adapt to needs → Consistent memory and context → Deliver consistent outcomes`
 
 ### Three Core Tenets
 
@@ -32,7 +32,7 @@ Read more: [`docs/philosophy/architecture.md`](docs/philosophy/architecture.md)
 
 ## What is Meridian
 
-Meridian is an agentic framework that implements Fluidic SDLC principles for intent-driven development. It orchestrates specialized AI agents through cognitive flows to deliver enterprise-grade code generation.
+Meridian is an agentic framework that implements Intent-Driven Software Development principles. It orchestrates specialized AI agents through cognitive flows to deliver enterprise-grade code generation.
 
 ### Key Features
 
