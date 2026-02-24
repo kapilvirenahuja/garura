@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Phoenix OS is an agentic framework implementing **Fluidic SDLC** principles for intent-driven, deterministic AI-assisted development. It uses a three-layer hierarchy: **Recipes** (L1/L2 workflows) → **Agents** (domain experts) → **Skills** (learned capabilities).
+Meridian is an agentic framework implementing **Fluidic SDLC** principles for intent-driven, deterministic AI-assisted development. It uses a three-layer hierarchy: **Recipes** (L1/L2 workflows) → **Agents** (domain experts) → **Skills** (learned capabilities).
 
 ## Architecture
 
@@ -19,14 +19,14 @@ core/components/           # Source of truth (edit here)
 ├── agents/               # Deployed agents
 └── skills/               # Deployed skills + recipes
 
-~/.phoenix-os/core/memory/ # Global LTM (via /sync-claude, default)
+~/.meridian/core/memory/ # Global LTM (via /sync-claude, default)
 ```
 
-**Note:** `.claude/` and `.phoenix-os/core/memory/` are NO LONGER tracked in the repository. They are gitignored.
+**Note:** `.claude/` and `.meridian/core/memory/` are NO LONGER tracked in the repository. They are gitignored.
 - Components deploy to `~/.claude/` (global mode, default) or `.claude/` (project mode, ephemeral)
-- Memory deploys to `~/.phoenix-os/core/memory/` (global mode, default) or `.phoenix-os/core/memory/` (project mode, ephemeral)
+- Memory deploys to `~/.meridian/core/memory/` (global mode, default) or `.meridian/core/memory/` (project mode, ephemeral)
 
-**Data Flow:** L2 Recipe → chains L1s → L1 invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`.phoenix-os/{issue}/`)
+**Data Flow:** L2 Recipe → chains L1s → L1 invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`.meridian/{issue}/`)
 
 ## Behavioral Rules
 
@@ -39,7 +39,7 @@ Author all components in `core/components/`. The canonical deployment is `~/.cla
 core/components/skills/   → ~/.claude/skills/          (via /sync-claude)
 core/components/recipes/  → ~/.claude/skills/          (via /sync-claude)
 core/components/agents/   → ~/.claude/agents/          (via /sync-claude)
-core/components/memory/   → ~/.phoenix-os/core/memory/ (via /sync-claude)
+core/components/memory/   → ~/.meridian/core/memory/ (via /sync-claude)
 ```
 
 **Project mode (ephemeral):**
@@ -47,7 +47,7 @@ core/components/memory/   → ~/.phoenix-os/core/memory/ (via /sync-claude)
 core/components/skills/   → .claude/skills/               (via /sync-claude --project, gitignored)
 core/components/recipes/  → .claude/skills/               (via /sync-claude --project, gitignored)
 core/components/agents/   → .claude/agents/               (via /sync-claude --project, gitignored)
-core/components/memory/   → .phoenix-os/core/memory/      (via /sync-claude --project, gitignored)
+core/components/memory/   → .meridian/core/memory/      (via /sync-claude --project, gitignored)
 ```
 
 After editing source, run `/sync-claude` to deploy globally. Use `/sync-claude --project` for ephemeral local copies (gitignored).

@@ -1,4 +1,4 @@
-# Phoenix OS
+# Meridian
 
 **Your OS for intent-driven development** - An agentic system that defines how to build software deterministically for enterprise-grade delivery.
 
@@ -30,9 +30,9 @@ Fluidic approach: `Start with intent → Agentic System selects method → Workf
 
 Read more: [`docs/philosophy/architecture.md`](docs/philosophy/architecture.md)
 
-## What is Phoenix OS
+## What is Meridian
 
-Phoenix OS is an agentic framework that implements Fluidic SDLC principles for intent-driven development. It orchestrates specialized AI agents through cognitive flows to deliver enterprise-grade code generation.
+Meridian is an agentic framework that implements Fluidic SDLC principles for intent-driven development. It orchestrates specialized AI agents through cognitive flows to deliver enterprise-grade code generation.
 
 ### Key Features
 
@@ -44,7 +44,7 @@ Phoenix OS is an agentic framework that implements Fluidic SDLC principles for i
 
 ### AI-Native SDLC
 
-Phoenix OS follows a 5-step AI-Native SDLC for all development workflows:
+Meridian follows a 5-step AI-Native SDLC for all development workflows:
 
 ```
 DISCOVER ──► SPECIFY ──► DESIGN ──► BUILD ──► RUN
@@ -60,7 +60,7 @@ DISCOVER ──► SPECIFY ──► DESIGN ──► BUILD ──► RUN
 
 ### Core Components
 
-Phoenix OS uses a **three-layer hierarchy** for deterministic workflows:
+Meridian uses a **three-layer hierarchy** for deterministic workflows:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -91,8 +91,8 @@ Phoenix OS uses a **three-layer hierarchy** for deterministic workflows:
 ┌─────────────────────────────────────────────────────────────┐
 │                      MEMORY                                 │
 │  LTM (authoring): core/components/memory/                   │
-│  LTM (runtime): ~/.phoenix-os/core/memory/ (global default) │
-│  STM: Artifacts per issue (.phoenix-os/{issue}/)            │
+│  LTM (runtime): ~/.meridian/core/memory/ (global default) │
+│  STM: Artifacts per issue (.meridian/{issue}/)            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -106,7 +106,7 @@ Phoenix OS uses a **three-layer hierarchy** for deterministic workflows:
 
 ### Agent Roles
 
-Phoenix OS agents follow the `{domain}-{role}` naming pattern:
+Meridian agents follow the `{domain}-{role}` naming pattern:
 
 | Agent | Domain | Role | Responsibility |
 |-------|--------|------|----------------|
@@ -117,17 +117,17 @@ Phoenix OS agents follow the `{domain}-{role}` naming pattern:
 
 ### Memory System
 
-Phoenix OS uses a dual memory architecture:
+Meridian uses a dual memory architecture:
 
-- **Short-Term Memory (STM)**: Issue-specific artifacts stored in `.phoenix-os/{issue}/` with subdirectories for `docs/`, `evidence/`, and `checkpoint/` (see ADR 008)
-- **Long-Term Memory (LTM)**: Organizational knowledge — authored in `core/components/memory/`, synced to `~/.phoenix-os/core/memory/` (global) or `.phoenix-os/core/memory/` (project). Contains skill overrides, standards, templates, practices.
+- **Short-Term Memory (STM)**: Issue-specific artifacts stored in `.meridian/{issue}/` with subdirectories for `docs/`, `evidence/`, and `checkpoint/` (see ADR 008)
+- **Long-Term Memory (LTM)**: Organizational knowledge — authored in `core/components/memory/`, synced to `~/.meridian/core/memory/` (global) or `.meridian/core/memory/` (project). Contains skill overrides, standards, templates, practices.
 
 **Skill-Memory Pattern**: Skills embed their own references locally. LTM contains overrides that are synced to skills at deployment time. Skills never read from LTM at runtime — they are self-contained.
 
 
 ## Supported AI Agents
 
-Phoenix OS is designed to work with multiple AI agent platforms:
+Meridian is designed to work with multiple AI agent platforms:
 
 - **Claude Code**: Anthropic's official CLI for Claude
 - **Factory Droids**: Factory.AI Droid platform
@@ -146,20 +146,20 @@ Run the installer in your project directory:
 
 ```bash
 cd /path/to/your-project
-curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/phoenix-os/main/installer/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/meridian/main/installer/install.sh | bash
 ```
 
 Optionally specify a project name:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/phoenix-os/main/installer/install.sh | bash -s -- --project-name my-app
+curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/meridian/main/installer/install.sh | bash -s -- --project-name my-app
 ```
 
 This scaffolds the following structure in your project:
 
 ```
 your-project/
-├── .phoenix-os/
+├── .meridian/
 │   ├── core/
 │   │   ├── config.yaml    # Project configuration (customizable)
 │   │   └── memory/        # LTM: practices, templates, standards (gitignored ephemeral copy)
@@ -174,7 +174,7 @@ your-project/
 **After installation:**
 
 1. Review and customize `CLAUDE.md` for your project
-2. Update `.phoenix-os/core/config.yaml` with your repository details
+2. Update `.meridian/core/config.yaml` with your repository details
 3. Start developing with Claude Code
 
 ### Upgrade an Existing Installation
@@ -182,17 +182,17 @@ your-project/
 Run the same installer again — it detects the existing installation and performs a non-destructive upgrade:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/phoenix-os/main/installer/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/meridian/main/installer/install.sh | bash
 ```
 
 **What gets upgraded (overwritten):**
 - `~/.claude/agents/` — Agent definitions (global deployment)
 - `~/.claude/skills/` — Skills and recipes (global deployment)
-- `~/.phoenix-os/core/memory/` — Memory (practices, templates, global)
+- `~/.meridian/core/memory/` — Memory (practices, templates, global)
 
 **What gets preserved:**
-- `.phoenix-os/project/` — Your project artifacts
-- `.phoenix-os/core/config.yaml` — Your config (new version written as `config.yaml.new`)
+- `.meridian/project/` — Your project artifacts
+- `.meridian/core/config.yaml` — Your config (new version written as `config.yaml.new`)
 - `CLAUDE.md` — Your AI instructions (new version written as `CLAUDE.md.new`)
 - `.claude/settings.json` — Your Claude settings
 
@@ -200,12 +200,12 @@ Review the `.new` files and merge any changes you want to keep.
 
 ### Install from Source (for Contributors)
 
-If you want to develop Phoenix OS itself:
+If you want to develop Meridian itself:
 
 ```bash
 # Clone the repository
-git clone https://github.com/kapilvirenahuja/phoenix-os.git
-cd phoenix-os
+git clone https://github.com/kapilvirenahuja/meridian.git
+cd meridian
 
 # Sync components to .claude/ directory
 claude /sync-claude
@@ -214,7 +214,7 @@ claude /sync-claude
 ## Repository Structure
 
 ```
-phoenix-os/
+meridian/
 ├── installer/
 │   └── install.sh             # Curl-based installer script
 ├── core/
@@ -263,14 +263,14 @@ phoenix-os/
 - **ADRs**: [`docs/adr/`](docs/adr/)
 
 ### Components
-- **Recipes**: [`docs/components/phx-recipes.md`](docs/components/phx-recipes.md)
-- **Agents**: [`docs/components/phx-agents.md`](docs/components/phx-agents.md)
-- **Skills**: [`docs/components/phx-skills.md`](docs/components/phx-skills.md)
-- **Memory**: [`docs/components/phx-memory.md`](docs/components/phx-memory.md)
+- **Recipes**: [`docs/components/recipes.md`](docs/components/recipes.md)
+- **Agents**: [`docs/components/agents.md`](docs/components/agents.md)
+- **Skills**: [`docs/components/skills.md`](docs/components/skills.md)
+- **Memory**: [`docs/components/memory.md`](docs/components/memory.md)
 
 ## Contributing
 
-We welcome contributions to Phoenix OS! Whether you're fixing bugs, improving documentation, or proposing new features, please submit pull requests to the main branch.
+We welcome contributions to Meridian! Whether you're fixing bugs, improving documentation, or proposing new features, please submit pull requests to the main branch.
 
 ### Guidelines for Contributors
 
@@ -288,7 +288,7 @@ We welcome contributions to Phoenix OS! Whether you're fixing bugs, improving do
 
 MIT License
 
-Copyright (c) 2026 Phoenix OS Contributors
+Copyright (c) 2026 Meridian Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -310,4 +310,4 @@ SOFTWARE.
 
 ## Support
 
-For issues and questions, please visit: https://github.com/kapilvirenahuja/phoenix-os/issues
+For issues and questions, please visit: https://github.com/kapilvirenahuja/meridian/issues

@@ -135,12 +135,12 @@ package-lock.json
 docs/_build/
 site/
 
-# Phoenix OS specific
+# Meridian specific
 temp/*.md
 !temp/README.md
 .trees/
 test-project/
-.phoenix-os/
+.meridian/
 
 # GitHub Actions artifacts (for future contributor automation)
 .github/actions/artifacts/

@@ -1,13 +1,13 @@
-# Phoenix OS Configuration
+# Meridian Configuration
 
 project:
-  name: Phoenix OS
+  name: Meridian
   type: Agentic Framework
 
 platform: github
 
 github:
-  repo: https://github.com/kapilvirenahuja/phoenix-os.git
+  repo: https://github.com/kapilvirenahuja/meridian.git
 
 # Source of truth locations
 components:
@@ -29,13 +29,13 @@ global-claude:
 # Long-Term Memory (LTM)
 ltm:
   source: ./core/components/memory/
-  project-target: ./.phoenix-os/core/memory/
-  global-target: ~/.phoenix-os/core/memory/
+  project-target: ./.meridian/core/memory/
+  global-target: ~/.meridian/core/memory/
 
 # Short-Term Memory (STM) — Issue-centric artifacts (ADR 008)
 stm:
-  base-path: .phoenix-os/
-  pending-path: .phoenix-os/_pending/
+  base-path: .meridian/
+  pending-path: .meridian/_pending/
   structure:
     spec: "{issue-number}/spec/"
     design: "{issue-number}/design/"
