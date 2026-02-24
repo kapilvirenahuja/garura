@@ -1,10 +1,10 @@
 # Recipes
 
-Recipes are human-invocable workflows that define the order of operations for Phoenix OS.
+Recipes are human-invocable workflows that define the order of operations for Meridian.
 
 ## Philosophy
 
-Recipes define **what to do and in what order**. They are the entry points for all Phoenix OS workflows.
+Recipes define **what to do and in what order**. They are the entry points for all Meridian workflows.
 
 ### Core Principles
 
@@ -17,7 +17,7 @@ Recipes define **what to do and in what order**. They are the entry points for a
 
 ## Recipe Levels
 
-Phoenix OS has a three-layer hierarchy:
+Meridian has a three-layer hierarchy:
 
 | Level | Invocability | Constraints | Purpose |
 |-------|--------------|-------------|---------|
@@ -36,7 +36,7 @@ Phoenix OS has a three-layer hierarchy:
 
 ## L1 Recipes (Atomic Activities)
 
-L1 recipes are the building blocks of Phoenix OS workflows.
+L1 recipes are the building blocks of Meridian workflows.
 
 ### L1 Properties
 
@@ -495,11 +495,11 @@ Recipes are **orchestrators** — they coordinate, not execute.
 
 | Artifact Type | Location Pattern |
 |---------------|------------------|
-| Specifications | `.phoenix-os/{issue}/spec/` |
-| Design | `.phoenix-os/{issue}/design/` |
-| Evidence | `.phoenix-os/{issue}/evidence/` |
-| Delivery | `.phoenix-os/{issue}/delivery/` |
-| Checkpoints | `.phoenix-os/{issue}/checkpoint/{recipe-name}/{timestamp}.md` |
+| Specifications | `.meridian/{issue}/spec/` |
+| Design | `.meridian/{issue}/design/` |
+| Evidence | `.meridian/{issue}/evidence/` |
+| Delivery | `.meridian/{issue}/delivery/` |
+| Checkpoints | `.meridian/{issue}/checkpoint/{recipe-name}/{timestamp}.md` |
 | External | Returned directly (URLs, IDs) |
 
 ## Recipe Location
@@ -583,7 +583,7 @@ task:
   owner: string                # "repo-orchestrator"
   blockedBy: [taskId]
   metadata:
-    _phoenix:                  # Phoenix-internal namespace
+    _meridian:                 # Meridian-internal namespace
       recipeId: string         # Links task to recipe instance
       invocation: number       # 1, 2, ... for resume tracking
       agentId: string          # For resuming agent
@@ -607,10 +607,10 @@ task:
 
 | Key | Purpose | Set By |
 |-----|---------|--------|
-| `_phoenix.recipeId` | Links task to recipe instance | Recipe |
-| `_phoenix.invocation` | Tracks invocation number | Recipe |
-| `_phoenix.agentId` | Enables agent resume | Agent |
-| `_phoenix.checkpointDecision` | Records approval outcome | Recipe |
+| `_meridian.recipeId` | Links task to recipe instance | Recipe |
+| `_meridian.invocation` | Tracks invocation number | Recipe |
+| `_meridian.agentId` | Enables agent resume | Agent |
+| `_meridian.checkpointDecision` | Records approval outcome | Recipe |
 | `analysisResult` | Analysis output | Agent |
 | `commitResult` | Execution output | Agent |
 
@@ -651,5 +651,5 @@ After agent completes execution:
 
 - [ADR 001: Three-Layer Hierarchy](../adr/001-three-layer-hierarchy.md)
 - [ADR 002: L1 Checkpoint Model](../adr/002-l1-checkpoint-model.md)
-- [Agents Component Guide](./phx-agents.md)
-- [Skills Component Guide](./phx-skills.md)
+- [Agents Component Guide](./agents.md)
+- [Skills Component Guide](./skills.md)

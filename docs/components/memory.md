@@ -1,6 +1,6 @@
 # Memory
 
-Phoenix OS uses a dual memory architecture: Long-Term Memory (LTM) and Short-Term Memory (STM).
+Meridian uses a dual memory architecture: Long-Term Memory (LTM) and Short-Term Memory (STM).
 
 ## Philosophy
 
@@ -19,8 +19,8 @@ Memory is **project contextual information** that enables consistent, knowledge-
 
 | Type | Lifecycle | Purpose | Authoring Location | Runtime Location |
 |------|-----------|---------|---------------------|------------------|
-| **LTM** | Project setup → persists | Practices, standards, templates | `core/components/memory/` | `~/.phoenix-os/core/memory/` (global), `.phoenix-os/core/memory/` (project) |
-| **STM** | Recipe start → recipe end | Artifacts created during recipe | N/A | `.phoenix-os/{issue}/` |
+| **LTM** | Project setup → persists | Practices, standards, templates | `core/components/memory/` | `~/.meridian/core/memory/` (global), `.meridian/core/memory/` (project) |
+| **STM** | Recipe start → recipe end | Artifacts created during recipe | N/A | `.meridian/{issue}/` |
 
 ## Long-Term Memory (LTM)
 
@@ -44,7 +44,7 @@ Agents and skills read from LTM to:
 ```
 Agent invoked
     │
-    └── Reads LTM from ~/.phoenix-os/core/memory/:
+    └── Reads LTM from ~/.meridian/core/memory/:
           ├── standards/{domain}/
           ├── formats/{type}/
           └── knowledge/{domain}/
@@ -71,8 +71,8 @@ core/components/memory/
 
 **Runtime (where agents read from):**
 ```
-~/.phoenix-os/core/memory/    # Global mode (default)
-.phoenix-os/core/memory/      # Project mode
+~/.meridian/core/memory/    # Global mode (default)
+.meridian/core/memory/      # Project mode
 ```
 
 ## Short-Term Memory (STM)
@@ -90,7 +90,7 @@ STM stores:
 ```
 Recipe starts
     │
-    └── STM folder created: .phoenix-os/{issue}/
+    └── STM folder created: .meridian/{issue}/
               │
               ├── L1 step 1 → Creates artifact
               │
@@ -106,7 +106,7 @@ Recipe ends
 ### STM Organization
 
 ```
-.phoenix-os/{issue}/
+.meridian/{issue}/
 ├── spec/           # Specifications, requirements
 ├── design/         # Technical design, architecture
 ├── evidence/       # Implementation evidence per recipe
@@ -136,7 +136,7 @@ Recipe ends
 │                    STM (Short-Term Memory)                  │
 │  Created: When recipe starts                                │
 │  Contains: Artifacts for this issue                         │
-│  Location: .phoenix-os/{issue}/                             │
+│  Location: .meridian/{issue}/                               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -176,7 +176,7 @@ L1 Recipe
     ├── Agent does work
     │
     └── Agent writes STM:
-          └── artifact in .phoenix-os/{issue}/
+          └── artifact in .meridian/{issue}/
 ```
 
 ### L2 Recipe Memory Flow
@@ -208,8 +208,8 @@ core/components/memory/
 ```
 
 **Runtime:** Agents read memory from:
-- `~/.phoenix-os/core/memory/` (global mode, default — shared across all projects)
-- `.phoenix-os/core/memory/` (project mode — project-specific)
+- `~/.meridian/core/memory/` (global mode, default — shared across all projects)
+- `.meridian/core/memory/` (project mode — project-specific)
 
 See: [docs/usage/memory/](../usage/memory/) for concrete implementations.
 
@@ -217,4 +217,4 @@ See: [docs/usage/memory/](../usage/memory/) for concrete implementations.
 
 - [ADR 006: Naming Conventions](../adr/006-naming-conventions.md)
 - [Architecture Philosophy](../philosophy/architecture.md)
-- [Recipes Component Guide](./phx-recipes.md)
+- [Recipes Component Guide](./recipes.md)

@@ -1,6 +1,6 @@
 # Agents
 
-Agents are autonomous decision-makers in Phoenix OS with domain-specific expertise.
+Agents are autonomous decision-makers in Meridian with domain-specific expertise.
 
 ## Philosophy
 
@@ -42,7 +42,7 @@ This pattern ensures:
 
 ### Granularity Principle
 
-Phoenix OS avoids both extremes:
+Meridian avoids both extremes:
 
 | Too Narrow | Too Granular | Right Level |
 |------------|--------------|-------------|
@@ -149,7 +149,7 @@ tools:
 
 ## Why Not Specialist Agents?
 
-Phoenix OS deprecates specialist patterns (e.g., `bug-analyzer`, `test-writer`) because:
+Meridian deprecates specialist patterns (e.g., `bug-analyzer`, `test-writer`) because:
 
 | Problem | Solution |
 |---------|----------|
@@ -173,5 +173,5 @@ See: [docs/usage/agents/](../usage/agents/) for concrete implementations.
 ## Related Documentation
 
 - [ADR 004: Agent Naming](../adr/004-agent-naming.md)
-- [Recipes Component Guide](./phx-recipes.md)
-- [Skills Component Guide](./phx-skills.md)
+- [Recipes Component Guide](./recipes.md)
+- [Skills Component Guide](./skills.md)

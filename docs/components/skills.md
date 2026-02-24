@@ -20,20 +20,20 @@ Skills represent the "how" of execution. They are technology or methodology-spec
 
 ## Two Categories
 
-Phoenix OS has two categories of components that deploy as Claude Code skills:
+Meridian has two categories of components that deploy as Claude Code skills:
 
 | Category | What It Is | Invocability | Purpose |
 |----------|-----------|--------------|---------|
 | **Skills** | Learned capabilities (how to do it) | Model only (via agents) | Execute with expertise |
 | **Recipes** | Workflows (what to do and in what order) | Human OR Model | Orchestrate workflow |
 
-Both deploy to `.claude/skills/` but serve fundamentally different roles. This document covers **Skills**. See [Recipes](./phx-recipes.md) for recipe documentation.
+Both deploy to `.claude/skills/` but serve fundamentally different roles. This document covers **Skills**. See [Recipes](./recipes.md) for recipe documentation.
 
 ### Meta-Utility Skills (Exception)
 
-Some skills exist to manage the Phoenix OS framework itself. These are classified as **meta-utility skills** and may be `user-invocable: true` despite the general rule that skills are model-invocable only.
+Some skills exist to manage the Meridian framework itself. These are classified as **meta-utility skills** and may be `user-invocable: true` despite the general rule that skills are model-invocable only.
 
-Example: `sync-claude` — synchronizes Phoenix OS components to Claude Code directories. It is invoked directly by the user because it manages the deployment pipeline, not a domain task.
+Example: `sync-claude` — synchronizes Meridian components to Claude Code directories. It is invoked directly by the user because it manages the deployment pipeline, not a domain task.
 
 Meta-utility skills:
 - Are user-invocable
@@ -238,14 +238,14 @@ Load patterns from: `reference/risks.md`
 Organizational standards that adopters customize — commit categories, issue templates, quality gates. These live in LTM and are referenced by well-known paths.
 
 ```markdown
-Load categories from: `~/.phoenix-os/core/memory/standards/commits/categories.md`
+Load categories from: `~/.meridian/core/memory/standards/commits/categories.md`
 ```
 
 | Knowledge Type | Location | Mutable By Adopter |
 |---------------|----------|-------------------|
 | Skill behavior (process, constraints) | Skill-local (embedded) | No — edit skill source |
 | Skill-specific references (risk patterns) | `reference/` directory | No — edit skill source |
-| Organizational standards (categories) | LTM (`~/.phoenix-os/core/memory/`) | Yes — edit LTM |
+| Organizational standards (categories) | LTM (`~/.meridian/core/memory/`) | Yes — edit LTM |
 | Output format | `templates/` directory | No — edit skill source |
 
 ## Skill Qualifiers
@@ -273,5 +273,5 @@ core/components/skills/
 - [ADR 006: Naming Conventions](../adr/006-naming-conventions.md)
 - [ADR 007: Skill-Local References](../adr/007-skill-local-references.md) — Partially superseded by ADR 009
 - [ADR 009: Skill LTM Organizational Knowledge](../adr/009-skill-ltm-organizational-knowledge.md)
-- [Agents Component Guide](./phx-agents.md)
-- [Recipes Component Guide](./phx-recipes.md)
+- [Agents Component Guide](./agents.md)
+- [Recipes Component Guide](./recipes.md)
