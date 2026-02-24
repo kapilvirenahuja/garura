@@ -61,7 +61,7 @@ git diff --stat | tail -1
 
 - **Minor changes** (≤5 files AND ≤100 lines): Stash, create branch, pop stash
   ```bash
-  git stash push -m "phoenix-os: pre-branch stash for {branch_name}"
+  git stash push -m "meridian: pre-branch stash for {branch_name}"
   git checkout -b "{branch_name}"
   git stash pop
   ```

@@ -274,7 +274,7 @@ Bash is available for operations **not covered by skills**:
 
 ## Memory
 
-Load from LTM (`~/.phoenix-os/core/memory/`) as needed:
+Load from LTM (`~/.meridian/core/memory/`) as needed:
 - `standards/git/branching.md` — Branch naming conventions
 
 Load framework protocols from `docs/framework/` as needed:

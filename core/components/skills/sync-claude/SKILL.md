@@ -1,6 +1,6 @@
 ---
 name: sync-claude
-description: Sync Phoenix OS components to .claude/ (project mode) or ~/.claude/ (global mode, default)
+description: Sync Meridian components to .claude/ (project mode) or ~/.claude/ (global mode, default)
 user-invocable: true
 model: haiku
 allowed-tools: Bash
@@ -8,13 +8,13 @@ allowed-tools: Bash
 
 # sync-claude
 
-Meta skill for syncing Phoenix OS components to Claude Code's skill/agent directories.
+Meta skill for syncing Meridian components to Claude Code's skill/agent directories.
 
 ## Purpose
 
-Copy all Phoenix OS skills and agents from source of truth (`core/components/`) to either:
-- **Global mode** (default): `~/.claude/` and `~/.phoenix-os/core/memory/` — Makes components available to ALL projects. This is the permanent, shared deployment path.
-- **Project mode**: `.claude/` and `.phoenix-os/core/memory/` — Creates ephemeral local copies (gitignored) for project-specific use only.
+Copy all Meridian skills and agents from source of truth (`core/components/`) to either:
+- **Global mode** (default): `~/.claude/` and `~/.meridian/core/memory/` — Makes components available to ALL projects. This is the permanent, shared deployment path.
+- **Project mode**: `.claude/` and `.meridian/core/memory/` — Creates ephemeral local copies (gitignored) for project-specific use only.
 
 ## Input Parsing
 
@@ -40,10 +40,10 @@ Determine target directory based on arguments:
 
 | Source | Global Destination | Project Destination | Contains |
 |--------|-------------------|---------------------|----------|
-| `core/components/memory/*` | `~/.phoenix-os/core/memory/` | `.phoenix-os/core/memory/` | LTM: practices, templates, quality-gates, references |
+| `core/components/memory/*` | `~/.meridian/core/memory/` | `.meridian/core/memory/` | LTM: practices, templates, quality-gates, references |
 
-In **global mode** (default): Memory syncs to `~/.phoenix-os/core/memory/` — shared across all projects.
-In **project mode**: Memory syncs to `.phoenix-os/core/memory/` — project-specific LTM.
+In **global mode** (default): Memory syncs to `~/.meridian/core/memory/` — shared across all projects.
+In **project mode**: Memory syncs to `.meridian/core/memory/` — project-specific LTM.
 
 ## Process
 
@@ -90,9 +90,9 @@ Sync LTM (Long-Term Memory) to the appropriate location based on mode.
 ```bash
 # Determine memory target
 if [ "$MODE" = "global" ]; then
-  MEMORY_TARGET="$HOME/.phoenix-os/core/memory"
+  MEMORY_TARGET="$HOME/.meridian/core/memory"
 else
-  MEMORY_TARGET=".phoenix-os/core/memory"
+  MEMORY_TARGET=".meridian/core/memory"
 fi
 
 # Create memory directory
@@ -150,9 +150,9 @@ Produce output using template: `templates/sync-output.md`
 - ALWAYS create target directories before copying (`mkdir -p`)
 - ALWAYS report which mode was used and the target path
 - In global mode, NEVER sync `sync-claude` skill (framework-only)
-- In global mode, memory goes to `~/.phoenix-os/core/memory/` (shared across all projects)
-- In project mode, memory goes to `.phoenix-os/core/memory/` (project-specific)
-- Project mode creates ephemeral local copies in `.claude/` and `.phoenix-os/core/memory/` that are gitignored
+- In global mode, memory goes to `~/.meridian/core/memory/` (shared across all projects)
+- In project mode, memory goes to `.meridian/core/memory/` (project-specific)
+- Project mode creates ephemeral local copies in `.claude/` and `.meridian/core/memory/` that are gitignored
 - Global mode is the canonical deployment path for components
 
 ## Version

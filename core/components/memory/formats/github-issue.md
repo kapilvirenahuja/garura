@@ -17,7 +17,7 @@ Standard template for creating GitHub issues via `gh issue create`.
 
 ---
 
-*Created via Phoenix OS `start-feature` workflow.*
+*Created via Meridian `start-feature` workflow.*
 ```
 
 ## Field Derivation Rules

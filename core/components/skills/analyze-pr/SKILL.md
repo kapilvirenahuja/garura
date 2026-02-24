@@ -46,7 +46,7 @@ Determine which file patterns are affected:
 
 Determine branch pattern using: `reference/branch-patterns.md`
 
-Determine commit types from commit messages using: `~/.phoenix-os/core/memory/standards/commits/categories.md`
+Determine commit types from commit messages using: `~/.meridian/core/memory/standards/commits/categories.md`
 
 ### 3. Load Rules
 

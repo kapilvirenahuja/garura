@@ -121,7 +121,7 @@ If no issue is resolvable → halt with: "No valid issue ID resolvable — commi
 
 #### Write STM artifact
 
-Write to `.phoenix-os/{issue}/checkpoint/commit-code/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md`.
+Write to `.meridian/{issue}/checkpoint/commit-code/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md`.
 Status: `PENDING_APPROVAL`.
 
 #### Auto-approve decision
@@ -190,9 +190,9 @@ If `success: false` → invoke recovery (see Recovery section). Max 2 retries pe
 
 Verify working tree is clean (invoke `repo-orchestrator` for final status check).
 
-Update checkpoint artifact `.phoenix-os/{issue}/checkpoint/commit-code/{same-timestamp}.md` — append commits created with hashes and status.
+Update checkpoint artifact `.meridian/{issue}/checkpoint/commit-code/{same-timestamp}.md` — append commits created with hashes and status.
 
-Write evidence to `.phoenix-os/{issue}/evidence/commit-code/{YYYYMMDD-HHMMSS}.md`:
+Write evidence to `.meridian/{issue}/evidence/commit-code/{YYYYMMDD-HHMMSS}.md`:
 - Issue number and branch
 - Each commit: hash, message, files
 - Validation: clean tree, conventional format
@@ -221,7 +221,7 @@ For retries, add to recipe context:
 | File | Path | Used For |
 |------|------|----------|
 | Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
-| Checkpoint | `templates/checkpoint.md` | STM artifact at `.phoenix-os/{issue}/checkpoint/commit-code/{YYYYMMDD-HHMMSS}.md` |
+| Checkpoint | `templates/checkpoint.md` | STM artifact at `.meridian/{issue}/checkpoint/commit-code/{YYYYMMDD-HHMMSS}.md` |
 | Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation |
 | Commit Summary | `templates/commit-summary.md` | Final report after execution |
 

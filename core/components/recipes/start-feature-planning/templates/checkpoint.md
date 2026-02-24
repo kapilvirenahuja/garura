@@ -33,9 +33,9 @@
 ## Planning Artifacts
 | Artifact | Path |
 |----------|------|
-| Specification | `.phoenix-os/{issue}/planning/spec.md` |
-| Verification | `.phoenix-os/{issue}/planning/verify.md` |
-| Task Breakdown | `.phoenix-os/{issue}/planning/tasks.md` |
+| Specification | `.meridian/{issue}/planning/spec.md` |
+| Verification | `.meridian/{issue}/planning/verify.md` |
+| Task Breakdown | `.meridian/{issue}/planning/tasks.md` |
 
 ## Decision
 - **Approval Status:** {PENDING|APPROVED|REJECTED}

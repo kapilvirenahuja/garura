@@ -107,7 +107,7 @@ If agent returns structured failure → see Recovery section.
 
 Extract issue number from `pre_flight.issue_number` (already validated in Step 0).
 
-Write checkpoint artifact to STM: `.phoenix-os/{issue-number}/checkpoint/create-pr/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
+Write checkpoint artifact to STM: `.meridian/{issue-number}/checkpoint/create-pr/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
 
 Present the approval prompt using `templates/approval-prompt.md`. Checklist blocking items with `status: FAIL` are visible to the user here — they can Vanish to abort or Tether to proceed knowing the risks.
 
@@ -156,7 +156,7 @@ If `result.success: false` → see Recovery section. Max 2 retries.
 
 **The orchestrator owns this step entirely. Do not delegate.**
 
-Write evidence to `.phoenix-os/{issue-number}/evidence/create-pr/{YYYYMMDD-HHMMSS}.md`:
+Write evidence to `.meridian/{issue-number}/evidence/create-pr/{YYYYMMDD-HHMMSS}.md`:
 - Issue number and branch
 - PR number, URL, title, and state
 - Quality checklist summary (must-have count, nice-to-have count, any FAIL items)
@@ -192,7 +192,7 @@ For retries, add to recipe context:
 | File | Path | Used For |
 |------|------|----------|
 | Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
-| Checkpoint | `templates/checkpoint.md` | STM artifact at `.phoenix-os/{issue}/checkpoint/create-pr/{ts}.md` |
+| Checkpoint | `templates/checkpoint.md` | STM artifact at `.meridian/{issue}/checkpoint/create-pr/{ts}.md` |
 | Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation |
 | Final Report | `templates/final-report.md` | Post-PR creation summary |
 

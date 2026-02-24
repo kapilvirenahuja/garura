@@ -14,8 +14,8 @@
 ## Evidence Trail
 | Artifact | Location |
 |----------|----------|
-| Specification | `.phoenix-os/{issue}/planning/spec.md` |
-| Verification | `.phoenix-os/{issue}/planning/verify.md` |
-| Task Breakdown | `.phoenix-os/{issue}/planning/tasks.md` |
-| Implementation | `.phoenix-os/{issue}/evidence/implementation.md` |
-| Checkpoint | `.phoenix-os/{issue}/checkpoint/start-feature-planning/{ts}.md` |
+| Specification | `.meridian/{issue}/planning/spec.md` |
+| Verification | `.meridian/{issue}/planning/verify.md` |
+| Task Breakdown | `.meridian/{issue}/planning/tasks.md` |
+| Implementation | `.meridian/{issue}/evidence/implementation.md` |
+| Checkpoint | `.meridian/{issue}/checkpoint/start-feature-planning/{ts}.md` |
