@@ -3,17 +3,17 @@
 **Version:** 2.1.0
 **Date:** 2026-02-21
 **Status:** DRAFT — Pending Review
-**Author:** Phoenix OS
+**Author:** Meridian
 
 ---
 
 ## Intent
 
-**Intent:** Build a complete AI-native software development lifecycle for Phoenix OS that covers the full journey from product discovery through feature delivery, operations, and learning — where humans express intent and AI agents execute with full traceability, audience separation, and context economy.
+**Intent:** Build a complete AI-native software development lifecycle for Meridian that covers the full journey from product discovery through feature delivery, operations, and learning — where humans express intent and AI agents execute with full traceability, audience separation, and context economy.
 
 **Constraints:**
 - MUST follow IDD principles — intent in, quality out
-- MUST respect Phoenix OS architecture: Recipes → Agents → Skills
+- MUST respect Meridian architecture: Recipes → Agents → Skills
 - MUST maintain audience separation — each artifact serves ONE stakeholder
 - MUST maintain context economy — agents load only what they need (≤12K tokens per task)
 - MUST follow L1/L2 recipe constraints (L1 ≤2 agents, L2 ≤5 agents)
@@ -46,7 +46,7 @@ Full IDD principles: `docs/philosophy/intent-driven-development.md`
 | 2 | Signals | System activates through event-driven triggers, not manual kickoffs | User CLI invocations (`/build-feature`, `/commit-code`) are the current signal mechanism. Recipes are the entry point for all signals. |
 | 3 | Orchestrated Intent | Recipes bridge intent and execution at graduated autonomy levels | L1 recipes (≤2 agents), L2 recipes (≤5 agents). Three speeds: Fast (minutes), Planned (hours), Strategic (days). 19 prioritized recipes across 8 phases (5 primary, 3 supporting). |
 | 4 | Agents | Autonomous decision-makers accept intent and determine HOW within their domain | 8 agents: product-strategist, specifier, designer, validator, code-builder, tech-designer, repo-orchestrator, project-orchestrator. Agent-first pattern enforced. |
-| 5 | Memory | Persistent organizational context across sessions | LTM (`core/components/memory/`) for practices, standards, templates. STM (`.phoenix-os/{issue}/`) for per-issue work context. LTM governance via Git: PR-based promotion with tiered review (project-level → team, org-level → engineering leaders). Memory enables deterministic adaptation. |
+| 5 | Memory | Persistent organizational context across sessions | LTM (`core/components/memory/`) for practices, standards, templates. STM (`.meridian/{issue}/`) for per-issue work context. LTM governance via Git: PR-based promotion with tiered review (project-level → team, org-level → engineering leaders). Memory enables deterministic adaptation. |
 | 6 | Skills | Bounded, repeatable execution capabilities that agents invoke | Skills execute work; they never decide when they run. Each recipe lists its skills with input/output contracts. |
 | 7 | Context-Aware Decisions | Every decision accounts for full environmental context | Context bundles ≤12K tokens per agent task. Audience separation (Tier 1/2/3). Agents read LTM + STM to build execution context. |
 | 8 | Generation-Verification Loops | Every output passes through quality gates | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per recipe. Evidence artifacts. Tether/Vanish checkpoints. |
@@ -279,7 +279,7 @@ failure_conditions:
 | Status | EXISTS — needs resume mode + IDD intent header |
 
 **Consumes:** Issue ID or description
-**Generates:** GitHub issue, feature branch, `.phoenix-os/{issue}/` STM directory
+**Generates:** GitHub issue, feature branch, `.meridian/{issue}/` STM directory
 
 **Arguments:**
 ```
@@ -293,14 +293,14 @@ Examples:
 **Evolution needed:**
 - Add IDD intent header (intent/constraints/failure_conditions)
 - Add `--resume` mode: resolve issue, checkout branch, verify STM dir exists
-- Add STM directory creation: `.phoenix-os/{issue}/`
+- Add STM directory creation: `.meridian/{issue}/`
 - Add roadmap/epic linking if available
 
 ---
 
 ## Recipe Specs — Learn-2-Memory
 
-**Phase intent:** Learn-2-Memory closes the feedback loop by capturing what was learned during delivery and promoting it into long-term organizational memory. This includes retrospectives, standup summaries, and — critically — STM→LTM promotion: the process of taking issue-specific learnings from short-term memory (`.phoenix-os/{issue}/`) and promoting them into long-term memory (`core/components/memory/`) so they benefit future work.
+**Phase intent:** Learn-2-Memory closes the feedback loop by capturing what was learned during delivery and promoting it into long-term organizational memory. This includes retrospectives, standup summaries, and — critically — STM→LTM promotion: the process of taking issue-specific learnings from short-term memory (`.meridian/{issue}/`) and promoting them into long-term memory (`core/components/memory/`) so they benefit future work.
 
 ### Recipe: `capture-learning` (P2 — NEW)
 
@@ -331,7 +331,7 @@ failure_conditions:
 /capture-learning [--source <path>] [--type <practice|standard|template>] [intent]
 
 Examples:
-  /capture-learning --source .phoenix-os/42/ --type practice
+  /capture-learning --source .meridian/42/ --type practice
   /capture-learning "We learned that QR validation needs offline fallback"
 ```
 
@@ -386,8 +386,8 @@ failure_conditions:
 /implement-feature [--spec <path>] [--vertical <N>] [intent]
 
 Examples:
-  /implement-feature --spec .phoenix-os/{issue}/spec/
-  /implement-feature --spec .phoenix-os/{issue}/spec/ --vertical 1
+  /implement-feature --spec .meridian/{issue}/spec/
+  /implement-feature --spec .meridian/{issue}/spec/ --vertical 1
   /implement-feature "Implement QR activation feature end to end"
 ```
 
@@ -442,11 +442,11 @@ failure_conditions:
 | Status | EXISTS — IDD review: frontmatter, agent routing, templates, recovery |
 
 **Consumes:** Issue ID, description, or intent
-**Generates:** Lightweight planning artifacts (spec.md, verify.md, tasks.md in `.phoenix-os/{issue}/planning/`), implementation code, commits, PR
+**Generates:** Lightweight planning artifacts (spec.md, verify.md, tasks.md in `.meridian/{issue}/planning/`), implementation code, commits, PR
 
 **Planning Artifacts (IDD-aware but lightweight):**
 ```
-.phoenix-os/{issue}/planning/
+.meridian/{issue}/planning/
 ├── spec.md      # IDD intent header + summary, approach, risks (NOT audience-separated)
 ├── verify.md    # IDD intent header + acceptance criteria, verification steps (NOT formal gates)
 └── tasks.md     # IDD intent header + execution steps (NOT dependency graph)
@@ -540,7 +540,7 @@ Agent → product-strategist
   → discover-product-opportunity
   → draft-product-vision
 
-Output: .phoenix-os/project/product/{slug}/vision.md (DRAFT)
+Output: .meridian/project/product/{slug}/vision.md (DRAFT)
 Checkpoint: Present vision summary
 ```
 
@@ -1213,7 +1213,7 @@ constraints: {technical or business}
 ## Storage Layout
 
 ```
-.phoenix-os/
+.meridian/
 ├── project/
 │   └── product/{slug}/              # Product-2-Design artifacts
 │       ├── vision.md

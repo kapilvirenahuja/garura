@@ -3,7 +3,7 @@
 ## Gates
 
 ### G1: LTM Access (Mandatory)
-All four agents have a `## Memory` section that references `~/.phoenix-os/core/memory/practices/`.
+All four agents have a `## Memory` section that references `~/.meridian/core/memory/practices/`.
 - Evidence: grep agent files for memory/LTM reference
 - Pass: all 4 agents have the section
 - Fail: any agent missing LTM reference

@@ -44,7 +44,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `repo-orchestrator.md` includes structured failure return section with all required fields
 - [ ] `project-orchestrator.md` includes structured failure return section with all required fields
 - [ ] All structured failure returns include: `within_my_domain`, `responsible_domain`, `suggested_agent`
-- [ ] All agents reference `~/.phoenix-os/core/memory/practices/structured-failure-protocol.md`
+- [ ] All agents reference `~/.meridian/core/memory/practices/structured-failure-protocol.md`
 - [ ] No agent returns a raw error string — always returns structured failure YAML
 - [ ] All structured failures include: `self_recovery_attempted` and `self_recovery_details` fields
 - [ ] Max 1 self-recovery attempt documented per agent
@@ -309,7 +309,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Recipe failure_conditions include: "Branch already exists and has conflicts", "Issue ID not found (resume mode)"
 - [ ] NEW mode: recipe creates GitHub issue via project-orchestrator
 - [ ] NEW mode: recipe creates feature branch via repo-orchestrator
-- [ ] NEW mode: recipe creates `.phoenix-os/{issue}/` STM directory
+- [ ] NEW mode: recipe creates `.meridian/{issue}/` STM directory
 - [ ] RESUME mode: recipe accepts `--resume <issue-id>` argument
 - [ ] RESUME mode: recipe resolves existing issue, checkouts branch, verifies STM dir exists
 - [ ] Recipe accepts `[description]` argument for NEW mode
@@ -348,7 +348,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `draft-ltm-entry` skill output contract declares: ltm_entry with path, title, content, append_or_merge
 - [ ] Generated LTM entries target `core/components/memory/` directory (not STM)
 - [ ] Recipe does NOT overwrite existing LTM — output contract specifies append or propose merge
-- [ ] Recipe includes STM→LTM promotion step: issue-specific learnings captured in `.phoenix-os/{issue}/` STM are promoted into long-term organizational memory at `core/components/memory/`
+- [ ] Recipe includes STM→LTM promotion step: issue-specific learnings captured in `.meridian/{issue}/` STM are promoted into long-term organizational memory at `core/components/memory/`
 - [ ] Recipe documents LTM governance workflow: generated entries staged for PR-based review, NOT written directly to `core/components/memory/`
 - [ ] Recipe documents tiered review: project-level LTM → team leads review; org-level LTM → engineering leaders/CTOs review
 - [ ] `extract-patterns` skill contract documents semantic overlap detection with existing LTM entries (designed capability — may not be built in v1)
@@ -411,7 +411,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Recipe embeds start-feature flow: issue resolution + branch creation + STM initialization (does not call start-feature separately)
 - [ ] Plan sub-agent prompt instructs IDD intent header on each planning artifact (spec.md, verify.md, tasks.md)
 - [ ] Planning artifacts are lightweight: no formal gates, no bundles, no audience separation
-- [ ] Planning artifacts stored at `.phoenix-os/{issue}/planning/` (not `.phoenix-os/{issue}/spec/`)
+- [ ] Planning artifacts stored at `.meridian/{issue}/planning/` (not `.meridian/{issue}/spec/`)
 - [ ] code-builder invocation is scoped to CODE only (no docs, no markdown, no config)
 - [ ] Recipe builds working code with tests
 - [ ] Recipe commits via repo-orchestrator (agent-first — not direct git)
@@ -446,7 +446,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Recipe accepts `--artifact <path>` argument for validate/lock phases
 - [ ] Recipe accepts `[intent]` free-text argument
 - [ ] Draft phase: invokes product-strategist → discover-product-opportunity → draft-product-vision
-- [ ] Draft phase output: `.phoenix-os/project/product/{slug}/vision.md` (status DRAFT)
+- [ ] Draft phase output: `.meridian/project/product/{slug}/vision.md` (status DRAFT)
 - [ ] Draft phase output: vision.md includes Strategic Goals section (NOT OKRs)
 - [ ] Draft phase: checkpoint presents vision summary (Tether/Vanish)
 - [ ] Validate phase: invokes product-strategist → validate-product-vision; returns validation_result
@@ -550,10 +550,10 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `backlog-epic.md` template includes story fields with INVEST checklist
 - [ ] `business-review.md` template uses PM-facing language (no technical jargon in PM sections)
 - [ ] `business-review.md` template audience declared: "Product Manager / Business Owner"
-- [ ] Artifacts use storage path: `.phoenix-os/project/product/{slug}/vision.md`
-- [ ] Artifacts use storage path: `.phoenix-os/project/product/{slug}/roadmap.md`
-- [ ] Artifacts use storage path: `.phoenix-os/project/product/{slug}/backlog/{epic}.md`
-- [ ] Business review stored at: `.phoenix-os/project/product/{slug}/reviews/{artifact}-review.md`
+- [ ] Artifacts use storage path: `.meridian/project/product/{slug}/vision.md`
+- [ ] Artifacts use storage path: `.meridian/project/product/{slug}/roadmap.md`
+- [ ] Artifacts use storage path: `.meridian/project/product/{slug}/backlog/{epic}.md`
+- [ ] Business review stored at: `.meridian/project/product/{slug}/reviews/{artifact}-review.md`
 - [ ] No template references `okrs.md` path or OKR structure
 
 **Evidence:** `evidence/g-107-product-templates.md` — template file paths, IDD header presence, OKR absence, audience declarations, storage paths
@@ -660,7 +660,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Recipe accepts `[intent]` free-text argument or uses vision.md as input
 - [ ] Draft phase: invokes product-strategist → prioritize-product-features → draft-product-roadmap
 - [ ] Draft phase: scoring method is RICE or MoSCoW (explicitly chosen or defaulted)
-- [ ] Draft phase output: `.phoenix-os/project/product/{slug}/roadmap.md` (status DRAFT)
+- [ ] Draft phase output: `.meridian/project/product/{slug}/roadmap.md` (status DRAFT)
 - [ ] Validate phase: invokes product-strategist → validate-product-roadmap
 - [ ] Lock phase: runs cascade-sync, sets roadmap.md to LOCKED
 - [ ] Recipe works with vision.md as input OR intent alone (intent-sufficient)
@@ -691,7 +691,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Recipe accepts `--artifact <path>` argument for validate/lock phases
 - [ ] Recipe accepts `[intent]` or epic description as input
 - [ ] Draft phase: invokes product-strategist → decompose-product-epic → draft-product-stories
-- [ ] Draft phase output: `.phoenix-os/project/product/{slug}/backlog/{epic}.md` (status DRAFT)
+- [ ] Draft phase output: `.meridian/project/product/{slug}/backlog/{epic}.md` (status DRAFT)
 - [ ] Validate phase: invokes product-strategist → validate-product-backlog
 - [ ] Lock phase: runs cascade-sync, sets backlog/{epic}.md to LOCKED
 - [ ] Recipe works with roadmap.md as input OR intent alone (intent-sufficient)
@@ -808,7 +808,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Output contract includes: steps list with step text, status, evidence
 - [ ] Output contract includes: evidence_path (path to evidence file at `evidence/g-{NNN}-*.md`)
 - [ ] Output contract includes: issues list with message, severity, fix_hint
-- [ ] Evidence file created at `.phoenix-os/{issue}/evidence/g-{NNN}-*.md` for each gate verified
+- [ ] Evidence file created at `.meridian/{issue}/evidence/g-{NNN}-*.md` for each gate verified
 - [ ] Reference file exists: `verify-gate/reference/gate-patterns.md`
 - [ ] Skill verifies individual gates — called once per gate, not bulk
 - [ ] Skill does NOT modify implementation — read-only verification
@@ -1007,7 +1007,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Output contract includes: delivery_report.pr (url, branch)
 - [ ] Output contract includes: delivery_report.evidence_manifest (path to evidence/)
 - [ ] Delivery report template exists: `templates/delivery-report.md`
-- [ ] Report stored at: `.phoenix-os/{issue}/delivery/delivery-report.md`
+- [ ] Report stored at: `.meridian/{issue}/delivery/delivery-report.md`
 - [ ] Report is human-readable markdown (not raw YAML)
 
 **Evidence:** `evidence/g-331-delivery-report-skill.md` — skill file, output contract, template structure, report path
@@ -1188,15 +1188,15 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | Depends On | G-100 |
 
 **Verification Steps:**
-- [ ] Product-2-Design artifacts stored at `.phoenix-os/project/product/{slug}/vision.md`
-- [ ] Product-2-Design artifacts stored at `.phoenix-os/project/product/{slug}/roadmap.md`
-- [ ] Product-2-Design artifacts stored at `.phoenix-os/project/product/{slug}/backlog/{epic}.md`
-- [ ] Product-2-Design reviews stored at `.phoenix-os/project/product/{slug}/reviews/{artifact}-review.md`
-- [ ] Per-issue STM directory created at `.phoenix-os/{issue}/` by start-feature
-- [ ] Spec artifacts stored at `.phoenix-os/{issue}/spec/` (business-review, technical-design, ux-spec, verify, tasks, bundles/)
-- [ ] Design artifacts stored at `.phoenix-os/{issue}/design/` (architecture, ux-design)
-- [ ] Evidence artifacts stored at `.phoenix-os/{issue}/evidence/g-{NNN}-*.md`
-- [ ] Delivery artifacts stored at `.phoenix-os/{issue}/delivery/delivery-report.md`
+- [ ] Product-2-Design artifacts stored at `.meridian/project/product/{slug}/vision.md`
+- [ ] Product-2-Design artifacts stored at `.meridian/project/product/{slug}/roadmap.md`
+- [ ] Product-2-Design artifacts stored at `.meridian/project/product/{slug}/backlog/{epic}.md`
+- [ ] Product-2-Design reviews stored at `.meridian/project/product/{slug}/reviews/{artifact}-review.md`
+- [ ] Per-issue STM directory created at `.meridian/{issue}/` by start-feature
+- [ ] Spec artifacts stored at `.meridian/{issue}/spec/` (business-review, technical-design, ux-spec, verify, tasks, bundles/)
+- [ ] Design artifacts stored at `.meridian/{issue}/design/` (architecture, ux-design)
+- [ ] Evidence artifacts stored at `.meridian/{issue}/evidence/g-{NNN}-*.md`
+- [ ] Delivery artifacts stored at `.meridian/{issue}/delivery/delivery-report.md`
 - [ ] LTM (Learn-2-Memory output) stored at `core/components/memory/` (practices/, standards/, templates/)
 - [ ] No artifacts stored at paths that include `okrs.md` or OKR-related paths
 

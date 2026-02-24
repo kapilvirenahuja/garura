@@ -19,7 +19,7 @@ Each `intent` field describes a business outcome, not a technical procedure.
 | Rule | Anti-Pattern | Example |
 |------|-------------|---------|
 | No tool names | "Commit using git..." | "Safely persist completed work..." |
-| No file paths | "Write to .phoenix-os/..." | "...with full traceability" |
+| No file paths | "Write to .meridian/..." | "...with full traceability" |
 | No HOW prescriptions | "by grouping changes and running..." | "...as conventional commits" |
 | Single statement | Multiple sentences with different goals | One cohesive outcome |
 | Self-evident testability | "Improve the commit process" | "Persist completed work with traceability to a tracked issue" |
@@ -67,12 +67,12 @@ No existing behavior changes. Only front-matter additions.
 
 ## Gate 6: Documentation Updated (MANDATORY)
 
-`phx-recipes.md` must include Three Elements in recipe structure templates.
+`mrd-recipes.md` must include Three Elements in recipe structure templates.
 
 | Check | Method |
 |-------|--------|
-| L1 template includes `intent`, `constraints`, `failure_conditions` | Read docs/components/phx-recipes.md |
-| L2 template includes `intent`, `constraints`, `failure_conditions` | Read docs/components/phx-recipes.md |
+| L1 template includes `intent`, `constraints`, `failure_conditions` | Read docs/components/mrd-recipes.md |
+| L2 template includes `intent`, `constraints`, `failure_conditions` | Read docs/components/mrd-recipes.md |
 | Three Elements requirement explained | Section exists referencing IDD philosophy |
 
 ## Gate 7: Philosophy Alignment (NON-MANDATORY)

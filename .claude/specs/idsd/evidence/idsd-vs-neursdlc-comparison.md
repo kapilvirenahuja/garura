@@ -126,7 +126,7 @@ IDSD is architecturally designed for enterprise teams:
 - The IDD doc states "Enable enterprise teams to leverage AI-assisted development with full governance and traceability"
 - Enterprise Wrapper documents governance, memory federation, and Hive Mind (cross-agent coordination)
 - 5 AI Squad roles designed for team operation, including "Validator per 2-3 teams"
-- LTM is globally deployable (`~/.phoenix-os/core/memory/`)
+- LTM is globally deployable (`~/.meridian/core/memory/`)
 - Recipes abstract all complexity — any developer invokes `/build-feature` without understanding internals
 
 NeuroSDLC is architecturally designed for enterprise teams:

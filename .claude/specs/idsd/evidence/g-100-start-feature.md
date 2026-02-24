@@ -21,11 +21,11 @@
 | 8 | Recipe failure_conditions include: "Issue ID not found (resume mode)" | PASS | `failure_conditions: - Issue ID not found (resume mode)` — exact match on line 28. |
 | 9 | NEW mode: recipe creates GitHub issue via project-orchestrator | PASS | Agents table explicitly maps `project-orchestrator` to "Issue resolution/creation". Outcomes section states "Issue exists on GitHub — created or resolved from input." |
 | 10 | NEW mode: recipe creates feature branch via repo-orchestrator | PASS | Agents table maps `repo-orchestrator` to "Branch creation, checkout, push to origin". Outcomes state "Branch exists on origin — follows naming convention, pushed with tracking." |
-| 11 | NEW mode: recipe creates `.phoenix-os/{issue}/` STM directory | PASS | STM Directory Structure contract defined (lines 93–102). NEW mode outcome: "STM directory initialized — `.phoenix-os/{issue}/` with required subdirectories." |
+| 11 | NEW mode: recipe creates `.meridian/{issue}/` STM directory | PASS | STM Directory Structure contract defined (lines 93–102). NEW mode outcome: "STM directory initialized — `.meridian/{issue}/` with required subdirectories." |
 | 12 | RESUME mode: recipe accepts `--resume <issue-id>` argument | PASS | Input Patterns table lists `--resume 42` as RESUME mode. Example: `/start-feature --resume 42`. |
 | 13 | RESUME mode: recipe resolves existing issue, checkouts branch, verifies STM dir exists | PASS | RESUME Mode outcomes (lines 73–78): "Issue resolved", "On the correct branch — existing branch checked out", "STM directory verified — exists with required subdirectories; created if missing." |
 | 14 | Recipe accepts `[description]` argument for NEW mode | PASS | Input Patterns table shows `"Add OAuth login"` → NEW mode. Example: `/start-feature "Add OAuth login"`. |
-| 15 | Recipe links to roadmap/epic if available in project context | PASS | NEW mode outcome #5: "Roadmap link offered — if `.phoenix-os/project/product/` exists, user was offered the option to link issue to a roadmap feature." |
+| 15 | Recipe links to roadmap/epic if available in project context | PASS | NEW mode outcome #5: "Roadmap link offered — if `.meridian/project/product/` exists, user was offered the option to link issue to a roadmap feature." |
 | 16 | Recipe shows Tether/Vanish checkpoint after issue + branch creation | PASS | User Approval section (Contract #5) specifies output ending with: `Type **Tether** to create the branch or **Vanish** to cancel.` This is the output-and-wait pattern. |
 | 17 | Recipe propagates intent to all agent invocations | PASS | Agents section states: "Intent must be propagated to every agent invocation: `'Intent: {action}: {context}'`" — directive is explicit. Format matches spec requirement. |
 

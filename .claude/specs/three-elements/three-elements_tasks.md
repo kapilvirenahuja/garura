@@ -60,7 +60,7 @@ Task 5 (docs update)       ───────────┤
 ## Task 5: Update recipe documentation
 
 - **Agent:** code-builder
-- **File:** `docs/components/phx-recipes.md`
+- **File:** `docs/components/mrd-recipes.md`
 - **Action:**
   1. Update L1 recipe structure template to include `intent`, `constraints`, `failure_conditions`
   2. Update L2 recipe structure template to include same

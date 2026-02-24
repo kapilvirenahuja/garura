@@ -1,4 +1,4 @@
-# Plan: Phoenix OS Architecture — Philosophy & ADRs
+# Plan: Meridian Architecture — Philosophy & ADRs
 
 ## Status: In Progress
 
@@ -14,7 +14,7 @@
 
 ## Objective
 
-Update Phoenix OS philosophy documents, core architecture, and ADRs. **No implementation** — purely documentation.
+Update Meridian philosophy documents, core architecture, and ADRs. **No implementation** — purely documentation.
 
 ---
 
@@ -117,7 +117,7 @@ L1 Recipe: analyze-bug
               │
               └── Agent uses skills: do-rca-analysis
               │
-              └── Agent produces: .phoenix-os/{issue}/docs/rca.md
+              └── Agent produces: .meridian/{issue}/docs/rca.md
     │
     └── CHECKPOINT: Present RCA for approval
 ```
@@ -233,12 +233,12 @@ All agents use `{domain}-{role}` pattern. 1 agent = 1 thing done perfectly.
 | Type | Lifecycle | Purpose | Location |
 |------|-----------|---------|----------|
 | **LTM (Long-Term Memory)** | Project setup → persists | Practices, standards, templates | `core/memory/` |
-| **STM (Short-Term Memory)** | Recipe start → recipe end | Artifacts created during recipe | `.phoenix-os/{issue_number}/` |
+| **STM (Short-Term Memory)** | Recipe start → recipe end | Artifacts created during recipe | `.meridian/{issue_number}/` |
 
 ### STM Folder Structure
 
 ```
-.phoenix-os/
+.meridian/
 └── {issue_number}/
     ├── docs/           # Specs, designs, plans created during recipe
     │   ├── spec.md
@@ -269,7 +269,7 @@ All agents use `{domain}-{role}` pattern. 1 agent = 1 thing done perfectly.
 │                    STM (Short-Term Memory)                  │
 │  Created: When recipe starts                                │
 │  Contains: Artifacts (docs, evidence) for this issue        │
-│  Location: .phoenix-os/{issue_number}/                      │
+│  Location: .meridian/{issue_number}/                      │
 │  Lifecycle: Recipe execution                                │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -373,12 +373,12 @@ User invokes /fix-bug (L2 Recipe)
 
 | # | Story | Issue | PR | Status |
 |---|-------|-------|----|----|
-| 1 | Update Phoenix philosophy to use skills | #308 | #315 | Complete |
+| 1 | Update Meridian philosophy to use skills | #308 | #315 | Complete |
 | 2 | Create L1 recipe: commit-code | #309 | — | Pending |
 | 3 | Create L2 recipe: fix-bug | #310 | — | Pending |
 | 4 | Create L1 recipe: start-work (refactor) | #311 | — | Pending |
 | 5 | Create L1 recipes: GitHub issue ops (refactor) | #312 | — | Pending |
-| 6 | Create meta-skills: Phoenix builder | #313 | — | Pending |
+| 6 | Create meta-skills: Meridian builder | #313 | — | Pending |
 | 7 | Create meta-skill: Code review | #314 | — | Pending |
 
 ---
@@ -403,21 +403,21 @@ User invokes /fix-bug (L2 Recipe)
 ### L1 Recipe Definitions (10)
 | # | File | Purpose | Story |
 |---|------|---------|-------|
-| 8 | `core/commands/phoenix/l1/analyze-bug.md` | Analyze bug, produce RCA | Story 3 |
-| 9 | `core/commands/phoenix/l1/design-fix.md` | Create technical design | Story 3 |
-| 10 | `core/commands/phoenix/l1/implement-fix.md` | Implement with tests | Story 3 |
-| 11 | `core/commands/phoenix/l1/validate-fix.md` | Validate against quality gates | Story 3 |
-| 12 | `core/commands/phoenix/l1/create-pr.md` | Create PR | Story 3 |
-| 13 | `core/commands/phoenix/l1/commit-code.md` | Commit changes | Story 2 |
-| 14 | `core/commands/phoenix/l1/start-work.md` | Start work on issue (refactor) | Story 4 |
-| 15 | `core/commands/phoenix/l1/fetch-issue.md` | Fetch issue details (refactor) | Story 5 |
-| 16 | `core/commands/phoenix/l1/record-issue.md` | Create/update GitHub issue (refactor) | Story 5 |
-| 17 | `core/commands/phoenix/l1/record-subtasks.md` | Create subtasks for issue (refactor) | Story 5 |
+| 8 | `core/commands/meridian/l1/analyze-bug.md` | Analyze bug, produce RCA | Story 3 |
+| 9 | `core/commands/meridian/l1/design-fix.md` | Create technical design | Story 3 |
+| 10 | `core/commands/meridian/l1/implement-fix.md` | Implement with tests | Story 3 |
+| 11 | `core/commands/meridian/l1/validate-fix.md` | Validate against quality gates | Story 3 |
+| 12 | `core/commands/meridian/l1/create-pr.md` | Create PR | Story 3 |
+| 13 | `core/commands/meridian/l1/commit-code.md` | Commit changes | Story 2 |
+| 14 | `core/commands/meridian/l1/start-work.md` | Start work on issue (refactor) | Story 4 |
+| 15 | `core/commands/meridian/l1/fetch-issue.md` | Fetch issue details (refactor) | Story 5 |
+| 16 | `core/commands/meridian/l1/record-issue.md` | Create/update GitHub issue (refactor) | Story 5 |
+| 17 | `core/commands/meridian/l1/record-subtasks.md` | Create subtasks for issue (refactor) | Story 5 |
 
 ### L2 Recipe Definitions (1)
 | # | File | Purpose | Story |
 |---|------|---------|-------|
-| 18 | `core/commands/phoenix/l2/fix-bug.md` | Chain L1s with guardian | Story 3 |
+| 18 | `core/commands/meridian/l2/fix-bug.md` | Chain L1s with guardian | Story 3 |
 
 ### Agent Definitions (6)
 | # | File | Purpose | Story |
@@ -432,11 +432,11 @@ User invokes /fix-bug (L2 Recipe)
 ### Meta-Skills (5)
 | # | File | Purpose | Story |
 |---|------|---------|-------|
-| 25 | `core/commands/phoenix/meta/phx-create-recipe.md` | Create L1/L2 recipe | Story 6 |
-| 26 | `core/commands/phoenix/meta/phx-create-agent.md` | Create agent definition | Story 6 |
-| 27 | `core/commands/phoenix/meta/phx-create-skill.md` | Create skill definition | Story 6 |
-| 28 | `core/commands/phoenix/meta/phx-create-memory.md` | Create memory entry | Story 6 |
-| 29 | `core/commands/phoenix/meta/phx-review-code.md` | Phoenix code review | Story 7 |
+| 25 | `core/commands/meridian/meta/mrd-create-recipe.md` | Create L1/L2 recipe | Story 6 |
+| 26 | `core/commands/meridian/meta/mrd-create-agent.md` | Create agent definition | Story 6 |
+| 27 | `core/commands/meridian/meta/mrd-create-skill.md` | Create skill definition | Story 6 |
+| 28 | `core/commands/meridian/meta/mrd-create-memory.md` | Create memory entry | Story 6 |
+| 29 | `core/commands/meridian/meta/mrd-review-code.md` | Meridian code review | Story 7 |
 
 ### ADRs (6)
 | # | File | Decision | Story |
@@ -566,7 +566,7 @@ level: L1
 invocable: human OR model
 description: Analyze bug, produce RCA and solution options
 agent: tech-designer
-artifact: .phoenix-os/{issue}/docs/rca.md
+artifact: .meridian/{issue}/docs/rca.md
 ---
 ```
 
@@ -598,7 +598,7 @@ level: L1
 invocable: human OR model
 description: Create technical design for the fix
 agent: tech-designer
-artifact: .phoenix-os/{issue}/docs/tech-design.md
+artifact: .meridian/{issue}/docs/tech-design.md
 requires: analyze-bug (RCA approved)
 ---
 ```
@@ -631,7 +631,7 @@ level: L1
 invocable: human OR model
 description: Implement the fix with tests
 agent: code-builder
-artifact: .phoenix-os/{issue}/evidence/implementation.md
+artifact: .meridian/{issue}/evidence/implementation.md
 requires: design-fix (design approved)
 ---
 ```
@@ -664,7 +664,7 @@ level: L1
 invocable: human OR model
 description: Validate implementation against quality gates
 agent: quality-validator
-artifact: .phoenix-os/{issue}/evidence/validation.md
+artifact: .meridian/{issue}/evidence/validation.md
 requires: implement-fix
 ---
 ```
@@ -875,7 +875,7 @@ level: L1
 invocable: human OR model
 description: Analyze changes, group logically, create commits
 agent: repo-orchestrator
-artifact: .phoenix-os/{issue}/evidence/commits.md
+artifact: .meridian/{issue}/evidence/commits.md
 ---
 ```
 
@@ -933,13 +933,13 @@ Before implementation, create 7 stories in GitHub. Each story = independent bran
 
 | # | Story | Description | Scope |
 |---|-------|-------------|-------|
-| 1 | **Update Phoenix philosophy to use skills** | ADRs, philosophy docs, component docs, agent definitions | Foundation |
+| 1 | **Update Meridian philosophy to use skills** | ADRs, philosophy docs, component docs, agent definitions | Foundation |
 | 2 | **Create L1 recipe: commit-code** | L1 recipe definition + agent integration | Standalone L1 |
 | 3 | **Create L2 recipe: fix-bug** | L2 recipe + L1 recipes it chains | Full workflow |
 | 4 | **Create L1 recipe: start-work** | Refactor existing command to L1 model | Migration |
 | 5 | **Create L1 recipes: GitHub issue operations** | Refactor issue commands to L1 recipes | Migration |
-| 6 | **Create meta-skills: Phoenix builder** | Skills for building recipes, agents, skills, memory | Meta |
-| 7 | **Create meta-skill: Phoenix code review** | Code review skill for Phoenix OS patterns | Meta |
+| 6 | **Create meta-skills: Meridian builder** | Skills for building recipes, agents, skills, memory | Meta |
+| 7 | **Create meta-skill: Meridian code review** | Code review skill for Meridian patterns | Meta |
 
 ---
 
@@ -955,7 +955,7 @@ For EACH story, follow this workflow:
        │ Branch: feature/issue-{number}
        ▼
 3. Create worktree
-       │ worktree: ../worktrees/phoenix-os/issue-{number}
+       │ worktree: ../worktrees/meridian/issue-{number}
        ▼
 4. Implement in worktree
        │
@@ -980,7 +980,7 @@ For EACH story, follow this workflow:
 | 3 | L1: start-work | Story 1 (needs agent definitions) |
 | 4 | L1: GitHub issue ops | Story 1 (needs agent definitions) |
 | 5 | L2: fix-bug | Stories 1-4 (needs foundation + L1 patterns) |
-| 6 | Meta: Phoenix builder | Story 1 (needs philosophy docs) |
+| 6 | Meta: Meridian builder | Story 1 (needs philosophy docs) |
 | 7 | Meta: Code review | Story 1 (needs philosophy docs) |
 
 **Parallelization:**

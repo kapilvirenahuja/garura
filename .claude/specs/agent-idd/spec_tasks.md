@@ -18,7 +18,7 @@ T3, T4, T5, T6, T8 ────────────────── T9 (ve
 
 ### T1: Create Structured Failure Protocol LTM
 - **Agent**: inline / tech-designer
-- **Description**: Create `~/.phoenix-os/core/memory/practices/structured-failure-protocol.md`. Defines the structured failure return format that all agents use when escalating cross-domain failures. Includes the YAML schema (`what_failed`, `why`, `domain_assessment`, `suggested_fix`), examples per agent role, and guidance on when to self-recover vs. escalate.
+- **Description**: Create `~/.meridian/core/memory/practices/structured-failure-protocol.md`. Defines the structured failure return format that all agents use when escalating cross-domain failures. Includes the YAML schema (`what_failed`, `why`, `domain_assessment`, `suggested_fix`), examples per agent role, and guidance on when to self-recover vs. escalate.
 - **Depends on**: nothing
 - **Parallel**: yes (can run alongside T2 and T7)
 

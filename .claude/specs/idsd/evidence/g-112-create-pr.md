@@ -106,7 +106,7 @@ failure_conditions:
 
 ## Template Externalization (Post-Verification Update)
 
-**Change:** Moved inline templates to external files per Phoenix OS pattern (like start-feature-planning).
+**Change:** Moved inline templates to external files per Meridian pattern (like start-feature-planning).
 
 **Templates Externalized:**
 - `templates/checkpoint.md` — STM artifact for checkpoint step
@@ -117,7 +117,7 @@ failure_conditions:
 
 Step 2 (Checkpoint):
 ```
-Write artifact to STM: `.phoenix-os/{issue-number}/checkpoint/create-pr/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
+Write artifact to STM: `.meridian/{issue-number}/checkpoint/create-pr/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
 
 Present the approval prompt using `templates/approval-prompt.md`. Wait for `Tether` or `Vanish`.
 ```

@@ -154,10 +154,10 @@ The front-matter is parsed by Claude Code at load time and included in the model
 | `description` consumers | None — field preserved unchanged |
 | Workflow behavior | None — Three Elements formalize what's already implicit |
 | `sync-claude` deployment | None — file copy, format-agnostic |
-| Recipe documentation (`phx-recipes.md`) | Update required — templates need new fields |
+| Recipe documentation (`mrd-recipes.md`) | Update required — templates need new fields |
 
 ## Scope
 
 - 4 recipe SKILL.md files (front-matter only, no workflow body changes)
-- 1 documentation file (`docs/components/phx-recipes.md`)
+- 1 documentation file (`docs/components/mrd-recipes.md`)
 - Optional: 1 new ADR (`docs/adr/009-recipe-three-elements.md`)
