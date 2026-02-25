@@ -16,7 +16,7 @@ Read a product artifact (vision.md, roadmap.md, or backlog.md) and produce an au
 
 You DO create the business review. You do NOT decide what happens with it next.
 
-Shared across discover-product (P5), plan-roadmap (P6), and manage-backlog (P7).
+Shared across discover-product, plan-roadmap, and manage-backlog recipes.
 
 ## Input
 
