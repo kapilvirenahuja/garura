@@ -18,7 +18,7 @@ constraints:
     - id: C5
       rule: "Maximum 2 distinct agent calls in DRAFT phase, 1 in VALIDATE, 0 in LOCK"
     - id: C6
-      rule: "Vision artifact MUST be written to .meridian/project/product/{slug}/ (not per-issue STM)"
+      rule: "Vision artifact MUST be written to .meridian/project/product/{slug}/ relative to project root (not per-issue STM, not ~/.meridian/)"
     - id: C7
       rule: "Strategic Goals MUST be used — OKRs and OKR terminology are prohibited"
     - id: C8
@@ -29,10 +29,13 @@ constraints:
       rule: "generate-business-review MUST NOT include engineering implementation details"
     - id: C11
       rule: "Intent string MUST be passed as first line of each agent invocation context block"
+    - id: C12
+      rule: "Product-strategist MUST attempt domain classification before skill invocation. If classification is ambiguous, return domain_clarification_needed to recipe. Recipe handles user interaction and re-invokes with confirmed domain."
 
 failure_conditions:
   - "Problem statement too vague to derive market context (fewer than 5 meaningful words)"
   - "No clear target audience identifiable from the problem statement"
+  - "Domain unresolvable — user rejects all proposed domains and provides no alternative"
   - "User rejects proposed vision at DRAFT checkpoint (Vanish)"
   - "Vision validation fails with blocker-severity issues after 2 cycle-back iterations"
   - "Artifact path not found or not a valid vision.md (for validate/lock phases)"

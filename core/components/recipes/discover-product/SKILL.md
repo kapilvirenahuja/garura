@@ -24,6 +24,9 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 - `product-strategist` — product domain only: market analysis, vision drafting, validation, business review
 - Everything else (pre-flight checks, checkpoint writes, approval logic, artifact writes, reporting) — orchestrator owns it
 
+**Path resolution:**
+All `.meridian/` paths in this recipe are **relative to the project root** (the current working directory). NEVER expand `.meridian/` to an absolute path under the user's home directory. The orchestrator MUST resolve paths as `{project_root}/.meridian/project/product/...` — NOT `~/.meridian/project/product/...`. STM is project-scoped; `~/.meridian/core/memory/` is for LTM only.
+
 ## Arguments
 
 ```
@@ -78,8 +81,18 @@ Recipe context:
   intent: "Extract market context from the user's product intent"
   task: "Invoke discover-product-opportunity skill. Input: problem_statement={intent}, market_hints derived from intent if available. Return market_context output."
   problem_statement: "{intent}"
+  domain: "{confirmed_domain if available, else omit}"
   behavioral_constraints: {all behavioral constraints from reference/intent.yaml}
 ```
+
+**Domain clarification handling (C12):**
+
+If the agent returns `domain_clarification_needed` instead of `market_context`:
+1. Present the candidate domains to the user: "The product domain is ambiguous. Which best describes this product?" followed by the agent's candidate list.
+2. Parse user response — map to one of the candidates or accept a custom domain.
+3. Re-invoke the same agent call with the confirmed domain injected into recipe context (`domain: "{confirmed_domain}"`).
+4. This re-invocation does NOT count against the agent call limit (C5) — it is a clarification loop, not a new agent task.
+5. If user rejects all candidates and provides no alternative → halt with failure condition: "Domain unresolvable."
 
 **Expected output:**
 ```yaml
@@ -100,22 +113,45 @@ Create task: "Draft vision and business review". Invoke `product-strategist` (ag
 
 ```yaml
 ---
-Intent: Draft product vision: {intent_slug} — create vision.md with Strategic Goals and PM business review
+Intents:
+  1. "Draft product vision from market context"
+  2. "Generate business review from the drafted vision"
 Recipe context:
-  intent: "Create vision.md artifact from market context, then generate business review"
-  task: "Invoke draft-product-vision with market_context from Step 1. Then invoke generate-business-review on the resulting vision.md. Return vision path and business_review path."
+  intent_count: 2
+  intent_1: "Draft product vision — create vision.md with Strategic Goals from market context"
+  intent_2: "Generate business review — create PM-facing business review from the resulting vision.md"
+  dependency: "intent_2 depends on intent_1 output (vision path)"
   market_context: {from Step 1 output}
+  domain: "{confirmed_domain from Step 1}"
   artifact_base: ".meridian/project/product/"
+  review_output_base: ".meridian/project/product/{slug}/reviews/"
   behavioral_constraints: {all behavioral constraints from reference/intent.yaml}
 ```
 
+**Important:** This is a **compound multi-intent invocation**. The agent MUST process both intents in dependency order: draft vision first, then generate business review using the vision path from intent 1. The agent returns a compound output.
+
 **Expected output:**
 ```yaml
-vision:
-  path: "{.meridian/project/product/{slug}/vision.md}"
-business_review:
-  path: "{.meridian/project/product/{slug}/reviews/{artifact}-review.md}"
+results:
+  - intent: "Draft product vision"
+    skill: "draft-product-vision"
+    status: "success"
+    output:
+      vision:
+        path: ".meridian/project/product/{slug}/vision.md"
+        slug: "{slug}"
+        status: "DRAFT"
+  - intent: "Generate business review"
+    skill: "generate-business-review"
+    status: "success"
+    output:
+      business_review:
+        path: ".meridian/project/product/{slug}/reviews/vision-review.md"
+        audience: "Product Manager"
+        artifact_type: "vision"
 ```
+
+If single-intent format is returned (only vision, no review), the orchestrator MUST resume the same agent call with the remaining intent — this does NOT count as a new agent call.
 
 If agent returns structured failure → see Recovery section.
 
