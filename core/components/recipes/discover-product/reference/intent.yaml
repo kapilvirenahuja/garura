@@ -1,0 +1,39 @@
+intent: "Discover and document product vision, strategic goals, and market positioning as the foundation for the IDSD strategic track"
+
+constraints:
+  pre_flight:
+    - id: C1
+      check: intent argument is non-empty AND contains sufficient words (>5 meaningful words)
+      halt_message: "No intent provided — describe the product problem or idea to discover (e.g., 'QR code activation for B2B SaaS commission tracking')"
+    - id: C2
+      check: --phase argument is one of [draft, validate, lock]
+      halt_message: "Invalid phase — use --phase draft, --phase validate, or --phase lock"
+    - id: C3
+      check: VALIDATE and LOCK phases — --artifact path is provided and file exists
+      halt_message: "No artifact path provided for validate/lock phase — use --artifact <path> to specify the vision.md to validate or lock"
+
+  behavioral:
+    - id: C4
+      rule: "Orchestrator MUST delegate product-domain work to product-strategist — never invoke skills directly"
+    - id: C5
+      rule: "Maximum 2 distinct agent calls in DRAFT phase, 1 in VALIDATE, 0 in LOCK"
+    - id: C6
+      rule: "Vision artifact MUST be written to .meridian/project/product/{slug}/ (not per-issue STM)"
+    - id: C7
+      rule: "Strategic Goals MUST be used — OKRs and OKR terminology are prohibited"
+    - id: C8
+      rule: "Checkpoint MUST be written before presenting to user — Status: PENDING_APPROVAL first"
+    - id: C9
+      rule: "Cycle-back on Vanish at VALIDATE phase — maximum 2 re-draft iterations"
+    - id: C10
+      rule: "generate-business-review MUST NOT include engineering implementation details"
+    - id: C11
+      rule: "Intent string MUST be passed as first line of each agent invocation context block"
+
+failure_conditions:
+  - "Problem statement too vague to derive market context (fewer than 5 meaningful words)"
+  - "No clear target audience identifiable from the problem statement"
+  - "User rejects proposed vision at DRAFT checkpoint (Vanish)"
+  - "Vision validation fails with blocker-severity issues after 2 cycle-back iterations"
+  - "Artifact path not found or not a valid vision.md (for validate/lock phases)"
+  - "Vision is already LOCKED — cannot re-draft without dropping to DRAFT first"
