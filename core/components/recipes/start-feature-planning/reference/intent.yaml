@@ -3,8 +3,8 @@ intent: "Resolve or create issue, produce IDD-aware planning artifacts, create b
 constraints:
   pre_flight:
     - id: C1
-      check: current branch NOT IN [main, master, develop] OR no branch yet
-      halt_message: "Protected branch — start-feature-planning must not run from a protected branch"
+      check: working tree is clean (no uncommitted changes)
+      halt_message: "Dirty working tree — commit or stash changes before planning a new feature"
     - id: C2
       check: intent is not empty and contains enough context for Plan sub-agent to derive a design
       halt_message: "Intent too vague — provide a description or issue number to proceed"

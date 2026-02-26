@@ -531,6 +531,11 @@ core/components/recipes/
 │   ├── reference/
 │   │   └── intent.yaml
 │   └── templates/
+├── discover-product/
+│   ├── SKILL.md
+│   ├── reference/
+│   │   └── intent.yaml
+│   └── templates/
 └── ...
 ```
 
