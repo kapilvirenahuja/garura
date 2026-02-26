@@ -170,6 +170,12 @@ core/components/agents/
 
 See: [docs/usage/agents/](../usage/agents/) for concrete implementations.
 
+## Available Agents
+
+| Agent | Domain | Role | Description |
+|-------|--------|------|-------------|
+| `product-strategist` | product | strategist | Autonomous decision-maker for product discovery, vision, roadmapping, and backlog management |
+
 ## Related Documentation
 
 - [ADR 004: Agent Naming](../adr/004-agent-naming.md)

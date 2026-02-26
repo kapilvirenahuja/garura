@@ -267,6 +267,16 @@ Skill definitions are stored in:
 core/components/skills/
 ```
 
+## Available Skills
+
+| Skill | Category | User-Invocable | Description |
+|-------|----------|----------------|-------------|
+| `discover-product-opportunity` | product | true | Parse a product problem or idea and extract market context — users, competitors, market size, differentiators, risks |
+| `draft-product-vision` | product | true | Create a product vision document with Strategic Goals from market context |
+| `validate-product-vision` | product | true | Validate a product vision document for completeness and readiness to lock |
+| `generate-business-review` | product | true | Generate a PM-facing business review from any product artifact |
+| `research-domain-context` | product | true | Research vertical domain knowledge via web when LTM is insufficient |
+
 ## Related Documentation
 
 - [ADR 005: Skills as Capabilities](../adr/005-skills-as-capabilities.md)
