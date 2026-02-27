@@ -41,7 +41,13 @@ Active issues remain flat at `.meridian/{issue}/` — zero path changes to recip
 
 ### 2. Archival Trigger
 
-Archival is invoked explicitly — not automatic. The `archive-issue-stm` skill moves a single issue's STM directory to the archive when called.
+Archival is invoked as the final step of the `capture-learning` recipe (IDSD phase: Learn-2-Memory). The recipe delegates the mechanical move to `repo-orchestrator` using the `archive-issue-stm` skill.
+
+```
+capture-learning (L1 recipe)
+    ├── Step 2: Extract & promote learnings (STM → LTM) ← not yet implemented
+    └── Step 3: Archive STM directory ← implemented (v0.1.0)
+```
 
 Archival is appropriate when:
 - The GitHub issue is closed (completed or not_planned)
