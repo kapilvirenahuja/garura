@@ -276,6 +276,7 @@ core/components/skills/
 | `validate-product-vision` | product | true | Validate a product vision document for completeness and readiness to lock |
 | `generate-business-review` | product | true | Generate a PM-facing business review from any product artifact |
 | `research-domain-context` | product | true | Research vertical domain knowledge via web when LTM is insufficient |
+| `archive-issue-stm` | operations | false | Archive a closed issue's STM directory into year-month buckets (ADR 010) |
 
 ## Related Documentation
 

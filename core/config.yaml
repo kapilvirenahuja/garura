@@ -32,10 +32,11 @@ ltm:
   project-target: ./.meridian/core/memory/
   global-target: ~/.meridian/core/memory/
 
-# Short-Term Memory (STM) — Issue-centric artifacts (ADR 008)
+# Short-Term Memory (STM) — Issue-centric artifacts (ADR 008, ADR 010)
 stm:
   base-path: .meridian/
   pending-path: .meridian/_pending/
+  archive-path: .meridian/_archive/
   structure:
     spec: "{issue-number}/spec/"
     design: "{issue-number}/design/"
