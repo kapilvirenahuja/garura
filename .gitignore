@@ -140,7 +140,8 @@ temp/*.md
 !temp/README.md
 .trees/
 test-project/
-.meridian/
+.meridian/core/memory/
+.meridian/_pending/
 
 # GitHub Actions artifacts (for future contributor automation)
 .github/actions/artifacts/

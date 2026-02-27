@@ -536,6 +536,11 @@ core/components/recipes/
 │   ├── reference/
 │   │   └── intent.yaml
 │   └── templates/
+├── capture-learning/        # Learn-2-Memory phase (v0.1.0 — archival only)
+│   ├── SKILL.md
+│   ├── reference/
+│   │   └── intent.yaml
+│   └── templates/
 └── ...
 ```
 
