@@ -203,6 +203,21 @@ Write evidence to `.meridian/{issue}/evidence/commit-code/{YYYYMMDD-HHMMSS}.md`:
 
 Present commit summary to user using `templates/commit-summary.md`.
 
+**After presenting**, invoke `repo-orchestrator` to commit the evidence and checkpoint files:
+
+```yaml
+---
+Recipe context:
+  intent: "Commit STM evidence files for issue #{issue_number}"
+  task: "Stage and commit only the listed files with message 'chore(stm): record evidence for #{issue_number}'. Do not stage any other files."
+  files:
+    - ".meridian/{issue}/evidence/commit-code/{same-timestamp}.md"
+    - ".meridian/{issue}/checkpoint/commit-code/{same-timestamp}.md"
+  commit_message: "chore(stm): record evidence for #{issue_number}"
+```
+
+**Non-blocking:** if `repo-orchestrator` returns failure or `committed: false`, log as warning — do NOT halt. The feature commits already succeeded; a missing evidence commit is not fatal.
+
 ## Recovery
 
 Load recovery reasoning from: `docs/framework/intent-driven-recovery.md`

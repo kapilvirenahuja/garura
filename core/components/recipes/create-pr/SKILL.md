@@ -172,6 +172,21 @@ Present the final report using `templates/final-report.md`.
 1. Mark all remaining tasks (`Create pull request`, `Report`) as `completed`
 2. Set `Step` to `4 of 4`
 
+**After updating checkpoint**, invoke `repo-orchestrator` to commit the evidence and checkpoint files:
+
+```yaml
+---
+Recipe context:
+  intent: "Commit STM evidence files for issue #{issue_number}"
+  task: "Stage and commit only the listed files with message 'chore(stm): record evidence for #{issue_number}'. Do not stage any other files."
+  files:
+    - ".meridian/{issue-number}/evidence/create-pr/{same-timestamp}.md"
+    - ".meridian/{issue-number}/checkpoint/create-pr/{same-timestamp}.md"
+  commit_message: "chore(stm): record evidence for #{issue_number}"
+```
+
+**Non-blocking:** if `repo-orchestrator` returns failure or `committed: false`, log as warning — do NOT halt.
+
 ## Recovery
 
 Load recovery reasoning from: `docs/framework/intent-driven-recovery.md`
