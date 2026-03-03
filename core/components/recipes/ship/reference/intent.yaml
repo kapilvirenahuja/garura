@@ -1,0 +1,40 @@
+intent: "Deliver the current branch's completed work to the main branch — commit, create PR, review, merge, and return to main — with zero-friction autonomous execution"
+
+constraints:
+  pre_flight:
+    - id: C1
+      check: current branch is NOT main, master, or develop
+      halt_message: "Protected branch — ship cannot run from a protected branch"
+    - id: C2
+      check: git remote is configured
+      halt_message: "No remote configured — ship requires a remote to push to"
+    - id: C3
+      check: issue number is extractable from branch name (NWWI)
+      halt_message: "No issue number extractable from branch name — ship requires traceability to a GitHub issue"
+
+  behavioral:
+    - id: C4
+      rule: "Orchestrator MUST delegate domain tasks to agents; no direct git/gh execution by the orchestrator"
+    - id: C5
+      rule: "Maximum 5 distinct agents (L2 limit); this recipe uses exactly 2 (repo-orchestrator, project-orchestrator via commit-code L1)"
+    - id: C6
+      rule: "Guardian logic is INLINE in SKILL.md — no dependency on a workflow-guardian agent (which does not exist in the codebase)"
+    - id: C7
+      rule: "Self-resolution CANNOT change code or documentation; CAN retry operations, create GitHub issues, adjust PR metadata, rebase, delete/recreate branches"
+    - id: C8
+      rule: "Evidence written to .meridian/{issue}/evidence/ship/{YYYYMMDD-HHMMSS}.md per config.yaml STM structure"
+    - id: C9
+      rule: "Auto-approve is default; halt only on genuine blockers: merge conflicts, CI failures, protected branch violations, blocker-severity review findings (must_have.status == FAIL)"
+    - id: C10
+      rule: "Guardian evaluates inline after each consequential step; does NOT prompt the user unless a blocker is detected"
+    - id: C11
+      rule: "Skip steps whose preconditions are already satisfied: no uncommitted changes skips step 1; PR already exists skips step 2"
+
+failure_conditions:
+  - "F1: Current branch is a protected branch — hard halt (pre-flight C1)"
+  - "F2: No git remote configured — hard halt (pre-flight C2)"
+  - "F3: No issue number extractable from branch name — hard halt (pre-flight C3)"
+  - "F4: Merge conflicts that cannot be auto-resolved — halt, create tracking issue"
+  - "F5: PR review finds blocker-severity quality items (must_have.status == FAIL) — halt, present to user"
+  - "F6: Merge fails after max retry attempts — halt, create tracking issue"
+  - "F7: User explicitly cancels at a guardian-halted checkpoint (Vanish)"
