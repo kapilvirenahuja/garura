@@ -29,6 +29,6 @@ constraints:
 
 failure_conditions:
   - Intent too vague for Plan sub-agent to derive a meaningful design
-  - User rejects plan at approval gate (Vanish)
+  - User rejects plan at approval gate (Vanish) — remote branch is deleted before halt
   - Plan sub-agent fails to produce all three sections (SPEC, VERIFY, TASKS)
-  - Branch creation fails on origin
+  - Branch creation fails on origin (Step 1b)

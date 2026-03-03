@@ -36,11 +36,11 @@ Each agent is invoked for a single, scoped domain task at a specific workflow st
 |------|------|-------|
 | Step 0 | Pre-flight | repo-orchestrator |
 | Step 1 | Resolve Issue | project-orchestrator |
+| Step 1b | Create Branch | repo-orchestrator |
 | Step 2 | Deep Analysis + Plan | Plan sub-agent (`subagent_type: "Plan"`) |
 | Step 3 | Write Planning Artifacts | orchestrator |
 | Step 4 | Checkpoint | orchestrator |
-| Step 5 | Create Branch | repo-orchestrator |
-| Step 6 | Report | orchestrator |
+| Step 5 | Report | orchestrator |
 
 When invoking agents, provide recipe context:
 
@@ -119,7 +119,33 @@ If `type_hint` is null → default to `feature/` (C10).
 Derive branch name: `{type}/{issue_number}-{slug}`
 - Slug: lowercase, hyphens, max 40 chars. Reference: `~/.meridian/core/memory/standards/git/branching.md`
 
-**Orchestrator initializes STM directory** at `.meridian/{issue}/` with subdirectories: `spec/`, `design/`, `evidence/`, `delivery/`, `checkpoint/`, `planning/`.
+### Step 1b — Create Branch
+
+Invoke `repo-orchestrator` immediately after issue resolution — **before any artifacts are written**:
+
+```yaml
+---
+Recipe context:
+  intent: "Resolve issue, plan with IDD principles, create branch, deliver task graph"
+  pre_flight:
+    C1: PASS
+    C2: PASS
+  task: "Create and push branch `{type}/{issue_number}-{slug}` from main. Return branch name and push status."
+  behavioral_constraints: {behavioral constraint C4 from reference/intent.yaml}
+```
+
+**Expected output:**
+```yaml
+result:
+  success: true | false
+  branch: {branch_name}
+  status: {created_and_pushed | error}
+  error: {message if success: false}
+```
+
+If `success: false` → invoke recovery (see Recovery section). Max 2 retries.
+
+**Orchestrator initializes STM directory** at `.meridian/{issue}/` with subdirectories: `spec/`, `design/`, `evidence/`, `delivery/`, `checkpoint/`, `planning/`. All subsequent writes land on the feature branch.
 
 ### Step 2 — Deep Analysis + Plan (IDD-Aware)
 
@@ -247,37 +273,20 @@ Write checkpoint artifact to `.meridian/{issue}/checkpoint/start-feature-plannin
 
 Present plan summary using `templates/approval-prompt.md`. Do NOT use EnterPlanMode or AskUserQuestion.
 
-Parse: `Tether`/`tether` → update artifact Status to `APPROVED`, proceed to Step 5. `Vanish`/`vanish` → update artifact Status to `REJECTED`, halt. Else → clarify.
+Parse: `Tether`/`tether` → update artifact Status to `APPROVED`, proceed to Step 5. `Vanish`/`vanish` → **branch cleanup required before halt** (see below). Else → clarify.
 
-**This is the ONLY approval gate in the recipe.**
-
-### Step 5 — Create Branch
-
-Invoke `repo-orchestrator`:
-
+**Vanish recovery (branch already exists):** Invoke `repo-orchestrator` to delete the remote branch before halting:
 ```yaml
 ---
 Recipe context:
-  intent: "Resolve issue, plan with IDD principles, create branch, deliver task graph"
-  pre_flight:
-    C1: PASS
-    C2: PASS
-  task: "Create and push branch `{type}/{issue_number}-{slug}` from main. Return branch name and push status."
-  behavioral_constraints: {behavioral constraint C4 from reference/intent.yaml}
+  intent: "Delete remote branch after plan rejection"
+  task: "Delete remote branch `{branch_name}` from origin. Return success boolean."
 ```
+Update artifact Status to `REJECTED`. Halt with: "Plan rejected — branch `{branch_name}` deleted from remote. Working tree is clean."
 
-**Expected output:**
-```yaml
-result:
-  success: true | false
-  branch: {branch_name}
-  status: {created_and_pushed | error}
-  error: {message if success: false}
-```
+**This is the ONLY approval gate in the recipe.**
 
-If `success: false` → invoke recovery (see Recovery section). Max 2 retries.
-
-### Step 6 — Report
+### Step 5 — Report
 
 **Orchestrator owns this step entirely. Do not delegate.**
 
@@ -290,6 +299,21 @@ Update checkpoint artifact `.meridian/{issue}/checkpoint/start-feature-planning/
 - Append branch created and planning artifacts written with confirmation status
 
 Present final report to user using `templates/feature-started.md`.
+
+**After presenting**, invoke `repo-orchestrator` to commit the evidence and checkpoint files:
+
+```yaml
+---
+Recipe context:
+  intent: "Commit STM evidence files for issue #{issue_number}"
+  task: "Stage and commit only the listed files with message 'chore(stm): record evidence for #{issue_number}'. Do not stage any other files."
+  files:
+    - ".meridian/{issue}/evidence/start-feature-planning/{same-timestamp}.md"
+    - ".meridian/{issue}/checkpoint/start-feature-planning/{same-timestamp}.md"
+  commit_message: "chore(stm): record evidence for #{issue_number}"
+```
+
+**Non-blocking:** if `repo-orchestrator` returns failure or `committed: false`, log as warning — do NOT halt.
 
 ## Recovery
 
@@ -334,6 +358,6 @@ Reference: `~/.meridian/core/memory/standards/git/branching.md`
 | Field | Value |
 |-------|-------|
 | Level | L1 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Distinct Agents | 2 (project-orchestrator, repo-orchestrator) — Plan sub-agent is a Claude built-in tool, exempt from agent limits |
-| Checkpoint | Single (plan approval via Tether/Vanish) |
+| Checkpoint | Single (plan approval via Tether/Vanish) — Vanish triggers remote branch cleanup |
