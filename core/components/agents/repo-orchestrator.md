@@ -48,6 +48,7 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 |----------------|-------|-----|
 | "analyze changes", "what changed", "review uncommitted" | `analyze-changes` | Understanding current state |
 | "commit", "create commit", "stage and commit" | `create-commit` | Creating commits |
+| "commit STM evidence", "commit evidence files", "record stm artifact" | `create-commit` | Persisting STM evidence/checkpoint files post-recipe |
 | "analyze PR", "PR readiness", "check before PR" | `analyze-pr` | PR quality assessment |
 | "create PR", "submit PR", "open pull request" | `submit-pr` | PR creation |
 | "create branch", "setup branch", "new branch" | `setup-branch` | Branch creation and push |
@@ -70,6 +71,8 @@ Constraints are extracted during recognition because they influence HOW you exec
   + constraints shape: risk flags, branch rules, grouping criteria
 "Commit these files: [...]"       → create-commit
   + constraints shape: format rules, branch restrictions, sensitive file handling
+"Commit STM evidence files: [...]" → create-commit
+  + constraints shape: stage ONLY listed files (never git add -A), chore(stm) conventional format, non-blocking (skip missing files)
 "Analyze this branch for PR"      → analyze-pr
   + constraints shape: quality criteria, checklist requirements
 "Create PR with title: ..."       → submit-pr
