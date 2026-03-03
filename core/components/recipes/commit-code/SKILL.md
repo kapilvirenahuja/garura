@@ -119,6 +119,10 @@ If no issue is resolvable → halt with: "No valid issue ID resolvable — commi
 
 **The orchestrator owns this step entirely. Do not delegate.**
 
+**If recipe context includes `ship_context.auto_approve: true`:** Write checkpoint artifact to `.meridian/{issue}/checkpoint/commit-code/{YYYYMMDD-HHMMSS}.md` with Status: `AUTO_APPROVED` (audit trail is still required). Proceed directly to Step 4 without presenting the approval prompt to the user.
+
+> This bypass is only active when orchestrated by an L2 recipe that explicitly sets `ship_context.auto_approve: true`. Standalone invocations of `commit-code` never receive `ship_context` — the existing conditional auto-approve logic applies to them unchanged.
+
 #### Write STM artifact
 
 Write to `.meridian/{issue}/checkpoint/commit-code/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md`.

@@ -107,6 +107,10 @@ If agent returns structured failure → see Recovery section.
 
 Extract issue number from `pre_flight.issue_number` (already validated in Step 0).
 
+**If recipe context includes `ship_context.auto_approve: true` AND all `checklist.must_have` items have `status` of `PASS` or `REVIEW` (none are `FAIL`) AND `analysis.blocking_issues` is empty:** Write checkpoint artifact with Status: `AUTO_APPROVED`. Proceed directly to Step 3 without presenting the approval prompt to the user.
+
+**If `ship_context.auto_approve: true` is set but quality conditions do NOT hold** (any `must_have.status == FAIL` or `blocking_issues` non-empty): fall through to C5 enforcement — present approval prompt as normal. The auto-approve bypass does not override blocker-grade findings.
+
 Write checkpoint artifact to STM: `.meridian/{issue-number}/checkpoint/create-pr/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
 
 Present the approval prompt using `templates/approval-prompt.md`. Checklist blocking items with `status: FAIL` are visible to the user here — they can Vanish to abort or Tether to proceed knowing the risks.
@@ -211,6 +215,6 @@ For retries, add to recipe context:
 | Field | Value |
 |-------|-------|
 | Level | L1 |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Distinct Agents | 1 (repo-orchestrator) |
-| Checkpoint | Always |
+| Checkpoint | Always (C5) — overrideable by L2 orchestration context when quality is clean (no must_have FAIL, no blocking issues) |
