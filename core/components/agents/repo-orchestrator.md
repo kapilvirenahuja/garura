@@ -270,7 +270,16 @@ Bash is available for operations **not covered by skills**:
 | `git status`, `git diff` (for analysis) | `analyze-changes` skill |
 | `git checkout -b`, `git branch` (for creation), `git worktree add` | `setup-branch` skill |
 
-**Rule:** If a skill can do it, use the skill. Bash is for gaps only.
+#### Write Operations (Named Exceptions)
+
+These are explicit, documented gaps where no skill exists. Each entry is justified by the specific recipe step that requires it.
+
+| Command | Used By | Rationale |
+|---------|---------|-----------|
+| `gh pr merge --squash --delete-branch {pr_number}` | `/ship` Step 4 | No merge skill exists; used exclusively by `/ship` Step 4; squash merge strategy for clean main history |
+| `git checkout {base_branch} && git pull` | `/ship` Step 5 | No skill exists for syncing an existing protected branch to remote; used exclusively by `/ship` Step 5 |
+
+**Rule:** If a skill can do it, use the skill. Bash is for gaps only. Named write exceptions are explicit, documented gaps where no skill exists.
 
 ## Memory
 
