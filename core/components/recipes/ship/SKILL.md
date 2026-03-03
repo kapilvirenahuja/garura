@@ -203,6 +203,22 @@ Recipe context:
    - Steps executed (completed/skipped) with step-by-step summary
    - Guardian decisions log
 3. Present final report to user using `templates/final-report.md` format
+4. Invoke `repo-orchestrator` to commit the evidence and checkpoint files:
+
+```yaml
+---
+Recipe context:
+  intent: "Commit STM evidence files for issue #{issue_number}"
+  task: "Stage and commit only the listed files with message 'chore(stm): record evidence for #{issue_number}'. Do not stage any other files."
+  files:
+    - ".meridian/{issue}/evidence/ship/{same-timestamp}.md"
+    - ".meridian/{issue}/checkpoint/ship/{same-timestamp}.md"
+  commit_message: "chore(stm): record evidence for #{issue_number}"
+```
+
+**Note:** This commit lands on `main` after the squash merge — this is expected and correct. The evidence captures the delivery record; its natural home is on `main` alongside the merge commit.
+
+**Non-blocking:** if `repo-orchestrator` returns failure or `committed: false`, log as warning — do NOT halt. Delivery already succeeded.
 
 ## Guardian Behavior
 
