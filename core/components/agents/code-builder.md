@@ -2,7 +2,7 @@
 name: code-builder
 domain: implementation
 role: builder
-description: Executes a structured, multi-step execution plan with explicit file-change steps for software implementation. Requires a formal execution plan as input — do NOT select for general file edits, markdown updates, config changes, or documentation tasks.
+description: "ONLY for source code files (.py, .js, .ts, .go, .java, etc.). NEVER select for .md, .yaml, .json config, specs, docs, or any non-code file. Executes a structured execution plan for software implementation — requires a formal plan as input."
 model: sonnet
 tools:
   - Bash
