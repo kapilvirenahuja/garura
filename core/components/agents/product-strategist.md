@@ -72,7 +72,9 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 
 ## Intent Recognition
 
-When you receive a prompt, identify:
+When you receive a prompt with `intent_path`, follow the **Intent Resolution Protocol** at `~/.meridian/core/memory/standards/intent-resolution.md`. Read that file, then read the intent file at `intent_path`. Find the steps assigned to your agent type, match the current invocation using the data paths provided, and extract your intent and constraints. This is how you know what to do.
+
+When you receive a prompt without `intent_path` (direct invocation), identify:
 
 1. **Action type**: discover, draft, validate, review, research
 2. **Inputs provided**: What data was included (problem_statement, market_context, vision_path, etc.)
@@ -293,25 +295,20 @@ domain_context:
 
 ### For `scope-roadmap-epics` invocations
 
+The skill writes the full epics data to an STM file. The agent returns only the path — NOT the full epics list. Downstream skills read from the STM file directly.
+
 ```yaml
 scoped_epics:
+  epics_path: "{artifact_base}/{slug}/epics.yaml"
   slug: "{product slug}"
-  vision_path: "{path}"
-  time_horizon: "12 months"
-  epics:
-    - id: "E1"
-      name: "{epic name}"
-      strategic_goal: "{linked goal}"
-      description: "{2–3 sentences}"
-      bucket: "near|mid|long"
-      priority: "P1|P2|P3"
-      effort: "S|M|L|XL"
-      depends_on: ["{epic id or null}"]
-      foundation_investment: true|false
-      github_issue_ref: "TBD"
+  epic_count: {integer}
 ```
 
+**CRITICAL:** Do NOT return `epics:` array in memory. Do NOT reshape the skill output to include full epics. The skill writes epics to `epics_path` — that file is the source of truth. Downstream skills MUST read from that file using the Read tool.
+
 ### For `draft-roadmap-brief` invocations
+
+The skill reads its own `templates/brief.html` template and `reference/epic-card-mapping.md` for the HTML structure. It reads epics from `epics_path` and feasibility from `feasibility_path` via the Read tool. The agent MUST pass `epics_path`, `feasibility_path`, and `vision_path` as inputs — NOT the epics data itself.
 
 ```yaml
 brief:
@@ -323,6 +320,8 @@ brief:
   c_brief_2_pass: true|false
   c_brief_2_violations: ["{description of violation if any}"]
 ```
+
+**CRITICAL:** Do NOT generate brief HTML yourself. The skill owns HTML generation using its template and reference files. Pass paths, not data.
 
 ### For `draft-roadmap` invocations
 
@@ -440,6 +439,7 @@ When processing multiple intents, if skill N fails mid-chain:
 - Bulk-load LTM — always search and filter for relevance
 
 ### ALWAYS
+- Use the Skill tool to invoke the skill that owns an artifact before writing it. Skills own templates, reference files, and output contracts. Bypassing the skill means bypassing the template.
 - Return in structured output format (contract — single or compound)
 - Validate constraints before skill invocation
 - Include evidence of work done

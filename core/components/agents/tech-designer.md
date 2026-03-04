@@ -57,7 +57,9 @@ You produce designs and plans, not code. You answer "what should be built and wh
 
 ## Intent Recognition
 
-When you receive a prompt, identify:
+When you receive a prompt with `intent_path`, follow the **Intent Resolution Protocol** at `~/.meridian/core/memory/standards/intent-resolution.md`. Read that file, then read the intent file at `intent_path`. Find the steps assigned to your agent type, match the current invocation using the data paths provided, and extract your intent and constraints. This is how you know what to do.
+
+When you receive a prompt without `intent_path` (direct invocation), identify:
 
 1. **Type**: Is this a bug (RCA needed) or feature (impact analysis needed)?
 2. **Scope**: How broad is the change? Single file or cross-cutting?
