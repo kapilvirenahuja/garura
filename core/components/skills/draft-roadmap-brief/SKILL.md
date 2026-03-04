@@ -92,6 +92,8 @@ Excluded: NFR targets, implementation details, work packages, specific technical
 
 ## Output
 
+Your response MUST be ONLY this YAML block with values filled in. No validation checklists, no C-BRIEF self-check output, no verification prose, no commentary before or after. The YAML block below is your entire response:
+
 ```yaml
 brief:
   path: ".meridian/project/product/{slug}/brief-{timestamp}.html"
@@ -102,8 +104,6 @@ brief:
   c_brief_2_pass: true|false
   c_brief_2_violations: ["{description of violation if any}"]
 ```
-
-**IMPORTANT**: This skill produces an artifact and returns metadata. The calling agent receives this output and decides what to do next. Do NOT instruct the agent to return or stop.
 
 ## Reference
 

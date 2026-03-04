@@ -314,3 +314,33 @@ failure:
 | Circular dependency discovered | Analysis complete but fix requires design decision beyond scope | report findings, let recipe decide |
 
 Do NOT return raw errors. Always return structured failures so the recipe can route the fix.
+
+## Response Format (JSON Contract Mode)
+
+**This section governs your final response when you received a JSON contract as your prompt.**
+
+After analysis is complete and artifacts are written to STM, your ENTIRE response is ONE JSON object:
+
+1. Take the JSON contract you received as input
+2. Update `stm` paths with the artifact paths you wrote
+3. Return that JSON object — nothing else
+
+**Anti-patterns (NEVER do these in your response):**
+- "The feasibility assessment is complete. Here is what I found:" — NO
+- Tables with epic summaries or risk assessments — NO
+- "Three Findings That Should Shape the Roadmap Brief" — NO
+- Any analysis text, bullet points, or prose — NO. Write all analysis to the STM artifact file.
+
+**Your response is literally:**
+```
+{
+  "intent_path": "...",
+  "stm_base": "...",
+  "slug": "...",
+  "stm": { ... updated paths ... },
+  "checkpoints": [...],
+  "evidence": [...]
+}
+```
+
+Nothing else. All detailed analysis goes into the STM artifact file, not the response.

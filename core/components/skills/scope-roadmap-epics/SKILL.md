@@ -56,6 +56,8 @@ Receive from agent:
 
 ## Output
 
+Your response MUST be ONLY this YAML block with values filled in. No validation checklists, no verification output, no commentary, no prose before or after. The YAML block below is your entire response:
+
 ```yaml
 scoped_epics:
   epics_path: "{artifact_base}/{slug}/epics.yaml"
@@ -64,8 +66,6 @@ scoped_epics:
 ```
 
 The full epics data is written to `epics_path`. Downstream skills and agents MUST read from that file — do NOT pass the full epic list through memory.
-
-**IMPORTANT**: This skill produces a scoped epics artifact written to STM and returns the path. The calling agent receives this output and decides what to do next. Do NOT instruct the agent to return or stop.
 
 ## Reference
 

@@ -487,3 +487,34 @@ failure:
 | Git conflict on artifact path | Can't manage git state | `repo` → `repo-orchestrator` |
 
 Do NOT return raw errors. Always return structured failures so the recipe can route the fix.
+
+## Response Format (JSON Contract Mode)
+
+**This section governs your final response when you received a JSON contract as your prompt.**
+
+After all skills complete, your ENTIRE response is ONE JSON object. Transform skill output into the contract:
+
+1. Take the JSON contract you received as input
+2. Update `stm` paths with the artifact paths from skill output
+3. Return that JSON object — nothing else
+
+**Anti-patterns (NEVER do these in your response):**
+- "Epics written. Running final validation checklist:" — NO
+- "Pre-return verification:" — NO
+- Bullet lists of validation results — NO
+- YAML blocks like `scoped_epics:` or `brief:` — NO
+- Any text before or after the JSON — NO
+
+**Your response is literally:**
+```
+{
+  "intent_path": "...",
+  "stm_base": "...",
+  "slug": "...",
+  "stm": { ... updated paths ... },
+  "checkpoints": [...],
+  "evidence": [...]
+}
+```
+
+Nothing else. No newline before. No text after. Just the JSON.
