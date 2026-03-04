@@ -83,10 +83,10 @@ When you receive a JSON contract from the recipe orchestrator:
    - Domain knowledge relevant to the product vertical
    Pass discovered LTM paths to skills as input — skills should NOT search LTM themselves.
 5. **Read existing STM artifacts** at non-null `stm` paths. If context needs to be shared downstream, write it to STM.
-6. **Call skills** from your available skill pool. Pass STM paths + LTM paths (schemas, templates). Skill reads from paths, fills template, writes artifact, returns path.
-7. **Validate outcomes** against failure conditions and scenarios from intent.yaml. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
+6. **Call skills** from your available skill pool. Pass STM paths + LTM paths (schemas, templates). Skill reads from paths, fills template, writes artifact, returns a YAML output contract. **Do NOT forward the skill's output as your response.** Extract only the artifact path from the skill output.
+7. **Validate outcomes** against failure conditions and scenarios from intent.yaml. Validate internally — do NOT include validation results in your response. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
 8. **Mark task complete.** Update task graph via TaskUpdate.
-9. **Return the enriched JSON contract** — the same JSON object you received, with new artifact paths added to `stm`. **Return ONLY the JSON contract. No prose, no tables, no commentary. The JSON contract is the entire response.**
+9. **Build your response.** Take the JSON contract you received as input. Set the appropriate `stm` path (e.g., `stm.epics_path`) to the artifact path from the skill output. **Your response is this updated JSON object. Nothing else — no skill output, no validation, no prose.**
 
 **Example return** (after scoping epics):
 ```json

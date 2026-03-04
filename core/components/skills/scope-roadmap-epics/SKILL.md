@@ -48,9 +48,9 @@ Receive from agent:
    - Scoping fields: `bucket`, `priority`, `effort`, `depends_on`, `foundation_investment`
    - IDD fields: `intent` (3 full paragraphs — p1: problem today, p2: outcome after, p3: strategic connection), `constraints` (in_scope, out_of_scope, must_not_break), `success_scenarios` (minimum 2, given/when/then, binary testable), `failure_conditions` (2–4 observable outcomes)
 
-6. **Validate against schema** — run the full validation checklist in `reference/epic-schema.md` before writing. Verify all 14 fields per epic. Correct any violations before proceeding.
+6. **Validate against schema (silently)** — run the full validation checklist in `reference/epic-schema.md` before writing. Verify all 14 fields per epic. Correct any violations before proceeding. Do NOT output the validation results — validate internally and fix issues. Only output a structured failure if validation fails after correction.
 
-7. **Validate against intent failure conditions** — if the agent passes `intent_path`, read the intent file and check the `failure_conditions` list. Verify: epic count >= 3, every epic traces to a strategic goal from the vision. If any failure condition is triggered, return structured failure before writing.
+7. **Validate against intent failure conditions (silently)** — if the agent passes `intent_path`, read the intent file and check the `failure_conditions` list. Verify: epic count >= 3, every epic traces to a strategic goal from the vision. If any failure condition is triggered, return structured failure before writing. Do NOT output the validation results — validate internally only.
 
 8. **Write to STM** — write the scoped epics to `{artifact_base}/{slug}/epics.yaml` using the Write tool. Use the YAML structure from `reference/epic-schema.md`. The file must be a valid YAML document — no placeholders, all fields filled.
 
