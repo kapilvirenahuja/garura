@@ -327,74 +327,28 @@ domain_context:
   sources: ["{url}"]
 ```
 
-### For `scope-roadmap-epics` invocations
+### For plan-roadmap skills (scope-roadmap-epics, draft-roadmap-brief, draft-roadmap, generate-engineering-view)
 
-The skill writes the full epics data to an STM file. The agent returns only the path — NOT the full epics list. Downstream skills read from the STM file directly.
+**When invoked via JSON contract from a recipe:** Do NOT return these YAML contracts. Return ONLY the enriched JSON contract with updated `stm` paths. No validation checklists, no prose, no YAML blocks. The JSON contract is the entire response. See the example in Intent Recognition.
 
-```yaml
-scoped_epics:
-  epics_path: "{artifact_base}/{slug}/epics.yaml"
-  slug: "{product slug}"
-  epic_count: {integer}
-```
+**Skill-specific notes (apply regardless of invocation mode):**
+- `scope-roadmap-epics`: Skill writes epics to STM file. Do NOT return epics array in memory. Pass `epic_schema_path` from LTM.
+- `draft-roadmap-brief`: Skill reads template from LTM (via `C-TEMPLATE.template_ref`). Pass `epics_path`, `feasibility_path`, `vision_path`, and `template_path` — NOT the data itself.
+- `draft-roadmap`: Pass `epics_path`, `feasibility_path`, `approved_brief_path`. Skill writes roadmap.md to STM.
+- `generate-engineering-view`: Pass `roadmap_path`. Skill writes roadmap-engineering.md to STM.
 
-**CRITICAL:** Do NOT return `epics:` array in memory. Do NOT reshape the skill output to include full epics. The skill writes epics to `epics_path` — that file is the source of truth. Downstream skills MUST read from that file using the Read tool.
+**When invoked directly (no JSON contract):** Return the skill-specific YAML contract:
 
-### For `draft-roadmap-brief` invocations
-
-The skill reads the brief template from LTM (via intent constraint `C-TEMPLATE.template_ref`). It reads epics from `epics_path` and feasibility from `feasibility_path` via the Read tool. The agent MUST pass `epics_path`, `feasibility_path`, `vision_path`, and `template_path` (from LTM) as inputs — NOT the epics data itself.
-
-```yaml
-brief:
-  path: "{artifact path}"
-  epic_count: {integer}
-  sections_present: [bet, story, decisions, not_doing, asks, assumptions]
-  c_brief_1_pass: true|false
-  c_brief_1_violations: ["{description of violation if any}"]
-  c_brief_2_pass: true|false
-  c_brief_2_violations: ["{description of violation if any}"]
-```
-
-**CRITICAL:** Do NOT generate brief HTML yourself. The skill owns HTML generation using its template and reference files. Pass paths, not data.
-
-### For `draft-roadmap` invocations
-
-```yaml
-roadmap:
-  path: "{full path}"
-  slug: "{slug}"
-  epic_count: {integer}
-  epics_completeness:
-    - id: "E1"
-      intent: filled
-      constraints: filled
-      scenarios: filled
-      failures: filled
-      technical: empty
-      blast_radius: empty
-  milestones:
-    near: [{id, name, priority}]
-    mid: [{id, name, priority}]
-    long: [{id, name, priority}]
-  status: "DRAFT"
-  approved_brief: "{path}"
-```
-
-### For `generate-engineering-view` invocations
-
-```yaml
-engineering_view:
-  path: "{path}"
-  slug: "{slug}"
-  epic_count: {integer}
-  high_risk_count: {integer}
-  open_questions_count: {integer}
-  issue_traceability_complete: true|false
-```
+| Skill | Return key | Key fields |
+|-------|-----------|------------|
+| `scope-roadmap-epics` | `scoped_epics` | `epics_path`, `slug`, `epic_count` |
+| `draft-roadmap-brief` | `brief` | `path`, `epic_count`, `sections_present`, `c_brief_1_pass`, `c_brief_2_pass` |
+| `draft-roadmap` | `roadmap` | `path`, `slug`, `epic_count`, `milestones`, `status` |
+| `generate-engineering-view` | `engineering_view` | `path`, `slug`, `epic_count`, `high_risk_count` |
 
 ### Compound Output (Multi-Intent)
 
-When processing multiple intents in a single invocation, return results keyed by intent:
+When processing multiple intents in a single **direct** invocation (no JSON contract), return results keyed by intent:
 
 ```yaml
 results:
@@ -402,16 +356,9 @@ results:
     skill: "{skill invoked}"
     status: "success|failure"
     output: {skill-specific contract from above}
-  - intent: "{identified intent 2}"
-    skill: "{skill invoked}"
-    status: "success|failure"
-    output: {skill-specific contract from above}
-    failure: {structured failure if status=failure}
 ```
 
-Single-intent invocations return the skill-specific contract directly (not wrapped in `results`).
-
-**Note:** Output contracts are enriched by this agent — skills return raw data, the agent shapes it into the structured format callers expect.
+**When invoked via JSON contract:** Compound output does not apply. Return the enriched JSON contract only.
 
 ## Recipe Context
 
