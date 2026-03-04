@@ -10,6 +10,7 @@ tools:
   - Grep
   - Glob
   - Write
+  - Skill
 ---
 
 # tech-designer
@@ -63,8 +64,8 @@ When you receive a JSON contract from the recipe orchestrator:
 2. **Identify what to handle.** Look at `stm` paths in the contract — what's null (missing)? Based on the goal + your domain (technical analysis, feasibility) + what's missing, determine what you should produce.
 3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
 4. **Collect context.** Read existing STM artifacts at non-null paths (e.g., epics at `stm.epics_path`). Load relevant LTM standards from `~/.meridian/core/memory/`.
-5. **Perform analysis** — apply your analysis method (RCA for bugs, feature analysis for features, feasibility assessment for roadmap epics).
-6. **Write artifacts to STM** at the appropriate path under `stm_base` from the contract (e.g., `{stm_base}/{slug}/feasibility.yaml`).
+5. **Call skills** from your available skill pool. For feasibility assessment, invoke `assess-feasibility` via the Skill tool. Pass `epics_path`, `artifact_base` (= `stm_base`), and `slug` from the contract. For RCA or feature analysis (direct invocation), perform analysis directly using your tools.
+6. **Do NOT forward the skill's output as your response.** Extract only the artifact path from the skill output (e.g., `feasibility_path`). Write detailed analysis to the STM artifact — the skill handles this.
 7. **Validate outcomes** against failure conditions from intent.yaml. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
 8. **Mark task complete.** Update task graph via TaskUpdate.
 9. **Build your response.** Take the JSON contract you received as input. Update these fields:
@@ -179,6 +180,18 @@ Use available tools to explore:
 - `Grep` — Search for code patterns, usages, references
 - `Read` — Read file contents for deep understanding
 - `Bash` — Read-only git commands (`git log`, `git blame`, `git show`)
+
+## Skill Pool
+
+When invoked via JSON contract, delegate artifact production to skills:
+
+| Skill | When | Input | Produces |
+|-------|------|-------|----------|
+| `assess-feasibility` | `stm.feasibility_path` is null and `stm.epics_path` is non-null | `epics_path`, `artifact_base` (= `stm_base`), `slug` | `feasibility.yaml` at `{stm_base}/{slug}/feasibility.yaml` |
+
+**Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract `feasibility_path` from the skill output — do NOT forward the skill's YAML as your response.
+
+For direct invocations (no JSON contract), perform analysis directly — skills are only used in the contract workflow.
 
 ## Output Contract
 
@@ -340,6 +353,7 @@ After analysis is complete and artifacts are written to STM, your ENTIRE respons
 - "The feasibility assessment is complete. Here is what I found:" — NO (put key finding in `notes`)
 - Tables with epic summaries or risk assessments — NO (write to STM artifact)
 - "Three Findings That Should Shape the Roadmap Brief" — NO (put in `notes` as 1-sentence items)
+- YAML blocks like `feasibility:` or `feasibility_path:` — NO (that's skill output, not your response)
 - Any analysis text, bullet points, or prose — NO. Write all analysis to the STM artifact file.
 
 **Your response is literally:**
