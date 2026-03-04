@@ -49,8 +49,12 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 | `discover-product-opportunity` | Parse problem/idea, extract market context | discover-product (DRAFT) |
 | `draft-product-vision` | Create vision.md with Strategic Goals | discover-product (DRAFT) |
 | `validate-product-vision` | Check vision completeness before lock | discover-product (VALIDATE) |
-| `generate-business-review` | PM-facing business review from any product artifact | discover-product, plan-roadmap, manage-backlog |
+| `generate-business-review` | PM-facing business review from any product artifact | discover-product, manage-backlog |
 | `research-domain-context` | Research vertical domain knowledge via web when LTM is insufficient | discover-product (DRAFT, conditional) |
+| `scope-roadmap-epics` | Extract epics from locked vision, scope into time buckets + priorities | plan-roadmap (SCOPE) |
+| `draft-roadmap-brief` | Generate lightweight review brief — bound by C-BRIEF-1, C-BRIEF-2 | plan-roadmap (DRAFT) |
+| `draft-roadmap` | Generate full agentic roadmap.md post-Tether | plan-roadmap (DRAFT) |
+| `generate-engineering-view` | Engineering-facing roadmap view — technical breakdown, no business content | plan-roadmap (DRAFT) |
 
 ### Intent → Skill Mapping
 
@@ -61,6 +65,10 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 | "validate vision", "check vision", "vision completeness" | "Validate vision at .meridian/project/product/x/vision.md" | `validate-product-vision` | Completeness and lock-readiness check |
 | "business review", "PM review", "generate review" | "Generate business review for vision.md" | `generate-business-review` | Audience-appropriate review (no engineering) |
 | "research domain", "domain context", "market research" | "Research BFSI competitive landscape" | `research-domain-context` | Web research when LTM has insufficient domain knowledge |
+| "scope roadmap", "extract epics", "epic breakdown" | "Scope roadmap epics from locked vision" | `scope-roadmap-epics` | Extract and time-bucket epics from a locked vision |
+| "draft roadmap brief", "roadmap review", "roadmap story" | "Draft roadmap brief for reviewer" | `draft-roadmap-brief` | Lightweight review gate artifact — brief only, no full roadmap |
+| "draft roadmap", "create roadmap", "agentic roadmap" | "Draft roadmap from scoped epics" | `draft-roadmap` | Full agentic roadmap.md post-Tether |
+| "engineering view", "engineering roadmap", "tech breakdown" | "Generate engineering view for roadmap" | `generate-engineering-view` | Engineering-facing view — no business content |
 
 ## Intent Recognition
 
@@ -280,6 +288,74 @@ domain_context:
       status: "covered|partial|not_found"
       confidence: "high|medium|low"
   sources: ["{url}"]
+```
+
+### For `scope-roadmap-epics` invocations
+
+```yaml
+scoped_epics:
+  slug: "{product slug}"
+  vision_path: "{path}"
+  time_horizon: "12 months"
+  epics:
+    - id: "E1"
+      name: "{epic name}"
+      strategic_goal: "{linked goal}"
+      description: "{2–3 sentences}"
+      bucket: "near|mid|long"
+      priority: "P1|P2|P3"
+      effort: "S|M|L|XL"
+      depends_on: ["{epic id or null}"]
+      foundation_investment: true|false
+      github_issue_ref: "TBD"
+```
+
+### For `draft-roadmap-brief` invocations
+
+```yaml
+brief:
+  path: "{artifact path}"
+  epic_count: {integer}
+  sections_present: [bet, story, decisions, not_doing, asks, assumptions]
+  c_brief_1_pass: true|false
+  c_brief_1_violations: ["{description of violation if any}"]
+  c_brief_2_pass: true|false
+  c_brief_2_violations: ["{description of violation if any}"]
+```
+
+### For `draft-roadmap` invocations
+
+```yaml
+roadmap:
+  path: "{full path}"
+  slug: "{slug}"
+  epic_count: {integer}
+  epics_completeness:
+    - id: "E1"
+      intent: filled
+      constraints: filled
+      scenarios: filled
+      failures: filled
+      technical: empty
+      blast_radius: empty
+  milestones:
+    near: [{id, name, priority}]
+    mid: [{id, name, priority}]
+    long: [{id, name, priority}]
+  status: "DRAFT"
+  approved_brief: "{path}"
+```
+
+### For `generate-engineering-view` invocations
+
+```yaml
+engineering_view:
+  path: "{path}"
+  slug: "{slug}"
+  epic_count: {integer}
+  high_risk_count: {integer}
+  open_questions_count: {integer}
+  issue_traceability_complete: true|false
 ```
 
 ### Compound Output (Multi-Intent)
