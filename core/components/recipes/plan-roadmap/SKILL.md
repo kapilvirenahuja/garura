@@ -71,30 +71,21 @@ Create task: "Scope roadmap epics". Invoke `product-strategist` (agent call 1 of
 Intent: Scope roadmap epics from locked vision at {vision_path}
 Recipe context:
   intent: "Extract epics from locked vision, scope into time buckets with priorities and dependencies"
-  task: "Invoke scope-roadmap-epics skill. Input: vision_path={vision_path}, time_horizon=12 months. Return scoped_epics output."
+  task: "Invoke scope-roadmap-epics skill. Input: vision_path={vision_path}, artifact_base=.meridian/project/product/, time_horizon=12 months. Skill writes epics to STM and returns epics_path. Return scoped_epics output."
   vision_path: "{--vision value}"
+  artifact_base: ".meridian/project/product/"
   behavioral_constraints: {C4, C5 from reference/intent.yaml}
 ```
 
 **Expected output:**
 ```yaml
 scoped_epics:
+  epics_path: ".meridian/project/product/{slug}/epics.yaml"
   slug: "{product slug}"
-  vision_path: "{path}"
-  epics:
-    - id: "E1"
-      name: "{epic name}"
-      strategic_goal: "{linked goal}"
-      description: "{2–3 sentences}"
-      bucket: "near|mid|long"
-      priority: "P1|P2|P3"
-      effort: "S|M|L|XL"
-      depends_on: ["{epic id or null}"]
-      foundation_investment: true|false
-      github_issue_ref: "TBD"
+  epic_count: {integer}
 ```
 
-If agent returns fewer than 3 epics → halt with failure condition: "product-strategist returns fewer than 3 scoped epics."
+If agent returns `epic_count` fewer than 3 → halt with failure condition: "product-strategist returns fewer than 3 scoped epics."
 
 If agent returns structured failure → see Recovery section.
 
@@ -107,14 +98,23 @@ Create task: "Technical feasibility assessment". Invoke `tech-designer` (agent c
 Intent: Assess technical feasibility of scoped epics for {slug}
 Recipe context:
   intent: "Evaluate technical feasibility of each scoped epic — identify hard blockers, foundation investment requirements, and sequencing risks"
-  task: "Assess feasibility of the provided scoped epics. Return feasibility_flags per epic: feasible (true/false), blockers (list), foundation_required (true/false), risk (low/medium/high)."
-  scoped_epics: {from Step 1}
+  task: "Read the scoped epics from epics_path. Assess feasibility of each epic. Write feasibility flags to {artifact_base}/{slug}/feasibility.yaml. Return feasibility_path."
+  epics_path: "{scoped_epics.epics_path from Step 1}"
+  artifact_base: ".meridian/project/product/"
+  slug: "{slug from Step 1}"
   vision_path: "{--vision value}"
 ```
 
 **Expected output:**
 ```yaml
-feasibility_flags:
+feasibility:
+  feasibility_path: ".meridian/project/product/{slug}/feasibility.yaml"
+```
+
+The full feasibility data is written to `feasibility_path`. Format in that file:
+```yaml
+# feasibility.yaml
+epics:
   - epic_id: "E1"
     feasible: true|false
     blockers: ["{blocker description}"]
@@ -133,9 +133,9 @@ Create task: "Generate roadmap brief". Invoke `product-strategist` (agent call 3
 Intent: Draft roadmap brief for {slug} — gate artifact for human review
 Recipe context:
   intent: "Generate lightweight roadmap review brief — 6 sections, 30-minute reviewable, decision-grade content only"
-  task: "Invoke draft-roadmap-brief skill. Return brief output with c_brief_1_pass and c_brief_2_pass flags."
-  scoped_epics: {from Step 1}
-  feasibility_flags: {from Step 2}
+  task: "Invoke draft-roadmap-brief skill. Read epics from epics_path and feasibility from feasibility_path. Return brief output with c_brief_1_pass and c_brief_2_pass flags."
+  epics_path: "{scoped_epics.epics_path from Step 1}"
+  feasibility_path: "{feasibility.feasibility_path from Step 2}"
   vision_path: "{--vision value}"
   artifact_base: ".meridian/project/product/"
   behavioral_constraints: {C-BRIEF-1, C-BRIEF-2 from reference/intent.yaml}
@@ -161,7 +161,7 @@ If agent returns structured failure → see Recovery section.
 
 **The orchestrator owns this step entirely, except for brief adjustment invocations.**
 
-Write checkpoint to `.meridian/project/product/checkpoint/plan-roadmap/{YYYYMMDD-HHMMSS}.md` with: `brief_path={brief.path}`, `brief_status=pending`, `feedback_cycles=0`, `vision_path`, `slug`, `scoped_epics`, `feasibility_flags`.
+Write checkpoint to `.meridian/project/product/checkpoint/plan-roadmap/{YYYYMMDD-HHMMSS}.md` with: `brief_path={brief.path}`, `brief_status=pending`, `feedback_cycles=0`, `vision_path`, `slug`, `epics_path`, `feasibility_path`.
 
 Present brief using `templates/approval-prompt.md`.
 
@@ -187,9 +187,9 @@ Recipe context:
   intent_1: "Invoke draft-roadmap skill — generate roadmap.md post-Tether"
   intent_2: "Invoke generate-engineering-view skill on the resulting roadmap.md"
   dependency: "intent_2 depends on intent_1 output (roadmap.path)"
-  scoped_epics: {from Step 1}
+  epics_path: "{epics_path from checkpoint}"
+  feasibility_path: "{feasibility_path from checkpoint}"
   approved_brief_path: "{approved_brief_path from checkpoint}"
-  feasibility_flags: {from Step 2}
   artifact_base: ".meridian/project/product/"
   behavioral_constraints: {C6, C7, C9 from reference/intent.yaml}
 ```
@@ -239,7 +239,7 @@ Invoke `repo-orchestrator` to commit all evidence and checkpoint files with mess
 **`/plan-roadmap --resume`** — No `--vision` or `--phase` argument needed.
 
 1. Find the latest checkpoint at `.meridian/project/product/checkpoint/plan-roadmap/` ordered by created timestamp (most recent first).
-2. Read all checkpoint fields: `brief_status`, `brief_path`, `approved_brief_path`, `feedback_cycles`, `vision_path`, `slug`, `scoped_epics`, `feasibility_flags`.
+2. Read all checkpoint fields: `brief_status`, `brief_path`, `approved_brief_path`, `feedback_cycles`, `vision_path`, `slug`, `epics_path`, `feasibility_path`.
 3. Route based on checkpoint state:
    - `brief_status: pending` → load brief from `brief_path`, re-present using `templates/approval-prompt.md` ("Resuming — feedback loop at cycle {feedback_cycles}/3"), continue from Step 4.
    - `brief_status: approved` AND `roadmap.md` does not exist at `.meridian/project/product/{slug}/roadmap.md` → jump directly to Step 5 (generate artifacts).
