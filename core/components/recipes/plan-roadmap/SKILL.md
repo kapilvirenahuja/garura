@@ -93,19 +93,59 @@ A single contract flows through the entire workflow. Recipe creates the initial 
   ],
   "evidence": [
     { "name": "plan-roadmap", "location": null }
-  ]
+  ],
+  "notes": [],
+  "step_failure": null
 }
 ```
 
+### Contract Fields
+
+| Field | Owner | Purpose |
+|-------|-------|---------|
+| `stm.*` | Agents | Artifact paths — agents populate null fields with paths they produce |
+| `checkpoints` | Recipe | Checkpoint status — recipe updates after human review |
+| `evidence` | Recipe | Evidence paths — recipe updates at report step |
+| `notes` | Agents | Short observations from the current step (max 3 items, 1 sentence each). Validation summaries, warnings, or context for downstream agents. Not prose — structured notes only. |
+| `step_failure` | Agents | Non-null only when the agent cannot recover. Recipe reads this to decide retry/halt. |
+
+### `notes` format
+
+Agents MAY add up to 3 notes per invocation. Each note is a short string (1 sentence). Notes are for downstream context — not validation checklists or verbose output.
+
+```json
+"notes": [
+  "5 epics derived — all trace to distinct strategic goals",
+  "E2 depends on E1 foundation — sequencing constraint"
+]
+```
+
+### `step_failure` format
+
+Non-null only when the agent attempted self-recovery and still failed. Recipe reads this to decide retry or halt.
+
+```json
+"step_failure": {
+  "step": "scope_epics",
+  "error": "insufficient_epics",
+  "message": "Only 2 epics identifiable from vision",
+  "recovery_attempted": true,
+  "recovery_details": "Broadened strategic goal interpretation — still only 2 distinct epics"
+}
+```
+
+When `step_failure` is non-null, `stm` paths for the failed step remain null. Recipe checks `step_failure` before checking `stm` paths.
+
 **How it works:**
-- Recipe creates the initial contract with vision_path set, everything else null
+- Recipe creates the initial contract with vision_path set, everything else null, notes empty, step_failure null
 - Sends contract to first agent
-- Agent produces artifacts, adds paths to `stm`, returns the enriched contract
+- Agent produces artifacts, adds paths to `stm`, optionally adds notes, returns the enriched contract
+- If agent fails after recovery attempts, sets `step_failure` instead of `stm` paths
 - Recipe sends enriched contract to next agent
 - Each agent adds to the same contract — it grows through the workflow
-- Recipe checks `stm` after each agent call to validate what was produced
+- Recipe checks `step_failure` first, then validates `stm` paths
 
-**No per-capability output schemas.** The contract IS the schema. Agents add paths to `stm`. Recipe validates what's present.
+**No per-capability output schemas.** The contract IS the schema. Agents add paths to `stm`, notes to `notes`, failures to `step_failure`. Recipe validates what's present.
 
 ## Workflow
 
@@ -156,7 +196,9 @@ After creating all tasks with dependencies, initialize the JSON contract:
   ],
   "evidence": [
     { "name": "plan-roadmap", "location": null }
-  ]
+  ],
+  "notes": [],
+  "step_failure": null
 }
 ```
 
@@ -186,29 +228,31 @@ Pass this JSON contract as the agent prompt:
     "engineering_view_path": null
   },
   "checkpoints": [{ "name": "brief_review", "status": "pending" }],
-  "evidence": [{ "name": "plan-roadmap", "location": null }]
+  "evidence": [{ "name": "plan-roadmap", "location": null }],
+  "notes": [],
+  "step_failure": null
 }
 ```
 
-**Expected return:** The same JSON contract with `stm.epics_path` populated. Nothing else.
+**Expected return:** The same JSON contract with `stm.epics_path` populated, optional `notes`, `step_failure` null.
 
-Validate: `stm.epics_path` is non-null. If epic_count < 3 → halt.
+Validate: check `step_failure` first — if non-null, handle failure. Then check `stm.epics_path` is non-null.
 
 **Capability 2 — Assess feasibility (tech-designer):**
 
 Pass the enriched contract (now has `stm.epics_path` set) as the agent prompt. No other text.
 
-**Expected return:** The same JSON contract with `stm.feasibility_path` populated. Nothing else.
+**Expected return:** The same JSON contract with `stm.feasibility_path` populated, optional `notes`, `step_failure` null.
 
-Validate: `stm.feasibility_path` is non-null.
+Validate: check `step_failure` first, then `stm.feasibility_path` is non-null.
 
 **Capability 3 — Produce brief (product-strategist):**
 
 Pass the enriched contract (now has `stm.epics_path` and `stm.feasibility_path` set) as the agent prompt. No other text.
 
-**Expected return:** The same JSON contract with `stm.brief_path` populated. Nothing else.
+**Expected return:** The same JSON contract with `stm.brief_path` populated, optional `notes`, `step_failure` null.
 
-Validate: `stm.brief_path` is non-null. If brief constraint violations → re-invoke once. If still fails → halt.
+Validate: check `step_failure` first, then `stm.brief_path` is non-null. If brief constraint violations → re-invoke once. If still fails → halt.
 
 ### Step 3 — Human Review (Checkpoint)
 

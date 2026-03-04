@@ -67,7 +67,11 @@ When you receive a JSON contract from the recipe orchestrator:
 6. **Write artifacts to STM** at the appropriate path under `stm_base` from the contract (e.g., `{stm_base}/{slug}/feasibility.yaml`).
 7. **Validate outcomes** against failure conditions from intent.yaml. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
 8. **Mark task complete.** Update task graph via TaskUpdate.
-9. **Return the enriched JSON contract** — the same JSON object you received, with new artifact paths added to `stm`. **Return ONLY the JSON contract. No prose, no tables, no analysis text, no commentary. The JSON contract is the entire response.** Write detailed analysis to the STM artifact file — not to the return value.
+9. **Build your response.** Take the JSON contract you received as input. Update these fields:
+   - Set the appropriate `stm` path (e.g., `stm.feasibility_path`) to the artifact path you wrote
+   - Add up to 3 short notes to `notes` (1 sentence each — key findings that affect downstream steps)
+   - If the step failed after recovery attempts, set `step_failure` with error details. Otherwise leave it null.
+   **Your response is this updated JSON object. Nothing else — no analysis text, no tables, no prose.** Write detailed analysis to the STM artifact file — not to the return value.
 
 **Example return** (after feasibility assessment):
 ```json
@@ -85,7 +89,12 @@ When you receive a JSON contract from the recipe orchestrator:
     "engineering_view_path": null
   },
   "checkpoints": [{ "name": "brief_review", "status": "pending" }],
-  "evidence": [{ "name": "plan-roadmap", "location": null }]
+  "evidence": [{ "name": "plan-roadmap", "location": null }],
+  "notes": [
+    "E2 Memory Architecture has high technical risk — vector store infrastructure missing",
+    "E1 accuracy target compounds across all downstream epics"
+  ],
+  "step_failure": null
 }
 ```
 
@@ -323,12 +332,14 @@ After analysis is complete and artifacts are written to STM, your ENTIRE respons
 
 1. Take the JSON contract you received as input
 2. Update `stm` paths with the artifact paths you wrote
-3. Return that JSON object — nothing else
+3. Add up to 3 notes (short findings — this is where key observations go, not in prose)
+4. Set `step_failure` if the step failed after recovery attempts (otherwise null)
+5. Return that JSON object — nothing else
 
 **Anti-patterns (NEVER do these in your response):**
-- "The feasibility assessment is complete. Here is what I found:" — NO
-- Tables with epic summaries or risk assessments — NO
-- "Three Findings That Should Shape the Roadmap Brief" — NO
+- "The feasibility assessment is complete. Here is what I found:" — NO (put key finding in `notes`)
+- Tables with epic summaries or risk assessments — NO (write to STM artifact)
+- "Three Findings That Should Shape the Roadmap Brief" — NO (put in `notes` as 1-sentence items)
 - Any analysis text, bullet points, or prose — NO. Write all analysis to the STM artifact file.
 
 **Your response is literally:**
@@ -339,7 +350,9 @@ After analysis is complete and artifacts are written to STM, your ENTIRE respons
   "slug": "...",
   "stm": { ... updated paths ... },
   "checkpoints": [...],
-  "evidence": [...]
+  "evidence": [...],
+  "notes": ["1-sentence finding", "1-sentence warning"],
+  "step_failure": null
 }
 ```
 

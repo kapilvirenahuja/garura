@@ -86,7 +86,11 @@ When you receive a JSON contract from the recipe orchestrator:
 6. **Call skills** from your available skill pool. Pass STM paths + LTM paths (schemas, templates). Skill reads from paths, fills template, writes artifact, returns a YAML output contract. **Do NOT forward the skill's output as your response.** Extract only the artifact path from the skill output.
 7. **Validate outcomes** against failure conditions and scenarios from intent.yaml. Validate internally — do NOT include validation results in your response. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
 8. **Mark task complete.** Update task graph via TaskUpdate.
-9. **Build your response.** Take the JSON contract you received as input. Set the appropriate `stm` path (e.g., `stm.epics_path`) to the artifact path from the skill output. **Your response is this updated JSON object. Nothing else — no skill output, no validation, no prose.**
+9. **Build your response.** Take the JSON contract you received as input. Update these fields:
+   - Set the appropriate `stm` path (e.g., `stm.epics_path`) to the artifact path from the skill output
+   - Add up to 3 short notes to `notes` (1 sentence each — observations, warnings, or downstream context)
+   - If the step failed after recovery attempts, set `step_failure` with error details. Otherwise leave it null.
+   **Your response is this updated JSON object. Nothing else — no skill output, no validation checklists, no prose.**
 
 **Example return** (after scoping epics):
 ```json
@@ -104,7 +108,12 @@ When you receive a JSON contract from the recipe orchestrator:
     "engineering_view_path": null
   },
   "checkpoints": [{ "name": "brief_review", "status": "pending" }],
-  "evidence": [{ "name": "plan-roadmap", "location": null }]
+  "evidence": [{ "name": "plan-roadmap", "location": null }],
+  "notes": [
+    "5 epics derived — all trace to distinct strategic goals",
+    "E2 depends on E1 foundation investment — sequencing constraint"
+  ],
+  "step_failure": null
 }
 ```
 
@@ -496,12 +505,14 @@ After all skills complete, your ENTIRE response is ONE JSON object. Transform sk
 
 1. Take the JSON contract you received as input
 2. Update `stm` paths with the artifact paths from skill output
-3. Return that JSON object — nothing else
+3. Add up to 3 notes (short observations — this is where validation summaries go, not in prose)
+4. Set `step_failure` if the step failed after recovery attempts (otherwise null)
+5. Return that JSON object — nothing else
 
 **Anti-patterns (NEVER do these in your response):**
 - "Epics written. Running final validation checklist:" — NO
 - "Pre-return verification:" — NO
-- Bullet lists of validation results — NO
+- Bullet lists of validation results — NO (put a 1-sentence summary in `notes` instead)
 - YAML blocks like `scoped_epics:` or `brief:` — NO
 - Any text before or after the JSON — NO
 
@@ -513,7 +524,9 @@ After all skills complete, your ENTIRE response is ONE JSON object. Transform sk
   "slug": "...",
   "stm": { ... updated paths ... },
   "checkpoints": [...],
-  "evidence": [...]
+  "evidence": [...],
+  "notes": ["1-sentence observation", "1-sentence warning"],
+  "step_failure": null
 }
 ```
 
