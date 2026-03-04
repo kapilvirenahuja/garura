@@ -43,13 +43,18 @@ Verify brief is approved — check for Tether record in checkpoint. If not appro
    - Key Assumptions → preserved verbatim
    - Decisions table → epic metadata (horizon, priority, effort, dependencies)
 
-3. **Compose roadmap** using `templates/roadmap.md`. Populate:
+3. **Compose roadmap** using `templates/roadmap.md`. The template structure is MANDATORY — section headers must be used verbatim. Populate:
    - Frontmatter: intent (from The Bet), slug, horizon, approved_brief path, created date
    - Roadmap Summary: The Story preserved verbatim
    - What Is Not In This Roadmap: What We're Not Doing preserved verbatim
    - Assumptions: Key Assumptions preserved verbatim
    - Epic Index table: one row per epic from Decisions table, Issue Ref = TBD
-   - Per-epic sections: fill Intent, Constraints, Acceptance Scenarios, Failure Conditions from scoped_epics; write Technical Context and Blast Radius as EMPTY placeholders with `<!-- status: empty -->` markers
+   - Per-epic sections — use EXACTLY these four IDD section headers in this order:
+     - `### Intent` — 2–3 paragraphs. What the user gets that they don't have today. Outcome-focused, not a feature list. Derived from epic description + strategic_goal + vision context.
+     - `### Constraints` — three bullets: In scope / Out of scope / Must not break. Derived from epic scope and feasibility flags.
+     - `### Acceptance Scenarios` — given/when/then format. Binary testable. Derived from epic strategic_goal and intent. Minimum 2 scenarios per epic.
+     - `### Failure Conditions` — observable results that mean the epic failed. Derived from intent and feasibility risks.
+   - Technical Context and Blast Radius: EMPTY placeholders with `<!-- status: empty -->` markers — NEVER filled at roadmap time
 
 4. **Write to** `{artifact_base}{slug}/roadmap.md`.
 
@@ -96,6 +101,8 @@ Load template from: `templates/roadmap.md`
 - ALWAYS write Technical Context and Blast Radius sections as empty placeholders with `<!-- status: empty -->` markers — NEVER attempt to fill them at roadmap planning time
 - Issue Ref column MUST exist in Epic Index table (TBD values permitted)
 - Acceptance Scenarios MUST be given/when/then form — never vague criteria like "works correctly"
+- NEVER use these section names for per-epic IDD content: "Strategic Rationale", "User Value", "Success Metrics", "Key Risks", "Business Value", "Objectives", "Goals". These are not IDD fields.
+- ALWAYS use EXACTLY these per-epic IDD section headers: `### Intent`, `### Constraints`, `### Acceptance Scenarios`, `### Failure Conditions`. These are the only permitted IDD core section headers.
 - `user-invocable: false`
 
 ## Version
