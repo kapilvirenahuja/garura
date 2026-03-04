@@ -276,6 +276,10 @@ core/components/skills/
 | `validate-product-vision` | product | true | Validate a product vision document for completeness and readiness to lock |
 | `generate-business-review` | product | true | Generate a PM-facing business review from any product artifact |
 | `research-domain-context` | product | true | Research vertical domain knowledge via web when LTM is insufficient |
+| `scope-roadmap-epics` | product | false | Extract epics from a locked product vision and scope them into roadmap time buckets with priorities and dependencies |
+| `draft-roadmap-brief` | product | false | Generate the human review brief (HTML) — the gate artifact before full agentic roadmap generation |
+| `draft-roadmap` | product | false | Generate the full agentic roadmap.md — produced only after the brief is Tether-approved |
+| `generate-engineering-view` | product | false | Generate an engineering-facing roadmap view from an approved roadmap.md — zero business content |
 | `archive-issue-stm` | operations | false | Archive a closed issue's STM directory into year-month buckets (ADR 010) |
 
 ## Related Documentation

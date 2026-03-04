@@ -536,6 +536,14 @@ core/components/recipes/
 │   ├── reference/
 │   │   └── intent.yaml
 │   └── templates/
+├── plan-roadmap/            # L2 recipe — scope epics → brief → Tether → roadmap + engineering view
+│   ├── SKILL.md
+│   ├── reference/
+│   │   └── intent.yaml
+│   └── templates/
+│       ├── checkpoint.md
+│       ├── approval-prompt.md
+│       └── final-report.md
 ├── ship/                    # First L2 recipe implemented in the framework
 │   ├── SKILL.md
 │   ├── reference/
