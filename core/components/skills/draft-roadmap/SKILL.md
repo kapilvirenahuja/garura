@@ -54,7 +54,7 @@ Verify brief is approved — check for Tether record in checkpoint. If not appro
      - `### Constraints` — three bullets: In scope / Out of scope / Must not break. Derived from epic scope and feasibility flags.
      - `### Acceptance Scenarios` — given/when/then format. Binary testable. Derived from epic strategic_goal and intent. Minimum 2 scenarios per epic.
      - `### Failure Conditions` — observable results that mean the epic failed. Derived from intent and feasibility risks.
-   - Technical Context and Blast Radius: EMPTY placeholders with `<!-- status: empty -->` markers — NEVER filled at roadmap time
+   - Technical Context and Blast Radius: EMPTY placeholders with `<!-- status: empty -->` markers — filled by `/plan-architecture` and `/analyze-epic` in later recipes, not here
 
 4. **Write to** `{artifact_base}{slug}/roadmap.md`.
 
@@ -96,13 +96,12 @@ Load template from: `templates/roadmap.md`
 
 ## Constraints
 
-- NEVER generate without a Tether-approved brief
+- Brief approval is a pre-condition — the Pre-conditions section handles enforcement via structured failure
 - ALWAYS include `approved_brief` in roadmap.md frontmatter
-- ALWAYS write Technical Context and Blast Radius sections as empty placeholders with `<!-- status: empty -->` markers — NEVER attempt to fill them at roadmap planning time
+- Technical Context and Blast Radius are progressive enrichment placeholders — the Progressive Enrichment Model section explains the intent; this skill writes them empty
 - Issue Ref column MUST exist in Epic Index table (TBD values permitted)
-- Acceptance Scenarios MUST be given/when/then form — never vague criteria like "works correctly"
-- NEVER use these section names for per-epic IDD content: "Strategic Rationale", "User Value", "Success Metrics", "Key Risks", "Business Value", "Objectives", "Goals". These are not IDD fields.
-- ALWAYS use EXACTLY these per-epic IDD section headers: `### Intent`, `### Constraints`, `### Acceptance Scenarios`, `### Failure Conditions`. These are the only permitted IDD core section headers.
+- Acceptance Scenarios are given/when/then format — binary testable, minimum 2 per epic
+- Per-epic IDD structure follows `templates/roadmap.md` exactly — the template is the contract
 - `user-invocable: false`
 
 ## Version
