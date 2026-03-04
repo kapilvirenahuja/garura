@@ -49,7 +49,9 @@ Receive from agent:
 
 6. **Validate against schema** — run the full validation checklist in `reference/epic-schema.md` before writing. Verify all 14 fields per epic. Correct any violations before proceeding.
 
-7. **Write to STM** — write the scoped epics to `{artifact_base}/{slug}/epics.yaml` using the Write tool. Use the YAML structure from `reference/epic-schema.md`. The file must be a valid YAML document — no placeholders, all fields filled.
+7. **Validate against intent failure conditions** — if the agent passes `intent_path`, read the intent file and check the `failure_conditions` list. Verify: epic count >= 3, every epic traces to a strategic goal from the vision. If any failure condition is triggered, return structured failure before writing.
+
+8. **Write to STM** — write the scoped epics to `{artifact_base}/{slug}/epics.yaml` using the Write tool. Use the YAML structure from `reference/epic-schema.md`. The file must be a valid YAML document — no placeholders, all fields filled.
 
 ## Output
 

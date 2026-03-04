@@ -1,69 +1,37 @@
 name: plan-roadmap
-intent: "Plan a time-phased product roadmap from a locked vision — scope epics, generate review brief, run feedback loop, then produce agentic roadmap and engineering view post-approval. Epics follow progressive enrichment: IDD core filled at roadmap time; technical context and blast radius filled by later recipes."
+goal: "Prepare a roadmap"
 
 constraints:
-  pre_flight:
-    - id: C1
-      check: "--vision path is provided and file exists at the path"
-      halt_message: "No vision path provided or file not found — use --vision <path>"
-    - id: C3
-      check: "Vision artifact must have Status: LOCKED"
-      halt_message: "Vision is not LOCKED — run /discover-product --phase lock first"
-
-  behavioral:
-    - id: C4
-      rule: "Orchestrator MUST delegate all domain work to product-strategist or tech-designer — never invoke skills directly"
-    - id: C5
-      rule: "Maximum 3 agent calls in the main flow (product-strategist x2, tech-designer x1). Feedback loop adjustments do not count against this limit."
-    - id: C6
-      rule: "Roadmap artifacts MUST be written to .meridian/project/product/{slug}/ relative to project root"
-    - id: C7
-      rule: "roadmap.md and roadmap-engineering.md MUST be distinct artifacts — roadmap.md: full IDD content; engineering view: no business content"
-    - id: C8
-      rule: "Checkpoint MUST be written before presenting brief to user — brief_status: pending first"
-    - id: C9
-      rule: "Issue traceability column MUST be present in roadmap.md — TBD values permitted but column must exist"
-    - id: C10
-      rule: "Each agent invocation MUST include the step-specific intent and constraints from the steps section of this file"
-    - id: C-BRIEF-1
-      rule: "Roadmap brief MUST be reviewable in 30 minutes — no element included unless a reviewer can act on it within that session"
-    - id: C-BRIEF-2
-      rule: "Technical elements MUST only appear in the brief if they change a roadmap decision (sequencing, priority, or timing). Permitted: hard dependencies, foundation investments, migration/breaking-change costs. Excluded: NFR targets, implementation detail, technical choices, code quality"
+  - id: C-TEMPLATE
+    rule: "Follow the roadmap brief template"
+    template_ref: "standards/templates/roadmap-brief.html"
+  - id: C-LOCKED
+    rule: "Vision must be locked before roadmap planning"
+  - id: C-BRIEF-REVIEW
+    rule: "Brief must be reviewable in 30 minutes"
+  - id: C-TECH-RELEVANCE
+    rule: "Technical elements only if they change a roadmap decision"
 
 failure_conditions:
-  - "Vision path not found or not a valid vision.md"
-  - "Vision is not LOCKED"
-  - "product-strategist returns fewer than 3 scoped epics"
-  - "User rejects roadmap brief (Vanish)"
-  - "Agent call limit exceeded (>3 main flow calls)"
-  - "Brief violates C-BRIEF-1 (not reviewable in 30 minutes)"
-  - "Brief includes technical elements that do not change a decision (violates C-BRIEF-2)"
-  - "Roadmap already generated and --vision re-run attempted without --resume"
+  - "Fewer than 3 epics"
+  - "Roadmap is not internally consistent (epics don't trace to strategic goals)"
+  - "User rejects the brief"
+  - "Brief includes technical detail that doesn't change a decision"
 
-steps:
-  step_1:
-    name: "Derive Epics from Vision"
-    agent: "product-strategist"
-    intent: "Derive 3–6 epics from locked vision with full IDD fields (intent, constraints, success scenarios, failure conditions) linked to strategic goals"
-    constraints: [C6, C10]
-  step_2:
-    name: "Assess Feasibility"
-    agent: "tech-designer"
-    intent: "Assess technical feasibility of derived epics — identify blockers, foundation investment requirements, and sequencing risks"
-    constraints: [C6]
-  step_3:
-    name: "Produce Review Brief"
-    agent: "product-strategist"
-    intent: "Produce a reviewable brief — gate artifact for human review rendered from derived epics and feasibility data"
-    constraints: [C6, C10, C-BRIEF-1, C-BRIEF-2]
-  step_5a:
-    name: "Produce Roadmap"
-    agent: "product-strategist"
-    intent: "Produce the roadmap from derived epics and approved brief"
-    constraints: [C6, C7, C9, C10]
-  step_5b:
-    name: "Produce Engineering View"
-    agent: "product-strategist"
-    depends_on: "step_5a"
-    intent: "Produce an engineering-facing view from the roadmap"
-    constraints: [C6, C7, C10]
+scenarios:
+  - id: S1
+    persona: "Product Manager"
+    given: "Approved roadmap brief"
+    then: "Can clearly describe each epic's intent, constraints, and success criteria"
+  - id: S2
+    persona: "Product Owner"
+    given: "Approved roadmap"
+    then: "Can break epics into backlog items with clear acceptance criteria"
+  - id: S3
+    persona: "Engineering Lead"
+    given: "Engineering view"
+    then: "Can identify technical dependencies and sequence work across teams"
+  - id: S4
+    persona: "Stakeholder"
+    given: "Roadmap brief"
+    then: "Can review and give meaningful feedback within 30 minutes"

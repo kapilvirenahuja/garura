@@ -28,7 +28,7 @@ Receive from agent:
 
 1. **Read vision.md** at `vision_path` — extract product name, slug, strategic goals, and assumptions.
 
-2. **Read `templates/brief.html`** from this skill's base directory. Your execution context contains a line "Base directory for this skill: {path}" — read the template at `{base_directory}/templates/brief.html` using the Read tool. This file contains all CSS and static structure.
+2. **Read the brief template from LTM** — the intent file at `intent_path` contains constraint `C-TEMPLATE` with a `template_ref` field (e.g., `standards/templates/roadmap-brief.html`). Read the template from `~/.meridian/core/memory/{template_ref}` using the Read tool. This file contains all CSS and static structure. If the agent passes a specific `template_path`, use that instead.
 
 3. **Read epics from STM** — read the file at `epics_path` using the Read tool. Each epic contains: id, name, strategic_goal, description, bucket, priority, effort, depends_on, foundation_investment, intent (p1/p2/p3), constraints (in_scope/out_of_scope/must_not_break), success_scenarios, failure_conditions. You MUST read this file — do NOT rely on memory or invent content.
 
@@ -107,14 +107,14 @@ brief:
 
 ## Reference
 
-Load template from: `templates/brief.html`
+Load template from LTM: `~/.meridian/core/memory/standards/templates/roadmap-brief.html` (default, overridable via intent constraint C-TEMPLATE.template_ref)
 
 ## Constraints
 
 - NEVER generate epic content — Intent, Constraints, Success Scenarios, and Failure Conditions come FROM the epics file, not from this skill
 - NEVER include NFR targets, implementation details, work packages, or specific technical choices
 - NEVER use custom CSS classes — use only the classes defined in `templates/brief.html`
-- ALWAYS read `templates/brief.html` using the Read tool — do NOT generate HTML from scratch
+- ALWAYS read the brief template from LTM (via intent constraint C-TEMPLATE.template_ref) using the Read tool — do NOT generate HTML from scratch
 - ALWAYS read epics from `epics_path` using the Read tool — do NOT rely on memory
 - ALWAYS produce one `.epic-card` per epic — no exceptions, no omissions
 - ALWAYS produce one `<tr>` per epic in the summary table — no exceptions, no omissions

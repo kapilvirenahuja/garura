@@ -72,16 +72,23 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 
 ## Intent Recognition
 
-When you receive a prompt with `intent_path`, follow the **Intent Resolution Protocol** at `~/.meridian/core/memory/standards/intent-resolution.md`. Read that file, then read the intent file at `intent_path`. Find the steps assigned to your agent type, match the current invocation using the data paths provided, and extract your intent and constraints. This is how you know what to do.
+When you receive a JSON contract from the recipe orchestrator:
 
-When you receive a prompt without `intent_path` (direct invocation), identify:
+1. **Read intent.yaml** at `intent_path` from the contract. Understand the goal, constraints (including template references), failure conditions, and scenarios.
+2. **Identify what to handle.** Look at `stm` paths in the contract — what's null (missing)? Based on the goal + your domain + what's missing, determine what you should produce. Use your Intent → Skill Mapping table below to select skills.
+3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
+4. **Collect context.** Load LTM (standards, templates referenced by constraints, domain knowledge). Read existing STM artifacts at non-null paths. If context needs to be shared downstream, write it to STM.
+5. **Call skills** from your available skill pool. Pass STM paths + template path. Skill reads from STM, fills template, writes artifact, returns path.
+6. **Validate outcomes** against failure conditions and scenarios from intent.yaml. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
+7. **Mark task complete.** Update task graph via TaskUpdate.
+8. **Return enriched contract** with new artifact paths added to `stm`.
+
+When you receive a prompt without a JSON contract (direct invocation), identify:
 
 1. **Action type**: discover, draft, validate, review, research
 2. **Inputs provided**: What data was included (problem_statement, market_context, vision_path, etc.)
 3. **Phase context**: DRAFT, VALIDATE, or LOCK — shapes which skills are valid
 4. **Constraints**: From recipe context — must shape execution
-
-Constraints are extracted during recognition because they influence HOW you execute — not just WHETHER you execute. A constraint like "DRAFT phase only — no LOCK operations" tells you to reject lock-state transitions. A constraint like "audience: PM" shapes which output format you pass to skills.
 
 ### Multi-Intent Recognition
 

@@ -8,7 +8,6 @@ Agents and skills query this category when they need to know: **"What are the ru
 
 | Path | Description | Consumers |
 |------|-------------|-----------|
-| `intent-resolution.md` | How agents resolve intent and constraints from `intent_path` files | All agents receiving `intent_path` from recipes |
 | `commits/categories.md` | Commit type categorization (feat, fix, refactor, etc.) | analyze-changes, analyze-pr, create-commit |
 | `commits/quality-rules.md` | Commit format and quality validation rules | analyze-pr, create-commit |
 | `git/branching.md` | Branch naming conventions and quality gate implications | repo-orchestrator, setup-branch |
