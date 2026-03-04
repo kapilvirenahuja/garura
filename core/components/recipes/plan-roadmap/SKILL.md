@@ -46,6 +46,7 @@ Framework-level guardrails, not user-facing intent.
 - Orchestrator delegates to agents — never invokes skills directly.
 - Communications between agents and skills MUST use JSON contracts.
   Details written to STM as artifacts, paths passed in JSON.
+- **CRITICAL: The JSON contract is the ENTIRE agent prompt.** When invoking an agent, pass ONLY the JSON object. Do NOT append instructions, field definitions, examples, rules, epic schemas, or any other text after the JSON. Agents have their own definitions — they know what to do. Adding instructions overrides agent behavior with potentially wrong information. If you find yourself writing "Rules:", "For each epic:", or "Example return format:" after the JSON — STOP. Delete it. Send only the JSON.
 
 ## Arguments
 
@@ -163,7 +164,9 @@ Verify: all 7 tasks exist with correct blockedBy before proceeding.
 
 ### Step 2 — Execute Pre-Review Tasks
 
-Execute capabilities 1-3 by invoking agents in dependency order. Pass the JSON contract as the **entire agent prompt** — no other text, no YAML keys, no instructions.
+Execute capabilities 1-3 by invoking agents in dependency order.
+
+**CONSTRAINT: The JSON contract is the ENTIRE agent prompt.** Copy-paste the JSON object as the prompt. Nothing before it, nothing after it. No "You are the product-strategist agent", no "Your task is", no field definitions, no rules, no examples. The agent reads its own definition file and intent.yaml — it already knows what to do.
 
 **Capability 1 — Scope epics (product-strategist):**
 
