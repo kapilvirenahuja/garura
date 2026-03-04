@@ -93,7 +93,7 @@ Load template from: `templates/brief.html`
 - ALWAYS run C-BRIEF-1 and C-BRIEF-2 self-checks before returning output
 - ALWAYS include The Asks section — minimum 3 specific, decision-forcing questions
 - MAX 8 rows in the Decisions summary table
-- Decisions per-epic subsections MUST cover: description (2–3 sentences, business language), why now (sequencing rationale), dependencies and what they unlock, business-level risks (C-BRIEF-2 compliant)
+- Decisions per-epic subsections MUST cover all six fields in order: Intent (2–3 paragraphs: problem today / outcome after / strategic connection), Constraints (in scope / out of scope / must not break), Success Scenarios (minimum 2, given/when/then, binary testable), Failure Conditions (observable results that signal the epic failed, 2–4 items), Why Now (sequencing rationale), Dependencies & what it unlocks
 - Brief MUST be reviewable within 30 minutes — this is a ceiling, not a target to minimize. Depth is expected.
 
 ## Version

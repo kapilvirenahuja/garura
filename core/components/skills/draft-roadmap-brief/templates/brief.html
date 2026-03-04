@@ -270,8 +270,41 @@
     </div>
 
     <div class="epic-field">
-      <div class="epic-field-label">What it is</div>
-      <div class="epic-field-value">{2–3 sentences describing the epic in business language. What gets built. What it enables. No technical jargon.}</div>
+      <div class="epic-field-label">Intent</div>
+      <div class="epic-field-value">{2–3 paragraphs. P1: what problem or gap exists today. P2: what the user can do after this ships that they cannot do now — outcome-focused, not a feature list. P3: why this matters strategically and how it connects to the product's goals. Business language only.}</div>
+    </div>
+
+    <div class="epic-field">
+      <div class="epic-field-label">Constraints</div>
+      <div class="epic-field-value">
+        <ul>
+          <li><strong>In scope:</strong> {what is explicitly included}</li>
+          <li><strong>Out of scope:</strong> {what is explicitly excluded — prevents scope creep}</li>
+          <li><strong>Must not break:</strong> {existing capabilities or agreements this epic cannot regress}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="epic-field">
+      <div class="epic-field-label">Success scenarios</div>
+      <div class="epic-field-value">
+        <ul>
+          <!-- Minimum 2. Given/when/then format. Binary testable — a reviewer must be able to say pass or fail. -->
+          <li><strong>Given</strong> {context}, <strong>when</strong> {action}, <strong>then</strong> {observable outcome}.</li>
+          <li><strong>Given</strong> {context}, <strong>when</strong> {action}, <strong>then</strong> {observable outcome}.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="epic-field">
+      <div class="epic-field-label">Failure conditions</div>
+      <div class="epic-field-value">
+        <ul>
+          <!-- Observable results that mean this epic failed — not risks, but outcomes. -->
+          <li>{What a reviewer would observe that signals this epic did not deliver its intent.}</li>
+          <!-- 2–4 conditions -->
+        </ul>
+      </div>
     </div>
 
     <div class="epic-field">
@@ -285,16 +318,6 @@
         <ul>
           <li><strong>Requires:</strong> {dependent epic names, or "None — can start immediately"}</li>
           <li><strong>Unlocks:</strong> {list of epics that become possible after this one, or "Terminal — does not gate further epics"}</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="epic-field">
-      <div class="epic-field-label">Key risks</div>
-      <div class="epic-field-value">
-        <ul>
-          <li>{Business-level risk — what could make this epic fail or change priority? C-BRIEF-2: no NFR targets, no implementation detail.}</li>
-          <!-- 1–3 risks max per epic -->
         </ul>
       </div>
     </div>

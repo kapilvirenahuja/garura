@@ -42,6 +42,7 @@ Verify brief is approved — check for Tether record in checkpoint. If not appro
    - What We're Not Doing → preserved verbatim
    - Key Assumptions → preserved verbatim
    - Decisions table → epic metadata (horizon, priority, effort, dependencies)
+   - Per-epic brief cards → IDD core content (Intent, Constraints, Success Scenarios, Failure Conditions) — transcribe verbatim into roadmap sections
 
 3. **Compose roadmap** using `templates/roadmap.md`. The template structure is MANDATORY — section headers must be used verbatim. Populate:
    - Frontmatter: intent (from The Bet), slug, horizon, approved_brief path, created date
@@ -49,11 +50,11 @@ Verify brief is approved — check for Tether record in checkpoint. If not appro
    - What Is Not In This Roadmap: What We're Not Doing preserved verbatim
    - Assumptions: Key Assumptions preserved verbatim
    - Epic Index table: one row per epic from Decisions table, Issue Ref = TBD
-   - Per-epic sections — use EXACTLY these four IDD section headers in this order:
-     - `### Intent` — 2–3 paragraphs. What the user gets that they don't have today. Outcome-focused, not a feature list. Derived from epic description + strategic_goal + vision context.
-     - `### Constraints` — three bullets: In scope / Out of scope / Must not break. Derived from epic scope and feasibility flags.
-     - `### Acceptance Scenarios` — given/when/then format. Binary testable. Derived from epic strategic_goal and intent. Minimum 2 scenarios per epic.
-     - `### Failure Conditions` — observable results that mean the epic failed. Derived from intent and feasibility risks.
+   - Per-epic sections — use EXACTLY these four IDD section headers in this order, transcribed verbatim from the approved brief (do NOT regenerate):
+     - `### Intent` — transcribed from brief Intent field
+     - `### Constraints` — transcribed from brief Constraints field
+     - `### Acceptance Scenarios` — transcribed from brief Success Scenarios field (given/when/then, minimum 2 per epic)
+     - `### Failure Conditions` — transcribed from brief Failure Conditions field
    - Technical Context and Blast Radius: EMPTY placeholders with `<!-- status: empty -->` markers — filled by `/plan-architecture` and `/analyze-epic` in later recipes, not here
 
 4. **Write to** `{artifact_base}{slug}/roadmap.md`.
@@ -100,7 +101,7 @@ Load template from: `templates/roadmap.md`
 - ALWAYS include `approved_brief` in roadmap.md frontmatter
 - Technical Context and Blast Radius are progressive enrichment placeholders — the Progressive Enrichment Model section explains the intent; this skill writes them empty
 - Issue Ref column MUST exist in Epic Index table (TBD values permitted)
-- Acceptance Scenarios are given/when/then format — binary testable, minimum 2 per epic
+- Per-epic IDD sections (Intent, Constraints, Acceptance Scenarios, Failure Conditions) MUST be transcribed verbatim from the approved brief — do NOT regenerate or paraphrase
 - Per-epic IDD structure follows `templates/roadmap.md` exactly — the template is the contract
 - `user-invocable: false`
 
