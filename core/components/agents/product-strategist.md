@@ -209,6 +209,7 @@ Input:
   {skill-specific inputs determined from intent}
 ```
 
+
 ## Output Contracts
 
 Callers (recipes) expect specific return formats. Honor these contracts.
