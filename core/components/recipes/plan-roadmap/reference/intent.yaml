@@ -24,7 +24,7 @@ constraints:
     - id: C9
       rule: "Issue traceability column MUST be present in roadmap.md — TBD values permitted but column must exist"
     - id: C10
-      rule: "Intent string MUST be passed as first line of each agent invocation context block"
+      rule: "Each agent invocation MUST include the step-specific intent and constraints from the steps section of this file"
     - id: C-BRIEF-1
       rule: "Roadmap brief MUST be reviewable in 30 minutes — no element included unless a reviewer can act on it within that session"
     - id: C-BRIEF-2
@@ -39,3 +39,31 @@ failure_conditions:
   - "Brief violates C-BRIEF-1 (not reviewable in 30 minutes)"
   - "Brief includes technical elements that do not change a decision (violates C-BRIEF-2)"
   - "Roadmap already generated and --vision re-run attempted without --resume"
+
+steps:
+  step_1:
+    name: "Derive Epics from Vision"
+    agent: "product-strategist"
+    intent: "Derive 3–6 epics from locked vision with full IDD fields (intent, constraints, success scenarios, failure conditions) linked to strategic goals"
+    constraints: [C6, C10]
+  step_2:
+    name: "Assess Feasibility"
+    agent: "tech-designer"
+    intent: "Assess technical feasibility of derived epics — identify blockers, foundation investment requirements, and sequencing risks"
+    constraints: [C6]
+  step_3:
+    name: "Produce Review Brief"
+    agent: "product-strategist"
+    intent: "Produce a reviewable brief — gate artifact for human review rendered from derived epics and feasibility data"
+    constraints: [C6, C10, C-BRIEF-1, C-BRIEF-2]
+  step_5a:
+    name: "Produce Roadmap"
+    agent: "product-strategist"
+    intent: "Produce the roadmap from derived epics and approved brief"
+    constraints: [C6, C7, C9, C10]
+  step_5b:
+    name: "Produce Engineering View"
+    agent: "product-strategist"
+    depends_on: "step_5a"
+    intent: "Produce an engineering-facing view from the roadmap"
+    constraints: [C6, C7, C10]

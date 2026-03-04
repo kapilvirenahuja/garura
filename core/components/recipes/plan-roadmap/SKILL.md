@@ -12,7 +12,11 @@ Plan a time-phased product roadmap from a locked vision — scope epics, generat
 
 ## Intent
 
-**BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1, C3), behavioral constraints (C4–C10, C-BRIEF-1, C-BRIEF-2), and failure conditions. All constraint IDs referenced in this recipe map to that file.
+**BEFORE executing any step, read `reference/intent.yaml`** for pre-flight validation (C1, C3 halt messages) only.
+
+## Agent Invocation Protocol
+
+Each step defines a YAML block. Fill the `{variables}` with resolved values and pass **only** the filled YAML as the agent prompt. No other text, instructions, context, or formatting — the YAML block is the entire prompt.
 
 ## Role
 
@@ -41,11 +45,11 @@ All `.meridian/` paths in this recipe are **relative to the project root** (the 
 | Step | Name | Agent |
 |------|------|-------|
 | Step 0 | Pre-flight | orchestrator |
-| Step 1 | Scope Epics | product-strategist (call 1/3) |
-| Step 2 | Feasibility | tech-designer (call 2/3) |
-| Step 3 | Generate Brief | product-strategist (call 3/3) |
+| Step 1 | Derive Epics from Vision | product-strategist (call 1/3) |
+| Step 2 | Assess Feasibility | tech-designer (call 2/3) |
+| Step 3 | Produce Review Brief | product-strategist (call 3/3) |
 | Step 4 | Feedback Loop + Checkpoint | orchestrator + product-strategist (feedback only, not counted) |
-| Step 5 | Generate Artifacts | product-strategist (compound: 2 artifacts) |
+| Step 5 | Produce Roadmap Artifacts | product-strategist (compound: 2 outputs) |
 | Step 6 | Report | orchestrator |
 
 ## Workflow
@@ -62,22 +66,17 @@ If any check fails → halt immediately with the appropriate `halt_message` from
 
 Derive `slug` from the vision filename or frontmatter for use in subsequent steps.
 
-### Step 1 — Scope Epics
+### Step 1 — Derive Epics from Vision
 
-Create task: "Scope roadmap epics". Invoke `product-strategist` (agent call 1 of 3):
+Agent call 1 of 3 (`product-strategist`). Pass only the following YAML as the agent prompt:
 
 ```yaml
----
-Intent: Scope roadmap epics from locked vision at {vision_path}
-Recipe context:
-  intent: "Extract epics from locked vision, scope into time buckets with priorities and dependencies"
-  task: "Invoke scope-roadmap-epics skill. Input: vision_path={vision_path}, artifact_base=.meridian/project/product/, time_horizon=12 months. Skill writes epics to STM and returns epics_path. Return scoped_epics output."
-  vision_path: "{--vision value}"
-  artifact_base: ".meridian/project/product/"
-  behavioral_constraints: {C4, C5 from reference/intent.yaml}
+intent_path: "{recipe_base}/reference/intent.yaml"
+vision_path: "{--vision value}"
+artifact_base: ".meridian/project/product/"
 ```
 
-**Expected output:**
+**Expected return:**
 ```yaml
 scoped_epics:
   epics_path: ".meridian/project/product/{slug}/epics.yaml"
@@ -85,77 +84,54 @@ scoped_epics:
   epic_count: {integer}
 ```
 
-If agent returns `epic_count` fewer than 3 → halt with failure condition: "product-strategist returns fewer than 3 scoped epics."
+If `epic_count` < 3 → halt: "product-strategist returns fewer than 3 scoped epics."
+If structured failure → see Recovery section.
 
-If agent returns structured failure → see Recovery section.
+### Step 2 — Assess Feasibility
 
-### Step 2 — Feasibility
-
-Create task: "Technical feasibility assessment". Invoke `tech-designer` (agent call 2 of 3):
+Agent call 2 of 3 (`tech-designer`). Pass only the following YAML as the agent prompt:
 
 ```yaml
----
-Intent: Assess technical feasibility of scoped epics for {slug}
-Recipe context:
-  intent: "Evaluate technical feasibility of each scoped epic — identify hard blockers, foundation investment requirements, and sequencing risks"
-  task: "Read the scoped epics from epics_path. Assess feasibility of each epic. Write feasibility flags to {artifact_base}/{slug}/feasibility.yaml. Return feasibility_path."
-  epics_path: "{scoped_epics.epics_path from Step 1}"
-  artifact_base: ".meridian/project/product/"
-  slug: "{slug from Step 1}"
-  vision_path: "{--vision value}"
+intent_path: "{recipe_base}/reference/intent.yaml"
+epics_path: "{scoped_epics.epics_path from Step 1}"
+artifact_base: ".meridian/project/product/"
+slug: "{slug from Step 1}"
 ```
 
-**Expected output:**
+**Expected return:**
 ```yaml
 feasibility:
   feasibility_path: ".meridian/project/product/{slug}/feasibility.yaml"
 ```
 
-The full feasibility data is written to `feasibility_path`. Format in that file:
-```yaml
-# feasibility.yaml
-epics:
-  - epic_id: "E1"
-    feasible: true|false
-    blockers: ["{blocker description}"]
-    foundation_required: true|false
-    risk: "low|medium|high"
-```
+If structured failure → see Recovery section.
 
-If agent returns structured failure → see Recovery section.
+### Step 3 — Produce Review Brief
 
-### Step 3 — Generate Brief
-
-Create task: "Generate roadmap brief". Invoke `product-strategist` (agent call 3 of 3):
+Agent call 3 of 3 (`product-strategist`). Pass only the following YAML as the agent prompt:
 
 ```yaml
----
-Intent: Draft roadmap brief for {slug} — gate artifact for human review
-Recipe context:
-  intent: "Generate lightweight roadmap review brief — 6 sections, 30-minute reviewable, decision-grade content only"
-  task: "Invoke draft-roadmap-brief skill. Read epics from epics_path and feasibility from feasibility_path. Return brief output with c_brief_1_pass and c_brief_2_pass flags."
-  epics_path: "{scoped_epics.epics_path from Step 1}"
-  feasibility_path: "{feasibility.feasibility_path from Step 2}"
-  vision_path: "{--vision value}"
-  artifact_base: ".meridian/project/product/"
-  behavioral_constraints: {C-BRIEF-1, C-BRIEF-2 from reference/intent.yaml}
+intent_path: "{recipe_base}/reference/intent.yaml"
+epics_path: "{scoped_epics.epics_path from Step 1}"
+feasibility_path: "{feasibility.feasibility_path from Step 2}"
+vision_path: "{--vision value}"
 ```
 
-**Expected output:**
+**Expected return:**
 ```yaml
 brief:
   path: ".meridian/project/product/{slug}/brief-{timestamp}.html"
   epic_count: {integer}
   sections_present: [bet, story, decisions, not_doing, asks, assumptions]
   c_brief_1_pass: true|false
-  c_brief_1_violations: ["{description of violation if any}"]
+  c_brief_1_violations: ["{description}"]
   c_brief_2_pass: true|false
-  c_brief_2_violations: ["{description of technical element that does not change a decision}"]
+  c_brief_2_violations: ["{description}"]
 ```
 
-**Brief constraint enforcement:** If `c_brief_1_pass: false` OR `c_brief_2_pass: false` → re-invoke `product-strategist` with violation details appended to recipe context. Max 1 re-invocation. If still fails → halt with constraint violation details.
+**Brief constraint enforcement:** If `c_brief_1_pass: false` OR `c_brief_2_pass: false` → re-invoke `product-strategist` with violation details only. Max 1 re-invocation. If still fails → halt.
 
-If agent returns structured failure → see Recovery section.
+If structured failure → see Recovery section.
 
 ### Step 4 — Feedback Loop + Checkpoint
 
@@ -173,48 +149,35 @@ Parse user response:
 
 **NOTE:** Feedback adjustment invocations do NOT count against the C5 agent call budget — they are feedback loop iterations, not new workflow steps.
 
-### Step 5 — Generate Artifacts
+### Step 5 — Produce Roadmap Artifacts
 
-Create task: "Generate roadmap artifacts". Invoke `product-strategist` compound (2 intents):
+Agent call compound (`product-strategist`). Pass only the following YAML as the agent prompt:
 
 ```yaml
----
-Intents:
-  1. "Draft roadmap from scoped epics and approved brief"
-  2. "Generate engineering view from the drafted roadmap"
-Recipe context:
-  intent_count: 2
-  intent_1: "Invoke draft-roadmap skill — generate roadmap.md post-Tether"
-  intent_2: "Invoke generate-engineering-view skill on the resulting roadmap.md"
-  dependency: "intent_2 depends on intent_1 output (roadmap.path)"
-  epics_path: "{epics_path from checkpoint}"
-  feasibility_path: "{feasibility_path from checkpoint}"
-  approved_brief_path: "{approved_brief_path from checkpoint}"
-  artifact_base: ".meridian/project/product/"
-  behavioral_constraints: {C6, C7, C9 from reference/intent.yaml}
+intent_path: "{recipe_base}/reference/intent.yaml"
+epics_path: "{epics_path from checkpoint}"
+feasibility_path: "{feasibility_path from checkpoint}"
+approved_brief_path: "{approved_brief_path from checkpoint}"
+artifact_base: ".meridian/project/product/"
 ```
 
-**Expected output:**
+**Expected return:**
 ```yaml
 results:
-  - intent: "Draft roadmap"
-    skill: "draft-roadmap"
-    status: "success"
+  - status: "success"
     output:
       roadmap:
         path: ".meridian/project/product/{slug}/roadmap.md"
         status: "DRAFT"
         epic_count: {count}
-  - intent: "Generate engineering view"
-    skill: "generate-engineering-view"
-    status: "success"
+  - status: "success"
     output:
       engineering_view:
         path: ".meridian/project/product/{slug}/roadmap-engineering.md"
         audience: "Engineering"
 ```
 
-If agent returns structured failure → see Recovery section.
+If structured failure → see Recovery section.
 
 ### Step 6 — Report
 
@@ -271,7 +234,7 @@ For retries, add to recipe context:
 
 | File | Path | Used For |
 |------|------|----------|
-| Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
+| Intent | `reference/intent.yaml` | Operational contract — pre-flight validation + passed to agents |
 | Checkpoint | `templates/checkpoint.md` | STM checkpoint artifact |
 | Approval Prompt | `templates/approval-prompt.md` | Brief presentation + feedback loop |
 | Final Report | `templates/final-report.md` | Phase completion summary |
@@ -283,7 +246,7 @@ For retries, add to recipe context:
 | Field | Value |
 |-------|-------|
 | Level | L2 |
-| Version | 1.1.0 |
+| Version | 2.0.0 |
 | Distinct Agents | 2 (product-strategist, tech-designer) |
 | Agent Calls (main flow) | 3 (product-strategist x2, tech-designer x1) + feedback iterations (not counted) |
 | Agent Calls (post-Tether) | 1 compound (2 artifacts: roadmap.md + roadmap-engineering.md) |
