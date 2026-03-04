@@ -23,6 +23,7 @@ You DO derive, scope, and fully define the epics. You do NOT create GitHub issue
 Receive from agent:
 - `vision_path` — (required) Full path to vision.md
 - `artifact_base` — (required) Base path for STM artifacts, e.g. `.meridian/project/product/`
+- `epic_schema_path` — (required) Path to the epic schema in LTM, e.g. `~/.meridian/core/memory/standards/templates/epic-schema.md`. The agent discovers this from LTM and passes it — the skill does NOT search LTM itself.
 - `time_horizon` — (optional, default: "12 months") Planning window for bucket assignment
 
 ## Pre-conditions
@@ -35,7 +36,7 @@ Receive from agent:
 
 ## Process
 
-1. **Load the epic schema** — read `reference/epic-schema.md` using the Read tool. This defines the required fields (10 scoping + 4 IDD), prohibited fields, valid values, YAML structure, and the validation checklist. All epics MUST conform to this schema.
+1. **Load the epic schema** — read the file at `epic_schema_path` (passed by the agent from LTM) using the Read tool. This defines the required fields (10 scoping + 4 IDD), prohibited fields, valid values, YAML structure, and the validation checklist. All epics MUST conform to this schema. If `epic_schema_path` is not provided, fall back to `reference/epic-schema.md`.
 
 2. **Read vision.md** at `vision_path` — extract product name, slug, Strategic Goals, assumptions, and user context.
 
@@ -68,7 +69,7 @@ The full epics data is written to `epics_path`. Downstream skills and agents MUS
 
 ## Reference
 
-Load epic schema from: `reference/epic-schema.md`
+Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridian/core/memory/standards/templates/epic-schema.md`). Fallback: `reference/epic-schema.md`.
 
 ## Constraints
 
@@ -78,7 +79,7 @@ Load epic schema from: `reference/epic-schema.md`
 - NEVER pass full epic data through memory — ALWAYS write to STM and return the path
 - NEVER add fields not defined in `reference/epic-schema.md`
 - NEVER use `horizon` — use `bucket`; NEVER use `dependencies` — use `depends_on`
-- ALWAYS load `reference/epic-schema.md` before generating any epics
+- ALWAYS load epic schema from `epic_schema_path` (or fallback `reference/epic-schema.md`) before generating any epics
 - ALWAYS validate epics against the full schema checklist (14 fields per epic) before writing
 - ALWAYS link each epic to a named strategic goal from the vision
 - ALWAYS write full IDD content (intent, constraints, success_scenarios, failure_conditions) for every epic

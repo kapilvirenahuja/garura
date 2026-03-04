@@ -77,11 +77,36 @@ When you receive a JSON contract from the recipe orchestrator:
 1. **Read intent.yaml** at `intent_path` from the contract. Understand the goal, constraints (including template references), failure conditions, and scenarios.
 2. **Identify what to handle.** Look at `stm` paths in the contract — what's null (missing)? Based on the goal + your domain + what's missing, determine what you should produce. Use your Intent → Skill Mapping table below to select skills.
 3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
-4. **Collect context.** Load LTM (standards, templates referenced by constraints, domain knowledge). Read existing STM artifacts at non-null paths. If context needs to be shared downstream, write it to STM.
-5. **Call skills** from your available skill pool. Pass STM paths + template path. Skill reads from STM, fills template, writes artifact, returns path.
-6. **Validate outcomes** against failure conditions and scenarios from intent.yaml. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
-7. **Mark task complete.** Update task graph via TaskUpdate.
-8. **Return enriched contract** with new artifact paths added to `stm`.
+4. **Collect context from LTM.** Search `~/.meridian/core/memory/` for domain-relevant content:
+   - Standards and templates referenced by intent constraints (e.g., `C-TEMPLATE.template_ref`)
+   - Schemas needed by skills (e.g., `standards/templates/epic-schema.md` for scope-roadmap-epics)
+   - Domain knowledge relevant to the product vertical
+   Pass discovered LTM paths to skills as input — skills should NOT search LTM themselves.
+5. **Read existing STM artifacts** at non-null `stm` paths. If context needs to be shared downstream, write it to STM.
+6. **Call skills** from your available skill pool. Pass STM paths + LTM paths (schemas, templates). Skill reads from paths, fills template, writes artifact, returns path.
+7. **Validate outcomes** against failure conditions and scenarios from intent.yaml. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
+8. **Mark task complete.** Update task graph via TaskUpdate.
+9. **Return the enriched JSON contract** — the same JSON object you received, with new artifact paths added to `stm`. **Return ONLY the JSON contract. No prose, no tables, no commentary. The JSON contract is the entire response.**
+
+**Example return** (after scoping epics):
+```json
+{
+  "intent_path": "reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "slug": "chronos",
+  "stm": {
+    "vision_path": ".meridian/project/product/chronos/vision.md",
+    "epics_path": ".meridian/project/product/chronos/epics.yaml",
+    "feasibility_path": null,
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [{ "name": "brief_review", "status": "pending" }],
+  "evidence": [{ "name": "plan-roadmap", "location": null }]
+}
+```
 
 When you receive a prompt without a JSON contract (direct invocation), identify:
 
@@ -221,7 +246,9 @@ Input:
 
 ## Output Contracts
 
-Callers (recipes) expect specific return formats. Honor these contracts.
+**When invoked via JSON contract:** Return ONLY the enriched JSON contract with updated `stm` paths. No prose, no YAML blocks, no commentary. The JSON contract IS the output.
+
+**When invoked directly (no JSON contract):** Return the skill-specific contracts below.
 
 ### For `discover-product-opportunity` invocations
 
@@ -315,7 +342,7 @@ scoped_epics:
 
 ### For `draft-roadmap-brief` invocations
 
-The skill reads its own `templates/brief.html` template and `reference/epic-card-mapping.md` for the HTML structure. It reads epics from `epics_path` and feasibility from `feasibility_path` via the Read tool. The agent MUST pass `epics_path`, `feasibility_path`, and `vision_path` as inputs — NOT the epics data itself.
+The skill reads the brief template from LTM (via intent constraint `C-TEMPLATE.template_ref`). It reads epics from `epics_path` and feasibility from `feasibility_path` via the Read tool. The agent MUST pass `epics_path`, `feasibility_path`, `vision_path`, and `template_path` (from LTM) as inputs — NOT the epics data itself.
 
 ```yaml
 brief:

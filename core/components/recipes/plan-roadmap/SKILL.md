@@ -120,6 +120,8 @@ Halt on failure. Derive `slug` from vision.
 
 ### Step 1 — Create Task Graph
 
+**HARD GATE: Do NOT proceed to Step 2 until all tasks are created and dependencies are set.**
+
 After pre-flight passes, create the full task graph using TaskCreate:
 
 | Task | Agent | Blocked By | Description |
@@ -132,21 +134,78 @@ After pre-flight passes, create the full task graph using TaskCreate:
 | Produce eng view | product-strategist | Produce roadmap | Engineering-facing view |
 | Report | orchestrator | Produce eng view | Evidence + final report |
 
-Initialize the JSON contract with vision_path set, all others null.
+After creating all tasks with dependencies, initialize the JSON contract:
+
+```json
+{
+  "intent_path": "{recipe_base}/reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "slug": "{slug from pre-flight}",
+  "stm": {
+    "vision_path": "{--vision value}",
+    "epics_path": null,
+    "feasibility_path": null,
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [
+    { "name": "brief_review", "status": "pending" }
+  ],
+  "evidence": [
+    { "name": "plan-roadmap", "location": null }
+  ]
+}
+```
+
+Verify: all 7 tasks exist with correct blockedBy before proceeding.
 
 ### Step 2 — Execute Pre-Review Tasks
 
-Execute capabilities 1-3 by invoking agents in dependency order.
+Execute capabilities 1-3 by invoking agents in dependency order. Pass the JSON contract as the **entire agent prompt** — no other text, no YAML keys, no instructions.
 
-For each agent call:
-1. Send the current JSON contract
-2. Agent reads intent.yaml, identifies what to produce, calls skills, validates outcomes
-3. Agent updates its task (marks complete, may add new tasks)
-4. Agent returns enriched contract with new artifact paths in `stm`
-5. Recipe validates: expected stm paths are non-null
+**Capability 1 — Scope epics (product-strategist):**
 
-If epic_count < 3 → halt.
-If brief constraint violations → re-invoke once. If still fails → halt.
+Pass this JSON contract as the agent prompt:
+```json
+{
+  "intent_path": "{recipe_base}/reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "slug": "{slug}",
+  "stm": {
+    "vision_path": "{--vision value}",
+    "epics_path": null,
+    "feasibility_path": null,
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [{ "name": "brief_review", "status": "pending" }],
+  "evidence": [{ "name": "plan-roadmap", "location": null }]
+}
+```
+
+**Expected return:** The same JSON contract with `stm.epics_path` populated. Nothing else.
+
+Validate: `stm.epics_path` is non-null. If epic_count < 3 → halt.
+
+**Capability 2 — Assess feasibility (tech-designer):**
+
+Pass the enriched contract (now has `stm.epics_path` set) as the agent prompt. No other text.
+
+**Expected return:** The same JSON contract with `stm.feasibility_path` populated. Nothing else.
+
+Validate: `stm.feasibility_path` is non-null.
+
+**Capability 3 — Produce brief (product-strategist):**
+
+Pass the enriched contract (now has `stm.epics_path` and `stm.feasibility_path` set) as the agent prompt. No other text.
+
+**Expected return:** The same JSON contract with `stm.brief_path` populated. Nothing else.
+
+Validate: `stm.brief_path` is non-null. If brief constraint violations → re-invoke once. If still fails → halt.
 
 ### Step 3 — Human Review (Checkpoint)
 
@@ -160,7 +219,9 @@ Feedback loop:
 
 ### Step 4 — Execute Post-Review Tasks
 
-Execute capabilities 4-5. Send enriched contract (now includes approved_brief_path).
+Execute capabilities 4-5. Send enriched contract (now includes `stm.approved_brief_path`) as the agent prompt. No other text.
+
+**Expected returns:** Contract with `stm.roadmap_path` populated, then `stm.engineering_view_path` populated.
 
 ### Step 5 — Report
 

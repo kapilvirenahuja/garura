@@ -62,12 +62,32 @@ When you receive a JSON contract from the recipe orchestrator:
 1. **Read intent.yaml** at `intent_path` from the contract. Understand the goal, constraints, failure conditions, and scenarios.
 2. **Identify what to handle.** Look at `stm` paths in the contract — what's null (missing)? Based on the goal + your domain (technical analysis, feasibility) + what's missing, determine what you should produce.
 3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
-4. **Collect context.** Read existing STM artifacts at non-null paths (e.g., epics at `stm.epics_path`). Load relevant LTM standards.
+4. **Collect context.** Read existing STM artifacts at non-null paths (e.g., epics at `stm.epics_path`). Load relevant LTM standards from `~/.meridian/core/memory/`.
 5. **Perform analysis** — apply your analysis method (RCA for bugs, feature analysis for features, feasibility assessment for roadmap epics).
-6. **Write artifacts to STM** at the appropriate path under `stm_base` from the contract.
+6. **Write artifacts to STM** at the appropriate path under `stm_base` from the contract (e.g., `{stm_base}/{slug}/feasibility.yaml`).
 7. **Validate outcomes** against failure conditions from intent.yaml. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
 8. **Mark task complete.** Update task graph via TaskUpdate.
-9. **Return enriched contract** with new artifact paths added to `stm`.
+9. **Return the enriched JSON contract** — the same JSON object you received, with new artifact paths added to `stm`. **Return ONLY the JSON contract. No prose, no tables, no analysis text, no commentary. The JSON contract is the entire response.** Write detailed analysis to the STM artifact file — not to the return value.
+
+**Example return** (after feasibility assessment):
+```json
+{
+  "intent_path": "reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "slug": "chronos",
+  "stm": {
+    "vision_path": ".meridian/project/product/chronos/vision.md",
+    "epics_path": ".meridian/project/product/chronos/epics.yaml",
+    "feasibility_path": ".meridian/project/product/chronos/feasibility.yaml",
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [{ "name": "brief_review", "status": "pending" }],
+  "evidence": [{ "name": "plan-roadmap", "location": null }]
+}
+```
 
 When you receive a prompt without a JSON contract (direct invocation), identify:
 
@@ -152,6 +172,10 @@ Use available tools to explore:
 - `Bash` — Read-only git commands (`git log`, `git blame`, `git show`)
 
 ## Output Contract
+
+**When invoked via JSON contract:** Return ONLY the enriched JSON contract with updated `stm` paths. Write detailed analysis to the STM artifact file. No prose in the return.
+
+**When invoked directly (no JSON contract):** Return the structured analysis output below.
 
 ### Structured Analysis Output
 
