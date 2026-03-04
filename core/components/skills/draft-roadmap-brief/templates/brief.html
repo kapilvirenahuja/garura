@@ -204,7 +204,7 @@
   <div class="meta">
     <span><strong>Status:</strong> DRAFT</span>
     <span><strong>Created:</strong> {YYYY-MM-DD}</span>
-    <span><strong>Epics:</strong> {count}</span>
+    <span><strong>Epics:</strong> {epic_count}</span>
     <span><strong>Vision:</strong> {vision_path}</span>
   </div>
 </header>
@@ -212,23 +212,20 @@
 <!-- ═══════════════════════════════════════════════════════════ -->
 <section id="bet">
   <h2>The Bet</h2>
-  <p>{1 paragraph — the core strategic thesis. What is this roadmap betting on? What must be true for this to succeed? What breaks if that bet is wrong?}</p>
+  <p>{bet_paragraph}</p>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <section id="story">
   <h2>The Story</h2>
-  <p>{Paragraph 1 — why the first epic must come first and what it enables.}</p>
-  <p>{Paragraph 2 — how the next epic builds on the first and what it unlocks.}</p>
-  <p>{Paragraph 3 — the parallel or divergent tracks that open once foundations are stable.}</p>
-  <p>{Paragraph 4 — the convergence point and what the terminal epics depend on.}</p>
+  {story_paragraphs}
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
 <section id="decisions">
   <h2>Decisions</h2>
 
-  <!-- Summary table -->
+  <!-- Summary table — one <tr> per epic -->
   <table class="decisions-table">
     <thead>
       <tr>
@@ -241,88 +238,12 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Repeat per epic: -->
-      <tr>
-        <td><strong>{Epic ID}: {Epic Name}</strong></td>
-        <td><span class="badge badge-near">Near</span></td>  <!-- badge-near | badge-mid | badge-long -->
-        <td><span class="badge badge-p1">P1</span></td>       <!-- badge-p1 | badge-p2 | badge-p3 -->
-        <td>{S / M / L / XL}</td>
-        <td>{dependent epic ID or "none"}</td>
-        <td>{one-line decision rationale}</td>
-      </tr>
+      {EPIC_TABLE_ROWS}
     </tbody>
   </table>
 
-  <!-- Per-epic detail cards -->
-  <!-- Repeat per epic: -->
-  <div class="epic-card">
-    <div class="epic-header">
-      <h3>
-        {Epic ID}: {Epic Name}
-        <!-- If foundation investment: -->
-        <span class="foundation-flag">Foundation</span>
-      </h3>
-      <div class="epic-badges">
-        <span class="badge badge-near">Near</span>   <!-- badge-near | badge-mid | badge-long -->
-        <span class="badge badge-p1">P1</span>        <!-- badge-p1 | badge-p2 | badge-p3 -->
-        <span class="badge">{Effort}</span>
-      </div>
-    </div>
-
-    <div class="epic-field">
-      <div class="epic-field-label">Intent</div>
-      <div class="epic-field-value">{2–3 paragraphs. P1: what problem or gap exists today. P2: what the user can do after this ships that they cannot do now — outcome-focused, not a feature list. P3: why this matters strategically and how it connects to the product's goals. Business language only.}</div>
-    </div>
-
-    <div class="epic-field">
-      <div class="epic-field-label">Constraints</div>
-      <div class="epic-field-value">
-        <ul>
-          <li><strong>In scope:</strong> {what is explicitly included}</li>
-          <li><strong>Out of scope:</strong> {what is explicitly excluded — prevents scope creep}</li>
-          <li><strong>Must not break:</strong> {existing capabilities or agreements this epic cannot regress}</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="epic-field">
-      <div class="epic-field-label">Success scenarios</div>
-      <div class="epic-field-value">
-        <ul>
-          <!-- Minimum 2. Given/when/then format. Binary testable — a reviewer must be able to say pass or fail. -->
-          <li><strong>Given</strong> {context}, <strong>when</strong> {action}, <strong>then</strong> {observable outcome}.</li>
-          <li><strong>Given</strong> {context}, <strong>when</strong> {action}, <strong>then</strong> {observable outcome}.</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="epic-field">
-      <div class="epic-field-label">Failure conditions</div>
-      <div class="epic-field-value">
-        <ul>
-          <!-- Observable results that mean this epic failed — not risks, but outcomes. -->
-          <li>{What a reviewer would observe that signals this epic did not deliver its intent.}</li>
-          <!-- 2–4 conditions -->
-        </ul>
-      </div>
-    </div>
-
-    <div class="epic-field">
-      <div class="epic-field-label">Why now</div>
-      <div class="epic-field-value">{Sequencing rationale. Why this horizon and priority? What would break if it moved later? Written for a non-technical reviewer.}</div>
-    </div>
-
-    <div class="epic-field">
-      <div class="epic-field-label">Dependencies & what it unlocks</div>
-      <div class="epic-field-value">
-        <ul>
-          <li><strong>Requires:</strong> {dependent epic names, or "None — can start immediately"}</li>
-          <li><strong>Unlocks:</strong> {list of epics that become possible after this one, or "Terminal — does not gate further epics"}</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <!-- End per-epic cards -->
+  <!-- Per-epic detail cards — one .epic-card div per epic -->
+  {EPIC_CARDS}
 
 </section>
 
@@ -330,8 +251,7 @@
 <section id="not-doing">
   <h2>What We're Not Doing</h2>
   <ul class="not-doing-list">
-    <!-- 4–6 items -->
-    <li><strong>{Item name}</strong> — {one-line reason: deferred, out of scope, or superseded by another approach}</li>
+    {not_doing_items}
   </ul>
 </section>
 
@@ -339,8 +259,7 @@
 <section id="asks">
   <h2>The Asks</h2>
   <ul class="asks-list">
-    <!-- Minimum 3, maximum 4 questions. Each must be answerable with a concrete decision. -->
-    <li>{Specific decision question — not "does this look good?" but a real judgment call with clear alternatives. E.g., "Should E4 move to Mid-horizon to reduce Near-horizon scope, or does the existing partial implementation justify keeping it Near?"}</li>
+    {asks_items}
   </ul>
 </section>
 
@@ -348,13 +267,12 @@
 <section id="assumptions">
   <h2>Key Assumptions</h2>
   <ul class="assumptions-list">
-    <!-- 3–5 items -->
-    <li>{Assumption this roadmap depends on being true. If this breaks, what changes materially?}</li>
+    {assumptions_items}
   </ul>
 </section>
 
 <footer>
-  Generated by plan-roadmap v1.1.0 &nbsp;·&nbsp; {Product Name} &nbsp;·&nbsp; {YYYY-MM-DD} &nbsp;·&nbsp; {artifact path}
+  Generated by plan-roadmap v1.1.0 &nbsp;·&nbsp; {Product Name} &nbsp;·&nbsp; {YYYY-MM-DD} &nbsp;·&nbsp; {artifact_path}
 </footer>
 
 </body>
