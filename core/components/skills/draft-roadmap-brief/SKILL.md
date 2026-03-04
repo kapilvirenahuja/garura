@@ -27,10 +27,10 @@ Receive from agent:
 
 1. **Read vision.md** at `vision_path` for product context (product name, slug, strategic goals, assumptions).
 
-2. **Compose brief** using `templates/brief.md`. Populate all six sections:
+2. **Compose brief** using `templates/brief.html`. Populate all six sections:
    - **The Bet** — 1 paragraph core strategic thesis derived from vision strategic goals and epic set
    - **The Story** — 3–4 paragraphs of narrative causality explaining sequencing order
-   - **Decisions** — table of epics with horizon, priority, effort, dependencies, and one-line reason
+   - **Decisions** — two-part: (a) summary table of all epics, then (b) per-epic subsection with description, sequencing rationale, dependencies and what they unlock, and business-level risks
    - **What We're Not Doing** — 4–6 items deferred or excluded with one-line reasons
    - **The Asks** — minimum 3 specific, decision-forcing questions requiring reviewer judgment
    - **Key Assumptions** — 3–5 assumptions the roadmap depends on being true
@@ -39,7 +39,7 @@ Receive from agent:
 
 4. **Run C-BRIEF-2 self-check:** Technical elements are only permitted if they change a roadmap decision (sequencing, priority, or timing). Permitted technical content: hard dependency between epics, foundation investment (multi-epic shared infrastructure), significant migration or breaking-change cost. Excluded: NFR targets, implementation details, specific technical choices, code quality concerns. Record pass/fail and list violations.
 
-5. **Determine artifact path:** `.meridian/project/product/{slug}/brief-{timestamp}.md` where `slug` is derived from vision.md and `timestamp` is ISO-8601 date-time.
+5. **Determine artifact path:** `.meridian/project/product/{slug}/brief-{timestamp}.html` where `slug` is derived from vision.md and `timestamp` is ISO-8601 date-time.
 
 6. **Write artifact** at the determined path.
 
@@ -69,7 +69,7 @@ Excluded:
 
 ```yaml
 brief:
-  path: "{artifact path}"
+  path: ".meridian/project/product/{slug}/brief-{timestamp}.html"
   epic_count: {integer}
   sections_present: [bet, story, decisions, not_doing, asks, assumptions]
   c_brief_1_pass: true|false
@@ -82,7 +82,7 @@ brief:
 
 ## Reference
 
-Load template from: `templates/brief.md`
+Load template from: `templates/brief.html`
 
 ## Constraints
 
@@ -92,8 +92,9 @@ Load template from: `templates/brief.md`
 - NEVER include specific technical choices (language, framework, database)
 - ALWAYS run C-BRIEF-1 and C-BRIEF-2 self-checks before returning output
 - ALWAYS include The Asks section — minimum 3 specific, decision-forcing questions
-- MAX 8 rows in the Decisions table
-- MAX 4 pages equivalent total brief length
+- MAX 8 rows in the Decisions summary table
+- Decisions per-epic subsections MUST cover: description (2–3 sentences, business language), why now (sequencing rationale), dependencies and what they unlock, business-level risks (C-BRIEF-2 compliant)
+- Brief MUST be reviewable within 30 minutes — this is a ceiling, not a target to minimize. Depth is expected.
 
 ## Version
 

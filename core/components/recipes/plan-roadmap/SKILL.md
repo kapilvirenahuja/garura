@@ -144,7 +144,7 @@ Recipe context:
 **Expected output:**
 ```yaml
 brief:
-  path: ".meridian/project/product/{slug}/brief-{timestamp}.md"
+  path: ".meridian/project/product/{slug}/brief-{timestamp}.html"
   epic_count: {integer}
   sections_present: [bet, story, decisions, not_doing, asks, assumptions]
   c_brief_1_pass: true|false

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roadmap Brief: {Product Name}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #1a1a1a;
+      background: #fff;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 32px 80px;
+    }
+    header {
+      border-bottom: 2px solid #1a1a1a;
+      padding-bottom: 20px;
+      margin-bottom: 40px;
+    }
+    header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    header .meta {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #555;
+    }
+    header .meta span { margin-right: 20px; }
+    section {
+      margin-bottom: 48px;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #1a1a1a;
+      border-left: 4px solid #1a1a1a;
+      padding-left: 12px;
+      margin-bottom: 20px;
+    }
+    p { margin-bottom: 14px; }
+    p:last-child { margin-bottom: 0; }
+
+    /* Decisions summary table */
+    .decisions-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 36px;
+      font-size: 14px;
+    }
+    .decisions-table th {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .decisions-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #e5e5e5;
+      vertical-align: top;
+    }
+    .decisions-table tr:last-child td { border-bottom: none; }
+    .decisions-table tr:nth-child(even) td { background: #fafafa; }
+
+    /* Horizon badges */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .badge-near { background: #d4edda; color: #155724; }
+    .badge-mid  { background: #fff3cd; color: #856404; }
+    .badge-long { background: #f8d7da; color: #721c24; }
+    .badge-p1   { background: #cce5ff; color: #004085; }
+    .badge-p2   { background: #e2e3e5; color: #383d41; }
+    .badge-p3   { background: #f8f9fa; color: #6c757d; }
+
+    /* Per-epic subsections */
+    .epic-card {
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .epic-card:last-child { margin-bottom: 0; }
+    .epic-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 16px;
+    }
+    .epic-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .epic-badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .epic-field { margin-bottom: 14px; }
+    .epic-field:last-child { margin-bottom: 0; }
+    .epic-field-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #777;
+      margin-bottom: 4px;
+    }
+    .epic-field-value { font-size: 14px; color: #1a1a1a; }
+    .epic-field-value ul { padding-left: 18px; }
+    .epic-field-value li { margin-bottom: 4px; }
+    .foundation-flag {
+      display: inline-block;
+      background: #e8f4ff;
+      color: #0056b3;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* What We're Not Doing */
+    .not-doing-list { list-style: none; padding: 0; }
+    .not-doing-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e5e5;
+      font-size: 14px;
+    }
+    .not-doing-list li:last-child { border-bottom: none; }
+    .not-doing-list strong { color: #1a1a1a; }
+
+    /* The Asks */
+    .asks-list { list-style: none; padding: 0; counter-reset: asks; }
+    .asks-list li {
+      counter-increment: asks;
+      padding: 14px 0 14px 44px;
+      border-bottom: 1px solid #e5e5e5;
+      position: relative;
+      font-size: 14px;
+    }
+    .asks-list li:last-child { border-bottom: none; }
+    .asks-list li::before {
+      content: counter(asks);
+      position: absolute;
+      left: 0;
+      top: 14px;
+      width: 28px;
+      height: 28px;
+      background: #1a1a1a;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 28px;
+      text-align: center;
+    }
+
+    /* Key Assumptions */
+    .assumptions-list { list-style: none; padding: 0; }
+    .assumptions-list li {
+      padding: 10px 0 10px 20px;
+      border-bottom: 1px solid #e5e5e5;
+      font-size: 14px;
+      position: relative;
+    }
+    .assumptions-list li:last-child { border-bottom: none; }
+    .assumptions-list li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #999;
+    }
+
+    footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e5e5;
+      font-size: 12px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Roadmap Brief: {Product Name}</h1>
+  <div class="meta">
+    <span><strong>Status:</strong> DRAFT</span>
+    <span><strong>Created:</strong> {YYYY-MM-DD}</span>
+    <span><strong>Epics:</strong> {count}</span>
+    <span><strong>Vision:</strong> {vision_path}</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="bet">
+  <h2>The Bet</h2>
+  <p>{1 paragraph — the core strategic thesis. What is this roadmap betting on? What must be true for this to succeed? What breaks if that bet is wrong?}</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="story">
+  <h2>The Story</h2>
+  <p>{Paragraph 1 — why the first epic must come first and what it enables.}</p>
+  <p>{Paragraph 2 — how the next epic builds on the first and what it unlocks.}</p>
+  <p>{Paragraph 3 — the parallel or divergent tracks that open once foundations are stable.}</p>
+  <p>{Paragraph 4 — the convergence point and what the terminal epics depend on.}</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="decisions">
+  <h2>Decisions</h2>
+
+  <!-- Summary table -->
+  <table class="decisions-table">
+    <thead>
+      <tr>
+        <th>Epic</th>
+        <th>Horizon</th>
+        <th>Priority</th>
+        <th>Effort</th>
+        <th>Depends On</th>
+        <th>One-Line Reason</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Repeat per epic: -->
+      <tr>
+        <td><strong>{Epic ID}: {Epic Name}</strong></td>
+        <td><span class="badge badge-near">Near</span></td>  <!-- badge-near | badge-mid | badge-long -->
+        <td><span class="badge badge-p1">P1</span></td>       <!-- badge-p1 | badge-p2 | badge-p3 -->
+        <td>{S / M / L / XL}</td>
+        <td>{dependent epic ID or "none"}</td>
+        <td>{one-line decision rationale}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Per-epic detail cards -->
+  <!-- Repeat per epic: -->
+  <div class="epic-card">
+    <div class="epic-header">
+      <h3>
+        {Epic ID}: {Epic Name}
+        <!-- If foundation investment: -->
+        <span class="foundation-flag">Foundation</span>
+      </h3>
+      <div class="epic-badges">
+        <span class="badge badge-near">Near</span>   <!-- badge-near | badge-mid | badge-long -->
+        <span class="badge badge-p1">P1</span>        <!-- badge-p1 | badge-p2 | badge-p3 -->
+        <span class="badge">{Effort}</span>
+      </div>
+    </div>
+
+    <div class="epic-field">
+      <div class="epic-field-label">What it is</div>
+      <div class="epic-field-value">{2–3 sentences describing the epic in business language. What gets built. What it enables. No technical jargon.}</div>
+    </div>
+
+    <div class="epic-field">
+      <div class="epic-field-label">Why now</div>
+      <div class="epic-field-value">{Sequencing rationale. Why this horizon and priority? What would break if it moved later? Written for a non-technical reviewer.}</div>
+    </div>
+
+    <div class="epic-field">
+      <div class="epic-field-label">Dependencies & what it unlocks</div>
+      <div class="epic-field-value">
+        <ul>
+          <li><strong>Requires:</strong> {dependent epic names, or "None — can start immediately"}</li>
+          <li><strong>Unlocks:</strong> {list of epics that become possible after this one, or "Terminal — does not gate further epics"}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="epic-field">
+      <div class="epic-field-label">Key risks</div>
+      <div class="epic-field-value">
+        <ul>
+          <li>{Business-level risk — what could make this epic fail or change priority? C-BRIEF-2: no NFR targets, no implementation detail.}</li>
+          <!-- 1–3 risks max per epic -->
+        </ul>
+      </div>
+    </div>
+  </div>
+  <!-- End per-epic cards -->
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="not-doing">
+  <h2>What We're Not Doing</h2>
+  <ul class="not-doing-list">
+    <!-- 4–6 items -->
+    <li><strong>{Item name}</strong> — {one-line reason: deferred, out of scope, or superseded by another approach}</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="asks">
+  <h2>The Asks</h2>
+  <ul class="asks-list">
+    <!-- Minimum 3, maximum 4 questions. Each must be answerable with a concrete decision. -->
+    <li>{Specific decision question — not "does this look good?" but a real judgment call with clear alternatives. E.g., "Should E4 move to Mid-horizon to reduce Near-horizon scope, or does the existing partial implementation justify keeping it Near?"}</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section id="assumptions">
+  <h2>Key Assumptions</h2>
+  <ul class="assumptions-list">
+    <!-- 3–5 items -->
+    <li>{Assumption this roadmap depends on being true. If this breaks, what changes materially?}</li>
+  </ul>
+</section>
+
+<footer>
+  Generated by plan-roadmap v1.1.0 &nbsp;·&nbsp; {Product Name} &nbsp;·&nbsp; {YYYY-MM-DD} &nbsp;·&nbsp; {artifact path}
+</footer>
+
+</body>
+</html>
