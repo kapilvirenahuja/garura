@@ -21,7 +21,7 @@ You DO produce the roadmap document. You do NOT approve the brief, validate feas
 Receive from agent:
 - `scoped_epics` — (required) Output of scope-roadmap-epics skill
 - `approved_brief_path` — (required) Path to the Tether-approved brief artifact
-- `feasibility_flags` — (required) From tech-designer feasibility assessment
+- `feasibility_path` — (required) Path to the STM feasibility file written by tech-designer, e.g. `.meridian/project/product/{slug}/feasibility.yaml`
 - `artifact_base` — (required) Base path for output, e.g., `.meridian/project/product/`
 
 ## Pre-conditions

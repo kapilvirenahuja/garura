@@ -1,6 +1,6 @@
 ---
 name: plan-roadmap
-description: Plan a time-phased product roadmap from a locked vision — scope, brief, feedback loop, generate artifacts
+description: Plan a time-phased product roadmap from a locked vision
 user-invocable: true
 model: sonnet
 allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
@@ -12,22 +12,41 @@ Plan a time-phased product roadmap from a locked vision — scope epics, generat
 
 ## Intent
 
-**BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1, C3), behavioral constraints (C4–C10, C-BRIEF-1, C-BRIEF-2), and failure conditions. All constraint IDs referenced in this recipe map to that file.
+Read `reference/intent.yaml` — the user contract. It defines the goal, constraints
+(including template references), failure conditions, and validation scenarios.
+
+This file is passed to every agent invocation as part of the JSON contract.
+Agents read it to understand what to produce and what constraints to respect.
 
 ## Role
 
-You are the orchestrator. You own the workflow. You delegate domain tasks to agents — never execute directly.
+You are the orchestrator. You own the task graph, checkpoints, and evidence.
+You delegate domain tasks to agents via the JSON contract — never execute domain
+work directly.
 
-**Forbidden:** `Bash`, `Grep`, `Glob`, `Edit`, `EnterPlanMode`, `ExitPlanMode`, or any direct file operations.
+**Agents available:**
+| Agent | Domain |
+|-------|--------|
+| product-strategist | Product: epics, briefs, roadmaps |
+| tech-designer | Technical: feasibility, blockers, sequencing |
+| repo-orchestrator | Git: commits (non-blocking) |
 
-**Agent boundaries:**
-- `product-strategist` — product domain only: epic scoping, roadmap brief drafting, roadmap artifact generation, engineering view
-- `tech-designer` — feasibility only: technical blocker identification, foundation investment requirements, sequencing risks
-- `repo-orchestrator` — git operations only: commits after phase completion (non-blocking)
-- Everything else (pre-flight checks, checkpoint writes, approval logic, reporting) — orchestrator owns it
+**Forbidden:** `Bash`, `Grep`, `Glob`, `Edit`, `EnterPlanMode`, `ExitPlanMode`, or any direct file operations beyond Read/Write for checkpoints and evidence.
 
 **Path resolution:**
 All `.meridian/` paths in this recipe are **relative to the project root** (the current working directory). NEVER expand `.meridian/` to an absolute path under the user's home directory. The orchestrator MUST resolve paths as `{project_root}/.meridian/project/product/...` — NOT `~/.meridian/project/product/...`. STM is project-scoped; `~/.meridian/core/memory/` is for LTM only.
+
+## System Constraints
+
+Framework-level guardrails, not user-facing intent.
+
+- Maximum 3 agent calls in main flow. Feedback adjustments do not count.
+- Checkpoint MUST be written before presenting brief to user.
+- All artifacts written to `.meridian/project/product/{slug}/` relative to project root.
+- Orchestrator delegates to agents — never invokes skills directly.
+- Communications between agents and skills MUST use JSON contracts.
+  Details written to STM as artifacts, paths passed in JSON.
+- **CRITICAL: The JSON contract is the ENTIRE agent prompt.** When invoking an agent, pass ONLY the JSON object. Do NOT append instructions, field definitions, examples, rules, epic schemas, or any other text after the JSON. Agents have their own definitions — they know what to do. Adding instructions overrides agent behavior with potentially wrong information. If you find yourself writing "Rules:", "For each epic:", or "Example return format:" after the JSON — STOP. Delete it. Send only the JSON.
 
 ## Arguments
 
@@ -36,213 +55,238 @@ All `.meridian/` paths in this recipe are **relative to the project root** (the 
 /plan-roadmap --resume
 ```
 
-## Steps
+## Capability Graph
 
-| Step | Name | Agent |
-|------|------|-------|
-| Step 0 | Pre-flight | orchestrator |
-| Step 1 | Scope Epics | product-strategist (call 1/3) |
-| Step 2 | Feasibility | tech-designer (call 2/3) |
-| Step 3 | Generate Brief | product-strategist (call 3/3) |
-| Step 4 | Feedback Loop + Checkpoint | orchestrator + product-strategist (feedback only, not counted) |
-| Step 5 | Generate Artifacts | product-strategist (compound: 2 artifacts) |
-| Step 6 | Report | orchestrator |
+This is the execution DAG. At L2, the recipe defines the graph.
+
+| # | Capability | Agent | Needs | Produces |
+|---|------------|-------|-------|----------|
+| 1 | Scope epics with IDD fields | product-strategist | vision | epics.yaml |
+| 2 | Assess technical feasibility | tech-designer | epics.yaml | feasibility.yaml |
+| 3 | Produce reviewable brief | product-strategist | epics, feasibility, vision | brief.html |
+| — | **CHECKPOINT: human review** | orchestrator | brief.html | approved_brief |
+| 4 | Produce full roadmap | product-strategist | epics, feasibility, approved brief | roadmap.md |
+| 5 | Produce engineering view | product-strategist | roadmap.md | roadmap-engineering.md |
+
+**STM base:** `.meridian/project/product/{slug}/`
+
+## JSON Contract
+
+A single contract flows through the entire workflow. Recipe creates the initial contract. Each agent enriches it with artifact paths.
+
+```json
+{
+  "intent_path": "reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "slug": "<derived from vision>",
+  "stm": {
+    "vision_path": "<input path>",
+    "epics_path": null,
+    "feasibility_path": null,
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [
+    { "name": "brief_review", "status": "pending" }
+  ],
+  "evidence": [
+    { "name": "plan-roadmap", "location": null }
+  ],
+  "notes": [],
+  "step_failure": null
+}
+```
+
+### Contract Fields
+
+| Field | Owner | Purpose |
+|-------|-------|---------|
+| `stm.*` | Agents | Artifact paths — agents populate null fields with paths they produce |
+| `checkpoints` | Recipe | Checkpoint status — recipe updates after human review |
+| `evidence` | Recipe | Evidence paths — recipe updates at report step |
+| `notes` | Agents | Short observations from the current step (max 3 items, 1 sentence each). Validation summaries, warnings, or context for downstream agents. Not prose — structured notes only. |
+| `step_failure` | Agents | Non-null only when the agent cannot recover. Recipe reads this to decide retry/halt. |
+
+### `notes` format
+
+Agents MAY add up to 3 notes per invocation. Each note is a short string (1 sentence). Notes are for downstream context — not validation checklists or verbose output.
+
+```json
+"notes": [
+  "5 epics derived — all trace to distinct strategic goals",
+  "E2 depends on E1 foundation — sequencing constraint"
+]
+```
+
+### `step_failure` format
+
+Non-null only when the agent attempted self-recovery and still failed. Recipe reads this to decide retry or halt.
+
+```json
+"step_failure": {
+  "step": "scope_epics",
+  "error": "insufficient_epics",
+  "message": "Only 2 epics identifiable from vision",
+  "recovery_attempted": true,
+  "recovery_details": "Broadened strategic goal interpretation — still only 2 distinct epics"
+}
+```
+
+When `step_failure` is non-null, `stm` paths for the failed step remain null. Recipe checks `step_failure` before checking `stm` paths.
+
+**How it works:**
+- Recipe creates the initial contract with vision_path set, everything else null, notes empty, step_failure null
+- Sends contract to first agent
+- Agent produces artifacts, adds paths to `stm`, optionally adds notes, returns the enriched contract
+- If agent fails after recovery attempts, sets `step_failure` instead of `stm` paths
+- Recipe sends enriched contract to next agent
+- Each agent adds to the same contract — it grows through the workflow
+- Recipe checks `step_failure` first, then validates `stm` paths
+
+**No per-capability output schemas.** The contract IS the schema. Agents add paths to `stm`, notes to `notes`, failures to `step_failure`. Recipe validates what's present.
 
 ## Workflow
 
 ### Step 0 — Pre-flight
 
-**The orchestrator owns this step entirely. Do not delegate.**
+**Orchestrator owns. Do not delegate.**
 
-Validate directly:
-- `--vision` path is provided and file exists at the path (C1)
-- Vision file contains `Status: LOCKED` (C3)
+Read `reference/intent.yaml`. Validate:
+- Vision path provided and file exists
+- Vision has Status: LOCKED (satisfies C-LOCKED)
 
-If any check fails → halt immediately with the appropriate `halt_message` from `reference/intent.yaml`. Pre-flight failures are **hard halts**.
+Halt on failure. Derive `slug` from vision.
 
-Derive `slug` from the vision filename or frontmatter for use in subsequent steps.
+### Step 1 — Create Task Graph
 
-### Step 1 — Scope Epics
+**HARD GATE: Do NOT proceed to Step 2 until all tasks are created and dependencies are set.**
 
-Create task: "Scope roadmap epics". Invoke `product-strategist` (agent call 1 of 3):
+After pre-flight passes, create the full task graph using TaskCreate:
 
-```yaml
----
-Intent: Scope roadmap epics from locked vision at {vision_path}
-Recipe context:
-  intent: "Extract epics from locked vision, scope into time buckets with priorities and dependencies"
-  task: "Invoke scope-roadmap-epics skill. Input: vision_path={vision_path}, artifact_base=.meridian/project/product/, time_horizon=12 months. Skill writes epics to STM and returns epics_path. Return scoped_epics output."
-  vision_path: "{--vision value}"
-  artifact_base: ".meridian/project/product/"
-  behavioral_constraints: {C4, C5 from reference/intent.yaml}
+| Task | Agent | Blocked By | Description |
+|------|-------|------------|-------------|
+| Scope epics | product-strategist | — | Derive IDD epics from vision |
+| Assess feasibility | tech-designer | Scope epics | Technical feasibility of epics |
+| Produce brief | product-strategist | Scope epics, Assess feasibility | Reviewable brief |
+| Human review | orchestrator | Produce brief | Checkpoint: Tether/Vanish |
+| Produce roadmap | product-strategist | Human review | Full roadmap from approved brief |
+| Produce eng view | product-strategist | Produce roadmap | Engineering-facing view |
+| Report | orchestrator | Produce eng view | Evidence + final report |
+
+After creating all tasks with dependencies, initialize the JSON contract:
+
+```json
+{
+  "intent_path": "{recipe_base}/reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "slug": "{slug from pre-flight}",
+  "stm": {
+    "vision_path": "{--vision value}",
+    "epics_path": null,
+    "feasibility_path": null,
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [
+    { "name": "brief_review", "status": "pending" }
+  ],
+  "evidence": [
+    { "name": "plan-roadmap", "location": null }
+  ],
+  "notes": [],
+  "step_failure": null
+}
 ```
 
-**Expected output:**
-```yaml
-scoped_epics:
-  epics_path: ".meridian/project/product/{slug}/epics.yaml"
-  slug: "{product slug}"
-  epic_count: {integer}
+Verify: all 7 tasks exist with correct blockedBy before proceeding.
+
+### Step 2 — Execute Pre-Review Tasks
+
+Execute capabilities 1-3 by invoking agents in dependency order.
+
+**CONSTRAINT: The JSON contract is the ENTIRE agent prompt.** Copy-paste the JSON object as the prompt. Nothing before it, nothing after it. No "You are the product-strategist agent", no "Your task is", no field definitions, no rules, no examples. The agent reads its own definition file and intent.yaml — it already knows what to do.
+
+**Capability 1 — Scope epics (product-strategist):**
+
+Pass this JSON contract as the agent prompt:
+```json
+{
+  "intent_path": "{recipe_base}/reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "slug": "{slug}",
+  "stm": {
+    "vision_path": "{--vision value}",
+    "epics_path": null,
+    "feasibility_path": null,
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [{ "name": "brief_review", "status": "pending" }],
+  "evidence": [{ "name": "plan-roadmap", "location": null }],
+  "notes": [],
+  "step_failure": null
+}
 ```
 
-If agent returns `epic_count` fewer than 3 → halt with failure condition: "product-strategist returns fewer than 3 scoped epics."
+**Expected return:** The same JSON contract with `stm.epics_path` populated, optional `notes`, `step_failure` null.
 
-If agent returns structured failure → see Recovery section.
+Validate: check `step_failure` first — if non-null, handle failure. Then check `stm.epics_path` is non-null.
 
-### Step 2 — Feasibility
+**Capability 2 — Assess feasibility (tech-designer):**
 
-Create task: "Technical feasibility assessment". Invoke `tech-designer` (agent call 2 of 3):
+Pass the enriched contract (now has `stm.epics_path` set) as the agent prompt. No other text.
 
-```yaml
----
-Intent: Assess technical feasibility of scoped epics for {slug}
-Recipe context:
-  intent: "Evaluate technical feasibility of each scoped epic — identify hard blockers, foundation investment requirements, and sequencing risks"
-  task: "Read the scoped epics from epics_path. Assess feasibility of each epic. Write feasibility flags to {artifact_base}/{slug}/feasibility.yaml. Return feasibility_path."
-  epics_path: "{scoped_epics.epics_path from Step 1}"
-  artifact_base: ".meridian/project/product/"
-  slug: "{slug from Step 1}"
-  vision_path: "{--vision value}"
-```
+**Expected return:** The same JSON contract with `stm.feasibility_path` populated, optional `notes`, `step_failure` null.
 
-**Expected output:**
-```yaml
-feasibility:
-  feasibility_path: ".meridian/project/product/{slug}/feasibility.yaml"
-```
+Validate: check `step_failure` first, then `stm.feasibility_path` is non-null.
 
-The full feasibility data is written to `feasibility_path`. Format in that file:
-```yaml
-# feasibility.yaml
-epics:
-  - epic_id: "E1"
-    feasible: true|false
-    blockers: ["{blocker description}"]
-    foundation_required: true|false
-    risk: "low|medium|high"
-```
+**Capability 3 — Produce brief (product-strategist):**
 
-If agent returns structured failure → see Recovery section.
+Pass the enriched contract (now has `stm.epics_path` and `stm.feasibility_path` set) as the agent prompt. No other text.
 
-### Step 3 — Generate Brief
+**Expected return:** The same JSON contract with `stm.brief_path` populated, optional `notes`, `step_failure` null.
 
-Create task: "Generate roadmap brief". Invoke `product-strategist` (agent call 3 of 3):
+Validate: check `step_failure` first, then `stm.brief_path` is non-null. If brief constraint violations → re-invoke once. If still fails → halt.
 
-```yaml
----
-Intent: Draft roadmap brief for {slug} — gate artifact for human review
-Recipe context:
-  intent: "Generate lightweight roadmap review brief — 6 sections, 30-minute reviewable, decision-grade content only"
-  task: "Invoke draft-roadmap-brief skill. Read epics from epics_path and feasibility from feasibility_path. Return brief output with c_brief_1_pass and c_brief_2_pass flags."
-  epics_path: "{scoped_epics.epics_path from Step 1}"
-  feasibility_path: "{feasibility.feasibility_path from Step 2}"
-  vision_path: "{--vision value}"
-  artifact_base: ".meridian/project/product/"
-  behavioral_constraints: {C-BRIEF-1, C-BRIEF-2 from reference/intent.yaml}
-```
+### Step 3 — Human Review (Checkpoint)
 
-**Expected output:**
-```yaml
-brief:
-  path: ".meridian/project/product/{slug}/brief-{timestamp}.html"
-  epic_count: {integer}
-  sections_present: [bet, story, decisions, not_doing, asks, assumptions]
-  c_brief_1_pass: true|false
-  c_brief_1_violations: ["{description of violation if any}"]
-  c_brief_2_pass: true|false
-  c_brief_2_violations: ["{description of technical element that does not change a decision}"]
-```
+Write checkpoint to STM. Update contract: checkpoints[brief_review].status = pending.
+Present brief using templates/approval-prompt.md.
 
-**Brief constraint enforcement:** If `c_brief_1_pass: false` OR `c_brief_2_pass: false` → re-invoke `product-strategist` with violation details appended to recipe context. Max 1 re-invocation. If still fails → halt with constraint violation details.
+Feedback loop:
+- Plain text → re-invoke product-strategist with user_feedback; max 3 cycles
+- Tether → update checkpoint status = approved, proceed
+- Vanish → update checkpoint status = rejected, halt
 
-If agent returns structured failure → see Recovery section.
+### Step 4 — Execute Post-Review Tasks
 
-### Step 4 — Feedback Loop + Checkpoint
+Execute capabilities 4-5. Send enriched contract (now includes `stm.approved_brief_path`) as the agent prompt. No other text.
 
-**The orchestrator owns this step entirely, except for brief adjustment invocations.**
+**Expected returns:** Contract with `stm.roadmap_path` populated, then `stm.engineering_view_path` populated.
 
-Write checkpoint to `.meridian/project/product/checkpoint/plan-roadmap/{YYYYMMDD-HHMMSS}.md` with: `brief_path={brief.path}`, `brief_status=pending`, `feedback_cycles=0`, `vision_path`, `slug`, `epics_path`, `feasibility_path`.
+### Step 5 — Report
 
-Present brief using `templates/approval-prompt.md`.
-
-Parse user response:
-- **Plain text** (not Tether/Vanish) → invoke `product-strategist` to adjust brief (pass feedback as plain text in recipe context under key `user_feedback`); re-present updated brief; increment `feedback_cycles` in checkpoint; max 3 cycles.
-- After 3 cycles without Tether → re-present current brief with Tether/Vanish only ("Maximum feedback cycles reached — type **Tether** to approve the current brief or **Vanish** to halt.").
-- **`Tether`** → update checkpoint `brief_status=approved`, `approved_brief_path={brief.path}`; proceed to Step 5.
-- **`Vanish`** → update checkpoint `brief_status=rejected`; write evidence; invoke repo-orchestrator to commit; halt.
-
-**NOTE:** Feedback adjustment invocations do NOT count against the C5 agent call budget — they are feedback loop iterations, not new workflow steps.
-
-### Step 5 — Generate Artifacts
-
-Create task: "Generate roadmap artifacts". Invoke `product-strategist` compound (2 intents):
-
-```yaml
----
-Intents:
-  1. "Draft roadmap from scoped epics and approved brief"
-  2. "Generate engineering view from the drafted roadmap"
-Recipe context:
-  intent_count: 2
-  intent_1: "Invoke draft-roadmap skill — generate roadmap.md post-Tether"
-  intent_2: "Invoke generate-engineering-view skill on the resulting roadmap.md"
-  dependency: "intent_2 depends on intent_1 output (roadmap.path)"
-  epics_path: "{epics_path from checkpoint}"
-  feasibility_path: "{feasibility_path from checkpoint}"
-  approved_brief_path: "{approved_brief_path from checkpoint}"
-  artifact_base: ".meridian/project/product/"
-  behavioral_constraints: {C6, C7, C9 from reference/intent.yaml}
-```
-
-**Expected output:**
-```yaml
-results:
-  - intent: "Draft roadmap"
-    skill: "draft-roadmap"
-    status: "success"
-    output:
-      roadmap:
-        path: ".meridian/project/product/{slug}/roadmap.md"
-        status: "DRAFT"
-        epic_count: {count}
-  - intent: "Generate engineering view"
-    skill: "generate-engineering-view"
-    status: "success"
-    output:
-      engineering_view:
-        path: ".meridian/project/product/{slug}/roadmap-engineering.md"
-        audience: "Engineering"
-```
-
-If agent returns structured failure → see Recovery section.
-
-### Step 6 — Report
-
-**The orchestrator owns this step entirely. Do not delegate.**
-
-Update checkpoint with all artifact paths and `status=COMPLETED`.
-
-Write evidence to `.meridian/project/product/evidence/plan-roadmap/{YYYYMMDD-HHMMSS}.md`:
-- Artifact paths (roadmap.md, roadmap-engineering.md)
-- Epic count
-- Sections filled/empty per epic (IDD core vs Technical)
-- Feedback cycles consumed
-
-Present final report using `templates/final-report.md`.
-
-Invoke `repo-orchestrator` to commit all evidence and checkpoint files with message `chore(stm): record plan-roadmap evidence`. **Non-blocking.**
+Update checkpoint. Write evidence (update contract evidence section).
+Present final report. Invoke repo-orchestrator (non-blocking).
+Mark report task complete.
 
 ---
 
 ### --- RESUME ---
 
-**`/plan-roadmap --resume`** — No `--vision` or `--phase` argument needed.
+**`/plan-roadmap --resume`** — No `--vision` argument needed.
 
 1. Find the latest checkpoint at `.meridian/project/product/checkpoint/plan-roadmap/` ordered by created timestamp (most recent first).
-2. Read all checkpoint fields: `brief_status`, `brief_path`, `approved_brief_path`, `feedback_cycles`, `vision_path`, `slug`, `epics_path`, `feasibility_path`.
+2. Read all checkpoint fields and reconstruct the JSON contract from checkpoint state.
 3. Route based on checkpoint state:
-   - `brief_status: pending` → load brief from `brief_path`, re-present using `templates/approval-prompt.md` ("Resuming — feedback loop at cycle {feedback_cycles}/3"), continue from Step 4.
-   - `brief_status: approved` AND `roadmap.md` does not exist at `.meridian/project/product/{slug}/roadmap.md` → jump directly to Step 5 (generate artifacts).
+   - `brief_review.status: pending` → re-present brief, continue from Step 3 feedback loop.
+   - `brief_review.status: approved` AND `roadmap_path` is null → jump to Step 4.
 4. Report to user: "Resuming plan-roadmap — {description of what it is doing}"
 5. If no checkpoint found → halt: "No plan-roadmap checkpoint found — start with `/plan-roadmap --vision <path>`"
 
@@ -257,21 +301,24 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 - Invoke the responsible agent with fix context + original intent
 - Max 2 retries per step. After that, halt with full failure context.
 
-For retries, add to recipe context:
-```yaml
-  retry:
-    previous_failure: "{what_failed}"
-    fix_applied: "{what was done to fix it}"
-    attempt: {N}
+For retries, add to the JSON contract:
+```json
+{
+  "retry": {
+    "previous_failure": "{what_failed}",
+    "fix_applied": "{what was done to fix it}",
+    "attempt": 2
+  }
+}
 ```
 
-**Pre-flight failures (C1, C3) are not recoverable** — hard halt with the constraint's `halt_message`.
+**Pre-flight failures are not recoverable** — hard halt.
 
 ## References
 
 | File | Path | Used For |
 |------|------|----------|
-| Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
+| Intent | `reference/intent.yaml` | User contract — passed to agents via JSON contract |
 | Checkpoint | `templates/checkpoint.md` | STM checkpoint artifact |
 | Approval Prompt | `templates/approval-prompt.md` | Brief presentation + feedback loop |
 | Final Report | `templates/final-report.md` | Phase completion summary |
@@ -283,8 +330,8 @@ For retries, add to recipe context:
 | Field | Value |
 |-------|-------|
 | Level | L2 |
-| Version | 1.1.0 |
+| Version | 3.0.0 |
 | Distinct Agents | 2 (product-strategist, tech-designer) |
 | Agent Calls (main flow) | 3 (product-strategist x2, tech-designer x1) + feedback iterations (not counted) |
 | Agent Calls (post-Tether) | 1 compound (2 artifacts: roadmap.md + roadmap-engineering.md) |
-| Checkpoint | Once — at brief gate (Step 4) |
+| Checkpoint | Once — at brief gate (Step 3) |

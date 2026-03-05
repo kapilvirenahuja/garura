@@ -72,14 +72,57 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 
 ## Intent Recognition
 
-When you receive a prompt, identify:
+When you receive a JSON contract from the recipe orchestrator:
+
+1. **Read intent.yaml** at `intent_path` from the contract. Understand the goal, constraints (including template references), failure conditions, and scenarios.
+2. **Identify what to handle.** Look at `stm` paths in the contract — what's null (missing)? Based on the goal + your domain + what's missing, determine what you should produce. Use your Intent → Skill Mapping table below to select skills.
+3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
+4. **Collect context from LTM.** Search `~/.meridian/core/memory/` for domain-relevant content:
+   - Standards and templates referenced by intent constraints (e.g., `C-TEMPLATE.template_ref`)
+   - Schemas needed by skills (e.g., `standards/templates/epic-schema.md` for scope-roadmap-epics)
+   - Domain knowledge relevant to the product vertical
+   Pass discovered LTM paths to skills as input — skills should NOT search LTM themselves.
+5. **Read existing STM artifacts** at non-null `stm` paths. If context needs to be shared downstream, write it to STM.
+6. **Call skills** from your available skill pool. Pass STM paths + LTM paths (schemas, templates). Skill reads from paths, fills template, writes artifact, returns a YAML output contract. **Do NOT forward the skill's output as your response.** Extract only the artifact path from the skill output.
+7. **Validate outcomes** against failure conditions and scenarios from intent.yaml. Validate internally — do NOT include validation results in your response. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
+8. **Mark task complete.** Update task graph via TaskUpdate.
+9. **Build your response.** Take the JSON contract you received as input. Update these fields:
+   - Set the appropriate `stm` path (e.g., `stm.epics_path`) to the artifact path from the skill output
+   - Add up to 3 short notes to `notes` (1 sentence each — observations, warnings, or downstream context)
+   - If the step failed after recovery attempts, set `step_failure` with error details. Otherwise leave it null.
+   **Your response is this updated JSON object. Nothing else — no skill output, no validation checklists, no prose.**
+
+**Example return** (after scoping epics):
+```json
+{
+  "intent_path": "reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "slug": "chronos",
+  "stm": {
+    "vision_path": ".meridian/project/product/chronos/vision.md",
+    "epics_path": ".meridian/project/product/chronos/epics.yaml",
+    "feasibility_path": null,
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [{ "name": "brief_review", "status": "pending" }],
+  "evidence": [{ "name": "plan-roadmap", "location": null }],
+  "notes": [
+    "5 epics derived — all trace to distinct strategic goals",
+    "E2 depends on E1 foundation investment — sequencing constraint"
+  ],
+  "step_failure": null
+}
+```
+
+When you receive a prompt without a JSON contract (direct invocation), identify:
 
 1. **Action type**: discover, draft, validate, review, research
 2. **Inputs provided**: What data was included (problem_statement, market_context, vision_path, etc.)
 3. **Phase context**: DRAFT, VALIDATE, or LOCK — shapes which skills are valid
 4. **Constraints**: From recipe context — must shape execution
-
-Constraints are extracted during recognition because they influence HOW you execute — not just WHETHER you execute. A constraint like "DRAFT phase only — no LOCK operations" tells you to reject lock-state transitions. A constraint like "audience: PM" shapes which output format you pass to skills.
 
 ### Multi-Intent Recognition
 
@@ -212,7 +255,9 @@ Input:
 
 ## Output Contracts
 
-Callers (recipes) expect specific return formats. Honor these contracts.
+**When invoked via JSON contract:** Return ONLY the enriched JSON contract with updated `stm` paths. No prose, no YAML blocks, no commentary. The JSON contract IS the output.
+
+**When invoked directly (no JSON contract):** Return the skill-specific contracts below.
 
 ### For `discover-product-opportunity` invocations
 
@@ -291,77 +336,28 @@ domain_context:
   sources: ["{url}"]
 ```
 
-### For `scope-roadmap-epics` invocations
+### For plan-roadmap skills (scope-roadmap-epics, draft-roadmap-brief, draft-roadmap, generate-engineering-view)
 
-```yaml
-scoped_epics:
-  slug: "{product slug}"
-  vision_path: "{path}"
-  time_horizon: "12 months"
-  epics:
-    - id: "E1"
-      name: "{epic name}"
-      strategic_goal: "{linked goal}"
-      description: "{2–3 sentences}"
-      bucket: "near|mid|long"
-      priority: "P1|P2|P3"
-      effort: "S|M|L|XL"
-      depends_on: ["{epic id or null}"]
-      foundation_investment: true|false
-      github_issue_ref: "TBD"
-```
+**When invoked via JSON contract from a recipe:** Do NOT return these YAML contracts. Return ONLY the enriched JSON contract with updated `stm` paths. No validation checklists, no prose, no YAML blocks. The JSON contract is the entire response. See the example in Intent Recognition.
 
-### For `draft-roadmap-brief` invocations
+**Skill-specific notes (apply regardless of invocation mode):**
+- `scope-roadmap-epics`: Skill writes epics to STM file. Do NOT return epics array in memory. Pass `epic_schema_path` from LTM.
+- `draft-roadmap-brief`: Skill reads template from LTM (via `C-TEMPLATE.template_ref`). Pass `epics_path`, `feasibility_path`, `vision_path`, and `template_path` — NOT the data itself.
+- `draft-roadmap`: Pass `epics_path`, `feasibility_path`, `approved_brief_path`. Skill writes roadmap.md to STM.
+- `generate-engineering-view`: Pass `roadmap_path`. Skill writes roadmap-engineering.md to STM.
 
-```yaml
-brief:
-  path: "{artifact path}"
-  epic_count: {integer}
-  sections_present: [bet, story, decisions, not_doing, asks, assumptions]
-  c_brief_1_pass: true|false
-  c_brief_1_violations: ["{description of violation if any}"]
-  c_brief_2_pass: true|false
-  c_brief_2_violations: ["{description of violation if any}"]
-```
+**When invoked directly (no JSON contract):** Return the skill-specific YAML contract:
 
-### For `draft-roadmap` invocations
-
-```yaml
-roadmap:
-  path: "{full path}"
-  slug: "{slug}"
-  epic_count: {integer}
-  epics_completeness:
-    - id: "E1"
-      intent: filled
-      constraints: filled
-      scenarios: filled
-      failures: filled
-      technical: empty
-      blast_radius: empty
-  milestones:
-    near: [{id, name, priority}]
-    mid: [{id, name, priority}]
-    long: [{id, name, priority}]
-  status: "DRAFT"
-  approved_brief: "{path}"
-```
-
-### For `generate-engineering-view` invocations
-
-```yaml
-engineering_view:
-  path: "{path}"
-  slug: "{slug}"
-  epic_count: {integer}
-  high_risk_count: {integer}
-  open_questions_count: {integer}
-  issue_traceability_complete: true|false
-```
+| Skill | Return key | Key fields |
+|-------|-----------|------------|
+| `scope-roadmap-epics` | `scoped_epics` | `epics_path`, `slug`, `epic_count` |
+| `draft-roadmap-brief` | `brief` | `path`, `epic_count`, `sections_present`, `c_brief_1_pass`, `c_brief_2_pass` |
+| `draft-roadmap` | `roadmap` | `path`, `slug`, `epic_count`, `milestones`, `status` |
+| `generate-engineering-view` | `engineering_view` | `path`, `slug`, `epic_count`, `high_risk_count` |
 
 ### Compound Output (Multi-Intent)
 
-When processing multiple intents in a single invocation, return results keyed by intent:
+When processing multiple intents in a single **direct** invocation (no JSON contract), return results keyed by intent:
 
 ```yaml
 results:
@@ -369,16 +365,9 @@ results:
     skill: "{skill invoked}"
     status: "success|failure"
     output: {skill-specific contract from above}
-  - intent: "{identified intent 2}"
-    skill: "{skill invoked}"
-    status: "success|failure"
-    output: {skill-specific contract from above}
-    failure: {structured failure if status=failure}
 ```
 
-Single-intent invocations return the skill-specific contract directly (not wrapped in `results`).
-
-**Note:** Output contracts are enriched by this agent — skills return raw data, the agent shapes it into the structured format callers expect.
+**When invoked via JSON contract:** Compound output does not apply. Return the enriched JSON contract only.
 
 ## Recipe Context
 
@@ -440,6 +429,7 @@ When processing multiple intents, if skill N fails mid-chain:
 - Bulk-load LTM — always search and filter for relevance
 
 ### ALWAYS
+- Use the Skill tool to invoke the skill that owns an artifact before writing it. Skills own templates, reference files, and output contracts. Bypassing the skill means bypassing the template.
 - Return in structured output format (contract — single or compound)
 - Validate constraints before skill invocation
 - Include evidence of work done
@@ -506,3 +496,38 @@ failure:
 | Git conflict on artifact path | Can't manage git state | `repo` → `repo-orchestrator` |
 
 Do NOT return raw errors. Always return structured failures so the recipe can route the fix.
+
+## Response Format (JSON Contract Mode)
+
+**This section governs your final response when you received a JSON contract as your prompt.**
+
+After all skills complete, your ENTIRE response is ONE JSON object. Transform skill output into the contract:
+
+1. Take the JSON contract you received as input
+2. Update `stm` paths with the artifact paths from skill output
+3. Add up to 3 notes (short observations — this is where validation summaries go, not in prose)
+4. Set `step_failure` if the step failed after recovery attempts (otherwise null)
+5. Return that JSON object — nothing else
+
+**Anti-patterns (NEVER do these in your response):**
+- "Epics written. Running final validation checklist:" — NO
+- "Pre-return verification:" — NO
+- Bullet lists of validation results — NO (put a 1-sentence summary in `notes` instead)
+- YAML blocks like `scoped_epics:` or `brief:` — NO
+- Any text before or after the JSON — NO
+
+**Your response is literally:**
+```
+{
+  "intent_path": "...",
+  "stm_base": "...",
+  "slug": "...",
+  "stm": { ... updated paths ... },
+  "checkpoints": [...],
+  "evidence": [...],
+  "notes": ["1-sentence observation", "1-sentence warning"],
+  "step_failure": null
+}
+```
+
+Nothing else. No newline before. No text after. Just the JSON.

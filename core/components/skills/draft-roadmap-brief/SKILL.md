@@ -1,20 +1,21 @@
 ---
 name: draft-roadmap-brief
-description: Generate the human review brief — the gate artifact before full agentic roadmap generation
+description: Render the human review brief from scoped IDD epics — pure template renderer, no content generation
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write
+version: 2.0.0
 ---
 
 # draft-roadmap-brief
 
-Model-invocable skill for generating the human review brief that gates full roadmap generation.
+Model-invocable skill for rendering the human review brief that gates full roadmap generation.
 
 ## Purpose
 
-Compose a structured brief artifact for human review before agentic roadmap generation begins. This is NOT the roadmap — it is the gate artifact. A reviewer must be able to read and act on it in 30 minutes.
+Render a structured brief artifact from scoped epics that already contain full IDD content (intent, constraints, success scenarios, failure conditions). This skill does NOT generate epic content — it reads it from the STM file and places it into the HTML template.
 
-You DO produce the brief document. You do NOT generate the roadmap, validate epic feasibility, or decide what happens next.
+You DO render the brief document. You do NOT generate epic content, invent IDD fields, validate epic feasibility, or decide what happens next.
 
 ## Input
 
@@ -25,49 +26,73 @@ Receive from agent:
 
 ## Process
 
-1. **Read vision.md** at `vision_path` for product context (product name, slug, strategic goals, assumptions).
+1. **Read vision.md** at `vision_path` — extract product name, slug, strategic goals, and assumptions.
 
-2. **Read `templates/brief.html`** from this skill's base directory. Your execution context contains a line "Base directory for this skill: {path}" — read the template at `{base_directory}/templates/brief.html` using the Read tool. This file is the literal output container — not a reference, not inspiration. Its full content becomes the starting point for the artifact. Do NOT generate new HTML or CSS from scratch. You MUST execute this Read tool call before generating any output.
+2. **Read the brief template from LTM** — the intent file at `intent_path` contains constraint `C-TEMPLATE` with a `template_ref` field (e.g., `standards/templates/roadmap-brief.html`). Read the template from `~/.meridian/core/memory/{template_ref}` using the Read tool. This file contains all CSS and static structure. If the agent passes a specific `template_path`, use that instead.
 
-3. **Read epics from STM** — using the Read tool, read the file at `epics_path`. This YAML file contains all scoped epics. You MUST read this file to know what epics to include — do NOT rely on memory.
+3. **Read epics from STM** — read the file at `epics_path` using the Read tool. Each epic contains: id, name, strategic_goal, description, bucket, priority, effort, depends_on, foundation_investment, intent (p1/p2/p3), constraints (in_scope/out_of_scope/must_not_break), success_scenarios, failure_conditions. You MUST read this file — do NOT rely on memory or invent content.
 
-4. **Read feasibility from STM** — using the Read tool, read the file at `feasibility_path`. This YAML file contains feasibility flags per epic. Cross-reference with epics to determine which epics have blockers, foundation investment requirements, or sequencing risks.
+4. **Read feasibility from STM** — read the file at `feasibility_path` using the Read tool. Use feasibility flags to inform the Why Now section of each epic card.
 
-5. **Plan all content before writing** — for each epic in the epics file, draft all six card fields in memory: Intent (2–3 paragraphs), Constraints (in/out/must-not-break), Success Scenarios (min 2 given/when/then), Failure Conditions (2–4 items), Why Now, Dependencies. Do this for ALL epics before writing any HTML.
+5. **Build `{EPIC_TABLE_ROWS}`** — for each epic, generate one `<tr>`:
+   ```html
+   <tr>
+     <td><strong>{id}: {name}</strong></td>
+     <td><span class="badge badge-{bucket}">{Bucket}</span></td>
+     <td><span class="badge badge-{priority_lower}">{priority}</span></td>
+     <td>{effort}</td>
+     <td>{depends_on names or "None"}</td>
+     <td>{one-line rationale from description}</td>
+   </tr>
+   ```
 
-6. **Build the artifact** using the template HTML loaded in Step 2 as the base. Replace `{...}` placeholders with real content. For the Decisions section, emit **one `<tr>` per epic** in the summary table and **one `.epic-card` div per epic** — using the `.epic-card` div structure exactly as defined in the template. Emit this block once per epic. Do not collapse epics into prose. Do not invent new HTML elements or classes.
+6. **Build `{EPIC_CARDS}`** — for each epic, generate one `.epic-card` div with 6 fields:
+   - **Intent**: 3 `<p>` tags using `intent.p1`, `intent.p2`, `intent.p3` directly from the epic
+   - **Constraints**: 3 `<li>` items using `constraints.in_scope`, `constraints.out_of_scope`, `constraints.must_not_break` directly from the epic
+   - **Success scenarios**: `<li>` items using each `success_scenarios` entry directly from the epic
+   - **Failure conditions**: `<li>` items using each `failure_conditions` entry directly from the epic
+   - **Why now**: 1 `<p>` — sequencing rationale derived from `bucket`, `depends_on`, and feasibility data
+   - **Dependencies & what it unlocks**: 2 `<li>` items — Requires (look up names from `depends_on`) / Unlocks (reverse lookup: which epics list this one in their `depends_on`)
 
-7. **Run C-BRIEF-1 self-check:** Every element must be actionable by a reviewer within 30 minutes. Record pass/fail and violations.
+   Include `<span class="foundation-flag">Foundation</span>` only when `foundation_investment == true`.
 
-8. **Run C-BRIEF-2 self-check:** Technical elements only if they change a roadmap decision (sequencing, priority, or timing). Record pass/fail and violations.
+7. **Build remaining sections** — replace all other `{...}` placeholders in the template:
+   - `{bet_paragraph}`: one paragraph — the core strategic thesis
+   - `{story_paragraphs}`: 3–4 `<p>` tags narrating the epic sequence
+   - `{not_doing_items}`: 4–6 `<li>` tags with items explicitly excluded
+   - `{asks_items}`: 3–4 `<li>` tags with decision-forcing questions
+   - `{assumptions_items}`: 3–5 `<li>` tags with assumptions this roadmap depends on
 
-9. **Determine artifact path:** `.meridian/project/product/{slug}/brief-{timestamp}.html` where `slug` is from vision.md and `timestamp` is ISO-8601 date-time.
+8. **Verify before writing** — confirm:
+   - `{EPIC_TABLE_ROWS}` has exactly one `<tr>` per epic
+   - `{EPIC_CARDS}` has exactly one `.epic-card` per epic, each with all 6 fields
+   - Intent/Constraints/Scenarios/Failure conditions are taken from the epic data, not invented
+   - No `{...}` placeholders remain in the output
 
-10. **Write artifact** at the determined path using the Write tool.
+9. **Run C-BRIEF-1 self-check:** Every element must be actionable by a reviewer within 30 minutes. Record pass/fail and violations.
 
-11. **Return output contract.**
+10. **Run C-BRIEF-2 self-check:** Technical elements only if they change a roadmap decision (sequencing, priority, or timing). Record pass/fail and violations.
+
+11. **Determine artifact path:** `.meridian/project/product/{slug}/brief-{timestamp}.html` where `slug` is from vision.md and `timestamp` is ISO-8601 date-time.
+
+12. **Write artifact** at the determined path using the Write tool.
+
+13. **Return output contract.**
 
 ## C-BRIEF-1 Constraint
 
-Roadmap brief MUST be reviewable in 30 minutes. No element is included unless a reviewer can act on it within that session. Anything untraceable to one of the six sections is dropped.
+Roadmap brief MUST be reviewable in 30 minutes. No element is included unless a reviewer can act on it within that session.
 
 ## C-BRIEF-2 Constraint
 
 Technical elements MUST only appear if they change a roadmap decision (sequencing, priority, or timing).
 
-Permitted:
-- Hard dependency between epics
-- Foundation investment (multi-epic shared infrastructure)
-- Significant migration or breaking-change cost
-
-Excluded:
-- NFR targets
-- Implementation details
-- Work packages
-- Specific technical choices (language, framework, database)
-- Code quality concerns
+Permitted: hard dependency between epics, foundation investment, significant migration cost.
+Excluded: NFR targets, implementation details, work packages, specific technical choices, code quality concerns.
 
 ## Output
+
+Your response MUST be ONLY this YAML block with values filled in. No validation checklists, no C-BRIEF self-check output, no verification prose, no commentary before or after. The YAML block below is your entire response:
 
 ```yaml
 brief:
@@ -80,31 +105,27 @@ brief:
   c_brief_2_violations: ["{description of violation if any}"]
 ```
 
-**IMPORTANT**: This skill produces an artifact and returns metadata. The calling agent receives this output and decides what to do next. Do NOT instruct the agent to return or stop.
-
 ## Reference
 
-Load template from: `templates/brief.html`
+Load template from LTM: `~/.meridian/core/memory/standards/templates/roadmap-brief.html` (default, overridable via intent constraint C-TEMPLATE.template_ref)
 
 ## Constraints
 
-- NEVER include NFR targets
-- NEVER include implementation details
-- NEVER include work packages
-- NEVER include specific technical choices (language, framework, database)
-- NEVER generate custom HTML or CSS — the template HTML skeleton is the output container; only placeholder `{}` content is replaced
-- NEVER collapse epic content into narrative prose only — every epic MUST have its own `.epic-card` div in the Decisions section
+- NEVER generate epic content — Intent, Constraints, Success Scenarios, and Failure Conditions come FROM the epics file, not from this skill
+- NEVER include NFR targets, implementation details, work packages, or specific technical choices
+- NEVER use custom CSS classes — use only the classes defined in `templates/brief.html`
+- ALWAYS read the brief template from LTM (via intent constraint C-TEMPLATE.template_ref) using the Read tool — do NOT generate HTML from scratch
+- ALWAYS read epics from `epics_path` using the Read tool — do NOT rely on memory
+- ALWAYS produce one `.epic-card` per epic — no exceptions, no omissions
+- ALWAYS produce one `<tr>` per epic in the summary table — no exceptions, no omissions
 - ALWAYS run C-BRIEF-1 and C-BRIEF-2 self-checks before returning output
 - ALWAYS include The Asks section — minimum 3 specific, decision-forcing questions
-- ALWAYS produce one `.epic-card` per epic — no exceptions, no omissions
-- MAX 8 rows in the Decisions summary table
-- Decisions per-epic subsections MUST cover all six fields in order: Intent (2–3 paragraphs: problem today / outcome after / strategic connection), Constraints (in scope / out of scope / must not break), Success Scenarios (minimum 2, given/when/then, binary testable), Failure Conditions (observable results that signal the epic failed, 2–4 items), Why Now (sequencing rationale), Dependencies & what it unlocks
-- Brief MUST be reviewable within 30 minutes — this is a ceiling, not a target to minimize. Depth is expected.
-- templates/brief.html is the contract — preserve its structure exactly
+- Each `.epic-card` MUST have all six fields in order: Intent, Constraints, Success scenarios, Failure conditions, Why now, Dependencies & what it unlocks
+- Brief MUST be reviewable within 30 minutes — this is a ceiling, not a target to minimize
 
 ## Version
 
 | Field | Value |
 |-------|-------|
-| Version | 1.0.0 |
+| Version | 2.0.0 |
 | Category | strategy |

@@ -23,23 +23,23 @@ You DO produce the engineering view. You do NOT validate feasibility or make pri
 Receive from agent:
 - `roadmap_path` — (required) Path to the approved roadmap.md
 - `scoped_epics` — (required) Output of scope-roadmap-epics skill
-- `feasibility_flags` — (required) Feasibility assessment from tech-designer, including technical risks and open questions
+- `feasibility_path` — (required) Path to the STM feasibility file written by tech-designer, e.g. `.meridian/project/product/{slug}/feasibility.yaml`
 - `output_base` — (required) Base path for output, e.g., `.meridian/project/product/`
 
 ## Process
 
 1. **Read roadmap:** Read `roadmap_path` to extract the full epic list, inter-epic dependencies, and priorities.
 
-2. **Read feasibility flags:** Read `feasibility_flags` to extract technical risks, severity levels, affected epics, and open technical questions.
+2. **Read feasibility from STM** — read the file at `feasibility_path` using the Read tool. Extract technical risks, severity levels, affected epics, and open technical questions.
 
 3. **Determine output path:** `{output_base}{slug}/roadmap-engineering.md` where `slug` is derived from the roadmap artifact's slug.
 
 4. **Compose engineering view:** Using `templates/engineering-view.md`. Populate each section:
    - Epic Breakdown: from `scoped_epics` — map work packages, complexity, risk per epic
    - Dependency Sequence: from roadmap dependency graph — describe blocked/blocking relationships
-   - Architecture Impact: from `feasibility_flags` — list affected systems and patterns per epic
-   - Technical Risks: from `feasibility_flags` — severity, affected epics, mitigation notes
-   - Open Questions: from `feasibility_flags.open_questions` — all unresolved technical questions
+   - Architecture Impact: from feasibility data — list affected systems and patterns per epic
+   - Technical Risks: from feasibility data — severity, affected epics, mitigation notes
+   - Open Questions: from feasibility `open_questions` — all unresolved technical questions
 
 5. **Write artifact:** Write roadmap-engineering.md to the output path.
 
