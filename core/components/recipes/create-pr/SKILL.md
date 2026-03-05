@@ -1,235 +1,238 @@
 ---
 name: create-pr
-description: Create pull request with dynamic, context-aware quality checklist
-user-invocable: true
-model: sonnet
-allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
+description: Create pull request with dynamic, context-aware quality checklist. Use when your branch is ready and you want to open a PR with tailored checklist, evidence, and eval results.
+user-invokable: true
 ---
 
 # create-pr
 
-Create a pull request with a context-aware quality checklist based on what changed.
+Create a pull request on the user's configured git platform, linked to the originating issue. The PR body contains a dynamic quality checklist tailored to the actual changes, with evidence backing every item. Eval results are embedded in the PR as quality proof. Approval is confidence-gated: auto-submit when confidence is high, checkpoint for user decision when confidence is low.
 
 ## Intent
 
-**BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1–C4), behavioral constraints (C5–C9), and failure conditions. All constraint IDs referenced in this recipe map to that file.
+**BEFORE executing any step, read `reference/intent.yaml`** — it defines the operational contract: intent, constraints (C1–C7), failure conditions (F1–F5), and acceptance scenarios (S1–S2). All constraint IDs referenced in this recipe map to that file.
+
+```
+reference/intent.yaml → source of truth for all constraints and failure conditions
+```
 
 ## Role
 
-You are the orchestrator. You own the workflow. You delegate domain tasks to agents — never execute directly.
+You are the orchestrator. You own the workflow. You delegate domain tasks to agents via JSON contracts — never execute domain work directly.
 
-**Forbidden:** `Bash`, `Grep`, `Glob`, or any direct git/gh commands.
+**Forbidden:** Direct `git` commands for PR analysis or creation. Direct `gh`/`glab`/`bb` commands for platform operations. All domain work goes through agents.
 
 **Agent boundaries:**
-- `repo-orchestrator` — git domain only: analyzes PR readiness, creates pull requests
-- Everything else (checkpoint writes, approval logic, artifact writes, reporting) — orchestrator owns it
 
-## Phases
+| Agent | Domain | Stages |
+|-------|--------|--------|
+| `repo-orchestrator` | Git: analyze PR readiness, push branch, create PR, draft brief | 2, 3, 5 |
+| `project-orchestrator` | Issues: resolve issue linkage for PR | 2 |
 
-| Step | Name | Agent |
-|------|------|-------|
-| Step 0 | Pre-flight | repo-orchestrator |
-| Step 1 | Analyze | repo-orchestrator |
-| Step 2 | Checkpoint | orchestrator |
-| Step 3 | Execute | repo-orchestrator |
-| Step 4 | Report | orchestrator |
+**Infrastructure agents (do not count toward budget):**
 
-## Workflow
+| Agent | Domain | Stage |
+|-------|--------|-------|
+| `intent-resolver` | Intent decomposition | 1 |
 
-### Step 0 — Pre-flight
+## Fixed Stages
 
-Invoke `repo-orchestrator` to check PR preconditions.
+| Stage | Name | Type | Owner |
+|-------|------|------|-------|
+| 0 | Workflow Pre-flight | Infrastructure | recipe |
+| 1 | Intent Resolution | Infrastructure | intent-resolver |
+| 2 | Readiness | Domain work | repo-orchestrator, project-orchestrator |
+| 3 | Human-Readable Brief | Domain work (skippable) | repo-orchestrator |
+| 4 | Human Checkpoint | Infrastructure (skippable) | recipe |
+| 5 | Generation | Domain work | repo-orchestrator |
+| 6 | Scenario Validation | Infrastructure | recipe |
+| 7 | Evidence & Close | Infrastructure | recipe |
 
-Provide recipe context:
-```yaml
----
-Recipe context:
-  intent: "Verify preconditions before creating a pull request"
-  task: "Read `reference/intent.yaml`. Run every check in `constraints.pre_flight`. Return pass/fail for each. Do NOT halt — just return results."
+Infrastructure stages (0, 1, 4, 6, 7) do NOT count toward the agent budget.
+Domain work stages (2, 3, 5) count toward the budget: **2 domain agents (L1 max).**
+
+## Two Core Phases
+
+The recipe has a clear phase boundary at Stage 4:
+
+- **Readiness phase** (Stages 2, 3, 4): Analyze branch diff, build quality checklist, resolve issue linkage, assess confidence on target branch and checklist completeness, produce brief, get approval if needed. Everything required to be READY.
+- **Generation phase** (Stage 5): Push branch and create PR from the approved STM artifacts.
+
+Before approval: getting READY. After approval: GENERATING deliverables.
+
+## STM Data Flow Rules
+
+```
+Stage 2 → Agents write STRUCTURED DATA to STM (source of truth)
+           - repo-orchestrator writes PR analysis (checklist, evidence, target branch, confidence) to STM
+           - project-orchestrator writes issue linkage to STM
+Stage 3 → repo-orchestrator creates BRIEF from STM (VIEW for humans, skippable)
+Stage 4 → Human reviews brief, Tether/Vanish (skippable when all high confidence)
+Stage 5 → repo-orchestrator reads STM data (NOT brief) → pushes branch, creates PR
 ```
 
-**Expected output:**
-```yaml
-pre_flight:
-  branch: {current_branch_name}
-  target: {target_branch_name}
-  issue_number: {integer | null}
-  results: [{id: C1, status: PASS|FAIL}, ...]  # one entry per constraint in intent.yaml
+**Critical rule: Stage 5 agents NEVER read the brief. They read the STM data the brief was generated from.**
+
+## Execution
+
+### Load DAG
+
+On recipe invocation, check cache first:
+
+```
+Cache: .meridian/cache/intent-resolution/create-pr.json
+Invalidation: hash(intent.yaml) + hash(workflow) + hash(agents) changes
 ```
 
-**Orchestrator validates results:** for any result with `status: FAIL`, halt immediately with that constraint's `halt_message` from `reference/intent.yaml`. Pre-flight failures are **hard halts** — these are environmental conditions the agent cannot fix. See Recovery for all other failures.
+If cache is valid, load DAG directly (skip Stage 1). If stale, run intent-resolver, update cache.
 
-### Step 1 — Analyze
+If resuming an interrupted run, read DAG from STM:
 
-Invoke `repo-orchestrator` to run the `analyze-pr` skill.
-
-Provide recipe context:
-```yaml
----
-Recipe context:
-  intent: "Analyze PR readiness with evidence-based quality checklist distinguishing blocking from optional items"
-  task: "Analyze the current branch vs target. Generate quality checklist distinguishing blocking (must-have) from optional (nice-to-have) items. Return structured output only — do NOT create the PR."
-  branch: {current_branch_name}
-  target: {target_branch_name}
-  pre_flight: {all results from Step 0}
-  behavioral_constraints: {all behavioral constraints from reference/intent.yaml}
+```
+DAG location: .meridian/{issue}/dag/create-pr.json
+Written: After Stage 1
+Updated: At every checkpoint (Stage 4) — marks completed tasks
+On resume: Read DAG, skip completed tasks, continue from where it stopped
 ```
 
-**Expected output:**
-```yaml
-analysis:
-  branch: {branch_name}
-  base: {base_branch}
-  suggested_title: "{conventional commit title}"
-  context:
-    file_patterns_matched: [list]
-    commit_types: [list]
-  checklist:
-    must_have:
-      - item: "{description}"
-        trigger: "{why}"
-        status: "{PASS|FAIL|REVIEW}"
-        evidence: "{details}"
-    nice_to_have:
-      - item: "{description}"
-        trigger: "{why}"
-        status: "{PASS|FAIL|REVIEW}"
-        evidence: "{details}"
-  blocking_issues: [list]
-  ready: true/false
+No re-planning on resume. The DAG is the execution state.
+
+### Dispatch
+
+Iterate tasks in dependency order. For each task:
+
+1. Check `blockedBy` — all must be `completed`
+2. Determine owner:
+   - Owner is an agent name → delegate via JSON contract
+   - Owner is `"recipe"` → execute inline
+   - Owner is `"intent-resolver"` → invoke intent-resolver agent
+3. Mark task `in_progress` via TaskUpdate
+4. Execute
+5. Mark task `completed` via TaskUpdate (or `failed` on failure)
+
+### Agent Invocation Pattern
+
+When dispatching to a domain agent, send a JSON contract:
+
+```json
+{
+  "intent_path": "reference/intent.yaml",
+  "stm": {
+    "input": { "<named paths from prior tasks>" },
+    "output": { "<named paths for this task's artifacts>" }
+  },
+  "task_id": "<task id from DAG>"
+}
 ```
 
-If agent returns structured failure → see Recovery section.
+The agent returns ONLY an enriched JSON contract with updated `stm` paths and `status`. All artifacts are in STM files.
 
-### Step 2 — Checkpoint
+## Pre-flight (Stage 0)
 
-**The orchestrator owns this step entirely. Do not delegate.**
+Execute these checks before any domain work:
 
-Extract issue number from `pre_flight.issue_number` (already validated in Step 0).
+| Check | Constraint | Action on Failure |
+|-------|-----------|-------------------|
+| Current branch is not main/master/default | implicit | Hard halt with message |
+| Working tree is clean (all changes committed) | C3 | Hard halt — instruct user to commit first |
+| Branch pushed to remote | C3 | Auto-push (infrastructure, not a halt) |
+| Platform config exists and is valid | C1 | Hard halt — no platform configured |
+| Platform reference file exists for configured platform | C1 | Hard halt — unsupported platform |
+| Open issues exist for issue linkage | F1 | Hard halt — no issue to link |
+| Branch has commits ahead of base | implicit | Graceful exit — nothing to PR |
 
-**If recipe context includes `ship_context.auto_approve: true` AND all `checklist.must_have` items have `status` of `PASS` or `REVIEW` (none are `FAIL`) AND `analysis.blocking_issues` is empty:** Write checkpoint artifact with Status: `AUTO_APPROVED`. Proceed directly to Step 3 without presenting the approval prompt to the user.
+Pre-flight checks run via Bash (read-only queries) since these are infrastructure, not domain work.
 
-**If `ship_context.auto_approve: true` is set but quality conditions do NOT hold** (any `must_have.status == FAIL` or `blocking_issues` non-empty): fall through to C5 enforcement — present approval prompt as normal. The auto-approve bypass does not override blocker-grade findings.
+```bash
+# Branch guard
+git branch --show-current
+git remote show origin | grep 'HEAD branch'
 
-Write checkpoint artifact to STM: `.meridian/{issue-number}/checkpoint/create-pr/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
+# C3 — clean tree
+git status --porcelain
 
-Present the approval prompt using `templates/approval-prompt.md`. Checklist blocking items with `status: FAIL` are visible to the user here — they can Vanish to abort or Tether to proceed knowing the risks.
+# C3 — push check
+git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null
+git log @{u}..HEAD --oneline 2>/dev/null
 
-Parse: `Tether`/`tether` → proceed to Step 3. `Vanish`/`vanish` → halt. Else → clarify.
+# C1 — platform config
+grep '^platform:' core/config.yaml
 
-**After user responds**, update the checkpoint artifact:
-1. Set `Status` to `APPROVED` or `REJECTED`
-2. Mark `Checkpoint approval` task as `completed`
-3. Advance `Step` to `3 of 4`
+# C1 — platform reference exists
+test -f "reference/../../../skills/submit-pr/reference/{platform}/pr.md"
 
-### Step 3 — Execute
+# F1 — open issues
+# Read issue count from platform
 
-Invoke `repo-orchestrator` to run the `submit-pr` skill.
-
-Provide recipe context:
-```yaml
----
-Recipe context:
-  intent: "Create pull request with quality checklist and issue link"
-  task: "Create a PR from the current branch to the target branch. Include quality checklist from analysis in the PR body. Include issue link. Return PR details."
-  issue_number: {issue-number}
-  branch: {current_branch_name}
-  target: {target_branch_name}
-  checklist: {analysis.checklist}
-  checkpoint_approved: true
+# Commits ahead
+git log main..HEAD --oneline
 ```
 
-**Expected output:**
-```yaml
-result:
-  success: true/false
-  error: "{error message if success is false}"
-  pr:
-    number: {number}
-    url: "{url}"
-    state: "{open|draft}"
-    title: "{title}"
-  checklist:
-    required_count: {count}
-    optional_count: {count}
+## Agent Declarations
+
+| Agent | Domain | Max Calls | Skills Used |
+|-------|--------|-----------|-------------|
+| `repo-orchestrator` | repo | 3 (Stages 2, 3, 5) | `analyze-pr`, `submit-pr` |
+| `project-orchestrator` | project | 1 (Stage 2) | `manage-issue` |
+
+**Total domain agent calls: 4** — but across 2 agents (L1 budget = max 2 agents).
+
+## Workflow Reference
+
+```
+Workflow template: ~/.meridian/core/memory/workflows/readiness-brief-generation.yaml
 ```
 
-If `result.success: false` → see Recovery section. Max 2 retries.
+Stages 3 and 4 are `skippable: true` per the workflow template. This recipe skips them when ALL confidence signals return high (target branch, checklist completeness, evidence coverage).
 
-### Step 4 — Report
+## Two Eval Levels
 
-**The orchestrator owns this step entirely. Do not delegate.**
+| Level | Who | When | What | Source |
+|-------|-----|------|------|--------|
+| **Step evals** | Recipe (inline) | After skill output (Stages 2, 5) | Did this skill's output satisfy mapped failure conditions? | `failure_conditions` from intent.yaml |
+| **Scenario evals** | Recipe | Stage 6 (E2E) | Does the whole PR satisfy acceptance? | `scenarios` from intent.yaml |
 
-Write evidence to `.meridian/{issue-number}/evidence/create-pr/{YYYYMMDD-HHMMSS}.md`:
-- Issue number and branch
-- PR number, URL, title, and state
-- Quality checklist summary (must-have count, nice-to-have count, any FAIL items)
-- Base and head branches
+### Step Evals (after Stage 2)
 
-Present the final report using `templates/final-report.md`.
+- **readiness-eval-1**: Issue link confirmed — STM contains resolved issue link (F1)
+- **readiness-eval-2**: Target branch confidence is high (C7, F5)
+- **readiness-eval-3**: Checklist items are change-specific — every item traces to diff (C4, F2)
+- **readiness-eval-4**: Every checklist item has evidence backing (C5, F3)
+- **readiness-eval-5**: Platform config resolved from project configuration (C1)
+- **readiness-eval-6**: No code modifications during analysis (C2)
+- **readiness-eval-7**: Overall confidence gate — determines if Stages 3/4 skip
 
-**After reporting**, update the checkpoint artifact:
-1. Mark all remaining tasks (`Create pull request`, `Report`) as `completed`
-2. Set `Step` to `4 of 4`
+### Step Evals (after Stage 5)
 
-**After updating checkpoint**, invoke `repo-orchestrator` to commit the evidence and checkpoint files:
+- **gen-eval-1**: PR created on correct platform (C1)
+- **gen-eval-2**: PR linked to issue (F1)
+- **gen-eval-3**: Checklist in PR body is change-specific (C4, F2)
+- **gen-eval-4**: Every PR checklist item has evidence (C5, F3)
+- **gen-eval-5**: Eval results embedded in PR body (C6, F4)
+- **gen-eval-6**: Target branch matches high-confidence selection or user confirmation (C7, F5)
 
-```yaml
----
-Recipe context:
-  intent: "Commit STM evidence files for issue #{issue_number}"
-  task: "Stage and commit only the listed files with message 'chore(stm): record evidence for #{issue_number}'. Do not stage any other files."
-  files:
-    - ".meridian/{issue-number}/evidence/create-pr/{same-timestamp}.md"
-    - ".meridian/{issue-number}/checkpoint/create-pr/{same-timestamp}.md"
-  commit_message: "chore(stm): record evidence for #{issue_number}"
+### Scenario Evals (Stage 6)
+
+- **scenario-1 (S1)**: Code reviewer can assess merge safety, understand rationale via checklist and evidence, trace to issue — sufficient to approve/reject/comment without external context
+- **scenario-2 (S2)**: Author can verify all changes accounted for, evidence supports each item, PR linked to correct issue — confident PR is submission-ready
+
+## DAG Caching
+
+```
+Cache location: .meridian/cache/intent-resolution/create-pr.json
+Invalidation: hash(intent.yaml) + hash(workflow) + hash(agents) changes
+Lifetime: Permanent until invalidated
 ```
 
-**Non-blocking:** if `repo-orchestrator` returns failure or `committed: false`, log as warning — do NOT halt.
+On recipe invocation: check cache first. If valid, load DAG directly (skip Stage 1). If stale, run resolver, update cache.
 
-## Recovery
+## DAG Resumption
 
-Load recovery reasoning from: `docs/framework/intent-driven-recovery.md`
-
-When an agent returns a structured failure (per `structured-failure-protocol.md`):
-- Read `domain_assessment.responsible_domain` to identify which agent can fix it
-- Invoke the responsible agent with fix context + original intent
-- Max 2 retries per step. After that, halt with full failure context.
-
-For retries, add to recipe context:
-```yaml
-  retry:
-    previous_failure: "{what_failed}"
-    fix_applied: "{what was done to fix it}"
-    attempt: {N}
+```
+DAG location: .meridian/{issue}/dag/create-pr.json
+Written: After Stage 1 (intent resolution)
+Updated: At every checkpoint (Stage 4) — marks completed tasks
+On resume: Recipe reads DAG from STM, skips completed tasks, continues from where it stopped
 ```
 
-**Pre-flight failures (C1–C4) are not recoverable** — hard halt with the constraint's `halt_message`.
-
-## References
-
-| File | Path | Used For |
-|------|------|----------|
-| Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
-| Checkpoint | `templates/checkpoint.md` | STM artifact at `.meridian/{issue}/checkpoint/create-pr/{ts}.md` |
-| Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation |
-| Final Report | `templates/final-report.md` | Post-PR creation summary |
-
-### Status Emoji Mapping
-
-| Status | Emoji |
-|--------|-------|
-| PASS | ✅ |
-| FAIL | ❌ |
-| REVIEW | ⏳ |
-
----
-
-## Version
-
-| Field | Value |
-|-------|-------|
-| Level | L1 |
-| Version | 1.1.0 |
-| Distinct Agents | 1 (repo-orchestrator) |
-| Checkpoint | Always (C5) — overrideable by L2 orchestration context when quality is clean (no must_have FAIL, no blocking issues) |
+No re-planning on resume. The DAG is the execution state.
