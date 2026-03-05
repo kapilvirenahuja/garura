@@ -112,7 +112,7 @@ Derive branch name: `{type}/{issue_number}-{slug}`
 
 **NEW mode:**
 
-Write checkpoint artifact to `.meridian/{issue}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
+Write checkpoint artifact to `{stm_base}/{issue}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
 
 Present branch proposal using `templates/approval-prompt.md`:
 - Issue title and number
@@ -168,12 +168,12 @@ If `success: false` → invoke recovery (see Recovery section). Max 2 retries.
 **Orchestrator initializes STM — do not delegate.**
 
 **Two-phase write (C8):**
-- If issue was just created (description-only NEW): first write to `.meridian/_pending/{YYYYMMDD-HHMMSS}/`, then move to `.meridian/{issue}/` after issue number is confirmed
-- Otherwise: write directly to `.meridian/{issue}/`
+- If issue was just created (description-only NEW): first write to `{stm_pending}/{YYYYMMDD-HHMMSS}/`, then move to `{stm_base}/{issue}/` after issue number is confirmed
+- Otherwise: write directly to `{stm_base}/{issue}/`
 
 Create subdirectories:
 ```
-.meridian/{issue}/
+{stm_base}/{issue}/
 ├── spec/
 ├── design/
 ├── evidence/
@@ -187,13 +187,13 @@ Create subdirectories:
 
 **The orchestrator owns this step entirely. Do not delegate.**
 
-Write evidence to `.meridian/{issue}/evidence/start-feature/{YYYYMMDD-HHMMSS}.md`:
+Write evidence to `{stm_base}/{issue}/evidence/start-feature/{YYYYMMDD-HHMMSS}.md`:
 - Mode (NEW / RESUME)
 - Issue number and title
 - Branch created or checked out
 - STM initialized or verified
 
-Update checkpoint artifact `.meridian/{issue}/checkpoint/start-feature/{same-timestamp}.md` (NEW mode only):
+Update checkpoint artifact `{stm_base}/{issue}/checkpoint/start-feature/{same-timestamp}.md` (NEW mode only):
 - Append branch created and STM initialized with confirmation status
 
 Present final report to user using `templates/feature-started.md`.
@@ -212,7 +212,7 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 | File | Path | Used For |
 |------|------|----------|
 | Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
-| Checkpoint | `templates/checkpoint.md` | STM artifact at `.meridian/{issue}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md` |
+| Checkpoint | `templates/checkpoint.md` | STM artifact at `{stm_base}/{issue}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md` |
 | Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation (NEW mode only) |
 | Feature Started | `templates/feature-started.md` | Final report |
 
@@ -221,7 +221,7 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 **STM Directory Structure:**
 
 ```
-.meridian/{issue}/
+{stm_base}/{issue}/
 ├── spec/          # define-feature, start-feature-planning write here
 ├── design/        # design-feature, tech-designer write here
 ├── evidence/      # verify-feature, validator write here
@@ -246,10 +246,10 @@ Reference: `~/.meridian/core/memory/standards/git/branching.md`
 **Two-Phase STM Write (ADR 008):**
 
 When issue number is not yet known (description-only input):
-- **Phase 1:** Write to `.meridian/_pending/{YYYYMMDD-HHMMSS}/`
-- **Phase 2:** After issue is created, move to `.meridian/{issue}/` and delete `_pending/` entry
+- **Phase 1:** Write to `{stm_pending}/{YYYYMMDD-HHMMSS}/`
+- **Phase 2:** After issue is created, move to `{stm_base}/{issue}/` and delete `_pending/` entry
 
-When issue number is known upfront: write directly to `.meridian/{issue}/`.
+When issue number is known upfront: write directly to `{stm_base}/{issue}/`.
 
 ---
 

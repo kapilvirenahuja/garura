@@ -26,7 +26,7 @@ core/components/           # Source of truth (edit here)
 - Components deploy to `~/.claude/` (global mode, default) or `.claude/` (project mode, ephemeral)
 - Memory deploys to `~/.meridian/core/memory/` (global mode, default) or `.meridian/core/memory/` (project mode, ephemeral)
 
-**Data Flow:** L2 Recipe → chains L1s → L1 invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`.meridian/{issue}/`)
+**Data Flow:** L2 Recipe → chains L1s → L1 invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `core/config.yaml`)
 
 ## Behavioral Rules
 

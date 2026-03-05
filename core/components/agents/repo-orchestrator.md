@@ -40,14 +40,14 @@ When invoked by a recipe, you receive a JSON contract:
 
 ```json
 {
-  "intent_path": ".meridian/{issue}/intent.yaml",
+  "intent_path": "{stm_base}/{issue}/intent.yaml",
   "stm": {
     "input": {
-      "analysis": ".meridian/{issue}/evidence/{skill}/analysis.yaml",
-      "changes": ".meridian/{issue}/evidence/{skill}/changes.yaml"
+      "analysis": "{stm_base}/{issue}/evidence/{skill}/analysis.yaml",
+      "changes": "{stm_base}/{issue}/evidence/{skill}/changes.yaml"
     },
     "output": {
-      "result": ".meridian/{issue}/evidence/{skill}/result.yaml"
+      "result": "{stm_base}/{issue}/evidence/{skill}/result.yaml"
     }
   },
   "task_id": "task-uuid-from-recipe",
@@ -75,11 +75,11 @@ The agent returns ONLY the enriched JSON contract. All detailed artifacts, analy
   "status": "completed",
   "stm": {
     "input": {
-      "analysis": ".meridian/{issue}/evidence/{skill}/analysis.yaml"
+      "analysis": "{stm_base}/{issue}/evidence/{skill}/analysis.yaml"
     },
     "output": {
-      "result": ".meridian/{issue}/evidence/{skill}/result.yaml",
-      "commit_record": ".meridian/{issue}/evidence/{skill}/commit.yaml"
+      "result": "{stm_base}/{issue}/evidence/{skill}/result.yaml",
+      "commit_record": "{stm_base}/{issue}/evidence/{skill}/commit.yaml"
     }
   },
   "task_id": "task-uuid-from-recipe",
@@ -197,6 +197,7 @@ Before invoking skills, load and inject configuration context.
 Read config from the contract's `config` field first. If absent, read `core/config.yaml` to get:
 - `platform` — Repository platform (github, gitlab, bitbucket)
 - `base_branch` — Default base branch for PRs
+- `stm.base-path` — STM base path for issue artifacts (e.g., `.meridian/project/issues/`). All `{stm_base}` references in contracts resolve to this value.
 
 ### Inject Context
 

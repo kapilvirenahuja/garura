@@ -22,7 +22,7 @@ constraints:
     - id: C7
       rule: "Self-resolution CANNOT change code or documentation; CAN retry operations, create GitHub issues, adjust PR metadata, rebase, delete/recreate branches"
     - id: C8
-      rule: "Evidence written to .meridian/{issue}/evidence/ship/{YYYYMMDD-HHMMSS}.md per config.yaml STM structure"
+      rule: "Evidence written to {stm_base}/{issue}/evidence/ship/{YYYYMMDD-HHMMSS}.md per config.yaml STM structure"
     - id: C9
       rule: "Auto-approve is default; halt only on genuine blockers: merge conflicts, CI failures, protected branch violations, blocker-severity review findings (must_have.status == FAIL)"
     - id: C10

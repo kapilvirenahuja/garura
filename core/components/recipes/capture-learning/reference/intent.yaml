@@ -6,7 +6,7 @@ constraints:
       check: issue number provided AND issue is closed on GitHub
       halt_message: "Issue must be closed before capturing learnings — active work should not be archived"
     - id: C2
-      check: STM directory exists at .meridian/{issue}/
+      check: STM directory exists at {stm_base}/{issue}/
       halt_message: "No STM directory found for this issue — nothing to capture or archive"
 
   behavioral:
@@ -17,7 +17,7 @@ constraints:
     - id: C5
       rule: "All STM contents MUST be preserved during archive — no data loss"
     - id: C6
-      rule: "Active issue paths (.meridian/{issue}/) are NEVER modified by this recipe for open issues"
+      rule: "Active issue paths ({stm_base}/{issue}/) are NEVER modified by this recipe for open issues"
 
 failure_conditions:
   - "Issue is still open — cannot archive active work"

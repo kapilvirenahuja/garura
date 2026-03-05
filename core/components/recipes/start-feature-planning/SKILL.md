@@ -145,7 +145,7 @@ result:
 
 If `success: false` → invoke recovery (see Recovery section). Max 2 retries.
 
-**Orchestrator initializes STM directory** at `.meridian/{issue}/` with subdirectories: `spec/`, `design/`, `evidence/`, `delivery/`, `checkpoint/`, `planning/`. All subsequent writes land on the feature branch.
+**Orchestrator initializes STM directory** at `{stm_base}/{issue}/` with subdirectories: `spec/`, `design/`, `evidence/`, `delivery/`, `checkpoint/`, `planning/`. All subsequent writes land on the feature branch.
 
 ### Step 2 — Deep Analysis + Plan (IDD-Aware)
 
@@ -255,9 +255,9 @@ The Plan sub-agent returns text. It cannot write files.
 
 Parse Plan sub-agent output. Write three files to STM:
 
-1. `.meridian/{issue}/planning/spec.md` — from `## SPEC`
-2. `.meridian/{issue}/planning/verify.md` — from `## VERIFY`
-3. `.meridian/{issue}/planning/tasks.md` — from `## TASKS`
+1. `{stm_base}/{issue}/planning/spec.md` — from `## SPEC`
+2. `{stm_base}/{issue}/planning/verify.md` — from `## VERIFY`
+3. `{stm_base}/{issue}/planning/tasks.md` — from `## TASKS`
 
 Each file header:
 ```markdown
@@ -269,7 +269,7 @@ Each file header:
 
 **Orchestrator owns this step entirely. Do not delegate.**
 
-Write checkpoint artifact to `.meridian/{issue}/checkpoint/start-feature-planning/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
+Write checkpoint artifact to `{stm_base}/{issue}/checkpoint/start-feature-planning/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
 
 Present plan summary using `templates/approval-prompt.md`. Do NOT use EnterPlanMode or AskUserQuestion.
 
@@ -290,12 +290,12 @@ Update artifact Status to `REJECTED`. Halt with: "Plan rejected — branch `{bra
 
 **Orchestrator owns this step entirely. Do not delegate.**
 
-Write evidence to `.meridian/{issue}/evidence/start-feature-planning/{YYYYMMDD-HHMMSS}.md`:
+Write evidence to `{stm_base}/{issue}/evidence/start-feature-planning/{YYYYMMDD-HHMMSS}.md`:
 - Issue number and title
 - Branch created
 - Planning artifacts written (spec, verify, tasks — with file paths)
 
-Update checkpoint artifact `.meridian/{issue}/checkpoint/start-feature-planning/{same-timestamp}.md`:
+Update checkpoint artifact `{stm_base}/{issue}/checkpoint/start-feature-planning/{same-timestamp}.md`:
 - Append branch created and planning artifacts written with confirmation status
 
 Present final report to user using `templates/feature-started.md`.
@@ -308,8 +308,8 @@ Recipe context:
   intent: "Commit STM evidence files for issue #{issue_number}"
   task: "Stage and commit only the listed files with message 'chore(stm): record evidence for #{issue_number}'. Do not stage any other files."
   files:
-    - ".meridian/{issue}/evidence/start-feature-planning/{same-timestamp}.md"
-    - ".meridian/{issue}/checkpoint/start-feature-planning/{same-timestamp}.md"
+    - "{stm_base}/{issue}/evidence/start-feature-planning/{same-timestamp}.md"
+    - "{stm_base}/{issue}/checkpoint/start-feature-planning/{same-timestamp}.md"
   commit_message: "chore(stm): record evidence for #{issue_number}"
 ```
 
@@ -329,7 +329,7 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 | File | Path | Used For |
 |------|------|----------|
 | Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
-| Checkpoint | `templates/checkpoint.md` | STM artifact at `.meridian/{issue}/checkpoint/start-feature-planning/{ts}.md` |
+| Checkpoint | `templates/checkpoint.md` | STM artifact at `{stm_base}/{issue}/checkpoint/start-feature-planning/{ts}.md` |
 | Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation |
 | Feature Started | `templates/feature-started.md` | Final report |
 
@@ -338,7 +338,7 @@ When an agent returns a structured failure (per `structured-failure-protocol.md`
 **STM Directory Structure:**
 
 ```
-.meridian/{issue}/
+{stm_base}/{issue}/
 ├── spec/          # define-feature writes here
 ├── design/        # tech-designer writes here
 ├── evidence/      # verify-feature, validator write here

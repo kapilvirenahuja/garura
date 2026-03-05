@@ -12,7 +12,7 @@ Move a closed issue's STM directory to the year-month archive.
 
 ## Purpose
 
-Archive `.meridian/{issue}/` to `.meridian/_archive/{YYYY-MM}/{issue}/` when an issue is closed. Preserves all STM contents (checkpoint, evidence, planning, spec, design, delivery) as an audit trail.
+Archive `{stm_base}/{issue}/` to `{stm_archive}/{YYYY-MM}/{issue}/` when an issue is closed. Preserves all STM contents (checkpoint, evidence, planning, spec, design, delivery) as an audit trail.
 
 You DO the move operation. You do NOT decide whether archival is appropriate — the calling agent has already made that decision.
 
@@ -27,7 +27,7 @@ Receive from agent:
 ### Step 1: Verify source exists
 
 ```bash
-ls -d .meridian/{issue_number} 2>/dev/null
+ls -d {stm_base}/{issue_number} 2>/dev/null
 ```
 
 If the directory does not exist, return output with `archived: false` and `reason: "STM directory not found"`.
@@ -49,7 +49,7 @@ Extract `YYYY-MM` from the `closedAt` timestamp.
 ### Step 3: Check target does not already exist
 
 ```bash
-ls -d .meridian/_archive/{YYYY-MM}/{issue_number} 2>/dev/null
+ls -d {stm_archive}/{YYYY-MM}/{issue_number} 2>/dev/null
 ```
 
 If the target already exists, return output with `archived: false` and `reason: "Archive already exists at {path}"`.
@@ -57,14 +57,14 @@ If the target already exists, return output with `archived: false` and `reason: 
 ### Step 4: Create target directory and move
 
 ```bash
-mkdir -p .meridian/_archive/{YYYY-MM}
-mv .meridian/{issue_number} .meridian/_archive/{YYYY-MM}/{issue_number}
+mkdir -p {stm_archive}/{YYYY-MM}
+mv {stm_base}/{issue_number} {stm_archive}/{YYYY-MM}/{issue_number}
 ```
 
 ### Step 5: Verify move
 
 ```bash
-ls -d .meridian/_archive/{YYYY-MM}/{issue_number} 2>/dev/null && ! ls -d .meridian/{issue_number} 2>/dev/null
+ls -d {stm_archive}/{YYYY-MM}/{issue_number} 2>/dev/null && ! ls -d {stm_base}/{issue_number} 2>/dev/null
 ```
 
 If verification fails, return output with `archived: false` and `reason: "Move verification failed"`.

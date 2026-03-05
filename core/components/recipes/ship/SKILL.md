@@ -83,7 +83,7 @@ pre_flight:
 
 **Orchestrator validates results:** for any result with `status: FAIL`, halt immediately with that constraint's `halt_message` from `reference/intent.yaml`. Pre-flight failures are **hard halts** — these are environmental conditions the agent cannot fix. See Recovery for all other failures.
 
-**Orchestrator initializes STM checkpoint** at `.meridian/{issue_number}/checkpoint/ship/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING`.
+**Orchestrator initializes STM checkpoint** at `{stm_base}/{issue_number}/checkpoint/ship/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING`.
 
 ### Step 1 — Commit (Conditional)
 
@@ -153,7 +153,7 @@ result:
 - If `must_have_fail > 0` OR `blocking_issues` non-empty → **HALT** (F5)
 - Else → **AUTO-APPROVE**
 
-Write guardian decision artifact to `.meridian/{issue}/checkpoint/ship/{same-timestamp}.md` → Guardian Decisions section.
+Write guardian decision artifact to `{stm_base}/{issue}/checkpoint/ship/{same-timestamp}.md` → Guardian Decisions section.
 
 ### Step 4 — Merge PR
 
@@ -196,7 +196,7 @@ Recipe context:
 **Orchestrator owns this step entirely. Do not delegate.**
 
 1. Update checkpoint artifact Status to `COMPLETED`
-2. Write evidence to `.meridian/{issue}/evidence/ship/{YYYYMMDD-HHMMSS}.md` containing:
+2. Write evidence to `{stm_base}/{issue}/evidence/ship/{YYYYMMDD-HHMMSS}.md` containing:
    - Issue number and title
    - Branch delivered
    - PR number, URL, merge commit
@@ -211,8 +211,8 @@ Recipe context:
   intent: "Commit STM evidence files for issue #{issue_number}"
   task: "Stage and commit only the listed files with message 'chore(stm): record evidence for #{issue_number}'. Do not stage any other files."
   files:
-    - ".meridian/{issue}/evidence/ship/{same-timestamp}.md"
-    - ".meridian/{issue}/checkpoint/ship/{same-timestamp}.md"
+    - "{stm_base}/{issue}/evidence/ship/{same-timestamp}.md"
+    - "{stm_base}/{issue}/checkpoint/ship/{same-timestamp}.md"
   commit_message: "chore(stm): record evidence for #{issue_number}"
 ```
 
@@ -237,7 +237,7 @@ Recipe context:
 
 **Halt Presentation** (when guardian halts):
 
-Write guardian decision artifact to `.meridian/{issue}/checkpoint/ship/{timestamp}.md` using `templates/guardian-decision.md`.
+Write guardian decision artifact to `{stm_base}/{issue}/checkpoint/ship/{timestamp}.md` using `templates/guardian-decision.md`.
 
 Present to user:
 
@@ -282,7 +282,7 @@ For runtime failures: follow structured-failure-protocol. Max 2 retry cycles per
 | File | Path | Used For |
 |------|------|----------|
 | Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
-| Checkpoint | `templates/checkpoint.md` | STM artifact at `.meridian/{issue}/checkpoint/ship/{ts}.md` |
+| Checkpoint | `templates/checkpoint.md` | STM artifact at `{stm_base}/{issue}/checkpoint/ship/{ts}.md` |
 | Guardian Decision | `templates/guardian-decision.md` | Guardian auto-approve/halt decision record |
 | Final Report | `templates/final-report.md` | Final delivery report |
 

@@ -19,8 +19,8 @@
 
 ## Archive Result
 
-- **Source:** `.meridian/{issue}/`
-- **Target:** `.meridian/_archive/{YYYY-MM}/{issue}/`
+- **Source:** `{stm_base}/{issue}/`
+- **Target:** `{stm_archive}/{YYYY-MM}/{issue}/`
 - **Status:** {archived: true\|false}
 - **Reason:** {reason}
 

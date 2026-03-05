@@ -56,7 +56,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 **C1** (requires GitHub state — invoke `project-orchestrator`): Verify the issue is closed.
 
-**C2** (requires filesystem state — invoke `repo-orchestrator`): Verify `.meridian/{issue}/` exists.
+**C2** (requires filesystem state — invoke `repo-orchestrator`): Verify `{stm_base}/{issue}/` exists.
 
 Provide recipe context:
 ```yaml
@@ -107,7 +107,7 @@ Derive archive bucket: extract `YYYY-MM` from `closed_at`.
 **This step is a placeholder for future implementation.**
 
 When built, this step will:
-1. Read all STM artifacts (specs, evidence, ADRs, retro notes) from `.meridian/{issue}/`
+1. Read all STM artifacts (specs, evidence, ADRs, retro notes) from `{stm_base}/{issue}/`
 2. Invoke `extract-patterns` skill to identify reusable patterns
 3. Invoke `draft-ltm-entry` skill to produce structured LTM entries
 4. Stage entries for PR-based review (LTM governance)
@@ -122,7 +122,7 @@ Invoke `repo-orchestrator` with the `archive-issue-stm` skill.
 ---
 Recipe context:
   intent: "Archive completed issue STM to year-month bucket"
-  task: "Use the archive-issue-stm skill. Move .meridian/{issue}/ to .meridian/_archive/{YYYY-MM}/{issue}/. The close date is {closed_at}. Return archive result."
+  task: "Use the archive-issue-stm skill. Move {stm_base}/{issue}/ to {stm_archive}/{YYYY-MM}/{issue}/. The close date is {closed_at}. Return archive result."
   behavioral_constraints:
     - "C4: Use close date for bucketing"
     - "C5: Preserve all STM contents"
@@ -133,8 +133,8 @@ Recipe context:
 archive:
   issue_number: {integer}
   archived: true|false
-  source: ".meridian/{issue}/"
-  target: ".meridian/_archive/{YYYY-MM}/{issue}/"
+  source: "{stm_base}/{issue}/"
+  target: "{stm_archive}/{YYYY-MM}/{issue}/"
   bucket: "{YYYY-MM}"
   reason: "{success or failure reason}"
 ```

@@ -57,7 +57,7 @@ Return ONLY this JSON structure. No prose, no explanation, no commentary.
 {
   "intent_hash": "<sha256 hash of intent.yaml content>",
   "stm_paths": {
-    "dag": ".meridian/{issue}/dag/{recipe-name}.json"
+    "dag": "{stm_base}/{issue}/dag/{recipe-name}.json"
   },
   "notes": ["<resolver observations -- max 3>"],
   "tasks": [

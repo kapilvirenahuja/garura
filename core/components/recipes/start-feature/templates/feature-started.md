@@ -9,7 +9,7 @@
 | URL | {issue_url} |
 | Branch | `{branch_name}` |
 | Tracking | `{origin/branch_name}` |
-| STM | `.meridian/{issue}/` |
+| STM | `{stm_base}/{issue}/` |
 | Worktree | {path or N/A} |
 
 ## What Happened

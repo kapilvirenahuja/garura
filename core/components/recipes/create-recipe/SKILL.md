@@ -66,7 +66,7 @@ Ask the user:
 - **Recipe purpose** — one sentence: what does this recipe do?
 - **Target directory** — defaults to `core/components/recipes/{recipe-name}/`
 
-Create the STM directory at `.meridian/recipe-creation/{recipe-name}/`.
+Create the STM directory at `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/`.
 
 ### Step 2 — Define Intent (intent-crafter)
 
@@ -115,7 +115,7 @@ For each new skill needed, record:
 Write the skill manifest to STM:
 
 ```yaml
-# .meridian/recipe-creation/{recipe-name}/skill-manifest.yaml
+# {stm_base}/{issue}/evidence/create-recipe/{recipe-name}/skill-manifest.yaml
 recipe: "{recipe-name}"
 existing_skills:
   - name: "{skill-name}"
@@ -151,7 +151,7 @@ Input:
   skill_contract:
     skill_name: "{skill-name}"
     contract_path: "core/components/skills/{skill-name}/SKILL.md"
-  output_path: ".meridian/recipe-creation/{recipe-name}/step-evals-{skill-name}.yaml"
+  output_path: "{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/step-evals-{skill-name}.yaml"
 ```
 
 **Gate:** Each skill SKILL.md and its step evals must exist before proceeding to the next skill.
@@ -171,7 +171,7 @@ Input:
       contract_path: "core/components/skills/{skill-1}/SKILL.md"
     - skill_name: "{skill-2}"
       contract_path: "core/components/skills/{skill-2}/SKILL.md"
-  output_path: ".meridian/recipe-creation/{recipe-name}/scenario-evals.yaml"
+  output_path: "{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/scenario-evals.yaml"
 ```
 
 Present generated evals to the user for review. Clearly distinguish:
@@ -249,7 +249,7 @@ Produce an audit report per agent:
 | P10 Task Graph Participation | PASS/FAIL | {what was found} |
 ```
 
-Write the audit report to `.meridian/recipe-creation/{recipe-name}/agent-audit-{agent-name}.md`.
+Write the audit report to `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/agent-audit-{agent-name}.md`.
 
 #### Phase 3: Interview and Resolve
 
@@ -317,7 +317,7 @@ Invoke `intent-resolver` agent:
 }
 ```
 
-The resolver returns the task DAG JSON. Write it to `.meridian/recipe-creation/{recipe-name}/dag.json`.
+The resolver returns the task DAG JSON. Write it to `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/dag.json`.
 
 Present the DAG to the user for review.
 
@@ -381,7 +381,7 @@ Stage 5 -> Agents read STM data (NOT brief) -> generate deliverables
 #### 10.7 — Execution Section
 How the recipe loads and executes the task DAG:
 
-1. **Load DAG** — Read from `.meridian/{issue}/dag/{recipe-name}.json`
+1. **Load DAG** — Read from `{stm_base}/{issue}/dag/{recipe-name}.json`
 2. **Dispatch by stage + owner:**
    - Owner is an agent name -> delegate to that agent via JSON contract
    - Owner is "recipe" -> execute inline (pre-flight, checkpoint, scenario eval, evidence)
@@ -403,7 +403,7 @@ On recipe invocation: check cache first. If valid, load DAG directly (skip Stage
 The recipe MUST support resumption:
 
 ```
-DAG location: .meridian/{issue}/dag/{recipe-name}.json
+DAG location: {stm_base}/{issue}/dag/{recipe-name}.json
 Written: After Stage 1 (intent resolution)
 Updated: At every checkpoint (Stage 4) — marks completed tasks
 On resume: Recipe reads DAG from STM, skips completed tasks, continues from where it stopped

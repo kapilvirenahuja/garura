@@ -89,7 +89,7 @@ If cache is valid, load DAG directly (skip Stage 1). If stale, run intent-resolv
 If resuming an interrupted run, read DAG from STM:
 
 ```
-DAG location: .meridian/{issue}/dag/commit-code.json
+DAG location: {stm_base}/{issue}/dag/commit-code.json
 Written: After Stage 1
 Updated: At every checkpoint (Stage 4) — marks completed tasks
 On resume: Read DAG, skip completed tasks, continue from where it stopped
@@ -204,7 +204,7 @@ On recipe invocation: check cache first. If valid, load DAG directly (skip Stage
 ## DAG Resumption
 
 ```
-DAG location: .meridian/{issue}/dag/commit-code.json
+DAG location: {stm_base}/{issue}/dag/commit-code.json
 Written: After Stage 1 (intent resolution)
 Updated: At every checkpoint (Stage 4) — marks completed tasks
 On resume: Recipe reads DAG from STM, skips completed tasks, continues from where it stopped

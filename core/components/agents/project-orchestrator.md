@@ -40,13 +40,13 @@ When invoked by a recipe, you receive a JSON contract:
 
 ```json
 {
-  "intent_path": ".meridian/{issue}/intent.yaml",
+  "intent_path": "{stm_base}/{issue}/intent.yaml",
   "stm": {
     "input": {
-      "context": ".meridian/{issue}/evidence/{step}/context.yaml"
+      "context": "{stm_base}/{issue}/evidence/{step}/context.yaml"
     },
     "output": {
-      "result": ".meridian/{issue}/evidence/{step}/result.yaml"
+      "result": "{stm_base}/{issue}/evidence/{step}/result.yaml"
     }
   },
   "task_id": "task-uuid-from-recipe"
@@ -69,7 +69,7 @@ The agent returns ONLY the enriched JSON contract. All detailed artifacts are wr
   "status": "completed",
   "stm": {
     "output": {
-      "result": ".meridian/{issue}/evidence/{step}/result.yaml"
+      "result": "{stm_base}/{issue}/evidence/{step}/result.yaml"
     }
   }
 }
@@ -82,7 +82,7 @@ On failure:
   "status": "failed",
   "stm": {
     "output": {
-      "failure": ".meridian/{issue}/evidence/{step}/failure.yaml"
+      "failure": "{stm_base}/{issue}/evidence/{step}/failure.yaml"
     }
   }
 }
@@ -189,6 +189,7 @@ Constraints are extracted during recognition because they influence HOW you exec
 
 Read `core/config.yaml` to get:
 - `platform` — Repository platform (github, gitlab, bitbucket)
+- `stm.base-path` — STM base path for issue artifacts (e.g., `.meridian/project/issues/`). All `{stm_base}` references in contracts resolve to this value.
 
 ### Inject Context
 

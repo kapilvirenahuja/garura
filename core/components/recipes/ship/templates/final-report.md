@@ -32,7 +32,7 @@
 
 ## Evidence
 
-`.meridian/{issue}/evidence/ship/{timestamp}.md`
+`{stm_base}/{issue}/evidence/ship/{timestamp}.md`
 
 ## Issues Created
 
