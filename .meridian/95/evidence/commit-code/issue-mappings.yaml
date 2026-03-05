@@ -1,0 +1,24 @@
+mappings:
+  - group_id: feat-95-stm-path-refactor
+    issue_number: 95
+    confidence: high
+    rationale: >
+      Branch signal (feature/95-*) + semantic match (group description explicitly names #95
+      as originating issue) + file scope (agents, recipes, config) entirely within intent-driven
+      recipe architecture domain. Two corroborating signals satisfy high confidence.
+
+  - group_id: chore-95-stm-migration
+    issue_number: 95
+    confidence: high
+    rationale: >
+      Branch signal (feature/95-*) + semantic match (artifact migration is direct consequence
+      of {stm_base} refactor in group 1) + proximity signal (both groups are inseparable parts
+      of #95 deliverable). Two corroborating signals satisfy high confidence.
+
+summary:
+  total_groups: 2
+  high_confidence: 2
+  medium_confidence: 0
+  low_confidence: 0
+  unmapped: 0
+  approval_recommended: false

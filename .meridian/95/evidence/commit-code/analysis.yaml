@@ -1,288 +1,254 @@
----
-# analyze-changes output
-# Branch: feature/95-intent-driven-recipe-architecture
-# Generated: 2026-03-05
-# Skill: analyze-changes v1.0.0
+analysis:
+  branch: feature/95-intent-driven-recipe-architecture
+  issue: 95
+  branch_signal: "#95 — single-issue branch; all changes default to one issue group"
+  generated_at: "2026-03-06"
 
-branch: feature/95-intent-driven-recipe-architecture
-base_branch: main
-hotfix_branch: false
+  groups:
+    - group_id: feat-95-stm-path-refactor
+      type: refactor
+      scope: stm
+      description: >
+        Replace all hardcoded `.meridian/{issue}/` STM path references with the
+        configurable `{stm_base}/{issue}/` variable, and update core/config.yaml
+        to define the new base paths. Includes CLAUDE.md data-flow description update.
+        This is the primary deliverable of issue #95 (intent-driven recipe architecture).
+      files:
+        - CLAUDE.md
+        - core/config.yaml
+        - core/components/agents/intent-resolver.md
+        - core/components/agents/product-strategist.md
+        - core/components/agents/project-orchestrator.md
+        - core/components/agents/repo-orchestrator.md
+        - core/components/recipes/capture-learning/SKILL.md
+        - core/components/recipes/capture-learning/reference/intent.yaml
+        - core/components/recipes/capture-learning/templates/capture-report.md
+        - core/components/recipes/commit-code/SKILL.md
+        - core/components/recipes/create-pr/SKILL.md
+        - core/components/recipes/create-recipe/SKILL.md
+        - core/components/recipes/ship/SKILL.md
+        - core/components/recipes/ship/reference/intent.yaml
+        - core/components/recipes/ship/templates/final-report.md
+        - core/components/recipes/start-feature-planning/SKILL.md
+        - core/components/recipes/start-feature-planning/templates/approval-prompt.md
+        - core/components/recipes/start-feature-planning/templates/checkpoint.md
+        - core/components/recipes/start-feature-planning/templates/final-report.md
+        - core/components/recipes/start-feature/SKILL.md
+        - core/components/recipes/start-feature/templates/feature-started.md
+        - core/components/skills/archive-issue-stm/SKILL.md
+        - core/components/skills/archive-issue-stm/templates/archive-output.md
+      rationale: >
+        All modified files share a single concern: replacing hardcoded .meridian/ STM
+        paths with the {stm_base} variable so paths are driven by core/config.yaml.
+        config.yaml defines the new base-path (.meridian/project/issues/), all
+        agent and recipe docs consume it. One coherent architectural change, one commit.
+      suggested_message: "refactor(stm): replace hardcoded STM paths with {stm_base} variable"
 
-summary:
-  total_files: 24
-  modified: 6
-  deleted: 3
-  untracked_dirs: 15  # directories containing additional files
-  staged: 1  # .claude/specs/idsd/idsd-tasks.md
+    - group_id: chore-95-stm-migration
+      type: chore
+      scope: stm
+      description: >
+        Delete all previously-tracked .meridian/ STM artifacts from old path structure
+        (issues 63, 65, 67, 68, 70, 71, 73, 79, 81, 83, 85, 91, 95, project/product,
+        recipe-creation, _archive) and add new STM directories under the migrated
+        path structure (.meridian/project/issues/, .meridian/product/, .meridian/95/dag/).
+        These are operational artifacts, not feature code.
+      files:
+        # Deleted old STM artifacts — issue 63
+        - .meridian/63/checkpoint/commit-code/20260227-172553.md
+        - .meridian/63/checkpoint/create-pr/20260227-172925.md
+        - .meridian/63/checkpoint/start-feature/20260227-163708.md
+        - .meridian/63/evidence/commit-code/20260227-172553.md
+        - .meridian/63/evidence/create-pr/20260227-172925.md
+        - .meridian/63/evidence/start-feature/20260227-163708.md
+        # Deleted old STM artifacts — issue 65
+        - .meridian/65/checkpoint/commit-code/20260304-124500.md
+        - .meridian/65/checkpoint/create-pr/20260304-130000.md
+        - .meridian/65/checkpoint/ship/20260304-130000.md
+        - .meridian/65/checkpoint/start-feature-planning/20260303-152000.md
+        - .meridian/65/evidence/commit-code/20260226-010000.md
+        - .meridian/65/evidence/commit-code/20260304-124500.md
+        - .meridian/65/evidence/ship/20260304-130000.md
+        - .meridian/65/evidence/start-feature-planning/20260303-152000.md
+        - .meridian/65/planning/spec.md
+        - .meridian/65/planning/tasks.md
+        - .meridian/65/planning/verify.md
+        # Deleted old STM artifacts — issue 67
+        - .meridian/67/checkpoint/.gitkeep
+        - .meridian/67/checkpoint/commit-code/20260303-120100.md
+        - .meridian/67/checkpoint/create-pr/20260303-120200.md
+        - .meridian/67/checkpoint/ship/20260303-120000.md
+        - .meridian/67/checkpoint/start-feature-planning/20260227-151152.md
+        - .meridian/67/checkpoint/start-feature-planning/20260303-000000.md
+        - .meridian/67/delivery/.gitkeep
+        - .meridian/67/design/.gitkeep
+        - .meridian/67/evidence/.gitkeep
+        - .meridian/67/evidence/commit-code/20260303-120100.md
+        - .meridian/67/evidence/create-pr/20260303-120200.md
+        - .meridian/67/evidence/ship/delivery-20260303.md
+        - .meridian/67/evidence/ship/final-verification-20260303.md
+        - .meridian/67/evidence/ship/integration-walkthrough-20260303.md
+        - .meridian/67/evidence/ship/structural-behavioral-20260303.md
+        - .meridian/67/evidence/ship/template-verification-20260303.md
+        - .meridian/67/evidence/start-feature-planning/20260227-151152.md
+        - .meridian/67/evidence/start-feature-planning/20260303-000000.md
+        - .meridian/67/planning/spec.md
+        - .meridian/67/planning/tasks.md
+        - .meridian/67/planning/verify.md
+        - .meridian/67/spec/.gitkeep
+        - .meridian/67/spec/ship-recipe.md
+        - .meridian/67/spec/ship-recipe_tasks.md
+        - .meridian/67/spec/ship-recipe_verify.md
+        # Deleted old STM artifacts — issue 68
+        - .meridian/68/checkpoint/.gitkeep
+        - .meridian/68/checkpoint/start-feature-planning/20260228-120000.md
+        - .meridian/68/delivery/.gitkeep
+        - .meridian/68/design/.gitkeep
+        - .meridian/68/evidence/.gitkeep
+        - .meridian/68/planning/.gitkeep
+        - .meridian/68/planning/spec.md
+        - .meridian/68/planning/tasks.md
+        - .meridian/68/planning/verify.md
+        - .meridian/68/spec/.gitkeep
+        # Deleted old STM artifacts — issue 70
+        - .meridian/70/checkpoint/start-feature-planning/20260228-140000.md
+        - .meridian/70/checkpoint/start-feature/20260228-130000.md
+        - .meridian/70/delivery/.gitkeep
+        - .meridian/70/design/.gitkeep
+        - .meridian/70/evidence/.gitkeep
+        - .meridian/70/evidence/start-feature-planning/20260302-120000.md
+        - .meridian/70/evidence/start-feature/20260228-130000.md
+        - .meridian/70/planning/.gitkeep
+        - .meridian/70/planning/spec.md
+        - .meridian/70/planning/tasks.md
+        - .meridian/70/planning/verify.md
+        - .meridian/70/spec/.gitkeep
+        # Deleted old STM artifacts — issue 71
+        - .meridian/71/checkpoint/commit-code/20260303-015848.md
+        - .meridian/71/checkpoint/create-pr/20260303-020144.md
+        - .meridian/71/checkpoint/start-feature/20260303-015556.md
+        - .meridian/71/evidence/commit-code/20260303-015848.md
+        - .meridian/71/evidence/create-pr/20260303-020144.md
+        - .meridian/71/evidence/start-feature/20260303-015556.md
+        # Deleted old STM artifacts — issue 73
+        - .meridian/73/checkpoint/.gitkeep
+        - .meridian/73/checkpoint/commit-code/20260303-150100.md
+        - .meridian/73/checkpoint/create-pr/20260303-150200.md
+        - .meridian/73/checkpoint/ship/20260303-150000.md
+        - .meridian/73/checkpoint/start-feature-planning/20260303-140000.md
+        - .meridian/73/delivery/.gitkeep
+        - .meridian/73/design/.gitkeep
+        - .meridian/73/evidence/.gitkeep
+        - .meridian/73/evidence/commit-code/20260303-150100.md
+        - .meridian/73/evidence/ship/20260303-150300.md
+        - .meridian/73/evidence/start-feature-planning/20260303-140000.md
+        - .meridian/73/planning/.gitkeep
+        - .meridian/73/planning/spec.md
+        - .meridian/73/planning/tasks.md
+        - .meridian/73/planning/verify.md
+        - .meridian/73/spec/.gitkeep
+        # Deleted old STM artifacts — issue 79
+        - .meridian/79/checkpoint/commit-code/20260304-150000.md
+        - .meridian/79/checkpoint/create-pr/20260304-150000.md
+        - .meridian/79/checkpoint/ship/20260304-150000.md
+        - .meridian/79/checkpoint/start-feature/20260304-140000.md
+        - .meridian/79/evidence/ship/20260304-150000.md
+        - .meridian/79/evidence/start-feature/20260304-140000.md
+        # Deleted old STM artifacts — issue 81
+        - .meridian/81/checkpoint/commit-code/20260304-160000.md
+        - .meridian/81/checkpoint/create-pr/20260304-160000.md
+        - .meridian/81/checkpoint/ship/20260304-160000.md
+        - .meridian/81/checkpoint/start-feature/20260304-160000.md
+        - .meridian/81/evidence/create-pr/20260304-160000.md
+        - .meridian/81/evidence/ship/20260304-160000.md
+        - .meridian/81/evidence/start-feature/20260304-160000.md
+        # Deleted old STM artifacts — issue 83
+        - .meridian/83/checkpoint/commit-code/20260304-170000.md
+        - .meridian/83/checkpoint/create-pr/20260304-170000.md
+        - .meridian/83/checkpoint/ship/20260304-170000.md
+        - .meridian/83/evidence/ship/20260304-170000.md
+        # Deleted old STM artifacts — issue 85
+        - .meridian/85/checkpoint/commit-code/20260305-094621.md
+        - .meridian/85/checkpoint/commit-code/20260305-095145.md
+        - .meridian/85/checkpoint/create-pr/20260305-095534.md
+        - .meridian/85/checkpoint/ship/20260305-095045.md
+        - .meridian/85/evidence/commit-code/20260305-095200.md
+        - .meridian/85/evidence/create-pr/20260305-095700.md
+        - .meridian/85/evidence/ship/20260305-100000.md
+        # Deleted old STM artifacts — issue 91
+        - .meridian/91/checkpoint/commit-code/20260305-095305.md
+        - .meridian/91/checkpoint/create-pr/20260305-095555.md
+        - .meridian/91/checkpoint/ship/20260305-095059.md
+        - .meridian/91/evidence/commit-code/20260305-095335.md
+        - .meridian/91/evidence/ship/20260305-095059.md
+        # Deleted old STM artifacts — issue 95
+        - .meridian/95/checkpoint/start-feature/20260305-220000.md
+        - .meridian/95/evidence/commit-code/analysis-v2.yaml
+        - .meridian/95/evidence/commit-code/analysis-v3.yaml
+        - .meridian/95/evidence/commit-code/analysis.yaml
+        - .meridian/95/evidence/commit-code/commits-v2.yaml
+        - .meridian/95/evidence/commit-code/commits.yaml
+        - .meridian/95/evidence/commit-code/open-issues-v2.yaml
+        - .meridian/95/evidence/commit-code/open-issues.yaml
+        - .meridian/95/evidence/start-feature/20260305-220000.md
+        # Deleted old STM artifacts — archive/66
+        - .meridian/_archive/2026-02/66/checkpoint/.gitkeep
+        - .meridian/_archive/2026-02/66/checkpoint/start-feature-planning/20260227-000000.md
+        - .meridian/_archive/2026-02/66/delivery/.gitkeep
+        - .meridian/_archive/2026-02/66/design/.gitkeep
+        - .meridian/_archive/2026-02/66/evidence/.gitkeep
+        - .meridian/_archive/2026-02/66/planning/.gitkeep
+        - .meridian/_archive/2026-02/66/planning/spec.md
+        - .meridian/_archive/2026-02/66/planning/tasks.md
+        - .meridian/_archive/2026-02/66/planning/verify.md
+        - .meridian/_archive/2026-02/66/spec/.gitkeep
+        # Deleted old STM artifacts — project/product
+        - .meridian/project/product/checkpoint/plan-roadmap/20260304-120000.md
+        - .meridian/project/product/evidence/plan-roadmap/20260304-120000.md
+        - .meridian/project/product/meridian-os/brief-20260304T120000.md
+        - .meridian/project/product/meridian-os/roadmap-engineering.md
+        - .meridian/project/product/meridian-os/roadmap.md
+        - .meridian/project/product/meridian-os/vision.md
+        # Deleted old STM artifacts — recipe-creation
+        - .meridian/recipe-creation/commit-code/agent-audit-project-orchestrator.md
+        - .meridian/recipe-creation/commit-code/agent-audit-repo-orchestrator.md
+        - .meridian/recipe-creation/commit-code/dag.json
+        - .meridian/recipe-creation/commit-code/scenario-evals.yaml
+        - .meridian/recipe-creation/commit-code/skill-manifest.yaml
+        - .meridian/recipe-creation/commit-code/step-evals-resolve-issues.yaml
+        - .meridian/recipe-creation/create-pr/agent-audit-project-orchestrator.md
+        - .meridian/recipe-creation/create-pr/agent-audit-repo-orchestrator.md
+        - .meridian/recipe-creation/create-pr/dag.json
+        - .meridian/recipe-creation/create-pr/scenario-evals.yaml
+        - .meridian/recipe-creation/create-pr/skill-manifest.yaml
+        - .meridian/recipe-creation/create-pr/step-evals-analyze-pr.yaml
+        - .meridian/recipe-creation/create-pr/step-evals-submit-pr.yaml
+        # New STM directories under migrated path structure (untracked)
+        - .meridian/95/dag/
+        - .meridian/product/
+        - .meridian/project/issues/
+      rationale: >
+        All deleted files are STM operational artifacts from the old .meridian/{issue}/
+        path structure, being cleared as part of the migration to the new
+        .meridian/project/issues/{issue}/ structure defined in core/config.yaml.
+        The untracked directories (.meridian/product/, .meridian/project/issues/,
+        .meridian/95/dag/) are the new structure coming online. Grouped together as
+        one chore(stm) commit — these are not feature code, they are data artifacts.
+      suggested_message: "chore(stm): migrate STM artifacts to new base path structure"
 
-groups:
-  - id: G1
-    type: refactor
-    scope: commit-code
-    subject: "migrate recipe to JSON contract pattern with intent.yaml and remove prose templates"
-    issue: 95
-    confidence: high
-    files:
-      - path: core/components/recipes/commit-code/SKILL.md
-        status: modified
-        staged: false
-        description: >
-          Recipe rewritten to use JSON contract pattern — agents invoked via structured
-          contracts, agent boundary table added, prose-template dependency removed.
-      - path: core/components/recipes/commit-code/reference/intent.yaml
-        status: modified
-        staged: false
-        description: >
-          intent.yaml restructured: pre_flight/behavioral split replaced with flat
-          constraints (C1–C6), failure_conditions (F1–F4), and scenarios (S1–S2) added.
-      - path: core/components/recipes/commit-code/templates/approval-prompt.md
-        status: deleted
-        staged: false
-        description: Prose template removed — approval now handled via intent contract.
-      - path: core/components/recipes/commit-code/templates/checkpoint.md
-        status: deleted
-        staged: false
-        description: Prose template removed — checkpoint pattern eliminated.
-      - path: core/components/recipes/commit-code/templates/commit-summary.md
-        status: deleted
-        staged: false
-        description: Prose template removed — summary pattern eliminated.
+  risks:
+    sensitive_files: []
+    breaking_changes: []
+    ambiguous_types: []
+    hotfix_branch: false
 
-  - id: G2
-    type: feat
-    scope: agents
-    subject: "add JSON contract mode to project-orchestrator and repo-orchestrator"
-    issue: 95
-    confidence: high
-    files:
-      - path: core/components/agents/project-orchestrator.md
-        status: modified
-        staged: false
-        description: >
-          Contract Mode section added: input/output JSON contract schemas, intent loading
-          protocol, task graph participation, structured failure protocol reference.
-      - path: core/components/agents/repo-orchestrator.md
-        status: modified
-        staged: false
-        description: >
-          Contract Mode section added: input/output JSON contract schemas with config
-          field, contract processing flow, structured failure protocol reference.
-
-  - id: G3
-    type: feat
-    scope: agents
-    subject: "add intent-crafter and intent-resolver agents"
-    issue: 95
-    confidence: high
-    files:
-      - path: core/components/agents/intent-crafter.md
-        status: untracked
-        description: New agent for authoring intent.yaml files.
-      - path: core/components/agents/intent-resolver.md
-        status: untracked
-        description: New agent for reading and resolving intent contracts.
-
-  - id: G4
-    type: feat
-    scope: skills
-    subject: "add evals-creator and resolve-issues skills"
-    issue: 95
-    confidence: high
-    files:
-      - path: core/components/skills/evals-creator/SKILL.md
-        status: untracked
-        description: New skill for generating evaluation/verification scenarios.
-      - path: core/components/skills/resolve-issues/SKILL.md
-        status: untracked
-        description: New skill for resolving issue IDs against project tracker.
-      - path: core/components/skills/resolve-issues/templates/
-        status: untracked
-        description: Templates for resolve-issues skill output.
-
-  - id: G5
-    type: feat
-    scope: recipes
-    subject: "add create-recipe recipe"
-    issue: 95
-    confidence: high
-    files:
-      - path: core/components/recipes/create-recipe/SKILL.md
-        status: untracked
-        description: New recipe for creating Meridian recipes following Four Crafts pattern.
-
-  - id: G6
-    type: feat
-    scope: memory
-    subject: "add intent-schema template and workflow definitions to LTM"
-    issue: 95
-    confidence: high
-    files:
-      - path: core/components/memory/standards/templates/intent-schema.yaml
-        status: untracked
-        description: LTM template defining the canonical schema for intent.yaml files.
-      - path: core/components/memory/workflows/direct-generation.yaml
-        status: untracked
-        description: LTM workflow definition for direct generation mode.
-      - path: core/components/memory/workflows/readiness-brief-generation.yaml
-        status: untracked
-        description: LTM workflow definition for readiness-brief generation mode.
-      - path: core/components/memory/workflows/readiness-only.yaml
-        status: untracked
-        description: LTM workflow definition for readiness-only mode.
-
-  - id: G7
-    type: docs
-    scope: idsd
-    subject: "update IDSD spec and tasks with Four Crafts architecture notice and progress tracker"
-    issue: 95
-    confidence: high
-    files:
-      - path: .claude/specs/idsd/idsd-tasks.md
-        status: modified
-        staged: true
-        description: >
-          Version 2.1.0 → 2.2.0. Architecture Change Notice added. Task statuses updated
-          to reflect Four Crafts divergence (P5, P6 partial, P12 incomplete).
-      - path: .claude/specs/idsd/idsd.md
-        status: modified
-        staged: false
-        description: >
-          Version 2.1.0 → 2.2.0. Progress Tracker section added. Architecture Change
-          Notice documenting Four Crafts superseding original recipe/agent patterns.
-
-  - id: G8
-    type: chore
-    scope: stm
-    subject: "add STM evidence and checkpoint artifacts for issues 85, 91, 95, and recipe-creation"
-    issue_mapping:
-      - files: ".meridian/85/**"
-        issue: 85
-        confidence: high
-      - files: ".meridian/91/**"
-        issue: 91
-        confidence: high
-      - files: ".meridian/95/**"
-        issue: 95
-        confidence: high
-      - files: ".meridian/recipe-creation/**"
-        issue: 95
-        confidence: medium
-        note: "recipe-creation STM likely relates to #95 create-recipe work"
-    files:
-      - path: .meridian/85/checkpoint/create-pr/
-        status: untracked
-        description: Checkpoint artifact from issue #85 create-pr recipe run.
-      - path: .meridian/85/evidence/commit-code/
-        status: untracked
-        description: Evidence from issue #85 commit-code recipe run.
-      - path: .meridian/85/evidence/create-pr/
-        status: untracked
-        description: Evidence from issue #85 create-pr recipe run.
-      - path: .meridian/91/
-        status: untracked
-        description: Full STM directory for issue #91.
-      - path: .meridian/95/
-        status: untracked
-        description: Full STM directory for issue #95 (current).
-      - path: .meridian/recipe-creation/
-        status: untracked
-        description: STM artifacts from recipe-creation workflow.
-
-  - id: G9
-    type: docs
-    scope: specs
-    subject: "add docs-four-crafts spec"
-    issue: 95
-    confidence: medium
-    note: >
-      .claude/specs/docs-four-crafts/ is an untracked spec directory. Likely related to
-      #95 documentation work for Four Crafts architecture. Needs confirmation — could
-      also be a standalone issue.
-    files:
-      - path: .claude/specs/docs-four-crafts/
-        status: untracked
-        description: Spec directory for Four Crafts documentation work.
-
-risks:
-  sensitive_files: []
-  breaking_changes:
-    - file: core/components/recipes/commit-code/reference/intent.yaml
-      detail: >
-        Structural breaking change — pre_flight/behavioral constraint schema replaced
-        with flat list. Any recipe or agent that reads the old schema (C1–C8 under
-        pre_flight/behavioral keys) will fail to parse the new format (flat C1–C6).
-    - file: core/components/recipes/commit-code/SKILL.md
-      detail: >
-        Recipe invocation pattern changed — callers expecting prose-based agent delegation
-        must now use JSON contract format. Template references (approval-prompt.md,
-        checkpoint.md, commit-summary.md) are removed.
-    - files:
-        - core/components/recipes/commit-code/templates/approval-prompt.md
-        - core/components/recipes/commit-code/templates/checkpoint.md
-        - core/components/recipes/commit-code/templates/commit-summary.md
-      detail: >
-        Three template files deleted. Any downstream consumers (deployed copies in
-        ~/.claude/skills/) that reference these templates will break until resynced.
-  ambiguous_types:
-    - group: G9
-      files: [".claude/specs/docs-four-crafts/"]
-      reason: >
-        Could be type=docs (if this is documentation of the Four Crafts arch) or
-        type=feat (if this is a new spec driving new work). Issue mapping is also
-        uncertain — may belong to a distinct issue rather than #95.
-  hotfix_branch: false
-
-issue_mapping_status:
-  mapped:
-    - group: G1
-      issue: 95
-      confidence: high
-    - group: G2
-      issue: 95
-      confidence: high
-    - group: G3
-      issue: 95
-      confidence: high
-    - group: G4
-      issue: 95
-      confidence: high
-    - group: G5
-      issue: 95
-      confidence: high
-    - group: G6
-      issue: 95
-      confidence: high
-    - group: G7
-      issue: 95
-      confidence: high
-    - group: G8
-      issues: [85, 91, 95]
-      confidence: high
-      note: ".meridian/ subdirs map clearly by directory name to issue numbers"
-  needs_confirmation:
-    - group: G9
-      files: [".claude/specs/docs-four-crafts/"]
-      reason: "Issue unknown — could be #95 or a separate issue. Needs user clarification."
-
-constraint_check:
-  C1:
-    status: PASS
-    detail: "Branch is feature/95-intent-driven-recipe-architecture — not main/master/default."
-  C2:
-    status: PASS
-    detail: "24 changed files detected — changeset is non-empty."
-  C3:
-    status: REVIEW
-    detail: >
-      All groups map to existing issues (#85, #91, #95) with high confidence EXCEPT G9
-      (.claude/specs/docs-four-crafts/) which has no confirmed issue. Recipe must halt
-      or get user confirmation before committing G9.
-  C4:
-    status: PASS
-    detail: "No sensitive files detected. No .env, *.key, *credentials*, or secret patterns found."
-  C5:
-    status: PASS
-    detail: "All groups assigned conventional commit types from LTM categories (refactor, feat, docs, chore)."
-  C6:
-    status: PASS
-    detail: "All group subjects include issue reference placeholders ready for formatting."
+  summary:
+    total_groups: 2
+    total_files_modified: 23
+    total_files_deleted: 151
+    total_directories_untracked: 3
+    notes:
+      - "Branch is single-issue (#95); grouping follows issue-first principle"
+      - "No sensitive files detected against known patterns"
+      - "Not a hotfix branch — no checkpoint required for branch type"
+      - "chore(stm) group is large (151 deletions) but uniform — all are old STM path artifacts"
