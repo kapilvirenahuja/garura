@@ -1,0 +1,18 @@
+name: direct-generation
+description: Readiness straight to generation — no human brief or checkpoint. Use for recipes where human approval is not needed (automated pipelines, low-risk operations).
+
+stages:
+  - stage: 2
+    name: Readiness
+    owner_type: domain-agent
+    description: Analysis, scoping, feasibility. All structured artifacts produced and written to STM.
+
+  - stage: 5
+    name: Generation
+    owner_type: domain-agent
+    description: Produce final deliverables from readiness artifacts in STM.
+
+  - stage: 6
+    name: Scenario Validation
+    owner_type: recipe
+    description: E2E scenario evals from intent.yaml. Validate final artifacts against acceptance scenarios.

@@ -1,8 +1,8 @@
 # IDSD — Intent Driven Software Development: Complete Lifecycle Specification
 
-**Version:** 2.1.0
-**Date:** 2026-02-21
-**Status:** DRAFT — Pending Review
+**Version:** 2.2.0
+**Date:** 2026-03-05 (updated from 2026-02-21)
+**Status:** IN PROGRESS — 4/19 complete (P1, P4, P5, P11). Four Crafts architecture (#85) supersedes original recipe/agent patterns.
 **Author:** Meridian
 
 ---
@@ -29,6 +29,58 @@
 - Verification gate has no concrete checkable criteria → halt, gate is ceremonial
 - Task has no gate mapping → halt, verification gap
 - Derived artifact (bundle, task, gate) is out of sync with its source → halt, sync breach
+
+---
+
+## Progress Tracker (as of 2026-03-05)
+
+### Architecture Change Notice
+
+**Four Crafts architecture (#85/#86, merged 2026-03-05) supersedes the recipe/agent patterns described in this spec.** All remaining work must follow the new pattern:
+- Recipes pass a **single JSON contract** to agents (not individual parameters)
+- Templates live in **LTM** (`core/components/memory/standards/templates/`) per ADR 009
+- **Intent-resolution protocol removed** — agents read JSON contract directly
+- **Task-driven DAGs** — recipes create task graphs before agent execution
+
+### Priority Status
+
+| Priority | Recipe | Status | Notes |
+|---|---|---|---|
+| P1 | start-feature | ✅ COMPLETE | IDD headers, resume mode, STM support |
+| P2 | capture-learning | ⚠️ PARTIAL | Recipe exists, 2 skills missing (extract-patterns, draft-ltm-entry) |
+| P3 | implement-feature | ❌ NOT STARTED | **Critical blocker** — validator agent + 3 skills needed. Blocks P10, P13, P14, P18 |
+| P4 | start-feature-planning | ✅ COMPLETE | Renamed from start-planned-feature, IDD refactored |
+| P5 | discover-product | ✅ COMPLETE | All 4 skills + recipe + product-strategist agent built |
+| P6 | plan-roadmap | ⚠️ PARTIAL | Recipe works with Four Crafts (JSON contract, task DAG). Spec'd skills (prioritize-product-features, draft-product-roadmap, validate-product-roadmap) replaced by scope-roadmap-epics, assess-feasibility, draft-roadmap-brief, draft-roadmap, generate-engineering-view |
+| P7 | manage-backlog | ❌ NOT STARTED | 3 skills missing |
+| P8 | refine-backlog | ❌ NOT STARTED | 1 of 2 skills exists (analyze-backlog) |
+| P9 | build-feature | ❌ NOT STARTED | Recipe missing |
+| P10 | verify-feature | ❌ NOT STARTED | Blocked by P3 (needs validator) |
+| P11 | commit-code | ✅ COMPLETE | IDD headers, structured failure |
+| P12 | create-pr | ⚠️ INCOMPLETE | Exists but needs IDD compliance (T-110–T-113) |
+| P13 | review-pr | ❌ NOT STARTED | Blocked by P3 (needs validator) |
+| P14 | deliver-feature | ❌ NOT STARTED | Blocked by P3 (needs validator) |
+| P15 | run-demo | ❌ NOT STARTED | 2 skills missing |
+| P16 | release | ❌ NOT STARTED | Blocked by P15 (needs generate-changelog) |
+| P17 | fix-bug | ❌ NOT STARTED | 2 skills missing |
+| P18 | review-architecture | ❌ NOT STARTED | Blocked by P3 (needs validator) |
+| P19 | generate-docs | ❌ NOT STARTED | 2 skills missing |
+
+### Component Inventory
+
+| Component | Built | Missing | Notes |
+|---|---|---|---|
+| Agents | 5 | 1 (validator) | validator blocks 5 priorities |
+| Skills | 18 | ~16 | P5 skills complete, P6 skills diverged |
+| Recipes | 8 | 11 | 4 complete, 2 partial, 2 incomplete |
+| Verification gates | 2 pass | ~53 blocked | G-100, G-103 pass |
+
+### Dependency Blockers
+
+```
+P3 (validator agent) ──► P10, P13, P14, P18 (5 priorities blocked)
+P15 (generate-changelog) ──► P16 (1 priority blocked)
+```
 
 ---
 

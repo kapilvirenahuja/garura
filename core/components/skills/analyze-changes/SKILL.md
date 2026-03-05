@@ -40,12 +40,19 @@ Receive from agent:
 
    Load patterns from: `reference/risks.md`
 
-4. **Group Logically**
+4. **Group by Issue**
 
-   Files that belong together:
-   - Same feature/component
-   - Same issue type
-   - Related by import/dependency
+   The primary grouping dimension is ISSUE, not component or file location.
+
+   **Grouping rules (in priority order):**
+   1. **Branch signal first** — extract issue number from branch name (e.g., `feature/95-foo` → #95). All changes on a single-issue branch default to ONE group for that issue.
+   2. **Split only when multiple issues are present** — if the working tree contains changes for different issues (e.g., a hotfix mixed with feature work), split into one group per issue.
+   3. **Within an issue group, pick the dominant commit type** — if an issue group has mostly `feat` files with a few `docs` files, the type is `feat`. Only split by type within an issue if the types are genuinely unrelated (e.g., a `fix` for issue #78 and a `feat` for issue #95).
+   4. **Never split a single issue into multiple groups by component** — agents, skills, recipes, and memory changes for the same issue are ONE commit, not separate commits per directory.
+
+   **When to split within a single issue (rare):**
+   - Changes include a genuinely unrelated `chore` (e.g., dependency bump) alongside feature work
+   - STM/evidence artifacts that are operational, not part of the feature itself
 
 ## Output
 

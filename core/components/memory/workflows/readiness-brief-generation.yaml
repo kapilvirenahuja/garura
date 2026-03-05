@@ -1,0 +1,30 @@
+name: readiness-brief-generation
+description: Full workflow — readiness, human brief, checkpoint, and generation. Use for recipes that require human approval before producing final deliverables.
+
+stages:
+  - stage: 2
+    name: Readiness
+    owner_type: domain-agent
+    description: Analysis, scoping, feasibility. All structured artifacts produced and written to STM.
+
+  - stage: 3
+    name: Human-Readable Brief
+    owner_type: domain-agent
+    skippable: true
+    description: Create a human-readable brief from STM artifacts. Skippable when no human review is needed.
+
+  - stage: 4
+    name: Human Checkpoint
+    owner_type: recipe
+    skippable: true
+    description: Present brief to user. Tether/Vanish. Skippable when brief is skipped.
+
+  - stage: 5
+    name: Generation
+    owner_type: domain-agent
+    description: Produce final deliverables from approved STM artifacts. Reads STM data, not the brief.
+
+  - stage: 6
+    name: Scenario Validation
+    owner_type: recipe
+    description: E2E scenario evals from intent.yaml. Validate final artifacts against acceptance scenarios.

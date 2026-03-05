@@ -1,0 +1,13 @@
+name: readiness-only
+description: Readiness phase only — no generation. Use for recipes that produce analysis or assessment artifacts without needing a separate generation step (feasibility checks, validation, audits).
+
+stages:
+  - stage: 2
+    name: Readiness
+    owner_type: domain-agent
+    description: Analysis, scoping, assessment. All structured artifacts produced and written to STM.
+
+  - stage: 6
+    name: Scenario Validation
+    owner_type: recipe
+    description: E2E scenario evals from intent.yaml. Validate readiness artifacts against acceptance scenarios.
