@@ -1,0 +1,144 @@
+issue: 95
+branch: feature/95-intent-driven-recipe-architecture
+target_branch: main
+target_branch_confidence: high
+rationale: "feature/95 branch prefix and all commits carry #95 issue tag; base is main per config.yaml base_branch setting"
+
+pr_title: "feat(recipe-framework): intent-driven recipe architecture (#95)"
+
+pr_summary: |
+  - Introduces intent-driven L1/L2 recipe architecture: recipes read intent.yaml as source of truth for constraints, failure conditions, and scenarios — replacing prose recipe-context handoffs
+  - Adds merge-pr L1 recipe and merge-pr skill, completes the full ship pipeline as L2 chain of three L1s (commit-code → create-pr → merge-pr)
+  - Refactors commit-code, create-pr, and ship recipes to JSON contract dispatch, STM data flow, and intent-resolver DAG; ships with step evals, scenario evals, and agent audit evidence
+  - Introduces intent-crafter and intent-resolver agents, evals-creator and resolve-issues skills, and create-recipe meta-recipe; normalizes STM base path to .meridian/project/issues/ across all components
+
+checklist:
+  - item: "merge-pr recipe declares L1 budget of 1 domain agent (Stage 2 + Stage 5 both delegated to repo-orchestrator)"
+    evidence: >
+      merge-pr/SKILL.md Fixed Stages table: Stage 2 and Stage 5 both owned by repo-orchestrator.
+      Comment: 'Domain work stages (2, 5) count toward the budget: 1 domain agent (L1 max).'
+      intent-resolver and recipe are infrastructure — do not count. Budget is enforced by construction.
+    status: verified
+
+  - item: "merge-pr intent.yaml defines falsifiable constraints, failure conditions, and acceptance scenarios per intent schema"
+    evidence: >
+      merge-pr/reference/intent.yaml contains: 6 constraints (C1–C6), 5 failure conditions (F1–F5),
+      2 acceptance scenarios (S1–S2). All failure conditions reference observable output states
+      (e.g., 'feature branch still exists locally or on the remote'), not events.
+      Constraints are implementation-agnostic (no agent or skill names).
+    status: verified
+
+  - item: "ship recipe refactored to L2 chain-of-L1s: delegates to commit-code, create-pr, merge-pr via Skill tool — no direct git/gh commands"
+    evidence: >
+      ship/SKILL.md Role section: 'You are the orchestrator of an L2 recipe. You chain L1 recipes
+      in sequence — you do NOT invoke agents directly.' DAG shows linear chain:
+      commit-code → create-pr → merge-pr. Forbidden clause explicitly prohibits direct git/gh commands.
+    status: verified
+
+  - item: "ship approval_override pattern: passes approval_override: auto-proceed to suppress all L1 human checkpoints"
+    evidence: >
+      ship/SKILL.md Dispatch section: 'Override approval gates: Pass approval_override: "auto-proceed"
+      to suppress all human checkpoints within the L1 recipe (C2).' Applies to all three chained L1s.
+      This satisfies ship constraint C2 (all chained operations execute without human approval gates).
+    status: verified
+
+  - item: "ship intent.yaml migrated from pre_flight/behavioral map to flat constraints list with scenario acceptance criteria"
+    evidence: >
+      ship/reference/intent.yaml diff: old format used pre_flight/behavioral keys under constraints.
+      New format uses flat list with id+rule for 6 constraints (C1–C6), structured failure_conditions
+      (F1–F6) as id+condition, and scenarios section added (S1–S2). Matches intent-schema.yaml pattern.
+    status: verified
+
+  - item: "repo-orchestrator updated with JSON contract mode: input/output STM paths, task graph participation, merge-pr skill registration"
+    evidence: >
+      repo-orchestrator.md diff adds: Contract Mode section (input/output JSON schema), Task Graph
+      section (TaskUpdate in_progress/completed), merge-pr row in skills table and intent mapping,
+      'Return prose... NEVER' boundary rule, and contract processing flow 1–6 steps.
+    status: verified
+
+  - item: "STM base path normalized to .meridian/project/issues/ in core/config.yaml; {stm_base} variable documented"
+    evidence: >
+      core/config.yaml diff: stm.base-path changed from '.meridian/' to '.meridian/project/issues/'.
+      Comment added: 'All agents, recipes, and skills resolve these from config — never hardcode paths.'
+      product.base-path added as parallel '.meridian/product/' for product artifacts.
+    status: verified
+
+  - item: "All deleted template files (ship checkpoint.md, final-report.md, guardian-decision.md) are replaced by STM data flow and intent.yaml — no orphaned references"
+    evidence: >
+      ship/templates/checkpoint.md, final-report.md, guardian-decision.md deleted.
+      ship/SKILL.md no longer references these template paths — all outputs are STM artifacts per
+      the STM Data Flow Rules section. Guardian decision logic moved to inline merge-pr constraints.
+    status: verified
+
+  - item: "intent-crafter agent follows interview-based protocol; never writes recipe names or agent names into intent.yaml"
+    evidence: >
+      intent-crafter.md Boundaries: 'NEVER include recipe names, agent names, or skill names in
+      the intent.' Quality gate in agent definition validates every constraint and failure condition
+      before writing. Agent has 4-category interview protocol with follow-up discipline table.
+    status: verified
+
+  - item: "create-recipe meta-recipe includes agent audit checklist (P1–P10) ensuring all domain agents satisfy architectural principles"
+    evidence: >
+      create-recipe/SKILL.md contains 'Architectural Principles (The Audit Checklist)' with P1–P10
+      covering: JSON contract communication, STM path handoff, intent awareness, structured failure
+      protocol, no direct user interaction, output contract discipline, skill delegation, recovery,
+      domain boundaries, task graph participation. Applicability note excludes infrastructure agents.
+    status: verified
+
+  - item: "merge-pr and ship STM evidence artifacts written for this issue — trail exists for the work done to design these components"
+    evidence: >
+      .meridian/project/issues/95/evidence/create-recipe/ship/ contains: dag-merge-pr.json,
+      dag-ship.json, scenario-evals-merge-pr.yaml, scenario-evals-ship.yaml, skill-manifest.yaml,
+      step-evals-merge-pr.yaml, agent-audit-repo-orchestrator.md. All new files per git diff --stat.
+    status: verified
+
+  - item: "No sensitive files or credentials in the diff; all new files are .md, .yaml, or .json component definitions"
+    evidence: >
+      git diff --stat shows 222 files changed. File types: .md (SKILL.md, agent definitions, specs),
+      .yaml (intent.yaml, evidence artifacts, skill manifests, scenario evals), .json (DAG files).
+      No .env, no secrets, no credentials. Largest new files are recipe SKILL.md definitions and
+      STM evidence YAML files from the design process.
+    status: verified
+
+  - item: "submit-pr skill updated with multi-platform support (bitbucket, gitlab reference files added)"
+    evidence: >
+      core/components/skills/submit-pr/reference/bitbucket/pr.md and gitlab/pr.md added (56 and
+      57 lines respectively). submit-pr/SKILL.md updated (+76 lines net). Consistent with platform
+      abstraction referenced in create-pr refactor (C1: platform config exists and is valid).
+    status: verified
+
+overall_confidence: high
+
+eval_results:
+  readiness-eval-1:
+    id: "Target branch is main — correct for a feature branch delivering new architecture"
+    status: pass
+    evidence: "Branch name feature/95-... matches main-targeting pattern; config.yaml base_branch is main"
+
+  readiness-eval-2:
+    id: "All commits reference issue #95 — traceability is intact"
+    status: pass
+    evidence: "All 14 commits in git log have (#95) suffix. NWWI constraint satisfied."
+
+  readiness-eval-3:
+    id: "No blocking quality items — all must-have checklist items are verified"
+    status: pass
+    evidence: "All 13 checklist items have status: verified. No FAIL items identified."
+
+  readiness-eval-4:
+    id: "Recipe architecture changes are self-consistent — L1/L2 boundaries, agent budgets, STM paths all align"
+    status: pass
+    evidence: >
+      merge-pr L1 uses 1 domain agent. ship L2 chains 3 L1s (within L2 budget of 5).
+      STM base path .meridian/project/issues/ is consistent across config.yaml, recipe
+      references, and evidence artifacts on this branch.
+
+  readiness-eval-5:
+    id: "Platform is github — submit-pr and create-pr platform config exists"
+    status: pass
+    evidence: "core/config.yaml has platform: github; submit-pr github reference exists; create-pr platform check in pre-flight"
+
+  readiness-eval-6:
+    id: "Analysis-only stage — no code modifications during Stage 2"
+    status: pass
+    evidence: "This stage executed read-only git commands (git log, git diff). No files modified during analysis."
