@@ -1,62 +1,57 @@
-mapping:
-  - group_id: G1
+mappings:
+  - group_id: recipe-skill-updates
+    description: >
+      Restore Evidence Self-Commit Stage 7 pattern to recipe SKILL.md definitions
+      for commit-code, create-pr, and ship recipes.
     files:
-      - core/components/recipes/start-feature/SKILL.md
+      - core/components/recipes/commit-code/SKILL.md
+      - core/components/recipes/create-pr/SKILL.md
+      - core/components/recipes/ship/SKILL.md
     status: modified
-    issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
+    issue:
+      number: 95
+      title: "feat(recipe-framework): intent-driven recipe architecture"
+      labels:
+        - enhancement
+      state: open
+      url: https://github.com/kapilvirenahuja/meridian/issues/95
     confidence: high
     reasoning: >
-      Branch name 'feature/95-intent-driven-recipe-architecture' directly encodes issue #95
-      (branch signal). File is the recipe definition being refactored as part of the
-      intent-driven recipe architecture work (semantic signal). Both signals align.
+      Branch name `feature/95-intent-driven-recipe-architecture` explicitly encodes issue
+      #95 (branch signal — strongest signal). Semantic alignment is strong: issue #95
+      covers recipe framework architecture and its acceptance criteria includes recipe
+      implementation. Modifying recipe SKILL.md files to restore a stage is directly within
+      the scope of recipe framework work. Two corroborating signals: branch + semantic.
+    conflicts: []
 
-  - group_id: G2
+  - group_id: adr-documentation
+    description: >
+      New ADR 012 documenting the Evidence Self-Commit pattern for recipes.
     files:
-      - core/components/recipes/start-feature/reference/intent.yaml
-    status: modified
-    issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
-    confidence: high
-    reasoning: >
-      Branch name 'feature/95-intent-driven-recipe-architecture' directly encodes issue #95
-      (branch signal). File is the intent.yaml reference file for the start-feature recipe —
-      core artifact of the intent-driven architecture refactor (semantic signal). Both signals align.
-
-  - group_id: G3
-    files:
-      - core/components/recipes/start-feature/templates/approval-prompt.md
-      - core/components/recipes/start-feature/templates/checkpoint.md
-      - core/components/recipes/start-feature/templates/feature-started.md
-    status: deleted
-    issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
-    confidence: high
-    reasoning: >
-      Branch name 'feature/95-intent-driven-recipe-architecture' directly encodes issue #95
-      (branch signal). Deleted template files are under start-feature recipe — their removal is
-      consistent with the intent-driven refactor that replaces hardcoded templates with
-      intent-driven generation (semantic signal). Both signals align.
-
-  - group_id: G4
-    files:
-      - .meridian/project/issues/95/evidence/create-recipe/start-feature/
+      - docs/adr/012-evidence-self-commit.md
     status: untracked
-    issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
+    issue:
+      number: 95
+      title: "feat(recipe-framework): intent-driven recipe architecture"
+      labels:
+        - enhancement
+      state: open
+      url: https://github.com/kapilvirenahuja/meridian/issues/95
     confidence: high
     reasoning: >
-      STM path explicitly contains issue number 95 (branch signal equivalent — strongest
-      possible semantic anchor). Evidence directory records artifacts produced during the
-      create-recipe execution for start-feature, directly linked to issue #95 (semantic signal).
-      Both signals align.
-
-conflicts: []
+      Branch name `feature/95-intent-driven-recipe-architecture` explicitly encodes issue
+      #95 (branch signal — strongest signal). Semantic alignment: the ADR documents the
+      architectural pattern being implemented in this issue's scope. ADRs are standard
+      deliverables for architectural decisions within a feature branch. Two corroborating
+      signals: branch + semantic.
+    conflicts: []
 
 summary:
-  total_groups: 4
-  mapped: 4
+  total_groups: 2
+  mapped: 2
   unmapped: 0
   conflicts: 0
   dominant_issue: 95
   all_high_confidence: true
+  approval_required: false
+  approval_reason: null

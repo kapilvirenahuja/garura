@@ -6,7 +6,7 @@
 # Base: main
 
 status: completed
-total_commits: 2
+total_commits: 3
 
 commits:
   - id: group-1
@@ -50,6 +50,26 @@ commits:
       deletions: 0
     status: committed
 
+  - id: group-3
+    hash: 8ae321f
+    type: docs
+    scope: recipes
+    subject: "add evidence self-commit stage and ADR 012 (#95)"
+    issue: 95
+    message: "docs(recipes): add evidence self-commit stage and ADR 012 (#95)"
+    co_author: "Claude Opus 4.6 <noreply@anthropic.com>"
+    files:
+      staged:
+        - core/components/recipes/commit-code/SKILL.md
+        - core/components/recipes/create-pr/SKILL.md
+        - core/components/recipes/ship/SKILL.md
+        - docs/adr/012-evidence-self-commit.md
+    stats:
+      files_changed: 4
+      insertions: 181
+      deletions: 0
+    status: committed
+
 validation:
   all_commits_created: true
   conventional_format: true
@@ -58,9 +78,24 @@ validation:
   branch_correct: true
   co_authored_by: true
 
+constraint_check:
+  C1: PASS
+  C2: PASS
+  C3: PASS
+  C4: PASS
+  C5: PASS
+  C6: PASS
+
+failure_conditions:
+  F1: PASS
+  F2: PASS
+  F3: PASS
+  F4: PASS
+
 summary:
-  description: "Both commits created successfully. start-feature recipe refactor complete."
+  description: "All commits created successfully. docs(recipes) commit for ADR 012 and evidence self-commit stage complete."
   commits_by_type:
     refactor: 1
     chore: 1
+    docs: 1
   note: "Tree is clean. Ready for next stage."

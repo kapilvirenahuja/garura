@@ -2,7 +2,7 @@
 # analyze-changes output
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
-# Stage: 2 — commit-code recipe, start-feature refactor session
+# Stage: 2 — commit-code recipe, evidence self-commit session
 
 issue: 95
 stm_base: ".meridian/project/issues/"
@@ -11,90 +11,82 @@ hotfix_branch: false
 
 groups:
   - id: group-1
-    concern: "Refactor start-feature recipe to intent-driven L1 architecture"
-    type: refactor
+    concern: "Add evidence self-commit (Stage 7) to commit-code, create-pr, and ship recipes, documented as ADR 012"
+    type: docs
     scope: recipes
-    subject: "rewrite start-feature to intent-driven L1 architecture"
+    subject: "add evidence self-commit stage and ADR 012 to commit-code, create-pr, and ship"
     issue: 95
-    commit_message: "refactor(recipes): rewrite start-feature to intent-driven L1 architecture (#95)"
+    commit_message: "docs(recipes): add evidence self-commit stage and ADR 012 (#95)"
     files:
-      - core/components/recipes/start-feature/SKILL.md
-      - core/components/recipes/start-feature/reference/intent.yaml
-      - core/components/recipes/start-feature/templates/approval-prompt.md
-      - core/components/recipes/start-feature/templates/checkpoint.md
-      - core/components/recipes/start-feature/templates/feature-started.md
+      - core/components/recipes/commit-code/SKILL.md
+      - core/components/recipes/create-pr/SKILL.md
+      - core/components/recipes/ship/SKILL.md
+      - docs/adr/012-evidence-self-commit.md
     rationale: >
-      SKILL.md rewritten with a fixed-stage workflow (stages 0, 1, 2, 5, 6, 7),
-      updated agent boundary table (project-orchestrator + repo-orchestrator), a
-      two-phase model (Readiness + Generation), and a revised forbidden-actions
-      list that now permits Bash. intent.yaml expanded from 35 to 137 lines with
-      a flat constraint list (C1-C10), failure conditions (F1-F8), and acceptance
-      scenarios (S1-S5). Three template files deleted — their behavior is now
-      encoded in intent.yaml and executed by the orchestrator directly, eliminating
-      the old template-based approval and checkpoint flows. All five file changes
-      form one coherent architectural refactor of the start-feature recipe.
-    confidence: high
-
-  - id: group-2
-    concern: "STM evidence artifacts for create-recipe/start-feature design work"
-    type: chore
-    scope: stm
-    subject: "record create-recipe/start-feature evidence artifacts for issue #95"
-    issue: 95
-    commit_message: "chore(stm): record create-recipe/start-feature evidence artifacts for issue #95 (#95)"
-    files:
-      - .meridian/project/issues/95/evidence/create-recipe/start-feature/agent-audit-project-orchestrator.md
-      - .meridian/project/issues/95/evidence/create-recipe/start-feature/agent-audit-repo-orchestrator.md
-      - .meridian/project/issues/95/evidence/create-recipe/start-feature/dag.json
-      - .meridian/project/issues/95/evidence/create-recipe/start-feature/evals.yaml
-      - .meridian/project/issues/95/evidence/create-recipe/start-feature/skill-manifest.yaml
-    rationale: >
-      Design-phase STM artifacts produced during the create-recipe run for the
-      start-feature recipe. Includes agent audits, DAG snapshot, scenario evaluations,
-      and skill manifest used during design. Operational artifacts — separate concern
-      from the recipe implementation itself. Committed as a standalone chore(stm)
-      per constraint F1 (no mixed concerns in a single commit).
+      All four files represent one atomic architectural decision: every recipe must
+      self-commit its STM artifacts in Stage 7. The three SKILL.md additions each
+      define the Stage 7 procedure and cross-reference ADR 012 by path. The ADR was
+      authored alongside the recipe changes — it documents this change, not a
+      pre-existing decision. Separating them would produce broken cross-references
+      in both directions (recipe files pointing to a non-existent ADR; ADR describing
+      recipe sections that haven't landed yet). One concern, one commit. F1 is
+      satisfied: all files represent the same architectural concern.
     confidence: high
 
 risks:
   sensitive_files: []
-  breaking_changes:
-    - files:
-        - core/components/recipes/start-feature/templates/approval-prompt.md
-        - core/components/recipes/start-feature/templates/checkpoint.md
-        - core/components/recipes/start-feature/templates/feature-started.md
-      detail: >
-        Three template files deleted. Any deployed copies in ~/.claude/skills/
-        that reference these templates will break until resynced via /sync-claude.
-    - file: core/components/recipes/start-feature/reference/intent.yaml
-      detail: >
-        Constraint schema changed — pre_flight/behavioral split replaced with a
-        flat constraint list (C1-C10). Any agent reading the old schema keys
-        (pre_flight, behavioral) will fail to parse the new format.
-  ambiguous_types: []
+  breaking_changes: []
+  ambiguous_types:
+    - note: >
+        Three files are SKILL.md recipe specifications and one is an ADR — all are
+        documentation of intended behavior, not executable code. Using 'docs' as the
+        conventional commit type is consistent across all four files. No ambiguity
+        that would warrant splitting.
   hotfix_branch: false
 
 issue_mapping:
   - group: group-1
     issue: 95
     confidence: high
-  - group: group-2
-    issue: 95
-    confidence: high
 
 constraint_check:
+  C1:
+    status: PASS
+    detail: "Branch is feature/95-intent-driven-recipe-architecture, not main/master."
+  C2:
+    status: PASS
+    detail: "4 changed files detected (3 modified, 1 untracked)."
   C3:
     status: PASS
-    detail: "Both groups reference issue #95 — branch name confirms single-issue scope."
+    detail: "All changes map to issue #95 — branch name and change content confirm single-issue scope."
+  C4:
+    status: PASS
+    detail: "No sensitive files, credentials, or environment files detected."
   C5:
     status: PASS
-    detail: "Types refactor and chore are valid conventional commit types."
+    detail: "docs(recipes): format is valid conventional commit. Type 'docs' sourced from LTM standards."
   C6:
     status: PASS
-    detail: "(#95) included in both suggested commit messages."
+    detail: "(#95) included in the proposed commit message."
   F1:
     status: PASS
-    detail: "Recipe implementation (group-1) separated from STM operational artifacts (group-2)."
+    detail: "Single commit covers one concern: evidence self-commit architecture across recipes + ADR."
   F2:
     status: PASS
-    detail: "Messages describe the actual structural change, not generic labels."
+    detail: "Subject describes the actual change — Stage 7 addition and ADR 012 creation."
+  F3:
+    status: PASS
+    detail: "All 4 changed files assigned to group-1. No files left uncommitted."
+  F4:
+    status: PASS
+    detail: "Issue #95 is the correct issue for this feature branch."
+
+grouping_decision:
+  strategy: single_commit
+  commit_count: 1
+  rationale: >
+    One atomic architectural decision (evidence self-commit). The ADR and recipe
+    changes are co-authored and mutually cross-referencing. Splitting by doc/impl
+    taxonomy would produce commits that are incomplete in isolation and have broken
+    cross-references. F1 (no mixed concerns) is satisfied because all files represent
+    the same concern.
