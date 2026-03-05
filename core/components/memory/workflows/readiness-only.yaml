@@ -2,6 +2,23 @@ name: readiness-only
 description: Readiness phase only — no generation. Use for recipes that produce analysis or assessment artifacts without needing a separate generation step (feasibility checks, validation, audits).
 
 stages:
+  - stage: 0
+    name: Workflow Pre-flight
+    owner_type: recipe
+    description: >
+      Infrastructure checks before domain work. Recipe MUST resolve stm_base from
+      core/config.yaml (stm.base-path) and hold it for all downstream contract paths.
+      All agent contracts use {stm_base}/{issue}/ — never hardcoded paths.
+    required_resolution:
+      stm_base: "stm.base-path from core/config.yaml"
+
+  - stage: 1
+    name: Intent Resolution
+    owner_type: intent-resolver
+    description: >
+      Load or resolve the task DAG. Check cache first; if stale, invoke intent-resolver
+      with config_path so the DAG carries the resolved stm_base field.
+
   - stage: 2
     name: Readiness
     owner_type: domain-agent
@@ -11,3 +28,8 @@ stages:
     name: Scenario Validation
     owner_type: recipe
     description: E2E scenario evals from intent.yaml. Validate readiness artifacts against acceptance scenarios.
+
+  - stage: 7
+    name: Evidence & Close
+    owner_type: recipe
+    description: Write evidence artifacts and checkpoint to STM. All paths use the resolved stm_base.

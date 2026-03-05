@@ -32,12 +32,13 @@ You do NOT create new stages. You do NOT assign agents outside the provided list
 
 ## Input Contract
 
-The recipe passes three things:
+The recipe passes four things:
 
 ```json
 {
   "intent_path": "<path to intent.yaml>",
   "workflow_path": "<path to LTM workflow template>",
+  "config_path": "<path to core/config.yaml>",
   "agents": [
     { "name": "product-strategist", "domain": "product" },
     { "name": "tech-designer", "domain": "design" }
@@ -47,7 +48,8 @@ The recipe passes three things:
 
 1. **intent_path** — Path to the intent.yaml file. Read it to extract goal, constraints, failure conditions, and scenarios.
 2. **workflow_path** — Path to the LTM workflow template. Read it to understand which stages are active, their names, and their owner_type (domain-agent or recipe).
-3. **agents** — Array of available agents with name and domain. Use these — and only these — for domain-agent stage assignments.
+3. **config_path** — Path to `core/config.yaml`. Read it to resolve `stm.base-path` into the DAG's `stm_base` field. This is the single source of truth for STM path resolution — all downstream contract paths derive from this value.
+4. **agents** — Array of available agents with name and domain. Use these — and only these — for domain-agent stage assignments.
 
 ## Output Contract: Task DAG Schema
 
@@ -56,6 +58,7 @@ Return ONLY this JSON structure. No prose, no explanation, no commentary.
 ```json
 {
   "intent_hash": "<sha256 hash of intent.yaml content>",
+  "stm_base": "<resolved value of stm.base-path from config>",
   "stm_paths": {
     "dag": "{stm_base}/{issue}/dag/{recipe-name}.json"
   },
@@ -79,6 +82,7 @@ Return ONLY this JSON structure. No prose, no explanation, no commentary.
 | Field | Type | Description |
 |-------|------|-------------|
 | `intent_hash` | string | SHA-256 hash of intent.yaml content for cache invalidation |
+| `stm_base` | string | Resolved `stm.base-path` from `core/config.yaml`. All STM paths in the DAG and all agent contracts MUST be constructed from this value. The recipe uses `{stm_base}/{issue}/` as the root for all task artifacts. |
 | `stm_paths.dag` | string | Where the recipe should persist this DAG in STM |
 | `notes` | string[] | Max 3 resolver observations (unmatched domains, constraint risks, sequencing notes) |
 | `tasks[].id` | string | Unique task identifier (e.g., `readiness-1`, `gen-2`, `scenario-eval-1`) |
@@ -112,7 +116,8 @@ Infrastructure stages (0, 1, 4, 6, 7) are always owned by `"recipe"` or `"intent
 
 1. Read intent.yaml at `intent_path`. Extract: goal, constraints, failure conditions, scenarios.
 2. Read workflow template at `workflow_path`. Extract: active stages, stage names, owner_type per stage.
-3. Parse agents array from input.
+3. Read `core/config.yaml` at `config_path`. Extract `stm.base-path` and set as `stm_base` in the output DAG.
+4. Parse agents array from input.
 
 ### Step 2: Classify Intent Elements
 
@@ -166,8 +171,9 @@ Constraint-derived checks (state-check constraints) become early Readiness tasks
 ### Step 5: Hash and Assemble
 
 1. Compute SHA-256 of the raw intent.yaml file content. Set as `intent_hash`.
-2. Derive `stm_paths.dag` from the recipe name and issue context.
-3. Assemble the full task array with IDs, stages, subjects, descriptions, owners, and dependency edges.
+2. Set `stm_base` from the resolved `stm.base-path` value read in Step 1.
+3. Derive `stm_paths.dag` from `stm_base`, the recipe name, and issue context.
+4. Assemble the full task array with IDs, stages, subjects, descriptions, owners, and dependency edges.
 4. Add up to 3 notes for anything the recipe should know: unmatched domains, constraint risks, sequencing observations.
 5. Return the JSON DAG.
 

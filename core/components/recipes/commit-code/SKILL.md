@@ -112,16 +112,30 @@ Iterate tasks in dependency order. For each task:
 
 ### Agent Invocation Pattern
 
-When dispatching to a domain agent, send a JSON contract:
+When dispatching to a domain agent, send a JSON contract. All STM paths MUST be constructed from `{stm_base}` resolved in Stage 0 — never hardcoded.
 
 ```json
 {
   "intent_path": "reference/intent.yaml",
+  "stm_base": "<resolved from config, e.g. .meridian/project/issues/>",
   "stm": {
-    "input": { "<named paths from prior tasks>" },
-    "output": { "<named paths for this task's artifacts>" }
+    "input": { "<named paths using {stm_base}/{issue}/...>" },
+    "output": { "<named paths using {stm_base}/{issue}/...>" }
   },
   "task_id": "<task id from DAG>"
+}
+```
+
+Example with resolved paths:
+```json
+{
+  "stm_base": ".meridian/project/issues/",
+  "stm": {
+    "input": {},
+    "output": {
+      "analysis": ".meridian/project/issues/95/evidence/commit-code/analysis.yaml"
+    }
+  }
 }
 ```
 
@@ -133,6 +147,7 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
+| Resolve `stm_base` from `core/config.yaml` | — | Hard halt — config is required |
 | Current branch is not main/master/default | C1 | Hard halt with message |
 | Changed files exist (staged, unstaged, untracked) | C2 | Graceful exit with message (not a failure) |
 | No sensitive files in changeset | C4 | Hard block — report file paths and reason |
@@ -141,6 +156,10 @@ Execute these checks before any domain work:
 Pre-flight checks run via Bash (read-only git queries) since these are infrastructure, not domain work.
 
 ```bash
+# Resolve STM base path from config — ALL downstream paths derive from this
+stm_base=$(grep 'base-path' core/config.yaml | head -1 | awk '{print $2}')
+# e.g., stm_base=".meridian/project/issues/"
+
 # C1 — branch guard
 git branch --show-current
 git remote show origin | grep 'HEAD branch'
@@ -152,6 +171,8 @@ git status --porcelain
 # Check filenames against sensitive patterns
 # Check diff content against secret patterns
 ```
+
+**Path resolution rule:** After pre-flight, the recipe holds `stm_base`. When the DAG is loaded (from cache or intent-resolver), verify `dag.stm_base` matches the resolved config value. All agent contract paths MUST use `{stm_base}/{issue}/` — never hardcode `.meridian/{issue}/`.
 
 ## Agent Declarations
 
