@@ -2,7 +2,7 @@
 # analyze-changes output
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
-# Stage: 2 — commit-code recipe, current session
+# Stage: 2 — commit-code recipe, start-feature refactor session
 
 issue: 95
 stm_base: ".meridian/project/issues/"
@@ -11,94 +11,66 @@ hotfix_branch: false
 
 groups:
   - id: group-1
-    concern: "Add merge-pr L1 recipe and skill"
-    type: feat
+    concern: "Refactor start-feature recipe to intent-driven L1 architecture"
+    type: refactor
     scope: recipes
+    subject: "rewrite start-feature to intent-driven L1 architecture"
+    issue: 95
+    commit_message: "refactor(recipes): rewrite start-feature to intent-driven L1 architecture (#95)"
     files:
-      - "core/components/recipes/merge-pr/SKILL.md"
-      - "core/components/recipes/merge-pr/reference/intent.yaml"
-      - "core/components/recipes/merge-pr/reference/github/intent.yaml"
-      - "core/components/recipes/merge-pr/reference/gitlab/intent.yaml"
-      - "core/components/recipes/merge-pr/reference/bitbucket/intent.yaml"
-      - "core/components/skills/merge-pr/SKILL.md"
-      - "core/components/skills/merge-pr/reference/intent.yaml"
+      - core/components/recipes/start-feature/SKILL.md
+      - core/components/recipes/start-feature/reference/intent.yaml
+      - core/components/recipes/start-feature/templates/approval-prompt.md
+      - core/components/recipes/start-feature/templates/checkpoint.md
+      - core/components/recipes/start-feature/templates/feature-started.md
     rationale: >
-      All new files forming the merge-pr L1 recipe and its companion merge-pr skill.
-      The recipe and skill constitute a single unit of new capability: merge a PR,
-      switch to the base branch, pull latest, and delete the feature branch (local
-      and remote). Recipe and skill are co-authored and form a single deliverable —
-      separating them would produce two commits with no standalone value.
+      SKILL.md rewritten with a fixed-stage workflow (stages 0, 1, 2, 5, 6, 7),
+      updated agent boundary table (project-orchestrator + repo-orchestrator), a
+      two-phase model (Readiness + Generation), and a revised forbidden-actions
+      list that now permits Bash. intent.yaml expanded from 35 to 137 lines with
+      a flat constraint list (C1-C10), failure conditions (F1-F8), and acceptance
+      scenarios (S1-S5). Three template files deleted — their behavior is now
+      encoded in intent.yaml and executed by the orchestrator directly, eliminating
+      the old template-based approval and checkpoint flows. All five file changes
+      form one coherent architectural refactor of the start-feature recipe.
     confidence: high
 
   - id: group-2
-    concern: "Refactor ship recipe to L2 chain-of-L1s architecture"
-    type: refactor
-    scope: recipes
-    files:
-      - "core/components/recipes/ship/SKILL.md"
-      - "core/components/recipes/ship/reference/intent.yaml"
-      - "core/components/recipes/ship/templates/checkpoint.md"
-      - "core/components/recipes/ship/templates/final-report.md"
-      - "core/components/recipes/ship/templates/guardian-decision.md"
-    rationale: >
-      The ship recipe was substantially rewritten to operate as a pure L2 orchestrator
-      that chains L1 recipes (commit-code, create-pr, merge-pr) instead of managing
-      agents and guardian logic inline. The three deleted template files
-      (checkpoint.md, final-report.md, guardian-decision.md) are artifacts of the
-      old inline-guardian design that the refactor eliminates. intent.yaml was updated
-      to align constraints and failure conditions with the new architecture (flat C1–C6,
-      F1–F6, S1–S2 scenarios). All five files represent one architectural refactor of ship.
-    confidence: high
-
-  - id: group-3
-    concern: "Update repo-orchestrator to register merge-pr skill"
-    type: refactor
-    scope: agents
-    files:
-      - "core/components/agents/repo-orchestrator.md"
-    rationale: >
-      The repo-orchestrator agent was updated to: add merge-pr to the skill capability
-      table, add the intent-to-skill mapping for merge operations, add the merge-pr
-      skill output contract schema, update the Bash forbidden table to reference
-      merge-pr, and remove the now-obsolete named write exceptions (which existed only
-      because no merge skill existed). This is a targeted registry update driven by
-      group-1 landing.
-    confidence: high
-
-  - id: group-4
-    concern: "STM evidence artifacts for issue 95 create-recipe/ship design work"
+    concern: "STM evidence artifacts for create-recipe/start-feature design work"
     type: chore
     scope: stm
+    subject: "record create-recipe/start-feature evidence artifacts for issue #95"
+    issue: 95
+    commit_message: "chore(stm): record create-recipe/start-feature evidence artifacts for issue #95 (#95)"
     files:
-      - ".meridian/project/issues/95/evidence/create-recipe/ship/agent-audit-repo-orchestrator.md"
-      - ".meridian/project/issues/95/evidence/create-recipe/ship/dag-merge-pr.json"
-      - ".meridian/project/issues/95/evidence/create-recipe/ship/dag-ship.json"
-      - ".meridian/project/issues/95/evidence/create-recipe/ship/scenario-evals-merge-pr.yaml"
-      - ".meridian/project/issues/95/evidence/create-recipe/ship/scenario-evals-ship.yaml"
-      - ".meridian/project/issues/95/evidence/create-recipe/ship/skill-manifest.yaml"
-      - ".meridian/project/issues/95/evidence/create-recipe/ship/step-evals-merge-pr.yaml"
+      - .meridian/project/issues/95/evidence/create-recipe/start-feature/agent-audit-project-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-recipe/start-feature/agent-audit-repo-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-recipe/start-feature/dag.json
+      - .meridian/project/issues/95/evidence/create-recipe/start-feature/evals.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/start-feature/skill-manifest.yaml
     rationale: >
-      STM working artifacts produced during the create-recipe/ship design phase for
-      issue 95. They include DAG snapshots, scenario evaluations, step evaluations,
-      agent audits, and the skill manifest used during design. All belong in a single
-      chore(stm) commit as checkpoint artifacts, not functional changes.
+      Design-phase STM artifacts produced during the create-recipe run for the
+      start-feature recipe. Includes agent audits, DAG snapshot, scenario evaluations,
+      and skill manifest used during design. Operational artifacts — separate concern
+      from the recipe implementation itself. Committed as a standalone chore(stm)
+      per constraint F1 (no mixed concerns in a single commit).
     confidence: high
 
 risks:
   sensitive_files: []
   breaking_changes:
     - files:
-        - core/components/recipes/ship/templates/checkpoint.md
-        - core/components/recipes/ship/templates/final-report.md
-        - core/components/recipes/ship/templates/guardian-decision.md
+        - core/components/recipes/start-feature/templates/approval-prompt.md
+        - core/components/recipes/start-feature/templates/checkpoint.md
+        - core/components/recipes/start-feature/templates/feature-started.md
       detail: >
-        Three template files deleted. Any deployed copies in ~/.claude/skills/ that
-        reference these templates will break until resynced via /sync-claude.
-    - file: core/components/recipes/ship/reference/intent.yaml
+        Three template files deleted. Any deployed copies in ~/.claude/skills/
+        that reference these templates will break until resynced via /sync-claude.
+    - file: core/components/recipes/start-feature/reference/intent.yaml
       detail: >
-        Constraint schema changed — pre_flight/behavioral split replaced with flat
-        constraint list (C1–C6). Any agent reading the old schema keys will fail
-        to parse the new format.
+        Constraint schema changed — pre_flight/behavioral split replaced with a
+        flat constraint list (C1-C10). Any agent reading the old schema keys
+        (pre_flight, behavioral) will fail to parse the new format.
   ambiguous_types: []
   hotfix_branch: false
 
@@ -109,29 +81,20 @@ issue_mapping:
   - group: group-2
     issue: 95
     confidence: high
-  - group: group-3
-    issue: 95
-    confidence: high
-  - group: group-4
-    issue: 95
-    confidence: high
 
 constraint_check:
-  C1:
-    status: PASS
-    detail: "Branch is feature/95-intent-driven-recipe-architecture — not main/master/default."
-  C2:
-    status: PASS
-    detail: "9 changed items detected — changeset is non-empty."
   C3:
     status: PASS
-    detail: "All groups map to issue #95 with high confidence. No ambiguous issue mappings."
-  C4:
-    status: PASS
-    detail: "No sensitive files detected. No .env, *.key, credentials, or secret patterns found."
+    detail: "Both groups reference issue #95 — branch name confirms single-issue scope."
   C5:
     status: PASS
-    detail: "All groups assigned conventional commit types: feat, refactor, chore."
+    detail: "Types refactor and chore are valid conventional commit types."
   C6:
     status: PASS
-    detail: "All group subjects are scoped and traceable to issue #95."
+    detail: "(#95) included in both suggested commit messages."
+  F1:
+    status: PASS
+    detail: "Recipe implementation (group-1) separated from STM operational artifacts (group-2)."
+  F2:
+    status: PASS
+    detail: "Messages describe the actual structural change, not generic labels."

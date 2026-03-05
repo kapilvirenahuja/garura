@@ -1,0 +1,62 @@
+mapping:
+  - group_id: G1
+    files:
+      - core/components/recipes/start-feature/SKILL.md
+    status: modified
+    issue_number: 95
+    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
+    confidence: high
+    reasoning: >
+      Branch name 'feature/95-intent-driven-recipe-architecture' directly encodes issue #95
+      (branch signal). File is the recipe definition being refactored as part of the
+      intent-driven recipe architecture work (semantic signal). Both signals align.
+
+  - group_id: G2
+    files:
+      - core/components/recipes/start-feature/reference/intent.yaml
+    status: modified
+    issue_number: 95
+    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
+    confidence: high
+    reasoning: >
+      Branch name 'feature/95-intent-driven-recipe-architecture' directly encodes issue #95
+      (branch signal). File is the intent.yaml reference file for the start-feature recipe —
+      core artifact of the intent-driven architecture refactor (semantic signal). Both signals align.
+
+  - group_id: G3
+    files:
+      - core/components/recipes/start-feature/templates/approval-prompt.md
+      - core/components/recipes/start-feature/templates/checkpoint.md
+      - core/components/recipes/start-feature/templates/feature-started.md
+    status: deleted
+    issue_number: 95
+    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
+    confidence: high
+    reasoning: >
+      Branch name 'feature/95-intent-driven-recipe-architecture' directly encodes issue #95
+      (branch signal). Deleted template files are under start-feature recipe — their removal is
+      consistent with the intent-driven refactor that replaces hardcoded templates with
+      intent-driven generation (semantic signal). Both signals align.
+
+  - group_id: G4
+    files:
+      - .meridian/project/issues/95/evidence/create-recipe/start-feature/
+    status: untracked
+    issue_number: 95
+    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
+    confidence: high
+    reasoning: >
+      STM path explicitly contains issue number 95 (branch signal equivalent — strongest
+      possible semantic anchor). Evidence directory records artifacts produced during the
+      create-recipe execution for start-feature, directly linked to issue #95 (semantic signal).
+      Both signals align.
+
+conflicts: []
+
+summary:
+  total_groups: 4
+  mapped: 4
+  unmapped: 0
+  conflicts: 0
+  dominant_issue: 95
+  all_high_confidence: true

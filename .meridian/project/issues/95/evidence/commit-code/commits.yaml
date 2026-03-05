@@ -9,57 +9,46 @@ status: completed
 total_commits: 2
 
 commits:
-  - id: C1
-    hash: b335b24
+  - id: group-1
+    hash: 206c1b1
     type: refactor
-    scope: stm
-    subject: "replace hardcoded STM paths with {stm_base} variable (#95)"
+    scope: recipes
+    subject: "rewrite start-feature to intent-driven L1 architecture (#95)"
     issue: 95
-    message: |
-      refactor(stm): replace hardcoded STM paths with {stm_base} variable (#95)
+    message: "refactor(recipes): rewrite start-feature to intent-driven L1 architecture (#95)"
     files:
-      - CLAUDE.md
-      - core/components/agents/intent-resolver.md
-      - core/components/agents/product-strategist.md
-      - core/components/agents/project-orchestrator.md
-      - core/components/agents/repo-orchestrator.md
-      - core/components/recipes/capture-learning/SKILL.md
-      - core/components/recipes/capture-learning/reference/intent.yaml
-      - core/components/recipes/capture-learning/templates/capture-report.md
-      - core/components/recipes/commit-code/SKILL.md
-      - core/components/recipes/create-pr/SKILL.md
-      - core/components/recipes/create-recipe/SKILL.md
-      - core/components/recipes/ship/SKILL.md
-      - core/components/recipes/ship/reference/intent.yaml
-      - core/components/recipes/ship/templates/final-report.md
-      - core/components/recipes/start-feature-planning/SKILL.md
-      - core/components/recipes/start-feature-planning/templates/approval-prompt.md
-      - core/components/recipes/start-feature-planning/templates/checkpoint.md
-      - core/components/recipes/start-feature-planning/templates/final-report.md
-      - core/components/recipes/start-feature/SKILL.md
-      - core/components/recipes/start-feature/templates/feature-started.md
-      - core/components/skills/archive-issue-stm/SKILL.md
-      - core/components/skills/archive-issue-stm/templates/archive-output.md
-      - core/config.yaml
+      staged:
+        - core/components/recipes/start-feature/SKILL.md
+        - core/components/recipes/start-feature/reference/intent.yaml
+      deleted:
+        - core/components/recipes/start-feature/templates/approval-prompt.md
+        - core/components/recipes/start-feature/templates/checkpoint.md
+        - core/components/recipes/start-feature/templates/feature-started.md
+    stats:
+      files_changed: 5
+      insertions: 354
+      deletions: 282
+    status: committed
 
-  - id: C2
-    hash: bcdf812
+  - id: group-2
+    hash: d26d9a2
     type: chore
     scope: stm
-    subject: "migrate STM artifacts to new base path structure (#95)"
+    subject: "record create-recipe/start-feature evidence artifacts for issue #95 (#95)"
     issue: 95
-    message: |
-      chore(stm): migrate STM artifacts to new base path structure (#95)
-
-      Remove previously-tracked STM artifacts from old .meridian/{issue}/ path
-      structure and add new directories under migrated .meridian/project/issues/
-      structure. Includes cleanup of issues 63, 65, 67, 68, 70, 71, 73, 79, 81,
-      83, 85, 91, 95, project/product, recipe-creation, and archive artifacts.
+    message: "chore(stm): record create-recipe/start-feature evidence artifacts for issue #95 (#95)"
+    files:
+      staged:
+        - .meridian/project/issues/95/evidence/create-recipe/start-feature/agent-audit-project-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-recipe/start-feature/agent-audit-repo-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-recipe/start-feature/dag.json
+        - .meridian/project/issues/95/evidence/create-recipe/start-feature/evals.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/start-feature/skill-manifest.yaml
     stats:
-      files_changed: 157
-      insertions: 809
-      deletions: 317
-      renames: ~150
+      files_changed: 5
+      insertions: 388
+      deletions: 0
+    status: committed
 
 validation:
   all_commits_created: true
@@ -70,8 +59,8 @@ validation:
   co_authored_by: true
 
 summary:
-  description: "Both commits created successfully. STM path migration complete."
+  description: "Both commits created successfully. start-feature recipe refactor complete."
   commits_by_type:
     refactor: 1
     chore: 1
-  note: "Tree is clean. Ready for PR creation."
+  note: "Tree is clean. Ready for next stage."
