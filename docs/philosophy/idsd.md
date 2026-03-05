@@ -32,7 +32,7 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 ├─────────────────────────────────────────────────────────────┤
 │  AI DOMAIN                                                  │
 │                                                             │
-│  Element 4: Agents ────────────────► 8 Agents               │
+│  Element 4: Agents ────────────────► 8 Agents (5 impl.)      │
 │  Element 5: Memory ────────────────► LTM + STM              │
 │  Element 6: Skills ────────────────► Skills                  │
 │  Element 7: Context-Aware Decisions► Context Bundles         │
@@ -51,7 +51,7 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 | 1 | Intent Layer | Recipes — L1 (≤2 agents), L2 (≤5 agents). Every recipe has IDD intent header (intent/constraints/failure_conditions). |
 | 2 | Signals | User CLI invocations (`/build-feature`, `/commit-code`). All signals enter via recipes. |
 | 3 | Orchestrated Intent | Recipe Levels (L1/L2). Three speeds: Fast (minutes), Planned (hours), Strategic (days). |
-| 4 | Agents | 8 agents (4 implemented, 4 planned): code-builder, tech-designer, repo-orchestrator, project-orchestrator. Planned: quality-validator, workflow-guardian, product-strategist, spec-author. Agent-first pattern. |
+| 4 | Agents | 8 agents (5 implemented, 3 planned): code-builder, tech-designer, repo-orchestrator, project-orchestrator, product-strategist. Planned: quality-validator, workflow-guardian, spec-author. Agent-first pattern. |
 | 5 | Memory | LTM: `core/components/memory/` (practices, standards, templates). STM: `.meridian/{issue}/` (per-issue work). |
 | 6 | Skills | Bounded capabilities invoked by agents. Each skill has SKILL.md with input/output contracts. |
 | 7 | Context-Aware Decisions | Context bundles ≤12K tokens. Audience separation (Tier 1/2/3). Agents read LTM + STM. |
@@ -261,11 +261,11 @@ Recipes (L1/L2) → Agents → Skills → Memory (LTM + STM)
 
 ### Agent Taxonomy (IDSD-specific)
 
-IDSD maps the AI Squad Framework roles to 8 Meridian agents (4 implemented, 4 planned):
+IDSD maps the AI Squad Framework roles to 8 Meridian agents (5 implemented, 3 planned):
 
 | AI Squad Role | Meridian Agent(s) | IDD Element |
 |---------------|--------------------|----|
-| Specifier | product-strategist *(planned)*, spec-author *(planned)* | Element 4 |
+| Specifier | product-strategist, spec-author *(planned)* | Element 4 |
 | Designer | tech-designer | Element 4 |
 | Builder | code-builder | Element 4 |
 | Validator | quality-validator *(planned)* | Elements 4 + 8 |
@@ -283,7 +283,7 @@ IDSD maps the AI Squad Framework roles to 8 Meridian agents (4 implemented, 4 pl
 | project-orchestrator | project | orchestrator | Universal | Implemented |
 | quality-validator | quality | validator | Code-2-Test, Test-2-Run, Audit-2-Fix | Planned |
 | workflow-guardian | workflow | guardian | L2 checkpoint validation | Planned |
-| product-strategist | product | strategist | Product-2-Design | Planned |
+| product-strategist | product | strategist | Product-2-Design | Implemented |
 | spec-author | specification | author | Design-2-Spec, Audit-2-Fix | Planned |
 
 #### Compartmented Evaluation Classification
@@ -294,7 +294,7 @@ Under IDD Principle 4, agents are classified by their role in the information ba
 |---------------|--------|-------------------|-------------------|
 | **Builders** | code-builder, tech-designer, spec-author *(planned)* | Goal + Constraints (no failure conditions) | In barrier-eligible recipes |
 | **Validators** | quality-validator *(planned)* | Failure Conditions + Builder Output (no goal/constraints) | In barrier-eligible recipes |
-| **Neutral** | product-strategist *(planned)*, repo-orchestrator, project-orchestrator | Full intent (all elements) | Always — these agents perform mechanical or discovery operations |
+| **Neutral** | product-strategist, repo-orchestrator, project-orchestrator | Full intent (all elements) | Always — these agents perform mechanical or discovery operations |
 
 In barrier-exempt recipes (commit-code, create-pr, etc.), all agents receive the full intent regardless of classification.
 
@@ -473,11 +473,42 @@ Token budgets are directional targets, not hard constraints. They exist to keep 
 
 ### Recipe-to-Agent Context Bundle
 
-Every recipe invocation passes a structured YAML context bundle to the agent. This is the contract between the recipe (orchestrator) and the agent (domain executor).
+Recipes pass context to agents as a structured contract. There are two patterns in use, depending on recipe generation:
 
-**Intent externalization:** Recipes externalize their intent schema to `reference/intent.yaml` as a first-class file. Context bundles reference this file dynamically — agent context blocks never hardcode constraint IDs. This means adding new constraints to `intent.yaml` is automatically picked up by all agent invocations without modifying SKILL.md. See `create-pr` as the golden standard implementation.
+**JSON Contract pattern (current — recipes authored after ADR 009):**
 
-**Standard bundle structure:**
+Newer recipes use a JSON contract as the entire agent prompt. This is the current standard for recipe-driven workflows. The contract is a single JSON object that flows recipe → agent → skill → agent → recipe, growing as each agent populates artifact paths.
+
+```json
+{
+  "intent_path": "<path to reference/intent.yaml>",
+  "stm_base": "<base STM directory>",
+  "slug": "<workflow instance identifier>",
+  "stm": {
+    "vision_path": "<input>",
+    "epics_path": null,
+    "feasibility_path": null,
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [{ "name": "<gate>", "status": "pending" }],
+  "evidence": [{ "name": "<recipe-name>", "location": null }],
+  "notes": [],
+  "step_failure": null
+}
+```
+
+The JSON contract IS the entire agent prompt — no instructions, field definitions, or prose are appended. Agents read `reference/intent.yaml` at `intent_path` to understand goal, constraints, failure conditions, and scenarios. See `plan-roadmap` as the reference implementation and [Four Crafts Architecture](./architecture.md#four-crafts-architecture) for the full pattern.
+
+**YAML context bundle pattern (earlier recipes):**
+
+Earlier recipes pass a YAML context block. This pattern is still valid for recipes not yet migrated to the JSON contract.
+
+**Intent externalization:** Both patterns externalize the intent schema to `reference/intent.yaml` as a first-class file. Context bundles reference this file dynamically — agent context blocks never hardcode constraint IDs. This means adding new constraints to `intent.yaml` is automatically picked up by all agent invocations without modifying recipe files. See `create-pr` as a reference implementation of this pattern.
+
+**YAML bundle structure:**
 ```yaml
 ---
 Recipe context:
@@ -500,9 +531,9 @@ Recipe context:
          Return pass/fail for each. Do NOT halt — just return results."
 ```
 
-The agent reads the intent file and runs all pre-flight checks. The orchestrator validates results and halts on any failure using the constraint's `halt_message` from the intent file. This design means pre-flight checks can grow in `intent.yaml` without any recipe changes.
+The agent reads the intent file and runs all pre-flight checks. The orchestrator validates results and halts on any failure using the constraint's `halt_message` from the intent file.
 
-**On retries, add:**
+**On retries, add to either contract type:**
 ```yaml
   retry:
     previous_failure: "{what the agent returned that failed}"
@@ -510,11 +541,10 @@ The agent reads the intent file and runs all pre-flight checks. The orchestrator
     attempt: {N}
 ```
 
-**Rules for context bundles:**
-- Reference `reference/intent.yaml` dynamically — never hardcode constraint IDs in context blocks
+**Rules for context bundles (both patterns):**
+- Reference `reference/intent.yaml` dynamically — never hardcode constraint IDs
 - Always pass `pre_flight` results so the agent knows what has already been verified
 - Pass behavioral constraints as a dynamic set from `reference/intent.yaml`, not enumerated
-- The `task` field must be a single, specific directive — not a general description
 - Agent boundaries must be enforced: pass only what the agent's domain covers
 
 ---

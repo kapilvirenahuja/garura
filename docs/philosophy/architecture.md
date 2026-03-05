@@ -132,41 +132,191 @@ Skills are **technology/methodology-specific knowledge** that agents possess.
 
 ### Skill-Memory Relationship
 
-Skills use a **local references with deployment sync** pattern:
+**ADR 009 supersedes ADR 007 for recipe-driven workflows.**
+
+ADR 007 described a deploy-time sync model where skills embedded their own local references. ADR 009 introduces the JSON Contract pattern (see below), which changes how skills receive LTM paths at runtime.
+
+**Current behavior (ADR 009 — JSON Contract workflows):**
+
+Skills receive template and LTM paths from agents via the JSON contract — they do NOT search LTM themselves and do NOT embed local copies of templates. The agent performs Context Crafting (assembles LTM paths, reads STM artifacts) and passes relevant paths to the skill as skill inputs.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     DEPLOYMENT TIME                         │
+│                      RUNTIME (ADR 009)                      │
 │                                                             │
-│   Memory (overrides)  ──► Meridian Deploy ──► Skills (local) │
-│   core/memory/            checks & syncs     embedded refs  │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│                      RUNTIME                                │
-│                                                             │
-│   Agent ──► Intent ──► discovers Skills ──► Skills read     │
-│                        (on the fly)         LOCAL refs only │
+│   Recipe ──► JSON Contract ──► Agent                        │
+│                                   │                         │
+│                         Context Crafting:                   │
+│                         discover LTM paths,                 │
+│                         read STM artifacts                  │
+│                                   │                         │
+│                                   ▼                         │
+│                         Skill invocation:                   │
+│                         receives LTM paths                  │
+│                         + STM artifact paths                │
+│                         reads templates from LTM            │
+│                         writes artifacts to STM             │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Key principles:**
+**Key principles (ADR 009):**
 
-1. **Skills embed references locally** — All knowledge a skill needs is in the skill file or skill directory
-2. **Memory contains overrides** — Organizations can customize skill behavior via `core/memory/skill-overrides/`
-3. **Deployment syncs overrides** — Meridian deployment copies memory overrides into skill-local locations
-4. **Skills never read LTM at runtime** — Skills are self-contained; no external path dependencies
+1. **Agents craft context** — Agents discover which LTM paths are relevant and pass them to skills
+2. **Skills read LTM at runtime via passed paths** — Skills do not search LTM themselves
+3. **Contract carries paths** — The JSON contract (`stm.*` fields) tracks artifact paths through the workflow
+4. **Skills write to STM** — Skills produce artifacts at the paths specified by agents
 
-**Why this pattern:**
+**ADR 009 knowledge boundary (applies to all invocation modes):**
 
-- Agents discover skills "on the fly" based on intent
-- Agents don't know ahead of time which skills they'll use
-- Agents shouldn't need to know what memory each skill needs
-- Skills remain stable and self-contained
+Skill *behavior* (process steps, output format, constraints) stays embedded in the skill definition. *Organizational standards* (commit categories, templates, quality rules) come from LTM at runtime via stable paths under `~/.meridian/core/memory/`. This distinction applies regardless of whether the skill is invoked via JSON contract or directly.
 
-See [ADR 007: Skill-Local References](../adr/007-skill-local-references.md) for details.
+See [ADR 009: Skill LTM Reads](../adr/009-skill-ltm-organizational-knowledge.md) for details.
+
+## JSON Contract Pattern
+
+The JSON Contract pattern governs how information flows through the recipe → agent → skill → agent → recipe pipeline in recipe-driven workflows.
+
+### What It Is
+
+A single JSON object that the recipe creates at the start of execution and passes to each agent invocation. Agents enrich it with artifact paths they produce; skills read from it to find input paths and write artifact paths back into it.
+
+### Contract Structure
+
+```json
+{
+  "intent_path": "<path to reference/intent.yaml>",
+  "stm_base": "<base STM directory for this workflow>",
+  "slug": "<derived identifier for this workflow instance>",
+  "stm": {
+    "vision_path": "<input artifact — set by recipe>",
+    "epics_path": null,
+    "feasibility_path": null,
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [
+    { "name": "brief_review", "status": "pending" }
+  ],
+  "evidence": [
+    { "name": "<recipe-name>", "location": null }
+  ],
+  "notes": [],
+  "step_failure": null
+}
+```
+
+### Contract Fields
+
+| Field | Owner | Purpose |
+|-------|-------|---------|
+| `intent_path` | Recipe | Path to `reference/intent.yaml` — the user contract |
+| `stm_base` | Recipe | Base directory for all STM artifacts in this workflow |
+| `slug` | Recipe | Derived identifier for the workflow instance |
+| `stm.*` | Agents | Artifact paths — agents populate null fields with paths they produce |
+| `checkpoints` | Recipe | Checkpoint status — recipe updates after human review |
+| `evidence` | Recipe | Evidence file paths — recipe updates at report step |
+| `notes` | Agents | Short observations (max 3 items, 1 sentence each) for downstream agents |
+| `step_failure` | Agents | Non-null only when agent cannot recover — recipe reads to decide retry/halt |
+
+### How It Flows
+
+```
+Recipe creates initial contract (vision_path set, all stm.* null)
+    │
+    ▼
+Agent 1 receives contract as entire prompt
+    │  reads intent.yaml
+    │  reads STM artifacts at non-null paths
+    │  calls skill — skill produces artifact, returns path
+    │  sets stm.epics_path = produced path
+    │  returns enriched contract
+    ▼
+Recipe validates stm.epics_path non-null, step_failure null
+    │
+    ▼
+Agent 2 receives enriched contract (has epics_path now)
+    │  ... same pattern ...
+    ▼
+Recipe continues until all capabilities complete
+```
+
+**Critical rule:** The JSON contract is the ENTIRE agent prompt. Recipes pass ONLY the JSON object — no instructions, field definitions, or examples appended. Agents read their own definition files and `intent.yaml` to know what to do.
+
+## Four Crafts Architecture
+
+The Four Crafts Architecture describes the four distinct authoring concerns that Meridian separates to achieve deterministic, intent-driven execution.
+
+### The Four Crafts
+
+| Craft | Owner | Artifact | Purpose |
+|-------|-------|----------|---------|
+| **Intent Crafting** | User / Framework Author | `reference/intent.yaml` | Defines the goal, constraints, failure conditions, and validation scenarios |
+| **Prompt Crafting** | Recipe | JSON contract | Recipe passes ONLY the JSON contract to agents — no inline instructions |
+| **Context Crafting** | Agent | Skill inputs | Agent discovers LTM paths, reads STM artifacts, assembles what the skill needs |
+| **Spec Crafting** | Skill | STM artifacts | Skill reads templates from LTM, fills them, writes output artifacts to STM |
+
+### Intent Crafting
+
+Intent Crafting produces `reference/intent.yaml` — the user-facing contract for the recipe. It contains:
+
+```yaml
+goal: "<what success looks like for the user>"
+constraints:
+  - id: C-<ID>
+    description: "<what must be true>"
+    halt_message: "<what to tell the user if violated>"
+failure_conditions:
+  - id: FC-<ID>
+    description: "<what constitutes failure>"
+scenarios:
+  - id: S-<ID>
+    description: "<testable validation scenario>"
+    passing_criteria: "<what pass looks like>"
+```
+
+Intent Crafting is done once per recipe by the framework author. The `intent.yaml` file is stable — agents read it; they never modify it.
+
+### Prompt Crafting
+
+Prompt Crafting is how the recipe communicates with agents. The rule: the JSON contract IS the entire agent prompt.
+
+```
+WRONG:
+  "You are the product-strategist agent. Your task is to scope epics.
+   Rules: [list of rules]
+   {JSON contract here}"
+
+RIGHT:
+  {JSON contract — nothing else}
+```
+
+Agents have their own definition files and read `intent.yaml`. Adding instructions to the prompt overrides agent behavior with potentially wrong information.
+
+### Context Crafting
+
+Context Crafting is the agent's responsibility before invoking a skill. The agent:
+
+1. Reads `intent.yaml` at `intent_path` from the contract
+2. Reads existing STM artifacts at non-null `stm.*` paths
+3. Loads relevant LTM standards from `~/.meridian/core/memory/`
+4. Assembles the complete input the skill needs, including LTM template paths
+
+Skills do not discover LTM themselves — the agent hands them the paths. This is the boundary: agents know what context is needed; skills know how to use context once provided.
+
+### Spec Crafting
+
+Spec Crafting is what skills do. A skill:
+
+1. Receives explicit input paths (STM artifacts + LTM template paths) from the agent
+2. Reads LTM templates to understand the required output shape
+3. Fills the template with content derived from the input artifacts
+4. Writes the completed artifact to STM at the path specified in the contract
+5. Returns the artifact path to the agent
+
+Skills are stable and narrow — they know one craft deeply. They do not make architectural decisions; they produce well-formed artifacts.
 
 ## Agents
 
@@ -426,5 +576,6 @@ The lighter recipes can be tested first on mechanical operations (`commit-code`,
 - [ADR 004: Agent Naming](../adr/004-agent-naming.md)
 - [ADR 005: Skills as Capabilities](../adr/005-skills-as-capabilities.md)
 - [ADR 006: Naming Conventions](../adr/006-naming-conventions.md)
-- [ADR 007: Skill-Local References](../adr/007-skill-local-references.md)
+- [ADR 007: Skill-Local References](../adr/SUPERSEDED-007-skill-local-references.md) (Superseded by ADR 009)
 - [ADR 008: Issue-Centric STM and NWWI](../adr/008-issue-centric-stm-and-nwwi.md)
+- [ADR 009: JSON Contract Pattern and Four Crafts Architecture](../adr/009-json-contract-four-crafts.md)

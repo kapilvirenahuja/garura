@@ -88,7 +88,7 @@ These files are:
 
 **5. Templates define the schema**
 
-Each skill that writes an STM artifact MUST have a corresponding template in its `templates/` directory (per ADR 007 skill-local references). The template defines the YAML schema — no freeform writing.
+Each skill that writes an STM artifact MUST have a corresponding output template in its `templates/` directory (per ADR 009 — output format is skill behavior and stays local). The template defines the YAML schema — no freeform writing. Note: content templates (e.g., roadmap-brief.html) live in LTM, not skill-local.
 
 ### Applied to plan-roadmap
 
@@ -150,6 +150,6 @@ This ADR formalizes Phoenix's data transport rule for implementation.
 ## Related ADRs
 
 - [ADR 001: Three-Layer Hierarchy](./001-three-layer-hierarchy.md) — Establishes the Recipe → Agent → Skill hierarchy
-- [ADR 007: Skill-Local References](./007-skill-local-references.md) — Skills own their templates; templates define artifact schemas
+- [ADR 009: Skill LTM Reads](./009-skill-ltm-organizational-knowledge.md) — Output templates stay skill-local (skill behavior); content templates live in LTM (organizational knowledge)
 - [ADR 008: Issue-Centric STM and NWWI](./008-issue-centric-stm-and-nwwi.md) — STM directory structure; checkpoints as resumption artifacts
 - [ADR 010: STM Archival](./010-stm-archival.md) — Retention and archival of STM artifacts after issue close

@@ -35,21 +35,26 @@ LTM stores:
 
 ### LTM Usage
 
-Agents and skills read from LTM to:
+Agents read from LTM to:
 1. Follow established practices
-2. Use consistent templates
+2. Discover template paths to pass to skills
 3. Apply tool-specific patterns
 4. Maintain team conventions
+
+Skills read from LTM only when agents explicitly pass them LTM paths — skills do not search LTM themselves.
 
 ```
 Agent invoked
     │
-    └── Reads LTM from ~/.meridian/core/memory/:
-          ├── standards/{domain}/
-          ├── formats/{type}/
-          └── knowledge/{domain}/
+    └── Context Crafting — reads LTM from ~/.meridian/core/memory/:
+          ├── standards/{domain}/      # Rules and quality criteria
+          ├── standards/templates/     # Template paths to pass to skills
+          ├── formats/{type}/          # Output shape references
+          └── knowledge/{domain}/      # Design decisions and patterns
     │
-    └── Applies standards to work
+    └── Passes LTM template paths to skill
+    │
+    └── Skill reads template, writes STM artifact
 ```
 
 ### LTM Organization
@@ -57,23 +62,57 @@ Agent invoked
 **Authoring (source of truth):**
 ```
 core/components/memory/
-├── standards/       # Rules, conventions, quality criteria
+├── standards/           # Rules, conventions, quality criteria
 │   ├── _index.md
-│   ├── commits/    # Commit categorization and quality rules
-│   └── git/        # Branch naming conventions
-├── formats/         # Templates and output shapes
+│   ├── commits/         # Commit categorization and quality rules
+│   ├── git/             # Branch naming conventions
+│   └── templates/       # Templates used by skills at runtime
+│       ├── epic-schema.md       # Schema for IDD epic fields
+│       └── roadmap-brief.html   # HTML template for roadmap briefs
+├── formats/             # Templates and output shapes
 │   ├── _index.md
 │   └── github-issue.md
-└── knowledge/       # Searchable reference material
+└── knowledge/           # Searchable reference material
     ├── _index.md
     └── architecture/
 ```
+
+**Deployment:**
+- Source: `core/components/memory/`
+- Global mode (default): `~/.meridian/core/memory/` (shared across all projects, deployed via `/sync-claude`)
+- Project mode (ephemeral): `.meridian/core/memory/` (project-specific, deployed via `/sync-claude --project`, gitignored)
 
 **Runtime (where agents read from):**
 ```
 ~/.meridian/core/memory/    # Global mode (default)
 .meridian/core/memory/      # Project mode
 ```
+
+### LTM Access Pattern (ADR 009)
+
+Agents do NOT search LTM directly on behalf of skills. Instead, agents perform **Context Crafting**: they discover which LTM paths are relevant, then pass those paths to skills as explicit inputs.
+
+```
+Agent invoked (via JSON contract)
+    │
+    └── Context Crafting:
+          ├── Reads intent.yaml at intent_path from contract
+          ├── Reads STM artifacts at non-null stm.* paths
+          └── Assembles LTM paths (e.g., template paths from standards/templates/)
+                    │
+                    ▼
+          Skill invocation:
+          └── Receives LTM template paths + STM artifact paths
+                    │
+                    ▼
+          Skill reads template from LTM
+          Skill fills template with content
+          Skill writes artifact to STM
+```
+
+Skills receive template paths from agents — skills do NOT search LTM themselves. This boundary keeps skills narrow and testable: each skill knows how to use a template once given the path; it does not need to discover which template to use.
+
+See [ADR 009: JSON Contract Pattern and Four Crafts Architecture](../adr/009-json-contract-four-crafts.md) for details on runtime LTM reads.
 
 ## Short-Term Memory (STM)
 
@@ -216,5 +255,6 @@ See: [docs/usage/memory/](../usage/memory/) for concrete implementations.
 ## Related Documentation
 
 - [ADR 006: Naming Conventions](../adr/006-naming-conventions.md)
+- [ADR 009: JSON Contract Pattern and Four Crafts Architecture](../adr/009-json-contract-four-crafts.md)
 - [Architecture Philosophy](../philosophy/architecture.md)
 - [Recipes Component Guide](./recipes.md)

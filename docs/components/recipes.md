@@ -12,18 +12,17 @@ Recipes define **what to do and in what order**. They are the entry points for a
 |-----------|-------------|
 | **Never forked** | Recipes define steps/order — forking loses meaning |
 | **Artifact-producing** | Every recipe produces tangible output |
-| **Checkpoint-ending** | Recipes stop for approval at defined points |
+| **Checkpoint-gated** | Recipes stop for approval at defined points |
 | **Deterministic** | Same recipe = same flow, predictable behavior |
 
 ## Recipe Levels
 
-Meridian has a three-layer hierarchy:
-
-| Level | Invocability | Constraints | Purpose |
-|-------|--------------|-------------|---------|
+| Level | Invocability | Max Agent Calls | Purpose |
+|-------|--------------|-----------------|---------|
 | **L1** | Human OR Model | ≤2 distinct agents | Atomic activities |
 | **L2** | Human only | ≤5 distinct agents (ideal 3) | High-order workflows |
-| **L3** | TBD | TBD | Not yet designed |
+
+Recovery agent calls and Claude built-in sub-agents (Task, Plan, Explore) are exempt from the agent limit.
 
 ### When to Use Each Level
 
@@ -32,110 +31,130 @@ Meridian has a three-layer hierarchy:
 | Single-purpose task | Multi-step workflow |
 | Can be model-invoked | Needs human oversight |
 | Produces one artifact | Chains multiple artifacts |
-| Simple checkpoint | Multiple checkpoints |
+| Simple checkpoint | Multiple checkpoints or task graph |
 
-## L1 Recipes (Atomic Activities)
+## Two Recipe Patterns
 
-L1 recipes are the building blocks of Meridian workflows.
+Two patterns coexist in the codebase. The pattern used depends on the recipe's execution model.
 
-### L1 Properties
+### Pattern A — Linear Step Recipes
 
-1. **Atomic** — Single, focused purpose
-2. **Artifact-producing** — Always creates a tangible output
-3. **Checkpoint-ending** — Always stops for approval
-4. **Flexible invocability** — Human OR model can invoke
-
-### L1 Flow Pattern
+Used by L1 recipes (commit-code, create-pr) and L2 recipes that chain L1s (ship). Steps execute in sequence with a fixed phase structure.
 
 ```
-L1 Recipe
-    │
-    └── Agent(s): {≤2 distinct agents}
-              │
-              └── Agents use skills as needed
-              │
-              └── Agents produce ARTIFACT
-    │
-    └── CHECKPOINT: Present artifact for approval
+PRE-FLIGHT → [PRE-EXECUTION] → CHECKPOINT → EXECUTE → REPORT
 ```
 
-### L1 Constraints
+Each step passes a **recipe context block** (YAML) to agents:
 
-- Maximum 2 distinct agents (an agent may be called multiple times)
-- Exactly one artifact produced
-- Must end at a checkpoint
-- Recovery agent calls are exempt from the agent limit
-- Claude built-in sub-agents (Plan, Explore, Task) are exempt from the agent limit — they are tools, not domain agents
-
-## L2 Recipes (High-Order Workflows)
-
-L2 recipes chain L1 recipes together to accomplish complex goals.
-
-### L2 Properties
-
-1. **Chaining** — Sequences multiple L1 recipes
-2. **Guardian-validated** — Each checkpoint can be auto-approved
-3. **Human-only** — Only humans can start L2 workflows
-4. **Goal-oriented** — Represents user intent
-
-### L2 Flow Pattern
-
-```
-L2 Recipe
-    │
-    ├── L1: {first step}
-    │       Artifact: {output}
-    │       └── CHECKPOINT ◄── [Guardian: skip?]
-    │
-    ├── L1: {second step}
-    │       Artifact: {output}
-    │       └── CHECKPOINT ◄── [Guardian: skip?]
-    │
-    └── L1: {final step}
-            Artifact: {final output}
-            └── DONE
+```yaml
+---
+Recipe context:
+  intent: "{what this step achieves}"
+  task: "{specific directive}"
+  pre_flight: {results from Step 0}
+  behavioral_constraints: {constraints from reference/intent.yaml}
 ```
 
-### Guardian Logic
+**Conditional step skipping** is valid in L2 recipes. `ship` skips the commit step when the working tree is already clean, and skips PR creation when a PR already exists.
 
-The workflow guardian evaluates at each checkpoint:
+**L2 recipes can delegate to L1 recipes.** `ship` invokes `commit-code` and `create-pr` as sub-recipes via the Skill tool, passing `ship_context.auto_approve: true` to suppress their interactive checkpoints.
 
-| Criterion | Question |
-|-----------|----------|
-| **Quality** | Does artifact meet threshold? |
-| **Security** | Any security concerns? |
-| **Breaking** | Will this break existing functionality? |
-| **Risk** | Within acceptable risk tolerance? |
+### Pattern B — Task-Driven DAG Recipes
+
+Used by L2 recipes like `plan-roadmap`. The recipe creates the full task graph upfront using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order. Agents communicate via a **JSON contract** rather than per-step YAML context blocks.
 
 ```
-ALL criteria pass → Skip human approval
-ANY criterion fails → Stop for human approval
+Pre-flight → Create Task Graph → Execute Capabilities (in dependency order) → Checkpoint → Execute Post-Checkpoint Capabilities → Report
 ```
 
-### L2 Constraints
+**HARD GATE: All tasks MUST be created with correct dependencies before any agent execution begins.** The recipe does not proceed until the full task graph is verified — every capability task exists, every `blockedBy` link is set, and the checkpoint task is in the graph.
 
-- Maximum 5 distinct agents (ideal 3; each may be called multiple times)
-- Human-invocable only
-- Each L1 must complete before next starts
-- Guardian validates between L1s
-- Recovery agent calls are exempt from the agent limit
+## JSON Contract
 
-## Naming Conventions
+The JSON contract is the primary communication mechanism in task-driven recipes. A single contract object is created at the start of the workflow and flows through every agent invocation. Each agent enriches it by populating null fields with artifact paths it produces.
 
-Both L1 and L2 recipes follow the **`{action}-{object}`** pattern:
+### Contract Structure
 
-| Component | Description | Examples |
-|-----------|-------------|----------|
-| **action** | Verb describing what to do | analyze, design, implement, validate |
-| **object** | Noun describing the target | bug, fix, feature, code |
+```json
+{
+  "intent_path": "reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "slug": "<derived from input>",
+  "stm": {
+    "vision_path": "<input path>",
+    "epics_path": null,
+    "feasibility_path": null,
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [
+    { "name": "brief_review", "status": "pending" }
+  ],
+  "evidence": [
+    { "name": "plan-roadmap", "location": null }
+  ],
+  "notes": [],
+  "step_failure": null
+}
+```
 
-The level (L1/L2) is indicated in the recipe metadata, not the name.
+### Contract Fields
 
-## Recipe Definition Structure
+| Field | Owner | Purpose |
+|-------|-------|---------|
+| `intent_path` | Recipe | Path to intent.yaml — agents read it directly |
+| `stm_base` | Recipe | Base path for all STM artifacts |
+| `slug` | Recipe | Identifier derived from the input (e.g., vision file name) |
+| `stm.*` | Agents | Artifact paths — agents populate null fields with paths they produce |
+| `checkpoints` | Recipe | Checkpoint status — recipe updates after human review |
+| `evidence` | Recipe | Evidence paths — recipe updates at report step |
+| `notes` | Agents | Short observations from the current step (max 3, 1 sentence each). Structured context for downstream agents — not prose. |
+| `step_failure` | Agents | Non-null only when the agent cannot recover. Recipe reads this to decide retry or halt. |
 
-Recipes follow Claude's skill/command format with a standardized directory structure and externalized intent.
+**Note on LTM paths:** The contract carries STM artifact paths (the `stm.*` fields above). Agents ALSO discover and pass LTM paths to skills as separate input parameters during the Context Crafting step. These LTM paths are NOT stored in the contract — they are assembled by the agent at invocation time. Examples: `epic_schema_path` (the schema the skill must conform to) and `template_path` (the template the skill fills). The contract tells agents WHERE prior artifacts landed; LTM discovery tells agents WHAT standards and templates govern the current step.
 
-### Recipe Directory Structure
+### How the Contract Flows
+
+1. Recipe creates the initial contract with input path set, all `stm.*` artifact paths null
+2. Recipe sends the contract to the first agent as the **entire** agent prompt
+3. Agent produces artifacts, populates `stm` paths, optionally adds `notes`, returns enriched contract
+4. If the agent fails after recovery attempts, it sets `step_failure` instead of populating `stm` paths
+5. Recipe checks `step_failure` first, then validates that expected `stm` paths are non-null
+6. Recipe sends the enriched contract to the next agent — the contract grows through the workflow
+
+### CRITICAL Rule: JSON Contract Is the Entire Agent Prompt
+
+When invoking an agent in a task-driven recipe, pass **only** the JSON object as the prompt. Do NOT append instructions, field definitions, examples, rules, or any other text after it. Agents read their own definition files and `intent_path` — they already know what to do. Adding instructions overrides agent behavior with potentially wrong information.
+
+If you find yourself writing "Rules:", "For each epic:", or "Example return format:" after the JSON — STOP. Delete it. Send only the JSON.
+
+### `notes` Format
+
+```json
+"notes": [
+  "5 epics derived — all trace to distinct strategic goals",
+  "E2 depends on E1 foundation — sequencing constraint"
+]
+```
+
+### `step_failure` Format
+
+```json
+"step_failure": {
+  "step": "scope_epics",
+  "error": "insufficient_epics",
+  "message": "Only 2 epics identifiable from vision",
+  "recovery_attempted": true,
+  "recovery_details": "Broadened strategic goal interpretation — still only 2 distinct epics"
+}
+```
+
+When `step_failure` is non-null, `stm` paths for the failed step remain null. Recipe checks `step_failure` before checking `stm` paths.
+
+## Recipe Directory Structure
 
 Every recipe is a self-contained directory:
 
@@ -143,260 +162,50 @@ Every recipe is a self-contained directory:
 {recipe-name}/
 ├── SKILL.md              # Recipe execution blueprint
 ├── reference/
-│   └── intent.yaml       # First-class intent schema (operational contract)
+│   └── intent.yaml       # User-facing intent contract
 └── templates/
     ├── checkpoint.md      # Checkpoint artifact template
     ├── approval-prompt.md # User-facing Tether/Vanish approval prompt
-    └── {recipe-specific}.md  # Recipe-specific templates (e.g., final-report.md)
+    └── {recipe-specific}.md
 ```
 
-**Reference implementation:** `core/components/recipes/create-pr/` is the golden standard for this structure.
+## Intent and System Constraints: Where They Live
 
-### Three Elements of Intent (Required)
+**System constraints** (framework guardrails, agent boundaries, forbidden tools, path rules) live in `SKILL.md` — they are not user-facing.
 
-Every recipe MUST declare the Three Elements of Intent. These are **externalized** to `reference/intent.yaml` as a first-class schema file — not embedded in SKILL.md frontmatter. This is a foundational IDD requirement — see [Intent-Driven Development](../philosophy/intent-driven-development.md#the-three-elements-of-intent).
+**User-facing intent** (goal, constraints with template refs, failure conditions, validation scenarios) lives in `reference/intent.yaml`.
 
-| Element | What It Captures | Purpose |
-|---------|-----------------|---------|
-| **intent** | The positive space — what outcome this recipe achieves | Agents check: "Am I moving toward this?" / "Have I achieved this?" |
-| **constraints** | The boundaries the solution must respect (pre-flight + behavioral) | Agents check: "Am I within these?" |
-| **failure_conditions** | The halt signals — when to assess recovery or abort | Agents check: "Has any of these been triggered?" → assess recovery → HALT if unrecoverable |
+This separation means agents can read the user contract independently without parsing orchestration logic.
 
-**Intent externalization pattern:**
+### intent.yaml Schema (Task-Driven Recipes)
 
-The intent schema lives in `reference/intent.yaml` with structured constraint categories:
+`plan-roadmap` uses a minimal intent.yaml that is readable by both agents and users:
 
 ```yaml
-intent: "{business outcome — WHY/WHAT, never HOW}"
+name: plan-roadmap
+goal: "Prepare a roadmap"
 
 constraints:
-  pre_flight:
-    - id: C1
-      check: "{environmental condition to verify before work begins}"
-      halt_message: "{message shown when this check fails}"
-    # ... one entry per pre-flight check
-
-  behavioral:
-    - id: CN
-      rule: "{behavioral constraint that applies during execution}"
-    # ... one entry per behavioral rule
+  - id: C-TEMPLATE
+    rule: "Follow the roadmap brief template"
+    template_ref: "standards/templates/roadmap-brief.html"
+  - id: C-LOCKED
+    rule: "Vision must be locked before roadmap planning"
 
 failure_conditions:
-  - "{condition that means HALT — intent is unreachable}"
+  - "Fewer than 3 epics"
+  - "Roadmap is not internally consistent"
+
+scenarios:
+  - id: S1
+    persona: "Product Manager"
+    given: "Approved roadmap brief"
+    then: "Can clearly describe each epic's intent, constraints, and success criteria"
 ```
 
-SKILL.md references this file via a load directive in its `## Intent` section — it does NOT duplicate the schema inline.
+### intent.yaml Schema (Linear Step Recipes)
 
-**Rules:**
-- `intent` is a single string in business language (not technical). It must be self-evidently testable.
-- `constraints.pre_flight` are environmental conditions checked in Step 0; failures are **hard halts** (not recoverable).
-- `constraints.behavioral` are rules that apply during execution; agents receive relevant subsets via recipe context blocks.
-- `failure_conditions` is a list of halt triggers. When triggered, the recipe enters the **recovery reasoning loop** (see below).
-- `description` is kept in SKILL.md frontmatter — it serves Claude Code's skill discovery; `intent` (in `reference/intent.yaml`) serves IDD agent decision-making.
-
-### Intent-Driven Recovery
-
-Recovery in recipes follows a two-tier model: **pre-flight hard halts** and **runtime recovery loops**.
-
-#### Pre-flight Hard Halts
-
-Pre-flight constraints (checked in Step 0) represent environmental conditions the agent cannot fix. When a pre-flight check fails, the recipe halts immediately with the constraint's `halt_message` from `reference/intent.yaml`. No recovery is attempted.
-
-Examples of pre-flight failures (from `create-pr`):
-- Current branch is protected (main/master/develop)
-- No commits to push
-- Merge conflicts detected
-- No issue number extractable from branch name
-
-#### Runtime Recovery Loop
-
-When a failure condition is triggered during Steps 1+ (not pre-flight), the recipe follows the **recovery reasoning loop** — deriving recovery paths from the IDD elements themselves.
-
-```
-Agent returns structured failure
-    │
-    ├── Read domain_assessment.responsible_domain
-    │   (identifies which agent can fix it)
-    │
-    ├── Invoke responsible agent with:
-    │   - fix context + original intent + retry metadata
-    │
-    ├── Max retries per step (typically 1-2)
-    │
-    ├── Success → continue workflow
-    └── Retries exhausted → HALT with full failure context
-```
-
-Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md`
-
-**Retry context added to recipe context bundle:**
-```yaml
-retry:
-  previous_failure: "{what_failed}"
-  fix_applied: "{what was done to fix it}"
-  attempt: {N}
-```
-
-#### Recovery Principles
-
-| Principle | Description |
-|-----------|-------------|
-| **Intent-first** | Recovery serves the declared intent, not a prescribed procedure |
-| **Constraint-respecting** | Recovery must satisfy ALL constraints — never bypass them |
-| **Agent-reasoned** | Recovery paths are derived at runtime, not hardcoded in recipes |
-| **Single section** | All recovery logic lives in `## Recovery` — not scattered across steps |
-| **Skill-delegated** | Recovery actions delegate to existing skills and agents |
-| **Pre-flight exempt** | Pre-flight failures are hard halts — environmental conditions agents cannot fix |
-
-#### What Recipes Declare vs. What Agents Derive
-
-| Recipes declare (static) | Agents derive (dynamic) |
-|--------------------------|------------------------|
-| Intent — the outcome | Whether the intent is still achievable |
-| Constraints — the boundaries | Which constraint is blocking and how to satisfy it |
-| Failure conditions — the triggers | Whether recovery is possible and what it looks like |
-
-#### Example: Agent Recovery Reasoning
-
-```
-Triggered: "Current branch is a protected branch"
-Intent:    "Persist completed work as conventional commits with traceability"
-Violated:  "MUST NOT commit on protected branches"
-
-Agent reasons:
-  - Intent is to commit code. That hasn't changed.
-  - The constraint says I need a feature branch, not that I should stop.
-  - I know the setup-branch skill exists. I need an issue ID to name the branch.
-  - Recovery: resolve issue ID → create feature branch → continue workflow.
-  - This satisfies the constraint without abandoning the intent.
-  → Propose recovery to user.
-```
-
-### L1 Recipe Structure (Golden Standard)
-
-Based on `create-pr` — the reference implementation for all L1 recipes.
-
-#### SKILL.md
-
-```yaml
----
-name: {action}-{object}
-description: {short summary for CLI/tooling discovery}
-user-invocable: true
-model: sonnet
-allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
----
-```
-
-```markdown
-# {recipe-name}
-
-{One-line description of what the recipe does.}
-
-## Intent
-
-**BEFORE executing any step, read `reference/intent.yaml`** — it defines your
-operational contract: intent, pre-flight constraints, behavioral constraints,
-and failure conditions. All constraint IDs referenced in this recipe map to
-that file.
-
-## Role
-
-You are the orchestrator. You own the workflow. You delegate domain tasks to
-agents — never execute directly.
-
-**Forbidden:** `Bash`, `Grep`, `Glob`, or any direct git/gh commands.
-
-**Agent boundaries:**
-- `{agent-name}` — {domain} only: {what this agent handles}
-
-## Phases
-
-| Step | Name | Agent |
-|------|------|-------|
-| Step 0 | Pre-flight | {agent} |
-| Step 1 | {name} | {agent} |
-| Step 2 | Checkpoint | orchestrator |
-| Step 3 | Execute | {agent} |
-| Step 4 | Report | orchestrator |
-
-## Workflow
-
-### Step 0 — Pre-flight
-
-{Invoke agent to check environmental preconditions.}
-
-Provide recipe context:
-  ```yaml
-  ---
-  Recipe context:
-    intent: "{what this step achieves}"
-    task: "Read `reference/intent.yaml`. Run every check in
-           `constraints.pre_flight`. Return pass/fail for each.
-           Do NOT halt — just return results."
-  ```
-
-{Orchestrator validates results — halt on any FAIL with that
-constraint's `halt_message` from `reference/intent.yaml`.}
-
-### Step N — {Name}
-
-{Provide recipe context block with dynamic references:}
-
-  ```yaml
-  ---
-  Recipe context:
-    intent: "{what this step achieves}"
-    task: "{specific directive}"
-    pre_flight: {all results from Step 0}
-    behavioral_constraints: {all behavioral constraints from reference/intent.yaml}
-  ```
-
-{Expected output structure.}
-{One-line reference to Recovery section for failures.}
-
-### Step N — Checkpoint
-
-**The orchestrator owns this step entirely. Do not delegate.**
-
-{Write checkpoint artifact using `templates/checkpoint.md`.}
-{Present approval using `templates/approval-prompt.md`.}
-{Parse Tether/Vanish.}
-
-### Step N — Report
-
-**The orchestrator owns this step entirely. Do not delegate.**
-
-{Present report using `templates/{report-template}.md`.}
-{Update checkpoint artifact.}
-
-## Recovery
-
-Load recovery reasoning from:
-`docs/framework/intent-driven-recovery.md`
-
-{Structured failure protocol — max N retries per step.}
-{Pre-flight failures are hard halts — not recoverable.}
-
-## References
-
-| File | Path | Used For |
-|------|------|----------|
-| Intent | `reference/intent.yaml` | Operational contract |
-| Checkpoint | `templates/checkpoint.md` | STM artifact |
-| Approval | `templates/approval-prompt.md` | Tether/Vanish prompt |
-
-## Version
-
-| Field | Value |
-|-------|-------|
-| Level | L1 |
-| Version | {semver} |
-| Distinct Agents | {count} ({names}) |
-| Checkpoint | Always / Conditional |
-```
-
-#### reference/intent.yaml
+`commit-code` and `create-pr` use a structured schema with pre-flight and behavioral constraint categories:
 
 ```yaml
 intent: "{Business outcome. WHY/WHAT, never HOW.}"
@@ -415,151 +224,121 @@ failure_conditions:
   - "{Condition that means HALT — intent is unreachable}"
 ```
 
-#### Key Structural Rules
+## Four Crafts
 
-| Rule | Rationale |
-|------|-----------|
-| Intent lives in `reference/intent.yaml`, not SKILL.md | Intent is a first-class schema that can grow independently |
-| Agent context blocks reference `reference/intent.yaml` dynamically | Adding new constraints to the file is automatically picked up |
-| Templates live in `templates/` directory | Separation of concerns — templates change independently of workflow |
-| Pre-flight is always Step 0 | Environmental conditions must be verified before any work begins |
-| Recovery is a single section, not scattered inline | One place for all failure handling |
-| Version table is mandatory | Explicit level, agent count, and checkpoint behavior |
+Meridian recipes embody four crafts that work together:
 
-### L2 Recipe Structure
+| Craft | What | Where |
+|-------|------|-------|
+| **Intent Crafting** | Define the goal, constraints, and failure conditions | `reference/intent.yaml` |
+| **Prompt Crafting** | Pass the JSON contract (task-driven) or recipe context block (linear) as the agent prompt | `SKILL.md` workflow steps |
+| **Context Crafting** | Agents collect LTM templates and STM artifact paths to ground their work | Inside agent definitions |
+| **Spec Crafting** | Skills fill templates with structured content to produce artifacts | Inside skill definitions |
 
-L2 recipes chain L1 recipes together. They follow the same directory structure (`SKILL.md` + `reference/` + `templates/`) with these differences:
+## Agent Behavior Inside Recipes
 
-```yaml
----
-name: {action}-{object}
-description: {short summary for CLI/tooling discovery}
-user-invocable: true
-model: sonnet
-allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
----
+When a recipe invokes an agent, the agent does more than "read STM and call a skill." Agents follow a structured preparation process before invoking any skill:
+
+**1. Constraint validation (first, always).** The agent reads `intent_path` and validates ALL constraints from `intent.yaml` before invoking any skill. If any constraint would be violated, the agent returns a structured failure immediately — no skill is invoked.
+
+**2. Selective LTM discovery.** The agent searches LTM for relevant standards, schemas, and templates that govern the current step (e.g., `epic_schema_path`, `template_path`). It evaluates whether the discovered LTM is sufficient to ground the skill's output. If LTM is insufficient, the agent may fall back to domain research before proceeding.
+
+**3. Skill invocation.** Only after constraints are validated and LTM is assembled does the agent invoke the skill, passing both STM artifact paths (from the contract) and LTM paths (from discovery) as inputs.
+
+**Multi-intent handling.** Agents may process multiple intents in a single invocation (e.g., "scope epics then draft brief"). For L2 recipes with a fixed task DAG, this is less relevant — the recipe controls sequencing. For direct agent invocations outside a recipe, agents detect all intents in the prompt and process them in dependency order.
+
+## Resume Pattern
+
+Task-driven recipes support resuming from a checkpoint. The `--resume` flag instructs the recipe to:
+
+1. Find the latest checkpoint artifact in `.meridian/project/product/checkpoint/{recipe-name}/`, ordered by timestamp (most recent first)
+2. Reconstruct the JSON contract from checkpoint state
+3. Route based on checkpoint status:
+   - `brief_review.status: pending` → re-present the artifact to the user, continue from the feedback loop
+   - `brief_review.status: approved` with downstream `stm` paths null → jump to post-checkpoint execution
+4. Report to user what it is resuming from
+
+If no checkpoint is found, the recipe halts with a message directing the user to start fresh with the full invocation (e.g., `/plan-roadmap`).
+
+```
+/plan-roadmap --resume
 ```
 
-```markdown
-# {recipe-name}
+## Capability Graph (Task-Driven Recipes)
 
-## Intent
+L2 task-driven recipes declare a capability graph that defines the execution DAG. This is the static description of what the recipe will create when it builds the task graph.
 
-**BEFORE executing any step, read `reference/intent.yaml`**
+Example from `plan-roadmap`:
 
-## Role
+| # | Capability | Agent | Needs | Produces |
+|---|------------|-------|-------|----------|
+| 1 | Scope epics with IDD fields | product-strategist | vision | epics.yaml |
+| 2 | Assess technical feasibility | tech-designer | epics.yaml | feasibility.yaml |
+| 3 | Produce reviewable brief | product-strategist | epics, feasibility, vision | brief.html |
+| — | CHECKPOINT: human review | orchestrator | brief.html | approved_brief |
+| 4 | Produce full roadmap | product-strategist | epics, feasibility, approved brief | roadmap.md |
+| 5 | Produce engineering view | product-strategist | roadmap.md | roadmap-engineering.md |
 
-{Same orchestrator pattern — delegates to agents, never executes directly.}
-
-## Phases
-
-{Table showing L1 recipe chain with guardian gates between them.}
-
-## Workflow
-
-{Each step invokes an L1 recipe, with guardian validation between steps.}
-
-## Guardian Rules
-
-{Criteria for auto-approve vs stop at each checkpoint.}
+**Capability graph vs. task graph:** The capability graph (5 capabilities + checkpoint) shows WHAT gets produced — the deliverables and their data dependencies. The task graph adds orchestrator-owned tasks that are not capabilities: the human review checkpoint task and the final report task. This brings the total task count to 7 for `plan-roadmap`. The two views are complementary: the capability graph is the design-time declaration; the task graph is the runtime execution plan created from it.
 
 ## Recovery
 
-{Same recovery pattern as L1.}
+### Pre-flight Hard Halts
 
-## References
+Pre-flight constraints represent environmental conditions the agent cannot fix. When a pre-flight check fails, the recipe halts immediately. No recovery is attempted.
 
-{Intent file + all templates.}
+### Runtime Recovery Loop
 
-## Version
+When a failure condition is triggered during Steps 1+:
 
-| Field | Value |
-|-------|-------|
-| Level | L2 |
-| Version | {semver} |
-| Distinct Agents | {count} |
-| Checkpoint | {behavior} |
+```
+Agent returns structured failure
+    │
+    ├── Read domain_assessment.responsible_domain
+    ├── Invoke responsible agent with fix context + original intent
+    ├── Max retries per step (typically 1-2)
+    ├── Success → continue workflow
+    └── Retries exhausted → HALT with full failure context
 ```
 
-## Why Recipes Are Never Forked
+For retries, the `retry` field is added to the JSON contract (task-driven) or recipe context block (linear):
 
-Forking a recipe would:
-1. Lose the defined order of operations
-2. Create unpredictable behavior
-3. Break the determinism guarantee
-4. Lose context between steps
+```json
+"retry": {
+  "previous_failure": "{what_failed}",
+  "fix_applied": "{what was done to fix it}",
+  "attempt": 2
+}
+```
 
-Recipes are **orchestrators** — they coordinate, not execute.
+The agent receiving a retry reads `retry.previous_failure` to understand what went wrong and `retry.fix_applied` to understand what the recovery agent changed. `retry.attempt` tracks how many times this step has been retried so the recipe can enforce the max retry limit.
+
+Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md`
+
+## Complete Recipe Roster
+
+| Recipe | Level | Pattern | Purpose |
+|--------|-------|---------|---------|
+| `commit-code` | L1 | Linear | Commit changes grouped by concern with conventional messages |
+| `create-pr` | L1 | Linear | Create a pull request with review checklist |
+| `start-feature` | L1 | Linear | Start a new feature branch from an issue |
+| `start-feature-planning` | L1 | Linear | Plan a feature before implementation |
+| `discover-product` | L1 | Linear | Discover and document product requirements |
+| `capture-learning` | L1 | Linear | Capture learnings to LTM (archival) |
+| `ship` | L2 | Linear (chains L1s) | Deliver branch work — commit, PR, review, merge, return |
+| `plan-roadmap` | L2 | Task-Driven DAG | Scope epics, produce brief, get approval, produce roadmap |
 
 ## Artifact Locations
 
 | Artifact Type | Location Pattern |
-|---------------|------------------|
+|---------------|-----------------|
 | Specifications | `.meridian/{issue}/spec/` |
 | Design | `.meridian/{issue}/design/` |
 | Evidence | `.meridian/{issue}/evidence/` |
 | Delivery | `.meridian/{issue}/delivery/` |
 | Checkpoints | `.meridian/{issue}/checkpoint/{recipe-name}/{timestamp}.md` |
+| Product artifacts | `.meridian/project/product/{slug}/` |
 | External | Returned directly (URLs, IDs) |
-
-## Recipe Location
-
-Recipe definitions are stored in a flat directory structure:
-
-```
-core/components/recipes/
-├── create-pr/           # Golden standard reference implementation
-│   ├── SKILL.md
-│   ├── reference/
-│   │   └── intent.yaml
-│   └── templates/
-│       ├── checkpoint.md
-│       ├── approval-prompt.md
-│       └── final-report.md
-├── commit-code/
-│   ├── SKILL.md
-│   ├── reference/
-│   │   └── intent.yaml
-│   └── templates/
-├── start-feature/
-│   ├── SKILL.md
-│   ├── reference/
-│   │   └── intent.yaml
-│   └── templates/
-├── start-feature-planning/
-│   ├── SKILL.md
-│   ├── reference/
-│   │   └── intent.yaml
-│   └── templates/
-├── discover-product/
-│   ├── SKILL.md
-│   ├── reference/
-│   │   └── intent.yaml
-│   └── templates/
-├── plan-roadmap/            # L2 recipe — scope epics → brief → Tether → roadmap + engineering view
-│   ├── SKILL.md
-│   ├── reference/
-│   │   └── intent.yaml
-│   └── templates/
-│       ├── checkpoint.md
-│       ├── approval-prompt.md
-│       └── final-report.md
-├── ship/                    # First L2 recipe implemented in the framework
-│   ├── SKILL.md
-│   ├── reference/
-│   │   └── intent.yaml
-│   └── templates/
-├── capture-learning/        # Learn-2-Memory phase (v0.1.0 — archival only)
-│   ├── SKILL.md
-│   ├── reference/
-│   │   └── intent.yaml
-│   └── templates/
-└── ...
-```
-
-Each recipe is a self-contained directory with its execution blueprint (`SKILL.md`), externalized intent (`reference/intent.yaml`), and templates (`templates/`).
-
-See: [docs/usage/recipes/](../usage/recipes/) for concrete implementations.
 
 ## Task Framework Integration
 
@@ -574,25 +353,6 @@ Recipes use Claude's task framework (TaskCreate, TaskUpdate, TaskList, TaskGet) 
 | **Agent Resume** | agentId stored in metadata enables reliable resume |
 | **Audit Trail** | All decisions recorded in task metadata |
 | **Extensibility** | Agents can add subtasks for discovered work |
-
-### Task-Driven Recipe Pattern
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Recipe (L1)                                                 │
-│                                                             │
-│  1. TaskCreate: analysis-task                               │
-│  2. TaskCreate: checkpoint-task (blockedBy: #1)             │
-│  3. TaskCreate: execution-task (blockedBy: #2)              │
-│                                                             │
-│  4. Assign & invoke agent for task #1                       │
-│  5. Agent completes task #1, stores agentId in metadata     │
-│  6. Recipe evaluates checkpoint, completes task #2          │
-│  7. Resume agent for task #3 (using stored agentId)         │
-│  8. Agent completes task #3                                 │
-│  9. Recipe generates final report from task metadata        │
-└─────────────────────────────────────────────────────────────┘
-```
 
 ### Task Schema
 
@@ -611,64 +371,7 @@ task:
       invocation: number       # 1, 2, ... for resume tracking
       agentId: string          # For resuming agent
       checkpointDecision: pending|approved|rejected|auto-approved
-    # Domain data stored alongside
-    analysisResult: {...}
-    commitResult: {...}
 ```
-
-### Task Lifecycle in Recipes
-
-1. **Recipe creates task graph** with dependencies (`blockedBy`)
-2. **Recipe assigns task** to agent via Task tool prompt
-3. **Agent fetches task** with TaskGet, updates status to `in_progress`
-4. **Agent executes work** (invokes skills)
-5. **Agent completes task** with TaskUpdate, stores results in metadata
-6. **Recipe reads results** from task metadata for next step
-7. **Repeat** for subsequent tasks
-
-### Metadata Conventions
-
-| Key | Purpose | Set By |
-|-----|---------|--------|
-| `_meridian.recipeId` | Links task to recipe instance | Recipe |
-| `_meridian.invocation` | Tracks invocation number | Recipe |
-| `_meridian.agentId` | Enables agent resume | Agent |
-| `_meridian.checkpointDecision` | Records approval outcome | Recipe |
-| `analysisResult` | Analysis output | Agent |
-| `commitResult` | Execution output | Agent |
-
-### Example: Task Progression
-
-```
-Initial state (after Step 1):
-  #1 [pending] Analyze changes
-  #2 [pending] Checkpoint decision (blocked by #1)
-  #3 [pending] Execute commits (blocked by #2)
-
-After agent completes analysis:
-  #1 [completed] Analyze changes ✓
-  #2 [pending] Checkpoint decision
-  #3 [pending] Execute commits (blocked by #2)
-
-After checkpoint approval:
-  #1 [completed] Analyze changes ✓
-  #2 [completed] Checkpoint decision ✓
-  #3 [pending] Execute commits
-
-After agent completes execution:
-  #1 [completed] Analyze changes ✓
-  #2 [completed] Checkpoint decision ✓
-  #3 [completed] Execute commits ✓
-```
-
-### When to Use Task Framework
-
-| Use Tasks | Skip Tasks |
-|-----------|------------|
-| Multi-step workflows | Single atomic operation |
-| Need workflow visibility | Simple skill invocation |
-| Resume across invocations | No state to preserve |
-| Audit trail required | Ephemeral operations |
 
 ## Related Documentation
 
@@ -676,3 +379,4 @@ After agent completes execution:
 - [ADR 002: L1 Checkpoint Model](../adr/002-l1-checkpoint-model.md)
 - [Agents Component Guide](./agents.md)
 - [Skills Component Guide](./skills.md)
+- [Recipe Structure Standard](../framework/recipe-structure.md)
