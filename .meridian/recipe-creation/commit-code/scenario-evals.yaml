@@ -1,0 +1,138 @@
+scenario_evals:
+  # --- S1: Code reviewer can understand scope per commit without reading diffs, trace to issue ---
+
+  - id: SCE-1
+    scenario_id: S1
+    persona: "Code reviewer"
+    artifact_pattern: "git log --oneline output for the feature branch"
+    check: >
+      Every commit message follows conventional commit format: type(scope): subject.
+      The type and scope alone communicate the nature and area of the change without
+      needing to read the diff.
+    pass_criteria: >
+      100% of commits match the pattern `type(scope): subject` where type is a valid
+      conventional commit type from LTM categories, scope identifies the component/area,
+      and subject is an imperative present-tense description of the actual change.
+    fail_criteria: >
+      Any commit lacks a type or scope, uses a generic scope like "misc" or "various",
+      or has a subject that does not describe the actual change (e.g., "fix things",
+      "update code", "resolve issue").
+
+  - id: SCE-2
+    scenario_id: S1
+    persona: "Code reviewer"
+    artifact_pattern: "git log --format='%s' output for the feature branch"
+    check: >
+      Every commit message contains an issue reference that traces the change back
+      to its originating issue.
+    pass_criteria: >
+      100% of commits include an issue reference in the format `#N` (either in the
+      subject line or in the commit body as `Issue: #N`). The referenced issue number
+      corresponds to an actual open issue in the repository.
+    fail_criteria: >
+      Any commit is missing an issue reference, or references a non-existent or
+      closed issue, or references the wrong issue for the changes in that commit.
+
+  - id: SCE-3
+    scenario_id: S1
+    persona: "Code reviewer"
+    artifact_pattern: "git log --stat output for the feature branch"
+    check: >
+      Each commit contains only files that belong to a single logical concern.
+      No commit mixes unrelated changes across different features, components, or
+      issue scopes.
+    pass_criteria: >
+      For every commit, the files listed in --stat are semantically related: they
+      share the same feature/component, the same issue, or have a direct
+      import/dependency relationship. A reviewer reading only the file list and
+      commit message can confirm coherence without opening a diff.
+    fail_criteria: >
+      Any commit contains files from unrelated concerns (e.g., a UI component file
+      mixed with a database migration for a different feature), or the file grouping
+      contradicts the scope declared in the commit message.
+
+  - id: SCE-4
+    scenario_id: S1
+    persona: "Code reviewer"
+    artifact_pattern: "git log output for the feature branch"
+    check: >
+      No sensitive files (secrets, credentials, .env files, private keys) appear
+      in any commit.
+    pass_criteria: >
+      Zero commits contain files matching sensitive patterns (.env, *.key, *.pem,
+      credentials.*, secrets.*, *password*, *token* config files with secrets).
+      The git log --stat and git log --name-only output shows no such files.
+    fail_criteria: >
+      Any commit includes a file that matches known sensitive file patterns, or
+      a file that was flagged as a risk by the analyze-changes skill appears in
+      the committed output.
+
+  # --- S2: Team lead can report progress per issue, use as mentoring reference ---
+
+  - id: SCE-5
+    scenario_id: S2
+    persona: "Team lead"
+    artifact_pattern: "git log --all --oneline output filtered by issue number"
+    check: >
+      Commits can be grouped by issue number to produce a per-issue progress view.
+      Running `git log --all --grep='#N'` for each referenced issue returns all
+      and only the commits related to that issue.
+    pass_criteria: >
+      For every issue referenced in the commit history, `git log --grep='#N'`
+      returns at least one commit, and every returned commit is genuinely related
+      to that issue. No commits are orphaned (unreachable by any issue grep).
+    fail_criteria: >
+      Any commit cannot be found by grepping for its declared issue number, or
+      a commit appears under the wrong issue grep, or commits exist that reference
+      no issue and are therefore invisible to per-issue filtering.
+
+  - id: SCE-6
+    scenario_id: S2
+    persona: "Team lead"
+    artifact_pattern: "git log --format='%s' output across branches"
+    check: >
+      The commit history demonstrates consistent conventional commit practices
+      that can serve as a mentoring reference. Types are used correctly (feat for
+      new features, fix for bug fixes, refactor for restructuring, docs for
+      documentation, etc.).
+    pass_criteria: >
+      The commit type in every message accurately reflects the nature of the change.
+      A team lead reading the log can point to any commit as a correct example of
+      conventional commit usage: type matches the change category, scope is specific,
+      subject is descriptive and imperative.
+    fail_criteria: >
+      Any commit uses the wrong type for its change (e.g., `feat` for a bug fix,
+      `fix` for a new feature), or types are used inconsistently across similar
+      changes, making the history unreliable as a mentoring reference.
+
+  - id: SCE-7
+    scenario_id: S2
+    persona: "Team lead"
+    artifact_pattern: "git log output for the feature branch"
+    check: >
+      All changed files in the working directory are accounted for after the recipe
+      completes. No files are silently left uncommitted without explanation.
+    pass_criteria: >
+      Running `git status` after the recipe completes shows a clean working tree
+      (no unstaged, staged, or untracked files), OR any remaining files have an
+      explicit stated reason for exclusion (e.g., sensitive file blocked).
+      The team lead can confirm all work is captured in the commit history.
+    fail_criteria: >
+      `git status` shows uncommitted changes with no explanation, meaning the
+      recipe silently dropped files. The team lead cannot determine if work was
+      lost or intentionally excluded.
+
+  - id: SCE-8
+    scenario_id: S2
+    persona: "Team lead"
+    artifact_pattern: "git log --oneline output for the feature branch"
+    check: >
+      The recipe did not operate on a protected branch (main, master, or the
+      repository default branch). All commits exist on a feature/work branch.
+    pass_criteria: >
+      The branch name where commits were created is not main, master, or the
+      repository's default branch. `git branch --show-current` at recipe
+      completion confirms a non-protected branch.
+    fail_criteria: >
+      Commits were created directly on main, master, or the default branch,
+      violating constraint C1.

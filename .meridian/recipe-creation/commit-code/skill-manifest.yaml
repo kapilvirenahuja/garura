@@ -1,0 +1,16 @@
+recipe: commit-code
+existing_skills:
+  - name: analyze-changes
+    path: core/components/skills/analyze-changes/SKILL.md
+  - name: manage-issue
+    path: core/components/skills/manage-issue/SKILL.md
+  - name: create-commit
+    path: core/components/skills/create-commit/SKILL.md
+new_skills:
+  - name: resolve-issues
+    purpose: Map change groups to existing open issues with confidence scoring
+    inputs:
+      - change groups from analyze-changes
+      - open issues list from manage-issue
+    outputs:
+      - mapping of each change group to an issue number with confidence level
