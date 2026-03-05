@@ -146,6 +146,7 @@ TaskUpdate task_id → addBlockedBy: [new_task_id]
 | `analyze-pr` | pr | Analyze branch for PR readiness, generate quality checklist |
 | `submit-pr` | pr | Push branch and create pull request with checklist |
 | `setup-branch` | branch | Create branch, push to origin, optionally use worktree |
+| `merge-pr` | merge | Merge PR, switch to base branch, pull latest, delete feature branch |
 
 ### When to Use Each Skill
 
@@ -186,6 +187,8 @@ Constraints are extracted during recognition because they influence HOW you exec
   + constraints shape: target branch, review requirements
 "Create branch feature/42-login"  → setup-branch
   + constraints shape: naming convention, base branch
+"Merge PR", "merge and cleanup"   → merge-pr
+  + constraints shape: merge strategy, conflict handling, branch deletion
 ```
 
 ## Context Loading
@@ -333,6 +336,18 @@ result:
   error: "{message if failed}"
 ```
 
+### For `merge-pr` invocations
+
+```yaml
+result:
+  status: "{merged|conflict|failed}"
+  pr_number: {number}
+  merge_sha: "{sha or null}"
+  base_branch: "{branch switched to}"
+  branch_deleted: true/false
+  error: "{message if failed, null otherwise}"
+```
+
 ## Boundaries
 
 ### NEVER
@@ -369,17 +384,9 @@ Bash is available for operations **not covered by skills**:
 | `git push` | `submit-pr` skill |
 | `git status`, `git diff` (for analysis) | `analyze-changes` skill |
 | `git checkout -b`, `git branch` (for creation), `git worktree add` | `setup-branch` skill |
+| `gh pr merge`, `git checkout + git pull` (for merge lifecycle) | `merge-pr` skill |
 
-#### Write Operations (Named Exceptions)
-
-These are explicit, documented gaps where no skill exists. Each entry is justified by the specific recipe step that requires it.
-
-| Command | Used By | Rationale |
-|---------|---------|-----------|
-| `gh pr merge --squash --delete-branch {pr_number}` | `/ship` Step 4 | No merge skill exists; used exclusively by `/ship` Step 4; squash merge strategy for clean main history |
-| `git checkout {base_branch} && git pull` | `/ship` Step 5 | No skill exists for syncing an existing protected branch to remote; used exclusively by `/ship` Step 5 |
-
-**Rule:** If a skill can do it, use the skill. Bash is for gaps only. Named write exceptions are explicit, documented gaps where no skill exists.
+**Rule:** If a skill can do it, use the skill. Bash is for read-only queries and gaps only.
 
 ## Memory
 
