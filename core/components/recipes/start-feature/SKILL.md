@@ -1,255 +1,300 @@
 ---
 name: start-feature
-description: Create or resume a work context — issue + branch + STM directory
+description: Create or resume a work context — assess current state, resolve or create an issue, create or switch to a feature branch, initialize STM directory
 user-invocable: true
 model: sonnet
-allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
+allowed-tools: Task, Read, Write, Bash, TaskCreate, TaskUpdate, TaskList, TaskGet
 ---
 
 # start-feature
 
-Create or resume a work context — issue + branch + STM directory.
+Given any starting state — uncommitted changes, an issue number, or a descriptive title — produce a ready-to-work environment: a GitHub issue tracking the work, a feature branch checked out by convention, and an initialized STM directory. Single flow, no modes. Uncommitted changes always preserved.
 
 ## Intent
 
-**BEFORE executing any step, read `reference/intent.yaml`** — it defines your operational contract: intent, pre-flight constraints (C1–C2), behavioral constraints (C3–C10), and failure conditions. All constraint IDs referenced in this recipe map to that file.
+**BEFORE executing any step, read `reference/intent.yaml`** — it defines the operational contract: intent, constraints (C1–C10), failure conditions (F1–F8), and acceptance scenarios (S1–S5). All constraint IDs referenced in this recipe map to that file.
+
+```
+reference/intent.yaml → source of truth for all constraints and failure conditions
+```
 
 ## Role
 
-You are the orchestrator. You own the workflow. You delegate domain tasks to agents — never execute directly.
+You are the orchestrator. You own the workflow. You delegate domain tasks to agents via JSON contracts — never execute domain work directly.
 
-**Forbidden:** `Bash`, `Grep`, `Glob`, or any direct git/gh commands.
+**Forbidden:** Direct `git` commands for branch creation/switching. Direct `gh` commands for issue operations. All domain work goes through agents.
 
 **Agent boundaries:**
-- `project-orchestrator` — issue domain only: resolve or create GitHub issues
-- `repo-orchestrator` — git domain only: create/push/checkout branches
-- Everything else (STM initialization, checkpoint writes, evidence, reporting) — orchestrator owns it
 
-## Input Patterns
+| Agent | Domain | Stages |
+|-------|--------|--------|
+| `project-orchestrator` | Issues: resolve issues, create issues, confidence scoring | 2 |
+| `repo-orchestrator` | Git: create/switch branches, carry forward changes | 5 |
 
-| Pattern | Mode | Example |
-|---------|------|---------|
-| `"Add OAuth login"` | NEW | Create issue, create branch, initialize STM |
-| `42` or `#42` | NEW | Resolve existing issue, create branch, initialize STM |
-| `--resume 42` | RESUME | Resolve issue, checkout existing branch, verify STM |
-| `--parent 10` | (modifier) | Attach as sub-issue to parent |
+**Infrastructure agents (do not count toward budget):**
 
-## Phases
+| Agent | Domain | Stage |
+|-------|--------|-------|
+| `intent-resolver` | Intent decomposition | 1 |
 
-| Step | Name | Agent |
-|------|------|-------|
-| Step 0 | Pre-flight | repo-orchestrator |
-| Step 1 | Resolve Issue | project-orchestrator |
-| Step 2 | Checkpoint | orchestrator |
-| Step 3 | Branch + STM | repo-orchestrator + orchestrator |
-| Step 4 | Report | orchestrator |
+## Fixed Stages
 
-## Workflow
+| Stage | Name | Type | Owner |
+|-------|------|------|-------|
+| 0 | Workflow Pre-flight | Infrastructure | recipe |
+| 1 | Intent Resolution | Infrastructure | intent-resolver |
+| 2 | Readiness | Domain work | project-orchestrator |
+| 5 | Generation | Domain work | repo-orchestrator |
+| 6 | Scenario Validation | Infrastructure | recipe |
+| 7 | Evidence & Close | Infrastructure | recipe |
 
-### Step 0 — Pre-flight
+Infrastructure stages (0, 1, 6, 7) do NOT count toward the agent budget.
+Domain work stages (2, 5) count toward the budget: **2 domain agents (L1 max).**
 
-**C2** (orchestrator evaluates directly): Verify input is actionable — issue number, `--resume N`, or a non-empty description. If none, halt immediately with C2's `halt_message` from `reference/intent.yaml`. No agent needed.
+Stages 3 and 4 are inactive — this recipe uses the `direct-generation` workflow (no brief, no checkpoint). The only human interaction is ambiguity resolution during Stage 2 (C5).
 
-**C1** (requires git state — invoke `repo-orchestrator`): Check current branch.
+## Two Core Phases
 
-Provide recipe context:
-```yaml
----
-Recipe context:
-  intent: "Verify preconditions before creating a work context"
-  task: "Read `reference/intent.yaml`. Run the C1 check in `constraints.pre_flight`. Return pass/fail. Do NOT halt — just return results."
+- **Readiness phase** (Stage 2): Capture changed files, resolve or create the issue, assess confidence, validate against failure conditions. Everything needed to know WHAT work context to create.
+- **Generation phase** (Stage 5): Create or switch to the feature branch, initialize STM directory. PRODUCING the work context.
+
+Before generation: getting READY (what issue? what branch name?). After readiness: GENERATING the environment.
+
+## STM Data Flow Rules
+
+```
+Stage 2 → project-orchestrator writes STRUCTURED DATA to STM (source of truth)
+           - changed files captured by recipe (infrastructure)
+           - issue resolution result written to STM by project-orchestrator
+Stage 5 → repo-orchestrator reads issue data from STM → creates/switches branch
+           - recipe reads issue number from STM → initializes STM directory
 ```
 
-**Expected output:**
-```yaml
-pre_flight:
-  branch: {branch_name or null}
-  results: [{id: C1, status: PASS|FAIL}]
+**Critical rule: Stage 5 agents read the STM data from Stage 2 — not prompt prose.**
+
+## Execution
+
+### Load DAG
+
+On recipe invocation, check cache first:
+
+```
+Cache: .meridian/cache/intent-resolution/start-feature.json
+Invalidation: hash(intent.yaml) + hash(workflow) + hash(agents) changes
 ```
 
-**Orchestrator validates results:** If C1 is FAIL and mode is RESUME → halt with C1's `halt_message` from `reference/intent.yaml`. If C1 is FAIL and mode is NEW → no action (not branching from current branch).
+If cache is valid, load DAG directly (skip Stage 1). If stale, run intent-resolver, update cache.
 
-### Step 1 — Resolve Issue
+### Dispatch
 
-Invoke `project-orchestrator`:
+Iterate tasks in dependency order. For each task:
 
-- **NEW (description):** Create GitHub issue. Return issue number, title, type_hint.
-- **NEW (issue number):** Resolve existing issue. Return issue number, title, type_hint.
-- **RESUME:** Resolve issue by number. Return issue number, title, existing branch name.
-- **`--parent` modifier:** Attach new issue as sub-issue to parent after creation.
+1. Check `blockedBy` — all must be `completed`
+2. Determine owner:
+   - Owner is an agent name → delegate via JSON contract
+   - Owner is `"recipe"` → execute inline
+   - Owner is `"intent-resolver"` → invoke intent-resolver agent
+3. Mark task `in_progress` via TaskUpdate
+4. Execute
+5. Mark task `completed` via TaskUpdate (or `failed` on failure)
 
-Provide recipe context:
-```yaml
----
-Recipe context:
-  intent: "Create or resume a work context — issue + branch + STM directory"
-  task: "Resolve or create GitHub issue. Return issue number, title, type_hint, and existing branch name if resuming."
-  mode: {NEW|RESUME}
-  input: {description or issue number}
-  parent: {parent_issue_number or null}
-  behavioral_constraints: {behavioral constraint C3 from reference/intent.yaml}
+### Agent Invocation Pattern
+
+When dispatching to a domain agent, send a JSON contract. All STM paths MUST be constructed from `{stm_base}` resolved in Stage 0 — never hardcoded.
+
+```json
+{
+  "intent_path": "core/components/recipes/start-feature/reference/intent.yaml",
+  "stm_base": "<resolved from config>",
+  "stm": {
+    "input": { "<named paths using {stm_base}/{issue}/...>" },
+    "output": { "<named paths using {stm_base}/{issue}/...>" }
+  },
+  "task_id": "<task id from DAG>"
+}
 ```
 
-**Expected output:**
+The agent returns ONLY an enriched JSON contract with updated `stm` paths and `status`. All artifacts are in STM files.
+
+### Input Parsing
+
+The recipe accepts three input patterns (C1 — single flow, no modes):
+
+| Input | Detection | Action |
+|-------|-----------|--------|
+| No args | No arguments provided | Capture changed files → resolve issue from changes |
+| `42` or `#42` | Numeric or `#`-prefixed numeric | Use as issue number directly |
+| `"Add OAuth login"` | Non-numeric string | Use as issue title for creation |
+
+All three converge on the same downstream flow: issue resolved → branch created → STM initialized.
+
+## Pre-flight (Stage 0)
+
+Execute these checks before any domain work:
+
+| Check | Constraint | Action on Failure |
+|-------|-----------|-------------------|
+| Resolve `stm_base` from `core/config.yaml` | — | Hard halt — config is required |
+| Git repository present | — | Hard halt — not a git repo |
+| Platform config exists (`platform: github`) | — | Hard halt — no platform configured |
+| Capture `git status --porcelain` snapshot | C2 | Store as pre-recipe state for F4 eval |
+
+Pre-flight checks run via Bash (read-only queries) since these are infrastructure, not domain work.
+
+```bash
+# Resolve STM base path
+stm_base=$(grep 'base-path' core/config.yaml | head -1 | awk '{print $2}')
+
+# Git repo check
+git rev-parse --is-inside-work-tree
+
+# Platform config
+grep '^platform:' core/config.yaml
+
+# Snapshot changed files (for F4 eval later)
+git status --porcelain > /tmp/start-feature-pre-state.txt
+```
+
+No branch guard. The recipe works from any branch (main, develop, feature/*).
+
+## Agent Declarations
+
+| Agent | Domain | Max Calls | Skills Used |
+|-------|--------|-----------|-------------|
+| `project-orchestrator` | project | 1 (Stage 2) | `resolve-issues`, `manage-issue` |
+| `repo-orchestrator` | repo | 1 (Stage 5) | `setup-branch` |
+
+**Total domain agent calls: 2** — exactly the L1 budget.
+
+### Stage 2 — project-orchestrator Contract
+
+```json
+{
+  "intent_path": "core/components/recipes/start-feature/reference/intent.yaml",
+  "stm_base": "{stm_base}",
+  "stm": {
+    "input": {
+      "changed_files": "{stm_base}/_pending/start-feature/changed-files.txt",
+      "args": "{stm_base}/_pending/start-feature/args.yaml"
+    },
+    "output": {
+      "issue_resolution": "{stm_base}/_pending/start-feature/issue-resolution.yaml"
+    }
+  },
+  "task_id": "readiness-resolve-issue"
+}
+```
+
+**Expected output artifact (`issue-resolution.yaml`):**
+
 ```yaml
 issue:
-  number: {integer}
-  title: {string}
-  type_hint: {feature|fix|hotfix|refactor|docs|chore|null}
-  existing_branch: {branch_name or null}  # RESUME only
+  number: {int}
+  title: "{title}"
+  url: "{url}"
+  state: "open"
+  created: true|false
+  type_hint: "{feature|fix|hotfix|refactor|docs|chore|null}"
+inference:
+  source: "changed_files|explicit_number|explicit_title"
+  confidence: "high|medium|low"
+  candidates_considered: {int}
+  ambiguity_resolved_by_user: true|false
 ```
 
-If `type_hint` is null → present type selection to user before proceeding (C5).
+Note: Uses `{stm_base}/_pending/start-feature/` for pre-issue artifacts. Once issue number is known, the recipe moves artifacts to `{stm_base}/{issue}/`.
 
-Derive branch name: `{type}/{issue_number}-{slug}`
-- Slug: lowercase, hyphens, max 40 chars, no consecutive or trailing hyphens
+### Stage 5 — repo-orchestrator Contract
 
-### Step 2 — Checkpoint
+```json
+{
+  "intent_path": "core/components/recipes/start-feature/reference/intent.yaml",
+  "stm_base": "{stm_base}",
+  "stm": {
+    "input": {
+      "issue_resolution": "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml"
+    },
+    "output": {
+      "branch_result": "{stm_base}/{issue}/evidence/start-feature/branch-result.yaml"
+    }
+  },
+  "task_id": "gen-branch"
+}
+```
 
-**The orchestrator owns this step entirely. Do not delegate.**
-
-**RESUME mode:** Skip checkpoint. Proceed directly to Step 3.
-
-**NEW mode:**
-
-Write checkpoint artifact to `{stm_base}/{issue}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
-
-Present branch proposal using `templates/approval-prompt.md`:
-- Issue title and number
-- Proposed branch name
-- Type
-
-Parse response: `Tether`/`tether` → proceed to Step 3. `Vanish`/`vanish` → update artifact Status to `REJECTED`, halt. Anything else → clarify.
-
-Update checkpoint artifact Status to `APPROVED` before proceeding to Step 3.
-
-### Step 3 — Branch + STM
-
-#### Branch
-
-**NEW mode:** Invoke `repo-orchestrator`:
+**Expected output artifact (`branch-result.yaml`):**
 
 ```yaml
----
-Recipe context:
-  intent: "Create or resume a work context — issue + branch + STM directory"
-  pre_flight:
-    C1: PASS
-    C2: PASS
-  task: "Create and push branch `{branch_name}` from main. Return branch name and push status."
-  behavioral_constraints: {behavioral constraint C4 from reference/intent.yaml}
+branch:
+  name: "{type}/{issue_number}-{slug}"
+  action: "created|switched"
+  pushed: true|false
+  changes_preserved: true|false
 ```
 
-**RESUME mode:** Invoke `repo-orchestrator`:
-
-```yaml
----
-Recipe context:
-  intent: "Create or resume a work context — issue + branch + STM directory"
-  pre_flight:
-    C1: PASS
-    C2: PASS
-  task: "Checkout existing branch `{existing_branch}`. Return branch name and current status."
-```
-
-**Expected output (both modes):**
-```yaml
-result:
-  success: true | false
-  branch: {branch_name}
-  status: {created_and_pushed | checked_out | error}
-  error: {message if success: false}
-```
-
-If `success: false` → invoke recovery (see Recovery section). Max 2 retries.
-
-#### STM Directory
-
-**Orchestrator initializes STM — do not delegate.**
-
-**Two-phase write (C8):**
-- If issue was just created (description-only NEW): first write to `{stm_pending}/{YYYYMMDD-HHMMSS}/`, then move to `{stm_base}/{issue}/` after issue number is confirmed
-- Otherwise: write directly to `{stm_base}/{issue}/`
-
-Create subdirectories:
-```
-{stm_base}/{issue}/
-├── spec/
-├── design/
-├── evidence/
-├── delivery/
-└── checkpoint/
-```
-
-**RESUME mode:** Verify STM directory exists. If missing, create it.
-
-### Step 4 — Report
-
-**The orchestrator owns this step entirely. Do not delegate.**
-
-Write evidence to `{stm_base}/{issue}/evidence/start-feature/{YYYYMMDD-HHMMSS}.md`:
-- Mode (NEW / RESUME)
-- Issue number and title
-- Branch created or checked out
-- STM initialized or verified
-
-Update checkpoint artifact `{stm_base}/{issue}/checkpoint/start-feature/{same-timestamp}.md` (NEW mode only):
-- Append branch created and STM initialized with confirmation status
-
-Present final report to user using `templates/feature-started.md`.
-
-## Recovery
-
-Load recovery reasoning from: `docs/framework/intent-driven-recovery.md`
-
-When an agent returns a structured failure (per `structured-failure-protocol.md`):
-- Read `domain_assessment.responsible_domain` to identify which agent can fix it
-- Invoke the responsible agent with fix context + the original intent
-- Max 2 retry cycles per agent. After that, HALT with full failure context.
-
-## References
-
-| File | Path | Used For |
-|------|------|----------|
-| Intent | `reference/intent.yaml` | Operational contract — load before executing any step |
-| Checkpoint | `templates/checkpoint.md` | STM artifact at `{stm_base}/{issue}/checkpoint/start-feature/{YYYYMMDD-HHMMSS}.md` |
-| Approval Prompt | `templates/approval-prompt.md` | Tether/Vanish checkpoint presentation (NEW mode only) |
-| Feature Started | `templates/feature-started.md` | Final report |
-
-### Contracts
-
-**STM Directory Structure:**
+## Workflow Reference
 
 ```
-{stm_base}/{issue}/
-├── spec/          # define-feature, start-feature-planning write here
-├── design/        # design-feature, tech-designer write here
-├── evidence/      # verify-feature, validator write here
-├── delivery/      # deliver-feature, create-pr write here
-└── checkpoint/    # all recipes write checkpoint artifacts here
+Workflow template: core/components/memory/workflows/direct-generation.yaml
 ```
 
-**Branch Naming Convention:** `{type}/{issue_number}-{slug}`
+Direct generation — no brief or checkpoint stages. The only human interaction is ambiguity resolution during Stage 2 (C5), handled inline by the project-orchestrator returning to the recipe for user input.
 
-| type_hint | Branch Prefix |
-|-----------|---------------|
-| `feature` | `feature/` |
-| `fix` | `fix/` |
-| `hotfix` | `hotfix/` |
-| `refactor` | `refactor/` |
-| `docs` | `docs/` |
-| `chore` | `chore/` |
-| `null` | User selects during checkpoint |
+## Two Eval Levels
 
-Reference: `~/.meridian/core/memory/standards/git/branching.md`
+| Level | Who | When | What | Source |
+|-------|-----|------|------|--------|
+| **Step evals** | Recipe (inline) | After skill output (Stages 2, 5) | Did this skill's output satisfy mapped failure conditions? | `failure_conditions` from intent.yaml |
+| **Scenario evals** | Recipe | Stage 6 (E2E) | Does the whole environment satisfy acceptance? | `scenarios` from intent.yaml |
 
-**Two-Phase STM Write (ADR 008):**
+### Step Evals (after Stage 2 — readiness-issue-eval)
 
-When issue number is not yet known (description-only input):
-- **Phase 1:** Write to `{stm_pending}/{YYYYMMDD-HHMMSS}/`
-- **Phase 2:** After issue is created, move to `{stm_base}/{issue}/` and delete `_pending/` entry
+| Eval | Failure Condition | Check |
+|------|-------------------|-------|
+| SE-1 | F5 | If inference confidence is "low", recipe must have halted — not proceeded |
+| SE-2 | F6 | If existing open issue matched, no new issue was created |
+| SE-3 | F7 | If best candidate was closed, user confirmation was obtained before reopen |
+| SE-4 | F8 | If multiple candidates with no clear winner, user was asked to pick |
+| SE-5 | F1 | Issue number is non-null and issue exists on GitHub as OPEN |
+| SE-6 | C10 | If new issue created, body contains ~25–60 word summary |
 
-When issue number is known upfront: write directly to `{stm_base}/{issue}/`.
+### Step Evals (after Stage 5 — gen-branch-stm-eval)
+
+| Eval | Failure Condition | Check |
+|------|-------------------|-------|
+| SE-9 | F2 | Branch name matches `{type}/{issue_number}-{slug}` pattern |
+| SE-10 | F4 | Uncommitted changes from pre-recipe snapshot still present |
+| SE-11 | F3 | STM directory exists at `{stm_base}/{issue}/` |
+| SE-12 | C3 | If branch existed, it was switched to (not duplicated) |
+
+### Scenario Evals (Stage 6)
+
+- **SCE-1 (S1)**: Uncommitted changes, no args → issue inferred, branch created, changes preserved, STM ready
+- **SCE-2 (S2)**: Explicit issue number → exact issue used, branch named with that number, STM ready
+- **SCE-3 (S3)**: Descriptive title → new issue created with ~40-word body, branch created, STM ready
+- **SCE-4 (S4)**: Existing branch → switched (not recreated), no duplicate issue, changes preserved
+- **SCE-5 (S5)**: Team lead audit → issue visible, titled, summarized, traceable to branch on origin
+
+## DAG Caching
+
+```
+Cache location: .meridian/cache/intent-resolution/start-feature.json
+Invalidation: hash(intent.yaml) + hash(workflow) + hash(agents) changes
+Lifetime: Permanent until invalidated
+```
+
+On recipe invocation: check cache first. If valid, load DAG directly (skip Stage 1). If stale, run resolver, update cache.
+
+## DAG Resumption
+
+```
+DAG location: {stm_base}/{issue}/dag/start-feature.json
+Written: After Stage 1 (intent resolution)
+Updated: After each stage completes
+On resume: Recipe reads DAG from STM, skips completed tasks, continues from where it stopped
+```
+
+No re-planning on resume. The DAG is the execution state.
 
 ---
 
@@ -258,6 +303,8 @@ When issue number is known upfront: write directly to `{stm_base}/{issue}/`.
 | Field | Value |
 |-------|-------|
 | Level | L1 |
-| Version | 1.0.0 |
+| Version | 2.0.0 |
+| Workflow | direct-generation |
 | Distinct Agents | 2 (project-orchestrator, repo-orchestrator) |
-| Checkpoint | NEW mode: always. RESUME mode: skipped. |
+| Step Evals | 10 |
+| Scenario Evals | 5 |
