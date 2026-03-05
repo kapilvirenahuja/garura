@@ -236,3 +236,29 @@ On resume: Recipe reads DAG from STM, skips completed tasks, continues from wher
 ```
 
 No re-planning on resume. The DAG is the execution state.
+
+## Evidence Self-Commit (Stage 7)
+
+After scenario validation passes (Stage 6), the recipe writes evidence and checkpoint artifacts to STM. These artifacts must be committed before the recipe exits — otherwise they persist as dirty working tree state and leak into the next recipe invocation's changeset.
+
+**Procedure:**
+
+1. Write evidence artifacts to `{stm_base}/{issue}/evidence/create-pr/{YYYYMMDD-HHMMSS}.md`
+2. Write checkpoint to `{stm_base}/{issue}/checkpoint/create-pr/{YYYYMMDD-HHMMSS}.md`
+3. Present PR summary to user
+4. **After presenting**, invoke `repo-orchestrator` to commit the evidence and checkpoint files:
+
+```yaml
+---
+Recipe context:
+  intent: "Commit STM evidence files for issue #{issue_number}"
+  task: "Stage and commit only the listed files with message 'chore(stm): record create-pr evidence for #{issue_number} (#{issue_number})'. Do not stage any other files."
+  files:
+    - "{stm_base}/{issue}/evidence/create-pr/{same-timestamp}.md"
+    - "{stm_base}/{issue}/checkpoint/create-pr/{same-timestamp}.md"
+  commit_message: "chore(stm): record create-pr evidence for #{issue_number} (#{issue_number})"
+```
+
+**Non-blocking:** if `repo-orchestrator` returns failure or `committed: false`, log as warning — do NOT halt. The PR already exists; a missing evidence commit is not fatal.
+
+See [ADR 012: Evidence Self-Commit](../../../docs/adr/012-evidence-self-commit.md) for the architectural rationale.

@@ -216,3 +216,31 @@ On resume: Recipe reads DAG from STM, skips completed L1s, continues from where 
 ```
 
 No re-planning on resume. The DAG is the execution state. If commit-code completed but create-pr failed, resume starts from create-pr.
+
+## Evidence Self-Commit (Stage 7)
+
+After scenario validation passes (Stage 6), the recipe writes evidence and checkpoint artifacts to STM. Because ship is an L2 recipe that ends on `main` after merge, its evidence self-commit lands on `main` — this is expected and correct. The evidence captures the delivery record; its natural home is on `main` alongside the merge commit.
+
+**Procedure:**
+
+1. Write evidence artifacts to `{stm_base}/{issue}/evidence/ship/{YYYYMMDD-HHMMSS}.md`
+2. Write checkpoint to `{stm_base}/{issue}/checkpoint/ship/{YYYYMMDD-HHMMSS}.md`
+3. Present final delivery report to user
+4. **After presenting**, invoke `repo-orchestrator` to commit the evidence and checkpoint files:
+
+```yaml
+---
+Recipe context:
+  intent: "Commit STM evidence files for issue #{issue_number}"
+  task: "Stage and commit only the listed files with message 'chore(stm): record ship evidence for #{issue_number} (#{issue_number})'. Do not stage any other files."
+  files:
+    - "{stm_base}/{issue}/evidence/ship/{same-timestamp}.md"
+    - "{stm_base}/{issue}/checkpoint/ship/{same-timestamp}.md"
+  commit_message: "chore(stm): record ship evidence for #{issue_number} (#{issue_number})"
+```
+
+**Note:** Each chained L1 recipe (commit-code, create-pr) runs its own self-commit on the feature branch before ship merges. Ship's self-commit is the only one that lands directly on `main`.
+
+**Non-blocking:** if `repo-orchestrator` returns failure or `committed: false`, log as warning — do NOT halt. Delivery already succeeded; a missing evidence commit is not fatal.
+
+See [ADR 012: Evidence Self-Commit](../../../docs/adr/012-evidence-self-commit.md) for the architectural rationale.
