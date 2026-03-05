@@ -22,8 +22,8 @@ Agents are **truly agentic** — they make all decisions within their domain. Th
 
 All agents follow the **`{domain}-{role}`** naming pattern:
 
-- **Domain**: The area of expertise (code, quality, tech, project, repo, workflow)
-- **Role**: The function performed (builder, validator, designer, orchestrator, guardian)
+- **Domain**: The area of expertise (code, quality, tech, project, repo, product)
+- **Role**: The function performed (builder, validator, designer, orchestrator, strategist)
 
 This pattern ensures:
 1. Clear ownership — each agent owns one domain
@@ -38,7 +38,7 @@ This pattern ensures:
 | **validator** | Tests, reviews, validates, enforces quality |
 | **designer** | Analyzes, designs, architects |
 | **orchestrator** | Coordinates, manages, tracks |
-| **guardian** | Protects, validates decisions, enforces rules |
+| **strategist** | Interprets product intent, selects and invokes skills, returns structured output |
 
 ### Granularity Principle
 
@@ -52,56 +52,141 @@ Meridian avoids both extremes:
 
 **Principle:** 1 agent = 1 domain expertise, not 1 task.
 
+## Available Agents
+
+| Agent | Domain | Role | Model | Description |
+|-------|--------|------|-------|-------------|
+| `product-strategist` | product | strategist | opus | Autonomous decision-maker for product discovery, vision, roadmapping, and backlog management |
+| `tech-designer` | design | designer | sonnet | Technical analysis, RCA, and solution design for features and bugs |
+| `code-builder` | implementation | builder | sonnet | Executes structured execution plans for software implementation — requires a formal plan as input. ONLY for source code files. |
+| `repo-orchestrator` | repo | orchestrator | sonnet | Autonomous decision-maker for repository operations (commits, branches, PRs, git state) |
+| `project-orchestrator` | project | orchestrator | sonnet | Autonomous decision-maker for project management operations (issues, tracking, planning) |
+
 ## Agent Behavior
 
-### Decision Making
+### Four Crafts: Where Agents Fit
 
-Agents make autonomous decisions about:
-- Which skills to invoke
-- How to interpret requirements
-- What approach to take
-- When to ask for clarification
+Agents are the primary practitioners of **Context Crafting** — one of the Four Crafts in Meridian's architecture. When an agent receives a JSON contract, its most important work before invoking any skill is assembling complete, accurate context: discovering LTM paths (schemas, templates, standards), reading STM artifacts, and combining them with the slug and base paths into structured skill inputs. This context assembly is the agent's primary value in the recipe workflow — skills are only as effective as the context the agent gives them.
 
-### Context Building
+For the full Four Crafts explanation (Context Crafting, Intent Crafting, Execution Crafting, Verification Crafting), see `docs/philosophy/architecture.md`.
 
-Agents build context by:
-1. Reading from LTM (practices, standards, templates)
-2. Analyzing the current state
-3. Understanding requirements
-4. Sharing context with invoked skills
+### JSON Contract Mode
 
-### Artifact Production
+When a recipe orchestrates multiple agents, it passes a **JSON contract** as the agent's prompt. This is the primary invocation mode within recipes.
 
-Every agent invocation produces:
-- A tangible artifact (document, code, report)
-- Evidence of work done
-- Clear output for the next step
+**When an agent receives a JSON contract:**
 
-## Invocation Model
+1. **Read intent.yaml** at `intent_path` from the contract — understand the goal, constraints, failure conditions, and scenarios.
+2. **Identify what to handle** — look at `stm` paths in the contract. Null paths indicate missing artifacts. Based on the goal, the agent's domain, and what is missing, determine what to produce.
+3. **Update task graph** — mark the agent's task as `in_progress` via TaskUpdate. Add new tasks via TaskCreate if additional work is discovered.
+4. **Collect context from LTM** — search `~/.meridian/core/memory/` for domain-relevant standards, templates, and schemas. Pass discovered LTM paths to skills as input. Skills do NOT search LTM themselves.
+5. **Read existing STM artifacts** — read non-null `stm` paths. Write context to STM if downstream agents need it.
+6. **Call skills** from the agent's skill pool. The agent assembles skill inputs by combining: (1) STM artifact paths from the contract, (2) LTM paths discovered during context loading (schemas, templates, standards), and (3) the product slug and base STM path. The agent is responsible for giving the skill everything it needs — skills do NOT search or load LTM themselves. Skills read from the provided paths, write artifacts, and return a YAML output contract with the artifact path. Do NOT forward skill output as the response — extract only the artifact path.
+7. **Validate outcomes** against failure conditions and scenarios from intent.yaml. Validation is silent — do NOT include validation results in the response. If validation fails, attempt self-recovery (max 2 attempts). If still failing, set `step_failure` in the contract.
+8. **Mark task complete** — update task graph via TaskUpdate.
+9. **Build and return the enriched JSON contract** — take the received contract as a base, update `stm` paths with artifact paths from skill output, add up to 3 short notes (1 sentence each), set `step_failure` if needed. Return ONLY this JSON object. Nothing else.
 
-Agents are invoked through L1 and L2 recipes:
+### Response Format (JSON Contract Mode)
 
+The agent's entire response is ONE JSON object. No prose, no YAML blocks, no validation checklists before or after.
+
+```json
+{
+  "intent_path": "reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "slug": "chronos",
+  "stm": {
+    "vision_path": ".meridian/project/product/chronos/vision.md",
+    "epics_path": ".meridian/project/product/chronos/epics.yaml",
+    "feasibility_path": null,
+    "brief_path": null,
+    "approved_brief_path": null,
+    "roadmap_path": null,
+    "engineering_view_path": null
+  },
+  "checkpoints": [{ "name": "brief_review", "status": "pending" }],
+  "evidence": [{ "name": "plan-roadmap", "location": null }],
+  "notes": [
+    "5 epics derived — all trace to distinct strategic goals",
+    "E2 depends on E1 foundation investment — sequencing constraint"
+  ],
+  "step_failure": null
+}
 ```
-L1 Recipe → invokes → Agent → uses → Skills
-                         ↓
-                    Produces ARTIFACT
-```
 
-**Critical Rule:** Agents are **never invoked directly** by users. Users invoke recipes, recipes invoke agents.
+**Anti-patterns (NEVER do these in a JSON contract response):**
+- "Epics written. Running final validation checklist:" — NO
+- "Pre-return verification:" — NO
+- Bullet lists of validation results — NO (put a 1-sentence summary in `notes` instead)
+- YAML blocks like `scoped_epics:` or `feasibility:` or `brief:` — NO (that is skill output, not the agent's response)
+- Any text before or after the JSON — NO
+
+### Direct Invocation Mode
+
+When an agent is invoked without a JSON contract (direct invocation, not via a recipe), it returns a structured YAML output contract specific to the skill invoked and the work done.
+
+Each agent defines skill-specific return formats in its Output Contracts section. The agent identifies the intent, selects the matching skill, invokes it, and returns the skill-specific YAML result.
+
+## Skill Pool Pattern
+
+Each agent owns a set of skills. Agents invoke skills via the **Skill tool** provided by Claude Code. Agents are the only callers of those skills within their domain. The agent's skill pool table documents which skills it owns and when to use each.
+
+### product-strategist Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `discover-product-opportunity` | Parse problem/idea, extract market context |
+| `draft-product-vision` | Create vision.md with Strategic Goals |
+| `validate-product-vision` | Check vision completeness before lock |
+| `generate-business-review` | PM-facing business review from any product artifact |
+| `research-domain-context` | Research vertical domain knowledge via web when LTM is insufficient |
+| `scope-roadmap-epics` | Extract epics from locked vision, scope into time buckets and priorities |
+| `draft-roadmap-brief` | Generate lightweight review brief — bound by brief constraints |
+| `draft-roadmap` | Generate full agentic roadmap.md post-Tether |
+| `generate-engineering-view` | Engineering-facing roadmap view — no business content |
+
+### tech-designer Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `assess-feasibility` | Assess technical feasibility of scoped epics — invoked when `stm.feasibility_path` is null and `stm.epics_path` is non-null |
+
+For direct invocations (no JSON contract), tech-designer performs RCA and feature analysis directly using its tools rather than via skills.
+
+### code-builder Skill Pool
+
+code-builder has no skills — it implements code directly using its tools (Bash, Read, Write, Edit, Grep, Glob) per the execution plan it receives.
+
+### repo-orchestrator Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `analyze-changes` | Analyze uncommitted changes, detect risks, suggest groupings |
+| `create-commit` | Stage files and create conventional commit |
+| `analyze-pr` | Analyze branch for PR readiness, generate quality checklist |
+| `submit-pr` | Push branch and create pull request with checklist |
+| `setup-branch` | Create branch, push to origin, optionally use worktree |
+
+### project-orchestrator Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `manage-issue` | Read, create, close, or resolve GitHub issues with optional sub-issue attachment |
 
 ## Agent Definition Structure
 
 Agent definitions follow Claude Code's agent format:
 
-Tool sets vary by role. Orchestrators use skills; builders and designers use direct tools.
+Tool sets vary by role:
 
 | Role | Typical Tools | Rationale |
 |------|--------------|-----------|
 | orchestrator | Task, Bash, Read, Write, Skill | Delegates work to skills |
 | builder | Bash, Read, Write, Edit, Grep, Glob | Direct file manipulation |
-| designer | Bash, Read, Grep, Glob, Write | Read-heavy exploration + plan output |
-| validator | *(planned)* | *(TBD)* |
-| guardian | *(planned)* | *(TBD)* |
+| designer | Bash, Read, Grep, Glob, Write | Read-heavy exploration and plan output |
+| strategist | Task, Read, Write, Glob, Grep, Skill, WebSearch, WebFetch | Product research and skill delegation |
+
+**Note:** Some agents have explicit tool-specific constraints beyond the table above. For example, `tech-designer` restricts Bash to read-only operations (e.g., `git log`, `git blame`, `ls`) and explicitly forbids `git add`, `git commit`, `git checkout`, `rm`, `mv`, `cp`. These constraints are defined in each agent's definition file and take precedence.
 
 ```yaml
 ---
@@ -109,15 +194,9 @@ name: {domain}-{role}
 domain: {domain}
 role: {role}
 description: {what this agent does}
-model: sonnet
+model: sonnet|opus
 tools:
   # Varies by role — see table above
-  - Bash
-  - Read
-  - Write
-  # Orchestrators add: Task, Skill
-  # Builders add: Edit, Grep, Glob
-  # Designers add: Grep, Glob
 ---
 
 # {domain}-{role}
@@ -130,13 +209,17 @@ tools:
 
 [Available skills and when to use each...]
 
+## Intent Recognition
+
+[JSON contract handling and direct invocation handling...]
+
 ## Context Loading
 
 [How to read LTM (config, practices) and inject to skills...]
 
-## Decision Framework
+## Recipe Context
 
-[How this agent makes decisions...]
+[Constraint validation before any skill invocation...]
 
 ## Output Contracts
 
@@ -145,7 +228,43 @@ tools:
 ## Boundaries
 
 [NEVER and ALWAYS rules...]
+
+## Response Format (JSON Contract Mode)
+
+[Final response rules for JSON contract invocations...]
 ```
+
+## Invocation Model
+
+Agents are invoked through L1 and L2 recipes:
+
+```
+L1 Recipe → invokes → Agent → uses → Skills
+                         |
+                    Produces ARTIFACT (written to STM)
+                         |
+                    Returns ENRICHED JSON CONTRACT (or structured YAML for direct invocation)
+```
+
+**Critical Rule:** Agents are **never invoked directly** by users. Users invoke recipes, recipes invoke agents.
+
+## Context Building
+
+Agents build context by:
+1. Reading `core/config.yaml` for platform paths and settings
+2. Reading intent.yaml from the JSON contract (when in contract mode)
+3. Searching LTM (`~/.meridian/core/memory/`) selectively — by domain keywords, not bulk loading
+4. Reading existing STM artifacts at non-null `stm` paths
+5. Passing discovered LTM paths and STM paths to skills — skills do NOT search LTM themselves
+
+## Constraint Validation
+
+Constraints in the recipe context are not suggestions — they are pre-conditions.
+
+Before invoking any skill, every agent validates all constraints against current state. If ANY constraint would be violated:
+1. Do NOT invoke the skill
+2. Return a structured failure per `docs/framework/structured-failure-protocol.md` with `constraint_violated` populated
+3. The recipe decides how to handle (retry, escalate, or halt)
 
 ## Why Not Specialist Agents?
 
@@ -167,14 +286,6 @@ Agent definitions are stored in:
 ```
 core/components/agents/
 ```
-
-See: [docs/usage/agents/](../usage/agents/) for concrete implementations.
-
-## Available Agents
-
-| Agent | Domain | Role | Description |
-|-------|--------|------|-------------|
-| `product-strategist` | product | strategist | Autonomous decision-maker for product discovery, vision, roadmapping, and backlog management |
 
 ## Related Documentation
 
