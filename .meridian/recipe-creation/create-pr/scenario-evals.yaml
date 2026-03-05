@@ -1,0 +1,200 @@
+recipe: create-pr
+eval_type: scenario
+intent_path: core/components/recipes/create-pr/reference/intent.yaml
+skill_contracts:
+  - skill_name: analyze-pr
+    contract_path: core/components/skills/analyze-pr/SKILL.md
+  - skill_name: submit-pr
+    contract_path: core/components/skills/submit-pr/SKILL.md
+
+evals:
+
+  # ── S1: Code Reviewer ──────────────────────────────────────────────────
+  # Persona can assess merge safety, understand rationale via checklist/evidence,
+  # trace to issue — sufficient to approve/reject/comment without external context.
+
+  - id: SCE-1
+    scenario: S1
+    name: "PR body contains issue linkage visible to reviewer"
+    check: >
+      The created PR body or title contains a reference to the originating issue
+      (e.g., "Closes #N", "Fixes #N", or an explicit issue URL) so the reviewer
+      can trace the work back to the issue without leaving the PR page.
+    pass_criteria: >
+      The PR body or title includes at least one issue reference that resolves
+      to a valid issue on the git platform. Absence of any issue linkage is a
+      failure (maps to F1).
+
+  - id: SCE-2
+    scenario: S1
+    name: "Quality checklist items are specific to the actual diff"
+    check: >
+      Every item in the Quality Checklist section of the PR body is triggered by
+      a concrete file pattern or commit type present in the diff. No generic
+      boilerplate items appear.
+    pass_criteria: >
+      Each checklist item has a trigger annotation (the "— {trigger}" suffix)
+      that references a file pattern, commit type, or branch pattern found in
+      the diff. If any item lacks a trigger or the trigger does not correspond
+      to actual changes, the eval fails (maps to C4, F2).
+
+  - id: SCE-3
+    scenario: S1
+    name: "Every checklist item has evidence backing"
+    check: >
+      The Verification Evidence table in the PR body contains a row for every
+      checklist item, with a non-empty Evidence column.
+    pass_criteria: >
+      Count of evidence rows equals count of checklist items. Every evidence
+      cell is non-empty and references a concrete artifact (command output,
+      file content, CI status). Any item missing evidence is a failure
+      (maps to C5, F3).
+
+  - id: SCE-4
+    scenario: S1
+    name: "Automated checks show pass/fail with command output"
+    check: >
+      Automated verification items (merge conflicts, secrets scan, tests, build)
+      show their status as PASS or FAIL with the actual command output or CI
+      link used to determine the result.
+    pass_criteria: >
+      Each automated item in the evidence table has status PASS or FAIL (not
+      blank, not REVIEW) and the evidence column contains the command or CI
+      reference that produced the result.
+
+  - id: SCE-5
+    scenario: S1
+    name: "Reviewer can determine merge safety from PR alone"
+    check: >
+      The PR body contains: (a) a summary of what changed, (b) a quality
+      checklist grouped by priority (Required vs Optional), (c) an evidence
+      table, and (d) blocking issues summary — giving the reviewer everything
+      needed to approve, reject, or comment.
+    pass_criteria: >
+      All four sections are present and non-empty in the PR body: Summary,
+      Quality Checklist (with Required/Optional grouping), Verification
+      Evidence table, and a blocking issues note (either explicit section or
+      a statement that no blocking issues exist).
+
+  - id: SCE-6
+    scenario: S1
+    name: "Eval results embedded in PR when evals pass"
+    check: >
+      When scenario evals pass, the PR body contains an Eval Results section
+      with a summary table showing pass/fail counts.
+    pass_criteria: >
+      If eval_results were provided to submit-pr and all passed, the PR body
+      contains an "Eval Results" section with a summary table. If evals passed
+      but the section is missing, the eval fails (maps to C6, F4).
+
+  # ── S2: Author (Developer) ─────────────────────────────────────────────
+  # Persona can verify all changes accounted for, evidence supports each item,
+  # PR linked to correct issue — confident PR is submission-ready.
+
+  - id: SCE-7
+    scenario: S2
+    name: "All changed files are covered by at least one checklist item"
+    check: >
+      Cross-reference the list of files from `git diff --name-only main..HEAD`
+      with the checklist triggers. Every changed file should be covered by at
+      least one triggered rule.
+    pass_criteria: >
+      No changed file is orphaned — each file in the diff maps to at least one
+      checklist item's trigger pattern. If any changed file has no corresponding
+      checklist coverage, the eval fails (maps to C4).
+
+  - id: SCE-8
+    scenario: S2
+    name: "PR is linked to the correct issue"
+    check: >
+      The issue reference in the PR matches the issue the branch was created
+      for. Extract the issue number from the branch name pattern (e.g.,
+      feature/42-description) and compare to the issue linked in the PR body.
+    pass_criteria: >
+      The issue number referenced in the PR body matches the issue number
+      derivable from the branch name or STM context. A mismatch or missing
+      link is a failure (maps to F1).
+
+  - id: SCE-9
+    scenario: S2
+    name: "Evidence is derived from actual analysis, not templated"
+    check: >
+      Evidence entries in the Verification Evidence table contain concrete
+      data: specific file paths, line counts, command outputs, or CI URLs —
+      not placeholder text or generic statements.
+    pass_criteria: >
+      Every evidence cell contains at least one concrete reference (file path,
+      line number, command output snippet, or URL). Generic phrases like
+      "looks good" or "no issues found" without supporting data are a failure
+      (maps to C5, F3).
+
+  - id: SCE-10
+    scenario: S2
+    name: "All local changes pushed before PR creation"
+    check: >
+      Before the PR create command executes, the local branch HEAD matches
+      the remote branch HEAD — no unpushed commits remain.
+    pass_criteria: >
+      The submit-pr skill pushed the branch and the PR was created against
+      the pushed state. If `git log origin/{branch}..HEAD` shows any commits
+      after the push step, the eval fails (maps to C3).
+
+  - id: SCE-11
+    scenario: S2
+    name: "Low-confidence decisions trigger user confirmation"
+    check: >
+      When the recipe determines target branch or checklist completeness with
+      less than high confidence, the user is asked to confirm before the PR
+      is submitted.
+    pass_criteria: >
+      If any decision (base branch selection, checklist completeness, eval
+      results) has confidence below high, the recipe checkpoints for user
+      input before calling submit-pr. Auto-submission with low confidence
+      is a failure (maps to C7, F5).
+
+  - id: SCE-12
+    scenario: S2
+    name: "Eval failures written to STM and summarized in PR"
+    check: >
+      When evals fail, the eval output is written to STM at the expected
+      path AND a failure summary appears in the PR body so reviewers are
+      aware of failures.
+    pass_criteria: >
+      If eval_results contain failures: (a) eval output file exists at
+      `.meridian/{issue}/evidence/create-pr/` and (b) the PR body contains
+      an Eval Results section with failure summary and details. Missing
+      STM evidence file or missing PR body summary is a failure
+      (maps to C6).
+
+  - id: SCE-13
+    scenario: S2
+    name: "PR body includes Meridian footer"
+    check: >
+      The PR body ends with the "Generated by [Meridian]" footer as required
+      by the submit-pr contract.
+    pass_criteria: >
+      The PR body contains the exact text "Generated by [Meridian]" as a
+      footer. Absence is a failure.
+
+  - id: SCE-14
+    scenario: S2
+    name: "Recipe is read-only with respect to codebase"
+    check: >
+      The create-pr recipe does not modify, amend, or rebase any code or
+      commits during execution.
+    pass_criteria: >
+      No git write operations (commit, amend, rebase, checkout of files,
+      reset) occur during recipe execution. The working tree diff before
+      and after recipe execution is identical (maps to C2).
+
+  - id: SCE-15
+    scenario: S1
+    name: "Platform determined from config, not hardcoded"
+    check: >
+      The submit-pr skill reads the git platform from core/config.yaml and
+      loads the corresponding platform reference file.
+    pass_criteria: >
+      The platform value is read from config at runtime. The PR creation
+      command matches the loaded platform reference (gh for github, glab for
+      gitlab, bb for bitbucket). Hardcoded platform CLI invocations are a
+      failure (maps to C1).
