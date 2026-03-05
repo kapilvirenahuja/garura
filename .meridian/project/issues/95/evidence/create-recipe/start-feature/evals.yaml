@@ -1,0 +1,208 @@
+# start-feature recipe evals
+# Generated from: core/components/recipes/start-feature/reference/intent.yaml
+# Skills: resolve-issues, manage-issue, setup-branch
+
+step_evals:
+  - skill: "resolve-issues"
+    description: >
+      Validates that issue resolution produced correct mappings with
+      appropriate confidence gating and conflict detection.
+    evals:
+      - id: SE-1
+        failure_condition: F5
+        check: >
+          If the skill returned a mapping with confidence "low" or "none",
+          verify the recipe halted and did NOT proceed to issue creation
+          or branch setup. Inspect the mapping output for any group where
+          confidence < "medium" that was acted upon.
+      - id: SE-2
+        failure_condition: F6
+        check: >
+          If the skill received open_issues containing an issue whose
+          title/labels/body semantically match the change group, verify
+          the mapping output maps to that existing issue rather than
+          returning confidence "none" (which would trigger creation).
+          Cross-reference the mapping output against the open_issues input.
+      - id: SE-3
+        failure_condition: F7
+        check: >
+          If the best candidate issue has state "closed", verify the
+          mapping output explicitly flags it as closed and does NOT
+          return it as a resolved match without annotation. The skill
+          must surface the closed state so the agent can prompt for
+          confirmation.
+      - id: SE-4
+        failure_condition: F8
+        check: >
+          If two or more candidate issues have equal or near-equal
+          confidence scores for the same change group, verify the
+          mapping output flags a conflict rather than silently picking
+          one winner. The conflicts section must be non-empty.
+
+  - skill: "manage-issue"
+    description: >
+      Validates that issue creation, resolution, and read operations
+      produce correct issue state on GitHub.
+    evals:
+      - id: SE-5
+        failure_condition: F1
+        check: >
+          After the skill completes, verify its output contains a valid
+          issue_number and url. Run "gh issue view {issue_number}
+          --json number,title,state" and confirm the issue exists and
+          state is "OPEN".
+      - id: SE-6
+        failure_condition: F6
+        check: >
+          If action was "resolve_or_create" and the skill created a new
+          issue, verify that the search step ("gh issue list --search")
+          was executed first and returned zero matching open issues.
+          If matching open issues existed in the search results, this
+          eval fails.
+      - id: SE-7
+        failure_condition: F7
+        check: >
+          If the skill resolved to an existing issue, verify its state
+          is "OPEN". If state is "CLOSED", verify the recipe obtained
+          user confirmation before any reopen action. No closed issue
+          may be silently returned as the resolved target.
+      - id: SE-8
+        failure_condition: C10
+        check: >
+          If a new issue was created (action "create" or fallback from
+          "resolve_or_create"), verify the issue body contains a summary
+          section of approximately 40 words describing the inferred work.
+          Run "gh issue view {issue_number} --json body" and count words
+          in the summary section. Word count must be between 25 and 60.
+
+  - skill: "setup-branch"
+    description: >
+      Validates that branch creation, naming, and working tree
+      preservation are correct.
+    evals:
+      - id: SE-9
+        failure_condition: F2
+        check: >
+          After the skill completes, run "git branch --show-current"
+          and verify the branch name matches the pattern
+          {type}/{issue_number}-{slug} where type is a valid conventional
+          type (feature, fix, chore, etc.), issue_number is numeric, and
+          slug is a kebab-case string.
+      - id: SE-10
+        failure_condition: F4
+        check: >
+          Capture "git status --porcelain" before and after the skill
+          runs. The set of uncommitted files after must be a superset
+          of the set before. No file that was dirty before may become
+          clean after (indicating stash loss, reset, or discard). If
+          worktree was used, verify files are present in the worktree.
+      - id: SE-11
+        failure_condition: F3
+        check: >
+          After the skill completes, verify the STM directory exists at
+          {stm_base}/{issue_number}/. Run "test -d {stm_base}/{issue_number}"
+          and confirm exit code 0. If the directory was not created by
+          setup-branch, verify another step in the recipe created it
+          before recipe completion.
+      - id: SE-12
+        failure_condition: C3
+        check: >
+          If the target branch already existed (locally or on origin),
+          verify the skill switched to it rather than failing or creating
+          a duplicate. Run "git branch --show-current" and confirm it
+          matches the target branch name. No new branch with a suffixed
+          name should exist.
+
+scenario_evals:
+  - id: SCE-1
+    scenario: S1
+    description: >
+      Developer starts recipe with uncommitted changes and no arguments.
+    checks:
+      - >
+        Verify "git status --porcelain" shows the same uncommitted files
+        that existed before the recipe ran (no files lost or stashed).
+      - >
+        Verify "git branch --show-current" returns a branch matching
+        {type}/{issue_number}-{slug} pattern.
+      - >
+        Verify "gh issue view {issue_number} --json state" returns
+        state "OPEN" for the issue number embedded in the branch name.
+      - >
+        Verify "{stm_base}/{issue_number}/" directory exists.
+      - >
+        Verify the issue was inferred from changed files — the resolve-issues
+        skill output shows confidence "medium" or "high" for the mapping.
+
+  - id: SCE-2
+    scenario: S2
+    description: >
+      Developer provides a specific issue number as argument.
+    checks:
+      - >
+        Verify "gh issue view {provided_issue_number} --json state"
+        returns state "OPEN".
+      - >
+        Verify "git branch --show-current" contains the provided issue
+        number in the pattern {type}/{provided_issue_number}-{slug}.
+      - >
+        Verify "{stm_base}/{provided_issue_number}/" directory exists.
+      - >
+        Verify any uncommitted changes present before the recipe are
+        still present after (git status --porcelain comparison).
+
+  - id: SCE-3
+    scenario: S3
+    description: >
+      Developer provides a descriptive title string as argument.
+    checks:
+      - >
+        Verify a new GitHub issue was created with a title matching or
+        derived from the provided string. Run "gh issue list --search
+        {title}" and confirm a matching issue exists.
+      - >
+        Verify the created issue body contains a summary of approximately
+        25-60 words.
+      - >
+        Verify "git branch --show-current" returns a branch following
+        {type}/{new_issue_number}-{slug} where the slug relates to
+        the provided title.
+      - >
+        Verify "{stm_base}/{new_issue_number}/" directory exists.
+
+  - id: SCE-4
+    scenario: S4
+    description: >
+      Developer runs recipe when the target feature branch already exists.
+    checks:
+      - >
+        Verify "git branch --show-current" returns the pre-existing
+        target branch name (switched to, not recreated).
+      - >
+        Verify no new branch was created — "git branch --list" count
+        is unchanged or the target branch was already counted.
+      - >
+        Verify uncommitted changes from before the recipe are still
+        present in the working tree.
+      - >
+        Verify "{stm_base}/{issue_number}/" directory exists (created
+        if it was missing, confirmed if it was present).
+      - >
+        Verify no duplicate GitHub issue was created for the same work.
+
+  - id: SCE-5
+    scenario: S5
+    description: >
+      Team Lead inspects GitHub issues list after developer ran the recipe.
+    checks:
+      - >
+        Verify the issue associated with the recipe run appears in
+        "gh issue list --state open" output.
+      - >
+        Verify the issue has a non-empty title that describes the work.
+      - >
+        Verify the issue body contains a summary section (not blank).
+      - >
+        Verify the issue number appears in an active branch name on
+        origin — run "git ls-remote --heads origin" and confirm a
+        branch containing the issue number exists.
