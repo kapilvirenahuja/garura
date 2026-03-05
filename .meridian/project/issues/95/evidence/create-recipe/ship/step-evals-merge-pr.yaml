@@ -1,0 +1,57 @@
+eval_type: step
+recipe: merge-pr
+skill: merge-pr
+intent_path: core/components/recipes/merge-pr/reference/intent.yaml
+
+evals:
+  - id: step-eval-1
+    name: pr-exists-before-merge
+    failure_condition: F5
+    check: >
+      Before merge is attempted, the skill verified that a PR exists on the
+      platform for the current branch. If no PR exists, the skill returned
+      status "failed" without attempting merge.
+    pass_criteria: >
+      Skill output contains pr_number field with a valid number, OR
+      status is "failed" with error referencing missing PR.
+
+  - id: step-eval-2
+    name: no-conflict-merge
+    failure_condition: F1
+    check: >
+      Before merge is attempted, the skill checked the PR's mergeable status.
+      If conflicts exist, the skill returned status "conflict" without
+      attempting merge.
+    pass_criteria: >
+      Skill output status is "merged" (no conflicts) or "conflict" (conflicts
+      detected and merge was NOT attempted). Never "merged" when conflicts existed.
+
+  - id: step-eval-3
+    name: branch-deleted
+    failure_condition: F2
+    check: >
+      After successful merge, the feature branch was deleted locally and
+      the remote deletion was attempted (with tolerance for platform auto-delete).
+    pass_criteria: >
+      Skill output branch_deleted is true. Local branch no longer exists
+      (git branch --list returns empty for that name).
+
+  - id: step-eval-4
+    name: on-base-branch-and-current
+    failure_condition: F3
+    check: >
+      After merge and branch cleanup, the local checkout is on the base
+      branch and the base branch is up to date with remote.
+    pass_criteria: >
+      git branch --show-current matches base_branch from output.
+      git status shows "Your branch is up to date with origin/{base}".
+
+  - id: step-eval-5
+    name: clean-tree-precondition
+    failure_condition: F4
+    check: >
+      Before any operation, the skill verified the working tree and index
+      are clean. If dirty, the skill returned failure without proceeding.
+    pass_criteria: >
+      Either the tree was clean and merge proceeded, or the tree was dirty
+      and status is "failed" with error referencing uncommitted changes.

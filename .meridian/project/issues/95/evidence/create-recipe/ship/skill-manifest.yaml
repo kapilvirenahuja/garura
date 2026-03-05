@@ -1,0 +1,28 @@
+recipe: "ship"
+level: L2
+chained_recipes:
+  - name: "commit-code"
+    path: "core/components/recipes/commit-code/SKILL.md"
+  - name: "create-pr"
+    path: "core/components/recipes/create-pr/SKILL.md"
+  - name: "merge-pr"
+    path: "core/components/recipes/merge-pr/SKILL.md"
+    status: "new — needs creation"
+existing_skills:
+  - name: "analyze-changes"
+    path: "core/components/skills/analyze-changes/SKILL.md"
+  - name: "create-commit"
+    path: "core/components/skills/create-commit/SKILL.md"
+  - name: "resolve-issues"
+    path: "core/components/skills/resolve-issues/SKILL.md"
+  - name: "manage-issue"
+    path: "core/components/skills/manage-issue/SKILL.md"
+  - name: "analyze-pr"
+    path: "core/components/skills/analyze-pr/SKILL.md"
+  - name: "submit-pr"
+    path: "core/components/skills/submit-pr/SKILL.md"
+new_skills:
+  - name: "merge-pr"
+    purpose: "Platform-dispatched PR merge with branch cleanup (delete local + remote)"
+    inputs: ["pr_number or branch name", "merge_strategy (optional, defaults to repo default)", "delete_branch (boolean)"]
+    outputs: ["merge result (merge commit SHA, merged status)", "branch deletion confirmation"]
