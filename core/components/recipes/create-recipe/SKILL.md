@@ -1,6 +1,6 @@
 ---
 name: create-recipe
-description: Compile a new L2 recipe from intent — interview for intent, identify skills and agents, select workflow, compile a deterministic SKILL.md. Use when building a new recipe or re-baking an existing one.
+description: Compile a new L2 recipe from intent — interview for intent, identify skills and agents, select workflow, compile a deterministic SKILL.md. Use when building a new recipe, re-baking an existing one, or reviewing a recipe for gaps.
 user-invokable: true
 ---
 
@@ -43,11 +43,12 @@ You are the **recipe compiler** and **architectural gatekeeper**. You own the pi
 
 Ask the user for the **recipe name**. Check if `core/components/recipes/{recipe-name}/reference/intent.yaml` and `SKILL.md` already exist.
 
-| Existing Files | Mode |
-|---------------|------|
-| Neither | **New** — build from scratch |
-| intent.yaml only | **New** — intent exists, build recipe |
-| Both | **Rebake** — rebuild recipe from existing intent |
+| Existing Files | Flag | Mode |
+|---------------|------|------|
+| Neither | — | **New** — build from scratch |
+| intent.yaml only | — | **New** — intent exists, build recipe |
+| Both | `--rebake` | **Rebake** — rebuild recipe from existing intent |
+| Both | `--review` | **Review** — diagnose gaps, no modifications |
 
 Create STM directory at `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/`.
 
@@ -57,7 +58,15 @@ Move to Step 2.
 
 #### Rebake mode
 
-Perform a deep read of the entire recipe graph:
+Perform the deep read (same as Review mode Step R1 below), then move to Step 2.
+
+#### Review mode
+
+Review is diagnostic only — it reads everything, finds gaps, and reports. It NEVER modifies files. If the user wants to fix gaps, they run `--rebake` afterward.
+
+**Step R1 — Deep Read**
+
+Read the entire recipe graph:
 
 1. **Recipe:** Read `SKILL.md` — understand compiled structure, phases, steps, agent contracts, evals, pre-flight checks.
 2. **Intent:** Read `reference/intent.yaml` — constraints, failure conditions, scenarios.
@@ -68,9 +77,52 @@ Perform a deep read of the entire recipe graph:
 
 Build a semantic map: recipe → phases → steps → agent dispatches → skill invocations → intent constraint mappings → eval coverage.
 
-Write this analysis to STM at `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/recipe-analysis.md`.
+**Step R2 — Gap Analysis**
 
-Move to Step 2.
+Run these checks against the semantic map. Each check produces a PASS or GAP result with details.
+
+| Check | What it validates | GAP condition |
+|-------|-------------------|---------------|
+| **G1 — Constraint Coverage** | Every constraint ID in intent.yaml appears in at least one pre-flight check or step eval in SKILL.md | Constraint ID not referenced anywhere in compiled recipe |
+| **G2 — Failure Condition Coverage** | Every failure condition ID in intent.yaml is covered by at least one step eval | FC ID not referenced by any SE-* eval |
+| **G3 — Scenario Coverage** | Every scenario ID in intent.yaml is covered by at least one scenario eval | Scenario ID not referenced by any SCE-* eval |
+| **G4 — Skill Existence** | Every skill referenced in recipe step contracts exists at `core/components/skills/{name}/SKILL.md` | Skill referenced but file missing |
+| **G5 — Agent Existence** | Every agent in the recipe's agent boundary table exists at `core/components/agents/{name}.md` | Agent declared but definition missing |
+| **G6 — Skill-Agent Alignment** | Every skill a recipe step assigns to an agent is listed in that agent's skill inventory | Recipe assigns skill X to agent Y, but agent Y doesn't declare skill X |
+| **G7 — Contract Schema** | JSON contracts in recipe steps contain required fields: `intent_path`, `stm_base`, `stm`, `task_id` | Required contract field missing |
+| **G8 — Template References** | Skills that reference LTM templates point to files that exist in `core/components/memory/standards/templates/` | Template path referenced but file missing |
+| **G9 — Intent Hash Drift** | Compiled intent_hash in SKILL.md matches current SHA-256 of intent.yaml | Hash mismatch — intent changed since last compilation |
+| **G10 — Required Sections** | Compiled SKILL.md contains all required sections: Frontmatter, Header, Compiled From, Role, Pre-flight, Workflow, Scenario Validation, Pause and Resume, Compilation Metadata | Section missing from compiled recipe |
+
+**Step R3 — Gap Report**
+
+Write report to STM at `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/review-report.md`.
+
+Present to user:
+
+```markdown
+## Recipe Review: {recipe-name}
+
+| Check | Status | Details |
+|-------|--------|---------|
+| G1 Constraint Coverage | PASS/GAP | {which constraints are uncovered} |
+| G2 FC Coverage | PASS/GAP | {which FCs are uncovered} |
+| G3 Scenario Coverage | PASS/GAP | {which scenarios are uncovered} |
+| G4 Skill Existence | PASS/GAP | {which skills are missing} |
+| G5 Agent Existence | PASS/GAP | {which agents are missing} |
+| G6 Skill-Agent Alignment | PASS/GAP | {which skill-agent mappings are broken} |
+| G7 Contract Schema | PASS/GAP | {which contracts have missing fields} |
+| G8 Template References | PASS/GAP | {which templates are missing} |
+| G9 Intent Hash Drift | PASS/GAP | {hash comparison} |
+| G10 Required Sections | PASS/GAP | {which sections are missing} |
+
+**Summary:** {X}/10 PASS, {Y} GAPs found
+
+{If GAPs > 0:}
+Run `/create-recipe --rebake {recipe-name}` to fix identified gaps.
+```
+
+**Review mode terminates here.** No Steps 2-7. No modifications to any files.
 
 ### Step 2 — Intent
 
@@ -322,3 +374,5 @@ Run `/sync-claude` to deploy.
 - ALWAYS write analysis artifacts to STM
 - ALWAYS reference ADR 013 for L2 design elements
 - For L3-L5 requests — acknowledge and defer, do not reject
+- NEVER modify any file in review mode — review is read-only diagnostic
+- ALWAYS write the review report to STM even if all checks pass
