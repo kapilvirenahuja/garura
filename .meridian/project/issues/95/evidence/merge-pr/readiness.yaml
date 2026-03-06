@@ -1,0 +1,33 @@
+readiness:
+  verified_at: "2026-03-07T00:00:00Z"
+
+  pr_check:
+    exists: true
+    number: 97
+    state: "OPEN"
+    url: "https://github.com/kapilvirenahuja/meridian-os/pull/97"
+    base_ref: "main"
+    head_ref: "feature/95-intent-driven-recipe-architecture"
+
+  mergeable_check:
+    mergeable: true
+    merge_state_status: "CLEAN"
+    has_conflicts: false
+    can_proceed: true
+
+  working_tree_check:
+    clean: true
+    uncommitted_changes: false
+    staged_changes: false
+
+  constraints:
+    C2_pr_exists: PASS
+    C3_clean_tree: PASS
+    C4_no_conflicts: PASS
+
+  evals:
+    SE-1_no_merge_conflicts: PASS
+    SE-4_pre_merge_tree_clean: PASS
+    SE-5_pr_exists_valid: PASS
+
+  verdict: "READY_FOR_MERGE"

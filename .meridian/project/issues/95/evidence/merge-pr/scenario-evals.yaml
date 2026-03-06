@@ -1,0 +1,48 @@
+scenario_evals:
+  evaluated_at: "2026-03-07T00:00:00Z"
+
+  SCE-1_developer_scenario:
+    persona: "Developer"
+    given: "Terminal state after merge-pr completes — local repository and platform PR status"
+    then: "Can immediately begin a new feature branch from an up-to-date base branch, with no stale feature branch lingering locally or on the remote"
+
+    checks:
+      - check: "Local HEAD is on base branch"
+        status: PASS
+        evidence: "git branch --show-current returned 'main'"
+
+      - check: "git pull returns up to date"
+        status: PASS
+        evidence: "git pull returned 'Already up to date'"
+
+      - check: "Feature branch not found locally"
+        status: PASS
+        evidence: "git branch did not contain feature/95-intent-driven-recipe-architecture"
+
+      - check: "Feature branch not found remotely"
+        status: PASS
+        evidence: "git branch -r did not contain feature/95-intent-driven-recipe-architecture"
+
+    verdict: PASS
+
+  SCE-2_code_reviewer_scenario:
+    persona: "Code Reviewer"
+    given: "Platform pull request page and base branch commit history"
+    then: "Can confirm the PR is reflected as merged on the platform and the merge commit is present on the base branch"
+
+    checks:
+      - check: "PR state is merged on platform"
+        status: PASS
+        evidence: "gh pr view 97 --json state returned 'MERGED'"
+
+      - check: "Merge commit SHA is correct"
+        status: PASS
+        evidence: "mergeCommit.oid is 110052a8a63a040705d4fb1c446a813aacf6929e"
+
+      - check: "Merge commit present in main log"
+        status: PASS
+        evidence: "git log main shows 110052a Merge pull request #97 from kapilvirenahuja/feature/95-intent-driven-recipe-architecture"
+
+    verdict: PASS
+
+  overall_scenario_result: "ALL_PASS"

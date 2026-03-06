@@ -1,0 +1,13 @@
+{
+  "recipe": "merge-pr",
+  "issue": 95,
+  "started_at": "2026-03-07T00:00:00Z",
+  "completed_at": "2026-03-07T00:00:00Z",
+  "status": "completed",
+  "tasks": {
+    "verify-readiness": { "status": "completed", "completed_at": "2026-03-07T00:00:00Z" },
+    "execute-merge": { "status": "completed", "completed_at": "2026-03-07T00:00:00Z" },
+    "scenario-evals": { "status": "completed", "completed_at": "2026-03-07T00:00:00Z" },
+    "write-evidence": { "status": "completed", "completed_at": "2026-03-07T00:00:00Z" }
+  }
+}

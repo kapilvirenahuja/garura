@@ -1,0 +1,38 @@
+result:
+  status: "merged"
+  completed_at: "2026-03-07T00:00:00Z"
+
+  merge:
+    pr_number: 97
+    merge_sha: "110052a8a63a040705d4fb1c446a813aacf6929e"
+    merge_state_status: "CLEAN"
+    strategy: "default"
+    success: true
+
+  branch_operations:
+    feature_branch: "feature/95-intent-driven-recipe-architecture"
+    base_branch: "main"
+    checkout_success: true
+    pull_success: true
+    branch_deleted_locally: true
+    branch_deleted_remotely: true
+    branch_deleted: true
+
+  final_state:
+    current_branch: "main"
+    local_ahead: 0
+    local_behind: 0
+    up_to_date: true
+    feature_branch_exists_locally: false
+    feature_branch_exists_remotely: false
+
+  constraints:
+    C5_default_merge_strategy: PASS
+    C6_remote_deletion_tolerant: PASS
+
+  evals:
+    SE-2_feature_branch_deleted: PASS
+    SE-3_on_base_branch_up_to_date: PASS
+    SE-5_pr_merged_on_platform: PASS
+
+  verdict: "MERGE_COMPLETE_SUCCESS"
