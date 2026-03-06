@@ -17,7 +17,7 @@ constraints:
       The working tree and index must be clean (no uncommitted changes, no staged changes) before any operation begins.
   - id: C4
     rule: >
-      If the pull request has merge conflicts, no merge is attempted. This is a hard stop with no auto-resolution.
+      If the pull request has merge conflicts, no merge is attempted and no auto-resolution is performed.
   - id: C5
     rule: >
       The repository's default merge strategy is used. No override or alternative merge strategy is applied.
@@ -29,7 +29,8 @@ constraints:
 failure_conditions:
   - id: F1
     condition: >
-      A merge was attempted on a pull request that has unresolved conflicts.
+      The base branch contains merge conflict markers or the platform shows the PR was merged
+      while conflicts were present on the source branch.
   - id: F2
     condition: >
       After completion, the feature branch still exists locally or on the remote,
@@ -40,10 +41,12 @@ failure_conditions:
       or the local base branch is behind the remote base branch.
   - id: F4
     condition: >
-      A merge was attempted when the working tree or index contained uncommitted or staged changes.
+      After completion, the PR is merged on the platform but the working tree or index
+      had uncommitted or staged changes that were present before the operation started.
   - id: F5
     condition: >
-      A merge was attempted when no pull request exists on the platform for the current branch.
+      After completion, a merge was performed but no corresponding merged PR exists
+      on the platform for the feature branch.
 
 scenarios:
   - id: S1
