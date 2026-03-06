@@ -1,74 +1,80 @@
 ---
 name: create-recipe
-description: Create a new recipe from scratch — interview for intent, build skills, generate evals, select workflow, audit/create agents, resolve task DAG. Use when building a new recipe or rebuilding an existing one using the intent-driven framework.
-user-invocable: true
-model: opus
+description: Compile a new L2 recipe from intent — interview for intent, identify skills and agents, select workflow, compile a deterministic SKILL.md. Use when building a new recipe or re-baking an existing one.
+user-invokable: true
 ---
 
 # create-recipe
 
-Create a new recipe using the intent-driven framework. Orchestrates intent-crafter, skill-creator, evals-creator, and intent-resolver to produce a fully functional recipe with enforced intent. Ensures all components — including agents — comply with architectural principles before assembly.
+The recipe compiler. Takes an intent.yaml (existing or newly crafted) and produces a compiled, deterministic L2 recipe as a single SKILL.md file. Workflow structure, task ordering, eval criteria, and pre-flight checks are baked into the compiled output.
+
+## Maturity Level Guards
+
+**BEFORE doing anything, determine what the user is asking to build.**
+
+| Level | Action | Response |
+|-------|--------|----------|
+| L1 | REJECT | L1 recipes are structureless — no constraints, no evals, no checkpoints. Define constraints, failure conditions, and scenarios to make it L2. |
+| L2 | BUILD | Proceed with compilation. |
+| L3 | DEFER | L3 puts workflow structure into intent. The compiler doesn't support it yet. Build as L2 now? |
+| L4 | DEFER | L4 is runtime resolution. We're at L2. Build as compiled recipe instead? |
+| L5 | DEFER | L5 is the dark factory. Start with intent.yaml and we'll compile a solid L2. |
 
 ## Role
 
-You are the orchestrator AND the architectural gatekeeper. You own the workflow. You delegate domain tasks to agents — never execute directly. You ensure every component this recipe depends on is architecturally compliant.
+You are the **recipe compiler** and **architectural gatekeeper**. You own the pipeline. You delegate domain tasks to specialized tools — never execute their work directly.
 
-**Agent boundaries:**
-- `intent-crafter` — intent domain: interviews user, produces intent.yaml
-- `intent-resolver` — intent domain: reads intent + workflow + agents -> task DAG JSON
-- `skill-creator` — skill available at `/skill-creator` for building new skills
-- Other domain agents are declared by the user during recipe definition
+**Build-time tools:**
+- `intent-crafter` agent — interviews user, produces intent.yaml
+- `evals-creator` skill — generates step and scenario evals
+- `/skill-creator` — builds new skills, modifies existing skills
 
-## Architectural Principles (The Audit Checklist)
+**Runtime agents (declared by user, audited by compiler):** These are the domain agents the compiled recipe will use. Audited against `reference/audit-checklist.md` (P1-P10).
 
-These are the principles every domain agent used by the recipe MUST satisfy. Violation of ANY principle means the agent must be upgraded or a new agent created.
+**Reference artifacts:**
+- `reference/audit-checklist.md` — P1-P10 agent compliance checklist
+- `reference/compiled-example.md` — target output format for compiled recipes
+- `core/components/memory/standards/agent-contract.md` — universal JSON contract schema
+- `docs/adr/013-recipe-maturity-model.md` — L2 design elements and workflow structures
 
-**Applicability:** These principles apply to domain agents that participate in recipe execution (Stages 2, 3, 5). They do NOT apply to infrastructure agents like `intent-crafter` (interview-based, talks to users by design) or `intent-resolver` (classifier, returns DAG not enriched contract).
+## Compilation Pipeline
 
-### P1 — JSON Contract Communication
-Agent receives a JSON contract with `intent_path` and `stm` paths. Agent returns an enriched JSON contract with updated `stm` paths. No prompt-based input/output for recipe invocations.
+### Step 1 — Gate & Identity
 
-### P2 — STM Path Handoff
-Components pass file paths from STM to each other — not prompts, not inline data. Each component reads what it needs from the paths it receives.
+Ask the user for the **recipe name**. Check if `core/components/recipes/{recipe-name}/reference/intent.yaml` and `SKILL.md` already exist.
 
-### P3 — Intent Awareness
-Agent reads `intent.yaml` at `intent_path` from the contract. Constraints, failure conditions, and scenarios are understood from intent — not passed as prose in the prompt.
+| Existing Files | Mode |
+|---------------|------|
+| Neither | **New** — build from scratch |
+| intent.yaml only | **New** — intent exists, build recipe |
+| Both | **Rebake** — rebuild recipe from existing intent |
 
-### P4 — Structured Failure Protocol
-When blocked, agent returns structured failure per `docs/framework/structured-failure-protocol.md`. Never returns raw errors or unstructured text.
+Create STM directory at `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/`.
 
-### P5 — No Direct User Interaction
-Agent never uses `AskUserQuestion`. Returns to caller for user interaction.
+#### New mode
 
-### P6 — Output Contract Discipline
-Agent returns ONLY the enriched JSON contract. Detailed analysis/artifacts go to STM files. No prose, tables, or explanation in the return value.
+Move to Step 2.
 
-### P7 — Skill Delegation for Artifact Production
-Agent delegates artifact production to skills when skills exist for that domain. Agent = context engineering (reading intent, loading context, validating). Skill = artifact production (writing structured output). If no skill exists for the agent's domain work, the agent may produce artifacts directly — but this should be noted as a gap for future skill extraction.
+#### Rebake mode
 
-### P8 — Recovery and Escalation
-Agent has self-recovery (max 2 attempts) and structured escalation when blocked by something outside its domain.
+Perform a deep read of the entire recipe graph:
 
-### P9 — Domain Boundaries
-Agent stays within its declared domain. Never performs work belonging to another agent's domain.
+1. **Recipe:** Read `SKILL.md` — understand compiled structure, phases, steps, agent contracts, evals, pre-flight checks.
+2. **Intent:** Read `reference/intent.yaml` — constraints, failure conditions, scenarios.
+3. **Reference files:** Read everything in `reference/` — templates, examples, audit checklists.
+4. **Agents:** For every agent the recipe declares, read its definition from `core/components/agents/{name}.md`.
+5. **Skills:** For every skill each agent invokes, read its contract from `core/components/skills/{name}/SKILL.md`.
+6. **Workflow:** Identify the workflow structure (A/B/C) the recipe uses.
 
-### P10 — Task Graph Participation
-Agent marks tasks as `in_progress` and `completed` via TaskUpdate. Can add new tasks via TaskCreate if it discovers additional work.
+Build a semantic map: recipe → phases → steps → agent dispatches → skill invocations → intent constraint mappings → eval coverage.
 
-## Workflow
+Write this analysis to STM at `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/recipe-analysis.md`.
 
-This recipe follows the "How to Build a Recipe" framework. Each step produces artifacts that downstream steps consume via STM paths.
+Move to Step 2.
 
-### Step 1 — Capture Recipe Identity
+### Step 2 — Intent
 
-Ask the user:
-- **Recipe name** — what should this recipe be called?
-- **Recipe purpose** — one sentence: what does this recipe do?
-- **Target directory** — defaults to `core/components/recipes/{recipe-name}/`
-
-Create the STM directory at `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/`.
-
-### Step 2 — Define Intent (intent-crafter)
+#### New mode
 
 Invoke `intent-crafter` agent:
 
@@ -76,19 +82,37 @@ Invoke `intent-crafter` agent:
 Task: "Interview user and produce intent.yaml for the {recipe-name} recipe"
 Context:
   recipe_name: "{recipe-name}"
-  recipe_purpose: "{purpose from Step 1}"
+  recipe_purpose: "{purpose — ask user}"
   output_path: "core/components/recipes/{recipe-name}/reference/intent.yaml"
 ```
 
-The crafter interviews the user about goals, constraints, failure conditions, and acceptance scenarios. It produces `intent.yaml` at the output path.
+The crafter runs a detailed interview: goal, constraints, failure conditions, acceptance scenarios.
 
-**Gate:** intent.yaml must exist and conform to the schema before proceeding. Read it and verify:
-- `intent` field is present and implementation-agnostic
+#### Rebake mode
+
+Invoke `intent-crafter` agent with existing intent and recipe analysis as context:
+
+```yaml
+Task: "Review existing intent.yaml against recipe analysis. Find gaps in constraints, failure conditions, and scenarios."
+Context:
+  recipe_name: "{recipe-name}"
+  existing_intent_path: "core/components/recipes/{recipe-name}/reference/intent.yaml"
+  recipe_analysis_path: "{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/recipe-analysis.md"
+  output_path: "core/components/recipes/{recipe-name}/reference/intent.yaml"
+  mode: "rebake"
+```
+
+The crafter reads the recipe analysis from STM — the full mapping of agents, skills, contracts, and constraint coverage — and checks the existing intent against it. It identifies gaps: missing constraints, uncovered failure modes, scenarios that don't match real usage.
+
+#### Gate
+
+intent.yaml must exist and conform to schema:
+- `intent` field present and implementation-agnostic
 - At least 1 constraint with id and rule
 - At least 1 failure condition with id and condition
 - At least 1 scenario with id, persona, given, then
 
-Present the intent.yaml content to the user:
+Present intent.yaml to user:
 
 ```markdown
 ## Intent Definition
@@ -100,382 +124,201 @@ Present the intent.yaml content to the user:
 Type **Tether** to approve or **Vanish** to revise.
 ```
 
-### Step 3 — Identify Required Skills
+### Step 3 — Skill Inventory
 
-Ask the user:
-- What skills does this recipe need?
-- Which existing skills can be reused? (List available skills from `core/components/skills/`)
-- Which skills need to be created new?
+Identify what skills the recipe needs based on the approved intent.
 
-For each new skill needed, record:
-- Skill name
-- What it produces
-- Input it needs
+1. Analyze the intent — what domain work needs to happen? What artifacts need to be produced?
+2. List available skills from `core/components/skills/`.
+3. Map needed capabilities to existing skills. Identify gaps.
+4. For each gap: does an existing skill need modification, or is a new skill needed?
 
-Write the skill manifest to STM:
+For new or modified skills, invoke `/skill-creator`.
+
+Write skill manifest to STM at `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/skill-manifest.yaml`:
 
 ```yaml
-# {stm_base}/{issue}/evidence/create-recipe/{recipe-name}/skill-manifest.yaml
 recipe: "{recipe-name}"
-existing_skills:
+skills:
   - name: "{skill-name}"
     path: "core/components/skills/{skill-name}/SKILL.md"
-new_skills:
-  - name: "{skill-name}"
-    purpose: "{what it does}"
-    inputs: ["{input}"]
-    outputs: ["{output}"]
+    status: existing | modified | new
 ```
 
-### Step 4 — Build New Skills and Per-Skill Evals
+**Gate:** All needed skills exist with valid SKILL.md contracts.
 
-For each new skill in the manifest:
+### Step 4 — Agent Declaration & Audit
 
-**4a. Create the skill** — invoke `/skill-creator`:
+Identify which domain agents the recipe needs. This follows from skills — agents are the context engineers that invoke skills.
 
-```yaml
-Task: "Create skill {skill-name}: {purpose}"
-Context:
-  skill_name: "{skill-name}"
-  target_path: "core/components/skills/{skill-name}/"
-```
+1. From the skill manifest, determine which agents are needed to orchestrate those skills.
+2. Check if each agent exists in `core/components/agents/`.
+3. For every agent (existing or new), audit against `reference/audit-checklist.md` (P1-P10).
 
-**4b. Generate step evals for this skill** — invoke `evals-creator`:
-
-Step evals validate that a single skill's output satisfies the failure conditions mapped to it. These are run by the agent after invoking the skill (Stages 2, 3, 5).
-
-```yaml
-Input:
-  eval_type: "step"
-  intent_path: "core/components/recipes/{recipe-name}/reference/intent.yaml"
-  skill_contract:
-    skill_name: "{skill-name}"
-    contract_path: "core/components/skills/{skill-name}/SKILL.md"
-  output_path: "{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/step-evals-{skill-name}.yaml"
-```
-
-**Gate:** Each skill SKILL.md and its step evals must exist before proceeding to the next skill.
-
-### Step 5 — Generate Scenario Evals
-
-Scenario evals are E2E acceptance tests — they validate the whole workflow output against the `scenarios` from intent.yaml. These are run by the recipe at Stage 6.
-
-Invoke `evals-creator`:
-
-```yaml
-Input:
-  eval_type: "scenario"
-  intent_path: "core/components/recipes/{recipe-name}/reference/intent.yaml"
-  skill_contracts:
-    - skill_name: "{skill-1}"
-      contract_path: "core/components/skills/{skill-1}/SKILL.md"
-    - skill_name: "{skill-2}"
-      contract_path: "core/components/skills/{skill-2}/SKILL.md"
-  output_path: "{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/scenario-evals.yaml"
-```
-
-Present generated evals to the user for review. Clearly distinguish:
-- **Step evals** (per-skill, from Step 4b): {count} evals across {skill count} skills
-- **Scenario evals** (E2E, from this step): {count} evals
-
-### Step 6 — Define Workflow Pre-flight (Stage 0)
-
-Ask the user what environmental pre-conditions must be true for this recipe to run:
-- What system state is required? (e.g., clean git tree, specific files exist)
-- What tools must be available?
-
-Also analyze the intent.yaml — some constraints imply pre-flight checks (e.g., "input must be approved" implies checking for an approval artifact).
-
-Write pre-flight checks to the recipe definition.
-
-### Step 7 — Select Workflow Template
-
-Read available workflows from `core/components/memory/workflows/`:
-
-```markdown
-## Available Workflows
-
-{list each workflow name + description}
-
----
-
-Which workflow fits this recipe? Or describe a new one.
-```
-
-If the user needs a new workflow, create it at `core/components/memory/workflows/{name}.yaml`.
-
-Record the selected workflow path.
-
-### Step 8 — Declare and Audit Agents
-
-This is the architectural gatekeeping step. It has three phases.
-
-#### Phase 1: Declare
-
-Ask the user which agents this recipe will use. List existing agents from `core/components/agents/`:
-
-```markdown
-## Available Agents
-
-{list each agent name + domain + description}
-
----
-
-Which agents does this recipe need? You can pick existing ones or request new ones.
-```
-
-Record the agent list: `[{ "name": "...", "domain": "..." }]`
-
-#### Phase 2: Audit
-
-For EACH declared agent, read its definition from `core/components/agents/{name}.md` and audit against ALL 10 architectural principles (P1-P10).
-
-Produce an audit report per agent:
+**Audit report per agent:**
 
 ```markdown
 ## Agent Audit: {agent-name}
 
 | Principle | Status | Finding |
 |-----------|--------|---------|
-| P1 JSON Contract | PASS/FAIL | {what was found} |
-| P2 STM Path Handoff | PASS/FAIL | {what was found} |
-| P3 Intent Awareness | PASS/FAIL | {what was found} |
-| P4 Structured Failure | PASS/FAIL | {what was found} |
-| P5 No Direct User Interaction | PASS/FAIL | {what was found} |
-| P6 Output Contract Discipline | PASS/FAIL | {what was found} |
-| P7 Skill Delegation | PASS/FAIL/N-A | {what was found — N/A if no skills exist for this domain yet} |
-| P8 Recovery and Escalation | PASS/FAIL | {what was found} |
-| P9 Domain Boundaries | PASS/FAIL | {what was found} |
-| P10 Task Graph Participation | PASS/FAIL | {what was found} |
+| P1 JSON Contract | PASS/FAIL | {finding} |
+| P2 STM Path Handoff | PASS/FAIL | {finding} |
+| P3 Intent Awareness | PASS/FAIL | {finding} |
+| P4 Structured Failure | PASS/FAIL | {finding} |
+| P5 No Direct User Interaction | PASS/FAIL | {finding} |
+| P6 Output Contract Discipline | PASS/FAIL | {finding} |
+| P7 Skill Delegation | PASS/FAIL/N-A | {finding} |
+| P8 Recovery and Escalation | PASS/FAIL | {finding} |
+| P9 Domain Boundaries | PASS/FAIL | {finding} |
+| P10 Task Graph Participation | PASS/FAIL | {finding} |
 ```
 
-Write the audit report to `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/agent-audit-{agent-name}.md`.
+Write audit to `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/agent-audit-{agent-name}.md`.
 
-#### Phase 3: Interview and Resolve
+For agents with failures, present options:
+1. **Upgrade** — modify existing agent to pass. Show proposed changes, get Tether/Vanish, re-audit.
+2. **Create new** — build a new compliant agent.
+3. **Skip** — proceed without (user must handle that domain differently).
 
-For each agent with ANY failing principle, present the audit to the user:
+For new agents: interview user for name, domain, skills it needs. Build definition at `core/components/agents/{name}.md` following all 10 principles. Audit to confirm.
 
-```markdown
-## Agent Compliance: {agent-name}
+**Gate:** ALL agents pass ALL 10 principles. No exceptions.
 
-{audit table}
+### Step 5 — Workflow Selection
 
-**Failing principles:** {list}
+Reference: `docs/adr/013-recipe-maturity-model.md` — L2 workflow structures.
 
-### Options
+#### New mode
 
-1. **Upgrade {agent-name}** — modify the existing agent to pass all principles. This agent is also used by: {list other recipes that reference it}. The upgrade will maintain backward compatibility by supporting both JSON contract mode and legacy prompt mode.
-2. **Create new agent** — build a new agent (e.g., {suggested-name}) that is fully compliant. The existing agent remains untouched.
-3. **Skip** — proceed without this agent. You will need to handle its domain work differently.
+Present the three structures:
 
----
+```
+Structure A — Full checkpoint flow:
+  Pre-flight → Preparation → Checkpoint (skippable) → Execution → Evidence
+  Best for: multiple agents, confidence-gated review
 
-Which option? (1/2/3) Interview me if you need more context.
+Structure B — Fast execution flow:
+  Pre-flight → Execution → Approval
+  Best for: simpler work, single-agent, low-risk
+
+Structure C — Higher-order L2 (chained recipes):
+  Pre-flight → Recipe-1 → STM handoff → Recipe-2 → ... → Evidence
+  Best for: composing existing L2 recipes
 ```
 
-**If the user chooses Upgrade:**
-- Read the existing agent definition fully
-- Identify the minimum changes needed to pass all failing principles
-- Present the proposed changes to the user before applying:
-  ```markdown
-  ## Proposed Upgrade: {agent-name}
+User selects.
 
-  **Changes:**
-  {list of specific changes with before/after}
+#### Rebake mode
 
-  **Backward compatibility:** {how legacy invocations still work}
+Read current workflow structure from the recipe. Assess:
+- Did intent changes (new constraints, new agents) affect which structure fits?
+- Does the current structure still match the recipe's complexity?
 
-  **Other recipes affected:** {list}
+Present assessment with recommendation. User confirms or switches.
 
-  ---
+#### Pre-flight derivation
 
-  Type **Tether** to apply or **Vanish** to cancel.
-  ```
-- Apply the changes to `core/components/agents/{name}.md`
-- Re-audit to confirm all principles now pass
+Analyze intent constraints to derive pre-flight checks. Each constraint that represents an environmental precondition becomes a pre-flight check with an action-on-failure (hard halt, graceful exit, or hard block).
 
-**If the user chooses Create New:**
-- Interview the user about the new agent:
-  - Agent name and domain
-  - What skills it needs access to
-  - What domain work it handles
-- Build the agent definition at `core/components/agents/{name}.md` following ALL 10 principles from the start
-- Audit the new agent to confirm compliance
-- Update the recipe's agent list to reference the new agent
+### Step 6 — Compile & Verify
 
-**Gate:** ALL agents in the recipe's list must pass ALL 10 principles before proceeding. No exceptions.
+This is the compilation step. All inputs are ready: intent, skills, agents (all passing), workflow structure, pre-flight checks.
 
-### Step 9 — Generate Task DAG (intent-resolver)
+#### 6a. Generate Evals
 
-Invoke `intent-resolver` agent:
+Invoke `evals-creator` skill with all skill contracts:
 
-```json
-{
-  "intent_path": "core/components/recipes/{recipe-name}/reference/intent.yaml",
-  "workflow_path": "{selected workflow path from Step 7}",
-  "agents": [{agent list from Step 8}]
-}
-```
-
-The resolver returns the task DAG JSON. Write it to `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/dag.json`.
-
-Present the DAG to the user for review.
-
-### Step 10 — Assemble the Recipe
-
-Using all collected artifacts, write the recipe SKILL.md at `core/components/recipes/{recipe-name}/SKILL.md`.
-
-The assembled recipe MUST contain all of the following sections. Missing any section means the recipe is incomplete and will drift from the architecture.
-
-#### 10.1 — Frontmatter
 ```yaml
-name: {recipe-name}
-description: {purpose}
-user-invocable: true
-model: {model}
+Input:
+  intent_path: "core/components/recipes/{recipe-name}/reference/intent.yaml"
+  skill_contracts:
+    - skill_name: "{skill-1}"
+      contract_path: "core/components/skills/{skill-1}/SKILL.md"
+    - skill_name: "{skill-2}"
+      contract_path: "core/components/skills/{skill-2}/SKILL.md"
+  output_path: "{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/evals.yaml"
 ```
 
-#### 10.2 — Intent Section
-The recipe reads `reference/intent.yaml` at startup. The intent drives all downstream behavior — constraints shape agent work, failure conditions drive evals, scenarios drive E2E validation.
+#### 6b. Compile SKILL.md
 
-#### 10.3 — Role Section
-Orchestrator role. Agent boundaries with name and domain for each agent.
+Read `reference/compiled-example.md` for the target output format. Read `core/components/memory/standards/agent-contract.md` for contract schema.
 
-#### 10.4 — Fixed Stages
-The recipe MUST reference the fixed stage model:
-
-| Stage | Name | Type | Owner |
-|-------|------|------|-------|
-| 0 | Workflow Pre-flight | Infrastructure | recipe |
-| 1 | Intent Resolution | Infrastructure | intent-resolver |
-| 2 | Readiness | Domain work | domain agent(s) |
-| 3 | Human-Readable Brief | Domain work | domain agent |
-| 4 | Human Checkpoint | Infrastructure | recipe |
-| 5 | Generation | Domain work | domain agent(s) |
-| 6 | Scenario Validation | Infrastructure | recipe |
-| 7 | Evidence & Close | Infrastructure | recipe |
-
-**Infrastructure stages (0, 1, 4, 6, 7) do NOT count toward the agent budget.**
-**Domain work stages (2, 3, 5) count toward the budget.**
-
-#### 10.5 — Two Core Phases
-The recipe MUST document the phase boundary:
-
-- **Readiness phase** (Stages 2, 3, 4): Analysis, scoping, content production, brief, approval. Everything needed to be ready.
-- **Generation phase** (Stage 5): Produce final deliverables from approved artifacts.
-
-Before approval: getting READY. After approval: GENERATING deliverables.
-
-#### 10.6 — STM Data Flow Rules
-The recipe MUST enforce these data flow rules:
-
-```
-Stage 2 -> Agents write STRUCTURED DATA to STM (source of truth)
-Stage 3 -> Domain agent creates BRIEF from STM (VIEW for humans, skippable)
-Stage 4 -> Human reviews brief, Tether/Vanish (skippable)
-Stage 5 -> Agents read STM data (NOT brief) -> generate deliverables
+Compute intent hash:
+```bash
+intent_hash=$(shasum -a 256 core/components/recipes/{recipe-name}/reference/intent.yaml | awk '{print $1}')
 ```
 
-**Critical rule: Stage 5 agents NEVER read the brief. They read the STM data the brief was generated from.**
+Write `core/components/recipes/{recipe-name}/SKILL.md` with ALL required sections:
 
-#### 10.7 — Execution Section
-How the recipe loads and executes the task DAG:
+| Section | Content |
+|---------|---------|
+| Frontmatter | name, description, user-invokable (standard fields only) |
+| Header | One-paragraph operational description |
+| Compiled From | Notice: compiled artifact, edit intent.yaml and re-run /create-recipe |
+| Role + Agent Boundaries | Orchestrator role, agent table with domains and phases |
+| Pre-flight | Baked checks with constraint IDs, bash logic, resume check |
+| Workflow | Sequential steps organized by phase, each with: owner, depends-on, JSON contract (per agent-contract.md), skill invoked, step eval criteria |
+| Scenario Validation | E2E scenario evals from intent.yaml |
+| Evidence & Close | Write evidence, self-commit (ADR 012), non-blocking |
+| Pause and Resume | Status file format, resume logic |
+| Compilation Metadata | intent_hash, compiled_by, compiled_at, maturity, workflow_structure, agent count, eval counts |
 
-1. **Load DAG** — Read from `{stm_base}/{issue}/dag/{recipe-name}.json`
-2. **Dispatch by stage + owner:**
-   - Owner is an agent name -> delegate to that agent via JSON contract
-   - Owner is "recipe" -> execute inline (pre-flight, checkpoint, scenario eval, evidence)
-3. **Iterate in dependency order** — respect `blockedBy` edges
-4. **Update task status** — mark tasks `in_progress` then `completed` as they execute
+**Compilation rules (from ADR 013 L2):**
+- Workflow steps are sequential with named phases — not abstract stage numbers
+- Each agent dispatch includes the full JSON contract template with `stm` paths (per agent-contract.md)
+- Step evals appear immediately after the step they validate
+- Critical rule for Structure A: execution phase agents read STM data, NEVER the checkpoint brief
+- No runtime DAG — task ordering is baked into SKILL.md
+- No runtime intent resolution — everything the recipe needs is compiled in
+- Intent hash in Compilation Metadata section (end of file) for drift detection — NOT in frontmatter
 
-#### 10.8 — DAG Caching
-The recipe MUST include caching instructions:
+**Pause and Resume (baked into compiled recipe):**
+1. Issue detection in pre-flight (extract from branch name or user input)
+2. Status file at `{stm_base}/{issue}/status/{recipe-name}.json`
+3. Write status after every step completion
+4. On resume: skip completed steps, reset `in_progress` to pending
+5. No re-planning — the compiled steps are the execution state
 
-```
-Cache location: .meridian/cache/intent-resolution/{recipe-name}.json
-Invalidation: hash(intent.yaml) + hash(workflow) + hash(agents) changes
-Lifetime: Permanent until invalidated
-```
+#### 6c. Verify
 
-On recipe invocation: check cache first. If valid, load DAG directly (skip Stage 1). If stale, run resolver, update cache.
+Before finalizing, validate:
+- Every constraint referenced in at least one pre-flight check or step eval
+- Every failure condition covered by at least one step eval
+- Every scenario covered by at least one scenario eval
+- All required sections present in the compiled SKILL.md
+- Agent contracts match agent-contract.md schema
 
-#### 10.9 — DAG Resumption
-The recipe MUST support resumption:
-
-```
-DAG location: {stm_base}/{issue}/dag/{recipe-name}.json
-Written: After Stage 1 (intent resolution)
-Updated: At every checkpoint (Stage 4) — marks completed tasks
-On resume: Recipe reads DAG from STM, skips completed tasks, continues from where it stopped
-```
-
-No re-planning on resume. The DAG is the execution state.
-
-#### 10.10 — Two Eval Levels
-The recipe MUST implement both eval levels:
-
-| Level | Who | When | What | Source |
-|-------|-----|------|------|--------|
-| **Step evals** | Agent (self-validation) | After skill output (Stages 2, 3, 5) | Did this skill's output satisfy failure conditions mapped to this step? | `failure_conditions` mapped by resolver |
-| **Scenario evals** | Recipe | Stage 6 (E2E) | Does the whole workflow output satisfy acceptance? | `scenarios` from intent.yaml |
-
-Step evals are tasks in the DAG owned by agents. Scenario evals are tasks in the DAG owned by the recipe.
-
-#### 10.11 — Pre-flight Section
-The checks from Step 6.
-
-#### 10.12 — Agent Declarations
-Which agents with domains. L1 recipes: max 2 agent calls. L2 recipes: max 5 (ideal 3). Infrastructure stages (0, 1, 4, 6, 7) do NOT count toward this budget.
-
-#### 10.13 — Workflow Reference
-Reference the workflow template from LTM by path. Never hardcode stage sequences.
-
-**Assembly Gate:** Before writing the final SKILL.md, verify all 13 subsections are present. If any is missing, add it before writing.
-
-The recipe structure:
-
-```
-core/components/recipes/{recipe-name}/
-├── SKILL.md              # Recipe definition
-└── reference/
-    └── intent.yaml       # Intent contract
-```
-
-### Step 11 — Summary
-
-Present what was created:
+### Step 7 — Summary
 
 ```markdown
-## Recipe Created: {recipe-name}
+## Recipe Compiled: {recipe-name}
+
+**Maturity:** L2 | **Workflow:** Structure {A|B|C} | **Intent hash:** {sha256}
 
 **Files:**
-- `core/components/recipes/{recipe-name}/SKILL.md`
-- `core/components/recipes/{recipe-name}/reference/intent.yaml`
+- `core/components/recipes/{recipe-name}/SKILL.md` (compiled)
+- `core/components/recipes/{recipe-name}/reference/intent.yaml` (source)
 - {any new skills created}
-- {any new workflows created}
-- {any agents created or upgraded, with audit status}
+- {any agents created or upgraded}
 
-**Workflow:** {workflow name}
-**Agents:** {agent list with compliance status — all PASS}
-**Evals:** {step_eval_count} step evals across {skill_count} skills, {scenario_eval_count} scenario evals
-
----
+**Agents:** {list — all PASS} | **Evals:** {step count} step, {scenario count} scenario
 
 Run `/sync-claude` to deploy.
 ```
 
 ## Constraints
 
-- NEVER write recipe logic inline — delegate to agents
-- NEVER skip the intent definition step — intent.yaml is required
-- NEVER skip eval generation — both step evals (per-skill) and scenario evals (E2E) are required
-- NEVER hardcode workflow stages — always reference a workflow template from LTM
-- NEVER skip the agent audit — every declared agent must pass all 10 principles
-- NEVER proceed past Step 8 with any agent failing any principle
-- NEVER assemble a recipe missing any of the 13 required subsections (10.1-10.13)
-- ALWAYS present intent.yaml for user approval before proceeding
-- ALWAYS present the task DAG for user review before assembling the recipe
-- ALWAYS present agent audit findings and get user decision before modifying agents
-- ALWAYS write artifacts to STM during creation, final files to core/components/
-- ALWAYS re-audit after upgrading an agent to confirm compliance
-- ALWAYS generate step evals per-skill during Step 4, not as a batch
+- NEVER build L1 recipes — reject with explanation
+- NEVER produce a recipe with runtime DAG or runtime intent resolution — L2 is compiled
+- NEVER ship intent-resolver as a runtime dependency — it does not exist in L2
+- NEVER skip intent definition, eval generation, or agent audit
+- NEVER assemble a recipe missing any required section from Step 6b
+- NEVER do agent or skill domain work directly — delegate to intent-crafter, /skill-creator, evals-creator
+- ALWAYS compute intent_hash and include compiled metadata in Compilation Metadata section at end of file — NOT in frontmatter
+- ALWAYS present intent for user approval before proceeding
+- ALWAYS audit every agent against all 10 principles
+- ALWAYS re-audit after upgrading an agent
+- ALWAYS write analysis artifacts to STM
+- ALWAYS reference ADR 013 for L2 design elements
+- For L3-L5 requests — acknowledge and defer, do not reject

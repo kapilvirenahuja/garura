@@ -1,52 +1,50 @@
 name: readiness-brief-generation
-description: Full workflow — readiness, human brief, checkpoint, and generation. Use for recipes that require human approval before producing final deliverables.
+description: >
+  Structure A — Full checkpoint flow. Pre-flight, preparation, checkpoint (skippable),
+  execution, scenario validation, evidence. Use for recipes that require human approval
+  before producing final deliverables.
+structure: A
 
-stages:
-  - stage: 0
-    name: Workflow Pre-flight
+phases:
+  - phase: pre-flight
     owner_type: recipe
     description: >
       Infrastructure checks before domain work. Recipe MUST resolve stm_base from
       core/config.yaml (stm.base-path) and hold it for all downstream contract paths.
       All agent contracts use {stm_base}/{issue}/ — never hardcoded paths.
+      Check for status file and resume if present.
     required_resolution:
       stm_base: "stm.base-path from core/config.yaml"
 
-  - stage: 1
-    name: Intent Resolution
-    owner_type: intent-resolver
+  - phase: preparation
+    owner_type: domain-agent
     description: >
-      Load or resolve the task DAG. Check cache first; if stale, invoke intent-resolver
-      with config_path so the DAG carries the resolved stm_base field.
+      Analysis, scoping, feasibility. Domain agents write structured artifacts to STM.
+      Step evals validate each agent's output after completion.
 
-  - stage: 2
-    name: Readiness
-    owner_type: domain-agent
-    description: Analysis, scoping, feasibility. All structured artifacts produced and written to STM.
-
-  - stage: 3
-    name: Human-Readable Brief
-    owner_type: domain-agent
-    skippable: true
-    description: Create a human-readable brief from STM artifacts. Skippable when no human review is needed.
-
-  - stage: 4
-    name: Human Checkpoint
+  - phase: checkpoint
     owner_type: recipe
     skippable: true
-    description: Present brief to user. Tether/Vanish. Skippable when brief is skipped.
+    description: >
+      Domain agent creates human-readable brief from STM artifacts.
+      Recipe presents brief to user. Tether/Vanish.
+      Skippable when confidence is high and no flags exist.
 
-  - stage: 5
-    name: Generation
+  - phase: execution
     owner_type: domain-agent
-    description: Produce final deliverables from approved STM artifacts. Reads STM data, not the brief.
+    description: >
+      Produce final deliverables from STM artifacts. Agents read STM data
+      written during preparation — NEVER the checkpoint brief.
+      Step evals validate output after completion.
 
-  - stage: 6
-    name: Scenario Validation
+  - phase: scenario-validation
     owner_type: recipe
-    description: E2E scenario evals from intent.yaml. Validate final artifacts against acceptance scenarios.
+    description: >
+      E2E scenario evals. Validate final artifacts against acceptance scenarios
+      from the compiled recipe.
 
-  - stage: 7
-    name: Evidence & Close
+  - phase: evidence
     owner_type: recipe
-    description: Write evidence artifacts and checkpoint to STM. All paths use the resolved stm_base.
+    description: >
+      Write evidence artifacts and checkpoint to STM. All paths use the resolved
+      stm_base. Self-commit evidence files (ADR 012) — non-blocking on failure.

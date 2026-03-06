@@ -1,40 +1,34 @@
 name: direct-generation
-description: Readiness straight to generation — no human brief or checkpoint. Use for recipes where human approval is not needed (automated pipelines, low-risk operations).
+description: >
+  Structure B — Fast execution flow. Pre-flight, execution, approval, evidence.
+  Use for simpler domain work, single-agent recipes, or low-risk operations
+  where preparation and checkpoint are not needed.
+structure: B
 
-stages:
-  - stage: 0
-    name: Workflow Pre-flight
+phases:
+  - phase: pre-flight
     owner_type: recipe
     description: >
       Infrastructure checks before domain work. Recipe MUST resolve stm_base from
       core/config.yaml (stm.base-path) and hold it for all downstream contract paths.
       All agent contracts use {stm_base}/{issue}/ — never hardcoded paths.
+      Check for status file and resume if present.
     required_resolution:
       stm_base: "stm.base-path from core/config.yaml"
 
-  - stage: 1
-    name: Intent Resolution
-    owner_type: intent-resolver
+  - phase: execution
+    owner_type: domain-agent
     description: >
-      Load or resolve the task DAG. Check cache first; if stale, invoke intent-resolver
-      with config_path so the DAG carries the resolved stm_base field.
+      Do the work. Domain agents produce deliverables and write to STM.
+      Step evals validate output after completion.
 
-  - stage: 2
-    name: Readiness
-    owner_type: domain-agent
-    description: Analysis, scoping, feasibility. All structured artifacts produced and written to STM.
-
-  - stage: 5
-    name: Generation
-    owner_type: domain-agent
-    description: Produce final deliverables from readiness artifacts in STM.
-
-  - stage: 6
-    name: Scenario Validation
+  - phase: approval
     owner_type: recipe
-    description: E2E scenario evals from intent.yaml. Validate final artifacts against acceptance scenarios.
+    description: >
+      Final human approval. Present results to user. Tether/Vanish.
 
-  - stage: 7
-    name: Evidence & Close
+  - phase: evidence
     owner_type: recipe
-    description: Write evidence artifacts and checkpoint to STM. All paths use the resolved stm_base.
+    description: >
+      Write evidence artifacts and checkpoint to STM. All paths use the resolved
+      stm_base. Self-commit evidence files (ADR 012) — non-blocking on failure.

@@ -35,6 +35,11 @@ constraints:
       After commits are created, the branch must be pushed to the remote.
       Push failure is non-blocking — commits are valid regardless of push
       outcome. The recipe logs the failure and continues.
+  - id: C9
+    rule: >
+      Human approval is required before committing when any change group's
+      issue mapping has less than high confidence. When all mappings are
+      high confidence, the recipe proceeds without approval.
 
 failure_conditions:
   - id: F1
@@ -51,6 +56,16 @@ failure_conditions:
   - id: F4
     condition: >
       A commit references the wrong issue.
+  - id: F5
+    condition: >
+      A commit is created from a change group that had an unresolved
+      conflict in issue mapping (multiple competing issue matches)
+      without the conflict being surfaced for review.
+  - id: F6
+    condition: >
+      A commit is created from a change group whose issue mapping had
+      less than high confidence, and no human approval was obtained for
+      that mapping.
 
 scenarios:
   - id: S1
