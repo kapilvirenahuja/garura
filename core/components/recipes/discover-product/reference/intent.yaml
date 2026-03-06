@@ -1,42 +1,125 @@
-intent: "Discover and document product vision, strategic goals, and market positioning as the foundation for the IDSD strategic track"
+intent: >
+  Given a product idea or problem statement, discover the market opportunity,
+  draft a product vision with strategic goals and market positioning, validate
+  the vision for completeness, and lock it when ready. The recipe operates in
+  three separate phases (DRAFT, VALIDATE, LOCK) invoked independently. DRAFT
+  produces a vision artifact and an interactive HTML brief for human review
+  at a checkpoint. VALIDATE checks vision completeness and allows cycle-back
+  for issues. LOCK finalizes the vision as the foundation for downstream
+  planning. All product artifacts are stored in project-scoped product STM.
 
 constraints:
-  pre_flight:
-    - id: C1
-      check: intent argument is non-empty AND contains sufficient words (>5 meaningful words)
-      halt_message: "No intent provided — describe the product problem or idea to discover (e.g., 'QR code activation for B2B SaaS commission tracking')"
-    - id: C2
-      check: --phase argument is one of [draft, validate, lock]
-      halt_message: "Invalid phase — use --phase draft, --phase validate, or --phase lock"
-    - id: C3
-      check: VALIDATE and LOCK phases — --artifact path is provided and file exists
-      halt_message: "No artifact path provided for validate/lock phase — use --artifact <path> to specify the vision.md to validate or lock"
-
-  behavioral:
-    - id: C4
-      rule: "Orchestrator MUST delegate product-domain work to product-strategist — never invoke skills directly"
-    - id: C5
-      rule: "Maximum 2 distinct agent calls in DRAFT phase, 1 in VALIDATE, 0 in LOCK"
-    - id: C6
-      rule: "Vision artifact MUST be written to .meridian/project/product/{slug}/ relative to project root (not per-issue STM, not ~/.meridian/)"
-    - id: C7
-      rule: "Strategic Goals MUST be used — OKRs and OKR terminology are prohibited"
-    - id: C8
-      rule: "Checkpoint MUST be written before presenting to user — Status: PENDING_APPROVAL first"
-    - id: C9
-      rule: "Cycle-back on Vanish at VALIDATE phase — maximum 2 re-draft iterations"
-    - id: C10
-      rule: "generate-business-review MUST NOT include engineering implementation details"
-    - id: C11
-      rule: "Intent string MUST be passed as first line of each agent invocation context block"
-    - id: C12
-      rule: "Product-strategist MUST attempt domain classification before skill invocation. If classification is ambiguous, return domain_clarification_needed to recipe. Recipe handles user interaction and re-invokes with confirmed domain."
+  - id: C1
+    rule: >
+      A product intent must be provided and must contain sufficient specificity
+      (more than 5 meaningful words). Vague or empty input is rejected.
+  - id: C2
+    rule: >
+      A phase argument must be provided and must be one of: draft, validate,
+      or lock. No other values are accepted.
+  - id: C3
+    rule: >
+      VALIDATE and LOCK phases require an artifact path pointing to an
+      existing vision artifact. The artifact must exist and must not already
+      be in LOCKED status.
+  - id: C4
+    rule: >
+      All product-domain work (market analysis, vision drafting, vision
+      validation) is delegated to a domain agent. The orchestrator never
+      performs product-domain work directly.
+  - id: C5
+    rule: >
+      Maximum 3 agent dispatches in DRAFT phase (2 product-strategist,
+      1 doc-builder), 1 in VALIDATE phase, and 0 in LOCK phase.
+  - id: C6
+    rule: >
+      All vision and product artifacts must be written to
+      .meridian/project/product/{slug}/ relative to the project root.
+      Product STM is project-scoped, not per-issue and not in the global
+      home directory.
+  - id: C7
+    rule: >
+      The vision artifact uses "Strategic Goals" terminology. OKRs and
+      OKR-specific terminology (Objectives, Key Results) are prohibited
+      in all vision artifacts.
+  - id: C8
+    rule: >
+      A checkpoint artifact must be written before presenting results to the
+      user. The checkpoint status is PENDING_APPROVAL until the user responds.
+  - id: C9
+    rule: >
+      When vision validation fails and the user requests a cycle-back,
+      a maximum of 2 re-draft iterations are permitted before the recipe
+      halts and requires manual intervention.
+  - id: C10
+    rule: >
+      A human-reviewable brief artifact must be produced during the DRAFT
+      phase and presented at the checkpoint. This is the primary artifact
+      the user evaluates before approving or rejecting the vision.
+  - id: C11
+    rule: >
+      If the product domain cannot be unambiguously determined from the
+      intent, the user must be asked to confirm or provide the domain
+      before product-domain work proceeds. The recipe must not proceed
+      with an ambiguous domain classification.
 
 failure_conditions:
-  - "Problem statement too vague to derive market context (fewer than 5 meaningful words)"
-  - "No clear target audience identifiable from the problem statement"
-  - "Domain unresolvable — user rejects all proposed domains and provides no alternative"
-  - "User rejects proposed vision at DRAFT checkpoint (Vanish)"
-  - "Vision validation fails with blocker-severity issues after 2 cycle-back iterations"
-  - "Artifact path not found or not a valid vision.md (for validate/lock phases)"
-  - "Vision is already LOCKED — cannot re-draft without dropping to DRAFT first"
+  - id: F1
+    condition: >
+      The vision artifact contains fewer than 3 strategic goals, or no
+      target audience is identifiable from the artifact content.
+  - id: F2
+    condition: >
+      The product domain is unresolvable — the user rejected all proposed
+      domain classifications and provided no alternative.
+  - id: F3
+    condition: >
+      The DRAFT phase completed but no vision artifact exists at the
+      expected path in .meridian/project/product/{slug}/.
+  - id: F5
+    condition: >
+      The VALIDATE phase completed with blocker-severity issues still
+      present after 2 cycle-back iterations.
+  - id: F6
+    condition: >
+      The artifact path provided for VALIDATE or LOCK does not exist
+      or does not contain a valid vision artifact.
+  - id: F7
+    condition: >
+      A LOCK or DRAFT operation was attempted on a vision artifact that
+      is already in LOCKED status.
+  - id: F9
+    condition: >
+      No checkpoint artifact was written before presenting results to
+      the user — the approval flow has no audit trail.
+
+scenarios:
+  - id: S1
+    persona: Founder / Product Manager
+    given: >
+      The vision artifact and interactive HTML brief produced by the
+      DRAFT phase, presented at the checkpoint
+    then: >
+      Can evaluate whether the market opportunity, target users, strategic
+      goals, and competitive positioning accurately capture their product
+      intent — and approve or reject with enough context to give specific
+      feedback.
+  - id: S2
+    persona: Engineering Lead
+    given: >
+      A LOCKED vision artifact at
+      .meridian/project/product/{slug}/vision.md
+    then: >
+      Can use the locked vision as authoritative input for roadmap
+      planning — strategic goals, target users, success metrics, and
+      competitive landscape are defined clearly enough to derive
+      engineering milestones without ambiguity.
+  - id: S3
+    persona: Product Manager
+    given: >
+      The validation results from the VALIDATE phase showing completeness
+      score, checklist status, and any issues by severity
+    then: >
+      Can determine whether the vision is ready to lock or identify
+      exactly which sections need strengthening before the vision can
+      serve as a planning foundation.
