@@ -1,0 +1,9 @@
+issue:
+  number: 54
+  title: "refactor: externalize intent.yaml and standardize recipe structure across commit-code, start-feature, and start-feature-planning"
+  state: CLOSED
+  closedAt: "2026-02-23T05:52:10Z"
+
+verification:
+  is_closed: true
+  verified_at: "2026-03-06"
