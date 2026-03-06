@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Brief: {PRODUCT_NAME}</title>
+  <!-- Template: product-brief.html -->
+  <!-- Used by: generate-product-brief skill -->
+  <!-- Source data: vision.md + market-context.yaml -->
+  <!-- Placeholder syntax: {VARIABLE} for simple, {SECTION_BLOCK} for rendered blocks -->
+  <!-- All CSS and JS inline — no external dependencies -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Backgrounds */
+      --bg-primary: #0D1117;
+      --bg-secondary: #161B22;
+      --bg-tertiary: #21262D;
+
+      /* Text */
+      --text-primary: #e0e0e8;
+      --text-secondary: #8B949E;
+      --text-dimmed: #484f58;
+
+      /* Four-Element Accents */
+      --color-air: #39D353;
+      --color-water: #58A6FF;
+      --color-earth: #8B949E;
+      --color-fire: #F0A000;
+
+      /* Status */
+      --status-draft: #fbbf24;
+      --status-validated: #4ade80;
+      --status-locked: #58A6FF;
+
+      /* Feedback */
+      --approve: #39D353;
+      --revise: #F0A000;
+
+      /* Borders */
+      --border-default: #30363d;
+      --border-accent: #58A6FF;
+
+      /* Shadows */
+      --shadow-retro: 4px 4px 0 var(--bg-tertiary);
+      --glow-green: 0 0 10px rgba(57, 211, 83, 0.3);
+      --glow-blue: 0 0 10px rgba(88, 166, 255, 0.3);
+    }
+
+    body {
+      font-family: 'Arial Rounded MT Bold', 'Nunito', 'Varela Round', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+    }
+
+    code, pre, .mono {
+      font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+
+    h1 { font-size: 28px; color: var(--color-water); margin-bottom: 8px; }
+    h2 { font-size: 20px; color: var(--color-air); border-bottom: 1px solid var(--border-default); padding-bottom: 8px; margin: 32px 0 16px; }
+    h3 { font-size: 16px; color: var(--text-primary); margin-bottom: 8px; }
+    p { margin-bottom: 12px; }
+
+    .header-meta { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; }
+    .header-meta span { margin-right: 20px; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-draft { background: rgba(251, 191, 36, 0.15); color: var(--status-draft); }
+    .badge-validated { background: rgba(74, 222, 128, 0.15); color: var(--status-validated); }
+    .badge-locked { background: rgba(88, 166, 255, 0.15); color: var(--status-locked); }
+
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-retro);
+    }
+
+    .card:hover { border-color: var(--border-accent); }
+
+    .persona-card { border-left: 3px solid var(--color-fire); }
+    .goal-card { border-left: 3px solid var(--color-air); }
+    .journey-card { border-left: 3px solid var(--color-water); }
+    .risk-item { border-left: 3px solid var(--color-fire); padding-left: 12px; margin-bottom: 8px; }
+    .diff-item { border-left: 3px solid var(--color-air); padding-left: 12px; margin-bottom: 8px; }
+
+    .highlight-box {
+      background: rgba(88, 166, 255, 0.08);
+      border: 1px solid rgba(88, 166, 255, 0.2);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+
+    .market-size-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .market-tile {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .market-tile .label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .market-tile .value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-water);
+    }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    th { text-align: left; color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 12px; border-bottom: 1px solid var(--border-default); }
+    td { padding: 8px 12px; border-bottom: 1px solid var(--bg-tertiary); font-size: 14px; }
+
+    .tag {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin: 2px 2px;
+    }
+    .tag-strength { background: rgba(57, 211, 83, 0.12); color: var(--color-air); }
+    .tag-weakness { background: rgba(240, 160, 0, 0.12); color: var(--color-fire); }
+
+    .metric-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(88, 166, 255, 0.1);
+      color: var(--color-water);
+      border-radius: 4px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--border-default);
+      margin: 32px 0;
+    }
+
+    /* Feedback Panel */
+    .feedback-panel {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border-accent);
+      border-radius: 8px;
+      padding: 24px;
+      margin-top: 32px;
+    }
+
+    .section-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .toggle-btn {
+      padding: 4px 14px;
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      transition: all 0.2s;
+      margin-left: 4px;
+    }
+
+    .toggle-btn.active-approve { background: rgba(57, 211, 83, 0.15); color: var(--approve); border-color: var(--approve); }
+    .toggle-btn.active-revise { background: rgba(240, 160, 0, 0.15); color: var(--revise); border-color: var(--revise); }
+
+    .feedback-textarea {
+      width: 100%;
+      min-height: 120px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      padding: 12px;
+      resize: vertical;
+      margin-top: 16px;
+    }
+
+    .feedback-textarea:focus { border-color: var(--border-accent); outline: none; box-shadow: var(--glow-blue); }
+
+    .submit-btn {
+      margin-top: 16px;
+      padding: 10px 24px;
+      background: var(--color-water);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .submit-btn:hover { box-shadow: var(--glow-blue); }
+
+    .json-output {
+      margin-top: 16px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      padding: 16px;
+      position: relative;
+      display: none;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .copy-btn:hover { color: var(--color-air); border-color: var(--color-air); }
+
+    footer {
+      margin-top: 48px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-default);
+      font-size: 12px;
+      color: var(--text-dimmed);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Hidden fields for feedback JSON -->
+  <input type="hidden" id="brief-slug" value="{PRODUCT_SLUG}">
+  <input type="hidden" id="brief-phase" value="{PHASE}">
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- HEADER -->
+  <header>
+    <h1>{PRODUCT_NAME}</h1>
+    <div class="header-meta">
+      <span><span class="badge {STATUS_BADGE_CLASS}">{STATUS}</span></span>
+      <span><strong>Phase:</strong> {PHASE}</span>
+      <span><strong>Generated:</strong> {DATE}</span>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 1: MARKET OPPORTUNITY -->
+  <h2>Market Opportunity</h2>
+
+  <h3>Problem</h3>
+  <div class="highlight-box">
+    <p>{PROBLEM_STATEMENT}</p>
+  </div>
+
+  <h3>Target Users</h3>
+  <!-- Render one .card.persona-card per persona from market context -->
+  {PERSONA_CARDS}
+
+  <h3>Market Size</h3>
+  <div class="market-size-grid">
+    <!-- Render 3 tiles: TAM, SAM, SOM from market_context.market_size -->
+    {MARKET_SIZE_TILES}
+  </div>
+
+  <h3>Competitive Landscape</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Competitor</th>
+        <th>Strengths</th>
+        <th>Weaknesses</th>
+        <th>Our Advantage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Render one <tr> per competitor -->
+      {COMPETITOR_TABLE_ROWS}
+    </tbody>
+  </table>
+
+  <h3>Differentiators</h3>
+  <!-- Render one .diff-item per differentiator from market context -->
+  {DIFFERENTIATOR_BLOCKS}
+
+  <h3>Market Risks</h3>
+  <!-- Render one .risk-item per risk from market context -->
+  {RISK_BLOCKS}
+
+  <hr class="section-divider">
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 2: PRODUCT VISION -->
+  <h2>Product Vision</h2>
+
+  <h3>Value Proposition</h3>
+  <div class="highlight-box">
+    {VALUE_PROPOSITION}
+  </div>
+
+  <h3>Strategic Goals</h3>
+  <!-- Render one .card.goal-card per strategic goal from vision -->
+  <!-- Each card: goal number, title, description, and metric-tag with success metric -->
+  {STRATEGIC_GOAL_CARDS}
+
+  <h3>Success Metrics</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Strategic Goal</th>
+        <th>Metric</th>
+        <th>Target</th>
+        <th>Measurement</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Render one <tr> per success metric from vision -->
+      {SUCCESS_METRIC_ROWS}
+    </tbody>
+  </table>
+
+  <h3>Assumptions</h3>
+  <!-- Render numbered assumptions from vision -->
+  {ASSUMPTION_BLOCKS}
+
+  <h3>Out of Scope</h3>
+  <!-- Render out-of-scope items from vision -->
+  {OUT_OF_SCOPE_BLOCKS}
+
+  <hr class="section-divider">
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 3: BUSINESS ANALYSIS -->
+  <!-- This section is generated by the skill from vision + market context -->
+  <!-- It replaces the standalone business-review.md artifact -->
+  <h2>Business Analysis</h2>
+
+  <h3>What It Is</h3>
+  <!-- Plain-language summary of the product for PM/business audience -->
+  <!-- Synthesized from vision value proposition + problem statement -->
+  <!-- NO engineering details — market positioning and user needs only -->
+  <div class="card">
+    {WHAT_IT_IS}
+  </div>
+
+  <h3>Why It Matters</h3>
+  <!-- Business case: market opportunity, timing, network effects -->
+  <!-- Synthesized from market_context.market_size + differentiators -->
+  <div class="card">
+    {WHY_IT_MATTERS}
+  </div>
+
+  <h3>User Journeys</h3>
+  <!-- Render one .card.journey-card per user journey -->
+  <!-- Generate 1 journey per persona from vision target users -->
+  <!-- Each journey: narrative scenario showing the product in use -->
+  {USER_JOURNEY_CARDS}
+
+  <h3>Key Decisions</h3>
+  <!-- Business rules / design principles derived from vision strategic goals -->
+  <!-- Plain language, no engineering terms -->
+  {KEY_DECISION_BLOCKS}
+
+  <h3>Recommended Next Steps</h3>
+  <!-- Actionable next steps for product leadership -->
+  {NEXT_STEP_BLOCKS}
+
+  <hr class="section-divider">
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!-- SECTION 4: FEEDBACK PANEL -->
+  <div class="feedback-panel">
+    <h2 style="border: none; margin-top: 0;">Review & Feedback</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 16px;">
+      Toggle each section, add comments, then generate feedback JSON.
+    </p>
+
+    <!-- Per-section toggles -->
+    <div class="section-toggle">
+      <span>Market Opportunity</span>
+      <div>
+        <button class="toggle-btn" data-section="market_opportunity" data-value="approve" onclick="toggleSection('market_opportunity','approve')">Approve</button>
+        <button class="toggle-btn" data-section="market_opportunity" data-value="revise" onclick="toggleSection('market_opportunity','revise')">Revise</button>
+      </div>
+    </div>
+
+    <div class="section-toggle">
+      <span>Product Vision</span>
+      <div>
+        <button class="toggle-btn" data-section="product_vision" data-value="approve" onclick="toggleSection('product_vision','approve')">Approve</button>
+        <button class="toggle-btn" data-section="product_vision" data-value="revise" onclick="toggleSection('product_vision','revise')">Revise</button>
+      </div>
+    </div>
+
+    <div class="section-toggle">
+      <span>Business Analysis</span>
+      <div>
+        <button class="toggle-btn" data-section="business_analysis" data-value="approve" onclick="toggleSection('business_analysis','approve')">Approve</button>
+        <button class="toggle-btn" data-section="business_analysis" data-value="revise" onclick="toggleSection('business_analysis','revise')">Revise</button>
+      </div>
+    </div>
+
+    <textarea class="feedback-textarea" id="feedback-text" placeholder="Additional feedback, concerns, or revision requests..."></textarea>
+
+    <button class="submit-btn" onclick="generateFeedback()">Generate Feedback JSON</button>
+
+    <div class="json-output" id="json-output">
+      <button class="copy-btn" onclick="copyJson()">Copy</button>
+      <pre><code></code></pre>
+    </div>
+  </div>
+
+  <footer>
+    Generated by discover-product &middot; {PRODUCT_NAME} &middot; {DATE} &middot; {ARTIFACT_PATH}
+  </footer>
+
+</div>
+
+<script>
+function toggleSection(section, value) {
+  var btns = document.querySelectorAll('[data-section="' + section + '"]');
+  btns.forEach(function(b) {
+    b.classList.remove('active-approve', 'active-revise');
+    if (b.dataset.value === value) {
+      b.classList.add(value === 'approve' ? 'active-approve' : 'active-revise');
+    }
+  });
+}
+
+function generateFeedback() {
+  var sections = {};
+  ['market_opportunity', 'product_vision', 'business_analysis'].forEach(function(s) {
+    var active = document.querySelector('[data-section="' + s + '"].active-approve, [data-section="' + s + '"].active-revise');
+    sections[s] = active ? active.dataset.value : 'approve';
+  });
+  var feedback = document.getElementById('feedback-text').value.trim();
+  var allApproved = Object.values(sections).every(function(v) { return v === 'approve'; });
+  var json = {
+    artifact: 'discover-product-brief',
+    slug: document.getElementById('brief-slug').value,
+    phase: document.getElementById('brief-phase').value,
+    timestamp: new Date().toISOString(),
+    sections: sections,
+    feedback: feedback,
+    action: (allApproved && !feedback) ? 'tether' : 'vanish'
+  };
+  var output = document.getElementById('json-output');
+  output.querySelector('code').textContent = JSON.stringify(json, null, 2);
+  output.style.display = 'block';
+}
+
+function copyJson() {
+  var text = document.querySelector('#json-output code').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text);
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  var btn = document.querySelector('.copy-btn');
+  btn.textContent = 'Copied';
+  setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+}
+</script>
+
+</body>
+</html>
