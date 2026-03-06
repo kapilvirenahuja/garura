@@ -2,7 +2,7 @@
 # analyze-changes output
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
-# Stage: 2 — commit-code recipe, evidence self-commit session
+# Stage: 2 — commit-code recipe, capture-learning rebuild session
 
 issue: 95
 stm_base: ".meridian/project/issues/"
@@ -10,42 +10,85 @@ branch: feature/95-intent-driven-recipe-architecture
 hotfix_branch: false
 
 groups:
-  - id: group-1
-    concern: "Add evidence self-commit (Stage 7) to commit-code, create-pr, and ship recipes, documented as ADR 012"
-    type: docs
+  - id: G1
+    concern: "Rebuild capture-learning recipe to L1 intent-driven architecture"
+    type: refactor
     scope: recipes
-    subject: "add evidence self-commit stage and ADR 012 to commit-code, create-pr, and ship"
+    subject: "rebuild capture-learning recipe to L1 intent-driven architecture"
     issue: 95
-    commit_message: "docs(recipes): add evidence self-commit stage and ADR 012 (#95)"
+    commit_message: "refactor(recipes): rebuild capture-learning recipe to L1 intent-driven architecture (#95)"
     files:
-      - core/components/recipes/commit-code/SKILL.md
-      - core/components/recipes/create-pr/SKILL.md
-      - core/components/recipes/ship/SKILL.md
-      - docs/adr/012-evidence-self-commit.md
+      - core/components/recipes/capture-learning/SKILL.md
+      - core/components/recipes/capture-learning/reference/intent.yaml
+      - core/components/recipes/capture-learning/templates/capture-report.md
     rationale: >
-      All four files represent one atomic architectural decision: every recipe must
-      self-commit its STM artifacts in Stage 7. The three SKILL.md additions each
-      define the Stage 7 procedure and cross-reference ADR 012 by path. The ADR was
-      authored alongside the recipe changes — it documents this change, not a
-      pre-existing decision. Separating them would produce broken cross-references
-      in both directions (recipe files pointing to a non-existent ADR; ADR describing
-      recipe sections that haven't landed yet). One concern, one commit. F1 is
-      satisfied: all files represent the same architectural concern.
+      All three files are components of a single recipe. SKILL.md was rewritten
+      to use the L1 fixed-stage structure with DAG dispatch, two-phase model
+      (readiness + generation), and bypass flags for not-yet-built extraction
+      skills. intent.yaml was redesigned: constraints renumbered (C1–C7,
+      all behavioral), failure conditions given IDs (F1–F4), and three
+      acceptance scenarios (S1–S3) added. The template file was deleted because
+      L1 architecture no longer uses prose templates. All three changes are
+      one atomic concern: the recipe component rebuilt as an intent-driven L1.
+    confidence: high
+
+  - id: G2
+    concern: "Record create-recipe evidence artifacts for capture-learning rebuild"
+    type: chore
+    scope: stm
+    subject: "record create-recipe evidence artifacts for capture-learning rebuild (#95)"
+    issue: 95
+    commit_message: "chore(stm): record create-recipe evidence artifacts for capture-learning rebuild (#95)"
+    files:
+      - .meridian/project/issues/95/evidence/create-recipe/capture-learning/
+    rationale: >
+      Untracked STM output from the create-recipe skill run that produced the
+      rebuilt capture-learning recipe. Includes dag.json, evals.yaml,
+      skill-manifest.yaml, agent-audit files, and sub-directories (delivery,
+      design, evidence, spec). These are the process artifacts that record how
+      the recipe was built — a separate concern from the recipe source files
+      themselves. Following the evidence self-commit convention established in
+      ADR 012.
+    confidence: high
+
+  - id: G3
+    concern: "Archive STM directory for issue #54"
+    type: chore
+    scope: stm
+    subject: "archive STM directory for issue #54 (#95)"
+    issue: 95
+    commit_message: "chore(stm): archive STM directory for issue #54 (#95)"
+    files:
+      - .meridian/project/issues/_archive/2026-02/54/
+    rationale: >
+      STM directory for issue #54 (capture-learning was tested on this issue)
+      moved to _archive/2026-02/54/. Contains delivery, design, evidence, spec
+      sub-directories. Independent from the recipe source changes and from the
+      #95 evidence artifacts — archival is a repository hygiene operation, not
+      part of the recipe implementation.
     confidence: high
 
 risks:
   sensitive_files: []
-  breaking_changes: []
-  ambiguous_types:
-    - note: >
-        Three files are SKILL.md recipe specifications and one is an ADR — all are
-        documentation of intended behavior, not executable code. Using 'docs' as the
-        conventional commit type is consistent across all four files. No ambiguity
-        that would warrant splitting.
+  breaking_changes:
+    - >
+      capture-learning/reference/intent.yaml: constraint IDs renumbered. Old
+      schema had pre_flight (C1=issue-closed, C2=stm-exists) and behavioral
+      (C3–C6). New schema has behavioral-only (C1–C7). Any agent or downstream
+      document referencing old constraint IDs will map incorrectly. Impact is
+      limited to documentation cross-references — no runtime breakage since
+      constraints are evaluated by the recipe at execution time.
+  ambiguous_types: []
   hotfix_branch: false
 
 issue_mapping:
-  - group: group-1
+  - group: G1
+    issue: 95
+    confidence: high
+  - group: G2
+    issue: 95
+    confidence: high
+  - group: G3
     issue: 95
     confidence: high
 
@@ -55,38 +98,38 @@ constraint_check:
     detail: "Branch is feature/95-intent-driven-recipe-architecture, not main/master."
   C2:
     status: PASS
-    detail: "4 changed files detected (3 modified, 1 untracked)."
+    detail: "Changed files detected: 2 modified, 1 deleted, 2 untracked directories."
   C3:
     status: PASS
-    detail: "All changes map to issue #95 — branch name and change content confirm single-issue scope."
+    detail: "All changes map to issue #95 — capture-learning rebuild and its associated STM artifacts."
   C4:
     status: PASS
     detail: "No sensitive files, credentials, or environment files detected."
   C5:
     status: PASS
-    detail: "docs(recipes): format is valid conventional commit. Type 'docs' sourced from LTM standards."
+    detail: "refactor(recipes) and chore(stm) are valid conventional commit types."
   C6:
     status: PASS
-    detail: "(#95) included in the proposed commit message."
+    detail: "(#95) included in all proposed commit messages."
   F1:
     status: PASS
-    detail: "Single commit covers one concern: evidence self-commit architecture across recipes + ADR."
+    detail: "Three groups, each a single concern: recipe source, evidence artifacts, archive."
   F2:
     status: PASS
-    detail: "Subject describes the actual change — Stage 7 addition and ADR 012 creation."
+    detail: "All subjects describe the actual change — not generic placeholders."
   F3:
     status: PASS
-    detail: "All 4 changed files assigned to group-1. No files left uncommitted."
+    detail: "All changed files assigned to groups. No files left uncommitted."
   F4:
     status: PASS
     detail: "Issue #95 is the correct issue for this feature branch."
 
 grouping_decision:
-  strategy: single_commit
-  commit_count: 1
+  strategy: multi_commit
+  commit_count: 3
   rationale: >
-    One atomic architectural decision (evidence self-commit). The ADR and recipe
-    changes are co-authored and mutually cross-referencing. Splitting by doc/impl
-    taxonomy would produce commits that are incomplete in isolation and have broken
-    cross-references. F1 (no mixed concerns) is satisfied because all files represent
-    the same concern.
+    Three distinct concerns requiring separate commits. G1 is the substantive
+    recipe rewrite (refactor type). G2 is process evidence for how G1 was
+    built (chore/stm type). G3 is repository hygiene — archiving a prior
+    issue's STM (chore/stm type). Combining any two would mix concerns and
+    violate F1. Three commits, each independently coherent.
