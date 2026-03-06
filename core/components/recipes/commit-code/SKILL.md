@@ -6,11 +6,11 @@ user-invokable: true
 
 # commit-code
 
-Commit all changed files (staged, unstaged, untracked) grouped by concern, using conventional commit format with issue references. Each commit describes the actual change and links to an existing issue. Approval is required only when confidence is low on grouping or issue mapping.
+Commit all changed files (staged, unstaged, untracked) grouped by concern, using conventional commit format with issue references, and push the branch to the remote. Each commit describes the actual change and links to an existing issue. Approval is required only when confidence is low on grouping or issue mapping.
 
 ## Intent
 
-**BEFORE executing any step, read `reference/intent.yaml`** — it defines the operational contract: intent, constraints (C1–C6), failure conditions (F1–F4), and acceptance scenarios (S1–S2). All constraint IDs referenced in this recipe map to that file.
+**BEFORE executing any step, read `reference/intent.yaml`** — it defines the operational contract: intent, constraints (C1–C7), failure conditions (F1–F4), and acceptance scenarios (S1–S2). All constraint IDs referenced in this recipe map to that file.
 
 ```
 reference/intent.yaml → source of truth for all constraints and failure conditions
@@ -26,7 +26,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 | Agent | Domain | Stages |
 |-------|--------|--------|
-| `repo-orchestrator` | Git: analyze changes, create commits, draft brief | 2, 3, 5 |
+| `repo-orchestrator` | Git: analyze changes, create commits, push branch, draft brief | 2, 3, 5 |
 | `project-orchestrator` | Issues: fetch open issues, resolve issue mappings | 2 |
 
 **Infrastructure agents (do not count toward budget):**
@@ -56,7 +56,7 @@ Domain work stages (2, 3, 5) count toward the budget: **2 domain agents (L1 max)
 The recipe has a clear phase boundary at Stage 4:
 
 - **Readiness phase** (Stages 2, 3, 4): Analyze changes, group by concern, map to issues, assess confidence, produce brief, get approval if needed. Everything required to be READY.
-- **Generation phase** (Stage 5): Create commits from the approved STM artifacts.
+- **Generation phase** (Stage 5): Create commits from the approved STM artifacts and push to remote.
 
 Before approval: getting READY. After approval: GENERATING deliverables.
 
@@ -68,7 +68,7 @@ Stage 2 → Agents write STRUCTURED DATA to STM (source of truth)
            - project-orchestrator writes issue mappings to STM
 Stage 3 → repo-orchestrator creates BRIEF from STM (VIEW for humans, skippable)
 Stage 4 → Human reviews brief, Tether/Vanish (skippable when all high confidence)
-Stage 5 → repo-orchestrator reads STM data (NOT brief) → creates commits
+Stage 5 → repo-orchestrator reads STM data (NOT brief) → creates commits → pushes branch
 ```
 
 **Critical rule: Stage 5 agents NEVER read the brief. They read the STM data the brief was generated from.**
@@ -147,29 +147,27 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `core/config.yaml` | — | Hard halt — config is required |
-| Current branch is not main/master/default | C1 | Hard halt with message |
-| Changed files exist (staged, unstaged, untracked) | C2 | Graceful exit with message (not a failure) |
-| No sensitive files in changeset | C4 | Hard block — report file paths and reason |
-| Open issues exist in repository | C3 | Hard halt — instruct user to create issues first |
+| Resolve `stm_base` from `core/config.yaml` | — | Hard halt |
+| Branch guard | C1 | Hard halt |
+| Changes exist | C2 | Graceful exit |
+| Sensitive file scan | C4 | Hard block |
+| Open issues exist | C3 | Hard halt |
 
 Pre-flight checks run via Bash (read-only git queries) since these are infrastructure, not domain work.
 
 ```bash
-# Resolve STM base path from config — ALL downstream paths derive from this
+# Resolve STM base path from config
 stm_base=$(grep 'base-path' core/config.yaml | head -1 | awk '{print $2}')
-# e.g., stm_base=".meridian/project/issues/"
 
-# C1 — branch guard
+# C1
 git branch --show-current
 git remote show origin | grep 'HEAD branch'
 
-# C2 — changes exist
+# C2
 git status --porcelain
 
-# C4 — sensitive file scan (patterns from analyze-changes/reference/risks.md)
-# Check filenames against sensitive patterns
-# Check diff content against secret patterns
+# C4
+# Scan against patterns from analyze-changes/reference/risks.md
 ```
 
 **Path resolution rule:** After pre-flight, the recipe holds `stm_base`. When the DAG is loaded (from cache or intent-resolver), verify `dag.stm_base` matches the resolved config value. All agent contract paths MUST use `{stm_base}/{issue}/` — never hardcode `.meridian/{issue}/`.
@@ -178,10 +176,10 @@ git status --porcelain
 
 | Agent | Domain | Max Calls | Skills Used |
 |-------|--------|-----------|-------------|
-| `repo-orchestrator` | repo | 3 (Stages 2, 3, 5) | `analyze-changes`, `create-commit` |
+| `repo-orchestrator` | repo | 4 (Stages 2, 3, 5) | `analyze-changes`, `create-commit` |
 | `project-orchestrator` | project | 1 (Stage 2) | `manage-issue`, `resolve-issues` |
 
-**Total domain agent calls: 4** — but across 2 agents (L1 budget = max 2 agents).
+**Total domain agent calls: 5** — but across 2 agents (L1 budget = max 2 agents).
 
 ## Workflow Reference
 
@@ -198,19 +196,22 @@ Stages 3 and 4 are `skippable: true` per the workflow template. This recipe skip
 | **Step evals** | Recipe (inline) | After skill output (Stages 2, 5) | Did this skill's output satisfy mapped failure conditions? | `failure_conditions` from intent.yaml |
 | **Scenario evals** | Recipe | Stage 6 (E2E) | Does the whole git log satisfy acceptance? | `scenarios` from intent.yaml |
 
+Eval criteria live in the DAG task descriptions (which reference intent.yaml constraint/failure IDs). The recipe executes each eval task by reading its `description` from the DAG — not from hardcoded rules here.
+
 ### Step Evals (after Stage 2)
 
-- **readiness-eval-1**: Validate changeset groupings — every file in exactly one group, no mixed concerns (F1), rationale per group
-- **readiness-eval-2**: Validate issue mappings — every group mapped, rationale per mapping, confidence recorded, no references to non-existent issues (F4)
+- **readiness-eval-1** — DAG task, owner: recipe. Criteria in DAG description.
+- **readiness-eval-2** — DAG task, owner: recipe. Criteria in DAG description.
 
 ### Step Evals (after Stage 5)
 
-- **gen-eval-1**: Validate commits — no mixed concerns per commit (F1), descriptive messages not generic (F2), no orphaned files (F3), correct issue references (F4)
+- **gen-eval-1** — DAG task, owner: recipe. Criteria in DAG description.
+- **gen-eval-2** — DAG task, owner: recipe. Criteria in DAG description.
 
 ### Scenario Evals (Stage 6)
 
-- **scenario-1 (S1)**: Code reviewer can understand scope per commit without reading diffs, trace every commit to its issue
-- **scenario-2 (S2)**: Team lead can report progress per issue, use commit history as mentoring reference for conventional commit practices
+- **scenario-eval-1** — DAG task, owner: recipe. Validates S1 from intent.yaml.
+- **scenario-eval-2** — DAG task, owner: recipe. Validates S2 from intent.yaml.
 
 ## DAG Caching
 
@@ -257,4 +258,4 @@ Recipe context:
 
 **Non-blocking:** if `repo-orchestrator` returns failure or `committed: false`, log as warning — do NOT halt. The feature commits already succeeded; a missing evidence commit is not fatal.
 
-See [ADR 012: Evidence Self-Commit](../../../docs/adr/012-evidence-self-commit.md) for the architectural rationale.
+See ADR 012 (Evidence Self-Commit) in `docs/adr/012-evidence-self-commit.md` for the architectural rationale.

@@ -1,9 +1,9 @@
 intent: >
   Create git commits for all changed files (staged, unstaged, and untracked) in the
   current repository, grouped by concern, using conventional commit message format
-  with issue references. Each commit message must describe the actual change and link
-  to an existing issue. Approval is required only when confidence is low on change
-  grouping or issue mapping.
+  with issue references, and push the branch to the remote. Each commit message must
+  describe the actual change and link to an existing issue. Approval is required only
+  when confidence is low on change grouping or issue mapping.
 
 constraints:
   - id: C1
@@ -30,6 +30,11 @@ constraints:
   - id: C6
     rule: >
       Commit messages must include the linked issue number.
+  - id: C7
+    rule: >
+      After commits are created, the branch must be pushed to the remote.
+      Push failure is non-blocking — commits are valid regardless of push
+      outcome. The recipe logs the failure and continues.
 
 failure_conditions:
   - id: F1

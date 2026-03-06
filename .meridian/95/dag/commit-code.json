@@ -105,6 +105,28 @@
       "skills": [],
       "status": "pending",
       "blockedBy": ["create-commits"],
+      "blocks": ["push-branch"]
+    },
+    {
+      "id": "push-branch",
+      "stage": 5,
+      "name": "Push branch to remote",
+      "description": "repo-orchestrator pushes the current branch to the remote after commits are created and verified. Enforces C7: branch must be pushed to remote after commits. Push failure is non-blocking — if the push fails (no remote, auth failure, network), log the failure as a warning and mark the task as completed with a warning flag. Commits are valid regardless of push outcome. The recipe continues to scenario evals.",
+      "owner": "repo-orchestrator",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["gen-eval-1"],
+      "blocks": ["gen-eval-2"]
+    },
+    {
+      "id": "gen-eval-2",
+      "stage": 5,
+      "name": "Eval: Push verification",
+      "description": "Recipe-owned eval. Check that the branch was pushed to the remote (C7). Verify by comparing local HEAD with remote tracking branch. Non-blocking: if push failed, log warning with reason but do NOT fail the recipe. Commits are the primary deliverable; push is a convenience guarantee.",
+      "owner": "recipe",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["push-branch"],
       "blocks": ["scenario-eval-1", "scenario-eval-2"]
     },
     {
@@ -115,7 +137,7 @@
       "owner": "recipe",
       "skills": [],
       "status": "pending",
-      "blockedBy": ["gen-eval-1"],
+      "blockedBy": ["gen-eval-2"],
       "blocks": ["evidence-close"]
     },
     {
@@ -126,7 +148,7 @@
       "owner": "recipe",
       "skills": [],
       "status": "pending",
-      "blockedBy": ["gen-eval-1"],
+      "blockedBy": ["gen-eval-2"],
       "blocks": ["evidence-close"]
     },
     {
