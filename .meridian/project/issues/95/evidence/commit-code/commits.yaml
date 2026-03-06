@@ -5,8 +5,8 @@
 # Updated: 2026-03-06 (current session — discover-product, create-recipe, doc-builder, and templates additions)
 
 status: completed
-total_commits: 24
-note: "Updated with commits for discover-product recompilation, create-recipe --review mode, new doc-builder agent, generate-product-brief skill, draft-product-vision fix, LTM templates, and STM evidence artifacts (current session)"
+total_commits: 26
+note: "Updated with commits for discover-product recompilation, create-recipe --review mode, new doc-builder agent, generate-product-brief skill, draft-product-vision fix, LTM templates, STM evidence artifacts, and plan-roadmap recipe rebake (current session)"
 
 commits:
   - id: C1
@@ -525,6 +525,55 @@ commits:
     status: committed
     session: current
 
+  - id: C25
+    group: group-8
+    hash: de97041
+    type: feat
+    scope: plan-roadmap
+    subject: "rebake recipe with intent.yaml, roadmap-brief template, and product-strategist agent updates"
+    message: "feat(plan-roadmap): rebake recipe with intent.yaml, roadmap-brief template, and product-strategist agent updates (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - core/components/agents/product-strategist.md
+        - core/components/memory/standards/templates/roadmap-brief.html
+        - core/components/recipes/plan-roadmap/SKILL.md
+        - core/components/recipes/plan-roadmap/reference/intent.yaml
+        - core/components/skills/draft-roadmap-brief/SKILL.md
+    stats:
+      files_changed: 5
+      insertions: 801
+      deletions: 323
+    status: committed
+    session: current
+
+  - id: C26
+    group: group-9
+    hash: ebe0dc3
+    type: chore
+    scope: stm
+    subject: "record create-recipe evidence and update commit-code tracking"
+    message: "chore(stm): record create-recipe evidence and update commit-code tracking (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - .meridian/project/issues/95/status/commit-code.json
+        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-product-strategist.md
+        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-repo-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-tech-designer.md
+        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/evals.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/recipe-analysis.md
+        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/skill-manifest.yaml
+    stats:
+      files_changed: 7
+      insertions: 257
+      deletions: 4
+      created_files: 6
+    status: committed
+    session: current
+
 validation:
   all_commits_created: true
   conventional_format: true
@@ -541,37 +590,33 @@ constraint_check:
   C9: PASS  # all mappings high confidence; no approval required
 
 failure_conditions:
-  F1: PASS  # each commit contains single-concern changes only (SE-2)
-  F2: PASS  # all commit messages describe actual changes (SE-3)
-  F3: PASS  # all listed files committed; no unexplained omissions (SE-5)
+  F1: PASS  # each commit contains single-concern changes only
+  F2: PASS  # all commit messages describe actual changes
+  F3: PASS  # all listed files committed; no unexplained omissions
   F4: PASS  # all commits reference correct issue #95
   F5: PASS  # no conflicts detected in issue mappings
   F6: PASS  # all mappings high confidence; no approval required
 
 push:
-  status: pending
+  status: success
   remote: origin
   ref: feature/95-intent-driven-recipe-architecture
+  branch_tracking: set
 
 summary:
-  current_session_commits: 8
-  current_session_files: 17
-  total_commits_in_record: 24
+  current_session_commits: 10
+  current_session_files: 26
+  total_commits_in_record: 26
   commits_by_type:
     refactor: 8
-    feat: 4
+    feat: 5
     fix: 1
-    chore: 11
+    chore: 12
   notes:
-    - "C17-C24 comprise the create-commits task for discover-product recompilation + new agents/skills/templates"
-    - "C17 recompiles discover-product recipe to L2 compiled Structure B format"
-    - "C18 adds --review mode with G1-G10 gap checks to create-recipe"
-    - "C19 introduces new doc-builder agent"
-    - "C20 introduces new generate-product-brief skill"
-    - "C21 fixes template reference path in draft-product-vision"
-    - "C22 adds product-brief.html and product-vision.md LTM templates"
-    - "C23 records create-recipe evidence artifacts for discover-product"
-    - "C24 updates commit-code tracking files"
+    - "C25-C26 comprise plan-roadmap recipe rebake with intent.yaml, templates, and agent updates"
+    - "C25 recompiles plan-roadmap recipe with new intent.yaml, roadmap-brief.html template, and updated product-strategist agent"
+    - "C26 records create-recipe evidence for plan-roadmap"
     - "All files staged specifically — no git add -A used"
     - "All commit messages describe actual changes (F2)"
     - "All mappings high-confidence; no approval required per C9"
+    - "Branch pushed successfully to origin"

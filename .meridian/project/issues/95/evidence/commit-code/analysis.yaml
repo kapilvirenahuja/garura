@@ -1,39 +1,53 @@
 ---
-# analyze-changes output
+# commit-code analysis
+# Recipe: commit-code (L1)
 # Branch: feature/95-intent-driven-recipe-architecture
-# Generated: 2026-03-06T19:40:00+0530
-# Stage: commit-code recipe — analyze-changes step
-# Session: STM tracking files from previous commit-code run (commits.yaml + commit-code.json)
+# Issue: #95 (feat(recipe-framework): intent-driven recipe architecture)
+# Generated: 2026-03-06T20:15:00+0530
+# Session: Current — Plan-roadmap recipe rebake
 
-issue: 95
-analyzed_at: "2026-03-06T19:40:00+0530"
-branch: "feature/95-intent-driven-recipe-architecture"
-total_files: 2
-hotfix_branch: false
+pre_flight_checks:
+  branch_check: PASS
+    reason: "Current branch is feature/95-intent-driven-recipe-architecture (not main/master)"
+  changes_exist: PASS
+    reason: "7 files with modifications and 1 directory with new evidence artifacts"
+  issue_mapping_confidence: high
+    reason: "All changes map to issue #95 per context contract (all_changes_map_to_issue_95: true)"
 
-groups:
+change_groups:
   - id: "group-1"
+    name: "plan-roadmap-recipe"
+    type: "feat"
+    scope: "plan-roadmap"
+    description: "Recipe compilation and architecture updates for plan-roadmap recipe rebake"
+    confidence: high
+    files:
+      - core/components/agents/product-strategist.md
+      - core/components/memory/standards/templates/roadmap-brief.html
+      - core/components/recipes/plan-roadmap/SKILL.md
+      - core/components/recipes/plan-roadmap/reference/intent.yaml
+      - core/components/skills/draft-roadmap-brief/SKILL.md
+    subject: "rebake recipe with intent.yaml, roadmap-brief template, and product-strategist agent updates"
+    rationale: "These files represent a cohesive change: the plan-roadmap recipe compiled to intent-driven architecture with updates to supporting agent, skill, and template components."
+    risk: low
+
+  - id: "group-2"
+    name: "stm-evidence-artifacts"
     type: "chore"
     scope: "stm"
-    description: >
-      STM tracking files from the previous commit-code run. commits.yaml records
-      the commit ledger (C17-C24, session totals, constraint checks, push metadata)
-      updated with new entries for the discover-product recompilation, create-recipe
-      --review mode, doc-builder agent, generate-product-brief skill, draft-product-vision
-      fix, LTM templates, and STM evidence artifacts. commit-code.json is the recipe
-      status file resetting task lifecycle timestamps for the current session
-      (analyze-changes: in_progress, resolve-issues/create-commits/push-branch: pending).
-      Both are pure evidence/tracking artifacts — no source code, no logic changes.
+    description: "STM evidence recording and commit-code tracking updates for plan-roadmap recipe"
+    confidence: high
     files:
-      - path: ".meridian/project/issues/95/evidence/commit-code/commits.yaml"
-        status: "modified"
-      - path: ".meridian/project/issues/95/status/commit-code.json"
-        status: "modified"
-    risk: "low"
-    risk_reason: >
-      Both files are STM artifacts — structured tracking data only. No sensitive
-      content, no production code, no breaking changes. Same concern: commit-code
-      session evidence and status tracking.
+      - .meridian/project/issues/95/status/commit-code.json
+      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-product-strategist.md
+      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-repo-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-tech-designer.md
+      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/evals.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/recipe-analysis.md
+      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/skill-manifest.yaml
+    subject: "record create-recipe evidence and update commit-code tracking"
+    rationale: "Evidence artifacts from the create-recipe task that produced the plan-roadmap recipe rebake. Recording as separate chore(stm) commit follows checkpoint pattern for STM evidence."
+    risk: low
 
 sensitive_files: []
 
@@ -43,21 +57,59 @@ risks:
   ambiguous_types: []
   hotfix_branch: false
 
-grouping_decision:
-  strategy: single_group
-  commit_count: 1
-  rationale: >
-    Both files belong to the commit-code recipe's STM layer. commits.yaml is the
-    commit ledger evidence artifact; commit-code.json is the recipe status tracker.
-    They are modified together as part of the same operational cycle — grouping
-    them into a single chore(stm) commit satisfies SE-1 (same concern) and
-    keeps the ledger and status record in sync in the same commit.
+issue_mapping:
+  issue_95:
+    status: open
+    title: "feat(recipe-framework): intent-driven recipe architecture"
+    confidence: high
+    groups_mapped:
+      - group-1
+      - group-2
+    assessment: "All 7 modified files and 1 new artifact directory map to issue #95 with high confidence. No competing issue matches."
 
-constraints_checked:
-  C1: "PASS — branch is feature/95-intent-driven-recipe-architecture, not main/master/default"
-  C2: "PASS — 2 changed files detected, recipe proceeds"
-  C4: "PASS — no sensitive files detected"
+constraints_applied:
+  C1_protected_branch_guard: PASS
+    check: "Current branch is feature/95-intent-driven-recipe-architecture, not main/master"
+  C2_empty_changeset: PASS
+    check: "7 files modified, 1 directory with 6 artifacts — changeset is not empty"
+  C3_issue_mapping: PASS
+    check: "All change groups map to existing open issue #95"
+  C4_sensitive_files: PASS
+    check: "No .env, credentials, private keys, or secrets detected"
+  C5_conventional_format: PASS
+    check: "Both commits follow conventional format (feat/chore with scope and subject)"
+  C6_issue_reference: PASS
+    check: "Both commits include (#95) reference"
+  C9_approval_gate: PASS
+    check: "All mappings high confidence; no approval required"
 
-eval_check:
-  SE-1: "PASS — single group, both files are commit-code STM tracking artifacts (same concern)"
-  SE-4: "PASS — all 2 files from git status appear in group-1 (2/2)"
+failure_condition_checks:
+  F1_unrelated_concerns: PASS
+    check: "Group 1: recipe components (cohesive). Group 2: evidence artifacts (cohesive). No mixing."
+  F2_message_accuracy: PASS
+    check: "Commit subjects describe actual changes (rebake recipe, record evidence)."
+  F3_unexplained_omissions: PASS
+    check: "All 7 changed files and all 1 artifact directory included in commit groups."
+  F4_wrong_issue: PASS
+    check: "Both commits reference #95, which is the correct issue."
+  F5_unresolved_conflicts: PASS
+    check: "No competing issue mappings detected."
+  F6_low_confidence_without_approval: PASS
+    check: "All mappings high confidence; no approval required per C9."
+
+summary:
+  intent: "Create commits for all changed files, grouped by concern, using conventional format with issue references"
+  groups_identified: 2
+  approvals_required: false
+  recommendation: "Proceed with commit creation per contract. Both groups high confidence, both map to issue #95."
+  commit_plan:
+    - commit_1:
+        hash: "de97041"
+        type: feat
+        scope: plan-roadmap
+        message: "feat(plan-roadmap): rebake recipe with intent.yaml, roadmap-brief template, and product-strategist agent updates (#95)"
+    - commit_2:
+        hash: "ebe0dc3"
+        type: chore
+        scope: stm
+        message: "chore(stm): record create-recipe evidence and update commit-code tracking (#95)"
