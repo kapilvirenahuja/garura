@@ -1,88 +1,173 @@
 intent: >
-  Given a completed issue number, extract reusable holistic knowledge patterns
-  from that issue's short-term memory artifacts and promote them into the
-  long-term memory knowledge base — either updating existing knowledge artifacts
-  or creating new ones. Independently, archive the issue's STM directory to
-  _archive/{YYYY-MM}/{issue}/ to keep the active workspace clean. Knowledge
-  artifacts must be searchable through taxonomy and metadata so that agents and
-  humans facing similar situations in future projects can discover and apply them.
+  Given a completed issue number, archive the issue's STM directory to
+  _archive/{YYYY-MM}/{issue}/ to keep the active workspace clean, preserving
+  the full directory structure and all files so the issue's history remains
+  accessible for audit. The issue must be in a closed state before archival
+  proceeds. In the future, this recipe will also extract reusable knowledge
+  patterns from STM artifacts and promote them into the long-term memory
+  knowledge base — that capability is not yet active.
+
+# --- ACTIVE CONSTRAINTS (archival) ---
 
 constraints:
   - id: C1
     rule: >
-      Extraction (knowledge promotion) and archival (STM directory move) are
-      independent operations. Neither blocks the other.
+      The issue must be in a closed state before archival proceeds.
+      Open or in-progress issues must not be archived.
+
   - id: C2
     rule: >
-      STM artifacts are read-only during extraction. The recipe must never
-      modify, delete, or create files within the issue's STM directory.
+      Archival moves the complete issue STM directory to
+      _archive/{YYYY-MM}/{issue}/ where {YYYY-MM} is derived from the
+      issue's close date. Every file and subdirectory present in the
+      original STM directory must be present in the archive location.
+
   - id: C3
+    rule: >
+      The original STM directory is removed from the active workspace
+      after the archive copy is confirmed complete. The active workspace
+      must not contain the issue's STM directory when the recipe finishes.
+
+  - id: C4
+    rule: >
+      The archive directory structure mirrors the original STM directory
+      structure. No files are renamed, restructured, or modified during
+      the move.
+
+# --- PENDING CONSTRAINTS (extraction — not yet active) ---
+
+  - id: C5
+    rule: >
+      Extraction (knowledge promotion) and archival (STM directory move)
+      are independent operations. Neither blocks the other. [PENDING:
+      extraction skills do not exist yet]
+
+  - id: C6
+    rule: >
+      STM artifacts are read-only during extraction. The recipe must never
+      modify, delete, or create files within the issue's STM directory
+      during the extraction phase. [PENDING: extraction skills do not
+      exist yet]
+
+  - id: C7
     rule: >
       When a knowledge pattern already exists in the knowledge base, the
       existing artifact must be updated rather than a new duplicate created.
-      The recipe may delete redundant content during consolidation.
-  - id: C4
+      [PENDING: extraction skills do not exist yet]
+
+  - id: C8
     rule: >
-      Every knowledge artifact must contain identity metadata (tier 1: required
-      fields that identify the knowledge) and profile metadata (tier 2: defined
-      schema fields providing richer context). Free-form content (tier 3) is
-      permitted but not required.
-  - id: C5
+      Every knowledge artifact must contain identity metadata (tier 1:
+      required fields that identify the knowledge) and profile metadata
+      (tier 2: defined schema fields providing richer context). [PENDING:
+      extraction skills do not exist yet]
+
+  - id: C9
     rule: >
-      Knowledge artifacts contain no traceability links back to source issues
-      or STM artifacts. Knowledge stands on its own merit.
-  - id: C6
+      Knowledge artifacts contain no traceability links back to source
+      issues or STM artifacts. Knowledge stands on its own merit. [PENDING:
+      extraction skills do not exist yet]
+
+  - id: C10
     rule: >
-      Knowledge is holistic — organized by interconnected decisions and patterns
-      across technology boundaries, not siloed by individual technology, language,
-      or framework.
-  - id: C7
-    rule: >
-      Archival moves the complete issue STM directory to
-      _archive/{YYYY-MM}/{issue}/. The original directory is removed from the
-      active workspace after the move.
+      Knowledge is holistic — organized by interconnected decisions and
+      patterns across technology boundaries, not siloed by individual
+      technology, language, or framework. [PENDING: extraction skills do
+      not exist yet]
+
+# --- ACTIVE FAILURE CONDITIONS (archival) ---
 
 failure_conditions:
   - id: F1
     condition: >
-      A knowledge artifact exists in the knowledge base without search patterns
-      or applicability criteria. Knowledge that cannot be discovered through
-      taxonomy is failed output.
+      The archive directory at _archive/{YYYY-MM}/{issue}/ does not exist
+      or is empty after the recipe completes.
+
   - id: F2
     condition: >
-      A new knowledge artifact is created for a pattern that is already covered
-      by an existing knowledge artifact in the knowledge base.
+      The original STM directory still exists at its active workspace
+      location after the recipe completes.
+
   - id: F3
     condition: >
-      The recipe completes extraction with nothing new to promote but does not
-      explicitly report that no new knowledge was extracted.
+      The archive is incomplete — files or subdirectories present in the
+      original STM directory are missing from the archive location.
+
   - id: F4
     condition: >
-      A knowledge artifact produced by the recipe falls below the quality bar
-      established by existing knowledge base entries — missing taxonomy,
+      The archive path uses an incorrect date — the {YYYY-MM} segment
+      does not match the issue's actual close date.
+
+  - id: F5
+    condition: >
+      The recipe attempts to archive an issue that is not in a closed
+      state.
+
+# --- PENDING FAILURE CONDITIONS (extraction — not yet active) ---
+
+  - id: F6
+    condition: >
+      A knowledge artifact exists in the knowledge base without search
+      patterns or applicability criteria. Knowledge that cannot be
+      discovered through taxonomy is failed output. [PENDING: extraction
+      skills do not exist yet]
+
+  - id: F7
+    condition: >
+      A new knowledge artifact is created for a pattern that is already
+      covered by an existing knowledge artifact in the knowledge base.
+      [PENDING: extraction skills do not exist yet]
+
+  - id: F8
+    condition: >
+      The recipe completes extraction with nothing new to promote but
+      does not explicitly report that no new knowledge was extracted.
+      [PENDING: extraction skills do not exist yet]
+
+  - id: F9
+    condition: >
+      A knowledge artifact produced by the recipe falls below the quality
+      bar established by existing knowledge base entries — missing taxonomy,
       missing applicability criteria, or lacking the structured metadata
-      defined in tiers 1 and 2.
+      defined in tiers 1 and 2. [PENDING: extraction skills do not exist
+      yet]
+
+# --- ACTIVE SCENARIOS ---
 
 scenarios:
   - id: S1
+    persona: "Engineering lead reviewing agent-produced work"
+    given: "The archived STM directory at _archive/{YYYY-MM}/{issue}/"
+    then: >
+      Can review the complete history of how an issue was worked —
+      evidences, checkpoints, analysis, and delivery artifacts — to build
+      trust in agent-produced outcomes and verify that nothing was lost
+      during archival.
+
+  - id: S2
+    persona: "Developer starting the next feature"
+    given: "The active STM workspace after capture-learning completes"
+    then: >
+      Can confirm the completed issue's directory is no longer cluttering
+      the active workspace, reducing noise when navigating current work.
+
+# --- PENDING SCENARIOS (extraction — not yet active) ---
+
+  - id: S3
     persona: "Agent (tech-designer or code-builder) in a future project"
     given: "The long-term memory knowledge base containing promoted knowledge artifacts"
     then: >
       Can discover relevant knowledge patterns by matching project context
       against search patterns and applicability criteria, and apply those
       patterns to accelerate design decisions and implementation without
-      re-discovering known solutions.
-  - id: S2
+      re-discovering known solutions. [PENDING: extraction skills do not
+      exist yet]
+
+  - id: S4
     persona: "Developer starting a new project"
     given: "The long-term memory knowledge base searchable via tools"
     then: >
-      Can find holistic patterns from past work that apply to their current
-      problem domain and understand the interconnected decisions behind those
-      patterns — not just what was built, but why it was built that way.
-  - id: S3
-    persona: "Engineering lead reviewing agent-produced work"
-    given: "The archived STM directory in _archive/{YYYY-MM}/{issue}/"
-    then: >
-      Can review the complete history of how an issue was worked — evidences,
-      checkpoints, analysis, and delivery artifacts — to build trust in
-      agent-produced outcomes and understand what was done.
+      Can find holistic patterns from past work that apply to their
+      current problem domain and understand the interconnected decisions
+      behind those patterns — not just what was built, but why it was
+      built that way. [PENDING: extraction skills do not exist yet]
