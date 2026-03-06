@@ -3,68 +3,59 @@
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
 # Stage: commit-code recipe — resolve-issues step
+# Evals: SE-6 (F4), SE-7 (F5), SE-8 (F6)
 
 issue: 95
+stm_base: ".meridian/project/issues/"
 branch: feature/95-intent-driven-recipe-architecture
 
 mappings:
   - group_id: group-1
     issue_number: 95
     issue_title: "feat(recipe-framework): intent-driven recipe architecture"
+    issue_state: open
     confidence: high
     reasoning: >
-      group-1 contains the substantive core component changes for the
-      intent-driven recipe architecture feature: updated SKILL.md files for
-      commit-code and create-recipe recipes, updated commit-code intent.yaml
-      with C7/C9 constraints, memory workflow definitions, the new
-      agent-contract.md standard, the create-recipe reference directory, and
-      ADR-013 documenting the recipe maturity model. The branch is named
-      feature/95-intent-driven-recipe-architecture. Every file in this group
-      is part of the recipe framework overhaul that issue #95 tracks. The
-      analysis.yaml itself resolves this group to issue 95 with high
-      confidence. No competing issue describes this scope: #93 covers eval
-      generation and review-pr integration (a different feature); #91 covers
-      docs-only updates to reflect Four Crafts architecture (narrower, no
-      component changes). The connection between group-1 and #95 is direct
-      and unambiguous.
+      group-1 contains recompilation of core/components/recipes/create-pr/ to L2 compiled
+      format — two files: SKILL.md (full structural overhaul) and reference/intent.yaml
+      (adds C8 branch guard constraint). The branch name feature/95-intent-driven-recipe-architecture
+      encodes issue #95 directly. Issue #95 title "intent-driven recipe architecture" covers
+      recipe compilation work as a core deliverable — recompiling recipes to L2 compiled
+      format is the primary output of the recipe architecture overhaul. No other open issue
+      competes: #93 covers eval generation and review-pr integration (different feature);
+      #91 covers docs-only updates (no component changes); all other open issues are
+      unrelated in domain (HTML briefs, ship bug, LTM, dashboard, skill namespacing).
+      The mapping is direct and unambiguous.
     conflicts: []
+    type_hint: feature
     files:
-      - core/components/recipes/commit-code/SKILL.md
-      - core/components/recipes/commit-code/reference/intent.yaml
-      - core/components/recipes/create-recipe/SKILL.md
-      - core/components/memory/workflows/direct-generation.yaml
-      - core/components/memory/workflows/readiness-brief-generation.yaml
-      - core/components/memory/workflows/readiness-only.yaml
-      - core/components/memory/standards/agent-contract.md
-      - core/components/recipes/create-recipe/reference/
-      - docs/adr/013-recipe-maturity-model.md
+      - core/components/recipes/create-pr/SKILL.md
+      - core/components/recipes/create-pr/reference/intent.yaml
+    commit_message: "refactor(create-pr): recompile to L2 compiled format with C8 branch guard (#95)"
 
   - group_id: group-2
     issue_number: 95
     issue_title: "feat(recipe-framework): intent-driven recipe architecture"
+    issue_state: open
     confidence: high
     reasoning: >
-      group-2 contains STM evidence artifacts produced by the create-recipe
-      skill run that built the commit-code recipe components — agent audit
-      reports, scenario evals, skill manifest, intent gap report, recipe
-      analysis, and step evals. These are operational records of the work
-      done under issue #95. Evidence artifacts belong to the issue they
-      document: the create-recipe skill was invoked in the context of issue
-      #95, the evidence paths are nested under
-      .meridian/project/issues/95/, and the artifacts themselves reference
-      commit-code recipe development as their subject. No other open issue
-      has any relationship to this evidence trail. The chore(stm) commit
-      type is appropriate; the issue reference remains #95 because that is
-      the work these artifacts record.
+      group-2 contains STM evidence artifacts at path
+      .meridian/project/issues/95/evidence/create-recipe/create-pr/. The path itself
+      encodes issue #95 — this is a structural guarantee from STM design (ADR 008, ADR 010),
+      not an inference. Evidence artifacts are produced by and belong to the issue that owns
+      the STM namespace. Four files: skill-manifest.yaml (modified), intent-gap-report.md
+      (untracked), recipe-analysis.md (untracked), step-evals.yaml (untracked) — all
+      operational records of the create-recipe run for create-pr under issue #95.
+      No competing issues possible: STM path binding is unambiguous and no other open
+      issue has any relationship to this evidence trail.
     conflicts: []
+    type_hint: chore
     files:
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-project-orchestrator.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-repo-orchestrator.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/scenario-evals.yaml
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/skill-manifest.yaml
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/intent-gap-report.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/recipe-analysis.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/step-evals.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/create-pr/skill-manifest.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/create-pr/intent-gap-report.md
+      - .meridian/project/issues/95/evidence/create-recipe/create-pr/recipe-analysis.md
+      - .meridian/project/issues/95/evidence/create-recipe/create-pr/step-evals.yaml
+    commit_message: "chore(stm): record create-recipe evidence artifacts for create-pr (#95)"
 
 open_issues_surveyed:
   - number: 95
@@ -111,15 +102,12 @@ open_issues_surveyed:
     labels: [enhancement]
 
 conflict_analysis: >
-  No conflicts exist for either group. Issue #91 (docs: update documentation
-  for Four Crafts architecture) is the nearest alternate candidate for group-1
-  because it references the same architectural direction. However, #91 is
-  scoped to documentation updates only, whereas group-1 contains substantive
-  recipe, memory, standards, and ADR component changes. The distinction is
-  clear: #91 is an incorrect mapping, not a genuine conflict. All other open
-  issues are unrelated in domain (HTML briefs, eval generation, ship recipe
-  bug, LTM architecture, dashboard) and present no conflict risk. Both groups
-  map exclusively and unambiguously to #95.
+  No conflicts exist for either group. Issue #91 (docs: update documentation for Four Crafts
+  architecture) is the nearest alternate candidate for group-1 because it references the same
+  architectural direction. However, #91 is scoped to documentation updates only — it cannot
+  accept component changes to core/components/recipes/. The distinction is clear: #91 is an
+  incorrect mapping, not a genuine conflict. All other open issues are unrelated in domain.
+  group-2 has zero conflict candidates — STM path encoding binds it exclusively to #95.
 
 unmapped_groups: []
 
@@ -127,13 +115,11 @@ constraint_check:
   C3:
     status: PASS
     detail: >
-      All groups (group-1, group-2) map to existing open issue #95.
-      No unmapped groups.
+      All 2 groups map to existing open issue #95. No unmapped groups. C3 satisfied.
   C9:
     status: PASS
     detail: >
-      Both mappings are high confidence. Human approval is not required
-      before proceeding to commit.
+      Both mappings are high confidence. Human approval is not required before proceeding to commit.
 
 summary:
   total_groups: 2
@@ -142,29 +128,32 @@ summary:
   high_confidence: 2
   medium_confidence: 0
   low_confidence: 0
+  conflicts_detected: 0
   requires_approval: false
   approval_reason: null
 
 eval_results:
   SE-6:
+    condition: "F4 — A commit references the wrong issue"
     status: PASS
     detail: >
-      Both mappings include reasoning that substantiates the semantic
-      connection between the change group content and the mapped issue.
-      group-1 reasoning traces each file category to the recipe framework
-      overhaul scope of #95. group-2 reasoning traces the evidence path
-      structure and artifact content to the #95 issue context.
+      Both mappings include reasoning that substantiates the semantic connection between
+      the change group content and the mapped issue. group-1 reasoning traces SKILL.md and
+      intent.yaml changes to the recipe framework overhaul scope of #95. group-2 reasoning
+      traces the STM path structure and artifact content to the #95 issue namespace. The
+      open issue list confirms no other issue competes for either group.
   SE-7:
+    condition: "F5 — Unresolved conflict surfaced for review"
     status: PASS
     detail: >
-      Conflict analysis is explicit. The nearest alternate candidate (#91)
-      is identified and dismissed with stated reasoning. Both mappings carry
-      an empty conflicts array, not because conflicts were silently ignored
-      but because the conflict_analysis section documents the evaluation and
-      conclusion.
+      Conflict analysis is explicit. The nearest alternate candidate (#91) is identified
+      and dismissed with stated reasoning (docs-only scope vs component changes). Both
+      mappings carry an empty conflicts array — not because conflicts were silently ignored
+      but because the conflict_analysis section documents the evaluation and conclusion.
+      Zero conflicts require surfacing.
   SE-8:
+    condition: "F6 — Low-confidence mapping committed without human approval"
     status: PASS
     detail: >
-      Both mappings include a confidence field. Both are rated high.
-      Per constraint C9, high-confidence mappings do not require human
-      approval before proceeding to commit.
+      Both mappings are rated high confidence. Per constraint C9, high-confidence mappings
+      do not require human approval before proceeding to commit. requires_approval: false.

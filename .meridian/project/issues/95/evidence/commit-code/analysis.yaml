@@ -3,57 +3,84 @@
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
 # Stage: commit-code recipe — analyze-changes step
+# Changeset: create-pr recipe compilation artifacts
 
 issue: 95
 stm_base: ".meridian/project/issues/"
 branch: feature/95-intent-driven-recipe-architecture
 hotfix_branch: false
 
+total_files: 6
+
 groups:
   - id: group-1
     concern: >
-      Core component updates for intent-driven recipe architecture (#95):
-      recipe SKILL.md files, commit-code intent and constraints, memory workflow
-      definitions, new agent-contract standard, new create-recipe reference
-      directory, and new ADR documenting recipe maturity model.
+      create-pr recipe recompilation to L2 compiled format and intent update.
+      Compiled SKILL.md removes L4 artifacts (runtime intent-resolver, DAG caching),
+      switches to status-file resumption, adds named phases, renames evals to SE-*/SCE-*
+      convention, adds Compiled From section and Compilation Metadata, and wires full
+      JSON agent contracts with STM paths. Intent.yaml gains C8 (branch guard constraint)
+      identified as gap — recipe enforced it implicitly but intent did not declare it.
     type: refactor
-    scope: recipes
-    subject: "update commit-code and create-recipe components for intent-driven architecture"
-    issue: 95
-    commit_message: "refactor(recipes): update commit-code and create-recipe components for intent-driven architecture (#95)"
+    scope: create-pr
+    subject: "recompile create-pr to L2 compiled format with C8 branch guard"
+    commit_message: "refactor(create-pr): recompile to L2 compiled format with C8 branch guard (#95)"
     confidence: high
-    risk: medium
+    risk: none
     files:
-      - core/components/recipes/commit-code/SKILL.md
-      - core/components/recipes/commit-code/reference/intent.yaml
-      - core/components/recipes/create-recipe/SKILL.md
-      - core/components/memory/workflows/direct-generation.yaml
-      - core/components/memory/workflows/readiness-brief-generation.yaml
-      - core/components/memory/workflows/readiness-only.yaml
-      - core/components/memory/standards/agent-contract.md
-      - core/components/recipes/create-recipe/reference/
-      - docs/adr/013-recipe-maturity-model.md
+      - path: core/components/recipes/create-pr/SKILL.md
+        status: modified
+        description: >
+          Full recompilation from L4 to L2 compiled format. Removes runtime intent-resolver
+          stage, removes DAG caching, switches resume model to status file, converts numbered
+          stages to named phases (Pre-flight / Preparation / Checkpoint / Execution / Scenario
+          Validation / Evidence & Close), renames evals to SE-1 through SE-10 and SCE-1/SCE-2,
+          adds Compiled From section, adds Compilation Metadata table, adds full JSON agent
+          contracts with explicit stm.input/stm.output wiring.
+      - path: core/components/recipes/create-pr/reference/intent.yaml
+        status: modified
+        description: >
+          Adds C8 (branch guard constraint): "The recipe must not operate on main, master, or
+          the repository's default branch. PRs are created from feature branches only." Gap
+          identified during intent review — recipe pre-flight enforced this as a hard halt but
+          the constraint was absent from intent.yaml.
 
   - id: group-2
     concern: >
-      STM evidence artifacts from the create-recipe skill run for issue #95:
-      agent audit reports, scenario evals, skill manifest, intent gap report,
-      recipe analysis, and step evals. Operational artifacts, not feature content.
+      STM evidence artifacts produced by the create-recipe run for the create-pr recipe.
+      These are operational records (skill manifest, gap report, recipe analysis, step evals)
+      from the create-recipe execution — not feature content. Captured per ADR 012.
     type: chore
     scope: stm
-    subject: "record create-recipe evidence artifacts for issue #95"
-    issue: 95
-    commit_message: "chore(stm): record create-recipe evidence artifacts for issue #95 (#95)"
+    subject: "record create-recipe evidence artifacts for create-pr compilation"
+    commit_message: "chore(stm): record create-recipe evidence artifacts for create-pr (#95)"
     confidence: high
-    risk: low
+    risk: none
     files:
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-project-orchestrator.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-repo-orchestrator.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/scenario-evals.yaml
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/skill-manifest.yaml
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/intent-gap-report.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/recipe-analysis.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/step-evals.yaml
+      - path: .meridian/project/issues/95/evidence/create-recipe/create-pr/skill-manifest.yaml
+        status: modified
+        description: >
+          Updated skill manifest confirming all required skills (analyze-pr, submit-pr,
+          manage-issue) are existing — no new skills needed, gaps list empty.
+      - path: .meridian/project/issues/95/evidence/create-recipe/create-pr/intent-gap-report.md
+        status: untracked
+        description: >
+          Intent gap analysis for create-pr. Identifies C8 (branch guard) as the single
+          missing constraint. All other constraints (C1-C7), failure conditions (F1-F5),
+          and scenarios (S1-S2) pass the quality gate.
+      - path: .meridian/project/issues/95/evidence/create-recipe/create-pr/recipe-analysis.md
+        status: untracked
+        description: >
+          Semantic map of the pre-compilation create-pr recipe and 9 structural gaps vs the
+          L2 compiled standard. Domain logic, agent boundaries, and skill usage confirmed
+          correct — only structural gaps (L4 artifacts, naming, missing sections).
+      - path: .meridian/project/issues/95/evidence/create-recipe/create-pr/step-evals.yaml
+        status: untracked
+        description: >
+          Step eval definitions (SE-1 through SE-10, SCE-1, SCE-2) in canonical naming
+          convention with complete coverage matrix mapping C1-C8, F1-F5, S1-S2.
+
+sensitive_files: []
 
 risks:
   sensitive_files: []
@@ -61,17 +88,14 @@ risks:
   ambiguous_types: []
   hotfix_branch: false
 
-sensitive_files: []
-total_files: 16
-
 grouping_decision:
   strategy: split_by_concern
   commit_count: 2
   rationale: >
-    Single issue (#95) but two genuinely distinct operational concerns:
-    group-1 contains substantive core component changes (recipes, memory,
-    standards, ADR) that are the feature work itself; group-2 contains STM
-    evidence artifacts that are operational records of the create-recipe skill
-    run. Splitting these follows the grouping rule: STM/evidence artifacts that
-    are operational, not part of the feature itself, warrant a separate chore(stm)
-    commit. All 16 files are covered across the two groups.
+    Single-issue branch (#95). Two groups split by operational concern: group-1 contains
+    core component changes (source-of-truth files under core/components/) that are the
+    feature work itself; group-2 contains STM evidence artifacts (.meridian/) that are
+    operational records of the create-recipe run. This split is justified by the grouping
+    rule: STM/evidence artifacts that are operational rather than part of the feature warrant
+    a separate chore(stm) commit. All 6 files are covered across the two groups — SE-1
+    and SE-4 pass.

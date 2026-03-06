@@ -5,8 +5,8 @@
 # Session: current execution
 
 status: completed
-total_commits: 5
-note: "Updated with commits for commit-code recipe refactor and create-recipe evidence recording"
+total_commits: 7
+note: "Updated with commits for create-pr recipe compilation and evidence recording (current session)"
 
 commits:
   - id: C1
@@ -115,6 +115,45 @@ commits:
       deletions: 156
     status: committed
 
+  - id: C6
+    group: G6
+    hash: 026700d
+    type: refactor
+    scope: create-pr
+    subject: "recompile to L2 compiled format with C8 branch guard"
+    message: "refactor(create-pr): recompile to L2 compiled format with C8 branch guard (#95)"
+    issue_ref: 95
+    files:
+      staged:
+        - core/components/recipes/create-pr/SKILL.md
+        - core/components/recipes/create-pr/reference/intent.yaml
+    stats:
+      files_changed: 2
+      insertions: 183
+      deletions: 185
+    status: committed
+
+  - id: C7
+    group: G7
+    hash: 4f2f8a2
+    type: chore
+    scope: stm
+    subject: "record create-recipe evidence artifacts for create-pr"
+    message: "chore(stm): record create-recipe evidence artifacts for create-pr (#95)"
+    issue_ref: 95
+    files:
+      staged:
+        - .meridian/project/issues/95/evidence/create-recipe/create-pr/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/create-pr/intent-gap-report.md
+        - .meridian/project/issues/95/evidence/create-recipe/create-pr/recipe-analysis.md
+        - .meridian/project/issues/95/evidence/create-recipe/create-pr/step-evals.yaml
+    stats:
+      files_changed: 4
+      insertions: 296
+      deletions: 9
+      created_files: 3
+    status: committed
+
 validation:
   all_commits_created: true
   conventional_format: true
@@ -124,42 +163,43 @@ validation:
   git_log_verified: true
 
 constraint_check:
-  C1: PASS
-  C2: PASS
-  C3: PASS
-  C4: PASS
-  C5: PASS
-  C6: PASS
-  C7: PASS
-  C9: PASS
+  C1: PASS  # executed on feature/95-intent-driven-recipe-architecture
+  C2: PASS  # files existed; recipe did not exit gracefully
+  C3: PASS  # C6 and C7 map to existing issue #95
+  C4: PASS  # no sensitive files in changeset
+  C5: PASS  # all commits follow conventional format (refactor, chore)
+  C6: PASS  # all commits include issue reference (#95)
+  C7: PASS  # branch pushed successfully to remote
+  C9: PASS  # both C6/C7 mappings high confidence; no approval required
 
 failure_conditions:
-  F1: PASS
-  F2: PASS
-  F3: PASS
-  F4: PASS
-  F5: PASS
-  F6: PASS
+  F1: PASS  # C6 contains refactor changes; C7 contains chore(stm) changes — no cross-concern mixing
+  F2: PASS  # commit messages describe actual changes (recompile, record artifacts)
+  F3: PASS  # tracked files committed; STM input files remain unstaged per recipe design
+  F4: PASS  # C6 and C7 reference correct issue #95
+  F5: PASS  # no conflicts detected in issue mappings
+  F6: PASS  # C6 and C7 mappings high confidence
 
 push:
   status: success
   remote: origin
   ref: feature/95-intent-driven-recipe-architecture
-  base_commit: 5680eee
-  tip_commit: 274879b
+  current_session_base: 4c38463
+  current_session_tip: 4f2f8a2
   message: "Successfully pushed to origin"
 
 summary:
-  current_commits: 2
-  current_files: 17
+  current_session_commits: 2
+  current_session_files: 6
+  total_commits_in_record: 7
   commits_by_type:
     refactor: 2
-    chore: 3
-  total_commits_in_record: 5
+    chore: 5
   notes:
-    - "Commits C4 and C5 represent the refactor(recipes) and chore(stm) work for commit-code recipe overhaul"
+    - "C6 and C7 are current session commits for create-pr recipe compilation and evidence recording"
+    - "C6 recompiles create-pr recipe to L2 compiled format, adds C8 branch guard constraint"
+    - "C7 records STM evidence artifacts from create-recipe run for create-pr"
     - "All files staged correctly with no cross-group contamination (SE-2/F1)"
     - "All commit messages describe actual changes (SE-3/F2)"
-    - "All tracked files committed; STM input files (analysis.yaml, issue-mappings.yaml) remain staged per recipe design"
-    - "Push succeeded non-blocking constraint C7"
+    - "Push succeeded with non-blocking constraint C7"
     - "All mappings high-confidence; no approval required per C9"
