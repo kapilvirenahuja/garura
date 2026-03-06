@@ -1,26 +1,88 @@
-intent: "Promote patterns, decisions, and learnings from STM into LTM — and archive completed issue STM directories"
+intent: >
+  Given a completed issue number, extract reusable holistic knowledge patterns
+  from that issue's short-term memory artifacts and promote them into the
+  long-term memory knowledge base — either updating existing knowledge artifacts
+  or creating new ones. Independently, archive the issue's STM directory to
+  _archive/{YYYY-MM}/{issue}/ to keep the active workspace clean. Knowledge
+  artifacts must be searchable through taxonomy and metadata so that agents and
+  humans facing similar situations in future projects can discover and apply them.
 
 constraints:
-  pre_flight:
-    - id: C1
-      check: issue number provided AND issue is closed on GitHub
-      halt_message: "Issue must be closed before capturing learnings — active work should not be archived"
-    - id: C2
-      check: STM directory exists at {stm_base}/{issue}/
-      halt_message: "No STM directory found for this issue — nothing to capture or archive"
-
-  behavioral:
-    - id: C3
-      rule: "Orchestrator MUST delegate domain tasks to agents — never execute Bash/git/gh directly"
-    - id: C4
-      rule: "Archive uses close date for year-month bucketing, never creation date or current date"
-    - id: C5
-      rule: "All STM contents MUST be preserved during archive — no data loss"
-    - id: C6
-      rule: "Active issue paths ({stm_base}/{issue}/) are NEVER modified by this recipe for open issues"
+  - id: C1
+    rule: >
+      Extraction (knowledge promotion) and archival (STM directory move) are
+      independent operations. Neither blocks the other.
+  - id: C2
+    rule: >
+      STM artifacts are read-only during extraction. The recipe must never
+      modify, delete, or create files within the issue's STM directory.
+  - id: C3
+    rule: >
+      When a knowledge pattern already exists in the knowledge base, the
+      existing artifact must be updated rather than a new duplicate created.
+      The recipe may delete redundant content during consolidation.
+  - id: C4
+    rule: >
+      Every knowledge artifact must contain identity metadata (tier 1: required
+      fields that identify the knowledge) and profile metadata (tier 2: defined
+      schema fields providing richer context). Free-form content (tier 3) is
+      permitted but not required.
+  - id: C5
+    rule: >
+      Knowledge artifacts contain no traceability links back to source issues
+      or STM artifacts. Knowledge stands on its own merit.
+  - id: C6
+    rule: >
+      Knowledge is holistic — organized by interconnected decisions and patterns
+      across technology boundaries, not siloed by individual technology, language,
+      or framework.
+  - id: C7
+    rule: >
+      Archival moves the complete issue STM directory to
+      _archive/{YYYY-MM}/{issue}/. The original directory is removed from the
+      active workspace after the move.
 
 failure_conditions:
-  - "Issue is still open — cannot archive active work"
-  - "STM directory does not exist — nothing to process"
-  - "Archive target already exists — duplicate archive attempt"
-  - "Move verification fails — source deleted but target not confirmed"
+  - id: F1
+    condition: >
+      A knowledge artifact exists in the knowledge base without search patterns
+      or applicability criteria. Knowledge that cannot be discovered through
+      taxonomy is failed output.
+  - id: F2
+    condition: >
+      A new knowledge artifact is created for a pattern that is already covered
+      by an existing knowledge artifact in the knowledge base.
+  - id: F3
+    condition: >
+      The recipe completes extraction with nothing new to promote but does not
+      explicitly report that no new knowledge was extracted.
+  - id: F4
+    condition: >
+      A knowledge artifact produced by the recipe falls below the quality bar
+      established by existing knowledge base entries — missing taxonomy,
+      missing applicability criteria, or lacking the structured metadata
+      defined in tiers 1 and 2.
+
+scenarios:
+  - id: S1
+    persona: "Agent (tech-designer or code-builder) in a future project"
+    given: "The long-term memory knowledge base containing promoted knowledge artifacts"
+    then: >
+      Can discover relevant knowledge patterns by matching project context
+      against search patterns and applicability criteria, and apply those
+      patterns to accelerate design decisions and implementation without
+      re-discovering known solutions.
+  - id: S2
+    persona: "Developer starting a new project"
+    given: "The long-term memory knowledge base searchable via tools"
+    then: >
+      Can find holistic patterns from past work that apply to their current
+      problem domain and understand the interconnected decisions behind those
+      patterns — not just what was built, but why it was built that way.
+  - id: S3
+    persona: "Engineering lead reviewing agent-produced work"
+    given: "The archived STM directory in _archive/{YYYY-MM}/{issue}/"
+    then: >
+      Can review the complete history of how an issue was worked — evidences,
+      checkpoints, analysis, and delivery artifacts — to build trust in
+      agent-produced outcomes and understand what was done.
