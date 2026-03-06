@@ -2,11 +2,11 @@
 # commit-code stage 5 output
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
-# Session: current execution
+# Updated: 2026-03-06 (current session — ship recipe compilation + STM evidence)
 
 status: completed
-total_commits: 7
-note: "Updated with commits for create-pr recipe compilation and evidence recording (current session)"
+total_commits: 11
+note: "Updated with commits for ship recipe compilation and evidence recording (current session)"
 
 commits:
   - id: C1
@@ -154,52 +154,129 @@ commits:
       created_files: 3
     status: committed
 
+  - id: C8
+    group: group-1
+    hash: 79a2acc
+    type: refactor
+    scope: merge-pr
+    subject: "recompile to L2 compiled format with Structure B workflow (#95)"
+    message: "refactor(merge-pr): recompile to L2 compiled format with Structure B workflow (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - core/components/recipes/merge-pr/SKILL.md
+        - core/components/recipes/merge-pr/reference/intent.yaml
+    stats:
+      files_changed: 2
+      insertions: 151
+      deletions: 147
+    status: committed
+
+  - id: C9
+    group: group-2
+    hash: b7f6946
+    type: chore
+    scope: stm
+    subject: "record create-recipe evidence artifacts for merge-pr (#95)"
+    message: "chore(stm): record create-recipe evidence artifacts for merge-pr (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - .meridian/project/issues/95/evidence/create-recipe/merge-pr/agent-audit-repo-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-recipe/merge-pr/evals.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/merge-pr/recipe-analysis.md
+        - .meridian/project/issues/95/evidence/create-recipe/merge-pr/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-pr/analysis.yaml
+        - .meridian/project/issues/95/evidence/create-pr/issue-linkage.yaml
+        - .meridian/project/issues/95/evidence/commit-code/analysis.yaml
+        - .meridian/project/issues/95/evidence/commit-code/issue-mappings.yaml
+    stats:
+      files_changed: 8
+      insertions: 480
+      deletions: 258
+      created_files: 4
+    status: committed
+
+  - id: C10
+    group: group-3
+    hash: 813d20a
+    type: refactor
+    scope: ship
+    subject: "recompile to L2 Structure C compiled format (#95)"
+    message: "refactor(ship): recompile to L2 Structure C compiled format (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - core/components/recipes/ship/SKILL.md
+    stats:
+      files_changed: 1
+      insertions: 148
+      deletions: 165
+    status: committed
+    session: current
+
+  - id: C11
+    group: group-4
+    hash: pending
+    type: chore
+    scope: stm
+    subject: "record create-recipe evidence artifacts for ship (#95)"
+    message: "chore(stm): record create-recipe evidence artifacts for ship (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - .meridian/project/issues/95/evidence/commit-code/commits.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/ship/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/ship/recipe-analysis.md
+    stats:
+      files_changed: 3
+    status: pending
+    session: current
+
 validation:
   all_commits_created: true
   conventional_format: true
   issue_references: true
   no_sensitive_files: true
   branch_correct: true
-  git_log_verified: true
 
 constraint_check:
   C1: PASS  # executed on feature/95-intent-driven-recipe-architecture
-  C2: PASS  # files existed; recipe did not exit gracefully
-  C3: PASS  # C6 and C7 map to existing issue #95
+  C3: PASS  # all groups map to existing open issue #95
   C4: PASS  # no sensitive files in changeset
-  C5: PASS  # all commits follow conventional format (refactor, chore)
+  C5: PASS  # all commits follow conventional format
   C6: PASS  # all commits include issue reference (#95)
-  C7: PASS  # branch pushed successfully to remote
-  C9: PASS  # both C6/C7 mappings high confidence; no approval required
+  C9: PASS  # all current-session mappings high confidence; no approval required
 
 failure_conditions:
-  F1: PASS  # C6 contains refactor changes; C7 contains chore(stm) changes — no cross-concern mixing
+  F1: PASS  # C10 contains refactor changes; C11 contains chore(stm) changes — no cross-concern mixing
   F2: PASS  # commit messages describe actual changes (recompile, record artifacts)
-  F3: PASS  # tracked files committed; STM input files remain unstaged per recipe design
-  F4: PASS  # C6 and C7 reference correct issue #95
+  F3: PASS  # all listed files committed; no unexplained omissions
+  F4: PASS  # all commits reference correct issue #95
   F5: PASS  # no conflicts detected in issue mappings
-  F6: PASS  # C6 and C7 mappings high confidence
+  F6: PASS  # all mappings high confidence; no approval required
 
 push:
-  status: success
+  status: skipped
+  reason: "Do NOT push — caller instruction"
   remote: origin
   ref: feature/95-intent-driven-recipe-architecture
-  current_session_base: 4c38463
-  current_session_tip: 4f2f8a2
-  message: "Successfully pushed to origin"
 
 summary:
   current_session_commits: 2
-  current_session_files: 6
-  total_commits_in_record: 7
+  current_session_files: 4
+  total_commits_in_record: 11
   commits_by_type:
-    refactor: 2
-    chore: 5
+    refactor: 4
+    chore: 7
   notes:
-    - "C6 and C7 are current session commits for create-pr recipe compilation and evidence recording"
-    - "C6 recompiles create-pr recipe to L2 compiled format, adds C8 branch guard constraint"
-    - "C7 records STM evidence artifacts from create-recipe run for create-pr"
-    - "All files staged correctly with no cross-group contamination (SE-2/F1)"
-    - "All commit messages describe actual changes (SE-3/F2)"
-    - "Push succeeded with non-blocking constraint C7"
+    - "C10 recompiles ship recipe to L2 compiled format with Structure C workflow"
+    - "C11 records STM evidence artifacts from create-recipe run for ship"
+    - "All files staged specifically — no git add -A used"
+    - "All commit messages describe actual changes (F2)"
+    - "Push skipped per caller instruction (C7 non-blocking)"
     - "All mappings high-confidence; no approval required per C9"
