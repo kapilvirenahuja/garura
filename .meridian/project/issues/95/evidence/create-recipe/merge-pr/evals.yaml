@@ -1,0 +1,106 @@
+step_evals:
+  - id: SE-1
+    failure_condition_id: F1
+    skill: merge-pr
+    check: >
+      Verify the skill did not proceed with a merge when the PR had conflict state.
+      Check that skill output status is not "merged" when PR mergeable state was "conflict".
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml"
+    pass_criteria: >
+      skill output status == "conflict" or "failed" when PR was not in a clean mergeable state.
+      No merge_sha present when conflicts existed.
+    fail_criteria: >
+      skill output status == "merged" and PR had conflict markers on source branch prior to merge.
+      merge_sha is present despite pre-merge conflict state.
+
+  - id: SE-2
+    failure_condition_id: F2
+    skill: merge-pr
+    check: >
+      Verify feature branch was deleted locally and remotely after a successful merge.
+      Check branch_deleted field in skill output.
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml"
+    pass_criteria: >
+      branch_deleted == true. Local branch no longer exists in git branch list.
+      Remote branch no longer exists (or was already absent due to platform auto-delete).
+    fail_criteria: >
+      branch_deleted == false when platform did not auto-delete.
+      Local or remote branch still exists after merge completion.
+
+  - id: SE-3
+    failure_condition_id: F3
+    skill: merge-pr
+    check: >
+      Verify local checkout is on the base branch and local base branch is up to date with remote.
+      Check base_branch field in skill output and compare local HEAD to remote HEAD.
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml"
+    pass_criteria: >
+      base_branch field is set. Local HEAD is on the branch named in base_branch.
+      Local base branch SHA matches remote base branch SHA after git pull.
+    fail_criteria: >
+      base_branch field is empty or null.
+      Local checkout is on a branch other than base_branch.
+      Local base branch is behind remote (local SHA != remote SHA).
+
+  - id: SE-4
+    failure_condition_id: F4
+    skill: merge-pr
+    check: >
+      Verify the merge was only performed when the working tree and index were clean.
+      This check validates pre-condition enforcement — skill must have halted if tree was dirty.
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml"
+    pass_criteria: >
+      If skill output status == "merged", the pre-flight working tree check confirmed clean state.
+      No error field referencing staged or uncommitted changes before merge.
+    fail_criteria: >
+      skill output status == "merged" but pre-flight recorded uncommitted or staged changes.
+      Working tree state before operation was not clean.
+
+  - id: SE-5
+    failure_condition_id: F5
+    skill: merge-pr
+    check: >
+      Verify pr_number is set and platform PR status reflects merged state after operation.
+    artifact_pattern: "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml"
+    pass_criteria: >
+      pr_number is set to a non-null integer.
+      Platform PR state is "merged" for that pr_number.
+      merge_sha is non-null (platform confirmed the merge commit).
+    fail_criteria: >
+      pr_number is null or absent.
+      Platform PR state is not "merged" after operation.
+      merge_sha is null after a status == "merged" result.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: >
+      git branch list (local), git ls-remote (remote), git log on base branch
+    check: >
+      Verify the Developer can immediately start a new feature branch.
+      Local checkout is on base branch (up to date with remote).
+      Feature branch is absent locally and on remote.
+    pass_criteria: >
+      Local HEAD is on base branch.
+      git pull produces "Already up to date." or equivalent.
+      Feature branch name does not appear in local git branch list.
+      Feature branch name does not appear in git ls-remote output.
+    fail_criteria: >
+      Local HEAD is not on base branch.
+      Local base branch is behind remote.
+      Feature branch still appears locally or on remote.
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Code Reviewer
+    artifact_pattern: >
+      Platform PR page state, git log on base branch
+    check: >
+      Verify the Code Reviewer can confirm PR is merged on platform and merge commit is on base.
+    pass_criteria: >
+      Platform PR state for the feature branch PR is "merged".
+      merge_sha from skill output is present in git log on base branch.
+    fail_criteria: >
+      Platform PR state is not "merged" (open, closed, draft).
+      merge_sha is absent from git log on base branch.

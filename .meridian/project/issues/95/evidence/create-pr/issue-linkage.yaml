@@ -1,6 +1,11 @@
-issue: 95
-title: "feat(recipe-framework): intent-driven recipe architecture"
-url: "https://github.com/kapilvirenahuja/meridian-os/issues/95"
-confidence: high
-rationale: "Branch name feature/95 and all commits reference #95"
-closes_keyword: "Closes #95"
+issue:
+  number: 95
+  title: "feat(recipe-framework): intent-driven recipe architecture"
+  labels:
+    - enhancement
+  state: OPEN
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/95"
+  type_hint: feature
+  confidence: high
+  rationale: "Branch name feature/95 and all commits reference #95"
+  closes_keyword: "Closes #95"

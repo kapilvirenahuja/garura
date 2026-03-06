@@ -16,22 +16,23 @@ mappings:
     issue_state: open
     confidence: high
     reasoning: >
-      group-1 contains recompilation of core/components/recipes/create-pr/ to L2 compiled
-      format — two files: SKILL.md (full structural overhaul) and reference/intent.yaml
-      (adds C8 branch guard constraint). The branch name feature/95-intent-driven-recipe-architecture
-      encodes issue #95 directly. Issue #95 title "intent-driven recipe architecture" covers
+      group-1 contains recompilation of core/components/recipes/merge-pr/ to L2 compiled
+      format — two files: SKILL.md (full structural overhaul from L4) and reference/intent.yaml
+      (F1/F4/F5 reframed as observable output states, C4 cleaned of prescriptive language).
+      The branch name feature/95-intent-driven-recipe-architecture encodes issue #95 directly
+      (branch signal, strong). Issue #95 title "intent-driven recipe architecture" covers
       recipe compilation work as a core deliverable — recompiling recipes to L2 compiled
-      format is the primary output of the recipe architecture overhaul. No other open issue
-      competes: #93 covers eval generation and review-pr integration (different feature);
-      #91 covers docs-only updates (no component changes); all other open issues are
-      unrelated in domain (HTML briefs, ship bug, LTM, dashboard, skill namespacing).
-      The mapping is direct and unambiguous.
+      format is the primary output of the recipe architecture overhaul (semantic signal, strong).
+      The refactor type aligns with structural recompilation (semantic signal, medium).
+      No other open issue competes: #93 covers eval generation and review-pr integration
+      (different feature); #91 covers docs-only updates (no component changes); #92 is HTML
+      briefs (unrelated domain). Three corroborating signals meet the high-confidence threshold.
     conflicts: []
     type_hint: feature
     files:
-      - core/components/recipes/create-pr/SKILL.md
-      - core/components/recipes/create-pr/reference/intent.yaml
-    commit_message: "refactor(create-pr): recompile to L2 compiled format with C8 branch guard (#95)"
+      - core/components/recipes/merge-pr/SKILL.md
+      - core/components/recipes/merge-pr/reference/intent.yaml
+    commit_message: "refactor(merge-pr): recompile to L2 compiled format with Structure B workflow (#95)"
 
   - group_id: group-2
     issue_number: 95
@@ -39,23 +40,27 @@ mappings:
     issue_state: open
     confidence: high
     reasoning: >
-      group-2 contains STM evidence artifacts at path
-      .meridian/project/issues/95/evidence/create-recipe/create-pr/. The path itself
-      encodes issue #95 — this is a structural guarantee from STM design (ADR 008, ADR 010),
-      not an inference. Evidence artifacts are produced by and belong to the issue that owns
-      the STM namespace. Four files: skill-manifest.yaml (modified), intent-gap-report.md
-      (untracked), recipe-analysis.md (untracked), step-evals.yaml (untracked) — all
-      operational records of the create-recipe run for create-pr under issue #95.
+      group-2 contains STM evidence artifacts at paths under
+      .meridian/project/issues/95/evidence/ and updated create-pr evidence files.
+      The directory path itself encodes issue #95 — this is a structural guarantee from
+      STM design (ADR 008, ADR 010), not an inference (semantic signal, strong).
+      The branch name feature/95-intent-driven-recipe-architecture encodes issue #95
+      directly (branch signal, strong). Evidence artifacts are produced by and belong
+      to the issue that owns the STM namespace. Six files: four untracked evidence
+      artifacts for create-recipe/merge-pr/ and two modified create-pr evidence files —
+      all operational records of the create-recipe run for merge-pr under issue #95.
       No competing issues possible: STM path binding is unambiguous and no other open
       issue has any relationship to this evidence trail.
     conflicts: []
     type_hint: chore
     files:
-      - .meridian/project/issues/95/evidence/create-recipe/create-pr/skill-manifest.yaml
-      - .meridian/project/issues/95/evidence/create-recipe/create-pr/intent-gap-report.md
-      - .meridian/project/issues/95/evidence/create-recipe/create-pr/recipe-analysis.md
-      - .meridian/project/issues/95/evidence/create-recipe/create-pr/step-evals.yaml
-    commit_message: "chore(stm): record create-recipe evidence artifacts for create-pr (#95)"
+      - .meridian/project/issues/95/evidence/create-recipe/merge-pr/agent-audit-repo-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-recipe/merge-pr/evals.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/merge-pr/recipe-analysis.md
+      - .meridian/project/issues/95/evidence/create-recipe/merge-pr/skill-manifest.yaml
+      - .meridian/project/issues/95/evidence/create-pr/analysis.yaml
+      - .meridian/project/issues/95/evidence/create-pr/issue-linkage.yaml
+    commit_message: "chore(stm): record create-recipe evidence artifacts for merge-pr (#95)"
 
 open_issues_surveyed:
   - number: 95
@@ -70,36 +75,6 @@ open_issues_surveyed:
   - number: 91
     title: "docs: update documentation to reflect Four Crafts architecture and current component state"
     labels: []
-  - number: 89
-    title: "Agent response format: add skill-to-contract transformation examples (Option B)"
-    labels: []
-  - number: 88
-    title: "Explore direct skill invocation for L2 fixed-DAG recipes"
-    labels: []
-  - number: 87
-    title: "Reduce redundant file reads via contract-carried intent summary"
-    labels: []
-  - number: 78
-    title: "fix(ship): analyze-pr elevates REVIEW items to blocking_issues, breaking auto-approve in /ship"
-    labels: [bug]
-  - number: 70
-    title: "feat: design Vercel-compatible reference architecture for LTM knowledge layer"
-    labels: [enhancement]
-  - number: 68
-    title: "feat: build observation dashboard for Meridian agent execution"
-    labels: []
-  - number: 44
-    title: "Fluidic SDLC v2.0.0 Specification"
-    labels: [enhancement]
-  - number: 26
-    title: "fix(start-feature): correct agent reference and clarify skill invocations"
-    labels: [bug]
-  - number: 6
-    title: "fix(skills): clarify output semantics in manage-issue and audit other skills"
-    labels: [bug]
-  - number: 5
-    title: "feat(skills): add namespace support for skill organization"
-    labels: [enhancement]
 
 conflict_analysis: >
   No conflicts exist for either group. Issue #91 (docs: update documentation for Four Crafts
