@@ -1,0 +1,62 @@
+---
+# issue-mappings output
+# Agent: project-orchestrator
+# Skill: resolve-issues
+# Branch: feature/95-intent-driven-recipe-architecture
+# Generated: 2026-03-06
+# Task: resolve-issues
+
+mappings:
+  - group: G1
+    issue: 95
+    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
+    issue_url: "https://github.com/kapilvirenahuja/meridian-os/issues/95"
+    issue_state: open
+    issue_labels: ["enhancement"]
+    type_hint: feature
+    confidence: high
+    reasoning: >
+      Branch name feature/95-intent-driven-recipe-architecture encodes issue #95
+      directly. Semantic alignment is strong: the DAG file path
+      (.meridian/95/dag/commit-code.json) encodes the issue number; intent.yaml
+      filename matches "intent-driven" in the issue title; the change scope
+      (commit-code recipe) falls within the recipe-framework domain of issue #95;
+      and the structural nature of the change (constraint enforcement via C7,
+      new push-branch DAG stage) is consistent with the architectural work
+      described by the issue. No competing issue has any meaningful signal overlap.
+    signals:
+      branch: true
+      branch_issue_extracted: 95
+      semantic_count: 4
+      semantic_details:
+        - "DAG file path (.meridian/95/dag/commit-code.json) encodes issue number #95"
+        - "intent.yaml file keyword matches 'intent-driven' in issue title"
+        - "change scope commit-code is a recipe — issue scopes to recipe-framework (parent domain)"
+        - "structural constraint enforcement change consistent with intent-driven recipe architecture work"
+    conflicts: []
+    commit_message: "refactor(commit-code): add push-branch stage and C7 constraint (#95)"
+    files:
+      - core/components/recipes/commit-code/reference/intent.yaml
+      - core/components/recipes/commit-code/SKILL.md
+      - .meridian/95/dag/commit-code.json
+
+unmapped_groups: []
+conflicts: []
+
+constraint_check:
+  C3:
+    status: PASS
+    detail: "All groups (G1) map to an existing open issue (#95). No unmapped groups."
+  F4:
+    status: PASS
+    detail: "Issue #95 is the correct issue — branch encodes it, semantic signals confirm it, no competing issue."
+
+summary:
+  total_groups: 1
+  mapped: 1
+  unmapped: 0
+  high_confidence: 1
+  medium_confidence: 0
+  low_confidence: 0
+  requires_approval: false
+  approval_reason: null

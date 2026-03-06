@@ -2,7 +2,7 @@
 # analyze-changes output
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
-# Stage: 2 — commit-code recipe, capture-learning rebuild session
+# Stage: 2 — commit-code recipe, push-branch stage addition session
 
 issue: 95
 stm_base: ".meridian/project/issues/"
@@ -11,84 +11,50 @@ hotfix_branch: false
 
 groups:
   - id: G1
-    concern: "Rebuild capture-learning recipe to L1 intent-driven architecture"
+    concern: "Add push-branch stage and C7 constraint to commit-code recipe"
     type: refactor
-    scope: recipes
-    subject: "rebuild capture-learning recipe to L1 intent-driven architecture"
+    scope: commit-code
+    subject: "add push-branch stage and C7 constraint to commit-code recipe"
     issue: 95
-    commit_message: "refactor(recipes): rebuild capture-learning recipe to L1 intent-driven architecture (#95)"
+    commit_message: "refactor(commit-code): add push-branch stage and C7 constraint (#95)"
     files:
-      - core/components/recipes/capture-learning/SKILL.md
-      - core/components/recipes/capture-learning/reference/intent.yaml
-      - core/components/recipes/capture-learning/templates/capture-report.md
+      - core/components/recipes/commit-code/reference/intent.yaml
+      - core/components/recipes/commit-code/SKILL.md
+      - .meridian/95/dag/commit-code.json
     rationale: >
-      All three files are components of a single recipe. SKILL.md was rewritten
-      to use the L1 fixed-stage structure with DAG dispatch, two-phase model
-      (readiness + generation), and bypass flags for not-yet-built extraction
-      skills. intent.yaml was redesigned: constraints renumbered (C1–C7,
-      all behavioral), failure conditions given IDs (F1–F4), and three
-      acceptance scenarios (S1–S3) added. The template file was deleted because
-      L1 architecture no longer uses prose templates. All three changes are
-      one atomic concern: the recipe component rebuilt as an intent-driven L1.
-    confidence: high
-
-  - id: G2
-    concern: "Record create-recipe evidence artifacts for capture-learning rebuild"
-    type: chore
-    scope: stm
-    subject: "record create-recipe evidence artifacts for capture-learning rebuild (#95)"
-    issue: 95
-    commit_message: "chore(stm): record create-recipe evidence artifacts for capture-learning rebuild (#95)"
-    files:
-      - .meridian/project/issues/95/evidence/create-recipe/capture-learning/
-    rationale: >
-      Untracked STM output from the create-recipe skill run that produced the
-      rebuilt capture-learning recipe. Includes dag.json, evals.yaml,
-      skill-manifest.yaml, agent-audit files, and sub-directories (delivery,
-      design, evidence, spec). These are the process artifacts that record how
-      the recipe was built — a separate concern from the recipe source files
-      themselves. Following the evidence self-commit convention established in
-      ADR 012.
-    confidence: high
-
-  - id: G3
-    concern: "Archive STM directory for issue #54"
-    type: chore
-    scope: stm
-    subject: "archive STM directory for issue #54 (#95)"
-    issue: 95
-    commit_message: "chore(stm): archive STM directory for issue #54 (#95)"
-    files:
-      - .meridian/project/issues/_archive/2026-02/54/
-    rationale: >
-      STM directory for issue #54 (capture-learning was tested on this issue)
-      moved to _archive/2026-02/54/. Contains delivery, design, evidence, spec
-      sub-directories. Independent from the recipe source changes and from the
-      #95 evidence artifacts — archival is a repository hygiene operation, not
-      part of the recipe implementation.
+      All three files constitute one atomic concern: adding a push-branch stage
+      to the commit-code recipe and encoding it as constraint C7.
+      intent.yaml adds C7 (push after commits, non-blocking on failure).
+      SKILL.md updates the recipe description, constraint range (C1-C7),
+      agent call budget (4 calls), workflow stage descriptions, and eval
+      reference style to be DAG-driven rather than hardcoded.
+      commit-code.json adds push-branch (Stage 5) and gen-eval-2 tasks to the
+      DAG and rewires blockedBy dependencies for scenario-eval-1 and
+      scenario-eval-2. All three are part of the same constraint enforcement
+      change — splitting them would leave the recipe in an inconsistent state
+      between commits.
     confidence: high
 
 risks:
   sensitive_files: []
-  breaking_changes:
-    - >
-      capture-learning/reference/intent.yaml: constraint IDs renumbered. Old
-      schema had pre_flight (C1=issue-closed, C2=stm-exists) and behavioral
-      (C3–C6). New schema has behavioral-only (C1–C7). Any agent or downstream
-      document referencing old constraint IDs will map incorrectly. Impact is
-      limited to documentation cross-references — no runtime breakage since
-      constraints are evaluated by the recipe at execution time.
-  ambiguous_types: []
+  breaking_changes: []
+  ambiguous_types:
+    - group: G1
+      candidate_types:
+        - type: refactor
+          reason: "Recipe is restructured — push was implied, now explicitly enforced. No new external capability from user perspective."
+        - type: feat
+          reason: "A new stage (push-branch) is being added to the DAG with a new constraint (C7) that did not exist before."
+      resolution: >
+        refactor is dominant. The recipe already had an intent to push
+        (implied by C7 wording "after commits are created"). This change
+        makes the implicit explicit and adds DAG tasks to enforce it —
+        a structural clarification, not a net-new capability. Low-severity
+        ambiguity; single group is correct regardless of type chosen.
   hotfix_branch: false
 
 issue_mapping:
   - group: G1
-    issue: 95
-    confidence: high
-  - group: G2
-    issue: 95
-    confidence: high
-  - group: G3
     issue: 95
     confidence: high
 
@@ -98,38 +64,37 @@ constraint_check:
     detail: "Branch is feature/95-intent-driven-recipe-architecture, not main/master."
   C2:
     status: PASS
-    detail: "Changed files detected: 2 modified, 1 deleted, 2 untracked directories."
+    detail: "3 unstaged modified files detected."
   C3:
     status: PASS
-    detail: "All changes map to issue #95 — capture-learning rebuild and its associated STM artifacts."
+    detail: "All changes map to issue #95."
   C4:
     status: PASS
     detail: "No sensitive files, credentials, or environment files detected."
   C5:
     status: PASS
-    detail: "refactor(recipes) and chore(stm) are valid conventional commit types."
+    detail: "refactor(commit-code) is a valid conventional commit type."
   C6:
     status: PASS
-    detail: "(#95) included in all proposed commit messages."
+    detail: "(#95) will be included in the commit message."
   F1:
     status: PASS
-    detail: "Three groups, each a single concern: recipe source, evidence artifacts, archive."
+    detail: "Single group, single concern: push-branch stage addition."
   F2:
     status: PASS
-    detail: "All subjects describe the actual change — not generic placeholders."
+    detail: "Subject describes the actual change — not a generic placeholder."
   F3:
     status: PASS
-    detail: "All changed files assigned to groups. No files left uncommitted."
+    detail: "All 3 changed files assigned to G1. No files left uncommitted."
   F4:
     status: PASS
     detail: "Issue #95 is the correct issue for this feature branch."
 
 grouping_decision:
-  strategy: multi_commit
-  commit_count: 3
+  strategy: single_commit
+  commit_count: 1
   rationale: >
-    Three distinct concerns requiring separate commits. G1 is the substantive
-    recipe rewrite (refactor type). G2 is process evidence for how G1 was
-    built (chore/stm type). G3 is repository hygiene — archiving a prior
-    issue's STM (chore/stm type). Combining any two would mix concerns and
-    violate F1. Three commits, each independently coherent.
+    Single issue (#95), single concern (push-branch stage enforcement), all
+    three files part of the same atomic change. Splitting by file type or
+    directory would violate the grouping rule: never split a single issue into
+    multiple groups by component. One commit covers all three files cleanly.
