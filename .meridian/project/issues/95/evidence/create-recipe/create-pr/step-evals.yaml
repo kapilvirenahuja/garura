@@ -1,0 +1,87 @@
+recipe: create-pr
+compiled_at: "2026-03-06T20:00:00+0530"
+
+step_evals:
+  preparation:
+    - id: SE-1
+      references: [F1]
+      title: "Issue linkage resolved"
+      pass: "STM contains issue number, title, and URL. Issue is open."
+
+    - id: SE-2
+      references: [C4, F2]
+      title: "Checklist items are change-specific"
+      pass: "Every item has a trigger reason tracing to actual file patterns in the diff. No generic items."
+
+    - id: SE-3
+      references: [C5, F3]
+      title: "Every checklist item has evidence"
+      pass: "Verification Evidence table is complete with non-empty evidence for every item."
+
+    - id: SE-4
+      references: [C7, F5]
+      title: "Target branch confidence assessed"
+      pass: "If high → checkpoint skippable. If less than high → checkpoint required."
+
+    - id: SE-5
+      references: [C1]
+      title: "Platform resolved from config"
+      pass: "Platform sourced from core/config.yaml, not hardcoded."
+
+    - id: SE-6
+      references: [C2]
+      title: "No code modifications during analysis"
+      pass: "git status unchanged after preparation phase."
+
+  execution:
+    - id: SE-7
+      references: [F1]
+      title: "PR linked to issue"
+      pass: "PR body contains issue reference traceable to Step 2 output."
+
+    - id: SE-8
+      references: [C4, C5, F2, F3]
+      title: "PR body contains complete checklist with evidence"
+      pass: "Items grouped by priority. Verification Evidence table present. No generic items."
+
+    - id: SE-9
+      references: [C6, F4]
+      title: "Eval results embedded in PR"
+      pass: "If evals provided, PR body contains Eval Results section. If not, section omitted."
+
+    - id: SE-10
+      references: [C7, F5]
+      title: "Target branch confirmed"
+      pass: "Matches high-confidence selection from Step 1, or user explicitly confirmed in Step 4."
+
+scenario_evals:
+  - id: SCE-1
+    references: [S1]
+    persona: "Code Reviewer"
+    pass: "Can assess merge safety, understand rationale, verify quality, trace to issue — all from PR alone."
+
+  - id: SCE-2
+    references: [S2]
+    persona: "Author (Developer)"
+    pass: "Can verify all changes accounted for, evidence supports each item, correct issue linked, PR is submission-ready."
+
+coverage:
+  constraints:
+    C1: [pre-flight, SE-5]
+    C2: [SE-6]
+    C3: [pre-flight]
+    C4: [SE-2, SE-8]
+    C5: [SE-3, SE-8]
+    C6: [SE-9]
+    C7: [SE-4, SE-10, checkpoint-skip-condition]
+    C8: [pre-flight]
+  failure_conditions:
+    F1: [SE-1, SE-7]
+    F2: [SE-2, SE-8]
+    F3: [SE-3, SE-8]
+    F4: [SE-9]
+    F5: [SE-4, SE-10]
+  scenarios:
+    S1: [SCE-1]
+    S2: [SCE-2]
+  complete: true
