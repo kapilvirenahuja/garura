@@ -3,9 +3,9 @@
   "issue": 95,
   "started_at": "2026-03-06T18:30:00+0530",
   "tasks": {
-    "analyze-changes": { "status": "pending" },
-    "resolve-issues": { "status": "pending" },
-    "create-commits": { "status": "pending" },
+    "analyze-changes": { "status": "completed", "completed_at": "2026-03-06T19:15:00+0530" },
+    "resolve-issues": { "status": "completed", "completed_at": "2026-03-06T19:20:00+0530" },
+    "create-commits": { "status": "in_progress", "started_at": "2026-03-06T19:25:00+0530" },
     "push-branch": { "status": "pending" }
   }
 }

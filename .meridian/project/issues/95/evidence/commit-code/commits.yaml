@@ -330,7 +330,7 @@ commits:
 
   - id: C16
     group: group-2
-    hash: pending
+    hash: c8191fb
     type: chore
     scope: stm
     subject: "record create-recipe evidence artifacts for capture-learning (#95)"
@@ -345,7 +345,10 @@ commits:
         - .meridian/project/issues/95/evidence/commit-code/commits.yaml
     stats:
       files_changed: 4
-    status: pending
+      insertions: 329
+      deletions: 136
+      created_files: 1
+    status: committed
     session: current
 
 validation:
