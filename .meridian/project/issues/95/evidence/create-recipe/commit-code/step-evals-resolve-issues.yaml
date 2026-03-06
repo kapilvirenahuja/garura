@@ -1,0 +1,56 @@
+step_evals:
+  - id: SE-1
+    failure_condition_id: F4
+    skill: resolve-issues
+    check: "Every group-to-issue mapping includes at least two corroborating signals before confidence is marked high"
+    artifact_pattern: ".meridian/{issue}/evidence/resolve-issues/mapping-output.md → Signals section per group"
+    pass_criteria: "Each mapping with confidence 'high' lists branch + semantic agreement OR 3+ semantic signals. Reasoning field explains why those signals corroborate."
+    fail_criteria: "Any mapping marked 'high' confidence with only one signal, OR reasoning is absent/generic (e.g., 'seems related')."
+
+  - id: SE-2
+    failure_condition_id: F4
+    skill: resolve-issues
+    check: "Branch signal is extracted and applied correctly when present"
+    artifact_pattern: ".meridian/{issue}/evidence/resolve-issues/mapping-output.md → Branch Signal section"
+    pass_criteria: "Branch name is parsed, issue number is extracted if present (e.g., feature/42-auth-flow yields #42), and the branch signal is recorded as 'match' or 'no match' for every group."
+    fail_criteria: "Branch contains an issue number but Branch Signal section shows 'none detected', OR branch signal is not evaluated per group in the Signals list."
+
+  - id: SE-3
+    failure_condition_id: F4
+    skill: resolve-issues
+    check: "Conflicts are explicitly flagged when a group has competing issue signals"
+    artifact_pattern: ".meridian/{issue}/evidence/resolve-issues/mapping-output.md → Conflicts section"
+    pass_criteria: "When two or more issues have equal-strength signals for the same group, the Conflicts section lists the group, the competing issues, and the signal strengths. Confidence is 'low' for that group."
+    fail_criteria: "Conflicts section says 'No conflicts detected' while a group has equal-strength signals to multiple issues, OR the skill silently picks a winner without flagging the conflict."
+
+  - id: SE-4
+    failure_condition_id: F3
+    skill: resolve-issues
+    check: "Every input change group appears in the mapping output — none are silently dropped"
+    artifact_pattern: ".meridian/{issue}/evidence/resolve-issues/mapping-output.md → Summary section (Total Groups count) + Mappings section"
+    pass_criteria: "Summary.Total Groups equals the number of groups received from analyze-changes input. Each group has a dedicated 'Group {n}' entry in the Mappings section OR appears in the Unmapped Groups section with confidence 'none'."
+    fail_criteria: "Summary.Total Groups is less than the input group count, OR a group from the input has no corresponding entry in Mappings or Unmapped Groups."
+
+  - id: SE-5
+    failure_condition_id: F3
+    skill: resolve-issues
+    check: "Unmapped groups are explicitly surfaced, not hidden"
+    artifact_pattern: ".meridian/{issue}/evidence/resolve-issues/mapping-output.md → Unmapped Groups section + Summary section"
+    pass_criteria: "Groups with confidence 'none' appear in the Unmapped Groups section with their type(scope) identifier. Summary.Unmapped count matches the number of entries in Unmapped Groups."
+    fail_criteria: "A group with confidence 'none' is missing from the Unmapped Groups section, OR Summary.Unmapped count does not match the actual unmapped entries."
+
+  - id: SE-6
+    failure_condition_id: F1
+    skill: resolve-issues
+    check: "Mapping preserves the group boundaries from analyze-changes — groups are not merged or split"
+    artifact_pattern: ".meridian/{issue}/evidence/resolve-issues/mapping-output.md → Mappings section group entries"
+    pass_criteria: "Each Group entry retains the same type, scope, and file list as the corresponding analyze-changes group. No files are moved between groups. Group count in output matches group count in input."
+    fail_criteria: "A group in the mapping output contains files from a different input group, OR two input groups are collapsed into one mapping entry, OR a group's type/scope differs from the input."
+
+  - id: SE-7
+    failure_condition_id: F4
+    skill: resolve-issues
+    check: "Approval is recommended when any mapping has low confidence or conflicts exist"
+    artifact_pattern: ".meridian/{issue}/evidence/resolve-issues/mapping-output.md → Summary section (Approval Recommended field)"
+    pass_criteria: "Summary.Approval Recommended is 'yes' when Low Confidence > 0 OR Unmapped > 0 OR Conflicts section is non-empty. It is 'no' only when all mappings are high/medium confidence and no conflicts exist."
+    fail_criteria: "Summary.Approval Recommended is 'no' while low-confidence mappings or conflicts are present in the output."

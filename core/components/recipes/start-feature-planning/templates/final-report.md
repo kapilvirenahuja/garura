@@ -14,8 +14,8 @@
 ## Evidence Trail
 | Artifact | Location |
 |----------|----------|
-| Specification | `.meridian/{issue}/planning/spec.md` |
-| Verification | `.meridian/{issue}/planning/verify.md` |
-| Task Breakdown | `.meridian/{issue}/planning/tasks.md` |
-| Implementation | `.meridian/{issue}/evidence/implementation.md` |
-| Checkpoint | `.meridian/{issue}/checkpoint/start-feature-planning/{ts}.md` |
+| Specification | `{stm_base}/{issue}/planning/spec.md` |
+| Verification | `{stm_base}/{issue}/planning/verify.md` |
+| Task Breakdown | `{stm_base}/{issue}/planning/tasks.md` |
+| Implementation | `{stm_base}/{issue}/evidence/implementation.md` |
+| Checkpoint | `{stm_base}/{issue}/checkpoint/start-feature-planning/{ts}.md` |

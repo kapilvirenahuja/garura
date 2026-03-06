@@ -1,0 +1,93 @@
+## Branch Info
+
+- **Current Branch**: feature/95-intent-driven-recipe-architecture
+- **Issue from Branch**: 95
+- **Is Hotfix**: no
+
+## Change Summary
+
+- **Total Files**: 31 (8 modified, 3 deleted, 20 untracked/new)
+- **Staged**: 0
+- **Unstaged**: 11 (8 modified + 3 deleted)
+- **Untracked**: 20 (new files and directories)
+
+## Groups
+
+### Group 1: Issue #95 — refactor(recipe-architecture)
+
+- **Issue**: #95 — intent-driven recipe architecture
+- **Type**: refactor
+- **Scope**: recipe-architecture
+- **Subject**: implement intent-driven JSON contract pattern for commit-code recipe and supporting components
+- **Confidence**: high
+- **Files**:
+  - `core/components/agents/project-orchestrator.md` - Added Contract Mode (JSON input/output contracts), Task Graph participation, Intent Loading rules
+  - `core/components/agents/repo-orchestrator.md` - Added Contract Mode (JSON input/output contracts), Task Graph participation, updated Intent Recognition and Context Loading to use contract config field
+  - `core/components/agents/intent-crafter.md` - NEW: agent for crafting intent.yaml files for recipe invocations
+  - `core/components/agents/intent-resolver.md` - NEW: infrastructure agent for resolving/decomposing JSON contract intent at Stage 1
+  - `core/components/recipes/commit-code/SKILL.md` - Major rewrite: Fixed Stages (0–7), Two Core Phases model, STM Data Flow Rules, JSON contract agent invocation
+  - `core/components/recipes/commit-code/reference/intent.yaml` - Restructured: unified flat constraint list (C1–C6), typed failure conditions (F1–F4), acceptance scenarios (S1–S2)
+  - `core/components/recipes/commit-code/templates/approval-prompt.md` - DELETED: approval logic now handled via STM-driven checkpoint in Fixed Stages
+  - `core/components/recipes/commit-code/templates/checkpoint.md` - DELETED: checkpoint state now lives in STM
+  - `core/components/recipes/commit-code/templates/commit-summary.md` - DELETED: summary now generated from STM artifacts
+  - `core/components/recipes/create-recipe/SKILL.md` - NEW: recipe for creating new recipes following Four Crafts pattern
+  - `core/components/skills/analyze-changes/SKILL.md` - Updated grouping step: issue-first grouping rules (branch signal first, split only for multiple issues, dominant type within group)
+  - `core/components/skills/analyze-changes/templates/analysis-output.md` - Added Issue from Branch, Untracked count, updated Group header format, added Issue/Subject/Confidence fields
+  - `core/components/skills/evals-creator/SKILL.md` - NEW: skill for generating evaluation/verification scenarios
+  - `core/components/skills/resolve-issues/SKILL.md` - NEW: skill for resolving issue IDs from branch name or user input
+  - `core/components/skills/resolve-issues/templates/` - NEW: templates directory for resolve-issues skill
+  - `core/components/memory/standards/templates/intent-schema.yaml` - NEW: LTM canonical schema for intent.yaml files
+  - `core/components/memory/workflows/direct-generation.yaml` - NEW: workflow template for direct-generation recipe pattern
+  - `core/components/memory/workflows/readiness-brief-generation.yaml` - NEW: workflow template for readiness-brief-generation recipe pattern
+  - `core/components/memory/workflows/readiness-only.yaml` - NEW: workflow template for readiness-only recipe pattern
+  - `.claude/specs/idsd/idsd-tasks.md` - Bumped to v2.2.0, added Architecture Change Notice for Four Crafts, updated priority status table
+  - `.claude/specs/idsd/idsd.md` - Bumped to v2.2.0, added Progress Tracker section with Architecture Change Notice, Priority Status table, Component Inventory, Dependency Blockers
+
+### Group 2: STM artifacts — chore(stm)
+
+- **Issue**: #85, #91, #95 (operational artifacts — not feature code)
+- **Type**: chore
+- **Scope**: stm
+- **Subject**: persist STM evidence and checkpoint artifacts from issues 85, 91, 95, and recipe-creation sessions
+- **Confidence**: high
+- **Files**:
+  - `.meridian/85/checkpoint/create-pr/20260305-095534.md` - Checkpoint artifact for issue #85 create-pr
+  - `.meridian/85/evidence/commit-code/20260305-095200.md` - Evidence artifact for issue #85 commit-code
+  - `.meridian/85/evidence/create-pr/20260305-095700.md` - Evidence artifact for issue #85 create-pr
+  - `.meridian/91/checkpoint/commit-code/20260305-095305.md` - Checkpoint artifact for issue #91 commit-code
+  - `.meridian/91/checkpoint/create-pr/20260305-095555.md` - Checkpoint artifact for issue #91 create-pr
+  - `.meridian/91/checkpoint/ship/20260305-095059.md` - Checkpoint artifact for issue #91 ship
+  - `.meridian/91/evidence/commit-code/20260305-095335.md` - Evidence artifact for issue #91 commit-code
+  - `.meridian/91/evidence/ship/20260305-095059.md` - Evidence artifact for issue #91 ship
+  - `.meridian/95/` - STM working directory for issue #95 (spec, dag, design, delivery, evidence subdirs)
+  - `.meridian/recipe-creation/commit-code/` - STM artifacts from recipe-creation session
+
+### Group 3: Spec artifacts — chore(specs)
+
+- **Issue**: UNKNOWN — no issue number in path `.claude/specs/docs-four-crafts/`
+- **Type**: chore
+- **Scope**: specs
+- **Subject**: persist docs-four-crafts spec artifacts (audit docs, dag, evals, skill-manifest)
+- **Confidence**: low — no issue number resolvable from path; contains eval-report, agent audits, dag.json, scenario-evals, skill-manifest, step-evals
+- **Files**:
+  - `.claude/specs/docs-four-crafts/eval-report.md` - Evaluation report for docs-four-crafts spec
+  - `.claude/specs/docs-four-crafts/agent-audit-project-orchestrator.md` - Agent audit artifact
+  - `.claude/specs/docs-four-crafts/agent-audit-repo-orchestrator.md` - Agent audit artifact
+  - `.claude/specs/docs-four-crafts/dag.json` - Task DAG for docs-four-crafts spec
+  - `.claude/specs/docs-four-crafts/scenario-evals.yaml` - Scenario evaluations
+  - `.claude/specs/docs-four-crafts/skill-manifest.yaml` - Skill manifest
+  - `.claude/specs/docs-four-crafts/step-evals-resolve-issues.yaml` - Step evaluations for resolve-issues
+  - `.claude/specs/docs-four-crafts/evidence/` - Evidence directory for the spec
+
+## Risks Detected
+
+- **sensitive_files**: []
+- **breaking_changes**:
+  - `core/components/recipes/commit-code/SKILL.md` — recipe contract interface changed from prose-step to JSON contract; agents consuming this recipe must update their invocation pattern
+  - `core/components/recipes/commit-code/reference/intent.yaml` — constraint IDs renumbered and restructured; any tooling or agents referencing old C3–C8 behavioral IDs will find them remapped to C1–C6
+  - 3 template files deleted — any recipe or agent that references `approval-prompt.md`, `checkpoint.md`, or `commit-summary.md` by path will break
+- **ambiguous_types**:
+  - Group 1: dominant type is `refactor` (restructuring existing recipe/agent architecture without changing external behavior) but includes new component additions (`feat` signal). Decision: `refactor` is correct — the primary change is restructuring the contract pattern, not introducing a net-new feature.
+- **hotfix_branch**: false
+- **unresolved_issue_mapping**:
+  - Group 3 (`.claude/specs/docs-four-crafts/`): no issue number detectable — recipe must resolve or exclude before committing

@@ -1,0 +1,30 @@
+---
+# commit-code recipe: create-commits skill output
+# Agent: repo-orchestrator
+# Skill: create-commit
+# Generated: 2026-03-06
+
+issue: 95
+branch: feature/95-intent-driven-recipe-architecture
+stm_base: ".meridian/project/issues/"
+
+commit:
+  hash: "4d452a5"
+  type: "refactor"
+  scope: "commit-code"
+  subject: "add push-branch stage and C7 constraint"
+  issue: 95
+  message: "refactor(commit-code): add push-branch stage and C7 constraint (#95)"
+  files:
+    - core/components/recipes/commit-code/reference/intent.yaml
+    - core/components/recipes/commit-code/SKILL.md
+    - .meridian/95/dag/commit-code.json
+
+validation:
+  clean_tree: true
+  conventional_format: true
+  staged_all_specified: true
+  no_extra_files: true
+
+status: success
+reason: "Single group G1 committed atomically. All constraint checks passed (C1-C6, F1-F4). No sensitive files. Commit follows conventional format with issue reference."

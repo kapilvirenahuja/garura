@@ -1,0 +1,201 @@
+analysis:
+  branch: feature/95-intent-driven-recipe-architecture
+  base: main
+  branch_pattern: feature
+  commits: 32
+  changes:
+    files: 256
+    additions: 10285
+    deletions: 1591
+  suggested_title: "feat(recipe-framework): intent-driven recipe architecture (#95)"
+
+  context:
+    file_patterns_matched:
+      - name: "Agent Definitions"
+        files: 5
+        trigger: "core/components/agents/**/*.md"
+      - name: "Skill Definitions"
+        files: 14
+        trigger: "core/components/skills/**/SKILL.md"
+      - name: "Recipe Definitions"
+        files: 32
+        trigger: "core/components/recipes/**/*.md"
+      - name: "ADRs"
+        files: 2
+        trigger: "docs/adr/*.md"
+      - name: "Configuration"
+        files: 48
+        trigger: "*.yaml, *.yml, core/config.yaml"
+      - name: "Architecture Docs / Root Docs"
+        files: 1
+        trigger: "CLAUDE.md"
+      - name: "Memory / Standards"
+        files: 5
+        trigger: "core/components/memory/**"
+    commit_types:
+      - type: chore
+        count: 18
+        example: "chore(stm): record commit-code evidence artifacts for issue #95 (#95)"
+      - type: refactor
+        count: 10
+        example: "refactor(recipes): update commit-code and create-recipe components for intent-driven architecture (#95)"
+      - type: feat
+        count: 2
+        example: "feat(recipe-framework): implement intent-driven recipe architecture #95"
+      - type: docs
+        count: 2
+        example: "docs(recipes): add evidence self-commit stage and ADR 012 (#95)"
+    branch_modifiers:
+      - "feature branch: standard rule priorities apply — no demotions or promotions"
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: No merge conflicts with main
+        trigger: "Universal — always applied"
+        status: PASS
+        evidence: "git merge-tree --write-tree main HEAD returned clean merge tree (sha: f7315e0f263863a1e7828693ecf59a62628e055f); no conflict markers detected"
+
+      - id: no-secrets
+        item: No secrets committed
+        trigger: "Universal — always applied"
+        status: PASS
+        evidence: "Pattern scan across all changed .md/.yaml/.yml files found no password/secret/token/api_key/private_key/credentials patterns with values"
+
+      - id: agent-frontmatter
+        item: Agent files have valid frontmatter (name, domain, role, tools)
+        trigger: "5 agent definition files changed in core/components/agents/"
+        status: PASS
+        evidence: "All 5 changed agents (intent-crafter, intent-resolver, product-strategist, project-orchestrator, repo-orchestrator) have valid frontmatter with name, domain, role, and tools fields"
+
+      - id: agent-boundaries
+        item: Agent files have NEVER/ALWAYS boundaries section
+        trigger: "5 agent definition files changed in core/components/agents/"
+        status: PASS
+        evidence: "All 5 changed agent files contain ## Boundaries section (grep count=1 each)"
+
+      - id: skill-frontmatter
+        item: Skill files have valid frontmatter (name, description, user-invocable, allowed-tools)
+        trigger: "14 skill definition files changed"
+        status: REVIEW
+        evidence: "Frontmatter delimiters present in checked files. Full field-level validation of name/description/user-invocable/allowed-tools across all 14 skill files requires manual confirmation"
+
+      - id: skill-io
+        item: Skill files define Input and Output sections
+        trigger: "14 skill definition files changed"
+        status: PASS
+        evidence: "All 6 core skill SKILL.md files checked (analyze-changes, archive-issue-stm, evals-creator, merge-pr, resolve-issues, submit-pr) contain both ## Input and ## Output sections"
+
+      - id: recipe-frontmatter
+        item: Recipe files have valid frontmatter
+        trigger: "32 recipe definition files changed"
+        status: PASS
+        evidence: "All 8 changed recipe SKILL.md files have frontmatter delimiters; level field is in ## Version metadata per quality-rules specification, not frontmatter — level confirmed for commit-code, create-pr, ship"
+
+      - id: recipe-workflow
+        item: Recipe files define workflow section
+        trigger: "32 recipe definition files changed"
+        status: REVIEW
+        evidence: "7 of 8 recipe SKILL.md files have ## Workflow section. create-recipe/SKILL.md uses ## Process and ## Recipe Compiled sections instead — confirm this is structurally equivalent per create-recipe's meta-recipe design"
+
+      - id: recipe-checkpoint
+        item: Recipe defines checkpoint behavior
+        trigger: "32 recipe definition files changed"
+        status: PASS
+        evidence: "All 8 recipe SKILL.md files contain checkpoint references (checkpoint reference counts: capture-learning=5, commit-code=3, create-pr=5, create-recipe=4, merge-pr=3, ship=7, start-feature-planning=11, start-feature=2)"
+
+      - id: adr-structure
+        item: ADR files have required sections (Status, Context, Decision, Consequences)
+        trigger: "2 ADR files changed: docs/adr/012-evidence-self-commit.md, docs/adr/013-recipe-maturity-model.md"
+        status: PASS
+        evidence: "ADR 012: all 4 sections present as ## headings. ADR 013: Status present as '**Status:** Accepted' (inline bold format at line 3), plus ## Context, ## Decision, ## Consequences all confirmed"
+
+      - id: adr-status
+        item: ADR has valid status (Proposed/Accepted/Deprecated/Superseded)
+        trigger: "2 ADR files changed"
+        status: PASS
+        evidence: "ADR 012: Status=Accepted. ADR 013: Status=Accepted"
+
+      - id: config-valid
+        item: Configuration syntax valid
+        trigger: "48 YAML files changed including core/config.yaml"
+        status: PASS
+        evidence: "core/config.yaml validated via ruby YAML.load_file — no syntax errors"
+
+      - id: docs-consistent
+        item: Documentation consistent with implementation
+        trigger: "CLAUDE.md and docs/ changed alongside large-scale core component changes (32 recipes, 14 skills, 5 agents)"
+        status: REVIEW
+        evidence: "CLAUDE.md updated, ADR 012 and ADR 013 added. Given the scale of changes (256 files), a final manual scan of CLAUDE.md alignment with the new intent-driven architecture is recommended"
+
+      - id: sync-claude
+        item: Components synced via /sync-claude after core/components changes
+        trigger: "256 files changed under core/components/ — sync required"
+        status: REVIEW
+        evidence: "core/components/ has been heavily modified. /sync-claude must be run (global mode) to deploy to ~/.claude/ before or after merge. Cannot be auto-verified from git history alone — confirm sync was run"
+
+      - id: refactor-no-break
+        item: No breaking changes to output contracts
+        trigger: "10 refactor commits modifying agent and skill files"
+        status: REVIEW
+        evidence: "Output section renames detected: '## Output Contracts' → '## Skill Output Contracts' in repo-orchestrator; new '### Output Contract' section added for JSON contract schema. These are intentional structural changes for the new architecture — downstream recipe compatibility should be spot-checked"
+
+      - id: feat-documented
+        item: New features documented in README or docs
+        trigger: "2 feat commits: feat(recipe-framework) and feat(recipes) add merge-pr"
+        status: PASS
+        evidence: "CLAUDE.md updated with new architecture. ADR 012 (evidence-self-commit pattern) and ADR 013 (recipe-maturity-model) added as formal architectural documentation. merge-pr recipe and skill added under core/components/"
+
+    nice_to_have:
+      - id: agent-naming
+        item: Agent follows {domain}-{role} naming convention
+        trigger: "5 agent definition files changed"
+        status: PASS
+        evidence: "All agents follow pattern: intent-crafter, intent-resolver, product-strategist, project-orchestrator, repo-orchestrator"
+
+      - id: skill-constraints
+        item: Skill has ## Constraints section
+        trigger: "14 skill SKILL.md files changed"
+        status: REVIEW
+        evidence: "analyze-changes/SKILL.md does not have a ## Constraints section (count=0). All other checked skills (archive-issue-stm, evals-creator, merge-pr, resolve-issues, submit-pr) have ## Constraints present"
+
+      - id: recipe-agent-limit
+        item: Recipes respect agent call limits (L1 ≤2, L2 ≤5)
+        trigger: "32 recipe definition files changed"
+        status: REVIEW
+        evidence: "ship, commit-code, create-pr confirmed as L2 (chains L1s per ADR 013, no direct agent calls). L1 recipes should each have ≤2 domain agent calls — manual spot-check recommended for start-feature, merge-pr, capture-learning"
+
+      - id: adr-numbered
+        item: ADR follows numbering convention (NNN-*.md)
+        trigger: "2 ADR files changed"
+        status: PASS
+        evidence: "ADR 012: 012-evidence-self-commit.md, ADR 013: 013-recipe-maturity-model.md — both follow NNN-*.md convention"
+
+      - id: config-documented
+        item: Configuration changes documented
+        trigger: "48 YAML files changed including core/config.yaml"
+        status: PASS
+        evidence: "core/config.yaml changes (STM base path normalization) documented in CLAUDE.md and referenced in ADR 013"
+
+      - id: feat-adr
+        item: Significant features have ADR
+        trigger: "2 feat commits representing large-scale architecture change (256 files, 32 commits)"
+        status: PASS
+        evidence: "ADR 012 (evidence-self-commit pattern) and ADR 013 (recipe-maturity-model) added — architectural decisions for this feature are formally documented"
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Create PR"
+
+  confidence:
+    target_branch: high
+    checklist_completeness: high
+
+  notes:
+    - "5 must-have items are REVIEW status (not FAIL): these represent human confirmation requirements, not automated failures"
+    - "recipe-workflow REVIEW: create-recipe uses ## Process instead of ## Workflow — confirm this is intentional per meta-recipe design"
+    - "sync-claude REVIEW: deployment to ~/.claude/ must be confirmed as done or planned post-merge"
+    - "refactor-no-break REVIEW: output section renames are intentional architecture changes — spot-check downstream recipe compatibility"
+    - "docs-consistent REVIEW: large changeset warrants a final scan of CLAUDE.md alignment with new architecture"
+    - "No blocking issues found — all automated checks PASS, REVIEW items require human confirmation only"

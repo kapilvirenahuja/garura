@@ -1,0 +1,129 @@
+step_evals:
+  - id: SE-1
+    failure_condition_id: F1
+    skill: scope-roadmap-epics
+    check: epic_count in output contract is >= 3 and <= 6
+    artifact_pattern: ".meridian/project/product/{slug}/epics.yaml"
+    pass_criteria: epics.yaml contains between 3 and 6 top-level epic entries
+    fail_criteria: epics.yaml contains fewer than 3 or more than 6 epic entries
+
+  - id: SE-2
+    failure_condition_id: F1
+    skill: draft-roadmap
+    check: Epic Index table in roadmap.md has between 3 and 6 rows
+    artifact_pattern: ".meridian/project/product/{slug}/roadmap.md"
+    pass_criteria: Epic Index table has 3-6 rows, each with a distinct epic ID
+    fail_criteria: Epic Index table has fewer than 3 or more than 6 rows
+
+  - id: SE-3
+    failure_condition_id: F2
+    skill: scope-roadmap-epics
+    check: Every epic in epics.yaml has a strategic_goal field that matches a goal named in vision.md
+    artifact_pattern: ".meridian/project/product/{slug}/epics.yaml"
+    pass_criteria: Every epic's strategic_goal value appears verbatim in the vision.md Strategic Goals section
+    fail_criteria: At least one epic's strategic_goal value does not match any named goal in vision.md
+
+  - id: SE-4
+    failure_condition_id: F2
+    skill: draft-roadmap
+    check: Every epic section in roadmap.md traces to a named strategic goal
+    artifact_pattern: ".meridian/project/product/{slug}/roadmap.md"
+    pass_criteria: Each epic entry in the Epic Index table has a non-empty strategic goal reference that matches vision.md
+    fail_criteria: At least one epic has an empty or unmatched strategic goal reference
+
+  - id: SE-5
+    failure_condition_id: F3
+    skill: scope-roadmap-epics
+    check: Every epic in epics.yaml has all four IDD fields present and non-empty
+    artifact_pattern: ".meridian/project/product/{slug}/epics.yaml"
+    pass_criteria: Every epic has intent (p1, p2, p3), constraints (in_scope, out_of_scope, must_not_break), success_scenarios (minimum 2 entries with given/when/then), failure_conditions (2-4 entries)
+    fail_criteria: At least one epic is missing intent, constraints, success_scenarios, or failure_conditions, or has fewer than 2 success scenarios, or has fewer than 2 or more than 4 failure conditions
+
+  - id: SE-6
+    failure_condition_id: F3
+    skill: draft-roadmap
+    check: Every epic section in roadmap.md has all four IDD section headers with non-empty content
+    artifact_pattern: ".meridian/project/product/{slug}/roadmap.md"
+    pass_criteria: Every epic has ### Intent, ### Constraints, ### Acceptance Scenarios (min 2 entries), ### Failure Conditions (2-4 entries) sections with content
+    fail_criteria: At least one epic section is missing an IDD header or has empty content under any IDD header
+
+  - id: SE-7
+    failure_condition_id: F4
+    skill: draft-roadmap-brief
+    check: c_brief_2_pass field in skill output contract is true
+    artifact_pattern: ".meridian/project/product/{slug}/brief-*.html"
+    pass_criteria: Skill output contract field c_brief_2_pass is true and c_brief_2_violations is an empty list
+    fail_criteria: c_brief_2_pass is false or c_brief_2_violations contains at least one entry
+
+  - id: SE-8
+    failure_condition_id: F5
+    skill: draft-roadmap
+    check: roadmap.md frontmatter contains approved_brief field with a non-null, existing file path
+    artifact_pattern: ".meridian/project/product/{slug}/roadmap.md"
+    pass_criteria: roadmap.md frontmatter has approved_brief pointing to an existing brief artifact
+    fail_criteria: roadmap.md frontmatter is missing approved_brief or the referenced brief file does not exist
+
+  - id: SE-9
+    failure_condition_id: F6
+    skill: generate-engineering-view
+    check: roadmap-engineering.md exists, has the same epic count as roadmap.md, and contains no business context language
+    artifact_pattern: ".meridian/project/product/{slug}/roadmap-engineering.md"
+    pass_criteria: File exists; epic_count in output contract matches roadmap epic count; file contains no phrases from the set [value statement, revenue, market size, customer problem, user persona, competitive]
+    fail_criteria: File missing, epic count less than roadmap epic count, or file contains any business context terminology
+
+  - id: SE-10
+    failure_condition_id: F7
+    skill: draft-roadmap
+    check: IDD section content in roadmap.md matches the corresponding IDD content in the approved brief artifact
+    artifact_pattern: ".meridian/project/product/{slug}/roadmap.md"
+    pass_criteria: For every epic, the Intent, Constraints, Acceptance Scenarios, and Failure Conditions sections in roadmap.md are verbatim copies of the corresponding fields in the approved brief HTML
+    fail_criteria: Any IDD section content in roadmap.md differs from the approved brief for the same epic
+
+  - id: SE-11
+    failure_condition_id: C2_C3_C10
+    skill: draft-roadmap-brief
+    check: Brief HTML file uses tab-based layout (C2), contains Blockers section with at least 1 entry (C3), and includes interactive feedback mechanism (C10)
+    artifact_pattern: ".meridian/project/product/{slug}/brief-*.html"
+    pass_criteria: File has .html extension, contains <html> tag, has tab navigation with tabs for exec-summary/decisions/epics/timeline/assumptions, Blockers section has at least 1 entry, and feedback panel with textarea fields is present
+    fail_criteria: File is not HTML, missing any required tab, Blockers section has fewer than 1 entry, or feedback panel is absent
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Product Manager
+    artifact_pattern: ".meridian/project/product/{slug}/roadmap.md"
+    check: Every epic in roadmap.md has non-empty Intent, Constraints, and Acceptance Scenarios sections that stand alone without additional context
+    pass_criteria: Each epic's ### Intent section has 3 paragraphs, ### Constraints has all three sub-fields (in-scope, out-of-scope, must-not-break), and ### Acceptance Scenarios has at least 2 given/when/then entries — all self-contained
+    fail_criteria: At least one epic is missing any of these three sections, or a section requires referencing another document to be understood
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Product Owner
+    artifact_pattern: ".meridian/project/product/{slug}/roadmap.md"
+    check: Every epic's success scenarios and failure conditions in roadmap.md are in binary-testable format suitable for backlog items
+    pass_criteria: Every success scenario follows given/when/then format; every failure condition is an observable output state (not a process event); minimum 2 success scenarios and 2 failure conditions per epic
+    fail_criteria: At least one success scenario is not in given/when/then format, at least one failure condition describes a process event rather than an observable state, or any epic has fewer than 2 entries in either field
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: Engineering Lead
+    artifact_pattern: ".meridian/project/product/{slug}/roadmap-engineering.md"
+    check: Engineering view has populated Dependency Sequence and Technical Risks sections with per-epic entries
+    pass_criteria: Dependency Sequence section exists and lists blocked/blocking relationships for each epic; Technical Risks section exists and has at least one entry per epic with risk, severity, and affected systems
+    fail_criteria: Either section is missing or empty, or at least one epic has no entry in either section
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Stakeholder
+    artifact_pattern: ".meridian/project/product/{slug}/brief-*.html"
+    check: Brief passes the 30-minute review constraint, contains Blockers section, and includes interactive feedback mechanism for inline review
+    pass_criteria: Blockers section has at least 1 entry identifying an item that must be resolved; feedback panel is present with textarea fields for inline review
+    fail_criteria: Blockers section is empty, or feedback panel is missing or has no textarea fields
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: Technical Architect
+    artifact_pattern: ".meridian/project/product/{slug}/feasibility.yaml"
+    check: Feasibility assessment has Architecture Impact and open_questions sections populated per epic
+    pass_criteria: Every epic entry in feasibility.yaml has a non-empty architecture_impact field; the open_questions list is present; summary includes foundation_epics list
+    fail_criteria: Any epic is missing architecture_impact, open_questions key is absent, or the summary section is missing

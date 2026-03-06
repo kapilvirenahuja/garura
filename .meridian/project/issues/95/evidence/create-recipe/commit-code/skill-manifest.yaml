@@ -1,0 +1,11 @@
+recipe: "commit-code"
+existing_skills:
+  - name: "analyze-changes"
+    path: "core/components/skills/analyze-changes/SKILL.md"
+  - name: "create-commit"
+    path: "core/components/skills/create-commit/SKILL.md"
+  - name: "manage-issue"
+    path: "core/components/skills/manage-issue/SKILL.md"
+  - name: "resolve-issues"
+    path: "core/components/skills/resolve-issues/SKILL.md"
+new_skills: []

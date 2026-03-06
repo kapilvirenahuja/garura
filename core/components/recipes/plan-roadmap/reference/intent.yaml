@@ -1,37 +1,134 @@
 name: plan-roadmap
-goal: "Prepare a roadmap"
+intent: >
+  Produce a time-phased product roadmap from a locked product vision.
+  The output set includes: scoped epics with full IDD fields,
+  a technical feasibility assessment, a human-reviewable brief,
+  an approved full roadmap, and an engineering-facing view.
+  All epics trace to strategic goals from the vision.
+  The brief must pass human review before the roadmap is finalized.
 
 constraints:
-  - id: C-TEMPLATE
-    rule: "Follow the roadmap brief template"
+  - id: C1
+    rule: >
+      Vision must have LOCKED status before any roadmap planning begins.
+      No artifacts may be produced from an unlocked vision.
+  - id: C2
+    rule: >
+      The roadmap brief must use a tab-based layout with the following
+      tabs: Exec Summary, Decisions, Epics (with sub-tabs per epic),
+      Timeline, Assumptions. A separate "Blockers" section surfaces
+      items that must be resolved before proceeding. There is no
+      "What We're Not Doing" section — epic constraints already define
+      scope boundaries. The brief must follow the standard roadmap brief
+      template defined in LTM.
     template_ref: "standards/templates/roadmap-brief.html"
-  - id: C-LOCKED
-    rule: "Vision must be locked before roadmap planning"
-  - id: C-BRIEF-REVIEW
-    rule: "Brief must be reviewable in 30 minutes"
-  - id: C-TECH-RELEVANCE
-    rule: "Technical elements only if they change a roadmap decision"
+  - id: C3
+    rule: >
+      The roadmap brief must be reviewable by a stakeholder within
+      30 minutes. No element is included unless a reviewer can act on it
+      within that session. The Blockers section must contain at least
+      1 entry — a brief with zero blockers indicates insufficient
+      critical analysis.
+  - id: C4
+    rule: >
+      Technical elements appear only if they change a roadmap decision —
+      sequencing, priority, or timing. Implementation details, NFR targets,
+      and code-level concerns are excluded.
+  - id: C5
+    rule: >
+      The roadmap contains between 3 and 6 epics inclusive.
+      Fewer than 3 indicates insufficient vision detail.
+      More than 6 indicates insufficient scoping.
+  - id: C6
+    rule: >
+      Every epic must have complete IDD fields: intent (problem, outcome,
+      strategic connection), constraints (in-scope, out-of-scope,
+      must-not-break), success scenarios (minimum 2, given/when/then),
+      and failure conditions (2-4 observable outcomes).
+  - id: C7
+    rule: >
+      Every epic must trace to a named strategic goal from the locked vision.
+      No orphan epics.
+  - id: C8
+    rule: >
+      The full roadmap must not be produced until the brief has received
+      explicit human approval. The brief gates the roadmap.
+  - id: C9
+    rule: >
+      IDD content in the final roadmap must be transcribed verbatim from the
+      approved brief. No regeneration or paraphrasing of intent, constraints,
+      scenarios, or failure conditions.
+  - id: C10
+    rule: >
+      The roadmap brief must include an interactive feedback mechanism —
+      textarea fields, comment inputs, or equivalent — embedded in the HTML
+      document. The reviewer must be able to enter feedback directly in the
+      brief without switching to the terminal or any external tool.
 
 failure_conditions:
-  - "Fewer than 3 epics"
-  - "Roadmap is not internally consistent (epics don't trace to strategic goals)"
-  - "User rejects the brief"
-  - "Brief includes technical detail that doesn't change a decision"
+  - id: F1
+    condition: >
+      Fewer than 3 epics in the final roadmap.
+  - id: F2
+    condition: >
+      Any epic in the roadmap does not trace to a strategic goal
+      from the locked vision.
+  - id: F3
+    condition: >
+      Any epic is missing one or more IDD fields (intent, constraints,
+      success scenarios, or failure conditions).
+  - id: F4
+    condition: >
+      The brief contains technical detail that does not influence
+      a sequencing, priority, or timing decision.
+  - id: F5
+    condition: >
+      The final roadmap was produced without a corresponding
+      approved brief artifact.
+  - id: F6
+    condition: >
+      The engineering view is missing, has fewer epics than the
+      roadmap, or contains business context (value statements,
+      revenue projections, market context).
+  - id: F7
+    condition: >
+      The roadmap contains IDD content that differs from the
+      approved brief — indicating regeneration rather than
+      verbatim transcription.
 
 scenarios:
   - id: S1
-    persona: "Product Manager"
-    given: "Approved roadmap brief"
-    then: "Can clearly describe each epic's intent, constraints, and success criteria"
+    persona: Product Manager
+    given: Approved roadmap brief and full roadmap
+    then: >
+      Can clearly describe each epic's intent, constraints, and
+      success criteria to stakeholders without additional research.
   - id: S2
-    persona: "Product Owner"
-    given: "Approved roadmap"
-    then: "Can break epics into backlog items with clear acceptance criteria"
+    persona: Product Owner
+    given: Full roadmap with scoped epics
+    then: >
+      Can break every epic into backlog items with clear acceptance
+      criteria derived from the epic's success scenarios and
+      failure conditions.
   - id: S3
-    persona: "Engineering Lead"
-    given: "Engineering view"
-    then: "Can identify technical dependencies and sequence work across teams"
+    persona: Engineering Lead
+    given: Engineering view and feasibility assessment
+    then: >
+      Can identify technical dependencies, risk levels, and
+      blockers across all epics, and sequence engineering work
+      accordingly.
   - id: S4
-    persona: "Stakeholder"
-    given: "Roadmap brief"
-    then: "Can review and give meaningful feedback within 30 minutes"
+    persona: Stakeholder
+    given: Roadmap brief
+    then: >
+      Can review the brief, identify blockers that need resolution,
+      and provide inline feedback directly in the HTML document —
+      approve, reject, or request specific changes — within
+      30 minutes.
+  - id: S5
+    persona: Technical Architect
+    given: Feasibility assessment and engineering view
+    then: >
+      Can identify architecture-impacting epics, shared
+      infrastructure needs, and cross-cutting technical risks
+      that require resolution before implementation begins.

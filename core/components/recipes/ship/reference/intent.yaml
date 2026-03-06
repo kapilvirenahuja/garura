@@ -1,40 +1,77 @@
-intent: "Deliver the current branch's completed work to the main branch — commit, create PR, review, merge, and return to main — with zero-friction autonomous execution"
+intent: >
+  Deliver all uncommitted work on the current feature branch to the main
+  branch in a single automated pipeline: commit all changes, create and
+  submit a pull request, merge the PR, switch to main, pull latest, and
+  delete the feature branch (local and remote). No human approvals at
+  any stage — all decisions auto-proceed regardless of confidence level.
+  The end state is: local checkout on main, main up to date with remote,
+  feature branch gone, and all work reachable from main's history.
 
 constraints:
-  pre_flight:
-    - id: C1
-      check: current branch is NOT main, master, or develop
-      halt_message: "Protected branch — ship cannot run from a protected branch"
-    - id: C2
-      check: git remote is configured
-      halt_message: "No remote configured — ship requires a remote to push to"
-    - id: C3
-      check: issue number is extractable from branch name (NWWI)
-      halt_message: "No issue number extractable from branch name — ship requires traceability to a GitHub issue"
-
-  behavioral:
-    - id: C4
-      rule: "Orchestrator MUST delegate domain tasks to agents; no direct git/gh execution by the orchestrator"
-    - id: C5
-      rule: "Maximum 5 distinct agents (L2 limit); this recipe uses exactly 2 (repo-orchestrator, project-orchestrator via commit-code L1)"
-    - id: C6
-      rule: "Guardian logic is INLINE in SKILL.md — no dependency on a workflow-guardian agent (which does not exist in the codebase)"
-    - id: C7
-      rule: "Self-resolution CANNOT change code or documentation; CAN retry operations, create GitHub issues, adjust PR metadata, rebase, delete/recreate branches"
-    - id: C8
-      rule: "Evidence written to .meridian/{issue}/evidence/ship/{YYYYMMDD-HHMMSS}.md per config.yaml STM structure"
-    - id: C9
-      rule: "Auto-approve is default; halt only on genuine blockers: merge conflicts, CI failures, protected branch violations, blocker-severity review findings (must_have.status == FAIL)"
-    - id: C10
-      rule: "Guardian evaluates inline after each consequential step; does NOT prompt the user unless a blocker is detected"
-    - id: C11
-      rule: "Skip steps whose preconditions are already satisfied: no uncommitted changes skips step 1; PR already exists skips step 2"
+  - id: C1
+    rule: >
+      Must not run when the current branch is main, master, or the
+      repository's default branch.
+  - id: C2
+    rule: >
+      All chained operations execute without human approval gates,
+      including operations that would normally require confirmation
+      at low confidence.
+  - id: C3
+    rule: >
+      Merge strategy uses the repository's configured default. No
+      override to squash, rebase, or any specific strategy.
+  - id: C4
+    rule: >
+      If the local main branch is behind the remote, it must be
+      updated from remote before any merge occurs.
+  - id: C5
+    rule: >
+      The feature branch (local and remote) must be deleted after
+      the merge is confirmed on main.
+  - id: C6
+    rule: >
+      Merge conflicts are never auto-resolved. Any conflict is a
+      hard stop.
 
 failure_conditions:
-  - "F1: Current branch is a protected branch — hard halt (pre-flight C1)"
-  - "F2: No git remote configured — hard halt (pre-flight C2)"
-  - "F3: No issue number extractable from branch name — hard halt (pre-flight C3)"
-  - "F4: Merge conflicts that cannot be auto-resolved — halt, create tracking issue"
-  - "F5: PR review finds blocker-severity quality items (must_have.status == FAIL) — halt, present to user"
-  - "F6: Merge fails after max retry attempts — halt, create tracking issue"
-  - "F7: User explicitly cancels at a guardian-halted checkpoint (Vanish)"
+  - id: F1
+    condition: >
+      The pipeline completes but the feature branch (local or remote)
+      still exists.
+  - id: F2
+    condition: >
+      Merge conflicts exist between the feature branch and main.
+  - id: F3
+    condition: >
+      After completion, the local checkout is not on main or main
+      is not up to date with the remote.
+  - id: F4
+    condition: >
+      Any commit produced during the pipeline references the wrong
+      issue or has no issue reference.
+  - id: F5
+    condition: >
+      The pull request has no linked issue or targets the wrong branch.
+  - id: F6
+    condition: >
+      Uncommitted work remains on the feature branch at the point
+      the merge is attempted.
+
+scenarios:
+  - id: S1
+    persona: Developer
+    given: >
+      The main branch after ship completes
+    then: >
+      Can verify all feature work is in main's history, the feature
+      branch is gone, and main is current with remote — ready to
+      start the next feature immediately.
+  - id: S2
+    persona: Code Reviewer
+    given: >
+      The merged pull request on the git platform
+    then: >
+      Can trace the shipped work back to its originating issue,
+      review the quality checklist and evidence, and confirm the
+      merge landed on main.

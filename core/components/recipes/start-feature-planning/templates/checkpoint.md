@@ -33,9 +33,9 @@
 ## Planning Artifacts
 | Artifact | Path |
 |----------|------|
-| Specification | `.meridian/{issue}/planning/spec.md` |
-| Verification | `.meridian/{issue}/planning/verify.md` |
-| Task Breakdown | `.meridian/{issue}/planning/tasks.md` |
+| Specification | `{stm_base}/{issue}/planning/spec.md` |
+| Verification | `{stm_base}/{issue}/planning/verify.md` |
+| Task Breakdown | `{stm_base}/{issue}/planning/tasks.md` |
 
 ## Decision
 - **Approval Status:** {PENDING|APPROVED|REJECTED}

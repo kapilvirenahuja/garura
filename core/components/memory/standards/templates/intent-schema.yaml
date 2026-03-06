@@ -1,0 +1,41 @@
+# Intent Schema — Canonical Contract
+# This is the schema that intent-crafter produces and intent-resolver consumes.
+# Any recipe can serve an intent. Intent says nothing about execution.
+
+intent: <string>                       # What the user wants — goal + expected outputs
+                                       # Implementation-agnostic. No recipe, agent, or skill names.
+
+constraints:                           # Boundaries on acceptable output/behavior
+  - id: <string>                       # Unique ID (C1, C2, ...)
+    rule: <string>                     # A falsifiable boundary statement
+
+failure_conditions:                    # Observable states in the output that constitute failure
+  - id: <string>                       # Unique ID (F1, F2, ...)
+    condition: <string>                # A state observable in artifacts — not an event
+
+scenarios:                             # E2E acceptance — what personas can DO with the output
+  - id: <string>                       # Unique ID (S1, S2, ...)
+    persona: <string>                  # A human role who consumes the output
+    given: <string>                    # An artifact they receive
+    then: <string>                     # What they can do with it — an outcome, not a process
+
+# Crafting Principles (quality gate for authoring)
+#
+# Constraints:
+#   - Defines a boundary, not a method
+#   - Is falsifiable — you can observe violation
+#   - Is independent of implementation — no agent, skill, or tool names
+#   - References artifacts or states, not steps
+#   - Fewer is better — each narrows the solution space
+#
+# Failure Conditions:
+#   - Observable in the output — look at artifacts, determine pass/fail
+#   - Describes a state, not an event
+#   - Severity-agnostic — resolver decides halt vs warn
+#   - Traceable to the intent
+#
+# Scenarios:
+#   - Has a persona who consumes output — human role, not a system actor
+#   - Describes an outcome, not a process
+#   - given = artifact they receive, then = what they can do with it
+#   - End-to-end acceptance — validates whole workflow output, not a single step

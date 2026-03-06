@@ -31,7 +31,7 @@ Receive from agent:
 
 3. **Check for existing vision:** Read path. If LOCKED, return structured failure: "Vision is LOCKED — drop to DRAFT first." If DRAFT exists, overwrite (user re-triggered DRAFT).
 
-4. **Compose vision document:** Using `templates/vision.md`. Populate each section from `market_context`:
+4. **Compose vision document:** Load template from LTM at `standards/templates/product-vision.md`. Populate each section from `market_context`:
    - Problem Statement: from `market_context.problem`
    - Target Users: from `market_context.target_users` (render as persona cards)
    - Value Proposition: synthesize from differentiators and user frustrations
@@ -67,7 +67,8 @@ vision:
 
 ## Reference
 
-Load template from: `templates/vision.md`
+Load template from LTM: `standards/templates/product-vision.md`
+The template defines the exact section structure, placeholder syntax, and rendering rules. Follow it precisely — the output must match the template structure.
 
 ## Constraints
 

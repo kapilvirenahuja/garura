@@ -78,7 +78,7 @@ When you receive a JSON contract from the recipe orchestrator:
 2. **Identify what to handle.** Look at `stm` paths in the contract — what's null (missing)? Based on the goal + your domain + what's missing, determine what you should produce. Use your Intent → Skill Mapping table below to select skills.
 3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
 4. **Collect context from LTM.** Search `~/.meridian/core/memory/` for domain-relevant content:
-   - Standards and templates referenced by intent constraints (e.g., `C-TEMPLATE.template_ref`)
+   - Standards and templates referenced by intent constraints (e.g., constraint with `template_ref` field)
    - Schemas needed by skills (e.g., `standards/templates/epic-schema.md` for scope-roadmap-epics)
    - Domain knowledge relevant to the product vertical
    Pass discovered LTM paths to skills as input — skills should NOT search LTM themselves.
@@ -234,7 +234,7 @@ Read from `.meridian/project/product/` if exists:
 
 ### Step 7: Check Tech Context
 
-Read `.meridian/{issue}/design/` if exists for technical design artifacts. If found, extract relevant constraints (platform decisions, feasibility flags, known hard problems). If not found, flag "no technical feasibility context available" as an assumption in the output — do not silently ignore the gap.
+Read `{stm_base}/{issue}/design/` if exists for technical design artifacts. If found, extract relevant constraints (platform decisions, feasibility flags, known hard problems). If not found, flag "no technical feasibility context available" as an assumption in the output — do not silently ignore the gap.
 
 ### Step 8: Inject Context
 
@@ -342,7 +342,7 @@ domain_context:
 
 **Skill-specific notes (apply regardless of invocation mode):**
 - `scope-roadmap-epics`: Skill writes epics to STM file. Do NOT return epics array in memory. Pass `epic_schema_path` from LTM.
-- `draft-roadmap-brief`: Skill reads template from LTM (via `C-TEMPLATE.template_ref`). Pass `epics_path`, `feasibility_path`, `vision_path`, and `template_path` — NOT the data itself.
+- `draft-roadmap-brief`: Skill reads template from LTM (via constraint `C2.template_ref` in intent.yaml). Pass `epics_path`, `feasibility_path`, `vision_path`, and `template_path` — NOT the data itself.
 - `draft-roadmap`: Pass `epics_path`, `feasibility_path`, `approved_brief_path`. Skill writes roadmap.md to STM.
 - `generate-engineering-view`: Pass `roadmap_path`. Skill writes roadmap-engineering.md to STM.
 

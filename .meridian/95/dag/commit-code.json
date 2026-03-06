@@ -1,0 +1,166 @@
+{
+  "recipe": "commit-code",
+  "issue": 95,
+  "intent_hash": "sha256:pending-hash-stages-0-1-complete",
+  "notes": [
+    "Stages 0 and 1 are already complete — DAG starts at Stage 2.",
+    "Stage 2 tasks analyze-changes and fetch-open-issues run in parallel; resolve-issues is blocked by both.",
+    "Stage 3 (draft-brief) and Stage 4 (human-checkpoint) are skippable per workflow template when no human review is needed."
+  ],
+  "tasks": [
+    {
+      "id": "analyze-changes",
+      "stage": 2,
+      "name": "Analyze uncommitted changes",
+      "description": "Invoke the analyze-changes skill to inspect staged, unstaged, and untracked files. Detect sensitive files (C4), identify concern-based groupings for commit batching (F1), flag breaking changes and ambiguous types. Write structured analysis YAML to STM. Validates: C1 (not on protected branch), C2 (changes exist), C4 (no sensitive files).",
+      "owner": "repo-orchestrator",
+      "skills": ["analyze-changes"],
+      "status": "pending",
+      "blockedBy": [],
+      "blocks": ["readiness-eval-1", "readiness-eval-2", "fetch-open-issues"]
+    },
+    {
+      "id": "fetch-open-issues",
+      "stage": 2,
+      "name": "Fetch open issues for issue mapping",
+      "description": "Invoke the manage-issue skill (action: read / list) to retrieve the set of open issues available for commit mapping. Output is written to STM as open-issues.yaml for consumption by resolve-issues. This is a prerequisite for satisfying C3 (every commit must reference an existing issue).",
+      "owner": "project-orchestrator",
+      "skills": ["manage-issue"],
+      "status": "pending",
+      "blockedBy": [],
+      "blocks": ["resolve-issues"]
+    },
+    {
+      "id": "resolve-issues",
+      "stage": 2,
+      "name": "Map change groups to open issues",
+      "description": "Invoke the resolve-issues skill to map each change group (from analyze-changes output) to an existing open issue with confidence scoring. Enforces C3: if any change group cannot be mapped to an existing issue with sufficient confidence, mark the group as unresolvable and surface it for user action before proceeding. Validates: C3 (all changes traceable to an existing issue), F4 (correct issue mapping).",
+      "owner": "project-orchestrator",
+      "skills": ["resolve-issues"],
+      "status": "pending",
+      "blockedBy": ["analyze-changes", "fetch-open-issues"],
+      "blocks": ["readiness-eval-1", "readiness-eval-2"]
+    },
+    {
+      "id": "readiness-eval-1",
+      "stage": 2,
+      "name": "Eval: Branch and changeset safety",
+      "description": "Recipe-owned eval. Pass criteria: (1) current branch is NOT main, master, or the repository default branch (C1 satisfied); (2) at least one changed file exists — staged, unstaged, or untracked (C2 satisfied); (3) no sensitive files — secrets, credentials, env files, private keys — appear in the changeset (C4 satisfied). If any criterion fails, halt with the specific files and reason. This eval gates all downstream work.",
+      "owner": "recipe",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["analyze-changes", "resolve-issues"],
+      "blocks": ["readiness-eval-2"]
+    },
+    {
+      "id": "readiness-eval-2",
+      "stage": 2,
+      "name": "Eval: Issue mapping completeness",
+      "description": "Recipe-owned eval. Pass criteria: (1) every change group identified by analyze-changes is mapped to an existing issue with sufficient confidence (C3 satisfied); (2) no change group is mapped to a non-existent or wrong issue (F4 satisfied). If any group is unresolvable, halt and instruct the user to create the missing issue. Only when all groups are mapped does this eval pass and unblock the brief.",
+      "owner": "recipe",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["readiness-eval-1"],
+      "blocks": ["draft-brief"]
+    },
+    {
+      "id": "draft-brief",
+      "stage": 3,
+      "name": "Draft human-readable commit brief",
+      "description": "Skippable. repo-orchestrator reads STM artifacts (analysis groups, issue mappings) and drafts a human-readable summary of the planned commits: groupings, issue references, commit message previews, and any flags from readiness evals. Output is written to STM as brief.md. Skipped when the recipe is run in no-checkpoint mode.",
+      "owner": "repo-orchestrator",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["readiness-eval-2"],
+      "blocks": ["human-checkpoint"]
+    },
+    {
+      "id": "human-checkpoint",
+      "stage": 4,
+      "name": "Human checkpoint — approve commit plan",
+      "description": "Skippable. Recipe presents the brief to the user (Tether / Vanish). On Tether, proceed to generation. On Vanish, halt with no commits made. Skipped when draft-brief is skipped. This stage ensures approval is obtained when confidence is low on grouping or issue mapping (per intent: approval required only when confidence is low).",
+      "owner": "recipe",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["draft-brief"],
+      "blocks": ["create-commits"]
+    },
+    {
+      "id": "create-commits",
+      "stage": 5,
+      "name": "Create conventional commits",
+      "description": "repo-orchestrator invokes the create-commit skill once per change group, using the issue mapping from STM. Each commit must: (1) follow conventional commit format sourced from LTM (C5); (2) include the linked issue number in the message (C6); (3) belong to a single concern — no cross-concern commits (F1); (4) describe the actual change with specificity — not a generic message like 'fix: resolve issue #N' (F2); (5) leave no changed files uncommitted without a stated reason (F3). Commit results written to STM.",
+      "owner": "repo-orchestrator",
+      "skills": ["create-commit"],
+      "status": "pending",
+      "blockedBy": ["human-checkpoint"],
+      "blocks": ["gen-eval-1"]
+    },
+    {
+      "id": "gen-eval-1",
+      "stage": 5,
+      "name": "Eval: Commit quality and completeness",
+      "description": "Recipe-owned eval. Pass criteria: (1) no single commit contains changes from unrelated concerns (F1); (2) every commit message describes the actual change — not just a reference (F2); (3) no changed files remain uncommitted without a documented reason (F3); (4) every commit references the correct issue — not a wrong or approximate one (F4); (5) all commit messages conform to conventional commit format from LTM (C5) and include the issue number (C6). If any criterion fails, mark as failed and surface to user.",
+      "owner": "recipe",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["create-commits"],
+      "blocks": ["push-branch"]
+    },
+    {
+      "id": "push-branch",
+      "stage": 5,
+      "name": "Push branch to remote",
+      "description": "repo-orchestrator pushes the current branch to the remote after commits are created and verified. Enforces C7: branch must be pushed to remote after commits. Push failure is non-blocking — if the push fails (no remote, auth failure, network), log the failure as a warning and mark the task as completed with a warning flag. Commits are valid regardless of push outcome. The recipe continues to scenario evals.",
+      "owner": "repo-orchestrator",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["gen-eval-1"],
+      "blocks": ["gen-eval-2"]
+    },
+    {
+      "id": "gen-eval-2",
+      "stage": 5,
+      "name": "Eval: Push verification",
+      "description": "Recipe-owned eval. Check that the branch was pushed to the remote (C7). Verify by comparing local HEAD with remote tracking branch. Non-blocking: if push failed, log warning with reason but do NOT fail the recipe. Commits are the primary deliverable; push is a convenience guarantee.",
+      "owner": "recipe",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["push-branch"],
+      "blocks": ["scenario-eval-1", "scenario-eval-2"]
+    },
+    {
+      "id": "scenario-eval-1",
+      "stage": 6,
+      "name": "Scenario S1: Code reviewer readability",
+      "description": "Persona: Code reviewer. Given the git log of commits produced by this recipe on the feature branch. Pass criteria: the reviewer can understand the scope and nature of each change without reading the diff, AND can trace every commit to its originating issue solely from the commit message. Evaluate each commit in the log against both criteria. Any commit that fails either criterion fails this scenario.",
+      "owner": "recipe",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["gen-eval-2"],
+      "blocks": ["evidence-close"]
+    },
+    {
+      "id": "scenario-eval-2",
+      "stage": 6,
+      "name": "Scenario S2: Team lead progress reporting",
+      "description": "Persona: Team lead. Given the git log of commits produced by this recipe across multiple branches. Pass criteria: (1) the team lead can report on progress per issue using commit history alone; (2) commit history can serve as a mentoring reference for conventional commit practices — messages are clear, typed correctly, and consistently formatted. Evaluate the full commit log for issue-based traceability and format consistency.",
+      "owner": "recipe",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["gen-eval-2"],
+      "blocks": ["evidence-close"]
+    },
+    {
+      "id": "evidence-close",
+      "stage": 7,
+      "name": "Evidence and close",
+      "description": "Recipe writes evidence artifacts to STM: commit record (hashes, types, scopes, files per commit), scenario eval results (S1, S2 pass/fail with rationale), and a final summary. Checkpoint file is written. Recipe signals completion.",
+      "owner": "recipe",
+      "skills": [],
+      "status": "pending",
+      "blockedBy": ["scenario-eval-1", "scenario-eval-2"],
+      "blocks": []
+    }
+  ]
+}

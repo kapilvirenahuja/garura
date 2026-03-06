@@ -1,0 +1,91 @@
+mappings:
+
+  - group_id: capture-learning-recipe-rebuild
+    description: >
+      Rebuilding the capture-learning recipe to intent-driven architecture —
+      modifying skill definition, intent file, and deleting old template.
+    files:
+      - core/components/recipes/capture-learning/SKILL.md
+      - core/components/recipes/capture-learning/reference/intent.yaml
+      - core/components/recipes/capture-learning/templates/capture-report.md
+    statuses:
+      - modified
+      - modified
+      - deleted
+    issue:
+      number: 95
+      title: "feat(recipe-framework): intent-driven recipe architecture"
+      labels:
+        - enhancement
+      state: open
+      url: https://github.com/kapilvirenahuja/meridian-os/issues/95
+    type_hint: feature
+    confidence: high
+    reasoning: >
+      Branch name `feature/95-intent-driven-recipe-architecture` explicitly encodes issue
+      #95 (branch signal — strongest signal). Semantic alignment is exact: issue #95
+      covers rebuilding recipes to intent-driven architecture, and this group modifies
+      SKILL.md + intent.yaml + deletes an old template — canonical outputs of the
+      create-recipe workflow described in #95. Two corroborating signals: branch + semantic.
+    conflicts: []
+
+  - group_id: create-recipe-evidence
+    description: >
+      Evidence artifacts from running the create-recipe recipe to build the
+      capture-learning recipe, under issue #95.
+    files:
+      - .meridian/project/issues/95/evidence/create-recipe/capture-learning/
+    statuses:
+      - untracked
+    issue:
+      number: 95
+      title: "feat(recipe-framework): intent-driven recipe architecture"
+      labels:
+        - enhancement
+      state: open
+      url: https://github.com/kapilvirenahuja/meridian-os/issues/95
+    type_hint: feature
+    confidence: high
+    reasoning: >
+      Branch name `feature/95-intent-driven-recipe-architecture` encodes issue #95
+      (branch signal). The file path itself contains `/issues/95/` — a hard path-embedded
+      signal that this artifact belongs to issue #95. Evidence from running create-recipe
+      is STM output produced as part of #95 work. Three corroborating signals: branch +
+      path-embedded issue number + semantic context.
+    conflicts: []
+
+  - group_id: capture-learning-archive-issue-54
+    description: >
+      Archive from running the capture-learning recipe on issue #54 as an
+      end-to-end test of the rebuilt recipe under issue #95.
+    files:
+      - .meridian/project/issues/_archive/2026-02/54/
+    statuses:
+      - untracked
+    issue:
+      number: 95
+      title: "feat(recipe-framework): intent-driven recipe architecture"
+      labels:
+        - enhancement
+      state: open
+      url: https://github.com/kapilvirenahuja/meridian-os/issues/95
+    type_hint: feature
+    confidence: high
+    reasoning: >
+      Branch name `feature/95-intent-driven-recipe-architecture` encodes issue #95
+      (branch signal). Archive was produced by running the rebuilt capture-learning recipe
+      on issue #54 as end-to-end validation — the testing itself is part of #95 work.
+      The path references #54 as the subject of the run, not the originating work issue.
+      No conflict: #54 is the archive subject, #95 is the work context. Two corroborating
+      signals: branch + stated testing context.
+    conflicts: []
+
+summary:
+  total_groups: 3
+  mapped: 3
+  unmapped: 0
+  conflicts: 0
+  dominant_issue: 95
+  all_high_confidence: true
+  approval_required: false
+  approval_reason: null

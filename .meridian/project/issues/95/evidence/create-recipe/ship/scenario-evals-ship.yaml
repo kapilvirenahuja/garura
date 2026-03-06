@@ -1,0 +1,32 @@
+eval_type: scenario
+recipe: ship
+intent_path: core/components/recipes/ship/reference/intent.yaml
+
+evals:
+  - id: scenario-1
+    scenario_id: S1
+    persona: Developer
+    name: all-work-on-main-ready-for-next
+    check: >
+      After ship completes, verify end state:
+      1. git branch --show-current returns main
+      2. git status shows main is up to date with remote
+      3. git branch --list {feature-branch} returns empty (local deleted)
+      4. git branch -r --list origin/{feature-branch} returns empty (remote deleted)
+      5. git log main contains all the commits from the feature branch
+    pass_criteria: >
+      All five conditions are true. Developer can start next feature immediately.
+
+  - id: scenario-2
+    scenario_id: S2
+    persona: Code Reviewer
+    name: traceable-merged-pr
+    check: >
+      After ship completes, verify the platform state:
+      1. A merged PR exists linking to the originating issue
+      2. PR has quality checklist and evidence
+      3. Merge commit is on main
+      4. Commits reference the correct issue
+    pass_criteria: >
+      PR is MERGED, linked to issue, has quality checklist, and all
+      commits are traceable to the originating issue.

@@ -1,10 +1,19 @@
 # IDSD — Execution Plan (Tasks)
 
-**Version:** 2.1.0
-**Date:** 2026-02-21
-**Status:** In Progress — P1, P4, P11 complete
+**Version:** 2.2.0
+**Date:** 2026-03-05 (updated from 2026-02-21)
+**Status:** In Progress — P1, P4, P5, P11 complete. P6 partial (Four Crafts divergence). P12 incomplete (IDD compliance pending).
 **Spec Reference:** `idsd.md`
 **Verify Reference:** `idsd-verify.md`
+
+### Architecture Change Notice (2026-03-05)
+
+**Four Crafts architecture (#85/#86) was implemented after this spec was written.** Key changes that affect remaining tasks:
+- Recipes pass a **single JSON contract** to agents (not individual parameters)
+- Templates moved to **LTM** (`core/components/memory/standards/templates/`) per ADR 009 — not skill-local
+- **Intent-resolution protocol deleted** — agents read JSON contract directly
+- **Task-driven DAGs** — recipes create task graphs before agent execution
+- All new recipe/skill/agent tasks should follow Four Crafts pattern, not the pattern described in the original spec
 
 ---
 

@@ -1,0 +1,254 @@
+analysis:
+  branch: feature/95-intent-driven-recipe-architecture
+  issue: 95
+  branch_signal: "#95 — single-issue branch; all changes default to one issue group"
+  generated_at: "2026-03-06"
+
+  groups:
+    - group_id: feat-95-stm-path-refactor
+      type: refactor
+      scope: stm
+      description: >
+        Replace all hardcoded `.meridian/{issue}/` STM path references with the
+        configurable `{stm_base}/{issue}/` variable, and update core/config.yaml
+        to define the new base paths. Includes CLAUDE.md data-flow description update.
+        This is the primary deliverable of issue #95 (intent-driven recipe architecture).
+      files:
+        - CLAUDE.md
+        - core/config.yaml
+        - core/components/agents/intent-resolver.md
+        - core/components/agents/product-strategist.md
+        - core/components/agents/project-orchestrator.md
+        - core/components/agents/repo-orchestrator.md
+        - core/components/recipes/capture-learning/SKILL.md
+        - core/components/recipes/capture-learning/reference/intent.yaml
+        - core/components/recipes/capture-learning/templates/capture-report.md
+        - core/components/recipes/commit-code/SKILL.md
+        - core/components/recipes/create-pr/SKILL.md
+        - core/components/recipes/create-recipe/SKILL.md
+        - core/components/recipes/ship/SKILL.md
+        - core/components/recipes/ship/reference/intent.yaml
+        - core/components/recipes/ship/templates/final-report.md
+        - core/components/recipes/start-feature-planning/SKILL.md
+        - core/components/recipes/start-feature-planning/templates/approval-prompt.md
+        - core/components/recipes/start-feature-planning/templates/checkpoint.md
+        - core/components/recipes/start-feature-planning/templates/final-report.md
+        - core/components/recipes/start-feature/SKILL.md
+        - core/components/recipes/start-feature/templates/feature-started.md
+        - core/components/skills/archive-issue-stm/SKILL.md
+        - core/components/skills/archive-issue-stm/templates/archive-output.md
+      rationale: >
+        All modified files share a single concern: replacing hardcoded .meridian/ STM
+        paths with the {stm_base} variable so paths are driven by core/config.yaml.
+        config.yaml defines the new base-path (.meridian/project/issues/), all
+        agent and recipe docs consume it. One coherent architectural change, one commit.
+      suggested_message: "refactor(stm): replace hardcoded STM paths with {stm_base} variable"
+
+    - group_id: chore-95-stm-migration
+      type: chore
+      scope: stm
+      description: >
+        Delete all previously-tracked .meridian/ STM artifacts from old path structure
+        (issues 63, 65, 67, 68, 70, 71, 73, 79, 81, 83, 85, 91, 95, project/product,
+        recipe-creation, _archive) and add new STM directories under the migrated
+        path structure (.meridian/project/issues/, .meridian/product/, .meridian/95/dag/).
+        These are operational artifacts, not feature code.
+      files:
+        # Deleted old STM artifacts — issue 63
+        - .meridian/63/checkpoint/commit-code/20260227-172553.md
+        - .meridian/63/checkpoint/create-pr/20260227-172925.md
+        - .meridian/63/checkpoint/start-feature/20260227-163708.md
+        - .meridian/63/evidence/commit-code/20260227-172553.md
+        - .meridian/63/evidence/create-pr/20260227-172925.md
+        - .meridian/63/evidence/start-feature/20260227-163708.md
+        # Deleted old STM artifacts — issue 65
+        - .meridian/65/checkpoint/commit-code/20260304-124500.md
+        - .meridian/65/checkpoint/create-pr/20260304-130000.md
+        - .meridian/65/checkpoint/ship/20260304-130000.md
+        - .meridian/65/checkpoint/start-feature-planning/20260303-152000.md
+        - .meridian/65/evidence/commit-code/20260226-010000.md
+        - .meridian/65/evidence/commit-code/20260304-124500.md
+        - .meridian/65/evidence/ship/20260304-130000.md
+        - .meridian/65/evidence/start-feature-planning/20260303-152000.md
+        - .meridian/65/planning/spec.md
+        - .meridian/65/planning/tasks.md
+        - .meridian/65/planning/verify.md
+        # Deleted old STM artifacts — issue 67
+        - .meridian/67/checkpoint/.gitkeep
+        - .meridian/67/checkpoint/commit-code/20260303-120100.md
+        - .meridian/67/checkpoint/create-pr/20260303-120200.md
+        - .meridian/67/checkpoint/ship/20260303-120000.md
+        - .meridian/67/checkpoint/start-feature-planning/20260227-151152.md
+        - .meridian/67/checkpoint/start-feature-planning/20260303-000000.md
+        - .meridian/67/delivery/.gitkeep
+        - .meridian/67/design/.gitkeep
+        - .meridian/67/evidence/.gitkeep
+        - .meridian/67/evidence/commit-code/20260303-120100.md
+        - .meridian/67/evidence/create-pr/20260303-120200.md
+        - .meridian/67/evidence/ship/delivery-20260303.md
+        - .meridian/67/evidence/ship/final-verification-20260303.md
+        - .meridian/67/evidence/ship/integration-walkthrough-20260303.md
+        - .meridian/67/evidence/ship/structural-behavioral-20260303.md
+        - .meridian/67/evidence/ship/template-verification-20260303.md
+        - .meridian/67/evidence/start-feature-planning/20260227-151152.md
+        - .meridian/67/evidence/start-feature-planning/20260303-000000.md
+        - .meridian/67/planning/spec.md
+        - .meridian/67/planning/tasks.md
+        - .meridian/67/planning/verify.md
+        - .meridian/67/spec/.gitkeep
+        - .meridian/67/spec/ship-recipe.md
+        - .meridian/67/spec/ship-recipe_tasks.md
+        - .meridian/67/spec/ship-recipe_verify.md
+        # Deleted old STM artifacts — issue 68
+        - .meridian/68/checkpoint/.gitkeep
+        - .meridian/68/checkpoint/start-feature-planning/20260228-120000.md
+        - .meridian/68/delivery/.gitkeep
+        - .meridian/68/design/.gitkeep
+        - .meridian/68/evidence/.gitkeep
+        - .meridian/68/planning/.gitkeep
+        - .meridian/68/planning/spec.md
+        - .meridian/68/planning/tasks.md
+        - .meridian/68/planning/verify.md
+        - .meridian/68/spec/.gitkeep
+        # Deleted old STM artifacts — issue 70
+        - .meridian/70/checkpoint/start-feature-planning/20260228-140000.md
+        - .meridian/70/checkpoint/start-feature/20260228-130000.md
+        - .meridian/70/delivery/.gitkeep
+        - .meridian/70/design/.gitkeep
+        - .meridian/70/evidence/.gitkeep
+        - .meridian/70/evidence/start-feature-planning/20260302-120000.md
+        - .meridian/70/evidence/start-feature/20260228-130000.md
+        - .meridian/70/planning/.gitkeep
+        - .meridian/70/planning/spec.md
+        - .meridian/70/planning/tasks.md
+        - .meridian/70/planning/verify.md
+        - .meridian/70/spec/.gitkeep
+        # Deleted old STM artifacts — issue 71
+        - .meridian/71/checkpoint/commit-code/20260303-015848.md
+        - .meridian/71/checkpoint/create-pr/20260303-020144.md
+        - .meridian/71/checkpoint/start-feature/20260303-015556.md
+        - .meridian/71/evidence/commit-code/20260303-015848.md
+        - .meridian/71/evidence/create-pr/20260303-020144.md
+        - .meridian/71/evidence/start-feature/20260303-015556.md
+        # Deleted old STM artifacts — issue 73
+        - .meridian/73/checkpoint/.gitkeep
+        - .meridian/73/checkpoint/commit-code/20260303-150100.md
+        - .meridian/73/checkpoint/create-pr/20260303-150200.md
+        - .meridian/73/checkpoint/ship/20260303-150000.md
+        - .meridian/73/checkpoint/start-feature-planning/20260303-140000.md
+        - .meridian/73/delivery/.gitkeep
+        - .meridian/73/design/.gitkeep
+        - .meridian/73/evidence/.gitkeep
+        - .meridian/73/evidence/commit-code/20260303-150100.md
+        - .meridian/73/evidence/ship/20260303-150300.md
+        - .meridian/73/evidence/start-feature-planning/20260303-140000.md
+        - .meridian/73/planning/.gitkeep
+        - .meridian/73/planning/spec.md
+        - .meridian/73/planning/tasks.md
+        - .meridian/73/planning/verify.md
+        - .meridian/73/spec/.gitkeep
+        # Deleted old STM artifacts — issue 79
+        - .meridian/79/checkpoint/commit-code/20260304-150000.md
+        - .meridian/79/checkpoint/create-pr/20260304-150000.md
+        - .meridian/79/checkpoint/ship/20260304-150000.md
+        - .meridian/79/checkpoint/start-feature/20260304-140000.md
+        - .meridian/79/evidence/ship/20260304-150000.md
+        - .meridian/79/evidence/start-feature/20260304-140000.md
+        # Deleted old STM artifacts — issue 81
+        - .meridian/81/checkpoint/commit-code/20260304-160000.md
+        - .meridian/81/checkpoint/create-pr/20260304-160000.md
+        - .meridian/81/checkpoint/ship/20260304-160000.md
+        - .meridian/81/checkpoint/start-feature/20260304-160000.md
+        - .meridian/81/evidence/create-pr/20260304-160000.md
+        - .meridian/81/evidence/ship/20260304-160000.md
+        - .meridian/81/evidence/start-feature/20260304-160000.md
+        # Deleted old STM artifacts — issue 83
+        - .meridian/83/checkpoint/commit-code/20260304-170000.md
+        - .meridian/83/checkpoint/create-pr/20260304-170000.md
+        - .meridian/83/checkpoint/ship/20260304-170000.md
+        - .meridian/83/evidence/ship/20260304-170000.md
+        # Deleted old STM artifacts — issue 85
+        - .meridian/85/checkpoint/commit-code/20260305-094621.md
+        - .meridian/85/checkpoint/commit-code/20260305-095145.md
+        - .meridian/85/checkpoint/create-pr/20260305-095534.md
+        - .meridian/85/checkpoint/ship/20260305-095045.md
+        - .meridian/85/evidence/commit-code/20260305-095200.md
+        - .meridian/85/evidence/create-pr/20260305-095700.md
+        - .meridian/85/evidence/ship/20260305-100000.md
+        # Deleted old STM artifacts — issue 91
+        - .meridian/91/checkpoint/commit-code/20260305-095305.md
+        - .meridian/91/checkpoint/create-pr/20260305-095555.md
+        - .meridian/91/checkpoint/ship/20260305-095059.md
+        - .meridian/91/evidence/commit-code/20260305-095335.md
+        - .meridian/91/evidence/ship/20260305-095059.md
+        # Deleted old STM artifacts — issue 95
+        - .meridian/95/checkpoint/start-feature/20260305-220000.md
+        - .meridian/95/evidence/commit-code/analysis-v2.yaml
+        - .meridian/95/evidence/commit-code/analysis-v3.yaml
+        - .meridian/95/evidence/commit-code/analysis.yaml
+        - .meridian/95/evidence/commit-code/commits-v2.yaml
+        - .meridian/95/evidence/commit-code/commits.yaml
+        - .meridian/95/evidence/commit-code/open-issues-v2.yaml
+        - .meridian/95/evidence/commit-code/open-issues.yaml
+        - .meridian/95/evidence/start-feature/20260305-220000.md
+        # Deleted old STM artifacts — archive/66
+        - .meridian/_archive/2026-02/66/checkpoint/.gitkeep
+        - .meridian/_archive/2026-02/66/checkpoint/start-feature-planning/20260227-000000.md
+        - .meridian/_archive/2026-02/66/delivery/.gitkeep
+        - .meridian/_archive/2026-02/66/design/.gitkeep
+        - .meridian/_archive/2026-02/66/evidence/.gitkeep
+        - .meridian/_archive/2026-02/66/planning/.gitkeep
+        - .meridian/_archive/2026-02/66/planning/spec.md
+        - .meridian/_archive/2026-02/66/planning/tasks.md
+        - .meridian/_archive/2026-02/66/planning/verify.md
+        - .meridian/_archive/2026-02/66/spec/.gitkeep
+        # Deleted old STM artifacts — project/product
+        - .meridian/project/product/checkpoint/plan-roadmap/20260304-120000.md
+        - .meridian/project/product/evidence/plan-roadmap/20260304-120000.md
+        - .meridian/project/product/meridian-os/brief-20260304T120000.md
+        - .meridian/project/product/meridian-os/roadmap-engineering.md
+        - .meridian/project/product/meridian-os/roadmap.md
+        - .meridian/project/product/meridian-os/vision.md
+        # Deleted old STM artifacts — recipe-creation
+        - .meridian/recipe-creation/commit-code/agent-audit-project-orchestrator.md
+        - .meridian/recipe-creation/commit-code/agent-audit-repo-orchestrator.md
+        - .meridian/recipe-creation/commit-code/dag.json
+        - .meridian/recipe-creation/commit-code/scenario-evals.yaml
+        - .meridian/recipe-creation/commit-code/skill-manifest.yaml
+        - .meridian/recipe-creation/commit-code/step-evals-resolve-issues.yaml
+        - .meridian/recipe-creation/create-pr/agent-audit-project-orchestrator.md
+        - .meridian/recipe-creation/create-pr/agent-audit-repo-orchestrator.md
+        - .meridian/recipe-creation/create-pr/dag.json
+        - .meridian/recipe-creation/create-pr/scenario-evals.yaml
+        - .meridian/recipe-creation/create-pr/skill-manifest.yaml
+        - .meridian/recipe-creation/create-pr/step-evals-analyze-pr.yaml
+        - .meridian/recipe-creation/create-pr/step-evals-submit-pr.yaml
+        # New STM directories under migrated path structure (untracked)
+        - .meridian/95/dag/
+        - .meridian/product/
+        - .meridian/project/issues/
+      rationale: >
+        All deleted files are STM operational artifacts from the old .meridian/{issue}/
+        path structure, being cleared as part of the migration to the new
+        .meridian/project/issues/{issue}/ structure defined in core/config.yaml.
+        The untracked directories (.meridian/product/, .meridian/project/issues/,
+        .meridian/95/dag/) are the new structure coming online. Grouped together as
+        one chore(stm) commit — these are not feature code, they are data artifacts.
+      suggested_message: "chore(stm): migrate STM artifacts to new base path structure"
+
+  risks:
+    sensitive_files: []
+    breaking_changes: []
+    ambiguous_types: []
+    hotfix_branch: false
+
+  summary:
+    total_groups: 2
+    total_files_modified: 23
+    total_files_deleted: 151
+    total_directories_untracked: 3
+    notes:
+      - "Branch is single-issue (#95); grouping follows issue-first principle"
+      - "No sensitive files detected against known patterns"
+      - "Not a hotfix branch — no checkpoint required for branch type"
+      - "chore(stm) group is large (151 deletions) but uniform — all are old STM path artifacts"

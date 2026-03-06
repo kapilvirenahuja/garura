@@ -12,14 +12,14 @@
       line-height: 1.7;
       color: #1a1a1a;
       background: #fff;
-      max-width: 860px;
+      max-width: 960px;
       margin: 0 auto;
       padding: 48px 32px 80px;
     }
     header {
       border-bottom: 2px solid #1a1a1a;
       padding-bottom: 20px;
-      margin-bottom: 40px;
+      margin-bottom: 32px;
     }
     header h1 {
       font-size: 26px;
@@ -32,9 +32,68 @@
       color: #555;
     }
     header .meta span { margin-right: 20px; }
-    section {
-      margin-bottom: 48px;
+    p { margin-bottom: 14px; }
+    p:last-child { margin-bottom: 0; }
+
+    /* ── Main Tab Navigation ── */
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #1a1a1a;
+      margin-bottom: 32px;
     }
+    .tab-nav button {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      border: none;
+      background: #f5f5f5;
+      color: #777;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.15s;
+    }
+    .tab-nav button:hover { background: #eee; color: #333; }
+    .tab-nav button.active {
+      background: #fff;
+      color: #1a1a1a;
+      border-bottom: 3px solid #1a1a1a;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Epic Sub-Tab Navigation ── */
+    .epic-tab-nav {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .epic-tab-nav button {
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: #999;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.15s;
+    }
+    .epic-tab-nav button:hover { color: #555; }
+    .epic-tab-nav button.active {
+      color: #1a1a1a;
+      border-bottom: 2px solid #1a1a1a;
+    }
+    .epic-tab-panel { display: none; }
+    .epic-tab-panel.active { display: block; }
+
+    /* ── Section headers ── */
     h2 {
       font-size: 18px;
       font-weight: 700;
@@ -45,10 +104,8 @@
       padding-left: 12px;
       margin-bottom: 20px;
     }
-    p { margin-bottom: 14px; }
-    p:last-child { margin-bottom: 0; }
 
-    /* Decisions summary table */
+    /* ── Decisions table ── */
     .decisions-table {
       width: 100%;
       border-collapse: collapse;
@@ -70,7 +127,7 @@
     .decisions-table tr:last-child td { border-bottom: none; }
     .decisions-table tr:nth-child(even) td { background: #fafafa; }
 
-    /* Horizon badges */
+    /* ── Badges ── */
     .badge {
       display: inline-block;
       padding: 2px 8px;
@@ -86,15 +143,15 @@
     .badge-p1   { background: #cce5ff; color: #004085; }
     .badge-p2   { background: #e2e3e5; color: #383d41; }
     .badge-p3   { background: #f8f9fa; color: #6c757d; }
+    .badge-mvp  { background: #d1ecf1; color: #0c5460; }
 
-    /* Per-epic subsections */
+    /* ── Epic cards ── */
     .epic-card {
       border: 1px solid #e5e5e5;
       border-radius: 6px;
       padding: 24px;
       margin-bottom: 20px;
     }
-    .epic-card:last-child { margin-bottom: 0; }
     .epic-header {
       display: flex;
       align-items: flex-start;
@@ -133,34 +190,61 @@
       vertical-align: middle;
     }
 
-    /* What We're Not Doing */
-    .not-doing-list { list-style: none; padding: 0; }
-    .not-doing-list li {
-      padding: 10px 0;
-      border-bottom: 1px solid #e5e5e5;
-      font-size: 14px;
+    /* ── Timeline ── */
+    .timeline-phase {
+      border-left: 3px solid #ddd;
+      padding-left: 24px;
+      margin-bottom: 32px;
+      position: relative;
     }
-    .not-doing-list li:last-child { border-bottom: none; }
-    .not-doing-list strong { color: #1a1a1a; }
+    .timeline-phase::before {
+      content: "";
+      position: absolute;
+      left: -7px;
+      top: 4px;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #1a1a1a;
+    }
+    .timeline-phase-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #555;
+      margin-bottom: 12px;
+    }
+    .timeline-epic {
+      padding: 10px 14px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .timeline-epic:last-child { margin-bottom: 0; }
 
-    /* The Asks */
-    .asks-list { list-style: none; padding: 0; counter-reset: asks; }
-    .asks-list li {
-      counter-increment: asks;
+    /* ── Blockers ── */
+    .blockers-list { list-style: none; padding: 0; counter-reset: blockers; }
+    .blockers-list li {
+      counter-increment: blockers;
       padding: 14px 0 14px 44px;
       border-bottom: 1px solid #e5e5e5;
       position: relative;
       font-size: 14px;
     }
-    .asks-list li:last-child { border-bottom: none; }
-    .asks-list li::before {
-      content: counter(asks);
+    .blockers-list li:last-child { border-bottom: none; }
+    .blockers-list li::before {
+      content: counter(blockers);
       position: absolute;
       left: 0;
       top: 14px;
       width: 28px;
       height: 28px;
-      background: #1a1a1a;
+      background: #dc3545;
       color: #fff;
       border-radius: 50%;
       display: flex;
@@ -172,7 +256,7 @@
       text-align: center;
     }
 
-    /* Key Assumptions */
+    /* ── Assumptions ── */
     .assumptions-list { list-style: none; padding: 0; }
     .assumptions-list li {
       padding: 10px 0 10px 20px;
@@ -182,10 +266,77 @@
     }
     .assumptions-list li:last-child { border-bottom: none; }
     .assumptions-list li::before {
-      content: "→";
+      content: "\2192";
       position: absolute;
       left: 0;
       color: #999;
+    }
+
+    /* ── Feedback ── */
+    .feedback-panel {
+      margin-top: 48px;
+      border-top: 2px solid #1a1a1a;
+      padding-top: 24px;
+    }
+    .feedback-panel h2 { margin-bottom: 12px; }
+    .feedback-panel p { font-size: 13px; color: #777; margin-bottom: 16px; }
+    .feedback-section { margin-bottom: 20px; }
+    .feedback-section label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    .feedback-section textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    .feedback-section textarea:focus {
+      outline: none;
+      border-color: #1a1a1a;
+    }
+    .feedback-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .feedback-actions button {
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 2px solid #1a1a1a;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-copy {
+      background: #1a1a1a;
+      color: #fff;
+    }
+    .btn-copy:hover { background: #333; }
+    .btn-clear {
+      background: #fff;
+      color: #1a1a1a;
+    }
+    .btn-clear:hover { background: #f5f5f5; }
+    .copy-toast {
+      display: none;
+      padding: 8px 16px;
+      background: #d4edda;
+      color: #155724;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
     }
 
     footer {
@@ -209,71 +360,163 @@
   </div>
 </header>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<section id="bet">
-  <h2>The Bet</h2>
-  <p>{bet_paragraph}</p>
-</section>
+<!-- ── Main Tab Navigation ── -->
+<nav class="tab-nav" id="mainTabs">
+  <button class="active" data-tab="exec-summary">Exec Summary</button>
+  <button data-tab="decisions">Decisions</button>
+  <button data-tab="epics">Epics</button>
+  <button data-tab="timeline">Timeline</button>
+  <button data-tab="assumptions">Assumptions</button>
+</nav>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
-<section id="story">
-  <h2>The Story</h2>
-  {story_paragraphs}
-</section>
+<div class="tab-panel active" id="exec-summary">
+  <section>
+    <h2>The Bet</h2>
+    <p>{bet_paragraph}</p>
+  </section>
+  <section>
+    <h2>The Story</h2>
+    {story_paragraphs}
+  </section>
+  <section>
+    <h2>Blockers</h2>
+    <ul class="blockers-list">
+      {blocker_items}
+    </ul>
+  </section>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
-<section id="decisions">
-  <h2>Decisions</h2>
-
-  <!-- Summary table — one <tr> per epic -->
-  <table class="decisions-table">
-    <thead>
-      <tr>
-        <th>Epic</th>
-        <th>Horizon</th>
-        <th>Priority</th>
-        <th>Effort</th>
-        <th>Depends On</th>
-        <th>One-Line Reason</th>
-      </tr>
-    </thead>
-    <tbody>
-      {EPIC_TABLE_ROWS}
-    </tbody>
-  </table>
-
-  <!-- Per-epic detail cards — one .epic-card div per epic -->
-  {EPIC_CARDS}
-
-</section>
+<div class="tab-panel" id="decisions">
+  <section>
+    <h2>Decisions</h2>
+    <table class="decisions-table">
+      <thead>
+        <tr>
+          <th>Epic</th>
+          <th>Horizon</th>
+          <th>Priority</th>
+          <th>Effort</th>
+          <th>Depends On</th>
+          <th>One-Line Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        {EPIC_TABLE_ROWS}
+      </tbody>
+    </table>
+  </section>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
-<section id="not-doing">
-  <h2>What We're Not Doing</h2>
-  <ul class="not-doing-list">
-    {not_doing_items}
-  </ul>
-</section>
+<div class="tab-panel" id="epics">
+  <nav class="epic-tab-nav" id="epicTabs">
+    {EPIC_TABS}
+  </nav>
+  {EPIC_TAB_PANELS}
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
-<section id="asks">
-  <h2>The Asks</h2>
-  <ul class="asks-list">
-    {asks_items}
-  </ul>
-</section>
+<div class="tab-panel" id="timeline">
+  <section>
+    <h2>Timeline</h2>
+    {timeline_content}
+  </section>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
-<section id="assumptions">
-  <h2>Key Assumptions</h2>
-  <ul class="assumptions-list">
-    {assumptions_items}
-  </ul>
-</section>
+<div class="tab-panel" id="assumptions">
+  <section>
+    <h2>Key Assumptions</h2>
+    <ul class="assumptions-list">
+      {assumptions_items}
+    </ul>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="feedback-panel">
+  <h2>Review Feedback</h2>
+  <p>Enter your feedback below. Use "Copy All Feedback" to copy and paste into the terminal.</p>
+
+  <div class="feedback-section">
+    <label for="fb-overall">Overall Assessment</label>
+    <textarea id="fb-overall" placeholder="Your overall assessment of this roadmap brief..."></textarea>
+  </div>
+  <div class="feedback-section">
+    <label for="fb-blockers">Blockers &amp; Decisions</label>
+    <textarea id="fb-blockers" placeholder="Feedback on blockers, missing decisions, sequencing concerns..."></textarea>
+  </div>
+  <div class="feedback-section">
+    <label for="fb-epics">Epic-Level Feedback</label>
+    <textarea id="fb-epics" placeholder="Feedback on specific epics — scope, priority, dependencies..."></textarea>
+  </div>
+  <div class="feedback-section">
+    <label for="fb-timeline">Timeline &amp; Phasing</label>
+    <textarea id="fb-timeline" placeholder="Feedback on timeline, MVP scope, phase boundaries..."></textarea>
+  </div>
+
+  <div class="feedback-actions">
+    <button class="btn-copy" onclick="copyFeedback()">Copy All Feedback</button>
+    <button class="btn-clear" onclick="clearFeedback()">Clear</button>
+    <span class="copy-toast" id="copyToast">Copied to clipboard</span>
+  </div>
+</div>
 
 <footer>
-  Generated by plan-roadmap v1.1.0 &nbsp;·&nbsp; {Product Name} &nbsp;·&nbsp; {YYYY-MM-DD} &nbsp;·&nbsp; {artifact_path}
+  Generated by plan-roadmap &nbsp;&middot;&nbsp; {Product Name} &nbsp;&middot;&nbsp; {YYYY-MM-DD} &nbsp;&middot;&nbsp; {artifact_path}
 </footer>
+
+<script>
+  // ── Main Tab Switching ──
+  document.querySelectorAll('#mainTabs button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#mainTabs button').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ── Epic Sub-Tab Switching ──
+  document.querySelectorAll('#epicTabs button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#epicTabs button').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelectorAll('.epic-tab-panel').forEach(function(p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.epic).classList.add('active');
+    });
+  });
+
+  // ── Feedback Clipboard ──
+  function copyFeedback() {
+    var sections = [
+      { label: 'Overall', id: 'fb-overall' },
+      { label: 'Blockers & Decisions', id: 'fb-blockers' },
+      { label: 'Epic-Level', id: 'fb-epics' },
+      { label: 'Timeline & Phasing', id: 'fb-timeline' }
+    ];
+    var lines = [];
+    sections.forEach(function(s) {
+      var val = document.getElementById(s.id).value.trim();
+      if (val) { lines.push('**' + s.label + ':** ' + val); }
+    });
+    if (lines.length === 0) { lines.push('(no feedback entered)'); }
+    var text = lines.join('\n\n');
+    navigator.clipboard.writeText(text).then(function() {
+      var toast = document.getElementById('copyToast');
+      toast.style.display = 'inline-block';
+      setTimeout(function() { toast.style.display = 'none'; }, 2000);
+    });
+  }
+
+  function clearFeedback() {
+    ['fb-overall', 'fb-blockers', 'fb-epics', 'fb-timeline'].forEach(function(id) {
+      document.getElementById(id).value = '';
+    });
+  }
+</script>
 
 </body>
 </html>

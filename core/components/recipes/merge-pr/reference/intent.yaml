@@ -1,0 +1,64 @@
+intent: >
+  Merge the pull request associated with the current feature branch into its base branch,
+  switch the local checkout to the base branch with latest upstream state,
+  and remove the feature branch from both local and remote.
+  The final state is: local checkout on base branch, base branch up to date with remote,
+  feature branch absent locally and remotely, and the PR reflected as merged on the platform.
+
+constraints:
+  - id: C1
+    rule: >
+      Must not operate when the current branch is main, master, or the repository default branch.
+  - id: C2
+    rule: >
+      A pull request must exist on the platform for the current branch before any merge is attempted.
+  - id: C3
+    rule: >
+      The working tree and index must be clean (no uncommitted changes, no staged changes) before any operation begins.
+  - id: C4
+    rule: >
+      If the pull request has merge conflicts, no merge is attempted and no auto-resolution is performed.
+  - id: C5
+    rule: >
+      The repository's default merge strategy is used. No override or alternative merge strategy is applied.
+  - id: C6
+    rule: >
+      If the remote feature branch was already deleted by the platform (e.g., auto-delete on merge),
+      the remote deletion step must treat "branch not found" as success, not failure.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      The base branch contains merge conflict markers or the platform shows the PR was merged
+      while conflicts were present on the source branch.
+  - id: F2
+    condition: >
+      After completion, the feature branch still exists locally or on the remote,
+      unless the remote branch was already removed by the platform prior to the deletion step.
+  - id: F3
+    condition: >
+      After completion, the local checkout is not on the base branch,
+      or the local base branch is behind the remote base branch.
+  - id: F4
+    condition: >
+      After completion, the PR is merged on the platform but the working tree or index
+      had uncommitted or staged changes that were present before the operation started.
+  - id: F5
+    condition: >
+      After completion, a merge was performed but no corresponding merged PR exists
+      on the platform for the feature branch.
+
+scenarios:
+  - id: S1
+    persona: Developer
+    given: >
+      The terminal state after merge-pr completes — local repository and platform PR status.
+    then: >
+      Can immediately begin a new feature branch from an up-to-date base branch,
+      with no stale feature branch lingering locally or on the remote.
+  - id: S2
+    persona: Code Reviewer
+    given: >
+      The platform pull request page and the base branch commit history.
+    then: >
+      Can confirm the PR is reflected as merged on the platform and the merge commit is present on the base branch.

@@ -1,35 +1,137 @@
-intent: "Create or resume a work context — issue + branch + STM directory — as the universal precursor to all tracked work"
+intent: >
+  Given any starting state — uncommitted changes, an issue number, or a
+  descriptive title — produce a ready-to-work environment: a GitHub issue
+  (existing or newly created) tracking the work, a feature branch checked
+  out and named by convention, and an initialized STM directory for that
+  issue. The recipe assesses the current repository state and acts as a
+  single flow — there are no discrete modes. Uncommitted changes are
+  always preserved and carried forward, never stashed or discarded.
 
 constraints:
-  pre_flight:
-    - id: C1
-      check: RESUME mode → current branch NOT IN [main, master, develop]
-      halt_message: "Protected branch — cannot resume from a protected branch"
-    - id: C2
-      check: issue ID resolvable (NEW with existing issue or RESUME) OR description provided (NEW)
-      halt_message: "No issue reference or description provided — cannot create work context"
-
-  behavioral:
-    - id: C3
-      rule: "Issue must be resolved or created on GitHub before any branch work"
-    - id: C4
-      rule: "Branch name MUST follow convention: {type}/{issue_number}-{slug}"
-    - id: C5
-      rule: "If type_hint is null, user MUST select type before proceeding"
-    - id: C6
-      rule: "User must approve branch creation — branches are externally visible (NEW mode only)"
-    - id: C7
-      rule: "STM directory must be initialized with required subdirectories"
-    - id: C8
-      rule: "Two-phase STM write when issue does not yet exist (ADR 008)"
-    - id: C9
-      rule: "Orchestrator MUST delegate to agents — never execute git/gh commands directly"
-    - id: C10
-      rule: "Maximum 2 distinct agents (project-orchestrator, repo-orchestrator); recovery calls exempt"
+  - id: C1
+    rule: >
+      The recipe is a single assessment-and-act flow. It inspects current
+      state (changed files, current branch, arguments) and determines the
+      path forward. There are no named modes, flags, or mode switches.
+  - id: C2
+    rule: >
+      Uncommitted changes are never stashed, discarded, or reset. They
+      are carried forward through branch creation or branch switching.
+  - id: C3
+    rule: >
+      If the target branch already exists, the recipe switches to it.
+      No failure, no confirmation, no duplicate branch creation.
+  - id: C4
+    rule: >
+      Only open GitHub issues are eligible for matching. If the best
+      candidate is a closed issue, the recipe must obtain user
+      confirmation before reopening it.
+  - id: C5
+    rule: >
+      The only human interaction point is ambiguity resolution: when
+      multiple candidate issues exist and no single candidate is clearly
+      correct, the user must pick. All other decisions proceed without
+      human approval.
+  - id: C6
+    rule: >
+      Issue inference from changed files is confidence-gated. High
+      confidence proceeds silently. Low confidence halts the recipe
+      rather than acting on a weak inference.
+  - id: C7
+    rule: >
+      Branch names follow the convention {type}/{issue_number}-{slug}
+      where type, issue number, and slug are derived from the issue.
+  - id: C8
+    rule: >
+      An STM directory must exist at {stm_base}/{issue}/ when the
+      recipe completes. If it does not exist, the recipe creates it.
+  - id: C9
+    rule: >
+      Domain work (git operations, GitHub API interactions, issue
+      management) is delegated to agents. The recipe orchestrates
+      but never performs domain work directly.
+  - id: C10
+    rule: >
+      When a new issue is created from inferred work, the issue body
+      contains a summary of approximately 40 words describing the
+      inferred work derived from changed files.
 
 failure_conditions:
-  - User rejects proposed branch at checkpoint (Vanish)
-  - Branch creation fails on origin
-  - Issue cannot be resolved or created on GitHub
-  - Issue ID not found (resume mode)
-  - type_hint is null and user does not provide a selection
+  - id: F1
+    condition: >
+      The recipe completes but no GitHub issue is associated with the
+      work — the developer has a branch with no tracked issue.
+  - id: F2
+    condition: >
+      The recipe completes but the checked-out branch does not follow
+      the naming convention {type}/{issue_number}-{slug}.
+  - id: F3
+    condition: >
+      The recipe completes but no STM directory exists at
+      {stm_base}/{issue}/.
+  - id: F4
+    condition: >
+      Uncommitted changes present before the recipe ran are no longer
+      present in the working tree after the recipe completes.
+  - id: F5
+    condition: >
+      The recipe acted on a low-confidence issue inference without
+      halting — produced a branch and issue from a weak signal.
+  - id: F6
+    condition: >
+      The recipe created a new issue when an existing open issue
+      already matched the inferred work.
+  - id: F7
+    condition: >
+      The recipe matched or created against a closed issue without
+      obtaining user confirmation to reopen it.
+  - id: F8
+    condition: >
+      Multiple candidate issues existed with no clear winner, and
+      the recipe proceeded without asking the user to pick.
+
+scenarios:
+  - id: S1
+    persona: Developer
+    given: >
+      A repository with uncommitted changes and no arguments provided
+      to the recipe
+    then: >
+      Can immediately begin focused development — the correct issue
+      is tracked on GitHub, the feature branch is checked out with
+      all prior changes intact, and the STM directory is ready for
+      evidence and artifacts.
+  - id: S2
+    persona: Developer
+    given: >
+      A specific issue number provided as argument to the recipe
+    then: >
+      Can begin work on that exact issue — branch exists and is
+      checked out following naming convention, STM directory is
+      initialized, and any uncommitted changes are preserved.
+  - id: S3
+    persona: Developer
+    given: >
+      A descriptive title string provided as argument to the recipe
+    then: >
+      Can begin work on a newly created GitHub issue matching that
+      title — branch checked out, STM directory initialized, and
+      the issue is visible on GitHub for tracking.
+  - id: S4
+    persona: Developer
+    given: >
+      A repository where the target feature branch already exists
+      from prior work
+    then: >
+      Can resume work seamlessly — the existing branch is checked
+      out with uncommitted changes preserved, STM directory is
+      confirmed present, and no duplicate branches or issues were
+      created.
+  - id: S5
+    persona: Team Lead
+    given: >
+      The GitHub issues list after a developer ran the recipe
+    then: >
+      Can see that every active piece of work has a corresponding
+      open issue with a clear title and summary body, traceable
+      to a feature branch.
