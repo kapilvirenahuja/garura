@@ -36,6 +36,10 @@ constraints:
       The PR is auto-submitted only when confidence is high across all
       decisions (target branch, checklist completeness, eval results).
       Any decision with less than high confidence requires user confirmation.
+  - id: C8
+    rule: >
+      The recipe must not operate on main, master, or the repository's default
+      branch. PRs are created from feature branches only.
 
 failure_conditions:
   - id: F1
