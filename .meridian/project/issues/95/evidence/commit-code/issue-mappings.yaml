@@ -1,62 +1,170 @@
 ---
 # issue-mappings output
-# Agent: project-orchestrator
-# Skill: resolve-issues
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
-# Task: resolve-issues
+# Stage: commit-code recipe — resolve-issues step
+
+issue: 95
+branch: feature/95-intent-driven-recipe-architecture
 
 mappings:
-  - group: G1
-    issue: 95
+  - group_id: group-1
+    issue_number: 95
     issue_title: "feat(recipe-framework): intent-driven recipe architecture"
-    issue_url: "https://github.com/kapilvirenahuja/meridian-os/issues/95"
-    issue_state: open
-    issue_labels: ["enhancement"]
-    type_hint: feature
     confidence: high
     reasoning: >
-      Branch name feature/95-intent-driven-recipe-architecture encodes issue #95
-      directly. Semantic alignment is strong: the DAG file path
-      (.meridian/95/dag/commit-code.json) encodes the issue number; intent.yaml
-      filename matches "intent-driven" in the issue title; the change scope
-      (commit-code recipe) falls within the recipe-framework domain of issue #95;
-      and the structural nature of the change (constraint enforcement via C7,
-      new push-branch DAG stage) is consistent with the architectural work
-      described by the issue. No competing issue has any meaningful signal overlap.
-    signals:
-      branch: true
-      branch_issue_extracted: 95
-      semantic_count: 4
-      semantic_details:
-        - "DAG file path (.meridian/95/dag/commit-code.json) encodes issue number #95"
-        - "intent.yaml file keyword matches 'intent-driven' in issue title"
-        - "change scope commit-code is a recipe — issue scopes to recipe-framework (parent domain)"
-        - "structural constraint enforcement change consistent with intent-driven recipe architecture work"
+      group-1 contains the substantive core component changes for the
+      intent-driven recipe architecture feature: updated SKILL.md files for
+      commit-code and create-recipe recipes, updated commit-code intent.yaml
+      with C7/C9 constraints, memory workflow definitions, the new
+      agent-contract.md standard, the create-recipe reference directory, and
+      ADR-013 documenting the recipe maturity model. The branch is named
+      feature/95-intent-driven-recipe-architecture. Every file in this group
+      is part of the recipe framework overhaul that issue #95 tracks. The
+      analysis.yaml itself resolves this group to issue 95 with high
+      confidence. No competing issue describes this scope: #93 covers eval
+      generation and review-pr integration (a different feature); #91 covers
+      docs-only updates to reflect Four Crafts architecture (narrower, no
+      component changes). The connection between group-1 and #95 is direct
+      and unambiguous.
     conflicts: []
-    commit_message: "refactor(commit-code): add push-branch stage and C7 constraint (#95)"
     files:
-      - core/components/recipes/commit-code/reference/intent.yaml
       - core/components/recipes/commit-code/SKILL.md
-      - .meridian/95/dag/commit-code.json
+      - core/components/recipes/commit-code/reference/intent.yaml
+      - core/components/recipes/create-recipe/SKILL.md
+      - core/components/memory/workflows/direct-generation.yaml
+      - core/components/memory/workflows/readiness-brief-generation.yaml
+      - core/components/memory/workflows/readiness-only.yaml
+      - core/components/memory/standards/agent-contract.md
+      - core/components/recipes/create-recipe/reference/
+      - docs/adr/013-recipe-maturity-model.md
+
+  - group_id: group-2
+    issue_number: 95
+    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
+    confidence: high
+    reasoning: >
+      group-2 contains STM evidence artifacts produced by the create-recipe
+      skill run that built the commit-code recipe components — agent audit
+      reports, scenario evals, skill manifest, intent gap report, recipe
+      analysis, and step evals. These are operational records of the work
+      done under issue #95. Evidence artifacts belong to the issue they
+      document: the create-recipe skill was invoked in the context of issue
+      #95, the evidence paths are nested under
+      .meridian/project/issues/95/, and the artifacts themselves reference
+      commit-code recipe development as their subject. No other open issue
+      has any relationship to this evidence trail. The chore(stm) commit
+      type is appropriate; the issue reference remains #95 because that is
+      the work these artifacts record.
+    conflicts: []
+    files:
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-project-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-repo-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/scenario-evals.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/skill-manifest.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/intent-gap-report.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/recipe-analysis.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/step-evals.yaml
+
+open_issues_surveyed:
+  - number: 95
+    title: "feat(recipe-framework): intent-driven recipe architecture"
+    labels: [enhancement]
+  - number: 93
+    title: "feat: intent-driven eval generation and review-pr integration"
+    labels: []
+  - number: 92
+    title: "feat: interactive HTML briefs with feedback capture and JSON export"
+    labels: []
+  - number: 91
+    title: "docs: update documentation to reflect Four Crafts architecture and current component state"
+    labels: []
+  - number: 89
+    title: "Agent response format: add skill-to-contract transformation examples (Option B)"
+    labels: []
+  - number: 88
+    title: "Explore direct skill invocation for L2 fixed-DAG recipes"
+    labels: []
+  - number: 87
+    title: "Reduce redundant file reads via contract-carried intent summary"
+    labels: []
+  - number: 78
+    title: "fix(ship): analyze-pr elevates REVIEW items to blocking_issues, breaking auto-approve in /ship"
+    labels: [bug]
+  - number: 70
+    title: "feat: design Vercel-compatible reference architecture for LTM knowledge layer"
+    labels: [enhancement]
+  - number: 68
+    title: "feat: build observation dashboard for Meridian agent execution"
+    labels: []
+  - number: 44
+    title: "Fluidic SDLC v2.0.0 Specification"
+    labels: [enhancement]
+  - number: 26
+    title: "fix(start-feature): correct agent reference and clarify skill invocations"
+    labels: [bug]
+  - number: 6
+    title: "fix(skills): clarify output semantics in manage-issue and audit other skills"
+    labels: [bug]
+  - number: 5
+    title: "feat(skills): add namespace support for skill organization"
+    labels: [enhancement]
+
+conflict_analysis: >
+  No conflicts exist for either group. Issue #91 (docs: update documentation
+  for Four Crafts architecture) is the nearest alternate candidate for group-1
+  because it references the same architectural direction. However, #91 is
+  scoped to documentation updates only, whereas group-1 contains substantive
+  recipe, memory, standards, and ADR component changes. The distinction is
+  clear: #91 is an incorrect mapping, not a genuine conflict. All other open
+  issues are unrelated in domain (HTML briefs, eval generation, ship recipe
+  bug, LTM architecture, dashboard) and present no conflict risk. Both groups
+  map exclusively and unambiguously to #95.
 
 unmapped_groups: []
-conflicts: []
 
 constraint_check:
   C3:
     status: PASS
-    detail: "All groups (G1) map to an existing open issue (#95). No unmapped groups."
-  F4:
+    detail: >
+      All groups (group-1, group-2) map to existing open issue #95.
+      No unmapped groups.
+  C9:
     status: PASS
-    detail: "Issue #95 is the correct issue — branch encodes it, semantic signals confirm it, no competing issue."
+    detail: >
+      Both mappings are high confidence. Human approval is not required
+      before proceeding to commit.
 
 summary:
-  total_groups: 1
-  mapped: 1
+  total_groups: 2
+  mapped: 2
   unmapped: 0
-  high_confidence: 1
+  high_confidence: 2
   medium_confidence: 0
   low_confidence: 0
   requires_approval: false
   approval_reason: null
+
+eval_results:
+  SE-6:
+    status: PASS
+    detail: >
+      Both mappings include reasoning that substantiates the semantic
+      connection between the change group content and the mapped issue.
+      group-1 reasoning traces each file category to the recipe framework
+      overhaul scope of #95. group-2 reasoning traces the evidence path
+      structure and artifact content to the #95 issue context.
+  SE-7:
+    status: PASS
+    detail: >
+      Conflict analysis is explicit. The nearest alternate candidate (#91)
+      is identified and dismissed with stated reasoning. Both mappings carry
+      an empty conflicts array, not because conflicts were silently ignored
+      but because the conflict_analysis section documents the evaluation and
+      conclusion.
+  SE-8:
+    status: PASS
+    detail: >
+      Both mappings include a confidence field. Both are rated high.
+      Per constraint C9, high-confidence mappings do not require human
+      approval before proceeding to commit.

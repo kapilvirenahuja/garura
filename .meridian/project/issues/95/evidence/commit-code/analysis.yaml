@@ -2,7 +2,7 @@
 # analyze-changes output
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
-# Stage: 2 — commit-code recipe, push-branch stage addition session
+# Stage: commit-code recipe — analyze-changes step
 
 issue: 95
 stm_base: ".meridian/project/issues/"
@@ -10,91 +10,68 @@ branch: feature/95-intent-driven-recipe-architecture
 hotfix_branch: false
 
 groups:
-  - id: G1
-    concern: "Add push-branch stage and C7 constraint to commit-code recipe"
+  - id: group-1
+    concern: >
+      Core component updates for intent-driven recipe architecture (#95):
+      recipe SKILL.md files, commit-code intent and constraints, memory workflow
+      definitions, new agent-contract standard, new create-recipe reference
+      directory, and new ADR documenting recipe maturity model.
     type: refactor
-    scope: commit-code
-    subject: "add push-branch stage and C7 constraint to commit-code recipe"
+    scope: recipes
+    subject: "update commit-code and create-recipe components for intent-driven architecture"
     issue: 95
-    commit_message: "refactor(commit-code): add push-branch stage and C7 constraint (#95)"
-    files:
-      - core/components/recipes/commit-code/reference/intent.yaml
-      - core/components/recipes/commit-code/SKILL.md
-      - .meridian/95/dag/commit-code.json
-    rationale: >
-      All three files constitute one atomic concern: adding a push-branch stage
-      to the commit-code recipe and encoding it as constraint C7.
-      intent.yaml adds C7 (push after commits, non-blocking on failure).
-      SKILL.md updates the recipe description, constraint range (C1-C7),
-      agent call budget (4 calls), workflow stage descriptions, and eval
-      reference style to be DAG-driven rather than hardcoded.
-      commit-code.json adds push-branch (Stage 5) and gen-eval-2 tasks to the
-      DAG and rewires blockedBy dependencies for scenario-eval-1 and
-      scenario-eval-2. All three are part of the same constraint enforcement
-      change — splitting them would leave the recipe in an inconsistent state
-      between commits.
+    commit_message: "refactor(recipes): update commit-code and create-recipe components for intent-driven architecture (#95)"
     confidence: high
+    risk: medium
+    files:
+      - core/components/recipes/commit-code/SKILL.md
+      - core/components/recipes/commit-code/reference/intent.yaml
+      - core/components/recipes/create-recipe/SKILL.md
+      - core/components/memory/workflows/direct-generation.yaml
+      - core/components/memory/workflows/readiness-brief-generation.yaml
+      - core/components/memory/workflows/readiness-only.yaml
+      - core/components/memory/standards/agent-contract.md
+      - core/components/recipes/create-recipe/reference/
+      - docs/adr/013-recipe-maturity-model.md
+
+  - id: group-2
+    concern: >
+      STM evidence artifacts from the create-recipe skill run for issue #95:
+      agent audit reports, scenario evals, skill manifest, intent gap report,
+      recipe analysis, and step evals. Operational artifacts, not feature content.
+    type: chore
+    scope: stm
+    subject: "record create-recipe evidence artifacts for issue #95"
+    issue: 95
+    commit_message: "chore(stm): record create-recipe evidence artifacts for issue #95 (#95)"
+    confidence: high
+    risk: low
+    files:
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-project-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-repo-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/scenario-evals.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/skill-manifest.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/intent-gap-report.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/recipe-analysis.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/step-evals.yaml
 
 risks:
   sensitive_files: []
   breaking_changes: []
-  ambiguous_types:
-    - group: G1
-      candidate_types:
-        - type: refactor
-          reason: "Recipe is restructured — push was implied, now explicitly enforced. No new external capability from user perspective."
-        - type: feat
-          reason: "A new stage (push-branch) is being added to the DAG with a new constraint (C7) that did not exist before."
-      resolution: >
-        refactor is dominant. The recipe already had an intent to push
-        (implied by C7 wording "after commits are created"). This change
-        makes the implicit explicit and adds DAG tasks to enforce it —
-        a structural clarification, not a net-new capability. Low-severity
-        ambiguity; single group is correct regardless of type chosen.
+  ambiguous_types: []
   hotfix_branch: false
 
-issue_mapping:
-  - group: G1
-    issue: 95
-    confidence: high
-
-constraint_check:
-  C1:
-    status: PASS
-    detail: "Branch is feature/95-intent-driven-recipe-architecture, not main/master."
-  C2:
-    status: PASS
-    detail: "3 unstaged modified files detected."
-  C3:
-    status: PASS
-    detail: "All changes map to issue #95."
-  C4:
-    status: PASS
-    detail: "No sensitive files, credentials, or environment files detected."
-  C5:
-    status: PASS
-    detail: "refactor(commit-code) is a valid conventional commit type."
-  C6:
-    status: PASS
-    detail: "(#95) will be included in the commit message."
-  F1:
-    status: PASS
-    detail: "Single group, single concern: push-branch stage addition."
-  F2:
-    status: PASS
-    detail: "Subject describes the actual change — not a generic placeholder."
-  F3:
-    status: PASS
-    detail: "All 3 changed files assigned to G1. No files left uncommitted."
-  F4:
-    status: PASS
-    detail: "Issue #95 is the correct issue for this feature branch."
+sensitive_files: []
+total_files: 16
 
 grouping_decision:
-  strategy: single_commit
-  commit_count: 1
+  strategy: split_by_concern
+  commit_count: 2
   rationale: >
-    Single issue (#95), single concern (push-branch stage enforcement), all
-    three files part of the same atomic change. Splitting by file type or
-    directory would violate the grouping rule: never split a single issue into
-    multiple groups by component. One commit covers all three files cleanly.
+    Single issue (#95) but two genuinely distinct operational concerns:
+    group-1 contains substantive core component changes (recipes, memory,
+    standards, ADR) that are the feature work itself; group-2 contains STM
+    evidence artifacts that are operational records of the create-recipe skill
+    run. Splitting these follows the grouping rule: STM/evidence artifacts that
+    are operational, not part of the feature itself, warrant a separate chore(stm)
+    commit. All 16 files are covered across the two groups.

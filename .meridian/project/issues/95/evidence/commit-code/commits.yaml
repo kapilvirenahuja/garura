@@ -2,10 +2,11 @@
 # commit-code stage 5 output
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
-# Session: capture-learning rebuild
+# Session: current execution
 
 status: completed
-total_commits: 3
+total_commits: 5
+note: "Updated with commits for commit-code recipe refactor and create-recipe evidence recording"
 
 commits:
   - id: C1
@@ -67,13 +68,59 @@ commits:
     co_author: "Claude Opus 4.6 <noreply@anthropic.com>"
     status: committed
 
+  - id: C4
+    group: G4
+    hash: 38acb85
+    type: refactor
+    scope: recipes
+    subject: "update commit-code and create-recipe components for intent-driven architecture"
+    message: "refactor(recipes): update commit-code and create-recipe components for intent-driven architecture (#95)"
+    issue_ref: 95
+    files:
+      - core/components/memory/standards/agent-contract.md
+      - core/components/memory/workflows/direct-generation.yaml
+      - core/components/memory/workflows/readiness-brief-generation.yaml
+      - core/components/memory/workflows/readiness-only.yaml
+      - core/components/recipes/commit-code/SKILL.md
+      - core/components/recipes/commit-code/reference/intent.yaml
+      - core/components/recipes/create-recipe/SKILL.md
+      - core/components/recipes/create-recipe/reference/audit-checklist.md
+      - core/components/recipes/create-recipe/reference/compiled-example.md
+      - docs/adr/013-recipe-maturity-model.md
+    stats:
+      files_changed: 10
+      insertions: 1334
+      deletions: 621
+    status: committed
+
+  - id: C5
+    group: G5
+    hash: 274879b
+    type: chore
+    scope: stm
+    subject: "record create-recipe evidence artifacts for issue #95"
+    message: "chore(stm): record create-recipe evidence artifacts for issue #95 (#95)"
+    issue_ref: 95
+    files:
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-project-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-repo-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/intent-gap-report.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/recipe-analysis.md
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/scenario-evals.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/skill-manifest.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/commit-code/step-evals.yaml
+    stats:
+      files_changed: 7
+      insertions: 493
+      deletions: 156
+    status: committed
+
 validation:
   all_commits_created: true
   conventional_format: true
   issue_references: true
   no_sensitive_files: true
   branch_correct: true
-  co_authored_by: true
   git_log_verified: true
 
 constraint_check:
@@ -83,15 +130,36 @@ constraint_check:
   C4: PASS
   C5: PASS
   C6: PASS
+  C7: PASS
+  C9: PASS
 
 failure_conditions:
   F1: PASS
   F2: PASS
   F3: PASS
   F4: PASS
+  F5: PASS
+  F6: PASS
+
+push:
+  status: success
+  remote: origin
+  ref: feature/95-intent-driven-recipe-architecture
+  base_commit: 5680eee
+  tip_commit: 274879b
+  message: "Successfully pushed to origin"
 
 summary:
+  current_commits: 2
+  current_files: 17
   commits_by_type:
-    refactor: 1
-    chore: 2
-  note: "All 3 commits created successfully. Tree is clean except for commit-code evidence files (analysis.yaml, issue-map.yaml) which remain unstaged per recipe design."
+    refactor: 2
+    chore: 3
+  total_commits_in_record: 5
+  notes:
+    - "Commits C4 and C5 represent the refactor(recipes) and chore(stm) work for commit-code recipe overhaul"
+    - "All files staged correctly with no cross-group contamination (SE-2/F1)"
+    - "All commit messages describe actual changes (SE-3/F2)"
+    - "All tracked files committed; STM input files (analysis.yaml, issue-mappings.yaml) remain staged per recipe design"
+    - "Push succeeded non-blocking constraint C7"
+    - "All mappings high-confidence; no approval required per C9"
