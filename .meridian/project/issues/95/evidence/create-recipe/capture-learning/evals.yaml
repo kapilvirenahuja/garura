@@ -1,113 +1,120 @@
 # capture-learning recipe evals
 # Generated from: core/components/recipes/capture-learning/reference/intent.yaml
-# Note: extraction skills (extract-knowledge, promote-knowledge) do not exist yet.
-#       Extraction step evals are placeholders — they will be skipped until skills are built.
-#       Archival step evals are active — archive-issue-stm skill exists and works.
+# Scope: ACTIVE constraints (C1-C4), failure conditions (F1-F5), scenarios (S1-S2) only
+# PENDING items (C5-C10, F6-F9, S3-S4) are excluded — extraction skills do not exist yet
 
 step_evals:
 
-  # --- Extraction (placeholder — skills not yet built) ---
-
-  - id: step-eval-1
-    skill: extract-knowledge
-    stage: 2
-    status: placeholder
-    validates: [F1, F4, C4]
-    check: >
-      After extract-knowledge runs, verify each draft knowledge artifact contains:
-      (a) identity metadata (tier 1) — at minimum the fields that uniquely identify
-      the knowledge pattern (e.g., name, domain, type);
-      (b) profile metadata (tier 2) — structured schema fields providing richer
-      context (e.g., applicability criteria, trade-offs, related patterns);
-      (c) at least one search pattern or applicability criterion that would allow
-      an agent or human to discover this artifact via taxonomy search.
-      Artifacts missing any of (a), (b), or (c) are failed output per F1 and F4.
-
-  - id: step-eval-2
-    skill: promote-knowledge
-    stage: 3
-    status: placeholder
-    validates: [C3, F2]
-    check: >
-      After promote-knowledge runs, verify:
-      (a) No new knowledge artifact was created for a pattern already covered by
-      an existing artifact in the knowledge base — search the knowledge base for
-      overlapping names, domains, and search patterns before accepting a new file;
-      (b) Where an existing artifact covers the same pattern, confirm it was updated
-      in-place rather than duplicated — diff the artifact before and after to verify
-      the update merged new content into the existing structure;
-      (c) If consolidation removed redundant content, confirm the resulting artifact
-      still satisfies step-eval-1 checks (identity, profile, search patterns intact).
-
-  # --- Archival (active — archive-issue-stm skill exists) ---
-
-  - id: step-eval-3
+  - id: SE-1
+    failure_condition_id: F1
     skill: archive-issue-stm
-    stage: 4
-    status: active
-    validates: [C7]
     check: >
-      After archive-issue-stm runs, verify:
-      (a) The archived directory exists at _archive/{YYYY-MM}/{issue}/ where YYYY-MM
-      is derived from the issue close date (not the current date, not the creation
-      date — the close date);
-      (b) The archived directory contains the complete contents of the original STM
-      directory — file count and structure match;
-      (c) The original STM directory at the active workspace path has been removed
-      (not just emptied — the directory itself must not exist);
-      (d) No files were modified, renamed, or filtered during the move — the archive
-      is a faithful copy of what existed in the active STM directory.
+      After archive-issue-stm completes, verify the archive directory exists
+      at _archive/{YYYY-MM}/{issue}/ and contains at least one file.
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue_number}/"
+    pass_criteria: >
+      The directory _archive/{YYYY-MM}/{issue_number}/ exists and contains
+      one or more files or subdirectories.
+    fail_criteria: >
+      The directory _archive/{YYYY-MM}/{issue_number}/ does not exist, or
+      exists but is empty (zero files and zero subdirectories).
+
+  - id: SE-2
+    failure_condition_id: F2
+    skill: archive-issue-stm
+    check: >
+      After archive-issue-stm completes, verify the original STM directory
+      at {stm_base}/{issue_number}/ no longer exists.
+    artifact_pattern: "{stm_base}/{issue_number}/"
+    pass_criteria: >
+      The directory {stm_base}/{issue_number}/ does not exist — the path
+      returns "not found" when listed.
+    fail_criteria: >
+      The directory {stm_base}/{issue_number}/ still exists at the active
+      workspace location (even if empty).
+
+  - id: SE-3
+    failure_condition_id: F3
+    skill: archive-issue-stm
+    check: >
+      After archive-issue-stm completes, compare the file count and
+      directory structure of the archive against the original STM directory
+      contents. Every file and subdirectory that existed in the source must
+      exist in the archive.
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue_number}/"
+    pass_criteria: >
+      The archive directory contains the same number of files and the same
+      directory structure as the original STM directory. No files or
+      subdirectories are missing.
+    fail_criteria: >
+      The archive directory has fewer files than the original, or one or
+      more subdirectories present in the original are absent from the
+      archive.
+
+  - id: SE-4
+    failure_condition_id: F4
+    skill: archive-issue-stm
+    check: >
+      After archive-issue-stm completes, verify the {YYYY-MM} segment in
+      the archive path matches the issue's closedAt date from GitHub.
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue_number}/"
+    pass_criteria: >
+      The {YYYY-MM} directory name matches the year and month extracted
+      from the issue's closedAt timestamp returned by the GitHub API.
+    fail_criteria: >
+      The {YYYY-MM} directory name does not match the issue's closedAt
+      date — e.g., uses current date, creation date, or an arbitrary value.
+
+  - id: SE-5
+    failure_condition_id: F5
+    skill: manage-issue
+    check: >
+      Before archival proceeds, verify the issue's state is "closed" by
+      reading the issue via manage-issue. If the state is not "closed",
+      the recipe must not invoke archive-issue-stm.
+    artifact_pattern: "manage-issue output for issue {issue_number}"
+    pass_criteria: >
+      The manage-issue read output shows state as "CLOSED" and the recipe
+      only proceeds to archival after confirming this state.
+    fail_criteria: >
+      The recipe invokes archive-issue-stm for an issue whose state is
+      "OPEN" or "IN_PROGRESS" as reported by manage-issue.
 
 scenario_evals:
 
-  - id: scenario-eval-1
-    scenario: S1
-    persona: "Agent (tech-designer or code-builder) in a future project"
-    validates: [C4, C6, F1]
-    check: >
-      Given the long-term memory knowledge base containing promoted artifacts,
-      an agent must be able to discover relevant knowledge by:
-      (a) Searching for patterns using taxonomy fields (domain, type, search patterns)
-      and receiving matching artifacts;
-      (b) Matching project context (e.g., "building an intent-driven recipe system")
-      against applicability criteria in artifacts and finding relevant prior patterns;
-      (c) Applying discovered patterns to accelerate decisions without re-discovering
-      known solutions — the artifact content must be actionable, not just descriptive.
-      Passing criteria: at least one artifact is discoverable via taxonomy search for
-      a context that matches the source issue's domain, and the artifact contains
-      enough detail to inform a design decision.
-
-  - id: scenario-eval-2
-    scenario: S2
-    persona: "Developer starting a new project"
-    validates: [C5, C6]
-    check: >
-      Given the long-term memory knowledge base searchable via tools, a developer
-      must be able to:
-      (a) Find holistic patterns organized by interconnected decisions — not siloed
-      by individual technology, language, or framework;
-      (b) Understand not just what was built but why — the artifact must capture
-      rationale, trade-offs, and the decision context that led to the pattern;
-      (c) Navigate from one pattern to related patterns through taxonomy and metadata
-      without needing to know the source issue or STM artifacts.
-      Passing criteria: knowledge artifacts reference cross-cutting concerns (e.g.,
-      a pattern that spans architecture + implementation + testing), and the "why"
-      is explicitly documented alongside the "what." No traceability links to source
-      issues exist (C5).
-
-  - id: scenario-eval-3
-    scenario: S3
+  - id: SCE-1
+    scenario_id: S1
     persona: "Engineering lead reviewing agent-produced work"
-    validates: [C7]
+    artifact_pattern: "{stm_archive}/{YYYY-MM}/{issue_number}/"
     check: >
-      Given the archived STM directory at _archive/{YYYY-MM}/{issue}/, an
-      engineering lead must be able to:
-      (a) Review the complete history of how the issue was worked — evidences,
-      checkpoints, analysis artifacts, and delivery outputs are all present;
-      (b) Reconstruct the sequence of work from the archived artifacts — the archive
-      preserves directory structure and file timestamps;
-      (c) Build trust in agent-produced outcomes by verifying that each stage of work
-      (design, implementation, testing, delivery) produced observable evidence.
-      Passing criteria: the archived directory is browsable, contains all original
-      STM artifacts with preserved structure, and an auditor can identify what was
-      done at each stage without external context.
+      Given the archived STM directory, verify the engineering lead can
+      review the complete history of how the issue was worked — evidences,
+      checkpoints, analysis, and delivery artifacts are all present — and
+      confirm nothing was lost during archival.
+    pass_criteria: >
+      The archived directory is browsable, preserves the original directory
+      structure, contains all files that existed in the source STM directory
+      (evidence, checkpoint, planning, spec, design, delivery subdirectories
+      and their contents), and no files were renamed or modified during the
+      move.
+    fail_criteria: >
+      The archived directory is missing files or subdirectories that existed
+      in the original STM, or files were renamed, modified, or restructured
+      during the move, preventing a complete audit of the issue's history.
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: "Developer starting the next feature"
+    artifact_pattern: "{stm_base}/"
+    check: >
+      After capture-learning completes, verify the completed issue's
+      directory is no longer present in the active STM workspace, reducing
+      noise when navigating current work.
+    pass_criteria: >
+      The active STM workspace at {stm_base}/ does not contain a directory
+      for the archived issue number. Listing the workspace shows only
+      directories for currently active issues.
+    fail_criteria: >
+      The active STM workspace at {stm_base}/ still contains a directory
+      for the archived issue number, cluttering the workspace alongside
+      active issues.

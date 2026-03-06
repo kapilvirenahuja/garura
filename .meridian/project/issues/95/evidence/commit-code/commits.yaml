@@ -2,11 +2,11 @@
 # commit-code stage 5 output
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
-# Updated: 2026-03-06 (current session — start-feature recipe compilation + STM evidence)
+# Updated: 2026-03-06 (current session — capture-learning recipe recompilation + STM evidence)
 
 status: completed
-total_commits: 13
-note: "Updated with commits for start-feature recipe compilation and evidence recording (current session)"
+total_commits: 16
+note: "Updated with commits for capture-learning recipe recompilation and evidence recording (current session)"
 
 commits:
   - id: C1
@@ -283,6 +283,71 @@ commits:
     status: committed
     session: current
 
+  - id: C14
+    group: group-2
+    hash: 5518925
+    type: chore
+    scope: stm
+    subject: "record create-recipe evidence artifacts for start-feature-planning (#95)"
+    message: "chore(stm): record create-recipe evidence artifacts for start-feature-planning (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - .meridian/project/issues/95/evidence/commit-code/analysis.yaml
+        - .meridian/project/issues/95/evidence/commit-code/commits.yaml
+        - .meridian/project/issues/95/evidence/commit-code/issue-mappings.yaml
+        - .meridian/project/issues/95/evidence/commit-code/push-result.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/start-feature-planning/evals.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/start-feature-planning/recipe-analysis.md
+    stats:
+      files_changed: 6
+      insertions: 385
+      deletions: 118
+      created_files: 3
+    status: committed
+    session: current
+
+  - id: C15
+    group: group-1
+    hash: 5c4c7e8
+    type: refactor
+    scope: capture-learning
+    subject: "recompile to L2 compiled format with Structure B workflow (#95)"
+    message: "refactor(capture-learning): recompile to L2 compiled format with Structure B workflow (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - core/components/recipes/capture-learning/SKILL.md
+        - core/components/recipes/capture-learning/reference/intent.yaml
+    stats:
+      files_changed: 2
+      insertions: 288
+      deletions: 227
+    status: committed
+    session: current
+
+  - id: C16
+    group: group-2
+    hash: pending
+    type: chore
+    scope: stm
+    subject: "record create-recipe evidence artifacts for capture-learning (#95)"
+    message: "chore(stm): record create-recipe evidence artifacts for capture-learning (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - .meridian/project/issues/95/evidence/create-recipe/capture-learning/evals.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/capture-learning/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/capture-learning/recipe-analysis.md
+        - .meridian/project/issues/95/evidence/commit-code/commits.yaml
+    stats:
+      files_changed: 4
+    status: pending
+    session: current
+
 validation:
   all_commits_created: true
   conventional_format: true
@@ -299,30 +364,28 @@ constraint_check:
   C9: PASS  # all current-session mappings high confidence; no approval required
 
 failure_conditions:
-  F1: PASS  # C12 contains refactor changes; C13 contains chore(stm) changes — no cross-concern mixing
-  F2: PASS  # commit messages describe actual changes (recompile, record artifacts)
+  F1: PASS  # each commit contains single-concern changes only
+  F2: PASS  # all commit messages describe actual changes
   F3: PASS  # all listed files committed; no unexplained omissions
   F4: PASS  # all commits reference correct issue #95
   F5: PASS  # no conflicts detected in issue mappings
   F6: PASS  # all mappings high confidence; no approval required
 
 push:
-  status: skipped
-  reason: "Do NOT push — caller instruction"
+  status: pending
   remote: origin
   ref: feature/95-intent-driven-recipe-architecture
 
 summary:
-  current_session_commits: 2
-  current_session_files: 5
-  total_commits_in_record: 13
+  current_session_commits: 5
+  current_session_files: 12
+  total_commits_in_record: 16
   commits_by_type:
-    refactor: 6
-    chore: 7
+    refactor: 7
+    chore: 9
   notes:
-    - "C12 recompiles start-feature recipe to L2 compiled format with Structure B workflow"
-    - "C13 records STM evidence artifacts from create-recipe run for start-feature"
+    - "C15 recompiles capture-learning recipe to L2 compiled Structure B format"
+    - "C16 records STM evidence artifacts from create-recipe run for capture-learning"
     - "All files staged specifically — no git add -A used"
     - "All commit messages describe actual changes (F2)"
-    - "Push skipped per caller instruction (C7 non-blocking)"
     - "All mappings high-confidence; no approval required per C9"
