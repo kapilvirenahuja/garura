@@ -1,0 +1,29 @@
+recipe: capture-learning
+existing_skills:
+  - name: archive-issue-stm
+    path: core/components/skills/archive-issue-stm/SKILL.md
+    stage: 5
+    purpose: Move issue STM directory to _archive/{YYYY-MM}/{issue}/
+
+new_skills:
+  - name: extract-knowledge
+    purpose: Read STM artifacts from a completed issue, identify reusable holistic patterns, produce structured knowledge drafts with taxonomy and metadata
+    inputs:
+      - stm_base/{issue}/ directory (read-only)
+      - existing knowledge base index (core/components/memory/knowledge/_index.md)
+    outputs:
+      - knowledge-drafts.yaml in STM evidence path (structured drafts with identity + profile metadata)
+
+  - name: promote-knowledge
+    purpose: Search existing knowledge base for overlaps, decide update vs create, write/update knowledge artifacts in LTM with proper taxonomy
+    inputs:
+      - knowledge-drafts.yaml from extract-knowledge (via STM path)
+      - existing knowledge base (core/components/memory/knowledge/)
+    outputs:
+      - new or updated knowledge files in core/components/memory/knowledge/
+      - promotion-report.yaml in STM evidence path (what was created, updated, or skipped)
+
+execution_order:
+  - extract-knowledge
+  - promote-knowledge
+  - archive-issue-stm
