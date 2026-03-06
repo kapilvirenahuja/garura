@@ -1,0 +1,89 @@
+step_evals:
+  - id: SE-1
+    failure_condition_id: F1
+    skill: plan-sub-agent
+    check: "Planning artifacts contain actionable design content — not empty or boilerplate"
+    artifact_pattern: "{stm_base}/{issue}/planning/spec.md, {stm_base}/{issue}/planning/verify.md, {stm_base}/{issue}/planning/tasks.md"
+    pass_criteria: "Each file is non-empty and contains domain-specific content (not just headers)"
+    fail_criteria: "Any file is empty, missing, or contains only template headers with no content"
+
+  - id: SE-2
+    failure_condition_id: F3
+    skill: plan-sub-agent
+    check: "Plan sub-agent output contains all three required sections: SPEC, VERIFY, TASKS"
+    artifact_pattern: "Plan sub-agent text output"
+    pass_criteria: "Output contains '## SPEC', '## VERIFY', and '## TASKS' headers with content under each"
+    fail_criteria: "One or more section headers missing from output"
+
+  - id: SE-3
+    failure_condition_id: F4
+    skill: setup-branch
+    check: "Branch exists on origin after branch-creation step"
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature-planning/branch-result.yaml"
+    pass_criteria: "branch.pushed is true AND branch.name matches {type}/{issue_number}-{slug}"
+    fail_criteria: "branch.pushed is false OR branch creation failed"
+
+  - id: SE-4
+    failure_condition_id: F2
+    skill: setup-branch
+    check: "On Vanish, remote branch is deleted before halt"
+    artifact_pattern: "git ls-remote check after Vanish"
+    pass_criteria: "If user chose Vanish: branch no longer exists on origin after cleanup"
+    fail_criteria: "User chose Vanish but branch still exists on origin"
+
+  - id: SE-5
+    constraint_id: C5
+    skill: plan-sub-agent
+    check: "Each planning section carries IDD headers (intent, constraints, failure conditions)"
+    artifact_pattern: "{stm_base}/{issue}/planning/spec.md"
+    pass_criteria: "SPEC section includes Intent, Constraints, and Failure Conditions sub-sections"
+    fail_criteria: "IDD headers missing from any section"
+
+  - id: SE-6
+    constraint_id: C7
+    skill: plan-sub-agent
+    check: "Tasks are granular with dependency graph"
+    artifact_pattern: "{stm_base}/{issue}/planning/tasks.md"
+    pass_criteria: "Tasks file contains individual task definitions with Depends-on fields and a dependency graph section"
+    fail_criteria: "Tasks are vague, monolithic, or lack dependency information"
+
+  - id: SE-7
+    constraint_id: C1
+    skill: pre-flight
+    check: "Working tree is clean before planning begins"
+    artifact_pattern: "git status --porcelain output"
+    pass_criteria: "git status --porcelain produces empty output"
+    fail_criteria: "Uncommitted changes present in working tree"
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/planning/tasks.md"
+    check: "Developer can pick up first unblocked task and begin implementation without further planning"
+    pass_criteria: "tasks.md contains task definitions with enough detail (files, changes, expected outcome) that implementation can begin from task T1 without ambiguity"
+    fail_criteria: "Tasks lack implementation detail, file references, or expected outcomes"
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Tech Lead
+    artifact_pattern: "{stm_base}/{issue}/planning/spec.md"
+    check: "Tech Lead can review design completeness and approve/reject at checkpoint"
+    pass_criteria: "spec.md contains strategy, alternatives considered, risks, affected files — enough for informed Tether/Vanish decision"
+    fail_criteria: "spec.md lacks strategy, alternatives, or risk assessment"
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/planning/verify.md"
+    check: "Developer can determine acceptance criteria without ambiguity"
+    pass_criteria: "verify.md contains specific acceptance criteria, verification steps with expected outcomes, and edge cases"
+    fail_criteria: "Acceptance criteria are vague, untestable, or missing"
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Project Manager
+    artifact_pattern: "{stm_base}/{issue}/planning/tasks.md"
+    check: "PM can assess scope and critical path from dependency graph"
+    pass_criteria: "tasks.md contains a dependency graph section showing task ordering, enabling critical path identification"
+    fail_criteria: "No dependency graph present, or tasks have no dependency information"

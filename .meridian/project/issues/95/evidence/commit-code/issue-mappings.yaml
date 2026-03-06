@@ -3,7 +3,6 @@
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
 # Stage: commit-code recipe — resolve-issues step
-# Evals: SE-6 (F4), SE-7 (F5), SE-8 (F6)
 
 issue: 95
 stm_base: ".meridian/project/issues/"
@@ -16,23 +15,26 @@ mappings:
     issue_state: open
     confidence: high
     reasoning: >
-      group-1 contains recompilation of core/components/recipes/merge-pr/ to L2 compiled
-      format — two files: SKILL.md (full structural overhaul from L4) and reference/intent.yaml
-      (F1/F4/F5 reframed as observable output states, C4 cleaned of prescriptive language).
-      The branch name feature/95-intent-driven-recipe-architecture encodes issue #95 directly
-      (branch signal, strong). Issue #95 title "intent-driven recipe architecture" covers
-      recipe compilation work as a core deliverable — recompiling recipes to L2 compiled
-      format is the primary output of the recipe architecture overhaul (semantic signal, strong).
-      The refactor type aligns with structural recompilation (semantic signal, medium).
-      No other open issue competes: #93 covers eval generation and review-pr integration
-      (different feature); #91 covers docs-only updates (no component changes); #92 is HTML
-      briefs (unrelated domain). Three corroborating signals meet the high-confidence threshold.
+      group-1 recompiles core/components/recipes/start-feature-planning/SKILL.md and
+      reference/intent.yaml to L2 compiled Structure B format — removing
+      intent-resolver/DAG-cache infrastructure stages and replacing with named phases,
+      inline step evals, JSON agent contracts with STM paths, and pause-resume via status
+      file. Branch name feature/95-intent-driven-recipe-architecture encodes issue #95
+      directly (branch signal, strong). Issue #95 "intent-driven recipe architecture"
+      covers recipe compilation/recompilation as a primary deliverable — recompiling
+      start-feature-planning is one of the core outputs of the recipe architecture
+      overhaul (semantic signal, strong). The refactor type aligns with structural
+      recompilation without behavior change (semantic signal, medium). No competing
+      open issue: #93 covers eval generation/review-pr integration (different scope);
+      #91 is docs-only (cannot accept component changes); #92 is HTML briefs (unrelated
+      domain); #88 is direct skill invocation exploration (different scope). Three
+      corroborating signals meet the high-confidence threshold.
     conflicts: []
     type_hint: feature
     files:
-      - core/components/recipes/merge-pr/SKILL.md
-      - core/components/recipes/merge-pr/reference/intent.yaml
-    commit_message: "refactor(merge-pr): recompile to L2 compiled format with Structure B workflow (#95)"
+      - core/components/recipes/start-feature-planning/SKILL.md
+      - core/components/recipes/start-feature-planning/reference/intent.yaml
+    commit_message: "refactor(start-feature-planning): recompile to L2 compiled format with Structure B workflow (#95)"
 
   - group_id: group-2
     issue_number: 95
@@ -41,26 +43,25 @@ mappings:
     confidence: high
     reasoning: >
       group-2 contains STM evidence artifacts at paths under
-      .meridian/project/issues/95/evidence/ and updated create-pr evidence files.
-      The directory path itself encodes issue #95 — this is a structural guarantee from
-      STM design (ADR 008, ADR 010), not an inference (semantic signal, strong).
-      The branch name feature/95-intent-driven-recipe-architecture encodes issue #95
-      directly (branch signal, strong). Evidence artifacts are produced by and belong
-      to the issue that owns the STM namespace. Six files: four untracked evidence
-      artifacts for create-recipe/merge-pr/ and two modified create-pr evidence files —
-      all operational records of the create-recipe run for merge-pr under issue #95.
-      No competing issues possible: STM path binding is unambiguous and no other open
-      issue has any relationship to this evidence trail.
+      .meridian/project/issues/95/evidence/ — the directory path itself encodes issue #95
+      (structural guarantee from STM design per ADR 008/010, semantic signal, strong).
+      Branch name feature/95-intent-driven-recipe-architecture encodes issue #95 directly
+      (branch signal, strong). Evidence artifacts are produced by and belong to the issue
+      that owns the STM namespace. Files include: create-recipe evals.yaml and
+      recipe-analysis.md for start-feature-planning (untracked), plus commit-code tracking
+      files analysis.yaml, commits.yaml, issue-mappings.yaml, push-result.yaml (modified
+      and untracked). All are operational records of skill runs under issue #95. No
+      competing issues possible — STM path binding is unambiguous.
     conflicts: []
     type_hint: chore
     files:
-      - .meridian/project/issues/95/evidence/create-recipe/merge-pr/agent-audit-repo-orchestrator.md
-      - .meridian/project/issues/95/evidence/create-recipe/merge-pr/evals.yaml
-      - .meridian/project/issues/95/evidence/create-recipe/merge-pr/recipe-analysis.md
-      - .meridian/project/issues/95/evidence/create-recipe/merge-pr/skill-manifest.yaml
-      - .meridian/project/issues/95/evidence/create-pr/analysis.yaml
-      - .meridian/project/issues/95/evidence/create-pr/issue-linkage.yaml
-    commit_message: "chore(stm): record create-recipe evidence artifacts for merge-pr (#95)"
+      - .meridian/project/issues/95/evidence/create-recipe/start-feature-planning/evals.yaml
+      - .meridian/project/issues/95/evidence/create-recipe/start-feature-planning/recipe-analysis.md
+      - .meridian/project/issues/95/evidence/commit-code/analysis.yaml
+      - .meridian/project/issues/95/evidence/commit-code/commits.yaml
+      - .meridian/project/issues/95/evidence/commit-code/issue-mappings.yaml
+      - .meridian/project/issues/95/evidence/commit-code/push-result.yaml
+    commit_message: "chore(stm): record create-recipe evidence artifacts for start-feature-planning (#95)"
 
 open_issues_surveyed:
   - number: 95
@@ -75,14 +76,33 @@ open_issues_surveyed:
   - number: 91
     title: "docs: update documentation to reflect Four Crafts architecture and current component state"
     labels: []
+  - number: 89
+    title: "Agent response format: add skill-to-contract transformation examples (Option B)"
+    labels: []
+  - number: 88
+    title: "Explore direct skill invocation for L2 fixed-DAG recipes"
+    labels: []
+  - number: 87
+    title: "Reduce redundant file reads via contract-carried intent summary"
+    labels: []
+  - number: 78
+    title: "fix(ship): analyze-pr elevates REVIEW items to blocking_issues, breaking auto-approve in /ship"
+    labels: [bug]
+  - number: 70
+    title: "feat: design Vercel-compatible reference architecture for LTM knowledge layer"
+    labels: [enhancement]
+  - number: 68
+    title: "feat: build observation dashboard for Meridian agent execution"
+    labels: []
 
 conflict_analysis: >
-  No conflicts exist for either group. Issue #91 (docs: update documentation for Four Crafts
-  architecture) is the nearest alternate candidate for group-1 because it references the same
-  architectural direction. However, #91 is scoped to documentation updates only — it cannot
-  accept component changes to core/components/recipes/. The distinction is clear: #91 is an
-  incorrect mapping, not a genuine conflict. All other open issues are unrelated in domain.
-  group-2 has zero conflict candidates — STM path encoding binds it exclusively to #95.
+  No conflicts exist for either group. Issue #91 (docs: update documentation for Four
+  Crafts architecture) is the nearest alternate candidate for group-1 because it
+  references the same architectural direction. However, #91 is scoped to documentation
+  updates only — it cannot accept component changes to core/components/recipes/. The
+  distinction is clear: #91 is an incorrect mapping, not a genuine conflict. All other
+  open issues are unrelated in domain. group-2 has zero conflict candidates — STM path
+  encoding binds it exclusively to #95.
 
 unmapped_groups: []
 
@@ -94,7 +114,8 @@ constraint_check:
   C9:
     status: PASS
     detail: >
-      Both mappings are high confidence. Human approval is not required before proceeding to commit.
+      Both mappings are high confidence. Human approval is not required before
+      proceeding to commit.
 
 summary:
   total_groups: 2
@@ -106,29 +127,3 @@ summary:
   conflicts_detected: 0
   requires_approval: false
   approval_reason: null
-
-eval_results:
-  SE-6:
-    condition: "F4 — A commit references the wrong issue"
-    status: PASS
-    detail: >
-      Both mappings include reasoning that substantiates the semantic connection between
-      the change group content and the mapped issue. group-1 reasoning traces SKILL.md and
-      intent.yaml changes to the recipe framework overhaul scope of #95. group-2 reasoning
-      traces the STM path structure and artifact content to the #95 issue namespace. The
-      open issue list confirms no other issue competes for either group.
-  SE-7:
-    condition: "F5 — Unresolved conflict surfaced for review"
-    status: PASS
-    detail: >
-      Conflict analysis is explicit. The nearest alternate candidate (#91) is identified
-      and dismissed with stated reasoning (docs-only scope vs component changes). Both
-      mappings carry an empty conflicts array — not because conflicts were silently ignored
-      but because the conflict_analysis section documents the evaluation and conclusion.
-      Zero conflicts require surfacing.
-  SE-8:
-    condition: "F6 — Low-confidence mapping committed without human approval"
-    status: PASS
-    detail: >
-      Both mappings are rated high confidence. Per constraint C9, high-confidence mappings
-      do not require human approval before proceeding to commit. requires_approval: false.

@@ -3,71 +3,100 @@
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
 # Stage: commit-code recipe — analyze-changes step
+# Session: start-feature-planning recipe recompilation
 
 issue: 95
 stm_base: ".meridian/project/issues/"
 branch: feature/95-intent-driven-recipe-architecture
 hotfix_branch: false
 
-total_files: 8
+summary:
+  total_files: 9
+  staged: 0
+  unstaged: 5
+  untracked: 4
 
 groups:
   - id: group-1
     concern: >
-      merge-pr recipe recompilation from L4 to L2 compiled format. SKILL.md fully rewritten:
-      removes runtime intent-resolver, DAG caching, numbered stages. Replaces with named phases,
-      compiled agent contracts, Compiled From section, Pause and Resume, Compilation Metadata,
-      intent hash guard. Intent.yaml failure conditions F1/F4/F5 reframed as observable output
-      states, C4 cleaned of prescriptive language.
+      start-feature-planning recipe recompilation to compiled L2 Structure B format.
+      SKILL.md fully restructured: removes intent-resolver/DAG-cache infrastructure stages
+      and numbered stage model, replaces with named phases (Preparation — Resolve Issue,
+      Preparation — Create Branch, Preparation — Deep Analysis, Checkpoint, Scenario
+      Validation, Evidence & Close), inline step eval tables (SE-1 through SE-7), pause-resume
+      via status file, JSON agent contracts with STM paths, and Compilation Metadata footer.
+      model/allowed-tools frontmatter removed from SKILL.md header. reference/intent.yaml
+      restructured: flat constraint list (C1-C10), structured failure conditions with IDs
+      (F1-F4), four acceptance scenarios (S1-S4) added. No behavior change to workflow logic.
     type: refactor
-    scope: merge-pr
-    subject: "recompile to L2 compiled format with Structure B workflow"
-    commit_message: "refactor(merge-pr): recompile to L2 compiled format with Structure B workflow (#95)"
+    scope: start-feature-planning
+    subject: "recompile start-feature-planning recipe to compiled L2 Structure B format"
+    commit_message: "refactor(start-feature-planning): recompile to L2 compiled format with Structure B workflow (#95)"
     confidence: high
     risk: none
     files:
-      - path: core/components/recipes/merge-pr/SKILL.md
+      - path: core/components/recipes/start-feature-planning/SKILL.md
         status: modified
         description: >
-          Full L4-to-L2 recompilation. Removes runtime intent-resolver stage, DAG loading/caching,
-          numbered stages. Adds named phases (Readiness, Execution, Scenario Validation, Evidence),
-          Compiled From section, full JSON agent contracts with STM paths, Pause and Resume with
-          status file, Compilation Metadata. Structure B workflow (fast execution, no checkpoint).
-      - path: core/components/recipes/merge-pr/reference/intent.yaml
+          Full recompile from multi-stage DAG format to compiled step/phase format.
+          Removes DAG loading, intent-resolver invocation, numbered stages, and DAG caching.
+          Adds named phases with numbered steps, per-step eval tables, pause-resume executor
+          loop with status file schema, JSON agent contracts with full STM paths, Pre-flight
+          section with inline bash checks, and Compilation Metadata block.
+      - path: core/components/recipes/start-feature-planning/reference/intent.yaml
         status: modified
         description: >
-          F1, F4, F5 reframed from event-based to observable output states. C4 cleaned of
-          prescriptive language. Constraints C1-C6, scenarios S1-S2 unchanged.
+          Restructured to L2 compiled format. Flat constraint list (C1-C10) replaces
+          pre_flight/behavioral sub-categories. Failure conditions now carry IDs (F1-F4)
+          with structured condition fields. Four acceptance scenarios added (S1-S4) covering
+          Developer, Tech Lead, and Project Manager personas.
 
   - id: group-2
     concern: >
-      STM evidence artifacts from the create-recipe rebake of merge-pr, plus updated create-pr
-      evidence. Operational records, not feature content. Captured per ADR 012.
+      STM evidence artifacts from the create-recipe rebake of start-feature-planning.
+      Operational records of the skill run — step evals, scenario evals, recipe analysis,
+      and commit-code tracking files. Not feature content. Captured per ADR 012.
     type: chore
     scope: stm
-    subject: "record create-recipe evidence artifacts for merge-pr"
-    commit_message: "chore(stm): record create-recipe evidence artifacts for merge-pr (#95)"
+    subject: "record create-recipe evidence artifacts for start-feature-planning"
+    commit_message: "chore(stm): record create-recipe evidence artifacts for start-feature-planning (#95)"
     confidence: high
     risk: none
     files:
-      - path: .meridian/project/issues/95/evidence/create-recipe/merge-pr/agent-audit-repo-orchestrator.md
+      - path: .meridian/project/issues/95/evidence/create-recipe/start-feature-planning/evals.yaml
         status: untracked
-        description: "Agent audit — 10/10 principles PASS for repo-orchestrator"
-      - path: .meridian/project/issues/95/evidence/create-recipe/merge-pr/evals.yaml
+        description: >
+          New evidence file — step evals (SE-1 through SE-7) and scenario evals (SCE-1
+          through SCE-4) for start-feature-planning recipe. Compact structured YAML with
+          explicit pass_criteria, fail_criteria, and artifact_pattern fields.
+      - path: .meridian/project/issues/95/evidence/create-recipe/start-feature-planning/recipe-analysis.md
         status: untracked
-        description: "SE-1 through SE-5 step evals and SCE-1, SCE-2 scenario evals"
-      - path: .meridian/project/issues/95/evidence/create-recipe/merge-pr/recipe-analysis.md
-        status: untracked
-        description: "L4-to-L2 rebake plan and semantic mapping document"
-      - path: .meridian/project/issues/95/evidence/create-recipe/merge-pr/skill-manifest.yaml
-        status: untracked
-        description: "Skill manifest for merge-pr recipe (merge-pr skill, existing)"
-      - path: .meridian/project/issues/95/evidence/create-pr/analysis.yaml
+        description: >
+          New evidence file — recipe analysis artifact produced during this create-recipe
+          skill run for start-feature-planning. Documents current state, semantic map,
+          intent.yaml gaps, recommended Structure A workflow, and agent-skill map.
+      - path: .meridian/project/issues/95/evidence/commit-code/analysis.yaml
         status: modified
-        description: "Updated PR readiness analysis reflecting merge-pr work"
-      - path: .meridian/project/issues/95/evidence/create-pr/issue-linkage.yaml
+        description: >
+          Updated analysis artifact reflecting the current session changeset
+          (start-feature-planning recompilation + evidence).
+      - path: .meridian/project/issues/95/evidence/commit-code/commits.yaml
         status: modified
-        description: "Updated issue linkage mapping for PR creation"
+        description: >
+          Updated commit log — C12 and C13 entries added for start-feature-planning
+          session; C11 hash resolved; total_commits updated to 13.
+      - path: .meridian/project/issues/95/evidence/commit-code/issue-mappings.yaml
+        status: modified
+        description: >
+          Updated issue mappings reflecting current session groups (start-feature-planning
+          recipe files and their evidence artifacts). Open issues surveyed list expanded
+          with #89, #88, #87, #78.
+      - path: .meridian/project/issues/95/evidence/commit-code/push-result.yaml
+        status: untracked
+        description: >
+          New evidence file — push result artifact from the prior session's successful push
+          to origin/feature/95-intent-driven-recipe-architecture (from_sha: 0779617,
+          to_sha: 90d91e6). C7 PASS.
 
 sensitive_files: []
 
@@ -82,6 +111,13 @@ grouping_decision:
   commit_count: 2
   rationale: >
     Single-issue branch (#95). Two groups: group-1 is core component changes (recipe source
-    files under core/components/) — the feature work; group-2 is STM evidence artifacts
-    (.meridian/) — operational records of the create-recipe run. Split justified per ADR 012
-    convention for evidence self-commit.
+    files under core/components/recipes/start-feature-planning/) — the feature work; group-2
+    is STM evidence artifacts (.meridian/) and commit-code tracking files — operational records
+    of the create-recipe and commit-code runs. Split is justified per the skill's grouping
+    rules: STM/evidence artifacts are operational, not part of the feature itself, and warrant
+    a separate chore(stm) commit per ADR 012 convention for evidence self-commit.
+
+constraints_checked:
+  C1: "PASS — branch is feature/95-intent-driven-recipe-architecture, not main/master/default"
+  C2: "PASS — 9 changed files detected, recipe proceeds"
+  C4: "PASS — no sensitive files detected in changeset"
