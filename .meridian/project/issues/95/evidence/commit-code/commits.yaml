@@ -2,11 +2,11 @@
 # commit-code stage 5 output
 # Branch: feature/95-intent-driven-recipe-architecture
 # Generated: 2026-03-06
-# Updated: 2026-03-06 (current session — capture-learning recipe recompilation + STM evidence)
+# Updated: 2026-03-06 (current session — discover-product, create-recipe, doc-builder, and templates additions)
 
 status: completed
-total_commits: 16
-note: "Updated with commits for capture-learning recipe recompilation and evidence recording (current session)"
+total_commits: 24
+note: "Updated with commits for discover-product recompilation, create-recipe --review mode, new doc-builder agent, generate-product-brief skill, draft-product-vision fix, LTM templates, and STM evidence artifacts (current session)"
 
 commits:
   - id: C1
@@ -351,6 +351,180 @@ commits:
     status: committed
     session: current
 
+  - id: C17
+    group: group-1
+    hash: b42461e
+    type: refactor
+    scope: discover-product
+    subject: "recompile to L2 compiled format with Structure B workflow (#95)"
+    message: "refactor(discover-product): recompile to L2 compiled format with Structure B workflow (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - core/components/recipes/discover-product/SKILL.md
+        - core/components/recipes/discover-product/reference/intent.yaml
+    stats:
+      files_changed: 2
+      insertions: 467
+      deletions: 258
+    co_author: "Claude Opus 4.6 <noreply@anthropic.com>"
+    status: committed
+    session: current
+
+  - id: C18
+    group: group-2
+    hash: b8c29fa
+    type: feat
+    scope: create-recipe
+    subject: "add --review mode with G1-G10 gap checks (#95)"
+    message: "feat(create-recipe): add --review mode with G1-G10 gap checks (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - core/components/recipes/create-recipe/SKILL.md
+    stats:
+      files_changed: 1
+      insertions: 63
+      deletions: 9
+    co_author: "Claude Opus 4.6 <noreply@anthropic.com>"
+    status: committed
+    session: current
+
+  - id: C19
+    group: group-3
+    hash: a19825c
+    type: feat
+    scope: doc-builder
+    subject: "add doc-builder agent definition (#95)"
+    message: "feat(doc-builder): add doc-builder agent definition (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - core/components/agents/doc-builder.md
+    stats:
+      files_changed: 1
+      insertions: 258
+      deletions: 0
+      created_files: 1
+    co_author: "Claude Opus 4.6 <noreply@anthropic.com>"
+    status: committed
+    session: current
+
+  - id: C20
+    group: group-4
+    hash: 10688f4
+    type: feat
+    scope: generate-product-brief
+    subject: "add skill for interactive HTML briefs from product discovery artifacts (#95)"
+    message: "feat(generate-product-brief): add skill for interactive HTML briefs from product discovery artifacts (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - core/components/skills/generate-product-brief/SKILL.md
+    stats:
+      files_changed: 1
+      insertions: 403
+      deletions: 0
+      created_files: 1
+    co_author: "Claude Opus 4.6 <noreply@anthropic.com>"
+    status: committed
+    session: current
+
+  - id: C21
+    group: group-5
+    hash: deae304
+    type: fix
+    scope: draft-product-vision
+    subject: "correct LTM template reference path (#95)"
+    message: "fix(draft-product-vision): correct LTM template reference path (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - core/components/skills/draft-product-vision/SKILL.md
+    stats:
+      files_changed: 1
+      insertions: 3
+      deletions: 2
+    co_author: "Claude Opus 4.6 <noreply@anthropic.com>"
+    status: committed
+    session: current
+
+  - id: C22
+    group: group-6
+    hash: 69f8459
+    type: feat
+    scope: templates
+    subject: "add product-brief.html and product-vision.md LTM templates (#95)"
+    message: "feat(templates): add product-brief.html and product-vision.md LTM templates (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - core/components/memory/standards/templates/product-brief.html
+        - core/components/memory/standards/templates/product-vision.md
+    stats:
+      files_changed: 2
+      insertions: 638
+      deletions: 0
+      created_files: 2
+    co_author: "Claude Opus 4.6 <noreply@anthropic.com>"
+    status: committed
+    session: current
+
+  - id: C23
+    group: group-7
+    hash: 80c64cf
+    type: chore
+    scope: stm
+    subject: "record create-recipe evidence artifacts for discover-product (#95)"
+    message: "chore(stm): record create-recipe evidence artifacts for discover-product (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - .meridian/project/issues/95/evidence/create-recipe/discover-product/recipe-analysis.md
+        - .meridian/project/issues/95/evidence/create-recipe/discover-product/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/discover-product/evals.yaml
+        - .meridian/project/issues/95/evidence/create-recipe/discover-product/agent-audit-product-strategist.md
+        - .meridian/project/issues/95/evidence/create-recipe/discover-product/agent-audit-doc-builder.md
+        - .meridian/project/issues/95/evidence/create-recipe/discover-product/review-report.md
+    stats:
+      files_changed: 6
+      insertions: 419
+      deletions: 0
+      created_files: 6
+    co_author: "Claude Opus 4.6 <noreply@anthropic.com>"
+    status: committed
+    session: current
+
+  - id: C24
+    group: group-9
+    hash: 6452fb5
+    type: chore
+    scope: stm
+    subject: "update commit-code tracking files (#95)"
+    message: "chore(stm): update commit-code tracking files (#95)"
+    issue_ref: 95
+    confidence: high
+    files:
+      staged:
+        - .meridian/project/issues/95/evidence/commit-code/analysis.yaml
+        - .meridian/project/issues/95/evidence/commit-code/commits.yaml
+        - .meridian/project/issues/95/evidence/commit-code/issue-mappings.yaml
+        - .meridian/project/issues/95/status/commit-code.json
+    stats:
+      files_changed: 4
+      insertions: 371
+      deletions: 157
+    co_author: "Claude Opus 4.6 <noreply@anthropic.com>"
+    status: committed
+    session: current
+
 validation:
   all_commits_created: true
   conventional_format: true
@@ -364,12 +538,12 @@ constraint_check:
   C4: PASS  # no sensitive files in changeset
   C5: PASS  # all commits follow conventional format
   C6: PASS  # all commits include issue reference (#95)
-  C9: PASS  # all current-session mappings high confidence; no approval required
+  C9: PASS  # all mappings high confidence; no approval required
 
 failure_conditions:
-  F1: PASS  # each commit contains single-concern changes only
-  F2: PASS  # all commit messages describe actual changes
-  F3: PASS  # all listed files committed; no unexplained omissions
+  F1: PASS  # each commit contains single-concern changes only (SE-2)
+  F2: PASS  # all commit messages describe actual changes (SE-3)
+  F3: PASS  # all listed files committed; no unexplained omissions (SE-5)
   F4: PASS  # all commits reference correct issue #95
   F5: PASS  # no conflicts detected in issue mappings
   F6: PASS  # all mappings high confidence; no approval required
@@ -380,15 +554,24 @@ push:
   ref: feature/95-intent-driven-recipe-architecture
 
 summary:
-  current_session_commits: 5
-  current_session_files: 12
-  total_commits_in_record: 16
+  current_session_commits: 8
+  current_session_files: 17
+  total_commits_in_record: 24
   commits_by_type:
-    refactor: 7
-    chore: 9
+    refactor: 8
+    feat: 4
+    fix: 1
+    chore: 11
   notes:
-    - "C15 recompiles capture-learning recipe to L2 compiled Structure B format"
-    - "C16 records STM evidence artifacts from create-recipe run for capture-learning"
+    - "C17-C24 comprise the create-commits task for discover-product recompilation + new agents/skills/templates"
+    - "C17 recompiles discover-product recipe to L2 compiled Structure B format"
+    - "C18 adds --review mode with G1-G10 gap checks to create-recipe"
+    - "C19 introduces new doc-builder agent"
+    - "C20 introduces new generate-product-brief skill"
+    - "C21 fixes template reference path in draft-product-vision"
+    - "C22 adds product-brief.html and product-vision.md LTM templates"
+    - "C23 records create-recipe evidence artifacts for discover-product"
+    - "C24 updates commit-code tracking files"
     - "All files staged specifically — no git add -A used"
     - "All commit messages describe actual changes (F2)"
     - "All mappings high-confidence; no approval required per C9"

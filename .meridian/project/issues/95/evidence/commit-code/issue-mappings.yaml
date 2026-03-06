@@ -1,11 +1,11 @@
 ---
 # issue-mappings output
 # Branch: feature/95-intent-driven-recipe-architecture
-# Generated: 2026-03-06T20:30:00+0530
+# Generated: 2026-03-06T21:00:00+0530
 # Stage: commit-code recipe — resolve-issues step
-# Session: discover-product recompilation + doc-builder + generate-product-brief additions
+# Session: STM tracking files (commits.yaml + commit-code.json) from current commit-code run
 
-resolved_at: "2026-03-06T20:30:00+0530"
+resolved_at: "2026-03-06T21:00:00+0530"
 branch: feature/95-intent-driven-recipe-architecture
 
 open_issues_surveyed:
@@ -59,187 +59,50 @@ groups:
     issue_state: open
     confidence: high
     reasoning: >
-      group-1 recompiles discover-product/SKILL.md and reference/intent.yaml to L2
-      compiled Structure B format — removing runtime intent-resolver infrastructure and
-      replacing with named phases, per-step eval tables (SE-*), structured agent boundary
-      table (product-strategist, doc-builder, repo-orchestrator), pause/resume executor
-      loop, and JSON agent contracts with STM paths. Issue #95 ("intent-driven recipe
-      architecture") tracks exactly this class of work: converting recipes from
-      intent-decorated to intent-enforced L2 compiled format. Branch name
-      feature/95-intent-driven-recipe-architecture encodes the issue directly (branch
-      signal, strong). The file paths — core/components/recipes/discover-product/ —
-      are component changes, not docs, ruling out #91. No other open issue tracks
-      recipe recompilation work. Three corroborating signals: branch encoding, issue
-      title/description match, and file scope exclusivity.
-    conflicts: []
-    type_hint: feature
-
-  - group_id: group-2
-    issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
-    issue_state: open
-    confidence: high
-    reasoning: >
-      group-2 adds a --review mode with 10 structured gap checks (G1-G10) to
-      create-recipe/SKILL.md. Issue #95 acceptance criteria explicitly lists
-      "`create-recipe` recipe implemented — orchestrates recipe building end-to-end
-      using the framework." Adding a review mode is an additive extension of the
-      create-recipe recipe produced under #95. Branch encoding confirms (#95).
-      No other open issue references create-recipe modifications: #88 discusses
-      direct skill invocation as an exploratory proposal, not a create-recipe
-      feature. The gap analysis capability (G1-G10: constraint coverage, FC
-      coverage, scenario coverage, skill/agent existence, etc.) directly serves
-      the intent-driven recipe architecture goal of making recipes verifiable.
-    conflicts: []
-    type_hint: feature
-
-  - group_id: group-3
-    issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
-    issue_state: open
-    confidence: high
-    reasoning: >
-      group-3 adds doc-builder agent to core/components/agents/. This agent was
-      introduced as part of the discover-product recompilation under #95 — the
-      recompiled discover-product recipe's DRAFT phase delegates HTML brief
-      generation to doc-builder. Issue #95 body describes building new agent
-      definitions as part of the recipe framework (intent-crafter, intent-resolver
-      are named examples; doc-builder is the same category of work). Branch
-      encoding confirms (#95). No competing issue: #91 is docs-only and cannot
-      accept new agent definitions. #92 covers interactive HTML briefs as a
-      product feature — doc-builder is the agent implementation that enables
-      briefs, not the brief interaction UX itself. The agent's scope (formatting/
-      presentation only, owns generate-product-brief) is distinct from #92's
-      scope (feedback capture, JSON export UI).
-    conflicts: []
-    type_hint: feature
-
-  - group_id: group-4
-    issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
-    issue_state: open
-    confidence: high
-    reasoning: >
-      group-4 adds generate-product-brief skill to core/components/skills/. This
-      skill is explicitly listed in group-3's doc-builder agent as the skill it
-      owns, and is used by doc-builder in discover-product's DRAFT phase — all
-      of which are deliverables of #95's discover-product recompilation work.
-      Issue #95 body describes creating new skills as part of the recipe framework
-      (evals-creator is named; generate-product-brief is the same category).
-      Branch encoding confirms (#95). Nearest alternative is #92 (interactive
-      HTML briefs) — however, generate-product-brief is the generation skill
-      (reads STM data, produces HTML from template), not the feedback UI
-      enhancement #92 proposes. The skill produces a static brief; #92 proposes
-      adding interactive feedback capture to that brief — a separate concern.
-    conflicts: []
-    type_hint: feature
-
-  - group_id: group-5
-    issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
-    issue_state: open
-    confidence: high
-    reasoning: >
-      group-5 corrects the LTM template reference path in draft-product-vision/SKILL.md
-      from an ad-hoc path to the canonical LTM path standards/templates/product-vision.md.
-      This fix is directly coupled to group-6 (adding the product-vision.md template to
-      that canonical path) — both are part of the discover-product recompilation work
-      under #95. Without this fix, the template added in group-6 would not be referenced
-      correctly. Branch encoding confirms (#95). Issue #6 ("clarify output semantics in
-      manage-issue and audit other skills") is the nearest alternative as a skills-fix
-      issue — however #6 is scoped to output semantics ambiguity, not template path
-      corrections. The fix here is a path reference correction, not a semantics fix.
-    conflicts: []
-    type_hint: fix
-
-  - group_id: group-6
-    issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
-    issue_state: open
-    confidence: high
-    reasoning: >
-      group-6 adds two LTM templates: product-vision.md (for draft-product-vision skill)
-      and product-brief.html (for generate-product-brief skill). Both templates are
-      introduced to support skills and agents created under #95's discover-product
-      recompilation work. product-brief.html is the template generate-product-brief
-      (group-4) reads from LTM to produce HTML output. product-vision.md is the
-      canonical template draft-product-vision references after the path fix in group-5.
-      Branch encoding confirms (#95). Nearest alternative is #92 (interactive HTML
-      briefs) — product-brief.html includes a JS feedback panel, which overlaps
-      conceptually with #92's proposed feedback capture feature. However, #92 proposes
-      adding feedback capture to existing briefs; this group adds the initial template
-      that includes the feedback panel as part of the generate-product-brief skill
-      design. These are not competing issues — #95 introduces the template, #92 would
-      extend it if the feature is developed further.
-    conflicts: []
-    type_hint: feature
-
-  - group_id: group-7
-    issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
-    issue_state: open
-    confidence: high
-    reasoning: >
-      group-7 contains STM evidence artifacts under
-      .meridian/project/issues/95/evidence/create-recipe/discover-product/ — the
-      directory path encodes issue #95 via the STM path binding convention (ADR 008/012).
-      These are operational records of the create-recipe review/rebake of discover-product:
-      recipe-analysis.md, skill-manifest.yaml, evals.yaml, agent-audit files, and
-      review-report.md. All are produced by and belong to the issue owning the STM
-      namespace. STM path binding is unambiguous — no competing issue is possible for
-      files under .meridian/project/issues/95/.
-    conflicts: []
-    type_hint: chore
-
-  - group_id: group-9
-    issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
-    issue_state: open
-    confidence: high
-    reasoning: >
-      group-9 contains commit-code recipe operational tracking files under
-      .meridian/project/issues/95/evidence/commit-code/ and
-      .meridian/project/issues/95/status/ — both paths encode issue #95 via STM
-      path binding (ADR 008/012). Files include analysis.yaml, commits.yaml,
-      issue-mappings.yaml (this file), and status/commit-code.json. These are
-      the recipe's own tracking artifacts for the current commit-code run on
-      branch #95. STM path binding is unambiguous — no competing issue is
-      possible for files under .meridian/project/issues/95/.
+      group-1 contains two STM tracking files: commits.yaml (the commit ledger recording
+      C17-C24 and prior session entries) and commit-code.json (recipe status tracker
+      resetting task lifecycle timestamps for the current commit-code session). Both files
+      live under .meridian/project/issues/95/ — the STM path directly encodes issue #95
+      via the STM path binding convention (ADR 008/012). This is the strongest possible
+      mapping signal: the files themselves are namespaced to #95's STM workspace.
+      Additionally, the branch name feature/95-intent-driven-recipe-architecture
+      encodes #95 (branch signal, strong). No other open issue can claim files
+      under .meridian/project/issues/95/ — STM path binding is unambiguous.
+      Both files are pure operational evidence/tracking artifacts with no source code
+      changes, consistent with a chore(stm) commit type. No competing issue candidate
+      exists.
     conflicts: []
     type_hint: chore
 
 unmapped_groups: []
 
 conflict_analysis: >
-  No conflicts detected across all 9 groups. The nearest conceptual overlaps are:
-  (1) group-4 and group-6 vs. #92 (interactive HTML briefs) — #92 proposes adding
-  feedback capture UI to existing briefs; these groups introduce the initial template
-  and generation skill that produce the brief. Different concerns: creation vs. extension.
-  (2) group-5 vs. #6 (clarify output semantics in skills) — #6 is scoped to output
-  semantics ambiguity; group-5 is a template path correction. Different defects.
-  (3) group-2 vs. #88 (direct skill invocation exploration) — #88 is an exploratory
-  proposal; group-2 adds a concrete feature to create-recipe. Different scopes.
-  None of these qualify as genuine mapping conflicts — each competing candidate is
-  clearly an incorrect mapping, not a competing valid match.
+  No conflicts detected. The single group (group-1) maps unambiguously to issue #95
+  via STM path binding — files under .meridian/project/issues/95/ are exclusively
+  owned by issue #95's STM namespace. No competing issue can claim these files.
 
 constraint_check:
   C3:
     status: PASS
     detail: >
-      All 9 groups map to existing open issue #95. No unmapped groups. C3 satisfied.
+      group-1 maps to existing open issue #95. No unmapped groups. C3 satisfied.
   C9:
     status: PASS
     detail: >
-      All 8 remaining groups are high confidence. group-8 (agentic-commerce test
-      artifacts) was deleted by user before commit phase. No approval gating needed.
+      group-1 is high confidence. No approval gating required per C9.
 
 summary:
-  total_groups: 8
-  mapped: 8
+  total_groups: 1
+  mapped: 1
   unmapped: 0
-  high_confidence: 8
+  high_confidence: 1
   medium_confidence: 0
   low_confidence: 0
   conflicts_detected: 0
   requires_approval: false
-  approval_reason: "All groups high confidence. group-8 (agentic-commerce test artifacts) deleted by user."
+  approval_reason: "Single group, high confidence, STM path binding is unambiguous."
+
+eval_check:
+  SE-6: "PASS — issue #95 is semantically related; reasoning substantiates via STM path binding, branch encoding, and file scope"
+  SE-7: "PASS — conflicts explicitly analyzed and none found; conflict_analysis section present"
+  SE-8: "PASS — confidence: high present on group-1"

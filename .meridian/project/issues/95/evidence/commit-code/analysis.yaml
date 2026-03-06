@@ -1,191 +1,39 @@
 ---
 # analyze-changes output
 # Branch: feature/95-intent-driven-recipe-architecture
-# Generated: 2026-03-06T19:15:00+0530
+# Generated: 2026-03-06T19:40:00+0530
 # Stage: commit-code recipe — analyze-changes step
-# Session: discover-product recompilation + doc-builder + generate-product-brief additions
+# Session: STM tracking files from previous commit-code run (commits.yaml + commit-code.json)
 
 issue: 95
-analyzed_at: "2026-03-06T19:15:00+0530"
-branch: feature/95-intent-driven-recipe-architecture
+analyzed_at: "2026-03-06T19:40:00+0530"
+branch: "feature/95-intent-driven-recipe-architecture"
+total_files: 2
 hotfix_branch: false
 
-summary:
-  total_files: 18
-  staged: 0
-  unstaged: 8
-  untracked: 10
-
 groups:
-  - id: group-1
-    type: refactor
-    scope: discover-product
+  - id: "group-1"
+    type: "chore"
+    scope: "stm"
     description: >
-      discover-product recipe recompiled to compiled L2 Structure B format.
-      SKILL.md fully restructured: removes intent-driven runtime invocation,
-      numbered phase-table model, and forbidden-tool list. Replaces with
-      compiled-from header, named phases with per-step eval tables (SE-*),
-      structured agent boundary table (product-strategist, doc-builder,
-      repo-orchestrator), pre-flight checks table, scenario eval section,
-      pause-resume executor loop with status file, and JSON agent contracts
-      with STM paths. Adds doc-builder as a new agent boundary for HTML brief
-      generation. reference/intent.yaml restructured from nested pre_flight/
-      behavioral sub-keys to flat constraint list (C1-C11) with full prose
-      rules, structured failure conditions (F1-F3, F5-F7, F9) and scenarios
-      (S1-S3).
+      STM tracking files from the previous commit-code run. commits.yaml records
+      the commit ledger (C17-C24, session totals, constraint checks, push metadata)
+      updated with new entries for the discover-product recompilation, create-recipe
+      --review mode, doc-builder agent, generate-product-brief skill, draft-product-vision
+      fix, LTM templates, and STM evidence artifacts. commit-code.json is the recipe
+      status file resetting task lifecycle timestamps for the current session
+      (analyze-changes: in_progress, resolve-issues/create-commits/push-branch: pending).
+      Both are pure evidence/tracking artifacts — no source code, no logic changes.
     files:
-      - path: core/components/recipes/discover-product/SKILL.md
-        status: modified
-      - path: core/components/recipes/discover-product/reference/intent.yaml
-        status: modified
-    risk: low
+      - path: ".meridian/project/issues/95/evidence/commit-code/commits.yaml"
+        status: "modified"
+      - path: ".meridian/project/issues/95/status/commit-code.json"
+        status: "modified"
+    risk: "low"
     risk_reason: >
-      Structural recompilation only — no behavior change to recipe logic.
-      intent.yaml constraint semantics preserved; format changed from nested
-      to flat. No breaking API changes to agent contracts or skill signatures.
-
-  - id: group-2
-    type: feat
-    scope: create-recipe
-    description: >
-      create-recipe recipe gains a --review mode with 10 structured gap
-      checks (G1-G10). Review mode is diagnostic only: reads recipe graph,
-      runs gap analysis (constraint coverage, FC coverage, scenario coverage,
-      skill/agent existence, skill-agent alignment, contract schema, template
-      references, intent hash drift, required sections), writes report to STM,
-      and terminates without modifying files. Decision table updated to add
-      --rebake and --review flags. Rebake mode now delegates deep-read step
-      to Review's Step R1.
-    files:
-      - path: core/components/recipes/create-recipe/SKILL.md
-        status: modified
-    risk: low
-    risk_reason: >
-      Additive feature — new --review mode is invoked only via explicit flag.
-      Existing --rebake and new-recipe flows are unchanged in logic. No file
-      modifications in review mode by design.
-
-  - id: group-3
-    type: feat
-    scope: doc-builder
-    description: >
-      New doc-builder agent definition added to core/components/agents/.
-      Specializes in producing formatted document artifacts (HTML briefs,
-      reports) from structured STM data. Owns the generate-product-brief
-      skill. Communicates via JSON contracts. Does not perform product
-      analysis — formatting/presentation only.
-    files:
-      - path: core/components/agents/doc-builder.md
-        status: added
-    risk: low
-    risk_reason: >
-      New agent, no modifications to existing agents or recipes. Additive only.
-
-  - id: group-4
-    type: feat
-    scope: generate-product-brief
-    description: >
-      New generate-product-brief skill added. Model-invocable skill that reads
-      product discovery artifacts (vision.md, market-context.yaml) from STM
-      and produces a self-contained HTML brief using the product-brief.html
-      LTM template. HTML includes interactive feedback panel with per-section
-      approve/revise toggles and JSON payload generation. Used by doc-builder
-      agent in discover-product DRAFT phase.
-    files:
-      - path: core/components/skills/generate-product-brief/SKILL.md
-        status: added
-    risk: low
-    risk_reason: >
-      New skill, model-invocable only. Additive. No changes to existing skills.
-
-  - id: group-5
-    type: fix
-    scope: draft-product-vision
-    description: >
-      draft-product-vision skill corrects its LTM template reference path.
-      Template reference updated from ad-hoc templates/vision.md to canonical
-      LTM path standards/templates/product-vision.md. Reference section text
-      also updated to clarify the template defines exact section structure,
-      placeholder syntax, and rendering rules.
-    files:
-      - path: core/components/skills/draft-product-vision/SKILL.md
-        status: modified
-    risk: low
-    risk_reason: >
-      Single-line path correction. No logic change. The template file itself
-      is being added in group-6, so the reference will now resolve correctly.
-
-  - id: group-6
-    type: feat
-    scope: templates
-    description: >
-      Two new LTM templates added to core/components/memory/standards/templates/.
-      product-vision.md defines the section structure, placeholder syntax, and
-      rendering rules for draft-product-vision skill output. product-brief.html
-      defines the LifeOS-styled HTML document structure, CSS design system
-      (custom properties, typography, layout), JS feedback panel (approve/revise
-      toggles, JSON payload generation, clipboard copy), and placeholder
-      locations for generate-product-brief skill.
-    files:
-      - path: core/components/memory/standards/templates/product-brief.html
-        status: added
-      - path: core/components/memory/standards/templates/product-vision.md
-        status: added
-    risk: low
-    risk_reason: >
-      New LTM template files. No existing templates modified. Skills reference
-      these paths — now they resolve correctly.
-
-  - id: group-7
-    type: chore
-    scope: stm
-    description: >
-      STM evidence artifacts from the create-recipe review/rebake of
-      discover-product. Six evidence files covering recipe analysis, skill
-      manifest, evals, agent audits for product-strategist and doc-builder,
-      and review report. Operational records of the create-recipe skill run
-      captured per ADR 012 convention.
-    files:
-      - path: .meridian/project/issues/95/evidence/create-recipe/discover-product/recipe-analysis.md
-        status: added
-      - path: .meridian/project/issues/95/evidence/create-recipe/discover-product/skill-manifest.yaml
-        status: added
-      - path: .meridian/project/issues/95/evidence/create-recipe/discover-product/evals.yaml
-        status: added
-      - path: .meridian/project/issues/95/evidence/create-recipe/discover-product/agent-audit-product-strategist.md
-        status: added
-      - path: .meridian/project/issues/95/evidence/create-recipe/discover-product/agent-audit-doc-builder.md
-        status: added
-      - path: .meridian/project/issues/95/evidence/create-recipe/discover-product/review-report.md
-        status: added
-    risk: low
-    risk_reason: >
-      Pure STM evidence files. Operational records only — no code, no config,
-      no secrets. Standard evidence artifact pattern.
-
-  - id: group-9
-    type: chore
-    scope: stm
-    description: >
-      commit-code recipe operational tracking files refreshed for the current
-      session. commits.yaml updated with last commit hash (c8191fb) and stats
-      for C16. issue-mappings.yaml updated with session header reflecting
-      capture-learning recompilation. analysis.yaml refreshed for current
-      changeset. status/commit-code.json updated with analyze-changes task
-      in_progress state.
-    files:
-      - path: .meridian/project/issues/95/evidence/commit-code/analysis.yaml
-        status: modified
-      - path: .meridian/project/issues/95/evidence/commit-code/commits.yaml
-        status: modified
-      - path: .meridian/project/issues/95/evidence/commit-code/issue-mappings.yaml
-        status: modified
-      - path: .meridian/project/issues/95/status/commit-code.json
-        status: modified
-    risk: low
-    risk_reason: >
-      Pure operational tracking files for the commit-code recipe itself.
-      No code, no config, no secrets.
+      Both files are STM artifacts — structured tracking data only. No sensitive
+      content, no production code, no breaking changes. Same concern: commit-code
+      session evidence and status tracking.
 
 sensitive_files: []
 
@@ -196,23 +44,20 @@ risks:
   hotfix_branch: false
 
 grouping_decision:
-  strategy: split_by_concern
-  commit_count: 8
+  strategy: single_group
+  commit_count: 1
   rationale: >
-    Single-issue branch (#95). Changes span three distinct concerns:
-    (1) Component changes — recipe recompilations (discover-product), recipe
-    feature additions (create-recipe --review), new agent (doc-builder), new
-    skill (generate-product-brief), skill fix (draft-product-vision), new
-    templates (product-brief.html, product-vision.md). These are further split
-    by component scope since they each represent distinct deliverables.
-    (2) STM evidence — create-recipe discover-product evidence files, product
-    STM artifacts from discover-product run, and commit-code tracking files.
-    These are operational records, not feature content, warranting chore(stm)
-    commits per ADR 012 convention.
-    The 9-group split reflects the actual logical separation of deliverables
-    on this branch, not arbitrary splitting.
+    Both files belong to the commit-code recipe's STM layer. commits.yaml is the
+    commit ledger evidence artifact; commit-code.json is the recipe status tracker.
+    They are modified together as part of the same operational cycle — grouping
+    them into a single chore(stm) commit satisfies SE-1 (same concern) and
+    keeps the ledger and status record in sync in the same commit.
 
 constraints_checked:
   C1: "PASS — branch is feature/95-intent-driven-recipe-architecture, not main/master/default"
-  C2: "PASS — 25 changed files detected, recipe proceeds"
-  C4: "PASS — no sensitive files detected (no .env, *.key, *.pem, credentials, secrets patterns)"
+  C2: "PASS — 2 changed files detected, recipe proceeds"
+  C4: "PASS — no sensitive files detected"
+
+eval_check:
+  SE-1: "PASS — single group, both files are commit-code STM tracking artifacts (same concern)"
+  SE-4: "PASS — all 2 files from git status appear in group-1 (2/2)"
