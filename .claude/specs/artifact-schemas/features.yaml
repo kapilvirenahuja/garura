@@ -1,0 +1,82 @@
+# features.yaml — Schema Definition
+# Consolidates: epics.yaml + product-spec.md
+# Produced by: /prepare-implementation (Stage 1) + epics from /plan-roadmap
+# Lifecycle: DRAFT → VALIDATED → LOCKED
+# Depends on: product.yaml
+# IMPORTANT: Features do NOT link to scenarios. Scenarios link back here.
+
+slug: "{product-slug}"
+status: "DRAFT|VALIDATED|LOCKED"
+created_at: "{ISO-8601}"
+updated_at: "{ISO-8601}"
+product_ref: "{path to product.yaml}"
+
+# --- Product Identity (was: product-spec.md — Product Identity section) ---
+
+identity:
+  what_it_is: "{plain language — what the product does}"
+  what_it_is_not: "{anti-description — common misconceptions}"
+  core_jobs: ["{job 1 the product does}", "{job 2}"]
+  non_goals: ["{explicitly not trying to do this}"]
+
+# --- Architectural Invariants — behavioral, NOT technology ---
+# These are constraints on product behavior, not implementation
+
+invariants:
+  - id: "INV1"
+    description: "{behavioral constraint that must always hold}"
+
+# --- Scope Boundaries ---
+
+scope:
+  in_scope: ["{in scope for current version}"]
+  out_of_scope: ["{out of scope for current version}"]
+  deferred:
+    - capability: "{deferred capability}"
+      rationale: "{why deferred — not never, just not now}"
+
+# --- Features (was: epics + core behaviors) ---
+# Each feature is a vertical slice — delivers end-to-end capability.
+
+features:
+  - id: "F1"
+    name: "{short noun-phrase title}"
+    strategic_goal_ref: "SG1"         # links to product.yaml strategic goal
+    description: "{2-3 sentences — what this feature delivers}"
+    priority: "P1|P2|P3"
+    depends_on: ["F2"]                # feature-level dependencies
+    foundation: true|false            # is this a foundational investment?
+
+    # Blast Radius — what exists today that this feature touches or displaces.
+    # For greenfield: where this fits in the broader system/landscape.
+    # Can be null/empty if too early to assess — the field exists, value can be blank.
+    blast_radius:
+      existing_systems: ["{system or component this touches}"]
+      affected_workflows: ["{workflow or process that changes}"]
+      integration_points: ["{external system or API boundary}"]
+      migration_required: true|false|null
+      notes: "{freeform — what breaks, what shifts, what needs attention}"
+
+    # IDD Fields
+    intent:
+      p1: "{problem/gap that exists today}"
+      p2: "{outcome after — what user can do that they couldn't before}"
+      p3: "{strategic connection — why this matters for the product}"
+    constraints:
+      in_scope: "{what's in scope for this feature}"
+      out_of_scope: "{what's explicitly out}"
+      must_not_break: "{invariants this must preserve}"
+    success_scenarios:
+      - given: "{precondition/context}"
+        when: "{user action or system trigger}"
+        then: "{observable outcome}"
+    failure_conditions:
+      - "{observable failure state 1 — output state, not process event}"
+      - "{observable failure state 2}"
+
+    # Behaviors within this feature (was: core behaviors from product-spec)
+    behaviors:
+      - id: "F1-B1"
+        description: "{user-facing behavior — what happens}"
+        interaction: "{how the user triggers or experiences this}"
+        observable_outcome: "{what the user sees/gets as a result}"

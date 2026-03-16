@@ -1,0 +1,131 @@
+# architecture.yaml — Schema Definition
+# Architecture, technology selections, platforms, and agentic design
+# Produced by: /prepare-implementation (Stage 2)
+# Lifecycle: DRAFT → VALIDATED → LOCKED
+# Depends on: features.yaml
+# Related: tech.yaml (low-level implementation detail — separate artifact)
+
+slug: "{product-slug}"
+status: "DRAFT|VALIDATED|LOCKED"
+created_at: "{ISO-8601}"
+updated_at: "{ISO-8601}"
+features_ref: "{path to features.yaml}"
+
+# --- Core Principles ---
+
+principles:
+  - id: "TP1"
+    principle: "{implementation principle guiding decisions}"
+    rationale: "{why this principle matters}"
+
+# --- System Architecture ---
+
+architecture:
+  topology: |
+    {ASCII diagram or description of system topology —
+     deployment units, how they communicate}
+  deployment_units:
+    - name: "{unit name}"
+      responsibility: "{what it does}"
+      communication: "{protocols/patterns — how it talks to others}"
+
+# --- Non-Functional Requirements ---
+
+nfrs:
+  performance:
+    - requirement: "{e.g. API response time < 200ms at p95}"
+      priority: "must|should|nice-to-have"
+  scalability:
+    - requirement: "{e.g. handle 10K concurrent users}"
+      priority: "must|should|nice-to-have"
+  security:
+    - requirement: "{e.g. all data encrypted at rest and in transit}"
+      priority: "must|should|nice-to-have"
+  availability:
+    - requirement: "{e.g. 99.9% uptime SLA}"
+      priority: "must|should|nice-to-have"
+  compliance:
+    - requirement: "{e.g. GDPR data residency}"
+      priority: "must|should|nice-to-have"
+
+# --- Technology Stack ---
+# Concrete selections: React, Java, Python, Anthropic, etc.
+
+stack:
+  - component: "{component name}"
+    technology: "{specific product/library/framework — e.g. React 19, Python 3.12, Claude Opus}"
+    purpose: "{what it does in the system}"
+    rationale: "{why this choice over alternatives}"
+
+# --- Platforms ---
+# Category-level platform decisions — the major systems the product runs on/with.
+
+platforms:
+  - category: "cms|commerce|payments|agentic|auth|messaging|analytics|search"
+    platform: "{specific platform — e.g. Stripe, Shopify, Contentful}"
+    purpose: "{what role this platform plays}"
+    rationale: "{why this platform}"
+    features_served: ["F1", "F2"]     # which features depend on this platform
+
+# --- Integrations ---
+# 3rd party APIs, webhooks, external services the system connects to.
+
+integrations:
+  - name: "{integration name — e.g. Stripe Payments API}"
+    type: "api|webhook|sdk|file-exchange|event-stream"
+    provider: "{3rd party provider}"
+    purpose: "{what data/capability this integration provides}"
+    direction: "inbound|outbound|bidirectional"
+    auth_method: "{API key, OAuth, etc.}"
+    features_served: ["F1"]
+
+# --- Technical Risks ---
+
+technical_risks:
+  - risk: "{risk description}"
+    affected_features: ["F1", "F2"]
+    severity: "low|medium|high"
+    mitigation: "{approach}"
+
+# --- Deployment ---
+
+deployment:
+  - service: "{service/unit name}"
+    platform: "{hosting platform — e.g. Vercel, AWS ECS, Railway}"
+    purpose: "{why this platform for this service}"
+
+# --- Observability ---
+
+observability:
+  tracing: "{tool + what gets traced — e.g. OpenTelemetry for request spans}"
+  metrics: ["{metric name — e.g. request latency p95, error rate}"]
+  logging: "{approach and tool — e.g. structured JSON logs via Pino}"
+
+# --- Agentic Architecture (PCAM Model) ---
+# P = Perception (Signals) — what the system perceives/receives
+# C = Cognition (Agents) — what thinks and decides
+# A = Action (Tools) — what the system can do
+# M = Memory (Data) — RAG, graph, storage
+
+agentic:
+  perception:                         # Signals — inputs to the agentic system
+    - signal: "{signal name — e.g. user message, webhook event, file change}"
+      source: "{where it comes from}"
+      format: "{data format}"
+
+  cognition:                          # Agents — what thinks and decides
+    - agent: "{agent name}"
+      role: "{what this agent is responsible for}"
+      autonomy: "full|supervised|gated"
+      model: "{LLM model — e.g. Claude Opus, Claude Sonnet}"
+
+  action:                             # Tools — what agents can do
+    - tool: "{tool name}"
+      purpose: "{what capability this tool provides}"
+      available_to: ["{agent name}"]
+
+  memory:                             # Data — how knowledge is stored and retrieved
+    approach: "rag|graph|hybrid|vector|relational"
+    stm: "{short-term memory — technology + approach}"
+    ltm: "{long-term memory — technology + approach}"
+    embeddings: "{embedding model + vector store if applicable}"

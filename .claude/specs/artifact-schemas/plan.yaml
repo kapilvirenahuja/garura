@@ -1,0 +1,99 @@
+# plan.yaml — Schema Definition
+# Execution plan — order of feature implementation as vertical slices
+# Produced by: /prepare-implementation (Stage 3)
+# Lifecycle: DRAFT → VALIDATED → LOCKED
+# Depends on: features.yaml, architecture.yaml, tech.yaml, scenarios.yaml
+#
+# Features ARE the vertical slices. Each feature delivers end-to-end capability.
+# Plan sequences them: which feature to build first, what files to touch,
+# what exit gate proves it works, and which scenarios must pass before moving on.
+# Architecture decisions → architecture.yaml. Implementation detail → tech.yaml. Not here.
+
+slug: "{product-slug}"
+status: "DRAFT|VALIDATED|LOCKED"
+created_at: "{ISO-8601}"
+updated_at: "{ISO-8601}"
+features_ref: "{path to features.yaml}"
+architecture_ref: "{path to architecture.yaml}"
+tech_ref: "{path to tech.yaml}"
+scenarios_ref: "{path to scenarios.yaml}"
+
+# --- Prerequisites (Phase 0) ---
+# Setup work before any feature implementation begins.
+# No scenarios — purely foundational.
+
+prerequisites:
+  goal: "{what this phase establishes — e.g. project scaffold, CI, base config}"
+  scope:
+    - description: "{setup item}"
+      key_files: ["{file path}"]
+  exit_gate: "{observable outcome — e.g. 'project builds, CI green, base config in place'}"
+
+# --- Execution Order ---
+# Each entry is a feature (vertical slice) in implementation order.
+# The order determines what gets built first, second, etc.
+# Each feature slice includes: what to build (scope + files),
+# how to know it's done (exit gate), and what to validate (scenario gate).
+
+execution_order:
+  - sequence: 1
+    feature_ref: "F1"
+    feature_name: "{feature name from features.yaml}"
+    rationale: "{why this feature is implemented in this position — dependencies, foundation, risk}"
+
+    # What to build — scope items with file-level mapping
+    scope:
+      - number: 1
+        description: "{what to implement}"
+        key_files: ["{file path}"]
+      - number: 2
+        description: "{what to implement}"
+        key_files: ["{file path}"]
+
+    # How to know it works — observable, testable outcome
+    exit_gate:
+      description: "{observable outcome — e.g. 'User can log in via OAuth, session persisted'}"
+      observable: true
+
+    # What to validate — scenarios that must pass before moving to next feature
+    scenario_gate:
+      scenario_ids: ["SC-AUTH-001", "SC-AUTH-002"]
+      count: 2
+      exit_criteria: "All 2 scenarios passing"
+
+  - sequence: 2
+    feature_ref: "F2"
+    feature_name: "{feature name}"
+    rationale: "{why this comes after F1}"
+    scope:
+      - number: 1
+        description: "{what to implement}"
+        key_files: ["{file path}"]
+    exit_gate:
+      description: "{observable outcome}"
+      observable: true
+    scenario_gate:
+      scenario_ids: ["SC-PAY-001", "SC-PAY-002", "SC-PAY-003"]
+      count: 3
+      exit_criteria: "All 3 scenarios passing"
+
+# --- Execution Summary ---
+
+summary:
+  total_features: 0
+  total_scope_items: 0
+  total_scenarios: 0
+
+  per_feature:
+    - sequence: 1
+      feature_ref: "F1"
+      delivers: "{one-line summary of what this slice delivers}"
+      scope_items: 0
+      scenario_count: 0
+      cumulative_scenarios: 0
+    - sequence: 2
+      feature_ref: "F2"
+      delivers: "{one-line summary}"
+      scope_items: 0
+      scenario_count: 0
+      cumulative_scenarios: 0
