@@ -1,0 +1,128 @@
+{
+  "skill_name": "plan-roadmap",
+  "evals": [
+    {
+      "id": 1,
+      "name": "scope-epics-from-product",
+      "prompt": "You are a product-strategist agent. Read the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml. This is a LOCKED product artifact. Your task: invoke the scope-roadmap-epics skill to derive 3-6 IDD epics from this product. Each epic must reference a strategic goal from product.yaml, have IDD fields (intent with p1/p2/p3, constraints, success_scenarios, failure_conditions), and use F-IDs (F1, F2, etc.). Write the output epics to core/components/recipes/plan-roadmap/evals/outputs/epics.yaml.",
+      "expected_output": "A valid epics.yaml with 3-6 epics, each having F-ID, name, strategic_goal_ref matching an SG from product.yaml, IDD fields (intent.p1/p2/p3, constraints.in_scope/out_of_scope/must_not_break, success_scenarios with given/when/then, failure_conditions), priority, depends_on, foundation flag",
+      "files": ["core/components/recipes/plan-roadmap/evals/fixtures/product.yaml"],
+      "assertions": [
+        {
+          "name": "epic_count_3_to_6",
+          "description": "Output has between 3 and 6 top-level epics",
+          "type": "structural"
+        },
+        {
+          "name": "all_epics_have_f_ids",
+          "description": "Every epic has an id field matching F[0-9]+ pattern",
+          "type": "structural"
+        },
+        {
+          "name": "strategic_goal_refs_valid",
+          "description": "Every epic's strategic_goal_ref matches an SG-ID in product.yaml (SG1-SG5)",
+          "type": "cross-reference"
+        },
+        {
+          "name": "idd_fields_complete",
+          "description": "Every epic has intent.p1, intent.p2, intent.p3, constraints.in_scope, constraints.out_of_scope, constraints.must_not_break, success_scenarios (>=2), failure_conditions (>=2)",
+          "type": "structural"
+        },
+        {
+          "name": "no_e_ids",
+          "description": "No epic uses E-ID pattern (E1, E2) — must be F-IDs only",
+          "type": "negative"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "draft-roadmap-yaml-from-brief",
+      "prompt": "You are a product-strategist agent. Read the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml, the epics at core/components/recipes/plan-roadmap/evals/outputs/epics.yaml, and the feasibility at core/components/recipes/plan-roadmap/evals/outputs/feasibility.yaml. Assume the roadmap brief has been Tether-approved. Your task: invoke the draft-roadmap skill to produce roadmap.yaml. The output must conform to the schema at core/components/skills/draft-roadmap/schemas/roadmap.yaml. Write to core/components/recipes/plan-roadmap/evals/outputs/roadmap.yaml.",
+      "expected_output": "A valid roadmap.yaml with: slug, status DRAFT, product_ref, thesis (1-2 sentences), narrative (3-4 paragraphs), timeline with near/mid/long horizons referencing F-IDs, feasibility per feature, critical_blockers, risk_summary, exclusions, assumptions",
+      "files": [
+        "core/components/recipes/plan-roadmap/evals/fixtures/product.yaml",
+        "core/components/skills/draft-roadmap/schemas/roadmap.yaml"
+      ],
+      "assertions": [
+        {
+          "name": "status_is_draft",
+          "description": "roadmap.yaml has status: DRAFT",
+          "type": "structural"
+        },
+        {
+          "name": "has_thesis",
+          "description": "thesis field is non-empty string",
+          "type": "structural"
+        },
+        {
+          "name": "timeline_has_3_horizons",
+          "description": "timeline has entries for near, mid, and long horizons",
+          "type": "structural"
+        },
+        {
+          "name": "feature_refs_are_f_ids",
+          "description": "All feature_refs in timeline and feasibility use F-ID pattern",
+          "type": "structural"
+        },
+        {
+          "name": "feasibility_per_feature",
+          "description": "Every feature referenced in timeline has a corresponding feasibility entry",
+          "type": "cross-reference"
+        },
+        {
+          "name": "conforms_to_schema",
+          "description": "Output has all top-level fields from roadmap.yaml schema: slug, status, product_ref, thesis, narrative, timeline, feasibility, critical_blockers, open_questions, risk_summary, exclusions, assumptions",
+          "type": "schema"
+        },
+        {
+          "name": "no_tech_jargon_in_thesis",
+          "description": "Thesis does not contain implementation-level technology names (React, Python, PostgreSQL, etc.)",
+          "type": "negative"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "roadmap-brief-tabs-and-comments",
+      "prompt": "You are a doc-builder agent. Read the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml and the epics at core/components/recipes/plan-roadmap/evals/outputs/epics.yaml. Your task: invoke generate-roadmap-brief to produce roadmap-brief.html. The brief must use LifeOS Dark design system, tabbed layout (Strategy, Timeline, Feasibility, Comments), and inline text selection comment system. Write to core/components/recipes/plan-roadmap/evals/outputs/roadmap-brief.html.",
+      "expected_output": "A self-contained HTML file with: LifeOS Dark CSS tokens, 4 tabs (Strategy, Timeline, Feasibility, Comments), inline comment system with handleTextSelection/saveComment/deleteComment/renderComments/exportFeedback functions, localStorage persistence, Tether/Vanish/Orbit action buttons",
+      "files": [
+        "core/components/recipes/plan-roadmap/evals/fixtures/product.yaml",
+        ".claude/specs/artifact-schemas/brief-principles.md"
+      ],
+      "assertions": [
+        {
+          "name": "is_self_contained_html",
+          "description": "Output is valid HTML5 with no external CDN links or script src references",
+          "type": "structural"
+        },
+        {
+          "name": "has_4_tabs",
+          "description": "HTML contains tab elements for Strategy, Timeline, Feasibility, and Comments",
+          "type": "structural"
+        },
+        {
+          "name": "lifeos_dark_tokens",
+          "description": "CSS contains --bg-primary: #0D1117 and --color-water: #58A6FF tokens",
+          "type": "structural"
+        },
+        {
+          "name": "inline_comment_system",
+          "description": "JavaScript contains handleTextSelection, saveComment, deleteComment, renderComments, exportFeedback functions",
+          "type": "structural"
+        },
+        {
+          "name": "localstorage_persistence",
+          "description": "JavaScript uses localStorage with meridian-comments key pattern",
+          "type": "structural"
+        },
+        {
+          "name": "tether_vanish_orbit_actions",
+          "description": "Comments tab has Tether, Vanish, and Orbit action buttons",
+          "type": "structural"
+        }
+      ]
+    }
+  ]
+}

@@ -55,6 +55,10 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 | `draft-roadmap-brief` | Generate lightweight review brief — bound by C-BRIEF-1, C-BRIEF-2 | plan-roadmap (DRAFT) |
 | `draft-roadmap` | Generate full agentic roadmap.md post-Tether | plan-roadmap (DRAFT) |
 | `generate-engineering-view` | Engineering-facing roadmap view — technical breakdown, no business content | plan-roadmap (DRAFT) |
+| `draft-product-spec` | Create product specification — behaviors, invariants, scope boundaries (implementation-agnostic) | prepare-implementation (DRAFT) |
+| `draft-verification-scenarios` | Create verification scenarios with pass/fail criteria and automation classification | prepare-implementation (DRAFT) |
+| `draft-scenario-mapping` | Map verification scenarios to LLD phases — validator-facing only | prepare-implementation (DRAFT) |
+| `validate-implementation-design` | Cross-validate all 5 prepare-implementation artifacts for coverage, compartmentalization, audience separation | prepare-implementation (VALIDATE) |
 
 ### Intent → Skill Mapping
 
@@ -69,6 +73,10 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 | "draft roadmap brief", "roadmap review", "roadmap story" | "Draft roadmap brief for reviewer" | `draft-roadmap-brief` | Lightweight review gate artifact — brief only, no full roadmap |
 | "draft roadmap", "create roadmap", "agentic roadmap" | "Draft roadmap from scoped epics" | `draft-roadmap` | Full agentic roadmap.md post-Tether |
 | "engineering view", "engineering roadmap", "tech breakdown" | "Generate engineering view for roadmap" | `generate-engineering-view` | Engineering-facing view — no business content |
+| "draft product spec", "product specification", "product behaviors" | "Draft product specification from intent" | `draft-product-spec` | Implementation-agnostic product spec with behaviors and invariants |
+| "draft scenarios", "verification scenarios", "acceptance scenarios" | "Draft verification scenarios from product spec" | `draft-verification-scenarios` | Scenarios with pass/fail criteria for validators |
+| "scenario mapping", "map scenarios to phases", "phase mapping" | "Map scenarios to LLD phases" | `draft-scenario-mapping` | Validator-facing scenario-to-phase traceability |
+| "validate implementation design", "check implementation artifacts" | "Validate prepare-implementation artifacts" | `validate-implementation-design` | Cross-validation of coverage, compartmentalization, audience separation |
 
 ## Intent Recognition
 

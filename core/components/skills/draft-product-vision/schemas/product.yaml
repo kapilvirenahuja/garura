@@ -1,0 +1,63 @@
+# product.yaml — Schema Definition
+# Consolidates: market-context.yaml + vision.md
+# Produced by: /discover-product
+# Lifecycle: DRAFT → VALIDATED → LOCKED
+# Depends on: nothing (root artifact)
+
+slug: "{product-slug}"
+status: "DRAFT|VALIDATED|LOCKED"
+created_at: "{ISO-8601}"
+updated_at: "{ISO-8601}"
+
+# --- Problem & Market Context (was: market-context.yaml) ---
+
+problem: "{refined one-sentence problem statement}"
+
+target_users:
+  - id: "U1"
+    persona: "{role/title}"
+    goal: "{primary goal}"
+    frustration: "{key pain point}"
+    context: "{when/where they encounter this}"
+
+competitors:
+  - name: "{competitor name}"
+    strengths: ["{str1}", "{str2}"]
+    weaknesses: ["{wk1}", "{wk2}"]
+    our_advantage: "{how we differentiate against this competitor}"
+
+market_size:
+  tam: "{total addressable market estimate or null}"
+  sam: "{serviceable addressable market estimate or null}"
+  som: "{serviceable obtainable market estimate or null}"
+  note: "{derivation note — how estimates were reached}"
+
+differentiators: ["{diff1}", "{diff2}"]
+
+risks: ["{market risk 1}", "{market risk 2}"]
+
+# --- Vision (was: vision.md) ---
+
+value_proposition: "{1-2 paragraphs — what makes this worth building}"
+
+strategic_goals:
+  - id: "SG1"
+    title: "{goal title}"
+    description: "{what this means concretely}"
+    metric: "{measurable indicator}"
+    target: "{quantifiable target}"
+    measurement: "{how to measure — method/tool}"
+
+success_metrics:
+  - strategic_goal_ref: "SG1"
+    metric: "{metric name}"
+    target: "{target value}"
+    measurement_method: "{how measured}"
+
+assumptions:
+  - "{assumption 1 — reframed from risks}"
+  - "{assumption 2}"
+
+out_of_scope:
+  - category: "{category name}"
+    rationale: "{why excluded from this product}"

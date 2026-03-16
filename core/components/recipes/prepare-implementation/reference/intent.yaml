@@ -1,0 +1,247 @@
+name: prepare-implementation
+intent: >
+  Produce a complete set of implementation-ready design artifacts for a product,
+  starting from a product intent (with optional enrichment from upstream roadmap
+  and vision artifacts). The output set includes: features.yaml defining product
+  behaviors and invariants, architecture.yaml naming concrete technologies and
+  architectural decisions, scenarios.yaml with verification scenarios with pass/fail
+  criteria and automation classification, tech.yaml with project structure,
+  libraries, data models, and components, and plan.yaml with execution order of
+  features as vertical slices where each feature delivers an end-to-end working
+  capability with exit gates, file-level scope items, and scenario gates. These
+  five artifacts follow a DRAFT, VALIDATE, LOCKED lifecycle invoked as separate
+  phases. Verification scenarios are compartmentalized from the implementation
+  artifacts — plan.yaml must not inline scenario descriptions, and scenario gates
+  in plan.yaml reference scenario IDs only. The artifacts must be sufficient for
+  a downstream agent to implement any single feature slice using only the feature's
+  scope items, architecture.yaml, and relevant features.yaml sections — without
+  access to other feature slices or scenarios.yaml content.
+
+constraints:
+  - id: C1
+    rule: >
+      The recipe is intent-sufficient. A product intent is the only required input.
+      Upstream artifacts (locked vision, roadmap with scoped epics, feasibility
+      assessment, engineering view) are enrichment — used when present, not required
+      for the recipe to produce valid output.
+
+  - id: C2
+    rule: >
+      The recipe follows a three-phase lifecycle: DRAFT, VALIDATE, LOCKED. Each
+      phase is invoked independently. DRAFT produces all five artifacts in draft
+      status. VALIDATE checks completeness, cross-references, and coverage. LOCK
+      finalizes the artifacts for downstream consumption. No artifact may be
+      consumed by downstream recipes until it reaches LOCKED status.
+
+  - id: C3
+    rule: >
+      features.yaml defines product behaviors, invariants, scope boundaries, and
+      acceptance criteria. It must not contain technology choices, implementation
+      patterns, runtime topology, library names, or deployment decisions. Those
+      belong exclusively in architecture.yaml.
+
+  - id: C4
+    rule: >
+      architecture.yaml must name concrete technologies for every architectural
+      component — specific databases, frameworks, SDKs, hosting platforms, and
+      libraries. Vague references such as "a relational database" or "a web
+      framework" are not acceptable. architecture.yaml must be concrete enough
+      for an implementer to begin coding without making technology selection
+      decisions.
+
+  - id: C5
+    rule: >
+      Every plan.yaml scope item must map to one or more specific file paths. A
+      scope item without a file path is not implementation-ready. Each execution
+      order entry must include numbered scope items with description and key_files.
+
+  - id: C6
+    rule: >
+      Every feature slice in plan.yaml execution_order must deliver an end-to-end
+      working capability that is independently testable. A feature slice that
+      delivers only infrastructure, only backend, or only frontend without a
+      testable user-facing path is not valid — except prerequisites (Phase 0),
+      which covers project scaffold and setup.
+
+  - id: C7
+    rule: >
+      Every verification scenario must have a description, expected behavior,
+      explicit pass/fail criteria, and an automation classification of either
+      Automated or Hybrid. Hybrid scenarios must document which element requires
+      human judgment. A scenario without pass/fail criteria is incomplete.
+
+  - id: C8
+    rule: >
+      Every product behavior defined in the product specification must be covered
+      by at least one verification scenario. There must be no product behavior
+      without a corresponding testable scenario. Coverage is measured by
+      traceability, not by count.
+
+  - id: C9
+    rule: >
+      Verification scenarios must be compartmentalized from the implementer.
+      plan.yaml must not contain scenario descriptions or scenario content.
+      plan.yaml scenario_gate fields reference scenario IDs and counts only —
+      never scenario descriptions. scenarios.yaml is a separate artifact that
+      serves only the validator. This prevents the implementer from optimizing
+      for test cases instead of building correct software.
+
+  - id: C10
+    rule: >
+      The DRAFT phase uses a staged human review model with three checkpoints:
+      features.yaml is reviewed first (it is the foundation for all other
+      artifacts), architecture.yaml and tech.yaml are reviewed second (they
+      depend on features.yaml), and scenarios.yaml plus plan.yaml are reviewed
+      together third (scenarios need the spec, plan needs architecture and tech).
+      Each checkpoint requires explicit human approval before proceeding to the
+      next stage.
+
+  - id: C11
+    rule: >
+      Each artifact serves a distinct audience. features.yaml serves product
+      stakeholders. architecture.yaml serves architects and implementers.
+      scenarios.yaml serves validators. tech.yaml serves implementers. plan.yaml
+      serves implementers (execution order and scope) and quality leads (scenario
+      gates by ID only). No artifact may contain content that belongs to a
+      different artifact's audience — audience collision is a constraint violation.
+
+  - id: C12
+    rule: >
+      plan.yaml must contain a summary section showing per-feature rows with:
+      feature_ref, what it delivers, scenario count (integer only — not scenario
+      IDs, to maintain compartmentalization), and cumulative scenario count.
+      scenarios.yaml must contain a feature_gates section mapping each feature
+      to its required scenario IDs. Every scenario must appear in at least one
+      feature gate.
+
+  - id: C13
+    rule: >
+      Every entry in plan.yaml execution_order (and prerequisites) must have an
+      explicit exit_gate that defines what must be observable before moving to
+      the next feature. The exit gate references observable outcomes, not process
+      steps.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      features.yaml contains technology names, library names, SDK references,
+      database product names, hosting platform names, or deployment patterns.
+      These indicate audience collision between features.yaml and architecture.yaml.
+
+  - id: F2
+    condition: >
+      architecture.yaml contains vague technology references — terms like
+      "a relational database," "a web framework," "an LLM provider," or
+      "a hosting platform" — instead of naming the specific technology.
+
+  - id: F3
+    condition: >
+      Any feature slice in plan.yaml execution_order does not deliver an
+      end-to-end working capability. The scope covers only one layer (only
+      database, only backend, only frontend) without a testable path through
+      the full stack.
+
+  - id: F4
+    condition: >
+      Any plan.yaml scope item lacks a file path mapping. scope_items entries
+      have empty or missing key_files.
+
+  - id: F5
+    condition: >
+      Any entry in plan.yaml execution_order has no exit_gate, or the exit_gate
+      references process steps rather than observable outcomes.
+
+  - id: F6
+    condition: >
+      Any verification scenario in scenarios.yaml is missing one or more of:
+      description, expected_behavior, pass_criteria, or automation classification.
+
+  - id: F7
+    condition: >
+      A product behavior defined in features.yaml has no corresponding
+      verification scenario in scenarios.yaml. The scenarios artifact does not
+      provide full coverage of the features specification.
+
+  - id: F8
+    condition: >
+      plan.yaml contains scenario descriptions, scenario content, or explicit
+      references to scenarios.yaml content. Compartmentalization is violated.
+
+  - id: F9
+    condition: >
+      Removed — scenario-to-phase mapping artifact (scenario-mapping.md) has
+      been dissolved. Scenario gates are now in plan.yaml (scenario_gate fields)
+      and feature gates are in scenarios.yaml (feature_gates section). This
+      failure condition no longer applies.
+
+  - id: F10
+    condition: >
+      plan.yaml contains fewer than 2 entries in execution_order (excluding
+      prerequisites).
+
+  - id: F11
+    condition: >
+      Removed — scenario-to-phase mapping artifact (scenario-mapping.md) has
+      been dissolved. This failure condition no longer applies.
+
+  - id: F12
+    condition: >
+      The five artifacts were produced or locked without passing through all
+      three required human review checkpoints in the DRAFT phase.
+
+scenarios:
+  - id: S1
+    persona: Product Owner
+    given: The locked features.yaml and scenarios.yaml
+    then: >
+      Can confirm that every product behavior in features.yaml has at least
+      one testable verification scenario in scenarios.yaml with clear pass/fail
+      criteria, achieving full traceability between features and acceptance via
+      feature_ref and behavior_ref back-links.
+
+  - id: S2
+    persona: Technical Architect
+    given: The locked features.yaml and architecture.yaml
+    then: >
+      Can evaluate whether the chosen technology stack and architectural decisions
+      in architecture.yaml faithfully implement the product behaviors and invariants
+      defined in features.yaml, and can identify any architectural gaps or
+      misalignments.
+
+  - id: S3
+    persona: Engineering Lead
+    given: A single execution_order entry in plan.yaml and architecture.yaml
+    then: >
+      Can assign the feature slice to an implementer with confidence that the
+      scope_items, key_files, technology stack, and exit_gate provide sufficient
+      context to implement without requiring access to other feature slices, the
+      full features.yaml, or scenarios.yaml content.
+
+  - id: S4
+    persona: Quality Lead
+    given: The locked scenarios.yaml feature_gates and plan.yaml scenario_gate entries
+    then: >
+      Can construct a feature-gated validation plan where each feature slice
+      has a defined set of scenarios (by ID) that must pass before the next
+      feature begins, without exposing scenario content to implementers. The
+      plan references scenario IDs only; content lives in scenarios.yaml which
+      is validator-facing.
+
+  - id: S5
+    persona: Product Manager
+    given: The locked features.yaml
+    then: >
+      Can describe the product's identity, core behaviors, invariants, and scope
+      boundaries to stakeholders without referencing any technology, implementation
+      detail, or architectural decision. The identity section provides a
+      technology-free product narrative.
+
+  - id: S6
+    persona: Technical Architect
+    given: The locked plan.yaml summary section
+    then: >
+      Can determine the implementation sequence, understand what each feature
+      slice delivers as a working capability, and verify that the cumulative
+      scenario count in the summary accounts for all verification scenarios by
+      the final feature. The per_feature summary with cumulative_scenarios
+      supports this review.

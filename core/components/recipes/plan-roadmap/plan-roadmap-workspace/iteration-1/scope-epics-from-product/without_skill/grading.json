@@ -1,0 +1,29 @@
+{
+  "expectations": [
+    {
+      "text": "epic_count_3_to_6",
+      "passed": true,
+      "evidence": "File contains exactly 6 epics (F1 through F6), which falls within the 3-6 range."
+    },
+    {
+      "text": "all_epics_have_f_ids",
+      "passed": true,
+      "evidence": "All 6 epics use F-IDs: F1, F2, F3, F4, F5, F6."
+    },
+    {
+      "text": "strategic_goal_refs_valid",
+      "passed": true,
+      "evidence": "All epics reference valid SG-IDs from product.yaml: F1->SG1, F2->SG2, F3->SG3, F4->SG4, F5->SG5, F6->SG2. All are within the SG1-SG5 range defined in the product fixture."
+    },
+    {
+      "text": "idd_fields_complete",
+      "passed": true,
+      "evidence": "All 6 epics have complete IDD fields: intent with p1/p2/p3, constraints (in_scope, out_of_scope, must_not_break), success_scenarios (given/when/then format), and failure_conditions (list). Verified across all epics F1-F6."
+    },
+    {
+      "text": "no_e_ids",
+      "passed": true,
+      "evidence": "No E-IDs found in the file. All epics use F-IDs (F1-F6)."
+    }
+  ]
+}

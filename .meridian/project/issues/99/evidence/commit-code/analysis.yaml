@@ -1,0 +1,180 @@
+branch:
+  name: feature/99-standardize-artifact-naming-yaml-html-brief-pairs
+  issue_from_branch: 99
+  is_hotfix: false
+
+change_summary:
+  total_files: 36
+  staged: 0
+  unstaged: 21
+  untracked: 15
+
+groups:
+  - id: G1
+    issue: 99
+    type: feat
+    scope: prepare-implementation
+    subject: "add prepare-implementation recipe and supporting skills (#99)"
+    confidence: high
+    files:
+      - path: core/components/recipes/prepare-implementation/
+        status: untracked
+        description: New recipe directory for prepare-implementation workflow
+      - path: core/components/skills/audit-spec-gaps/SKILL.md
+        status: untracked
+        description: New skill for auditing spec gaps
+      - path: core/components/skills/draft-implementation-plan/SKILL.md
+        status: untracked
+        description: New skill for drafting implementation plans
+      - path: core/components/skills/draft-lld/SKILL.md
+        status: untracked
+        description: New skill for drafting LLD as tech.yaml
+      - path: core/components/skills/draft-product-spec/SKILL.md
+        status: untracked
+        description: New skill for drafting product spec as features.yaml
+      - path: core/components/skills/draft-scenario-mapping/SKILL.md
+        status: untracked
+        description: New skill for mapping scenarios to LLD phases
+      - path: core/components/skills/draft-technical-approach/SKILL.md
+        status: untracked
+        description: New skill for drafting technical approach artifact
+      - path: core/components/skills/draft-verification-scenarios/SKILL.md
+        status: untracked
+        description: New skill for drafting verification scenarios
+      - path: core/components/skills/generate-implementation-brief/SKILL.md
+        status: untracked
+        description: New skill for generating stage-aware HTML implementation briefs
+      - path: core/components/skills/scout-project/SKILL.md
+        status: untracked
+        description: New skill for scanning project and producing planning summary
+      - path: core/components/skills/validate-implementation-design/SKILL.md
+        status: untracked
+        description: New skill for cross-validating prepare-implementation artifacts
+
+  - id: G2
+    issue: 99
+    type: feat
+    scope: agents
+    subject: "extend agents with prepare-implementation skill bindings and context loading (#99)"
+    confidence: high
+    files:
+      - path: core/components/agents/doc-builder.md
+        status: modified
+        description: Add generate-implementation-brief skill binding and intent mapping
+      - path: core/components/agents/product-strategist.md
+        status: modified
+        description: Add draft-product-spec, draft-verification-scenarios, draft-scenario-mapping, validate-implementation-design skill bindings
+      - path: core/components/agents/tech-designer.md
+        status: modified
+        description: Add WebSearch/WebFetch tools, 8-step selective context loading protocol, draft-technical-approach/draft-lld/research-domain-context skill pool entries
+
+  - id: G3
+    issue: 99
+    type: feat
+    scope: schemas
+    subject: "add YAML artifact schemas for product-vision and roadmap skills (#99)"
+    confidence: high
+    files:
+      - path: core/components/skills/draft-product-vision/schemas/
+        status: untracked
+        description: New schemas directory with product.yaml and roadmap.yaml schemas
+      - path: core/components/skills/draft-roadmap/schemas/
+        status: untracked
+        description: New schemas directory with product.yaml and roadmap.yaml schemas
+
+  - id: G4
+    issue: 99
+    type: refactor
+    scope: skills
+    subject: "update existing skills to standardized YAML artifact contracts (#99)"
+    confidence: high
+    files:
+      - path: core/components/skills/assess-feasibility/SKILL.md
+        status: modified
+        description: v2 — switch from epics_path to product_yaml_path, derive F-IDs, fold into roadmap.yaml
+      - path: core/components/skills/discover-product-opportunity/SKILL.md
+        status: modified
+        description: Updated artifact contracts
+      - path: core/components/skills/draft-product-vision/SKILL.md
+        status: modified
+        description: Updated to produce standardized product.yaml schema
+      - path: core/components/skills/draft-product-vision/templates/vision.md
+        status: modified
+        description: Updated vision template
+      - path: core/components/skills/draft-roadmap-brief/SKILL.md
+        status: modified
+        description: Updated brief contracts
+      - path: core/components/skills/draft-roadmap-brief/templates/brief.html
+        status: modified
+        description: Updated HTML brief template
+      - path: core/components/skills/draft-roadmap/SKILL.md
+        status: modified
+        description: Updated to produce standardized roadmap.yaml schema
+      - path: core/components/skills/generate-engineering-view/SKILL.md
+        status: modified
+        description: Updated artifact contracts
+      - path: core/components/skills/generate-product-brief/SKILL.md
+        status: modified
+        description: Updated to consume standardized YAML artifacts
+      - path: core/components/skills/scope-roadmap-epics/SKILL.md
+        status: modified
+        description: Updated to align with standardized artifact naming
+      - path: core/components/skills/validate-product-vision/SKILL.md
+        status: modified
+        description: Updated artifact contracts
+
+  - id: G5
+    issue: 99
+    type: refactor
+    scope: recipes
+    subject: "update create-recipe and plan-roadmap for P11 and standardized artifacts (#99)"
+    confidence: high
+    files:
+      - path: core/components/recipes/create-recipe/SKILL.md
+        status: modified
+        description: Add P11 context sufficiency principle (10 → 11 agent audit principles)
+      - path: core/components/recipes/create-recipe/reference/audit-checklist.md
+        status: modified
+        description: Add P11 checklist item
+      - path: core/components/recipes/discover-product/SKILL.md
+        status: modified
+        description: Updated to align with standardized artifact naming
+      - path: core/components/recipes/plan-roadmap/SKILL.md
+        status: modified
+        description: Updated to consume standardized YAML artifacts
+      - path: core/components/recipes/plan-roadmap/templates/approval-prompt.md
+        status: modified
+        description: Updated approval prompt template
+      - path: core/components/recipes/plan-roadmap/templates/checkpoint.md
+        status: modified
+        description: Updated checkpoint template
+      - path: core/components/recipes/plan-roadmap/templates/final-report.md
+        status: modified
+        description: Updated final report template
+
+  - id: G6
+    issue: 99
+    type: chore
+    scope: stm
+    subject: "record commit-code analysis evidence for issue #99"
+    confidence: high
+    files:
+      - path: .meridian/project/issues/99/
+        status: untracked
+        description: STM evidence directory for issue #99 (operational artifact, not feature deliverable)
+
+excluded_files:
+  - path: .claude/settings.json
+    reason: IDE/project-mode settings file — not a framework component, gitignored by convention
+  - path: .claude/specs/artifact-schemas/
+    reason: Ephemeral spec planning artifact in .claude/ — not a core component, gitignored by convention
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+risk_notes:
+  - ".claude/settings.json does not match sensitive file patterns (not .env, *.key, *credentials*, etc.) but is an IDE artifact that should not be committed"
+  - "assess-feasibility SKILL.md bumped from v1.0.0 to v2.0.0 — API-level change (epics_path → product_yaml_path). Downstream consumers (plan-roadmap, draft-roadmap-brief) are also updated in this changeset, so the breaking change is self-contained within issue #99"

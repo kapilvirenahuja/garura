@@ -1,0 +1,11 @@
+{
+  "expectations": [
+    {"text": "Has all 7 structured sections (Overview, Architecture, Tech Stack, Product Docs, Constraints, Implementation Structure, Planning Notes)", "passed": true, "evidence": "All 7 sections present with exact heading match"},
+    {"text": "Tech stack names concrete technologies (not vague references)", "passed": true, "evidence": "12 specific technologies named: Anthropic SDK, voyage-3, Langfuse v3, discord.py 2.x, APScheduler, FastAPI, Next.js 15, Tailwind CSS, Drizzle ORM, Vercel, Neon Postgres pgvector, Upstash Redis"},
+    {"text": "Reports 9 implementation phases matching LLD", "passed": true, "evidence": "9 phases (0-8) listed in Implementation Structure table"},
+    {"text": "Reports 54 scenarios (35 automated, 19 hybrid)", "passed": true, "evidence": "Product Documentation table: '54 total: 35 automated, 19 hybrid'"},
+    {"text": "Summary under 500 words", "passed": false, "evidence": "627 words — exceeds 500 word limit by 127 words"},
+    {"text": "No recommendations (reports what IS, not what SHOULD BE)", "passed": true, "evidence": "Zero instances of should/recommend/suggest/consider"},
+    {"text": "Returns YAML output contract", "passed": true, "evidence": "Agent returned scout: contract with path, documents_found, summary_stats, status"}
+  ]
+}

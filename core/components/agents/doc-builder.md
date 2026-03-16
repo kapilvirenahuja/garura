@@ -133,12 +133,14 @@ TaskUpdate task_id -> status: failed
 | Skill | Domain | Purpose |
 |-------|--------|---------|
 | `generate-product-brief` | product briefs | Generate self-contained HTML brief from product discovery artifacts with interactive feedback |
+| `generate-implementation-brief` | implementation briefs | Generate stage-aware HTML brief from prepare-implementation artifacts (product spec, tech approach, scenarios, LLD, mapping) |
 
 ### When to Use Each Skill
 
 | Intent Pattern | Skill | Why |
 |----------------|-------|-----|
 | "generate brief", "create HTML brief", "product brief" | `generate-product-brief` | Producing human-reviewable HTML brief from product data |
+| "implementation brief", "design brief", "prepare-implementation brief" | `generate-implementation-brief` | Stage-aware HTML brief for reviewing implementation design artifacts |
 
 ## Intent Recognition
 

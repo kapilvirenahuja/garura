@@ -1,0 +1,13 @@
+{
+  "eval_id": 3,
+  "eval_name": "roadmap-brief-tabs-and-comments",
+  "prompt": "Read the product.yaml and epics.yaml from the fixtures directory. Produce roadmap-brief.html with LifeOS Dark design system, tabbed layout (Strategy, Timeline, Feasibility, Comments), and inline text selection comment system. Write to the outputs directory.",
+  "assertions": [
+    {"name": "is_self_contained_html", "type": "structural"},
+    {"name": "has_4_tabs", "type": "structural"},
+    {"name": "lifeos_dark_tokens", "type": "structural"},
+    {"name": "inline_comment_system", "type": "structural"},
+    {"name": "localstorage_persistence", "type": "structural"},
+    {"name": "tether_vanish_orbit_actions", "type": "structural"}
+  ]
+}

@@ -89,4 +89,4 @@ The following are explicitly NOT part of this product vision:
 
 ---
 
-*Storage path: `.meridian/project/product/{slug}/vision.md`*
+*Storage path: `.meridian/project/product/{slug}/product.yaml`*

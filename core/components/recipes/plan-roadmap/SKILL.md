@@ -1,6 +1,6 @@
 ---
 name: plan-roadmap
-description: Plan a time-phased product roadmap from a locked vision
+description: Plan a time-phased product roadmap from a locked product definition
 user-invocable: true
 model: sonnet
 allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
@@ -8,7 +8,7 @@ allowed-tools: Task, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
 
 # plan-roadmap
 
-Plan a time-phased product roadmap from a locked product vision. Scopes IDD epics, assesses technical feasibility, generates a human-reviewable brief, runs a feedback loop, then produces a full roadmap and engineering view post-approval. Human review of the brief is always required — it is the gate before any roadmap artifacts are produced.
+Plan a time-phased product roadmap from a locked product definition. Scopes IDD epics, assesses technical feasibility, generates a human-reviewable brief, runs a feedback loop, then produces a full roadmap artifact post-approval. Human review of the brief is always required — it is the gate before any roadmap artifacts are produced.
 
 ## Compiled From
 
@@ -28,7 +28,7 @@ You delegate domain tasks to agents via the JSON contract — never execute doma
 
 | Agent | Domain | Phases |
 |-------|--------|--------|
-| `product-strategist` | Product: epic scoping, brief generation, roadmap, engineering view | Preparation, Execution |
+| `product-strategist` | Product: epic scoping, brief generation, roadmap | Preparation, Execution |
 | `tech-designer` | Technical: feasibility assessment, risk identification | Preparation |
 | `repo-orchestrator` | Git: self-commit evidence artifacts | Evidence & Close (non-blocking) |
 
@@ -41,13 +41,13 @@ Execute these checks before any domain work. Orchestrator owns — do not delega
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| `--vision` argument provided and file exists | — | Hard halt |
-| Vision has `Status: LOCKED` | C1 | Hard halt — cannot plan from unlocked vision |
-| Derive `slug` from vision frontmatter | — | Hard halt if slug absent |
+| `--product` argument provided and file exists | — | Hard halt |
+| Product has `Status: LOCKED` | C1 | Hard halt — cannot plan from unlocked product |
+| Derive `slug` from product.yaml frontmatter | — | Hard halt if slug absent |
 
 ```bash
-# Resolve slug from vision file (orchestrator reads vision with Read tool, extracts slug from frontmatter)
-# C1: Vision Status field must equal LOCKED
+# Resolve slug from product.yaml (orchestrator reads product.yaml with Read tool, extracts slug from frontmatter)
+# C1: product.yaml Status field must equal LOCKED
 # Hard halt on any failure — pre-flight failures are not recoverable
 ```
 
@@ -67,13 +67,12 @@ Create the full task graph:
 
 | Task ID | Description | Agent | Blocked By |
 |---------|-------------|-------|------------|
-| `scope-epics` | Derive IDD epics from locked vision | product-strategist | — |
+| `scope-epics` | Derive IDD epics from locked product | product-strategist | — |
 | `assess-feasibility` | Technical feasibility of epics | tech-designer | scope-epics |
-| `produce-brief` | Generate reviewable brief | product-strategist | scope-epics, assess-feasibility |
+| `produce-brief` | Generate reviewable brief + hub | product-strategist | scope-epics, assess-feasibility |
 | `human-review` | Checkpoint: Tether/Vanish | orchestrator | produce-brief |
-| `produce-roadmap` | Full roadmap from approved brief | product-strategist | human-review |
-| `produce-eng-view` | Engineering-facing view | product-strategist | produce-roadmap |
-| `report` | Evidence + final report | orchestrator | produce-eng-view |
+| `produce-roadmap` | Full roadmap.yaml from approved brief | product-strategist | human-review |
+| `report` | Evidence + final report | orchestrator | produce-roadmap |
 
 After creating all tasks with dependencies, initialize the JSON contract:
 
@@ -84,13 +83,13 @@ After creating all tasks with dependencies, initialize the JSON contract:
   "slug": "{slug from pre-flight}",
   "task_id": "scope-epics",
   "stm": {
-    "vision_path": "{--vision argument value}",
+    "product_yaml_path": "{--product argument value}",
     "epics_path": null,
     "feasibility_path": null,
-    "brief_path": null,
-    "approved_brief_path": null,
-    "roadmap_path": null,
-    "engineering_view_path": null
+    "roadmap_brief_path": null,
+    "approved_roadmap_brief_path": null,
+    "roadmap_yaml_path": null,
+    "hub_path": null
   },
   "checkpoints": [
     { "name": "brief_review", "status": "pending" }
@@ -105,7 +104,7 @@ After creating all tasks with dependencies, initialize the JSON contract:
 
 Write initial status file at `.meridian/project/product/{slug}/status/plan-roadmap.json`.
 
-Verify: all 7 tasks exist with correct `blockedBy` before proceeding.
+Verify: all 6 tasks exist with correct `blockedBy` before proceeding.
 
 ---
 
@@ -122,13 +121,13 @@ Pass the initialized contract as the ENTIRE agent prompt (JSON only, nothing els
   "slug": "{slug}",
   "task_id": "scope-epics",
   "stm": {
-    "vision_path": "{--vision value}",
+    "product_yaml_path": "{--product value}",
     "epics_path": null,
     "feasibility_path": null,
-    "brief_path": null,
-    "approved_brief_path": null,
-    "roadmap_path": null,
-    "engineering_view_path": null
+    "roadmap_brief_path": null,
+    "approved_roadmap_brief_path": null,
+    "roadmap_yaml_path": null,
+    "hub_path": null
   },
   "checkpoints": [{ "name": "brief_review", "status": "pending" }],
   "evidence": [{ "name": "plan-roadmap", "location": null }],
@@ -136,6 +135,8 @@ Pass the initialized contract as the ENTIRE agent prompt (JSON only, nothing els
   "step_failure": null
 }
 ```
+
+Agent reads `product.yaml` at `stm.product_yaml_path`. Epics reference strategic goals from `product.yaml` (`strategic_goals[].id`).
 
 **Expected return:** Contract with `stm.epics_path` populated, `step_failure` null.
 
@@ -146,7 +147,7 @@ Update status file: `scope-epics → completed`.
 
 **Step 2 Evals (C5, C7, C6, F1, F2, F3):**
 - **SE-1 (F1):** Read `stm.epics_path` — count top-level epic entries. PASS if count is between 3 and 6 inclusive. FAIL if count < 3 or > 6. Halt on FAIL.
-- **SE-3 (F2):** For every epic in `stm.epics_path`, verify `strategic_goal` field matches a goal named in vision.md (C7). PASS if all match. FAIL if any epic's `strategic_goal` does not appear in vision. Halt on FAIL.
+- **SE-3 (F2):** For every epic in `stm.epics_path`, verify `strategic_goal` field matches a goal ID (`SG*`) present in `product.yaml` `strategic_goals` (C7). PASS if all match. FAIL if any epic's `strategic_goal` does not appear in product.yaml. Halt on FAIL.
 - **SE-5 (F3):** For every epic, verify `intent` (p1/p2/p3), `constraints` (in_scope/out_of_scope/must_not_break), `success_scenarios` (min 2, given/when/then), `failure_conditions` (2-4 entries) are all present and non-empty (C6). PASS if all epics have all fields. FAIL if any field is missing or empty. Halt on FAIL.
 
 ---
@@ -163,6 +164,8 @@ Update `task_id` to `assess-feasibility` in the enriched contract. Pass the full
   "stm": { "epics_path": "{populated}", "feasibility_path": null, ... }
 }
 ```
+
+Feasibility data produced here will be folded into `roadmap.yaml` in Step 6 — the `feasibility_path` artifact is the intermediate holding structure.
 
 **Expected return:** Contract with `stm.feasibility_path` populated, `step_failure` null.
 
@@ -182,20 +185,24 @@ Update `task_id` to `produce-brief` in the enriched contract. Pass the full enri
 ```json
 {
   "task_id": "produce-brief",
-  "stm": { "epics_path": "{populated}", "feasibility_path": "{populated}", "brief_path": null, ... }
+  "stm": { "epics_path": "{populated}", "feasibility_path": "{populated}", "roadmap_brief_path": null, "hub_path": null, ... }
 }
 ```
 
-**Expected return:** Contract with `stm.brief_path` populated, `step_failure` null.
+Agent produces:
+- `roadmap-brief.html` — tabbed layout per brief-principles.md with tabs: Strategy, Timeline, Feasibility, Comments. Inline comment system per brief-principles.md spec.
+- `hub.html` — regenerated to reflect updated roadmap brief status.
+
+**Expected return:** Contract with `stm.roadmap_brief_path` and `stm.hub_path` populated, `step_failure` null.
 
 Check `step_failure` first — if non-null, retry once. After 2 failures, halt.
-Then check `stm.brief_path` is non-null.
+Then check both `stm.roadmap_brief_path` and `stm.hub_path` are non-null.
 
 Update status file: `produce-brief → completed`.
 
 **Step 4 Evals (C2, C3, C4, F4):**
 - **SE-7 (F4, C4):** Confirm the brief artifact passes C4 — read the `notes` field from the returned contract. If any note indicates a C-BRIEF-2 violation, re-invoke `product-strategist` once with `user_feedback: "Remove technical content that does not affect sequencing, priority, or timing"`. If violation persists after re-invoke, halt. PASS if no C4 violations reported.
-- **SE-11 (C2, C3, C10):** Read `stm.brief_path` using the Read tool. PASS if: (a) file has `.html` extension and contains `<html>` tag (C2 — template rendered output), (b) file uses tab-based layout with tabs for exec-summary, decisions, epics, timeline, and assumptions (C2 — template structure), (c) Blockers section contains at least 1 entry (C3 — reviewability signal), (d) feedback panel with textarea fields is present (C10 — interactive feedback). FAIL if any condition is not met — re-invoke product-strategist once. Halt after second failure.
+- **SE-11 (C2, C3, C10):** Read `stm.roadmap_brief_path` using the Read tool. PASS if: (a) file has `.html` extension and contains `<html>` tag (C2 — template rendered output), (b) file uses tab-based layout with tabs for Strategy, Timeline, Feasibility, and Comments (C2 — template structure per brief-principles.md), (c) Feasibility tab contains at least 1 critical_blockers entry (C3 — reviewability signal), (d) inline comment system is present — text selection triggers comment popup, Comments tab lists annotations with export button (C10 — interactive feedback per brief-principles.md). FAIL if any condition is not met — re-invoke product-strategist once. Halt after second failure.
 
 ---
 
@@ -211,12 +218,12 @@ Write checkpoint artifact to `.meridian/project/product/{slug}/checkpoint/plan-r
 
 Update contract: `checkpoints[brief_review].status = pending`.
 
-Present brief using `templates/approval-prompt.md`. The brief file is at `stm.brief_path` — open it for the user.
+Present brief using `templates/approval-prompt.md`. The brief file is at `stm.roadmap_brief_path` — open it for the user.
 
 **Feedback loop (max 3 cycles):**
-- Plain text feedback → re-invoke `product-strategist` with enriched contract + `"user_feedback": "{feedback text}"` appended; cycle count ≤ 3
-- **Tether** → copy approved brief to `{slug}/approved-brief-{timestamp}.html`, set `stm.approved_brief_path`, update `checkpoints[brief_review].status = approved`. Update checkpoint artifact. Proceed to Execution.
-- **Vanish** → update `checkpoints[brief_review].status = rejected`. Halt. Present: "Brief rejected — run `/plan-roadmap --vision {path}` to start over."
+- Plain text feedback → re-invoke `product-strategist` with enriched contract + `"user_feedback": "{feedback text}"` appended; cycle count ≤ 3. After regeneration, also regenerate `hub.html` (pass `hub_path` in contract for agent to update).
+- **Tether** → copy approved brief to `{slug}/approved-roadmap-brief.html`, set `stm.approved_roadmap_brief_path`, update `checkpoints[brief_review].status = approved`. Update checkpoint artifact. Proceed to Execution.
+- **Vanish** → update `checkpoints[brief_review].status = rejected`. Halt. Present: "Brief rejected — run `/plan-roadmap --product {path}` to start over."
 - After 3 feedback cycles with no Tether/Vanish → present: "Maximum feedback cycles reached. Type **Tether** to approve or **Vanish** to halt."
 
 Update status file: `human-review → completed`.
@@ -229,73 +236,52 @@ Update status file: `human-review → completed`.
 Owner: `product-strategist`
 Depends on: Step 5 (Tether)
 
-Update `task_id` to `produce-roadmap` in the enriched contract. Pass the full enriched contract (with `stm.approved_brief_path` set) as the ENTIRE agent prompt — no other text. Contract must include:
+Update `task_id` to `produce-roadmap` in the enriched contract. Pass the full enriched contract (with `stm.approved_roadmap_brief_path` set) as the ENTIRE agent prompt — no other text. Contract must include:
 
 ```json
 {
   "task_id": "produce-roadmap",
-  "stm": { "approved_brief_path": "{populated}", "roadmap_path": null, ... }
+  "stm": {
+    "product_yaml_path": "{populated}",
+    "approved_roadmap_brief_path": "{populated}",
+    "feasibility_path": "{populated}",
+    "roadmap_yaml_path": null,
+    "artifact_base": ".meridian/project/product/"
+  }
 }
 ```
 
-**Expected return:** Contract with `stm.roadmap_path` populated, `step_failure` null.
+Agent produces `roadmap.yaml` conforming to the roadmap.yaml schema. This consolidates roadmap content (thesis, narrative, timeline, exclusions, assumptions) and feasibility data (per-feature risk, blockers, open questions, risk_summary) from `stm.feasibility_path` into a single artifact. The `approved_brief_ref` field in `roadmap.yaml` must point to `stm.approved_roadmap_brief_path`.
+
+**Expected return:** Contract with `stm.roadmap_yaml_path` populated, `step_failure` null.
 
 Check `step_failure` first — if non-null, retry once. After 2 failures, halt.
-Then check `stm.roadmap_path` is non-null.
+Then check `stm.roadmap_yaml_path` is non-null.
 
 Update status file: `produce-roadmap → completed`.
 
-**Step 6 Evals (C5, C7, C6, C8, C9, F1, F2, F3, F5, F7):**
-- **SE-2 (F1):** Read `stm.roadmap_path` — count epic rows in Epic Index table. PASS if 3-6. FAIL if < 3 or > 6. Halt on FAIL.
-- **SE-4 (F2):** For each epic in roadmap.md Epic Index, verify strategic goal reference matches vision.md (C7). PASS if all match. FAIL if any mismatch. Halt on FAIL.
-- **SE-6 (F3):** For each epic section, verify `### Intent`, `### Constraints`, `### Acceptance Scenarios` (min 2 entries), `### Failure Conditions` (2-4 entries) are present and non-empty (C6). PASS if all present. FAIL if any missing. Halt on FAIL.
-- **SE-8 (F5):** Read roadmap.md frontmatter — verify `approved_brief` field is present and points to an existing file (C8). PASS if exists. FAIL if absent or file missing. Halt on FAIL.
-- **SE-10 (F7):** Read approved brief at `stm.approved_brief_path`. For each epic, compare IDD section content in roadmap.md to the corresponding epic card in the brief. PASS if verbatim match. FAIL if any IDD section differs from the approved brief (C9). Halt on FAIL.
-
----
-
-**Step 7 — Produce Engineering View**
-Owner: `product-strategist`
-Depends on: Step 6
-
-Update `task_id` to `produce-eng-view` in the enriched contract. Pass the full enriched contract (with `stm.roadmap_path` set) as the ENTIRE agent prompt — no other text. Contract must include:
-
-```json
-{
-  "task_id": "produce-eng-view",
-  "stm": { "roadmap_path": "{populated}", "engineering_view_path": null, ... }
-}
-```
-
-**Expected return:** Contract with `stm.engineering_view_path` populated, `step_failure` null.
-
-Check `step_failure` first — if non-null, retry once. After 2 failures, halt.
-Then check `stm.engineering_view_path` is non-null.
-
-Update status file: `produce-eng-view → completed`.
-
-**Step 7 Eval (F6):**
-- **SE-9 (F6):** Read `stm.engineering_view_path` — verify (a) file exists, (b) epic count matches roadmap.md Epic Index count, (c) file does not contain any of: "value statement", "revenue", "market size", "customer problem", "user persona", "competitive advantage" as standalone terms in the body text. PASS if all three pass. FAIL if any condition fails.
+**Step 6 Evals (C5, C7, C6, C8, C9, F1, F2, F3, F5):**
+- **SE-2 (F1):** Read `stm.roadmap_yaml_path` — count entries across all `timeline[].feature_refs` arrays. PASS if total feature refs is between 3 and 6 inclusive. FAIL if < 3 or > 6. Halt on FAIL.
+- **SE-4 (F2):** For each entry in `roadmap.yaml` `feasibility[]`, verify `feature_ref` corresponds to a feature referenced in `timeline`. PASS if all match. FAIL if any mismatch. Halt on FAIL.
+- **SE-6 (F3):** Verify `roadmap.yaml` contains non-empty: `thesis`, `narrative`, at least 1 horizon in `timeline`, at least 1 entry in `feasibility`, `critical_blockers` (may be empty list), `open_questions` (may be empty list), `risk_summary` (C6). PASS if all present. FAIL if any missing or null. Halt on FAIL.
+- **SE-8 (F5):** Read `roadmap.yaml` — verify `approved_brief_ref` field is present and points to an existing file (C8). PASS if exists. FAIL if absent or file missing. Halt on FAIL.
+- **SE-10 (F7):** Read approved brief at `stm.approved_roadmap_brief_path`. For each feature referenced in the brief's Timeline tab, verify the corresponding `feature_ref` entry exists in `roadmap.yaml` `timeline`. PASS if all feature refs align. FAIL if any feature in the approved brief is absent from the roadmap (C9). Halt on FAIL.
 
 ---
 
 ### Phase: Scenario Validation
 
-**Step 8 — Scenario Evals**
+**Step 7 — Scenario Evals**
 Owner: orchestrator
-Depends on: Step 7
+Depends on: Step 6
 
 Run these scenario evals against the final artifacts:
 
-- **SCE-1 (S1 — Product Manager):** Read `stm.roadmap_path`. For every epic, verify `### Intent` has 3 paragraphs, `### Constraints` has in-scope/out-of-scope/must-not-break sub-fields, `### Acceptance Scenarios` has ≥ 2 entries. Each section must be self-contained — readable without cross-referencing other documents. PASS if all epics satisfy all conditions.
+- **SCE-1 (S1 — Product Manager):** Read `stm.roadmap_yaml_path`. Verify `thesis` is present, `narrative` has at least 3 paragraphs, and each horizon in `timeline` has a non-empty `feature_refs` list. Verify content is self-contained — readable without cross-referencing other documents. PASS if all conditions satisfied.
 
-- **SCE-2 (S2 — Product Owner):** Read `stm.roadmap_path`. For every epic, verify each success scenario follows `given/when/then` format and each failure condition is an observable output state (not a process event). Verify min 2 success scenarios and min 2 failure conditions per epic. PASS if all epics satisfy all conditions.
+- **SCE-2 (S2 — Product Owner):** Read `stm.roadmap_yaml_path`. For every entry in `feasibility[]`, verify `risk_level` is one of low/medium/high, `technical_risks` has at least 1 entry with `risk`, `severity`, `affected_systems`, and `mitigation` all present and non-empty. Verify `sequencing_constraints` is present (may be empty string). PASS if all feasibility entries satisfy all conditions.
 
-- **SCE-3 (S3 — Engineering Lead):** Read `stm.engineering_view_path`. Verify Dependency Sequence section exists and has at least one entry per epic. Verify Technical Risks section exists and has at least one entry per epic with `risk`, `severity`, and `affected_systems`. PASS if both sections are populated for all epics.
-
-- **SCE-4 (S4 — Stakeholder):** Read `stm.brief_path`. Verify Blockers section contains at least 1 entry identifying an item that must be resolved before proceeding. Verify feedback panel is present with textarea fields for inline review. PASS if both conditions are met.
-
-- **SCE-5 (S5 — Technical Architect):** Read `stm.feasibility_path`. Verify every epic entry has non-empty `architecture_impact`. Verify `open_questions` list is present (may be empty only if zero cross-cutting concerns). Verify `summary.foundation_epics` list is present. PASS if all conditions met.
+- **SCE-4 (S4 — Stakeholder):** Read `stm.roadmap_brief_path`. Verify Feasibility tab renders at least 1 entry from `critical_blockers` identifying an item that must be resolved before proceeding. Verify inline comment system is present — text selection triggers comment popup, Comments tab lists annotations with export button. PASS if both conditions are met.
 
 Record PASS/FAIL for each SCE. If any SCE fails, report to user with details but continue to Evidence — scenario failures are observations, not halts.
 
@@ -303,9 +289,9 @@ Record PASS/FAIL for each SCE. If any SCE fails, report to user with details but
 
 ### Phase: Evidence & Close
 
-**Step 9 — Write Evidence and Report**
+**Step 8 — Write Evidence and Report**
 Owner: orchestrator
-Depends on: Step 8
+Depends on: Step 7
 
 Update contract: `evidence[plan-roadmap].location = "{slug}/evidence/plan-roadmap/{YYYYMMDD-HHMMSS}.md"`.
 
@@ -315,7 +301,7 @@ Write evidence file to that path:
 # plan-roadmap Evidence
 
 **Product:** {slug}
-**Vision:** {stm.vision_path}
+**Product YAML:** {stm.product_yaml_path}
 **Completed:** {timestamp}
 
 ## Artifacts
@@ -324,10 +310,10 @@ Write evidence file to that path:
 |----------|------|--------|
 | Scoped Epics | {stm.epics_path} | written |
 | Feasibility | {stm.feasibility_path} | written |
-| Brief | {stm.brief_path} | written |
-| Approved Brief | {stm.approved_brief_path} | approved |
-| Roadmap | {stm.roadmap_path} | written |
-| Engineering View | {stm.engineering_view_path} | written |
+| Roadmap Brief | {stm.roadmap_brief_path} | written |
+| Approved Roadmap Brief | {stm.approved_roadmap_brief_path} | approved |
+| Roadmap YAML | {stm.roadmap_yaml_path} | written |
+| Hub | {stm.hub_path} | written |
 
 ## Checkpoint
 
@@ -339,9 +325,7 @@ Brief review: {checkpoints[brief_review].status} | Feedback cycles: {count}
 |------|---------|--------|
 | SCE-1 | Product Manager | PASS/FAIL |
 | SCE-2 | Product Owner | PASS/FAIL |
-| SCE-3 | Engineering Lead | PASS/FAIL |
 | SCE-4 | Stakeholder | PASS/FAIL |
-| SCE-5 | Technical Architect | PASS/FAIL |
 ```
 
 Present final report using `templates/final-report.md`.
@@ -370,7 +354,7 @@ Update status file: `report → completed`.
 
 Steps execute in compiled order — run top to bottom.
 
-**Issue detection:** Slug is derived from vision file during pre-flight.
+**Issue detection:** Slug is derived from product.yaml during pre-flight.
 
 **Status file:** `.meridian/project/product/{slug}/status/plan-roadmap.json`
 
@@ -379,14 +363,13 @@ Steps execute in compiled order — run top to bottom.
   "recipe": "plan-roadmap",
   "slug": "{slug}",
   "started_at": "2026-03-06T10:00:00+0530",
-  "vision_path": "{--vision value}",
+  "product_yaml_path": "{--product value}",
   "tasks": {
     "scope-epics":        { "status": "completed", "completed_at": "..." },
     "assess-feasibility": { "status": "completed", "completed_at": "..." },
     "produce-brief":      { "status": "completed", "completed_at": "..." },
     "human-review":       { "status": "in_progress", "started_at": "..." },
     "produce-roadmap":    { "status": "pending" },
-    "produce-eng-view":   { "status": "pending" },
     "report":             { "status": "pending" }
   },
   "contract_snapshot": "{last enriched contract JSON}"
@@ -411,15 +394,15 @@ if file absent (fresh start):
   create status file on Step 1
 ```
 
-**`/plan-roadmap --resume`** — No `--vision` argument needed.
+**`/plan-roadmap --resume`** — No `--product` argument needed.
 
 1. Find the status file at `.meridian/project/product/*/status/plan-roadmap.json` (most recent by `started_at` if multiple exist).
 2. Read `contract_snapshot` — reconstruct the enriched JSON contract.
 3. Route based on task statuses:
-   - `human-review` status `in_progress` or `pending` → re-present brief from `stm.brief_path`, continue from Step 5 feedback loop.
+   - `human-review` status `in_progress` or `pending` → re-present brief from `stm.roadmap_brief_path`, continue from Step 5 feedback loop.
    - `human-review` status `completed` AND `produce-roadmap` status `pending` → jump to Step 6.
 4. Report: "Resuming plan-roadmap for `{slug}` — {description of what it is doing}."
-5. If no status file found → halt: "No plan-roadmap checkpoint found. Start with `/plan-roadmap --vision <path>`."
+5. If no status file found → halt: "No plan-roadmap checkpoint found. Start with `/plan-roadmap --product <path>`."
 
 ---
 
@@ -457,9 +440,9 @@ When an agent returns `step_failure` (non-null):
 |-------|-------|
 | intent_hash | sha256:c5317e9f0182d356b31d345f0337cb5247310f384e461b3d667f2d4f59918062 |
 | compiled_by | create-recipe |
-| compiled_at | 2026-03-06T00:00:00+0530 |
+| compiled_at | 2026-03-16T00:00:00+0530 |
 | maturity | L2 |
 | workflow_structure | A (full checkpoint flow) |
 | agents | 3 (product-strategist, tech-designer, repo-orchestrator) |
-| step_evals | 11 (SE-1 through SE-11, covering C2, C3, C10, F1-F7) |
-| scenario_evals | 5 (SCE-1 through SCE-5, covering S1-S5) |
+| step_evals | 10 (SE-1 through SE-11 excluding SE-9, covering C2, C3, C10, F1-F5, F7) |
+| scenario_evals | 3 (SCE-1, SCE-2, SCE-4, covering S1, S2, S4) |

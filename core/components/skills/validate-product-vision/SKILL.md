@@ -1,6 +1,6 @@
 ---
 name: validate-product-vision
-description: Validate a product vision document for completeness and readiness to lock
+description: Validate a product.yaml artifact for completeness and readiness to lock
 user-invocable: false
 model: sonnet
 allowed-tools: Read
@@ -8,40 +8,55 @@ allowed-tools: Read
 
 # validate-product-vision
 
-Model-invocable skill for validating product vision documents.
+Model-invocable skill for validating product.yaml artifacts.
 
 ## Purpose
 
-Read and evaluate a vision.md artifact against completeness criteria. Returns a structured validation_result. Does NOT modify the vision artifact.
+Read and evaluate a product.yaml artifact against completeness criteria. Returns a structured validation_result. Does NOT modify the product artifact.
 
 You DO the validation. You do NOT modify the artifact or decide what happens next.
+
+## Output Schema
+
+Returns structured data (not a file). The `validation_result` object contains:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `ready_for_lock` | boolean | yes | true only if completeness_score ≥ 70 AND no blocker-severity issues |
+| `completeness_score` | integer (0–100) | yes | Weighted score based on checklist pass/fail and content quality |
+| `issues` | list | yes | Each issue: `message` (string), `field` (YAML field name), `severity` (blocker/warning/suggestion) |
+| `checklist.strategic_goals_defined` | boolean | yes | ≥3 strategic_goals with non-empty title and description |
+| `checklist.target_users_identified` | boolean | yes | ≥2 target_users with non-empty persona, goal, frustration |
+| `checklist.success_metrics_measurable` | boolean | yes | success_metrics entries have quantifiable target values |
+| `checklist.competitive_landscape_covered` | boolean | yes | ≥2 competitors with name, strength, weakness |
+| `checklist.assumptions_listed` | boolean | yes | ≥3 non-empty assumptions entries |
 
 ## Input
 
 Receive from agent:
-- `vision_path` — (required) Full path to vision.md
+- `product_yaml_path` — (required) Full path to product.yaml
 
 ## Process
 
-1. **Read artifact:** Read `vision_path`. If not found, return structured failure: artifact not found.
+1. **Read artifact:** Read `product_yaml_path`. If not found, return structured failure: artifact not found.
 
-2. **Check status:** If status is LOCKED, return structured failure: "Vision is already LOCKED — no validation needed."
+2. **Check status:** If status is LOCKED, return structured failure: "product.yaml is already LOCKED — no validation needed."
 
-3. **Evaluate completeness checklist:**
-   - `strategic_goals_defined`: Strategic Goals section has ≥3 goals, each clearly stated
-   - `target_users_identified`: Target Users section has ≥2 personas with role, goal, frustration
-   - `success_metrics_measurable`: Success Metrics section has quantifiable indicators (numbers, percentages, or concrete observable outcomes) — not vague phrases like "improve user satisfaction"
-   - `competitive_landscape_covered`: Competitive Landscape has ≥2 named competitors with strengths/weaknesses
-   - `assumptions_listed`: Assumptions section has ≥3 items
+3. **Evaluate completeness checklist** by inspecting YAML fields directly:
+   - `strategic_goals_defined`: `strategic_goals` list has ≥3 entries, each with non-empty `title` and `description`
+   - `target_users_identified`: `target_users` list has ≥2 entries, each with non-empty `persona`, `goal`, and `frustration`
+   - `success_metrics_measurable`: `success_metrics` list has entries with `target` values that are quantifiable (numbers, percentages, or concrete observable outcomes) — not vague phrases like "improve user satisfaction"
+   - `competitive_landscape_covered`: `competitors` list has ≥2 entries, each with non-empty `name`, at least one `strength`, and at least one `weakness`
+   - `assumptions_listed`: `assumptions` list has ≥3 non-empty entries
 
-4. **Evaluate each section for content quality:**
-   - Problem Statement: non-empty, identifies a real user problem (not a solution description)
-   - Value Proposition: differentiates from competitors
-   - Out of Scope: explicitly bounds what is NOT built
+4. **Evaluate content quality** for key YAML fields:
+   - `problem`: non-empty string, identifies a real user problem (not a solution description)
+   - `value_proposition`: non-empty, includes language that differentiates from competitors
+   - `out_of_scope`: list has ≥1 entry with `category` and `rationale` — explicitly bounds what is NOT built
 
 5. **Compute completeness_score:** Weighted score (0–100) based on checklist pass/fail + content quality.
 
-6. **Classify issues:** `blocker` (fails a mandatory checklist item), `warning` (sparse section), `suggestion` (improvement opportunity).
+6. **Classify issues:** `blocker` (fails a mandatory checklist item), `warning` (sparse field), `suggestion` (improvement opportunity).
 
 7. **Determine ready_for_lock:** true only if completeness_score ≥ 70 AND no blocker-severity issues.
 
@@ -53,7 +68,7 @@ validation_result:
   completeness_score: 0-100
   issues:
     - message: "{description of issue}"
-      field: "{section name}"
+      field: "{YAML field name}"
       severity: "blocker|warning|suggestion"
   checklist:
     strategic_goals_defined: true|false
@@ -67,13 +82,14 @@ validation_result:
 
 ## Constraints
 
-- NEVER modify the vision artifact — read-only
+- NEVER modify the product.yaml artifact — read-only
 - NEVER approve lock (ready_for_lock: true) when blocker-severity issues exist
-- ALWAYS return all checklist fields (false if section absent or empty)
+- ALWAYS return all checklist fields (false if field is absent, empty list, or empty string)
+- ALWAYS reference YAML field names in `issues[].field` — not section names from a markdown document
 
 ## Version
 
 | Field | Value |
 |-------|-------|
-| Version | 1.0.0 |
+| Version | 2.0.0 |
 | Category | analysis |

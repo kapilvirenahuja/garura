@@ -1,0 +1,87 @@
+# tech.yaml — Schema Definition
+# Low-Level Design — how the logical architecture is broken down
+# Produced by: /prepare-implementation (Stage 2, after architecture.yaml)
+# Lifecycle: DRAFT → VALIDATED → LOCKED
+# Depends on: features.yaml, architecture.yaml
+
+slug: "{product-slug}"
+status: "DRAFT|VALIDATED|LOCKED"
+created_at: "{ISO-8601}"
+updated_at: "{ISO-8601}"
+features_ref: "{path to features.yaml}"
+architecture_ref: "{path to architecture.yaml}"
+
+# --- Project Structure ---
+
+project_structure:
+  directories:
+    - path: "{directory path}"
+      purpose: "{what goes here}"
+  key_files:
+    - path: "{file path}"
+      purpose: "{what this file does}"
+
+# --- Specific Libraries ---
+# Implementation-level library selections — the concrete packages/modules used.
+# Stack-level choices (React, Python) live in architecture.yaml.
+# This is the next level down: which specific libs within that stack.
+
+libraries:
+  - name: "{library/package name — e.g. zustand, pydantic, zod}"
+    version: "{version or version range}"
+    purpose: "{what it's used for in this project}"
+    component: "{which core component uses it}"
+    rationale: "{why this lib over alternatives}"
+
+# --- Data Models ---
+
+data_model:
+  entities:
+    - name: "{entity name}"
+      fields:
+        - name: "{field name}"
+          type: "{data type}"
+          constraints: "{NOT NULL, UNIQUE, FK, etc.}"
+      indexes: ["{index definition}"]
+  relationships:
+    - "{Entity A} → {Entity B}: {relationship description}"
+  migration_notes: "{strategy for schema evolution}"
+
+# --- Core Components ---
+# How the logical architecture is broken down into buildable units.
+# Server, client, workers, services, shared modules, etc.
+
+components:
+  - name: "{component name — e.g. api-server, web-client, worker, shared-lib}"
+    type: "server|client|worker|service|library|module"
+    responsibility: "{single responsibility description}"
+    interfaces: ["{public interface/method/endpoint}"]
+    dependencies: ["{what it depends on — other components or external}"]
+    key_files: ["{file path}"]
+    libraries: ["{library name from libraries section}"]
+    internal_structure: |
+      {how this component is organized internally —
+       e.g. routes/, services/, models/, middleware/}
+
+# --- Design Decisions (implementation-level) ---
+# Decisions about error handling, naming conventions, config patterns,
+# internal APIs, code organization — things below architecture level.
+
+design_decisions:
+  - id: "DD1"
+    context: "{situation that required a decision}"
+    decision: "{what was decided}"
+    consequence: "{trade-off accepted}"
+
+# --- Feature-to-Component Mapping ---
+# Which feature uses which components — the bridge between
+# what we're building (features) and how it's structured (components).
+
+feature_mapping:
+  - feature_ref: "F1"
+    feature_name: "{feature name from features.yaml}"
+    components: ["{component name}"]
+    data_entities: ["{entity name}"]
+    libraries: ["{library name}"]
+    key_files: ["{file path}"]
+    implementation_notes: "{gotchas, patterns to follow, edge cases}"

@@ -11,6 +11,8 @@ tools:
   - Glob
   - Write
   - Skill
+  - WebSearch
+  - WebFetch
 ---
 
 # tech-designer
@@ -165,7 +167,9 @@ If ANY constraint would be violated:
 
 ## Context Loading
 
-### Before Analysis
+Context loading is selective and domain-aware. Never bulk-load memory — search, filter, and load only what is relevant to the technical domain.
+
+### Step 1: Load Config
 
 Read `core/config.yaml` to understand:
 - Project structure and component paths
@@ -173,13 +177,78 @@ Read `core/config.yaml` to understand:
 - Platform and repository configuration
 - **Recipe constraints** — extract and validate before starting analysis
 
-### During Analysis
+### Step 2: Identify Technical Domain
 
-Use available tools to explore:
+From the incoming intent or product specification, classify the technical domain:
+- Extract technology markers (e.g., "Python", "React", "Postgres", "serverless", "microservices")
+- Identify architecture patterns (e.g., "event-driven", "monolith", "split architecture")
+- Note deployment context (e.g., "Vercel", "AWS", "Railway", "self-hosted")
+
+### Step 3: Selective LTM Search
+
+Search `~/.meridian/core/memory/` for domain-relevant content using Glob and Grep:
+
+| What to Load | Path Pattern | When |
+|-------------|--------------|------|
+| Standards (coding conventions, quality rules) | `memory/standards/**` | Always — these are universal |
+| Architecture knowledge | `memory/knowledge/architecture/**` | When designing architecture or LLD |
+| Technology-specific knowledge | `memory/knowledge/{tech-domain}/**` | If domain directory exists |
+| Output formats | `memory/formats/**` | When skill produces artifacts |
+
+**Do NOT** load everything. Search by technology keywords, architecture patterns, and skill type. If a file isn't relevant to the current intent, skip it.
+
+### Step 4: Evaluate LTM Sufficiency
+
+After loading, assess: Does the loaded LTM provide enough technical context for the requested skill?
+
+- **Sufficient** — LTM covers the technology stack, architecture patterns, or coding standards needed. Proceed to Step 6.
+- **Insufficient** — No technology-specific knowledge in LTM, or coverage is too thin for meaningful technology selection (e.g., no knowledge of a framework the product spec requires). Proceed to Step 5.
+
+### Step 5: Technical Research Fallback
+
+When LTM is insufficient, invoke `research-domain-context` skill:
+
+```yaml
+Input:
+  domain: "{identified technical domain}"
+  knowledge_gaps: ["{what LTM didn't cover — e.g., framework comparison, deployment patterns, SDK capabilities}"]
+  problem_statement: "{technical problem from product spec or intent}"
+  output_base: "{artifact_base}/"
+```
+
+The skill performs web research, writes `domain-context.md` to STM, and returns coverage metadata. Load the resulting STM artifact as enrichment context.
+
+### Step 6: Load STM
+
+Read existing artifacts from STM paths in the contract:
+- Product specification — behavioral requirements and invariants
+- Vision, roadmap — strategic context (if available)
+- Technical approach (if already drafted) — for LLD derivation
+- Domain context artifacts (from Step 5 or prior runs)
+
+### Step 7: Codebase Exploration
+
+Use available tools to explore the existing codebase (when one exists):
 - `Glob` — Find files by pattern
 - `Grep` — Search for code patterns, usages, references
 - `Read` — Read file contents for deep understanding
 - `Bash` — Read-only git commands (`git log`, `git blame`, `git show`)
+
+### Step 8: Inject Context
+
+Compose filtered context and pass to all skill invocations:
+
+```yaml
+Skill: {determined from intent}
+Context:
+  tech_domain: "{identified technologies and patterns}"
+  ltm: {relevant standards and architecture knowledge from LTM}
+  stm: {existing product artifacts and domain research from STM}
+  codebase: {patterns and conventions from exploration}
+  recipe_context: {constraints and intent from recipe}
+Input:
+  {skill-specific inputs determined from intent}
+```
 
 ## Skill Pool
 
@@ -188,8 +257,11 @@ When invoked via JSON contract, delegate artifact production to skills:
 | Skill | When | Input | Produces |
 |-------|------|-------|----------|
 | `assess-feasibility` | `stm.feasibility_path` is null and `stm.epics_path` is non-null | `epics_path`, `artifact_base` (= `stm_base`), `slug` | `feasibility.yaml` at `{stm_base}/{slug}/feasibility.yaml` |
+| `draft-technical-approach` | `stm.technical_approach_path` is null and `stm.product_spec_path` is non-null | `product_spec_path`, `intent` (optional), `vision_path` (optional), `output_base` | `technical-approach.md` at `{output_base}/technical-approach.md` |
+| `draft-lld` | `stm.lld_path` is null and `stm.product_spec_path` + `stm.technical_approach_path` are non-null | `product_spec_path`, `technical_approach_path`, `output_base` | `lld.md` at `{output_base}/lld.md` |
+| `research-domain-context` | LTM insufficient for technology selection or architecture decisions | `domain`, `knowledge_gaps`, `problem_statement`, `output_base` | `domain-context.md` at `{output_base}/domain-context.md` |
 
-**Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract `feasibility_path` from the skill output — do NOT forward the skill's YAML as your response.
+**Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract the artifact path from the skill output — do NOT forward the skill's YAML as your response.
 
 For direct invocations (no JSON contract), perform analysis directly — skills are only used in the contract workflow.
 

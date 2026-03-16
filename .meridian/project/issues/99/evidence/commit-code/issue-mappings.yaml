@@ -1,0 +1,116 @@
+mappings:
+  - group_id: G1
+    issue_number: 99
+    issue_title: "feat: standardize artifact naming with structured YAML + HTML brief pairs"
+    confidence: high
+    signals:
+      branch: "feature/99-standardize-artifact-naming-yaml-html-brief-pairs contains #99"
+      semantic:
+        - "prepare-implementation recipe and skills match AC item: 'prepare-implementation recipe updated with new artifact naming'"
+        - "New skills (audit-spec-gaps, draft-lld, draft-product-spec, draft-scenario-mapping, draft-technical-approach, draft-verification-scenarios, generate-implementation-brief, scout-project, validate-implementation-design) directly support the prepare-implementation workflow described in issue body"
+        - "Scope 'prepare-implementation' aligns with issue body mentioning /prepare-implementation recipe"
+    conflicts: []
+    reasoning: >
+      Branch signal is definitive (#99 explicit in branch name). Semantic signals
+      are fully corroborated: all new skills map to the prepare-implementation
+      workflow, which is an explicit deliverable in issue #99's acceptance criteria.
+      Three independent signals agree.
+
+  - group_id: G2
+    issue_number: 99
+    issue_title: "feat: standardize artifact naming with structured YAML + HTML brief pairs"
+    confidence: high
+    signals:
+      branch: "feature/99-standardize-artifact-naming-yaml-html-brief-pairs contains #99"
+      semantic:
+        - "Agent extensions for prepare-implementation bindings directly support the new recipe defined under issue #99"
+        - "doc-builder, product-strategist, tech-designer updates align with skill pool additions for YAML/HTML artifact pipeline"
+        - "Context loading protocol in tech-designer supports the standardized artifact consumption pattern in issue #99"
+    conflicts: []
+    reasoning: >
+      Branch signal is definitive. Semantic signals corroborate: agent extensions
+      are prerequisite infrastructure for the prepare-implementation skills added
+      in G1, all part of the same issue #99 feature scope.
+
+  - group_id: G3
+    issue_number: 99
+    issue_title: "feat: standardize artifact naming with structured YAML + HTML brief pairs"
+    confidence: high
+    signals:
+      branch: "feature/99-standardize-artifact-naming-yaml-html-brief-pairs contains #99"
+      semantic:
+        - "Issue AC explicitly states: 'YAML schemas designed for each artifact category'"
+        - "Schemas for draft-product-vision and draft-roadmap are two of the six artifact categories defined in issue #99 (product, roadmap)"
+        - "Scope 'schemas' directly matches the YAML schema deliverable in issue #99"
+    conflicts: []
+    reasoning: >
+      Branch signal is definitive. The YAML schema AC item in issue #99 is a
+      verbatim match for this group's deliverable. Strongest semantic alignment
+      of all groups.
+
+  - group_id: G4
+    issue_number: 99
+    issue_title: "feat: standardize artifact naming with structured YAML + HTML brief pairs"
+    confidence: high
+    signals:
+      branch: "feature/99-standardize-artifact-naming-yaml-html-brief-pairs contains #99"
+      semantic:
+        - "Issue title explicitly says 'standardize artifact naming' — this group updates existing skills to standardized contracts"
+        - "assess-feasibility v2 (epics_path → product_yaml_path) is the canonical artifact naming change the issue describes"
+        - "All 11 modified skills align with issue AC: 'discover-product recipe updated', 'plan-roadmap recipe updated' (upstream skill changes)"
+    conflicts: []
+    reasoning: >
+      Branch signal is definitive. This group is the core refactor work that
+      the issue title describes — standardizing artifact naming across existing
+      skills. The assess-feasibility API change (v1→v2) is noted as self-contained
+      within issue #99's changeset.
+
+  - group_id: G5
+    issue_number: 99
+    issue_title: "feat: standardize artifact naming with structured YAML + HTML brief pairs"
+    confidence: high
+    signals:
+      branch: "feature/99-standardize-artifact-naming-yaml-html-brief-pairs contains #99"
+      semantic:
+        - "Issue AC explicitly states: 'discover-product recipe updated with new artifact naming'"
+        - "Issue AC explicitly states: 'plan-roadmap recipe updated with new artifact naming'"
+        - "create-recipe P11 addition (context sufficiency) directly supports the standardized artifact consumption pattern"
+    conflicts: []
+    reasoning: >
+      Branch signal is definitive. Two of the three modified recipes are named
+      verbatim in issue #99's acceptance criteria. The create-recipe P11 addition
+      is supporting infrastructure for the same artifact standardization effort.
+
+  - group_id: G6
+    issue_number: 99
+    issue_title: "feat: standardize artifact naming with structured YAML + HTML brief pairs"
+    confidence: high
+    signals:
+      branch: "feature/99-standardize-artifact-naming-yaml-html-brief-pairs contains #99"
+      semantic:
+        - "STM evidence directory is created per-issue — .meridian/project/issues/99/ is the operational artifact for issue #99 specifically"
+        - "chore type is consistent with evidence/operational artifact tracking, not a product deliverable"
+        - "Proximity signal: all other groups map to #99, reinforcing this as part of the same work session"
+    conflicts: []
+    reasoning: >
+      Branch signal is definitive. The STM directory is named after issue #99
+      and holds evidence for the commit-code execution of this issue. Proximity
+      with G1-G5 (all mapping to #99) provides additional corroboration.
+
+approval_required: false
+approval_reason: >
+  All 6 change groups map to issue #99 with high confidence. Constraint C9
+  requires human approval only when any group has less than high confidence.
+  No approval gate is needed.
+
+conflicts: []
+
+summary:
+  total_groups: 6
+  mapped: 6
+  unmapped: 0
+  high_confidence: 6
+  medium_confidence: 0
+  low_confidence: 0
+  none_confidence: 0
+  unique_issues: [99]

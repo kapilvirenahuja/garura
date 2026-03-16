@@ -1,0 +1,70 @@
+# scenarios.yaml — Schema Definition
+# Consolidates: scenarios.md + feature-back-link portion of scenario-mapping.md
+# Produced by: /prepare-implementation (Stage 3)
+# Lifecycle: DRAFT → VALIDATED → LOCKED
+# Depends on: features.yaml (back-links TO features; features do NOT link here)
+# IMPORTANT: Scenarios link back to features. Features never link to scenarios.
+
+slug: "{product-slug}"
+status: "DRAFT|VALIDATED|LOCKED"
+created_at: "{ISO-8601}"
+updated_at: "{ISO-8601}"
+features_ref: "{path to features.yaml}"
+
+# --- Scenario Groups — mirror feature areas ---
+
+groups:
+  - id: "GRP-{NAME}"                 # e.g. GRP-AUTH, GRP-PAYMENTS
+    name: "{human-readable group name}"
+    feature_refs: ["F1"]              # which features this group covers
+
+    scenarios:
+      - id: "SC-{GRP}-{NNN}"         # e.g. SC-AUTH-001, zero-padded 3 digits
+        title: "{short descriptive title}"
+        feature_ref: "F1"            # back-link to specific feature
+        behavior_ref: "F1-B1"        # back-link to specific behavior (optional)
+
+        description: "{concrete situation being tested}"
+
+        expected_behavior:
+          - "{observable outcome 1}"
+          - "{observable outcome 2}"
+
+        pass_criteria:
+          - "{binary pass/fail condition 1}"
+          - "{binary pass/fail condition 2}"
+
+        automation: "automated|hybrid"
+        test_type: "unit|integration|e2e|acceptance"
+        manual_element: "{hybrid only — what human evaluates and why machine cannot}"
+
+# --- Feature Gates ---
+# For each feature, which scenarios must ALL pass for the feature to be complete.
+# This is the key mapping — validator uses this to know when a feature is done.
+# Inverse of the per-scenario feature_ref, aggregated at feature level.
+
+feature_gates:
+  - feature_ref: "F1"
+    feature_name: "{feature name from features.yaml}"
+    required_scenarios: ["SC-AUTH-001", "SC-AUTH-002"]
+    total_count: 2
+    automated_count: 1
+    hybrid_count: 1
+    gate_criteria: "All 2 scenarios must pass for F1 to be accepted"
+
+# --- Coverage Summary ---
+
+coverage:
+  total_scenarios: 0
+  automated: 0
+  hybrid: 0
+
+  per_group:
+    - group_id: "GRP-{NAME}"
+      count: 0
+      automated: 0
+      hybrid: 0
+
+  # Gaps — should be empty if fully covered
+  uncovered_features: []              # features with 0 scenarios
+  uncovered_behaviors: []             # behaviors with 0 scenarios

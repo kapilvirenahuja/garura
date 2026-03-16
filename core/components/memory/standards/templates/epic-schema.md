@@ -10,14 +10,14 @@ Every epic MUST contain exactly these fields — no more, no fewer:
 
 | Field | Type | Valid Values | Notes |
 |-------|------|-------------|-------|
-| `id` | string | `"E1"`, `"E2"`, ... | Sequential |
+| `id` | string | `"F1"`, `"F2"`, ... | Sequential, F-prefix (feature IDs) |
 | `name` | string | Free text | Short, noun-phrase epic title |
-| `strategic_goal` | string | Exact text from vision | Must match a named Strategic Goal in vision.md |
+| `strategic_goal_ref` | string | `"SG1"`, `"SG2"`, ... | Must match a strategic_goals[].id in product.yaml |
 | `description` | string | 2–3 sentences | What this epic delivers and why |
 | `bucket` | string | `near` \| `mid` \| `long` | Time horizon — lowercase only |
 | `priority` | string | `P1` \| `P2` \| `P3` | P1 = product cannot function without; P2 = significant value; P3 = nice-to-have |
 | `effort` | string | `S` \| `M` \| `L` \| `XL` | S < 1mo; M = 1-2mo; L = 2-4mo; XL > 4mo |
-| `depends_on` | list | Epic IDs or `[]` | IDs of epics that must complete before this one starts |
+| `depends_on` | list | Feature IDs or `[]` | IDs of features (F1, F2, etc.) that must complete before this one starts |
 | `foundation_investment` | boolean | `true` \| `false` | true if shared infrastructure enabling multiple other epics |
 | `github_issue_ref` | string | `"TBD"` | Leave as TBD — set later by issue workflow |
 
@@ -60,14 +60,14 @@ These fields MUST NOT appear in any epic. Their presence is a schema violation:
 
 ```yaml
 slug: "{product slug from vision frontmatter}"
-vision_path: "{path to vision.md}"
+product_yaml_path: "{path to product.yaml}"
 time_horizon: "12 months"
 generated_at: "{YYYY-MM-DD}"
 
 epics:
-  - id: "E1"
+  - id: "F1"
     name: "{epic name}"
-    strategic_goal: "{exact strategic goal text from vision}"
+    strategic_goal_ref: "SG1"
     description: "{2-3 sentences}"
     bucket: "near"
     priority: "P1"
@@ -78,7 +78,7 @@ epics:
     intent:
       p1: "{What problem or gap exists today. What is broken, missing, or inefficient for the user right now. Full paragraph.}"
       p2: "{What the user can do after this epic ships that they cannot do today. Outcome-focused, not a feature list. Full paragraph.}"
-      p3: "{Why this matters for the product's direction. Connect the strategic_goal to the broader product thesis. Full paragraph.}"
+      p3: "{Why this matters for the product's direction. Connect the strategic_goal_ref to the broader product thesis. Full paragraph.}"
     constraints:
       in_scope: "{What this epic explicitly delivers. Be specific — what capabilities, interactions, or outputs are included.}"
       out_of_scope: "{What is explicitly excluded to keep this epic bounded. Name the natural scope creep risks.}"
@@ -101,7 +101,7 @@ Before writing `epics.yaml`, verify:
 - [ ] `bucket` values are lowercase: `near`, `mid`, or `long` — NOT `Near`, `Mid`, `Far`, `horizon`
 - [ ] `depends_on` is a list — NOT `dependencies`
 - [ ] `foundation_investment` is a boolean — NOT a string
-- [ ] Every `strategic_goal` maps to a named goal in vision.md
+- [ ] Every `strategic_goal_ref` maps to a strategic_goals[].id in product.yaml (SG1, SG2, etc.)
 - [ ] `depends_on` lists only valid epic IDs within the same file
 - [ ] `intent` has exactly 3 paragraphs (`p1`, `p2`, `p3`) — each is a full paragraph, not a sentence
 - [ ] `constraints` has exactly 3 fields (`in_scope`, `out_of_scope`, `must_not_break`)
