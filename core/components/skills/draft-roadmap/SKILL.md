@@ -1,6 +1,6 @@
 ---
 name: draft-roadmap
-description: Generate the full agentic roadmap.md — produced ONLY after the brief is Tether-approved
+description: Generate roadmap.yaml — produced ONLY after the roadmap-brief is Tether-approved
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write
@@ -8,21 +8,26 @@ allowed-tools: Read, Write
 
 # draft-roadmap
 
-Model-invocable skill for generating the full agentic roadmap artifact after brief approval.
+Model-invocable skill for generating the full roadmap.yaml artifact after brief approval.
 
 ## Purpose
 
-Generate the full agentic roadmap.md — produced ONLY after the brief is Tether-approved. This is the machine-readable artifact consumed by downstream recipes (manage-backlog, start-feature-planning, plan-architecture).
+Generate `roadmap.yaml` — produced ONLY after the roadmap-brief is Tether-approved. This is the machine-readable artifact consumed by downstream recipes (manage-backlog, start-feature-planning, plan-architecture). It consolidates roadmap content (thesis, narrative, timeline) and feasibility data (per-feature risks, blockers, sequencing) into a single artifact.
 
-You DO produce the roadmap document. You do NOT approve the brief, validate feasibility, or decide what happens next.
+You DO produce the roadmap artifact. You do NOT approve the brief, validate feasibility, or decide what happens next.
+
+## Output Schema
+
+The output MUST conform to `schemas/roadmap.yaml` in this skill's directory. Read the schema before producing output. Every field defined in the schema must be present in the output YAML. The schema is the contract — if it's in the schema, it's in the output.
 
 ## Input
 
 Receive from agent:
-- `scoped_epics` — (required) Output of scope-roadmap-epics skill
-- `approved_brief_path` — (required) Path to the Tether-approved brief artifact
-- `feasibility_path` — (required) Path to the STM feasibility file written by tech-designer, e.g. `.meridian/project/product/{slug}/feasibility.yaml`
+- `product_yaml_path` — (required) Path to the approved product.yaml, e.g. `.meridian/project/product/{slug}/product.yaml`
+- `approved_roadmap_brief_path` — (required) Path to the Tether-approved roadmap-brief.html artifact
+- `feasibility_path` — (required) Path to the STM feasibility data written by assess-feasibility, e.g. `.meridian/project/product/{slug}/feasibility.yaml`
 - `artifact_base` — (required) Base path for output, e.g., `.meridian/project/product/`
+- `slug` — (required) Product slug
 
 ## Pre-conditions
 
@@ -34,80 +39,72 @@ Verify brief is approved — check for Tether record in checkpoint. If not appro
 
 ## Process
 
-1. **Verify brief approval** — Confirm Tether record exists for the brief at `approved_brief_path`. Halt immediately with structured failure if not approved.
+1. **Verify brief approval** — Confirm Tether record exists for the brief at `approved_roadmap_brief_path`. Halt immediately with structured failure if not approved.
 
-2. **Read approved_brief_path** to extract:
-   - The Bet → roadmap intent
-   - The Story → roadmap summary
-   - What We're Not Doing → preserved verbatim
-   - Key Assumptions → preserved verbatim
-   - Decisions table → epic metadata (horizon, priority, effort, dependencies)
-   - Per-epic brief cards → IDD core content (Intent, Constraints, Success Scenarios, Failure Conditions) — transcribe verbatim into roadmap sections
+2. **Read product.yaml** at `product_yaml_path` to extract:
+   - `slug`, `status`
+   - `strategic_goals` — used to anchor the thesis
+   - `assumptions` — carried forward into roadmap assumptions
+   - `out_of_scope` — preserved verbatim as exclusions
 
-3. **Compose roadmap** using `templates/roadmap.md`. The template structure is MANDATORY — section headers must be used verbatim. Populate:
-   - Frontmatter: intent (from The Bet), slug, horizon, approved_brief path, created date
-   - Roadmap Summary: The Story preserved verbatim
-   - What Is Not In This Roadmap: What We're Not Doing preserved verbatim
-   - Assumptions: Key Assumptions preserved verbatim
-   - Epic Index table: one row per epic from Decisions table, Issue Ref = TBD
-   - Per-epic sections — use EXACTLY these four IDD section headers in this order, transcribed verbatim from the approved brief (do NOT regenerate):
-     - `### Intent` — transcribed from brief Intent field
-     - `### Constraints` — transcribed from brief Constraints field
-     - `### Acceptance Scenarios` — transcribed from brief Success Scenarios field (given/when/then, minimum 2 per epic)
-     - `### Failure Conditions` — transcribed from brief Failure Conditions field
-   - Technical Context and Blast Radius: EMPTY placeholders with `<!-- status: empty -->` markers — filled by `/plan-architecture` and `/analyze-epic` in later recipes, not here
+3. **Read approved roadmap-brief.html** at `approved_roadmap_brief_path` to extract:
+   - The Bet section → `thesis`
+   - The Story section → `narrative`
+   - Decisions table → feature metadata (horizon, priority, effort, dependencies)
+   - Per-feature IDD content (Intent, Constraints, Success Scenarios, Failure Conditions)
 
-4. **Write to** `{artifact_base}{slug}/roadmap.md`.
+4. **Read feasibility.yaml** at `feasibility_path` using the Read tool. Extract per-feature feasibility data: risk_level, technical_risks, blockers, sequencing_constraints, architecture_impact.
 
-5. **Return output contract.**
+5. **Compose roadmap.yaml** conforming to the roadmap.yaml schema. Populate all sections:
 
-## Progressive Enrichment Model
+   - **Top-level metadata**: slug (from product.yaml), status `"DRAFT"`, created_at (current ISO-8601), updated_at (current ISO-8601), product_ref (path to product.yaml), approved_brief_ref (`approved_roadmap_brief_path`)
+   - **thesis**: extracted from The Bet section of the brief — 1–2 sentences
+   - **narrative**: extracted from The Story section — 3–4 paragraphs as a YAML block scalar
+   - **timeline**: one entry per horizon (near/mid/long) with feature_refs using F-ID notation (F1, F2, etc.)
+   - **feasibility**: one entry per feature with all fields from feasibility.yaml — feature_ref (F-ID), risk_level, technical_risks (list with risk/severity/affected_systems/mitigation), blockers, sequencing_constraints, architecture_impact
+   - **critical_blockers**: hard blockers from feasibility that must be resolved before proceeding — severity high or critical, affected_features, resolution
+   - **open_questions**: unresolved technical or strategic questions from feasibility open_questions
+   - **risk_summary**: computed from feasibility data — total_features, high_risk_count, medium_risk_count, blocker_count, foundation_features
+   - **exclusions**: from product.yaml out_of_scope, preserved verbatim
+   - **assumptions**: from product.yaml assumptions, preserved verbatim
 
-This skill fills ONLY the IDD core per epic (intent, constraints, acceptance scenarios, failure conditions) plus metadata. Technical Context and Blast Radius sections are written as EMPTY placeholders with machine-readable status markers. Later recipes (`/plan-architecture`, `/analyze-epic`) fill those sections. This is intentional — roadmap planning is not architecture planning.
+6. **Write to** `{artifact_base}{slug}/roadmap.yaml` using the Write tool.
+
+7. **Return output contract.**
+
+## Feature ID Mapping
+
+Features referenced in timeline and feasibility use F-ID notation (F1, F2, F3...). The mapping from epic/feature names to F-IDs must be consistent throughout the document — if a feature is F2 in timeline, it is F2 in feasibility and risk_summary.
 
 ## Output
 
 ```yaml
 roadmap:
-  path: "{full path}"
+  roadmap_yaml_path: "{full path to roadmap.yaml}"
   slug: "{slug}"
-  epic_count: {integer}
-  epics_completeness:
-    - id: "E1"
-      intent: filled
-      constraints: filled
-      scenarios: filled
-      failures: filled
-      technical: empty
-      blast_radius: empty
-  milestones:
-    near: [{id, name, priority, effort}]
-    mid: [{id, name, priority, effort}]
-    long: [{id, name, priority, effort}]
-  issue_refs: [{epic_id: "E1", ref: "TBD"}]
+  feature_count: {integer}
+  feasibility_entries: {integer}
+  high_risk_count: {integer}
+  blocker_count: {integer}
   status: "DRAFT"
   approved_brief: "{path}"
 ```
 
 **IMPORTANT**: This skill produces an artifact and returns metadata. The calling agent receives this output and decides what to do next. Do NOT instruct the agent to return or stop.
 
-## Reference
-
-Load template from: `templates/roadmap.md`
-
 ## Constraints
 
 - Brief approval is a pre-condition — the Pre-conditions section handles enforcement via structured failure
-- ALWAYS include `approved_brief` in roadmap.md frontmatter
-- Technical Context and Blast Radius are progressive enrichment placeholders — the Progressive Enrichment Model section explains the intent; this skill writes them empty
-- Issue Ref column MUST exist in Epic Index table (TBD values permitted)
-- Per-epic IDD sections (Intent, Constraints, Acceptance Scenarios, Failure Conditions) MUST be transcribed verbatim from the approved brief — do NOT regenerate or paraphrase
-- Per-epic IDD structure follows `templates/roadmap.md` exactly — the template is the contract
+- ALWAYS include `approved_brief_ref` in roadmap.yaml
+- ALWAYS read from product.yaml (not vision.md) — product.yaml is the upstream input
+- ALWAYS consolidate feasibility data into roadmap.yaml — do NOT leave feasibility as a separate artifact
+- Feature IDs (F1, F2...) MUST be consistent across timeline, feasibility, risk_summary, and critical_blockers sections
+- All timeline feature_refs MUST have a corresponding feasibility entry
 - `user-invocable: false`
 
 ## Version
 
 | Field | Value |
 |-------|-------|
-| Version | 1.0.0 |
+| Version | 2.0.0 |
 | Category | strategy |

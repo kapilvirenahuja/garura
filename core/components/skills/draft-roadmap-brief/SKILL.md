@@ -1,141 +1,226 @@
 ---
 name: draft-roadmap-brief
-description: Render the human review brief from scoped IDD epics — pure template renderer, no content generation
+description: Render roadmap-brief.html from intermediate epic and feasibility data — tabbed layout with LifeOS Dark design and inline comments
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write
-version: 2.0.0
+version: 4.0.0
 ---
 
 # draft-roadmap-brief
 
-Model-invocable skill for rendering the human review brief that gates full roadmap generation.
+Model-invocable skill for rendering the human review brief from intermediate epic and feasibility data.
 
 ## Purpose
 
-Render a structured brief artifact from scoped epics that already contain full IDD content (intent, constraints, success scenarios, failure conditions). This skill does NOT generate epic content — it reads it from the STM file and places it into the HTML template.
+Render `roadmap-brief.html` from scoped epics and feasibility data — produced BEFORE `roadmap.yaml` exists. This is the review checkpoint: the brief is presented to the human for Tether/Vanish approval, and `roadmap.yaml` is produced only after approval. This skill reads `epics.yaml`, `feasibility.yaml`, and `product.yaml` and renders a preview brief using the LifeOS Dark design system with tabbed navigation and an inline text selection comment system.
 
-You DO render the brief document. You do NOT generate epic content, invent IDD fields, validate epic feasibility, or decide what happens next.
+You DO render the brief document and regenerate hub.html. You do NOT generate roadmap content, invent data, validate feasibility, or decide what happens next.
 
 ## Input
 
 Receive from agent:
-- `epics_path` — (required) Path to the STM epics file written by scope-roadmap-epics, e.g. `.meridian/project/product/{slug}/epics.yaml`
-- `feasibility_path` — (required) Path to the STM feasibility file written by tech-designer, e.g. `.meridian/project/product/{slug}/feasibility.yaml`
-- `vision_path` — (required) Path to locked vision.md
+- `epics_path` — (required) Path to the scoped epics artifact in STM, e.g. `.meridian/project/product/{slug}/epics.yaml`
+- `feasibility_path` — (required) Path to the feasibility artifact in STM, e.g. `.meridian/project/product/{slug}/feasibility.yaml`
+- `product_yaml_path` — (required) Path to product.yaml, e.g. `.meridian/project/product/{slug}/product.yaml`
+- `artifact_base` — (required) Base path for output, e.g. `.meridian/project/product/`
+- `slug` — (required) Product slug
 
 ## Process
 
-1. **Read vision.md** at `vision_path` — extract product name, slug, strategic goals, and assumptions.
+1. **Read epics.yaml** at `epics_path` using the Read tool. Extract all epic entries: bucket (horizon), priority, effort, depends_on, foundation_investment, intent, constraints, success_scenarios, failure_conditions, and the linked strategic_goal for each epic.
 
-2. **Read the brief template from LTM** — the intent file at `intent_path` contains constraint `C2` with a `template_ref` field (e.g., `standards/templates/roadmap-brief.html`). Read the template from `~/.meridian/core/memory/{template_ref}` using the Read tool. This file contains all CSS and static structure. If the agent passes a specific `template_path`, use that instead.
+2. **Read feasibility.yaml** at `feasibility_path` using the Read tool. Extract per-feature feasibility data: risk_level, technical_risks, blockers, sequencing_constraints, architecture_impact, critical_blockers, open_questions, risk_summary.
 
-3. **Read epics from STM** — read the file at `epics_path` using the Read tool. Each epic contains: id, name, strategic_goal, description, bucket, priority, effort, depends_on, foundation_investment, intent (p1/p2/p3), constraints (in_scope/out_of_scope/must_not_break), success_scenarios, failure_conditions. You MUST read this file — do NOT rely on memory or invent content.
+3. **Read product.yaml** at `product_yaml_path` using the Read tool. Extract product name (from value_proposition or strategic_goals title) for the brief header. Also extract assumptions and out_of_scope (used as exclusions).
 
-4. **Read feasibility from STM** — read the file at `feasibility_path` using the Read tool. Use feasibility flags to inform the Why Now section of each epic card.
+4. **Compose roadmap-brief.html** as a fully self-contained HTML5 document. All CSS and JS must be inline — no CDN links, no external dependencies. Apply the LifeOS Dark design system as specified in `brief-principles.md`. All content is derived from the intermediate epics and feasibility data read above — do NOT invent or assume content.
 
-5. **Build `{EPIC_TABLE_ROWS}`** — for each epic, generate one `<tr>`:
-   ```html
-   <tr>
-     <td><strong>{id}: {name}</strong></td>
-     <td><span class="badge badge-{bucket}">{Bucket}</span></td>
-     <td><span class="badge badge-{priority_lower}">{priority}</span></td>
-     <td>{effort}</td>
-     <td>{depends_on names or "None"}</td>
-     <td>{one-line rationale from description}</td>
-   </tr>
+### Design System (LifeOS Dark)
+
+Use these CSS tokens inline:
+
+```css
+:root {
+  --bg-primary: #0D1117;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #21262D;
+  --text-primary: #e0e0e8;
+  --text-secondary: #8B949E;
+  --text-dimmed: #484f58;
+  --color-air: #39D353;
+  --color-water: #58A6FF;
+  --color-earth: #8B949E;
+  --color-fire: #F0A000;
+  --status-draft: #fbbf24;
+  --status-validated: #4ade80;
+  --status-locked: #58A6FF;
+  --border-default: #30363d;
+  --border-accent: #58A6FF;
+  --shadow-retro: 4px 4px 0 rgba(33,38,45,1);
+  --comment-highlight: rgba(240,160,0,0.2);
+  --comment-highlight-hover: rgba(240,160,0,0.35);
+  --comment-popup-bg: #21262D;
+}
+```
+
+Typography: body font `'Arial Rounded MT Bold', 'Nunito', 'Varela Round', system-ui, sans-serif` at 15px/1.6. Code font `'JetBrains Mono', 'SF Mono', 'Fira Code', monospace` at 13px.
+
+Container: max-width 900px, centered, padding 32px horizontal / 24px vertical.
+
+### Header
+
+Render at the top of the page:
+```
+┌─────────────────────────────────────────┐
+│  Roadmap Brief            [STATUS BADGE] │
+│  {slug}                                  │
+│  Generated: {current timestamp}          │
+│  Source: {product_yaml_path}             │
+│  [← Hub]                                │
+└─────────────────────────────────────────┘
+```
+Status badge: always DRAFT at this stage (brief is a preview — roadmap.yaml does not exist yet).
+Status badge colors: DRAFT = `--status-draft` (yellow), APPROVED = `--status-validated` (green), LOCKED = `--status-locked` (blue).
+
+### Tab Structure
+
+Four tabs in this order:
+
+```
+┌────────────┬────────────┬─────────────┬───────────────┐
+│  Strategy  │  Timeline  │ Feasibility │  Comments (N) │
+└────────────┴────────────┴─────────────┴───────────────┘
+```
+
+Active tab: `--bg-secondary` background, `--color-water` bottom border 2px, `--text-primary` text.
+Inactive tab: `--bg-primary` background, no bottom border, `--text-secondary` text.
+Tab state persists via URL hash (e.g. `#strategy`, `#timeline`, `#feasibility`, `#comments`).
+
+#### Tab 1 — Strategy
+
+Content derived from `product.yaml` and `epics.yaml`:
+- **The Bet** card: synthesize a thesis statement from the product's `strategic_goals` and the set of epics derived. Use Air (green) left border to signal directional commitment.
+- **The Story** card: synthesize a 3–4 paragraph narrative that connects the strategic goals to the epics and the intended outcomes. Use Water (blue) left border.
+- **Assumptions** card: render `assumptions` from product.yaml as a `<ul>` list. Use Earth (gray) left border.
+- **Exclusions** card: render `out_of_scope` from product.yaml as a `<ul>` list. Use Earth (gray) left border.
+
+#### Tab 2 — Timeline
+
+Content from `epics.yaml` `bucket` field and `feasibility.yaml`:
+- Group epics by their `bucket` value (near/mid/long), render a `.timeline-phase` section with label and feature cards
+- Each feature card shows: feature ID (F1, F2...), epic name, and corresponding risk_level badge from feasibility.yaml (green = low, orange = medium, red = high)
+- Phase labels: near → "MVP", mid → "MVP-Beyond", long → "Future"
+- Features within a phase display as a horizontal row or stacked cards depending on count
+- Assign F-IDs (F1, F2, F3...) to epics in the order they appear in epics.yaml — this mapping must be consistent throughout the brief and will carry forward to roadmap.yaml
+
+#### Tab 3 — Feasibility
+
+Content from `feasibility.yaml` — `feasibility`, `critical_blockers`, `open_questions`, `risk_summary` sections:
+
+- **Risk Summary** section: render `risk_summary` as stat cards — total features, high risk count, medium risk count, blocker count. Use Fire (orange) for high risk counts > 0.
+- **Per-Feature Feasibility** section: for each entry in `feasibility`, render a card with:
+  - Feature ref (F-ID) as heading
+  - Risk level badge (low/medium/high) with Fire color for high
+  - Technical risks as a table: Risk | Severity | Affected Systems | Mitigation
+  - Blockers list (if any) with Fire left border
+  - Sequencing constraints as text
+  - Architecture impact as text
+- **Critical Blockers** section: render `critical_blockers` as Fire-bordered cards — blocker description, severity badge, affected features, resolution status
+- **Open Questions** section: render `open_questions` as a list — each question with affected features
+
+#### Tab 4 — Comments
+
+Comments management tab (always last):
+- Lists all inline comments in document order
+- Each comment shows: highlighted text excerpt, which tab it was made on, comment text, Delete button
+- Export Comments JSON button
+- Copy button
+- Overall action buttons: **[Tether]** [Vanish] [Orbit]
+
+### Inline Comment System
+
+Implement in vanilla JavaScript, inline:
+
+1. **Text selection** — on `mouseup`, detect if user selected text within the brief content area
+2. **Popup** — show a floating popup near the selection:
    ```
+   ┌─────────────────────────────┐
+   │  Add Comment                │
+   │  ┌─────────────────────────┐│
+   │  │ "selected text..."      ││
+   │  └─────────────────────────┘│
+   │  ┌─────────────────────────┐│
+   │  │ Your comment...         ││
+   │  └─────────────────────────┘│
+   │        [Cancel]  [Save]     │
+   └─────────────────────────────┘
+   ```
+   Popup positioned viewport-aware (above or below selection). Background `--comment-popup-bg`, border `--border-accent`.
+3. **Save** — wrap selected text in `<span class="comment-highlight">`, store comment in localStorage
+4. **Highlights** — `.comment-highlight` uses `--comment-highlight` background and 2px bottom border in `--color-fire`. Hover uses `--comment-highlight-hover`.
+5. **Persistence** — localStorage key: `meridian-comments-roadmap-{slug}`
+6. **Comments tab** — render all stored comments with tab label, selected text excerpt, comment text, Delete button. Delete removes both comment and highlight span.
+7. **Export** — build JSON per feedback schema, copy to clipboard. Clear storage after Tether/Vanish/Orbit action.
 
-6. **Build `{EPIC_TABS}` and `{EPIC_TAB_PANELS}`** — for each epic:
-   - **Tab button**: `<button data-epic="epic-{id}" class="{active if first}">{id}: {short name}</button>`
-   - **Tab panel**: `<div class="epic-tab-panel {active if first}" id="epic-{id}">` containing one `.epic-card` div with 6 fields:
-     - **Intent**: 3 `<p>` tags using `intent.p1`, `intent.p2`, `intent.p3` directly from the epic
-     - **Constraints**: 3 `<li>` items using `constraints.in_scope`, `constraints.out_of_scope`, `constraints.must_not_break` directly from the epic
-     - **Success scenarios**: `<li>` items using each `success_scenarios` entry directly from the epic
-     - **Failure conditions**: `<li>` items using each `failure_conditions` entry directly from the epic
-     - **Why now**: 1 `<p>` — sequencing rationale derived from `bucket`, `depends_on`, and feasibility data
-     - **Dependencies & what it unlocks**: 2 `<li>` items — Requires (look up names from `depends_on`) / Unlocks (reverse lookup: which epics list this one in their `depends_on`)
+Required JS functions:
+```javascript
+function switchTab(tabName) { }
+function handleTextSelection() { }
+function saveComment(selectedText, comment, tabName) { }
+function deleteComment(commentId) { }
+function renderComments() { }
+function loadComments() { }
+function saveCommentsToStorage() { }
+function exportFeedback(action) { }
+```
 
-   Include `<span class="foundation-flag">Foundation</span>` only when `foundation_investment == true`.
+5. **Determine artifact path:** `{artifact_base}{slug}/roadmap-brief.html` — no timestamp in filename.
 
-7. **Build `{timeline_content}`** — group epics by phase:
-   - **MVP (Near horizon)**: epics with `bucket: near` — render as `.timeline-phase` with `.timeline-epic` items
-   - **MVP-Beyond (Mid horizon)**: epics with `bucket: mid`
-   - **Future (Long horizon)**: epics with `bucket: long`
-   Each phase uses a `.timeline-phase` container with a `.timeline-phase-label` and `.timeline-epic` items showing epic name, priority badge, and effort.
+6. **Write roadmap-brief.html** at the determined path using the Write tool.
 
-8. **Build remaining sections** — replace all other `{...}` placeholders in the template:
-   - `{bet_paragraph}`: one paragraph — the core strategic thesis
-   - `{story_paragraphs}`: 3–4 `<p>` tags narrating the epic sequence
-   - `{blocker_items}`: 1–4 `<li>` tags with items that must be resolved before proceeding
-   - `{assumptions_items}`: 3–5 `<li>` tags with assumptions this roadmap depends on
+7. **Regenerate hub.html:**
+   - Read all existing YAML files in `{artifact_base}{slug}/` directory
+   - For each known artifact type (product, epics, feasibility, features, architecture, tech, scenarios, plan), check if the corresponding YAML exists
+   - Extract status and key summary stat from each found YAML
+   - Read comment counts from localStorage entries (use 0 if not accessible server-side)
+   - Render `hub.html` using the LifeOS Dark design system with artifact cards in a 2-column grid
+   - Write to `{artifact_base}{slug}/hub.html`
 
-9. **Verify before writing** — confirm:
-   - `{EPIC_TABLE_ROWS}` has exactly one `<tr>` per epic
-   - `{EPIC_TABS}` has exactly one button per epic, `{EPIC_TAB_PANELS}` has exactly one panel per epic with all 6 fields
-   - `{timeline_content}` has one `.timeline-phase` per occupied horizon
-   - Intent/Constraints/Scenarios/Failure conditions are taken from the epic data, not invented
-   - No `{...}` placeholders remain in the output
-
-10. **Run C-BRIEF-1 self-check:** Every element must be actionable by a reviewer within 30 minutes. Record pass/fail and violations.
-
-11. **Run C-BRIEF-2 self-check:** Technical elements only if they change a roadmap decision (sequencing, priority, or timing). Record pass/fail and violations.
-
-12. **Determine artifact path:** `.meridian/project/product/{slug}/brief-{timestamp}.html` where `slug` is from vision.md and `timestamp` is ISO-8601 date-time.
-
-13. **Write artifact** at the determined path using the Write tool.
-
-14. **Return output contract.**
-
-## C-BRIEF-1 Constraint
-
-Roadmap brief MUST be reviewable in 30 minutes. No element is included unless a reviewer can act on it within that session.
-
-## C-BRIEF-2 Constraint
-
-Technical elements MUST only appear if they change a roadmap decision (sequencing, priority, or timing).
-
-Permitted: hard dependency between epics, foundation investment, significant migration cost.
-Excluded: NFR targets, implementation details, work packages, specific technical choices, code quality concerns.
+8. **Return output contract.**
 
 ## Output
 
-Your response MUST be ONLY this YAML block with values filled in. No validation checklists, no C-BRIEF self-check output, no verification prose, no commentary before or after. The YAML block below is your entire response:
+Your response MUST be ONLY this YAML block with values filled in. No validation checklists, no verification output, no commentary, no prose before or after:
 
 ```yaml
 brief:
-  path: ".meridian/project/product/{slug}/brief-{timestamp}.html"
-  epic_count: {integer}
-  sections_present: [exec_summary, decisions, epics, timeline, assumptions, blockers, feedback]
-  c_brief_1_pass: true|false
-  c_brief_1_violations: ["{description of violation if any}"]
-  c_brief_2_pass: true|false
-  c_brief_2_violations: ["{description of violation if any}"]
+  roadmap_brief_path: "{artifact_base}{slug}/roadmap-brief.html"
+  hub_path: "{artifact_base}{slug}/hub.html"
+  slug: "{slug}"
+  tabs_present: ["strategy", "timeline", "feasibility", "comments"]
+  feature_count: {integer}
+  critical_blocker_count: {integer}
+  inline_comments_enabled: true
 ```
-
-## Reference
-
-Load template from LTM: `~/.meridian/core/memory/standards/templates/roadmap-brief.html` (default, overridable via intent constraint C2.template_ref)
 
 ## Constraints
 
-- NEVER generate epic content — Intent, Constraints, Success Scenarios, and Failure Conditions come FROM the epics file, not from this skill
-- NEVER include NFR targets, implementation details, work packages, or specific technical choices
-- NEVER use custom CSS classes — use only the classes defined in `templates/brief.html`
-- ALWAYS read the brief template from LTM (via intent constraint C2.template_ref) using the Read tool — do NOT generate HTML from scratch
-- ALWAYS read epics from `epics_path` using the Read tool — do NOT rely on memory
-- ALWAYS produce one `.epic-card` per epic — no exceptions, no omissions
-- ALWAYS produce one `<tr>` per epic in the summary table — no exceptions, no omissions
-- ALWAYS run C-BRIEF-1 and C-BRIEF-2 self-checks before returning output
-- ALWAYS include Blockers section — minimum 1 blocker that must be resolved before proceeding
-- Each `.epic-card` MUST have all six fields in order: Intent, Constraints, Success scenarios, Failure conditions, Why now, Dependencies & what it unlocks
-- ALWAYS build timeline_content grouping epics by horizon phase (MVP/near, MVP-Beyond/mid, Future/long)
-- ALWAYS build EPIC_TABS and EPIC_TAB_PANELS — one tab button and one panel per epic
-- Brief MUST be reviewable within 30 minutes — this is a ceiling, not a target to minimize
+- NEVER read from roadmap.yaml — it does not exist yet at this stage; all data comes from epics.yaml, feasibility.yaml, and product.yaml
+- NEVER use CDN links or external dependencies — all CSS and JS must be inline
+- NEVER use JavaScript frameworks — vanilla JS only
+- ALWAYS use LifeOS Dark design system — no custom color schemes
+- ALWAYS produce exactly four tabs: Strategy, Timeline, Feasibility, Comments
+- ALWAYS implement the inline text selection comment system
+- ALWAYS regenerate hub.html when producing the brief
+- ALWAYS output to `roadmap-brief.html` (no timestamp in filename)
+- ALWAYS read epics.yaml, feasibility.yaml, and product.yaml using the Read tool — do NOT rely on memory
+- ALWAYS assign F-IDs to epics consistently throughout the brief — this mapping carries forward to roadmap.yaml
+- `user-invocable: false`
 
 ## Version
 
 | Field | Value |
 |-------|-------|
-| Version | 2.0.0 |
+| Version | 4.0.0 |
 | Category | strategy |

@@ -16,6 +16,19 @@ Extract structured market context from a free-text problem statement or product 
 
 You DO the market analysis. You do NOT create documents or files — you return structured data only.
 
+## Output Schema
+
+Returns structured data (not a file). The `market_context` object contains:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `problem` | string | yes | Refined one-sentence problem statement |
+| `target_users` | list | yes | ≥2 user personas; each has `persona`, `goal`, `frustration`, `context` |
+| `competitors` | list | yes | Direct and indirect competitors; each has `name`, `strengths[]`, `weaknesses[]` |
+| `market_size` | object | yes | `tam`, `sam`, `som` (string or null), `note` |
+| `differentiators` | list | yes | 2–4 potential product differentiators |
+| `risks` | list | yes | 3–5 market-level risks |
+
 ## Input
 
 Receive from agent:

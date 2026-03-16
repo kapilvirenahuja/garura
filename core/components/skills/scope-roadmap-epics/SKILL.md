@@ -1,48 +1,48 @@
 ---
 name: scope-roadmap-epics
-description: Extract epics from a locked product vision, scope them with IDD fields (intent, constraints, scenarios, failure conditions), and write to STM
+description: Extract epics from a locked product definition, scope them with IDD fields (intent, constraints, scenarios, failure conditions), and write to STM
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write
 category: strategy
-version: 2.0.0
+version: 2.1.0
 ---
 
 # scope-roadmap-epics
 
-Model-invocable skill for extracting and scoping epics from a locked product vision.
+Model-invocable skill for extracting and scoping epics from a locked product definition.
 
 ## Purpose
 
-Read a locked vision.md and derive 3–6 epics linked to Strategic Goals. Each epic gets full IDD treatment: intent (3 paragraphs), constraints (in/out/must-not-break), success scenarios (given/when/then), and failure conditions. Plus scoping fields: time bucket, priority, effort, dependencies. Returns a path to the STM artifact.
+Read a locked product.yaml and derive 3–6 epics linked to Strategic Goals. Each epic gets full IDD treatment: intent (3 paragraphs), constraints (in/out/must-not-break), success scenarios (given/when/then), and failure conditions. Plus scoping fields: time bucket, priority, effort, dependencies. Returns a path to the STM artifact.
 
 You DO derive, scope, and fully define the epics. You do NOT create GitHub issues, make implementation decisions, or choose technical approaches.
 
 ## Input
 
 Receive from agent:
-- `vision_path` — (required) Full path to vision.md
+- `product_yaml_path` — (required) Full path to product.yaml
 - `artifact_base` — (required) Base path for STM artifacts, e.g. `.meridian/project/product/`
 - `epic_schema_path` — (required) Path to the epic schema in LTM, e.g. `~/.meridian/core/memory/standards/templates/epic-schema.md`. The agent discovers this from LTM and passes it — the skill does NOT search LTM itself.
 - `time_horizon` — (optional, default: "12 months") Planning window for bucket assignment
 
 ## Pre-conditions
 
-1. **Read vision.md** at `vision_path`. If not found, return structured failure: artifact not found.
+1. **Read product.yaml** at `product_yaml_path`. If not found, return structured failure: artifact not found.
 2. **Verify LOCKED status:** If status is not LOCKED, return structured failure:
    ```json
-   { "error": "vision_not_locked", "message": "Vision is not LOCKED — run /discover-product --phase lock first" }
+   { "error": "product_not_locked", "message": "Product is not LOCKED — run /discover-product --phase lock first" }
    ```
 
 ## Process
 
 1. **Load the epic schema** — read the file at `epic_schema_path` (passed by the agent from LTM) using the Read tool. This defines the required fields (10 scoping + 4 IDD), prohibited fields, valid values, YAML structure, and the validation checklist. All epics MUST conform to this schema. If `epic_schema_path` is not provided, fall back to `reference/epic-schema.md`.
 
-2. **Read vision.md** at `vision_path` — extract product name, slug, Strategic Goals, assumptions, and user context.
+2. **Read product.yaml** at `product_yaml_path` — extract product name, slug, Strategic Goals, assumptions, and user context.
 
-3. **Extract Strategic Goals** from the vision.md Strategic Goals section.
+3. **Extract Strategic Goals** from the product.yaml `strategic_goals` section.
 
-4. **Derive epics** — identify 3–6 epics (maximum 6), each linked to one named Strategic Goal. If fewer than 3 are identifiable, return structured failure: `{ "error": "insufficient_epics", "message": "Fewer than 3 distinct epics identifiable from vision — vision may need more detail" }`.
+4. **Derive epics** — identify 3–6 epics (maximum 6), each linked to one named Strategic Goal. If fewer than 3 are identifiable, return structured failure: `{ "error": "insufficient_epics", "message": "Fewer than 3 distinct epics identifiable from product.yaml — product definition may need more detail" }`.
 
 5. **Scope each epic** — for each epic, fill ALL fields per `reference/epic-schema.md`:
    - Scoping fields: `bucket`, `priority`, `effort`, `depends_on`, `foundation_investment`
@@ -50,9 +50,13 @@ Receive from agent:
 
 6. **Validate against schema (silently)** — run the full validation checklist in `reference/epic-schema.md` before writing. Verify all 14 fields per epic. Correct any violations before proceeding. Do NOT output the validation results — validate internally and fix issues. Only output a structured failure if validation fails after correction.
 
-7. **Validate against intent failure conditions (silently)** — if the agent passes `intent_path`, read the intent file and check the `failure_conditions` list. Verify: epic count >= 3, every epic traces to a strategic goal from the vision. If any failure condition is triggered, return structured failure before writing. Do NOT output the validation results — validate internally only.
+7. **Validate against intent failure conditions (silently)** — if the agent passes `intent_path`, read the intent file and check the `failure_conditions` list. Verify: epic count >= 3, every epic traces to a strategic goal from product.yaml. If any failure condition is triggered, return structured failure before writing. Do NOT output the validation results — validate internally only.
 
 8. **Write to STM** — write the scoped epics to `{artifact_base}/{slug}/epics.yaml` using the Write tool. Use the YAML structure from `reference/epic-schema.md`. The file must be a valid YAML document — no placeholders, all fields filled.
+
+## Output Schema
+
+This skill has no output schema file — it returns a YAML block directly. The full epics data is written to the STM artifact.
 
 ## Output
 
@@ -61,7 +65,7 @@ Your response MUST be ONLY this YAML block with values filled in. No validation 
 ```yaml
 scoped_epics:
   epics_path: "{artifact_base}/{slug}/epics.yaml"
-  slug: "{product slug from vision}"
+  slug: "{product slug from product.yaml}"
   epic_count: {integer}
 ```
 
@@ -81,9 +85,9 @@ Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridia
 - NEVER use `horizon` — use `bucket`; NEVER use `dependencies` — use `depends_on`
 - ALWAYS load epic schema from `epic_schema_path` (or fallback `reference/epic-schema.md`) before generating any epics
 - ALWAYS validate epics against the full schema checklist (14 fields per epic) before writing
-- ALWAYS link each epic to a named strategic goal from the vision
+- ALWAYS link each epic to a named strategic goal from product.yaml `strategic_goals`
 - ALWAYS write full IDD content (intent, constraints, success_scenarios, failure_conditions) for every epic
-- ALWAYS return structured failure if vision is not LOCKED
+- ALWAYS return structured failure if product.yaml is not LOCKED
 - ALWAYS return structured failure if fewer than 3 epics are identifiable
 - ALWAYS write the epics file to `{artifact_base}/{slug}/epics.yaml` before returning output
 - Minimum 3 epics, maximum 6 epics
@@ -92,5 +96,5 @@ Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridia
 
 | Field | Value |
 |-------|-------|
-| Version | 2.0.0 |
+| Version | 2.1.0 |
 | Category | strategy |
