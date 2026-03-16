@@ -1,0 +1,105 @@
+commits:
+  - group: 1
+    hash: cd53ebd
+    type: refactor
+    scope: epic-schema
+    subject: "rename E-IDs to F-IDs and strategic_goal to strategic_goal_ref across epic schema and skill"
+    issue: "99"
+    files:
+      - core/components/memory/standards/templates/epic-schema.md
+      - core/components/skills/scope-roadmap-epics/SKILL.md
+      - core/components/skills/scope-roadmap-epics/reference/epic-schema.md
+
+  - group: 2
+    hash: 12fad8d
+    type: feat
+    scope: schemas
+    subject: "add YAML schemas for skill artifact outputs (plan, tech, features, architecture, scenarios, roadmap)"
+    issue: "99"
+    files:
+      - core/components/skills/draft-implementation-plan/schemas/plan.yaml
+      - core/components/skills/draft-lld/schemas/tech.yaml
+      - core/components/skills/draft-product-spec/schemas/features.yaml
+      - core/components/skills/draft-technical-approach/schemas/architecture.yaml
+      - core/components/skills/draft-verification-scenarios/schemas/scenarios.yaml
+      - .claude/specs/artifact-schemas/architecture.yaml
+      - .claude/specs/artifact-schemas/brief-principles.md
+      - .claude/specs/artifact-schemas/features.yaml
+      - .claude/specs/artifact-schemas/plan.yaml
+      - .claude/specs/artifact-schemas/product.yaml
+      - .claude/specs/artifact-schemas/roadmap.yaml
+      - .claude/specs/artifact-schemas/scenarios.yaml
+      - .claude/specs/artifact-schemas/tech.yaml
+
+  - group: 3
+    hash: 3590262
+    type: chore
+    scope: evals
+    subject: "add plan-roadmap evals, workspace iterations, and scout-project workspace artifacts"
+    issue: "99"
+    files:
+      - core/components/recipes/plan-roadmap/evals/evals.json
+      - core/components/recipes/plan-roadmap/evals/fixtures/epics.yaml
+      - core/components/recipes/plan-roadmap/evals/fixtures/feasibility.yaml
+      - core/components/recipes/plan-roadmap/evals/fixtures/product.yaml
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/eval_metadata.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/with_skill/grading.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/with_skill/outputs/roadmap.yaml
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/with_skill/timing.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/without_skill/grading.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/without_skill/outputs/roadmap.yaml
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/without_skill/timing.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/eval_metadata.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/with_skill/grading.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/with_skill/outputs/roadmap-brief.html
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/with_skill/timing.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/without_skill/grading.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/without_skill/outputs/roadmap-brief.html
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/without_skill/timing.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/eval_metadata.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/with_skill/grading.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/with_skill/outputs/epics.yaml
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/with_skill/timing.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/without_skill/grading.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/without_skill/outputs/epics.yaml
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/without_skill/timing.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-2/scope-epics-from-product/with_skill/grading.json
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-2/scope-epics-from-product/with_skill/outputs/epics.yaml
+      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-2/scope-epics-from-product/with_skill/timing.json
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/chronos-full-project/eval_metadata.json
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/chronos-full-project/with_skill/grading.json
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/chronos-full-project/with_skill/outputs/project-scout.md
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/chronos-full-project/with_skill/timing.json
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/chronos-full-project/without_skill/grading.json
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/chronos-full-project/without_skill/outputs/project-scout.md
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/chronos-full-project/without_skill/timing.json
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/meridian-meta-project/eval_metadata.json
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/meridian-meta-project/with_skill/grading.json
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/meridian-meta-project/with_skill/outputs/project-scout.md
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/meridian-meta-project/with_skill/timing.json
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/meridian-meta-project/without_skill/grading.json
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/meridian-meta-project/without_skill/outputs/project-scout.md
+      - core/components/skills/scout-project/scout-project-workspace/iteration-1/meridian-meta-project/without_skill/timing.json
+      - core/components/skills/scout-project/scout-project-workspace/iteration-2/chronos-full-project/with_skill/outputs/project-scout.md
+      - core/components/skills/scout-project/scout-project-workspace/iteration-2/meridian-meta-project/with_skill/outputs/project-scout.md
+
+  - group: 4
+    hash: 8c3daf7
+    type: chore
+    scope: stm
+    subject: "record commit-code evidence artifacts for issue #99"
+    issue: "99"
+    files:
+      - .meridian/project/issues/99/evidence/commit-code/20260316-100000.md
+      - .meridian/project/issues/99/evidence/commit-code/commits.yaml
+      - .meridian/project/issues/99/evidence/commit-code/analysis-2.yaml
+
+push:
+  status: success
+  branch: feature/99-standardize-artifact-naming-yaml-html-brief-pairs
+  remote: origin
+  tip: 8c3daf7
+
+excluded:
+  - path: .claude/settings.json
+    reason: "Group 5 explicitly excluded per instructions — no issue mapping, low confidence"
