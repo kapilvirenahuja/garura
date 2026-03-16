@@ -85,7 +85,8 @@ Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridia
 - NEVER use `horizon` — use `bucket`; NEVER use `dependencies` — use `depends_on`
 - ALWAYS load epic schema from `epic_schema_path` (or fallback `reference/epic-schema.md`) before generating any epics
 - ALWAYS validate epics against the full schema checklist (14 fields per epic) before writing
-- ALWAYS link each epic to a named strategic goal from product.yaml `strategic_goals`
+- ALWAYS use F-IDs (F1, F2, F3, ...) for epic IDs — NEVER E-IDs (E1, E2)
+- ALWAYS use `strategic_goal_ref` with SG-IDs (SG1, SG2, ...) from product.yaml `strategic_goals[].id` — NEVER use the goal title text as the reference
 - ALWAYS write full IDD content (intent, constraints, success_scenarios, failure_conditions) for every epic
 - ALWAYS return structured failure if product.yaml is not LOCKED
 - ALWAYS return structured failure if fewer than 3 epics are identifiable
