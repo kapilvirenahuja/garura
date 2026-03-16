@@ -1,0 +1,89 @@
+commits:
+  - group_id: G1
+    hash: 0cc8ff8
+    type: feat
+    scope: prepare-implementation
+    subject: "add prepare-implementation recipe and supporting skills (#99)"
+    issue: 99
+    files_count: 13
+    insertions: 3586
+    deletions: 0
+    validation:
+      clean_tree: true
+      conventional_format: true
+
+  - group_id: G2
+    hash: 9847db7
+    type: feat
+    scope: agents
+    subject: "extend agents with prepare-implementation skill bindings and context loading (#99)"
+    issue: 99
+    files_count: 3
+    insertions: 86
+    deletions: 4
+    validation:
+      clean_tree: true
+      conventional_format: true
+
+  - group_id: G3
+    hash: bcaf18c
+    type: feat
+    scope: schemas
+    subject: "add YAML artifact schemas for product-vision and roadmap skills (#99)"
+    issue: 99
+    files_count: 2
+    insertions: 140
+    deletions: 0
+    validation:
+      clean_tree: true
+      conventional_format: true
+
+  - group_id: G4
+    hash: d45b216
+    type: refactor
+    scope: skills
+    subject: "update existing skills to standardized YAML artifact contracts (#99)"
+    issue: 99
+    files_count: 11
+    insertions: 753
+    deletions: 565
+    validation:
+      clean_tree: true
+      conventional_format: true
+
+  - group_id: G5
+    hash: ded4a91
+    type: refactor
+    scope: recipes
+    subject: "update create-recipe and plan-roadmap for P11 and standardized artifacts (#99)"
+    issue: 99
+    files_count: 7
+    insertions: 177
+    deletions: 163
+    validation:
+      clean_tree: true
+      conventional_format: true
+
+  - group_id: G6
+    hash: 5056754
+    type: chore
+    scope: stm
+    subject: "record commit-code analysis evidence for issue #99"
+    issue: 99
+    files_count: 7
+    insertions: 376
+    deletions: 0
+    validation:
+      clean_tree: true
+      conventional_format: true
+
+summary:
+  total_commits: 6
+  total_groups: 6
+  all_groups_committed: true
+  branch: feature/99-standardize-artifact-naming-yaml-html-brief-pairs
+  issue: 99
+  excluded_files:
+    - .claude/settings.json
+    - .claude/specs/artifact-schemas/
+  push_status: pending
