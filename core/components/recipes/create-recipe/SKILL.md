@@ -205,7 +205,7 @@ Identify which domain agents the recipe needs. This follows from skills — agen
 
 1. From the skill manifest, determine which agents are needed to orchestrate those skills.
 2. Check if each agent exists in `core/components/agents/`.
-3. For every agent (existing or new), audit against `reference/audit-checklist.md` (P1-P10).
+3. For every agent (existing or new), audit against `reference/audit-checklist.md` (P1-P11).
 
 **Audit report per agent:**
 
@@ -224,6 +224,7 @@ Identify which domain agents the recipe needs. This follows from skills — agen
 | P8 Recovery and Escalation | PASS/FAIL | {finding} |
 | P9 Domain Boundaries | PASS/FAIL | {finding} |
 | P10 Task Graph Participation | PASS/FAIL | {finding} |
+| P11 Context Sufficiency | PASS/FAIL/EXEMPT | {finding} |
 ```
 
 Write audit to `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/agent-audit-{agent-name}.md`.
@@ -233,9 +234,9 @@ For agents with failures, present options:
 2. **Create new** — build a new compliant agent.
 3. **Skip** — proceed without (user must handle that domain differently).
 
-For new agents: interview user for name, domain, skills it needs. Build definition at `core/components/agents/{name}.md` following all 10 principles. Audit to confirm.
+For new agents: interview user for name, domain, skills it needs. Build definition at `core/components/agents/{name}.md` following all 11 principles. Audit to confirm.
 
-**Gate:** ALL agents pass ALL 10 principles. No exceptions.
+**Gate:** ALL agents pass ALL 11 principles. No exceptions.
 
 ### Step 5 — Workflow Selection
 
@@ -324,6 +325,8 @@ Write `core/components/recipes/{recipe-name}/SKILL.md` with ALL required section
 - No runtime DAG — task ordering is baked into SKILL.md
 - No runtime intent resolution — everything the recipe needs is compiled in
 - Intent hash in Compilation Metadata section (end of file) for drift detection — NOT in frontmatter
+- **Brief before checkpoint (Structure A):** Every human checkpoint MUST be preceded by a `doc-builder` brief generation step. The pattern is: domain agents produce artifacts → `doc-builder` generates HTML brief → recipe presents brief for human review (Tether/Vanish/Orbit). `doc-builder` is a utility agent — it does NOT count against the ≤5 domain agent budget. If the recipe has no brief generation skill for its domain, the compiler must flag this as a gap and create one via `/skill-creator`.
+- **Agent budget — domain vs utility:** The ≤5 agent call limit applies to domain agents only. Utility agents (`doc-builder` for briefs, `repo-orchestrator` for commits/evidence) are exempt. Compilation Metadata must list domain and utility agents separately.
 
 **Pause and Resume (baked into compiled recipe):**
 1. Issue detection in pre-flight (extract from branch name or user input)
@@ -369,7 +372,7 @@ Run `/sync-claude` to deploy.
 - NEVER do agent or skill domain work directly — delegate to intent-crafter, /skill-creator, evals-creator
 - ALWAYS compute intent_hash and include compiled metadata in Compilation Metadata section at end of file — NOT in frontmatter
 - ALWAYS present intent for user approval before proceeding
-- ALWAYS audit every agent against all 10 principles
+- ALWAYS audit every agent against all 11 principles
 - ALWAYS re-audit after upgrading an agent
 - ALWAYS write analysis artifacts to STM
 - ALWAYS reference ADR 013 for L2 design elements

@@ -7,7 +7,7 @@ model: sonnet
 
 # discover-product
 
-Given a product idea or problem statement, discover the market opportunity, draft a product vision with strategic goals and market positioning, validate the vision for completeness, and lock it when ready. The recipe operates in three phases (DRAFT, VALIDATE, LOCK) invoked independently. DRAFT produces a vision and an interactive HTML brief for human review at a checkpoint. VALIDATE checks vision completeness with cycle-back support. LOCK finalizes the vision for downstream planning.
+Given a product idea or problem statement, discover the market opportunity, draft a product vision with strategic goals and market positioning, validate the vision for completeness, and lock it when ready. The recipe operates in three phases (DRAFT, VALIDATE, LOCK) invoked independently. DRAFT produces a `product.yaml` and an interactive `product-brief.html` for human review at a checkpoint. VALIDATE checks vision completeness with cycle-back support. LOCK finalizes the product artifact for downstream planning.
 
 ## Compiled From
 
@@ -27,7 +27,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 | Agent | Domain | Phases |
 |-------|--------|--------|
 | `product-strategist` | Product: market analysis, vision drafting, validation | DRAFT (Preparation), VALIDATE (Execution) |
-| `doc-builder` | Documentation: HTML brief generation | DRAFT (Preparation) |
+| `doc-builder` | Documentation: HTML brief and hub generation | DRAFT (Preparation) |
 | `repo-orchestrator` | Git: commit evidence | All (Evidence) |
 
 **Path resolution:**
@@ -40,8 +40,8 @@ All `.meridian/` paths are relative to the project root. NEVER expand to `~/.mer
 
 Examples:
   /discover-product --phase draft "QR code activation with commission tracking for B2B SaaS"
-  /discover-product --phase validate --artifact .meridian/project/product/qr-activation/vision.md
-  /discover-product --phase lock --artifact .meridian/project/product/qr-activation/vision.md
+  /discover-product --phase validate --artifact .meridian/project/product/qr-activation/product.yaml
+  /discover-product --phase lock --artifact .meridian/project/product/qr-activation/product.yaml
 ```
 
 ## Pre-flight
@@ -73,7 +73,7 @@ if [ "$phase" = "validate" ] || [ "$phase" = "lock" ]; then
   artifact_path="{--artifact value}"
   # C3: halt if artifact_path empty
   # C3: halt if file does not exist
-  # F7: halt if Status: LOCKED
+  # F7: halt if status: LOCKED
 fi
 
 product_base=".meridian/project/product"
@@ -102,9 +102,9 @@ Skill: `discover-product-opportunity`
   "stm_base": ".meridian/project/product/",
   "slug": "{slug}",
   "stm": {
-    "vision_path": null,
-    "market_context_path": null,
-    "brief_path": null
+    "product_yaml_path": null,
+    "product_brief_path": null,
+    "hub_path": null
   },
   "config": {
     "problem_statement": "{intent text}",
@@ -114,7 +114,7 @@ Skill: `discover-product-opportunity`
 }
 ```
 
-Agent invokes `discover-product-opportunity` -> returns market context with problem, target users, competitors, market size, differentiators, risks. Writes market context to STM.
+Agent invokes `discover-product-opportunity` -> returns market context with problem, target users, competitors, market size, differentiators, risks. Writes market context section of `product.yaml` to STM.
 
 **Domain clarification handling (C11):**
 If agent returns `domain_clarification_needed`:
@@ -139,9 +139,14 @@ Skill: `draft-product-vision`
   "stm_base": ".meridian/project/product/",
   "slug": "{slug}",
   "stm": {
-    "vision_path": null,
-    "market_context_path": "{product_base}/{slug}/market-context.yaml",
-    "brief_path": null
+    "input": {
+      "market_context": "{market_context output from Step 1 agent}"
+    },
+    "output": {
+      "product_yaml_path": "{product_base}/{slug}/product.yaml",
+      "product_brief_path": null,
+      "hub_path": null
+    }
   },
   "config": {
     "phase": "DRAFT",
@@ -152,12 +157,12 @@ Skill: `draft-product-vision`
 }
 ```
 
-Agent invokes `draft-product-vision` -> writes `{product_base}/{slug}/vision.md` (Status: DRAFT).
+Agent invokes `draft-product-vision` -> writes `{product_base}/{slug}/product.yaml` (full file — market context + vision sections consolidated, status: DRAFT).
 
 **Step 2 Evals:**
-- **SE-1 (F1):** Vision has >=3 strategic goals and >=1 target audience (C7: Strategic Goals, not OKRs)
-- **SE-4 (F3):** Vision artifact exists at `{product_base}/{slug}/vision.md` with Status: DRAFT
-- **SE-8 (F7):** If vision was LOCKED, skill returned structured failure (did not overwrite)
+- **SE-1 (F1):** `product.yaml` has >=3 strategic goals and >=1 target audience (C7: Strategic Goals, not OKRs)
+- **SE-4 (F3):** `product.yaml` exists at `{product_base}/{slug}/product.yaml` with `status: DRAFT`
+- **SE-8 (F7):** If artifact was LOCKED, skill returned structured failure (did not overwrite)
 
 ---
 
@@ -172,11 +177,11 @@ Skill: `generate-product-brief`
   "stm_base": ".meridian/project/product/",
   "stm": {
     "input": {
-      "vision_path": "{product_base}/{slug}/vision.md",
-      "market_context_path": "{product_base}/{slug}/market-context.yaml"
+      "product_yaml_path": "{product_base}/{slug}/product.yaml"
     },
     "output": {
-      "brief": "{product_base}/{slug}/brief.html"
+      "product_brief_path": "{product_base}/{slug}/product-brief.html",
+      "hub_path": "{product_base}/{slug}/hub.html"
     }
   },
   "task_id": "draft-generate-brief",
@@ -188,10 +193,10 @@ Skill: `generate-product-brief`
 }
 ```
 
-Agent invokes `generate-product-brief` -> reads vision and market context, generates self-contained HTML brief with LifeOS design language, business analysis section, and interactive feedback panel -> writes to `{product_base}/{slug}/brief.html`.
+Agent invokes `generate-product-brief` -> reads `product.yaml`, generates self-contained `product-brief.html` with LifeOS design language, tabbed layout (Market Context, Vision, Scope, Comments), and inline text selection comment system -> writes to `{product_base}/{slug}/product-brief.html`. Also regenerates `{product_base}/{slug}/hub.html`.
 
 **Step 3 Eval:**
-- **SE-11 (F9):** HTML brief exists at output path with feedback panel containing section toggles for market_opportunity, product_vision, business_analysis (C10)
+- **SE-11 (F9):** `product-brief.html` exists at output path with tabbed layout (Market Context, Vision, Scope, Comments tabs) and inline comment system (text selection -> popup -> persistent highlights) (C10)
 
 ---
 
@@ -208,11 +213,12 @@ Present to user:
 ```markdown
 ## Product Discovery: {slug}
 
-**Vision:** `{product_base}/{slug}/vision.md`
-**HTML Brief:** `{product_base}/{slug}/brief.html`
+**Product YAML:** `{product_base}/{slug}/product.yaml`
+**HTML Brief:** `{product_base}/{slug}/product-brief.html`
+**Hub:** `{product_base}/{slug}/hub.html`
 
-Open the HTML brief in your browser to review market opportunity, vision, and business analysis.
-Use the feedback panel in the brief to generate structured feedback JSON.
+Open the HTML brief in your browser to review market opportunity, vision, and scope.
+Select any text to add inline comments. Use the Comments tab to export structured feedback JSON.
 
 ---
 
@@ -220,7 +226,7 @@ Type **Tether** to approve or **Vanish** to reject.
 Optionally paste feedback JSON from the brief for targeted revisions.
 ```
 
-**Recipe pauses here.** User reviews the HTML brief in their browser, uses the interactive feedback panel, and returns with Tether/Vanish + optional feedback JSON.
+**Recipe pauses here.** User reviews the HTML brief in their browser, uses the inline comment system, and returns with Tether/Vanish + optional feedback JSON.
 
 Parse response:
 - `Tether`/`tether` -> update checkpoint to APPROVED, proceed to Step 5
@@ -237,8 +243,9 @@ Depends on: Step 4
 
 Write evidence to `{product_base}/evidence/discover-product/{YYYYMMDD-HHMMSS}.md`:
 - Intent and resolved slug
-- Vision path and status
-- HTML brief path
+- `product.yaml` path and status
+- `product-brief.html` path
+- `hub.html` path
 - Market context summary (problem, user count, competitor count)
 - Checkpoint outcome (APPROVED/REJECTED)
 
@@ -248,10 +255,11 @@ Present final report to user:
 ## DRAFT Complete: {slug}
 
 **Artifacts:**
-- Vision: `{vision_path}` (Status: DRAFT)
-- HTML Brief: `{brief_path}`
+- Product YAML: `{product_yaml_path}` (status: DRAFT)
+- HTML Brief: `{product_brief_path}`
+- Hub: `{hub_path}`
 
-**Next:** Run `/discover-product --phase validate --artifact {vision_path}` to validate before locking.
+**Next:** Run `/discover-product --phase validate --artifact {product_yaml_path}` to validate before locking.
 ```
 
 Invoke `repo-orchestrator` for evidence self-commit (ADR 012). Non-blocking on failure.
@@ -275,7 +283,7 @@ Skill: `validate-product-vision`
   "stm_base": ".meridian/project/product/",
   "slug": "{slug}",
   "stm": {
-    "vision_path": "{artifact_path}",
+    "product_yaml_path": "{artifact_path}",
     "validation_result_path": null
   },
   "config": {
@@ -288,10 +296,10 @@ Skill: `validate-product-vision`
 Agent invokes `validate-product-vision` -> returns validation_result with ready_for_lock, completeness_score, issues, checklist. Writes result to STM.
 
 **Step 1 Evals:**
-- **SE-2 (F1):** Checklist reports strategic_goals_defined=true and target_users_identified=true
+- **SE-2 (F1):** Checklist reports strategic_goals_defined=true and target_users_identified=true in `product.yaml`
 - **SE-6 (F5):** No blockers remain after <=2 iterations, or iteration count is within limit
-- **SE-7 (F6):** Artifact path resolved to existing valid vision (skill did not return structured failure)
-- **SE-9 (F7):** If vision was LOCKED, skill returned structured failure
+- **SE-7 (F6):** Artifact path resolved to existing valid `product.yaml` (skill did not return structured failure)
+- **SE-9 (F7):** If artifact was LOCKED, skill returned structured failure
 
 ---
 
@@ -304,7 +312,7 @@ Depends on: Step 1
 Present validation summary: completeness_score, checklist table, issues by severity.
 
 **If `ready_for_lock: true`:**
-- Present: "Vision is ready to lock. Run `/discover-product --phase lock --artifact {path}` when ready."
+- Present: "Product is ready to lock. Run `/discover-product --phase lock --artifact {path}` when ready."
 - `Tether` -> write VALIDATE_PASSED checkpoint, proceed to Step 3
 - `Vanish` -> halt
 
@@ -341,13 +349,13 @@ Structure B: Pre-flight -> Execution -> Evidence
 
 ### Phase: Execution
 
-**Step 1 — Lock Vision**
+**Step 1 — Lock Product YAML**
 Owner: recipe (no agent call, C5: 0 agent calls in LOCK)
 Depends on: pre-flight
 
-Read `{artifact_path}`. Change `**Status:** DRAFT` to `**Status:** LOCKED`. Update Last Updated date.
+Read `{artifact_path}`. Change `status: "DRAFT"` to `status: "LOCKED"`. Update `updated_at` timestamp.
 
-Present: "Vision locked at `{path}`. Use `/plan-roadmap --phase draft --vision {path}` to continue."
+Present: "Product YAML locked at `{path}`. Use `/plan-roadmap --phase draft --product {path}` to continue."
 
 ---
 
@@ -370,13 +378,13 @@ Invoke `repo-orchestrator` for evidence self-commit. Non-blocking.
 Run after the active phase's workflow completes, before evidence.
 
 **DRAFT scenarios:**
-- **SCE-1 (S1):** HTML brief contains market opportunity, vision with strategic goals, business analysis, and feedback panel with per-section toggles and freeform textarea. Founder/PM can evaluate and provide structured feedback.
+- **SCE-1 (S1):** `product-brief.html` contains Market Context tab (problem, target users, competitors, market size, differentiators, risks), Vision tab (value proposition, strategic goals, success metrics), Scope tab (assumptions, out-of-scope), and Comments tab with inline comment system (text selection, popup, persistent highlights, export JSON with action).
 
 **VALIDATE scenarios:**
 - **SCE-3 (S3):** Validation result contains completeness_score (0-100), ready_for_lock (boolean), 5-field checklist, and severity-classified issues. PM can determine lock-readiness.
 
 **LOCK scenarios:**
-- **SCE-2 (S2):** Locked vision has >=3 strategic goals, >=2 target user personas with roles, quantifiable success metrics, and named competitors. Engineering Lead can derive milestones.
+- **SCE-2 (S2):** Locked `product.yaml` has >=3 strategic goals, >=2 target user personas with roles, quantifiable success metrics, and named competitors. Engineering Lead can derive milestones.
 
 ## Recovery
 
@@ -451,7 +459,7 @@ for each step in active phase's compiled order:
 |-------|-------|
 | intent_hash | sha256:c1f81493b278bb6e222fdb3a8f7a027647d236861dfc887d5eab31bf51ab02c2 |
 | compiled_by | create-recipe |
-| compiled_at | 2026-03-06T21:00:00+0530 |
+| compiled_at | 2026-03-16T00:00:00+0530 |
 | maturity | L2 |
 | workflow_structure | A (DRAFT, VALIDATE) / B (LOCK) |
 | agents | 3 (product-strategist, doc-builder, repo-orchestrator) |

@@ -1,6 +1,6 @@
-# Agent Audit Checklist (P1-P10)
+# Agent Audit Checklist (P1-P11)
 
-These principles apply to domain agents that the **compiled recipe** will use at runtime. They do NOT apply to build-time agents like `intent-crafter` or `intent-resolver`.
+These principles apply to domain agents that the **compiled recipe** will use at runtime. They do NOT apply to build-time agents like `intent-crafter` or `intent-resolver`. Utility agents (`doc-builder`, `repo-orchestrator`) are exempt from the domain agent budget but must still pass all applicable principles.
 
 ## Principles
 
@@ -64,6 +64,14 @@ Agent marks tasks as `in_progress` and `completed` via TaskUpdate. Can add new t
 **Pass:** Agent uses TaskUpdate for status tracking.
 **Fail:** Agent completes work without updating task status.
 
+### P11 — Context Sufficiency
+Agent has the tools and protocol to gather context for the artifacts it is asked to produce. Context gathering is the agent's core job — agents are context engineers. If the agent produces artifacts requiring domain knowledge beyond what's in the JSON contract, it must have: (a) a context loading protocol with systematic LTM search, (b) a sufficiency evaluation step that assesses whether loaded context is enough, (c) a research fallback when LTM is insufficient (e.g., `research-domain-context` skill + `WebSearch`/`WebFetch` tools).
+
+**Pass:** Agent has a documented Context Loading section covering: LTM search at `~/.meridian/core/memory/`, sufficiency evaluation, research fallback, and context injection into skill invocations. Agent has the tools needed for research (WebSearch/WebFetch) if its domain requires external knowledge.
+**Fail:** Agent is asked to produce artifacts requiring domain knowledge but lacks systematic context gathering. Agent has no LTM search protocol. Agent has no research fallback when context is insufficient. Agent has exploration tools (Grep/Glob) but no research tools (WebSearch/WebFetch) despite needing to make technology or domain decisions.
+
+**Exemptions:** Agents that ONLY operate on data fully provided in the JSON contract (e.g., a validator that reads files at given paths) may pass without a research fallback — their context comes entirely from STM paths. The key test: can the agent produce its artifacts from contract data alone, or does it need to discover knowledge?
+
 ## Audit Report Template
 
 For each agent, produce:
@@ -83,6 +91,7 @@ For each agent, produce:
 | P8 Recovery and Escalation | PASS/FAIL | {what was found} |
 | P9 Domain Boundaries | PASS/FAIL | {what was found} |
 | P10 Task Graph Participation | PASS/FAIL | {what was found} |
+| P11 Context Sufficiency | PASS/FAIL/EXEMPT | {what was found} |
 ```
 
 Write audit report to `{stm_base}/{issue}/evidence/create-recipe/{recipe-name}/agent-audit-{agent-name}.md`.
