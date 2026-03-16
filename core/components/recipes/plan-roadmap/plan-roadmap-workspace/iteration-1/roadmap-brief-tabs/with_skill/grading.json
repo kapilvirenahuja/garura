@@ -1,0 +1,34 @@
+{
+  "expectations": [
+    {
+      "text": "is_self_contained_html",
+      "passed": true,
+      "evidence": "No CDN links, external stylesheets, or external script references found. All CSS is inline in a <style> block and all JavaScript is inline in a <script> block. No href=\"http\" or src=\"http\" references to external resources."
+    },
+    {
+      "text": "has_4_tabs",
+      "passed": true,
+      "evidence": "Four tab buttons present: Strategy (line 601), Timeline (line 602), Feasibility (line 603), Comments (line 604). Each has a corresponding tab-content div: tab-strategy, tab-timeline, tab-feasibility, tab-comments."
+    },
+    {
+      "text": "lifeos_dark_tokens",
+      "passed": true,
+      "evidence": "CSS custom properties match required tokens: --bg-primary: #0D1117 (line 9) and --color-water: #58A6FF (line 16)."
+    },
+    {
+      "text": "inline_comment_system",
+      "passed": true,
+      "evidence": "All 5 required functions are present and exposed on window: handleTextSelection (line 996), saveComment (line 1072), deleteComment (line 1093), renderComments (line 1121), exportFeedback (line 1208). The system supports text selection, popup comment entry, highlight marking, and feedback export."
+    },
+    {
+      "text": "localstorage_persistence",
+      "passed": true,
+      "evidence": "localStorage is used with key 'meridian-comments-roadmap-meridian-os' (STORAGE_KEY at line 903). Comments are saved via localStorage.setItem (line 1138) and loaded via localStorage.getItem (line 1125). Key starts with 'meridian-comments'."
+    },
+    {
+      "text": "tether_vanish_orbit_actions",
+      "passed": true,
+      "evidence": "Three action buttons present: Tether (btn-tether class, line 877), Vanish (btn-vanish class, line 878), Orbit (btn-orbit class, line 879). Each triggers exportFeedback with the respective action string."
+    }
+  ]
+}

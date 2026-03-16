@@ -1,0 +1,1 @@
+{"eval_id": 0, "eval_name": "chronos-full-project", "prompt": "Scout the Chronos project at /Users/kapilahuja/cto/builder/chronos with planning focus", "assertions": ["has_structured_sections", "tech_stack_concrete", "phase_count_matches", "scenario_count_matches", "under_500_words", "no_recommendations", "has_output_contract"]}

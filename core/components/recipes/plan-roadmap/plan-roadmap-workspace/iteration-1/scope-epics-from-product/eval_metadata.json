@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "scope-epics-from-product",
+  "prompt": "Read the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml. This is a LOCKED product artifact for Meridian OS. Derive 3-6 IDD epics from this product. Each epic must reference a strategic goal from product.yaml, have IDD fields (intent with p1/p2/p3, constraints, success_scenarios, failure_conditions), and use F-IDs (F1, F2, etc.). Write the output epics YAML to the outputs directory.",
+  "assertions": [
+    {"name": "epic_count_3_to_6", "type": "structural"},
+    {"name": "all_epics_have_f_ids", "type": "structural"},
+    {"name": "strategic_goal_refs_valid", "type": "cross-reference"},
+    {"name": "idd_fields_complete", "type": "structural"},
+    {"name": "no_e_ids", "type": "negative"}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "expectations": [
+    {"text": "Has all 7 structured sections", "passed": false, "evidence": "Different section names: 'What It Is', 'Three Recipes', 'Scenario Coverage' instead of standard template"},
+    {"text": "Tech stack names concrete technologies", "passed": true, "evidence": "Names Anthropic SDK, voyage-3, discord.py 2.x, Next.js 15, Drizzle ORM, Neon Postgres, etc."},
+    {"text": "Reports 9 implementation phases", "passed": true, "evidence": "9 phases listed with cumulative scenario counts"},
+    {"text": "Reports 54 scenarios (35 automated, 19 hybrid)", "passed": true, "evidence": "'54 total verification scenarios (35 automated, 19 hybrid)'"},
+    {"text": "Summary under 500 words", "passed": false, "evidence": "528 words — over 500 word limit by 28 words"},
+    {"text": "No recommendations", "passed": true, "evidence": "Factual reporting throughout"}
+  ]
+}

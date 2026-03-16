@@ -1,0 +1,14 @@
+{
+  "eval_id": 2,
+  "eval_name": "draft-roadmap-yaml-from-brief",
+  "prompt": "Read the product.yaml, epics.yaml, and feasibility.yaml from the fixtures directory. Assume the roadmap brief has been Tether-approved. Produce roadmap.yaml conforming to the schema at core/components/skills/draft-roadmap/schemas/roadmap.yaml. Write to the outputs directory.",
+  "assertions": [
+    {"name": "status_is_draft", "type": "structural"},
+    {"name": "has_thesis", "type": "structural"},
+    {"name": "timeline_has_3_horizons", "type": "structural"},
+    {"name": "feature_refs_are_f_ids", "type": "structural"},
+    {"name": "feasibility_per_feature", "type": "cross-reference"},
+    {"name": "conforms_to_schema", "type": "schema"},
+    {"name": "no_tech_jargon_in_thesis", "type": "negative"}
+  ]
+}

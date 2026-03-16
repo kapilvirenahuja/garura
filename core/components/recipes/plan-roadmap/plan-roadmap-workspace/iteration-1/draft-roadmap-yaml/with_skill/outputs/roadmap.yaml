@@ -1,0 +1,142 @@
+slug: "meridian-os"
+status: "DRAFT"
+created_at: "2026-03-16T00:00:00+0530"
+updated_at: "2026-03-16T00:00:00+0530"
+product_ref: "core/components/recipes/plan-roadmap/evals/fixtures/product.yaml"
+approved_brief_ref: "Tether-approved (pre-condition satisfied)"
+
+# --- The Bet ---
+
+thesis: "Meridian OS bets that intent-driven development — where AI assistants carry persistent project memory and execute structured, auditable workflows — will eliminate the context-switching tax that makes current AI-assisted development wasteful and inconsistent."
+
+narrative: |
+  The roadmap begins with two foundational investments that everything else depends on: Persistent Project Memory (F1) and the Recipe Execution Engine (F2). These are near-horizon, P1 priorities because without a memory layer that survives across sessions and an execution backbone that orchestrates agents reliably, no downstream feature can function. F1 establishes the .meridian/ directory structure, STM/LTM resolution, and config.yaml patterns. F2 builds the recipe/agent/skill hierarchy with JSON contract flows, checkpoint handling, and evidence collection.
+
+  Once the foundation is solid, the mid-horizon focuses on the Artifact Generation Pipeline (F3) and Product Discovery Flow (F4). F3 introduces the 7-artifact schema system where specialized skills produce YAML artifacts and HTML briefs from structured inputs — enabling audience-separated views from a single source of truth. F4 builds on top of both the recipe engine and artifact pipeline to deliver the /discover-product flow, taking engineers from a problem statement to a locked product.yaml with market context, vision, and stakeholder-reviewable HTML briefs.
+
+  The long-horizon addresses Zero-Friction Onboarding (F5), ensuring that adopting Meridian OS requires nothing more than a git clone and /sync-claude. This can be built in parallel with mid-horizon work once the foundation is stable. The deployment model (global vs project mode) is defined here, making sure the barrier to entry stays near zero.
+
+  The overall sequencing is driven by dependency reality: memory before execution, execution before artifacts, artifacts before discovery flows. Risk is concentrated in the medium tier (F2's agent timeout constraints, F3's schema validation gap) but no hard blockers exist. The two foundation features (F1, F2) represent the highest-leverage work — they unlock everything that follows.
+
+# --- Timeline ---
+
+timeline:
+  - horizon: "near"
+    label: "Foundation"
+    feature_refs: ["F1", "F2", "F3"]
+  - horizon: "mid"
+    label: "Product Workflows"
+    feature_refs: ["F4"]
+  - horizon: "long"
+    label: "Adoption & Scale"
+    feature_refs: ["F5"]
+
+# --- Feasibility per feature ---
+
+feasibility:
+  - feature_ref: "F1"
+    feature_name: "Persistent Project Memory"
+    risk_level: "low"
+    technical_risks:
+      - risk: "File system-based STM may not scale to very large projects with thousands of issues"
+        severity: "low"
+        affected_systems: "STM resolution, config.yaml path management"
+        mitigation: "Archive closed issues, lazy-load only active issue context"
+    blockers: []
+    sequencing_constraints: "Must be first — all other features depend on memory layer"
+    architecture_impact: "Establishes .meridian/ directory structure and config.yaml resolution pattern"
+
+  - feature_ref: "F2"
+    feature_name: "Recipe Execution Engine"
+    risk_level: "medium"
+    technical_risks:
+      - risk: "Agent delegation via Claude Code subagents has timeout limits and context constraints"
+        severity: "medium"
+        affected_systems: "Recipe orchestrator, agent invocation, task tracking"
+        mitigation: "Design recipes with <=5 agent calls, use background agents for long-running tasks"
+      - risk: "Pause/resume via status files may have race conditions if user re-invokes during execution"
+        severity: "low"
+        affected_systems: "Status file management, step execution loop"
+        mitigation: "File-level locking on status.json, idempotent step execution"
+    blockers: []
+    sequencing_constraints: "Depends on F1 (memory layer) for STM artifact storage"
+    architecture_impact: "Introduces recipe/agent/skill execution hierarchy, JSON contract pattern"
+
+  - feature_ref: "F3"
+    feature_name: "Artifact Generation Pipeline"
+    risk_level: "medium"
+    technical_risks:
+      - risk: "YAML schema validation is not enforced at runtime — skills may produce non-conforming output"
+        severity: "medium"
+        affected_systems: "All artifact-producing skills, cross-validation skill"
+        mitigation: "Schema files in skill directories + Output Schema section in SKILL.md + validate-implementation-design cross-checks"
+      - risk: "HTML briefs with inline JavaScript comment system may behave differently across browsers"
+        severity: "low"
+        affected_systems: "Brief generation skills, hub.html"
+        mitigation: "Test in Chrome, Safari, Firefox; use only vanilla JS and standard APIs"
+    blockers: []
+    sequencing_constraints: "Depends on F1 (memory) and F2 (recipe engine)"
+    architecture_impact: "Establishes 7-artifact schema system, brief-principles.md design language"
+
+  - feature_ref: "F4"
+    feature_name: "Product Discovery Flow"
+    risk_level: "low"
+    technical_risks:
+      - risk: "Market context quality depends on LLM's knowledge — may produce outdated competitor data"
+        severity: "low"
+        affected_systems: "discover-product-opportunity skill"
+        mitigation: "Domain clarification handling (C11), human review via brief checkpoint"
+    blockers: []
+    sequencing_constraints: "Depends on F2 (recipe engine) and F3 (artifact pipeline)"
+    architecture_impact: "Establishes product.yaml as root artifact in dependency chain"
+
+  - feature_ref: "F5"
+    feature_name: "Zero-Friction Onboarding"
+    risk_level: "low"
+    technical_risks:
+      - risk: "Global deployment (~/.claude/) may conflict with user's existing Claude Code customizations"
+        severity: "medium"
+        affected_systems: "/sync-claude skill, global deployment paths"
+        mitigation: "Sync is additive (mkdir -p + cp), never deletes existing files; --project mode available as safe alternative"
+    blockers: []
+    sequencing_constraints: "Can be built in parallel with F3/F4 after F1 and F2 are done"
+    architecture_impact: "Defines deployment model (global vs project mode)"
+
+# --- Critical blockers ---
+
+critical_blockers: []
+
+# --- Open questions ---
+
+open_questions:
+  - question: "Should recipe execution telemetry be opt-in or opt-out?"
+    affected_features: ["F2"]
+  - question: "How should brief-common.css be distributed — inline in every brief or loaded from a shared path?"
+    affected_features: ["F3"]
+
+# --- Risk summary ---
+
+risk_summary:
+  total_features: 5
+  high_risk_count: 0
+  medium_risk_count: 2
+  blocker_count: 0
+  foundation_features: ["F1", "F2"]
+
+# --- Exclusions ---
+
+exclusions:
+  - category: "Multi-provider support"
+    rationale: "Focus on Claude Code first; other LLM providers are future scope"
+  - category: "Visual IDE plugins"
+    rationale: "CLI-first approach; IDE integration is downstream"
+  - category: "Team collaboration features"
+    rationale: "Single-developer workflow first; team features after core loop is proven"
+
+# --- Assumptions ---
+
+assumptions:
+  - "Claude Code will remain the primary execution environment for at least 12 months"
+  - "Teams are willing to adopt structured workflows if the friction is low enough"
+  - "Intent-driven development produces measurably better AI output than ad-hoc prompting"
+  - "The recipe/agent/skill hierarchy is sufficient to model most development workflows"

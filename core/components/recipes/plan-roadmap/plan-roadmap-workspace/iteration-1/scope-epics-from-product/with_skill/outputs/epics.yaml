@@ -1,0 +1,139 @@
+slug: "meridian-os"
+vision_path: "core/components/recipes/plan-roadmap/evals/fixtures/product.yaml"
+time_horizon: "12 months"
+generated_at: "2026-03-16"
+
+epics:
+  - id: "E1"
+    name: "Project Memory Layer"
+    strategic_goal: "Persistent Context"
+    description: "Build the persistent memory system that stores and retrieves project intent, constraints, decisions, and state across AI sessions. This is the foundational layer that makes every other Meridian capability possible by eliminating the blank-slate problem."
+    bucket: "near"
+    priority: "P1"
+    effort: "L"
+    depends_on: []
+    foundation_investment: true
+    github_issue_ref: "TBD"
+    intent:
+      p1: "Today, every AI session starts from zero. Developers must re-explain their project's architecture, past decisions, current constraints, and intent every time they open a new Claude Code session. This context re-entry is not just tedious — it actively degrades AI output quality because the assistant lacks the accumulated understanding that a human collaborator would build over weeks of working together. Engineering leads managing multiple projects waste hours per week on context bootstrapping, and solo founders lose momentum every time they context-switch between sessions."
+      p2: "After this epic ships, an AI session begins with the full project memory already loaded — the product's intent, architectural constraints, past decisions, and current state. A developer opens Claude Code and the assistant already knows the project's strategic goals, what was decided last week, what is in scope vs out of scope, and what must not break. The developer starts working immediately instead of spending the first 10-15 minutes re-explaining context. The memory persists across sessions, accumulates over time, and is structured enough for the AI to reason about rather than just regurgitate."
+      p3: "Persistent context is the single most differentiating capability Meridian can offer. Without it, Meridian is just another prompt framework. With it, Meridian transforms AI from a session-scoped tool into a project-aware collaborator. SG1 targets >90% of sessions starting with full context, which means the memory layer must be reliable, complete, and automatic — not a manual export-import workflow. This epic directly enables every downstream capability because recipes, agents, and skills all depend on having project context available."
+    constraints:
+      in_scope: "Long-term memory (LTM) storage and retrieval for project intent, constraints, and standards. Short-term memory (STM) for session-scoped artifacts and working state. Memory format definitions (YAML-based). Read and write operations for both LTM and STM from within Claude Code sessions. Memory deployment via sync mechanism to global or project-local paths."
+      out_of_scope: "Multi-user memory synchronization or conflict resolution. Version history or rollback of memory states. Memory encryption or access control. Visual UI for browsing memory contents. Integration with non-Claude AI providers."
+      must_not_break: "None at this stage — foundational epic."
+    success_scenarios:
+      - "Given a project with a locked product.yaml and prior session artifacts, when a developer starts a new Claude Code session, then the AI assistant can reference the project's strategic goals, constraints, and recent decisions without the developer re-explaining them."
+      - "Given a developer who ran /discover-product in a previous session, when they start a new session and ask about the project's architecture constraints, then the AI retrieves and correctly cites the constraints from persistent memory."
+      - "Given LTM containing project standards and STM containing session artifacts, when a recipe executes, then both memory layers are accessible to agents and skills without manual path configuration."
+    failure_conditions:
+      - "A developer must re-explain project context that was established in a prior session because the memory layer failed to persist or retrieve it."
+      - "Memory files exist on disk but agents and skills cannot locate or read them due to path resolution failures."
+      - "The memory layer requires manual export-import steps between sessions rather than automatic persistence."
+
+  - id: "E2"
+    name: "Recipe Execution Engine"
+    strategic_goal: "Structured Workflows"
+    description: "Implement the recipe execution model that turns common development operations into repeatable, auditable workflows. Recipes orchestrate agents and skills in a defined sequence, producing consistent outputs regardless of who invokes them."
+    bucket: "near"
+    priority: "P1"
+    effort: "L"
+    depends_on:
+      - "E1"
+    foundation_investment: true
+    github_issue_ref: "TBD"
+    intent:
+      p1: "AI-assisted development today is improvised. Each developer prompts differently, gets different results, and there is no way to audit what happened or reproduce an outcome. When a complex task like 'plan a roadmap' or 'create a release' requires multiple coordinated steps, developers either do each step manually or write brittle scripts that break when the AI's behavior shifts. There is no standard way to say 'this is how we do X with AI' and have that workflow execute consistently across team members and sessions."
+      p2: "After this epic ships, development teams have a library of structured recipes — L1 recipes for atomic operations (commit, create issue) and L2 recipes for multi-step workflows (plan roadmap, create feature). A developer invokes a recipe and it executes its full chain: loading context, delegating to domain-specific agents, agents invoking skills, skills producing artifacts, and the recipe coordinating the flow. The execution is auditable — each step produces evidence artifacts. The recipes are repeatable — the same recipe on the same input produces structurally consistent output. Teams can share recipes and know that everyone's AI-assisted workflow follows the same process."
+      p3: "Structured workflows are what transform Meridian from a memory layer into an operating system for AI development. SG2 targets >80% recipe success rate without human intervention, which means the execution engine must handle agent delegation, skill invocation, error propagation, and artifact handoff reliably. This epic builds the orchestration backbone that every Meridian capability depends on for execution — the memory layer stores context, but recipes are how work actually gets done."
+    constraints:
+      in_scope: "L1 and L2 recipe definition format (SKILL.md). Recipe invocation from Claude Code. Agent delegation via Task tool with JSON contracts. Skill invocation by agents. Artifact production and handoff between recipe stages. Evidence collection for auditability. Recipe-level eval framework for measuring success rates."
+      out_of_scope: "Visual recipe builder or editor. Runtime recipe composition (combining recipes dynamically). Cross-recipe state management beyond STM. Recipe marketplace or sharing infrastructure. Automated recipe generation from natural language."
+      must_not_break: "Existing Claude Code tool invocation model. Manual agent and skill invocation outside of recipes."
+    success_scenarios:
+      - "Given a defined L2 recipe with 3 agent calls, when a developer invokes the recipe, then it executes all stages in order, delegates to the correct agents, and produces the expected output artifacts in STM."
+      - "Given the same recipe invoked twice with the same input, when both executions complete, then the output artifacts have structurally consistent format and content quality, even if specific text differs."
+      - "Given a recipe execution that completes, when a reviewer audits the run, then evidence artifacts exist for each stage showing what was produced and by which agent."
+    failure_conditions:
+      - "A recipe requires human intervention at more than 20% of its execution steps to complete successfully."
+      - "Agents receive incorrect or incomplete context from the recipe, producing outputs that do not align with the recipe's intent."
+      - "Recipe executions produce no evidence artifacts, making it impossible to audit what happened during the run."
+
+  - id: "E3"
+    name: "Multi-Audience Artifact Generation"
+    strategic_goal: "Audience-Separated Artifacts"
+    description: "Enable generation of product, engineering, and stakeholder artifacts from a single source of truth. Different audiences get appropriately scoped views of the same underlying intent without manual translation or duplication."
+    bucket: "mid"
+    priority: "P2"
+    effort: "M"
+    depends_on:
+      - "E1"
+      - "E2"
+    foundation_investment: false
+    github_issue_ref: "TBD"
+    intent:
+      p1: "Today, translating a product decision into artifacts for different audiences is manual and error-prone. A product spec gets written, then an engineering lead manually translates it into technical requirements, a stakeholder summary gets drafted separately, and these documents immediately drift out of sync. When the product spec changes, downstream artifacts are not updated. Engineering works from stale requirements while the product team has moved on. The same intent gets expressed differently in each document, leading to misalignment that surfaces as bugs, scope disputes, and wasted cycles."
+      p2: "After this epic ships, a single product definition (product.yaml, epics, features) serves as the source of truth, and Meridian generates audience-appropriate artifacts from it. A product strategist gets a roadmap view with strategic goals and priorities. An engineering lead gets technical epics with constraints and success scenarios. A stakeholder gets a progress summary with metrics. When the source changes, regenerated artifacts automatically reflect the update. The developer never manually translates between audiences — the system does it, and every artifact traces back to its source."
+      p3: "Audience separation is what makes Meridian valuable beyond the individual developer. SG3 targets 100% of artifacts derived from shared intent, which means the artifact generation pipeline must be complete and reliable — no artifact should require manual authoring from scratch when a source definition exists. This capability transforms Meridian from a developer productivity tool into a project coordination layer, where AI handles the translation burden that currently falls on engineering leads and product managers."
+    constraints:
+      in_scope: "Artifact generation recipes that read from product.yaml, epics.yaml, and feature definitions. Audience-specific output formats (product roadmap, engineering specs, stakeholder summaries). Traceability links from generated artifacts back to source definitions. Regeneration capability when source definitions change."
+      out_of_scope: "Real-time synchronization between artifacts. Collaborative editing of generated artifacts. Custom audience definition beyond the three standard audiences (product, engineering, stakeholder). Artifact diffing or change highlighting."
+      must_not_break: "Existing product.yaml and epics.yaml formats. Manual artifact creation workflows for cases where generation is not appropriate."
+    success_scenarios:
+      - "Given a locked product.yaml with strategic goals and scoped epics, when a developer invokes the artifact generation recipe for engineering audience, then the output contains technical epics with constraints, success scenarios, and dependency ordering derived entirely from the source definitions."
+      - "Given a product.yaml that was updated after initial artifact generation, when the developer re-runs artifact generation, then the new artifacts reflect the updated source without manual editing."
+    failure_conditions:
+      - "Generated artifacts contain information that cannot be traced back to a source definition in product.yaml or epics.yaml."
+      - "A change to product.yaml requires manual updates to downstream artifacts because the generation pipeline does not propagate changes."
+
+  - id: "E4"
+    name: "Progressive Discovery Pipeline"
+    strategic_goal: "Progressive Enrichment"
+    description: "Build the discovery-to-implementation pipeline that takes a project from a bare idea to a fully scoped, AI-ready state through incremental enrichment. Each stage adds depth without requiring the developer to front-load all decisions."
+    bucket: "near"
+    priority: "P1"
+    effort: "M"
+    depends_on:
+      - "E1"
+    foundation_investment: false
+    github_issue_ref: "TBD"
+    intent:
+      p1: "Starting a new project with AI assistance today is paradoxically harder than it should be. The AI needs extensive context to be useful, but at the start of a project there is very little structured context to provide. Developers face a chicken-and-egg problem: they need AI help to define the project, but the AI needs a defined project to give good help. Most developers either skip the definition phase entirely (leading to poor AI output downstream) or spend hours manually creating structured documents before the AI can participate meaningfully. There is no guided path from 'I have an idea' to 'my AI assistant fully understands my project.'"
+      p2: "After this epic ships, a developer starts with a single sentence — their idea — and Meridian progressively enriches it through a guided pipeline. The /discover-product flow takes the idea through problem definition, user identification, competitive positioning, and strategic goal setting, producing a locked product.yaml. From there, /plan-roadmap derives epics and features. Each stage builds on the previous one, and the developer can stop at any point with a useful artifact. The time from idea to first AI-assisted commit drops below 30 minutes because the developer is guided through structured enrichment rather than starting from a blank page."
+      p3: "Progressive enrichment is how Meridian eliminates the adoption barrier. SG4 targets <30 minutes from idea to first AI-assisted commit, which means the pipeline must be fast, guided, and produce immediately useful artifacts at each stage. This is not about creating perfect specifications — it is about creating good-enough structure fast enough that the AI becomes useful before the developer loses patience. The pipeline embodies the core Meridian thesis: start lightweight, deepen as needed, never front-load more than the current stage requires."
+    constraints:
+      in_scope: "The /discover-product recipe flow from idea to locked product.yaml. The /plan-roadmap recipe flow from product.yaml to scoped epics and features. Stage-by-stage enrichment where each stage reads from the previous stage's output. Guided prompts that help the developer provide the right level of detail at each stage. Intermediate artifacts that are useful standalone even if the pipeline stops."
+      out_of_scope: "Automated enrichment without developer input (fully autonomous discovery). Reverse enrichment — going from detailed artifacts back to simplified views. Cross-project enrichment or template libraries. Pipeline customization or stage reordering."
+      must_not_break: "Existing manual product.yaml creation for developers who prefer to write definitions directly. Existing recipe invocation patterns."
+    success_scenarios:
+      - "Given a developer with only a one-sentence project idea, when they invoke /discover-product and follow the guided flow, then a locked product.yaml with strategic goals, target users, and constraints is produced in under 15 minutes."
+      - "Given a locked product.yaml, when the developer invokes /plan-roadmap, then scoped epics with full IDD fields are derived from the product definition without the developer manually writing epic specifications."
+    failure_conditions:
+      - "The discovery pipeline requires the developer to provide more than 3 inputs before producing a first useful artifact."
+      - "A developer abandons the pipeline mid-flow because intermediate artifacts are not useful without completing the entire pipeline."
+      - "The end-to-end time from idea to first AI-assisted commit exceeds 30 minutes for a straightforward project."
+
+  - id: "E5"
+    name: "Drop-In Claude Code Integration"
+    strategic_goal: "Zero-Friction Adoption"
+    description: "Ensure Meridian works as a pure overlay on existing Claude Code installations with no new infrastructure, no migration, and no workflow disruption. A developer goes from git clone to first recipe execution in under 5 minutes."
+    bucket: "near"
+    priority: "P1"
+    effort: "S"
+    depends_on: []
+    foundation_investment: true
+    github_issue_ref: "TBD"
+    intent:
+      p1: "Developer tooling adoption fails most often at the installation step. Tools that require new infrastructure, complex configuration, or workflow migration get evaluated and abandoned. The current landscape of AI development frameworks requires developers to learn new systems, configure new runtimes, and often abandon their existing workflows. Even tools that are technically superior fail because the cost of switching exceeds the perceived benefit. Developers already have Claude Code installed and working — any new layer must not disrupt that working setup or introduce new dependencies."
+      p2: "After this epic ships, a developer clones the Meridian repository, runs a single sync command, and immediately has access to all recipes, agents, and skills within their existing Claude Code environment. There is no separate runtime, no new CLI to install, no database to configure, no API keys beyond what Claude Code already uses. The developer's existing Claude Code workflows continue to work unchanged — Meridian adds capabilities without removing or modifying anything. Setup takes under 5 minutes, and the developer can invoke their first recipe in the same session."
+      p3: "Zero-friction adoption is not a nice-to-have — it is a survival requirement. SG5 targets <5 minutes from clone to first recipe execution. If Meridian requires even moderate setup effort, it competes unfavorably with the developer's current approach of ad-hoc prompting, which requires zero setup. The integration model — deploying to ~/.claude/ and using Claude Code's native tool system — is the key architectural decision that makes this possible. This epic ensures that decision translates into actual developer experience."
+    constraints:
+      in_scope: "The /sync-claude deployment mechanism from core/components/ to ~/.claude/. Global and project-local deployment modes. CLAUDE.md integration for project-level instructions. Compatibility with standard Claude Code tool invocation. Documentation sufficient for a developer to go from clone to first recipe without external help."
+      out_of_scope: "Support for AI providers other than Claude Code. Auto-update or version management for deployed components. GUI or web-based setup wizards. Package manager distribution (npm, pip, brew)."
+      must_not_break: "Existing Claude Code configuration and settings. Developer's existing ~/.claude/ contents that are not Meridian-managed. Any Claude Code functionality that works without Meridian installed."
+    success_scenarios:
+      - "Given a developer with Claude Code already installed, when they clone the Meridian repository and run /sync-claude, then all recipes, agents, and skills are available for invocation within 5 minutes."
+      - "Given a developer with existing files in ~/.claude/, when they run /sync-claude, then Meridian components are deployed without overwriting or corrupting the developer's existing non-Meridian files."
+    failure_conditions:
+      - "A developer requires more than 5 minutes or more than 3 commands to go from git clone to invoking their first recipe."
+      - "Running /sync-claude breaks the developer's existing Claude Code setup or overwrites non-Meridian configuration."

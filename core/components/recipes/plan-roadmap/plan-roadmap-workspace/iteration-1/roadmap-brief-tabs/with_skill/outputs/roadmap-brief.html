@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roadmap Brief — meridian-os</title>
+<style>
+:root {
+  --bg-primary: #0D1117;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #21262D;
+  --text-primary: #e0e0e8;
+  --text-secondary: #8B949E;
+  --text-dimmed: #484f58;
+  --color-air: #39D353;
+  --color-water: #58A6FF;
+  --color-earth: #8B949E;
+  --color-fire: #F0A000;
+  --status-draft: #fbbf24;
+  --status-validated: #4ade80;
+  --status-locked: #58A6FF;
+  --border-default: #30363d;
+  --border-accent: #58A6FF;
+  --shadow-retro: 4px 4px 0 rgba(33,38,45,1);
+  --comment-highlight: rgba(240,160,0,0.2);
+  --comment-highlight-hover: rgba(240,160,0,0.35);
+  --comment-popup-bg: #21262D;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Arial Rounded MT Bold', 'Nunito', 'Varela Round', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+code, .mono {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: 13px;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+
+/* Header */
+.header {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-retro);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.header h1 {
+  font-size: 28px;
+  color: var(--color-water);
+  border-bottom: 2px solid var(--color-water);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-draft { background: var(--status-draft); color: #0D1117; }
+.status-validated { background: var(--status-validated); color: #0D1117; }
+.status-locked { background: var(--status-locked); color: #0D1117; }
+
+.header-meta {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.header-meta div { margin-bottom: 4px; }
+
+.hub-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--color-water);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.hub-link:hover { text-decoration: underline; }
+
+/* Tab Bar */
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.tab-btn.active {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--color-water);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.comment-count-badge {
+  display: inline-block;
+  background: var(--color-fire);
+  color: #0D1117;
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: bold;
+  margin-left: 6px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Cards */
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  box-shadow: var(--shadow-retro);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card:hover { border-color: var(--border-accent); }
+
+.card h3 {
+  font-size: 16px;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.card-air { border-left: 4px solid var(--color-air); }
+.card-water { border-left: 4px solid var(--color-water); }
+.card-earth { border-left: 4px solid var(--color-earth); }
+.card-fire { border-left: 4px solid var(--color-fire); }
+
+.card p {
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.card ul {
+  list-style: disc;
+  padding-left: 20px;
+  color: var(--text-secondary);
+}
+
+.card ul li {
+  margin-bottom: 6px;
+}
+
+/* Section headings */
+h2 {
+  font-size: 20px;
+  color: var(--color-air);
+  border-bottom: 1px solid var(--border-default);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  margin-top: 24px;
+}
+
+h2:first-child { margin-top: 0; }
+
+/* Timeline */
+.timeline-phase {
+  margin-bottom: 32px;
+}
+
+.phase-label {
+  display: inline-block;
+  padding: 4px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.phase-near { background: var(--color-air); color: #0D1117; }
+.phase-mid { background: var(--color-water); color: #0D1117; }
+.phase-long { background: var(--color-earth); color: #0D1117; }
+
+.feature-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.feature-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 16px;
+  flex: 1 1 250px;
+  box-shadow: var(--shadow-retro);
+}
+
+.feature-card:hover { border-color: var(--border-accent); }
+
+.feature-id {
+  display: inline-block;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  color: var(--color-water);
+  background: var(--bg-tertiary);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.feature-card h4 {
+  font-size: 15px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.risk-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.risk-low { background: var(--color-air); color: #0D1117; }
+.risk-medium { background: var(--color-fire); color: #0D1117; }
+.risk-high { background: #f85149; color: #fff; }
+
+/* Stat cards */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-retro);
+}
+
+.stat-card .stat-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--color-water);
+}
+
+.stat-card .stat-value.fire { color: var(--color-fire); }
+
+.stat-card .stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+th {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+}
+
+td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-default);
+  color: var(--text-secondary);
+}
+
+tr:hover { background: rgba(88,166,255,0.05); }
+
+/* Feasibility per-feature */
+.feasibility-card {
+  margin-bottom: 20px;
+}
+
+.feasibility-card .meta {
+  color: var(--text-dimmed);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+/* Comments */
+.comment-list-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.comment-list-item .excerpt {
+  background: var(--comment-highlight);
+  border-left: 3px solid var(--color-fire);
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-style: italic;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.comment-list-item .tab-label {
+  font-size: 11px;
+  color: var(--text-dimmed);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.comment-list-item .comment-text {
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.comment-list-item .delete-btn {
+  background: transparent;
+  border: 1px solid var(--color-fire);
+  color: var(--color-fire);
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.comment-list-item .delete-btn:hover {
+  background: var(--color-fire);
+  color: #0D1117;
+}
+
+/* Action buttons */
+.action-bar {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-default);
+}
+
+.action-btn {
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-tether {
+  background: var(--color-air);
+  color: #0D1117;
+}
+
+.btn-tether:hover { filter: brightness(1.1); }
+
+.btn-vanish {
+  background: transparent;
+  border: 1px solid var(--color-fire);
+  color: var(--color-fire);
+}
+
+.btn-vanish:hover {
+  background: var(--color-fire);
+  color: #0D1117;
+}
+
+.btn-orbit {
+  background: transparent;
+  border: 1px solid var(--color-water);
+  color: var(--color-water);
+}
+
+.btn-orbit:hover {
+  background: var(--color-water);
+  color: #0D1117;
+}
+
+.export-bar {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.export-btn {
+  padding: 8px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.export-btn:hover { border-color: var(--border-accent); }
+
+/* Comment popup */
+.comment-popup {
+  position: fixed;
+  display: none;
+  background: var(--comment-popup-bg);
+  border: 1px solid var(--border-accent);
+  border-radius: 8px;
+  padding: 16px;
+  width: 320px;
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.comment-popup h4 {
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.comment-popup .selected-preview {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: 10px;
+  max-height: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comment-popup textarea {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 8px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  min-height: 60px;
+  margin-bottom: 10px;
+}
+
+.comment-popup textarea:focus {
+  outline: none;
+  border-color: var(--border-accent);
+}
+
+.comment-popup .popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.comment-popup .popup-actions button {
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  border: none;
+}
+
+.popup-cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.popup-save {
+  background: var(--color-water);
+  color: #0D1117;
+  font-weight: 600;
+}
+
+/* Comment highlights */
+.comment-highlight {
+  background: var(--comment-highlight);
+  cursor: pointer;
+  border-bottom: 2px solid var(--color-fire);
+}
+
+.comment-highlight:hover {
+  background: var(--comment-highlight-hover);
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-dimmed);
+}
+
+.empty-state p {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--color-air);
+  color: #0D1117;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  z-index: 2000;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <h1>Roadmap Brief</h1>
+      <span class="status-badge status-draft">DRAFT</span>
+    </div>
+    <div class="header-meta">
+      <div><strong>Slug:</strong> meridian-os</div>
+      <div><strong>Generated:</strong> <span id="generated-time"></span></div>
+      <div><strong>Source:</strong> core/components/recipes/plan-roadmap/evals/fixtures/product.yaml</div>
+    </div>
+    <a href="hub.html" class="hub-link">&larr; Hub</a>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('strategy')">Strategy</button>
+    <button class="tab-btn" onclick="switchTab('timeline')">Timeline</button>
+    <button class="tab-btn" onclick="switchTab('feasibility')">Feasibility</button>
+    <button class="tab-btn" onclick="switchTab('comments')">Comments <span class="comment-count-badge" id="comment-count">0</span></button>
+  </div>
+
+  <!-- Tab 1: Strategy -->
+  <div id="tab-strategy" class="tab-content active">
+
+    <div class="card card-air">
+      <h3>The Bet</h3>
+      <p>Meridian OS bets that intent-driven development will replace ad-hoc AI prompting. By giving AI assistants persistent project memory (SG1) and structured, auditable workflows (SG2), engineering teams will stop babysitting AI and start delegating to it. If we build the operating layer that makes every AI session start informed rather than blank, we capture the workflow layer that Copilot, Cursor, and general-purpose frameworks have left open. The five epics — from foundational memory and recipe execution to artifact generation, product discovery, and zero-friction onboarding — form the progressive stack that proves this thesis.</p>
+    </div>
+
+    <div class="card card-water">
+      <h3>The Story</h3>
+      <p>Today, software teams using AI assistants waste enormous time on context switching, prompt engineering, and re-explaining project state to every new session. Engineers spend 10-15 minutes per session re-establishing context that should have persisted. Development operations like feature planning, code review, and shipping are ad-hoc — each engineer prompts differently, producing inconsistent results with no audit trail.</p>
+      <p>Meridian OS addresses this by building a three-layer stack. First, a persistent memory layer (F1) ensures AI sessions start with full project intent, constraints, and recent decisions already loaded. Second, a recipe execution engine (F2) turns common development operations into structured, repeatable workflows that delegate to specialized agents — producing auditable evidence of what was done and why. Third, an artifact generation pipeline (F3) produces audience-separated documents from a single source of truth, ending the manual synchronization tax across product, engineering, and stakeholder docs.</p>
+      <p>On top of this foundation, the product discovery flow (F4) gives teams a structured path from idea to validated product vision within a single session, while zero-friction onboarding (F5) ensures adoption requires nothing more than a git clone and a single sync command. The result is a system where AI assistants have durable context, workflows are deterministic, and artifacts trace back to shared intent.</p>
+      <p>The strategic bet is that teams willing to adopt structured workflows — if the friction is low enough — will produce measurably better AI output than those relying on ad-hoc prompting. Meridian OS is built to prove that thesis.</p>
+    </div>
+
+    <div class="card card-earth">
+      <h3>Assumptions</h3>
+      <ul>
+        <li>Claude Code will remain the primary execution environment for at least 12 months</li>
+        <li>Teams are willing to adopt structured workflows if the friction is low enough</li>
+        <li>Intent-driven development produces measurably better AI output than ad-hoc prompting</li>
+        <li>The recipe/agent/skill hierarchy is sufficient to model most development workflows</li>
+      </ul>
+    </div>
+
+    <div class="card card-earth">
+      <h3>Exclusions</h3>
+      <ul>
+        <li><strong>Multi-provider support</strong> — Focus on Claude Code first; other LLM providers are future scope</li>
+        <li><strong>Visual IDE plugins</strong> — CLI-first approach; IDE integration is downstream</li>
+        <li><strong>Team collaboration features</strong> — Single-developer workflow first; team features after core loop is proven</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Tab 2: Timeline -->
+  <div id="tab-timeline" class="tab-content">
+
+    <div class="timeline-phase">
+      <div class="phase-label phase-near">MVP (Near)</div>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <span class="feature-id">F1</span>
+          <h4>Persistent Project Memory</h4>
+          <p style="color:var(--text-secondary); font-size:13px; margin-top:4px;">SG1 — Persistent Context</p>
+          <div style="margin-top:8px;">
+            <span class="risk-badge risk-low">Low Risk</span>
+            <span style="color:var(--text-dimmed); font-size:12px; margin-left:8px;">Foundation</span>
+          </div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-id">F2</span>
+          <h4>Recipe Execution Engine</h4>
+          <p style="color:var(--text-secondary); font-size:13px; margin-top:4px;">SG2 — Structured Workflows</p>
+          <div style="margin-top:8px;">
+            <span class="risk-badge risk-medium">Medium Risk</span>
+            <span style="color:var(--text-dimmed); font-size:12px; margin-left:8px;">Foundation</span>
+          </div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-id">F3</span>
+          <h4>Artifact Generation Pipeline</h4>
+          <p style="color:var(--text-secondary); font-size:13px; margin-top:4px;">SG3 — Audience-Separated Artifacts</p>
+          <div style="margin-top:8px;">
+            <span class="risk-badge risk-medium">Medium Risk</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-phase">
+      <div class="phase-label phase-mid">MVP-Beyond (Mid)</div>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <span class="feature-id">F4</span>
+          <h4>Product Discovery Flow</h4>
+          <p style="color:var(--text-secondary); font-size:13px; margin-top:4px;">SG4 — Progressive Enrichment</p>
+          <div style="margin-top:8px;">
+            <span class="risk-badge risk-low">Low Risk</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-phase">
+      <div class="phase-label phase-long">Future (Long)</div>
+      <div class="feature-cards">
+        <div class="feature-card">
+          <span class="feature-id">F5</span>
+          <h4>Zero-Friction Onboarding</h4>
+          <p style="color:var(--text-secondary); font-size:13px; margin-top:4px;">SG5 — Zero-Friction Adoption</p>
+          <div style="margin-top:8px;">
+            <span class="risk-badge risk-low">Low Risk</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tab 3: Feasibility -->
+  <div id="tab-feasibility" class="tab-content">
+
+    <h2>Risk Summary</h2>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value">5</div>
+        <div class="stat-label">Total Features</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">0</div>
+        <div class="stat-label">High Risk</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value fire">2</div>
+        <div class="stat-label">Medium Risk</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">0</div>
+        <div class="stat-label">Blockers</div>
+      </div>
+    </div>
+
+    <h2>Per-Feature Feasibility</h2>
+
+    <!-- F1 -->
+    <div class="card feasibility-card">
+      <h3><span class="feature-id">F1</span> Persistent Project Memory</h3>
+      <div style="margin-bottom:12px;"><span class="risk-badge risk-low">Low Risk</span></div>
+      <table>
+        <thead>
+          <tr><th>Risk</th><th>Severity</th><th>Affected Systems</th><th>Mitigation</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>File system-based STM may not scale to very large projects with thousands of issues</td>
+            <td>Low</td>
+            <td>STM resolution, config.yaml path management</td>
+            <td>Archive closed issues, lazy-load only active issue context</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="color:var(--text-secondary); font-size:13px;"><strong>Sequencing:</strong> Must be first — all other features depend on memory layer</p>
+      <p style="color:var(--text-secondary); font-size:13px;"><strong>Architecture Impact:</strong> Establishes .meridian/ directory structure and config.yaml resolution pattern</p>
+    </div>
+
+    <!-- F2 -->
+    <div class="card feasibility-card">
+      <h3><span class="feature-id">F2</span> Recipe Execution Engine</h3>
+      <div style="margin-bottom:12px;"><span class="risk-badge risk-medium">Medium Risk</span></div>
+      <table>
+        <thead>
+          <tr><th>Risk</th><th>Severity</th><th>Affected Systems</th><th>Mitigation</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Agent delegation via Claude Code subagents has timeout limits and context constraints</td>
+            <td>Medium</td>
+            <td>Recipe orchestrator, agent invocation, task tracking</td>
+            <td>Design recipes with &le;5 agent calls, use background agents for long-running tasks</td>
+          </tr>
+          <tr>
+            <td>Pause/resume via status files may have race conditions if user re-invokes during execution</td>
+            <td>Low</td>
+            <td>Status file management, step execution loop</td>
+            <td>File-level locking on status.json, idempotent step execution</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="color:var(--text-secondary); font-size:13px;"><strong>Sequencing:</strong> Depends on F1 (memory layer) for STM artifact storage</p>
+      <p style="color:var(--text-secondary); font-size:13px;"><strong>Architecture Impact:</strong> Introduces recipe/agent/skill execution hierarchy, JSON contract pattern</p>
+    </div>
+
+    <!-- F3 -->
+    <div class="card feasibility-card">
+      <h3><span class="feature-id">F3</span> Artifact Generation Pipeline</h3>
+      <div style="margin-bottom:12px;"><span class="risk-badge risk-medium">Medium Risk</span></div>
+      <table>
+        <thead>
+          <tr><th>Risk</th><th>Severity</th><th>Affected Systems</th><th>Mitigation</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>YAML schema validation is not enforced at runtime — skills may produce non-conforming output</td>
+            <td>Medium</td>
+            <td>All artifact-producing skills, cross-validation skill</td>
+            <td>Schema files in skill directories + Output Schema section in SKILL.md + validate-implementation-design cross-checks</td>
+          </tr>
+          <tr>
+            <td>HTML briefs with inline JavaScript comment system may behave differently across browsers</td>
+            <td>Low</td>
+            <td>Brief generation skills, hub.html</td>
+            <td>Test in Chrome, Safari, Firefox; use only vanilla JS and standard APIs</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="color:var(--text-secondary); font-size:13px;"><strong>Sequencing:</strong> Depends on F1 (memory) and F2 (recipe engine)</p>
+      <p style="color:var(--text-secondary); font-size:13px;"><strong>Architecture Impact:</strong> Establishes 7-artifact schema system, brief-principles.md design language</p>
+    </div>
+
+    <!-- F4 -->
+    <div class="card feasibility-card">
+      <h3><span class="feature-id">F4</span> Product Discovery Flow</h3>
+      <div style="margin-bottom:12px;"><span class="risk-badge risk-low">Low Risk</span></div>
+      <table>
+        <thead>
+          <tr><th>Risk</th><th>Severity</th><th>Affected Systems</th><th>Mitigation</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Market context quality depends on LLM's knowledge — may produce outdated competitor data</td>
+            <td>Low</td>
+            <td>discover-product-opportunity skill</td>
+            <td>Domain clarification handling (C11), human review via brief checkpoint</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="color:var(--text-secondary); font-size:13px;"><strong>Sequencing:</strong> Depends on F2 (recipe engine) and F3 (artifact pipeline)</p>
+      <p style="color:var(--text-secondary); font-size:13px;"><strong>Architecture Impact:</strong> Establishes product.yaml as root artifact in dependency chain</p>
+    </div>
+
+    <!-- F5 -->
+    <div class="card feasibility-card">
+      <h3><span class="feature-id">F5</span> Zero-Friction Onboarding</h3>
+      <div style="margin-bottom:12px;"><span class="risk-badge risk-low">Low Risk</span></div>
+      <table>
+        <thead>
+          <tr><th>Risk</th><th>Severity</th><th>Affected Systems</th><th>Mitigation</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Global deployment (~/.claude/) may conflict with user's existing Claude Code customizations</td>
+            <td>Medium</td>
+            <td>/sync-claude skill, global deployment paths</td>
+            <td>Sync is additive (mkdir -p + cp), never deletes existing files; --project mode available as safe alternative</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="color:var(--text-secondary); font-size:13px;"><strong>Sequencing:</strong> Can be built in parallel with F3/F4 after F1 and F2 are done</p>
+      <p style="color:var(--text-secondary); font-size:13px;"><strong>Architecture Impact:</strong> Defines deployment model (global vs project mode)</p>
+    </div>
+
+    <h2>Open Questions</h2>
+    <div class="card card-water">
+      <ul>
+        <li><strong>Should recipe execution telemetry be opt-in or opt-out?</strong><br><span style="color:var(--text-dimmed); font-size:12px;">Affected: F2</span></li>
+        <li style="margin-top:12px;"><strong>How should brief-common.css be distributed — inline in every brief or loaded from a shared path?</strong><br><span style="color:var(--text-dimmed); font-size:12px;">Affected: F3</span></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Tab 4: Comments -->
+  <div id="tab-comments" class="tab-content">
+    <h2>Comments</h2>
+    <div id="comments-list">
+      <div class="empty-state" id="no-comments">
+        <p>No comments yet. Select text in any tab to add inline comments.</p>
+      </div>
+    </div>
+
+    <div class="export-bar">
+      <button class="export-btn" onclick="exportFeedbackJSON()">Export Comments JSON</button>
+      <button class="export-btn" onclick="copyFeedbackJSON()">Copy</button>
+    </div>
+
+    <div style="margin-top:16px; margin-bottom:8px; color:var(--text-secondary); font-size:14px;"><strong>Overall Action:</strong></div>
+    <div class="action-bar">
+      <button class="action-btn btn-tether" onclick="exportFeedback('tether')">Tether</button>
+      <button class="action-btn btn-vanish" onclick="exportFeedback('vanish')">Vanish</button>
+      <button class="action-btn btn-orbit" onclick="exportFeedback('orbit')">Orbit</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Comment Popup -->
+<div class="comment-popup" id="comment-popup">
+  <h4>Add Comment</h4>
+  <div class="selected-preview" id="popup-selected-text"></div>
+  <textarea id="popup-comment-input" placeholder="Your comment..."></textarea>
+  <div class="popup-actions">
+    <button class="popup-cancel" onclick="closePopup()">Cancel</button>
+    <button class="popup-save" onclick="saveCommentFromPopup()">Save</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  var STORAGE_KEY = 'meridian-comments-roadmap-meridian-os';
+  var comments = [];
+  var currentSelection = null;
+  var currentTab = 'strategy';
+
+  // Set generated timestamp
+  document.getElementById('generated-time').textContent = new Date().toISOString().replace('T', ' ').split('.')[0] + ' UTC';
+
+  // Initialize from URL hash
+  var hash = window.location.hash.replace('#', '');
+  if (['strategy', 'timeline', 'feasibility', 'comments'].indexOf(hash) !== -1) {
+    switchTab(hash);
+  }
+
+  // Load comments from localStorage
+  loadComments();
+
+  // Tab navigation
+  function switchTab(tabName) {
+    currentTab = tabName;
+
+    // Update tab buttons
+    var btns = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.remove('active');
+    }
+
+    var tabNames = ['strategy', 'timeline', 'feasibility', 'comments'];
+    var idx = tabNames.indexOf(tabName);
+    if (idx >= 0 && btns[idx]) {
+      btns[idx].classList.add('active');
+    }
+
+    // Update tab content
+    var contents = document.querySelectorAll('.tab-content');
+    for (var j = 0; j < contents.length; j++) {
+      contents[j].classList.remove('active');
+    }
+
+    var target = document.getElementById('tab-' + tabName);
+    if (target) {
+      target.classList.add('active');
+    }
+
+    // Update URL hash
+    window.location.hash = tabName;
+
+    // Re-render comments if switching to comments tab
+    if (tabName === 'comments') {
+      renderComments();
+    }
+  }
+  window.switchTab = switchTab;
+
+  // Text selection handling
+  function handleTextSelection() {
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.toString().trim()) {
+      return;
+    }
+
+    var selectedText = sel.toString().trim();
+    if (selectedText.length < 3) return;
+
+    // Only allow comments in content tabs (not in the comments tab itself)
+    var node = sel.anchorNode;
+    while (node && node !== document.body) {
+      if (node.id === 'tab-comments' || node.id === 'comment-popup') {
+        return;
+      }
+      node = node.parentNode;
+    }
+
+    // Determine which tab the selection is in
+    var tabNode = sel.anchorNode;
+    var tabName = currentTab;
+    while (tabNode && tabNode !== document.body) {
+      if (tabNode.classList && tabNode.classList.contains('tab-content')) {
+        var tid = tabNode.id.replace('tab-', '');
+        if (tid) tabName = tid;
+        break;
+      }
+      tabNode = tabNode.parentNode;
+    }
+
+    currentSelection = {
+      text: selectedText,
+      range: sel.getRangeAt(0).cloneRange(),
+      tabName: tabName
+    };
+
+    showPopup(sel);
+  }
+  window.handleTextSelection = handleTextSelection;
+
+  function showPopup(sel) {
+    var popup = document.getElementById('comment-popup');
+    var rect = sel.getRangeAt(0).getBoundingClientRect();
+
+    document.getElementById('popup-selected-text').textContent = '"' + currentSelection.text.substring(0, 120) + (currentSelection.text.length > 120 ? '...' : '') + '"';
+    document.getElementById('popup-comment-input').value = '';
+
+    var left = rect.left + window.scrollX;
+    var top = rect.bottom + window.scrollY + 8;
+
+    // Viewport awareness
+    if (top + 250 > window.innerHeight + window.scrollY) {
+      top = rect.top + window.scrollY - 250;
+    }
+    if (left + 320 > window.innerWidth) {
+      left = window.innerWidth - 340;
+    }
+    if (left < 10) left = 10;
+
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
+    popup.style.display = 'block';
+
+    document.getElementById('popup-comment-input').focus();
+  }
+
+  function closePopup() {
+    document.getElementById('comment-popup').style.display = 'none';
+    currentSelection = null;
+    window.getSelection().removeAllRanges();
+  }
+  window.closePopup = closePopup;
+
+  function saveCommentFromPopup() {
+    var commentText = document.getElementById('popup-comment-input').value.trim();
+    if (!commentText || !currentSelection) {
+      closePopup();
+      return;
+    }
+    saveComment(currentSelection.text, commentText, currentSelection.tabName);
+    closePopup();
+  }
+  window.saveCommentFromPopup = saveCommentFromPopup;
+
+  function saveComment(selectedText, comment, tabName) {
+    var id = 'c-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+
+    var commentObj = {
+      id: id,
+      tab: tabName,
+      selected_text: selectedText,
+      comment: comment,
+      created_at: new Date().toISOString()
+    };
+
+    comments.push(commentObj);
+    saveCommentsToStorage();
+
+    // Highlight the selected text
+    if (currentSelection && currentSelection.range) {
+      try {
+        var span = document.createElement('span');
+        span.className = 'comment-highlight';
+        span.setAttribute('data-comment-id', id);
+        span.title = comment;
+        currentSelection.range.surroundContents(span);
+      } catch (e) {
+        // If surroundContents fails (e.g. partial element selection), skip highlight
+      }
+    }
+
+    updateCommentCount();
+    showToast('Comment saved');
+  }
+  window.saveComment = saveComment;
+
+  function deleteComment(commentId) {
+    // Remove from array
+    comments = comments.filter(function(c) { return c.id !== commentId; });
+    saveCommentsToStorage();
+
+    // Remove highlight
+    var highlight = document.querySelector('[data-comment-id="' + commentId + '"]');
+    if (highlight) {
+      var parent = highlight.parentNode;
+      while (highlight.firstChild) {
+        parent.insertBefore(highlight.firstChild, highlight);
+      }
+      parent.removeChild(highlight);
+    }
+
+    updateCommentCount();
+    renderComments();
+    showToast('Comment deleted');
+  }
+  window.deleteComment = deleteComment;
+
+  function renderComments() {
+    var container = document.getElementById('comments-list');
+    var noComments = document.getElementById('no-comments');
+
+    if (comments.length === 0) {
+      container.innerHTML = '';
+      var empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.id = 'no-comments';
+      empty.innerHTML = '<p>No comments yet. Select text in any tab to add inline comments.</p>';
+      container.appendChild(empty);
+      return;
+    }
+
+    var html = '';
+    for (var i = 0; i < comments.length; i++) {
+      var c = comments[i];
+      html += '<div class="comment-list-item">';
+      html += '<div class="tab-label">Tab: ' + c.tab.charAt(0).toUpperCase() + c.tab.slice(1) + '</div>';
+      html += '<div class="excerpt">"' + escapeHtml(c.selected_text.substring(0, 150)) + (c.selected_text.length > 150 ? '...' : '') + '"</div>';
+      html += '<div class="comment-text">' + escapeHtml(c.comment) + '</div>';
+      html += '<button class="delete-btn" onclick="deleteComment(\'' + c.id + '\')">Delete</button>';
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+  window.renderComments = renderComments;
+
+  function loadComments() {
+    try {
+      var stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        comments = JSON.parse(stored);
+      }
+    } catch (e) {
+      comments = [];
+    }
+    updateCommentCount();
+  }
+  window.loadComments = loadComments;
+
+  function saveCommentsToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+    } catch (e) {
+      // localStorage may be unavailable
+    }
+  }
+  window.saveCommentsToStorage = saveCommentsToStorage;
+
+  function updateCommentCount() {
+    var badge = document.getElementById('comment-count');
+    if (badge) {
+      badge.textContent = comments.length;
+      badge.style.display = comments.length > 0 ? 'inline-block' : 'none';
+    }
+  }
+
+  function buildFeedbackJSON(action) {
+    return {
+      artifact: 'roadmap-brief',
+      slug: 'meridian-os',
+      timestamp: new Date().toISOString(),
+      comments: comments.map(function(c) {
+        return {
+          id: c.id,
+          tab: c.tab,
+          selected_text: c.selected_text,
+          comment: c.comment,
+          created_at: c.created_at
+        };
+      }),
+      action: action || null
+    };
+  }
+
+  function exportFeedbackJSON() {
+    var json = JSON.stringify(buildFeedbackJSON(null), null, 2);
+    copyToClipboard(json);
+    showToast('Feedback JSON copied to clipboard');
+  }
+  window.exportFeedbackJSON = exportFeedbackJSON;
+
+  function copyFeedbackJSON() {
+    var json = JSON.stringify(buildFeedbackJSON(null), null, 2);
+    copyToClipboard(json);
+    showToast('Copied to clipboard');
+  }
+  window.copyFeedbackJSON = copyFeedbackJSON;
+
+  function exportFeedback(action) {
+    var json = JSON.stringify(buildFeedbackJSON(action), null, 2);
+    copyToClipboard(json);
+
+    // Clear storage after action
+    comments = [];
+    saveCommentsToStorage();
+
+    // Remove all highlights
+    var highlights = document.querySelectorAll('.comment-highlight');
+    for (var i = 0; i < highlights.length; i++) {
+      var hl = highlights[i];
+      var parent = hl.parentNode;
+      while (hl.firstChild) {
+        parent.insertBefore(hl.firstChild, hl);
+      }
+      parent.removeChild(hl);
+    }
+
+    updateCommentCount();
+    renderComments();
+    showToast('Feedback exported (' + action + ') — comments cleared');
+  }
+  window.exportFeedback = exportFeedback;
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+  }
+
+  function showToast(msg) {
+    var toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(function() {
+      toast.classList.remove('show');
+    }, 2500);
+  }
+
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+  }
+
+  // Listen for text selection
+  document.addEventListener('mouseup', function(e) {
+    var popup = document.getElementById('comment-popup');
+    if (popup.contains(e.target)) return;
+
+    setTimeout(function() {
+      handleTextSelection();
+    }, 10);
+  });
+
+  // Close popup on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closePopup();
+    }
+  });
+
+  // Close popup when clicking outside
+  document.addEventListener('mousedown', function(e) {
+    var popup = document.getElementById('comment-popup');
+    if (popup.style.display === 'block' && !popup.contains(e.target)) {
+      closePopup();
+    }
+  });
+
+  // Handle hash changes
+  window.addEventListener('hashchange', function() {
+    var h = window.location.hash.replace('#', '');
+    if (['strategy', 'timeline', 'feasibility', 'comments'].indexOf(h) !== -1) {
+      switchTab(h);
+    }
+  });
+
+})();
+</script>
+
+</body>
+</html>

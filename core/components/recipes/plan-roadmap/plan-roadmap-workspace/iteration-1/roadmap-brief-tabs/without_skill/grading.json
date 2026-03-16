@@ -1,0 +1,34 @@
+{
+  "expectations": [
+    {
+      "text": "is_self_contained_html",
+      "passed": true,
+      "evidence": "No CDN links, external stylesheets, or external script references found. All CSS is inline in a <style> block and all JavaScript is inline in a <script> block. The only match for 'CDN' is in a failure_conditions text string describing what NOT to do, not an actual external dependency."
+    },
+    {
+      "text": "has_4_tabs",
+      "passed": true,
+      "evidence": "Four tab buttons present with data-tab attributes: Strategy (line 648), Timeline (line 649), Feasibility (line 650), Comments (line 651). Each has a corresponding tab-content div: tab-strategy, tab-timeline, tab-feasibility, tab-comments."
+    },
+    {
+      "text": "lifeos_dark_tokens",
+      "passed": true,
+      "evidence": "Both required tokens are present: --bg-primary: #0D1117 (line 9) and --color-water: #58A6FF (line 15). Note: the file uses a different naming convention for other palette tokens (--color-success, --color-warning, --color-danger instead of --color-air, --color-earth, --color-fire), but the two specifically asserted tokens are correct."
+    },
+    {
+      "text": "inline_comment_system",
+      "passed": false,
+      "evidence": "The file has renderComments (line 1288) and saveComments (line 1343, plural — saves to storage, not the same as saveComment which creates a single comment). However, handleTextSelection is NOT present as a named function — text selection is handled by an anonymous mouseup listener. deleteComment is NOT present as a named function — deletion is handled via inline event listeners on buttons. exportFeedback is NOT present as a named function — export is handled via an anonymous click listener on export-comments-btn. Of the 5 required functions (handleTextSelection, saveComment, deleteComment, renderComments, exportFeedback), only renderComments is present by exact name."
+    },
+    {
+      "text": "localstorage_persistence",
+      "passed": false,
+      "evidence": "localStorage is used (setItem at line 1345, getItem at line 1351), but the storage key is 'meridian-roadmap-brief-comments' (line 1154), not the required 'meridian-comments' key prefix. The assertion requires the 'meridian-comments' key."
+    },
+    {
+      "text": "tether_vanish_orbit_actions",
+      "passed": true,
+      "evidence": "Three action buttons present: Tether (btn-tether, line 1130), Vanish (btn-vanish, line 1131), Orbit (btn-orbit, line 1132). Each has click handlers that call showActionResult with the respective action type and saves the action to localStorage."
+    }
+  ]
+}
