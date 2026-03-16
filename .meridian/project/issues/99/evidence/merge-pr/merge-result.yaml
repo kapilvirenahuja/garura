@@ -1,0 +1,54 @@
+merge_result:
+  timestamp: "2026-03-16T14:20:29Z"
+  status: merged
+  pr_number: 101
+  merge_sha: "f6601e8596cd280ed608a955b8ffeb7a37739e55"
+  merge_strategy: default (merge commit)
+  branch_merged: feature/99-standardize-artifact-naming-yaml-html-brief-pairs
+  base_branch: main
+  branch_deleted: true
+  branch_deleted_remote: true
+  branch_deleted_local: true
+  branch_deletion_note: "Remote branch was deleted by gh pr merge --delete-branch. Local tracking refs pruned via git remote prune origin. Local branch was not present (already switched to main)."
+
+  post_merge_state:
+    current_branch: main
+    head_sha: "f6601e8596cd280ed608a955b8ffeb7a37739e55"
+    head_subject: "Merge pull request #101 from kapilvirenahuja/feature/99-standardize-artifact-naming-yaml-html-brief-pairs"
+    working_tree: clean (untracked files only — .claude/settings.json, evidence artifacts — non-blocking)
+    local_in_sync_with_remote: true
+
+  evals:
+    SE-1:
+      description: "Skill did not proceed past conflict state — PR was mergeable before merge"
+      status: PASS
+      evidence: "readiness.yaml shows merge_conflicts: PASS and PR state OPEN with no conflict markers"
+    SE-2:
+      description: "Feature branch deleted — absent locally and on remote"
+      status: PASS
+      evidence: "git remote prune pruned origin/feature/99-standardize-artifact-naming-yaml-html-brief-pairs. Local branch was absent post-switch. branch_deleted == true."
+    SE-3:
+      description: "Local checkout on base branch, up to date"
+      status: PASS
+      evidence: "git branch --show-current = main. HEAD SHA matches origin/main SHA f6601e85."
+    SE-4:
+      description: "Pre-merge tree was clean"
+      status: PASS
+      evidence: "git status --porcelain showed only untracked files before merge. No staged or modified tracked files."
+    SE-5:
+      description: "PR merged on platform, pr_number set"
+      status: PASS
+      evidence: "gh pr view 101 returned state=MERGED, mergeCommit.oid=f6601e8596cd280ed608a955b8ffeb7a37739e55, mergedAt=2026-03-16T14:20:29Z"
+
+  scenario_evals:
+    SCE-1:
+      description: "S1 Developer — local HEAD on base branch, git pull up to date, feature branch absent everywhere"
+      status: PASS
+      evidence: "Branch = main. HEAD is f6601e85. Feature branch absent locally and from remote refs (pruned)."
+    SCE-2:
+      description: "S2 Code Reviewer — platform PR state is merged, merge_sha present in git log on base branch"
+      status: PASS
+      evidence: "GitHub PR #101 state = MERGED. merge_sha f6601e85 is HEAD of main (merge commit)."
+
+  blocking_issues: none
+  overall: COMPLETE

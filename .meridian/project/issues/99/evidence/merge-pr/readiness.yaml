@@ -1,0 +1,31 @@
+readiness:
+  timestamp: "2026-03-16"
+  pr:
+    number: 101
+    url: "https://github.com/kapilvirenahuja/meridian-os/pull/101"
+    title: "feat(prepare-implementation): add recipe and standardize YAML/HTML artifact pairs (#99)"
+    state: OPEN
+    author: kapilvirenahuja
+    branch: feature/99-standardize-artifact-naming-yaml-html-brief-pairs
+    base: main
+    additions: 11793
+    deletions: 749
+    auto_merge: disabled
+
+  checks:
+    pr_exists: PASS
+    pr_state_open: PASS
+    merge_conflicts: PASS
+    working_tree_clean: PASS
+    untracked_files_present: true
+    untracked_files_note: ".claude/settings.json and evidence files — do not block merge"
+
+  pr_quality_summary:
+    required_items_pass: 12
+    required_items_fail: 0
+    review_items: 3
+    blocking_issues: none
+    overall: "Ready to merge — 3 REVIEW items are non-blocking follow-ups"
+
+  verdict: READY
+  merge_strategy: default (merge commit)
