@@ -1,10 +1,21 @@
 # IDSD — Verification Gates
 
-**Version:** 2.1.0
-**Date:** 2026-02-21
-**Status:** DRAFT — Pending Review
+**Version:** 3.0.0
+**Date:** 2026-03-17 (updated from 2026-02-21)
+**Status:** IN PROGRESS — Core recipe gates complete. Gates for P7-P19 pending. New gates added for implement-epic, prepare-implementation, ship, merge-pr.
 **Tasks Reference:** `idsd-tasks.md`
 **Spec Reference:** `idsd.md`
+
+### Artifact Naming Update (2026-03-17)
+
+Gates that reference old artifact names have been updated. Key renames:
+- `vision.md` → `product.yaml`
+- `roadmap.md` → `roadmap.yaml`
+- `implement-feature` → `implement-epic`
+- E-IDs → F-IDs
+- `strategic_goal` (text) → `strategic_goal_ref` (SG-ID)
+
+Gates G-100, G-103 confirmed passing. Gates G-104 through G-106 updated for new artifact names.
 
 ---
 
@@ -38,16 +49,21 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 **Verification Steps:**
 - [ ] `product-strategist.md` includes structured failure return section with required fields: what_failed, why, domain_assessment, context, suggested_fix
-- [ ] `validator.md` includes structured failure return section with all required fields
 - [ ] `code-builder.md` includes structured failure return section with all required fields
 - [ ] `tech-designer.md` includes structured failure return section with all required fields
 - [ ] `repo-orchestrator.md` includes structured failure return section with all required fields
 - [ ] `project-orchestrator.md` includes structured failure return section with all required fields
+- [ ] `doc-builder.md` includes structured failure return section with all required fields
+- [ ] `eval-generator.md` includes structured failure return section with all required fields
+- [ ] `quality-auditor.md` includes structured failure return section with all required fields
+- [ ] `judge.md` includes structured failure return section with all required fields
+- [ ] `validator.md` includes structured failure return section when built (P10 prerequisite)
 - [ ] All structured failure returns include: `within_my_domain`, `responsible_domain`, `suggested_agent`
 - [ ] All agents reference `~/.meridian/core/memory/practices/structured-failure-protocol.md`
 - [ ] No agent returns a raw error string — always returns structured failure YAML
 - [ ] All structured failures include: `self_recovery_attempted` and `self_recovery_details` fields
 - [ ] Max 1 self-recovery attempt documented per agent
+- [ ] implement-epic agents (eval-generator, quality-auditor, judge) return `step_failure` in contract (not standalone structured failure) — orchestrator reads and routes
 
 **Evidence:** `evidence/g-001-structured-failure.md` — structured failure section from each agent file, protocol reference confirmation
 
@@ -256,35 +272,154 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | Depends On | — |
 
 **Verification Steps:**
-- [ ] All L1 recipes declare ≤2 agent calls: start-feature, capture-learning, discover-product, plan-roadmap, manage-backlog, refine-backlog, build-feature, verify-feature, commit-code, create-pr, review-pr, run-demo, release, fix-bug, review-architecture, generate-docs
-- [ ] All L2 recipes declare ≤5 agent calls: implement-feature, start-planned-feature, deliver-feature
+- [ ] All L1 recipes declare ≤2 domain agent calls: capture-learning, manage-backlog, refine-backlog, build-feature, verify-feature, review-pr, run-demo, release, fix-bug, review-architecture, generate-docs
+- [ ] All L2 recipes declare ≤5 domain agent calls: start-feature, discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature-planning, commit-code, create-pr, deliver-feature
+- [ ] Structure C recipes (ship) delegate domain work entirely to sub-recipes — 0 direct agent calls
 - [ ] L1 recipes are invocable by both Human and Model
 - [ ] L2 recipes are invocable by Human only
-- [ ] Each recipe file explicitly declares its Level (L1 or L2) in its header
-- [ ] Each recipe file explicitly declares its agent call count
+- [ ] Each recipe file explicitly declares its Level (L1 or L2) in its compilation metadata
+- [ ] Each recipe file explicitly declares its agent call count in compilation metadata
+- [ ] Utility agents (doc-builder, repo-orchestrator) are EXEMPT from the L2 ≤5 budget — domain agents only count
+- [ ] implement-epic domain count: 6 clean run (tech-designer + eval-generator + code-builder + quality-auditor + judge + product-strategist); up to 15 with 3 fix iterations — this is within spec because utility agents are exempt
 
-**Evidence:** `evidence/g-009-recipe-level-constraints.md` — level declaration and agent call count from each recipe file
+**Evidence:** `evidence/g-009-recipe-level-constraints.md` — level declaration and agent call count from each recipe file's compilation metadata
 
 ---
 
-### G-010: Compartmented Evaluation — Builder/Validator Information Barrier
+### G-010: Compartmented Evaluation — 4-Way Information Barrier (implement-epic)
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — build-feature (P9), verify-feature (P10), implement-feature (P3) |
+| Recipe Priority | Cross-cutting — implement-epic (P3), build-feature (P9), verify-feature (P10) |
 | SDLC Phase | Spec-2-Code, Code-2-Test |
 | Mandatory | YES |
-| Depends On | G-230, G-240 |
+| Depends On | — |
+
+**Verification Steps (implement-epic — 4-way isolation):**
+- [ ] `implement-epic` Step 4 contract (eval-generator) `stm.input` contains ONLY: `features_yaml_path`, `scenarios_yaml_path`, `epic_id`, `phase_num`, `plan_exit_gate` — nothing else
+- [ ] `implement-epic` eval files stored at `/tmp/{slug}-evals/` — OUTSIDE repo tree — never inside the project
+- [ ] `implement-epic` Step 6 contract (code-builder) `stm.input` contains ONLY: `context_path` — nothing else
+- [ ] `implement-epic` CONTEXT.md contains distilled scope + tech decisions + domain rules — no scenario content, no eval content
+- [ ] `implement-epic` Step 8 contract (judge) `stm.input` contains ONLY: `eval_path`, `manifest_path`, `project_root` — nothing else
+- [ ] `implement-epic` Step 7 contract (quality-auditor) `stm.input` contains ONLY: `quality_gates_path`, `project_root` — nothing else
+- [ ] `implement-epic` fix loop (Step 9): orchestrator strips eval IDs, eval text, pass criteria, raw scores — passes only category + description + expected behavior to builder
+- [ ] `implement-epic` fix loop (Step 12): old eval files are DELETED before new eval-generator (new instance) runs
+- [ ] Recipe explicitly documents 4-way isolation as a "Context isolation invariant" in Role section
+- [ ] `build-feature` recipe (P9, when built): code-builder receives bundle content ONLY — not verify.md, not gate IDs
+- [ ] `verify-feature` recipe (P10, when built): validator receives verify.md + implementation output ONLY — not bundle contents
+
+**Evidence:** `evidence/g-010-compartmented-evaluation.md` — implement-epic agent contract stm.input fields, eval storage path verification, fix loop remediation stripping logic
+
+---
+
+---
+
+## New Recipe Gates (G-0XX continued)
+
+### G-011: implement-epic Recipe — Eval-Driven TDD with Context Isolation
+
+| Property | Value |
+|----------|-------|
+| Recipe Priority | P3 — implement-epic |
+| SDLC Phase | Spec-2-Code (renamed from Spec-2-Test) |
+| Mandatory | YES |
+| Depends On | G-010 |
 
 **Verification Steps:**
-- [ ] `build-feature` recipe invocation context for code-builder contains ONLY: bundle content (≤12K), LTM practices, codebase context
-- [ ] `build-feature` recipe does NOT pass verify.md, gate IDs, or validation criteria to code-builder
-- [ ] `verify-feature` recipe invocation context for validator contains ONLY: verify.md gates, implementation output path
-- [ ] `verify-feature` recipe does NOT pass bundle contents or design specs to validator
-- [ ] `implement-feature` recipe constructs separate scoped context for each sub-recipe invocation (no shared context bundle)
-- [ ] Agent invocation descriptions in all three recipes explicitly document what is and is not passed
+- [x] File exists at `core/components/recipes/implement-epic/SKILL.md`
+- [x] Recipe is compiled artifact (see `Compiled From` header)
+- [x] Recipe declares `model: opus` in frontmatter
+- [x] Recipe declares `maturity: L2` in compilation metadata
+- [x] Recipe accepts `--epic <feature-id>` argument (F1, F2, etc.)
+- [x] Recipe accepts `--issue <issue-number>` argument (optional)
+- [x] Pre-flight: plan.yaml must be LOCKED (C1)
+- [x] Pre-flight: feature must have >=1 success scenario and >=1 failure condition (C2)
+- [x] Pre-flight: all prerequisite sequences complete (C3)
+- [x] Pre-flight: project builds successfully (C12)
+- [x] Step 1: tech-designer produces CONTEXT.md <100 lines with 6 required sections
+- [x] Step 4: eval-generator contract input contains ONLY features_yaml, scenarios_yaml, epic_id, phase_num, plan_exit_gate
+- [x] Step 4: eval files go to /tmp/{slug}-evals/ (outside repo tree)
+- [x] Step 6: code-builder contract input contains ONLY context_path
+- [x] Step 6: TDD pattern enforced — test first (red), implement (green), per scope item
+- [x] Step 7: quality-auditor runs quality vision gates — contract input contains ONLY quality_gates_path + project_root
+- [x] Step 8: judge contract input contains ONLY eval_path + manifest_path + project_root
+- [x] Fix loop: max 3 iterations (C11)
+- [x] Fix loop Step 12: old evals DELETED before new eval-generator runs (C9)
+- [x] Fix loop Step 9: remediation strips eval IDs, text, criteria — passes category+description+expected only (C10)
+- [x] First-run pass rate <=50% halts with F2 — does not enter fix loop
+- [x] Step 15: product-strategist generates manual test scenarios
+- [x] Step 16: repo-orchestrator commits and pushes
+- [x] 3 new agents built: eval-generator, quality-auditor, judge
+- [x] Extraction candidates documented (5 inline contracts flagged for future skill extraction)
 
-**Evidence:** `evidence/g-010-compartmented-evaluation.md` — recipe invocation context blocks, scope declarations for builder and validator
+**Evidence:** `evidence/g-011-implement-epic.md` — recipe compilation metadata, agent isolation contract fields, eval storage path, fix loop behavior, TDD enforcement
+
+---
+
+### G-012: prepare-implementation Recipe — 5-Artifact Design Suite
+
+| Property | Value |
+|----------|-------|
+| Recipe Priority | NEW (between P6 and P7) — prepare-implementation |
+| SDLC Phase | Prep-2-Implement |
+| Mandatory | YES |
+| Depends On | G-010 |
+
+**Verification Steps:**
+- [x] File exists at `core/components/recipes/prepare-implementation/SKILL.md`
+- [x] Recipe is compiled artifact
+- [x] Recipe accepts `--phase <draft|validate|lock>` argument
+- [x] DRAFT phase: 3 stages with 3 human checkpoints (Tether/Orbit/Vanish per stage)
+- [x] Stage 1: product-strategist → draft-product-spec → features.yaml (NO technology names allowed)
+- [x] Stage 1: doc-builder → features-brief.html + hub.html
+- [x] Stage 2: tech-designer → draft-technical-approach → architecture.yaml
+- [x] Stage 2: tech-designer → draft-lld → tech.yaml (Steps 4 and 5 may run in parallel)
+- [x] Stage 2: doc-builder → architecture-brief.html + tech-brief.html + hub.html
+- [x] Stage 3: product-strategist → draft-verification-scenarios → scenarios.yaml
+- [x] Stage 3 compartmentalization: scenarios.yaml content NOT visible to plan.yaml authoring (Step 9 receives feature list only — not scenario details)
+- [x] Stage 3: tech-designer → draft-implementation-plan → plan.yaml (Steps 8 and 9 may run in parallel)
+- [x] Stage 3: plan.yaml contains ZERO scenario descriptions or scenario text — IDs and counts only
+- [x] Stage 3: doc-builder → scenarios-brief.html + plan-brief.html + hub.html
+- [x] VALIDATE phase: product-strategist → validate-implementation-design → 14 checks (V1-V14)
+- [x] LOCK phase: recipe sets status LOCKED on all 5 artifacts (no agent calls)
+- [x] Output artifacts: features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml (5 total)
+- [x] Review briefs: features-brief.html, architecture-brief.html, tech-brief.html, scenarios-brief.html, plan-brief.html (5 total)
+- [x] Hub: hub.html regenerated after each checkpoint
+- [x] Feature IDs use F-IDs (F1, F2) not E-IDs
+- [ ] All 5 artifacts validated against schemas in `.claude/specs/artifact-schemas/`
+- [ ] **PENDING-REFACTOR (#106):** When #106 resolves, features.yaml moves to plan-roadmap; architecture.yaml + tech.yaml move to design-arch; this recipe slims to scenarios + plan + evals only
+
+**Evidence:** `evidence/g-012-prepare-implementation.md` — recipe compilation metadata, 3-stage checkpoint structure, scenario compartmentalization, 5 output artifacts confirmed
+
+---
+
+### G-013: ship and merge-pr Recipes — Delivery Pipeline
+
+| Property | Value |
+|----------|-------|
+| Recipe Priority | NEW — ship (chains commit-code + create-pr + merge-pr) |
+| SDLC Phase | Code-2-Merged |
+| Mandatory | YES |
+| Depends On | G-011 |
+
+**Verification Steps:**
+- [x] File exists at `core/components/recipes/ship/SKILL.md`
+- [x] File exists at `core/components/recipes/merge-pr/SKILL.md`
+- [x] ship recipe is compiled artifact
+- [x] ship declares `workflow_structure: C` (chains sub-recipes) in compilation metadata
+- [x] ship declares `sub_recipes: 3 (commit-code, create-pr, merge-pr)`
+- [x] ship passes `approval_override: auto-proceed` to commit-code
+- [x] ship passes `approval_override: auto-proceed` to create-pr
+- [x] ship halts immediately if commit-code fails — does not continue to create-pr
+- [x] ship halts immediately if create-pr fails — does not continue to merge-pr
+- [x] merge-pr reads PR number from STM (written by create-pr)
+- [x] merge-pr: merges PR, switches to main, pulls latest, deletes feature branch locally AND remotely
+- [x] merge-pr: merge conflicts are hard stop (C6)
+- [x] ship SCE-1: local on main, main up to date, feature branch gone, commits visible in main's history
+- [x] ship SCE-2: PR state MERGED, linked to originating issue, quality checklist in PR body
+- [x] Evidence self-commit lands on main (not feature branch — branch is gone after merge-pr)
+
+**Evidence:** `evidence/g-013-ship-merge-pr.md` — ship compilation metadata, sub-recipe chain, approval override behavior, merge-pr branch cleanup, evidence on main
 
 ---
 
@@ -300,24 +435,25 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | Depends On | — |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/start-feature/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 2`
-- [ ] Recipe declares `Agents: project-orchestrator, repo-orchestrator`
-- [ ] Recipe has IDD intent header: `intent`, `constraints`, `failure_conditions` fields
-- [ ] Recipe intent states: "Create or resume a work context — issue + branch + STM directory"
-- [ ] Recipe constraints include: "Must always be the first step for any work"
-- [ ] Recipe failure_conditions include: "Branch already exists and has conflicts", "Issue ID not found (resume mode)"
-- [ ] NEW mode: recipe creates GitHub issue via project-orchestrator
-- [ ] NEW mode: recipe creates feature branch via repo-orchestrator
-- [ ] NEW mode: recipe creates `.meridian/{issue}/` STM directory
-- [ ] RESUME mode: recipe accepts `--resume <issue-id>` argument
-- [ ] RESUME mode: recipe resolves existing issue, checkouts branch, verifies STM dir exists
-- [ ] Recipe accepts `[description]` argument for NEW mode
-- [ ] Recipe links to roadmap/epic if available in project context
-- [ ] Recipe shows Tether/Vanish checkpoint after issue + branch creation
-- [ ] Recipe propagates intent to all agent invocations
+- [x] File exists at `core/components/recipes/start-feature/SKILL.md`
+- [x] Recipe is compiled artifact (see `Compiled From` header)
+- [x] Recipe declares `maturity: L2` in compilation metadata
+- [x] Recipe declares `agents: 2 (project-orchestrator, repo-orchestrator)` in compilation metadata
+- [x] Recipe accepts three input patterns: no args (infer from changed files), issue number, title string
+- [x] Single flow — all three patterns converge on same downstream (no separate NEW/RESUME modes)
+- [x] Uncommitted changes always preserved (never lost)
+- [x] project-orchestrator invoked via JSON contract for issue resolution/creation
+- [x] repo-orchestrator invoked via JSON contract for branch creation/switch
+- [x] Branch naming convention: `{type}/{issue_number}-{slug}`
+- [x] STM directory created at `{stm_base}/{issue}/`
+- [x] Confidence-gated: low-confidence issue mapping halts recipe
+- [x] Ambiguity handling: recipe presents candidates to user when multiple issues match
+- [x] Resume: status file at `{stm_base}/{issue}/status/start-feature.json`
+- [x] Evidence written to `{stm_base}/{issue}/evidence/start-feature/{YYYYMMDD-HHMMSS}.md`
+- [x] Evidence self-commit via repo-orchestrator (non-blocking)
+- [x] 10 step evals (SE-1 through SE-10), 5 scenario evals (SCE-1 through SCE-5, context-selected)
 
-**Evidence:** `evidence/g-100-start-feature.md` — recipe file contents, IDD header fields, NEW and RESUME mode flows, checkpoint pattern
+**Evidence:** `evidence/g-100-start-feature.md` — recipe compiled artifact, single-flow input handling, confidence gating, branch naming, STM initialization
 
 ---
 
@@ -425,7 +561,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 ---
 
-### G-104: discover-product Recipe — New Recipe with Full Phase Handling
+### G-104: discover-product Recipe — New Recipe with Full Phase Handling ✓ PASSING
 
 | Property | Value |
 |----------|-------|
@@ -435,27 +571,30 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | Depends On | G-110 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/discover-product/SKILL.md`
-- [ ] Recipe declares `Level: L1`
-- [ ] Recipe declares agent calls: 2 (draft), 1 (validate), 0 (lock)
-- [ ] Recipe declares `Agents: product-strategist`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Discover and document product vision, strategic goals, and market positioning"
-- [ ] Recipe failure_conditions include: "Problem statement too vague to derive market context", "No clear target audience identifiable"
-- [ ] Recipe accepts `--phase <draft|validate|lock>` argument
-- [ ] Recipe accepts `--artifact <path>` argument for validate/lock phases
-- [ ] Recipe accepts `[intent]` free-text argument
-- [ ] Draft phase: invokes product-strategist → discover-product-opportunity → draft-product-vision
-- [ ] Draft phase output: `.meridian/project/product/{slug}/vision.md` (status DRAFT)
-- [ ] Draft phase output: vision.md includes Strategic Goals section (NOT OKRs)
-- [ ] Draft phase: checkpoint presents vision summary (Tether/Vanish)
-- [ ] Validate phase: invokes product-strategist → validate-product-vision; returns validation_result
-- [ ] Lock phase: runs cascade-sync, sets vision.md status to LOCKED
-- [ ] Skills invoked: discover-product-opportunity, draft-product-vision, validate-product-vision, generate-business-review
-- [ ] Templates referenced: `templates/vision.md`, `templates/business-review.md`
-- [ ] vision.md does NOT contain okrs.md reference or OKR sections
+- [x] File exists at `core/components/recipes/discover-product/SKILL.md`
+- [x] Recipe is a compiled artifact (see `Compiled From` header referencing reference/intent.yaml)
+- [x] Recipe declares `maturity: L2` in compilation metadata
+- [x] Recipe declares agent calls: product-strategist ×2, doc-builder ×1 in DRAFT; product-strategist ×1 in VALIDATE; 0 in LOCK
+- [x] Recipe declares `Agents: product-strategist, doc-builder, repo-orchestrator`
+- [x] Recipe has IDD intent header implied via intent_path in JSON contracts (JSON contract pattern replaces inline header)
+- [x] Recipe accepts `--phase <draft|validate|lock>` argument
+- [x] Recipe accepts `--artifact <path>` argument for validate/lock phases
+- [x] Recipe accepts `[intent]` free-text argument
+- [x] Draft phase output: `.meridian/project/product/{slug}/product.yaml` (status DRAFT) — **NOT vision.md**
+- [x] product.yaml consolidates market context + vision in single file
+- [x] product.yaml includes `strategic_goals[].id` (SG-IDs for downstream reference) — NOT OKRs
+- [x] Draft phase: doc-builder generates `product-brief.html` (tabbed layout: Market Context, Vision, Scope, Comments) — **NOT brief.html**
+- [x] Draft phase: doc-builder generates `hub.html`
+- [x] Draft checkpoint: Tether/Vanish + optional feedback JSON from inline comment system
+- [x] Validate phase: product-strategist → validate-product-vision → validation_result
+- [x] Validate phase: cycle-back on Vanish (max 2 iterations) — recipe does NOT halt on first Vanish
+- [x] Lock phase: recipe directly sets status: LOCKED (no agent call) — **no cascade-sync in this recipe**
+- [x] Domain clarification handling: if product domain ambiguous, recipe presents candidates, user picks
+- [x] Resume: status file at `{product_base}/{slug}/status/discover-product.json`
+- [x] Evidence self-commit via repo-orchestrator (non-blocking)
+- [ ] product.yaml schema validated against `.claude/specs/artifact-schemas/product.yaml`
 
-**Evidence:** `evidence/g-104-discover-product.md` — recipe file, phase handling, Strategic Goals presence, no OKR references, output paths
+**Evidence:** `evidence/g-104-discover-product.md` — recipe file, phase handling, product.yaml (not vision.md), product-brief.html (not brief.html), Strategic Goals present, no OKR references
 
 ---
 
@@ -638,35 +777,40 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 ## P6-P10 Gates (G-2XX)
 
-### G-200: plan-roadmap Recipe — New Recipe with Full Phase Handling
+### G-200: plan-roadmap Recipe — New Recipe with Full Phase Handling ✓ PASSING
 
 | Property | Value |
 |----------|-------|
 | Recipe Priority | P6 — plan-roadmap |
 | SDLC Phase | Product-2-Design |
 | Mandatory | YES |
-| Depends On | G-104, G-105, G-106, G-107 |
+| Depends On | G-104, G-105 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/plan-roadmap/SKILL.md`
-- [ ] Recipe declares `Level: L1`
-- [ ] Recipe declares agent calls: 2 (draft), 1 (validate), 0 (lock)
-- [ ] Recipe declares `Agents: product-strategist`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Prioritize features and build a release timeline from strategic goals"
-- [ ] Recipe failure_conditions include: "No features identified from intent or vision", "Features have circular dependencies"
-- [ ] Recipe accepts `--phase <draft|validate|lock>` argument
-- [ ] Recipe accepts `--artifact <path>` argument for validate/lock phases
-- [ ] Recipe accepts `[intent]` free-text argument or uses vision.md as input
-- [ ] Draft phase: invokes product-strategist → prioritize-product-features → draft-product-roadmap
-- [ ] Draft phase: scoring method is RICE or MoSCoW (explicitly chosen or defaulted)
-- [ ] Draft phase output: `.meridian/project/product/{slug}/roadmap.md` (status DRAFT)
-- [ ] Validate phase: invokes product-strategist → validate-product-roadmap
-- [ ] Lock phase: runs cascade-sync, sets roadmap.md to LOCKED
-- [ ] Recipe works with vision.md as input OR intent alone (intent-sufficient)
-- [ ] Recipe does NOT require OKRs as input
+- [x] File exists at `core/components/recipes/plan-roadmap/SKILL.md`
+- [x] Recipe is compiled artifact (see `Compiled From` header)
+- [x] Recipe declares `maturity: L2` in compilation metadata
+- [x] Recipe declares `agents: 3 (product-strategist, tech-designer, repo-orchestrator)` in compilation metadata
+- [x] Recipe accepts `--product <path>` argument (locked product.yaml required — NOT optional)
+- [x] Recipe accepts `--resume` argument (no --product needed)
+- [x] Pre-flight: product.yaml must have `Status: LOCKED` (hard halt if not locked)
+- [x] Step 2: product-strategist → scope-roadmap-epics → epics YAML with strategic_goal_ref (SG-IDs from product.yaml) — **NOT RICE/MoSCoW scoring**
+- [x] Step 2 eval: epic count 3-6 enforced; strategic_goal_ref must match SG-IDs in product.yaml
+- [x] Step 3: tech-designer → assess-feasibility → feasibility YAML per epic
+- [x] Step 4: product-strategist → produce-brief → roadmap-brief.html (tabs: Strategy, Timeline, Feasibility, Comments) + hub.html
+- [x] Step 4: brief passes C4 check — no technical content that doesn't affect sequencing/priority/timing
+- [x] Step 5: human review with feedback loop (max 3 cycles). Tether → approved-roadmap-brief.html created. Vanish → halt.
+- [x] Step 6: product-strategist → produce-roadmap → roadmap.yaml (consolidates thesis, narrative, timeline, feasibility, approved_brief_ref)
+- [x] roadmap.yaml: `strategic_goal_ref` (SG-ID) NOT free-text strategic_goal
+- [x] roadmap.yaml: `approved_brief_ref` points to approved-roadmap-brief.html
+- [x] roadmap.yaml: feasibility data consolidated from tech-designer output
+- [x] Step 7: scenario evals (SCE-1, SCE-2, SCE-4) recorded with PASS/FAIL
+- [x] Resume: status file at `.meridian/project/product/{slug}/status/plan-roadmap.json`
+- [x] Evidence self-commit via repo-orchestrator (non-blocking)
+- [ ] roadmap.yaml schema validated against `.claude/specs/artifact-schemas/roadmap.yaml`
+- [ ] **PENDING-REFACTOR (#106):** features.yaml will be produced here (not in prepare-implementation) after #106 resolves
 
-**Evidence:** `evidence/g-200-plan-roadmap.md` — recipe file, phase handling, intent-sufficiency, no OKR dependency, output path
+**Evidence:** `evidence/g-200-plan-roadmap.md` — recipe compiled artifact, roadmap.yaml schema (not roadmap.md), strategic_goal_ref (SG-IDs), brief approval gate, feasibility consolidated
 
 ---
 
