@@ -131,6 +131,43 @@ judge_report:
   plaintext_deleted: true
 ```
 
+## Failure Protocol
+
+On failure, return:
+
+```json
+{
+  "status": "failed",
+  "error": "{error_type}",
+  "message": "{human-readable description}",
+  "domain_assessment": {
+    "responsible_domain": "evaluation",
+    "fix_suggestion": "{what needs to happen}"
+  },
+  "task_id": "{from contract}"
+}
+```
+
+Error types:
+- `decryption_failed` — openssl decryption command failed or produced invalid output
+- `eval_execution_error` — an eval's verification method could not be run (missing tool, bad path)
+- `manifest_corrupt` — manifest.json is missing required fields or is not valid JSON/YAML
+- `plaintext_cleanup_failed` — decrypted file could not be deleted after evaluation
+
+## Recovery
+
+- Max 1 internal retry on transient failures (file I/O, command timeout)
+- After 2 attempts total, return structured failure to orchestrator
+- Orchestrator owns retry and escalation logic — this agent does not retry domain work
+- If decryption fails on retry, treat as `decryption_failed` and return structured failure — do not leave plaintext on disk
+
+## Task Tracking
+
+- Mark assigned `task_id` as `in_progress` on start
+- Mark `task_id` as `completed` on success
+- Mark `task_id` as `failed` on failure — never abandon a task
+- If additional work is discovered (e.g., an eval references a service that requires a new setup task), create new tasks via TaskCreate before returning
+
 ## Decryption Protocol
 
 1. Run: `openssl enc -aes-256-cbc -d -salt -pbkdf2 -in {encrypted} -out {decrypted} -pass pass:{key}`

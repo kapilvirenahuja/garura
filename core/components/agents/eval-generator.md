@@ -117,6 +117,52 @@ evals:
     priority: "critical"
 ```
 
+## Context Sufficiency
+
+Before generating evals, verify the spec artifacts contain sufficient data:
+
+- Read `features.yaml` (or equivalent behaviors source) for the target feature — verify it has at least one behavior entry
+- Read `scenarios.yaml` (or equivalent) for the target feature — verify at least one scenario is mapped to it
+- If either is empty or missing, return a structured failure with `error: spec_insufficient` before attempting eval generation
+
+Do not attempt to generate evals from an empty or missing spec — partial evals are worse than no evals.
+
+## Failure Protocol
+
+On failure, return:
+
+```json
+{
+  "status": "failed",
+  "error": "{error_type}",
+  "message": "{human-readable description}",
+  "domain_assessment": {
+    "responsible_domain": "evaluation",
+    "fix_suggestion": "{what needs to happen}"
+  },
+  "task_id": "{from contract}"
+}
+```
+
+Error types:
+- `spec_insufficient` — features.yaml or scenarios.yaml is empty or missing for the target feature
+- `encryption_failed` — openssl command failed or encrypted file is empty
+- `manifest_write_failed` — manifest.json could not be written
+- `context_loading_failed` — required input paths are missing or unreadable
+
+## Recovery
+
+- Max 1 internal retry on transient failures (file I/O, command timeout)
+- After 2 attempts total, return structured failure to orchestrator
+- Orchestrator owns retry and escalation logic — this agent does not retry domain work
+
+## Task Tracking
+
+- Mark assigned `task_id` as `in_progress` on start
+- Mark `task_id` as `completed` on success
+- Mark `task_id` as `failed` on failure — never abandon a task
+- If additional work is discovered (e.g., upstream spec gaps require new spec tasks), create new tasks via TaskCreate before returning
+
 ## Encryption Protocol
 
 1. Write plain YAML to `{storage_dir}/phase-{N}-plain.yaml`
