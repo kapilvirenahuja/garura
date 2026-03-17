@@ -1,5 +1,12 @@
-branch:
-  name: "feature/99-standardize-artifact-naming-yaml-html-brief-pairs"
-  action: "created"
-  pushed: true
-  changes_preserved: true
+result:
+  success: true
+  branch:
+    name: "feature/99-standardize-artifact-naming"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/feature/99-standardize-artifact-naming"
+  worktree:
+    used: true
+    path: "../meridian-os-feature-99"
+    reason: "Significant changes (8 files, 224 insertions, 256 deletions) required worktree to preserve uncommitted changes"
+  error: null

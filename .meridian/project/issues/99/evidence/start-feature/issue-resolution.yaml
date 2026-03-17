@@ -1,17 +1,12 @@
 issue:
   number: 99
   title: "feat: standardize artifact naming with structured YAML + HTML brief pairs"
-  labels:
-    - enhancement
-  state: open
-  body_summary: "Redesign artifact naming across discover-product, plan-roadmap, and prepare-implementation recipes. Six artifact categories — product, roadmap, features, tech, scenarios, plan — each backed by a structured YAML file and a consistently-presented HTML brief for human review. Includes designing YAML schemas, HTML brief presentation principles, updating all three recipes, and creating a new /prepare-agent command."
   url: "https://github.com/kapilvirenahuja/meridian-os/issues/99"
-  created: true
-  closed: false
-  parent_issue: null
+  state: "open"
+  created: false
   type_hint: feature
 inference:
-  source: "explicit_title"
+  source: "explicit_number"
   confidence: "high"
   candidates_considered: 0
   ambiguity_resolved_by_user: true
