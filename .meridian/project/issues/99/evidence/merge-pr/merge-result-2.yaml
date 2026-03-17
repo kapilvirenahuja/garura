@@ -1,0 +1,20 @@
+merge_result:
+  status: merged
+  pr_number: 103
+  branch_merged: feature/99-standardize-artifact-naming
+  base_branch: main
+  merge_sha: f340f15b06fd73170a2c97f3895653913cb07549
+  merge_strategy: merge
+  branch_deleted: true
+  branch_absent_locally: true
+  branch_absent_remotely: true
+  post_merge_state:
+    current_branch: main
+    up_to_date_with_remote: true
+  evals:
+    SE-2: PASS  # Feature branch deleted — branch absent locally and remotely
+    SE-3: PASS  # Local checkout on main, up to date with origin/main
+    SE-5: PASS  # PR merged on platform — status == "merged", pr_number 103 set
+  scenario_evals:
+    SCE-1: PASS  # HEAD on main, git pull up to date, feature branch absent everywhere
+    SCE-2: PASS  # PR #103 state is merged on GitHub, merge_sha present in git log on main
