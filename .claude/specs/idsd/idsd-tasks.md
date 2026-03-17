@@ -1,12 +1,12 @@
 # IDSD — Execution Plan (Tasks)
 
-**Version:** 2.2.0
-**Date:** 2026-03-05 (updated from 2026-02-21)
-**Status:** In Progress — P1, P4, P5, P11 complete. P6 partial (Four Crafts divergence). P12 incomplete (IDD compliance pending).
+**Version:** 3.0.0
+**Date:** 2026-03-17 (updated from 2026-03-05)
+**Status:** In Progress — P1, P3, P4, P5, P6, P11, P12 complete. ship, merge-pr, prepare-implementation complete. P2 partial. P7-P10, P13-P19 not started. Pipeline refactor pending (#106).
 **Spec Reference:** `idsd.md`
 **Verify Reference:** `idsd-verify.md`
 
-### Architecture Change Notice (2026-03-05)
+### Architecture Change Notice (2026-03-05, still applies)
 
 **Four Crafts architecture (#85/#86) was implemented after this spec was written.** Key changes that affect remaining tasks:
 - Recipes pass a **single JSON contract** to agents (not individual parameters)
@@ -14,6 +14,31 @@
 - **Intent-resolution protocol deleted** — agents read JSON contract directly
 - **Task-driven DAGs** — recipes create task graphs before agent execution
 - All new recipe/skill/agent tasks should follow Four Crafts pattern, not the pattern described in the original spec
+- Recipes are now **compiled artifacts** from `reference/intent.yaml` via `/create-recipe` — do NOT edit SKILL.md directly
+
+### Artifact Naming Update (2026-03-17)
+
+The following artifact names changed from the original spec. All tasks below and verification gates must use the NEW names:
+
+| Old Name | New Name | Produced By |
+|----------|----------|-------------|
+| vision.md | product.yaml | discover-product |
+| roadmap.md | roadmap.yaml | plan-roadmap |
+| product-spec.md / spec.md | features.yaml | prepare-implementation |
+| technical-approach.md | architecture.yaml | prepare-implementation |
+| lld.md | tech.yaml (impl detail) + plan.yaml (execution order) | prepare-implementation |
+| scenarios.md | scenarios.yaml | prepare-implementation |
+| brief.html | product-brief.html, roadmap-brief.html, features-brief.html, etc. | doc-builder per recipe |
+| E-IDs (E1, E2) | F-IDs (F1, F2) | features.yaml / plan.yaml |
+| strategic_goal (text) | strategic_goal_ref (SG-ID) | roadmap.yaml / epics |
+
+### Pipeline Refactor Notice (2026-03-17)
+
+**PENDING-REFACTOR (#106):** When Issue #106 is resolved, new tasks will be added for:
+- Moving features.yaml authorship from prepare-implementation to plan-roadmap
+- New recipes: design-ux, design-services, design-arch
+- Slimming prepare-implementation to scenarios + plan + evals only
+- New tasks will be added to this file when #106 is scoped
 
 ---
 
@@ -42,6 +67,34 @@ Build order is flat, one recipe at a time, in user-set priority (P1 through P19)
 ---
 
 ## Agents Inventory
+
+### Built Agents (complete — as of 2026-03-17)
+
+| Agent | Status | Used By |
+|-------|--------|---------|
+| product-strategist | ✅ COMPLETE | discover-product, plan-roadmap, prepare-implementation, implement-epic |
+| tech-designer | ✅ COMPLETE | plan-roadmap, prepare-implementation, implement-epic (context builder) |
+| code-builder | ✅ COMPLETE | implement-epic, start-feature-planning |
+| eval-generator | ✅ COMPLETE (new in implement-epic) | implement-epic only |
+| quality-auditor | ✅ COMPLETE (new in implement-epic) | implement-epic only |
+| judge | ✅ COMPLETE (new in implement-epic) | implement-epic only |
+| repo-orchestrator | ✅ COMPLETE | start-feature, commit-code, create-pr, merge-pr, ship, implement-epic, all evidence steps |
+| project-orchestrator | ✅ COMPLETE | start-feature, commit-code, create-pr |
+| doc-builder | ✅ COMPLETE | discover-product, plan-roadmap, prepare-implementation |
+| intent-crafter | ✅ COMPLETE | create-recipe |
+| intent-resolver | ✅ COMPLETE | create-recipe |
+
+### Backlog Agents (needed for P10, P13, P14, P18)
+
+| Agent | Needed By | Status |
+|-------|-----------|--------|
+| validator | P10 (verify-feature), P13 (review-pr), P14 (deliver-feature), P18 (review-architecture) | ❌ NOT STARTED — blocks 4 priorities |
+| specifier | define-feature (backlog) | Backlog — not prioritized |
+| designer | design-feature (backlog) | Backlog — not prioritized |
+
+---
+
+### Original Agents Inventory (retained for historical reference)
 
 ### New Agents (build in this plan)
 
@@ -108,7 +161,25 @@ T-900+ are cross-cutting tasks that run after all recipe groups.
 
 ---
 
-### P3: `implement-feature` (NEW — L2, specced)
+### P3: `implement-epic` (NEW — L2, specced) ✓ COMPLETE
+
+> Recipe was originally spec'd as implement-feature. Built as implement-epic with eval-driven TDD loop, 7 agents (6 domain + 1 utility), and 4-way context isolation.
+> New agents: eval-generator, quality-auditor, judge (all built in this recipe group).
+> Artifact naming: uses features.yaml + scenarios.yaml + plan.yaml (not the old spec/verify/tasks pattern).
+
+| ID | Task | Description | Depends On | Agent | Gate | Status |
+|----|------|-------------|------------|-------|------|--------|
+| T-020 | ~~Create validator agent~~ | Deferred — implement-epic uses eval-generator + quality-auditor + judge instead. validator agent will be built when P10 is prioritized. | — | — | — | ↩️ DEFERRED |
+| T-020a | Create eval-generator agent | Build `core/components/agents/eval-generator.md` — domain=evaluation, role=eval-generator. Receives only features.yaml behaviors + scenarios.yaml verification scenarios + plan exit gate. Generates encrypted YAML evals stored OUTSIDE repo tree (/tmp/{slug}-evals/). | — | code-builder | — | ✓ Done |
+| T-020b | Create quality-auditor agent | Build `core/components/agents/quality-auditor.md` — domain=quality, role=auditor. Runs quality vision gates (build, lint, typecheck, unit tests) from quality-vision-gates.yaml. Reports per-gate PASS/FAIL with evidence. | — | code-builder | — | ✓ Done |
+| T-020c | Create judge agent | Build `core/components/agents/judge.md` — domain=evaluation, role=judge. Reads encrypted evals only. Runs checks per eval. Produces judge report with per-eval PASS/FAIL, category breakdown, summary. | — | code-builder | — | ✓ Done |
+| T-024 | Create implement-epic recipe | Build `core/components/recipes/implement-epic/SKILL.md` — L2 recipe, eval-driven TDD. Compiled from reference/intent.yaml. 19-step workflow with preparation → execution → fix loop → finalize → scenario validation → evidence. 4-way context isolation enforced via contract boundaries. | T-020a, T-020b, T-020c | code-builder | — | ✓ Done |
+| T-027 | Verify implement-epic | Recipe compiled and deployed. All 3 new agents exist. Eval isolation verified (evals outside repo tree). Builder receives CONTEXT.md only. Judge receives evals only. Fix loop max 3 iterations. | T-024 | code-builder | — | ✓ Done |
+| T-028 | Deploy implement-epic | Deployed via /sync-claude. Available as /implement-epic. | T-027 | — | — | ✓ Done |
+
+---
+
+### ORIGINAL P3: `implement-feature` (original spec — superseded by implement-epic above)
 
 > New agent: validator. New skills: verify-gate, run-test-suite, validate-implementation. New references: gate-patterns, quality-standards.
 > Parallelism: T-021, T-022, T-023 (skills) can be built in parallel after T-020. T-025, T-026 (references) can be built in parallel after T-021/T-023.
@@ -145,7 +216,25 @@ T-900+ are cross-cutting tasks that run after all recipe groups.
 
 ---
 
-### P5: `discover-product` (NEW — specced)
+### P5: `discover-product` (NEW — specced) ✓ COMPLETE
+
+> Artifact naming update: output is product.yaml (not vision.md). product-brief.html (not brief.html).
+> product.yaml consolidates market context + vision in a single file (two-step agent flow → single artifact).
+> product-strategist agent was built in this group and is reused by P6, prepare-implementation, implement-epic.
+
+| ID | Task | Description | Depends On | Agent | Gate | Status |
+|----|------|-------------|------------|-------|------|--------|
+| T-040 | Create product-strategist agent | Built `core/components/agents/product-strategist.md`. Skills include discover-product-opportunity, draft-product-vision, validate-product-vision, scope-roadmap-epics, draft-roadmap-brief, draft-roadmap, draft-product-spec, draft-verification-scenarios, validate-implementation-design, generate-product-brief, generate-implementation-brief. | — | code-builder | G-001 | ✓ Done |
+| T-041 | Create discover-product-opportunity skill | Written. Input: problem_statement. Output: market_context with problem, target_users, competitors, market_size, differentiators, risks. | T-040 | code-builder | G-003 | ✓ Done |
+| T-042 | Create draft-product-vision skill | Written. Output: product.yaml (full file — market context + vision consolidated). Status: DRAFT. Strategic Goals (not OKRs). | T-040 | code-builder | G-003, G-004 | ✓ Done |
+| T-043 | Create validate-product-vision skill | Written. Output: validation_result with ready_for_lock, completeness_score, issues, checklist. | T-040 | code-builder | G-003 | ✓ Done |
+| T-047 | Create discover-product recipe | Built as compiled artifact from reference/intent.yaml. L2. DRAFT phase: 3 agent calls (product-strategist ×2, doc-builder ×1). Produces product.yaml + product-brief.html + hub.html. | T-041, T-042, T-043 | code-builder | G-002, G-005 | ✓ Done |
+| T-048 | Verify discover-product | Verified. Recipe compiled. product.yaml schema correct. product-brief.html has tabbed layout + inline comment system. Strategic Goals present (not OKRs). | T-047 | code-builder | G-001–G-007 | ✓ Done |
+| T-049 | Deploy discover-product | Deployed via /sync-claude. Available as /discover-product. | T-048 | — | G-001 | ✓ Done |
+
+---
+
+### ORIGINAL P5 task table (superseded by status update above)
 
 > New agent: product-strategist (shared with P6, P7, P8).
 > New skills: discover-product-opportunity, draft-product-vision, validate-product-vision, generate-business-review.
@@ -167,7 +256,28 @@ T-900+ are cross-cutting tasks that run after all recipe groups.
 
 ---
 
-### P6: `plan-roadmap` (NEW — specced)
+### P6: `plan-roadmap` (NEW — specced) ✓ COMPLETE
+
+> Artifact naming update: output is roadmap.yaml (not roadmap.md). roadmap-brief.html (not brief.html).
+> Reads product.yaml (not vision.md). Uses --product argument (not --vision).
+> Engineering view removed from output — will move to design-arch per PENDING-REFACTOR (#106).
+> New skills: scope-roadmap-epics, assess-feasibility (tech-designer), draft-roadmap-brief, draft-roadmap (product-strategist).
+> strategic_goal_ref field (SG-ID) replaces free-text strategic_goal in epics.
+
+| ID | Task | Description | Depends On | Agent | Gate | Status |
+|----|------|-------------|------------|-------|------|--------|
+| T-050 | ~~Create prioritize-product-features skill~~ | Superseded — scope-roadmap-epics skill was built instead. Derives IDD epics (not ranked feature lists) from locked product.yaml. | — | — | — | ↩️ SUPERSEDED |
+| T-050a | Create scope-roadmap-epics skill | Built. Input: product.yaml (locked). Output: epics YAML with IDD fields (intent p1/p2/p3, constraints, success_scenarios, failure_conditions) and strategic_goal_ref (SG-ID). Epic count validated: 3-6. | T-049 | code-builder | — | ✓ Done |
+| T-050b | Create assess-feasibility skill | Built (tech-designer domain). Input: epics YAML. Output: feasibility YAML per epic (risk_level, technical_risks, sequencing_constraints, critical_blockers, open_questions, risk_summary). | T-049 | code-builder | — | ✓ Done |
+| T-051 | Create draft-roadmap-brief skill | Built. Input: epics + feasibility. Output: roadmap-brief.html (tabs: Strategy, Timeline, Feasibility, Comments) + hub.html update. Inline comment system per brief-principles.md. | T-049 | code-builder | — | ✓ Done |
+| T-052 | Create draft-roadmap skill | Built. Input: approved-roadmap-brief.html + feasibility YAML. Output: roadmap.yaml (consolidates thesis, narrative, timeline, feasibility, approved_brief_ref). | T-049 | code-builder | — | ✓ Done |
+| T-054 | Create plan-roadmap recipe | Built as compiled artifact from reference/intent.yaml. L2. 8-step workflow. Human review checkpoint (feedback loop max 3 cycles). roadmap.yaml produced only after brief approval. | T-050a, T-050b, T-051, T-052 | code-builder | G-002, G-005 | ✓ Done |
+| T-055 | Verify plan-roadmap | Verified. Recipe compiled. roadmap.yaml schema correct. strategic_goal_ref references SG-IDs from product.yaml. Brief tabs (Strategy, Timeline, Feasibility, Comments) present. | T-054 | code-builder | G-002–G-006 | ✓ Done |
+| T-056 | Deploy plan-roadmap | Deployed via /sync-claude. Available as /plan-roadmap. | T-055 | — | G-002 | ✓ Done |
+
+---
+
+### ORIGINAL P6 task table (superseded by status update above)
 
 > Reuses product-strategist agent (built in P5).
 > New skills: prioritize-product-features, draft-product-roadmap, validate-product-roadmap.
@@ -249,6 +359,35 @@ T-900+ are cross-cutting tasks that run after all recipe groups.
 
 ---
 
+### NEW: `prepare-implementation` (NEW — not in original P1-P19 priority list) ✓ COMPLETE
+
+> Not in the original priority list. Built to bridge plan-roadmap → implement-epic with a full 5-artifact design suite.
+> PENDING-REFACTOR (#106): After #106, prepare-implementation will slim down — features.yaml moves to plan-roadmap, architecture.yaml + tech.yaml move to design-arch.
+
+| ID | Task | Description | Depends On | Agent | Gate | Status |
+|----|------|-------------|------------|-------|------|--------|
+| T-P1-01 | Create draft-product-spec skill | Built. Input: intent + optional upstream enrichment. Output: features.yaml (product identity, invariants, scope, features with IDD fields, behaviors, blast_radius). No technology names allowed. | — | code-builder | — | ✓ Done |
+| T-P1-02 | Create draft-technical-approach skill | Built. Input: features.yaml + optional upstream. Output: architecture.yaml (principles, NFRs, stack, platforms, integrations, agentic PCAM, technical_risks, deployment, observability). | — | code-builder | — | ✓ Done |
+| T-P1-03 | Create draft-lld skill | Built. Input: features.yaml + architecture.yaml. Output: tech.yaml (project structure, libraries with versions, data models, core components, design decisions, feature_mapping). | — | code-builder | — | ✓ Done |
+| T-P1-04 | Create draft-verification-scenarios skill | Built. Input: features.yaml. Output: scenarios.yaml (scenario groups with feature_ref, behavior_ref, pass_criteria, automation classification, feature_gates, coverage). | — | code-builder | — | ✓ Done |
+| T-P1-05 | Create draft-implementation-plan skill | Built. Input: features.yaml + architecture.yaml + tech.yaml + scenarios.yaml. Output: plan.yaml (prerequisites Phase 0, execution_order as vertical slices with scope items + key_files + exit_gate + scenario_gate, summary table with cumulative_scenarios). ZERO scenario text in plan. | — | code-builder | — | ✓ Done |
+| T-P1-06 | Create validate-implementation-design skill | Built. Input: all 5 artifacts. Output: validation_report with 14 checks (V1-V14), ready_for_lock, individual violations. | — | code-builder | — | ✓ Done |
+| T-P1-07 | Create generate-implementation-brief skill | Built (doc-builder domain). Input: any/all 5 artifacts. Output: corresponding *-brief.html files + hub.html regeneration. Tabbed layout per brief-principles.md. | — | code-builder | — | ✓ Done |
+| T-P1-08 | Create prepare-implementation recipe | Built as compiled artifact from reference/intent.yaml. L2. 3-stage DRAFT with 3 human checkpoints, VALIDATE (14 checks), LOCK. Scenario compartmentalization enforced (scenarios.yaml content not passed to plan authoring). | T-P1-01 through T-P1-07 | code-builder | — | ✓ Done |
+| T-P1-09 | Deploy prepare-implementation | Deployed via /sync-claude. Available as /prepare-implementation. | T-P1-08 | — | — | ✓ Done |
+
+---
+
+### NEW: `ship` (NEW — not in original priority list) ✓ COMPLETE
+
+| ID | Task | Description | Depends On | Agent | Gate | Status |
+|----|------|-------------|------------|-------|------|--------|
+| T-S1-01 | Create merge-pr recipe | Built. L2. Reads PR number from STM (written by create-pr). Merges PR, switches to main, pulls latest, deletes feature branch locally and remotely. | T-103, T-113 | code-builder | — | ✓ Done |
+| T-S1-02 | Create ship recipe | Built as compiled artifact from reference/intent.yaml. L2 Structure C. Chains commit-code → create-pr → merge-pr. All approval_override: auto-proceed. No human checkpoints. Evidence lands on main. | T-S1-01 | code-builder | — | ✓ Done |
+| T-S1-03 | Deploy ship + merge-pr | Deployed via /sync-claude. Available as /ship and /merge-pr. | T-S1-02 | — | — | ✓ Done |
+
+---
+
 ### P11: `commit-code` (EXISTS — Review for IDD) ✓ COMPLETE
 
 > Build order: review → IDD fixes → verify → deploy
@@ -263,7 +402,7 @@ T-900+ are cross-cutting tasks that run after all recipe groups.
 
 ---
 
-### P12: `create-pr` (EXISTS — Review for IDD)
+### P12: `create-pr` (EXISTS — Review for IDD) ✓ COMPLETE
 
 > Build order: review → IDD fixes → verify → deploy
 

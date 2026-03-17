@@ -1,8 +1,8 @@
 # IDSD — Intent Driven Software Development: Complete Lifecycle Specification
 
-**Version:** 2.2.0
-**Date:** 2026-03-05 (updated from 2026-02-21)
-**Status:** IN PROGRESS — 4/19 complete (P1, P4, P5, P11). Four Crafts architecture (#85) supersedes original recipe/agent patterns.
+**Version:** 3.0.0
+**Date:** 2026-03-17
+**Status:** IN PROGRESS — Major restructure. Core recipes complete. Pipeline refactor pending (#106).
 **Author:** Meridian
 
 ---
@@ -32,53 +32,65 @@
 
 ---
 
-## Progress Tracker (as of 2026-03-05)
+## Progress Tracker (as of 2026-03-17)
 
 ### Architecture Change Notice
 
-**Four Crafts architecture (#85/#86, merged 2026-03-05) supersedes the recipe/agent patterns described in this spec.** All remaining work must follow the new pattern:
+**Four Crafts architecture (#85/#86, merged 2026-03-05) supersedes the recipe/agent patterns described in the original spec.** All remaining work must follow the new pattern:
 - Recipes pass a **single JSON contract** to agents (not individual parameters)
 - Templates live in **LTM** (`core/components/memory/standards/templates/`) per ADR 009
 - **Intent-resolution protocol removed** — agents read JSON contract directly
 - **Task-driven DAGs** — recipes create task graphs before agent execution
+- Recipes are **compiled artifacts** — authored from `reference/intent.yaml` via `/create-recipe`
+
+### Pipeline Refactor Notice
+
+**PENDING-REFACTOR (#106):** The current pipeline will be restructured into:
+```
+discover-product → plan-roadmap (+ features.yaml) → design-ux + design-services + design-arch → prepare-implementation (slim) → implement-epic
+```
+See section "SDLC Phases" for the current diagram (marked CURRENT) and the pending restructure notes.
 
 ### Priority Status
 
 | Priority | Recipe | Status | Notes |
 |---|---|---|---|
-| P1 | start-feature | ✅ COMPLETE | IDD headers, resume mode, STM support |
+| P1 | start-feature | ✅ COMPLETE | L2, compiled from intent, uses project-orchestrator + repo-orchestrator |
 | P2 | capture-learning | ⚠️ PARTIAL | Recipe exists, 2 skills missing (extract-patterns, draft-ltm-entry) |
-| P3 | implement-feature | ❌ NOT STARTED | **Critical blocker** — validator agent + 3 skills needed. Blocks P10, P13, P14, P18 |
+| P3 | implement-epic (was implement-feature) | ✅ COMPLETE | L2, eval-driven TDD loop, 7 agents, context isolation, model: opus |
 | P4 | start-feature-planning | ✅ COMPLETE | Renamed from start-planned-feature, IDD refactored |
-| P5 | discover-product | ✅ COMPLETE | All 4 skills + recipe + product-strategist agent built |
-| P6 | plan-roadmap | ⚠️ PARTIAL | Recipe works with Four Crafts (JSON contract, task DAG). Spec'd skills (prioritize-product-features, draft-product-roadmap, validate-product-roadmap) replaced by scope-roadmap-epics, assess-feasibility, draft-roadmap-brief, draft-roadmap, generate-engineering-view |
+| P5 | discover-product | ✅ COMPLETE | Produces product.yaml + product-brief.html |
+| P6 | plan-roadmap | ✅ COMPLETE | L2, reads product.yaml, produces roadmap.yaml + roadmap-brief.html |
 | P7 | manage-backlog | ❌ NOT STARTED | 3 skills missing |
 | P8 | refine-backlog | ❌ NOT STARTED | 1 of 2 skills exists (analyze-backlog) |
 | P9 | build-feature | ❌ NOT STARTED | Recipe missing |
-| P10 | verify-feature | ❌ NOT STARTED | Blocked by P3 (needs validator) |
-| P11 | commit-code | ✅ COMPLETE | IDD headers, structured failure |
-| P12 | create-pr | ⚠️ INCOMPLETE | Exists but needs IDD compliance (T-110–T-113) |
-| P13 | review-pr | ❌ NOT STARTED | Blocked by P3 (needs validator) |
-| P14 | deliver-feature | ❌ NOT STARTED | Blocked by P3 (needs validator) |
+| P10 | verify-feature | ❌ NOT STARTED | Blocked by validator agent |
+| P11 | commit-code | ✅ COMPLETE | L2, repo-orchestrator + project-orchestrator, auto-proceed mode |
+| P12 | create-pr | ✅ COMPLETE | L2, quality checklist with evidence, confidence-gated |
+| P13 | review-pr | ❌ NOT STARTED | Blocked by validator agent |
+| P14 | deliver-feature | ❌ NOT STARTED | Blocked by validator agent |
 | P15 | run-demo | ❌ NOT STARTED | 2 skills missing |
 | P16 | release | ❌ NOT STARTED | Blocked by P15 (needs generate-changelog) |
 | P17 | fix-bug | ❌ NOT STARTED | 2 skills missing |
-| P18 | review-architecture | ❌ NOT STARTED | Blocked by P3 (needs validator) |
+| P18 | review-architecture | ❌ NOT STARTED | Blocked by validator agent |
 | P19 | generate-docs | ❌ NOT STARTED | 2 skills missing |
+| — | ship | ✅ COMPLETE | L2 Structure C, chains commit-code → create-pr → merge-pr |
+| — | merge-pr | ✅ COMPLETE | L2, merge + switch to main + cleanup |
+| — | prepare-implementation | ✅ COMPLETE | L2, produces features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml + 5 briefs + hub.html |
 
 ### Component Inventory
 
-| Component | Built | Missing | Notes |
-|---|---|---|---|
-| Agents | 5 | 1 (validator) | validator blocks 5 priorities |
-| Skills | 18 | ~16 | P5 skills complete, P6 skills diverged |
-| Recipes | 8 | 11 | 4 complete, 2 partial, 2 incomplete |
-| Verification gates | 2 pass | ~53 blocked | G-100, G-103 pass |
+| Component | Built | Notes |
+|---|---|---|
+| Agents | 11 | product-strategist, tech-designer, code-builder, repo-orchestrator, project-orchestrator, doc-builder, eval-generator, quality-auditor, judge, intent-crafter, intent-resolver |
+| Skills | ~42 deployed | Full list via /sync-claude output |
+| Recipes | 12 deployed | discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature, start-feature-planning, commit-code, create-pr, merge-pr, ship, capture-learning, create-recipe |
+| Verification gates | 2 confirmed passing | G-100, G-103. Others blocked or pending re-eval against new schemas |
 
 ### Dependency Blockers
 
 ```
-P3 (validator agent) ──► P10, P13, P14, P18 (5 priorities blocked)
+validator agent (not yet built) ──► P10, P13, P14, P18 (4 priorities blocked)
 P15 (generate-changelog) ──► P16 (1 priority blocked)
 ```
 
@@ -95,13 +107,13 @@ Full IDD principles: `docs/philosophy/intent-driven-development.md`
 | # | IDD Element | IDD Principle | IDSD Implementation |
 |---|-------------|--------------|---------------------|
 | 1 | Intent Layer | Capture WHY — business goals, outcomes, constraints — at a stable abstraction above specifications | Every recipe has an IDD intent header (intent/constraints/failure_conditions). Users provide business intent; recipes carry SDLC intent. Two-Layer Intent Model. |
-| 2 | Signals | System activates through event-driven triggers, not manual kickoffs | User CLI invocations (`/build-feature`, `/commit-code`) are the current signal mechanism. Recipes are the entry point for all signals. |
+| 2 | Signals | System activates through event-driven triggers, not manual kickoffs | User CLI invocations (`/discover-product`, `/implement-epic`) are the current signal mechanism. Recipes are the entry point for all signals. |
 | 3 | Orchestrated Intent | Recipes bridge intent and execution at graduated autonomy levels | L1 recipes (≤2 agents), L2 recipes (≤5 agents). Three speeds: Fast (minutes), Planned (hours), Strategic (days). 19 prioritized recipes across 8 phases (5 primary, 3 supporting). |
-| 4 | Agents | Autonomous decision-makers accept intent and determine HOW within their domain | 8 agents: product-strategist, specifier, designer, validator, code-builder, tech-designer, repo-orchestrator, project-orchestrator. Agent-first pattern enforced. |
+| 4 | Agents | Autonomous decision-makers accept intent and determine HOW within their domain | 11 agents: product-strategist, code-builder, tech-designer, eval-generator, quality-auditor, judge, repo-orchestrator, project-orchestrator, doc-builder, intent-crafter, intent-resolver. Agent-first pattern enforced. |
 | 5 | Memory | Persistent organizational context across sessions | LTM (`core/components/memory/`) for practices, standards, templates. STM (`.meridian/{issue}/`) for per-issue work context. LTM governance via Git: PR-based promotion with tiered review (project-level → team, org-level → engineering leaders). Memory enables deterministic adaptation. |
 | 6 | Skills | Bounded, repeatable execution capabilities that agents invoke | Skills execute work; they never decide when they run. Each recipe lists its skills with input/output contracts. |
-| 7 | Context-Aware Decisions | Every decision accounts for full environmental context | Context bundles ≤12K tokens per agent task. Audience separation (Tier 1/2/3). Agents read LTM + STM to build execution context. |
-| 8 | Generation-Verification Loops | Every output passes through quality gates | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per recipe. Evidence artifacts. Tether/Vanish checkpoints. |
+| 7 | Context-Aware Decisions | Every decision accounts for full environmental context | Context bundles ≤12K tokens per agent task. Audience separation (product/architect/implementer/validator). Agents read LTM + STM to build execution context. |
+| 8 | Generation-Verification Loops | Every output passes through quality gates | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per recipe. Evidence artifacts. Tether/Vanish checkpoints. Eval-driven TDD in implement-epic. |
 
 ### Two-Layer Intent Model
 
@@ -111,7 +123,7 @@ IDSD operates with two distinct intent layers:
 |-------|------------|------|---------|
 | **Business Intent** | User or upstream recipe | Every invocation | "Add CSV export with auth" |
 | **SDLC Intent** | Framework author | Recipe creation (once) | "Build implementation from intent or spec" |
-| **Artifact Intent** | Generated by agents | During execution | vision.md carries business intent forward |
+| **Artifact Intent** | Generated by agents | During execution | product.yaml carries business intent forward |
 
 Business intent flows THROUGH recipes. SDLC intent tells recipes HOW to operate. Generated artifacts carry business intent forward through the entire lifecycle.
 
@@ -123,6 +135,8 @@ Upstream artifacts enrich, never block. If intent is clear, proceed. If critical
 
 ## SDLC Phases
 
+**NOTE: CURRENT diagram — PENDING-REFACTOR (#106).** The pipeline will be restructured after Issue #106 is resolved. See pending refactor note below the diagram.
+
 ```
 ┌───────────────────────────────────────────────────────────────────────────────┐
 │                     start-feature (universal precursor)                       │
@@ -133,23 +147,19 @@ Upstream artifacts enrich, never block. If intent is clear, proceed. If critical
     ┌──────────────────────────┼─────────────────────────┐
     │                          │                         │
     Fast (minutes)       Planned (hours)         Strategic (days)
-    build-feature        start-planned-feature   full SDLC pipeline
+    build-feature        start-feature-planning  full SDLC pipeline
     │                          │                         │
     ▼                          ▼                         ▼
 
 ─── PRIMARY PIPELINE (linear) ──────────────────────────────────────────────────
 
-Product-2-Design  Design-2-Spec  Spec-2-Code  Code-2-Test   Test-2-Run
+Product-2-Design  Prep-2-Impl    Impl          Code-2-Test   Test-2-Run
 ┌──────────────┐ ┌────────────┐ ┌──────────┐ ┌──────────┐  ┌──────────┐
-│discover-     │ │define-     │ │build-    │ │verify-   │  │create-pr │
-│product       │ │feature     │ │feature   │ │feature   │  │deliver-  │
-│plan-roadmap  │ │design-     │ │          │ │commit-   │  │feature   │
-│manage-       │ │feature     │ │          │ │code      │  │release   │
-│backlog       │ │create-     │ │          │ │review-pr │  │run-demo  │
-│refine-       │ │wireframes  │ │          │ │          │  │          │
-│backlog       │ │create-adr  │ │          │ │          │  │          │
-│plan-sprint   │ │evaluate-   │ │          │ │          │  │          │
-│              │ │tech        │ │          │ │          │  │          │
+│discover-     │ │prepare-    │ │implement-│ │commit-   │  │create-pr │
+│product       │ │implementa- │ │epic      │ │code      │  │merge-pr  │
+│plan-roadmap  │ │tion        │ │          │ │          │  │ship      │
+│manage-       │ │            │ │          │ │          │  │          │
+│backlog       │ │            │ │          │ │          │  │          │
 └──────────────┘ └────────────┘ └──────────┘ └──────────┘  └──────────┘
 
 ─── SUPPORTING (continuous) ────────────────────────────────────────────────────
@@ -166,9 +176,19 @@ Run-2-Monitor     Audit-2-Fix                  Learn-2-Memory
 └──────────────┘ └──────────────┘             └──────────────┘
 
 Compound L2:
-  implement-feature    Spec-2-Test     build → verify per vertical
-  start-planned-feature Design-2-Code  plan + build, fast
+  implement-epic      Prep-2-Code+Test  eval-driven TDD per feature
+  start-feature-plan  Design-2-Code     plan + build, fast
+  ship                Code-2-Merged     commit → PR → merge, no approvals
 ```
+
+**PENDING-REFACTOR (#106):** After Issue #106 is resolved, the pipeline will restructure to:
+```
+discover-product → plan-roadmap (produces features.yaml here) →
+  design-ux + design-services + design-arch (3 new recipes) →
+  prepare-implementation (slimmed: scenarios + plan + evals only) →
+  implement-epic
+```
+This moves features.yaml authorship from prepare-implementation to plan-roadmap. The three design recipes (design-ux, design-services, design-arch) do not exist yet and will be built in Issue #106.
 
 ---
 
@@ -177,14 +197,19 @@ Compound L2:
 ### 1. Audience Separation
 
 ```
-Tier 1: Human Review    → business-review.md, technical-design.md, ux-spec.md
-Tier 2: Agent Bundles   → v{N}-backend.md, v{N}-frontend.md, v{N}-integration.md
-Tier 3: Orchestration   → tasks.md, verify.md
+Product Layer:       product.yaml, roadmap.yaml, features.yaml
+Architecture Layer:  architecture.yaml
+Implementation Layer: tech.yaml, plan.yaml
+Validation Layer:    scenarios.yaml
+Review Briefs:       *-brief.html (human review per artifact type)
+Orchestration:       hub.html (links to all briefs for a product slug)
 ```
 
-- Tier 1 reviewed by humans BEFORE Tier 2 bundles are generated
-- Tier 2 bundles are self-contained — agent reads ONE bundle, not all
-- Tier 3 references bundle IDs, not full content
+- product.yaml is reviewed by humans via product-brief.html BEFORE roadmap begins
+- features.yaml is reviewed via features-brief.html BEFORE architecture begins
+- architecture.yaml and tech.yaml reviewed via their briefs BEFORE scenarios + plan
+- scenarios.yaml is validator-facing ONLY — never passed to code-builder
+- plan.yaml is implementer-facing — references scenario IDs for gating, never scenario content
 
 ### 2. Context Bundles
 
@@ -192,7 +217,7 @@ Tier 3: Orchestration   → tasks.md, verify.md
 - Bundle MUST include IDD intent header from parent spec
 - Bundle MUST list gate IDs it must satisfy
 - Rule IDs MUST be preserved from parent spec
-- Bundle structure, generation flow, and context budgets defined in `bundler` skill spec
+- In implement-epic: CONTEXT.md is produced by tech-designer (Step 1) and is the ONLY thing passed to code-builder. It is <100 lines distilled from plan.yaml + architecture.yaml + tech.yaml, scoped to ONE feature only.
 
 ### 3. IDD Intent Header
 
@@ -210,11 +235,11 @@ Intent: {verb}: {artifact_or_scope} — {context_hint}
 
 Examples:
   Intent: Draft product vision: QR-activation-feature — for B2B SaaS context
-  Intent: Build backend: v1-backend bundle — implement CSV export endpoint
-  Intent: Verify gates: verify.md gate-subset G-041,G-042 — post-vertical-1 check
+  Intent: Build epic: F1-auth — implement authentication per CONTEXT.md
+  Intent: Generate evals: F1-auth — from features.yaml behaviors and scenarios
 ```
 
-Recipes MUST pass this formatted intent string as the first line of each agent invocation context block. Do not pass intent implicitly via recipe context alone.
+Recipes MUST pass a JSON contract to each agent invocation. The contract carries intent implicitly via `intent_path` pointing to the recipe's `reference/intent.yaml`.
 
 ### 4. Artifact Lifecycle
 
@@ -224,26 +249,13 @@ DRAFT → VALIDATE → LOCKED
 
 - `--phase draft`: Agent generates initial artifact
 - `--phase validate`: Agent runs validation, returns issues/score/checklist
-- `--phase lock`: Cascade sync → re-validate → set LOCKED
+- `--phase lock`: Recipe sets LOCKED — no agent call needed for metadata update
 
 **Cycle-Back on Reject:**
 - If user responds Vanish at validate phase → recipe outputs feedback prompt, returns to draft state
 - Agent re-enters draft with original context + validate phase issues as `feedback` input
 - Maximum 2 cycle-back iterations before escalating to user with structured failure
-- Recipes supporting cycle-back: discover-product, plan-roadmap, manage-backlog
-
-### 6. Compartmented Evaluation
-
-Build-phase and verify-phase agents operate under an information barrier — they must NOT share context:
-
-| Agent | Receives | Does NOT receive |
-|-------|----------|-----------------|
-| code-builder (build-feature) | Bundle context (≤12K) + LTM practices | verify.md, gate IDs, validation criteria |
-| validator (verify-feature) | Implementation output + verify.md gates | Bundle contents, builder's internal reasoning |
-
-**Why:** Information sharing between builder and validator creates confirmation bias. The validator must evaluate output independently — if it knows what the builder tried to do, it grades effort instead of outcome.
-
-**Implementation:** Recipes must construct agent invocations with scoped context. `build-feature` passes bundle ONLY. `verify-feature` passes implementation path + verify.md path ONLY.
+- Recipes supporting cycle-back: discover-product, plan-roadmap, prepare-implementation
 
 ### 5. Cascade Sync
 
@@ -251,12 +263,21 @@ Build-phase and verify-phase agents operate under an information barrier — the
 - `--phase lock` MUST run `cascade-sync` skill before setting LOCKED status
 - Sync rules, triggers, anti-patterns, and detection logic defined in `cascade-sync` skill spec
 
-**Cascade sync invocation:**
+### 6. Compartmented Evaluation
 
-| Recipe Phase | Calls cascade-sync | Context |
-|-------------|-------------------|---------|
-| Any `--phase lock` | YES (mandatory) | `spec_path` = current artifact directory |
-| `implement-feature` start | YES (check_only=true) | Verify bundles not stale before building. If stale → halt with structured failure: list stale artifacts, suggest running `--phase lock` on parent spec to regenerate. Do NOT auto-regenerate in check_only mode. |
+implement-epic enforces 4-way context isolation:
+
+| Agent | Receives | Does NOT receive |
+|-------|----------|-----------------|
+| tech-designer (Context Builder) | plan.yaml entry, architecture.yaml, tech.yaml | Evals, scenarios, features spec |
+| eval-generator | features.yaml behaviors, scenarios.yaml verification scenarios, plan exit gate | Implementation code, builder prompts, prior evals, architecture |
+| code-builder (Builder) | CONTEXT.md ONLY | Evals, eval IDs, judge reports, pass criteria, scenarios, features spec |
+| judge | Encrypted evals + decryption key, project location | Builder prompts, builder reasoning, eval-generator prompts, quality results |
+| quality-auditor | Implemented code, quality vision gates | Evals, builder prompts, judge reports |
+
+**Why:** Information sharing between builder and evaluator creates confirmation bias. The judge must evaluate output independently. The builder must implement from spec context — not from knowledge of how it will be tested.
+
+**Implementation:** The orchestrator is the ONLY entity that touches multiple agent outputs. When routing judge failures to builder, the orchestrator MUST strip eval IDs, eval text, pass criteria, and raw scores — passing only: category of failure, description of what is wrong, expected behavior.
 
 ---
 
@@ -264,34 +285,38 @@ Build-phase and verify-phase agents operate under an information barrier — the
 
 Recipes are built one at a time. Priority set by user. Existing recipes marked for IDD review.
 
-| P# | Recipe | Level | SDLC Phase | Status | Action |
-|----|--------|-------|------------|--------|--------|
-| 1 | `start-feature` | L1 | Universal Precursor | EXISTS | Review for IDD + add resume mode |
-| 2 | `capture-learning` | L1 | Learn-2-Memory | NEW | Build |
-| 3 | `implement-feature` | L2 | Spec-2-Test | NEW (specced) | Build |
-| 4 | `start-planned-feature` | L2 | Design-2-Code | EXISTS | Review for IDD |
-| 5 | `discover-product` | L1 | Product-2-Design | NEW (specced) | Build |
-| 6 | `plan-roadmap` | L1 | Product-2-Design | NEW (specced) | Build |
-| 7 | `manage-backlog` | L1 | Product-2-Design | NEW (specced) | Build |
-| 8 | `refine-backlog` | L1 | Product-2-Design | NEW | Build |
-| 9 | `build-feature` | L1 | Spec-2-Code | NEW (specced) | Build |
-| 10 | `verify-feature` | L1 | Code-2-Test | NEW (specced) | Build |
-| 11 | `commit-code` | L1 | Code-2-Test | EXISTS | Review for IDD |
-| 12 | `create-pr` | L1 | Test-2-Run | EXISTS | Review for IDD |
-| 13 | `review-pr` | L1 | Code-2-Test | NEW | Build |
-| 14 | `deliver-feature` | L2 | Test-2-Run | NEW (specced) | Build |
-| 15 | `run-demo` | L1 | Test-2-Run | NEW | Build |
-| 16 | `release` | L1 | Test-2-Run | NEW | Build |
-| 17 | `fix-bug` | L1 | Run-2-Monitor | NEW | Build |
-| 18 | `review-architecture` | L1 | Audit-2-Fix | NEW | Build |
-| 19 | `generate-docs` | L1 | Audit-2-Fix | NEW | Build |
+| P# | Recipe | Level | Status | Notes |
+|----|--------|-------|--------|-------|
+| 1 | `start-feature` | L2 | ✅ COMPLETE | Compiled, uses project-orchestrator + repo-orchestrator |
+| 2 | `capture-learning` | L1 | ⚠️ PARTIAL | Recipe exists, 2 skills missing |
+| 3 | `implement-epic` | L2 | ✅ COMPLETE | Was implement-feature, eval-driven TDD |
+| 4 | `start-feature-planning` | L2 | ✅ COMPLETE | Was start-planned-feature |
+| 5 | `discover-product` | L2 | ✅ COMPLETE | Produces product.yaml + product-brief.html |
+| 6 | `plan-roadmap` | L2 | ✅ COMPLETE | Reads product.yaml, produces roadmap.yaml + roadmap-brief.html |
+| 7 | `manage-backlog` | L1 | ❌ NOT STARTED | 3 skills missing |
+| 8 | `refine-backlog` | L1 | ❌ NOT STARTED | 1 of 2 skills exists |
+| 9 | `build-feature` | L1 | ❌ NOT STARTED | Recipe missing |
+| 10 | `verify-feature` | L1 | ❌ NOT STARTED | Blocked by validator |
+| 11 | `commit-code` | L2 | ✅ COMPLETE | Auto-proceed mode via ship |
+| 12 | `create-pr` | L2 | ✅ COMPLETE | Confidence-gated |
+| 13 | `review-pr` | L1 | ❌ NOT STARTED | Blocked by validator |
+| 14 | `deliver-feature` | L2 | ❌ NOT STARTED | Blocked by validator |
+| 15 | `run-demo` | L1 | ❌ NOT STARTED | 2 skills missing |
+| 16 | `release` | L1 | ❌ NOT STARTED | Blocked by P15 |
+| 17 | `fix-bug` | L1 | ❌ NOT STARTED | 2 skills missing |
+| 18 | `review-architecture` | L1 | ❌ NOT STARTED | Blocked by validator |
+| 19 | `generate-docs` | L1 | ❌ NOT STARTED | 2 skills missing |
+| — | `ship` | L2 | ✅ COMPLETE | Structure C: chains commit-code + create-pr + merge-pr |
+| — | `merge-pr` | L2 | ✅ COMPLETE | Merge + switch to main + branch cleanup |
+| — | `prepare-implementation` | L2 | ✅ COMPLETE | 5 YAML artifacts + 5 briefs + hub.html |
 
 ### Backlog (unprioritized)
 
 | Recipe | Level | SDLC Phase | Notes |
 |--------|-------|------------|-------|
-| `define-feature` | L1 | Design-2-Spec | Full spec exists — strategic pipeline |
-| `design-feature` | L1 | Design-2-Spec | Full spec exists — strategic pipeline |
+| `design-ux` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new recipe |
+| `design-services` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new recipe |
+| `design-arch` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new recipe |
 | `plan-sprint` | L1 | Product-2-Design | Sprint planning ceremony |
 | `create-wireframes` | L1 | Design-2-Spec | Standalone UX design |
 | `create-adr` | L1 | Design-2-Spec | Standalone ADR creation |
@@ -305,58 +330,75 @@ Recipes are built one at a time. Priority set by user. Existing recipes marked f
 
 ---
 
+## Agent Inventory
+
+### Active Agents (11 total)
+
+| Agent | Domain | Used By |
+|-------|--------|---------|
+| `product-strategist` | Product: market analysis, vision drafting, feature scoping, roadmaps, scenarios | discover-product, plan-roadmap, prepare-implementation, implement-epic (test scenarios step) |
+| `tech-designer` | Technical: architecture design, tech design, feasibility, context building | plan-roadmap, prepare-implementation, implement-epic (context builder step) |
+| `code-builder` | Implementation: TDD code writing per CONTEXT.md | implement-epic, start-feature-planning |
+| `eval-generator` | Eval generation: encrypted evals from specs only | implement-epic |
+| `quality-auditor` | Quality: lint, test, type check, build, vision gates | implement-epic |
+| `judge` | Evaluation: decrypt evals, run checks, report pass/fail | implement-epic |
+| `repo-orchestrator` | Git: commits, branches, PRs, merges, evidence self-commit | start-feature, commit-code, create-pr, merge-pr, ship, implement-epic, all evidence steps |
+| `project-orchestrator` | Issues: create, resolve, map, track | start-feature, commit-code, create-pr |
+| `doc-builder` | Documentation: HTML brief generation, hub.html | discover-product, plan-roadmap, prepare-implementation |
+| `intent-crafter` | Intent authoring: draft intent.yaml from description | create-recipe |
+| `intent-resolver` | Intent resolution: map intent to recipe pattern | create-recipe |
+
+### Backlog Agents (not in current plan)
+
+| Agent | Used By |
+|-------|---------|
+| `validator` | verify-feature, review-pr, deliver-feature, review-architecture (P10, P13, P14, P18) |
+| `specifier` | define-feature (backlog) |
+| `designer` | design-feature (backlog) |
+
+---
+
 ## Recipe Specs — Universal Precursor
 
-### Recipe: `start-feature` (P1 — EXISTS, review for IDD)
+### Recipe: `start-feature` (P1 — COMPLETE)
 
-**File:** `core/components/recipes/start-feature/SKILL.md` (existing, evolve)
-
-```yaml
-intent: "Create or resume a work context — issue + branch + STM directory"
-constraints:
-  - Must always be the first step for any work
-  - NEW mode: create GitHub issue + feature branch + STM dir
-  - RESUME mode: resolve existing issue, checkout branch, prepare environment
-  - Must link to roadmap/epic if available (accountability)
-failure_conditions:
-  - Branch already exists and has conflicts
-  - Issue ID not found (resume mode)
-```
+**File:** `core/components/recipes/start-feature/SKILL.md`
 
 | Attribute | Value |
 |-----------|-------|
-| Level | L1 |
+| Level | L2 |
 | Agent Calls | 2 |
 | Agents | project-orchestrator, repo-orchestrator |
-| Status | EXISTS — needs resume mode + IDD intent header |
+| Status | COMPLETE — compiled from intent.yaml via create-recipe |
+| Compiled At | 2026-03-06 |
 
-**Consumes:** Issue ID or description
-**Generates:** GitHub issue, feature branch, `.meridian/{issue}/` STM directory
+**Consumes:** Issue ID, description, or no args (infers from changed files)
+**Generates:** GitHub issue, feature branch (`{type}/{issue}-{slug}`), `.meridian/{issue}/` STM directory
 
 **Arguments:**
 ```
-/start-feature [--resume <issue-id>] [description]
+/start-feature [issue-number] ["description"]
 
 Examples:
   /start-feature "QR code activation with commission tracking"
-  /start-feature --resume 42
+  /start-feature 42
+  /start-feature  # no args — infers from changed files
 ```
 
-**Evolution needed:**
-- Add IDD intent header (intent/constraints/failure_conditions)
-- Add `--resume` mode: resolve issue, checkout branch, verify STM dir exists
-- Add STM directory creation: `.meridian/{issue}/`
-- Add roadmap/epic linking if available
+**Key behaviors:**
+- Single flow, no modes — all three input patterns converge on same downstream
+- Uncommitted changes always preserved (never lost)
+- Confidence-gated — low confidence on issue mapping halts the recipe
+- Evidence self-commit via repo-orchestrator (ADR 012)
+- Pause/resume via `{stm_base}/{issue}/status/start-feature.json`
 
 ---
 
 ## Recipe Specs — Learn-2-Memory
 
-**Phase intent:** Learn-2-Memory closes the feedback loop by capturing what was learned during delivery and promoting it into long-term organizational memory. This includes retrospectives, standup summaries, and — critically — STM→LTM promotion: the process of taking issue-specific learnings from short-term memory (`.meridian/{issue}/`) and promoting them into long-term memory (`core/components/memory/`) so they benefit future work.
+### Recipe: `capture-learning` (P2 — PARTIAL)
 
-### Recipe: `capture-learning` (P2 — NEW)
-
-**File:** `core/components/skills/capture-learning/SKILL.md`
+**File:** `core/components/recipes/capture-learning/SKILL.md`
 
 ```yaml
 intent: "Promote patterns, decisions, and learnings from STM into LTM"
@@ -374,143 +416,14 @@ failure_conditions:
 | Level | L1 |
 | Agent Calls | 1 |
 | Agents | product-strategist (or new knowledge agent TBD) |
+| Status | PARTIAL — recipe exists, skills extract-patterns and draft-ltm-entry missing |
 
-**Consumes:** Completed STM artifacts (specs, evidence, ADRs, retro notes) OR intent
+**Consumes:** Completed STM artifacts OR intent
 **Generates:** LTM entries in `core/components/memory/` (practices, standards, templates)
-
-**Arguments:**
-```
-/capture-learning [--source <path>] [--type <practice|standard|template>] [intent]
-
-Examples:
-  /capture-learning --source .meridian/42/ --type practice
-  /capture-learning "We learned that QR validation needs offline fallback"
-```
 
 **Skills needed:**
 - `extract-patterns` — analyze completed work, identify reusable patterns
 - `draft-ltm-entry` — produce structured LTM entry from patterns
-
-**LTM Governance Integration:**
-
-The capture-learning recipe is the primary mechanism for STM→LTM promotion. It must integrate with the LTM governance workflow documented in `docs/philosophy/idsd.md`:
-
-- Generated LTM entries are NOT directly written to `core/components/memory/`. Instead, they are staged for PR-based review.
-- Project-level LTM entries are reviewed by team leads and senior developers.
-- Org-level LTM entries are reviewed by engineering leaders and CTOs.
-- The `extract-patterns` skill should detect semantic overlap with existing LTM entries (designed, not yet built in v1).
-- The `draft-ltm-entry` skill must check for conflicts with existing LTM entries before proposing writes.
-
-This governance workflow ensures that bad practices (e.g., "always add retry logic" applied blindly inside transactions) cannot poison LTM without human review proportional to blast radius.
-
----
-
-## Recipe Specs — Spec-2-Test (Compound L2)
-
-### Recipe: `implement-feature` (P3 — NEW, specced)
-
-**File:** `core/components/recipes/implement-feature/SKILL.md`
-
-```yaml
-intent: "Implement a feature end-to-end: build all verticals, verify all gates"
-constraints:
-  - Must invoke build-feature per vertical (L1 sub-recipe)
-  - Must invoke verify-feature after each vertical and at the end (L1 sub-recipe)
-  - Backend and frontend of same vertical can run in parallel
-  - Different verticals run sequentially (dependencies)
-failure_conditions:
-  - Mandatory gates fail after all build attempts
-  - Bundle staleness detected at start (cascade-sync check_only)
-```
-
-| Attribute | Value |
-|-----------|-------|
-| Level | L2 |
-| Agent Calls | ≤5 (typical: 3-4) |
-| Agents | code-builder, validator, repo-orchestrator |
-| Checkpoint | After each vertical + final validation |
-
-**Consumes:** spec bundles, tasks.md, verify.md, OR intent
-**Generates:** implementation code, commits, gate evidence, validation report
-
-**Arguments:**
-```
-/implement-feature [--spec <path>] [--vertical <N>] [intent]
-
-Examples:
-  /implement-feature --spec .meridian/{issue}/spec/
-  /implement-feature --spec .meridian/{issue}/spec/ --vertical 1
-  /implement-feature "Implement QR activation feature end to end"
-```
-
-**Execution Flow:**
-```
-1. Resolve context:
-   ├── Spec provided → Run cascade-sync (check_only=true), read tasks.md
-   └── Intent only  → Derive plan from intent + codebase + LTM
-
-2. For each vertical (or specified vertical):
-   a. Invoke: build-feature --bundle v{N}-backend
-   b. Invoke: build-feature --bundle v{N}-frontend
-   c. Invoke: verify-feature --spec {path} --gate {vertical gates}
-   Checkpoint: files changed, tests, gates status
-   User: Tether / Vanish
-
-3. Final: verify-feature --spec {path} --all
-   Checkpoint: full gate summary, evidence manifest
-   User: Tether (ready for delivery) / Vanish (fix issues)
-```
-
----
-
-## Recipe Specs — Design-2-Code (Compound L2)
-
-### Recipe: `start-planned-feature` (P4 — EXISTS, review for IDD)
-
-**File:** `core/components/recipes/start-planned-feature/SKILL.md` (existing, evolve)
-
-```yaml
-intent: "Quick idea-to-PR: create issue, plan with IDD principles, build, and deliver — lightweight planning without full spec ceremony"
-constraints:
-  - Embeds start-feature flow (issue + branch + STM) — does not call it separately
-  - Plan sub-agent produces lightweight IDD-aware planning artifacts (intent header, not full gates/bundles)
-  - Planning artifacts are thin but intent-driven: every artifact carries intent/constraints/failure_conditions forward
-  - Must build working code with tests (code-builder scoped to CODE only)
-  - Must commit via repo-orchestrator (agent-first)
-  - Single approval gate (Tether/Vanish at plan review) — execution is autonomous after
-failure_conditions:
-  - Intent too vague to derive design (Plan sub-agent cannot produce meaningful spec)
-  - User rejects plan at approval gate (Vanish)
-  - Implementation fails tests
-  - Branch creation fails on origin
-  - PR creation fails after commits
-```
-
-| Attribute | Value |
-|-----------|-------|
-| Level | L2 |
-| Agent Calls | ≤5 |
-| Agents | project-orchestrator, Plan sub-agent (Claude OOTB), code-builder, repo-orchestrator |
-| Status | EXISTS — IDD review: frontmatter, agent routing, templates, recovery |
-
-**Consumes:** Issue ID, description, or intent
-**Generates:** Lightweight planning artifacts (spec.md, verify.md, tasks.md in `.meridian/{issue}/planning/`), implementation code, commits, PR
-
-**Planning Artifacts (IDD-aware but lightweight):**
-```
-.meridian/{issue}/planning/
-├── spec.md      # IDD intent header + summary, approach, risks (NOT audience-separated)
-├── verify.md    # IDD intent header + acceptance criteria, verification steps (NOT formal gates)
-└── tasks.md     # IDD intent header + execution steps (NOT dependency graph)
-```
-
-**Evolution needed:**
-- Update IDD frontmatter to match recipe's actual purpose
-- Add Agent Routing Table (Domain / Agent / Intent Slice)
-- Externalize templates to `templates/` directory
-- Add Recovery section (structured-failure-protocol + intent-driven-recovery)
-- Scope code-builder invocation to CODE only (no docs, no markdown)
-- Update Plan sub-agent prompt to produce IDD intent headers in planning artifacts
 
 ---
 
@@ -528,58 +441,66 @@ tools: [Task, Read, Write, Glob, Grep, Skill]
 ```
 
 **Responsibilities:**
-- Accept product intent from recipe
+- Accept product intent from recipe via JSON contract
 - Discover market context and competitive landscape
-- Generate vision with strategic goals
-- Prioritize features and build roadmaps
-- Decompose epics into INVEST-compliant stories
+- Generate product.yaml with strategic goals (not OKRs)
+- Scope IDD epics with strategic goal references (SG-IDs)
+- Draft roadmap.yaml with feasibility consolidated from tech-designer
+- Draft features.yaml (product identity, invariants, scope, feature IDD fields, behaviors)
+- Draft verification scenarios (scenarios.yaml)
 
 **Skills Available:**
 
 | Skill | Purpose |
 |-------|---------|
 | discover-product-opportunity | Parse problem/idea, extract market context |
-| draft-product-vision | Create vision document with Strategic Goals |
+| draft-product-vision | Create product.yaml with Strategic Goals |
 | validate-product-vision | Check completeness before lock |
-| prioritize-product-features | Score and rank features (RICE/MoSCoW) |
-| draft-product-roadmap | Generate timeline with dependencies |
-| validate-product-roadmap | Check feasibility, dependencies |
-| decompose-product-epic | Split epic into manageable chunks |
-| draft-product-stories | INVEST-compliant stories with AC |
-| validate-product-backlog | Check INVEST, acceptance criteria |
-| generate-business-review | PM-facing business review from any artifact |
+| scope-roadmap-epics | Derive IDD epics from locked product.yaml |
+| draft-roadmap-brief | Generate roadmap-brief.html (human-reviewable) |
+| draft-roadmap | Produce roadmap.yaml from approved brief + feasibility |
+| draft-product-spec | Create features.yaml (product identity, invariants, scope, behaviors) |
+| draft-verification-scenarios | Create scenarios.yaml with feature back-links and feature_gates |
+| validate-implementation-design | Cross-validate all 5 artifacts (V1-V14) |
+| generate-product-brief | Generate product-brief.html |
+| generate-implementation-brief | Generate features-brief.html, scenarios-brief.html, plan-brief.html |
 
 **IDD Awareness:**
-- Reads intent from recipe invocation
-- Reads LTM: spec-structure practice (when available), domain conventions
-- Reads STM: current project context, existing product artifacts
-- Returns structured failure if intent is too vague to derive market context
+- Reads JSON contract from recipe — `intent_path` provides constraints and failure conditions
+- Reads LTM: practices, standards
+- Reads STM: current product artifacts at stm_base paths
+- Returns `step_failure` in contract if something goes wrong — never raw errors
 
 ---
 
-### Recipe: `discover-product` (P5 — NEW, specced)
+### Recipe: `discover-product` (P5 — COMPLETE)
 
 **File:** `core/components/recipes/discover-product/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
 
 ```yaml
-intent: "Discover and document product vision, strategic goals, and market positioning"
+intent: "Discover product vision, strategic goals, and market positioning"
 constraints:
-  - Must produce audience-appropriate vision document
-  - Must include Strategic Goals section (replaces OKRs)
-  - Must identify target users and competitive landscape
+  - C1: Intent text required for DRAFT — >5 meaningful words
+  - C6: Artifacts go to .meridian/project/product/{slug}/
+  - C7: Strategic Goals, not OKRs
+  - C10: Interactive HTML brief with inline comment system
 failure_conditions:
-  - Problem statement too vague to derive market context
-  - No clear target audience identifiable
+  - F1: product.yaml missing >=3 strategic goals
+  - F2: Domain clarification rejected by user
+  - F7: Attempt to overwrite LOCKED artifact
 ```
 
 | Attribute | Value |
 |-----------|-------|
-| Level | L1 |
-| Agent Calls | 2 (draft) / 1 (validate) / 0 (lock) |
-| Agents | product-strategist |
+| Level | L2 |
+| Agent Calls | 3 (product-strategist ×2, doc-builder ×1) in DRAFT; 1 in VALIDATE; 0 in LOCK |
+| Agents | product-strategist, doc-builder, repo-orchestrator (evidence) |
+| Status | COMPLETE — compiled from intent.yaml |
+| Compiled At | 2026-03-16 |
 
 **Consumes:** User intent (problem/idea)
-**Generates:** vision.md (incl. Strategic Goals), business-review
+**Generates:** `product.yaml` (market context + vision consolidated), `product-brief.html`, `hub.html`
 
 **Arguments:**
 ```
@@ -588,774 +509,487 @@ failure_conditions:
 
 **Phase: DRAFT**
 ```
-Agent → product-strategist
-  → discover-product-opportunity
-  → draft-product-vision
-
-Output: .meridian/project/product/{slug}/vision.md (DRAFT)
-Checkpoint: Present vision summary
+Step 1: product-strategist → discover-product-opportunity → market context written to product.yaml
+Step 2: product-strategist → draft-product-vision → full product.yaml (DRAFT)
+Step 3: doc-builder → generate-product-brief → product-brief.html + hub.html
+Step 4: Human checkpoint (Tether/Vanish + optional feedback JSON)
+Step 5: Evidence + evidence self-commit
 ```
 
 **Phase: VALIDATE**
 ```
-Agent → product-strategist → validate-product-vision
-Output: validation_result
+Step 1: product-strategist → validate-product-vision → validation_result
+Step 2: Human review — cycle-back on Vanish (max 2 iterations)
+Step 3: Evidence
 ```
 
 **Phase: LOCK**
 ```
-Run cascade-sync → Set LOCKED
+Step 1: Recipe directly sets status: LOCKED (no agent call)
+Step 2: Evidence
 ```
 
-**Skills:** discover-product-opportunity, draft-product-vision, validate-product-vision, generate-business-review
-**Templates:** `templates/vision.md`, `templates/business-review.md`
+**Key artifact schema fields (product.yaml):**
+- `strategic_goals[].id` (SG-ID references — used by plan-roadmap epics)
+- `status: DRAFT | LOCKED`
+- Market context + vision consolidated in single file
 
 ---
 
-### Recipe: `plan-roadmap` (P6 — NEW, specced)
+### Recipe: `plan-roadmap` (P6 — COMPLETE)
 
 **File:** `core/components/recipes/plan-roadmap/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
 
 ```yaml
-intent: "Prioritize features and build a release timeline from strategic goals"
+intent: "Plan a time-phased product roadmap from a locked product definition"
 constraints:
-  - Must use RICE or MoSCoW scoring
-  - Must account for feature dependencies
-  - Must align features to strategic goals from vision
+  - C1: product.yaml must be LOCKED before planning
+  - C4: Brief must not contain technical content not affecting sequencing/priority/timing
+  - C8: Human brief approval is mandatory before any roadmap artifacts are produced
+  - C9: roadmap.yaml must align with approved brief
 failure_conditions:
-  - No features identified from intent or vision
-  - Features have circular dependencies
-```
-
-| Attribute | Value |
-|-----------|-------|
-| Level | L1 |
-| Agent Calls | 2 (draft) / 1 (validate) / 0 (lock) |
-| Agents | product-strategist |
-
-**Consumes:** vision.md OR intent + features list
-**Generates:** roadmap.md, business-review
-
-**Skills:** prioritize-product-features, draft-product-roadmap, validate-product-roadmap, generate-business-review
-**Templates:** `templates/roadmap.md`, `templates/business-review.md`
-
----
-
-### Recipe: `manage-backlog` (P7 — NEW, specced)
-
-**File:** `core/components/recipes/manage-backlog/SKILL.md`
-
-```yaml
-intent: "Decompose a roadmap feature into an INVEST-compliant epic with user stories"
-constraints:
-  - Each story must have acceptance criteria
-  - Stories must be independently deliverable
-  - Epic must link to strategic goals and roadmap feature
-failure_conditions:
-  - Epic too large to decompose (>15 stories suggests splitting)
-  - Stories violate INVEST principles
-```
-
-| Attribute | Value |
-|-----------|-------|
-| Level | L1 |
-| Agent Calls | 2 (draft) / 1 (validate) / 0 (lock) |
-| Agents | product-strategist |
-
-**Consumes:** roadmap.md OR intent + epic description
-**Generates:** backlog/{epic}.md, business-review
-
-**Skills:** decompose-product-epic, draft-product-stories, validate-product-backlog, generate-business-review
-**Templates:** `templates/backlog-epic.md`, `templates/business-review.md`
-
----
-
-### Recipe: `refine-backlog` (P8 — NEW)
-
-**File:** `core/components/recipes/refine-backlog/SKILL.md`
-
-```yaml
-intent: "Groom existing backlog — reprioritize stories, split large ones, update estimates"
-constraints:
-  - Must read existing backlog epic(s)
-  - Must preserve story IDs for traceability
-  - Must re-validate INVEST compliance after changes
-failure_conditions:
-  - No existing backlog to refine
-  - Refinement introduces circular dependencies
-```
-
-| Attribute | Value |
-|-----------|-------|
-| Level | L1 |
-| Agent Calls | 2 |
-| Agents | product-strategist |
-
-**Consumes:** Existing backlog/{epic}.md OR intent describing what to refine
-**Generates:** Updated backlog/{epic}.md, refinement summary
-
-**Skills needed:**
-- `analyze-backlog` — identify stories needing splitting, reprioritization, or estimation
-- `refine-product-stories` — apply refinements, maintain INVEST compliance
-
----
-
-## Recipe Specs — Spec-2-Code
-
-### Recipe: `build-feature` (P9 — NEW, specced)
-
-**File:** `core/components/recipes/build-feature/SKILL.md`
-
-```yaml
-intent: "Build implementation code from a spec bundle or intent"
-constraints:
-  - Must produce working code with unit tests
-  - Must commit via repo-orchestrator (agent-first)
-  - Must load ≤12K tokens of bundle context per task
-failure_conditions:
-  - Bundle exceeds 12K token budget
-  - No clear implementation scope derivable from intent
-  - Tests fail after implementation
-```
-
-| Attribute | Value |
-|-----------|-------|
-| Level | L1 |
-| Agent Calls | 2 |
-| Agents | code-builder, repo-orchestrator |
-
-**Consumes:** spec bundle (v{N}-backend/frontend), OR intent + codebase context
-**Generates:** implementation code, unit tests, commit
-
-**Arguments:**
-```
-/build-feature [--bundle <id>] [--spec <path>] [intent]
-```
-
-**Execution Flow:**
-```
-1. Resolve context:
-   ├── Bundle provided? → Load bundle (≤12K tokens)
-   ├── Spec path provided? → Read tasks.md, derive bundle
-   └── Intent only? → Derive from intent + codebase + LTM
-
-2. Agent → code-builder
-3. Agent → repo-orchestrator (via commit-code)
-
-Checkpoint: files changed, tests run, commit summary
-```
-
----
-
-## Recipe Specs — Code-2-Test
-
-### Agent: `validator`
-
-**File:** `core/components/agents/validator.md`
-
-```yaml
-domain: quality
-role: validator
-model: sonnet
-tools: [Task, Read, Bash, Glob, Grep, Skill]
-```
-
-**Responsibilities:**
-- Verify implementation against gates defined in verify.md
-- Run tests and check coverage
-- Validate against LTM quality standards
-- Produce evidence artifacts for each gate
-
-**Skills Available:**
-
-| Skill | Purpose |
-|-------|---------|
-| verify-gate | Run verification steps for a specific gate |
-| run-test-suite | Execute tests and report coverage |
-| validate-implementation | Full implementation validation against spec |
-
-**IDD Awareness:**
-- Reads intent from recipe invocation
-- Reads LTM: quality standards, testing conventions
-- Reads STM: verify.md gates, implementation context
-- Returns structured failure if no gates defined and intent too vague
-
----
-
-### Recipe: `verify-feature` (P10 — NEW, specced)
-
-**File:** `core/components/recipes/verify-feature/SKILL.md`
-
-```yaml
-intent: "Verify implementation against quality gates"
-constraints:
-  - Must produce evidence artifact for each gate checked
-  - Must run test suite and report coverage
-  - Must report blocking issues clearly
-failure_conditions:
-  - No gates defined and intent too vague to derive criteria
-  - Evidence cannot be produced (e.g., no tests exist)
-```
-
-| Attribute | Value |
-|-----------|-------|
-| Level | L1 |
-| Agent Calls | 1 |
-| Agents | validator |
-
-**Consumes:** verify.md + implementation code, OR intent
-**Generates:** gate evidence, test results, validation report (in evidence/)
-
----
-
-### Recipe: `commit-code` (P11 — EXISTS, review for IDD)
-
-**File:** `core/components/recipes/commit-code/SKILL.md` (existing)
-
-```yaml
-intent: "Stage and commit code changes with conventional commit messages"
-constraints:
-  - Must group changes by concern (feature, fix, refactor)
-  - Must use conventional commit format
-  - Must run pre-commit hooks
-failure_conditions:
-  - No changes to commit
-  - Pre-commit hooks fail after retry
-```
-
-| Attribute | Value |
-|-----------|-------|
-| Level | L1 |
-| Agent Calls | 2 |
-| Agents | repo-orchestrator, project-orchestrator |
-| Status | EXISTS — review for IDD intent header |
-
----
-
-### Recipe: `review-pr` (P13 — NEW)
-
-**File:** `core/components/recipes/review-pr/SKILL.md`
-
-```yaml
-intent: "Perform structured code review — security, architecture, performance, correctness"
-constraints:
-  - Must check against project quality standards (from LTM)
-  - Must produce actionable review comments (not vague suggestions)
-  - Must flag blocking issues vs suggestions
-failure_conditions:
-  - PR has no diff (empty PR)
-  - Cannot access repository or PR
-```
-
-| Attribute | Value |
-|-----------|-------|
-| Level | L1 |
-| Agent Calls | 2 |
-| Agents | validator, tech-designer |
-
-**Consumes:** PR URL or branch name, OR intent describing what to review
-**Generates:** Review comments on PR, review summary
-
-**Skills needed:**
-- `analyze-pr` (EXISTS) — analyze branch, generate quality checklist
-- `review-code-quality` — structured review against LTM standards
-- `post-review-comments` — post findings as PR comments
-
-**Note:** `analyze-pr` skill already exists. This recipe wraps it with structured review flow.
-
----
-
-## Recipe Specs — Test-2-Run
-
-### Recipe: `create-pr` (P12 — EXISTS, review for IDD)
-
-**File:** `core/components/recipes/create-pr/SKILL.md` (existing)
-
-```yaml
-intent: "Push branch and create pull request with quality checklist"
-constraints:
-  - Must generate context-aware quality checklist
-  - Must include change summary
-  - Must link to issue if available
-failure_conditions:
-  - No commits to push
-  - Branch conflicts with target
-```
-
-| Attribute | Value |
-|-----------|-------|
-| Level | L1 |
-| Agent Calls | 1 |
-| Agents | repo-orchestrator |
-| Status | EXISTS — review for IDD intent header |
-
----
-
-### Recipe: `deliver-feature` (P14 — NEW, specced)
-
-**File:** `core/components/recipes/deliver-feature/SKILL.md`
-
-```yaml
-intent: "Ship a verified feature to the target branch via PR"
-constraints:
-  - Must verify all mandatory gates pass before PR creation
-  - Must generate delivery report with evidence manifest
-  - Must use repo-orchestrator for PR (agent-first)
-failure_conditions:
-  - Mandatory gates not passed and user declines to run verify-feature
-  - PR creation fails
+  - F1: Epic count outside 3-6 range
+  - F2: Epic strategic_goal_ref does not match product.yaml SG-IDs
+  - F3: Epic missing IDD fields (intent p1/p2/p3, constraints, success_scenarios, failure_conditions)
+  - F4: Brief has C-BRIEF-2 violation (technical content)
+  - F5: roadmap.yaml approved_brief_ref missing or file absent
 ```
 
 | Attribute | Value |
 |-----------|-------|
 | Level | L2 |
-| Agent Calls | ≤4 |
-| Agents | validator, repo-orchestrator |
+| Agent Calls | 3 domain (product-strategist ×2, tech-designer ×1) + 1 utility (repo-orchestrator) |
+| Agents | product-strategist, tech-designer, repo-orchestrator |
+| Status | COMPLETE — compiled from intent.yaml |
+| Compiled At | 2026-03-16 |
 
-**Consumes:** gate evidence, verify.md, OR intent
-**Generates:** delivery-report.md, PR
+**Consumes:** `product.yaml` (must be LOCKED via `--product` argument)
+**Generates:** `roadmap.yaml`, `roadmap-brief.html`, `hub.html`
+
+**NOTE:** Engineering view (formerly in plan-roadmap output) was removed. It will move to `design-arch` in the **PENDING-REFACTOR (#106)** restructure.
+
+**Arguments:**
+```
+/plan-roadmap --product <path-to-locked-product.yaml>
+/plan-roadmap --resume
+```
 
 **Execution Flow:**
 ```
-1. Agent → validator (confirm delivery readiness)
-2. Agent → repo-orchestrator (create PR via create-pr)
-3. Checkpoint: Present PR
-4. Agent → validator (optional post-merge health check)
+Step 1: Create task graph (6 tasks with dependencies)
+Step 2: product-strategist → scope-roadmap-epics → epics with strategic_goal_ref (SG-IDs)
+Step 3: tech-designer → assess-feasibility → feasibility data per epic
+Step 4: product-strategist → produce-brief → roadmap-brief.html (tabs: Strategy, Timeline, Feasibility, Comments) + hub.html
+Step 5: Human review (feedback loop max 3 cycles, Tether/Vanish)
+Step 6: product-strategist → produce-roadmap → roadmap.yaml (consolidates epics + feasibility)
+Step 7: Scenario validation (SCE-1, SCE-2, SCE-4)
+Step 8: Evidence + evidence self-commit
 ```
 
-**Skills:** verify-gate, validate-implementation, generate-delivery-report, create-pr
-**Templates:** `templates/delivery-report.md`
+**Key artifact schema fields (roadmap.yaml):**
+- `strategic_goal_ref` (SG-ID, not free text) — links epics to product.yaml strategic goals
+- `feasibility[]` — consolidated from tech-designer output
+- `approved_brief_ref` — path to the approved roadmap-brief.html
+- `thesis`, `narrative`, `timeline[]`, `critical_blockers`, `open_questions`, `risk_summary`
+
+**PENDING-REFACTOR (#106):** features.yaml will move here (from prepare-implementation) in the restructured pipeline.
 
 ---
 
-### Recipe: `run-demo` (P15 — NEW)
+## Recipe Specs — Prepare-to-Implement
 
-**File:** `core/components/recipes/run-demo/SKILL.md`
+### Recipe: `prepare-implementation` (NEW — COMPLETE)
+
+**File:** `core/components/recipes/prepare-implementation/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
 
 ```yaml
-intent: "Generate sprint review materials — changelog, demo script, metrics summary"
+intent: "Produce implementation-ready design artifacts from product intent"
 constraints:
-  - Must read completed work from git log and closed issues
-  - Must produce human-readable demo script with talking points
-  - Must include before/after metrics if available
+  - C3: features.yaml must NOT contain technology names or implementation details
+  - C4: architecture.yaml technology selections must be concrete with rationale
+  - C5: tech.yaml must specify project structure, key files, and library versions
+  - C6: plan.yaml sequences features as vertical slices (not components)
+  - C7: scenarios.yaml must have pass_criteria and automation classification per scenario
+  - C8: Every behavior in features.yaml must have >=1 scenario
+  - C9: plan.yaml must contain ZERO scenario descriptions or scenario text (compartmentalization)
+  - C11: Audience separation — features=product stakeholders, architecture=architects, tech=implementers, scenarios=validators
+  - C12: plan.yaml scenario_gate references IDs and counts only — never content
+  - C13: Every execution_order entry has observable exit_gate
 failure_conditions:
-  - No completed work in the period
+  - F1: features.yaml contains tech refs
+  - F2: architecture.yaml tech selections vague
+  - F3: execution_order entries are not vertical slices
+  - F4: scope items missing file paths
+  - F5: exit gates not observable
+  - F6: scenarios missing pass_criteria
+  - F7: behaviors without coverage
+  - F8: plan.yaml contains scenario text
+  - F10: execution_order has <2 entries
+  - F12: revision cycles exceeded
 ```
 
 | Attribute | Value |
 |-----------|-------|
-| Level | L1 |
-| Agent Calls | 2 |
-| Agents | project-orchestrator, product-strategist |
+| Level | L2 |
+| Domain Agents | 2 (product-strategist ×3 calls, tech-designer ×2 calls in DRAFT; product-strategist ×1 in VALIDATE) |
+| Utility Agents | 2 (doc-builder ×3, repo-orchestrator — exempt from budget) |
+| Status | COMPLETE — compiled from intent.yaml |
+| Compiled At | 2026-03-16 |
+| Output Artifacts | 5 (features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml) |
+| Review Briefs | 5 (features-brief.html, architecture-brief.html, tech-brief.html, scenarios-brief.html, plan-brief.html) |
+| Hub | 1 (hub.html — regenerated after each checkpoint) |
 
-**Consumes:** Git log + closed issues for a period, OR intent describing what to demo
-**Generates:** demo-script.md, changelog.md
+**Consumes:** Product intent + optional upstream enrichment (product.yaml, roadmap.yaml if available — non-blocking per C1)
+**Generates:** 5 YAML artifacts + 5 HTML briefs + hub.html
 
-**Skills needed:**
-- `generate-changelog` — aggregate commits/PRs into categorized changelog
-- `draft-demo-script` — produce talking points from completed features
+**Arguments:**
+```
+/prepare-implementation --phase <draft|validate|lock> [--artifact <path>] [--slug <slug>] [intent]
+```
+
+**DRAFT Phase — 3 Stages with Human Checkpoints:**
+
+Stage 1 (Features):
+```
+Step 1: product-strategist → draft-product-spec → features.yaml
+Step 2: doc-builder → generate-implementation-brief → features-brief.html + hub.html
+Step 3: Human Checkpoint 1 (Tether/Orbit/Vanish)
+```
+
+Stage 2 (Architecture + Tech — Steps 4 and 5 may run in parallel):
+```
+Step 4: tech-designer → draft-technical-approach → architecture.yaml
+Step 5: tech-designer → draft-lld → tech.yaml
+Step 6: doc-builder → generate-implementation-brief → architecture-brief.html + tech-brief.html + hub.html
+Step 7: Human Checkpoint 2 (Tether/Orbit/Vanish)
+```
+
+Stage 3 (Scenarios + Plan — Steps 8 and 9 may run in parallel):
+```
+Step 8: product-strategist → draft-verification-scenarios → scenarios.yaml
+       IMPORTANT: scenarios.yaml content MUST NOT be visible to Step 9 (plan compartmentalization)
+Step 9: tech-designer → draft-implementation-plan → plan.yaml
+       plan.yaml references scenario IDs from Step 8 for scenario_gate fields — count-level only
+Step 10: doc-builder → generate-implementation-brief → scenarios-brief.html + plan-brief.html + hub.html
+Step 11: Human Checkpoint 3 (Tether/Orbit/Vanish)
+```
+
+**VALIDATE Phase:**
+```
+Step 12: product-strategist → validate-implementation-design → 14 checks (V1-V14)
+Step 13: Present results — Tether to proceed to LOCK, Vanish to halt
+```
+
+**LOCK Phase:**
+```
+Step 14: Recipe sets status: LOCKED on all 5 artifacts (no agent calls)
+Step 15: Evidence + evidence self-commit
+```
+
+**Key artifact schemas:**
+- `features.yaml` — product identity, invariants, scope, features with IDD fields (intent p1/p2/p3, constraints, success_scenarios, failure_conditions), behaviors, blast_radius
+- `architecture.yaml` — principles, NFRs, stack, platforms, integrations, agentic PCAM, technical_risks, deployment, observability
+- `tech.yaml` — project structure, libraries with versions, data models, core components with interfaces/dependencies, design decisions, feature_mapping
+- `scenarios.yaml` — scenario groups with feature_ref, behavior_ref, pass_criteria, automation classification, feature_gates, coverage
+- `plan.yaml` — prerequisites (Phase 0), execution_order as vertical slices (scope items with key_files, exit_gate, scenario_gate), summary table with cumulative_scenarios
+
+**PENDING-REFACTOR (#106):** After Issue #106, prepare-implementation will slim down to: scenarios.yaml + plan.yaml + evals setup ONLY. features.yaml moves to plan-roadmap; architecture.yaml and tech.yaml move to design-arch.
 
 ---
 
-### Recipe: `release` (P16 — NEW)
+## Recipe Specs — Implementation
 
-**File:** `core/components/recipes/release/SKILL.md`
+### Recipe: `implement-epic` (P3 — COMPLETE, was implement-feature)
+
+**File:** `core/components/recipes/implement-epic/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-17)
 
 ```yaml
-intent: "Create a release — version bump, changelog, tag, deploy"
+intent: "Implement a feature from a locked execution plan through an eval-driven TDD loop"
 constraints:
-  - Must follow semantic versioning
-  - Must aggregate all changes since last release
-  - Must produce release notes from PR descriptions and commits
+  - C1: plan.yaml must be LOCKED
+  - C2: Feature must have >=1 success scenario and >=1 failure condition
+  - C3: All prerequisite sequences must be complete
+  - C4: eval-generator receives ONLY specs — never implementation code or prior evals
+  - C5: code-builder receives ONLY CONTEXT.md — never evals, eval IDs, scenarios, or features spec
+  - C6: judge receives ONLY encrypted evals + project location — never builder prompts or quality results
+  - C8: Evals stored OUTSIDE repo tree (/tmp/{slug}-evals/)
+  - C9: Fresh evals generated per fix iteration (old evals discarded)
+  - C10: Judge failures → builder: orchestrator strips eval IDs, text, criteria — passes category+description+expected only
+  - C11: Max 3 fix iterations
+  - C12: Project must build successfully at pre-flight
+  - C14: quality-auditor receives ONLY code + quality vision gates — not evals or judge reports
+  - C16: TDD vertical story — test first (red), implement (green), next scope item
 failure_conditions:
-  - Unreleased breaking changes without major version bump
-  - Failing tests on release branch
+  - F1: Build fails
+  - F2: First-run eval pass rate <=50% — feature scope may need restructuring
+  - F3: 3 fix iterations exhausted with failures remaining
+  - F7: Builder contract contains eval IDs or eval text
+  - F8: plan.yaml not LOCKED
+  - F9: Feature not in execution order
+  - F10: eval file not discarded before fresh generation
+  - F11: Test scenarios < 1 per success scenario
+  - F12: Scope item without corresponding test
+  - F13: Lint violations
+  - F14: Type check failures
 ```
 
 | Attribute | Value |
 |-----------|-------|
-| Level | L1 |
-| Agent Calls | 2 |
-| Agents | repo-orchestrator, validator |
+| Level | L2 |
+| Model | opus |
+| Domain Agents | 6 (tech-designer, eval-generator, code-builder, quality-auditor, judge, product-strategist) |
+| Utility Agents | 1 (repo-orchestrator — exempt from budget) |
+| Domain Calls (clean run) | 6 |
+| Domain Calls (max with fix loop) | 15 (clean + 3 × [fix + quality + fresh-evals + fresh-judge]) |
+| Status | COMPLETE — compiled from intent.yaml |
+| Compiled At | 2026-03-17 |
+| New Agents | 3 (eval-generator, quality-auditor, judge) |
 
-**Consumes:** Branch with merged features, OR intent describing release scope
-**Generates:** version bump, CHANGELOG.md update, git tag, GitHub release
+**Consumes:** `--epic <feature-id>` (e.g., F1) from locked plan.yaml
+**Generates:** Committed implementation code, judge report, quality report, manual test scenarios
 
-**Skills needed:**
-- `generate-changelog` (shared with run-demo)
-- `bump-version` — semantic version bump based on change types
-- `create-release` — tag + GitHub release with notes
+**Arguments:**
+```
+/implement-epic --epic <feature-id> [--issue <issue-number>]
+
+Examples:
+  /implement-epic --epic F1 --issue 1
+  /implement-epic --epic F2
+```
+
+**Execution Flow:**
+
+Phase: Preparation
+```
+Step 1: tech-designer (Context Builder) → CONTEXT.md (<100 lines, 6 required sections, feature-scoped only)
+Step 2: orchestrator → update CLAUDE.md with ## Active Implementation pointer
+Step 3: orchestrator → capture quality vision gates (detect from project config)
+Step 4: eval-generator → encrypted evals at /tmp/{slug}-evals/ (OUTSIDE repo)
+Step 5: orchestrator → record preparation state in status file
+```
+
+Phase: Execution
+```
+Step 6: code-builder (Builder, TDD) → implement scope items (red-green per item), build report
+Step 7: quality-auditor → run quality vision gates (build, lint, typecheck, tests) → quality report
+         (Steps 7 and 8 may run in parallel after Step 6)
+Step 8: judge → decrypt evals, run checks, produce judge report with per-eval PASS/FAIL
+```
+
+Phase: Fix Loop (conditional, max 3 iterations)
+```
+Step 9: orchestrator → derive remediation from judge report (strip eval IDs, pass category+description+expected only)
+Step 10: code-builder (Builder) → fix per remediation, update tests
+Step 11: quality-auditor → re-run all quality gates
+Step 12: eval-generator (NEW INSTANCE) → discard old evals, generate fresh
+Step 13: judge (NEW INSTANCE) → judge fresh evals
+         → if 100% pass: proceed to Finalize
+         → if fail and iteration < 3: return to Step 9
+         → if iteration == 3 and fail: Step 14
+Step 14: orchestrator → write failure report, halt
+```
+
+Phase: Finalize
+```
+Step 15: product-strategist (Scenario Writer) → manual test scenarios from feature success scenarios + exit gate
+Step 16: repo-orchestrator → commit and push all implementation files
+Step 17: orchestrator → clean up CLAUDE.md, archive CONTEXT.md
+```
+
+Phase: Scenario Validation + Evidence
+```
+Step 18: Scenario evals (SCE-1 through SCE-8, context-selected)
+Step 19: Write evidence, present final report, evidence self-commit
+```
+
+**Extraction Candidates (inline contracts that may become skills after 3 successful runs):**
+- `build-context` (Step 1) — CONTEXT.md generation
+- `build-epic` (Step 6) — TDD vertical story orchestration
+- `quality-gate` (Step 7) — Quality vision gate runner
+- `judge-evals` (Step 8) — Eval execution and report generation
+- `test-scenarios` (Step 15) — Scenario generation from feature + exit gate
 
 ---
 
-## Recipe Specs — Run-2-Monitor
+## Recipe Specs — Code-2-Test
 
-### Recipe: `fix-bug` (P17 — NEW)
+### Recipe: `commit-code` (P11 — COMPLETE)
 
-**File:** `core/components/recipes/fix-bug/SKILL.md`
+**File:** `core/components/recipes/commit-code/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-06)
+
+| Attribute | Value |
+|-----------|-------|
+| Level | L2 |
+| Agents | repo-orchestrator, project-orchestrator |
+| Status | COMPLETE |
+| Compiled At | 2026-03-06 |
+
+**Consumes:** Changed files (staged, unstaged, untracked) on current feature branch
+**Generates:** Conventional commits grouped by concern, pushed branch
+
+**Key behaviors:**
+- Branch guard (halts on main/master)
+- Sensitive file scan before any commit
+- Change group analysis via repo-orchestrator
+- Issue mapping with confidence scoring via project-orchestrator
+- Checkpoint SKIPPED when all mappings are high-confidence (auto-proceed)
+- When invoked by `ship`, passes `approval_override: auto-proceed`
+
+---
+
+### Recipe: `create-pr` (P12 — COMPLETE)
+
+**File:** `core/components/recipes/create-pr/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-06)
+
+| Attribute | Value |
+|-----------|-------|
+| Level | L2 |
+| Agents | repo-orchestrator, project-orchestrator |
+| Status | COMPLETE |
+| Compiled At | 2026-03-06 |
+
+**Consumes:** Pushed branch with commits ahead of base
+**Generates:** PR with dynamic quality checklist, change-specific evidence, embedded eval results
+
+**Key behaviors:**
+- Platform-agnostic (reads `platform:` from core/config.yaml)
+- Checklist items are change-specific (every item has trigger reason tracing to diff)
+- Confidence-gated — high confidence auto-submits; low confidence requires human review
+- Checkpoint SKIPPED when all confidence signals high
+- When invoked by `ship`, passes `approval_override: auto-proceed`
+
+---
+
+## Recipe Specs — Delivery
+
+### Recipe: `ship` (NEW — COMPLETE)
+
+**File:** `core/components/recipes/ship/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-06)
 
 ```yaml
-intent: "Diagnose, fix, and verify a bug"
+intent: "Deliver current branch work to main — commit, PR, merge, and cleanup in one command"
 constraints:
-  - Must diagnose root cause before fixing (not just patch symptoms)
-  - Must add regression test for the fix
-  - Must commit via repo-orchestrator (agent-first)
+  - C1: Current branch must not be main/master/default
+  - C2: All decisions auto-proceed — no human approvals at any stage
+  - C3: Merge uses default strategy
+  - C4: main is pulled after merge
+  - C5: Feature branch deleted locally and remotely after merge
+  - C6: Merge conflicts are a hard stop
 failure_conditions:
-  - Cannot reproduce the bug
-  - Fix introduces new test failures
+  - F1: Feature branch not deleted after merge
+  - F2: Merge conflict detected
+  - F3: Local checkout not on main after pipeline completes
+  - F4: No issue reference in PR
+  - F5: PR targets wrong base branch
+  - F6: Changes still uncommitted after commit-code
 ```
 
 | Attribute | Value |
 |-----------|-------|
-| Level | L1 |
-| Agent Calls | 2 |
-| Agents | tech-designer (diagnose), code-builder (fix) |
+| Level | L2 |
+| Workflow Structure | C (chains L2 sub-recipes) |
+| Sub-Recipes | 3 (commit-code, create-pr, merge-pr) |
+| Agent Calls | 0 direct (delegated to sub-recipes) |
+| Status | COMPLETE |
+| Compiled At | 2026-03-06 |
 
-**Consumes:** Bug description, error logs, issue reference, OR intent
-**Generates:** Root cause analysis, fix + regression test, commit
+**Consumes:** Uncommitted changes on a feature branch
+**Generates:** Commits + merged PR + main up to date + feature branch deleted
 
-**Skills needed:**
-- `diagnose-bug` — reproduce, trace, identify root cause
-- `fix-and-test` — implement fix + regression test
-
-**Flow:**
+**Sub-recipe chain:**
 ```
-1. Agent → tech-designer (diagnose root cause)
-2. Agent → code-builder (fix + regression test + commit)
-Checkpoint: Present RCA + fix summary
+Step 1: commit-code (with approval_override: auto-proceed)
+Step 2: create-pr (with approval_override: auto-proceed)
+Step 3: merge-pr (default merge strategy, main pull, branch cleanup)
+Step 4: Scenario evals (SCE-1, SCE-2)
+Step 5: Evidence self-commit (lands on main)
 ```
 
 ---
 
-## Recipe Specs — Audit-2-Fix
+### Recipe: `merge-pr` (NEW — COMPLETE)
 
-### Recipe: `review-architecture` (P18 — NEW)
-
-**File:** `core/components/recipes/review-architecture/SKILL.md`
-
-```yaml
-intent: "Evaluate system architecture health — patterns, dependencies, tech debt, scalability"
-constraints:
-  - Must read codebase structure, not just docs
-  - Must check against LTM architecture standards
-  - Must produce actionable findings (not vague observations)
-failure_conditions:
-  - Codebase too large to analyze within context budget
-  - No architecture standards in LTM to review against
-```
+**File:** `core/components/recipes/merge-pr/SKILL.md`
 
 | Attribute | Value |
 |-----------|-------|
-| Level | L1 |
-| Agent Calls | 2 |
-| Agents | tech-designer, validator |
+| Level | L2 |
+| Status | COMPLETE |
 
-**Consumes:** Codebase path, existing ADRs, OR intent describing focus area
-**Generates:** architecture-review.md with findings, recommendations, proposed ADRs
-
-**Skills needed:**
-- `analyze-architecture` — scan codebase structure, dependencies, patterns
-- `evaluate-tech-debt` — identify debt, categorize, estimate remediation
+**Consumes:** Open PR (reads PR number from STM written by create-pr)
+**Generates:** Merged PR, local checkout on main, latest pull, feature branch deleted
 
 ---
 
-## Recipe Specs — Audit-2-Fix
+## Artifact Schemas
 
-### Recipe: `generate-docs` (P19 — NEW)
+All artifact schemas are defined in `.claude/specs/artifact-schemas/`. Each schema defines the required fields, status lifecycle, and audience for its artifact.
 
-**File:** `core/components/recipes/generate-docs/SKILL.md`
+| Schema File | Artifact | Audience | Produced By |
+|-------------|----------|----------|-------------|
+| `product.yaml` | Product vision + market context | Product stakeholders | discover-product |
+| `roadmap.yaml` | Time-phased roadmap with feasibility | Product + Engineering | plan-roadmap |
+| `features.yaml` | Feature IDD definitions, behaviors, invariants | Product stakeholders | prepare-implementation |
+| `architecture.yaml` | Tech stack, principles, NFRs, agentic PCAM | Architects + implementers | prepare-implementation |
+| `tech.yaml` | Project structure, libraries, components, feature mapping | Implementers | prepare-implementation |
+| `scenarios.yaml` | Verification scenarios, feature_gates, coverage | Validators only | prepare-implementation |
+| `plan.yaml` | Execution order, scope items, exit gates, scenario gates | Engineering leads + implementers | prepare-implementation |
 
-```yaml
-intent: "Generate documentation from code and specs — API docs, technical docs, onboarding"
-constraints:
-  - Must read actual code, not just comments
-  - Must follow project documentation conventions (from LTM)
-  - Must be accurate — no hallucinated APIs or parameters
-failure_conditions:
-  - Code has no clear public API surface
-  - Generated docs contradict actual code behavior
-```
+**Key naming conventions:**
+- Feature IDs: F1, F2, F3 (not E-IDs)
+- Strategic Goal IDs: SG-01, SG-02 (referenced by `strategic_goal_ref` in epics and roadmap)
+- Scenario IDs: S-F1-01, S-F1-02 (feature-scoped)
 
-| Attribute | Value |
-|-----------|-------|
-| Level | L1 |
-| Agent Calls | 1 |
-| Agents | specifier (or tech-designer) |
-
-**Consumes:** Codebase path + existing docs, OR intent describing what to document
-**Generates:** Documentation files (API docs, guides, README updates)
-
-**Skills needed:**
-- `extract-api-surface` — scan code for public APIs, endpoints, types
-- `draft-documentation` — produce structured docs from extracted surface
+**Brief design system:** All HTML briefs follow `brief-principles.md` — tabbed layout, inline comment system (text selection → popup → persistent highlights → export JSON), LifeOS design language.
 
 ---
 
-## Skill Contracts (detailed)
+## Cross-Cutting Patterns
 
-Detailed input/output contracts for skills referenced by prioritized recipes. These contracts define what the builder must implement.
+### JSON Contract Flow
 
-### Product-2-Design Skills
+Every recipe → agent invocation uses a JSON contract:
 
-#### `discover-product-opportunity`
-
-**File:** `core/components/skills/discover-product-opportunity/SKILL.md`
-
-**Input:**
-```yaml
-problem_statement: {user's problem or idea description}
-market_hints: {optional — industry, geography, target segment}
+```json
+{
+  "intent_path": "{recipe_dir}/reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "slug": "{slug}",
+  "task_id": "{task-id}",
+  "stm": {
+    "input": { ... },
+    "output": { ... }
+  },
+  "config": { ... },
+  "step_failure": null
+}
 ```
 
-**Output Contract:**
-```yaml
-market_context:
-  problem: {refined problem statement}
-  target_users: [{persona 1}, {persona 2}]
-  competitors: [{name, strengths, weaknesses}]
-  market_size: {TAM/SAM/SOM estimates if derivable}
-  differentiators: [{what makes this unique}]
-  risks: [{market risks identified}]
-```
+The agent reads `intent_path` for constraints and failure conditions. The agent returns the enriched contract with `stm.output` populated and `step_failure` set if something went wrong.
 
-#### `draft-product-vision`
+### Pause and Resume
 
-**File:** `core/components/skills/draft-product-vision/SKILL.md`
+Every recipe writes a status file:
+- `{stm_base}/{issue}/status/{recipe}.json` for issue-scoped recipes
+- `{stm_base}/product/{slug}/status/{recipe}.json` for product-scoped recipes
 
-**Input:**
-```yaml
-market_context: {from discover-product-opportunity}
-product_name: {optional}
-```
+Status file tracks per-task completion. On resume: skip completed steps, reset in_progress to pending, continue from first incomplete.
 
-**Output Contract:**
-```yaml
-vision:
-  path: {path to vision.md}
-  sections: [problem_statement, target_users, value_proposition, strategic_goals, success_metrics, competitive_landscape, assumptions, out_of_scope]
-```
+### Evidence Self-Commit (ADR 012)
 
-**Templates:** `templates/vision.md`
+Every recipe's final step invokes `repo-orchestrator` to self-commit evidence files. Non-blocking — failure does not halt the recipe. Evidence lands in `{stm_base}/{scope}/evidence/{recipe}/{YYYYMMDD-HHMMSS}.md`.
 
-#### `validate-product-vision`
+### Recovery Pattern
 
-**Input:** `vision_path: {path}`
-**Output:** `validation_result` with `ready_for_lock`, `completeness_score`, `issues[]`, `checklist[]`
+When an agent returns `step_failure` (non-null):
+1. Read `step_failure.domain_assessment.responsible_domain`
+2. Invoke responsible agent with current contract + retry context
+3. Max 2 retries per step. After 2 failures, halt with full failure context.
 
-#### `prioritize-product-features`
-
-**Input:**
-```yaml
-features: [{name, description}]
-scoring_method: RICE|MoSCoW
-strategic_goals: [{goal}]
-```
-
-**Output:** `ranked_features` with `method`, `features[{name, score, rank, strategic_alignment}]`
-
-#### `draft-product-roadmap`
-
-**Input:**
-```yaml
-ranked_features: {from prioritize}
-time_horizon: {quarters or months}
-capacity_hints: {optional}
-```
-
-**Output:** `roadmap` with `path`, `sections`, `features_count`, `releases_count`
-**Templates:** `templates/roadmap.md`
-
-#### `validate-product-roadmap`
-
-**Input:** `roadmap_path`, `vision_path` (optional)
-**Output:** `validation_result` with `ready_for_lock`, `feasibility_score`, `issues[]`, `checklist[]`
-
-#### `decompose-product-epic`
-
-**Input:**
-```yaml
-feature_name: {from roadmap or intent}
-feature_description: {scope and context}
-constraints: {technical or business}
-```
-
-**Output:** `epic_structure` with `title`, `story_count`, `stories[{id, title, type, priority, dependencies}]`
-
-#### `draft-product-stories`
-
-**Input:** `epic_structure`, `strategic_goals` (optional), `roadmap_feature` (optional)
-**Output:** `backlog` with `path`, `sections`, `story_count`, `invest_compliant`
-**Templates:** `templates/backlog-epic.md`
-
-#### `validate-product-backlog`
-
-**Input:** `backlog_path`
-**Output:** `validation_result` with `ready_for_lock`, `invest_score`, `issues[]`, `checklist[]`
-
-#### `generate-business-review`
-
-**Input:** `artifact_path`, `audience: "Product Manager"`
-**Output:** `business_review` with `path`, `summary`, `key_decisions`, `risks`, `next_steps`
-**Templates:** `templates/business-review.md`
-
-### Code-2-Test Skills
-
-#### `verify-gate`
-
-**Input:** `gate_id`, `verify_path`, `implementation_path`
-**Output:** `gate_result` with `gate_id`, `status`, `steps[]`, `evidence_path`, `issues[]`
-**References:** `reference/gate-patterns.md`
-
-#### `run-test-suite`
-
-**Input:** `test_path`, `test_runner` (auto-detect), `coverage_thresholds`, `scope` (all|changed)
-**Output:** `test_result` with `total`, `passed`, `failed`, `skipped`, `coverage{}`, `failing_tests[]`
-
-#### `validate-implementation`
-
-**Input:** `spec_path`, `implementation_path`, `gate_ids[]` (optional)
-**Output:** `implementation_validation` with `ready_for_delivery`, `gates[]`, `overall_score`, `blocking_issues[]`
-**References:** `reference/quality-standards.md`
-
-### Cross-Cutting Skills
-
-#### `cascade-sync`
-
-**Input:** `spec_path`, `check_only: false`
-**Output:** `sync_result` with `status`, `artifacts_checked`, `artifacts_stale`, `artifacts_regenerated`, `details[]`
-**References:** `reference/sync-rules.md`
-
-#### `bundler`
-
-**Input:** `spec_path`, `technical_design_path`, `ux_spec_path`, `verify_path`
-**Output:** `bundles[]` with `id`, `path`, `vertical`, `concern`, `entities/screens`, `gates[]`, `token_estimate`
-**References:** `reference/bundle-rules.md`
-**Templates:** `templates/bundle.md`
-
-#### `generate-delivery-report`
-
-**Input:** `spec_path`, `evidence_path`, `pr_url`, `branch`
-**Output:** `delivery_report` with `feature`, links, `implementation{}`, `verification{}`, `pr{}`, `evidence_manifest`
-**Templates:** `templates/delivery-report.md`
-
----
-
-## Agents
-
-### New Agents (4)
-
-| Agent | Domain | Role | Model | Used By |
-|-------|--------|------|-------|---------|
-| product-strategist | product | strategist | sonnet | discover-product, plan-roadmap, manage-backlog, refine-backlog |
-| specifier | specification | specifier | sonnet | define-feature (backlog), generate-docs |
-| designer | design | designer | sonnet | design-feature (backlog), create-wireframes (backlog) |
-| validator | quality | validator | sonnet | verify-feature, deliver-feature, review-pr, review-architecture, release |
-
-### Existing Agents (4, unchanged)
-
-| Agent | Domain | Role | Used By |
-|-------|--------|------|---------|
-| code-builder | implementation | builder | build-feature, implement-feature, start-planned-feature, fix-bug |
-| tech-designer | design | designer | start-planned-feature, fix-bug, review-architecture |
-| repo-orchestrator | repository | orchestrator | start-feature, build-feature, create-pr, deliver-feature, commit-code, release |
-| project-orchestrator | project | orchestrator | start-feature, commit-code, run-demo |
-
----
-
-## Storage Layout
-
-```
-.meridian/
-├── project/
-│   └── product/{slug}/              # Product-2-Design artifacts
-│       ├── vision.md
-│       ├── roadmap.md
-│       ├── backlog/{epic}.md
-│       └── reviews/{artifact}-review.md
-│
-└── {issue}/                          # Per-issue STM (all other phases)
-    ├── spec/                         # Design-2-Spec output
-    │   ├── business-review.md
-    │   ├── technical-design.md
-    │   ├── ux-spec.md
-    │   ├── verify.md
-    │   ├── tasks.md
-    │   └── bundles/
-    ├── design/                       # Design-2-Spec output
-    │   ├── architecture.md
-    │   └── ux-design.md
-    ├── evidence/                     # Code-2-Test output
-    │   └── g-{NNN}-*.md
-    └── delivery/                     # Test-2-Run output
-        └── delivery-report.md
-
-core/components/memory/               # LTM (Learn-2-Memory output)
-├── practices/
-├── standards/
-└── templates/
-```
-
----
-
-## Dependency Graph
-
-```
-start-feature (universal — always first)
-  │  NEW: create issue + branch
-  │  RESUME: resolve issue, prepare env
-  │
-  ├─── Strategic Track (days) ─────────────────────────────────────┐
-  │  Product-2-Design:                                             │
-  │    discover-product → plan-roadmap → manage-backlog            │
-  │         │ enriches ▼                                           │
-  │  Design-2-Spec: define-feature → design-feature                │
-  │         │ enriches ▼                                           │
-  │  Spec-2-Code: build-feature                                    │
-  │         │ enriches ▼                                           │
-  │  Code-2-Test: verify-feature → commit-code                     │
-  │         │ enriches ▼                                           │
-  │  Test-2-Run: deliver-feature → create-pr                       │
-  │                                                                │
-  ├─── Operative Fast (minutes) ───────────────────────────────────┤
-  │     build-feature → commit-code → deliver-feature              │
-  │                                                                │
-  ├─── Operative Planned (hours) ──────────────────────────────────┤
-  │     start-planned-feature (Design-2-Code L2)                   │
-  │                                                                │
-  ├─── Bug Fix ────────────────────────────────────────────────────┤
-  │     fix-bug → commit-code → create-pr                          │
-  │                                                                │
-  │  Cross-cutting (any time):                                     │
-  │    review-pr, review-architecture, release, run-demo           │
-  │    generate-docs, capture-learning, refine-backlog             │
-  │                                                                │
-  │  Spec-2-Test L2: implement-feature (build → verify)            │
-  │                                                                │
-  ▼                                                                │
-DONE ──→ capture-learning (Learn-2-Memory, feeds back to LTM)        │
-```
-
----
-
-## Future Extensions (Backlog — unprioritized)
-
-| Recipe | Level | SDLC Phase | Notes |
-|--------|-------|------------|-------|
-| `define-feature` | L1 | Design-2-Spec | Full spec exists — audience-separated spec + bundles |
-| `design-feature` | L1 | Design-2-Spec | Full spec exists — architecture + UX + ADRs |
-| `plan-sprint` | L1 | Product-2-Design | Sprint planning — capacity, goal, commitment |
-| `create-wireframes` | L1 | Design-2-Spec | Standalone UX — screens, flows, prototypes |
-| `create-adr` | L1 | Design-2-Spec | Standalone architecture decision record |
-| `evaluate-tech` | L1 | Design-2-Spec | Spike / tech evaluation → produces ADR |
-| `hotfix` | L1 | Run-2-Monitor | Emergency variant of fix-bug, bypass normal flow |
-| `audit-security` | L1 | Audit-2-Fix | OWASP scan, dependency audit, secrets detection |
-| `audit-performance` | L1 | Audit-2-Fix | Load testing, profiling, bottleneck identification |
-| `audit-accessibility` | L1 | Audit-2-Fix | WCAG compliance check |
-| `run-retro` | L1 | Learn-2-Memory | Retrospective — capture what worked/didn't |
-| `run-standup` | L1 | Learn-2-Memory | Generate status from git/issues, surface blockers |
-| `monitor-to-design` | L1 | Monitor-2-Design (planned) | Production feedback → auto-generated intent candidates. Concept only — see `docs/philosophy/idsd.md` Monitor-to-Design section. 18-24 months. |
-| `bootstrap-codebase` | L1 | Learn-2-Memory | Brownfield bootstrap — "codebase-to-LTM" for cold-start on legacy codebases. Concept only. |
-| Memory Evolution (infrastructure) | — | Infrastructure | Server-based LTM (MCP), semantic search, org-wide federation. See `docs/philosophy/idsd.md` Memory Evolution Trajectory. 12-24 months. |
-| Tool Integration (MCP) | — | Infrastructure | Jira, Notion, Linear MCP server integrations. Architecture supports — incremental addition. See Enterprise Wrapper in `docs/philosophy/idsd.md`. |
-| CTO Domain Parameters | — | Infrastructure | Per-project quality thresholds, mandatory gates, approval workflows. Concept stage. |
-| LTM Quality/Decay Automation | — | Learn-2-Memory | Automated freshness scoring, relevance decay, contradiction detection for LTM. Planned, not designed. |
+Pre-flight failures are never recoverable — hard halt with clear error message.
