@@ -1,16 +1,7 @@
- M core/components/agents/doc-builder.md
- M core/components/agents/product-strategist.md
- M core/components/agents/tech-designer.md
- M core/components/recipes/create-recipe/SKILL.md
- M core/components/recipes/create-recipe/reference/audit-checklist.md
-?? .claude/settings.json
-?? core/components/recipes/prepare-implementation/
-?? core/components/skills/audit-spec-gaps/
-?? core/components/skills/draft-lld/
-?? core/components/skills/draft-product-spec/
-?? core/components/skills/draft-scenario-mapping/
-?? core/components/skills/draft-technical-approach/
-?? core/components/skills/draft-verification-scenarios/
-?? core/components/skills/generate-implementation-brief/
-?? core/components/skills/scout-project/
-?? core/components/skills/validate-implementation-design/
+ M core/components/agents/eval-generator.md
+ M core/components/agents/judge.md
+ M core/components/agents/quality-auditor.md
+ M core/components/recipes/implement-epic/SKILL.md
+ M core/components/recipes/implement-epic/reference/intent.yaml
+ M core/components/skills/sync-claude/SKILL.md
+?? core/components/skills/sync-claude/scripts/

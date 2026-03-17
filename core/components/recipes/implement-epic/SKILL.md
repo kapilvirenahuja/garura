@@ -1,12 +1,12 @@
 ---
 name: implement-epic
-description: Implement a locked LLD phase through an eval-driven TDD loop with context isolation between builder, evaluator, and judge agents. Use when an epic is ready for implementation.
+description: Implement a feature from a locked execution plan through an eval-driven TDD loop with context isolation between builder, evaluator, and judge agents. Use when a feature is ready for implementation.
 user-invokable: true
 ---
 
 # implement-epic
 
-Given a locked LLD phase and a defined epic, produce a working implementation through an eval-driven TDD loop. Context isolation is structural: the eval generator reads only specs, the builder reads only implementation context, the judge reads only evals. A quality agent independently verifies standards. If the judge reports failures, the builder fixes issues and is re-evaluated with freshly generated evals. The process produces committed code, a judge report, quality report, and manual test scenarios.
+Given a locked execution plan entry and a defined feature, produce a working implementation through an eval-driven TDD loop. Context isolation is structural: the eval generator reads only specs, the builder reads only implementation context, the judge reads only evals. A quality agent independently verifies standards. If the judge reports failures, the builder fixes issues and is re-evaluated with freshly generated evals. The process produces committed code, a judge report, quality report, and manual test scenarios.
 
 ## Compiled From
 
@@ -25,12 +25,12 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 | Agent | Role | Domain | Receives | Does NOT Receive | Phases | Budget |
 |-------|------|--------|----------|-----------------|--------|--------|
-| `tech-designer` | Context Builder | Distill LLD + tech approach into CONTEXT.md | LLD phase, tech approach, CLAUDE.md | Evals, scenarios, product spec | Preparation | Domain (1 call) |
-| `eval-generator` | Eval Generator | Generate encrypted evals from specs | Product-spec behaviors, verification scenarios, epic success/failure, LLD exit gate | Implementation code, builder prompts, prior evals, tech approach, vision | Preparation | Domain (1 call per iteration) |
-| `code-builder` | Builder | TDD implementation of scope items | CONTEXT.md only (contains distilled LLD + tech + conventions) | Evals, eval IDs, judge reports, pass criteria, scenarios, product spec | Execution | Domain (1 call per iteration) |
+| `tech-designer` | Context Builder | Distill plan.yaml + architecture + tech into CONTEXT.md | plan.yaml execution order entry, architecture.yaml, tech.yaml | Evals, scenarios, features spec | Preparation | Domain (1 call) |
+| `eval-generator` | Eval Generator | Generate encrypted evals from specs | features.yaml behaviors, scenarios.yaml verification scenarios, feature success/failure, plan.yaml exit gate | Implementation code, builder prompts, prior evals, architecture, vision | Preparation | Domain (1 call per iteration) |
+| `code-builder` | Builder | TDD implementation of scope items | CONTEXT.md only (contains distilled plan + tech + conventions) | Evals, eval IDs, judge reports, pass criteria, scenarios, features spec | Execution | Domain (1 call per iteration) |
 | `quality-auditor` | Quality Auditor | Lint, test, type check, build, vision gates | Implemented code, quality vision gates | Evals, builder prompts, judge reports, eval-generator output | Execution | Domain (1 call per iteration) |
 | `judge` | Judge | Decrypt evals, run checks, report | Encrypted evals + decryption key, project location, credentials | Builder prompts, builder reasoning, eval-generator prompts, quality results | Execution | Domain (1 call per iteration) |
-| `product-strategist` | Scenario Writer | Generate manual test scenarios | Epic success scenarios, LLD exit gate, deployed URL | Evals, builder prompts, judge reports | Finalize | Domain (1 call) |
+| `product-strategist` | Scenario Writer | Generate manual test scenarios | Feature success scenarios, plan.yaml exit gate, deployed URL | Evals, builder prompts, judge reports | Finalize | Domain (1 call) |
 | `repo-orchestrator` | Git | Commit, push, evidence self-commit | Committed files | — | Finalize, Evidence | Utility (exempt) |
 
 **Context isolation invariant (C4/C5/C6):** The orchestrator is the ONLY entity that touches multiple agent outputs. When passing information between agents, the orchestrator MUST filter. Specifically:
@@ -43,11 +43,11 @@ All `.meridian/` paths are relative to the project root. STM artifacts go to `.m
 ## Arguments
 
 ```
-/implement-epic --epic <epic-id> --phase <phase-number> [--issue <issue-number>]
+/implement-epic --epic <feature-id> --phase <phase-number> [--issue <issue-number>]
 
 Examples:
-  /implement-epic --epic E1 --phase 1 --issue 1
-  /implement-epic --epic E2 --phase 2
+  /implement-epic --epic F1 --phase 1 --issue 1
+  /implement-epic --epic F2 --phase 2
 ```
 
 ## Pre-flight
@@ -58,9 +58,9 @@ Execute these checks before any domain work. Orchestrator owns — do not delega
 |-------|-----------|-------------------|
 | Resolve `stm_base` from `core/config.yaml` | — | Hard halt — config required |
 | Parse `--epic` and `--phase` arguments | — | Hard halt — both required |
-| LLD exists and target phase has Status: LOCKED | C1 | Hard halt — cannot implement DRAFT phase (F8) |
-| Epic exists in epics.yaml with >=1 success scenario and >=1 failure condition | C2 | Hard halt — epic not ready (F9) |
-| All prerequisite phases complete | C3 | Hard halt — dependencies not met |
+| plan.yaml exists and target execution_order entry has status: "LOCKED" | C1 | Hard halt — cannot implement DRAFT entry (F8) |
+| Feature exists in features.yaml with >=1 success scenario and >=1 failure condition | C2 | Hard halt — feature not ready (F9) |
+| All prerequisite sequences complete | C3 | Hard halt — dependencies not met |
 | Project builds successfully | C12 | Hard halt — broken baseline |
 | Resolve issue number from `--issue` arg or branch name | — | Hard halt if unresolvable |
 | CLAUDE.md exists | — | Warn — will be created |
@@ -69,22 +69,22 @@ Execute these checks before any domain work. Orchestrator owns — do not delega
 ```bash
 # Resolve paths
 stm_base=$(grep '^\s*base-path:' core/config.yaml | awk '{print $2}')
-epic_id="{--epic value}"    # e.g., E1
+epic_id="{--epic value}"    # e.g., F1
 phase_num="{--phase value}"  # e.g., 1
 issue="{--issue value or extracted from branch}"
 
 # Artifact paths
 artifact_base=".meridian/project/product/{slug}"
-lld_path="{artifact_base}/lld.md"
-epics_path="{artifact_base}/epics.yaml"
-spec_path="{artifact_base}/product-spec.md"
-scenarios_path="{artifact_base}/scenarios.md"
-tech_approach_path="{artifact_base}/technical-approach.md"
+plan_yaml_path="{artifact_base}/plan.yaml"
+features_yaml_path="{artifact_base}/features.yaml"
+scenarios_yaml_path="{artifact_base}/scenarios.yaml"
+architecture_yaml_path="{artifact_base}/architecture.yaml"
+tech_yaml_path="{artifact_base}/tech.yaml"
 
-# C1: Read lld.md — verify Status: LOCKED
-# C1: Read Phase {phase_num} section — verify it exists (F8)
-# C2: Read epics.yaml — find epic {epic_id}, verify success_scenarios.length >= 1, failure_conditions.length >= 1 (F9)
-# C3: If phase_num > 1, verify Phase {phase_num - 1} exit gate was satisfied
+# C1: Read plan.yaml — verify status: "LOCKED"
+# C1: Read plan.yaml execution_order — verify entry with sequence: {phase_num} exists (F8)
+# C2: Read features.yaml — find feature {epic_id}, verify success_scenarios.length >= 1, failure_conditions.length >= 1 (F9)
+# C3: If phase_num > 1, verify execution_order entry with sequence: {phase_num - 1} exit gate was satisfied
 # C12: Run build command — verify exit code 0
 
 # Eval storage (OUTSIDE repo per C8)
@@ -109,7 +109,7 @@ quality_gates_path="{stm_dir}/quality-vision-gates.yaml"
 Owner: `tech-designer` (as Context Builder)
 Depends on: pre-flight
 
-The context builder reads the LLD phase, technical approach, and CLAUDE.md, then distills them into a focused CONTEXT.md scoped to THIS epic only. The output is <100 lines containing only what a builder needs — no full specs, no cross-epic information.
+The context builder reads the plan.yaml execution order entry, architecture.yaml, and tech.yaml, then distills them into a focused CONTEXT.md scoped to THIS feature only. The output is <100 lines containing only what a builder needs — no full specs, no cross-feature information.
 
 ```json
 {
@@ -117,9 +117,9 @@ The context builder reads the LLD phase, technical approach, and CLAUDE.md, then
   "stm_base": "{stm_base}",
   "stm": {
     "input": {
-      "lld_path": "{lld_path}",
-      "tech_approach_path": "{tech_approach_path}",
-      "claude_md_path": "CLAUDE.md",
+      "plan_yaml_path": "{plan_yaml_path}",
+      "architecture_yaml_path": "{architecture_yaml_path}",
+      "tech_yaml_path": "{tech_yaml_path}",
       "epic_id": "{epic_id}",
       "phase_num": "{phase_num}"
     },
@@ -131,7 +131,7 @@ The context builder reads the LLD phase, technical approach, and CLAUDE.md, then
   "config": {
     "max_lines": 100,
     "required_sections": ["Scope", "Tech Decisions", "Domain Rules", "Do NOT", "Files You Own", "Exit Gate"],
-    "scoping_rule": "Include ONLY information relevant to this epic's phase. Backend-only epic excludes frontend details. Frontend-only epic excludes backend internals."
+    "scoping_rule": "Include ONLY information relevant to this feature's sequence entry. Backend-only feature excludes frontend details. Frontend-only feature excludes backend internals."
   }
 }
 ```
@@ -139,7 +139,7 @@ The context builder reads the LLD phase, technical approach, and CLAUDE.md, then
 **Expected output:** CONTEXT.md at `{context_path}` with all 6 required sections, <100 lines.
 
 **Step 1 Evals:**
-- **SE-1 (C13):** CONTEXT.md exists at `{context_path}`, has all 6 required sections, is under 100 lines. Does NOT contain content from other epic phases.
+- **SE-1 (C13):** CONTEXT.md exists at `{context_path}`, has all 6 required sections, is under 100 lines. Does NOT contain content from other feature sequences.
 
 ---
 
@@ -151,7 +151,7 @@ Add active implementation pointer to CLAUDE.md:
 
 ```markdown
 ## Active Implementation
-Issue: #{issue} — {epic title}
+Issue: #{issue} — {feature title}
 Context: {stm_dir}/CONTEXT.md
 ```
 
@@ -188,7 +188,7 @@ quality_gates:
 Owner: `eval-generator` — **CONTEXT-ISOLATED**
 Depends on: pre-flight
 
-**Critical isolation (C4):** The eval generator receives ONLY the following files. It does NOT receive the LLD (contains implementation file paths), technical approach (contains technology choices), CONTEXT.md, CLAUDE.md, or any implementation code.
+**Critical isolation (C4):** The eval generator receives ONLY the following files. It does NOT receive plan.yaml (contains implementation file paths), architecture.yaml (contains technology choices), CONTEXT.md, CLAUDE.md, or any implementation code.
 
 ```json
 {
@@ -196,12 +196,11 @@ Depends on: pre-flight
   "stm_base": "{stm_base}",
   "stm": {
     "input": {
-      "product_spec_path": "{spec_path}",
-      "scenarios_path": "{scenarios_path}",
-      "epics_path": "{epics_path}",
+      "features_yaml_path": "{features_yaml_path}",
+      "scenarios_yaml_path": "{scenarios_yaml_path}",
       "epic_id": "{epic_id}",
       "phase_num": "{phase_num}",
-      "lld_exit_gate": "{extracted exit gate text — NOT the full LLD}"
+      "plan_exit_gate": "{extracted exit gate text from plan.yaml execution_order[].exit_gate.description — NOT the full plan}"
     },
     "output": {
       "encrypted_eval_path": "{eval_dir}/phase-{phase_num}.enc",
@@ -215,7 +214,7 @@ Depends on: pre-flight
     "instructions": [
       "Read ONLY the input files listed above",
       "Do NOT read any files in app/, lib/, components/, or any source code",
-      "Do NOT read CLAUDE.md, CONTEXT.md, technical-approach.md, or lld.md",
+      "Do NOT read CLAUDE.md, CONTEXT.md, architecture.yaml, tech.yaml, or plan.yaml",
       "Generate YAML evals covering all relevant behaviors, scenarios, and exit gate criteria",
       "Encrypt with AES-256-CBC + PBKDF2",
       "Delete plaintext after encryption",
@@ -229,7 +228,7 @@ Depends on: pre-flight
 
 **Step 4 Evals:**
 - **SE-4 (C7, C8, F4):** Encrypted file exists at output path. No `.yaml` plaintext files exist in `{eval_dir}/`. No eval files (encrypted or plain) exist inside the project repo tree. Manifest exists with eval count > 0.
-- **SE-13 (F7):** Eval generator's prompt (as passed by orchestrator) contains zero implementation code paths, zero builder outputs, zero prior eval results. Verify by inspecting the contract's `stm.input` — only spec_path, scenarios_path, epics_path, epic_id, phase_num, and lld_exit_gate are present.
+- **SE-13 (F7):** Eval generator's prompt (as passed by orchestrator) contains zero implementation code paths, zero builder outputs, zero prior eval results. Verify by inspecting the contract's `stm.input` — only `features_yaml_path`, `scenarios_yaml_path`, `epic_id`, `phase_num`, and `plan_exit_gate` are present.
 
 ---
 
@@ -251,7 +250,7 @@ Store `eval_key` in status file for judge decryption on resume.
 Owner: `code-builder` (as Builder) — **CONTEXT-ISOLATED**
 Depends on: Step 5
 
-**Critical isolation (C5):** The builder receives ONLY CONTEXT.md. It does NOT receive the product spec, verification scenarios, evals, eval IDs, judge reports, or pass criteria. CONTEXT.md contains the distilled scope, tech decisions, domain rules, contamination warnings, file list, and exit gate — everything the builder needs without spec pollution.
+**Critical isolation (C5):** The builder receives ONLY CONTEXT.md. It does NOT receive the features spec, verification scenarios, evals, eval IDs, judge reports, or pass criteria. CONTEXT.md contains the distilled scope, tech decisions, domain rules, contamination warnings, file list, and exit gate — everything the builder needs without spec pollution.
 
 **TDD requirement (C16):** The builder implements each scope item as a vertical story: write test first (red), then implement (green), then verify, before moving to the next scope item. Scope items are NOT batched.
 
@@ -280,7 +279,7 @@ Depends on: Step 5
       "  5. Move to the next scope item",
       "After all scope items: run full build to verify zero errors",
       "Do NOT read any files in .meridian/ other than CONTEXT.md",
-      "Do NOT read scenarios.md, product-spec.md, or any eval files"
+      "Do NOT read scenarios.yaml, features.yaml, or any eval files"
     ]
   }
 }
@@ -374,7 +373,7 @@ Depends on: Step 6
 **Expected output:** Judge report with per-eval PASS/FAIL, category breakdown, overall pass rate.
 
 **Step 8 Evals:**
-- **SE-8 (F2):** Judge report exists. First-run pass rate is > 50% (F2 threshold). If <= 50%, recipe halts with structured failure — epic scope may need restructuring.
+- **SE-8 (F2):** Judge report exists. First-run pass rate is > 50% (F2 threshold). If <= 50%, recipe halts with structured failure — feature scope may need restructuring.
 - **SE-12 (F6):** Judge's prompt (as passed by orchestrator) contains zero builder prompts, zero builder reasoning, zero implementation rationale. Verify by inspecting the contract — only `encrypted_eval_path`, `manifest_path`, `project_root`, and `decryption_key` are present.
 
 ---
@@ -482,8 +481,8 @@ Write failure report to `{stm_dir}/evidence/implement-epic/failure-report.md`:
 ```markdown
 # Implementation Failure Report
 
-**Epic:** {epic_id} — {epic title}
-**Phase:** {phase_num}
+**Feature:** {epic_id} — {feature title}
+**Sequence:** {phase_num}
 **Iterations exhausted:** 3
 
 ## Persistent Failures
@@ -497,7 +496,7 @@ Write failure report to `{stm_dir}/evidence/implement-epic/failure-report.md`:
 | 3 | {summary} | {remaining failures} |
 
 ## Recommendation
-{Restructure epic scope / escalate / investigate root cause}
+{Restructure feature scope / escalate / investigate root cause}
 ```
 
 Present to user and halt.
@@ -516,9 +515,9 @@ Depends on: Step 8 or Step 13 (all evals pass)
   "stm_base": "{stm_base}",
   "stm": {
     "input": {
-      "epics_path": "{epics_path}",
+      "features_yaml_path": "{features_yaml_path}",
       "epic_id": "{epic_id}",
-      "lld_exit_gate": "{extracted exit gate text}"
+      "plan_exit_gate": "{extracted exit gate text from plan.yaml execution_order[].exit_gate.description}"
     },
     "output": {
       "test_scenarios": "{stm_dir}/evidence/implement-epic/test-scenarios.md"
@@ -527,7 +526,7 @@ Depends on: Step 8 or Step 13 (all evals pass)
   "task_id": "test-scenarios",
   "config": {
     "instructions": [
-      "Read the epic's success scenarios and the LLD exit gate",
+      "Read the feature's success scenarios and the plan.yaml exit gate",
       "Generate numbered manual test scenarios with:",
       "  - Step-by-step instructions a human can follow",
       "  - Expected outcome per step",
@@ -539,7 +538,7 @@ Depends on: Step 8 or Step 13 (all evals pass)
 ```
 
 **Step 15 Eval:**
-- **SE-10 (F11):** Test scenarios document exists with at least 1 scenario per epic success scenario.
+- **SE-10 (F11):** Test scenarios document exists with at least 1 scenario per feature success scenario.
 
 ---
 
@@ -573,7 +572,7 @@ Run these scenario evals against the final artifacts:
 
 - **SCE-3 (S3 — QA Engineer):** Test scenarios document exists. Each scenario has numbered steps and expected outcomes. A QA engineer can execute them against the deployed environment without reading code.
 
-- **SCE-4 (S4 — Security Auditor):** Builder contract's `stm.input` contains only `context_path` (and `remediation_path` during fix loop). Judge contract's `stm.input` contains only `encrypted_eval_path`, `manifest_path`, `project_root`. Eval generator's `stm.input` contains only spec/scenario/epic paths. No cross-contamination.
+- **SCE-4 (S4 — Security Auditor):** Builder contract's `stm.input` contains only `context_path` (and `remediation_path` during fix loop). Judge contract's `stm.input` contains only `encrypted_eval_path`, `manifest_path`, `project_root`. Eval generator's `stm.input` contains only `features_yaml_path`, `scenarios_yaml_path`, `epic_id`, `phase_num`, and `plan_exit_gate`. No cross-contamination.
 
 - **SCE-5 (S5 — Engineering Lead):** If F3 triggered: failure report exists with persistent failure list, remediation history per iteration, and recommendation. An engineering lead can decide next steps without re-running the process.
 
@@ -598,8 +597,8 @@ Write evidence to `{stm_dir}/evidence/implement-epic/{YYYYMMDD-HHMMSS}.md`:
 ```markdown
 # implement-epic Evidence
 
-**Epic:** {epic_id} — {epic title}
-**Phase:** {phase_num}
+**Feature:** {epic_id} — {feature title}
+**Sequence:** {phase_num}
 **Issue:** #{issue}
 **Completed:** {timestamp}
 
@@ -640,8 +639,8 @@ Present final report to user:
 ```markdown
 ## implement-epic complete
 
-**Epic:** {epic_id} — {epic title}
-**Phase:** {phase_num}
+**Feature:** {epic_id} — {feature title}
+**Sequence:** {phase_num}
 **Evals:** {pass_count}/{total_count} PASS
 **Quality:** {PASS/FAIL}
 **Fix iterations:** {count}
@@ -734,7 +733,7 @@ When an agent returns `status: "failed"`:
 
 **Pre-flight failures (C1, C2, C3, C12) are not recoverable** — hard halt with clear error message.
 
-**F2 (>50% failure rate on first run):** This suggests the epic scope is too ambitious or the builder received insufficient context. Halt and present to user — do not enter the fix loop. The orchestrator presents: "First-run eval pass rate is below 50%. The epic may need restructuring before re-attempting implementation."
+**F2 (>50% failure rate on first run):** This suggests the feature scope is too ambitious or the builder received insufficient context. Halt and present to user — do not enter the fix loop. The orchestrator presents: "First-run eval pass rate is below 50%. The feature may need restructuring before re-attempting implementation."
 
 ---
 
@@ -748,7 +747,7 @@ Inline agent contracts in this recipe may be extracted into standalone skills af
 | `build-epic` | Step 6 inline contract | 3 successful runs | TDD vertical story orchestration, scope item sequencing |
 | `quality-gate` | Step 7 inline contract | 3 successful runs | Quality vision gate runner, report schema |
 | `judge-evals` | Step 8 inline contract | 3 successful runs | Decryption, eval execution, report generation |
-| `test-scenarios` | Step 15 inline contract | 3 successful runs | Scenario generation from epic + exit gate |
+| `test-scenarios` | Step 15 inline contract | 3 successful runs | Scenario generation from feature + exit gate |
 
 **Tracking:** Each successful recipe completion increments `successful_runs` in the recipe's evidence trail. When a candidate reaches its threshold, the evidence report emits: `"EXTRACTION SIGNAL: {skill} has been used successfully {N} times — consider extracting to standalone skill."` Extraction is a human decision — the recipe signals, the human acts.
 
@@ -760,9 +759,9 @@ Inline agent contracts in this recipe may be extracted into standalone skills af
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:4e2103912a90ec359b9beec1c5fd61780659d551d3af8a775343a2387a434c56 |
+| intent_hash | sha256:f4d5b030049aa18668c57e540fef141f5a93caedafc07219d167a75077d45ea2 |
 | compiled_by | create-recipe |
-| compiled_at | 2026-03-16 |
+| compiled_at | 2026-03-17 |
 | maturity | L2 |
 | workflow_structure | A (with conditional fix loop in execution phase) |
 | domain_agents | 6 (tech-designer, eval-generator, code-builder, quality-auditor, judge, product-strategist) |

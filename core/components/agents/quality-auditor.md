@@ -90,6 +90,41 @@ Given a codebase and quality standards, YOU:
 }
 ```
 
+## Failure Protocol
+
+On failure, return:
+
+```json
+{
+  "status": "failed",
+  "error": "{error_type}",
+  "message": "{human-readable description}",
+  "domain_assessment": {
+    "responsible_domain": "quality",
+    "fix_suggestion": "{what needs to happen}"
+  },
+  "task_id": "{from contract}"
+}
+```
+
+Error types:
+- `gate_execution_failed` — a quality gate command exited with an unexpected error (not a test failure — a tool failure)
+- `gate_timeout` — a gate command exceeded a reasonable execution window
+- `gates_file_missing` — the quality gates YAML at `quality_gates_path` does not exist or is unreadable
+
+## Recovery
+
+- Max 1 internal retry on transient failures (file I/O, command timeout)
+- After 2 attempts total, return structured failure to orchestrator
+- Orchestrator owns retry and escalation logic — this agent does not retry domain work
+
+## Task Tracking
+
+- Mark assigned `task_id` as `in_progress` on start
+- Mark `task_id` as `completed` on success
+- Mark `task_id` as `failed` on failure — never abandon a task
+- If additional work is discovered (e.g., missing tooling required by a gate), create new tasks via TaskCreate before returning
+
 ## Quality Report Schema
 
 ```yaml
