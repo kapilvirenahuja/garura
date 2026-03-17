@@ -1,7 +1,8 @@
 ---
 name: implement-epic
 description: Implement a feature from a locked execution plan through an eval-driven TDD loop with context isolation between builder, evaluator, and judge agents. Use when a feature is ready for implementation.
-user-invokable: true
+user-invocable: true
+model: opus
 ---
 
 # implement-epic
@@ -43,12 +44,14 @@ All `.meridian/` paths are relative to the project root. STM artifacts go to `.m
 ## Arguments
 
 ```
-/implement-epic --epic <feature-id> --phase <phase-number> [--issue <issue-number>]
+/implement-epic --epic <feature-id> [--issue <issue-number>]
 
 Examples:
-  /implement-epic --epic F1 --phase 1 --issue 1
-  /implement-epic --epic F2 --phase 2
+  /implement-epic --epic F1 --issue 1
+  /implement-epic --epic F2
 ```
+
+The sequence number is derived automatically from plan.yaml — look up `execution_order[].feature_ref` matching the epic_id to get the sequence position. No `--phase` argument needed.
 
 ## Pre-flight
 
@@ -57,8 +60,9 @@ Execute these checks before any domain work. Orchestrator owns — do not delega
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
 | Resolve `stm_base` from `core/config.yaml` | — | Hard halt — config required |
-| Parse `--epic` and `--phase` arguments | — | Hard halt — both required |
-| plan.yaml exists and target execution_order entry has status: "LOCKED" | C1 | Hard halt — cannot implement DRAFT entry (F8) |
+| Parse `--epic` argument | — | Hard halt — required |
+| Derive sequence from plan.yaml execution_order | — | Hard halt — feature not found in execution order |
+| plan.yaml exists and has status: "LOCKED" | C1 | Hard halt — cannot implement DRAFT plan (F8) |
 | Feature exists in features.yaml with >=1 success scenario and >=1 failure condition | C2 | Hard halt — feature not ready (F9) |
 | All prerequisite sequences complete | C3 | Hard halt — dependencies not met |
 | Project builds successfully | C12 | Hard halt — broken baseline |
@@ -70,12 +74,16 @@ Execute these checks before any domain work. Orchestrator owns — do not delega
 # Resolve paths
 stm_base=$(grep '^\s*base-path:' core/config.yaml | awk '{print $2}')
 epic_id="{--epic value}"    # e.g., F1
-phase_num="{--phase value}"  # e.g., 1
 issue="{--issue value or extracted from branch}"
 
-# Artifact paths
+# Resolve slug: read plan.yaml slug field, or derive from branch name, or from product.yaml
+# slug resolution order: plan.yaml > product.yaml > branch name
 artifact_base=".meridian/project/product/{slug}"
 plan_yaml_path="{artifact_base}/plan.yaml"
+
+# Derive sequence number from plan.yaml — look up execution_order[].feature_ref == epic_id
+# phase_num = execution_order entry's sequence value where feature_ref matches epic_id
+# Hard halt if no matching entry found
 features_yaml_path="{artifact_base}/features.yaml"
 scenarios_yaml_path="{artifact_base}/scenarios.yaml"
 architecture_yaml_path="{artifact_base}/architecture.yaml"
@@ -89,7 +97,6 @@ tech_yaml_path="{artifact_base}/tech.yaml"
 
 # Eval storage (OUTSIDE repo per C8)
 eval_dir="/tmp/{slug}-evals"
-eval_key="{slug}-{epic_id}-{timestamp}"  # unique per run
 
 # STM for this implementation
 stm_dir="{stm_base}/{issue}"
@@ -97,7 +104,7 @@ context_path="{stm_dir}/CONTEXT.md"
 quality_gates_path="{stm_dir}/quality-vision-gates.yaml"
 ```
 
-**Resume check:** If `{stm_dir}/status/implement-epic.json` exists, resume — skip completed steps, reset any `in_progress` to pending, continue from first incomplete. Restore `eval_key` from status file for judge decryption.
+**Resume check:** If `{stm_dir}/status/implement-epic.json` exists, resume — skip completed steps, reset any `in_progress` to pending, continue from first incomplete.
 
 ---
 
@@ -129,17 +136,17 @@ The context builder reads the plan.yaml execution order entry, architecture.yaml
   },
   "task_id": "build-context",
   "config": {
-    "max_lines": 100,
+    "target_lines": 100,
     "required_sections": ["Scope", "Tech Decisions", "Domain Rules", "Do NOT", "Files You Own", "Exit Gate"],
     "scoping_rule": "Include ONLY information relevant to this feature's sequence entry. Backend-only feature excludes frontend details. Frontend-only feature excludes backend internals."
   }
 }
 ```
 
-**Expected output:** CONTEXT.md at `{context_path}` with all 6 required sections, <100 lines.
+**Expected output:** CONTEXT.md at `{context_path}` with all 6 required sections. Aim for ~100 lines — can exceed for complex features but keep it focused.
 
 **Step 1 Evals:**
-- **SE-1 (C13):** CONTEXT.md exists at `{context_path}`, has all 6 required sections, is under 100 lines. Does NOT contain content from other feature sequences.
+- **SE-1 (C13):** CONTEXT.md exists at `{context_path}`, has all 6 required sections. Does NOT contain content from other feature sequences.
 
 ---
 
@@ -169,15 +176,18 @@ Depends on: pre-flight
 Check if quality vision gates exist in LTM (e.g., `core/quality-gates.yaml`). If not, create default gates in STM:
 
 ```yaml
-# {quality_gates_path}
+# {quality_gates_path} — example for Node.js/TypeScript project
+# Commands are project-specific. Detect from package.json, Makefile, pyproject.toml, etc.
 quality_gates:
-  build: { required: true, command: "npm run build" }
-  typecheck: { required: true, command: "npx tsc --noEmit" }
-  lint: { required: true, command: "npm run lint", max_warnings: 0 }
-  unit_tests: { required: true, command: "npm test", min_coverage: null }
+  build: { required: true, command: "{project build command}" }
+  typecheck: { required: true, command: "{project typecheck command}" }
+  lint: { required: true, command: "{project lint command}", max_warnings: 0 }
+  unit_tests: { required: true, command: "{project test command}", min_coverage: null }
   bundle_size: { required: false, max_kb: null }
   lighthouse: { required: false, min_score: null }
 ```
+
+Detect the project's toolchain from existing config files (package.json → npm, pyproject.toml → pytest, Makefile → make, Cargo.toml → cargo, etc.) and populate commands accordingly.
 
 **Step 3 Eval:**
 - **SE-3 (C15):** Quality vision gates file exists at `{quality_gates_path}` with at least `build`, `typecheck`, `lint`, and `unit_tests` entries.
@@ -189,6 +199,8 @@ Owner: `eval-generator` — **CONTEXT-ISOLATED**
 Depends on: pre-flight
 
 **Critical isolation (C4):** The eval generator receives ONLY the following files. It does NOT receive plan.yaml (contains implementation file paths), architecture.yaml (contains technology choices), CONTEXT.md, CLAUDE.md, or any implementation code.
+
+**Isolation mechanism:** Evals are stored OUTSIDE the repo tree (`/tmp/{slug}-evals/`) where the builder cannot access them. The builder's contract (`stm.input`) contains only `context_path` — no path to eval files. The contract boundary IS the security boundary.
 
 ```json
 {
@@ -203,31 +215,29 @@ Depends on: pre-flight
       "plan_exit_gate": "{extracted exit gate text from plan.yaml execution_order[].exit_gate.description — NOT the full plan}"
     },
     "output": {
-      "encrypted_eval_path": "{eval_dir}/phase-{phase_num}.enc",
+      "eval_path": "{eval_dir}/phase-{phase_num}.yaml",
       "manifest_path": "{eval_dir}/manifest.json"
     }
   },
   "task_id": "generate-evals",
   "config": {
-    "encryption_key": "{eval_key}",
     "storage_dir": "{eval_dir}",
     "instructions": [
       "Read ONLY the input files listed above",
       "Do NOT read any files in app/, lib/, components/, or any source code",
       "Do NOT read CLAUDE.md, CONTEXT.md, architecture.yaml, tech.yaml, or plan.yaml",
       "Generate YAML evals covering all relevant behaviors, scenarios, and exit gate criteria",
-      "Encrypt with AES-256-CBC + PBKDF2",
-      "Delete plaintext after encryption",
+      "Write evals to {eval_dir}/phase-{phase_num}.yaml (OUTSIDE repo tree)",
       "Write manifest.json with eval count and metadata"
     ]
   }
 }
 ```
 
-**Expected output:** Encrypted eval file at `{eval_dir}/phase-{phase_num}.enc`, manifest at `{eval_dir}/manifest.json`, no plaintext on disk.
+**Expected output:** Eval file at `{eval_dir}/phase-{phase_num}.yaml`, manifest at `{eval_dir}/manifest.json`. Both outside repo tree.
 
 **Step 4 Evals:**
-- **SE-4 (C7, C8, F4):** Encrypted file exists at output path. No `.yaml` plaintext files exist in `{eval_dir}/`. No eval files (encrypted or plain) exist inside the project repo tree. Manifest exists with eval count > 0.
+- **SE-4 (C7, C8, F4):** Eval file exists at output path outside repo tree. No eval files exist inside the project repo tree. Manifest exists with eval count > 0.
 - **SE-13 (F7):** Eval generator's prompt (as passed by orchestrator) contains zero implementation code paths, zero builder outputs, zero prior eval results. Verify by inspecting the contract's `stm.input` — only `features_yaml_path`, `scenarios_yaml_path`, `epic_id`, `phase_num`, and `plan_exit_gate` are present.
 
 ---
@@ -240,7 +250,7 @@ Write status file. This is the checkpoint before execution begins. On resume, if
 
 Update status: `build-context → completed`, `update-claude-md → completed`, `capture-quality-gates → completed`, `generate-evals → completed`.
 
-Store `eval_key` in status file for judge decryption on resume.
+Store `eval_dir` path in status file for resume.
 
 ---
 
@@ -288,7 +298,7 @@ Depends on: Step 5
 **Expected output:** All scope items implemented with corresponding tests. Build passes.
 
 **Step 6 Evals:**
-- **SE-5 (C12, F1):** Project build (`npm run build`) exits with code 0. Type check (`npx tsc --noEmit`) exits with code 0.
+- **SE-5 (C12, F1):** All required quality gate commands from `{quality_gates_path}` (build, typecheck) exit with code 0. Commands are read from the gates file — not hardcoded to any specific toolchain.
 - **SE-6 (C16, F12):** Every scope item from CONTEXT.md "Files You Own" has at least one corresponding test file. Test files exist and pass.
 - **SE-11 (F5):** Builder's prompt (as passed by orchestrator) contains zero eval IDs, zero eval text, zero pass criteria, zero judge report content. Verify by inspecting the contract — only `context_path` is in `stm.input`.
 
@@ -337,7 +347,9 @@ Depends on: Step 6
 Owner: `judge` — **CONTEXT-ISOLATED**
 Depends on: Step 6
 
-**Critical isolation (C6):** The judge receives ONLY the encrypted evals + decryption key + project location + credentials for verification queries. It does NOT receive builder prompts, builder reasoning, implementation rationale, eval-generator prompts, or quality results.
+**Note:** Steps 7 and 8 both depend on Step 6 but NOT on each other — they MAY run in parallel.
+
+**Critical isolation (C6):** The judge receives ONLY the eval file + project location + credentials for verification queries. It does NOT receive builder prompts, builder reasoning, implementation rationale, eval-generator prompts, or quality results. Eval files are stored outside the repo tree — the builder has no path to them.
 
 ```json
 {
@@ -345,7 +357,7 @@ Depends on: Step 6
   "stm_base": "{stm_base}",
   "stm": {
     "input": {
-      "encrypted_eval_path": "{eval_dir}/phase-{phase_num}.enc",
+      "eval_path": "{eval_dir}/phase-{phase_num}.yaml",
       "manifest_path": "{eval_dir}/manifest.json",
       "project_root": "."
     },
@@ -355,12 +367,10 @@ Depends on: Step 6
   },
   "task_id": "judge-evals",
   "config": {
-    "decryption_key": "{eval_key}",
     "instructions": [
-      "Decrypt the eval file using the provided key",
+      "Read the eval file",
       "Run every eval — execute the verification method described in each",
       "Record PASS/FAIL with evidence per eval",
-      "Delete the decrypted plaintext file after evaluation",
       "Write the judge report with per-eval results, category breakdown, and summary",
       "Do NOT read any builder prompts, CONTEXT.md, or implementation reasoning",
       "Do NOT read any files in .meridian/ other than what evals require"
@@ -444,21 +454,18 @@ Same contract as Step 7. Re-runs all quality checks after fixes.
 Owner: `eval-generator` (**NEW INSTANCE**) — **CONTEXT-ISOLATED**
 Depends on: Step 11
 
-**Critical (C9, F10):** Old eval files are deleted. A COMPLETELY NEW eval generator agent (no prior knowledge of previous evals) generates fresh evals from the original specs. New encryption key generated.
+**Critical (C9, F10):** Old eval files are deleted. A COMPLETELY NEW eval generator agent (no prior knowledge of previous evals) generates fresh evals from the original specs.
 
 ```bash
 # Discard old evals
-rm -f "{eval_dir}/phase-{phase_num}.enc"
+rm -f "{eval_dir}/phase-{phase_num}.yaml"
 rm -f "{eval_dir}/manifest.json"
-
-# New encryption key
-eval_key="{slug}-{epic_id}-{timestamp}-iter{iteration}"
 ```
 
-Same contract as Step 4, but with new `eval_key` and fresh agent instance.
+Same contract as Step 4, but with a fresh agent instance (no prior eval knowledge).
 
 **Step 12 Eval:**
-- **SE-9 (C9, F10):** Old encrypted file no longer exists. New encrypted file exists with different timestamp in manifest. New eval_key differs from previous iteration's key.
+- **SE-9 (C9, F10):** Old eval file no longer exists. New eval file exists with different timestamp in manifest.
 
 ---
 
@@ -466,7 +473,7 @@ Same contract as Step 4, but with new `eval_key` and fresh agent instance.
 Owner: `judge` (**NEW INSTANCE**)
 Depends on: Step 12
 
-Same contract as Step 8, but with new `eval_key` matching Step 12's output.
+Same contract as Step 8, but reading the freshly generated eval file from Step 12.
 
 **Loop control (C11):** If judge reports all pass → exit loop, proceed to Finalize. If failures remain and iteration < 3 → return to Step 9. If iteration == 3 and failures remain → halt with structured failure report (F3).
 
@@ -673,7 +680,7 @@ Steps execute in compiled order — top to bottom. The fix loop (Steps 9-13) ite
   "epic_id": "{epic_id}",
   "phase_num": "{phase_num}",
   "started_at": "{timestamp}",
-  "eval_key": "{current eval encryption key}",
+  "eval_dir": "{eval storage path outside repo}",
   "fix_iteration": 0,
   "tasks": {
     "build-context":       { "status": "completed", "completed_at": "..." },
@@ -699,7 +706,7 @@ resolve issue number
 check for status file at {stm_dir}/status/implement-epic.json
 
 if file exists (resume):
-  restore eval_key and fix_iteration from status
+  restore eval_dir and fix_iteration from status
   for each step in compiled order:
     if status == "completed" → skip
     if status == "in_progress" → reset to pending

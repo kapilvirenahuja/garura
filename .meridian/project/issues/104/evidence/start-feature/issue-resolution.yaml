@@ -1,0 +1,12 @@
+issue:
+  number: 104
+  title: "refactor: implement-epic skill audit fixes"
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/104"
+  state: "open"
+  created: true
+  type_hint: refactor
+inference:
+  source: "explicit_title"
+  confidence: "high"
+  candidates_considered: 0
+  ambiguity_resolved_by_user: true
