@@ -1,0 +1,22 @@
+merge:
+  pr_number: 113
+  status: "merged"
+  merge_sha: "c634237b9ba2e24743ef79e97fc9c6d28b6a38af"
+  base_branch: "main"
+  branch_deleted: true
+  local_on_base: true
+  local_up_to_date: true
+
+evals:
+  SE-2:
+    description: "Feature branch deleted — branch_deleted == true, absent locally and on remote"
+    status: PASS
+    evidence: "Remote branch deleted by gh pr merge --delete-branch; local branch not found (already cleaned up)"
+  SE-3:
+    description: "Local checkout on base branch, up to date — local SHA matches remote SHA"
+    status: PASS
+    evidence: "git branch --show-current == main; git pull returned 'Already up to date.'"
+  SE-5:
+    description: "PR merged on platform — status == merged and pr_number is set"
+    status: PASS
+    evidence: "gh pr view 113 returned state: MERGED, mergeCommit.oid: c634237b9ba2e24743ef79e97fc9c6d28b6a38af"

@@ -1,0 +1,24 @@
+readiness:
+  pr_number: 113
+  pr_title: "feat(evals): deterministic eval generation from intent constraints (#112)"
+  pr_state: "OPEN"
+  mergeable: true
+  base_branch: "main"
+  feature_branch: "feature/112-recipe-eval-gen"
+  clean_working_tree: true
+  uncommitted_changes: false
+  staged_changes: false
+
+evals:
+  SE-1:
+    description: "PR not in conflict state — mergeable == true before merge attempted"
+    status: PASS
+    evidence: "gh pr view 113 returned mergeable: MERGEABLE"
+  SE-4:
+    description: "Pre-merge working tree is clean — no uncommitted or staged changes"
+    status: PASS
+    evidence: "git status --porcelain returned empty output"
+  SE-5:
+    description: "PR exists and has valid pr_number"
+    status: PASS
+    evidence: "PR #113 found with state OPEN for branch feature/112-recipe-eval-gen"
