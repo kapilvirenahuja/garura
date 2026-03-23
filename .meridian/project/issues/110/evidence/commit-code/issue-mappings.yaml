@@ -1,0 +1,38 @@
+mappings:
+  - group_id: "group-1"
+    issue_number: 110
+    confidence: "high"
+    reasoning: >
+      Files live under core/components/recipes/check-drift/ and core/components/skills/check-drift/.
+      Issue #110 (OPEN — "Recipe: check-drift — multi-agent implementation alignment analysis") is
+      the active work unit. The SKILL.md, intent.yaml, and templates.md are canonical implementation
+      artifacts for the check-drift capability, directly traceable to this issue.
+
+  - group_id: "group-2"
+    issue_number: 108
+    confidence: "high"
+    reasoning: >
+      All files are under .meridian/project/issues/108/ and record merge-pr execution
+      (merge-result.yaml, readiness.yaml, merge-pr.json) and start-feature resolution
+      (issue-resolution.yaml). These are leftover STM evidence from issue #108 that were
+      never committed. Issue #108 is CLOSED (docs: update IDSD spec to v3.0.0), but STM
+      evidence commits are chore(stm) pattern — they record what happened under that issue.
+      Mapping to the closed issue is correct and intentional for traceability.
+
+  - group_id: "group-3"
+    issue_number: 110
+    confidence: "high"
+    reasoning: >
+      All files are under .meridian/project/issues/110/ and record start-feature execution
+      (args.yaml, branch-result.yaml, changed-files.txt, issue-resolution.yaml, 20260323-171101.md)
+      and status checkpoints (ship.json, start-feature.json). These are STM evidence artifacts
+      for issue #110 (OPEN), following the standard chore(stm) commit pattern.
+
+excluded:
+  - group_id: "group-4"
+    reason: >
+      No issue mapping — .claude/settings.json is local Claude Code tool configuration with no
+      associated issue. Confidence is low, violating constraint C3 (every commit must reference
+      an existing issue). Excluded under auto-proceed rules for low-confidence, no-issue groups.
+    files:
+      - ".claude/settings.json"

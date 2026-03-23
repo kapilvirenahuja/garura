@@ -1,0 +1,13 @@
+status: merged
+pr_number: 109
+merge_sha: 2dcfa32
+base_branch: main
+branch_deleted: true
+branch_deleted_remote: true
+evals:
+  SE-2: PASS  # branch_deleted == true, absent locally and on remote
+  SE-3: PASS  # local checkout on main, up to date with origin/main
+  SE-5: PASS  # PR merged, pr_number 109 set
+scenario_evals:
+  SCE-1: PASS  # local HEAD on main, git pull up to date, feature branch absent
+  SCE-2: PASS  # PR state is merged on platform, merge_sha 2dcfa32 present
