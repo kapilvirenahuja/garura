@@ -1,0 +1,202 @@
+intent: >
+  Given a scoped implementation unit (issue, epic, or branch) and its locked design
+  specifications, produce four independent analysis artifacts — a categorized drift
+  report, architecture decision records, a technical debt catalog, and memory items —
+  each analyzed in isolation without cross-contamination. Cross-validate findings
+  across all four artifacts to detect contradictions, then synthesize into actionable
+  recommendations split into spec changes and code changes in executable units.
+  Generate a human-reviewable brief backed by structured data. Log drift-originated
+  defects for issue tracking. All artifacts use consistent templates and IDs for
+  downstream aggregation across issues and epics.
+
+constraints:
+  - id: C1
+    rule: >
+      Each analysis domain (drift identification, ADR extraction, debt cataloging,
+      memory item surfacing) is produced independently. No analysis domain receives
+      the output of another domain until cross-validation.
+
+  - id: C2
+    rule: >
+      The process writes only analysis artifacts and briefs. No source code,
+      design specifications, or files outside the analysis output area are modified.
+
+  - id: C3
+    rule: >
+      All output items use consistent IDs — DRIFT-xxx, ADR-xxx, DEBT-xxx, MEM-xxx,
+      REC-SPEC-xxx, REC-CODE-xxx — and consistent categorization. A downstream
+      tool must be able to aggregate drift reports across issues and epics using
+      these IDs without transformation.
+
+  - id: C4
+    rule: >
+      All four output artifacts use templates. The template structure is stable
+      across runs so that downstream tooling can parse artifacts reliably.
+
+  - id: C5
+    rule: >
+      Cross-validation produces its own artifact documenting contradictions,
+      confirmations, and corrections between the four analysis outputs.
+
+  - id: C6
+    rule: >
+      When cross-validation identifies a contradiction, the responsible analysis
+      must remediate the contradiction. Contradictions are not acceptable as
+      final output — they must be resolved before the brief is generated.
+
+  - id: C7
+    rule: >
+      Scope is resolved to a specific implementation unit before any analysis
+      begins. No analysis runs without a resolved scope. Full-project analysis
+      is never performed.
+
+  - id: C8
+    rule: >
+      Recommendations are in executable units — specific artifact paths, specific
+      sections, specific changes. Vague guidance ("consider improving X") is not
+      an acceptable recommendation.
+
+  - id: C9
+    rule: >
+      The human-reviewable brief is a presentation layer. It is derived from
+      structured data artifacts. Any discrepancy between the brief and the
+      underlying data constitutes a defect.
+
+  - id: C10
+    rule: >
+      Memory items target valid paths within the long-term memory knowledge
+      structure. Items that cannot be placed in an existing knowledge category
+      must propose a new category with justification.
+
+  - id: C11
+    rule: >
+      Defect logging is delegated — the process produces a structured defect
+      manifest tagged with drift IDs, not raw issues. Defect resolution is
+      out of scope.
+
+  - id: C12
+    rule: >
+      Drift items are categorized by type (context-drift, spec-drift,
+      technology-drift) and severity. This categorization feeds a future
+      project-wide drift snapshot that tracks drift flow across epics and issues.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      Any of the four core output artifacts (drift report, ADRs, debt catalog,
+      memory items) is empty without documented justification showing at least
+      90% confidence that no items exist.
+
+  - id: F2
+    condition: >
+      An analysis domain claims "no items found" and the justification does not
+      include specific evidence of what was examined and why no items were found.
+
+  - id: F3
+    condition: >
+      The cross-validation artifact contains unresolved contradictions between
+      analysis outputs.
+
+  - id: F4
+    condition: >
+      Output items lack consistent IDs or categorization, making them unparseable
+      by downstream aggregation tooling.
+
+  - id: F5
+    condition: >
+      Source code, design specifications, or files outside the analysis output
+      area have been modified.
+
+  - id: F6
+    condition: >
+      An analysis domain's input context contains the output of another analysis
+      domain prior to cross-validation.
+
+  - id: F7
+    condition: >
+      Analysis was performed without a resolved scope — no issue number, epic ID,
+      or branch was identified before analysis began.
+
+  - id: F8
+    condition: >
+      Recommendations contain vague directives without specific file paths,
+      sections, and change descriptions.
+
+  - id: F9
+    condition: >
+      The brief displays data that differs from the underlying structured
+      data artifacts.
+
+  - id: F10
+    condition: >
+      Defects were created directly in an issue tracker rather than produced
+      as a structured manifest for delegation.
+
+scenarios:
+  - id: S1
+    persona: "Developer"
+    given: >
+      A drift report, ADR list, debt catalog, and memory items produced from
+      a feature branch with 20 commits that diverged from the locked technical
+      approach in several areas
+    then: >
+      Can identify every point where implementation diverged from specification,
+      understand the root cause of each divergence, and execute the spec-change
+      and code-change recommendations without further clarification
+
+  - id: S2
+    persona: "Tech Lead"
+    given: >
+      A drift report showing zero drift items, with justification artifacts
+      from each analysis domain
+    then: >
+      Can verify that the "no drift" finding is credible by reviewing the
+      evidence of what was examined, and can confidently approve the
+      implementation as spec-aligned
+
+  - id: S3
+    persona: "Tech Lead"
+    given: >
+      A cross-validation artifact showing a contradiction was detected between
+      the drift report and the ADR list, along with the remediation that was applied
+    then: >
+      Can verify that the contradiction was correctly identified, the remediation
+      is sound, and the final artifacts are internally consistent
+
+  - id: S4
+    persona: "Product Manager"
+    given: >
+      An HTML brief summarizing three technology-drift items where the
+      implementation replaced major technology choices from the specification
+    then: >
+      Can understand the business impact of each technology change, review
+      the rationale, and decide which specification updates to prioritize
+      without reading code or technical artifacts
+
+  - id: S5
+    persona: "Developer"
+    given: >
+      A partially completed drift analysis that was interrupted after two
+      of four analysis domains completed
+    then: >
+      Can resume the analysis and receive complete output covering all four
+      domains without re-running the completed domains
+
+  - id: S6
+    persona: "Engineering Lead"
+    given: >
+      Drift reports from three consecutive issues (issue #28, #35, #42)
+      with consistent DRIFT-xxx IDs and categorization
+    then: >
+      Can aggregate drift items across issues to identify recurring drift
+      patterns, assess cumulative blast radius, and determine which
+      specification areas are chronically misaligned
+
+  - id: S7
+    persona: "Developer"
+    given: >
+      A structured defect manifest tagged with drift IDs and categorized
+      by drift type
+    then: >
+      Can trace each defect back to its originating drift item, understand
+      the priority and blast radius, and plan remediation work
