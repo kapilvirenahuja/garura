@@ -1,27 +1,17 @@
 intent: >
   Given a product idea or problem statement, discover the market opportunity,
   draft a product vision with strategic goals and market positioning, validate
-  the vision for completeness, and lock it when ready. The recipe operates in
-  three separate phases (DRAFT, VALIDATE, LOCK) invoked independently. DRAFT
-  produces a vision artifact and an interactive HTML brief for human review
-  at a checkpoint. VALIDATE checks vision completeness and allows cycle-back
-  for issues. LOCK finalizes the vision as the foundation for downstream
-  planning. All product artifacts are stored in project-scoped product STM.
+  the vision for completeness, and lock it when ready. The recipe runs as a
+  single invocation with inline checkpoints. It produces a vision artifact
+  (product.yaml), an interactive HTML brief (product-brief.html) for human
+  review, validates completeness, and locks the vision — all in one flow.
+  All product artifacts are stored in project-scoped product STM.
 
 constraints:
   - id: C1
     rule: >
       A product intent must be provided and must contain sufficient specificity
       (more than 5 meaningful words). Vague or empty input is rejected.
-  - id: C2
-    rule: >
-      A phase argument must be provided and must be one of: draft, validate,
-      or lock. No other values are accepted.
-  - id: C3
-    rule: >
-      VALIDATE and LOCK phases require an artifact path pointing to an
-      existing vision artifact. The artifact must exist and must not already
-      be in LOCKED status.
   - id: C4
     rule: >
       All product-domain work (market analysis, vision drafting, vision
@@ -29,8 +19,10 @@ constraints:
       performs product-domain work directly.
   - id: C5
     rule: >
-      Maximum 3 agent dispatches in DRAFT phase (2 if opportunity discovery
-      is skipped per C12), 1 in VALIDATE phase, and 0 in LOCK phase.
+      Maximum 5 domain agent dispatches per invocation (3 base plus up
+      to 2 for cycle-back per C9). When opportunity discovery is skipped
+      per C12, base is 2. Doc-builder and repo-orchestrator are utility
+      agents exempt from the count.
   - id: C6
     rule: >
       All vision and product artifacts must be written to
@@ -44,18 +36,23 @@ constraints:
       in all vision artifacts.
   - id: C8
     rule: >
-      A checkpoint artifact must be written before presenting results to the
-      user. The checkpoint status is PENDING_APPROVAL until the user responds.
+      A checkpoint artifact must be written before each user-facing pause.
+      The recipe has up to two checkpoints: brief review after drafting,
+      and validation review if blockers are found. Checkpoint status is
+      PENDING_APPROVAL until the user responds.
   - id: C9
     rule: >
-      When vision validation fails and the user requests a cycle-back,
-      a maximum of 2 re-draft iterations are permitted before the recipe
-      halts and requires manual intervention.
+      When vision validation finds blockers and the user requests a
+      cycle-back, a maximum of 1 re-draft iteration is permitted for
+      product-type intents (to stay within C5 domain agent budget). For
+      library-type intents where opportunity discovery is skipped, up to
+      2 re-draft iterations are permitted. If the maximum is reached,
+      the recipe halts and requires re-invocation.
   - id: C10
     rule: >
-      A human-reviewable brief artifact must be produced during the DRAFT
-      phase and presented at the checkpoint. This is the primary artifact
-      the user evaluates before approving or rejecting the vision.
+      A human-reviewable brief artifact must be produced after vision
+      drafting and presented at the first checkpoint. This is the primary
+      artifact the user evaluates before the recipe proceeds to validation.
   - id: C11
     rule: >
       If the product domain cannot be unambiguously determined from the
@@ -91,20 +88,18 @@ failure_conditions:
       domain classifications and provided no alternative.
   - id: F3
     condition: >
-      The DRAFT phase completed but no vision artifact exists at the
+      Vision drafting completed but no vision artifact exists at the
       expected path in .meridian/project/product/{slug}/.
   - id: F5
     condition: >
-      The VALIDATE phase completed with blocker-severity issues still
-      present after 2 cycle-back iterations.
-  - id: F6
-    condition: >
-      The artifact path provided for VALIDATE or LOCK does not exist
-      or does not contain a valid vision artifact.
+      Validation completed with blocker-severity issues still present
+      after the maximum permitted cycle-back iterations (1 for product
+      type, 2 for library type).
   - id: F7
     condition: >
-      A LOCK or DRAFT operation was attempted on a vision artifact that
-      is already in LOCKED status.
+      The recipe was invoked for a product slug whose product.yaml
+      already has status LOCKED. Re-discovery of an already-locked
+      product is not permitted.
   - id: F9
     condition: >
       No checkpoint artifact was written before presenting results to
@@ -125,8 +120,8 @@ scenarios:
   - id: S1
     persona: Founder / Product Manager / Engineering Lead
     given: >
-      The vision artifact and interactive HTML brief produced by the
-      DRAFT phase, presented at the checkpoint
+      The vision artifact and interactive HTML brief produced after
+      vision drafting, presented at the first checkpoint
     then: >
       Can evaluate whether the strategic goals and positioning accurately
       capture their intent — including for internal libraries where market
@@ -144,8 +139,8 @@ scenarios:
   - id: S3
     persona: Product Manager
     given: >
-      The validation results from the VALIDATE phase showing completeness
-      score, checklist status, and any issues by severity
+      The validation results shown inline before lock, including
+      completeness score, checklist status, and any issues by severity
     then: >
       Can determine whether the vision is ready to lock or identify
       exactly which sections need strengthening before the vision can
