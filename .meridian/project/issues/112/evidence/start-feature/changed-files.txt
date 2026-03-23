@@ -1,0 +1,2 @@
+?? .claude/specs/discover-product-rebake/
+?? .claude/specs/recipe-eval-gen/
