@@ -1,0 +1,13 @@
+{
+  "recipe": "ship",
+  "issue": "110",
+  "started_at": "2026-03-23T17:12:00Z",
+  "feature_branch": "feature/110-check-drift-recipe",
+  "tasks": {
+    "commit-code": { "status": "in_progress", "started_at": "2026-03-23T17:12:00Z" },
+    "create-pr": { "status": "pending" },
+    "merge-pr": { "status": "pending" },
+    "scenario-evals": { "status": "pending" },
+    "write-evidence": { "status": "pending" }
+  }
+}
