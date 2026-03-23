@@ -43,11 +43,22 @@ Receive from agent:
 2. **Check status:** If status is LOCKED, return structured failure: "product.yaml is already LOCKED — no validation needed."
 
 3. **Evaluate completeness checklist** by inspecting YAML fields directly:
+
+   **Read `type` field from product.yaml. Default to "product" if absent.**
+
+   **When type = "product" (existing behavior, unchanged):**
    - `strategic_goals_defined`: `strategic_goals` list has ≥3 entries, each with non-empty `title` and `description`
    - `target_users_identified`: `target_users` list has ≥2 entries, each with non-empty `persona`, `goal`, and `frustration`
    - `success_metrics_measurable`: `success_metrics` list has entries with `target` values that are quantifiable (numbers, percentages, or concrete observable outcomes) — not vague phrases like "improve user satisfaction"
    - `competitive_landscape_covered`: `competitors` list has ≥2 entries, each with non-empty `name`, at least one `strength`, and at least one `weakness`
    - `assumptions_listed`: `assumptions` list has ≥3 non-empty entries
+
+   **When type = "library":**
+   - `strategic_goals_defined`: `strategic_goals` list has ≥3 entries, each with non-empty `title` and `description` (SAME threshold — load-bearing)
+   - `target_users_identified`: NOT EVALUATED (omit from checklist entirely)
+   - `success_metrics_measurable`: `success_metrics` list has entries with `target` values that are quantifiable (numbers, percentages, or concrete observable outcomes) — not vague phrases like "improve user satisfaction" (SAME)
+   - `competitive_landscape_covered`: NOT EVALUATED (omit from checklist entirely)
+   - `assumptions_listed`: `assumptions` list has ≥1 non-empty entry (lowered threshold)
 
 4. **Evaluate content quality** for key YAML fields:
    - `problem`: non-empty string, identifies a real user problem (not a solution description)
@@ -78,6 +89,10 @@ validation_result:
     assumptions_listed: true|false
 ```
 
+For type="library", the checklist contains only 3 items (strategic_goals_defined, success_metrics_measurable, assumptions_listed). Omitted items are absent from the output, not reported as false.
+
+Completeness scoring: each active checklist item has equal weight. Library: 3 items at ~33% each. Product: 5 items at ~20% each.
+
 **IMPORTANT**: This skill produces validation results. The calling agent receives this output and decides what to do next. Do NOT instruct the agent to return or stop.
 
 ## Constraints
@@ -86,6 +101,9 @@ validation_result:
 - NEVER approve lock (ready_for_lock: true) when blocker-severity issues exist
 - ALWAYS return all checklist fields (false if field is absent, empty list, or empty string)
 - ALWAYS reference YAML field names in `issues[].field` — not section names from a markdown document
+- ALWAYS read type field from product.yaml before evaluating checklist
+- NEVER evaluate target_users_identified or competitive_landscape_covered when type is "library"
+- ALWAYS keep strategic_goals_defined threshold at ≥3 regardless of type
 
 ## Version
 
