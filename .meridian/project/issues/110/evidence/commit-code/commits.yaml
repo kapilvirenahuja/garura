@@ -1,0 +1,21 @@
+commits:
+  - group_id: "group-1"
+    sha: "a1b2e9a"
+    message: "feat(check-drift): add check-drift recipe and skill for implementation drift analysis (#110)"
+    files_count: 3
+    issue: 110
+  - group_id: "group-2"
+    sha: "a63ea31"
+    message: "chore(stm): record evidence for issue #108 merge-pr and start-feature (#108)"
+    files_count: 4
+    issue: 108
+  - group_id: "group-3"
+    sha: "460bb84"
+    message: "chore(stm): record start-feature and ship evidence for issue #110 (#110)"
+    files_count: 9
+    issue: 110
+excluded:
+  - group_id: "group-4"
+    files:
+      - ".claude/settings.json"
+    reason: "No issue mapping, excluded under auto-proceed"
