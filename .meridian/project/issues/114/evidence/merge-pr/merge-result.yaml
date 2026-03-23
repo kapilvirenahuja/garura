@@ -1,0 +1,8 @@
+merge:
+  pr_number: 115
+  status: "merged"
+  merge_sha: "14edbd9a934095356535e3f20942295ed07b61b5"
+  base_branch: "main"
+  branch_deleted: true
+  local_on_base: true
+  local_up_to_date: true

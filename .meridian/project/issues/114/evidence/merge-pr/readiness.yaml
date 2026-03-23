@@ -1,0 +1,15 @@
+readiness:
+  pr_number: 115
+  head_branch: "refactor/114-discover-product-rebake"
+  base_branch: "main"
+  state: "OPEN"
+  mergeable: true
+  clean_tree: true
+  checks:
+    pr_exists: true
+    pr_not_conflicted: true
+    working_tree_clean: true
+  evals:
+    SE-1: "PASS - mergeable == true, no conflict state"
+    SE-4: "PASS - working tree clean, no uncommitted/staged changes"
+    SE-5: "PASS - pr_number 115 is non-null and valid"
