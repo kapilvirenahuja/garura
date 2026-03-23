@@ -1,0 +1,776 @@
+# evals.yaml — prepare-implementation recipe (rebaked)
+# Generated from intent.yaml constraints (C1-C19), failure conditions (F1-F8, F10, F12-F16), and scenarios (S1-S8)
+# Intent hash: d14def0aa9dc2282179024d37abe00c33b4d273464ccfc6908bbf40cf4c1d6bf
+#
+# Constraint classifications:
+#   pre-flight: C1, C14, C15
+#   artifact-verifiable: C3, C4, C5, C6, C7, C8, C9, C11, C12, C13, C19
+#   structural: C2, C10, C16, C17, C18
+
+# =============================================================================
+# STEP EVALS (SE-*)
+# Each eval checks a step's artifact against the intent constraints and failure
+# conditions it is responsible for honoring.
+# =============================================================================
+
+step_evals:
+
+  # ---------------------------------------------------------------------------
+  # Context Resolution — dependency-resolution-report.yaml
+  # Steps 0-5 (tech-designer)
+  # ---------------------------------------------------------------------------
+
+  - id: SE-CR1
+    step: context-resolution
+    name: "Codebase scan discovers all technology dependencies"
+    validates: [C16, F14]
+    check: >
+      Verify the dependency resolution report includes technology_dependencies
+      with populated sections for: services (name, port, framework, entry_point),
+      libraries (name, version, source), patterns (testing_framework, mocking_approach,
+      quality_gates with linter, type_checker, coverage, ci_config), adrs (id, title,
+      path, relevance), and conventions (name, source, detail). Cross-reference
+      against actual repository contents — services, ports, frameworks, libraries,
+      or ADRs that are present in the repository but not reflected in the report
+      constitute a failure.
+    pass_criteria: >
+      Every service, port assignment, framework, library version, testing pattern,
+      quality gate configuration, ADR, and convention present in the repository
+      appears in the dependency resolution report. Zero technology dependencies
+      exist in the repository that are missing from the report.
+
+  - id: SE-CR2
+    step: context-resolution
+    name: "LTM consulted and findings plus gaps documented"
+    validates: [C17, F16]
+    check: >
+      Verify the dependency resolution report includes an ltm_findings section
+      with: standards_found (path, summary, applies_to), patterns_found (path,
+      summary, applies_to), and gaps (category, impact). LTM at
+      ~/.meridian/core/memory/ must have been read — standards/, knowledge/,
+      formats/, workflows/ directories. Both findings AND gaps must be documented.
+      A report with ltm_findings absent or with only findings but no gaps section
+      (or vice versa) is incomplete.
+    pass_criteria: >
+      ltm_findings section is present with standards_found, patterns_found, and
+      gaps arrays. Each finding references an actual LTM path. Gaps identify
+      categories of organizational knowledge that are missing. The report shows
+      what was found in LTM and what was not found.
+
+  - id: SE-CR3
+    step: context-resolution
+    name: "Unmet epic dependencies block artifact generation"
+    validates: [C15, F13]
+    check: >
+      If the dependency resolution report identifies any epic dependency with
+      status "missing" (not prepared and not built), verify that
+      halt_conditions.has_unmet_dependencies is true and that the recipe halted
+      before artifact generation. Verify recommended_order provides a
+      topologically valid execution sequence. If the recipe proceeded to
+      artifact generation despite unmet dependencies, this is a failure.
+    pass_criteria: >
+      When has_unmet_dependencies is true: artifact generation did not proceed.
+      recommended_order is present and topologically valid. When
+      has_unmet_dependencies is false: all epic dependencies have status
+      "prepared" or "built" with evidence documented.
+
+  - id: SE-CR4
+    step: context-resolution
+    name: "Dependency resolution report requires user approval before artifact generation"
+    validates: [C18, F12]
+    check: >
+      Verify the dependency resolution report was presented to the user and
+      received explicit approval (Tether) before any artifact generation step
+      began. The user validates the recipe's understanding of the codebase state,
+      dependency chain, and LTM findings. Cannot Tether past unmet dependencies.
+    pass_criteria: >
+      Status file shows context-resolution-approval completed with Tether before
+      draft-features started. If has_unmet_dependencies was true, Tether was
+      rejected and recipe halted.
+
+  - id: SE-CR5
+    step: context-resolution
+    name: "Prior-epic artifacts read as context, not modified"
+    validates: [C19]
+    check: >
+      If prior-epic artifacts exist (e.g., {product_base}/epics/{prior_epic_id}/),
+      verify they were read as input context but not written to or modified.
+      Each epic's artifacts live under {product_base}/epics/{epic_id}/ — the
+      target epic produces its own artifacts, never overwrites prior-epic files.
+    pass_criteria: >
+      Prior-epic artifact files are unchanged after recipe execution. The target
+      epic's artifacts are written exclusively to {product_base}/epics/{epic_id}/.
+      No writes to any prior-epic directory.
+
+  # ---------------------------------------------------------------------------
+  # Step: Draft Features — features.yaml
+  # Owner: product-strategist
+  # ---------------------------------------------------------------------------
+
+  - id: SE-F1
+    step: draft-features
+    name: "features.yaml is implementation-agnostic"
+    validates: [C3, F1]
+    check: >
+      Scan features.yaml for technology names, library names, SDK references,
+      database product names (e.g., Postgres, MongoDB, Redis), hosting platform
+      names (e.g., AWS, Vercel, Railway), deployment patterns (e.g., serverless,
+      containerized), or implementation details. These indicate audience collision
+      between features.yaml and architecture.yaml.
+    pass_criteria: >
+      Zero technology references, library names, SDK mentions, database products,
+      hosting platforms, or deployment patterns found anywhere in features.yaml.
+
+  - id: SE-F2
+    step: draft-features
+    name: "features.yaml defines required sections and behavioral fields"
+    validates: [C3, C8]
+    check: >
+      Verify features.yaml contains all required top-level sections: identity,
+      invariants, scope, and features. Verify each feature entry includes IDD
+      fields (intent, constraints, success_scenarios, failure_conditions),
+      blast_radius, and behaviors. Verify each behavior is described with enough
+      specificity that a verification scenario could be written against it.
+    pass_criteria: >
+      All top-level sections present (identity, invariants, scope, features). Every
+      feature has all required IDD fields. Every behavior entry describes what the
+      product does in response to a stimulus with an observable outcome.
+
+  - id: SE-F3
+    step: draft-features
+    name: "features.yaml audience is product stakeholders only"
+    validates: [C11, F1]
+    check: >
+      Scan features.yaml for implementation-audience language: file paths, code
+      snippets, API endpoint definitions, schema DDL, component names that imply
+      internal architecture, or jargon targeted at developers rather than product
+      stakeholders.
+    pass_criteria: >
+      Zero implementation-audience language found. Every section is comprehensible
+      to a non-technical product stakeholder. No audience collision.
+
+  # ---------------------------------------------------------------------------
+  # Step: Draft Architecture — architecture.yaml
+  # Owner: tech-designer
+  # ---------------------------------------------------------------------------
+
+  - id: SE-A1
+    step: draft-architecture
+    name: "architecture.yaml names concrete technologies"
+    validates: [C4, F2]
+    check: >
+      Scan architecture.yaml for vague technology references — terms like
+      "a relational database," "a web framework," "an LLM provider," "a message
+      queue," "a hosting platform," "a vector store," or any unnamed technology
+      placeholder — instead of naming the specific technology. Every architectural
+      component must map to a named product.
+    pass_criteria: >
+      Every component in the stack section names a specific product, library,
+      framework, or platform. Zero vague or placeholder technology references found.
+
+  - id: SE-A2
+    step: draft-architecture
+    name: "architecture.yaml audience is architects and implementers"
+    validates: [C11]
+    check: >
+      Verify architecture.yaml does not define product behaviors, user-facing
+      acceptance scenarios, or scope boundaries that belong in features.yaml.
+      Verify it does not contain verification scenarios, pass/fail criteria, or
+      test classifications that belong in scenarios.yaml. Audience collision
+      is a constraint violation.
+    pass_criteria: >
+      Zero product-behavior definitions found (behaviors are referenced but not
+      defined). Zero scenario content found. Content is implementation-focused:
+      architecture, technology decisions, deployment topology, data flow.
+
+  - id: SE-A3
+    step: draft-architecture
+    name: "architecture.yaml reads prior-epic artifacts as context only"
+    validates: [C19]
+    check: >
+      If prior-epic architecture.yaml exists, verify this epic's architecture.yaml
+      references prior decisions as context (e.g., "E0 established PostgreSQL")
+      but does not duplicate or contradict them. The epic produces its own
+      architecture.yaml under {product_base}/epics/{epic_id}/.
+    pass_criteria: >
+      Prior-epic architecture.yaml is referenced as read-only context. No
+      contradictions with established decisions. New decisions are additive.
+      Output is written to this epic's directory only.
+
+  # ---------------------------------------------------------------------------
+  # Step: Draft Tech Design — tech.yaml
+  # Owner: tech-designer
+  # ---------------------------------------------------------------------------
+
+  - id: SE-T1
+    step: draft-tech
+    name: "tech.yaml scope items map to file paths"
+    validates: [C5, F4]
+    check: >
+      Verify tech.yaml project structure directories and key files are specified.
+      All libraries include version or version range. Every component has a single
+      responsibility and listed key_files. feature_mapping section bridges features
+      to components.
+    pass_criteria: >
+      Project structure directories and key files specified. All libraries have
+      versions. Every component has key_files. feature_mapping present and
+      complete.
+
+  - id: SE-T2
+    step: draft-tech
+    name: "tech.yaml audience is implementers — no architecture-level decisions"
+    validates: [C11]
+    check: >
+      Verify tech.yaml does not repeat architecture-level decisions that belong
+      in architecture.yaml. No product behavior definitions (those belong in
+      features.yaml). No scenario content (those belong in scenarios.yaml).
+      Each artifact serves a distinct audience — audience collision is a
+      constraint violation.
+    pass_criteria: >
+      Zero architecture-level decisions repeated. Zero product-behavior
+      definitions. Zero scenario content. Content is project structure, libraries,
+      data models, components, and feature mapping.
+
+  # ---------------------------------------------------------------------------
+  # Step: Draft Verification Scenarios — scenarios.yaml
+  # Owner: product-strategist
+  # ---------------------------------------------------------------------------
+
+  - id: SE-S1
+    step: draft-scenarios
+    name: "Every scenario has all required fields"
+    validates: [C7, F6]
+    check: >
+      For every verification scenario in scenarios.yaml, verify presence of:
+      (1) description — concrete situation being tested, (2) expected_behavior —
+      observable outcomes, (3) pass_criteria — explicit binary conditions,
+      (4) automation classification — either Automated or Hybrid. A scenario
+      without pass/fail criteria is incomplete.
+    pass_criteria: >
+      Every scenario in scenarios.yaml contains all four required fields with
+      non-empty content. No scenario is missing description, expected_behavior,
+      pass_criteria, or automation classification.
+
+  - id: SE-S2
+    step: draft-scenarios
+    name: "Hybrid scenarios document manual element"
+    validates: [C7]
+    check: >
+      For every scenario classified as Hybrid, verify a manual_element field
+      exists that documents which element requires human judgment.
+    pass_criteria: >
+      Every Hybrid scenario has a documented manual_element. No Hybrid scenario
+      is missing the manual_element field.
+
+  - id: SE-S3
+    step: draft-scenarios
+    name: "Full behavior-to-scenario coverage"
+    validates: [C8, F7]
+    check: >
+      Every product behavior defined in the product specification must be covered
+      by at least one verification scenario. There must be no product behavior
+      without a corresponding testable scenario. Coverage is measured by
+      traceability, not by count. The coverage section must confirm zero
+      uncovered_behaviors.
+    pass_criteria: >
+      Every product behavior in features.yaml has at least one corresponding
+      scenario in scenarios.yaml via feature_ref and behavior_ref back-links.
+      coverage.uncovered_behaviors is empty.
+
+  - id: SE-S4
+    step: draft-scenarios
+    name: "scenarios.yaml feature_gates and audience"
+    validates: [C12, C11]
+    check: >
+      Verify scenarios.yaml contains a feature_gates section mapping each feature
+      to its required scenario IDs. Every scenario must appear in at least one
+      feature gate. Audience is validators — no implementation guidance, file
+      paths, or code snippets.
+    pass_criteria: >
+      feature_gates section present. Every scenario ID appears in at least one
+      gate. Zero implementation details in scenario content. Audience is
+      validators only.
+
+  # ---------------------------------------------------------------------------
+  # Step: Draft Execution Plan — plan.yaml
+  # Owner: tech-designer
+  # ---------------------------------------------------------------------------
+
+  - id: SE-P1
+    step: draft-plan
+    name: "Every plan.yaml scope item has file path mapping"
+    validates: [C5, F4]
+    check: >
+      For every execution_order entry in plan.yaml, inspect the scope_items list.
+      Every scope item must have a non-empty key_files field containing one or
+      more specific file paths. A scope item without a file path is not
+      implementation-ready.
+    pass_criteria: >
+      Every scope item in every execution_order entry has at least one file path
+      in key_files. Zero scope items with empty or missing key_files.
+
+  - id: SE-P2
+    step: draft-plan
+    name: "Every execution_order entry delivers end-to-end capability"
+    validates: [C6, F3]
+    check: >
+      Every feature slice in plan.yaml execution_order must deliver an end-to-end
+      working capability that is independently testable. A feature slice that
+      delivers only infrastructure, only backend, or only frontend without a
+      testable user-facing path is not valid — except prerequisites (Phase 0),
+      which covers project scaffold and setup.
+    pass_criteria: >
+      Every execution_order entry's exit_gate describes a working capability that
+      can be independently observed and tested. The scope_items together span
+      enough layers to deliver that capability. Prerequisites are exempt.
+
+  - id: SE-P3
+    step: draft-plan
+    name: "plan.yaml is compartmentalized from scenarios"
+    validates: [C9, F8]
+    check: >
+      plan.yaml must not contain scenario descriptions or scenario content.
+      plan.yaml scenario_gate fields reference scenario IDs and counts only —
+      never scenario descriptions. scenarios.yaml is a separate artifact that
+      serves only the validator. This prevents the implementer from optimizing
+      for test cases instead of building correct software.
+    pass_criteria: >
+      Zero scenario descriptions found in plan.yaml. Zero references to scenario
+      content. scenario_gate fields contain only scenario IDs and counts.
+
+  - id: SE-P4
+    step: draft-plan
+    name: "plan.yaml summary with cumulative scenario counts"
+    validates: [C12]
+    check: >
+      plan.yaml must contain a summary section showing per-feature rows with:
+      feature_ref, what it delivers, scenario count (integer only — not scenario
+      IDs, to maintain compartmentalization), and cumulative scenario count.
+      Final cumulative_scenarios must equal the total scenarios across all
+      feature gates.
+    pass_criteria: >
+      Summary section present with all required columns. scenario_count values
+      are integers, not ID lists. cumulative_scenarios is monotonically
+      increasing. Final cumulative value equals sum of all individual
+      scenario_count values.
+
+  - id: SE-P5
+    step: draft-plan
+    name: "Every execution_order entry has an observable exit gate"
+    validates: [C13, F5]
+    check: >
+      Every entry in plan.yaml execution_order (and prerequisites) must have an
+      explicit exit_gate that defines what must be observable before moving to
+      the next feature. The exit gate references observable outcomes, not process
+      steps.
+    pass_criteria: >
+      Every entry has a non-empty exit_gate. Zero exit gates that reference
+      process steps (e.g., "Phase complete" or "Code reviewed") instead of
+      observable outcomes.
+
+  - id: SE-P6
+    step: draft-plan
+    name: "plan.yaml has minimum execution_order count"
+    validates: [F10]
+    check: >
+      Count entries in execution_order in plan.yaml (excluding prerequisites).
+      plan.yaml must contain at least 2 feature entries.
+    pass_criteria: >
+      execution_order contains >= 2 entries excluding prerequisites.
+
+  - id: SE-P7
+    step: draft-plan
+    name: "Output artifacts contain no implicit codebase references"
+    validates: [F15]
+    check: >
+      Scan all five output artifacts for implicit references to codebase state
+      that is not documented within the artifacts themselves — phrases like
+      "see existing codebase," "follow established patterns," "use available
+      port," or "check existing implementation" instead of explicit values.
+    pass_criteria: >
+      Zero implicit codebase references found. Every port number, service
+      endpoint, development pattern, quality gate, and file path is explicitly
+      stated in the artifacts. No "see existing" or "follow conventions"
+      without the convention being documented inline.
+
+  # ---------------------------------------------------------------------------
+  # Checkpoint Evals — human review gates
+  # ---------------------------------------------------------------------------
+
+  - id: SE-CK1
+    step: checkpoint-0
+    name: "Dependency resolution approval required before artifact generation"
+    validates: [C18, F12]
+    check: >
+      Verify that the dependency resolution report was presented to the user
+      and received explicit approval (Tether) before Steps drafting features
+      began. The user validates the recipe's understanding of the codebase
+      state, dependency chain, and LTM findings. This prevents non-deterministic
+      context reads from silently affecting output.
+    pass_criteria: >
+      Status file shows context-resolution-approval completed with Tether
+      before draft-features started. Cannot Tether past unmet dependencies.
+
+  - id: SE-CK2
+    step: checkpoint-1
+    name: "Human checkpoint 1 required before Architecture + Tech"
+    validates: [C10, F12]
+    check: >
+      Verify that features.yaml was presented to the user for review at
+      Checkpoint 1 and received explicit approval (Tether) before architecture
+      and tech steps were executed. The five artifacts were not produced without
+      passing through all required human review checkpoints including the
+      dependency resolution approval gate.
+    pass_criteria: >
+      Checkpoint 1 resolved with Tether before draft-architecture started.
+      Status file shows checkpoint-1 completed before draft-architecture
+      and draft-tech started.
+
+  - id: SE-CK3
+    step: checkpoint-2
+    name: "Human checkpoint 2 required before Scenarios + Plan"
+    validates: [C10, F12]
+    check: >
+      Verify that architecture.yaml and tech.yaml were presented to the user
+      for review at Checkpoint 2 and received explicit approval (Tether) before
+      scenarios and plan steps were executed.
+    pass_criteria: >
+      Checkpoint 2 resolved with Tether before draft-scenarios started.
+      Status file shows checkpoint-2 completed before draft-scenarios
+      and draft-plan started.
+
+  - id: SE-CK4
+    step: checkpoint-3
+    name: "Human checkpoint 3 required before validation"
+    validates: [C10, F12]
+    check: >
+      Verify that scenarios.yaml and plan.yaml were presented to the user
+      for consolidated review at Checkpoint 3 and received explicit approval
+      (Tether) before cross-validation was executed.
+    pass_criteria: >
+      Checkpoint 3 resolved with Tether before validate-all started.
+      Status file shows checkpoint-3 completed before validate-all started.
+
+  # ---------------------------------------------------------------------------
+  # Validation + Lock
+  # ---------------------------------------------------------------------------
+
+  - id: SE-V1
+    step: validate-all
+    name: "Cross-validation executed and results reflect check outcomes"
+    validates: [C3, C4, C5, C6, C7, C8, C9, C11, C12, C13]
+    check: >
+      Verify the validation step ran all checks against the five artifacts.
+      ready_for_lock correctly reflects check results. Every individual
+      violation is listed with check_id and severity.
+    pass_criteria: >
+      Validation checks executed. ready_for_lock is false if any check fails.
+      Issues array contains one entry per violation found.
+
+  - id: SE-L1
+    step: lock-artifacts
+    name: "All five epic-scoped artifacts locked with no content changes"
+    validates: [C19]
+    check: >
+      Read all 5 artifacts under {product_base}/epics/{epic_id}/ and verify
+      each contains status: "LOCKED". Compare artifact content to the DRAFT
+      version — the only change should be the status field.
+    pass_criteria: >
+      All 5 artifacts contain status: "LOCKED". Diff between DRAFT and LOCKED
+      versions shows only the status field change. Artifacts are written to
+      epic-scoped directory only.
+
+
+# =============================================================================
+# SCENARIO EVALS (SCE-*)
+# Each eval verifies one end-to-end acceptance scenario (S1-S8) from intent.yaml.
+# =============================================================================
+
+scenario_evals:
+
+  - id: SCE-1
+    scenario: S1
+    persona: "Product Owner"
+    name: "Behavior-to-scenario traceability"
+    check: >
+      Given the locked features.yaml and scenarios.yaml, can confirm that every
+      product behavior in features.yaml has at least one testable verification
+      scenario in scenarios.yaml with clear pass/fail criteria, achieving full
+      traceability between features and acceptance via feature_ref and
+      behavior_ref back-links.
+    pass_criteria: >
+      Every product behavior in the locked features.yaml maps to at least one
+      scenario in scenarios.yaml. Every mapped scenario has explicit pass_criteria.
+      Zero uncovered behaviors (confirmed by scenarios.yaml coverage section).
+      Traceability is demonstrable via feature_ref and behavior_ref fields.
+
+  - id: SCE-2
+    scenario: S2
+    persona: "Technical Architect"
+    name: "Technology stack faithfully implements product behaviors and invariants"
+    check: >
+      Given the locked features.yaml and architecture.yaml, can evaluate whether
+      the chosen technology stack and architectural decisions in architecture.yaml
+      faithfully implement the product behaviors and invariants defined in
+      features.yaml, and can identify any architectural gaps or misalignments.
+    pass_criteria: >
+      Every product behavior has a corresponding architectural component and
+      technology selection. Every product invariant is honored by the architecture
+      (no contradictions). Zero gaps or misalignments between product intent
+      and implementation architecture.
+
+  - id: SCE-3
+    scenario: S3
+    persona: "Engineering Lead"
+    name: "Single-feature-slice implementability without external context"
+    check: >
+      Given a single execution_order entry in plan.yaml and architecture.yaml,
+      can assign the feature slice to an implementer with confidence that the
+      scope_items, key_files, technology stack, and exit_gate provide sufficient
+      context to implement without requiring access to other feature slices, the
+      full features.yaml, or scenarios.yaml content.
+    pass_criteria: >
+      For any selected execution_order entry: scope_items have specific key_files,
+      exit_gate defines an observable testable outcome, technology stack covers
+      all referenced technologies, no scope item requires reading another feature
+      entry. The feature slice is a self-contained work package.
+
+  - id: SCE-4
+    scenario: S4
+    persona: "Quality Lead"
+    name: "Feature-gated validation plan from scenarios.yaml and plan.yaml"
+    check: >
+      Given the locked scenarios.yaml feature_gates and plan.yaml scenario_gate
+      entries, can construct a feature-gated validation plan where each feature
+      slice has a defined set of scenarios (by ID) that must pass before the next
+      feature begins, without exposing scenario content to implementers. The
+      plan references scenario IDs only; content lives in scenarios.yaml which
+      is validator-facing.
+    pass_criteria: >
+      Complete feature-gated validation plan constructible from feature_gates
+      and scenario_gate fields alone. Every scenario ID in plan.yaml resolves
+      to an existing scenario in scenarios.yaml. plan.yaml contains no scenario
+      descriptions — only IDs and counts. Implementers cannot derive test
+      expectations from plan.yaml.
+
+  - id: SCE-5
+    scenario: S5
+    persona: "Product Manager"
+    name: "features.yaml is technology-free for stakeholder communication"
+    check: >
+      Given the locked features.yaml, can describe the product's identity, core
+      behaviors, invariants, and scope boundaries to stakeholders without
+      referencing any technology, implementation detail, or architectural decision.
+      The identity section provides a technology-free product narrative.
+    pass_criteria: >
+      The product manager can describe the full product using only features.yaml
+      without encountering any technology name, SDK reference, database product,
+      hosting platform, library name, or deployment pattern. The document reads
+      as a product description, not a technical specification.
+
+  - id: SCE-6
+    scenario: S6
+    persona: "Technical Architect"
+    name: "plan.yaml summary provides implementation sequence and scenario accounting"
+    check: >
+      Given the locked plan.yaml summary section, can determine the implementation
+      sequence, understand what each feature slice delivers as a working capability,
+      and verify that the cumulative scenario count in the summary accounts for all
+      verification scenarios by the final feature. The per_feature summary with
+      cumulative_scenarios supports this review.
+    pass_criteria: >
+      Summary section shows clear sequential ordering. Each row describes what the
+      feature delivers. Scenario counts are integers (no scenario IDs).
+      cumulative_scenarios is monotonically increasing. Final cumulative value
+      equals total scenario count from scenarios.yaml.
+
+  - id: SCE-7
+    scenario: S7
+    persona: "Engineering Lead"
+    name: "Dependency resolution report sufficient for approval"
+    check: >
+      Given the dependency resolution report for an epic, can verify that all
+      epic dependencies are resolved (prepared or built), all technology
+      dependencies from the codebase are identified (services, ports, frameworks,
+      quality gates), all relevant ADRs are referenced, and LTM findings and
+      gaps are documented — sufficient to approve proceeding to artifact
+      generation with confidence that the context is complete.
+    pass_criteria: >
+      Epic dependencies section shows all dependencies with status prepared or
+      built. Technology dependencies section covers services, ports, frameworks,
+      quality gates. ADRs referenced with relevance. LTM findings and gaps
+      both documented. The engineering lead can approve with confidence that
+      context is complete.
+
+  - id: SCE-8
+    scenario: S8
+    persona: "Implementation Agent"
+    name: "Epic artifacts sufficient for implementation without external scanning"
+    check: >
+      Given the locked epic-scoped artifacts (features, architecture, tech,
+      scenarios, plan), can implement any feature slice using only the provided
+      artifacts without scanning the codebase, reading LTM, or resolving
+      dependencies. Port numbers, service endpoints, development patterns,
+      quality gates, and file paths (new vs modified) are all explicit in
+      the artifacts.
+    pass_criteria: >
+      Implementation agent can begin coding from artifacts alone. Port numbers
+      are explicit values. Service endpoints are explicit URLs/paths. Development
+      patterns are documented inline. Quality gates are specified. File paths
+      distinguish new vs modified. Zero need for codebase scanning, LTM reading,
+      or dependency resolution at implementation time.
+
+
+# =============================================================================
+# COVERAGE SUMMARY
+# Maps every constraint and failure condition to the step evals that validate it.
+# =============================================================================
+
+coverage_summary:
+  constraints:
+    C1:
+      description: "Requires locked product.yaml and locked roadmap.yaml with --epic flag"
+      type: pre-flight
+      covered_by: [pre-flight-table]
+    C2:
+      description: "Single invocation per epic — context resolution, artifact generation, validation, lock in one flow"
+      type: structural
+      covered_by: [recipe-structure]
+    C3:
+      description: "features.yaml defines behaviors only — no technology choices"
+      type: artifact-verifiable
+      covered_by: [SE-F1, SE-F2, SE-V1]
+    C4:
+      description: "architecture.yaml names concrete technologies"
+      type: artifact-verifiable
+      covered_by: [SE-A1, SE-V1]
+    C5:
+      description: "Every plan.yaml scope item maps to file paths"
+      type: artifact-verifiable
+      covered_by: [SE-T1, SE-P1, SE-V1]
+    C6:
+      description: "Every execution_order entry delivers end-to-end capability"
+      type: artifact-verifiable
+      covered_by: [SE-P2, SE-V1]
+    C7:
+      description: "Every scenario has description, expected_behavior, pass_criteria, automation"
+      type: artifact-verifiable
+      covered_by: [SE-S1, SE-S2, SE-V1]
+    C8:
+      description: "Every product behavior covered by at least one scenario"
+      type: artifact-verifiable
+      covered_by: [SE-F2, SE-S3, SE-V1]
+    C9:
+      description: "Scenarios compartmentalized from implementer"
+      type: artifact-verifiable
+      covered_by: [SE-P3, SE-V1]
+    C10:
+      description: "Staged human review model with three checkpoints plus dependency approval"
+      type: structural
+      covered_by: [SE-CK1, SE-CK2, SE-CK3, SE-CK4]
+    C11:
+      description: "Each artifact serves distinct audience — no collision"
+      type: artifact-verifiable
+      covered_by: [SE-F3, SE-A2, SE-T2, SE-S4, SE-V1]
+    C12:
+      description: "plan.yaml summary with scenario counts; feature_gates in scenarios.yaml"
+      type: artifact-verifiable
+      covered_by: [SE-P4, SE-S4, SE-V1]
+    C13:
+      description: "Every execution_order entry has exit gate with observable outcomes"
+      type: artifact-verifiable
+      covered_by: [SE-P5, SE-V1]
+    C14:
+      description: "Target epic must exist in locked roadmap.yaml"
+      type: pre-flight
+      covered_by: [pre-flight-table]
+    C15:
+      description: "All epic dependencies must be prepared or built"
+      type: pre-flight
+      covered_by: [pre-flight-table, SE-CR3]
+    C16:
+      description: "Codebase scan always runs — no greenfield/brownfield distinction"
+      type: structural
+      covered_by: [SE-CR1, recipe-structure]
+    C17:
+      description: "LTM read with findings and gaps documented"
+      type: structural
+      covered_by: [SE-CR2, recipe-structure]
+    C18:
+      description: "Dependency resolution report requires Tether before artifact generation"
+      type: structural
+      covered_by: [SE-CR4, SE-CK1, recipe-structure]
+    C19:
+      description: "Prior-epic artifacts are read-only inputs, not modification targets"
+      type: artifact-verifiable
+      covered_by: [SE-CR5, SE-A3, SE-L1]
+
+  failure_conditions:
+    F1:
+      description: "features.yaml contains technology names — audience collision"
+      covered_by: [SE-F1, SE-F3]
+    F2:
+      description: "architecture.yaml uses vague technology references"
+      covered_by: [SE-A1]
+    F3:
+      description: "execution_order entry does not deliver end-to-end capability"
+      covered_by: [SE-P2]
+    F4:
+      description: "plan.yaml scope item lacks file path"
+      covered_by: [SE-P1]
+    F5:
+      description: "Entry has no exit gate or exit gate references process steps"
+      covered_by: [SE-P5]
+    F6:
+      description: "Scenario missing required fields"
+      covered_by: [SE-S1]
+    F7:
+      description: "Product behavior has no corresponding scenario"
+      covered_by: [SE-S3]
+    F8:
+      description: "plan.yaml contains scenario descriptions or content"
+      covered_by: [SE-P3]
+    F10:
+      description: "plan.yaml has fewer than 2 execution_order entries"
+      covered_by: [SE-P6]
+    F12:
+      description: "Artifacts produced without passing all human review checkpoints including dependency approval"
+      covered_by: [SE-CK1, SE-CK2, SE-CK3, SE-CK4]
+    F13:
+      description: "Unmet epic dependencies did not block artifact generation"
+      covered_by: [SE-CR3]
+    F14:
+      description: "Codebase scan missed technology dependencies present in repository"
+      covered_by: [SE-CR1]
+    F15:
+      description: "Output artifacts contain implicit codebase references instead of explicit values"
+      covered_by: [SE-P7]
+    F16:
+      description: "LTM not consulted or findings/gaps not documented"
+      covered_by: [SE-CR2]
+
+  scenarios:
+    S1:
+      description: "Product Owner — behavior-to-scenario traceability"
+      covered_by: SCE-1
+    S2:
+      description: "Technical Architect — technology stack implements product behaviors"
+      covered_by: SCE-2
+    S3:
+      description: "Engineering Lead — single-feature-slice implementability"
+      covered_by: SCE-3
+    S4:
+      description: "Quality Lead — feature-gated validation plan"
+      covered_by: SCE-4
+    S5:
+      description: "Product Manager — technology-free features.yaml"
+      covered_by: SCE-5
+    S6:
+      description: "Technical Architect — plan.yaml summary and scenario accounting"
+      covered_by: SCE-6
+    S7:
+      description: "Engineering Lead — dependency resolution report sufficiency"
+      covered_by: SCE-7
+    S8:
+      description: "Implementation Agent — artifacts sufficient without external scanning"
+      covered_by: SCE-8

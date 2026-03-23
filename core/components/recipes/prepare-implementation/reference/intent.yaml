@@ -1,37 +1,80 @@
 name: prepare-implementation
 intent: >
-  Produce a complete set of implementation-ready design artifacts for a product,
-  starting from a product intent (with optional enrichment from upstream roadmap
-  and vision artifacts). The output set includes: features.yaml defining product
-  behaviors and invariants, architecture.yaml naming concrete technologies and
-  architectural decisions, scenarios.yaml with verification scenarios with pass/fail
-  criteria and automation classification, tech.yaml with project structure,
-  libraries, data models, and components, and plan.yaml with execution order of
-  features as vertical slices where each feature delivers an end-to-end working
-  capability with exit gates, file-level scope items, and scenario gates. These
-  five artifacts follow a DRAFT, VALIDATE, LOCKED lifecycle invoked as separate
-  phases. Verification scenarios are compartmentalized from the implementation
-  artifacts — plan.yaml must not inline scenario descriptions, and scenario gates
-  in plan.yaml reference scenario IDs only. The artifacts must be sufficient for
-  a downstream agent to implement any single feature slice using only the feature's
-  scope items, architecture.yaml, and relevant features.yaml sections — without
-  access to other feature slices or scenarios.yaml content.
+  Produce a complete set of implementation-ready design artifacts for a single
+  epic, starting from a locked product.yaml and locked roadmap.yaml. The recipe
+  requires an --epic flag referencing an epic ID from the roadmap. Before
+  generating artifacts, the recipe resolves two-dimensional dependencies (epic
+  ordering from roadmap + technology dependencies from codebase), scans the
+  codebase for existing implementations, consults LTM for organizational
+  standards and patterns, and produces a dependency resolution report for user
+  approval. The output set — scoped to the target epic only — includes:
+  features.yaml defining product behaviors and invariants, architecture.yaml
+  naming concrete technologies (reading prior-epic artifacts as context),
+  scenarios.yaml with verification scenarios, tech.yaml with project structure
+  and components, and plan.yaml with execution order. Existing artifacts from
+  prior epics are read-only inputs, not targets for regeneration. The artifacts
+  must contain everything the implementation agent needs — port numbers, service
+  endpoints, dev patterns, quality gates, ADR references, LTM standards — so
+  that no codebase scanning or LTM reading is required at implementation time.
+  Verification scenarios are compartmentalized from the implementer.
 
 constraints:
   - id: C1
     rule: >
-      The recipe is intent-sufficient. A product intent is the only required input.
-      Upstream artifacts (locked vision, roadmap with scoped epics, feasibility
-      assessment, engineering view) are enrichment — used when present, not required
-      for the recipe to produce valid output.
+      The recipe requires a locked product.yaml and a locked roadmap.yaml as
+      upstream inputs. The --epic flag is required and must reference an epic ID
+      that exists in the locked roadmap. A raw product intent alone is no longer
+      sufficient — upstream discovery and roadmap planning must be complete.
 
   - id: C2
     rule: >
-      The recipe follows a three-phase lifecycle: DRAFT, VALIDATE, LOCKED. Each
-      phase is invoked independently. DRAFT produces all five artifacts in draft
-      status. VALIDATE checks completeness, cross-references, and coverage. LOCK
-      finalizes the artifacts for downstream consumption. No artifact may be
-      consumed by downstream recipes until it reaches LOCKED status.
+      The recipe runs as a single invocation per epic. Context resolution,
+      artifact generation, validation, and lock happen in one flow with inline
+      checkpoints. No separate phase invocations.
+
+  - id: C14
+    rule: >
+      The target epic must exist in the locked roadmap.yaml. If the epic ID is
+      not found, the recipe halts immediately.
+
+  - id: C15
+    rule: >
+      All epic dependencies (from roadmap depends_on) must be either prepared
+      (prepare-implementation artifacts exist and are LOCKED for the dependency
+      epic) or built (codebase contains the dependency epic's implementation).
+      If any dependency is unmet, the recipe halts and presents the dependency
+      chain with recommended execution order.
+
+  - id: C16
+    rule: >
+      The recipe must scan the codebase for technology dependencies before
+      producing any artifacts. Technology dependencies include: existing service
+      implementations, port assignments, framework and library versions in use,
+      testing patterns, development conventions, ADRs in the repository, and
+      quality gate configurations. The scan always runs — there is no
+      greenfield vs brownfield distinction.
+
+  - id: C17
+    rule: >
+      The recipe must read LTM at ~/.meridian/core/memory/ for architectural
+      standards, implementation patterns, technology decisions, and prior epic
+      learnings. LTM findings and gaps must both be documented in the dependency
+      resolution report. Gaps tell the implementation agent what organizational
+      knowledge is missing.
+
+  - id: C18
+    rule: >
+      The dependency resolution report requires explicit user approval (Tether)
+      before artifact generation begins. The user validates the recipe's
+      understanding of the codebase state, dependency chain, and LTM findings.
+      This prevents non-deterministic context reads from silently affecting output.
+
+  - id: C19
+    rule: >
+      Existing artifacts from prior epics are read-only inputs, not targets for
+      modification. If architecture.yaml exists from a prior epic, this epic
+      reads it as context and produces its own epic-scoped architecture artifact.
+      Each epic's artifacts live under {product_base}/epics/{epic_id}/.
 
   - id: C3
     rule: >
@@ -167,27 +210,41 @@ failure_conditions:
       plan.yaml contains scenario descriptions, scenario content, or explicit
       references to scenarios.yaml content. Compartmentalization is violated.
 
-  - id: F9
-    condition: >
-      Removed — scenario-to-phase mapping artifact (scenario-mapping.md) has
-      been dissolved. Scenario gates are now in plan.yaml (scenario_gate fields)
-      and feature gates are in scenarios.yaml (feature_gates section). This
-      failure condition no longer applies.
-
   - id: F10
     condition: >
       plan.yaml contains fewer than 2 entries in execution_order (excluding
       prerequisites).
 
-  - id: F11
-    condition: >
-      Removed — scenario-to-phase mapping artifact (scenario-mapping.md) has
-      been dissolved. This failure condition no longer applies.
-
   - id: F12
     condition: >
       The five artifacts were produced or locked without passing through all
-      three required human review checkpoints in the DRAFT phase.
+      required human review checkpoints including the dependency resolution
+      approval gate.
+
+  - id: F13
+    condition: >
+      The dependency resolution report identifies unmet epic dependencies but
+      the recipe proceeded to artifact generation without halting. Unmet
+      dependencies must block progress.
+
+  - id: F14
+    condition: >
+      The codebase scan missed technology dependencies that exist in the
+      repository — services, ports, frameworks, libraries, or ADRs that are
+      present but not reflected in the dependency resolution report.
+
+  - id: F15
+    condition: >
+      The output artifacts contain implicit references to codebase state that
+      is not documented within the artifacts themselves — phrases like "see
+      existing codebase," "follow established patterns," or "use available
+      port" instead of explicit values.
+
+  - id: F16
+    condition: >
+      LTM was not consulted or LTM findings and gaps were not documented in
+      the dependency resolution report. The report must show what was found
+      in LTM and what was not found.
 
 scenarios:
   - id: S1
@@ -245,3 +302,23 @@ scenarios:
       scenario count in the summary accounts for all verification scenarios by
       the final feature. The per_feature summary with cumulative_scenarios
       supports this review.
+
+  - id: S7
+    persona: Engineering Lead
+    given: The dependency resolution report for an epic
+    then: >
+      Can verify that all epic dependencies are resolved (prepared or built),
+      all technology dependencies from the codebase are identified (services,
+      ports, frameworks, quality gates), all relevant ADRs are referenced,
+      and LTM findings and gaps are documented — sufficient to approve
+      proceeding to artifact generation with confidence that the context is
+      complete.
+
+  - id: S8
+    persona: Implementation Agent
+    given: The locked epic-scoped artifacts (features, architecture, tech, scenarios, plan)
+    then: >
+      Can implement any feature slice using only the provided artifacts without
+      scanning the codebase, reading LTM, or resolving dependencies. Port
+      numbers, service endpoints, development patterns, quality gates, and
+      file paths (new vs modified) are all explicit in the artifacts.
