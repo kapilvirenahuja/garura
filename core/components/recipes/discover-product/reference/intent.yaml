@@ -29,8 +29,8 @@ constraints:
       performs product-domain work directly.
   - id: C5
     rule: >
-      Maximum 3 agent dispatches in DRAFT phase (2 product-strategist,
-      1 doc-builder), 1 in VALIDATE phase, and 0 in LOCK phase.
+      Maximum 3 agent dispatches in DRAFT phase (2 if opportunity discovery
+      is skipped per C12), 1 in VALIDATE phase, and 0 in LOCK phase.
   - id: C6
     rule: >
       All vision and product artifacts must be written to
@@ -62,6 +62,23 @@ constraints:
       intent, the user must be asked to confirm or provide the domain
       before product-domain work proceeds. The recipe must not proceed
       with an ambiguous domain classification.
+  - id: C12
+    rule: >
+      Opportunity discovery is conditional. It is skipped when the intent
+      explicitly describes an internal library, framework component, developer
+      tool, or microservice with no external market. The assessment uses three
+      signals: (1) the intent names specific consumers rather than market
+      segments, (2) the intent describes a technical interface boundary rather
+      than a user problem, (3) no market-facing end users are identifiable.
+      When skipped, vision drafting receives the raw intent text directly.
+  - id: C13
+    rule: >
+      The product artifact type is determined from the intent and recorded
+      in product.yaml as an explicit type field. Products with external
+      market-facing users are type "product". Internal libraries, components,
+      SDKs, developer tools, and microservices are type "library". The type
+      field governs which validation criteria apply and which brief sections
+      render.
 
 failure_conditions:
   - id: F1
@@ -92,28 +109,38 @@ failure_conditions:
     condition: >
       No checkpoint artifact was written before presenting results to
       the user — the approval flow has no audit trail.
+  - id: F8
+    condition: >
+      A type "library" product.yaml contains fabricated market data —
+      invented competitors with no basis in the intent, synthetic
+      TAM/SAM/SOM estimates, or persona descriptions that do not match
+      the intent's stated consumers.
+  - id: F10
+    condition: >
+      Opportunity discovery was skipped but the product.yaml has no
+      strategic goals — the vision was drafted without sufficient
+      structure for downstream planning.
 
 scenarios:
   - id: S1
-    persona: Founder / Product Manager
+    persona: Founder / Product Manager / Engineering Lead
     given: >
       The vision artifact and interactive HTML brief produced by the
       DRAFT phase, presented at the checkpoint
     then: >
-      Can evaluate whether the market opportunity, target users, strategic
-      goals, and competitive positioning accurately capture their product
-      intent — and approve or reject with enough context to give specific
-      feedback.
+      Can evaluate whether the strategic goals and positioning accurately
+      capture their intent — including for internal libraries where market
+      sections are absent and the brief renders technical context instead.
   - id: S2
     persona: Engineering Lead
     given: >
       A LOCKED vision artifact at
-      .meridian/project/product/{slug}/vision.md
+      .meridian/project/product/{slug}/product.yaml
     then: >
       Can use the locked vision as authoritative input for roadmap
-      planning — strategic goals, target users, success metrics, and
-      competitive landscape are defined clearly enough to derive
-      engineering milestones without ambiguity.
+      planning — strategic goals, success metrics, and scope boundaries
+      are defined clearly enough to derive engineering milestones
+      without ambiguity, regardless of product type.
   - id: S3
     persona: Product Manager
     given: >
@@ -123,3 +150,13 @@ scenarios:
       Can determine whether the vision is ready to lock or identify
       exactly which sections need strengthening before the vision can
       serve as a planning foundation.
+  - id: S4
+    persona: Engineering Lead
+    given: >
+      A LOCKED vision artifact for an internal library at
+      .meridian/project/product/{slug}/product.yaml with type "library"
+    then: >
+      Can use the locked vision as authoritative input for roadmap
+      planning — strategic goals with IDs, value proposition, and
+      assumptions are defined clearly enough to derive engineering
+      milestones, even though market analysis sections are absent.

@@ -6,6 +6,7 @@
 
 slug: "{product-slug}"
 status: "DRAFT|VALIDATED|LOCKED"
+type: "product"              # "product" (default) or "library". Determines validation criteria and brief rendering.
 created_at: "{ISO-8601}"
 updated_at: "{ISO-8601}"
 

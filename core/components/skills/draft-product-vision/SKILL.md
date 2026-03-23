@@ -27,6 +27,8 @@ Receive from agent:
 - `product_name` — (optional) Slug derived from problem_statement if not provided
 - `artifact_base` — (required) Base path, e.g., `.meridian/project/product/`
 - `domain` — (optional) Confirmed domain context (e.g., "B2B SaaS", "retail") — use to sharpen vision language and strategic goals when present
+- `raw_intent` — (conditional) The original intent text, provided when market_context is absent (opportunity discovery skipped per C12). One of market_context or raw_intent must be present.
+- `product_type` — (optional) "product" or "library". Default: "product". Determines the type field written to product.yaml.
 
 ## Process
 
@@ -52,6 +54,20 @@ Receive from agent:
    - `success_metrics`: derive measurable indicators for each Strategic Goal — each as `{strategic_goal_ref, metric, target, measurement_method}`
    - `assumptions`: from `market_context.risks` reframed as assumptions (what must be true for the product to succeed)
    - `out_of_scope`: derive from problem boundaries — each as `{category, rationale}`
+
+**When raw_intent is provided (type=library, opportunity skipped):**
+- `problem`: Derive from raw_intent — restate as "Developers/teams who {situation} need {outcome} because {reason}"
+- `target_users`: Derive consumers from intent if mentioned. May be empty list.
+- `competitors`: Empty list. Do NOT fabricate competitors.
+- `market_size`: null
+- `differentiators`: Extract technical differentiators from intent if present. May be empty.
+- `risks`: Extract technical risks (adoption risk, maintenance burden, API stability).
+- `value_proposition`: Synthesize from intent — what makes this library worth building as a shared component.
+- `strategic_goals`: Derive 3-5 goals from intent. Goals focus on adoption, API quality, developer experience.
+- `success_metrics`: Derive from strategic goals.
+- `assumptions`: Derive from intent.
+- `out_of_scope`: Derive from intent boundaries.
+- Set `type: "library"`
 
 5. **Write artifact:** Write product.yaml with `status: "DRAFT"` to `{artifact_base}{slug}/product.yaml`.
 
@@ -88,6 +104,9 @@ product:
 - ALWAYS include all fields defined in the product.yaml schema (may be null but must be present)
 - ALWAYS write valid YAML — use block scalars (`|`) for multi-line string fields (value_proposition)
 - ALWAYS use field names exactly matching the schema: slug, status, created_at, updated_at, problem, target_users, competitors, market_size, differentiators, risks, value_proposition, strategic_goals, success_metrics, assumptions, out_of_scope
+- NEVER fabricate market data when type is "library" — empty fields are correct
+- ALWAYS set the `type` field based on input signal (market_context present = "product", raw_intent only = "library")
+- ALWAYS produce >=3 strategic goals regardless of type (load-bearing for downstream)
 
 ## Version
 

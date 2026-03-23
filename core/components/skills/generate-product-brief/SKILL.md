@@ -27,7 +27,7 @@ Produces two HTML files (not YAML). Output metadata returned to the calling agen
 | `brief.path` | string | Full path to the generated `product-brief.html` |
 | `brief.hub_path` | string | Full path to the regenerated `hub.html` |
 | `brief.slug` | string | Product slug used in localStorage key and export payload |
-| `brief.tabs` | list | Always `[market_context, vision, scope, comments]` |
+| `brief.tabs` | list | `[market_context, vision, scope, comments]` when type = "product"; `[technical_context, vision, scope, comments]` when type = "library" |
 | `brief.format` | string | Always `"html"` |
 | `brief.self_contained` | boolean | Always `true` — no external CSS, JS, or font dependencies |
 
@@ -42,7 +42,29 @@ Receive from agent:
 
 ## Process
 
-1. **Read product.yaml** at `product_yaml_path`. Extract all fields: slug, status, problem, target_users, competitors, market_size, differentiators, risks, value_proposition, strategic_goals, success_metrics, assumptions, out_of_scope.
+1. **Read product.yaml** at `product_yaml_path`. Extract all fields: slug, status, type, problem, target_users, competitors, market_size, differentiators, risks, value_proposition, strategic_goals, success_metrics, assumptions, out_of_scope.
+
+   **Read `type` field from product.yaml. Default to "product" if absent.**
+
+   **When type = "product" (existing behavior):**
+   - Tab 1: "Market Context" — renders all market fields
+   - Tab 2: "Vision" — unchanged
+   - Tab 3: "Scope" — unchanged
+   - Tab 4: "Comments" — unchanged
+
+   **When type = "library":**
+   - Tab 1: "Technical Context" — renders only non-empty fields from the market section:
+     - Problem → renders as "Purpose" heading
+     - Target Users → renders as "Consumers" if non-empty, skipped if empty
+     - Competitors → skipped entirely
+     - Market Size → skipped entirely
+     - Differentiators → renders as "Technical Differentiators" if non-empty
+     - Risks → renders as "Technical Risks" if non-empty
+   - Tab 2: "Vision" — unchanged
+   - Tab 3: "Scope" — unchanged
+   - Tab 4: "Comments" — unchanged
+
+   **Key rule:** Render what exists. Skip empty sections. Do not render empty cards or "No data" placeholders.
 
 2. **Determine output path:** `{artifact_base}{product_slug}/product-brief.html` (no timestamp in filename).
 
@@ -58,9 +80,11 @@ Receive from agent:
 
 ```
 Header: Product name, [STATUS BADGE], slug, Generated timestamp, Source: product.yaml, [← Hub]
-Tab bar: [Market Context] [Vision] [Scope] [Comments (N)]
+Tab bar: [Market Context | Technical Context] [Vision] [Scope] [Comments (N)]
 Tab content panel
 ```
+
+Tab 1 label is "Market Context" when type = "product" and "Technical Context" when type = "library".
 
 ### Tab 1 — Market Context
 
@@ -435,12 +459,26 @@ Hub card for each artifact:
 ## Output
 
 ```yaml
+# type=product
 brief:
   path: "{artifact_base}{slug}/product-brief.html"
   hub_path: "{artifact_base}{slug}/hub.html"
   slug: "{product_slug}"
   tabs:
     - market_context
+    - vision
+    - scope
+    - comments
+  format: "html"
+  self_contained: true
+
+# type=library
+brief:
+  path: "{artifact_base}{slug}/product-brief.html"
+  hub_path: "{artifact_base}{slug}/hub.html"
+  slug: "{product_slug}"
+  tabs:
+    - technical_context
     - vision
     - scope
     - comments
@@ -463,6 +501,9 @@ brief:
 - ALWAYS use filename `product-brief.html` with no timestamp
 - ALWAYS generate valid, well-formed HTML5
 - ALWAYS persist comments to localStorage keyed by `meridian-comments-product-{slug}`
+- ALWAYS read type field from product.yaml before determining tab layout
+- NEVER render empty sections or "No data" placeholders — skip them entirely
+- ALWAYS use "Technical Context" as Tab 1 name when type is "library"
 
 ## Version
 
