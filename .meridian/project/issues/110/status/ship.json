@@ -2,12 +2,13 @@
   "recipe": "ship",
   "issue": "110",
   "started_at": "2026-03-23T17:12:00Z",
+  "completed_at": "2026-03-23T17:22:03Z",
   "feature_branch": "feature/110-check-drift-recipe",
   "tasks": {
-    "commit-code": { "status": "in_progress", "started_at": "2026-03-23T17:12:00Z" },
-    "create-pr": { "status": "pending" },
-    "merge-pr": { "status": "pending" },
-    "scenario-evals": { "status": "pending" },
-    "write-evidence": { "status": "pending" }
+    "commit-code": { "status": "completed", "completed_at": "2026-03-23T17:14:00Z" },
+    "create-pr": { "status": "completed", "completed_at": "2026-03-23T17:18:00Z" },
+    "merge-pr": { "status": "completed", "completed_at": "2026-03-23T17:21:00Z" },
+    "scenario-evals": { "status": "completed", "completed_at": "2026-03-23T17:22:00Z" },
+    "write-evidence": { "status": "completed", "completed_at": "2026-03-23T17:22:03Z" }
   }
 }
