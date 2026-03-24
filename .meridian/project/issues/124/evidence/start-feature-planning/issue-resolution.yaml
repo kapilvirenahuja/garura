@@ -1,0 +1,12 @@
+issue:
+  number: 124
+  title: "Enforce pre-lock resolution gate: block artifact freeze when blockers, open questions, or high risks exist"
+  labels:
+    - bug
+  state: open
+  body_summary: "Three recipes — /discover-product, /plan-roadmap, /prepare-implementation — lock (freeze) their artifacts without verifying that all blockers, open questions, and high-risk items have been resolved. Currently:"
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/124"
+  created: true
+  closed: false
+  parent_issue: null
+  type_hint: "fix"
