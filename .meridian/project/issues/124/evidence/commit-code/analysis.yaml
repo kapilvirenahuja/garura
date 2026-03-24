@@ -1,0 +1,50 @@
+analysis:
+  branch: fix/124-enforce-pre-lock-resolution-gate
+  issue: 124
+  issue_title: "Enforce pre-lock resolution gate"
+  issue_confidence: high
+
+  groups:
+    - id: G1
+      type: feat
+      scope: recipes
+      subject: "enforce pre-lock resolution gate across discover-product, plan-roadmap, and prepare-implementation"
+      issue_ref: 124
+      issue_confidence: high
+      files:
+        - core/components/recipes/discover-product/SKILL.md
+        - core/components/recipes/discover-product/reference/intent.yaml
+        - core/components/recipes/plan-roadmap/SKILL.md
+        - core/components/recipes/plan-roadmap/reference/intent.yaml
+        - core/components/recipes/prepare-implementation/SKILL.md
+        - core/components/recipes/prepare-implementation/reference/intent.yaml
+      rationale: >
+        All 6 files implement the same cross-cutting concern: a pre-lock resolution
+        gate that blocks artifact locking when unresolved blockers, open questions,
+        placeholder values, or high-severity risks remain. Changes are cohesive and
+        logically inseparable — the intent.yaml and SKILL.md changes for each recipe
+        form a single unit of delivery.
+
+  risks:
+    sensitive_files: []
+    breaking_changes: []
+    ambiguous_types: []
+    hotfix_branch: false
+
+  pre_flight:
+    on_protected_branch: false
+    current_branch: fix/124-enforce-pre-lock-resolution-gate
+    has_changes: true
+    all_changes_mapped: true
+    sensitive_files_detected: false
+    all_mappings_high_confidence: true
+    approval_required: false
+    approval_override: auto-proceed
+
+  summary:
+    total_files: 6
+    total_groups: 1
+    recommendation: >
+      Single commit — all 6 files implement the same cross-cutting pre-lock
+      resolution gate feature for issue #124. High-confidence mapping.
+      No sensitive files. Approval not required (all mappings are high confidence).

@@ -1,0 +1,25 @@
+commits:
+  - group_id: G1
+    hash: dac0316
+    type: fix
+    scope: recipes
+    subject: "add pre-lock resolution gate to discover-product, plan-roadmap, prepare-implementation (#124)"
+    message: "fix(recipes): add pre-lock resolution gate to discover-product, plan-roadmap, prepare-implementation (#124)"
+    issue_ref: 124
+    files:
+      - core/components/recipes/discover-product/SKILL.md
+      - core/components/recipes/discover-product/reference/intent.yaml
+      - core/components/recipes/plan-roadmap/SKILL.md
+      - core/components/recipes/plan-roadmap/reference/intent.yaml
+      - core/components/recipes/prepare-implementation/SKILL.md
+      - core/components/recipes/prepare-implementation/reference/intent.yaml
+    validation:
+      clean_tree: true
+      conventional_format: true
+
+push:
+  success: true
+  remote: origin
+  branch: fix/124-enforce-pre-lock-resolution-gate
+  from_sha: "4256876"
+  to_sha: "dac0316"
