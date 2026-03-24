@@ -164,6 +164,20 @@ constraints:
       the next feature. The exit gate references observable outcomes, not process
       steps.
 
+  - id: C20
+    rule: >
+      After structural validation passes, the recipe must scan all five design
+      artifacts (features.yaml, architecture.yaml, tech.yaml, scenarios.yaml,
+      plan.yaml) for open_questions[] fields and for risks[] or
+      risk_assessment[] entries with severity "high". If any open questions or
+      high-severity risks are found, the recipe must present a structured
+      resolution interview requiring the user to resolve each item (RESOLVED
+      keyword) before proceeding. All resolutions must be written to a
+      pre-lock-resolutions.yaml audit artifact before auto-lock executes.
+      Structural completeness alone is not sufficient for lock — semantic
+      readiness (no unresolved open questions, no unresolved high-severity
+      risks) is also required.
+
 failure_conditions:
   - id: F1
     condition: >
@@ -246,6 +260,16 @@ failure_conditions:
       the dependency resolution report. The report must show what was found
       in LTM and what was not found.
 
+  - id: F17
+    condition: >
+      The recipe locks artifacts while any of the five design artifacts
+      (features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml)
+      contain open_questions[] entries or risks[] / risk_assessment[] entries
+      with severity "high" that have not been explicitly resolved by the user.
+      Locking with unresolved open questions or high-severity risks means the
+      implementation agent receives artifacts with known gaps or unmitigated
+      risks.
+
 scenarios:
   - id: S1
     persona: Product Owner
@@ -322,3 +346,16 @@ scenarios:
       scanning the codebase, reading LTM, or resolving dependencies. Port
       numbers, service endpoints, development patterns, quality gates, and
       file paths (new vs modified) are all explicit in the artifacts.
+
+  - id: S9
+    persona: Technical Architect
+    given: >
+      architecture.yaml containing risks[] with severity "high" and tech.yaml
+      containing open_questions[], plus the pre-lock-resolutions.yaml audit
+      artifact
+    then: >
+      Can verify that every high-severity risk and every open question across
+      all five design artifacts was surfaced to the user, that each received an
+      explicit resolution, and that the resolutions are recorded in
+      pre-lock-resolutions.yaml as an audit trail confirming semantic readiness
+      before artifacts were locked.

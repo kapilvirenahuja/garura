@@ -1,0 +1,3 @@
+input_type: "title"
+value: "Enforce pre-lock resolution gate: block artifact freeze when blockers, open questions, or high risks exist"
+parent: null
