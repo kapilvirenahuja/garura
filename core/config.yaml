@@ -26,6 +26,16 @@ global-claude:
   skills: ~/.claude/skills/
   agents: ~/.claude/agents/
 
+# Factory Droid derived locations (populated by /sync-droids)
+factory:
+  skills: ./.factory/skills/
+  droids: ./.factory/droids/
+
+# Global Factory Droid locations (for /sync-droids default global mode)
+global-factory:
+  skills: ~/.factory/skills/
+  droids: ~/.factory/droids/
+
 # Long-Term Memory (LTM)
 ltm:
   source: ./core/components/memory/

@@ -1,0 +1,47 @@
+commits:
+  - group_id: G1
+    commit:
+      hash: d142943
+      type: feat
+      scope: components
+      subject: "add briefs recipe, sync-droids skill, and Factory Droid support"
+      message: "feat(components): add briefs recipe, sync-droids skill, and Factory Droid support"
+      issue: "123"
+      files:
+        - AGENTS.md
+        - .gitignore
+        - core/config.yaml
+        - core/components/recipes/briefs/SKILL.md
+        - core/components/recipes/briefs/reference/intent.yaml
+        - core/components/skills/sync-droids/SKILL.md
+        - core/components/skills/sync-droids/scripts/sync.sh
+        - core/components/skills/sync-droids/templates/sync-output.md
+    validation:
+      clean_tree: true
+      conventional_format: true
+
+  - group_id: G2
+    commit:
+      hash: dd6f4fe
+      type: chore
+      scope: stm
+      subject: "record create-recipe evidence and spec for briefs recipe"
+      message: "chore(stm): record create-recipe evidence and spec for briefs recipe"
+      issue: "123"
+      files:
+        - .meridian/project/issues/_pending/evidence/create-recipe/briefs/agent-audit-doc-builder.md
+        - .meridian/project/issues/_pending/evidence/create-recipe/briefs/coverage-matrix.md
+        - .meridian/project/issues/_pending/evidence/create-recipe/briefs/evals.yaml
+        - .meridian/project/issues/_pending/evidence/create-recipe/briefs/skill-manifest.yaml
+        - .meridian/specs/2026-03-24-briefs-recipe-checksum-driven-brief-regeneration.md
+    validation:
+      clean_tree: true
+      conventional_format: true
+
+summary:
+  total_commits: 2
+  branch: feature/123-briefs-recipe-sync-droids-factory-support
+  issue: "123"
+  excluded:
+    reason: ".factory/ is fully gitignored — no .factory/ files committed"
+    files: []

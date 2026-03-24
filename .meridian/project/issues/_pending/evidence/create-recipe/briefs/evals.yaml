@@ -1,0 +1,236 @@
+step_evals:
+  - id: SE-1
+    source: F1
+    skill: doc-builder
+    check: >
+      Every YAML artifact whose checksum changed has a corresponding
+      regenerated HTML brief under briefs/.
+    pass_criteria: >
+      For each YAML in the regeneration list, a brief file exists at the
+      expected briefs/ path with a modification time after the recipe started.
+    fail_criteria: >
+      A YAML artifact whose checksum changed has no corresponding brief
+      under briefs/ after the recipe completes.
+
+  - id: SE-2
+    source: F2
+    skill: briefs-recipe
+    check: >
+      No YAML artifact whose checksum matched the stored value had its
+      brief regenerated.
+    pass_criteria: >
+      The doc-builder contract's briefs_requested list contains only
+      artifacts whose checksums differed from stored values. Unchanged
+      artifacts are absent from briefs_requested.
+    fail_criteria: >
+      A YAML artifact whose checksum has NOT changed appears in the
+      briefs_requested list sent to doc-builder.
+
+  - id: SE-3
+    source: F3
+    skill: doc-builder
+    check: >
+      No HTML files exist outside the briefs/ subdirectory after completion.
+    pass_criteria: >
+      All brief paths returned by doc-builder are under
+      {artifact_base}/briefs/. No *-brief.html or hub.html exists at
+      {artifact_base}/ root level.
+    fail_criteria: >
+      HTML files exist outside the briefs/ subdirectory of the product
+      directory after the recipe completes.
+
+  - id: SE-4
+    source: F4
+    skill: briefs-recipe
+    check: >
+      The recipe halts before brief generation if no product directory
+      or no YAML artifacts exist.
+    pass_criteria: >
+      Pre-flight detects missing product directory and halts with
+      informative message. No doc-builder invocation occurs.
+    fail_criteria: >
+      The recipe proceeds with brief generation when no product directory
+      or no YAML artifacts exist on disk.
+
+  - id: SE-5
+    source: F5
+    skill: doc-builder
+    check: >
+      Hub.html reflects all current briefs — no missing entries for
+      briefs that exist, no entries for briefs that do not exist.
+    pass_criteria: >
+      Hub.html contains a card/link for every brief file that exists
+      under briefs/. No card/link points to a non-existent brief.
+    fail_criteria: >
+      Hub.html has missing entries for briefs that exist, or entries
+      for briefs that do not exist.
+
+  - id: SE-6
+    source: F6
+    skill: briefs-recipe
+    check: >
+      Stored checksums match actual YAML checksums after completion.
+    pass_criteria: >
+      .checksums.json contains an entry for every YAML artifact in scope,
+      and each stored checksum matches sha256 of the current YAML file.
+    fail_criteria: >
+      Stored checksums after completion do not match actual current
+      checksums of the YAML artifacts on disk.
+
+  - id: SE-7
+    source: F7
+    skill: briefs-recipe
+    check: >
+      On an epic branch, only the scoped epic's artifacts and
+      product-level artifacts are in the regeneration scope.
+    pass_criteria: >
+      The briefs_requested list sent to doc-builder contains only
+      artifacts from the resolved epic and product-level artifacts.
+      No artifacts from other epics appear.
+    fail_criteria: >
+      Artifacts from unrelated epics are regenerated when only the
+      scoped epic's artifacts and product-level artifacts should be
+      in scope.
+
+  - id: SE-8
+    source: F8
+    skill: doc-builder
+    check: >
+      All generated briefs and hub.html use the LifeOS Dark retro
+      design system.
+    pass_criteria: >
+      Brief HTML files contain LifeOS Dark CSS tokens (--bg-primary,
+      --color-air, --color-water, --shadow-retro, etc.). No brief
+      uses browser default styling.
+    fail_criteria: >
+      Any generated brief or hub.html uses default unstyled HTML
+      instead of the LifeOS Dark retro design system.
+
+  - id: SE-9
+    source: F9
+    skill: doc-builder
+    check: >
+      Hub.html reflects all epics that have YAML artifacts on disk.
+    pass_criteria: >
+      Hub.html contains a section for every epic directory that has
+      at least one YAML artifact. No section exists for epic directories
+      with no YAML artifacts.
+    fail_criteria: >
+      An epic with artifacts is missing from hub.html, or an epic
+      with no artifacts appears in hub.html.
+
+  - id: SE-10
+    source: C2
+    category: artifact-verifiable
+    skill: briefs-recipe
+    check: >
+      Staleness is determined solely by comparing a cryptographic checksum
+      of each YAML artifact against the stored checksum from the previous
+      run. A brief is regenerated if and only if its source YAML checksum
+      differs from the stored value or no stored value exists.
+    pass_criteria: >
+      The regeneration list exactly matches the set of YAMLs whose sha256
+      differs from .checksums.json. No other criteria (mtime, file size)
+      influence the decision.
+    fail_criteria: >
+      Regeneration decision uses criteria other than checksum comparison,
+      or a YAML with changed checksum is not regenerated, or a YAML with
+      unchanged checksum is regenerated.
+
+  - id: SE-11
+    source: C5
+    category: artifact-verifiable
+    skill: doc-builder
+    check: >
+      All generated briefs and hub.html reside under the briefs/
+      subdirectory. No HTML output is written outside that directory.
+    pass_criteria: >
+      Every path in doc-builder's output contract briefs_written list
+      is under {artifact_base}/briefs/. hub_path is under briefs/.
+    fail_criteria: >
+      Any brief or hub.html path is outside the briefs/ subdirectory.
+
+  - id: SE-12
+    source: C6
+    category: artifact-verifiable
+    skill: briefs-recipe
+    check: >
+      Checksums are persisted to a checksums file within the briefs/
+      directory after the recipe completes.
+    pass_criteria: >
+      .checksums.json exists at {artifact_base}/briefs/.checksums.json
+      and contains an entry for every YAML artifact that was in scope.
+    fail_criteria: >
+      .checksums.json is missing, empty, or does not contain entries
+      for all in-scope YAML artifacts.
+
+  - id: SE-13
+    source: C7
+    category: artifact-verifiable
+    skill: briefs-recipe
+    check: >
+      When epic context is resolved, product-level artifacts are always
+      included in the scan alongside the scoped epic's artifacts.
+    pass_criteria: >
+      The scan scope includes product.yaml and roadmap.yaml (if they
+      exist) regardless of which epic is in context.
+    fail_criteria: >
+      Product-level artifacts are excluded from the scan when epic
+      context is resolved.
+
+  - id: SE-14
+    source: C9
+    category: artifact-verifiable
+    skill: doc-builder
+    check: >
+      Hub.html renders a product-level section followed by per-epic
+      sections. Epics with no YAMLs on disk are omitted.
+    pass_criteria: >
+      Hub.html contains a product-level section with product.yaml and
+      roadmap.yaml cards, plus a distinct section per epic that has
+      YAML artifacts. Epic directories with no YAMLs have no section.
+    fail_criteria: >
+      Hub.html lacks product-level section, or lacks per-epic sections,
+      or includes sections for epics with no YAML artifacts.
+
+scenario_evals:
+  - id: SCE-1
+    source: S1
+    persona: Developer
+    check: >
+      From an epic feature branch with two modified YAMLs, hub.html shows
+      the two regenerated epic briefs and all product-level briefs.
+      Unmodified artifacts were not re-processed.
+    pass_criteria: >
+      Hub.html links to the two regenerated briefs and product-level briefs.
+      .checksums.json updated for the two changed YAMLs only. Other
+      epic artifacts retain previous checksums.
+
+  - id: SCE-2
+    source: S2
+    persona: Developer
+    check: >
+      From main branch with three epics, hub.html indexes briefs for
+      all product-level and all epic artifacts across every epic.
+    pass_criteria: >
+      Hub.html contains product-level section plus three epic sections.
+      Each section links to briefs for all YAML artifacts in that scope.
+      Only changed artifacts were regenerated.
+
+  - id: SCE-3
+    source: S3
+    persona: Developer
+    check: >
+      With no product directory, the recipe halts with a clear message.
+    pass_criteria: >
+      Recipe outputs an informative halt message. No files created or
+      modified. No doc-builder invocation.
+
+  - id: SCE-4
+    source: S4
+    persona: Developer
+    check: >
+      When all checksums match, no regeneration occurs.
+    pass_criteria: >
+      Recipe reports "all briefs up to date." No doc-builder invocation.
+      Hub.html not rewritten. .checksums.json unchanged.
