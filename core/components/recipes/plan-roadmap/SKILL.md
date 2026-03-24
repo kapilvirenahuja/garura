@@ -190,10 +190,10 @@ Update `task_id` to `produce-brief` in the enriched contract. Pass the full enri
 ```
 
 Agent produces:
-- `roadmap-brief.html` — tabbed layout per brief-principles.md with tabs: Strategy, Timeline, Feasibility, Comments. Inline comment system per brief-principles.md spec.
-- `hub.html` — regenerated to reflect updated roadmap brief status.
+- `briefs/roadmap-brief.html` — tabbed layout per brief-principles.md with tabs: Strategy, Timeline, Feasibility, Comments. Inline comment system per brief-principles.md spec. Written under the `briefs/` subdirectory per doc-builder convention.
+- `briefs/hub.html` — regenerated to reflect updated roadmap brief status. Hub lifecycle owned by doc-builder.
 
-**Expected return:** Contract with `stm.roadmap_brief_path` and `stm.hub_path` populated, `step_failure` null.
+**Expected return:** Contract with `stm.roadmap_brief_path` and `stm.hub_path` populated (pointing to `briefs/` paths), `step_failure` null.
 
 Check `step_failure` first — if non-null, retry once. After 2 failures, halt.
 Then check both `stm.roadmap_brief_path` and `stm.hub_path` are non-null.
@@ -221,8 +221,8 @@ Update contract: `checkpoints[brief_review].status = pending`.
 Present brief using `templates/approval-prompt.md`. The brief file is at `stm.roadmap_brief_path` — open it for the user.
 
 **Feedback loop (max 3 cycles):**
-- Plain text feedback → re-invoke `product-strategist` with enriched contract + `"user_feedback": "{feedback text}"` appended; cycle count ≤ 3. After regeneration, also regenerate `hub.html` (pass `hub_path` in contract for agent to update).
-- **Tether** → copy approved brief to `{slug}/approved-roadmap-brief.html`, set `stm.approved_roadmap_brief_path`, update `checkpoints[brief_review].status = approved`. Update checkpoint artifact. Proceed to Execution.
+- Plain text feedback → re-invoke `product-strategist` with enriched contract + `"user_feedback": "{feedback text}"` appended; cycle count ≤ 3. After regeneration, also regenerate `briefs/hub.html` (pass `hub_path` in contract for agent to update).
+- **Tether** → copy approved brief to `{slug}/briefs/approved-roadmap-brief.html`, set `stm.approved_roadmap_brief_path`, update `checkpoints[brief_review].status = approved`. Update checkpoint artifact. Proceed to Execution.
 - **Vanish** → update `checkpoints[brief_review].status = rejected`. Halt. Present: "Brief rejected — run `/plan-roadmap --product {path}` to start over."
 - After 3 feedback cycles with no Tether/Vanish → present: "Maximum feedback cycles reached. Type **Tether** to approve or **Vanish** to halt."
 
@@ -251,7 +251,7 @@ Update `task_id` to `produce-roadmap` in the enriched contract. Pass the full en
 }
 ```
 
-Agent produces `roadmap.yaml` conforming to the roadmap.yaml schema. This consolidates roadmap content (thesis, narrative, timeline, exclusions, assumptions) and feasibility data (per-feature risk, blockers, open questions, risk_summary) from `stm.feasibility_path` into a single artifact. The `approved_brief_ref` field in `roadmap.yaml` must point to `stm.approved_roadmap_brief_path`.
+Agent produces `roadmap.yaml` conforming to the roadmap.yaml schema. This consolidates roadmap content (thesis, narrative, timeline, exclusions, assumptions) and feasibility data (per-feature risk, blockers, open questions, risk_summary) from `stm.feasibility_path` into a single artifact. The `approved_brief_ref` field in `roadmap.yaml` must point to `stm.approved_roadmap_brief_path` (under `briefs/`).
 
 **Expected return:** Contract with `stm.roadmap_yaml_path` populated, `step_failure` null.
 
@@ -310,10 +310,10 @@ Write evidence file to that path:
 |----------|------|--------|
 | Scoped Epics | {stm.epics_path} | written |
 | Feasibility | {stm.feasibility_path} | written |
-| Roadmap Brief | {stm.roadmap_brief_path} | written |
-| Approved Roadmap Brief | {stm.approved_roadmap_brief_path} | approved |
+| Roadmap Brief | {stm.roadmap_brief_path} (under briefs/) | written |
+| Approved Roadmap Brief | {stm.approved_roadmap_brief_path} (under briefs/) | approved |
 | Roadmap YAML | {stm.roadmap_yaml_path} | written |
-| Hub | {stm.hub_path} | written |
+| Hub | {stm.hub_path} (under briefs/) | written |
 
 ## Checkpoint
 
@@ -440,7 +440,7 @@ When an agent returns `step_failure` (non-null):
 |-------|-------|
 | intent_hash | sha256:c5317e9f0182d356b31d345f0337cb5247310f384e461b3d667f2d4f59918062 |
 | compiled_by | create-recipe |
-| compiled_at | 2026-03-16T00:00:00+0530 |
+| compiled_at | 2026-03-24 |
 | maturity | L2 |
 | workflow_structure | A (full checkpoint flow) |
 | agents | 3 (product-strategist, tech-designer, repo-orchestrator) |

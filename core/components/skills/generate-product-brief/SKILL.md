@@ -14,9 +14,9 @@ Model-invocable skill for generating a self-contained HTML brief from product.ya
 
 ## Purpose
 
-Read product.yaml from STM and produce a self-contained `product-brief.html` document that a human can open in a browser to review product discovery results and provide inline feedback via text selection. Also regenerates `hub.html`. The brief uses the LifeOS Dark design system with tabbed navigation and an inline comment system (select text to annotate).
+Read product.yaml from STM and produce a self-contained `product-brief.html` document that a human can open in a browser to review product discovery results and provide inline feedback via text selection. The brief uses the LifeOS Dark design system with tabbed navigation and an inline comment system (select text to annotate).
 
-You DO generate the HTML artifact and regenerate hub.html. You do NOT interpret feedback or decide what happens next.
+You DO generate the HTML artifact. You do NOT regenerate hub.html (that is owned by the doc-builder agent), interpret feedback, or decide what happens next.
 
 ## Output Schema
 
@@ -25,7 +25,6 @@ Produces two HTML files (not YAML). Output metadata returned to the calling agen
 | Field | Type | Description |
 |-------|------|-------------|
 | `brief.path` | string | Full path to the generated `product-brief.html` |
-| `brief.hub_path` | string | Full path to the regenerated `hub.html` |
 | `brief.slug` | string | Product slug used in localStorage key and export payload |
 | `brief.tabs` | list | `[market_context, vision, scope, comments]` when type = "product"; `[technical_context, vision, scope, comments]` when type = "library" |
 | `brief.format` | string | Always `"html"` |
@@ -38,7 +37,7 @@ HTML design system and structure are defined in this skill's `## Design System` 
 Receive from agent:
 - `product_slug` — (required) Product slug for identification
 - `product_yaml_path` — (required) Path to the product.yaml artifact
-- `artifact_base` — (required) Base path, e.g., `.meridian/project/product/`
+- `output_path` — (required) Full path where the brief should be written (e.g., `.meridian/project/product/{slug}/briefs/product-brief.html`). Computed by the calling doc-builder agent.
 
 ## Process
 
@@ -66,13 +65,9 @@ Receive from agent:
 
    **Key rule:** Render what exists. Skip empty sections. Do not render empty cards or "No data" placeholders.
 
-2. **Determine output path:** `{artifact_base}{product_slug}/product-brief.html` (no timestamp in filename).
+2. **Build product-brief.html** as a fully self-contained HTML5 document following the structure and design system defined in this skill. All CSS and JS inline — no external dependencies. Hub link in the header should point to `hub.html` (relative — hub lives in the same briefs/ directory).
 
-3. **Build product-brief.html** as a fully self-contained HTML5 document following the structure and design system defined in this skill. All CSS and JS inline — no external dependencies.
-
-4. **Regenerate hub.html** at `{artifact_base}{product_slug}/hub.html`. Read all existing YAML files in the slug directory to extract status and summary counts for each artifact card.
-
-5. **Write both files** using the Write tool.
+3. **Write the brief** to `output_path` using the Write tool.
 
 ## HTML Structure: product-brief.html
 
@@ -433,36 +428,12 @@ window.addEventListener('load', () => {
 });
 ```
 
-## hub.html Structure
-
-Hub is always regenerated when product-brief.html is generated.
-
-```html
-<!-- Hub layout -->
-<div class="container">
-  <h1>{Product Name} <span class="badge badge-{status}">{STATUS}</span></h1>
-  <p style="color:var(--text-dimmed)">{slug}</p>
-  <div class="artifact-grid">
-    <!-- One card per artifact: product, roadmap, features, architecture, tech, scenarios, plan -->
-    <!-- Card shows: artifact name (link), status badge, summary stat, comment count -->
-    <!-- Grayed out if YAML doesn't exist yet -->
-  </div>
-  <p style="font-size:12px; color:var(--text-dimmed); margin-top:24px;">Dependency: product → roadmap → features → architecture → tech → scenarios → plan</p>
-</div>
-```
-
-Hub card for each artifact:
-- Reads YAML if it exists, extracts `status` and summary count (strategic_goals count for product, etc.)
-- Reads localStorage for comment count per artifact
-- Links to `{artifact}-brief.html` if YAML exists, otherwise grayed out
-
 ## Output
 
 ```yaml
 # type=product
 brief:
-  path: "{artifact_base}{slug}/product-brief.html"
-  hub_path: "{artifact_base}{slug}/hub.html"
+  path: "{output_path}"
   slug: "{product_slug}"
   tabs:
     - market_context
@@ -474,8 +445,7 @@ brief:
 
 # type=library
 brief:
-  path: "{artifact_base}{slug}/product-brief.html"
-  hub_path: "{artifact_base}{slug}/hub.html"
+  path: "{output_path}"
   slug: "{product_slug}"
   tabs:
     - technical_context
@@ -497,8 +467,8 @@ brief:
 - ALWAYS use the LifeOS Dark design tokens defined in this skill
 - ALWAYS implement the four-tab layout: Market Context, Vision, Scope, Comments
 - ALWAYS implement the inline text selection comment system (not section toggles)
-- ALWAYS regenerate hub.html alongside product-brief.html
-- ALWAYS use filename `product-brief.html` with no timestamp
+- NEVER regenerate hub.html — that is owned by the doc-builder agent
+- ALWAYS write to the `output_path` provided by the calling agent
 - ALWAYS generate valid, well-formed HTML5
 - ALWAYS persist comments to localStorage keyed by `meridian-comments-product-{slug}`
 - ALWAYS read type field from product.yaml before determining tab layout

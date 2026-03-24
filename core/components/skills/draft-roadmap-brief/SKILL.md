@@ -15,7 +15,7 @@ Model-invocable skill for rendering the human review brief from intermediate epi
 
 Render `roadmap-brief.html` from scoped epics and feasibility data — produced BEFORE `roadmap.yaml` exists. This is the review checkpoint: the brief is presented to the human for Tether/Vanish approval, and `roadmap.yaml` is produced only after approval. This skill reads `epics.yaml`, `feasibility.yaml`, and `product.yaml` and renders a preview brief using the LifeOS Dark design system with tabbed navigation and an inline text selection comment system.
 
-You DO render the brief document and regenerate hub.html. You do NOT generate roadmap content, invent data, validate feasibility, or decide what happens next.
+You DO render the brief document. You do NOT regenerate hub.html (that is owned by the doc-builder agent), generate roadmap content, invent data, validate feasibility, or decide what happens next.
 
 ## Input
 
@@ -23,7 +23,7 @@ Receive from agent:
 - `epics_path` — (required) Path to the scoped epics artifact in STM, e.g. `.meridian/project/product/{slug}/epics.yaml`
 - `feasibility_path` — (required) Path to the feasibility artifact in STM, e.g. `.meridian/project/product/{slug}/feasibility.yaml`
 - `product_yaml_path` — (required) Path to product.yaml, e.g. `.meridian/project/product/{slug}/product.yaml`
-- `artifact_base` — (required) Base path for output, e.g. `.meridian/project/product/`
+- `output_path` — (required) Full path where the brief should be written (e.g., `.meridian/project/product/{slug}/briefs/roadmap-brief.html`). Computed by the calling doc-builder agent.
 - `slug` — (required) Product slug
 
 ## Process
@@ -175,19 +175,9 @@ function saveCommentsToStorage() { }
 function exportFeedback(action) { }
 ```
 
-5. **Determine artifact path:** `{artifact_base}{slug}/roadmap-brief.html` — no timestamp in filename.
+5. **Write roadmap-brief.html** to `output_path` using the Write tool. Hub link in the header should point to `hub.html` (relative — hub lives in the same briefs/ directory).
 
-6. **Write roadmap-brief.html** at the determined path using the Write tool.
-
-7. **Regenerate hub.html:**
-   - Read all existing YAML files in `{artifact_base}{slug}/` directory
-   - For each known artifact type (product, epics, feasibility, features, architecture, tech, scenarios, plan), check if the corresponding YAML exists
-   - Extract status and key summary stat from each found YAML
-   - Read comment counts from localStorage entries (use 0 if not accessible server-side)
-   - Render `hub.html` using the LifeOS Dark design system with artifact cards in a 2-column grid
-   - Write to `{artifact_base}{slug}/hub.html`
-
-8. **Return output contract.**
+6. **Return output contract.**
 
 ## Output
 
@@ -195,8 +185,7 @@ Your response MUST be ONLY this YAML block with values filled in. No validation 
 
 ```yaml
 brief:
-  roadmap_brief_path: "{artifact_base}{slug}/roadmap-brief.html"
-  hub_path: "{artifact_base}{slug}/hub.html"
+  roadmap_brief_path: "{output_path}"
   slug: "{slug}"
   tabs_present: ["strategy", "timeline", "feasibility", "comments"]
   feature_count: {integer}
@@ -212,8 +201,8 @@ brief:
 - ALWAYS use LifeOS Dark design system — no custom color schemes
 - ALWAYS produce exactly four tabs: Strategy, Timeline, Feasibility, Comments
 - ALWAYS implement the inline text selection comment system
-- ALWAYS regenerate hub.html when producing the brief
-- ALWAYS output to `roadmap-brief.html` (no timestamp in filename)
+- NEVER regenerate hub.html — that is owned by the doc-builder agent
+- ALWAYS write to the `output_path` provided by the calling agent
 - ALWAYS read epics.yaml, feasibility.yaml, and product.yaml using the Read tool — do NOT rely on memory
 - ALWAYS assign F-IDs to epics consistently throughout the brief — this mapping carries forward to roadmap.yaml
 - `user-invocable: false`

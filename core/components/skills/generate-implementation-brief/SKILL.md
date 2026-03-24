@@ -14,22 +14,22 @@ Model-invocable skill for generating per-artifact, self-contained HTML brief doc
 
 ## Purpose
 
-Read a YAML artifact from STM and produce a self-contained HTML brief that a human can open in a browser to review its contents. Each brief uses a tabbed layout, the LifeOS Dark design system, and an inline text selection comment system (not section toggles). After generating any brief, always regenerate hub.html.
+Read a YAML artifact from STM and produce a self-contained HTML brief that a human can open in a browser to review its contents. Each brief uses a tabbed layout, the LifeOS Dark design system, and an inline text selection comment system (not section toggles).
 
-You DO generate the HTML artifact(s). You do NOT interpret feedback or decide what happens next.
+You DO generate the HTML artifact(s). You do NOT regenerate hub.html (that is owned by the doc-builder agent), interpret feedback, or decide what happens next.
 
 ## Input
 
 Receive from agent:
 - `artifacts` — (required) List of artifact names to generate briefs for. Valid values: `features`, `architecture`, `tech`, `scenarios`, `plan`. Pass `all` to generate all five.
 - `artifact_base` — (required) Base path where YAML artifacts live (e.g., `.meridian/project/product/{slug}/`)
+- `output_base` — (required) Base path where briefs should be written (e.g., `.meridian/project/product/{slug}/briefs/`). Computed by the calling doc-builder agent.
 - `slug` — (required) Product slug for display
 
 ## Artifact Resolution
 
 YAML file paths are derived from `artifact_base/{artifact}.yaml`.
-Brief output paths are `artifact_base/{artifact}-brief.html`.
-Hub output path is `artifact_base/hub.html`.
+Brief output paths are `output_base/{artifact}-brief.html`.
 
 | Artifact | Source YAML | Output Brief |
 |----------|-------------|--------------|
@@ -38,10 +38,6 @@ Hub output path is `artifact_base/hub.html`.
 | tech | `tech.yaml` | `tech-brief.html` |
 | scenarios | `scenarios.yaml` | `scenarios-brief.html` |
 | plan | `plan.yaml` | `plan-brief.html` |
-
-Also always read and use any of the following that exist, for hub regeneration:
-- `product.yaml`
-- `roadmap.yaml`
 
 ## Process
 
@@ -53,11 +49,7 @@ For each artifact in the `artifacts` list:
 
 3. **Render the brief.** Construct the HTML document using the structure, design system, and tab mapping defined below.
 
-4. **Write the brief** to `artifact_base/{artifact}-brief.html` using the Write tool.
-
-After all requested briefs are written:
-
-5. **Regenerate hub.html.** Read all existing YAML files in `artifact_base` (product.yaml, roadmap.yaml, features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml — skip any that don't exist). Extract status and summary stats from each. Write hub.html to `artifact_base/hub.html`.
+4. **Write the brief** to `output_base/{artifact}-brief.html` using the Write tool. Hub link in the header should point to `hub.html` (relative — hub lives in the same briefs/ directory).
 
 ## Tab Mapping
 
@@ -708,54 +700,6 @@ document.addEventListener('keydown', e => {
 });
 ```
 
-## Hub Page
-
-Hub is regenerated on every invocation of this skill, regardless of which briefs were requested.
-
-### Hub Structure
-
-```html
-{artifact_base}/hub.html
-```
-
-For each of the 7 artifacts (product, roadmap, features, architecture, tech, scenarios, plan):
-- Read the YAML if it exists, extract: `status`, and key summary stat
-- Render a card that links to `{artifact}-brief.html`
-- If YAML doesn't exist, render card in grayed-out "not started" state
-
-### Hub Summary Stats
-
-| Artifact | Summary Stat |
-|----------|--------------|
-| product | count of `strategic_goals` |
-| roadmap | count of `timeline` feature refs total |
-| features | count of `features` |
-| architecture | count of `stack` items |
-| tech | count of `components` |
-| scenarios | `coverage.total_scenarios` |
-| plan | count of `execution_order` items |
-
-### Hub Layout
-
-```
-┌─────────────────────────────────────────────┐
-│  {Product Name or slug}                     │
-│  Generated: {timestamp}                     │
-│                                             │
-│  ┌─────────────┐  ┌─────────────┐          │
-│  │ product     │  │ roadmap     │          │
-│  │ [STATUS]    │  │ [STATUS]    │          │
-│  │ N goals     │  │ N features  │          │
-│  └─────────────┘  └─────────────┘          │
-│  ... (architecture, tech, scenarios, plan) │
-│                                             │
-│  product → roadmap → features →            │
-│  architecture → tech → scenarios → plan    │
-└─────────────────────────────────────────────┘
-```
-
-Hub card CSS matches the same design system tokens. Cards link to `{artifact}-brief.html`. Cards for missing YAMLs render with `opacity: 0.4` and no link.
-
 ## Context Sections
 
 When rendering a brief that shows a previously-approved artifact as context (e.g., tech-brief shows features summary), render context sections with:
@@ -797,8 +741,7 @@ brief_generation:
       brief_path: "{output_path}"
       source_yaml: "{yaml_path}"
       status: "generated|skipped_missing_yaml"
-  hub_path: "{artifact_base}/hub.html"
-  hub_status: "generated"
+  output_base: "{output_base}"
   missing_yamls:
     - "{yaml path if any}"
 ```
@@ -812,7 +755,8 @@ Return this structure to the calling agent.
 - NEVER modify input YAML artifacts — read-only
 - NEVER use section toggles (Approve/Revise) — this version uses inline text selection comments only
 - ALWAYS use the LifeOS Dark design tokens — no ad-hoc colors or fonts
-- ALWAYS regenerate hub.html on every invocation, regardless of which briefs were requested
+- NEVER regenerate hub.html — that is owned by the doc-builder agent
+- ALWAYS write briefs to `output_base/{artifact}-brief.html` using the path provided by the calling agent
 - ALWAYS generate valid, well-formed HTML5
 - ALWAYS use localStorage key `meridian-comments-{artifact}-{slug}` for comment persistence
 - ALWAYS render the Comments tab as the last tab with count badge
