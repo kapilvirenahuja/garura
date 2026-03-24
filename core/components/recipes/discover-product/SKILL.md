@@ -233,33 +233,33 @@ Skill: `generate-product-brief`
 {
   "intent_path": "core/components/recipes/discover-product/reference/intent.yaml",
   "stm_base": ".meridian/project/product/",
+  "artifact_base": "{product_base}/{slug}",
+  "slug": "{slug}",
+  "briefs_requested": ["product"],
   "stm": {
     "input": {
       "product_yaml_path": "{product_base}/{slug}/product.yaml"
-    },
-    "output": {
-      "product_brief_path": "{product_base}/{slug}/product-brief.html",
-      "hub_path": "{product_base}/{slug}/hub.html"
     }
   },
+  "task_id": "generate-brief",
   "config": {
-    "product_slug": "{slug}"
-  },
-  "task_id": "generate-brief"
+    "product_slug": "{slug}",
+    "phase": "DRAFT"
+  }
 }
 ```
 
-Agent invokes `generate-product-brief` -> reads `product.yaml`, generates self-contained `product-brief.html` with LifeOS design language, tabbed layout, and inline text selection comment system -> writes to `{product_base}/{slug}/product-brief.html`. For type "product": tabs are Market Context, Vision, Scope, Comments. For type "library": market sections are absent and technical context renders instead. Also regenerates `{product_base}/{slug}/hub.html`.
+Agent computes output paths under `{product_base}/{slug}/briefs/`, invokes `generate-product-brief` with explicit `output_path`, then regenerates `hub.html` at `{product_base}/{slug}/briefs/hub.html`. For type "product": tabs are Market Context, Vision, Scope, Comments. For type "library": market sections are absent and technical context renders instead.
 
 **Step 4 Evals:**
 
-- **SE-7 (F9):** A checkpoint artifact was written before presenting results to the user — the approval flow has an audit trail. Pass: product-brief.html exists at the expected path before the checkpoint is presented to the user, providing an audit trail for the approval flow. Fail: No checkpoint artifact was written before presenting results to the user — the approval flow has no audit trail.
+- **SE-7 (F9):** A checkpoint artifact was written before presenting results to the user — the approval flow has an audit trail. Pass: product-brief.html exists at `{product_base}/{slug}/briefs/product-brief.html` before the checkpoint is presented to the user, providing an audit trail for the approval flow. Fail: No checkpoint artifact was written before presenting results to the user — the approval flow has no audit trail.
 
-- **SE-10 (C6):** The brief artifact is written to .meridian/project/product/{slug}/ relative to the project root. Pass: product-brief.html is located at .meridian/project/product/{slug}/product-brief.html — project-scoped product STM. Fail: product-brief.html is written outside .meridian/project/product/{slug}/.
+- **SE-10 (C6):** The brief artifact is written to .meridian/project/product/{slug}/briefs/ relative to the project root. Pass: product-brief.html is located at .meridian/project/product/{slug}/briefs/product-brief.html — project-scoped product STM briefs directory. Fail: product-brief.html is written outside .meridian/project/product/{slug}/briefs/.
 
-- **SE-12 (C8):** A checkpoint artifact is written before each user-facing pause. The recipe has up to two checkpoints: brief review after drafting, and validation review if blockers are found. Checkpoint status is PENDING_APPROVAL until the user responds. Pass: product-brief.html exists before the first checkpoint is presented. The vision artifact status is PENDING_APPROVAL at checkpoint time. If a second checkpoint occurs (validation blockers), the checkpoint artifact is updated before the user is prompted. Fail: No checkpoint artifact was written before presenting results, OR the status is not PENDING_APPROVAL at checkpoint time.
+- **SE-12 (C8):** A checkpoint artifact is written before each user-facing pause. The recipe has up to two checkpoints: brief review after drafting, and validation review if blockers are found. Checkpoint status is PENDING_APPROVAL until the user responds. Pass: product-brief.html exists at `{product_base}/{slug}/briefs/product-brief.html` before the first checkpoint is presented. The vision artifact status is PENDING_APPROVAL at checkpoint time. If a second checkpoint occurs (validation blockers), the checkpoint artifact is updated before the user is prompted. Fail: No checkpoint artifact was written before presenting results, OR the status is not PENDING_APPROVAL at checkpoint time.
 
-- **SE-13 (C10):** A human-reviewable brief artifact is produced after vision drafting and presented at the first checkpoint. This is the primary artifact the user evaluates before the recipe proceeds to validation. Pass: product-brief.html is produced after vision drafting, contains human-reviewable content, and is presented at the first checkpoint for user evaluation. Fail: No human-reviewable brief artifact was produced after vision drafting, or the brief was not presented at the first checkpoint.
+- **SE-13 (C10):** A human-reviewable brief artifact is produced after vision drafting and presented at the first checkpoint. This is the primary artifact the user evaluates before the recipe proceeds to validation. Pass: product-brief.html is produced at `{product_base}/{slug}/briefs/product-brief.html` after vision drafting, contains human-reviewable content, and is presented at the first checkpoint for user evaluation. Fail: No human-reviewable brief artifact was produced after vision drafting, or the brief was not presented at the first checkpoint.
 
 ---
 
@@ -276,8 +276,8 @@ Present to user:
 ## Product Discovery: {slug}
 
 **Product YAML:** `{product_base}/{slug}/product.yaml`
-**HTML Brief:** `{product_base}/{slug}/product-brief.html`
-**Hub:** `{product_base}/{slug}/hub.html`
+**HTML Brief:** `{product_base}/{slug}/briefs/product-brief.html`
+**Hub:** `{product_base}/{slug}/briefs/hub.html`
 
 Open the HTML brief in your browser to review the vision, strategic goals, and positioning.
 Select any text to add inline comments. Use the Comments tab to export structured feedback JSON.
@@ -421,8 +421,8 @@ Invoke `repo-orchestrator` for evidence self-commit (ADR 012). Non-blocking on f
         "{product_base}/evidence/discover-product/{timestamp}.md",
         "{product_base}/checkpoint/discover-product/*.md",
         "{product_base}/{slug}/product.yaml",
-        "{product_base}/{slug}/product-brief.html",
-        "{product_base}/{slug}/hub.html",
+        "{product_base}/{slug}/briefs/product-brief.html",
+        "{product_base}/{slug}/briefs/hub.html",
         "{product_base}/{slug}/status/discover-product.json"
       ]
     },
@@ -450,8 +450,8 @@ Present locked artifact paths to user:
 
 **Artifacts:**
 - Product YAML: `{product_base}/{slug}/product.yaml` (status: LOCKED, type: {product_type})
-- HTML Brief: `{product_base}/{slug}/product-brief.html`
-- Hub: `{product_base}/{slug}/hub.html`
+- HTML Brief: `{product_base}/{slug}/briefs/product-brief.html`
+- Hub: `{product_base}/{slug}/briefs/hub.html`
 
 **Validation:** {completeness_score}% complete, {blocker_count} blockers resolved
 
@@ -559,7 +559,7 @@ for each step in compiled order:
 |-------|-------|
 | intent_hash | 46782b3716acdcde2ca1ce7c8849310e80028d87d063cd5f6a84cfb31a17b4f6 |
 | compiled_by | create-recipe |
-| compiled_at | 2026-03-23 |
+| compiled_at | 2026-03-24 |
 | maturity | L2 |
 | workflow_structure | B |
 | agents | 3 domain (product-strategist) + utility (doc-builder, repo-orchestrator) |

@@ -27,7 +27,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 |-------|--------|--------|--------|
 | `tech-designer` | Context resolution (codebase scan, LTM read, dependency report), architecture.yaml, tech.yaml, plan.yaml | Context Resolution, DRAFT (Stages 2, 3) | Domain (counted) |
 | `product-strategist` | features.yaml, scenarios.yaml, cross-validation | DRAFT (Stages 1, 3), VALIDATE | Domain (counted) |
-| `doc-builder` | HTML brief generation + hub.html regeneration at each checkpoint | DRAFT (all stages) | Utility (exempt) |
+| `doc-builder` | HTML brief generation under briefs/ + hub.html lifecycle at each checkpoint | DRAFT (all stages) | Utility (exempt) |
 | `repo-orchestrator` | Evidence self-commit | Evidence & Close | Utility (exempt) |
 
 ## Pre-flight
@@ -335,26 +335,23 @@ Depends on: Step 6
 {
   "intent_path": "core/components/recipes/prepare-implementation/reference/intent.yaml",
   "stm_base": "{stm_base}",
-  "artifacts": ["features"],
   "artifact_base": "{epic_base}",
   "slug": "{slug}",
+  "briefs_requested": ["features"],
   "stm": {
     "input": {
       "features_yaml_path": "{epic_base}/features.yaml"
-    },
-    "output": {
-      "features_brief_path": "{epic_base}/features-brief.html",
-      "hub_path": "{epic_base}/hub.html"
     }
   },
   "task_id": "generate-features-brief",
-  "context": {
-    "epic_id": "{epic_id}"
+  "config": {
+    "epic_id": "{epic_id}",
+    "phase": "DRAFT"
   }
 }
 ```
 
-Agent generates features-brief.html and hub.html for this epic.
+Agent computes output paths under `{epic_base}/briefs/`, invokes `generate-implementation-brief` with explicit `output_base`, then regenerates `hub.html` at `{epic_base}/briefs/hub.html`.
 
 ---
 
@@ -365,7 +362,7 @@ Depends on: Step 7
 ```markdown
 ## Features — {epic_id}: {epic_name}
 
-**HTML Brief:** `{epic_base}/features-brief.html`
+**HTML Brief:** `{epic_base}/briefs/features-brief.html`
 
 Open the HTML brief in your browser to review product identity, invariants, scope boundaries, and feature IDD definitions for this epic.
 Use the inline comment system in the brief to annotate specific content.
@@ -475,29 +472,25 @@ Depends on: Step 9, Step 10
 {
   "intent_path": "core/components/recipes/prepare-implementation/reference/intent.yaml",
   "stm_base": "{stm_base}",
-  "artifacts": ["architecture", "tech"],
   "artifact_base": "{epic_base}",
   "slug": "{slug}",
+  "briefs_requested": ["architecture", "tech"],
   "stm": {
     "input": {
       "features_yaml_path": "{epic_base}/features.yaml",
       "architecture_yaml_path": "{epic_base}/architecture.yaml",
       "tech_yaml_path": "{epic_base}/tech.yaml"
-    },
-    "output": {
-      "architecture_brief_path": "{epic_base}/architecture-brief.html",
-      "tech_brief_path": "{epic_base}/tech-brief.html",
-      "hub_path": "{epic_base}/hub.html"
     }
   },
   "task_id": "generate-architecture-tech-briefs",
-  "context": {
-    "epic_id": "{epic_id}"
+  "config": {
+    "epic_id": "{epic_id}",
+    "phase": "DRAFT"
   }
 }
 ```
 
-Agent generates architecture-brief.html, tech-brief.html, and regenerates hub.html.
+Agent computes output paths under `{epic_base}/briefs/`, invokes `generate-implementation-brief` with explicit `output_base`, then regenerates `hub.html` at `{epic_base}/briefs/hub.html`.
 
 ---
 
@@ -508,8 +501,8 @@ Depends on: Step 11
 ```markdown
 ## Architecture + Tech Design — {epic_id}: {epic_name}
 
-**Architecture Brief:** `{epic_base}/architecture-brief.html`
-**Tech Brief:** `{epic_base}/tech-brief.html`
+**Architecture Brief:** `{epic_base}/briefs/architecture-brief.html`
+**Tech Brief:** `{epic_base}/briefs/tech-brief.html`
 
 Open both briefs in your browser to review:
 - Architecture: principles, NFRs, technology stack, platforms, integrations, deployment
@@ -630,9 +623,9 @@ Depends on: Step 13, Step 14
 {
   "intent_path": "core/components/recipes/prepare-implementation/reference/intent.yaml",
   "stm_base": "{stm_base}",
-  "artifacts": ["scenarios", "plan"],
   "artifact_base": "{epic_base}",
   "slug": "{slug}",
+  "briefs_requested": ["scenarios", "plan"],
   "stm": {
     "input": {
       "features_yaml_path": "{epic_base}/features.yaml",
@@ -640,21 +633,17 @@ Depends on: Step 13, Step 14
       "tech_yaml_path": "{epic_base}/tech.yaml",
       "scenarios_yaml_path": "{epic_base}/scenarios.yaml",
       "plan_yaml_path": "{epic_base}/plan.yaml"
-    },
-    "output": {
-      "scenarios_brief_path": "{epic_base}/scenarios-brief.html",
-      "plan_brief_path": "{epic_base}/plan-brief.html",
-      "hub_path": "{epic_base}/hub.html"
     }
   },
   "task_id": "generate-scenarios-plan-briefs",
-  "context": {
-    "epic_id": "{epic_id}"
+  "config": {
+    "epic_id": "{epic_id}",
+    "phase": "DRAFT"
   }
 }
 ```
 
-Agent generates scenarios-brief.html, plan-brief.html, and regenerates hub.html.
+Agent computes output paths under `{epic_base}/briefs/`, invokes `generate-implementation-brief` with explicit `output_base`, then regenerates `hub.html` at `{epic_base}/briefs/hub.html`.
 
 ---
 
@@ -665,8 +654,8 @@ Depends on: Step 15
 ```markdown
 ## Scenarios + Execution Plan — {epic_id}: {epic_name}
 
-**Scenarios Brief:** `{epic_base}/scenarios-brief.html`
-**Plan Brief:** `{epic_base}/plan-brief.html`
+**Scenarios Brief:** `{epic_base}/briefs/scenarios-brief.html`
+**Plan Brief:** `{epic_base}/briefs/plan-brief.html`
 
 Open both briefs in your browser to review:
 - Scenarios: verification scenarios with feature back-links, feature gates, coverage gaps
@@ -829,13 +818,13 @@ Write evidence to `{epic_base}/evidence/prepare-implementation/{YYYYMMDD-HHMMSS}
 - scenarios.yaml — {status}
 - plan.yaml — {status}
 
-### Briefs Generated
-- features-brief.html
-- architecture-brief.html
-- tech-brief.html
-- scenarios-brief.html
-- plan-brief.html
-- hub.html
+### Briefs Generated (under {epic_base}/briefs/)
+- briefs/features-brief.html
+- briefs/architecture-brief.html
+- briefs/tech-brief.html
+- briefs/scenarios-brief.html
+- briefs/plan-brief.html
+- briefs/hub.html
 
 ### Validation
 - Checks passed: {X}/14
@@ -910,11 +899,11 @@ for each step in compiled order:
 |-------|-------|
 | intent_hash | sha256:d14def0aa9dc2282179024d37abe00c33b4d273464ccfc6908bbf40cf4c1d6bf |
 | compiled_by | create-recipe |
-| compiled_at | 2026-03-23 |
+| compiled_at | 2026-03-24 |
 | maturity | L2 |
 | workflow_structure | A (single flow with context resolution + checkpoints) |
 | domain_agents | 2 (tech-designer, product-strategist) |
-| utility_agents | 2 (doc-builder, repo-orchestrator) — exempt from budget |
+| utility_agents | 2 (doc-builder, repo-orchestrator) — exempt from budget. doc-builder owns briefs/ directory and hub.html lifecycle. |
 | domain_calls_context_resolution | 3 (tech-designer x3: scan, ltm, report) |
 | domain_calls_draft | 5 (product-strategist x2, tech-designer x3) |
 | utility_calls_draft | 3 (doc-builder x3 — brief(s) per checkpoint) |
@@ -924,6 +913,6 @@ for each step in compiled order:
 | scenario_evals | 8 (SCE-1 through SCE-8) |
 | output_artifacts | 5 (features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml) |
 | context_artifacts | 1 (dependency-resolution-report.yaml) |
-| review_briefs | 5 (features-brief.html, architecture-brief.html, tech-brief.html, scenarios-brief.html, plan-brief.html) |
-| hub | 1 (hub.html — regenerated after each checkpoint) |
+| review_briefs | 5 (briefs/features-brief.html, briefs/architecture-brief.html, briefs/tech-brief.html, briefs/scenarios-brief.html, briefs/plan-brief.html) |
+| hub | 1 (briefs/hub.html — regenerated after each checkpoint by doc-builder) |
 | checkpoints | 4 (dependency resolution approval, features, architecture+tech, scenarios+plan) |
