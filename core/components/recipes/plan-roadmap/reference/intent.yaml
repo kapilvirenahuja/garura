@@ -64,6 +64,15 @@ constraints:
       textarea fields, comment inputs, or equivalent — embedded in the HTML
       document. The reviewer must be able to enter feedback directly in the
       brief without switching to the terminal or any external tool.
+  - id: C11
+    rule: >
+      After brief approval, roadmap production must be blocked when the
+      feasibility assessment contains non-empty critical_blockers or
+      open_questions arrays. Each unresolved item must be presented to
+      the user via a structured resolution interview using the RESOLVED
+      keyword to collect decisions. All resolutions must be written to a
+      pre-lock-resolutions.yaml audit artifact before the roadmap is
+      produced.
 
 failure_conditions:
   - id: F1
@@ -95,6 +104,12 @@ failure_conditions:
       The roadmap contains IDD content that differs from the
       approved brief — indicating regeneration rather than
       verbatim transcription.
+  - id: F8
+    condition: >
+      The roadmap was produced while critical_blockers or open_questions
+      from the feasibility assessment remain unresolved — items exist
+      in the arrays but no corresponding resolution was collected from
+      the user.
 
 scenarios:
   - id: S1
@@ -132,3 +147,10 @@ scenarios:
       Can identify architecture-impacting epics, shared
       infrastructure needs, and cross-cutting technical risks
       that require resolution before implementation begins.
+  - id: S6
+    persona: Product Manager
+    given: Feasibility assessment with non-empty critical_blockers and open_questions
+    then: >
+      Can resolve each blocker and open question through a structured
+      resolution interview, with all resolutions captured in an audit
+      artifact before roadmap production proceeds.

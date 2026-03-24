@@ -76,6 +76,24 @@ constraints:
       SDKs, developer tools, and microservices are type "library". The type
       field governs which validation criteria apply and which brief sections
       render.
+  - id: C14
+    rule: >
+      Pre-lock resolution gate — the recipe must not lock artifacts when
+      blocker-severity issues, warning-severity issues with unresolved
+      decisions, or placeholder field values (TBD, unclear, to be determined,
+      trailing ?) remain in the product artifact. When such items are detected
+      after validation, the recipe must present a structured resolution
+      interview to collect user decisions for each item. Resolutions must be
+      written to a pre-lock-resolutions.yaml audit artifact before lock
+      executes.
+  - id: C15
+    rule: >
+      No accept-risk bypass — the recipe must never offer a Tether path
+      that allows locking past unresolved validation blockers. The only
+      paths from blocker detection are: RESOLVED (user addresses each item
+      inline via the resolution interview) or Vanish (cycle back to
+      re-draft). No mechanism may allow the user to skip, defer, or
+      accept-risk on unresolved blockers to reach lock.
 
 failure_conditions:
   - id: F1
@@ -115,6 +133,18 @@ failure_conditions:
       Opportunity discovery was skipped but the product.yaml has no
       strategic goals — the vision was drafted without sufficient
       structure for downstream planning.
+  - id: F11
+    condition: >
+      The recipe locks an artifact (changes status to LOCKED) while
+      validation issues of any severity (blocker or warning) remain
+      unresolved, or while product.yaml contains placeholder field
+      values (TBD, unclear, to be determined, trailing ?).
+  - id: F12
+    condition: >
+      The recipe offers a bypass mechanism that allows the user to skip
+      unresolved blockers via Tether — presenting an accept-risk or
+      proceed-despite-blockers option that reaches lock without resolving
+      each blocker individually.
 
 scenarios:
   - id: S1
@@ -155,3 +185,14 @@ scenarios:
       planning — strategic goals with IDs, value proposition, and
       assumptions are defined clearly enough to derive engineering
       milestones, even though market analysis sections are absent.
+  - id: S5
+    persona: Founder / Product Manager
+    given: >
+      Validation results containing blocker-severity issues, presented
+      as a structured resolution interview with each blocker listed
+      individually
+    then: >
+      Can provide a RESOLVED answer for each blocker inline, have those
+      resolutions recorded in pre-lock-resolutions.yaml as an audit
+      trail, and proceed to lock only after re-validation confirms all
+      issues are resolved — without any option to bypass unresolved items.
