@@ -1,209 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Architecture Brief: {SLUG}</title>
   <!-- Template: architecture-brief.html -->
-  <!-- Used by: generate-implementation-brief skill -->
-  <!-- Source data: architecture.yaml + quality-standards.yaml -->
-  <!-- Placeholder syntax: {VARIABLE} for simple substitution, {BLOCK} for rendered HTML blocks -->
+  <!-- Layout: Phoenix Design System v2.0 — Sidebar + Chapters -->
   <!-- All CSS and JS inline — no external dependencies -->
   <style>
     /* Phoenix Design System — Brief Tokens (inlined from brief-common.css) */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --bg-primary: #1A2332;
-      --bg-secondary: #212D3B;
-      --bg-tertiary: #2A3645;
-      --text-primary: #E8EDF2;
-      --text-secondary: #94A3B8;
-      --text-dimmed: #64748B;
-      --text-muted: #64748B;
-      --color-air: #00D26A;
-      --color-water: #00D4FF;
-      --color-earth: #94A3B8;
-      --color-fire: #E8731A;
-      --color-magenta: #FF3CAC;
-      --glow-air: rgba(0,210,106,0.35);
-      --glow-water: rgba(0,212,255,0.35);
-      --glow-earth: rgba(148,163,184,0.35);
-      --glow-fire: rgba(232,115,26,0.35);
-      --status-draft: #FBBF24;
-      --status-validated: #00D26A;
-      --status-locked: #00D4FF;
-      --border-default: #2E3D4F;
-      --border-accent: #00D4FF;
-      --shadow: 0 4px 24px rgba(0,0,0,0.3);
-      --glow: rgba(0,212,255,0.2);
-      
-      --comment-highlight: rgba(255,60,172,0.2);
-      --comment-highlight-hover: rgba(255,60,172,0.35);
-      --comment-popup-bg: #2A3645;
-      --font-heading: 'Space Grotesk',-apple-system,sans-serif;
-      --font-body: 'DM Sans','Space Grotesk',-apple-system,sans-serif;
-      --font-code: 'JetBrains Mono',monospace;
-      --space-xs: 8px; --space-sm: 12px; --space-md: 16px;
-      --space-lg: 24px; --space-xl: 32px; --space-2xl: 48px;
-    }
-    body { font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--text-primary); background: var(--bg-primary); }
-    code, pre, .mono { font-family: var(--font-code); font-size: 13px; }
-    .container { max-width: 900px; margin: 0 auto; padding: var(--space-xl) var(--space-lg); }
-    h1 { font-family: var(--font-heading); font-size: 28px; color: var(--color-water); border-bottom: 1px solid var(--border-default); padding-bottom: var(--space-xs); margin-bottom: var(--space-lg); }
-    h2 { font-family: var(--font-heading); font-size: 20px; color: var(--color-water); border-bottom: 1px solid var(--border-default); padding-bottom: var(--space-xs); margin-bottom: var(--space-md); margin-top: var(--space-lg); }
-    h3 { font-size: 16px; color: var(--text-primary); margin-bottom: var(--space-sm); }
-    p { margin-bottom: var(--space-sm); }
-    .brief-header { margin-bottom: var(--space-lg); padding-bottom: var(--space-md); border-bottom: 1px solid var(--border-default); }
-    .brief-title { font-family: var(--font-heading); font-size: 28px; color: var(--color-water); margin-bottom: var(--space-xs); }
-    .brief-meta { font-size: 13px; color: var(--text-secondary); display: flex; flex-wrap: wrap; gap: var(--space-md); }
-    .brief-meta span { white-space: nowrap; }
-    .source-path { font-size: 12px; color: var(--text-dimmed); font-family: var(--font-code); margin-top: 4px; }
-    .hub-link { display: inline-block; color: var(--color-water); text-decoration: none; font-size: 13px; margin-bottom: var(--space-md); }
-    .hub-link:hover { text-decoration: underline; }
-    /* Tabs */
-    .tab-bar { display: flex; border-bottom: 1px solid var(--border-default); margin-bottom: var(--space-lg); gap: 4px; flex-wrap: wrap; }
-    .tab-btn { padding: 10px 18px; background: var(--bg-primary); border: none; border-bottom: 2px solid transparent; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 14px; transition: all 0.25s cubic-bezier(.4,0,.2,1); }
-    .tab-btn:hover:not(.active) { color: var(--text-primary); }
-    .tab-btn.active { background: var(--bg-secondary); border-bottom-color: var(--color-water); color: var(--text-primary); }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-    .comment-count-badge { display: inline-block; margin-left: 6px; background: var(--color-fire); color: var(--bg-primary); border-radius: 10px; padding: 1px 7px; font-size: 11px; font-weight: bold; }
-    /* Cards */
-    .card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 8px; box-shadow: var(--shadow); padding: 20px; margin-bottom: var(--space-md); }
-    .card:hover { border-color: var(--border-accent); }
-    .card-air   { border-left: 4px solid var(--color-air); }
-    .card-water { border-left: 4px solid var(--color-water); }
-    .card-earth { border-left: 4px solid var(--color-earth); }
-    .card-fire  { border-left: 4px solid var(--color-fire); }
-    .highlight-box { background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2); border-radius: 8px; padding: var(--space-md) 20px; margin-bottom: var(--space-md); }
-    /* Badges */
-    .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-    .badge-draft     { background: rgba(251,191,36,0.15); color: var(--status-draft); }
-    .badge-validated { background: rgba(0,210,106,0.15); color: var(--status-validated); }
-    .badge-locked    { background: rgba(0,212,255,0.15); color: var(--status-locked); }
-    .badge-count     { background: var(--bg-tertiary); color: var(--text-secondary); margin-left: 4px; }
-    .badge-low    { background: rgba(0,210,106,0.15); color: var(--color-air); }
-    .badge-medium { background: rgba(232,115,26,0.15); color: var(--color-fire); }
-    .badge-high   { background: rgba(255,107,107,0.15); color: #FF6B6B; }
-    .badge-p1 { background: rgba(0,212,255,0.15); color: var(--color-water); }
-    .badge-p2 { background: rgba(148,163,184,0.15); color: var(--color-earth); }
-    .badge-p3 { background: rgba(148,163,184,0.1); color: var(--text-dimmed); }
-    /* Tables */
-    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: var(--space-md); }
-    th { background: var(--bg-tertiary); color: var(--text-primary); padding: 10px 12px; text-align: left; }
-    td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); color: var(--text-secondary); }
-    tr:hover { background: rgba(0,212,255,0.05); }
-    /* Profile tables */
-    .profile-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: var(--space-lg); }
-    .profile-table th { background: var(--bg-tertiary); color: var(--text-primary); padding: 8px 12px; text-align: left; }
-    .profile-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); color: var(--text-secondary); }
-    .profile-table .level-cell { text-align: center; font-weight: bold; color: var(--text-primary); min-width: 50px; }
-    /* Quality Standards */
-    .qs-dimension { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 8px; padding: var(--space-md); margin-bottom: var(--space-md); }
-    .qs-dimension-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); }
-    .qs-dimension-name { font-weight: 700; color: var(--text-primary); }
-    .qs-dimension-level { font-size: 12px; color: var(--color-water); }
-    .qs-field { margin-bottom: var(--space-xs); }
-    .qs-field-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
-    .qs-field-value { font-size: 13px; color: var(--text-secondary); }
-    /* Debt table */
-    .debt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .debt-table th { background: var(--bg-tertiary); color: var(--text-primary); padding: 8px 12px; text-align: left; }
-    .debt-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); }
-    .debt-gap { color: var(--color-fire); font-weight: 700; }
-    .debt-ok { color: var(--color-air); }
-    /* Inline comment system */
-    .comment-highlight { background: var(--comment-highlight); cursor: pointer; border-bottom: 2px solid var(--color-fire); border-radius: 2px; }
-    .comment-highlight:hover { background: var(--comment-highlight-hover); }
-    .comment-popup { position: fixed; background: var(--comment-popup-bg); border: 1px solid var(--border-accent); border-radius: 8px; padding: var(--space-md); min-width: 280px; max-width: 360px; z-index: 1000; box-shadow: 0 4px 16px rgba(0,0,0,0.4); display: none; }
-    .comment-popup.visible { display: block; }
-    .comment-selected-text { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: 4px; padding: var(--space-xs); font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; max-height: 60px; overflow: hidden; font-style: italic; }
-    .comment-textarea { width: 100%; min-height: 80px; background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: 4px; color: var(--text-primary); font-family: inherit; font-size: 13px; padding: var(--space-xs); resize: vertical; box-sizing: border-box; }
-    .comment-textarea:focus { border-color: var(--border-accent); outline: none; }
-    .comment-popup-actions { display: flex; justify-content: flex-end; gap: var(--space-xs); margin-top: 10px; }
-    .comment-btn { padding: 5px 14px; border: 1px solid var(--border-default); border-radius: 4px; background: transparent; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 13px; }
-    .comment-btn-save { background: var(--color-water); color: var(--bg-primary); border-color: var(--color-water); font-weight: bold; }
-    .comment-item { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 6px; padding: 14px var(--space-md); margin-bottom: var(--space-sm); }
-    .comment-excerpt { font-style: italic; color: var(--text-secondary); font-size: 13px; margin-bottom: 6px; padding-left: var(--space-xs); border-left: 2px solid var(--color-magenta); }
-    .comment-tab-label { font-size: 11px; color: var(--text-dimmed); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .comment-body { color: var(--text-primary); font-size: 14px; margin-bottom: 10px; }
-    .comment-delete-btn { padding: 3px 10px; border: 1px solid var(--border-default); border-radius: 4px; background: transparent; color: var(--color-fire); cursor: pointer; font-size: 12px; font-family: inherit; }
-    /* Export / action buttons */
-    .export-section { margin-top: var(--space-lg); padding-top: 20px; border-top: 1px solid var(--border-default); }
-    .action-btns { display: flex; gap: 10px; margin-top: var(--space-sm); flex-wrap: wrap; }
-    .action-btn { padding: 8px 20px; border-radius: 6px; border: 1px solid var(--border-default); cursor: pointer; font-family: inherit; font-size: 14px; font-weight: bold; background: transparent; color: var(--text-secondary); transition: all 0.25s cubic-bezier(.4,0,.2,1); }
-    .action-btn-tether { border-color: var(--color-air); color: var(--color-air); }
-    .action-btn-tether:hover { background: rgba(0,210,106,0.1); }
-    .action-btn-vanish { border-color: var(--color-fire); color: var(--color-fire); }
-    .action-btn-vanish:hover { background: rgba(232,115,26,0.1); }
-    .action-btn-orbit  { border-color: var(--color-water); color: var(--color-water); }
-    .action-btn-orbit:hover  { background: rgba(0,212,255,0.1); }
-    /* Card field layouts */
-    .card-field { margin-bottom: var(--space-xs); }
-    .card-field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 2px; }
-    .card-field-value { font-size: 14px; color: var(--text-secondary); }
-    .card-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-sm); }
-    .card-subtitle { font-size: 12px; color: var(--text-dimmed); font-family: var(--font-code); margin-bottom: var(--space-sm); }
-    /* Pre/code block */
-    .code-block { background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: 6px; padding: var(--space-md); overflow-x: auto; margin-bottom: var(--space-md); }
-    .code-block pre { color: var(--color-air); font-family: var(--font-code); font-size: 13px; line-height: 1.5; white-space: pre; }
-    /* Tag chips */
-    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-tertiary); color: var(--text-secondary); }
-    /* Toast */
-    #toast { display: none; position: fixed; bottom: 24px; right: 24px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-accent); border-radius: 6px; padding: 10px 18px; font-size: 13px; z-index: 2000; }
-    /* Responsive */
-    @media (max-width: 640px) { .container { padding: var(--space-md); } .tab-btn { padding: 8px 12px; font-size: 13px; } }
+    /* >>> INLINE brief-common.css HERE <<< */
   </style>
 </head>
 <body>
 
-<!-- ─────────────────────────────────────────────────────── -->
-<!-- COMMENT POPUP (fixed, hidden by default) -->
-<div class="comment-popup" id="comment-popup">
-  <div class="comment-selected-text" id="comment-selected-text"></div>
-  <textarea class="comment-textarea" id="comment-textarea" placeholder="Add a comment on this selection..."></textarea>
-  <div class="comment-popup-actions">
-    <button class="comment-btn" onclick="hidePopup()">Cancel</button>
-    <button class="comment-btn comment-btn-save" onclick="saveComment()">Save</button>
-  </div>
-</div>
-
-<!-- TOAST -->
 <div id="toast"></div>
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
 
-<div class="container">
-
-  <!-- ─────────────────────────────────────────────────────── -->
-  <!-- HEADER -->
-  <a class="hub-link" href="hub.html">← Hub</a>
-  <div class="brief-header">
-    <div class="brief-title">Architecture Brief <span class="badge {STATUS_BADGE_CLASS}">{STATUS}</span></div>
-    <div class="brief-meta">
-      <span><strong>Product:</strong> {SLUG}</span>
-      <span><strong>Generated:</strong> {GENERATED_AT}</span>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 4C16 4 12 8 10 12C8 16 9 18 11 19C9 17 10 14 12 11C14 8 16 6 16 6C16 6 18 8 20 11C22 14 23 17 21 19C23 18 24 16 22 12C20 8 16 4 16 4Z" fill="#E8731A" opacity=".9"/><path d="M16 8C16 8 13 12 12 15C11 18 12 20 14 21C12.5 19.5 13 17 14.5 14C15.5 12 16 10 16 10C16 10 16.5 12 17.5 14C19 17 19.5 19.5 18 21C20 20 21 18 20 15C19 12 16 8 16 8Z" fill="#FFB84D" opacity=".8"/><path d="M16 14C15 16 14.5 18 15 20C15.5 22 16 24 16 28C16 24 16.5 22 17 20C17.5 18 17 16 16 14Z" fill="#00D4FF" opacity=".7"/><path d="M8 16C6 14 5 12 6 10L9 14L8 16Z" fill="#00D4FF" opacity=".5"/><path d="M24 16C26 14 27 12 26 10L23 14L24 16Z" fill="#00D4FF" opacity=".5"/></svg>
+        <span class="sidebar-logo-text">Architecture Brief</span>
+      </div>
+      <div class="sidebar-meta">
+        <span>{SLUG}</span>
+        <span><span class="badge {STATUS_BADGE_CLASS}">{STATUS}</span></span>
+        <span>{GENERATED_AT}</span>
+      </div>
     </div>
-    <div class="source-path">Source: architecture.yaml + quality-standards.yaml</div>
-  </div>
+    <div class="theme-switcher">
+      <button class="theme-btn active" data-theme="dark" onclick="setTheme('dark')">Dark</button>
+      <button class="theme-btn" data-theme="light" onclick="setTheme('light')">Light</button>
+      <button class="theme-btn" data-theme="vibrant" onclick="setTheme('vibrant')">Neon</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Chapters</div>
+      <a class="nav-item active" href="#architecture">1. Architecture</a>
+      <a class="nav-item" href="#stack">2. Stack & Platforms</a>
+      <a class="nav-item" href="#agentic">3. Agentic</a>
+      <a class="nav-item" href="#quality">4. Quality Standards</a>
+      <a class="nav-item" href="#profiles">5. Profiles</a>
+      <a class="nav-item" href="#operations">6. Operations</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-label">Review Decision</div>
+      <div class="action-btns">
+        <button class="action-btn action-btn-tether" onclick="exportAction('tether')">Tether</button>
+        <button class="action-btn action-btn-vanish" onclick="exportAction('vanish')">Vanish</button>
+        <button class="action-btn action-btn-orbit" onclick="exportAction('orbit')">Orbit</button>
+      </div>
+    </div>
+  </aside>
 
-  <!-- ─────────────────────────────────────────────────────── -->
-  <!-- TAB BAR -->
-  <div class="tab-bar">
-    <button class="tab-btn active" data-tab="architecture">Architecture</button>
-    <button class="tab-btn" data-tab="stack">Stack &amp; Platforms</button>
-    <!-- This tab and its panel are omitted when AGENTIC_PRESENT=false -->
-    <button class="tab-btn" data-tab="agentic">Agentic</button>
-    <button class="tab-btn" data-tab="quality">Quality Standards</button>
-    <button class="tab-btn" data-tab="profiles">Profiles</button>
-    <button class="tab-btn" data-tab="operations">Operations</button>
-    <button class="tab-btn" data-tab="comments">Comments<span class="comment-count-badge" id="comment-badge" style="display:none">0</span></button>
-  </div>
+  <main class="main"><div class="content">
+    <div class="brief-header">
+      <div class="brief-title">{SLUG} <span class="badge {STATUS_BADGE_CLASS}">{STATUS}</span></div>
+      <div class="brief-subtitle">System architecture, technology stack, and quality standards</div>
+      <div class="source-path">Source: architecture.yaml + quality-standards.yaml</div>
+    </div>
 
-  <!-- ═════════════════════════════════════════════════════════ -->
-  <!-- TAB: ARCHITECTURE -->
-  <div class="tab-panel active" id="architecture">
+      <section class="chapter" id="architecture">
+        <div class="chapter-number">01</div>
+        <div class="chapter-title">Architecture</div>
 
-    <h2>Principles</h2>
+<h2>Principles</h2>
     <!-- {PRINCIPLES}: render one .card.card-water per principle -->
     <!-- Card fields: id (badge-count), principle (card-title), rationale (card-field-value) -->
     {PRINCIPLES}
@@ -222,13 +84,12 @@
     <!-- Table columns: Requirement, Priority (badge: badge-p1/p2/p3 for must/should/nice-to-have) -->
     {NFRS}
 
-  </div><!-- /architecture -->
+      </section>
+      <section class="chapter" id="stack">
+        <div class="chapter-number">02</div>
+        <div class="chapter-title">Stack & Platforms</div>
 
-  <!-- ═════════════════════════════════════════════════════════ -->
-  <!-- TAB: STACK & PLATFORMS -->
-  <div class="tab-panel" id="stack">
-
-    <h2>Technology Stack</h2>
+<h2>Technology Stack</h2>
     <!-- {STACK_TABLE}: table with columns Component, Technology, Purpose, Rationale -->
     <table>
       <thead>
@@ -261,14 +122,14 @@
       </tbody>
     </table>
 
-  </div><!-- /stack -->
+      </section>
+      <section class="chapter" id="agentic">
+        <div class="chapter-number">03</div>
+        <div class="chapter-title">Agentic</div>
 
-  <!-- ═════════════════════════════════════════════════════════ -->
-  <!-- TAB: AGENTIC -->
-  <!-- This entire tab panel is omitted when AGENTIC_PRESENT=false -->
-  <div class="tab-panel" id="agentic">
+    <!-- This chapter is omitted when AGENTIC_PRESENT=false -->
 
-    <h2>Perception — Signals</h2>
+<h2>Perception — Signals</h2>
     <!-- {PERCEPTION}: render one .card.card-water per signal -->
     <!-- Card fields: signal (card-title), source, format -->
     {PERCEPTION}
@@ -288,13 +149,12 @@
     <!-- Card fields: approach, stm, ltm, embeddings -->
     {MEMORY}
 
-  </div><!-- /agentic -->
+      </section>
+      <section class="chapter" id="quality">
+        <div class="chapter-number">04</div>
+        <div class="chapter-title">Quality Standards</div>
 
-  <!-- ═════════════════════════════════════════════════════════ -->
-  <!-- TAB: QUALITY STANDARDS -->
-  <div class="tab-panel" id="quality">
-
-    <h2>Standards by Dimension</h2>
+<h2>Standards by Dimension</h2>
     <!-- {QS_DIMENSIONS}: render one .qs-dimension per dimension from quality-standards.yaml -->
     <!-- Each: .qs-dimension-header with .qs-dimension-name + .qs-dimension-level (QP N badge) -->
     <!-- Then .qs-field blocks for all fields present: strategy, frameworks, coverage_target, -->
@@ -317,13 +177,12 @@
       </tbody>
     </table>
 
-  </div><!-- /quality -->
+      </section>
+      <section class="chapter" id="profiles">
+        <div class="chapter-number">05</div>
+        <div class="chapter-title">Profiles</div>
 
-  <!-- ═════════════════════════════════════════════════════════ -->
-  <!-- TAB: PROFILES -->
-  <div class="tab-panel" id="profiles">
-
-    <h2>Product Profile (PP)</h2>
+<h2>Product Profile (PP)</h2>
     <!-- {PRODUCT_PROFILE_TABLE}: .profile-table with columns Dimension, Level, Rationale -->
     <table class="profile-table">
       <thead>
@@ -356,13 +215,12 @@
       </tbody>
     </table>
 
-  </div><!-- /profiles -->
+      </section>
+      <section class="chapter" id="operations">
+        <div class="chapter-number">06</div>
+        <div class="chapter-title">Operations</div>
 
-  <!-- ═════════════════════════════════════════════════════════ -->
-  <!-- TAB: OPERATIONS -->
-  <div class="tab-panel" id="operations">
-
-    <h2>Technical Risks</h2>
+<h2>Technical Risks</h2>
     <!-- {TECHNICAL_RISKS}: render one .card.card-fire per risk -->
     <!-- Card fields: risk (card-title), affected_features (tag-list), severity (badge-low/medium/high), mitigation -->
     {TECHNICAL_RISKS}
@@ -382,177 +240,21 @@
     <!-- {OBSERVABILITY}: .card with fields tracing, metrics (list), logging -->
     {OBSERVABILITY}
 
-  </div><!-- /operations -->
+      </section>
 
-  <!-- ═════════════════════════════════════════════════════════ -->
-  <!-- TAB: COMMENTS -->
-  <div class="tab-panel" id="comments">
-
-    <h2>Comments</h2>
-    <p style="color: var(--text-secondary); font-size: 14px;">Select text on any tab to annotate. Comments are saved locally.</p>
-    <div id="comment-list" style="margin-top: var(--space-md);"></div>
-
-    <div class="export-section">
-      <h3>Export Review Decision</h3>
-      <p style="color: var(--text-secondary); font-size: 14px; margin-top: var(--space-xs);">
-        <strong style="color: var(--color-air);">Tether</strong> — approve and proceed &nbsp;|&nbsp;
-        <strong style="color: var(--color-fire);">Vanish</strong> — reject / request revision &nbsp;|&nbsp;
-        <strong style="color: var(--color-water);">Orbit</strong> — hold for discussion
-      </p>
-      <div class="action-btns">
-        <button class="action-btn action-btn-tether" onclick="exportAction('tether')">Tether</button>
-        <button class="action-btn action-btn-vanish" onclick="exportAction('vanish')">Vanish</button>
-        <button class="action-btn action-btn-orbit"  onclick="exportAction('orbit')">Orbit</button>
-      </div>
-    </div>
-
-  </div><!-- /comments -->
-
-</div><!-- /container -->
+  </div></main>
+</div>
 
 <script>
-  // ─── Storage key ───────────────────────────────────────────
-  var STORAGE_KEY = 'meridian-comments-architecture-{SLUG}';
-
-  // ─── Tab switching ─────────────────────────────────────────
-  function switchTab(tabId) {
-    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
-    var btn = document.querySelector('[data-tab="' + tabId + '"]');
-    var panel = document.getElementById(tabId);
-    if (btn) btn.classList.add('active');
-    if (panel) panel.classList.add('active');
-    if (tabId === 'comments') renderComments();
-  }
-
-  document.querySelectorAll('.tab-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() { switchTab(btn.dataset.tab); });
-  });
-
-  // ─── Comment storage ───────────────────────────────────────
-  function getComments() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
-  }
-
-  function saveComments(comments) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
-  }
-
-  function updateCommentBadge() {
-    var count = getComments().length;
-    var badge = document.getElementById('comment-badge');
-    if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'inline-block' : 'none'; }
-  }
-
-  // ─── Text selection → popup ────────────────────────────────
-  var currentSelection = null;
-
-  document.addEventListener('mouseup', function(e) {
-    if (e.target.closest('#comment-popup')) return;
-    var sel = window.getSelection();
-    if (!sel || sel.isCollapsed) { hidePopup(); return; }
-    var text = sel.toString().trim();
-    if (!text) { hidePopup(); return; }
-    var activeBtn = document.querySelector('.tab-btn.active');
-    var tabId = activeBtn ? activeBtn.dataset.tab : 'unknown';
-    if (tabId === 'comments') return;
-    currentSelection = { text: text, tab: tabId };
-    var range = sel.getRangeAt(0);
-    var rect = range.getBoundingClientRect();
-    showPopup(rect, text);
-  });
-
-  function showPopup(rect, text) {
-    var popup = document.getElementById('comment-popup');
-    document.getElementById('comment-selected-text').textContent = text.length > 120 ? text.slice(0, 120) + '…' : text;
-    document.getElementById('comment-textarea').value = '';
-    var top = window.scrollY + rect.bottom + 8;
-    var left = Math.min(rect.left, window.innerWidth - 380);
-    popup.style.top = top + 'px';
-    popup.style.left = Math.max(8, left) + 'px';
-    popup.classList.add('visible');
-  }
-
-  function hidePopup() {
-    var popup = document.getElementById('comment-popup');
-    if (popup) popup.classList.remove('visible');
-    currentSelection = null;
-  }
-
-  function saveComment() {
-    if (!currentSelection) return;
-    var text = document.getElementById('comment-textarea').value.trim();
-    if (!text) return;
-    var comments = getComments();
-    comments.push({
-      id: Date.now(),
-      excerpt: currentSelection.text.slice(0, 100),
-      tab: currentSelection.tab,
-      body: text,
-      created: new Date().toISOString()
-    });
-    saveComments(comments);
-    updateCommentBadge();
-    hidePopup();
-    if (window.getSelection) window.getSelection().removeAllRanges();
-  }
-
-  // ─── Comments tab render ───────────────────────────────────
-  function renderComments() {
-    var list = document.getElementById('comment-list');
-    var comments = getComments();
-    if (comments.length === 0) {
-      list.innerHTML = '<p style="color:var(--text-secondary)">No comments yet. Select text on any tab to add a comment.</p>';
-      return;
-    }
-    list.innerHTML = comments.map(function(c) {
-      return '<div class="comment-item">' +
-        '<div class="comment-tab-label">' + c.tab + '</div>' +
-        '<div class="comment-excerpt">' + escapeHtml(c.excerpt) + '</div>' +
-        '<div class="comment-body">' + escapeHtml(c.body) + '</div>' +
-        '<button class="comment-delete-btn" onclick="deleteComment(' + c.id + ')">Delete</button>' +
-        '</div>';
-    }).join('');
-  }
-
-  function deleteComment(id) {
-    saveComments(getComments().filter(function(c) { return c.id !== id; }));
-    updateCommentBadge();
-    renderComments();
-  }
-
-  function escapeHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // ─── Export (Tether / Vanish / Orbit) ─────────────────────
-  function exportAction(action) {
-    var payload = {
-      artifact: 'architecture-brief',
-      slug: '{SLUG}',
-      action: action,
-      comments: getComments(),
-      timestamp: new Date().toISOString()
-    };
-    var text = JSON.stringify(payload, null, 2);
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(function() { showToast('Copied to clipboard'); });
-    } else {
-      var ta = document.createElement('textarea');
-      ta.value = text; document.body.appendChild(ta); ta.select();
-      document.execCommand('copy'); document.body.removeChild(ta);
-      showToast('Copied to clipboard');
-    }
-  }
-
-  function showToast(msg) {
-    var toast = document.getElementById('toast');
-    toast.textContent = msg; toast.style.display = 'block';
-    setTimeout(function() { toast.style.display = 'none'; }, 2000);
-  }
-
-  // ─── Init ─────────────────────────────────────────────────
-  updateCommentBadge();
+  function setTheme(t){document.documentElement.setAttribute("data-theme",t);document.querySelectorAll(".theme-btn").forEach(function(b){b.classList.toggle("active",b.dataset.theme===t)});try{localStorage.setItem("phoenix-theme",t)}catch(e){}}
+  function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open")}
+  var chapters=document.querySelectorAll(".chapter"),navItems=document.querySelectorAll(".nav-item");
+  function updateActiveNav(){var s=window.scrollY+100,a="";chapters.forEach(function(c){if(c.offsetTop<=s)a=c.id});navItems.forEach(function(n){n.classList.toggle("active",n.getAttribute("href").replace("#","")===a)})}
+  window.addEventListener("scroll",updateActiveNav);
+  navItems.forEach(function(n){n.addEventListener("click",function(){if(window.innerWidth<=900)document.getElementById("sidebar").classList.remove("open")});});
+  function exportAction(a){var p={artifact:"architecture-brief",slug:"{SLUG}",action:a,timestamp:new Date().toISOString()};var t=JSON.stringify(p,null,2);if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){showToast("Copied: "+a)});else{var x=document.createElement("textarea");x.value=t;document.body.appendChild(x);x.select();document.execCommand("copy");document.body.removeChild(x);showToast("Copied: "+a)}}
+  function showToast(m){var t=document.getElementById("toast");t.textContent=m;t.style.display="block";setTimeout(function(){t.style.display="none"},2000)}
+  (function(){try{var s=localStorage.getItem("phoenix-theme");if(s)setTheme(s)}catch(e){}updateActiveNav()})();
 </script>
 
 </body>
