@@ -197,7 +197,7 @@ After every brief generation call. One regeneration per contract, regardless of 
 
 ### Hub HTML Template
 
-Use the same LifeOS Dark design system tokens as brief skills. Hub is a simple dashboard — no tabs, no comment system.
+Use the same Phoenix design system tokens as brief skills. Hub is a simple dashboard — no tabs, no comment system.
 
 ```html
 <!DOCTYPE html>
@@ -208,25 +208,25 @@ Use the same LifeOS Dark design system tokens as brief skills. Hub is a simple d
   <title>Hub — {slug}</title>
   <style>
     :root {
-      --bg-primary: #0D1117;
-      --bg-secondary: #161B22;
-      --bg-tertiary: #21262D;
-      --text-primary: #e0e0e8;
-      --text-secondary: #8B949E;
-      --text-dimmed: #484f58;
-      --color-air: #39D353;
-      --color-water: #58A6FF;
-      --color-earth: #8B949E;
-      --color-fire: #F0A000;
+      --bg-primary: #1A2332;
+      --bg-secondary: #212D3B;
+      --bg-tertiary: #2A3645;
+      --text-primary: #E8EDF2;
+      --text-secondary: #94A3B8;
+      --text-dimmed: #64748B;
+      --color-air: #00D26A;
+      --color-water: #00D4FF;
+      --color-earth: #94A3B8;
+      --color-fire: #E8731A;
       --status-draft: #fbbf24;
-      --status-validated: #4ade80;
-      --status-locked: #58A6FF;
-      --border-default: #30363d;
-      --border-accent: #58A6FF;
-      --shadow-retro: 4px 4px 0 rgba(33,38,45,1);
+      --status-validated: #00D26A;
+      --status-locked: #00D4FF;
+      --border-default: #2E3D4F;
+      --border-accent: #00D4FF;
+      --shadow: 0 4px 24px rgba(0,0,0,0.3);
     }
     body {
-      font-family: 'Arial Rounded MT Bold', 'Nunito', 'Varela Round', system-ui, sans-serif;
+      font-family: 'DM Sans', 'Space Grotesk', -apple-system, sans-serif;
       font-size: 15px; line-height: 1.6;
       color: var(--text-primary); background: var(--bg-primary); margin: 0;
     }
@@ -234,12 +234,12 @@ Use the same LifeOS Dark design system tokens as brief skills. Hub is a simple d
     h1 { font-size: 28px; color: var(--color-water); border-bottom: 1px solid var(--border-default); padding-bottom: 8px; }
     .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
     .badge-draft { background: rgba(251,191,36,0.15); color: var(--status-draft); }
-    .badge-validated { background: rgba(74,222,128,0.15); color: var(--status-validated); }
-    .badge-locked { background: rgba(88,166,255,0.15); color: var(--status-locked); }
+    .badge-validated { background: rgba(0,210,106,0.15); color: var(--status-validated); }
+    .badge-locked { background: rgba(0,212,255,0.15); color: var(--status-locked); }
     .artifact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
     .artifact-card {
       background: var(--bg-secondary); border: 1px solid var(--border-default);
-      border-radius: 8px; box-shadow: var(--shadow-retro); padding: 20px;
+      border-radius: 8px; box-shadow: var(--shadow); padding: 20px;
       text-decoration: none; color: inherit; transition: border-color 0.15s;
     }
     .artifact-card:hover { border-color: var(--border-accent); }
@@ -305,7 +305,7 @@ TaskUpdate task_id -> status: failed
 - Return the enriched JSON contract to the recipe
 - Write artifacts to STM paths, not inline
 - Read intent from `intent.yaml`, not from prompt prose
-- Follow the LifeOS design system for HTML artifacts
+- Follow the Phoenix Design System for HTML artifacts
 - Validate that output files were written before returning
 - Regenerate hub.html after every brief generation, regardless of which briefs were requested
 

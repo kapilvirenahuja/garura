@@ -14,7 +14,7 @@ Model-invocable skill for generating per-artifact, self-contained HTML brief doc
 
 ## Purpose
 
-Read a YAML artifact from STM and produce a self-contained HTML brief that a human can open in a browser to review its contents. Each brief uses a tabbed layout, the LifeOS Dark design system, and an inline text selection comment system (not section toggles).
+Read a YAML artifact from STM and produce a self-contained HTML brief that a human can open in a browser to review its contents. Each brief uses a tabbed layout, the Phoenix design system, and an inline text selection comment system (not section toggles).
 
 You DO generate the HTML artifact(s). You do NOT regenerate hub.html (that is owned by the doc-builder agent), interpret feedback, or decide what happens next.
 
@@ -117,7 +117,7 @@ Every brief is a self-contained HTML5 document. All CSS and JS are inline. No ex
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{Artifact Name} — {slug}</title>
   <style>
-    /* LifeOS Dark design system — all tokens and component classes inline */
+    /* Phoenix design system — all tokens and component classes inline */
   </style>
 </head>
 ```
@@ -151,7 +151,7 @@ Every brief is a self-contained HTML5 document. All CSS and JS are inline. No ex
 - Comments tab shows count badge from localStorage
 - Tab state persists via URL hash (e.g., `#identity`, `#features`, `#comments`)
 
-## Design System: LifeOS Dark
+## Design System: Phoenix
 
 All CSS is inlined in every brief. No external stylesheets.
 
@@ -160,35 +160,35 @@ All CSS is inlined in every brief. No external stylesheets.
 ```css
 :root {
   /* Backgrounds */
-  --bg-primary: #0D1117;
-  --bg-secondary: #161B22;
-  --bg-tertiary: #21262D;
+  --bg-primary: #1A2332;
+  --bg-secondary: #212D3B;
+  --bg-tertiary: #2A3645;
 
   /* Text */
-  --text-primary: #e0e0e8;
-  --text-secondary: #8B949E;
-  --text-dimmed: #484f58;
+  --text-primary: #E8EDF2;
+  --text-secondary: #94A3B8;
+  --text-dimmed: #64748B;
 
   /* Four-element accents */
-  --color-air: #39D353;
-  --color-water: #58A6FF;
-  --color-earth: #8B949E;
-  --color-fire: #F0A000;
+  --color-air: #00D26A;
+  --color-water: #00D4FF;
+  --color-earth: #94A3B8;
+  --color-fire: #E8731A;
 
   /* Status badges */
   --status-draft: #fbbf24;
-  --status-validated: #4ade80;
-  --status-locked: #58A6FF;
+  --status-validated: #00D26A;
+  --status-locked: #00D4FF;
 
   /* Borders & Effects */
-  --border-default: #30363d;
-  --border-accent: #58A6FF;
-  --shadow-retro: 4px 4px 0 rgba(33,38,45,1);
+  --border-default: #2E3D4F;
+  --border-accent: #00D4FF;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
 
   /* Inline comments */
-  --comment-highlight: rgba(240,160,0,0.2);
-  --comment-highlight-hover: rgba(240,160,0,0.35);
-  --comment-popup-bg: #21262D;
+  --comment-highlight: rgba(255,60,172,0.2);
+  --comment-highlight-hover: rgba(255,60,172,0.35);
+  --comment-popup-bg: #2A3645;
 }
 ```
 
@@ -196,7 +196,7 @@ All CSS is inlined in every brief. No external stylesheets.
 
 ```css
 body {
-  font-family: 'Arial Rounded MT Bold', 'Nunito', 'Varela Round', system-ui, sans-serif;
+  font-family: 'DM Sans', 'Space Grotesk', -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.6;
   color: var(--text-primary);
@@ -204,11 +204,11 @@ body {
   margin: 0;
 }
 code, pre, .mono {
-  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
 }
 h1 { font-size: 28px; color: var(--color-water); border-bottom: 1px solid var(--border-default); padding-bottom: 8px; }
-h2 { font-size: 20px; color: var(--color-air); border-bottom: 1px solid var(--border-default); padding-bottom: 8px; }
+h2 { font-size: 20px; color: var(--color-water); border-bottom: 1px solid var(--border-default); padding-bottom: 8px; }
 h3 { font-size: 16px; color: var(--text-primary); }
 ```
 
@@ -225,7 +225,7 @@ h3 { font-size: 16px; color: var(--text-primary); }
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: 8px;
-  box-shadow: var(--shadow-retro);
+  box-shadow: var(--shadow);
   padding: 20px;
   margin-bottom: 16px;
 }
@@ -251,8 +251,8 @@ h3 { font-size: 16px; color: var(--text-primary); }
   letter-spacing: 0.5px;
 }
 .badge-draft     { background: rgba(251,191,36,0.15); color: var(--status-draft); }
-.badge-validated { background: rgba(74,222,128,0.15); color: var(--status-validated); }
-.badge-locked    { background: rgba(88,166,255,0.15); color: var(--status-locked); }
+.badge-validated { background: rgba(0,210,106,0.15); color: var(--status-validated); }
+.badge-locked    { background: rgba(0,212,255,0.15); color: var(--status-locked); }
 .badge-count     { background: var(--bg-tertiary); color: var(--text-secondary); margin-left: 4px; }
 ```
 
@@ -262,7 +262,7 @@ h3 { font-size: 16px; color: var(--text-primary); }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th { background: var(--bg-tertiary); color: var(--text-primary); padding: 10px 12px; text-align: left; }
 td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); color: var(--text-secondary); }
-tr:hover { background: rgba(88,166,255,0.05); }
+tr:hover { background: rgba(0,212,255,0.05); }
 ```
 
 ### Tab Navigation
@@ -488,12 +488,12 @@ Comments tab CSS:
   color: var(--text-secondary);
   transition: all 0.15s;
 }
-.action-btn-tether { border-color: var(--color-air); color: var(--color-air); }
-.action-btn-tether:hover { background: rgba(57,211,83,0.1); }
+.action-btn-tether { border-color: var(--color-water); color: var(--color-water); }
+.action-btn-tether:hover { background: rgba(0,210,106,0.1); }
 .action-btn-vanish { border-color: var(--color-fire); color: var(--color-fire); }
-.action-btn-vanish:hover { background: rgba(240,160,0,0.1); }
+.action-btn-vanish:hover { background: rgba(232,115,26,0.1); }
 .action-btn-orbit  { border-color: var(--color-water); color: var(--color-water); }
-.action-btn-orbit:hover  { background: rgba(88,166,255,0.1); }
+.action-btn-orbit:hover  { background: rgba(0,212,255,0.1); }
 ```
 
 ### JavaScript (vanilla, inline)
@@ -756,7 +756,7 @@ Return this structure to the calling agent.
 - NEVER use JavaScript frameworks or libraries — vanilla JS only
 - NEVER modify input YAML artifacts — read-only
 - NEVER use section toggles (Approve/Revise) — this version uses inline text selection comments only
-- ALWAYS use the LifeOS Dark design tokens — no ad-hoc colors or fonts
+- ALWAYS use the Phoenix design tokens — no ad-hoc colors or fonts
 - NEVER regenerate hub.html — that is owned by the doc-builder agent
 - ALWAYS write briefs to `output_base/{artifact}-brief.html` using the path provided by the calling agent
 - ALWAYS generate valid, well-formed HTML5

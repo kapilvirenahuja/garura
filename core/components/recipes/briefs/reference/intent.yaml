@@ -48,7 +48,7 @@ constraints:
       epic's artifacts.
   - id: C8
     rule: >
-      All generated briefs and hub.html must use the LifeOS Dark retro design
+      All generated briefs and hub.html must use the Phoenix design
       system — dark backgrounds, four-element accent colors (air, water, earth,
       fire), retro box shadows, rounded fonts, and status badges. The design
       system is embedded in the brief skills. Default unstyled HTML is never
@@ -95,7 +95,7 @@ failure_conditions:
   - id: F8
     condition: >
       Any generated brief or hub.html uses default unstyled HTML instead
-      of the LifeOS Dark retro design system.
+      of the Phoenix Design System.
   - id: F9
     condition: >
       Hub.html does not reflect all epics that have YAML artifacts on

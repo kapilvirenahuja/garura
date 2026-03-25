@@ -85,8 +85,8 @@
     {
       "id": 3,
       "name": "roadmap-brief-tabs-and-comments",
-      "prompt": "You are a doc-builder agent. Read the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml and the epics at core/components/recipes/plan-roadmap/evals/outputs/epics.yaml. Your task: invoke generate-roadmap-brief to produce roadmap-brief.html. The brief must use LifeOS Dark design system, tabbed layout (Strategy, Timeline, Feasibility, Comments), and inline text selection comment system. Write to core/components/recipes/plan-roadmap/evals/outputs/roadmap-brief.html.",
-      "expected_output": "A self-contained HTML file with: LifeOS Dark CSS tokens, 4 tabs (Strategy, Timeline, Feasibility, Comments), inline comment system with handleTextSelection/saveComment/deleteComment/renderComments/exportFeedback functions, localStorage persistence, Tether/Vanish/Orbit action buttons",
+      "prompt": "You are a doc-builder agent. Read the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml and the epics at core/components/recipes/plan-roadmap/evals/outputs/epics.yaml. Your task: invoke generate-roadmap-brief to produce roadmap-brief.html. The brief must use Phoenix Design System, tabbed layout (Strategy, Timeline, Feasibility, Comments), and inline text selection comment system. Write to core/components/recipes/plan-roadmap/evals/outputs/roadmap-brief.html.",
+      "expected_output": "A self-contained HTML file with: Phoenix CSS tokens, 4 tabs (Strategy, Timeline, Feasibility, Comments), inline comment system with handleTextSelection/saveComment/deleteComment/renderComments/exportFeedback functions, localStorage persistence, Tether/Vanish/Orbit action buttons",
       "files": [
         "core/components/recipes/plan-roadmap/evals/fixtures/product.yaml",
         ".claude/specs/artifact-schemas/brief-principles.md"
@@ -103,8 +103,8 @@
           "type": "structural"
         },
         {
-          "name": "lifeos_dark_tokens",
-          "description": "CSS contains --bg-primary: #0D1117 and --color-water: #58A6FF tokens",
+          "name": "phoenix_tokens",
+          "description": "CSS contains Phoenix tokens --bg-primary: #1A2332 and --color-water: #00D4FF",
           "type": "structural"
         },
         {

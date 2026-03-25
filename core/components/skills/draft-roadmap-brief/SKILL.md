@@ -1,6 +1,6 @@
 ---
 name: draft-roadmap-brief
-description: Render roadmap-brief.html from intermediate epic and feasibility data — tabbed layout with LifeOS Dark design and inline comments
+description: Render roadmap-brief.html from intermediate epic and feasibility data — tabbed layout with Phoenix design and inline comments
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write
@@ -13,7 +13,7 @@ Model-invocable skill for rendering the human review brief from intermediate epi
 
 ## Purpose
 
-Render `roadmap-brief.html` from scoped epics and feasibility data — produced BEFORE `roadmap.yaml` exists. This is the review checkpoint: the brief is presented to the human for Tether/Vanish approval, and `roadmap.yaml` is produced only after approval. This skill reads `epics.yaml`, `feasibility.yaml`, and `product.yaml` and renders a preview brief using the LifeOS Dark design system with tabbed navigation and an inline text selection comment system.
+Render `roadmap-brief.html` from scoped epics and feasibility data — produced BEFORE `roadmap.yaml` exists. This is the review checkpoint: the brief is presented to the human for Tether/Vanish approval, and `roadmap.yaml` is produced only after approval. This skill reads `epics.yaml`, `feasibility.yaml`, and `product.yaml` and renders a preview brief using the Phoenix design system with tabbed navigation and an inline text selection comment system.
 
 You DO render the brief document. You do NOT regenerate hub.html (that is owned by the doc-builder agent), generate roadmap content, invent data, validate feasibility, or decide what happens next.
 
@@ -36,35 +36,35 @@ Receive from agent:
 
 4. **Compose roadmap-brief.html** using the LTM template at `~/.meridian/core/memory/standards/templates/roadmap-brief.html` as the structural reference, and `~/.meridian/core/memory/standards/templates/brief-common.css` for the design system. All CSS and JS must be inline — no CDN links, no external dependencies. Replace all `{PLACEHOLDER}` values with actual data from the sources read above. All content is derived from the intermediate epics, feasibility, and product data — do NOT invent or assume content.
 
-### Design System (LifeOS Dark)
+### Design System (Phoenix)
 
 Use these CSS tokens inline:
 
 ```css
 :root {
-  --bg-primary: #0D1117;
-  --bg-secondary: #161B22;
-  --bg-tertiary: #21262D;
-  --text-primary: #e0e0e8;
-  --text-secondary: #8B949E;
-  --text-dimmed: #484f58;
-  --color-air: #39D353;
-  --color-water: #58A6FF;
-  --color-earth: #8B949E;
-  --color-fire: #F0A000;
+  --bg-primary: #1A2332;
+  --bg-secondary: #212D3B;
+  --bg-tertiary: #2A3645;
+  --text-primary: #E8EDF2;
+  --text-secondary: #94A3B8;
+  --text-dimmed: #64748B;
+  --color-air: #00D26A;
+  --color-water: #00D4FF;
+  --color-earth: #94A3B8;
+  --color-fire: #E8731A;
   --status-draft: #fbbf24;
-  --status-validated: #4ade80;
-  --status-locked: #58A6FF;
-  --border-default: #30363d;
-  --border-accent: #58A6FF;
-  --shadow-retro: 4px 4px 0 rgba(33,38,45,1);
-  --comment-highlight: rgba(240,160,0,0.2);
-  --comment-highlight-hover: rgba(240,160,0,0.35);
-  --comment-popup-bg: #21262D;
+  --status-validated: #00D26A;
+  --status-locked: #00D4FF;
+  --border-default: #2E3D4F;
+  --border-accent: #00D4FF;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --comment-highlight: rgba(255,60,172,0.2);
+  --comment-highlight-hover: rgba(255,60,172,0.35);
+  --comment-popup-bg: #2A3645;
 }
 ```
 
-Typography: body font `'Arial Rounded MT Bold', 'Nunito', 'Varela Round', system-ui, sans-serif` at 15px/1.6. Code font `'JetBrains Mono', 'SF Mono', 'Fira Code', monospace` at 13px.
+Typography: body font `'DM Sans', 'Space Grotesk', -apple-system, sans-serif` at 15px/1.6. Code font `'JetBrains Mono', monospace` at 13px.
 
 Container: max-width 900px, centered, padding 32px horizontal / 24px vertical.
 
@@ -221,7 +221,7 @@ brief:
 - NEVER read from roadmap.yaml — it does not exist yet at this stage; all data comes from epics.yaml, feasibility.yaml, and product.yaml
 - NEVER use CDN links or external dependencies — all CSS and JS must be inline
 - NEVER use JavaScript frameworks — vanilla JS only
-- ALWAYS use LifeOS Dark design system — no custom color schemes
+- ALWAYS use Phoenix design system — no custom color schemes
 - ALWAYS produce exactly five tabs: Strategy, Timeline, Epics, Feasibility, Comments
 - ALWAYS implement the inline text selection comment system
 - NEVER regenerate hub.html — that is owned by the doc-builder agent
