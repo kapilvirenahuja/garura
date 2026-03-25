@@ -20,7 +20,7 @@ Login is table stakes for any application with user accounts. The depth depends 
 - **Enterprise:** SSO/SAML integration, directory sync (LDAP/Active Directory), conditional access policies, device trust evaluation, just-in-time provisioning. Required for enterprise sales.
 
 **Signals:**
-Any application with user accounts. PP-1 (User Sophistication) determines depth: level 1-2 (technical) accepts token-based auth; level 4-5 (consumer/assisted) expects social login and progressive onboarding. PP-3 (Persona Complexity) >= 4 (role hierarchy) suggests enterprise-grade auth with SSO. NFR-2 (Security) >= 3 pushes toward advanced/enterprise depth. BRD keywords: "user accounts", "sign in", "authentication", "identity".
+Any application with user accounts. PP-1 (User Sophistication) determines depth: level 1-2 (technical) accepts token-based auth; level 4-5 (consumer/assisted) expects social login and progressive onboarding. PP-3 (Persona Complexity) >= 4 (role hierarchy) suggests enterprise-grade auth with SSO. NFR-2 (Security) >= 3 pushes toward advanced/enterprise depth. QP-7 (Security Testing) >= 3 indicates SAST and dependency scanning should cover authentication flows, credential handling, and session management. QP-1 (Testing Depth) >= 3 suggests integration tests for login flows across auth methods (password, social, SSO) and session lifecycle. BRD keywords: "user accounts", "sign in", "authentication", "identity".
 
 **Tradeoffs:**
 Including at higher depth: better security posture, enterprise readiness, improved user experience, reduced account compromise risk. Cost: integration complexity (OAuth providers, SAML IdPs, directory services), ongoing maintenance of multiple auth flows, vendor dependencies (Auth0, Cognito, Clerk), increased onboarding complexity for the development team.
@@ -41,7 +41,7 @@ Any product that acquires new users needs a registration flow. The depth depends
 - **Enterprise:** Self-service org creation, domain-based auto-join, bulk user import, admin setup wizard, compliance consent collection during registration, SSO auto-provisioning.
 
 **Signals:**
-Any product with user acquisition. PP-1 (User Sophistication) determines friction tolerance: level 4-5 (consumer) needs minimal fields and social signup; level 1-2 (technical) tolerates more setup. PP-3 >= 3 (multi-persona) may need role selection during registration. PP-6 (Delivery Ambition) = 1-2 (POC/MVP) can defer onboarding wizards. PP-7 >= 4 (regulated) may require consent collection. BRD keywords: "sign up", "register", "onboarding", "activation", "invite".
+Any product with user acquisition. PP-1 (User Sophistication) determines friction tolerance: level 4-5 (consumer) needs minimal fields and social signup; level 1-2 (technical) tolerates more setup. PP-3 >= 3 (multi-persona) may need role selection during registration. PP-6 (Delivery Ambition) = 1-2 (POC/MVP) can defer onboarding wizards. PP-7 >= 4 (regulated) may require consent collection. QP-6 (Accessibility Standard) >= 3 requires WCAG AA compliance for registration forms, onboarding wizards, and verification flows. QP-1 (Testing Depth) >= 3 suggests e2e tests covering the full registration-to-activation funnel across signup methods. BRD keywords: "sign up", "register", "onboarding", "activation", "invite".
 
 **Tradeoffs:**
 Including advanced onboarding: higher activation rates, lower churn, faster time-to-value for users. Cost: significant front-end development, content creation for tutorials, ongoing maintenance as product evolves, A/B testing needed to optimize flows.
@@ -62,7 +62,7 @@ Any application with password-based authentication needs password reset. It's a 
 - **Enterprise:** Recovery via enterprise IdP, self-service account unlock after lockout, audit logging of all recovery attempts, manager-approved recovery for high-privilege accounts.
 
 **Signals:**
-Required whenever UM-F001 uses password-based auth. NFR-2 (Security) >= 3 pushes toward advanced recovery with multi-channel verification. PP-7 >= 4 (regulated) needs audit logging of recovery attempts. NFR-7 (Data Sensitivity) >= 3 makes forced session logout on password change essential.
+Required whenever UM-F001 uses password-based auth. NFR-2 (Security) >= 3 pushes toward advanced recovery with multi-channel verification. PP-7 >= 4 (regulated) needs audit logging of recovery attempts. NFR-7 (Data Sensitivity) >= 3 makes forced session logout on password change essential. QP-7 (Security Testing) >= 3 indicates SAST should cover reset token generation, expiry enforcement, and session invalidation paths. QP-1 (Testing Depth) >= 3 suggests integration tests for the full recovery flow including token lifecycle and brute-force protections.
 
 **Tradeoffs:**
 Including at higher depth: reduced support burden, better security (prevents account takeover via reset flow), compliance readiness. Cost: SMS delivery costs, additional UX flows to design and test, complexity of token management and session invalidation.
@@ -83,7 +83,7 @@ MFA becomes essential when the application handles sensitive user data, operates
 - **Enterprise:** Conditional access policies (require MFA only for sensitive operations), geo-fencing, device trust evaluation, integration with enterprise IdPs for MFA policy inheritance, step-up authentication for high-risk actions.
 
 **Signals:**
-PP-7 (Industry Vertical) >= 4 strongly suggests MFA. PP-3 (Persona Complexity) >= 4 with role hierarchies needs MFA for admin access at minimum. NFR-2 (Security) >= 3 makes MFA essential. NFR-5 (Compliance) >= 3 (SOC2, ISO 27001) often mandates MFA. BRD keywords: "compliance", "SOC2", "enterprise customers", "sensitive data", "admin access", "financial transactions", "healthcare".
+PP-7 (Industry Vertical) >= 4 strongly suggests MFA. PP-3 (Persona Complexity) >= 4 with role hierarchies needs MFA for admin access at minimum. NFR-2 (Security) >= 3 makes MFA essential. NFR-5 (Compliance) >= 3 (SOC2, ISO 27001) often mandates MFA. QP-7 (Security Testing) >= 3 indicates SAST and dependency scanning should cover TOTP secret handling, recovery code generation, and second-factor bypass protections. QP-1 (Testing Depth) >= 3 suggests integration tests for MFA enrollment, verification, fallback, and recovery code flows. BRD keywords: "compliance", "SOC2", "enterprise customers", "sensitive data", "admin access", "financial transactions", "healthcare".
 
 **Tradeoffs:**
 Including: stronger security posture, compliance readiness (SOC2, HIPAA, PCI-DSS), enterprise sales eligibility, reduced account compromise risk. Cost: user friction during onboarding and every login, SMS delivery costs if using SMS as factor, support burden for lockouts and lost devices, integration complexity with authenticator apps and hardware keys.
@@ -104,7 +104,7 @@ Any application where users have persistent identity needs a profile. The primar
 - **Enterprise:** Organization-managed profiles, directory-synced fields (read-only from IdP), delegated profile management, custom fields per organization.
 
 **Signals:**
-Required for any product with user accounts. PP-4 (Geographic Scope) >= 3 needs locale/timezone in profile. NFR-5 (Compliance) >= 3 needs data export and deletion (GDPR). PP-3 >= 3 (multi-persona) may need persona-specific profile fields. PP-2 (UX Maturity) >= 3 suggests profile completeness indicators and polished editing experience.
+Required for any product with user accounts. PP-4 (Geographic Scope) >= 3 needs locale/timezone in profile. NFR-5 (Compliance) >= 3 needs data export and deletion (GDPR). PP-3 >= 3 (multi-persona) may need persona-specific profile fields. PP-2 (UX Maturity) >= 3 suggests profile completeness indicators and polished editing experience. QP-6 (Accessibility Standard) >= 3 requires WCAG AA compliance for profile editing forms, avatar upload, and account settings interfaces. QP-3 (Documentation Level) >= 3 indicates API documentation for profile endpoints including data export and deletion flows.
 
 **Tradeoffs:**
 Including at higher depth: better user experience, personalization foundation, compliance readiness (data portability). Cost: storage for profile media (avatars), GDPR data export implementation, profile editing UX across devices, privacy settings complexity.
@@ -125,7 +125,7 @@ When the product needs to personalize the experience beyond basic account settin
 - **Enterprise:** Organization-level preference templates, managed preferences (admin sets defaults for org), role-based default configurations, compliance-driven preference restrictions.
 
 **Signals:**
-PP-2 (UX Maturity) >= 3 suggests preferences beyond basic theme. Products with personalization module (PS-*) need extended profiles as input. PP-3 >= 3 (multi-persona) benefits from role-based defaults. PP-1 >= 3 (business professional and above) expects customizable workspace. BRD keywords: "preferences", "personalization", "settings", "customization", "dashboard configuration".
+PP-2 (UX Maturity) >= 3 suggests preferences beyond basic theme. Products with personalization module (PS-*) need extended profiles as input. PP-3 >= 3 (multi-persona) benefits from role-based defaults. PP-1 >= 3 (business professional and above) expects customizable workspace. QP-3 (Documentation Level) >= 3 indicates API documentation for preference endpoints so downstream services can consume user preferences programmatically. QP-6 (Accessibility Standard) >= 3 requires WCAG AA compliance for preference management interfaces, especially theme and display density controls. BRD keywords: "preferences", "personalization", "settings", "customization", "dashboard configuration".
 
 **Tradeoffs:**
 Including: more personalized experience, higher user satisfaction, better engagement metrics, foundation for recommendation engine. Cost: preference management UI, storage and sync complexity, risk of "settings bloat" where too many options overwhelm users, ongoing maintenance as product evolves.
@@ -146,7 +146,7 @@ Social login reduces registration friction for consumer products — users don't
 - **Enterprise:** Social login as supplement to SSO (for external collaborators). Provider allow-listing per organization. Audit logging of social auth events.
 
 **Signals:**
-PP-1 (User Sophistication) >= 4 (consumer) strongly suggests social login. PP-1 = 1-2 (technical) may prefer GitHub/GitLab OAuth specifically. PP-6 (Delivery Ambition) >= 3 (market-ready) should include social login for conversion optimization. BRD keywords: "social login", "Google sign-in", "sign in with Apple", "OAuth", "one-click signup".
+PP-1 (User Sophistication) >= 4 (consumer) strongly suggests social login. PP-1 = 1-2 (technical) may prefer GitHub/GitLab OAuth specifically. PP-6 (Delivery Ambition) >= 3 (market-ready) should include social login for conversion optimization. QP-7 (Security Testing) >= 3 indicates SAST should cover OAuth callback handling, token exchange flows, and state parameter validation to prevent CSRF. QP-1 (Testing Depth) >= 3 suggests integration tests for each OAuth provider flow including account linking and error scenarios. BRD keywords: "social login", "Google sign-in", "sign in with Apple", "OAuth", "one-click signup".
 
 **Tradeoffs:**
 Including: lower registration friction, higher conversion rates, verified email addresses, pre-populated profile data. Cost: provider SDK dependencies, ongoing maintenance as providers change APIs, privacy considerations (data sharing with providers), app review requirements (Apple), multiple login path testing.
@@ -167,7 +167,7 @@ Audit trails become essential in regulated industries where every user action af
 - **Enterprise:** Real-time audit stream, cross-service correlation, regulatory report generation (SOX, HIPAA), legal hold capability, chain-of-custody for audit data, third-party audit access.
 
 **Signals:**
-PP-7 (Industry Vertical) >= 4 (regulated) makes audit trails essential. NFR-1 (Risk) >= 3 needs at least standard event logging. NFR-5 (Compliance) >= 3 requires structured audit trails. NFR-7 (Data Sensitivity) >= 4 needs immutable logging. PP-6 >= 3 (market-ready) benefits from user analytics for product decisions. BRD keywords: "audit", "compliance", "logging", "user activity", "reporting", "SOX", "HIPAA".
+PP-7 (Industry Vertical) >= 4 (regulated) makes audit trails essential. NFR-1 (Risk) >= 3 needs at least standard event logging. NFR-5 (Compliance) >= 3 requires structured audit trails. NFR-7 (Data Sensitivity) >= 4 needs immutable logging. PP-6 >= 3 (market-ready) benefits from user analytics for product decisions. QP-5 (Observability Maturity) >= 3 suggests metrics and alerting for audit ingestion pipeline health and anomalous event patterns. QP-3 (Documentation Level) >= 3 indicates documentation for audit event schemas and compliance reporting procedures. QP-1 (Testing Depth) >= 3 suggests integration tests verifying audit event capture, immutability guarantees, and retention policy enforcement. BRD keywords: "audit", "compliance", "logging", "user activity", "reporting", "SOX", "HIPAA".
 
 **Tradeoffs:**
 Including: compliance readiness, security incident investigation capability, product usage insights, legal protection. Cost: storage for high-volume event data, query performance for large audit tables, immutability infrastructure (append-only stores), privacy implications of tracking user behavior (GDPR data minimization), dashboard development and maintenance.

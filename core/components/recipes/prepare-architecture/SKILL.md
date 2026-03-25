@@ -232,15 +232,15 @@ Agent produces:
 - `architecture-brief.html` — tabbed layout with tabs: Architecture Overview, Technology Stack, Quality Standards, Profiles Summary, Comments (C7). Written under `.meridian/product/{slug}/briefs/`.
 - `hub.html` — regenerated to reflect updated architecture brief status. Hub lifecycle owned by doc-builder.
 
-**Expected return:** Contract with `stm.architecture_brief_path` and `stm.hub_path` populated (pointing to `briefs/` paths), `step_failure` null.
+**Expected return:** Contract with `stm.output.briefs_written` populated (array of brief paths under `briefs/`) and `stm.output.hub_path` set, `step_failure` null.
 
 Check `step_failure` first — if non-null, retry once. After 2 failures, halt.
-Then check both `stm.architecture_brief_path` and `stm.hub_path` are non-null.
+Then check `stm.output.briefs_written` is non-empty and `stm.output.hub_path` is non-null.
 
 Update status file: `generate-brief → completed`.
 
 **Step 5 Evals:**
-- **SE-8 (C7):** Read `stm.architecture_brief_path` — verify the brief has `.html` extension, tab-based layout, and all 5 required tabs: Architecture Overview, Technology Stack, Quality Standards, Profiles Summary, Comments. PASS if all 5 tabs are present. FAIL if any tab is missing or brief is not HTML. Halt on FAIL.
+- **SE-8 (C7):** Read `stm.output.briefs_written[0]` (the architecture brief path from Step 5's briefs_written output) — verify the brief has `.html` extension, tab-based layout, and all 5 required tabs: Architecture Overview, Technology Stack, Quality Standards, Profiles Summary, Comments. PASS if all 5 tabs are present. FAIL if any tab is missing or brief is not HTML. Halt on FAIL.
 
 ---
 
@@ -536,7 +536,7 @@ if file absent (fresh start):
 1. Find the status file at `.meridian/product/*/status/prepare-architecture.json` (most recent by `started_at` if multiple exist).
 2. Read `contract_snapshot` — reconstruct the enriched JSON contract.
 3. Route based on task statuses:
-   - `brief-review` status `in_progress` or `pending` → re-present brief from `stm.architecture_brief_path`, continue from Step 6 feedback loop.
+   - `brief-review` status `in_progress` or `pending` → re-present brief from `stm.output.briefs_written[0]` (the architecture brief path from Step 5's briefs_written output), continue from Step 6 feedback loop.
    - `brief-review` status `completed` AND `pre-lock-resolution` status `pending` → jump to Step 6b.
    - `pre-lock-resolution` status `completed` AND `lock` status `pending` → jump to Step 7.
 4. Report: "Resuming prepare-architecture for `{slug}` — {description of what it is doing}."

@@ -1,0 +1,12 @@
+result:
+  success: true
+  branch:
+    name: "chore/150-followup-148-reviews-evals-sync"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/chore/150-followup-148-reviews-evals-sync"
+  worktree:
+    used: false
+    path: null
+    reason: "Clean working tree — direct checkout used"
+  error: null
