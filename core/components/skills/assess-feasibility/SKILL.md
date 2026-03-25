@@ -28,16 +28,16 @@ Receive from agent:
 ## Pre-conditions
 
 1. **Read product.yaml** at `product_yaml_path`. If not found, return structured failure: artifact not found.
-2. **Verify features exist:** Features are referenced by F-IDs (F1, F2...) derived from the product's strategic goals and scope. If no features can be derived, return structured failure:
+2. **Verify epics exist:** Epics are referenced by E-IDs (E1, E2...) derived from the product's strategic goals and scope. If no epics can be derived, return structured failure:
    ```json
-   { "error": "insufficient_features", "message": "Cannot derive features from product.yaml — ensure strategic_goals are populated" }
+   { "error": "insufficient_epics", "message": "Cannot derive epics from product.yaml — ensure strategic_goals are populated" }
    ```
 
 ## Process
 
 1. **Read product.yaml from STM** — read the file at `product_yaml_path` using the Read tool. Extract: slug, strategic_goals (for feature derivation), out_of_scope (for boundary awareness), assumptions (for risk context).
 
-2. **Derive feature list** — extract features with F-IDs (F1, F2, F3...) from the product context. Features correspond to the strategic goals and planned product capabilities. Map each to an F-ID for consistent referencing across roadmap.yaml.
+2. **Read epics** — read epics from `{artifact_base}/{slug}/epics.yaml`. Epics use E-IDs (E1, E2, E3...) as defined by scope-roadmap-epics.
 
 3. **Explore the codebase** — use Glob, Grep, and Bash (read-only git commands) to understand the current technical landscape relevant to each feature. Look for:
    - Existing code that relates to feature goals
@@ -45,8 +45,8 @@ Receive from agent:
    - Technical debt or gaps that would affect implementation
    - Dependency chains between components
 
-4. **Assess each feature** — for each feature (F1, F2, F3...), determine:
-   - `feature_ref`: F-ID (F1, F2, F3...) — consistent with how features are referenced in roadmap.yaml timeline
+4. **Assess each epic** — for each epic (E1, E2, E3...), determine:
+   - `epic_ref`: E-ID (E1, E2, E3...) — consistent with how epics are referenced in roadmap.yaml timeline
    - `risk_level`: `low` | `medium` | `high` — overall technical risk
    - `technical_risks`: list of specific risks, each with `risk` (description), `severity` (`low` | `medium` | `high`), `affected_systems` (what's impacted), and `mitigation` (how to address)
    - `blockers`: hard blockers that must be resolved before implementation (empty list if none)
@@ -70,11 +70,11 @@ Receive from agent:
    - `high_risk_count`: count of features with risk_level = high
    - `medium_risk_count`: count of features with risk_level = medium
    - `blocker_count`: total distinct blockers across all features
-   - `foundation_features`: list of F-IDs for features that are foundational investments
+   - `foundation_epics`: list of E-IDs for epics that are foundational investments
 
 7. **Validate (silently)** — verify before writing:
-   - Every feature has a feasibility entry with a consistent F-ID
-   - Every entry has all required fields (feature_ref, risk_level, technical_risks, blockers, sequencing_constraints, architecture_impact)
+   - Every epic has a feasibility entry with a consistent E-ID
+   - Every entry has all required fields (epic_ref, risk_level, technical_risks, blockers, sequencing_constraints, architecture_impact)
    - risk_level values are valid (`low` | `medium` | `high`)
    - technical_risks severity values are valid (`low` | `medium` | `high`)
    Do NOT output validation results — validate internally and fix issues.
@@ -87,9 +87,9 @@ Receive from agent:
 feasibility:
   slug: "{slug}"
   assessed_at: "{ISO-8601 datetime}"
-  features:
-    - feature_ref: "F1"
-      feature_name: "{name}"
+  epics:
+    - epic_ref: "E1"
+      epic_name: "{name}"
       risk_level: "low|medium|high"
       technical_risks:
         - risk: "{description of risk}"
@@ -101,16 +101,16 @@ feasibility:
       architecture_impact: "{systems and patterns affected}"
   open_questions:
     - question: "{unresolved technical question}"
-      affected_features: ["F1", "F2"]
+      affected_epics: ["E1", "E2"]
   summary:
-    total_features: {integer}
+    total_epics: {integer}
     high_risk_count: {integer}
     medium_risk_count: {integer}
     blocker_count: {integer}
-    foundation_features: ["F1"]
+    foundation_epics: ["E1"]
 ```
 
-**Note:** The `features` key uses `feature_ref` with F-IDs (F1, F2...) — not `epic_id` with E-IDs. This aligns with the roadmap.yaml schema that consumes this data.
+**Note:** The `epics` key uses `epic_ref` with E-IDs (E1, E2...) — aligned with epics.yaml and roadmap.yaml schemas.
 
 ## Output
 
@@ -120,7 +120,7 @@ Your response MUST be ONLY this YAML block with values filled in. No validation 
 feasibility:
   feasibility_yaml_path: "{artifact_base}/{slug}/feasibility.yaml"
   slug: "{slug}"
-  feature_count: {integer}
+  epic_count: {integer}
   high_risk_count: {integer}
   blocker_count: {integer}
   open_questions_count: {integer}
@@ -152,7 +152,7 @@ Bash is available for **read-only operations only**:
 - NEVER implement anything — analysis only
 - NEVER include business value assessments — your domain is technical feasibility
 - NEVER pass full feasibility data through memory — ALWAYS write to STM and return the path
-- NEVER use E-IDs (E1, E2) for features — ALWAYS use F-IDs (F1, F2) to align with roadmap.yaml schema
+- ALWAYS use E-IDs (E1, E2) for epics — NEVER F-IDs (F1, F2) which are reserved for features.yaml
 - ALWAYS read product.yaml from `product_yaml_path` using the Read tool — do NOT rely on memory
 - ALWAYS assess every feature derived from the input — no omissions
 - ALWAYS include at least one technical risk per feature (even low-risk features have considerations)

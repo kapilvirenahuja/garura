@@ -80,6 +80,25 @@ constraints:
       use profile-informed reasoning for epic depth, priority, and risk
       calibration. Profile data is advisory — its absence does not block
       the recipe (backward compatible).
+  - id: C13
+    rule: >
+      Epics use E-IDs (E1, E2, E3...) throughout all roadmap pipeline
+      artifacts — epics.yaml, feasibility.yaml, roadmap.yaml, and briefs.
+      F-IDs are reserved for features.yaml produced by prepare-implementation.
+  - id: C14
+    rule: >
+      Every epic must include an ltm_citations field listing the LTM/memory
+      file paths consulted when deriving that epic (domain taxonomy modules,
+      profile knowledge, architecture patterns). The evidence report must
+      surface these citations per epic so the reasoning is traceable.
+  - id: C15
+    rule: >
+      After epics are scoped, a context-isolated confidence assessment must
+      be performed by the judge agent. The judge receives ONLY epics.yaml
+      and product.yaml — no drafting context, no intermediate reasoning from
+      the product-strategist. The judge scores each epic's alignment with
+      the product vision (high/medium/low confidence) with rationale. The
+      confidence report is included in the evidence output.
 
 failure_conditions:
   - id: F1
@@ -112,6 +131,16 @@ failure_conditions:
       from the feasibility assessment remain unresolved — items exist
       in the arrays but no corresponding resolution was collected from
       the user.
+  - id: F9
+    condition: >
+      Any epic in epics.yaml has an empty ltm_citations field when
+      LTM knowledge files were available — indicating the agent did
+      not record which memory informed the epic's derivation.
+  - id: F10
+    condition: >
+      The confidence assessment was performed by the same agent that
+      scoped the epics (product-strategist) rather than by a
+      context-isolated judge — self-assessment, not independent evaluation.
 
 scenarios:
   - id: S1
@@ -166,3 +195,19 @@ scenarios:
       a POC-level product (PP-6=1) has lightweight epics, while an
       enterprise product (PP-6=5) has comprehensive epics with
       infrastructure and quality considerations.
+  - id: S8
+    persona: Product Manager
+    given: >
+      The evidence report for a completed plan-roadmap run
+    then: >
+      Can trace each epic back to the specific LTM knowledge files
+      that informed its derivation — domain taxonomy, profile knowledge,
+      architecture patterns — providing full reasoning traceability.
+  - id: S9
+    persona: Stakeholder
+    given: >
+      The confidence report produced by the judge agent
+    then: >
+      Can see an independent (not self-assessed) confidence score per
+      epic with rationale, helping prioritize which epics need deeper
+      review or refinement before committing to them.
