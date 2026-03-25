@@ -10,6 +10,7 @@ status: "DRAFT|VALIDATED|LOCKED"
 created_at: "{ISO-8601}"
 updated_at: "{ISO-8601}"
 features_ref: "{path to features.yaml}"
+profiles_ref: "{path to product.yaml profiles section}"
 
 # --- Core Principles ---
 

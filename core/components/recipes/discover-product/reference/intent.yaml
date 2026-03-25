@@ -95,6 +95,26 @@ constraints:
       re-draft). No mechanism may allow the user to skip, defer, or
       accept-risk on unresolved blockers to reach lock.
 
+  - id: C16
+    rule: >
+      The recipe must derive all three project profiles (Product Profile,
+      NFR Profile, Quality Profile) during vision drafting and write them
+      to the product.yaml profiles section. The cascade is sequential:
+      PP is derived from BRD/intent, NFR defaults from PP via guidance
+      tables, QP defaults from PP+NFR via guidance tables. The agent reads
+      profile dimension definitions from LTM
+      (~/.meridian/core/memory/knowledge/project-profiling/) before
+      deriving. Profiles are knobs, not questions — the agent derives
+      initial values and presents them for user validation.
+
+  - id: C17
+    rule: >
+      After vision drafting, the recipe must present all three derived
+      profiles to the user for validation before proceeding to brief
+      generation. The user may adjust any dimension level. Adjusted
+      profiles must be written back to product.yaml before the brief
+      is generated. The brief must render the profiles.
+
 failure_conditions:
   - id: F1
     condition: >
@@ -146,6 +166,20 @@ failure_conditions:
       proceed-despite-blockers option that reaches lock without resolving
       each blocker individually.
 
+  - id: F13
+    condition: >
+      The product.yaml is locked without a profiles section, or the
+      profiles section is missing any of the three sub-sections
+      (product_profile, nfr_profile, quality_profile), or any profile
+      has fewer than 7 dimensions.
+
+  - id: F14
+    condition: >
+      Profiles were derived without reading LTM dimension definitions —
+      the agent invented dimensions or levels that don't match the
+      canonical definitions in product-profile.md, nfr-profile.md, or
+      quality-profile.md.
+
 scenarios:
   - id: S1
     persona: Founder / Product Manager / Engineering Lead
@@ -196,3 +230,24 @@ scenarios:
       resolutions recorded in pre-lock-resolutions.yaml as an audit
       trail, and proceed to lock only after re-validation confirms all
       issues are resolved — without any option to bypass unresolved items.
+
+  - id: S6
+    persona: Technical Architect
+    given: >
+      A LOCKED product.yaml with the profiles section containing all
+      three profiles (PP, NFR, QP) with levels and rationale
+    then: >
+      Can use the profiles as authoritative input for architecture
+      planning — the three-axis profile characterizes the project
+      sufficiently to select patterns, stacks, platforms, and quality
+      standards without re-interviewing stakeholders.
+
+  - id: S7
+    persona: Engineering Lead
+    given: >
+      The derived profiles presented at the brief review checkpoint
+    then: >
+      Can validate that the profile levels accurately reflect the
+      project's character, adjust any dimensions that are miscalibrated,
+      and confirm that the cascade (PP → NFR → QP) produced sensible
+      defaults.

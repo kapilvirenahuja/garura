@@ -23,16 +23,22 @@ The output MUST conform to `schemas/architecture.yaml` in this skill's directory
 ## Input
 
 Receive from agent:
-- `features_yaml_path` — (required) Path to features.yaml
+- `features_yaml_path` — (required for prepare-implementation, optional for prepare-architecture) Path to features.yaml
 - `intent` — (optional) Product intent string for additional context
 - `vision_path` — (optional) Path to a locked vision document for enrichment
-- `output_base` — (required) Base path for output, e.g., `.meridian/project/product/{slug}/`
+- `output_base` — (required) Base path for output, e.g., `.meridian/product/{slug}/`
+- `profiles_ref` — (optional) Path to product.yaml containing profiles section. When provided, NFR profile levels drive the nfrs section, and profile values inform technology selection reasoning via LTM architecture knowledge "When to Choose" matching.
+- `product_yaml_path` — (optional) Path to product.yaml for profile and context extraction
+- `roadmap_yaml_path` — (optional) Path to roadmap.yaml for epic/feature context
+- `ltm_architecture_path` — (optional) Path to LTM architecture knowledge directory (default: `~/.meridian/core/memory/knowledge/architecture/`)
 
 ## Process
 
-1. **Read features specification:** Load the document at `features_yaml_path`. Extract: product identity, architectural invariants, feature list, behaviors, blast_radius entries, and scope boundaries.
+1. **Read features specification:** If `features_yaml_path` is provided, load the document. Extract: product identity, architectural invariants, feature list, behaviors, blast_radius entries, and scope boundaries. If not provided (prepare-architecture context), derive feature context from product.yaml and roadmap.yaml.
 
-2. **Read vision (if provided):** If `vision_path` is provided, load and extract strategic goals, target users, and value proposition for additional architectural context.
+2. **Read vision and profiles (if provided):** If `vision_path` or `product_yaml_path` is provided, load and extract strategic goals, target users, value proposition, and profiles for architectural context. If `profiles_ref` is provided, extract all three profile axes (PP, NFR, QP) — these are primary inputs for technology selection and NFR derivation.
+
+2b. **Read LTM architecture knowledge (if provided):** If `ltm_architecture_path` is provided, read the `_index.md` and relevant architecture files. Match "When to Choose" and "When to Avoid" prose against profile values. This informs pattern, stack, platform, and data store selection. Load files whose search patterns match the product's domain and profile characteristics.
 
 3. **Check for existing artifact:** Read `{output_base}/architecture.yaml`. If LOCKED, return structured failure: "architecture.yaml is LOCKED -- drop to DRAFT first." If DRAFT exists, overwrite (agent re-triggered DRAFT).
 
@@ -50,13 +56,23 @@ Receive from agent:
    - `topology` — ASCII diagram or structured description of the system topology showing deployment units and communication patterns
    - `deployment_units` — list of named units with responsibility and communication protocol/pattern
 
-   **`nfrs` section (NON-FUNCTIONAL REQUIREMENTS -- NEW):** Explicit, prioritized NFR statements for:
+   **`nfrs` section (NON-FUNCTIONAL REQUIREMENTS):** Explicit, prioritized NFR statements for:
    - `performance` — response time targets, throughput thresholds
    - `scalability` — concurrency, volume expectations
    - `security` — encryption, auth, data protection requirements
    - `availability` — uptime SLA, recovery objectives
    - `compliance` — regulatory or data residency requirements
    Each requirement gets a `requirement` string and `priority` (must | should | nice-to-have).
+
+   **When `profiles_ref` is provided:** NFR requirements MUST be derived from the NFR Profile levels in product.yaml. Map each NFR dimension level to concrete, measurable requirements:
+   - NFR-1 (Risk) level 3 → "Monitoring and alerting for all customer-facing endpoints"
+   - NFR-2 (Security) level 3 → "MFA, RBAC, encryption in transit, API key management"
+   - NFR-3 (Performance) level 4 → "Sub-100ms API responses for critical paths"
+   - NFR-4 (Availability) level 3 → "99.9% uptime, automated failover, blue-green deployments"
+   - NFR-5 (Compliance) level 3 → "GDPR compliance, privacy by design, consent management"
+   - NFR-6 (Scalability) level 3 → "Horizontal scaling, load balancing, designed for 10x growth"
+   - NFR-7 (Data Sensitivity) level 3 → "PII encryption at rest, access logging"
+   The rationale for each requirement must reference the NFR dimension and level it was derived from.
 
    **`stack` section:** Concrete technology selections -- specific named products. For each entry: component, technology (e.g., "React 19", "Python 3.12", "Claude Sonnet"), purpose, rationale. Organize by deployment unit and infrastructure. Include deliberate exclusions with rationale where relevant.
 
@@ -118,6 +134,9 @@ architecture_yaml:
 - ALWAYS include platforms and integrations sections (may be empty lists for greenfield with no external dependencies)
 - ALWAYS ensure the artifact is concrete enough for a code-builder agent to implement from without making technology selection decisions
 - ALWAYS include features_served references in platforms and integrations entries so the reader knows which features depend on each external system
+- WHEN profiles_ref is provided, ALWAYS derive NFR requirements from NFR Profile levels with traceable rationale
+- WHEN ltm_architecture_path is provided, ALWAYS read and reference LTM architecture knowledge in technology selection reasoning
+- ALWAYS include profiles_ref in the output artifact when profiles were used as input
 - Audience is architects and implementers -- write with precision, not marketing language
 
 ## Version

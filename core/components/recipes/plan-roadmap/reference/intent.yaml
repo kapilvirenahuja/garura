@@ -73,6 +73,13 @@ constraints:
       keyword to collect decisions. All resolutions must be written to a
       pre-lock-resolutions.yaml audit artifact before the roadmap is
       produced.
+  - id: C12
+    rule: >
+      When product.yaml contains a profiles section, the recipe must pass
+      profiles to the scope-epics and assess-feasibility agents so they can
+      use profile-informed reasoning for epic depth, priority, and risk
+      calibration. Profile data is advisory — its absence does not block
+      the recipe (backward compatible).
 
 failure_conditions:
   - id: F1
@@ -154,3 +161,13 @@ scenarios:
       Can resolve each blocker and open question through a structured
       resolution interview, with all resolutions captured in an audit
       artifact before roadmap production proceeds.
+  - id: S7
+    persona: Technical Architect
+    given: >
+      A roadmap produced from a product.yaml with three-axis profiles
+      (PP, NFR, QP)
+    then: >
+      Can verify that epic scope and depth reflect the profile values —
+      a POC-level product (PP-6=1) has lightweight epics, while an
+      enterprise product (PP-6=5) has comprehensive epics with
+      infrastructure and quality considerations.
