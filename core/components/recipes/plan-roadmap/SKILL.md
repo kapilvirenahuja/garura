@@ -28,9 +28,10 @@ You delegate domain tasks to agents via the JSON contract — never execute doma
 
 | Agent | Domain | Phases |
 |-------|--------|--------|
-| `product-strategist` | Product: epic scoping, brief generation, roadmap | Preparation, Execution |
+| `product-strategist` | Product: epic scoping, roadmap production | Preparation, Execution |
 | `tech-designer` | Technical: feasibility assessment, risk identification | Preparation |
 | `judge` | Context-isolated epic confidence scoring + roadmap validation | Preparation (Step 2b), Execution (Step 6b-val) |
+| `doc-builder` | Brief generation (utility, exempt from agent budget) | Preparation (Step 4) |
 | `repo-orchestrator` | Git: self-commit evidence artifacts | Evidence & Close (non-blocking) |
 
 **Path resolution:**
@@ -71,7 +72,7 @@ Create the full task graph:
 | `scope-epics` | Derive IDD epics from locked product | product-strategist | — |
 | `score-confidence` | Context-isolated epic confidence assessment | judge | scope-epics |
 | `assess-feasibility` | Technical feasibility of epics | tech-designer | scope-epics |
-| `produce-brief` | Generate reviewable brief + hub | product-strategist | score-confidence, assess-feasibility |
+| `produce-brief` | Generate reviewable brief + hub | doc-builder | score-confidence, assess-feasibility |
 | `human-review` | Checkpoint: Tether/Vanish | orchestrator | produce-brief |
 | `pre-lock-resolution` | Resolve critical_blockers and open_questions from feasibility | orchestrator | human-review |
 | `produce-roadmap` | Full roadmap.yaml from approved brief | product-strategist | pre-lock-resolution |
@@ -263,20 +264,37 @@ Update status file: `assess-feasibility → completed`.
 ---
 
 **Step 4 — Produce Brief**
-Owner: `product-strategist`
-Depends on: Steps 2, 3
-
-Update `task_id` to `produce-brief` in the enriched contract. Pass the full enriched contract (with `stm.epics_path` and `stm.feasibility_path` set) as the ENTIRE agent prompt — no other text. Contract must include:
+Owner: `doc-builder` (utility, exempt from agent budget)
+Depends on: Steps 2, 2b, 3
+Skill: `draft-roadmap-brief`
 
 ```json
 {
+  "intent_path": "core/components/recipes/plan-roadmap/reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "artifact_base": "{product_base}/{slug}",
+  "slug": "{slug}",
+  "briefs_requested": ["roadmap"],
+  "stm": {
+    "input": {
+      "product_yaml_path": "{product_base}/{slug}/product.yaml",
+      "epics_path": "{stm.epics_path}",
+      "feasibility_path": "{stm.feasibility_path}",
+      "confidence_report_path": "{stm.confidence_report_path}"
+    }
+  },
   "task_id": "produce-brief",
-  "stm": { "epics_path": "{populated}", "feasibility_path": "{populated}", "roadmap_brief_path": null, "hub_path": null, ... }
+  "config": {
+    "product_slug": "{slug}",
+    "phase": "DRAFT"
+  }
 }
 ```
 
+Agent computes output paths under `{product_base}/{slug}/briefs/`, invokes `draft-roadmap-brief` skill with explicit `output_path`. The skill uses the LTM template at `~/.meridian/core/memory/standards/templates/roadmap-brief.html` and CSS at `~/.meridian/core/memory/standards/templates/brief-common.css`, applying `brief-principles.md` conventions.
+
 Agent produces:
-- `briefs/roadmap-brief.html` — tabbed layout per brief-principles.md with tabs: Strategy, Timeline, Feasibility, Comments. Inline comment system per brief-principles.md spec. Written under the `briefs/` subdirectory per doc-builder convention.
+- `briefs/roadmap-brief.html` — tabbed layout per brief-principles.md with tabs: Strategy, Timeline, Epics, Feasibility, Comments. Inline comment system per brief-principles.md spec.
 - `briefs/hub.html` — regenerated to reflect updated roadmap brief status. Hub lifecycle owned by doc-builder.
 
 **Expected return:** Contract with `stm.roadmap_brief_path` and `stm.hub_path` populated (pointing to `briefs/` paths), `step_failure` null.
@@ -287,8 +305,8 @@ Then check both `stm.roadmap_brief_path` and `stm.hub_path` are non-null.
 Update status file: `produce-brief → completed`.
 
 **Step 4 Evals (C2, C3, C4, F4):**
-- **SE-7 (F4, C4):** Confirm the brief artifact passes C4 — read the `notes` field from the returned contract. If any note indicates a C-BRIEF-2 violation, re-invoke `product-strategist` once with `user_feedback: "Remove technical content that does not affect sequencing, priority, or timing"`. If violation persists after re-invoke, halt. PASS if no C4 violations reported.
-- **SE-11 (C2, C3, C10):** Read `stm.roadmap_brief_path` using the Read tool. PASS if: (a) file has `.html` extension and contains `<html>` tag (C2 — template rendered output), (b) file uses tab-based layout with tabs for Strategy, Timeline, Feasibility, and Comments (C2 — template structure per brief-principles.md), (c) Feasibility tab contains at least 1 critical_blockers entry (C3 — reviewability signal), (d) inline comment system is present — text selection triggers comment popup, Comments tab lists annotations with export button (C10 — interactive feedback per brief-principles.md). FAIL if any condition is not met — re-invoke product-strategist once. Halt after second failure.
+- **SE-7 (F4, C4):** Confirm the brief artifact passes C4 — read the `notes` field from the returned contract. If any note indicates a C-BRIEF-2 violation, re-invoke `doc-builder` once with `user_feedback: "Remove technical content that does not affect sequencing, priority, or timing"`. If violation persists after re-invoke, halt. PASS if no C4 violations reported.
+- **SE-11 (C2, C3, C10):** Read `stm.roadmap_brief_path` using the Read tool. PASS if: (a) file has `.html` extension and contains `<html>` tag (C2 — template rendered output), (b) file uses tab-based layout with tabs for Strategy, Timeline, Epics, Feasibility, and Comments (C2 — template structure per brief-principles.md), (c) Feasibility tab contains at least 1 critical_blockers entry (C3 — reviewability signal), (d) inline comment system is present — text selection triggers comment popup, Comments tab lists annotations with export button (C10 — interactive feedback per brief-principles.md). FAIL if any condition is not met — re-invoke doc-builder once. Halt after second failure.
 
 ---
 
@@ -307,7 +325,7 @@ Update contract: `checkpoints[brief_review].status = pending`.
 Present brief using `templates/approval-prompt.md`. The brief file is at `stm.roadmap_brief_path` — open it for the user.
 
 **Feedback loop (max 3 cycles):**
-- Plain text feedback → re-invoke `product-strategist` with enriched contract + `"user_feedback": "{feedback text}"` appended; cycle count ≤ 3. After regeneration, also regenerate `briefs/hub.html` (pass `hub_path` in contract for agent to update).
+- Plain text feedback → re-invoke `doc-builder` with enriched contract + `"user_feedback": "{feedback text}"` appended; cycle count ≤ 3. After regeneration, also regenerate `briefs/hub.html` (pass `hub_path` in contract for agent to update).
 - **Tether** → proceed to pre-lock resolution gate (Step 5b) before copying brief.
 - **Vanish** → update `checkpoints[brief_review].status = rejected`. Halt. Present: "Brief rejected — run `/plan-roadmap --product {path}` to start over."
 - After 3 feedback cycles with no Tether/Vanish → present: "Maximum feedback cycles reached. Type **Tether** to approve or **Vanish** to halt."
@@ -696,6 +714,6 @@ When an agent returns `step_failure` (non-null):
 | compiled_at | 2026-03-25 |
 | maturity | L2 |
 | workflow_structure | A (full checkpoint flow) |
-| agents | 3 domain (product-strategist, tech-designer, judge) + 1 utility (repo-orchestrator) |
+| agents | 3 domain (product-strategist, tech-designer, judge) + 2 utility (doc-builder, repo-orchestrator) |
 | step_evals | 18 (SE-1 through SE-18, covering C2, C3, C5-C7, C10-C15, F1-F5, F7-F10, context isolation) |
 | scenario_evals | 8 (SCE-1 through SCE-8, covering S1, S2, S4, S6-S9) |
