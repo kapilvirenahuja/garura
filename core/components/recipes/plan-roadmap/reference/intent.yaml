@@ -120,6 +120,13 @@ failure_conditions:
     condition: >
       The final roadmap was produced without a corresponding
       approved brief artifact.
+  - id: F6
+    condition: >
+      The roadmap was produced using a stale version of the brief —
+      a pre-feedback iteration rather than the final approved version.
+      The approved_brief_ref in roadmap.yaml must point to the copy
+      at the approved_roadmap_brief_path (under briefs/), not the
+      original draft brief path.
   - id: F7
     condition: >
       The roadmap contains IDD content that differs from the

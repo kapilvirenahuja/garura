@@ -119,10 +119,10 @@ Content from `epics.yaml` `bucket` field and `feasibility.yaml`:
 Full IDD detail per epic. Content from `epics.yaml`:
 
 For each epic, render an `.epic-card` with:
-- **Header**: F-ID + epic name + badges (bucket as `.badge-near`/`.badge-mid`/`.badge-long`, priority as `.badge-p1`/`.badge-p2`/`.badge-p3`, effort)
+- **Header**: E-ID + epic name + badges (bucket as `.badge-near`/`.badge-mid`/`.badge-long`, priority as `.badge-p1`/`.badge-p2`/`.badge-p3`, effort)
 - **Description**: 2-3 sentence description
 - **Strategic Goal**: `strategic_goal_ref` (SG-ID)
-- **Depends On**: list of F-IDs or "None"
+- **Depends On**: list of E-IDs or "None"
 - **Foundation Investment**: boolean flag (show only if true)
 - **Intent** (`.idd-section`):
   - `.idd-label` "PROBLEM TODAY" → `intent.p1` as `.idd-paragraph`
@@ -143,7 +143,7 @@ Content from `feasibility.yaml` — `feasibility`, `critical_blockers`, `open_qu
 
 - **Risk Summary** section: render `risk_summary` as stat cards — total features, high risk count, medium risk count, blocker count. Use Fire (orange) for high risk counts > 0.
 - **Per-Feature Feasibility** section: for each entry in `feasibility`, render a card with:
-  - Feature ref (F-ID) as heading
+  - Epic ref (E-ID) as heading
   - Risk level badge (low/medium/high) with Fire color for high
   - Technical risks as a table: Risk | Severity | Affected Systems | Mitigation
   - Blockers list (if any) with Fire left border
