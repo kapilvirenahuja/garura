@@ -3,519 +3,546 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Roadmap Brief: {Product Name}</title>
+  <title>Roadmap Brief: {SLUG}</title>
+  <!-- Template: roadmap-brief.html -->
+  <!-- Used by: generate-implementation-brief skill (roadmap artifact) -->
+  <!-- Source data: epics.yaml + feasibility.yaml -->
+  <!-- Placeholder syntax: {VARIABLE} for simple substitution, {BLOCK} for rendered HTML blocks -->
+  <!-- All CSS and JS inline — no external dependencies -->
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      font-size: 15px;
-      line-height: 1.7;
-      color: #1a1a1a;
-      background: #fff;
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 48px 32px 80px;
+    /* LifeOS Dark — Brief Design System (inlined from brief-common.css) */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg-primary: #0D1117;
+      --bg-secondary: #161B22;
+      --bg-tertiary: #21262D;
+      --text-primary: #E6EDF3;
+      --text-secondary: #8B949E;
+      --text-dimmed: #484f58;
+      --text-muted: #6E7681;
+      --color-air: #39D353;
+      --color-water: #58A6FF;
+      --color-earth: #8B949E;
+      --color-fire: #F0A000;
+      --glow-air: rgba(57,211,83,0.35);
+      --glow-water: rgba(88,166,255,0.35);
+      --glow-earth: rgba(139,148,158,0.35);
+      --glow-fire: rgba(240,160,0,0.35);
+      --status-draft: #fbbf24;
+      --status-validated: #4ade80;
+      --status-locked: #58A6FF;
+      --border-default: #30363d;
+      --border-accent: #58A6FF;
+      --shadow-retro: 4px 4px 0 rgba(33,38,45,1);
+      --shadow-retro-sm: 2px 2px 0 #000;
+      --comment-highlight: rgba(240,160,0,0.2);
+      --comment-highlight-hover: rgba(240,160,0,0.35);
+      --comment-popup-bg: #21262D;
+      --font-heading: 'Arial Rounded MT Bold','Arial Rounded MT','Nunito',system-ui,sans-serif;
+      --font-body: 'Arial Rounded MT Bold','Nunito','Varela Round',system-ui,sans-serif;
+      --font-code: 'JetBrains Mono','SF Mono','Fira Code',monospace;
+      --space-xs: 8px; --space-sm: 12px; --space-md: 16px;
+      --space-lg: 24px; --space-xl: 32px; --space-2xl: 48px;
     }
-    header {
-      border-bottom: 2px solid #1a1a1a;
-      padding-bottom: 20px;
-      margin-bottom: 32px;
-    }
-    header h1 {
-      font-size: 26px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-    header .meta {
-      margin-top: 8px;
-      font-size: 13px;
-      color: #555;
-    }
-    header .meta span { margin-right: 20px; }
-    p { margin-bottom: 14px; }
-    p:last-child { margin-bottom: 0; }
-
-    /* ── Main Tab Navigation ── */
-    .tab-nav {
-      display: flex;
-      gap: 0;
-      border-bottom: 2px solid #1a1a1a;
-      margin-bottom: 32px;
-    }
-    .tab-nav button {
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      border: none;
-      background: #f5f5f5;
-      color: #777;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      margin-bottom: -2px;
-      transition: all 0.15s;
-    }
-    .tab-nav button:hover { background: #eee; color: #333; }
-    .tab-nav button.active {
-      background: #fff;
-      color: #1a1a1a;
-      border-bottom: 3px solid #1a1a1a;
-    }
+    body { font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--text-primary); background: var(--bg-primary); }
+    code, pre, .mono { font-family: var(--font-code); font-size: 13px; }
+    .container { max-width: 900px; margin: 0 auto; padding: var(--space-xl) var(--space-lg); }
+    h1 { font-family: var(--font-heading); font-size: 28px; color: var(--color-water); border-bottom: 1px solid var(--border-default); padding-bottom: var(--space-xs); margin-bottom: var(--space-lg); }
+    h2 { font-size: 20px; color: var(--color-air); border-bottom: 1px solid var(--border-default); padding-bottom: var(--space-xs); margin-bottom: var(--space-md); margin-top: var(--space-lg); }
+    h3 { font-size: 16px; color: var(--text-primary); margin-bottom: var(--space-sm); }
+    p { margin-bottom: var(--space-sm); }
+    .brief-header { margin-bottom: var(--space-lg); padding-bottom: var(--space-md); border-bottom: 1px solid var(--border-default); }
+    .brief-title { font-family: var(--font-heading); font-size: 28px; color: var(--color-water); margin-bottom: var(--space-xs); }
+    .brief-meta { font-size: 13px; color: var(--text-secondary); display: flex; flex-wrap: wrap; gap: var(--space-md); }
+    .brief-meta span { white-space: nowrap; }
+    .source-path { font-size: 12px; color: var(--text-dimmed); font-family: var(--font-code); margin-top: 4px; }
+    .hub-link { display: inline-block; color: var(--color-water); text-decoration: none; font-size: 13px; margin-bottom: var(--space-md); }
+    .hub-link:hover { text-decoration: underline; }
+    /* Tabs */
+    .tab-bar { display: flex; border-bottom: 1px solid var(--border-default); margin-bottom: var(--space-lg); gap: 4px; flex-wrap: wrap; }
+    .tab-btn { padding: 10px 18px; background: var(--bg-primary); border: none; border-bottom: 2px solid transparent; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 14px; transition: all 0.15s; }
+    .tab-btn:hover:not(.active) { color: var(--text-primary); }
+    .tab-btn.active { background: var(--bg-secondary); border-bottom-color: var(--color-water); color: var(--text-primary); }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
-
-    /* ── Epic Sub-Tab Navigation ── */
-    .epic-tab-nav {
-      display: flex;
-      gap: 0;
-      border-bottom: 1px solid #ddd;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-    .epic-tab-nav button {
-      padding: 8px 18px;
-      font-size: 13px;
-      font-weight: 600;
-      border: none;
-      background: transparent;
-      color: #999;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: all 0.15s;
-    }
-    .epic-tab-nav button:hover { color: #555; }
-    .epic-tab-nav button.active {
-      color: #1a1a1a;
-      border-bottom: 2px solid #1a1a1a;
-    }
-    .epic-tab-panel { display: none; }
-    .epic-tab-panel.active { display: block; }
-
-    /* ── Section headers ── */
-    h2 {
-      font-size: 18px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #1a1a1a;
-      border-left: 4px solid #1a1a1a;
-      padding-left: 12px;
-      margin-bottom: 20px;
-    }
-
-    /* ── Decisions table ── */
-    .decisions-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 36px;
-      font-size: 14px;
-    }
-    .decisions-table th {
-      background: #1a1a1a;
-      color: #fff;
-      padding: 10px 12px;
-      text-align: left;
-      font-weight: 600;
-    }
-    .decisions-table td {
-      padding: 9px 12px;
-      border-bottom: 1px solid #e5e5e5;
-      vertical-align: top;
-    }
-    .decisions-table tr:last-child td { border-bottom: none; }
-    .decisions-table tr:nth-child(even) td { background: #fafafa; }
-
-    /* ── Badges ── */
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 3px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    .badge-near { background: #d4edda; color: #155724; }
-    .badge-mid  { background: #fff3cd; color: #856404; }
-    .badge-long { background: #f8d7da; color: #721c24; }
-    .badge-p1   { background: #cce5ff; color: #004085; }
-    .badge-p2   { background: #e2e3e5; color: #383d41; }
-    .badge-p3   { background: #f8f9fa; color: #6c757d; }
-    .badge-mvp  { background: #d1ecf1; color: #0c5460; }
-
-    /* ── Epic cards ── */
-    .epic-card {
-      border: 1px solid #e5e5e5;
-      border-radius: 6px;
-      padding: 24px;
-      margin-bottom: 20px;
-    }
-    .epic-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 16px;
-      gap: 16px;
-    }
-    .epic-header h3 {
-      font-size: 16px;
-      font-weight: 700;
-      color: #1a1a1a;
-    }
+    .comment-count-badge { display: inline-block; margin-left: 6px; background: var(--color-fire); color: var(--bg-primary); border-radius: 10px; padding: 1px 7px; font-size: 11px; font-weight: bold; }
+    /* Cards */
+    .card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 8px; box-shadow: var(--shadow-retro); padding: 20px; margin-bottom: var(--space-md); }
+    .card:hover { border-color: var(--border-accent); }
+    .card-air   { border-left: 4px solid var(--color-air); }
+    .card-water { border-left: 4px solid var(--color-water); }
+    .card-earth { border-left: 4px solid var(--color-earth); }
+    .card-fire  { border-left: 4px solid var(--color-fire); }
+    .highlight-box { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2); border-radius: 8px; padding: var(--space-md) 20px; margin-bottom: var(--space-md); }
+    /* Badges */
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-draft     { background: rgba(251,191,36,0.15); color: var(--status-draft); }
+    .badge-validated { background: rgba(74,222,128,0.15); color: var(--status-validated); }
+    .badge-locked    { background: rgba(88,166,255,0.15); color: var(--status-locked); }
+    .badge-count     { background: var(--bg-tertiary); color: var(--text-secondary); margin-left: 4px; }
+    .badge-low    { background: rgba(57,211,83,0.15); color: var(--color-air); }
+    .badge-medium { background: rgba(240,160,0,0.15); color: var(--color-fire); }
+    .badge-high   { background: rgba(248,81,73,0.15); color: #F85149; }
+    .badge-p1 { background: rgba(88,166,255,0.15); color: var(--color-water); }
+    .badge-p2 { background: rgba(139,148,158,0.15); color: var(--color-earth); }
+    .badge-p3 { background: rgba(139,148,158,0.1); color: var(--text-dimmed); }
+    .badge-near { background: rgba(57,211,83,0.15); color: var(--color-air); }
+    .badge-mid  { background: rgba(240,160,0,0.15); color: var(--color-fire); }
+    .badge-long { background: rgba(139,148,158,0.15); color: var(--color-earth); }
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: var(--space-md); }
+    th { background: var(--bg-tertiary); color: var(--text-primary); padding: 10px 12px; text-align: left; }
+    td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); color: var(--text-secondary); }
+    tr:hover { background: rgba(88,166,255,0.05); }
+    /* Profile tables */
+    .profile-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: var(--space-lg); }
+    .profile-table th { background: var(--bg-tertiary); color: var(--text-primary); padding: 8px 12px; text-align: left; }
+    .profile-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); color: var(--text-secondary); }
+    .profile-table .level-cell { text-align: center; font-weight: bold; color: var(--text-primary); min-width: 50px; }
+    /* Epic cards */
+    .epic-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 8px; box-shadow: var(--shadow-retro); padding: var(--space-lg); margin-bottom: var(--space-md); }
+    .epic-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-md); gap: var(--space-md); }
+    .epic-header h3 { font-size: 16px; font-weight: 700; color: var(--text-primary); }
     .epic-badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
-    .epic-field { margin-bottom: 14px; }
-    .epic-field:last-child { margin-bottom: 0; }
-    .epic-field-label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #777;
-      margin-bottom: 4px;
-    }
-    .epic-field-value { font-size: 14px; color: #1a1a1a; }
+    .epic-field { margin-bottom: var(--space-sm); }
+    .epic-field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px; }
+    .epic-field-value { font-size: 14px; color: var(--text-primary); }
     .epic-field-value ul { padding-left: 18px; }
-    .epic-field-value li { margin-bottom: 4px; }
-    .foundation-flag {
-      display: inline-block;
-      background: #e8f4ff;
-      color: #0056b3;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 3px;
-      margin-left: 8px;
-      vertical-align: middle;
-    }
-
-    /* ── Timeline ── */
-    .timeline-phase {
-      border-left: 3px solid #ddd;
-      padding-left: 24px;
-      margin-bottom: 32px;
-      position: relative;
-    }
-    .timeline-phase::before {
-      content: "";
-      position: absolute;
-      left: -7px;
-      top: 4px;
-      width: 11px;
-      height: 11px;
-      border-radius: 50%;
-      background: #1a1a1a;
-    }
-    .timeline-phase-label {
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #555;
-      margin-bottom: 12px;
-    }
-    .timeline-epic {
-      padding: 10px 14px;
-      border: 1px solid #e5e5e5;
-      border-radius: 4px;
-      margin-bottom: 8px;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .timeline-epic:last-child { margin-bottom: 0; }
-
-    /* ── Blockers ── */
-    .blockers-list { list-style: none; padding: 0; counter-reset: blockers; }
-    .blockers-list li {
-      counter-increment: blockers;
-      padding: 14px 0 14px 44px;
-      border-bottom: 1px solid #e5e5e5;
-      position: relative;
-      font-size: 14px;
-    }
-    .blockers-list li:last-child { border-bottom: none; }
-    .blockers-list li::before {
-      content: counter(blockers);
-      position: absolute;
-      left: 0;
-      top: 14px;
-      width: 28px;
-      height: 28px;
-      background: #dc3545;
-      color: #fff;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 28px;
-      text-align: center;
-    }
-
-    /* ── Assumptions ── */
-    .assumptions-list { list-style: none; padding: 0; }
-    .assumptions-list li {
-      padding: 10px 0 10px 20px;
-      border-bottom: 1px solid #e5e5e5;
-      font-size: 14px;
-      position: relative;
-    }
-    .assumptions-list li:last-child { border-bottom: none; }
-    .assumptions-list li::before {
-      content: "\2192";
-      position: absolute;
-      left: 0;
-      color: #999;
-    }
-
-    /* ── Feedback ── */
-    .feedback-panel {
-      margin-top: 48px;
-      border-top: 2px solid #1a1a1a;
-      padding-top: 24px;
-    }
-    .feedback-panel h2 { margin-bottom: 12px; }
-    .feedback-panel p { font-size: 13px; color: #777; margin-bottom: 16px; }
-    .feedback-section { margin-bottom: 20px; }
-    .feedback-section label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      color: #555;
-      margin-bottom: 6px;
-    }
-    .feedback-section textarea {
-      width: 100%;
-      min-height: 80px;
-      padding: 10px 12px;
-      font-family: inherit;
-      font-size: 14px;
-      line-height: 1.5;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      resize: vertical;
-    }
-    .feedback-section textarea:focus {
-      outline: none;
-      border-color: #1a1a1a;
-    }
-    .feedback-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 16px;
-    }
-    .feedback-actions button {
-      padding: 10px 24px;
-      font-size: 14px;
-      font-weight: 600;
-      border: 2px solid #1a1a1a;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .btn-copy {
-      background: #1a1a1a;
-      color: #fff;
-    }
-    .btn-copy:hover { background: #333; }
-    .btn-clear {
-      background: #fff;
-      color: #1a1a1a;
-    }
-    .btn-clear:hover { background: #f5f5f5; }
-    .copy-toast {
-      display: none;
-      padding: 8px 16px;
-      background: #d4edda;
-      color: #155724;
-      border-radius: 4px;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    footer {
-      margin-top: 60px;
-      padding-top: 20px;
-      border-top: 1px solid #e5e5e5;
-      font-size: 12px;
-      color: #999;
-    }
+    .epic-field-value li { margin-bottom: 4px; color: var(--text-secondary); }
+    .idd-section { margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--border-default); }
+    .idd-paragraph { margin-bottom: var(--space-sm); color: var(--text-secondary); font-size: 14px; line-height: 1.7; }
+    .idd-label { font-size: 12px; font-weight: 700; color: var(--color-water); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .scenario-item { padding: 8px 12px; background: var(--bg-tertiary); border-radius: 4px; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary); border-left: 3px solid var(--color-air); }
+    .failure-item { padding: 8px 12px; background: var(--bg-tertiary); border-radius: 4px; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary); border-left: 3px solid var(--color-fire); }
+    /* Stat cards */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-lg); }
+    .stat-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 8px; padding: var(--space-md); text-align: center; }
+    .stat-value { font-size: 28px; font-weight: 700; color: var(--text-primary); }
+    .stat-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-fire .stat-value { color: var(--color-fire); }
+    /* Lists */
+    .item-list { list-style: none; padding: 0; }
+    .item-list li { padding: 10px 0; border-bottom: 1px solid var(--border-default); font-size: 14px; color: var(--text-secondary); }
+    .item-list li:last-child { border-bottom: none; }
+    /* Context sections */
+    .context-section { opacity: 0.7; background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: 8px; padding: var(--space-md) 20px; margin-bottom: 20px; pointer-events: none; }
+    .context-section h3 { color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .context-label { font-size: 11px; color: var(--text-dimmed); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: var(--space-xs); }
+    /* Inline comment system */
+    .comment-highlight { background: var(--comment-highlight); cursor: pointer; border-bottom: 2px solid var(--color-fire); border-radius: 2px; }
+    .comment-highlight:hover { background: var(--comment-highlight-hover); }
+    .comment-popup { position: fixed; background: var(--comment-popup-bg); border: 1px solid var(--border-accent); border-radius: 8px; padding: var(--space-md); min-width: 280px; max-width: 360px; z-index: 1000; box-shadow: 0 4px 16px rgba(0,0,0,0.4); display: none; }
+    .comment-popup.visible { display: block; }
+    .comment-selected-text { background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: 4px; padding: var(--space-xs); font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; max-height: 60px; overflow: hidden; font-style: italic; }
+    .comment-textarea { width: 100%; min-height: 80px; background: var(--bg-primary); border: 1px solid var(--border-default); border-radius: 4px; color: var(--text-primary); font-family: inherit; font-size: 13px; padding: var(--space-xs); resize: vertical; box-sizing: border-box; }
+    .comment-textarea:focus { border-color: var(--border-accent); outline: none; }
+    .comment-popup-actions { display: flex; justify-content: flex-end; gap: var(--space-xs); margin-top: 10px; }
+    .comment-btn { padding: 5px 14px; border: 1px solid var(--border-default); border-radius: 4px; background: transparent; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 13px; }
+    .comment-btn-save { background: var(--color-water); color: var(--bg-primary); border-color: var(--color-water); font-weight: bold; }
+    .comment-item { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 6px; padding: 14px var(--space-md); margin-bottom: var(--space-sm); }
+    .comment-excerpt { font-style: italic; color: var(--text-secondary); font-size: 13px; margin-bottom: 6px; padding-left: var(--space-xs); border-left: 2px solid var(--color-fire); }
+    .comment-tab-label { font-size: 11px; color: var(--text-dimmed); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .comment-body { color: var(--text-primary); font-size: 14px; margin-bottom: 10px; }
+    .comment-delete-btn { padding: 3px 10px; border: 1px solid var(--border-default); border-radius: 4px; background: transparent; color: var(--color-fire); cursor: pointer; font-size: 12px; font-family: inherit; }
+    /* Export / action buttons */
+    .export-section { margin-top: var(--space-lg); padding-top: 20px; border-top: 1px solid var(--border-default); }
+    .action-btns { display: flex; gap: 10px; margin-top: var(--space-sm); flex-wrap: wrap; }
+    .action-btn { padding: 8px 20px; border-radius: 6px; border: 1px solid var(--border-default); cursor: pointer; font-family: inherit; font-size: 14px; font-weight: bold; background: transparent; color: var(--text-secondary); transition: all 0.15s; }
+    .action-btn-tether { border-color: var(--color-air); color: var(--color-air); }
+    .action-btn-tether:hover { background: rgba(57,211,83,0.1); }
+    .action-btn-vanish { border-color: var(--color-fire); color: var(--color-fire); }
+    .action-btn-vanish:hover { background: rgba(240,160,0,0.1); }
+    .action-btn-orbit  { border-color: var(--color-water); color: var(--color-water); }
+    .action-btn-orbit:hover  { background: rgba(88,166,255,0.1); }
+    /* Card field layouts */
+    .card-field { margin-bottom: var(--space-xs); }
+    .card-field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 2px; }
+    .card-field-value { font-size: 14px; color: var(--text-secondary); }
+    .card-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-sm); }
+    .card-subtitle { font-size: 12px; color: var(--text-dimmed); font-family: var(--font-code); margin-bottom: var(--space-sm); }
+    /* Pre/code block */
+    .code-block { background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: 6px; padding: var(--space-md); overflow-x: auto; margin-bottom: var(--space-md); }
+    .code-block pre { color: var(--color-air); font-family: var(--font-code); font-size: 13px; line-height: 1.5; white-space: pre; }
+    /* Tag chips */
+    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-tertiary); color: var(--text-secondary); }
+    /* Quality Standards */
+    .qs-dimension { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 8px; padding: var(--space-md); margin-bottom: var(--space-md); }
+    .qs-dimension-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); }
+    .qs-dimension-name { font-weight: 700; color: var(--text-primary); }
+    .qs-dimension-level { font-size: 12px; color: var(--color-water); }
+    .qs-field { margin-bottom: var(--space-xs); }
+    .qs-field-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+    .qs-field-value { font-size: 13px; color: var(--text-secondary); }
+    /* Debt table */
+    .debt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .debt-table th { background: var(--bg-tertiary); color: var(--text-primary); padding: 8px 12px; text-align: left; }
+    .debt-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); }
+    .debt-gap { color: var(--color-fire); font-weight: 700; }
+    .debt-ok { color: var(--color-air); }
+    /* Toast */
+    #toast { display: none; position: fixed; bottom: 24px; right: 24px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-accent); border-radius: 6px; padding: 10px 18px; font-size: 13px; z-index: 2000; }
+    /* Responsive */
+    @media (max-width: 640px) { .container { padding: var(--space-md); } .tab-btn { padding: 8px 12px; font-size: 13px; } .stat-grid { grid-template-columns: 1fr 1fr; } .epic-header { flex-direction: column; } }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>Roadmap Brief: {Product Name}</h1>
-  <div class="meta">
-    <span><strong>Status:</strong> DRAFT</span>
-    <span><strong>Created:</strong> {YYYY-MM-DD}</span>
-    <span><strong>Epics:</strong> {epic_count}</span>
-    <span><strong>Vision:</strong> {vision_path}</span>
+<!-- ─────────────────────────────────────────────────────── -->
+<!-- COMMENT POPUP (fixed, hidden by default) -->
+<div class="comment-popup" id="comment-popup">
+  <div class="comment-selected-text" id="comment-selected-text"></div>
+  <textarea class="comment-textarea" id="comment-textarea" placeholder="Add a comment on this selection..."></textarea>
+  <div class="comment-popup-actions">
+    <button class="comment-btn" onclick="hidePopup()">Cancel</button>
+    <button class="comment-btn comment-btn-save" onclick="saveComment()">Save</button>
   </div>
-</header>
-
-<!-- ── Main Tab Navigation ── -->
-<nav class="tab-nav" id="mainTabs">
-  <button class="active" data-tab="exec-summary">Exec Summary</button>
-  <button data-tab="decisions">Decisions</button>
-  <button data-tab="epics">Epics</button>
-  <button data-tab="timeline">Timeline</button>
-  <button data-tab="assumptions">Assumptions</button>
-</nav>
-
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div class="tab-panel active" id="exec-summary">
-  <section>
-    <h2>The Bet</h2>
-    <p>{bet_paragraph}</p>
-  </section>
-  <section>
-    <h2>The Story</h2>
-    {story_paragraphs}
-  </section>
-  <section>
-    <h2>Blockers</h2>
-    <ul class="blockers-list">
-      {blocker_items}
-    </ul>
-  </section>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div class="tab-panel" id="decisions">
-  <section>
+<!-- TOAST -->
+<div id="toast"></div>
+
+<div class="container">
+
+  <!-- ─────────────────────────────────────────────────────── -->
+  <!-- HEADER -->
+  <a class="hub-link" href="hub.html">← Hub</a>
+  <div class="brief-header">
+    <div class="brief-title">Roadmap Brief <span class="badge {STATUS_BADGE}">{STATUS}</span></div>
+    <div class="brief-meta">
+      <span><strong>Product:</strong> {SLUG}</span>
+      <span><strong>Generated:</strong> {TIMESTAMP}</span>
+    </div>
+    <div class="source-path">Source: epics.yaml + feasibility.yaml</div>
+  </div>
+
+  <!-- ─────────────────────────────────────────────────────── -->
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="strategy">Strategy</button>
+    <button class="tab-btn" data-tab="timeline">Timeline</button>
+    <button class="tab-btn" data-tab="epics">Epics</button>
+    <button class="tab-btn" data-tab="feasibility">Feasibility</button>
+    <button class="tab-btn" data-tab="comments">Comments<span class="comment-count-badge" id="comment-badge" style="display:none">0</span></button>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- TAB: STRATEGY -->
+  <div class="tab-panel active" id="strategy">
+
+    <h2>The Bet</h2>
+    <!-- {BET_PARAGRAPH}: single paragraph in card-air describing the strategic bet -->
+    <div class="card card-air">
+      <p>{BET_PARAGRAPH}</p>
+    </div>
+
+    <h2>The Story</h2>
+    <!-- {STORY_PARAGRAPHS}: one or more paragraphs in card-water describing the narrative arc -->
+    <div class="card card-water">
+      {STORY_PARAGRAPHS}
+    </div>
+
+    <h2>Assumptions</h2>
+    <!-- {ASSUMPTIONS}: list items rendered inside a card-water; each item is a key assumption -->
+    <div class="card card-water">
+      {ASSUMPTIONS}
+    </div>
+
+    <h2>Exclusions</h2>
+    <!-- {EXCLUSIONS}: list items rendered inside a card-earth; each item is an explicit exclusion -->
+    <div class="card card-earth">
+      {EXCLUSIONS}
+    </div>
+
+  </div><!-- /strategy -->
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- TAB: TIMELINE -->
+  <div class="tab-panel" id="timeline">
+
     <h2>Decisions</h2>
-    <table class="decisions-table">
+    <!-- {DECISIONS_TABLE}: <tr> rows with columns: Epic, Horizon, Priority, Effort, Depends On, Reason -->
+    <table>
       <thead>
-        <tr>
-          <th>Epic</th>
-          <th>Horizon</th>
-          <th>Priority</th>
-          <th>Effort</th>
-          <th>Depends On</th>
-          <th>One-Line Reason</th>
-        </tr>
+        <tr><th>Epic</th><th>Horizon</th><th>Priority</th><th>Effort</th><th>Depends On</th><th>Reason</th></tr>
       </thead>
       <tbody>
-        {EPIC_TABLE_ROWS}
+        {DECISIONS_TABLE}
       </tbody>
     </table>
-  </section>
-</div>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div class="tab-panel" id="epics">
-  <nav class="epic-tab-nav" id="epicTabs">
-    {EPIC_TABS}
-  </nav>
-  {EPIC_TAB_PANELS}
-</div>
+    <h2>MVP</h2>
+    <!-- {TIMELINE_NEAR}: epic summary cards for near-term / MVP horizon -->
+    <!-- Each card: epic F-ID badge (badge-near), name (card-title), risk badge (badge-low/medium/high) -->
+    {TIMELINE_NEAR}
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div class="tab-panel" id="timeline">
-  <section>
-    <h2>Timeline</h2>
-    {timeline_content}
-  </section>
-</div>
+    <h2>MVP-Beyond</h2>
+    <!-- {TIMELINE_MID}: epic summary cards for mid-term / MVP-Beyond horizon -->
+    <!-- Each card: epic F-ID badge (badge-mid), name (card-title), risk badge -->
+    {TIMELINE_MID}
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div class="tab-panel" id="assumptions">
-  <section>
-    <h2>Key Assumptions</h2>
-    <ul class="assumptions-list">
-      {assumptions_items}
-    </ul>
-  </section>
-</div>
+    <h2>Future</h2>
+    <!-- {TIMELINE_LONG}: epic summary cards for long-term / Future horizon -->
+    <!-- Each card: epic F-ID badge (badge-long), name (card-title), risk badge -->
+    {TIMELINE_LONG}
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<div class="feedback-panel">
-  <h2>Review Feedback</h2>
-  <p>Enter your feedback below. Use "Copy All Feedback" to copy and paste into the terminal.</p>
+  </div><!-- /timeline -->
 
-  <div class="feedback-section">
-    <label for="fb-overall">Overall Assessment</label>
-    <textarea id="fb-overall" placeholder="Your overall assessment of this roadmap brief..."></textarea>
-  </div>
-  <div class="feedback-section">
-    <label for="fb-blockers">Blockers &amp; Decisions</label>
-    <textarea id="fb-blockers" placeholder="Feedback on blockers, missing decisions, sequencing concerns..."></textarea>
-  </div>
-  <div class="feedback-section">
-    <label for="fb-epics">Epic-Level Feedback</label>
-    <textarea id="fb-epics" placeholder="Feedback on specific epics — scope, priority, dependencies..."></textarea>
-  </div>
-  <div class="feedback-section">
-    <label for="fb-timeline">Timeline &amp; Phasing</label>
-    <textarea id="fb-timeline" placeholder="Feedback on timeline, MVP scope, phase boundaries..."></textarea>
-  </div>
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- TAB: EPICS -->
+  <div class="tab-panel" id="epics">
 
-  <div class="feedback-actions">
-    <button class="btn-copy" onclick="copyFeedback()">Copy All Feedback</button>
-    <button class="btn-clear" onclick="clearFeedback()">Clear</button>
-    <span class="copy-toast" id="copyToast">Copied to clipboard</span>
-  </div>
-</div>
+    <!-- {EPIC_CARDS}: render one .epic-card per epic with full IDD detail -->
+    <!--
+      Epic card structure:
+      <div class="epic-card">
+        <div class="epic-header">
+          <h3>{F-ID} — {epic name}</h3>
+          <div class="epic-badges">
+            <span class="badge badge-{bucket}">{bucket}</span>
+            <span class="badge badge-{priority}">{priority}</span>
+            <span class="badge">{effort}</span>
+          </div>
+        </div>
+        <div class="epic-field">
+          <div class="epic-field-label">Description</div>
+          <div class="epic-field-value">{description}</div>
+        </div>
+        <div class="epic-field">
+          <div class="epic-field-label">Strategic Goal</div>
+          <div class="epic-field-value">{strategic_goal_ref}</div>
+        </div>
+        <div class="epic-field">
+          <div class="epic-field-label">Depends On</div>
+          <div class="epic-field-value">{depends_on}</div>
+        </div>
+        <div class="idd-section">
+          <div class="idd-label">Problem Today</div>
+          <div class="idd-paragraph">{intent.p1}</div>
+          <div class="idd-label">Outcome After</div>
+          <div class="idd-paragraph">{intent.p2}</div>
+          <div class="idd-label">Strategic Connection</div>
+          <div class="idd-paragraph">{intent.p3}</div>
+        </div>
+        <div class="idd-section">
+          <div class="idd-label">In Scope</div>
+          <div class="idd-paragraph">{constraints.in_scope}</div>
+          <div class="idd-label">Out of Scope</div>
+          <div class="idd-paragraph">{constraints.out_of_scope}</div>
+          <div class="idd-label">Must Not Break</div>
+          <div class="idd-paragraph">{constraints.must_not_break}</div>
+        </div>
+        <div class="idd-section">
+          <div class="idd-label">Success Scenarios</div>
+          {success_scenarios as .scenario-item divs}
+        </div>
+        <div class="idd-section">
+          <div class="idd-label">Failure Conditions</div>
+          {failure_conditions as .failure-item divs}
+        </div>
+      </div>
+    -->
+    {EPIC_CARDS}
 
-<footer>
-  Generated by plan-roadmap &nbsp;&middot;&nbsp; {Product Name} &nbsp;&middot;&nbsp; {YYYY-MM-DD} &nbsp;&middot;&nbsp; {artifact_path}
-</footer>
+  </div><!-- /epics -->
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- TAB: FEASIBILITY -->
+  <div class="tab-panel" id="feasibility">
+
+    <h2>Risk Summary</h2>
+    <!-- {RISK_SUMMARY}: .stat-grid with 4 .stat-card items -->
+    <!-- Stat cards: Total Features, High Risk (stat-fire), Medium Risk, Blocker Count (stat-fire) -->
+    {RISK_SUMMARY}
+
+    <h2>Per-Feature Feasibility</h2>
+    <!-- {FEASIBILITY_CARDS}: render one .card per feature with feasibility details -->
+    <!-- Each card: F-ID (card-subtitle), name (card-title), risk badge (badge-low/medium/high) -->
+    <!-- Sections: technical_risks table (columns: Risk, Severity, Mitigation), -->
+    <!--           blockers card-fire, sequencing note, architecture_impact note -->
+    {FEASIBILITY_CARDS}
+
+    <h2>Critical Blockers</h2>
+    <!-- {CRITICAL_BLOCKERS}: render one .card.card-fire per critical blocker -->
+    <!-- Card fields: description (card-title), severity (badge-high/medium), -->
+    <!--              affected_features (tag-list), resolution (card-field-value) -->
+    {CRITICAL_BLOCKERS}
+
+    <h2>Open Questions</h2>
+    <!-- {OPEN_QUESTIONS}: list of open question items -->
+    {OPEN_QUESTIONS}
+
+  </div><!-- /feasibility -->
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- TAB: COMMENTS -->
+  <div class="tab-panel" id="comments">
+
+    <h2>Comments</h2>
+    <p style="color: var(--text-secondary); font-size: 14px;">Select text on any tab to annotate. Comments are saved locally.</p>
+    <div id="comment-list" style="margin-top: var(--space-md);"></div>
+
+    <div class="export-section">
+      <h3>Export Review Decision</h3>
+      <p style="color: var(--text-secondary); font-size: 14px; margin-top: var(--space-xs);">
+        <strong style="color: var(--color-air);">Tether</strong> — approve and proceed &nbsp;|&nbsp;
+        <strong style="color: var(--color-fire);">Vanish</strong> — reject / request revision &nbsp;|&nbsp;
+        <strong style="color: var(--color-water);">Orbit</strong> — hold for discussion
+      </p>
+      <div class="action-btns">
+        <button class="action-btn action-btn-tether" onclick="exportAction('tether')">Tether</button>
+        <button class="action-btn action-btn-vanish" onclick="exportAction('vanish')">Vanish</button>
+        <button class="action-btn action-btn-orbit"  onclick="exportAction('orbit')">Orbit</button>
+      </div>
+    </div>
+
+  </div><!-- /comments -->
+
+</div><!-- /container -->
 
 <script>
-  // ── Main Tab Switching ──
-  document.querySelectorAll('#mainTabs button').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('#mainTabs button').forEach(function(b) { b.classList.remove('active'); });
-      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
-      btn.classList.add('active');
-      document.getElementById(btn.dataset.tab).classList.add('active');
-    });
-  });
+  // ─── Storage key ───────────────────────────────────────────
+  var STORAGE_KEY = 'meridian-comments-roadmap-{SLUG}';
 
-  // ── Epic Sub-Tab Switching ──
-  document.querySelectorAll('#epicTabs button').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('#epicTabs button').forEach(function(b) { b.classList.remove('active'); });
-      document.querySelectorAll('.epic-tab-panel').forEach(function(p) { p.classList.remove('active'); });
-      btn.classList.add('active');
-      document.getElementById(btn.dataset.epic).classList.add('active');
-    });
-  });
-
-  // ── Feedback Clipboard ──
-  function copyFeedback() {
-    var sections = [
-      { label: 'Overall', id: 'fb-overall' },
-      { label: 'Blockers & Decisions', id: 'fb-blockers' },
-      { label: 'Epic-Level', id: 'fb-epics' },
-      { label: 'Timeline & Phasing', id: 'fb-timeline' }
-    ];
-    var lines = [];
-    sections.forEach(function(s) {
-      var val = document.getElementById(s.id).value.trim();
-      if (val) { lines.push('**' + s.label + ':** ' + val); }
-    });
-    if (lines.length === 0) { lines.push('(no feedback entered)'); }
-    var text = lines.join('\n\n');
-    navigator.clipboard.writeText(text).then(function() {
-      var toast = document.getElementById('copyToast');
-      toast.style.display = 'inline-block';
-      setTimeout(function() { toast.style.display = 'none'; }, 2000);
-    });
+  // ─── Tab switching ─────────────────────────────────────────
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    var btn = document.querySelector('[data-tab="' + tabId + '"]');
+    var panel = document.getElementById(tabId);
+    if (btn) btn.classList.add('active');
+    if (panel) panel.classList.add('active');
+    if (tabId === 'comments') renderComments();
   }
 
-  function clearFeedback() {
-    ['fb-overall', 'fb-blockers', 'fb-epics', 'fb-timeline'].forEach(function(id) {
-      document.getElementById(id).value = '';
-    });
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { switchTab(btn.dataset.tab); });
+  });
+
+  // ─── Comment storage ───────────────────────────────────────
+  function getComments() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
   }
+
+  function saveComments(comments) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+  }
+
+  function updateCommentBadge() {
+    var count = getComments().length;
+    var badge = document.getElementById('comment-badge');
+    if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'inline-block' : 'none'; }
+  }
+
+  // ─── Text selection → popup ────────────────────────────────
+  var currentSelection = null;
+
+  document.addEventListener('mouseup', function(e) {
+    if (e.target.closest('#comment-popup')) return;
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed) { hidePopup(); return; }
+    var text = sel.toString().trim();
+    if (!text) { hidePopup(); return; }
+    var activeBtn = document.querySelector('.tab-btn.active');
+    var tabId = activeBtn ? activeBtn.dataset.tab : 'unknown';
+    if (tabId === 'comments') return;
+    currentSelection = { text: text, tab: tabId };
+    var range = sel.getRangeAt(0);
+    var rect = range.getBoundingClientRect();
+    showPopup(rect, text);
+  });
+
+  function showPopup(rect, text) {
+    var popup = document.getElementById('comment-popup');
+    document.getElementById('comment-selected-text').textContent = text.length > 120 ? text.slice(0, 120) + '…' : text;
+    document.getElementById('comment-textarea').value = '';
+    var top = window.scrollY + rect.bottom + 8;
+    var left = Math.min(rect.left, window.innerWidth - 380);
+    popup.style.top = top + 'px';
+    popup.style.left = Math.max(8, left) + 'px';
+    popup.classList.add('visible');
+  }
+
+  function hidePopup() {
+    var popup = document.getElementById('comment-popup');
+    if (popup) popup.classList.remove('visible');
+    currentSelection = null;
+  }
+
+  function saveComment() {
+    if (!currentSelection) return;
+    var text = document.getElementById('comment-textarea').value.trim();
+    if (!text) return;
+    var comments = getComments();
+    comments.push({
+      id: Date.now(),
+      excerpt: currentSelection.text.slice(0, 100),
+      tab: currentSelection.tab,
+      body: text,
+      created: new Date().toISOString()
+    });
+    saveComments(comments);
+    updateCommentBadge();
+    hidePopup();
+    if (window.getSelection) window.getSelection().removeAllRanges();
+  }
+
+  // ─── Comments tab render ───────────────────────────────────
+  function renderComments() {
+    var list = document.getElementById('comment-list');
+    var comments = getComments();
+    if (comments.length === 0) {
+      list.innerHTML = '<p style="color:var(--text-secondary)">No comments yet. Select text on any tab to add a comment.</p>';
+      return;
+    }
+    list.innerHTML = comments.map(function(c) {
+      return '<div class="comment-item">' +
+        '<div class="comment-tab-label">' + c.tab + '</div>' +
+        '<div class="comment-excerpt">' + escapeHtml(c.excerpt) + '</div>' +
+        '<div class="comment-body">' + escapeHtml(c.body) + '</div>' +
+        '<button class="comment-delete-btn" onclick="deleteComment(' + c.id + ')">Delete</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function deleteComment(id) {
+    saveComments(getComments().filter(function(c) { return c.id !== id; }));
+    updateCommentBadge();
+    renderComments();
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ─── Export (Tether / Vanish / Orbit) ─────────────────────
+  function exportAction(action) {
+    var payload = {
+      artifact: 'roadmap-brief',
+      slug: '{SLUG}',
+      action: action,
+      comments: getComments(),
+      timestamp: new Date().toISOString()
+    };
+    var text = JSON.stringify(payload, null, 2);
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(function() { showToast('Copied to clipboard'); });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      showToast('Copied to clipboard');
+    }
+  }
+
+  function showToast(msg) {
+    var toast = document.getElementById('toast');
+    toast.textContent = msg; toast.style.display = 'block';
+    setTimeout(function() { toast.style.display = 'none'; }, 2000);
+  }
+
+  // ─── Init ─────────────────────────────────────────────────
+  updateCommentBadge();
 </script>
 
 </body>

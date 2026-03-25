@@ -34,7 +34,7 @@ Receive from agent:
 
 3. **Read product.yaml** at `product_yaml_path` using the Read tool. Extract product name (from value_proposition or strategic_goals title) for the brief header. Also extract assumptions and out_of_scope (used as exclusions).
 
-4. **Compose roadmap-brief.html** as a fully self-contained HTML5 document. All CSS and JS must be inline — no CDN links, no external dependencies. Apply the LifeOS Dark design system as specified in `brief-principles.md`. All content is derived from the intermediate epics and feasibility data read above — do NOT invent or assume content.
+4. **Compose roadmap-brief.html** using the LTM template at `~/.meridian/core/memory/standards/templates/roadmap-brief.html` as the structural reference, and `~/.meridian/core/memory/standards/templates/brief-common.css` for the design system. All CSS and JS must be inline — no CDN links, no external dependencies. Replace all `{PLACEHOLDER}` values with actual data from the sources read above. All content is derived from the intermediate epics, feasibility, and product data — do NOT invent or assume content.
 
 ### Design System (LifeOS Dark)
 
@@ -85,12 +85,12 @@ Status badge colors: DRAFT = `--status-draft` (yellow), APPROVED = `--status-val
 
 ### Tab Structure
 
-Four tabs in this order:
+Five tabs in this order:
 
 ```
-┌────────────┬────────────┬─────────────┬───────────────┐
-│  Strategy  │  Timeline  │ Feasibility │  Comments (N) │
-└────────────┴────────────┴─────────────┴───────────────┘
+┌────────────┬────────────┬────────┬─────────────┬───────────────┐
+│  Strategy  │  Timeline  │ Epics  │ Feasibility │  Comments (N) │
+└────────────┴────────────┴────────┴─────────────┴───────────────┘
 ```
 
 Active tab: `--bg-secondary` background, `--color-water` bottom border 2px, `--text-primary` text.
@@ -102,7 +102,7 @@ Tab state persists via URL hash (e.g. `#strategy`, `#timeline`, `#feasibility`, 
 Content derived from `product.yaml` and `epics.yaml`:
 - **The Bet** card: synthesize a thesis statement from the product's `strategic_goals` and the set of epics derived. Use Air (green) left border to signal directional commitment.
 - **The Story** card: synthesize a 3–4 paragraph narrative that connects the strategic goals to the epics and the intended outcomes. Use Water (blue) left border.
-- **Assumptions** card: render `assumptions` from product.yaml as a `<ul>` list. Use Earth (gray) left border.
+- **Assumptions** card: render `assumptions` from product.yaml as a `<ul>` list. Use Water (blue) left border.
 - **Exclusions** card: render `out_of_scope` from product.yaml as a `<ul>` list. Use Earth (gray) left border.
 
 #### Tab 2 — Timeline
@@ -114,7 +114,30 @@ Content from `epics.yaml` `bucket` field and `feasibility.yaml`:
 - Features within a phase display as a horizontal row or stacked cards depending on count
 - Assign F-IDs (F1, F2, F3...) to epics in the order they appear in epics.yaml — this mapping must be consistent throughout the brief and will carry forward to roadmap.yaml
 
-#### Tab 3 — Feasibility
+#### Tab 3 — Epics
+
+Full IDD detail per epic. Content from `epics.yaml`:
+
+For each epic, render an `.epic-card` with:
+- **Header**: F-ID + epic name + badges (bucket as `.badge-near`/`.badge-mid`/`.badge-long`, priority as `.badge-p1`/`.badge-p2`/`.badge-p3`, effort)
+- **Description**: 2-3 sentence description
+- **Strategic Goal**: `strategic_goal_ref` (SG-ID)
+- **Depends On**: list of F-IDs or "None"
+- **Foundation Investment**: boolean flag (show only if true)
+- **Intent** (`.idd-section`):
+  - `.idd-label` "PROBLEM TODAY" → `intent.p1` as `.idd-paragraph`
+  - `.idd-label` "OUTCOME AFTER" → `intent.p2` as `.idd-paragraph`
+  - `.idd-label` "STRATEGIC CONNECTION" → `intent.p3` as `.idd-paragraph`
+- **Constraints** (`.idd-section`):
+  - `.idd-label` "IN SCOPE" → `constraints.in_scope` as `.idd-paragraph`
+  - `.idd-label` "OUT OF SCOPE" → `constraints.out_of_scope` as `.idd-paragraph`
+  - `.idd-label` "MUST NOT BREAK" → `constraints.must_not_break` as `.idd-paragraph`
+- **Success Scenarios** (`.idd-section`):
+  - `.idd-label` "SUCCESS SCENARIOS" → each scenario as a `.scenario-item` div
+- **Failure Conditions** (`.idd-section`):
+  - `.idd-label` "FAILURE CONDITIONS" → each condition as a `.failure-item` div
+
+#### Tab 4 — Feasibility
 
 Content from `feasibility.yaml` — `feasibility`, `critical_blockers`, `open_questions`, `risk_summary` sections:
 
@@ -129,7 +152,7 @@ Content from `feasibility.yaml` — `feasibility`, `critical_blockers`, `open_qu
 - **Critical Blockers** section: render `critical_blockers` as Fire-bordered cards — blocker description, severity badge, affected features, resolution status
 - **Open Questions** section: render `open_questions` as a list — each question with affected features
 
-#### Tab 4 — Comments
+#### Tab 5 — Comments
 
 Comments management tab (always last):
 - Lists all inline comments in document order
@@ -187,7 +210,7 @@ Your response MUST be ONLY this YAML block with values filled in. No validation 
 brief:
   roadmap_brief_path: "{output_path}"
   slug: "{slug}"
-  tabs_present: ["strategy", "timeline", "feasibility", "comments"]
+  tabs_present: ["strategy", "timeline", "epics", "feasibility", "comments"]
   feature_count: {integer}
   critical_blocker_count: {integer}
   inline_comments_enabled: true
@@ -199,7 +222,7 @@ brief:
 - NEVER use CDN links or external dependencies — all CSS and JS must be inline
 - NEVER use JavaScript frameworks — vanilla JS only
 - ALWAYS use LifeOS Dark design system — no custom color schemes
-- ALWAYS produce exactly four tabs: Strategy, Timeline, Feasibility, Comments
+- ALWAYS produce exactly five tabs: Strategy, Timeline, Epics, Feasibility, Comments
 - ALWAYS implement the inline text selection comment system
 - NEVER regenerate hub.html — that is owned by the doc-builder agent
 - ALWAYS write to the `output_path` provided by the calling agent
