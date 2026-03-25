@@ -27,6 +27,7 @@ You delegate domain tasks to agents via the JSON contract — never execute doma
 | Agent | Domain | Steps |
 |-------|--------|-------|
 | `tech-designer` | Codebase scan, LTM read, architecture drafting, quality standards | 2, 3, 4 (domain) |
+| `judge` | Context-isolated architecture + quality standards validation | 6c |
 | `doc-builder` | Brief generation + hub.html lifecycle (utility, exempt from C9) | 5 |
 | `repo-orchestrator` | Evidence self-commit (utility, exempt from C9) | 9 |
 
@@ -358,11 +359,66 @@ Parse response:
 
 ---
 
+### Step 6c — Validate Architecture (Context-Isolated)
+
+Owner: `judge`
+Depends on: Step 6b
+Skill: `validate-architecture-design`
+
+**Context isolation:** The judge receives ONLY the artifact paths and validation skill name. It does NOT receive context_report_path, tech-designer drafting notes, LTM architecture knowledge references, pre-lock resolution answers, or any intermediate reasoning from Steps 1-6b.
+
+```json
+{
+  "mode": "validate-artifact",
+  "validation_skill": "validate-architecture-design",
+  "artifact_paths": {
+    "architecture_yaml_path": ".meridian/product/{slug}/architecture.yaml",
+    "quality_standards_yaml_path": ".meridian/product/{slug}/quality-standards.yaml",
+    "product_yaml_path": ".meridian/product/{slug}/product.yaml"
+  },
+  "task_id": "validate-architecture"
+}
+```
+
+Judge invokes `validate-architecture-design` -> returns validation_result with ready_for_lock, per-check results (VA1-VA8), issues.
+
+**On validation failure (ready_for_lock: false):**
+Present blockers to user in the same resolution interview pattern as Step 6b:
+
+```markdown
+## Architecture Validation Issues — {slug}
+
+The context-isolated validation found the following issues:
+
+### Issues ({count})
+| # | Check | Issue | Severity |
+|---|-------|-------|----------|
+| 1 | {check_id} | {message} | {severity} |
+
+---
+Address each blocker item, then type **RESOLVED** with numbered answers.
+Or type **Vanish** to halt.
+```
+
+Parse response:
+- `RESOLVED` → apply fixes to architecture.yaml/quality-standards.yaml, re-invoke judge for re-validation (max 1 retry). If still failing, halt.
+- `Vanish` → halt.
+
+**On validation success (ready_for_lock: true):**
+Auto-proceed to Step 7.
+
+Update status file: `validate-architecture → completed`.
+
+**Step 6c Evals:**
+- **SE-10 (context isolation):** The judge validation contract contains ONLY artifact_paths (architecture_yaml_path, quality_standards_yaml_path, product_yaml_path) — no context_report_path, tech-designer notes, LTM references, or pre-lock resolution answers. PASS if contract has only artifact_paths and validation_skill. FAIL if any drafting context is present.
+
+---
+
 ### Phase: Lock
 
 **Step 7 — Lock**
 Owner: orchestrator (no agent call)
-Depends on: Step 6b
+Depends on: Step 6c
 
 Lock both artifacts:
 
@@ -505,6 +561,7 @@ Steps execute in compiled order — run top to bottom.
     "generate-brief":          { "status": "completed", "completed_at": "..." },
     "brief-review":            { "status": "in_progress", "started_at": "..." },
     "pre-lock-resolution":     { "status": "pending" },
+    "validate-architecture":   { "status": "pending" },
     "lock":                    { "status": "pending" },
     "scenario-evals":          { "status": "pending" },
     "evidence-report":         { "status": "pending" }
@@ -538,7 +595,8 @@ if file absent (fresh start):
 3. Route based on task statuses:
    - `brief-review` status `in_progress` or `pending` → re-present brief from `stm.output.briefs_written[0]` (the architecture brief path from Step 5's briefs_written output), continue from Step 6 feedback loop.
    - `brief-review` status `completed` AND `pre-lock-resolution` status `pending` → jump to Step 6b.
-   - `pre-lock-resolution` status `completed` AND `lock` status `pending` → jump to Step 7.
+   - `pre-lock-resolution` status `completed` AND `validate-architecture` status `pending` → jump to Step 6c.
+   - `validate-architecture` status `completed` AND `lock` status `pending` → jump to Step 7.
 4. Report: "Resuming prepare-architecture for `{slug}` — {description of what it is doing}."
 5. If no status file found → halt: "No prepare-architecture checkpoint found. Start with `/prepare-architecture --product <path>`."
 
@@ -580,6 +638,6 @@ When an agent returns `step_failure` (non-null):
 | compiled_at | 2026-03-25 |
 | maturity | L2 |
 | workflow_structure | A (full checkpoint flow) |
-| agents | 1 domain (tech-designer) + 2 utility (doc-builder, repo-orchestrator) |
-| step_evals | 9 (SE-1 through SE-9, covering C2, C4, C5, C7, C10, C11, F1-F3, F5, F7) |
+| agents | 1 domain (tech-designer) + 1 validator (judge) + 2 utility (doc-builder, repo-orchestrator) |
+| step_evals | 10 (SE-1 through SE-10, covering C2, C4, C5, C7, C10, C11, F1-F3, F5, F7, context isolation) |
 | scenario_evals | 5 (SCE-1 through SCE-5, covering S1-S5) |

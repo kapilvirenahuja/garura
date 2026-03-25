@@ -25,7 +25,8 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 | Agent | Domain | Steps |
 |-------|--------|-------|
-| `product-strategist` | Opportunity discovery, vision drafting, vision validation | 2, 3, 6 |
+| `product-strategist` | Opportunity discovery, vision drafting | 2, 3 |
+| `judge` | Context-isolated vision validation | 6 |
 | `doc-builder` | Brief generation (utility, exempt from C5) | 4 |
 | `repo-orchestrator` | Evidence self-commit (utility, exempt from C5) | 9 |
 
@@ -366,33 +367,26 @@ Parse response:
 
 ---
 
-### Step 6 — Validate Vision
+### Step 6 — Validate Vision (Context-Isolated)
 
-Owner: `product-strategist`
+Owner: `judge`
 Depends on: Step 5
 Skill: `validate-product-vision`
 
+**Context isolation:** The judge receives ONLY the artifact path and validation skill name. It does NOT receive market context from Step 2, product-strategist drafting notes, iteration history, or any intermediate reasoning from Steps 1-5.
+
 ```json
 {
-  "intent_path": "core/components/recipes/discover-product/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
-  "stm": {
-    "input": {
-      "product_yaml_path": "{product_base}/{slug}/product.yaml"
-    },
-    "output": {
-      "validation_result_path": "{product_base}/{slug}/validation-result.yaml"
-    }
-  },
-  "config": {
-    "product_type": "{product_type}",
-    "slug": "{slug}"
+  "mode": "validate-artifact",
+  "validation_skill": "validate-product-vision",
+  "artifact_paths": {
+    "product_yaml_path": "{product_base}/{slug}/product.yaml"
   },
   "task_id": "validate-vision"
 }
 ```
 
-Agent invokes `validate-product-vision` -> returns validation_result with ready_for_lock, completeness_score, issues, checklist. Writes result to STM.
+Judge invokes `validate-product-vision` -> returns validation_result with ready_for_lock, completeness_score, issues, checklist.
 
 **Step 6 Evals:**
 
@@ -523,7 +517,7 @@ Or type **Vanish** to cycle back and re-draft.
 
 Parse response:
 - `RESOLVED` with numbered answers → write `{product_base}/{slug}/pre-lock-resolutions.yaml`
-  → Re-invoke `product-strategist` with `validate-product-vision` skill to re-validate
+  → Re-invoke `judge` with `validate-product-vision` skill to re-validate (same context-isolated contract as Step 6)
   → If now `ready_for_lock: true` with no blockers → proceed to Step 8
   → If still blockers → re-present interview (counts against cycle-back limit C9)
 - `Vanish` → cycle-back per C9 (see below)
@@ -744,6 +738,6 @@ for each step in compiled order:
 | compiled_at | 2026-03-25 |
 | maturity | L2 |
 | workflow_structure | B |
-| agents | 1 domain (product-strategist) + 2 utility (doc-builder, repo-orchestrator) |
+| agents | 1 domain (product-strategist) + 1 validator (judge) + 2 utility (doc-builder, repo-orchestrator) |
 | step_evals | 22 |
 | scenario_evals | 7 |

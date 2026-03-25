@@ -30,6 +30,7 @@ You delegate domain tasks to agents via the JSON contract — never execute doma
 |-------|--------|--------|
 | `product-strategist` | Product: epic scoping, brief generation, roadmap | Preparation, Execution |
 | `tech-designer` | Technical: feasibility assessment, risk identification | Preparation |
+| `judge` | Context-isolated roadmap validation | Execution (Step 6b-val) |
 | `repo-orchestrator` | Git: self-commit evidence artifacts | Evidence & Close (non-blocking) |
 
 **Path resolution:**
@@ -73,7 +74,8 @@ Create the full task graph:
 | `human-review` | Checkpoint: Tether/Vanish | orchestrator | produce-brief |
 | `pre-lock-resolution` | Resolve critical_blockers and open_questions from feasibility | orchestrator | human-review |
 | `produce-roadmap` | Full roadmap.yaml from approved brief | product-strategist | pre-lock-resolution |
-| `report` | Evidence + final report | orchestrator | produce-roadmap |
+| `validate-roadmap` | Context-isolated roadmap validation | judge | produce-roadmap |
+| `report` | Evidence + final report | orchestrator | validate-roadmap |
 
 After creating all tasks with dependencies, initialize the JSON contract:
 
@@ -358,11 +360,64 @@ Update status file: `produce-roadmap → completed`.
 
 ---
 
+### Step 6b-val — Validate Roadmap (Context-Isolated)
+
+Owner: `judge`
+Depends on: Step 6
+Skill: `validate-roadmap`
+
+**Context isolation:** The judge receives ONLY the artifact path and validation skill name. It does NOT receive epics, feasibility data, product-strategist drafting notes, brief content, or any intermediate reasoning from Steps 1-6.
+
+```json
+{
+  "mode": "validate-artifact",
+  "validation_skill": "validate-roadmap",
+  "artifact_paths": {
+    "roadmap_yaml_path": "{stm.roadmap_yaml_path}"
+  },
+  "task_id": "validate-roadmap"
+}
+```
+
+Judge invokes `validate-roadmap` -> returns validation_result with ready_for_lock, completeness_score, issues, checklist.
+
+**On validation failure (ready_for_lock: false):**
+Present blockers to user in the same resolution interview pattern as Step 5b:
+
+```markdown
+## Roadmap Validation Issues — {slug}
+
+The context-isolated validation found the following issues:
+
+### Issues ({count})
+| # | Issue | Field | Severity |
+|---|-------|-------|----------|
+| 1 | {message} | {field} | {severity} |
+
+---
+Address each blocker item, then type **RESOLVED** with numbered answers.
+Or type **Vanish** to halt.
+```
+
+Parse response:
+- `RESOLVED` → apply fixes to roadmap.yaml, re-invoke judge for re-validation (max 1 retry). If still failing, halt.
+- `Vanish` → halt.
+
+**On validation success (ready_for_lock: true):**
+Auto-proceed to Step 7.
+
+Update status file: `validate-roadmap → completed`.
+
+**Step 6b-val Evals:**
+- **SE-14 (context isolation):** The judge validation contract contains ONLY the roadmap_yaml_path — no epics_path, feasibility_path, product-strategist notes, or brief content. PASS if contract has only artifact_paths and validation_skill. FAIL if any drafting context is present.
+
+---
+
 ### Phase: Scenario Validation
 
 **Step 7 — Scenario Evals**
 Owner: orchestrator
-Depends on: Step 6
+Depends on: Step 6b-val
 
 Run these scenario evals against the final artifacts:
 
@@ -465,6 +520,7 @@ Steps execute in compiled order — run top to bottom.
     "human-review":       { "status": "in_progress", "started_at": "..." },
     "pre-lock-resolution": { "status": "pending" },
     "produce-roadmap":    { "status": "pending" },
+    "validate-roadmap":   { "status": "pending" },
     "report":             { "status": "pending" }
   },
   "contract_snapshot": "{last enriched contract JSON}"
@@ -539,6 +595,6 @@ When an agent returns `step_failure` (non-null):
 | compiled_at | 2026-03-25 |
 | maturity | L2 |
 | workflow_structure | A (full checkpoint flow) |
-| agents | 3 (product-strategist, tech-designer, repo-orchestrator) |
-| step_evals | 13 (SE-1 through SE-13, covering C2, C3, C10, C11, C12, F1-F5, F7, F8) |
+| agents | 3 domain (product-strategist, tech-designer, judge) + 1 utility (repo-orchestrator) |
+| step_evals | 14 (SE-1 through SE-14, covering C2, C3, C10, C11, C12, F1-F5, F7, F8, context isolation) |
 | scenario_evals | 5 (SCE-1, SCE-2, SCE-4, SCE-5, SCE-6, covering S1, S2, S4, S6, S7) |
