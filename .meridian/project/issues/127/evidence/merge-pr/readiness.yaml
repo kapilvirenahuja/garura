@@ -1,0 +1,9 @@
+readiness:
+  pr_number: 147
+  mergeable: true
+  state: OPEN
+  tree_state: clean
+  head_branch: feature/127-domain-memory-module-taxonomy-profiling-epic-rules
+  base_branch: main
+  title: "feat(memory): add domain taxonomy, project profiling, architecture knowledge, and epic management rules (#127)"
+  assessment: ready_to_merge
