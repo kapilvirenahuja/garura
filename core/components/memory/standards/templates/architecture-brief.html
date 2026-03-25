@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product Brief: {SLUG}</title>
-  <!-- Template: product-brief.html -->
-  <!-- Used by: generate-product-brief skill -->
-  <!-- Source data: product.yaml -->
+  <title>Architecture Brief: {SLUG}</title>
+  <!-- Template: architecture-brief.html -->
+  <!-- Used by: generate-implementation-brief skill -->
+  <!-- Source data: architecture.yaml + quality-standards.yaml -->
   <!-- Placeholder syntax: {VARIABLE} for simple substitution, {BLOCK} for rendered HTML blocks -->
   <!-- All CSS and JS inline — no external dependencies -->
   <style>
@@ -86,9 +86,6 @@
     .badge-p1 { background: rgba(88,166,255,0.15); color: var(--color-water); }
     .badge-p2 { background: rgba(139,148,158,0.15); color: var(--color-earth); }
     .badge-p3 { background: rgba(139,148,158,0.1); color: var(--text-dimmed); }
-    .badge-near { background: rgba(57,211,83,0.15); color: var(--color-air); }
-    .badge-mid  { background: rgba(240,160,0,0.15); color: var(--color-fire); }
-    .badge-long { background: rgba(139,148,158,0.15); color: var(--color-earth); }
     /* Tables */
     table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: var(--space-md); }
     th { background: var(--bg-tertiary); color: var(--text-primary); padding: 10px 12px; text-align: left; }
@@ -99,35 +96,20 @@
     .profile-table th { background: var(--bg-tertiary); color: var(--text-primary); padding: 8px 12px; text-align: left; }
     .profile-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); color: var(--text-secondary); }
     .profile-table .level-cell { text-align: center; font-weight: bold; color: var(--text-primary); min-width: 50px; }
-    /* Epic cards */
-    .epic-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 8px; box-shadow: var(--shadow-retro); padding: var(--space-lg); margin-bottom: var(--space-md); }
-    .epic-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-md); gap: var(--space-md); }
-    .epic-header h3 { font-size: 16px; font-weight: 700; color: var(--text-primary); }
-    .epic-badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
-    .epic-field { margin-bottom: var(--space-sm); }
-    .epic-field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px; }
-    .epic-field-value { font-size: 14px; color: var(--text-primary); }
-    .epic-field-value ul { padding-left: 18px; }
-    .epic-field-value li { margin-bottom: 4px; color: var(--text-secondary); }
-    .idd-section { margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--border-default); }
-    .idd-paragraph { margin-bottom: var(--space-sm); color: var(--text-secondary); font-size: 14px; line-height: 1.7; }
-    .idd-label { font-size: 12px; font-weight: 700; color: var(--color-water); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
-    .scenario-item { padding: 8px 12px; background: var(--bg-tertiary); border-radius: 4px; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary); border-left: 3px solid var(--color-air); }
-    .failure-item { padding: 8px 12px; background: var(--bg-tertiary); border-radius: 4px; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary); border-left: 3px solid var(--color-fire); }
-    /* Stat cards */
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-md); margin-bottom: var(--space-lg); }
-    .stat-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 8px; padding: var(--space-md); text-align: center; }
-    .stat-value { font-size: 28px; font-weight: 700; color: var(--text-primary); }
-    .stat-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-    .stat-fire .stat-value { color: var(--color-fire); }
-    /* Lists */
-    .item-list { list-style: none; padding: 0; }
-    .item-list li { padding: 10px 0; border-bottom: 1px solid var(--border-default); font-size: 14px; color: var(--text-secondary); }
-    .item-list li:last-child { border-bottom: none; }
-    /* Context sections */
-    .context-section { opacity: 0.7; background: var(--bg-tertiary); border: 1px solid var(--border-default); border-radius: 8px; padding: var(--space-md) 20px; margin-bottom: 20px; pointer-events: none; }
-    .context-section h3 { color: var(--text-secondary); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .context-label { font-size: 11px; color: var(--text-dimmed); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: var(--space-xs); }
+    /* Quality Standards */
+    .qs-dimension { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 8px; padding: var(--space-md); margin-bottom: var(--space-md); }
+    .qs-dimension-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); }
+    .qs-dimension-name { font-weight: 700; color: var(--text-primary); }
+    .qs-dimension-level { font-size: 12px; color: var(--color-water); }
+    .qs-field { margin-bottom: var(--space-xs); }
+    .qs-field-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
+    .qs-field-value { font-size: 13px; color: var(--text-secondary); }
+    /* Debt table */
+    .debt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .debt-table th { background: var(--bg-tertiary); color: var(--text-primary); padding: 8px 12px; text-align: left; }
+    .debt-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); }
+    .debt-gap { color: var(--color-fire); font-weight: 700; }
+    .debt-ok { color: var(--color-air); }
     /* Inline comment system */
     .comment-highlight { background: var(--comment-highlight); cursor: pointer; border-bottom: 2px solid var(--color-fire); border-radius: 2px; }
     .comment-highlight:hover { background: var(--comment-highlight-hover); }
@@ -166,24 +148,10 @@
     /* Tag chips */
     .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
     .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: var(--bg-tertiary); color: var(--text-secondary); }
-    /* Quality Standards */
-    .qs-dimension { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 8px; padding: var(--space-md); margin-bottom: var(--space-md); }
-    .qs-dimension-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); }
-    .qs-dimension-name { font-weight: 700; color: var(--text-primary); }
-    .qs-dimension-level { font-size: 12px; color: var(--color-water); }
-    .qs-field { margin-bottom: var(--space-xs); }
-    .qs-field-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
-    .qs-field-value { font-size: 13px; color: var(--text-secondary); }
-    /* Debt table */
-    .debt-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .debt-table th { background: var(--bg-tertiary); color: var(--text-primary); padding: 8px 12px; text-align: left; }
-    .debt-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); }
-    .debt-gap { color: var(--color-fire); font-weight: 700; }
-    .debt-ok { color: var(--color-air); }
     /* Toast */
     #toast { display: none; position: fixed; bottom: 24px; right: 24px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-accent); border-radius: 6px; padding: 10px 18px; font-size: 13px; z-index: 2000; }
     /* Responsive */
-    @media (max-width: 640px) { .container { padding: var(--space-md); } .tab-btn { padding: 8px 12px; font-size: 13px; } .stat-grid { grid-template-columns: 1fr 1fr; } .epic-header { flex-direction: column; } }
+    @media (max-width: 640px) { .container { padding: var(--space-md); } .tab-btn { padding: 8px 12px; font-size: 13px; } }
   </style>
 </head>
 <body>
@@ -208,109 +176,153 @@
   <!-- HEADER -->
   <a class="hub-link" href="hub.html">← Hub</a>
   <div class="brief-header">
-    <div class="brief-title">Product Brief <span class="badge {STATUS_BADGE}">{STATUS}</span></div>
+    <div class="brief-title">Architecture Brief <span class="badge {STATUS_BADGE_CLASS}">{STATUS}</span></div>
     <div class="brief-meta">
       <span><strong>Product:</strong> {SLUG}</span>
-      <span><strong>Generated:</strong> {TIMESTAMP}</span>
+      <span><strong>Generated:</strong> {GENERATED_AT}</span>
     </div>
-    <div class="source-path">Source: {SOURCE_PATH}</div>
+    <div class="source-path">Source: architecture.yaml + quality-standards.yaml</div>
   </div>
 
   <!-- ─────────────────────────────────────────────────────── -->
   <!-- TAB BAR -->
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="market">Market Context</button>
-    <button class="tab-btn" data-tab="vision">Vision</button>
-    <button class="tab-btn" data-tab="scope">Scope</button>
+    <button class="tab-btn active" data-tab="architecture">Architecture</button>
+    <button class="tab-btn" data-tab="stack">Stack &amp; Platforms</button>
+    <!-- This tab and its panel are omitted when AGENTIC_PRESENT=false -->
+    <button class="tab-btn" data-tab="agentic">Agentic</button>
+    <button class="tab-btn" data-tab="quality">Quality Standards</button>
     <button class="tab-btn" data-tab="profiles">Profiles</button>
+    <button class="tab-btn" data-tab="operations">Operations</button>
     <button class="tab-btn" data-tab="comments">Comments<span class="comment-count-badge" id="comment-badge" style="display:none">0</span></button>
   </div>
 
   <!-- ═════════════════════════════════════════════════════════ -->
-  <!-- TAB: MARKET CONTEXT -->
-  <div class="tab-panel active" id="market">
+  <!-- TAB: ARCHITECTURE -->
+  <div class="tab-panel active" id="architecture">
 
-    <h2>Problem</h2>
-    <!-- {PROBLEM}: paragraph describing the core problem being solved -->
-    <p>{PROBLEM}</p>
+    <h2>Principles</h2>
+    <!-- {PRINCIPLES}: render one .card.card-water per principle -->
+    <!-- Card fields: id (badge-count), principle (card-title), rationale (card-field-value) -->
+    {PRINCIPLES}
 
-    <h2>Target Users</h2>
-    <!-- {TARGET_USERS}: render one .card.card-fire per persona -->
-    <!-- Card fields: persona (card-title), goal (card-field), frustration (card-field), context (card-field) -->
-    {TARGET_USERS}
+    <h2>System Topology</h2>
+    <!-- {ARCHITECTURE_TOPOLOGY}: code block (.code-block pre) or description card for ASCII/text topology -->
+    {ARCHITECTURE_TOPOLOGY}
 
-    <h2>Competitors</h2>
-    <!-- {COMPETITORS_TABLE}: <tr> rows with columns: Competitor, Strengths, Weaknesses, Our Advantage -->
+    <h2>Deployment Units</h2>
+    <!-- {DEPLOYMENT_UNITS}: render one .card per unit -->
+    <!-- Card fields: name (card-title), responsibility, communication -->
+    {DEPLOYMENT_UNITS}
+
+    <h2>Non-Functional Requirements</h2>
+    <!-- {NFRS}: render one h3 + table per category (performance, scalability, security, availability, compliance) -->
+    <!-- Table columns: Requirement, Priority (badge: badge-p1/p2/p3 for must/should/nice-to-have) -->
+    {NFRS}
+
+  </div><!-- /architecture -->
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- TAB: STACK & PLATFORMS -->
+  <div class="tab-panel" id="stack">
+
+    <h2>Technology Stack</h2>
+    <!-- {STACK_TABLE}: table with columns Component, Technology, Purpose, Rationale -->
     <table>
       <thead>
-        <tr><th>Competitor</th><th>Strengths</th><th>Weaknesses</th><th>Our Advantage</th></tr>
+        <tr><th>Component</th><th>Technology</th><th>Purpose</th><th>Rationale</th></tr>
       </thead>
       <tbody>
-        {COMPETITORS_TABLE}
+        {STACK_TABLE}
       </tbody>
     </table>
 
-    <h2>Market Size</h2>
-    <!-- {MARKET_SIZE}: single .card with card-fields for TAM, SAM, SOM, and note -->
-    {MARKET_SIZE}
-
-    <h2>Differentiators</h2>
-    <!-- {DIFFERENTIATORS}: render one .card.card-air per differentiator, or a list of items -->
-    {DIFFERENTIATORS}
-
-    <h2>Risks</h2>
-    <!-- {RISKS}: render one .card.card-fire per market risk, or a list of items -->
-    {RISKS}
-
-  </div><!-- /market -->
-
-  <!-- ═════════════════════════════════════════════════════════ -->
-  <!-- TAB: VISION -->
-  <div class="tab-panel" id="vision">
-
-    <h2>Value Proposition</h2>
-    <!-- {VALUE_PROPOSITION}: text paragraph inside highlight-box -->
-    <div class="highlight-box">{VALUE_PROPOSITION}</div>
-
-    <h2>Strategic Goals</h2>
-    <!-- {STRATEGIC_GOALS}: render one .card.card-air per goal -->
-    <!-- Card fields: id (badge-count), title (card-title), description, metric, target, measurement -->
-    {STRATEGIC_GOALS}
-
-    <h2>Success Metrics</h2>
-    <!-- {SUCCESS_METRICS_TABLE}: <tr> rows with columns: Goal Ref, Metric, Target, Method -->
+    <h2>Platforms</h2>
+    <!-- {PLATFORMS_TABLE}: table with columns Category, Platform, Purpose, Rationale, Features Served -->
     <table>
       <thead>
-        <tr><th>Goal Ref</th><th>Metric</th><th>Target</th><th>Method</th></tr>
+        <tr><th>Category</th><th>Platform</th><th>Purpose</th><th>Rationale</th><th>Features Served</th></tr>
       </thead>
       <tbody>
-        {SUCCESS_METRICS_TABLE}
+        {PLATFORMS_TABLE}
       </tbody>
     </table>
 
-  </div><!-- /vision -->
+    <h2>Integrations</h2>
+    <!-- {INTEGRATIONS_TABLE}: table with columns Name, Type, Provider, Purpose, Direction, Auth, Features Served -->
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Type</th><th>Provider</th><th>Purpose</th><th>Direction</th><th>Auth</th><th>Features Served</th></tr>
+      </thead>
+      <tbody>
+        {INTEGRATIONS_TABLE}
+      </tbody>
+    </table>
+
+  </div><!-- /stack -->
 
   <!-- ═════════════════════════════════════════════════════════ -->
-  <!-- TAB: SCOPE -->
-  <div class="tab-panel" id="scope">
+  <!-- TAB: AGENTIC -->
+  <!-- This entire tab panel is omitted when AGENTIC_PRESENT=false -->
+  <div class="tab-panel" id="agentic">
 
-    <h2>Assumptions</h2>
-    <!-- {ASSUMPTIONS}: render one .card.card-water per assumption -->
-    {ASSUMPTIONS}
+    <h2>Perception — Signals</h2>
+    <!-- {PERCEPTION}: render one .card.card-water per signal -->
+    <!-- Card fields: signal (card-title), source, format -->
+    {PERCEPTION}
 
-    <h2>Out of Scope</h2>
-    <!-- {OUT_OF_SCOPE}: render one .card.card-earth per exclusion -->
-    <!-- Card fields: category (card-title), rationale (card-field-value) -->
-    {OUT_OF_SCOPE}
+    <h2>Cognition — Agents</h2>
+    <!-- {COGNITION}: render one .card.card-air per agent -->
+    <!-- Card fields: agent (card-title), role, autonomy (badge), model -->
+    {COGNITION}
 
-  </div><!-- /scope -->
+    <h2>Action — Tools</h2>
+    <!-- {ACTION}: render one .card per tool -->
+    <!-- Card fields: tool (card-title), purpose, available_to (tag-list) -->
+    {ACTION}
+
+    <h2>Memory</h2>
+    <!-- {MEMORY}: render a single .card -->
+    <!-- Card fields: approach, stm, ltm, embeddings -->
+    {MEMORY}
+
+  </div><!-- /agentic -->
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- TAB: QUALITY STANDARDS -->
+  <div class="tab-panel" id="quality">
+
+    <h2>Standards by Dimension</h2>
+    <!-- {QS_DIMENSIONS}: render one .qs-dimension per dimension from quality-standards.yaml -->
+    <!-- Each: .qs-dimension-header with .qs-dimension-name + .qs-dimension-level (QP N badge) -->
+    <!-- Then .qs-field blocks for all fields present: strategy, frameworks, coverage_target, -->
+    <!-- linter, formatter, static_analysis, review_process, conventions, design_patterns,   -->
+    <!-- api_docs, architecture_docs, runbooks, onboarding, pipeline, environments,          -->
+    <!-- deployment_strategy, feature_flags, infrastructure_as_code,                        -->
+    <!-- logging, monitoring, alerting, tracing, standard, testing, audit_cadence,          -->
+    <!-- dependency_scanning, sast, dast, pen_testing, secret_scanning                      -->
+    {QS_DIMENSIONS}
+
+    <h2>Technical Debt Baseline</h2>
+    <!-- {DEBT_BASELINE_TABLE}: .debt-table with columns QP Dimension, Target Level, Current Level, Gap, Remediation -->
+    <!-- Use .debt-gap for gap cells where gap exists, .debt-ok where gap is null/zero -->
+    <table class="debt-table">
+      <thead>
+        <tr><th>QP Dimension</th><th>Target Level</th><th>Current Level</th><th>Gap</th><th>Remediation</th></tr>
+      </thead>
+      <tbody>
+        {DEBT_BASELINE_TABLE}
+      </tbody>
+    </table>
+
+  </div><!-- /quality -->
 
   <!-- ═════════════════════════════════════════════════════════ -->
   <!-- TAB: PROFILES -->
   <div class="tab-panel" id="profiles">
 
-    <h2>Product Profile</h2>
-    <!-- {PRODUCT_PROFILE_TABLE}: <tr> rows for PP-1..7 dimensions: Dimension, Level (level-cell), Rationale -->
+    <h2>Product Profile (PP)</h2>
+    <!-- {PRODUCT_PROFILE_TABLE}: .profile-table with columns Dimension, Level, Rationale -->
     <table class="profile-table">
       <thead>
         <tr><th>Dimension</th><th class="level-cell">Level</th><th>Rationale</th></tr>
@@ -321,7 +333,7 @@
     </table>
 
     <h2>NFR Profile</h2>
-    <!-- {NFR_PROFILE_TABLE}: <tr> rows for NFR-1..7 dimensions: Dimension, Level (level-cell), Rationale -->
+    <!-- {NFR_PROFILE_TABLE}: .profile-table with columns Dimension, Level, Rationale -->
     <table class="profile-table">
       <thead>
         <tr><th>Dimension</th><th class="level-cell">Level</th><th>Rationale</th></tr>
@@ -331,8 +343,8 @@
       </tbody>
     </table>
 
-    <h2>Quality Profile</h2>
-    <!-- {QUALITY_PROFILE_TABLE}: <tr> rows for QP-1..7 dimensions: Dimension, Level (level-cell), Rationale -->
+    <h2>Quality Profile (QP)</h2>
+    <!-- {QUALITY_PROFILE_TABLE}: .profile-table with columns Dimension, Level, Rationale -->
     <table class="profile-table">
       <thead>
         <tr><th>Dimension</th><th class="level-cell">Level</th><th>Rationale</th></tr>
@@ -343,6 +355,32 @@
     </table>
 
   </div><!-- /profiles -->
+
+  <!-- ═════════════════════════════════════════════════════════ -->
+  <!-- TAB: OPERATIONS -->
+  <div class="tab-panel" id="operations">
+
+    <h2>Technical Risks</h2>
+    <!-- {TECHNICAL_RISKS}: render one .card.card-fire per risk -->
+    <!-- Card fields: risk (card-title), affected_features (tag-list), severity (badge-low/medium/high), mitigation -->
+    {TECHNICAL_RISKS}
+
+    <h2>Deployment</h2>
+    <!-- {DEPLOYMENT}: table with columns Service, Platform, Purpose -->
+    <table>
+      <thead>
+        <tr><th>Service</th><th>Platform</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        {DEPLOYMENT}
+      </tbody>
+    </table>
+
+    <h2>Observability</h2>
+    <!-- {OBSERVABILITY}: .card with fields tracing, metrics (list), logging -->
+    {OBSERVABILITY}
+
+  </div><!-- /operations -->
 
   <!-- ═════════════════════════════════════════════════════════ -->
   <!-- TAB: COMMENTS -->
@@ -372,7 +410,7 @@
 
 <script>
   // ─── Storage key ───────────────────────────────────────────
-  var STORAGE_KEY = 'meridian-comments-product-{SLUG}';
+  var STORAGE_KEY = 'meridian-comments-architecture-{SLUG}';
 
   // ─── Tab switching ─────────────────────────────────────────
   function switchTab(tabId) {
@@ -488,7 +526,7 @@
   // ─── Export (Tether / Vanish / Orbit) ─────────────────────
   function exportAction(action) {
     var payload = {
-      artifact: 'product-brief',
+      artifact: 'architecture-brief',
       slug: '{SLUG}',
       action: action,
       comments: getComments(),

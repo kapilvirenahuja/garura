@@ -26,7 +26,7 @@ Produces two HTML files (not YAML). Output metadata returned to the calling agen
 |-------|------|-------------|
 | `brief.path` | string | Full path to the generated `product-brief.html` |
 | `brief.slug` | string | Product slug used in localStorage key and export payload |
-| `brief.tabs` | list | `[market_context, vision, scope, comments]` when type = "product"; `[technical_context, vision, scope, comments]` when type = "library" |
+| `brief.tabs` | list | `[market_context, vision, scope, profiles, comments]` when type = "product"; `[technical_context, vision, scope, profiles, comments]` when type = "library". Profiles tab omitted if profiles section absent. |
 | `brief.format` | string | Always `"html"` |
 | `brief.self_contained` | boolean | Always `true` — no external CSS, JS, or font dependencies |
 
@@ -49,7 +49,8 @@ Receive from agent:
    - Tab 1: "Market Context" — renders all market fields
    - Tab 2: "Vision" — unchanged
    - Tab 3: "Scope" — unchanged
-   - Tab 4: "Comments" — unchanged
+   - Tab 4: "Profiles" — renders all three profiles (PP, NFR, QP) from profiles section. Skip tab if profiles section absent.
+   - Tab 5: "Comments" — unchanged
 
    **When type = "library":**
    - Tab 1: "Technical Context" — renders only non-empty fields from the market section:
@@ -61,11 +62,12 @@ Receive from agent:
      - Risks → renders as "Technical Risks" if non-empty
    - Tab 2: "Vision" — unchanged
    - Tab 3: "Scope" — unchanged
-   - Tab 4: "Comments" — unchanged
+   - Tab 4: "Profiles" — renders all three profiles (PP, NFR, QP). Skip tab if profiles section absent.
+   - Tab 5: "Comments" — unchanged
 
    **Key rule:** Render what exists. Skip empty sections. Do not render empty cards or "No data" placeholders.
 
-2. **Build product-brief.html** as a fully self-contained HTML5 document following the structure and design system defined in this skill. All CSS and JS inline — no external dependencies. Hub link in the header should point to `hub.html` (relative — hub lives in the same briefs/ directory).
+2. **Build product-brief.html** using the LTM template at `~/.meridian/core/memory/standards/templates/product-brief.html` as the structural reference, and `~/.meridian/core/memory/standards/templates/brief-common.css` for the design system. All CSS and JS inline — no external dependencies. Hub link in the header should point to `hub.html` (relative — hub lives in the same briefs/ directory). Replace all `{PLACEHOLDER}` values with actual data from product.yaml.
 
 3. **Write the brief** to `output_path` using the Write tool.
 
@@ -110,7 +112,16 @@ Content blocks:
 - **Assumptions** — list items, each as a card with water-color left border
 - **Out of Scope** — one card per entry with earth-color left border, showing `category` and `rationale`
 
-### Tab 4 — Comments
+### Tab 4 — Profiles
+
+Renders from: `profiles` section (product_profile, nfr_profile, quality_profile). **Skip this entire tab if profiles section is absent from product.yaml.**
+
+Content blocks:
+- **Product Profile** — profile-table with columns: Dimension, Level, Rationale. 7 rows (PP-1: User Sophistication through PP-7: Industry Vertical). Level cell uses `level-cell` class.
+- **NFR Profile** — profile-table with columns: Dimension, Level, Rationale. 7 rows (NFR-1: Risk through NFR-7: Data Sensitivity).
+- **Quality Profile** — profile-table with columns: Dimension, Level, Rationale. 7 rows (QP-1: Testing Depth through QP-7: Security Testing).
+
+### Tab 5 — Comments
 
 Shows all inline comments collected via text selection. See Inline Comment System below.
 
@@ -465,7 +476,7 @@ brief:
 - NEVER modify input artifacts — read-only
 - NEVER include engineering implementation details in any tab content
 - ALWAYS use the LifeOS Dark design tokens defined in this skill
-- ALWAYS implement the four-tab layout: Market Context, Vision, Scope, Comments
+- ALWAYS implement the five-tab layout: Market Context, Vision, Scope, Profiles, Comments (Profiles tab omitted if profiles section absent from product.yaml)
 - ALWAYS implement the inline text selection comment system (not section toggles)
 - NEVER regenerate hub.html — that is owned by the doc-builder agent
 - ALWAYS write to the `output_path` provided by the calling agent

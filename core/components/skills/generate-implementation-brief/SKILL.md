@@ -47,7 +47,7 @@ For each artifact in the `artifacts` list:
 
 2. **Parse YAML content.** Extract fields needed for the tabs defined in the tab mapping below.
 
-3. **Render the brief.** Construct the HTML document using the structure, design system, and tab mapping defined below.
+3. **Render the brief.** Use the LTM template at `~/.meridian/core/memory/standards/templates/{artifact}-brief.html` as the structural reference, and `~/.meridian/core/memory/standards/templates/brief-common.css` for the design system. Replace all `{PLACEHOLDER}` values with actual data from the source YAML. For architecture-brief, also read `quality-standards.yaml` and `product.yaml` (via `profiles_ref`) for the Quality Standards and Profiles tabs.
 
 4. **Write the brief** to `output_base/{artifact}-brief.html` using the Write tool. Hub link in the header should point to `hub.html` (relative — hub lives in the same briefs/ directory).
 
@@ -67,10 +67,12 @@ Each brief's tabs are defined by its source YAML. The last tab is always **Comme
 
 | Tab | Content |
 |-----|---------|
-| Architecture | `principles`, `architecture`, `nfrs` |
-| Stack & Platforms | `stack`, `platforms`, `integrations` |
-| Agentic | `agentic` (PCAM: perception, cognition, action, memory) |
-| Operations | `technical_risks`, `deployment`, `observability` |
+| Architecture | `principles`, `architecture` (topology, deployment_units), `nfrs` (performance, scalability, security, availability, compliance — each with requirement + priority) |
+| Stack & Platforms | `stack` (component, technology, purpose, rationale), `platforms` (category, platform, purpose, rationale, features_served), `integrations` (name, type, provider, purpose, direction, auth_method, features_served) |
+| Agentic | `agentic` PCAM: `perception` (signal, source, format), `cognition` (agent, role, autonomy, model), `action` (tool, purpose, available_to), `memory` (approach, stm, ltm, embeddings). Skip tab if agentic section absent. |
+| Quality Standards | From `quality-standards.yaml` (read at `{artifact_base}/quality-standards.yaml`): per-QP-dimension standards (`.qs-dimension` cards with qp_level, strategy, tooling fields), `debt_baseline` table (`.debt-table`: QP Dimension, Target Level, Current Level, Gap, Remediation). Skip tab if quality-standards.yaml missing. |
+| Profiles | From `product.yaml` (read at `{artifact_base}/product.yaml` via `profiles_ref` in architecture.yaml): PP, NFR, QP profile tables (`.profile-table`: Dimension, Level, Rationale). Skip tab if profiles_ref absent or product.yaml not found. |
+| Operations | `technical_risks` (risk, affected_features, severity, mitigation), `deployment` (service, platform, purpose), `observability` (tracing, metrics, logging) |
 | Comments | All inline comments + export |
 
 ### tech-brief.html
