@@ -1,0 +1,84 @@
+analysis:
+  branch: feature/127-domain-memory-module-taxonomy-profiling-epic-rules
+  base: main
+  branch_pattern: feature
+  commits: 3
+  changes:
+    files: 67
+    additions: 4762
+    deletions: 1
+  suggested_title: "feat(memory): add domain taxonomy, project profiling, architecture knowledge, and epic management rules (#127)"
+
+  context:
+    file_patterns_matched:
+      - name: "Documentation (*.md)"
+        files: 63
+        trigger: "*.md, **/docs/**"
+      - name: "Configuration (*.yaml)"
+        files: 4
+        trigger: "*.yaml, *.yml"
+      - name: "Sync Required (core/components/**)"
+        files: 54
+        trigger: "core/components/**"
+    commit_types:
+      - type: feat
+        count: 2
+        examples:
+          - "feat(memory): add architecture knowledge — patterns, stacks, platforms, data, operations, agentic (#127)"
+          - "feat(memory): add domain taxonomy, project profiling, and epic management rules (#127)"
+      - type: chore
+        count: 1
+        examples:
+          - "chore(stm): record start-feature-planning evidence for #127"
+    branch_modifiers:
+      - "feature branch — standard priorities apply (no hotfix/release overrides)"
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: "No merge conflicts"
+        trigger: "Universal rule — always applies"
+        status: PASS
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree SHA d536ce0072992584d400e71c3698a621701507ac with exit code 0"
+
+      - id: no-secrets
+        item: "No secrets committed"
+        trigger: "Universal rule — always applies"
+        status: PASS
+        evidence: "Pattern scan of all changed files found only documentation references to secrets management concepts (in architecture knowledge .md files). No actual credentials, API keys, tokens, or private keys found in any changed file."
+
+      - id: sync-claude
+        item: "Components synced with core/components/"
+        trigger: "54 files changed under core/components/memory/ — sync-required rule triggered"
+        status: REVIEW
+        evidence: "54 files changed in core/components/memory/knowledge/ and core/components/memory/standards/. Run /sync-claude after merge to deploy updated memory to ~/.meridian/core/memory/ and ~/.claude/. Verify with: ls ~/.meridian/core/memory/knowledge/domain-taxonomy/ && ls ~/.meridian/core/memory/knowledge/architecture/"
+
+      - id: config-valid
+        item: "Configuration syntax valid (YAML files)"
+        trigger: "4 .yaml files changed — configuration rule triggered"
+        status: PASS
+        evidence: "Python yaml.safe_load validation passed for all 4 changed YAML files: args.yaml, branch-result.yaml, issue-resolution.yaml, _pending/args.yaml. All are well-formed STM evidence artifacts."
+
+      - id: feat-documented
+        item: "Feature documented in README or docs"
+        trigger: "feat: commits present — new feature must have documentation"
+        status: PASS
+        evidence: "The feature IS documentation — 53 new .md files in core/components/memory/knowledge/ constitute the feature content itself (domain taxonomy, project profiling, architecture knowledge, epic rules). The memory module IS the documented artifact."
+
+    nice_to_have:
+      - id: feat-adr
+        item: "Significant features have ADR"
+        trigger: "feat: with large change set (54 new/modified core component files, 4762 insertions) — may warrant ADR"
+        status: REVIEW
+        evidence: "No new ADR added for this significant knowledge expansion (existing ADRs: 0 changed in docs/adr/). Author should consider whether a new ADR is warranted for the domain memory taxonomy and project profiling additions given the architectural scope. Not blocking."
+
+      - id: config-documented
+        item: "Configuration changes documented"
+        trigger: ".gitignore change — config documentation rule triggered"
+        status: PASS
+        evidence: ".gitignore updated with '!core/components/memory/knowledge/architecture/data/' negation pattern to allow architecture/data/ knowledge files to be tracked despite the data/ ignore rule. Purpose is self-evident from the exception pattern."
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Create PR"

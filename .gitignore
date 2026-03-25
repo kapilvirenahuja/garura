@@ -79,6 +79,7 @@ __pycache__/
 *.sqlite3
 *.db
 data/
+!core/components/memory/knowledge/architecture/data/
 
 # Temporary files
 tmp/

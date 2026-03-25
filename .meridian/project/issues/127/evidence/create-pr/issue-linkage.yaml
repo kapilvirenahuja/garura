@@ -1,0 +1,12 @@
+issue:
+  number: 127
+  title: "Domain Memory: Module-Feature Taxonomy, Project Profiling Dimensions, and Epic Management Rules"
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/127"
+  state: "OPEN"
+  labels:
+    - "enhancement"
+  body_summary: "Build a domain memory system for Meridian with three core concepts: Part 1: Domain → Module → Feature Taxonomy, Part 2: Project Profiling Dimensions, Part 3: Epic Management Rules"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "feature"
