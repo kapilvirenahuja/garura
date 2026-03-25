@@ -1,0 +1,15 @@
+result:
+  success: true
+  branch:
+    name: "fix/152-context-isolated-validation"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/fix/152-context-isolated-validation"
+  worktree:
+    used: false
+    path: null
+    reason: "Working tree had only untracked files — no stash or worktree needed"
+  error: null
+  commit_sha: "ce12ce4a4c4b2fd477b98d695b49080fe0dafc66"
+  issue: 152
+  issue_title: "Fix self-validation pattern: replace same-agent validation with context-isolated judge across discover-product, plan-roadmap, prepare-architecture"
