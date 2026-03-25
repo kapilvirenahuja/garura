@@ -154,7 +154,7 @@ Then check `stm.epics_path` is non-null.
 Update status file: `scope-epics → completed`.
 
 **Step 2 Evals (C5, C6, C7, C13, C14, F1, F2, F3, F9):**
-- **SE-1 (F1):** Read `stm.epics_path` — count top-level epic entries. PASS if count is between 3 and 6 inclusive. FAIL if count < 3 or > 6. Halt on FAIL.
+- **SE-1 (F1):** Read `stm.epics_path` — verify each epic represents a distinct capability (not task-level granularity) and that no epic bundles multiple unrelated capabilities. PASS if every epic has a unique `strategic_goal_ref` or a clearly distinct scope within a shared goal. FAIL if any epic is task-level (e.g., "add button") or merges unrelated capabilities. Halt on FAIL.
 - **SE-3 (F2):** For every epic in `stm.epics_path`, verify `strategic_goal_ref` field matches a goal ID (`SG*`) present in `product.yaml` `strategic_goals` (C7). PASS if all match. FAIL if any epic's `strategic_goal_ref` does not appear in product.yaml. Halt on FAIL.
 - **SE-5 (F3):** For every epic, verify `intent` (p1/p2/p3), `constraints` (in_scope/out_of_scope/must_not_break), `success_scenarios` (min 2, given/when/then), `failure_conditions` (2-4 entries) are all present and non-empty (C6). PASS if all epics have all fields. FAIL if any field is missing or empty. Halt on FAIL.
 - **SE-9 (C12):** Read `stm.product_yaml_path` — check for a `profiles` section. If profiles are present, verify the scope-epics contract includes `config.profiles` in the returned contract. PASS if profiles were passed or product.yaml has no profiles section. FAIL if product.yaml has profiles but they were not passed to the agent.
@@ -458,7 +458,7 @@ Then check `stm.roadmap_yaml_path` is non-null.
 Update status file: `produce-roadmap → completed`.
 
 **Step 6 Evals (C5, C7, C6, C8, C9, F1, F2, F3, F5):**
-- **SE-2 (F1):** Read `stm.roadmap_yaml_path` — count entries across all `timeline[].epic_refs` arrays. PASS if total epic refs is between 3 and 6 inclusive. FAIL if < 3 or > 6. Halt on FAIL.
+- **SE-2 (F1):** Read `stm.roadmap_yaml_path` — verify every epic in `timeline[].epic_refs` has a corresponding entry in `feasibility[]` and traces to a strategic goal. PASS if all epic refs are accounted for. FAIL if any epic ref is orphaned (no feasibility entry or no goal trace). Halt on FAIL.
 - **SE-4 (F2):** For each entry in `roadmap.yaml` `feasibility[]`, verify `epic_ref` corresponds to an epic referenced in `timeline`. PASS if all match. FAIL if any mismatch. Halt on FAIL.
 - **SE-6 (F3):** Verify `roadmap.yaml` contains non-empty: `thesis`, `narrative`, at least 1 horizon in `timeline`, at least 1 entry in `feasibility`, `critical_blockers` (may be empty list), `open_questions` (may be empty list), `risk_summary` (C6). PASS if all present. FAIL if any missing or null. Halt on FAIL.
 - **SE-8 (F5):** Read `roadmap.yaml` — verify `approved_brief_ref` field is present and points to an existing file (C8). PASS if exists. FAIL if absent or file missing. Halt on FAIL.
@@ -728,7 +728,7 @@ When an agent returns `step_failure` (non-null):
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:4b591584665fcc6aee86d805fe5a153bdc0f2328647db171c63eb3b5991d6a59 |
+| intent_hash | sha256:6f998167985aec73ba44d44ed2ef42c5ec7f72112c3ab087115034c7f066693f |
 | compiled_by | create-recipe |
 | compiled_at | 2026-03-25 |
 | maturity | L2 |

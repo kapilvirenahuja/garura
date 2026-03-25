@@ -32,12 +32,9 @@ These fields define the epic's intent, boundaries, and success/failure criteria.
 | `success_scenarios` | list | Minimum 2 items, each a string | Given/when/then format. Binary testable — a reviewer must be able to say pass or fail. |
 | `failure_conditions` | list | 2–4 items, each a string | Observable outcomes that signal the epic failed its intent. Not risks — outcomes a reviewer can point to. |
 
-## Count Constraint
+## Scoping Principle
 
-- **Minimum:** 3 epics
-- **Maximum:** 6 epics
-
-If the vision warrants more than 6, consolidate by merging related deliverables into larger epics. Never exceed 6.
+The number of epics is determined by the product's strategic goals — each epic must represent a distinct, deliverable capability. The count is a natural outcome of the vision, not an artificial constraint.
 
 ## Prohibited Fields
 
@@ -95,7 +92,7 @@ epics:
 
 Before writing `epics.yaml`, verify:
 
-- [ ] Epic count is between 3 and 6 (inclusive)
+- [ ] Each epic represents a distinct, deliverable capability
 - [ ] Every epic has ALL 10 scoping fields AND ALL 4 IDD fields (14 total)
 - [ ] No epic has any prohibited field
 - [ ] `bucket` values are lowercase: `near`, `mid`, or `long` — NOT `Near`, `Mid`, `Far`, `horizon`
