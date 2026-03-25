@@ -1,0 +1,22 @@
+result:
+  status: merged
+  pr_number: 149
+  merge_sha: 55b8a67962a21b4fd1b4c7122b3c6b6e9bbaa256
+  merged_at: "2026-03-25T06:25:05Z"
+  base_branch: main
+  head_branch: feature/148-prepare-architecture-profiles-quality
+  branch_deleted: true
+  branch_absent_locally: true
+  branch_absent_remotely: true
+  error: null
+
+evals:
+  SE-1: PASS  # PR not in conflict state — mergeable before merge
+  SE-2: PASS  # Feature branch deleted locally and remotely
+  SE-3: PASS  # Local checkout on main, up to date with origin/main
+  SE-4: PASS  # Pre-merge working tree was clean
+  SE-5: PASS  # PR merged on platform with valid pr_number and merge_sha
+
+scenario_evals:
+  SCE-1: PASS  # HEAD on main, git pull returns "Already up to date", branch absent locally and remotely
+  SCE-2: PASS  # Platform PR state = MERGED, merge_sha 55b8a67 present in git log on main
