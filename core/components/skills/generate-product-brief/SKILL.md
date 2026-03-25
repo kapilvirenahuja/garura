@@ -14,7 +14,7 @@ Model-invocable skill for generating a self-contained HTML brief from product.ya
 
 ## Purpose
 
-Read product.yaml from STM and produce a self-contained `product-brief.html` document that a human can open in a browser to review product discovery results and provide inline feedback via text selection. The brief uses the LifeOS Dark design system with tabbed navigation and an inline comment system (select text to annotate).
+Read product.yaml from STM and produce a self-contained `product-brief.html` document that a human can open in a browser to review product discovery results and provide inline feedback via text selection. The brief uses the Phoenix design system with tabbed navigation and an inline comment system (select text to annotate).
 
 You DO generate the HTML artifact. You do NOT regenerate hub.html (that is owned by the doc-builder agent), interpret feedback, or decide what happens next.
 
@@ -30,7 +30,7 @@ Produces two HTML files (not YAML). Output metadata returned to the calling agen
 | `brief.format` | string | Always `"html"` |
 | `brief.self_contained` | boolean | Always `true` — no external CSS, JS, or font dependencies |
 
-HTML design system and structure are defined in this skill's `## Design System` and `## HTML Structure` sections. See also `core/components/memory/brief-principles.md` for the LifeOS Dark design language and interaction patterns this skill implements.
+HTML design system and structure are defined in this skill's `## Design System` and `## HTML Structure` sections. See also `core/components/memory/brief-principles.md` for the Phoenix design language and interaction patterns this skill implements.
 
 ## Input
 
@@ -100,7 +100,7 @@ Content blocks:
 Renders from: `value_proposition`, `strategic_goals`, `success_metrics`
 
 Content blocks:
-- **Value Proposition** — highlighted box (`rgba(88,166,255,0.08)` background, blue border)
+- **Value Proposition** — highlighted box (`rgba(0,212,255,0.08)` background, blue border)
 - **Strategic Goals** — numbered cards with air-color left border; each shows: id, title, description, metric, target, measurement
 - **Success Metrics** — table with columns: Goal Ref, Metric, Target, Measurement Method
 
@@ -127,31 +127,31 @@ Shows all inline comments collected via text selection. See Inline Comment Syste
 
 ## Design System
 
-Use the LifeOS Dark design system. All values embedded inline in the `<style>` block.
+Use the Phoenix design system. All values embedded inline in the `<style>` block.
 
 ### Color Tokens
 
 ```css
 :root {
-  --bg-primary: #0D1117;
-  --bg-secondary: #161B22;
-  --bg-tertiary: #21262D;
-  --text-primary: #e0e0e8;
-  --text-secondary: #8B949E;
-  --text-dimmed: #484f58;
-  --color-air: #39D353;
-  --color-water: #58A6FF;
-  --color-earth: #8B949E;
-  --color-fire: #F0A000;
+  --bg-primary: #1A2332;
+  --bg-secondary: #212D3B;
+  --bg-tertiary: #2A3645;
+  --text-primary: #E8EDF2;
+  --text-secondary: #94A3B8;
+  --text-dimmed: #64748B;
+  --color-air: #00D26A;
+  --color-water: #00D4FF;
+  --color-earth: #94A3B8;
+  --color-fire: #E8731A;
   --status-draft: #fbbf24;
-  --status-validated: #4ade80;
-  --status-locked: #58A6FF;
-  --border-default: #30363d;
-  --border-accent: #58A6FF;
-  --shadow-retro: 4px 4px 0 rgba(33,38,45,1);
-  --comment-highlight: rgba(240,160,0,0.2);
-  --comment-highlight-hover: rgba(240,160,0,0.35);
-  --comment-popup-bg: #21262D;
+  --status-validated: #00D26A;
+  --status-locked: #00D4FF;
+  --border-default: #2E3D4F;
+  --border-accent: #00D4FF;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --comment-highlight: rgba(255,60,172,0.2);
+  --comment-highlight-hover: rgba(255,60,172,0.35);
+  --comment-popup-bg: #2A3645;
 }
 ```
 
@@ -159,15 +159,15 @@ Use the LifeOS Dark design system. All values embedded inline in the `<style>` b
 
 ```css
 body {
-  font-family: 'Arial Rounded MT Bold', 'Nunito', 'Varela Round', system-ui, sans-serif;
+  font-family: 'DM Sans', 'Space Grotesk', -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.6;
   color: var(--text-primary);
   background: var(--bg-primary);
 }
-code, pre, .mono { font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+code, pre, .mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
 h1 { font-size: 28px; color: var(--color-water); border-bottom: 1px solid var(--border-default); padding-bottom: 8px; }
-h2 { font-size: 20px; color: var(--color-air); border-bottom: 1px solid var(--border-default); padding-bottom: 8px; }
+h2 { font-size: 20px; color: var(--color-water); border-bottom: 1px solid var(--border-default); padding-bottom: 8px; }
 h3 { font-size: 16px; color: var(--text-primary); }
 ```
 
@@ -184,7 +184,7 @@ h3 { font-size: 16px; color: var(--text-primary); }
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: 8px;
-  box-shadow: var(--shadow-retro);
+  box-shadow: var(--shadow);
   padding: 20px;
   margin-bottom: 16px;
 }
@@ -196,8 +196,8 @@ h3 { font-size: 16px; color: var(--text-primary); }
 .card-fire  { border-left: 3px solid var(--color-fire); }
 
 .highlight-box {
-  background: rgba(88,166,255,0.08);
-  border: 1px solid rgba(88,166,255,0.2);
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.2);
   border-radius: 8px;
   padding: 16px 20px;
   margin-bottom: 16px;
@@ -205,13 +205,13 @@ h3 { font-size: 16px; color: var(--text-primary); }
 
 .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
 .badge-draft     { background: rgba(251,191,36,0.15); color: var(--status-draft); }
-.badge-validated { background: rgba(74,222,128,0.15); color: var(--status-validated); }
-.badge-locked    { background: rgba(88,166,255,0.15); color: var(--status-locked); }
+.badge-validated { background: rgba(0,210,106,0.15); color: var(--status-validated); }
+.badge-locked    { background: rgba(0,212,255,0.15); color: var(--status-locked); }
 
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th { background: var(--bg-tertiary); color: var(--text-primary); padding: 10px 12px; text-align: left; }
 td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); color: var(--text-secondary); }
-tr:hover { background: rgba(88,166,255,0.05); }
+tr:hover { background: rgba(0,212,255,0.05); }
 ```
 
 ### Tab Bar
@@ -291,9 +291,9 @@ tr:hover { background: rgba(88,166,255,0.05); }
   <h2>Comments</h2>
   <div id="comments-list"><!-- populated by renderComments() --></div>
   <div style="margin-top:24px; border-top:1px solid var(--border-default); padding-top:16px;">
-    <button onclick="exportFeedback('tether')" class="action-btn" style="background:rgba(57,211,83,0.15); color:var(--color-air); border:1px solid var(--color-air);">Tether</button>
-    <button onclick="exportFeedback('vanish')" class="action-btn" style="background:rgba(240,160,0,0.15); color:var(--color-fire); border:1px solid var(--color-fire);">Vanish</button>
-    <button onclick="exportFeedback('orbit')" class="action-btn" style="background:rgba(88,166,255,0.15); color:var(--color-water); border:1px solid var(--color-water);">Orbit</button>
+    <button onclick="exportFeedback('tether')" class="action-btn" style="background:rgba(0,210,106,0.15); color:var(--color-air); border:1px solid var(--color-air);">Tether</button>
+    <button onclick="exportFeedback('vanish')" class="action-btn" style="background:rgba(232,115,26,0.15); color:var(--color-fire); border:1px solid var(--color-fire);">Vanish</button>
+    <button onclick="exportFeedback('orbit')" class="action-btn" style="background:rgba(0,212,255,0.15); color:var(--color-water); border:1px solid var(--color-water);">Orbit</button>
     <button onclick="exportFeedback(null)" class="action-btn" style="background:var(--bg-tertiary); color:var(--text-secondary); border:1px solid var(--border-default);">Export JSON</button>
   </div>
 </div>
@@ -475,7 +475,7 @@ brief:
 - NEVER use JavaScript frameworks or libraries — vanilla JS only
 - NEVER modify input artifacts — read-only
 - NEVER include engineering implementation details in any tab content
-- ALWAYS use the LifeOS Dark design tokens defined in this skill
+- ALWAYS use the Phoenix design tokens defined in this skill
 - ALWAYS implement the five-tab layout: Market Context, Vision, Scope, Profiles, Comments (Profiles tab omitted if profiles section absent from product.yaml)
 - ALWAYS implement the inline text selection comment system (not section toggles)
 - NEVER regenerate hub.html — that is owned by the doc-builder agent

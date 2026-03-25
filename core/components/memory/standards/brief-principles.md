@@ -10,62 +10,80 @@ Every artifact (product, roadmap, features, architecture, tech, scenarios, plan)
 4. **Common CSS.** One token system, one stylesheet authored once, inlined into every brief.
 5. **Hub page.** A central `hub.html` links to all briefs with status and summary.
 
-## Design System: LifeOS Dark
+## Design System: Phoenix
 
-All briefs use the same design system. No exceptions.
+All briefs use the Phoenix Design System v2.0. No exceptions.
+
+Source: `Phoenix Design System.md` in the design-system artifacts directory.
+Theme: Dark-first, warm slate backgrounds, cyan primary, phoenix orange secondary.
+
+### Design Principles
+
+1. **Dark-First** — Warm slate backgrounds (`#1A2332`), not pure black.
+2. **Cyan Primary** — Cyan `#00D4FF` is the primary UI accent — headings, nav, active states, borders.
+3. **Phoenix Orange Secondary** — Orange `#E8731A` for warmth, attention, risks. NOT the primary UI color.
+4. **Magenta Interactive** — Magenta `#FF3CAC` for interactive elements — comment highlights, callout badges.
+5. **Dark text on bright backgrounds** — When text sits on cyan/magenta backgrounds, use dark `#0D0D0D`, not white.
+6. **Technical Typography** — Space Grotesk for headings/UI, DM Sans for body, JetBrains Mono for code.
 
 ### Color Tokens
 
 ```css
 :root {
-  /* Backgrounds */
-  --bg-primary: #0D1117;
-  --bg-secondary: #161B22;
-  --bg-tertiary: #21262D;
+  /* Backgrounds (Warm Slate — NOT pure black, NOT blue-navy) */
+  --bg-primary: #1A2332;
+  --bg-secondary: #212D3B;
+  --bg-tertiary: #2A3645;
 
   /* Text */
-  --text-primary: #e0e0e8;
-  --text-secondary: #8B949E;
-  --text-dimmed: #484f58;
+  --text-primary: #E8EDF2;
+  --text-secondary: #94A3B8;
+  --text-dimmed: #64748B;
+  --text-muted: #64748B;
 
-  /* Four-element accents */
-  --color-air: #39D353;       /* Green — success, approved, growth */
-  --color-water: #58A6FF;     /* Blue — links, info, navigation */
-  --color-earth: #8B949E;     /* Gray — neutral, secondary, muted */
-  --color-fire: #F0A000;      /* Orange — warning, attention, risks */
+  /* Four-element accents (Phoenix-mapped) */
+  --color-air: #00D26A;       /* Green — success, approved, growth */
+  --color-water: #00D4FF;     /* Cyan — primary UI accent, links, info, navigation */
+  --color-earth: #94A3B8;     /* Muted — neutral, secondary, deferred */
+  --color-fire: #E8731A;      /* Phoenix orange — attention, risks, warmth */
+  --color-magenta: #FF3CAC;   /* Magenta — interactive highlights, callouts */
 
   /* Status badges */
-  --status-draft: #fbbf24;
-  --status-validated: #4ade80;
-  --status-locked: #58A6FF;
+  --status-draft: #FBBF24;
+  --status-validated: #00D26A;
+  --status-locked: #00D4FF;
 
   /* Borders & Effects */
-  --border-default: #30363d;
-  --border-accent: #58A6FF;
-  --shadow-retro: 4px 4px 0 rgba(33,38,45,1);
+  --border-default: #2E3D4F;
+  --border-accent: #00D4FF;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --glow: rgba(0,212,255,0.2);
 
-  /* Inline comments */
-  --comment-highlight: rgba(240,160,0,0.2);
-  --comment-highlight-hover: rgba(240,160,0,0.35);
-  --comment-popup-bg: #21262D;
+  /* Inline comments (magenta interactive — Phoenix principle #4) */
+  --comment-highlight: rgba(255,60,172,0.2);
+  --comment-highlight-hover: rgba(255,60,172,0.35);
+  --comment-popup-bg: #2A3645;
 }
 ```
 
 ### Typography
 
 ```css
-/* Body */
-font-family: 'Arial Rounded MT Bold', 'Nunito', 'Varela Round', system-ui, sans-serif;
+/* Headings / UI (Space Grotesk) */
+font-family: 'Space Grotesk', -apple-system, sans-serif;
+
+/* Body text (DM Sans) */
+font-family: 'DM Sans', 'Space Grotesk', -apple-system, sans-serif;
 font-size: 15px;
 line-height: 1.6;
 
-/* Code / Monospace */
-font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+/* Code / Monospace (JetBrains Mono) */
+font-family: 'JetBrains Mono', monospace;
 font-size: 13px;
 
 /* Headings */
-h1: 28px, --color-water, bottom border
-h2: 20px, --color-air, bottom border
+h1: 28px, --color-water (cyan), bottom border
+h2: 20px, --color-water (cyan), bottom border
 h3: 16px, --text-primary
 ```
 
@@ -80,11 +98,11 @@ All styling is authored once as a common token set + component classes. Each bri
 (Source: `core/components/memory/standards/templates/brief-common.css` — deployed via `/sync-claude` or `/sync-droids`)
 
 This file is the single source of truth for all brief styling:
-- Token definitions (:root variables) — sourced from LifeOS dashboard design system
+- Token definitions (:root variables) — sourced from Phoenix Design System v2.0
 - Layout (container, header, tabs)
 - Components (cards, tables, badges, lists, epic cards, stat grid)
 - Profile tables, quality standards cards, debt baseline tables
-- Inline comment system (highlights, popup, comment list)
+- Inline comment system (magenta highlights, popup, comment list)
 - Export panel
 - Responsive rules
 
@@ -96,6 +114,7 @@ Individual briefs inline this CSS and add zero custom styles. HTML templates for
 - No JavaScript frameworks — vanilla JS only
 - Self-contained HTML5 document — opens in any browser
 - No build step required
+- Fonts declared in font-family stack with system fallbacks (no Google Fonts CDN import)
 
 ## Layout System
 
@@ -149,18 +168,19 @@ Sections are presented as tabs. One tab visible at a time.
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: 8px;
-  box-shadow: var(--shadow-retro);
+  box-shadow: var(--shadow);
   padding: 20px;
   margin-bottom: 16px;
+  transition: all 0.25s cubic-bezier(.4,0,.2,1);
 }
-.card:hover { border-color: var(--border-accent); }
+.card:hover { border-color: var(--border-accent); box-shadow: 0 0 20px var(--glow); }
 ```
 
 **Colored left borders** for categorization:
-- Air (green): positive — features, approved, in-scope
-- Water (blue): informational — architecture, components, scenarios
-- Fire (orange): attention — risks, blockers, failure conditions
-- Earth (gray): neutral — deferred, out-of-scope, notes
+- Air (green `#00D26A`): positive — features, approved, in-scope
+- Water (cyan `#00D4FF`): informational — architecture, components, scenarios
+- Fire (phoenix orange `#E8731A`): attention — risks, blockers, failure conditions
+- Earth (muted `#94A3B8`): neutral — deferred, out-of-scope, notes
 
 ### Tables
 
@@ -168,7 +188,7 @@ Sections are presented as tabs. One tab visible at a time.
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th { background: var(--bg-tertiary); color: var(--text-primary); padding: 10px 12px; }
 td { padding: 8px 12px; border-bottom: 1px solid var(--border-default); color: var(--text-secondary); }
-tr:hover { background: rgba(88,166,255,0.05); }
+tr:hover { background: rgba(0,212,255,0.05); }
 ```
 
 ## Inline Feedback System
@@ -208,7 +228,7 @@ tr:hover { background: rgba(88,166,255,0.05); }
 .comment-highlight {
   background: var(--comment-highlight);
   cursor: pointer;
-  border-bottom: 2px solid var(--color-fire);
+  border-bottom: 2px solid var(--color-magenta);
 }
 .comment-highlight:hover {
   background: var(--comment-highlight-hover);

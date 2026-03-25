@@ -185,7 +185,7 @@ Doc-builder handles: skill routing, output path computation under `briefs/`, hub
 
 - **SE-5 (F5):** Hub.html reflects all current briefs — no missing entries for briefs that exist, no entries for briefs that do not exist. Pass: Hub.html contains a card/link for every brief file that exists under briefs/. No card/link points to a non-existent brief. Fail: Hub.html has missing entries for briefs that exist, or entries for briefs that do not exist.
 
-- **SE-8 (F8):** All generated briefs and hub.html use the LifeOS Dark retro design system. Pass: Brief HTML files contain LifeOS Dark CSS tokens (--bg-primary, --color-air, --color-water, --shadow-retro, etc.). No brief uses browser default styling. Fail: Any generated brief or hub.html uses default unstyled HTML instead of the LifeOS Dark retro design system.
+- **SE-8 (F8):** All generated briefs and hub.html use the Phoenix Design System. Pass: Brief HTML files contain Phoenix CSS tokens (--bg-primary, --color-air, --color-water, --shadow, --glow, etc.) with warm slate backgrounds and cyan/orange accents. No brief uses browser default styling. Fail: Any generated brief or hub.html uses default unstyled HTML instead of the Phoenix Design System.
 
 - **SE-9 (F9):** Hub.html reflects all epics that have YAML artifacts on disk. Pass: Hub.html contains a section for every epic directory that has at least one YAML artifact. No section exists for epic directories with no YAML artifacts. Fail: An epic with artifacts is missing from hub.html, or an epic with no artifacts appears in hub.html.
 
