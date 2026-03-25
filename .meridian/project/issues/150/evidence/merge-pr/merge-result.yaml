@@ -1,0 +1,20 @@
+status: merged
+pr_number: 151
+merge_sha: f4a1830041d68c940b469456eac984fd1ca814f4
+base_branch: main
+branch_deleted: true
+merged_at: "2026-03-25T07:34:58Z"
+error: null
+branch_cleanup:
+  local: deleted_by_gh_during_merge
+  remote: deleted_by_platform_auto_delete
+  remote_prune: pruned_via_fetch
+evals:
+  SE-1: PASS  # mergeable == true before merge attempted
+  SE-2: PASS  # feature branch absent locally and remotely
+  SE-3: PASS  # local checkout on main, up to date with remote
+  SE-4: PASS  # working tree was clean before operation
+  SE-5: PASS  # PR merged with pr_number 151
+scenario_evals:
+  SCE-1: PASS  # on main, up to date, feature branch absent everywhere
+  SCE-2: PASS  # PR state MERGED, merge_sha f4a1830 present in git log on main
