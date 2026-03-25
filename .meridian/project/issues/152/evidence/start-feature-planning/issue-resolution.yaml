@@ -1,0 +1,12 @@
+issue:
+  number: 152
+  title: "Fix self-validation pattern: replace same-agent validation with context-isolated judge across discover-product, plan-roadmap, prepare-architecture"
+  labels:
+    - bug
+  state: open
+  body_summary: "The discover-product recipe has a structural flaw: `product-strategist` drafts the vision (Step 3) and then validates its own output (Step 6) using `validate-product-vision`. Same agent, same model, same context."
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/152"
+  created: true
+  closed: false
+  parent_issue: null
+  type_hint: "fix"
