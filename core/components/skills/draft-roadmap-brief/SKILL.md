@@ -108,11 +108,11 @@ Content derived from `product.yaml` and `epics.yaml`:
 #### Tab 2 — Timeline
 
 Content from `epics.yaml` `bucket` field and `feasibility.yaml`:
-- Group epics by their `bucket` value (near/mid/long), render a `.timeline-phase` section with label and feature cards
-- Each feature card shows: feature ID (F1, F2...), epic name, and corresponding risk_level badge from feasibility.yaml (green = low, orange = medium, red = high)
+- Group epics by their `bucket` value (near/mid/long), render a `.timeline-phase` section with label and epic cards
+- Each epic card shows: epic ID (E1, E2...), epic name, and corresponding risk_level badge from feasibility.yaml (green = low, orange = medium, red = high)
 - Phase labels: near → "MVP", mid → "MVP-Beyond", long → "Future"
-- Features within a phase display as a horizontal row or stacked cards depending on count
-- Assign F-IDs (F1, F2, F3...) to epics in the order they appear in epics.yaml — this mapping must be consistent throughout the brief and will carry forward to roadmap.yaml
+- Epics within a phase display as a horizontal row or stacked cards depending on count
+- Epics use E-IDs (E1, E2, E3...) as defined in epics.yaml — this mapping must be consistent throughout the brief and will carry forward to roadmap.yaml
 
 #### Tab 3 — Epics
 
@@ -227,7 +227,7 @@ brief:
 - NEVER regenerate hub.html — that is owned by the doc-builder agent
 - ALWAYS write to the `output_path` provided by the calling agent
 - ALWAYS read epics.yaml, feasibility.yaml, and product.yaml using the Read tool — do NOT rely on memory
-- ALWAYS assign F-IDs to epics consistently throughout the brief — this mapping carries forward to roadmap.yaml
+- ALWAYS use E-IDs from epics.yaml consistently throughout the brief — this mapping carries forward to roadmap.yaml
 - `user-invocable: false`
 
 ## Version

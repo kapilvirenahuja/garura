@@ -60,11 +60,11 @@ Verify brief is approved — check for Tether record in checkpoint. If not appro
    - **Top-level metadata**: slug (from product.yaml), status `"DRAFT"`, created_at (current ISO-8601), updated_at (current ISO-8601), product_ref (path to product.yaml), approved_brief_ref (`approved_roadmap_brief_path`)
    - **thesis**: extracted from The Bet section of the brief — 1–2 sentences
    - **narrative**: extracted from The Story section — 3–4 paragraphs as a YAML block scalar
-   - **timeline**: one entry per horizon (near/mid/long) with feature_refs using F-ID notation (F1, F2, etc.)
-   - **feasibility**: one entry per feature with all fields from feasibility.yaml — feature_ref (F-ID), risk_level, technical_risks (list with risk/severity/affected_systems/mitigation), blockers, sequencing_constraints, architecture_impact
+   - **timeline**: one entry per horizon (near/mid/long) with epic_refs using E-ID notation (E1, E2, etc.)
+   - **feasibility**: one entry per epic with all fields from feasibility.yaml — epic_ref (E-ID), risk_level, technical_risks (list with risk/severity/affected_systems/mitigation), blockers, sequencing_constraints, architecture_impact
    - **critical_blockers**: hard blockers from feasibility that must be resolved before proceeding — severity high or critical, affected_features, resolution
    - **open_questions**: unresolved technical or strategic questions from feasibility open_questions
-   - **risk_summary**: computed from feasibility data — total_features, high_risk_count, medium_risk_count, blocker_count, foundation_features
+   - **risk_summary**: computed from feasibility data — total_epics, high_risk_count, medium_risk_count, blocker_count, foundation_epics
    - **exclusions**: from product.yaml out_of_scope, preserved verbatim
    - **assumptions**: from product.yaml assumptions, preserved verbatim
 
@@ -72,9 +72,9 @@ Verify brief is approved — check for Tether record in checkpoint. If not appro
 
 7. **Return output contract.**
 
-## Feature ID Mapping
+## Epic ID Mapping
 
-Features referenced in timeline and feasibility use F-ID notation (F1, F2, F3...). The mapping from epic/feature names to F-IDs must be consistent throughout the document — if a feature is F2 in timeline, it is F2 in feasibility and risk_summary.
+Epics referenced in timeline and feasibility use E-ID notation (E1, E2, E3...). The mapping from epic names to E-IDs must be consistent throughout the document — if an epic is E2 in timeline, it is E2 in feasibility and risk_summary.
 
 ## Output
 
@@ -82,7 +82,7 @@ Features referenced in timeline and feasibility use F-ID notation (F1, F2, F3...
 roadmap:
   roadmap_yaml_path: "{full path to roadmap.yaml}"
   slug: "{slug}"
-  feature_count: {integer}
+  epic_count: {integer}
   feasibility_entries: {integer}
   high_risk_count: {integer}
   blocker_count: {integer}
@@ -98,8 +98,8 @@ roadmap:
 - ALWAYS include `approved_brief_ref` in roadmap.yaml
 - ALWAYS read from product.yaml (not vision.md) — product.yaml is the upstream input
 - ALWAYS consolidate feasibility data into roadmap.yaml — do NOT leave feasibility as a separate artifact
-- Feature IDs (F1, F2...) MUST be consistent across timeline, feasibility, risk_summary, and critical_blockers sections
-- All timeline feature_refs MUST have a corresponding feasibility entry
+- Epic IDs (E1, E2...) MUST be consistent across timeline, feasibility, risk_summary, and critical_blockers sections
+- All timeline epic_refs MUST have a corresponding feasibility entry
 - `user-invocable: false`
 
 ## Version

@@ -73,8 +73,8 @@ Read `product.yaml` at `.meridian/product/{slug}/product.yaml`. Extract:
 - `slug` — already resolved during pre-flight
 
 Read `roadmap.yaml` at `.meridian/product/{slug}/roadmap.yaml`. Extract:
-- `timeline` — horizons with `feature_refs` per horizon
-- `feasibility` — per-feature risk levels and blockers
+- `timeline` — horizons with `epic_refs` per horizon
+- `feasibility` — per-epic risk levels and blockers
 - Summary of epics, sequencing constraints, and risk landscape
 
 Store extracted context in memory for use in Steps 2–4 contracts. Write initial status file at `.meridian/product/{slug}/status/prepare-architecture.json`.
@@ -452,7 +452,7 @@ Run these scenario evals against the final artifacts:
 
 - **SCE-3 (S3 — Product Manager):** Read `.meridian/product/{slug}/briefs/architecture-brief.html`. Verify the Profiles Summary tab is present and renders all three profiles (PP, NFR, QP) with dimension levels. Verify the Architecture Overview tab presents high-level technology decisions in human-readable form without requiring deep technical knowledge. PASS if both tabs are present and navigable.
 
-- **SCE-4 (S4 — Implementation Agent):** Read `.meridian/product/{slug}/architecture.yaml`. For every feature referenced in `roadmap.yaml` `timeline[].feature_refs`, verify architecture coverage exists — either a `deployment_units` entry, a `stack` entry, a `platforms` entry with the feature in `features_served`, or an `integrations` entry with the feature in `features_served`. PASS if all roadmap features have corresponding architecture coverage. FAIL if any feature lacks coverage.
+- **SCE-4 (S4 — Implementation Agent):** Read `.meridian/product/{slug}/architecture.yaml`. For every epic referenced in `roadmap.yaml` `timeline[].epic_refs`, verify architecture coverage exists — either a `deployment_units` entry, a `stack` entry, a `platforms` entry with the epic in `features_served`, or an `integrations` entry with the epic in `features_served`. PASS if all roadmap epics have corresponding architecture coverage. FAIL if any epic lacks coverage.
 
 - **SCE-5 (S5 — Quality Lead):** Read `.meridian/product/{slug}/quality-standards.yaml`. Verify `debt_baseline.dimensions` covers all 7 QP dimensions (QP-1 through QP-7), each with `target_level`, `current_level: null`, `gap: null`, and `remediation: null`. Verify each `standards` section has a `qp_level` matching the product.yaml `quality_profile` level for that dimension. PASS if all dimensions are present, all `target_level` values match QP profile, and all `debt_baseline` entries are properly initialized. FAIL if any dimension is missing or any `qp_level` mismatches.
 

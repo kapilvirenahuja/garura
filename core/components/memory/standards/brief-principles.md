@@ -381,8 +381,8 @@ Source: `epics.yaml` + `feasibility.yaml` + `product.yaml` (rendered BEFORE road
 | Tab | Content |
 |-----|---------|
 | Strategy | thesis (synthesized from strategic_goals + epics), narrative (3-4 paragraphs), assumptions (from product.yaml), exclusions (from product.yaml out_of_scope) |
-| Timeline | epics grouped by bucket (near/mid/long) with risk badges from feasibility. Summary table: Epic, Horizon, Priority, Effort, Depends On, Reason |
-| Epics | Full IDD detail per epic: description, intent (p1/p2/p3), constraints (in_scope/out_of_scope/must_not_break), success_scenarios (given/when/then), failure_conditions. Each epic as an expandable card. |
+| Timeline | epics grouped by bucket (near/mid/long) with risk badges from feasibility. Summary table: Epic (E-ID), Horizon, Priority, Effort, Depends On, Reason. Epics use E-IDs (E1, E2...) not F-IDs. |
+| Epics | Full IDD detail per epic (E-ID): description, intent (p1/p2/p3), constraints (in_scope/out_of_scope/must_not_break), success_scenarios (given/when/then), failure_conditions, ltm_citations. Each epic as an expandable card. |
 | Feasibility | risk_summary stat cards, per-feature feasibility (risk_level, technical_risks table, blockers, sequencing_constraints, architecture_impact), critical_blockers, open_questions |
 | Comments | All inline comments + export |
 

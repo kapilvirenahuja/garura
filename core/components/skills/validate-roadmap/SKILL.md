@@ -27,7 +27,7 @@ Returns structured data (not a file). The `validation_result` object contains:
 | `issues` | list | yes | Each issue: `message` (string), `field` (YAML field name), `severity` (blocker/warning/suggestion) |
 | `checklist.thesis_defined` | boolean | yes | Non-empty `thesis` string present |
 | `checklist.narrative_sufficient` | boolean | yes | `narrative` has >= 3 paragraphs (separated by blank lines or newlines) |
-| `checklist.timeline_populated` | boolean | yes | >= 1 horizon in `timeline` with non-empty `feature_refs` list |
+| `checklist.timeline_populated` | boolean | yes | >= 1 horizon in `timeline` with non-empty `epic_refs` list |
 | `checklist.feasibility_entries_present` | boolean | yes | >= 1 entry in `feasibility` with `risk_level`, `technical_risks`, and `sequencing_constraints` |
 | `checklist.brief_ref_valid` | boolean | yes | `approved_brief_ref` points to an existing file path |
 | `checklist.blockers_resolved` | boolean | yes | `critical_blockers` array is empty or all entries marked resolved; `open_questions` array is present |
@@ -47,7 +47,7 @@ Receive from agent:
 
    - `thesis_defined`: `thesis` field is a non-empty string (not null, not blank, not a placeholder like "TBD")
    - `narrative_sufficient`: `narrative` field has >= 3 paragraphs. Count paragraphs as text blocks separated by double newlines or explicit newline sequences. A single-paragraph summary is insufficient.
-   - `timeline_populated`: `timeline` list has >= 1 entry (horizon) where `feature_refs` is a non-empty list. Each horizon should have a non-empty `name` or `label`.
+   - `timeline_populated`: `timeline` list has >= 1 entry (horizon) where `epic_refs` is a non-empty list. Each horizon should have a non-empty `name` or `label`.
    - `feasibility_entries_present`: `feasibility` list has >= 1 entry where `risk_level` is non-empty AND `technical_risks` is a non-empty list AND `sequencing_constraints` is present (may be empty list but key must exist)
    - `brief_ref_valid`: `approved_brief_ref` field is a non-empty string pointing to a file path. Read the file to confirm it exists. If the field is absent or the file does not exist, this check fails.
    - `blockers_resolved`: `critical_blockers` is an empty array OR all entries have a `resolved: true` field. `open_questions` key must be present (may be empty array).

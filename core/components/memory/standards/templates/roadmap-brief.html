@@ -273,17 +273,17 @@
 
     <h2>MVP</h2>
     <!-- {TIMELINE_NEAR}: epic summary cards for near-term / MVP horizon -->
-    <!-- Each card: epic F-ID badge (badge-near), name (card-title), risk badge (badge-low/medium/high) -->
+    <!-- Each card: epic E-ID badge (badge-near), name (card-title), risk badge (badge-low/medium/high) -->
     {TIMELINE_NEAR}
 
     <h2>MVP-Beyond</h2>
     <!-- {TIMELINE_MID}: epic summary cards for mid-term / MVP-Beyond horizon -->
-    <!-- Each card: epic F-ID badge (badge-mid), name (card-title), risk badge -->
+    <!-- Each card: epic E-ID badge (badge-mid), name (card-title), risk badge -->
     {TIMELINE_MID}
 
     <h2>Future</h2>
     <!-- {TIMELINE_LONG}: epic summary cards for long-term / Future horizon -->
-    <!-- Each card: epic F-ID badge (badge-long), name (card-title), risk badge -->
+    <!-- Each card: epic E-ID badge (badge-long), name (card-title), risk badge -->
     {TIMELINE_LONG}
 
   </div><!-- /timeline -->
@@ -297,7 +297,7 @@
       Epic card structure:
       <div class="epic-card">
         <div class="epic-header">
-          <h3>{F-ID} — {epic name}</h3>
+          <h3>{E-ID} — {epic name}</h3>
           <div class="epic-badges">
             <span class="badge badge-{bucket}">{bucket}</span>
             <span class="badge badge-{priority}">{priority}</span>
@@ -357,7 +357,7 @@
 
     <h2>Per-Feature Feasibility</h2>
     <!-- {FEASIBILITY_CARDS}: render one .card per feature with feasibility details -->
-    <!-- Each card: F-ID (card-subtitle), name (card-title), risk badge (badge-low/medium/high) -->
+    <!-- Each card: E-ID (card-subtitle), name (card-title), risk badge (badge-low/medium/high) -->
     <!-- Sections: technical_risks table (columns: Risk, Severity, Mitigation), -->
     <!--           blockers card-fire, sequencing note, architecture_impact note -->
     {FEASIBILITY_CARDS}
