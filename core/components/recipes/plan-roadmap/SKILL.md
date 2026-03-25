@@ -146,6 +146,16 @@ Pass the initialized contract as the ENTIRE agent prompt (JSON only, nothing els
 
 Agent reads `product.yaml` at `stm.product_yaml_path`. Epics reference strategic goals from `product.yaml` (`strategic_goals[].id`).
 
+**LTM context loading (agent responsibility):** Before invoking `scope-roadmap-epics`, the agent MUST search `~/.meridian/core/memory/` and pass these LTM paths to the skill:
+
+| LTM Artifact | Discovery Path | Skill Input Field |
+|--------------|----------------|-------------------|
+| Epic schema | `~/.meridian/core/memory/standards/templates/epic-schema.md` | `epic_schema_path` |
+| Epic management rules | `~/.meridian/core/memory/standards/agent-lifecycle/epic-management-rules.md` | `epic_rules_path` |
+| Domain taxonomy modules | `~/.meridian/core/memory/knowledge/domain-taxonomy/*.md` (glob all `.md` files) | `domain_taxonomy_paths` |
+
+The agent uses Glob to discover these paths. If a path does not exist, the agent omits it (the skill handles missing paths gracefully). The epic management rules enforce vertical-slice delivery and single-module-scope. The domain taxonomy defines module boundaries — without it, the skill cannot validate that epics stay within one domain module.
+
 **Expected return:** Contract with `stm.epics_path` populated, `step_failure` null.
 
 Check `step_failure` first — if non-null, read `domain_assessment.responsible_domain`, retry once with fix context. After 2 failures, halt with full failure context.
