@@ -71,7 +71,7 @@ if file_exists(status_path):
 
 ## Workflow
 
-10 steps, single flow. One invocation: assess → discover → draft → brief → checkpoint → validate → checkpoint → lock → evidence → summary.
+12 steps, single flow. One invocation: assess → discover → draft → derive-profiles → brief → checkpoint → validate → checkpoint → lock → evidence → summary.
 
 ### Step 1 — Assess Intent
 
@@ -253,24 +253,24 @@ The following profiles were derived from your product vision. Review and adjust 
 ### NFR Profile (NFR)
 | Dimension | Level | Label | Rationale |
 |-----------|-------|-------|-----------|
-| NFR-1: Performance Tier | {level} | {label} | {rationale} |
-| NFR-2: Availability Tier | {level} | {label} | {rationale} |
-| NFR-3: Security Tier | {level} | {label} | {rationale} |
-| NFR-4: Compliance Burden | {level} | {label} | {rationale} |
-| NFR-5: Data Sensitivity | {level} | {label} | {rationale} |
-| NFR-6: Scalability Horizon | {level} | {label} | {rationale} |
-| NFR-7: Observability Depth | {level} | {label} | {rationale} |
+| NFR-1: Risk | {level} | {label} | {rationale} |
+| NFR-2: Security | {level} | {label} | {rationale} |
+| NFR-3: Performance | {level} | {label} | {rationale} |
+| NFR-4: Availability | {level} | {label} | {rationale} |
+| NFR-5: Compliance | {level} | {label} | {rationale} |
+| NFR-6: Scalability | {level} | {label} | {rationale} |
+| NFR-7: Data Sensitivity | {level} | {label} | {rationale} |
 
 ### Quality Profile (QP)
 | Dimension | Level | Label | Rationale |
 |-----------|-------|-------|-----------|
-| QP-1: Test Coverage Depth | {level} | {label} | {rationale} |
-| QP-2: Code Review Rigor | {level} | {label} | {rationale} |
-| QP-3: Documentation Depth | {level} | {label} | {rationale} |
-| QP-4: API Contract Stability | {level} | {label} | {rationale} |
-| QP-5: Deployment Safety | {level} | {label} | {rationale} |
+| QP-1: Testing Depth | {level} | {label} | {rationale} |
+| QP-2: Code Quality Standards | {level} | {label} | {rationale} |
+| QP-3: Documentation Level | {level} | {label} | {rationale} |
+| QP-4: CI/CD Maturity | {level} | {label} | {rationale} |
+| QP-5: Observability Maturity | {level} | {label} | {rationale} |
 | QP-6: Accessibility Standard | {level} | {label} | {rationale} |
-| QP-7: Incident Response Readiness | {level} | {label} | {rationale} |
+| QP-7: Security Testing | {level} | {label} | {rationale} |
 
 ---
 Review the profiles above. Type **Tether** to accept, or provide adjustments in format:
@@ -546,6 +546,8 @@ Parse response:
 
 - **SE-18 (F12):** The recipe does not offer a bypass mechanism that allows the user to skip unresolved blockers. Pass: No "accept risk", "proceed despite blockers", or equivalent bypass language exists in Step 7. Blockers can only be resolved via RESOLVED or re-drafted via Vanish. Fail: The recipe offers a bypass mechanism — an accept-risk or proceed-despite-blockers option — that reaches lock without resolving each blocker individually.
 
+- **SE-22 (C9):** The recipe enforces type-dependent cycle-back iteration limits. Read `iteration_count` from the status file. For product type, verify iteration_count never exceeds 1 before halting. For library type, verify iteration_count never exceeds 2 before halting. Pass: When cycle-back occurs, iteration_count is incremented and checked against the type-dependent limit (1 for product, 2 for library). If the limit is reached, the recipe halts with F5 instead of proceeding. Fail: The recipe allows more cycle-back iterations than the type-dependent limit permits, or iteration_count is not tracked in the status file.
+
 ---
 
 ### Step 8 — Lock
@@ -683,7 +685,7 @@ For retries, add to contract:
 
 ## Pause and Resume
 
-Flat 10-task status file. Steps run top to bottom.
+Flat 13-task status file. Steps run top to bottom.
 
 **Slug detection:** Derive slug from intent text during pre-flight.
 
@@ -743,5 +745,5 @@ for each step in compiled order:
 | maturity | L2 |
 | workflow_structure | B |
 | agents | 1 domain (product-strategist) + 2 utility (doc-builder, repo-orchestrator) |
-| step_evals | 21 |
+| step_evals | 22 |
 | scenario_evals | 7 |
