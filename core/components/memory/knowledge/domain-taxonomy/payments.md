@@ -20,7 +20,7 @@ Any product that charges users needs payment processing. The question is scope: 
 - **Enterprise:** Payment gateway abstraction (swap providers without code changes), real-time payment status tracking, reconciliation automation, ledger-based accounting, support for complex payment structures (installments, escrow, split payments).
 
 **Signals:**
-Any product that charges money. PP-4 (Geographic Scope) >= 3 needs multi-currency and local payment methods. PP-5 (Integration Density) >= 3 suggests payment as a platform capability. PP-7 >= 4 (regulated) increases PCI-DSS compliance needs. NFR-4 (Availability) >= 3 needs gateway failover. BRD keywords: "payment", "checkout", "billing", "charge", "purchase", "transaction".
+Any product that charges money. PP-4 (Geographic Scope) >= 3 needs multi-currency and local payment methods. PP-5 (Integration Density) >= 3 suggests payment as a platform capability. PP-7 >= 4 (regulated) increases PCI-DSS compliance needs. NFR-4 (Availability) >= 3 needs gateway failover. QP-7 (Security Testing) >= 3 indicates SAST and dependency scanning should cover payment token handling, gateway integrations, and PCI-DSS scope boundaries. QP-1 (Testing Depth) >= 3 suggests integration tests for payment flows including gateway failover, webhook processing, and idempotency guarantees. QP-5 (Observability Maturity) >= 3 suggests metrics and alerting for payment success rates, gateway latency, and failed transaction patterns. BRD keywords: "payment", "checkout", "billing", "charge", "purchase", "transaction".
 
 **Tradeoffs:**
 Including at higher depth: revenue reliability, geographic expansion capability, compliance readiness, reduced payment failure rates. Cost: PCI-DSS compliance burden, gateway integration complexity, payment reconciliation overhead, financial regulation knowledge required on the team.
@@ -41,7 +41,7 @@ Checkout UX directly impacts conversion rate. A one-step checkout with saved pay
 - **Enterprise:** Invoicing flow (generate invoice, net-30/60 terms), PO number capture, approval workflow for large purchases, multi-currency display with conversion, tax calculation integration.
 
 **Signals:**
-PP-1 (User Sophistication) drives UX complexity: level 4-5 (consumer) needs express checkout; level 3 (business) needs invoicing options. PP-2 (UX Maturity) >= 3 expects polished payment experience. PP-6 = 1-2 (POC/MVP) can use hosted checkout pages. BRD keywords: "checkout", "cart", "purchase flow", "payment page", "conversion".
+PP-1 (User Sophistication) drives UX complexity: level 4-5 (consumer) needs express checkout; level 3 (business) needs invoicing options. PP-2 (UX Maturity) >= 3 expects polished payment experience. PP-6 = 1-2 (POC/MVP) can use hosted checkout pages. QP-6 (Accessibility Standard) >= 3 requires WCAG AA compliance for checkout forms, payment method selection, and order confirmation — checkout abandonment from inaccessible forms directly impacts revenue. QP-1 (Testing Depth) >= 3 suggests e2e tests covering the full checkout funnel including error states, validation, and express checkout paths. BRD keywords: "checkout", "cart", "purchase flow", "payment page", "conversion".
 
 **Tradeoffs:**
 Including at higher depth: higher conversion rates, reduced cart abandonment, better user experience, competitive parity. Cost: front-end development complexity, PCI-DSS scope (if handling card data directly), A/B testing investment, mobile-specific checkout optimization.
@@ -62,7 +62,7 @@ Fraud detection becomes essential when the application handles significant trans
 - **Enterprise:** Custom ML models trained on proprietary data, consortium data sharing, network-level fraud detection (cross-merchant patterns), regulatory reporting (SAR filings), integration with identity verification (KYC/KYB), real-time transaction monitoring dashboards.
 
 **Signals:**
-PP-7 (Industry Vertical) >= 4 (regulated commerce, BFSI) makes fraud detection essential. NFR-1 (Risk) >= 4 with payment flows needs fraud detection. PP-4 (Geographic) >= 3 (multi-country) increases fraud risk surface. Transaction volume above a few hundred per month warrants at least standard depth. BRD keywords: "fraud", "chargebacks", "risk", "suspicious activity", "transaction monitoring", "KYC".
+PP-7 (Industry Vertical) >= 4 (regulated commerce, BFSI) makes fraud detection essential. NFR-1 (Risk) >= 4 with payment flows needs fraud detection. PP-4 (Geographic) >= 3 (multi-country) increases fraud risk surface. Transaction volume above a few hundred per month warrants at least standard depth. QP-1 (Testing Depth) >= 4 suggests comprehensive tests for fraud rule evaluation including edge cases, false positive scenarios, and ML model regression tests. QP-5 (Observability Maturity) >= 3 suggests real-time metrics and alerting for fraud scoring latency, rule trigger rates, and manual review queue depth. BRD keywords: "fraud", "chargebacks", "risk", "suspicious activity", "transaction monitoring", "KYC".
 
 **Tradeoffs:**
 Including: reduced chargeback rates, regulatory compliance, revenue protection, customer trust. Cost: false positive rate (legitimate transactions blocked), ML model training and maintenance, review team for manual queue, additional latency in payment flow, vendor costs for fraud scoring services.
@@ -83,7 +83,7 @@ Any product that processes payments will eventually need to issue refunds. The d
 - **Enterprise:** Multi-party refund orchestration (marketplace), credit-based refunds (store credit instead of money back), regulatory refund compliance (cooling-off periods), integration with accounting systems for refund reconciliation.
 
 **Signals:**
-Required whenever PM-F001 exists. PP-7 >= 3 (professional services and above) has regulatory refund obligations. PP-3 = 5 (multi-sided platform) needs multi-party refund logic. Volume above a few hundred transactions/month justifies in-app refund management. BRD keywords: "refund", "return", "chargeback", "dispute", "cancellation".
+Required whenever PM-F001 exists. PP-7 >= 3 (professional services and above) has regulatory refund obligations. PP-3 = 5 (multi-sided platform) needs multi-party refund logic. Volume above a few hundred transactions/month justifies in-app refund management. QP-1 (Testing Depth) >= 3 suggests integration tests for refund scenarios including partial refunds, cross-currency refunds, and chargeback evidence submission workflows. QP-5 (Observability Maturity) >= 3 suggests metrics and alerting for refund processing times, dispute resolution rates, and chargeback ratio thresholds. BRD keywords: "refund", "return", "chargeback", "dispute", "cancellation".
 
 **Tradeoffs:**
 Including at higher depth: reduced support burden, faster dispute resolution, lower chargeback rates, regulatory compliance. Cost: refund flow development, accounting integration complexity, edge case handling (partial refunds, cross-currency refunds), potential for refund abuse.
@@ -104,7 +104,7 @@ Saved payment methods matter when repeat purchases are a core business model —
 - **Enterprise:** Organizational payment methods (company cards shared across team), payment method policies (approved card types, spending limits), audit trail for payment method changes.
 
 **Signals:**
-Products with repeat purchases. PP-1 >= 4 (consumer) expects one-click. PP-6 >= 3 (market-ready) should offer saved methods for returning customers. NFR-2 (Security) >= 3 requires proper tokenization and PCI scope management. BRD keywords: "one-click", "saved card", "repeat purchase", "returning customer", "express checkout".
+Products with repeat purchases. PP-1 >= 4 (consumer) expects one-click. PP-6 >= 3 (market-ready) should offer saved methods for returning customers. NFR-2 (Security) >= 3 requires proper tokenization and PCI scope management. QP-7 (Security Testing) >= 3 indicates SAST and dependency scanning should cover token storage, payment credential lifecycle, and PCI-DSS scope boundaries for saved methods. QP-1 (Testing Depth) >= 3 suggests integration tests for saved payment method CRUD, token expiry handling, and one-click purchase flows. BRD keywords: "one-click", "saved card", "repeat purchase", "returning customer", "express checkout".
 
 **Tradeoffs:**
 Including: higher conversion for returning customers, reduced checkout friction, subscription enablement. Cost: PCI-DSS scope expansion (even with tokenization), token lifecycle management, card expiry handling, security liability for stored credentials.
@@ -125,7 +125,7 @@ Essential for any subscription-based business model — SaaS, content platforms,
 - **Enterprise:** Multi-entity billing (different legal entities), revenue recognition automation, complex contract terms (ramp deals, committed use discounts), billing API for partner integrations, CPQ integration.
 
 **Signals:**
-Any subscription business model. PP-6 >= 3 (market-ready) with subscription model needs at least standard depth. PP-3 >= 3 (multi-persona) may need different plans per persona. PP-7 >= 4 (regulated) needs invoice generation and tax compliance. BRD keywords: "subscription", "recurring", "billing", "plan", "tier", "trial", "SaaS pricing".
+Any subscription business model. PP-6 >= 3 (market-ready) with subscription model needs at least standard depth. PP-3 >= 3 (multi-persona) may need different plans per persona. PP-7 >= 4 (regulated) needs invoice generation and tax compliance. QP-1 (Testing Depth) >= 3 suggests integration tests for subscription lifecycle including trial-to-paid conversion, proration on plan changes, and dunning retry sequences. QP-5 (Observability Maturity) >= 3 suggests metrics and alerting for billing cycle failures, dunning effectiveness, and MRR reconciliation. QP-3 (Documentation Level) >= 3 indicates API documentation for billing endpoints, webhook event schemas, and plan configuration. BRD keywords: "subscription", "recurring", "billing", "plan", "tier", "trial", "SaaS pricing".
 
 **Tradeoffs:**
 Including: recurring revenue automation, self-service plan management, reduced billing support. Cost: proration logic complexity, dunning flow development, tax calculation integration, revenue recognition compliance (ASC 606), plan migration logic when plans change.
@@ -146,7 +146,7 @@ Any product selling to customers in multiple countries needs multi-currency supp
 - **Enterprise:** Multi-entity financial structure (different legal entities per region), regulatory compliance per jurisdiction (PSD2 in EU, RBI in India), transfer pricing, intercompany settlement, multi-currency accounting integration.
 
 **Signals:**
-PP-4 (Geographic Scope) is the primary driver: level 1-2 doesn't need this; level 3 needs basic; level 4-5 needs advanced/enterprise. PP-7 >= 4 (regulated) adds compliance requirements per region. NFR-5 (Compliance) >= 3 with multi-country operations triggers financial regulation compliance. BRD keywords: "international", "global", "multi-currency", "regional", "local payment methods", "cross-border".
+PP-4 (Geographic Scope) is the primary driver: level 1-2 doesn't need this; level 3 needs basic; level 4-5 needs advanced/enterprise. PP-7 >= 4 (regulated) adds compliance requirements per region. NFR-5 (Compliance) >= 3 with multi-country operations triggers financial regulation compliance. QP-1 (Testing Depth) >= 4 suggests comprehensive tests covering each payment flow across every supported currency and regional payment method — the combinatorial surface demands automated coverage. QP-3 (Documentation Level) >= 3 indicates documentation for supported currencies, regional payment methods, and compliance procedures per jurisdiction. BRD keywords: "international", "global", "multi-currency", "regional", "local payment methods", "cross-border".
 
 **Tradeoffs:**
 Including: global market access, localized user experience, regulatory compliance. Cost: exchange rate management complexity, per-region payment gateway integrations, regional tax compliance (VAT/GST filing), legal entity structure, significantly increased testing surface (every payment flow x every region).

@@ -20,7 +20,7 @@ Search is table stakes for any content-rich application — the question is not 
 - **Agentic:** Intent-aware retrieval with RAG (retrieval-augmented generation). Multi-step search (decompose complex queries into sub-queries). Conversational search with context carryover. Search that synthesizes answers from multiple sources rather than returning a ranked list. AI-powered query understanding, reformulation, and result explanation.
 
 **Signals:**
-PP-2 (UX Maturity) is the primary depth driver: level 1-2 needs basic/standard; level 3-4 benefits from advanced; level 5 (agentic) needs agentic search. Content volume matters: < 100 items = basic; 100-10K = standard; 10K+ = advanced minimum. PP-1 >= 4 (consumer) expects Google-quality search experience. BRD keywords: "search", "find", "discover", "query", "look up", "intelligent search", "AI search".
+PP-2 (UX Maturity) is the primary depth driver: level 1-2 needs basic/standard; level 3-4 benefits from advanced; level 5 (agentic) needs agentic search. Content volume matters: < 100 items = basic; 100-10K = standard; 10K+ = advanced minimum. PP-1 >= 4 (consumer) expects Google-quality search experience. QP-1 (Testing Depth) >= 3 suggests integration tests for search relevance quality, index consistency, and query performance under load. QP-5 (Observability Maturity) >= 3 suggests metrics and alerting for search latency percentiles, zero-result rates, and index health. BRD keywords: "search", "find", "discover", "query", "look up", "intelligent search", "AI search".
 
 **Tradeoffs:**
 Including at higher depth: dramatically better user experience, discoverability, competitive differentiation. Cost: infrastructure (search engines, vector databases, embedding pipelines), latency management, index maintenance, relevance tuning expertise, embedding costs for semantic search, LLM costs for agentic search.
@@ -41,7 +41,7 @@ Faceted filtering is essential when the catalog has structured attributes that u
 - **Enterprise:** Personalized facet ordering (show most relevant facets first based on user behavior), AI-suggested filters ("Users who searched this also filtered by..."), cross-index faceting (facets spanning multiple content types).
 
 **Signals:**
-Products with structured, attribute-rich catalogs. PP-2 >= 2 (beyond MVP) should have faceted filtering for catalogs > 50 items. PP-1 >= 3 (business professional and above) expects efficient filtering. NFR-3 (Performance) >= 3 needs fast facet computation. BRD keywords: "filter", "narrow down", "browse by", "refine results", "facets".
+Products with structured, attribute-rich catalogs. PP-2 >= 2 (beyond MVP) should have faceted filtering for catalogs > 50 items. PP-1 >= 3 (business professional and above) expects efficient filtering. NFR-3 (Performance) >= 3 needs fast facet computation. QP-1 (Testing Depth) >= 3 suggests integration tests for facet count accuracy, multi-select filter combinations, and URL-persisted filter state consistency. QP-6 (Accessibility Standard) >= 3 requires WCAG AA compliance for filter controls including checkboxes, range sliders, and dynamic facet count updates via ARIA live regions. BRD keywords: "filter", "narrow down", "browse by", "refine results", "facets".
 
 **Tradeoffs:**
 Including: faster product discovery, reduced search abandonment, better conversion. Cost: facet computation performance (can be expensive on large catalogs), attribute standardization requirement, facet UX design complexity, index configuration.
@@ -62,7 +62,7 @@ Autocomplete reduces typing effort and guides users toward valid searches. It's 
 - **Enterprise:** NLP-powered query understanding (mapping natural language to structured queries), visual autocomplete (image previews), contextual suggestions (different suggestions for different user roles), multilingual autocomplete.
 
 **Signals:**
-PP-1 >= 3 (business and above) expects autocomplete. PP-2 >= 3 (multi-channel responsive) should include autocomplete for any search-heavy experience. Catalogs with > 100 items benefit significantly. NFR-3 (Performance) >= 3 needs sub-200ms autocomplete responses. BRD keywords: "autocomplete", "typeahead", "suggestions", "instant search", "search as you type".
+PP-1 >= 3 (business and above) expects autocomplete. PP-2 >= 3 (multi-channel responsive) should include autocomplete for any search-heavy experience. Catalogs with > 100 items benefit significantly. NFR-3 (Performance) >= 3 needs sub-200ms autocomplete responses. QP-6 (Accessibility Standard) >= 3 requires WCAG AA compliance for typeahead dropdowns including keyboard navigation, screen reader announcements, and ARIA combobox patterns. QP-5 (Observability Maturity) >= 3 suggests metrics for autocomplete response latency and suggestion click-through rates to monitor real-time performance. BRD keywords: "autocomplete", "typeahead", "suggestions", "instant search", "search as you type".
 
 **Tradeoffs:**
 Including: faster search completion, discovery of popular items, reduced zero-result searches. Cost: real-time query performance requirements, suggestion index maintenance, debouncing and caching strategy, mobile-specific UX considerations.
@@ -83,7 +83,7 @@ Out-of-the-box search ranking (BM25, TF-IDF) works for basic use cases but rarel
 - **Enterprise:** Business rules engine for ranking (promotional products, inventory-aware ranking), segment-specific ranking, real-time ranking adjustments, search revenue attribution, ranking fairness controls for marketplaces.
 
 **Signals:**
-Search-heavy products where result quality directly impacts business metrics. PP-6 >= 3 (market-ready) should invest in relevance tuning. PP-3 = 5 (marketplace) needs ranking fairness. PP-2 >= 4 (omni-channel) with search as primary navigation. BRD keywords: "relevance", "ranking", "search quality", "boost", "promoted results", "personalized search".
+Search-heavy products where result quality directly impacts business metrics. PP-6 >= 3 (market-ready) should invest in relevance tuning. PP-3 = 5 (marketplace) needs ranking fairness. PP-2 >= 4 (omni-channel) with search as primary navigation. QP-1 (Testing Depth) >= 3 suggests regression tests for ranking quality — saved query-result pairs that verify ranking changes don't degrade relevance for known queries. QP-5 (Observability Maturity) >= 3 suggests metrics for search result click-through rates, position-weighted CTR, and ranking model performance over time. BRD keywords: "relevance", "ranking", "search quality", "boost", "promoted results", "personalized search".
 
 **Tradeoffs:**
 Including: better search experience, higher conversion from search, business control over product visibility. Cost: ranking model development and maintenance, click data collection infrastructure, A/B testing framework, risk of over-optimization (relevance gaming).
@@ -104,7 +104,7 @@ Search analytics tell you what users are looking for and whether they're finding
 - **Enterprise:** Real-time search performance monitoring, cross-channel search analytics, predictive analytics (demand forecasting from search trends), competitive intelligence from search patterns, compliance-aware analytics (GDPR for search data).
 
 **Signals:**
-Products where search is a primary navigation path. PP-6 >= 3 (market-ready) should have search analytics. NFR-1 (Risk) >= 3 with search-dependent revenue needs search monitoring. PP-2 >= 3 implies iterating on search quality, which requires analytics. BRD keywords: "search analytics", "search performance", "zero results", "search optimization", "query analysis".
+Products where search is a primary navigation path. PP-6 >= 3 (market-ready) should have search analytics. NFR-1 (Risk) >= 3 with search-dependent revenue needs search monitoring. PP-2 >= 3 implies iterating on search quality, which requires analytics. QP-5 (Observability Maturity) >= 3 suggests the analytics pipeline itself needs monitoring — alerting on ingestion lag, dashboard data freshness, and anomalous query volume spikes. QP-3 (Documentation Level) >= 3 indicates documentation for analytics event schemas, query data retention policies, and GDPR-compliant data handling procedures. BRD keywords: "search analytics", "search performance", "zero results", "search optimization", "query analysis".
 
 **Tradeoffs:**
 Including: actionable insights for search improvement, content gap identification, revenue optimization from search. Cost: analytics pipeline development, query storage (privacy considerations under GDPR), dashboard development, data analysis expertise required to act on insights.

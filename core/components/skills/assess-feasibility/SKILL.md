@@ -53,7 +53,7 @@ Receive from agent:
    - `sequencing_constraints`: technical reasons this feature must come before/after others (beyond product dependencies)
    - `architecture_impact`: systems, patterns, or infrastructure affected by this feature
 
-   When profiles are available in product.yaml, calibrate risk assessment:
+   When profiles are available in product.yaml, calibrate risk assessment. If profiles section is absent, proceed without profile-informed calibration (backward compatible):
    - NFR Profile levels set the bar for infrastructure risk — high NFR values that aren't addressed by the feature scope raise the risk level
    - QP Profile levels identify quality gaps — features lacking testing or observability provisions are higher risk when QP targets demand them
    - PP Profile values contextualize complexity — high persona complexity (PP-3) or integration density (PP-5) increases implementation risk

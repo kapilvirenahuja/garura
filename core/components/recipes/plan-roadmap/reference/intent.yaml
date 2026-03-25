@@ -101,11 +101,6 @@ failure_conditions:
     condition: >
       The final roadmap was produced without a corresponding
       approved brief artifact.
-  - id: F6
-    condition: >
-      The engineering view is missing, has fewer epics than the
-      roadmap, or contains business context (value statements,
-      revenue projections, market context).
   - id: F7
     condition: >
       The roadmap contains IDD content that differs from the
@@ -134,11 +129,11 @@ scenarios:
       failure conditions.
   - id: S3
     persona: Engineering Lead
-    given: Engineering view and feasibility assessment
+    given: Full roadmap with feasibility data (per-feature risk, blockers, sequencing constraints)
     then: >
       Can identify technical dependencies, risk levels, and
-      blockers across all epics, and sequence engineering work
-      accordingly.
+      blockers across all features, and sequence engineering work
+      accordingly using the feasibility section of roadmap.yaml.
   - id: S4
     persona: Stakeholder
     given: Roadmap brief
@@ -149,11 +144,11 @@ scenarios:
       30 minutes.
   - id: S5
     persona: Technical Architect
-    given: Feasibility assessment and engineering view
+    given: Feasibility section of roadmap.yaml and risk summary
     then: >
-      Can identify architecture-impacting epics, shared
+      Can identify architecture-impacting features, shared
       infrastructure needs, and cross-cutting technical risks
-      that require resolution before implementation begins.
+      that require resolution before architecture planning begins.
   - id: S6
     persona: Product Manager
     given: Feasibility assessment with non-empty critical_blockers and open_questions
