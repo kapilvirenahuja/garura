@@ -93,6 +93,7 @@ Run these checks against the semantic map. Each check produces a PASS or GAP res
 | **G8 — Template References** | Skills that reference LTM templates point to files that exist in `core/components/memory/standards/templates/` | Template path referenced but file missing |
 | **G9 — Intent Hash Drift** | Compiled intent_hash in SKILL.md matches current SHA-256 of intent.yaml | Hash mismatch — intent changed since last compilation |
 | **G10 — Required Sections** | Compiled SKILL.md contains all required sections: Frontmatter, Header, Compiled From, Role, Pre-flight, Workflow, Scenario Validation, Pause and Resume, Compilation Metadata | Section missing from compiled recipe |
+| **G11 — Skill LTM Input Coverage** | For every skill a recipe step invokes, each required/recommended LTM input in the skill's Input section has a corresponding discovery instruction in the recipe step text (e.g., "agent must glob X and pass as Y") | Skill declares LTM input (e.g., `epic_rules_path`, `domain_taxonomy_paths`) but the recipe step has no instruction for the agent to discover and pass it |
 
 **Step R3 — Gap Report**
 
@@ -115,8 +116,9 @@ Present to user:
 | G8 Template References | PASS/GAP | {which templates are missing} |
 | G9 Intent Hash Drift | PASS/GAP | {hash comparison} |
 | G10 Required Sections | PASS/GAP | {which sections are missing} |
+| G11 Skill LTM Input Coverage | PASS/GAP | {which skill LTM inputs lack discovery instructions in recipe steps} |
 
-**Summary:** {X}/10 PASS, {Y} GAPs found
+**Summary:** {X}/11 PASS, {Y} GAPs found
 
 {If GAPs > 0:}
 Run `/create-recipe --rebake {recipe-name}` to fix identified gaps.
@@ -388,6 +390,7 @@ Verification rules:
 - Every `structural` constraint has a verifiable structural element (agent boundary table, compilation rule, budget statement)
 - All required sections present in the compiled SKILL.md
 - Agent contracts match agent-contract.md schema
+- Every skill's required LTM input fields have a corresponding agent discovery instruction in the recipe step that invokes it (G11)
 
 If ANY intent item has zero coverage → compilation fails. The compiler must either re-invoke evals-creator with additional context, reclassify the constraint, or halt and report the gap.
 

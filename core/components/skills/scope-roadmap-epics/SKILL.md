@@ -24,6 +24,8 @@ Receive from agent:
 - `product_yaml_path` — (required) Full path to product.yaml
 - `artifact_base` — (required) Base path for STM artifacts, e.g. `.meridian/project/product/`
 - `epic_schema_path` — (required) Path to the epic schema in LTM, e.g. `~/.meridian/core/memory/standards/templates/epic-schema.md`. The agent discovers this from LTM and passes it — the skill does NOT search LTM itself.
+- `epic_rules_path` — (required) Path to epic management rules in LTM, e.g. `~/.meridian/core/memory/standards/agent-lifecycle/epic-management-rules.md`. Contains rules for vertical slice delivery, single-module-scope, mock phasing, dependency discipline, etc. The agent discovers this from LTM and passes it.
+- `domain_taxonomy_paths` — (required when domain taxonomy exists) List of domain taxonomy module paths from LTM, e.g. `~/.meridian/core/memory/knowledge/domain-taxonomy/*.md`. These define module boundaries used to enforce Rule 2 (single-module-scope). The agent globs `~/.meridian/core/memory/knowledge/domain-taxonomy/` and passes all found paths.
 - `time_horizon` — (optional, default: "12 months") Planning window for bucket assignment
 - `profile_knowledge_path` — (optional) Path to LTM project-profiling directory for domain taxonomy reasoning
 
@@ -39,6 +41,10 @@ Receive from agent:
 
 1. **Load the epic schema** — read the file at `epic_schema_path` (passed by the agent from LTM) using the Read tool. This defines the required fields (10 scoping + 4 IDD), prohibited fields, valid values, YAML structure, and the validation checklist. All epics MUST conform to this schema. If `epic_schema_path` is not provided, fall back to `reference/epic-schema.md`.
 
+1b. **Load epic management rules** — read the file at `epic_rules_path` using the Read tool. This defines rules for epic structure: vertical slice delivery (Rule 1), single-module-scope (Rule 2), mocks as phased delivery (Rule 3), scope boundaries (Rule 4), success verifiability (Rule 5), dependency discipline (Rule 6), foundation investments (Rule 7). All rules MUST be applied during epic derivation and scoping. If `epic_rules_path` is not provided, proceed without rules enforcement (backward compatible) but note the gap in output.
+
+1c. **Load domain taxonomy** — read each file in `domain_taxonomy_paths` using the Read tool. These define the product's domain module boundaries (e.g., user-management, payments, commerce, search, personalization). Domain modules are used to enforce Rule 2: each epic must sit within exactly one module. If `domain_taxonomy_paths` is not provided or the list is empty, proceed without module-scope validation (backward compatible) but note the gap in output.
+
 2. **Read product.yaml** at `product_yaml_path` — extract product name, slug, Strategic Goals, assumptions, and user context.
 
 2b. **Read project profiles** — extract the `profiles` section from product.yaml. If profiles are present, use them to inform epic scoping depth:
@@ -50,12 +56,16 @@ Receive from agent:
 
 3. **Extract Strategic Goals** from the product.yaml `strategic_goals` section.
 
-4. **Derive epics** — identify epics from the product's strategic goals, each linked to one named Strategic Goal. Each epic must represent a distinct, deliverable capability — not a task and not a bundle of unrelated work. The count is a natural outcome of the vision.
+4. **Derive epics** — identify epics from the product's strategic goals, each linked to one named Strategic Goal. Each epic must represent a distinct, deliverable capability — not a task and not a bundle of unrelated work. The count is a natural outcome of the vision. When epic management rules are loaded (step 1b), apply:
+   - **Rule 1 (Vertical Slice):** each epic delivers end-to-end testable user value, not a horizontal layer
+   - **Rule 2 (Single Module Scope):** each epic is owned by exactly one domain module from the taxonomy (step 1c). If an epic spans multiple modules, split it.
+   - **Rule 7 (Foundation Investments):** mark shared infrastructure epics with `foundation_investment: true`, place in `near` bucket with P1 priority
 
 5. **Scope each epic** — for each epic, fill ALL fields per `reference/epic-schema.md`:
    - Scoping fields: `bucket`, `priority`, `effort`, `depends_on`, `foundation_investment`
    - IDD fields: `intent` (3 full paragraphs — p1: problem today, p2: outcome after, p3: strategic connection), `constraints` (in_scope, out_of_scope, must_not_break), `success_scenarios` (minimum 2, given/when/then, binary testable), `failure_conditions` (2–4 observable outcomes)
    - Profile-informed depth: when profiles are available, the agent reasons about feature depth using the three-axis model — PP dimensions determine feature applicability, NFR dimensions determine infrastructure requirements, QP dimensions determine quality tooling needs.
+   - When epic rules are loaded, additionally apply: **Rule 3** (mocks introduced must be replaced in a subsequent epic), **Rule 4** (in_scope/out_of_scope/must_not_break are mandatory — name specific scope creep risks), **Rule 5** (success scenarios must be binary testable — no "should" language), **Rule 6** (depends_on uses E-IDs only, no circular dependencies)
 
 6. **Validate against schema (silently)** — run the full validation checklist in `reference/epic-schema.md` before writing. Verify all 14 fields per epic. Correct any violations before proceeding. Do NOT output the validation results — validate internally and fix issues. Only output a structured failure if validation fails after correction.
 
@@ -101,6 +111,9 @@ Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridia
 - ALWAYS return structured failure if product.yaml is not LOCKED
 - ALWAYS write the epics file to `{artifact_base}/{slug}/epics.yaml` before returning output
 - WHEN profiles are available in product.yaml, USE them to inform epic depth, priority, and feature inclusion — do not ignore profile data
+- WHEN epic_rules_path is provided, APPLY all 7 rules during epic derivation and scoping — do not ignore any rule
+- WHEN domain_taxonomy_paths is provided, ENFORCE Rule 2 (single-module-scope) — no epic may span multiple domain modules. If an epic would span modules, split it into separate epics with depends_on links
+- WHEN epic_rules_path or domain_taxonomy_paths are NOT provided, note the gap in output notes but do not halt (backward compatible)
 
 ## Version
 
