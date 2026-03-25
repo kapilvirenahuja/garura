@@ -25,6 +25,7 @@ Receive from agent:
 - `artifact_base` — (required) Base path for STM artifacts, e.g. `.meridian/project/product/`
 - `epic_schema_path` — (required) Path to the epic schema in LTM, e.g. `~/.meridian/core/memory/standards/templates/epic-schema.md`. The agent discovers this from LTM and passes it — the skill does NOT search LTM itself.
 - `time_horizon` — (optional, default: "12 months") Planning window for bucket assignment
+- `profile_knowledge_path` — (optional) Path to LTM project-profiling directory for domain taxonomy reasoning
 
 ## Pre-conditions
 
@@ -40,6 +41,13 @@ Receive from agent:
 
 2. **Read product.yaml** at `product_yaml_path` — extract product name, slug, Strategic Goals, assumptions, and user context.
 
+2b. **Read project profiles** — extract the `profiles` section from product.yaml. If profiles are present, use them to inform epic scoping depth:
+   - PP-7 (Industry Vertical) determines which domain taxonomy modules are relevant
+   - PP-6 (Delivery Ambition) informs epic ambition — POC-level products scope fewer, lighter epics
+   - NFR Profile values inform whether infrastructure/hardening epics are needed
+   - QP Profile values inform whether quality-focused epics (observability, testing setup) are warranted
+   If profiles section is absent, proceed without profile-informed reasoning (backward compatible).
+
 3. **Extract Strategic Goals** from the product.yaml `strategic_goals` section.
 
 4. **Derive epics** — identify 3–6 epics (maximum 6), each linked to one named Strategic Goal. If fewer than 3 are identifiable, return structured failure: `{ "error": "insufficient_epics", "message": "Fewer than 3 distinct epics identifiable from product.yaml — product definition may need more detail" }`.
@@ -47,6 +55,7 @@ Receive from agent:
 5. **Scope each epic** — for each epic, fill ALL fields per `reference/epic-schema.md`:
    - Scoping fields: `bucket`, `priority`, `effort`, `depends_on`, `foundation_investment`
    - IDD fields: `intent` (3 full paragraphs — p1: problem today, p2: outcome after, p3: strategic connection), `constraints` (in_scope, out_of_scope, must_not_break), `success_scenarios` (minimum 2, given/when/then, binary testable), `failure_conditions` (2–4 observable outcomes)
+   - Profile-informed depth: when profiles are available, the agent reasons about feature depth using the three-axis model — PP dimensions determine feature applicability, NFR dimensions determine infrastructure requirements, QP dimensions determine quality tooling needs.
 
 6. **Validate against schema (silently)** — run the full validation checklist in `reference/epic-schema.md` before writing. Verify all 14 fields per epic. Correct any violations before proceeding. Do NOT output the validation results — validate internally and fix issues. Only output a structured failure if validation fails after correction.
 
@@ -91,6 +100,7 @@ Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridia
 - ALWAYS return structured failure if product.yaml is not LOCKED
 - ALWAYS return structured failure if fewer than 3 epics are identifiable
 - ALWAYS write the epics file to `{artifact_base}/{slug}/epics.yaml` before returning output
+- WHEN profiles are available in product.yaml, USE them to inform epic depth, priority, and feature inclusion — do not ignore profile data
 - Minimum 3 epics, maximum 6 epics
 
 ## Version

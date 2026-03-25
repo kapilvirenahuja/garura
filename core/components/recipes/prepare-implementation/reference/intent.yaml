@@ -1,22 +1,24 @@
 name: prepare-implementation
 intent: >
   Produce a complete set of implementation-ready design artifacts for a single
-  epic, starting from a locked product.yaml and locked roadmap.yaml. The recipe
-  requires an --epic flag referencing an epic ID from the roadmap. Before
-  generating artifacts, the recipe resolves two-dimensional dependencies (epic
-  ordering from roadmap + technology dependencies from codebase), scans the
-  codebase for existing implementations, consults LTM for organizational
-  standards and patterns, and produces a dependency resolution report for user
-  approval. The output set — scoped to the target epic only — includes:
-  features.yaml defining product behaviors and invariants, architecture.yaml
-  naming concrete technologies (reading prior-epic artifacts as context),
-  scenarios.yaml with verification scenarios, tech.yaml with project structure
-  and components, and plan.yaml with execution order. Existing artifacts from
-  prior epics are read-only inputs, not targets for regeneration. The artifacts
-  must contain everything the implementation agent needs — port numbers, service
-  endpoints, dev patterns, quality gates, ADR references, LTM standards — so
-  that no codebase scanning or LTM reading is required at implementation time.
-  Verification scenarios are compartmentalized from the implementer.
+  epic, starting from a locked product.yaml, locked roadmap.yaml, locked
+  architecture.yaml, and locked quality-standards.yaml. The recipe requires an
+  --epic flag referencing an epic ID from the roadmap. Before generating
+  artifacts, the recipe resolves two-dimensional dependencies (epic ordering
+  from roadmap + technology dependencies from codebase), scans the codebase for
+  existing implementations, consults LTM for organizational standards and
+  patterns, and produces a dependency resolution report for user approval. The
+  output set — scoped to the target epic only — includes: features.yaml
+  defining product behaviors and invariants, scenarios.yaml with verification
+  scenarios, tech.yaml with project structure and components, and plan.yaml
+  with execution order. architecture.yaml is read from upstream as a locked
+  input providing technology selections and architectural decisions — it is not
+  produced by this recipe. Existing artifacts from prior epics are read-only
+  inputs, not targets for regeneration. The artifacts must contain everything
+  the implementation agent needs — port numbers, service endpoints, dev
+  patterns, quality gates, ADR references, LTM standards — so that no codebase
+  scanning or LTM reading is required at implementation time. Verification
+  scenarios are compartmentalized from the implementer.
 
 constraints:
   - id: C1
@@ -85,12 +87,11 @@ constraints:
 
   - id: C4
     rule: >
-      architecture.yaml must name concrete technologies for every architectural
-      component — specific databases, frameworks, SDKs, hosting platforms, and
-      libraries. Vague references such as "a relational database" or "a web
-      framework" are not acceptable. architecture.yaml must be concrete enough
-      for an implementer to begin coding without making technology selection
-      decisions.
+      tech.yaml must reference the locked architecture.yaml for technology
+      selections. tech.yaml provides epic-scoped implementation detail
+      (file paths, component structure, development patterns) within the
+      architecture decisions already locked upstream. tech.yaml must not
+      contradict architecture.yaml technology selections.
 
   - id: C5
     rule: >
@@ -177,6 +178,20 @@ constraints:
       Structural completeness alone is not sufficient for lock — semantic
       readiness (no unresolved open questions, no unresolved high-severity
       risks) is also required.
+  - id: C21
+    rule: >
+      The recipe requires a locked architecture.yaml at
+      {product_base}/{slug}/architecture.yaml as an upstream input.
+      Architecture decisions are made during prepare-architecture, not
+      during per-epic implementation planning. The recipe reads the
+      locked architecture.yaml for technology context.
+  - id: C22
+    rule: >
+      The recipe requires a locked quality-standards.yaml at
+      {product_base}/{slug}/quality-standards.yaml as an upstream input.
+      Quality standards are established during prepare-architecture. The
+      recipe reads quality-standards.yaml for testing, CI/CD, and quality
+      gate context when producing plan.yaml.
 
 failure_conditions:
   - id: F1
@@ -187,9 +202,9 @@ failure_conditions:
 
   - id: F2
     condition: >
-      architecture.yaml contains vague technology references — terms like
-      "a relational database," "a web framework," "an LLM provider," or
-      "a hosting platform" — instead of naming the specific technology.
+      tech.yaml contradicts the locked architecture.yaml — uses different
+      technologies, frameworks, or patterns than those specified in the
+      locked upstream architecture.
 
   - id: F3
     condition: >
@@ -269,6 +284,10 @@ failure_conditions:
       Locking with unresolved open questions or high-severity risks means the
       implementation agent receives artifacts with known gaps or unmitigated
       risks.
+  - id: F18
+    condition: >
+      The recipe proceeded without a locked architecture.yaml or locked
+      quality-standards.yaml as upstream input.
 
 scenarios:
   - id: S1

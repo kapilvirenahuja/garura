@@ -53,11 +53,17 @@ Receive from agent:
    - `sequencing_constraints`: technical reasons this feature must come before/after others (beyond product dependencies)
    - `architecture_impact`: systems, patterns, or infrastructure affected by this feature
 
+   When profiles are available in product.yaml, calibrate risk assessment:
+   - NFR Profile levels set the bar for infrastructure risk — high NFR values that aren't addressed by the feature scope raise the risk level
+   - QP Profile levels identify quality gaps — features lacking testing or observability provisions are higher risk when QP targets demand them
+   - PP Profile values contextualize complexity — high persona complexity (PP-3) or integration density (PP-5) increases implementation risk
+
 5. **Identify cross-cutting concerns** — look for:
    - Open technical questions that affect multiple features
    - Shared infrastructure needs
    - Common risk patterns
    - Foundation features (features whose work benefits later features)
+   - Profile-architecture misalignment: features that require infrastructure beyond what the profiles suggest may indicate scope creep or profile miscalibration
 
 6. **Compute risk summary** — aggregate across all features:
    - `total_features`: count
@@ -152,6 +158,7 @@ Bash is available for **read-only operations only**:
 - ALWAYS include at least one technical risk per feature (even low-risk features have considerations)
 - ALWAYS fill the open_questions section — minimum 1 question if any exist, empty list only if genuinely none
 - ALWAYS validate all fields are present before writing (silently)
+- WHEN profiles are available in product.yaml, USE them to calibrate risk levels and identify gaps — do not ignore profile data
 - ALWAYS return structured failure if product.yaml is missing or has no derivable features
 
 ## Version

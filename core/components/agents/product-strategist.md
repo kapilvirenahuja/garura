@@ -47,7 +47,7 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 | Skill | Purpose | Used By |
 |-------|---------|---------|
 | `discover-product-opportunity` | Parse problem/idea, extract market context | discover-product (DRAFT) |
-| `draft-product-vision` | Create vision.md with Strategic Goals | discover-product (DRAFT) |
+| `draft-product-vision` | Create product.yaml with Strategic Goals and three-axis profiles (PP, NFR, QP) | discover-product (DRAFT) |
 | `validate-product-vision` | Check vision completeness before lock | discover-product (VALIDATE) |
 | `generate-business-review` | PM-facing business review from any product artifact | discover-product, manage-backlog |
 | `research-domain-context` | Research vertical domain knowledge via web when LTM is insufficient | discover-product (DRAFT, conditional) |

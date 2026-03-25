@@ -1,0 +1,77 @@
+# quality-standards.yaml — Schema Definition
+# Quality engineering standards derived from Quality Profile
+# Produced by: /prepare-architecture
+# Lifecycle: DRAFT → LOCKED
+# Depends on: product.yaml (profiles.quality_profile)
+
+slug: "{product-slug}"
+status: "DRAFT|LOCKED"
+created_at: "{ISO-8601}"
+updated_at: "{ISO-8601}"
+product_ref: "{path to product.yaml}"
+profiles_ref: "{path to product.yaml profiles section}"
+
+# Quality standards per QP dimension
+standards:
+  testing:
+    qp_level: 3
+    strategy: "{testing strategy description}"
+    frameworks: ["{test framework}"]
+    coverage_target: "{percentage or description}"
+    test_types: ["{unit|integration|e2e|contract|performance|property-based}"]
+    automation: "{CI integration description}"
+
+  code_quality:
+    qp_level: 3
+    linter: "{specific linter tool}"
+    formatter: "{specific formatter tool}"
+    static_analysis: "{tool or null}"
+    review_process: "{PR review requirements}"
+    conventions: "{coding conventions reference or description}"
+    design_patterns: ["{required patterns}"]
+
+  documentation:
+    qp_level: 2
+    api_docs: "{approach — OpenAPI, auto-generated, etc.}"
+    architecture_docs: "{approach — ADRs, diagrams, etc.}"
+    runbooks: "{operational runbook requirements}"
+    onboarding: "{developer onboarding doc requirements}"
+
+  ci_cd:
+    qp_level: 3
+    pipeline: "{CI/CD tool}"
+    environments: ["{dev|staging|prod}"]
+    deployment_strategy: "{blue-green|rolling|canary|manual}"
+    feature_flags: "{tool or approach, or null}"
+    infrastructure_as_code: "{tool or null}"
+
+  observability:
+    qp_level: 2
+    logging: "{tool + approach}"
+    monitoring: "{tool + metrics}"
+    alerting: "{tool + thresholds}"
+    tracing: "{tool or null}"
+
+  accessibility:
+    qp_level: 1
+    standard: "{WCAG level or none}"
+    testing: "{automated tool or manual approach}"
+    audit_cadence: "{frequency or none}"
+
+  security_testing:
+    qp_level: 2
+    dependency_scanning: "{tool}"
+    sast: "{tool or null}"
+    dast: "{tool or null}"
+    pen_testing: "{cadence or none}"
+    secret_scanning: "{tool or approach}"
+
+# Technical debt measurement baseline
+debt_baseline:
+  measured_at: "{ISO-8601}"
+  dimensions:
+    - qp_dimension: "QP-1"
+      target_level: 3
+      current_level: null
+      gap: null
+      remediation: null

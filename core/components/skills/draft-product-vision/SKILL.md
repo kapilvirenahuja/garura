@@ -29,6 +29,7 @@ Receive from agent:
 - `domain` — (optional) Confirmed domain context (e.g., "B2B SaaS", "retail") — use to sharpen vision language and strategic goals when present
 - `raw_intent` — (conditional) The original intent text, provided when market_context is absent (opportunity discovery skipped per C12). One of market_context or raw_intent must be present.
 - `product_type` — (optional) "product" or "library". Default: "product". Determines the type field written to product.yaml.
+- `profile_knowledge_path` — (optional) Path to LTM project-profiling directory (e.g., `~/.meridian/core/memory/knowledge/project-profiling/`). When provided, the skill reads profile dimension definitions and guidance tables to derive profiles.
 
 ## Process
 
@@ -69,9 +70,35 @@ Receive from agent:
 - `out_of_scope`: Derive from intent boundaries.
 - Set `type: "library"`
 
-5. **Write artifact:** Write product.yaml with `status: "DRAFT"` to `{artifact_base}{slug}/product.yaml`.
+5. **Derive project profiles (Three-Axis Model):**
 
-6. **Return output.**
+   Read profile dimension definitions from `profile_knowledge_path` (if provided) or from LTM at `~/.meridian/core/memory/knowledge/project-profiling/`. The cascade is sequential: PP → NFR → QP.
+
+   **5a. Product Profile (PP-1 through PP-7):**
+   Read `product-profile.md`. For each dimension, derive a level (1-5) from the BRD/intent/market context:
+   - PP-1 (User Sophistication): from `target_users` personas and their technical ability
+   - PP-2 (UX Maturity): from intent's UX ambition and channel requirements
+   - PP-3 (Persona Complexity): from `target_users` count and role diversity
+   - PP-4 (Geographic Scope): from market context geography signals
+   - PP-5 (Integration Density): from integration mentions in intent/market context
+   - PP-6 (Delivery Ambition): from explicit scope signals (MVP, enterprise, POC)
+   - PP-7 (Industry Vertical): from `domain` or industry signals in intent
+
+   For each dimension, include a `rationale` string explaining why this level was chosen.
+
+   **5b. NFR Profile (NFR-1 through NFR-7):**
+   Read `nfr-profile.md` and the NFR Guidance section in `product-profile.md`. Set initial NFR defaults from the PP values per the guidance table (e.g., PP-7 >= 4 → NFR-5 >= 3). Then refine based on explicit NFR signals in the BRD/intent (e.g., "99.99% uptime" → NFR-4 = 4). Include rationale per dimension.
+
+   **5c. Quality Profile (QP-1 through QP-7):**
+   Read `quality-profile.md` and its PP+NFR Guidance section. Set initial QP defaults from the PP and NFR values per the guidance table (e.g., PP-6 >= 3 → QP-1 >= 3, NFR-2 >= 4 → QP-7 >= 4). Then refine based on explicit quality signals in the BRD/intent (e.g., "WCAG AA compliance" → QP-6 = 3). Include rationale per dimension.
+
+   **5d. Write profiles to product.yaml `profiles` section** following the schema.
+
+   **When type is "library":** Profiles are still derived but may have lower defaults. PP-6 drives the cascade — a library at PP-6 = 1 (POC) defaults all NFR and QP to 1.
+
+6. **Write artifact:** Write product.yaml with `status: "DRAFT"` to `{artifact_base}{slug}/product.yaml`.
+
+7. **Return output.**
 
 ## Output
 
@@ -91,6 +118,8 @@ product:
     - success_metrics
     - assumptions
     - out_of_scope
+    - profiles
+  profiles_derived: true
   status: "DRAFT"
 ```
 
@@ -103,14 +132,18 @@ product:
 - ALWAYS set status: "DRAFT" in the written artifact
 - ALWAYS include all fields defined in the product.yaml schema (may be null but must be present)
 - ALWAYS write valid YAML — use block scalars (`|`) for multi-line string fields (value_proposition)
-- ALWAYS use field names exactly matching the schema: slug, status, created_at, updated_at, problem, target_users, competitors, market_size, differentiators, risks, value_proposition, strategic_goals, success_metrics, assumptions, out_of_scope
+- ALWAYS use field names exactly matching the schema: slug, status, created_at, updated_at, problem, target_users, competitors, market_size, differentiators, risks, value_proposition, strategic_goals, success_metrics, assumptions, out_of_scope, profiles
 - NEVER fabricate market data when type is "library" — empty fields are correct
 - ALWAYS set the `type` field based on input signal (market_context present = "product", raw_intent only = "library")
 - ALWAYS produce >=3 strategic goals regardless of type (load-bearing for downstream)
+- ALWAYS derive all three profiles (PP, NFR, QP) in sequential cascade order
+- ALWAYS include rationale for each profile dimension level
+- ALWAYS read profile dimension definitions from LTM before deriving — do not invent dimensions
+- NEVER present profiles as a cold questionnaire — derive from BRD/intent, then present as knobs for user validation
 
 ## Version
 
 | Field | Value |
 |-------|-------|
-| Version | 2.0.0 |
+| Version | 3.0.0 |
 | Category | analysis |
