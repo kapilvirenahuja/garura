@@ -43,7 +43,7 @@ Receive from agent:
 
 1b. **Load epic management rules** — read the file at `epic_rules_path` using the Read tool. This defines rules for epic structure: vertical slice delivery (Rule 1), single-module-scope (Rule 2), mocks as phased delivery (Rule 3), scope boundaries (Rule 4), success verifiability (Rule 5), dependency discipline (Rule 6), foundation investments (Rule 7). All rules MUST be applied during epic derivation and scoping. If `epic_rules_path` is not provided, proceed without rules enforcement (backward compatible) but note the gap in output.
 
-1c. **Load domain taxonomy** — read each file in `domain_taxonomy_paths` using the Read tool. These define the product's domain module boundaries (e.g., user-management, payments, commerce, search, personalization). Domain modules are used to enforce Rule 2: each epic must sit within exactly one module. If `domain_taxonomy_paths` is not provided or the list is empty, proceed without module-scope validation (backward compatible) but note the gap in output.
+1c. **Load and match domain taxonomy** — read each file in `domain_taxonomy_paths` using the Read tool. Each taxonomy module defines a domain's capabilities, features, and boundaries. After reading all modules, **semantically match** them against the product's profile (PP-7 Industry Vertical, strategic goals, target users, value proposition) to identify which modules are relevant to this product. Irrelevant modules (e.g., `personalization.md` for a B2B invoicing tool) are excluded. Relevant modules define the feature universe and module boundaries for this product — epics draw from these capabilities and each epic must sit within exactly one module (Rule 2). If `domain_taxonomy_paths` is not provided or the list is empty, proceed without module-scope validation (backward compatible) but note the gap in output.
 
 2. **Read product.yaml** at `product_yaml_path` — extract product name, slug, Strategic Goals, assumptions, and user context.
 
@@ -56,7 +56,12 @@ Receive from agent:
 
 3. **Extract Strategic Goals** from the product.yaml `strategic_goals` section.
 
-4. **Derive epics** — identify epics from the product's strategic goals, each linked to one named Strategic Goal. Each epic must represent a distinct, deliverable capability — not a task and not a bundle of unrelated work. The count is a natural outcome of the vision. When epic management rules are loaded (step 1b), apply:
+4. **Derive epics** — identify epics by combining three inputs:
+   - **Strategic goals** from product.yaml — each epic must trace to at least one named SG
+   - **Product profile** — PP dimensions (vertical, delivery ambition, persona complexity), NFR dimensions (infrastructure needs), QP dimensions (quality tooling needs) determine what capabilities the product requires
+   - **Matched taxonomy modules** (from step 1c) — the relevant domain modules define the available feature universe. Epics should cover capabilities from these modules that serve the strategic goals, not invent capabilities outside the taxonomy.
+   
+   Each epic must represent a distinct, deliverable capability — not a task and not a bundle of unrelated work. **NEVER target a specific epic count.** The count is a natural outcome of the vision, profile, and taxonomy — it could be 3 or 12 depending on the product's scope. When epic management rules are loaded (step 1b), apply:
    - **Rule 1 (Vertical Slice):** each epic delivers end-to-end testable user value, not a horizontal layer
    - **Rule 2 (Single Module Scope):** each epic is owned by exactly one domain module from the taxonomy (step 1c). If an epic spans multiple modules, split it.
    - **Rule 7 (Foundation Investments):** mark shared infrastructure epics with `foundation_investment: true`, place in `near` bucket with P1 priority
@@ -96,6 +101,7 @@ Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridia
 
 ## Constraints
 
+- NEVER target, suggest, or enforce a specific epic count (e.g., "aim for 5-8 epics"). The count is determined by the product's strategic goals, profile, and taxonomy — it is never an input or target
 - NEVER create GitHub issues
 - NEVER include implementation details — no code, architecture choices, or technical stack decisions
 - NEVER include NFR targets unless they generate a distinct sequenceable epic
@@ -105,7 +111,7 @@ Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridia
 - ALWAYS load epic schema from `epic_schema_path` (or fallback `reference/epic-schema.md`) before generating any epics
 - ALWAYS validate epics against the full schema checklist (14 fields per epic) before writing
 - ALWAYS use E-IDs (E1, E2, E3, ...) for epic IDs — NEVER F-IDs (F1, F2) which are reserved for features.yaml
-- ALWAYS populate ltm_citations with the LTM file paths consulted when deriving each epic — domain taxonomy, profile knowledge, architecture patterns
+- ALWAYS populate ltm_citations with the specific LTM file paths that informed each epic's derivation — which taxonomy module defined its domain boundary, which rules shaped its structure, which profile dimensions influenced its scope
 - ALWAYS use `strategic_goal_ref` with SG-IDs (SG1, SG2, ...) from product.yaml `strategic_goals[].id` — NEVER use the goal title text as the reference
 - ALWAYS write full IDD content (intent, constraints, success_scenarios, failure_conditions) for every epic
 - ALWAYS return structured failure if product.yaml is not LOCKED
