@@ -70,7 +70,8 @@ Create the full task graph:
 | Task ID | Description | Agent | Blocked By |
 |---------|-------------|-------|------------|
 | `scope-epics` | Derive IDD epics from locked product | product-strategist | — |
-| `score-confidence` | Context-isolated epic confidence assessment | judge | scope-epics |
+| `check-coverage` | Reverse-coverage: product.yaml → epics.yaml | judge | scope-epics |
+| `score-confidence` | Context-isolated epic confidence assessment | judge | check-coverage |
 | `assess-feasibility` | Technical feasibility of epics | tech-designer | scope-epics |
 | `produce-brief` | Generate reviewable brief + hub | doc-builder | score-confidence, assess-feasibility |
 | `human-review` | Checkpoint: Tether/Vanish | orchestrator | produce-brief |
@@ -173,10 +174,54 @@ Update status file: `scope-epics → completed`.
 
 ---
 
-### Step 2b — Score Epic Confidence (Context-Isolated)
+### Step 2a — Reverse-Coverage Check (Context-Isolated)
 
 Owner: `judge`
 Depends on: Step 2
+
+**Context isolation:** The judge receives ONLY the product.yaml path and epics.yaml path. It does NOT receive product-strategist drafting notes, LTM paths used, profile reasoning, or any intermediate outputs from Step 2.
+
+```json
+{
+  "intent_path": "core/components/recipes/plan-roadmap/reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "mode": "check-input-output-coverage",
+  "artifact_paths": {
+    "input_path": "{stm.product_yaml_path}",
+    "output_path": "{stm.epics_path}"
+  },
+  "check_type": "product-to-epics",
+  "stm": {
+    "output": {
+      "coverage_check_path": ".meridian/project/product/{slug}/coverage-check.yaml"
+    }
+  },
+  "task_id": "check-coverage"
+}
+```
+
+The judge reads product.yaml and extracts every discrete element: strategic goals (all SG-IDs), success_metrics, target_users, assumptions, out_of_scope, and profiles (if present). Then reads epics.yaml and checks that every input element is addressed:
+
+- **covered**: epic has a `strategic_goal_ref` matching the SG-ID and success_scenarios that trace to the goal's metrics
+- **partial**: SG-ID is referenced but not all metrics are addressed, or assumption acknowledged but not reflected in constraints
+- **dropped**: an SG, metric, or target_user has no representation in any epic
+- **drifted**: epic contains scope that doesn't trace to any product.yaml element
+
+**On dropped elements:** If any strategic goal is completely dropped (no epic references it), the orchestrator presents the coverage report to the user and halts — this is a scoping failure. If only partial coverage or drifted elements exist, log in evidence and continue.
+
+Update status file: `check-coverage → completed`.
+Set `stm.coverage_check_path` in enriched contract.
+
+**Step 2a Evals:**
+- **SE-20:** Read `stm.coverage_check_path` — verify every strategic_goal from product.yaml has at least one element with status `covered` or `partial`. PASS if no strategic goal is `dropped`. FAIL if any SG-ID from product.yaml has no corresponding element in the coverage check. Halt on FAIL.
+- **SE-21:** The coverage check contract contains ONLY input_path and output_path — no drafting context. PASS if contract has only artifact paths. FAIL if any intermediate reasoning is present.
+
+---
+
+### Step 2b — Score Epic Confidence (Context-Isolated)
+
+Owner: `judge`
+Depends on: Step 2a
 
 **Context isolation (C15, F10):** The judge receives ONLY the epics.yaml path and product.yaml path. It does NOT receive product-strategist drafting notes, market context, profile derivation reasoning, or any intermediate outputs from Step 2.
 
@@ -582,6 +627,7 @@ Write evidence file to that path:
 | Artifact | Path | Status |
 |----------|------|--------|
 | Scoped Epics | {stm.epics_path} | written |
+| Coverage Check | {stm.coverage_check_path} | written |
 | Confidence Report | {stm.confidence_report_path} | written |
 | Feasibility | {stm.feasibility_path} | written |
 | Roadmap Brief | {stm.roadmap_brief_path} (under briefs/) | written |
@@ -662,6 +708,7 @@ Steps execute in compiled order — run top to bottom.
   "product_yaml_path": "{--product value}",
   "tasks": {
     "scope-epics":        { "status": "completed", "completed_at": "..." },
+    "check-coverage":     { "status": "completed", "completed_at": "..." },
     "score-confidence":   { "status": "completed", "completed_at": "..." },
     "assess-feasibility": { "status": "completed", "completed_at": "..." },
     "produce-brief":      { "status": "completed", "completed_at": "..." },
@@ -744,5 +791,5 @@ When an agent returns `step_failure` (non-null):
 | maturity | L2 |
 | workflow_structure | A (full checkpoint flow) |
 | agents | 3 domain (product-strategist, tech-designer, judge) + 2 utility (doc-builder, repo-orchestrator) |
-| step_evals | 19 (SE-1 through SE-19, covering C2, C3, C5-C7, C10-C15, F1-F10, context isolation) |
+| step_evals | 21 (SE-1 through SE-21, covering C2, C3, C5-C7, C10-C15, F1-F10, context isolation, input-output coverage) |
 | scenario_evals | 10 (SCE-1 through SCE-8 + SCE-3, SCE-5a, SCE-5b, covering S1-S9) |

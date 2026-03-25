@@ -226,6 +226,52 @@ Agent invokes `draft-product-vision` -> writes `{product_base}/{slug}/product.ya
 
 ---
 
+### Step 3a — Reverse-Coverage Check (Context-Isolated)
+
+Owner: `judge`
+Depends on: Step 3
+
+**Context isolation:** The judge receives ONLY the product.yaml path and the problem_statement (from config). It does NOT receive market context artifacts, product-strategist drafting notes, domain research, or any intermediate reasoning.
+
+```json
+{
+  "intent_path": "core/components/recipes/discover-product/reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
+  "mode": "check-input-output-coverage",
+  "artifact_paths": {
+    "input_path": "{product_base}/{slug}/product.yaml",
+    "output_path": "{product_base}/{slug}/product.yaml"
+  },
+  "check_type": "problem-to-vision",
+  "config": {
+    "problem_statement": "{original intent text from pre-flight}",
+    "market_context_path": "{product_base}/{slug}/market-context.yaml (if Step 2 ran, null otherwise)"
+  },
+  "stm": {
+    "output": {
+      "coverage_check_path": "{product_base}/{slug}/coverage-check.yaml"
+    }
+  },
+  "task_id": "check-coverage"
+}
+```
+
+The judge extracts facets from the problem_statement and market context (target users, risks, differentiators, problem dimensions) and verifies that product.yaml addresses each:
+- **covered**: strategic goal, value proposition, or scope element traces to this input facet
+- **partial**: facet acknowledged but not reflected in strategic goals or metrics
+- **dropped**: input facet has no representation in product.yaml
+- **drifted**: product.yaml contains strategic goals or scope that don't trace to any input facet
+
+**On dropped elements:** If any core facet of the problem_statement is completely dropped, log in evidence and flag for the user at the next checkpoint (Step 5) — this is not a hard halt for discover-product because the vision is still in DRAFT.
+
+Update status file: `check-coverage → completed`.
+
+**Step 3a Evals:**
+- **SE-15:** Read `stm.coverage_check_path` — verify the coverage report exists with a valid summary. PASS if total_input_elements > 0 and all fields are populated. FAIL if report is empty or malformed.
+- **SE-16:** Every facet of the problem_statement has at least `partial` coverage in product.yaml. PASS if no core problem facet is `dropped`. FAIL if any facet from the problem_statement is completely dropped — flag for user attention at checkpoint.
+
+---
+
 ### Step 3b — Derive & Validate Project Profiles
 
 Owner: recipe (no agent call — profiles already written to product.yaml by Step 3)
@@ -699,6 +745,7 @@ Flat 13-task status file. Steps run top to bottom.
     "assess-intent": { "status": "completed", "completed_at": "..." },
     "discover-opportunity": { "status": "completed", "completed_at": "..." },
     "draft-vision": { "status": "completed", "completed_at": "..." },
+    "check-coverage": { "status": "completed", "completed_at": "..." },
     "derive-profiles": { "status": "completed", "completed_at": "..." },
     "validate-profiles": { "status": "in_progress", "started_at": "..." },
     "generate-brief": { "status": "pending" },
@@ -739,5 +786,5 @@ for each step in compiled order:
 | maturity | L2 |
 | workflow_structure | B |
 | agents | 1 domain (product-strategist) + 1 validator (judge) + 2 utility (doc-builder, repo-orchestrator) |
-| step_evals | 22 |
+| step_evals | 24 |
 | scenario_evals | 7 |
