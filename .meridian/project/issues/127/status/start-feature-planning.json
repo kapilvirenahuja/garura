@@ -1,0 +1,14 @@
+{
+  "recipe": "start-feature-planning",
+  "issue": 127,
+  "started_at": "2026-03-25T00:00:00Z",
+  "tasks": {
+    "resolve-issue": { "status": "completed", "completed_at": "2026-03-25T00:01:00Z" },
+    "create-branch": { "status": "completed", "completed_at": "2026-03-25T00:02:00Z" },
+    "deep-analysis": { "status": "completed", "completed_at": "2026-03-25T00:15:00Z" },
+    "write-artifacts": { "status": "completed", "completed_at": "2026-03-25T00:20:00Z" },
+    "approval-gate": { "status": "completed", "completed_at": "2026-03-25T00:25:00Z" },
+    "scenario-evals": { "status": "completed", "completed_at": "2026-03-25T00:26:00Z" },
+    "evidence-report": { "status": "completed", "completed_at": "2026-03-25T00:27:00Z" }
+  }
+}
