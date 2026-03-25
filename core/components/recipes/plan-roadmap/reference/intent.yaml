@@ -36,9 +36,10 @@ constraints:
       and code-level concerns are excluded.
   - id: C5
     rule: >
-      The roadmap contains between 3 and 6 epics inclusive.
-      Fewer than 3 indicates insufficient vision detail.
-      More than 6 indicates insufficient scoping.
+      The number of epics is determined by the product's strategic goals —
+      each epic must trace to a named goal. The count is a natural outcome
+      of the vision, not an artificial constraint. Epics should be scoped
+      at a level where each represents a distinct, deliverable capability.
   - id: C6
     rule: >
       Every epic must have complete IDD fields: intent (problem, outcome,
@@ -103,7 +104,9 @@ constraints:
 failure_conditions:
   - id: F1
     condition: >
-      Fewer than 3 epics in the final roadmap.
+      Any epic in the roadmap does not represent a distinct, deliverable
+      capability — epics are too granular (task-level) or too broad
+      (multiple unrelated capabilities merged).
   - id: F2
     condition: >
       Any epic in the roadmap does not trace to a strategic goal

@@ -14,7 +14,7 @@ Model-invocable skill for extracting and scoping epics from a locked product def
 
 ## Purpose
 
-Read a locked product.yaml and derive 3–6 epics linked to Strategic Goals. Each epic gets full IDD treatment: intent (3 paragraphs), constraints (in/out/must-not-break), success scenarios (given/when/then), and failure conditions. Plus scoping fields: time bucket, priority, effort, dependencies. Returns a path to the STM artifact.
+Read a locked product.yaml and derive epics linked to Strategic Goals. The number of epics is determined by the vision — each must represent a distinct, deliverable capability. Each epic gets full IDD treatment: intent (3 paragraphs), constraints (in/out/must-not-break), success scenarios (given/when/then), and failure conditions. Plus scoping fields: time bucket, priority, effort, dependencies. Returns a path to the STM artifact.
 
 You DO derive, scope, and fully define the epics. You do NOT create GitHub issues, make implementation decisions, or choose technical approaches.
 
@@ -50,7 +50,7 @@ Receive from agent:
 
 3. **Extract Strategic Goals** from the product.yaml `strategic_goals` section.
 
-4. **Derive epics** — identify 3–6 epics (maximum 6), each linked to one named Strategic Goal. If fewer than 3 are identifiable, return structured failure: `{ "error": "insufficient_epics", "message": "Fewer than 3 distinct epics identifiable from product.yaml — product definition may need more detail" }`.
+4. **Derive epics** — identify epics from the product's strategic goals, each linked to one named Strategic Goal. Each epic must represent a distinct, deliverable capability — not a task and not a bundle of unrelated work. The count is a natural outcome of the vision.
 
 5. **Scope each epic** — for each epic, fill ALL fields per `reference/epic-schema.md`:
    - Scoping fields: `bucket`, `priority`, `effort`, `depends_on`, `foundation_investment`
@@ -99,10 +99,8 @@ Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridia
 - ALWAYS use `strategic_goal_ref` with SG-IDs (SG1, SG2, ...) from product.yaml `strategic_goals[].id` — NEVER use the goal title text as the reference
 - ALWAYS write full IDD content (intent, constraints, success_scenarios, failure_conditions) for every epic
 - ALWAYS return structured failure if product.yaml is not LOCKED
-- ALWAYS return structured failure if fewer than 3 epics are identifiable
 - ALWAYS write the epics file to `{artifact_base}/{slug}/epics.yaml` before returning output
 - WHEN profiles are available in product.yaml, USE them to inform epic depth, priority, and feature inclusion — do not ignore profile data
-- Minimum 3 epics, maximum 6 epics
 
 ## Version
 

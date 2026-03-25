@@ -4,18 +4,18 @@
     {
       "id": 1,
       "name": "scope-epics-from-product",
-      "prompt": "You are a product-strategist agent. Read the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml. This is a LOCKED product artifact. Your task: invoke the scope-roadmap-epics skill to derive 3-6 IDD epics from this product. Each epic must reference a strategic goal from product.yaml, have IDD fields (intent with p1/p2/p3, constraints, success_scenarios, failure_conditions), and use F-IDs (F1, F2, etc.). Write the output epics to core/components/recipes/plan-roadmap/evals/outputs/epics.yaml.",
-      "expected_output": "A valid epics.yaml with 3-6 epics, each having F-ID, name, strategic_goal_ref matching an SG from product.yaml, IDD fields (intent.p1/p2/p3, constraints.in_scope/out_of_scope/must_not_break, success_scenarios with given/when/then, failure_conditions), priority, depends_on, foundation flag",
+      "prompt": "You are a product-strategist agent. Read the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml. This is a LOCKED product artifact. Your task: invoke the scope-roadmap-epics skill to derive IDD epics from this product. Each epic must represent a distinct deliverable capability, reference a strategic goal from product.yaml, have IDD fields (intent with p1/p2/p3, constraints, success_scenarios, failure_conditions), and use E-IDs (E1, E2, etc.). Write the output epics to core/components/recipes/plan-roadmap/evals/outputs/epics.yaml.",
+      "expected_output": "A valid epics.yaml with epics, each having E-ID, name, strategic_goal_ref matching an SG from product.yaml, IDD fields (intent.p1/p2/p3, constraints.in_scope/out_of_scope/must_not_break, success_scenarios with given/when/then, failure_conditions), priority, depends_on, foundation flag",
       "files": ["core/components/recipes/plan-roadmap/evals/fixtures/product.yaml"],
       "assertions": [
         {
-          "name": "epic_count_3_to_6",
-          "description": "Output has between 3 and 6 top-level epics",
+          "name": "epics_are_distinct_capabilities",
+          "description": "Each epic represents a distinct, deliverable capability — not task-level or bundling unrelated work",
           "type": "structural"
         },
         {
-          "name": "all_epics_have_f_ids",
-          "description": "Every epic has an id field matching F[0-9]+ pattern",
+          "name": "all_epics_have_e_ids",
+          "description": "Every epic has an id field matching E[0-9]+ pattern",
           "type": "structural"
         },
         {

@@ -99,7 +99,11 @@ git commit -m "..." directly in recipe
 Task tool → subagent_type: "repo-orchestrator"
 ```
 
-### 3. Explicit Approvals
+### 3. Git Discipline
+
+Never commit or push directly to main. All work goes through feature branches and PRs — no exceptions, no matter how small the change. The flow is always: `/start-feature` → work on branch → `/ship` (or manual PR). Do not rush to commit; accumulate related changes and commit when a logical unit of work is complete. Never auto-proceed through the commit/PR/merge pipeline without the user explicitly invoking `/ship`.
+
+### 4. Explicit Approvals
 
 Never use `AskUser` for checkpoints. Output summary, wait for typed response.
 
@@ -117,14 +121,14 @@ Parse: `Tether`/`tether` → proceed. `Vanish`/`vanish` → cancel. Else → cla
 
 Applies to: commits, PRs, protected branches, destructive actions.
 
-### 4. Recipe Constraints
+### 5. Recipe Constraints
 
 | Level | Invocability | Max Agent Calls |
 |-------|--------------|-----------------|
 | L1 | Human OR Model | ≤2 |
 | L2 | Human only | ≤5 (ideal 3) |
 
-### 5. Task-Driven Workflow
+### 6. Task-Driven Workflow
 
 Always use Task tools for non-trivial work. Plan before executing.
 
