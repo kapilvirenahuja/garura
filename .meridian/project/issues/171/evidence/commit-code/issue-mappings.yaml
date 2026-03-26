@@ -1,0 +1,30 @@
+mappings:
+  - group_id: G1
+    issue_number: 171
+    issue_title: "Follow-up: polish client-side brief rendering"
+    confidence: high
+    reasoning: >
+      Branch name `feat/171-follow-up-polish-client-side-brief-rendering` contains
+      issue number 171 (strong branch signal). File paths include
+      `.meridian/project/issues/171/` directly linking to issue #171. Group subject
+      explicitly references "#171". All three signals — branch, file paths, and
+      semantic description — converge on issue #171 with no ambiguity.
+    signals:
+      branch: "feat/171-follow-up-polish-client-side-brief-rendering → issue #171"
+      semantic:
+        - ".meridian/project/issues/171/status/commit-code.json → issue #171"
+        - ".meridian/project/issues/171/status/ship.json → issue #171"
+        - "group subject mentions #171 explicitly"
+    conflicts: []
+
+summary:
+  total_groups: 1
+  high_confidence: 1
+  medium_confidence: 0
+  low_confidence: 0
+  unmapped: 0
+  conflicts: []
+  checkpoint_needed: false
+  reason: >
+    All 1 change group maps to issue #171 with high confidence. No human
+    approval required per constraint C9 — all mappings are high confidence.

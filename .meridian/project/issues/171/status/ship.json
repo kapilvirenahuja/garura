@@ -5,8 +5,8 @@
   "feature_branch": "feat/171-follow-up-polish-client-side-brief-rendering",
   "tasks": {
     "commit-code": {
-      "status": "in_progress",
-      "started_at": "2026-03-26T06:16:55Z"
+      "status": "completed",
+      "completed_at": "2026-03-26T06:23:45Z"
     },
     "create-pr": {
       "status": "pending"

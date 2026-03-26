@@ -1,0 +1,28 @@
+commits:
+  - group_id: G1
+    issue_number: 171
+    issue_title: "Follow-up: polish client-side brief rendering"
+    commit:
+      hash: 16e8bdf
+      type: chore
+      scope: stm
+      subject: "record start-feature and ship operational state for #171"
+      full_message: "chore(stm): record start-feature and ship operational state for #171"
+      files:
+        - .meridian/project/issues/_pending/start-feature/args.yaml
+        - .meridian/project/issues/_pending/start-feature/changed-files.txt
+        - .meridian/project/issues/171/status/commit-code.json
+        - .meridian/project/issues/171/status/ship.json
+      files_count: 4
+    validation:
+      clean_tree: true
+      conventional_format: true
+      issue_referenced: true
+      confidence: high
+
+summary:
+  total_commits: 1
+  total_files: 4
+  uncommitted_files: []
+  uncommitted_reason: null
+  status: completed
