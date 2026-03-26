@@ -1,0 +1,18 @@
+{
+  "slug": "empty-product",
+  "status": "DRAFT",
+  "created_at": "2026-03-26T10:00:00+0530",
+  "updated_at": "2026-03-26T10:00:00+0530",
+  "problem": "",
+  "target_users": [],
+  "competitors": [],
+  "market_size": {"tam": null, "sam": null, "som": null, "note": ""},
+  "differentiators": [],
+  "risks": [],
+  "value_proposition": "",
+  "strategic_goals": [],
+  "success_metrics": [],
+  "assumptions": [],
+  "out_of_scope": [],
+  "profiles": {"product_profile": [], "nfr_profile": [], "quality_profile": []}
+}

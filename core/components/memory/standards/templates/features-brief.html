@@ -3,26 +3,285 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Features Brief: {SLUG}</title>
+  <title>Features Brief</title>
   <!-- Template: features-brief.html -->
   <!-- Layout: Phoenix Design System v2.0 — Sidebar + Chapters -->
   <!-- All CSS and JS inline — no external dependencies -->
   <style>
     /* Phoenix Design System — Brief Tokens (inlined from brief-common.css) */
-    /* >>> INLINE brief-common.css HERE <<< */
 
-    .feature-card { background: var(--bg-secondary); border: 1px solid var(--border-default); border-radius: 8px; box-shadow: var(--shadow); padding: 20px; margin-bottom: var(--space-md); }
-    .feature-card:hover { border-color: var(--border-accent); }
-    .feature-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-md); gap: var(--space-md); }
-    .feature-id { font-family: var(--font-code); font-size: 12px; color: var(--text-dimmed); }
-    .feature-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+    /* =========================================================
+       TOKENS
+       ========================================================= */
+    :root {
+      /* Backgrounds (Warm Slate) */
+      --bg1: #1A2332;
+      --bg2: #212D3B;
+      --bg3: #2A3645;
+      --bgS: #131C28;
+
+      /* Text */
+      --t1: #E8EDF2;
+      --t2: #94A3B8;
+      --t3: #64748B;
+
+      /* Cyan Primary */
+      --a1: #00D4FF;
+      --cyan-700: #0094A8;
+      --cyan-600: #00B8D9;
+      --cyan-500: #00D4FF;
+      --cyan-400: #33DFFF;
+
+      /* Phoenix Orange Secondary */
+      --a2: #E8731A;
+      --orange-400: #E8731A;
+
+      /* Magenta Interactive */
+      --a3: #FF3CAC;
+
+      /* Supporting */
+      --a4: #FF6B6B;
+      --a5: #FBBF24;
+      --green: #00D26A;
+
+      /* Borders & Effects */
+      --bdr: #2E3D4F;
+      --glow: rgba(0,212,255,.2);
+      --shd: 0 4px 24px rgba(0,0,0,.3);
+
+      /* Status badges */
+      --status-draft: #FBBF24;
+      --status-validated: #00D26A;
+      --status-locked: #00D4FF;
+
+      /* Phoenix Gradient */
+      --phoenix-gradient: linear-gradient(135deg, #E8731A 0%, #FFB84D 100%);
+
+      /* Typography */
+      --font-display: 'Space Grotesk', -apple-system, sans-serif;
+      --font-body: 'DM Sans', 'Space Grotesk', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Layout */
+      --sidebar-w: 300px;
+      --content-max: 1200px;
+      --tr: .25s cubic-bezier(.4,0,.2,1);
+
+      /* Spacing */
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 12px;
+      --space-lg: 16px;
+      --space-xl: 24px;
+      --space-2xl: 32px;
+      --space-3xl: 48px;
+      --space-4xl: 80px;
+    }
+
+    /* =========================================================
+       RESET & BASE
+       ========================================================= */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-body); font-size: 15px; line-height: 1.7; color: var(--t1); background: var(--bg1); }
+    code, pre, .mono { font-family: var(--font-mono); font-size: 14px; }
+
+    /* =========================================================
+       THEME SYSTEM
+       ========================================================= */
+    [data-theme="light"] {
+      --bg1: #F1F5F9; --bg2: #FFFFFF; --bg3: #FFFFFF; --bgS: #131C28;
+      --t1: #0F172A; --t2: #475569; --t3: #94A3B8;
+      --a1: #00B8D9; --a2: #C06218; --a3: #D9308A; --a4: #EF4444; --a5: #F59E0B;
+      --bdr: #CBD5E1; --glow: rgba(0,212,255,.15); --shd: 0 4px 24px rgba(0,0,0,.08);
+    }
+    [data-theme="vibrant"] {
+      --bg1: #121B28; --bg2: #1A2535; --bg3: #223040; --bgS: #0D1520;
+      --a1: #33DFFF; --glow: rgba(0,212,255,.25);
+    }
+
+    /* =========================================================
+       LAYOUT: SIDEBAR + MAIN
+       ========================================================= */
+    .layout { display: flex; min-height: 100vh; }
+
+    .sidebar { width: var(--sidebar-w); background: var(--bgS); position: fixed; top: 0; left: 0; bottom: 0; display: flex; flex-direction: column; overflow-y: auto; z-index: 100; transition: transform var(--tr); }
+    .sidebar-header { padding: var(--space-2xl) var(--space-xl); border-bottom: 1px solid var(--bdr); }
+    .sidebar-logo { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg); }
+    .sidebar-logo svg { width: 32px; height: 32px; flex-shrink: 0; }
+    .sidebar-logo-text { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--t1); }
+    .sidebar-meta { font-family: var(--font-mono); font-size: 11px; color: var(--t3); margin-top: var(--space-sm); }
+    .sidebar-meta span { display: block; margin-bottom: 2px; }
+
+    .theme-switcher { display: flex; gap: var(--space-xs); padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--bdr); }
+    .theme-btn { flex: 1; padding: 6px 0; background: transparent; border: 1px solid var(--bdr); border-radius: 4px; color: var(--t3); font-family: var(--font-display); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all var(--tr); }
+    .theme-btn:hover { color: var(--t1); border-color: var(--a1); }
+    .theme-btn.active { background: rgba(0,212,255,.12); color: var(--a1); border-color: var(--a1); }
+
+    .sidebar-nav { flex: 1; padding: var(--space-xl) 0; overflow-y: auto; }
+    .nav-section-label { font-family: var(--font-display); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); padding: var(--space-sm) var(--space-xl) var(--space-sm); margin-top: var(--space-lg); }
+    .nav-section-label:first-child { margin-top: 0; }
+    .nav-item { display: block; padding: var(--space-sm) var(--space-xl); font-family: var(--font-body); font-size: 14px; color: var(--t3); text-decoration: none; border-left: 3px solid transparent; transition: all var(--tr); }
+    .nav-item:hover { color: var(--t1); background: rgba(0,212,255,.06); }
+    .nav-item.active { color: var(--a1); background: rgba(0,212,255,.12); border-left-color: var(--a1); }
+
+    .sidebar-footer { padding: var(--space-xl); border-top: 1px solid var(--bdr); margin-top: auto; }
+    .sidebar-footer-label { font-family: var(--font-display); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); margin-bottom: var(--space-md); }
+    .action-btns { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .action-btn { padding: 8px 0; border-radius: 4px; border: 1px solid var(--bdr); cursor: pointer; font-family: var(--font-display); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; background: transparent; text-align: center; transition: all var(--tr); }
+    .action-btn-tether { border-color: var(--green); color: var(--green); }
+    .action-btn-tether:hover { background: rgba(0,210,106,.1); }
+    .action-btn-vanish { border-color: var(--a4); color: var(--a4); }
+    .action-btn-vanish:hover { background: rgba(255,107,107,.1); }
+    .action-btn-orbit { border-color: var(--a1); color: var(--a1); }
+    .action-btn-orbit:hover { background: rgba(0,212,255,.1); }
+
+    .hamburger { display: none; position: fixed; top: 16px; left: 16px; z-index: 200; width: 40px; height: 40px; background: var(--bgS); border: 1px solid var(--bdr); border-radius: 6px; cursor: pointer; align-items: center; justify-content: center; }
+    .hamburger span { display: block; width: 20px; height: 2px; background: var(--t1); margin: 3px auto; transition: all var(--tr); }
+
+    /* --- Main Content --- */
+    .main { margin-left: var(--sidebar-w); flex: 1; min-width: 0; }
+    .content { max-width: var(--content-max); padding: 40px 56px 100px; }
+
+    /* =========================================================
+       BRIEF HEADER
+       ========================================================= */
+    .brief-header { margin-bottom: var(--space-3xl); padding-bottom: var(--space-2xl); border-bottom: 1px solid var(--bdr); }
+    .brief-title { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--t1); margin-bottom: var(--space-sm); line-height: 1.2; }
+    .brief-subtitle { font-family: var(--font-body); font-size: 16px; color: var(--t2); border-left: 3px solid var(--a1); padding-left: var(--space-lg); margin-top: var(--space-lg); }
+    .source-path { font-family: var(--font-mono); font-size: 12px; color: var(--t3); margin-top: var(--space-md); }
+
+    /* =========================================================
+       BADGES
+       ========================================================= */
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-family: var(--font-display); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .badge-draft     { background: rgba(251,191,36,.15); color: var(--status-draft); border: 1px solid rgba(251,191,36,.2); }
+    .badge-validated { background: rgba(0,210,106,.15); color: var(--status-validated); border: 1px solid rgba(0,210,106,.2); }
+    .badge-locked    { background: rgba(0,212,255,.12); color: var(--status-locked); border: 1px solid rgba(0,212,255,.2); }
+    .badge-count     { background: var(--bg3); color: var(--t2); }
+    .badge-low    { background: rgba(0,210,106,.15); color: var(--green); border: 1px solid rgba(0,210,106,.2); }
+    .badge-medium { background: rgba(232,115,26,.12); color: var(--a2); border: 1px solid rgba(232,115,26,.2); }
+    .badge-high   { background: rgba(255,107,107,.12); color: var(--a4); border: 1px solid rgba(255,107,107,.2); }
+    .badge-p1 { background: rgba(0,212,255,.12); color: var(--a1); border: 1px solid rgba(0,212,255,.2); }
+    .badge-p2 { background: rgba(148,163,184,.15); color: var(--t2); }
+    .badge-p3 { background: rgba(148,163,184,.1); color: var(--t3); }
+    .badge-near { background: rgba(0,210,106,.15); color: var(--green); }
+    .badge-mid  { background: rgba(232,115,26,.12); color: var(--a2); }
+    .badge-long { background: rgba(148,163,184,.15); color: var(--t2); }
+    .badge-mvp  { background: rgba(232,115,26,.15); color: var(--a2); border: 1px solid rgba(232,115,26,.25); }
+
+    /* =========================================================
+       CHAPTERS
+       ========================================================= */
+    .chapter { margin-bottom: var(--space-4xl); scroll-margin-top: 40px; }
+    .chapter-number { font-family: var(--font-display); font-size: 56px; font-weight: 900; color: var(--a1); opacity: 0.18; line-height: 1; margin-bottom: -8px; user-select: none; }
+    .chapter-title { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--t1); line-height: 1.3; margin-bottom: var(--space-xl); }
+    .chapter-subtitle { font-family: var(--font-body); font-size: 16px; color: var(--t2); border-left: 3px solid var(--a1); padding-left: var(--space-lg); margin-bottom: var(--space-3xl); }
+
+    /* =========================================================
+       TYPOGRAPHY
+       ========================================================= */
+    h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--a1); margin-bottom: var(--space-xl); margin-top: var(--space-3xl); }
+    h3, .section-heading { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--a1); margin-bottom: var(--space-xl); margin-top: var(--space-3xl); }
+    h4, .sub-heading { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--t1); margin-bottom: var(--space-lg); margin-top: var(--space-2xl); }
+    p { font-size: 16px; color: var(--t2); line-height: 1.75; margin-bottom: var(--space-lg); }
+    strong { font-weight: 700; color: var(--t1); }
+    em { font-weight: 500; color: var(--a1); font-style: normal; }
+
+    /* =========================================================
+       CARDS
+       ========================================================= */
+    .card { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 8px; box-shadow: var(--shd); padding: var(--space-2xl); margin-bottom: var(--space-xl); transition: all var(--tr); }
+    .card:hover { border-color: var(--a1); box-shadow: 0 0 20px var(--glow); }
+    .card-air   { border-left: 4px solid var(--green); }
+    .card-water { border-left: 4px solid var(--a1); }
+    .card-earth { border-left: 4px solid var(--t2); }
+    .card-fire  { border-left: 4px solid var(--a2); }
+    .card-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--t1); margin-bottom: var(--space-md); }
+    .card-field { margin-bottom: var(--space-sm); }
+    .card-field-label { font-family: var(--font-display); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); margin-bottom: 2px; }
+    .card-field-value { font-size: 15px; color: var(--t2); line-height: 1.6; }
+    .card-subtitle { font-family: var(--font-mono); font-size: 12px; color: var(--t3); margin-bottom: var(--space-md); }
+    .card-id { font-family: var(--font-mono); font-size: 12px; color: var(--t3); }
+
+    /* Highlight box */
+    .highlight-box { background: rgba(0,212,255,.05); border: 1px solid rgba(0,212,255,.2); border-left: 4px solid var(--a1); border-radius: 8px; padding: var(--space-2xl); margin-bottom: var(--space-xl); font-size: 16px; color: var(--t2); line-height: 1.75; }
+
+    /* =========================================================
+       TABLES
+       ========================================================= */
+    table { width: 100%; border-collapse: collapse; font-size: 15px; margin-bottom: var(--space-xl); }
+    th { background: var(--bg3); color: var(--t1); padding: 12px 16px; text-align: left; font-family: var(--font-display); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--bdr); color: var(--t2); }
+    td:first-child { font-weight: 600; color: var(--t1); }
+    tr:hover { background: rgba(0,212,255,.05); }
+
+    /* =========================================================
+       LISTS
+       ========================================================= */
+    .item-list { list-style: none; padding: 0; }
+    .item-list li { padding: 12px 0; border-bottom: 1px solid var(--bdr); font-size: 15px; color: var(--t2); display: flex; align-items: center; gap: var(--space-sm); }
+    .item-list li:last-child { border-bottom: none; }
+    .item-list li::before { content: "\25B8"; color: var(--a2); }
+
+    /* =========================================================
+       TAG CHIPS
+       ========================================================= */
+    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-sm); }
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-family: var(--font-display); font-size: 10px; font-weight: 600; background: rgba(0,212,255,.12); color: var(--a1); border: 1px solid rgba(0,212,255,.2); }
+
+    /* =========================================================
+       STAT CARDS
+       ========================================================= */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-xl); margin-bottom: var(--space-3xl); }
+    .stat-card { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 8px; padding: var(--space-2xl) var(--space-xl); text-align: center; }
+    .stat-value { font-family: var(--font-display); font-size: 44px; font-weight: 800; background: linear-gradient(135deg, var(--cyan-400), var(--cyan-600)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; margin-bottom: var(--space-sm); }
+    .stat-label { font-family: var(--font-display); font-size: 12px; color: var(--t2); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* =========================================================
+       IDD / EPIC SECTIONS
+       ========================================================= */
+    .idd-section { margin-top: var(--space-xl); padding-top: var(--space-xl); border-top: 1px solid var(--bdr); }
+    .idd-label { font-family: var(--font-display); font-size: 12px; font-weight: 700; color: var(--a1); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+    .idd-paragraph { margin-bottom: var(--space-md); color: var(--t2); font-size: 15px; line-height: 1.7; }
+    .scenario-item { padding: 10px 16px; background: var(--bg3); border-radius: 4px; margin-bottom: 8px; font-size: 14px; color: var(--t2); border-left: 3px solid var(--green); }
+    .failure-item { padding: 10px 16px; background: var(--bg3); border-radius: 4px; margin-bottom: 8px; font-size: 14px; color: var(--t2); border-left: 3px solid var(--a2); }
+
+    /* =========================================================
+       TOAST
+       ========================================================= */
+    #toast { display: none; position: fixed; bottom: 24px; right: 24px; background: var(--bg3); color: var(--t1); border: 1px solid var(--a1); border-radius: 6px; padding: 10px 18px; font-size: 13px; z-index: 2000; }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+    @media (max-width: 1100px) { .content { padding: 32px 32px 80px; } }
+    @media (max-width: 900px) {
+      .hamburger { display: flex; }
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .content { padding: 24px 16px 80px; padding-top: 72px; }
+      .chapter-number { font-size: 36px; }
+      .chapter-title { font-size: 28px; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* =========================================================
+       FEATURE-SPECIFIC STYLES
+       ========================================================= */
+    .feature-card { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 8px; box-shadow: var(--shd); padding: 20px; margin-bottom: var(--space-md); transition: all var(--tr); }
+    .feature-card:hover { border-color: var(--a1); box-shadow: 0 0 20px var(--glow); }
+    .feature-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-md); gap: var(--space-md); flex-wrap: wrap; }
+    .feature-id { font-family: var(--font-mono); font-size: 12px; color: var(--t3); display: block; margin-bottom: 2px; }
+    .feature-title { font-size: 16px; font-weight: 700; color: var(--t1); }
     .feature-badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
     .feature-field { margin-bottom: var(--space-sm); }
-    .feature-field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px; }
-    .feature-field-value { font-size: 14px; color: var(--text-secondary); }
-    .feature-field-value ul { padding-left: 18px; }
-    .feature-field-value li { margin-bottom: 4px; }
-    .blast-radius { background: rgba(240,160,0,0.08); border: 1px solid rgba(240,160,0,0.2); border-radius: 4px; padding: 6px 10px; font-size: 13px; color: var(--color-fire); margin-top: var(--space-xs); }
+    .blast-radius { background: rgba(240,160,0,0.08); border: 1px solid rgba(240,160,0,0.2); border-radius: 4px; padding: 10px 14px; margin-top: var(--space-sm); }
+
+    /* Scope two-column layout */
+    .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-xl); margin-bottom: var(--space-xl); }
+    @media (max-width: 700px) { .scope-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -38,11 +297,11 @@
         <span class="sidebar-logo-text">Features Brief</span>
       </div>
       <div class="sidebar-meta">
-        <span>{SLUG}</span>
-        <span><span class="badge {STATUS_BADGE_CLASS}">{STATUS}</span></span>
-        <span>Epic: {{EPIC_ID}}</span>
-        <span>Features: {{FEATURE_COUNT}}</span>
-        <span>{GENERATED_AT}</span>
+        <span id="meta-slug"></span>
+        <span><span id="meta-status" class="badge"></span></span>
+        <span id="meta-epic"></span>
+        <span id="meta-feature-count"></span>
+        <span id="meta-generated-at"></span>
       </div>
     </div>
     <div class="theme-switcher">
@@ -67,95 +326,377 @@
 
   <main class="main"><div class="content">
     <div class="brief-header">
-      <div class="brief-title">{SLUG} <span class="badge {STATUS_BADGE_CLASS}">{STATUS}</span></div>
+      <div class="brief-title"><span id="brief-title"></span> <span id="brief-status" class="badge"></span></div>
       <div class="brief-subtitle">Product identity, invariants, and feature specifications</div>
-      <div class="source-path">Source: features.yaml</div>
+      <div class="source-path">Source: features.json</div>
     </div>
 
-      <section class="chapter" id="identity">
-        <div class="chapter-number">01</div>
-        <div class="chapter-title">Identity</div>
+    <section class="chapter" id="identity">
+      <div class="chapter-number">01</div>
+      <div class="chapter-title">Identity</div>
 
-<h2>Product Identity</h2>
-    <!-- {IDENTITY}: render a .highlight-box with the product identity statement -->
-    <!-- Source: features.yaml identity section — name, description, value_proposition -->
-    {IDENTITY}
+      <h2>Product Identity</h2>
+      <div id="identity-box"></div>
 
-    <h2>Invariants</h2>
-    <!-- {INVARIANTS}: render a <ul class="item-list"> with one <li> per invariant -->
-    <!-- Source: features.yaml invariants — non-negotiable design constraints -->
-    <ul class="item-list">
-      {INVARIANTS}
-    </ul>
+      <h2>Invariants</h2>
+      <div id="invariants-list"></div>
 
-    <h2>Scope</h2>
-    <!-- {SCOPE}: render two .card blocks — In Scope and Out of Scope -->
-    <!-- Each card with an <ul class="item-list"> for the items -->
-    <!-- Source: features.yaml scope.in_scope and scope.out_of_scope -->
-    {SCOPE}
+      <h2>Scope</h2>
+      <div id="scope-in-scope"></div>
+      <div id="scope-out-of-scope"></div>
+      <div id="scope-deferred"></div>
+    </section>
 
-      </section>
-      <section class="chapter" id="features">
-        <div class="chapter-number">02</div>
-        <div class="chapter-title">Features</div>
-
-<!-- {FEATURE_CARDS}: render one .feature-card per feature from features.yaml -->
-    <!--
-      Feature card structure:
-      <div class="feature-card">
-        <div class="feature-header">
-          <div>
-            <div class="feature-id">{feature.id}</div>
-            <div class="feature-title">{feature.name}</div>
-          </div>
-          <div class="feature-badges">
-            <span class="badge badge-{priority}">{priority}</span>   <!-- p1/p2/p3 -->
-            <span class="badge badge-mvp">MVP</span>                 <!-- if feature.mvp=true -->
-          </div>
-        </div>
-        <div class="feature-field">
-          <div class="feature-field-label">Description</div>
-          <div class="feature-field-value">{feature.description}</div>
-        </div>
-        <div class="feature-field">
-          <div class="feature-field-label">User Story</div>
-          <div class="feature-field-value">{feature.user_story}</div>
-        </div>
-        <div class="feature-field">
-          <div class="feature-field-label">Acceptance Criteria</div>
-          <div class="feature-field-value"><ul>...</ul></div>
-        </div>
-        <div class="feature-field">
-          <div class="feature-field-label">Blast Radius</div>
-          <div class="blast-radius">{feature.blast_radius}</div>
-        </div>
-        <div class="idd-section">
-          <div class="idd-label">Intent</div>
-          <div class="idd-paragraph">{feature.idd.intent}</div>
-          <div class="idd-label">Constraints</div>
-          <div class="idd-paragraph">{feature.idd.constraints}</div>
-          <div class="idd-label">Failure Conditions</div>
-          <div class="idd-paragraph">{feature.idd.failure_conditions}</div>
-        </div>
-      </div>
-    -->
-    {FEATURE_CARDS}
-
-      </section>
+    <section class="chapter" id="features">
+      <div class="chapter-number">02</div>
+      <div class="chapter-title">Features</div>
+      <div id="features-list"></div>
+    </section>
 
   </div></main>
 </div>
 
 <script>
-  function setTheme(t){document.documentElement.setAttribute("data-theme",t);document.querySelectorAll(".theme-btn").forEach(function(b){b.classList.toggle("active",b.dataset.theme===t)});try{localStorage.setItem("phoenix-theme",t)}catch(e){}}
-  function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open")}
-  var chapters=document.querySelectorAll(".chapter"),navItems=document.querySelectorAll(".nav-item");
-  function updateActiveNav(){var s=window.scrollY+100,a="";chapters.forEach(function(c){if(c.offsetTop<=s)a=c.id});navItems.forEach(function(n){n.classList.toggle("active",n.getAttribute("href").replace("#","")===a)})}
-  window.addEventListener("scroll",updateActiveNav);
-  navItems.forEach(function(n){n.addEventListener("click",function(){if(window.innerWidth<=900)document.getElementById("sidebar").classList.remove("open")});});
-  function exportAction(a){var p={artifact:"features-brief",slug:"{SLUG}",action:a,timestamp:new Date().toISOString()};var t=JSON.stringify(p,null,2);if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){showToast("Copied: "+a)});else{var x=document.createElement("textarea");x.value=t;document.body.appendChild(x);x.select();document.execCommand("copy");document.body.removeChild(x);showToast("Copied: "+a)}}
-  function showToast(m){var t=document.getElementById("toast");t.textContent=m;t.style.display="block";setTimeout(function(){t.style.display="none"},2000)}
-  (function(){try{var s=localStorage.getItem("phoenix-theme");if(s)setTheme(s)}catch(e){}updateActiveNav()})();
+  // ─── Utilities ──────────────────────────────────────────────────────────────
+
+  function el(id) {
+    if (!id) return null;
+    return document.getElementById(id) || null;
+  }
+
+  function esc(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderValue(v) {
+    if (v == null) return '';
+    if (Array.isArray(v)) {
+      if (v.length === 0) return '';
+      if (typeof v[0] === 'object' && v[0] !== null) {
+        return '<ul class="item-list">' + v.map(function(item) {
+          return '<li>' + esc(JSON.stringify(item)) + '</li>';
+        }).join('') + '</ul>';
+      }
+      return '<ul class="item-list">' + v.map(function(item) {
+        return '<li>' + esc(item) + '</li>';
+      }).join('') + '</ul>';
+    }
+    return esc(v);
+  }
+
+  // ─── Badge Helpers ───────────────────────────────────────────────────────────
+
+  function badgeClass(status) {
+    if (!status) return '';
+    switch (String(status).toLowerCase()) {
+      case 'draft':     return 'badge-draft';
+      case 'validated': return 'badge-validated';
+      case 'locked':    return 'badge-locked';
+      case 'approved':  return 'badge-validated';
+      default:          return '';
+    }
+  }
+
+  function priorityBadge(priority) {
+    if (!priority) return '';
+    switch (String(priority).toLowerCase()) {
+      case 'p1': return 'badge-p1';
+      case 'p2': return 'badge-p2';
+      case 'p3': return 'badge-p3';
+      default:   return '';
+    }
+  }
+
+  // ─── renderFeatures ──────────────────────────────────────────────────────────
+
+  function renderFeatures(containerId, features) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!features || !features.length) return;
+    var html = '';
+    for (var i = 0; i < features.length; i++) {
+      var f = features[i];
+      html += '<div class="feature-card">';
+
+      // Header: ID + Name + Priority badge + MVP badge
+      html += '<div class="feature-header">';
+      html += '<div>';
+      html += '<span class="feature-id">' + esc(f.id) + '</span>';
+      html += '<span class="feature-title">' + esc(f.name) + '</span>';
+      html += '</div>';
+      html += '<div class="feature-badges">';
+      if (f.priority) html += '<span class="badge ' + priorityBadge(f.priority) + '">' + esc(f.priority) + '</span>';
+      if (f.mvp) html += '<span class="badge badge-mvp">MVP</span>';
+      html += '</div>';
+      html += '</div>';
+
+      // Description
+      if (f.description) {
+        html += '<div class="feature-field"><div class="card-field-label">Description</div>';
+        html += '<div class="card-field-value">' + esc(f.description) + '</div></div>';
+      }
+
+      // Strategic Goal Ref
+      if (f.strategic_goal_ref) {
+        html += '<div class="feature-field"><div class="card-field-label">Strategic Goal</div>';
+        html += '<div class="card-field-value">' + esc(f.strategic_goal_ref) + '</div></div>';
+      }
+
+      // Dependencies
+      if (f.depends_on && f.depends_on.length) {
+        html += '<div class="feature-field"><div class="card-field-label">Depends On</div>';
+        html += '<div class="card-field-value"><div class="tag-list">' + f.depends_on.map(function(d) { return '<span class="tag">' + esc(d) + '</span>'; }).join('') + '</div></div></div>';
+      }
+
+      // Blast Radius
+      if (f.blast_radius) {
+        html += '<div class="blast-radius">';
+        html += '<div class="card-field-label">Blast Radius</div>';
+        var br = f.blast_radius;
+        if (br.existing_systems) html += '<div class="card-field"><div class="card-field-label">Existing Systems</div><div class="card-field-value">' + renderValue(br.existing_systems) + '</div></div>';
+        if (br.affected_workflows) html += '<div class="card-field"><div class="card-field-label">Affected Workflows</div><div class="card-field-value">' + renderValue(br.affected_workflows) + '</div></div>';
+        if (br.integration_points) html += '<div class="card-field"><div class="card-field-label">Integration Points</div><div class="card-field-value">' + renderValue(br.integration_points) + '</div></div>';
+        if (br.notes) html += '<div class="card-field"><div class="card-field-label">Notes</div><div class="card-field-value">' + esc(br.notes) + '</div></div>';
+        html += '</div>';
+      }
+
+      // IDD Section: Intent
+      if (f.intent) {
+        html += '<div class="idd-section">';
+        html += '<div class="idd-label">Intent</div>';
+        if (f.intent.p1) html += '<div class="card-field"><div class="card-field-label">Problem Today</div><div class="card-field-value">' + esc(f.intent.p1) + '</div></div>';
+        if (f.intent.p2) html += '<div class="card-field"><div class="card-field-label">Outcome After</div><div class="card-field-value">' + esc(f.intent.p2) + '</div></div>';
+        if (f.intent.p3) html += '<div class="card-field"><div class="card-field-label">Strategic Connection</div><div class="card-field-value">' + esc(f.intent.p3) + '</div></div>';
+        html += '</div>';
+      }
+
+      // IDD Section: Constraints
+      if (f.constraints) {
+        html += '<div class="idd-section">';
+        html += '<div class="idd-label">Constraints</div>';
+        if (f.constraints.in_scope) html += '<div class="card-field"><div class="card-field-label">In Scope</div><div class="card-field-value">' + esc(f.constraints.in_scope) + '</div></div>';
+        if (f.constraints.out_of_scope) html += '<div class="card-field"><div class="card-field-label">Out of Scope</div><div class="card-field-value">' + esc(f.constraints.out_of_scope) + '</div></div>';
+        if (f.constraints.must_not_break) html += '<div class="card-field"><div class="card-field-label">Must Not Break</div><div class="card-field-value">' + esc(f.constraints.must_not_break) + '</div></div>';
+        html += '</div>';
+      }
+
+      // Failure Conditions
+      if (f.failure_conditions && f.failure_conditions.length) {
+        html += '<div class="idd-section">';
+        html += '<div class="idd-label">Failure Conditions</div>';
+        html += '<ul class="item-list">' + f.failure_conditions.map(function(fc) { return '<li>' + esc(fc) + '</li>'; }).join('') + '</ul>';
+        html += '</div>';
+      }
+
+      // Success Scenarios
+      if (f.success_scenarios && f.success_scenarios.length) {
+        html += '<div class="idd-section">';
+        html += '<div class="idd-label">Success Scenarios</div>';
+        for (var s = 0; s < f.success_scenarios.length; s++) {
+          var sc = f.success_scenarios[s];
+          html += '<div class="card" style="margin-top:0.5rem;">';
+          html += '<div class="card-field"><div class="card-field-label">Given</div><div class="card-field-value">' + esc(sc.given) + '</div></div>';
+          html += '<div class="card-field"><div class="card-field-label">When</div><div class="card-field-value">' + esc(sc.when) + '</div></div>';
+          html += '<div class="card-field"><div class="card-field-label">Then</div><div class="card-field-value">' + esc(sc.then) + '</div></div>';
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      html += '</div>'; // close feature-card
+    }
+    container.innerHTML = html;
+  }
+
+  // ─── render() ────────────────────────────────────────────────────────────────
+
+  function render(data) {
+    // Populate sidebar meta
+    var slug = data.slug || '';
+    var status = data.status || '';
+    var epicId = data.epic_id || '';
+    var features = data.features || [];
+    var generatedAt = data.generated_at || '';
+
+    if (el('meta-slug')) el('meta-slug').textContent = slug;
+    if (el('meta-status')) {
+      el('meta-status').textContent = status;
+      el('meta-status').className = 'badge ' + badgeClass(status);
+    }
+    if (el('meta-epic')) el('meta-epic').textContent = epicId ? 'Epic: ' + epicId : '';
+    if (el('meta-feature-count')) el('meta-feature-count').textContent = 'Features: ' + features.length;
+    if (el('meta-generated-at')) el('meta-generated-at').textContent = generatedAt;
+
+    // Populate brief header
+    if (el('brief-title')) el('brief-title').textContent = slug;
+    if (el('brief-status')) {
+      el('brief-status').textContent = status;
+      el('brief-status').className = 'badge ' + badgeClass(status);
+    }
+
+    // Update page title
+    if (slug) document.title = 'Features Brief: ' + slug;
+
+    // Update exportAction slug reference
+    _exportSlug = slug;
+
+    // ── Chapter 1: Identity ──
+
+    // identity object
+    var identity = data.identity || {};
+    var identityBox = el('identity-box');
+    if (identityBox) {
+      var iHtml = '<div class="highlight-box">';
+      if (identity.what_it_is) {
+        iHtml += '<div class="card-field"><div class="card-field-label">What It Is</div><div class="card-field-value">' + esc(identity.what_it_is) + '</div></div>';
+      }
+      if (identity.what_it_is_not) {
+        iHtml += '<div class="card-field"><div class="card-field-label">What It Is Not</div><div class="card-field-value">' + esc(identity.what_it_is_not) + '</div></div>';
+      }
+      if (identity.core_jobs && identity.core_jobs.length) {
+        iHtml += '<div class="card-field"><div class="card-field-label">Core Jobs</div><div class="card-field-value"><ul class="item-list">' +
+          identity.core_jobs.map(function(j) { return '<li>' + esc(j) + '</li>'; }).join('') +
+          '</ul></div></div>';
+      }
+      if (identity.non_goals && identity.non_goals.length) {
+        iHtml += '<div class="card-field"><div class="card-field-label">Non-Goals</div><div class="card-field-value"><ul class="item-list">' +
+          identity.non_goals.map(function(g) { return '<li>' + esc(g) + '</li>'; }).join('') +
+          '</ul></div></div>';
+      }
+      iHtml += '</div>';
+      identityBox.innerHTML = iHtml;
+    }
+
+    // invariants — array of {id, description}
+    var invariantsList = el('invariants-list');
+    if (invariantsList) {
+      var invariants = data.invariants || [];
+      if (invariants.length) {
+        var invHtml = '';
+        for (var k = 0; k < invariants.length; k++) {
+          var inv = invariants[k];
+          invHtml += '<div class="card card-earth">';
+          if (inv.id) invHtml += '<span class="card-id">' + esc(inv.id) + '</span>';
+          if (inv.description) invHtml += '<div class="card-field-value" style="margin-top:4px;">' + esc(inv.description) + '</div>';
+          invHtml += '</div>';
+        }
+        invariantsList.innerHTML = invHtml;
+      }
+    }
+
+    // scope
+    var scope = data.scope || {};
+
+    var scopeIn = el('scope-in-scope');
+    if (scopeIn) {
+      var inItems = scope.in_scope || [];
+      var inHtml = '<div class="card card-air">';
+      inHtml += '<div class="card-title">In Scope</div>';
+      if (inItems.length) {
+        inHtml += '<ul class="item-list">' + inItems.map(function(s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>';
+      }
+      inHtml += '</div>';
+      scopeIn.innerHTML = inHtml;
+    }
+
+    var scopeOut = el('scope-out-of-scope');
+    if (scopeOut) {
+      var outItems = scope.out_of_scope || [];
+      var outHtml = '<div class="card card-fire">';
+      outHtml += '<div class="card-title">Out of Scope</div>';
+      if (outItems.length) {
+        outHtml += '<ul class="item-list">' + outItems.map(function(s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ul>';
+      }
+      outHtml += '</div>';
+      scopeOut.innerHTML = outHtml;
+    }
+
+    var scopeDeferred = el('scope-deferred');
+    if (scopeDeferred) {
+      var deferredItems = scope.deferred || [];
+      if (deferredItems.length) {
+        var defHtml = '<h2>Deferred</h2>';
+        for (var d = 0; d < deferredItems.length; d++) {
+          var def = deferredItems[d];
+          defHtml += '<div class="card card-earth">';
+          if (def.capability) defHtml += '<div class="card-title">' + esc(def.capability) + '</div>';
+          if (def.rationale) defHtml += '<div class="card-field"><div class="card-field-label">Rationale</div><div class="card-field-value">' + esc(def.rationale) + '</div></div>';
+          defHtml += '</div>';
+        }
+        scopeDeferred.innerHTML = defHtml;
+      }
+    }
+
+    // ── Chapter 2: Features ──
+    renderFeatures('features-list', features);
+  }
+
+  // ─── Static UI ───────────────────────────────────────────────────────────────
+
+  var _exportSlug = '';
+
+  function setTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    document.querySelectorAll('.theme-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.theme === t); });
+    try { localStorage.setItem('phoenix-theme', t); } catch(e) {}
+  }
+
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+  var chapters = document.querySelectorAll('.chapter');
+  var navItems = document.querySelectorAll('.nav-item');
+
+  function updateActiveNav() {
+    var s = window.scrollY + 100;
+    var a = '';
+    chapters.forEach(function(c) { if (c.offsetTop <= s) a = c.id; });
+    navItems.forEach(function(n) { n.classList.toggle('active', n.getAttribute('href').replace('#', '') === a); });
+  }
+
+  window.addEventListener('scroll', updateActiveNav);
+  navItems.forEach(function(n) {
+    n.addEventListener('click', function() { if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open'); });
+  });
+
+  function exportAction(a) {
+    var p = { artifact: 'features-brief', slug: _exportSlug, action: a, timestamp: new Date().toISOString() };
+    var t = JSON.stringify(p, null, 2);
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(t).then(function() { showToast('Copied: ' + a); });
+    } else {
+      var x = document.createElement('textarea');
+      x.value = t;
+      document.body.appendChild(x);
+      x.select();
+      document.execCommand('copy');
+      document.body.removeChild(x);
+      showToast('Copied: ' + a);
+    }
+  }
+
+  function showToast(m) {
+    var t = document.getElementById('toast');
+    t.textContent = m;
+    t.style.display = 'block';
+    setTimeout(function() { t.style.display = 'none'; }, 2000);
+  }
+
+  (function() {
+    try { var s = localStorage.getItem('phoenix-theme'); if (s) setTheme(s); } catch(e) {}
+    updateActiveNav();
+  })();
+
+  // ─── Fetch and render ────────────────────────────────────────────────────────
+
+  fetch('./features.json')
+    .then(function(r) { return r.json(); })
+    .then(function(data) { render(data); })
+    .catch(function(err) { console.error('Failed to load features.json:', err); });
 </script>
 
 </body>

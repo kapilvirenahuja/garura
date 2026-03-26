@@ -1,0 +1,119 @@
+{
+  "slug": "test-product",
+  "status": "VALIDATED",
+  "features_ref": "features.yaml",
+  "groups": [
+    {
+      "id": "GRP-AUTH",
+      "name": "Authentication",
+      "feature_ref": "F1",
+      "scenarios": [
+        {
+          "id": "SC-AUTH-001",
+          "title": "New user registration with valid credentials",
+          "feature_ref": "F1",
+          "description": "A new visitor submits a valid email and password to create an account. The system creates the user record, hashes the password, and returns a JWT token for immediate dashboard access.",
+          "expected_behavior": "HTTP 201 response with JWT token in body; user record created in database; UserSettings record created with defaults; no password stored in plaintext",
+          "pass_criteria": [
+            "Response status is 201",
+            "Response body contains token field with valid JWT",
+            "User record exists in database with hashed password",
+            "UserSettings record created with notifications_enabled = true",
+            "Duplicate registration with same email returns 409"
+          ],
+          "automation": "automated",
+          "test_type": "integration"
+        },
+        {
+          "id": "SC-AUTH-002",
+          "title": "Registered user login with correct credentials",
+          "feature_ref": "F1",
+          "description": "An existing user submits their email and password. The system validates credentials against the stored hash and issues a JWT token for session use.",
+          "expected_behavior": "HTTP 200 response with JWT token; token payload contains userId and expiry set to 24 hours from issuance; invalid credentials return 401 without leaking account existence",
+          "pass_criteria": [
+            "Response status is 200 for valid credentials",
+            "JWT token is returned in response body",
+            "Token decodes to contain userId matching the registered user",
+            "Token expiry is set to 24 hours from issuance",
+            "Invalid password returns 401 — not 403 or 500",
+            "Non-existent email returns 401 — same response as invalid password"
+          ],
+          "automation": "automated",
+          "test_type": "integration"
+        },
+        {
+          "id": "SC-AUTH-003",
+          "title": "Password reset flow completes end to end",
+          "feature_ref": "F1",
+          "description": "A user who has forgotten their password requests a reset link, receives it via email, clicks the link within the validity window, and successfully sets a new password.",
+          "expected_behavior": "Reset link delivered to registered email; link expires after 1 hour; new password replaces old hash; old password no longer valid after reset; new login succeeds with new password",
+          "pass_criteria": [
+            "POST /auth/reset-request returns 200 for registered email (no account existence leak)",
+            "Reset token created in database with 1-hour expiry",
+            "Email sent to registered address (verified via SendGrid mock)",
+            "POST /auth/reset-complete with valid token and new password returns 200",
+            "Old password rejected after reset",
+            "New password accepted for login after reset",
+            "Expired token returns 410 Gone"
+          ],
+          "automation": "hybrid",
+          "test_type": "integration"
+        }
+      ]
+    },
+    {
+      "id": "GRP-DASH",
+      "name": "Dashboard Overview",
+      "feature_ref": "F2",
+      "scenarios": [
+        {
+          "id": "SC-DASH-001",
+          "title": "Authenticated user sees populated dashboard within 2 seconds",
+          "feature_ref": "F2",
+          "description": "A logged-in user navigates to the dashboard. All widgets load with current data and the page becomes interactive within the 2-second performance budget.",
+          "expected_behavior": "Dashboard renders with all configured widgets; metrics widgets show current counts; activity feed shows last 10 events; page interactive within 2 seconds on standard broadband",
+          "pass_criteria": [
+            "GET /dashboard returns 200 with full widget data payload",
+            "Response time is under 200ms at p95 in staging",
+            "Frontend Time to Interactive (TTI) under 2000ms measured by Lighthouse",
+            "All widgets render without console errors",
+            "Authenticated request without valid JWT returns 401"
+          ],
+          "automation": "hybrid",
+          "test_type": "integration"
+        },
+        {
+          "id": "SC-DASH-002",
+          "title": "Widget layout persists across logout and login",
+          "feature_ref": "F2",
+          "description": "A user reorders their dashboard widgets, logs out, and logs back in. The customized layout is restored without any re-configuration.",
+          "expected_behavior": "Layout saved on reorder; layout retrieved on next login; widget positions match the user's last saved configuration exactly",
+          "pass_criteria": [
+            "POST /dashboard/layout saves the layout to UserSettings",
+            "Subsequent GET /dashboard returns the saved layout",
+            "Layout is user-specific — different users see their own layouts",
+            "Layout persists across token refresh and re-login",
+            "Invalid layout payload returns 422 with validation errors"
+          ],
+          "automation": "automated",
+          "test_type": "integration"
+        }
+      ]
+    }
+  ],
+  "feature_gates": [
+    {"feature_ref": "F1", "gate": "All SC-AUTH-001 through SC-AUTH-003 must pass before F2 implementation begins"},
+    {"feature_ref": "F2", "gate": "All SC-DASH-001 through SC-DASH-002 must pass before F3 implementation begins"}
+  ],
+  "coverage": {
+    "total_scenarios": 5,
+    "automated": 3,
+    "hybrid": 2,
+    "per_group": [
+      {"group_id": "GRP-AUTH", "scenario_count": 3, "automated": 2, "hybrid": 1},
+      {"group_id": "GRP-DASH", "scenario_count": 2, "automated": 1, "hybrid": 1}
+    ],
+    "uncovered_features": [],
+    "uncovered_behaviors": ["F2-B2"]
+  }
+}
