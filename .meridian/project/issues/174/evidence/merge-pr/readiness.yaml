@@ -1,0 +1,18 @@
+readiness:
+  pr_number: 175
+  pr_title: "feat: add architecture decision map to brief system #174"
+  head_branch: feat/174-architecture-decision-map
+  base_branch: main
+  state: OPEN
+  mergeable: true
+  clean_tree: true
+  constraints:
+    C1_not_on_default_branch: true
+    C2_pr_exists: true
+    C3_clean_working_tree: true
+    C4_no_conflicts: true
+  evals:
+    SE1_mergeable_before_merge: PASS
+    SE4_clean_tree_confirmed: PASS
+    SE5_pr_number_valid: PASS
+  ready: true
