@@ -338,7 +338,7 @@ Update status file: `assess-feasibility → completed`.
 **Step 4 — Produce Brief**
 Owner: `doc-builder` (utility, exempt from agent budget)
 Depends on: Steps 2, 2b, 3
-Skill: `draft-roadmap-brief`
+Renderer: `brief-render.js` (client-side, LTM template)
 
 ```json
 {
@@ -363,10 +363,10 @@ Skill: `draft-roadmap-brief`
 }
 ```
 
-Agent computes output paths under `{product_base}/{slug}/briefs/`, invokes `draft-roadmap-brief` skill with explicit `output_path`. The skill uses the LTM template at `~/.meridian/core/memory/standards/templates/roadmap-brief.html` and CSS at `~/.meridian/core/memory/standards/templates/brief-common.css`, applying `brief-principles.md` conventions.
+Agent computes output paths under `{product_base}/{slug}/briefs/`, renders the roadmap brief using the client-side brief renderer (`brief-render.js`) with the static `roadmap-brief.html` template and `brief-common.css` from LTM (`~/.meridian/core/memory/standards/templates/`), following the Phoenix sidebar + chapters layout.
 
 Agent produces:
-- `briefs/roadmap-brief.html` — tabbed layout per brief-principles.md with tabs: Strategy, Timeline, Epics, Feasibility, Comments. Inline comment system per brief-principles.md spec.
+- `briefs/roadmap-brief.html` — Phoenix sidebar brief with chapters: Strategy, Timeline, Epics, Feasibility; sidebar navigation, theme switcher, and review-decision actions (Tether/Vanish/Orbit).
 - `briefs/hub.html` — regenerated to reflect updated roadmap brief status. Hub lifecycle owned by doc-builder.
 
 **Expected return:** Contract with `stm.roadmap_brief_path` and `stm.hub_path` populated (pointing to `briefs/` paths), `step_failure` null.
@@ -378,7 +378,7 @@ Update status file: `produce-brief → completed`.
 
 **Step 4 Evals (C2, C3, C4, F4):**
 - **SE-7 (F4, C4):** Confirm the brief artifact passes C4 — read the `notes` field from the returned contract. If any note indicates a C-BRIEF-2 violation, re-invoke `doc-builder` once with `user_feedback: "Remove technical content that does not affect sequencing, priority, or timing"`. If violation persists after re-invoke, halt. PASS if no C4 violations reported.
-- **SE-11 (C2, C3, C10):** Read `stm.roadmap_brief_path` using the Read tool. PASS if: (a) file has `.html` extension and contains `<html>` tag (C2 — template rendered output), (b) file uses tab-based layout with tabs for Strategy, Timeline, Epics, Feasibility, and Comments (C2 — template structure per brief-principles.md), (c) Feasibility tab contains at least 1 critical_blockers entry (C3 — reviewability signal), (d) inline comment system is present — text selection triggers comment popup, Comments tab lists annotations with export button (C10 — interactive feedback per brief-principles.md). FAIL if any condition is not met — re-invoke doc-builder once. Halt after second failure.
+- **SE-11 (C2, C3, C10):** Read `stm.roadmap_brief_path` using the Read tool. PASS if: (a) file has `.html` extension and contains `<html>` tag (C2 — template rendered output), (b) file uses the Phoenix sidebar + chapters layout with visible sidebar navigation entries for Strategy, Timeline, Epics, and Feasibility plus a theme switcher (C2), (c) the Feasibility chapter contains at least 1 `critical_blockers` entry (C3 — reviewability signal), and (d) review actions for Tether, Vanish, and Orbit are visibly present in the brief (C10). FAIL if any condition is not met — re-invoke doc-builder once. Halt after second failure.
 
 ---
 
@@ -511,7 +511,7 @@ Update `task_id` to `produce-roadmap` in the enriched contract. Pass the full en
 }
 ```
 
-Agent produces `roadmap.yaml` conforming to the roadmap.yaml schema. This consolidates roadmap content (thesis, narrative, timeline, exclusions, assumptions) and feasibility data (per-feature risk, blockers, open questions, risk_summary) from `stm.feasibility_path` into a single artifact. The `approved_brief_ref` field in `roadmap.yaml` must point to `stm.approved_roadmap_brief_path` (under `briefs/`).
+Agent produces `roadmap.yaml` conforming to the roadmap.yaml schema. This consolidates roadmap content (thesis, narrative, timeline, exclusions, assumptions) and feasibility data (per-feature risk, blockers, open questions, risk_summary) from `stm.feasibility_path` into a single artifact. The thesis, narrative, timeline sequencing, exclusions, and assumptions in `roadmap.yaml` must be transcribed verbatim from the approved brief or locked upstream product artifact — not regenerated. The `approved_brief_ref` field in `roadmap.yaml` must point to `stm.approved_roadmap_brief_path` (under `briefs/`).
 
 **Expected return:** Contract with `stm.roadmap_yaml_path` populated, `step_failure` null.
 
@@ -526,7 +526,7 @@ Update status file: `produce-roadmap → completed`.
 - **SE-6 (F3):** Verify `roadmap.yaml` contains non-empty: `thesis`, `narrative`, at least 1 horizon in `timeline`, at least 1 entry in `feasibility`, `critical_blockers` (may be empty list), `open_questions` (may be empty list), `risk_summary` (C6). PASS if all present. FAIL if any missing or null. Halt on FAIL.
 - **SE-8 (F5):** Read `roadmap.yaml` — verify `approved_brief_ref` field is present and points to an existing file (C8). PASS if exists. FAIL if absent or file missing. Halt on FAIL.
 - **SE-19 (F6):** Read `roadmap.yaml` `approved_brief_ref` — verify the path points to the file at `stm.approved_roadmap_brief_path` (the copy made after Tether, not the original draft brief). PASS if paths match. FAIL if `approved_brief_ref` points to the original draft brief path rather than the approved copy under `briefs/`. Halt on FAIL.
-- **SE-10 (F7):** Read approved brief at `stm.approved_roadmap_brief_path`. For each epic referenced in the brief's Timeline tab, verify the corresponding `epic_ref` entry exists in `roadmap.yaml` `timeline`. PASS if all epic refs align. FAIL if any epic in the approved brief is absent from the roadmap (C9). Halt on FAIL.
+- **SE-10 (C9, F7):** Read approved brief at `stm.approved_roadmap_brief_path`, product.yaml at `stm.product_yaml_path`, and roadmap.yaml at `stm.roadmap_yaml_path`. Verify: (a) the brief's The Bet text matches `roadmap.yaml.thesis` verbatim, (b) the brief's The Story content matches `roadmap.yaml.narrative` verbatim, (c) the brief's Decisions table and timeline chapters yield the same horizon-to-epic sequencing recorded in `roadmap.yaml.timeline`, and (d) `roadmap.yaml.exclusions` and `roadmap.yaml.assumptions` match the approved brief or locked product.yaml verbatim. PASS if all carried-forward roadmap content matches exactly. FAIL if any roadmap-defining field was regenerated, paraphrased, or omitted. Halt on FAIL.
 
 ---
 
@@ -536,13 +536,18 @@ Owner: `judge`
 Depends on: Step 6
 Skill: `validate-roadmap`
 
-**Context isolation:** The judge receives ONLY the artifact path and validation skill name. It does NOT receive epics, feasibility data, product-strategist drafting notes, brief content, or any intermediate reasoning from Steps 1-6.
+**Context isolation:** The judge receives the required contract scaffold plus ONLY the roadmap artifact path and validation skill name. It does NOT receive epics, feasibility data, product-strategist drafting notes, brief content, or any intermediate reasoning from Steps 1-6.
 
 ```json
 {
+  "intent_path": "core/components/recipes/plan-roadmap/reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
   "mode": "validate-artifact",
   "validation_skill": "validate-roadmap",
   "artifact_paths": {
+    "roadmap_yaml_path": "{stm.roadmap_yaml_path}"
+  },
+  "stm": {
     "roadmap_yaml_path": "{stm.roadmap_yaml_path}"
   },
   "task_id": "validate-roadmap"
@@ -579,7 +584,7 @@ Auto-proceed to Step 7.
 Update status file: `validate-roadmap → completed`.
 
 **Step 6b-val Evals:**
-- **SE-14 (context isolation):** The judge validation contract contains ONLY the roadmap_yaml_path — no epics_path, feasibility_path, product-strategist notes, or brief content. PASS if contract has only artifact_paths and validation_skill. FAIL if any drafting context is present.
+- **SE-14 (context isolation):** The judge validation contract contains the required schema scaffold (`intent_path`, `stm_base`, `stm`, `task_id`) and only `roadmap_yaml_path` as artifact input — no epics_path, feasibility_path, product-strategist notes, or brief content. PASS if the contract includes the required schema fields and no drafting context beyond `roadmap_yaml_path`. FAIL if required fields are missing or any extra drafting context is present.
 
 ---
 
@@ -595,7 +600,7 @@ Run these scenario evals against the final artifacts:
 
 - **SCE-2 (S2 — Product Owner):** Read `stm.roadmap_yaml_path`. For every entry in `feasibility[]`, verify `risk_level` is one of low/medium/high, `technical_risks` has at least 1 entry with `risk`, `severity`, `affected_systems`, and `mitigation` all present and non-empty. Verify `sequencing_constraints` is present (may be empty string). PASS if all feasibility entries satisfy all conditions.
 
-- **SCE-4 (S4 — Stakeholder):** Read `stm.roadmap_brief_path`. Verify Feasibility tab renders at least 1 entry from `critical_blockers` identifying an item that must be resolved before proceeding. Verify inline comment system is present — text selection triggers comment popup, Comments tab lists annotations with export button. PASS if both conditions are met.
+- **SCE-4 (S4 — Stakeholder):** Read `stm.roadmap_brief_path`. Verify the Feasibility chapter renders at least 1 entry from `critical_blockers` identifying an item that must be resolved before proceeding. Verify the sidebar exposes review-decision actions for Tether, Vanish, and Orbit while the stakeholder reads the brief. PASS if both conditions are met.
 
 - **SCE-3 (S3 — Engineering Lead):** Read `stm.roadmap_yaml_path`. For every entry in `feasibility[]`, verify: (a) `sequencing_constraints` is present and non-empty when the epic has dependencies, (b) `architecture_impact` identifies specific systems or patterns, (c) `technical_risks` entries have `affected_systems` with concrete system names (not generic labels). Read `timeline` — verify epics in later horizons have `sequencing_constraints` that reference earlier-horizon epics when technical dependencies exist. PASS if an engineering lead can identify cross-epic technical dependencies and sequence work from the feasibility section alone. FAIL if sequencing_constraints are empty strings for dependent epics, or architecture_impact is generic/missing.
 
@@ -795,11 +800,11 @@ When an agent returns `step_failure` (non-null):
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:4612c079a5bffe4deb71e40187eb4f51045c554235ebb874c70e86d31cd3e85a |
+| intent_hash | sha256:e6d699f6a045ac66a60f38c7a111e41797fb22567430203b9241fd3833dcd27b |
 | compiled_by | create-recipe |
 | compiled_at | 2026-03-26 |
 | maturity | L2 |
 | workflow_structure | A (full checkpoint flow) |
 | agents | 3 domain (product-strategist, tech-designer, judge) + 2 utility (doc-builder, repo-orchestrator) |
-| step_evals | 23 (SE-1 through SE-23, covering C2, C3, C5-C7, C10-C17, F1-F12, context isolation, input-output coverage, scope-item coverage, deferred-violation detection) |
+| step_evals | 23 (SE-1 through SE-23, covering C2-C17, F1-F12, context isolation, input-output coverage, scope-item coverage, deferred-violation detection, and approved-brief transcription checks) |
 | scenario_evals | 11 (SCE-1 through SCE-9 + SCE-5a, SCE-5b, covering S1-S10) |

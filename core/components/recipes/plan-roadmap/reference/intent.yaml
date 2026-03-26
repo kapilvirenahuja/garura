@@ -14,13 +14,13 @@ constraints:
       No artifacts may be produced from an unlocked vision.
   - id: C2
     rule: >
-      The roadmap brief must use a tab-based layout with the following
-      tabs: Exec Summary, Decisions, Epics (with sub-tabs per epic),
-      Timeline, Assumptions. A separate "Blockers" section surfaces
-      items that must be resolved before proceeding. There is no
-      "What We're Not Doing" section — epic constraints already define
-      scope boundaries. The brief must follow the standard roadmap brief
-      template defined in LTM.
+      The roadmap brief must use the standard Phoenix sidebar + chapters
+      layout defined in LTM. Required chapters are: Strategy, Timeline,
+      Epics, and Feasibility. The sidebar must provide chapter navigation,
+      a theme switcher, and review decision affordances. The Feasibility
+      chapter surfaces blockers that must be resolved before proceeding.
+      There is no separate "What We're Not Doing" chapter — epic
+      constraints already define scope boundaries.
     template_ref: "standards/templates/roadmap-brief.html"
   - id: C3
     rule: >
@@ -56,15 +56,18 @@ constraints:
       explicit human approval. The brief gates the roadmap.
   - id: C9
     rule: >
-      IDD content in the final roadmap must be transcribed verbatim from the
-      approved brief. No regeneration or paraphrasing of intent, constraints,
-      scenarios, or failure conditions.
+      Roadmap-defining content in the final roadmap must be transcribed
+      verbatim from the approved brief. The thesis, narrative, timeline
+      sequencing, exclusions, and assumptions carried into roadmap.yaml
+      must come directly from the approved brief or locked upstream
+      artifacts — no regeneration or paraphrasing.
   - id: C10
     rule: >
-      The roadmap brief must include an interactive feedback mechanism —
-      textarea fields, comment inputs, or equivalent — embedded in the HTML
-      document. The reviewer must be able to enter feedback directly in the
-      brief without switching to the terminal or any external tool.
+      The roadmap brief must expose review decision affordances directly in
+      the HTML — Tether, Vanish, Orbit, or equivalent clearly labeled review
+      actions — so the reviewer can see the available outcomes while
+      reading. Detailed written feedback is collected through the recipe
+      checkpoint, not embedded comment fields inside the brief.
   - id: C11
     rule: >
       After brief approval, roadmap production must be blocked when the
@@ -151,9 +154,10 @@ failure_conditions:
       original draft brief path.
   - id: F7
     condition: >
-      The roadmap contains IDD content that differs from the
-      approved brief — indicating regeneration rather than
-      verbatim transcription.
+      The roadmap contains thesis, narrative, timeline sequencing,
+      exclusions, or assumptions that differ from the approved brief
+      or locked upstream artifacts — indicating regeneration rather
+      than verbatim transcription.
   - id: F8
     condition: >
       The roadmap was produced while critical_blockers or open_questions
@@ -209,9 +213,8 @@ scenarios:
     given: Roadmap brief
     then: >
       Can review the brief, identify blockers that need resolution,
-      and provide inline feedback directly in the HTML document —
-      approve, reject, or request specific changes — within
-      30 minutes.
+      and approve, reject, or request specific changes within
+      30 minutes using the brief plus the recipe checkpoint flow.
   - id: S5
     persona: Technical Architect
     given: Feasibility section of roadmap.yaml and risk summary

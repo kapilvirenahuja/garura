@@ -365,7 +365,7 @@ Depends on: Step 6
 }
 ```
 
-Agent computes output paths under `{epic_base}/briefs/`, invokes `generate-implementation-brief` with explicit `output_base`, then regenerates `hub.html` at `{epic_base}/briefs/hub.html`.
+Agent computes output paths under `{epic_base}/briefs/`, renders briefs using the client-side brief renderer (`brief-render.js`) with static templates from LTM, then regenerates `hub.html` at `{epic_base}/briefs/hub.html`.
 
 ---
 
@@ -467,7 +467,7 @@ Depends on: Step 9
 }
 ```
 
-Agent computes output paths under `{epic_base}/briefs/`, invokes `generate-implementation-brief` with explicit `output_base`, then regenerates `hub.html` at `{epic_base}/briefs/hub.html`.
+Agent computes output paths under `{epic_base}/briefs/`, renders briefs using the client-side brief renderer (`brief-render.js`) with static templates from LTM, then regenerates `hub.html` at `{epic_base}/briefs/hub.html`.
 
 ---
 
@@ -619,7 +619,7 @@ Depends on: Step 12, Step 13
 }
 ```
 
-Agent computes output paths under `{epic_base}/briefs/`, invokes `generate-implementation-brief` with explicit `output_base`, then regenerates `hub.html` at `{epic_base}/briefs/hub.html`.
+Agent computes output paths under `{epic_base}/briefs/`, renders briefs using the client-side brief renderer (`brief-render.js`) with static templates from LTM, then regenerates `hub.html` at `{epic_base}/briefs/hub.html`.
 
 ---
 

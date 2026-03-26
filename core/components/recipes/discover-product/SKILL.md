@@ -337,7 +337,7 @@ Parse response:
 
 - **SE-19 (F13):** Read product.yaml profiles section — verify all three sub-sections (product_profile, nfr_profile, quality_profile) present, each with 7 dimensions. Pass: product.yaml contains a `profiles` section with `product_profile`, `nfr_profile`, and `quality_profile` sub-sections, each with exactly 7 dimensions having level values 1-5. Fail: Any sub-section is missing from the profiles section, or any dimension is missing within a sub-section.
 
-- **SE-20 (C16):** Verify profiles were derived sequentially (PP → NFR → QP). Check that product.yaml `profiles.nfr_profile` rationale references PP values, and `profiles.quality_profile` rationale references PP+NFR values. Pass: Cascade reasoning is evident — NFR rationale text references PP dimension values or levels, and QP rationale text references PP and/or NFR dimension values or levels. Fail: Profiles appear independently derived — no cross-profile references in rationale text, suggesting they were not derived in cascade order.
+- **SE-20 (C16, F14):** Verify profiles were derived from the canonical LTM definitions in sequential order (PP → NFR → QP). Check that the Step 3 contract includes `config.profile_knowledge_path` pointing to the canonical `project-profiling/` directory, then read product.yaml and verify: (a) `profiles.product_profile` contains exactly `pp1_user_sophistication` through `pp7_industry_vertical`, (b) `profiles.nfr_profile` contains exactly `nfr1_risk` through `nfr7_data_sensitivity`, (c) `profiles.quality_profile` contains exactly `qp1_testing_depth` through `qp7_security_testing`, and (d) `nfr_profile` rationale references PP-derived reasoning while `quality_profile` rationale references PP and/or NFR-derived reasoning. Pass: The canonical dimension set is preserved and cascade reasoning is evident. Fail: The contract omits `profile_knowledge_path`, any profile dimension key falls outside the canonical set, or rationale text shows profiles were derived independently rather than in cascade order.
 
 - **SE-21 (C17):** Verify profiles were presented to user for validation before brief generation. Pass: Step 3b checkpoint occurred and user responded before Step 4 (generate-brief) began — status file shows `derive-profiles` completed before `generate-brief` started. Fail: Profiles were not presented to the user for validation, or brief generation (Step 4) was started before the profile validation checkpoint was completed.
 
@@ -347,7 +347,7 @@ Parse response:
 
 Owner: `doc-builder` (utility, exempt from C5)
 Depends on: Step 3
-Skill: `generate-product-brief`
+Renderer: `brief-render.js` (client-side, LTM template)
 
 ```json
 {
@@ -369,7 +369,7 @@ Skill: `generate-product-brief`
 }
 ```
 
-Agent computes output paths under `{product_base}/{slug}/briefs/`, invokes `generate-product-brief` with explicit `output_path`, then regenerates `hub.html` at `{product_base}/{slug}/briefs/hub.html`. For type "product": tabs are Market Context, Vision, Scope, Profiles, Comments. For type "library": market sections are absent and technical context renders instead; Profiles tab always renders all three profiles (PP, NFR, QP) with levels and rationale.
+Agent computes output paths under `{product_base}/{slug}/briefs/`, renders the brief using the client-side brief renderer (`brief-render.js`) with the static `product-brief.html` template from LTM, then regenerates `hub.html` at `{product_base}/{slug}/briefs/hub.html`. For type "product": the brief uses Phoenix sidebar chapters for Market Context, Vision, Scope, and Profiles (when present). For type "library": the first chapter becomes Technical Context and market-only sections remain absent. The sidebar includes chapter navigation, a theme switcher, and review-decision actions.
 
 **Step 4 Evals:**
 
@@ -400,20 +400,20 @@ Present to user:
 **Hub:** `{product_base}/{slug}/briefs/hub.html`
 
 Open the HTML brief in your browser to review the vision, strategic goals, and positioning.
-Select any text to add inline comments. Use the Comments tab to export structured feedback JSON.
+Use the sidebar chapters and theme switcher to review the artifact. If you want revisions, reply with plain-text feedback describing the changes you want.
 
 ---
 
 Type **Tether** to approve and proceed to validation, or **Vanish** to halt.
-Optionally paste feedback JSON from the brief for targeted revisions.
+Optionally include plain-text feedback for targeted revisions.
 ```
 
-**Recipe pauses here.** User reviews the HTML brief in their browser, uses the inline comment system, and returns with Tether/Vanish + optional feedback JSON.
+**Recipe pauses here.** User reviews the HTML brief in their browser and returns with Tether/Vanish plus any optional plain-text feedback.
 
 Parse response:
 - `Tether`/`tether` -> update checkpoint to APPROVED, proceed to Step 6
 - `Vanish`/`vanish` -> update checkpoint to REJECTED, halt
-- If feedback JSON pasted -> store for potential cycle-back at Step 7
+- If feedback text is provided -> store for potential cycle-back at Step 7
 
 ---
 
@@ -423,13 +423,18 @@ Owner: `judge`
 Depends on: Step 5
 Skill: `validate-product-vision`
 
-**Context isolation:** The judge receives ONLY the artifact path and validation skill name. It does NOT receive market context from Step 2, product-strategist drafting notes, iteration history, or any intermediate reasoning from Steps 1-5.
+**Context isolation:** The judge receives the required contract scaffold plus ONLY the product artifact path and validation skill name. It does NOT receive market context from Step 2, product-strategist drafting notes, iteration history, or any intermediate reasoning from Steps 1-5.
 
 ```json
 {
+  "intent_path": "core/components/recipes/discover-product/reference/intent.yaml",
+  "stm_base": ".meridian/project/product/",
   "mode": "validate-artifact",
   "validation_skill": "validate-product-vision",
   "artifact_paths": {
+    "product_yaml_path": "{product_base}/{slug}/product.yaml"
+  },
+  "stm": {
     "product_yaml_path": "{product_base}/{slug}/product.yaml"
   },
   "task_id": "validate-vision"

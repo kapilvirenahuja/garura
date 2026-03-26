@@ -23,9 +23,11 @@ constraints:
       from the stored value or no stored value exists.
   - id: C3
     rule: >
-      Brief generation and hub.html lifecycle are delegated to the doc-builder
-      agent. The recipe never writes HTML content directly — it determines what
-      changed and delegates the regeneration.
+      Brief generation and hub.html lifecycle are performed by YAML→JSON
+      conversion and static template copy. No LLM invocation for brief
+      production. The recipe converts each changed YAML to JSON, copies the
+      pre-built static HTML template to the briefs directory, and copies the
+      JSON alongside it for the template to read at render time.
   - id: C4
     rule: >
       If no product directory exists, the recipe halts cleanly with an
@@ -51,8 +53,8 @@ constraints:
       All generated briefs and hub.html must use the Phoenix design
       system — dark backgrounds, four-element accent colors (air, water, earth,
       fire), retro box shadows, rounded fonts, and status badges. The design
-      system is embedded in the brief skills. Default unstyled HTML is never
-      acceptable output.
+      system is inlined into static HTML templates from brief-common.css during
+      template assembly. Default unstyled HTML is never acceptable output.
   - id: C9
     rule: >
       Hub.html must support multiple epics. It renders a product-level section
@@ -60,6 +62,17 @@ constraints:
       per-epic sections — one collapsible or navigable group per epic showing
       that epic's artifact statuses and brief links. An epic with no YAMLs on
       disk is omitted entirely.
+  - id: C10
+    rule: >
+      Every YAML top-level key maps to an HTML section. Empty YAML sections
+      produce visible but empty HTML sections — they are rendered with the
+      section header present and an empty state message, never silently omitted.
+  - id: C11
+    rule: >
+      JSON data files are derived artifacts written alongside source YAML.
+      Isomorphic JSON representation with no transformation — every top-level
+      YAML key becomes a top-level JSON key with no renaming, restructuring,
+      or enrichment.
 
 failure_conditions:
   - id: F1
