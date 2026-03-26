@@ -1,0 +1,58 @@
+{
+  "slug": "test-product",
+  "status": "VALIDATED",
+  "created_at": "2026-03-26T10:00:00+0530",
+  "updated_at": "2026-03-26T10:00:00+0530",
+  "problem": "Development teams waste 40% of their time on context-switching between tools and re-explaining project context to AI assistants, resulting in inconsistent outputs and lost institutional knowledge.",
+  "target_users": [
+    {"id": "U1", "persona": "Senior Software Engineer", "goal": "Ship features faster with AI assistance", "frustration": "AI assistants forget context between sessions", "context": "Daily coding sessions across multiple projects"},
+    {"id": "U2", "persona": "Engineering Manager", "goal": "Maintain consistency across team deliverables", "frustration": "Each team member gets different AI outputs for same requirements", "context": "Sprint planning and code review cycles"},
+    {"id": "U3", "persona": "Technical Product Manager", "goal": "Translate requirements into implementation specs", "frustration": "Specs drift from intent during implementation", "context": "Feature definition through delivery tracking"}
+  ],
+  "competitors": [
+    {"name": "GitHub Copilot", "strengths": ["IDE integration", "Large training data"], "weaknesses": ["No project memory", "No workflow structure"], "our_advantage": "Persistent context and structured workflows"},
+    {"name": "Cursor", "strengths": ["Codebase awareness", "Fast completions"], "weaknesses": ["No cross-session memory", "No recipe system"], "our_advantage": "Intent-driven development with audit trails"},
+    {"name": "Devin", "strengths": ["Autonomous execution", "Full stack capability"], "weaknesses": ["Black box decisions", "No human checkpoints"], "our_advantage": "Transparent recipes with explicit approval gates"}
+  ],
+  "market_size": {"tam": "$15B developer tools market", "sam": "$3B AI-assisted development segment", "som": "$150M enterprise teams with structured dev processes", "note": "Estimates based on 2025 Gartner developer tools forecast"},
+  "differentiators": ["Intent-driven development with persistent memory", "Deterministic recipe execution with audit trails", "Three-layer agent architecture for separation of concerns"],
+  "risks": [
+    {"description": "LLM cost per interaction may make the tool expensive for small teams"},
+    {"description": "Enterprise adoption requires SOC2 compliance which is not yet achieved"},
+    {"description": "Competing tools may adopt similar memory and workflow features"}
+  ],
+  "value_proposition": "Meridian eliminates the context-switching tax in AI-assisted development by providing persistent project memory and deterministic workflows that produce consistent, auditable outputs across sessions and team members.",
+  "strategic_goals": [
+    {"id": "SG1", "title": "Eliminate Context Loss", "description": "AI assistants retain full project context across sessions", "metric": "Context rebuild time per session", "target": "<30 seconds", "measurement": "Time from session start to first productive output"},
+    {"id": "SG2", "title": "Deterministic Workflows", "description": "Same inputs produce consistent outputs regardless of who runs them", "metric": "Output variance across runs", "target": "<5% semantic deviation", "measurement": "Automated diff analysis of outputs from identical inputs"},
+    {"id": "SG3", "title": "Audit Trail Coverage", "description": "Every design decision is traceable from intent to implementation", "metric": "Decision traceability", "target": "100% of architectural decisions linked to intent", "measurement": "ADR-to-intent coverage analysis"}
+  ],
+  "success_metrics": [
+    {"strategic_goal_ref": "SG1", "metric": "Session context rebuild time", "target": "<30 seconds", "measurement_method": "Automated timing from session init to first tool call"},
+    {"strategic_goal_ref": "SG2", "metric": "Recipe output consistency", "target": "<5% variance", "measurement_method": "Semantic diff of 10 identical runs"},
+    {"strategic_goal_ref": "SG3", "metric": "Decision traceability rate", "target": "100%", "measurement_method": "ADR coverage report"}
+  ],
+  "assumptions": ["Teams have at least one technical member who can review AI outputs", "LLM API costs will decrease 50% within 12 months", "Enterprise customers will accept cloud-based LLM processing with SOC2 controls"],
+  "out_of_scope": [
+    {"category": "Code Generation", "rationale": "We orchestrate, not generate — code generation is delegated to underlying LLMs"},
+    {"category": "CI/CD Pipeline", "rationale": "We produce artifacts that feed into existing pipelines, not replace them"},
+    {"category": "Project Management", "rationale": "We complement PM tools like Linear/Jira, not replace them"}
+  ],
+  "profiles": {
+    "product_profile": [
+      {"dimension": "Complexity", "level": "High", "rationale": "Multi-agent orchestration with persistent memory"},
+      {"dimension": "Integration Depth", "level": "Medium", "rationale": "Integrates with git, GitHub, IDE — not deep SaaS integrations"},
+      {"dimension": "User Autonomy", "level": "High", "rationale": "Developers control all approval gates"}
+    ],
+    "nfr_profile": [
+      {"dimension": "Performance", "level": "Medium", "rationale": "LLM latency dominates; local operations must be fast"},
+      {"dimension": "Security", "level": "High", "rationale": "Handles source code and design documents"},
+      {"dimension": "Reliability", "level": "Medium", "rationale": "CLI tool — failures are local, recoverable"}
+    ],
+    "quality_profile": [
+      {"dimension": "Test Coverage", "level": "High", "rationale": "Recipe determinism requires extensive testing"},
+      {"dimension": "Documentation", "level": "High", "rationale": "Self-documenting system via ADRs and intent files"},
+      {"dimension": "Code Quality", "level": "High", "rationale": "Framework code consumed by AI agents must be unambiguous"}
+    ]
+  }
+}

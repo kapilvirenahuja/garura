@@ -125,44 +125,37 @@ This agent communicates with recipes via JSON contracts.
 1. **Parse contract** — Extract `artifact_base`, `briefs_requested`, `stm.input`, `task_id`, `config`
 2. **Ensure briefs directory** — Create `{artifact_base}/briefs/` if it does not exist. For epic-scoped artifacts, create `{artifact_base}/briefs/epics/{epic_id}/` as needed.
 3. **For each requested brief:**
-   a. Compute output path using the skill routing table below
-   b. Invoke the mapped skill with input YAML path(s) and the computed `output_path`
-   c. Verify the file was written
+   a. Compute output path using the output paths table below
+   b. Read input YAML artifact(s), write `{name}-data.json`, copy static template from LTM
+   c. Verify the output HTML file was written
 4. **Regenerate hub.html** — One time, after all briefs are done (see Hub Generation below)
 5. **Return contract** — Return enriched JSON contract with `briefs_written` and `hub_path`
 
-## Skill Routing
+## Brief Rendering
 
-| `briefs_requested` value | Skill | Output Path |
-|--------------------------|-------|-------------|
-| `product` | `generate-product-brief` | `{artifact_base}/briefs/product-brief.html` |
-| `roadmap` | `draft-roadmap-brief` | `{artifact_base}/briefs/roadmap-brief.html` |
-| `features` | `generate-implementation-brief` | `{artifact_base}/briefs/features-brief.html` |
-| `architecture` | `generate-implementation-brief` | `{artifact_base}/briefs/architecture-brief.html` |
-| `tech` | `generate-implementation-brief` | `{artifact_base}/briefs/tech-brief.html` |
-| `scenarios` | `generate-implementation-brief` | `{artifact_base}/briefs/scenarios-brief.html` |
-| `plan` | `generate-implementation-brief` | `{artifact_base}/briefs/plan-brief.html` |
+Briefs are rendered client-side using `brief-render.js` (a static renderer bundled with the LTM template). This agent does NOT invoke LLM skills to generate HTML — it writes a thin JSON data file alongside the static template.
+
+### Output Paths
+
+| `briefs_requested` value | Output Path |
+|--------------------------|-------------|
+| `product` | `{artifact_base}/briefs/product-brief.html` |
+| `roadmap` | `{artifact_base}/briefs/roadmap-brief.html` |
+| `features` | `{artifact_base}/briefs/features-brief.html` |
+| `architecture` | `{artifact_base}/briefs/architecture-brief.html` |
+| `tech` | `{artifact_base}/briefs/tech-brief.html` |
+| `scenarios` | `{artifact_base}/briefs/scenarios-brief.html` |
+| `plan` | `{artifact_base}/briefs/plan-brief.html` |
 
 For epic-scoped artifacts (features, architecture, tech, scenarios, plan), if `artifact_base` already includes the epic path (e.g., `.../epics/E1/`), the briefs path is `{artifact_base}/briefs/{name}-brief.html`.
 
-When multiple artifacts map to the same skill (`generate-implementation-brief`), batch them in a single skill invocation using the `artifacts` parameter.
+### Rendering Flow
 
-### Skill Invocation Contracts
-
-**generate-product-brief:**
-```
-Input: product_yaml_path, output_path, slug
-```
-
-**draft-roadmap-brief:**
-```
-Input: epics_path, feasibility_path, product_yaml_path, output_path, slug
-```
-
-**generate-implementation-brief:**
-```
-Input: artifacts list, artifact_base, output_base (briefs/ path), slug
-```
+For each requested brief:
+1. Read the input YAML artifact(s) at the STM paths provided
+2. Write `{artifact_base}/briefs/{name}-data.json` — structured data extracted from the YAML
+3. Copy the static HTML template from LTM (`~/.meridian/core/memory/standards/templates/{name}-brief.html`) to the output path
+4. The template loads `{name}-data.json` at runtime via `brief-render.js` — no server required
 
 ## Hub Generation
 
@@ -299,7 +292,7 @@ TaskUpdate task_id -> status: failed
 - Generate hub.html via a skill invocation — hub is generated directly by this agent
 
 ### ALWAYS
-- Use skills for brief artifact production (never generate brief HTML directly)
+- Render briefs via `brief-render.js` + static LTM templates — write data JSON, copy template (never LLM-generate brief HTML)
 - Generate hub.html directly (never delegate hub to a skill)
 - Compute output paths under `{artifact_base}/briefs/` — skills receive explicit paths
 - Return the enriched JSON contract to the recipe

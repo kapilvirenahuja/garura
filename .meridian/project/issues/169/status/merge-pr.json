@@ -1,0 +1,21 @@
+{
+  "recipe": "merge-pr",
+  "issue": "169",
+  "started_at": "2026-03-26T04:51:53Z",
+  "tasks": {
+    "verify-readiness": {
+      "status": "completed",
+      "completed_at": "2026-03-26T04:53:58Z"
+    },
+    "execute-merge": {
+      "status": "in_progress",
+      "started_at": "2026-03-26T04:53:58Z"
+    },
+    "scenario-evals": {
+      "status": "pending"
+    },
+    "write-evidence": {
+      "status": "pending"
+    }
+  }
+}

@@ -52,7 +52,6 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 | `generate-business-review` | PM-facing business review from any product artifact | discover-product, manage-backlog |
 | `research-domain-context` | Research vertical domain knowledge via web when LTM is insufficient | discover-product (DRAFT, conditional) |
 | `scope-roadmap-epics` | Extract epics from locked vision, scope into time buckets + priorities | plan-roadmap (SCOPE) |
-| `draft-roadmap-brief` | Generate lightweight review brief — bound by C-BRIEF-1, C-BRIEF-2 | plan-roadmap (DRAFT) |
 | `draft-roadmap` | Generate full agentic roadmap.md post-Tether | plan-roadmap (DRAFT) |
 | `generate-engineering-view` | Engineering-facing roadmap view — technical breakdown, no business content | plan-roadmap (DRAFT) |
 | `draft-product-spec` | Create product specification — behaviors, invariants, scope boundaries (implementation-agnostic) | prepare-implementation (DRAFT) |
@@ -70,7 +69,6 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 | "business review", "PM review", "generate review" | "Generate business review for vision.md" | `generate-business-review` | Audience-appropriate review (no engineering) |
 | "research domain", "domain context", "market research" | "Research BFSI competitive landscape" | `research-domain-context` | Web research when LTM has insufficient domain knowledge |
 | "scope roadmap", "extract epics", "epic breakdown" | "Scope roadmap epics from locked vision" | `scope-roadmap-epics` | Extract and time-bucket epics from a locked vision |
-| "draft roadmap brief", "roadmap review", "roadmap story" | "Draft roadmap brief for reviewer" | `draft-roadmap-brief` | Lightweight review gate artifact — brief only, no full roadmap |
 | "draft roadmap", "create roadmap", "agentic roadmap" | "Draft roadmap from scoped epics" | `draft-roadmap` | Full agentic roadmap.md post-Tether |
 | "engineering view", "engineering roadmap", "tech breakdown" | "Generate engineering view for roadmap" | `generate-engineering-view` | Engineering-facing view — no business content |
 | "draft product spec", "product specification", "product behaviors" | "Draft product specification from intent" | `draft-product-spec` | Implementation-agnostic product spec with behaviors and invariants |
@@ -344,13 +342,12 @@ domain_context:
   sources: ["{url}"]
 ```
 
-### For plan-roadmap skills (scope-roadmap-epics, draft-roadmap-brief, draft-roadmap, generate-engineering-view)
+### For plan-roadmap skills (scope-roadmap-epics, draft-roadmap, generate-engineering-view)
 
 **When invoked via JSON contract from a recipe:** Do NOT return these YAML contracts. Return ONLY the enriched JSON contract with updated `stm` paths. No validation checklists, no prose, no YAML blocks. The JSON contract is the entire response. See the example in Intent Recognition.
 
 **Skill-specific notes (apply regardless of invocation mode):**
 - `scope-roadmap-epics`: Skill writes epics to STM file. Do NOT return epics array in memory. Pass `epic_schema_path` from LTM.
-- `draft-roadmap-brief`: Skill reads template from LTM (via constraint `C2.template_ref` in intent.yaml). Pass `epics_path`, `feasibility_path`, `vision_path`, and `template_path` — NOT the data itself.
 - `draft-roadmap`: Pass `epics_path`, `feasibility_path`, `approved_brief_path`. Skill writes roadmap.md to STM.
 - `generate-engineering-view`: Pass `roadmap_path`. Skill writes roadmap-engineering.md to STM.
 
@@ -359,7 +356,6 @@ domain_context:
 | Skill | Return key | Key fields |
 |-------|-----------|------------|
 | `scope-roadmap-epics` | `scoped_epics` | `epics_path`, `slug`, `epic_count` |
-| `draft-roadmap-brief` | `brief` | `path`, `epic_count`, `sections_present`, `c_brief_1_pass`, `c_brief_2_pass` |
 | `draft-roadmap` | `roadmap` | `path`, `slug`, `epic_count`, `milestones`, `status` |
 | `generate-engineering-view` | `engineering_view` | `path`, `slug`, `epic_count`, `high_risk_count` |
 

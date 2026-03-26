@@ -1,0 +1,143 @@
+{
+  "slug": "test-product",
+  "status": "DRAFT",
+  "created_at": "2026-03-26T10:00:00+0530",
+  "updated_at": "2026-03-26T10:00:00+0530",
+  "features_ref": "features.yaml",
+  "architecture_ref": "architecture.yaml",
+  "tech_ref": "tech.yaml",
+  "scenarios_ref": "scenarios.yaml",
+  "prerequisites": {
+    "goal": "Establish project foundation and development environment",
+    "scope": [
+      {
+        "description": "Initialize repository structure and CI/CD pipeline",
+        "key_files": ["package.json", ".github/workflows/ci.yml"]
+      },
+      {
+        "description": "Set up database schema and migrations",
+        "key_files": ["prisma/schema.prisma", "src/db/migrations/"]
+      }
+    ],
+    "exit_gate": "CI pipeline passes, database migrations run successfully, seed data loads"
+  },
+  "execution_order": [
+    {
+      "sequence": 1,
+      "feature_ref": "F1",
+      "feature_name": "User Authentication",
+      "rationale": "Foundation feature — all other features depend on authenticated users",
+      "scope": [
+        {
+          "number": 1,
+          "description": "Implement email/password registration endpoint",
+          "key_files": ["src/routes/auth.ts", "src/services/auth-service.ts"]
+        },
+        {
+          "number": 2,
+          "description": "Implement login with JWT token generation",
+          "key_files": ["src/middleware/jwt.ts"]
+        },
+        {
+          "number": 3,
+          "description": "Add password reset flow",
+          "key_files": ["src/services/email-service.ts"]
+        }
+      ],
+      "exit_gate": {
+        "description": "User can register, login, and reset password via API",
+        "observable": true
+      },
+      "scenario_gate": {
+        "scenario_ids": ["SC-AUTH-001", "SC-AUTH-002", "SC-AUTH-003"],
+        "count": 3,
+        "exit_criteria": "All 3 scenarios passing"
+      }
+    },
+    {
+      "sequence": 2,
+      "feature_ref": "F2",
+      "feature_name": "Dashboard Overview",
+      "rationale": "Primary landing page after login — validates end-to-end rendering pipeline",
+      "scope": [
+        {
+          "number": 1,
+          "description": "Create dashboard layout with widget grid",
+          "key_files": ["src/components/Dashboard.tsx"]
+        },
+        {
+          "number": 2,
+          "description": "Implement data aggregation API",
+          "key_files": ["src/routes/dashboard.ts", "src/services/stats-service.ts"]
+        }
+      ],
+      "exit_gate": {
+        "description": "Authenticated user sees dashboard with live data widgets",
+        "observable": true
+      },
+      "scenario_gate": {
+        "scenario_ids": ["SC-DASH-001", "SC-DASH-002"],
+        "count": 2,
+        "exit_criteria": "All 2 scenarios passing"
+      }
+    },
+    {
+      "sequence": 3,
+      "feature_ref": "F3",
+      "feature_name": "Settings Management",
+      "rationale": "Allows users to configure preferences before advanced features",
+      "scope": [
+        {
+          "number": 1,
+          "description": "Build settings page with profile editing",
+          "key_files": ["src/components/Settings.tsx"]
+        },
+        {
+          "number": 2,
+          "description": "Implement notification preferences API",
+          "key_files": ["src/routes/settings.ts"]
+        }
+      ],
+      "exit_gate": {
+        "description": "User can update profile and notification preferences",
+        "observable": true
+      },
+      "scenario_gate": {
+        "scenario_ids": ["SC-SET-001"],
+        "count": 1,
+        "exit_criteria": "All 1 scenarios passing"
+      }
+    }
+  ],
+  "summary": {
+    "total_features": 3,
+    "total_scope_items": 7,
+    "total_scenarios": 6,
+    "per_feature": [
+      {
+        "sequence": 1,
+        "feature_ref": "F1",
+        "delivers": "Authentication system with registration, login, and password reset",
+        "scope_items": 3,
+        "scenario_count": 3,
+        "cumulative_scenarios": 3
+      },
+      {
+        "sequence": 2,
+        "feature_ref": "F2",
+        "delivers": "Dashboard with live data widgets",
+        "scope_items": 2,
+        "scenario_count": 2,
+        "cumulative_scenarios": 5
+      },
+      {
+        "sequence": 3,
+        "feature_ref": "F3",
+        "delivers": "User settings and notification preferences",
+        "scope_items": 2,
+        "scenario_count": 1,
+        "cumulative_scenarios": 6
+      }
+    ]
+  }
+}

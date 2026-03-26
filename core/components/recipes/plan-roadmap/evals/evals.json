@@ -6,11 +6,13 @@
       "name": "scope-epics-from-product",
       "prompt": "You are a product-strategist agent. Read the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml. This is a LOCKED product artifact. Your task: invoke the scope-roadmap-epics skill to derive IDD epics from this product. Each epic must represent a distinct deliverable capability, reference a strategic goal from product.yaml, have IDD fields (intent with p1/p2/p3, constraints, success_scenarios, failure_conditions), and use E-IDs (E1, E2, etc.). Write the output epics to core/components/recipes/plan-roadmap/evals/outputs/epics.yaml.",
       "expected_output": "A valid epics.yaml with epics, each having E-ID, name, strategic_goal_ref matching an SG from product.yaml, IDD fields (intent.p1/p2/p3, constraints.in_scope/out_of_scope/must_not_break, success_scenarios with given/when/then, failure_conditions), priority, depends_on, foundation flag",
-      "files": ["core/components/recipes/plan-roadmap/evals/fixtures/product.yaml"],
+      "files": [
+        "core/components/recipes/plan-roadmap/evals/fixtures/product.yaml"
+      ],
       "assertions": [
         {
           "name": "epics_are_distinct_capabilities",
-          "description": "Each epic represents a distinct, deliverable capability — not task-level or bundling unrelated work",
+          "description": "Each epic represents a distinct, deliverable capability \u2014 not task-level or bundling unrelated work",
           "type": "structural"
         },
         {
@@ -29,8 +31,8 @@
           "type": "structural"
         },
         {
-          "name": "no_e_ids",
-          "description": "No epic uses E-ID pattern (E1, E2) — must be F-IDs only",
+          "name": "no_f_ids",
+          "description": "No epic uses F-ID pattern \u2014 epics must use E-IDs only",
           "type": "negative"
         }
       ]
@@ -39,7 +41,7 @@
       "id": 2,
       "name": "draft-roadmap-yaml-from-brief",
       "prompt": "You are a product-strategist agent. Read the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml, the epics at core/components/recipes/plan-roadmap/evals/outputs/epics.yaml, and the feasibility at core/components/recipes/plan-roadmap/evals/outputs/feasibility.yaml. Assume the roadmap brief has been Tether-approved. Your task: invoke the draft-roadmap skill to produce roadmap.yaml. The output must conform to the schema at core/components/skills/draft-roadmap/schemas/roadmap.yaml. Write to core/components/recipes/plan-roadmap/evals/outputs/roadmap.yaml.",
-      "expected_output": "A valid roadmap.yaml with: slug, status DRAFT, product_ref, thesis (1-2 sentences), narrative (3-4 paragraphs), timeline with near/mid/long horizons referencing F-IDs, feasibility per feature, critical_blockers, risk_summary, exclusions, assumptions",
+      "expected_output": "A valid roadmap.yaml with: slug, status DRAFT, product_ref, approved_brief_ref, thesis (1-2 sentences), narrative (3-4 paragraphs), timeline with near/mid/long horizons referencing E-IDs, feasibility per epic, critical_blockers, open_questions, risk_summary, exclusions, and assumptions.",
       "files": [
         "core/components/recipes/plan-roadmap/evals/fixtures/product.yaml",
         "core/components/skills/draft-roadmap/schemas/roadmap.yaml"
@@ -61,13 +63,13 @@
           "type": "structural"
         },
         {
-          "name": "feature_refs_are_f_ids",
-          "description": "All feature_refs in timeline and feasibility use F-ID pattern",
+          "name": "epic_refs_are_e_ids",
+          "description": "All epic_refs in timeline and feasibility use E-ID pattern",
           "type": "structural"
         },
         {
-          "name": "feasibility_per_feature",
-          "description": "Every feature referenced in timeline has a corresponding feasibility entry",
+          "name": "feasibility_per_epic",
+          "description": "Every epic referenced in timeline has a corresponding feasibility entry",
           "type": "cross-reference"
         },
         {
@@ -79,17 +81,23 @@
           "name": "no_tech_jargon_in_thesis",
           "description": "Thesis does not contain implementation-level technology names (React, Python, PostgreSQL, etc.)",
           "type": "negative"
+        },
+        {
+          "name": "brief_content_preserved",
+          "description": "thesis, narrative, timeline sequencing, exclusions, and assumptions are copied from the approved brief or locked product artifact rather than regenerated",
+          "type": "cross-reference"
         }
       ]
     },
     {
       "id": 3,
-      "name": "roadmap-brief-tabs-and-comments",
-      "prompt": "You are a doc-builder agent. Read the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml and the epics at core/components/recipes/plan-roadmap/evals/outputs/epics.yaml. Your task: invoke generate-roadmap-brief to produce roadmap-brief.html. The brief must use Phoenix Design System, tabbed layout (Strategy, Timeline, Feasibility, Comments), and inline text selection comment system. Write to core/components/recipes/plan-roadmap/evals/outputs/roadmap-brief.html.",
-      "expected_output": "A self-contained HTML file with: Phoenix CSS tokens, 4 tabs (Strategy, Timeline, Feasibility, Comments), inline comment system with handleTextSelection/saveComment/deleteComment/renderComments/exportFeedback functions, localStorage persistence, Tether/Vanish/Orbit action buttons",
+      "name": "roadmap-brief-phoenix-sidebar",
+      "prompt": "Convert the product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml and the epics at core/components/recipes/plan-roadmap/evals/outputs/epics.yaml to JSON, then copy the roadmap-brief.html template to produce the brief. The brief must use the Phoenix Design System sidebar + chapters layout with Strategy, Timeline, Epics, and Feasibility chapters plus visible Tether/Vanish/Orbit review actions. Write to core/components/recipes/plan-roadmap/evals/outputs/roadmap-brief.html.",
+      "expected_output": "A self-contained HTML file with: Phoenix CSS tokens, sidebar navigation for Strategy/Timeline/Epics/Feasibility, theme switcher, visible Tether/Vanish/Orbit review actions, and no inline comment system.",
       "files": [
         "core/components/recipes/plan-roadmap/evals/fixtures/product.yaml",
-        ".claude/specs/artifact-schemas/brief-principles.md"
+        "core/components/memory/standards/templates/roadmap-brief.html",
+        "core/components/memory/standards/templates/brief-common.css"
       ],
       "assertions": [
         {
@@ -98,8 +106,8 @@
           "type": "structural"
         },
         {
-          "name": "has_4_tabs",
-          "description": "HTML contains tab elements for Strategy, Timeline, Feasibility, and Comments",
+          "name": "has_sidebar_chapters",
+          "description": "HTML contains sidebar navigation entries for Strategy, Timeline, Epics, and Feasibility",
           "type": "structural"
         },
         {
@@ -108,26 +116,26 @@
           "type": "structural"
         },
         {
-          "name": "inline_comment_system",
-          "description": "JavaScript contains handleTextSelection, saveComment, deleteComment, renderComments, exportFeedback functions",
+          "name": "theme_switcher_present",
+          "description": "HTML contains theme switcher controls for Dark, Light, and Neon themes",
           "type": "structural"
         },
         {
-          "name": "localstorage_persistence",
-          "description": "JavaScript uses localStorage with meridian-comments key pattern",
+          "name": "review_actions_present",
+          "description": "Sidebar exposes Tether, Vanish, and Orbit review action buttons",
           "type": "structural"
         },
         {
-          "name": "tether_vanish_orbit_actions",
-          "description": "Comments tab has Tether, Vanish, and Orbit action buttons",
-          "type": "structural"
+          "name": "no_inline_comment_system",
+          "description": "HTML and JavaScript do not contain inline comment popup, localStorage comment persistence, or a comments tab",
+          "type": "negative"
         }
       ]
     },
     {
       "id": 4,
       "name": "reverse-coverage-scope-and-deferred-items",
-      "prompt": "You are a judge agent performing a reverse-coverage check. Read product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml and epics.yaml at core/components/recipes/plan-roadmap/evals/outputs/epics.yaml. Check: (1) Every item in product.yaml scope.in_scope maps to at least one epic's in_scope as explicit ownership — no capability silently absorbed as implementation detail. (2) No epic's in_scope contains a capability from product.yaml scope.out_of_scope or deferred items. (3) Any cross-cutting capabilities have cross_cutting_justification in their epic. Write coverage report to core/components/recipes/plan-roadmap/evals/outputs/coverage-check.yaml.",
+      "prompt": "You are a judge agent performing a reverse-coverage check. Read product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml and epics.yaml at core/components/recipes/plan-roadmap/evals/outputs/epics.yaml. Check: (1) Every item in product.yaml scope.in_scope maps to at least one epic's in_scope as explicit ownership \u2014 no capability silently absorbed as implementation detail. (2) No epic's in_scope contains a capability from product.yaml scope.out_of_scope or deferred items. (3) Any cross-cutting capabilities have cross_cutting_justification in their epic. Write coverage report to core/components/recipes/plan-roadmap/evals/outputs/coverage-check.yaml.",
       "expected_output": "A coverage-check.yaml with per-item status (covered/orphaned_scope/deferred_violation), scope_item_coverage section listing each in_scope item and its owning epic, deferred_violations section (should be empty), and summary counts",
       "files": [
         "core/components/recipes/plan-roadmap/evals/fixtures/product.yaml"
@@ -135,12 +143,12 @@
       "assertions": [
         {
           "name": "scope_items_all_covered",
-          "description": "Every in_scope item from product.yaml has status covered — no orphaned_scope entries",
+          "description": "Every in_scope item from product.yaml has status covered \u2014 no orphaned_scope entries",
           "type": "cross-reference"
         },
         {
           "name": "no_deferred_violations",
-          "description": "No epic's in_scope contains a capability from product.yaml out_of_scope — deferred_violations list is empty",
+          "description": "No epic's in_scope contains a capability from product.yaml out_of_scope \u2014 deferred_violations list is empty",
           "type": "negative"
         },
         {

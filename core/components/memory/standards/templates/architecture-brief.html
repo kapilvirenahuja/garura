@@ -3,13 +3,800 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Architecture Brief: {SLUG}</title>
+  <title id="page-title">Architecture Brief</title>
   <!-- Template: architecture-brief.html -->
   <!-- Layout: Phoenix Design System v2.0 — Sidebar + Chapters -->
   <!-- All CSS and JS inline — no external dependencies -->
   <style>
     /* Phoenix Design System — Brief Tokens (inlined from brief-common.css) */
-    /* >>> INLINE brief-common.css HERE <<< */
+/* =========================================================
+   TOKENS
+   ========================================================= */
+:root {
+  /* Backgrounds (Warm Slate) */
+  --bg1: #1A2332;
+  --bg2: #212D3B;
+  --bg3: #2A3645;
+  --bgS: #131C28;
+
+  /* Text */
+  --t1: #E8EDF2;
+  --t2: #94A3B8;
+  --t3: #64748B;
+
+  /* Cyan Primary */
+  --a1: #00D4FF;
+  --cyan-700: #0094A8;
+  --cyan-600: #00B8D9;
+  --cyan-500: #00D4FF;
+  --cyan-400: #33DFFF;
+
+  /* Phoenix Orange Secondary */
+  --a2: #E8731A;
+  --orange-400: #E8731A;
+
+  /* Magenta Interactive */
+  --a3: #FF3CAC;
+
+  /* Supporting */
+  --a4: #FF6B6B;
+  --a5: #FBBF24;
+  --green: #00D26A;
+
+  /* Borders & Effects */
+  --bdr: #2E3D4F;
+  --glow: rgba(0,212,255,.2);
+  --shd: 0 4px 24px rgba(0,0,0,.3);
+
+  /* Status badges */
+  --status-draft: #FBBF24;
+  --status-validated: #00D26A;
+  --status-locked: #00D4FF;
+
+  /* Phoenix Gradient */
+  --phoenix-gradient: linear-gradient(135deg, #E8731A 0%, #FFB84D 100%);
+
+  /* Typography */
+  --font-display: 'Space Grotesk', -apple-system, sans-serif;
+  --font-body: 'DM Sans', 'Space Grotesk', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Layout */
+  --sidebar-w: 300px;
+  --content-max: 1200px;
+  --tr: .25s cubic-bezier(.4,0,.2,1);
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --space-4xl: 80px;
+}
+
+/* =========================================================
+   RESET & BASE
+   ========================================================= */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--t1);
+  background: var(--bg1);
+}
+
+code, pre, .mono {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+/* =========================================================
+   THEME SYSTEM
+   ========================================================= */
+[data-theme="light"] {
+  --bg1: #F1F5F9;
+  --bg2: #FFFFFF;
+  --bg3: #FFFFFF;
+  --bgS: #131C28;
+  --t1: #0F172A;
+  --t2: #475569;
+  --t3: #94A3B8;
+  --a1: #00B8D9;
+  --a2: #C06218;
+  --a3: #D9308A;
+  --a4: #EF4444;
+  --a5: #F59E0B;
+  --bdr: #CBD5E1;
+  --glow: rgba(0,212,255,.15);
+  --shd: 0 4px 24px rgba(0,0,0,.08);
+}
+
+[data-theme="vibrant"] {
+  --bg1: #121B28;
+  --bg2: #1A2535;
+  --bg3: #223040;
+  --bgS: #0D1520;
+  --a1: #33DFFF;
+  --glow: rgba(0,212,255,.25);
+}
+
+/* =========================================================
+   LAYOUT: SIDEBAR + MAIN
+   ========================================================= */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bgS);
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 100;
+  transition: transform var(--tr);
+}
+
+.sidebar-header {
+  padding: var(--space-2xl) var(--space-xl);
+  border-bottom: 1px solid var(--bdr);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.sidebar-logo svg {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.sidebar-logo-text {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.sidebar-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--t3);
+  margin-top: var(--space-sm);
+}
+
+.sidebar-meta span {
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* Theme switcher */
+.theme-switcher {
+  display: flex;
+  gap: var(--space-xs);
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--bdr);
+}
+
+.theme-btn {
+  flex: 1;
+  padding: 6px 0;
+  background: transparent;
+  border: 1px solid var(--bdr);
+  border-radius: 4px;
+  color: var(--t3);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all var(--tr);
+}
+
+.theme-btn:hover { color: var(--t1); border-color: var(--a1); }
+.theme-btn.active { background: rgba(0,212,255,.12); color: var(--a1); border-color: var(--a1); }
+
+/* Navigation */
+.sidebar-nav {
+  flex: 1;
+  padding: var(--space-xl) 0;
+  overflow-y: auto;
+}
+
+.nav-section-label {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--t3);
+  padding: var(--space-sm) var(--space-xl) var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.nav-section-label:first-child { margin-top: 0; }
+
+.nav-item {
+  display: block;
+  padding: var(--space-sm) var(--space-xl);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--t3);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: all var(--tr);
+}
+
+.nav-item:hover {
+  color: var(--t1);
+  background: rgba(0,212,255,.06);
+}
+
+.nav-item.active {
+  color: var(--a1);
+  background: rgba(0,212,255,.12);
+  border-left-color: var(--a1);
+}
+
+/* Sidebar footer: Tether/Vanish/Orbit */
+.sidebar-footer {
+  padding: var(--space-xl);
+  border-top: 1px solid var(--bdr);
+  margin-top: auto;
+}
+
+.sidebar-footer-label {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--t3);
+  margin-bottom: var(--space-md);
+}
+
+.action-btns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.action-btn {
+  padding: 8px 0;
+  border-radius: 4px;
+  border: 1px solid var(--bdr);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: transparent;
+  text-align: center;
+  transition: all var(--tr);
+}
+
+.action-btn-tether { border-color: var(--green); color: var(--green); }
+.action-btn-tether:hover { background: rgba(0,210,106,.1); }
+.action-btn-vanish { border-color: var(--a4); color: var(--a4); }
+.action-btn-vanish:hover { background: rgba(255,107,107,.1); }
+.action-btn-orbit  { border-color: var(--a1); color: var(--a1); }
+.action-btn-orbit:hover  { background: rgba(0,212,255,.1); }
+
+/* Mobile hamburger */
+.hamburger {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  width: 40px;
+  height: 40px;
+  background: var(--bgS);
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.hamburger span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--t1);
+  margin: 3px auto;
+  transition: all var(--tr);
+}
+
+/* --- Main Content --- */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-width: 0;
+}
+
+.content {
+  max-width: var(--content-max);
+  padding: 40px 56px 100px;
+}
+
+/* =========================================================
+   BRIEF HEADER (in main content)
+   ========================================================= */
+.brief-header {
+  margin-bottom: var(--space-3xl);
+  padding-bottom: var(--space-2xl);
+  border-bottom: 1px solid var(--bdr);
+}
+
+.brief-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--t1);
+  margin-bottom: var(--space-sm);
+  line-height: 1.2;
+}
+
+.brief-subtitle {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--t2);
+  border-left: 3px solid var(--a1);
+  padding-left: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+.source-path {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--t3);
+  margin-top: var(--space-md);
+}
+
+/* =========================================================
+   BADGES
+   ========================================================= */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.badge-draft     { background: rgba(251,191,36,.15); color: var(--status-draft); border: 1px solid rgba(251,191,36,.2); }
+.badge-validated { background: rgba(0,210,106,.15); color: var(--status-validated); border: 1px solid rgba(0,210,106,.2); }
+.badge-locked    { background: rgba(0,212,255,.12); color: var(--status-locked); border: 1px solid rgba(0,212,255,.2); }
+.badge-count     { background: var(--bg3); color: var(--t2); }
+
+.badge-low    { background: rgba(0,210,106,.15); color: var(--green); border: 1px solid rgba(0,210,106,.2); }
+.badge-medium { background: rgba(232,115,26,.12); color: var(--a2); border: 1px solid rgba(232,115,26,.2); }
+.badge-high   { background: rgba(255,107,107,.12); color: var(--a4); border: 1px solid rgba(255,107,107,.2); }
+
+.badge-p1 { background: rgba(0,212,255,.12); color: var(--a1); border: 1px solid rgba(0,212,255,.2); }
+.badge-p2 { background: rgba(148,163,184,.15); color: var(--t2); }
+.badge-p3 { background: rgba(148,163,184,.1); color: var(--t3); }
+
+.badge-near { background: rgba(0,210,106,.15); color: var(--green); }
+.badge-mid  { background: rgba(232,115,26,.12); color: var(--a2); }
+.badge-long { background: rgba(148,163,184,.15); color: var(--t2); }
+
+/* =========================================================
+   CHAPTERS
+   ========================================================= */
+.chapter {
+  margin-bottom: var(--space-4xl);
+  scroll-margin-top: 40px;
+}
+
+.chapter-number {
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 900;
+  color: var(--a1);
+  opacity: 0.18;
+  line-height: 1;
+  margin-bottom: -8px;
+  user-select: none;
+}
+
+.chapter-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--t1);
+  line-height: 1.3;
+  margin-bottom: var(--space-xl);
+}
+
+.chapter-subtitle {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--t2);
+  border-left: 3px solid var(--a1);
+  padding-left: var(--space-lg);
+  margin-bottom: var(--space-3xl);
+}
+
+/* =========================================================
+   TYPOGRAPHY
+   ========================================================= */
+h2, h3, .section-heading {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--a1);
+  margin-bottom: var(--space-xl);
+  margin-top: var(--space-3xl);
+}
+
+h4, .sub-heading {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--t1);
+  margin-bottom: var(--space-lg);
+  margin-top: var(--space-2xl);
+}
+
+p {
+  font-size: 16px;
+  color: var(--t2);
+  line-height: 1.75;
+  margin-bottom: var(--space-lg);
+}
+
+strong { font-weight: 700; color: var(--t1); }
+em { font-weight: 500; color: var(--a1); font-style: normal; }
+
+/* =========================================================
+   CARDS
+   ========================================================= */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  box-shadow: var(--shd);
+  padding: var(--space-2xl);
+  margin-bottom: var(--space-xl);
+  transition: all var(--tr);
+}
+
+.card:hover { border-color: var(--a1); box-shadow: 0 0 20px var(--glow); }
+
+.card-air   { border-left: 4px solid var(--green); }
+.card-water { border-left: 4px solid var(--a1); }
+.card-earth { border-left: 4px solid var(--t2); }
+.card-fire  { border-left: 4px solid var(--a2); }
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--t1);
+  margin-bottom: var(--space-md);
+}
+
+.card-field { margin-bottom: var(--space-sm); }
+
+.card-field-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--t3);
+  margin-bottom: 2px;
+}
+
+.card-field-value {
+  font-size: 15px;
+  color: var(--t2);
+  line-height: 1.6;
+}
+
+.card-subtitle {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--t3);
+  margin-bottom: var(--space-md);
+}
+
+.card-id {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--t3);
+  background: var(--bg3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: var(--space-sm);
+}
+
+/* Highlight box */
+.highlight-box {
+  background: rgba(0,212,255,.05);
+  border: 1px solid rgba(0,212,255,.2);
+  border-left: 4px solid var(--a1);
+  border-radius: 8px;
+  padding: var(--space-2xl);
+  margin-bottom: var(--space-xl);
+  font-size: 16px;
+  color: var(--t2);
+  line-height: 1.75;
+}
+
+/* =========================================================
+   TABLES
+   ========================================================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  margin-bottom: var(--space-xl);
+}
+
+th {
+  background: var(--bg3);
+  color: var(--t1);
+  padding: 12px 16px;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--bdr);
+  color: var(--t2);
+}
+
+td:first-child { font-weight: 600; color: var(--t1); }
+tr:hover { background: rgba(0,212,255,.05); }
+
+/* Profile tables */
+.profile-table { width: 100%; border-collapse: collapse; font-size: 15px; margin-bottom: var(--space-3xl); }
+.profile-table th { background: var(--bg3); color: var(--t1); padding: 12px 16px; text-align: left; font-family: var(--font-display); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.profile-table td { padding: 12px 16px; border-bottom: 1px solid var(--bdr); color: var(--t2); }
+.profile-table .level-cell { text-align: center; font-family: var(--font-display); font-weight: 700; color: var(--a1); min-width: 50px; font-size: 18px; }
+
+/* =========================================================
+   LISTS
+   ========================================================= */
+.item-list { list-style: none; padding: 0; }
+
+.item-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bdr);
+  font-size: 15px;
+  color: var(--t2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.item-list li:last-child { border-bottom: none; }
+
+.item-list li::before {
+  content: "\25B8";
+  color: var(--a2);
+}
+
+/* =========================================================
+   STAT CARDS
+   ========================================================= */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-xl);
+  margin-bottom: var(--space-3xl);
+}
+
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  padding: var(--space-2xl) var(--space-xl);
+  text-align: center;
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--cyan-400), var(--cyan-600));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: var(--space-sm);
+}
+
+.stat-label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--t2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stat-fire .stat-value {
+  background: var(--phoenix-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* =========================================================
+   CONTEXT SECTIONS
+   ========================================================= */
+.context-section {
+  opacity: 0.7;
+  background: var(--bg3);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  padding: var(--space-xl) var(--space-2xl);
+  margin-bottom: var(--space-xl);
+  pointer-events: none;
+}
+
+.context-section h3 { color: var(--t2); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+
+.context-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: var(--space-sm);
+}
+
+/* =========================================================
+   QUALITY STANDARDS
+   ========================================================= */
+.qs-dimension {
+  background: var(--bg2);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  padding: var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+
+.qs-dimension-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.qs-dimension-name { font-family: var(--font-display); font-weight: 700; color: var(--t1); }
+.qs-dimension-level { font-family: var(--font-display); font-size: 12px; color: var(--a1); }
+
+.qs-field { margin-bottom: var(--space-sm); }
+.qs-field-label { font-family: var(--font-display); font-size: 11px; color: var(--t3); text-transform: uppercase; letter-spacing: 1px; }
+.qs-field-value { font-size: 14px; color: var(--t2); }
+
+/* =========================================================
+   DEBT BASELINE
+   ========================================================= */
+.debt-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.debt-table th { background: var(--bg3); color: var(--t1); padding: 10px 16px; text-align: left; font-family: var(--font-display); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.debt-table td { padding: 10px 16px; border-bottom: 1px solid var(--bdr); }
+.debt-gap { color: var(--a4); font-weight: 700; }
+.debt-ok { color: var(--green); }
+
+/* =========================================================
+   CODE BLOCKS
+   ========================================================= */
+.code-block {
+  background: var(--bg3);
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  padding: var(--space-xl);
+  overflow-x: auto;
+  margin-bottom: var(--space-xl);
+}
+
+.code-block pre {
+  color: var(--a1);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+/* =========================================================
+   TAG CHIPS
+   ========================================================= */
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-sm); }
+
+.tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(0,212,255,.12);
+  color: var(--a1);
+  border: 1px solid rgba(0,212,255,.2);
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+#toast {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--bg3);
+  color: var(--t1);
+  border: 1px solid var(--a1);
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 13px;
+  z-index: 2000;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 1100px) {
+  .content { padding: 32px 32px 80px; }
+}
+
+@media (max-width: 900px) {
+  .hamburger { display: flex; }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main {
+    margin-left: 0;
+  }
+
+  .content {
+    padding: 24px 16px 80px;
+    padding-top: 72px;
+  }
+
+  .chapter-number { font-size: 36px; }
+  .chapter-title { font-size: 28px; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .epic-header { flex-direction: column; }
+}
   </style>
 </head>
 <body>
@@ -25,9 +812,9 @@
         <span class="sidebar-logo-text">Architecture Brief</span>
       </div>
       <div class="sidebar-meta">
-        <span>{SLUG}</span>
-        <span><span class="badge {STATUS_BADGE_CLASS}">{STATUS}</span></span>
-        <span>{GENERATED_AT}</span>
+        <span id="meta-slug"></span>
+        <span><span class="badge" id="meta-status"></span></span>
+        <span id="meta-generated-at"></span>
       </div>
     </div>
     <div class="theme-switcher">
@@ -38,7 +825,7 @@
     <nav class="sidebar-nav">
       <div class="nav-section-label">Chapters</div>
       <a class="nav-item active" href="#architecture">1. Architecture</a>
-      <a class="nav-item" href="#stack">2. Stack & Platforms</a>
+      <a class="nav-item" href="#stack">2. Stack &amp; Platforms</a>
       <a class="nav-item" href="#agentic">3. Agentic</a>
       <a class="nav-item" href="#quality">4. Quality Standards</a>
       <a class="nav-item" href="#profiles">5. Profiles</a>
@@ -56,189 +843,96 @@
 
   <main class="main"><div class="content">
     <div class="brief-header">
-      <div class="brief-title">{SLUG} <span class="badge {STATUS_BADGE_CLASS}">{STATUS}</span></div>
+      <div class="brief-title"><span id="header-slug"></span> <span class="badge" id="header-status"></span></div>
       <div class="brief-subtitle">System architecture, technology stack, and quality standards</div>
-      <div class="source-path">Source: architecture.yaml + quality-standards.yaml</div>
+      <div class="source-path">Source: architecture.json + quality-standards.json</div>
     </div>
 
       <section class="chapter" id="architecture">
         <div class="chapter-number">01</div>
         <div class="chapter-title">Architecture</div>
 
-<h2>Principles</h2>
-    <!-- {PRINCIPLES}: render one .card.card-water per principle -->
-    <!-- Card fields: id (badge-count), principle (card-title), rationale (card-field-value) -->
-    {PRINCIPLES}
+        <h2>Principles</h2>
+        <div id="principles"></div>
 
-    <h2>System Topology</h2>
-    <!-- {ARCHITECTURE_TOPOLOGY}: code block (.code-block pre) or description card for ASCII/text topology -->
-    {ARCHITECTURE_TOPOLOGY}
+        <h2>System Topology</h2>
+        <div id="topology"></div>
 
-    <h2>Deployment Units</h2>
-    <!-- {DEPLOYMENT_UNITS}: render one .card per unit -->
-    <!-- Card fields: name (card-title), responsibility, communication -->
-    {DEPLOYMENT_UNITS}
+        <h2>Deployment Units</h2>
+        <div id="deployment-units"></div>
 
-    <h2>Non-Functional Requirements</h2>
-    <!-- {NFRS}: render one h3 + table per category (performance, scalability, security, availability, compliance) -->
-    <!-- Table columns: Requirement, Priority (badge: badge-p1/p2/p3 for must/should/nice-to-have) -->
-    {NFRS}
+        <h2>Non-Functional Requirements</h2>
+        <div id="nfrs"></div>
 
       </section>
       <section class="chapter" id="stack">
         <div class="chapter-number">02</div>
-        <div class="chapter-title">Stack & Platforms</div>
+        <div class="chapter-title">Stack &amp; Platforms</div>
 
-<h2>Technology Stack</h2>
-    <!-- {STACK_TABLE}: table with columns Component, Technology, Purpose, Rationale -->
-    <table>
-      <thead>
-        <tr><th>Component</th><th>Technology</th><th>Purpose</th><th>Rationale</th></tr>
-      </thead>
-      <tbody>
-        {STACK_TABLE}
-      </tbody>
-    </table>
+        <h2>Technology Stack</h2>
+        <div id="stack"></div>
 
-    <h2>Platforms</h2>
-    <!-- {PLATFORMS_TABLE}: table with columns Category, Platform, Purpose, Rationale, Features Served -->
-    <table>
-      <thead>
-        <tr><th>Category</th><th>Platform</th><th>Purpose</th><th>Rationale</th><th>Features Served</th></tr>
-      </thead>
-      <tbody>
-        {PLATFORMS_TABLE}
-      </tbody>
-    </table>
+        <h2>Platforms</h2>
+        <div id="platforms"></div>
 
-    <h2>Integrations</h2>
-    <!-- {INTEGRATIONS_TABLE}: table with columns Name, Type, Provider, Purpose, Direction, Auth, Features Served -->
-    <table>
-      <thead>
-        <tr><th>Name</th><th>Type</th><th>Provider</th><th>Purpose</th><th>Direction</th><th>Auth</th><th>Features Served</th></tr>
-      </thead>
-      <tbody>
-        {INTEGRATIONS_TABLE}
-      </tbody>
-    </table>
+        <h2>Integrations</h2>
+        <div id="integrations"></div>
 
       </section>
       <section class="chapter" id="agentic">
         <div class="chapter-number">03</div>
         <div class="chapter-title">Agentic</div>
 
-    <!-- This chapter is omitted when AGENTIC_PRESENT=false -->
+        <h2>Perception — Signals</h2>
+        <div id="perception"></div>
 
-<h2>Perception — Signals</h2>
-    <!-- {PERCEPTION}: render one .card.card-water per signal -->
-    <!-- Card fields: signal (card-title), source, format -->
-    {PERCEPTION}
+        <h2>Cognition — Agents</h2>
+        <div id="cognition"></div>
 
-    <h2>Cognition — Agents</h2>
-    <!-- {COGNITION}: render one .card.card-air per agent -->
-    <!-- Card fields: agent (card-title), role, autonomy (badge), model -->
-    {COGNITION}
+        <h2>Action — Tools</h2>
+        <div id="action"></div>
 
-    <h2>Action — Tools</h2>
-    <!-- {ACTION}: render one .card per tool -->
-    <!-- Card fields: tool (card-title), purpose, available_to (tag-list) -->
-    {ACTION}
-
-    <h2>Memory</h2>
-    <!-- {MEMORY}: render a single .card -->
-    <!-- Card fields: approach, stm, ltm, embeddings -->
-    {MEMORY}
+        <h2>Memory</h2>
+        <div id="memory"></div>
 
       </section>
       <section class="chapter" id="quality">
         <div class="chapter-number">04</div>
         <div class="chapter-title">Quality Standards</div>
 
-<h2>Standards by Dimension</h2>
-    <!-- {QS_DIMENSIONS}: render one .qs-dimension per dimension from quality-standards.yaml -->
-    <!-- Each: .qs-dimension-header with .qs-dimension-name + .qs-dimension-level (QP N badge) -->
-    <!-- Then .qs-field blocks for all fields present: strategy, frameworks, coverage_target, -->
-    <!-- linter, formatter, static_analysis, review_process, conventions, design_patterns,   -->
-    <!-- api_docs, architecture_docs, runbooks, onboarding, pipeline, environments,          -->
-    <!-- deployment_strategy, feature_flags, infrastructure_as_code,                        -->
-    <!-- logging, monitoring, alerting, tracing, standard, testing, audit_cadence,          -->
-    <!-- dependency_scanning, sast, dast, pen_testing, secret_scanning                      -->
-    {QS_DIMENSIONS}
+        <h2>Standards by Dimension</h2>
+        <div id="qs-dimensions"></div>
 
-    <h2>Technical Debt Baseline</h2>
-    <!-- {DEBT_BASELINE_TABLE}: .debt-table with columns QP Dimension, Target Level, Current Level, Gap, Remediation -->
-    <!-- Use .debt-gap for gap cells where gap exists, .debt-ok where gap is null/zero -->
-    <table class="debt-table">
-      <thead>
-        <tr><th>QP Dimension</th><th>Target Level</th><th>Current Level</th><th>Gap</th><th>Remediation</th></tr>
-      </thead>
-      <tbody>
-        {DEBT_BASELINE_TABLE}
-      </tbody>
-    </table>
+        <h2>Technical Debt Baseline</h2>
+        <div id="debt-baseline"></div>
 
       </section>
       <section class="chapter" id="profiles">
         <div class="chapter-number">05</div>
         <div class="chapter-title">Profiles</div>
 
-<h2>Product Profile (PP)</h2>
-    <!-- {PRODUCT_PROFILE_TABLE}: .profile-table with columns Dimension, Level, Rationale -->
-    <table class="profile-table">
-      <thead>
-        <tr><th>Dimension</th><th class="level-cell">Level</th><th>Rationale</th></tr>
-      </thead>
-      <tbody>
-        {PRODUCT_PROFILE_TABLE}
-      </tbody>
-    </table>
+        <h2>Product Profile (PP)</h2>
+        <div id="product-profile"></div>
 
-    <h2>NFR Profile</h2>
-    <!-- {NFR_PROFILE_TABLE}: .profile-table with columns Dimension, Level, Rationale -->
-    <table class="profile-table">
-      <thead>
-        <tr><th>Dimension</th><th class="level-cell">Level</th><th>Rationale</th></tr>
-      </thead>
-      <tbody>
-        {NFR_PROFILE_TABLE}
-      </tbody>
-    </table>
+        <h2>NFR Profile</h2>
+        <div id="nfr-profile"></div>
 
-    <h2>Quality Profile (QP)</h2>
-    <!-- {QUALITY_PROFILE_TABLE}: .profile-table with columns Dimension, Level, Rationale -->
-    <table class="profile-table">
-      <thead>
-        <tr><th>Dimension</th><th class="level-cell">Level</th><th>Rationale</th></tr>
-      </thead>
-      <tbody>
-        {QUALITY_PROFILE_TABLE}
-      </tbody>
-    </table>
+        <h2>Quality Profile (QP)</h2>
+        <div id="quality-profile"></div>
 
       </section>
       <section class="chapter" id="operations">
         <div class="chapter-number">06</div>
         <div class="chapter-title">Operations</div>
 
-<h2>Technical Risks</h2>
-    <!-- {TECHNICAL_RISKS}: render one .card.card-fire per risk -->
-    <!-- Card fields: risk (card-title), affected_features (tag-list), severity (badge-low/medium/high), mitigation -->
-    {TECHNICAL_RISKS}
+        <h2>Technical Risks</h2>
+        <div id="technical-risks"></div>
 
-    <h2>Deployment</h2>
-    <!-- {DEPLOYMENT}: table with columns Service, Platform, Purpose -->
-    <table>
-      <thead>
-        <tr><th>Service</th><th>Platform</th><th>Purpose</th></tr>
-      </thead>
-      <tbody>
-        {DEPLOYMENT}
-      </tbody>
-    </table>
+        <h2>Deployment</h2>
+        <div id="deployment"></div>
 
-    <h2>Observability</h2>
-    <!-- {OBSERVABILITY}: .card with fields tracing, metrics (list), logging -->
-    {OBSERVABILITY}
+        <h2>Observability</h2>
+        <div id="observability"></div>
 
       </section>
 
@@ -246,15 +940,569 @@
 </div>
 
 <script>
-  function setTheme(t){document.documentElement.setAttribute("data-theme",t);document.querySelectorAll(".theme-btn").forEach(function(b){b.classList.toggle("active",b.dataset.theme===t)});try{localStorage.setItem("phoenix-theme",t)}catch(e){}}
-  function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open")}
-  var chapters=document.querySelectorAll(".chapter"),navItems=document.querySelectorAll(".nav-item");
-  function updateActiveNav(){var s=window.scrollY+100,a="";chapters.forEach(function(c){if(c.offsetTop<=s)a=c.id});navItems.forEach(function(n){n.classList.toggle("active",n.getAttribute("href").replace("#","")===a)})}
-  window.addEventListener("scroll",updateActiveNav);
-  navItems.forEach(function(n){n.addEventListener("click",function(){if(window.innerWidth<=900)document.getElementById("sidebar").classList.remove("open")});});
-  function exportAction(a){var p={artifact:"architecture-brief",slug:"{SLUG}",action:a,timestamp:new Date().toISOString()};var t=JSON.stringify(p,null,2);if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){showToast("Copied: "+a)});else{var x=document.createElement("textarea");x.value=t;document.body.appendChild(x);x.select();document.execCommand("copy");document.body.removeChild(x);showToast("Copied: "+a)}}
-  function showToast(m){var t=document.getElementById("toast");t.textContent=m;t.style.display="block";setTimeout(function(){t.style.display="none"},2000)}
-  (function(){try{var s=localStorage.getItem("phoenix-theme");if(s)setTheme(s)}catch(e){}updateActiveNav()})();
+  // ─── brief-render.js (inlined) ────────────────────────────────────────────
+
+  function esc(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderValue(v) {
+    if (v == null) return '';
+    if (Array.isArray(v)) {
+      if (v.length === 0) return '';
+      if (typeof v[0] === 'object' && v[0] !== null) {
+        return '<ul class="item-list">' + v.map(function(item) {
+          return '<li>' + esc(JSON.stringify(item)) + '</li>';
+        }).join('') + '</ul>';
+      }
+      return '<ul class="item-list">' + v.map(function(item) {
+        return '<li>' + esc(item) + '</li>';
+      }).join('') + '</ul>';
+    }
+    return esc(v);
+  }
+
+  function badgeClass(status) {
+    if (!status) return '';
+    switch (String(status).toLowerCase()) {
+      case 'draft':     return 'badge-draft';
+      case 'validated': return 'badge-validated';
+      case 'locked':    return 'badge-locked';
+      case 'approved':  return 'badge-validated';
+      default:          return '';
+    }
+  }
+
+  function priorityBadge(priority) {
+    if (!priority) return '';
+    switch (String(priority).toLowerCase()) {
+      case 'p1': return 'badge-p1';
+      case 'p2': return 'badge-p2';
+      case 'p3': return 'badge-p3';
+      default:   return '';
+    }
+  }
+
+  function severityBadge(severity) {
+    if (!severity) return '';
+    switch (String(severity).toLowerCase()) {
+      case 'low':    return 'badge-low';
+      case 'medium': return 'badge-medium';
+      case 'high':   return 'badge-high';
+      default:       return '';
+    }
+  }
+
+  function horizonBadge(horizon) {
+    if (!horizon) return '';
+    switch (String(horizon).toLowerCase()) {
+      case 'near': return 'badge-near';
+      case 'mid':  return 'badge-mid';
+      case 'long': return 'badge-long';
+      default:     return '';
+    }
+  }
+
+  function _parseFieldConfig(cfg) {
+    if (!cfg) return { type: 'field', label: '' };
+    var s = String(cfg);
+    if (s === 'title:')            return { type: 'title' };
+    if (s === 'tags:')             return { type: 'tags' };
+    if (s === 'id:')               return { type: 'id' };
+    if (s.indexOf('badge:') === 0) return { type: 'badge', extra: s.slice(6) };
+    return { type: 'field', label: s };
+  }
+
+  function _renderField(obj, key, cfg) {
+    var v = obj[key];
+    var parsed = _parseFieldConfig(cfg);
+
+    if (parsed.type === 'title') {
+      if (v == null) return '';
+      return '<div class="card-title">' + esc(v) + '</div>';
+    }
+
+    if (parsed.type === 'id') {
+      if (v == null) return '';
+      return '<span class="card-id">' + esc(v) + '</span>';
+    }
+
+    if (parsed.type === 'badge') {
+      if (v == null) return '';
+      var cls = '';
+      var fnName = parsed.extra;
+      if (fnName === 'badgeClass')        cls = badgeClass(v);
+      else if (fnName === 'priorityBadge') cls = priorityBadge(v);
+      else if (fnName === 'severityBadge') cls = severityBadge(v);
+      else if (fnName === 'horizonBadge')  cls = horizonBadge(v);
+      else cls = fnName + '-' + String(v).toLowerCase();
+      return '<span class="badge ' + esc(cls) + '">' + esc(v) + '</span>';
+    }
+
+    if (parsed.type === 'tags') {
+      if (!v || (Array.isArray(v) && v.length === 0)) return '';
+      var tags = Array.isArray(v) ? v : [v];
+      return '<div class="tag-list">' + tags.map(function(t) {
+        return '<span class="tag">' + esc(t) + '</span>';
+      }).join('') + '</div>';
+    }
+
+    if (v == null) return '';
+    return '<div class="card-field">' +
+      '<div class="card-field-label">' + esc(parsed.label) + '</div>' +
+      '<div class="card-field-value">' + renderValue(v) + '</div>' +
+      '</div>';
+  }
+
+  function el(id) {
+    if (!id) return null;
+    return document.getElementById(id) || null;
+  }
+
+  function renderCards(containerId, items, colorClass, fieldMap) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!items || items.length === 0) return;
+
+    var cardClass = colorClass ? 'card ' + colorClass : 'card';
+    var html = '';
+
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      if (!item) continue;
+      html += '<div class="' + cardClass + '">';
+      for (var key in fieldMap) {
+        if (fieldMap.hasOwnProperty(key)) {
+          html += _renderField(item, key, fieldMap[key]);
+        }
+      }
+      html += '</div>';
+    }
+
+    container.innerHTML = html;
+  }
+
+  function renderTable(containerId, items, columns) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!columns || columns.length === 0) return;
+
+    var thead = '<thead><tr>';
+    for (var c = 0; c < columns.length; c++) {
+      thead += '<th>' + esc(columns[c].label) + '</th>';
+    }
+    thead += '</tr></thead>';
+
+    var tbody = '<tbody>';
+    if (items && items.length > 0) {
+      for (var i = 0; i < items.length; i++) {
+        var row = items[i] || {};
+        tbody += '<tr>';
+        for (var j = 0; j < columns.length; j++) {
+          var val = row[columns[j].key];
+          tbody += '<td>' + renderValue(val) + '</td>';
+        }
+        tbody += '</tr>';
+      }
+    }
+    tbody += '</tbody>';
+
+    container.innerHTML = '<table>' + thead + tbody + '</table>';
+  }
+
+  function renderFieldGroup(containerId, obj, fieldMap) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!obj) return;
+
+    var html = '<div class="card">';
+    for (var key in fieldMap) {
+      if (fieldMap.hasOwnProperty(key)) {
+        html += _renderField(obj, key, fieldMap[key]);
+      }
+    }
+    html += '</div>';
+
+    container.innerHTML = html;
+  }
+
+  function renderText(containerId, text, wrapperClass) {
+    var container = el(containerId);
+    if (!container) return;
+
+    var inner = '';
+    if (text) {
+      var lines = String(text).split('\n');
+      for (var i = 0; i < lines.length; i++) {
+        inner += '<p>' + esc(lines[i]) + '</p>';
+      }
+    }
+
+    var cls = wrapperClass ? ' class="' + esc(wrapperClass) + '"' : '';
+    container.innerHTML = '<div' + cls + '>' + inner + '</div>';
+  }
+
+  function renderList(containerId, items, wrapperClass) {
+    var container = el(containerId);
+    if (!container) return;
+
+    var cls = wrapperClass ? ' class="' + esc(wrapperClass) + '"' : '';
+    var inner = '';
+    if (items && items.length > 0) {
+      for (var i = 0; i < items.length; i++) {
+        inner += '<li>' + esc(items[i]) + '</li>';
+      }
+    }
+    container.innerHTML = '<ul' + cls + '>' + inner + '</ul>';
+  }
+
+  function renderStatGrid(containerId, stats) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!stats || stats.length === 0) return;
+
+    var html = '<div class="stat-grid">';
+    for (var i = 0; i < stats.length; i++) {
+      var s = stats[i] || {};
+      var cardCls = s.colorClass ? 'stat-card ' + s.colorClass : 'stat-card';
+      html += '<div class="' + cardCls + '">' +
+        '<div class="stat-value">' + esc(s.value) + '</div>' +
+        '<div class="stat-label">' + esc(s.label) + '</div>' +
+        '</div>';
+    }
+    html += '</div>';
+
+    container.innerHTML = html;
+  }
+
+  // ─── Custom: renderNfrs ───────────────────────────────────────────────────
+
+  function renderNfrs(containerId, nfrs) {
+    var container = el(containerId);
+    if (!container || !nfrs) return;
+    var html = '';
+    var categories = Object.keys(nfrs);
+    for (var c = 0; c < categories.length; c++) {
+      var cat = categories[c];
+      var items = nfrs[cat];
+      if (!items || !items.length) continue;
+      html += '<h3>' + esc(cat.charAt(0).toUpperCase() + cat.slice(1)) + '</h3>';
+      html += '<table><thead><tr><th>Requirement</th><th>Priority</th></tr></thead><tbody>';
+      for (var i = 0; i < items.length; i++) {
+        html += '<tr><td>' + esc(items[i].requirement) + '</td>';
+        html += '<td><span class="badge">' + esc(items[i].priority) + '</span></td></tr>';
+      }
+      html += '</tbody></table>';
+    }
+    container.innerHTML = html;
+  }
+
+  // ─── Custom: renderQsDimensions ───────────────────────────────────────────
+
+  function renderQsDimensions(containerId, dimensions) {
+    var container = el(containerId);
+    if (!container || !dimensions) return;
+    var html = '';
+    var keys = Object.keys(dimensions);
+    for (var k = 0; k < keys.length; k++) {
+      var name = keys[k];
+      var dim = dimensions[name];
+      if (!dim) continue;
+      html += '<div class="qs-dimension">';
+      html += '<div class="qs-dimension-header">';
+      html += '<span class="qs-dimension-name">' + esc(name) + '</span>';
+      if (dim.level != null) {
+        html += '<span class="qs-dimension-level">QP ' + esc(String(dim.level)) + '</span>';
+      }
+      html += '</div>';
+      // Render all fields on the dimension object except 'level' and 'standards'
+      var fieldKeys = Object.keys(dim);
+      for (var f = 0; f < fieldKeys.length; f++) {
+        var fk = fieldKeys[f];
+        if (fk === 'level') continue;
+        if (fk === 'standards') {
+          // Render standards as a nested table
+          var standards = dim.standards;
+          if (standards && standards.length > 0) {
+            html += '<div class="qs-field">';
+            html += '<div class="qs-field-label">Standards</div>';
+            html += '<table><thead><tr>';
+            var stdKeys = Object.keys(standards[0]);
+            for (var sk = 0; sk < stdKeys.length; sk++) {
+              html += '<th>' + esc(stdKeys[sk]) + '</th>';
+            }
+            html += '</tr></thead><tbody>';
+            for (var si = 0; si < standards.length; si++) {
+              html += '<tr>';
+              for (var sj = 0; sj < stdKeys.length; sj++) {
+                html += '<td>' + esc(standards[si][stdKeys[sj]]) + '</td>';
+              }
+              html += '</tr>';
+            }
+            html += '</tbody></table>';
+            html += '</div>';
+          }
+          continue;
+        }
+        var fv = dim[fk];
+        if (fv == null) continue;
+        html += '<div class="qs-field">';
+        html += '<div class="qs-field-label">' + esc(fk) + '</div>';
+        html += '<div class="qs-field-value">' + renderValue(fv) + '</div>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  // ─── populateMeta ─────────────────────────────────────────────────────────
+
+  function populateMeta(data) {
+    if (!data) return;
+
+    var slug = data.slug || '';
+    var status = data.status || '';
+    var generatedAt = data.generated_at || new Date().toISOString();
+    var cls = badgeClass(status);
+
+    // page title
+    var titleEl = document.getElementById('page-title');
+    if (titleEl) titleEl.textContent = 'Architecture Brief: ' + slug;
+
+    // sidebar meta
+    var metaSlug = el('meta-slug');
+    if (metaSlug) metaSlug.textContent = slug;
+
+    var metaStatus = el('meta-status');
+    if (metaStatus) {
+      metaStatus.textContent = status;
+      metaStatus.className = 'badge ' + cls;
+    }
+
+    var metaGen = el('meta-generated-at');
+    if (metaGen) metaGen.textContent = generatedAt;
+
+    // header
+    var headerSlug = el('header-slug');
+    if (headerSlug) headerSlug.textContent = slug;
+
+    var headerStatus = el('header-status');
+    if (headerStatus) {
+      headerStatus.textContent = status;
+      headerStatus.className = 'badge ' + cls;
+    }
+
+    // export slug reference
+    window._briefSlug = slug;
+  }
+
+  // ─── render() — main entry point ──────────────────────────────────────────
+
+  async function render() {
+    var data = await fetch('./architecture.json').then(function(r) { return r.json(); });
+    var qs = await fetch('./quality-standards.json').then(function(r) { return r.json(); }).catch(function() { return null; });
+    var product = await fetch('../../product.json').then(function(r) { return r.json(); }).catch(function() { return null; });
+
+    // Meta
+    populateMeta(data);
+
+    // ── Chapter 1: Architecture ──────────────────────────────────────────────
+
+    renderCards('principles', data.principles, 'card-water', {
+      id: 'id:',
+      principle: 'title:',
+      rationale: 'Rationale'
+    });
+
+    renderText('topology', data.architecture ? data.architecture.topology : '', 'code-block');
+
+    renderCards('deployment-units', data.architecture ? data.architecture.deployment_units : [], '', {
+      name: 'title:',
+      responsibility: 'Responsibility',
+      communication: 'Communication'
+    });
+
+    renderNfrs('nfrs', data.nfrs);
+
+    // ── Chapter 2: Stack & Platforms ─────────────────────────────────────────
+
+    renderTable('stack', data.stack, [
+      { key: 'component',  label: 'Component' },
+      { key: 'technology', label: 'Technology' },
+      { key: 'purpose',    label: 'Purpose' },
+      { key: 'rationale',  label: 'Rationale' }
+    ]);
+
+    renderTable('platforms', data.platforms, [
+      { key: 'category',       label: 'Category' },
+      { key: 'platform',       label: 'Platform' },
+      { key: 'purpose',        label: 'Purpose' },
+      { key: 'rationale',      label: 'Rationale' },
+      { key: 'features_served', label: 'Features Served' }
+    ]);
+
+    renderTable('integrations', data.integrations, [
+      { key: 'name',            label: 'Name' },
+      { key: 'type',            label: 'Type' },
+      { key: 'provider',        label: 'Provider' },
+      { key: 'purpose',         label: 'Purpose' },
+      { key: 'direction',       label: 'Direction' },
+      { key: 'auth_method',     label: 'Auth' },
+      { key: 'features_served', label: 'Features Served' }
+    ]);
+
+    // ── Chapter 3: Agentic (PCAM) ────────────────────────────────────────────
+
+    renderCards('perception', data.agentic ? data.agentic.perception : [], 'card-water', {
+      signal: 'title:',
+      source: 'Source',
+      format: 'Format'
+    });
+
+    renderCards('cognition', data.agentic ? data.agentic.cognition : [], 'card-air', {
+      agent:    'title:',
+      role:     'Role',
+      autonomy: 'badge:badgeClass',
+      model:    'Model'
+    });
+
+    renderCards('action', data.agentic ? data.agentic.action : [], '', {
+      tool:         'title:',
+      purpose:      'Purpose',
+      available_to: 'tags:'
+    });
+
+    renderFieldGroup('memory', data.agentic ? data.agentic.memory : null, {
+      approach:   'Approach',
+      stm:        'STM',
+      ltm:        'LTM',
+      embeddings: 'Embeddings'
+    });
+
+    // ── Chapter 4: Quality Standards ─────────────────────────────────────────
+
+    if (qs) {
+      renderQsDimensions('qs-dimensions', qs.dimensions);
+
+      renderTable('debt-baseline', qs.debt_baseline, [
+        { key: 'area',          label: 'Area' },
+        { key: 'current_state', label: 'Current' },
+        { key: 'target_state',  label: 'Target' },
+        { key: 'gap',           label: 'Gap' }
+      ]);
+    }
+
+    // ── Chapter 5: Profiles (from product.json) ───────────────────────────────
+
+    if (product && product.profiles) {
+      renderTable('product-profile', product.profiles.product_profile, [
+        { key: 'dimension', label: 'Dimension' },
+        { key: 'level',     label: 'Level' },
+        { key: 'rationale', label: 'Rationale' }
+      ]);
+
+      renderTable('nfr-profile', product.profiles.nfr_profile, [
+        { key: 'dimension', label: 'Dimension' },
+        { key: 'level',     label: 'Level' },
+        { key: 'rationale', label: 'Rationale' }
+      ]);
+
+      renderTable('quality-profile', product.profiles.quality_profile, [
+        { key: 'dimension', label: 'Dimension' },
+        { key: 'level',     label: 'Level' },
+        { key: 'rationale', label: 'Rationale' }
+      ]);
+    }
+
+    // ── Chapter 6: Operations ────────────────────────────────────────────────
+
+    renderCards('technical-risks', data.technical_risks, 'card-fire', {
+      risk:              'title:',
+      affected_features: 'tags:',
+      severity:          'badge:severityBadge',
+      mitigation:        'Mitigation'
+    });
+
+    renderTable('deployment', data.deployment, [
+      { key: 'service',  label: 'Service' },
+      { key: 'platform', label: 'Platform' },
+      { key: 'purpose',  label: 'Purpose' }
+    ]);
+
+    renderFieldGroup('observability', data.observability, {
+      tracing: 'Tracing',
+      metrics: 'Metrics',
+      logging: 'Logging'
+    });
+  }
+
+  // ─── Static UI ────────────────────────────────────────────────────────────
+
+  function setTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    document.querySelectorAll('.theme-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.theme === t);
+    });
+    try { localStorage.setItem('phoenix-theme', t); } catch(e) {}
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  var chapters = document.querySelectorAll('.chapter');
+  var navItems = document.querySelectorAll('.nav-item');
+
+  function updateActiveNav() {
+    var s = window.scrollY + 100;
+    var a = '';
+    chapters.forEach(function(c) { if (c.offsetTop <= s) a = c.id; });
+    navItems.forEach(function(n) {
+      n.classList.toggle('active', n.getAttribute('href').replace('#', '') === a);
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveNav);
+
+  navItems.forEach(function(n) {
+    n.addEventListener('click', function() {
+      if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open');
+    });
+  });
+
+  function exportAction(a) {
+    var slug = window._briefSlug || '';
+    var p = { artifact: 'architecture-brief', slug: slug, action: a, timestamp: new Date().toISOString() };
+    var t = JSON.stringify(p, null, 2);
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(t).then(function() { showToast('Copied: ' + a); });
+    } else {
+      var x = document.createElement('textarea');
+      x.value = t; document.body.appendChild(x); x.select();
+      document.execCommand('copy'); document.body.removeChild(x);
+      showToast('Copied: ' + a);
+    }
+  }
+
+  function showToast(m) {
+    var t = document.getElementById('toast');
+    t.textContent = m; t.style.display = 'block';
+    setTimeout(function() { t.style.display = 'none'; }, 2000);
+  }
+
+  // ─── Init ─────────────────────────────────────────────────────────────────
+
+  (function() {
+    try { var s = localStorage.getItem('phoenix-theme'); if (s) setTheme(s); } catch(e) {}
+    updateActiveNav();
+    render().catch(function(err) { console.error('Brief render error:', err); });
+  })();
 </script>
 
 </body>

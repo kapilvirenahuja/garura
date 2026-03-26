@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artifact Hub — Meridian</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800;900&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+/* Phoenix Design System — Brief Layout
+   Single source of truth for all Meridian HTML briefs.
+   Inlined into every brief at generation time.
+   Source: Phoenix Design System v2.0
+   Layout: Sidebar (300px) + scrollable chapters, theme switcher, active-on-scroll nav */
+
+/* =========================================================
+   TOKENS
+   ========================================================= */
+:root {
+  /* Backgrounds (Warm Slate) */
+  --bg1: #1A2332;
+  --bg2: #212D3B;
+  --bg3: #2A3645;
+  --bgS: #131C28;
+
+  /* Text */
+  --t1: #E8EDF2;
+  --t2: #94A3B8;
+  --t3: #64748B;
+
+  /* Cyan Primary */
+  --a1: #00D4FF;
+  --cyan-700: #0094A8;
+  --cyan-600: #00B8D9;
+  --cyan-500: #00D4FF;
+  --cyan-400: #33DFFF;
+
+  /* Phoenix Orange Secondary */
+  --a2: #E8731A;
+  --orange-400: #E8731A;
+
+  /* Magenta Interactive */
+  --a3: #FF3CAC;
+
+  /* Supporting */
+  --a4: #FF6B6B;
+  --a5: #FBBF24;
+  --green: #00D26A;
+
+  /* Borders & Effects */
+  --border: #2E3D4F;
+  --bdr: #2E3D4F;
+  --glow: 0 0 20px rgba(0,212,255,.2);
+  --shd: 0 4px 24px rgba(0,0,0,.3);
+
+  /* Status badges */
+  --status-draft: #FBBF24;
+  --status-validated: #00D26A;
+  --status-locked: #00D4FF;
+
+  /* Phoenix Gradient */
+  --phoenix-gradient: linear-gradient(135deg, #E8731A 0%, #FFB84D 100%);
+
+  /* Typography */
+  --font-display: 'Space Grotesk', -apple-system, sans-serif;
+  --font-body: 'DM Sans', 'Space Grotesk', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Layout */
+  --sidebar-w: 300px;
+  --content-max: 1200px;
+  --tr: .25s cubic-bezier(.4,0,.2,1);
+  --radius: 8px;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --space-4xl: 80px;
+}
+
+/* =========================================================
+   RESET & BASE
+   ========================================================= */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--t1);
+  background: var(--bg1);
+}
+
+code, pre, .mono {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+/* =========================================================
+   THEME SYSTEM
+   ========================================================= */
+[data-theme="light"] {
+  --bg1: #F1F5F9;
+  --bg2: #FFFFFF;
+  --bg3: #FFFFFF;
+  --bgS: #131C28;
+  --t1: #0F172A;
+  --t2: #475569;
+  --t3: #94A3B8;
+  --a1: #00B8D9;
+  --a2: #C06218;
+  --a3: #D9308A;
+  --a4: #EF4444;
+  --a5: #F59E0B;
+  --border: #CBD5E1;
+  --bdr: #CBD5E1;
+  --glow: 0 0 20px rgba(0,212,255,.15);
+  --shd: 0 4px 24px rgba(0,0,0,.08);
+}
+
+[data-theme="vibrant"] {
+  --bg1: #121B28;
+  --bg2: #1A2535;
+  --bg3: #223040;
+  --bgS: #0D1520;
+  --a1: #33DFFF;
+  --glow: 0 0 20px rgba(0,212,255,.25);
+}
+
+/* =========================================================
+   LAYOUT: SIDEBAR + MAIN
+   ========================================================= */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bgS);
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 100;
+  transition: transform var(--tr);
+}
+
+.sidebar-header {
+  padding: var(--space-2xl) var(--space-xl);
+  border-bottom: 1px solid var(--bdr);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.sidebar-logo svg {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.sidebar-logo-text {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.sidebar-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--t3);
+  margin-top: var(--space-sm);
+}
+
+.sidebar-meta span {
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* Theme switcher */
+.theme-switcher {
+  display: flex;
+  gap: var(--space-xs);
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--bdr);
+}
+
+.theme-btn {
+  flex: 1;
+  padding: 6px 0;
+  background: transparent;
+  border: 1px solid var(--bdr);
+  border-radius: 4px;
+  color: var(--t3);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all var(--tr);
+}
+
+.theme-btn:hover { color: var(--t1); border-color: var(--a1); }
+.theme-btn.active { background: rgba(0,212,255,.12); color: var(--a1); border-color: var(--a1); }
+
+/* Navigation */
+.sidebar-nav {
+  flex: 1;
+  padding: var(--space-xl) 0;
+  overflow-y: auto;
+}
+
+.nav-section-label {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--t3);
+  padding: var(--space-sm) var(--space-xl) var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.nav-section-label:first-child { margin-top: 0; }
+
+.nav-item {
+  display: block;
+  padding: var(--space-sm) var(--space-xl);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--t3);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: all var(--tr);
+}
+
+.nav-item:hover {
+  color: var(--t1);
+  background: rgba(0,212,255,.06);
+}
+
+.nav-item.active {
+  color: var(--a1);
+  background: rgba(0,212,255,.12);
+  border-left-color: var(--a1);
+}
+
+/* Sidebar footer */
+.sidebar-footer {
+  padding: var(--space-xl);
+  border-top: 1px solid var(--bdr);
+  margin-top: auto;
+}
+
+.sidebar-footer-label {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--t3);
+  margin-bottom: var(--space-md);
+}
+
+/* Mobile hamburger */
+.hamburger {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  width: 40px;
+  height: 40px;
+  background: var(--bgS);
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.hamburger span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--t1);
+  margin: 3px auto;
+  transition: all var(--tr);
+}
+
+/* --- Main Content --- */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-width: 0;
+}
+
+.content {
+  max-width: var(--content-max);
+  padding: 40px 56px 100px;
+}
+
+/* =========================================================
+   BRIEF HEADER (in main content)
+   ========================================================= */
+.brief-header {
+  margin-bottom: var(--space-3xl);
+  padding-bottom: var(--space-2xl);
+  border-bottom: 1px solid var(--bdr);
+}
+
+.brief-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--t1);
+  margin-bottom: var(--space-sm);
+  line-height: 1.2;
+}
+
+.brief-subtitle {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--t2);
+  border-left: 3px solid var(--a1);
+  padding-left: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+/* =========================================================
+   BADGES
+   ========================================================= */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.badge-draft     { background: rgba(251,191,36,.15); color: var(--status-draft); border: 1px solid rgba(251,191,36,.2); }
+.badge-validated { background: rgba(0,210,106,.15); color: var(--status-validated); border: 1px solid rgba(0,210,106,.2); }
+.badge-locked    { background: rgba(0,212,255,.12); color: var(--status-locked); border: 1px solid rgba(0,212,255,.2); }
+.badge-count     { background: var(--bg3); color: var(--t2); }
+
+/* =========================================================
+   HUB-SPECIFIC: ARTIFACT GRID + CARDS
+   ========================================================= */
+.artifact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.artifact-card {
+  display: block;
+  padding: 1.25rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--t1);
+  transition: all 0.2s;
+}
+
+.artifact-card:hover {
+  border-color: var(--a1);
+  box-shadow: var(--glow);
+}
+
+.artifact-card-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.artifact-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.artifact-card-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.artifact-card-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.artifact-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--a1);
+}
+
+.artifact-stat-label {
+  font-size: 0.8rem;
+  color: var(--t3);
+}
+
+.epic-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.epic-section h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--a1);
+  margin-bottom: var(--space-sm);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 1100px) {
+  .content { padding: 32px 32px 80px; }
+}
+
+@media (max-width: 900px) {
+  .hamburger { display: flex; }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main {
+    margin-left: 0;
+  }
+
+  .content {
+    padding: 24px 16px 80px;
+    padding-top: 72px;
+  }
+
+  .brief-title { font-size: 28px; }
+  .artifact-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .artifact-grid { grid-template-columns: 1fr; }
+}
+  </style>
+</head>
+<body>
+
+<button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="6" fill="#E8731A" opacity="0.15"/>
+          <path d="M8 24L16 8L24 24" stroke="#E8731A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10.5 19H21.5" stroke="#00D4FF" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="sidebar-logo-text">Meridian</span>
+      </div>
+      <div class="sidebar-meta">
+        <span id="sidebar-product-name" style="color:var(--t2);font-size:13px;font-family:var(--font-display);font-weight:600;"></span>
+        <span style="margin-top:4px;">Artifact Hub</span>
+        <span id="hub-timestamp"></span>
+      </div>
+    </div>
+
+    <div class="theme-switcher">
+      <button class="theme-btn active" data-theme-target="dark" onclick="setTheme('dark',this)">Dark</button>
+      <button class="theme-btn" data-theme-target="light" onclick="setTheme('light',this)">Light</button>
+      <button class="theme-btn" data-theme-target="vibrant" onclick="setTheme('vibrant',this)">Vibrant</button>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <div class="nav-section-label">Sections</div>
+      <a href="#product-section" class="nav-item">Product Artifacts</a>
+      <div id="sidebar-epic-links"></div>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="content">
+
+      <!-- Header -->
+      <div class="brief-header">
+        <div class="brief-title" id="hub-title">Artifact Hub</div>
+        <div class="brief-subtitle">All product and epic artifacts — active and pending</div>
+      </div>
+
+      <!-- Product-level artifacts -->
+      <section id="product-section">
+        <h2 style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--a1);margin-bottom:var(--space-sm);">Product Artifacts</h2>
+        <div id="product-artifacts"></div>
+      </section>
+
+      <!-- Epic sections -->
+      <div id="epic-sections"></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script>
+// ─── Inlined brief-render.js helpers ──────────────────────────────────────────
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function badgeClass(status) {
+  if (!status) return '';
+  switch (String(status).toLowerCase()) {
+    case 'draft':     return 'badge-draft';
+    case 'validated': return 'badge-validated';
+    case 'locked':    return 'badge-locked';
+    case 'approved':  return 'badge-validated';
+    default:          return '';
+  }
+}
+
+function el(id) {
+  if (!id) return null;
+  return document.getElementById(id) || null;
+}
+
+// ─── Hub rendering ────────────────────────────────────────────────────────────
+
+function renderArtifactCard(a) {
+  var isActive = a.has_brief;
+  var cls = isActive ? 'artifact-card' : 'artifact-card artifact-card-disabled';
+  var html = isActive
+    ? '<a href="' + esc(a.brief_path) + '" class="' + cls + '">'
+    : '<div class="' + cls + '">';
+
+  html += '<div class="artifact-card-header">';
+  html += '<div class="artifact-card-name">' + esc(a.artifact) + '</div>';
+  if (a.status) {
+    html += '<span class="badge ' + badgeClass(a.status) + '">' + esc(a.status) + '</span>';
+  }
+  html += '</div>';
+
+  html += '<div class="artifact-card-stat">';
+  if (a.stat_value != null) {
+    html += '<span class="artifact-stat-value">' + esc(a.stat_value) + '</span>';
+  }
+  if (a.stat_label) {
+    html += '<span class="artifact-stat-label">' + esc(a.stat_label) + '</span>';
+  }
+  html += '</div>';
+
+  html += isActive ? '</a>' : '</div>';
+  return html;
+}
+
+async function render() {
+  var data;
+  try {
+    data = await fetch('./hub.json').then(function(r) { return r.json(); });
+  } catch (e) {
+    el('hub-title').textContent = 'Failed to load hub.json';
+    return;
+  }
+
+  // Header
+  var productName = data.product_name || data.slug || 'Artifact Hub';
+  el('hub-title').textContent = productName;
+  el('sidebar-product-name').textContent = productName;
+
+  var ts = data.generated_at || '';
+  el('hub-timestamp').textContent = ts;
+
+  // Product-level cards
+  var productGrid = el('product-artifacts');
+  if (data.product_level && data.product_level.length > 0) {
+    var html = '<div class="artifact-grid">';
+    for (var i = 0; i < data.product_level.length; i++) {
+      html += renderArtifactCard(data.product_level[i]);
+    }
+    html += '</div>';
+    productGrid.innerHTML = html;
+  }
+
+  // Epic sections
+  var epicsContainer = el('epic-sections');
+  var sidebarEpicLinks = el('sidebar-epic-links');
+  if (data.epics && data.epics.length > 0) {
+    var ehtml = '';
+    var navHtml = '<div class="nav-section-label" style="margin-top:var(--space-lg);">Epics</div>';
+
+    for (var e = 0; e < data.epics.length; e++) {
+      var epic = data.epics[e];
+      var epicId = 'epic-' + esc(epic.epic_id).replace(/\s+/g, '-').toLowerCase();
+
+      ehtml += '<section class="epic-section" id="' + epicId + '">';
+      ehtml += '<h2>Epic: ' + esc(epic.epic_id) + '</h2>';
+      ehtml += '<div class="artifact-grid">';
+      if (epic.artifacts && epic.artifacts.length > 0) {
+        for (var j = 0; j < epic.artifacts.length; j++) {
+          ehtml += renderArtifactCard(epic.artifacts[j]);
+        }
+      }
+      ehtml += '</div></section>';
+
+      navHtml += '<a href="#' + epicId + '" class="nav-item">' + esc(epic.epic_id) + '</a>';
+    }
+
+    epicsContainer.innerHTML = ehtml;
+    sidebarEpicLinks.innerHTML = navHtml;
+  }
+}
+
+// ─── Theme switcher ───────────────────────────────────────────────────────────
+
+function setTheme(theme, btn) {
+  if (theme === 'dark') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+  var btns = document.querySelectorAll('.theme-btn');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].classList.remove('active');
+  }
+  if (btn) btn.classList.add('active');
+}
+
+// ─── Mobile hamburger ─────────────────────────────────────────────────────────
+
+document.getElementById('hamburger').addEventListener('click', function() {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+
+render();
+</script>
+
+</body>
+</html>

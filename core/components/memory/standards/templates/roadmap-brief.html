@@ -3,13 +3,260 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Roadmap Brief: {SLUG}</title>
+  <title>Roadmap Brief</title>
   <!-- Template: roadmap-brief.html -->
   <!-- Layout: Phoenix Design System v2.0 — Sidebar + Chapters -->
   <!-- All CSS and JS inline — no external dependencies -->
+  <!-- Self-rendering: fetches ./roadmap.json and ../product.json -->
   <style>
     /* Phoenix Design System — Brief Tokens (inlined from brief-common.css) */
-    /* >>> INLINE brief-common.css HERE <<< */
+    /* =========================================================
+       TOKENS
+       ========================================================= */
+    :root {
+      --bg1: #1A2332;
+      --bg2: #212D3B;
+      --bg3: #2A3645;
+      --bgS: #131C28;
+      --t1: #E8EDF2;
+      --t2: #94A3B8;
+      --t3: #64748B;
+      --a1: #00D4FF;
+      --cyan-700: #0094A8;
+      --cyan-600: #00B8D9;
+      --cyan-500: #00D4FF;
+      --cyan-400: #33DFFF;
+      --a2: #E8731A;
+      --orange-400: #E8731A;
+      --a3: #FF3CAC;
+      --a4: #FF6B6B;
+      --a5: #FBBF24;
+      --green: #00D26A;
+      --bdr: #2E3D4F;
+      --glow: rgba(0,212,255,.2);
+      --shd: 0 4px 24px rgba(0,0,0,.3);
+      --status-draft: #FBBF24;
+      --status-validated: #00D26A;
+      --status-locked: #00D4FF;
+      --phoenix-gradient: linear-gradient(135deg, #E8731A 0%, #FFB84D 100%);
+      --font-display: 'Space Grotesk', -apple-system, sans-serif;
+      --font-body: 'DM Sans', 'Space Grotesk', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --sidebar-w: 300px;
+      --content-max: 1200px;
+      --tr: .25s cubic-bezier(.4,0,.2,1);
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 12px;
+      --space-lg: 16px;
+      --space-xl: 24px;
+      --space-2xl: 32px;
+      --space-3xl: 48px;
+      --space-4xl: 80px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-body); font-size: 15px; line-height: 1.7; color: var(--t1); background: var(--bg1); }
+    code, pre, .mono { font-family: var(--font-mono); font-size: 14px; }
+
+    /* =========================================================
+       THEME SYSTEM
+       ========================================================= */
+    [data-theme="light"] {
+      --bg1: #F1F5F9; --bg2: #FFFFFF; --bg3: #FFFFFF; --bgS: #131C28;
+      --t1: #0F172A; --t2: #475569; --t3: #94A3B8;
+      --a1: #00B8D9; --a2: #C06218; --a3: #D9308A; --a4: #EF4444; --a5: #F59E0B;
+      --bdr: #CBD5E1; --glow: rgba(0,212,255,.15); --shd: 0 4px 24px rgba(0,0,0,.08);
+    }
+    [data-theme="vibrant"] {
+      --bg1: #121B28; --bg2: #1A2535; --bg3: #223040; --bgS: #0D1520;
+      --a1: #33DFFF; --glow: rgba(0,212,255,.25);
+    }
+
+    /* =========================================================
+       LAYOUT
+       ========================================================= */
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: var(--sidebar-w); background: var(--bgS); position: fixed; top: 0; left: 0; bottom: 0; display: flex; flex-direction: column; overflow-y: auto; z-index: 100; transition: transform var(--tr); }
+    .sidebar-header { padding: var(--space-2xl) var(--space-xl); border-bottom: 1px solid var(--bdr); }
+    .sidebar-logo { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg); }
+    .sidebar-logo svg { width: 32px; height: 32px; flex-shrink: 0; }
+    .sidebar-logo-text { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--t1); }
+    .sidebar-meta { font-family: var(--font-mono); font-size: 11px; color: var(--t3); margin-top: var(--space-sm); }
+    .sidebar-meta span { display: block; margin-bottom: 2px; }
+    .theme-switcher { display: flex; gap: var(--space-xs); padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--bdr); }
+    .theme-btn { flex: 1; padding: 6px 0; background: transparent; border: 1px solid var(--bdr); border-radius: 4px; color: var(--t3); font-family: var(--font-display); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all var(--tr); }
+    .theme-btn:hover { color: var(--t1); border-color: var(--a1); }
+    .theme-btn.active { background: rgba(0,212,255,.12); color: var(--a1); border-color: var(--a1); }
+    .sidebar-nav { flex: 1; padding: var(--space-xl) 0; overflow-y: auto; }
+    .nav-section-label { font-family: var(--font-display); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); padding: var(--space-sm) var(--space-xl) var(--space-sm); margin-top: var(--space-lg); }
+    .nav-section-label:first-child { margin-top: 0; }
+    .nav-item { display: block; padding: var(--space-sm) var(--space-xl); font-family: var(--font-body); font-size: 14px; color: var(--t3); text-decoration: none; border-left: 3px solid transparent; transition: all var(--tr); }
+    .nav-item:hover { color: var(--t1); background: rgba(0,212,255,.06); }
+    .nav-item.active { color: var(--a1); background: rgba(0,212,255,.12); border-left-color: var(--a1); }
+    .sidebar-footer { padding: var(--space-xl); border-top: 1px solid var(--bdr); margin-top: auto; }
+    .sidebar-footer-label { font-family: var(--font-display); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); margin-bottom: var(--space-md); }
+    .action-btns { display: flex; flex-direction: column; gap: var(--space-sm); }
+    .action-btn { padding: 8px 0; border-radius: 4px; border: 1px solid var(--bdr); cursor: pointer; font-family: var(--font-display); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; background: transparent; text-align: center; transition: all var(--tr); }
+    .action-btn-tether { border-color: var(--green); color: var(--green); }
+    .action-btn-tether:hover { background: rgba(0,210,106,.1); }
+    .action-btn-vanish { border-color: var(--a4); color: var(--a4); }
+    .action-btn-vanish:hover { background: rgba(255,107,107,.1); }
+    .action-btn-orbit  { border-color: var(--a1); color: var(--a1); }
+    .action-btn-orbit:hover  { background: rgba(0,212,255,.1); }
+    .hamburger { display: none; position: fixed; top: 16px; left: 16px; z-index: 200; width: 40px; height: 40px; background: var(--bgS); border: 1px solid var(--bdr); border-radius: 6px; cursor: pointer; align-items: center; justify-content: center; }
+    .hamburger span { display: block; width: 20px; height: 2px; background: var(--t1); margin: 3px auto; transition: all var(--tr); }
+    .main { margin-left: var(--sidebar-w); flex: 1; min-width: 0; }
+    .content { max-width: var(--content-max); padding: 40px 56px 100px; }
+
+    /* =========================================================
+       BRIEF HEADER
+       ========================================================= */
+    .brief-header { margin-bottom: var(--space-3xl); padding-bottom: var(--space-2xl); border-bottom: 1px solid var(--bdr); }
+    .brief-title { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--t1); margin-bottom: var(--space-sm); line-height: 1.2; }
+    .brief-subtitle { font-family: var(--font-body); font-size: 16px; color: var(--t2); border-left: 3px solid var(--a1); padding-left: var(--space-lg); margin-top: var(--space-lg); }
+    .source-path { font-family: var(--font-mono); font-size: 12px; color: var(--t3); margin-top: var(--space-md); }
+
+    /* =========================================================
+       BADGES
+       ========================================================= */
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-family: var(--font-display); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .badge-draft     { background: rgba(251,191,36,.15); color: var(--status-draft); border: 1px solid rgba(251,191,36,.2); }
+    .badge-validated { background: rgba(0,210,106,.15); color: var(--status-validated); border: 1px solid rgba(0,210,106,.2); }
+    .badge-locked    { background: rgba(0,212,255,.12); color: var(--status-locked); border: 1px solid rgba(0,212,255,.2); }
+    .badge-count     { background: var(--bg3); color: var(--t2); }
+    .badge-low    { background: rgba(0,210,106,.15); color: var(--green); border: 1px solid rgba(0,210,106,.2); }
+    .badge-medium { background: rgba(232,115,26,.12); color: var(--a2); border: 1px solid rgba(232,115,26,.2); }
+    .badge-high   { background: rgba(255,107,107,.12); color: var(--a4); border: 1px solid rgba(255,107,107,.2); }
+    .badge-p1 { background: rgba(0,212,255,.12); color: var(--a1); border: 1px solid rgba(0,212,255,.2); }
+    .badge-p2 { background: rgba(148,163,184,.15); color: var(--t2); }
+    .badge-p3 { background: rgba(148,163,184,.1); color: var(--t3); }
+    .badge-near { background: rgba(0,210,106,.15); color: var(--green); }
+    .badge-mid  { background: rgba(232,115,26,.12); color: var(--a2); }
+    .badge-long { background: rgba(148,163,184,.15); color: var(--t2); }
+
+    /* =========================================================
+       CHAPTERS
+       ========================================================= */
+    .chapter { margin-bottom: var(--space-4xl); scroll-margin-top: 40px; }
+    .chapter-number { font-family: var(--font-display); font-size: 56px; font-weight: 900; color: var(--a1); opacity: 0.18; line-height: 1; margin-bottom: -8px; user-select: none; }
+    .chapter-title { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--t1); line-height: 1.3; margin-bottom: var(--space-xl); }
+    .chapter-subtitle { font-family: var(--font-body); font-size: 16px; color: var(--t2); border-left: 3px solid var(--a1); padding-left: var(--space-lg); margin-bottom: var(--space-3xl); }
+
+    /* =========================================================
+       TYPOGRAPHY
+       ========================================================= */
+    h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--a1); margin-bottom: var(--space-xl); margin-top: var(--space-3xl); }
+    h3, .section-heading { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--a1); margin-bottom: var(--space-xl); margin-top: var(--space-3xl); }
+    h4, .sub-heading { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--t1); margin-bottom: var(--space-lg); margin-top: var(--space-2xl); }
+    p { font-size: 16px; color: var(--t2); line-height: 1.75; margin-bottom: var(--space-lg); }
+    strong { font-weight: 700; color: var(--t1); }
+    em { font-weight: 500; color: var(--a1); font-style: normal; }
+
+    /* =========================================================
+       CARDS
+       ========================================================= */
+    .card { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 8px; box-shadow: var(--shd); padding: var(--space-2xl); margin-bottom: var(--space-xl); transition: all var(--tr); }
+    .card:hover { border-color: var(--a1); box-shadow: 0 0 20px var(--glow); }
+    .card-air   { border-left: 4px solid var(--green); }
+    .card-water { border-left: 4px solid var(--a1); }
+    .card-earth { border-left: 4px solid var(--t2); }
+    .card-fire  { border-left: 4px solid var(--a2); }
+    .card-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--t1); margin-bottom: var(--space-md); }
+    .card-field { margin-bottom: var(--space-sm); }
+    .card-field-label { font-family: var(--font-display); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); margin-bottom: 2px; }
+    .card-field-value { font-size: 15px; color: var(--t2); line-height: 1.6; }
+    .card-subtitle { font-family: var(--font-mono); font-size: 12px; color: var(--t3); margin-bottom: var(--space-md); }
+    .highlight-box { background: rgba(0,212,255,.05); border: 1px solid rgba(0,212,255,.2); border-left: 4px solid var(--a1); border-radius: 8px; padding: var(--space-2xl); margin-bottom: var(--space-xl); font-size: 16px; color: var(--t2); line-height: 1.75; }
+
+    /* =========================================================
+       TABLES
+       ========================================================= */
+    table { width: 100%; border-collapse: collapse; font-size: 15px; margin-bottom: var(--space-xl); }
+    th { background: var(--bg3); color: var(--t1); padding: 12px 16px; text-align: left; font-family: var(--font-display); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--bdr); color: var(--t2); }
+    td:first-child { font-weight: 600; color: var(--t1); }
+    tr:hover { background: rgba(0,212,255,.05); }
+
+    /* =========================================================
+       EPIC CARDS (roadmap brief)
+       ========================================================= */
+    .epic-card { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 8px; box-shadow: var(--shd); padding: var(--space-2xl); margin-bottom: var(--space-xl); }
+    .epic-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-lg); gap: var(--space-lg); }
+    .epic-header h3 { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--t1); margin: 0; }
+    .epic-badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .epic-field { margin-bottom: var(--space-md); }
+    .epic-field-label { font-family: var(--font-display); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); margin-bottom: 4px; }
+    .epic-field-value { font-size: 15px; color: var(--t1); }
+    .epic-field-value ul { padding-left: 18px; }
+    .epic-field-value li { margin-bottom: 4px; color: var(--t2); }
+    .idd-section { margin-top: var(--space-xl); padding-top: var(--space-xl); border-top: 1px solid var(--bdr); }
+    .idd-paragraph { margin-bottom: var(--space-md); color: var(--t2); font-size: 15px; line-height: 1.7; }
+    .idd-label { font-family: var(--font-display); font-size: 12px; font-weight: 700; color: var(--a1); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+    .scenario-item { padding: 10px 16px; background: var(--bg3); border-radius: 4px; margin-bottom: 8px; font-size: 14px; color: var(--t2); border-left: 3px solid var(--green); }
+    .failure-item { padding: 10px 16px; background: var(--bg3); border-radius: 4px; margin-bottom: 8px; font-size: 14px; color: var(--t2); border-left: 3px solid var(--a2); }
+
+    /* =========================================================
+       STAT CARDS
+       ========================================================= */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-xl); margin-bottom: var(--space-3xl); }
+    .stat-card { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 8px; padding: var(--space-2xl) var(--space-xl); text-align: center; }
+    .stat-value { font-family: var(--font-display); font-size: 44px; font-weight: 800; background: linear-gradient(135deg, var(--cyan-400), var(--cyan-600)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; margin-bottom: var(--space-sm); }
+    .stat-label { font-family: var(--font-display); font-size: 12px; color: var(--t2); text-transform: uppercase; letter-spacing: 1px; }
+    .stat-fire .stat-value { background: var(--phoenix-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* =========================================================
+       LISTS
+       ========================================================= */
+    .item-list { list-style: none; padding: 0; }
+    .item-list li { padding: 12px 0; border-bottom: 1px solid var(--bdr); font-size: 15px; color: var(--t2); display: flex; align-items: center; gap: var(--space-sm); }
+    .item-list li:last-child { border-bottom: none; }
+    .item-list li::before { content: "\25B8"; color: var(--a2); }
+
+    /* =========================================================
+       TAG CHIPS
+       ========================================================= */
+    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-sm); }
+    .tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-family: var(--font-display); font-size: 10px; font-weight: 600; background: rgba(0,212,255,.12); color: var(--a1); border: 1px solid rgba(0,212,255,.2); }
+
+    /* =========================================================
+       TIMELINE HORIZON GROUPS
+       ========================================================= */
+    .horizon-group { margin-bottom: var(--space-3xl); }
+    .horizon-group-header { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-xl); padding-bottom: var(--space-md); border-bottom: 1px solid var(--bdr); }
+    .horizon-label { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--t1); }
+    .horizon-feature-refs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-sm); }
+
+    /* =========================================================
+       FEASIBILITY CARDS
+       ========================================================= */
+    .feasibility-card { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 8px; box-shadow: var(--shd); padding: var(--space-2xl); margin-bottom: var(--space-xl); }
+    .feasibility-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-lg); gap: var(--space-lg); }
+    .feasibility-feature-ref { font-family: var(--font-mono); font-size: 12px; color: var(--t3); margin-bottom: 4px; }
+    .risk-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: var(--space-xl); }
+    .risk-table th { background: var(--bg3); color: var(--t1); padding: 8px 12px; text-align: left; font-family: var(--font-display); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .risk-table td { padding: 8px 12px; border-bottom: 1px solid var(--bdr); color: var(--t2); }
+
+    /* =========================================================
+       TOAST
+       ========================================================= */
+    #toast { display: none; position: fixed; bottom: 24px; right: 24px; background: var(--bg3); color: var(--t1); border: 1px solid var(--a1); border-radius: 6px; padding: 10px 18px; font-size: 13px; z-index: 2000; }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+    @media (max-width: 1100px) { .content { padding: 32px 32px 80px; } }
+    @media (max-width: 900px) {
+      .hamburger { display: flex; }
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .content { padding: 24px 16px 80px; padding-top: 72px; }
+      .chapter-number { font-size: 36px; }
+      .chapter-title { font-size: 28px; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+      .epic-header { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
@@ -25,9 +272,9 @@
         <span class="sidebar-logo-text">Roadmap Brief</span>
       </div>
       <div class="sidebar-meta">
-        <span>{SLUG}</span>
-        <span><span class="badge {STATUS_BADGE}">{STATUS}</span></span>
-        <span>{TIMESTAMP}</span>
+        <span id="meta-slug"></span>
+        <span><span id="meta-status" class="badge"></span></span>
+        <span id="meta-generated-at"></span>
       </div>
     </div>
     <div class="theme-switcher">
@@ -54,7 +301,7 @@
 
   <main class="main"><div class="content">
     <div class="brief-header">
-      <div class="brief-title">{SLUG} <span class="badge {STATUS_BADGE}">{STATUS}</span></div>
+      <div class="brief-title"><span id="brief-title"></span> <span id="brief-status" class="badge"></span></div>
       <div class="brief-subtitle">Strategic epic sequencing, timeline, and feasibility assessment</div>
       <div class="source-path">Source: epics.yaml + feasibility.yaml</div>
     </div>
@@ -63,144 +310,58 @@
         <div class="chapter-number">01</div>
         <div class="chapter-title">Strategy</div>
 
-<h2>The Bet</h2>
-    <!-- {BET_PARAGRAPH}: single paragraph in card-air describing the strategic bet -->
-    <div class="card card-air">
-      <p>{BET_PARAGRAPH}</p>
-    </div>
+        <h2>The Bet</h2>
+        <div id="thesis"></div>
 
-    <h2>The Story</h2>
-    <!-- {STORY_PARAGRAPHS}: one or more paragraphs in card-water describing the narrative arc -->
-    <div class="card card-water">
-      {STORY_PARAGRAPHS}
-    </div>
+        <h2>The Story</h2>
+        <div id="narrative"></div>
 
-    <h2>Assumptions</h2>
-    <!-- {ASSUMPTIONS}: list items rendered inside a card-water; each item is a key assumption -->
-    <div class="card card-water">
-      {ASSUMPTIONS}
-    </div>
+        <h2>Assumptions</h2>
+        <div class="card card-water"><div id="assumptions"></div></div>
 
-    <h2>Exclusions</h2>
-    <!-- {EXCLUSIONS}: list items rendered inside a card-earth; each item is an explicit exclusion -->
-    <div class="card card-earth">
-      {EXCLUSIONS}
-    </div>
+        <h2>Exclusions</h2>
+        <div class="card card-earth"><div id="exclusions"></div></div>
 
       </section>
       <section class="chapter" id="timeline">
         <div class="chapter-number">02</div>
         <div class="chapter-title">Timeline</div>
 
-<h2>Decisions</h2>
-    <!-- {DECISIONS_TABLE}: <tr> rows with columns: Epic, Horizon, Priority, Effort, Depends On, Reason -->
-    <table>
-      <thead>
-        <tr><th>Epic</th><th>Horizon</th><th>Priority</th><th>Effort</th><th>Depends On</th><th>Reason</th></tr>
-      </thead>
-      <tbody>
-        {DECISIONS_TABLE}
-      </tbody>
-    </table>
+        <h2>Decisions</h2>
+        <div id="decisions-table"></div>
 
-    <h2>MVP</h2>
-    <!-- {TIMELINE_NEAR}: epic summary cards for near-term / MVP horizon -->
-    <!-- Each card: epic E-ID badge (badge-near), name (card-title), risk badge (badge-low/medium/high) -->
-    {TIMELINE_NEAR}
+        <h2>MVP</h2>
+        <div id="timeline-near"></div>
 
-    <h2>MVP-Beyond</h2>
-    <!-- {TIMELINE_MID}: epic summary cards for mid-term / MVP-Beyond horizon -->
-    <!-- Each card: epic E-ID badge (badge-mid), name (card-title), risk badge -->
-    {TIMELINE_MID}
+        <h2>MVP-Beyond</h2>
+        <div id="timeline-mid"></div>
 
-    <h2>Future</h2>
-    <!-- {TIMELINE_LONG}: epic summary cards for long-term / Future horizon -->
-    <!-- Each card: epic E-ID badge (badge-long), name (card-title), risk badge -->
-    {TIMELINE_LONG}
+        <h2>Future</h2>
+        <div id="timeline-long"></div>
 
       </section>
       <section class="chapter" id="epics">
         <div class="chapter-number">03</div>
         <div class="chapter-title">Epics</div>
 
-<!-- {EPIC_CARDS}: render one .epic-card per epic with full IDD detail -->
-    <!--
-      Epic card structure:
-      <div class="epic-card">
-        <div class="epic-header">
-          <h3>{E-ID} — {epic name}</h3>
-          <div class="epic-badges">
-            <span class="badge badge-{bucket}">{bucket}</span>
-            <span class="badge badge-{priority}">{priority}</span>
-            <span class="badge">{effort}</span>
-          </div>
-        </div>
-        <div class="epic-field">
-          <div class="epic-field-label">Description</div>
-          <div class="epic-field-value">{description}</div>
-        </div>
-        <div class="epic-field">
-          <div class="epic-field-label">Strategic Goal</div>
-          <div class="epic-field-value">{strategic_goal_ref}</div>
-        </div>
-        <div class="epic-field">
-          <div class="epic-field-label">Depends On</div>
-          <div class="epic-field-value">{depends_on}</div>
-        </div>
-        <div class="idd-section">
-          <div class="idd-label">Problem Today</div>
-          <div class="idd-paragraph">{intent.p1}</div>
-          <div class="idd-label">Outcome After</div>
-          <div class="idd-paragraph">{intent.p2}</div>
-          <div class="idd-label">Strategic Connection</div>
-          <div class="idd-paragraph">{intent.p3}</div>
-        </div>
-        <div class="idd-section">
-          <div class="idd-label">In Scope</div>
-          <div class="idd-paragraph">{constraints.in_scope}</div>
-          <div class="idd-label">Out of Scope</div>
-          <div class="idd-paragraph">{constraints.out_of_scope}</div>
-          <div class="idd-label">Must Not Break</div>
-          <div class="idd-paragraph">{constraints.must_not_break}</div>
-        </div>
-        <div class="idd-section">
-          <div class="idd-label">Success Scenarios</div>
-          {success_scenarios as .scenario-item divs}
-        </div>
-        <div class="idd-section">
-          <div class="idd-label">Failure Conditions</div>
-          {failure_conditions as .failure-item divs}
-        </div>
-      </div>
-    -->
-    {EPIC_CARDS}
+        <div id="epics-container"></div>
 
       </section>
       <section class="chapter" id="feasibility">
         <div class="chapter-number">04</div>
         <div class="chapter-title">Feasibility</div>
 
-<h2>Risk Summary</h2>
-    <!-- {RISK_SUMMARY}: .stat-grid with 4 .stat-card items -->
-    <!-- Stat cards: Total Features, High Risk (stat-fire), Medium Risk, Blocker Count (stat-fire) -->
-    {RISK_SUMMARY}
+        <h2>Risk Summary</h2>
+        <div id="risk-summary"></div>
 
-    <h2>Per-Feature Feasibility</h2>
-    <!-- {FEASIBILITY_CARDS}: render one .card per feature with feasibility details -->
-    <!-- Each card: E-ID (card-subtitle), name (card-title), risk badge (badge-low/medium/high) -->
-    <!-- Sections: technical_risks table (columns: Risk, Severity, Mitigation), -->
-    <!--           blockers card-fire, sequencing note, architecture_impact note -->
-    {FEASIBILITY_CARDS}
+        <h2>Per-Feature Feasibility</h2>
+        <div id="feasibility-cards"></div>
 
-    <h2>Critical Blockers</h2>
-    <!-- {CRITICAL_BLOCKERS}: render one .card.card-fire per critical blocker -->
-    <!-- Card fields: description (card-title), severity (badge-high/medium), -->
-    <!--              affected_features (tag-list), resolution (card-field-value) -->
-    {CRITICAL_BLOCKERS}
+        <h2>Critical Blockers</h2>
+        <div id="critical-blockers"></div>
 
-    <h2>Open Questions</h2>
-    <!-- {OPEN_QUESTIONS}: list of open question items -->
-    {OPEN_QUESTIONS}
+        <h2>Open Questions</h2>
+        <div id="open-questions"></div>
 
       </section>
 
@@ -208,15 +369,510 @@
 </div>
 
 <script>
-  function setTheme(t){document.documentElement.setAttribute("data-theme",t);document.querySelectorAll(".theme-btn").forEach(function(b){b.classList.toggle("active",b.dataset.theme===t)});try{localStorage.setItem("phoenix-theme",t)}catch(e){}}
-  function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open")}
-  var chapters=document.querySelectorAll(".chapter"),navItems=document.querySelectorAll(".nav-item");
-  function updateActiveNav(){var s=window.scrollY+100,a="";chapters.forEach(function(c){if(c.offsetTop<=s)a=c.id});navItems.forEach(function(n){n.classList.toggle("active",n.getAttribute("href").replace("#","")===a)})}
-  window.addEventListener("scroll",updateActiveNav);
-  navItems.forEach(function(n){n.addEventListener("click",function(){if(window.innerWidth<=900)document.getElementById("sidebar").classList.remove("open")});});
-  function exportAction(a){var p={artifact:"roadmap-brief",slug:"{SLUG}",action:a,timestamp:new Date().toISOString()};var t=JSON.stringify(p,null,2);if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){showToast("Copied: "+a)});else{var x=document.createElement("textarea");x.value=t;document.body.appendChild(x);x.select();document.execCommand("copy");document.body.removeChild(x);showToast("Copied: "+a)}}
-  function showToast(m){var t=document.getElementById("toast");t.textContent=m;t.style.display="block";setTimeout(function(){t.style.display="none"},2000)}
-  (function(){try{var s=localStorage.getItem("phoenix-theme");if(s)setTheme(s)}catch(e){}updateActiveNav()})();
+  // ─── brief-render.js (inlined) ───────────────────────────────────────────────
+
+  function esc(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderValue(v) {
+    if (v == null) return '';
+    if (Array.isArray(v)) {
+      if (v.length === 0) return '';
+      if (typeof v[0] === 'object' && v[0] !== null) {
+        return '<ul class="item-list">' + v.map(function(item) {
+          return '<li>' + esc(JSON.stringify(item)) + '</li>';
+        }).join('') + '</ul>';
+      }
+      return '<ul class="item-list">' + v.map(function(item) {
+        return '<li>' + esc(item) + '</li>';
+      }).join('') + '</ul>';
+    }
+    return esc(v);
+  }
+
+  function badgeClass(status) {
+    if (!status) return '';
+    switch (String(status).toLowerCase()) {
+      case 'draft':     return 'badge-draft';
+      case 'validated': return 'badge-validated';
+      case 'locked':    return 'badge-locked';
+      case 'approved':  return 'badge-validated';
+      default:          return '';
+    }
+  }
+
+  function priorityBadge(priority) {
+    if (!priority) return '';
+    switch (String(priority).toLowerCase()) {
+      case 'p1': return 'badge-p1';
+      case 'p2': return 'badge-p2';
+      case 'p3': return 'badge-p3';
+      default:   return '';
+    }
+  }
+
+  function severityBadge(severity) {
+    if (!severity) return '';
+    switch (String(severity).toLowerCase()) {
+      case 'low':    return 'badge-low';
+      case 'medium': return 'badge-medium';
+      case 'high':   return 'badge-high';
+      default:       return '';
+    }
+  }
+
+  function horizonBadge(horizon) {
+    if (!horizon) return '';
+    switch (String(horizon).toLowerCase()) {
+      case 'near': return 'badge-near';
+      case 'mid':  return 'badge-mid';
+      case 'long': return 'badge-long';
+      default:     return '';
+    }
+  }
+
+  function _parseFieldConfig(cfg) {
+    if (!cfg) return { type: 'field', label: '' };
+    var s = String(cfg);
+    if (s === 'title:')            return { type: 'title' };
+    if (s === 'tags:')             return { type: 'tags' };
+    if (s === 'id:')               return { type: 'id' };
+    if (s.indexOf('badge:') === 0) return { type: 'badge', extra: s.slice(6) };
+    return { type: 'field', label: s };
+  }
+
+  function _renderField(obj, key, cfg) {
+    var v = obj[key];
+    var parsed = _parseFieldConfig(cfg);
+    if (parsed.type === 'title') {
+      if (v == null) return '';
+      return '<div class="card-title">' + esc(v) + '</div>';
+    }
+    if (parsed.type === 'id') {
+      if (v == null) return '';
+      return '<span class="card-id">' + esc(v) + '</span>';
+    }
+    if (parsed.type === 'badge') {
+      if (v == null) return '';
+      var cls = '';
+      var fnName = parsed.extra;
+      if (fnName === 'badgeClass')        cls = badgeClass(v);
+      else if (fnName === 'priorityBadge')  cls = priorityBadge(v);
+      else if (fnName === 'severityBadge')  cls = severityBadge(v);
+      else if (fnName === 'horizonBadge')   cls = horizonBadge(v);
+      else cls = fnName + '-' + String(v).toLowerCase();
+      return '<span class="badge ' + esc(cls) + '">' + esc(v) + '</span>';
+    }
+    if (parsed.type === 'tags') {
+      if (!v || (Array.isArray(v) && v.length === 0)) return '';
+      var tags = Array.isArray(v) ? v : [v];
+      return '<div class="tag-list">' + tags.map(function(t) {
+        return '<span class="tag">' + esc(t) + '</span>';
+      }).join('') + '</div>';
+    }
+    if (v == null) return '';
+    return '<div class="card-field">' +
+      '<div class="card-field-label">' + esc(parsed.label) + '</div>' +
+      '<div class="card-field-value">' + renderValue(v) + '</div>' +
+      '</div>';
+  }
+
+  function renderCards(containerId, items, colorClass, fieldMap) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!items || items.length === 0) return;
+    var cardClass = colorClass ? 'card ' + colorClass : 'card';
+    var html = '';
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      if (!item) continue;
+      html += '<div class="' + cardClass + '">';
+      for (var key in fieldMap) {
+        if (fieldMap.hasOwnProperty(key)) {
+          html += _renderField(item, key, fieldMap[key]);
+        }
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  function renderTable(containerId, items, columns) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!columns || columns.length === 0) return;
+    var thead = '<thead><tr>';
+    for (var c = 0; c < columns.length; c++) {
+      thead += '<th>' + esc(columns[c].label) + '</th>';
+    }
+    thead += '</tr></thead>';
+    var tbody = '<tbody>';
+    if (items && items.length > 0) {
+      for (var i = 0; i < items.length; i++) {
+        var row = items[i] || {};
+        tbody += '<tr>';
+        for (var j = 0; j < columns.length; j++) {
+          var val = row[columns[j].key];
+          tbody += '<td>' + renderValue(val) + '</td>';
+        }
+        tbody += '</tr>';
+      }
+    }
+    tbody += '</tbody>';
+    container.innerHTML = '<table>' + thead + tbody + '</table>';
+  }
+
+  function renderFieldGroup(containerId, obj, fieldMap) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!obj) return;
+    var html = '<div class="card">';
+    for (var key in fieldMap) {
+      if (fieldMap.hasOwnProperty(key)) {
+        html += _renderField(obj, key, fieldMap[key]);
+      }
+    }
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  function renderText(containerId, text, wrapperClass) {
+    var container = el(containerId);
+    if (!container) return;
+    var inner = '';
+    if (text) {
+      var lines = String(text).split('\n');
+      for (var i = 0; i < lines.length; i++) {
+        inner += '<p>' + esc(lines[i]) + '</p>';
+      }
+    }
+    var cls = wrapperClass ? ' class="' + esc(wrapperClass) + '"' : '';
+    container.innerHTML = '<div' + cls + '>' + inner + '</div>';
+  }
+
+  function renderList(containerId, items, wrapperClass) {
+    var container = el(containerId);
+    if (!container) return;
+    var cls = wrapperClass ? ' class="' + esc(wrapperClass) + '"' : '';
+    var inner = '';
+    if (items && items.length > 0) {
+      for (var i = 0; i < items.length; i++) {
+        inner += '<li>' + esc(items[i]) + '</li>';
+      }
+    }
+    container.innerHTML = '<ul' + cls + '>' + inner + '</ul>';
+  }
+
+  function renderStatGrid(containerId, stats) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!stats || stats.length === 0) return;
+    var html = '<div class="stat-grid">';
+    for (var i = 0; i < stats.length; i++) {
+      var s = stats[i] || {};
+      var cardCls = s.colorClass ? 'stat-card ' + s.colorClass : 'stat-card';
+      html += '<div class="' + cardCls + '">' +
+        '<div class="stat-value">' + esc(s.value) + '</div>' +
+        '<div class="stat-label">' + esc(s.label) + '</div>' +
+        '</div>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  function el(id) {
+    if (!id) return null;
+    return document.getElementById(id) || null;
+  }
+
+  function populateMeta(data) {
+    if (!data) return;
+    var slugEl = el('meta-slug');
+    if (slugEl) slugEl.textContent = data.slug || '';
+    var titleEl = el('brief-title');
+    if (titleEl) titleEl.textContent = data.slug || '';
+    var statusEl = el('meta-status');
+    if (statusEl) {
+      statusEl.textContent = data.status || '';
+      statusEl.className = 'badge ' + badgeClass(data.status);
+    }
+    var briefStatusEl = el('brief-status');
+    if (briefStatusEl) {
+      briefStatusEl.textContent = data.status || '';
+      briefStatusEl.className = 'badge ' + badgeClass(data.status);
+    }
+    var genEl = el('meta-generated-at');
+    if (genEl) genEl.textContent = data.generated_at || new Date().toISOString();
+  }
+
+  // ─── Roadmap-specific renderers ───────────────────────────────────────────────
+
+  function renderEpics(containerId, epics) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!epics || !epics.length) return;
+    var html = '';
+    for (var i = 0; i < epics.length; i++) {
+      var e = epics[i];
+      html += '<div class="epic-card">';
+      html += '<div class="epic-header">';
+      html += '<span class="badge badge-near">' + esc(e.id) + '</span>';
+      html += '<h3>' + esc(e.name) + '</h3>';
+      html += '</div>';
+      if (e.description) html += '<div class="card-field"><div class="card-field-label">Description</div><div class="card-field-value">' + esc(e.description) + '</div></div>';
+      if (e.strategic_goal_ref) html += '<div class="card-field"><div class="card-field-label">Strategic Goal</div><div class="card-field-value">' + esc(e.strategic_goal_ref) + '</div></div>';
+      if (e.depends_on && e.depends_on.length) html += '<div class="card-field"><div class="card-field-label">Depends On</div><div class="card-field-value"><div class="tag-list">' + e.depends_on.map(function(d){return '<span class="tag">'+esc(d)+'</span>';}).join('') + '</div></div></div>';
+      // IDD: Intent
+      if (e.intent) {
+        html += '<div class="idd-section">';
+        html += '<div class="card-field-label">Intent</div>';
+        if (e.intent.p1) html += '<div class="card-field"><div class="card-field-label">Problem Today</div><div class="card-field-value">' + esc(e.intent.p1) + '</div></div>';
+        if (e.intent.p2) html += '<div class="card-field"><div class="card-field-label">Outcome After</div><div class="card-field-value">' + esc(e.intent.p2) + '</div></div>';
+        if (e.intent.p3) html += '<div class="card-field"><div class="card-field-label">Strategic Connection</div><div class="card-field-value">' + esc(e.intent.p3) + '</div></div>';
+        html += '</div>';
+      }
+      // IDD: Constraints
+      if (e.constraints) {
+        html += '<div class="idd-section">';
+        html += '<div class="card-field-label">Constraints</div>';
+        if (e.constraints.in_scope) html += '<div class="card-field"><div class="card-field-label">In Scope</div><div class="card-field-value">' + renderValue(e.constraints.in_scope) + '</div></div>';
+        if (e.constraints.out_of_scope) html += '<div class="card-field"><div class="card-field-label">Out of Scope</div><div class="card-field-value">' + renderValue(e.constraints.out_of_scope) + '</div></div>';
+        if (e.constraints.must_not_break) html += '<div class="card-field"><div class="card-field-label">Must Not Break</div><div class="card-field-value">' + renderValue(e.constraints.must_not_break) + '</div></div>';
+        html += '</div>';
+      }
+      // Success Scenarios
+      if (e.success_scenarios && e.success_scenarios.length) {
+        html += '<div class="idd-section">';
+        html += '<div class="card-field-label">Success Scenarios</div>';
+        for (var s = 0; s < e.success_scenarios.length; s++) {
+          html += '<div class="scenario-item">' + esc(e.success_scenarios[s]) + '</div>';
+        }
+        html += '</div>';
+      }
+      // Failure Conditions
+      if (e.failure_conditions && e.failure_conditions.length) {
+        html += '<div class="idd-section">';
+        html += '<div class="card-field-label">Failure Conditions</div>';
+        for (var fc = 0; fc < e.failure_conditions.length; fc++) {
+          html += '<div class="failure-item">' + esc(e.failure_conditions[fc]) + '</div>';
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  function renderTimelineByHorizon(nearId, midId, longId, timeline) {
+    var horizons = { near: [], mid: [], long: [] };
+    if (timeline && timeline.length) {
+      for (var i = 0; i < timeline.length; i++) {
+        var entry = timeline[i];
+        var h = entry.horizon ? String(entry.horizon).toLowerCase() : '';
+        if (horizons[h]) {
+          horizons[h].push(entry);
+        }
+      }
+    }
+    _renderHorizonGroup(nearId, 'near', horizons.near);
+    _renderHorizonGroup(midId, 'mid', horizons.mid);
+    _renderHorizonGroup(longId, 'long', horizons.long);
+  }
+
+  function _renderHorizonGroup(containerId, horizon, entries) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!entries || entries.length === 0) {
+      container.innerHTML = '<p style="color:var(--t3);font-size:14px;">No items in this horizon.</p>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < entries.length; i++) {
+      var entry = entries[i];
+      var hCls = horizonBadge(horizon);
+      html += '<div class="card">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">';
+      html += '<span class="badge ' + hCls + '">' + esc(entry.horizon || horizon) + '</span>';
+      if (entry.label) html += '<span style="font-family:var(--font-display);font-weight:700;color:var(--t1);">' + esc(entry.label) + '</span>';
+      html += '</div>';
+      if (entry.feature_refs && entry.feature_refs.length) {
+        html += '<div class="card-field-label">Feature Refs</div>';
+        html += '<div class="tag-list">';
+        for (var j = 0; j < entry.feature_refs.length; j++) {
+          html += '<span class="tag">' + esc(entry.feature_refs[j]) + '</span>';
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  function renderFeasibilityCards(containerId, feasibility) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!feasibility || !feasibility.length) {
+      container.innerHTML = '<p style="color:var(--t3);font-size:14px;">No feasibility data.</p>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < feasibility.length; i++) {
+      var f = feasibility[i];
+      var riskCls = severityBadge(f.risk_level);
+      html += '<div class="feasibility-card">';
+      html += '<div class="feasibility-header">';
+      html += '<div>';
+      if (f.feature_ref) html += '<div class="feasibility-feature-ref">' + esc(f.feature_ref) + '</div>';
+      html += '</div>';
+      if (f.risk_level) html += '<span class="badge ' + riskCls + '">' + esc(f.risk_level) + '</span>';
+      html += '</div>';
+      // Technical risks table
+      if (f.technical_risks && f.technical_risks.length) {
+        html += '<div class="card-field-label" style="margin-bottom:8px;">Technical Risks</div>';
+        html += '<table class="risk-table"><thead><tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr></thead><tbody>';
+        for (var r = 0; r < f.technical_risks.length; r++) {
+          var risk = f.technical_risks[r];
+          var rSev = severityBadge(risk.severity);
+          html += '<tr>';
+          html += '<td>' + esc(risk.risk || risk.description || '') + '</td>';
+          html += '<td>' + (risk.severity ? '<span class="badge ' + rSev + '">' + esc(risk.severity) + '</span>' : '') + '</td>';
+          html += '<td>' + esc(risk.mitigation || '') + '</td>';
+          html += '</tr>';
+        }
+        html += '</tbody></table>';
+      }
+      // Blockers
+      if (f.blockers && f.blockers.length) {
+        html += '<div class="card card-fire" style="margin-bottom:12px;">';
+        html += '<div class="card-field-label">Blockers</div>';
+        html += renderValue(f.blockers);
+        html += '</div>';
+      }
+      // Sequencing constraints
+      if (f.sequencing_constraints) {
+        html += '<div class="card-field"><div class="card-field-label">Sequencing</div><div class="card-field-value">' + esc(f.sequencing_constraints) + '</div></div>';
+      }
+      // Architecture impact
+      if (f.architecture_impact) {
+        html += '<div class="card-field"><div class="card-field-label">Architecture Impact</div><div class="card-field-value">' + esc(f.architecture_impact) + '</div></div>';
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  // ─── Static UI ────────────────────────────────────────────────────────────────
+
+  function setTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    document.querySelectorAll('.theme-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.theme === t); });
+    try { localStorage.setItem('phoenix-theme', t); } catch(e) {}
+  }
+
+  function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+  var chapters = document.querySelectorAll('.chapter');
+  var navItems = document.querySelectorAll('.nav-item');
+
+  function updateActiveNav() {
+    var s = window.scrollY + 100, a = '';
+    chapters.forEach(function(c) { if (c.offsetTop <= s) a = c.id; });
+    navItems.forEach(function(n) { n.classList.toggle('active', n.getAttribute('href').replace('#', '') === a); });
+  }
+
+  window.addEventListener('scroll', updateActiveNav);
+  navItems.forEach(function(n) {
+    n.addEventListener('click', function() { if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open'); });
+  });
+
+  var _exportSlug = '';
+
+  function exportAction(a) {
+    var p = { artifact: 'roadmap-brief', slug: _exportSlug, action: a, timestamp: new Date().toISOString() };
+    var t = JSON.stringify(p, null, 2);
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(t).then(function() { showToast('Copied: ' + a); });
+    } else {
+      var x = document.createElement('textarea');
+      x.value = t; document.body.appendChild(x); x.select(); document.execCommand('copy'); document.body.removeChild(x);
+      showToast('Copied: ' + a);
+    }
+  }
+
+  function showToast(m) {
+    var t = document.getElementById('toast');
+    t.textContent = m; t.style.display = 'block';
+    setTimeout(function() { t.style.display = 'none'; }, 2000);
+  }
+
+  // ─── render() — fetches data and populates all sections ──────────────────────
+
+  function render() {
+    Promise.all([
+      fetch('./roadmap.json').then(function(r) { return r.json(); }).catch(function() { return null; }),
+      fetch('../product.json').then(function(r) { return r.json(); }).catch(function() { return null; })
+    ]).then(function(results) {
+      var data = results[0] || {};
+      // product.json is available as cross-doc context (results[1]) if needed
+
+      // Meta
+      populateMeta(data);
+      _exportSlug = data.slug || '';
+
+      // ── Chapter 1: Strategy ──────────────────────────────────────────────────
+      renderText('thesis', data.thesis, 'card card-air');
+      renderText('narrative', data.narrative, 'card card-water');
+      renderList('assumptions', data.assumptions, 'item-list');
+      renderList('exclusions', data.exclusions, 'item-list');
+
+      // ── Chapter 2: Timeline ──────────────────────────────────────────────────
+      renderTable('decisions-table', data.decisions, [
+        { key: 'epic',      label: 'Epic' },
+        { key: 'horizon',   label: 'Horizon' },
+        { key: 'priority',  label: 'Priority' },
+        { key: 'effort',    label: 'Effort' },
+        { key: 'depends_on', label: 'Depends On' },
+        { key: 'reason',    label: 'Reason' }
+      ]);
+      renderTimelineByHorizon('timeline-near', 'timeline-mid', 'timeline-long', data.timeline);
+
+      // ── Chapter 3: Epics ─────────────────────────────────────────────────────
+      renderEpics('epics-container', data.epics);
+
+      // ── Chapter 4: Feasibility ───────────────────────────────────────────────
+      var rs = data.risk_summary || {};
+      renderStatGrid('risk-summary', [
+        { value: rs.total_features   != null ? String(rs.total_features)   : '—', label: 'Total Features' },
+        { value: rs.high_risk_count  != null ? String(rs.high_risk_count)  : '—', label: 'High Risk',      colorClass: 'stat-fire' },
+        { value: rs.medium_risk_count != null ? String(rs.medium_risk_count) : '—', label: 'Medium Risk' },
+        { value: rs.blocker_count    != null ? String(rs.blocker_count)    : '—', label: 'Blockers',       colorClass: 'stat-fire' }
+      ]);
+      renderFeasibilityCards('feasibility-cards', data.feasibility);
+      renderCards('critical-blockers', data.critical_blockers, 'card-fire', {
+        blocker:           'title:',
+        severity:          'badge:severityBadge',
+        affected_features: 'tags:',
+        resolution:        'Resolution'
+      });
+      renderList('open-questions', data.open_questions, 'item-list');
+
+      updateActiveNav();
+    });
+  }
+
+  // ─── Boot ─────────────────────────────────────────────────────────────────────
+
+  (function() {
+    try { var s = localStorage.getItem('phoenix-theme'); if (s) setTheme(s); } catch(e) {}
+    updateActiveNav();
+    render();
+  })();
 </script>
 
 </body>

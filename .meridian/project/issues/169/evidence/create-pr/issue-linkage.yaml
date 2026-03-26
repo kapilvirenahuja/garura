@@ -1,0 +1,12 @@
+issue:
+  number: 169
+  title: "feat(briefs): client-side brief rendering — replace LLM generation with JS-based template rendering"
+  labels:
+    - enhancement
+  state: "open"
+  body_summary: "Replace LLM-driven brief generation with client-side JavaScript rendering. Add `brief-render.js` to hydrate structured data into HTML templates without model involvement, update brief templates for JS rendering support, and revise generating skills to emit structured data instead of rendered HTML."
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/169"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "feature"

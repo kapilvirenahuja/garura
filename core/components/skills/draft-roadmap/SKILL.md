@@ -51,22 +51,23 @@ Verify brief is approved — check for Tether record in checkpoint. If not appro
    - The Bet section → `thesis`
    - The Story section → `narrative`
    - Decisions table → feature metadata (horizon, priority, effort, dependencies)
-   - Per-feature IDD content (Intent, Constraints, Success Scenarios, Failure Conditions)
+   - Exclusions chapter → roadmap `exclusions`
+   - Assumptions chapter → roadmap `assumptions`
 
 4. **Read feasibility.yaml** at `feasibility_path` using the Read tool. Extract per-feature feasibility data: risk_level, technical_risks, blockers, sequencing_constraints, architecture_impact.
 
 5. **Compose roadmap.yaml** conforming to the roadmap.yaml schema. Populate all sections:
 
    - **Top-level metadata**: slug (from product.yaml), status `"DRAFT"`, created_at (current ISO-8601), updated_at (current ISO-8601), product_ref (path to product.yaml), approved_brief_ref (`approved_roadmap_brief_path`)
-   - **thesis**: extracted from The Bet section of the brief — 1–2 sentences
-   - **narrative**: extracted from The Story section — 3–4 paragraphs as a YAML block scalar
-   - **timeline**: one entry per horizon (near/mid/long) with epic_refs using E-ID notation (E1, E2, etc.)
+   - **thesis**: extracted verbatim from The Bet section of the brief — 1–2 sentences
+   - **narrative**: extracted verbatim from The Story section — 3–4 paragraphs as a YAML block scalar
+   - **timeline**: one entry per horizon (near/mid/long) with epic_refs using E-ID notation (E1, E2, etc.), preserving the sequencing expressed in the approved brief
    - **feasibility**: one entry per epic with all fields from feasibility.yaml — epic_ref (E-ID), risk_level, technical_risks (list with risk/severity/affected_systems/mitigation), blockers, sequencing_constraints, architecture_impact
    - **critical_blockers**: hard blockers from feasibility that must be resolved before proceeding — severity high or critical, affected_features, resolution
    - **open_questions**: unresolved technical or strategic questions from feasibility open_questions
    - **risk_summary**: computed from feasibility data — total_epics, high_risk_count, medium_risk_count, blocker_count, foundation_epics
-   - **exclusions**: from product.yaml out_of_scope, preserved verbatim
-   - **assumptions**: from product.yaml assumptions, preserved verbatim
+   - **exclusions**: copied verbatim from the approved brief's Exclusions chapter (which originates from locked product.yaml out_of_scope)
+   - **assumptions**: copied verbatim from the approved brief's Assumptions chapter (which originates from locked product.yaml assumptions)
 
 6. **Write to** `{artifact_base}{slug}/roadmap.yaml` using the Write tool.
 
@@ -98,6 +99,7 @@ roadmap:
 - ALWAYS include `approved_brief_ref` in roadmap.yaml
 - ALWAYS read from product.yaml (not vision.md) — product.yaml is the upstream input
 - ALWAYS consolidate feasibility data into roadmap.yaml — do NOT leave feasibility as a separate artifact
+- ALWAYS transcribe thesis, narrative, timeline sequencing, exclusions, and assumptions from the approved brief verbatim — do NOT paraphrase or regenerate them
 - Epic IDs (E1, E2...) MUST be consistent across timeline, feasibility, risk_summary, and critical_blockers sections
 - All timeline epic_refs MUST have a corresponding feasibility entry
 - `user-invocable: false`
