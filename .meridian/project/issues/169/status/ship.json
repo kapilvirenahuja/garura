@@ -1,0 +1,24 @@
+{
+  "recipe": "ship",
+  "issue": "169",
+  "started_at": "2026-03-26T04:20:39Z",
+  "feature_branch": "feat/169-client-side-brief-rendering",
+  "tasks": {
+    "commit-code": {
+      "status": "in_progress",
+      "started_at": "2026-03-26T04:20:50Z"
+    },
+    "create-pr": {
+      "status": "pending"
+    },
+    "merge-pr": {
+      "status": "pending"
+    },
+    "scenario-evals": {
+      "status": "pending"
+    },
+    "write-evidence": {
+      "status": "pending"
+    }
+  }
+}

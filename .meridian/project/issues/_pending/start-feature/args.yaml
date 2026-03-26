@@ -1,2 +1,2 @@
-input_type: "title"
-value: "Follow-up: plan-roadmap doc-builder routing + rebake gap fixes"
+input_type: title
+value: "feat(briefs): client-side brief rendering — replace LLM generation with JS-based template rendering"

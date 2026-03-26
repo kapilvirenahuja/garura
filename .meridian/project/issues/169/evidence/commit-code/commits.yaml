@@ -1,0 +1,92 @@
+created_at: "2026-03-26"
+branch: feat/169-client-side-brief-rendering
+issue: 169
+total_commits: 5
+
+commits:
+  - id: commit-1
+    group_id: group-1
+    hash: 1a99e32
+    type: feat
+    scope: briefs
+    subject: "convert all brief templates to client-side YAML rendering (#169)"
+    full_message: "feat(briefs): convert all brief templates to client-side YAML rendering (#169)"
+    files_count: 24
+    files:
+      - core/components/memory/standards/templates/architecture-brief.html
+      - core/components/memory/standards/templates/features-brief.html
+      - core/components/memory/standards/templates/plan-brief.html
+      - core/components/memory/standards/templates/product-brief.html
+      - core/components/memory/standards/templates/roadmap-brief.html
+      - core/components/memory/standards/templates/scenarios-brief.html
+      - core/components/memory/standards/templates/tech-brief.html
+      - core/components/memory/standards/templates/brief-render.js
+      - core/components/memory/standards/templates/hub.html
+      - core/components/memory/standards/templates/fixtures/architecture.json
+      - core/components/memory/standards/templates/fixtures/features.json
+      - core/components/memory/standards/templates/fixtures/hub.json
+      - core/components/memory/standards/templates/fixtures/plan.json
+      - core/components/memory/standards/templates/fixtures/product-empty.json
+      - core/components/memory/standards/templates/fixtures/product.json
+      - core/components/memory/standards/templates/fixtures/quality-standards.json
+      - core/components/memory/standards/templates/fixtures/roadmap.json
+      - core/components/memory/standards/templates/fixtures/scenarios.json
+      - core/components/memory/standards/templates/fixtures/tech.json
+      - sample-product-brief.html
+      - .claude/specs/brief-rendering/brief-rendering.md
+      - .claude/specs/brief-rendering/evidence/template-verification.md
+      - .claude/specs/brief-rendering/scenarios.md
+      - .claude/specs/brief-rendering/tasks.md
+
+  - id: commit-2
+    group_id: group-2
+    hash: e0a2887
+    type: refactor
+    scope: skills
+    subject: "remove LLM brief generation skills, update draft-roadmap for verbatim transcription (#169)"
+    full_message: "refactor(skills): remove LLM brief generation skills, update draft-roadmap for verbatim transcription (#169)"
+    files_count: 4
+    files:
+      - core/components/skills/draft-roadmap-brief/SKILL.md
+      - core/components/skills/generate-implementation-brief/SKILL.md
+      - core/components/skills/generate-product-brief/SKILL.md
+      - core/components/skills/draft-roadmap/SKILL.md
+
+  - id: commit-3
+    group_id: group-3
+    hash: 2ba6743
+    type: refactor
+    scope: agents
+    subject: "update doc-builder and product-strategist for client-side brief rendering (#169)"
+    full_message: "refactor(agents): update doc-builder and product-strategist for client-side brief rendering (#169)"
+    files_count: 2
+    files:
+      - core/components/agents/doc-builder.md
+      - core/components/agents/product-strategist.md
+
+  - id: commit-4
+    group_id: group-4
+    hash: 28b729b
+    type: refactor
+    scope: recipes
+    subject: "update recipes and intents for client-side brief rendering (#169)"
+    full_message: "refactor(recipes): update recipes and intents for client-side brief rendering (#169)"
+    files_count: 7
+    files:
+      - core/components/recipes/briefs/SKILL.md
+      - core/components/recipes/briefs/reference/intent.yaml
+      - core/components/recipes/discover-product/SKILL.md
+      - core/components/recipes/plan-roadmap/SKILL.md
+      - core/components/recipes/plan-roadmap/evals/evals.json
+      - core/components/recipes/plan-roadmap/reference/intent.yaml
+      - core/components/recipes/prepare-implementation/SKILL.md
+
+  - id: commit-5
+    group_id: group-5
+    hash: pending
+    type: chore
+    scope: stm
+    subject: "record STM evidence and operational state for issue #169 (#169)"
+    full_message: "chore(stm): record STM evidence and operational state for issue #169 (#169)"
+    files_count: null
+    note: "commit-5 is created after this artifact is written; hash will be set upon commit"

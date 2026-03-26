@@ -1,0 +1,8 @@
+pr_number: 168
+state: OPEN
+mergeable: true
+merge_state_status: CLEAN
+base_branch: main
+head_branch: refactor/167-rebake-brd-epic-coverage-gaps
+clean_working_tree: true
+readiness: pass
