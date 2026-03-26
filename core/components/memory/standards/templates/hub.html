@@ -6,365 +6,9 @@
   <title>Artifact Hub — Meridian</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800;900&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./brief-common.css">
   <style>
-/* Phoenix Design System — Brief Layout
-   Single source of truth for all Meridian HTML briefs.
-   Inlined into every brief at generation time.
-   Source: Phoenix Design System v2.0
-   Layout: Sidebar (300px) + scrollable chapters, theme switcher, active-on-scroll nav */
-
-/* =========================================================
-   TOKENS
-   ========================================================= */
-:root {
-  /* Backgrounds (Warm Slate) */
-  --bg1: #1A2332;
-  --bg2: #212D3B;
-  --bg3: #2A3645;
-  --bgS: #131C28;
-
-  /* Text */
-  --t1: #E8EDF2;
-  --t2: #94A3B8;
-  --t3: #64748B;
-
-  /* Cyan Primary */
-  --a1: #00D4FF;
-  --cyan-700: #0094A8;
-  --cyan-600: #00B8D9;
-  --cyan-500: #00D4FF;
-  --cyan-400: #33DFFF;
-
-  /* Phoenix Orange Secondary */
-  --a2: #E8731A;
-  --orange-400: #E8731A;
-
-  /* Magenta Interactive */
-  --a3: #FF3CAC;
-
-  /* Supporting */
-  --a4: #FF6B6B;
-  --a5: #FBBF24;
-  --green: #00D26A;
-
-  /* Borders & Effects */
-  --border: #2E3D4F;
-  --bdr: #2E3D4F;
-  --glow: 0 0 20px rgba(0,212,255,.2);
-  --shd: 0 4px 24px rgba(0,0,0,.3);
-
-  /* Status badges */
-  --status-draft: #FBBF24;
-  --status-validated: #00D26A;
-  --status-locked: #00D4FF;
-
-  /* Phoenix Gradient */
-  --phoenix-gradient: linear-gradient(135deg, #E8731A 0%, #FFB84D 100%);
-
-  /* Typography */
-  --font-display: 'Space Grotesk', -apple-system, sans-serif;
-  --font-body: 'DM Sans', 'Space Grotesk', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-
-  /* Layout */
-  --sidebar-w: 300px;
-  --content-max: 1200px;
-  --tr: .25s cubic-bezier(.4,0,.2,1);
-  --radius: 8px;
-
-  /* Spacing */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 12px;
-  --space-lg: 16px;
-  --space-xl: 24px;
-  --space-2xl: 32px;
-  --space-3xl: 48px;
-  --space-4xl: 80px;
-}
-
-/* =========================================================
-   RESET & BASE
-   ========================================================= */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--t1);
-  background: var(--bg1);
-}
-
-code, pre, .mono {
-  font-family: var(--font-mono);
-  font-size: 14px;
-}
-
-/* =========================================================
-   THEME SYSTEM
-   ========================================================= */
-[data-theme="light"] {
-  --bg1: #F1F5F9;
-  --bg2: #FFFFFF;
-  --bg3: #FFFFFF;
-  --bgS: #131C28;
-  --t1: #0F172A;
-  --t2: #475569;
-  --t3: #94A3B8;
-  --a1: #00B8D9;
-  --a2: #C06218;
-  --a3: #D9308A;
-  --a4: #EF4444;
-  --a5: #F59E0B;
-  --border: #CBD5E1;
-  --bdr: #CBD5E1;
-  --glow: 0 0 20px rgba(0,212,255,.15);
-  --shd: 0 4px 24px rgba(0,0,0,.08);
-}
-
-[data-theme="vibrant"] {
-  --bg1: #121B28;
-  --bg2: #1A2535;
-  --bg3: #223040;
-  --bgS: #0D1520;
-  --a1: #33DFFF;
-  --glow: 0 0 20px rgba(0,212,255,.25);
-}
-
-/* =========================================================
-   LAYOUT: SIDEBAR + MAIN
-   ========================================================= */
-.layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* --- Sidebar --- */
-.sidebar {
-  width: var(--sidebar-w);
-  background: var(--bgS);
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  z-index: 100;
-  transition: transform var(--tr);
-}
-
-.sidebar-header {
-  padding: var(--space-2xl) var(--space-xl);
-  border-bottom: 1px solid var(--bdr);
-}
-
-.sidebar-logo {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  margin-bottom: var(--space-lg);
-}
-
-.sidebar-logo svg {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-}
-
-.sidebar-logo-text {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--t1);
-}
-
-.sidebar-meta {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--t3);
-  margin-top: var(--space-sm);
-}
-
-.sidebar-meta span {
-  display: block;
-  margin-bottom: 2px;
-}
-
-/* Theme switcher */
-.theme-switcher {
-  display: flex;
-  gap: var(--space-xs);
-  padding: var(--space-lg) var(--space-xl);
-  border-bottom: 1px solid var(--bdr);
-}
-
-.theme-btn {
-  flex: 1;
-  padding: 6px 0;
-  background: transparent;
-  border: 1px solid var(--bdr);
-  border-radius: 4px;
-  color: var(--t3);
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all var(--tr);
-}
-
-.theme-btn:hover { color: var(--t1); border-color: var(--a1); }
-.theme-btn.active { background: rgba(0,212,255,.12); color: var(--a1); border-color: var(--a1); }
-
-/* Navigation */
-.sidebar-nav {
-  flex: 1;
-  padding: var(--space-xl) 0;
-  overflow-y: auto;
-}
-
-.nav-section-label {
-  font-family: var(--font-display);
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--t3);
-  padding: var(--space-sm) var(--space-xl) var(--space-sm);
-  margin-top: var(--space-lg);
-}
-
-.nav-section-label:first-child { margin-top: 0; }
-
-.nav-item {
-  display: block;
-  padding: var(--space-sm) var(--space-xl);
-  font-family: var(--font-body);
-  font-size: 14px;
-  color: var(--t3);
-  text-decoration: none;
-  border-left: 3px solid transparent;
-  transition: all var(--tr);
-}
-
-.nav-item:hover {
-  color: var(--t1);
-  background: rgba(0,212,255,.06);
-}
-
-.nav-item.active {
-  color: var(--a1);
-  background: rgba(0,212,255,.12);
-  border-left-color: var(--a1);
-}
-
-/* Sidebar footer */
-.sidebar-footer {
-  padding: var(--space-xl);
-  border-top: 1px solid var(--bdr);
-  margin-top: auto;
-}
-
-.sidebar-footer-label {
-  font-family: var(--font-display);
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--t3);
-  margin-bottom: var(--space-md);
-}
-
-/* Mobile hamburger */
-.hamburger {
-  display: none;
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  z-index: 200;
-  width: 40px;
-  height: 40px;
-  background: var(--bgS);
-  border: 1px solid var(--bdr);
-  border-radius: 6px;
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-}
-
-.hamburger span {
-  display: block;
-  width: 20px;
-  height: 2px;
-  background: var(--t1);
-  margin: 3px auto;
-  transition: all var(--tr);
-}
-
-/* --- Main Content --- */
-.main {
-  margin-left: var(--sidebar-w);
-  flex: 1;
-  min-width: 0;
-}
-
-.content {
-  max-width: var(--content-max);
-  padding: 40px 56px 100px;
-}
-
-/* =========================================================
-   BRIEF HEADER (in main content)
-   ========================================================= */
-.brief-header {
-  margin-bottom: var(--space-3xl);
-  padding-bottom: var(--space-2xl);
-  border-bottom: 1px solid var(--bdr);
-}
-
-.brief-title {
-  font-family: var(--font-display);
-  font-size: 36px;
-  font-weight: 800;
-  color: var(--t1);
-  margin-bottom: var(--space-sm);
-  line-height: 1.2;
-}
-
-.brief-subtitle {
-  font-family: var(--font-body);
-  font-size: 16px;
-  color: var(--t2);
-  border-left: 3px solid var(--a1);
-  padding-left: var(--space-lg);
-  margin-top: var(--space-lg);
-}
-
-/* =========================================================
-   BADGES
-   ========================================================= */
-.badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 4px;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.badge-draft     { background: rgba(251,191,36,.15); color: var(--status-draft); border: 1px solid rgba(251,191,36,.2); }
-.badge-validated { background: rgba(0,210,106,.15); color: var(--status-validated); border: 1px solid rgba(0,210,106,.2); }
-.badge-locked    { background: rgba(0,212,255,.12); color: var(--status-locked); border: 1px solid rgba(0,212,255,.2); }
-.badge-count     { background: var(--bg3); color: var(--t2); }
-
 /* =========================================================
    HUB-SPECIFIC: ARTIFACT GRID + CARDS
    ========================================================= */
@@ -379,8 +23,8 @@ code, pre, .mono {
   display: block;
   padding: 1.25rem;
   background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--bdr);
+  border-radius: var(--radius, 8px);
   text-decoration: none;
   color: var(--t1);
   transition: all 0.2s;
@@ -388,7 +32,7 @@ code, pre, .mono {
 
 .artifact-card:hover {
   border-color: var(--a1);
-  box-shadow: var(--glow);
+  box-shadow: 0 0 20px var(--glow);
 }
 
 .artifact-card-disabled {
@@ -430,7 +74,7 @@ code, pre, .mono {
 .epic-section {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--bdr);
 }
 
 .epic-section h2 {
@@ -441,34 +85,7 @@ code, pre, .mono {
   margin-bottom: var(--space-sm);
 }
 
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-@media (max-width: 1100px) {
-  .content { padding: 32px 32px 80px; }
-}
-
 @media (max-width: 900px) {
-  .hamburger { display: flex; }
-
-  .sidebar {
-    transform: translateX(-100%);
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  .main {
-    margin-left: 0;
-  }
-
-  .content {
-    padding: 24px 16px 80px;
-    padding-top: 72px;
-  }
-
-  .brief-title { font-size: 28px; }
   .artifact-grid { grid-template-columns: 1fr 1fr; }
 }
 
@@ -504,9 +121,9 @@ code, pre, .mono {
     </div>
 
     <div class="theme-switcher">
-      <button class="theme-btn active" data-theme-target="dark" onclick="setTheme('dark',this)">Dark</button>
-      <button class="theme-btn" data-theme-target="light" onclick="setTheme('light',this)">Light</button>
-      <button class="theme-btn" data-theme-target="vibrant" onclick="setTheme('vibrant',this)">Vibrant</button>
+      <button class="theme-btn active" data-theme="dark" onclick="setTheme('dark')">Dark</button>
+      <button class="theme-btn" data-theme="light" onclick="setTheme('light')">Light</button>
+      <button class="theme-btn" data-theme="vibrant" onclick="setTheme('vibrant')">Vibrant</button>
     </div>
 
     <nav class="sidebar-nav" id="sidebar-nav">
@@ -540,34 +157,8 @@ code, pre, .mono {
 
 </div>
 
+<script src="./brief-render.js"></script>
 <script>
-// ─── Inlined brief-render.js helpers ──────────────────────────────────────────
-
-function esc(s) {
-  if (s == null) return '';
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function badgeClass(status) {
-  if (!status) return '';
-  switch (String(status).toLowerCase()) {
-    case 'draft':     return 'badge-draft';
-    case 'validated': return 'badge-validated';
-    case 'locked':    return 'badge-locked';
-    case 'approved':  return 'badge-validated';
-    default:          return '';
-  }
-}
-
-function el(id) {
-  if (!id) return null;
-  return document.getElementById(id) || null;
-}
-
 // ─── Hub rendering ────────────────────────────────────────────────────────────
 
 function renderArtifactCard(a) {
@@ -654,29 +245,11 @@ async function render() {
   }
 }
 
-// ─── Theme switcher ───────────────────────────────────────────────────────────
-
-function setTheme(theme, btn) {
-  if (theme === 'dark') {
-    document.documentElement.removeAttribute('data-theme');
-  } else {
-    document.documentElement.setAttribute('data-theme', theme);
-  }
-  var btns = document.querySelectorAll('.theme-btn');
-  for (var i = 0; i < btns.length; i++) {
-    btns[i].classList.remove('active');
-  }
-  if (btn) btn.classList.add('active');
-}
-
-// ─── Mobile hamburger ─────────────────────────────────────────────────────────
-
-document.getElementById('hamburger').addEventListener('click', function() {
-  document.getElementById('sidebar').classList.toggle('open');
-});
-
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
+document.getElementById('hamburger').addEventListener('click', toggleSidebar);
+
+initBrief();
 render();
 </script>
 

@@ -6,77 +6,17 @@
   <title>Scenarios Brief</title>
   <!-- Template: scenarios-brief.html -->
   <!-- Layout: Phoenix Design System v2.0 — Sidebar + Chapters -->
-  <!-- All CSS and JS inline — no external dependencies -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./brief-common.css">
   <style>
-    /* Phoenix Design System — Brief Tokens (inlined from brief-common.css) */
     /* =========================================================
-       TOKENS
+       SCENARIOS-BRIEF SPECIFIC
        ========================================================= */
+
+    /* Semantic aliases used by template-specific CSS below */
     :root {
-      /* Backgrounds (Warm Slate) */
-      --bg1: #1A2332;
-      --bg2: #212D3B;
-      --bg3: #2A3645;
-      --bgS: #131C28;
-
-      /* Text */
-      --t1: #E8EDF2;
-      --t2: #94A3B8;
-      --t3: #64748B;
-
-      /* Cyan Primary */
-      --a1: #00D4FF;
-      --cyan-700: #0094A8;
-      --cyan-600: #00B8D9;
-      --cyan-500: #00D4FF;
-      --cyan-400: #33DFFF;
-
-      /* Phoenix Orange Secondary */
-      --a2: #E8731A;
-      --orange-400: #E8731A;
-
-      /* Magenta Interactive */
-      --a3: #FF3CAC;
-
-      /* Supporting */
-      --a4: #FF6B6B;
-      --a5: #FBBF24;
-      --green: #00D26A;
-
-      /* Borders & Effects */
-      --bdr: #2E3D4F;
-      --glow: rgba(0,212,255,.2);
-      --shd: 0 4px 24px rgba(0,0,0,.3);
-
-      /* Status badges */
-      --status-draft: #FBBF24;
-      --status-validated: #00D26A;
-      --status-locked: #00D4FF;
-
-      /* Phoenix Gradient */
-      --phoenix-gradient: linear-gradient(135deg, #E8731A 0%, #FFB84D 100%);
-
-      /* Typography */
-      --font-display: 'Space Grotesk', -apple-system, sans-serif;
-      --font-body: 'DM Sans', 'Space Grotesk', -apple-system, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-
-      /* Layout */
-      --sidebar-w: 300px;
-      --content-max: 1200px;
-      --tr: .25s cubic-bezier(.4,0,.2,1);
-
-      /* Spacing */
-      --space-xs: 4px;
-      --space-sm: 8px;
-      --space-md: 12px;
-      --space-lg: 16px;
-      --space-xl: 24px;
-      --space-2xl: 32px;
-      --space-3xl: 48px;
-      --space-4xl: 80px;
-
-      /* Semantic aliases (used by template-specific CSS) */
       --bg-secondary: var(--bg2);
       --bg-tertiary: var(--bg3);
       --border-default: var(--bdr);
@@ -93,164 +33,6 @@
       --font-code: var(--font-mono);
     }
 
-    /* =========================================================
-       RESET & BASE
-       ========================================================= */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { font-family: var(--font-body); font-size: 15px; line-height: 1.7; color: var(--t1); background: var(--bg1); }
-    code, pre, .mono { font-family: var(--font-mono); font-size: 14px; }
-
-    /* =========================================================
-       THEME SYSTEM
-       ========================================================= */
-    [data-theme="light"] {
-      --bg1: #F1F5F9; --bg2: #FFFFFF; --bg3: #FFFFFF; --bgS: #131C28;
-      --t1: #0F172A; --t2: #475569; --t3: #94A3B8;
-      --a1: #00B8D9; --a2: #C06218; --a3: #D9308A; --a4: #EF4444; --a5: #F59E0B;
-      --bdr: #CBD5E1; --glow: rgba(0,212,255,.15); --shd: 0 4px 24px rgba(0,0,0,.08);
-    }
-    [data-theme="vibrant"] {
-      --bg1: #121B28; --bg2: #1A2535; --bg3: #223040; --bgS: #0D1520;
-      --a1: #33DFFF; --glow: rgba(0,212,255,.25);
-    }
-
-    /* =========================================================
-       LAYOUT: SIDEBAR + MAIN
-       ========================================================= */
-    .layout { display: flex; min-height: 100vh; }
-    .sidebar { width: var(--sidebar-w); background: var(--bgS); position: fixed; top: 0; left: 0; bottom: 0; display: flex; flex-direction: column; overflow-y: auto; z-index: 100; transition: transform var(--tr); }
-    .sidebar-header { padding: var(--space-2xl) var(--space-xl); border-bottom: 1px solid var(--bdr); }
-    .sidebar-logo { display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg); }
-    .sidebar-logo svg { width: 32px; height: 32px; flex-shrink: 0; }
-    .sidebar-logo-text { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--t1); }
-    .sidebar-meta { font-family: var(--font-mono); font-size: 11px; color: var(--t3); margin-top: var(--space-sm); }
-    .sidebar-meta span { display: block; margin-bottom: 2px; }
-    .theme-switcher { display: flex; gap: var(--space-xs); padding: var(--space-lg) var(--space-xl); border-bottom: 1px solid var(--bdr); }
-    .theme-btn { flex: 1; padding: 6px 0; background: transparent; border: 1px solid var(--bdr); border-radius: 4px; color: var(--t3); font-family: var(--font-display); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all var(--tr); }
-    .theme-btn:hover { color: var(--t1); border-color: var(--a1); }
-    .theme-btn.active { background: rgba(0,212,255,.12); color: var(--a1); border-color: var(--a1); }
-    .sidebar-nav { flex: 1; padding: var(--space-xl) 0; overflow-y: auto; }
-    .nav-section-label { font-family: var(--font-display); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); padding: var(--space-sm) var(--space-xl) var(--space-sm); margin-top: var(--space-lg); }
-    .nav-section-label:first-child { margin-top: 0; }
-    .nav-item { display: block; padding: var(--space-sm) var(--space-xl); font-family: var(--font-body); font-size: 14px; color: var(--t3); text-decoration: none; border-left: 3px solid transparent; transition: all var(--tr); }
-    .nav-item:hover { color: var(--t1); background: rgba(0,212,255,.06); }
-    .nav-item.active { color: var(--a1); background: rgba(0,212,255,.12); border-left-color: var(--a1); }
-    .sidebar-footer { padding: var(--space-xl); border-top: 1px solid var(--bdr); margin-top: auto; }
-    .sidebar-footer-label { font-family: var(--font-display); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); margin-bottom: var(--space-md); }
-    .action-btns { display: flex; flex-direction: column; gap: var(--space-sm); }
-    .action-btn { padding: 8px 0; border-radius: 4px; border: 1px solid var(--bdr); cursor: pointer; font-family: var(--font-display); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; background: transparent; text-align: center; transition: all var(--tr); }
-    .action-btn-tether { border-color: var(--green); color: var(--green); }
-    .action-btn-tether:hover { background: rgba(0,210,106,.1); }
-    .action-btn-vanish { border-color: var(--a4); color: var(--a4); }
-    .action-btn-vanish:hover { background: rgba(255,107,107,.1); }
-    .action-btn-orbit  { border-color: var(--a1); color: var(--a1); }
-    .action-btn-orbit:hover  { background: rgba(0,212,255,.1); }
-    .hamburger { display: none; position: fixed; top: 16px; left: 16px; z-index: 200; width: 40px; height: 40px; background: var(--bgS); border: 1px solid var(--bdr); border-radius: 6px; cursor: pointer; align-items: center; justify-content: center; }
-    .hamburger span { display: block; width: 20px; height: 2px; background: var(--t1); margin: 3px auto; transition: all var(--tr); }
-    .main { margin-left: var(--sidebar-w); flex: 1; min-width: 0; }
-    .content { max-width: var(--content-max); padding: 40px 56px 100px; }
-
-    /* =========================================================
-       BRIEF HEADER
-       ========================================================= */
-    .brief-header { margin-bottom: var(--space-3xl); padding-bottom: var(--space-2xl); border-bottom: 1px solid var(--bdr); }
-    .brief-title { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--t1); margin-bottom: var(--space-sm); line-height: 1.2; }
-    .brief-subtitle { font-family: var(--font-body); font-size: 16px; color: var(--t2); border-left: 3px solid var(--a1); padding-left: var(--space-lg); margin-top: var(--space-lg); }
-    .source-path { font-family: var(--font-mono); font-size: 12px; color: var(--t3); margin-top: var(--space-md); }
-
-    /* =========================================================
-       BADGES
-       ========================================================= */
-    .badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-family: var(--font-display); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-    .badge-draft     { background: rgba(251,191,36,.15); color: var(--status-draft); border: 1px solid rgba(251,191,36,.2); }
-    .badge-validated { background: rgba(0,210,106,.15); color: var(--status-validated); border: 1px solid rgba(0,210,106,.2); }
-    .badge-locked    { background: rgba(0,212,255,.12); color: var(--status-locked); border: 1px solid rgba(0,212,255,.2); }
-    .badge-count     { background: var(--bg3); color: var(--t2); }
-    .badge-low    { background: rgba(0,210,106,.15); color: var(--green); border: 1px solid rgba(0,210,106,.2); }
-    .badge-medium { background: rgba(232,115,26,.12); color: var(--a2); border: 1px solid rgba(232,115,26,.2); }
-    .badge-high   { background: rgba(255,107,107,.12); color: var(--a4); border: 1px solid rgba(255,107,107,.2); }
-    .badge-p1 { background: rgba(0,212,255,.12); color: var(--a1); border: 1px solid rgba(0,212,255,.2); }
-    .badge-p2 { background: rgba(148,163,184,.15); color: var(--t2); }
-    .badge-p3 { background: rgba(148,163,184,.1); color: var(--t3); }
-    .badge-near { background: rgba(0,210,106,.15); color: var(--green); }
-    .badge-mid  { background: rgba(232,115,26,.12); color: var(--a2); }
-    .badge-long { background: rgba(148,163,184,.15); color: var(--t2); }
-
-    /* =========================================================
-       CHAPTERS
-       ========================================================= */
-    .chapter { margin-bottom: var(--space-4xl); scroll-margin-top: 40px; }
-    .chapter-number { font-family: var(--font-display); font-size: 56px; font-weight: 900; color: var(--a1); opacity: 0.18; line-height: 1; margin-bottom: -8px; user-select: none; }
-    .chapter-title { font-family: var(--font-display); font-size: 36px; font-weight: 800; color: var(--t1); line-height: 1.3; margin-bottom: var(--space-xl); }
-    .chapter-subtitle { font-family: var(--font-body); font-size: 16px; color: var(--t2); border-left: 3px solid var(--a1); padding-left: var(--space-lg); margin-bottom: var(--space-3xl); }
-
-    /* =========================================================
-       TYPOGRAPHY
-       ========================================================= */
-    h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--a1); margin-bottom: var(--space-xl); margin-top: var(--space-3xl); }
-    h3, .section-heading { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--a1); margin-bottom: var(--space-xl); margin-top: var(--space-3xl); }
-    h4, .sub-heading { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--t1); margin-bottom: var(--space-lg); margin-top: var(--space-2xl); }
-    p { font-size: 16px; color: var(--t2); line-height: 1.75; margin-bottom: var(--space-lg); }
-    strong { font-weight: 700; color: var(--t1); }
-    em { font-weight: 500; color: var(--a1); font-style: normal; }
-
-    /* =========================================================
-       CARDS
-       ========================================================= */
-    .card { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 8px; box-shadow: var(--shd); padding: var(--space-2xl); margin-bottom: var(--space-xl); transition: all var(--tr); }
-    .card:hover { border-color: var(--a1); box-shadow: 0 0 20px var(--glow); }
-    .card-air   { border-left: 4px solid var(--green); }
-    .card-water { border-left: 4px solid var(--a1); }
-    .card-earth { border-left: 4px solid var(--t2); }
-    .card-fire  { border-left: 4px solid var(--a2); }
-    .card-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--t1); margin-bottom: var(--space-md); }
-    .card-field { margin-bottom: var(--space-sm); }
-    .card-field-label { font-family: var(--font-display); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); margin-bottom: 2px; }
-    .card-field-value { font-size: 15px; color: var(--t2); line-height: 1.6; }
-    .card-subtitle { font-family: var(--font-mono); font-size: 12px; color: var(--t3); margin-bottom: var(--space-md); }
-    .card-id { font-family: var(--font-mono); font-size: 12px; color: var(--t3); }
-
-    /* =========================================================
-       STAT CARDS
-       ========================================================= */
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-xl); margin-bottom: var(--space-3xl); }
-    .stat-card { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 8px; padding: var(--space-2xl) var(--space-xl); text-align: center; }
-    .stat-value { font-family: var(--font-display); font-size: 44px; font-weight: 800; background: linear-gradient(135deg, var(--cyan-400), var(--cyan-600)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; margin-bottom: var(--space-sm); }
-    .stat-label { font-family: var(--font-display); font-size: 12px; color: var(--t2); text-transform: uppercase; letter-spacing: 1px; }
-    .stat-fire .stat-value { background: var(--phoenix-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-
-    /* =========================================================
-       LISTS
-       ========================================================= */
-    .item-list { list-style: none; padding: 0; }
-    .item-list li { padding: 12px 0; border-bottom: 1px solid var(--bdr); font-size: 15px; color: var(--t2); display: flex; align-items: center; gap: var(--space-sm); }
-    .item-list li:last-child { border-bottom: none; }
-    .item-list li::before { content: "\25B8"; color: var(--a2); }
-
-    /* =========================================================
-       TOAST
-       ========================================================= */
-    #toast { display: none; position: fixed; bottom: 24px; right: 24px; background: var(--bg3); color: var(--t1); border: 1px solid var(--a1); border-radius: 6px; padding: 10px 18px; font-size: 13px; z-index: 2000; }
-
-    /* =========================================================
-       RESPONSIVE
-       ========================================================= */
-    @media (max-width: 1100px) { .content { padding: 32px 32px 80px; } }
-    @media (max-width: 900px) {
-      .hamburger { display: flex; }
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); }
-      .main { margin-left: 0; }
-      .content { padding: 24px 16px 80px; padding-top: 72px; }
-      .chapter-number { font-size: 36px; }
-      .chapter-title { font-size: 28px; }
-      .stat-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    /* =========================================================
-       SCENARIOS-BRIEF SPECIFIC
-       ========================================================= */
     .scenario-group { margin-bottom: var(--space-lg); }
     .scenario-group-header { font-size: 16px; font-weight: 700; color: var(--color-water); margin-bottom: var(--space-sm); padding-bottom: 6px; border-bottom: 1px solid var(--border-default); }
     .scenario-group-feature { font-size: 12px; color: var(--text-dimmed); font-family: var(--font-code); margin-bottom: var(--space-sm); }
@@ -308,9 +90,9 @@
     <div class="sidebar-footer">
       <div class="sidebar-footer-label">Review Decision</div>
       <div class="action-btns">
-        <button class="action-btn action-btn-tether" onclick="exportAction('tether')">Tether</button>
-        <button class="action-btn action-btn-vanish" onclick="exportAction('vanish')">Vanish</button>
-        <button class="action-btn action-btn-orbit" onclick="exportAction('orbit')">Orbit</button>
+        <button class="action-btn action-btn-tether" onclick="exportAction('tether', _exportSlug, 'scenarios-brief')">Tether</button>
+        <button class="action-btn action-btn-vanish" onclick="exportAction('vanish', _exportSlug, 'scenarios-brief')">Vanish</button>
+        <button class="action-btn action-btn-orbit" onclick="exportAction('orbit', _exportSlug, 'scenarios-brief')">Orbit</button>
       </div>
     </div>
   </aside>
@@ -351,69 +133,16 @@
   </div></main>
 </div>
 
+<script src="./brief-render.js"></script>
 <script>
-  /* ─── Shared brief-render.js (inlined) ─────────────────────────────────── */
+  var _exportSlug = '';
 
-  function esc(s) {
-    if (s == null) return '';
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  function renderValue(v) {
-    if (v == null) return '';
-    if (Array.isArray(v)) {
-      if (v.length === 0) return '';
-      if (typeof v[0] === 'object' && v[0] !== null) {
-        return '<ul class="item-list">' + v.map(function(item) {
-          return '<li>' + esc(JSON.stringify(item)) + '</li>';
-        }).join('') + '</ul>';
-      }
-      return '<ul class="item-list">' + v.map(function(item) {
-        return '<li>' + esc(item) + '</li>';
-      }).join('') + '</ul>';
-    }
-    return esc(v);
-  }
-
-  function badgeClass(status) {
-    if (!status) return '';
-    switch (String(status).toLowerCase()) {
-      case 'draft':     return 'badge-draft';
-      case 'validated': return 'badge-validated';
-      case 'locked':    return 'badge-locked';
-      case 'approved':  return 'badge-validated';
-      default:          return '';
-    }
-  }
-
-  function el(id) {
-    if (!id) return null;
-    return document.getElementById(id) || null;
-  }
-
-  function renderStatGrid(containerId, stats) {
-    var container = el(containerId);
-    if (!container) return;
-    if (!stats || stats.length === 0) return;
-    var html = '<div class="stat-grid">';
-    for (var i = 0; i < stats.length; i++) {
-      var s = stats[i] || {};
-      var cardCls = s.colorClass ? 'stat-card ' + s.colorClass : 'stat-card';
-      html += '<div class="' + cardCls + '">' +
-        '<div class="stat-value">' + esc(s.value) + '</div>' +
-        '<div class="stat-label">' + esc(s.label) + '</div>' +
-        '</div>';
-    }
-    html += '</div>';
-    container.innerHTML = html;
-  }
+  // ─── populateMeta ────────────────────────────────────────────────────────────
 
   function populateMeta(data) {
     if (!data) return;
+
+    _exportSlug = data.slug || '';
 
     var slugEl = el('meta-slug');
     if (slugEl) slugEl.textContent = data.slug || '';
@@ -447,7 +176,7 @@
     document.title = 'Scenarios Brief: ' + (data.slug || '');
   }
 
-  /* ─── Scenarios-specific renderers ─────────────────────────────────────── */
+  // ─── Scenarios-specific renderers ────────────────────────────────────────────
 
   function renderScenarioGroups(containerId, groups) {
     var container = el(containerId);
@@ -521,7 +250,7 @@
     container.innerHTML = html;
   }
 
-  /* ─── Main render ───────────────────────────────────────────────────────── */
+  // ─── render ──────────────────────────────────────────────────────────────────
 
   function render() {
     fetch('./scenarios.json')
@@ -549,66 +278,10 @@
       });
   }
 
-  /* ─── Static JS: theme, nav, sidebar, export ───────────────────────────── */
-
-  function setTheme(t) {
-    document.documentElement.setAttribute('data-theme', t);
-    document.querySelectorAll('.theme-btn').forEach(function(b) {
-      b.classList.toggle('active', b.dataset.theme === t);
-    });
-    try { localStorage.setItem('phoenix-theme', t); } catch(e) {}
-  }
-
-  function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
-  }
-
-  var chapters = document.querySelectorAll('.chapter');
-  var navItems = document.querySelectorAll('.nav-item');
-
-  function updateActiveNav() {
-    var s = window.scrollY + 100, a = '';
-    chapters.forEach(function(c) { if (c.offsetTop <= s) a = c.id; });
-    navItems.forEach(function(n) {
-      n.classList.toggle('active', n.getAttribute('href').replace('#', '') === a);
-    });
-  }
-
-  window.addEventListener('scroll', updateActiveNav);
-
-  navItems.forEach(function(n) {
-    n.addEventListener('click', function() {
-      if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open');
-    });
-  });
-
-  function exportAction(a) {
-    var slug = (el('brief-title') && el('brief-title').textContent) || '';
-    var p = { artifact: 'scenarios-brief', slug: slug, action: a, timestamp: new Date().toISOString() };
-    var t = JSON.stringify(p, null, 2);
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(t).then(function() { showToast('Copied: ' + a); });
-    } else {
-      var x = document.createElement('textarea');
-      x.value = t;
-      document.body.appendChild(x);
-      x.select();
-      document.execCommand('copy');
-      document.body.removeChild(x);
-      showToast('Copied: ' + a);
-    }
-  }
-
-  function showToast(m) {
-    var t = document.getElementById('toast');
-    t.textContent = m;
-    t.style.display = 'block';
-    setTimeout(function() { t.style.display = 'none'; }, 2000);
-  }
+  // ─── Boot ────────────────────────────────────────────────────────────────────
 
   (function() {
-    try { var s = localStorage.getItem('phoenix-theme'); if (s) setTheme(s); } catch(e) {}
-    updateActiveNav();
+    initBrief();
     render();
   })();
 </script>
