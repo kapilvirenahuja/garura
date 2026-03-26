@@ -1,0 +1,193 @@
+intent: >
+  Given a product directory containing YAML design artifacts and their
+  corresponding HTML briefs, determine which briefs are stale by checksumming
+  each YAML source against stored checksums, regenerate only the briefs whose
+  source artifacts changed, and rebuild the hub.html index. Context-aware —
+  when run from an epic branch, scope regeneration to that epic's artifacts
+  plus product-level artifacts; when on main or with no epic context, scan
+  product-level artifacts and all epics with YAMLs on disk. The end state is:
+  every YAML artifact has a current HTML brief, hub.html reflects all briefs,
+  checksums are updated, and no unnecessary regeneration occurred.
+
+constraints:
+  - id: C1
+    rule: >
+      Epic scope is derived from the current execution context (branch name,
+      issue, associated epic metadata) without any explicit flags or arguments
+      from the user. The recipe accepts no parameters.
+  - id: C2
+    rule: >
+      Staleness is determined solely by comparing a cryptographic checksum of
+      each YAML artifact against the stored checksum from the previous run.
+      A brief is regenerated if and only if its source YAML checksum differs
+      from the stored value or no stored value exists.
+  - id: C3
+    rule: >
+      Brief generation and hub.html lifecycle are performed by YAML→JSON
+      conversion and static template copy. No LLM invocation for brief
+      production. The recipe converts each changed YAML to JSON, copies the
+      pre-built static HTML template to the briefs directory, and copies the
+      JSON alongside it for the template to read at render time.
+  - id: C4
+    rule: >
+      If no product directory exists, the recipe halts cleanly with an
+      informative message. It must not create directories, scaffold artifacts,
+      or attempt partial execution.
+  - id: C5
+    rule: >
+      All generated briefs and the hub.html file reside under the briefs/
+      subdirectory of the product directory. No HTML output is written outside
+      that directory.
+  - id: C6
+    rule: >
+      Checksums are persisted to a checksums file within the briefs/ directory
+      so that subsequent runs can detect staleness without regenerating
+      everything.
+  - id: C7
+    rule: >
+      When epic context is resolved, product-level artifacts (product.yaml,
+      roadmap.yaml) are always included in the scan alongside the scoped
+      epic's artifacts.
+  - id: C8
+    rule: >
+      All generated briefs and hub.html must use the Phoenix design
+      system — dark backgrounds, four-element accent colors (air, water, earth,
+      fire), retro box shadows, Space Grotesk typography, and status badges.
+      The design system is delivered via external brief-common.css referenced
+      by each HTML template through a <link> tag. Default unstyled HTML is
+      never acceptable output.
+  - id: C9
+    rule: >
+      Hub.html must support multiple epics. It renders a product-level section
+      (product.yaml, roadmap.yaml status and brief links) followed by
+      per-epic sections — one collapsible or navigable group per epic showing
+      that epic's artifact statuses and brief links. An epic with no YAMLs on
+      disk is omitted entirely.
+  - id: C10
+    rule: >
+      Every YAML top-level key maps to an HTML section. Empty YAML sections
+      produce visible but empty HTML sections — they are rendered with the
+      section header present and an empty state message, never silently omitted.
+  - id: C11
+    rule: >
+      JSON data files are derived artifacts written alongside source YAML.
+      Isomorphic JSON representation with no transformation — every top-level
+      YAML key becomes a top-level JSON key with no renaming, restructuring,
+      or enrichment.
+  - id: C12
+    rule: >
+      Brief templates use SPA-style chapter navigation. All chapters are
+      hidden by default (display:none). Only the active chapter — selected
+      via the sidebar — is visible. There is no scroll-spy; chapter visibility
+      is toggled entirely by JavaScript click handlers in brief-render.js.
+  - id: C13
+    rule: >
+      Chapters containing multiple sub-items (e.g., roadmap epics, timeline
+      horizons) render a horizontal tab bar for sub-navigation within that
+      chapter. Tab rendering is handled by renderTabBar() and
+      renderStaticTabs() functions in brief-render.js.
+  - id: C14
+    rule: >
+      Every briefs output directory that contains HTML files must also contain
+      brief-common.css and brief-render.js. These shared assets are copied
+      from the templates source to each briefs directory during generation.
+      An HTML brief without its companion CSS/JS is a broken artifact.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      A YAML artifact whose checksum changed since the last run does not have
+      a corresponding regenerated HTML brief after the recipe completes.
+  - id: F2
+    condition: >
+      A YAML artifact whose checksum has NOT changed since the last run had
+      its HTML brief regenerated.
+  - id: F3
+    condition: >
+      HTML files exist outside the briefs/ subdirectory of the product
+      directory after the recipe completes.
+  - id: F4
+    condition: >
+      The recipe proceeds with brief generation when no product directory
+      or no YAML artifacts exist on disk.
+  - id: F5
+    condition: >
+      The hub.html file does not reflect all current briefs after the
+      recipe completes — missing entries for briefs that exist, or entries
+      for briefs that do not exist.
+  - id: F6
+    condition: >
+      The stored checksums after completion do not match the actual current
+      checksums of the YAML artifacts on disk.
+  - id: F7
+    condition: >
+      On an epic branch, artifacts from unrelated epics are regenerated
+      when only the scoped epic's artifacts and product-level artifacts
+      should be in scope.
+  - id: F8
+    condition: >
+      Any generated brief or hub.html uses default unstyled HTML instead
+      of the Phoenix Design System.
+  - id: F9
+    condition: >
+      Hub.html does not reflect all epics that have YAML artifacts on
+      disk — an epic with artifacts is missing from the hub, or an epic
+      with no artifacts appears in the hub.
+  - id: F10
+    condition: >
+      A briefs output directory contains HTML files but is missing
+      brief-common.css or brief-render.js, rendering the briefs
+      unstyled and non-functional.
+  - id: F11
+    condition: >
+      A brief HTML file references external CSS or JS via relative paths
+      (./brief-common.css, ./brief-render.js) but those files do not
+      exist in the same directory as the HTML file.
+
+scenarios:
+  - id: S1
+    persona: Developer
+    given: >
+      An up-to-date briefs/ directory after running the recipe from an epic
+      feature branch where two of the epic's YAML artifacts were modified
+    then: >
+      Can open hub.html and navigate to the two regenerated epic briefs and
+      all product-level briefs, confirming the briefs reflect the latest
+      YAML content and unmodified artifacts were not re-processed. Each brief
+      uses SPA chapter navigation (sidebar click shows one chapter at a time)
+      and chapters with sub-items display horizontal tab bars. brief-common.css
+      and brief-render.js are present in each briefs directory.
+  - id: S2
+    persona: Developer
+    given: >
+      An up-to-date briefs/ directory after running the recipe from the main
+      branch with a product directory containing three epics
+    then: >
+      Can verify that hub.html indexes briefs for all product-level artifacts
+      and all epic artifacts across every epic, with only changed artifacts
+      having been regenerated. Every briefs directory (product-level and each
+      epic) contains brief-common.css and brief-render.js alongside the HTML.
+  - id: S3
+    persona: Developer
+    given: >
+      The recipe output when no product directory exists on disk
+    then: >
+      Can confirm the recipe halted with a clear message indicating no product
+      directory was found, and no files were created or modified.
+  - id: S4
+    persona: Developer
+    given: >
+      The recipe output when all YAML checksums match the stored values
+    then: >
+      Can confirm no briefs were regenerated, hub.html was not rewritten,
+      and the recipe completed quickly reporting that everything is up to date.
+  - id: S5
+    persona: Developer
+    given: >
+      A briefs/ directory generated by the recipe with both product-level
+      and epic-level briefs
+    then: >
+      Can verify that every directory containing HTML brief files also
+      contains brief-common.css and brief-render.js, and that opening any
+      brief in a browser renders with Phoenix styling and functional SPA
+      chapter navigation.
