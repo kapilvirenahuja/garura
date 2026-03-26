@@ -83,10 +83,9 @@ commits:
 
   - id: commit-5
     group_id: group-5
-    hash: pending
+    hash: cc31c6c
     type: chore
     scope: stm
     subject: "record STM evidence and operational state for issue #169 (#169)"
     full_message: "chore(stm): record STM evidence and operational state for issue #169 (#169)"
-    files_count: null
-    note: "commit-5 is created after this artifact is written; hash will be set upon commit"
+    files_count: 16
