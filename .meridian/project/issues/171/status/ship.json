@@ -1,0 +1,24 @@
+{
+  "recipe": "ship",
+  "issue": "171",
+  "started_at": "2026-03-26T06:16:55Z",
+  "feature_branch": "feat/171-follow-up-polish-client-side-brief-rendering",
+  "tasks": {
+    "commit-code": {
+      "status": "in_progress",
+      "started_at": "2026-03-26T06:16:55Z"
+    },
+    "create-pr": {
+      "status": "pending"
+    },
+    "merge-pr": {
+      "status": "pending"
+    },
+    "scenario-evals": {
+      "status": "pending"
+    },
+    "write-evidence": {
+      "status": "pending"
+    }
+  }
+}
