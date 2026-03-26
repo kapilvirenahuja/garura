@@ -4,10 +4,12 @@
   "started_at": "2026-03-26T04:51:53Z",
   "tasks": {
     "verify-readiness": {
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-03-26T04:53:58Z"
     },
     "execute-merge": {
-      "status": "pending"
+      "status": "in_progress",
+      "started_at": "2026-03-26T04:53:58Z"
     },
     "scenario-evals": {
       "status": "pending"
