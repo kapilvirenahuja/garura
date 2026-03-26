@@ -1,35 +1,13 @@
 result:
   status: merged
-  pr_number: 172
-  merge_sha: "2bb9cc7ab4a47af29fb714db398c8bbd8cebb747"
+  pr_number: 173
+  merge_sha: d507195432e276d46ba83edb87c24813821ae5b2
   base_branch: main
-  feature_branch: feat/171-follow-up-polish-client-side-brief-rendering
   branch_deleted: true
-  branch_deletion:
-    local: true
-    remote: true
-    remote_note: >
-      Remote branch was deleted by platform via --delete-branch flag during gh pr merge.
-      Confirmed absent after git fetch --prune.
-  merge_strategy: merge_commit
-  platform_state: MERGED
-  error: null
-
-verification:
-  local_checkout: main
-  local_up_to_date: true
-  local_sha_matches_remote: true
-  current_head: "2bb9cc7ab4a47af29fb714db398c8bbd8cebb747"
-  feature_branch_absent_locally: true
-  feature_branch_absent_remotely: true
-  pr_state_on_platform: MERGED
-
-constraints_satisfied:
-  C1: true  # Was not on main/master when merge started — was on feat/171-...
-  C2: true  # PR #172 existed and was open before merge
-  C3: true  # Working tree was clean per readiness.yaml
-  C4: true  # PR was MERGEABLE / CLEAN — no conflicts
-  C5: true  # Default merge strategy (merge commit) used — no override applied
-  C6: true  # Remote branch deletion tolerated no-error (deleted by platform)
-
-completed_at: "2026-03-26"
+  merged_at: "2026-03-26T12:43:59Z"
+  head_branch: feat/171-follow-up-polish-client-side-brief-rendering
+  remote_branch_deleted: true
+  evals:
+    SE-2_branch_deleted: PASS
+    SE-3_on_base_branch_up_to_date: PASS
+    SE-5_pr_merged_on_platform: PASS
