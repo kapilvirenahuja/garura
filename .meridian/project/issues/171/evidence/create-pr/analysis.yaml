@@ -1,0 +1,108 @@
+analysis:
+  branch: feat/171-follow-up-polish-client-side-brief-rendering
+  base: main
+  branch_pattern: feature
+  commits: 3
+  changes:
+    files: 12
+    additions: 288
+    deletions: 22
+  suggested_title: "chore(stm): record operational artifacts for follow-up polish — client-side brief rendering (#171)"
+
+  context:
+    file_patterns_matched:
+      - name: STM evidence markdown
+        files: 2
+        trigger: ".meridian/project/issues/171/evidence/**/*.md"
+      - name: STM evidence YAML
+        files: 5
+        trigger: ".meridian/project/issues/171/evidence/**/*.yaml"
+      - name: STM status JSON
+        files: 3
+        trigger: ".meridian/project/issues/171/status/*.json"
+      - name: STM pending YAML
+        files: 1
+        trigger: ".meridian/project/issues/_pending/**/*.yaml"
+      - name: STM pending text (deleted)
+        files: 1
+        trigger: ".meridian/project/issues/_pending/**/*.txt"
+    commit_types:
+      - type: chore
+        count: 3
+        scope: stm
+        examples:
+          - "chore(stm): record start-feature evidence for #171"
+          - "chore(stm): record start-feature and ship operational state for #171"
+          - "chore(stm): record commit-code evidence for #171"
+    branch_modifiers:
+      - "feature branch — standard priorities apply"
+      - "all commits are chore(stm) — no functional code changes"
+
+  observations:
+    note: >
+      This branch contains exclusively STM operational artifacts (start-feature,
+      commit-code, and ship recipe tracking files). No functional code changes
+      (no agent definitions, skill definitions, recipe definitions, configuration,
+      or documentation files outside .meridian/) are present in the diff against main.
+      Issue #171 describes "polish client-side brief rendering" improvements, but
+      the acceptance criteria appear to be tracked via this STM-only branch rather
+      than as committed code changes. This is consistent with the pattern used for
+      issue tracking and pipeline artifact management in this project.
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: No merge conflicts with main
+        trigger: "Universal — always applied"
+        status: PASS
+        evidence: "git merge-tree returned clean SHA 8dd3d1d48de6db253ef8eae16b0783dab5ff6196 with no conflict markers"
+
+      - id: no-secrets
+        item: No secrets committed
+        trigger: "Universal — always applied"
+        status: PASS
+        evidence: "Pattern scan of diff (password, secret, token, api_key, private_key, access_key, auth_token, bearer, credential) returned no matches"
+
+    nice_to_have: []
+
+  not_triggered:
+    - id: agent-frontmatter
+      reason: "No agent definition files changed"
+    - id: skill-frontmatter
+      reason: "No skill definition files changed"
+    - id: recipe-frontmatter
+      reason: "No recipe definition files changed"
+    - id: adr-structure
+      reason: "No ADR files changed"
+    - id: docs-consistent
+      reason: "No architecture/philosophy/component docs changed"
+    - id: config-valid
+      reason: "No project configuration files changed (changed .yaml files are STM artifacts, not config)"
+    - id: sync-claude
+      reason: "core/components/** not changed"
+    - id: feat-documented
+      reason: "No feat: commits — all commits are chore(stm); issue type is enhancement but commit content is STM tracking only"
+
+  blocking_issues: []
+
+  ready: true
+  confidence: high
+  recommendation: "Create PR"
+
+  target_branch:
+    name: main
+    confidence: high
+    reasoning: >
+      Branch diverges from main (default branch per config). Branch follows
+      feat/* naming convention pointing to main as the target. All prior PRs
+      in this repository merge feature branches to main. No ambiguity.
+
+  issue_linkage:
+    number: 171
+    title: "Follow-up: polish client-side brief rendering"
+    state: open
+    url: "https://github.com/kapilvirenahuja/meridian/issues/171"
+    confidence: high
+    reasoning: >
+      Branch name `feat/171-follow-up-polish-client-side-brief-rendering` contains
+      issue number 171 explicitly. All commits reference #171. Issue is open on GitHub.

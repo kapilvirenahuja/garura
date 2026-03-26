@@ -1,0 +1,17 @@
+readiness:
+  status: ready
+  checked_at: "2026-03-26"
+  working_tree:
+    clean: true
+    uncommitted_changes: false
+  pr:
+    number: 172
+    state: OPEN
+    title: "chore(stm): record operational artifacts for follow-up polish — client-side brief rendering (#171)"
+    url: "https://github.com/kapilvirenahuja/meridian-os/pull/172"
+    mergeable: MERGEABLE
+    merge_state_status: CLEAN
+    base_ref: main
+    head_ref: feat/171-follow-up-polish-client-side-brief-rendering
+  blockers: []
+  verdict: PROCEED
