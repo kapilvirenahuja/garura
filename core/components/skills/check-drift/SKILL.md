@@ -36,13 +36,12 @@ Once scope is resolved, gather these automatically:
 - `git diff main..HEAD` or `git diff` for uncommitted changes
 - All implementation files touched by the branch
 
-### From `.meridian/project/product/{slug}/` (specs)
-- `product-spec.md` — behaviors and guarantees
-- `technical-approach.md` — architecture and tech decisions
-- `lld.md` — file structure, DB schema, phase scope
-- `vision.md` — domain model, constraints, architecture summary
-- `epics.yaml` — epic definition with success scenarios and failure conditions
-- `scenarios.md` — verification scenarios
+### From `.meridian/product/` (specs)
+- `discovery/product.yaml` — problem statement, users, strategic goals
+- `architecture/architecture.yaml` — architecture and tech decisions
+- `architecture/quality-standards.yaml` — quality standards and debt baseline
+- `roadmap/epics.yaml` — epic definition with success scenarios and failure conditions
+- `roadmap/features.yaml` — feature behaviors and invariants
 
 ### From `.meridian/project/issues/{issue}/` (STM)
 - `CONTEXT.md` — scoped implementation context

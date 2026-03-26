@@ -22,7 +22,7 @@ You DO derive, scope, and fully define the epics. You do NOT create GitHub issue
 
 Receive from agent:
 - `product_yaml_path` — (required) Full path to product.yaml
-- `artifact_base` — (required) Base path for STM artifacts, e.g. `.meridian/project/product/`
+- `artifact_base` — (required) Base path for STM artifacts, e.g. `.meridian/product/`
 - `epic_schema_path` — (required) Path to the epic schema in LTM, e.g. `~/.meridian/core/memory/standards/templates/epic-schema.md`. The agent discovers this from LTM and passes it — the skill does NOT search LTM itself.
 - `epic_rules_path` — (required) Path to epic management rules in LTM, e.g. `~/.meridian/core/memory/standards/agent-lifecycle/epic-management-rules.md`. Contains rules for vertical slice delivery, single-module-scope, mock phasing, dependency discipline, etc. The agent discovers this from LTM and passes it.
 - `domain_taxonomy_paths` — (required when domain taxonomy exists) List of domain taxonomy module paths from LTM, e.g. `~/.meridian/core/memory/knowledge/domain-taxonomy/*.md`. These define module boundaries used to enforce Rule 2 (single-module-scope). The agent globs `~/.meridian/core/memory/knowledge/domain-taxonomy/` and passes all found paths.
@@ -76,7 +76,7 @@ Receive from agent:
 
 7. **Validate against intent failure conditions (silently)** — if the agent passes `intent_path`, read the intent file and check the `failure_conditions` list. Verify: epic count >= 3, every epic traces to a strategic goal from product.yaml. If any failure condition is triggered, return structured failure before writing. Do NOT output the validation results — validate internally only.
 
-8. **Write to STM** — write the scoped epics to `{artifact_base}/{slug}/epics.yaml` using the Write tool. Use the YAML structure from `reference/epic-schema.md`. The file must be a valid YAML document — no placeholders, all fields filled.
+8. **Write to STM** — write the scoped epics to `{artifact_base}/roadmap/epics.yaml` using the Write tool. Use the YAML structure from `reference/epic-schema.md`. The file must be a valid YAML document — no placeholders, all fields filled.
 
 ## Output Schema
 
@@ -88,7 +88,7 @@ Your response MUST be ONLY this YAML block with values filled in. No validation 
 
 ```yaml
 scoped_epics:
-  epics_path: "{artifact_base}/{slug}/epics.yaml"
+  epics_path: "{artifact_base}/roadmap/epics.yaml"
   slug: "{product slug from product.yaml}"
   epic_count: {integer}
 ```
@@ -115,7 +115,7 @@ Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridia
 - ALWAYS use `strategic_goal_ref` with SG-IDs (SG1, SG2, ...) from product.yaml `strategic_goals[].id` — NEVER use the goal title text as the reference
 - ALWAYS write full IDD content (intent, constraints, success_scenarios, failure_conditions) for every epic
 - ALWAYS return structured failure if product.yaml is not LOCKED
-- ALWAYS write the epics file to `{artifact_base}/{slug}/epics.yaml` before returning output
+- ALWAYS write the epics file to `{artifact_base}/roadmap/epics.yaml` before returning output
 - WHEN profiles are available in product.yaml, USE them to inform epic depth, priority, and feature inclusion — do not ignore profile data
 - WHEN epic_rules_path is provided, APPLY all 7 rules during epic derivation and scoping — do not ignore any rule
 - WHEN domain_taxonomy_paths is provided, ENFORCE Rule 2 (single-module-scope) — no epic may span multiple domain modules. If an epic would span modules, split it into separate epics with depends_on links

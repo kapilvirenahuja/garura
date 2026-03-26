@@ -23,10 +23,10 @@ The output MUST conform to `schemas/roadmap.yaml` in this skill's directory. Rea
 ## Input
 
 Receive from agent:
-- `product_yaml_path` — (required) Path to the approved product.yaml, e.g. `.meridian/project/product/{slug}/product.yaml`
+- `product_yaml_path` — (required) Path to the approved product.yaml, e.g. `.meridian/product/discovery/product.yaml`
 - `approved_roadmap_brief_path` — (required) Path to the Tether-approved roadmap-brief.html artifact
-- `feasibility_path` — (required) Path to the STM feasibility data written by assess-feasibility, e.g. `.meridian/project/product/{slug}/feasibility.yaml`
-- `artifact_base` — (required) Base path for output, e.g., `.meridian/project/product/`
+- `feasibility_path` — (required) Path to the STM feasibility data written by assess-feasibility, e.g. `.meridian/product/roadmap/feasibility.yaml`
+- `artifact_base` — (required) Base path for output, e.g., `.meridian/product/`
 - `slug` — (required) Product slug
 
 ## Pre-conditions
@@ -69,7 +69,7 @@ Verify brief is approved — check for Tether record in checkpoint. If not appro
    - **exclusions**: copied verbatim from the approved brief's Exclusions chapter (which originates from locked product.yaml out_of_scope)
    - **assumptions**: copied verbatim from the approved brief's Assumptions chapter (which originates from locked product.yaml assumptions)
 
-6. **Write to** `{artifact_base}{slug}/roadmap.yaml` using the Write tool.
+6. **Write to** `{artifact_base}roadmap/roadmap.yaml` using the Write tool.
 
 7. **Return output contract.**
 

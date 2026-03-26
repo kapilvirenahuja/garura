@@ -25,7 +25,7 @@ The output MUST conform to `schemas/product.yaml` in this skill's directory. Rea
 Receive from agent:
 - `market_context` — (required) Structured output from discover-product-opportunity
 - `product_name` — (optional) Slug derived from problem_statement if not provided
-- `artifact_base` — (required) Base path, e.g., `.meridian/project/product/`
+- `artifact_base` — (required) Base path, e.g., `.meridian/product/discovery`
 - `domain` — (optional) Confirmed domain context (e.g., "B2B SaaS", "retail") — use to sharpen vision language and strategic goals when present
 - `raw_intent` — (conditional) The original intent text, provided when market_context is absent (opportunity discovery skipped per C12). One of market_context or raw_intent must be present.
 - `product_type` — (optional) "product" or "library". Default: "product". Determines the type field written to product.yaml.
@@ -35,7 +35,7 @@ Receive from agent:
 
 1. **Derive slug:** If `product_name` provided, slugify it (lowercase, hyphens). Else derive from first 3-4 significant words of `market_context.problem`.
 
-2. **Determine artifact path:** `{artifact_base}{slug}/product.yaml`
+2. **Determine artifact path:** `{artifact_base}/product.yaml`
 
 3. **Check for existing product.yaml:** Read path. If LOCKED, return structured failure: "product.yaml is LOCKED — drop to DRAFT first." If DRAFT exists, overwrite (user re-triggered DRAFT).
 
@@ -96,7 +96,7 @@ Receive from agent:
 
    **When type is "library":** Profiles are still derived but may have lower defaults. PP-6 drives the cascade — a library at PP-6 = 1 (POC) defaults all NFR and QP to 1.
 
-6. **Write artifact:** Write product.yaml with `status: "DRAFT"` to `{artifact_base}{slug}/product.yaml`.
+6. **Write artifact:** Write product.yaml with `status: "DRAFT"` to `{artifact_base}/product.yaml`.
 
 7. **Return output.**
 
@@ -104,7 +104,7 @@ Receive from agent:
 
 ```yaml
 product:
-  path: "{full path to product.yaml}"
+  path: "{artifact_base}/product.yaml"
   slug: "{derived slug}"
   fields:
     - problem

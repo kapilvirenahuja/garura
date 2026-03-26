@@ -26,7 +26,7 @@ Receive from agent:
 - `features_yaml_path` — (required for prepare-implementation, optional for prepare-architecture) Path to features.yaml
 - `intent` — (optional) Product intent string for additional context
 - `vision_path` — (optional) Path to a locked vision document for enrichment
-- `output_base` — (required) Base path for output, e.g., `.meridian/product/{slug}/`
+- `output_base` — (required) Base path for output, e.g., `.meridian/product/architecture/`
 - `profiles_ref` — (optional) Path to product.yaml containing profiles section. When provided, NFR profile levels drive the nfrs section, and profile values inform technology selection reasoning via LTM architecture knowledge "When to Choose" matching.
 - `product_yaml_path` — (optional) Path to product.yaml for profile and context extraction
 - `roadmap_yaml_path` — (optional) Path to roadmap.yaml for epic/feature context

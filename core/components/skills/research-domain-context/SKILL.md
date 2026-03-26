@@ -33,7 +33,7 @@ Receive from agent:
 - `domain` — (required) Identified vertical domain (e.g., "BFSI", "retail SaaS", "healthcare B2B")
 - `knowledge_gaps` — (required) List of what LTM didn't cover (e.g., ["competitive landscape", "market size", "regulatory requirements"])
 - `problem_statement` — (required) Original problem statement for research context
-- `output_base` — (required) STM path for output (e.g., `.meridian/project/product/{slug}/`)
+- `output_base` — (required) STM path for output (e.g., `.meridian/product/discovery/`)
 
 ## Process
 

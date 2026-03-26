@@ -23,7 +23,7 @@ Shared across discover-product, plan-roadmap, and manage-backlog recipes.
 Receive from agent:
 - `artifact_path` — (required) Full path to the product artifact to review
 - `audience` — (optional, default: "Product Manager") Also accepts "Business Owner"
-- `output_base` — (required) Base path for output, e.g., `.meridian/project/product/{slug}/reviews/`
+- `output_base` — (required) Base path for output, e.g., `.meridian/product/briefs/`
 
 ## Process
 
