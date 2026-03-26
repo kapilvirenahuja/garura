@@ -1,0 +1,11 @@
+result:
+  success: true
+  pr:
+    number: 170
+    url: "https://github.com/kapilvirenahuja/meridian-os/pull/170"
+    state: "open"
+    title: "feat(briefs): client-side brief rendering — replace LLM generation with JS-based template rendering (#169)"
+  checklist:
+    required_count: 13
+    optional_count: 5
+  error: null
