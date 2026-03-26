@@ -13,14 +13,17 @@
       "completed_at": "2026-03-26T06:31:47Z"
     },
     "merge-pr": {
-      "status": "in_progress",
-      "started_at": "2026-03-26T06:33:18Z"
+      "status": "completed",
+      "completed_at": "2026-03-26T06:40:26Z"
     },
     "scenario-evals": {
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-03-26T06:40:26Z"
     },
     "write-evidence": {
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-03-26T06:40:26Z"
     }
-  }
+  },
+  "completed_at": "2026-03-26T06:40:26Z"
 }

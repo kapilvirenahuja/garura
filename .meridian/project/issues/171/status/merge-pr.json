@@ -8,14 +8,17 @@
       "completed_at": "2026-03-26T06:35:16Z"
     },
     "execute-merge": {
-      "status": "in_progress",
-      "started_at": "2026-03-26T06:35:16Z"
+      "status": "completed",
+      "completed_at": "2026-03-26T06:40:26Z"
     },
     "scenario-evals": {
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-03-26T06:40:26Z"
     },
     "write-evidence": {
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-03-26T06:40:26Z"
     }
-  }
+  },
+  "completed_at": "2026-03-26T06:40:26Z"
 }
