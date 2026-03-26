@@ -464,6 +464,203 @@ function exportAction(action, slug, artifactName) {
   }
 }
 
+// ─── Decision Map ────────────────────────────────────────────────────────────
+
+/**
+ * Render an interactive decision map with accordion cards, driver-tagged
+ * reasoning, and filter-by-driver navigation.
+ *
+ * @param {string} containerId - wrapper element ID
+ * @param {Array} decisions - decision objects with question, answer, drivers, reasons, picked, rejected
+ * @param {string} [summary] - optional TL;DR summary displayed above cards
+ */
+function renderDecisionMap(containerId, decisions, summary) {
+  var container = el(containerId);
+  if (!container || !decisions || decisions.length === 0) return;
+
+  var driverLabels = {
+    'budget': 'Budget',
+    'ltm': 'LTM',
+    'user-decision': 'Your Decision',
+    'profile': 'Profile'
+  };
+
+  var filterLabels = {
+    'budget': 'Showing decisions driven by budget constraints',
+    'ltm': 'Showing decisions recommended by LTM architecture knowledge',
+    'user-decision': 'Showing decisions that trace back to your choices',
+    'profile': 'Showing decisions shaped by product/NFR/quality profiles'
+  };
+
+  var filterNames = {
+    'budget': 'Budget drove it',
+    'ltm': 'LTM recommended it',
+    'user-decision': 'You decided it',
+    'profile': 'Profile shaped it'
+  };
+
+  var mapId = containerId + '-dmap';
+  var html = '';
+
+  // Collect unique drivers across all decisions
+  var allDrivers = {};
+  for (var i = 0; i < decisions.length; i++) {
+    var drivers = decisions[i].drivers || [];
+    for (var d = 0; d < drivers.length; d++) allDrivers[drivers[d]] = true;
+  }
+
+  // Filter bar
+  html += '<div class="decision-filter" id="' + mapId + '-filter">';
+  html += '<button class="decision-filter-btn active" data-filter="all">All ' + decisions.length + ' decisions</button>';
+  var driverOrder = ['budget', 'ltm', 'user-decision', 'profile'];
+  for (var di = 0; di < driverOrder.length; di++) {
+    var drv = driverOrder[di];
+    if (allDrivers[drv]) {
+      html += '<button class="decision-filter-btn" data-filter="' + drv + '">' + esc(filterNames[drv] || drv) + '</button>';
+    }
+  }
+  html += '</div>';
+
+  // Filter banner (hidden by default)
+  html += '<div class="decision-filter-banner" id="' + mapId + '-banner">';
+  html += '<span id="' + mapId + '-banner-text"></span>';
+  html += '<button class="close-filter">&times;</button>';
+  html += '</div>';
+
+  // TL;DR summary
+  if (summary) {
+    html += '<div class="decision-map-summary">';
+    html += '<h4>The one-line story</h4>';
+    html += '<p>' + esc(summary) + '</p>';
+    html += '</div>';
+  }
+
+  // Decision cards
+  html += '<div id="' + mapId + '-cards">';
+  for (var i = 0; i < decisions.length; i++) {
+    var dec = decisions[i];
+    var tags = (dec.drivers || []).join(',');
+    var n = i + 1;
+    var cardId = mapId + '-d' + n;
+
+    html += '<div class="decision" data-drivers="' + esc(tags) + '" id="' + cardId + '">';
+
+    // Header (clickable)
+    html += '<div class="d-header" data-toggle="' + cardId + '">';
+    html += '<div class="d-num">' + n + '</div>';
+    html += '<div class="d-head-text">';
+    html += '<div class="d-question">' + esc(dec.question) + '</div>';
+    html += '<div class="d-answer">' + esc(dec.answer) + '</div>';
+    html += '</div>';
+    html += '<div class="d-arrow">&#9656;</div>';
+    html += '</div>';
+
+    // Body (hidden until opened)
+    html += '<div class="d-body">';
+
+    // Reasons — "Why this choice"
+    if (dec.reasons && dec.reasons.length > 0) {
+      html += '<div class="reason-block">';
+      html += '<div class="reason-label because">Why this choice</div>';
+      for (var r = 0; r < dec.reasons.length; r++) {
+        var reason = dec.reasons[r];
+        var dCls = reason.driver || '';
+        var dLabel = driverLabels[dCls] || dCls;
+        html += '<div class="reason-item">';
+        html += '<span class="driver-badge ' + esc(dCls) + '">' + esc(dLabel) + '</span>';
+        html += '<span class="reason-text">' + esc(reason.text) + '</span>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    // Picked — "We picked"
+    if (dec.picked && dec.picked.length > 0) {
+      html += '<div class="reason-block">';
+      html += '<div class="reason-label picked">We picked</div>';
+      for (var p = 0; p < dec.picked.length; p++) {
+        html += '<div class="tech-chip">' + esc(dec.picked[p]) + '</div>';
+      }
+      html += '</div>';
+    }
+
+    // Rejected — "We rejected"
+    if (dec.rejected && dec.rejected.length > 0) {
+      html += '<div class="reason-block">';
+      html += '<div class="reason-label not">We rejected</div>';
+      for (var j = 0; j < dec.rejected.length; j++) {
+        var rej = dec.rejected[j];
+        html += '<div class="reject-chip">' + esc(rej.option);
+        if (rej.reason) html += ' <span class="why">&mdash; ' + esc(rej.reason) + '</span>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    html += '</div>'; // d-body
+    html += '</div>'; // decision
+  }
+  html += '</div>'; // cards
+
+  container.innerHTML = html;
+  _wireDecisionMap(container, mapId, filterLabels);
+}
+
+function _wireDecisionMap(container, mapId, filterLabels) {
+  // Accordion toggle
+  var headers = container.querySelectorAll('[data-toggle]');
+  headers.forEach(function(header) {
+    header.addEventListener('click', function() {
+      var target = document.getElementById(this.getAttribute('data-toggle'));
+      if (target) target.classList.toggle('open');
+    });
+  });
+
+  // Filter buttons
+  var filterBtns = container.querySelectorAll('.decision-filter-btn');
+  var banner = document.getElementById(mapId + '-banner');
+  var bannerText = document.getElementById(mapId + '-banner-text');
+
+  filterBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var filter = this.getAttribute('data-filter');
+      var cards = container.querySelectorAll('.decision');
+
+      filterBtns.forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+
+      if (filter === 'all') {
+        cards.forEach(function(c) { c.classList.remove('dim'); });
+        if (banner) banner.style.display = 'none';
+      } else {
+        cards.forEach(function(c) {
+          var drvs = (c.getAttribute('data-drivers') || '').split(',');
+          if (drvs.indexOf(filter) >= 0) {
+            c.classList.remove('dim');
+            c.classList.add('open');
+          } else {
+            c.classList.add('dim');
+            c.classList.remove('open');
+          }
+        });
+        if (banner) {
+          banner.style.display = 'flex';
+          if (bannerText) bannerText.textContent = filterLabels[filter] || '';
+        }
+      }
+    });
+  });
+
+  // Close filter banner → reset to "All"
+  var closeBtns = container.querySelectorAll('.close-filter');
+  closeBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var allBtn = container.querySelector('.decision-filter-btn[data-filter="all"]');
+      if (allBtn) allBtn.click();
+    });
+  });
+}
+
 // ─── Boot ────────────────────────────────────────────────────────────────────
 
 /**

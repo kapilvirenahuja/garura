@@ -896,6 +896,218 @@ tr:hover { background: rgba(0,212,255,.05); }
 }
 
 /* =========================================================
+   DECISION MAP — accordion cards with driver-tagged reasoning
+   ========================================================= */
+.decision-map-summary {
+  background: rgba(0,212,255,.05);
+  border: 1px solid rgba(0,212,255,.2);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: var(--space-2xl);
+}
+
+.decision-map-summary h4 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--a1);
+  margin-bottom: var(--space-sm);
+  margin-top: 0;
+}
+
+.decision-map-summary p {
+  font-size: 15px;
+  color: var(--t2);
+  margin-bottom: 0;
+  line-height: 1.65;
+}
+
+.decision-filter {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-xl);
+}
+
+.decision-filter-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--bdr);
+  background: var(--bg2);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--t3);
+  cursor: pointer;
+  transition: all var(--tr);
+}
+
+.decision-filter-btn:hover { border-color: var(--a1); color: var(--a1); }
+.decision-filter-btn.active { background: var(--a1); color: var(--bg1); border-color: var(--a1); }
+
+.decision-filter-banner {
+  background: rgba(0,212,255,.08);
+  border: 1px solid rgba(0,212,255,.2);
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: var(--space-lg);
+  font-size: 13px;
+  color: var(--a1);
+  display: none;
+  align-items: center;
+}
+
+.decision-filter-banner .close-filter {
+  margin-left: auto;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--t3);
+  background: none;
+  border: none;
+  padding: 0 4px;
+}
+
+.decision-filter-banner .close-filter:hover { color: var(--a4); }
+
+.decision {
+  background: var(--bg2);
+  border: 1px solid var(--bdr);
+  border-radius: 10px;
+  margin-bottom: var(--space-lg);
+  overflow: hidden;
+  box-shadow: var(--shd);
+  transition: opacity 0.2s;
+}
+
+.decision.dim { opacity: 0.12; pointer-events: none; }
+
+.decision .d-header {
+  padding: 18px 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: background var(--tr);
+}
+
+.decision .d-header:hover { background: rgba(0,212,255,.04); }
+
+.decision .d-num {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--bg1);
+  background: var(--a1);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.decision .d-head-text { flex: 1; }
+
+.decision .d-question {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--t1);
+}
+
+.decision .d-answer {
+  font-size: 14px;
+  color: var(--green);
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+.decision .d-arrow {
+  color: var(--t3);
+  font-size: 18px;
+  transition: transform 0.2s;
+  margin-top: 4px;
+}
+
+.decision.open .d-arrow { transform: rotate(90deg); }
+
+.decision .d-body {
+  display: none;
+  border-top: 1px solid var(--bdr);
+  padding: 20px 22px;
+}
+
+.decision.open .d-body { display: block; }
+
+.reason-block { margin-bottom: 18px; }
+.reason-block:last-child { margin-bottom: 0; }
+
+.reason-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: var(--space-sm);
+}
+
+.reason-label.because { color: var(--a1); }
+.reason-label.picked { color: var(--green); }
+.reason-label.not { color: var(--a4); }
+
+.reason-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: var(--space-sm);
+  font-size: 13px;
+}
+
+.driver-badge {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+.driver-badge.budget { background: rgba(124,58,237,.15); color: #a78bfa; }
+.driver-badge.ltm { background: rgba(232,115,26,.12); color: var(--a2); }
+.driver-badge.user-decision { background: rgba(255,60,172,.12); color: var(--a3); }
+.driver-badge.profile { background: rgba(0,212,255,.12); color: var(--a1); }
+
+.reason-text { color: var(--t2); }
+
+.tech-chip {
+  display: inline-block;
+  padding: 5px 12px;
+  background: rgba(0,210,106,.12);
+  color: var(--green);
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0 6px 6px 0;
+}
+
+.reject-chip {
+  display: inline-block;
+  padding: 5px 12px;
+  background: rgba(255,107,107,.1);
+  color: var(--a4);
+  border-radius: 6px;
+  font-size: 13px;
+  margin: 0 6px 6px 0;
+}
+
+.reject-chip .why { color: var(--t3); font-weight: 400; }
+
+/* =========================================================
    RESPONSIVE
    ========================================================= */
 @media (max-width: 1100px) {

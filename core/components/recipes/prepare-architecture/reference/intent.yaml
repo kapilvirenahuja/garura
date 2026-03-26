@@ -52,8 +52,8 @@ constraints:
   - id: C7
     rule: >
       A human-reviewable brief must be produced and approved before artifacts
-      are locked. The brief must have tabs for Architecture Overview, Technology
-      Stack, Quality Standards, Profiles Summary, Comments.
+      are locked. The brief must have chapters for Architecture, Stack & Platforms,
+      Agentic, Quality Standards, Profiles, Operations, and Decisions.
 
   - id: C8
     rule: >
@@ -79,6 +79,22 @@ constraints:
       contains technical_risks with severity "high" or when quality-standards.yaml
       contains unresolved gaps. A structured resolution interview collects user
       decisions before lock.
+
+  - id: C12
+    rule: >
+      architecture.yaml must include a decisions[] array where each entry captures
+      a key architectural decision as a structured record with: question (the design
+      question asked), answer (the chosen solution), drivers (array of driver tags
+      from: budget, ltm, profile, user-decision), reasons (array of objects with
+      driver and text fields providing tagged reasoning), picked (array of selected
+      technologies or approaches), and rejected (array of objects with option and
+      reason fields for alternatives not chosen).
+
+  - id: C13
+    rule: >
+      Every decision in decisions[] must have at least one reason with driver
+      traceability — each reason must tag its driver type (budget, ltm, profile,
+      or user-decision) so the reasoning trail is filterable by driver category.
 
 failure_conditions:
   - id: F1
@@ -117,6 +133,13 @@ failure_conditions:
       Architecture decisions contradict the project profiles — e.g., selecting
       enterprise-grade infrastructure for a POC (PP-6 = 1) or basic security
       for a BFSI product (PP-7 = 5).
+
+  - id: F8
+    condition: >
+      architecture.yaml decisions[] is absent, empty, or contains entries without
+      driver traceability — decisions appear as assertions without reasoning trails
+      linking them to budget constraints, LTM recommendations, profile dimensions,
+      or user choices.
 
 scenarios:
   - id: S1
@@ -158,3 +181,12 @@ scenarios:
       Can construct a technical debt measurement framework where each QP
       dimension has a target level, concrete standards, and measurable gaps
       between target and actual implementation state.
+
+  - id: S6
+    persona: Decision Reviewer
+    given: The architecture brief with the Decisions chapter rendered
+    then: >
+      Can trace every architectural decision back to its driving factors (budget
+      constraints, LTM knowledge recommendations, profile dimensions, or user
+      choices during planning), filter decisions by driver type, and verify that
+      rejected alternatives have stated rationale.
