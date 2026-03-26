@@ -42,6 +42,7 @@
       <a class="nav-item" href="#quality">4. Quality Standards</a>
       <a class="nav-item" href="#profiles">5. Profiles</a>
       <a class="nav-item" href="#operations">6. Operations</a>
+      <a class="nav-item" href="#decisions">7. Decisions</a>
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-footer-label">Review Decision</div>
@@ -146,6 +147,13 @@
         <h2>Observability</h2>
         <div id="observability"></div>
 
+      </section>
+
+      <!-- CHAPTER 7: DECISIONS -->
+      <section class="chapter" id="decisions">
+        <div class="chapter-number">07</div>
+        <div class="chapter-title">Decisions</div>
+        <div id="decisions-map"></div>
       </section>
 
   </div></main>
@@ -392,6 +400,10 @@
         { key: 'rationale', label: 'Rationale' }
       ]);
     }
+
+    // ── Chapter 7: Decisions ─────────────────────────────────────────────────
+
+    renderDecisionMap('decisions-map', data.decisions, data.decisions_summary);
 
     // ── Chapter 6: Operations ────────────────────────────────────────────────
 

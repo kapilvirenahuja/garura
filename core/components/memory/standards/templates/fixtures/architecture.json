@@ -61,6 +61,54 @@
       "embeddings": "Not implemented in MVP — full-text search over LTM deferred to post-launch based on scale needs"
     }
   },
+  "decisions_summary": "A Claude Code agent framework using file-system STM/LTM, PostgreSQL + Prisma for structured data, React 18 on Vercel, Tether/Vanish/Orbit approval gates, and GitHub Actions CI/CD — built for single-user CLI usage with full decision auditability.",
+  "decisions": [
+    {
+      "question": "Should agents communicate via API calls or file-system artifacts?",
+      "answer": "File-system artifacts — STM for active work, LTM for persistent knowledge",
+      "drivers": ["profile", "ltm"],
+      "reasons": [
+        { "driver": "profile", "text": "Single-user CLI tool (PP-1=1) — no network overhead needed, file I/O is local and fast" },
+        { "driver": "ltm", "text": "agent-memory.md: 'File-based STM/LTM provides full auditability — every decision is a file you can inspect'" },
+        { "driver": "profile", "text": "Explicit state requirement (NFR-1=3) — all decisions must be durable before execution" }
+      ],
+      "picked": ["File-system STM at .meridian/project/{slug}/", "File-system LTM at ~/.meridian/core/memory/"],
+      "rejected": [
+        { "option": "REST API between agents", "reason": "unnecessary network overhead for single-user CLI" },
+        { "option": "In-memory message passing", "reason": "LLM context windows are ephemeral — state must persist to disk" }
+      ]
+    },
+    {
+      "question": "What database should back the structured data layer?",
+      "answer": "PostgreSQL with Prisma ORM for type-safe queries and migration management",
+      "drivers": ["ltm", "budget"],
+      "reasons": [
+        { "driver": "ltm", "text": "backend-nodejs.md: 'Prisma provides type-safe queries and migration management for TypeScript projects'" },
+        { "driver": "budget", "text": "Small team — Prisma's auto-generated types reduce integration bugs without manual schema maintenance" },
+        { "driver": "ltm", "text": "databases.md: 'PostgreSQL for structured relational data with complex queries'" }
+      ],
+      "picked": ["PostgreSQL 15", "Prisma ORM 5.x"],
+      "rejected": [
+        { "option": "MongoDB", "reason": "relational model fits structured user and settings data better" },
+        { "option": "Raw SQL queries", "reason": "loses type safety guarantees across frontend-backend boundary" }
+      ]
+    },
+    {
+      "question": "How should recipes enforce human oversight at system boundaries?",
+      "answer": "Tether/Vanish/Orbit gate at every boundary crossing — commits, PRs, external APIs",
+      "drivers": ["user-decision", "profile"],
+      "reasons": [
+        { "driver": "user-decision", "text": "Principle TP3: 'Every action that crosses a system boundary requires explicit human approval'" },
+        { "driver": "profile", "text": "Business-grade security (NFR-2=3) — autonomous agents at boundaries create irreversible changes" },
+        { "driver": "user-decision", "text": "Chosen over auto-approve because cost of one mistake exceeds benefit of many saved approvals" }
+      ],
+      "picked": ["Tether (proceed) / Vanish (cancel) / Orbit (defer) pattern", "Clipboard-based export for decision capture"],
+      "rejected": [
+        { "option": "Auto-approve all actions", "reason": "one irreversible mistake (force push, wrong PR) costs more than approval overhead" },
+        { "option": "Interactive terminal prompts", "reason": "breaks agent pipeline flow — clipboard export is non-blocking" }
+      ]
+    }
+  ],
   "technical_risks": [
     {"risk": "LLM non-determinism causes recipe outputs to vary across runs", "likelihood": "Medium", "impact": "High", "mitigation": "Recipe evals with semantic diff scoring; structured output schemas constrain variation surface area"},
     {"risk": "Prisma migration failures on production database during deployment", "likelihood": "Low", "impact": "High", "mitigation": "All migrations run in transactions with automatic rollback; staging environment runs migration before production"}
