@@ -35,7 +35,7 @@ You delegate domain tasks to agents via the JSON contract — never execute doma
 | `repo-orchestrator` | Git: self-commit evidence artifacts | Evidence & Close (non-blocking) |
 
 **Path resolution:**
-All `.meridian/project/product/` paths are **relative to the project root**. NEVER expand to an absolute path under `~/.`. STM is project-scoped; `~/.meridian/core/memory/` is for LTM only.
+All `.meridian/product/` paths are **relative to the project root**. NEVER expand to an absolute path under `~/.`. STM is project-scoped; `~/.meridian/core/memory/` is for LTM only.
 
 ## Pre-flight
 
@@ -53,7 +53,7 @@ Execute these checks before any domain work. Orchestrator owns — do not delega
 # Hard halt on any failure — pre-flight failures are not recoverable
 ```
 
-**Resume check:** If `.meridian/project/product/{slug}/status/plan-roadmap.json` exists, resume — skip completed steps, reset any `in_progress` to `pending`, continue from first incomplete.
+**Resume check:** If `.meridian/product/status/plan-roadmap.json` exists, resume — skip completed steps, reset any `in_progress` to `pending`, continue from first incomplete.
 
 ## Workflow
 
@@ -85,7 +85,7 @@ After creating all tasks with dependencies, initialize the JSON contract:
 ```json
 {
   "intent_path": "{recipe_dir}/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "slug": "{slug from pre-flight}",
   "task_id": "scope-epics",
   "stm": {
@@ -108,7 +108,7 @@ After creating all tasks with dependencies, initialize the JSON contract:
 }
 ```
 
-Write initial status file at `.meridian/project/product/{slug}/status/plan-roadmap.json`.
+Write initial status file at `.meridian/product/status/plan-roadmap.json`.
 
 Verify: all 6 tasks exist with correct `blockedBy` before proceeding.
 
@@ -123,7 +123,7 @@ Pass the initialized contract as the ENTIRE agent prompt (JSON only, nothing els
 ```json
 {
   "intent_path": "{recipe_dir}/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "slug": "{slug}",
   "task_id": "scope-epics",
   "stm": {
@@ -184,7 +184,7 @@ Depends on: Step 2
 ```json
 {
   "intent_path": "core/components/recipes/plan-roadmap/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "mode": "check-input-output-coverage",
   "artifact_paths": {
     "input_path": "{stm.product_yaml_path}",
@@ -193,7 +193,7 @@ Depends on: Step 2
   "check_type": "product-to-epics",
   "stm": {
     "output": {
-      "coverage_check_path": ".meridian/project/product/{slug}/coverage-check.yaml"
+      "coverage_check_path": ".meridian/product/roadmap/coverage-check.yaml"
     }
   },
   "task_id": "check-coverage"
@@ -236,7 +236,7 @@ Depends on: Step 2a
 ```json
 {
   "intent_path": "core/components/recipes/plan-roadmap/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "mode": "score-epic-confidence",
   "artifact_paths": {
     "epics_yaml_path": "{stm.epics_path}",
@@ -244,7 +244,7 @@ Depends on: Step 2a
   },
   "stm": {
     "output": {
-      "confidence_report_path": ".meridian/project/product/{slug}/confidence-report.yaml"
+      "confidence_report_path": ".meridian/product/roadmap/confidence-report.yaml"
     }
   },
   "task_id": "score-confidence"
@@ -310,7 +310,7 @@ Update `task_id` to `assess-feasibility` in the enriched contract. Pass the full
 ```json
 {
   "intent_path": "core/components/recipes/plan-roadmap/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "slug": "{slug}",
   "task_id": "assess-feasibility",
   "stm": {
@@ -343,13 +343,13 @@ Renderer: `brief-render.js` (client-side, LTM template)
 ```json
 {
   "intent_path": "core/components/recipes/plan-roadmap/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
-  "artifact_base": "{product_base}/{slug}",
+  "stm_base": ".meridian/product/",
+  "artifact_base": "{product_base}",
   "slug": "{slug}",
   "briefs_requested": ["roadmap"],
   "stm": {
     "input": {
-      "product_yaml_path": "{product_base}/{slug}/product.yaml",
+      "product_yaml_path": "{product_base}/discovery/product.yaml",
       "epics_path": "{stm.epics_path}",
       "feasibility_path": "{stm.feasibility_path}",
       "confidence_report_path": "{stm.confidence_report_path}"
@@ -363,7 +363,7 @@ Renderer: `brief-render.js` (client-side, LTM template)
 }
 ```
 
-Agent computes output paths under `{product_base}/{slug}/briefs/`, renders the roadmap brief using the client-side brief renderer (`brief-render.js`) with the static `roadmap-brief.html` template and `brief-common.css` from LTM (`~/.meridian/core/memory/standards/templates/`), following the Phoenix sidebar + chapters layout.
+Agent computes output paths under `{product_base}/briefs/`, renders the roadmap brief using the client-side brief renderer (`brief-render.js`) with the static `roadmap-brief.html` template and `brief-common.css` from LTM (`~/.meridian/core/memory/standards/templates/`), following the Phoenix sidebar + chapters layout.
 
 Agent produces:
 - `briefs/roadmap-brief.html` — Phoenix sidebar brief with chapters: Strategy, Timeline, Epics, Feasibility; sidebar navigation, theme switcher, and review-decision actions (Tether/Vanish/Orbit).
@@ -390,7 +390,7 @@ Depends on: Step 4
 
 This checkpoint is ALWAYS required — C8 mandates brief approval before any roadmap artifacts are produced.
 
-Write checkpoint artifact to `.meridian/project/product/{slug}/checkpoint/plan-roadmap/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md`.
+Write checkpoint artifact to `.meridian/product/checkpoints/plan-roadmap/{YYYYMMDD-HHMMSS}.md` using `templates/checkpoint.md`.
 
 Update contract: `checkpoints[brief_review].status = pending`.
 
@@ -424,7 +424,7 @@ open_questions = feasibility.open_questions          # array, may be empty
 ```
 
 **If both arrays are empty (or fields absent):**
-- Copy approved brief to `{slug}/briefs/approved-roadmap-brief.html`, set `stm.approved_roadmap_brief_path`, update `checkpoints[brief_review].status = approved`. Update checkpoint artifact.
+- Copy approved brief to `briefs/approved-roadmap-brief.html`, set `stm.approved_roadmap_brief_path`, update `checkpoints[brief_review].status = approved`. Update checkpoint artifact.
 - Mark `pre-lock-resolution → completed` in status file.
 - Proceed to Step 6.
 
@@ -459,7 +459,7 @@ Or type **Vanish** to halt.
 ```
 
 Parse response:
-- `RESOLVED` with numbered answers → write `.meridian/project/product/{slug}/evidence/plan-roadmap/pre-lock-resolutions.yaml`:
+- `RESOLVED` with numbered answers → write `.meridian/product/evidence/plan-roadmap/pre-lock-resolutions.yaml`:
   ```yaml
   pre_lock_resolutions:
     slug: "{slug}"
@@ -471,7 +471,7 @@ Parse response:
       - question: "{question}"
         answer: "{user answer}"
   ```
-  → Copy approved brief to `{slug}/briefs/approved-roadmap-brief.html`, set `stm.approved_roadmap_brief_path`
+  → Copy approved brief to `briefs/approved-roadmap-brief.html`, set `stm.approved_roadmap_brief_path`
   → Update `checkpoints[brief_review].status = approved`. Update checkpoint artifact.
   → Mark `pre-lock-resolution → completed` in status file.
   → Proceed to Step 6.
@@ -498,7 +498,7 @@ Update `task_id` to `produce-roadmap` in the enriched contract. Pass the full en
 ```json
 {
   "intent_path": "core/components/recipes/plan-roadmap/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "slug": "{slug}",
   "task_id": "produce-roadmap",
   "stm": {
@@ -506,7 +506,7 @@ Update `task_id` to `produce-roadmap` in the enriched contract. Pass the full en
     "approved_roadmap_brief_path": "{stm.approved_roadmap_brief_path}",
     "feasibility_path": "{stm.feasibility_path}",
     "roadmap_yaml_path": null,
-    "artifact_base": ".meridian/project/product/"
+    "artifact_base": ".meridian/product/"
   }
 }
 ```
@@ -541,7 +541,7 @@ Skill: `validate-roadmap`
 ```json
 {
   "intent_path": "core/components/recipes/plan-roadmap/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "mode": "validate-artifact",
   "validation_skill": "validate-roadmap",
   "artifact_paths": {
@@ -626,7 +626,7 @@ Record PASS/FAIL for each SCE. If any SCE fails, report to user with details but
 Owner: orchestrator
 Depends on: Step 7
 
-Update contract: `evidence[plan-roadmap].location = "{slug}/evidence/plan-roadmap/{YYYYMMDD-HHMMSS}.md"`.
+Update contract: `evidence[plan-roadmap].location = "evidence/plan-roadmap/{YYYYMMDD-HHMMSS}.md"`.
 
 Write evidence file to that path:
 
@@ -697,7 +697,7 @@ Invoke `repo-orchestrator` to commit evidence and checkpoint files. Non-blocking
   "stm": {
     "input": {},
     "output": {
-      "evidence": ".meridian/project/product/{slug}/evidence/plan-roadmap/{YYYYMMDD-HHMMSS}.md"
+      "evidence": ".meridian/product/evidence/plan-roadmap/{YYYYMMDD-HHMMSS}.md"
     }
   }
 }
@@ -713,7 +713,7 @@ Steps execute in compiled order — run top to bottom.
 
 **Issue detection:** Slug is derived from product.yaml during pre-flight.
 
-**Status file:** `.meridian/project/product/{slug}/status/plan-roadmap.json`
+**Status file:** `.meridian/product/status/plan-roadmap.json`
 
 ```json
 {
@@ -739,7 +739,7 @@ Steps execute in compiled order — run top to bottom.
 
 **Executor loop:**
 ```
-check for status file at .meridian/project/product/{slug}/status/plan-roadmap.json
+check for status file at .meridian/product/status/plan-roadmap.json
 
 if file exists (resume):
   read contract_snapshot — reconstruct enriched JSON contract
@@ -757,7 +757,7 @@ if file absent (fresh start):
 
 **`/plan-roadmap --resume`** — No `--product` argument needed.
 
-1. Find the status file at `.meridian/project/product/*/status/plan-roadmap.json` (most recent by `started_at` if multiple exist).
+1. Find the status file at `.meridian/product/status/plan-roadmap.json`.
 2. Read `contract_snapshot` — reconstruct the enriched JSON contract.
 3. Route based on task statuses:
    - `human-review` status `in_progress` or `pending` → re-present brief from `stm.roadmap_brief_path`, continue from Step 5 feedback loop.

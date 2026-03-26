@@ -43,7 +43,7 @@ Execute these checks before any domain work. Orchestrator owns — do not delega
 | `--product` argument provided and file exists | — | Hard halt |
 | Product has `status: LOCKED` | C1 | Hard halt — cannot design architecture from unlocked product |
 | Product has `profiles` section with all 3 sub-sections (`product_profile`, `nfr_profile`, `quality_profile`) | C1, F6 | Hard halt — profiles required for profile-driven architecture |
-| `roadmap.yaml` exists at `{product_base}/{slug}/roadmap.yaml` with `status: LOCKED` | C1 | Hard halt — roadmap required as upstream input |
+| `roadmap.yaml` exists at `{product_base}/roadmap/roadmap.yaml` with `status: LOCKED` | C1 | Hard halt — roadmap required as upstream input |
 | Derive `slug` from product.yaml | — | Hard halt if slug absent |
 
 ```bash
@@ -57,7 +57,7 @@ slug = extract_slug(product.yaml)
 # Hard halt on any failure — pre-flight failures are not recoverable
 ```
 
-**Resume check:** If `.meridian/product/{slug}/status/prepare-architecture.json` exists, resume — skip completed steps, reset any `in_progress` to `pending`, continue from first incomplete.
+**Resume check:** If `.meridian/product/status/prepare-architecture.json` exists, resume — skip completed steps, reset any `in_progress` to `pending`, continue from first incomplete.
 
 ## Workflow
 
@@ -67,17 +67,17 @@ slug = extract_slug(product.yaml)
 Owner: orchestrator (no agent call)
 Depends on: pre-flight
 
-Read `product.yaml` at `.meridian/product/{slug}/product.yaml`. Extract:
+Read `product.yaml` at `.meridian/product/discovery/product.yaml`. Extract:
 - `profiles`: `product_profile`, `nfr_profile`, `quality_profile` — all dimensions, levels, and rationale
 - `strategic_goals` — list of goal IDs and descriptions
 - `slug` — already resolved during pre-flight
 
-Read `roadmap.yaml` at `.meridian/product/{slug}/roadmap.yaml`. Extract:
+Read `roadmap.yaml` at `.meridian/product/roadmap/roadmap.yaml`. Extract:
 - `timeline` — horizons with `epic_refs` per horizon
 - `feasibility` — per-epic risk levels and blockers
 - Summary of epics, sequencing constraints, and risk landscape
 
-Store extracted context in memory for use in Steps 2–4 contracts. Write initial status file at `.meridian/product/{slug}/status/prepare-architecture.json`.
+Store extracted context in memory for use in Steps 2–4 contracts. Write initial status file at `.meridian/product/status/prepare-architecture.json`.
 
 Update status file: `read-context → completed`.
 
@@ -96,8 +96,8 @@ Pass the following contract as the ENTIRE agent prompt (JSON only, nothing else)
   "slug": "{slug}",
   "task_id": "scan-codebase-ltm",
   "stm": {
-    "product_yaml_path": ".meridian/product/{slug}/product.yaml",
-    "roadmap_yaml_path": ".meridian/product/{slug}/roadmap.yaml",
+    "product_yaml_path": ".meridian/product/discovery/product.yaml",
+    "roadmap_yaml_path": ".meridian/product/roadmap/roadmap.yaml",
     "context_report_path": null
   },
   "config": {
@@ -107,7 +107,7 @@ Pass the following contract as the ENTIRE agent prompt (JSON only, nothing else)
 }
 ```
 
-Agent scans the codebase for existing technology decisions (ADRs, package manifests, framework choices, infrastructure configs — C10) and reads LTM architecture knowledge from `~/.meridian/core/memory/knowledge/architecture/` before any technology selections (C2). Architecture files' "When to Choose" and "When to Avoid" prose is matched against the project's profile values. Produces a context report at `.meridian/product/{slug}/context-report.yaml`.
+Agent scans the codebase for existing technology decisions (ADRs, package manifests, framework choices, infrastructure configs — C10) and reads LTM architecture knowledge from `~/.meridian/core/memory/knowledge/architecture/` before any technology selections (C2). Architecture files' "When to Choose" and "When to Avoid" prose is matched against the project's profile values. Produces a context report at `.meridian/product/architecture/context-report.yaml`.
 
 **Expected return:** Contract with `stm.context_report_path` populated, `step_failure` null.
 
@@ -135,19 +135,19 @@ Update `task_id` to `draft-architecture` in the enriched contract. Pass the full
   "slug": "{slug}",
   "task_id": "draft-architecture",
   "stm": {
-    "product_yaml_path": ".meridian/product/{slug}/product.yaml",
-    "roadmap_yaml_path": ".meridian/product/{slug}/roadmap.yaml",
+    "product_yaml_path": ".meridian/product/discovery/product.yaml",
+    "roadmap_yaml_path": ".meridian/product/roadmap/roadmap.yaml",
     "context_report_path": "{populated from Step 2}",
     "architecture_yaml_path": null
   },
   "config": {
     "profiles": "{extracted profiles}",
-    "output_base": ".meridian/product/{slug}/"
+    "output_base": ".meridian/product/architecture/"
   }
 }
 ```
 
-Agent invokes `draft-technical-approach` skill. NFR section requirements are derived from NFR Profile levels in `product.yaml` (C4). Every technology selection must name a specific product, library, or platform and be justified against profiles and LTM findings (C3). The output must include a `decisions[]` array capturing key architectural decisions with structured records: question, answer, drivers, reasons (with driver attribution), picked technologies, and rejected alternatives (C12, C13). Produces `architecture.yaml` conforming to the architecture.yaml schema at `.meridian/product/{slug}/architecture.yaml`.
+Agent invokes `draft-technical-approach` skill. NFR section requirements are derived from NFR Profile levels in `product.yaml` (C4). Every technology selection must name a specific product, library, or platform and be justified against profiles and LTM findings (C3). The output must include a `decisions[]` array capturing key architectural decisions with structured records: question, answer, drivers, reasons (with driver attribution), picked technologies, and rejected alternatives (C12, C13). Produces `architecture.yaml` conforming to the architecture.yaml schema at `.meridian/product/architecture/architecture.yaml`.
 
 **Expected return:** Contract with `stm.architecture_yaml_path` populated, `step_failure` null.
 
@@ -178,18 +178,18 @@ Update `task_id` to `draft-quality-standards`. Pass the full enriched contract (
   "slug": "{slug}",
   "task_id": "draft-quality-standards",
   "stm": {
-    "product_yaml_path": ".meridian/product/{slug}/product.yaml",
+    "product_yaml_path": ".meridian/product/discovery/product.yaml",
     "architecture_yaml_path": "{populated from Step 3}",
     "quality_standards_path": null
   },
   "config": {
     "profiles": "{extracted profiles}",
-    "output_base": ".meridian/product/{slug}/"
+    "output_base": ".meridian/product/architecture/"
   }
 }
 ```
 
-Agent produces `quality-standards.yaml` conforming to the quality-standards.yaml schema (C5). Each QP dimension level maps to concrete standards and named tooling — vague references are not acceptable. The `debt_baseline` section is initialized with `current_level: null` for all QP dimensions, establishing the measurement baseline. Produces artifact at `.meridian/product/{slug}/quality-standards.yaml`.
+Agent produces `quality-standards.yaml` conforming to the quality-standards.yaml schema (C5). Each QP dimension level maps to concrete standards and named tooling — vague references are not acceptable. The `debt_baseline` section is initialized with `current_level: null` for all QP dimensions, establishing the measurement baseline. Produces artifact at `.meridian/product/architecture/quality-standards.yaml`.
 
 **Expected return:** Contract with `stm.quality_standards_path` populated, `step_failure` null.
 
@@ -214,7 +214,7 @@ Pass the following contract as the ENTIRE agent prompt (JSON only, nothing else)
 {
   "intent_path": "core/components/recipes/prepare-architecture/reference/intent.yaml",
   "stm_base": ".meridian/product/",
-  "artifact_base": ".meridian/product/{slug}",
+  "artifact_base": ".meridian/product",
   "slug": "{slug}",
   "briefs_requested": ["architecture"],
   "stm": {
@@ -232,7 +232,7 @@ Pass the following contract as the ENTIRE agent prompt (JSON only, nothing else)
 ```
 
 Agent produces:
-- `architecture-brief.html` — tabbed layout with tabs: Architecture Overview, Technology Stack, Quality Standards, Profiles Summary, Comments (C7). Written under `.meridian/product/{slug}/briefs/`.
+- `architecture-brief.html` — tabbed layout with tabs: Architecture Overview, Technology Stack, Quality Standards, Profiles Summary, Comments (C7). Written under `.meridian/product/briefs/`.
 - `hub.html` — regenerated to reflect updated architecture brief status. Hub lifecycle owned by doc-builder.
 
 **Expected return:** Contract with `stm.output.briefs_written` populated (array of brief paths under `briefs/`) and `stm.output.hub_path` set, `step_failure` null.
@@ -255,7 +255,7 @@ Depends on: Step 5
 
 This checkpoint is ALWAYS required — C7 mandates brief approval before any artifacts are locked.
 
-Write checkpoint artifact to `.meridian/product/{slug}/checkpoint/prepare-architecture/{YYYYMMDD-HHMMSS}.md`.
+Write checkpoint artifact to `.meridian/product/checkpoints/prepare-architecture/{YYYYMMDD-HHMMSS}.md`.
 
 Update status file: `brief-review → in_progress`.
 
@@ -264,10 +264,10 @@ Present brief to user:
 ```markdown
 ## Architecture Review: {slug}
 
-**Architecture YAML:** `.meridian/product/{slug}/architecture.yaml`
-**Quality Standards:** `.meridian/product/{slug}/quality-standards.yaml`
-**HTML Brief:** `.meridian/product/{slug}/briefs/architecture-brief.html`
-**Hub:** `.meridian/product/{slug}/briefs/hub.html`
+**Architecture YAML:** `.meridian/product/architecture/architecture.yaml`
+**Quality Standards:** `.meridian/product/architecture/quality-standards.yaml`
+**HTML Brief:** `.meridian/product/briefs/architecture-brief.html`
+**Hub:** `.meridian/product/briefs/hub.html`
 
 Open the HTML brief in your browser to review the architecture decisions, technology stack, and quality standards.
 Use the Profiles Summary tab to verify that technology selections align with the project profiles.
@@ -295,8 +295,8 @@ Depends on: Step 6 (Tether)
 After brief approval, read `architecture.yaml` and `quality-standards.yaml` for unresolved items before locking (C11).
 
 ```
-architecture = read_yaml(".meridian/product/{slug}/architecture.yaml")
-quality_standards = read_yaml(".meridian/product/{slug}/quality-standards.yaml")
+architecture = read_yaml(".meridian/product/architecture/architecture.yaml")
+quality_standards = read_yaml(".meridian/product/architecture/quality-standards.yaml")
 
 high_risks = [r for r in architecture.technical_risks if r.severity == "high"]
 quality_gaps = [s_name for s_name, s in quality_standards.standards.items()
@@ -338,7 +338,7 @@ Or type **Vanish** to halt.
 ```
 
 Parse response:
-- `RESOLVED` with numbered answers → write `.meridian/product/{slug}/evidence/prepare-architecture/pre-lock-resolutions.yaml`:
+- `RESOLVED` with numbered answers → write `.meridian/product/evidence/prepare-architecture/pre-lock-resolutions.yaml`:
   ```yaml
   pre_lock_resolutions:
     slug: "{slug}"
@@ -374,9 +374,9 @@ Skill: `validate-architecture-design`
   "mode": "validate-artifact",
   "validation_skill": "validate-architecture-design",
   "artifact_paths": {
-    "architecture_yaml_path": ".meridian/product/{slug}/architecture.yaml",
-    "quality_standards_yaml_path": ".meridian/product/{slug}/quality-standards.yaml",
-    "product_yaml_path": ".meridian/product/{slug}/product.yaml"
+    "architecture_yaml_path": ".meridian/product/architecture/architecture.yaml",
+    "quality_standards_yaml_path": ".meridian/product/architecture/quality-standards.yaml",
+    "product_yaml_path": ".meridian/product/discovery/product.yaml"
   },
   "task_id": "validate-architecture"
 }
@@ -425,15 +425,15 @@ Depends on: Step 6c
 Lock both artifacts:
 
 ```
-architecture = read_yaml(".meridian/product/{slug}/architecture.yaml")
+architecture = read_yaml(".meridian/product/architecture/architecture.yaml")
 architecture.status = "LOCKED"
 architecture.updated_at = current_timestamp()
-write_yaml(".meridian/product/{slug}/architecture.yaml", architecture)
+write_yaml(".meridian/product/architecture/architecture.yaml", architecture)
 
-quality_standards = read_yaml(".meridian/product/{slug}/quality-standards.yaml")
+quality_standards = read_yaml(".meridian/product/architecture/quality-standards.yaml")
 quality_standards.status = "LOCKED"
 quality_standards.updated_at = current_timestamp()
-write_yaml(".meridian/product/{slug}/quality-standards.yaml", quality_standards)
+write_yaml(".meridian/product/architecture/quality-standards.yaml", quality_standards)
 ```
 
 Update status file: `lock → completed`.
@@ -448,17 +448,17 @@ Depends on: Step 7
 
 Run these scenario evals against the final artifacts:
 
-- **SCE-1 (S1 — Technical Architect):** Read `.meridian/product/{slug}/architecture.yaml`. Verify `stack[]` — each entry has a named technology and a `rationale` field. Verify `nfrs` — each requirement rationale references an NFR Profile dimension level. PASS if all stack entries are specific and all NFR requirements have profile-traceable rationale. FAIL if any stack entry is vague or any NFR requirement lacks traceability.
+- **SCE-1 (S1 — Technical Architect):** Read `.meridian/product/architecture/architecture.yaml`. Verify `stack[]` — each entry has a named technology and a `rationale` field. Verify `nfrs` — each requirement rationale references an NFR Profile dimension level. PASS if all stack entries are specific and all NFR requirements have profile-traceable rationale. FAIL if any stack entry is vague or any NFR requirement lacks traceability.
 
-- **SCE-2 (S2 — Engineering Lead):** Read `.meridian/product/{slug}/quality-standards.yaml`. Verify every `standards` section has named tooling for `linter`, `formatter`, `pipeline`, `logging`, and `monitoring` (or equivalent fields). Verify `debt_baseline.dimensions` has an entry for every QP dimension (QP-1 through QP-7) with `target_level` matching the product.yaml QP profile level and `current_level: null`. PASS if all tooling fields are present and debt baseline is complete. FAIL if any tooling is null or any QP dimension is missing from debt_baseline.
+- **SCE-2 (S2 — Engineering Lead):** Read `.meridian/product/architecture/quality-standards.yaml`. Verify every `standards` section has named tooling for `linter`, `formatter`, `pipeline`, `logging`, and `monitoring` (or equivalent fields). Verify `debt_baseline.dimensions` has an entry for every QP dimension (QP-1 through QP-7) with `target_level` matching the product.yaml QP profile level and `current_level: null`. PASS if all tooling fields are present and debt baseline is complete. FAIL if any tooling is null or any QP dimension is missing from debt_baseline.
 
-- **SCE-3 (S3 — Product Manager):** Read `.meridian/product/{slug}/briefs/architecture-brief.html`. Verify the Profiles Summary tab is present and renders all three profiles (PP, NFR, QP) with dimension levels. Verify the Architecture Overview tab presents high-level technology decisions in human-readable form without requiring deep technical knowledge. PASS if both tabs are present and navigable.
+- **SCE-3 (S3 — Product Manager):** Read `.meridian/product/briefs/architecture-brief.html`. Verify the Profiles Summary tab is present and renders all three profiles (PP, NFR, QP) with dimension levels. Verify the Architecture Overview tab presents high-level technology decisions in human-readable form without requiring deep technical knowledge. PASS if both tabs are present and navigable.
 
-- **SCE-4 (S4 — Implementation Agent):** Read `.meridian/product/{slug}/architecture.yaml`. For every epic referenced in `roadmap.yaml` `timeline[].epic_refs`, verify architecture coverage exists — either a `deployment_units` entry, a `stack` entry, a `platforms` entry with the epic in `features_served`, or an `integrations` entry with the epic in `features_served`. PASS if all roadmap epics have corresponding architecture coverage. FAIL if any epic lacks coverage.
+- **SCE-4 (S4 — Implementation Agent):** Read `.meridian/product/architecture/architecture.yaml`. For every epic referenced in `roadmap.yaml` `timeline[].epic_refs`, verify architecture coverage exists — either a `deployment_units` entry, a `stack` entry, a `platforms` entry with the epic in `features_served`, or an `integrations` entry with the epic in `features_served`. PASS if all roadmap epics have corresponding architecture coverage. FAIL if any epic lacks coverage.
 
-- **SCE-5 (S5 — Quality Lead):** Read `.meridian/product/{slug}/quality-standards.yaml`. Verify `debt_baseline.dimensions` covers all 7 QP dimensions (QP-1 through QP-7), each with `target_level`, `current_level: null`, `gap: null`, and `remediation: null`. Verify each `standards` section has a `qp_level` matching the product.yaml `quality_profile` level for that dimension. PASS if all dimensions are present, all `target_level` values match QP profile, and all `debt_baseline` entries are properly initialized. FAIL if any dimension is missing or any `qp_level` mismatches.
+- **SCE-5 (S5 — Quality Lead):** Read `.meridian/product/architecture/quality-standards.yaml`. Verify `debt_baseline.dimensions` covers all 7 QP dimensions (QP-1 through QP-7), each with `target_level`, `current_level: null`, `gap: null`, and `remediation: null`. Verify each `standards` section has a `qp_level` matching the product.yaml `quality_profile` level for that dimension. PASS if all dimensions are present, all `target_level` values match QP profile, and all `debt_baseline` entries are properly initialized. FAIL if any dimension is missing or any `qp_level` mismatches.
 
-- **SCE-6 (S6 — Decision Reviewer):** Read `.meridian/product/{slug}/architecture.yaml` `decisions[]`. Verify every decision has a `question`, `answer`, non-empty `drivers[]`, and `reasons[]` where each reason has a `driver` tag from the allowed set (budget, ltm, profile, user-decision). Verify that `rejected[]` entries (when present) have both `option` and `reason` fields. Verify decisions collectively cover at least 3 distinct driver types. PASS if all decisions are fully structured with driver-tagged reasoning and rejected alternatives have stated rationale. FAIL if any decision lacks driver traceability or rejected entries lack rationale.
+- **SCE-6 (S6 — Decision Reviewer):** Read `.meridian/product/architecture/architecture.yaml` `decisions[]`. Verify every decision has a `question`, `answer`, non-empty `drivers[]`, and `reasons[]` where each reason has a `driver` tag from the allowed set (budget, ltm, profile, user-decision). Verify that `rejected[]` entries (when present) have both `option` and `reason` fields. Verify decisions collectively cover at least 3 distinct driver types. PASS if all decisions are fully structured with driver-tagged reasoning and rejected alternatives have stated rationale. FAIL if any decision lacks driver traceability or rejected entries lack rationale.
 
 Record PASS/FAIL for each SCE. If any SCE fails, report to user with details but continue to Evidence — scenario failures are observations, not halts.
 
@@ -470,24 +470,24 @@ Record PASS/FAIL for each SCE. If any SCE fails, report to user with details but
 Owner: orchestrator + `repo-orchestrator` (utility, exempt from C9)
 Depends on: Step 8
 
-Write evidence file to `.meridian/product/{slug}/evidence/prepare-architecture/{YYYYMMDD-HHMMSS}.md`:
+Write evidence file to `.meridian/product/evidence/prepare-architecture/{YYYYMMDD-HHMMSS}.md`:
 
 ```markdown
 # prepare-architecture Evidence
 
 **Product:** {slug}
-**Product YAML:** .meridian/product/{slug}/product.yaml
+**Product YAML:** .meridian/product/discovery/product.yaml
 **Completed:** {timestamp}
 
 ## Artifacts
 
 | Artifact | Path | Status |
 |----------|------|--------|
-| Context Report | .meridian/product/{slug}/context-report.yaml | written |
-| Architecture YAML | .meridian/product/{slug}/architecture.yaml | LOCKED |
-| Quality Standards | .meridian/product/{slug}/quality-standards.yaml | LOCKED |
-| Architecture Brief | .meridian/product/{slug}/briefs/architecture-brief.html | written |
-| Hub | .meridian/product/{slug}/briefs/hub.html | written |
+| Context Report | .meridian/product/architecture/context-report.yaml | written |
+| Architecture YAML | .meridian/product/architecture/architecture.yaml | LOCKED |
+| Quality Standards | .meridian/product/architecture/quality-standards.yaml | LOCKED |
+| Architecture Brief | .meridian/product/briefs/architecture-brief.html | written |
+| Hub | .meridian/product/briefs/hub.html | written |
 
 ## Checkpoint
 
@@ -512,10 +512,10 @@ Present final summary to user:
 ## Architecture Complete: {slug}
 
 **Artifacts:**
-- Architecture YAML: `.meridian/product/{slug}/architecture.yaml` (status: LOCKED)
-- Quality Standards: `.meridian/product/{slug}/quality-standards.yaml` (status: LOCKED)
-- HTML Brief: `.meridian/product/{slug}/briefs/architecture-brief.html`
-- Hub: `.meridian/product/{slug}/briefs/hub.html`
+- Architecture YAML: `.meridian/product/architecture/architecture.yaml` (status: LOCKED)
+- Quality Standards: `.meridian/product/architecture/quality-standards.yaml` (status: LOCKED)
+- HTML Brief: `.meridian/product/briefs/architecture-brief.html`
+- Hub: `.meridian/product/briefs/hub.html`
 
 **Next:** Run `/draft-lld` to create the low-level design, or `/scope-roadmap-epics` to begin implementation planning.
 ```
@@ -530,7 +530,7 @@ Invoke `repo-orchestrator` for evidence self-commit (non-blocking — failure do
   "stm": {
     "input": {},
     "output": {
-      "evidence": ".meridian/product/{slug}/evidence/prepare-architecture/{YYYYMMDD-HHMMSS}.md"
+      "evidence": ".meridian/product/evidence/prepare-architecture/{YYYYMMDD-HHMMSS}.md"
     }
   },
   "config": {
@@ -550,14 +550,14 @@ Steps execute in compiled order — run top to bottom.
 
 **Product detection:** Slug is derived from `product.yaml` during pre-flight.
 
-**Status file:** `.meridian/product/{slug}/status/prepare-architecture.json`
+**Status file:** `.meridian/product/status/prepare-architecture.json`
 
 ```json
 {
   "recipe": "prepare-architecture",
   "slug": "{slug}",
   "started_at": "2026-03-25T10:00:00+0530",
-  "product_yaml_path": ".meridian/product/{slug}/product.yaml",
+  "product_yaml_path": ".meridian/product/discovery/product.yaml",
   "tasks": {
     "read-context":            { "status": "completed", "completed_at": "..." },
     "scan-codebase-ltm":       { "status": "completed", "completed_at": "..." },
@@ -577,7 +577,7 @@ Steps execute in compiled order — run top to bottom.
 
 **Executor loop:**
 ```
-check for status file at .meridian/product/{slug}/status/prepare-architecture.json
+check for status file at .meridian/product/status/prepare-architecture.json
 
 if file exists (resume):
   read contract_snapshot — reconstruct enriched JSON contract
@@ -595,7 +595,7 @@ if file absent (fresh start):
 
 **`/prepare-architecture --resume`** — No `--product` argument needed.
 
-1. Find the status file at `.meridian/product/*/status/prepare-architecture.json` (most recent by `started_at` if multiple exist).
+1. Find the status file at `.meridian/product/status/prepare-architecture.json`.
 2. Read `contract_snapshot` — reconstruct the enriched JSON contract.
 3. Route based on task statuses:
    - `brief-review` status `in_progress` or `pending` → re-present brief from `stm.output.briefs_written[0]` (the architecture brief path from Step 5's briefs_written output), continue from Step 6 feedback loop.

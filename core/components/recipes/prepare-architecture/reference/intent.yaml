@@ -46,7 +46,7 @@ constraints:
   - id: C6
     rule: >
       All architecture and quality artifacts must be written to
-      .meridian/product/{slug}/ at the product level, not per-epic.
+      .meridian/product/ at the product level, not per-epic.
       These are product-scoped decisions.
 
   - id: C7

@@ -26,7 +26,7 @@ constraints:
   - id: C6
     rule: >
       All vision and product artifacts must be written to
-      .meridian/project/product/{slug}/ relative to the project root.
+      .meridian/product/discovery/ relative to the project root.
       Product STM is project-scoped, not per-issue and not in the global
       home directory.
   - id: C7
@@ -148,7 +148,7 @@ failure_conditions:
   - id: F3
     condition: >
       Vision drafting completed but no vision artifact exists at the
-      expected path in .meridian/project/product/{slug}/.
+      expected path in .meridian/product/discovery/.
   - id: F5
     condition: >
       Validation completed with blocker-severity issues still present
@@ -228,7 +228,7 @@ scenarios:
     persona: Engineering Lead
     given: >
       A LOCKED vision artifact at
-      .meridian/project/product/{slug}/product.yaml
+      .meridian/product/discovery/product.yaml
     then: >
       Can use the locked vision as authoritative input for roadmap
       planning — strategic goals, success metrics, and scope boundaries
@@ -247,7 +247,7 @@ scenarios:
     persona: Engineering Lead
     given: >
       A LOCKED vision artifact for an internal library at
-      .meridian/project/product/{slug}/product.yaml with type "library"
+      .meridian/product/discovery/product.yaml with type "library"
     then: >
       Can use the locked vision as authoritative input for roadmap
       planning — strategic goals with IDs, value proposition, and
