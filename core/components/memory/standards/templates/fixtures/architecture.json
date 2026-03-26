@@ -56,7 +56,7 @@
     ],
     "memory": {
       "approach": "Dual-tier file-system memory: STM for active work, LTM for persistent knowledge",
-      "stm": ".meridian/project/{slug}/ — per-session artifacts including intent files, execution plans, and evidence",
+      "stm": ".meridian/project/issues/{issue-number}/ — per-issue artifacts including intent files, execution plans, and evidence",
       "ltm": "~/.meridian/core/memory/ — global standards, templates, agent definitions, and accumulated knowledge",
       "embeddings": "Not implemented in MVP — full-text search over LTM deferred to post-launch based on scale needs"
     }
@@ -72,7 +72,7 @@
         { "driver": "ltm", "text": "agent-memory.md: 'File-based STM/LTM provides full auditability — every decision is a file you can inspect'" },
         { "driver": "profile", "text": "Explicit state requirement (NFR-1=3) — all decisions must be durable before execution" }
       ],
-      "picked": ["File-system STM at .meridian/project/{slug}/", "File-system LTM at ~/.meridian/core/memory/"],
+      "picked": ["File-system STM at .meridian/project/issues/{issue-number}/", "File-system LTM at ~/.meridian/core/memory/"],
       "rejected": [
         { "option": "REST API between agents", "reason": "unnecessary network overhead for single-user CLI" },
         { "option": "In-memory message passing", "reason": "LLM context windows are ephemeral — state must persist to disk" }

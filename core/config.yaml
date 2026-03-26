@@ -59,3 +59,11 @@ stm:
 # Product artifacts — parallel to project, not nested
 product:
   base-path: .meridian/product/
+  directories:
+    discovery: discovery/
+    roadmap: roadmap/
+    architecture: architecture/
+    evidence: evidence/
+    briefs: briefs/
+    checkpoints: checkpoints/
+    status: status/

@@ -65,7 +65,7 @@ You do NOT follow step-by-step workflows. Recipes define workflows. You interpre
 |----------------|---------|-------|-----|
 | "discover opportunity", "market context", "extract market" | "Discover product opportunity for QR code B2B SaaS" | `discover-product-opportunity` | Structured market analysis from free-text problem |
 | "draft vision", "create vision" | "Draft vision from this market context" | `draft-product-vision` | Vision document with Strategic Goals |
-| "validate vision", "check vision", "vision completeness" | "Validate vision at .meridian/project/product/x/vision.md" | `validate-product-vision` | Completeness and lock-readiness check |
+| "validate vision", "check vision", "vision completeness" | "Validate vision at .meridian/product/discovery/vision.md" | `validate-product-vision` | Completeness and lock-readiness check |
 | "business review", "PM review", "generate review" | "Generate business review for vision.md" | `generate-business-review` | Audience-appropriate review (no engineering) |
 | "research domain", "domain context", "market research" | "Research BFSI competitive landscape" | `research-domain-context` | Web research when LTM has insufficient domain knowledge |
 | "scope roadmap", "extract epics", "epic breakdown" | "Scope roadmap epics from locked vision" | `scope-roadmap-epics` | Extract and time-bucket epics from a locked vision |
@@ -102,11 +102,11 @@ When you receive a JSON contract from the recipe orchestrator:
 ```json
 {
   "intent_path": "reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "slug": "chronos",
   "stm": {
-    "vision_path": ".meridian/project/product/chronos/vision.md",
-    "epics_path": ".meridian/project/product/chronos/epics.yaml",
+    "vision_path": ".meridian/product/discovery/vision.md",
+    "epics_path": ".meridian/product/roadmap/epics.yaml",
     "feasibility_path": null,
     "brief_path": null,
     "approved_brief_path": null,
@@ -226,14 +226,14 @@ Input:
   domain: "{identified domain}"
   knowledge_gaps: ["{what LTM didn't cover — e.g., competitive landscape, market size, regulatory context}"]
   problem_statement: "{original problem}"
-  output_base: ".meridian/project/product/{slug}/"
+  output_base: ".meridian/product/discovery/"
 ```
 
 The skill performs web research, writes `domain-context.md` to STM, and returns coverage metadata. Load the resulting STM artifact as enrichment context.
 
 ### Step 6: Load STM
 
-Read from `.meridian/project/product/` if exists:
+Read from `.meridian/product/` if exists:
 - Existing vision, roadmap, reviews — for enrichment and continuity
 - Domain context artifacts (from Step 5 or prior runs)
 - Checkpoint and evidence artifacts — for retry/recovery context
@@ -292,7 +292,7 @@ market_context:
 
 ```yaml
 vision:
-  path: "{.meridian/project/product/{slug}/vision.md}"
+  path: "{.meridian/product/discovery/vision.md}"
   slug: "{derived slug}"
   sections: [problem_statement, target_users, value_proposition, strategic_goals, success_metrics, competitive_landscape, assumptions, out_of_scope]
   status: "DRAFT"
@@ -320,7 +320,7 @@ validation_result:
 
 ```yaml
 business_review:
-  path: "{.meridian/project/product/{slug}/reviews/{artifact}-review.md}"
+  path: "{.meridian/product/discovery/reviews/{artifact}-review.md}"
   audience: "{audience value}"
   artifact_type: "vision|roadmap|backlog"
   summary: "{2-3 sentence summary}"
@@ -333,7 +333,7 @@ business_review:
 
 ```yaml
 domain_context:
-  path: "{.meridian/project/product/{slug}/domain-context.md}"
+  path: "{.meridian/product/discovery/domain-context.md}"
   domain: "{identified domain}"
   coverage:
     - gap: "{knowledge_gap}"

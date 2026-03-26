@@ -89,7 +89,7 @@ This agent communicates with recipes via JSON contracts.
 |-------|----------|-------------|
 | `intent_path` | Yes | Path to intent.yaml — source of constraints |
 | `stm_base` | Yes | Root path for STM artifacts |
-| `artifact_base` | Yes | Base path where YAML artifacts live (e.g., `.meridian/project/product/{slug}/` or `.meridian/project/product/{slug}/epics/{epic_id}/`) |
+| `artifact_base` | Yes | Base path where YAML artifacts live (e.g., `.meridian/product/discovery/` or `.meridian/product/roadmap/epics/{epic_id}/`) |
 | `slug` | Yes | Product slug for display and localStorage keys |
 | `briefs_requested` | Yes | List of artifact names to generate briefs for. Valid: `product`, `roadmap`, `features`, `architecture`, `tech`, `scenarios`, `plan` |
 | `stm.input` | Yes | Named paths to input YAML artifacts |
