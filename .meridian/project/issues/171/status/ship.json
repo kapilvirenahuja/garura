@@ -9,7 +9,8 @@
       "completed_at": "2026-03-26T06:23:45Z"
     },
     "create-pr": {
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-03-26T06:31:47Z"
     },
     "merge-pr": {
       "status": "pending"

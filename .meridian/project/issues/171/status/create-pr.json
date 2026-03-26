@@ -1,0 +1,20 @@
+{
+  "recipe": "create-pr",
+  "issue": 171,
+  "started_at": "2026-03-26T06:25:20Z",
+  "tasks": {
+    "analyze-pr-readiness": {
+      "status": "completed",
+      "completed_at": "2026-03-26T06:30:01Z"
+    },
+    "resolve-issue-linkage": {
+      "status": "completed",
+      "completed_at": "2026-03-26T06:30:01Z"
+    },
+    "create-pr": {
+      "status": "completed",
+      "completed_at": "2026-03-26T06:31:47Z"
+    }
+  },
+  "completed_at": "2026-03-26T06:31:47Z"
+}
