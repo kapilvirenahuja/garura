@@ -100,6 +100,25 @@ constraints:
       the product-strategist. The judge scores each epic's alignment with
       the product vision (high/medium/low confidence) with rationale. The
       confidence report is included in the evidence output.
+  - id: C16
+    rule: >
+      Every discrete capability listed in product.yaml scope.in_scope must
+      map to at least one epic's in_scope as that epic's owned responsibility.
+      If a capability is cross-cutting (touches multiple domain modules),
+      the scoping agent must either (a) create a dedicated epic with a
+      documented justification for why single-module-scope does not apply,
+      or (b) explicitly assign each fragment of the capability to a named
+      epic whose in_scope list claims it. No in_scope capability may be
+      silently absorbed as an implementation detail without explicit
+      ownership in an epic's in_scope field.
+  - id: C17
+    rule: >
+      No epic may include in its in_scope any capability that appears in
+      product.yaml scope.out_of_scope or is explicitly marked as deferred.
+      The reverse-coverage check must cross-reference every epic's in_scope
+      against product.yaml's out_of_scope and deferred items and flag
+      violations as deferred_violation status. A deferred_violation is a
+      hard halt — the epic must be corrected before proceeding.
 
 failure_conditions:
   - id: F1
@@ -151,6 +170,18 @@ failure_conditions:
       The confidence assessment was performed by the same agent that
       scoped the epics (product-strategist) rather than by a
       context-isolated judge — self-assessment, not independent evaluation.
+  - id: F11
+    condition: >
+      A discrete capability listed in product.yaml scope.in_scope has no
+      owning epic — it does not appear in any epic's in_scope field, or
+      was silently absorbed as an implementation detail into an epic whose
+      in_scope does not explicitly claim it.
+  - id: F12
+    condition: >
+      An epic's in_scope contains a capability that is explicitly listed
+      in product.yaml scope.out_of_scope or marked as deferred — the epic
+      claims work that the product vision intentionally excludes from the
+      current scope.
 
 scenarios:
   - id: S1
@@ -221,3 +252,14 @@ scenarios:
       Can see an independent (not self-assessed) confidence score per
       epic with rationale, helping prioritize which epics need deeper
       review or refinement before committing to them.
+  - id: S10
+    persona: Product Manager
+    given: >
+      The reverse-coverage report produced by the judge after epic scoping,
+      with scope-item-level and deferred-item cross-reference results
+    then: >
+      Can verify that every in_scope capability from product.yaml has an
+      explicit epic owner, that no epic claims deferred capabilities, and
+      can identify any cross-cutting capabilities that required horizontal
+      epic exceptions — with full traceability from product scope to epic
+      ownership.

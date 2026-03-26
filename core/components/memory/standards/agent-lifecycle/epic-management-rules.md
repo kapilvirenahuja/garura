@@ -24,6 +24,15 @@ This aligns with the module boundaries defined in `knowledge/domain-taxonomy/`. 
 **Correct:** "Payments epic depends on User Management epic for authenticated sessions"
 **Incorrect:** "Epic covers user registration AND payment processing"
 
+### Exception: Explicitly Scoped Cross-Cutting Capabilities
+
+When product.yaml `scope.in_scope` explicitly names a cross-cutting capability (e.g., "Platform Configuration" covering pricing bands, category management, and feature flags across multiple modules), the scoping agent MAY create a horizontal epic with a `cross_cutting_justification` field explaining:
+1. Which product.yaml in_scope item this epic owns
+2. Why single-module-scope does not apply (the capability is explicitly cross-cutting in the product vision)
+3. Which module boundaries it crosses and how ownership is delineated
+
+This exception applies ONLY when the cross-cutting capability is an explicit, named item in product.yaml scope — not when the agent infers cross-cutting needs. The product vision is the authority; the rule is the default.
+
 ## Rule 3: Mocks as Phased Delivery
 
 **Every mock introduced must be replaced in a subsequent epic.**

@@ -123,6 +123,37 @@
           "type": "structural"
         }
       ]
+    },
+    {
+      "id": 4,
+      "name": "reverse-coverage-scope-and-deferred-items",
+      "prompt": "You are a judge agent performing a reverse-coverage check. Read product.yaml at core/components/recipes/plan-roadmap/evals/fixtures/product.yaml and epics.yaml at core/components/recipes/plan-roadmap/evals/outputs/epics.yaml. Check: (1) Every item in product.yaml scope.in_scope maps to at least one epic's in_scope as explicit ownership — no capability silently absorbed as implementation detail. (2) No epic's in_scope contains a capability from product.yaml scope.out_of_scope or deferred items. (3) Any cross-cutting capabilities have cross_cutting_justification in their epic. Write coverage report to core/components/recipes/plan-roadmap/evals/outputs/coverage-check.yaml.",
+      "expected_output": "A coverage-check.yaml with per-item status (covered/orphaned_scope/deferred_violation), scope_item_coverage section listing each in_scope item and its owning epic, deferred_violations section (should be empty), and summary counts",
+      "files": [
+        "core/components/recipes/plan-roadmap/evals/fixtures/product.yaml"
+      ],
+      "assertions": [
+        {
+          "name": "scope_items_all_covered",
+          "description": "Every in_scope item from product.yaml has status covered — no orphaned_scope entries",
+          "type": "cross-reference"
+        },
+        {
+          "name": "no_deferred_violations",
+          "description": "No epic's in_scope contains a capability from product.yaml out_of_scope — deferred_violations list is empty",
+          "type": "negative"
+        },
+        {
+          "name": "cross_cutting_justified",
+          "description": "Any epic that spans multiple modules has a cross_cutting_justification field explaining the exception to Rule 2",
+          "type": "structural"
+        },
+        {
+          "name": "coverage_report_complete",
+          "description": "Report contains scope_item_coverage, deferred_violations, and summary sections with counts",
+          "type": "structural"
+        }
+      ]
     }
   ]
 }

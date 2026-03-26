@@ -120,6 +120,9 @@ Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridia
 - WHEN epic_rules_path is provided, APPLY all 7 rules during epic derivation and scoping — do not ignore any rule
 - WHEN domain_taxonomy_paths is provided, ENFORCE Rule 2 (single-module-scope) — no epic may span multiple domain modules. If an epic would span modules, split it into separate epics with depends_on links
 - WHEN epic_rules_path or domain_taxonomy_paths are NOT provided, note the gap in output notes but do not halt (backward compatible)
+- ALWAYS cross-reference each epic's in_scope against product.yaml scope.out_of_scope and any items marked as deferred — no epic may claim a capability that the product vision explicitly excludes or defers. Return structured failure if any violation is detected.
+- ALWAYS verify that every item in product.yaml scope.in_scope has at least one epic whose in_scope explicitly claims it — no in_scope capability may be silently absorbed as an implementation detail without explicit ownership. If a capability is cross-cutting, either create a horizontal epic with cross_cutting_justification (per Rule 2 exception) or explicitly assign each fragment to a named epic.
+- WHEN a cross-cutting capability from product.yaml scope.in_scope cannot fit single-module-scope, create an epic with cross_cutting_justification per epic-management-rules Rule 2 exception — do not silently drop or fragment the capability without an owning epic
 
 ## Version
 
