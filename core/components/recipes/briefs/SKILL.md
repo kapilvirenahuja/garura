@@ -32,10 +32,8 @@ product_base=$(grep -A1 '^product:' core/config.yaml | grep 'base-path' | awk '{
 stm_base=$(grep -A1 '^stm:' core/config.yaml | grep 'base-path' | awk '{print $2}')
 
 # C4: Check product directory exists
-# Glob for {product_base}/*/product.yaml
+# Glob for {product_base}/discovery/product.yaml
 # If zero results → graceful halt (F4)
-# If one result → use that slug
-# If multiple → list slugs, use most recently modified
 
 # C1: Derive context — no flags, no arguments
 branch=$(git branch --show-current 2>/dev/null || echo "")
@@ -58,14 +56,14 @@ issue=$(echo "$branch" | grep -oE '/[0-9]+' | tr -d '/')
 Owner: recipe
 Depends on: pre-flight
 
-1. Read product directory at `{product_base}/{slug}/`
-2. Glob for product-level YAMLs: `product.yaml`, `roadmap.yaml`
-3. Glob for epic directories: `epics/*/` — for each, glob for `*.yaml`
+1. Read product directory at `{product_base}/`
+2. Glob for product-level YAMLs: `discovery/product.yaml`, `roadmap/roadmap.yaml`
+3. Glob for epic directories: `roadmap/epics/*/` — for each, glob for `*.yaml`
 4. If epic context was resolved in pre-flight:
-   - Scope = product-level YAMLs + `epics/{epic_id}/*.yaml`
+   - Scope = product-level YAMLs + `roadmap/epics/{epic_id}/*.yaml`
    - (C7: product-level always included)
 5. If no epic context (main branch or unresolvable):
-   - Scope = product-level YAMLs + all `epics/*/*.yaml` found on disk
+   - Scope = product-level YAMLs + all `roadmap/epics/*/*.yaml` found on disk
 6. If no YAML artifacts found in scope → graceful halt (F4)
 
 Record the full list of YAML paths in scope with their relative keys (e.g., `product.yaml`, `epics/E1/features.yaml`).
@@ -78,7 +76,7 @@ Record the full list of YAML paths in scope with their relative keys (e.g., `pro
 Owner: recipe
 Depends on: Step 1
 
-1. Read `{product_base}/{slug}/briefs/.checksums.json` — create empty `{}` if missing (C6)
+1. Read `{product_base}/briefs/.checksums.json` — create empty `{}` if missing (C6)
 2. For each YAML in scope:
    a. Compute sha256 of the file content
    b. Look up the relative key in .checksums.json
@@ -147,10 +145,10 @@ If template not found at either path → halt with: "Template not found for arti
 **3.3 — Ensure briefs output directories exist**
 
 For product-level artifacts:
-- `{product_base}/{slug}/briefs/`
+- `{product_base}/briefs/`
 
 For epic-scoped artifacts:
-- `{product_base}/{slug}/briefs/epics/{epic_id}/`
+- `{product_base}/briefs/epics/{epic_id}/`
 
 Create directories if they do not exist.
 
@@ -158,8 +156,8 @@ Create directories if they do not exist.
 
 Templates reference `./brief-common.css` and `./brief-render.js` as external files (C8, C12, C13). Copy both to every briefs directory that will contain HTML. An HTML brief without its companion CSS/JS is a broken artifact (F10, F11).
 
-- Always: `{product_base}/{slug}/briefs/brief-common.css` and `brief-render.js`
-- For each epic in scope: `{product_base}/{slug}/briefs/epics/{epic_id}/brief-common.css` and `brief-render.js`
+- Always: `{product_base}/briefs/brief-common.css` and `brief-render.js`
+- For each epic in scope: `{product_base}/briefs/epics/{epic_id}/brief-common.css` and `brief-render.js`
 
 Asset lookup order (same as templates):
 1. `~/.meridian/core/memory/standards/templates/brief-common.css` (global)
@@ -171,19 +169,19 @@ brief-common.css delivers the Phoenix design system with Space Grotesk typograph
 
 **3.5 — Copy template to briefs directory**
 
-- For product-level: copy to `{product_base}/{slug}/briefs/{artifact}-brief.html`
-- For epic-scoped: copy to `{product_base}/{slug}/briefs/epics/{epic_id}/{artifact}-brief.html`
+- For product-level: copy to `{product_base}/briefs/{artifact}-brief.html`
+- For epic-scoped: copy to `{product_base}/briefs/epics/{epic_id}/{artifact}-brief.html`
 
 Templates reference external CSS/JS via `<link>` and `<script src>` — no inline styles (C8). Copy as-is. The referenced brief-common.css and brief-render.js must already be in the target directory (copied in 3.4).
 
 **3.6 — Copy JSON to briefs directory**
 
-- For product-level: copy `{product_base}/{slug}/{artifact}.json` to `{product_base}/{slug}/briefs/{artifact}.json`
-- For epic-scoped: copy `{product_base}/{slug}/epics/{epic_id}/{artifact}.json` to `{product_base}/{slug}/briefs/epics/{epic_id}/{artifact}.json`
+- For product-level: copy `{product_base}/discovery/{artifact}.json` to `{product_base}/briefs/{artifact}.json`
+- For epic-scoped: copy `{product_base}/roadmap/epics/{epic_id}/{artifact}.json` to `{product_base}/briefs/epics/{epic_id}/{artifact}.json`
 
 For cross-document references — when generating epic artifact briefs, also copy product-level JSON files if they exist:
-- Copy `{product_base}/{slug}/product.json` to `{product_base}/{slug}/briefs/epics/{epic_id}/product.json`
-- Copy `{product_base}/{slug}/quality-standards.json` to `{product_base}/{slug}/briefs/epics/{epic_id}/quality-standards.json`
+- Copy `{product_base}/discovery/product.json` to `{product_base}/briefs/epics/{epic_id}/product.json`
+- Copy `{product_base}/architecture/quality-standards.json` to `{product_base}/briefs/epics/{epic_id}/quality-standards.json`
 
 **3.7 — Generate hub.json manifest**
 
@@ -195,7 +193,7 @@ import sys, os, json, yaml, glob
 
 product_base = sys.argv[1]
 slug = sys.argv[2]
-artifact_base = os.path.join(product_base, slug)
+artifact_base = product_base
 briefs_dir = os.path.join(artifact_base, 'briefs')
 
 hub = {
@@ -207,8 +205,10 @@ hub = {
 }
 
 # Product-level artifacts
+artifact_paths = {'product': os.path.join(artifact_base, 'discovery', 'product.yaml'),
+                  'roadmap': os.path.join(artifact_base, 'roadmap', 'roadmap.yaml')}
 for artifact in ['product', 'roadmap']:
-    yaml_path = os.path.join(artifact_base, artifact + '.yaml')
+    yaml_path = artifact_paths[artifact]
     if os.path.exists(yaml_path):
         with open(yaml_path) as f:
             data = yaml.safe_load(f) or {}
@@ -227,7 +227,7 @@ for artifact in ['product', 'roadmap']:
         hub['product_name'] = data.get('slug', slug)
 
 # Epic artifacts
-epics_dir = os.path.join(artifact_base, 'epics')
+epics_dir = os.path.join(artifact_base, 'roadmap', 'epics')
 if os.path.isdir(epics_dir):
     for epic_id in sorted(os.listdir(epics_dir)):
         epic_dir = os.path.join(epics_dir, epic_id)
@@ -266,7 +266,7 @@ with open(os.path.join(briefs_dir, 'hub.json'), 'w') as f:
 - Source (lookup order):
   1. `~/.meridian/core/memory/standards/templates/hub.html`
   2. `core/components/memory/standards/templates/hub.html`
-- Target: `{product_base}/{slug}/briefs/hub.html`
+- Target: `{product_base}/briefs/hub.html`
 
 Copy as-is. hub.html references external brief-common.css and brief-render.js (already copied in 3.4) and reads hub.json at render time.
 
@@ -274,9 +274,9 @@ Copy as-is. hub.html references external brief-common.css and brief-render.js (a
 
 - **SE-1 (F1):** Every YAML artifact whose checksum changed has a corresponding regenerated HTML brief under briefs/. Pass: For each YAML in the changed list, a brief file exists at the expected briefs/ path with a modification time after the recipe started. Fail: A YAML artifact whose checksum changed has no corresponding brief under briefs/ after the recipe completes.
 
-- **SE-3 (F3):** No HTML files exist outside the briefs/ subdirectory after completion. Pass: All brief paths written are under {artifact_base}/briefs/. No *-brief.html or hub.html exists at {artifact_base}/ root level. Fail: HTML files exist outside the briefs/ subdirectory of the product directory after the recipe completes.
+- **SE-3 (F3):** No HTML files exist outside the briefs/ subdirectory after completion. Pass: All brief paths written are under `{product_base}/briefs/`. No *-brief.html or hub.html exists at `{product_base}/` root level. Fail: HTML files exist outside the briefs/ subdirectory of the product directory after the recipe completes.
 
-- **SE-11 (C5):** All generated briefs and hub.html reside under the briefs/ subdirectory. No HTML output is written outside that directory. Pass: Every brief and hub.html written is under {artifact_base}/briefs/. Fail: Any brief or hub.html path is outside the briefs/ subdirectory.
+- **SE-11 (C5):** All generated briefs and hub.html reside under the briefs/ subdirectory. No HTML output is written outside that directory. Pass: Every brief and hub.html written is under `{product_base}/briefs/`. Fail: Any brief or hub.html path is outside the briefs/ subdirectory.
 
 - **SE-5 (F5):** Hub.html reflects all current briefs — no missing entries for briefs that exist, no entries for briefs that do not exist. Pass: hub.json (which hub.html reads) contains an entry for every brief file that exists under briefs/. No entry points to a non-existent brief. Fail: hub.json has missing entries for briefs that exist, or entries for briefs that do not exist.
 
@@ -305,14 +305,14 @@ Owner: recipe
 Depends on: Step 3
 
 1. For each YAML that was in scope (changed or not), write its current sha256 to the checksums map
-2. Write `{product_base}/{slug}/briefs/.checksums.json` with the complete map
+2. Write `{product_base}/briefs/.checksums.json` with the complete map
 3. Verify: re-read the file and confirm all entries match current YAML state (SE-6)
 
 **Step 4 Evals:**
 
 - **SE-6 (F6):** Stored checksums match actual YAML checksums after completion. Pass: .checksums.json contains an entry for every YAML artifact in scope, and each stored checksum matches sha256 of the current YAML file. Fail: Stored checksums after completion do not match actual current checksums of the YAML artifacts on disk.
 
-- **SE-12 (C6):** Checksums are persisted to a checksums file within the briefs/ directory after the recipe completes. Pass: .checksums.json exists at {artifact_base}/briefs/.checksums.json and contains an entry for every YAML artifact that was in scope. Fail: .checksums.json is missing, empty, or does not contain entries for all in-scope YAML artifacts.
+- **SE-12 (C6):** Checksums are persisted to a checksums file within the briefs/ directory after the recipe completes. Pass: .checksums.json exists at `{product_base}/briefs/.checksums.json` and contains an entry for every YAML artifact that was in scope. Fail: .checksums.json is missing, empty, or does not contain entries for all in-scope YAML artifacts.
 
 ---
 
@@ -328,7 +328,7 @@ Present results:
 **Scope:** {epic context or "full scan"}
 **Changed:** {N} of {total} YAML artifacts
 **Regenerated:** {list of brief names}
-**Hub:** {product_base}/{slug}/briefs/hub.html
+**Hub:** {product_base}/briefs/hub.html
 
 Open hub.html in your browser to review.
 ```
@@ -337,7 +337,7 @@ If nothing changed (short-circuited at Step 2):
 
 ```markdown
 All briefs up to date for {slug}.
-Hub: {product_base}/{slug}/briefs/hub.html
+Hub: {product_base}/briefs/hub.html
 ```
 
 ---
@@ -346,7 +346,7 @@ Hub: {product_base}/{slug}/briefs/hub.html
 
 Run after workflow completes. These validate end-to-end outcomes.
 
-- **SCE-1 (S1 — Developer on epic branch):** From an epic feature branch with two modified YAMLs, hub.html shows the two regenerated epic briefs and all product-level briefs. Unmodified artifacts were not re-processed. Each brief uses SPA chapter navigation (sidebar click shows one chapter at a time) and chapters with sub-items display horizontal tab bars. brief-common.css and brief-render.js are present in each briefs directory. Pass: Hub.html links to the two regenerated briefs and product-level briefs. .checksums.json updated for the two changed YAMLs only. Other epic artifacts retain previous checksums. Every briefs directory contains brief-common.css and brief-render.js.
+- **SCE-1 (S1 — Developer on epic branch):** From an epic feature branch with two modified YAMLs, hub.html shows the two regenerated epic briefs and all product-level briefs. Unmodified artifacts were not re-processed. Each brief uses SPA chapter navigation (sidebar click shows one chapter at a time) and chapters with sub-items display horizontal tab bars. brief-common.css and brief-render.js are present in each briefs directory. Pass: Hub.html links to the two regenerated briefs and product-level briefs. .checksums.json updated for the two changed YAMLs only. Other epic artifacts retain previous checksums. Every briefs directory under `{product_base}/briefs/` contains brief-common.css and brief-render.js.
 
 - **SCE-2 (S2 — Developer on main):** From main branch with three epics, hub.html indexes briefs for all product-level and all epic artifacts across every epic. Only changed artifacts were regenerated. Every briefs directory (product-level and each epic) contains brief-common.css and brief-render.js alongside the HTML. Pass: Hub.html contains product-level section plus three epic sections. Each section links to briefs for all YAML artifacts in that scope. Only changed artifacts were regenerated. All briefs directories contain shared assets.
 

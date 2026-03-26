@@ -324,7 +324,7 @@ Central navigation page linking to all briefs for a product. Shows status at a g
 ### Location
 
 ```
-{artifact_base}/{slug}/hub.html
+.meridian/product/briefs/hub.html
 ```
 
 ### Layout
@@ -396,7 +396,7 @@ Source: `product.yaml`
 | Comments | All inline comments + export |
 
 ### roadmap-brief.html
-Source: `epics.yaml` + `feasibility.yaml` + `product.yaml` (rendered BEFORE roadmap.yaml exists)
+Source: `roadmap/epics.yaml` + `roadmap/feasibility.yaml` + `discovery/product.yaml` (rendered BEFORE roadmap.yaml exists)
 
 | Tab | Content |
 |-----|---------|
@@ -476,14 +476,14 @@ at the top of the Structure tab (already approved in a prior stage).
 ## File Naming
 
 ```
-{artifact_base}/{slug}/hub.html
-{artifact_base}/{slug}/product-brief.html
-{artifact_base}/{slug}/roadmap-brief.html
-{artifact_base}/{slug}/features-brief.html
-{artifact_base}/{slug}/architecture-brief.html
-{artifact_base}/{slug}/tech-brief.html
-{artifact_base}/{slug}/scenarios-brief.html
-{artifact_base}/{slug}/plan-brief.html
+.meridian/product/briefs/hub.html
+.meridian/product/briefs/product-brief.html
+.meridian/product/briefs/roadmap-brief.html
+.meridian/product/briefs/features-brief.html
+.meridian/product/briefs/architecture-brief.html
+.meridian/product/briefs/tech-brief.html
+.meridian/product/briefs/scenarios-brief.html
+.meridian/product/briefs/plan-brief.html
 ```
 
 No timestamps in brief filenames — each brief is the latest view of its YAML.

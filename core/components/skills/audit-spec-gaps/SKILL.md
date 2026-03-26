@@ -22,16 +22,16 @@ Find YAML artifacts by scanning these locations in order (stop at first hit per 
 
 | Category | Search paths (relative to CWD) |
 |----------|-------------------------------|
-| Features & identity | `.meridian/project/product/*/features.yaml`, `.meridian/product/*/features.yaml`, `specs/features*` |
-| Architecture | `.meridian/project/product/*/architecture.yaml`, `.meridian/product/*/architecture.yaml`, `specs/architecture*` |
-| Low-level design | `.meridian/project/product/*/tech.yaml`, `.meridian/product/*/tech.yaml`, `specs/tech*` |
-| Verification | `.meridian/project/product/*/scenarios.yaml`, `.meridian/product/*/scenarios.yaml`, `specs/scenarios*` |
-| Execution plan | `.meridian/project/product/*/plan.yaml`, `.meridian/product/*/plan.yaml`, `specs/plan*` |
-| Product & roadmap | `.meridian/project/product/*/product.yaml`, `.meridian/project/product/*/roadmap.yaml` |
+| Features & identity | `.meridian/product/roadmap/features.yaml`, `specs/features*` |
+| Architecture | `.meridian/product/architecture/architecture.yaml`, `specs/architecture*` |
+| Low-level design | `.meridian/product/architecture/tech.yaml`, `specs/tech*` |
+| Verification | `.meridian/product/architecture/scenarios.yaml`, `specs/scenarios*` |
+| Execution plan | `.meridian/product/roadmap/plan.yaml`, `specs/plan*` |
+| Product & roadmap | `.meridian/product/discovery/product.yaml`, `.meridian/product/roadmap/roadmap.yaml` |
 | Project context | `CLAUDE.md`, `README.md`, `.claude/agents/*.md` |
 | Config/paths | `core/config.yaml`, `**/config.yaml`, `**/config.yml` |
 
-Also scan broadly for any `.yaml` files under `.meridian/project/product/` and `.meridian/product/` — artifact filenames should match the standard names above, but discover flexibly and categorize by content if needed.
+Also scan broadly for any `.yaml` files under `.meridian/product/` — artifact filenames should match the standard names above, but discover flexibly and categorize by content if needed.
 
 If a product slug is provided as input, narrow the search to that slug's directory. Otherwise, scan all slugs found under `.meridian/`.
 
@@ -104,7 +104,7 @@ Across all artifacts:
 
 ## Output
 
-Write the report to `{discovery_root}/gap-analysis.md` where `discovery_root` is the directory containing the discovered artifacts (e.g., `.meridian/project/product/{slug}/`). If artifacts span multiple directories, write to the most specific common parent.
+Write the report to `{discovery_root}/gap-analysis.md` where `discovery_root` is the directory containing the discovered artifacts (e.g., `.meridian/product/`). If artifacts span multiple directories, write to the most specific common parent.
 
 Also print a concise summary to the conversation.
 

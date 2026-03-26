@@ -29,7 +29,7 @@ Receive from agent:
 - `architecture_yaml_path` — (required) Path to architecture.yaml
 - `tech_yaml_path` — (required) Path to tech.yaml
 - `scenarios_yaml_path` — (required) Path to scenarios.yaml
-- `output_base` — (required) Base path for output, e.g., `.meridian/project/product/{slug}/`
+- `output_base` — (required) Base path for output, e.g., `.meridian/product/roadmap/`
 
 ## Process
 
@@ -92,7 +92,7 @@ Receive from agent:
 
 ## Output
 
-Write `plan.yaml` to `{output_base}/plan.yaml`.
+Write `plan.yaml` to `{output_base}plan.yaml`.
 
 Return to agent:
 ```json

@@ -25,7 +25,7 @@ The output MUST conform to the `quality-standards.yaml` schema defined in `core/
 Receive from agent:
 - `product_yaml_path` — (required) Path to product.yaml containing `profiles.quality_profile`
 - `architecture_yaml_path` — (optional) Path to architecture.yaml for stack-aware tooling alignment
-- `output_base` — (required) Base path for output, e.g., `.meridian/product/{slug}/`
+- `output_base` — (required) Base path for output, e.g., `.meridian/product/architecture/`
 
 ## Process
 

@@ -80,12 +80,12 @@ When you receive a JSON contract from the recipe orchestrator:
 ```json
 {
   "intent_path": "reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "slug": "chronos",
   "stm": {
-    "vision_path": ".meridian/project/product/chronos/vision.md",
-    "epics_path": ".meridian/project/product/chronos/epics.yaml",
-    "feasibility_path": ".meridian/project/product/chronos/feasibility.yaml",
+    "vision_path": ".meridian/product/discovery/vision.md",
+    "epics_path": ".meridian/product/roadmap/epics.yaml",
+    "feasibility_path": ".meridian/product/roadmap/feasibility.yaml",
     "brief_path": null,
     "approved_brief_path": null,
     "roadmap_path": null,
@@ -256,7 +256,7 @@ When invoked via JSON contract, delegate artifact production to skills:
 
 | Skill | When | Input | Produces |
 |-------|------|-------|----------|
-| `assess-feasibility` | `stm.feasibility_path` is null and `stm.epics_path` is non-null | `epics_path`, `artifact_base` (= `stm_base`), `slug` | `feasibility.yaml` at `{stm_base}/{slug}/feasibility.yaml` |
+| `assess-feasibility` | `stm.feasibility_path` is null and `stm.epics_path` is non-null | `epics_path`, `artifact_base` (= `stm_base`), `slug` | `feasibility.yaml` at `.meridian/product/roadmap/feasibility.yaml` |
 | `draft-technical-approach` | `stm.technical_approach_path` is null and `stm.product_spec_path` is non-null | `product_spec_path`, `intent` (optional), `vision_path` (optional), `output_base` | `technical-approach.md` at `{output_base}/technical-approach.md` |
 | `draft-lld` | `stm.lld_path` is null and `stm.product_spec_path` + `stm.technical_approach_path` are non-null | `product_spec_path`, `technical_approach_path`, `output_base` | `lld.md` at `{output_base}/lld.md` |
 | `research-domain-context` | LTM insufficient for technology selection or architecture decisions | `domain`, `knowledge_gaps`, `problem_statement`, `output_base` | `domain-context.md` at `{output_base}/domain-context.md` |

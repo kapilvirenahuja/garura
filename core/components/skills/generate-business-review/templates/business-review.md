@@ -74,4 +74,4 @@ The following are explicitly NOT covered:
 
 ---
 
-*Storage path: `.meridian/project/product/{slug}/reviews/{artifact}-review.md`*
+*Storage path: `.meridian/product/briefs/{artifact}-review.md`*

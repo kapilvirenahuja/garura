@@ -181,14 +181,14 @@ constraints:
   - id: C21
     rule: >
       The recipe requires a locked architecture.yaml at
-      {product_base}/{slug}/architecture.yaml as an upstream input.
+      {product_base}/architecture/architecture.yaml as an upstream input.
       Architecture decisions are made during prepare-architecture, not
       during per-epic implementation planning. The recipe reads the
       locked architecture.yaml for technology context.
   - id: C22
     rule: >
       The recipe requires a locked quality-standards.yaml at
-      {product_base}/{slug}/quality-standards.yaml as an upstream input.
+      {product_base}/architecture/quality-standards.yaml as an upstream input.
       Quality standards are established during prepare-architecture. The
       recipe reads quality-standards.yaml for testing, CI/CD, and quality
       gate context when producing plan.yaml.

@@ -31,7 +31,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 | `repo-orchestrator` | Evidence self-commit (utility, exempt from C5) | 9 |
 
 **Path resolution:**
-All `.meridian/` paths are relative to the project root. NEVER expand to `~/.meridian/`. Product artifacts go to `.meridian/project/product/{slug}/` (C6). Evidence goes to `.meridian/project/product/evidence/discover-product/`. Checkpoints go to `.meridian/project/product/checkpoint/discover-product/`.
+All `.meridian/` paths are relative to the project root. NEVER expand to `~/.meridian/`. Product artifacts go to `.meridian/product/discovery/` (C6). Evidence goes to `.meridian/product/evidence/discover-product/`. Checkpoints go to `.meridian/product/checkpoints/discover-product/`.
 
 ## Pre-flight
 
@@ -41,11 +41,11 @@ Execute these checks before any domain work.
 |-------|-----------|-------------------|
 | Intent text provided and >5 meaningful words | C1 | Hard halt |
 | Derive slug from intent text | — | Hard halt if empty |
-| Check if `{product_base}/{slug}/product.yaml` exists with status LOCKED | F7 | Hard halt |
+| Check if `{product_base}/discovery/product.yaml` exists with status LOCKED | F7 | Hard halt |
 | Check for status file for resume | — | Resume if found |
 
 ```
-product_base = ".meridian/project/product"
+product_base = ".meridian/product"
 intent = "{user-provided intent text}"
 
 # C1: halt if empty or word count <= 5
@@ -57,13 +57,13 @@ if word_count <= 5:
 slug = slugify(intent)
 
 # F7: halt if already locked
-if file_exists("{product_base}/{slug}/product.yaml"):
-  product = read_yaml("{product_base}/{slug}/product.yaml")
+if file_exists("{product_base}/discovery/product.yaml"):
+  product = read_yaml("{product_base}/discovery/product.yaml")
   if product.status == "LOCKED":
     halt("Product {slug} is already LOCKED. Re-discovery not permitted. (F7)")
 
 # Resume check
-status_path = "{product_base}/{slug}/status/discover-product.json"
+status_path = "{product_base}/status/discover-product.json"
 if file_exists(status_path):
   resume from first incomplete step (see Pause and Resume)
 ```
@@ -123,11 +123,11 @@ Skill: `discover-product-opportunity`
 ```json
 {
   "intent_path": "core/components/recipes/discover-product/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "stm": {
     "input": {},
     "output": {
-      "product_yaml_path": "{product_base}/{slug}/product.yaml"
+      "product_yaml_path": "{product_base}/discovery/product.yaml"
     }
   },
   "config": {
@@ -165,13 +165,13 @@ Skill: `draft-product-vision`
 ```json
 {
   "intent_path": "core/components/recipes/discover-product/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "stm": {
     "input": {
       "market_context": "{market_context output from Step 2 agent}"
     },
     "output": {
-      "product_yaml_path": "{product_base}/{slug}/product.yaml"
+      "product_yaml_path": "{product_base}/discovery/product.yaml"
     }
   },
   "config": {
@@ -189,11 +189,11 @@ Skill: `draft-product-vision`
 ```json
 {
   "intent_path": "core/components/recipes/discover-product/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "stm": {
     "input": {},
     "output": {
-      "product_yaml_path": "{product_base}/{slug}/product.yaml"
+      "product_yaml_path": "{product_base}/discovery/product.yaml"
     }
   },
   "config": {
@@ -206,19 +206,19 @@ Skill: `draft-product-vision`
 }
 ```
 
-Agent invokes `draft-product-vision` -> writes `{product_base}/{slug}/product.yaml` (full file — market context + vision sections consolidated if product type, or vision-only sections if library type; status: DRAFT, type: "{product_type}").
+Agent invokes `draft-product-vision` -> writes `{product_base}/discovery/product.yaml` (full file — market context + vision sections consolidated if product type, or vision-only sections if library type; status: DRAFT, type: "{product_type}").
 
 **Step 3 Evals:**
 
 - **SE-1 (F1):** The vision artifact contains at least 3 strategic goals AND a target audience is identifiable from the artifact content. Pass: product.yaml strategic_goals array has 3 or more entries AND target_users section is present with at least one non-empty entry. Fail: strategic_goals has fewer than 3 entries, OR target_users is missing or empty — no target audience is identifiable from the artifact.
 
-- **SE-3 (F3):** After vision drafting completed, a vision artifact exists at the expected path in .meridian/project/product/{slug}/. Pass: product.yaml exists at .meridian/project/product/{slug}/product.yaml and is a valid YAML file with non-empty content. Fail: Vision drafting completed but no vision artifact exists at the expected path in .meridian/project/product/{slug}/.
+- **SE-3 (F3):** After vision drafting completed, a vision artifact exists at the expected path in .meridian/product/discovery/. Pass: product.yaml exists at .meridian/product/discovery/product.yaml and is a valid YAML file with non-empty content. Fail: Vision drafting completed but no vision artifact exists at the expected path in .meridian/product/discovery/.
 
 - **SE-6 (F8):** A type "library" product.yaml does not contain fabricated market data — no invented competitors with no basis in the intent, no synthetic TAM/SAM/SOM estimates, no persona descriptions that do not match the intent's stated consumers. Pass: When type is "library", the product.yaml contains no competitors that lack basis in the intent, no TAM/SAM/SOM estimates, and all persona descriptions match the intent's stated consumers. Fail: A type "library" product.yaml contains fabricated market data — invented competitors with no basis in the intent, synthetic TAM/SAM/SOM estimates, or persona descriptions that do not match the intent's stated consumers.
 
 - **SE-8 (F10):** When opportunity discovery was skipped, the product.yaml still contains strategic goals sufficient for downstream planning. Pass: product.yaml contains a non-empty strategic_goals array even when opportunity discovery was skipped — the vision has sufficient structure for downstream planning. Fail: Opportunity discovery was skipped but the product.yaml has no strategic goals — the vision was drafted without sufficient structure for downstream planning.
 
-- **SE-9 (C6):** All vision and product artifacts are written to .meridian/project/product/{slug}/ relative to the project root. Product STM is project-scoped, not per-issue and not in the global home directory. Pass: product.yaml is located at .meridian/project/product/{slug}/product.yaml — project-scoped product STM, not per-issue and not in the global home directory. Fail: product.yaml is written outside .meridian/project/product/{slug}/, or written to a per-issue path, or written to the global home directory.
+- **SE-9 (C6):** All vision and product artifacts are written to .meridian/product/discovery/ relative to the project root. Product STM is project-scoped, not per-issue and not in the global home directory. Pass: product.yaml is located at .meridian/product/discovery/product.yaml — project-scoped product STM, not per-issue and not in the global home directory. Fail: product.yaml is written outside .meridian/product/discovery/, or written to a per-issue path, or written to the global home directory.
 
 - **SE-11 (C7):** The vision artifact uses "Strategic Goals" terminology. OKRs and OKR-specific terminology (Objectives, Key Results) are prohibited in all vision artifacts. Pass: product.yaml uses "strategic_goals" as the field name and contains no occurrences of "OKR", "Objectives", or "Key Results" terminology. Fail: product.yaml contains OKR-specific terminology — "OKR", "Objectives", or "Key Results" appear in the artifact content.
 
@@ -240,20 +240,20 @@ Depends on: Step 3
 ```json
 {
   "intent_path": "core/components/recipes/discover-product/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "mode": "check-input-output-coverage",
   "artifact_paths": {
-    "input_path": "{product_base}/{slug}/product.yaml",
-    "output_path": "{product_base}/{slug}/product.yaml"
+    "input_path": "{product_base}/discovery/product.yaml",
+    "output_path": "{product_base}/discovery/product.yaml"
   },
   "check_type": "problem-to-vision",
   "config": {
     "problem_statement": "{original intent text from pre-flight}",
-    "market_context_path": "{product_base}/{slug}/market-context.yaml (if Step 2 ran, null otherwise)"
+    "market_context_path": "{product_base}/discovery/market-context.yaml (if Step 2 ran, null otherwise)"
   },
   "stm": {
     "output": {
-      "coverage_check_path": "{product_base}/{slug}/coverage-check.yaml"
+      "coverage_check_path": "{product_base}/discovery/coverage-check.yaml"
     }
   },
   "task_id": "check-coverage"
@@ -352,13 +352,13 @@ Renderer: `brief-render.js` (client-side, LTM template)
 ```json
 {
   "intent_path": "core/components/recipes/discover-product/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
-  "artifact_base": "{product_base}/{slug}",
+  "stm_base": ".meridian/product/",
+  "artifact_base": "{product_base}/discovery",
   "slug": "{slug}",
   "briefs_requested": ["product"],
   "stm": {
     "input": {
-      "product_yaml_path": "{product_base}/{slug}/product.yaml"
+      "product_yaml_path": "{product_base}/discovery/product.yaml"
     }
   },
   "task_id": "generate-brief",
@@ -369,17 +369,17 @@ Renderer: `brief-render.js` (client-side, LTM template)
 }
 ```
 
-Agent computes output paths under `{product_base}/{slug}/briefs/`, renders the brief using the client-side brief renderer (`brief-render.js`) with the static `product-brief.html` template from LTM, then regenerates `hub.html` at `{product_base}/{slug}/briefs/hub.html`. For type "product": the brief uses Phoenix sidebar chapters for Market Context, Vision, Scope, and Profiles (when present). For type "library": the first chapter becomes Technical Context and market-only sections remain absent. The sidebar includes chapter navigation, a theme switcher, and review-decision actions.
+Agent computes output paths under `{product_base}/briefs/`, renders the brief using the client-side brief renderer (`brief-render.js`) with the static `product-brief.html` template from LTM, then regenerates `hub.html` at `{product_base}/briefs/hub.html`. For type "product": the brief uses Phoenix sidebar chapters for Market Context, Vision, Scope, and Profiles (when present). For type "library": the first chapter becomes Technical Context and market-only sections remain absent. The sidebar includes chapter navigation, a theme switcher, and review-decision actions.
 
 **Step 4 Evals:**
 
-- **SE-7 (F9):** A checkpoint artifact was written before presenting results to the user — the approval flow has an audit trail. Pass: product-brief.html exists at `{product_base}/{slug}/briefs/product-brief.html` before the checkpoint is presented to the user, providing an audit trail for the approval flow. Fail: No checkpoint artifact was written before presenting results to the user — the approval flow has no audit trail.
+- **SE-7 (F9):** A checkpoint artifact was written before presenting results to the user — the approval flow has an audit trail. Pass: product-brief.html exists at `{product_base}/briefs/product-brief.html` before the checkpoint is presented to the user, providing an audit trail for the approval flow. Fail: No checkpoint artifact was written before presenting results to the user — the approval flow has no audit trail.
 
-- **SE-10 (C6):** The brief artifact is written to .meridian/project/product/{slug}/briefs/ relative to the project root. Pass: product-brief.html is located at .meridian/project/product/{slug}/briefs/product-brief.html — project-scoped product STM briefs directory. Fail: product-brief.html is written outside .meridian/project/product/{slug}/briefs/.
+- **SE-10 (C6):** The brief artifact is written to .meridian/product/briefs/ relative to the project root. Pass: product-brief.html is located at .meridian/product/briefs/product-brief.html — project-scoped product STM briefs directory. Fail: product-brief.html is written outside .meridian/product/briefs/.
 
-- **SE-12 (C8):** A checkpoint artifact is written before each user-facing pause. The recipe has up to two checkpoints: brief review after drafting, and validation review if blockers are found. Checkpoint status is PENDING_APPROVAL until the user responds. Pass: product-brief.html exists at `{product_base}/{slug}/briefs/product-brief.html` before the first checkpoint is presented. The vision artifact status is PENDING_APPROVAL at checkpoint time. If a second checkpoint occurs (validation blockers), the checkpoint artifact is updated before the user is prompted. Fail: No checkpoint artifact was written before presenting results, OR the status is not PENDING_APPROVAL at checkpoint time.
+- **SE-12 (C8):** A checkpoint artifact is written before each user-facing pause. The recipe has up to two checkpoints: brief review after drafting, and validation review if blockers are found. Checkpoint status is PENDING_APPROVAL until the user responds. Pass: product-brief.html exists at `{product_base}/briefs/product-brief.html` before the first checkpoint is presented. The vision artifact status is PENDING_APPROVAL at checkpoint time. If a second checkpoint occurs (validation blockers), the checkpoint artifact is updated before the user is prompted. Fail: No checkpoint artifact was written before presenting results, OR the status is not PENDING_APPROVAL at checkpoint time.
 
-- **SE-13 (C10):** A human-reviewable brief artifact is produced after vision drafting and presented at the first checkpoint. This is the primary artifact the user evaluates before the recipe proceeds to validation. Pass: product-brief.html is produced at `{product_base}/{slug}/briefs/product-brief.html` after vision drafting, contains human-reviewable content, and is presented at the first checkpoint for user evaluation. Fail: No human-reviewable brief artifact was produced after vision drafting, or the brief was not presented at the first checkpoint.
+- **SE-13 (C10):** A human-reviewable brief artifact is produced after vision drafting and presented at the first checkpoint. This is the primary artifact the user evaluates before the recipe proceeds to validation. Pass: product-brief.html is produced at `{product_base}/briefs/product-brief.html` after vision drafting, contains human-reviewable content, and is presented at the first checkpoint for user evaluation. Fail: No human-reviewable brief artifact was produced after vision drafting, or the brief was not presented at the first checkpoint.
 
 ---
 
@@ -388,16 +388,16 @@ Agent computes output paths under `{product_base}/{slug}/briefs/`, renders the b
 Owner: recipe (no agent call)
 Depends on: Step 4
 
-Write checkpoint artifact to `{product_base}/checkpoint/discover-product/{YYYYMMDD-HHMMSS}.md` with Status: `PENDING_APPROVAL` (C8, C10).
+Write checkpoint artifact to `{product_base}/checkpoints/discover-product/{YYYYMMDD-HHMMSS}.md` with Status: `PENDING_APPROVAL` (C8, C10).
 
 Present to user:
 
 ```markdown
 ## Product Discovery: {slug}
 
-**Product YAML:** `{product_base}/{slug}/product.yaml`
-**HTML Brief:** `{product_base}/{slug}/briefs/product-brief.html`
-**Hub:** `{product_base}/{slug}/briefs/hub.html`
+**Product YAML:** `{product_base}/discovery/product.yaml`
+**HTML Brief:** `{product_base}/briefs/product-brief.html`
+**Hub:** `{product_base}/briefs/hub.html`
 
 Open the HTML brief in your browser to review the vision, strategic goals, and positioning.
 Use the sidebar chapters and theme switcher to review the artifact. If you want revisions, reply with plain-text feedback describing the changes you want.
@@ -428,14 +428,14 @@ Skill: `validate-product-vision`
 ```json
 {
   "intent_path": "core/components/recipes/discover-product/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "mode": "validate-artifact",
   "validation_skill": "validate-product-vision",
   "artifact_paths": {
-    "product_yaml_path": "{product_base}/{slug}/product.yaml"
+    "product_yaml_path": "{product_base}/discovery/product.yaml"
   },
   "stm": {
-    "product_yaml_path": "{product_base}/{slug}/product.yaml"
+    "product_yaml_path": "{product_base}/discovery/product.yaml"
   },
   "task_id": "validate-vision"
 }
@@ -462,7 +462,7 @@ Read validation_result from Step 6. Scan product.yaml for placeholder values.
 
 ```
 validation = read_yaml(validation_result_path)
-product = read_yaml("{product_base}/{slug}/product.yaml")
+product = read_yaml("{product_base}/discovery/product.yaml")
 
 blockers = [i for i in validation.issues if i.severity == "blocker"]
 warnings = [i for i in validation.issues if i.severity == "warning"]
@@ -483,7 +483,7 @@ If `validation.ready_for_lock == true` AND `unresolved_items` is empty (zero blo
 **Branch B — Warnings and/or placeholders (no blockers):**
 
 If `validation.ready_for_lock == true` AND `blockers` is empty AND (`warnings` non-empty OR `placeholders` non-empty):
-- Write checkpoint artifact to `{product_base}/checkpoint/discover-product/{YYYYMMDD-HHMMSS}.md` with Status: `PENDING_APPROVAL`.
+- Write checkpoint artifact to `{product_base}/checkpoints/discover-product/{YYYYMMDD-HHMMSS}.md` with Status: `PENDING_APPROVAL`.
 - Present resolution interview (C14, C15):
 
 ```markdown
@@ -517,7 +517,7 @@ Or type **Vanish** to halt.
 ```
 
 Parse response:
-- `RESOLVED` with numbered answers → write `{product_base}/{slug}/pre-lock-resolutions.yaml`:
+- `RESOLVED` with numbered answers → write `{product_base}/evidence/discover-product/pre-lock-resolutions.yaml`:
   ```yaml
   pre_lock_resolutions:
     slug: "{slug}"
@@ -534,7 +534,7 @@ Parse response:
 **Branch C — Blockers present (hard block, C15 — no bypass):**
 
 If `blockers` non-empty:
-- Write checkpoint artifact to `{product_base}/checkpoint/discover-product/{YYYYMMDD-HHMMSS}.md` with Status: `PENDING_APPROVAL`.
+- Write checkpoint artifact to `{product_base}/checkpoints/discover-product/{YYYYMMDD-HHMMSS}.md` with Status: `PENDING_APPROVAL`.
 - Present resolution interview (C14, C15 — NO accept-risk bypass):
 
 ```markdown
@@ -571,7 +571,7 @@ Or type **Vanish** to cycle back and re-draft.
 ```
 
 Parse response:
-- `RESOLVED` with numbered answers → write `{product_base}/{slug}/pre-lock-resolutions.yaml`
+- `RESOLVED` with numbered answers → write `{product_base}/evidence/discover-product/pre-lock-resolutions.yaml`
   → Re-invoke `judge` with `validate-product-vision` skill to re-validate (same context-isolated contract as Step 6)
   → If now `ready_for_lock: true` with no blockers → proceed to Step 8
   → If still blockers → re-present interview (counts against cycle-back limit C9)
@@ -587,7 +587,7 @@ Parse response:
 
 **Step 7 Evals:**
 
-- **SE-15 (C14):** The recipe does not lock artifacts when blocker-severity issues, warning-severity issues, or placeholder field values remain unresolved. When such items are detected, a structured resolution interview is presented to collect user decisions, and resolutions are written to pre-lock-resolutions.yaml before lock executes. Pass: When validation returns issues of any severity or product.yaml contains placeholder values, the recipe presents a structured interview with each item listed individually, collects RESOLVED answers, and writes pre-lock-resolutions.yaml to {product_base}/{slug}/ before proceeding to lock. Fail: The recipe locks an artifact while validation issues or placeholder values remain unresolved, OR no resolution interview is presented, OR pre-lock-resolutions.yaml is not written before lock.
+- **SE-15 (C14):** The recipe does not lock artifacts when blocker-severity issues, warning-severity issues, or placeholder field values remain unresolved. When such items are detected, a structured resolution interview is presented to collect user decisions, and resolutions are written to pre-lock-resolutions.yaml before lock executes. Pass: When validation returns issues of any severity or product.yaml contains placeholder values, the recipe presents a structured interview with each item listed individually, collects RESOLVED answers, and writes pre-lock-resolutions.yaml to {product_base}/evidence/discover-product/ before proceeding to lock. Fail: The recipe locks an artifact while validation issues or placeholder values remain unresolved, OR no resolution interview is presented, OR pre-lock-resolutions.yaml is not written before lock.
 
 - **SE-16 (C15):** The recipe never offers a Tether path that allows locking past unresolved validation blockers. The only paths from blocker detection are RESOLVED (user addresses each item inline) or Vanish (cycle back to re-draft). Pass: Step 7 Branch C presents only RESOLVED and Vanish as response options. No "accept risk", "proceed despite blockers", or Tether-to-lock option exists when blockers are present. Fail: A bypass mechanism exists that allows the user to skip unresolved blockers via Tether or any other keyword that reaches lock without resolving each blocker individually.
 
@@ -604,13 +604,13 @@ Parse response:
 Owner: recipe (no agent call)
 Depends on: Step 7
 
-Read `{product_base}/{slug}/product.yaml`. Change `status: "DRAFT"` to `status: "LOCKED"`. Update `updated_at` timestamp. Write file.
+Read `{product_base}/discovery/product.yaml`. Change `status: "DRAFT"` to `status: "LOCKED"`. Update `updated_at` timestamp. Write file.
 
 ```
-product = read_yaml("{product_base}/{slug}/product.yaml")
+product = read_yaml("{product_base}/discovery/product.yaml")
 product.status = "LOCKED"
 product.updated_at = current_timestamp()
-write_yaml("{product_base}/{slug}/product.yaml", product)
+write_yaml("{product_base}/discovery/product.yaml", product)
 ```
 
 ---
@@ -636,16 +636,16 @@ Invoke `repo-orchestrator` for evidence self-commit (ADR 012). Non-blocking on f
 ```json
 {
   "intent_path": "core/components/recipes/discover-product/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".meridian/product/",
   "stm": {
     "input": {
       "evidence_files": [
         "{product_base}/evidence/discover-product/{timestamp}.md",
-        "{product_base}/checkpoint/discover-product/*.md",
-        "{product_base}/{slug}/product.yaml",
-        "{product_base}/{slug}/briefs/product-brief.html",
-        "{product_base}/{slug}/briefs/hub.html",
-        "{product_base}/{slug}/status/discover-product.json"
+        "{product_base}/checkpoints/discover-product/*.md",
+        "{product_base}/discovery/product.yaml",
+        "{product_base}/briefs/product-brief.html",
+        "{product_base}/briefs/hub.html",
+        "{product_base}/status/discover-product.json"
       ]
     },
     "output": {}
@@ -671,9 +671,9 @@ Present locked artifact paths to user:
 ## Discovery Complete: {slug}
 
 **Artifacts:**
-- Product YAML: `{product_base}/{slug}/product.yaml` (status: LOCKED, type: {product_type})
-- HTML Brief: `{product_base}/{slug}/briefs/product-brief.html`
-- Hub: `{product_base}/{slug}/briefs/hub.html`
+- Product YAML: `{product_base}/discovery/product.yaml` (status: LOCKED, type: {product_type})
+- HTML Brief: `{product_base}/briefs/product-brief.html`
+- Hub: `{product_base}/briefs/hub.html`
 
 **Validation:** {completeness_score}% complete, {blocker_count} blockers resolved
 
@@ -742,7 +742,7 @@ Flat 13-task status file. Steps run top to bottom.
 
 **Slug detection:** Derive slug from intent text during pre-flight.
 
-**Status file:** `{product_base}/{slug}/status/discover-product.json`
+**Status file:** `{product_base}/status/discover-product.json`
 
 ```json
 {
@@ -776,7 +776,7 @@ Flat 13-task status file. Steps run top to bottom.
 **Executor loop:**
 ```
 derive slug from intent text
-check for status file at {product_base}/{slug}/status/discover-product.json
+check for status file at {product_base}/status/discover-product.json
 
 for each step in compiled order:
   if status file shows step "completed" -> skip

@@ -24,7 +24,7 @@ The output MUST conform to `schemas/scenarios.yaml` in this skill's directory. R
 
 Receive from agent:
 - `features_yaml_path` — (required) Path to features.yaml
-- `output_base` — (required) Base path for output (e.g., `.meridian/project/product/{slug}/`)
+- `output_base` — (required) Base path for output (e.g., `.meridian/product/roadmap/`)
 
 ## Process
 

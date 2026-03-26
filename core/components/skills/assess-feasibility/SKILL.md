@@ -21,8 +21,8 @@ You DO assess technical feasibility. You do NOT make product decisions, change f
 ## Input
 
 Receive from agent:
-- `product_yaml_path` — (required) Path to product.yaml, e.g. `.meridian/project/product/{slug}/product.yaml`
-- `artifact_base` — (required) Base path for STM artifacts, e.g. `.meridian/project/product/`
+- `product_yaml_path` — (required) Path to product.yaml, e.g. `.meridian/product/discovery/product.yaml`
+- `artifact_base` — (required) Base path for STM artifacts, e.g. `.meridian/product/`
 - `slug` — (required) Product slug
 
 ## Pre-conditions
@@ -37,7 +37,7 @@ Receive from agent:
 
 1. **Read product.yaml from STM** — read the file at `product_yaml_path` using the Read tool. Extract: slug, strategic_goals (for feature derivation), out_of_scope (for boundary awareness), assumptions (for risk context).
 
-2. **Read epics** — read epics from `{artifact_base}/{slug}/epics.yaml`. Epics use E-IDs (E1, E2, E3...) as defined by scope-roadmap-epics.
+2. **Read epics** — read epics from `{artifact_base}/roadmap/epics.yaml`. Epics use E-IDs (E1, E2, E3...) as defined by scope-roadmap-epics.
 
 3. **Explore the codebase** — use Glob, Grep, and Bash (read-only git commands) to understand the current technical landscape relevant to each feature. Look for:
    - Existing code that relates to feature goals
@@ -79,7 +79,7 @@ Receive from agent:
    - technical_risks severity values are valid (`low` | `medium` | `high`)
    Do NOT output validation results — validate internally and fix issues.
 
-8. **Write to STM** — write the feasibility assessment to `{artifact_base}/{slug}/feasibility.yaml` using the Write tool. The file must be valid YAML — no placeholders, all fields filled.
+8. **Write to STM** — write the feasibility assessment to `{artifact_base}/roadmap/feasibility.yaml` using the Write tool. The file must be valid YAML — no placeholders, all fields filled.
 
 ### Feasibility YAML Structure
 
@@ -118,7 +118,7 @@ Your response MUST be ONLY this YAML block with values filled in. No validation 
 
 ```yaml
 feasibility:
-  feasibility_yaml_path: "{artifact_base}/{slug}/feasibility.yaml"
+  feasibility_yaml_path: "{artifact_base}/roadmap/feasibility.yaml"
   slug: "{slug}"
   epic_count: {integer}
   high_risk_count: {integer}

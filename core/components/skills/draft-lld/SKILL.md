@@ -27,7 +27,7 @@ The output MUST conform to `schemas/tech.yaml` in this skill's directory. Read t
 Receive from agent:
 - `features_yaml_path` — (required) Path to features.yaml
 - `architecture_yaml_path` — (required) Path to architecture.yaml
-- `output_base` — (required) Base path for output, e.g., `.meridian/project/product/{slug}/`
+- `output_base` — (required) Base path for output, e.g., `.meridian/product/architecture/`
 
 ## Process
 
@@ -87,7 +87,7 @@ Receive from agent:
    - Every component referenced in feature_mapping exists in the components section
    - Every entity referenced in feature_mapping exists in the data_model entities
 
-6. **Write artifact:** Write `tech.yaml` at `{output_base}/tech.yaml` with `status: DRAFT`.
+6. **Write artifact:** Write `tech.yaml` at `{output_base}tech.yaml` with `status: DRAFT`.
 
 7. **Return output.**
 
