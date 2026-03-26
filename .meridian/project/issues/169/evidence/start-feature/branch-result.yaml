@@ -1,0 +1,23 @@
+result:
+  success: true
+  branch:
+    name: "feat/169-client-side-brief-rendering"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/feat/169-client-side-brief-rendering"
+  worktree:
+    used: false
+    path: null
+    reason: "git checkout -b carried uncommitted changes forward directly (same HEAD, no conflicts)"
+  changes_preserved: true
+  changes_count: 24
+  error: null
+
+context:
+  issue_number: 169
+  convention: "{type}/{issue_number}-{slug}"
+  type: "feat"
+  slug: "client-side-brief-rendering"
+  dirty_tree_strategy: "git checkout -b (direct branch creation carries changes forward)"
+  constraint_c2_satisfied: true
+  constraint_c7_satisfied: true
