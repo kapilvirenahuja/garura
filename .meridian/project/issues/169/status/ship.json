@@ -13,7 +13,8 @@
       "completed_at": "2026-03-26T04:50:38Z"
     },
     "merge-pr": {
-      "status": "pending"
+      "status": "in_progress",
+      "started_at": "2026-03-26T04:51:53Z"
     },
     "scenario-evals": {
       "status": "pending"
