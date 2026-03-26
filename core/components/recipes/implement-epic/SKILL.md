@@ -39,7 +39,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 - No other cross-agent information flow is permitted.
 
 **Path resolution:**
-All `.meridian/` paths are relative to the project root. STM artifacts go to `.meridian/project/issues/{issue}/`. Eval files go OUTSIDE the repo tree (C8).
+All `.meridian/` paths are relative to the project root. STM artifacts go to `.meridian/project/issues/{issue}/`. Product artifacts live under `.meridian/product/{phase}/`. Eval files go OUTSIDE the repo tree (C8).
 
 ## Arguments
 
@@ -78,7 +78,10 @@ issue="{--issue value or extracted from branch}"
 
 # Resolve slug: read plan.yaml slug field, or derive from branch name, or from product.yaml
 # slug resolution order: plan.yaml > product.yaml > branch name
-artifact_base=".meridian/project/product/{slug}"
+# artifact_base = epic-scoped path under the product base
+product_base=".meridian/product"
+epic_id="{--epic value}"   # e.g., E1
+artifact_base="{product_base}/roadmap/epics/{epic_id}"
 plan_yaml_path="{artifact_base}/plan.yaml"
 
 # Derive sequence number from plan.yaml — look up execution_order[].feature_ref == epic_id
@@ -86,7 +89,7 @@ plan_yaml_path="{artifact_base}/plan.yaml"
 # Hard halt if no matching entry found
 features_yaml_path="{artifact_base}/features.yaml"
 scenarios_yaml_path="{artifact_base}/scenarios.yaml"
-architecture_yaml_path="{artifact_base}/architecture.yaml"
+architecture_yaml_path="{product_base}/architecture/architecture.yaml"
 tech_yaml_path="{artifact_base}/tech.yaml"
 
 # C1: Read plan.yaml — verify status: "LOCKED"
