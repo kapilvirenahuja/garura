@@ -140,6 +140,9 @@ product:
 - ALWAYS include rationale for each profile dimension level
 - ALWAYS read profile dimension definitions from LTM before deriving — do not invent dimensions
 - NEVER present profiles as a cold questionnaire — derive from BRD/intent, then present as knobs for user validation
+- NEVER reinterpret a source document deferral as in-scope — if the BRD/PRD/intent explicitly defers, excludes, or marks a capability as out-of-scope for the current phase, it MUST appear in product.yaml scope.out_of_scope, not scope.in_scope
+- NEVER silently override an explicit source document requirement with risk-based, UX-based, or strategic reasoning — when the agent's reasoning conflicts with the source (e.g., changing "auto-recording" to "optional recording"), record a decision_point in product.yaml with original_requirement, proposed_alternative, and rationale for user resolution at the brief checkpoint
+- ALWAYS preserve source document scope decisions with fidelity — capabilities the source explicitly includes go in in_scope, capabilities it explicitly defers go in out_of_scope, ambiguous capabilities are surfaced as decision_points
 
 ## Version
 

@@ -114,6 +114,27 @@ constraints:
       generation. The user may adjust any dimension level. Adjusted
       profiles must be written back to product.yaml before the brief
       is generated. The brief must render the profiles.
+  - id: C18
+    rule: >
+      The vision drafting agent must preserve the source document's scope
+      decisions with fidelity. Capabilities that the source document
+      (BRD, PRD, or user intent) explicitly defers, excludes, or marks
+      as out-of-scope for the current phase MUST appear in product.yaml
+      scope.out_of_scope — not in scope.in_scope. The agent must not
+      reinterpret a deferred capability as in-scope based on its own
+      reasoning about product benefit. When the source is ambiguous about
+      a capability's status, the agent must surface the ambiguity at the
+      brief review checkpoint rather than resolving it silently.
+  - id: C19
+    rule: >
+      When the vision drafting agent applies risk-based, UX-based, or
+      strategic reasoning that would change a requirement from the source
+      document (e.g., changing "auto-recording" to "optional recording
+      with consent"), the conflict must be surfaced as a decision_point
+      in product.yaml rather than applied silently. The decision_point
+      must include: the original source requirement, the agent's proposed
+      alternative, and the rationale. The user resolves decision_points
+      at the brief review checkpoint.
 
 failure_conditions:
   - id: F1
@@ -179,6 +200,19 @@ failure_conditions:
       the agent invented dimensions or levels that don't match the
       canonical definitions in product-profile.md, nfr-profile.md, or
       quality-profile.md.
+  - id: F15
+    condition: >
+      product.yaml scope.in_scope contains a capability that the source
+      document (BRD, PRD, or user intent) explicitly defers or excludes
+      from the current phase — the vision drafting agent reinterpreted a
+      deferral as in-scope without surfacing the conflict.
+  - id: F16
+    condition: >
+      product.yaml contains a requirement that materially differs from the
+      source document due to unsurfaced risk-based or strategic reasoning
+      by the vision drafting agent — the agent silently changed a source
+      requirement (e.g., "mandatory auto-recording" became "optional with
+      consent") without recording a decision_point for user resolution.
 
 scenarios:
   - id: S1
@@ -251,3 +285,24 @@ scenarios:
       project's character, adjust any dimensions that are miscalibrated,
       and confirm that the cascade (PP → NFR → QP) produced sensible
       defaults.
+  - id: S8
+    persona: Product Manager
+    given: >
+      A product.yaml produced from a BRD that explicitly defers certain
+      capabilities (e.g., "in-platform messaging deferred to post-MVP")
+    then: >
+      Can verify that every deferred capability appears in out_of_scope
+      (not in_scope), and that any conflicts between the agent's reasoning
+      and the source document are surfaced as decision_points for explicit
+      resolution — no silent overrides of source document scope decisions.
+  - id: S9
+    persona: Stakeholder
+    given: >
+      A product.yaml with decision_points where the agent's risk-based
+      reasoning conflicts with explicit source document requirements
+    then: >
+      Can review each decision_point at the brief checkpoint, see both
+      the original source requirement and the agent's proposed alternative
+      with rationale, and make an explicit choice — ensuring the final
+      product.yaml reflects deliberate human decisions, not agent
+      interpretation.
