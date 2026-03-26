@@ -1,0 +1,11 @@
+result:
+  status: merged
+  pr_number: 170
+  merge_sha: "05ae2bf6395afae2207ea6269a5b9cc1a6236728"
+  base_branch: main
+  feature_branch: feat/169-client-side-brief-rendering
+  branch_deleted:
+    local: true
+    remote: true
+  platform_state: MERGED
+  checked_at: "2026-03-26"
