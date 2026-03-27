@@ -37,9 +37,14 @@ Given a codebase and quality standards, YOU:
 - Run type checking (e.g., `npx tsc --noEmit`)
 - Run linting (e.g., `npm run lint`, `npx eslint .`)
 - Run unit tests (e.g., `npm test`, `npx vitest run`)
+- Run complexity analysis (if threshold defined in gates)
+- Run dependency vulnerability scan (if required by gates)
+- Run SAST scan (if required by gates)
+- Check documentation presence (if required by gates)
 - Check bundle size (if threshold defined)
 - Run Lighthouse audits (if threshold defined and URL provided)
 - Compare results against quality vision gate thresholds
+- Report actual measurements against declared thresholds (not just exit codes)
 - Report per-gate PASS/FAIL with evidence
 
 ### What You MUST NOT Do
@@ -74,6 +79,8 @@ Given a codebase and quality standards, YOU:
   "task_id": "quality-gate"
 }
 ```
+
+**Note:** The quality gates YAML may include QP-derived thresholds — coverage targets, complexity limits, security requirements — when a `quality-standards.yaml` exists in the project. The quality-auditor runs whatever gates are defined in that file and reports actual measurements against declared thresholds. It does NOT derive thresholds itself; threshold derivation is the orchestrator's responsibility.
 
 ## Output Contract
 
@@ -148,12 +155,47 @@ quality_report:
       exit_code: 0
       violations: 0
       evidence: "Zero errors, zero warnings"
+      static_analysis:
+        tool: "eslint | sonar | codeql | null"
+        critical: 0
+        high: 0
+        evidence: "..."
     - name: "unit_tests"
       status: "PASS | FAIL"
       command: "npm test"
       exit_code: 0
       tests_passed: 12
       tests_failed: 0
-      coverage: null
+      coverage:
+        statements: 85.5
+        branches: 72.3
+        functions: 90.0
+        lines: 86.1
+      threshold:
+        min_coverage: 70
+        source: "QP-1 level 3 → 70%"
+      threshold_met: true
+    - name: "complexity"
+      required: true | false
+      status: "PASS | FAIL | SKIPPED"
+      max_cyclomatic: 15
+      actual_max: 8
+      evidence: "..."
+    - name: "security"
+      required: true | false
+      status: "PASS | FAIL | SKIPPED"
+      dependency_scan:
+        command: "npm audit"
+        critical: 0
+        high: 2
+      sast:
+        command: "codeql | null"
+        critical: 0
+      evidence: "..."
+    - name: "documentation"
+      required: true | false
+      status: "PASS | FAIL | SKIPPED"
+      evidence: "..."
   vision_gate_violations: []
+  qp_source: "quality-standards.yaml path or 'toolchain-detected'"
 ```
