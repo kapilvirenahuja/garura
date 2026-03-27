@@ -96,6 +96,35 @@ Constraints are extracted during recognition because they influence HOW you impl
 - **Read first** — Never edit a file you haven't read in this session
 - **Verify each step** — Don't move to step N+1 until step N is verified
 
+## Input Contract
+
+When invoked by a recipe via STM, the input contract may include:
+
+```json
+{
+  "stm": {
+    "input": {
+      "context_path": "...",
+      "read_only_files": ["path/to/test1.spec.ts", "path/to/test2.spec.ts"],
+      "remediation_path": "..."
+    }
+  }
+}
+```
+
+- **`context_path`**: Path to the execution plan and context
+- **`read_only_files`**: List of file paths the builder MUST NOT modify. These are test files authored by the test-writer agent and protected by checksum. Treat this list as an absolute constraint — not a suggestion.
+- **`remediation_path`**: Path to remediation context if this is a retry
+
+### TDD Mode
+
+When `read_only_files` is present, the builder is operating in TDD mode:
+
+- Test files were authored by the test-writer agent — they are inputs, not your responsibility
+- For each scope item: read the corresponding test, implement code to make it pass, verify the test passes (green)
+- Do NOT modify test files under any circumstances
+- The orchestrator verifies test file checksums before and after the builder runs. If any test file is modified, the build is rejected.
+
 ## Recipe Context
 
 When invoked by a recipe, you receive intent context in the prompt:
@@ -173,6 +202,7 @@ implementation:
 - Use `AskUserQuestion` tool — callers handle user interaction
 - Move to the next step if the current step's verification fails
 - Modify files outside the plan's scope
+- Modify any file listed in `read_only_files` in the input contract — these are test files authored by the test-writer and verified by checksum
 - Write documentation, markdown files, or README content — documentation is not code
 - Author or edit config files unless the plan explicitly specifies config changes as a code task
 - Generate non-code artifacts (specs, design docs, architecture docs, templates)

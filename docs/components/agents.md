@@ -39,6 +39,7 @@ This pattern ensures:
 | **designer** | Analyzes, designs, architects |
 | **orchestrator** | Coordinates, manages, tracks |
 | **strategist** | Interprets product intent, selects and invokes skills, returns structured output |
+| **manager** | Certifies, enforces standards, gates quality |
 
 ### Granularity Principle
 
@@ -52,6 +53,8 @@ Meridian avoids both extremes:
 
 **Principle:** 1 agent = 1 domain expertise, not 1 task.
 
+**Note on recipe-scoped sub-roles:** Some recipes define scoped sub-roles that are not standalone agents. For example, `test-writer` in the implement-epic recipe is a context-isolated sub-role that only exists within that recipe's execution. Recipe-scoped sub-roles follow ADR 004's granularity principle — they are too granular for standalone agents but serve a specific isolation purpose within a recipe.
+
 ## Available Agents
 
 | Agent | Domain | Role | Model | Description |
@@ -61,6 +64,7 @@ Meridian avoids both extremes:
 | `code-builder` | implementation | builder | sonnet | Executes structured execution plans for software implementation — requires a formal plan as input. ONLY for source code files. |
 | `repo-orchestrator` | repo | orchestrator | sonnet | Autonomous decision-maker for repository operations (commits, branches, PRs, git state) |
 | `project-orchestrator` | project | orchestrator | sonnet | Autonomous decision-maker for project management operations (issues, tracking, planning) |
+| `engineering-manager` | engineering | manager | sonnet | QP compliance certifier — verifies implementation meets Quality Profile standards |
 
 ## Agent Behavior
 
