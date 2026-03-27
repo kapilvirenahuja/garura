@@ -40,6 +40,9 @@ Core agents follow `{domain}-{role}`:
 | `project-orchestrator` | project | orchestrator | Issues, tracking, project coordination | Implemented |
 | `repo-orchestrator` | repo | orchestrator | Git operations, commits, branches | Implemented |
 | `quality-validator` | quality | validator | Test, review, validate, quality gates | Planned |
+| `engineering-manager` | engineering | manager | QP compliance certification | New |
+
+Note: `quality-validator` was implemented as `quality-auditor` (auditor role) rather than the originally planned `quality-validator`.
 
 ### 2. Special-Purpose Agents
 
@@ -59,7 +62,7 @@ Core agents follow `{domain}-{role}`:
 ### Naming Rules
 
 1. **Domain** = area of expertise (implementation, design, quality, project, repo, workflow)
-2. **Role** = SDLC function (builder, validator, designer, orchestrator, guardian)
+2. **Role** = SDLC function (builder, validator, designer, orchestrator, guardian, manager)
 3. **One agent = one domain** (not one task)
 4. **Current: 4 implemented** (code-builder, tech-designer, repo-orchestrator, project-orchestrator) + **2 planned** (quality-validator, workflow-guardian)
 
@@ -70,6 +73,8 @@ Core agents follow `{domain}-{role}`:
 | `builder` | `bug-analyzer` | `code-builder` |
 | `designer` | `bug-implementer` | `tech-designer` |
 | `validator` | `test-writer` | `quality-validator` |
+
+Exception: `test-writer` operates as a recipe-scoped sub-role within implement-epic. It is not a standalone agent file, but its context isolation requirements (asymmetric information with code-builder) justify its existence as a named role within the recipe.
 
 ## Consequences
 
