@@ -1,0 +1,13 @@
+issue:
+  number: 181
+  title: "Create ux-review recipe — multi-agent UX audit, design system ideation, and design epic generation"
+  body: "Create an L2 recipe that captures screenshots of existing scenarios via Playwright, analyzes UX/accessibility issues, proposes a design system, generates inspirational design concepts, and produces design epics that feed back into implement-epic. This is the genesis of Meridian's design capability — bridging functional implementation with visual refinement."
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/181"
+  state: "open"
+  created: true
+  type_hint: "feature"
+inference:
+  source: "explicit_title"
+  confidence: "high"
+  candidates_considered: 0
+  ambiguity_resolved_by_user: false
