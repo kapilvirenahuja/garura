@@ -29,6 +29,7 @@ The universal protocol for recipe→agent communication. Every recipe sends this
 | `stm.input` | Yes | Prior steps' `stm.output` paths | Named paths to artifacts this step needs to read. Empty `{}` if first step. |
 | `stm.output` | Yes | Compiler determines during compilation | Named paths where agent writes its artifacts. Become `stm.input` for downstream steps. |
 | `task_id` | Yes | Compiled step ID | Unique within the recipe. Also used as key in the status file for pause/resume. |
+| `ltm_context` | No | Object with project_base (string, resolved from config.yaml product.base-path), core_base (string, always ~/.meridian/core/memory/), query_domains (string[], knowledge domains to consult), locked_artifacts (string[], filenames at project_base with LOCKED status). When present, agent follows R1-R4 from resolution-protocol.md. |
 
 ### STM path convention
 
@@ -68,6 +69,7 @@ recipe = commit-code
 | `stm.output` | Enriched — may add paths beyond what was requested if agent discovered additional artifacts |
 | `task_id` | Echoed from input (for status file matching) |
 | `error` | `null` on success. Structured failure object on failure (per `structured-failure-protocol.md`) |
+| `resolution_trace_path` | Path to resolution trace YAML in STM. Written when ltm_context was provided in the input. Contains per-decision entries with resolved_from (project/core/llm), source path, and value. |
 
 ## Wiring Rule
 
@@ -88,3 +90,11 @@ No step reads data that wasn't explicitly produced by a prior step's output cont
 ## Transfer Mechanism
 
 At runtime, the recipe executor (Claude Code) reads the JSON contract from the compiled SKILL.md step and passes it to the agent via the `Agent` tool prompt. The agent parses the contract, reads from `stm.input` paths, does its work, writes to `stm.output` paths, and returns the output contract.
+
+## Resolution Protocol
+
+When `ltm_context` is present in the input contract, agents follow the R1-R4 resolution protocol defined in `resolution-protocol.md`. This protocol establishes a 3-layer knowledge hierarchy (project LTM → core LTM → LLM reasoning) and produces a resolution trace documenting where each domain decision came from.
+
+The `ltm_context` field is optional. Agents that do not receive it continue operating with their existing behavior — backward compatibility is guaranteed.
+
+See `resolution-protocol.md` for the full protocol specification.
