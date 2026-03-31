@@ -12,6 +12,8 @@ Agents and skills query this category when they need to know: **"What are the ru
 | `commits/quality-rules.md` | Commit format and quality validation rules | analyze-pr, create-commit |
 | `git/branching.md` | Branch naming conventions and quality gate implications | repo-orchestrator, setup-branch |
 | `agent-lifecycle/epic-management-rules.md` | Epic management rules — vertical slice delivery, single module scope, mocks, dependency discipline, foundation investments | scope-roadmap-epics, assess-feasibility, prepare-implementation, product-strategist, tech-designer |
+| `knowledge-file-template.md` | Canonical knowledge file template — Tier 1 (all files) and Tier 2 (core-scoped) metadata requirements, staleness rules, and index registration conventions | knowledge-extractor, learn recipe |
+| `resolution-protocol.md` | R1-R4 resolution protocol — LTM hierarchy enforcement, authority semantics (LOCKED/DRAFT), resolution trace schema, context isolation exemptions | tech-designer, product-strategist, repo-orchestrator |
 
 ## When to Add Here
 

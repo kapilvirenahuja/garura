@@ -1,0 +1,28 @@
+branch:
+  name: feat/182-ltm-resolution-protocol
+  base_ref: main
+  created_at: 2026-03-26T00:00:00Z
+  pushed: true
+  remote_url: origin/feat/182-ltm-resolution-protocol
+  tracking_configured: true
+
+operation:
+  stash_used: true
+  stash_message: meridian: pre-branch stash for feat/182-ltm-resolution-protocol
+  changes_preserved: true
+  modified_files:
+    - .claude/specs/idsd/idsd-tasks.md
+    - .meridian/project/issues/_pending/start-feature/args.yaml
+  untracked_directories:
+    - .meridian/project/issues/176/
+    - .meridian/project/issues/177/
+    - .meridian/project/issues/179/
+    - .meridian/project/issues/_pending/start-feature-planning/
+
+verification:
+  branch_exists_locally: true
+  branch_exists_remotely: true
+  tracking_branch: origin/feat/182-ltm-resolution-protocol
+  working_tree_status: clean_with_stash_restored
+
+status: success

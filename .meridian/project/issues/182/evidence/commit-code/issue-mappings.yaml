@@ -1,0 +1,48 @@
+issue_mappings:
+  branch_issue: 182
+  mappings:
+    - group_id: G1
+      issue: 182
+      confidence: high
+      reasoning: "Direct LTM resolution protocol artifacts — resolution-protocol.md, knowledge-file-template.md, _index.md update"
+    - group_id: G2
+      issue: 182
+      confidence: high
+      reasoning: "ADR 015 documents the LTM resolution protocol design decision"
+    - group_id: G3
+      issue: 182
+      confidence: high
+      reasoning: "knowledge-extractor agent is a core deliverable of the LTM resolution protocol"
+    - group_id: G4
+      issue: 182
+      confidence: high
+      reasoning: "5 agents updated to accept ltm_context — direct implementation of resolution protocol wiring"
+    - group_id: G5
+      issue: 182
+      confidence: high
+      reasoning: "agent-contract.md ltm_context field defines the protocol's agent interface"
+    - group_id: G6
+      issue: 182
+      confidence: high
+      reasoning: "capture-learning recipe is the learning extraction pipeline defined by #182"
+    - group_id: G7
+      issue: 182
+      confidence: high
+      reasoning: "6 recipes updated for ltm_context wiring — protocol integration across recipe layer"
+    - group_id: G8
+      issue: 182
+      confidence: high
+      reasoning: "STM evidence from create-recipe and learn-dry-run execution during #182 work"
+    - group_id: G9
+      issue: 182
+      confidence: high
+      reasoning: "Resolution trace and simulation artifacts produced during #182 implementation"
+    - group_id: G10
+      issue: 182
+      confidence: high
+      reasoning: "Prior issue STM directories (176, 177, 179) accumulated during branch work — branch issue owns STM cleanup"
+    - group_id: G11
+      issue: 182
+      confidence: medium
+      reasoning: "IDSD spec tracking and start-feature args updated during #182 branch work. Semantic match is closer to #176 but changes were made in context of #182"
+  conflicts: []

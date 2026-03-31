@@ -1,0 +1,8 @@
+# SIMULATED — issue 182 is OPEN (current branch work), simulating as CLOSED for test
+issue:
+  number: 182
+  title: "LTM Resolution Protocol"
+  state: "CLOSED"
+  closedAt: "2026-03-31T12:00:00Z"
+  simulated: true
+  note: "Issue is actually OPEN — simulated as CLOSED for extraction test"

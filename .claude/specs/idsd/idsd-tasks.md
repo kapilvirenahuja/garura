@@ -1,8 +1,20 @@
 # IDSD — Execution Plan (Tasks)
 
-**Version:** 3.0.0
-**Date:** 2026-03-17 (updated from 2026-03-05)
-**Status:** In Progress — P1, P3, P4, P5, P6, P11, P12 complete. ship, merge-pr, prepare-implementation complete. P2 partial. P7-P10, P13-P19 not started. Pipeline refactor pending (#106).
+**Version:** 3.1.0
+**Date:** 2026-03-26 (updated from 2026-03-17)
+**Status:** In Progress (~65%) — P1, P3, P4, P5, P6, P11, P12 complete. ship, merge-pr, prepare-implementation, prepare-architecture complete. P2 partial. P7-P10, P13-P19 not started. Pipeline refactor pending (#106).
+
+### Progress Update (2026-03-26)
+
+**Since last update (2026-03-17):**
+- **prepare-architecture** recipe compiled and deployed — profile-driven architecture design with architecture.yaml + quality-standards.yaml + architecture decisions map (#174)
+- **Client-side brief rendering** shipped (#169, #171) — all 8 HTML briefs externalized to shared brief-common.css + brief-render.js, SPA chapter navigation, tab sub-navigation, Phoenix Design System v2.0
+- **Architecture decision map** added (#174) — Chapter 7 in architecture-brief.html with accordion cards, driver-tagged reasoning (Budget/LTM/Profile/User Decision), filter-by-driver navigation, picked/rejected chips
+- **prepare-architecture rebaked** — C12 (decisions[] structure), C13 (driver traceability), F8 (absent decisions), S6 (Decision Reviewer scenario), now 12 step evals + 6 scenario evals
+- **Brief templates** updated: all 8 templates + hub.html now reference external CSS/JS, reduced from 8178 to 2802 lines (66% reduction)
+- **Overall: 14 recipes deployed, 11 agents, 35 skills, 14 ADRs, 8 brief templates**
+
+**Key blockers unchanged:** validator agent (blocks P10, P13, P14, P18), cascade-sync skill (G-005), #106 pipeline refactor
 **Spec Reference:** `idsd.md`
 **Verify Reference:** `idsd-verify.md`
 
@@ -25,7 +37,7 @@ The following artifact names changed from the original spec. All tasks below and
 | vision.md | product.yaml | discover-product |
 | roadmap.md | roadmap.yaml | plan-roadmap |
 | product-spec.md / spec.md | features.yaml | prepare-implementation |
-| technical-approach.md | architecture.yaml | prepare-implementation |
+| technical-approach.md | architecture.yaml + quality-standards.yaml | prepare-architecture (upstream of prepare-implementation) |
 | lld.md | tech.yaml (impl detail) + plan.yaml (execution order) | prepare-implementation |
 | scenarios.md | scenarios.yaml | prepare-implementation |
 | brief.html | product-brief.html, roadmap-brief.html, features-brief.html, etc. | doc-builder per recipe |
@@ -73,14 +85,14 @@ Build order is flat, one recipe at a time, in user-set priority (P1 through P19)
 | Agent | Status | Used By |
 |-------|--------|---------|
 | product-strategist | ✅ COMPLETE | discover-product, plan-roadmap, prepare-implementation, implement-epic |
-| tech-designer | ✅ COMPLETE | plan-roadmap, prepare-implementation, implement-epic (context builder) |
+| tech-designer | ✅ COMPLETE | plan-roadmap, prepare-architecture, prepare-implementation, implement-epic |
 | code-builder | ✅ COMPLETE | implement-epic, start-feature-planning |
 | eval-generator | ✅ COMPLETE (new in implement-epic) | implement-epic only |
 | quality-auditor | ✅ COMPLETE (new in implement-epic) | implement-epic only |
-| judge | ✅ COMPLETE (new in implement-epic) | implement-epic only |
+| judge | ✅ COMPLETE (new in implement-epic) | implement-epic, prepare-architecture |
 | repo-orchestrator | ✅ COMPLETE | start-feature, commit-code, create-pr, merge-pr, ship, implement-epic, all evidence steps |
 | project-orchestrator | ✅ COMPLETE | start-feature, commit-code, create-pr |
-| doc-builder | ✅ COMPLETE | discover-product, plan-roadmap, prepare-implementation |
+| doc-builder | ✅ COMPLETE | discover-product, plan-roadmap, prepare-architecture, prepare-implementation |
 | intent-crafter | ✅ COMPLETE | create-recipe |
 | intent-resolver | ✅ COMPLETE | create-recipe |
 

@@ -170,9 +170,13 @@ Depends on: Step 2
   },
   "task_id": "read-ltm",
   "context": {
-    "ltm_path": "~/.meridian/core/memory/",
-    "scan_directories": ["standards/", "knowledge/", "formats/", "workflows/"],
     "epic_id": "{epic_id}"
+  },
+  "ltm_context": {
+    "project_base": "{product_base}/architecture/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["standards", "knowledge", "formats", "workflows"],
+    "locked_artifacts": ["architecture.yaml", "quality-standards.yaml"]
   }
 }
 ```

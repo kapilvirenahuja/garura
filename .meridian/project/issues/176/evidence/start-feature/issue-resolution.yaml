@@ -1,0 +1,11 @@
+issue:
+  number: 176
+  title: "Update IDSD spec progress tracking"
+  labels: []
+  state: "open"
+  body_summary: "Update the IDSD specification progress tracking in .claude/specs/idsd/idsd-tasks.md. Reflect current implementation status, mark completed tasks, identify in-progress work, and ensure the task"
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/176"
+  created: true
+  closed: false
+  parent_issue: null
+  type_hint: "chore"

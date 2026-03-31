@@ -84,7 +84,13 @@ Depends on: pre-flight
       "pr_analysis": "{stm_base}/{issue}/evidence/create-pr/analysis.yaml"
     }
   },
-  "task_id": "analyze-pr-readiness"
+  "task_id": "analyze-pr-readiness",
+  "ltm_context": {
+    "project_base": ".meridian/product/architecture/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["git", "pr-standards"],
+    "locked_artifacts": []
+  }
 }
 ```
 

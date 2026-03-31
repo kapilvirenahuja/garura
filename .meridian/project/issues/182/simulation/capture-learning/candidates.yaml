@@ -1,0 +1,107 @@
+# Knowledge Candidates — Issue #182 (LTM Resolution Protocol)
+# Extracted by: knowledge-extractor (EXTRACT mode)
+# Source: .meridian/project/issues/182/evidence/prepare-implementation/resolution-trace.yaml
+# Traces scanned: 1
+# Total LLM fallbacks: 13
+# Synthesized into: 4 patterns
+
+candidates:
+
+  - id: "KC-001"
+    title: "Layered Knowledge Resolution for Agent Decision-Making"
+    type: "pattern"
+    synthesized_from:
+      - "Three-layer hierarchy: project LTM (LOCKED/DRAFT) -> core LTM -> LLM fallback with strict descent order"
+      - "Keyword-based discovery via search_patterns metadata field with string matching only"
+      - "Resolution trace written to STM recording decision, resolved_from, source, authority, and value"
+    source_issue: "182"
+    source_trace_path: ".meridian/project/issues/182/evidence/prepare-implementation/resolution-trace.yaml"
+    domain_question: "How should agents resolve domain questions against organizational knowledge, discover relevant files, and audit which layer answered each question?"
+    llm_answer_summary: >
+      Use a three-layer descent hierarchy (project LTM -> core LTM -> LLM fallback)
+      where LOCKED artifacts stop descent. Discovery uses keyword/string matching
+      against search_patterns metadata — no LLM semantic matching. Every resolution
+      produces an auditable trace in STM recording the source layer, authority level,
+      and value for each decision.
+    proposed_scope: "core"
+    proposed_scope_rationale: "Layered knowledge resolution is a general-purpose agentic pattern applicable to any multi-agent system that maintains organizational memory — not specific to this project's domain."
+    dedup_status: "near-duplicate"
+    dedup_conflict_path: "~/.meridian/core/memory/standards/resolution-protocol.md"
+    approval_status: "pending"
+
+  - id: "KC-002"
+    title: "Safe Protocol Extension via Optional Fields and Grandfathering"
+    type: "pattern"
+    synthesized_from:
+      - "Optional contract fields with presence-gating — agent checks if field exists before activating new behavior, absence equals prior behavior"
+      - "Grandfather existing artifacts — new files must conform, existing files not required to migrate, agents handle both formats"
+      - "Conditional step gated on field presence for multi-agent protocol adoption — reference normative document, don't embed protocol logic"
+    source_issue: "182"
+    source_trace_path: ".meridian/project/issues/182/evidence/prepare-implementation/resolution-trace.yaml"
+    domain_question: "How should new protocols, contract fields, and format standards be introduced across an existing multi-agent system without breaking callers or requiring flag-day migrations?"
+    llm_answer_summary: >
+      Three reinforcing strategies: (1) Add new contract fields as optional with
+      presence-gating — agents check existence before activating new behavior, absence
+      preserves prior behavior. (2) Grandfather existing artifacts — new files conform
+      from day one, existing files are not required to migrate, agents read both formats.
+      (3) Per-agent adoption via conditional steps that reference a single normative
+      protocol document rather than embedding protocol logic in each agent definition.
+    proposed_scope: "core"
+    proposed_scope_rationale: "Backward-compatible protocol extension is a general software evolution pattern applicable to any multi-agent or multi-service system — not project-specific."
+    dedup_status: "unique"
+    dedup_conflict_path: null
+    approval_status: "pending"
+
+  - id: "KC-003"
+    title: "Human-Gated Knowledge Lifecycle with Scoped Classification"
+    type: "pattern"
+    synthesized_from:
+      - "Two-phase lifecycle: EXTRACT (scan traces, synthesize patterns, stage candidates) then PROMOTE (human reviews, approves, agent writes to LTM)"
+      - "Two-tier metadata — Tier 1 for all files, Tier 2 (applicability, rationale, decay tracking) for core-scoped files only"
+      - "Classification heuristics — project-specific names/models/paths -> project; technology/framework patterns -> core; when in doubt, project"
+      - "Mandatory human approval gate for all LTM writes regardless of agent confidence"
+      - "Archival and extraction share the issue closure trigger — same recipe, separate phases to avoid coordination overhead"
+    source_issue: "182"
+    source_trace_path: ".meridian/project/issues/182/evidence/prepare-implementation/resolution-trace.yaml"
+    domain_question: "How should work artifacts be converted into persistent organizational knowledge with appropriate quality gates, scope classification, and metadata standards?"
+    llm_answer_summary: >
+      A two-phase lifecycle: EXTRACT scans resolution traces for LLM-fallback
+      decisions, synthesizes them into reusable patterns, and stages candidates in
+      STM. PROMOTE requires mandatory human approval before writing to LTM.
+      Classification uses heuristics (project-specific signals -> project scope,
+      general patterns -> core scope, default to project when ambiguous) with required
+      reasoning for every classification. Metadata is tiered — all files carry Tier 1
+      (title, scope, search patterns, provenance); core files additionally carry
+      Tier 2 (applicability boundaries, rationale, decay tracking with staleness
+      window). Archival and extraction are co-located in the same recipe to share
+      the issue-closure trigger.
+    proposed_scope: "core"
+    proposed_scope_rationale: "Knowledge lifecycle management with human gates and scoped classification is a general organizational learning pattern applicable to any system that accumulates persistent knowledge."
+    dedup_status: "unique"
+    dedup_conflict_path: null
+    approval_status: "pending"
+
+  - id: "KC-004"
+    title: "Context Isolation as a Security Invariant in Eval and Extraction Pipelines"
+    type: "pattern"
+    synthesized_from:
+      - "eval-generator and judge agents NEVER receive ltm_context — any recipe passing it is a defect; isolation prevents specification gaming"
+      - "Knowledge-extractor is read-only against its inputs — never modifies resolution traces or evidence artifacts to prevent feedback loops"
+    source_issue: "182"
+    source_trace_path: ".meridian/project/issues/182/evidence/prepare-implementation/resolution-trace.yaml"
+    domain_question: "How should agent pipelines enforce information boundaries to prevent specification gaming and feedback loops?"
+    llm_answer_summary: >
+      Context isolation is a security invariant, not a preference. Two applications:
+      (1) Eval agents (eval-generator, judge) NEVER receive ltm_context or
+      implementation context — any recipe that passes this context is treated as a
+      defect, because exposure enables specification gaming where evals are shaped to
+      pass rather than to test. (2) Extraction agents are read-only against their
+      inputs — the knowledge-extractor reads evidence but never modifies it, preventing
+      feedback loops where extraction changes the data it extracted from. Both enforce
+      the principle that agents which evaluate or extract from artifacts must not have
+      write access to those artifacts.
+    proposed_scope: "core"
+    proposed_scope_rationale: "Context isolation for eval integrity and extraction purity is a general multi-agent security pattern — applicable wherever agents evaluate or extract from artifacts they could otherwise influence."
+    dedup_status: "unique"
+    dedup_conflict_path: null
+    approval_status: "pending"

@@ -73,7 +73,13 @@ Depends on: pre-flight
       "analysis": "{stm_base}/{issue}/evidence/commit-code/analysis.yaml"
     }
   },
-  "task_id": "analyze-changes"
+  "task_id": "analyze-changes",
+  "ltm_context": {
+    "project_base": ".meridian/product/architecture/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["commits", "git"],
+    "locked_artifacts": []
+  }
 }
 ```
 

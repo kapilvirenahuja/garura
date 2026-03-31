@@ -157,6 +157,12 @@ The context builder reads the plan.yaml execution order entry, architecture.yaml
     "target_lines": 100,
     "required_sections": ["Scope", "Tech Decisions", "Domain Rules", "Do NOT", "Files You Own", "Exit Gate"],
     "scoping_rule": "Include ONLY information relevant to this feature's sequence entry. Backend-only feature excludes frontend details. Frontend-only feature excludes backend internals."
+  },
+  "ltm_context": {
+    "project_base": "{product_base}/architecture/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["architecture", "patterns", "coding-standards"],
+    "locked_artifacts": ["architecture.yaml", "quality-standards.yaml"]
   }
 }
 ```
@@ -463,6 +469,12 @@ Depends on: Step 6a (test files must exist)
       "Do NOT read any files in .meridian/ other than CONTEXT.md and the listed test files",
       "Do NOT read scenarios.yaml, features.yaml, or any eval files"
     ]
+  },
+  "ltm_context": {
+    "project_base": "{product_base}/architecture/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["coding-standards", "testing-patterns", "conventions"],
+    "locked_artifacts": []
   }
 }
 ```
@@ -508,6 +520,12 @@ Depends on: Step 6b
       "Do NOT read any eval files, builder prompts, judge reports, or EM reports",
       "Do NOT read files outside the project root or in /tmp/"
     ]
+  },
+  "ltm_context": {
+    "project_base": "{product_base}/architecture/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["standards", "quality"],
+    "locked_artifacts": ["quality-standards.yaml"]
   }
 }
 ```

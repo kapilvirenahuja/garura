@@ -198,6 +198,19 @@ domain_clarification_needed:
 
 The recipe handles user interaction and re-invokes with confirmed domain.
 
+### Step 2b — LTM Context Resolution (when ltm_context present)
+
+If the contract contains `ltm_context`, follow R1-R4 from `~/.meridian/core/memory/standards/resolution-protocol.md`:
+
+- **R1:** Identify decision domains from task intent + `ltm_context.query_domains`
+- **R2:** For each domain, search `ltm_context.project_base` for relevant files. Check `ltm_context.locked_artifacts` first — if LOCKED, use as authoritative (stop descending). If DRAFT, use as advisory (continue descending).
+- **R3:** For unresolved domains, search `ltm_context.core_base` via `_index.md` files and `Search patterns:` headers in knowledge files.
+- **R4:** Domains still unresolved → proceed with LLM reasoning, flag as `resolved_from: "llm"` in resolution trace.
+
+Write resolution trace to `{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml`.
+
+If `ltm_context` is NOT present, fall back to existing Steps 3-4 behavior unchanged.
+
 ### Step 3: Selective LTM Search
 
 Search `~/.meridian/core/memory/` for domain-relevant content using Glob and Grep:
@@ -229,7 +242,7 @@ Input:
   output_base: ".meridian/product/discovery/"
 ```
 
-The skill performs web research, writes `domain-context.md` to STM, and returns coverage metadata. Load the resulting STM artifact as enrichment context.
+The skill performs web research, writes `domain-context.md` to STM, and returns coverage metadata. Load the resulting STM artifact as enrichment context. Flag web research as `resolved_from: 'web_research'` in resolution trace (a special case of non-LTM resolution).
 
 ### Step 6: Load STM
 
@@ -262,6 +275,12 @@ Input:
 ## Output Contracts
 
 **When invoked via JSON contract:** Return ONLY the enriched JSON contract with updated `stm` paths. No prose, no YAML blocks, no commentary. The JSON contract IS the output.
+
+**Optional field — written when `ltm_context` is provided:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `resolution_trace_path` | string (optional) | Path to `resolution-trace.yaml` written during Step 2b. Present only when `ltm_context` was provided in the input contract. |
 
 **When invoked directly (no JSON contract):** Return the skill-specific contracts below.
 

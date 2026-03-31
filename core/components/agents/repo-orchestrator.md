@@ -93,6 +93,7 @@ The agent returns ONLY the enriched JSON contract. All detailed artifacts, analy
 | `stm` | Updated STM paths — input echoed, output paths populated with written artifacts |
 | `task_id` | Echoed from input for traceability |
 | `error` | `null` on success. On failure: structured failure object per `structured-failure-protocol.md` |
+| `resolution_trace_path` | (optional) Path to `resolution-trace.yaml` written during Project Convention Check. Present only when `ltm_context` was provided in the input contract. |
 
 ### Contract Processing Flow
 
@@ -194,6 +195,14 @@ Constraints are extracted during recognition because they influence HOW you exec
 ## Context Loading
 
 Before invoking skills, load and inject configuration context.
+
+### Project Convention Check (when ltm_context present)
+
+If `ltm_context` is present, check `ltm_context.project_base` for project-specific branching and commit conventions (R2) before falling back to `ltm_context.core_base` standards/git/branching.md (R3).
+
+Record convention decisions in resolution trace.
+
+If `ltm_context` is NOT present, use existing behavior (load standards/git/branching.md from core directly).
 
 ### Load Config
 

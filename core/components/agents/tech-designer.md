@@ -184,6 +184,19 @@ From the incoming intent or product specification, classify the technical domain
 - Identify architecture patterns (e.g., "event-driven", "monolith", "split architecture")
 - Note deployment context (e.g., "Vercel", "AWS", "Railway", "self-hosted")
 
+### Step 2b — LTM Context Resolution (when ltm_context present)
+
+If the contract contains `ltm_context`, follow R1-R4 from `~/.meridian/core/memory/standards/resolution-protocol.md`:
+
+- **R1:** Identify decision domains from task intent + `ltm_context.query_domains`
+- **R2:** For each domain, search `ltm_context.project_base` for relevant files. Check `ltm_context.locked_artifacts` first — if LOCKED, use as authoritative (stop descending). If DRAFT, use as advisory (continue descending).
+- **R3:** For unresolved domains, search `ltm_context.core_base` via `_index.md` files and `Search patterns:` headers in knowledge files.
+- **R4:** Domains still unresolved → proceed with LLM reasoning, flag as `resolved_from: "llm"` in resolution trace.
+
+Write resolution trace to `{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml`.
+
+If `ltm_context` is NOT present, fall back to existing Steps 3-4 behavior unchanged.
+
 ### Step 3: Selective LTM Search
 
 Search `~/.meridian/core/memory/` for domain-relevant content using Glob and Grep:
@@ -269,6 +282,12 @@ For direct invocations (no JSON contract), perform analysis directly — skills 
 ## Output Contract
 
 **When invoked via JSON contract:** Return ONLY the enriched JSON contract with updated `stm` paths. Write detailed analysis to the STM artifact file. No prose in the return.
+
+**Optional field — written when `ltm_context` is provided:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `resolution_trace_path` | string (optional) | Path to `resolution-trace.yaml` written during Step 2b. Present only when `ltm_context` was provided in the input contract. |
 
 **When invoked directly (no JSON contract):** Return the structured analysis output below.
 
