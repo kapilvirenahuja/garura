@@ -1,0 +1,10 @@
+pr_number: 178
+status: "merged"
+base_branch: main
+merge_sha: "7f604a0b6288b55cbc18250f629839994cc6f6f7"
+branch_deleted: true
+local_branch: main
+evals:
+  SE-2: PASS  # feature branch absent locally and remote deleted by platform (C6)
+  SE-3: PASS  # local checkout on main, up to date with origin/main
+  SE-5: PASS  # PR 178 merged on platform, merge_sha present

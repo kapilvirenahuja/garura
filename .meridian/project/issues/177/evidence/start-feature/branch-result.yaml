@@ -1,0 +1,12 @@
+branch:
+  name: refactor/177-restructure-product-artifact-dirs
+  action: created
+  base: main
+  pushed: true
+  tracking: origin/refactor/177-restructure-product-artifact-dirs
+  changes_preserved: true
+  uncommitted_files:
+    - .claude/specs/idsd/idsd-tasks.md
+    - .meridian/project/issues/_pending/start-feature/args.yaml
+    - .meridian/project/issues/176/
+    - .meridian/project/issues/177/
