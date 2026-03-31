@@ -155,6 +155,27 @@ Read the execution plan provided in the prompt to understand:
 - Expected outcomes for each step
 - **Recipe constraints** — extract and validate before starting any step
 
+### LTM Context (Optional)
+
+If `ltm_context` is present in the contract, load coding standards and
+conventions before beginning implementation:
+
+- Check `ltm_context.project_base` for project-specific coding standards
+  (naming conventions, error handling patterns, testing patterns)
+- Check `ltm_context.core_base/standards/` for core coding standards
+
+These inform implementation style — naming conventions, error handling
+approaches, test structure patterns. They do NOT override the execution
+plan. If the plan specifies a particular approach, the plan takes
+precedence over any advisory LTM content.
+
+**No R1-R4 protocol.** No resolution trace. Code-builder is a pure
+executor — ltm_context is advisory convention context only, not domain
+decision input.
+
+**When ltm_context is absent:** Skip this section entirely. No change to
+behavior (INV3).
+
 ### During Implementation
 
 Use tools as needed:
