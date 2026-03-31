@@ -101,8 +101,13 @@ Pass the following contract as the ENTIRE agent prompt (JSON only, nothing else)
     "context_report_path": null
   },
   "config": {
-    "ltm_architecture_path": "~/.meridian/core/memory/knowledge/architecture/",
     "profiles": "{extracted profiles from Step 1}"
+  },
+  "ltm_context": {
+    "project_base": ".meridian/product/architecture/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["architecture", "patterns", "stacks", "platforms", "data", "operations"],
+    "locked_artifacts": ["{product.yaml filename if LOCKED}"]
   }
 }
 ```

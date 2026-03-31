@@ -141,7 +141,13 @@ Pass the initialized contract as the ENTIRE agent prompt (JSON only, nothing els
     "profiles": "{profiles extracted from product.yaml if present, null otherwise}"
   },
   "notes": [],
-  "step_failure": null
+  "step_failure": null,
+  "ltm_context": {
+    "project_base": ".meridian/product/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["architecture", "standards", "domain-taxonomy"],
+    "locked_artifacts": []
+  }
 }
 ```
 
@@ -320,6 +326,12 @@ Update `task_id` to `assess-feasibility` in the enriched contract. Pass the full
   },
   "config": {
     "profiles": "{profiles extracted from product.yaml if present, null otherwise}"
+  },
+  "ltm_context": {
+    "project_base": ".meridian/product/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["architecture", "standards"],
+    "locked_artifacts": []
   }
 }
 ```

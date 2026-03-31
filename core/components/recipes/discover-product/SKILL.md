@@ -135,7 +135,13 @@ Skill: `discover-product-opportunity`
     "product_type": "{product_type}",
     "slug": "{slug}"
   },
-  "task_id": "discover-opportunity"
+  "task_id": "discover-opportunity",
+  "ltm_context": {
+    "project_base": ".meridian/product/discovery/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["domain-taxonomy", "standards"],
+    "locked_artifacts": []
+  }
 }
 ```
 
@@ -180,7 +186,13 @@ Skill: `draft-product-vision`
     "domain": "{confirmed_domain from Step 2}",
     "profile_knowledge_path": "~/.meridian/core/memory/knowledge/project-profiling/"
   },
-  "task_id": "draft-vision"
+  "task_id": "draft-vision",
+  "ltm_context": {
+    "project_base": ".meridian/product/discovery/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["domain-taxonomy", "standards"],
+    "locked_artifacts": []
+  }
 }
 ```
 
@@ -202,7 +214,13 @@ Skill: `draft-product-vision`
     "slug": "{slug}",
     "profile_knowledge_path": "~/.meridian/core/memory/knowledge/project-profiling/"
   },
-  "task_id": "draft-vision"
+  "task_id": "draft-vision",
+  "ltm_context": {
+    "project_base": ".meridian/product/discovery/",
+    "core_base": "~/.meridian/core/memory/",
+    "query_domains": ["domain-taxonomy", "standards"],
+    "locked_artifacts": []
+  }
 }
 ```
 
