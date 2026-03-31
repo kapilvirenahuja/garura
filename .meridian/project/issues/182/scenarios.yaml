@@ -1,0 +1,374 @@
+# scenarios.yaml — Issue #182
+# Verification scenarios for LTM Resolution Protocol
+# Lifecycle: DRAFT
+# Link direction: scenarios reference features, not the reverse
+# Rule: No implementation details — observable outcomes only
+
+slug: "ltm-resolution"
+status: "LOCKED"
+created_at: "2026-03-26"
+updated_at: "2026-03-26"
+
+# --- Verification Scenarios ---
+
+scenarios:
+
+  # ========================================
+  # F1 — Context Resolution Protocol
+  # ========================================
+
+  - id: "S1"
+    feature_ref: "F1"
+    behavior_ref: "F1-B1"
+    description: "Project-scoped knowledge is consulted first and used when available"
+    expected_behavior: >
+      Agent receives knowledge context with project-scoped and core-scoped paths.
+      Agent encounters a domain question. A LOCKED artifact in the project-scoped
+      layer answers the question. The agent uses it without descending to core-scoped
+      or general reasoning.
+    pass_criteria:
+      - "Agent output reflects the project-scoped knowledge answer"
+      - "Resolution trace records 'project' as the source layer for that question"
+      - "No core-scoped knowledge or general reasoning was consulted for that question"
+    automation: "automated"
+
+  - id: "S2"
+    feature_ref: "F1"
+    behavior_ref: "F1-B1"
+    description: "Core-scoped knowledge is used when project-scoped layer has no answer"
+    expected_behavior: >
+      Agent receives knowledge context. Project-scoped layer has no knowledge
+      relevant to the domain question. Core-scoped layer has a matching knowledge
+      file. The agent uses the core-scoped answer.
+    pass_criteria:
+      - "Agent output reflects the core-scoped knowledge answer"
+      - "Resolution trace records 'core' as the source layer for that question"
+      - "Project-scoped layer was checked first and found empty for this topic"
+    automation: "automated"
+
+  - id: "S3"
+    feature_ref: "F1"
+    behavior_ref: "F1-B1"
+    description: "General reasoning fallback is flagged when both knowledge layers are empty"
+    expected_behavior: >
+      Agent receives knowledge context. Neither project-scoped nor core-scoped
+      layers contain knowledge relevant to the domain question. The agent falls
+      back to general reasoning. The fallback is explicitly flagged in the
+      resolution trace.
+    pass_criteria:
+      - "Resolution trace records 'llm-fallback' as the source layer for that question"
+      - "The fallback entry includes sufficient context for downstream candidate extraction"
+      - "Agent still produces a valid output — fallback is not a failure, just a signal"
+    automation: "automated"
+
+  - id: "S4"
+    feature_ref: "F1"
+    behavior_ref: "F1-B2"
+    description: "Resolution trace is produced for every domain decision"
+    expected_behavior: >
+      Agent completes work that involved multiple domain decisions. Each decision
+      appears in the resolution trace with its source layer and authority level.
+    pass_criteria:
+      - "Trace contains one entry per domain decision made during the agent's work"
+      - "Each entry identifies the source layer (project, core, or llm-fallback)"
+      - "Each entry from a stored artifact records whether the source was locked or draft"
+    automation: "automated"
+
+  - id: "S5"
+    feature_ref: "F1"
+    behavior_ref: "F1-B3"
+    description: "LOCKED artifact takes precedence over DRAFT artifact for same domain question"
+    expected_behavior: >
+      Agent encounters two knowledge artifacts covering the same domain question.
+      One is LOCKED (authoritative), one is DRAFT (advisory). The agent uses the
+      LOCKED artifact's answer.
+    pass_criteria:
+      - "Agent output reflects the LOCKED artifact's answer, not the DRAFT's"
+      - "Resolution trace records the authority level as 'locked'"
+      - "DRAFT artifact is not used as the answer for that question"
+    automation: "automated"
+
+  - id: "S6"
+    feature_ref: "F1"
+    behavior_ref: "F1-B3"
+    description: "DRAFT artifact is treated as advisory — may be overridden with reasoning"
+    expected_behavior: >
+      Agent encounters a DRAFT knowledge artifact. The agent treats it as advisory
+      input. If the agent has stronger reasoning that contradicts the draft, it may
+      override the draft answer, recording the override and rationale in the trace.
+    pass_criteria:
+      - "Resolution trace records the DRAFT artifact as 'advisory' authority level"
+      - "If override occurs, the trace includes the rationale for overriding"
+      - "The agent does not blindly follow DRAFT content as authoritative"
+    automation: "hybrid"
+
+  - id: "S7"
+    feature_ref: "F1"
+    behavior_ref: "F1-B4"
+    description: "Agent without knowledge context field operates normally (backward compatibility)"
+    expected_behavior: >
+      Workflow dispatches an agent without the knowledge context field in the
+      contract. The agent receives the contract, processes the request, and
+      produces output. No errors, no warnings, no behavioral difference from
+      pre-protocol operation.
+    pass_criteria:
+      - "Agent completes its task without errors"
+      - "No resolution trace is produced (no context to resolve against)"
+      - "Output quality and behavior are identical to pre-protocol operation"
+      - "No log warnings or degradation signals from the missing field"
+    automation: "automated"
+
+  # ========================================
+  # F2 — Knowledge Hierarchy Enforcement
+  # ========================================
+
+  - id: "S8"
+    feature_ref: "F2"
+    behavior_ref: "F2-B1"
+    description: "Workflow populates standard knowledge context field for participating agents"
+    expected_behavior: >
+      A workflow dispatches a participating agent. The agent contract includes the
+      standard knowledge context field with project-scoped and core-scoped paths
+      appropriate to the workflow's domain.
+    pass_criteria:
+      - "The contract contains the standard knowledge context field"
+      - "Project-scoped paths are populated (pointing to the project's knowledge directory)"
+      - "Core-scoped paths are populated (pointing to the global knowledge directory)"
+      - "Field shape matches the standard contract schema"
+    automation: "automated"
+
+  - id: "S9"
+    feature_ref: "F2"
+    behavior_ref: "F2-B2"
+    description: "Ad-hoc knowledge path references are replaced by standard field"
+    expected_behavior: >
+      A workflow that previously used a non-standard field to pass knowledge paths
+      dispatches an agent. The old ad-hoc field is absent. The standard knowledge
+      context field carries the equivalent information. No knowledge path is lost
+      in the migration.
+    pass_criteria:
+      - "The non-standard field name is absent from the agent contract"
+      - "The standard knowledge context field is present with equivalent paths"
+      - "Agent receives the same knowledge content it received via the old field"
+      - "No dual-path situation where both old and new fields coexist"
+    automation: "automated"
+
+  - id: "S10"
+    feature_ref: "F2"
+    behavior_ref: "F2-B3"
+    description: "Context-isolated agents receive NO knowledge context field"
+    expected_behavior: >
+      A workflow dispatches a context-isolated agent. The agent contract does not
+      include the knowledge context field. The agent's isolation boundary is
+      preserved unconditionally.
+    pass_criteria:
+      - "The knowledge context field is absent from the contract — not present with empty value, fully absent"
+      - "The agent operates in its normal isolated mode"
+      - "No code path exists that could populate the field for this agent"
+    automation: "automated"
+
+  - id: "S11"
+    feature_ref: "F2"
+    behavior_ref: "F2-B4"
+    description: "Project-scoped knowledge overrides conflicting core-scoped knowledge"
+    expected_behavior: >
+      Both project-scoped and core-scoped knowledge exist for the same domain
+      question with conflicting answers. The agent resolves the question using
+      the project-scoped answer. The override is recorded in the resolution trace.
+    pass_criteria:
+      - "Agent output reflects the project-scoped answer, not the core-scoped answer"
+      - "Resolution trace records the override with both layers noted"
+      - "Core-scoped answer is not used for any part of the resolved question"
+    automation: "automated"
+
+  # ========================================
+  # F3 — Learning Recipe
+  # ========================================
+
+  - id: "S12"
+    feature_ref: "F3"
+    behavior_ref: "F3-B1"
+    description: "LLM-fallback entries in resolution traces are extracted as knowledge candidates"
+    expected_behavior: >
+      Work has completed. Resolution traces contain one or more general-reasoning
+      fallback entries. The operator invokes the learning workflow. Each fallback
+      entry is surfaced as a knowledge candidate with source context (the domain
+      question, the decision made, and the work context).
+    pass_criteria:
+      - "Every llm-fallback entry in the resolution traces produces a candidate"
+      - "Each candidate includes the original domain question and the decision that was made"
+      - "Candidates include source context sufficient for a reviewer to evaluate correctness"
+      - "Non-fallback entries (project or core sourced) are not extracted as candidates"
+    automation: "hybrid"
+
+  - id: "S13"
+    feature_ref: "F3"
+    behavior_ref: "F3-B4"
+    description: "Human approves candidates — only approved candidates are written"
+    expected_behavior: >
+      The learning workflow presents knowledge candidates. The human reviewer
+      approves some and rejects others. Only approved candidates are written to
+      the knowledge layer. Rejected candidates are discarded without trace in
+      knowledge layers.
+    pass_criteria:
+      - "Approved candidates are written to the appropriate knowledge layer"
+      - "Rejected candidates produce no files in any knowledge layer"
+      - "No candidate is written without explicit human approval action"
+      - "The approval/rejection boundary is binary — no partial approvals"
+    automation: "hybrid"
+
+  - id: "S14"
+    feature_ref: "F3"
+    behavior_ref: "F3-B3"
+    description: "Duplicate candidate is flagged — merge proposed instead of new file"
+    expected_behavior: >
+      A knowledge candidate duplicates or substantially overlaps with information
+      already present in the target knowledge layer. The workflow detects the
+      overlap, flags the candidate as a duplicate, and proposes a merge with the
+      existing entry rather than creating a new file.
+    pass_criteria:
+      - "The duplicate is detected before presenting to the reviewer"
+      - "The existing entry is surfaced alongside the candidate for comparison"
+      - "The proposal is to merge or update, not to create a new file"
+      - "If the reviewer approves, the existing file is updated rather than a new file created"
+    automation: "hybrid"
+
+  - id: "S15"
+    feature_ref: "F3"
+    behavior_ref: "F3-B1"
+    description: "Zero fallback candidates found — clean exit with evidence"
+    expected_behavior: >
+      Work has completed. Resolution traces contain no general-reasoning fallback
+      entries — every domain question was answered by stored knowledge. The learning
+      workflow detects this, produces a clean summary confirming zero candidates,
+      and exits without prompting for review.
+    pass_criteria:
+      - "Workflow completes without errors"
+      - "A summary artifact confirms zero candidates were found"
+      - "No empty approval queue is presented to the reviewer"
+      - "Evidence records that the learning workflow ran and found nothing to promote"
+    automation: "automated"
+
+  - id: "S16"
+    feature_ref: "F3"
+    behavior_ref: "F3-B2"
+    description: "Scope classification correctly assigns project-specific vs core-reusable"
+    expected_behavior: >
+      The learning workflow processes extracted candidates and classifies each as
+      project-scoped (specific to the current project's conventions) or core-scoped
+      (reusable across projects). The classification is based on the domain question's
+      applicability beyond the current project context.
+    pass_criteria:
+      - "Each candidate has a scope classification (project or core)"
+      - "Project-specific conventions (naming, local workflow rules) are classified as project-scoped"
+      - "General domain knowledge (industry patterns, technology decisions) is classified as core-scoped"
+      - "Classification is presented to the reviewer who can override before approval"
+    automation: "hybrid"
+
+  - id: "S17"
+    feature_ref: "F3"
+    behavior_ref: "F3-B5"
+    description: "Approved candidate is written to the correct scope layer"
+    expected_behavior: >
+      A candidate classified as project-scoped is approved and written to the
+      project-scoped knowledge layer. A candidate classified as core-scoped is
+      approved and written to the core-scoped knowledge layer. The write target
+      matches the classification.
+    pass_criteria:
+      - "Project-scoped candidate is written to project knowledge directory, not core"
+      - "Core-scoped candidate is written to core knowledge directory, not project"
+      - "Written file conforms to the knowledge file standard (F4)"
+      - "No cross-scope misplacement occurs"
+    automation: "automated"
+
+  # ========================================
+  # F4 — Knowledge File Standard
+  # ========================================
+
+  - id: "S18"
+    feature_ref: "F4"
+    behavior_ref: "F4-B1"
+    description: "New knowledge file contains all required Tier 1 metadata fields"
+    expected_behavior: >
+      A new knowledge file is created (by the learning recipe or any other
+      mechanism). The file contains all Tier 1 metadata: title, search patterns,
+      content body, and provenance (source, created date, author/origin).
+    pass_criteria:
+      - "Title field is present and non-empty"
+      - "Search patterns field is present with at least one pattern"
+      - "Content body is present and non-empty"
+      - "Provenance fields (source reference, created date) are present"
+      - "File passes Tier 1 validation without errors"
+    automation: "automated"
+
+  - id: "S19"
+    feature_ref: "F4"
+    behavior_ref: "F4-B1"
+    description: "Core-scoped knowledge file additionally contains Tier 2 metadata fields"
+    expected_behavior: >
+      A new core-scoped knowledge file is created. In addition to all Tier 1
+      metadata, it contains Tier 2 metadata: applicability boundaries (when to
+      use, when not to use), rationale, and decay tracking (last validated date,
+      staleness window).
+    pass_criteria:
+      - "All Tier 1 fields are present (same as S18)"
+      - "Applicability boundaries are present (use-when and do-not-use-when)"
+      - "Rationale field explains why this knowledge exists"
+      - "Decay tracking fields are present (last validated date, staleness window)"
+      - "File passes both Tier 1 and Tier 2 validation"
+    automation: "automated"
+
+  - id: "S20"
+    feature_ref: "F4"
+    behavior_ref: "F4-B3"
+    description: "Knowledge file older than staleness window is flagged as stale"
+    expected_behavior: >
+      A core-scoped knowledge file has a last-validated date that exceeds the
+      configured staleness window. The staleness check identifies the file as
+      stale. The flag is visible to operators and noted in resolution traces
+      when the stale file is used as a source.
+    pass_criteria:
+      - "File is flagged as stale when last-validated date exceeds the window"
+      - "The stale flag is visible in any staleness report or listing"
+      - "When the stale file is used in resolution, the trace notes the staleness"
+      - "Files within the staleness window are NOT flagged"
+    automation: "automated"
+
+  - id: "S21"
+    feature_ref: "F4"
+    behavior_ref: "F4-B4"
+    description: "Index file is updated when new knowledge file is written"
+    expected_behavior: >
+      A new knowledge file is written to a knowledge layer. The appropriate index
+      file for that layer is updated to include an entry for the new file. The
+      index entry includes the file's search patterns for category-level discovery.
+    pass_criteria:
+      - "Index file contains a new entry for the written knowledge file"
+      - "The index entry includes the file's search patterns"
+      - "The index entry includes the file's path for direct access"
+      - "Pre-existing index entries are not disturbed"
+    automation: "automated"
+
+  - id: "S22"
+    feature_ref: "F4"
+    behavior_ref: "F4-B2"
+    description: "Search patterns enable topic-based discovery without reading file content"
+    expected_behavior: >
+      An agent needs knowledge on a specific domain topic. The agent scans search
+      patterns declared in knowledge file metadata. Files whose patterns match the
+      topic are identified without the agent reading the full content of every file.
+    pass_criteria:
+      - "Matching files are found by pattern match against the topic"
+      - "Non-matching files are not returned as candidates"
+      - "Discovery does not require reading file content beyond the metadata/pattern section"
+      - "Discovery operation is bounded to file reads — no reasoning calls (INV1)"
+    automation: "automated"
+
+# --- Feature Gates ---
+# Maps each feature to the scenario IDs that must pass for the feature to be verified
+
+feature_gates:
+  F1: ["S1", "S2", "S3", "S4", "S5", "S6", "S7"]
+  F2: ["S8", "S9", "S10", "S11"]
+  F3: ["S12", "S13", "S14", "S15", "S16", "S17"]
+  F4: ["S18", "S19", "S20", "S21", "S22"]

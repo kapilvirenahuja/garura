@@ -1,0 +1,480 @@
+# features.yaml — Issue #182
+# Sub-Agent Context Resolution Protocol, LTM Hierarchy Enforcement, and Learning Recipe
+# Lifecycle: DRAFT
+# Depends on: N/A (brownfield — no upstream product.yaml)
+# IMPORTANT: Features do NOT link to scenarios. Scenarios link back here.
+
+slug: "ltm-resolution"
+status: "LOCKED"
+created_at: "2026-03-26"
+updated_at: "2026-03-26"
+product_ref: null  # brownfield framework enhancement — no upstream product.yaml
+
+# --- Product Identity ---
+
+identity:
+  what_it_is: >
+    A structured knowledge resolution protocol that makes every agent in the framework
+    resolve domain decisions against a prioritized hierarchy of organizational knowledge
+    before falling back to general-purpose reasoning, with full traceability of where
+    each decision came from and a feedback loop that promotes recurring discoveries into
+    persistent knowledge.
+  what_it_is_not: >
+    Not a knowledge base, search engine, or documentation system. Does not generate
+    knowledge autonomously — it routes existing knowledge to the right decision point
+    and captures human-approved learnings from completed work. Does not change what
+    agents do, only what they know when they do it.
+  core_jobs:
+    - "Route the right knowledge to the right agent at the right time"
+    - "Make knowledge resolution decisions traceable and auditable"
+    - "Promote recurring discoveries from transient work into persistent organizational memory"
+    - "Enforce that local project conventions override general defaults on conflict"
+  non_goals:
+    - "Automated knowledge generation without human review"
+    - "Replacing agent decision-making with lookup tables"
+    - "Building a queryable knowledge search interface"
+
+# --- Architectural Invariants — behavioral, NOT technology ---
+
+invariants:
+  - id: "INV1"
+    description: >
+      Knowledge resolution must never require additional reasoning calls — it is a
+      read-and-match operation against stored artifacts. Latency impact is bounded
+      to file reads only.
+  - id: "INV2"
+    description: >
+      No knowledge may be written to any persistent layer without explicit human
+      approval. The system proposes, the human disposes.
+  - id: "INV3"
+    description: >
+      Agents that do not receive knowledge context must continue to function exactly
+      as they did before. The protocol is purely additive — backward compatibility
+      is unconditional.
+  - id: "INV4"
+    description: >
+      Context-isolated agents must never receive knowledge context. Their isolation
+      boundary is a security invariant, not a convenience tradeoff.
+  - id: "INV5"
+    description: >
+      Project-scoped knowledge always overrides core-scoped knowledge when both
+      address the same domain question. The more specific scope wins.
+
+# --- Scope Boundaries ---
+
+scope:
+  in_scope:
+    - "Resolution protocol definition and enforcement across participating agents"
+    - "Standard contract field for passing knowledge context from workflows to agents"
+    - "Resolution traceability for every domain decision"
+    - "Knowledge candidate extraction from completed work"
+    - "Human-gated promotion of candidates to persistent knowledge layers"
+    - "Canonical knowledge file structure with required metadata"
+    - "Decay tracking and staleness detection for knowledge files"
+    - "Replacement of existing ad-hoc knowledge references with the standard contract field"
+  out_of_scope:
+    - "Migration of existing knowledge files to the new template"
+    - "Automated knowledge validation or correctness checking"
+    - "Knowledge versioning or diff tracking"
+    - "Cross-project knowledge sharing or federation"
+  deferred:
+    - capability: "Existing knowledge file migration to canonical template"
+      rationale: "Grandfathered — existing files continue to work. Migration is a separate effort that should not block the protocol rollout."
+    - capability: "Automated staleness remediation"
+      rationale: "Decay tracking and flagging ships first. Automated remediation (re-validation, archival) requires usage data that does not yet exist."
+
+# --- Features ---
+
+features:
+
+  - id: "F1"
+    name: "Context Resolution Protocol"
+    strategic_goal_ref: null  # brownfield — no upstream strategic goals
+    description: >
+      Every participating agent resolves domain questions against a three-layer hierarchy
+      (project-scoped, then core-scoped, then general reasoning) before producing output.
+      Locked artifacts are treated as authoritative, draft artifacts as advisory. Every
+      resolution produces a trace showing which layer answered each domain question, with
+      explicit flags for any question answered by general reasoning rather than stored knowledge.
+    priority: "P1"
+    depends_on: []
+    foundation: true
+
+    blast_radius:
+      existing_systems:
+        - "Agent contract schema — gains an optional knowledge context field"
+        - "Five participating agents — gain resolution protocol awareness"
+      affected_workflows:
+        - "All workflows that dispatch to participating agents — must populate the new contract field"
+      integration_points: []
+      migration_required: false
+      notes: >
+        The contract field is optional. Agents that do not receive it continue to work as before.
+        Two agents are explicitly exempt from receiving it to preserve context isolation.
+
+    intent:
+      p1: >
+        Agents currently resolve domain questions using their own internal logic with no
+        structured hierarchy. There is no guarantee that project-specific conventions override
+        general defaults. When an agent falls back to general reasoning, no one knows it happened.
+      p2: >
+        Every participating agent follows a deterministic resolution order: check project-scoped
+        knowledge first, then core-scoped knowledge, then flag when falling back to general
+        reasoning. Operators can inspect the resolution trace to see exactly where each decision
+        came from.
+      p3: >
+        Deterministic knowledge resolution is the foundation for organizational learning. Without
+        knowing what the system already knows (and what it had to guess), there is no basis for
+        identifying knowledge gaps or promoting discoveries.
+
+    constraints:
+      in_scope: >
+        Protocol definition, resolution ordering rules, trace output structure, locked-vs-draft
+        authority semantics, contract field for knowledge context delivery.
+      out_of_scope: >
+        Which specific knowledge files exist or their content. Knowledge file creation is the
+        learning recipe's responsibility.
+      must_not_break: >
+        INV3 (backward compatibility — agents without context field work as before),
+        INV4 (context-isolated agents never receive context),
+        INV1 (no additional reasoning calls — reads only).
+
+    success_scenarios:
+      - given: "A workflow dispatches an agent with knowledge context containing project-scoped and core-scoped paths"
+        when: "The agent encounters a domain question that has an answer in the project-scoped knowledge"
+        then: "The agent uses the project-scoped answer and the resolution trace records 'project' as the source layer"
+      - given: "A workflow dispatches an agent with knowledge context but no project-scoped knowledge covers the question"
+        when: "The agent encounters a domain question that has an answer in the core-scoped knowledge"
+        then: "The agent uses the core-scoped answer and the resolution trace records 'core' as the source layer"
+      - given: "A workflow dispatches an agent with knowledge context but neither layer covers the question"
+        when: "The agent falls back to general reasoning"
+        then: "The resolution trace records 'llm-fallback' as the source layer with a flag for downstream extraction"
+      - given: "A workflow dispatches an agent with knowledge context containing a locked artifact and a draft artifact for the same domain question"
+        when: "The agent resolves the question"
+        then: "The locked artifact takes precedence and the trace records the authority level"
+      - given: "A workflow dispatches an agent without the knowledge context field"
+        when: "The agent processes the request"
+        then: "The agent operates exactly as it did before the protocol existed — no errors, no degradation"
+
+    failure_conditions:
+      - "An agent receives knowledge context but ignores the resolution hierarchy, using general reasoning when stored knowledge was available"
+      - "The resolution trace is empty or missing for an agent that received knowledge context"
+      - "A context-isolated agent receives knowledge context from any workflow"
+      - "An agent without knowledge context throws an error or degrades due to the field's absence"
+      - "Resolution adds reasoning calls instead of being bounded to file reads"
+
+    behaviors:
+      - id: "F1-B1"
+        description: "Three-layer resolution ordering"
+        interaction: "Workflow dispatches agent with knowledge context; agent encounters a domain question during its work"
+        observable_outcome: "Agent checks project-scoped knowledge first, then core-scoped, then flags general reasoning fallback. Resolution follows this exact order every time."
+      - id: "F1-B2"
+        description: "Resolution trace production"
+        interaction: "Agent completes work that involved one or more domain decisions"
+        observable_outcome: "A resolution trace is produced listing each domain question, the layer that answered it, and whether the answer was authoritative (locked) or advisory (draft)."
+      - id: "F1-B3"
+        description: "Locked-vs-draft authority"
+        interaction: "Agent encounters two knowledge artifacts covering the same domain question — one locked, one draft"
+        observable_outcome: "The locked artifact is used as the authoritative answer. The draft artifact is disregarded for that question."
+      - id: "F1-B4"
+        description: "Backward-compatible absence handling"
+        interaction: "Workflow dispatches agent without the knowledge context field in the contract"
+        observable_outcome: "Agent executes normally with no errors, no warnings, no behavioral change compared to pre-protocol operation."
+
+  - id: "F2"
+    name: "Knowledge Hierarchy Enforcement"
+    strategic_goal_ref: null
+    description: >
+      Workflows populate the standard knowledge context field when dispatching participating
+      agents, creating a consistent pipeline where every agent invocation carries the right
+      knowledge paths. Existing ad-hoc knowledge references in workflows are replaced by
+      the standard field, eliminating inconsistency. Project-scoped knowledge overrides
+      core-scoped knowledge on conflict across all participating agents.
+    priority: "P1"
+    depends_on: ["F1"]
+    foundation: true
+
+    blast_radius:
+      existing_systems:
+        - "Seven workflows that dispatch participating agents — gain knowledge context population"
+        - "Two workflows with existing ad-hoc knowledge references — references replaced by standard field"
+      affected_workflows:
+        - "Every workflow dispatching a participating agent must include knowledge context in the contract"
+      integration_points: []
+      migration_required: false
+      notes: >
+        Two existing workflows already pass knowledge paths using ad-hoc fields. These are
+        replaced by the standard contract field — the information flow is the same, only the
+        contract shape changes to be consistent.
+
+    intent:
+      p1: >
+        Knowledge context delivery is inconsistent. Two workflows pass knowledge paths via
+        ad-hoc fields with different shapes. Five workflows pass no knowledge paths at all,
+        leaving agents to discover knowledge on their own or skip it entirely. There is no
+        standard for how a workflow tells an agent where to find organizational knowledge.
+      p2: >
+        Every workflow that dispatches a participating agent includes knowledge context
+        in a standard contract field. All seven workflows use the same shape. The two
+        existing ad-hoc references are replaced. Agents receive knowledge paths the same
+        way regardless of which workflow dispatched them.
+      p3: >
+        Consistent knowledge delivery is a prerequisite for reliable resolution tracing.
+        If some workflows pass context and others do not, resolution traces are incomplete
+        and the learning recipe cannot identify gaps across the full workflow surface.
+
+    constraints:
+      in_scope: >
+        Populating the standard knowledge context field in seven workflows. Replacing two
+        existing ad-hoc references with the standard field. Ensuring project-scoped paths
+        are included alongside core-scoped paths. Five agents gain awareness, two remain exempt.
+      out_of_scope: >
+        Creating new knowledge files. Changing agent behavior beyond receiving and using
+        the new field. Adding knowledge context to context-isolated agents.
+      must_not_break: >
+        INV3 (backward compatibility), INV4 (context isolation for exempt agents),
+        INV5 (project scope overrides core scope).
+
+    success_scenarios:
+      - given: "A workflow that previously dispatched an agent without knowledge context"
+        when: "The workflow dispatches the agent after enforcement is active"
+        then: "The agent contract includes the standard knowledge context field with both project-scoped and core-scoped paths"
+      - given: "A workflow that previously used an ad-hoc field to pass a knowledge path"
+        when: "The workflow dispatches the agent after enforcement is active"
+        then: "The ad-hoc field is gone and the standard knowledge context field carries the same information"
+      - given: "A workflow dispatches a context-isolated agent"
+        when: "The workflow prepares the agent contract"
+        then: "The contract does not include the knowledge context field — the agent's isolation boundary is preserved"
+      - given: "Project-scoped knowledge and core-scoped knowledge both address a domain question"
+        when: "An agent resolves the question via the hierarchy"
+        then: "The project-scoped answer takes precedence over the core-scoped answer"
+
+    failure_conditions:
+      - "A workflow dispatches a participating agent without the knowledge context field after enforcement is active"
+      - "An ad-hoc knowledge reference survives alongside the standard field, creating dual paths"
+      - "A context-isolated agent receives the knowledge context field from any workflow"
+      - "Core-scoped knowledge overrides project-scoped knowledge on a conflict"
+
+    behaviors:
+      - id: "F2-B1"
+        description: "Standard contract field population"
+        interaction: "Workflow prepares a dispatch contract for a participating agent"
+        observable_outcome: "The contract includes the standard knowledge context field with project-scoped and core-scoped paths appropriate to the workflow's domain."
+      - id: "F2-B2"
+        description: "Ad-hoc reference elimination"
+        interaction: "Workflow that previously used a non-standard field to pass knowledge paths dispatches an agent"
+        observable_outcome: "The non-standard field is absent. The standard field carries the equivalent information. No knowledge path is lost."
+      - id: "F2-B3"
+        description: "Context isolation preservation"
+        interaction: "Workflow dispatches a context-isolated agent"
+        observable_outcome: "The contract omits the knowledge context field entirely. The agent receives no knowledge paths."
+      - id: "F2-B4"
+        description: "Project-over-core override semantics"
+        interaction: "Both project-scoped and core-scoped knowledge exist for the same domain question"
+        observable_outcome: "The project-scoped answer is used. The resolution trace records the override."
+
+  - id: "F3"
+    name: "Learning Recipe"
+    strategic_goal_ref: null
+    description: >
+      Extracts knowledge candidates from completed work by analyzing resolution traces
+      and evidence artifacts. General-reasoning fallback decisions are the primary signal
+      for identifying knowledge gaps. Candidates are classified by scope, deduplicated
+      against existing knowledge, and presented for human approval before being written
+      to the appropriate knowledge layer.
+    priority: "P2"
+    depends_on: ["F1", "F2"]
+    foundation: false
+
+    blast_radius:
+      existing_systems:
+        - "Resolution traces produced by F1 — consumed as primary input"
+        - "Existing knowledge layers — candidates are written here after approval"
+        - "Existing archival workflow — learning is a separate concern, not a replacement"
+      affected_workflows:
+        - "Operators gain a new workflow for promoting transient discoveries to persistent knowledge"
+      integration_points: []
+      migration_required: false
+      notes: >
+        The learning recipe reads from resolution traces and evidence but does not modify
+        them. It writes only to knowledge layers, and only after human approval. The existing
+        archival workflow for completed work is a separate concern — learning extracts and
+        promotes, archival preserves.
+
+    intent:
+      p1: >
+        When agents fall back to general reasoning because stored knowledge is missing,
+        the gap is invisible. Valuable decisions made during work execution are trapped
+        in transient artifacts and lost when the work context closes. There is no feedback
+        loop from execution back to organizational knowledge.
+      p2: >
+        After work completes, an operator can invoke the learning workflow to surface
+        decisions that relied on general reasoning, classify them as knowledge candidates,
+        and promote approved candidates to persistent storage. The organization's knowledge
+        base grows from its own work history.
+      p3: >
+        The learning loop closes the knowledge lifecycle: resolution traces reveal gaps,
+        the learning recipe extracts candidates, human approval ensures quality, and
+        promoted knowledge prevents the same fallback from recurring. Without this loop,
+        the resolution protocol identifies problems but never fixes them.
+
+    constraints:
+      in_scope: >
+        Candidate extraction from resolution traces and evidence. Scope classification
+        (project vs. core). Deduplication against existing knowledge. Human approval gate.
+        Writing approved candidates to the appropriate knowledge layer.
+      out_of_scope: >
+        Automated approval or autonomous knowledge writes. Modifying or correcting existing
+        knowledge files. Cross-project knowledge federation. Knowledge quality scoring
+        beyond deduplication.
+      must_not_break: >
+        INV2 (no writes without human approval), INV4 (must not feed knowledge back to
+        context-isolated agents), INV5 (scope classification must respect project-over-core
+        hierarchy).
+
+    success_scenarios:
+      - given: "Work has completed and resolution traces contain one or more general-reasoning fallback entries"
+        when: "The operator invokes the learning workflow"
+        then: "The workflow surfaces each fallback entry as a knowledge candidate with a proposed scope classification"
+      - given: "A knowledge candidate duplicates information already present in the target knowledge layer"
+        when: "The workflow processes the candidate"
+        then: "The candidate is flagged as a duplicate and excluded from the approval queue"
+      - given: "The operator reviews a knowledge candidate and approves it"
+        when: "The approval is confirmed"
+        then: "The candidate is written to the appropriate knowledge layer in the canonical file format"
+      - given: "The operator reviews a knowledge candidate and rejects it"
+        when: "The rejection is confirmed"
+        then: "The candidate is discarded and not written anywhere. No trace of the rejection persists in knowledge layers."
+      - given: "A candidate is classified as project-scoped"
+        when: "The candidate is approved and written"
+        then: "It is written to the project-scoped knowledge layer, not the core-scoped layer"
+
+    failure_conditions:
+      - "Knowledge is written to any layer without explicit human approval"
+      - "General-reasoning fallback entries in resolution traces are ignored or not surfaced as candidates"
+      - "A candidate classified as project-scoped is written to the core-scoped layer, or vice versa"
+      - "A duplicate candidate is presented for approval without being flagged"
+      - "The learning workflow modifies resolution traces or evidence artifacts (it must be read-only against its inputs)"
+
+    behaviors:
+      - id: "F3-B1"
+        description: "Fallback-driven candidate extraction"
+        interaction: "Operator invokes the learning workflow after work completes"
+        observable_outcome: "Resolution traces are scanned for general-reasoning fallback entries. Each fallback is extracted as a knowledge candidate with source context."
+      - id: "F3-B2"
+        description: "Scope classification"
+        interaction: "Workflow processes extracted candidates"
+        observable_outcome: "Each candidate is classified as project-scoped or core-scoped based on the domain question and its applicability beyond the current project."
+      - id: "F3-B3"
+        description: "Deduplication against existing knowledge"
+        interaction: "Workflow checks each candidate against existing knowledge in the target layer"
+        observable_outcome: "Duplicates are flagged and excluded from the approval queue. Near-duplicates are surfaced with the existing entry for comparison."
+      - id: "F3-B4"
+        description: "Human approval gate"
+        interaction: "Operator reviews each non-duplicate candidate"
+        observable_outcome: "Approved candidates proceed to write. Rejected candidates are discarded. No write occurs without explicit approval."
+      - id: "F3-B5"
+        description: "Scoped write to knowledge layer"
+        interaction: "An approved candidate is committed to persistent knowledge"
+        observable_outcome: "The candidate is written to the correct scope layer (project or core) in the canonical file format with all required metadata."
+
+  - id: "F4"
+    name: "Knowledge File Standard"
+    strategic_goal_ref: null
+    description: >
+      All knowledge files follow a canonical structure with tiered metadata requirements.
+      Tier 1 metadata (title, search patterns, content, basic provenance) is required for
+      all files. Tier 2 metadata (applicability boundaries, rationale, decay tracking) is
+      additionally required for core-scoped files. Files are discoverable via index entries
+      and search patterns. Staleness is tracked and flagged when knowledge has not been
+      validated within a configurable window.
+    priority: "P1"
+    depends_on: []
+    foundation: true
+
+    blast_radius:
+      existing_systems:
+        - "New knowledge files written by the learning recipe — must conform to this standard"
+        - "Existing knowledge index structure — extended to support new files"
+      affected_workflows:
+        - "The learning recipe's write step must produce files conforming to this standard"
+        - "Agents resolving knowledge must be able to discover files via search patterns"
+      integration_points: []
+      migration_required: false
+      notes: >
+        Existing knowledge files are grandfathered. They continue to work but do not
+        conform to the new standard until explicitly migrated. New files created by
+        the learning recipe must conform from day one.
+
+    intent:
+      p1: >
+        Knowledge files have no enforced structure. The only template exists within a
+        single knowledge category's index. Other categories use different formats or
+        no format at all. There is no standard for search patterns, applicability
+        boundaries, or staleness tracking. Agents discovering knowledge files must
+        parse each file ad-hoc.
+      p2: >
+        Every new knowledge file follows a canonical template with required metadata
+        tiers. Agents can discover files by searching for patterns listed in the file's
+        metadata. Core-scoped files include applicability boundaries (when to use, when
+        not to use) and decay tracking. Operators can identify stale knowledge by checking
+        the last-validated date.
+      p3: >
+        Standardized knowledge files make the resolution protocol reliable. If agents
+        cannot discover or parse knowledge files consistently, the three-layer hierarchy
+        degrades to general reasoning more often than necessary. Decay tracking prevents
+        outdated knowledge from silently persisting as authoritative.
+
+    constraints:
+      in_scope: >
+        Canonical template definition. Tier 1 and Tier 2 metadata requirements. Search
+        pattern conventions. Index file conventions. Decay tracking with staleness flagging.
+      out_of_scope: >
+        Migrating existing files to the new template. Automated staleness remediation.
+        Knowledge content validation or correctness assessment.
+      must_not_break: >
+        INV1 (discovery via search patterns must be a read-and-match operation, no
+        reasoning calls), INV5 (standard applies equally to project-scoped and core-scoped
+        files, with Tier 2 additionally required for core).
+
+    success_scenarios:
+      - given: "The learning recipe approves a knowledge candidate for the core-scoped layer"
+        when: "The candidate is written as a knowledge file"
+        then: "The file contains all Tier 1 metadata (title, search patterns, content, provenance) and all Tier 2 metadata (applicability boundaries, rationale, decay tracking)"
+      - given: "The learning recipe approves a knowledge candidate for the project-scoped layer"
+        when: "The candidate is written as a knowledge file"
+        then: "The file contains all Tier 1 metadata. Tier 2 metadata is optional."
+      - given: "An agent searches for knowledge on a specific domain topic"
+        when: "The agent scans search patterns in knowledge files"
+        then: "Files whose search patterns match the topic are discovered without requiring the agent to read file contents"
+      - given: "A core-scoped knowledge file was last validated more than the configured staleness window ago"
+        when: "The staleness check runs"
+        then: "The file is flagged as stale. The flag is visible to operators and noted in resolution traces when the file is used."
+      - given: "A new knowledge file is created by any mechanism"
+        when: "The file is checked against the standard"
+        then: "Missing Tier 1 metadata is detectable. The file is not indexed until it conforms."
+
+    failure_conditions:
+      - "A knowledge file is written without the required Tier 1 metadata"
+      - "A core-scoped knowledge file is written without Tier 2 metadata"
+      - "Search patterns are absent or generic enough to match unrelated topics"
+      - "Staleness goes undetected because decay tracking metadata is missing from a core-scoped file"
+      - "An index entry exists for a file that does not conform to the standard"
+
+    behaviors:
+      - id: "F4-B1"
+        description: "Tiered metadata enforcement"
+        interaction: "A knowledge file is created or validated"
+        observable_outcome: "Tier 1 fields (title, search patterns, content, provenance) are verified present. For core-scoped files, Tier 2 fields (applicability, rationale, decay tracking) are additionally verified."
+      - id: "F4-B2"
+        description: "Search pattern discoverability"
+        interaction: "An agent needs to find knowledge relevant to a domain topic"
+        observable_outcome: "The agent matches the topic against search patterns declared in knowledge file metadata. Matching files are identified without reading full file content."
+      - id: "F4-B3"
+        description: "Decay tracking and staleness flagging"
+        interaction: "Time passes since a knowledge file was last validated"
+        observable_outcome: "When the configured staleness window is exceeded, the file is flagged as stale. The flag appears in resolution traces when the stale file is used as a source."
+      - id: "F4-B4"
+        description: "Index registration"
+        interaction: "A new knowledge file is written to a knowledge layer"
+        observable_outcome: "The file is registered in the appropriate index. The index entry includes the file's search patterns for category-level discovery."

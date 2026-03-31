@@ -1,0 +1,1946 @@
+# tech.yaml — Issue #182
+# Sub-Agent Context Resolution Protocol, LTM Hierarchy Enforcement, and Learning Recipe
+# Status: DRAFT
+# Created: 2026-03-26
+# Rewritten: 2026-03-26 — full implementation detail added
+
+slug: "ltm-resolution"
+status: "LOCKED"
+created_at: "2026-03-26"
+features_ref: ".meridian/project/issues/182/features.yaml"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROJECT STRUCTURE
+# Every file that will be CREATED or MODIFIED, organized by directory.
+# ─────────────────────────────────────────────────────────────────────────────
+
+project_structure:
+
+  create:
+
+    - path: "core/components/memory/standards/resolution-protocol.md"
+      component: "resolution-protocol"
+      feature: "F1"
+      description: >
+        Canonical definition of the R1-R4 protocol steps all participating agents
+        must follow. Defines resolution ordering (project → core → llm-fallback),
+        locked-vs-draft authority semantics, resolution trace output structure,
+        context-isolation exemption rules, and backward-compatibility guarantees.
+      full_content: |
+        # Resolution Protocol
+
+        The standard that all participating agents follow when `ltm_context` is
+        present in their input contract. Defines the four-step resolution order,
+        authority semantics, trace output requirements, and exemptions.
+
+        Referenced by: tech-designer, product-strategist, repo-orchestrator
+
+        ## Overview
+
+        When an agent receives a contract containing `ltm_context`, it resolves
+        domain questions against a three-layer hierarchy before falling back to
+        general reasoning. The four steps are:
+
+        - **R1** — Identify decision domains
+        - **R2** — Query project-scoped knowledge (project_base)
+        - **R3** — Query core-scoped knowledge (core_base)
+        - **R4** — Flag LLM fallback
+
+        If `ltm_context` is absent, the agent skips this entire section and
+        operates exactly as it did before this protocol existed (INV3).
+
+        ## R1 — Identify Decision Domains
+
+        From the task intent and `ltm_context.query_domains`, determine the
+        relevant knowledge categories for this invocation.
+
+        - Use `query_domains` as the primary domain list
+        - Supplement with domain categories implied by the task intent
+        - Produce a list of domain topics that will be checked in R2 and R3
+
+        ## R2 — Query Project-Scoped Knowledge
+
+        For each domain topic from R1, search `ltm_context.project_base` for
+        matching knowledge files.
+
+        **Discovery method:** Read `search_patterns` metadata from candidate files.
+        Match patterns against the domain topic. This is a keyword/string comparison
+        only — no LLM calls, no semantic similarity (INV1).
+
+        **Authority semantics:**
+
+        | Condition | Meaning | Behavior |
+        |-----------|---------|----------|
+        | File does not exist | Layer has no opinion | Descend to next layer |
+        | File exists, no matching section | Layer has no opinion on this topic | Descend to next layer |
+        | File exists, matching section, DRAFT | Advisory opinion | Use as input, flag `authority: draft`, descend for confirmation |
+        | File exists, matching section, LOCKED | Authoritative opinion | Use this. Record `authority: locked`. Do NOT descend further. |
+
+        **LOCKED determination:** A file is LOCKED when its filename appears in
+        `ltm_context.locked_artifacts`. All other project-scoped files are DRAFT.
+
+        **Conflict:** When a LOCKED and a DRAFT artifact both answer the same domain
+        question, the LOCKED artifact wins unconditionally. Record override in trace.
+
+        ## R3 — Query Core-Scoped Knowledge
+
+        For domain topics not resolved (or only DRAFT-resolved) in R2, search
+        `ltm_context.core_base` for matching knowledge files.
+
+        **Discovery method:** Check `{core_base}/_index.md` for category listings.
+        Read `search_patterns` headers from candidate files in matching categories.
+        Same keyword/string comparison as R2 (INV1).
+
+        **Authority semantics:** All core-scoped files are advisory. Record
+        `resolved_from: "core"`, `authority: "draft"`.
+
+        **Project-over-core:** When both R2 (DRAFT) and R3 both answer the same
+        domain question, the project-scoped (R2) answer is used (INV5).
+
+        ## R4 — Flag LLM Fallback
+
+        For domain topics that produced no answer from R2 or R3, the agent proceeds
+        with general reasoning and records `resolved_from: "llm"` in the trace.
+
+        LLM fallback entries are primary candidates for the `learn` recipe. Each
+        fallback is a knowledge gap: the organization lacks persistent knowledge for
+        this domain question and relies on general reasoning instead.
+
+        ## Resolution Trace Output
+
+        After completing R1-R4, write the resolution trace to STM:
+
+        Path: `{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml`
+
+        ```yaml
+        resolution_trace:
+          - decision: "string — the domain question that was resolved"
+            resolved_from: "project | core | llm"
+            source: "relative file path, or null if llm"
+            section: "section name within the source file, or null"
+            authority: "locked | draft | none"
+            value: "brief summary of the resolved decision value"
+        ```
+
+        Return the path to this file as `resolution_trace_path` in the output
+        contract's `stm.output` block (per DD10 in tech.yaml).
+
+        ## Context Isolation Exemptions
+
+        The following agents NEVER receive `ltm_context` from any workflow. No
+        recipe populates this field for them under any circumstances (INV4):
+
+        - **eval-generator** — Must not see implementation code or prior outputs
+        - **judge** — Receives only encrypted evals and the codebase
+
+        Any recipe that attempts to pass `ltm_context` to either agent must be
+        treated as a defect.
+
+        ## Backward Compatibility
+
+        When `ltm_context` is absent from the input contract:
+        - Skip this entire section
+        - No trace is produced
+        - Agent behavior is identical to pre-protocol operation
+        - No errors, no warnings, no degradation (INV3)
+
+        ## Staleness Handling
+
+        When a file used in R2 or R3 has a `last_validated` field that exceeds
+        its `staleness_window`, add a `stale: true` flag to that resolution trace
+        entry. Stale files remain usable — the flag is a signal, not a rejection.
+
+    - path: "core/components/memory/standards/knowledge-file-template.md"
+      component: "knowledge-standard"
+      feature: "F4"
+      description: >
+        Canonical knowledge file structure. Defines Tier 1 and Tier 2 metadata
+        requirements, staleness flagging rules, and index registration conventions.
+      full_content: |
+        # Knowledge File Template
+
+        This is the canonical template for all knowledge files written by the
+        `learn` recipe. Existing files are grandfathered. New files must conform
+        from day one.
+
+        Two tiers of metadata exist:
+        - **Tier 1** — Required for ALL knowledge files (project-scoped and core-scoped)
+        - **Tier 2** — Additionally required for CORE-SCOPED files only
+
+        ## Tier 1 Template (Required for All Files)
+
+        ```markdown
+        # {Title}
+        <!-- knowledge-file: tier=1 scope=project|core -->
+
+        **When this applies:** {one-line trigger condition — when should an agent use this?}
+        **When this does NOT apply:** {one-line exclusion condition — when should this be ignored?}
+        **Search patterns:** {comma-separated keywords agents match against domain topics}
+        **Provenance:** {issue number or work context that produced this knowledge}
+        **Created:** {YYYY-MM-DD}
+
+        ## Content
+
+        {The knowledge itself — decisions made, patterns, standards, conventions.
+        Written at the level of a concise decision record, not a tutorial.}
+
+        ## Why It Matters
+
+        {The rationale — what goes wrong if an agent does not have this knowledge
+        and relies on general reasoning instead?}
+        ```
+
+        ## Tier 2 Extension (Additionally Required for Core-Scoped Files)
+
+        Append these sections after "Why It Matters" for core-scoped files:
+
+        ```markdown
+        ## Applicability Boundaries
+
+        **In scope:** {conditions under which this knowledge applies}
+        **Out of scope:** {conditions where this knowledge must NOT be used}
+
+        ## Rationale
+
+        {Why this is organizational knowledge rather than project-specific convention.
+        What makes it reusable across projects?}
+
+        ## Decay Tracking
+
+        **Last validated:** {YYYY-MM-DD}
+        **Confidence:** high | medium | low
+        **Staleness window:** {e.g., 90 days, 180 days}
+        **Supersedes:** {path to prior file, or null}
+        ```
+
+        ## Staleness Rule
+
+        A core-scoped file is flagged stale when:
+        `(current_date - last_validated) > staleness_window`
+
+        Staleness appears as a warning in resolution traces when the file is used
+        as a source. Stale files are NOT auto-rejected — they remain advisory.
+        Operators see the staleness flag and can decide to re-validate or replace.
+
+        ## Index Registration
+
+        Every new knowledge file MUST have an entry in the appropriate category
+        index. Index file location: `{scope_base}/{category}/_index.md`
+
+        Index entry format:
+        ```markdown
+        - [{Title}]({filename}) — {one-line summary} | Patterns: {search patterns}
+        ```
+
+        ## Validation Checklist
+
+        Before a file is considered complete:
+
+        Tier 1 checks (all files):
+        - [ ] Title is present and non-empty
+        - [ ] scope annotation is set (project or core)
+        - [ ] When this applies is present
+        - [ ] When this does NOT apply is present
+        - [ ] Search patterns field has at least 2 patterns
+        - [ ] Provenance references an issue or work context
+        - [ ] Created date is present
+        - [ ] Content section is non-empty
+        - [ ] Why It Matters section is present
+
+        Tier 2 checks (core-scoped files only):
+        - [ ] Applicability Boundaries section present with both In scope and Out of scope
+        - [ ] Rationale section explains cross-project applicability
+        - [ ] Decay Tracking section present with all four fields
+
+        Index checks:
+        - [ ] Entry added to appropriate _index.md
+
+    - path: "core/components/agents/knowledge-extractor.md"
+      component: "learning-recipe"
+      feature: "F3"
+      description: >
+        New agent responsible for STM-to-LTM promotion. Two modes: EXTRACT (scan
+        resolution traces, produce candidates.yaml) and WRITE (write approved
+        candidates to knowledge layers in canonical format).
+      full_content: |
+        ---
+        name: knowledge-extractor
+        domain: knowledge
+        role: extractor
+        description: Extracts LLM-fallback decisions from resolution traces and promotes approved candidates to persistent knowledge layers. Two modes: EXTRACT (scan traces, produce candidates) and WRITE (write approved candidates to knowledge layers).
+        model: sonnet
+        tools:
+          - Read
+          - Write
+          - Glob
+          - Grep
+        ---
+
+        # knowledge-extractor
+
+        ## Identity
+
+        You are the knowledge-extractor — the agent that closes the feedback loop
+        from completed work back to persistent organizational knowledge.
+
+        **Domain:** Knowledge lifecycle (extraction, classification, deduplication, promotion)
+        **Role:** Read resolution traces, extract LLM-fallback candidates, write approved
+        candidates to knowledge layers in canonical format
+
+        ## Core Principle
+
+        You are READ-ONLY against your inputs. You NEVER modify resolution traces,
+        evidence artifacts, or any STM artifact from prior work. You ONLY write to
+        knowledge layers (and only when operating in WRITE mode with approved candidates).
+
+        ## Operating Modes
+
+        ### EXTRACT Mode
+
+        **Input:** List of resolution trace file paths from STM.
+        **Output:** `candidates.yaml` written to STM output path.
+
+        Steps:
+        1. Read each resolution trace file at the provided paths
+        2. Extract all entries where `resolved_from == "llm"`
+        3. For each extracted entry, produce a knowledge_candidate:
+           - `id`: KC-{NNN} (sequential within this extraction run)
+           - `source_issue`: extract from trace file path context
+           - `source_trace_path`: the trace file this entry came from
+           - `domain_question`: the `decision` field from the trace entry
+           - `llm_answer_summary`: the `value` field from the trace entry
+           - `proposed_scope`: "project" if the decision is specific to this
+             project's conventions, technologies, or domain; "core" if the
+             decision represents a general-purpose pattern applicable across projects
+           - `proposed_scope_rationale`: one sentence explaining the classification
+           - `dedup_status`: check against existing knowledge files in both layers;
+             "unique" if no coverage found, "duplicate" if exact match found (exclude
+             from approval queue), "near-duplicate" if partial overlap found (surface
+             alongside existing entry)
+           - `dedup_conflict_path`: path to conflicting existing file, or null
+           - `approval_status`: "pending"
+        4. Write `candidates.yaml` to `stm.output.candidates_path`
+        5. Duplicates are NOT presented in the approval queue — set `dedup_status: duplicate`
+           and exclude from the YAML candidates list surface for operator review
+
+        ### WRITE Mode
+
+        **Input:** Approved `candidates.yaml` (already reviewed and edited by operator).
+        **Constraint (INV2):** Only write candidates where `approval_status == "approved"`.
+        Skip all others — no partial writes, no inference.
+
+        Steps:
+        1. Read `candidates.yaml` from `stm.input.candidates_path`
+        2. For each candidate with `approval_status: "approved"`:
+           a. Determine target layer: project or core (from `proposed_scope`)
+           b. Determine target path from `proposed_scope`:
+              - project: `{ltm_context.project_base}/knowledge/{domain_slug}.md`
+              - core: `{ltm_context.core_base}/knowledge/{domain_slug}.md`
+           c. Write file in canonical knowledge-file-template.md format:
+              - Tier 1 always (all files)
+              - Tier 2 additionally for core-scoped files
+           d. Update appropriate `_index.md` with new entry
+        3. Return output contract with list of written file paths
+
+        ## Input Contract
+
+        ```json
+        {
+          "intent_path": "core/components/recipes/learn/reference/intent.yaml",
+          "stm_base": "{stm_base}",
+          "task_id": "{task_id}",
+          "mode": "extract | write",
+          "ltm_context": {
+            "project_base": "{project_base}",
+            "core_base": "~/.meridian/core/memory/"
+          },
+          "stm": {
+            "input": {
+              "trace_paths": ["{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml"],
+              "candidates_path": null
+            },
+            "output": {
+              "candidates_path": "{stm_base}/{issue}/evidence/learn/candidates.yaml"
+            }
+          }
+        }
+        ```
+
+        In WRITE mode: `stm.input.candidates_path` is non-null (points to reviewed
+        candidates.yaml). `stm.input.trace_paths` is not read in WRITE mode.
+
+        ## Output Contract
+
+        ```json
+        {
+          "status": "completed | failed",
+          "task_id": "{echoed}",
+          "stm": {
+            "output": {
+              "candidates_path": "{path to written candidates.yaml}",
+              "written_files": ["{paths to knowledge files written, WRITE mode only}"]
+            }
+          },
+          "summary": {
+            "traces_scanned": 0,
+            "total_llm_fallbacks": 0,
+            "unique_candidates": 0,
+            "duplicate_candidates": 0,
+            "approved_written": 0
+          },
+          "step_failure": null
+        }
+        ```
+
+        ## Boundaries
+
+        ### NEVER
+        - Modify resolution traces or evidence artifacts
+        - Write knowledge files in EXTRACT mode
+        - Write knowledge files without `approval_status: "approved"`
+        - Write a candidate to the wrong scope layer (project-scoped → project layer, core → core layer)
+        - Create new directories not specified in the output path
+
+        ### ALWAYS
+        - Check existing knowledge files for duplication before finalizing candidates
+        - Use knowledge-file-template.md format for all written files
+        - Register every written file in the appropriate _index.md
+        - Return summary statistics in output contract
+
+    - path: "core/components/recipes/learn/reference/intent.yaml"
+      component: "learning-recipe"
+      feature: "F3"
+      description: >
+        Intent definition for the learn recipe. Uses the canonical 4-field schema.
+        Resolves PENDING constraints C5-C10 from capture-learning/reference/intent.yaml.
+      full_content: |
+        intent: >
+          Surface LLM-fallback decisions from resolution traces produced by F1/F2
+          workflows. Extract each fallback as a classified knowledge candidate.
+          Deduplicate against existing knowledge layers. Present candidates for
+          human approval (Tether/Vanish). Write approved candidates to the correct
+          knowledge layer in canonical knowledge-file-template.md format.
+
+        constraints:
+          - id: "C1"
+            description: "Read-only against resolution traces and evidence — never modify input artifacts"
+          - id: "C2"
+            description: "INV2: No knowledge may be written without explicit human approval (approval_status: approved)"
+          - id: "C3"
+            description: "INV4: Do not feed promoted knowledge back to context-isolated agents (eval-generator, judge)"
+          - id: "C4"
+            description: "INV5: Scope classification respects project-over-core — project-specific decisions stay in project layer"
+          - id: "C5"
+            description: "Zero-candidate case is not an error — produce a clean summary and exit without showing empty approval queue"
+          - id: "C6"
+            description: "Duplicates are detected before the approval queue — exact duplicates are excluded, near-duplicates are surfaced with the existing entry"
+
+        failure_conditions:
+          - "Knowledge is written to any layer without explicit human approval"
+          - "LLM-fallback entries in resolution traces are ignored and not surfaced as candidates"
+          - "A candidate classified as project-scoped is written to the core-scoped layer, or vice versa"
+          - "A duplicate candidate is presented without a dedup flag and the existing entry shown"
+          - "The recipe modifies any resolution trace or evidence artifact (it must be read-only against its inputs)"
+          - "The approval queue is shown when zero candidates exist"
+
+        scenarios:
+          - "S12: all llm-fallback trace entries produce candidates"
+          - "S13: only approved candidates are written"
+          - "S14: duplicate detection triggers merge proposal"
+          - "S15: zero candidates → clean exit with evidence"
+          - "S16: scope classification assigns project vs core correctly"
+          - "S17: written candidate lands in the correct scope layer"
+
+    - path: "core/components/recipes/learn/SKILL.md"
+      component: "learning-recipe"
+      feature: "F3"
+      description: >
+        Compiled learn recipe. L1 (human-invocable). Two-step: Step 1 (extract
+        candidates), Step 2 (human approval gate + write approved). Max 2 agent
+        calls (L1 constraint). Read-only against resolution traces throughout.
+      full_content: |
+        ---
+        name: learn
+        description: Surface LLM-fallback decisions from resolution traces and promote approved candidates to persistent knowledge layers. Invoke after work completes to close the knowledge feedback loop.
+        user-invocable: true
+        ---
+
+        # learn
+
+        Scan resolution traces from completed work for LLM-fallback decisions.
+        Extract each fallback as a classified knowledge candidate. Present for
+        human approval. Write approved candidates to the correct knowledge layer
+        in canonical format.
+
+        ## Compiled From
+
+        This recipe was compiled from `reference/intent.yaml` by `/create-recipe`.
+        Intent defines constraints (C1-C6) and failure conditions.
+        To modify this recipe, update `reference/intent.yaml` and re-run
+        `/create-recipe --rebake learn`.
+        Do NOT edit this file manually — it is a compiled artifact.
+
+        ## Role
+
+        You are the orchestrator. You own the task graph and checkpoints.
+        Delegate domain work to knowledge-extractor. Never read or modify
+        resolution traces or evidence artifacts directly.
+
+        **Forbidden:** Direct reads of resolution traces. Direct writes to knowledge
+        layers. Direct inspection of candidate content. All domain work goes through
+        knowledge-extractor agent.
+
+        **Agent boundaries:**
+
+        | Agent | Domain | Steps |
+        |-------|--------|-------|
+        | `knowledge-extractor` | Candidate extraction, dedup check, knowledge writes | 1 (EXTRACT), 2 (WRITE) |
+
+        ## Pre-flight
+
+        | Check | Action on Failure |
+        |-------|------------------|
+        | Resolve `stm_base` from `core/config.yaml` | Hard halt |
+        | Resolve `product_base` from `core/config.yaml` | Hard halt |
+        | `--issue` argument provided | Hard halt — must specify which issue's traces to scan |
+        | Resolution trace(s) exist at `{stm_base}/{issue}/evidence/*/resolution-trace.yaml` | Graceful exit — no traces means nothing to learn from |
+
+        ```bash
+        stm_base=$(grep 'base-path' core/config.yaml | ...)
+        issue="$ISSUE_ARG"
+        trace_paths=$(find {stm_base}/{issue}/evidence -name "resolution-trace.yaml")
+        # if no trace_paths found: graceful exit with message "No resolution traces found for issue {issue}"
+        ```
+
+        ## Workflow
+
+        ### Step 1 — Extract Knowledge Candidates
+
+        Owner: `knowledge-extractor`
+        Mode: EXTRACT
+
+        ```json
+        {
+          "intent_path": "core/components/recipes/learn/reference/intent.yaml",
+          "stm_base": "{stm_base}",
+          "task_id": "extract-candidates",
+          "mode": "extract",
+          "ltm_context": {
+            "project_base": "{product_base}",
+            "core_base": "~/.meridian/core/memory/"
+          },
+          "stm": {
+            "input": {
+              "trace_paths": ["{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml"],
+              "candidates_path": null
+            },
+            "output": {
+              "candidates_path": "{stm_base}/{issue}/evidence/learn/candidates.yaml"
+            }
+          }
+        }
+        ```
+
+        Agent scans all resolution traces, extracts llm-fallback entries, classifies
+        scope, checks for duplicates, writes candidates.yaml.
+
+        **Expected return:** Contract with `stm.output.candidates_path` populated.
+
+        **If `summary.unique_candidates == 0`:** Write evidence confirming zero
+        candidates found and exit cleanly. Do NOT show approval queue (C5).
+
+        ---
+
+        ### Checkpoint: Candidate Review
+
+        Present the candidates.yaml content to the operator:
+
+        ```
+        ## Knowledge Candidates for Review
+
+        {N} candidate(s) found from {traces_scanned} resolution trace(s).
+
+        Review the candidates below. For each candidate, set approval_status to:
+        - approved — write this to the knowledge layer
+        - rejected — discard, do not write
+
+        Candidates file: {stm.output.candidates_path}
+
+        {display candidates table: id | domain_question | proposed_scope | dedup_status}
+
+        ---
+
+        Edit candidates.yaml to set approval_status per candidate, then type
+        **Tether** to proceed or **Vanish** to cancel.
+        ```
+
+        On **Vanish**: abort. No writes. Record cancellation in evidence.
+        On **Tether**: proceed to Step 2.
+
+        ---
+
+        ### Step 2 — Write Approved Candidates
+
+        Owner: `knowledge-extractor`
+        Mode: WRITE
+
+        ```json
+        {
+          "intent_path": "core/components/recipes/learn/reference/intent.yaml",
+          "stm_base": "{stm_base}",
+          "task_id": "write-candidates",
+          "mode": "write",
+          "ltm_context": {
+            "project_base": "{product_base}",
+            "core_base": "~/.meridian/core/memory/"
+          },
+          "stm": {
+            "input": {
+              "trace_paths": null,
+              "candidates_path": "{stm.output.candidates_path from Step 1}"
+            },
+            "output": {
+              "candidates_path": "{same path — for summary update}",
+              "written_files": []
+            }
+          }
+        }
+        ```
+
+        Agent reads candidates.yaml, writes ONLY `approval_status: approved` entries
+        to correct knowledge layers in canonical knowledge-file-template.md format.
+        Updates _index.md for each written file.
+
+        **Expected return:** Contract with `stm.output.written_files` list.
+
+        ## Evidence
+
+        Write summary to `{stm_base}/{issue}/evidence/learn/summary.yaml`:
+        ```yaml
+        run_date: "{date}"
+        issue: "{issue}"
+        traces_scanned: {N}
+        candidates_extracted: {N}
+        candidates_approved: {N}
+        candidates_rejected: {N}
+        files_written:
+          - path: "{knowledge file path}"
+            scope: "project | core"
+        ```
+
+    - path: "docs/adr/015-ltm-resolution-protocol.md"
+      component: "adr"
+      feature: "F1"
+      description: >
+        Architecture Decision Record for the LTM resolution protocol. Covers
+        DD1-DD10 decisions. Status: ACCEPTED. Follows ADR format from docs/adr/.
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+  modify:
+
+    - path: "core/components/memory/standards/agent-contract.md"
+      component: "contract-schema"
+      feature: "F1"
+      file_changes:
+        - section: "Input Contract JSON block"
+          what: "Add ltm_context optional field to the JSON example"
+          add_after: '"task_id": "<unique task identifier from compiled recipe step>"'
+          content: |
+            "ltm_context": {
+              "project_base": "<root path for project-scoped knowledge — optional field>",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["<domain categories to consult>"],
+              "locked_artifacts": ["<filenames with LOCKED authority>"]
+            }
+          note: "Entire ltm_context block is optional — omit entirely when not needed"
+
+        - section: "Input Contract field definitions table"
+          what: "Add row for ltm_context field"
+          add_after: "| `task_id` | Yes | Compiled step ID | Unique within the recipe. Also used as key in the status file for pause/resume. |"
+          content: |
+            | `ltm_context` | No | Recipe populates when agent should consult organizational knowledge | Optional context block. When present, agent follows R1-R4 from `resolution-protocol.md`. When absent, agent operates exactly as before. Sub-fields: `project_base` (path), `core_base` (path, default `~/.meridian/core/memory/`), `query_domains` (string[]), `locked_artifacts` (string[], filenames only). |
+
+        - section: "Output Contract JSON block"
+          what: "Add resolution_trace_path optional field to stm.output in the JSON example"
+          add_after: '"<named_key>": "<actual path written>"'
+          content: |
+            "resolution_trace_path": "<path to resolution-trace.yaml in STM, present when ltm_context was provided>"
+          note: "resolution_trace is written to file, not embedded inline (DD10)"
+
+        - section: "Output Contract field definitions table"
+          what: "Add row for resolution_trace_path field"
+          add_after: "| `error` | `null` on success. Structured failure object on failure (per `structured-failure-protocol.md`) |"
+          content: |
+            | `resolution_trace_path` | Written when `ltm_context` was provided in input. Path to resolution-trace.yaml artifact in STM. Null when no ltm_context was present. |
+
+        - section: "End of file — new section"
+          what: "Add Knowledge Context section explaining when to use ltm_context"
+          add_at_end: true
+          content: |
+            ## Knowledge Context
+
+            The `ltm_context` input field is how workflows tell agents where to find
+            organizational knowledge. When present, agents follow the R1-R4 protocol
+            defined in `resolution-protocol.md`.
+
+            **When to populate:**
+            - Any workflow dispatching a participating domain agent (tech-designer,
+              product-strategist, repo-orchestrator, code-builder, quality-auditor)
+            - Populate with paths and domains appropriate to the workflow's knowledge needs
+
+            **When NOT to populate (unconditional exemptions):**
+            - eval-generator — context-isolated by design (INV4)
+            - judge — context-isolated by design (INV4)
+
+            **Standard population pattern:**
+            ```json
+            "ltm_context": {
+              "project_base": "{product_base or equivalent project knowledge path}",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["{relevant domain categories}"],
+              "locked_artifacts": ["{filenames of LOCKED project artifacts if any}"]
+            }
+            ```
+
+            **locked_artifacts semantics:** Filenames (not paths) in this list are
+            treated as authoritative within the project layer. When both a locked and
+            a draft artifact answer the same domain question, the locked artifact wins
+            (DD6). Empty or absent means all project knowledge is advisory (DRAFT).
+
+    - path: "core/components/agents/tech-designer.md"
+      component: "agent-updates"
+      feature: "F1"
+      file_changes:
+        - section: "Context Loading — between Step 2 and Step 3"
+          what: "Add Step 2b — LTM Context Resolution (conditional on ltm_context presence)"
+          insert_between:
+            after_text: "### Step 2: Identify Technical Domain"
+            before_text: "### Step 3: Selective LTM Search"
+          content: |
+            ### Step 2b: LTM Context Resolution (when ltm_context is present)
+
+            If the input contract contains `ltm_context`, follow the R1-R4 protocol
+            from `resolution-protocol.md` BEFORE the selective LTM search in Step 3.
+
+            **R1** — Identify decision domains from the task intent and
+            `ltm_context.query_domains`.
+
+            **R2** — For each domain, glob `ltm_context.project_base` for relevant
+            files. Match against `search_patterns` metadata (keyword comparison only
+            — no LLM calls per INV1). If a file is listed in
+            `ltm_context.locked_artifacts`, it is LOCKED (authoritative) — use it,
+            stop descending for that domain. If DRAFT, use as advisory input and
+            continue to R3 for confirmation.
+
+            **R3** — For domains not resolved (or only DRAFT-resolved) in R2, search
+            `ltm_context.core_base` via `_index.md` and `search_patterns` headers.
+            All core-scoped findings are advisory (`authority: draft`).
+
+            **R4** — Domains with no answer from R2 or R3 are flagged as
+            `resolved_from: "llm"`. Proceed with general reasoning for these domains.
+            These entries are learning candidates for the `learn` recipe.
+
+            Write resolution trace to:
+            `{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml`
+
+            Add `resolution_trace_path` to the output contract's `stm.output` block.
+
+            **When ltm_context is absent:** Skip this step entirely. Proceed directly
+            to Step 3. Agent behavior is identical to pre-protocol operation (INV3).
+
+        - section: "Context Loading — Step 3 modification"
+          what: "Clarify that Step 3 (Selective LTM Search) runs when ltm_context is absent OR supplements Step 2b"
+          note: >
+            Step 3 remains the fallback behavior when ltm_context is absent.
+            When ltm_context IS present, Step 2b has already loaded the relevant
+            LTM; Step 3 may still run to catch anything not covered by query_domains.
+            No text change to Step 3 required — Step 2b's instruction to skip is
+            sufficient for backward compatibility.
+
+        - section: "Output Contract"
+          what: "Add resolution_trace_path to the example return JSON"
+          add_to_stm_output: |
+            "resolution_trace_path": null
+          note: "null when ltm_context was absent; path string when written"
+
+    - path: "core/components/agents/product-strategist.md"
+      component: "agent-updates"
+      feature: "F1"
+      file_changes:
+        - section: "Step 4 — Collect context from LTM (in the JSON contract workflow)"
+          what: "Replace ad-hoc LTM loading step with conditional R1-R4 protocol"
+          find_text: "4. **Collect context from LTM.** Search `~/.meridian/core/memory/` for domain-relevant content:"
+          replace_with: |
+            4. **Collect context from LTM.**
+
+               **When `ltm_context` is present in the contract:** Follow the R1-R4
+               protocol from `resolution-protocol.md`:
+               - **R1** — Identify decision domains from task intent and `query_domains`
+               - **R2** — Query `project_base` (LOCKED artifacts are authoritative; stop
+                 descending for that domain. DRAFT artifacts are advisory; continue to R3.)
+               - **R3** — Query `core_base` via `_index.md` and search_patterns headers
+               - **R4** — Flag unresolved domains as `resolved_from: "llm"` in trace
+
+               Write resolution trace to `{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml`.
+               Add `resolution_trace_path` to output contract's `stm.output` block.
+
+               **When `ltm_context` is absent:** Search `~/.meridian/core/memory/` for
+               domain-relevant content as before. Standards and templates referenced by
+               intent constraints. Schemas needed by skills. Domain knowledge relevant
+               to the product vertical. Pass discovered LTM paths to skills as input.
+          note: >
+            The existing behavior (search core memory, pass paths to skills) is preserved
+            as the fallback when ltm_context is absent. When ltm_context is present,
+            the structured protocol replaces the ad-hoc search. Product-strategist still
+            passes LTM paths to skills — paths now come from ltm_context resolution.
+
+        - section: "Output Contract — example return JSON"
+          what: "Add resolution_trace_path to stm output block in example"
+          add_to_stm_output: |
+            "resolution_trace_path": null
+          note: "null when ltm_context was absent; path string when written"
+
+        - section: "Step 5 — web research fallback"
+          what: "Note that web research is a special resolution_from value in the trace"
+          note: >
+            When product-strategist invokes research-domain-context skill, record
+            the web research outcome as `resolved_from: "web_research"` in the
+            resolution trace. This distinguishes live web research from both stored
+            knowledge and pure LLM fallback.
+
+    - path: "core/components/agents/code-builder.md"
+      component: "agent-updates"
+      feature: "F2"
+      file_changes:
+        - section: "Context Loading — Before Implementation"
+          what: "Add optional LTM Context paragraph after the existing content"
+          find_text: "- **Recipe constraints** — extract and validate before starting any step"
+          add_after: true
+          content: |
+
+            ### LTM Context (Optional)
+
+            If `ltm_context` is present in the contract, load coding standards and
+            conventions before beginning implementation:
+
+            - Check `ltm_context.project_base` for project-specific coding standards
+              (naming conventions, error handling patterns, testing patterns)
+            - Check `ltm_context.core_base/standards/` for core coding standards
+
+            These inform implementation style — naming conventions, error handling
+            approaches, test structure patterns. They do NOT override the execution
+            plan. If the plan specifies a particular approach, the plan takes
+            precedence over any advisory LTM content.
+
+            **No R1-R4 protocol.** No resolution trace. Code-builder is a pure
+            executor — ltm_context is advisory convention context only, not domain
+            decision input.
+
+            **When ltm_context is absent:** Skip this section entirely. No change to
+            behavior (INV3).
+          note: >
+            Lightest possible change. code-builder does not run full R1-R4, does
+            not produce a resolution trace. ltm_context is coding style context only.
+
+    - path: "core/components/agents/quality-auditor.md"
+      component: "agent-updates"
+      feature: "F2"
+      file_changes:
+        - section: "Before running gates"
+          what: "Add optional LTM Context check before the quality gates execution"
+          find_text: "Given a codebase and quality standards, YOU:"
+          add_before: true
+          content: |
+            ### LTM Context (Optional)
+
+            If `ltm_context` is present in the contract, check
+            `ltm_context.project_base` for project-specific quality gate overrides
+            BEFORE running the gates defined in `quality_gates_path`.
+
+            If a project-specific quality standards file is found:
+            - Use it to supplement or override the gates provided in the contract
+            - Project-specific thresholds take precedence over generic gates (INV5)
+
+            **No R1-R4 protocol.** No resolution trace. Context isolation boundary
+            is maintained — quality-auditor sees implemented code and quality
+            standards only, never eval content or prior outputs.
+
+            **When ltm_context is absent:** Skip this section entirely. Run gates
+            from `quality_gates_path` as before (INV3).
+
+          note: >
+            Minimal change. One additional file check at project_base for quality
+            gate overrides. No resolution trace required. Context isolation
+            (MUST NOT read eval files, builder prompts, judge reports) is unchanged.
+
+    - path: "core/components/agents/repo-orchestrator.md"
+      component: "agent-updates"
+      feature: "F1"
+      file_changes:
+        - section: "Input Contract — before or inside the Config loading behavior"
+          what: "Add LTM Context field awareness to the contract mode section"
+          find_text: "| `config` | No | Override config values (platform, base_branch). If absent, read from `core/config.yaml` |"
+          add_after: true
+          content: |
+            | `ltm_context` | No | When present, agent follows R1-R4 from `resolution-protocol.md` for repository convention lookups (branching rules, PR conventions, commit message standards). When absent, agent uses its existing prose-level references to `standards/git/`. |
+
+        - section: "Context Loading — Load Config step"
+          what: "Add R1-R4 protocol for repository conventions when ltm_context is present"
+          find_text: "| `config` | No | Override config values"
+          note: >
+            After the existing config loading behavior, add a new section before
+            any domain work begins. When ltm_context is present, follow R1-R4:
+            R2 checks project_base for project-specific branching/commit conventions.
+            R3 checks core_base/standards/git/ for organizational git standards.
+            R4 flags LLM fallback when neither layer has an opinion.
+            Write resolution trace to STM output path.
+            Add resolution_trace_path to output contract stm.output.
+            When ltm_context is absent, fall back to existing single-file reference
+            to standards/git/branching.md as before.
+
+        - section: "Output Contract JSON"
+          what: "Add resolution_trace_path to stm.output in example"
+          add_to_stm_output: |
+            "resolution_trace_path": null
+          note: "null when ltm_context was absent"
+
+    - path: "core/components/recipes/discover-product/SKILL.md"
+      component: "recipe-updates"
+      feature: "F2"
+      file_changes:
+        - section: "product-strategist dispatch contract"
+          what: "Add ltm_context field to the JSON contract passed to product-strategist"
+          field_to_add: |
+            "ltm_context": {
+              "project_base": ".meridian/product/discovery/",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["domain-taxonomy", "standards"],
+              "locked_artifacts": []
+            }
+          note: >
+            No locked_artifacts — all discovery-stage knowledge is advisory.
+            Discovery is the first phase; no authoritative project decisions exist yet.
+            Add to the existing JSON contract block for the product-strategist step.
+
+    - path: "core/components/recipes/plan-roadmap/SKILL.md"
+      component: "recipe-updates"
+      feature: "F2"
+      file_changes:
+        - section: "product-strategist dispatch contract"
+          what: "Add ltm_context field to product-strategist contract"
+          field_to_add: |
+            "ltm_context": {
+              "project_base": ".meridian/product/roadmap/",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["architecture", "standards", "domain-taxonomy"],
+              "locked_artifacts": []
+            }
+          note: "No locked_artifacts unless product.yaml has already been locked and roadmap decisions finalized"
+
+        - section: "tech-designer dispatch contract (if present)"
+          what: "Add ltm_context field to tech-designer contract if plan-roadmap dispatches tech-designer"
+          field_to_add: |
+            "ltm_context": {
+              "project_base": ".meridian/product/roadmap/",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["architecture", "standards"],
+              "locked_artifacts": []
+            }
+
+    - path: "core/components/recipes/prepare-architecture/SKILL.md"
+      component: "recipe-updates"
+      feature: "F2"
+      file_changes:
+        - section: "Step 2 — tech-designer dispatch contract"
+          what: >
+            Replace config.ltm_architecture_path ad-hoc field with standard ltm_context.
+            Remove the config block containing ltm_architecture_path.
+            Add ltm_context as a top-level field in the Step 2 JSON contract.
+          current_contract_snippet: |
+            "config": {
+              "ltm_architecture_path": "~/.meridian/core/memory/knowledge/architecture/",
+              "profiles": "{extracted profiles from Step 1}"
+            }
+          replace_with: |
+            "ltm_context": {
+              "project_base": ".meridian/product/architecture/",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["architecture", "standards", "stacks", "platforms"],
+              "locked_artifacts": ["{product.yaml filename if LOCKED — resolved during pre-flight}"]
+            },
+            "config": {
+              "profiles": "{extracted profiles from Step 1}"
+            }
+          verification: >
+            After change: Step 2 JSON contract contains ltm_context at top level.
+            config.ltm_architecture_path is ABSENT. config.profiles remains.
+            The information previously at ltm_architecture_path (~/.meridian/core/memory/knowledge/architecture/)
+            is now accessible via ltm_context.core_base + query_domain "architecture".
+
+    - path: "core/components/recipes/prepare-implementation/SKILL.md"
+      component: "recipe-updates"
+      feature: "F2"
+      file_changes:
+        - section: "Step 3 — Read LTM — tech-designer dispatch contract"
+          what: >
+            Replace the ad-hoc context block containing ltm_path and scan_directories
+            with standard ltm_context at top level of the Step 3 JSON contract.
+          current_contract_snippet: |
+            "context": {
+              "ltm_path": "~/.meridian/core/memory/",
+              "scan_directories": ["standards/", "knowledge/", "formats/", "workflows/"],
+              "epic_id": "{epic_id}"
+            }
+          replace_with: |
+            "ltm_context": {
+              "project_base": "{product_base}/architecture/",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["standards", "knowledge", "formats"],
+              "locked_artifacts": [
+                "architecture.yaml",
+                "quality-standards.yaml"
+              ]
+            },
+            "context": {
+              "epic_id": "{epic_id}"
+            }
+          verification: >
+            After change: Step 3 JSON contract contains ltm_context at top level.
+            context.ltm_path is ABSENT. context.scan_directories is ABSENT.
+            context.epic_id is preserved. locked_artifacts lists the two authoritative
+            architecture-phase outputs (architecture.yaml and quality-standards.yaml).
+            The equivalent information from scan_directories is now expressed via
+            query_domains ["standards", "knowledge", "formats"].
+
+    - path: "core/components/recipes/implement-epic/SKILL.md"
+      component: "recipe-updates"
+      feature: "F2"
+      file_changes:
+        - section: "tech-designer dispatch contract (Context Builder step)"
+          what: "Add ltm_context to tech-designer contract"
+          field_to_add: |
+            "ltm_context": {
+              "project_base": "{product_base}/architecture/",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["architecture", "standards", "knowledge"],
+              "locked_artifacts": [
+                "architecture.yaml",
+                "quality-standards.yaml"
+              ]
+            }
+
+        - section: "code-builder dispatch contract"
+          what: "Add ltm_context to code-builder contract for coding standards lookup"
+          field_to_add: |
+            "ltm_context": {
+              "project_base": "{product_base}/architecture/",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["standards"],
+              "locked_artifacts": []
+            }
+          note: >
+            code-builder uses ltm_context for advisory coding standards only.
+            No locked_artifacts needed — standards are always advisory for
+            implementation style choices.
+
+        - section: "quality-auditor dispatch contract"
+          what: "Add ltm_context to quality-auditor contract for quality standards lookup"
+          field_to_add: |
+            "ltm_context": {
+              "project_base": "{product_base}/architecture/",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["standards"],
+              "locked_artifacts": [
+                "quality-standards.yaml"
+              ]
+            }
+          note: >
+            quality-auditor checks ltm_context.project_base for project-specific
+            quality gate overrides. quality-standards.yaml is LOCKED (authoritative).
+
+        - section: "context-isolated agents"
+          what: "Confirm eval-generator and judge receive NO ltm_context"
+          verification: >
+            After change: eval-generator dispatch contract does NOT contain ltm_context.
+            judge dispatch contract does NOT contain ltm_context.
+            These agents are context-isolated (INV4) and must never receive this field.
+
+    - path: "core/components/recipes/commit-code/SKILL.md"
+      component: "recipe-updates"
+      feature: "F2"
+      file_changes:
+        - section: "Step 1 — Analyze Changes — repo-orchestrator dispatch contract"
+          what: "Add ltm_context to the repo-orchestrator contract"
+          current_contract_snippet: |
+            {
+              "intent_path": "core/components/recipes/commit-code/reference/intent.yaml",
+              "stm_base": "{stm_base}",
+              "stm": {
+                "input": {},
+                "output": {
+                  "analysis": "{stm_base}/{issue}/evidence/commit-code/analysis.yaml"
+                }
+              },
+              "task_id": "analyze-changes"
+            }
+          field_to_add: |
+            "ltm_context": {
+              "project_base": ".meridian/product/architecture/",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["standards/git"],
+              "locked_artifacts": []
+            }
+          result_contract: |
+            {
+              "intent_path": "core/components/recipes/commit-code/reference/intent.yaml",
+              "stm_base": "{stm_base}",
+              "ltm_context": {
+                "project_base": ".meridian/product/architecture/",
+                "core_base": "~/.meridian/core/memory/",
+                "query_domains": ["standards/git"],
+                "locked_artifacts": []
+              },
+              "stm": {
+                "input": {},
+                "output": {
+                  "analysis": "{stm_base}/{issue}/evidence/commit-code/analysis.yaml"
+                }
+              },
+              "task_id": "analyze-changes"
+            }
+          note: >
+            Replaces the agent's prose-level single-file lookup to
+            standards/git/branching.md with structured resolution via the contract.
+            query_domains ["standards/git"] ensures the agent resolves branching,
+            commit message, and PR convention questions through the hierarchy.
+
+    - path: "core/components/recipes/create-pr/SKILL.md"
+      component: "recipe-updates"
+      feature: "F2"
+      file_changes:
+        - section: "repo-orchestrator dispatch contract"
+          what: "Add ltm_context to the repo-orchestrator contract — same structure as commit-code"
+          field_to_add: |
+            "ltm_context": {
+              "project_base": ".meridian/product/architecture/",
+              "core_base": "~/.meridian/core/memory/",
+              "query_domains": ["standards/git"],
+              "locked_artifacts": []
+            }
+          note: >
+            Same pattern as commit-code. Ensures PR conventions are resolved via
+            the hierarchy rather than the agent's internal prose reference.
+            query_domains ["standards/git"] covers branching and PR convention lookups.
+
+    - path: "core/components/recipes/capture-learning/reference/intent.yaml"
+      component: "learning-recipe"
+      feature: "F3"
+      file_changes:
+        - section: "PENDING constraints C5-C10"
+          what: "Update PENDING constraints to RESOLVED, reference the learn recipe"
+          note: >
+            Find the constraints marked PENDING (C5-C10) in capture-learning's intent.yaml.
+            Change their status from PENDING to RESOLVED. Add a reference:
+            "Resolved by: core/components/recipes/learn/ (Issue #182)".
+            No other changes — capture-learning's archival responsibilities are unchanged.
+            The learn recipe implements the extraction capability that C5-C10 originally
+            anticipated but left pending.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# COMPONENTS
+# Logical groupings of files with clear ownership and boundaries.
+# ─────────────────────────────────────────────────────────────────────────────
+
+components:
+
+  contract-schema:
+    description: >
+      The universal recipe→agent communication protocol. This component owns
+      the ltm_context and resolution_trace field additions. It is the foundation
+      all other components depend on — no agent or recipe update is valid without
+      the schema being authoritative first.
+    files:
+      - "core/components/memory/standards/agent-contract.md"
+    feature: "F1"
+    phase: 1
+
+  resolution-protocol:
+    description: >
+      The normative R1-R4 protocol document and the ADR that records the
+      architectural decision. Together these form the authoritative specification
+      that agent updates must conform to.
+    files:
+      - "core/components/memory/standards/resolution-protocol.md"
+      - "docs/adr/015-ltm-resolution-protocol.md"
+    feature: "F1"
+    phase: 1
+
+  agent-updates:
+    description: >
+      Five agent definition files updated to follow the R1-R4 protocol when
+      ltm_context is present. tech-designer, product-strategist, and repo-
+      orchestrator receive full R1-R4 with resolution_trace. code-builder and
+      quality-auditor receive optional ltm_context awareness only (advisory,
+      no resolution_trace required). eval-generator and judge are explicitly
+      exempt — not in this component.
+    files:
+      - "core/components/agents/tech-designer.md"
+      - "core/components/agents/product-strategist.md"
+      - "core/components/agents/repo-orchestrator.md"
+      - "core/components/agents/code-builder.md"
+      - "core/components/agents/quality-auditor.md"
+    feature: "F1"
+    phase: 2
+
+  recipe-updates:
+    description: >
+      Seven recipe SKILL.md files updated to populate ltm_context in agent
+      dispatch contracts. Two of these (prepare-architecture, prepare-implementation)
+      additionally remove ad-hoc LTM references and replace with the standard field.
+      Changes are additive — one optional field added per relevant agent contract.
+    files:
+      - "core/components/recipes/discover-product/SKILL.md"
+      - "core/components/recipes/plan-roadmap/SKILL.md"
+      - "core/components/recipes/prepare-architecture/SKILL.md"
+      - "core/components/recipes/prepare-implementation/SKILL.md"
+      - "core/components/recipes/implement-epic/SKILL.md"
+      - "core/components/recipes/commit-code/SKILL.md"
+      - "core/components/recipes/create-pr/SKILL.md"
+    feature: "F2"
+    phase: 3
+
+  learning-recipe:
+    description: >
+      The learn recipe and the knowledge-extractor agent that powers it. Provides
+      the feedback loop from completed work back to persistent knowledge layers.
+      Reads resolution traces (read-only), extracts LLM-fallback candidates,
+      deduplicates, presents human approval gate, writes approved candidates
+      to knowledge layers in canonical format. Resolves PENDING C5-C10 from
+      capture-learning.
+    files:
+      - "core/components/agents/knowledge-extractor.md"
+      - "core/components/recipes/learn/reference/intent.yaml"
+      - "core/components/recipes/learn/SKILL.md"
+      - "core/components/recipes/capture-learning/reference/intent.yaml"  # modify only
+    feature: "F3"
+    phase: 4
+
+  knowledge-standard:
+    description: >
+      The canonical knowledge file template. Required for all new files written
+      by the learning recipe. Existing files are grandfathered. Defines Tier 1
+      and Tier 2 metadata, search pattern conventions, index registration rules,
+      and staleness tracking.
+    files:
+      - "core/components/memory/standards/knowledge-file-template.md"
+    feature: "F4"
+    phase: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FEATURE MAPPING
+# Which component delivers which feature.
+# ─────────────────────────────────────────────────────────────────────────────
+
+feature_mapping:
+
+  F1:
+    name: "Context Resolution Protocol"
+    delivered_by:
+      - "contract-schema"       # ltm_context + resolution_trace fields
+      - "resolution-protocol"   # normative R1-R4 spec + ADR
+      - "agent-updates"         # agents that follow R1-R4
+    depends_on: []
+
+  F2:
+    name: "Knowledge Hierarchy Enforcement"
+    delivered_by:
+      - "recipe-updates"        # workflows that populate ltm_context
+    depends_on: ["F1"]          # recipes wire to agents that already understand R1-R4
+
+  F3:
+    name: "Learning Recipe"
+    delivered_by:
+      - "learning-recipe"       # knowledge-extractor + learn recipe
+    depends_on: ["F1", "F2"]   # needs resolution traces (F1) from populated workflows (F2)
+
+  F4:
+    name: "Knowledge File Standard"
+    delivered_by:
+      - "knowledge-standard"    # knowledge-file-template.md
+    depends_on: []              # independent — consumed by F3 at write time
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DATA MODELS
+# Exact schemas for every new data structure. These are the authoritative
+# definitions — agent files and recipe files reference these schemas.
+# ─────────────────────────────────────────────────────────────────────────────
+
+data_models:
+
+  ltm_context:
+    description: >
+      New optional field added to agent input contracts. When present, the agent
+      follows R1-R4 from resolution-protocol.md. When absent, agent operates
+      exactly as before (INV3).
+    schema:
+      project_base:
+        type: string
+        description: "Root path for project-level LTM artifacts"
+        example: ".meridian/product/"
+        resolved_from: "core/config.yaml product.base-path"
+      core_base:
+        type: string
+        description: "Root path for core LTM"
+        value: "~/.meridian/core/memory/"
+        resolved_from: "core/config.yaml ltm.global-target"
+      query_domains:
+        type: "string[]"
+        description: "Knowledge domains the agent should consult (directory names or category strings)"
+        examples: ["architecture", "patterns", "standards", "coding-standards", "standards/git"]
+      locked_artifacts:
+        type: "string[]"
+        description: "Filenames at project_base with LOCKED status — authoritative. Filenames only, not full paths."
+        examples: ["product.yaml", "architecture.yaml", "quality-standards.yaml"]
+    json_example: |
+      {
+        "ltm_context": {
+          "project_base": ".meridian/product/",
+          "core_base": "~/.meridian/core/memory/",
+          "query_domains": ["architecture", "patterns", "standards"],
+          "locked_artifacts": ["product.yaml", "architecture.yaml"]
+        }
+      }
+
+  resolution_trace:
+    description: >
+      New optional field in agent output. Path to resolution trace YAML file
+      written to STM. Written when ltm_context was provided in input. Per DD10,
+      the trace is a FILE in STM — not embedded inline in the output contract.
+      The output contract carries only the path.
+    entry_schema:
+      decision:
+        type: string
+        description: "What domain question was resolved (e.g., 'Which branching strategy applies?')"
+      resolved_from:
+        type: enum
+        values: ["project", "core", "llm", "web_research"]
+        description: "Which layer provided the answer"
+      source:
+        type: "string | null"
+        description: "File path that provided the answer, null for LLM fallback"
+      section:
+        type: "string | null"
+        description: "Section within the source file, null for LLM fallback"
+      authority:
+        type: enum
+        values: ["locked", "draft", "none"]
+        description: "'locked' if filename is in ltm_context.locked_artifacts; 'draft' for all other knowledge files; 'none' for LLM fallback"
+      value:
+        type: string
+        description: "Brief (1-2 sentence) summary of the resolved decision value"
+      stale:
+        type: "boolean | null"
+        description: "true if the source file's last_validated exceeds its staleness_window; null otherwise"
+    json_example: |
+      {
+        "resolution_trace": [
+          {
+            "decision": "Deployment platform",
+            "resolved_from": "project",
+            "source": ".meridian/product/architecture/architecture.yaml",
+            "section": "deployment",
+            "authority": "locked",
+            "value": "Cloud Run — locked in architecture.yaml",
+            "stale": null
+          },
+          {
+            "decision": "CSS utility approach",
+            "resolved_from": "llm",
+            "source": null,
+            "section": null,
+            "authority": "none",
+            "value": "Tailwind flex layout — no project or core knowledge found",
+            "stale": null
+          }
+        ]
+      }
+    output_contract_field: |
+      "resolution_trace_path": "{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml"
+
+  knowledge_candidate:
+    description: "Output schema for knowledge-extractor agent EXTRACT mode. Intermediate artifact in candidates.yaml."
+    schema:
+      id:
+        type: string
+        format: "KC-{NNN}"
+        description: "Unique identifier within this extraction run"
+      source_issue:
+        type: string
+        description: "Issue number or work context where the decision occurred"
+      source_trace_path:
+        type: string
+        description: "Path to the resolution trace file this entry came from"
+      domain_question:
+        type: string
+        description: "The decision field from the resolution trace entry"
+      llm_answer_summary:
+        type: string
+        description: "The value field from the resolution trace entry — what the agent decided via general reasoning"
+      proposed_scope:
+        type: enum
+        values: ["project", "core"]
+        description: "'project' if decision is specific to this project; 'core' if generally applicable across projects"
+      proposed_scope_rationale:
+        type: string
+        description: "One sentence explaining the scope classification"
+      dedup_status:
+        type: enum
+        values: ["unique", "near-duplicate", "duplicate"]
+        description: "'unique' — no existing coverage; 'near-duplicate' — partial overlap; 'duplicate' — exact match (excluded from approval queue)"
+      merge_target:
+        type: "string | null"
+        description: "Path to existing file for near-duplicate or duplicate cases"
+      approval_status:
+        type: enum
+        values: ["pending", "approved", "rejected"]
+        description: "Set to 'pending' by extractor. Operator edits to 'approved' or 'rejected'."
+    candidates_yaml_example: |
+      extraction_run:
+        issue: "182"
+        run_date: "2026-03-26"
+        traces_scanned: 3
+        total_candidates: 4
+        unique_candidates: 3
+        duplicate_candidates: 1
+      candidates:
+        - id: "KC-001"
+          source_issue: "182"
+          source_trace_path: ".meridian/project/issues/182/evidence/implement-epic/resolution-trace.yaml"
+          domain_question: "Which CSS utility framework aligns with the project profile?"
+          llm_answer_summary: "Tailwind CSS selected — no project or core knowledge found"
+          proposed_scope: "project"
+          proposed_scope_rationale: "Technology choice specific to this project's frontend stack"
+          dedup_status: "unique"
+          merge_target: null
+          approval_status: "pending"
+
+  knowledge_file:
+    description: "Canonical knowledge file structure per knowledge-file-template.md"
+    tier_1_required:
+      - "# {Title}"
+      - "<!-- knowledge-file: tier=1 scope=project|core -->"
+      - "**When this applies:** {trigger condition}"
+      - "**When this does NOT apply:** {exclusion condition}"
+      - "**Search patterns:** {comma-separated keywords}"
+      - "**Provenance:** {issue or work context}"
+      - "**Created:** {YYYY-MM-DD}"
+      - "## Content"
+      - "## Why It Matters"
+    tier_2_required_for_core:
+      - "## Applicability Boundaries"
+      - "  **In scope:** {conditions}"
+      - "  **Out of scope:** {conditions}"
+      - "## Rationale"
+      - "## Decay Tracking"
+      - "  **Last validated:** {YYYY-MM-DD}"
+      - "  **Confidence:** high | medium | low"
+      - "  **Staleness window:** {e.g., 180 days}"
+      - "  **Supersedes:** {path or null}"
+    decay_rules:
+      stale_threshold: "configurable per file via staleness_window field"
+      stale_behavior: "flag in resolution traces — file remains usable, not auto-rejected (DD7)"
+      confidence_levels: ["high", "medium", "low"]
+      supersession: "new file sets Supersedes to old file path; old file moves to _superseded/"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RESOLUTION PROTOCOL — Full Definition
+# Embedded here for implementer reference. Canonical text goes in
+# core/components/memory/standards/resolution-protocol.md.
+# ─────────────────────────────────────────────────────────────────────────────
+
+resolution_protocol:
+  name: "R1-R4 Agent Resolution Protocol"
+  standard_path: "core/components/memory/standards/resolution-protocol.md"
+  steps:
+    R1:
+      name: "Identify decision domains"
+      description: "From task intent and ltm_context.query_domains, determine the relevant knowledge categories for this invocation"
+      inputs: ["task intent", "ltm_context.query_domains"]
+      output: "list of domain topics to check in R2 and R3"
+
+    R2:
+      name: "Query project LTM"
+      description: "For each domain, search project_base for relevant knowledge files. Match search_patterns metadata against domain topic."
+      inputs: ["domain topic list from R1", "ltm_context.project_base", "ltm_context.locked_artifacts"]
+      resolution_semantics:
+        locked: "Authoritative — use this, stop descending for this domain"
+        draft: "Advisory — use as input, flag authority as draft, continue to R3 for confirmation"
+        not_found: "Layer has no opinion on this topic — descend to R3"
+      locked_determination: "A file is LOCKED when its filename (not path) appears in ltm_context.locked_artifacts"
+      conflict_rule: "When both LOCKED and DRAFT artifacts answer the same domain question, LOCKED wins. Record in trace."
+
+    R3:
+      name: "Query core LTM"
+      description: "For domains not resolved or only DRAFT-resolved in R2, search core_base. Check _index.md then search_patterns headers."
+      inputs: ["unresolved domain topics from R2", "ltm_context.core_base"]
+      resolution_semantics:
+        found: "Advisory — record resolved_from: 'core', authority: 'draft'"
+        not_found: "Layer has no opinion — descend to R4"
+      project_over_core: "When both R2 (DRAFT) and R3 both have an answer, project-scoped (R2) wins (INV5). Record in trace."
+
+    R4:
+      name: "Flag LLM fallback"
+      description: "Domains with no answer from R2 or R3 proceed with general reasoning. Record resolved_from: 'llm', authority: 'none'."
+      learning_signal: "LLM fallback entries are primary candidates for the learn recipe. Each represents a knowledge gap."
+
+  not_found_semantics:
+    - condition: "File does not exist at the path"
+      meaning: "Layer has no opinion"
+      behavior: "Descend to next layer"
+    - condition: "File exists, search_patterns do not match domain topic"
+      meaning: "Layer has no opinion on this specific topic"
+      behavior: "Descend to next layer"
+    - condition: "File exists, section exists, filename NOT in locked_artifacts"
+      meaning: "Advisory opinion (DRAFT)"
+      behavior: "Use as input, flag authority: draft, descend for confirmation"
+    - condition: "File exists, section exists, filename IS in locked_artifacts"
+      meaning: "Authoritative opinion (LOCKED)"
+      behavior: "Use this. Stop descending for this domain."
+
+  conflict_resolution:
+    project_over_core: "Project always wins over core when both answer the same question (INV5)"
+    locked_over_draft: "LOCKED always wins over DRAFT within the project layer (DD6)"
+    trace_requirement: "All conflicts are logged in resolution trace with both layers noted"
+
+  invariants:
+    INV1: "Resolution is file reads + keyword matching only. No LLM calls during resolution."
+    INV3: "When ltm_context is absent, skip R1-R4 entirely. Agent operates exactly as before."
+    INV4: "eval-generator and judge never receive ltm_context from any recipe. Hard exemption."
+    INV5: "Project-scoped knowledge overrides core-scoped knowledge on conflict."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RECIPE CONTRACT CHANGES
+# Per-recipe summary of which steps are affected and what the exact field looks like.
+# ─────────────────────────────────────────────────────────────────────────────
+
+recipe_contract_changes:
+
+  - recipe: "prepare-architecture"
+    file: "core/components/recipes/prepare-architecture/SKILL.md"
+    steps_affected:
+      - step: "Step 2 (tech-designer — Scan Codebase & Read LTM)"
+        change: "Replace config.ltm_architecture_path with standard ltm_context"
+    steps_NOT_affected:
+      - "Step 3 (tech-designer — Draft Architecture) — no ad-hoc LTM field, no ltm_context needed separately (Step 2 already loaded it into agent)"
+      - "Step 6c (judge) — context-isolated, never receives ltm_context (INV4)"
+    removes: "config.ltm_architecture_path"
+    adds: |
+      "ltm_context": {
+        "project_base": ".meridian/product/architecture/",
+        "core_base": "~/.meridian/core/memory/",
+        "query_domains": ["architecture", "standards", "stacks", "platforms"],
+        "locked_artifacts": ["{product.yaml filename if LOCKED}"]
+      }
+
+  - recipe: "prepare-implementation"
+    file: "core/components/recipes/prepare-implementation/SKILL.md"
+    steps_affected:
+      - step: "Step 3 (tech-designer — Read LTM)"
+        change: "Replace context.ltm_path + context.scan_directories with standard ltm_context"
+    steps_NOT_affected:
+      - "Step 2 (tech-designer — Scan Codebase) — codebase scan, no LTM context needed"
+      - "Step 4 (tech-designer — Dependency Resolution Report) — reads from codebase scan output"
+      - "All product-strategist steps — separate domain, separate invocation"
+    removes: "context.ltm_path, context.scan_directories"
+    adds: |
+      "ltm_context": {
+        "project_base": "{product_base}/architecture/",
+        "core_base": "~/.meridian/core/memory/",
+        "query_domains": ["standards", "knowledge", "formats"],
+        "locked_artifacts": ["architecture.yaml", "quality-standards.yaml"]
+      }
+
+  - recipe: "implement-epic"
+    file: "core/components/recipes/implement-epic/SKILL.md"
+    steps_affected:
+      - step: "tech-designer (Context Builder step)"
+        query_domains: ["architecture", "standards", "knowledge"]
+        locked_artifacts: ["architecture.yaml", "quality-standards.yaml"]
+      - step: "code-builder"
+        query_domains: ["standards"]
+        locked_artifacts: []
+        note: "Advisory coding standards only — no locked artifacts"
+      - step: "quality-auditor"
+        query_domains: ["standards"]
+        locked_artifacts: ["quality-standards.yaml"]
+    steps_NOT_affected:
+      - "eval-generator — context-isolated (INV4)"
+      - "judge — context-isolated (INV4)"
+    adds: "ltm_context to each affected step"
+    removes: "nothing (no existing ad-hoc LTM fields in this recipe)"
+
+  - recipe: "commit-code"
+    file: "core/components/recipes/commit-code/SKILL.md"
+    steps_affected:
+      - step: "Step 1 (repo-orchestrator — Analyze Changes)"
+        query_domains: ["standards/git"]
+        locked_artifacts: []
+    adds: |
+      "ltm_context": {
+        "project_base": ".meridian/product/architecture/",
+        "core_base": "~/.meridian/core/memory/",
+        "query_domains": ["standards/git"],
+        "locked_artifacts": []
+      }
+    note: "Replaces the agent's prose-level reference to standards/git/branching.md with structured hierarchy resolution"
+
+  - recipe: "create-pr"
+    file: "core/components/recipes/create-pr/SKILL.md"
+    steps_affected:
+      - step: "repo-orchestrator dispatch"
+        query_domains: ["standards/git"]
+        locked_artifacts: []
+    adds: |
+      "ltm_context": {
+        "project_base": ".meridian/product/architecture/",
+        "core_base": "~/.meridian/core/memory/",
+        "query_domains": ["standards/git"],
+        "locked_artifacts": []
+      }
+
+  - recipe: "discover-product"
+    file: "core/components/recipes/discover-product/SKILL.md"
+    steps_affected:
+      - step: "product-strategist dispatch"
+        query_domains: ["domain-taxonomy", "standards"]
+        locked_artifacts: []
+    adds: |
+      "ltm_context": {
+        "project_base": ".meridian/product/discovery/",
+        "core_base": "~/.meridian/core/memory/",
+        "query_domains": ["domain-taxonomy", "standards"],
+        "locked_artifacts": []
+      }
+
+  - recipe: "plan-roadmap"
+    file: "core/components/recipes/plan-roadmap/SKILL.md"
+    steps_affected:
+      - step: "product-strategist dispatch"
+        query_domains: ["architecture", "standards", "domain-taxonomy"]
+        locked_artifacts: []
+      - step: "tech-designer dispatch (if present)"
+        query_domains: ["architecture", "standards"]
+        locked_artifacts: []
+    adds: "ltm_context to each participating agent contract"
+    removes: "nothing"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LIBRARIES AND DEPENDENCIES
+# ─────────────────────────────────────────────────────────────────────────────
+
+libraries_and_dependencies:
+  external: []
+  note: >
+    This is a pure framework enhancement — all artifacts are markdown and YAML.
+    No new runtime libraries, packages, SDKs, or build tools are introduced.
+    The only "dependencies" are within the Meridian framework itself:
+    the contract schema (agent-contract.md) must be updated before agent
+    definitions, which must be updated before recipe SKILL.md files.
+
+  internal_dependencies:
+    - from: "agent-updates"
+      to: "contract-schema"
+      type: "schema conformance"
+      reason: "Agents reference ltm_context and resolution_trace fields defined in agent-contract.md"
+
+    - from: "recipe-updates"
+      to: "agent-updates"
+      type: "behavioral dependency"
+      reason: "Recipes populate ltm_context only after agents are defined to handle it"
+
+    - from: "recipe-updates"
+      to: "contract-schema"
+      type: "schema conformance"
+      reason: "ltm_context field in recipe contracts conforms to the schema in agent-contract.md"
+
+    - from: "learning-recipe"
+      to: "resolution-protocol"
+      type: "reads"
+      reason: "knowledge-extractor reads resolution traces whose structure is defined by R1-R4"
+
+    - from: "learning-recipe"
+      to: "knowledge-standard"
+      type: "writes to"
+      reason: "Approved candidates are written as knowledge files conforming to knowledge-file-template.md"
+
+    - from: "learning-recipe"
+      to: "recipe-updates"
+      type: "consumes output of"
+      reason: "Resolution traces are only produced when workflows populate ltm_context (F2)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DESIGN DECISIONS
+# Key architectural choices from the spec. Captures the why behind each choice.
+# ─────────────────────────────────────────────────────────────────────────────
+
+design_decisions:
+
+  DD1:
+    title: "ltm_context is optional in the input contract"
+    decision: >
+      The ltm_context field is optional. Agents that do not receive it continue
+      to function exactly as before. No agent throws an error or degrades when
+      the field is absent.
+    rationale: >
+      Backward compatibility is unconditional (INV3). Making the field required
+      would break every existing recipe that has not been updated. Phased rollout
+      (F2 recipe updates) populates the field recipe-by-recipe without a flag day.
+    alternative_rejected: >
+      Making ltm_context required was considered and rejected specifically because
+      it would break all existing recipes before F2 work is complete.
+    risk: >
+      An agent that does not receive ltm_context falls back to its prior behavior
+      (ad-hoc LTM loading or no LTM loading). This is the intended fallback,
+      not a defect.
+
+  DD2:
+    title: "R1-R4 protocol is defined in a standards document, not embedded per agent"
+    decision: >
+      The resolution protocol is normative text in resolution-protocol.md. Agent
+      definitions reference this standard rather than each embedding a copy of
+      the protocol logic.
+    rationale: >
+      Five agents need this protocol. Embedding it per-agent creates five copies
+      that diverge over time. A single standard document ensures all agents follow
+      the same ordering, trace format, and authority semantics.
+    alternative_rejected: >
+      Inline per-agent definition was rejected specifically because of duplication
+      and drift risk across five files.
+
+  DD3:
+    title: "eval-generator and judge are unconditionally exempt from ltm_context"
+    decision: >
+      eval-generator and judge do not receive ltm_context from any workflow, ever.
+      No recipe populates the field for these agents.
+    rationale: >
+      Both agents are context-isolated by design (INV4). eval-generator must not
+      see implementation code or prior outputs to avoid test-case optimization.
+      judge receives only encrypted evals and the codebase. Providing organizational
+      knowledge to either agent would contaminate the evaluation signal.
+    risk: "None — this is a hard security invariant, not a performance tradeoff."
+
+  DD4:
+    title: "Resolution is bounded to file reads — no additional LLM calls"
+    decision: >
+      The R1-R4 protocol reads knowledge files and matches against search patterns.
+      No LLM calls are introduced during resolution. Latency impact is bounded
+      to file read operations.
+    rationale: >
+      INV1 requires this. Adding LLM calls during resolution would compound
+      token cost, introduce latency variance, and create a resolution process
+      that is itself nondeterministic — exactly the opposite of why the protocol
+      exists.
+    implementation_note: >
+      "Match against search patterns" means the agent reads the search_patterns
+      field in knowledge file metadata and checks whether any pattern matches
+      the domain question topic. This is a string/keyword comparison — no
+      semantic similarity computation, no embeddings.
+
+  DD5:
+    title: "project-scoped knowledge overrides core-scoped knowledge on conflict"
+    decision: >
+      When both project-scoped and core-scoped knowledge files answer the same
+      domain question, the project-scoped answer is used. The override is
+      unconditional and recorded in the resolution trace.
+    rationale: >
+      INV5. Project-specific conventions must be able to override general
+      organizational defaults. A project using a non-standard branching model
+      or a domain-specific naming convention must not be overridden by core
+      knowledge that assumes different defaults.
+
+  DD6:
+    title: "LOCKED vs DRAFT authority within project-scoped knowledge"
+    decision: >
+      Within the project-scoped layer, some artifacts are LOCKED (authoritative)
+      and others are DRAFT (advisory). Files listed in ltm_context.locked_artifacts
+      are LOCKED. All others are DRAFT. When both a LOCKED and a DRAFT artifact
+      cover the same domain question, the LOCKED artifact is used.
+    rationale: >
+      Not all project knowledge has the same authority level. A finalized
+      architecture.yaml represents a committed decision. A draft notes file
+      represents work in progress. Agents must be able to distinguish these
+      without reading file content to determine authority.
+    implementation_note: >
+      locked_artifacts is a list of filenames, not paths. The agent checks
+      whether the filename of the matched knowledge file appears in the list.
+
+  DD7:
+    title: "Staleness tracking does not auto-reject stale knowledge"
+    decision: >
+      Stale core-scoped knowledge files continue to be used as sources. The
+      staleness flag appears in the resolution trace as a warning, not as a
+      rejection. Automated remediation (archival, re-validation) is deferred.
+    rationale: >
+      Stale knowledge is better than no knowledge. Auto-rejection would force
+      more LLM fallbacks, which are the exact gaps the learning recipe is
+      designed to fill. Operators see the staleness flag and can decide to
+      validate or replace the file through normal channels.
+    deferred: >
+      Automated staleness remediation is explicitly out of scope for this issue.
+      It requires usage data that does not exist until the resolution protocol
+      has been running for some time.
+
+  DD8:
+    title: "learn recipe is separate from capture-learning — archival vs. promotion are distinct concerns"
+    decision: >
+      The learn recipe is a new, independent recipe. It does not extend or modify
+      capture-learning.
+    rationale: >
+      capture-learning is about archival — preserving completed work artifacts
+      for historical reference. learn is about promotion — extracting valuable
+      decisions from transient artifacts and elevating them to persistent knowledge.
+      These are different operations with different triggers, different inputs,
+      and different output destinations. Merging them would create a recipe with
+      two unrelated responsibilities.
+    note: >
+      The PENDING constraints C5-C10 in capture-learning/reference/intent.yaml
+      referenced an extraction capability that was never built. This spec builds
+      that capability as a standalone recipe, not as an extension of capture-learning.
+      The pending constraints in capture-learning can be updated to reference
+      the learn recipe instead.
+
+  DD9:
+    title: "Existing knowledge files are grandfathered — no forced migration"
+    decision: >
+      The 42+ existing knowledge files under ~/.meridian/core/memory/knowledge/
+      are not required to conform to the new knowledge-file-template.md standard.
+      They continue to work as before. New files created by the learning recipe
+      must conform from day one.
+    rationale: >
+      Forced migration of 42+ files would be a substantial, risky scope addition
+      that blocks the protocol rollout. The existing files already work for the
+      agents that use them. The template standard is forward-looking — it governs
+      what the learning recipe produces, not what currently exists.
+
+  DD10:
+    title: "Resolution trace written to STM artifacts, not returned inline in output contract"
+    decision: >
+      The resolution_trace is written to a dedicated STM file (not embedded
+      in the output contract JSON). The output contract contains a reference
+      path to the trace file.
+    rationale: >
+      Resolution traces can grow large for agents handling many domain questions
+      in a single invocation. Embedding them inline in the output contract would
+      bloat the contract payload and make the agent's primary output harder to
+      parse. Writing to STM follows the established pattern for agent-produced
+      artifacts (stm.output paths).
+    schema_note: >
+      The output contract gains a stm.output.resolution_trace_path field pointing
+      to the written trace file. The resolution_trace schema above describes the
+      file's content, not the contract field itself.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# IMPLEMENTATION PHASES
+# Ordered phases for execution. Each phase is a prerequisite for the next.
+# ─────────────────────────────────────────────────────────────────────────────
+
+implementation_phases:
+
+  phase_1:
+    name: "Schema and Standards Foundation"
+    description: >
+      Establish the normative documents that all subsequent work conforms to.
+      No agent or recipe changes yet — only the documents that define the shape.
+    components:
+      - "contract-schema"
+      - "resolution-protocol"
+      - "knowledge-standard"
+    files:
+      - "core/components/memory/standards/agent-contract.md"         # MODIFY
+      - "core/components/memory/standards/resolution-protocol.md"    # CREATE
+      - "core/components/memory/standards/knowledge-file-template.md"  # CREATE
+    exit_gate: >
+      agent-contract.md contains ltm_context and resolution_trace field definitions.
+      resolution-protocol.md defines R1-R4 with authority semantics and exemptions.
+      knowledge-file-template.md defines Tier 1 and Tier 2 metadata requirements.
+
+  phase_2:
+    name: "Agent Protocol Updates"
+    description: >
+      Update five agent definitions to follow R1-R4 when ltm_context is present.
+      All changes are additive — agents without ltm_context continue unchanged.
+    components:
+      - "agent-updates"
+    files:
+      - "core/components/agents/tech-designer.md"
+      - "core/components/agents/product-strategist.md"
+      - "core/components/agents/repo-orchestrator.md"
+      - "core/components/agents/code-builder.md"
+      - "core/components/agents/quality-auditor.md"
+    blocked_by: ["phase_1"]
+    exit_gate: >
+      Each agent definition references resolution-protocol.md. R1-R4 steps are
+      present. Output contracts include resolution_trace_path (for tech-designer,
+      product-strategist, repo-orchestrator). code-builder and quality-auditor
+      have optional ltm_context awareness sections. All agents operate correctly
+      without ltm_context.
+
+  phase_3:
+    name: "Recipe Contract Updates"
+    description: >
+      Add ltm_context to seven recipe SKILL.md files. Replace two existing
+      ad-hoc references with the standard field.
+    components:
+      - "recipe-updates"
+    files:
+      - "core/components/recipes/discover-product/SKILL.md"
+      - "core/components/recipes/plan-roadmap/SKILL.md"
+      - "core/components/recipes/prepare-architecture/SKILL.md"
+      - "core/components/recipes/prepare-implementation/SKILL.md"
+      - "core/components/recipes/implement-epic/SKILL.md"
+      - "core/components/recipes/commit-code/SKILL.md"
+      - "core/components/recipes/create-pr/SKILL.md"
+    blocked_by: ["phase_2"]
+    exit_gate: >
+      All seven recipes include ltm_context in dispatch contracts for participating
+      agents. prepare-architecture and prepare-implementation no longer contain
+      ad-hoc ltm_architecture_path or ltm_path fields. Context-isolated agents
+      (eval-generator, judge) receive no ltm_context field in any recipe.
+
+  phase_4:
+    name: "Learning Recipe and Knowledge Extractor"
+    description: >
+      Build the feedback loop: knowledge-extractor agent + learn recipe.
+      The learn recipe can only surface meaningful candidates once F1 and F2
+      are in place and generating resolution traces.
+    components:
+      - "learning-recipe"
+    files:
+      - "core/components/agents/knowledge-extractor.md"
+      - "core/components/recipes/learn/reference/intent.yaml"
+      - "core/components/recipes/learn/SKILL.md"
+      - "core/components/recipes/capture-learning/reference/intent.yaml"  # modify
+    blocked_by: ["phase_3"]
+    exit_gate: >
+      learn recipe runs end-to-end. knowledge-extractor produces candidates.yaml
+      with LLM-fallback entries from resolution traces. Human approval gate (Tether/
+      Vanish) operates correctly. Approved candidates are written to the correct
+      scope layer in canonical knowledge-file-template.md format. Read-only
+      against resolution traces and evidence.
+
+  phase_5:
+    name: "ADR and Documentation"
+    description: >
+      Record the architectural decisions. Can run in parallel with phase_4
+      after phase_1 is complete.
+    components:
+      - "adr"
+    files:
+      - "docs/adr/015-ltm-resolution-protocol.md"
+    blocked_by: ["phase_1"]
+    can_parallelize_with: ["phase_4"]
+    exit_gate: >
+      ADR documents the decision to use an optional contract field (vs. required),
+      the R1-R4 ordering rationale, context-isolation exemptions, and file-reads-
+      only constraint. Follows ADR format of existing docs/adr/ entries.

@@ -1,0 +1,229 @@
+epic_id: "E-LTM"
+epic_name: "Sub-Agent Context Resolution Protocol & Learning Recipe"
+
+upstream_artifacts:
+  product_yaml: "MISSING — brownfield, no upstream pipeline"
+  roadmap_yaml: "MISSING — brownfield"
+  architecture_yaml: "MISSING — brownfield, tech context from codebase"
+  quality_standards_yaml: "MISSING — brownfield, quality context from codebase"
+
+technology_dependencies:
+  framework: "Meridian OS — markdown agent definitions, YAML intent schemas, compiled SKILL.md recipes"
+
+  components_affected:
+    agents:
+      - file: "core/components/agents/tech-designer.md"
+        current_ltm_state: >
+          Has structured LTM loading (Steps 1-8). Step 3: Selective LTM Search from
+          ~/.meridian/core/memory/ — standards/** (always), knowledge/{tech-domain}/** (if exists),
+          formats/** (skill-produced artifacts). Step 4: Evaluates LTM sufficiency. Step 5:
+          research-domain-context fallback. NO ltm_context field in output contract.
+          NO resolution_trace. LTM loading is ad-hoc inline — not formalized in contract schema.
+
+      - file: "core/components/agents/product-strategist.md"
+        current_ltm_state: >
+          Has structured LTM loading (Steps 1-8). Step 3: Selective LTM Search — standards/**
+          (always), knowledge/{domain}/** (if exists), formats/** (skill output). Step 4: evaluates
+          sufficiency. Step 5: research-domain-context fallback. Step 7: checks tech context from
+          design artifacts. Passes LTM paths to skills as input. NO ltm_context field in output
+          contract. NO resolution_trace.
+
+      - file: "core/components/agents/code-builder.md"
+        current_ltm_state: >
+          NO LTM loading behavior defined. The agent has no LTM loading steps. Context is entirely
+          from execution plan provided in the prompt — CONTEXT.md, read_only_files, remediation_path.
+          Follows plan exactly, no organizational standards lookup. This is intentional: code-builder
+          is a pure executor, context-isolated, receives pre-digested CONTEXT.md.
+
+      - file: "core/components/agents/quality-auditor.md"
+        current_ltm_state: >
+          NO LTM loading behavior defined. Receives quality gates via stm.input.quality_gates_path
+          — gates are pre-resolved by upstream orchestrator. The agent is context-isolated by design:
+          receives ONLY implemented code and quality standards. No LTM access.
+
+      - file: "core/components/agents/repo-orchestrator.md"
+        current_ltm_state: >
+          Minimal LTM reference. Under Memory section: loads standards/git/branching.md from
+          ~/.meridian/core/memory/ as needed. No formal LTM loading protocol, no ltm_context
+          in contracts. Single file reference for branching conventions only.
+
+      - file: "core/components/agents/eval-generator.md"
+        current_ltm_state: >
+          NO LTM loading. Context-isolated by design — receives ONLY spec behaviors,
+          verification scenarios, epic criteria, LLD exit gates. MUST NOT read implementation code,
+          builder output, or prior eval results. No change required.
+
+      - file: "core/components/agents/judge.md"
+        current_ltm_state: >
+          NO LTM loading. Context-isolated by design — receives ONLY encrypted evals,
+          decryption key, and project codebase (Mode 1); or artifact paths + validation skill
+          (Mode 2-4). No change required.
+
+    recipes:
+      - file: "core/components/recipes/implement-epic/SKILL.md"
+        current_ltm_references: >
+          NO explicit ltm_path, ltm_context, or LTM contract field in any step contract.
+          tech-designer Step (Context Builder) receives plan.yaml, architecture.yaml, tech.yaml
+          to produce CONTEXT.md — no LTM path in contract. LTM access is left to the agent's
+          own discretion. NO ltm_context field in any agent contract in this recipe.
+
+      - file: "core/components/recipes/prepare-implementation/SKILL.md"
+        current_ltm_references: >
+          EXPLICIT LTM reference found in Step 3 (Read LTM). Contract contains:
+            "context": {
+              "ltm_path": "~/.meridian/core/memory/",
+              "scan_directories": ["standards/", "knowledge/", "formats/", "workflows/"],
+              "epic_id": "{epic_id}"
+            }
+          This is an ad-hoc inline reference in the context block — NOT a formal stm.input path.
+          Step 4 (Dependency Resolution Report) reads ltm_findings from stm.input. This recipe
+          has the most explicit LTM wiring, but it uses an ad-hoc context field, not ltm_context
+          in the standard contract schema.
+
+      - file: "core/components/recipes/prepare-architecture/SKILL.md"
+        current_ltm_references: >
+          EXPLICIT LTM reference found in Step 2 contract config block:
+            "config": {
+              "ltm_architecture_path": "~/.meridian/core/memory/knowledge/architecture/",
+              "profiles": "{extracted profiles from Step 1}"
+            }
+          Scoped narrowly to architecture knowledge only. Ad-hoc config field, not formal
+          ltm_context in contract schema. SE-2 eval validates >=3 LTM files consulted.
+
+      - file: "core/components/recipes/discover-product/SKILL.md"
+        current_ltm_references: >
+          NO explicit ltm_path, ltm_context, or LTM contract field in any step contract.
+          product-strategist agent loads LTM autonomously via its own Steps 1-8 protocol.
+          Recipe does not pass LTM paths to the agent. LTM loading is fully agent-owned.
+
+      - file: "core/components/recipes/plan-roadmap/SKILL.md"
+        current_ltm_references: >
+          NO explicit ltm_path, ltm_context, or LTM contract field in any visible step.
+          Recipe delegates to product-strategist and tech-designer — each loads LTM
+          autonomously. No LTM path passed in contracts.
+
+      - file: "core/components/recipes/commit-code/SKILL.md"
+        current_ltm_references: >
+          NO LTM references. commit-code delegates to repo-orchestrator and project-orchestrator
+          only. Neither agent has LTM loading protocol beyond repo-orchestrator's single
+          branching.md reference.
+
+      - file: "core/components/recipes/create-pr/SKILL.md"
+        current_ltm_references: >
+          NO LTM references. create-pr delegates to repo-orchestrator and project-orchestrator.
+          No LTM paths in any contract.
+
+    standards:
+      - file: "core/components/memory/standards/agent-contract.md"
+        current_state: >
+          4 input contract fields: intent_path (required), stm_base (required), stm.input
+          (required), stm.output (required), task_id (required). 4 output contract fields:
+          status, stm (input echoed + output populated), task_id (echoed), error.
+          NO ltm_context field. NO resolution_trace field. The contract schema has zero
+          LTM wiring today — LTM loading is entirely agent-internal.
+
+  existing_ltm_patterns:
+    ad_hoc_references:
+      - location: "core/components/recipes/prepare-implementation/SKILL.md:173-174"
+        field: "context.ltm_path"
+        value: "~/.meridian/core/memory/"
+        scope: "All 4 scan_directories"
+        pattern: "Ad-hoc inline context field, not formalized in contract schema"
+
+      - location: "core/components/recipes/prepare-architecture/SKILL.md:104"
+        field: "config.ltm_architecture_path"
+        value: "~/.meridian/core/memory/knowledge/architecture/"
+        scope: "Architecture knowledge only"
+        pattern: "Ad-hoc config field, narrowly scoped"
+
+      - location: "core/components/agents/repo-orchestrator.md (Memory section)"
+        field: "prose reference, not contract field"
+        value: "standards/git/branching.md"
+        scope: "Branching conventions only"
+        pattern: "Single-file prose reference in Memory section, loaded as needed"
+
+    knowledge_file_format: >
+      Files follow a structured 8-section template defined in
+      ~/.meridian/core/memory/knowledge/architecture/_index.md.
+      Required sections: When to Choose, When to Avoid, Scale Profile (table),
+      Key Components (table), Reference Architecture (directory structure),
+      Evolution Paths (table), Tradeoffs (table), Anti-Patterns (table).
+      Files begin with a frontmatter-free header, one-line description, and
+      "Search patterns:" keyword list for agent discovery. No YAML frontmatter —
+      pure markdown. Architecture files are categorized into: patterns/, agentic/,
+      stacks/, platforms/, data/, operations/.
+
+    index_files:
+      - path: "~/.meridian/core/memory/formats/_index.md"
+      - path: "~/.meridian/core/memory/knowledge/_index.md"
+      - path: "~/.meridian/core/memory/knowledge/architecture/_index.md"
+      - path: "~/.meridian/core/memory/knowledge/project-profiling/_index.md"
+      - path: "~/.meridian/core/memory/knowledge/domain-taxonomy/_index.md"
+      - path: "~/.meridian/core/memory/standards/_index.md"
+
+ltm_findings:
+  standards_found:
+    - path: "~/.meridian/core/memory/standards/agent-contract.md"
+      summary: "Universal recipe→agent contract schema — 5 input fields, 4 output fields. No LTM wiring."
+    - path: "~/.meridian/core/memory/standards/_index.md"
+      summary: "Standards index — covers agent-contract, brief-principles, commits, git, templates, agent-lifecycle."
+    - path: "~/.meridian/core/memory/standards/git/branching.md"
+      summary: "Branch naming conventions — only LTM standard referenced by repo-orchestrator."
+    - path: "~/.meridian/core/memory/standards/agent-lifecycle/epic-management-rules.md"
+      summary: "Epic management rules for agent lifecycle."
+    - path: "~/.meridian/core/memory/standards/templates/intent-schema.yaml"
+      summary: "Intent schema template — 4-field canonical schema (intent, constraints, failure_conditions, scenarios)."
+
+  patterns_found:
+    - category: "knowledge/architecture/"
+      count: 42
+      subcategories: ["patterns (6)", "agentic (5)", "stacks (11)", "platforms (6)", "data (6)", "operations (5)"]
+      template_defined_in: "~/.meridian/core/memory/knowledge/architecture/_index.md"
+      summary: >
+        Architecture knowledge files follow an 8-section markdown template. _index.md
+        defines the template and lists all files with search patterns for discovery.
+        This is the most complete knowledge category — the proposed spec knowledge files
+        would follow this exact same template format.
+
+    - category: "knowledge/domain-taxonomy/"
+      count: 5
+      files: ["commerce.md", "payments.md", "personalization.md", "search.md", "user-management.md"]
+      summary: "Domain taxonomy knowledge files — different format from architecture files."
+
+    - category: "knowledge/project-profiling/"
+      count: 3
+      files: ["nfr-profile.md", "product-profile.md", "quality-profile.md"]
+      summary: "Project profiling knowledge — reference definitions for PP/NFR/QP profiles."
+
+    - category: "workflows/"
+      count: 3
+      files: ["direct-generation.yaml", "readiness-brief-generation.yaml", "readiness-only.yaml"]
+      summary: "Workflow definitions in YAML format."
+
+  gaps:
+    - "No resolution protocol standard exists — no ~/.meridian/core/memory/standards/ltm-resolution-protocol.md"
+    - "No knowledge file template standard exists as a standalone spec file — template is embedded only in architecture/_index.md, not a reusable standard"
+    - "No knowledge-extractor agent exists — capture-learning has PENDING C5-C10 constraints waiting for this agent"
+    - "No learn recipe exists — capture-learning only does archival today, extraction is fully PENDING"
+    - "capture-learning has PENDING C5-C10 constraints: extraction/archival independence (C5), STM read-only during extraction (C6), dedup existing patterns (C7), two-tier knowledge metadata schema (C8), no traceability links to source issues (C9), holistic cross-technology knowledge organization (C10)"
+    - "ltm_context is not a recognized field in the agent contract schema — no standard for how recipes pass LTM context to agents"
+    - "No resolution_trace field in agent output contracts — LTM loading decisions are not surfaced for debugging or audit"
+    - "LTM loading is entirely agent-internal today — recipe contracts do not know what LTM the agent loaded"
+    - "No ltm_context field in discover-product, plan-roadmap, implement-epic, commit-code, create-pr contracts"
+    - "prepare-implementation and prepare-architecture use ad-hoc config/context fields for LTM — inconsistent with each other and with the standard contract schema"
+
+halt_conditions:
+  has_unmet_dependencies: false
+  rationale: >
+    This is a brownfield implementation against the Meridian framework itself.
+    All required source files exist and are readable. The spec describes additions to
+    existing agents and recipes, plus new components (knowledge-extractor agent, learn recipe,
+    ltm-resolution-protocol standard). No upstream locked artifacts are required — the codebase
+    IS the input. No halt conditions exist.
+
+  brownfield_notes:
+    - "All 7 target agent files exist and are readable"
+    - "All 7 target recipe files exist and are readable"
+    - "LTM at ~/.meridian/core/memory/ has 4 top-level directories with known content"
+    - "capture-learning/reference/intent.yaml has PENDING constraints C5-C10 already written, waiting for extraction skills"
+    - "The spec can proceed directly to artifact generation — no dependency blockers"
