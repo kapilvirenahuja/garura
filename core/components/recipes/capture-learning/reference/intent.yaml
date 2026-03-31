@@ -1,13 +1,12 @@
-intent: >
+intent: |
   Given a completed issue number, archive the issue's STM directory to
-  _archive/{YYYY-MM}/{issue}/ to keep the active workspace clean, preserving
-  the full directory structure and all files so the issue's history remains
-  accessible for audit. The issue must be in a closed state before archival
-  proceeds. In the future, this recipe will also extract reusable knowledge
-  patterns from STM artifacts and promote them into the long-term memory
-  knowledge base — that capability is not yet active.
+  _archive/{YYYY-MM}/{issue}/ to keep the active workspace clean, then extract
+  and synthesize reusable patterns from resolution traces, present knowledge
+  candidates for human approval, and promote approved candidates to the
+  appropriate LTM layer. The issue must be in a closed state before archival
+  proceeds.
 
-# --- ACTIVE CONSTRAINTS (archival) ---
+# --- CONSTRAINTS (archival) ---
 
 constraints:
   - id: C1
@@ -34,48 +33,39 @@ constraints:
       structure. No files are renamed, restructured, or modified during
       the move.
 
-# --- PENDING CONSTRAINTS (extraction — not yet active) ---
+# --- CONSTRAINTS (extraction) ---
 
   - id: C5
-    rule: >
-      Extraction (knowledge promotion) and archival (STM directory move)
-      are independent operations. Neither blocks the other. [PENDING:
-      extraction skills do not exist yet]
+    rule: "STM artifacts are read-only during extraction — the knowledge-extractor reads evidence but does not modify it."
 
   - id: C6
-    rule: >
-      STM artifacts are read-only during extraction. The recipe must never
-      modify, delete, or create files within the issue's STM directory
-      during the extraction phase. [PENDING: extraction skills do not
-      exist yet]
+    rule: "Existing knowledge is updated (appended, refined) rather than duplicated. De-duplication check precedes every proposed write."
 
   - id: C7
-    rule: >
-      When a knowledge pattern already exists in the knowledge base, the
-      existing artifact must be updated rather than a new duplicate created.
-      [PENDING: extraction skills do not exist yet]
-
-  - id: C8
-    rule: >
-      Every knowledge artifact must contain identity metadata (tier 1:
-      required fields that identify the knowledge) and profile metadata
-      (tier 2: defined schema fields providing richer context). [PENDING:
-      extraction skills do not exist yet]
+    rule: "Every knowledge artifact must pass the validation checklist defined in knowledge-file-template.md for its type (Pattern Template for synthesized patterns, Generic Template otherwise). The template is the single source of truth for required fields — this constraint does not enumerate them."
 
   - id: C9
-    rule: >
-      Knowledge artifacts contain no traceability links back to source
-      issues or STM artifacts. Knowledge stands on its own merit. [PENDING:
-      extraction skills do not exist yet]
+    rule: "Knowledge is holistic — organized by interconnected decisions, not siloed by tool or technology."
 
   - id: C10
-    rule: >
-      Knowledge is holistic — organized by interconnected decisions and
-      patterns across technology boundaries, not siloed by individual
-      technology, language, or framework. [PENDING: extraction skills do
-      not exist yet]
+    rule: "Classification (project vs core) is deliberate with stated reasoning. Project-specific names, domain models, file paths → project. Technology/framework patterns → core."
 
-# --- ACTIVE FAILURE CONDITIONS (archival) ---
+  - id: C11
+    rule: "No LTM write without human approval. All candidates are staged in STM for review before any write to project or core LTM."
+
+  - id: C12
+    rule: "Resolution traces with resolved_from='llm' are the primary promotion signal — decisions where the system lacked stored knowledge."
+
+  - id: C13
+    rule: "Knowledge candidates must be synthesized patterns, not individual decision records. Multiple related decisions from the same work MUST consolidate into a single pattern file. Each pattern must include When to Choose, When to Avoid, Key Components, and Tradeoffs sections. Target 3-5 synthesized patterns per extraction, not 10-20 individual records. Test: if the output only documents what was decided (not when to choose it in the future), it belongs in an ADR, not LTM."
+
+  - id: C14
+    rule: "Every knowledge file written to LTM must have a corresponding entry added to the _index.md in its target directory. An unregistered file is undiscoverable."
+
+  - id: C15
+    rule: "When no resolution traces with resolved_from='llm' entries exist, the extraction phase exits cleanly with zero candidates. No files are written to LTM. Evidence records the zero-candidate outcome."
+
+# --- FAILURE CONDITIONS (archival) ---
 
 failure_conditions:
   - id: F1
@@ -103,36 +93,27 @@ failure_conditions:
       The recipe attempts to archive an issue that is not in a closed
       state.
 
-# --- PENDING FAILURE CONDITIONS (extraction — not yet active) ---
+# --- FAILURE CONDITIONS (extraction) ---
 
   - id: F6
-    condition: >
-      A knowledge artifact exists in the knowledge base without search
-      patterns or applicability criteria. Knowledge that cannot be
-      discovered through taxonomy is failed output. [PENDING: extraction
-      skills do not exist yet]
+    condition: "Knowledge written to LTM without human approval — candidates bypassed the staging and review checkpoint."
 
   - id: F7
-    condition: >
-      A new knowledge artifact is created for a pattern that is already
-      covered by an existing knowledge artifact in the knowledge base.
-      [PENDING: extraction skills do not exist yet]
+    condition: "Duplicate knowledge file created when an existing file covers the same topic — deduplication was skipped or failed."
 
   - id: F8
-    condition: >
-      The recipe completes extraction with nothing new to promote but
-      does not explicitly report that no new knowledge was extracted.
-      [PENDING: extraction skills do not exist yet]
+    condition: "Knowledge file fails the validation checklist from knowledge-file-template.md for its type — required sections or metadata are absent."
 
   - id: F9
-    condition: >
-      A knowledge artifact produced by the recipe falls below the quality
-      bar established by existing knowledge base entries — missing taxonomy,
-      missing applicability criteria, or lacking the structured metadata
-      defined in tiers 1 and 2. [PENDING: extraction skills do not exist
-      yet]
+    condition: "_index.md not updated after new knowledge file written — file is undiscoverable."
 
-# --- ACTIVE SCENARIOS ---
+  - id: F10
+    condition: "Classification missing reasoning — a candidate is marked project or core with no classification_reason."
+
+  - id: F11
+    condition: "Knowledge candidates are individual decision records rather than synthesized patterns. Each candidate documents a single choice from one implementation without consolidation into reusable guidance. The output has more than 7 candidates from a single issue."
+
+# --- SCENARIOS ---
 
 scenarios:
   - id: S1
@@ -151,23 +132,22 @@ scenarios:
       Can confirm the completed issue's directory is no longer cluttering
       the active workspace, reducing noise when navigating current work.
 
-# --- PENDING SCENARIOS (extraction — not yet active) ---
-
   - id: S3
-    persona: "Agent (tech-designer or code-builder) in a future project"
-    given: "The long-term memory knowledge base containing promoted knowledge artifacts"
-    then: >
-      Can discover relevant knowledge patterns by matching project context
-      against search patterns and applicability criteria, and apply those
-      patterns to accelerate design decisions and implementation without
-      re-discovering known solutions. [PENDING: extraction skills do not
-      exist yet]
+    persona: "Tech Designer"
+    given: "A completed implement-epic run produced resolution traces with 3 LLM fallback decisions"
+    then: "Can review a staged list of synthesized knowledge candidates, each classified with scope reasoning. After approving candidates, can find them in LTM via _index.md search with correct metadata."
 
   - id: S4
-    persona: "Developer starting a new project"
-    given: "The long-term memory knowledge base searchable via tools"
-    then: >
-      Can find holistic patterns from past work that apply to their
-      current problem domain and understand the interconnected decisions
-      behind those patterns — not just what was built, but why it was
-      built that way. [PENDING: extraction skills do not exist yet]
+    persona: "Developer"
+    given: "A knowledge candidate matches an existing LTM file by search pattern overlap"
+    then: "The knowledge-extractor marks it as 'merge' with the existing file path. On approval, the existing file is updated — no duplicate created."
+
+  - id: S5
+    persona: "Operator"
+    given: "The capture-learning recipe runs on an issue with no resolution traces or evidence"
+    then: "Archival completes normally. Extraction phase exits cleanly with 'no candidates extracted' evidence. No files written to LTM."
+
+  - id: S6
+    persona: "Quality Lead"
+    given: "An approved knowledge file is written to core LTM"
+    then: "File passes the full validation checklist from knowledge-file-template.md (Pattern Template for patterns, Generic + Tier 2 for other core files). _index.md in the target directory is updated with the new entry."
