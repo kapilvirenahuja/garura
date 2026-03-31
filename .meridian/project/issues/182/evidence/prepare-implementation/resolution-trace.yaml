@@ -1,0 +1,130 @@
+# Resolution trace for Issue #182 — LTM Resolution Protocol
+# Agent: tech-designer (Step 2b — LTM Context Resolution during prepare-implementation)
+# ltm_context:
+#   project_base: .meridian/product/architecture/
+#   core_base: ~/.meridian/core/memory/
+#   query_domains: [standards, knowledge, formats]
+#   locked_artifacts: [architecture.yaml, quality-standards.yaml]
+# Generated during: prepare-implementation Step 3 (Read LTM)
+
+resolution_trace:
+
+  # --- R1: Decision domains identified from query_domains + task intent ---
+  # Domains: agent-knowledge-resolution, knowledge-discovery, contract-evolution,
+  #          context-isolation, decision-auditability, knowledge-lifecycle,
+  #          knowledge-metadata, scope-classification, orchestrator-boundaries,
+  #          archival-design, format-migration, contract-standardization,
+  #          protocol-adoption, read-only-constraints, approval-governance
+
+  # --- Knowledge Architecture Decisions ---
+
+  - decision: "How should agents resolve domain questions against organizational knowledge?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Three-layer hierarchy: project LTM (LOCKED authoritative, DRAFT advisory) → core LTM (advisory) → LLM fallback. Strict descent order, LOCKED stops descent."
+
+  - decision: "How should knowledge files be discovered by agents during resolution?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Keyword-based discovery via search_patterns metadata field. String/keyword matching only — no LLM semantic similarity, no vector embeddings. Checked via _index.md listings and file headers."
+
+  - decision: "How should new protocol fields be added to existing agent contracts without breaking callers?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Optional contract fields with presence-gating. Agent checks if field exists before activating new behavior. Absence equals prior behavior. No flag-day requirement."
+
+  - decision: "How should eval-generator and judge agents be isolated from implementation context?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Context isolation as security invariant. eval-generator and judge NEVER receive ltm_context. Any recipe passing ltm_context to them is a defect. Isolation prevents specification gaming."
+
+  - decision: "How should agents record which knowledge layer answered each domain question?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Resolution trace written to STM as resolution-trace.yaml. Each entry records decision, resolved_from (project/core/llm), source path, authority (locked/draft/none), and value summary."
+
+  # --- Knowledge Lifecycle Decisions ---
+
+  - decision: "How should work artifacts be converted into persistent organizational knowledge?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Two-phase lifecycle: EXTRACT (scan traces, synthesize patterns, stage candidates) then PROMOTE (human reviews, approves, agent writes to LTM). No direct writes without human gate."
+
+  - decision: "What metadata should knowledge files carry and how should it vary by scope?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Two-tier metadata. Tier 1 (all files): title, scope, when-applies, when-not, search patterns, provenance, created, content, why-it-matters. Tier 2 (core only): applicability boundaries, rationale, decay tracking with staleness window."
+
+  - decision: "How should knowledge candidates be classified as project-scoped vs core-scoped?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Classification heuristics: project-specific names/models/paths/config → project. Technology/framework patterns applicable broadly → core. When in doubt, classify as project. Require stated reasoning (proposed_scope_rationale) for every classification."
+
+  # --- Architecture Pattern Decisions ---
+
+  - decision: "What is the boundary between recipe orchestrator and agent specialist responsibilities?"
+    resolved_from: "core"
+    source: "~/.meridian/core/memory/knowledge/architecture/agentic/agent-orchestration.md"
+    section: "Key Components"
+    authority: "draft"
+    value: "Core LTM provided general multi-agent orchestration patterns (coordinator/specialist separation, tool delegation). Extended for Meridian: recipe owns workflow (step ordering, checkpoints, evidence). Agent owns domain decisions (context engineering, skill selection, constraint application). Recipe never does agent work; agent never orchestrates multi-step workflows."
+
+  - decision: "Should archival and knowledge extraction be in the same recipe or separate?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Same recipe, separate phases. Archival and extraction share the issue closure trigger and sequential dependency (must archive before extracting from archive). Separating would create coordination overhead without benefit."
+
+  - decision: "How should new file format standards handle existing non-conforming files?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Grandfather existing artifacts. New files must conform from day one. Existing files are not required to migrate. Agents that read files handle both formats gracefully. Only enforce migration for critical security/correctness fixes."
+
+  - decision: "How should ad-hoc contract fields that carry the same logical information be standardized?"
+    resolved_from: "core"
+    source: "~/.meridian/core/memory/standards/agent-contract.md"
+    section: "Input Contract"
+    authority: "draft"
+    value: "Core LTM defines the universal agent contract schema (intent_path, stm_base, stm, task_id). Extended: add ltm_context as a formal optional field in agent-contract.md rather than passing project_base/core_base as ad-hoc parameters across recipes. One canonical schema, all agents reference it."
+
+  # --- Operational Pattern Decisions ---
+
+  - decision: "How should multiple agents be updated to adopt the same optional protocol?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Add conditional step gated on field presence in each agent. Reference the normative protocol document — don't embed protocol logic in each agent. Per-agent diff is domain-specific behavior within the shared structure."
+
+  - decision: "Should the knowledge-extractor agent be allowed to modify the evidence artifacts it reads?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "No. Read-only constraint. The extractor reads evidence but never modifies it. Prevents feedback loops where extraction changes the data it extracted from. Ensures archival integrity."
+
+  - decision: "Should knowledge writes to LTM require human approval even when the producing agent is confident?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: "Yes. Mandatory human approval gate for all LTM writes regardless of confidence. Knowledge has organizational impact — wrong patterns propagate to all future agent decisions. The cost of brief human review is far lower than the cost of bad knowledge in LTM."
