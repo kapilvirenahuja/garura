@@ -1,111 +1,71 @@
 name: prepare-implementation
 intent: >
   Produce a complete set of implementation-ready design artifacts for a single
-  epic, starting from a locked product.yaml, locked roadmap.yaml, locked
-  architecture.yaml, and locked quality-standards.yaml. The recipe requires an
-  --epic flag referencing an epic ID from the roadmap. Before generating
-  artifacts, the recipe resolves two-dimensional dependencies (epic ordering
-  from roadmap + technology dependencies from codebase), scans the codebase for
-  existing implementations, consults LTM for organizational standards and
-  patterns, and produces a dependency resolution report for user approval. The
-  output set — scoped to the target epic only — includes: features.yaml
-  defining product behaviors and invariants, scenarios.yaml with verification
-  scenarios, tech.yaml with project structure and components, and plan.yaml
-  with execution order. architecture.yaml is read from upstream as a locked
-  input providing technology selections and architectural decisions — it is not
-  produced by this recipe. Existing artifacts from prior epics are read-only
-  inputs, not targets for regeneration. The artifacts must contain everything
-  the implementation agent needs — port numbers, service endpoints, dev
-  patterns, quality gates, ADR references, LTM standards — so that no codebase
-  scanning or LTM reading is required at implementation time. Verification
-  scenarios are compartmentalized from the implementer.
+  issue or epic. The recipe auto-resolves work context from the current branch
+  or STM; an --epic flag is optional for roadmap-driven entry. Before generating
+  artifacts, the recipe deeply understands the codebase through architecture
+  inference, test surface mapping, dependency graph construction, and git history
+  analysis — all in parallel. It then computes the blast radius via test impact
+  analysis, identifies coverage gaps, and specifies baseline tests for
+  uncharacterized code paths. Only after the blast radius is fully characterized
+  does artifact generation begin. When upstream locked artifacts (product.yaml,
+  roadmap.yaml, architecture.yaml, quality-standards.yaml) exist, they are used
+  as authoritative inputs. When absent, the recipe derives equivalent context
+  from the codebase, LTM, and targeted user interviews — never halting the user.
+  Architecture and quality context are essential: when their locked artifacts are
+  missing, the recipe enters discovery mode to establish this understanding.
+  The output set includes: features.yaml defining product behaviors and
+  invariants, scenarios.yaml with three-tier verification scenarios (baseline,
+  new, regression), tech.yaml with file-level change specifications and LLD,
+  and plan.yaml with a task-level DAG including per-task dependencies and exit
+  gates. All artifacts must contain everything the implementation agent needs
+  so that no codebase scanning, LTM reading, or design decisions are required
+  at implementation time. Verification scenarios are compartmentalized from the
+  implementer. All work is issue-mapped — even epics require an issue.
 
 constraints:
   - id: C1
     rule: >
-      The recipe requires a locked product.yaml and a locked roadmap.yaml as
-      upstream inputs. The --epic flag is required and must reference an epic ID
-      that exists in the locked roadmap. A raw product intent alone is no longer
-      sufficient — upstream discovery and roadmap planning must be complete.
+      Product.yaml and roadmap.yaml are nice-to-have upstream inputs. When
+      present and locked, they are authoritative. When absent, the recipe
+      proceeds with issue context and codebase-derived understanding. The
+      recipe never halts for missing product.yaml or roadmap.yaml.
 
   - id: C2
     rule: >
-      The recipe runs as a single invocation per epic. Context resolution,
-      artifact generation, validation, and lock happen in one flow with inline
+      The recipe runs as a single invocation per issue or epic. Context
+      resolution, codebase understanding, blast radius analysis, artifact
+      generation, validation, and lock happen in one flow with inline
       checkpoints. No separate phase invocations.
-
-  - id: C14
-    rule: >
-      The target epic must exist in the locked roadmap.yaml. If the epic ID is
-      not found, the recipe halts immediately.
-
-  - id: C15
-    rule: >
-      All epic dependencies (from roadmap depends_on) must be either prepared
-      (prepare-implementation artifacts exist and are LOCKED for the dependency
-      epic) or built (codebase contains the dependency epic's implementation).
-      If any dependency is unmet, the recipe halts and presents the dependency
-      chain with recommended execution order.
-
-  - id: C16
-    rule: >
-      The recipe must scan the codebase for technology dependencies before
-      producing any artifacts. Technology dependencies include: existing service
-      implementations, port assignments, framework and library versions in use,
-      testing patterns, development conventions, ADRs in the repository, and
-      quality gate configurations. The scan always runs — there is no
-      greenfield vs brownfield distinction.
-
-  - id: C17
-    rule: >
-      The recipe must read LTM at ~/.meridian/core/memory/ for architectural
-      standards, implementation patterns, technology decisions, and prior epic
-      learnings. LTM findings and gaps must both be documented in the dependency
-      resolution report. Gaps tell the implementation agent what organizational
-      knowledge is missing.
-
-  - id: C18
-    rule: >
-      The dependency resolution report requires explicit user approval (Tether)
-      before artifact generation begins. The user validates the recipe's
-      understanding of the codebase state, dependency chain, and LTM findings.
-      This prevents non-deterministic context reads from silently affecting output.
-
-  - id: C19
-    rule: >
-      Existing artifacts from prior epics are read-only inputs, not targets for
-      modification. If architecture.yaml exists from a prior epic, this epic
-      reads it as context and produces its own epic-scoped architecture artifact.
-      Each epic's artifacts live under {product_base}/epics/{epic_id}/.
 
   - id: C3
     rule: >
       features.yaml defines product behaviors, invariants, scope boundaries, and
       acceptance criteria. It must not contain technology choices, implementation
-      patterns, runtime topology, library names, or deployment decisions. Those
-      belong exclusively in architecture.yaml.
+      patterns, runtime topology, library names, or deployment decisions.
 
   - id: C4
     rule: >
-      tech.yaml must reference the locked architecture.yaml for technology
-      selections. tech.yaml provides epic-scoped implementation detail
-      (file paths, component structure, development patterns) within the
-      architecture decisions already locked upstream. tech.yaml must not
-      contradict architecture.yaml technology selections.
+      tech.yaml must align with the established architecture context (locked
+      architecture.yaml when present, or discovery-derived architecture
+      understanding when absent). tech.yaml provides issue-scoped implementation
+      detail (file paths, component structure, development patterns) within
+      the architecture decisions. tech.yaml must not contradict the established
+      architecture context.
 
   - id: C5
     rule: >
-      Every plan.yaml scope item must map to one or more specific file paths. A
-      scope item without a file path is not implementation-ready. Each execution
-      order entry must include numbered scope items with description and key_files.
+      Every plan.yaml task must map to one or more specific file paths with
+      change type (CREATE, MODIFY, DELETE). A task without file paths and
+      change types is not implementation-ready.
 
   - id: C6
     rule: >
-      Every feature slice in plan.yaml execution_order must deliver an end-to-end
-      working capability that is independently testable. A feature slice that
-      delivers only infrastructure, only backend, or only frontend without a
-      testable user-facing path is not valid — except prerequisites (Phase 0),
-      which covers project scaffold and setup.
+      Every feature slice in plan.yaml must deliver an end-to-end working
+      capability that is independently testable. A feature slice that delivers
+      only infrastructure, only backend, or only frontend without a testable
+      user-facing path is not valid — except prerequisites (Phase 0), which
+      covers project scaffold and baseline test implementation.
 
   - id: C7
     rule: >
@@ -132,22 +92,21 @@ constraints:
 
   - id: C10
     rule: >
-      The DRAFT phase uses a staged human review model with three checkpoints:
-      features.yaml is reviewed first (it is the foundation for all other
-      artifacts), architecture.yaml and tech.yaml are reviewed second (they
-      depend on features.yaml), and scenarios.yaml plus plan.yaml are reviewed
-      together third (scenarios need the spec, plan needs architecture and tech).
-      Each checkpoint requires explicit human approval before proceeding to the
-      next stage.
+      The recipe uses a staged human review model with five checkpoints:
+      (0) context assembly and architecture discovery results, (1) blast radius
+      and baseline test specifications, (2) features.yaml, (3) tech.yaml with
+      LLD and file-level change specs, (4) scenarios.yaml plus plan.yaml with
+      task DAG. Each checkpoint requires explicit human approval before
+      proceeding to the next stage.
 
   - id: C11
     rule: >
       Each artifact serves a distinct audience. features.yaml serves product
-      stakeholders. architecture.yaml serves architects and implementers.
-      scenarios.yaml serves validators. tech.yaml serves implementers. plan.yaml
-      serves implementers (execution order and scope) and quality leads (scenario
-      gates by ID only). No artifact may contain content that belongs to a
-      different artifact's audience — audience collision is a constraint violation.
+      stakeholders. scenarios.yaml serves validators. tech.yaml serves
+      implementers. plan.yaml serves implementers (task DAG and scope) and
+      quality leads (scenario gates by ID only). No artifact may contain content
+      that belongs to a different artifact's audience — audience collision is a
+      constraint violation.
 
   - id: C12
     rule: >
@@ -160,79 +119,201 @@ constraints:
 
   - id: C13
     rule: >
-      Every entry in plan.yaml execution_order (and prerequisites) must have an
-      explicit exit_gate that defines what must be observable before moving to
-      the next feature. The exit gate references observable outcomes, not process
-      steps.
+      Every task in plan.yaml (and prerequisites) must have an explicit
+      exit_gate that defines what must be observable before moving to the next
+      task. The exit gate references observable outcomes, not process steps.
+
+  - id: C14
+    rule: >
+      The recipe auto-resolves work context from the current branch name or
+      STM directory. An --epic flag is optional for roadmap-driven entry.
+      When --epic is provided and a locked roadmap exists, the epic ID must
+      exist in the roadmap. The recipe halts only when neither an issue nor
+      an epic can be resolved — nothing to scope the work against.
+
+  - id: C15
+    rule: >
+      Epic dependency enforcement applies only when a locked roadmap exists
+      and --epic is provided. All epic dependencies (from roadmap depends_on)
+      must be either prepared or built. When working from an issue without a
+      roadmap, epic dependency enforcement does not apply.
+
+  - id: C16
+    rule: >
+      The recipe must deeply understand the codebase before producing any
+      artifacts. This includes: architecture inference (module structure,
+      service boundaries, data flow, design patterns, framework conventions,
+      logical architecture), test surface mapping (all test files, what they
+      cover, what assertions they make), dependency graph construction (file
+      imports, module API calls, service messaging), and git commit history
+      analysis (co-change patterns, recent activity, commit message intent).
+      The scan always runs — there is no greenfield vs brownfield distinction.
+
+  - id: C17
+    rule: >
+      The recipe must read LTM at ~/.meridian/core/memory/ for architectural
+      standards, implementation patterns, technology decisions, and prior
+      learnings. LTM findings and gaps must both be documented. Gaps tell the
+      implementation agent what organizational knowledge is missing.
+
+  - id: C18
+    rule: >
+      The context assembly and blast radius reports require explicit user
+      approval (Tether) before artifact generation begins. The user validates
+      the recipe's understanding of the codebase state, architecture, test
+      coverage, change surface, and blast radius.
+
+  - id: C19
+    rule: >
+      Existing artifacts from prior epics or issues are read-only inputs, not
+      targets for modification. All work is issue-mapped — artifacts live under
+      {stm_base}/{issue}/. Even when working on an epic, there must be an
+      issue (created via /start-feature).
 
   - id: C20
     rule: >
-      After structural validation passes, the recipe must scan all five design
-      artifacts (features.yaml, architecture.yaml, tech.yaml, scenarios.yaml,
-      plan.yaml) for open_questions[] fields and for risks[] or
-      risk_assessment[] entries with severity "high". If any open questions or
-      high-severity risks are found, the recipe must present a structured
-      resolution interview requiring the user to resolve each item (RESOLVED
-      keyword) before proceeding. All resolutions must be written to a
-      pre-lock-resolutions.yaml audit artifact before auto-lock executes.
-      Structural completeness alone is not sufficient for lock — semantic
-      readiness (no unresolved open questions, no unresolved high-severity
-      risks) is also required.
+      After structural validation passes, the recipe must scan the four
+      design artifacts (features.yaml, tech.yaml, scenarios.yaml, plan.yaml)
+      for open_questions[] fields and for risks[] or risk_assessment[] entries
+      with severity "high". If any open questions or high-severity risks are
+      found, the recipe must present a structured resolution interview
+      requiring the user to resolve each item (RESOLVED keyword) before
+      proceeding. All resolutions must be written to a pre-lock-resolutions.yaml
+      audit artifact before auto-lock executes.
+
   - id: C21
     rule: >
-      The recipe requires a locked architecture.yaml at
-      {product_base}/architecture/architecture.yaml as an upstream input.
-      Architecture decisions are made during prepare-architecture, not
-      during per-epic implementation planning. The recipe reads the
-      locked architecture.yaml for technology context.
+      Architecture context is essential but not a hard-halt. When a locked
+      architecture.yaml exists at {product_base}/architecture/architecture.yaml,
+      it is used as the authoritative source. When absent, the recipe enters
+      discovery mode — deriving architecture understanding from the codebase
+      scan (design patterns, framework conventions, logical architecture) and
+      LTM, then working with the user via targeted interview to fill gaps.
+      The goal is equivalent understanding, not a shortcut.
+
   - id: C22
     rule: >
-      The recipe requires a locked quality-standards.yaml at
-      {product_base}/architecture/quality-standards.yaml as an upstream input.
-      Quality standards are established during prepare-architecture. The
-      recipe reads quality-standards.yaml for testing, CI/CD, and quality
-      gate context when producing plan.yaml.
+      Quality standards context is essential but not a hard-halt. When a locked
+      quality-standards.yaml exists, it is used as the authoritative source.
+      When absent, the recipe derives quality context from toolchain detection
+      (test config, linting, CI files, coverage config) and LTM, then works
+      with the user via targeted interview to establish quality gates.
+
+  - id: C23
+    rule: >
+      Context resolution follows a hierarchy for each upstream artifact:
+      locked YAML artifact (authoritative) → project LTM (advisory) →
+      codebase scan (derived) → user interview (collected). Each source has
+      an authority level. The recipe documents which source provided each
+      piece of context in context-assembly.yaml.
+
+  - id: C24
+    rule: >
+      Test-driven blast radius analysis is required before design artifact
+      generation. The change surface must be fully characterized through test
+      impact analysis. Every code path in the change surface must have either
+      an existing test that is understood, or a new baseline test specified.
+      Design proceeds only when the blast radius is fully characterized.
+
+  - id: C25
+    rule: >
+      Baseline tests must be specified for every coverage gap in the change
+      surface. A baseline test targets the CURRENT behavior of the code (not
+      the future behavior). It must pass on the unmodified codebase. No design
+      artifact generation proceeds with uncharacterized code paths in the
+      impact zone.
+
+  - id: C26
+    rule: >
+      plan.yaml must contain a task-level DAG with explicit depends_on chains
+      between tasks, per-task file lists with change type (CREATE, MODIFY,
+      DELETE), and per-task exit gates. Tasks reference file-level change
+      specifications from tech.yaml.
+
+  - id: C27
+    rule: >
+      tech.yaml must contain file-level change specifications. For MODIFY
+      files: exact location and before/after content. For CREATE files:
+      content template. For DELETE files: justification. These specifications
+      must be detailed enough for mechanical implementation.
+
+  - id: C28
+    rule: >
+      scenarios.yaml must contain three tiers: baseline scenarios (existing
+      behavior from blast radius coverage gaps), new scenarios (from features),
+      and regression scenarios (from blast radius — must still pass after
+      changes). Feature gates must reference all three tiers.
+
+  - id: C29
+    rule: >
+      Git commit history must be analyzed as a parallel data source during
+      codebase understanding. Co-change patterns, recent activity, and commit
+      messages inform the change surface and blast radius. This runs in
+      parallel with architecture inference and test surface mapping.
+
+  - id: C30
+    rule: >
+      All intermediate data collected by agents must be stored in STM on disk
+      at {stm_base}/{issue}/evidence/prepare-implementation/. The recipe
+      orchestrates by passing STM paths between agents. Agent outputs are
+      never passed through conversation memory.
+
+  - id: C31
+    rule: >
+      Artifacts that benefit from diagrams and narrative use dual format
+      (YAML contract + MD rich content): architecture-inference,
+      dependency-graph, commit-history-analysis, tech, plan. Pure data
+      artifacts stay YAML-only: context-assembly, test-surface,
+      change-surface, blast-radius, baseline-tests, features, scenarios.
+
+  - id: C32
+    rule: >
+      Testing and architecture agent work must be separated. The tech-architect
+      handles architecture inference, design patterns, dependency graphs,
+      change surface identification, tech.yaml, and plan.yaml. The
+      test-engineer handles test surface mapping, blast radius computation,
+      baseline test specification, and scenarios.yaml. These are different
+      domains with different agents.
 
 failure_conditions:
   - id: F1
     condition: >
       features.yaml contains technology names, library names, SDK references,
       database product names, hosting platform names, or deployment patterns.
-      These indicate audience collision between features.yaml and architecture.yaml.
+      These indicate audience collision.
 
   - id: F2
     condition: >
-      tech.yaml contradicts the locked architecture.yaml — uses different
-      technologies, frameworks, or patterns than those specified in the
-      locked upstream architecture.
+      tech.yaml contradicts the established architecture context — uses
+      different technologies, frameworks, or patterns than those in the
+      locked architecture.yaml or discovery-derived architecture understanding.
 
   - id: F3
     condition: >
-      Any feature slice in plan.yaml execution_order does not deliver an
-      end-to-end working capability. The scope covers only one layer (only
-      database, only backend, only frontend) without a testable path through
-      the full stack.
+      Any feature slice in plan.yaml does not deliver an end-to-end working
+      capability. The scope covers only one layer without a testable path
+      through the full stack.
 
   - id: F4
     condition: >
-      Any plan.yaml scope item lacks a file path mapping. scope_items entries
-      have empty or missing key_files.
+      Any plan.yaml task lacks file path mappings with change types. Tasks
+      have empty or missing file lists.
 
   - id: F5
     condition: >
-      Any entry in plan.yaml execution_order has no exit_gate, or the exit_gate
-      references process steps rather than observable outcomes.
+      Any task in plan.yaml has no exit_gate, or the exit_gate references
+      process steps rather than observable outcomes.
 
   - id: F6
     condition: >
       Any verification scenario in scenarios.yaml is missing one or more of:
-      description, expected_behavior, pass_criteria, or automation classification.
+      description, expected_behavior, pass_criteria, or automation
+      classification.
 
   - id: F7
     condition: >
       A product behavior defined in features.yaml has no corresponding
-      verification scenario in scenarios.yaml. The scenarios artifact does not
-      provide full coverage of the features specification.
+      verification scenario in scenarios.yaml.
 
   - id: F8
     condition: >
@@ -241,26 +322,27 @@ failure_conditions:
 
   - id: F10
     condition: >
-      plan.yaml contains fewer than 2 entries in execution_order (excluding
-      prerequisites).
+      plan.yaml contains fewer than 2 feature slices in the task DAG
+      (excluding prerequisites).
 
   - id: F12
     condition: >
-      The five artifacts were produced or locked without passing through all
-      required human review checkpoints including the dependency resolution
-      approval gate.
+      Artifacts were produced or locked without passing through all required
+      human review checkpoints (context assembly, blast radius, features,
+      tech design, scenarios+plan).
 
   - id: F13
     condition: >
-      The dependency resolution report identifies unmet epic dependencies but
-      the recipe proceeded to artifact generation without halting. Unmet
-      dependencies must block progress.
+      The blast radius analysis identifies unmet epic dependencies (when
+      working from a roadmap) but the recipe proceeded to artifact generation
+      without halting.
 
   - id: F14
     condition: >
-      The codebase scan missed technology dependencies that exist in the
-      repository — services, ports, frameworks, libraries, or ADRs that are
-      present but not reflected in the dependency resolution report.
+      The codebase understanding phase missed technology dependencies,
+      design patterns, or architectural structures that exist in the
+      repository but are not reflected in the architecture-inference or
+      dependency-graph outputs.
 
   - id: F15
     condition: >
@@ -271,23 +353,60 @@ failure_conditions:
 
   - id: F16
     condition: >
-      LTM was not consulted or LTM findings and gaps were not documented in
-      the dependency resolution report. The report must show what was found
-      in LTM and what was not found.
+      LTM was not consulted or LTM findings and gaps were not documented.
+      The context assembly must show what was found in LTM and what was not.
 
   - id: F17
     condition: >
-      The recipe locks artifacts while any of the five design artifacts
-      (features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml)
-      contain open_questions[] entries or risks[] / risk_assessment[] entries
-      with severity "high" that have not been explicitly resolved by the user.
-      Locking with unresolved open questions or high-severity risks means the
-      implementation agent receives artifacts with known gaps or unmitigated
-      risks.
-  - id: F18
+      The recipe locks artifacts while any of the four design artifacts
+      (features.yaml, tech.yaml, scenarios.yaml, plan.yaml) contain
+      open_questions[] entries or high-severity risks that have not been
+      explicitly resolved by the user.
+
+  - id: F19
     condition: >
-      The recipe proceeded without a locked architecture.yaml or locked
-      quality-standards.yaml as upstream input.
+      The recipe proceeded with no issue AND no epic — nothing to scope
+      the work against. The recipe must have at least one of these to
+      define the work.
+
+  - id: F20
+    condition: >
+      Design artifacts were produced without the blast radius analysis
+      completing first. The change surface was not fully characterized
+      through test impact analysis before artifact generation began.
+
+  - id: F21
+    condition: >
+      Coverage gaps exist in the change surface without corresponding
+      baseline test specifications. Code paths in the impact zone are
+      uncharacterized.
+
+  - id: F22
+    condition: >
+      plan.yaml tasks lack depends_on chains or per-task file lists with
+      change types. The task DAG is incomplete or missing.
+
+  - id: F23
+    condition: >
+      tech.yaml MODIFY entries lack before/after change specifications,
+      or CREATE entries lack content templates. File-level detail is
+      insufficient for mechanical implementation.
+
+  - id: F24
+    condition: >
+      Baseline test specifications do not cover every coverage gap
+      identified in the blast radius analysis.
+
+  - id: F25
+    condition: >
+      Architecture context is missing and the recipe did not enter
+      discovery mode to derive it from the codebase and user interview.
+      Architecture understanding was skipped rather than discovered.
+
+  - id: F26
+    condition: >
+      Intermediate agent data was not stored in STM on disk. Data was
+      passed through conversation memory instead of via STM file paths.
 
 scenarios:
   - id: S1
@@ -301,21 +420,20 @@ scenarios:
 
   - id: S2
     persona: Technical Architect
-    given: The locked features.yaml and architecture.yaml
+    given: The locked features.yaml and established architecture context (locked artifact or discovery-derived)
     then: >
-      Can evaluate whether the chosen technology stack and architectural decisions
-      in architecture.yaml faithfully implement the product behaviors and invariants
-      defined in features.yaml, and can identify any architectural gaps or
-      misalignments.
+      Can evaluate whether the technology stack and architectural decisions
+      faithfully implement the product behaviors and invariants defined in
+      features.yaml, and can identify any architectural gaps or misalignments.
 
   - id: S3
     persona: Engineering Lead
-    given: A single execution_order entry in plan.yaml and architecture.yaml
+    given: A single task in plan.yaml and the established architecture context
     then: >
-      Can assign the feature slice to an implementer with confidence that the
-      scope_items, key_files, technology stack, and exit_gate provide sufficient
-      context to implement without requiring access to other feature slices, the
-      full features.yaml, or scenarios.yaml content.
+      Can assign the task to an implementer with confidence that the file
+      paths, change types, change specifications, and exit_gate provide
+      sufficient context to implement without requiring access to other tasks,
+      the full features.yaml, or scenarios.yaml content.
 
   - id: S4
     persona: Quality Lead
@@ -323,18 +441,15 @@ scenarios:
     then: >
       Can construct a feature-gated validation plan where each feature slice
       has a defined set of scenarios (by ID) that must pass before the next
-      feature begins, without exposing scenario content to implementers. The
-      plan references scenario IDs only; content lives in scenarios.yaml which
-      is validator-facing.
+      feature begins, without exposing scenario content to implementers.
 
   - id: S5
     persona: Product Manager
     given: The locked features.yaml
     then: >
       Can describe the product's identity, core behaviors, invariants, and scope
-      boundaries to stakeholders without referencing any technology, implementation
-      detail, or architectural decision. The identity section provides a
-      technology-free product narrative.
+      boundaries to stakeholders without referencing any technology,
+      implementation detail, or architectural decision.
 
   - id: S6
     persona: Technical Architect
@@ -343,38 +458,69 @@ scenarios:
       Can determine the implementation sequence, understand what each feature
       slice delivers as a working capability, and verify that the cumulative
       scenario count in the summary accounts for all verification scenarios by
-      the final feature. The per_feature summary with cumulative_scenarios
-      supports this review.
+      the final feature.
 
   - id: S7
     persona: Engineering Lead
-    given: The dependency resolution report for an epic
+    given: The context assembly and blast radius reports
     then: >
-      Can verify that all epic dependencies are resolved (prepared or built),
-      all technology dependencies from the codebase are identified (services,
-      ports, frameworks, quality gates), all relevant ADRs are referenced,
-      and LTM findings and gaps are documented — sufficient to approve
-      proceeding to artifact generation with confidence that the context is
-      complete.
+      Can verify that codebase architecture is understood (design patterns,
+      framework conventions, logical architecture), all technology dependencies
+      are identified, test coverage is mapped, the change surface is fully
+      characterized, and coverage gaps have baseline test specifications —
+      sufficient to approve proceeding to artifact generation.
 
   - id: S8
     persona: Implementation Agent
-    given: The locked epic-scoped artifacts (features, architecture, tech, scenarios, plan)
+    given: The locked artifacts (features, tech, scenarios, plan) and established architecture context
     then: >
-      Can implement any feature slice using only the provided artifacts without
-      scanning the codebase, reading LTM, or resolving dependencies. Port
-      numbers, service endpoints, development patterns, quality gates, and
-      file paths (new vs modified) are all explicit in the artifacts.
+      Can implement any task from the DAG using only the provided artifacts
+      without scanning the codebase, reading LTM, or resolving dependencies.
+      File paths, change types, before/after specifications, and exit gates
+      are all explicit in the artifacts.
 
   - id: S9
     persona: Technical Architect
     given: >
-      architecture.yaml containing risks[] with severity "high" and tech.yaml
-      containing open_questions[], plus the pre-lock-resolutions.yaml audit
-      artifact
+      tech.yaml containing open_questions[] and high-severity risks, plus
+      the pre-lock-resolutions.yaml audit artifact
     then: >
       Can verify that every high-severity risk and every open question across
-      all five design artifacts was surfaced to the user, that each received an
-      explicit resolution, and that the resolutions are recorded in
-      pre-lock-resolutions.yaml as an audit trail confirming semantic readiness
-      before artifacts were locked.
+      the four design artifacts was surfaced to the user, that each received
+      an explicit resolution, and that resolutions are recorded in
+      pre-lock-resolutions.yaml as an audit trail.
+
+  - id: S10
+    persona: Engineer
+    given: The blast radius report and baseline test specifications
+    then: >
+      Can verify every impacted test is identified (direct and transitive),
+      every coverage gap has a baseline test specification, co-change patterns
+      from git history were considered, and the change surface is fully
+      characterized — no uncharacterized code paths in the impact zone.
+
+  - id: S11
+    persona: Implementation Agent
+    given: The task DAG in plan.yaml with depends_on chains and file-level change specs in tech.yaml
+    then: >
+      Can execute tasks in dependency order where each task specifies exact
+      files, exact change types, exact before/after content (for MODIFY) or
+      templates (for CREATE), and exact exit gates — no design decisions
+      required at build time.
+
+  - id: S12
+    persona: Quality Lead
+    given: Three-tier scenarios.yaml (baseline, new, regression) and feature_gates
+    then: >
+      Can verify baseline tests pass on current unmodified code, new tests
+      define the target behavior for the change, and regression tests ensure
+      nothing outside the change surface breaks. All three tiers are mapped
+      to features via feature_gates.
+
+  - id: S13
+    persona: Technical Architect
+    given: architecture-inference.md and tech.md
+    then: >
+      Can review the logical architecture, design patterns in use, framework
+      conventions, and low-level design with diagrams — understanding the
+      system's structure beyond what YAML fields can express.
