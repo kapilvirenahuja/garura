@@ -1,0 +1,103 @@
+skill_manifest:
+  recipe: prepare-implementation
+  compiled_at: 2026-03-31
+  note: >
+    prepare-implementation agents perform analysis and authoring directly.
+    The skill pool is limited to research-domain-context for tech-architect
+    LTM fallback, and validate-implementation-design for cross-validation.
+    All other phases (architecture inference, blast radius, scenario authoring,
+    DAG planning) are core agent capabilities, not delegated to skills.
+
+  agents:
+    - agent: tech-architect
+      type: domain
+      model: opus
+      skills_used:
+        - name: research-domain-context
+          when: LTM insufficient for framework or pattern coverage during any Phase 1 analysis
+          phases: [1A-architecture-inference, 1C-dependency-graph, 1E-ltm-consultation]
+          available: true
+      direct_capabilities:
+        - 1A-architecture-inference (direct — no skill)
+        - 1C-dependency-graph (direct — no skill)
+        - 1D-git-history (direct — no skill)
+        - 1E-ltm-consultation (direct — no skill)
+        - 2A-change-surface (direct — no skill)
+        - 3-tech artifacts (direct — no skill)
+        - 3-plan artifacts (direct — no skill)
+
+    - agent: test-engineer
+      type: domain
+      model: opus
+      skills_used: []
+      direct_capabilities:
+        - 1B-test-surface-mapping (direct — no skill)
+        - 2B-blast-radius-computation (direct — no skill)
+        - 2C-baseline-test-specification (direct — no skill)
+        - 3-scenarios-authoring (direct — no skill)
+
+    - agent: product-strategist
+      type: domain
+      model: opus
+      skills_used:
+        - name: draft-product-spec
+          when: Phase DRAFT Stage 1 — produce features.yaml
+          phases: [step-11-draft-features]
+          available: true
+        - name: validate-implementation-design
+          when: Phase VALIDATE — cross-validate all 4 artifacts
+          phases: [step-18-cross-validate]
+          available: true
+      direct_capabilities: []
+
+    - agent: doc-builder
+      type: utility
+      model: sonnet
+      skills_used: []
+      direct_capabilities:
+        - HTML brief generation before each checkpoint (steps 12, 14, 17)
+        - hub.html regeneration after each brief pass
+
+    - agent: repo-orchestrator
+      type: utility
+      model: sonnet
+      skills_used:
+        - name: create-commit
+          when: Evidence self-commit at recipe close
+          phases: [step-22-self-commit]
+          available: true
+      direct_capabilities: []
+
+  skills_not_used:
+    - draft-lld: tech-architect handles LLD directly (it is core architect capability)
+    - draft-technical-approach: tech-architect handles tech artifacts directly
+    - draft-verification-scenarios: test-engineer authors scenarios directly via three-tier method
+    - draft-scenario-mapping: subsumed into test-engineer scenario authoring (feature_gates)
+    - draft-implementation-plan: tech-architect handles plan DAG directly
+    - evals-creator: evals compiled into SKILL.md at build-time by create-recipe
+    - check-drift: not applicable to this recipe
+    - audit-spec-gaps: not applicable to this recipe
+
+  available_but_not_referenced:
+    - analyze-changes: repo domain, not needed
+    - analyze-pr: repo domain, not needed
+    - setup-branch: repo domain, not needed
+    - submit-pr: repo domain, not needed
+    - merge-pr: repo domain, not needed
+    - archive-issue-stm: used by capture-learning, not this recipe
+    - manage-issue: project domain, not needed
+    - discover-product-opportunity: product discovery, not implementation
+    - draft-product-vision: product discovery, not implementation
+    - validate-product-vision: product discovery, not implementation
+    - generate-business-review: product discovery, not implementation
+    - generate-engineering-view: roadmap, not implementation
+    - scope-roadmap-epics: roadmap, not implementation
+    - draft-roadmap: roadmap, not implementation
+    - draft-quality-standards: architecture pipeline, not implementation
+    - validate-architecture-design: architecture pipeline, not implementation
+    - validate-roadmap: roadmap pipeline, not implementation
+    - assess-feasibility: architecture pipeline, not implementation
+    - scout-project: project scouting, not implementation
+    - resolve-issues: conflict resolution, not implementation
+    - sync-claude: deployment utility
+    - sync-droids: deployment utility
