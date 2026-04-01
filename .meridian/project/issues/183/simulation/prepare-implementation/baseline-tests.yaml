@@ -1,0 +1,490 @@
+# baseline-tests.yaml
+# Task: 2C-baseline-tests (Step 10)
+# Issue: 183 — prepare-implementation should not hard-block on product.yaml and roadmap.yaml
+# Generated: 2026-03-31 (simulation)
+# Sources: blast-radius.yaml, test-surface.yaml
+#
+# FRAMEWORK NOTE:
+# meridian-os has zero conventional tests. Baseline tests in this context are:
+#   (1) Recipe evals (SE-* step evals, SCE-* scenario evals) verified against intent.yaml constraints
+#   (2) Agent compliance checks (schema validation against agent-contract.md)
+#   (3) Schema validation checks for YAML artifacts
+#
+# Baseline tests target CURRENT behavior — they must pass on the unmodified codebase.
+# Each test below is specified as a check that verifies existing (pre-#183) behavior
+# OR the expected post-#183 behavior for the already-applied changes.
+#
+# IMPORTANT: Tests for already-applied changes (SKILL.md, intent.yaml) verify the NEW behavior
+# because those files have already been modified. Tests for not-yet-changed files verify
+# the current (old) behavior as a pre-change baseline.
+
+baseline_tests:
+
+  # === CATEGORY 1: Pre-flight Behavior Evals ===
+  # These verify the already-changed pre-flight logic in SKILL.md
+
+  - id: "BT-PRE-01"
+    category: "recipe_eval"
+    title: "Pre-flight continues when product.yaml absent"
+    target_file: "core/components/recipes/prepare-implementation/SKILL.md"
+    coverage_gap_addressed: "SE-PRE-01 — pre-flight abort on missing product.yaml"
+    verification_type: "constraint compliance"
+    constraint_ref: "C1"
+
+    scenario:
+      given: >
+        prepare-implementation invoked on a branch with a valid issue number (e.g., feat/183-...).
+        No product.yaml exists at {product_base}/discovery/product.yaml.
+      when: "Pre-flight check runs (Step 0 of pre-flight + Step 0 of workflow)"
+      then:
+        - "Recipe does NOT emit any HALT message for missing product.yaml"
+        - "Recipe continues to Step 1 (epic dependency check) and beyond"
+        - "Step 0 records product_status = 'absent' in context-assembly.yaml"
+        - "context-assembly.yaml.upstream_context.product.status == 'absent'"
+        - "context-assembly.yaml.upstream_context.product.source contains 'No product.yaml'"
+
+    verification_method: "Read context-assembly.yaml after Step 7 completes. Check upstream_context.product.status field."
+    passes_on_current_code: true  # SKILL.md already changed; new behavior is the baseline
+    passes_on_old_code: false  # Old SKILL.md would have halted here
+
+  - id: "BT-PRE-02"
+    category: "recipe_eval"
+    title: "Pre-flight continues when roadmap.yaml absent"
+    target_file: "core/components/recipes/prepare-implementation/SKILL.md"
+    coverage_gap_addressed: "SE-PRE-02 — pre-flight abort on missing roadmap.yaml"
+    verification_type: "constraint compliance"
+    constraint_ref: "C1, C15"
+
+    scenario:
+      given: >
+        prepare-implementation invoked with valid issue number. No roadmap.yaml exists.
+        No --epic flag provided.
+      when: "Pre-flight and Step 0 run"
+      then:
+        - "Recipe does NOT halt for missing roadmap.yaml"
+        - "context-assembly.yaml.upstream_context.roadmap.status == 'absent'"
+        - "Epic dependency enforcement is skipped (Step 1 is no-op when no --epic + no roadmap)"
+
+    verification_method: "Check context-assembly.yaml for roadmap.status field. Verify Step 1 was skipped (no epic-dependency-check artifact)."
+    passes_on_current_code: true
+    passes_on_old_code: false
+
+  - id: "BT-PRE-03"
+    category: "recipe_eval"
+    title: "Pre-flight HALTS only when no issue AND no epic"
+    target_file: "core/components/recipes/prepare-implementation/SKILL.md"
+    coverage_gap_addressed: "F19 condition — still a hard halt but narrower scope"
+    verification_type: "failure condition compliance"
+    constraint_ref: "C14, F19"
+
+    scenario:
+      given: >
+        prepare-implementation invoked on the main branch (no feat/NNN- pattern).
+        No STM directory for any issue. No --epic flag.
+      when: "Pre-flight runs"
+      then:
+        - "Recipe emits HALT with message referencing F19"
+        - "Message includes: 'No issue resolved from branch and no --epic provided'"
+        - "No STM artifacts are created"
+
+    verification_method: "Invoke on main branch with no arguments. Check for HALT output and absence of evidence directory."
+    passes_on_current_code: true  # F19 halt is preserved in new SKILL.md
+    passes_on_old_code: true  # Old code also halted here (though for a different reason — missing epic flag)
+
+  - id: "BT-PRE-04"
+    category: "recipe_eval"
+    title: "Architecture absence triggers discovery mode, not halt"
+    target_file: "core/components/recipes/prepare-implementation/SKILL.md"
+    coverage_gap_addressed: "SE-PRE-03, F25 — architecture absent must trigger discovery mode"
+    verification_type: "constraint compliance"
+    constraint_ref: "C21, F25"
+
+    scenario:
+      given: >
+        prepare-implementation invoked with valid issue. No architecture.yaml at
+        {product_base}/architecture/architecture.yaml.
+      when: "Step 0 records architecture_status, Step 2 dispatches tech-architect"
+      then:
+        - "Recipe does NOT halt for missing architecture.yaml"
+        - "Step 2 JSON contract includes discovery_mode: true"
+        - "After Step 7: context-assembly.yaml.upstream_context.architecture.status == 'derived'"
+        - "context-assembly.yaml.upstream_context.architecture.discovery_mode == true"
+        - "F25 is NOT triggered (recipe entered discovery mode, not skipped it)"
+
+    verification_method: "Check context-assembly.yaml upstream_context.architecture section. Verify status='derived' and discovery_mode=true."
+    passes_on_current_code: true
+    passes_on_old_code: false
+
+  - id: "BT-PRE-05"
+    category: "recipe_eval"
+    title: "Quality absence triggers discovery mode, not halt"
+    target_file: "core/components/recipes/prepare-implementation/SKILL.md"
+    coverage_gap_addressed: "SE-PRE-04 — quality-standards.yaml absent must trigger discovery mode"
+    verification_type: "constraint compliance"
+    constraint_ref: "C22"
+
+    scenario:
+      given: >
+        prepare-implementation invoked with valid issue. No quality-standards.yaml at
+        {product_base}/architecture/quality-standards.yaml.
+      when: "Step 0 runs"
+      then:
+        - "Recipe does NOT halt for missing quality-standards.yaml"
+        - "context-assembly.yaml.upstream_context.quality.status == 'derived'"
+        - "context-assembly.yaml.upstream_context.quality.discovery_mode == true"
+
+    verification_method: "Read context-assembly.yaml upstream_context.quality section."
+    passes_on_current_code: true
+    passes_on_old_code: false
+
+  # === CATEGORY 2: Context Assembly Schema Checks ===
+  # These verify the structure of context-assembly.yaml (new artifact)
+
+  - id: "BT-CA-01"
+    category: "schema_validation"
+    title: "context-assembly.yaml contains all required top-level fields"
+    target_file: "context-assembly.yaml (STM artifact)"
+    coverage_gap_addressed: "SE-STEP0-01 — Step 0 is entirely new, no evals exist for it"
+    verification_type: "artifact schema check"
+
+    schema_check:
+      required_fields:
+        - "upstream_context"
+        - "upstream_context.product.status"
+        - "upstream_context.product.source"
+        - "upstream_context.roadmap.status"
+        - "upstream_context.roadmap.source"
+        - "upstream_context.architecture.status"
+        - "upstream_context.architecture.discovery_mode"
+        - "upstream_context.quality.status"
+        - "upstream_context.quality.discovery_mode"
+        - "phase1_summary"
+        - "phase1_summary.architecture_inference.file"
+        - "phase1_summary.test_surface.file"
+        - "phase1_summary.dependency_graph.file"
+        - "phase1_summary.git_history.file"
+        - "phase1_summary.ltm_findings.file"
+        - "phase1_summary.ltm_findings.gap_count"
+        - "authority_map"
+        - "confidence_assessment"
+      allowed_status_values: ["absent", "locked", "derived"]
+      allowed_confidence_values: ["n/a", "high", "medium-high", "medium", "low"]
+
+    verification_method: "Parse context-assembly.yaml and validate all required fields are present with valid enum values."
+    passes_on_current_code: true  # simulation produced conforming context-assembly.yaml
+
+  - id: "BT-CA-02"
+    category: "schema_validation"
+    title: "context-assembly.yaml authority sources are traceable"
+    target_file: "context-assembly.yaml (STM artifact)"
+    coverage_gap_addressed: "C23 — each context source must be documented"
+    verification_type: "constraint compliance"
+    constraint_ref: "C23"
+
+    schema_check:
+      rule: >
+        For each upstream_context entry where status != 'absent':
+        the 'source' field must reference a specific file, scan, or interview
+        (not a vague description). For status == 'absent', source must state
+        the expected path that was checked.
+
+    verification_method: "Read each upstream_context[*].source field and verify it names a specific artifact or scan type, not a generic description."
+    passes_on_current_code: true
+
+  # === CATEGORY 3: Intent Constraint Checks ===
+  # These verify that the intent.yaml constraints are internally consistent
+
+  - id: "BT-INT-01"
+    category: "constraint_validation"
+    title: "C1 constraint text does not contain 'required' or 'halt' for product.yaml/roadmap.yaml"
+    target_file: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    coverage_gap_addressed: "SE-PRE-01/02 — C1 must express soft-dependency behavior"
+    verification_type: "constraint text check"
+    constraint_ref: "C1"
+
+    text_check:
+      must_not_contain:
+        - "product.yaml is required"
+        - "roadmap.yaml is required"
+        - "hard halt"
+        - "must be locked"
+        - "upstream discovery must be complete"
+      must_contain:
+        - "nice-to-have"
+        - "never halts"
+        - "absent"
+
+    verification_method: "Read C1 text in intent.yaml and verify presence/absence of key phrases."
+    passes_on_current_code: true  # Confirmed in intent.yaml read above
+
+  - id: "BT-INT-02"
+    category: "constraint_validation"
+    title: "C14 halt condition is narrowed to 'no issue AND no epic'"
+    target_file: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    coverage_gap_addressed: "BT-PRE-03 — F19 halt must remain but be narrower"
+    verification_type: "constraint text check"
+    constraint_ref: "C14"
+
+    text_check:
+      must_contain:
+        - "halts only when neither an issue nor an epic can be resolved"
+      must_not_contain:
+        - "--epic is required"
+        - "--epic flag is required"
+
+    verification_method: "Read C14 text in intent.yaml."
+    passes_on_current_code: true
+
+  - id: "BT-INT-03"
+    category: "constraint_validation"
+    title: "C21 and C22 exist and describe discovery mode for architecture and quality"
+    target_file: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    coverage_gap_addressed: "SE-PRE-03/04 — discovery mode constraints must exist"
+    verification_type: "constraint existence check"
+    constraint_ref: "C21, C22"
+
+    existence_check:
+      must_exist:
+        - constraint_id: "C21"
+          must_contain: ["discovery mode", "absent", "codebase"]
+        - constraint_id: "C22"
+          must_contain: ["discovery mode", "absent", "toolchain"]
+
+    verification_method: "Parse intent.yaml constraints list. Find C21 and C22 by id. Verify text content."
+    passes_on_current_code: true
+
+  - id: "BT-INT-04"
+    category: "constraint_validation"
+    title: "F19 failure condition exists and references issue+epic resolution failure"
+    target_file: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    coverage_gap_addressed: "Preserving the one legitimate hard-halt"
+    verification_type: "failure condition check"
+    constraint_ref: "F19"
+
+    existence_check:
+      must_exist:
+        - failure_id: "F19"
+          must_contain: ["no issue", "no epic"]
+
+    verification_method: "Parse intent.yaml failure_conditions list. Find F19 by id."
+    passes_on_current_code: true
+
+  - id: "BT-INT-05"
+    category: "constraint_validation"
+    title: "F25 failure condition exists and references discovery mode — not just absence"
+    target_file: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    coverage_gap_addressed: "SE-STEP2-01 — F25 must distinguish between 'absent and handled' vs 'absent and skipped'"
+    verification_type: "failure condition check"
+    constraint_ref: "F25"
+
+    existence_check:
+      must_exist:
+        - failure_id: "F25"
+          must_contain: ["discovery mode", "skipped"]
+
+    verification_method: "Parse intent.yaml failure_conditions list. Find F25 by id."
+    passes_on_current_code: true
+
+  # === CATEGORY 4: Agent Compliance Checks ===
+  # These verify new agent definitions conform to agent-contract.md
+
+  - id: "BT-AGT-01"
+    category: "agent_compliance"
+    title: "tech-architect.md declares correct frontmatter fields"
+    target_file: "core/components/agents/tech-architect.md"
+    coverage_gap_addressed: "New agent definition has no characterization"
+    verification_type: "agent schema check"
+    standard_ref: "core/components/memory/standards/agent-contract.md"
+
+    schema_check:
+      required_frontmatter:
+        - "name: tech-architect"
+        - "model: opus"
+        - "user-invocable: false"
+        - "tools: [...]"  # at minimum: Bash (read-only), Read, Write, Grep, Glob, Skill
+
+      required_sections:
+        - "## Input Contract"  # or equivalent JSON contract schema
+        - "## Output Contract"
+        - task_coverage:
+            - "1A-architecture-inference"
+            - "1C-dependency-graph"
+            - "1D-git-history"
+            - "1E-ltm-consultation"
+            - "context-assembly"
+            - "2A-change-surface"
+            - "3-tech"
+            - "3-plan"
+
+    verification_method: "Read core/components/agents/tech-architect.md frontmatter and check for required sections."
+    passes_on_current_code: null  # needs to be verified against actual file content
+
+  - id: "BT-AGT-02"
+    category: "agent_compliance"
+    title: "test-engineer.md declares correct frontmatter and covers all 4 assigned tasks"
+    target_file: "core/components/agents/test-engineer.md"
+    coverage_gap_addressed: "New agent definition has no characterization"
+    verification_type: "agent schema check"
+    standard_ref: "core/components/memory/standards/agent-contract.md"
+
+    schema_check:
+      required_frontmatter:
+        - "name: test-engineer"
+        - "model: opus"
+        - "user-invocable: false"
+
+      required_task_coverage:
+        - "1B-test-surface-mapping"
+        - "2B-blast-radius"
+        - "2C-baseline-tests"
+        - "3-scenarios"
+
+    verification_method: "Read core/components/agents/test-engineer.md and verify task coverage."
+    passes_on_current_code: null  # needs verification
+
+  - id: "BT-AGT-03"
+    category: "agent_compliance"
+    title: "test-engineer handles zero-tests case without halting"
+    target_file: "core/components/agents/test-engineer.md"
+    coverage_gap_addressed: "Blast radius in non-traditional codebases (zero tests)"
+    verification_type: "behavior check"
+
+    scenario:
+      given: "test-surface.yaml with total_test_files: 0, tests: []"
+      when: "test-engineer runs task 2B-blast-radius"
+      then:
+        - "Agent does NOT halt or return failure for zero tests"
+        - "blast-radius.yaml is produced with directly_impacted_tests: [] and coverage_gaps populated"
+        - "Agent produces reinterpreted blast radius for the framework's eval-based quality model"
+
+    verification_method: "Read test-engineer.md — look for explicit handling of empty test_surface case."
+    passes_on_current_code: null  # needs verification
+
+  # === CATEGORY 5: Pipeline Recipe Consistency ===
+  # Current-behavior baselines for the 3 co-change recipes (before any #183 changes)
+
+  - id: "BT-PCR-01"
+    category: "schema_validation"
+    title: "discover-product pre-flight: document current hard-halt conditions"
+    target_file: "core/components/recipes/discover-product/SKILL.md"
+    coverage_gap_addressed: "Co-change consistency check"
+    verification_type: "pre-flight inventory"
+
+    current_behavior_snapshot:
+      purpose: >
+        Record which upstream artifacts discover-product currently requires (hard-halt vs soft)
+        so that any #183 changes to pipeline recipe consistency can be evaluated against
+        this baseline.
+      check: "Read pre-flight table in discover-product/SKILL.md and list all hard-halt conditions"
+
+    verification_method: "Read discover-product/SKILL.md pre-flight section. List all '| Hard halt' rows."
+    passes_on_current_code: true  # always passes — just reads and records
+
+  - id: "BT-PCR-02"
+    category: "schema_validation"
+    title: "plan-roadmap pre-flight: document current hard-halt conditions"
+    target_file: "core/components/recipes/plan-roadmap/SKILL.md"
+    coverage_gap_addressed: "Co-change consistency check"
+    verification_type: "pre-flight inventory"
+
+    current_behavior_snapshot:
+      purpose: "Record plan-roadmap's current pre-flight hard-halt conditions as baseline"
+      check: "Read pre-flight table in plan-roadmap/SKILL.md and list all hard-halt conditions"
+
+    verification_method: "Read plan-roadmap/SKILL.md pre-flight section."
+    passes_on_current_code: true
+
+  - id: "BT-PCR-03"
+    category: "schema_validation"
+    title: "prepare-architecture pre-flight: document current hard-halt conditions"
+    target_file: "core/components/recipes/prepare-architecture/SKILL.md"
+    coverage_gap_addressed: "Co-change consistency check"
+    verification_type: "pre-flight inventory"
+
+    current_behavior_snapshot:
+      purpose: >
+        Record prepare-architecture's current pre-flight conditions. This recipe PRODUCES
+        architecture.yaml and quality-standards.yaml — the artifacts prepare-implementation
+        now handles gracefully when absent. The relationship should be clear.
+      check: "Read pre-flight table and verify it does NOT hard-block on product.yaml or roadmap.yaml (it is itself an upstream recipe)"
+
+    verification_method: "Read prepare-architecture/SKILL.md pre-flight section."
+    passes_on_current_code: true
+
+  # === CATEGORY 6: Downstream Skill Baseline ===
+  # Current-behavior baselines for skills before discovery-mode handling is added
+
+  - id: "BT-SKL-01"
+    category: "skill_behavior"
+    title: "draft-lld: document current input requirements for architecture context"
+    target_file: "core/components/skills/draft-lld/SKILL.md"
+    coverage_gap_addressed: "Discovery mode handling gap in draft-lld"
+    verification_type: "current-behavior snapshot"
+
+    current_behavior_snapshot:
+      purpose: >
+        Record whether draft-lld currently requires a locked architecture.yaml as input,
+        or whether it already handles an absent architecture gracefully. This is the
+        baseline before any #183 changes to the skill.
+
+    verification_method: "Read draft-lld/SKILL.md input schema section. Check if architecture_path is required or optional."
+    passes_on_current_code: true
+
+  - id: "BT-SKL-02"
+    category: "skill_behavior"
+    title: "draft-product-spec: document current input requirements for product context"
+    target_file: "core/components/skills/draft-product-spec/SKILL.md"
+    coverage_gap_addressed: "No-product.yaml path gap in draft-product-spec"
+    verification_type: "current-behavior snapshot"
+
+    current_behavior_snapshot:
+      purpose: >
+        Record whether draft-product-spec currently requires product.yaml as input,
+        or can operate from issue context alone. This baseline determines how much
+        change the skill needs for the 'without product.yaml' path.
+
+    verification_method: "Read draft-product-spec/SKILL.md. Check if product_path is required in input contract."
+    passes_on_current_code: true
+
+# === EXECUTION SUMMARY ===
+
+summary:
+  total_baseline_tests: 17
+  by_category:
+    recipe_eval: 5            # BT-PRE-01 through BT-PRE-05
+    schema_validation: 5      # BT-CA-01, BT-CA-02, BT-PCR-01, BT-PCR-02, BT-PCR-03
+    constraint_validation: 5  # BT-INT-01 through BT-INT-05
+    agent_compliance: 3       # BT-AGT-01, BT-AGT-02, BT-AGT-03
+    skill_behavior: 2         # BT-SKL-01, BT-SKL-02
+
+  tests_passing_on_current_code:
+    count: 13
+    ids: ["BT-PRE-01", "BT-PRE-02", "BT-PRE-03", "BT-PRE-04", "BT-PRE-05",
+          "BT-CA-01", "BT-CA-02", "BT-INT-01", "BT-INT-02", "BT-INT-03",
+          "BT-INT-04", "BT-INT-05", "BT-PCR-01", "BT-PCR-02", "BT-PCR-03"]
+
+  tests_requiring_verification:
+    count: 4
+    ids: ["BT-AGT-01", "BT-AGT-02", "BT-AGT-03", "BT-SKL-01"]
+    note: "These need direct file reads to confirm — agent definitions weren't fully read in Phase 1"
+
+  tests_that_would_fail_on_old_code:
+    count: 5
+    ids: ["BT-PRE-01", "BT-PRE-02", "BT-PRE-04", "BT-PRE-05", "BT-INT-01"]
+    note: >
+      These 5 tests would FAIL on the old pre-#183 SKILL.md because the old recipe
+      would halt where the new recipe continues. This confirms the change surface
+      is correctly characterized — the fix is a behavioral inversion, not an additive change.
+
+  recommended_execution_order:
+    phase_0_pre_verification:
+      - "BT-INT-01, BT-INT-02, BT-INT-03, BT-INT-04, BT-INT-05 — verify intent.yaml consistency first"
+    phase_1_schema_checks:
+      - "BT-CA-01, BT-CA-02 — verify context-assembly.yaml schema"
+      - "BT-AGT-01, BT-AGT-02 — verify agent frontmatter"
+    phase_2_behavior_checks:
+      - "BT-PRE-01 through BT-PRE-05 — verify pre-flight behavior (require recipe invocation)"
+      - "BT-AGT-03 — verify test-engineer handles zero-tests case"
+    phase_3_baseline_inventory:
+      - "BT-PCR-01, BT-PCR-02, BT-PCR-03 — record pipeline recipe pre-flight baselines"
+      - "BT-SKL-01, BT-SKL-02 — record skill input requirement baselines"

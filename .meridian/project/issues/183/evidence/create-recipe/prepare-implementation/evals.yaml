@@ -1,0 +1,549 @@
+evals:
+  recipe: prepare-implementation
+  intent_hash: sha256:de5bb33e968d7144e5a2266530dceb919b18c5901086834785c4dd6a60449c59
+  compiled_at: 2026-03-31
+
+  # Step Evals (SE-*): enforced after the step that produces the artifact they verify.
+  # Each eval maps to one or more constraint IDs and/or failure condition IDs.
+
+  step_evals:
+
+    # --- Pre-flight ---
+
+    - id: SE-01
+      maps_to: [C14, F19]
+      step: pre-flight
+      description: Issue resolved or epic + roadmap resolved
+      check: |
+        Branch name contains issue number (feat/NN-...) OR
+        {stm_base}/{issue}/ directory exists OR
+        (--epic provided AND roadmap.yaml exists at {product_base}).
+        If none of these: hard halt with F19 message.
+
+    - id: SE-02
+      maps_to: [C15, F13]
+      step: step-1-epic-deps
+      description: Epic dependency enforcement only when roadmap + epic provided
+      check: |
+        When --epic provided AND roadmap.yaml exists:
+          all depends_on epics in roadmap.yaml have status "prepared" or "built".
+          If any dep is not met: halt with F13 message.
+        When issue-only (no epic or no roadmap): skip this check entirely.
+
+    # --- Phase: Context Resolution ---
+
+    - id: SE-03
+      maps_to: [C16, F14]
+      step: step-2-architecture-inference
+      description: architecture-inference.yaml + .md produced with complete codebase understanding
+      check: |
+        {stm_base}/{issue}/evidence/prepare-implementation/architecture-inference.yaml exists.
+        {stm_base}/{issue}/evidence/prepare-implementation/architecture-inference.md exists.
+        architecture-inference.yaml contains: module_structure, design_patterns (>=1 entry),
+        framework_conventions, logical_architecture, lld_patterns.
+        No field contains "see codebase" or equivalent (F15).
+
+    - id: SE-04
+      maps_to: [C32, F14]
+      step: step-3-test-surface
+      description: test-surface.yaml produced by test-engineer (not tech-architect)
+      check: |
+        {stm_base}/{issue}/evidence/prepare-implementation/test-surface.yaml exists.
+        test-surface.yaml contains summary block (total_test_files, frameworks, types).
+        Agent that produced it: test-engineer (task_id includes "1B-test-surface").
+
+    - id: SE-05
+      maps_to: [C16, C31, F14]
+      step: step-4-dependency-graph
+      description: dependency-graph.yaml + .md produced with node and edge data
+      check: |
+        Both {.../dependency-graph.yaml} and {.../dependency-graph.md} exist.
+        dependency-graph.yaml contains nodes[] and edges[] arrays (may be empty for greenfield).
+        dependency-graph.md contains at least one visual representation (mermaid or ASCII).
+
+    - id: SE-06
+      maps_to: [C29, C31, F14]
+      step: step-5-git-history
+      description: commit-history-analysis.yaml + .md produced from git log
+      check: |
+        Both {.../commit-history-analysis.yaml} and {.../commit-history-analysis.md} exist.
+        commit-history-analysis.yaml contains co_change_patterns[] (may be empty if no history).
+        commit-history-analysis.md contains narrative explanation of co-change patterns found.
+
+    - id: SE-07
+      maps_to: [C17, F16]
+      step: step-6-ltm-consultation
+      description: ltm-findings.yaml documents both findings AND gaps
+      check: |
+        {stm_base}/{issue}/evidence/prepare-implementation/ltm-findings.yaml exists.
+        ltm-findings.yaml contains both findings[] and gaps[] sections.
+        gaps[] is allowed to be empty only if LTM covers all relevant domains fully.
+        Must NOT be empty/missing — even a zero-gap result must document that LTM was consulted (F16).
+
+    - id: SE-08
+      maps_to: [C21, C22, C23, F25]
+      step: step-7-context-assembly
+      description: context-assembly.yaml documents resolution source for each upstream artifact
+      check: |
+        {stm_base}/{issue}/evidence/prepare-implementation/context-assembly.yaml exists.
+        For each upstream artifact (product, roadmap, architecture, quality):
+          context-assembly.yaml contains an entry with:
+            status: "locked" | "ltm" | "derived" | "collected" | "absent"
+            confidence: "authoritative" | "advisory" | "derived" | "collected"
+            source: path OR "codebase-scan" OR "user-interview" OR "absent"
+        When architecture.yaml was absent: status must be "derived" (not "absent") — recipe
+          must have entered discovery mode (C21). If status is "absent" with no derived
+          architecture context: fail with F25.
+        When quality-standards.yaml was absent: same discovery-mode requirement (C22).
+
+    # --- Checkpoint 0 ---
+
+    - id: SE-09
+      maps_to: [C10, C18, F12]
+      step: checkpoint-0
+      description: User approved context assembly before any analysis proceeds
+      check: |
+        User typed "Tether" (case-insensitive) at Checkpoint 0 before Step 8 executed.
+        Status file records "checkpoint-0" as "completed".
+        If Vanish: recipe halted before Step 8. If neither: recipe re-presented checkpoint.
+
+    # --- Phase: Blast Radius ---
+
+    - id: SE-10
+      maps_to: [C24, F20]
+      step: step-8-change-surface
+      description: change-surface.yaml produced with file-level classification before design begins
+      check: |
+        {stm_base}/{issue}/evidence/prepare-implementation/change-surface.yaml exists.
+        change-surface.yaml contains files[] with action (CREATE|MODIFY|DELETE) for each file.
+        Each entry has confidence and source attribution.
+        This step MUST have completed before Step 13 (tech artifacts) began.
+
+    - id: SE-11
+      maps_to: [C24, C25, C32, F20, F21]
+      step: step-9-blast-radius
+      description: blast-radius.yaml produced by test-engineer with complete coverage assessment
+      check: |
+        {stm_base}/{issue}/evidence/prepare-implementation/blast-radius.yaml exists.
+        blast-radius.yaml contains: directly_impacted[], transitively_impacted[],
+          coverage_gaps[], regression_surface[], summary{}.
+        summary.total_tests_impacted is an integer (0 is valid for greenfield).
+        Each coverage_gap entry has baseline_test_needed field set.
+        Agent that produced it: test-engineer (task_id includes "2B-blast-radius").
+
+    - id: SE-12
+      maps_to: [C25, F21, F24]
+      step: step-10-baseline-tests
+      description: baseline-tests.yaml covers every coverage gap with baseline_test_needed=true
+      check: |
+        {stm_base}/{issue}/evidence/prepare-implementation/baseline-tests.yaml exists.
+        For every entry in blast-radius.yaml/coverage_gaps where baseline_test_needed=true:
+          there is a corresponding BT-* entry in baseline-tests.yaml.
+        Each BT-* entry contains: coverage_gap_ref, target{file, area}, current_behavior,
+          test_spec{type, framework, setup, action, assert}, priority, reason.
+        assert field describes CURRENT behavior (not future behavior).
+        Greenfield exception: if test-surface is empty and all change-surface actions are CREATE,
+          baseline-tests.yaml may be empty.
+
+    # --- Checkpoint 1 ---
+
+    - id: SE-13
+      maps_to: [C10, C18, F12]
+      step: checkpoint-1
+      description: User approved blast radius before design artifacts generated
+      check: |
+        User typed "Tether" (case-insensitive) at Checkpoint 1.
+        Step 11 (draft-features) did NOT begin before this checkpoint completed.
+        If Orbit: recipe revised change surface and re-ran blast radius before re-presenting.
+
+    # --- Phase: DRAFT Stage 1 (Features) ---
+
+    - id: SE-14
+      maps_to: [C3, C11, F1]
+      step: step-11-draft-features
+      description: features.yaml contains no technology names, library names, or implementation details
+      check: |
+        {stm_base}/{issue}/features.yaml exists.
+        features.yaml does NOT contain any of: library names, SDK names, database product names,
+          framework names, hosting platforms, deployment patterns, runtime topology.
+        features.yaml contains: behaviors[], invariants[], scope_boundaries[], acceptance_criteria[].
+        Grepping for common tech names (React, PostgreSQL, AWS, Docker, etc.) finds no matches.
+
+    # --- Checkpoint 2 ---
+
+    - id: SE-15
+      maps_to: [C10, C18, F12]
+      step: checkpoint-2
+      description: User approved features.yaml before tech design began
+      check: |
+        User typed "Tether" (case-insensitive) at Checkpoint 2.
+        Step 13 (tech artifacts) did NOT begin before this checkpoint completed.
+
+    # --- Phase: DRAFT Stage 2 (Tech) ---
+
+    - id: SE-16
+      maps_to: [C4, F2]
+      step: step-13-tech-artifacts
+      description: tech.yaml aligns with established architecture context (locked or discovery-derived)
+      check: |
+        {stm_base}/{issue}/tech.yaml exists.
+        {stm_base}/{issue}/tech.md exists.
+        tech.yaml does NOT introduce technologies, frameworks, or patterns that contradict
+          the established architecture context in context-assembly.yaml.
+        If architecture was derived (discovery mode): tech.yaml must follow derived patterns.
+
+    - id: SE-17
+      maps_to: [C27, F23]
+      step: step-13-tech-artifacts
+      description: tech.yaml contains file-level change specifications with before/after detail
+      check: |
+        tech.yaml/file_changes[] contains entries for every file in change-surface.yaml.
+        For MODIFY files: each entry has changes[] with location, before, after, reason.
+          before/after must be actual code (not "see codebase" or "TBD").
+        For CREATE files: each entry has template field with content template.
+        For DELETE files: each entry has reason field.
+        No implicit references (F15).
+
+    # --- Checkpoint 3 ---
+
+    - id: SE-18
+      maps_to: [C10, C18, F12]
+      step: checkpoint-3
+      description: User approved tech.yaml + LLD before scenarios/plan generated
+      check: |
+        User typed "Tether" (case-insensitive) at Checkpoint 3.
+        Steps 15 and 16 did NOT begin before this checkpoint completed.
+
+    # --- Phase: DRAFT Stage 3 (Scenarios + Plan) ---
+
+    - id: SE-19
+      maps_to: [C7, C28, F6]
+      step: step-15-scenarios
+      description: scenarios.yaml contains three tiers with complete scenario structure
+      check: |
+        {stm_base}/{issue}/scenarios.yaml exists.
+        scenarios.yaml contains: baseline_scenarios[], new_scenarios[], regression_scenarios[].
+        Each scenario (across all tiers) contains: id, description, expected_behavior,
+          pass_criteria, automation (automated|hybrid).
+        Hybrid scenarios contain hybrid_element documenting what requires human judgment.
+        No scenario is missing any of these fields (F6).
+
+    - id: SE-20
+      maps_to: [C12, C28, F7]
+      step: step-15-scenarios
+      description: scenarios.yaml/feature_gates maps every feature to all three scenario tiers
+      check: |
+        scenarios.yaml contains feature_gates{} mapping.
+        For each feature in features.yaml, feature_gates has an entry with:
+          baseline: [list of BS-* IDs]
+          new: [list of NS-* IDs]
+          regression: [list of RS-* IDs]
+          total: integer (must equal len(baseline) + len(new) + len(regression))
+        Every scenario ID appears in at least one feature gate (no orphaned scenarios).
+        Every feature has at least one corresponding scenario (F7).
+        Greenfield exception: baseline and regression arrays may be empty.
+
+    - id: SE-21
+      maps_to: [C8, F7]
+      step: step-15-scenarios
+      description: Every product behavior in features.yaml is covered by at least one scenario
+      check: |
+        For each behavior[] entry in features.yaml:
+          At least one NS-* scenario has feature_ref or behavior_ref pointing to this behavior.
+        Coverage measured by traceability, not count.
+
+    - id: SE-22
+      maps_to: [C5, C26, F4, F22]
+      step: step-16-plan
+      description: plan.yaml contains task-level DAG with file-level change specs and depends_on
+      check: |
+        {stm_base}/{issue}/plan.yaml exists.
+        {stm_base}/{issue}/plan.md exists.
+        plan.yaml/task_dag[] contains tasks with: id, name, file_changes[], exit_gate, depends_on[].
+        Every task's file_changes[] is non-empty (F4).
+        Every task has an explicit depends_on[] (may be empty only for Phase 0 tasks) (F22).
+        file_changes[] entries contain path and action (CREATE|MODIFY|DELETE).
+
+    - id: SE-23
+      maps_to: [C6, F3, F10]
+      step: step-16-plan
+      description: plan.yaml has at least 2 feature slices, each delivering end-to-end capability
+      check: |
+        plan.yaml/task_dag contains at least 3 phase groups: Phase 0 (prerequisites/baseline tests)
+          plus at least 2 feature phases (F10).
+        Each feature phase (excluding Phase 0) delivers an end-to-end working capability —
+          must include both data/logic AND an observable user-facing path.
+        Phases covering only backend OR only frontend (without full-stack path) fail F3.
+
+    - id: SE-24
+      maps_to: [C13, F5]
+      step: step-16-plan
+      description: Every task in plan.yaml has an explicit exit_gate with observable outcomes
+      check: |
+        Every task entry in plan.yaml has a non-null exit_gate field.
+        exit_gate text describes observable outcomes: "test passes", "endpoint returns 200",
+          "file exists with content X" — NOT process steps like "developer reviews code" (F5).
+
+    - id: SE-25
+      maps_to: [C9, C12, F8]
+      step: step-16-plan
+      description: plan.yaml does not contain scenario content — compartmentalization intact
+      check: |
+        plan.yaml does NOT contain: scenario descriptions, expected_behavior text, pass_criteria text,
+          or any content from scenarios.yaml other than scenario IDs in scenario_gate.
+        scenario_gate fields (where present) contain only: ids[] (scenario IDs only) and count (integer).
+        Grepping plan.yaml for phrases like "user expects", "scenario description" returns no matches (F8).
+        plan.yaml/summary[] contains per-feature rows with: feature_ref, description,
+          scenario_count (integer only), cumulative_scenario_count.
+
+    # --- Checkpoint 4 ---
+
+    - id: SE-26
+      maps_to: [C10, C18, F12]
+      step: checkpoint-4
+      description: User approved scenarios + plan before validation and lock
+      check: |
+        User typed "Tether" (case-insensitive) at Checkpoint 4.
+        Step 18 (cross-validate) did NOT begin before this checkpoint completed.
+
+    # --- Phase: VALIDATE ---
+
+    - id: SE-27
+      maps_to: [C20, F17]
+      step: step-19-pre-lock-resolution
+      description: All open questions and high-severity risks resolved before lock
+      check: |
+        Recipe scanned all four artifacts (features, tech, scenarios, plan) for open_questions[].
+        Recipe scanned tech.yaml risks[] and risk_assessment[] for severity "high".
+        If any found: pre-lock-resolutions.yaml exists at {stm_base}/{issue}/evidence/prepare-implementation/pre-lock-resolutions.yaml.
+        pre-lock-resolutions.yaml contains an entry for each item with resolution text and RESOLVED marker.
+        If none found: pre-lock-resolutions.yaml may record "no open questions or high risks found."
+        Auto-lock did NOT execute while any unresolved items remained (F17).
+
+    # --- Phase: Auto-Lock ---
+
+    - id: SE-28
+      maps_to: [C11, F1, F2]
+      step: step-20-lock
+      description: Locked artifacts maintain audience separation
+      check: |
+        features.yaml: status LOCKED, contains no tech content (F1).
+        tech.yaml: status LOCKED, aligns with architecture context (F2).
+        scenarios.yaml: status LOCKED, no audience-violating content.
+        plan.yaml: status LOCKED, no scenario content beyond IDs in scenario_gate (F8).
+
+    # --- Phase: Evidence & Close ---
+
+    - id: SE-29
+      maps_to: [C30, F26]
+      step: step-21-evidence
+      description: All intermediate artifacts stored in STM on disk, none through conversation
+      check: |
+        All of these paths exist on disk:
+          {stm_base}/{issue}/evidence/prepare-implementation/architecture-inference.yaml
+          {stm_base}/{issue}/evidence/prepare-implementation/architecture-inference.md
+          {stm_base}/{issue}/evidence/prepare-implementation/test-surface.yaml
+          {stm_base}/{issue}/evidence/prepare-implementation/dependency-graph.yaml
+          {stm_base}/{issue}/evidence/prepare-implementation/dependency-graph.md
+          {stm_base}/{issue}/evidence/prepare-implementation/commit-history-analysis.yaml
+          {stm_base}/{issue}/evidence/prepare-implementation/commit-history-analysis.md
+          {stm_base}/{issue}/evidence/prepare-implementation/ltm-findings.yaml
+          {stm_base}/{issue}/evidence/prepare-implementation/context-assembly.yaml
+          {stm_base}/{issue}/evidence/prepare-implementation/change-surface.yaml
+          {stm_base}/{issue}/evidence/prepare-implementation/blast-radius.yaml
+          {stm_base}/{issue}/evidence/prepare-implementation/baseline-tests.yaml
+        No agent output was passed through conversation memory (F26).
+
+    - id: SE-30
+      maps_to: [C19, C30]
+      step: all
+      description: All output artifacts stored under issue STM path, never epic_base
+      check: |
+        Every file written by this recipe is under {stm_base}/{issue}/ or {stm_base}/{issue}/evidence/.
+        No path contains "epic_base" or uses a top-level product base path for issue work.
+        Even when --epic was provided, issue STM path is used for all artifacts.
+
+    - id: SE-31
+      maps_to: [C2]
+      step: all
+      description: Recipe ran as single invocation, no separate phase invocations
+      check: |
+        No --phase flag was used.
+        All phases (context resolution through lock) completed in a single recipe run,
+          interrupted only by user checkpoints.
+
+  # --- Scenario Evals (SCE-*): run in Scenario Validation phase ---
+
+  scenario_evals:
+
+    - id: SCE-01
+      maps_to: S1
+      persona: Product Owner
+      eval: |
+        Given locked features.yaml and locked scenarios.yaml:
+        1. Pick any behavior[] entry from features.yaml.
+        2. Search scenarios.yaml/new_scenarios for a scenario with feature_ref or behavior_ref
+           matching that behavior.
+        3. Check that scenario has pass_criteria field with explicit pass/fail condition.
+        PASS: Every behavior has at least one matching scenario with complete pass criteria.
+        FAIL: Any behavior has no matching scenario, OR any matching scenario lacks pass_criteria.
+        ALSO CHECK: scenarios.yaml/feature_gates maps each feature to scenario IDs covering
+          all three tiers. Back-links exist (feature_ref in scenario → feature in features.yaml).
+
+    - id: SCE-02
+      maps_to: S2
+      persona: Technical Architect
+      eval: |
+        Given locked features.yaml and context-assembly.yaml (locked artifact or discovery-derived):
+        1. Pick any tech.yaml/file_changes entry for a MODIFY file.
+        2. Read the corresponding architecture-inference.yaml design_patterns section.
+        3. Verify the change specification follows the identified patterns (not contradicts them).
+        PASS: tech.yaml changes are consistent with established architecture context.
+        FAIL: tech.yaml introduces patterns or technologies not in the established architecture,
+          OR contradicts a documented design pattern without justification.
+
+    - id: SCE-03
+      maps_to: S3
+      persona: Engineering Lead
+      eval: |
+        Given a single task from plan.yaml (pick any non-gate task):
+        1. Extract file_changes[], exit_gate, depends_on[] from that task.
+        2. Find the corresponding file-level spec in tech.yaml for each file in file_changes[].
+        3. Verify: the task can be assigned to an implementer using ONLY plan.yaml + tech.yaml.
+        PASS: file paths, change types, before/after specs, and exit_gate are all explicit.
+          Implementer does NOT need scenarios.yaml content, features.yaml content, or codebase access.
+        FAIL: Any task requires codebase scanning, LTM reading, or design decisions at build time (S8 linkage).
+
+    - id: SCE-04
+      maps_to: S4
+      persona: Quality Lead
+      eval: |
+        Given scenarios.yaml/feature_gates and plan.yaml/summary:
+        1. For Feature F1, read feature_gates.F1 (which contains scenario IDs, not content).
+        2. Read plan.yaml/summary for Feature F1 (which contains scenario_count integer, not IDs).
+        3. Verify: Quality Lead can build a validation plan using only scenario IDs from feature_gates
+           without ever reading scenario descriptions from scenarios.yaml — compartmentalization intact.
+        PASS: feature_gates contains IDs only. plan.yaml summary contains counts only.
+          QL can track which scenarios must pass per feature without seeing content.
+        FAIL: plan.yaml contains scenario descriptions, OR feature_gates exposes content
+          not needed for gating decisions.
+
+    - id: SCE-05
+      maps_to: S5
+      persona: Product Manager
+      eval: |
+        Given locked features.yaml:
+        1. Read the entire features.yaml.
+        2. Grep for: React, Vue, Angular, PostgreSQL, MySQL, Redis, AWS, GCP, Azure, Docker,
+           Kubernetes, TypeScript, Python, Node, Express, FastAPI, any specific library names.
+        PASS: Zero matches. PM can describe product to stakeholders purely in behavioral terms.
+        FAIL: Any technology name found in features.yaml — audience collision violation (F1).
+
+    - id: SCE-06
+      maps_to: S6
+      persona: Technical Architect
+      eval: |
+        Given plan.yaml/summary section:
+        1. Read the summary rows (feature_ref, description, scenario_count, cumulative_scenario_count).
+        2. Verify the final cumulative_scenario_count equals the total scenario count
+           in scenarios.yaml (baseline + new + regression).
+        3. Verify each row shows a meaningful delivery description (not "phase complete").
+        PASS: Cumulative count at final feature matches total scenarios. Implementation sequence
+          is readable and each slice is described as a complete working capability.
+        FAIL: Counts don't add up, OR description is vague/incomplete.
+
+    - id: SCE-07
+      maps_to: S7
+      persona: Engineering Lead
+      eval: |
+        Given context-assembly.yaml and blast-radius.yaml:
+        1. Check context-assembly.yaml: every upstream artifact has a documented source
+           and confidence level. Architecture context present (either locked or derived).
+        2. Check blast-radius.yaml: summary.coverage_gaps matches the number of entries
+           in coverage_gaps[] where baseline_test_needed=true.
+        3. Check that every coverage gap has a corresponding BT-* in baseline-tests.yaml.
+        PASS: All four context sources documented. Blast radius fully characterized.
+          Zero uncharacterized code paths in the change surface.
+        FAIL: Context-assembly missing entries, OR coverage gaps exist without baseline tests.
+
+    - id: SCE-08
+      maps_to: S8
+      persona: Implementation Agent
+      eval: |
+        Given all locked artifacts (features.yaml, tech.yaml, scenarios.yaml, plan.yaml):
+        1. Pick any task from plan.yaml/task_dag (non-gate task).
+        2. Attempt to answer: "What exact file do I change? What exact code do I write/replace?
+           What do I assert is true when I'm done?"
+        3. Answer must come ONLY from plan.yaml + tech.yaml — not from codebase or scenarios.
+        PASS: All three questions answerable from artifacts alone. No codebase access needed.
+        FAIL: Any question requires reading source code, accessing LTM, or making design decisions.
+
+    - id: SCE-09
+      maps_to: S9
+      persona: Technical Architect
+      eval: |
+        Given tech.yaml (potentially containing open_questions[]) and pre-lock-resolutions.yaml:
+        1. Check: were any open_questions[] found in the four design artifacts?
+        2. If yes: verify pre-lock-resolutions.yaml has RESOLVED entry for each.
+        3. If no: verify recipe documented "no open questions found" in pre-lock-resolutions.yaml.
+        PASS: Complete audit trail — every item surfaced, every item resolved before lock.
+        FAIL: Any high-severity risk or open question found in locked artifacts without a
+          corresponding RESOLVED entry in pre-lock-resolutions.yaml (F17).
+
+    - id: SCE-10
+      maps_to: S10
+      persona: Engineer
+      eval: |
+        Given blast-radius.yaml and baseline-tests.yaml:
+        1. Count entries in blast-radius.yaml/coverage_gaps where baseline_test_needed=true. Call this N.
+        2. Count BT-* entries in baseline-tests.yaml. Must equal N.
+        3. For one BT-* entry, read test_spec.assert — verify it describes CURRENT behavior.
+        4. Check that co_change_patterns from commit-history-analysis informed change-surface entries.
+        PASS: N == count of BT-* entries. Assert describes current behavior. Co-change patterns
+          are referenced in at least one change-surface entry source field.
+        FAIL: N != BT count (F24), OR assert describes future behavior, OR co-change patterns
+          were not considered in change surface identification (F14).
+
+    - id: SCE-11
+      maps_to: S11
+      persona: Implementation Agent
+      eval: |
+        Given plan.yaml/task_dag and tech.yaml/file_changes:
+        1. Pick a leaf task (has depends_on but nothing depends on it).
+        2. Trace its dependency chain back to Phase 0.
+        3. Verify: executing tasks in depends_on order produces valid incremental builds
+           (each exit_gate is achievable with only prior tasks complete).
+        PASS: Dependency chain is complete and acyclic. Each task's exit_gate is testable
+          given only the work done by its depends_on chain.
+        FAIL: Any task has circular depends_on, OR a task's exit_gate requires work from a
+          task not in its depends_on chain (F22).
+
+    - id: SCE-12
+      maps_to: S12
+      persona: Quality Lead
+      eval: |
+        Given scenarios.yaml (three tiers) and feature_gates:
+        1. Find a baseline scenario (BS-*). Verify source points to a BT-* in baseline-tests.yaml.
+           This scenario should PASS on the unmodified codebase.
+        2. Find a new scenario (NS-*). Its expected_behavior should describe the target state
+           (would FAIL on unmodified codebase — that is expected).
+        3. Find a regression scenario (RS-*). Its source should point to blast-radius/regression_surface.
+           This scenario should still PASS after the change.
+        PASS: All three tier types present and correctly sourced. Tiers serve distinct purposes.
+        FAIL: Any tier is missing (except greenfield where BS and RS may be absent),
+          OR baseline scenario describes future behavior (F6 variant), OR regression scenario
+          not sourced from blast-radius.
+
+    - id: SCE-13
+      maps_to: S13
+      persona: Technical Architect
+      eval: |
+        Given architecture-inference.md and tech.md:
+        1. architecture-inference.md must contain at least one diagram (mermaid or ASCII)
+           showing logical architecture or module relationships.
+        2. tech.md must contain at least one diagram showing component interactions or data flow.
+        3. Both files must have content beyond YAML field repetitions — narrative understanding.
+        PASS: Both MD files contain diagrams and narrative explanations that would be lost
+          if only the YAML files existed.
+        FAIL: MD files are empty, contain only YAML repetitions, or contain no visual elements.
+          The MD files add zero value beyond the YAML — this is a quality failure.

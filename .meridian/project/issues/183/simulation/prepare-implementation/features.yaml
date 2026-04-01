@@ -1,0 +1,266 @@
+status: "DRAFT"
+issue: 183
+title: "Soft Input Resolution for Implementation Preparation"
+
+identity:
+  what: >
+    A resilient implementation preparation workflow that proceeds regardless of
+    which upstream artifacts exist. When locked product vision or roadmap artifacts
+    are present, they serve as authoritative inputs. When absent, the workflow
+    derives equivalent context from the codebase, organizational memory, and
+    targeted user interviews — never halting the practitioner. Architecture and
+    quality understanding are always established, either from locked artifacts or
+    through discovery mode. The result is the same set of implementation-ready
+    design artifacts regardless of entry path.
+  for_whom: >
+    Recipe maintainers who define the preparation workflow, practitioners who
+    invoke it on issues or epics, and downstream agents who consume the design
+    artifacts for implementation and validation.
+
+invariants:
+  - id: INV-1
+    rule: >
+      The workflow must never halt due to a missing product vision or roadmap
+      artifact. Absence of these artifacts degrades authority metadata but does
+      not block progression.
+  - id: INV-2
+    rule: >
+      Every piece of context used in artifact generation must have a documented
+      source and authority level. No context may be silently assumed — all
+      inferred context must be explicitly flagged as derived.
+  - id: INV-3
+    rule: >
+      The output artifact set is identical regardless of entry path (issue-only,
+      epic-with-roadmap, or mixed). The artifacts produced when upstream inputs
+      are absent must have the same structure and completeness as when they are
+      present — only the authority metadata differs.
+  - id: INV-4
+    rule: >
+      Architecture and quality understanding must always be established before
+      design artifacts are generated. Discovery mode is not a shortcut — it is
+      an alternate path to equivalent understanding.
+  - id: INV-5
+    rule: >
+      Blast radius must be fully characterized before any design artifact
+      generation begins. No design artifact may be produced while code paths
+      in the change surface remain uncharacterized.
+
+scope:
+  in_scope:
+    - "Entry resolution accepting either issue or epic as the scoping unit"
+    - "Soft dependency behavior for product vision and roadmap artifacts"
+    - "Discovery mode for architecture and quality contexts when locked artifacts are absent"
+    - "Context resolution hierarchy with documented authority levels"
+    - "Test-driven blast radius analysis including non-traditional codebases with zero test files"
+    - "Baseline test specification for every coverage gap in the change surface"
+    - "Three-tier verification scenario structure (baseline, new, regression)"
+    - "Task DAG with file-level change specifications and per-task exit gates"
+    - "Context assembly intermediate artifact capturing all upstream state"
+  out_of_scope:
+    - "Changes to upstream recipes that produce product vision or roadmap artifacts"
+    - "Runtime execution engine or CI pipeline integration"
+    - "Automatic creation of missing upstream artifacts on behalf of the user"
+    - "Multi-issue or multi-epic batch processing in a single invocation"
+    - "Modification of existing locked artifacts from prior issues or epics"
+
+features:
+  - id: F1
+    name: "Flexible Entry Resolution"
+    description: >
+      The workflow accepts either an issue identifier or an epic identifier as
+      its scoping unit. When an epic is provided alongside a locked roadmap,
+      epic dependency enforcement applies. When only an issue is provided or
+      no roadmap exists, the issue alone scopes the work. The workflow halts
+      only when neither an issue nor an epic can be resolved.
+    behaviors:
+      - id: B1.1
+        description: >
+          When invoked with an issue identifier and no epic flag, the workflow
+          resolves the issue from the current branch name or working directory
+          and proceeds without requiring a roadmap or epic context.
+      - id: B1.2
+        description: >
+          When invoked with an epic flag and a locked roadmap exists, the
+          workflow validates the epic identifier against the roadmap and
+          enforces all epic dependencies (depends_on entries must be prepared
+          or built) before proceeding.
+      - id: B1.3
+        description: >
+          When invoked with an epic flag but no locked roadmap exists, the
+          workflow treats the epic as an organizational label only — no
+          dependency enforcement applies — and proceeds using issue context.
+      - id: B1.4
+        description: >
+          When neither an issue nor an epic can be resolved from the invocation
+          context, the workflow halts with a structured failure identifying
+          that no scoping unit is available.
+
+  - id: F2
+    name: "Context Discovery Mode"
+    description: >
+      When locked upstream artifacts are absent, the workflow derives equivalent
+      context through a resolution hierarchy: locked artifact (authoritative),
+      organizational memory (advisory), codebase analysis (derived), targeted
+      user interview (collected). Each source is documented with its authority
+      level in a context assembly report.
+    behaviors:
+      - id: B2.1
+        description: >
+          When product vision or roadmap artifacts are absent, the workflow
+          records their status as absent in the context assembly, sets their
+          authority to none, and continues without entering discovery mode for
+          those artifacts. Product-level decisions are inferred from the issue
+          description and codebase analysis.
+      - id: B2.2
+        description: >
+          When the architecture artifact is absent, the workflow enters
+          discovery mode: it infers architecture understanding from codebase
+          analysis (module boundaries, design patterns, framework conventions,
+          logical architecture) and organizational memory, then identifies
+          remaining gaps for targeted user interview. The derived architecture
+          context is recorded with source, confidence level, and authority
+          in the context assembly.
+      - id: B2.3
+        description: >
+          When the quality standards artifact is absent, the workflow enters
+          discovery mode: it derives quality context from toolchain detection
+          (test configuration, linting, CI files, coverage configuration) and
+          organizational memory, then identifies remaining gaps for targeted
+          user interview. The derived quality context is recorded with source,
+          confidence level, and authority in the context assembly.
+      - id: B2.4
+        description: >
+          The context assembly report documents every upstream artifact with
+          its status (locked, derived, absent), source, confidence level, and
+          authority. It also documents organizational memory findings and gaps,
+          and lists open items requiring user input at the first checkpoint.
+
+  - id: F3
+    name: "Test-Driven Blast Radius Analysis"
+    description: >
+      Before any design artifact is generated, the workflow fully characterizes
+      the change surface through test impact analysis. For codebases with
+      conventional test suites, this means identifying directly and transitively
+      impacted tests. For codebases without conventional tests, the blast radius
+      is reinterpreted in terms of the codebase's actual quality mechanisms
+      (recipe evaluations, agent compliance checks, constraint coverage).
+    behaviors:
+      - id: B3.1
+        description: >
+          The change surface is identified by combining codebase analysis
+          (dependency graph, module boundaries), git commit history (co-change
+          patterns, recent activity), and the issue's declared scope. Every
+          file in the change surface is classified by change type and impact
+          category.
+      - id: B3.2
+        description: >
+          When conventional test files exist, the workflow maps each file in
+          the change surface to its covering tests (direct and transitive) and
+          computes which tests would be affected by the proposed changes.
+      - id: B3.3
+        description: >
+          When no conventional test files exist, the workflow reinterprets
+          blast radius in terms of the codebase's actual quality mechanisms —
+          identifying which behavioral constraints, evaluation criteria, and
+          compliance checks govern the files in the change surface.
+      - id: B3.4
+        description: >
+          The blast radius report categorizes affected items by severity
+          (critical, high, medium, low) and identifies every coverage gap —
+          code paths in the change surface that have no existing quality
+          mechanism characterizing their current behavior.
+
+  - id: F4
+    name: "Baseline Test Specification for Coverage Gaps"
+    description: >
+      Every coverage gap identified in the blast radius analysis receives a
+      baseline test specification. A baseline test targets the current behavior
+      of the code (not the future behavior) and must pass on the unmodified
+      codebase. Design artifact generation proceeds only after every code path
+      in the change surface is characterized.
+    behaviors:
+      - id: B4.1
+        description: >
+          For every coverage gap in the blast radius report, the workflow
+          produces a baseline test specification that describes the current
+          expected behavior, defines pass/fail criteria against the unmodified
+          codebase, and classifies the test as automated or hybrid.
+      - id: B4.2
+        description: >
+          For codebases without conventional test infrastructure, baseline
+          specifications describe evaluation criteria appropriate to the
+          codebase's quality model (e.g., constraint satisfaction checks,
+          behavioral compliance evaluations) rather than conventional unit
+          or integration tests.
+      - id: B4.3
+        description: >
+          The workflow blocks design artifact generation until the blast
+          radius is fully characterized — meaning every code path in the
+          change surface has either an existing quality mechanism or a new
+          baseline specification covering it. No uncharacterized paths may
+          remain.
+
+  - id: F5
+    name: "Enhanced Design Output"
+    description: >
+      The design artifacts produced by the workflow include a task-level
+      directed acyclic graph with explicit dependencies and file-level change
+      specifications, and a three-tier verification scenario structure. All
+      artifacts contain sufficient detail for mechanical implementation without
+      requiring additional codebase scanning or design decisions at build time.
+    behaviors:
+      - id: B5.1
+        description: >
+          The task plan contains a directed acyclic graph where each task
+          specifies explicit depends_on references to predecessor tasks,
+          per-task file lists with change type (create, modify, delete),
+          references to file-level change specifications, and an exit gate
+          defining observable outcomes required before the next task begins.
+      - id: B5.2
+        description: >
+          The technical design contains file-level change specifications:
+          for files being modified, exact location and before/after content;
+          for files being created, content templates; for files being deleted,
+          justification. Specifications must be detailed enough for mechanical
+          implementation.
+      - id: B5.3
+        description: >
+          Verification scenarios are organized in three tiers: baseline
+          scenarios (characterizing current behavior from coverage gaps), new
+          scenarios (defining target behavior from product features), and
+          regression scenarios (ensuring behavior outside the change surface
+          is preserved). Feature gates map each feature to its required
+          scenarios across all three tiers.
+      - id: B5.4
+        description: >
+          Verification scenarios are compartmentalized from the implementer.
+          The task plan references scenario identifiers and counts only — never
+          scenario descriptions or content. The scenario artifact serves
+          validators exclusively. This separation prevents implementation
+          optimization toward specific test cases.
+
+open_questions: []
+
+risks:
+  - id: R1
+    description: >
+      Discovery mode for architecture and quality contexts relies on codebase
+      analysis and organizational memory, which may produce lower-confidence
+      understanding than locked artifacts. Downstream design artifacts inherit
+      this reduced confidence.
+    severity: medium
+    mitigation: >
+      Authority metadata propagates through all artifacts. Checkpoints surface
+      confidence levels to the user. Targeted interviews fill critical gaps
+      before design proceeds.
+  - id: R2
+    description: >
+      The blast radius reinterpretation for non-traditional codebases (zero
+      test files) is a novel pattern. The mapping from conventional test impact
+      to constraint/evaluation impact may miss categories of risk that
+      conventional tests would catch.
+    severity: medium
+    mitigation: >
+      The checkpoint after blast radius analysis requires explicit user approval.
+      The user validates that the reinterpreted blast radius adequately
+      characterizes risk before design proceeds.
