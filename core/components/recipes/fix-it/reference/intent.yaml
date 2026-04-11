@@ -1,0 +1,113 @@
+intent: >
+  Given an existing open issue describing a defect, perform thorough root cause
+  analysis tracing symptoms to the specific code and logic that is wrong, design
+  a fix with alternatives considered and risk assessment, present RCA findings
+  and fix design at a single human checkpoint for approval, then upon approval
+  implement the fix and ship it (commit, PR, merge) fully autonomously. The end
+  state is: fix merged to main, feature branch deleted, issue traceable in
+  commit and PR history.
+
+constraints:
+  - id: C1
+    rule: >
+      Must have an existing open issue. If no issue is resolvable from the
+      branch name or arguments, halt immediately.
+  - id: C2
+    rule: >
+      Must not run on main/master/default branch for implementation. A feature
+      branch is created if needed using the convention fix/{issue}-{slug}.
+  - id: C3
+    rule: >
+      RCA must trace from symptom to specific root cause — the file, the logic,
+      and why it is wrong. Restating the issue title or problem description is
+      not RCA.
+  - id: C4
+    rule: >
+      Fix design must include at least one alternative considered with the
+      reason it was rejected.
+  - id: C5
+    rule: >
+      Fix design must include a risk assessment with severity levels for each
+      identified risk.
+  - id: C6
+    rule: >
+      There is exactly one human checkpoint — after RCA and fix design are
+      complete. This checkpoint is never skippable. It is always presented.
+  - id: C7
+    rule: >
+      After the checkpoint is approved via Tether, all remaining steps
+      (implementation and shipping) execute without any further human approval.
+  - id: C8
+    rule: >
+      The implementation agent reads design artifacts from STM paths. It MUST
+      NOT receive or read the checkpoint brief content.
+  - id: C9
+    rule: >
+      The shipping phase delegates to the ship sub-recipe with
+      approval_override set to auto-proceed, suppressing all ship's internal
+      checkpoints.
+  - id: C10
+    rule: >
+      All domain work is delegated to agents. The recipe orchestrator never
+      executes direct git, gh, or codebase analysis commands.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      The recipe proceeds to implementation without the human approving the
+      checkpoint via Tether.
+  - id: F2
+    condition: >
+      The RCA output contains no root cause identification, or the root cause
+      is a restatement of the issue title or problem description.
+  - id: F3
+    condition: >
+      The fix design contains no alternatives_considered entries.
+  - id: F4
+    condition: >
+      Shipping completes partially — commits exist but no PR was created, or
+      a PR exists but was not merged — leaving the branch in an intermediate
+      state.
+  - id: F5
+    condition: >
+      The issue does not exist on GitHub or is not in an open state when the
+      recipe starts.
+  - id: F6
+    condition: >
+      The implementation creates changes in files not listed in the design's
+      affected_files map without documented justification in the evidence.
+  - id: F7
+    condition: >
+      The code-builder agent receives checkpoint brief content in its input
+      contract, violating Structure A context isolation.
+
+scenarios:
+  - id: S1
+    persona: Developer
+    given: >
+      A developer runs meridian:fix-it against an open bug issue. The recipe
+      completes all phases: RCA, design, checkpoint approval, implementation,
+      and shipping.
+    then: >
+      The fix is merged to main, the PR links to the originating issue, the
+      feature branch is deleted, and the evidence artifact contains the full
+      RCA trace, design rationale, implementation record, and merge SHA.
+  - id: S2
+    persona: Tech Lead
+    given: >
+      A tech lead reviews the checkpoint brief during the single approval
+      gate.
+    then: >
+      The brief shows: root cause traced to specific code (not just symptoms),
+      blast radius of affected files, proposed fix strategy, at least one
+      alternative considered with rejection reason, risk table with severity
+      levels, and confidence assessment. Enough information to make an informed
+      Tether or Vanish decision.
+  - id: S3
+    persona: QA Engineer
+    given: >
+      A QA engineer examines the PR and evidence after the fix is shipped.
+    then: >
+      The PR body and evidence artifact allow tracing: what was changed, why
+      (root cause), what the blast radius was, and that the design was
+      approved before implementation. The fix is auditable end-to-end.
