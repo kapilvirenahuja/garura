@@ -9,8 +9,8 @@
     "generate-brief": { "status": "completed", "completed_at": "2026-04-11T15:20:00Z" },
     "approval-gate": { "status": "completed", "completed_at": "2026-04-11T15:30:00Z", "result": "tether" },
     "implement-fix": { "status": "completed", "completed_at": "2026-04-11T16:00:00Z" },
-    "ship": { "status": "pending" },
-    "scenario-evals": { "status": "pending" },
-    "evidence-report": { "status": "pending" }
+    "ship": { "status": "completed", "completed_at": "2026-04-11T16:20:00Z" },
+    "scenario-evals": { "status": "completed", "completed_at": "2026-04-11T16:25:00Z" },
+    "evidence-report": { "status": "completed", "completed_at": "2026-04-11T16:25:00Z" }
   }
 }

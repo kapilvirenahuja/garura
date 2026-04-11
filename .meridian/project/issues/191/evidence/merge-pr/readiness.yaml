@@ -1,0 +1,8 @@
+pr_number: 194
+state: OPEN
+mergeable: MERGEABLE
+head_branch: fix/191-prepare-impl-stm-setup
+base_branch: main
+working_tree_clean: true
+ready: true
+checked_at: "2026-04-11"
