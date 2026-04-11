@@ -141,6 +141,10 @@ TaskCreate: "Verify Y" (agent: quality-validator) → blockedBy: [implement Y]
 - Agents and skills MUST NEVER abandon a task — always complete or escalate
 - If blocked, create a new task describing the blocker and link with `addBlockedBy`
 
+## Recipe Pipeline Rules
+
+When modifying skills or recipes, always go through the `intent.yaml` → rebake workflow. Never edit skill files directly.
+
 ## Reference
 
 - `core/config.yaml` — Paths and settings
