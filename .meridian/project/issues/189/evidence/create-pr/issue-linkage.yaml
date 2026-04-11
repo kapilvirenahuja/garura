@@ -1,0 +1,11 @@
+issue:
+  number: 189
+  title: "feat: add meridian:report-issue recipe for structured defect reporting"
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/189"
+  state: "open"
+  labels:
+    - "enhancement"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "feature"

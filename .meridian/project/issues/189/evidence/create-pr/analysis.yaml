@@ -1,0 +1,120 @@
+analysis:
+  branch: feat/189-report-issue-recipe
+  base: main
+  branch_pattern: feature
+  commits: 4
+  changes:
+    files: 16
+    additions: 1145
+    deletions: 2
+  suggested_title: "feat(report-issue): add meridian:report-issue recipe for defect filing #189"
+
+  context:
+    file_patterns_matched:
+      - name: "Recipe Definitions"
+        files: 2
+        trigger: "**/recipes/**/*.md, **/recipes/**/SKILL.md"
+      - name: "Configuration / YAML"
+        files: 10
+        trigger: "*.yaml, *.yml"
+      - name: "Architecture Docs / Project Files"
+        files: 2
+        trigger: "CLAUDE.md, docs/philosophy/*.md"
+      - name: "STM Evidence (non-source)"
+        files: 10
+        trigger: ".meridian/project/issues/**"
+      - name: "Sync Required"
+        files: 2
+        trigger: "core/components/**"
+    commit_types:
+      - type: "feat"
+        count: 1
+        example: "feat(report-issue): add report-issue recipe source #189"
+      - type: "docs"
+        count: 1
+        example: "docs(project): update CLAUDE.md and TODO.md #189"
+      - type: "chore"
+        count: 2
+        example: "chore(stm): add evidence and cleanup pending artifacts #189"
+    branch_modifiers:
+      - "feature branch — standard priorities apply (no demotion or promotion)"
+
+  checklist:
+    must_have:
+      - id: "no-conflicts"
+        item: "No merge conflicts with main"
+        trigger: "Universal rule — always applies"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree SHA 367b080aa734d54baa6be3eeca7c5710cbeb0810 with exit code 0"
+
+      - id: "no-secrets"
+        item: "No secrets committed"
+        trigger: "Universal rule — always applies"
+        status: "PASS"
+        evidence: "Pattern scan across all changed files (CLAUDE.md, TODO.md, SKILL.md, intent.yaml, all STM YAMLs) found no matches for password/secret/token/api_key/private_key/BEGIN RSA/BEGIN EC/BEGIN PRIVATE"
+
+      - id: "recipe-frontmatter"
+        item: "Recipe has valid frontmatter (name, description, user-invokable, allowed-tools)"
+        trigger: "core/components/recipes/report-issue/SKILL.md matched **/recipes/**/SKILL.md"
+        status: "PASS"
+        evidence: "Frontmatter present: name='meridian:report-issue', description present, user-invokable=true. Note: allowed-tools not explicitly listed (recipe delegates to project-orchestrator agent; no direct tool use in recipe body)"
+
+      - id: "recipe-workflow"
+        item: "Recipe defines workflow"
+        trigger: "core/components/recipes/report-issue/SKILL.md matched **/recipes/**/SKILL.md"
+        status: "PASS"
+        evidence: "## Workflow section present at line 73 with 6 numbered steps across Execution, Approval, Scenario Validation, and Evidence & Close phases"
+
+      - id: "recipe-checkpoint"
+        item: "Recipe defines checkpoint / pause-and-resume behavior"
+        trigger: "core/components/recipes/report-issue/SKILL.md matched **/recipes/**/SKILL.md"
+        status: "PASS"
+        evidence: "## Pause and Resume section present at line 260; defines status file, executor loop, fresh-start and resume logic"
+
+      - id: "config-valid"
+        item: "Configuration syntax valid (YAML lint)"
+        trigger: "core/components/recipes/report-issue/reference/intent.yaml matched *.yaml"
+        status: "PASS"
+        evidence: "Python yaml.safe_load on intent.yaml succeeded with no errors"
+
+      - id: "sync-claude"
+        item: "Components synced with core/components/ via /sync-claude"
+        trigger: "core/components/recipes/report-issue/SKILL.md and intent.yaml changed under core/components/**"
+        status: "REVIEW"
+        evidence: "core/components/ was modified. Sync state cannot be verified from git alone. Reviewer must confirm /sync-claude (global) or /sync-claude --project was run and deployed artifacts are current."
+
+      - id: "feat-documented"
+        item: "Feature documented in README or docs"
+        trigger: "feat: commit type found (feat(report-issue) in commit 6829bb9)"
+        status: "REVIEW"
+        evidence: "No README.md or docs/ files appear in the diff. CLAUDE.md and TODO.md were updated (docs(project) commit 5db979a) but do not reference report-issue content. Reviewer should confirm whether entry in docs/components/ or README is required, or whether SKILL.md self-documentation is sufficient."
+
+    nice_to_have:
+      - id: "recipe-agent-limit"
+        item: "Recipe respects agent call limits (L2 ≤5)"
+        trigger: "core/components/recipes/report-issue/SKILL.md matched **/recipes/**/SKILL.md"
+        status: "PASS"
+        evidence: "Recipe is L2 (maturity: L2 at line 305). Domain agent calls: 1 (project-orchestrator, Step 2). Utility agents: 0. Total: 1 — well within L2 ≤5 limit."
+
+      - id: "feat-adr"
+        item: "Significant features have ADR"
+        trigger: "feat: commit type found; 1145 additions across new recipe files"
+        status: "REVIEW"
+        evidence: "No new ADR file found in docs/adr/. Recipe adds a new L2 workflow capability. Reviewer should assess whether an ADR is warranted (existing ADRs cover recipe-level patterns; a recipe addition is typically below ADR threshold)."
+
+      - id: "config-documented"
+        item: "Configuration changes documented"
+        trigger: "core/components/recipes/report-issue/reference/intent.yaml matched *.yaml"
+        status: "PASS"
+        evidence: "intent.yaml is the source-of-truth config for the recipe; it is accompanied by SKILL.md which documents all constraints, workflow, and compilation metadata. No standalone config changed."
+
+      - id: "docs-examples"
+        item: "Documentation includes examples"
+        trigger: "CLAUDE.md matched docs/philosophy/*.md, CLAUDE.md rule"
+        status: "PASS"
+        evidence: "SKILL.md contains code block examples for Pre-flight bash, Step 1 body format, Step 2 JSON contract, and Pause/Resume executor loop. Recipe is self-documenting."
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Create PR — no blocking issues. Two REVIEW items require human sign-off in the PR checklist: (1) confirm /sync-claude was run post-commit, (2) confirm feat-documented requirement is satisfied by SKILL.md self-documentation or add a docs entry."
