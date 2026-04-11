@@ -1,0 +1,58 @@
+analysis:
+  branch: fix/191-prepare-impl-stm-setup
+  base: main
+  base_confidence: high
+  suggested_title: "fix: resolve prepare-implementation → implement-epic artifact path disconnect #191"
+  commits:
+    - hash: ed68408
+      message: "fix(prepare-implementation): add Phase 0 setup and fix artifact lock path #191"
+    - hash: 3e92960
+      message: "fix(implement-epic): source design artifacts from issue STM instead of product epics #191"
+    - hash: 8d0e1a9
+      message: "chore(stm): record fix-it RCA, design, and implementation evidence #191"
+    - hash: 41ce750
+      message: "chore(stm): update ship status for #191"
+  context:
+    file_patterns_matched:
+      - core/components/recipes/prepare-implementation/
+      - core/components/recipes/implement-epic/
+    commit_types:
+      - fix
+      - chore
+  checklist:
+    must_have:
+      - item: "Both SKILL.md files updated"
+        trigger: "Core recipe changes required"
+        status: PASS
+        evidence: "prepare-implementation SKILL.md adds Phase 0 (Steps 0a-0c), fix lock path; implement-epic SKILL.md updates artifact_base"
+      - item: "Both intent.yaml files updated"
+        trigger: "Constraints/failure conditions changed"
+        status: PASS
+        evidence: "prepare-implementation intent.yaml adds C33-C36, F27-F29, S14; implement-epic adds C24"
+      - item: "Intent hashes recomputed in Compilation Metadata"
+        trigger: "intent.yaml files modified"
+        status: PASS
+        evidence: "Confirmed in commit ed68408 and 3e92960"
+      - item: "Zero references to roadmap/epics in implement-epic"
+        trigger: "Path migration from product epics to issue STM"
+        status: PASS
+        evidence: "artifact_base updated to {stm_base}/{issue}/context/design"
+      - item: "Zero references to flat lock path in prepare-implementation"
+        trigger: "Lock path fix in Step 20"
+        status: PASS
+        evidence: "Path corrected to ${stm_base}/${issue}/context/design/${artifact}"
+      - item: "Architecture/quality paths preserved at product_base"
+        trigger: "Product-level artifacts must not be scoped to issue"
+        status: PASS
+        evidence: "architecture/ and quality-standards/ remain at {product_base}/architecture/"
+      - item: "Closes issue #191"
+        trigger: "Critical defect fix"
+        status: PASS
+        evidence: "Issue #191 referenced in all fix commits"
+    nice_to_have:
+      - item: "RCA trace with file/line evidence"
+        trigger: "Critical bug — root cause documentation valuable"
+        status: PASS
+        evidence: "chore(stm) commit 8d0e1a9 records RCA, design, and implementation evidence"
+  blocking_issues: []
+  ready: true
