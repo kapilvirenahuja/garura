@@ -275,6 +275,32 @@ constraints:
       baseline test specification, and scenarios.yaml. These are different
       domains with different agents.
 
+  - id: C33
+    rule: >
+      Must resolve or create a GitHub issue before artifact production begins.
+      When invoked with an issue number, it is validated. When invoked with a
+      description or --epic, an issue is created. The recipe never proceeds
+      to Context Resolution without a resolved issue number.
+
+  - id: C34
+    rule: >
+      Must create a feature branch (type/issue-slug convention) if not already
+      on one. Branch creation is idempotent — if already on a matching feature
+      branch, it is reused. Branch must exist before any artifact is written.
+
+  - id: C35
+    rule: >
+      Must initialize the STM directory at {stm_base}/{issue}/ before writing
+      any artifact. Directory initialization is idempotent (mkdir -p). No
+      design artifact or evidence file may be written before STM init.
+
+  - id: C36
+    rule: >
+      The artifact lock step must use path {stm_base}/{issue}/context/design/{artifact},
+      not {stm_base}/{issue}/{artifact}. All design artifacts (features.yaml,
+      tech.yaml, scenarios.yaml, plan.yaml) reside in the context/design/
+      subdirectory of the issue STM.
+
 failure_conditions:
   - id: F1
     condition: >
@@ -408,6 +434,23 @@ failure_conditions:
       Intermediate agent data was not stored in STM on disk. Data was
       passed through conversation memory instead of via STM file paths.
 
+  - id: F27
+    condition: >
+      Recipe proceeds to Context Resolution without a resolved issue number.
+      No issue was resolved or created during the setup phase.
+
+  - id: F28
+    condition: >
+      Artifacts are locked but no feature branch exists matching the
+      type/issue-slug naming convention. Work was done on main or a
+      non-conforming branch.
+
+  - id: F29
+    condition: >
+      Any design artifact is written before the STM directory at
+      {stm_base}/{issue}/ is initialized. Artifacts land in an
+      unexpected location or fail to write.
+
 scenarios:
   - id: S1
     persona: Product Owner
@@ -524,3 +567,15 @@ scenarios:
       Can review the logical architecture, design patterns in use, framework
       conventions, and low-level design with diagrams — understanding the
       system's structure beyond what YAML fields can express.
+
+  - id: S14
+    persona: Developer
+    given: >
+      Developer invokes prepare-implementation with no prior start-feature
+      or start-feature-planning run. No issue exists, no branch exists, no
+      STM directory exists.
+    then: >
+      The recipe creates the issue, creates the branch, initializes STM, and
+      completes all planning — producing fully locked artifacts in
+      {stm_base}/{issue}/context/design/. The developer never needs to run
+      start-feature separately.
