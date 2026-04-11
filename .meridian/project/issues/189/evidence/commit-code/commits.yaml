@@ -1,0 +1,36 @@
+commits:
+  - hash: 6829bb9f952f0153eb734a729d236f860ee7a07e
+    type: feat
+    scope: report-issue
+    subject: add report-issue recipe source #189
+    timestamp: 2026-04-11T17:36:04+05:30
+    files:
+      - core/components/recipes/report-issue/SKILL.md
+      - core/components/recipes/report-issue/reference/intent.yaml
+
+  - hash: 5db979a6642243ab71012da4a6e5ff0fc92d3131
+    type: docs
+    scope: project
+    subject: update CLAUDE.md and TODO.md #189
+    timestamp: 2026-04-11T17:36:47+05:30
+    files:
+      - CLAUDE.md
+      - TODO.md
+
+  - hash: e13188266c95751b226ddefa22217702afec9f85
+    type: chore
+    scope: stm
+    subject: add evidence and cleanup pending artifacts #189
+    timestamp: 2026-04-11T17:36:49+05:30
+    files:
+      - .meridian/project/issues/183/evidence/commit-code/commits.yaml
+      - .meridian/project/issues/189/evidence/commit-code/analysis.yaml
+      - .meridian/project/issues/189/evidence/commit-code/issue-mappings.yaml
+      - .meridian/project/issues/189/evidence/create-recipe/report-issue/agent-audit-project-orchestrator.md
+      - .meridian/project/issues/189/evidence/create-recipe/report-issue/coverage-matrix.md
+      - .meridian/project/issues/189/evidence/create-recipe/report-issue/evals.yaml
+      - .meridian/project/issues/189/evidence/create-recipe/report-issue/skill-manifest.yaml
+      - .meridian/project/issues/189/evidence/start-feature/branch-result.yaml
+      - .meridian/project/issues/189/evidence/start-feature/issue-resolution.yaml
+      - .meridian/project/issues/_pending/start-feature/args.yaml
+      - .meridian/project/issues/_pending/start-feature/changed-files.txt
