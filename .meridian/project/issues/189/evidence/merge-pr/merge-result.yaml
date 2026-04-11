@@ -1,0 +1,27 @@
+result:
+  status: merged
+  pr_number: 190
+  merge_sha: "95ae7b22f7043bc2cb0193a4e9a613019c1d9f13"
+  base_branch: main
+  branch_deleted: true
+  branch_deletion_notes: >
+    Local branch was already absent (GitHub fast-forward merge removed it).
+    Remote branch auto-deleted by platform on merge (C6: treated as success).
+  error: null
+
+evals:
+  SE2_branch_deleted: PASS
+  SE3_on_base_branch_up_to_date: PASS
+  SE5_pr_merged_on_platform: PASS
+
+scenario_evals:
+  SCE1_developer:
+    status: PASS
+    evidence: >
+      Local HEAD is on main. git pull returns up to date. Feature branch
+      feat/189-report-issue-recipe absent locally and from remote.
+  SCE2_code_reviewer:
+    status: PASS
+    evidence: >
+      Platform PR #190 state is MERGED. merge_sha 95ae7b22f7043bc2cb0193a4e9a613019c1d9f13
+      present in git log on main (top commit is the merge commit).
