@@ -1,0 +1,27 @@
+result:
+  success: true
+  branch:
+    name: "feat/192-fix-it-recipe"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/feat/192-fix-it-recipe"
+  stm:
+    issue: 192
+    directories_created:
+      - spec
+      - design
+      - evidence
+      - delivery
+      - checkpoint
+      - planning
+      - evidence/start-feature-planning
+    artifacts_migrated:
+      - args.yaml
+    migration_status: "complete"
+  error: null
+  timestamp: "2026-04-11T18:19:00Z"
+  notes:
+    - "Branch created from main and pushed to origin"
+    - "STM directory structure initialized at .meridian/project/issues/192/"
+    - "Pending artifacts from _pending/start-feature-planning/ moved to issue/192/evidence/start-feature-planning/"
+    - "Input artifact 'issue-resolution.yaml' was not found in pending directory — proceeding with explicit issue context from contract"

@@ -1,0 +1,9 @@
+pr:
+  number: 193
+  url: "https://github.com/kapilvirenahuja/meridian-os/pull/193"
+  state: "open"
+  title: "feat: add meridian:fix-it RCA-driven defect resolution recipe #192"
+  base: main
+  branch: feat/192-fix-it-recipe
+  platform: github
+  closes_issue: 192

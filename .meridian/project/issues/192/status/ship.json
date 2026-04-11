@@ -1,0 +1,13 @@
+{
+  "recipe": "ship",
+  "issue": "192",
+  "started_at": "2026-04-11T14:45:00Z",
+  "feature_branch": "feat/192-fix-it-recipe",
+  "tasks": {
+    "commit-code": { "status": "completed", "completed_at": "2026-04-11T14:46:00Z" },
+    "create-pr": { "status": "completed", "completed_at": "2026-04-11T14:48:00Z" },
+    "merge-pr": { "status": "in_progress", "started_at": "2026-04-11T14:48:00Z" },
+    "scenario-evals": { "status": "pending" },
+    "write-evidence": { "status": "pending" }
+  }
+}
