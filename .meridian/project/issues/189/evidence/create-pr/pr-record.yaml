@@ -1,0 +1,19 @@
+result:
+  success: true
+  pr:
+    number: 190
+    url: "https://github.com/kapilvirenahuja/meridian-os/pull/190"
+    state: "open"
+    title: "feat(report-issue): add meridian:report-issue recipe for defect filing #189"
+    base: "main"
+    head: "feat/189-report-issue-recipe"
+    issue_linked: 189
+  checklist:
+    required_count: 8
+    optional_count: 4
+    pass_count: 8
+    review_count: 3
+    fail_count: 0
+  notes:
+    - "3 REVIEW items require human sign-off: sync-claude confirmation, feat-documented, ADR assessment"
+    - "Run /sync-claude after merge to deploy report-issue recipe to ~/.claude/skills/"
