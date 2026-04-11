@@ -1,0 +1,101 @@
+branch_signal:
+  branch: fix/191-prepare-impl-stm-setup
+  issue_reference: 191
+
+mappings:
+  - group_id: G1
+    type: fix
+    scope: prepare-implementation
+    subject: "add setup phase with issue/branch/STM init and fix artifact lock path"
+    issue:
+      number: 191
+      title: "[DEF][Critical] prepare-implementation does not set up issue/branch/STM — context stranded in product epics"
+      state: OPEN
+      labels:
+        - defect
+    confidence: high
+    signals:
+      branch: "Branch fix/191-prepare-impl-stm-setup contains issue number 191 — direct match"
+      semantic: >
+        Group scope is 'prepare-implementation' — the exact component named in the issue title
+        and body. Change adds Phase 0 (Setup) with issue resolution, branch creation, and STM
+        initialization — precisely what issue #191 mandates. File paths
+        core/components/recipes/prepare-implementation/SKILL.md and intent.yaml are the
+        canonical implementation artifacts for the prepare-implementation recipe.
+      proximity: >
+        G2 also maps to #191, reinforcing that all changes on this branch target the same defect.
+    reasoning: >
+      Branch signal (issue number in branch name) combined with 3+ semantic signals (component
+      name match, change description match, file path match) and proximity signal (G2 also maps
+      to #191) all agree. High confidence threshold is met.
+
+  - group_id: G2
+    type: fix
+    scope: implement-epic
+    subject: "source design artifacts from issue STM instead of product base (C24)"
+    issue:
+      number: 191
+      title: "[DEF][Critical] prepare-implementation does not set up issue/branch/STM — context stranded in product epics"
+      state: OPEN
+      labels:
+        - defect
+    confidence: high
+    signals:
+      branch: "Branch fix/191-prepare-impl-stm-setup contains issue number 191 — direct match"
+      semantic: >
+        Issue #191 Expected Behavior item 3 states: 'implement-epic should receive all context
+        from the STM path, not from the product epics folder.' G2 adds constraint C24 enforcing
+        exactly this. The group's description ('source design artifacts from issue STM instead of
+        product base') is a direct literal match to the issue's expected behavior. Files changed
+        are core/components/recipes/implement-epic/SKILL.md and intent.yaml.
+      proximity: >
+        G1 also maps to #191 (coupled changes noted in analysis risks), reinforcing that G2
+        is part of the same coordinated fix.
+    reasoning: >
+      Branch signal (issue number in branch name) combined with 3+ semantic signals (issue body
+      quotes implement-epic STM sourcing as required behavior, description matches verbatim,
+      coupled with G1 which targets the other half of the same defect) and proximity signal all
+      agree. High confidence threshold is met.
+
+  - group_id: G3
+    type: chore
+    scope: stm
+    subject: "commit fix-it recipe evidence for issue #191"
+    issue:
+      number: 191
+      title: "[DEF][Critical] prepare-implementation does not set up issue/branch/STM — context stranded in product epics"
+      state: OPEN
+      labels:
+        - defect
+    confidence: high
+    signals:
+      branch: "Branch fix/191-prepare-impl-stm-setup contains issue number 191 — direct match"
+      semantic: >
+        All files in the group reside under .meridian/project/issues/191/ — the STM directory
+        scoped to issue #191. File names (rca.yaml, design.yaml, implementation-report.yaml,
+        branch-result.yaml, fix-it.json, ship.json) are fix-it and ship recipe artifacts for
+        this specific issue. The group subject explicitly names issue #191.
+      proximity: >
+        All three groups map to #191, confirming this is the single issue addressed by the
+        entire branch.
+    reasoning: >
+      Branch signal (issue number in branch name) combined with filesystem evidence (all files
+      are under .meridian/project/issues/191/) and proximity signal (all groups target #191)
+      produce unambiguous high confidence. The group is STM housekeeping for issue #191.
+
+unmapped_groups: []
+
+conflicts: []
+
+summary:
+  total_groups: 3
+  high_confidence: 3
+  medium_confidence: 0
+  low_confidence: 0
+  unmapped: 0
+  approval_required: false
+  note: >
+    All three change groups map to issue #191 with high confidence. Branch name contains the
+    issue number, semantic signals align for all groups, and proximity signal (all groups on
+    the same branch targeting the same defect) further corroborates. No human approval is
+    required per constraint C9 (approval only when any mapping has less than high confidence).
