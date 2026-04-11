@@ -1,0 +1,9 @@
+issue:
+  number: 191
+  title: "[DEF][Critical] prepare-implementation does not set up issue/branch/STM — context stranded in product epics"
+  type: defect
+  severity: critical
+  closes: true
+  branch: fix/191-prepare-impl-stm-setup
+  platform: github
+  linkage_confidence: high

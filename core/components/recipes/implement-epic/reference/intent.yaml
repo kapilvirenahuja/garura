@@ -162,6 +162,14 @@ constraints:
       the fresh eval set is rejected and the eval-generator is re-invoked. Eval count may
       increase (new behaviors discovered) but may not decrease without documented explanation.
 
+  - id: C24
+    rule: >
+      All input design artifacts (plan.yaml, features.yaml, tech.yaml, scenarios.yaml) must
+      be sourced from the issue STM at {stm_base}/{issue}/context/design/, where
+      prepare-implementation writes them. Architecture.yaml and quality-standards.yaml remain
+      sourced from {product_base}/architecture/ — they are product-level artifacts, not
+      issue-specific. The pre-flight must derive artifact_base from the issue STM path.
+
 failure_conditions:
   - id: F1
     condition: >

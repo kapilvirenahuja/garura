@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RCA &amp; Design Brief — Issue #191</title>
+  <style>
+    :root {
+      --bg-primary: #1A2332;
+      --bg-secondary: #212D3B;
+      --bg-tertiary: #2A3645;
+      --bg-card: #1E2C3D;
+      --text-primary: #E8EDF2;
+      --text-secondary: #94A3B8;
+      --text-dimmed: #64748B;
+      --color-air: #00D26A;
+      --color-water: #00D4FF;
+      --color-earth: #94A3B8;
+      --color-fire: #E8731A;
+      --color-amber: #F59E0B;
+      --status-draft: #fbbf24;
+      --status-validated: #00D26A;
+      --status-locked: #00D4FF;
+      --severity-high: #EF4444;
+      --severity-medium: #F59E0B;
+      --severity-low: #00D26A;
+      --border-default: #2E3D4F;
+      --border-accent: #00D4FF;
+      --border-fire: #E8731A;
+      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+    }
+
+    /* Layout */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-default);
+      padding: 24px 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border-default);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo .issue-num {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--color-water);
+    }
+
+    .sidebar-logo .issue-title {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .sidebar-nav { list-style: none; }
+
+    .sidebar-nav li a {
+      display: block;
+      padding: 8px 20px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .sidebar-nav li a:hover {
+      color: var(--text-primary);
+      border-left-color: var(--color-water);
+      background: rgba(0, 212, 255, 0.05);
+    }
+
+    .sidebar-nav li a.active {
+      color: var(--color-water);
+      border-left-color: var(--color-water);
+      background: rgba(0, 212, 255, 0.08);
+    }
+
+    .sidebar-section {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-dimmed);
+      padding: 16px 20px 6px;
+    }
+
+    /* Main content */
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      padding: 40px 48px;
+      max-width: 1000px;
+    }
+
+    /* Page header */
+    .page-header {
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    .page-header .breadcrumb {
+      font-size: 12px;
+      color: var(--text-dimmed);
+      margin-bottom: 12px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .page-header .meta {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-high {
+      background: rgba(239,68,68,0.15);
+      color: var(--severity-high);
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+
+    .badge-medium {
+      background: rgba(245,158,11,0.15);
+      color: var(--severity-medium);
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+
+    .badge-low {
+      background: rgba(0,210,106,0.15);
+      color: var(--severity-low);
+      border: 1px solid rgba(0,210,106,0.3);
+    }
+
+    .badge-confidence {
+      background: rgba(0,212,255,0.15);
+      color: var(--color-water);
+      border: 1px solid rgba(0,212,255,0.3);
+    }
+
+    .badge-issue {
+      background: rgba(0,212,255,0.1);
+      color: var(--color-water);
+      border: 1px solid rgba(0,212,255,0.2);
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 48px;
+      scroll-margin-top: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .section-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .icon-rca { background: rgba(239,68,68,0.15); }
+    .icon-trace { background: rgba(245,158,11,0.15); }
+    .icon-blast { background: rgba(232,115,26,0.15); }
+    .icon-strategy { background: rgba(0,210,106,0.15); }
+    .icon-alt { background: rgba(0,212,255,0.15); }
+    .icon-risk { background: rgba(239,68,68,0.1); }
+
+    .section h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card + .card { margin-top: 12px; }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-dimmed);
+      margin-top: 2px;
+    }
+
+    /* Root cause cards */
+    .cause-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .cause-card.primary { border-left: 3px solid var(--severity-high); }
+    .cause-card.secondary { border-left: 3px solid var(--severity-medium); }
+    .cause-card.tertiary { border-left: 3px solid var(--text-dimmed); }
+    .cause-card + .cause-card { margin-top: 12px; }
+
+    .cause-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .cause-card.primary .cause-label { color: var(--severity-high); }
+    .cause-card.secondary .cause-label { color: var(--severity-medium); }
+    .cause-card.tertiary .cause-label { color: var(--text-dimmed); }
+
+    .file-ref {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-default);
+      border-radius: 4px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--color-water);
+      margin-bottom: 12px;
+    }
+
+    .file-ref .lines {
+      color: var(--text-dimmed);
+      font-size: 11px;
+    }
+
+    .cause-logic {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    .cause-why {
+      font-size: 13px;
+      color: var(--text-primary);
+      background: var(--bg-tertiary);
+      border-left: 2px solid var(--color-water);
+      padding: 10px 14px;
+      border-radius: 0 4px 4px 0;
+      line-height: 1.6;
+    }
+
+    .cause-why-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--color-water);
+      margin-bottom: 4px;
+    }
+
+    /* Symptom trace */
+    .trace-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .trace-item + .trace-item {
+      margin-top: 8px;
+    }
+
+    .trace-item::before {
+      content: '';
+      position: absolute;
+      left: 28px;
+      bottom: -8px;
+      width: 2px;
+      height: 8px;
+      background: var(--border-default);
+    }
+
+    .trace-item:last-child::before { display: none; }
+
+    .trace-symptom {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-amber);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .trace-symptom::before {
+      content: '!';
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(245,158,11,0.2);
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .trace-arrow {
+      font-size: 11px;
+      color: var(--text-dimmed);
+      margin-bottom: 6px;
+      padding-left: 26px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .trace-cause {
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding-left: 26px;
+      line-height: 1.6;
+    }
+
+    /* Blast radius */
+    .blast-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .blast-file-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .blast-file-path {
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--color-water);
+      margin-bottom: 6px;
+      word-break: break-all;
+    }
+
+    .blast-file-role {
+      font-size: 12px;
+      color: var(--text-dimmed);
+      margin-bottom: 8px;
+    }
+
+    .blast-file-change {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .component-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .component-card + .component-card { margin-top: 8px; }
+
+    .component-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .component-impact {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Strategy steps */
+    .strategy-step {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+      padding-left: 56px;
+    }
+
+    .strategy-step + .strategy-step { margin-top: 12px; }
+
+    .step-num {
+      position: absolute;
+      left: 16px;
+      top: 18px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(0,212,255,0.15);
+      border: 1px solid rgba(0,212,255,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--color-water);
+    }
+
+    .step-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .step-files { margin-bottom: 10px; }
+
+    .step-file-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+    }
+
+    .action-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+      letter-spacing: 0.4px;
+    }
+
+    .action-modify {
+      background: rgba(245,158,11,0.15);
+      color: var(--color-amber);
+    }
+
+    .step-details {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .step-outcome {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: var(--bg-tertiary);
+      border-left: 2px solid var(--color-air);
+      border-radius: 0 4px 4px 0;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .step-outcome-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--color-air);
+      margin-bottom: 3px;
+    }
+
+    /* Alternatives */
+    .alt-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .alt-card + .alt-card { margin-top: 12px; }
+
+    .alt-approach {
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 600;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .alt-rejected {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .alt-rejected-icon {
+      flex-shrink: 0;
+      font-size: 13px;
+      margin-top: 1px;
+    }
+
+    .alt-reason {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Risk table */
+    .risk-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .risk-table th {
+      background: var(--bg-tertiary);
+      padding: 10px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-dimmed);
+      text-align: left;
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    .risk-table td {
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-default);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    .risk-table tr:last-child td { border-bottom: none; }
+
+    .risk-table tr:hover td { background: rgba(0,212,255,0.02); }
+
+    .risk-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-dimmed);
+    }
+
+    /* Summary bar */
+    .summary-bar {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 40px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .summary-item {
+      text-align: center;
+    }
+
+    .summary-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--color-water);
+      display: block;
+    }
+
+    .summary-label {
+      font-size: 11px;
+      color: var(--text-dimmed);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-top: 2px;
+    }
+
+    /* Confidence callout */
+    .confidence-callout {
+      background: rgba(0,210,106,0.08);
+      border: 1px solid rgba(0,210,106,0.25);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .confidence-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .confidence-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .confidence-text strong {
+      color: var(--color-air);
+    }
+
+    /* Generated footer */
+    .footer {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-default);
+      font-size: 12px;
+      color: var(--text-dimmed);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 24px 20px; }
+      .blast-grid { grid-template-columns: 1fr; }
+      .summary-bar { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dimmed); }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="issue-num">Issue #191</div>
+      <div class="issue-title">prepare-implementation / implement-epic path disconnect</div>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="sidebar-section">Analysis</li>
+      <li><a href="#issue">Issue Overview</a></li>
+      <li><a href="#root-cause">Root Cause</a></li>
+      <li><a href="#trace">Symptom Trace</a></li>
+      <li><a href="#blast">Blast Radius</a></li>
+      <li class="sidebar-section">Resolution</li>
+      <li><a href="#strategy">Fix Strategy</a></li>
+      <li><a href="#alternatives">Alternatives</a></li>
+      <li><a href="#risks">Risk Assessment</a></li>
+      <li><a href="#confidence">Confidence</a></li>
+    </ul>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="breadcrumb">fix-it &rsaquo; Issue #191 &rsaquo; RCA &amp; Design Brief</div>
+      <h1>RCA &amp; Fix Design</h1>
+      <div class="meta">
+        <span class="badge-issue">#191</span>
+        <span class="badge badge-high">Severity: High</span>
+        <span class="badge badge-confidence">Confidence: High</span>
+      </div>
+    </div>
+
+    <!-- Summary bar -->
+    <div class="summary-bar">
+      <div class="summary-item">
+        <span class="summary-value">3</span>
+        <span class="summary-label">Root Causes</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-value">4</span>
+        <span class="summary-label">Affected Files</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-value">4</span>
+        <span class="summary-label">Fix Steps</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-value">5</span>
+        <span class="summary-label">Risks Identified</span>
+      </div>
+    </div>
+
+    <!-- ISSUE OVERVIEW -->
+    <section class="section" id="issue">
+      <div class="section-header">
+        <div class="section-icon icon-rca">&#128270;</div>
+        <h2>Issue Overview</h2>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">prepare-implementation / implement-epic path disconnect</div>
+            <div class="card-subtitle">Recipe pipeline handoff failure — wrong artifact base paths</div>
+          </div>
+          <span class="badge badge-high">High Severity</span>
+        </div>
+        <p style="font-size:14px; color:var(--text-secondary); line-height:1.7;">
+          <code style="background:var(--bg-tertiary);padding:1px 6px;border-radius:3px;font-size:12px;color:var(--color-water);">implement-epic</code>
+          hardcodes artifact paths to the product epics directory
+          (<code style="background:var(--bg-tertiary);padding:1px 6px;border-radius:3px;font-size:12px;color:var(--text-secondary);">.meridian/product/roadmap/epics/{epic_id}/</code>)
+          while
+          <code style="background:var(--bg-tertiary);padding:1px 6px;border-radius:3px;font-size:12px;color:var(--color-water);">prepare-implementation</code>
+          writes all design artifacts to the issue STM context directory
+          (<code style="background:var(--bg-tertiary);padding:1px 6px;border-radius:3px;font-size:12px;color:var(--text-secondary);">{stm_base}/{issue}/context/design/</code>).
+          These are entirely separate directory trees with no bridging step, so
+          <code style="background:var(--bg-tertiary);padding:1px 6px;border-radius:3px;font-size:12px;color:var(--color-water);">implement-epic</code>
+          always starts from the wrong base and can never find the artifacts that
+          <code style="background:var(--bg-tertiary);padding:1px 6px;border-radius:3px;font-size:12px;color:var(--color-water);">prepare-implementation</code>
+          produced.
+        </p>
+      </div>
+    </section>
+
+    <!-- ROOT CAUSE -->
+    <section class="section" id="root-cause">
+      <div class="section-header">
+        <div class="section-icon icon-rca">&#128269;</div>
+        <h2>Root Cause Analysis</h2>
+      </div>
+
+      <!-- Primary -->
+      <div class="cause-card primary">
+        <div class="cause-label">Primary Cause</div>
+        <div class="file-ref">
+          <span>core/components/recipes/implement-epic/SKILL.md</span>
+          <span class="lines">lines 94&ndash;107</span>
+        </div>
+        <div class="cause-logic">
+          The pre-flight block hardcodes <code style="background:var(--bg-tertiary);padding:1px 5px;border-radius:3px;font-size:11px;color:var(--color-water);">artifact_base = "{product_base}/roadmap/epics/{epic_id}"</code>
+          and derives all four artifact paths (<code style="font-size:11px;color:var(--text-secondary);">plan_yaml_path</code>,
+          <code style="font-size:11px;color:var(--text-secondary);">features_yaml_path</code>,
+          <code style="font-size:11px;color:var(--text-secondary);">scenarios_yaml_path</code>,
+          <code style="font-size:11px;color:var(--text-secondary);">tech_yaml_path</code>) from this base.
+          This makes implement-epic always look in the product epics directory tree for its input artifacts.
+        </div>
+        <div class="cause-why">
+          <div class="cause-why-label">Why this happened</div>
+          prepare-implementation was redesigned (TDD-first, issue #183) to write artifacts into
+          <code style="font-size:11px;color:var(--color-water);">{stm_base}/{issue}/context/design/</code> — the issue STM —
+          but implement-epic's path resolution was never updated to match. The two recipes evolved
+          independently and now point to different base directories.
+        </div>
+      </div>
+
+      <!-- Secondary -->
+      <div class="cause-card secondary">
+        <div class="cause-label">Secondary Cause</div>
+        <div class="file-ref">
+          <span>core/components/recipes/prepare-implementation/SKILL.md</span>
+          <span class="lines">lines 42&ndash;65 (pre-flight)</span>
+        </div>
+        <div class="cause-logic">
+          prepare-implementation parses issue from branch name and resolves stm_base but never creates
+          a GitHub issue, feature branch, or STM directory. It assumes start-feature already ran.
+          There is no issue/branch/STM setup in prepare-implementation's own workflow.
+        </div>
+        <div class="cause-why">
+          <div class="cause-why-label">Why this happened</div>
+          The recipe was designed as a pure artifact-production step (planning phase) that assumed
+          upstream setup was complete. This made it dependent on start-feature or start-feature-planning
+          being invoked separately — but the issue expected it to be self-contained, covering the full
+          "ultra god mode" of planning context setup.
+        </div>
+      </div>
+
+      <!-- Tertiary -->
+      <div class="cause-card tertiary">
+        <div class="cause-label">Tertiary Cause</div>
+        <div class="file-ref">
+          <span>core/components/recipes/prepare-implementation/SKILL.md</span>
+          <span class="lines">lines 1207&ndash;1217 (Step 20 — Lock All Artifacts)</span>
+        </div>
+        <div class="cause-logic">
+          The lock step iterates artifacts at path <code style="font-size:11px;color:var(--text-secondary);">${stm_base}/${issue}/${artifact}</code> (flat),
+          but the actual DRAFT artifacts are written to <code style="font-size:11px;color:var(--color-water);">{stm_base}/{issue}/context/design/${artifact}</code>.
+          This means the lock step silently finds nothing (files absent at flat path) and exits
+          without locking anything or raising an error.
+        </div>
+        <div class="cause-why">
+          <div class="cause-why-label">Why this happened</div>
+          The path template in the lock step was not updated when the prepare-implementation TDD redesign
+          (issue #183) introduced the <code style="font-size:11px;color:var(--color-water);">context/design/</code> subdirectory structure.
+          This compounds the primary disconnect — even if implement-epic's paths were corrected,
+          the artifacts may never actually reach LOCKED status due to this secondary bug.
+        </div>
+      </div>
+    </section>
+
+    <!-- SYMPTOM TRACE -->
+    <section class="section" id="trace">
+      <div class="section-header">
+        <div class="section-icon icon-trace">&#128200;</div>
+        <h2>Symptom Trace</h2>
+      </div>
+
+      <div class="trace-item">
+        <div class="trace-symptom">implement-epic halts at pre-flight with "LOCKED plan.yaml not found" or finds artifacts with status DRAFT rather than LOCKED.</div>
+        <div class="trace-arrow">&#x2193; traced to</div>
+        <div class="trace-cause">
+          implement-epic pre-flight reads <code style="font-size:12px;color:var(--color-water);">plan_yaml_path</code> from
+          <code style="font-size:12px;color:var(--text-secondary);">{product_base}/roadmap/epics/{epic_id}/plan.yaml</code> —
+          a path that either does not exist or contains only older workflow artifacts (not the ones
+          prepare-implementation produced for this issue).
+        </div>
+      </div>
+
+      <div class="trace-item">
+        <div class="trace-symptom">Implementation context (scope items, design decisions, exit gates) is missing or incomplete when code-builder runs, leading to implementations that pass evals but fail at integration time.</div>
+        <div class="trace-arrow">&#x2193; traced to</div>
+        <div class="trace-cause">
+          When implement-epic does find artifacts (from old epic-scoped paths), they are not the
+          issue-specific design artifacts from prepare-implementation. The issue-level context
+          (blast radius, baseline tests, codebase-specific change surface) produced by
+          prepare-implementation sits unused in <code style="font-size:12px;color:var(--color-water);">{stm_base}/{issue}/context/design/</code>.
+        </div>
+      </div>
+
+      <div class="trace-item">
+        <div class="trace-symptom">plan.yaml artifacts never reach status LOCKED despite prepare-implementation completing all draft and checkpoint steps.</div>
+        <div class="trace-arrow">&#x2193; traced to</div>
+        <div class="trace-cause">
+          The lock step in prepare-implementation (Step 20, line 1210) reads from
+          <code style="font-size:12px;color:var(--text-secondary);">${stm_base}/${issue}/${artifact}</code> — no
+          <code style="font-size:12px;color:var(--color-water);">context/design/</code> subdirectory — so the for-loop
+          finds no files and silently completes without locking.
+        </div>
+      </div>
+    </section>
+
+    <!-- BLAST RADIUS -->
+    <section class="section" id="blast">
+      <div class="section-header">
+        <div class="section-icon icon-blast">&#128308;</div>
+        <h2>Blast Radius</h2>
+      </div>
+
+      <h3 style="font-size:13px;font-weight:700;color:var(--text-dimmed);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:12px;">Affected Files</h3>
+      <div class="blast-grid">
+        <div class="blast-file-card">
+          <div class="blast-file-path">core/components/recipes/implement-epic/SKILL.md</div>
+          <div class="blast-file-role">Compiled recipe — implements implement-epic orchestration and all artifact path resolution</div>
+          <div class="blast-file-change">Update artifact_base and all derived paths in pre-flight to read from {stm_base}/{issue}/context/design/ instead of {product_base}/roadmap/epics/{epic_id}/. Also update Step 1 (Build Context) JSON contract artifact paths passed to tech-designer.</div>
+        </div>
+        <div class="blast-file-card">
+          <div class="blast-file-path">core/components/recipes/implement-epic/reference/intent.yaml</div>
+          <div class="blast-file-role">Intent source — defines constraints, failure conditions, and scenarios for implement-epic</div>
+          <div class="blast-file-change">Update artifact path constraints (C1, C3) and any scenario given/then blocks referencing the product epics path. Add constraint: all input artifacts must reside in issue STM ({stm_base}/{issue}/context/design/).</div>
+        </div>
+        <div class="blast-file-card">
+          <div class="blast-file-path">core/components/recipes/prepare-implementation/SKILL.md</div>
+          <div class="blast-file-role">Compiled recipe — defines prepare-implementation orchestration and all output paths</div>
+          <div class="blast-file-change">(1) Add issue/branch/STM setup phase before Context Resolution. (2) Fix Step 20 lock path from ${stm_base}/${issue}/${artifact} to ${stm_base}/${issue}/context/design/${artifact}.</div>
+        </div>
+        <div class="blast-file-card">
+          <div class="blast-file-path">core/components/recipes/prepare-implementation/reference/intent.yaml</div>
+          <div class="blast-file-role">Intent source — defines constraints, failure conditions, and scenarios for prepare-implementation</div>
+          <div class="blast-file-change">Add constraints and failure conditions covering issue resolution, branch creation, and STM initialization. Update artifact path constraints to reflect context/design/ subdirectory. Update scenarios to include the setup phase.</div>
+        </div>
+      </div>
+
+      <h3 style="font-size:13px;font-weight:700;color:var(--text-dimmed);text-transform:uppercase;letter-spacing:0.6px;margin-top:24px;margin-bottom:12px;">Affected Components</h3>
+      <div class="component-card">
+        <div class="component-name">prepare-implementation &#x2192; implement-epic handoff</div>
+        <div class="component-impact">Primary data flow is broken. Every invocation of implement-epic after prepare-implementation will fail or operate on wrong/missing context.</div>
+      </div>
+      <div class="component-card">
+        <div class="component-name">Plan.yaml LOCKED state</div>
+        <div class="component-impact">Due to the tertiary bug, plan.yaml never reaches LOCKED status. implement-epic pre-flight (C1) requires plan.yaml status == LOCKED — so even if path resolution were fixed, the workflow would still halt unless the lock step is also corrected.</div>
+      </div>
+      <div class="component-card">
+        <div class="component-name">start-feature / start-feature-planning prerequisites</div>
+        <div class="component-impact">Currently users must run start-feature before prepare-implementation to get issue+branch+STM. After the fix, prepare-implementation becomes self-contained. Invoking start-feature first should remain harmless (idempotent setup), but it should no longer be required.</div>
+      </div>
+      <div class="component-card">
+        <div class="component-name">implement-epic Step 1 — Build Context (tech-designer contract)</div>
+        <div class="component-impact">The JSON contract passed to tech-designer in Step 1 also references artifact paths. These must be updated in lockstep with the pre-flight path change — otherwise the tech-designer context builder will also look in the wrong directory.</div>
+      </div>
+    </section>
+
+    <!-- FIX STRATEGY -->
+    <section class="section" id="strategy">
+      <div class="section-header">
+        <div class="section-icon icon-strategy">&#9997;</div>
+        <h2>Fix Strategy</h2>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title" style="margin-bottom:8px;">Chosen Approach</div>
+        <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;">
+          Two coordinated intent.yaml changes trigger two rebakes.
+          (1) <code style="font-size:12px;color:var(--color-water);">prepare-implementation/reference/intent.yaml</code> gains new constraints
+          covering issue resolution, branch creation, and STM initialization (Phase 0 — Setup), plus a corrected artifact lock path constraint.
+          A rebake produces an updated SKILL.md.
+          (2) <code style="font-size:12px;color:var(--color-water);">implement-epic/reference/intent.yaml</code> has its artifact path constraints
+          updated to reflect <code style="font-size:12px;color:var(--text-secondary);">{stm_base}/{issue}/context/design/</code> as the canonical
+          source. A rebake produces an updated SKILL.md. The result: prepare-implementation fully sets up the working context (issue, branch, STM,
+          design artifacts) and implement-epic reads all of it from the issue STM — a single source of truth.
+        </p>
+      </div>
+
+      <div class="strategy-step">
+        <div class="step-num">1</div>
+        <div class="step-title">Update prepare-implementation/reference/intent.yaml — add setup phase constraints and fix artifact lock path</div>
+        <div class="step-files">
+          <div class="step-file-row">
+            <span class="action-tag action-modify">modify</span>
+            <code style="font-size:12px;color:var(--color-water);">core/components/recipes/prepare-implementation/reference/intent.yaml</code>
+          </div>
+        </div>
+        <div class="step-details">
+          Add constraints mirroring start-feature: C_SETUP_1 (resolve/create GitHub issue), C_SETUP_2 (create feature branch), C_SETUP_3 (initialize STM directory), C_SETUP_4 (lock step uses context/design/ path).
+          Add failure conditions F_SETUP_1 through F_SETUP_3. Add scenario S_SETUP: developer invokes prepare-implementation with no prior start-feature run — recipe creates issue, branch, STM, and completes all planning producing fully locked artifacts in <code style="font-size:11px;color:var(--color-water);">{stm_base}/{issue}/context/design/</code>.
+        </div>
+        <div class="step-outcome">
+          <div class="step-outcome-label">Expected Outcome</div>
+          intent.yaml reflects the full lifecycle of prepare-implementation including setup phase. Constraint schema is complete with no ambiguity about artifact locations.
+        </div>
+      </div>
+
+      <div class="strategy-step">
+        <div class="step-num">2</div>
+        <div class="step-title">Rebake prepare-implementation SKILL.md from updated intent.yaml</div>
+        <div class="step-files">
+          <div class="step-file-row">
+            <span class="action-tag action-modify">modify</span>
+            <code style="font-size:12px;color:var(--color-water);">core/components/recipes/prepare-implementation/SKILL.md</code>
+          </div>
+        </div>
+        <div class="step-details">
+          Run <code style="font-size:11px;color:var(--color-water);">/create-recipe --rebake prepare-implementation</code>.
+          Expected delta: new Phase 0 — Setup section (issue resolution via project-orchestrator, branch creation via repo-orchestrator, STM initialization). Pre-flight block updated to halt if no issue can be resolved and no --epic with roadmap is present. Step 20 lock paths updated from <code style="font-size:11px;color:var(--text-secondary);">${stm_base}/${issue}/${artifact}</code> to <code style="font-size:11px;color:var(--color-water);">${stm_base}/${issue}/context/design/${artifact}</code>.
+        </div>
+        <div class="step-outcome">
+          <div class="step-outcome-label">Expected Outcome</div>
+          SKILL.md contains a Phase 0 — Setup section before Phase: Context Resolution. Step 20 lock paths reference context/design/ subdirectory. grep for flat lock path in lock step returns zero matches.
+        </div>
+      </div>
+
+      <div class="strategy-step">
+        <div class="step-num">3</div>
+        <div class="step-title">Update implement-epic/reference/intent.yaml — correct artifact path constraints</div>
+        <div class="step-files">
+          <div class="step-file-row">
+            <span class="action-tag action-modify">modify</span>
+            <code style="font-size:12px;color:var(--color-water);">core/components/recipes/implement-epic/reference/intent.yaml</code>
+          </div>
+        </div>
+        <div class="step-details">
+          Update the artifact path referenced in C1 (plan.yaml must be LOCKED) and any constraint/scenario referencing product_base or roadmap/epics path to instead reference <code style="font-size:11px;color:var(--color-water);">{stm_base}/{issue}/context/design/</code>.
+          Specifically: artifact_base for plan.yaml, features.yaml, tech.yaml, scenarios.yaml must derive from issue STM. Keep architecture.yaml and quality-standards.yaml sourced from <code style="font-size:11px;color:var(--text-secondary);">{product_base}/architecture/</code> — those are genuinely product-level artifacts.
+        </div>
+        <div class="step-outcome">
+          <div class="step-outcome-label">Expected Outcome</div>
+          intent.yaml no longer references product epics path for the four core design artifacts. Constraints clearly state that plan.yaml, features.yaml, tech.yaml, and scenarios.yaml come from the issue STM.
+        </div>
+      </div>
+
+      <div class="strategy-step">
+        <div class="step-num">4</div>
+        <div class="step-title">Rebake implement-epic SKILL.md from updated intent.yaml</div>
+        <div class="step-files">
+          <div class="step-file-row">
+            <span class="action-tag action-modify">modify</span>
+            <code style="font-size:12px;color:var(--color-water);">core/components/recipes/implement-epic/SKILL.md</code>
+          </div>
+        </div>
+        <div class="step-details">
+          Run <code style="font-size:11px;color:var(--color-water);">/create-recipe --rebake implement-epic</code>.
+          Expected delta: pre-flight <code style="font-size:11px;color:var(--text-secondary);">artifact_base = "{stm_base}/{issue}/context/design"</code> with all four design artifact paths derived from it. architecture_yaml_path and quality_standards_path remain at <code style="font-size:11px;color:var(--text-secondary);">{product_base}/architecture/</code> — unchanged. Step 1 (Build Context) JSON contract updated to pass corrected artifact paths to tech-designer.
+        </div>
+        <div class="step-outcome">
+          <div class="step-outcome-label">Expected Outcome</div>
+          SKILL.md pre-flight derives all four design artifact paths from issue STM, not from product epics. implement-epic can now find all prepare-implementation outputs without any manual bridging. grep for "roadmap/epics" in pre-flight returns zero matches.
+        </div>
+      </div>
+    </section>
+
+    <!-- ALTERNATIVES CONSIDERED -->
+    <section class="section" id="alternatives">
+      <div class="section-header">
+        <div class="section-icon icon-alt">&#128260;</div>
+        <h2>Alternatives Considered</h2>
+      </div>
+
+      <div class="alt-card">
+        <div class="alt-approach">Alt 1 — Fix only implement-epic: update its path resolution to read from {stm_base}/{issue}/context/design/ where prepare-implementation already writes. Leave prepare-implementation unchanged.</div>
+        <div class="alt-rejected">
+          <div class="alt-rejected-icon">&#10005;</div>
+          <div class="alt-reason">Solves the path mismatch but leaves the missing setup problem intact. Users still must run start-feature separately before prepare-implementation. The lock step bug in prepare-implementation also remains, meaning artifacts may never reach LOCKED status regardless of the path fix. Two bugs remain for one fix applied.</div>
+        </div>
+      </div>
+
+      <div class="alt-card">
+        <div class="alt-approach">Alt 2 — Make prepare-implementation copy or symlink its output artifacts into the product epics directory tree where implement-epic currently expects them. Preserve implement-epic unchanged.</div>
+        <div class="alt-rejected">
+          <div class="alt-rejected-icon">&#10005;</div>
+          <div class="alt-reason">Creates artifact duplication across two directory trees with no single source of truth. Symlinks are fragile across checkouts, CI, and worktrees. The product epics path is a product-planning concern, not an implementation concern — filling it with issue-specific design artifacts (blast radius, baseline tests) pollutes the product directory semantics. This is a workaround that avoids fixing the actual path incoherence.</div>
+        </div>
+      </div>
+
+      <div class="alt-card">
+        <div class="alt-approach">Alt 3 — Add a new bridging recipe/step between prepare-implementation and implement-epic that reads from context/design/ and writes to product epics path (or vice versa).</div>
+        <div class="alt-rejected">
+          <div class="alt-rejected-icon">&#10005;</div>
+          <div class="alt-reason">Overengineered. The problem is a path mismatch in two existing recipes — adding a third recipe to bridge them introduces an extra invocation step and a new failure surface without removing the underlying incoherence. Users would need to know to run the bridge recipe or it would be silently skipped.</div>
+        </div>
+      </div>
+
+      <div class="alt-card">
+        <div class="alt-approach">Alt 4 — Change prepare-implementation's output to write artifacts directly to the product epics path ({product_base}/roadmap/epics/{epic_id}/) to match what implement-epic expects, leaving implement-epic unchanged.</div>
+        <div class="alt-rejected">
+          <div class="alt-rejected-icon">&#10005;</div>
+          <div class="alt-reason">Regresses the TDD redesign (#183). The issue STM (context/design/) was specifically chosen to co-locate issue-level working context with implementation state. Writing design artifacts to the product epics tree severs that co-location, removes blast radius and baseline test artifacts from issue context, and makes the STM incomplete.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RISK ASSESSMENT -->
+    <section class="section" id="risks">
+      <div class="section-header">
+        <div class="section-icon icon-risk">&#9888;</div>
+        <h2>Risk Assessment</h2>
+      </div>
+
+      <table class="risk-table">
+        <thead>
+          <tr>
+            <th style="width:36px;">#</th>
+            <th style="width:35%;">Risk</th>
+            <th>Mitigation</th>
+            <th style="width:90px;">Severity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="risk-num">1</span></td>
+            <td>Rebaking implement-epic changes behavior for the entire epic workflow, not just the path resolution. A poorly authored rebake could drop constraints or alter the TDD loop structure.</td>
+            <td>Diff the rebaked SKILL.md against the original before accepting. Verify that only the pre-flight path block and Step 1 contract changed — all other steps (eval-generator, test-writer, code-builder, judge, quality-auditor) must be structurally identical. The intent.yaml change is scoped to path constraints only.</td>
+            <td><span class="badge badge-high">High</span></td>
+          </tr>
+          <tr>
+            <td><span class="risk-num">2</span></td>
+            <td>Existing runs of prepare-implementation that wrote artifacts to context/design/ may have plan.yaml in DRAFT state (due to the lock step bug). implement-epic will hard-halt on C1 (status != LOCKED) even after the path fix.</td>
+            <td>The fix must include correcting the lock step path in prepare-implementation. Any existing DRAFT artifacts at context/design/ must be manually locked (set status: LOCKED) or prepare-implementation must be re-run for those issues after the fix is deployed.</td>
+            <td><span class="badge badge-high">High</span></td>
+          </tr>
+          <tr>
+            <td><span class="risk-num">3</span></td>
+            <td>Adding Phase 0 setup to prepare-implementation may conflict with users who already ran start-feature before invoking prepare-implementation. Double branch creation or duplicate issue creation could corrupt the working context.</td>
+            <td>The setup phase must be idempotent. Branch creation should use the same existence check as repo-orchestrator in start-feature (switch if exists, create if absent). Issue resolution must check for an existing open issue before creating a new one. STM directory initialization is always safe with mkdir -p.</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+          </tr>
+          <tr>
+            <td><span class="risk-num">4</span></td>
+            <td>architecture.yaml and quality-standards.yaml paths in implement-epic are product-level and should NOT be changed to the issue STM path. If the rebake incorrectly moves these paths, the quality gate will break for all features.</td>
+            <td>The intent.yaml change must explicitly distinguish the four design artifacts (issue-STM-sourced) from the two architecture artifacts (product-base-sourced). Review the rebaked SKILL.md to confirm architecture_yaml_path and quality_standards_path still reference {product_base}/architecture/.</td>
+            <td><span class="badge badge-medium">Medium</span></td>
+          </tr>
+          <tr>
+            <td><span class="risk-num">5</span></td>
+            <td>The fix changes where implement-epic reads artifacts, so any existing documentation, ADRs, or operator runbooks referencing the old product epics path for implementation artifacts will become stale.</td>
+            <td>Search docs/ and core/components/memory/ for references to {product_base}/roadmap/epics/ in the context of implement-epic inputs and update any found references as part of the same PR.</td>
+            <td><span class="badge badge-low">Low</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- CONFIDENCE -->
+    <section class="section" id="confidence">
+      <div class="section-header">
+        <div class="section-icon icon-strategy">&#10003;</div>
+        <h2>Confidence</h2>
+      </div>
+
+      <div class="confidence-callout">
+        <div class="confidence-icon">&#128994;</div>
+        <div class="confidence-text">
+          <strong>High confidence.</strong> The root cause is traceable to specific file references and line numbers in two recipe SKILL.md files. The path mismatch is a deterministic failure — there is no ambiguity about why implement-epic halts. The fix is bounded to four files (two intent.yaml sources, two rebaked SKILL.md outputs) with well-defined self-tests. No speculative or exploratory changes are required.
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      fix-191 &mdash; Generated: 2026-04-11 &mdash; RCA &amp; Design Brief
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

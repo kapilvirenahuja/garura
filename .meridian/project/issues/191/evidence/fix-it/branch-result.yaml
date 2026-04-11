@@ -1,0 +1,6 @@
+branch:
+  name: "fix/191-prepare-impl-stm-setup"
+  action: "created"
+  pushed: true
+  changes_preserved: true
+  remote_tracking: "origin/fix/191-prepare-impl-stm-setup"

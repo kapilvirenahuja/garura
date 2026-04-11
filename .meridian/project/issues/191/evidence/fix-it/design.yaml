@@ -1,0 +1,249 @@
+design:
+  strategy: >
+    Fix implement-epic to read artifacts from the issue STM context/design/ path where
+    prepare-implementation already writes them, AND add issue/branch/STM setup to
+    prepare-implementation's pre-flight so it becomes self-contained. Both changes go
+    through intent.yaml → /create-recipe --rebake per project rules — SKILL.md files
+    are compiled artifacts and must never be edited directly.
+
+  approach:
+    description: >
+      Two coordinated intent.yaml changes trigger two rebakes.
+      (1) prepare-implementation/reference/intent.yaml gains new constraints covering
+      issue resolution, branch creation, and STM initialization (Phase 0 — Setup), plus
+      a corrected artifact lock path constraint. A rebake produces an updated SKILL.md.
+      (2) implement-epic/reference/intent.yaml has its artifact path constraints updated
+      to reflect {stm_base}/{issue}/context/design/ as the canonical source. A rebake
+      produces an updated SKILL.md. The result: prepare-implementation fully sets up
+      the working context (issue, branch, STM, design artifacts) and implement-epic
+      reads all of it from the issue STM — a single source of truth.
+
+    steps:
+      - description: >
+          Update prepare-implementation/reference/intent.yaml — add setup phase constraints
+          and fix artifact lock path.
+        files:
+          - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+            action: "modify"
+            details: >
+              Add constraints mirroring start-feature:
+                C_SETUP_1: Must resolve or create a GitHub issue before artifact production begins.
+                C_SETUP_2: Must create feature branch (type/issue-slug convention) if not already on one.
+                C_SETUP_3: Must initialize STM directory at {stm_base}/{issue}/ before writing any artifact.
+                C_SETUP_4: Artifact lock step must use path {stm_base}/{issue}/context/design/{artifact},
+                           not {stm_base}/{issue}/{artifact}.
+              Add failure conditions:
+                F_SETUP_1: Recipe proceeds to Context Resolution without a resolved issue number.
+                F_SETUP_2: Artifacts are locked but no feature branch exists matching the naming convention.
+                F_SETUP_3: Any design artifact is written before the STM directory is initialized.
+              Add scenario:
+                S_SETUP: Developer invokes prepare-implementation with no prior start-feature run.
+                         The recipe creates the issue, creates the branch, initializes STM, and
+                         completes all planning — producing fully locked artifacts in
+                         {stm_base}/{issue}/context/design/.
+        expected_outcome: >
+          intent.yaml reflects the full lifecycle of prepare-implementation including
+          setup phase. Constraint schema is complete with no ambiguity about
+          artifact locations.
+        self_test: >
+          Read the updated intent.yaml — verify setup constraints are present, verify lock
+          path references context/design/ subdirectory, verify new failure conditions and
+          setup scenario are added.
+
+      - description: >
+          Rebake prepare-implementation SKILL.md from updated intent.yaml.
+        files:
+          - path: "core/components/recipes/prepare-implementation/SKILL.md"
+            action: "modify"
+            details: >
+              Run /create-recipe --rebake prepare-implementation.
+              The rebake will produce an updated SKILL.md that includes:
+              - Phase 0 — Setup: issue resolution (delegate to project-orchestrator),
+                branch creation (delegate to repo-orchestrator), STM initialization.
+              - Pre-flight block updated to halt if no issue can be resolved and no
+                --epic with roadmap is present.
+              - Step 20 lock path updated from ${stm_base}/${issue}/${artifact} to
+                ${stm_base}/${issue}/context/design/${artifact}.
+        expected_outcome: >
+          SKILL.md contains a Phase 0 — Setup section before Phase: Context Resolution.
+          Step 20 lock paths reference context/design/ subdirectory.
+          grep for "stm_base}/${issue}/${artifact}" (flat path) in lock step returns zero matches.
+        self_test: >
+          Read updated SKILL.md, search for Step 20 lock path — verify it includes
+          context/design/ in the path. Verify Phase 0 or equivalent setup steps exist
+          before Context Resolution phase.
+
+      - description: >
+          Update implement-epic/reference/intent.yaml — correct artifact path constraints.
+        files:
+          - path: "core/components/recipes/implement-epic/reference/intent.yaml"
+            action: "modify"
+            details: >
+              Update the artifact path referenced in C1 (plan.yaml must be LOCKED) and
+              any constraint/scenario referencing product_base or roadmap/epics path to
+              instead reference {stm_base}/{issue}/context/design/.
+              Specifically: artifact_base for plan.yaml, features.yaml, tech.yaml,
+              scenarios.yaml must derive from {stm_base}/{issue}/context/design/ not
+              {product_base}/roadmap/epics/{epic_id}/.
+              Keep architecture.yaml and quality-standards.yaml sourced from
+              {product_base}/architecture/ — those are genuinely product-level artifacts
+              not issue-specific.
+        expected_outcome: >
+          intent.yaml no longer references product epics path for the four core design
+          artifacts. Constraints clearly state that plan.yaml, features.yaml, tech.yaml,
+          and scenarios.yaml come from the issue STM.
+        self_test: >
+          Read updated intent.yaml — grep for "roadmap/epics" — verify it returns zero
+          matches in path constraints (may still appear in narrative context, which is acceptable).
+
+      - description: >
+          Rebake implement-epic SKILL.md from updated intent.yaml.
+        files:
+          - path: "core/components/recipes/implement-epic/SKILL.md"
+            action: "modify"
+            details: >
+              Run /create-recipe --rebake implement-epic.
+              The rebake will produce an updated SKILL.md where pre-flight reads:
+                artifact_base = "{stm_base}/{issue}/context/design"
+                plan_yaml_path      = "{artifact_base}/plan.yaml"
+                features_yaml_path  = "{artifact_base}/features.yaml"
+                scenarios_yaml_path = "{artifact_base}/scenarios.yaml"
+                tech_yaml_path      = "{artifact_base}/tech.yaml"
+              architecture_yaml_path and quality_standards_path remain sourced from
+              {product_base}/architecture/ — unchanged.
+              Step 1 (Build Context) JSON contract is updated to pass the corrected
+              artifact paths to tech-designer.
+        expected_outcome: >
+          SKILL.md pre-flight derives all four design artifact paths from issue STM,
+          not from product epics. implement-epic can now find all prepare-implementation
+          outputs without any manual bridging.
+        self_test: >
+          Read updated SKILL.md pre-flight — grep for "roadmap/epics" — must return
+          zero matches. Verify artifact_base is set from stm_base+issue path.
+          Verify Step 1 JSON contract passes corrected paths to tech-designer.
+
+  alternatives_considered:
+    - approach: >
+        Fix only implement-epic — update its path resolution to read from
+        {stm_base}/{issue}/context/design/ where prepare-implementation already writes.
+        Leave prepare-implementation unchanged.
+      reason_rejected: >
+        Solves the path mismatch but leaves the missing setup problem intact.
+        Users still must run start-feature separately before prepare-implementation.
+        The lock step bug in prepare-implementation also remains, meaning artifacts
+        may never reach LOCKED status regardless of the path fix. Two bugs remain
+        for one fix applied.
+
+    - approach: >
+        Make prepare-implementation copy or symlink its output artifacts into the
+        product epics directory tree where implement-epic currently expects them.
+        Preserve implement-epic unchanged.
+      reason_rejected: >
+        Creates artifact duplication across two directory trees with no single source
+        of truth. Symlinks are fragile across checkouts, CI, and worktrees. The product
+        epics path is a product-planning concern, not an implementation concern — filling
+        it with issue-specific design artifacts (blast radius, baseline tests) pollutes
+        the product directory semantics. This is a workaround that avoids fixing the
+        actual path incoherence.
+
+    - approach: >
+        Add a new bridging recipe/step between prepare-implementation and implement-epic
+        that reads from context/design/ and writes to product epics path (or vice versa).
+      reason_rejected: >
+        Overengineered. The problem is a path mismatch in two existing recipes — adding
+        a third recipe to bridge them introduces an extra invocation step and a new failure
+        surface without removing the underlying incoherence. Users would need to know to
+        run the bridge recipe or it would be silently skipped.
+
+    - approach: >
+        Change prepare-implementation's output to write artifacts directly to the product
+        epics path ({product_base}/roadmap/epics/{epic_id}/) to match what implement-epic
+        expects, leaving implement-epic unchanged.
+      reason_rejected: >
+        Regresses the TDD redesign (#183). The issue STM (context/design/) was specifically
+        chosen to co-locate issue-level working context with implementation state. Writing
+        design artifacts to the product epics tree severs that co-location, removes blast
+        radius and baseline test artifacts from issue context, and makes the STM incomplete.
+
+  risks:
+    - risk: >
+        Rebaking implement-epic changes behavior for the entire epic workflow, not just
+        the path resolution. A poorly authored rebake could drop constraints or alter
+        the TDD loop structure.
+      mitigation: >
+        Diff the rebaked SKILL.md against the original before accepting. Verify that
+        only the pre-flight path block and Step 1 contract changed — all other steps
+        (eval-generator, test-writer, code-builder, judge, quality-auditor) must be
+        structurally identical. The intent.yaml change is scoped to path constraints only.
+      severity: "high"
+
+    - risk: >
+        Existing runs of prepare-implementation that wrote artifacts to context/design/
+        may have plan.yaml in DRAFT state (due to the lock step bug). implement-epic
+        will hard-halt on C1 (status != LOCKED) even after the path fix.
+      mitigation: >
+        The fix must include correcting the lock step path in prepare-implementation.
+        Any existing DRAFT artifacts at context/design/ must be manually locked (set
+        status: LOCKED) or prepare-implementation must be re-run for those issues after
+        the fix is deployed.
+      severity: "high"
+
+    - risk: >
+        Adding Phase 0 setup to prepare-implementation may conflict with users who
+        already ran start-feature before invoking prepare-implementation. Double branch
+        creation or duplicate issue creation could corrupt the working context.
+      mitigation: >
+        The setup phase must be idempotent. Branch creation should use the same
+        existence check as repo-orchestrator in start-feature (switch if exists, create
+        if absent). Issue resolution must check for an existing open issue before creating
+        a new one. STM directory initialization is always safe with mkdir -p.
+      severity: "medium"
+
+    - risk: >
+        architecture.yaml and quality-standards.yaml paths in implement-epic are product-level
+        and should NOT be changed to the issue STM path. If the rebake incorrectly moves
+        these paths, the quality gate will break for all features.
+      mitigation: >
+        The intent.yaml change must explicitly distinguish the four design artifacts
+        (issue-STM-sourced) from the two architecture artifacts (product-base-sourced).
+        Review the rebaked SKILL.md to confirm architecture_yaml_path and
+        quality_standards_path still reference {product_base}/architecture/.
+      severity: "medium"
+
+    - risk: >
+        The fix changes where implement-epic reads artifacts, so any existing documentation,
+        ADRs, or operator runbooks referencing the old product epics path for implementation
+        artifacts will become stale.
+      mitigation: >
+        Search docs/ and core/components/memory/ for references to
+        {product_base}/roadmap/epics/ in the context of implement-epic inputs and
+        update any found references as part of the same PR.
+      severity: "low"
+
+  affected_files:
+    - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+      role: "Source of truth for prepare-implementation constraints — drives SKILL.md via rebake"
+      change_needed: >
+        Add setup phase constraints (issue resolution, branch creation, STM init).
+        Fix artifact lock path constraint to reference context/design/ subdirectory.
+        Add corresponding failure conditions and a setup scenario.
+
+    - path: "core/components/recipes/prepare-implementation/SKILL.md"
+      role: "Compiled recipe artifact — orchestrates the full prepare-implementation workflow"
+      change_needed: >
+        Rebake from updated intent.yaml. Expected delta: new Phase 0 — Setup section,
+        corrected Step 20 lock paths.
+
+    - path: "core/components/recipes/implement-epic/reference/intent.yaml"
+      role: "Source of truth for implement-epic constraints — drives SKILL.md via rebake"
+      change_needed: >
+        Update artifact path constraints for plan.yaml, features.yaml, tech.yaml,
+        scenarios.yaml to derive from {stm_base}/{issue}/context/design/ instead of
+        {product_base}/roadmap/epics/{epic_id}/.
+
+    - path: "core/components/recipes/implement-epic/SKILL.md"
+      role: "Compiled recipe artifact — orchestrates the full implement-epic TDD workflow"
+      change_needed: >
+        Rebake from updated intent.yaml. Expected delta: pre-flight artifact_base and
+        four derived paths updated; Step 1 JSON contract paths updated. All other
+        steps unchanged.
