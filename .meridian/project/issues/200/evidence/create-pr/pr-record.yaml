@@ -1,0 +1,7 @@
+pr:
+  number: 201
+  url: "https://github.com/kapilvirenahuja/meridian-os/pull/201"
+  title: "feat(quality-check): add LTM-driven quality assessment framework with 11-domain KB"
+  target: main
+  issue: 200
+  state: open

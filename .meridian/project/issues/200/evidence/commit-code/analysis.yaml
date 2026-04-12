@@ -1,0 +1,173 @@
+branch:
+  name: feature/200-quality-check-skill
+  issue: 200
+  is_hotfix: false
+
+change_summary:
+  total_files: 52
+  staged: 0
+  unstaged: 1
+  untracked: 51
+
+groups:
+  - name: "quality-check skill and KB implementation"
+    type: feat
+    scope: quality-check
+    issue: 200
+    confidence: high
+    subject: "add quality-check skill with 11-dimension KB and assessment templates"
+    files:
+      # Skill files
+      - path: core/components/skills/quality-check/SKILL.md
+        description: New quality-check skill definition
+      - path: core/components/skills/quality-check/reference/all-requirements.md
+        description: Skill requirements reference
+      - path: core/components/skills/quality-check/reference/subagent-prompts.md
+        description: Subagent prompts for 11 parallel explore agents
+      - path: core/components/skills/quality-check/templates/assessment-data.json
+        description: Assessment data output template
+      - path: core/components/skills/quality-check/templates/assessment-report.html
+        description: HTML assessment report template
+      # KB root
+      - path: core/components/memory/knowledge/quality/_index.md
+        description: Quality KB category index
+      # KB — architecture
+      - path: core/components/memory/knowledge/quality/architecture/_index.md
+        description: Architecture dimension index
+      - path: core/components/memory/knowledge/quality/architecture/api-design-scalability.md
+        description: API design and scalability standards
+      - path: core/components/memory/knowledge/quality/architecture/dependency-management.md
+        description: Dependency management standards
+      - path: core/components/memory/knowledge/quality/architecture/separation-of-concerns.md
+        description: Separation of concerns standards
+      # KB — backend
+      - path: core/components/memory/knowledge/quality/backend/_index.md
+        description: Backend dimension index
+      - path: core/components/memory/knowledge/quality/backend/api-design-validation.md
+        description: Backend API design and validation standards
+      - path: core/components/memory/knowledge/quality/backend/async-error-handling.md
+        description: Async and error handling standards
+      - path: core/components/memory/knowledge/quality/backend/database-caching.md
+        description: Database and caching standards
+      # KB — code
+      - path: core/components/memory/knowledge/quality/code/_index.md
+        description: Code quality dimension index
+      - path: core/components/memory/knowledge/quality/code/complexity-structure.md
+        description: Complexity and structure standards
+      - path: core/components/memory/knowledge/quality/code/error-handling-patterns.md
+        description: Error handling pattern standards
+      - path: core/components/memory/knowledge/quality/code/linting-formatting.md
+        description: Linting and formatting standards
+      - path: core/components/memory/knowledge/quality/code/naming-conventions.md
+        description: Naming convention standards
+      # KB — data
+      - path: core/components/memory/knowledge/quality/data/_index.md
+        description: Data dimension index
+      - path: core/components/memory/knowledge/quality/data/migrations-versioning.md
+        description: Migrations and versioning standards
+      - path: core/components/memory/knowledge/quality/data/privacy-compliance.md
+        description: Privacy and compliance standards
+      - path: core/components/memory/knowledge/quality/data/schema-design.md
+        description: Schema design standards
+      # KB — documentation
+      - path: core/components/memory/knowledge/quality/documentation/_index.md
+        description: Documentation dimension index
+      - path: core/components/memory/knowledge/quality/documentation/api-architecture-docs.md
+        description: API and architecture documentation standards
+      - path: core/components/memory/knowledge/quality/documentation/developer-onboarding.md
+        description: Developer onboarding documentation standards
+      # KB — frontend
+      - path: core/components/memory/knowledge/quality/frontend/_index.md
+        description: Frontend dimension index
+      - path: core/components/memory/knowledge/quality/frontend/accessibility-performance.md
+        description: Accessibility and performance standards
+      - path: core/components/memory/knowledge/quality/frontend/component-architecture.md
+        description: Component architecture standards
+      - path: core/components/memory/knowledge/quality/frontend/state-management-patterns.md
+        description: State management pattern standards
+      # KB — operations
+      - path: core/components/memory/knowledge/quality/operations/_index.md
+        description: Operations dimension index
+      - path: core/components/memory/knowledge/quality/operations/cicd-quality-gates.md
+        description: CI/CD quality gates standards
+      - path: core/components/memory/knowledge/quality/operations/deployment-incident-response.md
+        description: Deployment and incident response standards
+      - path: core/components/memory/knowledge/quality/operations/monitoring-alerting.md
+        description: Monitoring and alerting standards
+      # KB — performance
+      - path: core/components/memory/knowledge/quality/performance/_index.md
+        description: Performance dimension index
+      - path: core/components/memory/knowledge/quality/performance/load-testing-profiling.md
+        description: Load testing and profiling standards
+      - path: core/components/memory/knowledge/quality/performance/resource-optimization.md
+        description: Resource optimization standards
+      - path: core/components/memory/knowledge/quality/performance/slos-reliability.md
+        description: SLOs and reliability standards
+      # KB — security
+      - path: core/components/memory/knowledge/quality/security/_index.md
+        description: Security dimension index
+      - path: core/components/memory/knowledge/quality/security/auth-data-protection.md
+        description: Authentication and data protection standards
+      - path: core/components/memory/knowledge/quality/security/owasp-secure-coding.md
+        description: OWASP and secure coding standards
+      - path: core/components/memory/knowledge/quality/security/secrets-vulnerability-mgmt.md
+        description: Secrets and vulnerability management standards
+      # KB — tech-debt
+      - path: core/components/memory/knowledge/quality/tech-debt/_index.md
+        description: Tech debt dimension index
+      - path: core/components/memory/knowledge/quality/tech-debt/accepted-vs-unaccepted.md
+        description: Accepted vs unaccepted tech debt standards
+      - path: core/components/memory/knowledge/quality/tech-debt/debt-register-governance.md
+        description: Debt register and governance standards
+      - path: core/components/memory/knowledge/quality/tech-debt/fowler-quadrant.md
+        description: Fowler quadrant classification standards
+      # KB — testing
+      - path: core/components/memory/knowledge/quality/testing/_index.md
+        description: Testing dimension index
+      - path: core/components/memory/knowledge/quality/testing/coverage-test-patterns.md
+        description: Coverage and test pattern standards
+      - path: core/components/memory/knowledge/quality/testing/integration-e2e-testing.md
+        description: Integration and E2E testing standards
+      - path: core/components/memory/knowledge/quality/testing/unit-testing.md
+        description: Unit testing standards
+      # Knowledge index update
+      - path: core/components/memory/knowledge/_index.md
+        description: Updated knowledge index to register quality/ category
+
+  - name: "issue 200 STM planning and feature-start evidence"
+    type: chore
+    scope: stm
+    issue: 200
+    confidence: high
+    subject: "record start-feature-planning evidence and planning artifacts for #200"
+    files:
+      - path: .meridian/project/issues/200/evidence/start-feature-planning/branch-result.yaml
+        description: Branch creation result from start-feature-planning
+      - path: .meridian/project/issues/200/evidence/start-feature-planning/issue-resolution.yaml
+        description: Issue resolution record from start-feature-planning
+      - path: .meridian/project/issues/200/evidence/start-feature-planning/20260412-120000.md
+        description: Start-feature-planning checkpoint evidence
+      - path: .meridian/project/issues/200/checkpoint/start-feature-planning/20260412-120000.md
+        description: Start-feature-planning checkpoint record
+      - path: .meridian/project/issues/200/planning/spec.md
+        description: Issue 200 implementation spec
+      - path: .meridian/project/issues/200/planning/tasks.md
+        description: Issue 200 task breakdown
+      - path: .meridian/project/issues/200/planning/verify.md
+        description: Issue 200 verification criteria
+      - path: .meridian/project/issues/200/status/ship.json
+        description: Issue 200 ship status
+      - path: .meridian/project/issues/_pending/start-feature-planning/args.yaml
+        description: Pending start-feature-planning args artifact
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+notes:
+  - "Branch signal confirms single issue: #200. All source changes (skill + KB) are directly part of the quality-check skill implementation and belong in one feat commit."
+  - "STM/evidence artifacts are operational records, not feature source — split into a separate chore(stm) commit per convention."
+  - "_pending start-feature-planning args.yaml is included in the STM group as it is an operational artifact of the planning workflow."
+  - "No sensitive files, no breaking changes, no hotfix pattern detected."

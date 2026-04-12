@@ -1,0 +1,95 @@
+title: "feat(quality-check): add LTM-driven quality assessment framework with 11-domain KB"
+target_branch: main
+target_confidence: high
+issue: 200
+summary: >
+  Introduces the quality-check skill — an LTM-driven quality assessment framework
+  that launches 11 parallel explore subagents across code, testing, security,
+  architecture, documentation, operations, frontend, backend, data, performance,
+  and tech-debt dimensions. Ships 33 KB knowledge files organized under
+  core/components/memory/knowledge/quality/ across 11 domain subdirectories,
+  a fully-specified SKILL.md with 5-step workflow, subagent prompts, a
+  requirements index, HTML/JSON report templates, and an updated knowledge
+  _index.md registering the new quality/ category.
+
+branch_classification: feature
+commit_count: 4
+files_changed: 61
+
+checklist:
+  - item: "No merge conflicts with main"
+    priority: high
+    trigger: "Universal rule: must-have for all PRs before merging"
+    evidence: "git merge-tree --write-tree main HEAD exited 0 with clean tree hash 08ce6d71effc74c2169e60eb0bdb552680f33ad7. No conflicts."
+    status: pass
+
+  - item: "No secrets committed"
+    priority: high
+    trigger: "Universal rule: must-have for all PRs"
+    evidence: "Pattern scan of all changed files found no credential, token, API key, or private key values. Only a reference to secrets-vulnerability-mgmt.md filename in an index table."
+    status: pass
+
+  - item: "SKILL.md has valid frontmatter (name, description, user-invocable)"
+    priority: high
+    trigger: "skill-frontmatter rule triggered: core/components/skills/quality-check/SKILL.md is new"
+    evidence: "Frontmatter present with name: meridian:quality-check, description: full multi-sentence description, user-invocable: true. Passes."
+    status: pass
+
+  - item: "SKILL.md defines canonical ## Input and ## Output sections"
+    priority: high
+    trigger: "skill-io rule triggered: SKILL.md added — skill contract requires explicit Input and Output sections for calling agents to parse"
+    evidence: "SKILL.md has no top-level ## Input or ## Output sections. Output specification is embedded inside ## Step 5 sub-sections (### Output Path, ### Output Files). Calling agents and recipes rely on these canonical sections to understand the skill contract."
+    status: needs-review
+
+  - item: "SKILL.md has ## Version section with version and category metadata"
+    priority: high
+    trigger: "skill-frontmatter rule: other skills in the framework include a ## Version table for traceability"
+    evidence: "grep for '## Version' in SKILL.md returns no matches. The file does not include a version table, unlike deployed skills (e.g., analyze-pr/SKILL.md has Version: 1.0.0 and Category: analysis)."
+    status: needs-review
+
+  - item: "SKILL.md has ## Constraints section"
+    priority: medium
+    trigger: "skill-constraints rule triggered: new skill should document what it will never do (read-only guarantee, no file modification)"
+    evidence: "No ## Constraints section found. The read-only behavior is documented in a ## Read-Only Guarantee section, which serves the same intent but does not match the canonical section naming used by the quality-rules ruleset."
+    status: needs-review
+
+  - item: "Components synced with core/components/ via /sync-claude"
+    priority: high
+    trigger: "sync-claude rule triggered: core/components/skills/** and core/components/memory/knowledge/** were changed — deployed ~/.claude/ and ~/.meridian/ copies must be updated"
+    evidence: "61 files changed under core/components/. No evidence in commits or STM that /sync-claude was run on this branch. If merged without sync, the quality-check skill and 33 KB files will not be available globally."
+    status: needs-review
+
+  - item: "Feature documented — knowledge _index.md updated"
+    priority: high
+    trigger: "feat-documented rule triggered: new feature (feat: commit) must update documentation"
+    evidence: "core/components/memory/knowledge/_index.md updated with quality/ row describing all 11 dimensions and 33 files. Passes."
+    status: pass
+
+  - item: "Knowledge files follow consistent structure across 11 domains"
+    priority: medium
+    trigger: "docs-consistent rule: 33 new .md knowledge files added — internal consistency matters for subagent parsing reliability"
+    evidence: "All 11 domain _index.md files present. Each domain has 3 knowledge files with consistent ID-prefix scheme (CODE, TEST, SEC, ARCH, DOC, OPS, FE, BE, DATA, PERF, DEBT). File sizes are uniform (52-74 lines). Structure is consistent."
+    status: pass
+
+  - item: ".gitignore exception for quality/data/ knowledge directory"
+    priority: medium
+    trigger: "config-valid rule: .gitignore changed — the data/ exclusion rule would swallow core/components/memory/knowledge/quality/data/ without the new exception"
+    evidence: "!core/components/memory/knowledge/quality/data/ added to .gitignore. Pattern mirrors the existing architecture/data/ exception. Correct and necessary."
+    status: pass
+
+  - item: "Consider ADR for quality-check skill architecture (11-subagent parallel pattern)"
+    priority: low
+    trigger: "feat-adr rule (nice-to-have): large new capability introducing a new pattern (batched parallel subagents + KB-indexed quality profiles) that future contributors should understand as a deliberate design decision"
+    evidence: "No ADR added. The parallel-subagent-batch pattern (4+4+3) and QP-level calibration are non-obvious design choices. An ADR would make the rationale durable. This is nice-to-have, not blocking."
+    status: needs-review
+
+blocking_issues:
+  - "skill-io: SKILL.md lacks canonical ## Input and ## Output sections — calling agents cannot parse the skill contract reliably"
+  - "sync-claude: No evidence that /sync-claude was run — quality-check skill and 33 KB files may not be deployed to global ~/.claude/ and ~/.meridian/"
+
+ready: false
+readiness_note: >
+  Two items require resolution before merge: (1) add ## Input and ## Output sections
+  to SKILL.md to complete the skill contract, and (2) confirm /sync-claude has been
+  run or run it before merging. The ## Version section and ## Constraints rename are
+  minor but should be addressed for framework consistency. ADR is optional.
