@@ -4,10 +4,10 @@
   "started_at": "2026-04-12T00:00:00Z",
   "feature_branch": "fix/198-sync-claude-fork-execution",
   "tasks": {
-    "commit-code": { "status": "in_progress", "started_at": "2026-04-12T00:00:00Z" },
-    "create-pr": { "status": "pending" },
-    "merge-pr": { "status": "pending" },
-    "scenario-evals": { "status": "pending" },
-    "write-evidence": { "status": "pending" }
+    "commit-code": { "status": "completed", "completed_at": "2026-04-12T00:00:00Z" },
+    "create-pr": { "status": "completed", "completed_at": "2026-04-12T00:00:00Z" },
+    "merge-pr": { "status": "completed", "completed_at": "2026-04-12T00:00:00Z" },
+    "scenario-evals": { "status": "completed", "completed_at": "2026-04-12T00:00:00Z" },
+    "write-evidence": { "status": "completed", "completed_at": "2026-04-12T00:00:00Z" }
   }
 }
