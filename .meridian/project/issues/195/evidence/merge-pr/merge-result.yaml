@@ -1,0 +1,7 @@
+status: merged
+pr_number: 197
+merge_sha: a12b780358b8da4fd5e4ccb932b322fe6acb74c4
+base_branch: main
+branch_deleted: true
+feature_branch: fix/195-capture-learning-zero-knowledge
+merged_at: "2026-04-12"
