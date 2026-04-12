@@ -1,0 +1,2 @@
+input_type: title
+value: "fix: sync-claude fork execution produces summary instead of running sync script"
