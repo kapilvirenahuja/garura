@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meridian Quality Assessment</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ── Reset & tokens ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #f4f6f9;
+      --surface:    #ffffff;
+      --surface-2:  #f0f2f5;
+      --border:     #e2e6ea;
+      --text:       #1a2332;
+      --text-muted: #6b7a90;
+      --radius:     8px;
+      --shadow:     0 1px 4px rgba(0,0,0,.08);
+      --shadow-md:  0 4px 16px rgba(0,0,0,.10);
+
+      /* grade colours */
+      --grade-a:    #16a34a;
+      --grade-a-bg: #dcfce7;
+      --grade-b:    #2563eb;
+      --grade-b-bg: #dbeafe;
+      --grade-c:    #d97706;
+      --grade-c-bg: #fef3c7;
+      --grade-d:    #ea580c;
+      --grade-d-bg: #ffedd5;
+      --grade-e:    #dc2626;
+      --grade-e-bg: #fee2e2;
+
+      /* status colours */
+      --done:       #16a34a;
+      --ongoing:    #2563eb;
+      --not-done:   #dc2626;
+      --na:         #9ca3af;
+
+      /* quadrant colours */
+      --q-dp:       #bbf7d0;  /* deliberate prudent   – light green */
+      --q-dr:       #fecaca;  /* deliberate reckless  – light red */
+      --q-ip:       #bfdbfe;  /* inadvertent prudent  – light blue */
+      --q-ir:       #fed7aa;  /* inadvertent reckless – light orange */
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:         #0f1117;
+        --surface:    #1c1f26;
+        --surface-2:  #252831;
+        --border:     #2e3340;
+        --text:       #e8ecf1;
+        --text-muted: #8a95a3;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Layout ──────────────────────────────────────────────────────── */
+    .page-wrap   { max-width: 1280px; margin: 0 auto; padding: 24px 16px 64px; }
+    .grid-2      { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3      { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-auto   { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ── Card ────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────── */
+    .report-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      padding: 28px 28px 20px;
+      margin-bottom: 24px;
+    }
+    .report-header h1 { font-size: 22px; font-weight: 700; }
+    .report-header .meta {
+      display: flex; flex-wrap: wrap; gap: 20px;
+      margin-top: 10px; font-size: 13px; color: var(--text-muted);
+    }
+    .report-header .meta span b { color: var(--text); }
+
+    .overall-score {
+      display: flex; align-items: center; gap: 24px;
+      margin-top: 20px; padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .score-circle {
+      width: 80px; height: 80px; border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-weight: 700; flex-shrink: 0;
+      border: 3px solid currentColor;
+    }
+    .score-circle .big  { font-size: 28px; line-height: 1; }
+    .score-circle .lbl  { font-size: 11px; opacity: .7; margin-top: 2px; }
+    .score-stats { display: flex; flex-wrap: wrap; gap: 28px; }
+    .score-stat  { text-align: center; }
+    .score-stat .val { font-size: 24px; font-weight: 700; }
+    .score-stat .lbl { font-size: 12px; color: var(--text-muted); }
+
+    /* ── Grade badge ─────────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 6px;
+      font-size: 14px; font-weight: 700; flex-shrink: 0;
+    }
+    .badge-A { background: var(--grade-a-bg); color: var(--grade-a); }
+    .badge-B { background: var(--grade-b-bg); color: var(--grade-b); }
+    .badge-C { background: var(--grade-c-bg); color: var(--grade-c); }
+    .badge-D { background: var(--grade-d-bg); color: var(--grade-d); }
+    .badge-E { background: var(--grade-e-bg); color: var(--grade-e); }
+
+    /* grade colour helper applied to score-circle */
+    .grade-A { color: var(--grade-a); background: var(--grade-a-bg); }
+    .grade-B { color: var(--grade-b); background: var(--grade-b-bg); }
+    .grade-C { color: var(--grade-c); background: var(--grade-c-bg); }
+    .grade-D { color: var(--grade-d); background: var(--grade-d-bg); }
+    .grade-E { color: var(--grade-e); background: var(--grade-e-bg); }
+
+    /* ── Compliance bar ──────────────────────────────────────────────── */
+    .bar-wrap { background: var(--surface-2); border-radius: 99px; height: 8px; overflow: hidden; margin: 8px 0; }
+    .bar-fill {
+      height: 100%; border-radius: 99px;
+      transition: width .3s ease;
+    }
+    .bar-fill.pct-high   { background: var(--grade-a); }
+    .bar-fill.pct-good   { background: var(--grade-b); }
+    .bar-fill.pct-mid    { background: var(--grade-c); }
+    .bar-fill.pct-low    { background: var(--grade-d); }
+    .bar-fill.pct-none   { background: var(--grade-e); }
+
+    /* ── Status pill ─────────────────────────────────────────────────── */
+    .status-counts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600; padding: 2px 8px;
+      border-radius: 99px; white-space: nowrap;
+    }
+    .pill-done     { background: #dcfce7; color: var(--done); }
+    .pill-ongoing  { background: #dbeafe; color: var(--ongoing); }
+    .pill-not-done { background: #fee2e2; color: var(--not-done); }
+    .pill-na       { background: #f3f4f6; color: var(--na); }
+
+    /* ── Category card ───────────────────────────────────────────────── */
+    .cat-header {
+      display: flex; align-items: flex-start; gap: 12px;
+      margin-bottom: 10px;
+    }
+    .cat-header .info { flex: 1; min-width: 0; }
+    .cat-header h3 { font-size: 15px; font-weight: 600; }
+    .cat-header .dim { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .compliance-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
+
+    .cat-summary { font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
+
+    /* collapse / expand */
+    .findings-toggle {
+      margin-top: 12px; width: 100%; text-align: left;
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 12px; font-size: 12px; color: var(--text-muted);
+      cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    }
+    .findings-toggle:hover { background: var(--surface-2); }
+    .findings-toggle .arrow { transition: transform .2s; }
+    .findings-toggle.open .arrow { transform: rotate(180deg); }
+
+    .findings-list {
+      display: none; margin-top: 8px;
+      border: 1px solid var(--border); border-radius: 6px;
+      overflow: hidden;
+    }
+    .findings-list.open { display: block; }
+
+    .finding-row {
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      gap: 8px; align-items: start;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .finding-row:last-child { border-bottom: none; }
+    .finding-row:nth-child(even) { background: var(--surface-2); }
+
+    .finding-id   { font-weight: 700; color: var(--text-muted); font-family: monospace; }
+    .finding-text { color: var(--text); }
+    .finding-evidence { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* inline status toggle */
+    .status-select {
+      font-size: 11px; padding: 2px 6px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); cursor: pointer; white-space: nowrap;
+    }
+
+    /* ── Spider chart section ────────────────────────────────────────── */
+    .chart-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .chart-wrap { position: relative; max-width: 520px; margin: 0 auto; }
+
+    /* ── Tech Debt section ───────────────────────────────────────────── */
+    .quadrant-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 4px;
+      border-radius: 8px; overflow: hidden;
+      height: 220px;
+    }
+    .quadrant {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 12px; text-align: center;
+    }
+    .quadrant .q-count { font-size: 28px; font-weight: 700; }
+    .quadrant .q-label { font-size: 11px; font-weight: 600; margin-top: 4px; line-height: 1.3; }
+    .quadrant .q-sub   { font-size: 10px; opacity: .7; margin-top: 2px; }
+
+    .q-dp { background: var(--q-dp); color: #14532d; }
+    .q-dr { background: var(--q-dr); color: #7f1d1d; }
+    .q-ip { background: var(--q-ip); color: #1e3a8a; }
+    .q-ir { background: var(--q-ir); color: #7c2d12; }
+
+    .quadrant-axes {
+      display: grid; grid-template-columns: 1fr 1fr;
+      font-size: 11px; text-align: center; color: var(--text-muted);
+      margin-top: 6px;
+    }
+    .axis-label { padding: 2px; }
+
+    .debt-items { margin-top: 16px; }
+    .debt-item {
+      display: grid; grid-template-columns: 60px 1fr 110px;
+      gap: 8px; align-items: start;
+      padding: 8px 12px; border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .debt-item:last-child { border-bottom: none; }
+    .debt-item:nth-child(even) { background: var(--surface-2); }
+    .debt-id    { font-family: monospace; color: var(--text-muted); }
+    .debt-quad  { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 4px; text-align: center; }
+    .dq-dp { background: var(--q-dp); color: #14532d; }
+    .dq-dr { background: var(--q-dr); color: #7f1d1d; }
+    .dq-ip { background: var(--q-ip); color: #1e3a8a; }
+    .dq-ir { background: var(--q-ir); color: #7c2d12; }
+
+    /* ── Toolbar ─────────────────────────────────────────────────────── */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+      margin-bottom: 20px;
+    }
+    .toolbar h2 { font-size: 17px; font-weight: 700; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text);
+      transition: background .15s;
+    }
+    .btn:hover { background: var(--surface-2); }
+    .btn-primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .btn-primary:hover { background: #1d4ed8; }
+
+    /* ── Section heading ─────────────────────────────────────────────── */
+    .section-title {
+      font-size: 17px; font-weight: 700; margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 2px solid var(--border);
+    }
+
+    /* ── Toast ───────────────────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #1a2332; color: #fff; border-radius: 8px;
+      padding: 10px 18px; font-size: 13px;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity .25s, transform .25s;
+      pointer-events: none; z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- HEADER -->
+  <div class="report-header" id="report-header">
+    <h1 id="report-title">Meridian Quality Assessment</h1>
+    <div class="meta">
+      <span><b id="meta-timestamp">—</b> Generated</span>
+      <span>Repository: <b id="meta-repo">—</b></span>
+      <span>Stack: <b id="meta-stack">—</b></span>
+      <span>Profile: <b id="meta-profile">—</b></span>
+    </div>
+    <div class="overall-score">
+      <div class="score-circle grade-E" id="overall-circle">
+        <span class="big" id="overall-grade">E</span>
+        <span class="lbl">Grade</span>
+      </div>
+      <div class="score-stats">
+        <div class="score-stat">
+          <div class="val" id="stat-compliance">0%</div>
+          <div class="lbl">Compliance</div>
+        </div>
+        <div class="score-stat">
+          <div class="val" id="stat-score">0.0</div>
+          <div class="lbl">Score</div>
+        </div>
+        <div class="score-stat">
+          <div class="val" id="stat-assessed">0</div>
+          <div class="lbl">Assessed</div>
+        </div>
+        <div class="score-stat">
+          <div class="val" id="stat-categories">0</div>
+          <div class="lbl">Categories</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPIDER CHART -->
+  <div class="chart-section">
+    <p class="card-title">Quality Profile — Radar Overview</p>
+    <div class="chart-wrap">
+      <canvas id="spiderChart" height="420"></canvas>
+    </div>
+  </div>
+
+  <!-- TOP FINDINGS / SYSTEMIC ISSUES -->
+  <div class="grid-2" style="margin-bottom:24px" id="findings-summary-section">
+    <div class="card" id="systemic-issues-card">
+      <p class="card-title">Systemic Issues</p>
+      <ul id="systemic-list" style="list-style:none;padding:0;font-size:13px;color:var(--text-muted);">
+        <li>None identified</li>
+      </ul>
+    </div>
+    <div class="card" id="top-findings-card">
+      <p class="card-title">Top Findings</p>
+      <ul id="top-findings-list" style="list-style:none;padding:0;font-size:13px;color:var(--text-muted);">
+        <li>None identified</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CATEGORY CARDS -->
+  <div class="toolbar">
+    <h2>Categories</h2>
+    <button class="btn btn-primary" onclick="exportMarkdown()">Export Markdown</button>
+  </div>
+  <div class="grid-auto" id="category-grid"></div>
+
+  <!-- TECH DEBT SECTION -->
+  <div style="margin-top:32px">
+    <p class="section-title">Tech Debt Governance</p>
+    <div class="grid-2">
+      <div class="card">
+        <p class="card-title">Fowler Quadrant Distribution</p>
+        <div class="quadrant-grid" id="quadrant-grid">
+          <div class="quadrant q-dp">
+            <div class="q-count" id="q-dp">0</div>
+            <div class="q-label">Deliberate</div>
+            <div class="q-sub">Prudent</div>
+          </div>
+          <div class="quadrant q-dr">
+            <div class="q-count" id="q-dr">0</div>
+            <div class="q-label">Deliberate</div>
+            <div class="q-sub">Reckless</div>
+          </div>
+          <div class="quadrant q-ip">
+            <div class="q-count" id="q-ip">0</div>
+            <div class="q-label">Inadvertent</div>
+            <div class="q-sub">Prudent</div>
+          </div>
+          <div class="quadrant q-ir">
+            <div class="q-count" id="q-ir">0</div>
+            <div class="q-label">Inadvertent</div>
+            <div class="q-sub">Reckless</div>
+          </div>
+        </div>
+        <div class="quadrant-axes">
+          <div class="axis-label">Deliberate ←</div>
+          <div class="axis-label">→ Inadvertent</div>
+          <div class="axis-label">Prudent ↑</div>
+          <div class="axis-label">↓ Reckless</div>
+        </div>
+      </div>
+      <div class="card">
+        <p class="card-title">Debt Items</p>
+        <div id="debt-items-wrap">
+          <div style="color:var(--text-muted);font-size:13px">No tracked debt items.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<div id="toast"></div>
+
+<!-- DATA INJECTION — skill replaces {{DATA}} at runtime -->
+<script>
+const assessmentData = {{DATA}};
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════════════ */
+const STORAGE_KEY = 'meridian-qa-overrides';
+let overrides = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+/* deep-clone data and apply persisted overrides */
+let data = JSON.parse(JSON.stringify(assessmentData));
+applyOverrides();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════════════════ */
+function gradeClass(g) { return 'grade-' + g; }
+function badgeClass(g)  { return 'badge badge-' + g; }
+
+function barClass(pct) {
+  if (pct >= 80) return 'pct-high';
+  if (pct >= 60) return 'pct-good';
+  if (pct >= 40) return 'pct-mid';
+  if (pct >= 20) return 'pct-low';
+  return 'pct-none';
+}
+
+function gradeColor(g) {
+  return { A: '#16a34a', B: '#2563eb', C: '#d97706', D: '#ea580c', E: '#dc2626' }[g] || '#9ca3af';
+}
+
+function computeCategory(catKey) {
+  const reqs = data.requirements.filter(r => r.category === catKey);
+  const eligible = reqs.filter(r => r.status !== 'n_a');
+  const done     = reqs.filter(r => r.status === 'done').length;
+  const ongoing  = reqs.filter(r => r.status === 'ongoing').length;
+  const notDone  = reqs.filter(r => r.status === 'not_done').length;
+  const na       = reqs.filter(r => r.status === 'n_a').length;
+  const compliance = eligible.length ? (done / eligible.length) * 100 : 0;
+  const score      = eligible.length ? ((done + ongoing * 0.5) / eligible.length) * 100 : 0;
+  const grade = gradeFromCompliance(compliance);
+  return { done, ongoing, notDone, na, compliance, score, grade };
+}
+
+function gradeFromCompliance(pct) {
+  if (pct >= 80) return 'A';
+  if (pct >= 65) return 'B';
+  if (pct >= 50) return 'C';
+  if (pct >= 30) return 'D';
+  return 'E';
+}
+
+function computeOverall() {
+  const eligible = data.requirements.filter(r => r.status !== 'n_a');
+  const done     = data.requirements.filter(r => r.status === 'done').length;
+  const ongoing  = data.requirements.filter(r => r.status === 'ongoing').length;
+  const compliance = eligible.length ? (done / eligible.length) * 100 : 0;
+  const score      = eligible.length ? ((done + ongoing * 0.5) / eligible.length) * 100 : 0;
+  return { compliance, score, grade: gradeFromCompliance(compliance), total: data.requirements.length };
+}
+
+function applyOverrides() {
+  Object.entries(overrides).forEach(([id, status]) => {
+    const req = data.requirements.find(r => r.id === id);
+    if (req) req.status = status;
+  });
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════════════════════════════ */
+function renderHeader() {
+  const m = data.metadata;
+  document.getElementById('report-title').textContent = m.title || 'Meridian Quality Assessment';
+  document.getElementById('meta-timestamp').textContent = m.timestamp || '—';
+  document.getElementById('meta-repo').textContent = m.repository || '—';
+  document.getElementById('meta-stack').textContent =
+    [m.stack?.frontend, m.stack?.backend].filter(Boolean).join(' / ') || '—';
+  document.getElementById('meta-profile').textContent = m.quality_profile?.source || '—';
+
+  const ov = computeOverall();
+  const circle = document.getElementById('overall-circle');
+  circle.className = 'score-circle ' + gradeClass(ov.grade);
+  document.getElementById('overall-grade').textContent = ov.grade;
+  document.getElementById('stat-compliance').textContent = ov.compliance.toFixed(1) + '%';
+  document.getElementById('stat-score').textContent = ov.score.toFixed(1);
+  document.getElementById('stat-assessed').textContent = ov.total;
+  document.getElementById('stat-categories').textContent = m.categories_assessed || Object.keys(data.categories).length;
+
+  /* systemic issues + top findings */
+  const sysEl = document.getElementById('systemic-list');
+  const tfEl  = document.getElementById('top-findings-list');
+
+  const sysIssues = data.overall?.systemic_issues || [];
+  sysEl.innerHTML = sysIssues.length
+    ? sysIssues.map(i => `<li style="margin-bottom:4px">• ${esc(i)}</li>`).join('')
+    : '<li style="color:var(--text-muted)">None identified</li>';
+
+  const topFindings = data.overall?.top_findings || [];
+  tfEl.innerHTML = topFindings.length
+    ? topFindings.map(f => `<li style="margin-bottom:4px">• ${esc(f)}</li>`).join('')
+    : '<li style="color:var(--text-muted)">None identified</li>';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SPIDER CHART
+═══════════════════════════════════════════════════════════════════════ */
+let spiderChart = null;
+const SPIDER_KEYS   = ['code_quality','testing','security','architecture','documentation',
+                       'operations','frontend','backend','data_privacy','performance','tech_debt'];
+const SPIDER_LABELS = ['Code','Testing','Security','Architecture','Documentation',
+                       'Operations','Frontend','Backend','Data','Performance','Tech Debt'];
+
+function renderSpider() {
+  const computed = SPIDER_KEYS.map(k => {
+    const c = computeCategory(k);
+    return parseFloat(c.compliance.toFixed(1));
+  });
+
+  if (spiderChart) { spiderChart.destroy(); }
+
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridColor = isDark ? 'rgba(255,255,255,.12)' : 'rgba(0,0,0,.08)';
+  const labelColor = isDark ? '#8a95a3' : '#6b7a90';
+
+  spiderChart = new Chart(document.getElementById('spiderChart'), {
+    type: 'radar',
+    data: {
+      labels: SPIDER_LABELS,
+      datasets: [{
+        label: 'Compliance %',
+        data: computed,
+        backgroundColor: 'rgba(37,99,235,.15)',
+        borderColor: '#2563eb',
+        borderWidth: 2,
+        pointBackgroundColor: computed.map(v => gradeColor(gradeFromCompliance(v))),
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { stepSize: 25, color: labelColor, backdropColor: 'transparent', font: { size: 11 } },
+          grid: { color: gridColor },
+          angleLines: { color: gridColor },
+          pointLabels: { color: labelColor, font: { size: 12 } }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${ctx.raw}%`
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CATEGORY CARDS
+═══════════════════════════════════════════════════════════════════════ */
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function renderCategories() {
+  const grid = document.getElementById('category-grid');
+  grid.innerHTML = '';
+
+  Object.entries(data.categories).forEach(([key, cat]) => {
+    const computed = computeCategory(key);
+    const catReqs  = data.requirements.filter(r => r.category === key);
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.catKey = key;
+
+    const barCls  = barClass(computed.compliance);
+    const pctStr  = computed.compliance.toFixed(1) + '%';
+
+    card.innerHTML = `
+      <div class="cat-header">
+        <div class="info">
+          <h3>${esc(cat.name)}</h3>
+          <div class="dim">${esc(cat.qp_dimension)}${cat.qp_level != null ? ' · L' + cat.qp_level : ''}</div>
+        </div>
+        <span class="${badgeClass(computed.grade)}">${computed.grade}</span>
+      </div>
+      <div class="compliance-label">
+        <span>Compliance</span>
+        <span class="cat-pct">${pctStr}</span>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-fill ${barCls} cat-bar" style="width:${computed.compliance.toFixed(1)}%"></div>
+      </div>
+      <div class="status-counts">
+        <span class="status-pill pill-done">✓ <span class="s-done">${computed.done}</span> Done</span>
+        <span class="status-pill pill-ongoing">⟳ <span class="s-ongoing">${computed.ongoing}</span> Ongoing</span>
+        <span class="status-pill pill-not-done">✗ <span class="s-not-done">${computed.notDone}</span> Not Done</span>
+        <span class="status-pill pill-na">— <span class="s-na">${computed.na}</span> N/A</span>
+      </div>
+      ${cat.summary ? `<p class="cat-summary">${esc(cat.summary)}</p>` : ''}
+      ${catReqs.length ? `
+        <button class="findings-toggle" data-cat="${key}">
+          <span>${catReqs.length} requirements</span>
+          <span class="arrow">▾</span>
+        </button>
+        <div class="findings-list" id="findings-${key}">
+          ${catReqs.map(r => renderFindingRow(r)).join('')}
+        </div>
+      ` : ''}
+    `;
+
+    grid.appendChild(card);
+  });
+
+  /* toggle listeners */
+  document.querySelectorAll('.findings-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const list = document.getElementById('findings-' + btn.dataset.cat);
+      const open = list.classList.toggle('open');
+      btn.classList.toggle('open', open);
+    });
+  });
+
+  /* status-select listeners (delegated) */
+  grid.addEventListener('change', e => {
+    if (!e.target.matches('.status-select')) return;
+    const id     = e.target.dataset.id;
+    const status = e.target.value;
+    overrides[id] = status;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
+    const req = data.requirements.find(r => r.id === id);
+    if (req) req.status = status;
+    refreshAll();
+    toast('Status updated & saved.');
+  });
+}
+
+function renderFindingRow(r) {
+  const statuses = ['todo','done','ongoing','not_done','n_a'];
+  const opts = statuses.map(s =>
+    `<option value="${s}" ${r.status === s ? 'selected' : ''}>${statusLabel(s)}</option>`
+  ).join('');
+
+  return `
+    <div class="finding-row">
+      <span class="finding-id">${esc(r.id)}</span>
+      <span>
+        <div class="finding-text">${esc(r.check_item)}</div>
+        ${r.evidence ? `<div class="finding-evidence">${esc(r.evidence)}</div>` : ''}
+        ${r.notes    ? `<div class="finding-evidence">${esc(r.notes)}</div>`    : ''}
+      </span>
+      <select class="status-select" data-id="${esc(r.id)}">${opts}</select>
+    </div>
+  `;
+}
+
+function statusLabel(s) {
+  return { todo:'Todo', done:'Done', ongoing:'Ongoing', not_done:'Not Done', n_a:'N/A' }[s] || s;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TECH DEBT
+═══════════════════════════════════════════════════════════════════════ */
+function renderTechDebt() {
+  const td = data.categories.tech_debt;
+  const qd = td?.quadrant_distribution || {};
+
+  document.getElementById('q-dp').textContent = qd.deliberate_prudent   || 0;
+  document.getElementById('q-dr').textContent = qd.deliberate_reckless  || 0;
+  document.getElementById('q-ip').textContent = qd.inadvertent_prudent  || 0;
+  document.getElementById('q-ir').textContent = qd.inadvertent_reckless || 0;
+
+  const items = td?.debt_items || [];
+  const wrap  = document.getElementById('debt-items-wrap');
+
+  if (!items.length) {
+    wrap.innerHTML = '<div style="color:var(--text-muted);font-size:13px">No tracked debt items.</div>';
+    return;
+  }
+
+  const quadLabel = { deliberate_prudent:'DP', deliberate_reckless:'DR',
+                      inadvertent_prudent:'IP', inadvertent_reckless:'IR' };
+  const quadCls   = { deliberate_prudent:'dq-dp', deliberate_reckless:'dq-dr',
+                      inadvertent_prudent:'dq-ip', inadvertent_reckless:'dq-ir' };
+
+  wrap.innerHTML = `
+    <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
+      ${items.map(item => `
+        <div class="debt-item">
+          <span class="debt-id">${esc(item.id || '—')}</span>
+          <span style="font-size:12px">${esc(item.description || item.title || '—')}</span>
+          <span class="debt-quad ${quadCls[item.quadrant] || ''}">${quadLabel[item.quadrant] || '—'}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   REFRESH (after status change)
+═══════════════════════════════════════════════════════════════════════ */
+function refreshAll() {
+  /* update header scores */
+  const ov = computeOverall();
+  const circle = document.getElementById('overall-circle');
+  circle.className = 'score-circle ' + gradeClass(ov.grade);
+  document.getElementById('overall-grade').textContent = ov.grade;
+  document.getElementById('stat-compliance').textContent = ov.compliance.toFixed(1) + '%';
+  document.getElementById('stat-score').textContent = ov.score.toFixed(1);
+
+  /* update each category card in-place */
+  document.querySelectorAll('#category-grid .card').forEach(card => {
+    const key      = card.dataset.catKey;
+    if (!key) return;
+    const computed = computeCategory(key);
+
+    const badge = card.querySelector('.badge');
+    badge.className = badgeClass(computed.grade);
+    badge.textContent = computed.grade;
+
+    card.querySelector('.cat-pct').textContent = computed.compliance.toFixed(1) + '%';
+    const bar = card.querySelector('.cat-bar');
+    bar.style.width = computed.compliance.toFixed(1) + '%';
+    bar.className = `bar-fill ${barClass(computed.compliance)} cat-bar`;
+
+    card.querySelector('.s-done').textContent     = computed.done;
+    card.querySelector('.s-ongoing').textContent  = computed.ongoing;
+    card.querySelector('.s-not-done').textContent = computed.notDone;
+    card.querySelector('.s-na').textContent       = computed.na;
+  });
+
+  renderSpider();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   EXPORT MARKDOWN
+═══════════════════════════════════════════════════════════════════════ */
+function exportMarkdown() {
+  const m  = data.metadata;
+  const ov = computeOverall();
+  let md = `# ${m.title || 'Meridian Quality Assessment'}\n\n`;
+  md += `**Generated:** ${m.timestamp || '—'}  \n`;
+  md += `**Repository:** ${m.repository || '—'}  \n`;
+  md += `**Overall Grade:** ${ov.grade} | Compliance: ${ov.compliance.toFixed(1)}%  \n\n`;
+  md += `---\n\n## Categories\n\n`;
+
+  Object.entries(data.categories).forEach(([key, cat]) => {
+    const c = computeCategory(key);
+    md += `### ${cat.name} — ${c.grade} (${c.compliance.toFixed(1)}%)\n`;
+    md += `Done: ${c.done} | Ongoing: ${c.ongoing} | Not Done: ${c.notDone} | N/A: ${c.na}\n`;
+    if (cat.summary) md += `\n${cat.summary}\n`;
+    md += '\n';
+  });
+
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'quality-assessment.md';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Markdown exported.');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════════════ */
+function init() {
+  renderHeader();
+  renderSpider();
+  renderCategories();
+  renderTechDebt();
+}
+
+init();
+</script>
+</body>
+</html>

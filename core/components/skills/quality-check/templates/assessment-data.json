@@ -1,0 +1,177 @@
+{
+  "metadata": {
+    "title": "Meridian Quality Assessment",
+    "version": "1.0.0",
+    "timestamp": "{{timestamp}}",
+    "repository": "{{repo_path}}",
+    "stack": {
+      "frontend": "{{detected_frontend}}",
+      "backend": "{{detected_backend}}",
+      "detected": true
+    },
+    "quality_profile": {
+      "source": "quality-standards.yaml|default",
+      "dimensions": {
+        "testing": 3,
+        "code_quality": 3,
+        "documentation": 3,
+        "ci_cd": 3,
+        "observability": 3,
+        "accessibility": 3,
+        "security_testing": 3
+      }
+    },
+    "total_requirements": 268,
+    "categories_assessed": 11
+  },
+  "categories": {
+    "code_quality": {
+      "name": "Code Quality",
+      "qp_dimension": "QP-2",
+      "qp_level": 3,
+      "total_requirements": 30,
+      "status_counts": { "done": 0, "ongoing": 0, "not_done": 0, "n_a": 0 },
+      "compliance": 0.0,
+      "grade": "E",
+      "score": 0.0,
+      "summary": ""
+    },
+    "testing": {
+      "name": "Testing",
+      "qp_dimension": "QP-1",
+      "qp_level": 3,
+      "total_requirements": 26,
+      "status_counts": { "done": 0, "ongoing": 0, "not_done": 0, "n_a": 0 },
+      "compliance": 0.0,
+      "grade": "E",
+      "score": 0.0,
+      "summary": ""
+    },
+    "security": {
+      "name": "Security",
+      "qp_dimension": "QP-7",
+      "qp_level": 3,
+      "total_requirements": 26,
+      "status_counts": { "done": 0, "ongoing": 0, "not_done": 0, "n_a": 0 },
+      "compliance": 0.0,
+      "grade": "E",
+      "score": 0.0,
+      "summary": ""
+    },
+    "architecture": {
+      "name": "Architecture",
+      "qp_dimension": "Universal",
+      "qp_level": null,
+      "total_requirements": 24,
+      "status_counts": { "done": 0, "ongoing": 0, "not_done": 0, "n_a": 0 },
+      "compliance": 0.0,
+      "grade": "E",
+      "score": 0.0,
+      "summary": ""
+    },
+    "documentation": {
+      "name": "Documentation",
+      "qp_dimension": "QP-3",
+      "qp_level": 3,
+      "total_requirements": 16,
+      "status_counts": { "done": 0, "ongoing": 0, "not_done": 0, "n_a": 0 },
+      "compliance": 0.0,
+      "grade": "E",
+      "score": 0.0,
+      "summary": ""
+    },
+    "operations": {
+      "name": "Operations",
+      "qp_dimension": "QP-4/QP-5",
+      "qp_level": null,
+      "total_requirements": 24,
+      "status_counts": { "done": 0, "ongoing": 0, "not_done": 0, "n_a": 0 },
+      "compliance": 0.0,
+      "grade": "E",
+      "score": 0.0,
+      "summary": ""
+    },
+    "frontend": {
+      "name": "Frontend",
+      "qp_dimension": "QP-6",
+      "qp_level": 3,
+      "total_requirements": 26,
+      "status_counts": { "done": 0, "ongoing": 0, "not_done": 0, "n_a": 0 },
+      "compliance": 0.0,
+      "grade": "E",
+      "score": 0.0,
+      "summary": ""
+    },
+    "backend": {
+      "name": "Backend",
+      "qp_dimension": "Universal",
+      "qp_level": null,
+      "total_requirements": 24,
+      "status_counts": { "done": 0, "ongoing": 0, "not_done": 0, "n_a": 0 },
+      "compliance": 0.0,
+      "grade": "E",
+      "score": 0.0,
+      "summary": ""
+    },
+    "data_privacy": {
+      "name": "Data & Privacy",
+      "qp_dimension": "Universal",
+      "qp_level": null,
+      "total_requirements": 24,
+      "status_counts": { "done": 0, "ongoing": 0, "not_done": 0, "n_a": 0 },
+      "compliance": 0.0,
+      "grade": "E",
+      "score": 0.0,
+      "summary": ""
+    },
+    "performance": {
+      "name": "Performance",
+      "qp_dimension": "Universal",
+      "qp_level": null,
+      "total_requirements": 24,
+      "status_counts": { "done": 0, "ongoing": 0, "not_done": 0, "n_a": 0 },
+      "compliance": 0.0,
+      "grade": "E",
+      "score": 0.0,
+      "summary": ""
+    },
+    "tech_debt": {
+      "name": "Tech Debt Governance",
+      "qp_dimension": "Universal",
+      "qp_level": null,
+      "total_requirements": 24,
+      "status_counts": { "done": 0, "ongoing": 0, "not_done": 0, "n_a": 0 },
+      "compliance": 0.0,
+      "grade": "E",
+      "score": 0.0,
+      "summary": "",
+      "debt_items": [],
+      "quadrant_distribution": {
+        "deliberate_prudent": 0,
+        "deliberate_reckless": 0,
+        "inadvertent_prudent": 0,
+        "inadvertent_reckless": 0
+      }
+    }
+  },
+  "requirements": [
+    {
+      "id": "CODE-01",
+      "category": "code_quality",
+      "check_item": "{{check item text}}",
+      "qp_level": "L2",
+      "status": "todo",
+      "score": 0.0,
+      "evidence": "",
+      "notes": ""
+    }
+  ],
+  "overall": {
+    "total_assessed": 268,
+    "compliance": 0.0,
+    "grade": "E",
+    "score": 0.0,
+    "systemic_issues": [],
+    "top_findings": []
+  }
+}
