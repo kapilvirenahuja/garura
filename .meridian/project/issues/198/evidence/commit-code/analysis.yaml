@@ -1,0 +1,46 @@
+recipe: commit-code
+step: analyze-changes
+issue: 198
+branch: fix/198-sync-claude-fork-execution
+analyzed_at: "2026-04-12T12:00:00+0530"
+
+change_groups:
+  - id: G1
+    concern: "sync-claude skill rewrite for fork execution"
+    type: fix
+    scope: sync-claude
+    files:
+      - path: core/components/skills/sync-claude/SKILL.md
+        status: modified
+        description: >
+          Rewrote SKILL.md from documentary style to imperative instructions
+          so fork-mode haiku executes the sync script instead of summarizing it.
+          Also prefixed name field with 'meridian:'.
+    risk: low
+    breaking_changes: false
+
+  - id: G2
+    concern: "STM housekeeping for issue 198"
+    type: chore
+    scope: stm
+    files:
+      - path: .meridian/project/issues/_pending/start-feature/args.yaml
+        status: deleted
+        description: "Removed pending start-feature args (issue resolved to #198)"
+      - path: .meridian/project/issues/198/evidence/start-feature/args.yaml
+        status: untracked
+        description: "Start-feature evidence for issue 198"
+      - path: .meridian/project/issues/198/evidence/start-feature/branch-result.yaml
+        status: untracked
+        description: "Branch creation result for issue 198"
+      - path: .meridian/project/issues/198/status/ship.json
+        status: untracked
+        description: "Ship status tracking for issue 198"
+      - path: .meridian/project/issues/198/evidence/commit-code/
+        status: untracked
+        description: "Commit-code evidence files (this recipe's artifacts)"
+    risk: low
+    breaking_changes: false
+
+sensitive_files_detected: false
+risks: []

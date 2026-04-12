@@ -1,0 +1,8 @@
+issue:
+  number: 198
+  title: "fix: sync-claude fork execution produces summary instead of running sync script"
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/198"
+  state: OPEN
+  platform: github
+  linkage_type: "Closes #198"
+  resolved_at: "2026-04-12"
