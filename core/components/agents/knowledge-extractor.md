@@ -52,13 +52,32 @@ Constraints shape execution — not just whether to execute, but HOW. For exampl
 
 ### EXTRACT Mode
 
-**Input:** List of resolution trace file paths from STM.
+**Input:** `evidence_paths` — list of recognized evidence artifact file paths from STM (any supported type).
 **Output:** `candidates.yaml` written to STM output path.
 
 Steps:
-1. Read each resolution trace file at the provided paths
-2. Extract all entries where `resolved_from == "llm"`
-3. For each extracted entry, note the raw decision for synthesis
+1. Read each evidence artifact file at the provided paths
+2. For each file, determine its type by matching the filename pattern against the recognized artifact types below, then apply the corresponding extraction heuristic:
+
+   **resolution-trace.yaml (primary — highest signal):**
+   Extract all entries where `resolved_from == "llm"`. For each qualifying entry, note the `decision` and `value` fields as raw decision records. If no `resolved_from` field is present, skip this file silently and log in extraction summary.
+
+   **judge-report*.yaml:**
+   Extract from `failure_conditions_triggered` (list of conditions that fired), `remediation_strategy` (the recommended fix approach), and any pass/fail pattern fields. Each extracted item is a raw decision record. If `failure_conditions_triggered` and `remediation_strategy` are both absent, skip this file silently and log in extraction summary.
+
+   **rca.yaml:**
+   Extract `root_cause.summary` (or `root_cause` if a scalar) and `contributing_cause.summary` (or `contributing_cause`) as raw decision records describing the fault pattern. If neither field is present, skip this file silently and log in extraction summary.
+
+   **remediation-*.md / remediation-*.yaml:**
+   Extract the fix approach and risk mitigation sections. For YAML: look for `fix_approach`, `approach`, or `mitigation` fields. For Markdown: extract the primary heading content describing the fix strategy. If no recognizable fix content is found, skip this file silently and log in extraction summary.
+
+   **design.yaml:**
+   Extract `chosen_strategy.name`, `chosen_strategy.description`, and `alternatives_considered[*].reason_rejected` entries as raw decision records capturing architectural choices and trade-off rationale. If `chosen_strategy` is absent, skip this file silently and log in extraction summary.
+
+   **quality-report.yaml / drift-report.md:**
+   Extract recurring issues and patterns. For YAML: look for `recurring_issues`, `patterns`, or `findings` fields. For Markdown: extract list items under recurring-issue or pattern headings. If no recognizable pattern content is found, skip this file silently and log in extraction summary.
+
+3. For each extracted raw decision record (from any artifact type), note it for synthesis
 
 ### Synthesis Step (MANDATORY before output)
 
@@ -101,9 +120,9 @@ After identifying individual decision candidates, you MUST synthesize them:
 6. Duplicates are NOT presented in the approval queue — set `dedup_status: duplicate`
    and exclude from the YAML candidates list surfaced for operator review
 
-**Zero-candidate case:** When no `resolved_from: "llm"` entries exist across all
-trace files, write `candidates.yaml` with an empty list and return
-`summary.unique_candidates: 0`. Do NOT show an approval queue.
+**Zero-candidate case:** When no extractable signals exist across all recognized
+artifact types in the provided evidence_paths, write `candidates.yaml` with an empty
+list and return `summary.unique_candidates: 0`. Do NOT show an approval queue.
 
 ### WRITE Mode
 
@@ -189,7 +208,7 @@ For each candidate in EXTRACT mode:
   },
   "stm": {
     "input": {
-      "trace_paths": ["{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml"],
+      "evidence_paths": ["{stm_base}/{issue}/evidence/**/{artifact}"],
       "candidates_path": null
     },
     "output": {
@@ -200,7 +219,7 @@ For each candidate in EXTRACT mode:
 ```
 
 In WRITE mode: `stm.input.candidates_path` is non-null (points to reviewed
-candidates.yaml). `stm.input.trace_paths` is not read in WRITE mode.
+candidates.yaml). `stm.input.evidence_paths` is not read in WRITE mode.
 
 ## Output Contract
 
@@ -215,7 +234,7 @@ candidates.yaml). `stm.input.trace_paths` is not read in WRITE mode.
     }
   },
   "summary": {
-    "traces_scanned": 0,
+    "artifacts_scanned": 0,
     "total_llm_fallbacks": 0,
     "unique_candidates": 0,
     "duplicate_candidates": 0,
@@ -264,7 +283,7 @@ On failure, return:
 ```
 
 Error types:
-- `trace_not_found` — a trace file path in `stm.input.trace_paths` does not exist or is unreadable
+- `artifact_not_found` — an evidence artifact path in `stm.input.evidence_paths` does not exist or is unreadable
 - `candidates_not_found` — `stm.input.candidates_path` does not exist in WRITE mode
 - `invalid_mode` — `mode` field is not "extract" or "write"
 - `ltm_base_unreachable` — `ltm_context.project_base` or `ltm_context.core_base` path cannot be read

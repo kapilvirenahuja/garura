@@ -54,7 +54,17 @@ constraints:
     rule: "No LTM write without human approval. All candidates are staged in STM for review before any write to project or core LTM."
 
   - id: C12
-    rule: "Resolution traces with resolved_from='llm' are the primary promotion signal — decisions where the system lacked stored knowledge."
+    rule: >
+      Resolution traces with resolved_from='llm' are the primary promotion signal —
+      decisions where the system lacked stored knowledge. The following evidence artifact
+      types are recognized as secondary extraction sources (listed in descending signal
+      priority): resolution-trace.yaml (primary — LLM fallbacks are the highest-signal
+      source), judge-report*.yaml (failure conditions, remediation strategies, pass/fail
+      patterns), rca.yaml (root cause and approach fields), design.yaml (chosen strategy
+      and alternatives considered), remediation-*.md / remediation-*.yaml (fix approach
+      and risk mitigation), quality-report.yaml (recurring quality issues), drift-report.md
+      (drift patterns). All recognized artifact types contribute raw signals to the
+      synthesis pipeline.
 
   - id: C13
     rule: "Knowledge candidates must be synthesized patterns, not individual decision records. Multiple related decisions from the same work MUST consolidate into a single pattern file. Each pattern must include When to Choose, When to Avoid, Key Components, and Tradeoffs sections. Target 3-5 synthesized patterns per extraction, not 10-20 individual records. Test: if the output only documents what was decided (not when to choose it in the future), it belongs in an ADR, not LTM."
@@ -63,7 +73,10 @@ constraints:
     rule: "Every knowledge file written to LTM must have a corresponding entry added to the _index.md in its target directory. An unregistered file is undiscoverable."
 
   - id: C15
-    rule: "When no resolution traces with resolved_from='llm' entries exist, the extraction phase exits cleanly with zero candidates. No files are written to LTM. Evidence records the zero-candidate outcome."
+    rule: >
+      When no extractable signals exist across all recognized artifact types, the
+      extraction phase exits cleanly with zero candidates. No files are written to LTM.
+      Evidence records the zero-candidate outcome.
 
 # --- FAILURE CONDITIONS (archival) ---
 

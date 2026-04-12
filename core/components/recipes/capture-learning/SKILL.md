@@ -128,17 +128,26 @@ Agent invokes `archive-issue-stm` skill with `issue_number` and `close_date` ext
 
 ### Phase: Execution (Extraction)
 
-**Step 3 — Locate Resolution Traces**
+**Step 3 — Locate Evidence Artifacts**
 Owner: recipe
 Depends on: Step 2
 
-Scan the archived STM directory for resolution trace files:
+Scan the archived STM directory for all recognized evidence artifact types (C12):
 
 ```bash
-find {stm_archive}/{YYYY-MM}/{issue}/evidence/ -name "resolution-trace.yaml" -type f
+find {stm_archive}/{YYYY-MM}/{issue}/evidence/ \( \
+  -name "resolution-trace.yaml" -o \
+  -name "judge-report*.yaml" -o \
+  -name "rca.yaml" -o \
+  -name "design.yaml" -o \
+  -name "remediation-*.md" -o \
+  -name "remediation-*.yaml" -o \
+  -name "quality-report.yaml" -o \
+  -name "drift-report.md" \
+\) -type f
 ```
 
-Collect all trace paths into a list. If no resolution traces exist, set `trace_paths` to empty list — Step 4 will handle the zero-candidate case (C15).
+Collect all artifact paths into a list. If no recognized evidence artifacts exist, set `evidence_paths` to empty list — Step 4 will handle the zero-candidate case (C15).
 
 ---
 
@@ -159,7 +168,7 @@ Mode: `extract`
   },
   "stm": {
     "input": {
-      "trace_paths": ["{list of resolution trace paths from Step 3}"]
+      "evidence_paths": ["{list of evidence artifact paths from Step 3}"]
     },
     "output": {
       "candidates_path": "{stm_archive}/{YYYY-MM}/{issue}/evidence/capture-learning/candidates.yaml"
@@ -170,16 +179,16 @@ Mode: `extract`
 
 Resolve `{product_base}` from `core/config.yaml` → `product.base-path`.
 
-Agent scans resolution traces for `resolved_from: "llm"` entries (C12), synthesizes related decisions into patterns (C13), classifies as project/core with reasoning (C10), deduplicates against existing LTM (C6), and writes `candidates.yaml` to STM.
+Agent scans all recognized evidence artifact types (C12) — resolution traces (primary, `resolved_from: "llm"` entries), judge reports (failure conditions, remediation strategies), RCA artifacts (root cause patterns), design artifacts (chosen strategies, alternatives), remediation records (fix approaches), quality reports (recurring issues), and drift reports (drift patterns). Synthesizes related decisions into patterns (C13), classifies as project/core with reasoning (C10), deduplicates against existing LTM (C6), and writes `candidates.yaml` to STM.
 
-**Zero-candidate case (C15):** If no `resolved_from: "llm"` entries exist, agent writes `candidates.yaml` with empty list and `summary.unique_candidates: 0`. Recipe skips checkpoint and write phases, proceeds directly to evidence.
+**Zero-candidate case (C15):** If no extractable signals exist across all recognized artifact types, agent writes `candidates.yaml` with empty list and `summary.unique_candidates: 0`. Recipe skips checkpoint and write phases, proceeds directly to evidence.
 
 **Step 4 Evals:**
 
 - **SE-7 (F7/C6):** Every candidate has `dedup_status` set; duplicates excluded from approval queue
 - **SE-10 (F10/C10):** Every candidate has `proposed_scope` AND `proposed_scope_rationale` (non-empty)
 - **SE-11 (F11/C13):** Candidates are synthesized patterns with When to Choose, When to Avoid, Key Components, and Tradeoffs; no more than 7 candidates from a single issue
-- **SE-12 (C15):** When no `resolved_from: "llm"` entries exist, candidates.yaml contains empty list with `summary.unique_candidates: 0`
+- **SE-12 (C15):** When no extractable signals exist across all recognized artifact types, candidates.yaml contains empty list with `summary.unique_candidates: 0`
 
 ---
 
@@ -194,7 +203,7 @@ Read `candidates.yaml` from STM. Present candidates to user for review (C11 — 
 ```markdown
 ## Knowledge Candidates — Issue #{issue}
 
-**Traces scanned:** {summary.traces_scanned}
+**Artifacts scanned:** {summary.artifacts_scanned}
 **LLM fallbacks found:** {summary.total_llm_fallbacks}
 **Unique candidates:** {summary.unique_candidates}
 **Duplicates excluded:** {summary.duplicate_candidates}
@@ -336,7 +345,7 @@ Steps are in execution order — run top to bottom.
   "tasks": {
     "verify-issue-closed": { "status": "completed", "completed_at": "..." },
     "archive-stm": { "status": "in_progress", "started_at": "..." },
-    "locate-traces": { "status": "pending" },
+    "locate-evidence": { "status": "pending" },
     "extract-candidates": { "status": "pending" },
     "human-review": { "status": "pending" },
     "write-approved-candidates": { "status": "pending" },
@@ -370,9 +379,9 @@ for each step in compiled order:
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:e1699de3f527be9d1b2d67ddb7a811370391ac6ed35a5e3424f86b2a047d3fa4 |
+| intent_hash | sha256:c6bdbdabe3a2e847daeb48e219f25e09010560eced69134ab949ea1a06aa010f |
 | compiled_by | create-recipe |
-| compiled_at | 2026-03-31T12:00:00+0530 |
+| compiled_at | 2026-04-12T00:00:00Z |
 | maturity | L2 |
 | workflow_structure | A |
 | domain_agents | 2 (project-orchestrator, knowledge-extractor) |
