@@ -1,0 +1,22 @@
+pr:
+  number: 199
+  state: OPEN
+  base: main
+  head: fix/198-sync-claude-fork-execution
+  mergeable: true
+  merge_state_status: CLEAN
+  conflicts: false
+
+working_tree:
+  clean: true
+  uncommitted_changes: 0
+  staged_changes: 0
+
+checks:
+  C1_branch_guard: pass
+  C2_pr_exists: pass
+  C3_clean_tree: pass
+  C4_no_conflicts: pass
+
+readiness: true
+verified_at: "2026-04-12"

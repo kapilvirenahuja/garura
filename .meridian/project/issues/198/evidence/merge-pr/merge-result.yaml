@@ -1,0 +1,11 @@
+status: merged
+pr_number: 199
+merge_sha: "25049f995fbf66ee4a04eb3587f4c2b30968e015"
+base_branch: main
+head_branch: fix/198-sync-claude-fork-execution
+local_head: "25049f995fbf66ee4a04eb3587f4c2b30968e015"
+remote_head: "25049f995fbf66ee4a04eb3587f4c2b30968e015"
+branch_deleted: true
+branch_deleted_local: true
+branch_deleted_remote: true
+merged_at: "2026-04-12"
