@@ -1,0 +1,122 @@
+implementation:
+  issue: 195
+  implemented_at: "2026-04-12"
+  success: true
+  steps_completed: 4
+  steps_total: 4
+  escalation_required: false
+
+  changes:
+    - step: 1
+      title: "Update intent.yaml — expand extraction scope and clarify C12/C15"
+      files_modified:
+        - path: "core/components/recipes/capture-learning/reference/intent.yaml"
+          action: "modified"
+          summary: >
+            C12 expanded to enumerate 7 recognized evidence artifact types as extraction
+            sources (resolution-trace.yaml as primary, plus judge-report*.yaml,
+            rca.yaml, design.yaml, remediation-*.md/.yaml, quality-report.yaml,
+            drift-report.md as secondary). C15 zero-candidate condition updated from
+            "no resolution traces with resolved_from='llm' entries exist" to
+            "no extractable signals exist across all recognized artifact types."
+      verified: true
+      deviation: null
+      self_test_results:
+        - test: "C12 lists at least 3 artifact types beyond resolution-trace.yaml"
+          result: pass
+          detail: "C12 now lists 6 artifact types beyond resolution-trace.yaml"
+        - test: "C15 references 'all recognized artifact types'"
+          result: pass
+          detail: "C15 now reads: 'When no extractable signals exist across all recognized artifact types'"
+
+    - step: 2
+      title: "Update knowledge-extractor agent — add multi-format extraction in EXTRACT mode"
+      files_modified:
+        - path: "core/components/agents/knowledge-extractor.md"
+          action: "modified"
+          summary: >
+            EXTRACT mode Input renamed from trace_paths to evidence_paths. Steps 1-3
+            expanded: added 6 per-format extraction heuristics (resolution-trace.yaml,
+            judge-report*.yaml, rca.yaml, remediation-*.md/.yaml, design.yaml,
+            quality-report.yaml/drift-report.md), each with explicit graceful-skip on
+            absent fields. Zero-candidate case updated to reference evidence_paths and
+            all recognized artifact types. Input contract stm.input.trace_paths renamed
+            to evidence_paths with updated example path. Input contract note updated:
+            stm.input.trace_paths → evidence_paths. Output contract traces_scanned
+            renamed to artifacts_scanned. Error type trace_not_found renamed to
+            artifact_not_found with updated description referencing evidence_paths.
+            Synthesis step and WRITE mode preserved unchanged.
+      verified: true
+      deviation: >
+        Also renamed error type trace_not_found → artifact_not_found in the Failure
+        Protocol section (line 286). This was not in the design's explicit rename list
+        but is required for consistency — the error type referenced stm.input.trace_paths
+        which was renamed. Leaving a stale error type name would create schema
+        inconsistency in the Failure Protocol.
+      self_test_results:
+        - test: "EXTRACT mode input is evidence_paths not trace_paths"
+          result: pass
+          detail: "Line 55: '**Input:** `evidence_paths` — list of recognized evidence artifact file paths from STM (any supported type).'"
+        - test: "At least 3 per-format extraction branches exist beyond resolved_from: llm"
+          result: pass
+          detail: "6 extraction branches added: judge-report*.yaml, rca.yaml, remediation-*.md/.yaml, design.yaml, quality-report.yaml/drift-report.md (resolution-trace.yaml preserved as first/primary path)"
+        - test: "Each branch has graceful-skip on missing fields"
+          result: pass
+          detail: "All 6 branches include explicit 'skip this file silently and log in extraction summary' clause"
+        - test: "Synthesis step is unmodified"
+          result: pass
+          detail: "Synthesis step content (group by theme, consolidate, 3-5 target, test) is unchanged"
+        - test: "No trace_paths in input contract schema"
+          result: pass
+          detail: "Grep confirms zero remaining trace_paths references anywhere in the file"
+
+    - step: 3
+      title: "Rebake capture-learning recipe from updated intent.yaml"
+      files_modified:
+        - path: "core/components/recipes/capture-learning/SKILL.md"
+          action: "modified"
+          summary: >
+            Rebaked from updated intent.yaml. Step 3 scan broadened from
+            resolution-trace.yaml only to all 7 recognized artifact types.
+            Step 4 contract changed trace_paths to evidence_paths. SE-12 and
+            C15 references updated. Pause/Resume task name updated. Intent
+            hash updated. compiled_at updated.
+      verified: true
+      deviation: null
+      self_test_results:
+        - test: "resolution-trace.yaml appears as one of multiple file types in Step 3"
+          result: pass
+        - test: "evidence_paths appears in Step 4 contract"
+          result: pass
+        - test: "intent_hash changed from prior value"
+          result: pass
+          detail: "New hash: sha256:c6bdbdabe3a2e847daeb48e219f25e09010560eced69134ab949ea1a06aa010f"
+
+    - step: 4
+      title: "Sync updated components to global deployment"
+      files_modified: []
+      verified: true
+      deviation: null
+      self_test_results:
+        - test: "~/.claude/agents/knowledge-extractor.md has evidence_paths"
+          result: pass
+        - test: "~/.claude/skills/capture-learning/SKILL.md Step 3 scans multiple artifact types"
+          result: pass
+
+  issues_encountered: []
+
+  files_touched:
+    - path: "core/components/recipes/capture-learning/reference/intent.yaml"
+    - path: "core/components/agents/knowledge-extractor.md"
+    - path: "core/components/recipes/capture-learning/SKILL.md"
+    - path: ".meridian/project/issues/195/evidence/fix-it/implementation-report.yaml"
+
+  deviations:
+    - file: "core/components/agents/knowledge-extractor.md"
+      change: "Renamed error type trace_not_found to artifact_not_found in Failure Protocol section"
+      justification: >
+        The error type description referenced stm.input.trace_paths which was renamed
+        to evidence_paths by the design. Leaving the error type with the stale field
+        reference would create an internal inconsistency in the agent's Failure Protocol
+        section. The rename is the minimal change needed to maintain schema consistency
+        and does not alter behavior — it is a terminology alignment, not a logic change.
