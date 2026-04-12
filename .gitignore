@@ -80,6 +80,7 @@ __pycache__/
 *.db
 data/
 !core/components/memory/knowledge/architecture/data/
+!core/components/memory/knowledge/quality/data/
 
 # Temporary files
 tmp/
