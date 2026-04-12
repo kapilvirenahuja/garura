@@ -1,0 +1,111 @@
+analysis:
+  branch: fix/195-capture-learning-zero-knowledge
+  base: main
+  branch_classification: bugfix
+  issue: 195
+
+  suggested_title: "fix(capture-learning): broaden extraction from resolution-trace-only to multi-format evidence scanning #195"
+
+  context:
+    file_patterns_matched:
+      - "core/components/**"          # sync-claude rule triggered
+      - "**/agents/**/*.md"           # agent definition changed
+      - "**/recipes/**/*.md"          # recipe definition changed (SKILL.md)
+      - "**/recipes/**/SKILL.md"      # recipe SKILL.md changed
+      - "*.yaml"                      # config/intent YAML changed
+    commit_types:
+      - fix
+      - chore
+    source_files_changed: 3
+    stm_files_changed: 7
+    total_files_changed: 10
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: "No merge conflicts with main"
+        trigger: "Universal rule — always applied"
+        status: PASS
+        evidence: "git merge-tree exit code 0, merge SHA 897d2a3e7dd0c346300d03b5536343fcde95aa83"
+
+      - id: no-secrets
+        item: "No secrets committed"
+        trigger: "Universal rule — always applied"
+        status: PASS
+        evidence: "Pattern scan of changed files found no secrets (passwords, tokens, API keys, private keys)"
+
+      - id: agent-frontmatter
+        item: "knowledge-extractor agent has valid frontmatter"
+        trigger: "Agent definition changed: core/components/agents/knowledge-extractor.md"
+        status: PASS
+        evidence: "Frontmatter present with name, domain, role, description, model, tools fields confirmed"
+
+      - id: agent-boundaries
+        item: "knowledge-extractor agent has NEVER/ALWAYS boundaries section"
+        trigger: "Agent definition changed: core/components/agents/knowledge-extractor.md"
+        status: PASS
+        evidence: "## Boundaries section found at line 306"
+
+      - id: recipe-frontmatter
+        item: "capture-learning recipe has valid frontmatter"
+        trigger: "Recipe definition changed: core/components/recipes/capture-learning/SKILL.md"
+        status: PASS
+        evidence: "Frontmatter present with name, description, user-invocable, model fields confirmed"
+
+      - id: recipe-workflow
+        item: "capture-learning recipe defines workflow"
+        trigger: "Recipe definition changed: core/components/recipes/capture-learning/SKILL.md"
+        status: PASS
+        evidence: "## Workflow section found at line 59"
+
+      - id: recipe-checkpoint
+        item: "capture-learning recipe defines checkpoint behavior"
+        trigger: "Recipe definition changed: core/components/recipes/capture-learning/SKILL.md"
+        status: PASS
+        evidence: "Checkpoint with Tether/Vanish found at line 229; zero-candidate bypass also defined at line 184"
+
+      - id: config-valid
+        item: "intent.yaml has valid YAML syntax"
+        trigger: "YAML file changed: capture-learning/reference/intent.yaml"
+        status: PASS
+        evidence: "python3 yaml.safe_load returned valid; no parse errors"
+
+      - id: sync-claude
+        item: "Components synced with /sync-claude after core/components/ changes"
+        trigger: "core/components/** changed (3 source files)"
+        status: REVIEW
+        evidence: "Manual step required — run /sync-claude before merging to deploy to ~/.claude/"
+
+    nice_to_have:
+      - id: agent-naming
+        item: "knowledge-extractor follows {domain}-{role} naming convention"
+        trigger: "Agent definition changed"
+        status: PASS
+        evidence: "Name 'knowledge-extractor' matches domain=knowledge, role=extractor pattern"
+
+      - id: skill-constraints
+        item: "capture-learning recipe has constraints section"
+        trigger: "Recipe SKILL.md changed"
+        status: PASS
+        evidence: "Constraints embedded in recipe workflow via intent-compiled sections (C1-C15 constraints referenced)"
+
+      - id: recipe-agent-limit
+        item: "Recipe respects agent call limits (L2 ≤5)"
+        trigger: "Recipe definition changed"
+        status: REVIEW
+        evidence: "Recipe is L2 — manual review of agent call count recommended. Fix scope (knowledge-extractor + repo-orchestrator + project-orchestrator) appears within budget."
+
+      - id: config-documented
+        item: "YAML intent changes documented inline"
+        trigger: "intent.yaml changed"
+        status: PASS
+        evidence: "intent.yaml is self-documenting — constraint IDs C12 and C15 updated with rationale inline"
+
+  blocking_issues: []
+
+  ready: true
+
+  target_branch:
+    name: main
+    confidence: high
+    reason: "fix/* branch per branching convention; issue #195 is a defect fix against production behavior; no feature flags or staged rollout required"

@@ -1,0 +1,11 @@
+result:
+  success: true
+  pr:
+    number: 197
+    url: "https://github.com/kapilvirenahuja/meridian-os/pull/197"
+    state: "open"
+    title: "fix(capture-learning): broaden extraction from resolution-trace-only to multi-format evidence scanning"
+  checklist:
+    required_count: 9
+    optional_count: 4
+  error: null
