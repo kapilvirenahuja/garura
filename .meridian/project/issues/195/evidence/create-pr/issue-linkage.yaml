@@ -1,0 +1,7 @@
+issue_number: 195
+title: "fix: capture-learning extracts zero knowledge — only scans resolution-trace.yaml"
+url: "https://github.com/kapilvirenahuja/meridian-os/issues/195"
+state: open
+repo: kapilvirenahuja/meridian-os
+labels: []
+type_hint: fix
