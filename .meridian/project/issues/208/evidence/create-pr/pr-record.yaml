@@ -1,0 +1,14 @@
+result:
+  success: true
+  pr:
+    number: 211
+    url: "https://github.com/kapilvirenahuja/meridian-os/pull/211"
+    state: "open"
+    title: "feat(recipes): add review-pr recipe, quality-check-scoped skill, ADR 016, and supporting standards"
+  checklist:
+    required_count: 15
+    optional_count: 6
+  issue_linked: 208
+  base_branch: main
+  head_branch: feature/208-review-pr-recipe
+  platform: github

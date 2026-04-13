@@ -1,0 +1,112 @@
+standards_set:
+  kb: ~/.meridian/core/memory/knowledge/quality/
+  ltm: ./.meridian/core/memory/knowledge/quality/
+  stm: .meridian/project/issues/208/spec/quality/
+
+severity_taxonomy_path: ./core/components/memory/standards/git/pr-severity-taxonomy.md
+
+intent_summary: >
+  Add the review-pr L2 recipe (diff-scoped, deterministic PR quality gate with P1–P4 severity
+  taxonomy, weighted confidence formula, and git-history reviewer selection) and the
+  quality-check-scoped skill it depends on. Also refactor standards/templates/ by moving
+  HTML/CSS/JS templates to their owning components, promote agent-contract.md to ADR 016,
+  and wire a bypass-conditional review-pr gate into the ship recipe between create-pr and
+  merge-pr.
+
+intent_source: pr_body
+
+pr:
+  number: 211
+  author: kapilvirenahuja
+  head_branch: feature/208-review-pr-recipe
+  base_branch: main
+  closes_issue: 208
+
+changed_paths:
+  # Core recipe and skill deliverables
+  - core/components/recipes/review-pr/SKILL.md
+  - core/components/recipes/review-pr/reference/intent.yaml
+  - core/components/skills/quality-check-scoped/SKILL.md
+  - core/components/skills/quality-check-scoped/reference/finding-schema.md
+  - core/components/skills/quality-check-scoped/reference/input-contract.md
+  # Config additions
+  - core/config.yaml
+  # Ship recipe update
+  - core/components/recipes/ship/SKILL.md
+  - core/components/recipes/ship/reference/intent.yaml
+  # Standards restructure
+  - core/components/memory/standards/git/pr-severity-taxonomy.md
+  - core/components/memory/standards/_index.md
+  - core/components/memory/standards/intent-schema.yaml
+  # ADR
+  - docs/adr/016-agent-json-contract.md
+  # Docs moved/updated
+  - docs/design/briefs.md
+  - docs/components/recipes.md
+  - docs/components/skills.md
+  - docs/components/memory.md
+  # Templates moved to briefs recipe
+  - core/components/recipes/briefs/SKILL.md
+  - core/components/recipes/briefs/templates/
+  # Agents updated for new template paths
+  - core/components/agents/doc-builder.md
+  - core/components/agents/product-strategist.md
+  # Skills updated for restructure
+  - core/components/recipes/create-recipe/SKILL.md
+  - core/components/recipes/plan-roadmap/SKILL.md
+  - core/components/skills/scope-roadmap-epics/SKILL.md
+  - core/components/skills/scope-roadmap-epics/reference/epic-schema.md
+  # STM evidence artifacts
+  - .meridian/project/issues/208/evidence/commit-code/analysis.yaml
+  - .meridian/project/issues/208/evidence/commit-code/commits.yaml
+  - .meridian/project/issues/208/evidence/commit-code/issue-mappings.yaml
+  - .meridian/project/issues/208/evidence/create-recipe/review-pr/agent-audit.md
+  - .meridian/project/issues/208/evidence/create-recipe/review-pr/constraint-classifications.yaml
+  - .meridian/project/issues/208/evidence/create-recipe/review-pr/coverage-matrix.md
+  - .meridian/project/issues/208/evidence/create-recipe/review-pr/evals.yaml
+  - .meridian/project/issues/208/evidence/create-recipe/review-pr/skill-manifest.yaml
+  - .meridian/project/issues/208/evidence/start-feature-planning/20260413-190558.md
+  - .meridian/project/issues/208/evidence/start-feature-planning/args.yaml
+  - .meridian/project/issues/208/evidence/start-feature-planning/branch-result.yaml
+  - .meridian/project/issues/208/evidence/start-feature-planning/issue-resolution.yaml
+  - .meridian/project/issues/208/planning/spec.md
+  - .meridian/project/issues/208/planning/tasks.md
+  # IDSD spec update
+  - .claude/specs/idsd/idsd.md
+  # Issue 206 merge evidence (merge-pr artefacts landed on this branch)
+  - .meridian/project/issues/206/evidence/merge-pr/merge-result.yaml
+  - .meridian/project/issues/206/evidence/merge-pr/readiness.yaml
+  # Checkpoint
+  - .meridian/project/issues/208/checkpoint/start-feature-planning/20260413-190558.md
+
+standards_paths_resolved:
+  # Standards resolution follows standards_order: [kb, ltm, stm]
+  # KB = deployed global knowledge; resolved via taxonomy taxonomy_path above
+  kb_resolved: true
+  ltm_resolved: false    # no project-local LTM quality/ directory detected
+  stm_resolved: false    # no per-issue spec/quality/ directory detected
+  resolution_note: >
+    Only the KB layer is populated for this repository at this time. LTM and STM
+    standards_set paths are provided in the contract for completeness but will return
+    no files on directory walk. quality-check-scoped will load KB-only standards.
+
+config_source: core/config.yaml
+config_keys_present:
+  bypass: false
+  confidence_threshold: 0.5
+  reviewer_count: 3
+  standards_order: [kb, ltm, stm]
+  fallback_reviewers: []
+  activity_window_days: 90
+
+taxonomy_file_present: true
+taxonomy_path_verified: ./core/components/memory/standards/git/pr-severity-taxonomy.md
+
+# SE-4 eval trace — C4 compliance
+se4_eval:
+  check: All paths and thresholds in this context.yaml originated from core/config.yaml.
+  result: PASS
+  evidence:
+    - standards_set paths derived from standards_order config key
+    - severity_taxonomy_path derived from standards.pr-severity-taxonomy config key
+    - No hardcoded paths in this artifact
