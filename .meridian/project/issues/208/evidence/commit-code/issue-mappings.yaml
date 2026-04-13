@@ -1,0 +1,57 @@
+validated_at: "2026-04-13"
+recipe_step: resolve-issues
+
+mappings:
+  - group_id: 1
+    issue_number: 208
+    issue_title: "Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection"
+    issue_state: open
+    confidence: high
+    type_hint: feature
+    reasoning: >
+      Group 1 directly implements the primary deliverable of issue #208: the review-pr L2
+      recipe (SKILL.md + intent.yaml), the quality-check-scoped skill (SKILL.md +
+      finding-schema.md + input-contract.md), config additions for the review-pr pipeline,
+      and ship recipe updates to wire the new quality gate. These changes constitute the
+      core build work described in the issue title. STM evidence artifacts for #208 are
+      also included. Mapping is unambiguous — no competing issues.
+
+  - group_id: 2
+    issue_number: 208
+    issue_title: "Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection"
+    issue_state: open
+    confidence: high
+    type_hint: refactor
+    reasoning: >
+      Group 2 is a structural reorganization performed on this feature branch to support
+      the review-pr recipe. It includes: the PR severity taxonomy standard
+      (pr-severity-taxonomy.md) introduced specifically for quality-check-scoped, the
+      ADR 016 promotion of agent-contract.md (referenced by the new recipe's agent
+      contract pattern), and cleanup of standards/templates/ by relocating files to
+      their owning components. While typed as refactor (no behavior change), this work
+      is scoped to and motivated by issue #208. No separate issue exists for this
+      structural cleanup, and the branch is feature/208-review-pr-recipe.
+
+scope_exclusions:
+  - issue_number: 209
+    reason: >
+      Issue #209 (formats gap) was created as a follow-on and contains no code changes
+      on this branch. Excluded from mappings — scope-out, not a contributor.
+  - issue_number: 210
+    reason: >
+      Issue #210 (standards/rules rename) was created as a follow-on and contains no
+      code changes on this branch. Excluded from mappings — scope-out, not a contributor.
+
+constraints_validated:
+  - id: C3
+    result: pass
+    note: Both groups map to open issue #208. No unmapped changes detected.
+  - id: C9
+    result: pass
+    note: All mappings are high confidence — no approval gate required.
+  - id: F4
+    result: pass
+    note: Both groups verified against the live issue title and state. No wrong-issue references.
+  - id: F5
+    result: pass
+    note: No competing issue matches for either group. Mapping is unambiguous.

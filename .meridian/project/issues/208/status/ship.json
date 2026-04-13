@@ -5,8 +5,8 @@
   "feature_branch": "feature/208-review-pr-recipe",
   "review_pr_bypass": false,
   "tasks": {
-    "commit-code": { "status": "in_progress", "step": "create-commits" },
-    "create-pr": { "status": "pending" },
+    "commit-code": { "status": "completed" },
+    "create-pr": { "status": "in_progress" },
     "review-pr": { "status": "pending", "bypass": false, "routing": null },
     "merge-pr": { "status": "pending" },
     "scenario-evals": { "status": "pending" },
