@@ -8,7 +8,7 @@ Meridian implements Intent-Driven Software Development through a **three-layer h
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        RECIPES                              │
+│                        PLAYS                              │
 │  Defined workflows, human invocable                         │
 │  NEVER FORKED — steps/order to follow                       │
 ├─────────────────────────────────────────────────────────────┤
@@ -43,17 +43,17 @@ Meridian implements Intent-Driven Software Development through a **three-layer h
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Flow:** `Recipes → Agents → Skills → Artifacts`
+**Flow:** `Plays → Agents → Skills → Artifacts`
 
 ## Three-Layer Hierarchy
 
-### L2 Recipes (High-Order Workflows)
+### High-Order Plays
 
-L2 recipes represent **user intent** and chain multiple L1 recipes together.
+High-order plays represent **user intent** and chain multiple atomic plays together.
 
 **Properties:**
 - Human invocable only
-- Chain ≤5 L1 recipes (ideal 3)
+- Chain ≤5 plays (ideal 3)
 - Include guardian agent for approval decisions
 - Enable non-stop work mode
 
@@ -70,9 +70,9 @@ L2: fix-bug
     └── L1: create-pr
 ```
 
-### L1 Recipes (Atomic Activities)
+### Atomic Plays
 
-L1 recipes are **atomic units** that produce artifacts and stop at conditional checkpoints.
+Atomic plays are **atomic units** that produce artifacts and stop at conditional checkpoints.
 
 **Properties:**
 - Human OR model invocable
@@ -84,7 +84,7 @@ L1 recipes are **atomic units** that produce artifacts and stop at conditional c
 
 **Flow:**
 ```
-L1 Recipe: analyze-bug
+Play: analyze-bug
     │
     └── Invokes agent: tech-designer
               │
@@ -97,7 +97,7 @@ L1 Recipe: analyze-bug
 
 #### Auto-Approval Logic
 
-L1 recipes evaluate risk criteria before presenting a checkpoint. When all criteria for low risk are met, the recipe auto-approves and proceeds without halting for user input. When any high-risk signal is present, the recipe requires explicit user approval (Tether/Vanish).
+Plays evaluate risk criteria before presenting a checkpoint. When all criteria for low risk are met, the play auto-approves and proceeds without halting for user input. When any high-risk signal is present, the play requires explicit user approval (Tether/Vanish).
 
 **Auto-approve when ALL of:**
 - Single logical group or concern
@@ -113,7 +113,7 @@ L1 recipes evaluate risk criteria before presenting a checkpoint. When all crite
 - Ambiguous or mixed operation types
 - Hotfix branch or high-risk context
 
-**RESUME mode:** When a recipe is resuming existing work rather than starting new work, the checkpoint is skipped entirely — the prior approval remains valid.
+**RESUME mode:** When a play is resuming existing work rather than starting new work, the checkpoint is skipped entirely — the prior approval remains valid.
 
 This model keeps low-risk, routine operations frictionless while surfacing human judgment exactly where it is needed.
 
@@ -132,7 +132,7 @@ Skills are **technology/methodology-specific knowledge** that agents possess.
 
 ### Skill-Memory Relationship
 
-**ADR 009 supersedes ADR 007 for recipe-driven workflows.**
+**ADR 009 supersedes ADR 007 for play-driven workflows.**
 
 ADR 007 described a deploy-time sync model where skills embedded their own local references. ADR 009 introduces the JSON Contract pattern (see below), which changes how skills receive LTM paths at runtime.
 
@@ -144,7 +144,7 @@ Skills receive template and LTM paths from agents via the JSON contract — they
 ┌─────────────────────────────────────────────────────────────┐
 │                      RUNTIME (ADR 009)                      │
 │                                                             │
-│   Recipe ──► JSON Contract ──► Agent                        │
+│   Play ──► JSON Contract ──► Agent                        │
 │                                   │                         │
 │                         Context Crafting:                   │
 │                         discover LTM paths,                 │
@@ -175,11 +175,11 @@ See [ADR 009: Skill LTM Reads](../adr/009-skill-ltm-organizational-knowledge.md)
 
 ## JSON Contract Pattern
 
-The JSON Contract pattern governs how information flows through the recipe → agent → skill → agent → recipe pipeline in recipe-driven workflows.
+The JSON Contract pattern governs how information flows through the play → agent → skill → agent → play pipeline in play-driven workflows.
 
 ### What It Is
 
-A single JSON object that the recipe creates at the start of execution and passes to each agent invocation. Agents enrich it with artifact paths they produce; skills read from it to find input paths and write artifact paths back into it.
+A single JSON object that the play creates at the start of execution and passes to each agent invocation. Agents enrich it with artifact paths they produce; skills read from it to find input paths and write artifact paths back into it.
 
 ### Contract Structure
 
@@ -189,7 +189,7 @@ A single JSON object that the recipe creates at the start of execution and passe
   "stm_base": "<base STM directory for this workflow>",
   "slug": "<derived identifier for this workflow instance>",
   "stm": {
-    "vision_path": "<input artifact — set by recipe>",
+    "vision_path": "<input artifact — set by play>",
     "epics_path": null,
     "feasibility_path": null,
     "brief_path": null,
@@ -201,7 +201,7 @@ A single JSON object that the recipe creates at the start of execution and passe
     { "name": "brief_review", "status": "pending" }
   ],
   "evidence": [
-    { "name": "<recipe-name>", "location": null }
+    { "name": "<play-name>", "location": null }
   ],
   "notes": [],
   "step_failure": null
@@ -212,19 +212,19 @@ A single JSON object that the recipe creates at the start of execution and passe
 
 | Field | Owner | Purpose |
 |-------|-------|---------|
-| `intent_path` | Recipe | Path to `reference/intent.yaml` — the user contract |
-| `stm_base` | Recipe | Base directory for all STM artifacts in this workflow |
-| `slug` | Recipe | Derived identifier for the workflow instance |
+| `intent_path` | Play | Path to `reference/intent.yaml` — the user contract |
+| `stm_base` | Play | Base directory for all STM artifacts in this workflow |
+| `slug` | Play | Derived identifier for the workflow instance |
 | `stm.*` | Agents | Artifact paths — agents populate null fields with paths they produce |
-| `checkpoints` | Recipe | Checkpoint status — recipe updates after human review |
-| `evidence` | Recipe | Evidence file paths — recipe updates at report step |
+| `checkpoints` | Play | Checkpoint status — play updates after human review |
+| `evidence` | Play | Evidence file paths — play updates at report step |
 | `notes` | Agents | Short observations (max 3 items, 1 sentence each) for downstream agents |
-| `step_failure` | Agents | Non-null only when agent cannot recover — recipe reads to decide retry/halt |
+| `step_failure` | Agents | Non-null only when agent cannot recover — play reads to decide retry/halt |
 
 ### How It Flows
 
 ```
-Recipe creates initial contract (vision_path set, all stm.* null)
+Play creates initial contract (vision_path set, all stm.* null)
     │
     ▼
 Agent 1 receives contract as entire prompt
@@ -234,16 +234,16 @@ Agent 1 receives contract as entire prompt
     │  sets stm.epics_path = produced path
     │  returns enriched contract
     ▼
-Recipe validates stm.epics_path non-null, step_failure null
+Play validates stm.epics_path non-null, step_failure null
     │
     ▼
 Agent 2 receives enriched contract (has epics_path now)
     │  ... same pattern ...
     ▼
-Recipe continues until all capabilities complete
+Play continues until all capabilities complete
 ```
 
-**Critical rule:** The JSON contract is the ENTIRE agent prompt. Recipes pass ONLY the JSON object — no instructions, field definitions, or examples appended. Agents read their own definition files and `intent.yaml` to know what to do.
+**Critical rule:** The JSON contract is the ENTIRE agent prompt. Plays pass ONLY the JSON object — no instructions, field definitions, or examples appended. Agents read their own definition files and `intent.yaml` to know what to do.
 
 ## Four Crafts Architecture
 
@@ -254,13 +254,13 @@ The Four Crafts Architecture describes the four distinct authoring concerns that
 | Craft | Owner | Artifact | Purpose |
 |-------|-------|----------|---------|
 | **Intent Crafting** | User / Framework Author | `reference/intent.yaml` | Defines the goal, constraints, failure conditions, and validation scenarios |
-| **Prompt Crafting** | Recipe | JSON contract | Recipe passes ONLY the JSON contract to agents — no inline instructions |
+| **Prompt Crafting** | Play | JSON contract | Play passes ONLY the JSON contract to agents — no inline instructions |
 | **Context Crafting** | Agent | Skill inputs | Agent discovers LTM paths, reads STM artifacts, assembles what the skill needs |
 | **Spec Crafting** | Skill | STM artifacts | Skill reads templates from LTM, fills them, writes output artifacts to STM |
 
 ### Intent Crafting
 
-Intent Crafting produces `reference/intent.yaml` — the user-facing contract for the recipe. It contains:
+Intent Crafting produces `reference/intent.yaml` — the user-facing contract for the play. It contains:
 
 ```yaml
 goal: "<what success looks like for the user>"
@@ -277,11 +277,11 @@ scenarios:
     passing_criteria: "<what pass looks like>"
 ```
 
-Intent Crafting is done once per recipe by the framework author. The `intent.yaml` file is stable — agents read it; they never modify it.
+Intent Crafting is done once per play by the framework author. The `intent.yaml` file is stable — agents read it; they never modify it.
 
 ### Prompt Crafting
 
-Prompt Crafting is how the recipe communicates with agents. The rule: the JSON contract IS the entire agent prompt.
+Prompt Crafting is how the play communicates with agents. The rule: the JSON contract IS the entire agent prompt.
 
 ```
 WRONG:
@@ -342,20 +342,20 @@ Agents are **autonomous decision-makers** with domain expertise.
 
 ### Orchestrator Tool Restrictions
 
-Recipes are orchestrators. They coordinate workflow by delegating to agents — they never execute domain work directly.
+Plays are orchestrators. They coordinate workflow by delegating to agents — they never execute domain work directly.
 
-**Forbidden in recipes:** `Bash`, `Grep`, `Glob`, direct git commands, direct gh commands, or any tool that executes domain operations.
+**Forbidden in plays:** `Bash`, `Grep`, `Glob`, direct git commands, direct gh commands, or any tool that executes domain operations.
 
-**What recipes own directly:** checkpoint writes, approval logic, STM initialization, artifact writes, evidence reports, and final user-facing output.
+**What plays own directly:** checkpoint writes, approval logic, STM initialization, artifact writes, evidence reports, and final user-facing output.
 
-**What recipes delegate to agents:**
+**What plays delegate to agents:**
 - Git operations (branch, commit, push, status) → `repo-orchestrator`
 - Issue operations (create, resolve, link) → `project-orchestrator`
 - Code implementation → `code-builder`
 - Technical design and RCA → `tech-designer`
 - Validation and quality gates → `quality-validator`
 
-This boundary is not a style preference — it is an architectural rule. If a recipe executes git commands directly, the agent layer is bypassed and the audit trail breaks.
+This boundary is not a style preference — it is an architectural rule. If a play executes git commands directly, the agent layer is bypassed and the audit trail breaks.
 
 ## Memory Architecture
 
@@ -380,7 +380,7 @@ Meridian uses a **dual memory system**:
 **Contains:**
 - Documentation (specs, designs, RCA)
 - Evidence (tests, validation)
-- Checkpoints (recipe execution state for approval and resumption)
+- Checkpoints (play execution state for approval and resumption)
 
 **Lifecycle:** Persists forever (version controlled audit trail)
 
@@ -395,12 +395,12 @@ Meridian uses a **dual memory system**:
 └── {issue_number}/
     ├── spec/                # Specifications, requirements
     ├── design/              # Technical design, architecture
-    ├── evidence/            # Implementation evidence per recipe
-    │   └── {recipe-name}/
+    ├── evidence/            # Implementation evidence per play
+    │   └── {play-name}/
     │       └── {YYYYMMDD-HHMMSS}.md
     ├── delivery/            # Delivery artifacts (PR details, release)
-    └── checkpoint/          # Recipe execution state per recipe
-        └── {recipe-name}/
+    └── checkpoint/          # Play execution state per play
+        └── {play-name}/
             └── {YYYYMMDD-HHMMSS}.md
 ```
 
@@ -429,7 +429,7 @@ Meridian uses a **dual memory system**:
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    STM (Short-Term Memory)                  │
-│  Created: When recipe starts                                │
+│  Created: When play starts                                │
 │  Contains: Artifacts (docs, evidence, checkpoint) per issue │
 │  Location: .meridian/{issue_number}/                        │
 │  Lifecycle: Persists forever (audit trail)                  │
@@ -438,14 +438,14 @@ Meridian uses a **dual memory system**:
 
 ## Recovery Protocol
 
-When an agent returns a structured failure, recipes apply a defined recovery loop rather than propagating the failure immediately.
+When an agent returns a structured failure, plays apply a defined recovery loop rather than propagating the failure immediately.
 
 **Recovery mechanics:**
 1. Agent returns a failure with `domain_assessment.responsible_domain` indicating which agent can address it
-2. Recipe invokes the responsible agent with fix context + original intent + retry metadata
+2. Play invokes the responsible agent with fix context + original intent + retry metadata
 3. Maximum 2 retry cycles per agent. After 2 failed retries, halt with full failure context for human intervention
 
-**Retry context added to recipe context bundle:**
+**Retry context added to play context bundle:**
 ```yaml
 retry:
   previous_failure: "{what_failed}"
@@ -453,13 +453,13 @@ retry:
   attempt: {N}
 ```
 
-**Recovery calls are exempt from the agent limit.** A recipe that normally invokes ≤2 agents may invoke additional recovery calls beyond that limit without violating the L1/L2 agent count rule. Recovery calls are not counted as new agent invocations for the purpose of the constraint.
+**Recovery calls are exempt from the agent limit.** A play that normally invokes ≤2 agents may invoke additional recovery calls beyond that limit without violating the agent count rule. Recovery calls are not counted as new agent invocations for the purpose of the constraint.
 
 Recovery reasoning is loaded from: `docs/framework/intent-driven-recovery.md`. This file defines the recovery reasoning loop. The structured-failure-protocol that agents use to format their failure responses is at `docs/framework/structured-failure-protocol.md`.
 
 ### Checkpoint Artifact Status Lifecycle
 
-Every checkpoint artifact written to `.meridian/{issue}/checkpoint/{recipe}/{timestamp}.md` follows a defined status lifecycle:
+Every checkpoint artifact written to `.meridian/{issue}/checkpoint/{play}/{timestamp}.md` follows a defined status lifecycle:
 
 | Status | Meaning |
 |--------|---------|
@@ -467,20 +467,20 @@ Every checkpoint artifact written to `.meridian/{issue}/checkpoint/{recipe}/{tim
 | `APPROVED` | User responded Tether (or auto-approved) |
 | `REJECTED` | User responded Vanish |
 
-Recipes update the artifact status before proceeding to the next step. This creates an auditable record of every approval decision.
+Plays update the artifact status before proceeding to the next step. This creates an auditable record of every approval decision.
 
 ## Critical Rules
 
 | Rule | Applies To | Rationale |
 |------|------------|-----------|
-| **Produces artifact** | L1 Recipes | Clean checkpoint boundaries |
-| **Conditional checkpoint** | L1 Recipes | Auto-approve when risk is low; require user approval when risk signals are present |
-| **Chains L1s** | L2 Recipes | Workflow = sequence of atomic activities |
-| **Guardian validates** | L2 Recipes | Decides if human approval can be skipped |
-| **Agent produces** | Artifacts | Agent does work, recipe orchestrates |
+| **Produces artifact** | Atomic Plays | Clean checkpoint boundaries |
+| **Conditional checkpoint** | Atomic Plays | Auto-approve when risk is low; require user approval when risk signals are present |
+| **Chains atomic plays** | High-Order Plays | Workflow = sequence of atomic activities |
+| **Guardian validates** | High-Order Plays | Decides if human approval can be skipped |
+| **Agent produces** | Artifacts | Agent does work, play orchestrates |
 | **Learned capabilities** | Skills | Technology/methodology specific knowledge |
-| **Never forked** | Recipes & Skills | Recipes are steps; skills share context |
-| **NWWI** | Recipes | No Work Without an Issue — commit-code is the hard gate |
+| **Never forked** | Plays & Skills | Plays are steps; skills share context |
+| **NWWI** | Plays | No Work Without an Issue — commit-code is the hard gate |
 
 ## Why This Architecture?
 
@@ -494,37 +494,37 @@ Traditional AI copilots are non-deterministic — same prompt, different results
 
 ### Meridian Solution
 
-1. **Deterministic workflows** — Recipes define exact steps
+1. **Deterministic workflows** — Plays define exact steps
 2. **Checkpoint model** — Human review at defined points
 3. **Guardian bypass** — Non-stop work when safe
 4. **Clear boundaries** — Artifacts mark completion
 5. **Audit trail** — STM captures all decisions
 
-## Intent Primacy and Recipe Evolution
+## Intent Primacy and Play Evolution
 
 ### The Core Principle
 
-**Intent is primary. Recipes are scaffolding.**
+**Intent is primary. Plays are scaffolding.**
 
-The objective of a recipe — what it achieves — is permanent. "Submit work for peer review with quality assurance" will always be a valid objective. But the workflow that fulfills that objective — pre-flight checks, analysis, checkpoint, execution, reporting — is not inherent to the objective. It is a prescribed sequence that exists because we cannot yet trust the system to derive it autonomously.
+The objective of a play — what it achieves — is permanent. "Submit work for peer review with quality assurance" will always be a valid objective. But the workflow that fulfills that objective — pre-flight checks, analysis, checkpoint, execution, reporting — is not inherent to the objective. It is a prescribed sequence that exists because we cannot yet trust the system to derive it autonomously.
 
-Recipes exist today because they provide the determinism needed to build trust on the path to autonomy. They are how we teach the system to walk before it runs.
+Plays exist today because they provide the determinism needed to build trust on the path to autonomy. They are how we teach the system to walk before it runs.
 
 ### The Constraint Migration
 
-The key insight is that properties currently baked into recipe structure will migrate over time to declarative constraints in the intent:
+The key insight is that properties currently baked into play structure will migrate over time to declarative constraints in the intent:
 
 ```
 TODAY (structural)
 ────────────────────────────────────────────────────
-Recipe prescribes:
+Play prescribes:
   Step 0: Pre-flight checks
   Step 1: Analyze
   Step 2: Checkpoint (always — PRs are externally visible)
   Step 3: Execute
   Step 4: Report with evidence
 
-Auditability = enforced by recipe steps
+Auditability = enforced by play steps
 Predictability = enforced by prescribed sequence
 Human oversight = enforced by checkpoint placement
 
@@ -542,31 +542,31 @@ Predictability = emergent from intent + constraints + memory
 Human oversight = constraint, not a hardcoded step
 ```
 
-The objective has not changed. The system still creates a PR with a quality checklist, still produces evidence, still stops for approval when actions are externally visible. What changes is **who decides the workflow**: today the recipe author prescribes it; tomorrow the system derives it from intent + constraints + accumulated memory.
+The objective has not changed. The system still creates a PR with a quality checklist, still produces evidence, still stops for approval when actions are externally visible. What changes is **who decides the workflow**: today the play author prescribes it; tomorrow the system derives it from intent + constraints + accumulated memory.
 
 ### The Evolution Path
 
-| Phase | Recipe Role | Intent Role | Trust Level |
+| Phase | Play Role | Intent Role | Trust Level |
 |-------|-----------|-------------|-------------|
-| **Current** | Recipes prescribe every step and agent assignment | Intent defines the objective; recipes define the how | Low — system proves reliability through prescribed execution |
-| **Lighter recipes** | Recipes define checkpoints and boundaries; agents choose their own workflow within steps | Intent drives agent behavior; recipes provide guardrails | Medium — system has demonstrated consistent execution |
-| **Intent-driven** | Recipes are generated at runtime from intent + constraints + memory | Intent is the primary input; workflow is emergent | High — auditability and predictability are satisfied as constraints, not as structure |
+| **Current** | Plays prescribe every step and agent assignment | Intent defines the objective; plays define the how | Low — system proves reliability through prescribed execution |
+| **Lighter plays** | Plays define checkpoints and boundaries; agents choose their own workflow within steps | Intent drives agent behavior; plays provide guardrails | Medium — system has demonstrated consistent execution |
+| **Intent-driven** | Plays are generated at runtime from intent + constraints + memory | Intent is the primary input; workflow is emergent | High — auditability and predictability are satisfied as constraints, not as structure |
 
 ### What Makes This Possible
 
 The migration from structural to declarative depends on three capabilities maturing together:
 
-1. **Memory depth** — LTM must be rich enough that the system knows *how* to satisfy "produce auditable evidence" without being told the specific artifact format and location. Today, recipes encode this knowledge. Tomorrow, memory carries it.
+1. **Memory depth** — LTM must be rich enough that the system knows *how* to satisfy "produce auditable evidence" without being told the specific artifact format and location. Today, plays encode this knowledge. Tomorrow, memory carries it.
 
-2. **Agent maturity** — Agents must reliably produce the same quality of output when given intent + constraints as when given prescribed steps. The current recipe structure is training data for this capability — every successful recipe execution demonstrates what "good" looks like for a given intent.
+2. **Agent maturity** — Agents must reliably produce the same quality of output when given intent + constraints as when given prescribed steps. The current play structure is training data for this capability — every successful play execution demonstrates what "good" looks like for a given intent.
 
 3. **Constraint expressiveness** — The intent schema must be expressive enough to capture properties like "halt for human approval before externally visible actions" as first-class constraints. The `reference/intent.yaml` externalization (see `create-pr` golden standard) is a step toward this — making constraints a first-class, extensible schema that can grow to encompass workflow-level properties.
 
 ### Why This Matters Now
 
-The architectural decisions being made today — externalizing intent to `reference/intent.yaml`, making constraint references dynamic, keeping recipe structure declarative — are not just cleanup. They are **preparing the system for the point where recipes become optional**. An intent file that fully describes the objective, constraints, and failure conditions is already 80% of what a system needs to derive its own execution plan. The remaining 20% is trust — and that is built through the deterministic recipe executions happening now.
+The architectural decisions being made today — externalizing intent to `reference/intent.yaml`, making constraint references dynamic, keeping play structure declarative — are not just cleanup. They are **preparing the system for the point where plays become optional**. An intent file that fully describes the objective, constraints, and failure conditions is already 80% of what a system needs to derive its own execution plan. The remaining 20% is trust — and that is built through the deterministic play executions happening now.
 
-The lighter recipes can be tested first on mechanical operations (`commit-code`, `create-pr`) where the workflow is predictable and the failure modes are well-understood. Success there builds confidence for creative operations (`build-feature`, `design-feature`) where the workflow is more variable.
+The lighter plays can be tested first on mechanical operations (`commit-code`, `create-pr`) where the workflow is predictable and the failure modes are well-understood. Success there builds confidence for creative operations (`build-feature`, `design-feature`) where the workflow is more variable.
 
 ## Related Documentation
 

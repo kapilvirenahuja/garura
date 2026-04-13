@@ -2,11 +2,11 @@
 
 Create pull requests with dynamic, context-aware quality checklists.
 
-> **Golden standard:** `create-pr` is the reference implementation for the Meridian recipe structure. All recipes should follow this pattern.
+> **Golden standard:** `create-pr` is the reference implementation for the Meridian play structure. All plays should follow this pattern.
 
 ## Overview
 
-The `create-pr` recipe analyzes your branch, generates a quality checklist based on what actually changed, and creates a pull request with that checklist embedded.
+The `create-pr` play analyzes your branch, generates a quality checklist based on what actually changed, and creates a pull request with that checklist embedded.
 
 **Key insight:** The checklist is NOT static. It adapts based on:
 - What files changed (code, API, security, database, etc.)
@@ -24,11 +24,11 @@ Or invoke directly:
 Create a pull request for my current branch
 ```
 
-## Recipe Structure
+## Play Structure
 
 ```
-core/components/recipes/create-pr/
-├── SKILL.md              # Recipe execution blueprint (5 phases)
+core/components/plays/create-pr/
+├── SKILL.md              # Play execution blueprint (5 phases)
 ├── reference/
 │   └── intent.yaml       # First-class intent schema (operational contract)
 └── templates/
@@ -55,7 +55,7 @@ core/components/recipes/create-pr/
 
 ### Pre-flight (Step 0)
 
-Before any analysis, the recipe verifies four environmental conditions from `reference/intent.yaml`:
+Before any analysis, the play verifies four environmental conditions from `reference/intent.yaml`:
 
 | Check | What It Verifies |
 |-------|-----------------|
@@ -64,7 +64,7 @@ Before any analysis, the recipe verifies four environmental conditions from `ref
 | C3 | No merge conflicts with target |
 | C4 | Issue number extractable from branch name (NWWI) |
 
-Pre-flight failures are **hard halts** — these are environmental conditions the agent cannot fix. The recipe stops immediately with the constraint's `halt_message`.
+Pre-flight failures are **hard halts** — these are environmental conditions the agent cannot fix. The play stops immediately with the constraint's `halt_message`.
 
 ### Analyze (Step 1)
 
@@ -293,4 +293,4 @@ All failure handling is consolidated in a single `## Recovery` section in SKILL.
 - `repo-orchestrator` — Agent that executes PR operations
 - `analyze-pr` — Skill that generates the checklist
 - `submit-pr` — Skill that creates the PR
-- `docs/components/recipes.md` — Recipe component guide with golden standard structure
+- `docs/components/plays.md` — Play component guide with golden standard structure

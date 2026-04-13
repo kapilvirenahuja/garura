@@ -20,11 +20,11 @@ Memory is **project contextual information** that enables consistent, knowledge-
 | Type | Lifecycle | Purpose | Authoring Location | Runtime Location |
 |------|-----------|---------|---------------------|------------------|
 | **LTM** | Project setup → persists | Practices, standards, templates | `core/components/memory/` | `~/.meridian/core/memory/` (global), `.meridian/core/memory/` (project) |
-| **STM** | Recipe start → recipe end | Artifacts created during recipe | N/A | `.meridian/{issue}/` |
+| **STM** | Play start → play end | Artifacts created during play | N/A | `.meridian/{issue}/` |
 
 ## Long-Term Memory (LTM)
 
-LTM contains **project contextual information** that persists across all recipes and sessions.
+LTM contains **project contextual information** that persists across all plays and sessions.
 
 ### LTM Purpose
 
@@ -51,7 +51,7 @@ Agent invoked
           ├── formats/{type}/          # User-facing message formats
           └── knowledge/{domain}/      # Design decisions and patterns
     │
-    └── (Skill/recipe-specific templates are bundled with the owning component, NOT in LTM)
+    └── (Skill/play-specific templates are bundled with the owning component, NOT in LTM)
     │
     └── Passes LTM template paths to skill
     │
@@ -78,9 +78,9 @@ core/components/memory/
     ├── _index.md
     └── architecture/
 
-# Skill/recipe-specific schemas and templates live with the owning component:
+# Skill/play-specific schemas and templates live with the owning component:
 #   core/components/skills/scope-roadmap-epics/reference/epic-schema.md
-#   core/components/recipes/briefs/templates/{*-brief.html, brief-common.css, brief-render.js, hub.html, fixtures/}
+#   core/components/plays/briefs/templates/{*-brief.html, brief-common.css, brief-render.js, hub.html, fixtures/}
 # Foundational architecture rules live in docs/adr/, not standards/.
 ```
 
@@ -123,7 +123,7 @@ See [ADR 009: JSON Contract Pattern and Four Crafts Architecture](../adr/009-jso
 
 ## Short-Term Memory (STM)
 
-STM contains **artifacts created during recipe execution** for a specific issue.
+STM contains **artifacts created during play execution** for a specific issue.
 
 ### STM Purpose
 
@@ -134,7 +134,7 @@ STM stores:
 ### STM Lifecycle
 
 ```
-Recipe starts
+Play starts
     │
     └── STM folder created: .meridian/{issue}/
               │
@@ -144,7 +144,7 @@ Recipe starts
               │
               └── L1 step N → Creates artifact
     │
-Recipe ends
+Play ends
     │
     └── STM persists for reference
 ```
@@ -155,12 +155,12 @@ Recipe ends
 .meridian/{issue}/
 ├── spec/           # Specifications, requirements
 ├── design/         # Technical design, architecture
-├── evidence/       # Implementation evidence per recipe
-│   └── {recipe-name}/
+├── evidence/       # Implementation evidence per play
+│   └── {play-name}/
 │       └── {YYYYMMDD-HHMMSS}.md
 ├── delivery/       # Delivery artifacts (PR details, release)
-└── checkpoint/     # Recipe execution state per recipe
-    └── {recipe-name}/
+└── checkpoint/     # Play execution state per play
+    └── {play-name}/
         └── {YYYYMMDD-HHMMSS}.md
 ```
 
@@ -180,7 +180,7 @@ Recipe ends
                               │
 ┌─────────────────────────────────────────────────────────────┐
 │                    STM (Short-Term Memory)                  │
-│  Created: When recipe starts                                │
+│  Created: When play starts                                │
 │  Contains: Artifacts for this issue                         │
 │  Location: .meridian/{issue}/                               │
 └─────────────────────────────────────────────────────────────┘
@@ -188,7 +188,7 @@ Recipe ends
 
 ## STM → LTM Persistence
 
-When a recipe completes, critical STM content can be persisted to LTM:
+When a play completes, critical STM content can be persisted to LTM:
 
 **Candidates for persistence:**
 - Successful patterns discovered
@@ -198,7 +198,7 @@ When a recipe completes, critical STM content can be persisted to LTM:
 
 **Persistence flow:**
 ```
-Recipe completes
+Play completes
     │
     └── Skill: persist
           │
@@ -207,12 +207,12 @@ Recipe completes
           └── Update LTM with critical parts
 ```
 
-## Memory in Recipe Execution
+## Memory in Play Execution
 
-### L1 Recipe Memory Pattern
+### Play Memory Pattern
 
 ```
-L1 Recipe
+Play
     │
     ├── Agent reads LTM:
     │     ├── standards/
@@ -225,14 +225,14 @@ L1 Recipe
           └── artifact in .meridian/{issue}/
 ```
 
-### L2 Recipe Memory Flow
+### Play Memory Flow
 
-L2 recipes chain L1s, with each L1 reading from previous STM:
+Plays chain other plays, with each reading from previous STM:
 
 ```
-L2 Recipe
+High-Order Play
     │
-    ├── L1: step 1 → STM: artifact A
+    ├── step 1 → STM: artifact A
     │
     ├── L1: step 2
     │       ├── Reads STM: artifact A
@@ -264,4 +264,4 @@ See: [docs/usage/memory/](../usage/memory/) for concrete implementations.
 - [ADR 006: Naming Conventions](../adr/006-naming-conventions.md)
 - [ADR 009: JSON Contract Pattern and Four Crafts Architecture](../adr/009-json-contract-four-crafts.md)
 - [Architecture Philosophy](../philosophy/architecture.md)
-- [Recipes Component Guide](./recipes.md)
+- [Plays Component Guide](./plays.md)

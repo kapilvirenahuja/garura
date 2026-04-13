@@ -1,6 +1,6 @@
-# Recipe Structure Standard
+# Play Structure Standard
 
-Every recipe MUST follow one of the two patterns documented here. The canonical phase structure is the default. The task-driven DAG variant is used by L2 recipes that define a capability graph upfront.
+Every play MUST follow one of the two patterns documented here. The canonical phase structure is the default. The task-driven DAG variant is used by plays that define a capability graph upfront.
 
 ---
 
@@ -54,9 +54,9 @@ PRE-FLIGHT → [PRE-EXECUTION] → CHECKPOINT → EXECUTE → REPORT
 
 ---
 
-## Recipe Header Template
+## Play Header Template
 
-Every recipe MUST declare its phase structure at the top:
+Every play MUST declare its phase structure at the top:
 
 ```markdown
 ## Phases
@@ -94,7 +94,7 @@ PRE-FLIGHT → Resolve/Create Issue → CHECKPOINT → Create Branch + STM → R
 
 ## Conditional Step Skipping
 
-Conditional step skipping is valid in L2 recipes. A step is skipped when a pre-flight detection result makes it unnecessary. The orchestrator logs the skip reason and moves to the next step without invoking an agent.
+Conditional step skipping is valid in plays. A step is skipped when a pre-flight detection result makes it unnecessary. The orchestrator logs the skip reason and moves to the next step without invoking an agent.
 
 Examples from `ship`:
 - Step 1 (Commit) is skipped when `pre_flight.has_uncommitted_changes == false`
@@ -104,26 +104,26 @@ Skipped steps are recorded in the final evidence artifact.
 
 ---
 
-## L2 Recipes Delegating to L1 Recipes
+## Plays Delegating to Sub-Plays
 
-L2 recipes can invoke L1 recipes as sub-recipes via the Skill tool. The L2 recipe passes context that suppresses interactive checkpoints in the L1:
+Plays can invoke other plays as sub-plays via the Skill tool. The invoking play passes context that suppresses interactive checkpoints in the sub-play:
 
 ```yaml
 ---
-Recipe context:
+Play context:
   intent: "Commit uncommitted changes as part of the ship workflow"
   ship_context:
     auto_approve: true
     issue: {issue_number}
 ```
 
-The L1 recipe reads `ship_context.auto_approve: true` and writes a checkpoint artifact with `Status: AUTO_APPROVED` without presenting the approval prompt to the user. This keeps the audit trail intact while allowing the L2 to orchestrate the full flow without interruption.
+The sub-play reads `ship_context.auto_approve: true` and writes a checkpoint artifact with `Status: AUTO_APPROVED` without presenting the approval prompt to the user. This keeps the audit trail intact while allowing the invoking play to orchestrate the full flow without interruption.
 
 ---
 
-## Task-Driven DAG Variant (L2 Recipes)
+## Task-Driven DAG Variant
 
-Used by L2 recipes like `plan-roadmap` that define a capability graph rather than a fixed step sequence. The recipe creates the **full task graph upfront** using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order.
+Used by plays like `plan-roadmap` that define a capability graph rather than a fixed step sequence. The play creates the **full task graph upfront** using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order.
 
 ### Structure
 
@@ -131,23 +131,23 @@ Used by L2 recipes like `plan-roadmap` that define a capability graph rather tha
 Pre-flight → Create Task Graph (HARD GATE) → Execute Pre-Checkpoint Capabilities → Checkpoint → Execute Post-Checkpoint Capabilities → Report
 ```
 
-**Create Task Graph** is an explicit step between Pre-flight and Execute that has no equivalent in the canonical pattern. In this step, the recipe calls TaskCreate for every capability in the capability graph — including the checkpoint task and the report task — and sets all `blockedBy` dependencies before any agent is invoked.
+**Create Task Graph** is an explicit step between Pre-flight and Execute that has no equivalent in the canonical pattern. In this step, the play calls TaskCreate for every capability in the capability graph — including the checkpoint task and the report task — and sets all `blockedBy` dependencies before any agent is invoked.
 
-**HARD GATE: Execution only begins after the full task graph is verified.** The recipe confirms every task exists and every dependency link is set. If any task is missing or a dependency is wrong, the recipe corrects it before proceeding. No agent receives a contract prompt until this gate is passed.
+**HARD GATE: Execution only begins after the full task graph is verified.** The play confirms every task exists and every dependency link is set. If any task is missing or a dependency is wrong, the play corrects it before proceeding. No agent receives a contract prompt until this gate is passed.
 
 ### How It Differs from the Canonical Pattern
 
 | Aspect | Canonical (Linear) | Task-Driven DAG |
 |--------|-------------------|-----------------|
 | Step definition | Fixed sequence in SKILL.md | Dynamic task graph created at runtime |
-| Agent communication | YAML recipe context block per step | JSON contract flows through all agents |
+| Agent communication | YAML play context block per step | JSON contract flows through all agents |
 | Checkpoint placement | Fixed in the phase sequence | Declared as a task node in the graph |
 | Agent prompt | YAML context + task description | JSON contract only — no appended text |
 | Resume | Not typically supported | Supported via checkpoint artifact reconstruction |
 
 ### Capability Graph Declaration
 
-Task-driven recipes declare their execution DAG as a capability graph table in SKILL.md:
+Task-driven plays declare their execution DAG as a capability graph table in SKILL.md:
 
 ```
 | # | Capability | Agent | Needs | Produces |
@@ -161,7 +161,7 @@ Task-driven recipes declare their execution DAG as a capability graph table in S
 
 ### JSON Contract Rule
 
-In the task-driven pattern, the JSON contract IS the entire agent prompt. Nothing is appended after the JSON object. See [Recipes Component Guide](../components/recipes.md#critical-rule-json-contract-is-the-entire-agent-prompt) for the full rule.
+In the task-driven pattern, the JSON contract IS the entire agent prompt. Nothing is appended after the JSON object. See [Plays Component Guide](../components/plays.md#critical-rule-json-contract-is-the-entire-agent-prompt) for the full rule.
 
 ---
 
@@ -169,6 +169,6 @@ In the task-driven pattern, the JSON contract IS the entire agent prompt. Nothin
 
 | Field | Value |
 |-------|-------|
-| Standard | recipe-structure |
+| Standard | play-structure |
 | Version | 1.1.0 |
-| Applies To | All L1 and L2 recipes |
+| Applies To | All plays |

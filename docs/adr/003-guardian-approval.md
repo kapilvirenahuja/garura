@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-L1 recipes always stop at checkpoints for human approval. This is valuable for oversight but creates friction in workflows where:
+Plays always stop at checkpoints for human approval. This is valuable for oversight but creates friction in workflows where:
 
 - The artifact quality is clearly sufficient
 - No security or breaking concerns exist
@@ -20,10 +20,10 @@ Users wanted a way to enable "non-stop work" mode while maintaining quality gate
 
 ## Decision
 
-L2 recipes include a **workflow-guardian** agent that validates whether human approval can be skipped at each checkpoint.
+High-order plays include a **workflow-guardian** agent that validates whether human approval can be skipped at each checkpoint.
 
 ```
-L2 Recipe: fix-bug
+Play: fix-bug
     │
     ├── L1: analyze-bug ──────────────────────────┐
     │       Artifact: rca.md                      │
@@ -64,7 +64,7 @@ ANY criterion fails → Stop for human approval
 
 | Agent | Purpose |
 |-------|---------|
-| `workflow-guardian` | Validates if human approval can be skipped in L2 |
+| `workflow-guardian` | Validates if human approval can be skipped in high-order plays |
 
 The guardian is a specialized agent with read access to:
 - LTM quality standards
@@ -82,7 +82,7 @@ The guardian is a specialized agent with read access to:
 
 ### Negative
 
-- Adds complexity to L2 recipes
+- Adds complexity to high-order plays
 - Requires well-defined quality thresholds
 - Guardian misconfiguration could skip important reviews
 

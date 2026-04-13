@@ -1,4 +1,4 @@
-# ADR 013: Recipe Maturity Model — From Compiled Intents to Dark Factories
+# ADR 013: Play Maturity Model — From Compiled Intents to Dark Factories
 
 **Status:** Accepted
 **Date:** 2026-03-06
@@ -17,25 +17,25 @@ The core tension: **intent-driven design is the right architecture** (constraint
 
 Meridian experienced this directly:
 
-1. **Linear stage model** (original): Recipes defined fixed stages (1-5) with direct execution. Fast, readable, deterministic. But brittle — no formal intent contract, no eval framework, no crash recovery.
+1. **Linear stage model** (original): Plays defined fixed stages (1-5) with direct execution. Fast, readable, deterministic. But brittle — no formal intent contract, no eval framework, no crash recovery.
 
-2. **Intent-driven dynamic model** (attempted): Recipes read `intent.yaml` at runtime, generate a DAG via intent-resolver, cache and execute. Architecturally correct but operationally painful — every invocation paid for resolution, caching, and DAG management. Recipes became unreadable. Three sources of truth competed and drifted. Execution slowed significantly.
+2. **Intent-driven dynamic model** (attempted): Plays read `intent.yaml` at runtime, generate a DAG via intent-resolver, cache and execute. Architecturally correct but operationally painful — every invocation paid for resolution, caching, and DAG management. Plays became unreadable. Three sources of truth competed and drifted. Execution slowed significantly.
 
-The answer is not to abandon intent. The answer is to **compile intent out of the runtime path** — keep it as the source of truth for design, but bake it into static recipes that execute without resolution overhead.
+The answer is not to abandon intent. The answer is to **compile intent out of the runtime path** — keep it as the source of truth for design, but bake it into static plays that execute without resolution overhead.
 
 ### The Maturity Framework
 
-Dan Shapiro's "Five Levels: from Spicy Autocomplete to the Dark Factory" provides a useful framework for mapping recipe maturity. His model draws from the NHTSA driving automation scale and defines five levels of AI autonomy in software development. We adopt his level definitions as the maturity framework for Meridian's Intent-Driven Software Development (IDSD) recipes:
+Dan Shapiro's "Five Levels: from Spicy Autocomplete to the Dark Factory" provides a useful framework for mapping play maturity. His model draws from the NHTSA driving automation scale and defines five levels of AI autonomy in software development. We adopt his level definitions as the maturity framework for Meridian's Intent-Driven Software Development (IDSD) plays:
 
 | Level | Shapiro's Analogy | Human Role |
 |-------|-------------------|------------|
 | 1 | Lane-keeping | Writing and reviewing steps |
 | 2 | Autopilot on highway | Reviews briefs when confidence is low; otherwise hands-off |
-| 3 | Waymo with safety driver | Defines composition, reviews cross-recipe handoffs |
+| 3 | Waymo with safety driver | Defines composition, reviews cross-play handoffs |
 | 4 | Robotaxi — PM writes spec, leaves for 12 hours | Writes intent, reviews outcomes (not process) |
 | 5 | Fanuc's lights-out factory | System designer. Validates outcomes. May not review code at all. |
 
-This ADR maps these levels to Meridian's recipe architecture and establishes the maturity model that governs how recipes are built and executed.
+This ADR maps these levels to Meridian's play architecture and establishes the maturity model that governs how plays are built and executed.
 
 ## Decision
 
@@ -46,12 +46,12 @@ This ADR maps these levels to Meridian's recipe architecture and establishes the
 | Level | Intent Scope | When Consumed | Runtime Behavior |
 |-------|-------------|---------------|-----------------|
 | L1 | Input/output contract only | Build-time | Non-deterministic internally, structured at boundaries |
-| L2 | Domain knowledge (constraints, failures, scenarios) | Build-time, hash-locked | Deterministic, compiled, workflow from recipe framework |
+| L2 | Domain knowledge (constraints, failures, scenarios) | Build-time, hash-locked | Deterministic, compiled, workflow from play framework |
 | L3 | Domain knowledge + workflow structure (pre-flights, checkpoints, evidence) | Build-time, hash-locked | Deterministic, compiled, workflow from intent |
 | L4 | Everything — full runtime control plane | Every invocation | Adaptive, DAG generated at runtime, cacheable |
 | L5 | The only human artifact | Continuously | Fully autonomous, system self-assembles |
 
-At L1-L3, we have a **compiler** (`/create-recipe`) that reads intent.yaml and produces a static recipe. At L4-L5, the system interprets intent directly at runtime.
+At L1-L3, we have a **compiler** (`/create-play`) that reads intent.yaml and produces a static play. At L4-L5, the system interprets intent directly at runtime.
 
 The progression: **intent scope expands** as levels increase. At L1, intent barely exists. At L2, intent defines what (domain knowledge). At L3, intent defines what AND how (workflow structure). At L4, intent drives everything at runtime. At L5, intent is all that exists.
 
@@ -59,17 +59,17 @@ We are building at **Level 2** today. Level 3 is the near-term target. Level 4-5
 
 ### Level 1 — Lane-Keeping (Structured, Non-Deterministic)
 
-**What it is:** Recipes with structure — they have a defined input contract and a defined output contract. But the internal execution is not deterministic. There are no checkpoints, no audits, no evals, no human-in-the-loop gates. The system takes the input, does what it needs to do, and produces the output. What happens in between is up to the LLM.
+**What it is:** Plays with structure — they have a defined input contract and a defined output contract. But the internal execution is not deterministic. There are no checkpoints, no audits, no evals, no human-in-the-loop gates. The system takes the input, does what it needs to do, and produces the output. What happens in between is up to the LLM.
 
 **Human role:** Defines what goes in and what comes out. Trusts the system to figure out the middle.
 
-**Intent:** May exist as a formal `intent.yaml` or as a description in the recipe. Compiled into the recipe at build-time to define the input/output contract. Internal execution is not intent-governed.
+**Intent:** May exist as a formal `intent.yaml` or as a description in the play. Compiled into the play at build-time to define the input/output contract. Internal execution is not intent-governed.
 
-**Recipe structure:** Input → (black box) → Output. The recipe defines the boundaries, not the path.
+**Play structure:** Input → (black box) → Output. The play defines the boundaries, not the path.
 
 **Characteristics:**
-- Defined input contract (what the recipe receives)
-- Defined output contract (what the recipe produces)
+- Defined input contract (what the play receives)
+- Defined output contract (what the play produces)
 - Internal steps are non-deterministic — the LLM decides the path
 - No checkpoints, no audits, no human-in-the-loop
 - May or may not call agents/skills — not enforced
@@ -82,13 +82,13 @@ We are building at **Level 2** today. Level 3 is the near-term target. Level 4-5
 
 ### Level 2 — Autopilot on Highway (Compiled, Intent-Driven)
 
-**What it is:** Recipes are intent-driven and deterministic. They are composed from user intents combined with a deterministic workflow structure. All knowledge is baked into SKILL.md at build-time using the intent files the user provides. The recipe is compiled — same input, same execution path, every time.
+**What it is:** Plays are intent-driven and deterministic. They are composed from user intents combined with a deterministic workflow structure. All knowledge is baked into SKILL.md at build-time using the intent files the user provides. The play is compiled — same input, same execution path, every time.
 
 **Human role:** Reviews briefs when confidence is low; otherwise hands-off. The system runs autonomously within its compiled boundaries.
 
-**Intent:** Formally structured as `intent.yaml` with constraints (C1-Cn), failure conditions (F1-Fn), and acceptance scenarios (S1-Sn). Read at build-time by `/create-recipe`. Hash-locked in recipe frontmatter. **Not referenced at runtime** — the compiled recipe contains everything it needs.
+**Intent:** Formally structured as `intent.yaml` with constraints (C1-Cn), failure conditions (F1-Fn), and acceptance scenarios (S1-Sn). Read at build-time by `/create-play`. Hash-locked in play frontmatter. **Not referenced at runtime** — the compiled play contains everything it needs.
 
-**Recipe structures:** L2 recipes can adopt multiple workflow structures depending on complexity. The recipe provides the workflow structure; the intent provides the domain knowledge.
+**Play structures:** Plays can adopt multiple workflow structures depending on complexity. The play provides the workflow structure; the intent provides the domain knowledge.
 
 **Structure A — Full checkpoint flow:**
 ```
@@ -106,38 +106,38 @@ Execution      → Do the work
 Approval       → Final human approval and done
 ```
 
-**Structure C — Higher-order L2 (chained recipes):**
+**Structure C — Higher-order L2 (chained plays):**
 ```
 Pre-flight     → Verify preconditions
-Execute L2-A   → Run first compiled recipe
-Feed output    → Pass STM artifacts to next recipe
-Execute L2-B   → Run second compiled recipe
-Execute L2-C   → Run third compiled recipe
+Execute L2-A   → Run first compiled play
+Feed output    → Pass STM artifacts to next play
+Execute L2-B   → Run second compiled play
+Execute L2-C   → Run third compiled play
 Checkpoint     → Human reviews combined outcome
 Done
 ```
 
-Higher-order L2 recipes chain multiple compiled recipes together. The concepts are the same — each sub-recipe is compiled, deterministic, intent-driven. The chain just sequences them, feeding STM outputs from one into the next.
+Higher-order plays chain multiple compiled plays together. The concepts are the same — each sub-play is compiled, deterministic, intent-driven. The chain just sequences them, feeding STM outputs from one into the next.
 
 **Characteristics:**
 - Fixed workflow structure with deterministic execution
-- Up to 2 domain agents per recipe with clear domain boundaries
+- Up to 2 domain agents per play with clear domain boundaries
 - Step evals after each phase, scenario evals at end
 - Human checkpoint is confidence-gated (skipped when all high)
 - All task dependencies are static and known at build-time
 - Crash recovery via per-task status updates to STM
-- Workflows, agent boundaries, eval criteria — all baked into the recipe
+- Workflows, agent boundaries, eval criteria — all baked into the play
 - Deterministic: same changes → same commits, same PR, same result
 
 **The compiler:**
 
 ```
-intent.yaml (source) → /create-recipe (compiler) → SKILL.md (compiled artifact)
+intent.yaml (source) → /create-play (compiler) → SKILL.md (compiled artifact)
 ```
 
-`/create-recipe` reads intent.yaml, interviews for skills, audits agents, resolves the task graph, and bakes everything into a single SKILL.md file. The intent-resolver is a **build-time tool**, not a runtime agent.
+`/create-play` reads intent.yaml, interviews for skills, audits agents, resolves the task graph, and bakes everything into a single SKILL.md file. The intent-resolver is a **build-time tool**, not a runtime agent.
 
-**Guard:** Recipe frontmatter stores `intent_hash: sha256(intent.yaml)`. At runtime, if the hash doesn't match the current intent.yaml, warn that re-baking is needed. Intent changes require re-compilation.
+**Guard:** Play frontmatter stores `intent_hash: sha256(intent.yaml)`. At runtime, if the hash doesn't match the current intent.yaml, warn that re-baking is needed. Intent changes require re-compilation.
 
 ```yaml
 ---
@@ -146,7 +146,7 @@ intent_hash: "sha256:abc123..."
 ---
 ```
 
-**What the recipe contains (compiled artifacts):**
+**What the play contains (compiled artifacts):**
 - Baked task list with dependencies (what was previously the DAG JSON)
 - Pre-flight checks referencing constraint IDs (C1, C2, etc.)
 - Agent dispatch patterns with JSON contract templates
@@ -158,9 +158,9 @@ intent_hash: "sha256:abc123..."
 
 ### Level 3 — Waymo with Safety Driver (Compiled, Intent-Rich)
 
-**What it is:** Still compiled, still deterministic. The execution model is identical to L2. The difference: **the workflow structure itself moves into intent**. At L2, the recipe provides the workflow structure (pre-flight, preparation, checkpoint, execution, evidence) and the intent provides the domain knowledge. At L3, the user defines both — the intent specifies not just what to do, but how the workflow should be structured: what pre-flights to run, where checkpoints go, how evidence is captured, what confidence thresholds gate human review.
+**What it is:** Still compiled, still deterministic. The execution model is identical to L2. The difference: **the workflow structure itself moves into intent**. At L2, the play provides the workflow structure (pre-flight, preparation, checkpoint, execution, evidence) and the intent provides the domain knowledge. At L3, the user defines both — the intent specifies not just what to do, but how the workflow should be structured: what pre-flights to run, where checkpoints go, how evidence is captured, what confidence thresholds gate human review.
 
-**Human role:** Intent crafting becomes the critical skill. The user must define the complete orchestration contract — domain knowledge AND workflow structure — in intent.yaml. If the intent is wrong, the compiled recipe is wrong. Garbage in, garbage out.
+**Human role:** Intent crafting becomes the critical skill. The user must define the complete orchestration contract — domain knowledge AND workflow structure — in intent.yaml. If the intent is wrong, the compiled play is wrong. Garbage in, garbage out.
 
 **Intent:** The brain of the orchestration. Defines not just constraints and scenarios, but also:
 - Pre-flight conditions and halt behavior
@@ -168,29 +168,29 @@ intent_hash: "sha256:abc123..."
 - Confidence thresholds for human checkpoints
 - Evidence format and capture rules
 - Agent selection criteria
-- Cross-recipe handoff contracts (for compositions)
+- Cross-play handoff contracts (for compositions)
 
-**Recipe structure:** Same compiled SKILL.md output as L2. Same deterministic execution. But the compilation is driven entirely by the intent. No external workflow template needed — the intent IS the workflow specification.
+**Play structure:** Same compiled SKILL.md output as L2. Same deterministic execution. But the compilation is driven entirely by the intent. No external workflow template needed — the intent IS the workflow specification.
 
 **Characteristics:**
 - Everything from L2 applies — compiled, deterministic, hash-locked
 - Intent crafting is the primary skill — the intent is self-contained
-- `/create-recipe` compiler reads a richer intent schema
+- `/create-play` compiler reads a richer intent schema
 - No dependency on workflow templates or LTM for structure — intent provides it all
-- Can compose L2 recipes as sub-units with defined interfaces
+- Can compose plays as sub-units with defined interfaces
 - The shift is in **what the user provides**, not in how the system executes
 
-**The shift from L2:** At L2, the compiler combines intent + workflow templates + agent definitions + LTM to produce the recipe. At L3, the compiler reads a self-contained intent that encodes all of this. The compilation and execution remain identical — what changes is the **input to the compiler**.
+**The shift from L2:** At L2, the compiler combines intent + workflow templates + agent definitions + LTM to produce the play. At L3, the compiler reads a self-contained intent that encodes all of this. The compilation and execution remain identical — what changes is the **input to the compiler**.
 
 ### Level 4 — Robotaxi (Runtime Resolution)
 
-**What it is:** No compilation. Recipes become orchestrators. They read intent at runtime, resolve it into a DAG, and execute. A change to the intent changes what the recipe does — no re-compilation needed.
+**What it is:** No compilation. Plays become orchestrators. They read intent at runtime, resolve it into a DAG, and execute. A change to the intent changes what the play does — no re-compilation needed.
 
 **Human role:** Writes intent specifications, reviews outcomes (not process). Leaves for 12 hours, comes back to check if tests pass.
 
 **Intent:** Used at runtime as the control plane. The orchestrator reads intent.yaml, calls the intent-resolver, receives a DAG, and executes it. The intent defines everything — workflow structure, checkpoints, confidence levels, agent selection, eval criteria.
 
-**Recipe structure:** Recipes bring no workflow structure. Everything comes from the intent-resolver:
+**Play structure:** Plays bring no workflow structure. Everything comes from the intent-resolver:
 
 ```
 Read intent
@@ -201,11 +201,11 @@ Read intent
 ```
 
 **Characteristics:**
-- Recipes are generic orchestrators — not domain-specific
+- Plays are generic orchestrators — not domain-specific
 - Intent-resolver is a runtime agent (not build-time)
 - DAG shape adapts to the specific intent — no two runs are necessarily identical
 - DAGs can be cached for repeat runs with the same intent
-- A change to intent at runtime changes the recipe's behavior
+- A change to intent at runtime changes the play's behavior
 - No determinism — resolver may pick different agents, skills, or task orderings
 - Higher token cost — pays for resolution on every invocation
 - Intent quality is paramount — poor intent → poor DAG → poor execution
@@ -220,13 +220,13 @@ Read intent
 
 ### Level 5 — Dark Factory (Fully Autonomous)
 
-**What it is:** The system is fully autonomous. There are no recipes. There is no compilation. There is no orchestrator to configure. The user writes an intent — that's it — and the system produces tested, deployable software.
+**What it is:** The system is fully autonomous. There are no plays. There is no compilation. There is no orchestrator to configure. The user writes an intent — that's it — and the system produces tested, deployable software.
 
 **Human role:** System designer. Validates outcomes, not process. May not review code at all. All time goes into crafting the intent and reviewing final deliverables against behavioral scenarios.
 
 **Intent:** The only human artifact. Everything else — agent selection, task decomposition, skill discovery, confidence assessment, checkpoint placement — is derived by the system. Skills are auto-discovered. Agents self-assemble.
 
-**Recipe structure:** There is no recipe. The system IS the recipe.
+**Play structure:** There is no play. The system IS the play.
 
 **Characteristics:**
 - Single entry point: "here is an intent, produce software"
@@ -245,16 +245,16 @@ Read intent
 **Meridian is at Level 2.**
 
 We attempted to jump to Level 4 (runtime DAG resolution) prematurely. The result:
-- Recipes became unreadable
+- Plays became unreadable
 - Execution slowed significantly (resolution overhead on every run)
 - Three sources of truth competed (intent.yaml, DAG JSON, SKILL.md)
 - State drift between artifacts was a constant maintenance burden
 
 We are stepping back to Level 2 with a clear path forward:
 
-1. **Today (L2):** Compile intent into static recipes. `/create-recipe` is the compiler. Recipes are fast, deterministic, readable. Intent.yaml is the design spec, SKILL.md is the compiled binary.
+1. **Today (L2):** Compile intent into static plays. `/create-play` is the compiler. Plays are fast, deterministic, readable. Intent.yaml is the design spec, SKILL.md is the compiled binary.
 
-2. **Next (L3):** Enrich intent.yaml to carry more of the orchestration knowledge. Compose L2 recipes into chains with defined interfaces. Intent crafting becomes the primary skill.
+2. **Next (L3):** Enrich intent.yaml to carry more of the orchestration knowledge. Compose plays into chains with defined interfaces. Intent crafting becomes the primary skill.
 
 3. **Future (L4):** When models are cheaper and more capable, move resolution back to runtime. Single orchestrator, dynamic DAG, adaptive execution.
 
@@ -262,18 +262,18 @@ We are stepping back to Level 2 with a clear path forward:
 
 ## What This Changes (Immediate — L2)
 
-1. **SKILL.md is the single runtime artifact.** No separate DAG JSON at runtime. The task list is baked into the recipe.
-2. **Intent.yaml is build-time only.** Referenced by `/create-recipe`, not by the running recipe.
-3. **Intent-resolver is a build-time tool.** Invoked inside `/create-recipe` during compilation, not at recipe runtime.
-4. **Task status tracking in STM.** On each task completion, write status to `{stm_base}/{issue}/status/{recipe-name}.json` for crash recovery. This is a status log, not the task definition.
-5. **Recipes are readable again.** One file, sequential logic, no indirection through DAG JSON + intent.yaml + cache.
-6. **`/create-recipe` becomes the critical tool.** Quality of compilation directly impacts recipe quality. The compiler must produce correct, complete, readable recipes.
+1. **SKILL.md is the single runtime artifact.** No separate DAG JSON at runtime. The task list is baked into the play.
+2. **Intent.yaml is build-time only.** Referenced by `/create-play`, not by the running play.
+3. **Intent-resolver is a build-time tool.** Invoked inside `/create-play` during compilation, not at play runtime.
+4. **Task status tracking in STM.** On each task completion, write status to `{stm_base}/{issue}/status/{play-name}.json` for crash recovery. This is a status log, not the task definition.
+5. **Plays are readable again.** One file, sequential logic, no indirection through DAG JSON + intent.yaml + cache.
+6. **`/create-play` becomes the critical tool.** Quality of compilation directly impacts play quality. The compiler must produce correct, complete, readable plays.
 
 ## Example: `commit-code` Across All Five Levels
 
 ### Level 1 — commit-code (Boundary-Defined)
 
-The recipe defines: **input** = uncommitted changes in a repo, **output** = well-formed commits pushed to remote. What happens inside is up to the system.
+The play defines: **input** = uncommitted changes in a repo, **output** = well-formed commits pushed to remote. What happens inside is up to the system.
 
 ```
 Input:  Uncommitted changes exist in the repository
@@ -288,7 +288,7 @@ It has structure at the edges — you know what goes in and what comes out. But 
 
 Intent.yaml defines: C1 (branch guard), C2 (changes exist), C3 (issue mapping), C4 (sensitive files), C5 (conventional format), C6 (issue reference), C7 (push to remote). Failure conditions F1-F4. Scenarios S1-S2.
 
-`/create-recipe` compiles this into SKILL.md using Structure A (full checkpoint flow):
+`/create-play` compiles this into SKILL.md using Structure A (full checkpoint flow):
 
 ```
 Pre-flight:
@@ -321,7 +321,7 @@ Evidence:
   - Self-commit via repo-orchestrator (ADR 012)
 ```
 
-Deterministic. Same changes → same commits every time. The recipe never reads intent.yaml at runtime — everything is baked in. The workflow structure (pre-flight → preparation → checkpoint → execution → evidence) comes from the recipe framework. The domain knowledge (C1-C7, F1-F4, S1-S2) comes from intent.
+Deterministic. Same changes → same commits every time. The play never reads intent.yaml at runtime — everything is baked in. The workflow structure (pre-flight → preparation → checkpoint → execution → evidence) comes from the play framework. The domain knowledge (C1-C7, F1-F4, S1-S2) comes from intent.
 
 As a higher-order L2, `ship` chains this: pre-flight → execute commit-code → feed STM into create-pr → execute create-pr → feed into merge-pr → execute merge-pr → checkpoint → done.
 
@@ -361,11 +361,11 @@ failure_conditions: [F1, F2, F3, F4]
 scenarios: [S1, S2]
 ```
 
-The compiler still produces SKILL.md. The execution is still deterministic. But no workflow template was consulted — the intent is self-contained. The user had to know to define pre-flights, checkpoint skip conditions, evidence format. Intent crafting is the skill. If they forget a pre-flight or misconfigure the confidence threshold, the compiled recipe will be wrong.
+The compiler still produces SKILL.md. The execution is still deterministic. But no workflow template was consulted — the intent is self-contained. The user had to know to define pre-flights, checkpoint skip conditions, evidence format. Intent crafting is the skill. If they forget a pre-flight or misconfigure the confidence threshold, the compiled play will be wrong.
 
 ### Level 4 — commit-code (Runtime Resolution)
 
-There is no `commit-code` recipe. The user invokes the universal orchestrator:
+There is no `commit-code` play. The user invokes the universal orchestrator:
 
 ```
 User: /orchestrate intent=commit-code/intent.yaml
@@ -396,27 +396,27 @@ The system:
 - Runs code evals against the final output
 - Returns the result
 
-The user checks the git log. If it looks right, they move on. If not, they refine the intent. No recipes, no compilation, no orchestrator configuration. All time goes into the intent. Just intent → outcome.
+The user checks the git log. If it looks right, they move on. If not, they refine the intent. No plays, no compilation, no orchestrator configuration. All time goes into the intent. Just intent → outcome.
 
 ## Consequences
 
 **Positive:**
-- Recipes execute faster (no resolution step at L2)
-- Recipes are self-contained, readable, debuggable
+- Plays execute faster (no resolution step at L2)
+- Plays are self-contained, readable, debuggable
 - Intent remains the architectural source of truth at every level
 - Clear upgrade path: L2 → L3 → L4 → L5 as models improve and costs drop
-- Each level builds on the previous — L2 recipes work unchanged inside L3 compositions
-- `/create-recipe` as compiler is a well-understood pattern (source → compile → binary)
+- Each level builds on the previous — plays work unchanged inside L3 compositions
+- `/create-play` as compiler is a well-understood pattern (source → compile → binary)
 
 **Negative:**
 - Intent changes require manual re-baking at L2-L3 (mitigated by hash guard)
-- L2 recipes can't adapt to novel situations (by design — that's L4)
-- The compiler (`/create-recipe`) is a critical path component — bad compilation → bad recipes
-- Risk of premature optimization: building L4 infrastructure before L2 recipes are stable (the mistake we just made)
+- Plays can't adapt to novel situations (by design — that's L4)
+- The compiler (`/create-play`) is a critical path component — bad compilation → bad plays
+- Risk of premature optimization: building L4 infrastructure before plays are stable (the mistake we just made)
 
 **Neutral:**
-- Different recipes can sit at different levels based on complexity and change frequency
-- The maturity model is a progression, not a mandate — some recipes may never need to go beyond L2
+- Different plays can sit at different levels based on complexity and change frequency
+- The maturity model is a progression, not a mandate — some plays may never need to go beyond L2
 
 ## References
 
