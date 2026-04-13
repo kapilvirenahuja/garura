@@ -47,10 +47,11 @@ Skills read from LTM only when agents explicitly pass them LTM paths — skills 
 Agent invoked
     │
     └── Context Crafting — reads LTM from ~/.meridian/core/memory/:
-          ├── standards/{domain}/      # Rules and quality criteria
-          ├── standards/templates/     # Template paths to pass to skills
-          ├── formats/{type}/          # Output shape references
+          ├── standards/{domain}/      # Cross-cutting rules and quality criteria
+          ├── formats/{type}/          # User-facing message formats
           └── knowledge/{domain}/      # Design decisions and patterns
+    │
+    └── (Skill/recipe-specific templates are bundled with the owning component, NOT in LTM)
     │
     └── Passes LTM template paths to skill
     │
@@ -62,19 +63,25 @@ Agent invoked
 **Authoring (source of truth):**
 ```
 core/components/memory/
-├── standards/           # Rules, conventions, quality criteria
+├── standards/           # Rules, conventions, quality criteria (cross-cutting only)
 │   ├── _index.md
 │   ├── commits/         # Commit categorization and quality rules
-│   ├── git/             # Branch naming conventions
-│   └── templates/       # Templates used by skills at runtime
-│       ├── epic-schema.md       # Schema for IDD epic fields
-│       └── roadmap-brief.html   # HTML template for roadmap briefs
-├── formats/             # Templates and output shapes
+│   ├── git/             # Branch naming + PR severity taxonomy
+│   ├── agent-lifecycle/ # Epic management rules
+│   ├── intent-schema.yaml          # Canonical intent.yaml contract
+│   ├── knowledge-file-template.md  # Knowledge-file format
+│   └── resolution-protocol.md      # R1–R4 LTM resolution
+├── formats/             # User-facing message formats (issues, PRs, etc.)
 │   ├── _index.md
 │   └── github-issue.md
 └── knowledge/           # Searchable reference material
     ├── _index.md
     └── architecture/
+
+# Skill/recipe-specific schemas and templates live with the owning component:
+#   core/components/skills/scope-roadmap-epics/reference/epic-schema.md
+#   core/components/recipes/briefs/templates/{*-brief.html, brief-common.css, brief-render.js, hub.html, fixtures/}
+# Foundational architecture rules live in docs/adr/, not standards/.
 ```
 
 **Deployment:**
@@ -98,7 +105,7 @@ Agent invoked (via JSON contract)
     └── Context Crafting:
           ├── Reads intent.yaml at intent_path from contract
           ├── Reads STM artifacts at non-null stm.* paths
-          └── Assembles LTM paths (e.g., template paths from standards/templates/)
+          └── Assembles LTM paths (e.g., taxonomy and rule paths from standards/)
                     │
                     ▼
           Skill invocation:

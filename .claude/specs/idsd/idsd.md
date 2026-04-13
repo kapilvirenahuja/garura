@@ -67,14 +67,15 @@ See section "SDLC Phases" for the current diagram (marked CURRENT) and the pendi
 | P10 | verify-feature | ✅ COMPLETE | Delivered via `check-drift` |
 | P11 | commit-code | ✅ COMPLETE | L2, repo-orchestrator + project-orchestrator, auto-proceed mode |
 | P12 | create-pr | ✅ COMPLETE | L2, quality checklist with evidence, confidence-gated |
-| P13 | review-pr | ❌ NOT STARTED | Blocked by validator agent |
+| P13 | review-pr | ✅ COMPLETE | L2 Structure A, diff-scoped quality review with deterministic PR severity taxonomy, weighted confidence formula, and git-history reviewer selection. 3 domain agents (tech-designer ×2, quality-auditor, repo-orchestrator-as-ranker). Replaces validator-agent dependency with `quality-auditor` + `pr-severity-taxonomy.md`. Added #208 (2026-04-13). |
 | P14 | deliver-feature | ✅ COMPLETE | Delivered via `implement-epic` |
 | P15 | run-demo | 🚫 NOT NEEDED | Descoped 2026-04-13 |
 | P16 | release | ❌ NOT STARTED | Needs generate-changelog — kept pending |
 | P17 | fix-bug | ✅ COMPLETE | Delivered as `/fix-it` — RCA-driven defect resolution skill |
 | P18 | review-architecture | ✅ COMPLETE | Delivered via `quality-check` skill (#200, 2026-04) |
 | P19 | generate-docs | ❌ NOT STARTED | 2 skills missing — kept pending |
-| — | ship | ✅ COMPLETE | L2 Structure C, chains commit-code → create-pr → merge-pr |
+| — | ship | ✅ COMPLETE | L2 Structure C, chains commit-code → create-pr → merge-pr. **Updated #208 (2026-04-13):** adds conditional `review-pr` quality gate between create-pr and merge-pr when `review-pr.bypass=false`; halts ship on P1 finding or sub-threshold confidence. |
+| — | quality-check-scoped | ✅ NEW | **Added #208 (2026-04-13):** diff-bounded single-pass evaluator used only by `review-pr`. Reuses /quality-check KB, NOT its 11-subagent execution model. Reads `pr-severity-taxonomy.md` (KB) + standards from `standards_order` config. |
 | — | merge-pr | ✅ COMPLETE | L2, merge + switch to main + cleanup |
 | — | prepare-implementation | ✅ COMPLETE | L2, produces features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml + 5 briefs + hub.html. **Updated #191 (2026-04):** Phase 0 STM setup added, artifact lock path fixed |
 | — | prepare-architecture | ✅ COMPLETE | **Updated #206 (2026-04):** brief generation made opt-in |
@@ -86,16 +87,17 @@ See section "SDLC Phases" for the current diagram (marked CURRENT) and the pendi
 | Component | Built | Notes |
 |---|---|---|
 | Agents | 11 | product-strategist, tech-designer, code-builder, repo-orchestrator, project-orchestrator, doc-builder, eval-generator, quality-auditor, judge, intent-crafter, intent-resolver |
-| Skills | ~42 deployed | Full list via /sync-claude output |
-| Recipes | 12 deployed | discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature, start-feature-planning, commit-code, create-pr, merge-pr, ship, capture-learning, create-recipe |
+| Skills | ~43 deployed | Full list via /sync-claude output. Includes new `quality-check-scoped` (#208) |
+| Recipes | 13 deployed | discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature, start-feature-planning, commit-code, create-pr, merge-pr, ship, capture-learning, create-recipe, **review-pr (#208)** |
 | Verification gates | 2 confirmed passing | G-100, G-103. Others blocked or pending re-eval against new schemas |
 
 ### Dependency Blockers
 
 ```
-validator agent (not yet built) ──► P13 review-pr (1 priority blocked)
 generate-changelog (source TBD — P15 descoped) ──► P16 release (1 priority blocked)
 ```
+
+**P13 unblocked 2026-04-13:** review-pr no longer depends on a validator agent — it uses the existing `quality-auditor` agent plus the deterministic `pr-severity-taxonomy.md` standard for severity classification.
 
 ---
 
@@ -302,7 +304,7 @@ Recipes are built one at a time. Priority set by user. Existing recipes marked f
 | 10 | `verify-feature` | L1 | ✅ COMPLETE | Delivered via `check-drift` |
 | 11 | `commit-code` | L2 | ✅ COMPLETE | Auto-proceed mode via ship |
 | 12 | `create-pr` | L2 | ✅ COMPLETE | Confidence-gated |
-| 13 | `review-pr` | L1 | ❌ NOT STARTED | Blocked by validator |
+| 13 | `review-pr` | L2 | ✅ COMPLETE | Structure A — diff-scoped quality review with deterministic severity taxonomy and confidence gate (#208, 2026-04-13) |
 | 14 | `deliver-feature` | L2 | ✅ COMPLETE | Delivered via `implement-epic` |
 | 15 | `run-demo` | L1 | 🚫 NOT NEEDED | Descoped 2026-04-13 |
 | 16 | `release` | L1 | ❌ NOT STARTED | Needs generate-changelog — kept pending |

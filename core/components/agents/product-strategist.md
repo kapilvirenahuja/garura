@@ -85,7 +85,7 @@ When you receive a JSON contract from the recipe orchestrator:
 3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
 4. **Collect context from LTM.** Search `~/.meridian/core/memory/` for domain-relevant content:
    - Standards and templates referenced by intent constraints (e.g., constraint with `template_ref` field)
-   - Schemas needed by skills (e.g., `standards/templates/epic-schema.md` for scope-roadmap-epics)
+   - Schemas needed by skills (now bundled with the skill itself, e.g. `skills/scope-roadmap-epics/reference/epic-schema.md`)
    - Domain knowledge relevant to the product vertical
    Pass discovered LTM paths to skills as input — skills should NOT search LTM themselves.
 5. **Read existing STM artifacts** at non-null `stm` paths. If context needs to be shared downstream, write it to STM.

@@ -92,10 +92,10 @@ h3: 16px, --text-primary
 All styling is authored once as a common token set + component classes. Each brief inlines this CSS. When styles are updated, regenerating briefs picks up the changes.
 
 ```
-~/.meridian/core/memory/standards/templates/brief-common.css
+~/.claude/skills/briefs/templates/brief-common.css
 ```
 
-(Source: `core/components/memory/standards/templates/brief-common.css` — deployed via `/sync-claude` or `/sync-droids`)
+(Source: `core/components/recipes/briefs/templates/brief-common.css` — deployed via `/sync-claude` or `/sync-droids`)
 
 This file is the single source of truth for all brief styling:
 - Token definitions (:root variables) — sourced from Phoenix Design System v2.0

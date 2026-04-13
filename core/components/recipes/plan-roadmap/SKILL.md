@@ -157,7 +157,7 @@ Agent reads `product.yaml` at `stm.product_yaml_path`. Epics reference strategic
 
 | LTM Artifact | Discovery Path | Skill Input Field |
 |--------------|----------------|-------------------|
-| Epic schema | `~/.meridian/core/memory/standards/templates/epic-schema.md` | `epic_schema_path` |
+| Epic schema | bundled with skill (`reference/epic-schema.md`) | (no input — skill reads its own reference) |
 | Epic management rules | `~/.meridian/core/memory/standards/agent-lifecycle/epic-management-rules.md` | `epic_rules_path` |
 | Domain taxonomy modules | `~/.meridian/core/memory/knowledge/domain-taxonomy/*.md` (glob all `.md` files) | `domain_taxonomy_paths` |
 

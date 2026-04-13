@@ -34,7 +34,7 @@ You are the **recipe compiler** and **architectural gatekeeper**. You own the pi
 **Reference artifacts:**
 - `reference/audit-checklist.md` — P1-P10 agent compliance checklist
 - `reference/compiled-example.md` — target output format for compiled recipes
-- `core/components/memory/standards/agent-contract.md` — universal JSON contract schema
+- `docs/adr/016-agent-json-contract.md` — universal JSON contract schema
 - `docs/adr/013-recipe-maturity-model.md` — L2 design elements and workflow structures
 
 ## Compilation Pipeline
@@ -90,7 +90,7 @@ Run these checks against the semantic map. Each check produces a PASS or GAP res
 | **G5 — Agent Existence** | Every agent in the recipe's agent boundary table exists at `core/components/agents/{name}.md` | Agent declared but definition missing |
 | **G6 — Skill-Agent Alignment** | Every skill a recipe step assigns to an agent is listed in that agent's skill inventory | Recipe assigns skill X to agent Y, but agent Y doesn't declare skill X |
 | **G7 — Contract Schema** | JSON contracts in recipe steps contain required fields: `intent_path`, `stm_base`, `stm`, `task_id` | Required contract field missing |
-| **G8 — Template References** | Skills that reference LTM templates point to files that exist in `core/components/memory/standards/templates/` | Template path referenced but file missing |
+| **G8 — Template References** | Skills/recipes that reference templates point to files that exist (now bundled with the owning skill/recipe under its own `templates/` or `reference/` directory) | Template path referenced but file missing |
 | **G9 — Intent Hash Drift** | Compiled intent_hash in SKILL.md matches current SHA-256 of intent.yaml | Hash mismatch — intent changed since last compilation |
 | **G10 — Required Sections** | Compiled SKILL.md contains all required sections: Frontmatter, Header, Compiled From, Role, Pre-flight, Workflow, Scenario Validation, Pause and Resume, Compilation Metadata | Section missing from compiled recipe |
 | **G11 — Skill LTM Input Coverage** | For every skill a recipe step invokes, each required/recommended LTM input in the skill's Input section has a corresponding discovery instruction in the recipe step text (e.g., "agent must glob X and pass as Y") | Skill declares LTM input (e.g., `epic_rules_path`, `domain_taxonomy_paths`) but the recipe step has no instruction for the agent to discover and pass it |
@@ -323,7 +323,7 @@ The compiler MUST NOT hand-author any evals. All evals come from evals-creator's
 
 #### 6c. Compile SKILL.md
 
-Read `reference/compiled-example.md` for the target output format. Read `core/components/memory/standards/agent-contract.md` for contract schema.
+Read `reference/compiled-example.md` for the target output format. Read `docs/adr/016-agent-json-contract.md` for contract schema.
 
 Compute intent hash:
 ```bash
@@ -339,7 +339,7 @@ Write `core/components/recipes/{recipe-name}/SKILL.md` with ALL required section
 | Compiled From | Notice: compiled artifact, edit intent.yaml and re-run /create-recipe |
 | Role + Agent Boundaries | Orchestrator role, agent table with domains and phases |
 | Pre-flight | Baked checks with constraint IDs, bash logic, resume check |
-| Workflow | Sequential steps organized by phase, each with: owner, depends-on, JSON contract (per agent-contract.md), skill invoked, step eval criteria |
+| Workflow | Sequential steps organized by phase, each with: owner, depends-on, JSON contract (per ADR 016), skill invoked, step eval criteria |
 | Scenario Validation | E2E scenario evals from intent.yaml |
 | Evidence & Close | Write evidence, self-commit (ADR 012), non-blocking |
 | Pause and Resume | Status file format, resume logic |
@@ -354,7 +354,7 @@ Write `core/components/recipes/{recipe-name}/SKILL.md` with ALL required section
 
 **Compilation rules (from ADR 013 L2):**
 - Workflow steps are sequential with named phases — not abstract stage numbers
-- Each agent dispatch includes the full JSON contract template with `stm` paths (per agent-contract.md)
+- Each agent dispatch includes the full JSON contract template with `stm` paths (per ADR 016)
 - Step evals appear immediately after the step they validate
 - Critical rule for Structure A: execution phase agents read STM data, NEVER the checkpoint brief
 - No runtime DAG — task ordering is baked into SKILL.md
@@ -389,7 +389,7 @@ Verification rules:
 - Every `pre-flight` constraint appears in the pre-flight table of the compiled SKILL.md
 - Every `structural` constraint has a verifiable structural element (agent boundary table, compilation rule, budget statement)
 - All required sections present in the compiled SKILL.md
-- Agent contracts match agent-contract.md schema
+- Agent contracts match ADR 016 schema
 - Every skill's required LTM input fields have a corresponding agent discovery instruction in the recipe step that invokes it (G11)
 
 If ANY intent item has zero coverage → compilation fails. The compiler must either re-invoke evals-creator with additional context, reclassify the constraint, or halt and report the gap.
