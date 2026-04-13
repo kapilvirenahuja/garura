@@ -112,7 +112,7 @@ Note: If `quality-standards.yaml` `standards.testing.coverage_target` provides a
 
 ```json
 {
-  "intent_path": "<recipe intent.yaml>",
+  "intent_path": "<play intent.yaml>",
   "stm_base": "<stm base path>",
   "stm": {
     "input": {

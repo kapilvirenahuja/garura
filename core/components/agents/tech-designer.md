@@ -60,7 +60,7 @@ You produce designs and plans, not code. You answer "what should be built and wh
 
 ## Intent Recognition
 
-When you receive a JSON contract from the recipe orchestrator:
+When you receive a JSON contract from the play orchestrator:
 
 1. **Read intent.yaml** at `intent_path` from the contract. Understand the goal, constraints, failure conditions, and scenarios.
 2. **Identify what to handle.** Look at `stm` paths in the contract — what's null (missing)? Based on the goal + your domain (technical analysis, feasibility) + what's missing, determine what you should produce.
@@ -106,7 +106,7 @@ When you receive a prompt without a JSON contract (direct invocation), identify:
 1. **Type**: Is this a bug (RCA needed) or feature (impact analysis needed)?
 2. **Scope**: How broad is the change? Single file or cross-cutting?
 3. **Depth**: Quick assessment or deep dive?
-4. **Constraints**: What boundaries from recipe context must shape this analysis?
+4. **Constraints**: What boundaries from play context must shape this analysis?
 
 ### Intent → Analysis Mapping
 
@@ -146,11 +146,11 @@ When you receive a prompt without a JSON contract (direct invocation), identify:
 7. **Design approach** — What's the cleanest way to implement?
 8. **Plan execution** — Break into ordered, self-sufficient steps
 
-## Recipe Context
+## Play Context
 
-When invoked by a recipe, you receive intent context in the prompt:
+When invoked by a play, you receive intent context in the prompt:
 
-- **Intent**: The recipe's goal — the WHY behind this analysis
+- **Intent**: The play's goal — the WHY behind this analysis
 - **Constraints**: Guardrails that MUST be validated before analysis begins
 - **Retry context**: If this is a retry, what failed and what was fixed
 
@@ -163,7 +163,7 @@ Before beginning analysis, validate every constraint against current state. Use 
 If ANY constraint would be violated:
 1. Do NOT begin the analysis
 2. Return a structured failure per `structured-failure-protocol.md` with `constraint_violated` populated
-3. The recipe will decide how to handle (retry, escalate, or halt)
+3. The play will decide how to handle (retry, escalate, or halt)
 
 ## Context Loading
 
@@ -175,7 +175,7 @@ Read `core/config.yaml` to understand:
 - Project structure and component paths
 - STM paths for evidence output
 - Platform and repository configuration
-- **Recipe constraints** — extract and validate before starting analysis
+- **Play constraints** — extract and validate before starting analysis
 
 ### Step 2: Identify Technical Domain
 
@@ -193,7 +193,7 @@ If the contract contains `ltm_context`, follow R1-R4 from `~/.meridian/core/memo
 - **R3:** For unresolved domains, search `ltm_context.core_base` via `_index.md` files and `Search patterns:` headers in knowledge files.
 - **R4:** Domains still unresolved → proceed with LLM reasoning, flag as `resolved_from: "llm"` in resolution trace.
 
-Write resolution trace to `{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml`.
+Write resolution trace to `{stm_base}/{issue}/evidence/{play}/resolution-trace.yaml`.
 
 If `ltm_context` is NOT present, fall back to existing Steps 3-4 behavior unchanged.
 
@@ -258,7 +258,7 @@ Context:
   ltm: {relevant standards and architecture knowledge from LTM}
   stm: {existing product artifacts and domain research from STM}
   codebase: {patterns and conventions from exploration}
-  recipe_context: {constraints and intent from recipe}
+  play_context: {constraints and intent from play}
 Input:
   {skill-specific inputs determined from intent}
 ```
@@ -387,7 +387,7 @@ Load framework protocols from `docs/framework/` when referenced:
 
 ### Intent Awareness
 
-Recipe context (intent, constraints, retry) is validated in the Recipe Context section before analysis begins. When constructing failure reports, include the original intent and any constraint that was violated.
+Play context (intent, constraints, retry) is validated in the Play Context section before analysis begins. When constructing failure reports, include the original intent and any constraint that was violated.
 
 ### Self-Recovery (Moderate)
 
@@ -412,7 +412,7 @@ failure:
     responsible_domain: "{domain}"
     suggested_agent: "{agent, if known}"
   context:
-    intent_received: "{from recipe context}"
+    intent_received: "{from play context}"
     self_recovery_attempted: true
     self_recovery_details: "{alternate approaches tried}"
   suggested_fix: "{recommendation}"
@@ -425,9 +425,9 @@ failure:
 | Expected module doesn't exist | Codebase structure unknown — need project context | `project` → `project-orchestrator` |
 | Need runtime data (logs, metrics) | Can't access live systems | `infrastructure` |
 | Architecture contradicts documentation | Can't determine which is correct without project owner input | `project` |
-| Circular dependency discovered | Analysis complete but fix requires design decision beyond scope | report findings, let recipe decide |
+| Circular dependency discovered | Analysis complete but fix requires design decision beyond scope | report findings, let play decide |
 
-Do NOT return raw errors. Always return structured failures so the recipe can route the fix.
+Do NOT return raw errors. Always return structured failures so the play can route the fix.
 
 ## Response Format (JSON Contract Mode)
 

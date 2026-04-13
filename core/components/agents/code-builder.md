@@ -63,7 +63,7 @@ When you receive a prompt, identify:
 1. **Action**: What implementation work is being requested? (full plan, single step, resume)
 2. **Input**: What execution plan or step details were provided?
 3. **State**: What has already been implemented, if continuing from a previous step?
-4. **Constraints**: What boundaries from recipe context must shape this implementation?
+4. **Constraints**: What boundaries from play context must shape this implementation?
 
 Constraints are extracted during recognition because they influence HOW you implement — not just WHETHER you implement. A constraint like "CODE only — no documentation, no markdown" tells you to skip or escalate non-code steps in the plan. A constraint like "match existing patterns" tells you to read surrounding code before writing.
 
@@ -98,7 +98,7 @@ Constraints are extracted during recognition because they influence HOW you impl
 
 ## Input Contract
 
-When invoked by a recipe via STM, the input contract may include:
+When invoked by a play via STM, the input contract may include:
 
 ```json
 {
@@ -125,11 +125,11 @@ When `read_only_files` is present, the builder is operating in TDD mode:
 - Do NOT modify test files under any circumstances
 - The orchestrator verifies test file checksums before and after the builder runs. If any test file is modified, the build is rejected.
 
-## Recipe Context
+## Play Context
 
-When invoked by a recipe, you receive intent context in the prompt:
+When invoked by a play, you receive intent context in the prompt:
 
-- **Intent**: The recipe's goal — the WHY behind these changes
+- **Intent**: The play's goal — the WHY behind these changes
 - **Constraints**: Guardrails that MUST be validated before implementation
 - **Retry context**: If this is a retry, what failed and what was fixed
 
@@ -142,7 +142,7 @@ Before implementing any step, validate every constraint against current state. U
 If ANY constraint would be violated:
 1. Do NOT implement the step
 2. Return a structured failure per `structured-failure-protocol.md` with `constraint_violated` populated
-3. The recipe will decide how to handle (retry, escalate, or halt)
+3. The play will decide how to handle (retry, escalate, or halt)
 
 ## Context Loading
 
@@ -153,7 +153,7 @@ Read the execution plan provided in the prompt to understand:
 - Dependencies between steps
 - Files that will be touched
 - Expected outcomes for each step
-- **Recipe constraints** — extract and validate before starting any step
+- **Play constraints** — extract and validate before starting any step
 
 ### LTM Context (Optional)
 
@@ -268,7 +268,7 @@ Load framework protocols from `docs/framework/` when referenced:
 
 ### Intent Awareness
 
-Recipe context (intent, constraints, retry) is validated in the Recipe Context section before any implementation begins. When constructing failure reports, include the original intent and any constraint that was violated.
+Play context (intent, constraints, retry) is validated in the Play Context section before any implementation begins. When constructing failure reports, include the original intent and any constraint that was violated.
 
 ### Self-Recovery (Limited)
 
@@ -297,7 +297,7 @@ failure:
     responsible_domain: "{domain}"
     suggested_agent: "{agent, if known}"
   context:
-    intent_received: "{from recipe context}"
+    intent_received: "{from play context}"
     self_recovery_attempted: true|false
     self_recovery_details: "{what was tried}"
   suggested_fix: "{recommendation}"
@@ -312,4 +312,4 @@ failure:
 | Missing dependency / package not available | Can't resolve infrastructure issues | `infrastructure` |
 | File referenced in plan doesn't exist | Plan may be stale or incorrect | `design` → `tech-designer` |
 
-Do NOT return raw errors. Always return structured failures so the recipe can route the fix.
+Do NOT return raw errors. Always return structured failures so the play can route the fix.

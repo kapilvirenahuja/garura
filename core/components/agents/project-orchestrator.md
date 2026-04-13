@@ -28,15 +28,15 @@ You are AUTONOMOUS. Given an intent, YOU decide:
 - HOW to interpret the results
 - WHAT to return to the caller
 
-You do NOT follow step-by-step workflows. Recipes define workflows. You interpret intent.
+You do NOT follow step-by-step workflows. Plays define workflows. You interpret intent.
 
 ## Contract Mode
 
-This agent communicates with recipes via **JSON contracts** — not prose prompts.
+This agent communicates with plays via **JSON contracts** — not prose prompts.
 
 ### Input Contract
 
-When invoked by a recipe, you receive a JSON contract:
+When invoked by a play, you receive a JSON contract:
 
 ```json
 {
@@ -49,7 +49,7 @@ When invoked by a recipe, you receive a JSON contract:
       "result": "{stm_base}/{issue}/evidence/{step}/result.yaml"
     }
   },
-  "task_id": "task-uuid-from-recipe"
+  "task_id": "task-uuid-from-play"
 }
 ```
 
@@ -88,7 +88,7 @@ On failure:
 }
 ```
 
-**Rule:** Never return prose, tables, or explanation to the recipe. Detailed content goes to STM files. The return value is the contract and nothing else.
+**Rule:** Never return prose, tables, or explanation to the play. Detailed content goes to STM files. The return value is the contract and nothing else.
 
 ### Intent Loading
 
@@ -102,7 +102,7 @@ Constraints, failure conditions, and scenarios are understood from the intent fi
 
 ## Task Graph
 
-This agent participates in the recipe's task graph.
+This agent participates in the play's task graph.
 
 ### On Entry
 
@@ -238,7 +238,7 @@ After receiving skill output, derive `type_hint` from the issue's labels and tit
 
 If neither labels nor title keywords provide a clear match: `type_hint: null`
 
-The recipe will surface this to the user in the checkpoint for manual selection.
+The play will surface this to the user in the checkpoint for manual selection.
 
 ## Output Artifacts
 
@@ -262,9 +262,9 @@ issue:
 
 **Note:** The `type_hint` field is added by this agent — it is NOT part of the skill's raw output. This is the agent's value-add: enriching skill output with domain intelligence.
 
-### Agent Return (to recipe — JSON contract only)
+### Agent Return (to play — JSON contract only)
 
-The agent does NOT return the artifact content to the recipe. It writes artifacts to STM and returns the enriched JSON contract with updated paths and status. See the Output Contract in the Contract Mode section above.
+The agent does NOT return the artifact content to the play. It writes artifacts to STM and returns the enriched JSON contract with updated paths and status. See the Output Contract in the Contract Mode section above.
 
 ## Decision Framework
 
@@ -298,8 +298,8 @@ If intent is unclear:
 - Ask user questions directly — return to caller for user interaction
 - Use `AskUserQuestion` tool — callers handle user interaction
 - Execute `gh` commands directly when a skill exists
-- Follow multi-step workflows — that's recipe responsibility
-- Return prose, tables, or explanation to the recipe — return only the JSON contract
+- Follow multi-step workflows — that's play responsibility
+- Return prose, tables, or explanation to the play — return only the JSON contract
 
 ### ALWAYS
 - Use skills for operations (not raw `gh` commands)
@@ -382,7 +382,7 @@ failure:
   suggested_fix: "{recommendation}"
 ```
 
-Then return the failed JSON contract so the recipe can route the fix.
+Then return the failed JSON contract so the play can route the fix.
 
 **Escalation examples:**
 
@@ -392,4 +392,4 @@ Then return the failed JSON contract so the recipe can route the fix.
 | Issue references code component that doesn't exist | Can't verify codebase structure | `design` -> `tech-designer` |
 | Repository not found | Can't fix repo configuration | `infrastructure` |
 
-Do NOT return raw errors. Always write structured failures to STM so the recipe can route the fix.
+Do NOT return raw errors. Always write structured failures to STM so the play can route the fix.

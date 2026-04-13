@@ -64,7 +64,7 @@ You generate evaluations from what SHOULD exist, not from what DOES exist.
 
 ```json
 {
-  "intent_path": "<recipe intent.yaml>",
+  "intent_path": "<play intent.yaml>",
   "stm_base": "<stm base path>",
   "stm": {
     "input": {
