@@ -1,0 +1,19 @@
+result:
+  success: true
+  pr:
+    number: 213
+    url: "https://github.com/kapilvirenahuja/meridian-os/pull/213"
+    state: "open"
+    title: "refactor: rename 'recipes' to 'plays' across the entire codebase (#212)"
+  checklist:
+    required_count: 15
+    optional_count: 6
+  branch:
+    head: refactor/212-rename-recipes-to-plays
+    base: main
+    pushed: true
+    tracking: origin/refactor/212-rename-recipes-to-plays
+  issue_closed: 212
+  post_merge_action_required:
+    action: "/sync-claude"
+    reason: "143 files changed under core/components/ (plays/, agents/, skills/, memory/) must be deployed to ~/.claude/ (global mode) after merge"
