@@ -188,7 +188,7 @@ goal: "Prepare a roadmap"
 constraints:
   - id: C-TEMPLATE
     rule: "Follow the roadmap brief template"
-    template_ref: "standards/templates/roadmap-brief.html"
+    template_ref: "recipes/briefs/templates/roadmap-brief.html"
   - id: C-LOCKED
     rule: "Vision must be locked before roadmap planning"
 

@@ -344,8 +344,8 @@ Load patterns from: `reference/risks.md`
 Organizational standards that adopters customize — commit categories, issue templates, quality gates, epic schemas. These live in LTM and are referenced by well-known paths. The agent discovers the path and passes it to the skill as an input parameter.
 
 ```markdown
-Agent passes: ltm_template_path: "~/.meridian/core/memory/standards/templates/epic-schema.md"
-Skill reads: from the path provided by the agent
+Skill loads from its own bundled reference: skills/scope-roadmap-epics/reference/epic-schema.md
+(Schemas tightly coupled to one skill belong with that skill, not in shared LTM.)
 ```
 
 | Knowledge Type | Location | Mutable By Adopter |

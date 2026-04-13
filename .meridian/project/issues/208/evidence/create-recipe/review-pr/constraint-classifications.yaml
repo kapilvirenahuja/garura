@@ -1,0 +1,21 @@
+constraint_classifications:
+  - id: C1
+    category: structural    # diff scope is enforced by skill contract + recipe rule
+  - id: C2
+    category: artifact-verifiable  # every finding cites standard ID — observable in findings.yaml
+  - id: C3
+    category: artifact-verifiable  # determinism observable across two runs
+  - id: C4
+    category: pre-flight    # config keys + paths must resolve before domain work
+  - id: C5
+    category: structural    # L2 budget enforced by recipe agent boundary table
+  - id: C6
+    category: artifact-verifiable  # reviewer list excludes author + uses window
+  - id: C7
+    category: artifact-verifiable  # fallback behavior observable in selection output
+  - id: C8
+    category: artifact-verifiable  # PR comment structure observable
+  - id: C9
+    category: structural    # confidence formula baked into recipe Step 3
+  - id: C10
+    category: structural    # recipe MUST NOT invoke create-pr — agent boundary rule
