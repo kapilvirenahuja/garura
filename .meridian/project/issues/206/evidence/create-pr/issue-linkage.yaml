@@ -1,0 +1,11 @@
+issue:
+  number: 206
+  title: "refactor: make brief generation opt-in across discovery, planning, and architecture recipes"
+  state: open
+  labels:
+    - enhancement
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/206"
+linkage:
+  source: branch_name
+  branch: "refactor/206-make-brief-generation-opt-in"
+  confidence: high

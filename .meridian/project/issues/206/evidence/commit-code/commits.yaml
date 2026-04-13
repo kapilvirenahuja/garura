@@ -1,0 +1,63 @@
+commits:
+  - group_id: G1
+    hash: 8583aed
+    type: refactor
+    scope: recipes
+    subject: "remove mandatory brief generation from discover-product, plan-roadmap, prepare-architecture"
+    issue: 206
+    files:
+      - core/components/recipes/discover-product/SKILL.md
+      - core/components/recipes/discover-product/reference/intent.yaml
+      - core/components/recipes/plan-roadmap/SKILL.md
+      - core/components/recipes/plan-roadmap/reference/intent.yaml
+      - core/components/recipes/prepare-architecture/SKILL.md
+      - core/components/recipes/prepare-architecture/reference/intent.yaml
+
+  - group_id: G2
+    hash: a8bf75e
+    type: refactor
+    scope: create-recipe
+    subject: "remove mandatory doc-builder step before checkpoints"
+    issue: 206
+    files:
+      - core/components/recipes/create-recipe/SKILL.md
+
+  - group_id: G3
+    hash: 0457e6b
+    type: refactor
+    scope: skills
+    subject: "remove brief generation references from draft-roadmap and validate-roadmap"
+    issue: 206
+    files:
+      - core/components/skills/draft-roadmap/SKILL.md
+      - core/components/skills/draft-roadmap/schemas/roadmap.yaml
+      - core/components/skills/validate-roadmap/SKILL.md
+
+  - group_id: G4
+    hash: d639723
+    type: chore
+    scope: stm
+    subject: "record start-feature pending state and issue 206 STM evidence"
+    issue: 206
+    files:
+      - .meridian/project/issues/_pending/start-feature/changed-files.txt
+      - .meridian/project/issues/_pending/start-feature/args.yaml
+      - .meridian/project/issues/206/evidence/commit-code/
+      - .meridian/project/issues/206/evidence/start-feature/
+
+  - group_id: G5
+    hash: d3f284a
+    type: chore
+    scope: stm
+    subject: "record issue 200 create-recipe audit evidence for discover-product and plan-roadmap"
+    issue: 200
+    files:
+      - .meridian/project/issues/200/evidence/create-recipe/discover-product/
+      - .meridian/project/issues/200/evidence/create-recipe/plan-roadmap/
+
+push:
+  status: success
+  branch: refactor/206-make-brief-generation-opt-in
+  remote: origin
+  base_sha: 538a199
+  head_sha: d3f284a
