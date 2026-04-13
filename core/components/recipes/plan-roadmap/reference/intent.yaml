@@ -2,38 +2,18 @@ name: plan-roadmap
 intent: >
   Produce a time-phased product roadmap from a locked product vision.
   The output set includes: scoped epics with full IDD fields,
-  a technical feasibility assessment, a human-reviewable brief,
-  an approved full roadmap, and an engineering-facing view.
+  a technical feasibility assessment, and an approved full roadmap.
   All epics trace to strategic goals from the vision.
-  The brief must pass human review before the roadmap is finalized.
+  Epics and feasibility must receive explicit human approval before the
+  roadmap is finalized — the review surface is the epics.yaml and
+  feasibility.yaml paths. Users may run /briefs separately to generate an
+  HTML rendering if desired.
 
 constraints:
   - id: C1
     rule: >
       Vision must have LOCKED status before any roadmap planning begins.
       No artifacts may be produced from an unlocked vision.
-  - id: C2
-    rule: >
-      The roadmap brief must use the standard Phoenix sidebar + chapters
-      layout defined in LTM. Required chapters are: Strategy, Timeline,
-      Epics, and Feasibility. The sidebar must provide chapter navigation,
-      a theme switcher, and review decision affordances. The Feasibility
-      chapter surfaces blockers that must be resolved before proceeding.
-      There is no separate "What We're Not Doing" chapter — epic
-      constraints already define scope boundaries.
-    template_ref: "standards/templates/roadmap-brief.html"
-  - id: C3
-    rule: >
-      The roadmap brief must be reviewable by a stakeholder within
-      30 minutes. No element is included unless a reviewer can act on it
-      within that session. The Blockers section must contain at least
-      1 entry — a brief with zero blockers indicates insufficient
-      critical analysis.
-  - id: C4
-    rule: >
-      Technical elements appear only if they change a roadmap decision —
-      sequencing, priority, or timing. Implementation details, NFR targets,
-      and code-level concerns are excluded.
   - id: C5
     rule: >
       The number of epics is determined by the product's strategic goals —
@@ -52,27 +32,15 @@ constraints:
       No orphan epics.
   - id: C8
     rule: >
-      The full roadmap must not be produced until the brief has received
-      explicit human approval. The brief gates the roadmap.
-  - id: C9
-    rule: >
-      Roadmap-defining content in the final roadmap must be transcribed
-      verbatim from the approved brief. The thesis, narrative, timeline
-      sequencing, exclusions, and assumptions carried into roadmap.yaml
-      must come directly from the approved brief or locked upstream
-      artifacts — no regeneration or paraphrasing.
-  - id: C10
-    rule: >
-      The roadmap brief must expose review decision affordances directly in
-      the HTML — Tether, Vanish, Orbit, or equivalent clearly labeled review
-      actions — so the reviewer can see the available outcomes while
-      reading. Detailed written feedback is collected through the recipe
-      checkpoint, not embedded comment fields inside the brief.
+      The full roadmap must not be produced until epics.yaml and
+      feasibility.yaml have received explicit human approval at the
+      recipe checkpoint. Approval gates the roadmap. The review surface
+      at the checkpoint is the epics.yaml and feasibility.yaml file paths.
   - id: C11
     rule: >
-      After brief approval, roadmap production must be blocked when the
-      feasibility assessment contains non-empty critical_blockers or
-      open_questions arrays. Each unresolved item must be presented to
+      After epics and feasibility approval, roadmap production must be
+      blocked when the feasibility assessment contains non-empty
+      critical_blockers or open_questions arrays. Each unresolved item must be presented to
       the user via a structured resolution interview using the RESOLVED
       keyword to collect decisions. All resolutions must be written to a
       pre-lock-resolutions.yaml audit artifact before the roadmap is
@@ -87,7 +55,7 @@ constraints:
   - id: C13
     rule: >
       Epics use E-IDs (E1, E2, E3...) throughout all roadmap pipeline
-      artifacts — epics.yaml, feasibility.yaml, roadmap.yaml, and briefs.
+      artifacts — epics.yaml, feasibility.yaml, and roadmap.yaml.
       F-IDs are reserved for features.yaml produced by prepare-implementation.
   - id: C14
     rule: >
@@ -137,27 +105,16 @@ failure_conditions:
     condition: >
       Any epic is missing one or more IDD fields (intent, constraints,
       success scenarios, or failure conditions).
-  - id: F4
-    condition: >
-      The brief contains technical detail that does not influence
-      a sequencing, priority, or timing decision.
   - id: F5
     condition: >
-      The final roadmap was produced without a corresponding
-      approved brief artifact.
-  - id: F6
-    condition: >
-      The roadmap was produced using a stale version of the brief —
-      a pre-feedback iteration rather than the final approved version.
-      The approved_brief_ref in roadmap.yaml must point to the copy
-      at the approved_roadmap_brief_path (under briefs/), not the
-      original draft brief path.
+      The final roadmap was produced without explicit human approval
+      of epics.yaml and feasibility.yaml at the recipe checkpoint.
   - id: F7
     condition: >
       The roadmap contains thesis, narrative, timeline sequencing,
-      exclusions, or assumptions that differ from the approved brief
-      or locked upstream artifacts — indicating regeneration rather
-      than verbatim transcription.
+      exclusions, or assumptions that differ from the locked upstream
+      artifacts (product.yaml) or approved epics/feasibility —
+      indicating regeneration rather than verbatim transcription.
   - id: F8
     condition: >
       The roadmap was produced while critical_blockers or open_questions
@@ -190,7 +147,7 @@ failure_conditions:
 scenarios:
   - id: S1
     persona: Product Manager
-    given: Approved roadmap brief and full roadmap
+    given: Approved epics.yaml, feasibility.yaml, and full roadmap
     then: >
       Can clearly describe each epic's intent, constraints, and
       success criteria to stakeholders without additional research.
@@ -210,11 +167,12 @@ scenarios:
       accordingly using the feasibility section of roadmap.yaml.
   - id: S4
     persona: Stakeholder
-    given: Roadmap brief
+    given: epics.yaml and feasibility.yaml presented at the recipe checkpoint
     then: >
-      Can review the brief, identify blockers that need resolution,
-      and approve, reject, or request specific changes within
-      30 minutes using the brief plus the recipe checkpoint flow.
+      Can review the artifacts, identify blockers that need resolution,
+      and approve, reject, or request specific changes using the recipe
+      checkpoint flow. May optionally run /briefs to generate an HTML
+      rendering for review.
   - id: S5
     persona: Technical Architect
     given: Feasibility section of roadmap.yaml and risk summary

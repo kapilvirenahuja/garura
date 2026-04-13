@@ -3,9 +3,10 @@ intent: >
   draft a product vision with strategic goals and market positioning, validate
   the vision for completeness, and lock it when ready. The recipe runs as a
   single invocation with inline checkpoints. It produces a vision artifact
-  (product.yaml), an interactive HTML brief (product-brief.html) for human
-  review, validates completeness, and locks the vision — all in one flow.
-  All product artifacts are stored in project-scoped product STM.
+  (product.yaml) for human review, validates completeness, and locks the
+  vision — all in one flow. Users may run /briefs separately to generate an
+  HTML rendering of the artifact if desired. All product artifacts are stored
+  in project-scoped product STM.
 
 constraints:
   - id: C1
@@ -21,8 +22,8 @@ constraints:
     rule: >
       Maximum 5 domain agent dispatches per invocation (3 base plus up
       to 2 for cycle-back per C9). When opportunity discovery is skipped
-      per C12, base is 2. Doc-builder and repo-orchestrator are utility
-      agents exempt from the count.
+      per C12, base is 2. repo-orchestrator is a utility agent exempt
+      from the count.
   - id: C6
     rule: >
       All vision and product artifacts must be written to
@@ -37,9 +38,11 @@ constraints:
   - id: C8
     rule: >
       A checkpoint artifact must be written before each user-facing pause.
-      The recipe has up to two checkpoints: brief review after drafting,
+      The recipe has up to two checkpoints: vision review after drafting,
       and validation review if blockers are found. Checkpoint status is
-      PENDING_APPROVAL until the user responds.
+      PENDING_APPROVAL until the user responds. The review surface at each
+      checkpoint is the product.yaml path; users may run /briefs separately
+      to generate an HTML rendering.
   - id: C9
     rule: >
       When vision validation finds blockers and the user requests a
@@ -48,11 +51,6 @@ constraints:
       library-type intents where opportunity discovery is skipped, up to
       2 re-draft iterations are permitted. If the maximum is reached,
       the recipe halts and requires re-invocation.
-  - id: C10
-    rule: >
-      A human-reviewable brief artifact must be produced after vision
-      drafting and presented at the first checkpoint. This is the primary
-      artifact the user evaluates before the recipe proceeds to validation.
   - id: C11
     rule: >
       If the product domain cannot be unambiguously determined from the
@@ -74,8 +72,8 @@ constraints:
       in product.yaml as an explicit type field. Products with external
       market-facing users are type "product". Internal libraries, components,
       SDKs, developer tools, and microservices are type "library". The type
-      field governs which validation criteria apply and which brief sections
-      render.
+      field governs which validation criteria apply and which product.yaml
+      sections are populated.
   - id: C14
     rule: >
       Pre-lock resolution gate — the recipe must not lock artifacts when
@@ -110,10 +108,9 @@ constraints:
   - id: C17
     rule: >
       After vision drafting, the recipe must present all three derived
-      profiles to the user for validation before proceeding to brief
-      generation. The user may adjust any dimension level. Adjusted
-      profiles must be written back to product.yaml before the brief
-      is generated. The brief must render the profiles.
+      profiles to the user for validation before proceeding to the vision
+      review checkpoint. The user may adjust any dimension level. Adjusted
+      profiles must be written back to product.yaml before the checkpoint.
   - id: C18
     rule: >
       The vision drafting agent must preserve the source document's scope
@@ -124,7 +121,7 @@ constraints:
       reinterpret a deferred capability as in-scope based on its own
       reasoning about product benefit. When the source is ambiguous about
       a capability's status, the agent must surface the ambiguity at the
-      brief review checkpoint rather than resolving it silently.
+      vision review checkpoint rather than resolving it silently.
   - id: C19
     rule: >
       When the vision drafting agent applies risk-based, UX-based, or
@@ -134,7 +131,7 @@ constraints:
       in product.yaml rather than applied silently. The decision_point
       must include: the original source requirement, the agent's proposed
       alternative, and the rationale. The user resolves decision_points
-      at the brief review checkpoint.
+      at the vision review checkpoint.
 
 failure_conditions:
   - id: F1
@@ -218,12 +215,13 @@ scenarios:
   - id: S1
     persona: Founder / Product Manager / Engineering Lead
     given: >
-      The vision artifact and interactive HTML brief produced after
-      vision drafting, presented at the first checkpoint
+      The vision artifact (product.yaml) produced after vision drafting,
+      presented at the first checkpoint with its file path
     then: >
       Can evaluate whether the strategic goals and positioning accurately
       capture their intent — including for internal libraries where market
-      sections are absent and the brief renders technical context instead.
+      sections are absent and the YAML contains technical context instead.
+      May optionally run /briefs to generate an HTML rendering for review.
   - id: S2
     persona: Engineering Lead
     given: >
@@ -279,7 +277,7 @@ scenarios:
   - id: S7
     persona: Engineering Lead
     given: >
-      The derived profiles presented at the brief review checkpoint
+      The derived profiles presented at the vision review checkpoint
     then: >
       Can validate that the profile levels accurately reflect the
       project's character, adjust any dimensions that are miscalibrated,
@@ -301,8 +299,8 @@ scenarios:
       A product.yaml with decision_points where the agent's risk-based
       reasoning conflicts with explicit source document requirements
     then: >
-      Can review each decision_point at the brief checkpoint, see both
-      the original source requirement and the agent's proposed alternative
-      with rationale, and make an explicit choice — ensuring the final
-      product.yaml reflects deliberate human decisions, not agent
-      interpretation.
+      Can review each decision_point at the vision review checkpoint by
+      reading product.yaml, see both the original source requirement and
+      the agent's proposed alternative with rationale, and make an explicit
+      choice — ensuring the final product.yaml reflects deliberate human
+      decisions, not agent interpretation.
