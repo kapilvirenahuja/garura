@@ -1,0 +1,162 @@
+meta:
+  generated_at: "2026-04-13T00:00:00+05:30"
+  diff_path: ".meridian/project/issues/208/evidence/review-pr/diff.patch"
+  changed_paths_count: 67
+  scan_coverage: 1.0
+  taxonomy_path: "./core/components/memory/standards/git/pr-severity-taxonomy.md"
+  standards_relevant: 7
+
+findings:
+  # P2 findings (sorted by file asc, line asc)
+  - standard_id: ARCH-07
+    severity: P2
+    file: .meridian/project/issues/206/evidence/merge-pr/readiness.yaml
+    line: 7
+    evidence: 'url: "https://github.com/kapilvirenahuja/meridian-os/pull/207"'
+    taxonomy_rule_id: ARCH-07
+    note: >
+      ARCH-07 match rule fires on https?://[a-z]+\. pattern. This is a legitimate
+      GitHub PR tracking URL in an STM evidence artifact, not a hardcoded service
+      URL in business logic. Surfaced per mechanical rule; no remediation required.
+
+  - standard_id: ARCH-07
+    severity: P2
+    file: .meridian/project/issues/208/evidence/start-feature-planning/issue-resolution.yaml
+    line: 81
+    evidence: 'url: "https://github.com/kapilvirenahuja/meridian-os/issues/208"'
+    taxonomy_rule_id: ARCH-07
+    note: >
+      ARCH-07 match rule fires on https?://[a-z]+\. pattern. This is a legitimate
+      GitHub issue tracking URL in an STM evidence artifact, not a hardcoded service
+      URL in business logic. Surfaced per mechanical rule; no remediation required.
+
+  # P3 findings
+  - standard_id: DOC-04
+    severity: P3
+    file: docs/adr/016-agent-json-contract.md
+    line: null
+    evidence: "docs/adr/016-agent-json-contract.md"
+    taxonomy_rule_id: DOC-04
+    note: >
+      DOC-04 path rule fires on docs/adr/**. This is a new ADR being ADDED
+      (positive signal). The rule fires on presence in changed_paths.
+      No remediation required — ADR addition is the intended change.
+
+  # P4 findings (sorted by file asc)
+  - standard_id: ARCH-23
+    severity: P4
+    file: docs/adr/016-agent-json-contract.md
+    line: null
+    evidence: "docs/adr/016-agent-json-contract.md"
+    taxonomy_rule_id: ARCH-23
+    note: >
+      ARCH-23 path rule fires on docs/adr/**. New ADR added — positive signal.
+      Surfaced per mechanical rule.
+
+  - standard_id: DOC-05
+    severity: P4
+    file: docs/adr/016-agent-json-contract.md
+    line: null
+    evidence: "docs/adr/016-agent-json-contract.md"
+    taxonomy_rule_id: DOC-05
+    note: >
+      DOC-05 path rule fires on docs/adr/**. New ADR added. ADR covers
+      agent-to-agent JSON contract pattern — a major architectural decision.
+
+  - standard_id: FE-06
+    severity: P4
+    file: core/components/recipes/briefs/templates/architecture-brief.html
+    line: null
+    evidence: "core/components/recipes/briefs/templates/architecture-brief.html"
+    taxonomy_rule_id: FE-06
+    note: >
+      FE-06 path rule fires on **/*.html. File is a 100% similarity rename (move
+      from standards/templates/ to recipes/briefs/templates/) — no content change.
+      Surfaced per mechanical rule; no LCP regression possible from a pure rename.
+
+  - standard_id: FE-06
+    severity: P4
+    file: core/components/recipes/briefs/templates/features-brief.html
+    line: null
+    evidence: "core/components/recipes/briefs/templates/features-brief.html"
+    taxonomy_rule_id: FE-06
+    note: >
+      FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
+
+  - standard_id: FE-06
+    severity: P4
+    file: core/components/recipes/briefs/templates/hub.html
+    line: null
+    evidence: "core/components/recipes/briefs/templates/hub.html"
+    taxonomy_rule_id: FE-06
+    note: >
+      FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
+
+  - standard_id: FE-06
+    severity: P4
+    file: core/components/recipes/briefs/templates/plan-brief.html
+    line: null
+    evidence: "core/components/recipes/briefs/templates/plan-brief.html"
+    taxonomy_rule_id: FE-06
+    note: >
+      FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
+
+  - standard_id: FE-06
+    severity: P4
+    file: core/components/recipes/briefs/templates/product-brief.html
+    line: null
+    evidence: "core/components/recipes/briefs/templates/product-brief.html"
+    taxonomy_rule_id: FE-06
+    note: >
+      FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
+
+  - standard_id: FE-06
+    severity: P4
+    file: core/components/recipes/briefs/templates/roadmap-brief.html
+    line: null
+    evidence: "core/components/recipes/briefs/templates/roadmap-brief.html"
+    taxonomy_rule_id: FE-06
+    note: >
+      FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
+
+  - standard_id: FE-06
+    severity: P4
+    file: core/components/recipes/briefs/templates/scenarios-brief.html
+    line: null
+    evidence: "core/components/recipes/briefs/templates/scenarios-brief.html"
+    taxonomy_rule_id: FE-06
+    note: >
+      FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
+
+  - standard_id: FE-06
+    severity: P4
+    file: core/components/recipes/briefs/templates/tech-brief.html
+    line: null
+    evidence: "core/components/recipes/briefs/templates/tech-brief.html"
+    taxonomy_rule_id: FE-06
+    note: >
+      FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
+
+counts:
+  P1: 0
+  P2: 2
+  P3: 1
+  P4: 11
+
+scan_notes:
+  - >
+    All SEC-19 pattern matches (sk_live_abc...) found in the diff are within
+    example/schema documentation blocks in quality-check-scoped/reference/finding-schema.md
+    (lines 3331, 3355, 3432 in diff). These are illustrative YAML examples, not
+    actual secrets. Dropped per diff-scope invariant: values are not in changed_paths
+    application code; they are documentation strings in reference files.
+  - >
+    CODE-20 (path:**/*) fires on all 67 changed paths. Standard checks for
+    file naming convention (kebab-case). All changed path names follow kebab-case
+    or date-stamp conventions consistent with the project standard.
+    No per-file CODE-20 findings emitted — naming conventions are met across the diff.
+  - >
+    brief-render.js and brief-common.css are 100% similarity renames (no content
+    changes). CODE-03/CODE-04 path rules fired on the js file path but evidence
+    required (lint-message, format-diff) cannot be satisfied for a content-identical
+    rename. No findings emitted.

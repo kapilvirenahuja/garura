@@ -23,7 +23,7 @@ You DO derive, scope, and fully define the epics. You do NOT create GitHub issue
 Receive from agent:
 - `product_yaml_path` — (required) Full path to product.yaml
 - `artifact_base` — (required) Base path for STM artifacts, e.g. `.meridian/product/`
-- `epic_schema_path` — (required) Path to the epic schema in LTM, e.g. `~/.meridian/core/memory/standards/templates/epic-schema.md`. The agent discovers this from LTM and passes it — the skill does NOT search LTM itself.
+- `epic_schema_path` — (optional) Override path to an epic schema. Defaults to bundled `reference/epic-schema.md`. The schema is no longer in LTM — it is bundled with the skill.
 - `epic_rules_path` — (required) Path to epic management rules in LTM, e.g. `~/.meridian/core/memory/standards/agent-lifecycle/epic-management-rules.md`. Contains rules for vertical slice delivery, single-module-scope, mock phasing, dependency discipline, etc. The agent discovers this from LTM and passes it.
 - `domain_taxonomy_paths` — (required when domain taxonomy exists) List of domain taxonomy module paths from LTM, e.g. `~/.meridian/core/memory/knowledge/domain-taxonomy/*.md`. These define module boundaries used to enforce Rule 2 (single-module-scope). The agent globs `~/.meridian/core/memory/knowledge/domain-taxonomy/` and passes all found paths.
 - `time_horizon` — (optional, default: "12 months") Planning window for bucket assignment
@@ -39,7 +39,7 @@ Receive from agent:
 
 ## Process
 
-1. **Load the epic schema** — read the file at `epic_schema_path` (passed by the agent from LTM) using the Read tool. This defines the required fields (10 scoping + 4 IDD), prohibited fields, valid values, YAML structure, and the validation checklist. All epics MUST conform to this schema. If `epic_schema_path` is not provided, fall back to `reference/epic-schema.md`.
+1. **Load the epic schema** — read `reference/epic-schema.md` using the Read tool (or `epic_schema_path` if explicitly overridden). This defines the required fields (10 scoping + 4 IDD), prohibited fields, valid values, YAML structure, and the validation checklist. All epics MUST conform to this schema.
 
 1b. **Load epic management rules** — read the file at `epic_rules_path` using the Read tool. This defines rules for epic structure: vertical slice delivery (Rule 1), single-module-scope (Rule 2), mocks as phased delivery (Rule 3), scope boundaries (Rule 4), success verifiability (Rule 5), dependency discipline (Rule 6), foundation investments (Rule 7). All rules MUST be applied during epic derivation and scoping. If `epic_rules_path` is not provided, proceed without rules enforcement (backward compatible) but note the gap in output.
 
@@ -97,7 +97,7 @@ The full epics data is written to `epics_path`. Downstream skills and agents MUS
 
 ## Reference
 
-Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridian/core/memory/standards/templates/epic-schema.md`). Fallback: `reference/epic-schema.md`.
+Epic schema is bundled with the skill at `reference/epic-schema.md`. May be overridden via `epic_schema_path` for testing.
 
 ## Constraints
 
@@ -108,7 +108,7 @@ Load epic schema from: `epic_schema_path` (passed by agent from LTM: `~/.meridia
 - NEVER pass full epic data through memory — ALWAYS write to STM and return the path
 - NEVER add fields not defined in `reference/epic-schema.md`
 - NEVER use `horizon` — use `bucket`; NEVER use `dependencies` — use `depends_on`
-- ALWAYS load epic schema from `epic_schema_path` (or fallback `reference/epic-schema.md`) before generating any epics
+- ALWAYS load epic schema from `reference/epic-schema.md` before generating any epics
 - ALWAYS validate epics against the full schema checklist (14 fields per epic) before writing
 - ALWAYS use E-IDs (E1, E2, E3, ...) for epic IDs — NEVER F-IDs (F1, F2) which are reserved for features.yaml
 - ALWAYS populate ltm_citations with the specific LTM file paths that informed each epic's derivation — which taxonomy module defined its domain boundary, which rules shaped its structure, which profile dimensions influenced its scope

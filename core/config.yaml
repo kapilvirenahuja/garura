@@ -56,6 +56,19 @@ stm:
     delivery: "{issue-number}/delivery/"
     checkpoint: "{issue-number}/checkpoint/{recipe-name}/{YYYYMMDD-HHMMSS}.md"
 
+# Standards resolution — first recipe-specific section; pattern for future recipes
+standards:
+  pr-severity-taxonomy: ./core/components/memory/standards/git/pr-severity-taxonomy.md
+
+# review-pr recipe configuration
+review-pr:
+  bypass: true
+  confidence_threshold: 0.5
+  reviewer_count: 3
+  standards_order: [kb, ltm, stm]
+  fallback_reviewers: []
+  activity_window_days: 90
+
 # Product artifacts — parallel to project, not nested
 product:
   base-path: .meridian/product/

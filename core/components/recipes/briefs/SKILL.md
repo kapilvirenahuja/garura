@@ -137,8 +137,8 @@ Map artifact name to template filename:
 | `plan` | `plan-brief.html` |
 
 Template lookup order:
-1. `~/.meridian/core/memory/standards/templates/{artifact}-brief.html` (global)
-2. `core/components/memory/standards/templates/{artifact}-brief.html` (fallback)
+1. `~/.claude/skills/briefs/templates/{artifact}-brief.html` (deployed)
+2. `core/components/recipes/briefs/templates/{artifact}-brief.html` (fallback)
 
 If template not found at either path → halt with: "Template not found for artifact '{artifact}'. Run /sync-claude to deploy templates."
 
@@ -160,8 +160,8 @@ Templates reference `./brief-common.css` and `./brief-render.js` as external fil
 - For each epic in scope: `{product_base}/briefs/epics/{epic_id}/brief-common.css` and `brief-render.js`
 
 Asset lookup order (same as templates):
-1. `~/.meridian/core/memory/standards/templates/brief-common.css` (global)
-2. `core/components/memory/standards/templates/brief-common.css` (fallback)
+1. `~/.claude/skills/briefs/templates/brief-common.css` (deployed)
+2. `core/components/recipes/briefs/templates/brief-common.css` (fallback)
 
 (Same for `brief-render.js`.)
 
@@ -264,8 +264,8 @@ with open(os.path.join(briefs_dir, 'hub.json'), 'w') as f:
 **3.8 — Copy hub.html template**
 
 - Source (lookup order):
-  1. `~/.meridian/core/memory/standards/templates/hub.html`
-  2. `core/components/memory/standards/templates/hub.html`
+  1. `~/.claude/skills/briefs/templates/hub.html`
+  2. `core/components/recipes/briefs/templates/hub.html`
 - Target: `{product_base}/briefs/hub.html`
 
 Copy as-is. hub.html references external brief-common.css and brief-render.js (already copied in 3.4) and reads hub.json at render time.

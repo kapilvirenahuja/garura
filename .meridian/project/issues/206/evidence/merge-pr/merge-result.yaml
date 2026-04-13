@@ -1,0 +1,25 @@
+merge_result:
+  timestamp: "2026-04-13"
+  status: "merged"
+  pr_number: 207
+  merge_sha: "ed6fd54c06d51371d41fe76f9a449f0f5e06811e"
+  feature_branch: "refactor/206-make-brief-generation-opt-in"
+  base_branch: "main"
+  branch_deleted:
+    local: true
+    remote: true
+    remote_note: "Remote branch was already deleted by platform on merge (auto-delete). Treated as success per C6."
+  merge_strategy: "default (fast-forward)"
+  post_merge_state:
+    current_branch: "main"
+    local_sha: "ed6fd54c06d51371d41fe76f9a449f0f5e06811e"
+    up_to_date_with_remote: true
+  evals:
+    SE-1: "PASS — readiness.yaml confirmed mergeable == true, no conflicts before merge"
+    SE-2: "PASS — feature branch deleted locally; remote absent (auto-deleted by platform, C6 tolerated)"
+    SE-3: "PASS — local checkout is on main, SHA ed6fd54 matches origin/main"
+    SE-4: "PASS — working tree was clean before merge (confirmed in readiness.yaml)"
+    SE-5: "PASS — PR #207 state is MERGED, merge_sha is non-null"
+  scenario_evals:
+    SCE-1: "PASS — local HEAD on main, feature branch absent locally and remotely"
+    SCE-2: "PASS — platform PR #207 state is MERGED, merge SHA ed6fd54 present on main via fast-forward"

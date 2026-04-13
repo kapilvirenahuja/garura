@@ -154,7 +154,7 @@ For epic-scoped artifacts (features, architecture, tech, scenarios, plan), if `a
 For each requested brief:
 1. Read the input YAML artifact(s) at the STM paths provided
 2. Write `{artifact_base}/briefs/{name}-data.json` — structured data extracted from the YAML
-3. Copy the static HTML template from LTM (`~/.meridian/core/memory/standards/templates/{name}-brief.html`) to the output path
+3. Copy the static HTML template from the briefs recipe (`~/.claude/skills/briefs/templates/{name}-brief.html`, fallback `core/components/recipes/briefs/templates/{name}-brief.html`) to the output path
 4. The template loads `{name}-data.json` at runtime via `brief-render.js` — no server required
 
 ## Hub Generation

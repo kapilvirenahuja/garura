@@ -1,0 +1,34 @@
+commits:
+  - id: 1
+    hash: 6bb33dd
+    type: feat
+    scope: recipes
+    subject: "add review-pr recipe, quality-check-scoped skill, and supporting config (#208)"
+    files: 17
+    issue: 208
+    group_id: 1
+    description: >
+      Add new L2 recipe for diff-scoped PR quality review with severity taxonomy and
+      reviewer selection. Includes quality-check-scoped skill definition, supporting
+      config, and updated ship recipe integration.
+
+  - id: 2
+    hash: 0a40889
+    type: refactor
+    scope: standards
+    subject: "move templates to owning components, promote agent-contract.md to ADR, relocate brief-principles (#208)"
+    files: 38
+    issue: 208
+    group_id: 2
+    description: >
+      Restructure standards/templates/ by moving contents to owning components
+      (recipes/briefs, skill references). Promote standards/agent-contract.md to
+      docs/adr/016-agent-json-contract.md. Move brief-principles.md to docs/design/briefs.md.
+      Add pr-severity-taxonomy.md standard for quality-check-scoped. Update all callers.
+
+summary:
+  total_commits: 2
+  total_files_committed: 55
+  branch: feature/208-review-pr-recipe
+  base_branch: main
+  completed_at: "2026-04-13"

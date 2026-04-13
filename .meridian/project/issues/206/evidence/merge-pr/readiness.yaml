@@ -1,0 +1,22 @@
+readiness:
+  timestamp: "2026-04-13"
+  pr:
+    number: 207
+    url: "https://github.com/kapilvirenahuja/meridian-os/pull/207"
+    title: "refactor(recipes): make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture (#206)"
+    state: "OPEN"
+    base_branch: "main"
+    feature_branch: "refactor/206-make-brief-generation-opt-in"
+    mergeable: true
+    merge_conflicts: false
+  working_tree:
+    clean: true
+    uncommitted_changes: false
+    staged_changes: false
+  constraints_checked:
+    C1: "PASS — current branch is refactor/206-make-brief-generation-opt-in, not main/master"
+    C2: "PASS — PR #207 exists on platform in OPEN state"
+    C3: "PASS — working tree clean, no uncommitted or staged changes"
+    C4: "PASS — git merge-tree check in PR checklist confirmed no merge conflicts"
+  verdict: "READY"
+  blocking_issues: []

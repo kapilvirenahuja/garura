@@ -1,11 +1,16 @@
 intent: >
   Deliver all uncommitted work on the current feature branch to the main
   branch in a single automated pipeline: commit all changes, create and
-  submit a pull request, merge the PR, switch to main, pull latest, and
-  delete the feature branch (local and remote). No human approvals at
-  any stage — all decisions auto-proceed regardless of confidence level.
-  The end state is: local checkout on main, main up to date with remote,
-  feature branch gone, and all work reachable from main's history.
+  submit a pull request, optionally run the review-pr quality gate, merge
+  the PR, switch to main, pull latest, and delete the feature branch
+  (local and remote). Auto-proceeds end-to-end unless the review-pr
+  quality gate blocks. When review-pr.bypass is false in core/config.yaml,
+  review-pr runs between create-pr and merge-pr; a P1 finding or
+  sub-threshold confidence halts the pipeline before merge. Set
+  review-pr.bypass to true to preserve the unconditional auto-proceed
+  behavior. The end state is: local checkout on main, main up to date
+  with remote, feature branch gone, and all work reachable from main's
+  history.
 
 constraints:
   - id: C1
@@ -15,8 +20,9 @@ constraints:
   - id: C2
     rule: >
       All chained operations execute without human approval gates,
-      including operations that would normally require confirmation
-      at low confidence.
+      EXCEPT the review-pr quality gate when review-pr.bypass is false
+      in core/config.yaml. When bypass is true, the pipeline auto-proceeds
+      end-to-end at every step.
   - id: C3
     rule: >
       Merge strategy uses the repository's configured default. No
@@ -33,6 +39,11 @@ constraints:
     rule: >
       Merge conflicts are never auto-resolved. Any conflict is a
       hard stop.
+  - id: C7
+    rule: >
+      When review-pr.bypass is false, review-pr MUST run after
+      create-pr and before merge-pr, and its block or escalate
+      verdict MUST halt the ship pipeline before merge-pr.
 
 failure_conditions:
   - id: F1
@@ -57,6 +68,11 @@ failure_conditions:
     condition: >
       Uncommitted work remains on the feature branch at the point
       the merge is attempted.
+  - id: F7
+    condition: >
+      Ship completed a merge while review-pr.bypass was false and
+      review-pr returned a P1 finding or sub-threshold confidence
+      (routing == block or escalate).
 
 scenarios:
   - id: S1
@@ -75,3 +91,12 @@ scenarios:
       Can trace the shipped work back to its originating issue,
       review the quality checklist and evidence, and confirm the
       merge landed on main.
+  - id: S3
+    persona: Code Reviewer
+    given: >
+      A pull request immediately before merge with review-pr.bypass
+      set to false
+    then: >
+      Can see the review-pr quality gate outcome on the PR — findings
+      grouped by P1/P2/P3, the confidence score, and the selected
+      reviewers — as a structured comment posted by review-pr.

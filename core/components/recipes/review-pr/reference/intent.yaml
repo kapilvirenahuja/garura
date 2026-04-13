@@ -1,0 +1,152 @@
+intent: >
+  Review a pull request against diff-scoped quality standards resolved
+  from core/config.yaml, classify every finding deterministically via
+  the PR severity taxonomy mapped from existing KB standard IDs, gate
+  the result on a confidence score, select the top N reviewers from
+  recent committers on the changed paths (excluding the PR author),
+  and post a structured routing comment to the PR. The recipe runs
+  diff-only — never full-repo. The recipe never modifies create-pr.
+
+constraints:
+  - id: C1
+    rule: >
+      Diff-scoped evaluation only. The recipe and the
+      quality-check-scoped skill MUST never read files outside the
+      PR's changed paths and MUST never invoke /quality-check.
+
+  - id: C2
+    rule: >
+      Every finding cites a standard ID drawn from the KB
+      (CODE-, SEC-, ARCH-, TEST-, DOC-, PERF-, FE-, BE-, DATA-, OPS-,
+      DEBT-). No finding may be emitted without a cited standard ID.
+
+  - id: C3
+    rule: >
+      Severity classification is deterministic. The PR severity
+      taxonomy at the path resolved from
+      core/config.yaml#standards.pr-severity-taxonomy is the only
+      source of severity. No LLM judgment, no probabilistic
+      classification. Two runs on the same diff produce identical
+      P1..P4 buckets.
+
+  - id: C4
+    rule: >
+      All standards paths, thresholds, reviewer counts, activity
+      windows, fallback reviewers, and bypass flags come from
+      core/config.yaml. No hardcoded paths or thresholds in the
+      recipe or its skills.
+
+  - id: C5
+    rule: >
+      The recipe MUST stay within the L2 budget — no more than 5
+      domain agents (utility agents repo-orchestrator and doc-builder
+      are exempt).
+
+  - id: C6
+    rule: >
+      Reviewer selection MUST exclude the PR author and MUST use
+      review-pr.activity_window_days from config to bound git log.
+
+  - id: C7
+    rule: >
+      When fewer than review-pr.reviewer_count recent committers
+      remain after author exclusion, the recipe MUST fall through to
+      review-pr.fallback_reviewers. If fallback_reviewers is empty
+      and the candidate pool is short, the recipe HALTS with a
+      structured failure (F3).
+
+  - id: C8
+    rule: >
+      The PR comment MUST use a structured template with P1, P2, P3
+      sections and a confidence score. If a prior review-pr comment
+      exists on the PR, it MUST be updated in place — never stacked.
+
+  - id: C9
+    rule: >
+      Confidence is computed deterministically as
+      0.25*scan_coverage + 0.35*citation_rate + 0.20*intent_alignment
+      + 0.20*precedent_match. Weights sum to 1.0. citation_rate
+      receives the highest weight because it directly enforces the
+      F1 guard.
+
+  - id: C10
+    rule: >
+      The create-pr recipe MUST NOT be invoked or modified from
+      review-pr. Reviewer-selection logic lives only in review-pr.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      A finding is emitted without a cited standard ID, or with a
+      standard ID that does not exist in the PR severity taxonomy.
+
+  - id: F2
+    condition: >
+      The recipe or quality-check-scoped reads any file outside the
+      PR's changed paths, or invokes /quality-check.
+
+  - id: F3
+    condition: >
+      Reviewer selection returns fewer than review-pr.reviewer_count
+      candidates AND review-pr.fallback_reviewers is empty.
+
+  - id: F4
+    condition: >
+      The PR author appears in the selected reviewer list.
+
+  - id: F5
+    condition: >
+      A P1 finding is present but the PR is not set to
+      request-changes, OR a P1 finding is present but the routing
+      decision is not "block".
+
+  - id: F6
+    condition: >
+      Confidence is below review-pr.confidence_threshold but no
+      reviewers are requested on the PR.
+
+  - id: F7
+    condition: >
+      Severity classification differs across two back-to-back runs
+      on the same diff.
+
+  - id: F8
+    condition: >
+      Pre-flight runs without the PR severity taxonomy file at the
+      configured path, or with any of the six required review-pr
+      config keys missing.
+
+  - id: F9
+    condition: >
+      The recipe dispatches more than 5 domain agents (utility
+      agents exempt).
+
+scenarios:
+  - id: S1
+    persona: Reviewer
+    scenario: >
+      Opens the PR after review-pr completes and sees a single
+      structured comment with a confidence score, P1/P2/P3 sections,
+      every finding cited to a standard ID, and the names of the
+      selected reviewers.
+
+  - id: S2
+    persona: PR Author
+    scenario: >
+      For each finding in the comment, can click through to the
+      cited standard ID and see the exact match line in the diff
+      that triggered it. No finding is "vibes-based".
+
+  - id: S3
+    persona: Ship Pipeline
+    scenario: >
+      When review-pr.bypass is false and review-pr returns a P1
+      finding or sub-threshold confidence, the ship recipe halts
+      before merge-pr and surfaces the routing decision.
+
+  - id: S4
+    persona: QA / Determinism Auditor
+    scenario: >
+      Runs review-pr twice on the same PR with no intervening commits
+      and gets byte-identical findings.yaml (modulo timestamps) and
+      identical P1..P4 buckets.
