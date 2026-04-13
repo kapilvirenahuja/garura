@@ -62,7 +62,7 @@ standards:
 
 # review-pr recipe configuration
 review-pr:
-  bypass: false
+  bypass: true
   confidence_threshold: 0.5
   reviewer_count: 3
   standards_order: [kb, ltm, stm]
