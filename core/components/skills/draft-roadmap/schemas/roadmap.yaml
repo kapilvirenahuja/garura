@@ -9,7 +9,8 @@ status: "DRAFT|APPROVED|LOCKED"
 created_at: "{ISO-8601}"
 updated_at: "{ISO-8601}"
 product_ref: "{path to product.yaml}"
-approved_brief_ref: "{path to approved roadmap-brief.html or null}"
+epics_ref: "{path to epics.yaml}"
+feasibility_ref: "{path to feasibility.yaml}"
 
 # --- The Bet (was: roadmap summary / intent frontmatter) ---
 

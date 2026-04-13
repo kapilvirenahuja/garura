@@ -29,7 +29,6 @@ Returns structured data (not a file). The `validation_result` object contains:
 | `checklist.narrative_sufficient` | boolean | yes | `narrative` has >= 3 paragraphs (separated by blank lines or newlines) |
 | `checklist.timeline_populated` | boolean | yes | >= 1 horizon in `timeline` with non-empty `epic_refs` list |
 | `checklist.feasibility_entries_present` | boolean | yes | >= 1 entry in `feasibility` with `risk_level`, `technical_risks`, and `sequencing_constraints` |
-| `checklist.brief_ref_valid` | boolean | yes | `approved_brief_ref` points to an existing file path |
 | `checklist.blockers_resolved` | boolean | yes | `critical_blockers` array is empty or all entries marked resolved; `open_questions` array is present |
 
 ## Input
@@ -49,7 +48,6 @@ Receive from agent:
    - `narrative_sufficient`: `narrative` field has >= 3 paragraphs. Count paragraphs as text blocks separated by double newlines or explicit newline sequences. A single-paragraph summary is insufficient.
    - `timeline_populated`: `timeline` list has >= 1 entry (horizon) where `epic_refs` is a non-empty list. Each horizon should have a non-empty `name` or `label`.
    - `feasibility_entries_present`: `feasibility` list has >= 1 entry where `risk_level` is non-empty AND `technical_risks` is a non-empty list AND `sequencing_constraints` is present (may be empty list but key must exist)
-   - `brief_ref_valid`: `approved_brief_ref` field is a non-empty string pointing to a file path. Read the file to confirm it exists. If the field is absent or the file does not exist, this check fails.
    - `blockers_resolved`: `critical_blockers` is an empty array OR all entries have a `resolved: true` field. `open_questions` key must be present (may be empty array).
 
 4. **Evaluate content quality** for key YAML fields:
@@ -57,7 +55,7 @@ Receive from agent:
    - `narrative`: connects product vision to timeline decisions with reasoning
    - Each timeline horizon has a rationale or description explaining why those features are in that phase
 
-5. **Compute completeness_score:** Weighted score (0-100) based on checklist pass/fail. Each of the 6 checklist items has equal weight (~16.7% each).
+5. **Compute completeness_score:** Weighted score (0-100) based on checklist pass/fail. Each of the 5 checklist items has equal weight (20% each).
 
 6. **Classify issues:** `blocker` (fails a mandatory checklist item), `warning` (sparse field or weak content quality), `suggestion` (improvement opportunity).
 
@@ -78,7 +76,6 @@ validation_result:
     narrative_sufficient: true|false
     timeline_populated: true|false
     feasibility_entries_present: true|false
-    brief_ref_valid: true|false
     blockers_resolved: true|false
 ```
 
@@ -96,5 +93,5 @@ validation_result:
 
 | Field | Value |
 |-------|-------|
-| Version | 1.0.0 |
+| Version | 2.0.0 |
 | Category | analysis |
