@@ -14,7 +14,7 @@ Skills represent the "how" of execution. They are technology or methodology-spec
 |-----------|-------------|
 | **Learned** | Technology/methodology specific knowledge |
 | **Stable** | Don't change frequently over time |
-| **Reusable** | Used by multiple agents and recipes |
+| **Reusable** | Used by multiple agents and plays |
 | **Internal** | Not directly invocable by humans (see Meta-Utility exception) |
 | **Context-sharing** | Share the agent's context (never forked) |
 
@@ -25,9 +25,9 @@ Meridian has two categories of components that deploy as Claude Code skills:
 | Category | What It Is | Invocability | Purpose |
 |----------|-----------|--------------|---------|
 | **Skills** | Learned capabilities (how to do it) | Model only (via agents) | Execute with expertise |
-| **Recipes** | Workflows (what to do and in what order) | Human OR Model | Orchestrate workflow |
+| **Plays** | Workflows (what to do and in what order) | Human OR Model | Orchestrate workflow |
 
-Both deploy to `.claude/skills/` but serve fundamentally different roles. This document covers **Skills** and **Recipes**. See [Recipes](./recipes.md) for full recipe documentation.
+Both deploy to `.claude/skills/` but serve fundamentally different roles. This document covers **Skills** and **Plays**. See [Plays](./plays.md) for full play documentation.
 
 ### Meta-Utility Skills (Exception)
 
@@ -38,7 +38,7 @@ Example: `sync-claude` — synchronizes Meridian components to Claude Code direc
 Meta-utility skills:
 - Are user-invocable
 - Serve framework operations, not domain work
-- Are not invoked by agents or recipes
+- Are not invoked by agents or plays
 
 ## Available Skills
 
@@ -85,11 +85,11 @@ Meta-utility skills:
 |-------|----------------|-------|-------------|
 | `sync-claude` | true | haiku | Sync Meridian components to .claude/ (project mode) or ~/.claude/ (global mode, default) |
 
-## Available Recipes
+## Available Plays
 
-Recipes are user-invocable workflows that orchestrate agents and skills. They deploy alongside skills to `.claude/skills/` but are distinct in purpose and invocability.
+Plays are user-invocable workflows that orchestrate agents and skills. They deploy alongside skills to `.claude/skills/` but are distinct in purpose and invocability.
 
-| Recipe | User-Invocable | Model | Description |
+| Play | User-Invocable | Model | Description |
 |--------|----------------|-------|-------------|
 | `start-feature` | true | sonnet | Create or resume a work context — issue + branch + STM directory |
 | `start-feature-planning` | true | sonnet | Resolve issue, plan with IDD principles, create branch, deliver planning artifacts |
@@ -107,7 +107,7 @@ Recipes are user-invocable workflows that orchestrate agents and skills. They de
 Skills are **never invoked directly by humans** (except meta-utility skills). The invocation chain is:
 
 ```
-Human → Recipe → Agent → Skill
+Human → Play → Agent → Skill
 ```
 
 This ensures:
@@ -132,7 +132,7 @@ Skills validate their inputs and outputs internally. They do NOT output validati
 Validation happens in two layers:
 
 1. **Schema validation** — the skill validates its output against its domain schema (e.g., `epic-schema.md` for epics). Required fields, types, and structural constraints are checked.
-2. **Intent failure condition validation** — if `intent_path` is available in the skill's input, the skill also validates against the failure conditions defined in `intent.yaml`. These are the "what must NOT be true" conditions from the recipe's intent.
+2. **Intent failure condition validation** — if `intent_path` is available in the skill's input, the skill also validates against the failure conditions defined in `intent.yaml`. These are the "what must NOT be true" conditions from the play's intent.
 
 If either validation fails, the skill attempts self-correction before returning failure. Only after correction attempts fail does the skill return a structured failure contract. This keeps the caller's retry logic clean — a structured failure means the skill exhausted its self-correction options.
 
@@ -274,7 +274,7 @@ allowed-tools: {Tool1, Tool2}
 |-------|-------------|
 | `name` | Skill identifier, matches directory name |
 | `description` | Short summary for CLI/tooling discovery |
-| `user-invocable` | `false` for skills, `true` only for meta-utility skills and recipes |
+| `user-invocable` | `false` for skills, `true` only for meta-utility skills and plays |
 | `model` | Model to use (see Model Selection below) |
 | `allowed-tools` | Comma-separated list of tools the skill may use |
 
@@ -374,10 +374,10 @@ Skill definitions are stored in:
 core/components/skills/
 ```
 
-Recipe definitions are stored in:
+Play definitions are stored in:
 
 ```
-core/components/recipes/
+core/components/plays/
 ```
 
 ## Related Documentation
@@ -387,4 +387,4 @@ core/components/recipes/
 - [ADR 007: Skill-Local References](../adr/007-skill-local-references.md) — Partially superseded by ADR 009
 - [ADR 009: Skill LTM Organizational Knowledge](../adr/009-skill-ltm-organizational-knowledge.md)
 - [Agents Component Guide](./agents.md)
-- [Recipes Component Guide](./recipes.md)
+- [Plays Component Guide](./plays.md)

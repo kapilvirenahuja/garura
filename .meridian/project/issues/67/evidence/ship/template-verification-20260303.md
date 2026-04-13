@@ -1,4 +1,4 @@
-# Template Verification: /ship L2 Recipe
+# Template Verification: /ship High-Order Play
 <!-- T10 evidence | 2026-03-03 -->
 
 ## Summary
@@ -15,7 +15,7 @@
 ## Detail
 
 **G-012 checkpoint.md:**
-- Metadata (Issue, Recipe, Step, Created, Status, Branch, Target) — lines 3–10 ✓
+- Metadata (Issue, Play, Step, Created, Status, Branch, Target) — lines 3–10 ✓
 - Task List table (7 steps) — lines 12–22 ✓
 - Completed Outputs table — lines 24–33 ✓
 - Guardian Decisions table — lines 35–39 ✓

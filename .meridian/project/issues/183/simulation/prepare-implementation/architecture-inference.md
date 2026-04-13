@@ -8,9 +8,9 @@
 
 ## Summary
 
-Meridian is an **agentic meta-framework** implementing Intent-Driven Software Development (IDSD). It is not a deployed application — it is a framework of compiled recipes, domain agents, and skills that run inside Claude Code (claude.ai/code). There are no servers, ports, or HTTP APIs. The "product" is the set of `.md` files deployed to `~/.claude/` that Claude Code executes as workflows.
+Meridian is an **agentic meta-framework** implementing Intent-Driven Software Development (IDSD). It is not a deployed application — it is a framework of compiled plays, domain agents, and skills that run inside Claude Code (claude.ai/code). There are no servers, ports, or HTTP APIs. The "product" is the set of `.md` files deployed to `~/.claude/` that Claude Code executes as workflows.
 
-The codebase is composed entirely of structured text: YAML schemas, Markdown agent/recipe/skill definitions, and ADR documentation. The primary "runtime" artifact is the compiled SKILL.md recipe file. The primary "database" is the file system — STM (per-issue `.meridian/project/issues/{issue}/`) and LTM (`~/.meridian/core/memory/`).
+The codebase is composed entirely of structured text: YAML schemas, Markdown agent/play/skill definitions, and ADR documentation. The primary "runtime" artifact is the compiled SKILL.md play file. The primary "database" is the file system — STM (per-issue `.meridian/project/issues/{issue}/`) and LTM (`~/.meridian/core/memory/`).
 
 ---
 
@@ -20,15 +20,15 @@ The codebase is composed entirely of structured text: YAML schemas, Markdown age
 ┌──────────────────────────────────────────────────────────────────────┐
 │  HUMAN DOMAIN                                                        │
 │                                                                      │
-│  intent.yaml ──► /create-recipe (compiler) ──► SKILL.md (deployed)  │
-│  User invokes: /recipe-name                                          │
+│  intent.yaml ──► /create-play (compiler) ──► SKILL.md (deployed)  │
+│  User invokes: /play-name                                          │
 └────────────────────────────┬─────────────────────────────────────────┘
                              │ Claude Code executes SKILL.md
 ┌────────────────────────────▼─────────────────────────────────────────┐
-│  ORCHESTRATION LAYER (Recipes)                                       │
+│  ORCHESTRATION LAYER (Plays)                                       │
 │                                                                      │
-│  L2 Recipe ──► chains L1 recipes OR dispatches domain agents         │
-│  L1 Recipe ──► dispatches ≤2 domain agents via JSON contracts        │
+│  High-Order Play ──► chains atomic plays OR dispatches domain agents         │
+│  Atomic Play ──► dispatches ≤2 domain agents via JSON contracts        │
 │                                                                      │
 │  pre-flight → [parallel agent dispatch] → checkpoint → evidence      │
 └───────┬──────────────────────────────────┬───────────────────────────┘
@@ -60,9 +60,9 @@ The codebase is composed entirely of structured text: YAML schemas, Markdown age
 │  MEMORY LAYER                                                        │
 │                                                                      │
 │  STM: .meridian/project/issues/{issue}/                              │
-│    ├── evidence/{recipe}/{artifact}.yaml  (agent outputs)            │
-│    ├── checkpoint/{recipe}/{timestamp}.md (human approval state)     │
-│    └── status/{recipe}.json               (crash recovery state)     │
+│    ├── evidence/{play}/{artifact}.yaml  (agent outputs)            │
+│    ├── checkpoint/{play}/{timestamp}.md (human approval state)     │
+│    └── status/{play}.json               (crash recovery state)     │
 │                                                                      │
 │  LTM (project): .meridian/product/                                   │
 │    ├── discovery/product.yaml    (LOCKED = authoritative)            │
@@ -94,13 +94,13 @@ core/
     │   ├── knowledge-extractor.md ← LTM extraction and promotion
     │   └── ...10 more agents
     │
-    ├── recipes/                   ← Compiled workflows (15 recipes)
+    ├── plays/                   ← Compiled workflows (15 plays)
     │   ├── prepare-implementation/
-    │   │   ├── SKILL.md           ← Compiled recipe (runtime artifact)
+    │   │   ├── SKILL.md           ← Compiled play (runtime artifact)
     │   │   └── reference/
     │   │       ├── intent.yaml    ← Source of truth (C1-C32, F1-F26, S1-S13)
     │   │       └── evals.yaml
-    │   └── ...14 more recipes
+    │   └── ...14 more plays
     │
     ├── skills/                    ← Capabilities (34 skills)
     │   ├── draft-lld/
@@ -127,11 +127,11 @@ core/
 ### 1. Three-Layer Hierarchy (ADR-001)
 
 ```
-L2 Recipe (human-only, ≤5 agents)
-    └─► chains L1 recipes
+High-Order Play (human-only, ≤5 agents)
+    └─► chains atomic plays
     └─► dispatches domain agents
 
-L1 Recipe (human or model, ≤2 agents)
+Atomic Play (human or model, ≤2 agents)
     └─► dispatches ≤2 domain agents
     └─► always produces artifact
     └─► always checkpoints for human approval
@@ -148,7 +148,7 @@ Skill (model-only, invoked by agents)
 
 ```
 intent.yaml (source)
-    ─► /create-recipe (compiler — build time only)
+    ─► /create-play (compiler — build time only)
     ─► SKILL.md (compiled binary — runtime artifact)
     
 intent.yaml is NOT read at runtime.
@@ -156,18 +156,18 @@ SKILL.md is self-contained — all constraints baked in.
 Hash-locked: SKILL.md frontmatter stores sha256(intent.yaml).
 ```
 
-**Evidence:** Every recipe has `reference/intent.yaml` + `SKILL.md` pair. SKILL.md contains `## Compiled From` header referencing intent.
+**Evidence:** Every play has `reference/intent.yaml` + `SKILL.md` pair. SKILL.md contains `## Compiled From` header referencing intent.
 
 ### 3. Phoenix Architecture / STM Data Transport (ADR-011)
 
 ```
 ❌ Wrong: agent returns {data: {...}}
-             ↓ recipe holds in context
+             ↓ play holds in context
              ↓ next agent receives data in context (loses fidelity)
 
 ✅ Right:  agent writes → .meridian/.../artifact.yaml
            agent returns → {artifact_path: ".meridian/.../artifact.yaml"}
-           recipe passes path to next agent
+           play passes path to next agent
            next agent: Read tool call to artifact_path
 ```
 
@@ -267,7 +267,7 @@ Step 22: repo-orchestrator: evidence self-commit
 
 ### Dependency Injection via Contract Threading
 
-There is no DI container. The recipe is the injector. It wires outputs to inputs explicitly in the compiled workflow:
+There is no DI container. The play is the injector. It wires outputs to inputs explicitly in the compiled workflow:
 
 ```json
 // Step 2 produces:
@@ -314,8 +314,8 @@ Agent encounters error
 ### Crash Recovery Pattern
 
 ```
-Recipe startup:
-    1. Check {stm_base}/{issue}/status/{recipe}.json
+Play startup:
+    1. Check {stm_base}/{issue}/status/{play}.json
     2. If exists: read completed_steps[]
     3. Skip completed steps
     4. Reset in_progress steps to pending
@@ -339,7 +339,7 @@ DRAFT creation
 
 | Layer | Technology | Role |
 |-------|-----------|------|
-| Execution environment | Claude Code (claude.ai/code) | Runs recipes, provides tools (Bash, Read, Write, Edit, Grep, Glob, Task, Skill, WebSearch, WebFetch) |
+| Execution environment | Claude Code (claude.ai/code) | Runs plays, provides tools (Bash, Read, Write, Edit, Grep, Glob, Task, Skill, WebSearch, WebFetch) |
 | LLM (complex reasoning) | Claude Opus 4+ | tech-architect, product-strategist, tech-designer, knowledge-extractor |
 | LLM (implementation) | Claude Sonnet | code-builder, repo-orchestrator, quality-auditor, test-engineer, doc-builder |
 | Version control | git + GitHub (gh CLI) | Issue tracking, PRs, version history, evidence commits |
@@ -353,11 +353,11 @@ DRAFT creation
 
 The issue asks prepare-implementation to not hard-block on product.yaml and roadmap.yaml. The architecture inference confirms:
 
-**1. The recipe already supports discovery mode (by design).**  
+**1. The play already supports discovery mode (by design).**  
 Constraints C1, C21, C22, C23 in intent.yaml explicitly state that product.yaml, roadmap.yaml, architecture.yaml, and quality-standards.yaml are all "nice-to-have upstream inputs." The compiled SKILL.md Step 0 checks for their presence and sets status flags — it does NOT halt on absence.
 
 **2. The hard-halt condition is F19 (no issue AND no epic).**  
-This is the only legitimate hard halt. Without an issue or epic, there is no scope for the work. All other upstream artifacts are gracefully absent: the recipe enters discovery mode.
+This is the only legitimate hard halt. Without an issue or epic, there is no scope for the work. All other upstream artifacts are gracefully absent: the play enters discovery mode.
 
 **3. The context resolution hierarchy (C23) maps discovery sources:**
 - Locked YAML artifact (authoritative)
@@ -366,13 +366,13 @@ This is the only legitimate hard halt. Without an issue or epic, there is no sco
 - User interview (collected — targeted interview fills gaps)
 
 **4. Any change to prepare-implementation requires rebaking from intent.yaml.**  
-SKILL.md is the compiled artifact. To change behavior, update reference/intent.yaml and run `/create-recipe --rebake prepare-implementation`.
+SKILL.md is the compiled artifact. To change behavior, update reference/intent.yaml and run `/create-play --rebake prepare-implementation`.
 
 ---
 
 ## Discovery Mode: How Architecture is Derived Without architecture.yaml
 
-When `architecture.yaml` is absent, the recipe enters discovery mode:
+When `architecture.yaml` is absent, the play enters discovery mode:
 
 ```
 Step 2 (tech-architect, discovery_mode=true):
@@ -391,4 +391,4 @@ These artifacts REPLACE the missing architecture.yaml for all downstream steps.
 context-assembly.yaml records: architecture_source: "derived" (not "locked")
 ```
 
-The distinction between `discovery_mode=true` (no locked architecture.yaml) and the standard run is only in the inputs. The outputs — architecture-inference artifacts — are equivalent in structure and authority for the purposes of this recipe run. Downstream agents (tech.yaml producer, plan.yaml producer) treat discovery-derived architecture understanding identically to a locked architecture.yaml.
+The distinction between `discovery_mode=true` (no locked architecture.yaml) and the standard run is only in the inputs. The outputs — architecture-inference artifacts — are equivalent in structure and authority for the purposes of this play run. Downstream agents (tech.yaml producer, plan.yaml producer) treat discovery-derived architecture understanding identically to a locked architecture.yaml.

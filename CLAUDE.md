@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Meridian is an agentic framework implementing **Intent-Driven Software Development** principles for deterministic AI-assisted development. It uses a three-layer hierarchy: **Recipes** (L1/L2 workflows) → **Agents** (domain experts) → **Skills** (learned capabilities).
+Meridian is an agentic framework implementing **Intent-Driven Software Development** principles for deterministic AI-assisted development. It uses a three-layer hierarchy: **Plays** → **Agents** (domain experts) → **Skills** (learned capabilities).
 
 ## Architecture
 
@@ -12,12 +12,12 @@ Meridian is an agentic framework implementing **Intent-Driven Software Developme
 core/components/           # Source of truth (edit here)
 ├── agents/               # Agent definitions
 ├── skills/               # Skills (model-invocable only)
-├── recipes/              # L1/L2 recipes
+├── plays/              # plays
 └── memory/               # LTM: standards, formats, knowledge
 
 ~/.claude/                 # Global deployment (via /sync-claude, default)
 ├── agents/               # Deployed agents
-└── skills/               # Deployed skills + recipes
+└── skills/               # Deployed skills + plays
 
 ~/.meridian/core/memory/ # Global LTM (via /sync-claude, default)
 ```
@@ -26,7 +26,7 @@ core/components/           # Source of truth (edit here)
 - Components deploy to `~/.claude/` (global mode, default) or `.claude/` (project mode, ephemeral)
 - Memory deploys to `~/.meridian/core/memory/` (global mode, default) or `.meridian/core/memory/` (project mode, ephemeral)
 
-**Data Flow:** L2 Recipe → chains L1s → L1 invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `core/config.yaml`)
+**Data Flow:** High-order play → chains atomic plays → play invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `core/config.yaml`)
 
 ## Behavioral Rules
 
@@ -37,7 +37,7 @@ Author all components in `core/components/`. The canonical deployment is `~/.cla
 **Global mode (default):**
 ```
 core/components/skills/   → ~/.claude/skills/          (via /sync-claude)
-core/components/recipes/  → ~/.claude/skills/          (via /sync-claude)
+core/components/plays/  → ~/.claude/skills/          (via /sync-claude)
 core/components/agents/   → ~/.claude/agents/          (via /sync-claude)
 core/components/memory/   → ~/.meridian/core/memory/ (via /sync-claude)
 ```
@@ -45,7 +45,7 @@ core/components/memory/   → ~/.meridian/core/memory/ (via /sync-claude)
 **Project mode (ephemeral):**
 ```
 core/components/skills/   → .claude/skills/               (via /sync-claude --project, gitignored)
-core/components/recipes/  → .claude/skills/               (via /sync-claude --project, gitignored)
+core/components/plays/  → .claude/skills/               (via /sync-claude --project, gitignored)
 core/components/agents/   → .claude/agents/               (via /sync-claude --project, gitignored)
 core/components/memory/   → .meridian/core/memory/      (via /sync-claude --project, gitignored)
 ```
@@ -54,16 +54,16 @@ After editing source, run `/sync-claude` to deploy globally. Use `/sync-claude -
 
 ### 2. Execution Model
 
-**Recipes run in Claude Code.** Claude Code orchestrates recipes and invokes agents for domain-specific tasks.
+**Plays run in Claude Code.** Claude Code orchestrates plays and invokes agents for domain-specific tasks.
 
 ```
 Claude Code (orchestrator)
-    └── runs Recipe (L1/L2)
+    └── runs Play
             └── invokes Agent via Task tool
                     └── agent invokes Skills
 ```
 
-**Agent-First:** Within recipes, delegate domain tasks to agents. Never use tools directly when an agent covers that domain.
+**Agent-First:** Within plays, delegate domain tasks to agents. Never use tools directly when an agent covers that domain.
 
 | Domain Task | Agent |
 |-------------|-------|
@@ -75,7 +75,7 @@ Claude Code (orchestrator)
 
 ```
 # ❌ WRONG — bypassing agent
-git commit -m "..." directly in recipe
+git commit -m "..." directly in play
 
 # ✅ CORRECT — delegate to agent
 Task tool → subagent_type: "repo-orchestrator"
@@ -99,7 +99,7 @@ Parse: `Tether`/`tether` → proceed. `Vanish`/`vanish` → cancel. Else → cla
 
 Applies to: commits, PRs, protected branches, destructive actions.
 
-### 4. Recipe Constraints
+### 4. Play Constraints
 
 | Level | Invocability | Max Agent Calls |
 |-------|--------------|-----------------|
@@ -141,13 +141,13 @@ TaskCreate: "Verify Y" (agent: quality-validator) → blockedBy: [implement Y]
 - Agents and skills MUST NEVER abandon a task — always complete or escalate
 - If blocked, create a new task describing the blocker and link with `addBlockedBy`
 
-## Recipe Pipeline Rules
+## Play Pipeline Rules
 
-When modifying skills or recipes, always go through the `intent.yaml` → rebake workflow. Never edit skill files directly.
+When modifying skills or plays, always go through the `intent.yaml` → rebake workflow. Never edit skill files directly.
 
 ## Reference
 
 - `core/config.yaml` — Paths and settings
 - `docs/adr/` — Architecture Decision Records (8 ADRs)
 - `docs/philosophy/` — Core architecture philosophy
-- `docs/components/` — Agent, skill, recipe, memory documentation
+- `docs/components/` — Agent, skill, play, memory documentation

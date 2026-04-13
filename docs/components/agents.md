@@ -53,7 +53,7 @@ Meridian avoids both extremes:
 
 **Principle:** 1 agent = 1 domain expertise, not 1 task.
 
-**Note on recipe-scoped sub-roles:** Some recipes define scoped sub-roles that are not standalone agents. For example, `test-writer` in the implement-epic recipe is a context-isolated sub-role that only exists within that recipe's execution. Recipe-scoped sub-roles follow ADR 004's granularity principle — they are too granular for standalone agents but serve a specific isolation purpose within a recipe.
+**Note on play-scoped sub-roles:** Some plays define scoped sub-roles that are not standalone agents. For example, `test-writer` in the implement-epic play is a context-isolated sub-role that only exists within that play's execution. Play-scoped sub-roles follow ADR 004's granularity principle — they are too granular for standalone agents but serve a specific isolation purpose within a play.
 
 ## Available Agents
 
@@ -70,13 +70,13 @@ Meridian avoids both extremes:
 
 ### Four Crafts: Where Agents Fit
 
-Agents are the primary practitioners of **Context Crafting** — one of the Four Crafts in Meridian's architecture. When an agent receives a JSON contract, its most important work before invoking any skill is assembling complete, accurate context: discovering LTM paths (schemas, templates, standards), reading STM artifacts, and combining them with the slug and base paths into structured skill inputs. This context assembly is the agent's primary value in the recipe workflow — skills are only as effective as the context the agent gives them.
+Agents are the primary practitioners of **Context Crafting** — one of the Four Crafts in Meridian's architecture. When an agent receives a JSON contract, its most important work before invoking any skill is assembling complete, accurate context: discovering LTM paths (schemas, templates, standards), reading STM artifacts, and combining them with the slug and base paths into structured skill inputs. This context assembly is the agent's primary value in the play workflow — skills are only as effective as the context the agent gives them.
 
 For the full Four Crafts explanation (Context Crafting, Intent Crafting, Execution Crafting, Verification Crafting), see `docs/philosophy/architecture.md`.
 
 ### JSON Contract Mode
 
-When a recipe orchestrates multiple agents, it passes a **JSON contract** as the agent's prompt. This is the primary invocation mode within recipes.
+When a play orchestrates multiple agents, it passes a **JSON contract** as the agent's prompt. This is the primary invocation mode within plays.
 
 **When an agent receives a JSON contract:**
 
@@ -127,7 +127,7 @@ The agent's entire response is ONE JSON object. No prose, no YAML blocks, no val
 
 ### Direct Invocation Mode
 
-When an agent is invoked without a JSON contract (direct invocation, not via a recipe), it returns a structured YAML output contract specific to the skill invoked and the work done.
+When an agent is invoked without a JSON contract (direct invocation, not via a play), it returns a structured YAML output contract specific to the skill invoked and the work done.
 
 Each agent defines skill-specific return formats in its Output Contracts section. The agent identifies the intent, selects the matching skill, invokes it, and returns the skill-specific YAML result.
 
@@ -221,7 +221,7 @@ tools:
 
 [How to read LTM (config, practices) and inject to skills...]
 
-## Recipe Context
+## Play Context
 
 [Constraint validation before any skill invocation...]
 
@@ -240,17 +240,17 @@ tools:
 
 ## Invocation Model
 
-Agents are invoked through L1 and L2 recipes:
+Agents are invoked through plays:
 
 ```
-L1 Recipe → invokes → Agent → uses → Skills
+Play → invokes → Agent → uses → Skills
                          |
                     Produces ARTIFACT (written to STM)
                          |
                     Returns ENRICHED JSON CONTRACT (or structured YAML for direct invocation)
 ```
 
-**Critical Rule:** Agents are **never invoked directly** by users. Users invoke recipes, recipes invoke agents.
+**Critical Rule:** Agents are **never invoked directly** by users. Users invoke plays, plays invoke agents.
 
 ## Context Building
 
@@ -263,12 +263,12 @@ Agents build context by:
 
 ## Constraint Validation
 
-Constraints in the recipe context are not suggestions — they are pre-conditions.
+Constraints in the play context are not suggestions — they are pre-conditions.
 
 Before invoking any skill, every agent validates all constraints against current state. If ANY constraint would be violated:
 1. Do NOT invoke the skill
 2. Return a structured failure per `docs/framework/structured-failure-protocol.md` with `constraint_violated` populated
-3. The recipe decides how to handle (retry, escalate, or halt)
+3. The play decides how to handle (retry, escalate, or halt)
 
 ## Why Not Specialist Agents?
 
@@ -294,5 +294,5 @@ core/components/agents/
 ## Related Documentation
 
 - [ADR 004: Agent Naming](../adr/004-agent-naming.md)
-- [Recipes Component Guide](./recipes.md)
+- [Plays Component Guide](./plays.md)
 - [Skills Component Guide](./skills.md)

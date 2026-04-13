@@ -12,7 +12,7 @@ allowed-tools: Read, Write
 
 > **DEPRECATED**
 >
-> This skill is no longer active. Engineering view content (epic breakdown, dependency sequence, architecture impact, technical risks, open questions) is now produced as part of `tech.yaml` by the `/prepare-implementation` recipe.
+> This skill is no longer active. Engineering view content (epic breakdown, dependency sequence, architecture impact, technical risks, open questions) is now produced as part of `tech.yaml` by the `/prepare-implementation` play.
 >
 > Do NOT invoke this skill. If you need engineering-facing technical detail, use `/prepare-implementation` which writes `tech.yaml` and renders `tech-brief.html`.
 

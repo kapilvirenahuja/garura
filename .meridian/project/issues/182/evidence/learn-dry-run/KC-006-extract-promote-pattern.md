@@ -3,8 +3,8 @@
 
 **When this applies:** Designing any workflow that converts work artifacts (logs, traces, evidence) into persistent organizational knowledge.
 **When this does NOT apply:** Workflows that write knowledge directly from agent output without human review; real-time knowledge updates where latency requirements prevent a human gate.
-**Search patterns:** extract promote, knowledge lifecycle, two-phase, knowledge candidate, human gate, learn recipe, extraction phase, promotion phase
-**Provenance:** Issue #182 — learn recipe dry run
+**Search patterns:** extract promote, knowledge lifecycle, two-phase, knowledge candidate, human gate, learn play, extraction phase, promotion phase
+**Provenance:** Issue #182 — learn play dry run
 **Created:** 2026-03-31
 
 ## Content
@@ -19,7 +19,7 @@ Knowledge creation is a two-phase process. The phases are strictly separated:
 - No human approval needed for this phase. Automation can run freely.
 
 **Phase 2: Promotion (human-gated)**
-- Recipe presents all candidates at a checkpoint with: proposed file path, classification rationale, dedup status, and full content.
+- Play presents all candidates at a checkpoint with: proposed file path, classification rationale, dedup status, and full content.
 - Human reviews each candidate individually: approve, reject, or defer.
 - Approved candidates are written to LTM at the proposed paths.
 - Rejected candidates are discarded — they leave no trace in LTM.

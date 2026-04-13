@@ -2,7 +2,7 @@
 
 **Version:** 3.1.0
 **Date:** 2026-04-13
-**Status:** IN PROGRESS — Major restructure. Core recipes complete. Pipeline refactor pending (#106). Recent hardening via #191, #195, #200, #206.
+**Status:** IN PROGRESS — Major restructure. Core plays complete. Pipeline refactor pending (#106). Recent hardening via #191, #195, #200, #206.
 **Author:** Meridian
 
 ---
@@ -13,19 +13,19 @@
 
 **Constraints:**
 - MUST follow IDD principles — intent in, quality out
-- MUST respect Meridian architecture: Recipes → Agents → Skills
+- MUST respect Meridian architecture: Plays → Agents → Skills
 - MUST maintain audience separation — each artifact serves ONE stakeholder
 - MUST maintain context economy — agents load only what they need (≤12K tokens per task)
-- MUST follow L1/L2 recipe constraints (L1 ≤2 agents, L2 ≤5 agents)
+- MUST follow play constraints (atomic ≤2 agents, high-order ≤5 agents)
 - MUST build on existing components, not replace them
 - MUST use DRAFT → VALIDATE → LOCKED artifact lifecycle
-- MUST be intent-sufficient — every recipe works from intent alone; upstream artifacts are helpful, not blocking
-- MUST support non-linear invocation — any recipe can be called at any point if the three elements of intent (intent, constraints, failure conditions) are satisfied
+- MUST be intent-sufficient — every play works from intent alone; upstream artifacts are helpful, not blocking
+- MUST support non-linear invocation — any play can be called at any point if the three elements of intent (intent, constraints, failure conditions) are satisfied
 
 **Failure Conditions:**
 - Agent loads >20K tokens of context for a single task → halt, bundle is too fat
 - Artifact serves multiple audiences without clear separation → halt, audience collision
-- Recipe bypasses agent for domain-specific work → halt, agent-first violation
+- Play bypasses agent for domain-specific work → halt, agent-first violation
 - Verification gate has no concrete checkable criteria → halt, gate is ceremonial
 - Task has no gate mapping → halt, verification gap
 - Derived artifact (bundle, task, gate) is out of sync with its source → halt, sync breach
@@ -36,12 +36,12 @@
 
 ### Architecture Change Notice
 
-**Four Crafts architecture (#85/#86, merged 2026-03-05) supersedes the recipe/agent patterns described in the original spec.** All remaining work must follow the new pattern:
-- Recipes pass a **single JSON contract** to agents (not individual parameters)
+**Four Crafts architecture (#85/#86, merged 2026-03-05) supersedes the play/agent patterns described in the original spec.** All remaining work must follow the new pattern:
+- Plays pass a **single JSON contract** to agents (not individual parameters)
 - Templates live in **LTM** (`core/components/memory/standards/templates/`) per ADR 009
 - **Intent-resolution protocol removed** — agents read JSON contract directly
-- **Task-driven DAGs** — recipes create task graphs before agent execution
-- Recipes are **compiled artifacts** — authored from `reference/intent.yaml` via `/create-recipe`
+- **Task-driven DAGs** — plays create task graphs before agent execution
+- Plays are **compiled artifacts** — authored from `reference/intent.yaml` via `/create-play`
 
 ### Pipeline Refactor Notice
 
@@ -53,10 +53,10 @@ See section "SDLC Phases" for the current diagram (marked CURRENT) and the pendi
 
 ### Priority Status
 
-| Priority | Recipe | Status | Notes |
+| Priority | Play | Status | Notes |
 |---|---|---|---|
 | P1 | start-feature | ✅ COMPLETE | L2, compiled from intent, uses project-orchestrator + repo-orchestrator |
-| P2 | capture-learning | ⚠️ NEEDS FIX | Recipe exists, 2 skills missing (extract-patterns, draft-ltm-entry). **Updated #195 (2026-04):** extraction broadened to multi-format evidence scanning. **2026-04-13:** flagged for further fixes |
+| P2 | capture-learning | ⚠️ NEEDS FIX | Play exists, 2 skills missing (extract-patterns, draft-ltm-entry). **Updated #195 (2026-04):** extraction broadened to multi-format evidence scanning. **2026-04-13:** flagged for further fixes |
 | P3 | implement-epic (was implement-feature) | ✅ COMPLETE | L2, eval-driven TDD loop, 7 agents, context isolation, model: opus. **Updated #191 (2026-04):** sources design artifacts from issue STM instead of product epics |
 | P4 | start-feature-planning | ✅ COMPLETE | Renamed from start-planned-feature, IDD refactored |
 | P5 | discover-product | ✅ COMPLETE | Produces product.yaml + product-brief.html. **Updated #206 (2026-04):** brief generation made opt-in (doc-builder no longer mandatory) |
@@ -79,8 +79,8 @@ See section "SDLC Phases" for the current diagram (marked CURRENT) and the pendi
 | — | merge-pr | ✅ COMPLETE | L2, merge + switch to main + cleanup |
 | — | prepare-implementation | ✅ COMPLETE | L2, produces features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml + 5 briefs + hub.html. **Updated #191 (2026-04):** Phase 0 STM setup added, artifact lock path fixed |
 | — | prepare-architecture | ✅ COMPLETE | **Updated #206 (2026-04):** brief generation made opt-in |
-| — | create-recipe | ✅ COMPLETE | **Updated #200 (2026-04):** removed mandatory doc-builder step before checkpoints |
-| — | quality-check | ✅ NEW | **Added #200 (2026-04):** LTM-driven quality assessment framework with 11-domain KB (skill, not a recipe) |
+| — | create-play | ✅ COMPLETE | **Updated #200 (2026-04):** removed mandatory doc-builder step before checkpoints |
+| — | quality-check | ✅ NEW | **Added #200 (2026-04):** LTM-driven quality assessment framework with 11-domain KB (skill, not a play) |
 
 ### Component Inventory
 
@@ -88,7 +88,7 @@ See section "SDLC Phases" for the current diagram (marked CURRENT) and the pendi
 |---|---|---|
 | Agents | 11 | product-strategist, tech-designer, code-builder, repo-orchestrator, project-orchestrator, doc-builder, eval-generator, quality-auditor, judge, intent-crafter, intent-resolver |
 | Skills | ~43 deployed | Full list via /sync-claude output. Includes new `quality-check-scoped` (#208) |
-| Recipes | 13 deployed | discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature, start-feature-planning, commit-code, create-pr, merge-pr, ship, capture-learning, create-recipe, **review-pr (#208)** |
+| Plays | 13 deployed | discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature, start-feature-planning, commit-code, create-pr, merge-pr, ship, capture-learning, create-play, **review-pr (#208)** |
 | Verification gates | 2 confirmed passing | G-100, G-103. Others blocked or pending re-eval against new schemas |
 
 ### Dependency Blockers
@@ -111,14 +111,14 @@ Full IDD principles: `docs/philosophy/intent-driven-development.md`
 
 | # | IDD Element | IDD Principle | IDSD Implementation |
 |---|-------------|--------------|---------------------|
-| 1 | Intent Layer | Capture WHY — business goals, outcomes, constraints — at a stable abstraction above specifications | Every recipe has an IDD intent header (intent/constraints/failure_conditions). Users provide business intent; recipes carry SDLC intent. Two-Layer Intent Model. |
-| 2 | Signals | System activates through event-driven triggers, not manual kickoffs | User CLI invocations (`/discover-product`, `/implement-epic`) are the current signal mechanism. Recipes are the entry point for all signals. |
-| 3 | Orchestrated Intent | Recipes bridge intent and execution at graduated autonomy levels | L1 recipes (≤2 agents), L2 recipes (≤5 agents). Three speeds: Fast (minutes), Planned (hours), Strategic (days). 19 prioritized recipes across 8 phases (5 primary, 3 supporting). |
+| 1 | Intent Layer | Capture WHY — business goals, outcomes, constraints — at a stable abstraction above specifications | Every play has an IDD intent header (intent/constraints/failure_conditions). Users provide business intent; plays carry SDLC intent. Two-Layer Intent Model. |
+| 2 | Signals | System activates through event-driven triggers, not manual kickoffs | User CLI invocations (`/discover-product`, `/implement-epic`) are the current signal mechanism. Plays are the entry point for all signals. |
+| 3 | Orchestrated Intent | Plays bridge intent and execution at graduated autonomy levels | Atomic plays (≤2 agents), high-order plays (≤5 agents). Three speeds: Fast (minutes), Planned (hours), Strategic (days). 19 prioritized plays across 8 phases (5 primary, 3 supporting). |
 | 4 | Agents | Autonomous decision-makers accept intent and determine HOW within their domain | 11 agents: product-strategist, code-builder, tech-designer, eval-generator, quality-auditor, judge, repo-orchestrator, project-orchestrator, doc-builder, intent-crafter, intent-resolver. Agent-first pattern enforced. |
 | 5 | Memory | Persistent organizational context across sessions | LTM (`core/components/memory/`) for practices, standards, templates. STM (`.meridian/{issue}/`) for per-issue work context. LTM governance via Git: PR-based promotion with tiered review (project-level → team, org-level → engineering leaders). Memory enables deterministic adaptation. |
-| 6 | Skills | Bounded, repeatable execution capabilities that agents invoke | Skills execute work; they never decide when they run. Each recipe lists its skills with input/output contracts. |
+| 6 | Skills | Bounded, repeatable execution capabilities that agents invoke | Skills execute work; they never decide when they run. Each play lists its skills with input/output contracts. |
 | 7 | Context-Aware Decisions | Every decision accounts for full environmental context | Context bundles ≤12K tokens per agent task. Audience separation (product/architect/implementer/validator). Agents read LTM + STM to build execution context. |
-| 8 | Generation-Verification Loops | Every output passes through quality gates | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per recipe. Evidence artifacts. Tether/Vanish checkpoints. Eval-driven TDD in implement-epic. |
+| 8 | Generation-Verification Loops | Every output passes through quality gates | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per play. Evidence artifacts. Tether/Vanish checkpoints. Eval-driven TDD in implement-epic. |
 
 ### Two-Layer Intent Model
 
@@ -126,15 +126,15 @@ IDSD operates with two distinct intent layers:
 
 | Layer | Who Authors | When | Example |
 |-------|------------|------|---------|
-| **Business Intent** | User or upstream recipe | Every invocation | "Add CSV export with auth" |
-| **SDLC Intent** | Framework author | Recipe creation (once) | "Build implementation from intent or spec" |
+| **Business Intent** | User or upstream play | Every invocation | "Add CSV export with auth" |
+| **SDLC Intent** | Framework author | Play creation (once) | "Build implementation from intent or spec" |
 | **Artifact Intent** | Generated by agents | During execution | product.yaml carries business intent forward |
 
-Business intent flows THROUGH recipes. SDLC intent tells recipes HOW to operate. Generated artifacts carry business intent forward through the entire lifecycle.
+Business intent flows THROUGH plays. SDLC intent tells plays HOW to operate. Generated artifacts carry business intent forward through the entire lifecycle.
 
 ### Intent-Sufficiency Principle
 
-Upstream artifacts enrich, never block. If intent is clear, proceed. If critical context is missing, suggest upstream recipe as option — user decides. This is how IDSD supports non-linear invocation: any recipe can be called at any point if the three elements of intent (intent, constraints, failure conditions) are satisfied.
+Upstream artifacts enrich, never block. If intent is clear, proceed. If critical context is missing, suggest upstream play as option — user decides. This is how IDSD supports non-linear invocation: any play can be called at any point if the three elements of intent (intent, constraints, failure conditions) are satisfied.
 
 ---
 
@@ -189,11 +189,11 @@ Compound L2:
 **PENDING-REFACTOR (#106):** After Issue #106 is resolved, the pipeline will restructure to:
 ```
 discover-product → plan-roadmap (produces features.yaml here) →
-  design-ux + design-services + design-arch (3 new recipes) →
+  design-ux + design-services + design-arch (3 new plays) →
   prepare-implementation (slimmed: scenarios + plan + evals only) →
   implement-epic
 ```
-This moves features.yaml authorship from prepare-implementation to plan-roadmap. The three design recipes (design-ux, design-services, design-arch) do not exist yet and will be built in Issue #106.
+This moves features.yaml authorship from prepare-implementation to plan-roadmap. The three design plays (design-ux, design-services, design-arch) do not exist yet and will be built in Issue #106.
 
 ---
 
@@ -226,7 +226,7 @@ Orchestration:       hub.html (links to all briefs for a product slug)
 
 ### 3. IDD Intent Header
 
-Every recipe and every generated artifact MUST start with:
+Every play and every generated artifact MUST start with:
 
 ```yaml
 intent: {what outcome}
@@ -244,7 +244,7 @@ Examples:
   Intent: Generate evals: F1-auth — from features.yaml behaviors and scenarios
 ```
 
-Recipes MUST pass a JSON contract to each agent invocation. The contract carries intent implicitly via `intent_path` pointing to the recipe's `reference/intent.yaml`.
+Plays MUST pass a JSON contract to each agent invocation. The contract carries intent implicitly via `intent_path` pointing to the play's `reference/intent.yaml`.
 
 ### 4. Artifact Lifecycle
 
@@ -254,13 +254,13 @@ DRAFT → VALIDATE → LOCKED
 
 - `--phase draft`: Agent generates initial artifact
 - `--phase validate`: Agent runs validation, returns issues/score/checklist
-- `--phase lock`: Recipe sets LOCKED — no agent call needed for metadata update
+- `--phase lock`: Play sets LOCKED — no agent call needed for metadata update
 
 **Cycle-Back on Reject:**
-- If user responds Vanish at validate phase → recipe outputs feedback prompt, returns to draft state
+- If user responds Vanish at validate phase → play outputs feedback prompt, returns to draft state
 - Agent re-enters draft with original context + validate phase issues as `feedback` input
 - Maximum 2 cycle-back iterations before escalating to user with structured failure
-- Recipes supporting cycle-back: discover-product, plan-roadmap, prepare-implementation
+- Plays supporting cycle-back: discover-product, plan-roadmap, prepare-implementation
 
 ### 5. Cascade Sync
 
@@ -288,12 +288,12 @@ implement-epic enforces 4-way context isolation:
 
 ## Build Priority
 
-Recipes are built one at a time. Priority set by user. Existing recipes marked for IDD review.
+Plays are built one at a time. Priority set by user. Existing plays marked for IDD review.
 
-| P# | Recipe | Level | Status | Notes |
+| P# | Play | Level | Status | Notes |
 |----|--------|-------|--------|-------|
 | 1 | `start-feature` | L2 | ✅ COMPLETE | Compiled, uses project-orchestrator + repo-orchestrator |
-| 2 | `capture-learning` | L1 | ⚠️ PARTIAL | Recipe exists, 2 skills missing |
+| 2 | `capture-learning` | L1 | ⚠️ PARTIAL | Play exists, 2 skills missing |
 | 3 | `implement-epic` | L2 | ✅ COMPLETE | Was implement-feature, eval-driven TDD |
 | 4 | `start-feature-planning` | L2 | ✅ COMPLETE | Was start-planned-feature |
 | 5 | `discover-product` | L2 | ✅ COMPLETE | Produces product.yaml + product-brief.html |
@@ -317,11 +317,11 @@ Recipes are built one at a time. Priority set by user. Existing recipes marked f
 
 ### Backlog (unprioritized)
 
-| Recipe | Level | SDLC Phase | Notes |
+| Play | Level | SDLC Phase | Notes |
 |--------|-------|------------|-------|
-| `design-ux` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new recipe |
-| `design-services` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new recipe |
-| `design-arch` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new recipe |
+| `design-ux` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new play |
+| `design-services` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new play |
+| `design-arch` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new play |
 | `plan-sprint` | L1 | Product-2-Design | Sprint planning ceremony |
 | `create-wireframes` | L1 | Design-2-Spec | Standalone UX design |
 | `create-adr` | L1 | Design-2-Spec | Standalone ADR creation |
@@ -350,8 +350,8 @@ Recipes are built one at a time. Priority set by user. Existing recipes marked f
 | `repo-orchestrator` | Git: commits, branches, PRs, merges, evidence self-commit | start-feature, commit-code, create-pr, merge-pr, ship, implement-epic, all evidence steps |
 | `project-orchestrator` | Issues: create, resolve, map, track | start-feature, commit-code, create-pr |
 | `doc-builder` | Documentation: HTML brief generation, hub.html | discover-product, plan-roadmap, prepare-implementation |
-| `intent-crafter` | Intent authoring: draft intent.yaml from description | create-recipe |
-| `intent-resolver` | Intent resolution: map intent to recipe pattern | create-recipe |
+| `intent-crafter` | Intent authoring: draft intent.yaml from description | create-play |
+| `intent-resolver` | Intent resolution: map intent to play pattern | create-play |
 
 ### Backlog Agents (not in current plan)
 
@@ -363,18 +363,18 @@ Recipes are built one at a time. Priority set by user. Existing recipes marked f
 
 ---
 
-## Recipe Specs — Universal Precursor
+## Play Specs — Universal Precursor
 
-### Recipe: `start-feature` (P1 — COMPLETE)
+### Play: `start-feature` (P1 — COMPLETE)
 
-**File:** `core/components/recipes/start-feature/SKILL.md`
+**File:** `core/components/plays/start-feature/SKILL.md`
 
 | Attribute | Value |
 |-----------|-------|
 | Level | L2 |
 | Agent Calls | 2 |
 | Agents | project-orchestrator, repo-orchestrator |
-| Status | COMPLETE — compiled from intent.yaml via create-recipe |
+| Status | COMPLETE — compiled from intent.yaml via create-play |
 | Compiled At | 2026-03-06 |
 
 **Consumes:** Issue ID, description, or no args (infers from changed files)
@@ -393,17 +393,17 @@ Examples:
 **Key behaviors:**
 - Single flow, no modes — all three input patterns converge on same downstream
 - Uncommitted changes always preserved (never lost)
-- Confidence-gated — low confidence on issue mapping halts the recipe
+- Confidence-gated — low confidence on issue mapping halts the play
 - Evidence self-commit via repo-orchestrator (ADR 012)
 - Pause/resume via `{stm_base}/{issue}/status/start-feature.json`
 
 ---
 
-## Recipe Specs — Learn-2-Memory
+## Play Specs — Learn-2-Memory
 
-### Recipe: `capture-learning` (P2 — PARTIAL)
+### Play: `capture-learning` (P2 — PARTIAL)
 
-**File:** `core/components/recipes/capture-learning/SKILL.md`
+**File:** `core/components/plays/capture-learning/SKILL.md`
 **Recent Updates:** #195 (2026-04) — broadened extraction from resolution-trace-only to multi-format evidence scanning so capture-learning no longer returns zero knowledge when traces are absent.
 
 ```yaml
@@ -422,7 +422,7 @@ failure_conditions:
 | Level | L1 |
 | Agent Calls | 1 |
 | Agents | product-strategist (or new knowledge agent TBD) |
-| Status | PARTIAL — recipe exists, skills extract-patterns and draft-ltm-entry missing |
+| Status | PARTIAL — play exists, skills extract-patterns and draft-ltm-entry missing |
 
 **Consumes:** Completed STM artifacts OR intent
 **Generates:** LTM entries in `core/components/memory/` (practices, standards, templates)
@@ -433,7 +433,7 @@ failure_conditions:
 
 ---
 
-## Recipe Specs — Product-2-Design
+## Play Specs — Product-2-Design
 
 ### Agent: `product-strategist`
 
@@ -447,7 +447,7 @@ tools: [Task, Read, Write, Glob, Grep, Skill]
 ```
 
 **Responsibilities:**
-- Accept product intent from recipe via JSON contract
+- Accept product intent from play via JSON contract
 - Discover market context and competitive landscape
 - Generate product.yaml with strategic goals (not OKRs)
 - Scope IDD epics with strategic goal references (SG-IDs)
@@ -472,17 +472,17 @@ tools: [Task, Read, Write, Glob, Grep, Skill]
 | generate-implementation-brief | Generate features-brief.html, scenarios-brief.html, plan-brief.html |
 
 **IDD Awareness:**
-- Reads JSON contract from recipe — `intent_path` provides constraints and failure conditions
+- Reads JSON contract from play — `intent_path` provides constraints and failure conditions
 - Reads LTM: practices, standards
 - Reads STM: current product artifacts at stm_base paths
 - Returns `step_failure` in contract if something goes wrong — never raw errors
 
 ---
 
-### Recipe: `discover-product` (P5 — COMPLETE)
+### Play: `discover-product` (P5 — COMPLETE)
 
-**File:** `core/components/recipes/discover-product/SKILL.md`
-**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
+**File:** `core/components/plays/discover-product/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-play (2026-03-16)
 **Recent Updates:** #206 (2026-04) — brief generation made opt-in. doc-builder step no longer mandatory before human checkpoints.
 
 ```yaml
@@ -532,7 +532,7 @@ Step 3: Evidence
 
 **Phase: LOCK**
 ```
-Step 1: Recipe directly sets status: LOCKED (no agent call)
+Step 1: Play directly sets status: LOCKED (no agent call)
 Step 2: Evidence
 ```
 
@@ -543,10 +543,10 @@ Step 2: Evidence
 
 ---
 
-### Recipe: `plan-roadmap` (P6 — COMPLETE)
+### Play: `plan-roadmap` (P6 — COMPLETE)
 
-**File:** `core/components/recipes/plan-roadmap/SKILL.md`
-**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
+**File:** `core/components/plays/plan-roadmap/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-play (2026-03-16)
 **Recent Updates:** #206 (2026-04) — brief generation made opt-in; `draft-roadmap` and `validate-roadmap` skills no longer reference brief generation.
 
 ```yaml
@@ -605,13 +605,13 @@ Step 8: Evidence + evidence self-commit
 
 ---
 
-## Recipe Specs — Prepare-to-Implement
+## Play Specs — Prepare-to-Implement
 
-### Recipe: `prepare-implementation` (NEW — COMPLETE)
+### Play: `prepare-implementation` (NEW — COMPLETE)
 
-**File:** `core/components/recipes/prepare-implementation/SKILL.md`
-**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
-**Recent Updates:** #191 (2026-04) — added Phase 0 STM setup and fixed artifact lock path so the recipe correctly initializes issue STM before drafting.
+**File:** `core/components/plays/prepare-implementation/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-play (2026-03-16)
+**Recent Updates:** #191 (2026-04) — added Phase 0 STM setup and fixed artifact lock path so the play correctly initializes issue STM before drafting.
 
 ```yaml
 intent: "Produce implementation-ready design artifacts from product intent"
@@ -693,7 +693,7 @@ Step 13: Present results — Tether to proceed to LOCK, Vanish to halt
 
 **LOCK Phase:**
 ```
-Step 14: Recipe sets status: LOCKED on all 5 artifacts (no agent calls)
+Step 14: Play sets status: LOCKED on all 5 artifacts (no agent calls)
 Step 15: Evidence + evidence self-commit
 ```
 
@@ -704,16 +704,16 @@ Step 15: Evidence + evidence self-commit
 - `scenarios.yaml` — scenario groups with feature_ref, behavior_ref, pass_criteria, automation classification, feature_gates, coverage
 - `plan.yaml` — prerequisites (Phase 0), execution_order as vertical slices (scope items with key_files, exit_gate, scenario_gate), summary table with cumulative_scenarios
 
-**RESOLVED (2026-04-13):** prepare-implementation slim-down dropped. The recipe keeps its current 5-artifact shape (features, architecture, tech, scenarios, plan). Design recipes (see #106) will plug in alongside it, not replace its outputs.
+**RESOLVED (2026-04-13):** prepare-implementation slim-down dropped. The play keeps its current 5-artifact shape (features, architecture, tech, scenarios, plan). Design plays (see #106) will plug in alongside it, not replace its outputs.
 
 ---
 
-## Recipe Specs — Implementation
+## Play Specs — Implementation
 
-### Recipe: `implement-epic` (P3 — COMPLETE, was implement-feature)
+### Play: `implement-epic` (P3 — COMPLETE, was implement-feature)
 
-**File:** `core/components/recipes/implement-epic/SKILL.md`
-**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-17)
+**File:** `core/components/plays/implement-epic/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-play (2026-03-17)
 **Recent Updates:** #191 (2026-04) — sources design artifacts from issue STM instead of product epics, aligning execution with the per-issue preparation flow.
 
 ```yaml
@@ -824,12 +824,12 @@ Step 19: Write evidence, present final report, evidence self-commit
 
 ---
 
-## Recipe Specs — Code-2-Test
+## Play Specs — Code-2-Test
 
-### Recipe: `commit-code` (P11 — COMPLETE)
+### Play: `commit-code` (P11 — COMPLETE)
 
-**File:** `core/components/recipes/commit-code/SKILL.md`
-**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-06)
+**File:** `core/components/plays/commit-code/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-play (2026-03-06)
 
 | Attribute | Value |
 |-----------|-------|
@@ -851,10 +851,10 @@ Step 19: Write evidence, present final report, evidence self-commit
 
 ---
 
-### Recipe: `create-pr` (P12 — COMPLETE)
+### Play: `create-pr` (P12 — COMPLETE)
 
-**File:** `core/components/recipes/create-pr/SKILL.md`
-**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-06)
+**File:** `core/components/plays/create-pr/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-play (2026-03-06)
 
 | Attribute | Value |
 |-----------|-------|
@@ -875,12 +875,12 @@ Step 19: Write evidence, present final report, evidence self-commit
 
 ---
 
-## Recipe Specs — Delivery
+## Play Specs — Delivery
 
-### Recipe: `ship` (NEW — COMPLETE)
+### Play: `ship` (NEW — COMPLETE)
 
-**File:** `core/components/recipes/ship/SKILL.md`
-**Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-06)
+**File:** `core/components/plays/ship/SKILL.md`
+**Compiled From:** `reference/intent.yaml` via create-play (2026-03-06)
 
 ```yaml
 intent: "Deliver current branch work to main — commit, PR, merge, and cleanup in one command"
@@ -903,16 +903,16 @@ failure_conditions:
 | Attribute | Value |
 |-----------|-------|
 | Level | L2 |
-| Workflow Structure | C (chains L2 sub-recipes) |
-| Sub-Recipes | 3 (commit-code, create-pr, merge-pr) |
-| Agent Calls | 0 direct (delegated to sub-recipes) |
+| Workflow Structure | C (chains L2 sub-plays) |
+| Sub-Plays | 3 (commit-code, create-pr, merge-pr) |
+| Agent Calls | 0 direct (delegated to sub-plays) |
 | Status | COMPLETE |
 | Compiled At | 2026-03-06 |
 
 **Consumes:** Uncommitted changes on a feature branch
 **Generates:** Commits + merged PR + main up to date + feature branch deleted
 
-**Sub-recipe chain:**
+**Sub-play chain:**
 ```
 Step 1: commit-code (with approval_override: auto-proceed)
 Step 2: create-pr (with approval_override: auto-proceed)
@@ -923,9 +923,9 @@ Step 5: Evidence self-commit (lands on main)
 
 ---
 
-### Recipe: `merge-pr` (NEW — COMPLETE)
+### Play: `merge-pr` (NEW — COMPLETE)
 
-**File:** `core/components/recipes/merge-pr/SKILL.md`
+**File:** `core/components/plays/merge-pr/SKILL.md`
 
 | Attribute | Value |
 |-----------|-------|
@@ -964,11 +964,11 @@ All artifact schemas are defined in `.claude/specs/artifact-schemas/`. Each sche
 
 ### JSON Contract Flow
 
-Every recipe → agent invocation uses a JSON contract:
+Every play → agent invocation uses a JSON contract:
 
 ```json
 {
-  "intent_path": "{recipe_dir}/reference/intent.yaml",
+  "intent_path": "{play_dir}/reference/intent.yaml",
   "stm_base": ".meridian/project/product/",
   "slug": "{slug}",
   "task_id": "{task-id}",
@@ -985,15 +985,15 @@ The agent reads `intent_path` for constraints and failure conditions. The agent 
 
 ### Pause and Resume
 
-Every recipe writes a status file:
-- `{stm_base}/{issue}/status/{recipe}.json` for issue-scoped recipes
-- `{stm_base}/product/{slug}/status/{recipe}.json` for product-scoped recipes
+Every play writes a status file:
+- `{stm_base}/{issue}/status/{play}.json` for issue-scoped plays
+- `{stm_base}/product/{slug}/status/{play}.json` for product-scoped plays
 
 Status file tracks per-task completion. On resume: skip completed steps, reset in_progress to pending, continue from first incomplete.
 
 ### Evidence Self-Commit (ADR 012)
 
-Every recipe's final step invokes `repo-orchestrator` to self-commit evidence files. Non-blocking — failure does not halt the recipe. Evidence lands in `{stm_base}/{scope}/evidence/{recipe}/{YYYYMMDD-HHMMSS}.md`.
+Every play's final step invokes `repo-orchestrator` to self-commit evidence files. Non-blocking — failure does not halt the play. Evidence lands in `{stm_base}/{scope}/evidence/{play}/{YYYYMMDD-HHMMSS}.md`.
 
 ### Recovery Pattern
 

@@ -15,7 +15,7 @@ context_authority: "derived"
 module_structure:
   - path: "core/components/agents/"
     role: "Agent definitions — domain-expert AI agents, each with a bounded domain and JSON contract interface"
-    boundaries: "Owns: agent identity, intent recognition, skill invocation, output contracts. Does NOT own: workflow orchestration (recipes), artifact storage (STM), deployment (sync-claude)."
+    boundaries: "Owns: agent identity, intent recognition, skill invocation, output contracts. Does NOT own: workflow orchestration (plays), artifact storage (STM), deployment (sync-claude)."
     file_count: 15
     key_files:
       - "tech-architect.md"
@@ -27,11 +27,11 @@ module_structure:
       - "test-engineer.md"
       - "knowledge-extractor.md"
 
-  - path: "core/components/recipes/"
-    role: "Compiled workflow definitions — L1 (atomic) and L2 (chained) recipes. Each recipe is a SKILL.md file, compiled from reference/intent.yaml."
+  - path: "core/components/plays/"
+    role: "Compiled workflow definitions — L1 (atomic) and L2 (chained) plays. Each play is a SKILL.md file, compiled from reference/intent.yaml."
     boundaries: "Owns: workflow steps, agent dispatch contracts, pre-flight checks, checkpoint logic, eval criteria. Does NOT own: domain work (delegated to agents), artifact creation (delegated to skills)."
     file_count: 15
-    key_recipes:
+    key_plays:
       - "prepare-implementation"
       - "commit-code"
       - "create-pr"
@@ -45,7 +45,7 @@ module_structure:
 
   - path: "core/components/skills/"
     role: "Model-invocable capabilities — atomic, bounded actions that agents invoke to produce artifacts. Each skill has a SKILL.md and schemas/ directory."
-    boundaries: "Owns: artifact production logic, schema definitions. Does NOT own: workflow coordination (recipes), agent cognition (agent definitions)."
+    boundaries: "Owns: artifact production logic, schema definitions. Does NOT own: workflow coordination (plays), agent cognition (agent definitions)."
     file_count: 34
     key_skills:
       - "draft-lld"
@@ -84,7 +84,7 @@ module_structure:
     boundaries: "Read-only reference. Not consumed programmatically by agents."
     subdirectories:
       - "docs/adr/   — 15 architecture decision records"
-      - "docs/components/ — agent, recipe, skill, memory documentation"
+      - "docs/components/ — agent, play, skill, memory documentation"
       - "docs/philosophy/ — IDSD, IDD, architecture philosophy"
 
   - path: ".meridian/"
@@ -109,22 +109,22 @@ module_structure:
 # --- Design Patterns ---
 
 design_patterns:
-  - pattern: "Three-Layer Hierarchy (Recipe → Agent → Skill)"
+  - pattern: "Three-Layer Hierarchy (Play → Agent → Skill)"
     location: "core/components/ entire structure"
-    evidence: "ADR-001, ADR-013. Recipes are L1/L2 compiled workflows. Agents are domain experts. Skills are model-invocable capabilities. Strict invocability rules: L2 human-only (≤5 agents), L1 human+model (≤2 agents), Skills model-only."
+    evidence: "ADR-001, ADR-013. Plays are L1/L2 compiled workflows. Agents are domain experts. Skills are model-invocable capabilities. Strict invocability rules: L2 human-only (≤5 agents), L1 human+model (≤2 agents), Skills model-only."
     authority: "ADR-001"
 
   - pattern: "Compiled Intent Pattern (intent.yaml → SKILL.md)"
-    location: "core/components/recipes/*/reference/intent.yaml → SKILL.md"
-    evidence: "Every recipe has a reference/intent.yaml (constraints C1-Cn, failure_conditions F1-Fn, scenarios S1-Sn) that is compiled by /create-recipe into a static SKILL.md. SKILL.md is the runtime artifact; intent.yaml is the source. Hash-locked in frontmatter. ADR-013 Level 2 maturity."
+    location: "core/components/plays/*/reference/intent.yaml → SKILL.md"
+    evidence: "Every play has a reference/intent.yaml (constraints C1-Cn, failure_conditions F1-Fn, scenarios S1-Sn) that is compiled by /create-play into a static SKILL.md. SKILL.md is the runtime artifact; intent.yaml is the source. Hash-locked in frontmatter. ADR-013 Level 2 maturity."
     authority: "ADR-013"
 
   - pattern: "STM as Inter-Agent Data Transport (Phoenix Architecture)"
-    location: "All recipe→agent→skill flows"
-    evidence: "ADR-011. Skills write artifacts to STM (.meridian/project/issues/{issue}/evidence/{recipe}/). Output contracts carry file PATHS, not data blobs. Downstream agents issue explicit Read tool calls to these paths. Prevents context window data loss in multi-step flows."
+    location: "All play→agent→skill flows"
+    evidence: "ADR-011. Skills write artifacts to STM (.meridian/project/issues/{issue}/evidence/{play}/). Output contracts carry file PATHS, not data blobs. Downstream agents issue explicit Read tool calls to these paths. Prevents context window data loss in multi-step flows."
     authority: "ADR-011"
 
-  - pattern: "JSON Contract Communication (Recipe→Agent boundary)"
+  - pattern: "JSON Contract Communication (Play→Agent boundary)"
     location: "core/components/memory/standards/agent-contract.md"
     evidence: "Universal protocol: input contract (intent_path, stm_base, stm.input, stm.output, task_id, ltm_context?) → domain work → output contract (status, stm.input echoed, stm.output updated, task_id echoed, error). No prose-based handoffs. Strict schema."
     authority: "agent-contract.md standard"
@@ -141,16 +141,16 @@ design_patterns:
 
   - pattern: "Issue-Centric STM (NWWI Principle)"
     location: ".meridian/project/issues/{issue}/"
-    evidence: "ADR-008. All recipe artifacts organized under issue number. No Work Without an Issue (NWWI): work can start without issue, but cannot commit/ship without one. Two-phase write for bootstrap: _pending/ → {issue}/ after issue creation. Evidence, checkpoint, status — all issue-scoped."
+    evidence: "ADR-008. All play artifacts organized under issue number. No Work Without an Issue (NWWI): work can start without issue, but cannot commit/ship without one. Two-phase write for bootstrap: _pending/ → {issue}/ after issue creation. Evidence, checkpoint, status — all issue-scoped."
     authority: "ADR-008"
 
   - pattern: "Agent-First Delegation"
-    location: "All recipe SKILL.md files"
-    evidence: "CLAUDE.md rule: 'Never use tools directly when an agent covers that domain.' Recipes are orchestrators; agents own domain work. Forbidden patterns explicitly called out in each recipe (e.g., 'Forbidden: Direct git commands for analysis or commits')."
+    location: "All play SKILL.md files"
+    evidence: "CLAUDE.md rule: 'Never use tools directly when an agent covers that domain.' Plays are orchestrators; agents own domain work. Forbidden patterns explicitly called out in each play (e.g., 'Forbidden: Direct git commands for analysis or commits')."
     authority: "CLAUDE.md, ADR-001"
 
   - pattern: "Parallel Phase Dispatch"
-    location: "core/components/recipes/prepare-implementation/SKILL.md Steps 2-6"
+    location: "core/components/plays/prepare-implementation/SKILL.md Steps 2-6"
     evidence: "Independent data collection steps (architecture inference, test surface mapping, dependency graph, git history analysis, LTM consultation) dispatched in parallel. Step 7 (context assembly) depends on all five completing. Pattern enables concurrent agent invocations for throughput."
     authority: "prepare-implementation SKILL.md"
 
@@ -165,8 +165,8 @@ design_patterns:
     authority: "prepare-implementation/reference/intent.yaml C9"
 
   - pattern: "Evidence Self-Commit (ADR-012)"
-    location: "All L2 recipes — Evidence phase"
-    evidence: "Recipes commit their own evidence artifacts to git via repo-orchestrator at the end of each run. Creates a permanent audit trail of recipe execution. Every SKILL.md has an 'Evidence & Close' final step."
+    location: "All high-order plays — Evidence phase"
+    evidence: "Plays commit their own evidence artifacts to git via repo-orchestrator at the end of each run. Creates a permanent audit trail of play execution. Every SKILL.md has an 'Evidence & Close' final step."
     authority: "ADR-012"
 
 # --- Framework Conventions ---
@@ -175,20 +175,20 @@ framework_conventions:
   - framework: "Claude Code (claude.ai/code)"
     conventions:
       - "Agents are deployed as .md files in ~/.claude/agents/ or .claude/agents/"
-      - "Skills/Recipes are deployed as .md files in ~/.claude/skills/ or .claude/skills/"
+      - "Skills/Plays are deployed as .md files in ~/.claude/skills/ or .claude/skills/"
       - "Agent tool access is declared in YAML frontmatter (tools: [Bash, Read, Write, etc.])"
       - "Models are specified in frontmatter (model: opus|sonnet)"
       - "User-invocable flag in frontmatter: user-invocable: true|false"
       - "Skills are invoked by name via the Skill tool"
       - "Agents are dispatched via the Task tool (subagent_type: '{agent-name}')"
 
-  - framework: "Meridian Recipe Compilation (/create-recipe)"
+  - framework: "Meridian Play Compilation (/create-play)"
     conventions:
       - "Intent source: reference/intent.yaml with canonical 4 fields (intent, constraints, failure_conditions, scenarios)"
       - "Compiled artifact: SKILL.md — the runtime binary"
       - "Intent hash stored in SKILL.md frontmatter for drift detection"
       - "Never edit SKILL.md manually — always re-bake from intent.yaml"
-      - "Rebake command: /create-recipe --rebake {recipe-name}"
+      - "Rebake command: /create-play --rebake {play-name}"
 
   - framework: "Meridian Memory System"
     conventions:
@@ -212,7 +212,7 @@ framework_conventions:
       - "Orbit: defer/explore further"
       - "Never use AskUserQuestion tool — output summary and wait for typed response"
       - "Checkpoint format: '## Proposed {Action}' block with Tether/Vanish prompt"
-      - "AskUserQuestion is explicitly forbidden in all agent and recipe definitions"
+      - "AskUserQuestion is explicitly forbidden in all agent and play definitions"
 
 # --- Logical Architecture ---
 
@@ -222,11 +222,11 @@ logical_architecture: |
   Conceptually, it has five layers:
 
   1. INTENT LAYER — Human expresses goals as structured YAML intents (constraints, failure conditions, scenarios).
-     Human produces: intent.yaml files. Compiler (/create-recipe) translates intent into recipes.
+     Human produces: intent.yaml files. Compiler (/create-play) translates intent into plays.
 
-  2. ORCHESTRATION LAYER — Recipes coordinate work. L2 recipes chain L1 recipes or dispatch multiple domain agents.
-     L1 recipes are atomic workflow units (≤2 agent calls). L2 recipes are higher-order (≤5 agent calls).
-     Recipes run in Claude Code as the execution environment. Recipes never do domain work directly.
+  2. ORCHESTRATION LAYER — Plays coordinate work. high-order plays chain atomic plays or dispatch multiple domain agents.
+     Atomic plays are workflow units (≤2 agent calls). High-order plays are higher-order (≤5 agent calls).
+     Plays run in Claude Code as the execution environment. Plays never do domain work directly.
 
   3. AGENT LAYER — Domain experts execute within their bounded scope.
      Each agent: reads from STM, performs domain analysis or artifact production, writes to STM, returns JSON contract.
@@ -240,12 +240,12 @@ logical_architecture: |
      LTM (Long-Term): standards and knowledge in ~/.meridian/core/memory/ and .meridian/product/ — survives sessions.
      STM (Short-Term): per-issue evidence, checkpoints, status in .meridian/project/issues/{issue}/ — issue-scoped.
 
-  DATA FLOW: User invokes recipe → Recipe dispatches agents via JSON contracts → Agents invoke skills →
-  Skills produce artifacts to STM → Agents return updated contracts with STM paths → Recipe passes paths
+  DATA FLOW: User invokes play → Play dispatches agents via JSON contracts → Agents invoke skills →
+  Skills produce artifacts to STM → Agents return updated contracts with STM paths → Play passes paths
   to next agent → Next agent reads from STM paths explicitly (Phoenix Architecture).
 
-  COMPILATION FLOW: Human writes intent.yaml → /create-recipe reads intent → produces SKILL.md →
-  SKILL.md is deployed to ~/.claude/skills/ → Human invokes recipe name → Claude Code executes.
+  COMPILATION FLOW: Human writes intent.yaml → /create-play reads intent → produces SKILL.md →
+  SKILL.md is deployed to ~/.claude/skills/ → Human invokes play name → Claude Code executes.
 
 # --- LLD Patterns ---
 
@@ -253,7 +253,7 @@ lld_patterns:
   dependency_injection: |
     No DI container. Dependencies are resolved through the STM path threading pattern:
     Each step's output paths become the next step's input paths via the JSON contract.
-    The recipe orchestrator acts as the dependency injector — it wires outputs to inputs
+    The play orchestrator acts as the dependency injector — it wires outputs to inputs
     explicitly in the compiled workflow. Agents receive all their dependencies via the contract,
     not through discovery or global state.
 
@@ -263,20 +263,20 @@ lld_patterns:
     (within_my_domain, responsible_domain, suggested_agent), context (intent_received,
     self_recovery_attempted, self_recovery_details), suggested_fix.
     Agents may self-recover up to 2 times before escalating. Escalation signals
-    contain enough context for the recipe to decide (retry, escalate, halt).
-    Recipes handle failure routing; agents never swallow failures silently.
+    contain enough context for the play to decide (retry, escalate, halt).
+    Plays handle failure routing; agents never swallow failures silently.
 
   logging: |
-    Evidence-based logging via STM artifacts. Every recipe run produces evidence files
-    at {stm_base}/{issue}/evidence/{recipe}/. Evidence is committed to git (ADR-012).
+    Evidence-based logging via STM artifacts. Every play run produces evidence files
+    at {stm_base}/{issue}/evidence/{play}/. Evidence is committed to git (ADR-012).
     No stdout logging infrastructure — the git history IS the audit log.
     Resolution traces written to STM for every ltm_context-bearing agent dispatch.
-    Status files at {stm_base}/{issue}/status/{recipe-name}.json for crash recovery.
+    Status files at {stm_base}/{issue}/status/{play-name}.json for crash recovery.
 
   state_management: |
     Stateless agents (no in-memory persistence between invocations). All state
-    persisted to STM (files on disk). Crash recovery via status files: recipes
-    read {stm_base}/{issue}/status/{recipe}.json on startup, skip completed steps,
+    persisted to STM (files on disk). Crash recovery via status files: plays
+    read {stm_base}/{issue}/status/{play}.json on startup, skip completed steps,
     reset in_progress steps to pending, continue from first incomplete.
     Two-phase write pattern for bootstrap (start-feature: _pending/ → {issue}/).
 
@@ -300,9 +300,9 @@ lld_patterns:
 services:
   - name: "Claude Code (claude.ai/code)"
     type: "execution_environment"
-    role: "Hosts recipes, deploys agents and skills, provides tool access (Bash, Read, Write, Edit, Grep, Glob, Task, Skill, WebSearch, WebFetch)"
+    role: "Hosts plays, deploys agents and skills, provides tool access (Bash, Read, Write, Edit, Grep, Glob, Task, Skill, WebSearch, WebFetch)"
     entry_points:
-      - "~/.claude/skills/ (deployed recipes, user-invocable)"
+      - "~/.claude/skills/ (deployed plays, user-invocable)"
       - "~/.claude/agents/ (deployed agents, model-invocable)"
     note: "Not a service Meridian builds — it is the platform Meridian runs on"
 
@@ -329,12 +329,12 @@ external_dependencies:
     type: "cli_tool"
     purpose: "Issue management, PR creation, repository operations via repo-orchestrator and project-orchestrator"
     used_by: ["repo-orchestrator", "project-orchestrator"]
-    invocation: "Bash tool calls in agents/recipes"
+    invocation: "Bash tool calls in agents/plays"
 
   - name: "git"
     type: "cli_tool"
     purpose: "Version control — commit, branch, push, log, blame, diff, show"
-    used_by: ["repo-orchestrator", "all recipes (read-only git commands in pre-flight)"]
+    used_by: ["repo-orchestrator", "all plays (read-only git commands in pre-flight)"]
     invocation: "Bash tool calls"
 
   - name: "Anthropic Claude API"
@@ -358,5 +358,5 @@ external_dependencies:
 
   - name: "Markdown (file format)"
     type: "data_format"
-    purpose: "Agent definitions, recipe SKILL.md files, narrative documentation, checkpoint files, rich architecture artifacts (.md dual-format)"
+    purpose: "Agent definitions, play SKILL.md files, narrative documentation, checkpoint files, rich architecture artifacts (.md dual-format)"
     no_library_dependency: "Native Claude Code format"

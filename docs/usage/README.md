@@ -6,7 +6,7 @@ Concrete implementations and examples for Meridian components.
 
 ```
 usage/
-├── recipes/      # Recipe implementation examples
+├── plays/      # Play implementation examples
 ├── agents/       # Agent implementation examples
 ├── skills/       # Skill implementation examples
 └── memory/       # Memory implementation examples

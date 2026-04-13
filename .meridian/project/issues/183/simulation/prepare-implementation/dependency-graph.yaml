@@ -1,23 +1,23 @@
 ---
-# Dependency Graph — prepare-implementation recipe neighborhood
+# Dependency Graph — prepare-implementation play neighborhood
 # Task: 1C-dependency-graph (SIMULATION)
 # Issue: 183
-# Scope: recipe → agents → skills → standards
+# Scope: play → agents → skills → standards
 # Generated: 2026-03-31
 
 meta:
-  recipe: prepare-implementation
+  play: prepare-implementation
   version: compiled from reference/intent.yaml
-  scope: recipe neighborhood (dispatch chain + standard dependencies)
+  scope: play neighborhood (dispatch chain + standard dependencies)
   node_count: 30
   edge_count: 52
 
 nodes:
-  # --- RECIPE ---
+  # --- PLAY ---
   - id: prepare-implementation
-    type: recipe
+    type: play
     level: L2
-    path: core/components/recipes/prepare-implementation/SKILL.md
+    path: core/components/plays/prepare-implementation/SKILL.md
     description: "Orchestrator — produces locked features.yaml, tech.yaml, scenarios.yaml, plan.yaml"
     fan_in: 0
     fan_out: 5   # dispatches 5 distinct agents (4 domain + 1 utility repeated)
@@ -29,7 +29,7 @@ nodes:
     model: opus
     path: core/components/agents/tech-architect.md
     description: "Architecture inference, dependency graph, git history, LTM consultation, change surface, tech.yaml, plan.yaml"
-    tasks_in_recipe:
+    tasks_in_play:
       - 1A-architecture-inference
       - 1C-dependency-graph
       - 1D-git-history
@@ -45,7 +45,7 @@ nodes:
     model: opus
     path: core/components/agents/test-engineer.md
     description: "Test surface mapping, blast radius computation, baseline test specification, scenario authoring"
-    tasks_in_recipe:
+    tasks_in_play:
       - 1B-test-surface-mapping
       - 2B-blast-radius
       - 2C-baseline-tests
@@ -57,7 +57,7 @@ nodes:
     model: opus
     path: core/components/agents/product-strategist.md
     description: "Features specification (draft-product-spec) and cross-validation (validate-implementation-design)"
-    tasks_in_recipe:
+    tasks_in_play:
       - 3-features
       - validate
 
@@ -68,7 +68,7 @@ nodes:
     model: sonnet
     path: core/components/agents/doc-builder.md
     description: "HTML briefs generator — owns briefs/ directory and hub.html lifecycle"
-    tasks_in_recipe:
+    tasks_in_play:
       - brief-features
       - brief-tech
       - brief-scenarios-plan
@@ -78,8 +78,8 @@ nodes:
     domain: repo
     model: sonnet
     path: core/components/agents/repo-orchestrator.md
-    description: "Evidence self-commit at recipe close"
-    tasks_in_recipe:
+    description: "Evidence self-commit at play close"
+    tasks_in_play:
       - evidence-commit
 
   # --- SKILLS (invoked via tech-architect) ---
@@ -118,7 +118,7 @@ nodes:
   # --- SKILLS (invoked via doc-builder) ---
   - id: skill-briefs
     type: skill
-    path: core/components/recipes/briefs/SKILL.md
+    path: core/components/plays/briefs/SKILL.md
     description: "Scan product YAML artifacts, regenerate changed briefs via YAML→JSON + static HTML templates"
     invoked_by: doc-builder
 
@@ -126,7 +126,7 @@ nodes:
   - id: skill-create-commit
     type: skill
     path: core/components/skills/create-commit
-    description: "Stage files and create a commit — evidence self-commit at recipe close"
+    description: "Stage files and create a commit — evidence self-commit at play close"
     invoked_by: repo-orchestrator
 
   # --- STM ARTIFACTS (intermediate evidence) ---
@@ -265,7 +265,7 @@ nodes:
   - id: std-agent-contract
     type: standard
     path: core/components/memory/standards/agent-contract.md
-    description: "Universal recipe→agent JSON contract schema. Every recipe sends this. Every agent receives this."
+    description: "Universal play→agent JSON contract schema. Every play sends this. Every agent receives this."
     referenced_by:
       - prepare-implementation
       - tech-architect
@@ -332,8 +332,8 @@ nodes:
 
   - id: intent-yaml
     type: intent
-    path: core/components/recipes/prepare-implementation/reference/intent.yaml
-    description: "Recipe intent — C1-C32 constraints, F1-F26 failure conditions, S1-S13 scenarios"
+    path: core/components/plays/prepare-implementation/reference/intent.yaml
+    description: "Play intent — C1-C32 constraints, F1-F26 failure conditions, S1-S13 scenarios"
     consumed_by:
       - prepare-implementation
       - tech-architect
@@ -343,7 +343,7 @@ nodes:
 
 
 edges:
-  # --- recipe → agents (dispatch) ---
+  # --- play → agents (dispatch) ---
   - from: prepare-implementation
     to: tech-architect
     type: dispatches
@@ -414,9 +414,9 @@ edges:
   - from: repo-orchestrator
     to: skill-create-commit
     type: invokes
-    note: "Evidence self-commit at recipe close"
+    note: "Evidence self-commit at play close"
 
-  # --- recipe → config/intent (reads) ---
+  # --- play → config/intent (reads) ---
   - from: prepare-implementation
     to: config-yaml
     type: reads
@@ -629,9 +629,9 @@ fan_in_hotspots:
 
   - node: tech-architect
     task_count: 8
-    description: "Dispatched most frequently — owns 8 of 13 total recipe tasks"
+    description: "Dispatched most frequently — owns 8 of 13 total play tasks"
     risk: "Single agent bottleneck for architecture, dependency, tech, and plan artifacts"
 
   - node: std-agent-contract
     referenced_by_count: 6
-    description: "Universal standard — governs every agent in the recipe"
+    description: "Universal standard — governs every agent in the play"

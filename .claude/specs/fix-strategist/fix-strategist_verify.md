@@ -21,7 +21,7 @@
 
 ### G-004: No Undefined Labels
 **Mandatory:** Yes
-**Check:** No P5/P6/P7/P8 labels appear anywhere in the feature branch files. All references use full recipe names (`discover-product`, `plan-roadmap`, `manage-backlog`, `refine-backlog`).
+**Check:** No P5/P6/P7/P8 labels appear anywhere in the feature branch files. All references use full play names (`discover-product`, `plan-roadmap`, `manage-backlog`, `refine-backlog`).
 **Evidence:** Grep all 13+ files for `/P[5-8]/` pattern. Zero matches.
 
 ### G-005: No Redundant Sections
@@ -34,7 +34,7 @@
 **Check:** Context Loading section includes:
 1. Domain identification step
 2. Selective LTM search (not bulk load)
-3. Domain clarification return path (structured return to recipe)
+3. Domain clarification return path (structured return to play)
 4. Fallback to research skill
 5. STM loading for existing artifacts
 6. Filtered context injection (not raw LTM dump)
@@ -66,12 +66,12 @@
 **Check:** Context Loading includes a step to check for existing technical design artifacts in STM. Agent flags absence of tech context as an assumption in output.
 **Evidence:** Read Context Loading, confirm tech artifact check step exists.
 
-### G-011: Recipe Handles Domain Clarification
+### G-011: Play Handles Domain Clarification
 **Mandatory:** Yes
-**Check:** `discover-product/SKILL.md` has a sub-flow for handling `domain_clarification_needed` structured return from agent. Recipe presents domain options to user and re-invokes agent with confirmed domain.
-**Evidence:** Read recipe SKILL.md, confirm domain clarification sub-flow exists between pre-flight and main execution.
+**Check:** `discover-product/SKILL.md` has a sub-flow for handling `domain_clarification_needed` structured return from agent. Play presents domain options to user and re-invokes agent with confirmed domain.
+**Evidence:** Read play SKILL.md, confirm domain clarification sub-flow exists between pre-flight and main execution.
 
-### G-012: Recipe Constraint Updated
+### G-012: Play Constraint Updated
 **Mandatory:** Yes
 **Check:** `discover-product/reference/intent.yaml` includes:
 1. A behavioral constraint for domain context handling
@@ -80,10 +80,10 @@
 
 ### G-013: P-Label Replacement in All Files
 **Mandatory:** Yes
-**Check:** All files in feature scope use full recipe names instead of P-labels:
+**Check:** All files in feature scope use full play names instead of P-labels:
 - `generate-business-review/SKILL.md`: "Shared across discover-product, plan-roadmap, and manage-backlog"
 - `final-report.md`: References `plan-roadmap` not P6
-- Agent file: Uses recipe names not P-labels
+- Agent file: Uses play names not P-labels
 **Evidence:** Read each file, confirm P-labels replaced.
 
 ### G-014: New Skill Follows Conventions
@@ -119,7 +119,7 @@ Phase 1 (independent — can run in parallel):
 Phase 2 (after agent file changes):
   G-002, G-003, G-006, G-008, G-010, G-016
 
-Phase 3 (after recipe/skill changes):
+Phase 3 (after play/skill changes):
   G-007, G-011, G-012, G-013, G-014
 
 Phase 4 (final):

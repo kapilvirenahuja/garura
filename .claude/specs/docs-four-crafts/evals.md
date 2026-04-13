@@ -20,15 +20,15 @@ Documentation update to reflect Four Crafts architecture and current component s
 
 ## E2 — Skill Inventory Completeness
 
-**What:** `docs/components/skills.md` lists all implemented skills and recipes.
+**What:** `docs/components/skills.md` lists all implemented skills and plays.
 
 **Pass criteria:**
 - All 18 skills documented (one entry per directory in `core/components/skills/`)
-- All 8 recipes documented (one entry per directory in `core/components/recipes/`)
+- All 8 plays documented (one entry per directory in `core/components/plays/`)
 - Each entry includes: name, description, category, invocability (user/model)
 - No phantom skills (documented but directory doesn't exist)
 
-**Test:** Compare skill/recipe names in docs against `ls core/components/skills/` and `ls core/components/recipes/`.
+**Test:** Compare skill/play names in docs against `ls core/components/skills/` and `ls core/components/plays/`.
 
 ---
 
@@ -39,10 +39,10 @@ Documentation update to reflect Four Crafts architecture and current component s
 **Pass criteria:**
 - `docs/philosophy/architecture.md` has a section explaining the JSON contract pattern
 - The documented contract structure includes fields: `intent_path`, `stm_base`, `slug`, `stm` (with sub-paths), `checkpoints`, `evidence`, `notes`, `step_failure`
-- `docs/components/recipes.md` explains how the contract flows recipe → agent → skill → agent → recipe
+- `docs/components/plays.md` explains how the contract flows play → agent → skill → agent → play
 - `docs/components/agents.md` explains agent behavior when receiving a JSON contract
 
-**Test:** Grep for "intent_path", "stm_base", "step_failure" in docs/philosophy/architecture.md and docs/components/recipes.md. All must be present.
+**Test:** Grep for "intent_path", "stm_base", "step_failure" in docs/philosophy/architecture.md and docs/components/plays.md. All must be present.
 
 ---
 
@@ -53,7 +53,7 @@ Documentation update to reflect Four Crafts architecture and current component s
 **Pass criteria:**
 - `docs/philosophy/architecture.md` has a dedicated "Four Crafts" section
 - All four crafts named and defined: Intent Crafting, Prompt Crafting, Context Crafting, Spec Crafting
-- Each craft maps to a layer: intent.yaml, recipe, agent, skill (respectively)
+- Each craft maps to a layer: intent.yaml, play, agent, skill (respectively)
 - At least 2 other doc files reference Four Crafts (cross-referencing)
 
 **Test:** Search for "Intent Crafting", "Prompt Crafting", "Context Crafting", "Spec Crafting" in `docs/philosophy/architecture.md`. All 4 must appear. Count files containing "Four Crafts" — must be >= 3.
@@ -62,15 +62,15 @@ Documentation update to reflect Four Crafts architecture and current component s
 
 ## E5 — Task-Driven DAG Documented
 
-**What:** Task-driven DAG variant for L2 recipes is documented.
+**What:** Task-driven DAG variant for plays is documented.
 
 **Pass criteria:**
-- `docs/framework/recipe-structure.md` has a section for the DAG variant (not just linear phases)
+- `docs/framework/play-structure.md` has a section for the DAG variant (not just linear phases)
 - The DAG variant describes: TaskCreate with dependencies, task graph as HARD GATE before execution, agents update task status
-- `docs/components/recipes.md` references task graph creation in capability graph section
+- `docs/components/plays.md` references task graph creation in capability graph section
 - "HARD GATE" or equivalent language appears — task graph must be fully created before any agent execution
 
-**Test:** Grep for "DAG" or "task graph" in `docs/framework/recipe-structure.md`. Grep for "HARD GATE" or "hard gate" in `docs/components/recipes.md`.
+**Test:** Grep for "DAG" or "task graph" in `docs/framework/play-structure.md`. Grep for "HARD GATE" or "hard gate" in `docs/components/plays.md`.
 
 ---
 
@@ -114,17 +114,17 @@ Documentation update to reflect Four Crafts architecture and current component s
 
 ---
 
-## E9 — Recipe Roster Completeness
+## E9 — Play Roster Completeness
 
-**What:** `docs/components/recipes.md` lists all 8 implemented recipes with correct levels.
+**What:** `docs/components/plays.md` lists all 8 implemented plays with correct levels.
 
 **Pass criteria:**
-- All 8 recipes listed: capture-learning, commit-code, create-pr, discover-product, plan-roadmap, ship, start-feature, start-feature-planning
-- Each recipe has: name, level (L1/L2), description
-- L1 recipes: commit-code, create-pr, start-feature
-- L2 recipes: capture-learning, discover-product, plan-roadmap, ship, start-feature-planning
+- All 8 plays listed: capture-learning, commit-code, create-pr, discover-product, plan-roadmap, ship, start-feature, start-feature-planning
+- Each play has: name, level (atomic/high-order), description
+- Atomic plays: commit-code, create-pr, start-feature
+- High-order plays: capture-learning, discover-product, plan-roadmap, ship, start-feature-planning
 
-**Test:** Compare recipe names in docs against `ls core/components/recipes/`.
+**Test:** Compare play names in docs against `ls core/components/plays/`.
 
 ---
 
@@ -155,17 +155,17 @@ Documentation update to reflect Four Crafts architecture and current component s
 
 ---
 
-## E12 — Recipe System vs Intent Constraint Separation
+## E12 — Play System vs Intent Constraint Separation
 
-**What:** `docs/components/recipes.md` distinguishes user-facing intent constraints from system constraints.
+**What:** `docs/components/plays.md` distinguishes user-facing intent constraints from system constraints.
 
 **Pass criteria:**
 - Intent constraints described as user-facing (goal, failure conditions, scenarios)
 - System constraints described as framework-level (agent limits, checkpoint rules, artifact paths)
-- `intent.yaml` described as user contract; recipe SKILL.md described as system contract
+- `intent.yaml` described as user contract; play SKILL.md described as system contract
 - Both exist as separate sections or clearly delineated concepts
 
-**Test:** Grep for "System Constraints" and "intent.yaml" in `docs/components/recipes.md`. Both must be present.
+**Test:** Grep for "System Constraints" and "intent.yaml" in `docs/components/plays.md`. Both must be present.
 
 ---
 
@@ -174,16 +174,16 @@ Documentation update to reflect Four Crafts architecture and current component s
 | Eval | Method | Automated? |
 |------|--------|-----------|
 | E1 | Diff agent list in docs vs `core/components/agents/` | Yes — grep + compare |
-| E2 | Diff skill/recipe list in docs vs `core/components/skills/` + `recipes/` | Yes — grep + compare |
-| E3 | Grep for contract fields in architecture + recipes docs | Yes — grep |
+| E2 | Diff skill/play list in docs vs `core/components/skills/` + `plays/` | Yes — grep + compare |
+| E3 | Grep for contract fields in architecture + plays docs | Yes — grep |
 | E4 | Grep for Four Crafts terms in architecture doc | Yes — grep |
-| E5 | Grep for DAG/task graph in recipe-structure + recipes docs | Yes — grep |
+| E5 | Grep for DAG/task graph in play-structure + plays docs | Yes — grep |
 | E6 | Grep for templates/ and ADR 009 in memory doc | Yes — grep |
 | E7 | Grep for ADR 007 in docs/, verify SUPERSEDED file | Yes — grep + file check |
 | E8 | Grep for agent count in IDSD doc, compare with code | Yes — grep + count |
-| E9 | Diff recipe list in docs vs `core/components/recipes/` | Yes — grep + compare |
+| E9 | Diff play list in docs vs `core/components/plays/` | Yes — grep + compare |
 | E10 | Grep for anti-pattern + step_failure in agents doc | Yes — grep |
 | E11 | Grep for Skill Pool + Skill tool in agents doc | Yes — grep |
-| E12 | Grep for System Constraints + intent.yaml in recipes doc | Yes — grep |
+| E12 | Grep for System Constraints + intent.yaml in plays doc | Yes — grep |
 
 All 12 evals are automatable via grep/compare against codebase.

@@ -1,17 +1,17 @@
 # Human Approval Gate for Knowledge Writes
 <!-- knowledge-file: tier=2 scope=core -->
 
-**When this applies:** Any recipe that writes new content to LTM (organizational knowledge), regardless of how confident the producing agent is in the content.
+**When this applies:** Any play that writes new content to LTM (organizational knowledge), regardless of how confident the producing agent is in the content.
 **When this does NOT apply:** STM writes (temporary work state); archival writes (moving existing files, not creating new knowledge); config updates that are deterministic and reversible.
 **Search patterns:** approval gate, human gate, knowledge write, LTM write, candidate review, reject candidate, knowledge checkpoint
-**Provenance:** Issue #182 — learn recipe dry run
+**Provenance:** Issue #182 — learn play dry run
 **Created:** 2026-03-31
 
 ## Content
 
 No agent writes directly to LTM. Every LTM write goes through a human approval gate. The gate operates as follows:
 
-**Gate presentation:** The recipe collects all knowledge candidates and presents them at a single checkpoint. For each candidate, the human sees:
+**Gate presentation:** The play collects all knowledge candidates and presents them at a single checkpoint. For each candidate, the human sees:
 - Proposed file path (where it will be written)
 - Scope classification (project or core) and one-sentence reasoning
 - Dedup status: NEW (no existing file at that path) or REFINEMENT (updates existing file, with diff shown)
@@ -26,7 +26,7 @@ No agent writes directly to LTM. Every LTM write goes through a human approval g
 
 **Why rejection leaves no trace:** A rejected candidate that persists anywhere in LTM — even as a "rejected" annotation — has the potential to be loaded by a future agent. Rejected knowledge must be fully absent from LTM to prevent contamination by stale or incorrect content.
 
-**Gate is not optional:** A recipe that bypasses the gate for speed or convenience is not implementing the learn recipe — it is implementing a different, unauthorized workflow. The gate is the mechanism that preserves human authority over what the organization believes.
+**Gate is not optional:** A play that bypasses the gate for speed or convenience is not implementing the learn play — it is implementing a different, unauthorized workflow. The gate is the mechanism that preserves human authority over what the organization believes.
 
 **Checkpoint format:** The gate is presented using the standard Tether/Vanish/Orbit checkpoint format. The human types approval decisions per candidate as part of the Tether response.
 

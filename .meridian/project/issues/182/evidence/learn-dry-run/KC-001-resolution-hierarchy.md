@@ -4,7 +4,7 @@
 **When this applies:** Any agent performing knowledge resolution — looking up project decisions, conventions, or patterns before acting.
 **When this does NOT apply:** Agents that do not consult LTM at all (e.g., pure utility agents like file-writer with no decision-making scope).
 **Search patterns:** knowledge resolution, LTM lookup, project LTM, core LTM, LOCKED, DRAFT, resolution order, fallback
-**Provenance:** Issue #182 — learn recipe dry run
+**Provenance:** Issue #182 — learn play dry run
 **Created:** 2026-03-31
 
 ## Content

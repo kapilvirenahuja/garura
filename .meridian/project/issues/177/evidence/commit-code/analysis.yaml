@@ -1,16 +1,16 @@
 groups:
-  - name: "recipes"
-    description: "Update main recipe artifact paths to phase-based directory structure"
+  - name: "plays"
+    description: "Update main play artifact paths to phase-based directory structure"
     files:
-      - core/components/recipes/discover-product/SKILL.md
-      - core/components/recipes/discover-product/reference/intent.yaml
-      - core/components/recipes/plan-roadmap/SKILL.md
-      - core/components/recipes/prepare-architecture/SKILL.md
-      - core/components/recipes/prepare-architecture/reference/intent.yaml
+      - core/components/plays/discover-product/SKILL.md
+      - core/components/plays/discover-product/reference/intent.yaml
+      - core/components/plays/plan-roadmap/SKILL.md
+      - core/components/plays/prepare-architecture/SKILL.md
+      - core/components/plays/prepare-architecture/reference/intent.yaml
     issue: 177
     confidence: high
     type: refactor
-    scope: recipes
+    scope: plays
 
   - name: "skills"
     description: "Update skill artifact paths and templates to phase-based directory structure"
@@ -51,17 +51,17 @@ groups:
     type: refactor
     scope: agents-config-memory
 
-  - name: "other-recipes"
-    description: "Update supporting recipe artifact paths to phase-based directory structure"
+  - name: "other-plays"
+    description: "Update supporting play artifact paths to phase-based directory structure"
     files:
-      - core/components/recipes/briefs/SKILL.md
-      - core/components/recipes/prepare-implementation/SKILL.md
-      - core/components/recipes/prepare-implementation/reference/intent.yaml
-      - core/components/recipes/implement-epic/SKILL.md
+      - core/components/plays/briefs/SKILL.md
+      - core/components/plays/prepare-implementation/SKILL.md
+      - core/components/plays/prepare-implementation/reference/intent.yaml
+      - core/components/plays/implement-epic/SKILL.md
     issue: 177
     confidence: high
     type: refactor
-    scope: other-recipes
+    scope: other-plays
 
 excluded:
   - path: ".claude/specs/idsd/idsd-tasks.md"
@@ -71,4 +71,4 @@ excluded:
   - path: ".meridian/project/issues/176/"
     reason: "Different issue — STM evidence for #176, not related to #177"
   - path: ".meridian/project/issues/177/"
-    reason: "STM evidence for #177 — self-committed separately by recipe"
+    reason: "STM evidence for #177 — self-committed separately by play"

@@ -1,0 +1,89 @@
+feasibility:
+  slug: "meridian-os"
+  assessed_at: "2026-03-16T10:00:00+0530"
+  epics:
+    - feature_ref: "F1"
+      feature_name: "Persistent Project Memory"
+      risk_level: "low"
+      technical_risks:
+        - risk: "File system-based STM may not scale to very large projects with thousands of issues"
+          severity: "low"
+          affected_systems: "STM resolution, config.yaml path management"
+          mitigation: "Archive closed issues, lazy-load only active issue context"
+      blockers: []
+      sequencing_constraints: "Must be first — all other features depend on memory layer"
+      architecture_impact: "Establishes .meridian/ directory structure and config.yaml resolution pattern"
+      foundation_investment: true
+
+    - feature_ref: "F2"
+      feature_name: "Play Execution Engine"
+      risk_level: "medium"
+      technical_risks:
+        - risk: "Agent delegation via Claude Code subagents has timeout limits and context constraints"
+          severity: "medium"
+          affected_systems: "Play orchestrator, agent invocation, task tracking"
+          mitigation: "Design plays with ≤5 agent calls, use background agents for long-running tasks"
+        - risk: "Pause/resume via status files may have race conditions if user re-invokes during execution"
+          severity: "low"
+          affected_systems: "Status file management, step execution loop"
+          mitigation: "File-level locking on status.json, idempotent step execution"
+      blockers: []
+      sequencing_constraints: "Depends on F1 (memory layer) for STM artifact storage"
+      architecture_impact: "Introduces play/agent/skill execution hierarchy, JSON contract pattern"
+      foundation_investment: true
+
+    - feature_ref: "F3"
+      feature_name: "Artifact Generation Pipeline"
+      risk_level: "medium"
+      technical_risks:
+        - risk: "YAML schema validation is not enforced at runtime — skills may produce non-conforming output"
+          severity: "medium"
+          affected_systems: "All artifact-producing skills, cross-validation skill"
+          mitigation: "Schema files in skill directories + Output Schema section in SKILL.md + validate-implementation-design cross-checks"
+        - risk: "HTML briefs with inline JavaScript comment system may behave differently across browsers"
+          severity: "low"
+          affected_systems: "Brief generation skills, hub.html"
+          mitigation: "Test in Chrome, Safari, Firefox; use only vanilla JS and standard APIs"
+      blockers: []
+      sequencing_constraints: "Depends on F1 (memory) and F2 (play engine)"
+      architecture_impact: "Establishes 7-artifact schema system, brief-principles.md design language"
+      foundation_investment: false
+
+    - feature_ref: "F4"
+      feature_name: "Product Discovery Flow"
+      risk_level: "low"
+      technical_risks:
+        - risk: "Market context quality depends on LLM's knowledge — may produce outdated competitor data"
+          severity: "low"
+          affected_systems: "discover-product-opportunity skill"
+          mitigation: "Domain clarification handling (C11), human review via brief checkpoint"
+      blockers: []
+      sequencing_constraints: "Depends on F2 (play engine) and F3 (artifact pipeline)"
+      architecture_impact: "Establishes product.yaml as root artifact in dependency chain"
+      foundation_investment: false
+
+    - feature_ref: "F5"
+      feature_name: "Zero-Friction Onboarding"
+      risk_level: "low"
+      technical_risks:
+        - risk: "Global deployment (~/.claude/) may conflict with user's existing Claude Code customizations"
+          severity: "medium"
+          affected_systems: "/sync-claude skill, global deployment paths"
+          mitigation: "Sync is additive (mkdir -p + cp), never deletes existing files; --project mode available as safe alternative"
+      blockers: []
+      sequencing_constraints: "Can be built in parallel with F3/F4 after F1 and F2 are done"
+      architecture_impact: "Defines deployment model (global vs project mode)"
+      foundation_investment: false
+
+  open_questions:
+    - question: "Should play execution telemetry be opt-in or opt-out?"
+      affected_features: ["F2"]
+    - question: "How should brief-common.css be distributed — inline in every brief or loaded from a shared path?"
+      affected_features: ["F3"]
+
+  summary:
+    total_features: 5
+    high_risk_count: 0
+    medium_risk_count: 2
+    blocker_count: 0
+    foundation_features: ["F1", "F2"]

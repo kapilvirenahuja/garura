@@ -61,13 +61,13 @@ After lock, `briefs/` can be deleted entirely with zero impact on the pipeline. 
 
 ## Contract Mode
 
-This agent communicates with recipes via JSON contracts.
+This agent communicates with plays via JSON contracts.
 
 ### Input Contract
 
 ```json
 {
-  "intent_path": "<path to recipe's reference/intent.yaml>",
+  "intent_path": "<path to play's reference/intent.yaml>",
   "stm_base": "<resolved from core/config.yaml stm.base-path>",
   "artifact_base": "<base path where YAML artifacts live>",
   "slug": "<product slug>",
@@ -80,7 +80,7 @@ This agent communicates with recipes via JSON contracts.
   "task_id": "<unique task identifier>",
   "config": {
     "product_slug": "<product slug>",
-    "phase": "<recipe phase>"
+    "phase": "<play phase>"
   }
 }
 ```
@@ -154,7 +154,7 @@ For epic-scoped artifacts (features, architecture, tech, scenarios, plan), if `a
 For each requested brief:
 1. Read the input YAML artifact(s) at the STM paths provided
 2. Write `{artifact_base}/briefs/{name}-data.json` — structured data extracted from the YAML
-3. Copy the static HTML template from the briefs recipe (`~/.claude/skills/briefs/templates/{name}-brief.html`, fallback `core/components/recipes/briefs/templates/{name}-brief.html`) to the output path
+3. Copy the static HTML template from the briefs play (`~/.claude/skills/briefs/templates/{name}-brief.html`, fallback `core/components/plays/briefs/templates/{name}-brief.html`) to the output path
 4. The template loads `{name}-data.json` at runtime via `brief-render.js` — no server required
 
 ## Hub Generation
@@ -260,7 +260,7 @@ Each artifact card links to the brief using a relative path (e.g., `product-brie
 
 ## Task Graph
 
-This agent participates in the recipe's task graph.
+This agent participates in the play's task graph.
 
 ### On Entry
 
@@ -295,7 +295,7 @@ TaskUpdate task_id -> status: failed
 - Render briefs via `brief-render.js` + static LTM templates — write data JSON, copy template (never LLM-generate brief HTML)
 - Generate hub.html directly (never delegate hub to a skill)
 - Compute output paths under `{artifact_base}/briefs/` — skills receive explicit paths
-- Return the enriched JSON contract to the recipe
+- Return the enriched JSON contract to the play
 - Write artifacts to STM paths, not inline
 - Read intent from `intent.yaml`, not from prompt prose
 - Follow the Phoenix Design System for HTML artifacts

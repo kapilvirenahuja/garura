@@ -1,12 +1,12 @@
  M .meridian/project/issues/_pending/start-feature/changed-files.txt
- M core/components/recipes/create-recipe/SKILL.md
- M core/components/recipes/discover-product/SKILL.md
- M core/components/recipes/discover-product/reference/intent.yaml
- M core/components/recipes/plan-roadmap/SKILL.md
- M core/components/recipes/plan-roadmap/reference/intent.yaml
- M core/components/recipes/prepare-architecture/SKILL.md
- M core/components/recipes/prepare-architecture/reference/intent.yaml
+ M core/components/plays/create-play/SKILL.md
+ M core/components/plays/discover-product/SKILL.md
+ M core/components/plays/discover-product/reference/intent.yaml
+ M core/components/plays/plan-roadmap/SKILL.md
+ M core/components/plays/plan-roadmap/reference/intent.yaml
+ M core/components/plays/prepare-architecture/SKILL.md
+ M core/components/plays/prepare-architecture/reference/intent.yaml
  M core/components/skills/draft-roadmap/SKILL.md
  M core/components/skills/draft-roadmap/schemas/roadmap.yaml
  M core/components/skills/validate-roadmap/SKILL.md
-?? .meridian/project/issues/200/evidence/create-recipe/
+?? .meridian/project/issues/200/evidence/create-play/

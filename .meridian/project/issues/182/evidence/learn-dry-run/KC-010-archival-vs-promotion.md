@@ -1,15 +1,15 @@
 # Separate Archival from Knowledge Promotion
 <!-- knowledge-file: tier=2 scope=core -->
 
-**When this applies:** Designing the end-of-work workflows for any issue, feature, or project — specifically the recipes that run when work closes.
+**When this applies:** Designing the end-of-work workflows for any issue, feature, or project — specifically the plays that run when work closes.
 **When this does NOT apply:** Mid-cycle workflows where work is still in progress; incremental knowledge updates triggered by specific events rather than work completion.
-**Search patterns:** archival, knowledge promotion, capture-learning, learn recipe, STM archive, work history, separate recipes
-**Provenance:** Issue #182 — learn recipe dry run
+**Search patterns:** archival, knowledge promotion, capture-learning, learn play, STM archive, work history, separate plays
+**Provenance:** Issue #182 — learn play dry run
 **Created:** 2026-03-31
 
 ## Content
 
-Archival and knowledge promotion are distinct operations. They must be separate recipes because they differ on every axis:
+Archival and knowledge promotion are distinct operations. They must be separate plays because they differ on every axis:
 
 | Dimension | Archival (capture-learning) | Knowledge Promotion (learn) |
 |-----------|----------------------------|------------------------------|

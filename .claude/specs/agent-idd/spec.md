@@ -7,16 +7,16 @@ Agents (repo-orchestrator, project-orchestrator, code-builder, tech-designer) ha
 - The LTM system (`~/.meridian/core/memory/`)
 - Intent-driven recovery reasoning
 
-Currently, recovery is handled entirely at the recipe/orchestrator level. If an agent encounters an obstacle during its own execution, it either fails, returns an error, or asks the caller for clarification. It cannot reason about the intent behind its invocation to find alternate paths.
+Currently, recovery is handled entirely at the play/orchestrator level. If an agent encounters an obstacle during its own execution, it either fails, returns an error, or asks the caller for clarification. It cannot reason about the intent behind its invocation to find alternate paths.
 
-More critically, there is no protocol for recovery conversations between agents and recipes. When an agent fails due to a cross-domain issue (e.g., tests fail because code is broken), the agent can't fix it — but neither does the recipe know how to orchestrate the fix without a structured failure return.
+More critically, there is no protocol for recovery conversations between agents and plays. When an agent fails due to a cross-domain issue (e.g., tests fail because code is broken), the agent can't fix it — but neither does the play know how to orchestrate the fix without a structured failure return.
 
 ## Desired Outcome
 
 A two-level recovery model where:
 1. Agents recover autonomously when the obstacle is within their domain
 2. Agents return structured failures when the obstacle is outside their domain
-3. Recipes orchestrate cross-domain recovery by routing failures to the right agent
+3. Plays orchestrate cross-domain recovery by routing failures to the right agent
 4. The retry loop continues until intent is achieved or deemed unreachable
 
 ## Scope
@@ -24,13 +24,13 @@ A two-level recovery model where:
 ### In Scope
 - Agent awareness of the IDD model (intent, constraints, failure_conditions)
 - Agent ability to load and apply LTM practices
-- Two-level recovery model (agent-level + recipe-level)
+- Two-level recovery model (agent-level + play-level)
 - Structured failure return protocol
-- Recipe-agent recovery conversation loop
+- Play-agent recovery conversation loop
 - Defining recovery behavior per agent role
 
 ### Out of Scope
-- Changing the recipe-level recovery framework (already implemented in LTM)
+- Changing the play-level recovery framework (already implemented in LTM)
 - Adding new agents
 - Changing agent tool permissions
 
@@ -38,7 +38,7 @@ A two-level recovery model where:
 
 ### Level 1: Agent Self-Recovery (Within Domain)
 
-When an agent encounters an obstacle within its own domain, it recovers autonomously without escalating to the recipe.
+When an agent encounters an obstacle within its own domain, it recovers autonomously without escalating to the play.
 
 ```
 Agent invokes skill → skill fails
@@ -68,12 +68,12 @@ tech-designer: grep finds no matches
   → Self-recovered.
 ```
 
-### Level 2: Recipe-Orchestrated Recovery (Cross-Domain)
+### Level 2: Play-Orchestrated Recovery (Cross-Domain)
 
-When an agent encounters an obstacle outside its domain, it returns a structured failure to the recipe. The recipe reasons about which agent can fix the prerequisite, invokes it, then retries the original agent.
+When an agent encounters an obstacle outside its domain, it returns a structured failure to the play. The play reasons about which agent can fix the prerequisite, invokes it, then retries the original agent.
 
 ```
-Recipe → Agent A (fails, outside domain)
+Play → Agent A (fails, outside domain)
     │
     ├── Agent A returns structured failure:
     │     - what_failed: "unit tests"
@@ -81,13 +81,13 @@ Recipe → Agent A (fails, outside domain)
     │     - domain: "implementation"  ← not my domain
     │     - suggested_fix: "code-builder needs to fix function X"
     │
-    ├── Recipe reasons: this is code-builder's domain
+    ├── Play reasons: this is code-builder's domain
     │
-    ├── Recipe → Agent B (code-builder) with fix context
+    ├── Play → Agent B (code-builder) with fix context
     │     - Fixes function X
     │     - Returns success
     │
-    └── Recipe → Agent A (retry)
+    └── Play → Agent A (retry)
           - Tests pass
           - Returns success
 ```
@@ -96,15 +96,15 @@ Recipe → Agent A (fails, outside domain)
 ```
 quality-validator: tests fail because code has a bug
   → Outside domain (can't fix code). Returns structured failure.
-  → Recipe invokes code-builder to fix → retries quality-validator.
+  → Play invokes code-builder to fix → retries quality-validator.
 
 code-builder: implementation blocked because design is ambiguous
   → Outside domain (can't redesign). Returns structured failure.
-  → Recipe invokes tech-designer to clarify → retries code-builder.
+  → Play invokes tech-designer to clarify → retries code-builder.
 
 repo-orchestrator: push fails because PR checks require passing tests
   → Outside domain (can't fix tests). Returns structured failure.
-  → Recipe invokes quality-validator to investigate → code-builder to fix → retries repo-orchestrator.
+  → Play invokes quality-validator to investigate → code-builder to fix → retries repo-orchestrator.
 ```
 
 ### The Recovery Conversation
@@ -113,15 +113,15 @@ Cross-domain recovery is a conversation, not a one-shot mechanism:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│ Recipe (orchestrator)                                │
+│ Play (orchestrator)                                │
 │                                                      │
 │  1. Invoke Agent A with intent context               │
 │  2. Agent A fails → returns structured failure       │
-│  3. Recipe reads failure → identifies responsible     │
+│  3. Play reads failure → identifies responsible     │
 │     agent (Agent B)                                  │
-│  4. Recipe invokes Agent B with fix context           │
+│  4. Play invokes Agent B with fix context           │
 │  5. Agent B fixes → returns success                  │
-│  6. Recipe retries Agent A with updated context       │
+│  6. Play retries Agent A with updated context       │
 │  7. Agent A succeeds → workflow continues            │
 │                                                      │
 │  If retry fails again → assess: is intent still      │
@@ -129,7 +129,7 @@ Cross-domain recovery is a conversation, not a one-shot mechanism:
 └─────────────────────────────────────────────────────┘
 ```
 
-**Retry limits:** Maximum 2 retry cycles per agent per recipe execution. After 2 failures on the same agent for the same obstacle, escalate to HALT with full context.
+**Retry limits:** Maximum 2 retry cycles per agent per play execution. After 2 failures on the same agent for the same obstacle, escalate to HALT with full context.
 
 ## Structured Failure Protocol
 
@@ -144,25 +144,25 @@ failure:
     responsible_domain: "{which domain can fix this}"
     suggested_agent: "{agent name, if known}"
   context:
-    intent_received: "{the intent passed by the recipe}"
+    intent_received: "{the intent passed by the play}"
     constraint_violated: "{if applicable}"
     self_recovery_attempted: true|false
     self_recovery_details: "{what was tried, if any}"
   suggested_fix: "{what the agent thinks would resolve this}"
 ```
 
-This gives the recipe everything it needs to route the fix to the right agent.
+This gives the play everything it needs to route the fix to the right agent.
 
 ## Design Considerations
 
 ### 1. What Does IDD Awareness Mean for an Agent?
 
-Agents are invoked with a prompt from the recipe. Currently, that prompt contains task-specific instructions. IDD awareness means the agent also receives (or can derive) the intent context:
+Agents are invoked with a prompt from the play. Currently, that prompt contains task-specific instructions. IDD awareness means the agent also receives (or can derive) the intent context:
 
 | Element | How Agent Gets It |
 |---------|-------------------|
-| **Intent** | Passed in the invocation prompt by the recipe |
-| **Constraints** | Passed in the invocation prompt by the recipe |
+| **Intent** | Passed in the invocation prompt by the play |
+| **Constraints** | Passed in the invocation prompt by the play |
 | **Failure conditions** | Agent reasons about its own domain-level failures |
 
 ### 2. Agent Role Determines Recovery Behavior
@@ -190,7 +190,7 @@ Available practices:
 
 ### 4. Intent Propagation
 
-Recipes must propagate intent context when invoking agents:
+Plays must propagate intent context when invoking agents:
 
 ```
 Current pattern (no intent):
@@ -198,7 +198,7 @@ Current pattern (no intent):
 
 Proposed pattern (with intent):
   "Analyze uncommitted changes in the repository.
-   Recipe intent: Safely persist completed work as conventional commits.
+   Play intent: Safely persist completed work as conventional commits.
    Constraints: MUST NOT commit on protected branches."
 ```
 
@@ -235,7 +235,7 @@ The agent uses this context to:
 
 ## Open Questions
 
-1. Should intent propagation be standardized in a template, or left to each recipe's prompt?
+1. Should intent propagation be standardized in a template, or left to each play's prompt?
 2. Should the structured failure protocol be an LTM practice (so agents load it at runtime) or baked into agent definitions?
-3. Should there be a max retry budget at the recipe level (e.g., total 4 retries across all agents)?
+3. Should there be a max retry budget at the play level (e.g., total 4 retries across all agents)?
 4. How should agents handle cascading failures (Agent B's fix introduces a new failure for Agent A)?

@@ -22,7 +22,7 @@ At scale (100s-1000s of issues), this flat structure becomes unmanageable:
 
 ### 1. Hybrid Active/Archive Model
 
-Active issues remain flat at `.meridian/{issue}/` — zero path changes to recipes, agents, or skills. Archived issues move to `.meridian/_archive/{YYYY-MM}/{issue}/`.
+Active issues remain flat at `.meridian/{issue}/` — zero path changes to plays, agents, or skills. Archived issues move to `.meridian/_archive/{YYYY-MM}/{issue}/`.
 
 ```
 .meridian/
@@ -41,10 +41,10 @@ Active issues remain flat at `.meridian/{issue}/` — zero path changes to recip
 
 ### 2. Archival Trigger
 
-Archival is invoked as the final step of the `capture-learning` recipe (IDSD phase: Learn-2-Memory). The recipe delegates the mechanical move to `repo-orchestrator` using the `archive-issue-stm` skill.
+Archival is invoked as the final step of the `capture-learning` play (IDSD phase: Learn-2-Memory). The play delegates the mechanical move to `repo-orchestrator` using the `archive-issue-stm` skill.
 
 ```
-capture-learning (L1 recipe)
+capture-learning (play)
     ├── Step 2: Extract & promote learnings (STM → LTM) ← not yet implemented
     └── Step 3: Archive STM directory ← implemented (v0.1.0)
 ```
@@ -52,7 +52,7 @@ capture-learning (L1 recipe)
 Archival is appropriate when:
 - The GitHub issue is closed (completed or not_planned)
 - The feature branch has been merged and deleted
-- No active recipe is using the STM directory
+- No active play is using the STM directory
 
 ### 3. Year-Month Bucketing
 
@@ -62,7 +62,7 @@ Format: `{YYYY-MM}` — e.g., `2026-02` for work closed in February 2026.
 
 ### 4. Archive is Read-Only
 
-No recipe reads from `_archive/` at runtime. The archive exists solely as an audit trail. Finding archived issues:
+No play reads from `_archive/` at runtime. The archive exists solely as an audit trail. Finding archived issues:
 
 ```bash
 find .meridian/_archive -name "{issue}" -type d
@@ -76,14 +76,14 @@ All STM contents are preserved during the move — checkpoint, evidence, plannin
 
 ### Positive
 
-- **Zero disruption** — Active issue paths unchanged; no recipe modifications needed
+- **Zero disruption** — Active issue paths unchanged; no play modifications needed
 - **Temporal organization** — Year-month buckets enable bulk operations (delete old years, audit by month)
 - **Clear lifecycle** — Active vs archived distinction at the filesystem level
 - **Scalable** — Flat active directory stays manageable; history grows in organized buckets
 
 ### Negative
 
-- **Manual trigger** — Archival must be explicitly invoked; forgotten archives accumulate in the active directory. Mitigation: integrate into delivery recipes as a follow-on.
+- **Manual trigger** — Archival must be explicitly invoked; forgotten archives accumulate in the active directory. Mitigation: integrate into delivery plays as a follow-on.
 - **Close date dependency** — Requires knowing when the issue was closed. Mitigation: `gh issue view` provides `closedAt` field; skill derives bucket from this.
 
 ### Extends

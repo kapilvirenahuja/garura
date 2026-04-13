@@ -1,11 +1,11 @@
 ---
-# commit-code recipe: create-commits skill output
+# commit-code play: create-commits skill output
 # Agent: repo-orchestrator
 # Skill: create-commit
 # Generated: 2026-03-06
 
 issue: 95
-branch: feature/95-intent-driven-recipe-architecture
+branch: feature/95-intent-driven-play-architecture
 stm_base: ".meridian/project/issues/"
 
 commit:
@@ -16,8 +16,8 @@ commit:
   issue: 95
   message: "refactor(commit-code): add push-branch stage and C7 constraint (#95)"
   files:
-    - core/components/recipes/commit-code/reference/intent.yaml
-    - core/components/recipes/commit-code/SKILL.md
+    - core/components/plays/commit-code/reference/intent.yaml
+    - core/components/plays/commit-code/SKILL.md
     - .meridian/95/dag/commit-code.json
 
 validation:

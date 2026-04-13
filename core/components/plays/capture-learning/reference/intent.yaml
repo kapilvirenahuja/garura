@@ -1,0 +1,166 @@
+intent: |
+  Given a completed issue number, archive the issue's STM directory to
+  _archive/{YYYY-MM}/{issue}/ to keep the active workspace clean, then extract
+  and synthesize reusable patterns from resolution traces, present knowledge
+  candidates for human approval, and promote approved candidates to the
+  appropriate LTM layer. The issue must be in a closed state before archival
+  proceeds.
+
+# --- CONSTRAINTS (archival) ---
+
+constraints:
+  - id: C1
+    rule: >
+      The issue must be in a closed state before archival proceeds.
+      Open or in-progress issues must not be archived.
+
+  - id: C2
+    rule: >
+      Archival moves the complete issue STM directory to
+      _archive/{YYYY-MM}/{issue}/ where {YYYY-MM} is derived from the
+      issue's close date. Every file and subdirectory present in the
+      original STM directory must be present in the archive location.
+
+  - id: C3
+    rule: >
+      The original STM directory is removed from the active workspace
+      after the archive copy is confirmed complete. The active workspace
+      must not contain the issue's STM directory when the play finishes.
+
+  - id: C4
+    rule: >
+      The archive directory structure mirrors the original STM directory
+      structure. No files are renamed, restructured, or modified during
+      the move.
+
+# --- CONSTRAINTS (extraction) ---
+
+  - id: C5
+    rule: "STM artifacts are read-only during extraction — the knowledge-extractor reads evidence but does not modify it."
+
+  - id: C6
+    rule: "Existing knowledge is updated (appended, refined) rather than duplicated. De-duplication check precedes every proposed write."
+
+  - id: C7
+    rule: "Every knowledge artifact must pass the validation checklist defined in knowledge-file-template.md for its type (Pattern Template for synthesized patterns, Generic Template otherwise). The template is the single source of truth for required fields — this constraint does not enumerate them."
+
+  - id: C9
+    rule: "Knowledge is holistic — organized by interconnected decisions, not siloed by tool or technology."
+
+  - id: C10
+    rule: "Classification (project vs core) is deliberate with stated reasoning. Project-specific names, domain models, file paths → project. Technology/framework patterns → core."
+
+  - id: C11
+    rule: "No LTM write without human approval. All candidates are staged in STM for review before any write to project or core LTM."
+
+  - id: C12
+    rule: >
+      Resolution traces with resolved_from='llm' are the primary promotion signal —
+      decisions where the system lacked stored knowledge. The following evidence artifact
+      types are recognized as secondary extraction sources (listed in descending signal
+      priority): resolution-trace.yaml (primary — LLM fallbacks are the highest-signal
+      source), judge-report*.yaml (failure conditions, remediation strategies, pass/fail
+      patterns), rca.yaml (root cause and approach fields), design.yaml (chosen strategy
+      and alternatives considered), remediation-*.md / remediation-*.yaml (fix approach
+      and risk mitigation), quality-report.yaml (recurring quality issues), drift-report.md
+      (drift patterns). All recognized artifact types contribute raw signals to the
+      synthesis pipeline.
+
+  - id: C13
+    rule: "Knowledge candidates must be synthesized patterns, not individual decision records. Multiple related decisions from the same work MUST consolidate into a single pattern file. Each pattern must include When to Choose, When to Avoid, Key Components, and Tradeoffs sections. Target 3-5 synthesized patterns per extraction, not 10-20 individual records. Test: if the output only documents what was decided (not when to choose it in the future), it belongs in an ADR, not LTM."
+
+  - id: C14
+    rule: "Every knowledge file written to LTM must have a corresponding entry added to the _index.md in its target directory. An unregistered file is undiscoverable."
+
+  - id: C15
+    rule: >
+      When no extractable signals exist across all recognized artifact types, the
+      extraction phase exits cleanly with zero candidates. No files are written to LTM.
+      Evidence records the zero-candidate outcome.
+
+# --- FAILURE CONDITIONS (archival) ---
+
+failure_conditions:
+  - id: F1
+    condition: >
+      The archive directory at _archive/{YYYY-MM}/{issue}/ does not exist
+      or is empty after the play completes.
+
+  - id: F2
+    condition: >
+      The original STM directory still exists at its active workspace
+      location after the play completes.
+
+  - id: F3
+    condition: >
+      The archive is incomplete — files or subdirectories present in the
+      original STM directory are missing from the archive location.
+
+  - id: F4
+    condition: >
+      The archive path uses an incorrect date — the {YYYY-MM} segment
+      does not match the issue's actual close date.
+
+  - id: F5
+    condition: >
+      The play attempts to archive an issue that is not in a closed
+      state.
+
+# --- FAILURE CONDITIONS (extraction) ---
+
+  - id: F6
+    condition: "Knowledge written to LTM without human approval — candidates bypassed the staging and review checkpoint."
+
+  - id: F7
+    condition: "Duplicate knowledge file created when an existing file covers the same topic — deduplication was skipped or failed."
+
+  - id: F8
+    condition: "Knowledge file fails the validation checklist from knowledge-file-template.md for its type — required sections or metadata are absent."
+
+  - id: F9
+    condition: "_index.md not updated after new knowledge file written — file is undiscoverable."
+
+  - id: F10
+    condition: "Classification missing reasoning — a candidate is marked project or core with no classification_reason."
+
+  - id: F11
+    condition: "Knowledge candidates are individual decision records rather than synthesized patterns. Each candidate documents a single choice from one implementation without consolidation into reusable guidance. The output has more than 7 candidates from a single issue."
+
+# --- SCENARIOS ---
+
+scenarios:
+  - id: S1
+    persona: "Engineering lead reviewing agent-produced work"
+    given: "The archived STM directory at _archive/{YYYY-MM}/{issue}/"
+    then: >
+      Can review the complete history of how an issue was worked —
+      evidences, checkpoints, analysis, and delivery artifacts — to build
+      trust in agent-produced outcomes and verify that nothing was lost
+      during archival.
+
+  - id: S2
+    persona: "Developer starting the next feature"
+    given: "The active STM workspace after capture-learning completes"
+    then: >
+      Can confirm the completed issue's directory is no longer cluttering
+      the active workspace, reducing noise when navigating current work.
+
+  - id: S3
+    persona: "Tech Designer"
+    given: "A completed implement-epic run produced resolution traces with 3 LLM fallback decisions"
+    then: "Can review a staged list of synthesized knowledge candidates, each classified with scope reasoning. After approving candidates, can find them in LTM via _index.md search with correct metadata."
+
+  - id: S4
+    persona: "Developer"
+    given: "A knowledge candidate matches an existing LTM file by search pattern overlap"
+    then: "The knowledge-extractor marks it as 'merge' with the existing file path. On approval, the existing file is updated — no duplicate created."
+
+  - id: S5
+    persona: "Operator"
+    given: "The capture-learning play runs on an issue with no resolution traces or evidence"
+    then: "Archival completes normally. Extraction phase exits cleanly with 'no candidates extracted' evidence. No files written to LTM."
+
+  - id: S6
+    persona: "Quality Lead"
+    given: "An approved knowledge file is written to core LTM"
+    then: "File passes the full validation checklist from knowledge-file-template.md (Pattern Template for patterns, Generic + Tier 2 for other core files). _index.md in the target directory is updated with the new entry."

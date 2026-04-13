@@ -48,7 +48,7 @@ Note: `quality-validator` was implemented as `quality-auditor` (auditor role) ra
 
 | Agent | Purpose |
 |-------|---------|
-| `workflow-guardian` | Validates approval bypass in L2 recipes |
+| `workflow-guardian` | Validates approval bypass in plays |
 
 ### Deprecated Patterns
 
@@ -74,7 +74,7 @@ Note: `quality-validator` was implemented as `quality-auditor` (auditor role) ra
 | `designer` | `bug-implementer` | `tech-designer` |
 | `validator` | `test-writer` | `quality-validator` |
 
-Exception: `test-writer` operates as a recipe-scoped sub-role within implement-epic. It is not a standalone agent file, but its context isolation requirements (asymmetric information with code-builder) justify its existence as a named role within the recipe.
+Exception: `test-writer` operates as a play-scoped sub-role within implement-epic. It is not a standalone agent file, but its context isolation requirements (asymmetric information with code-builder) justify its existence as a named role within the play.
 
 ## Consequences
 
@@ -96,7 +96,7 @@ Exception: `test-writer` operates as a recipe-scoped sub-role within implement-e
 1. Create new agents with `{domain}-{role}` names
 2. Update CLAUDE.md to document new pattern
 3. Deprecate old specialist agents
-4. Update recipes to use new agents
+4. Update plays to use new agents
 
 ## Related ADRs
 

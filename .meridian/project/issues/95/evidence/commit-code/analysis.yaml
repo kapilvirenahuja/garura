@@ -1,14 +1,14 @@
 ---
 # commit-code analysis
-# Recipe: commit-code (L1)
-# Branch: feature/95-intent-driven-recipe-architecture
-# Issue: #95 (feat(recipe-framework): intent-driven recipe architecture)
+# Play: commit-code (L1)
+# Branch: feature/95-intent-driven-play-architecture
+# Issue: #95 (feat(play-framework): intent-driven play architecture)
 # Generated: 2026-03-06T20:15:00+0530
-# Session: Current — Plan-roadmap recipe rebake
+# Session: Current — Plan-roadmap play rebake
 
 pre_flight_checks:
   branch_check: PASS
-    reason: "Current branch is feature/95-intent-driven-recipe-architecture (not main/master)"
+    reason: "Current branch is feature/95-intent-driven-play-architecture (not main/master)"
   changes_exist: PASS
     reason: "7 files with modifications and 1 directory with new evidence artifacts"
   issue_mapping_confidence: high
@@ -16,37 +16,37 @@ pre_flight_checks:
 
 change_groups:
   - id: "group-1"
-    name: "plan-roadmap-recipe"
+    name: "plan-roadmap-play"
     type: "feat"
     scope: "plan-roadmap"
-    description: "Recipe compilation and architecture updates for plan-roadmap recipe rebake"
+    description: "Play compilation and architecture updates for plan-roadmap play rebake"
     confidence: high
     files:
       - core/components/agents/product-strategist.md
       - core/components/memory/standards/templates/roadmap-brief.html
-      - core/components/recipes/plan-roadmap/SKILL.md
-      - core/components/recipes/plan-roadmap/reference/intent.yaml
+      - core/components/plays/plan-roadmap/SKILL.md
+      - core/components/plays/plan-roadmap/reference/intent.yaml
       - core/components/skills/draft-roadmap-brief/SKILL.md
-    subject: "rebake recipe with intent.yaml, roadmap-brief template, and product-strategist agent updates"
-    rationale: "These files represent a cohesive change: the plan-roadmap recipe compiled to intent-driven architecture with updates to supporting agent, skill, and template components."
+    subject: "rebake play with intent.yaml, roadmap-brief template, and product-strategist agent updates"
+    rationale: "These files represent a cohesive change: the plan-roadmap play compiled to intent-driven architecture with updates to supporting agent, skill, and template components."
     risk: low
 
   - id: "group-2"
     name: "stm-evidence-artifacts"
     type: "chore"
     scope: "stm"
-    description: "STM evidence recording and commit-code tracking updates for plan-roadmap recipe"
+    description: "STM evidence recording and commit-code tracking updates for plan-roadmap play"
     confidence: high
     files:
       - .meridian/project/issues/95/status/commit-code.json
-      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-product-strategist.md
-      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-repo-orchestrator.md
-      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-tech-designer.md
-      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/evals.yaml
-      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/recipe-analysis.md
-      - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/skill-manifest.yaml
-    subject: "record create-recipe evidence and update commit-code tracking"
-    rationale: "Evidence artifacts from the create-recipe task that produced the plan-roadmap recipe rebake. Recording as separate chore(stm) commit follows checkpoint pattern for STM evidence."
+      - .meridian/project/issues/95/evidence/create-play/plan-roadmap/agent-audit-product-strategist.md
+      - .meridian/project/issues/95/evidence/create-play/plan-roadmap/agent-audit-repo-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-play/plan-roadmap/agent-audit-tech-designer.md
+      - .meridian/project/issues/95/evidence/create-play/plan-roadmap/evals.yaml
+      - .meridian/project/issues/95/evidence/create-play/plan-roadmap/play-analysis.md
+      - .meridian/project/issues/95/evidence/create-play/plan-roadmap/skill-manifest.yaml
+    subject: "record create-play evidence and update commit-code tracking"
+    rationale: "Evidence artifacts from the create-play task that produced the plan-roadmap play rebake. Recording as separate chore(stm) commit follows checkpoint pattern for STM evidence."
     risk: low
 
 sensitive_files: []
@@ -60,7 +60,7 @@ risks:
 issue_mapping:
   issue_95:
     status: open
-    title: "feat(recipe-framework): intent-driven recipe architecture"
+    title: "feat(play-framework): intent-driven play architecture"
     confidence: high
     groups_mapped:
       - group-1
@@ -69,7 +69,7 @@ issue_mapping:
 
 constraints_applied:
   C1_protected_branch_guard: PASS
-    check: "Current branch is feature/95-intent-driven-recipe-architecture, not main/master"
+    check: "Current branch is feature/95-intent-driven-play-architecture, not main/master"
   C2_empty_changeset: PASS
     check: "7 files modified, 1 directory with 6 artifacts — changeset is not empty"
   C3_issue_mapping: PASS
@@ -85,9 +85,9 @@ constraints_applied:
 
 failure_condition_checks:
   F1_unrelated_concerns: PASS
-    check: "Group 1: recipe components (cohesive). Group 2: evidence artifacts (cohesive). No mixing."
+    check: "Group 1: play components (cohesive). Group 2: evidence artifacts (cohesive). No mixing."
   F2_message_accuracy: PASS
-    check: "Commit subjects describe actual changes (rebake recipe, record evidence)."
+    check: "Commit subjects describe actual changes (rebake play, record evidence)."
   F3_unexplained_omissions: PASS
     check: "All 7 changed files and all 1 artifact directory included in commit groups."
   F4_wrong_issue: PASS
@@ -107,9 +107,9 @@ summary:
         hash: "de97041"
         type: feat
         scope: plan-roadmap
-        message: "feat(plan-roadmap): rebake recipe with intent.yaml, roadmap-brief template, and product-strategist agent updates (#95)"
+        message: "feat(plan-roadmap): rebake play with intent.yaml, roadmap-brief template, and product-strategist agent updates (#95)"
     - commit_2:
         hash: "ebe0dc3"
         type: chore
         scope: stm
-        message: "chore(stm): record create-recipe evidence and update commit-code tracking (#95)"
+        message: "chore(stm): record create-play evidence and update commit-code tracking (#95)"

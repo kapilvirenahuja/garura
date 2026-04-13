@@ -1,6 +1,6 @@
 issue:
   number: 95
-  title: "feat(recipe-framework): intent-driven recipe architecture"
+  title: "feat(play-framework): intent-driven play architecture"
   labels:
     - enhancement
   state: OPEN

@@ -9,7 +9,7 @@ T2 (recovery section template) ────────┤── T4 (project-orc
                                         ├── T5 (code-builder)
                                         └── T6 (tech-designer)
 
-T7 (intent propagation template) ────── T8 (update commit-code recipe)
+T7 (intent propagation template) ────── T8 (update commit-code play)
 
 T3, T4, T5, T6, T8 ────────────────── T9 (verify all gates)
 ```
@@ -47,28 +47,28 @@ T3, T4, T5, T6, T8 ────────────────── T9 (ve
 
 ### T5: Update code-builder
 - **Agent**: code-builder
-- **Description**: Add `## Memory` section (read-only LTM awareness), `## Recovery` section per template from T2. Limited self-recovery: can retry within plan boundaries (e.g., adjust import path, fix syntax). Escalation: design gap → structured failure to tech-designer, test failures it can't fix → structured failure with evidence, missing dependency → structured failure to recipe.
+- **Description**: Add `## Memory` section (read-only LTM awareness), `## Recovery` section per template from T2. Limited self-recovery: can retry within plan boundaries (e.g., adjust import path, fix syntax). Escalation: design gap → structured failure to tech-designer, test failures it can't fix → structured failure with evidence, missing dependency → structured failure to play.
 - **Depends on**: T2
 - **Parallel**: yes
 
 ### T6: Update tech-designer
 - **Agent**: code-builder
-- **Description**: Add `## Memory` section (read-only LTM awareness), `## Recovery` section per template from T2. Moderate self-recovery: broaden search patterns, try alternate analysis angles, explore different entry points. Escalation: codebase in unexpected state → structured failure, analysis requires runtime data it can't access → structured failure to recipe.
+- **Description**: Add `## Memory` section (read-only LTM awareness), `## Recovery` section per template from T2. Moderate self-recovery: broaden search patterns, try alternate analysis angles, explore different entry points. Escalation: codebase in unexpected state → structured failure, analysis requires runtime data it can't access → structured failure to play.
 - **Depends on**: T2
 - **Parallel**: yes
 
 ### T7: Design Intent Propagation Template
 - **Agent**: tech-designer (or inline)
-- **Description**: Define a standard lightweight pattern for how recipes pass intent context to agents in invocation prompts. Must include: recipe intent, relevant constraints, and (for retries) the structured failure from the previous attempt. Keep it concise — agents shouldn't be overwhelmed with context.
+- **Description**: Define a standard lightweight pattern for how plays pass intent context to agents in invocation prompts. Must include: play intent, relevant constraints, and (for retries) the structured failure from the previous attempt. Keep it concise — agents shouldn't be overwhelmed with context.
 - **Depends on**: nothing
 - **Parallel**: yes (can run alongside T1, T2)
 
-### T8: Update commit-code Recipe for Recovery Conversation
+### T8: Update commit-code Play for Recovery Conversation
 - **Agent**: code-builder
 - **Description**: Update commit-code's agent invocation instructions to:
   1. Include intent propagation per template from T7
   2. Handle structured failures from agents (if repo-orchestrator or project-orchestrator returns a failure, reason about cross-domain recovery)
-  3. Document the retry pattern for this specific recipe
+  3. Document the retry pattern for this specific play
 - **Depends on**: T7, T3, T4 (needs updated agents + intent template)
 - **Parallel**: no
 

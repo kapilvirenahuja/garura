@@ -6,9 +6,9 @@
 #
 # REINTERPRETATION NOTE:
 # meridian-os has zero conventional tests (zero test files, zero test frameworks, zero CI).
-# Blast radius in a markdown/YAML specification framework = which recipe behaviors, contract
+# Blast radius in a markdown/YAML specification framework = which play behaviors, contract
 # behaviors, agent compliance checks, and eval criteria are affected by the change.
-# "Tests" here = recipe evals (SE-*, SCE-*) and agent audit checks (P-series).
+# "Tests" here = play evals (SE-*, SCE-*) and agent audit checks (P-series).
 
 blast_radius:
   issue: 183
@@ -27,7 +27,7 @@ blast_radius:
 
   # === REINTERPRETED BLAST RADIUS (eval-based) ===
   # For meridian-os, the blast radius is measured by:
-  # (A) Recipe evals (SE-* step evals, SCE-* scenario evals) in intent.yaml
+  # (A) Play evals (SE-* step evals, SCE-* scenario evals) in intent.yaml
   # (B) Agent audit checks (if any agent definition has compliance checks)
   # (C) LTM standards that govern the changed behavior
 
@@ -41,17 +41,17 @@ blast_radius:
         eval_type: "step eval"
         eval_location: "prepare-implementation pre-flight"
         old_behavior: >
-          Hard halt when product.yaml absent (C1 in old intent). Eval checked: recipe stopped
+          Hard halt when product.yaml absent (C1 in old intent). Eval checked: play stopped
           and emitted HALT message when product.yaml not found at {product_base}/discovery/product.yaml.
         new_behavior: >
-          Recipe continues when product.yaml absent. Records status: absent in Step 0.
+          Play continues when product.yaml absent. Records status: absent in Step 0.
           Routes to discovery mode for product context.
         verdict: >
-          This eval's PASS condition has inverted. The old eval would PASS when recipe halted
-          for missing product.yaml. The new eval must PASS when recipe CONTINUES and records
+          This eval's PASS condition has inverted. The old eval would PASS when play halted
+          for missing product.yaml. The new eval must PASS when play CONTINUES and records
           absent status in context-assembly.yaml.
         severity: critical
-        file_path: "core/components/recipes/prepare-implementation/reference/intent.yaml (C1 constraint)"
+        file_path: "core/components/plays/prepare-implementation/reference/intent.yaml (C1 constraint)"
 
       - eval_id: "SE-PRE-02 (inferred)"
         eval_type: "step eval"
@@ -59,12 +59,12 @@ blast_radius:
         old_behavior: >
           Hard halt when roadmap.yaml absent. Required locked roadmap as pre-condition.
         new_behavior: >
-          Recipe continues when roadmap.yaml absent. Epic dependency enforcement disabled (C15).
+          Play continues when roadmap.yaml absent. Epic dependency enforcement disabled (C15).
           Issue-only entry path enabled.
         verdict: >
           Same inversion as SE-PRE-01. Old eval checked for halt; new eval must check for continuation.
         severity: critical
-        file_path: "core/components/recipes/prepare-implementation/reference/intent.yaml (C1, C15 constraints)"
+        file_path: "core/components/plays/prepare-implementation/reference/intent.yaml (C1, C15 constraints)"
 
       - eval_id: "SE-PRE-03 (inferred)"
         eval_type: "step eval"
@@ -72,13 +72,13 @@ blast_radius:
         old_behavior: >
           Hard halt when architecture.yaml absent. Required /prepare-architecture to run first.
         new_behavior: >
-          Recipe enters discovery mode (C21). Architecture inferred from codebase scan + LTM
+          Play enters discovery mode (C21). Architecture inferred from codebase scan + LTM
           + targeted user interview. Eval must check: discovery mode activated, not halt.
         verdict: >
           Behavior inverted. New eval adds a positive requirement: when architecture absent,
           context-assembly.yaml.upstream_context.architecture.status must be 'derived'.
         severity: high
-        file_path: "core/components/recipes/prepare-implementation/reference/intent.yaml (C21, F25 constraints)"
+        file_path: "core/components/plays/prepare-implementation/reference/intent.yaml (C21, F25 constraints)"
 
       - eval_id: "SE-PRE-04 (inferred)"
         eval_type: "step eval"
@@ -86,11 +86,11 @@ blast_radius:
         old_behavior: >
           Hard halt when quality-standards.yaml absent.
         new_behavior: >
-          Recipe enters discovery mode (C22). Quality context derived from toolchain detection.
+          Play enters discovery mode (C22). Quality context derived from toolchain detection.
         verdict: >
           Same inversion as SE-PRE-03.
         severity: high
-        file_path: "core/components/recipes/prepare-implementation/reference/intent.yaml (C22 constraint)"
+        file_path: "core/components/plays/prepare-implementation/reference/intent.yaml (C22 constraint)"
 
       - eval_id: "SE-STEP0-01 (inferred)"
         eval_type: "step eval"
@@ -103,7 +103,7 @@ blast_radius:
         verdict: >
           New eval required. Step 0 is entirely new behavior — no prior eval existed.
         severity: critical
-        file_path: "core/components/recipes/prepare-implementation/SKILL.md (Step 0)"
+        file_path: "core/components/plays/prepare-implementation/SKILL.md (Step 0)"
 
       - eval_id: "SE-STEP2-01 (impacted)"
         eval_type: "step eval"
@@ -115,9 +115,9 @@ blast_radius:
           context-assembly.yaml.upstream_context.architecture.status == 'derived' (F25).
         verdict: >
           Existing eval condition extended. The F25 failure condition ('Architecture context is
-          missing and recipe did not enter discovery mode') requires a new eval branch.
+          missing and play did not enter discovery mode') requires a new eval branch.
         severity: high
-        file_path: "core/components/recipes/prepare-implementation/reference/intent.yaml (F25)"
+        file_path: "core/components/plays/prepare-implementation/reference/intent.yaml (F25)"
 
       - eval_id: "SCE-S2-01 (impacted)"
         eval_type: "scenario eval"
@@ -131,7 +131,7 @@ blast_radius:
         verdict: >
           Scenario eval must add a branch for discovery-derived architecture context.
         severity: medium
-        file_path: "core/components/recipes/prepare-implementation/reference/intent.yaml (S2)"
+        file_path: "core/components/plays/prepare-implementation/reference/intent.yaml (S2)"
 
       - eval_id: "SCE-S7-01 (impacted)"
         eval_type: "scenario eval"
@@ -144,7 +144,7 @@ blast_radius:
         verdict: >
           S7 scenario eval scope has expanded significantly. Existing eval may be insufficient.
         severity: medium
-        file_path: "core/components/recipes/prepare-implementation/reference/intent.yaml (S7)"
+        file_path: "core/components/plays/prepare-implementation/reference/intent.yaml (S7)"
 
     # --- LTM standards that need new evals ---
 
@@ -162,7 +162,7 @@ blast_radius:
       - standard: "core/components/memory/standards/resolution-protocol.md"
         impact: >
           The R1-R4 protocol governs agent-level knowledge resolution. C23 establishes
-          a parallel recipe-level hierarchy. If the resolution-protocol.md is updated to
+          a parallel play-level hierarchy. If the resolution-protocol.md is updated to
           document this relationship, the knowledge-extractor agent (which uses this standard
           during capture-learning) would need to recognize both hierarchies.
         severity: low
@@ -176,14 +176,14 @@ blast_radius:
 
     by_category:
       already_changed_uncovered:
-        - path: "core/components/recipes/prepare-implementation/SKILL.md"
+        - path: "core/components/plays/prepare-implementation/SKILL.md"
           gap: >
             Pre-flight behavior inversion (hard-halt → soft-degrade) is not covered by any
-            existing eval. The recipe's own evals (SE-*, SCE-*) were designed for the old
-            hard-halt model. No eval verifies that the recipe continues when product.yaml is absent.
+            existing eval. The play's own evals (SE-*, SCE-*) were designed for the old
+            hard-halt model. No eval verifies that the play continues when product.yaml is absent.
           baseline_tests_needed: true
 
-        - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+        - path: "core/components/plays/prepare-implementation/reference/intent.yaml"
           gap: >
             C1 constraint change not validated by any eval. No eval checks that the constraint
             is correctly expressed or that the SKILL.md compiled behavior matches C1's new text.
@@ -192,7 +192,7 @@ blast_radius:
         - path: "core/components/agents/tech-architect.md"
           gap: >
             New agent definition. No baseline characterization of its behavior exists.
-            All 8 tasks delegated to tech-architect in the recipe are uncharacterized.
+            All 8 tasks delegated to tech-architect in the play are uncharacterized.
           baseline_tests_needed: true
 
         - path: "core/components/agents/test-engineer.md"
@@ -202,15 +202,15 @@ blast_radius:
           baseline_tests_needed: true
 
       not_yet_changed_uncovered:
-        - path: "core/components/recipes/discover-product/SKILL.md"
-          gap: "Pre-flight behavior in this pipeline recipe is uncharacterized for soft-dependency consistency"
+        - path: "core/components/plays/discover-product/SKILL.md"
+          gap: "Pre-flight behavior in this pipeline play is uncharacterized for soft-dependency consistency"
           baseline_tests_needed: true
 
-        - path: "core/components/recipes/plan-roadmap/SKILL.md"
-          gap: "Pre-flight behavior in this pipeline recipe is uncharacterized"
+        - path: "core/components/plays/plan-roadmap/SKILL.md"
+          gap: "Pre-flight behavior in this pipeline play is uncharacterized"
           baseline_tests_needed: true
 
-        - path: "core/components/recipes/prepare-architecture/SKILL.md"
+        - path: "core/components/plays/prepare-architecture/SKILL.md"
           gap: "Relationship with prepare-implementation's new soft-dependency model is uncharacterized"
           baseline_tests_needed: true
 

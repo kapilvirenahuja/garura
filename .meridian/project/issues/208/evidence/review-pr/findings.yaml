@@ -65,74 +65,74 @@ findings:
 
   - standard_id: FE-06
     severity: P4
-    file: core/components/recipes/briefs/templates/architecture-brief.html
+    file: core/components/plays/briefs/templates/architecture-brief.html
     line: null
-    evidence: "core/components/recipes/briefs/templates/architecture-brief.html"
+    evidence: "core/components/plays/briefs/templates/architecture-brief.html"
     taxonomy_rule_id: FE-06
     note: >
       FE-06 path rule fires on **/*.html. File is a 100% similarity rename (move
-      from standards/templates/ to recipes/briefs/templates/) — no content change.
+      from standards/templates/ to plays/briefs/templates/) — no content change.
       Surfaced per mechanical rule; no LCP regression possible from a pure rename.
 
   - standard_id: FE-06
     severity: P4
-    file: core/components/recipes/briefs/templates/features-brief.html
+    file: core/components/plays/briefs/templates/features-brief.html
     line: null
-    evidence: "core/components/recipes/briefs/templates/features-brief.html"
+    evidence: "core/components/plays/briefs/templates/features-brief.html"
     taxonomy_rule_id: FE-06
     note: >
       FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
 
   - standard_id: FE-06
     severity: P4
-    file: core/components/recipes/briefs/templates/hub.html
+    file: core/components/plays/briefs/templates/hub.html
     line: null
-    evidence: "core/components/recipes/briefs/templates/hub.html"
+    evidence: "core/components/plays/briefs/templates/hub.html"
     taxonomy_rule_id: FE-06
     note: >
       FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
 
   - standard_id: FE-06
     severity: P4
-    file: core/components/recipes/briefs/templates/plan-brief.html
+    file: core/components/plays/briefs/templates/plan-brief.html
     line: null
-    evidence: "core/components/recipes/briefs/templates/plan-brief.html"
+    evidence: "core/components/plays/briefs/templates/plan-brief.html"
     taxonomy_rule_id: FE-06
     note: >
       FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
 
   - standard_id: FE-06
     severity: P4
-    file: core/components/recipes/briefs/templates/product-brief.html
+    file: core/components/plays/briefs/templates/product-brief.html
     line: null
-    evidence: "core/components/recipes/briefs/templates/product-brief.html"
+    evidence: "core/components/plays/briefs/templates/product-brief.html"
     taxonomy_rule_id: FE-06
     note: >
       FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
 
   - standard_id: FE-06
     severity: P4
-    file: core/components/recipes/briefs/templates/roadmap-brief.html
+    file: core/components/plays/briefs/templates/roadmap-brief.html
     line: null
-    evidence: "core/components/recipes/briefs/templates/roadmap-brief.html"
+    evidence: "core/components/plays/briefs/templates/roadmap-brief.html"
     taxonomy_rule_id: FE-06
     note: >
       FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
 
   - standard_id: FE-06
     severity: P4
-    file: core/components/recipes/briefs/templates/scenarios-brief.html
+    file: core/components/plays/briefs/templates/scenarios-brief.html
     line: null
-    evidence: "core/components/recipes/briefs/templates/scenarios-brief.html"
+    evidence: "core/components/plays/briefs/templates/scenarios-brief.html"
     taxonomy_rule_id: FE-06
     note: >
       FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.
 
   - standard_id: FE-06
     severity: P4
-    file: core/components/recipes/briefs/templates/tech-brief.html
+    file: core/components/plays/briefs/templates/tech-brief.html
     line: null
-    evidence: "core/components/recipes/briefs/templates/tech-brief.html"
+    evidence: "core/components/plays/briefs/templates/tech-brief.html"
     taxonomy_rule_id: FE-06
     note: >
       FE-06 path rule fires on **/*.html. 100% similarity rename — no content change.

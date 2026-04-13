@@ -126,7 +126,7 @@ When compartmented evaluation applies, the three elements are routed to differen
 | **Constraints** | Builder only | Defines the boundaries the builder must respect |
 | **Failure Conditions** | Validator only | Defines what the validator checks the output against |
 
-This routing is the operational mechanism of P4. The orchestration layer (recipes in IDSD) is responsible for splitting the intent and routing each element to the correct agent.
+This routing is the operational mechanism of P4. The orchestration layer (plays in IDSD) is responsible for splitting the intent and routing each element to the correct agent.
 
 **Why not Success Criteria?** In IDD, the intent itself defines success — achieving the stated outcome IS success. Success criteria are an **operationalized decomposition** of intent (e.g., "registration completes in < 2s, works on mobile, sends confirmation email"). That operationalization is the Specifier agent's job, informed by organizational memory and context. Success criteria belong in the **generated spec layer**, not the human-authored intent layer. Adding them to intent does the Specifier's work for it — which is exactly the SDD pattern IDD rejects.
 
@@ -556,7 +556,7 @@ This is the **handshake** between human oversight and AI execution. It maps dire
 
 **Checkpoint Interaction Protocol:**
 
-When a recipe presents a checkpoint requiring human approval, the interaction follows a defined parse protocol:
+When a play presents a checkpoint requiring human approval, the interaction follows a defined parse protocol:
 
 | Response | Parsed As | Action |
 |----------|-----------|--------|
@@ -564,16 +564,16 @@ When a recipe presents a checkpoint requiring human approval, the interaction fo
 | `Vanish` or `vanish` (case-insensitive) | Reject | Halt; update checkpoint artifact to REJECTED |
 | Anything else | Unclear | Clarify — do not proceed and do not halt |
 
-This protocol applies universally across all recipes. The intent is to make approval explicit and unambiguous — neither a casual affirmative ("ok", "yes") nor silence counts as approval.
+This protocol applies universally across all plays. The intent is to make approval explicit and unambiguous — neither a casual affirmative ("ok", "yes") nor silence counts as approval.
 
 **Evidence Artifacts:**
 
-Every recipe step that produces work writes an evidence artifact to `.meridian/{issue}/evidence/{recipe-name}/{YYYYMMDD-HHMMSS}.md`. Evidence captures what was done, not how — it records the outcome for the audit trail:
+Every play step that produces work writes an evidence artifact to `.meridian/{issue}/evidence/{play-name}/{YYYYMMDD-HHMMSS}.md`. Evidence captures what was done, not how — it records the outcome for the audit trail:
 - What issue and branch the work was for
 - What was produced or executed (commits with hashes, branches created, etc.)
 - Validation results (clean tree, format checks, etc.)
 
-Evidence artifacts are permanent — they are the audit trail of every recipe execution.
+Evidence artifacts are permanent — they are the audit trail of every play execution.
 
 **Rules**:
 - Every SDLC phase has a quality gate before the next phase begins
@@ -643,7 +643,7 @@ HUMAN DEFINES INTENT
 
 ## IDD Design Principles
 
-Governing principles for Intent-Driven Development. Every new intent, recipe, agent, and skill in any IDD-based system must be evaluated against these principles. If a design violates a principle, it must either be redesigned or the violation must be recorded with explicit rationale.
+Governing principles for Intent-Driven Development. Every new intent, play, agent, and skill in any IDD-based system must be evaluated against these principles. If a design violates a principle, it must either be redesigned or the violation must be recorded with explicit rationale.
 
 IDD sits in a narrow band between two failure modes: over-specification (which recreates SDD) and under-specification (which produces non-deterministic prompting). These principles keep systems in that band.
 
@@ -1132,7 +1132,7 @@ IDD rests on three testable hypotheses. These are not proven — they are the be
 
 - [Philosophy](./philosophy.md) — Intent-Driven Software Development, Three Tenets of AI-Native SDLC
 - [Design Principles](./principles.md) — Separation of Concerns, Explicit via Abstraction, Error Context Standard
-- [Naming Conventions](./naming-conventions.md) — Recipe, Agent, and Skill naming patterns
+- [Naming Conventions](./naming-conventions.md) — Play, Agent, and Skill naming patterns
 
 ---
 

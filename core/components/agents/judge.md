@@ -114,7 +114,7 @@ Given an input artifact path and an output artifact path, YOU:
 
 ```json
 {
-  "intent_path": "<recipe intent.yaml>",
+  "intent_path": "<play intent.yaml>",
   "stm_base": "<stm base path>",
   "stm": {
     "input": {

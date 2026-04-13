@@ -1,4 +1,4 @@
-# Final Verification: /ship L2 Recipe — G-001 to G-024
+# Final Verification: /ship High-Order Play — G-001 to G-024
 <!-- T14 evidence | 2026-03-03 -->
 
 ## Result: 24/24 PASS
@@ -28,4 +28,4 @@
 | G-021 | create-pr modification | **PASS** | Lines 110-112: quality gate before C5; blockers override |
 | G-022 | repo-orchestrator scope | **PASS** | Lines 277-280: both write exceptions with rationale |
 | G-023 | Deployment | **PASS** | ~/.claude/skills/ship/SKILL.md exists and current |
-| G-024 | Docs update | **PASS** | docs/components/recipes.md lines 539-543: ship/ entry |
+| G-024 | Docs update | **PASS** | docs/components/plays.md lines 539-543: ship/ entry |

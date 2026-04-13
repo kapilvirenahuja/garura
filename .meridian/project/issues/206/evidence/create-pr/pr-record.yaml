@@ -4,7 +4,7 @@ result:
     number: 207
     url: "https://github.com/kapilvirenahuja/meridian-os/pull/207"
     state: "open"
-    title: "refactor(recipes): make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture (#206)"
+    title: "refactor(plays): make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture (#206)"
   issue_link:
     number: 206
     closes: true

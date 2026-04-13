@@ -12,7 +12,7 @@ github:
 # Source of truth locations
 components:
   skills: ./core/components/skills/
-  recipes: ./core/components/recipes/
+  plays: ./core/components/plays/
   agents: ./core/components/agents/
   memory: ./core/components/memory/
 
@@ -44,7 +44,7 @@ ltm:
 
 # Short-Term Memory (STM) — Issue-centric artifacts (ADR 008, ADR 010)
 # Variables: {stm_base} = base-path, {stm_pending} = pending-path, {stm_archive} = archive-path
-# All agents, recipes, and skills resolve these from config — never hardcode paths.
+# All agents, plays, and skills resolve these from config — never hardcode paths.
 stm:
   base-path: .meridian/project/issues/
   pending-path: .meridian/project/issues/_pending/
@@ -52,15 +52,15 @@ stm:
   structure:
     spec: "{issue-number}/spec/"
     design: "{issue-number}/design/"
-    evidence: "{issue-number}/evidence/{recipe-name}/{YYYYMMDD-HHMMSS}.md"
+    evidence: "{issue-number}/evidence/{play-name}/{YYYYMMDD-HHMMSS}.md"
     delivery: "{issue-number}/delivery/"
-    checkpoint: "{issue-number}/checkpoint/{recipe-name}/{YYYYMMDD-HHMMSS}.md"
+    checkpoint: "{issue-number}/checkpoint/{play-name}/{YYYYMMDD-HHMMSS}.md"
 
-# Standards resolution — first recipe-specific section; pattern for future recipes
+# Standards resolution — first play-specific section; pattern for future plays
 standards:
   pr-severity-taxonomy: ./core/components/memory/standards/git/pr-severity-taxonomy.md
 
-# review-pr recipe configuration
+# review-pr play configuration
 review-pr:
   bypass: true
   confidence_threshold: 0.5

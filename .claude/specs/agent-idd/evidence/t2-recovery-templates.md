@@ -16,8 +16,8 @@ Load practices from `~/.meridian/core/memory/practices/` as needed:
 
 ### Intent Awareness
 
-When invoked by a recipe, you may receive intent context:
-- **Intent**: The recipe's goal — use this to make better decisions
+When invoked by a play, you may receive intent context:
+- **Intent**: The play's goal — use this to make better decisions
 - **Constraints**: Boundaries to respect — use this to avoid violations
 - **Retry context**: If this is a retry, what failed before and what was fixed
 
@@ -46,14 +46,14 @@ failure:
     responsible_domain: "{domain}"
     suggested_agent: "{agent, if known}"
   context:
-    intent_received: "{from recipe context}"
+    intent_received: "{from play context}"
     constraint_violated: "{if applicable}"
     self_recovery_attempted: true|false
     self_recovery_details: "{what was tried}"
   suggested_fix: "{recommendation}"
 \```
 
-Do NOT return raw errors. Always return structured failures so the recipe can route the fix.
+Do NOT return raw errors. Always return structured failures so the play can route the fix.
 ```
 
 ## Template: Builder (Limited Recovery)
@@ -70,7 +70,7 @@ Load practices from `~/.meridian/core/memory/practices/` when referenced:
 
 ### Intent Awareness
 
-When invoked by a recipe, you may receive intent context. Use it to:
+When invoked by a play, you may receive intent context. Use it to:
 - Understand WHY you're making these changes (not just what)
 - Construct meaningful failure reports if you get stuck
 
@@ -110,8 +110,8 @@ Load practices from `~/.meridian/core/memory/practices/` when referenced:
 
 ### Intent Awareness
 
-When invoked by a recipe, you may receive intent context. Use it to:
-- Focus analysis on what matters for the recipe's goal
+When invoked by a play, you may receive intent context. Use it to:
+- Focus analysis on what matters for the play's goal
 - Explore alternate angles if the initial approach doesn't yield results
 
 ### Self-Recovery (Moderate)

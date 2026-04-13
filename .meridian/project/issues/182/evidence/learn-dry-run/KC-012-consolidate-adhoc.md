@@ -1,34 +1,34 @@
 # Consolidate Ad-hoc Fields into Standard Contract Fields
 <!-- knowledge-file: tier=2 scope=core -->
 
-**When this applies:** Reviewing agent input contracts across multiple recipes and finding that the same logical information is passed under different field names.
-**When this does NOT apply:** Fields that are intentionally different (they carry semantically distinct information despite similar names); single-recipe agents where no cross-recipe consistency is needed.
+**When this applies:** Reviewing agent input contracts across multiple plays and finding that the same logical information is passed under different field names.
+**When this does NOT apply:** Fields that are intentionally different (they carry semantically distinct information despite similar names); single-play agents where no cross-play consistency is needed.
 **Search patterns:** contract standardization, field consolidation, ad-hoc fields, ltm_context, uniform contract, naming consistency, schema normalization
-**Provenance:** Issue #182 — learn recipe dry run
+**Provenance:** Issue #182 — learn play dry run
 **Created:** 2026-03-31
 
 ## Content
 
-When multiple recipes call the same agent using different field names for the same logical input, consolidate to one canonical field name. Example:
+When multiple plays call the same agent using different field names for the same logical input, consolidate to one canonical field name. Example:
 
 **Before consolidation:**
 ```yaml
-# Recipe A
+# Play A
 input:
   ltm_path: "/path/to/ltm"
 
-# Recipe B
+# Play B
 input:
   ltm_architecture_path: "/path/to/ltm"
 
-# Recipe C
+# Play C
 input:
   scan_directories: ["/path/to/ltm"]
 ```
 
 **After consolidation:**
 ```yaml
-# All recipes
+# All plays
 input:
   ltm_context: "/path/to/ltm"  # or structured list, consistently
 ```
@@ -42,15 +42,15 @@ input:
 
 **Benefits of consolidation:**
 - Agents have one expected input shape — no conditional logic per-caller
-- Recipes cannot invent conventions — they must use the standard field
+- Plays cannot invent conventions — they must use the standard field
 - Validation is uniform — one schema to validate, not per-caller variations
-- New recipe authors have one field to learn, not N historical variants
+- New play authors have one field to learn, not N historical variants
 
 **Anti-pattern: premature standardization.** Do not consolidate fields that LOOK similar but carry different semantics. Verify intent before merging.
 
 ## Why It Matters
 
-Ad-hoc field proliferation is a form of technical debt in contract design. Each new variant requires agents to implement conditional handling, increases documentation burden, and confuses new recipe authors about which field to use. Left unchecked, agents accumulate 5-10 ways to receive the same input, making the contract unmaintainable. Periodic consolidation keeps contracts readable and agents testable.
+Ad-hoc field proliferation is a form of technical debt in contract design. Each new variant requires agents to implement conditional handling, increases documentation burden, and confuses new play authors about which field to use. Left unchecked, agents accumulate 5-10 ways to receive the same input, making the contract unmaintainable. Periodic consolidation keeps contracts readable and agents testable.
 
 ## Applicability Boundaries
 

@@ -1,0 +1,7 @@
+play: merge-pr
+skills:
+  - name: merge-pr
+    path: core/components/skills/merge-pr/SKILL.md
+    status: existing
+    covers: merge PR, switch base branch, pull latest, delete feature branch (local + remote)
+    platform_dispatch: github, gitlab, bitbucket

@@ -1,4 +1,4 @@
-# ADR 015: LTM Resolution Protocol and Learning Recipe
+# ADR 015: LTM Resolution Protocol and Learning Play
 
 **Status:** Accepted
 **Date:** 2026-03-31
@@ -37,13 +37,13 @@ Both are optional — backward compatibility is preserved.
 
 5 agents updated: tech-designer, product-strategist (full R1-R4), code-builder, quality-auditor (lightweight awareness), repo-orchestrator (convention check). 2 agents exempt: eval-generator, judge (context isolation preserved).
 
-### Recipe Updates
+### Play Updates
 
-7 recipes populate ltm_context in their agent dispatch contracts. 2 recipes had ad-hoc LTM path fields replaced by the standard field.
+7 plays populate ltm_context in their agent dispatch contracts. 2 plays had ad-hoc LTM path fields replaced by the standard field.
 
-### Learning Recipe
+### Learning Play
 
-A new `learn` recipe reads resolution traces from completed work, identifies LLM fallback decisions as promotion candidates, and presents them for human approval before writing to LTM. A `knowledge-extractor` agent handles extraction and classification.
+A new `learn` play reads resolution traces from completed work, identifies LLM fallback decisions as promotion candidates, and presents them for human approval before writing to LTM. A `knowledge-extractor` agent handles extraction and classification.
 
 ### Knowledge File Standard
 
@@ -55,7 +55,7 @@ A canonical template standardizes all knowledge files with Tier 1 (required) and
 - Consistent knowledge resolution across all agent dispatches
 - Traceable decisions — every domain choice records its source
 - Accumulating knowledge — LLM fallbacks become LTM entries over time
-- Backward compatible — existing recipes without ltm_context continue working
+- Backward compatible — existing plays without ltm_context continue working
 
 ### Negative
 - Agent definitions are more complex (R1-R4 protocol text)

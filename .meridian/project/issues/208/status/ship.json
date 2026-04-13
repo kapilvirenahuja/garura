@@ -1,8 +1,8 @@
 {
-  "recipe": "ship",
+  "play": "ship",
   "issue": "208",
   "started_at": "2026-04-13T20:00:00+05:30",
-  "feature_branch": "feature/208-review-pr-recipe",
+  "feature_branch": "feature/208-review-pr-play",
   "review_pr_bypass": true,
   "tasks": {
     "commit-code": { "status": "completed" },

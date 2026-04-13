@@ -7,10 +7,10 @@ index 14fc8a8..5cf1f2a 100644
  
 -**Version:** 3.0.0
 -**Date:** 2026-03-17
--**Status:** IN PROGRESS — Major restructure. Core recipes complete. Pipeline refactor pending (#106).
+-**Status:** IN PROGRESS — Major restructure. Core plays complete. Pipeline refactor pending (#106).
 +**Version:** 3.1.0
 +**Date:** 2026-04-13
-+**Status:** IN PROGRESS — Major restructure. Core recipes complete. Pipeline refactor pending (#106). Recent hardening via #191, #195, #200, #206.
++**Status:** IN PROGRESS — Major restructure. Core plays complete. Pipeline refactor pending (#106). Recent hardening via #191, #195, #200, #206.
  **Author:** Meridian
  
  ---
@@ -24,19 +24,19 @@ index 14fc8a8..5cf1f2a 100644
  ### Architecture Change Notice
  
 @@ -56,44 +56,49 @@ See section "SDLC Phases" for the current diagram (marked CURRENT) and the pendi
- | Priority | Recipe | Status | Notes |
+ | Priority | Play | Status | Notes |
  |---|---|---|---|
  | P1 | start-feature | ✅ COMPLETE | L2, compiled from intent, uses project-orchestrator + repo-orchestrator |
--| P2 | capture-learning | ⚠️ PARTIAL | Recipe exists, 2 skills missing (extract-patterns, draft-ltm-entry) |
+-| P2 | capture-learning | ⚠️ PARTIAL | Play exists, 2 skills missing (extract-patterns, draft-ltm-entry) |
 -| P3 | implement-epic (was implement-feature) | ✅ COMPLETE | L2, eval-driven TDD loop, 7 agents, context isolation, model: opus |
-+| P2 | capture-learning | ⚠️ NEEDS FIX | Recipe exists, 2 skills missing (extract-patterns, draft-ltm-entry). **Updated #195 (2026-04):** extraction broadened to multi-format evidence scanning. **2026-04-13:** flagged for further fixes |
++| P2 | capture-learning | ⚠️ NEEDS FIX | Play exists, 2 skills missing (extract-patterns, draft-ltm-entry). **Updated #195 (2026-04):** extraction broadened to multi-format evidence scanning. **2026-04-13:** flagged for further fixes |
 +| P3 | implement-epic (was implement-feature) | ✅ COMPLETE | L2, eval-driven TDD loop, 7 agents, context isolation, model: opus. **Updated #191 (2026-04):** sources design artifacts from issue STM instead of product epics |
  | P4 | start-feature-planning | ✅ COMPLETE | Renamed from start-planned-feature, IDD refactored |
 -| P5 | discover-product | ✅ COMPLETE | Produces product.yaml + product-brief.html |
 -| P6 | plan-roadmap | ✅ COMPLETE | L2, reads product.yaml, produces roadmap.yaml + roadmap-brief.html |
 -| P7 | manage-backlog | ❌ NOT STARTED | 3 skills missing |
 -| P8 | refine-backlog | ❌ NOT STARTED | 1 of 2 skills exists (analyze-backlog) |
--| P9 | build-feature | ❌ NOT STARTED | Recipe missing |
+-| P9 | build-feature | ❌ NOT STARTED | Play missing |
 -| P10 | verify-feature | ❌ NOT STARTED | Blocked by validator agent |
 +| P5 | discover-product | ✅ COMPLETE | Produces product.yaml + product-brief.html. **Updated #206 (2026-04):** brief generation made opt-in (doc-builder no longer mandatory) |
 +| P6 | plan-roadmap | ✅ COMPLETE | L2, reads product.yaml, produces roadmap.yaml + roadmap-brief.html. **Updated #206 (2026-04):** brief generation made opt-in; draft-roadmap/validate-roadmap no longer reference briefs |
@@ -67,8 +67,8 @@ index 14fc8a8..5cf1f2a 100644
 -| — | prepare-implementation | ✅ COMPLETE | L2, produces features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml + 5 briefs + hub.html |
 +| — | prepare-implementation | ✅ COMPLETE | L2, produces features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml + 5 briefs + hub.html. **Updated #191 (2026-04):** Phase 0 STM setup added, artifact lock path fixed |
 +| — | prepare-architecture | ✅ COMPLETE | **Updated #206 (2026-04):** brief generation made opt-in |
-+| — | create-recipe | ✅ COMPLETE | **Updated #200 (2026-04):** removed mandatory doc-builder step before checkpoints |
-+| — | quality-check | ✅ NEW | **Added #200 (2026-04):** LTM-driven quality assessment framework with 11-domain KB (skill, not a recipe) |
++| — | create-play | ✅ COMPLETE | **Updated #200 (2026-04):** removed mandatory doc-builder step before checkpoints |
++| — | quality-check | ✅ NEW | **Added #200 (2026-04):** LTM-driven quality assessment framework with 11-domain KB (skill, not a play) |
  
  ### Component Inventory
  
@@ -76,9 +76,9 @@ index 14fc8a8..5cf1f2a 100644
  |---|---|---|
  | Agents | 11 | product-strategist, tech-designer, code-builder, repo-orchestrator, project-orchestrator, doc-builder, eval-generator, quality-auditor, judge, intent-crafter, intent-resolver |
 -| Skills | ~42 deployed | Full list via /sync-claude output |
--| Recipes | 12 deployed | discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature, start-feature-planning, commit-code, create-pr, merge-pr, ship, capture-learning, create-recipe |
+-| Plays | 12 deployed | discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature, start-feature-planning, commit-code, create-pr, merge-pr, ship, capture-learning, create-play |
 +| Skills | ~43 deployed | Full list via /sync-claude output. Includes new `quality-check-scoped` (#208) |
-+| Recipes | 13 deployed | discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature, start-feature-planning, commit-code, create-pr, merge-pr, ship, capture-learning, create-recipe, **review-pr (#208)** |
++| Plays | 13 deployed | discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature, start-feature-planning, commit-code, create-pr, merge-pr, ship, capture-learning, create-play, **review-pr (#208)** |
  | Verification gates | 2 confirmed passing | G-100, G-103. Others blocked or pending re-eval against new schemas |
  
  ### Dependency Blockers
@@ -94,13 +94,13 @@ index 14fc8a8..5cf1f2a 100644
  ---
  
  ## Foundation — IDD Principles
-@@ -293,19 +298,19 @@ Recipes are built one at a time. Priority set by user. Existing recipes marked f
+@@ -293,19 +298,19 @@ Plays are built one at a time. Priority set by user. Existing plays marked f
  | 4 | `start-feature-planning` | L2 | ✅ COMPLETE | Was start-planned-feature |
  | 5 | `discover-product` | L2 | ✅ COMPLETE | Produces product.yaml + product-brief.html |
  | 6 | `plan-roadmap` | L2 | ✅ COMPLETE | Reads product.yaml, produces roadmap.yaml + roadmap-brief.html |
 -| 7 | `manage-backlog` | L1 | ❌ NOT STARTED | 3 skills missing |
 -| 8 | `refine-backlog` | L1 | ❌ NOT STARTED | 1 of 2 skills exists |
--| 9 | `build-feature` | L1 | ❌ NOT STARTED | Recipe missing |
+-| 9 | `build-feature` | L1 | ❌ NOT STARTED | Play missing |
 -| 10 | `verify-feature` | L1 | ❌ NOT STARTED | Blocked by validator |
 +| 7 | `manage-backlog` | L1 | 🚫 NOT NEEDED | Descoped 2026-04-13 |
 +| 8 | `refine-backlog` | L1 | 🚫 NOT NEEDED | Descoped 2026-04-13 |
@@ -126,25 +126,25 @@ index 14fc8a8..5cf1f2a 100644
  | — | `merge-pr` | L2 | ✅ COMPLETE | Merge + switch to main + branch cleanup |
  | — | `prepare-implementation` | L2 | ✅ COMPLETE | 5 YAML artifacts + 5 briefs + hub.html |
 @@ -399,6 +404,7 @@ Examples:
- ### Recipe: `capture-learning` (P2 — PARTIAL)
+ ### Play: `capture-learning` (P2 — PARTIAL)
  
- **File:** `core/components/recipes/capture-learning/SKILL.md`
+ **File:** `core/components/plays/capture-learning/SKILL.md`
 +**Recent Updates:** #195 (2026-04) — broadened extraction from resolution-trace-only to multi-format evidence scanning so capture-learning no longer returns zero knowledge when traces are absent.
  
  ```yaml
  intent: "Promote patterns, decisions, and learnings from STM into LTM"
 @@ -477,6 +483,7 @@ tools: [Task, Read, Write, Glob, Grep, Skill]
  
- **File:** `core/components/recipes/discover-product/SKILL.md`
- **Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
+ **File:** `core/components/plays/discover-product/SKILL.md`
+ **Compiled From:** `reference/intent.yaml` via create-play (2026-03-16)
 +**Recent Updates:** #206 (2026-04) — brief generation made opt-in. doc-builder step no longer mandatory before human checkpoints.
  
  ```yaml
  intent: "Discover product vision, strategic goals, and market positioning"
 @@ -540,6 +547,7 @@ Step 2: Evidence
  
- **File:** `core/components/recipes/plan-roadmap/SKILL.md`
- **Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
+ **File:** `core/components/plays/plan-roadmap/SKILL.md`
+ **Compiled From:** `reference/intent.yaml` via create-play (2026-03-16)
 +**Recent Updates:** #206 (2026-04) — brief generation made opt-in; `draft-roadmap` and `validate-roadmap` skills no longer reference brief generation.
  
  ```yaml
@@ -160,9 +160,9 @@ index 14fc8a8..5cf1f2a 100644
  
 @@ -603,6 +611,7 @@ Step 8: Evidence + evidence self-commit
  
- **File:** `core/components/recipes/prepare-implementation/SKILL.md`
- **Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
-+**Recent Updates:** #191 (2026-04) — added Phase 0 STM setup and fixed artifact lock path so the recipe correctly initializes issue STM before drafting.
+ **File:** `core/components/plays/prepare-implementation/SKILL.md`
+ **Compiled From:** `reference/intent.yaml` via create-play (2026-03-16)
++**Recent Updates:** #191 (2026-04) — added Phase 0 STM setup and fixed artifact lock path so the play correctly initializes issue STM before drafting.
  
  ```yaml
  intent: "Produce implementation-ready design artifacts from product intent"
@@ -171,14 +171,14 @@ index 14fc8a8..5cf1f2a 100644
  - `plan.yaml` — prerequisites (Phase 0), execution_order as vertical slices (scope items with key_files, exit_gate, scenario_gate), summary table with cumulative_scenarios
  
 -**PENDING-REFACTOR (#106):** After Issue #106, prepare-implementation will slim down to: scenarios.yaml + plan.yaml + evals setup ONLY. features.yaml moves to plan-roadmap; architecture.yaml and tech.yaml move to design-arch.
-+**RESOLVED (2026-04-13):** prepare-implementation slim-down dropped. The recipe keeps its current 5-artifact shape (features, architecture, tech, scenarios, plan). Design recipes (see #106) will plug in alongside it, not replace its outputs.
++**RESOLVED (2026-04-13):** prepare-implementation slim-down dropped. The play keeps its current 5-artifact shape (features, architecture, tech, scenarios, plan). Design plays (see #106) will plug in alongside it, not replace its outputs.
  
  ---
  
 @@ -705,6 +714,7 @@ Step 15: Evidence + evidence self-commit
  
- **File:** `core/components/recipes/implement-epic/SKILL.md`
- **Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-17)
+ **File:** `core/components/plays/implement-epic/SKILL.md`
+ **Compiled From:** `reference/intent.yaml` via create-play (2026-03-17)
 +**Recent Updates:** #191 (2026-04) — sources design artifacts from issue STM instead of product epics, aligning execution with the per-issue preparation flow.
  
  ```yaml
@@ -225,7 +225,7 @@ index 0000000..8d167bd
 +  pr:
 +    number: 207
 +    url: "https://github.com/kapilvirenahuja/meridian-os/pull/207"
-+    title: "refactor(recipes): make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture (#206)"
++    title: "refactor(plays): make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture (#206)"
 +    state: "OPEN"
 +    base_branch: "main"
 +    feature_branch: "refactor/206-make-brief-generation-opt-in"
@@ -252,8 +252,8 @@ index 0000000..37a60ca
 +
 +**Status:** COMPLETED
 +**Created:** 2026-04-13 19:05:58
-+**Issue:** #208 — Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection
-+**Branch:** feature/208-review-pr-recipe
++**Issue:** #208 — Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection
++**Branch:** feature/208-review-pr-play
 +
 +## Artifacts
 +- spec: `.meridian/project/issues/208/planning/spec.md`
@@ -269,7 +269,7 @@ index 0000000..42395a3
 +++ b/.meridian/project/issues/208/evidence/commit-code/analysis.yaml
 @@ -0,0 +1,168 @@
 +branch:
-+  name: feature/208-review-pr-recipe
++  name: feature/208-review-pr-play
 +  issue: 208
 +  is_hotfix: false
 +
@@ -282,17 +282,17 @@ index 0000000..42395a3
 +groups:
 +  - id: 1
 +    issue: 208
-+    issue_title: "build review-pr L2 recipe and quality-check-scoped skill"
++    issue_title: "build review-pr high-order play and quality-check-scoped skill"
 +    type: feat
-+    scope: recipes
-+    subject: "add review-pr recipe, quality-check-scoped skill, and supporting config (#208)"
++    scope: plays
++    subject: "add review-pr play, quality-check-scoped skill, and supporting config (#208)"
 +    confidence: high
 +    files:
-+      # New recipe
-+      - path: "core/components/recipes/review-pr/SKILL.md"
-+        change: "new review-pr L2 recipe definition"
-+      - path: "core/components/recipes/review-pr/reference/intent.yaml"
-+        change: "new intent.yaml for review-pr recipe"
++      # New play
++      - path: "core/components/plays/review-pr/SKILL.md"
++        change: "new review-pr high-order play definition"
++      - path: "core/components/plays/review-pr/reference/intent.yaml"
++        change: "new intent.yaml for review-pr play"
 +      # New skill
 +      - path: "core/components/skills/quality-check-scoped/SKILL.md"
 +        change: "new quality-check-scoped skill definition"
@@ -303,21 +303,21 @@ index 0000000..42395a3
 +      # Config additions for review-pr
 +      - path: "core/config.yaml"
 +        change: "add review-pr config block (bypass, confidence_threshold, reviewer_count, standards_order) and standards.pr-severity-taxonomy path"
-+      # Ship recipe updated to wire review-pr quality gate
-+      - path: "core/components/recipes/ship/SKILL.md"
-+        change: "update ship recipe to invoke review-pr as optional quality gate"
-+      - path: "core/components/recipes/ship/reference/intent.yaml"
++      # Ship play updated to wire review-pr quality gate
++      - path: "core/components/plays/ship/SKILL.md"
++        change: "update ship play to invoke review-pr as optional quality gate"
++      - path: "core/components/plays/ship/reference/intent.yaml"
 +        change: "update ship intent to include review-pr gate constraints"
 +      # STM evidence for issue 208
-+      - path: ".meridian/project/issues/208/evidence/create-recipe/"
-+        change: "STM evidence from create-recipe skill run (untracked directory)"
++      - path: ".meridian/project/issues/208/evidence/create-play/"
++        change: "STM evidence from create-play skill run (untracked directory)"
 +      - path: ".meridian/project/issues/208/evidence/start-feature-planning/args.yaml"
 +        change: "STM args artifact from start-feature-planning"
 +      - path: ".meridian/project/issues/208/status/"
 +        change: "STM status artifacts for issue 208"
-+      # Docs updates referencing new recipe/skill
-+      - path: "docs/components/recipes.md"
-+        change: "document review-pr in recipes component docs"
++      # Docs updates referencing new play/skill
++      - path: "docs/components/plays.md"
++        change: "document review-pr in plays component docs"
 +      - path: "docs/components/skills.md"
 +        change: "document quality-check-scoped in skills component docs"
 +
@@ -340,15 +340,15 @@ index 0000000..42395a3
 +      - path: "core/components/memory/standards/brief-principles.md"
 +        change: "deleted — moved to docs/design/briefs.md"
 +      - path: "core/components/memory/standards/templates/architecture-brief.html"
-+        change: "deleted from standards/ — moved to core/components/recipes/briefs/templates/"
++        change: "deleted from standards/ — moved to core/components/plays/briefs/templates/"
 +      - path: "core/components/memory/standards/templates/brief-common.css"
-+        change: "deleted from standards/ — moved to core/components/recipes/briefs/templates/"
++        change: "deleted from standards/ — moved to core/components/plays/briefs/templates/"
 +      - path: "core/components/memory/standards/templates/brief-render.js"
-+        change: "deleted from standards/ — moved to core/components/recipes/briefs/templates/"
++        change: "deleted from standards/ — moved to core/components/plays/briefs/templates/"
 +      - path: "core/components/memory/standards/templates/epic-schema.md"
 +        change: "deleted from standards/ — moved to scope-roadmap-epics skill reference"
 +      - path: "core/components/memory/standards/templates/features-brief.html"
-+        change: "deleted from standards/ — moved to core/components/recipes/briefs/templates/"
++        change: "deleted from standards/ — moved to core/components/plays/briefs/templates/"
 +      - path: "core/components/memory/standards/templates/fixtures/architecture.json"
 +        change: "deleted from standards/ — moved to briefs/templates/fixtures/"
 +      - path: "core/components/memory/standards/templates/fixtures/features.json"
@@ -390,8 +390,8 @@ index 0000000..42395a3
 +        change: "new ADR 016 — promoted from standards/agent-contract.md"
 +      - path: "docs/design/"
 +        change: "new docs/design/ directory with briefs.md (from brief-principles.md)"
-+      - path: "core/components/recipes/briefs/templates/"
-+        change: "new templates/ under briefs recipe — all HTML/CSS/JS templates moved here"
++      - path: "core/components/plays/briefs/templates/"
++        change: "new templates/ under briefs play — all HTML/CSS/JS templates moved here"
 +      - path: "core/components/memory/standards/intent-schema.yaml"
 +        change: "canonical intent-schema.yaml now at standards root (moved out of standards/templates/)"
 +      - path: "core/components/memory/standards/git/pr-severity-taxonomy.md"
@@ -400,14 +400,14 @@ index 0000000..42395a3
 +      - path: "core/components/memory/standards/_index.md"
 +        change: "updated to reflect deletions, new entries (pr-severity-taxonomy, intent-schema), and forwarding notes"
 +      - path: "core/components/agents/doc-builder.md"
-+        change: "update template path references from standards/templates/ to recipes/briefs/templates/"
++        change: "update template path references from standards/templates/ to plays/briefs/templates/"
 +      - path: "core/components/agents/product-strategist.md"
 +        change: "update brief-principles reference to docs/design/briefs.md"
-+      - path: "core/components/recipes/briefs/SKILL.md"
-+        change: "update briefs recipe to load templates from new path"
-+      - path: "core/components/recipes/create-recipe/SKILL.md"
-+        change: "update create-recipe to reference intent-schema.yaml at new standards/ root location"
-+      - path: "core/components/recipes/plan-roadmap/SKILL.md"
++      - path: "core/components/plays/briefs/SKILL.md"
++        change: "update briefs play to load templates from new path"
++      - path: "core/components/plays/create-play/SKILL.md"
++        change: "update create-play to reference intent-schema.yaml at new standards/ root location"
++      - path: "core/components/plays/plan-roadmap/SKILL.md"
 +        change: "update plan-roadmap template reference"
 +      - path: "core/components/skills/scope-roadmap-epics/SKILL.md"
 +        change: "update scope-roadmap-epics to load epic-schema from new skill reference path"
@@ -432,7 +432,7 @@ index 0000000..42395a3
 +recommendation:
 +  checkpoint_needed: false
 +  reason: >
-+    Branch is feature/208-review-pr-recipe, all changes map to issue #208 with high
++    Branch is feature/208-review-pr-play, all changes map to issue #208 with high
 +    confidence. Two groups are cleanly separable by type (feat vs refactor). No
 +    sensitive files detected. No competing issue mappings. All issue mappings are
 +    high confidence — no approval gate required per C9.
@@ -446,15 +446,15 @@ index 0000000..138c716
 +  - id: 1
 +    hash: 6bb33dd
 +    type: feat
-+    scope: recipes
-+    subject: "add review-pr recipe, quality-check-scoped skill, and supporting config (#208)"
++    scope: plays
++    subject: "add review-pr play, quality-check-scoped skill, and supporting config (#208)"
 +    files: 17
 +    issue: 208
 +    group_id: 1
 +    description: >
-+      Add new L2 recipe for diff-scoped PR quality review with severity taxonomy and
++      Add new high-order play for diff-scoped PR quality review with severity taxonomy and
 +      reviewer selection. Includes quality-check-scoped skill definition, supporting
-+      config, and updated ship recipe integration.
++      config, and updated ship play integration.
 +
 +  - id: 2
 +    hash: 0a40889
@@ -466,14 +466,14 @@ index 0000000..138c716
 +    group_id: 2
 +    description: >
 +      Restructure standards/templates/ by moving contents to owning components
-+      (recipes/briefs, skill references). Promote standards/agent-contract.md to
++      (plays/briefs, skill references). Promote standards/agent-contract.md to
 +      docs/adr/016-agent-json-contract.md. Move brief-principles.md to docs/design/briefs.md.
 +      Add pr-severity-taxonomy.md standard for quality-check-scoped. Update all callers.
 +
 +summary:
 +  total_commits: 2
 +  total_files_committed: 55
-+  branch: feature/208-review-pr-recipe
++  branch: feature/208-review-pr-play
 +  base_branch: main
 +  completed_at: "2026-04-13"
 diff --git a/.meridian/project/issues/208/evidence/commit-code/issue-mappings.yaml b/.meridian/project/issues/208/evidence/commit-code/issue-mappings.yaml
@@ -483,38 +483,38 @@ index 0000000..22c4802
 +++ b/.meridian/project/issues/208/evidence/commit-code/issue-mappings.yaml
 @@ -0,0 +1,57 @@
 +validated_at: "2026-04-13"
-+recipe_step: resolve-issues
++play_step: resolve-issues
 +
 +mappings:
 +  - group_id: 1
 +    issue_number: 208
-+    issue_title: "Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection"
++    issue_title: "Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection"
 +    issue_state: open
 +    confidence: high
 +    type_hint: feature
 +    reasoning: >
 +      Group 1 directly implements the primary deliverable of issue #208: the review-pr L2
-+      recipe (SKILL.md + intent.yaml), the quality-check-scoped skill (SKILL.md +
++      play (SKILL.md + intent.yaml), the quality-check-scoped skill (SKILL.md +
 +      finding-schema.md + input-contract.md), config additions for the review-pr pipeline,
-+      and ship recipe updates to wire the new quality gate. These changes constitute the
++      and ship play updates to wire the new quality gate. These changes constitute the
 +      core build work described in the issue title. STM evidence artifacts for #208 are
 +      also included. Mapping is unambiguous — no competing issues.
 +
 +  - group_id: 2
 +    issue_number: 208
-+    issue_title: "Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection"
++    issue_title: "Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection"
 +    issue_state: open
 +    confidence: high
 +    type_hint: refactor
 +    reasoning: >
 +      Group 2 is a structural reorganization performed on this feature branch to support
-+      the review-pr recipe. It includes: the PR severity taxonomy standard
++      the review-pr play. It includes: the PR severity taxonomy standard
 +      (pr-severity-taxonomy.md) introduced specifically for quality-check-scoped, the
-+      ADR 016 promotion of agent-contract.md (referenced by the new recipe's agent
++      ADR 016 promotion of agent-contract.md (referenced by the new play's agent
 +      contract pattern), and cleanup of standards/templates/ by relocating files to
 +      their owning components. While typed as refactor (no behavior change), this work
 +      is scoped to and motivated by issue #208. No separate issue exists for this
-+      structural cleanup, and the branch is feature/208-review-pr-recipe.
++      structural cleanup, and the branch is feature/208-review-pr-play.
 +
 +scope_exclusions:
 +  - issue_number: 209
@@ -539,11 +539,11 @@ index 0000000..22c4802
 +  - id: F5
 +    result: pass
 +    note: No competing issue matches for either group. Mapping is unambiguous.
-diff --git a/.meridian/project/issues/208/evidence/create-recipe/review-pr/agent-audit.md b/.meridian/project/issues/208/evidence/create-recipe/review-pr/agent-audit.md
+diff --git a/.meridian/project/issues/208/evidence/create-play/review-pr/agent-audit.md b/.meridian/project/issues/208/evidence/create-play/review-pr/agent-audit.md
 new file mode 100644
 index 0000000..2296713
 --- /dev/null
-+++ b/.meridian/project/issues/208/evidence/create-recipe/review-pr/agent-audit.md
++++ b/.meridian/project/issues/208/evidence/create-play/review-pr/agent-audit.md
 @@ -0,0 +1,11 @@
 +# Agent Audit — review-pr
 +
@@ -556,15 +556,15 @@ index 0000000..2296713
 +**Domain agent unique count:** 3 (tech-designer, quality-auditor, repo-orchestrator-as-ranker)
 +**L2 budget (≤5 domain):** PASS — 3/5
 +**Utility agents (exempt):** repo-orchestrator (when used for git/PR ops)
-diff --git a/.meridian/project/issues/208/evidence/create-recipe/review-pr/constraint-classifications.yaml b/.meridian/project/issues/208/evidence/create-recipe/review-pr/constraint-classifications.yaml
+diff --git a/.meridian/project/issues/208/evidence/create-play/review-pr/constraint-classifications.yaml b/.meridian/project/issues/208/evidence/create-play/review-pr/constraint-classifications.yaml
 new file mode 100644
 index 0000000..ce07a26
 --- /dev/null
-+++ b/.meridian/project/issues/208/evidence/create-recipe/review-pr/constraint-classifications.yaml
++++ b/.meridian/project/issues/208/evidence/create-play/review-pr/constraint-classifications.yaml
 @@ -0,0 +1,21 @@
 +constraint_classifications:
 +  - id: C1
-+    category: structural    # diff scope is enforced by skill contract + recipe rule
++    category: structural    # diff scope is enforced by skill contract + play rule
 +  - id: C2
 +    category: artifact-verifiable  # every finding cites standard ID — observable in findings.yaml
 +  - id: C3
@@ -572,7 +572,7 @@ index 0000000..ce07a26
 +  - id: C4
 +    category: pre-flight    # config keys + paths must resolve before domain work
 +  - id: C5
-+    category: structural    # L2 budget enforced by recipe agent boundary table
++    category: structural    # L2 budget enforced by play agent boundary table
 +  - id: C6
 +    category: artifact-verifiable  # reviewer list excludes author + uses window
 +  - id: C7
@@ -580,20 +580,20 @@ index 0000000..ce07a26
 +  - id: C8
 +    category: artifact-verifiable  # PR comment structure observable
 +  - id: C9
-+    category: structural    # confidence formula baked into recipe Step 3
++    category: structural    # confidence formula baked into play Step 3
 +  - id: C10
-+    category: structural    # recipe MUST NOT invoke create-pr — agent boundary rule
-diff --git a/.meridian/project/issues/208/evidence/create-recipe/review-pr/coverage-matrix.md b/.meridian/project/issues/208/evidence/create-recipe/review-pr/coverage-matrix.md
++    category: structural    # play MUST NOT invoke create-pr — agent boundary rule
+diff --git a/.meridian/project/issues/208/evidence/create-play/review-pr/coverage-matrix.md b/.meridian/project/issues/208/evidence/create-play/review-pr/coverage-matrix.md
 new file mode 100644
 index 0000000..2a73b28
 --- /dev/null
-+++ b/.meridian/project/issues/208/evidence/create-recipe/review-pr/coverage-matrix.md
++++ b/.meridian/project/issues/208/evidence/create-play/review-pr/coverage-matrix.md
 @@ -0,0 +1,29 @@
 +# Coverage Matrix — review-pr
 +
 +| Intent Item | Type | Category | Covered By | Location |
 +|---|---|---|---|---|
-+| C1 | constraint | structural | Recipe rule + skill diff scope invariant | Role section + quality-check-scoped contract |
++| C1 | constraint | structural | Play rule + skill diff scope invariant | Role section + quality-check-scoped contract |
 +| C2 | constraint | artifact-verifiable | SE-1 | Step 2 Eval |
 +| C3 | constraint | artifact-verifiable | SE-3 | Step 2 Eval |
 +| C4 | constraint | pre-flight | Pre-flight + SE-4 + SE-9 | Pre-flight table + Step 1 Eval |
@@ -602,7 +602,7 @@ index 0000000..2a73b28
 +| C7 | constraint | artifact-verifiable | SE-7 | Step 4 Eval |
 +| C8 | constraint | artifact-verifiable | SE-8 | Step 5 Eval |
 +| C9 | constraint | structural | Confidence formula baked into Step 3 | Role + Step 3 |
-+| C10 | constraint | structural | Forbidden recipe actions | Role section |
++| C10 | constraint | structural | Forbidden play actions | Role section |
 +| F1 | failure | — | SE-1 | Step 2 |
 +| F2 | failure | — | SE-2 | Step 2 |
 +| F3 | failure | — | SE-7 | Step 4 |
@@ -618,11 +618,11 @@ index 0000000..2a73b28
 +| S4 | scenario | — | SCE-4 | Scenario Validation |
 +
 +**All 10 constraints, 9 failure conditions, 4 scenarios covered.** PASS.
-diff --git a/.meridian/project/issues/208/evidence/create-recipe/review-pr/evals.yaml b/.meridian/project/issues/208/evidence/create-recipe/review-pr/evals.yaml
+diff --git a/.meridian/project/issues/208/evidence/create-play/review-pr/evals.yaml b/.meridian/project/issues/208/evidence/create-play/review-pr/evals.yaml
 new file mode 100644
 index 0000000..eb7a0a7
 --- /dev/null
-+++ b/.meridian/project/issues/208/evidence/create-recipe/review-pr/evals.yaml
++++ b/.meridian/project/issues/208/evidence/create-play/review-pr/evals.yaml
 @@ -0,0 +1,115 @@
 +step_evals:
 +  - id: SE-1
@@ -686,7 +686,7 @@ index 0000000..eb7a0a7
 +      When candidate count < reviewer_count, reviewers.yaml shows
 +      fallback_used: true and selected_reviewers is drawn from
 +      review-pr.fallback_reviewers. If fallback_reviewers is empty AND
-+      candidates short, recipe halts with structured failure F3.
++      candidates short, play halts with structured failure F3.
 +
 +  - id: SE-8
 +    skill: repo-orchestrator
@@ -739,13 +739,13 @@ index 0000000..eb7a0a7
 +      Two back-to-back review-pr runs on the same PR produce
 +      byte-identical findings.yaml (modulo meta.generated_at) and
 +      identical P1..P4 counts.
-diff --git a/.meridian/project/issues/208/evidence/create-recipe/review-pr/skill-manifest.yaml b/.meridian/project/issues/208/evidence/create-recipe/review-pr/skill-manifest.yaml
+diff --git a/.meridian/project/issues/208/evidence/create-play/review-pr/skill-manifest.yaml b/.meridian/project/issues/208/evidence/create-play/review-pr/skill-manifest.yaml
 new file mode 100644
 index 0000000..06eefff
 --- /dev/null
-+++ b/.meridian/project/issues/208/evidence/create-recipe/review-pr/skill-manifest.yaml
++++ b/.meridian/project/issues/208/evidence/create-play/review-pr/skill-manifest.yaml
 @@ -0,0 +1,7 @@
-+recipe: review-pr
++play: review-pr
 +skills:
 +  - name: quality-check-scoped
 +    path: core/components/skills/quality-check-scoped/SKILL.md
@@ -761,8 +761,8 @@ index 0000000..583d1f8
 +# Evidence: start-feature-planning — #208
 +
 +**Completed:** 2026-04-13 19:05:58
-+**Issue:** #208 — Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection
-+**Branch:** feature/208-review-pr-recipe (pushed to origin)
++**Issue:** #208 — Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection
++**Branch:** feature/208-review-pr-play (pushed to origin)
 +
 +## Planning Artifacts
 +- `.meridian/project/issues/208/planning/spec.md`
@@ -791,14 +791,14 @@ index 0000000..15b7390
 +++ b/.meridian/project/issues/208/evidence/start-feature-planning/args.yaml
 @@ -0,0 +1,80 @@
 +input_type: title
-+value: "Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection"
++value: "Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection"
 +parent: null
 +body: |
 +  ## Intent
 +
-+  Build the `review-pr` L2 recipe for meridian-os plus dependent changes. This is a new recipe that reviews a PR against diff-scoped quality standards, blocks on P1 findings, surfaces P2/P3 highlights, gates on a confidence score, and selects the top 3 reviewers from recent committers on changed paths.
++  Build the `review-pr` high-order play for meridian-os plus dependent changes. This is a new play that reviews a PR against diff-scoped quality standards, blocks on P1 findings, surfaces P2/P3 highlights, gates on a confidence score, and selects the top 3 reviewers from recent committers on changed paths.
 +
-+  Follow meridian's recipe authoring flow: author `reference/intent.yaml`, then `/create-recipe` bakes `SKILL.md`. Never edit `SKILL.md` directly.
++  Follow meridian's play authoring flow: author `reference/intent.yaml`, then `/create-play` bakes `SKILL.md`. Never edit `SKILL.md` directly.
 +
 +  ## Scope
 +
@@ -827,7 +827,7 @@ index 0000000..15b7390
 +  - Output: findings classified P1-P4, each citing a standard ID
 +  - Scoped to diff only — never full repo (unlike `/quality-check`)
 +
-+  ### 4. `review-pr` recipe (L2, ≤5 agents)
++  ### 4. `review-pr` play (L2, ≤5 agents)
 +  - Pre-flight: `repo-orchestrator` fetches PR diff, paths, body, linked issue; validate config + KB taxonomy
 +  - Step 1 Context Load (`tech-designer`): resolve standards from config `standards_order`, bind intent from issue intent.yaml or PR body
 +  - Step 2 Scoped Quality Eval (`quality-auditor` via `quality-check-scoped`): produce classified findings
@@ -842,11 +842,11 @@ index 0000000..15b7390
 +    - SCE-4: fallback reviewers kick in when git history < 3
 +    - SCE-5: determinism — same PR twice produces identical classification
 +
-+  ### 5. `ship` recipe change
++  ### 5. `ship` play change
 +  - Read `core/config.yaml` `review-pr.bypass`
 +  - If `false`: insert Step 2.5 invoking `review-pr` between `create-pr` and `merge-pr`
 +  - P1 finding or confidence < threshold halts ship
-+  - Update ship `reference/intent.yaml`, re-bake via `/create-recipe`
++  - Update ship `reference/intent.yaml`, re-bake via `/create-play`
 +  - This changes ship's "no approvals at any stage" contract — update intent wording
 +
 +  ### 6. `create-pr` — DO NOT MODIFY
@@ -854,7 +854,7 @@ index 0000000..15b7390
 +
 +  ### 7. `idsd.md` updates
 +  - Mark P13 `review-pr` COMPLETE
-+  - Add `review-pr` section under "Recipe Specs — Code-2-Test"
++  - Add `review-pr` section under "Play Specs — Code-2-Test"
 +  - Note ship's new bypass-conditional review step
 +
 +  ## Open Decisions (resolve during planning)
@@ -863,13 +863,13 @@ index 0000000..15b7390
 +
 +  ## Constraints
 +  - Follow IDD: `intent.yaml` is source of truth, `SKILL.md` is compiled artifact
-+  - Recipe L1 ≤2 agents, L2 ≤5 agents (domain); utility agents exempt
++  - Play L1 ≤2 agents, L2 ≤5 agents (domain); utility agents exempt
 +  - Standards hierarchy KB → LTM → STM, paths from config only
 +  - All findings must cite a standard ID (F3 guard)
 +  - Severity classification must be deterministic across runs
 +
 +  ## Deliverable
-+  A step-by-step build plan covering KB taxonomy, config extension, `quality-check-scoped` skill, `review-pr` recipe, ship re-bake, and idsd.md updates — in the correct dependency order, ready to execute in this repo.
++  A step-by-step build plan covering KB taxonomy, config extension, `quality-check-scoped` skill, `review-pr` play, ship re-bake, and idsd.md updates — in the correct dependency order, ready to execute in this repo.
 diff --git a/.meridian/project/issues/208/evidence/start-feature-planning/branch-result.yaml b/.meridian/project/issues/208/evidence/start-feature-planning/branch-result.yaml
 new file mode 100644
 index 0000000..b0713f4
@@ -877,7 +877,7 @@ index 0000000..b0713f4
 +++ b/.meridian/project/issues/208/evidence/start-feature-planning/branch-result.yaml
 @@ -0,0 +1,6 @@
 +branch:
-+  name: feature/208-review-pr-recipe
++  name: feature/208-review-pr-play
 +  base: main
 +  pushed: true
 +  remote: origin
@@ -890,13 +890,13 @@ index 0000000..cd592af
 @@ -0,0 +1,84 @@
 +issue:
 +  number: 208
-+  title: "Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection"
++  title: "Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection"
 +  body: |
 +    ## Intent
 +
-+    Build the `review-pr` L2 recipe for meridian-os plus dependent changes. This is a new recipe that reviews a PR against diff-scoped quality standards, blocks on P1 findings, surfaces P2/P3 highlights, gates on a confidence score, and selects the top 3 reviewers from recent committers on changed paths.
++    Build the `review-pr` high-order play for meridian-os plus dependent changes. This is a new play that reviews a PR against diff-scoped quality standards, blocks on P1 findings, surfaces P2/P3 highlights, gates on a confidence score, and selects the top 3 reviewers from recent committers on changed paths.
 +
-+    Follow meridian's recipe authoring flow: author `reference/intent.yaml`, then `/create-recipe` bakes `SKILL.md`. Never edit `SKILL.md` directly.
++    Follow meridian's play authoring flow: author `reference/intent.yaml`, then `/create-play` bakes `SKILL.md`. Never edit `SKILL.md` directly.
 +
 +    ## Scope
 +
@@ -925,7 +925,7 @@ index 0000000..cd592af
 +    - Output: findings classified P1-P4, each citing a standard ID
 +    - Scoped to diff only — never full repo (unlike `/quality-check`)
 +
-+    ### 4. `review-pr` recipe (L2, ≤5 agents)
++    ### 4. `review-pr` play (L2, ≤5 agents)
 +    - Pre-flight: `repo-orchestrator` fetches PR diff, paths, body, linked issue; validate config + KB taxonomy
 +    - Step 1 Context Load (`tech-designer`): resolve standards from config `standards_order`, bind intent from issue intent.yaml or PR body
 +    - Step 2 Scoped Quality Eval (`quality-auditor` via `quality-check-scoped`): produce classified findings
@@ -940,11 +940,11 @@ index 0000000..cd592af
 +      - SCE-4: fallback reviewers kick in when git history < 3
 +      - SCE-5: determinism — same PR twice produces identical classification
 +
-+    ### 5. `ship` recipe change
++    ### 5. `ship` play change
 +    - Read `core/config.yaml` `review-pr.bypass`
 +    - If `false`: insert Step 2.5 invoking `review-pr` between `create-pr` and `merge-pr`
 +    - P1 finding or confidence < threshold halts ship
-+    - Update ship `reference/intent.yaml`, re-bake via `/create-recipe`
++    - Update ship `reference/intent.yaml`, re-bake via `/create-play`
 +    - This changes ship's "no approvals at any stage" contract — update intent wording
 +
 +    ### 6. `create-pr` — DO NOT MODIFY
@@ -952,7 +952,7 @@ index 0000000..cd592af
 +
 +    ### 7. `idsd.md` updates
 +    - Mark P13 `review-pr` COMPLETE
-+    - Add `review-pr` section under "Recipe Specs — Code-2-Test"
++    - Add `review-pr` section under "Play Specs — Code-2-Test"
 +    - Note ship's new bypass-conditional review step
 +
 +    ## Open Decisions (resolve during planning)
@@ -961,13 +961,13 @@ index 0000000..cd592af
 +
 +    ## Constraints
 +    - Follow IDD: `intent.yaml` is source of truth, `SKILL.md` is compiled artifact
-+    - Recipe L1 ≤2 agents, L2 ≤5 agents (domain); utility agents exempt
++    - Play L1 ≤2 agents, L2 ≤5 agents (domain); utility agents exempt
 +    - Standards hierarchy KB → LTM → STM, paths from config only
 +    - All findings must cite a standard ID (F3 guard)
 +    - Severity classification must be deterministic across runs
 +
 +    ## Deliverable
-+    A step-by-step build plan covering KB taxonomy, config extension, `quality-check-scoped` skill, `review-pr` recipe, ship re-bake, and idsd.md updates — in the correct dependency order, ready to execute in this repo.
++    A step-by-step build plan covering KB taxonomy, config extension, `quality-check-scoped` skill, `review-pr` play, ship re-bake, and idsd.md updates — in the correct dependency order, ready to execute in this repo.
 +  url: "https://github.com/kapilvirenahuja/meridian-os/issues/208"
 +  state: "open"
 +  created: true
@@ -978,13 +978,13 @@ index 0000000..d4e6c03
 --- /dev/null
 +++ b/.meridian/project/issues/208/planning/spec.md
 @@ -0,0 +1,107 @@
-+# Specification: #208 — Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection
++# Specification: #208 — Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection
 +<!-- Generated by start-feature-planning | Plan sub-agent output -->
 +
-+**Intent:** Introduce an automated, diff-scoped PR review capability as an L2 recipe (`review-pr`) in meridian-os, backed by a deterministic severity taxonomy, a confidence gate, and git-history-driven reviewer selection, and integrate it into `ship` as a bypass-conditional pre-merge step.
++**Intent:** Introduce an automated, diff-scoped PR review capability as an high-order play (`review-pr`) in meridian-os, backed by a deterministic severity taxonomy, a confidence gate, and git-history-driven reviewer selection, and integrate it into `ship` as a bypass-conditional pre-merge step.
 +
 +**Constraints:**
-+- IDD: `reference/intent.yaml` is source of truth, `SKILL.md` is compiled via `/create-recipe`. Never hand-edit SKILL.md.
++- IDD: `reference/intent.yaml` is source of truth, `SKILL.md` is compiled via `/create-play`. Never hand-edit SKILL.md.
 +- L2 budget: ≤5 domain agents (utility agents exempt).
 +- Standards hierarchy KB → LTM → STM, paths resolved from `core/config.yaml` only — no hardcoded paths.
 +- Every finding MUST cite an existing standard ID (CODE-nn, SEC-nn, ARCH-nn, TEST-nn, DOC-nn, PERF-nn, FE-nn, BE-nn, DATA-nn, OPS-nn, DEBT-nn).
@@ -1006,9 +1006,9 @@ index 0000000..d4e6c03
 +
 +## Summary
 +
-+This work builds the `review-pr` L2 recipe plus the supporting scaffolding it needs: (1) a deterministic PR severity taxonomy expressed as a mapping from existing KB standard IDs to P1..P4 buckets, (2) a `review-pr` section in `core/config.yaml`, (3) a new `quality-check-scoped` skill that reuses KB data but runs a single-pass diff-bounded evaluation (not the 11-subagent full-repo framework), (4) the compiled `review-pr` recipe itself with 6 steps (context load → scoped quality eval → confidence → reviewer selection → post & route → evidence), and (5) a delta to `ship` so that when `review-pr.bypass=false` it inserts `review-pr` as Step 2.5 between `create-pr` and `merge-pr` with P1 findings or low confidence halting the pipeline. `create-pr` is intentionally untouched — reviewer-selection logic belongs only to `review-pr`. IDSD is updated to flip P13 to COMPLETE and document the new bypass-conditional ship step.
++This work builds the `review-pr` high-order play plus the supporting scaffolding it needs: (1) a deterministic PR severity taxonomy expressed as a mapping from existing KB standard IDs to P1..P4 buckets, (2) a `review-pr` section in `core/config.yaml`, (3) a new `quality-check-scoped` skill that reuses KB data but runs a single-pass diff-bounded evaluation (not the 11-subagent full-repo framework), (4) the compiled `review-pr` play itself with 6 steps (context load → scoped quality eval → confidence → reviewer selection → post & route → evidence), and (5) a delta to `ship` so that when `review-pr.bypass=false` it inserts `review-pr` as Step 2.5 between `create-pr` and `merge-pr` with P1 findings or low confidence halting the pipeline. `create-pr` is intentionally untouched — reviewer-selection logic belongs only to `review-pr`. IDSD is updated to flip P13 to COMPLETE and document the new bypass-conditional ship step.
 +
-+**Path correction vs the issue body:** The issue places the taxonomy at `core/components/memory/kb/standards/pr-severity-taxonomy.md`, but meridian-os has no `kb/` directory. KB knowledge lives at `core/components/memory/knowledge/` and cross-cutting rules live at `core/components/memory/standards/`. The taxonomy is a standard (a rule set), so the correct path is **`core/components/memory/standards/pr-severity-taxonomy.md`**. The review-pr recipe resolves this path via `core/config.yaml` (no hardcoding), preserving the spirit of "KB severity taxonomy cited by standard ID."
++**Path correction vs the issue body:** The issue places the taxonomy at `core/components/memory/kb/standards/pr-severity-taxonomy.md`, but meridian-os has no `kb/` directory. KB knowledge lives at `core/components/memory/knowledge/` and cross-cutting rules live at `core/components/memory/standards/`. The taxonomy is a standard (a rule set), so the correct path is **`core/components/memory/standards/pr-severity-taxonomy.md`**. The review-pr play resolves this path via `core/config.yaml` (no hardcoding), preserving the spirit of "KB severity taxonomy cited by standard ID."
 +
 +## Affected Files
 +
@@ -1018,10 +1018,10 @@ index 0000000..d4e6c03
 +| `core/config.yaml` | Config | MODIFY — add `review-pr:` section and `standards:` resolution block for the taxonomy path |
 +| `core/components/skills/quality-check-scoped/SKILL.md` | New skill | CREATE via `/skill-creator` — diff-bounded single-pass evaluator, reuses `core/components/memory/knowledge/quality/**` KB |
 +| `core/components/skills/quality-check-scoped/reference/` | Skill reference | CREATE — contract schema, finding schema, link to taxonomy |
-+| `core/components/recipes/review-pr/reference/intent.yaml` | New recipe intent | CREATE — constraints C1..C10, failure F1..F9, scenarios S1..S4 |
-+| `core/components/recipes/review-pr/SKILL.md` | Compiled recipe | CREATE via `/create-recipe --bake review-pr` (do NOT hand-edit) |
-+| `core/components/recipes/ship/reference/intent.yaml` | Ship intent | MODIFY — intent paragraph, add C7, F7, S3 |
-+| `core/components/recipes/ship/SKILL.md` | Compiled ship | RE-BAKE via `/create-recipe --rebake ship` |
++| `core/components/plays/review-pr/reference/intent.yaml` | New play intent | CREATE — constraints C1..C10, failure F1..F9, scenarios S1..S4 |
++| `core/components/plays/review-pr/SKILL.md` | Compiled play | CREATE via `/create-play --bake review-pr` (do NOT hand-edit) |
++| `core/components/plays/ship/reference/intent.yaml` | Ship intent | MODIFY — intent paragraph, add C7, F7, S3 |
++| `core/components/plays/ship/SKILL.md` | Compiled ship | RE-BAKE via `/create-play --rebake ship` |
 +| `.claude/specs/idsd/idsd.md` | IDSD spec | MODIFY — P13 ✅ COMPLETE, add review-pr detail, note ship's bypass-conditional step |
 +| `core/components/agents/repo-orchestrator.md` | Agent | VERIFY / minor extend — git log + gh pr commands for reviewer selection |
 +
@@ -1047,7 +1047,7 @@ index 0000000..d4e6c03
 +
 +3. **New skill `quality-check-scoped` (not an extension).** Inputs: `diff_path`, `changed_paths[]`, `standards_set`, `severity_taxonomy_path`, `intent_summary`. Loads only KB files whose domain is touched by `changed_paths`, evaluates each relevant standard check against the diff as a single pass, classifies findings via the taxonomy, emits `findings.yaml` with `{standard_id, severity, file, line, evidence, taxonomy_rule_id}`. NEVER full-repo. Reuses KB data, not execution model.
 +
-+4. **review-pr recipe, Structure A.** 3 domain agents + repo-orchestrator utility:
++4. **review-pr play, Structure A.** 3 domain agents + repo-orchestrator utility:
 +   - **Pre-flight (repo-orchestrator, utility):** resolve config, fetch PR diff/paths/body/linked-issue via `gh pr view` + `gh pr diff`, validate taxonomy file exists.
 +   - **Step 1 Context Load (tech-designer, domain):** resolve standards set from `standards_order`, bind intent from `spec/intent.yaml` or PR body; emit `context.yaml`.
 +   - **Step 2 Scoped Quality Eval (quality-auditor, domain):** invoke `quality-check-scoped`; emit `findings.yaml`.
@@ -1066,8 +1066,8 @@ index 0000000..d4e6c03
 +- Extend `/quality-check` with `--scope diff` flag → rejected. `/quality-check` launches 11 parallel subagents on full repo; bolting scoped mode forces dual execution models into one skill.
 +- Taxonomy authored as new rules from scratch → rejected. Existing 11-domain KB already has citable IDs. Duplicating would fragment standards.
 +- Reviewer selection inside `create-pr` → rejected per constraint. Review routing lives where review decisions live.
-+- Runtime config reading via intent-resolver → rejected. L2 has no runtime resolver; recipe pre-flight reads config directly (same pattern as `ship`).
-+- Ship reads review-pr.bypass inside sub-recipe vs orchestrator → chose orchestrator-level. Consistent with ship's existing C1/C2 pre-flight.
++- Runtime config reading via intent-resolver → rejected. L2 has no runtime resolver; play pre-flight reads config directly (same pattern as `ship`).
++- Ship reads review-pr.bypass inside sub-play vs orchestrator → chose orchestrator-level. Consistent with ship's existing C1/C2 pre-flight.
 +
 +**Risks:**
 +| Risk | Mitigation | Severity |
@@ -1077,33 +1077,33 @@ index 0000000..d4e6c03
 +| Ship's contract change ("no approvals at any stage") is user-visible | Update intent language; document bypass flag; call out in idsd.md | Medium |
 +| `git log` reviewer selection swamps dominant committers | Recency weighting + `fallback_reviewers` + author exclusion | Low |
 +| New paths have no git history → <3 reviewers | `fallback_reviewers` config; fail loud if empty and <3 | Medium |
-+| Chicken-and-egg: `/create-recipe` for review-pr before skills exist | Dependency order: taxonomy → config → skill → intent → bake | Medium |
-+| Intent-hash drift on ship after re-bake | `/create-recipe --rebake ship` recomputes hash; verification re-reads compiled intent_hash | Low |
++| Chicken-and-egg: `/create-play` for review-pr before skills exist | Dependency order: taxonomy → config → skill → intent → bake | Medium |
++| Intent-hash drift on ship after re-bake | `/create-play --rebake ship` recomputes hash; verification re-reads compiled intent_hash | Low |
 +
 +## Open Decisions (resolved)
 +
 +**(a) KB severity taxonomy authorship — derive from existing `/quality-check` domains.** The 11-domain KB already defines citable IDs with assessment checklists; the taxonomy is a *mapping* layer from those IDs to P1..P4 buckets with mechanical rules. Hand-authoring from scratch would fragment the standards corpus, violate "one source of truth," and force `quality-check-scoped` to maintain two parallel ID spaces.
 +
-+**(b) Confidence math weights — weighted, not equal.** `confidence = 0.25*scan_coverage + 0.35*citation_rate + 0.20*intent_alignment + 0.20*precedent_match`. `citation_rate` (fraction of findings citing a real standard ID) is the strongest deterministic signal and directly enforces F3 — it deserves highest weight. Weights sum to 1.0. Documented in recipe intent so changes require a re-bake.
++**(b) Confidence math weights — weighted, not equal.** `confidence = 0.25*scan_coverage + 0.35*citation_rate + 0.20*intent_alignment + 0.20*precedent_match`. `citation_rate` (fraction of findings citing a real standard ID) is the strongest deterministic signal and directly enforces F3 — it deserves highest weight. Weights sum to 1.0. Documented in play intent so changes require a re-bake.
 diff --git a/.meridian/project/issues/208/planning/tasks.md b/.meridian/project/issues/208/planning/tasks.md
 new file mode 100644
 index 0000000..9edb784
 --- /dev/null
 +++ b/.meridian/project/issues/208/planning/tasks.md
 @@ -0,0 +1,182 @@
-+# Tasks: #208 — Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection
++# Tasks: #208 — Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection
 +<!-- Generated by start-feature-planning | Plan sub-agent output -->
 +
-+**Intent:** Implement the spec via granular, dependency-ordered tasks that respect the IDD compile pipeline and avoid chicken-and-egg problems with `/create-recipe`.
++**Intent:** Implement the spec via granular, dependency-ordered tasks that respect the IDD compile pipeline and avoid chicken-and-egg problems with `/create-play`.
 +
 +**Constraints:**
-+- Build order must ensure `quality-check-scoped` exists before `/create-recipe --bake review-pr` runs (create-recipe Step 3 gate).
-+- `ship` is re-baked AFTER `review-pr` is compiled (ship's sub-recipe chain references review-pr).
++- Build order must ensure `quality-check-scoped` exists before `/create-play --bake review-pr` runs (create-play Step 3 gate).
++- `ship` is re-baked AFTER `review-pr` is compiled (ship's sub-play chain references review-pr).
 +- `/sync-claude` runs once at the end, not per task.
 +- `create-pr` is not modified.
 +
 +**Failure Conditions:**
-+- A task runs out of order and a downstream `/create-recipe` invocation fails its existence gates.
++- A task runs out of order and a downstream `/create-play` invocation fails its existence gates.
 +- `ship` is re-baked before `review-pr` exists.
 +- `idsd.md` updated before all artifacts land (stale claim of completeness).
 +
@@ -1114,9 +1114,9 @@ index 0000000..9edb784
 +  └─► T2 (config)
 +        └─► T3 (quality-check-scoped skill)
 +              └─► T4 (review-pr intent.yaml)
-+                    └─► T5 (/create-recipe --bake review-pr)
++                    └─► T5 (/create-play --bake review-pr)
 +                          └─► T6 (ship intent.yaml delta)
-+                                └─► T7 (/create-recipe --rebake ship)
++                                └─► T7 (/create-play --rebake ship)
 +                                      └─► T8 (idsd.md updates)
 +                                            └─► T9 (/sync-claude)
 +                                                  └─► T10 (end-to-end smoke test)
@@ -1140,7 +1140,7 @@ index 0000000..9edb784
 +- **Files:** `core/config.yaml` (modify)
 +- **Details:** Add after `stm:` block:
 +  ```yaml
-+  # Standards resolution (first recipe-specific section; pattern for future recipes)
++  # Standards resolution (first play-specific section; pattern for future plays)
 +  standards:
 +    pr-severity-taxonomy: ./core/components/memory/standards/pr-severity-taxonomy.md
 +
@@ -1167,12 +1167,12 @@ index 0000000..9edb784
 +  - **Execution:** single pass. Reuses KB files but not quality-check's 11-subagent execution model.
 +  - **Explicit constraint:** "NEVER reads files outside `changed_paths`." Document as "Diff scope invariant."
 +- **Depends on:** T1, T2
-+- **Expected Outcome:** Skill exists with valid SKILL.md contract; create-recipe Step 3 skill-existence gate passes for review-pr.
++- **Expected Outcome:** Skill exists with valid SKILL.md contract; create-play Step 3 skill-existence gate passes for review-pr.
 +- **Verification:** V4 — skill contract schema complete and enforces F3.
 +
 +### T4: Author review-pr intent.yaml
-+- **Files:** `core/components/recipes/review-pr/reference/intent.yaml` (create)
-+- **Details:** Invoke `intent-crafter` via `/create-recipe` (New mode; stop after Step 2 Intent gate). Content seed:
++- **Files:** `core/components/plays/review-pr/reference/intent.yaml` (create)
++- **Details:** Invoke `intent-crafter` via `/create-play` (New mode; stop after Step 2 Intent gate). Content seed:
 +  - **intent:** "Review a pull request against diff-scoped quality standards resolved from config, classify findings deterministically via the PR severity taxonomy, gate on a confidence score, select the top N reviewers from recent committers on changed paths, and post structured routing to the PR."
 +  - **constraints:**
 +    - C1 Diff-scoped evaluation only; never full-repo.
@@ -1184,7 +1184,7 @@ index 0000000..9edb784
 +    - C7 Falls through to `fallback_reviewers` when fewer than `reviewer_count` candidates.
 +    - C8 PR comment uses a structured template; existing prior-run comment is updated, not stacked.
 +    - C9 `confidence = 0.25*scan_coverage + 0.35*citation_rate + 0.20*intent_alignment + 0.20*precedent_match`.
-+    - C10 `create-pr` is never invoked or modified from this recipe.
++    - C10 `create-pr` is never invoked or modified from this play.
 +  - **failure_conditions:**
 +    - F1 Finding emitted without a standard ID.
 +    - F2 Full-repo quality-check executed.
@@ -1194,7 +1194,7 @@ index 0000000..9edb784
 +    - F6 Confidence < threshold but no reviewers requested.
 +    - F7 Severity classification non-deterministic across identical runs.
 +    - F8 `pr-severity-taxonomy.md` or config keys missing at pre-flight.
-+    - F9 Recipe exceeded L2 domain-agent budget.
++    - F9 Play exceeded L2 domain-agent budget.
 +  - **scenarios:**
 +    - S1 Reviewer: opens the PR and sees a structured comment with P1..P3 sections and confidence score.
 +    - S2 Author: can trace every finding to a cited standard ID and evidence line.
@@ -1202,19 +1202,19 @@ index 0000000..9edb784
 +    - S4 Determinism: two runs produce identical buckets.
 +- **Depends on:** T3
 +- **Expected Outcome:** intent.yaml schema-valid; user Tether on intent gate.
-+- **Verification:** schema check via create-recipe Step 2 gate.
++- **Verification:** schema check via create-play Step 2 gate.
 +
-+### T5: Compile review-pr recipe
++### T5: Compile review-pr play
 +- **Files:**
-+  - `core/components/recipes/review-pr/SKILL.md` (create via `/create-recipe --bake review-pr`)
-+  - STM artifacts under `{stm_base}/{issue}/evidence/create-recipe/review-pr/`
-+- **Details:** Run `/create-recipe --bake review-pr`. Skill Inventory Step 3 sees `quality-check-scoped` and passes. Agent Audit Step 4 covers `repo-orchestrator`, `tech-designer`, `quality-auditor` — all pre-existing. Workflow structure = **A** (checkpoint-capable, multi-agent, confidence-gated). Pre-flight picks up C4 (config resolution) and C1 (diff scope). evals-creator generates SE-1..SE-n and SCE-1..SCE-4 covering F1..F9 and S1..S4. Do NOT hand-edit compiled SKILL.md.
++  - `core/components/plays/review-pr/SKILL.md` (create via `/create-play --bake review-pr`)
++  - STM artifacts under `{stm_base}/{issue}/evidence/create-play/review-pr/`
++- **Details:** Run `/create-play --bake review-pr`. Skill Inventory Step 3 sees `quality-check-scoped` and passes. Agent Audit Step 4 covers `repo-orchestrator`, `tech-designer`, `quality-auditor` — all pre-existing. Workflow structure = **A** (checkpoint-capable, multi-agent, confidence-gated). Pre-flight picks up C4 (config resolution) and C1 (diff scope). evals-creator generates SE-1..SE-n and SCE-1..SCE-4 covering F1..F9 and S1..S4. Do NOT hand-edit compiled SKILL.md.
 +- **Depends on:** T4
 +- **Expected Outcome:** Compiled `review-pr/SKILL.md` with valid intent_hash, ≤5 domain agents, 6 workflow steps matching design.
-+- **Verification:** V5 — `/create-recipe --review review-pr` returns 11/11 PASS; V6 — domain agent count ≤5.
++- **Verification:** V5 — `/create-play --review review-pr` returns 11/11 PASS; V6 — domain agent count ≤5.
 +
 +### T6: Update ship intent.yaml for bypass-conditional gate
-+- **Files:** `core/components/recipes/ship/reference/intent.yaml` (modify)
++- **Files:** `core/components/plays/ship/reference/intent.yaml` (modify)
 +- **Details:**
 +  - Replace "No human approvals at any stage — all decisions auto-proceed regardless of confidence level." with: *"Auto-proceeds end-to-end unless the `review-pr` quality gate blocks. When `review-pr.bypass` is false in `core/config.yaml`, `review-pr` runs between `create-pr` and `merge-pr`; a P1 finding or sub-threshold confidence halts the pipeline before merge. Set `bypass: true` to preserve the unconditional auto-proceed behavior."*
 +  - Soften C2: `All chained operations execute without human approval gates, EXCEPT the review-pr quality gate when review-pr.bypass is false.`
@@ -1226,25 +1226,25 @@ index 0000000..9edb784
 +- **Verification:** intent.yaml schema check; diff inspection.
 +
 +### T7: Re-bake ship
-+- **Files:** `core/components/recipes/ship/SKILL.md` (regenerate via `/create-recipe --rebake ship`)
-+- **Details:** `/create-recipe --rebake ship`. Compiled output should:
-+  - Add conditional Step 2.5 "Quality Gate" to sub-recipe chain table, gated on `bypass`.
++- **Files:** `core/components/plays/ship/SKILL.md` (regenerate via `/create-play --rebake ship`)
++- **Details:** `/create-play --rebake ship`. Compiled output should:
++  - Add conditional Step 2.5 "Quality Gate" to sub-play chain table, gated on `bypass`.
 +  - Add pre-flight row "Resolve `review-pr.bypass` from `core/config.yaml`".
 +  - Add new evals for C7/F7/S3.
 +  - Update status-file `tasks` object to include conditional `review-pr: {status, bypass}` entry.
 +  - New intent_hash.
 +- **Depends on:** T6
 +- **Expected Outcome:** Fresh `ship/SKILL.md` that halts correctly when bypass=false and P1/low-confidence.
-+- **Verification:** V7 — `/create-recipe --review ship` returns 11/11 PASS with fresh intent_hash.
++- **Verification:** V7 — `/create-play --review ship` returns 11/11 PASS with fresh intent_hash.
 +
 +### T8: Update idsd.md
 +- **Files:** `.claude/specs/idsd/idsd.md` (modify)
 +- **Details:**
 +  - P13 row: `| P13 | review-pr | ✅ COMPLETE | L2, diff-scoped quality review with deterministic severity taxonomy, confidence gate, and git-history reviewer selection. Replaces validator-agent dependency with quality-auditor + taxonomy. |`
 +  - Remove validator-agent line from Dependency Blockers.
-+  - Add new subsection under Recipe Specs — Code-2-Test for `review-pr` describing the 6 workflow steps.
++  - Add new subsection under Play Specs — Code-2-Test for `review-pr` describing the 6 workflow steps.
 +  - Under `ship` row, append: `Updated #208 (2026-04): adds conditional review-pr quality gate between create-pr and merge-pr when review-pr.bypass=false.`
-+  - Component Inventory: bump recipes count; add `review-pr` and `quality-check-scoped` to deployed lists.
++  - Component Inventory: bump plays count; add `review-pr` and `quality-check-scoped` to deployed lists.
 +- **Depends on:** T7
 +- **Expected Outcome:** IDSD reflects P13 complete and ship's new conditional behavior.
 +- **Verification:** V14 — grep confirms P13 COMPLETE and validator-blocker line gone.
@@ -1253,7 +1253,7 @@ index 0000000..9edb784
 +- **Files:** `.claude/skills/**`, `.claude/agents/**` (regenerated by /sync-claude)
 +- **Details:** Run `/sync-claude` once. Confirm `review-pr`, `quality-check-scoped`, updated `ship`, and (unchanged) `create-pr` all sync without errors.
 +- **Depends on:** T8
-+- **Expected Outcome:** Deployed inventory contains new recipe + skill; ship is re-baked version.
++- **Expected Outcome:** Deployed inventory contains new play + skill; ship is re-baked version.
 +- **Verification:** V15 — sync output shows no errors and new components listed.
 +
 +### T10: End-to-end smoke test
@@ -1271,22 +1271,22 @@ index 0000000..9edb784
 +- `core/components/memory/standards/pr-severity-taxonomy.md`
 +- `core/config.yaml`
 +- `core/components/skills/quality-check-scoped/SKILL.md`
-+- `core/components/recipes/review-pr/reference/intent.yaml`
-+- `core/components/recipes/ship/reference/intent.yaml`
++- `core/components/plays/review-pr/reference/intent.yaml`
++- `core/components/plays/ship/reference/intent.yaml`
 diff --git a/.meridian/project/issues/208/planning/verify.md b/.meridian/project/issues/208/planning/verify.md
 new file mode 100644
 index 0000000..85d45a8
 --- /dev/null
 +++ b/.meridian/project/issues/208/planning/verify.md
 @@ -0,0 +1,66 @@
-+# Verification: #208 — Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection
++# Verification: #208 — Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection
 +<!-- Generated by start-feature-planning | Plan sub-agent output -->
 +
-+**Intent:** Verify that the taxonomy, config, skill, recipe, and ship integration satisfy determinism, L2 budget, bypass-conditional gating, and F1..F9 of `review-pr` and `ship`.
++**Intent:** Verify that the taxonomy, config, skill, play, and ship integration satisfy determinism, L2 budget, bypass-conditional gating, and F1..F9 of `review-pr` and `ship`.
 +
 +**Constraints:**
 +- All verification runnable locally on a real test PR in `meridian-os`.
-+- No hand-editing of compiled SKILL.md — all recipe verification is against the compiled artifact produced by `/create-recipe`.
++- No hand-editing of compiled SKILL.md — all play verification is against the compiled artifact produced by `/create-play`.
 +- Determinism check must be empirical: two back-to-back runs on the same PR.
 +
 +**Failure Conditions:**
@@ -1300,13 +1300,13 @@ index 0000000..85d45a8
 +- [ ] `core/components/memory/standards/pr-severity-taxonomy.md` exists and every row cites a real standard ID with a grep/path pattern.
 +- [ ] `core/config.yaml` contains `review-pr:` section with all 6 required keys and a `standards.pr-severity-taxonomy` resolution entry.
 +- [ ] `core/components/skills/quality-check-scoped/SKILL.md` exists, declares diff-bounded input, reads KB from `standards_order`, and emits findings that each cite a standard ID and taxonomy bucket.
-+- [ ] `core/components/recipes/review-pr/reference/intent.yaml` exists with ≥7 constraints, ≥6 failure conditions, ≥3 scenarios, and the confidence formula documented.
-+- [ ] `core/components/recipes/review-pr/SKILL.md` present, valid intent_hash matching `sha256(reference/intent.yaml)`, ≤5 domain agents in boundary table, never invokes `/quality-check`.
-+- [ ] `core/components/recipes/ship/reference/intent.yaml` has updated intent paragraph, new C7, new F7, new S3; `ship/SKILL.md` has fresh intent_hash matching.
++- [ ] `core/components/plays/review-pr/reference/intent.yaml` exists with ≥7 constraints, ≥6 failure conditions, ≥3 scenarios, and the confidence formula documented.
++- [ ] `core/components/plays/review-pr/SKILL.md` present, valid intent_hash matching `sha256(reference/intent.yaml)`, ≤5 domain agents in boundary table, never invokes `/quality-check`.
++- [ ] `core/components/plays/ship/reference/intent.yaml` has updated intent paragraph, new C7, new F7, new S3; `ship/SKILL.md` has fresh intent_hash matching.
 +- [ ] `.claude/specs/idsd/idsd.md` P13 row reads `✅ COMPLETE — L2`, Dependency Blockers section no longer shows `validator → P13`, new paragraph documents bypass-conditional ship step.
 +- [ ] `create-pr/reference/intent.yaml` and `create-pr/SKILL.md` byte-identical to pre-change state (no reviewer logic leaked in).
-+- [ ] `/create-recipe --review review-pr` returns 11/11 PASS (G1..G11).
-+- [ ] `/create-recipe --review ship` returns 11/11 PASS after re-bake.
++- [ ] `/create-play --review review-pr` returns 11/11 PASS (G1..G11).
++- [ ] `/create-play --review ship` returns 11/11 PASS after re-bake.
 +- [ ] Running `review-pr` twice on the same PR produces identical P1..P4 buckets (determinism).
 +- [ ] `ship` with `review-pr.bypass=true` behaves exactly as today (no review gate).
 +- [ ] `ship` with `review-pr.bypass=false` and a seeded P1 finding halts before `merge-pr`.
@@ -1319,10 +1319,10 @@ index 0000000..85d45a8
 +| V2 Taxonomy determinism | Feed same diff through `quality-check-scoped` twice | Byte-identical `findings.yaml` (stable ordering) |
 +| V3 Config schema | `yq` read of `review-pr.*` keys | All 6 keys present with correct defaults |
 +| V4 Skill contract | Read `quality-check-scoped/SKILL.md` | Declares all required inputs; output schema includes `standard_id`, `severity`, `taxonomy_rule_id` |
-+| V5 Recipe audit | `/create-recipe --review review-pr` | 11/11 PASS |
++| V5 Play audit | `/create-play --review review-pr` | 11/11 PASS |
 +| V6 Domain-agent budget | Count unique domain agents in `review-pr/SKILL.md` | ≤5 |
-+| V7 Ship audit | `/create-recipe --review ship` | 11/11 PASS and intent_hash fresh |
-+| V8 create-pr untouched | `git diff HEAD~N core/components/recipes/create-pr/` | Empty diff |
++| V7 Ship audit | `/create-play --review ship` | 11/11 PASS and intent_hash fresh |
++| V8 create-pr untouched | `git diff HEAD~N core/components/plays/create-pr/` | Empty diff |
 +| V9 Bypass path | Set `bypass: true`, run `ship` on test branch | Skips review-pr, matches legacy behavior |
 +| V10 Block-on-P1 path | Set `bypass: false`, seed a P1, run `ship` | Halts before `merge-pr`, PR has review-pr comment + reviewers |
 +| V11 Low-confidence path | Force `confidence < 0.5`, run `ship` | Halts + requests reviewers even without P1 |
@@ -1352,10 +1352,10 @@ index 0000000..aac304b
 +++ b/.meridian/project/issues/208/status/ship.json
 @@ -0,0 +1,15 @@
 +{
-+  "recipe": "ship",
++  "play": "ship",
 +  "issue": "208",
 +  "started_at": "2026-04-13T20:00:00+05:30",
-+  "feature_branch": "feature/208-review-pr-recipe",
++  "feature_branch": "feature/208-review-pr-play",
 +  "review_pr_bypass": false,
 +  "tasks": {
 +    "commit-code": { "status": "completed" },
@@ -1384,7 +1384,7 @@ index 129f6db..faaf1f7 100644
  1. Read the input YAML artifact(s) at the STM paths provided
  2. Write `{artifact_base}/briefs/{name}-data.json` — structured data extracted from the YAML
 -3. Copy the static HTML template from LTM (`~/.meridian/core/memory/standards/templates/{name}-brief.html`) to the output path
-+3. Copy the static HTML template from the briefs recipe (`~/.claude/skills/briefs/templates/{name}-brief.html`, fallback `core/components/recipes/briefs/templates/{name}-brief.html`) to the output path
++3. Copy the static HTML template from the briefs play (`~/.claude/skills/briefs/templates/{name}-brief.html`, fallback `core/components/plays/briefs/templates/{name}-brief.html`) to the output path
  4. The template loads `{name}-data.json` at runtime via `brief-render.js` — no server required
  
  ## Hub Generation
@@ -1392,7 +1392,7 @@ diff --git a/core/components/agents/product-strategist.md b/core/components/agen
 index 97336ce..56b338e 100644
 --- a/core/components/agents/product-strategist.md
 +++ b/core/components/agents/product-strategist.md
-@@ -85,7 +85,7 @@ When you receive a JSON contract from the recipe orchestrator:
+@@ -85,7 +85,7 @@ When you receive a JSON contract from the play orchestrator:
  3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
  4. **Collect context from LTM.** Search `~/.meridian/core/memory/` for domain-relevant content:
     - Standards and templates referenced by intent constraints (e.g., constraint with `template_ref` field)
@@ -1411,13 +1411,13 @@ index c1101de..67bb2b0 100644
  | `git/branching.md` | Branch naming conventions and quality gate implications | repo-orchestrator, setup-branch |
 +| `git/pr-severity-taxonomy.md` | Mechanical PR severity taxonomy — standard IDs mapped to P1/P2/P3/P4 with grep/path match rules | review-pr, quality-check-scoped |
  | `agent-lifecycle/epic-management-rules.md` | Epic management rules — vertical slice delivery, single module scope, mocks, dependency discipline, foundation investments | scope-roadmap-epics, assess-feasibility, prepare-implementation, product-strategist, tech-designer |
--| `knowledge-file-template.md` | Canonical knowledge file template — Tier 1 (all files) and Tier 2 (core-scoped) metadata requirements, staleness rules, and index registration conventions | knowledge-extractor, learn recipe |
-+| `intent-schema.yaml` | Canonical intent.yaml contract — fields produced by intent-crafter and consumed by intent-resolver / create-recipe | intent-crafter, intent-resolver, create-recipe |
+-| `knowledge-file-template.md` | Canonical knowledge file template — Tier 1 (all files) and Tier 2 (core-scoped) metadata requirements, staleness rules, and index registration conventions | knowledge-extractor, learn play |
++| `intent-schema.yaml` | Canonical intent.yaml contract — fields produced by intent-crafter and consumed by intent-resolver / create-play | intent-crafter, intent-resolver, create-play |
 +| `knowledge-file-template.md` | Canonical knowledge file template — Tier 1 (all files) and Tier 2 (core-scoped) metadata requirements, staleness rules, and index registration conventions | knowledge-extractor, capture-learning |
  | `resolution-protocol.md` | R1-R4 resolution protocol — LTM hierarchy enforcement, authority semantics (LOCKED/DRAFT), resolution trace schema, context isolation exemptions | tech-designer, product-strategist, repo-orchestrator |
  
 +> **Note:** The `agent-contract.md` JSON schema previously in this directory is now **ADR 016** (`docs/adr/016-agent-json-contract.md`) — it is foundational architecture, not organizational standards.
-+> Brief presentation rules previously in `brief-principles.md` are now `docs/design/briefs.md`. Brief HTML/CSS/JS templates live with the `briefs` recipe at `core/components/recipes/briefs/templates/`.
++> Brief presentation rules previously in `brief-principles.md` are now `docs/design/briefs.md`. Brief HTML/CSS/JS templates live with the `briefs` play at `core/components/plays/briefs/templates/`.
 +
  ## When to Add Here
  
@@ -1430,13 +1430,13 @@ index 8a3a680..0000000
 @@ -1,100 +0,0 @@
 -# Agent Contract Schema
 -
--The universal protocol for recipe→agent communication. Every recipe sends this. Every agent receives this. No exceptions.
+-The universal protocol for play→agent communication. Every play sends this. Every agent receives this. No exceptions.
 -
--## Input Contract (recipe → agent)
+-## Input Contract (play → agent)
 -
 -```json
 -{
--  "intent_path": "<path to recipe's reference/intent.yaml>",
+-  "intent_path": "<path to play's reference/intent.yaml>",
 -  "stm_base": "<resolved from core/config.yaml stm.base-path>",
 -  "stm": {
 -    "input": {
@@ -1446,7 +1446,7 @@ index 8a3a680..0000000
 -      "<named_key>": "<path where agent should write output artifact>"
 -    }
 -  },
--  "task_id": "<unique task identifier from compiled recipe step>"
+-  "task_id": "<unique task identifier from compiled play step>"
 -}
 -```
 -
@@ -1454,27 +1454,27 @@ index 8a3a680..0000000
 -
 -| Field | Required | Source | Description |
 -|-------|----------|--------|-------------|
--| `intent_path` | Yes | Recipe's `reference/intent.yaml` | Agent reads this to understand constraints, failure conditions, scenarios |
+-| `intent_path` | Yes | Play's `reference/intent.yaml` | Agent reads this to understand constraints, failure conditions, scenarios |
 -| `stm_base` | Yes | `core/config.yaml` → `stm.base-path` | Root path for all STM artifacts. Resolved during pre-flight. |
 -| `stm.input` | Yes | Prior steps' `stm.output` paths | Named paths to artifacts this step needs to read. Empty `{}` if first step. |
 -| `stm.output` | Yes | Compiler determines during compilation | Named paths where agent writes its artifacts. Become `stm.input` for downstream steps. |
--| `task_id` | Yes | Compiled step ID | Unique within the recipe. Also used as key in the status file for pause/resume. |
+-| `task_id` | Yes | Compiled step ID | Unique within the play. Also used as key in the status file for pause/resume. |
 -| `ltm_context` | No | Object with project_base (string, resolved from config.yaml product.base-path), core_base (string, always ~/.meridian/core/memory/), query_domains (string[], knowledge domains to consult), locked_artifacts (string[], filenames at project_base with LOCKED status). When present, agent follows R1-R4 from resolution-protocol.md. |
 -
 -### STM path convention
 -
--All paths follow: `{stm_base}/{issue}/evidence/{recipe-name}/{artifact}.yaml`
+-All paths follow: `{stm_base}/{issue}/evidence/{play-name}/{artifact}.yaml`
 -
 -Example:
 -```
 -stm_base = .meridian/project/issues/
 -issue = 95
--recipe = commit-code
+-play = commit-code
 -
 -→ .meridian/project/issues/95/evidence/commit-code/analysis.yaml
 -```
 -
--## Output Contract (agent → recipe)
+-## Output Contract (agent → play)
 -
 -```json
 -{
@@ -1519,7 +1519,7 @@ index 8a3a680..0000000
 -
 -## Transfer Mechanism
 -
--At runtime, the recipe executor (Claude Code) reads the JSON contract from the compiled SKILL.md step and passes it to the agent via the `Agent` tool prompt. The agent parses the contract, reads from `stm.input` paths, does its work, writes to `stm.output` paths, and returns the output contract.
+-At runtime, the play executor (Claude Code) reads the JSON contract from the compiled SKILL.md step and passes it to the agent via the `Agent` tool prompt. The agent parses the contract, reads from `stm.input` paths, does its work, writes to `stm.output` paths, and returns the output contract.
 -
 -## Resolution Protocol
 -
@@ -2080,10 +2080,10 @@ index 13da158..0000000
 ----
 -
 -*Storage path: `{artifact_path}`*
-diff --git a/core/components/recipes/briefs/SKILL.md b/core/components/recipes/briefs/SKILL.md
+diff --git a/core/components/plays/briefs/SKILL.md b/core/components/plays/briefs/SKILL.md
 index 999b6ee..0603d27 100644
---- a/core/components/recipes/briefs/SKILL.md
-+++ b/core/components/recipes/briefs/SKILL.md
+--- a/core/components/plays/briefs/SKILL.md
++++ b/core/components/plays/briefs/SKILL.md
 @@ -137,8 +137,8 @@ Map artifact name to template filename:
  | `plan` | `plan-brief.html` |
  
@@ -2091,7 +2091,7 @@ index 999b6ee..0603d27 100644
 -1. `~/.meridian/core/memory/standards/templates/{artifact}-brief.html` (global)
 -2. `core/components/memory/standards/templates/{artifact}-brief.html` (fallback)
 +1. `~/.claude/skills/briefs/templates/{artifact}-brief.html` (deployed)
-+2. `core/components/recipes/briefs/templates/{artifact}-brief.html` (fallback)
++2. `core/components/plays/briefs/templates/{artifact}-brief.html` (fallback)
  
  If template not found at either path → halt with: "Template not found for artifact '{artifact}'. Run /sync-claude to deploy templates."
  
@@ -2102,7 +2102,7 @@ index 999b6ee..0603d27 100644
 -1. `~/.meridian/core/memory/standards/templates/brief-common.css` (global)
 -2. `core/components/memory/standards/templates/brief-common.css` (fallback)
 +1. `~/.claude/skills/briefs/templates/brief-common.css` (deployed)
-+2. `core/components/recipes/briefs/templates/brief-common.css` (fallback)
++2. `core/components/plays/briefs/templates/brief-common.css` (fallback)
  
  (Same for `brief-render.js`.)
  
@@ -2113,112 +2113,112 @@ index 999b6ee..0603d27 100644
 -  1. `~/.meridian/core/memory/standards/templates/hub.html`
 -  2. `core/components/memory/standards/templates/hub.html`
 +  1. `~/.claude/skills/briefs/templates/hub.html`
-+  2. `core/components/recipes/briefs/templates/hub.html`
++  2. `core/components/plays/briefs/templates/hub.html`
  - Target: `{product_base}/briefs/hub.html`
  
  Copy as-is. hub.html references external brief-common.css and brief-render.js (already copied in 3.4) and reads hub.json at render time.
-diff --git a/core/components/memory/standards/templates/architecture-brief.html b/core/components/recipes/briefs/templates/architecture-brief.html
+diff --git a/core/components/memory/standards/templates/architecture-brief.html b/core/components/plays/briefs/templates/architecture-brief.html
 similarity index 100%
 rename from core/components/memory/standards/templates/architecture-brief.html
-rename to core/components/recipes/briefs/templates/architecture-brief.html
-diff --git a/core/components/memory/standards/templates/brief-common.css b/core/components/recipes/briefs/templates/brief-common.css
+rename to core/components/plays/briefs/templates/architecture-brief.html
+diff --git a/core/components/memory/standards/templates/brief-common.css b/core/components/plays/briefs/templates/brief-common.css
 similarity index 100%
 rename from core/components/memory/standards/templates/brief-common.css
-rename to core/components/recipes/briefs/templates/brief-common.css
-diff --git a/core/components/memory/standards/templates/brief-render.js b/core/components/recipes/briefs/templates/brief-render.js
+rename to core/components/plays/briefs/templates/brief-common.css
+diff --git a/core/components/memory/standards/templates/brief-render.js b/core/components/plays/briefs/templates/brief-render.js
 similarity index 100%
 rename from core/components/memory/standards/templates/brief-render.js
-rename to core/components/recipes/briefs/templates/brief-render.js
-diff --git a/core/components/memory/standards/templates/features-brief.html b/core/components/recipes/briefs/templates/features-brief.html
+rename to core/components/plays/briefs/templates/brief-render.js
+diff --git a/core/components/memory/standards/templates/features-brief.html b/core/components/plays/briefs/templates/features-brief.html
 similarity index 100%
 rename from core/components/memory/standards/templates/features-brief.html
-rename to core/components/recipes/briefs/templates/features-brief.html
-diff --git a/core/components/memory/standards/templates/fixtures/architecture.json b/core/components/recipes/briefs/templates/fixtures/architecture.json
+rename to core/components/plays/briefs/templates/features-brief.html
+diff --git a/core/components/memory/standards/templates/fixtures/architecture.json b/core/components/plays/briefs/templates/fixtures/architecture.json
 similarity index 100%
 rename from core/components/memory/standards/templates/fixtures/architecture.json
-rename to core/components/recipes/briefs/templates/fixtures/architecture.json
-diff --git a/core/components/memory/standards/templates/fixtures/features.json b/core/components/recipes/briefs/templates/fixtures/features.json
+rename to core/components/plays/briefs/templates/fixtures/architecture.json
+diff --git a/core/components/memory/standards/templates/fixtures/features.json b/core/components/plays/briefs/templates/fixtures/features.json
 similarity index 100%
 rename from core/components/memory/standards/templates/fixtures/features.json
-rename to core/components/recipes/briefs/templates/fixtures/features.json
-diff --git a/core/components/memory/standards/templates/fixtures/hub.json b/core/components/recipes/briefs/templates/fixtures/hub.json
+rename to core/components/plays/briefs/templates/fixtures/features.json
+diff --git a/core/components/memory/standards/templates/fixtures/hub.json b/core/components/plays/briefs/templates/fixtures/hub.json
 similarity index 100%
 rename from core/components/memory/standards/templates/fixtures/hub.json
-rename to core/components/recipes/briefs/templates/fixtures/hub.json
-diff --git a/core/components/memory/standards/templates/fixtures/plan.json b/core/components/recipes/briefs/templates/fixtures/plan.json
+rename to core/components/plays/briefs/templates/fixtures/hub.json
+diff --git a/core/components/memory/standards/templates/fixtures/plan.json b/core/components/plays/briefs/templates/fixtures/plan.json
 similarity index 100%
 rename from core/components/memory/standards/templates/fixtures/plan.json
-rename to core/components/recipes/briefs/templates/fixtures/plan.json
-diff --git a/core/components/memory/standards/templates/fixtures/product-empty.json b/core/components/recipes/briefs/templates/fixtures/product-empty.json
+rename to core/components/plays/briefs/templates/fixtures/plan.json
+diff --git a/core/components/memory/standards/templates/fixtures/product-empty.json b/core/components/plays/briefs/templates/fixtures/product-empty.json
 similarity index 100%
 rename from core/components/memory/standards/templates/fixtures/product-empty.json
-rename to core/components/recipes/briefs/templates/fixtures/product-empty.json
-diff --git a/core/components/memory/standards/templates/fixtures/product.json b/core/components/recipes/briefs/templates/fixtures/product.json
+rename to core/components/plays/briefs/templates/fixtures/product-empty.json
+diff --git a/core/components/memory/standards/templates/fixtures/product.json b/core/components/plays/briefs/templates/fixtures/product.json
 similarity index 100%
 rename from core/components/memory/standards/templates/fixtures/product.json
-rename to core/components/recipes/briefs/templates/fixtures/product.json
-diff --git a/core/components/memory/standards/templates/fixtures/quality-standards.json b/core/components/recipes/briefs/templates/fixtures/quality-standards.json
+rename to core/components/plays/briefs/templates/fixtures/product.json
+diff --git a/core/components/memory/standards/templates/fixtures/quality-standards.json b/core/components/plays/briefs/templates/fixtures/quality-standards.json
 similarity index 100%
 rename from core/components/memory/standards/templates/fixtures/quality-standards.json
-rename to core/components/recipes/briefs/templates/fixtures/quality-standards.json
-diff --git a/core/components/memory/standards/templates/fixtures/roadmap.json b/core/components/recipes/briefs/templates/fixtures/roadmap.json
+rename to core/components/plays/briefs/templates/fixtures/quality-standards.json
+diff --git a/core/components/memory/standards/templates/fixtures/roadmap.json b/core/components/plays/briefs/templates/fixtures/roadmap.json
 similarity index 100%
 rename from core/components/memory/standards/templates/fixtures/roadmap.json
-rename to core/components/recipes/briefs/templates/fixtures/roadmap.json
-diff --git a/core/components/memory/standards/templates/fixtures/scenarios.json b/core/components/recipes/briefs/templates/fixtures/scenarios.json
+rename to core/components/plays/briefs/templates/fixtures/roadmap.json
+diff --git a/core/components/memory/standards/templates/fixtures/scenarios.json b/core/components/plays/briefs/templates/fixtures/scenarios.json
 similarity index 100%
 rename from core/components/memory/standards/templates/fixtures/scenarios.json
-rename to core/components/recipes/briefs/templates/fixtures/scenarios.json
-diff --git a/core/components/memory/standards/templates/fixtures/tech.json b/core/components/recipes/briefs/templates/fixtures/tech.json
+rename to core/components/plays/briefs/templates/fixtures/scenarios.json
+diff --git a/core/components/memory/standards/templates/fixtures/tech.json b/core/components/plays/briefs/templates/fixtures/tech.json
 similarity index 100%
 rename from core/components/memory/standards/templates/fixtures/tech.json
-rename to core/components/recipes/briefs/templates/fixtures/tech.json
-diff --git a/core/components/memory/standards/templates/hub.html b/core/components/recipes/briefs/templates/hub.html
+rename to core/components/plays/briefs/templates/fixtures/tech.json
+diff --git a/core/components/memory/standards/templates/hub.html b/core/components/plays/briefs/templates/hub.html
 similarity index 100%
 rename from core/components/memory/standards/templates/hub.html
-rename to core/components/recipes/briefs/templates/hub.html
-diff --git a/core/components/memory/standards/templates/plan-brief.html b/core/components/recipes/briefs/templates/plan-brief.html
+rename to core/components/plays/briefs/templates/hub.html
+diff --git a/core/components/memory/standards/templates/plan-brief.html b/core/components/plays/briefs/templates/plan-brief.html
 similarity index 100%
 rename from core/components/memory/standards/templates/plan-brief.html
-rename to core/components/recipes/briefs/templates/plan-brief.html
-diff --git a/core/components/memory/standards/templates/product-brief.html b/core/components/recipes/briefs/templates/product-brief.html
+rename to core/components/plays/briefs/templates/plan-brief.html
+diff --git a/core/components/memory/standards/templates/product-brief.html b/core/components/plays/briefs/templates/product-brief.html
 similarity index 100%
 rename from core/components/memory/standards/templates/product-brief.html
-rename to core/components/recipes/briefs/templates/product-brief.html
-diff --git a/core/components/memory/standards/templates/roadmap-brief.html b/core/components/recipes/briefs/templates/roadmap-brief.html
+rename to core/components/plays/briefs/templates/product-brief.html
+diff --git a/core/components/memory/standards/templates/roadmap-brief.html b/core/components/plays/briefs/templates/roadmap-brief.html
 similarity index 100%
 rename from core/components/memory/standards/templates/roadmap-brief.html
-rename to core/components/recipes/briefs/templates/roadmap-brief.html
-diff --git a/core/components/memory/standards/templates/scenarios-brief.html b/core/components/recipes/briefs/templates/scenarios-brief.html
+rename to core/components/plays/briefs/templates/roadmap-brief.html
+diff --git a/core/components/memory/standards/templates/scenarios-brief.html b/core/components/plays/briefs/templates/scenarios-brief.html
 similarity index 100%
 rename from core/components/memory/standards/templates/scenarios-brief.html
-rename to core/components/recipes/briefs/templates/scenarios-brief.html
-diff --git a/core/components/memory/standards/templates/tech-brief.html b/core/components/recipes/briefs/templates/tech-brief.html
+rename to core/components/plays/briefs/templates/scenarios-brief.html
+diff --git a/core/components/memory/standards/templates/tech-brief.html b/core/components/plays/briefs/templates/tech-brief.html
 similarity index 100%
 rename from core/components/memory/standards/templates/tech-brief.html
-rename to core/components/recipes/briefs/templates/tech-brief.html
-diff --git a/core/components/recipes/create-recipe/SKILL.md b/core/components/recipes/create-recipe/SKILL.md
+rename to core/components/plays/briefs/templates/tech-brief.html
+diff --git a/core/components/plays/create-play/SKILL.md b/core/components/plays/create-play/SKILL.md
 index bf7ccef..92253a9 100644
---- a/core/components/recipes/create-recipe/SKILL.md
-+++ b/core/components/recipes/create-recipe/SKILL.md
-@@ -34,7 +34,7 @@ You are the **recipe compiler** and **architectural gatekeeper**. You own the pi
+--- a/core/components/plays/create-play/SKILL.md
++++ b/core/components/plays/create-play/SKILL.md
+@@ -34,7 +34,7 @@ You are the **play compiler** and **architectural gatekeeper**. You own the pi
  **Reference artifacts:**
  - `reference/audit-checklist.md` — P1-P10 agent compliance checklist
- - `reference/compiled-example.md` — target output format for compiled recipes
+ - `reference/compiled-example.md` — target output format for compiled plays
 -- `core/components/memory/standards/agent-contract.md` — universal JSON contract schema
 +- `docs/adr/016-agent-json-contract.md` — universal JSON contract schema
- - `docs/adr/013-recipe-maturity-model.md` — L2 design elements and workflow structures
+ - `docs/adr/013-play-maturity-model.md` — L2 design elements and workflow structures
  
  ## Compilation Pipeline
 @@ -90,7 +90,7 @@ Run these checks against the semantic map. Each check produces a PASS or GAP res
- | **G5 — Agent Existence** | Every agent in the recipe's agent boundary table exists at `core/components/agents/{name}.md` | Agent declared but definition missing |
- | **G6 — Skill-Agent Alignment** | Every skill a recipe step assigns to an agent is listed in that agent's skill inventory | Recipe assigns skill X to agent Y, but agent Y doesn't declare skill X |
- | **G7 — Contract Schema** | JSON contracts in recipe steps contain required fields: `intent_path`, `stm_base`, `stm`, `task_id` | Required contract field missing |
+ | **G5 — Agent Existence** | Every agent in the play's agent boundary table exists at `core/components/agents/{name}.md` | Agent declared but definition missing |
+ | **G6 — Skill-Agent Alignment** | Every skill a play step assigns to an agent is listed in that agent's skill inventory | Play assigns skill X to agent Y, but agent Y doesn't declare skill X |
+ | **G7 — Contract Schema** | JSON contracts in play steps contain required fields: `intent_path`, `stm_base`, `stm`, `task_id` | Required contract field missing |
 -| **G8 — Template References** | Skills that reference LTM templates point to files that exist in `core/components/memory/standards/templates/` | Template path referenced but file missing |
-+| **G8 — Template References** | Skills/recipes that reference templates point to files that exist (now bundled with the owning skill/recipe under its own `templates/` or `reference/` directory) | Template path referenced but file missing |
++| **G8 — Template References** | Skills/plays that reference templates point to files that exist (now bundled with the owning skill/play under its own `templates/` or `reference/` directory) | Template path referenced but file missing |
  | **G9 — Intent Hash Drift** | Compiled intent_hash in SKILL.md matches current SHA-256 of intent.yaml | Hash mismatch — intent changed since last compilation |
- | **G10 — Required Sections** | Compiled SKILL.md contains all required sections: Frontmatter, Header, Compiled From, Role, Pre-flight, Workflow, Scenario Validation, Pause and Resume, Compilation Metadata | Section missing from compiled recipe |
- | **G11 — Skill LTM Input Coverage** | For every skill a recipe step invokes, each required/recommended LTM input in the skill's Input section has a corresponding discovery instruction in the recipe step text (e.g., "agent must glob X and pass as Y") | Skill declares LTM input (e.g., `epic_rules_path`, `domain_taxonomy_paths`) but the recipe step has no instruction for the agent to discover and pass it |
+ | **G10 — Required Sections** | Compiled SKILL.md contains all required sections: Frontmatter, Header, Compiled From, Role, Pre-flight, Workflow, Scenario Validation, Pause and Resume, Compilation Metadata | Section missing from compiled play |
+ | **G11 — Skill LTM Input Coverage** | For every skill a play step invokes, each required/recommended LTM input in the skill's Input section has a corresponding discovery instruction in the play step text (e.g., "agent must glob X and pass as Y") | Skill declares LTM input (e.g., `epic_rules_path`, `domain_taxonomy_paths`) but the play step has no instruction for the agent to discover and pass it |
 @@ -323,7 +323,7 @@ The compiler MUST NOT hand-author any evals. All evals come from evals-creator's
  
  #### 6c. Compile SKILL.md
@@ -2228,8 +2228,8 @@ index bf7ccef..92253a9 100644
  
  Compute intent hash:
  ```bash
-@@ -339,7 +339,7 @@ Write `core/components/recipes/{recipe-name}/SKILL.md` with ALL required section
- | Compiled From | Notice: compiled artifact, edit intent.yaml and re-run /create-recipe |
+@@ -339,7 +339,7 @@ Write `core/components/plays/{play-name}/SKILL.md` with ALL required section
+ | Compiled From | Notice: compiled artifact, edit intent.yaml and re-run /create-play |
  | Role + Agent Boundaries | Orchestrator role, agent table with domains and phases |
  | Pre-flight | Baked checks with constraint IDs, bash logic, resume check |
 -| Workflow | Sequential steps organized by phase, each with: owner, depends-on, JSON contract (per agent-contract.md), skill invoked, step eval criteria |
@@ -2237,7 +2237,7 @@ index bf7ccef..92253a9 100644
  | Scenario Validation | E2E scenario evals from intent.yaml |
  | Evidence & Close | Write evidence, self-commit (ADR 012), non-blocking |
  | Pause and Resume | Status file format, resume logic |
-@@ -354,7 +354,7 @@ Write `core/components/recipes/{recipe-name}/SKILL.md` with ALL required section
+@@ -354,7 +354,7 @@ Write `core/components/plays/{play-name}/SKILL.md` with ALL required section
  
  **Compilation rules (from ADR 013 L2):**
  - Workflow steps are sequential with named phases — not abstract stage numbers
@@ -2252,13 +2252,13 @@ index bf7ccef..92253a9 100644
  - All required sections present in the compiled SKILL.md
 -- Agent contracts match agent-contract.md schema
 +- Agent contracts match ADR 016 schema
- - Every skill's required LTM input fields have a corresponding agent discovery instruction in the recipe step that invokes it (G11)
+ - Every skill's required LTM input fields have a corresponding agent discovery instruction in the play step that invokes it (G11)
  
  If ANY intent item has zero coverage → compilation fails. The compiler must either re-invoke evals-creator with additional context, reclassify the constraint, or halt and report the gap.
-diff --git a/core/components/recipes/plan-roadmap/SKILL.md b/core/components/recipes/plan-roadmap/SKILL.md
+diff --git a/core/components/plays/plan-roadmap/SKILL.md b/core/components/plays/plan-roadmap/SKILL.md
 index e8a3509..05c975c 100644
---- a/core/components/recipes/plan-roadmap/SKILL.md
-+++ b/core/components/recipes/plan-roadmap/SKILL.md
+--- a/core/components/plays/plan-roadmap/SKILL.md
++++ b/core/components/plays/plan-roadmap/SKILL.md
 @@ -157,7 +157,7 @@ Agent reads `product.yaml` at `stm.product_yaml_path`. Epics reference strategic
  
  | LTM Artifact | Discovery Path | Skill Input Field |
@@ -2268,11 +2268,11 @@ index e8a3509..05c975c 100644
  | Epic management rules | `~/.meridian/core/memory/standards/agent-lifecycle/epic-management-rules.md` | `epic_rules_path` |
  | Domain taxonomy modules | `~/.meridian/core/memory/knowledge/domain-taxonomy/*.md` (glob all `.md` files) | `domain_taxonomy_paths` |
  
-diff --git a/core/components/recipes/review-pr/SKILL.md b/core/components/recipes/review-pr/SKILL.md
+diff --git a/core/components/plays/review-pr/SKILL.md b/core/components/plays/review-pr/SKILL.md
 new file mode 100644
 index 0000000..a4033a2
 --- /dev/null
-+++ b/core/components/recipes/review-pr/SKILL.md
++++ b/core/components/plays/review-pr/SKILL.md
 @@ -0,0 +1,470 @@
 +---
 +name: meridian:review-pr
@@ -2282,20 +2282,20 @@ index 0000000..a4033a2
 +
 +# Review PR
 +
-+Diff-scoped, deterministic PR review. L2 recipe, Structure A (checkpoint-capable, multi-agent, confidence-gated).
++Diff-scoped, deterministic PR review. high-order play, Structure A (checkpoint-capable, multi-agent, confidence-gated).
 +
 +## Compiled From
 +
-+This recipe was compiled from `reference/intent.yaml` by `/create-recipe`.
++This play was compiled from `reference/intent.yaml` by `/create-play`.
 +Intent defines constraints (C1–C10), failure conditions (F1–F9), and scenarios (S1–S4).
-+To modify this recipe, update intent.yaml and re-run `/create-recipe --bake review-pr`.
++To modify this play, update intent.yaml and re-run `/create-play --bake review-pr`.
 +Do NOT edit this file manually — it is a compiled artifact.
 +
 +## Role
 +
 +You are the orchestrator. You own the workflow. You delegate domain tasks to agents via JSON contracts — never execute domain work directly.
 +
-+**Forbidden:** Direct `git`/`gh` commands, direct file reads outside the recipe's pre-flight, invoking `/quality-check` or any full-repo quality skill (C1, C5, C10).
++**Forbidden:** Direct `git`/`gh` commands, direct file reads outside the play's pre-flight, invoking `/quality-check` or any full-repo quality skill (C1, C5, C10).
 +
 +**Agent boundaries:**
 +
@@ -2310,7 +2310,7 @@ index 0000000..a4033a2
 +
 +**Domain agent count:** 3 unique (`tech-designer`, `quality-auditor`, `repo-orchestrator-as-ranker`). Within L2 budget of 5 (C5).
 +
-+**Forbidden recipe actions (C10):** Never invoke `create-pr` or modify any file under `core/components/recipes/create-pr/`.
++**Forbidden play actions (C10):** Never invoke `create-pr` or modify any file under `core/components/plays/create-pr/`.
 +
 +**Confidence formula (C9, baked):**
 +```
@@ -2328,7 +2328,7 @@ index 0000000..a4033a2
 +| Check | Constraint | Action on Failure |
 +|---|---|---|
 +| `stm_base` resolves from config | — | Hard halt — config required |
-+| `pr_number` provided as recipe argument or auto-detected from current branch | — | Hard halt — "review-pr requires a PR number or feature branch with open PR" |
++| `pr_number` provided as play argument or auto-detected from current branch | — | Hard halt — "review-pr requires a PR number or feature branch with open PR" |
 +| `review-pr.bypass`, `confidence_threshold`, `reviewer_count`, `standards_order`, `fallback_reviewers`, `activity_window_days` all present in config | C4, F8 | Hard halt — list missing keys |
 +| `standards.pr-severity-taxonomy` resolves to an existing file | C4, F8 | Hard halt — "PR severity taxonomy missing at {path}" |
 +| Resolve `standards_set` from `standards_order` (e.g., `[kb, ltm, stm]` → resolved paths) — at least one source resolves | C4 | Hard halt |
@@ -2358,7 +2358,7 @@ index 0000000..a4033a2
 +
 +```json
 +{
-+  "intent_path": "core/components/recipes/review-pr/reference/intent.yaml",
++  "intent_path": "core/components/plays/review-pr/reference/intent.yaml",
 +  "stm_base": "{stm_base}",
 +  "stm": {
 +    "input": {},
@@ -2381,7 +2381,7 @@ index 0000000..a4033a2
 +
 +```json
 +{
-+  "intent_path": "core/components/recipes/review-pr/reference/intent.yaml",
++  "intent_path": "core/components/plays/review-pr/reference/intent.yaml",
 +  "stm_base": "{stm_base}",
 +  "stm": {
 +    "input": {
@@ -2421,7 +2421,7 @@ index 0000000..a4033a2
 +
 +```json
 +{
-+  "intent_path": "core/components/recipes/review-pr/reference/intent.yaml",
++  "intent_path": "core/components/plays/review-pr/reference/intent.yaml",
 +  "stm_base": "{stm_base}",
 +  "stm": {
 +    "input": {
@@ -2453,7 +2453,7 @@ index 0000000..a4033a2
 +
 +```json
 +{
-+  "intent_path": "core/components/recipes/review-pr/reference/intent.yaml",
++  "intent_path": "core/components/plays/review-pr/reference/intent.yaml",
 +  "stm_base": "{stm_base}",
 +  "stm": {
 +    "input": {
@@ -2505,7 +2505,7 @@ index 0000000..a4033a2
 +
 +```json
 +{
-+  "intent_path": "core/components/recipes/review-pr/reference/intent.yaml",
++  "intent_path": "core/components/plays/review-pr/reference/intent.yaml",
 +  "stm_base": "{stm_base}",
 +  "stm": {
 +    "input": {
@@ -2547,17 +2547,17 @@ index 0000000..a4033a2
 +
 +**Step 4 Evals:**
 +- **SE-6 (C6/F4):** `reviewers.yaml` `selected_reviewers` list does NOT contain the PR author and uses `git log` bounded by `activity_window_days` from config.
-+- **SE-7 (C7/F3):** When candidate count < `reviewer_count`, `reviewers.yaml` shows `fallback_used: true` and `selected_reviewers` is drawn from `review-pr.fallback_reviewers`. If `fallback_reviewers` is empty AND candidates short, recipe HALTs with structured failure F3.
++- **SE-7 (C7/F3):** When candidate count < `reviewer_count`, `reviewers.yaml` shows `fallback_used: true` and `selected_reviewers` is drawn from `review-pr.fallback_reviewers`. If `fallback_reviewers` is empty AND candidates short, play HALTs with structured failure F3.
 +
 +---
 +
 +### Phase: Checkpoint (skip when: routing == pass AND no reviewers requested)
 +
 +**Step 4.5 — Optional Approval Gate**
-+Owner: recipe
++Owner: play
 +Depends on: Step 4
 +
-+This step is skipped automatically when `routing == "pass"` AND no reviewers need to be added. It runs when the recipe is invoked manually (not from `ship`) and the user wants a Tether before a comment is posted.
++This step is skipped automatically when `routing == "pass"` AND no reviewers need to be added. It runs when the play is invoked manually (not from `ship`) and the user wants a Tether before a comment is posted.
 +
 +When invoked from `ship`, this step is bypassed — `ship` handles the orchestration decision based on `confidence.yaml` routing.
 +
@@ -2586,7 +2586,7 @@ index 0000000..a4033a2
 +
 +```json
 +{
-+  "intent_path": "core/components/recipes/review-pr/reference/intent.yaml",
++  "intent_path": "core/components/plays/review-pr/reference/intent.yaml",
 +  "stm_base": "{stm_base}",
 +  "stm": {
 +    "input": {
@@ -2646,7 +2646,7 @@ index 0000000..a4033a2
 +### Phase: Scenario Validation
 +
 +**Step 6 — Scenario Evals**
-+Owner: recipe
++Owner: play
 +Depends on: Step 5
 +
 +- **SCE-1 (S1 — Reviewer):** After review-pr completes, `gh pr view` shows exactly one review-pr comment with sections P1/P2/P3, a confidence score, and a Reviewers block listing the selected names.
@@ -2659,7 +2659,7 @@ index 0000000..a4033a2
 +### Phase: Evidence & Close
 +
 +**Step 7 — Write Evidence and Self-commit**
-+Owner: recipe → `repo-orchestrator` (utility)
++Owner: play → `repo-orchestrator` (utility)
 +Depends on: Step 6
 +
 +Write evidence to `{stm_base}/{issue}/evidence/review-pr/{YYYYMMDD-HHMMSS}.md`:
@@ -2675,7 +2675,7 @@ index 0000000..a4033a2
 +
 +```json
 +{
-+  "intent_path": "core/components/recipes/review-pr/reference/intent.yaml",
++  "intent_path": "core/components/plays/review-pr/reference/intent.yaml",
 +  "stm_base": "{stm_base}",
 +  "stm": { "input": {}, "output": {} },
 +  "task_id": "evidence-commit"
@@ -2695,13 +2695,13 @@ index 0000000..a4033a2
 +
 +## Pause and Resume
 +
-+**Issue detection:** Pre-flight derives `issue` from the current branch name (e.g., `feature/208-slug` → `208`). PR number is supplied as recipe argument or auto-detected from `gh pr view`.
++**Issue detection:** Pre-flight derives `issue` from the current branch name (e.g., `feature/208-slug` → `208`). PR number is supplied as play argument or auto-detected from `gh pr view`.
 +
 +**Status file:** `{stm_base}/{issue}/status/review-pr.json`
 +
 +```json
 +{
-+  "recipe": "review-pr",
++  "play": "review-pr",
 +  "issue": 208,
 +  "pr_number": 209,
 +  "started_at": "2026-04-13T19:00:00+05:30",
@@ -2735,7 +2735,7 @@ index 0000000..a4033a2
 +| Field | Value |
 +|---|---|
 +| intent_hash | sha256:10922b6450028e1fdcb1f5acfca15f421084eca71002f2d817cb4602d882afaa |
-+| compiled_by | create-recipe |
++| compiled_by | create-play |
 +| compiled_at | 2026-04-13 |
 +| maturity | L2 |
 +| workflow_structure | A |
@@ -2744,11 +2744,11 @@ index 0000000..a4033a2
 +| step_evals | 9 (SE-1 through SE-9) |
 +| scenario_evals | 4 (SCE-1 through SCE-4) |
 +| skills | meridian:quality-check-scoped |
-diff --git a/core/components/recipes/review-pr/reference/intent.yaml b/core/components/recipes/review-pr/reference/intent.yaml
+diff --git a/core/components/plays/review-pr/reference/intent.yaml b/core/components/plays/review-pr/reference/intent.yaml
 new file mode 100644
 index 0000000..3baa129
 --- /dev/null
-+++ b/core/components/recipes/review-pr/reference/intent.yaml
++++ b/core/components/plays/review-pr/reference/intent.yaml
 @@ -0,0 +1,152 @@
 +intent: >
 +  Review a pull request against diff-scoped quality standards resolved
@@ -2756,13 +2756,13 @@ index 0000000..3baa129
 +  the PR severity taxonomy mapped from existing KB standard IDs, gate
 +  the result on a confidence score, select the top N reviewers from
 +  recent committers on the changed paths (excluding the PR author),
-+  and post a structured routing comment to the PR. The recipe runs
-+  diff-only — never full-repo. The recipe never modifies create-pr.
++  and post a structured routing comment to the PR. The play runs
++  diff-only — never full-repo. The play never modifies create-pr.
 +
 +constraints:
 +  - id: C1
 +    rule: >
-+      Diff-scoped evaluation only. The recipe and the
++      Diff-scoped evaluation only. The play and the
 +      quality-check-scoped skill MUST never read files outside the
 +      PR's changed paths and MUST never invoke /quality-check.
 +
@@ -2786,11 +2786,11 @@ index 0000000..3baa129
 +      All standards paths, thresholds, reviewer counts, activity
 +      windows, fallback reviewers, and bypass flags come from
 +      core/config.yaml. No hardcoded paths or thresholds in the
-+      recipe or its skills.
++      play or its skills.
 +
 +  - id: C5
 +    rule: >
-+      The recipe MUST stay within the L2 budget — no more than 5
++      The play MUST stay within the L2 budget — no more than 5
 +      domain agents (utility agents repo-orchestrator and doc-builder
 +      are exempt).
 +
@@ -2802,9 +2802,9 @@ index 0000000..3baa129
 +  - id: C7
 +    rule: >
 +      When fewer than review-pr.reviewer_count recent committers
-+      remain after author exclusion, the recipe MUST fall through to
++      remain after author exclusion, the play MUST fall through to
 +      review-pr.fallback_reviewers. If fallback_reviewers is empty
-+      and the candidate pool is short, the recipe HALTS with a
++      and the candidate pool is short, the play HALTS with a
 +      structured failure (F3).
 +
 +  - id: C8
@@ -2823,7 +2823,7 @@ index 0000000..3baa129
 +
 +  - id: C10
 +    rule: >
-+      The create-pr recipe MUST NOT be invoked or modified from
++      The create-pr play MUST NOT be invoked or modified from
 +      review-pr. Reviewer-selection logic lives only in review-pr.
 +
 +failure_conditions:
@@ -2834,7 +2834,7 @@ index 0000000..3baa129
 +
 +  - id: F2
 +    condition: >
-+      The recipe or quality-check-scoped reads any file outside the
++      The play or quality-check-scoped reads any file outside the
 +      PR's changed paths, or invokes /quality-check.
 +
 +  - id: F3
@@ -2870,7 +2870,7 @@ index 0000000..3baa129
 +
 +  - id: F9
 +    condition: >
-+      The recipe dispatches more than 5 domain agents (utility
++      The play dispatches more than 5 domain agents (utility
 +      agents exempt).
 +
 +scenarios:
@@ -2893,7 +2893,7 @@ index 0000000..3baa129
 +    persona: Ship Pipeline
 +    scenario: >
 +      When review-pr.bypass is false and review-pr returns a P1
-+      finding or sub-threshold confidence, the ship recipe halts
++      finding or sub-threshold confidence, the ship play halts
 +      before merge-pr and surfaces the routing decision.
 +
 +  - id: S4
@@ -2902,10 +2902,10 @@ index 0000000..3baa129
 +      Runs review-pr twice on the same PR with no intervening commits
 +      and gets byte-identical findings.yaml (modulo timestamps) and
 +      identical P1..P4 buckets.
-diff --git a/core/components/recipes/ship/SKILL.md b/core/components/recipes/ship/SKILL.md
+diff --git a/core/components/plays/ship/SKILL.md b/core/components/plays/ship/SKILL.md
 index 57d235a..19d2f30 100644
---- a/core/components/recipes/ship/SKILL.md
-+++ b/core/components/recipes/ship/SKILL.md
+--- a/core/components/plays/ship/SKILL.md
++++ b/core/components/plays/ship/SKILL.md
 @@ -1,21 +1,21 @@
  ---
  name: ship
@@ -2921,11 +2921,11 @@ index 57d235a..19d2f30 100644
  
  ## Compiled From
  
- This recipe was compiled from `reference/intent.yaml` by `/create-recipe`.
+ This play was compiled from `reference/intent.yaml` by `/create-play`.
 -Intent defines constraints (C1–C6), failure conditions (F1–F6), and scenarios (S1–S2).
--To modify this recipe, update `reference/intent.yaml` and re-run `/create-recipe --bake ship`.
+-To modify this play, update `reference/intent.yaml` and re-run `/create-play --bake ship`.
 +Intent defines constraints (C1–C7), failure conditions (F1–F7), and scenarios (S1–S3).
-+To modify this recipe, update `reference/intent.yaml` and re-run `/create-recipe --rebake ship`.
++To modify this play, update `reference/intent.yaml` and re-run `/create-play --rebake ship`.
  Do NOT edit this file manually — it is a compiled artifact.
  
 -**Intent hash guard:** If `sha256(reference/intent.yaml)` does not equal `b6f975bb82d9660a42f086d77279f5eae6d7b0b44f6f36173d15661dee1258a7`, re-bake is required before running.
@@ -2933,16 +2933,16 @@ index 57d235a..19d2f30 100644
  
  ## Role
  
-@@ -25,11 +25,12 @@ You are the orchestrator of a Structure C recipe. You chain compiled L2 recipes
+@@ -25,11 +25,12 @@ You are the orchestrator of a Structure C play. You chain compiled high-order plays
  
- **Sub-recipe chain:**
+ **Sub-play chain:**
  
--| Step | Recipe | What It Does |
+-| Step | Play | What It Does |
 -|------|--------|--------------|
 -| 1 | `commit-code` | Commit all changes grouped by concern, mapped to issues, push branch |
 -| 2 | `create-pr` | Create PR with quality checklist and evidence |
 -| 3 | `merge-pr` | Merge PR, switch to main, pull latest, delete feature branch |
-+| Step | Recipe | What It Does | Conditional |
++| Step | Play | What It Does | Conditional |
 +|------|--------|--------------|---|
 +| 1 | `commit-code` | Commit all changes grouped by concern, mapped to issues, push branch | always |
 +| 2 | `create-pr` | Create PR with quality checklist and evidence | always |
@@ -2951,12 +2951,12 @@ index 57d235a..19d2f30 100644
  
  ## Pre-flight
  
-@@ -41,29 +42,32 @@ Execute these checks before any sub-recipe invocation:
+@@ -41,29 +42,32 @@ Execute these checks before any sub-play invocation:
  | Current branch is not main/master/default | C1 | Hard halt with message |
  | Changed files exist (staged, unstaged, untracked) | implicit | Graceful exit — nothing to ship |
  | Platform config exists | implicit | Hard halt — no platform configured |
 +| Resolve `review-pr.bypass` from `core/config.yaml` | C7 | Hard halt if key missing — "review-pr.bypass not set in config" |
-+| When `review-pr.bypass == false`: `core/components/recipes/review-pr/SKILL.md` exists | C7 | Hard halt — "review-pr recipe missing; cannot enforce gate" |
++| When `review-pr.bypass == false`: `core/components/plays/review-pr/SKILL.md` exists | C7 | Hard halt — "review-pr play missing; cannot enforce gate" |
 +| When `review-pr.bypass == false`: `core/components/memory/standards/git/pr-severity-taxonomy.md` exists at config-resolved path | C7 | Hard halt — "PR severity taxonomy missing" |
  
  ```bash
@@ -2984,19 +2984,19 @@ index 57d235a..19d2f30 100644
 +# C7 — resolve bypass
 +bypass=$(yq '.review-pr.bypass' core/config.yaml)
 +if [ "$bypass" = "false" ]; then
-+  test -f core/components/recipes/review-pr/SKILL.md || { echo "review-pr missing"; exit 1; }
++  test -f core/components/plays/review-pr/SKILL.md || { echo "review-pr missing"; exit 1; }
 +  taxonomy=$(yq '.standards.pr-severity-taxonomy' core/config.yaml)
 +  test -f "$taxonomy" || { echo "Taxonomy missing at $taxonomy"; exit 1; }
 +fi
  ```
  
--Ship's pre-flight is lighter than individual sub-recipe pre-flights because each sub-recipe runs its own. Ship validates only cross-cutting concerns.
-+Ship's pre-flight is lighter than individual sub-recipe pre-flights because each sub-recipe runs its own. Ship validates only cross-cutting concerns plus the gate-conditional preconditions.
+-Ship's pre-flight is lighter than individual sub-play pre-flights because each sub-play runs its own. Ship validates only cross-cutting concerns.
++Ship's pre-flight is lighter than individual sub-play pre-flights because each sub-play runs its own. Ship validates only cross-cutting concerns plus the gate-conditional preconditions.
  
  **Resume check:** If `{stm_base}/{issue}/status/ship.json` exists, resume — skip completed steps, reset any `in_progress` to pending, continue from first incomplete.
  
-@@ -75,8 +79,6 @@ Ship's pre-flight is lighter than individual sub-recipe pre-flights because each
- Owner: `commit-code` (L2 sub-recipe)
+@@ -75,8 +79,6 @@ Ship's pre-flight is lighter than individual sub-play pre-flights because each
+ Owner: `commit-code` (L2 sub-play)
  Depends on: pre-flight
  
 -Invoke `commit-code` via Skill tool with approval override:
@@ -3022,7 +3022,7 @@ index 57d235a..19d2f30 100644
  ---
  
 @@ -99,8 +101,6 @@ Context: approval_override: "auto-proceed"
- Owner: `create-pr` (L2 sub-recipe)
+ Owner: `create-pr` (L2 sub-play)
  Depends on: Step 1
  
 -Invoke `create-pr` via Skill tool with approval override:
@@ -3048,7 +3048,7 @@ index 57d235a..19d2f30 100644
 +### Phase: Quality Gate (conditional — runs only when `review-pr.bypass == false`)
 +
 +**Step 2.5 — Review PR**
-+Owner: `review-pr` (L2 sub-recipe)
++Owner: `review-pr` (L2 sub-play)
 +Depends on: Step 2
 +Skip when: `review-pr.bypass == true`
 +
@@ -3081,7 +3081,7 @@ index 57d235a..19d2f30 100644
 @@ -122,9 +155,7 @@ create-pr reads commit records from STM (written by commit-code) to inform PR co
  
  **Step 3 — Merge, Switch, Pull, Delete**
- Owner: `merge-pr` (L2 sub-recipe)
+ Owner: `merge-pr` (L2 sub-play)
 -Depends on: Step 2
 -
 -Invoke `merge-pr` via Skill tool:
@@ -3115,7 +3115,7 @@ index 57d235a..19d2f30 100644
  
  ---
  
-@@ -162,10 +194,12 @@ Owner: recipe
+@@ -162,10 +194,12 @@ Owner: play
  Depends on: Step 4
  
  Write evidence to `{stm_base}/{issue}/evidence/ship/{YYYYMMDD-HHMMSS}.md` containing:
@@ -3165,20 +3165,20 @@ index 57d235a..19d2f30 100644
  |-------|-------|
 -| intent_hash | sha256:b6f975bb82d9660a42f086d77279f5eae6d7b0b44f6f36173d15661dee1258a7 |
 +| intent_hash | sha256:5947a743752b921530a3d3b544dd6de8b26b4c3f72a5ff13e16bb3aeac54b5fe |
- | compiled_by | create-recipe |
+ | compiled_by | create-play |
 -| compiled_at | 2026-03-06T11:33:38+0000 |
 +| compiled_at | 2026-04-13 |
  | maturity | L2 |
  | workflow_structure | C |
--| sub_recipes | 3 (commit-code, create-pr, merge-pr) |
-+| sub_recipes | 4 (commit-code, create-pr, review-pr [conditional], merge-pr) |
- | step_evals | 0 (delegated to sub-recipes) |
+-| sub_plays | 3 (commit-code, create-pr, merge-pr) |
++| sub_plays | 4 (commit-code, create-pr, review-pr [conditional], merge-pr) |
+ | step_evals | 0 (delegated to sub-plays) |
 -| scenario_evals | 2 (SCE-1, SCE-2) |
 +| scenario_evals | 3 (SCE-1, SCE-2, SCE-3) |
-diff --git a/core/components/recipes/ship/reference/intent.yaml b/core/components/recipes/ship/reference/intent.yaml
+diff --git a/core/components/plays/ship/reference/intent.yaml b/core/components/plays/ship/reference/intent.yaml
 index d584152..9f2133e 100644
---- a/core/components/recipes/ship/reference/intent.yaml
-+++ b/core/components/recipes/ship/reference/intent.yaml
+--- a/core/components/plays/ship/reference/intent.yaml
++++ b/core/components/plays/ship/reference/intent.yaml
 @@ -1,11 +1,16 @@
  intent: >
    Deliver all uncommitted work on the current feature branch to the main
@@ -3258,7 +3258,7 @@ index 0000000..cd02a31
 @@ -0,0 +1,149 @@
 +---
 +name: meridian:quality-check-scoped
-+description: Diff-bounded single-pass quality evaluation for PR review. Reads KB standards from standards_order paths resolved from config, filters to domains touched by changed_paths, evaluates standard-ID checks against the diff using mechanical match rules from pr-severity-taxonomy.md, classifies every finding deterministically, and emits findings.yaml. Reuses /quality-check KB data — NOT its 11-subagent execution model. Use only from review-pr recipe; never invoke standalone for full-repo audits.
++description: Diff-bounded single-pass quality evaluation for PR review. Reads KB standards from standards_order paths resolved from config, filters to domains touched by changed_paths, evaluates standard-ID checks against the diff using mechanical match rules from pr-severity-taxonomy.md, classifies every finding deterministically, and emits findings.yaml. Reuses /quality-check KB data — NOT its 11-subagent execution model. Use only from review-pr play; never invoke standalone for full-repo audits.
 +user-invocable: false
 +---
 +
@@ -3273,7 +3273,7 @@ index 0000000..cd02a31
 +| Scope | Full repo | Diff only |
 +| Execution | 11 parallel subagents | Single pass |
 +| Output | Spider chart + scored audit | `findings.yaml` |
-+| Invocable | User | Recipe only (review-pr) |
++| Invocable | User | Play only (review-pr) |
 +| KB usage | All standards in all domains | Only standards whose taxonomy match rule fires on the diff |
 +
 +## Input Contract
@@ -3483,7 +3483,7 @@ index 0000000..e55dfbb
 +
 +## Resolution
 +
-+The caller (review-pr Step 2 via `quality-auditor`) MUST resolve all paths from `core/config.yaml` — never hardcode. Pre-flight in the recipe validates `severity_taxonomy_path` exists before invoking the skill.
++The caller (review-pr Step 2 via `quality-auditor`) MUST resolve all paths from `core/config.yaml` — never hardcode. Pre-flight in the play validates `severity_taxonomy_path` exists before invoking the skill.
 +
 +## Optional fields
 +
@@ -3623,13 +3623,13 @@ index 2722bf2..d4e7164 100644
 +++ b/core/config.yaml
 @@ -56,6 +56,19 @@ stm:
      delivery: "{issue-number}/delivery/"
-     checkpoint: "{issue-number}/checkpoint/{recipe-name}/{YYYYMMDD-HHMMSS}.md"
+     checkpoint: "{issue-number}/checkpoint/{play-name}/{YYYYMMDD-HHMMSS}.md"
  
-+# Standards resolution — first recipe-specific section; pattern for future recipes
++# Standards resolution — first play-specific section; pattern for future plays
 +standards:
 +  pr-severity-taxonomy: ./core/components/memory/standards/git/pr-severity-taxonomy.md
 +
-+# review-pr recipe configuration
++# review-pr play configuration
 +review-pr:
 +  bypass: false
 +  confidence_threshold: 0.5
@@ -3656,24 +3656,24 @@ index 0000000..66e685a
 +
 +## Context
 +
-+Recipes orchestrate agents. Agents do domain work via skills. The boundary between recipe and agent is invoked tens of times across a single L2 run, and historically there was no enforced shape for that handoff — each recipe invented its own prompt format, each agent parsed differently, and reading STM artifacts was implicit.
++Plays orchestrate agents. Agents do domain work via skills. The boundary between play and agent is invoked tens of times across a single L2 run, and historically there was no enforced shape for that handoff — each play invented its own prompt format, each agent parsed differently, and reading STM artifacts was implicit.
 +
 +This made three things hard:
-+1. **Compile-time auditing.** `create-recipe` could not statically verify that a recipe step gives an agent everything it needs (P1, P11 in the agent audit checklist).
-+2. **Pause/resume.** Without a `task_id` keyed to a status file, recipes could not deterministically skip completed steps on resume.
++1. **Compile-time auditing.** `create-play` could not statically verify that a play step gives an agent everything it needs (P1, P11 in the agent audit checklist).
++2. **Pause/resume.** Without a `task_id` keyed to a status file, plays could not deterministically skip completed steps on resume.
 +3. **Inter-step wiring.** Each step's outputs become the next step's inputs. Without a named contract, this wiring lived in prose, drifted, and broke silently.
 +
-+Every recipe → agent dispatch must follow a single canonical schema, and `create-recipe` must enforce it.
++Every play → agent dispatch must follow a single canonical schema, and `create-play` must enforce it.
 +
 +## Decision
 +
-+The universal protocol for recipe → agent communication is the **Agent JSON Contract**. Every recipe step that dispatches to an agent serializes this contract; every agent parses this contract. No exceptions.
++The universal protocol for play → agent communication is the **Agent JSON Contract**. Every play step that dispatches to an agent serializes this contract; every agent parses this contract. No exceptions.
 +
-+### Input Contract (recipe → agent)
++### Input Contract (play → agent)
 +
 +```json
 +{
-+  "intent_path": "<path to recipe's reference/intent.yaml>",
++  "intent_path": "<path to play's reference/intent.yaml>",
 +  "stm_base": "<resolved from core/config.yaml stm.base-path>",
 +  "stm": {
 +    "input": {
@@ -3683,36 +3683,36 @@ index 0000000..66e685a
 +      "<named_key>": "<path where agent should write output artifact>"
 +    }
 +  },
-+  "task_id": "<unique task identifier from compiled recipe step>"
++  "task_id": "<unique task identifier from compiled play step>"
 +}
 +```
 +
 +| Field | Required | Source | Description |
 +|-------|----------|--------|-------------|
-+| `intent_path` | Yes | Recipe's `reference/intent.yaml` | Agent reads this to understand constraints, failure conditions, scenarios |
++| `intent_path` | Yes | Play's `reference/intent.yaml` | Agent reads this to understand constraints, failure conditions, scenarios |
 +| `stm_base` | Yes | `core/config.yaml` → `stm.base-path` | Root path for all STM artifacts. Resolved during pre-flight. |
 +| `stm.input` | Yes | Prior steps' `stm.output` paths | Named paths to artifacts this step needs to read. Empty `{}` if first step. |
 +| `stm.output` | Yes | Compiler determines during compilation | Named paths where agent writes its artifacts. Become `stm.input` for downstream steps. |
-+| `task_id` | Yes | Compiled step ID | Unique within the recipe. Also used as key in the status file for pause/resume. |
++| `task_id` | Yes | Compiled step ID | Unique within the play. Also used as key in the status file for pause/resume. |
 +| `ltm_context` | No | Object with `project_base`, `core_base`, `query_domains`, `locked_artifacts`. When present, agent follows R1–R4 from ADR 015 (resolution protocol). |
 +
 +### STM path convention
 +
 +All paths follow:
 +```
-+{stm_base}/{issue}/evidence/{recipe-name}/{artifact}.yaml
++{stm_base}/{issue}/evidence/{play-name}/{artifact}.yaml
 +```
 +
 +Example:
 +```
 +stm_base = .meridian/project/issues/
 +issue    = 95
-+recipe   = commit-code
++play   = commit-code
 +
 +→ .meridian/project/issues/95/evidence/commit-code/analysis.yaml
 +```
 +
-+### Output Contract (agent → recipe)
++### Output Contract (agent → play)
 +
 +```json
 +{
@@ -3755,7 +3755,7 @@ index 0000000..66e685a
 +
 +### Transfer Mechanism
 +
-+At runtime, the recipe executor (Claude Code) reads the JSON contract from the compiled SKILL.md step and passes it to the agent via the `Agent` tool prompt. The agent parses the contract, reads from `stm.input` paths, does its work, writes to `stm.output` paths, and returns the output contract.
++At runtime, the play executor (Claude Code) reads the JSON contract from the compiled SKILL.md step and passes it to the agent via the `Agent` tool prompt. The agent parses the contract, reads from `stm.input` paths, does its work, writes to `stm.output` paths, and returns the output contract.
 +
 +### Resolution Protocol Hook
 +
@@ -3766,18 +3766,18 @@ index 0000000..66e685a
 +## Consequences
 +
 +**Positive**
-+- `create-recipe` audit checks (P1 JSON Contract, P11 Context Sufficiency) are enforceable statically.
-+- Pause/resume is deterministic — `task_id` keys directly into the recipe's status file.
++- `create-play` audit checks (P1 JSON Contract, P11 Context Sufficiency) are enforceable statically.
++- Pause/resume is deterministic — `task_id` keys directly into the play's status file.
 +- Inter-step data flow is explicit and greppable. No more "agent reads X" in prose.
-+- Adding a new agent requires only that it parse this schema — recipes are decoupled from agent internals.
++- Adding a new agent requires only that it parse this schema — plays are decoupled from agent internals.
 +- LTM resolution (ADR 015) plugs in via a single optional field.
 +
 +**Negative**
-+- Recipes pay a small verbosity cost — every step embeds a JSON block. The benefit (auditability, wiring clarity) outweighs it.
++- Plays pay a small verbosity cost — every step embeds a JSON block. The benefit (auditability, wiring clarity) outweighs it.
 +- Agents that pre-date this contract had to be retrofitted (one-time cost, completed).
 +
 +**Enforcement**
-+- `create-recipe` validates every dispatch against this schema during compilation (checklist P1, P7, P11).
++- `create-play` validates every dispatch against this schema during compilation (checklist P1, P7, P11).
 +- The schema lives in this ADR — it is foundational, not organizational memory. Any change requires a new ADR.
 diff --git a/docs/components/memory.md b/docs/components/memory.md
 index 827a60a..2f044ec 100644
@@ -3794,7 +3794,7 @@ index 827a60a..2f044ec 100644
 +          ├── formats/{type}/          # User-facing message formats
            └── knowledge/{domain}/      # Design decisions and patterns
      │
-+    └── (Skill/recipe-specific templates are bundled with the owning component, NOT in LTM)
++    └── (Skill/play-specific templates are bundled with the owning component, NOT in LTM)
 +    │
      └── Passes LTM template paths to skill
      │
@@ -3824,9 +3824,9 @@ index 827a60a..2f044ec 100644
      ├── _index.md
      └── architecture/
 +
-+# Skill/recipe-specific schemas and templates live with the owning component:
++# Skill/play-specific schemas and templates live with the owning component:
 +#   core/components/skills/scope-roadmap-epics/reference/epic-schema.md
-+#   core/components/recipes/briefs/templates/{*-brief.html, brief-common.css, brief-render.js, hub.html, fixtures/}
++#   core/components/plays/briefs/templates/{*-brief.html, brief-common.css, brief-render.js, hub.html, fixtures/}
 +# Foundational architecture rules live in docs/adr/, not standards/.
  ```
  
@@ -3840,16 +3840,16 @@ index 827a60a..2f044ec 100644
                      │
                      ▼
            Skill invocation:
-diff --git a/docs/components/recipes.md b/docs/components/recipes.md
+diff --git a/docs/components/plays.md b/docs/components/plays.md
 index e58a2fa..da4d2c6 100644
---- a/docs/components/recipes.md
-+++ b/docs/components/recipes.md
+--- a/docs/components/plays.md
++++ b/docs/components/plays.md
 @@ -188,7 +188,7 @@ goal: "Prepare a roadmap"
  constraints:
    - id: C-TEMPLATE
      rule: "Follow the roadmap brief template"
 -    template_ref: "standards/templates/roadmap-brief.html"
-+    template_ref: "recipes/briefs/templates/roadmap-brief.html"
++    template_ref: "plays/briefs/templates/roadmap-brief.html"
    - id: C-LOCKED
      rule: "Vision must be locked before roadmap planning"
  
@@ -3884,7 +3884,7 @@ index 4a76c18..1f56808 100644
  ```
  
 -(Source: `core/components/memory/standards/templates/brief-common.css` — deployed via `/sync-claude` or `/sync-droids`)
-+(Source: `core/components/recipes/briefs/templates/brief-common.css` — deployed via `/sync-claude` or `/sync-droids`)
++(Source: `core/components/plays/briefs/templates/brief-common.css` — deployed via `/sync-claude` or `/sync-droids`)
  
  This file is the single source of truth for all brief styling:
  - Token definitions (:root variables) — sourced from Phoenix Design System v2.0

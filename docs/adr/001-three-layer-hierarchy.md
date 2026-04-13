@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-Meridian needed a clear architecture for organizing its workflows. The original design had a flat structure where recipes directly called sub-agents and skills without clear boundaries, leading to:
+Meridian needed a clear architecture for organizing its workflows. The original design had a flat structure where plays directly called sub-agents and skills without clear boundaries, leading to:
 
 - Unclear invocability rules (what can humans invoke vs. models?)
 - No consistent checkpoint/approval model
@@ -22,9 +22,9 @@ Meridian needed a clear architecture for organizing its workflows. The original 
 Meridian adopts a **three-layer hierarchy**:
 
 ```
-L2 Recipes (High-Order)     User intent: fix-bug, code-microservice
+High-Order Plays          User intent: fix-bug, code-microservice
         ↓
-L1 Recipes (Activities)     Atomic units: analyze-bug, design-fix, implement-fix
+Atomic Plays              Atomic units: analyze-bug, design-fix, implement-fix
         ↓
 Skills (Learned Capabilities)   Agent knowledge: write-java-code, create-selenium-tests
 ```
@@ -33,19 +33,19 @@ Skills (Learned Capabilities)   Agent knowledge: write-java-code, create-seleniu
 
 | Layer | Purpose | Invocability | Max Calls |
 |-------|---------|--------------|-----------|
-| **L2 Recipes** | Workflow chaining L1s | Human only | ≤5 agent calls |
-| **L1 Recipes** | Atomic activity → artifact → checkpoint | Human OR Model | ≤2 agent calls |
+| **High-Order Plays** | Workflow chaining atomic plays | Human only | ≤5 agent calls |
+| **Atomic Plays** | Atomic activity → artifact → checkpoint | Human OR Model | ≤2 agent calls |
 | **Skills** | Learned capabilities agents use | Model only (via agent) | N/A |
 
 ### Key Properties
 
-1. **L2 Recipes (High-Order)**
-   - Chain multiple L1 recipes
+1. **High-Order Plays**
+   - Chain multiple atomic plays
    - Human invocable only
    - Include guardian agent for approval bypass decisions
    - Maximum 5 agent calls (ideal 3)
 
-2. **L1 Recipes (Activities)**
+2. **Atomic Plays**
    - Atomic, single-purpose workflows
    - Can be invoked by humans OR models
    - Always produce an artifact
@@ -68,9 +68,9 @@ Skills (Learned Capabilities)   Agent knowledge: write-java-code, create-seleniu
 
 ### Negative
 
-- More files to maintain (L1 and L2 definitions separate)
+- More files to maintain (play level definitions separate)
 - Initial learning curve for understanding the layers
-- Requires discipline to classify recipes correctly
+- Requires discipline to classify plays correctly
 
 ## Related ADRs
 

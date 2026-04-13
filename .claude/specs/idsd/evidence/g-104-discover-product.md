@@ -1,4 +1,4 @@
-# G-104: discover-product Recipe Verification
+# G-104: discover-product Play Verification
 
 **Date:** 2026-02-25
 **Issue:** #62
@@ -29,9 +29,9 @@
 | G-008: Multi-Intent | PASS | Decision Framework handles compound intents with dependency ordering and partial failure |
 | G-009: No Bash Section | PASS | No Bash in frontmatter, no BASH USAGE section |
 | G-010: Tech Context | PASS | Step 7 checks `.meridian/{issue}/design/` for tech constraints |
-| G-011: Domain Clarification | PASS | Recipe handles domain_clarification_needed with user interaction loop |
+| G-011: Domain Clarification | PASS | Play handles domain_clarification_needed with user interaction loop |
 | G-012: C12 Constraint | PASS | intent.yaml has C12 + "domain unresolvable" failure condition |
-| G-013: P-Label Replacement | PASS | generate-business-review uses recipe names; final-report.md has no P-labels |
+| G-013: P-Label Replacement | PASS | generate-business-review uses play names; final-report.md has no P-labels |
 | G-014: Skill Conventions | PASS | research-domain-context has all 7 structural elements |
 | G-016: Compound Output | PASS | Output Contracts section includes compound format with partial failure support |
 
@@ -40,9 +40,9 @@
 All files exist at correct paths with correct content:
 - 1 agent (product-strategist — updated)
 - 5 skills (4 original + 1 new research-domain-context)
-- 1 recipe SKILL.md (updated with domain clarification sub-flow)
+- 1 play SKILL.md (updated with domain clarification sub-flow)
 - 1 intent.yaml (updated with C12 + failure condition)
-- 3 recipe templates (unchanged)
+- 3 play templates (unchanged)
 - 1 evidence file (this file)
 - 2 spec evidence files
 

@@ -1,5 +1,5 @@
 branch:
-  name: feature/208-review-pr-recipe
+  name: feature/208-review-pr-play
   issue: 208
   is_hotfix: false
 
@@ -12,17 +12,17 @@ change_summary:
 groups:
   - id: 1
     issue: 208
-    issue_title: "build review-pr L2 recipe and quality-check-scoped skill"
+    issue_title: "build review-pr high-order play and quality-check-scoped skill"
     type: feat
-    scope: recipes
-    subject: "add review-pr recipe, quality-check-scoped skill, and supporting config (#208)"
+    scope: plays
+    subject: "add review-pr play, quality-check-scoped skill, and supporting config (#208)"
     confidence: high
     files:
-      # New recipe
-      - path: "core/components/recipes/review-pr/SKILL.md"
-        change: "new review-pr L2 recipe definition"
-      - path: "core/components/recipes/review-pr/reference/intent.yaml"
-        change: "new intent.yaml for review-pr recipe"
+      # New play
+      - path: "core/components/plays/review-pr/SKILL.md"
+        change: "new review-pr high-order play definition"
+      - path: "core/components/plays/review-pr/reference/intent.yaml"
+        change: "new intent.yaml for review-pr play"
       # New skill
       - path: "core/components/skills/quality-check-scoped/SKILL.md"
         change: "new quality-check-scoped skill definition"
@@ -33,21 +33,21 @@ groups:
       # Config additions for review-pr
       - path: "core/config.yaml"
         change: "add review-pr config block (bypass, confidence_threshold, reviewer_count, standards_order) and standards.pr-severity-taxonomy path"
-      # Ship recipe updated to wire review-pr quality gate
-      - path: "core/components/recipes/ship/SKILL.md"
-        change: "update ship recipe to invoke review-pr as optional quality gate"
-      - path: "core/components/recipes/ship/reference/intent.yaml"
+      # Ship play updated to wire review-pr quality gate
+      - path: "core/components/plays/ship/SKILL.md"
+        change: "update ship play to invoke review-pr as optional quality gate"
+      - path: "core/components/plays/ship/reference/intent.yaml"
         change: "update ship intent to include review-pr gate constraints"
       # STM evidence for issue 208
-      - path: ".meridian/project/issues/208/evidence/create-recipe/"
-        change: "STM evidence from create-recipe skill run (untracked directory)"
+      - path: ".meridian/project/issues/208/evidence/create-play/"
+        change: "STM evidence from create-play skill run (untracked directory)"
       - path: ".meridian/project/issues/208/evidence/start-feature-planning/args.yaml"
         change: "STM args artifact from start-feature-planning"
       - path: ".meridian/project/issues/208/status/"
         change: "STM status artifacts for issue 208"
-      # Docs updates referencing new recipe/skill
-      - path: "docs/components/recipes.md"
-        change: "document review-pr in recipes component docs"
+      # Docs updates referencing new play/skill
+      - path: "docs/components/plays.md"
+        change: "document review-pr in plays component docs"
       - path: "docs/components/skills.md"
         change: "document quality-check-scoped in skills component docs"
 
@@ -70,15 +70,15 @@ groups:
       - path: "core/components/memory/standards/brief-principles.md"
         change: "deleted — moved to docs/design/briefs.md"
       - path: "core/components/memory/standards/templates/architecture-brief.html"
-        change: "deleted from standards/ — moved to core/components/recipes/briefs/templates/"
+        change: "deleted from standards/ — moved to core/components/plays/briefs/templates/"
       - path: "core/components/memory/standards/templates/brief-common.css"
-        change: "deleted from standards/ — moved to core/components/recipes/briefs/templates/"
+        change: "deleted from standards/ — moved to core/components/plays/briefs/templates/"
       - path: "core/components/memory/standards/templates/brief-render.js"
-        change: "deleted from standards/ — moved to core/components/recipes/briefs/templates/"
+        change: "deleted from standards/ — moved to core/components/plays/briefs/templates/"
       - path: "core/components/memory/standards/templates/epic-schema.md"
         change: "deleted from standards/ — moved to scope-roadmap-epics skill reference"
       - path: "core/components/memory/standards/templates/features-brief.html"
-        change: "deleted from standards/ — moved to core/components/recipes/briefs/templates/"
+        change: "deleted from standards/ — moved to core/components/plays/briefs/templates/"
       - path: "core/components/memory/standards/templates/fixtures/architecture.json"
         change: "deleted from standards/ — moved to briefs/templates/fixtures/"
       - path: "core/components/memory/standards/templates/fixtures/features.json"
@@ -120,8 +120,8 @@ groups:
         change: "new ADR 016 — promoted from standards/agent-contract.md"
       - path: "docs/design/"
         change: "new docs/design/ directory with briefs.md (from brief-principles.md)"
-      - path: "core/components/recipes/briefs/templates/"
-        change: "new templates/ under briefs recipe — all HTML/CSS/JS templates moved here"
+      - path: "core/components/plays/briefs/templates/"
+        change: "new templates/ under briefs play — all HTML/CSS/JS templates moved here"
       - path: "core/components/memory/standards/intent-schema.yaml"
         change: "canonical intent-schema.yaml now at standards root (moved out of standards/templates/)"
       - path: "core/components/memory/standards/git/pr-severity-taxonomy.md"
@@ -130,14 +130,14 @@ groups:
       - path: "core/components/memory/standards/_index.md"
         change: "updated to reflect deletions, new entries (pr-severity-taxonomy, intent-schema), and forwarding notes"
       - path: "core/components/agents/doc-builder.md"
-        change: "update template path references from standards/templates/ to recipes/briefs/templates/"
+        change: "update template path references from standards/templates/ to plays/briefs/templates/"
       - path: "core/components/agents/product-strategist.md"
         change: "update brief-principles reference to docs/design/briefs.md"
-      - path: "core/components/recipes/briefs/SKILL.md"
-        change: "update briefs recipe to load templates from new path"
-      - path: "core/components/recipes/create-recipe/SKILL.md"
-        change: "update create-recipe to reference intent-schema.yaml at new standards/ root location"
-      - path: "core/components/recipes/plan-roadmap/SKILL.md"
+      - path: "core/components/plays/briefs/SKILL.md"
+        change: "update briefs play to load templates from new path"
+      - path: "core/components/plays/create-play/SKILL.md"
+        change: "update create-play to reference intent-schema.yaml at new standards/ root location"
+      - path: "core/components/plays/plan-roadmap/SKILL.md"
         change: "update plan-roadmap template reference"
       - path: "core/components/skills/scope-roadmap-epics/SKILL.md"
         change: "update scope-roadmap-epics to load epic-schema from new skill reference path"
@@ -162,7 +162,7 @@ risks:
 recommendation:
   checkpoint_needed: false
   reason: >
-    Branch is feature/208-review-pr-recipe, all changes map to issue #208 with high
+    Branch is feature/208-review-pr-play, all changes map to issue #208 with high
     confidence. Two groups are cleanly separable by type (feat vs refactor). No
     sensitive files detected. No competing issue mappings. All issue mappings are
     high confidence — no approval gate required per C9.

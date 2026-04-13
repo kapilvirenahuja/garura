@@ -15,12 +15,12 @@ commits:
     subject: add decision map chapter to architecture brief template #174
   - hash: a8e48d9
     type: feat
-    scope: recipe
+    scope: play
     subject: rebake prepare-architecture with decisions constraints #174
   - hash: cebb0e1
     type: chore
     scope: stm
-    subject: record create-recipe rebake evidence for #174
+    subject: record create-play rebake evidence for #174
 
 checklist:
   required_count: 7

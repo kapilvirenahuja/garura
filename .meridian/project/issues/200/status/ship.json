@@ -1,5 +1,5 @@
 {
-  "recipe": "ship",
+  "play": "ship",
   "issue": "200",
   "started_at": "2026-04-12T12:30:00+0530",
   "feature_branch": "feature/200-quality-check-skill",

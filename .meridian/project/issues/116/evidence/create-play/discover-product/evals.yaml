@@ -1,0 +1,366 @@
+step_evals:
+  # --- Failure Condition Evals ---
+
+  - id: SE-1
+    source_type: "failure_condition"
+    failure_condition_id: "F1"
+    constraint_id: null
+    skill: "draft-product-vision"
+    check: >
+      The vision artifact contains at least 3 strategic goals AND a target
+      audience is identifiable from the artifact content.
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    pass_criteria: >
+      product.yaml strategic_goals array has 3 or more entries AND
+      target_users section is present with at least one non-empty entry.
+    fail_criteria: >
+      strategic_goals has fewer than 3 entries, OR target_users is missing
+      or empty — no target audience is identifiable from the artifact.
+
+  - id: SE-2
+    source_type: "failure_condition"
+    failure_condition_id: "F2"
+    constraint_id: null
+    skill: "discover-product-opportunity"
+    check: >
+      The product domain is resolvable — the product.yaml contains an
+      unambiguous domain classification that was not rejected by the user.
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    pass_criteria: >
+      product.yaml contains a non-empty domain field with a classification
+      value present, OR the user confirmed a domain after clarification.
+    fail_criteria: >
+      The product domain is unresolvable — the user rejected all proposed
+      domain classifications and provided no alternative.
+
+  - id: SE-3
+    source_type: "failure_condition"
+    failure_condition_id: "F3"
+    constraint_id: null
+    skill: "draft-product-vision"
+    check: >
+      After vision drafting completed, a vision artifact exists at the
+      expected path in .meridian/project/product/{slug}/.
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    pass_criteria: >
+      product.yaml exists at .meridian/project/product/{slug}/product.yaml
+      and is a valid YAML file with non-empty content.
+    fail_criteria: >
+      Vision drafting completed but no vision artifact exists at the
+      expected path in .meridian/project/product/{slug}/.
+
+  - id: SE-4
+    source_type: "failure_condition"
+    failure_condition_id: "F5"
+    constraint_id: null
+    skill: "validate-product-vision"
+    check: >
+      Validation completed with blocker-severity issues still present
+      after the maximum permitted cycle-back iterations — 1 for product
+      type, 2 for library type.
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    pass_criteria: >
+      Validation completes with no blocker-severity issues remaining, OR
+      blocker-severity issues are resolved within the type-dependent
+      iteration limit (1 for product, 2 for library).
+    fail_criteria: >
+      Validation completed with blocker-severity issues still present
+      after the maximum permitted cycle-back iterations (1 for product
+      type, 2 for library type).
+
+  - id: SE-5
+    source_type: "failure_condition"
+    failure_condition_id: "F7"
+    constraint_id: null
+    skill: null
+    check: >
+      The play was invoked for a product slug whose product.yaml
+      already has status LOCKED. Pre-flight must halt before any domain
+      work begins.
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    pass_criteria: >
+      Pre-flight reads product.yaml, detects status LOCKED, and halts
+      the play before any domain agent dispatches occur.
+    fail_criteria: >
+      The play was invoked for a product slug whose product.yaml
+      already has status LOCKED. Re-discovery of an already-locked
+      product is not permitted.
+
+  - id: SE-6
+    source_type: "failure_condition"
+    failure_condition_id: "F8"
+    constraint_id: null
+    skill: "draft-product-vision"
+    check: >
+      A type "library" product.yaml does not contain fabricated market
+      data — no invented competitors with no basis in the intent, no
+      synthetic TAM/SAM/SOM estimates, no persona descriptions that do
+      not match the intent's stated consumers.
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    pass_criteria: >
+      When type is "library", the product.yaml contains no competitors
+      that lack basis in the intent, no TAM/SAM/SOM estimates, and all
+      persona descriptions match the intent's stated consumers.
+    fail_criteria: >
+      A type "library" product.yaml contains fabricated market data —
+      invented competitors with no basis in the intent, synthetic
+      TAM/SAM/SOM estimates, or persona descriptions that do not match
+      the intent's stated consumers.
+
+  - id: SE-7
+    source_type: "failure_condition"
+    failure_condition_id: "F9"
+    constraint_id: null
+    skill: "generate-product-brief"
+    check: >
+      A checkpoint artifact was written before presenting results to the
+      user — the approval flow has an audit trail.
+    artifact_pattern: ".meridian/project/product/{slug}/product-brief.html"
+    pass_criteria: >
+      product-brief.html exists at the expected path before the checkpoint
+      is presented to the user, providing an audit trail for the approval
+      flow.
+    fail_criteria: >
+      No checkpoint artifact was written before presenting results to the
+      user — the approval flow has no audit trail.
+
+  - id: SE-8
+    source_type: "failure_condition"
+    failure_condition_id: "F10"
+    constraint_id: null
+    skill: "draft-product-vision"
+    check: >
+      When opportunity discovery was skipped, the product.yaml still
+      contains strategic goals sufficient for downstream planning.
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    pass_criteria: >
+      product.yaml contains a non-empty strategic_goals array even when
+      opportunity discovery was skipped — the vision has sufficient
+      structure for downstream planning.
+    fail_criteria: >
+      Opportunity discovery was skipped but the product.yaml has no
+      strategic goals — the vision was drafted without sufficient
+      structure for downstream planning.
+
+  # --- Artifact-Verifiable Constraint Evals ---
+
+  - id: SE-9
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C6"
+    skill: "draft-product-vision"
+    check: >
+      All vision and product artifacts are written to
+      .meridian/project/product/{slug}/ relative to the project root.
+      Product STM is project-scoped, not per-issue and not in the global
+      home directory.
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    pass_criteria: >
+      product.yaml is located at .meridian/project/product/{slug}/product.yaml
+      — project-scoped product STM, not per-issue and not in the global
+      home directory.
+    fail_criteria: >
+      product.yaml is written outside .meridian/project/product/{slug}/,
+      or written to a per-issue path, or written to the global home
+      directory.
+
+  - id: SE-10
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C6"
+    skill: "generate-product-brief"
+    check: >
+      The brief artifact is written to .meridian/project/product/{slug}/
+      relative to the project root.
+    artifact_pattern: ".meridian/project/product/{slug}/product-brief.html"
+    pass_criteria: >
+      product-brief.html is located at
+      .meridian/project/product/{slug}/product-brief.html —
+      project-scoped product STM.
+    fail_criteria: >
+      product-brief.html is written outside
+      .meridian/project/product/{slug}/.
+
+  - id: SE-11
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C7"
+    skill: "draft-product-vision"
+    check: >
+      The vision artifact uses "Strategic Goals" terminology. OKRs and
+      OKR-specific terminology (Objectives, Key Results) are prohibited
+      in all vision artifacts.
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    pass_criteria: >
+      product.yaml uses "strategic_goals" as the field name and contains
+      no occurrences of "OKR", "Objectives", or "Key Results" terminology.
+    fail_criteria: >
+      product.yaml contains OKR-specific terminology — "OKR", "Objectives",
+      or "Key Results" appear in the artifact content.
+
+  - id: SE-12
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C8"
+    skill: "generate-product-brief"
+    check: >
+      A checkpoint artifact is written before each user-facing pause.
+      The play has up to two checkpoints: brief review after drafting,
+      and validation review if blockers are found. Checkpoint status is
+      PENDING_APPROVAL until the user responds.
+    artifact_pattern: ".meridian/project/product/{slug}/product-brief.html"
+    pass_criteria: >
+      product-brief.html exists before the first checkpoint is presented.
+      The vision artifact status is PENDING_APPROVAL at checkpoint time.
+      If a second checkpoint occurs (validation blockers), the checkpoint
+      artifact is updated before the user is prompted.
+    fail_criteria: >
+      No checkpoint artifact was written before presenting results, OR
+      the status is not PENDING_APPROVAL at checkpoint time.
+
+  - id: SE-13
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C10"
+    skill: "generate-product-brief"
+    check: >
+      A human-reviewable brief artifact is produced after vision
+      drafting and presented at the first checkpoint. This is the primary
+      artifact the user evaluates before the play proceeds to validation.
+    artifact_pattern: ".meridian/project/product/{slug}/product-brief.html"
+    pass_criteria: >
+      product-brief.html is produced after vision drafting, contains
+      human-reviewable content, and is presented at the first checkpoint
+      for user evaluation.
+    fail_criteria: >
+      No human-reviewable brief artifact was produced after vision
+      drafting, or the brief was not presented at the first checkpoint.
+
+  - id: SE-14
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C13"
+    skill: "draft-product-vision"
+    check: >
+      The product artifact type is determined from the intent and recorded
+      in product.yaml as an explicit type field. Products with external
+      market-facing users are type "product". Internal libraries,
+      components, SDKs, developer tools, and microservices are type
+      "library".
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    pass_criteria: >
+      product.yaml contains an explicit type field set to "product" or
+      "library" consistent with the intent — external market-facing
+      products use "product", internal libraries/components/SDKs/developer
+      tools/microservices use "library".
+    fail_criteria: >
+      product.yaml has no type field, or the type field does not match
+      the intent's product classification (market-facing vs internal).
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: "S1"
+    persona: "Founder / Product Manager / Engineering Lead"
+    artifact_pattern: ".meridian/project/product/{slug}/product-brief.html"
+    check: >
+      The vision artifact and interactive HTML brief produced after
+      vision drafting, presented at the first checkpoint, enable
+      evaluation of whether the strategic goals and positioning
+      accurately capture the user's intent — including for internal
+      libraries where market sections are absent and the brief renders
+      technical context instead.
+    pass_criteria: >
+      product-brief.html contains strategic goals and positioning derived
+      from the original intent. For type "product", market positioning
+      sections are present. For type "library", market sections are absent
+      and technical context renders instead. The brief is navigable for
+      human review.
+    fail_criteria: >
+      The brief does not render strategic goals or positioning, OR a
+      type "library" brief renders market sections that should be absent,
+      OR the brief is not navigable for human evaluation.
+
+  - id: SCE-2
+    scenario_id: "S2"
+    persona: "Engineering Lead"
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    check: >
+      A LOCKED vision artifact can be used as authoritative input for
+      roadmap planning — strategic goals, success metrics, and scope
+      boundaries are defined clearly enough to derive engineering
+      milestones without ambiguity, regardless of product type.
+    pass_criteria: >
+      product.yaml has status LOCKED, contains strategic_goals with 3+
+      entries each having an ID, contains success metrics or measurable
+      outcomes, and defines scope boundaries — sufficient to derive
+      engineering milestones without ambiguity.
+    fail_criteria: >
+      product.yaml is not LOCKED, OR strategic goals lack IDs or have
+      fewer than 3 entries, OR success metrics are missing, OR scope
+      boundaries are undefined — engineering milestones cannot be
+      derived without ambiguity.
+
+  - id: SCE-3
+    scenario_id: "S3"
+    persona: "Product Manager"
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    check: >
+      The validation results shown inline before lock, including
+      completeness score, checklist status, and any issues by severity,
+      enable determination of whether the vision is ready to lock or
+      identification of exactly which sections need strengthening.
+    pass_criteria: >
+      Validation output includes a completeness score, a checklist with
+      per-item status, and issues categorized by severity — a Product
+      Manager can determine readiness to lock or identify specific
+      sections needing improvement.
+    fail_criteria: >
+      Validation output is missing completeness score, checklist, or
+      issue severity — a Product Manager cannot determine readiness
+      or identify which sections need strengthening.
+
+  - id: SCE-4
+    scenario_id: "S4"
+    persona: "Engineering Lead"
+    artifact_pattern: ".meridian/project/product/{slug}/product.yaml"
+    check: >
+      A LOCKED vision artifact for an internal library with type "library"
+      can be used as authoritative input for roadmap planning — strategic
+      goals with IDs, value proposition, and assumptions are defined
+      clearly enough to derive engineering milestones, even though market
+      analysis sections are absent.
+    pass_criteria: >
+      product.yaml has status LOCKED, type "library", strategic_goals
+      with IDs (3+ entries), a value_proposition field, and an assumptions
+      field — sufficient to derive engineering milestones even without
+      market analysis sections.
+    fail_criteria: >
+      product.yaml type is not "library", OR status is not LOCKED, OR
+      strategic goals lack IDs, OR value_proposition is missing, OR
+      assumptions are missing — engineering milestones cannot be derived
+      for the internal library.
+
+coverage:
+  failure_conditions:
+    covered: [F1, F2, F3, F5, F7, F8, F9, F10]
+    uncovered: []
+    notes: "F6 removed in flattened play — artifact path argument no longer exists."
+  artifact_verifiable_constraints:
+    covered: [C6, C7, C8, C10, C13]
+    uncovered: []
+    notes: >
+      C6 covered by SE-9 (product.yaml) and SE-10 (product-brief.html).
+      C1 is pre-flight (not artifact-verifiable). C4, C5, C9, C11, C12
+      are structural (not artifact-verifiable).
+  scenarios:
+    covered: [S1, S2, S3, S4]
+    uncovered: []
+  summary: >
+    8 failure conditions covered (8/8). 5 artifact-verifiable constraints
+    covered across 6 step evals (C6 has 2 — one per artifact). 4 scenarios
+    covered (4/4). Total: 14 step evals + 4 scenario evals = 18 evals.
+    Changes from prior version: F6 eval removed (constraint removed).
+    F5 eval updated to type-dependent iteration limits (1 product, 2 library).
+    F7 eval updated to pre-flight halt semantics. S1, S3 evals updated to
+    remove phase references. No invented thresholds — all criteria sourced
+    from intent.yaml language.

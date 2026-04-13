@@ -6,8 +6,8 @@ commits:
     subject: "broaden extraction from resolution-trace-only to multi-format evidence scanning #195"
     files:
       - core/components/agents/knowledge-extractor.md
-      - core/components/recipes/capture-learning/SKILL.md
-      - core/components/recipes/capture-learning/reference/intent.yaml
+      - core/components/plays/capture-learning/SKILL.md
+      - core/components/plays/capture-learning/reference/intent.yaml
     issue: 195
     confidence: high
     stats: "3 files changed, 66 insertions(+), 25 deletions(-)"

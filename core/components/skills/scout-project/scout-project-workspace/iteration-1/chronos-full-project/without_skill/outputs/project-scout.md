@@ -34,9 +34,9 @@ Communication: Next.js reads Postgres directly (Drizzle ORM) and calls Python en
 - No separate migration framework -- schema via SQL + Drizzle push.
 - Memory layers (Signal Store, STM, Vault, Audit Log) must remain distinct and never collapsed.
 
-## Three Recipes (v1)
+## Three Plays (v1)
 
-| Recipe | Tempo | Trigger |
+| Play | Tempo | Trigger |
 |--------|-------|---------|
 | Capture & Classify | Fast (30-min heartbeat) | Discord message + scheduled heartbeat |
 | Consult CTO | Slow (on-demand) | Owner `/ask` on Discord |

@@ -1,14 +1,14 @@
 # Spec: Fix Product-Strategist Agent
 
 **Issue:** Product-strategist agent has 10 design defects affecting correctness, autonomy, and architectural consistency.
-**Scope:** All 13 files on `feature/62-discover-product-recipe` branch.
+**Scope:** All 13 files on `feature/62-discover-product-play` branch.
 **Type:** Defect (holistic — not myopic single-section fixes)
 
 ---
 
 ## Context
 
-The product-strategist agent was authored as part of the discover-product recipe feature (Issue #62). Review identified 10 interconnected defects ranging from wrong model selection to missing architectural mechanisms. Fixes must cascade across the agent, recipe, skills, templates, and evidence — not just the agent file.
+The product-strategist agent was authored as part of the discover-product play feature (Issue #62). Review identified 10 interconnected defects ranging from wrong model selection to missing architectural mechanisms. Fixes must cascade across the agent, play, skills, templates, and evidence — not just the agent file.
 
 ## Defects
 
@@ -45,10 +45,10 @@ An agent referencing non-existent skills creates false capability awareness. The
 **Files:**
 - `core/components/agents/product-strategist.md` (lines 40-43)
 - `core/components/skills/generate-business-review/SKILL.md` (references "Shared across P5, P6, P7")
-- `core/components/recipes/discover-product/templates/final-report.md` (references P6)
+- `core/components/plays/discover-product/templates/final-report.md` (references P6)
 
-**Issue:** P5/P6/P7/P8 are used as recipe phase identifiers but never defined anywhere. A reader has no context for what these mean.
-**Fix:** Replace cryptic labels with readable recipe names. P5 → `discover-product`, P6 → `plan-roadmap`, P7 → `manage-backlog`, P8 → `refine-backlog`. Use full names in all references.
+**Issue:** P5/P6/P7/P8 are used as play phase identifiers but never defined anywhere. A reader has no context for what these mean.
+**Fix:** Replace cryptic labels with readable play names. P5 → `discover-product`, P6 → `plan-roadmap`, P7 → `manage-backlog`, P8 → `refine-backlog`. Use full names in all references.
 
 ### D5: Redundant Intent Mapping Sections
 
@@ -64,10 +64,10 @@ An agent referencing non-existent skills creates false capability awareness. The
 
 1. **Understand domain** — From the incoming intent and any provided context, identify the vertical domain (BFSI, retail, SaaS, etc.) and product category.
 2. **Selective LTM search** — Search LTM for domain-relevant standards, formats, and knowledge. Use Glob/Grep to find relevant files, not bulk-load everything. Prioritize: `memory/standards/` (always relevant), `memory/knowledge/{domain}/` (if exists), `memory/formats/` (for output shaping).
-3. **Domain confirmation** — If domain is ambiguous (agent cannot confidently classify), return a structured `domain_clarification_needed` response to the recipe caller. The recipe handles user interaction. If domain is obvious from context, proceed without confirmation.
+3. **Domain confirmation** — If domain is ambiguous (agent cannot confidently classify), return a structured `domain_clarification_needed` response to the play caller. The play handles user interaction. If domain is obvious from context, proceed without confirmation.
 4. **Fallback: Web research** — If LTM has insufficient domain knowledge (no relevant entries or coverage too thin), invoke the `research-domain-context` skill for web-based research. Capture results as STM artifacts for this project.
 5. **Load STM** — Read `.meridian/project/product/` for existing product artifacts that provide enrichment context.
-6. **Inject context** — Pass relevant LTM + STM + recipe context to skill invocations. Never pass raw bulk LTM.
+6. **Inject context** — Pass relevant LTM + STM + play context to skill invocations. Never pass raw bulk LTM.
 
 ### D7: No Domain Context Injection Mechanism
 
@@ -86,7 +86,7 @@ An agent referencing non-existent skills creates false capability awareness. The
 ### D8: Multi-Intent Handling Not Supported
 
 **File:** `core/components/agents/product-strategist.md` (lines 224-228)
-**Issue:** "Don't chain — One skill per invocation unless explicitly asked" prevents autonomous multi-intent handling. If a recipe sends "discover and draft for X", the agent can't handle it. The current design requires the recipe to make separate calls for each skill, which limits agent autonomy.
+**Issue:** "Don't chain — One skill per invocation unless explicitly asked" prevents autonomous multi-intent handling. If a play sends "discover and draft for X", the agent can't handle it. The current design requires the play to make separate calls for each skill, which limits agent autonomy.
 **Fix:** Replace "one skill per invocation" with "one skill per intent." The agent identifies all intents in the incoming prompt and processes each with its corresponding skill. Changes needed:
 
 1. **Intent Recognition** — Add multi-intent parsing. Identify each distinct intent in the prompt.
@@ -105,7 +105,7 @@ An agent referencing non-existent skills creates false capability awareness. The
        output: {vision metadata}
    ```
 5. **Partial failure** — If skill N fails in a chain, return results for completed skills plus structured failure for the failed one. Do not roll back completed skills.
-6. **Recipe control** — Recipes can still send single intents for granular control. Multi-intent is opt-in by the caller, not assumed by the agent.
+6. **Play control** — Plays can still send single intents for granular control. Multi-intent is opt-in by the caller, not assumed by the agent.
 
 ### D9: Bash Section (Defensive Anti-Pattern)
 
@@ -129,21 +129,21 @@ This is NOT about making the strategist do tech analysis. It's about making it a
 
 Fixes to the agent require corresponding updates across the feature branch:
 
-### Recipe: `discover-product/SKILL.md`
+### Play: `discover-product/SKILL.md`
 - Handle new `domain_clarification_needed` structured return from agent (new sub-flow between pre-flight and Step 1)
-- Handle compound output contract if recipe sends multi-intent
+- Handle compound output contract if play sends multi-intent
 - Update agent invocation contexts to include domain context when available
 - Remove or replace P5/P6 references
 
-### Recipe: `discover-product/reference/intent.yaml`
+### Play: `discover-product/reference/intent.yaml`
 - Add behavioral constraint for domain context handling (new C-number)
 - Add failure condition for "domain unresolvable" scenario
 
-### Recipe: `discover-product/templates/final-report.md`
+### Play: `discover-product/templates/final-report.md`
 - Replace P6 references with `plan-roadmap`
 
 ### Skill: `generate-business-review/SKILL.md`
-- Replace "Shared across P5, P6, P7" with readable recipe names
+- Replace "Shared across P5, P6, P7" with readable play names
 
 ### Skill: `discover-product-opportunity/SKILL.md`
 - Consider accepting enriched domain context (from LTM or research) as additional input alongside market_hints
@@ -160,7 +160,7 @@ Fixes to the agent require corresponding updates across the feature branch:
 
 ## Out of Scope
 
-- LTM promotion mechanism (STM → LTM) — future recipe, not this defect fix
-- Creating the 8 missing skills (P6/P7/P8 recipes) — separate feature work
+- LTM promotion mechanism (STM → LTM) — future play, not this defect fix
+- Creating the 8 missing skills (P6/P7/P8 plays) — separate feature work
 - Changes to other agents (repo-orchestrator, tech-designer, etc.)
 - Changes to framework protocols (structured-failure-protocol.md, etc.)

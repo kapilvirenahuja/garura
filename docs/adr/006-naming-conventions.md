@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-Meridian components (recipes, skills, agents) had inconsistent naming patterns, making it difficult to:
+Meridian components (plays, skills, agents) had inconsistent naming patterns, making it difficult to:
 - Understand component type from name
 - Follow consistent creation patterns
 - Maintain documentation accuracy
@@ -19,21 +19,21 @@ Meridian components (recipes, skills, agents) had inconsistent naming patterns, 
 
 Establish clear naming conventions for all Meridian components.
 
-### Recipe Naming: `{action}-{object}`
+### Play Naming: `{action}-{object}`
 
-**L2 Recipes (High-Order)** — User intent, workflow:
+**High-Order Plays** — User intent, workflow:
 
 | Pattern | Examples |
 |---------|----------|
 | `{action}-{object}` | `fix-bug`, `code-microservice`, `create-feature`, `review-pr` |
 
-**L1 Recipes (Activities)** — Atomic units, produce artifacts:
+**Atomic Plays** — Atomic units, produce artifacts:
 
 | Pattern | Examples |
 |---------|----------|
 | `{action}-{object}` | `analyze-bug`, `design-fix`, `implement-fix`, `validate-fix` |
 
-Note: L1 and L2 recipes share the same naming pattern. The level is indicated in metadata, not the name.
+Note: High-order and atomic plays share the same naming pattern. The level is indicated in metadata, not the name.
 
 ### Skill Naming
 
@@ -93,15 +93,15 @@ Use qualifiers only when multiple types exist:
 
 | Component | Pattern | Examples |
 |-----------|---------|----------|
-| **L2 Recipes** | `{action}-{object}` | `fix-bug`, `create-feature` |
-| **L1 Recipes** | `{action}-{object}` | `analyze-bug`, `commit-code` |
+| **High-Order Plays** | `{action}-{object}` | `fix-bug`, `create-feature` |
+| **Atomic Plays** | `{action}-{object}` | `analyze-bug`, `commit-code` |
 | **Skills (tech)** | `{action}-{tech/method}` | `write-java-code`, `do-rca-analysis` |
 | **Skills (ops)** | `{action}-{object}` | `analyze-changes`, `submit-pr` |
 | **Agents** | `{domain}-{role}` | `code-builder`, `tech-designer` |
 
 ### Validation Rules
 
-1. **Recipes**: Must start with a verb (action)
+1. **Plays**: Must start with a verb (action)
 2. **Skills (tech)**: Must include technology/methodology qualifier
 3. **Skills (ops)**: Must describe an operation on an object
 4. **Agents**: Must have exactly one hyphen (domain-role)
@@ -111,7 +111,7 @@ Use qualifiers only when multiple types exist:
 
 | Anti-Pattern | Problem | Correct |
 |--------------|---------|---------|
-| `bugFixer` | CamelCase, unclear type | `fix-bug` (recipe) |
+| `bugFixer` | CamelCase, unclear type | `fix-bug` (play) |
 | `bug-analyzer` | Specialist pattern | `tech-designer` (agent) |
 | `javaCode` | Missing action verb | `write-java-code` (skill) |
 | `the-code-builder` | Article prefix | `code-builder` (agent) |

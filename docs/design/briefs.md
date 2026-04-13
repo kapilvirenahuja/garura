@@ -95,7 +95,7 @@ All styling is authored once as a common token set + component classes. Each bri
 ~/.claude/skills/briefs/templates/brief-common.css
 ```
 
-(Source: `core/components/recipes/briefs/templates/brief-common.css` — deployed via `/sync-claude` or `/sync-droids`)
+(Source: `core/components/plays/briefs/templates/brief-common.css` — deployed via `/sync-claude` or `/sync-droids`)
 
 This file is the single source of truth for all brief styling:
 - Token definitions (:root variables) — sourced from Phoenix Design System v2.0
@@ -461,7 +461,7 @@ Source: `plan.yaml`
 
 ## Context Sections
 
-When a brief is reviewed as part of a multi-stage recipe (e.g., `/prepare-implementation`),
+When a brief is reviewed as part of a multi-stage play (e.g., `/prepare-implementation`),
 previously approved artifacts may be shown as non-reviewable context within a tab.
 
 **Context sections:**

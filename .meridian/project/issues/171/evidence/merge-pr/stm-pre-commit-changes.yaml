@@ -1,7 +1,7 @@
 groups:
   - type: chore
     scope: stm
-    subject: "record prior recipe evidence for #171"
+    subject: "record prior play evidence for #171"
     files:
       - .meridian/project/issues/171/evidence/commit-code/commits.yaml
       - .meridian/project/issues/171/evidence/create-pr/pr-record.yaml

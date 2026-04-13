@@ -1,7 +1,7 @@
 # Knowledge File Template
 
 This is the canonical template for all knowledge files written by the
-`learn` recipe. Existing files are grandfathered. New files must conform
+`learn` play. Existing files are grandfathered. New files must conform
 from day one.
 
 Two tiers of metadata exist:

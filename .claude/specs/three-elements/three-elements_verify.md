@@ -2,7 +2,7 @@
 
 ## Gate 1: Schema Completeness (MANDATORY)
 
-Every recipe SKILL.md must contain all three new fields in YAML front-matter.
+Every play SKILL.md must contain all three new fields in YAML front-matter.
 
 | Check | Method | Pass Criteria |
 |-------|--------|---------------|
@@ -10,7 +10,7 @@ Every recipe SKILL.md must contain all three new fields in YAML front-matter.
 | `constraints` field exists | Parse YAML front-matter | Non-empty list, at least 1 item |
 | `failure_conditions` field exists | Parse YAML front-matter | Non-empty list, at least 1 item |
 
-**Apply to:** All 4 recipes (`commit-code`, `create-pr`, `start-feature`, `start-planned-feature`)
+**Apply to:** All 4 plays (`commit-code`, `create-pr`, `start-feature`, `start-planned-feature`)
 
 ## Gate 2: Intent Quality (MANDATORY)
 
@@ -28,7 +28,7 @@ Each `intent` field describes a business outcome, not a technical procedure.
 
 ## Gate 3: Constraint Extraction Accuracy (MANDATORY)
 
-Front-matter constraints must faithfully represent constraints already in the recipe body.
+Front-matter constraints must faithfully represent constraints already in the play body.
 
 | Check | Method |
 |-------|--------|
@@ -36,11 +36,11 @@ Front-matter constraints must faithfully represent constraints already in the re
 | No missing critical constraints | Grep body for MUST/NEVER/forbidden/maximum/always — all represented |
 | No contradictions | Front-matter does not contradict workflow body |
 
-**Apply to:** All 4 recipes. Side-by-side comparison required.
+**Apply to:** All 4 plays. Side-by-side comparison required.
 
 ## Gate 4: Failure Condition Extraction Accuracy (MANDATORY)
 
-Front-matter failure conditions must faithfully represent halt/abort conditions in the recipe body.
+Front-matter failure conditions must faithfully represent halt/abort conditions in the play body.
 
 | Check | Method |
 |-------|--------|
@@ -48,7 +48,7 @@ Front-matter failure conditions must faithfully represent halt/abort conditions 
 | No missing critical halts | Grep body for REJECTED/halts/stops/cannot proceed — all represented |
 | No contradictions | Front-matter does not contradict workflow body |
 
-**Apply to:** All 4 recipes. Side-by-side comparison required.
+**Apply to:** All 4 plays. Side-by-side comparison required.
 
 ## Gate 5: Backward Compatibility (MANDATORY)
 
@@ -63,16 +63,16 @@ No existing behavior changes. Only front-matter additions.
 | `allowed-tools` unchanged | Diff old vs new | Exact match |
 | No workflow body changes | Diff below `---` delimiter | Zero changes |
 | Deployment succeeds | Run sync-claude --project | No errors |
-| Recipe loads | Invoke recipe in Claude Code | No load errors |
+| Play loads | Invoke play in Claude Code | No load errors |
 
 ## Gate 6: Documentation Updated (MANDATORY)
 
-`mrd-recipes.md` must include Three Elements in recipe structure templates.
+`mrd-plays.md` must include Three Elements in play structure templates.
 
 | Check | Method |
 |-------|--------|
-| L1 template includes `intent`, `constraints`, `failure_conditions` | Read docs/components/mrd-recipes.md |
-| L2 template includes `intent`, `constraints`, `failure_conditions` | Read docs/components/mrd-recipes.md |
+| L1 template includes `intent`, `constraints`, `failure_conditions` | Read docs/components/mrd-plays.md |
+| L2 template includes `intent`, `constraints`, `failure_conditions` | Read docs/components/mrd-plays.md |
 | Three Elements requirement explained | Section exists referencing IDD philosophy |
 
 ## Gate 7: Philosophy Alignment (NON-MANDATORY)
@@ -90,9 +90,9 @@ IDD rules validation (lines 158-166 of intent-driven-development.md).
 
 ## Gate 8: No Orphaned Constraints (NON-MANDATORY)
 
-Recipe body does not contain significant constraints/conditions missing from front-matter.
+Play body does not contain significant constraints/conditions missing from front-matter.
 
-**Method:** Grep each recipe body for:
+**Method:** Grep each play body for:
 - `MUST`, `NEVER`, `forbidden`, `required`
 - `halt`, `stop`, `abort`, `cannot proceed`, `do not proceed`
 - `maximum`, `always`, `checkpoint`

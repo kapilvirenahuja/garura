@@ -22,12 +22,12 @@ Software teams using AI assistants waste enormous time on context switching, pro
 
 ## Value Proposition
 
-Meridian OS is the operating layer for intent-driven AI development. It gives AI assistants persistent project memory, structured workflows (recipes), and a shared understanding of intent — so every AI session starts informed, not blank. Teams stop babysitting AI and start delegating to it.
+Meridian OS is the operating layer for intent-driven AI development. It gives AI assistants persistent project memory, structured workflows (plays), and a shared understanding of intent — so every AI session starts informed, not blank. Teams stop babysitting AI and start delegating to it.
 
 ## Strategic Goals
 
 1. **Persistent Context** — AI assistants retain full project intent, constraints, and decisions across sessions without manual re-entry
-2. **Structured Workflows** — Common development operations (feature planning, code review, shipping) execute as repeatable, auditable recipes
+2. **Structured Workflows** — Common development operations (feature planning, code review, shipping) execute as repeatable, auditable plays
 3. **Audience-Separated Artifacts** — Product, engineering, and stakeholder artifacts generated from a single source of truth, never manually maintained in parallel
 4. **Progressive Enrichment** — Artifacts start lightweight and gain depth as the project matures — no big-bang documentation upfront
 5. **Zero-Friction Adoption** — Works with existing Claude Code setup; no new infrastructure, no new tools, no migration cost
@@ -36,7 +36,7 @@ Meridian OS is the operating layer for intent-driven AI development. It gives AI
 
 - Time from idea to first AI-assisted commit: < 30 minutes
 - Percentage of AI sessions that start with full project context loaded: > 90%
-- Recipe execution success rate (no human intervention required): > 80%
+- Play execution success rate (no human intervention required): > 80%
 - Teams reporting reduced context-switching overhead: > 75% in 90-day cohort
 
 ## Competitive Landscape

@@ -13,7 +13,7 @@
 
 ## Resolution
 
-The caller (review-pr Step 2 via `quality-auditor`) MUST resolve all paths from `core/config.yaml` — never hardcode. Pre-flight in the recipe validates `severity_taxonomy_path` exists before invoking the skill.
+The caller (review-pr Step 2 via `quality-auditor`) MUST resolve all paths from `core/config.yaml` — never hardcode. Pre-flight in the play validates `severity_taxonomy_path` exists before invoking the skill.
 
 ## Optional fields
 

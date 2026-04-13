@@ -14,12 +14,12 @@ groups:
     issue: 99
     type: feat
     scope: prepare-implementation
-    subject: "add prepare-implementation recipe and supporting skills (#99)"
+    subject: "add prepare-implementation play and supporting skills (#99)"
     confidence: high
     files:
-      - path: core/components/recipes/prepare-implementation/
+      - path: core/components/plays/prepare-implementation/
         status: untracked
-        description: New recipe directory for prepare-implementation workflow
+        description: New play directory for prepare-implementation workflow
       - path: core/components/skills/audit-spec-gaps/SKILL.md
         status: untracked
         description: New skill for auditing spec gaps
@@ -126,29 +126,29 @@ groups:
   - id: G5
     issue: 99
     type: refactor
-    scope: recipes
-    subject: "update create-recipe and plan-roadmap for P11 and standardized artifacts (#99)"
+    scope: plays
+    subject: "update create-play and plan-roadmap for P11 and standardized artifacts (#99)"
     confidence: high
     files:
-      - path: core/components/recipes/create-recipe/SKILL.md
+      - path: core/components/plays/create-play/SKILL.md
         status: modified
         description: Add P11 context sufficiency principle (10 → 11 agent audit principles)
-      - path: core/components/recipes/create-recipe/reference/audit-checklist.md
+      - path: core/components/plays/create-play/reference/audit-checklist.md
         status: modified
         description: Add P11 checklist item
-      - path: core/components/recipes/discover-product/SKILL.md
+      - path: core/components/plays/discover-product/SKILL.md
         status: modified
         description: Updated to align with standardized artifact naming
-      - path: core/components/recipes/plan-roadmap/SKILL.md
+      - path: core/components/plays/plan-roadmap/SKILL.md
         status: modified
         description: Updated to consume standardized YAML artifacts
-      - path: core/components/recipes/plan-roadmap/templates/approval-prompt.md
+      - path: core/components/plays/plan-roadmap/templates/approval-prompt.md
         status: modified
         description: Updated approval prompt template
-      - path: core/components/recipes/plan-roadmap/templates/checkpoint.md
+      - path: core/components/plays/plan-roadmap/templates/checkpoint.md
         status: modified
         description: Updated checkpoint template
-      - path: core/components/recipes/plan-roadmap/templates/final-report.md
+      - path: core/components/plays/plan-roadmap/templates/final-report.md
         status: modified
         description: Updated final report template
 

@@ -19,7 +19,7 @@ T5 → T7 (SSE endpoint + broadcast) ──────────────�
                                                                  │
 T6 + T7 → T8 (frontend: Kanban view + task cards) ─────────────── Wave 5
                                                                  │
-T8 → T9 (frontend: Recipe timeline view) ──────────────────────── Wave 6
+T8 → T9 (frontend: Play timeline view) ──────────────────────── Wave 6
 T8 → T10 (frontend: Guardian decision log) ────────────────────── Wave 6 (parallel)
 T8 → T11 (frontend: Evidence feed) ────────────────────────────── Wave 6 (parallel)
                                                                  │
@@ -60,14 +60,14 @@ T15 → T16 (verification sweep against all gates) ─────────�
   - `dashboard/lib/parsers.js` -- modify (add checkpoint/evidence parsing functions)
 - **Details:**
   - `parseCheckpoint(content, filePath)` function:
-    - Extract from markdown: Issue number (from `**Issue:** #NN`), Recipe name (from `**Recipe:** {name}`), Step info (from `**Step:** N of M`), Status (from `**Status:** {value}` -- valid values: PENDING_APPROVAL, APPROVED, REJECTED, AUTO_APPROVED, HALTED, COMPLETED), Timestamp (from `**Created:** {datetime}` or derived from filename `YYYYMMDD-HHMMSS.md`), Branch (from `**Branch:** {name}`), Decision text (from `## Decision` section)
+    - Extract from markdown: Issue number (from `**Issue:** #NN`), Play name (from `**Play:** {name}`), Step info (from `**Step:** N of M`), Status (from `**Status:** {value}` -- valid values: PENDING_APPROVAL, APPROVED, REJECTED, AUTO_APPROVED, HALTED, COMPLETED), Timestamp (from `**Created:** {datetime}` or derived from filename `YYYYMMDD-HHMMSS.md`), Branch (from `**Branch:** {name}`), Decision text (from `## Decision` section)
     - Extract Task List table: parse markdown table rows after `## Task List` heading
-    - Return structured object: `{ issue, recipe, step, totalSteps, status, timestamp, branch, decision, tasks: [], filePath }`
+    - Return structured object: `{ issue, play, step, totalSteps, status, timestamp, branch, decision, tasks: [], filePath }`
     - Handle variations: some checkpoints have `## Proposed Commits` (commit-code format); some have `## Quality Checklist` (create-pr format)
     - If parsing fails, return `{ raw: content, filePath, parsed: false }` -- never throw
   - `parseEvidence(content, filePath)` function:
-    - Extract: Issue number, Recipe name (from filename path pattern `evidence/{recipe}/`), Timestamp, key-value pairs from markdown tables
-    - Return: `{ issue, recipe, timestamp, summary, tables: [], filePath }`
+    - Extract: Issue number, Play name (from filename path pattern `evidence/{play}/`), Timestamp, key-value pairs from markdown tables
+    - Return: `{ issue, play, timestamp, summary, tables: [], filePath }`
   - Test against real files in `.meridian/63/` and `.meridian/67/`
 - **Depends on:** T1
 - **Expected Outcome:** Parser correctly extracts structured data from all existing checkpoint and evidence file formats
@@ -100,7 +100,7 @@ T15 → T16 (verification sweep against all gates) ─────────�
 - **Details:**
   - Three independent watchers:
     1. **Task watcher**: Watch `~/.claude/tasks/` at depth 2, filter `*.json`, ignore `.lock` and `.highwatermark`. Emit `{ type: 'task', sessionId, taskId, event: 'add'|'change'|'unlink' }`
-    2. **STM watcher**: Watch `.meridian/` recursively, filter `*.md` files under `checkpoint/` and `evidence/` paths. Ignore `.gitkeep`, `_pending/`, `core/`. Emit `{ type: 'checkpoint'|'evidence', issue, recipe, filePath, event: 'add'|'change' }`. Also watch `.meridian/_archive/`.
+    2. **STM watcher**: Watch `.meridian/` recursively, filter `*.md` files under `checkpoint/` and `evidence/` paths. Ignore `.gitkeep`, `_pending/`, `core/`. Emit `{ type: 'checkpoint'|'evidence', issue, play, filePath, event: 'add'|'change' }`. Also watch `.meridian/_archive/`.
     3. **Project watcher**: Watch `~/.claude/projects/` for `.jsonl` changes, emit `{ type: 'metadata', event: 'change' }`
   - All watchers use `awaitWriteFinish: { stabilityThreshold: 300 }` for partial write handling
   - `ignoreInitial: true` (initial load done synchronously)
@@ -121,7 +121,7 @@ T15 → T16 (verification sweep against all gates) ─────────�
   - Methods:
     - `loadInitial(tasksDir, stmBasePath)` -- synchronous initial load of all existing data
     - `updateTask(sessionId, taskId, parsedTask)` / `removeTask(sessionId, taskId)`
-    - `updateCheckpoint(issue, recipe, parsedCheckpoint)` / `updateEvidence(issue, recipe, parsedEvidence)`
+    - `updateCheckpoint(issue, play, parsedCheckpoint)` / `updateEvidence(issue, play, parsedEvidence)`
     - `getSessions(limit?)` / `getIssues()` / `getIssue(issueNumber)` / `getSessionTasks(sessionId)`
   - Store subscribes to watcher events and auto-updates via parsers
   - Each mutation emits a change event for SSE broadcaster
@@ -138,7 +138,7 @@ T15 → T16 (verification sweep against all gates) ─────────�
     - `GET /api/sessions/:sessionId` -- tasks for a specific session
     - `GET /api/issues` -- list all Meridian issues with latest checkpoint status
     - `GET /api/issues/:issueNumber` -- full issue detail with checkpoints and evidence
-    - `GET /api/issues/:issueNumber/timeline` -- recipe execution timeline
+    - `GET /api/issues/:issueNumber/timeline` -- play execution timeline
     - `GET /api/tasks/all` -- all tasks across all sessions (for search)
   - CORS headers for local development
 - **Depends on:** T5
@@ -174,17 +174,17 @@ T15 → T16 (verification sweep against all gates) ─────────�
 - **Expected Outcome:** Functional Kanban board with session selection, task cards, dependency indicators, real-time updates
 - **Verification:** G-010
 
-### T9: Frontend — Recipe timeline view
+### T9: Frontend — Play timeline view
 - **Files:**
   - `dashboard/public/index.html` -- modify (add timeline view)
 - **Details:**
-  - Horizontal bar chart per recipe with phases as sequential segments
+  - Horizontal bar chart per play with phases as sequential segments
   - Color-code: completed=#22c55e, in_progress=#3b82f6 (pulsing), pending=#4b5563
-  - Status badge (APPROVED/REJECTED/PENDING_APPROVAL/AUTO_APPROVED) per recipe run
+  - Status badge (APPROVED/REJECTED/PENDING_APPROVAL/AUTO_APPROVED) per play run
   - Multiple runs shown as separate rows, chronologically ordered
   - Data from `GET /api/issues/:issueNumber/timeline`
 - **Depends on:** T8
-- **Expected Outcome:** Timeline shows recipe execution phases for selected issue
+- **Expected Outcome:** Timeline shows play execution phases for selected issue
 - **Verification:** G-011
 
 ### T10: Frontend — Guardian decision log
@@ -192,8 +192,8 @@ T15 → T16 (verification sweep against all gates) ─────────�
   - `dashboard/public/index.html` -- modify (add guardian log view)
 - **Details:**
   - Chronological feed of all checkpoint decisions, newest first
-  - Each entry: timestamp, issue + recipe, status badge, decision rationale, expandable detail
-  - Filtering by status, issue number, recipe name
+  - Each entry: timestamp, issue + play, status badge, decision rationale, expandable detail
+  - Filtering by status, issue number, play name
   - Real-time updates via SSE `checkpoint-update` with animation
 - **Depends on:** T8
 - **Expected Outcome:** Guardian log shows all checkpoint decisions with rationale, filterable and real-time
@@ -204,8 +204,8 @@ T15 → T16 (verification sweep against all gates) ─────────�
   - `dashboard/public/index.html` -- modify (add evidence feed view)
 - **Details:**
   - Chronological feed of all evidence artifacts, newest first
-  - Each entry: timestamp, issue + recipe, summary (~200 chars), expandable full content
-  - Filtering by issue number, recipe name
+  - Each entry: timestamp, issue + play, summary (~200 chars), expandable full content
+  - Filtering by issue number, play name
   - Markdown tables → HTML tables, code blocks in monospace
 - **Depends on:** T8
 - **Expected Outcome:** Evidence feed shows all evidence artifacts with summaries
@@ -229,11 +229,11 @@ T15 → T16 (verification sweep against all gates) ─────────�
 - **Files:**
   - `dashboard/public/index.html` -- modify (add issue context panel)
 - **Details:**
-  - Right panel showing: issue header with status, branch name, STM directory status, recipe history with latest status per recipe, correlated sessions, active/archived indicator
-  - Navigation: click recipe → jump to guardian log, click session → switch to Kanban
+  - Right panel showing: issue header with status, branch name, STM directory status, play history with latest status per play, correlated sessions, active/archived indicator
+  - Navigation: click play → jump to guardian log, click session → switch to Kanban
 - **Depends on:** T12
 - **Expected Outcome:** Issue context panel provides complete lifecycle view
-- **Verification:** Select issue #63, verify branch, 3 recipes, all APPROVED
+- **Verification:** Select issue #63, verify branch, 3 plays, all APPROVED
 
 ### T14: Desktop notifications and UX polish
 - **Files:**

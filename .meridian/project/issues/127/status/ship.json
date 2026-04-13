@@ -1,5 +1,5 @@
 {
-  "recipe": "ship",
+  "play": "ship",
   "issue": "127",
   "started_at": "2026-03-25T00:00:00+0000",
   "feature_branch": "feature/127-domain-memory-module-taxonomy-profiling-epic-rules",

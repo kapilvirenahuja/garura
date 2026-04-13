@@ -16,7 +16,7 @@ The term "skill" was used loosely in Meridian, sometimes referring to:
 - Technology-specific knowledge (write Java code)
 
 This ambiguity made it unclear:
-- What is a skill vs. a recipe?
+- What is a skill vs. a play?
 - Who can invoke skills?
 - How do skills relate to agents?
 
@@ -45,7 +45,7 @@ Skills = what agents LEARN (technology/methodology specific)
 
 | Type | What It Is | Examples | Invocability |
 |------|------------|----------|--------------|
-| **Recipes** | Activities (what to do) | `analyze-bug`, `commit-code` | Human OR Model |
+| **Plays** | Activities (what to do) | `analyze-bug`, `commit-code` | Human OR Model |
 | **Skills** | Capabilities (how to do it) | `write-java-code`, `do-rca-analysis` | Model only |
 
 ### Skills by Agent
@@ -62,10 +62,10 @@ Skills = what agents LEARN (technology/methodology specific)
 
 1. **Humans CANNOT invoke skills directly**
    - Skills are internal agent capabilities
-   - Humans invoke L1/L2 recipes
+   - Humans invoke plays
 
 2. **Agents call skills as needed**
-   - Agent receives task from recipe
+   - Agent receives task from play
    - Agent decides which skills to apply
    - Agent has autonomy in skill selection
 
@@ -80,7 +80,7 @@ Skills = what agents LEARN (technology/methodology specific)
 |----------|-------------|
 | **Learned** | Technology/methodology knowledge |
 | **Stable** | Don't change frequently |
-| **Reusable** | Used by multiple agents/recipes |
+| **Reusable** | Used by multiple agents/plays |
 | **Internal** | Not directly invocable by humans |
 
 ### Skill Execution Preferences
@@ -113,7 +113,7 @@ Skills should use the simplest, most direct tool available for the job.
 
 ### Positive
 
-- Clear separation between "what to do" (recipes) and "how to do it" (skills)
+- Clear separation between "what to do" (plays) and "how to do it" (skills)
 - Skills map to team expertise (Java developers, QA specialists)
 - Agents have autonomy in skill selection
 - Extensible — add skills for new technologies

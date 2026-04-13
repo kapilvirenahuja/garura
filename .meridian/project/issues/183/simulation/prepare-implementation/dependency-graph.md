@@ -1,17 +1,17 @@
-# Dependency Graph — prepare-implementation Recipe Neighborhood
+# Dependency Graph — prepare-implementation Play Neighborhood
 
 **Task:** 1C-dependency-graph (SIMULATION)
 **Issue:** 183
-**Scope:** recipe → agents → skills → standards + STM artifact data flow
+**Scope:** play → agents → skills → standards + STM artifact data flow
 
 ---
 
-## Full Recipe Dependency Graph
+## Full Play Dependency Graph
 
 ```mermaid
 graph TD
-    %% ---- RECIPE ----
-    PI[prepare-implementation<br/>L2 recipe]
+    %% ---- PLAY ----
+    PI[prepare-implementation<br/>high-order play]
 
     %% ---- AGENTS ----
     TA[tech-architect<br/>opus · 8 tasks]
@@ -41,14 +41,14 @@ graph TD
     INT[reference/intent.yaml]
     LTM[~/.meridian/core/memory/]
 
-    %% ---- RECIPE DISPATCHES ----
+    %% ---- PLAY DISPATCHES ----
     PI -->|dispatches 8 tasks| TA
     PI -->|dispatches 4 tasks| TE
     PI -->|dispatches 2 tasks| PS
     PI -->|dispatches utility| DB
     PI -->|dispatches utility| RO
 
-    %% ---- RECIPE READS ----
+    %% ---- PLAY READS ----
     PI -->|reads pre-flight| CFG
     PI -->|reads constraints| INT
 
@@ -87,7 +87,7 @@ graph TD
     STD5 -.->|governs LTM reads| TA
 
     %% ---- STYLING ----
-    classDef recipe fill:#0D2D4A,stroke:#00D4FF,color:#E0E8F0
+    classDef play fill:#0D2D4A,stroke:#00D4FF,color:#E0E8F0
     classDef domain_agent fill:#1A2332,stroke:#00D4FF,color:#E0E8F0
     classDef util_agent fill:#1A2332,stroke:#555,color:#999
     classDef skill fill:#1A2332,stroke:#E8731A,color:#E0E8F0
@@ -95,7 +95,7 @@ graph TD
     classDef config fill:#1A2332,stroke:#666,color:#999
     classDef ltm fill:#2D1A0D,stroke:#E8731A,color:#E0E8F0
 
-    class PI recipe
+    class PI play
     class TA,TE,PS domain_agent
     class DB,RO util_agent
     class S1,S2,S3,S4,S5,S6,S7 skill
@@ -108,7 +108,7 @@ graph TD
 
 ## STM Artifact Data Flow
 
-The following graph shows how intermediate artifacts flow between agents across recipe phases.
+The following graph shows how intermediate artifacts flow between agents across play phases.
 
 ```mermaid
 graph TD
@@ -162,7 +162,7 @@ graph TD
 
     subgraph "Validate + Lock"
         VR[validation-report.yaml<br/>product-strategist · validate]
-        PLR[pre-lock-resolutions.yaml<br/>recipe inline]
+        PLR[pre-lock-resolutions.yaml<br/>play inline]
         LOCK[LOCKED artifacts<br/>features + tech + scenarios + plan]
     end
 
@@ -319,7 +319,7 @@ This is a **coupling constraint, not a data dependency**. The plan reads scenari
 
 | Standard | Governs |
 |----------|---------|
-| `agent-contract.md` | All agents in the recipe (universal protocol) |
+| `agent-contract.md` | All agents in the play (universal protocol) |
 | `resolution-protocol.md` | tech-architect (1E LTM), product-strategist, repo-orchestrator |
 | `epic-management-rules.md` | prepare-implementation (C6/F3), product-strategist (features.yaml), tech-architect (plan phases) |
 | `brief-principles.md` | doc-builder (all briefs), prepare-implementation (checkpoint review presentation) |
@@ -330,12 +330,12 @@ This is a **coupling constraint, not a data dependency**. The plan reads scenari
 
 ## Key Design Observations
 
-1. **tech-architect is the weight-bearing column.** It owns 8 of 13 recipe tasks spanning all phases. It is the only agent producing architecture inference, dependency graphs, change surface, tech design, and execution plan. A failure in this agent propagates to 80% of all intermediate artifacts.
+1. **tech-architect is the weight-bearing column.** It owns 8 of 13 play tasks spanning all phases. It is the only agent producing architecture inference, dependency graphs, change surface, tech design, and execution plan. A failure in this agent propagates to 80% of all intermediate artifacts.
 
 2. **Compartmentalization is a first-class coupling constraint.** The scenarios→plan edge is not just a data flow — it carries a hard restriction (C9, F8). Scenarios content must never appear in plan.yaml. This is enforced at the artifact schema level, not the agent level.
 
 3. **context-assembly.yaml is the critical path bottleneck.** It aggregates all 5 Phase 1 outputs and is consumed by all Phase 2 and Phase 3 agents. Any Phase 1 failure — in any of the 5 parallel steps — blocks the entire pipeline at Checkpoint 0.
 
-4. **Standards govern the contract schema, not just the content.** `agent-contract.md` is the universal envelope that every recipe→agent invocation must follow. It is not an implementation detail — it is the interface contract that makes the agent composition work.
+4. **Standards govern the contract schema, not just the content.** `agent-contract.md` is the universal envelope that every play→agent invocation must follow. It is not an implementation detail — it is the interface contract that makes the agent composition work.
 
 5. **doc-builder and repo-orchestrator are exempt from L2 budget.** The L2 ≤5 domain agent constraint applies to tech-architect, test-engineer, and product-strategist. Utility agents run outside that budget.

@@ -13,11 +13,11 @@ commits:
   - number: 2
     hash: 68b14ee
     type: feat
-    scope: recipes
+    scope: plays
     subject: redesign prepare-implementation with TDD-first blast radius pipeline #183
     files:
-      - core/components/recipes/prepare-implementation/SKILL.md
-      - core/components/recipes/prepare-implementation/reference/intent.yaml
+      - core/components/plays/prepare-implementation/SKILL.md
+      - core/components/plays/prepare-implementation/reference/intent.yaml
     created_at: "2026-03-31"
     status: success
 
@@ -28,10 +28,10 @@ commits:
     subject: add start-feature artifacts and simulation evidence for #183
     files_changed: 27
     files_created:
-      - .meridian/project/issues/183/evidence/create-recipe/prepare-implementation/coverage-matrix.md
-      - .meridian/project/issues/183/evidence/create-recipe/prepare-implementation/evals.yaml
-      - .meridian/project/issues/183/evidence/create-recipe/prepare-implementation/recipe-analysis.md
-      - .meridian/project/issues/183/evidence/create-recipe/prepare-implementation/skill-manifest.yaml
+      - .meridian/project/issues/183/evidence/create-play/prepare-implementation/coverage-matrix.md
+      - .meridian/project/issues/183/evidence/create-play/prepare-implementation/evals.yaml
+      - .meridian/project/issues/183/evidence/create-play/prepare-implementation/play-analysis.md
+      - .meridian/project/issues/183/evidence/create-play/prepare-implementation/skill-manifest.yaml
       - .meridian/project/issues/183/evidence/start-feature/branch-result.yaml
       - .meridian/project/issues/183/evidence/start-feature/issue-resolution.yaml
       - .meridian/project/issues/183/simulation/prepare-implementation/architecture-inference.md

@@ -1,4 +1,4 @@
-# Integration Walkthrough Verification: /ship L2 Recipe
+# Integration Walkthrough Verification: /ship High-Order Play
 <!-- T13 evidence | 2026-03-03 -->
 
 ## Summary

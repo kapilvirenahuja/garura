@@ -1,0 +1,52 @@
+play: discover-product
+intent_hash: sha256:0474d47cc799c28e49220cb644bc6c950ecbe294cb261d7536323161f85666bc
+
+classifications:
+  C1:
+    kind: pre-flight
+    enforcement: Pre-flight check — halt if intent word count <= 5
+  C4:
+    kind: structural
+    enforcement: All product-domain work delegated to product-strategist agent
+  C5:
+    kind: structural
+    enforcement: Max 5 domain agent dispatches; repo-orchestrator exempt
+  C6:
+    kind: artifact-verifiable
+    enforcement: All artifacts under .meridian/product/discovery/ — verified by eval
+  C7:
+    kind: artifact-verifiable
+    enforcement: Terminology check — "Strategic Goals" required, OKR language prohibited
+  C8:
+    kind: artifact-verifiable
+    enforcement: Checkpoint .md artifact written before each user-facing pause with PENDING_APPROVAL
+  C9:
+    kind: structural
+    enforcement: Cycle-back limit — 1 product / 2 library iterations tracked in status file
+  C11:
+    kind: structural
+    enforcement: Ambiguous domain triggers user clarification before product-domain work
+  C12:
+    kind: structural
+    enforcement: Step 2 skipped when intent is library/component per three-signal assessment
+  C13:
+    kind: artifact-verifiable
+    enforcement: product.yaml has explicit type field ("product" or "library")
+  C14:
+    kind: artifact-verifiable
+    enforcement: Pre-lock resolution interview + pre-lock-resolutions.yaml audit file
+  C15:
+    kind: structural
+    enforcement: No accept-risk bypass — only RESOLVED or Vanish from blocker state
+  C16:
+    kind: artifact-verifiable
+    enforcement: product.yaml.profiles populated via sequential PP -> NFR -> QP cascade
+  C17:
+    kind: structural
+    enforcement: Profiles presented to user for validation before the vision review checkpoint
+  C18:
+    kind: artifact-verifiable
+    enforcement: Source-document deferrals appear in scope.out_of_scope, not scope.in_scope
+  C19:
+    kind: artifact-verifiable
+    enforcement: Conflicts between agent reasoning and source surfaced as decision_points

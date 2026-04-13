@@ -24,15 +24,15 @@ issue_mappings:
     - group_id: G6
       issue: 182
       confidence: high
-      reasoning: "capture-learning recipe is the learning extraction pipeline defined by #182"
+      reasoning: "capture-learning play is the learning extraction pipeline defined by #182"
     - group_id: G7
       issue: 182
       confidence: high
-      reasoning: "6 recipes updated for ltm_context wiring — protocol integration across recipe layer"
+      reasoning: "6 plays updated for ltm_context wiring — protocol integration across play layer"
     - group_id: G8
       issue: 182
       confidence: high
-      reasoning: "STM evidence from create-recipe and learn-dry-run execution during #182 work"
+      reasoning: "STM evidence from create-play and learn-dry-run execution during #182 work"
     - group_id: G9
       issue: 182
       confidence: high

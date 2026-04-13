@@ -60,7 +60,7 @@ candidates:
       - "Two-tier metadata — Tier 1 for all files, Tier 2 (applicability, rationale, decay tracking) for core-scoped files only"
       - "Classification heuristics — project-specific names/models/paths -> project; technology/framework patterns -> core; when in doubt, project"
       - "Mandatory human approval gate for all LTM writes regardless of agent confidence"
-      - "Archival and extraction share the issue closure trigger — same recipe, separate phases to avoid coordination overhead"
+      - "Archival and extraction share the issue closure trigger — same play, separate phases to avoid coordination overhead"
     source_issue: "182"
     source_trace_path: ".meridian/project/issues/182/evidence/prepare-implementation/resolution-trace.yaml"
     domain_question: "How should work artifacts be converted into persistent organizational knowledge with appropriate quality gates, scope classification, and metadata standards?"
@@ -73,7 +73,7 @@ candidates:
       reasoning for every classification. Metadata is tiered — all files carry Tier 1
       (title, scope, search patterns, provenance); core files additionally carry
       Tier 2 (applicability boundaries, rationale, decay tracking with staleness
-      window). Archival and extraction are co-located in the same recipe to share
+      window). Archival and extraction are co-located in the same play to share
       the issue-closure trigger.
     proposed_scope: "core"
     proposed_scope_rationale: "Knowledge lifecycle management with human gates and scoped classification is a general organizational learning pattern applicable to any system that accumulates persistent knowledge."
@@ -85,7 +85,7 @@ candidates:
     title: "Context Isolation as a Security Invariant in Eval and Extraction Pipelines"
     type: "pattern"
     synthesized_from:
-      - "eval-generator and judge agents NEVER receive ltm_context — any recipe passing it is a defect; isolation prevents specification gaming"
+      - "eval-generator and judge agents NEVER receive ltm_context — any play passing it is a defect; isolation prevents specification gaming"
       - "Knowledge-extractor is read-only against its inputs — never modifies resolution traces or evidence artifacts to prevent feedback loops"
     source_issue: "182"
     source_trace_path: ".meridian/project/issues/182/evidence/prepare-implementation/resolution-trace.yaml"
@@ -93,7 +93,7 @@ candidates:
     llm_answer_summary: >
       Context isolation is a security invariant, not a preference. Two applications:
       (1) Eval agents (eval-generator, judge) NEVER receive ltm_context or
-      implementation context — any recipe that passes this context is treated as a
+      implementation context — any play that passes this context is treated as a
       defect, because exposure enables specification gaming where evals are shaped to
       pass rather than to test. (2) Extraction agents are read-only against their
       inputs — the knowledge-extractor reads evidence but never modifies it, preventing

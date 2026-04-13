@@ -37,14 +37,14 @@ Personal AI for strategic leaders — a dual-tempo, intent-driven PCAM runtime t
 |----------|--------|------------|
 | Vision | LOCKED | 3 strategic goals |
 | Product Spec | Active | 6 core behaviors |
-| Technical Approach | Active | 3 recipes, 2 deployment units |
+| Technical Approach | Active | 3 plays, 2 deployment units |
 | LLD | Active | 9 phases |
 | Scenarios | Active | 54 total: 34 automated, 19 hybrid |
 
 ## Critical Constraints
 
 - Memory layers must remain distinct — signal store, STM, vault, audit log never collapse
-- Recipes define what, agents determine how — no ad hoc prompting bypassing recipe/agent/skill chain
+- Plays define what, agents determine how — no ad hoc prompting bypassing play/agent/skill chain
 - Anthropic/Claude is implementation machinery, not the architecture — provider-independent by design
 - Signals always stored before processing — no inline processing risking data loss
 

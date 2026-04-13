@@ -4,7 +4,7 @@ issue:
   labels:
     - bug
   state: open
-  body_summary: "Three recipes — /discover-product, /plan-roadmap, /prepare-implementation — lock (freeze) their artifacts without verifying that all blockers, open questions, and high-risk items have been resolved. Currently:"
+  body_summary: "Three plays — /discover-product, /plan-roadmap, /prepare-implementation — lock (freeze) their artifacts without verifying that all blockers, open questions, and high-risk items have been resolved. Currently:"
   url: "https://github.com/kapilvirenahuja/meridian-os/issues/124"
   created: true
   closed: false

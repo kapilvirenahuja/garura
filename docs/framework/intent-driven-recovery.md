@@ -1,6 +1,6 @@
 # Intent-Driven Recovery
 
-When a failure condition is triggered during recipe execution, DO NOT halt immediately. Follow the recovery reasoning loop.
+When a failure condition is triggered during play execution, DO NOT halt immediately. Follow the recovery reasoning loop.
 
 ## Recovery Reasoning Loop
 
@@ -24,7 +24,7 @@ Failure condition triggered
 |-----------|------|
 | **Intent-first** | Recovery serves the declared intent, not a prescribed procedure |
 | **Constraint-respecting** | Recovery must satisfy ALL constraints — never bypass them |
-| **Agent-reasoned** | Recovery paths are derived at runtime, not hardcoded in recipes |
+| **Agent-reasoned** | Recovery paths are derived at runtime, not hardcoded in plays |
 | **Checkpoint-gated** | Recovery always requires user approval before execution |
 | **Skill-delegated** | Recovery actions delegate to existing skills and agents |
 
@@ -38,7 +38,7 @@ The Three Elements of Intent are your inputs:
 
 ## What You Declare vs. What You Derive
 
-| Recipe declares (static) | You derive (dynamic) |
+| Play declares (static) | You derive (dynamic) |
 |--------------------------|----------------------|
 | Intent — the outcome | Whether the intent is still achievable |
 | Constraints — the boundaries | Which constraint is blocking and how to satisfy it |

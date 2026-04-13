@@ -19,9 +19,9 @@ groups:
     files:
       - path: core/components/agents/knowledge-extractor.md
         change: "Expanded EXTRACT mode to recognize 6 additional artifact types (judge-report, rca, design, remediation, quality-report, drift-report) with per-type extraction heuristics; renamed trace_paths → evidence_paths in input contract; renamed traces_scanned → artifacts_scanned in output summary; updated zero-candidate case description; updated error type trace_not_found → artifact_not_found"
-      - path: core/components/recipes/capture-learning/SKILL.md
+      - path: core/components/plays/capture-learning/SKILL.md
         change: "Updated Step 3 find command to scan for all recognized artifact types; renamed locate-traces → locate-evidence task; updated trace_paths → evidence_paths in Step 4 contract; updated SE-12 eval description; updated checkpoint display label; updated intent_hash and compiled_at metadata"
-      - path: core/components/recipes/capture-learning/reference/intent.yaml
+      - path: core/components/plays/capture-learning/reference/intent.yaml
         change: "Expanded C12 constraint to enumerate all recognized secondary extraction sources with priority ordering; updated C15 constraint to refer to 'extractable signals across all recognized artifact types' rather than resolution-trace-only entries"
 
   - id: 2
@@ -32,12 +32,12 @@ groups:
     confidence: high
     files:
       - path: .meridian/project/issues/195/
-        change: "Untracked STM directory containing fix-it recipe evidence artifacts (operational, not source code)"
+        change: "Untracked STM directory containing fix-it play evidence artifacts (operational, not source code)"
 
 risks:
   sensitive_files: []
   breaking_changes:
     - description: "Agent contract field rename: stm.input.trace_paths → stm.input.evidence_paths and summary.traces_scanned → summary.artifacts_scanned"
-      assessment: "Low risk — these are markdown spec files, not deployed code with live callers. Recipe SKILL.md is updated in the same changeset to match. No orphaned callers."
+      assessment: "Low risk — these are markdown spec files, not deployed code with live callers. Play SKILL.md is updated in the same changeset to match. No orphaned callers."
   ambiguous_types: []
   hotfix_branch: false

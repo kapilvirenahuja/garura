@@ -37,35 +37,35 @@ commits:
 
   - group_id: G6
     sha: "deb0b47"
-    message: "feat(recipes): add capture-learning recipe with extraction pipeline #182"
+    message: "feat(plays): add capture-learning play with extraction pipeline #182"
     files:
-      - core/components/recipes/capture-learning/SKILL.md
-      - core/components/recipes/capture-learning/reference/intent.yaml
+      - core/components/plays/capture-learning/SKILL.md
+      - core/components/plays/capture-learning/reference/intent.yaml
 
   - group_id: G7
     sha: "127fc23"
-    message: "feat(recipes): wire ltm_context into 7 existing recipe agent dispatches #182"
+    message: "feat(plays): wire ltm_context into 7 existing play agent dispatches #182"
     files:
-      - core/components/recipes/commit-code/SKILL.md
-      - core/components/recipes/create-pr/SKILL.md
-      - core/components/recipes/discover-product/SKILL.md
-      - core/components/recipes/implement-epic/SKILL.md
-      - core/components/recipes/plan-roadmap/SKILL.md
-      - core/components/recipes/prepare-architecture/SKILL.md
-      - core/components/recipes/prepare-implementation/SKILL.md
+      - core/components/plays/commit-code/SKILL.md
+      - core/components/plays/create-pr/SKILL.md
+      - core/components/plays/discover-product/SKILL.md
+      - core/components/plays/implement-epic/SKILL.md
+      - core/components/plays/plan-roadmap/SKILL.md
+      - core/components/plays/prepare-architecture/SKILL.md
+      - core/components/plays/prepare-implementation/SKILL.md
 
   - group_id: G8
     sha: "948c316"
-    message: "chore(stm): add create-recipe, learn-dry-run, and commit-code evidence for #182"
+    message: "chore(stm): add create-play, learn-dry-run, and commit-code evidence for #182"
     files:
       - .meridian/project/issues/182/evidence/commit-code/analysis.yaml
       - .meridian/project/issues/182/evidence/commit-code/issue-mappings.yaml
-      - .meridian/project/issues/182/evidence/create-recipe/capture-learning/agent-audit-knowledge-extractor.md
-      - .meridian/project/issues/182/evidence/create-recipe/capture-learning/agent-audit-repo-orchestrator.md
-      - .meridian/project/issues/182/evidence/create-recipe/capture-learning/coverage-matrix.md
-      - .meridian/project/issues/182/evidence/create-recipe/capture-learning/evals.yaml
-      - .meridian/project/issues/182/evidence/create-recipe/capture-learning/recipe-analysis.md
-      - .meridian/project/issues/182/evidence/create-recipe/capture-learning/skill-manifest.yaml
+      - .meridian/project/issues/182/evidence/create-play/capture-learning/agent-audit-knowledge-extractor.md
+      - .meridian/project/issues/182/evidence/create-play/capture-learning/agent-audit-repo-orchestrator.md
+      - .meridian/project/issues/182/evidence/create-play/capture-learning/coverage-matrix.md
+      - .meridian/project/issues/182/evidence/create-play/capture-learning/evals.yaml
+      - .meridian/project/issues/182/evidence/create-play/capture-learning/play-analysis.md
+      - .meridian/project/issues/182/evidence/create-play/capture-learning/skill-manifest.yaml
       - .meridian/project/issues/182/evidence/learn-dry-run/KC-001-resolution-hierarchy.md
       - .meridian/project/issues/182/evidence/learn-dry-run/KC-002-keyword-discovery.md
       - .meridian/project/issues/182/evidence/learn-dry-run/KC-003-optional-contract-evolution.md

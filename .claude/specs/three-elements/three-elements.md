@@ -1,8 +1,8 @@
-# Three Elements of Intent: Recipe Front-Matter Enforcement
+# Three Elements of Intent: Play Front-Matter Enforcement
 
 ## Problem
 
-The IDD philosophy mandates every well-formed intent has exactly three elements: **Intent**, **Constraints**, **Failure Conditions**. All 4 recipes violate this — they use a flat `description` field and scatter constraints/failure conditions through workflow steps.
+The IDD philosophy mandates every well-formed intent has exactly three elements: **Intent**, **Constraints**, **Failure Conditions**. All 4 plays violate this — they use a flat `description` field and scatter constraints/failure conditions through workflow steps.
 
 ## Decision: Schema Design
 
@@ -16,7 +16,7 @@ IDD values conciseness. Severity is expressed through natural language (MUST vs 
 
 ### `intent` is a single string
 
-One recipe = one intent. Multiple intents means split the recipe.
+One play = one intent. Multiple intents means split the play.
 
 ## New Front-Matter Schema
 
@@ -29,7 +29,7 @@ model: string
 allowed-tools: string
 
 # === Three Elements of Intent (IDD) ===
-intent: string                  # The positive space: what outcome this recipe achieves
+intent: string                  # The positive space: what outcome this play achieves
                                 # Business language, not technical. Self-evidently testable.
 
 constraints:                    # The boundaries the solution must respect
@@ -40,7 +40,7 @@ failure_conditions:             # Halt signals — when to abort execution
 ---
 ```
 
-## Proposed Content Per Recipe
+## Proposed Content Per Play
 
 ### commit-code (L1)
 
@@ -154,10 +154,10 @@ The front-matter is parsed by Claude Code at load time and included in the model
 | `description` consumers | None — field preserved unchanged |
 | Workflow behavior | None — Three Elements formalize what's already implicit |
 | `sync-claude` deployment | None — file copy, format-agnostic |
-| Recipe documentation (`mrd-recipes.md`) | Update required — templates need new fields |
+| Play documentation (`mrd-plays.md`) | Update required — templates need new fields |
 
 ## Scope
 
-- 4 recipe SKILL.md files (front-matter only, no workflow body changes)
-- 1 documentation file (`docs/components/mrd-recipes.md`)
-- Optional: 1 new ADR (`docs/adr/009-recipe-three-elements.md`)
+- 4 play SKILL.md files (front-matter only, no workflow body changes)
+- 1 documentation file (`docs/components/mrd-plays.md`)
+- Optional: 1 new ADR (`docs/adr/009-play-three-elements.md`)

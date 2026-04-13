@@ -1,4 +1,4 @@
-recipe: commit-code
+play: commit-code
 step: analyze-changes
 issue: 198
 branch: fix/198-sync-claude-fork-execution
@@ -38,7 +38,7 @@ change_groups:
         description: "Ship status tracking for issue 198"
       - path: .meridian/project/issues/198/evidence/commit-code/
         status: untracked
-        description: "Commit-code evidence files (this recipe's artifacts)"
+        description: "Commit-code evidence files (this play's artifacts)"
     risk: low
     breaking_changes: false
 

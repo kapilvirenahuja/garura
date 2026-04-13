@@ -1,6 +1,6 @@
 # G-013: P-Label Replacement in All Files
 
-**Gate:** All files use full recipe names instead of P-labels. generate-business-review and final-report.md specifically checked.
+**Gate:** All files use full play names instead of P-labels. generate-business-review and final-report.md specifically checked.
 **Mandatory:** Yes
 **Result:** PASS
 
@@ -15,14 +15,14 @@ No matches found
 
 **Current content (line 19):**
 ```
-Shared across discover-product, plan-roadmap, and manage-backlog recipes.
+Shared across discover-product, plan-roadmap, and manage-backlog plays.
 ```
 
-Uses full recipe names.
+Uses full play names.
 
 ## Test 2: final-report.md
 
-**Prompt:** `grep "P[5-8]" core/components/recipes/discover-product/templates/final-report.md`
+**Prompt:** `grep "P[5-8]" core/components/plays/discover-product/templates/final-report.md`
 
 **Output:**
 ```
@@ -42,4 +42,4 @@ No matches found
 
 Zero P-labels in any file.
 
-**Verdict:** All P-labels replaced with recipe names. Gate passes.
+**Verdict:** All P-labels replaced with play names. Gate passes.

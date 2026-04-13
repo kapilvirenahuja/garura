@@ -10,8 +10,8 @@ analysis:
     file_patterns_matched:
       - "core/components/**"          # sync-claude rule triggered
       - "**/agents/**/*.md"           # agent definition changed
-      - "**/recipes/**/*.md"          # recipe definition changed (SKILL.md)
-      - "**/recipes/**/SKILL.md"      # recipe SKILL.md changed
+      - "**/plays/**/*.md"          # play definition changed (SKILL.md)
+      - "**/plays/**/SKILL.md"      # play SKILL.md changed
       - "*.yaml"                      # config/intent YAML changed
     commit_types:
       - fix
@@ -46,21 +46,21 @@ analysis:
         status: PASS
         evidence: "## Boundaries section found at line 306"
 
-      - id: recipe-frontmatter
-        item: "capture-learning recipe has valid frontmatter"
-        trigger: "Recipe definition changed: core/components/recipes/capture-learning/SKILL.md"
+      - id: play-frontmatter
+        item: "capture-learning play has valid frontmatter"
+        trigger: "Play definition changed: core/components/plays/capture-learning/SKILL.md"
         status: PASS
         evidence: "Frontmatter present with name, description, user-invocable, model fields confirmed"
 
-      - id: recipe-workflow
-        item: "capture-learning recipe defines workflow"
-        trigger: "Recipe definition changed: core/components/recipes/capture-learning/SKILL.md"
+      - id: play-workflow
+        item: "capture-learning play defines workflow"
+        trigger: "Play definition changed: core/components/plays/capture-learning/SKILL.md"
         status: PASS
         evidence: "## Workflow section found at line 59"
 
-      - id: recipe-checkpoint
-        item: "capture-learning recipe defines checkpoint behavior"
-        trigger: "Recipe definition changed: core/components/recipes/capture-learning/SKILL.md"
+      - id: play-checkpoint
+        item: "capture-learning play defines checkpoint behavior"
+        trigger: "Play definition changed: core/components/plays/capture-learning/SKILL.md"
         status: PASS
         evidence: "Checkpoint with Tether/Vanish found at line 229; zero-candidate bypass also defined at line 184"
 
@@ -84,16 +84,16 @@ analysis:
         evidence: "Name 'knowledge-extractor' matches domain=knowledge, role=extractor pattern"
 
       - id: skill-constraints
-        item: "capture-learning recipe has constraints section"
-        trigger: "Recipe SKILL.md changed"
+        item: "capture-learning play has constraints section"
+        trigger: "Play SKILL.md changed"
         status: PASS
-        evidence: "Constraints embedded in recipe workflow via intent-compiled sections (C1-C15 constraints referenced)"
+        evidence: "Constraints embedded in play workflow via intent-compiled sections (C1-C15 constraints referenced)"
 
-      - id: recipe-agent-limit
-        item: "Recipe respects agent call limits (L2 ≤5)"
-        trigger: "Recipe definition changed"
+      - id: play-agent-limit
+        item: "Play respects agent call limits (L2 ≤5)"
+        trigger: "Play definition changed"
         status: REVIEW
-        evidence: "Recipe is L2 — manual review of agent call count recommended. Fix scope (knowledge-extractor + repo-orchestrator + project-orchestrator) appears within budget."
+        evidence: "Play is L2 — manual review of agent call count recommended. Fix scope (knowledge-extractor + repo-orchestrator + project-orchestrator) appears within budget."
 
       - id: config-documented
         item: "YAML intent changes documented inline"

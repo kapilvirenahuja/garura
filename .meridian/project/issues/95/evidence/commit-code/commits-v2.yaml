@@ -2,17 +2,17 @@ commits:
   - group: G1
     hash: "5414714"
     type: feat
-    scope: recipe-framework
-    subject: implement intent-driven recipe architecture #95
+    scope: play-framework
+    subject: implement intent-driven play architecture #95
     files_count: 21
     insertions: 1848
     deletions: 386
     body: |
       Add Four Crafts architecture with JSON contract communication, STM path
       handoff, and intent-driven workflows. New components: intent-crafter,
-      intent-resolver, create-recipe, evals-creator, resolve-issues. Upgrade
+      intent-resolver, create-play, evals-creator, resolve-issues. Upgrade
       repo-orchestrator and project-orchestrator to contract mode. Rewrite
-      commit-code recipe with fixed stages, two-phase workflow, and issue-first
+      commit-code play with fixed stages, two-phase workflow, and issue-first
       grouping. Add LTM workflow templates and intent schema.
     co_authored_by: Claude Opus 4.6 <noreply@anthropic.com>
 
@@ -43,5 +43,5 @@ summary:
   total_files_changed: 37
   total_insertions: 2911
   total_deletions: 386
-  branch: feature/95-intent-driven-recipe-architecture
+  branch: feature/95-intent-driven-play-architecture
   base_branch: main

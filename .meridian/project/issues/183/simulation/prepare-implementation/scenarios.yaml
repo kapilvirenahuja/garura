@@ -24,10 +24,10 @@ baseline_scenarios:
     source: "BT-PRE-01"
     target: "prepare-implementation pre-flight"
     current_behavior: >
-      When product.yaml is absent, the recipe continues without halting.
+      When product.yaml is absent, the play continues without halting.
       Step 0 records product status as 'absent' in context-assembly.yaml.
     expected_behavior: >
-      Recipe proceeds past pre-flight. context-assembly.yaml contains
+      Play proceeds past pre-flight. context-assembly.yaml contains
       upstream_context.product.status == 'absent' and source describes
       the path that was checked.
     pass_criteria: >
@@ -39,10 +39,10 @@ baseline_scenarios:
     source: "BT-PRE-02"
     target: "prepare-implementation pre-flight"
     current_behavior: >
-      When roadmap.yaml is absent and no --epic flag provided, the recipe
+      When roadmap.yaml is absent and no --epic flag provided, the play
       continues. Epic dependency enforcement is skipped.
     expected_behavior: >
-      Recipe proceeds. context-assembly.yaml contains
+      Play proceeds. context-assembly.yaml contains
       upstream_context.roadmap.status == 'absent'. No epic-dependency-check
       artifact is produced.
     pass_criteria: >
@@ -55,9 +55,9 @@ baseline_scenarios:
     target: "prepare-implementation pre-flight"
     current_behavior: >
       When invoked with no issue resolvable from branch AND no --epic flag,
-      the recipe halts with F19.
+      the play halts with F19.
     expected_behavior: >
-      Recipe emits HALT referencing F19. No STM artifacts created.
+      Play emits HALT referencing F19. No STM artifacts created.
     pass_criteria: >
       HALT message contains reference to 'no issue' and 'no epic'.
       No evidence directory created in STM.
@@ -67,7 +67,7 @@ baseline_scenarios:
     source: "BT-PRE-04"
     target: "prepare-implementation pre-flight + Step 2"
     current_behavior: >
-      When architecture.yaml is absent, the recipe enters discovery mode
+      When architecture.yaml is absent, the play enters discovery mode
       rather than halting. Architecture understanding is derived from
       codebase analysis and user interview.
     expected_behavior: >
@@ -85,7 +85,7 @@ baseline_scenarios:
     source: "BT-PRE-05"
     target: "prepare-implementation pre-flight"
     current_behavior: >
-      When quality-standards.yaml is absent, the recipe enters discovery
+      When quality-standards.yaml is absent, the play enters discovery
       mode. Quality context derived from toolchain detection.
     expected_behavior: >
       No halt for missing quality-standards.yaml.
@@ -192,17 +192,17 @@ baseline_scenarios:
       F25 exists by ID. Text references both discovery mode and skipped.
     automation: automated
 
-  # --- Pipeline recipe baselines (from BT-PCR-01..03) ---
+  # --- Pipeline play baselines (from BT-PCR-01..03) ---
 
   - id: BS-013
     source: "BT-PCR-01"
     target: "discover-product pre-flight"
     current_behavior: >
       discover-product has its own pre-flight hard-halt conditions appropriate
-      for the first recipe in the pipeline.
+      for the first play in the pipeline.
     expected_behavior: >
       Pre-flight conditions documented. discover-product may legitimately
-      hard-halt on inputs since it is the upstream-most recipe.
+      hard-halt on inputs since it is the upstream-most play.
     pass_criteria: >
       Pre-flight table in discover-product/SKILL.md is readable and lists
       its halt conditions. No conflict with #183 soft-dependency philosophy
@@ -213,11 +213,11 @@ baseline_scenarios:
     source: "BT-PCR-02"
     target: "plan-roadmap pre-flight"
     current_behavior: >
-      plan-roadmap has its own pre-flight conditions as a mid-pipeline recipe.
+      plan-roadmap has its own pre-flight conditions as a mid-pipeline play.
     expected_behavior: >
       Pre-flight conditions documented and consistent with its pipeline position.
     pass_criteria: >
-      Pre-flight table readable. Conditions are appropriate for a recipe
+      Pre-flight table readable. Conditions are appropriate for a play
       downstream of discover-product and upstream of prepare-implementation.
     automation: automated
 
@@ -229,7 +229,7 @@ baseline_scenarios:
       Its pre-flight should not hard-block on product.yaml or roadmap.yaml
       since it is itself an upstream producer.
     expected_behavior: >
-      Pre-flight documented. The recipe that PRODUCES architecture.yaml
+      Pre-flight documented. The play that PRODUCES architecture.yaml
       does not circularly depend on prepare-implementation's inputs.
     pass_criteria: >
       Pre-flight table readable. No circular dependency with
@@ -280,18 +280,18 @@ new_scenarios:
   - id: NS-001
     feature_ref: "F1"
     behavior_ref: "B1.1"
-    description: "Recipe completes full artifact generation with zero upstream locked artifacts"
+    description: "Play completes full artifact generation with zero upstream locked artifacts"
     expected_behavior: >
       When invoked with only an issue (no product.yaml, no roadmap.yaml,
-      no architecture.yaml, no quality-standards.yaml), the recipe completes
+      no architecture.yaml, no quality-standards.yaml), the play completes
       all phases: context assembly, blast radius, and artifact generation.
       All four design artifacts are produced.
     pass_criteria: >
       features.yaml, scenarios.yaml, tech.yaml, and plan.yaml all exist
-      in STM after recipe completion. No HALT was emitted for any missing
+      in STM after play completion. No HALT was emitted for any missing
       upstream artifact.
     automation: hybrid
-    hybrid_element: "Full recipe run requires human checkpoints at each stage"
+    hybrid_element: "Full play run requires human checkpoints at each stage"
 
   - id: NS-002
     feature_ref: "F1"
@@ -314,7 +314,7 @@ new_scenarios:
     behavior_ref: "B1.3"
     description: "Mixed presence — some upstream artifacts present, some absent"
     expected_behavior: >
-      When product.yaml is locked but roadmap.yaml is absent, the recipe
+      When product.yaml is locked but roadmap.yaml is absent, the play
       uses product.yaml authoritatively and proceeds without roadmap
       context. context-assembly.yaml shows product.status == 'locked' and
       roadmap.status == 'absent'. Epic dependency enforcement is disabled.
@@ -330,9 +330,9 @@ new_scenarios:
   - id: NS-004
     feature_ref: "F2"
     behavior_ref: "B2.1"
-    description: "Recipe resolves work context from branch name without --epic"
+    description: "Play resolves work context from branch name without --epic"
     expected_behavior: >
-      When invoked on a feat/183-... branch with no --epic flag, the recipe
+      When invoked on a feat/183-... branch with no --epic flag, the play
       resolves issue 183 from the branch name. Work is scoped against the
       issue. No epic dependency enforcement runs.
     pass_criteria: >
@@ -345,7 +345,7 @@ new_scenarios:
     behavior_ref: "B2.2"
     description: "Epic entry still works when roadmap exists"
     expected_behavior: >
-      When --epic is provided and a locked roadmap.yaml exists, the recipe
+      When --epic is provided and a locked roadmap.yaml exists, the play
       resolves the epic from the roadmap. Epic dependency enforcement runs.
       All artifacts are still issue-mapped (C19).
     pass_criteria: >
@@ -362,7 +362,7 @@ new_scenarios:
     behavior_ref: "B3.1"
     description: "Architecture discovery mode produces equivalent understanding"
     expected_behavior: >
-      When architecture.yaml is absent, the recipe derives architecture
+      When architecture.yaml is absent, the play derives architecture
       understanding from codebase scan (design patterns, framework
       conventions, logical architecture), LTM, and user interview. The
       resulting understanding is recorded in context-assembly.yaml with
@@ -379,7 +379,7 @@ new_scenarios:
     behavior_ref: "B3.2"
     description: "Quality discovery mode detects toolchain and establishes gates"
     expected_behavior: >
-      When quality-standards.yaml is absent, the recipe detects quality
+      When quality-standards.yaml is absent, the play detects quality
       toolchain (test config, linting, CI, coverage) from the codebase
       and establishes quality gates via LTM and user interview.
     pass_criteria: >
@@ -418,7 +418,7 @@ new_scenarios:
     pass_criteria: >
       Checkpoint 0 output contains all phase1_summary entries.
       Confidence assessment is present. User approval gate is enforced
-      (recipe does not proceed without Tether).
+      (play does not proceed without Tether).
     automation: hybrid
     hybrid_element: "Checkpoint approval is human-gated"
 
@@ -437,22 +437,22 @@ new_scenarios:
       commit-history-analysis.yaml, ltm-findings.yaml. All are non-empty.
     automation: automated
 
-  # --- F5: Pipeline recipe consistency ---
+  # --- F5: Pipeline play consistency ---
 
   - id: NS-011
     feature_ref: "F5"
     behavior_ref: "B5.1"
-    description: "Pipeline recipes maintain appropriate pre-flight strictness"
+    description: "Pipeline plays maintain appropriate pre-flight strictness"
     expected_behavior: >
-      After #183 changes, the pipeline recipe pre-flight conditions form
+      After #183 changes, the pipeline play pre-flight conditions form
       a consistent gradient: discover-product (strictest, fewest
       dependencies), plan-roadmap (mid, depends on product), prepare-
       architecture (depends on product+roadmap), prepare-implementation
       (most lenient, soft-depends on all four).
     pass_criteria: >
-      Each pipeline recipe's pre-flight conditions are documented and
+      Each pipeline play's pre-flight conditions are documented and
       do not contradict each other. No circular dependencies exist.
-      Upstream recipes do not soft-depend on artifacts they produce.
+      Upstream plays do not soft-depend on artifacts they produce.
     automation: automated
 
   - id: NS-012
@@ -474,7 +474,7 @@ new_scenarios:
 # =============================================================================
 # TIER 3: REGRESSION SCENARIOS
 # Tests for behavior that must NOT break after #183 changes.
-# Derived from blast-radius.yaml and the existing recipe contract.
+# Derived from blast-radius.yaml and the existing play contract.
 # =============================================================================
 
 regression_scenarios:
@@ -549,18 +549,18 @@ regression_scenarios:
     source: "C10 — Staged checkpoint model"
     description: "Five-checkpoint approval model is preserved"
     pass_criteria: >
-      Recipe enforces five checkpoints: (0) context assembly, (1) blast
+      Play enforces five checkpoints: (0) context assembly, (1) blast
       radius, (2) features, (3) tech design, (4) scenarios+plan. Each
       requires explicit Tether before proceeding. No checkpoint is skipped.
     automation: hybrid
-    hybrid_element: "Checkpoint enforcement requires running the full recipe with human interaction"
+    hybrid_element: "Checkpoint enforcement requires running the full play with human interaction"
 
   - id: RS-009
     source: "C20 — Pre-lock resolution"
     description: "Open questions and high-severity risks still block locking"
     pass_criteria: >
       If any of the four design artifacts contain open_questions[] or
-      high-severity risks, the recipe presents a resolution interview.
+      high-severity risks, the play presents a resolution interview.
       Artifacts are not locked until all items are resolved and recorded
       in pre-lock-resolutions.yaml.
     automation: hybrid
@@ -572,7 +572,7 @@ regression_scenarios:
     pass_criteria: >
       When --epic is provided with locked product.yaml, locked roadmap.yaml,
       locked architecture.yaml, and locked quality-standards.yaml, the
-      recipe behaves identically to pre-#183: all artifacts used
+      play behaves identically to pre-#183: all artifacts used
       authoritatively, epic dependencies enforced, no discovery mode
       triggered. context-assembly.yaml shows all statuses as 'locked'.
     automation: hybrid
@@ -613,7 +613,7 @@ feature_gates:
     total: 5
 
   F5:
-    description: "Pipeline recipe consistency"
+    description: "Pipeline play consistency"
     baseline: [BS-013, BS-014, BS-015, BS-016, BS-017]
     new: [NS-011, NS-012]
     regression: [RS-005, RS-006]

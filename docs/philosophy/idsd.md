@@ -25,9 +25,9 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 ┌─────────────────────────────────────────────────────────────┐
 │  HUMAN DOMAIN                                               │
 │                                                             │
-│  Element 1: Intent Layer ──────────► Recipes                │
+│  Element 1: Intent Layer ──────────► Plays                │
 │  Element 2: Signals ───────────────► Signals                │
-│  Element 3: Orchestrated Intent ───► Recipe Levels (L1/L2)  │
+│  Element 3: Orchestrated Intent ───► Play Levels           │
 │                                                             │
 ├─────────────────────────────────────────────────────────────┤
 │  AI DOMAIN                                                  │
@@ -48,22 +48,22 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 
 | # | IDD Element (Principle) | IDSD Implementation (Meridian) |
 |---|------------------------|----------------------------------|
-| 1 | Intent Layer | Recipes — L1 (≤2 agents), L2 (≤5 agents). Every recipe has IDD intent header (intent/constraints/failure_conditions). |
-| 2 | Signals | User CLI invocations (`/build-feature`, `/commit-code`). All signals enter via recipes. |
-| 3 | Orchestrated Intent | Recipe Levels (L1/L2). Three speeds: Fast (minutes), Planned (hours), Strategic (days). |
+| 1 | Intent Layer | Plays — atomic (≤2 agents), high-order (≤5 agents). Every play has IDD intent header (intent/constraints/failure_conditions). |
+| 2 | Signals | User CLI invocations (`/build-feature`, `/commit-code`). All signals enter via plays. |
+| 3 | Orchestrated Intent | Play Levels. Three speeds: Fast (minutes), Planned (hours), Strategic (days). |
 | 4 | Agents | 8 agents (5 implemented, 3 planned): code-builder, tech-designer, repo-orchestrator, project-orchestrator, product-strategist. Planned: quality-validator, workflow-guardian, spec-author. Agent-first pattern. |
 | 5 | Memory | LTM: `core/components/memory/` (practices, standards, templates). STM: `.meridian/{issue}/` (per-issue work). |
 | 6 | Skills | Bounded capabilities invoked by agents. Each skill has SKILL.md with input/output contracts. |
 | 7 | Context-Aware Decisions | Context bundles ≤12K tokens. Audience separation (Tier 1/2/3). Agents read LTM + STM. |
-| 8 | Generation-Verification | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per recipe. Evidence artifacts. Tether/Vanish checkpoints. |
+| 8 | Generation-Verification | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per play. Evidence artifacts. Tether/Vanish checkpoints. |
 
 ### Element-to-Component Matrix
 
 | # | IDD Element | Meridian Component | Layer | Owner |
 |---|-------------|---------------------|-------|-------|
-| 1 | Intent Layer | Recipes | Orchestration | Human |
+| 1 | Intent Layer | Plays | Orchestration | Human |
 | 2 | Signals | Signals | Perception | System |
-| 3 | Orchestrated Intent | Recipe Levels (L1/L2) | Orchestration | Human + System |
+| 3 | Orchestrated Intent | Play Levels | Orchestration | Human + System |
 | 4 | Agents | Sub-Agents | Decision | AI |
 | 5 | Memory | LTM + STM | Cognitive | AI (read), Human (LTM governance) |
 | 6 | Skills | Skills | Capability | AI |
@@ -74,12 +74,12 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 
 ## Two-Layer Intent Model
 
-IDSD operates with two distinct intent layers. This is how IDD's Intent Layer principle manifests in practice when recipes handle both business goals and lifecycle operations.
+IDSD operates with two distinct intent layers. This is how IDD's Intent Layer principle manifests in practice when plays handle both business goals and lifecycle operations.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  LAYER 1: BUSINESS INTENT                                    │
-│  Authored by: User (human) or upstream recipe output         │
+│  Authored by: User (human) or upstream play output         │
 │  When: At invocation time                                    │
 │  Language: Business outcomes, user goals, domain constraints  │
 │                                                               │
@@ -89,8 +89,8 @@ IDSD operates with two distinct intent layers. This is how IDD's Intent Layer pr
 │                                                               │
 ├─────────────────────────────────────────────────────────────┤
 │  LAYER 2: SDLC INTENT                                        │
-│  Authored by: Framework author (once, at recipe design time)  │
-│  When: Baked into the recipe definition                       │
+│  Authored by: Framework author (once, at play design time)  │
+│  When: Baked into the play definition                       │
 │  Language: Lifecycle operations, process constraints           │
 │                                                               │
 │  "Build implementation code from a spec bundle or intent.     │
@@ -102,8 +102,8 @@ IDSD operates with two distinct intent layers. This is how IDD's Intent Layer pr
 
 | Layer | Who Authors | When | Stability | Example |
 |-------|------------|------|-----------|---------|
-| **Business Intent** | User or upstream recipe | Every invocation | Changes per feature | "Add CSV export with auth" |
-| **SDLC Intent** | Framework author | Recipe creation (once) | Stable across all features | "Build implementation from intent or spec" |
+| **Business Intent** | User or upstream play | Every invocation | Changes per feature | "Add CSV export with auth" |
+| **SDLC Intent** | Framework author | Play creation (once) | Stable across all features | "Build implementation from intent or spec" |
 | **Artifact Intent** | Generated by agents | During execution | Derived from business intent | vision.md carries business intent forward |
 
 **The flow:**
@@ -113,17 +113,17 @@ User: /build-feature "Add CSV export with auth"
         │
         ▼
 ┌───────────────────────────────────────┐
-│ Recipe: build-feature                  │
+│ Play: build-feature                  │
 │                                       │
-│ SDLC Intent (fixed in recipe):        │
+│ SDLC Intent (fixed in play):        │
 │   "Build implementation from intent"  │
-│   → Tells the recipe HOW to operate   │
+│   → Tells the play HOW to operate   │
 │                                       │
 │ Business Intent (from user):          │
 │   "Add CSV export with auth"          │
-│   → Tells the recipe WHAT to build    │
+│   → Tells the play WHAT to build    │
 │                                       │
-│ Recipe propagates BOTH to agents:     │
+│ Play propagates BOTH to agents:     │
 │   Agent receives SDLC context         │
 │   (what lifecycle step this is)       │
 │   + Business context                  │
@@ -139,13 +139,13 @@ Agent → Skill → Artifact
 
 1. **Business intent is what users care about.** "Add CSV export" is the real goal. The user doesn't think about committing, branching, or verifying — those are lifecycle mechanics.
 
-2. **SDLC intent is what recipes care about.** `commit-code` needs to know it should "stage and commit changes with conventional messages" regardless of whether the user built a CSV endpoint or fixed a bug.
+2. **SDLC intent is what plays care about.** `commit-code` needs to know it should "stage and commit changes with conventional messages" regardless of whether the user built a CSV endpoint or fixed a bug.
 
 3. **Generated artifacts carry business intent.** When `discover-product` creates `vision.md`, that document's intent header reflects the business goal, not the SDLC step. This is how business intent survives the full lifecycle — from discovery through delivery.
 
-4. **The framework eats its own cooking.** SDLC recipes follow the same three-element pattern (intent/constraints/failure_conditions) that they enforce on generated artifacts. This is how the framework knows when to halt, what to propagate, and how to recover from failures.
+4. **The framework eats its own cooking.** SDLC plays follow the same three-element pattern (intent/constraints/failure_conditions) that they enforce on generated artifacts. This is how the framework knows when to halt, what to propagate, and how to recover from failures.
 
-**Key principle:** The user never writes SDLC intents — they express business goals in natural language. The framework structures this into intent/constraints/failure_conditions and propagates it through recipes, agents, and generated artifacts. SDLC intents are invisible to the user; they exist so the framework itself operates with the same intent-driven discipline it demands of its outputs.
+**Key principle:** The user never writes SDLC intents — they express business goals in natural language. The framework structures this into intent/constraints/failure_conditions and propagates it through plays, agents, and generated artifacts. SDLC intents are invisible to the user; they exist so the framework itself operates with the same intent-driven discipline it demands of its outputs.
 
 ---
 
@@ -218,7 +218,7 @@ This phase is the operational mechanism for IDD Hypothesis H1 (Memory-Driven Int
 
 **Why it matters**: Without Monitor-to-Design, the SDLC lifecycle is forward-only — humans author all intents. With it, the system can propose intents from production reality, moving IDSD from L3 (human-in-loop) toward L4 (spec-driven, where the system generates lightweight specs from observed patterns).
 
-| Phase | Type | Focus | Example Recipes |
+| Phase | Type | Focus | Example Plays |
 |-------|------|-------|-----------------|
 | Product-2-Design | Primary | Discovery, vision, roadmap, backlog | discover-product, plan-roadmap, manage-backlog |
 | Design-2-Spec | Primary | Feature definition, wireframes, ADRs | define-feature, create-wireframes, create-adr |
@@ -243,11 +243,11 @@ All speeds start with `start-feature` (universal precursor).
 
 Speed is one dimension of execution. The other is **autonomy** — how much of the workflow is prescribed vs derived from intent.
 
-Today, recipes prescribe every step. This is deliberate: prescribed execution builds the trust and memory depth needed for autonomous execution. But the architecture is designed so that auditability, predictability, and human oversight — currently structural properties of recipes — can migrate to declarative constraints in the intent schema over time.
+Today, plays prescribe every step. This is deliberate: prescribed execution builds the trust and memory depth needed for autonomous execution. But the architecture is designed so that auditability, predictability, and human oversight — currently structural properties of plays — can migrate to declarative constraints in the intent schema over time.
 
 The `reference/intent.yaml` externalization pattern (see `create-pr` as golden standard) is a concrete step toward this: intent as a first-class, extensible schema that can grow to encompass workflow-level properties. When the constraint schema is expressive enough and memory is deep enough, the system can derive its own execution plan from intent alone.
 
-See [Intent Primacy and Recipe Evolution](./architecture.md#intent-primacy-and-recipe-evolution) for the full evolution path.
+See [Intent Primacy and Play Evolution](./architecture.md#intent-primacy-and-play-evolution) for the full evolution path.
 
 ---
 
@@ -256,7 +256,7 @@ See [Intent Primacy and Recipe Evolution](./architecture.md#intent-primacy-and-r
 ### Component Hierarchy
 
 ```
-Recipes (L1/L2) → Agents → Skills → Memory (LTM + STM)
+Plays → Agents → Skills → Memory (LTM + STM)
 ```
 
 ### Agent Taxonomy (IDSD-specific)
@@ -292,27 +292,27 @@ Under IDD Principle 4, agents are classified by their role in the information ba
 
 | Classification | Agents | What They Receive | When Barrier Active |
 |---------------|--------|-------------------|-------------------|
-| **Builders** | code-builder, tech-designer, spec-author *(planned)* | Goal + Constraints (no failure conditions) | In barrier-eligible recipes |
-| **Validators** | quality-validator *(planned)* | Failure Conditions + Builder Output (no goal/constraints) | In barrier-eligible recipes |
+| **Builders** | code-builder, tech-designer, spec-author *(planned)* | Goal + Constraints (no failure conditions) | In barrier-eligible plays |
+| **Validators** | quality-validator *(planned)* | Failure Conditions + Builder Output (no goal/constraints) | In barrier-eligible plays |
 | **Neutral** | product-strategist, repo-orchestrator, project-orchestrator | Full intent (all elements) | Always — these agents perform mechanical or discovery operations |
 
-In barrier-exempt recipes (commit-code, create-pr, etc.), all agents receive the full intent regardless of classification.
+In barrier-exempt plays (commit-code, create-pr, etc.), all agents receive the full intent regardless of classification.
 
-### Recipe Invocation Model Under Compartmented Evaluation
+### Play Invocation Model Under Compartmented Evaluation
 
-When a barrier-eligible recipe is invoked, the recipe orchestration layer splits the intent before routing to agents:
+When a barrier-eligible play is invoked, the play orchestration layer splits the intent before routing to agents:
 
 ```
-User invokes recipe with business intent
+User invokes play with business intent
         │
         ▼
 ┌─────────────────────────────────────┐
-│  RECIPE ORCHESTRATION LAYER         │
+│  PLAY ORCHESTRATION LAYER         │
 │                                     │
 │  1. Receive full intent             │
 │     (goal + constraints + failure)  │
 │                                     │
-│  2. Classify recipe:                │
+│  2. Classify play:                │
 │     barrier-eligible? → split       │
 │     barrier-exempt? → pass through  │
 │                                     │
@@ -335,7 +335,7 @@ User invokes recipe with business intent
 Output (DRAFT → VALIDATE → LOCKED)
 ```
 
-**Key rule:** The recipe orchestration layer is the ONLY component that ever sees the complete intent during barrier-eligible execution. Neither the builder nor the validator has the full picture — this is by design.
+**Key rule:** The play orchestration layer is the ONLY component that ever sees the complete intent during barrier-eligible execution. Neither the builder nor the validator has the full picture — this is by design.
 
 ### Memory Architecture (IDSD-specific)
 
@@ -398,7 +398,7 @@ In IDSD, LTM is version-controlled in Git repositories. This provides natural in
 Developer captures learning (STM)
         │
         ▼
-capture-learning recipe extracts pattern
+capture-learning play extracts pattern
         │
         ▼
 draft-ltm-entry skill creates LTM file
@@ -416,7 +416,7 @@ PR created for review
 Merged → deployed to ~/.meridian/core/memory/ via /sync-claude
 ```
 
-**Semantic Conflict Detection**: Git catches file-level conflicts, but not semantic contradictions (e.g., one practice says "always use retry logic" while another says "never retry inside transactions"). The `capture-learning` recipe is designed with an `extract-patterns` skill that should detect semantic overlap with existing LTM entries — but this capability is not yet built. Current state: manual review during PR process.
+**Semantic Conflict Detection**: Git catches file-level conflicts, but not semantic contradictions (e.g., one practice says "always use retry logic" while another says "never retry inside transactions"). The `capture-learning` play is designed with an `extract-patterns` skill that should detect semantic overlap with existing LTM entries — but this capability is not yet built. Current state: manual review during PR process.
 
 **Cross-Developer Visibility**: All LTM changes are visible in the Git history. All STM artifacts are committed to feature branches and visible via GitHub (issues, branches, PRs). The NWWI (No Work Without Issue) gate ensures every piece of work is trackable.
 
@@ -471,13 +471,13 @@ Token budgets are directional targets, not hard constraints. They exist to keep 
 | Task context | ≤2K tokens |
 | Total per agent task | ≤17K tokens |
 
-### Recipe-to-Agent Context Bundle
+### Play-to-Agent Context Bundle
 
-Recipes pass context to agents as a structured contract. There are two patterns in use, depending on recipe generation:
+Plays pass context to agents as a structured contract. There are two patterns in use, depending on play generation:
 
-**JSON Contract pattern (current — recipes authored after ADR 009):**
+**JSON Contract pattern (current — plays authored after ADR 009):**
 
-Newer recipes use a JSON contract as the entire agent prompt. This is the current standard for recipe-driven workflows. The contract is a single JSON object that flows recipe → agent → skill → agent → recipe, growing as each agent populates artifact paths.
+Newer plays use a JSON contract as the entire agent prompt. This is the current standard for play-driven workflows. The contract is a single JSON object that flows play → agent → skill → agent → play, growing as each agent populates artifact paths.
 
 ```json
 {
@@ -494,7 +494,7 @@ Newer recipes use a JSON contract as the entire agent prompt. This is the curren
     "engineering_view_path": null
   },
   "checkpoints": [{ "name": "<gate>", "status": "pending" }],
-  "evidence": [{ "name": "<recipe-name>", "location": null }],
+  "evidence": [{ "name": "<play-name>", "location": null }],
   "notes": [],
   "step_failure": null
 }
@@ -502,17 +502,17 @@ Newer recipes use a JSON contract as the entire agent prompt. This is the curren
 
 The JSON contract IS the entire agent prompt — no instructions, field definitions, or prose are appended. Agents read `reference/intent.yaml` at `intent_path` to understand goal, constraints, failure conditions, and scenarios. See `plan-roadmap` as the reference implementation and [Four Crafts Architecture](./architecture.md#four-crafts-architecture) for the full pattern.
 
-**YAML context bundle pattern (earlier recipes):**
+**YAML context bundle pattern (earlier plays):**
 
-Earlier recipes pass a YAML context block. This pattern is still valid for recipes not yet migrated to the JSON contract.
+Earlier plays pass a YAML context block. This pattern is still valid for plays not yet migrated to the JSON contract.
 
-**Intent externalization:** Both patterns externalize the intent schema to `reference/intent.yaml` as a first-class file. Context bundles reference this file dynamically — agent context blocks never hardcode constraint IDs. This means adding new constraints to `intent.yaml` is automatically picked up by all agent invocations without modifying recipe files. See `create-pr` as a reference implementation of this pattern.
+**Intent externalization:** Both patterns externalize the intent schema to `reference/intent.yaml` as a first-class file. Context bundles reference this file dynamically — agent context blocks never hardcode constraint IDs. This means adding new constraints to `intent.yaml` is automatically picked up by all agent invocations without modifying play files. See `create-pr` as a reference implementation of this pattern.
 
 **YAML bundle structure:**
 ```yaml
 ---
-Recipe context:
-  intent: "{SDLC intent — what this recipe step is trying to achieve}"
+Play context:
+  intent: "{SDLC intent — what this play step is trying to achieve}"
   pre_flight: {all results from Step 0}      # Dynamic — passed as a set, not enumerated
   task: "{Specific task this agent invocation must perform}"
   mode: "{NEW | RESUME | null}"              # When applicable
@@ -525,7 +525,7 @@ Recipe context:
 **Pre-flight context (Step 0 — dynamic):**
 ```yaml
 ---
-Recipe context:
+Play context:
   intent: "Verify preconditions before execution"
   task: "Read `reference/intent.yaml`. Run every check in `constraints.pre_flight`.
          Return pass/fail for each. Do NOT halt — just return results."
@@ -551,11 +551,11 @@ The agent reads the intent file and runs all pre-flight checks. The orchestrator
 
 ## Recovery Protocol
 
-When an agent returns a structured failure during recipe execution, IDSD applies a defined recovery loop before surfacing the failure to the human.
+When an agent returns a structured failure during play execution, IDSD applies a defined recovery loop before surfacing the failure to the human.
 
 ### Structured Failure Protocol
 
-Agents are expected to return failures in a structured format that enables the recipe to route recovery correctly:
+Agents are expected to return failures in a structured format that enables the play to route recovery correctly:
 
 ```yaml
 failure:
@@ -566,7 +566,7 @@ failure:
     fix_hint: "{what the responsible agent should try}"
 ```
 
-The `domain_assessment.responsible_domain` field tells the recipe which agent to invoke for recovery.
+The `domain_assessment.responsible_domain` field tells the play which agent to invoke for recovery.
 
 ### Recovery Loop
 
@@ -574,10 +574,10 @@ The `domain_assessment.responsible_domain` field tells the recipe which agent to
 Agent returns structured failure
         │
         ▼
-Recipe reads domain_assessment.responsible_domain
+Play reads domain_assessment.responsible_domain
         │
         ▼
-Recipe invokes responsible agent with:
+Play invokes responsible agent with:
   - fix context
   - original intent
   - retry metadata (attempt N, previous failure, fix applied)
@@ -591,13 +591,13 @@ Max 2 retry cycles per agent
 
 ### Recovery and the Agent Limit
 
-L1 recipes invoke ≤2 distinct agents. **Recovery calls are exempt from this limit.** A recipe in recovery may invoke an agent beyond the normal agent count without violating the L1 constraint. Recovery is a first-class mechanism, not an exception to the architecture.
+Plays invoke ≤2 distinct agents. **Recovery calls are exempt from this limit.** A play in recovery may invoke an agent beyond the normal agent count without violating the play constraint. Recovery is a first-class mechanism, not an exception to the architecture.
 
 ### Recovery Reasoning in LTM
 
 Recovery reasoning is loaded from: `docs/framework/intent-driven-recovery.md`
 
-This file contains the recovery reasoning loop and domain-routing logic. Keeping this centralized — rather than embedding it in each recipe — allows recovery behavior to be updated without modifying individual recipes. The structured failure protocol is at `docs/framework/structured-failure-protocol.md`.
+This file contains the recovery reasoning loop and domain-routing logic. Keeping this centralized — rather than embedding it in each play — allows recovery behavior to be updated without modifying individual plays. The structured failure protocol is at `docs/framework/structured-failure-protocol.md`.
 
 ---
 
@@ -608,10 +608,10 @@ ICS (defined in IDD — see `intent-driven-development.md`) is operationalized i
 ### Where ICS Runs in the Pipeline
 
 ```
-Recipe invoked with business intent
+Play invoked with business intent
         │
         ▼
-Agent receives intent from recipe
+Agent receives intent from play
         │
         ▼
 ┌─────────────────────────────────┐
@@ -635,10 +635,10 @@ Agent begins execution
 
 - ICS runs on **business intents**, not SDLC intents (SDLC intents are framework-authored and pre-validated)
 - ICS is mandatory for agents in **Spec-2-Code** and **Design-2-Spec** phases (where intent ambiguity is most costly)
-- ICS is optional for mechanical recipes (`commit-code`, `create-pr`) per P7's "when to skip" guidance
+- ICS is optional for mechanical plays (`commit-code`, `create-pr`) per P7's "when to skip" guidance
 - ICS results are written to STM as evidence: `.meridian/{issue}/ics-assessment.md`
 - Non-Balanced profiles generate a checkpoint; the human can override with Tether or request decomposition
-- For barrier-eligible recipes, ICS includes a 6th dimension: **Barrier Integrity** — whether the constraint-failure partition is correctly classified per P4's Classification Rule. Misclassified items trigger the "Barrier Compromised" profile.
+- For barrier-eligible plays, ICS includes a 6th dimension: **Barrier Integrity** — whether the constraint-failure partition is correctly classified per P4's Classification Rule. Misclassified items trigger the "Barrier Compromised" profile.
 
 ### Future: ICS in Learn-2-Memory
 
@@ -656,11 +656,11 @@ Compartmented evaluation operationalizes IDD Principle 4 (Builders and Validator
 
 ### The Information Barrier
 
-The recipe orchestration layer splits the intent and routes each element to the correct agent:
+The play orchestration layer splits the intent and routes each element to the correct agent:
 
 ```
 ┌───────────────────────────────────────────────────┐
-│                RECIPE (Orchestrator)                │
+│                PLAY (Orchestrator)                │
 │                                                     │
 │  Receives full intent:                              │
 │    • Goal                                           │
@@ -700,11 +700,11 @@ The recipe orchestration layer splits the intent and routes each element to the 
 | **Feedback quality** | "You violated FC-3" (condition-based) | "Line 47 has a hardcoded connection string" (symptom-based) |
 | **Convergence** | Fast but shallow — builder games the checks | Slower first iteration, but genuine fixes |
 
-### Barrier-Eligible vs Barrier-Exempt Recipes
+### Barrier-Eligible vs Barrier-Exempt Plays
 
-Not all recipes benefit from compartmented evaluation. The barrier applies to recipes where the builder makes judgment calls. Mechanical recipes use a single-agent model.
+Not all plays benefit from compartmented evaluation. The barrier applies to plays where the builder makes judgment calls. Mechanical plays use a single-agent model.
 
-| Recipe | Barrier? | Reasoning |
+| Play | Barrier? | Reasoning |
 |--------|----------|-----------|
 | build-feature | ✓ Eligible | Builder makes design and implementation decisions |
 | define-feature | ✓ Eligible | Specifier makes scoping and requirements decisions |
@@ -756,7 +756,7 @@ When the validator identifies issues, it reports symptoms — what the output do
 
 | Parameter | Default | Override Allowed? | Escalation |
 |-----------|---------|------------------|------------|
-| Max iterations | 3 | Yes, recipe can set 1-5 | After max: drop barrier, escalate to human |
+| Max iterations | 3 | Yes, play can set 1-5 | After max: drop barrier, escalate to human |
 | Same-symptom repeat | 2 occurrences | No | Immediate escalation — structural misunderstanding |
 | Hard ceiling | 5 | No | Mandatory human intervention |
 | Escalation protocol | Human receives full intent + all outputs + all feedback | — | Human sees everything; barrier is agent-only |
@@ -768,7 +768,7 @@ Compartmented evaluation applies to **business intents** (Layer 1), NOT **SDLC i
 - **Business intents** are where judgment calls happen — the builder must decide HOW to achieve a business goal. The barrier prevents the builder from optimizing for validator checks.
 - **SDLC intents** are framework-authored, pre-validated, and mechanical. They define lifecycle operations (commit, branch, deploy) where the output is deterministic. No barrier needed.
 
-This alignment is natural: barrier-eligible recipes are exactly those where business intent drives creative decisions, and barrier-exempt recipes are exactly those where SDLC intent drives mechanical operations.
+This alignment is natural: barrier-eligible plays are exactly those where business intent drives creative decisions, and barrier-exempt plays are exactly those where SDLC intent drives mechanical operations.
 
 ---
 
@@ -778,7 +778,7 @@ The core development loop in IDSD:
 
 ```
 1. start-feature          → Create/resume work context (issue + branch + STM)
-2. [Speed-appropriate recipes] → Fast / Planned / Strategic track
+2. [Speed-appropriate plays] → Fast / Planned / Strategic track
 3. commit-code            → Persist changes with conventional commits
 4. create-pr / deliver-feature → Ship to target branch
 5. capture-learning       → Promote patterns to LTM
@@ -792,13 +792,13 @@ The core development loop in IDSD:
 DRAFT → VALIDATE → LOCKED
 ```
 
-- `--phase draft`: Builder agent generates initial artifact from **goal + constraints** (under barrier-eligible recipes, failure conditions are withheld)
-- `--phase validate`: Validator agent evaluates artifact against **failure conditions** (under barrier-eligible recipes, goal and constraints are withheld); returns symptom-based feedback
-- `--phase lock`: Recipe orchestrator confirms no symptoms remain; cascade sync → re-validate → set LOCKED
+- `--phase draft`: Builder agent generates initial artifact from **goal + constraints** (under barrier-eligible plays, failure conditions are withheld)
+- `--phase validate`: Validator agent evaluates artifact against **failure conditions** (under barrier-eligible plays, goal and constraints are withheld); returns symptom-based feedback
+- `--phase lock`: Play orchestrator confirms no symptoms remain; cascade sync → re-validate → set LOCKED
 
-**Note:** In barrier-exempt recipes (commit-code, create-pr, etc.), DRAFT and VALIDATE may use a single agent with full intent visibility. The barrier only applies when the recipe is classified as barrier-eligible.
+**Note:** In barrier-exempt plays (commit-code, create-pr, etc.), DRAFT and VALIDATE may use a single agent with full intent visibility. The barrier only applies when the play is classified as barrier-eligible.
 
-**Intent-sufficiency:** Upstream artifacts enrich, never block. If intent is clear, proceed. Any recipe can be called at any point if the three elements of intent (intent, constraints, failure conditions) are satisfied.
+**Intent-sufficiency:** Upstream artifacts enrich, never block. If intent is clear, proceed. Any play can be called at any point if the three elements of intent (intent, constraints, failure conditions) are satisfied.
 
 ### Cascade Sync
 
@@ -806,7 +806,7 @@ Every derived artifact includes: `<!-- sync: source={path} hash={hash} generated
 
 Lock phase MUST run cascade-sync before setting LOCKED status.
 
-| Recipe Phase | Calls cascade-sync | Context |
+| Play Phase | Calls cascade-sync | Context |
 |-------------|-------------------|---------|
 | Any `--phase lock` | YES (mandatory) | `spec_path` = current artifact directory |
 | `implement-feature` start | YES (check_only=true) | Verify bundles not stale before building |
@@ -847,7 +847,7 @@ Lock phase MUST run cascade-sync before setting LOCKED status.
 | Linear | Architecture supports | MCP server — incremental addition |
 | CI/CD (GitHub Actions) | Partial | Via `gh` CLI |
 
-Adding new tool integrations is incremental — each tool gets an MCP server; skills route through MCP; agents and recipes remain unchanged. This is IDD Principle 1's corollary (Intents Don't Know About Tools) in action.
+Adding new tool integrations is incremental — each tool gets an MCP server; skills route through MCP; agents and plays remain unchanged. This is IDD Principle 1's corollary (Intents Don't Know About Tools) in action.
 
 **CTO-Configurable Domain Parameters** *(concept stage)*: Enterprise governance requires per-project customization — quality thresholds, mandatory gates, approval workflows. Architecture envisions CTO-level configuration that sets domain parameters (e.g., "all fintech projects require security audit gate," "startup projects skip formal ADR gate"). Not yet designed.
 
@@ -862,9 +862,9 @@ Adding new tool integrations is incremental — each tool gets an MCP server; sk
 - [IDD Principles](./intent-driven-development.md) — The foundational paradigm (8 Elements, Three Elements of Intent, Two-Layer Intent Model)
 - [Philosophy](./philosophy.md) — Three Tenets of AI-Native SDLC
 - [Design Principles](./principles.md) — Separation of Concerns, Explicit via Abstraction
-- [Naming Conventions](./naming-conventions.md) — Recipe, Agent, and Skill naming patterns
+- [Naming Conventions](./naming-conventions.md) — Play, Agent, and Skill naming patterns
 - [AI Squad Framework](./AI_Squad_Framework_v1.docx) — Role definitions and transition paths
-- IDSD Specification — `.claude/specs/idsd/idsd.md` — Full build spec with recipes, gates, tasks
+- IDSD Specification — `.claude/specs/idsd/idsd.md` — Full build spec with plays, gates, tasks
 
 ---
 

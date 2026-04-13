@@ -18,7 +18,7 @@ Obstacle encountered
 ```
 
 **Within your domain** means you have the skills, tools, and authority to fix it.
-**Outside your domain** means another agent or the recipe must handle it.
+**Outside your domain** means another agent or the play must handle it.
 
 ## Structured Failure Format
 
@@ -47,7 +47,7 @@ failure:
 | `domain_assessment.within_my_domain` | Yes | Did you try to fix it yourself? |
 | `domain_assessment.responsible_domain` | Yes | Which domain owns the fix: `implementation`, `design`, `repository`, `project`, `infrastructure` |
 | `domain_assessment.suggested_agent` | No | Agent name if you know who can fix it |
-| `context.intent_received` | Yes | The intent from the recipe — helps the caller reason about recovery |
+| `context.intent_received` | Yes | The intent from the play — helps the caller reason about recovery |
 | `context.constraint_violated` | No | If the failure relates to a constraint |
 | `context.self_recovery_attempted` | Yes | Whether you tried to fix it yourself first |
 | `context.self_recovery_details` | No | What you tried, so the caller doesn't retry the same thing |
@@ -75,7 +75,7 @@ failure:
     constraint_violated: "NEVER force push"
     self_recovery_attempted: true
     self_recovery_details: "Checked remote state — remote has 2 commits not in local"
-  suggested_fix: "Pull and rebase, or recipe should decide merge strategy"
+  suggested_fix: "Pull and rebase, or play should decide merge strategy"
 ```
 
 ### Builder (code-builder)

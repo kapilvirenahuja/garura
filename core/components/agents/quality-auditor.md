@@ -82,7 +82,7 @@ Given a codebase and quality standards, YOU:
 
 ```json
 {
-  "intent_path": "<recipe intent.yaml>",
+  "intent_path": "<play intent.yaml>",
   "stm_base": "<stm base path>",
   "stm": {
     "input": {

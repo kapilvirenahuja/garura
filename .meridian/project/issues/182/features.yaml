@@ -1,5 +1,5 @@
 # features.yaml — Issue #182
-# Sub-Agent Context Resolution Protocol, LTM Hierarchy Enforcement, and Learning Recipe
+# Sub-Agent Context Resolution Protocol, LTM Hierarchy Enforcement, and Learning Play
 # Lifecycle: DRAFT
 # Depends on: N/A (brownfield — no upstream product.yaml)
 # IMPORTANT: Features do NOT link to scenarios. Scenarios link back here.
@@ -133,7 +133,7 @@ features:
         authority semantics, contract field for knowledge context delivery.
       out_of_scope: >
         Which specific knowledge files exist or their content. Knowledge file creation is the
-        learning recipe's responsibility.
+        learning play's responsibility.
       must_not_break: >
         INV3 (backward compatibility — agents without context field work as before),
         INV4 (context-isolated agents never receive context),
@@ -221,7 +221,7 @@ features:
       p3: >
         Consistent knowledge delivery is a prerequisite for reliable resolution tracing.
         If some workflows pass context and others do not, resolution traces are incomplete
-        and the learning recipe cannot identify gaps across the full workflow surface.
+        and the learning play cannot identify gaps across the full workflow surface.
 
     constraints:
       in_scope: >
@@ -274,7 +274,7 @@ features:
         observable_outcome: "The project-scoped answer is used. The resolution trace records the override."
 
   - id: "F3"
-    name: "Learning Recipe"
+    name: "Learning Play"
     strategic_goal_ref: null
     description: >
       Extracts knowledge candidates from completed work by analyzing resolution traces
@@ -296,7 +296,7 @@ features:
       integration_points: []
       migration_required: false
       notes: >
-        The learning recipe reads from resolution traces and evidence but does not modify
+        The learning play reads from resolution traces and evidence but does not modify
         them. It writes only to knowledge layers, and only after human approval. The existing
         archival workflow for completed work is a separate concern — learning extracts and
         promotes, archival preserves.
@@ -314,7 +314,7 @@ features:
         base grows from its own work history.
       p3: >
         The learning loop closes the knowledge lifecycle: resolution traces reveal gaps,
-        the learning recipe extracts candidates, human approval ensures quality, and
+        the learning play extracts candidates, human approval ensures quality, and
         promoted knowledge prevents the same fallback from recurring. Without this loop,
         the resolution protocol identifies problems but never fixes them.
 
@@ -394,17 +394,17 @@ features:
 
     blast_radius:
       existing_systems:
-        - "New knowledge files written by the learning recipe — must conform to this standard"
+        - "New knowledge files written by the learning play — must conform to this standard"
         - "Existing knowledge index structure — extended to support new files"
       affected_workflows:
-        - "The learning recipe's write step must produce files conforming to this standard"
+        - "The learning play's write step must produce files conforming to this standard"
         - "Agents resolving knowledge must be able to discover files via search patterns"
       integration_points: []
       migration_required: false
       notes: >
         Existing knowledge files are grandfathered. They continue to work but do not
         conform to the new standard until explicitly migrated. New files created by
-        the learning recipe must conform from day one.
+        the learning play must conform from day one.
 
     intent:
       p1: >
@@ -438,10 +438,10 @@ features:
         files, with Tier 2 additionally required for core).
 
     success_scenarios:
-      - given: "The learning recipe approves a knowledge candidate for the core-scoped layer"
+      - given: "The learning play approves a knowledge candidate for the core-scoped layer"
         when: "The candidate is written as a knowledge file"
         then: "The file contains all Tier 1 metadata (title, search patterns, content, provenance) and all Tier 2 metadata (applicability boundaries, rationale, decay tracking)"
-      - given: "The learning recipe approves a knowledge candidate for the project-scoped layer"
+      - given: "The learning play approves a knowledge candidate for the project-scoped layer"
         when: "The candidate is written as a knowledge file"
         then: "The file contains all Tier 1 metadata. Tier 2 metadata is optional."
       - given: "An agent searches for knowledge on a specific domain topic"

@@ -4,7 +4,7 @@ This file provides guidance to Factory Droids when working with code in this rep
 
 ## Overview
 
-Meridian is an agentic framework implementing **Intent-Driven Software Development** principles for deterministic AI-assisted development. It uses a three-layer hierarchy: **Recipes** (L1/L2 workflows) → **Agents** (domain experts) → **Skills** (learned capabilities).
+Meridian is an agentic framework implementing **Intent-Driven Software Development** principles for deterministic AI-assisted development. It uses a three-layer hierarchy: **Plays** → **Agents** (domain experts) → **Skills** (learned capabilities).
 
 ## Architecture
 
@@ -12,12 +12,12 @@ Meridian is an agentic framework implementing **Intent-Driven Software Developme
 core/components/           # Source of truth (edit here)
 ├── agents/               # Agent definitions (Claude Code native)
 ├── skills/               # Skills (model-invocable only)
-├── recipes/              # L1/L2 recipes
+├── plays/              # plays
 └── memory/               # LTM: standards, formats, knowledge
 
 ~/.factory/                # Global deployment (via /sync-droids, default)
 ├── droids/               # Deployed agents (transformed from Claude Code format)
-└── skills/               # Deployed skills + recipes
+└── skills/               # Deployed skills + plays
 
 ~/.meridian/core/memory/   # Global LTM (via /sync-droids, default)
 ```
@@ -27,7 +27,7 @@ core/components/           # Source of truth (edit here)
 - Memory deploys to `~/.meridian/core/memory/` (global mode, default) or `.meridian/core/memory/` (project mode, ephemeral)
 - The `sync-droids` script transforms Claude Code agents into Factory Droid format during deployment
 
-**Data Flow:** L2 Recipe → chains L1s → L1 invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `core/config.yaml`)
+**Data Flow:** High-order play → chains atomic plays → play invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `core/config.yaml`)
 
 ## Tool Name Mapping
 
@@ -55,7 +55,7 @@ Author all components in `core/components/`. The canonical deployment is `~/.fac
 **Global mode (default):**
 ```
 core/components/skills/   → ~/.factory/skills/          (via /sync-droids)
-core/components/recipes/  → ~/.factory/skills/          (via /sync-droids)
+core/components/plays/  → ~/.factory/skills/          (via /sync-droids)
 core/components/agents/   → ~/.factory/droids/          (via /sync-droids, transformed)
 core/components/memory/   → ~/.meridian/core/memory/    (via /sync-droids)
 ```
@@ -63,7 +63,7 @@ core/components/memory/   → ~/.meridian/core/memory/    (via /sync-droids)
 **Project mode (ephemeral):**
 ```
 core/components/skills/   → .factory/skills/            (via /sync-droids --project, gitignored)
-core/components/recipes/  → .factory/skills/            (via /sync-droids --project, gitignored)
+core/components/plays/  → .factory/skills/            (via /sync-droids --project, gitignored)
 core/components/agents/   → .factory/droids/            (via /sync-droids --project, gitignored)
 core/components/memory/   → .meridian/core/memory/      (via /sync-droids --project, gitignored)
 ```
@@ -72,16 +72,16 @@ After editing source, run `/sync-droids` to deploy globally. Use `/sync-droids -
 
 ### 2. Execution Model
 
-**Recipes run in Factory Droid.** The Droid orchestrates recipes and invokes agents (droids) for domain-specific tasks.
+**Plays run in Factory Droid.** The Droid orchestrates plays and invokes agents (droids) for domain-specific tasks.
 
 ```
 Droid (orchestrator)
-    └── runs Recipe (L1/L2)
+    └── runs Play
             └── invokes Agent via Task tool
                     └── agent invokes Skills
 ```
 
-**Agent-First:** Within recipes, delegate domain tasks to agents. Never use tools directly when an agent covers that domain.
+**Agent-First:** Within plays, delegate domain tasks to agents. Never use tools directly when an agent covers that domain.
 
 | Domain Task | Agent |
 |-------------|-------|
@@ -93,7 +93,7 @@ Droid (orchestrator)
 
 ```
 # WRONG — bypassing agent
-git commit -m "..." directly in recipe
+git commit -m "..." directly in play
 
 # CORRECT — delegate to agent
 Task tool → subagent_type: "repo-orchestrator"
@@ -121,7 +121,7 @@ Parse: `Tether`/`tether` → proceed. `Vanish`/`vanish` → cancel. Else → cla
 
 Applies to: commits, PRs, protected branches, destructive actions.
 
-### 5. Recipe Constraints
+### 5. Play Constraints
 
 | Level | Invocability | Max Agent Calls |
 |-------|--------------|-----------------|
@@ -157,4 +157,4 @@ Always use Task tools for non-trivial work. Plan before executing.
 - `core/config.yaml` — Paths and settings
 - `docs/adr/` — Architecture Decision Records (8 ADRs)
 - `docs/philosophy/` — Core architecture philosophy
-- `docs/components/` — Agent, skill, recipe, memory documentation
+- `docs/components/` — Agent, skill, play, memory documentation

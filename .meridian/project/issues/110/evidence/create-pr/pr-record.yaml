@@ -1,9 +1,9 @@
 pr:
   number: 111
   url: "https://github.com/kapilvirenahuja/meridian-os/pull/111"
-  title: "feat(check-drift): add check-drift recipe and skill (#110)"
+  title: "feat(check-drift): add check-drift play and skill (#110)"
   target_branch: "main"
-  source_branch: "feature/110-check-drift-recipe"
+  source_branch: "feature/110-check-drift-play"
   state: "open"
   issue_linked: 110
   checklist_items: 8

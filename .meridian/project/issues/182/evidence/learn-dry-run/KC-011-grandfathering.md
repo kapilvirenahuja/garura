@@ -4,7 +4,7 @@
 **When this applies:** Introducing a new file format standard, metadata schema, or convention that would require changes to existing files to fully comply.
 **When this does NOT apply:** Critical security or correctness fixes where existing files are actively harmful and must be updated immediately; small codebases where a flag-day migration is trivially achievable.
 **Search patterns:** grandfathering, backward compatibility, existing files, format migration, incremental adoption, forward-looking standards
-**Provenance:** Issue #182 — learn recipe dry run
+**Provenance:** Issue #182 — learn play dry run
 **Created:** 2026-03-31
 
 ## Content

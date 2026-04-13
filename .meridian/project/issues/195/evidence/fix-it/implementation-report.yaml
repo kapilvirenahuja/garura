@@ -10,7 +10,7 @@ implementation:
     - step: 1
       title: "Update intent.yaml — expand extraction scope and clarify C12/C15"
       files_modified:
-        - path: "core/components/recipes/capture-learning/reference/intent.yaml"
+        - path: "core/components/plays/capture-learning/reference/intent.yaml"
           action: "modified"
           summary: >
             C12 expanded to enumerate 7 recognized evidence artifact types as extraction
@@ -71,9 +71,9 @@ implementation:
           detail: "Grep confirms zero remaining trace_paths references anywhere in the file"
 
     - step: 3
-      title: "Rebake capture-learning recipe from updated intent.yaml"
+      title: "Rebake capture-learning play from updated intent.yaml"
       files_modified:
-        - path: "core/components/recipes/capture-learning/SKILL.md"
+        - path: "core/components/plays/capture-learning/SKILL.md"
           action: "modified"
           summary: >
             Rebaked from updated intent.yaml. Step 3 scan broadened from
@@ -106,9 +106,9 @@ implementation:
   issues_encountered: []
 
   files_touched:
-    - path: "core/components/recipes/capture-learning/reference/intent.yaml"
+    - path: "core/components/plays/capture-learning/reference/intent.yaml"
     - path: "core/components/agents/knowledge-extractor.md"
-    - path: "core/components/recipes/capture-learning/SKILL.md"
+    - path: "core/components/plays/capture-learning/SKILL.md"
     - path: ".meridian/project/issues/195/evidence/fix-it/implementation-report.yaml"
 
   deviations:

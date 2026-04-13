@@ -1,0 +1,56 @@
+play: plan-roadmap
+intent_hash: ae08be9a961d2558a16d0c111355c44a64c9b6405685ec4da7b042275cf71379
+generated_at: 2026-04-13
+skills:
+  - name: scope-roadmap-epics
+    path: core/components/skills/scope-roadmap-epics/SKILL.md
+    status: compatible
+    required_inputs:
+      - product_yaml_path
+      - artifact_base
+      - epic_schema_path
+      - epic_rules_path
+      - domain_taxonomy_paths
+    notes: No brief dependency. Ready for use in brief-free pipeline.
+
+  - name: assess-feasibility
+    path: core/components/skills/assess-feasibility/SKILL.md
+    status: compatible
+    required_inputs:
+      - product_yaml_path
+      - artifact_base
+      - slug
+    notes: No brief dependency. Ready for use.
+
+  - name: draft-roadmap
+    path: core/components/skills/draft-roadmap/SKILL.md
+    status: needs-modification
+    blocker: |
+      REQUIRED input `approved_roadmap_brief_path` hard-halts when the brief
+      is not Tether-approved. Process steps 2-5 extract thesis (from "The Bet"
+      HTML section), narrative (from "The Story"), timeline (from "Decisions"
+      table), exclusions and assumptions from brief chapters. Without a brief
+      there is no source for these fields.
+    required_changes:
+      - Remove `approved_roadmap_brief_path` from required inputs.
+      - Replace brief-extraction steps with derivation from product.yaml
+        (vision narrative, strategic goals) + epics.yaml (per-epic summaries)
+        + feasibility.yaml (risk, sequencing) directly.
+      - Update pre-condition check to not require brief Tether approval.
+
+  - name: validate-roadmap
+    path: core/components/skills/validate-roadmap/SKILL.md
+    status: needs-modification
+    blocker: |
+      Checklist item `brief_ref_valid` verifies `approved_brief_ref` points
+      to an existing file. With briefs removed, this check would always
+      fail, making `ready_for_lock` impossible.
+    required_changes:
+      - Remove or replace `brief_ref_valid` checklist item.
+      - Drop `approved_brief_ref` requirement from roadmap.yaml shape.
+
+halt_reason: >
+  Two downstream skills hard-depend on an approved HTML brief. Per user
+  directive ("If blocked, STOP and report — don't improvise"), the rebake
+  cannot proceed past Step 3 (Skill Inventory) without authorization to
+  modify these skills.

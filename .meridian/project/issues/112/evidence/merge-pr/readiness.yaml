@@ -4,7 +4,7 @@ readiness:
   pr_state: "OPEN"
   mergeable: true
   base_branch: "main"
-  feature_branch: "feature/112-recipe-eval-gen"
+  feature_branch: "feature/112-play-eval-gen"
   clean_working_tree: true
   uncommitted_changes: false
   staged_changes: false
@@ -21,4 +21,4 @@ evals:
   SE-5:
     description: "PR exists and has valid pr_number"
     status: PASS
-    evidence: "PR #113 found with state OPEN for branch feature/112-recipe-eval-gen"
+    evidence: "PR #113 found with state OPEN for branch feature/112-play-eval-gen"

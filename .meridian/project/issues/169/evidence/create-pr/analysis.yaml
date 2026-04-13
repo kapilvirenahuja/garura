@@ -34,21 +34,21 @@ analysis:
           - "core/components/skills/generate-implementation-brief/SKILL.md (deleted)"
           - "core/components/skills/generate-product-brief/SKILL.md (deleted)"
 
-      - name: "Recipe Definitions"
+      - name: "Play Definitions"
         files: 4
-        trigger: "core/components/recipes/**/SKILL.md"
+        trigger: "core/components/plays/**/SKILL.md"
         examples:
-          - core/components/recipes/briefs/SKILL.md
-          - core/components/recipes/discover-product/SKILL.md
-          - core/components/recipes/plan-roadmap/SKILL.md
-          - core/components/recipes/prepare-implementation/SKILL.md
+          - core/components/plays/briefs/SKILL.md
+          - core/components/plays/discover-product/SKILL.md
+          - core/components/plays/plan-roadmap/SKILL.md
+          - core/components/plays/prepare-implementation/SKILL.md
 
       - name: "Configuration (YAML)"
         files: 2
         trigger: "*.yaml"
         examples:
-          - core/components/recipes/briefs/reference/intent.yaml
-          - core/components/recipes/plan-roadmap/reference/intent.yaml
+          - core/components/plays/briefs/reference/intent.yaml
+          - core/components/plays/plan-roadmap/reference/intent.yaml
 
       - name: "Core Components (sync-claude trigger)"
         files: 32
@@ -61,7 +61,7 @@ analysis:
         examples: "feat(briefs): convert all brief templates to client-side YAML rendering (#169)"
       - type: "refactor"
         count: 3
-        examples: "refactor(recipes), refactor(agents), refactor(skills)"
+        examples: "refactor(plays), refactor(agents), refactor(skills)"
       - type: "chore"
         count: 3
         examples: "chore(stm): record evidence"
@@ -107,23 +107,23 @@ analysis:
         status: "PASS"
         evidence: "draft-roadmap/SKILL.md has ## Output Schema at line 19 and ## Output at line 80. Input section present in skill body."
 
-      - id: "recipe-frontmatter"
-        item: "Recipe files have valid frontmatter (name, description, user-invocable, allowed-tools)"
-        trigger: "Recipe definitions changed: briefs, discover-product, plan-roadmap, prepare-implementation"
+      - id: "play-frontmatter"
+        item: "Play files have valid frontmatter (name, description, user-invocable, allowed-tools)"
+        trigger: "Play definitions changed: briefs, discover-product, plan-roadmap, prepare-implementation"
         status: "REVIEW"
-        evidence: "plan-roadmap SKILL.md has all required fields including allowed-tools. briefs, discover-product, prepare-implementation SKILL.md files are missing allowed-tools field — this is a pre-existing pattern in main branch (not introduced by this PR). Reviewer should confirm this is intentional for orchestration-level recipes."
+        evidence: "plan-roadmap SKILL.md has all required fields including allowed-tools. briefs, discover-product, prepare-implementation SKILL.md files are missing allowed-tools field — this is a pre-existing pattern in main branch (not introduced by this PR). Reviewer should confirm this is intentional for orchestration-level plays."
 
-      - id: "recipe-workflow"
-        item: "Recipe defines workflow section"
-        trigger: "Recipe definitions changed"
+      - id: "play-workflow"
+        item: "Play defines workflow section"
+        trigger: "Play definitions changed"
         status: "PASS"
         evidence: "briefs/SKILL.md has ## Workflow at line 53. plan-roadmap/SKILL.md has ## Workflow at line 58. discover-product and prepare-implementation have workflow sections confirmed by pre-existing structure (frontmatter unchanged from main)."
 
-      - id: "recipe-checkpoint"
-        item: "Recipe defines checkpoint behavior"
-        trigger: "Recipe definitions changed"
+      - id: "play-checkpoint"
+        item: "Play defines checkpoint behavior"
+        trigger: "Play definitions changed"
         status: "REVIEW"
-        evidence: "plan-roadmap recipe has complete checkpoint system (Tether/Vanish at lines 77, 401-403). briefs recipe is an automated batch scanner with no user checkpoints — by design (C5 from intent: fully automated on checksum change). Reviewer should confirm automated-only recipe pattern is acceptable."
+        evidence: "plan-roadmap play has complete checkpoint system (Tether/Vanish at lines 77, 401-403). briefs play is an automated batch scanner with no user checkpoints — by design (C5 from intent: fully automated on checksum change). Reviewer should confirm automated-only play pattern is acceptable."
 
       - id: "config-valid"
         item: "YAML configuration syntax valid"
@@ -135,7 +135,7 @@ analysis:
         item: "Components synced with core/components/ after changes"
         trigger: "core/components/** changed — 30+ component files modified"
         status: "REVIEW"
-        evidence: "core/components/agents/, core/components/skills/, core/components/recipes/, and core/components/memory/ all have changes. /sync-claude must be run to deploy globally to ~/.claude/ before the PR is considered deployment-ready. No sync evidence in commit history."
+        evidence: "core/components/agents/, core/components/skills/, core/components/plays/, and core/components/memory/ all have changes. /sync-claude must be run to deploy globally to ~/.claude/ before the PR is considered deployment-ready. No sync evidence in commit history."
 
       - id: "feat-documented"
         item: "New feature documented in README or docs"
@@ -147,7 +147,7 @@ analysis:
         item: "Refactoring introduces no breaking changes to output contracts"
         trigger: "refactor: commit types present (3 refactor commits)"
         status: "PASS"
-        evidence: "git diff of core/components/skills/draft-roadmap/SKILL.md, core/components/recipes/discover-product/SKILL.md, and core/components/recipes/plan-roadmap/SKILL.md shows no changes to ## Output sections. Agent output contracts (doc-builder.md) updated to remove skill routing table but output paths are preserved. Contract shape unchanged."
+        evidence: "git diff of core/components/skills/draft-roadmap/SKILL.md, core/components/plays/discover-product/SKILL.md, and core/components/plays/plan-roadmap/SKILL.md shows no changes to ## Output sections. Agent output contracts (doc-builder.md) updated to remove skill routing table but output paths are preserved. Contract shape unchanged."
 
     nice_to_have:
       - id: "agent-naming"
@@ -162,17 +162,17 @@ analysis:
         status: "PASS"
         evidence: "draft-roadmap/SKILL.md has ## Constraints section at line 96."
 
-      - id: "recipe-agent-limit"
-        item: "Recipe respects agent call limits (L1 ≤2, L2 ≤5)"
-        trigger: "Recipe definitions changed"
+      - id: "play-agent-limit"
+        item: "Play respects agent call limits (L1 ≤2, L2 ≤5)"
+        trigger: "Play definitions changed"
         status: "REVIEW"
-        evidence: "Manual review required. plan-roadmap delegates via Task to doc-builder (L2 orchestration). briefs recipe is direct execution with no agent calls. Reviewer should verify agent call counts in updated recipes."
+        evidence: "Manual review required. plan-roadmap delegates via Task to doc-builder (L2 orchestration). briefs play is direct execution with no agent calls. Reviewer should verify agent call counts in updated plays."
 
       - id: "config-documented"
         item: "Configuration changes are documented"
         trigger: "*.yaml changed"
         status: "PASS"
-        evidence: "Spec at .claude/specs/brief-rendering/brief-rendering.md describes the architectural rationale. intent.yaml changes reflect updated recipe behavior for client-side rendering."
+        evidence: "Spec at .claude/specs/brief-rendering/brief-rendering.md describes the architectural rationale. intent.yaml changes reflect updated play behavior for client-side rendering."
 
       - id: "feat-adr"
         item: "Significant feature has an ADR"
@@ -189,7 +189,7 @@ analysis:
       Branch is feat/169-client-side-brief-rendering, a feature branch off main (git symbolic-ref confirmed main as origin/HEAD). Issue #169 is linked to all commits. Base branch confirmed as main in core/config.yaml (github.repo present, platform: github). No release/* or other special base branch context.
 
   ready: true
-  recommendation: "Create PR — no blocking issues. 4 REVIEW items require human sign-off: recipe-frontmatter (allowed-tools pre-existing), recipe-checkpoint (briefs automated recipe), sync-claude (must run before deployment), feat-documented (spec present but not in docs/)."
+  recommendation: "Create PR — no blocking issues. 4 REVIEW items require human sign-off: play-frontmatter (allowed-tools pre-existing), play-checkpoint (briefs automated play), sync-claude (must run before deployment), feat-documented (spec present but not in docs/)."
 
   confidence:
     overall: high

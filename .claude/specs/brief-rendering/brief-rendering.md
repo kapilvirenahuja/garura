@@ -16,7 +16,7 @@ Brief generation completes in under 5 seconds for all 7 artifact types (down fro
 
 ```
 YAML artifact (source of truth, unchanged)
-    ↓ on-the-fly conversion (in briefs recipe)
+    ↓ on-the-fly conversion (in briefs play)
 JSON data file (derived artifact, written alongside YAML)
     ↓ loaded by browser
 Static HTML template (with embedded JS)
@@ -26,8 +26,8 @@ Rendered brief (in browser, instant)
 
 ### Data Flow
 
-1. Upstream skills/recipes produce YAML artifacts (unchanged)
-2. `briefs` recipe detects YAML changes via existing checksum logic (unchanged)
+1. Upstream skills/plays produce YAML artifacts (unchanged)
+2. `briefs` play detects YAML changes via existing checksum logic (unchanged)
 3. For each changed YAML: programmatic `yaml.load() → JSON.stringify() → write .json sibling` (new)
 4. Copy corresponding static HTML template to briefs directory, inline CSS (new)
 5. Browser opens HTML, embedded JS fetches JSON, renders all sections (new)
@@ -38,7 +38,7 @@ Rendered brief (in browser, instant)
 
 ### In Scope
 
-1. **briefs recipe** (`core/components/recipes/briefs/SKILL.md`) — replace LLM-based generation with YAML→JSON conversion + template copy
+1. **briefs play** (`core/components/plays/briefs/SKILL.md`) — replace LLM-based generation with YAML→JSON conversion + template copy
 2. **7 HTML templates** (`core/components/memory/standards/templates/`) — transform from placeholder reference documents into self-rendering templates with embedded JS
 3. **Shared rendering primitives** — ~200 lines of JS shared across all 7 templates (inlined)
 4. **Per-template render functions** — ~500 lines total across 7 templates
@@ -48,7 +48,7 @@ Rendered brief (in browser, instant)
 
 ### Out of Scope
 
-- All upstream skills/recipes that produce YAML artifacts (no changes)
+- All upstream skills/plays that produce YAML artifacts (no changes)
 - YAML schemas (no changes)
 - Phoenix Design System CSS (preserved, inlined)
 - Inline comment system (preserved, already vanilla JS + localStorage)
@@ -66,15 +66,15 @@ Rendered brief (in browser, instant)
 
 ---
 
-## Change 1: YAML-to-JSON Conversion (briefs recipe)
+## Change 1: YAML-to-JSON Conversion (briefs play)
 
 ### Current Behavior
 
-The recipe delegates to `doc-builder` agent with a contract containing `briefs_requested`. Doc-builder invokes LLM skills which read YAML and produce HTML.
+The play delegates to `doc-builder` agent with a contract containing `briefs_requested`. Doc-builder invokes LLM skills which read YAML and produce HTML.
 
 ### New Behavior
 
-The recipe performs conversion directly (no agent delegation needed):
+The play performs conversion directly (no agent delegation needed):
 
 1. **Check checksums** (unchanged)
 2. **For each changed YAML:**
@@ -132,7 +132,7 @@ Templates become functional self-rendering documents:
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <style>/* Phoenix Design System — brief-common.css inlined by recipe */</style>
+  <style>/* Phoenix Design System — brief-common.css inlined by play */</style>
   <style>/* Template-specific CSS (already present) */</style>
 </head>
 <body>
@@ -238,7 +238,7 @@ Doc-builder generates hub.html directly by globbing for YAMLs, reading status fi
 
 ### New
 
-The `briefs` recipe produces a `hub.json` manifest:
+The `briefs` play produces a `hub.json` manifest:
 
 ```json
 {
@@ -259,7 +259,7 @@ The `briefs` recipe produces a `hub.json` manifest:
 }
 ```
 
-Hub.html template fetches `hub.json` and renders the artifact grid. Stat extraction (counts of strategic_goals, features, etc.) is done during JSON conversion since the recipe already reads the YAML.
+Hub.html template fetches `hub.json` and renders the artifact grid. Stat extraction (counts of strategic_goals, features, etc.) is done during JSON conversion since the play already reads the YAML.
 
 ---
 
@@ -267,11 +267,11 @@ Hub.html template fetches `hub.json` and renders the artifact grid. Stat extract
 
 ### Current Role
 
-Receives contracts from briefs recipe, routes to 3 LLM skills, generates hub.html directly.
+Receives contracts from briefs play, routes to 3 LLM skills, generates hub.html directly.
 
 ### New Role
 
-**Removed for brief generation.** The briefs recipe handles everything:
+**Removed for brief generation.** The briefs play handles everything:
 - YAML→JSON conversion (mechanical)
 - Template copy with CSS inlining (mechanical)
 - hub.json manifest generation (mechanical)
@@ -289,7 +289,7 @@ New: "Brief generation is performed by YAML→JSON conversion and static templat
 
 | Component | Before | After |
 |-----------|--------|-------|
-| `briefs` recipe | Checksums → doc-builder → LLM skills | Checksums → YAML→JSON → template copy |
+| `briefs` play | Checksums → doc-builder → LLM skills | Checksums → YAML→JSON → template copy |
 | `generate-implementation-brief` | LLM generates HTML | **Removed** |
 | `generate-product-brief` | LLM generates HTML | **Removed** |
 | `draft-roadmap-brief` | LLM generates HTML | **Removed** |
@@ -299,9 +299,9 @@ New: "Brief generation is performed by YAML→JSON conversion and static templat
 
 ## What Does NOT Change
 
-- All upstream skills/recipes producing YAML artifacts
+- All upstream skills/plays producing YAML artifacts
 - YAML schemas
-- `brief-common.css` (inlined by recipe instead of LLM)
+- `brief-common.css` (inlined by play instead of LLM)
 - Template-specific CSS
 - Phoenix Design System visual appearance
 - Theme switching, sidebar nav, active-on-scroll
@@ -335,14 +335,14 @@ Write ~200 lines of shared JS (renderCards, renderTable, renderFieldGroup, rende
 
 For each: replace `{PLACEHOLDER}` with `<div id="...">`, add shared JS, add render(), test with sample JSON.
 
-### Phase 3: Update briefs Recipe
+### Phase 3: Update briefs Play
 Add YAML→JSON conversion, template copy + CSS inlining, hub.json generation. Remove doc-builder delegation.
 
 ### Phase 4: Remove LLM Skills
 Archive the 3 brief generation skills. Simplify doc-builder agent.
 
 ### Phase 5: Hub.html
-Convert to static template with JSON fetch. Add hub.json generation to recipe.
+Convert to static template with JSON fetch. Add hub.json generation to play.
 
 ---
 

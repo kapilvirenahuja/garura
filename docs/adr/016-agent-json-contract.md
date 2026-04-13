@@ -7,24 +7,24 @@
 
 ## Context
 
-Recipes orchestrate agents. Agents do domain work via skills. The boundary between recipe and agent is invoked tens of times across a single L2 run, and historically there was no enforced shape for that handoff — each recipe invented its own prompt format, each agent parsed differently, and reading STM artifacts was implicit.
+Plays orchestrate agents. Agents do domain work via skills. The boundary between play and agent is invoked tens of times across a single L2 run, and historically there was no enforced shape for that handoff — each play invented its own prompt format, each agent parsed differently, and reading STM artifacts was implicit.
 
 This made three things hard:
-1. **Compile-time auditing.** `create-recipe` could not statically verify that a recipe step gives an agent everything it needs (P1, P11 in the agent audit checklist).
-2. **Pause/resume.** Without a `task_id` keyed to a status file, recipes could not deterministically skip completed steps on resume.
+1. **Compile-time auditing.** `create-play` could not statically verify that a play step gives an agent everything it needs (P1, P11 in the agent audit checklist).
+2. **Pause/resume.** Without a `task_id` keyed to a status file, plays could not deterministically skip completed steps on resume.
 3. **Inter-step wiring.** Each step's outputs become the next step's inputs. Without a named contract, this wiring lived in prose, drifted, and broke silently.
 
-Every recipe → agent dispatch must follow a single canonical schema, and `create-recipe` must enforce it.
+Every play → agent dispatch must follow a single canonical schema, and `create-play` must enforce it.
 
 ## Decision
 
-The universal protocol for recipe → agent communication is the **Agent JSON Contract**. Every recipe step that dispatches to an agent serializes this contract; every agent parses this contract. No exceptions.
+The universal protocol for play → agent communication is the **Agent JSON Contract**. Every play step that dispatches to an agent serializes this contract; every agent parses this contract. No exceptions.
 
-### Input Contract (recipe → agent)
+### Input Contract (play → agent)
 
 ```json
 {
-  "intent_path": "<path to recipe's reference/intent.yaml>",
+  "intent_path": "<path to play's reference/intent.yaml>",
   "stm_base": "<resolved from core/config.yaml stm.base-path>",
   "stm": {
     "input": {
@@ -34,36 +34,36 @@ The universal protocol for recipe → agent communication is the **Agent JSON Co
       "<named_key>": "<path where agent should write output artifact>"
     }
   },
-  "task_id": "<unique task identifier from compiled recipe step>"
+  "task_id": "<unique task identifier from compiled play step>"
 }
 ```
 
 | Field | Required | Source | Description |
 |-------|----------|--------|-------------|
-| `intent_path` | Yes | Recipe's `reference/intent.yaml` | Agent reads this to understand constraints, failure conditions, scenarios |
+| `intent_path` | Yes | Play's `reference/intent.yaml` | Agent reads this to understand constraints, failure conditions, scenarios |
 | `stm_base` | Yes | `core/config.yaml` → `stm.base-path` | Root path for all STM artifacts. Resolved during pre-flight. |
 | `stm.input` | Yes | Prior steps' `stm.output` paths | Named paths to artifacts this step needs to read. Empty `{}` if first step. |
 | `stm.output` | Yes | Compiler determines during compilation | Named paths where agent writes its artifacts. Become `stm.input` for downstream steps. |
-| `task_id` | Yes | Compiled step ID | Unique within the recipe. Also used as key in the status file for pause/resume. |
+| `task_id` | Yes | Compiled step ID | Unique within the play. Also used as key in the status file for pause/resume. |
 | `ltm_context` | No | Object with `project_base`, `core_base`, `query_domains`, `locked_artifacts`. When present, agent follows R1–R4 from ADR 015 (resolution protocol). |
 
 ### STM path convention
 
 All paths follow:
 ```
-{stm_base}/{issue}/evidence/{recipe-name}/{artifact}.yaml
+{stm_base}/{issue}/evidence/{play-name}/{artifact}.yaml
 ```
 
 Example:
 ```
 stm_base = .meridian/project/issues/
 issue    = 95
-recipe   = commit-code
+play   = commit-code
 
 → .meridian/project/issues/95/evidence/commit-code/analysis.yaml
 ```
 
-### Output Contract (agent → recipe)
+### Output Contract (agent → play)
 
 ```json
 {
@@ -106,7 +106,7 @@ No step reads data that wasn't explicitly produced by a prior step's output cont
 
 ### Transfer Mechanism
 
-At runtime, the recipe executor (Claude Code) reads the JSON contract from the compiled SKILL.md step and passes it to the agent via the `Agent` tool prompt. The agent parses the contract, reads from `stm.input` paths, does its work, writes to `stm.output` paths, and returns the output contract.
+At runtime, the play executor (Claude Code) reads the JSON contract from the compiled SKILL.md step and passes it to the agent via the `Agent` tool prompt. The agent parses the contract, reads from `stm.input` paths, does its work, writes to `stm.output` paths, and returns the output contract.
 
 ### Resolution Protocol Hook
 
@@ -117,16 +117,16 @@ When `ltm_context` is present in the input contract, agents follow the R1–R4 r
 ## Consequences
 
 **Positive**
-- `create-recipe` audit checks (P1 JSON Contract, P11 Context Sufficiency) are enforceable statically.
-- Pause/resume is deterministic — `task_id` keys directly into the recipe's status file.
+- `create-play` audit checks (P1 JSON Contract, P11 Context Sufficiency) are enforceable statically.
+- Pause/resume is deterministic — `task_id` keys directly into the play's status file.
 - Inter-step data flow is explicit and greppable. No more "agent reads X" in prose.
-- Adding a new agent requires only that it parse this schema — recipes are decoupled from agent internals.
+- Adding a new agent requires only that it parse this schema — plays are decoupled from agent internals.
 - LTM resolution (ADR 015) plugs in via a single optional field.
 
 **Negative**
-- Recipes pay a small verbosity cost — every step embeds a JSON block. The benefit (auditability, wiring clarity) outweighs it.
+- Plays pay a small verbosity cost — every step embeds a JSON block. The benefit (auditability, wiring clarity) outweighs it.
 - Agents that pre-date this contract had to be retrofitted (one-time cost, completed).
 
 **Enforcement**
-- `create-recipe` validates every dispatch against this schema during compilation (checklist P1, P7, P11).
+- `create-play` validates every dispatch against this schema during compilation (checklist P1, P7, P11).
 - The schema lives in this ADR — it is foundational, not organizational memory. Any change requires a new ADR.

@@ -3,6 +3,6 @@ pr:
   url: "https://github.com/kapilvirenahuja/meridian-os/pull/113"
   title: "feat(evals): deterministic eval generation from intent constraints (#112)"
   target_branch: "main"
-  source_branch: "feature/112-recipe-eval-gen"
+  source_branch: "feature/112-play-eval-gen"
   state: "open"
   issue_linked: 112

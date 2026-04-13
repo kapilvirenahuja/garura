@@ -16,10 +16,10 @@
 | E6 | Memory Templates Directory Documented | **PASS** |
 | E7 | No Stale ADR 007 References | **FAIL** |
 | E8 | Agent Count Accuracy in IDSD | **PASS** |
-| E9 | Recipe Roster Completeness | **PASS** |
+| E9 | Play Roster Completeness | **PASS** |
 | E10 | Agent JSON Contract Response Format | **PASS** |
 | E11 | Skill Invocation Pattern Documented | **FAIL** |
-| E12 | Recipe System vs Intent Constraint Separation | **PASS** |
+| E12 | Play System vs Intent Constraint Separation | **PASS** |
 
 **PASS: 10 / 12 | FAIL: 2 / 12**
 
@@ -62,7 +62,7 @@ Tools comparison (frontmatter vs docs role-based table at lines 182-188):
 
 **Result: PASS**
 
-**Test:** Compare skill/recipe names in `docs/components/skills.md` against `ls core/components/skills/` and `ls core/components/recipes/`. All 18 skills and 8 recipes must be listed.
+**Test:** Compare skill/play names in `docs/components/skills.md` against `ls core/components/skills/` and `ls core/components/plays/`. All 18 skills and 8 plays must be listed.
 
 **Evidence:**
 
@@ -86,7 +86,7 @@ Tools comparison (frontmatter vs docs role-based table at lines 182-188):
 - `sync-claude` (3 mentions)
 - `validate-product-vision` (1 mention)
 
-8 recipes in `core/components/recipes/` — all found in `docs/components/skills.md`:
+8 plays in `core/components/plays/` — all found in `docs/components/skills.md`:
 - `capture-learning` (1 mention)
 - `commit-code` (1 mention)
 - `create-pr` (1 mention)
@@ -102,7 +102,7 @@ Tools comparison (frontmatter vs docs role-based table at lines 182-188):
 
 **Result: PASS**
 
-**Test:** Grep for `intent_path`, `stm_base`, `step_failure` in `docs/philosophy/architecture.md` and `docs/components/recipes.md`. All must be present.
+**Test:** Grep for `intent_path`, `stm_base`, `step_failure` in `docs/philosophy/architecture.md` and `docs/components/plays.md`. All must be present.
 
 **Evidence:**
 
@@ -111,7 +111,7 @@ Tools comparison (frontmatter vs docs role-based table at lines 182-188):
 - `stm_base`: Found (lines 189, 216)
 - `step_failure`: Found (lines 207, 222, 237)
 
-`docs/components/recipes.md`:
+`docs/components/plays.md`:
 - `intent_path`: Found (lines 81, 108, 130)
 - `stm_base`: Found (lines 82, 109)
 - `step_failure`: Found (lines 100, 115, 124, 125, 143, 146, 155)
@@ -135,7 +135,7 @@ All 4 crafts found in `docs/philosophy/architecture.md`:
 - `Spec Crafting`: lines 259, 309, 311
 
 Files containing "Four Crafts": **5 files** (>= 3 threshold)
-1. `docs/components/recipes.md`
+1. `docs/components/plays.md`
 2. `docs/components/agents.md`
 3. `docs/philosophy/idsd.md`
 4. `docs/components/memory.md`
@@ -147,15 +147,15 @@ Files containing "Four Crafts": **5 files** (>= 3 threshold)
 
 **Result: PASS**
 
-**Test:** Grep for "DAG" or "task graph" in `docs/framework/recipe-structure.md`. Grep for "HARD GATE" or "hard gate" in `docs/components/recipes.md`.
+**Test:** Grep for "DAG" or "task graph" in `docs/framework/play-structure.md`. Grep for "HARD GATE" or "hard gate" in `docs/components/plays.md`.
 
 **Evidence:**
 
-`docs/framework/recipe-structure.md`:
+`docs/framework/play-structure.md`:
 - "DAG": Found (lines 3, 124, 140, 150) — "task-driven DAG", "Task-Driven DAG Variant"
 - "task graph": Found (lines 126, 136) — "full task graph upfront", "full task graph is verified"
 
-`docs/components/recipes.md`:
+`docs/components/plays.md`:
 - "HARD GATE": Found (line 71) — "HARD GATE: All tasks MUST be created with correct dependencies before any agent execution begins."
 
 ---
@@ -221,17 +221,17 @@ The "5 implemented" count matches the 5 agent files. The 3 planned agents (quali
 
 ---
 
-### E9 — Recipe Roster Completeness
+### E9 — Play Roster Completeness
 
 **Result: PASS**
 
-**Test:** Compare recipe names in `docs/components/recipes.md` against `ls core/components/recipes/`. All 8 must be listed with correct L1/L2 levels.
+**Test:** Compare play names in `docs/components/plays.md` against `ls core/components/plays/`. All 8 must be listed with correct L1/L2 levels.
 
 **Evidence:**
 
-"Complete Recipe Roster" table in `docs/components/recipes.md` (lines 318-329):
+"Complete Play Roster" table in `docs/components/plays.md` (lines 318-329):
 
-| Recipe | Docs Level | In filesystem? |
+| Play | Docs Level | In filesystem? |
 |--------|-----------|----------------|
 | `commit-code` | L1 | YES |
 | `create-pr` | L1 | YES |
@@ -242,7 +242,7 @@ The "5 implemented" count matches the 5 agent files. The 3 planned agents (quali
 | `ship` | L2 | YES |
 | `plan-roadmap` | L2 | YES |
 
-All 8 recipes listed with L1/L2 levels. All 8 exist in `core/components/recipes/`. No orphans in either direction.
+All 8 plays listed with L1/L2 levels. All 8 exist in `core/components/plays/`. No orphans in either direction.
 
 ---
 
@@ -270,17 +270,17 @@ All 8 recipes listed with L1/L2 levels. All 8 exist in `core/components/recipes/
 - "Skill Pool": **Found** (lines 130, 134, 148, 156, 160, 170) — "Skill Pool Pattern" section with per-agent tables
 - "Skill tool": **NOT FOUND** — zero matches in `docs/components/agents.md`
 
-The term "Skill tool" appears in `docs/components/recipes.md` (line 61: "via the Skill tool") but is absent from the agents documentation. The agents doc describes skills being invoked but never names the Claude Code "Skill tool" as the invocation mechanism.
+The term "Skill tool" appears in `docs/components/plays.md` (line 61: "via the Skill tool") but is absent from the agents documentation. The agents doc describes skills being invoked but never names the Claude Code "Skill tool" as the invocation mechanism.
 
 **What's missing:** A reference to "Skill tool" as the mechanism agents use to invoke skills (e.g., "Agents invoke skills via the Skill tool" or similar).
 
 ---
 
-### E12 — Recipe System vs Intent Constraint Separation
+### E12 — Play System vs Intent Constraint Separation
 
 **Result: PASS**
 
-**Test:** Grep for "System Constraints" and "intent.yaml" in `docs/components/recipes.md`. Both must be present.
+**Test:** Grep for "System Constraints" and "intent.yaml" in `docs/components/plays.md`. Both must be present.
 
 **Evidence:**
 

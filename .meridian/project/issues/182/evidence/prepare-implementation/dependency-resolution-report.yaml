@@ -1,5 +1,5 @@
 epic_id: "E-LTM"
-epic_name: "Sub-Agent Context Resolution Protocol & Learning Recipe"
+epic_name: "Sub-Agent Context Resolution Protocol & Learning Play"
 
 upstream_artifacts:
   product_yaml: "MISSING — brownfield, no upstream pipeline"
@@ -8,7 +8,7 @@ upstream_artifacts:
   quality_standards_yaml: "MISSING — brownfield, quality context from codebase"
 
 technology_dependencies:
-  framework: "Meridian OS — markdown agent definitions, YAML intent schemas, compiled SKILL.md recipes"
+  framework: "Meridian OS — markdown agent definitions, YAML intent schemas, compiled SKILL.md plays"
 
   components_affected:
     agents:
@@ -59,15 +59,15 @@ technology_dependencies:
           decryption key, and project codebase (Mode 1); or artifact paths + validation skill
           (Mode 2-4). No change required.
 
-    recipes:
-      - file: "core/components/recipes/implement-epic/SKILL.md"
+    plays:
+      - file: "core/components/plays/implement-epic/SKILL.md"
         current_ltm_references: >
           NO explicit ltm_path, ltm_context, or LTM contract field in any step contract.
           tech-designer Step (Context Builder) receives plan.yaml, architecture.yaml, tech.yaml
           to produce CONTEXT.md — no LTM path in contract. LTM access is left to the agent's
-          own discretion. NO ltm_context field in any agent contract in this recipe.
+          own discretion. NO ltm_context field in any agent contract in this play.
 
-      - file: "core/components/recipes/prepare-implementation/SKILL.md"
+      - file: "core/components/plays/prepare-implementation/SKILL.md"
         current_ltm_references: >
           EXPLICIT LTM reference found in Step 3 (Read LTM). Contract contains:
             "context": {
@@ -76,11 +76,11 @@ technology_dependencies:
               "epic_id": "{epic_id}"
             }
           This is an ad-hoc inline reference in the context block — NOT a formal stm.input path.
-          Step 4 (Dependency Resolution Report) reads ltm_findings from stm.input. This recipe
+          Step 4 (Dependency Resolution Report) reads ltm_findings from stm.input. This play
           has the most explicit LTM wiring, but it uses an ad-hoc context field, not ltm_context
           in the standard contract schema.
 
-      - file: "core/components/recipes/prepare-architecture/SKILL.md"
+      - file: "core/components/plays/prepare-architecture/SKILL.md"
         current_ltm_references: >
           EXPLICIT LTM reference found in Step 2 contract config block:
             "config": {
@@ -90,25 +90,25 @@ technology_dependencies:
           Scoped narrowly to architecture knowledge only. Ad-hoc config field, not formal
           ltm_context in contract schema. SE-2 eval validates >=3 LTM files consulted.
 
-      - file: "core/components/recipes/discover-product/SKILL.md"
+      - file: "core/components/plays/discover-product/SKILL.md"
         current_ltm_references: >
           NO explicit ltm_path, ltm_context, or LTM contract field in any step contract.
           product-strategist agent loads LTM autonomously via its own Steps 1-8 protocol.
-          Recipe does not pass LTM paths to the agent. LTM loading is fully agent-owned.
+          Play does not pass LTM paths to the agent. LTM loading is fully agent-owned.
 
-      - file: "core/components/recipes/plan-roadmap/SKILL.md"
+      - file: "core/components/plays/plan-roadmap/SKILL.md"
         current_ltm_references: >
           NO explicit ltm_path, ltm_context, or LTM contract field in any visible step.
-          Recipe delegates to product-strategist and tech-designer — each loads LTM
+          Play delegates to product-strategist and tech-designer — each loads LTM
           autonomously. No LTM path passed in contracts.
 
-      - file: "core/components/recipes/commit-code/SKILL.md"
+      - file: "core/components/plays/commit-code/SKILL.md"
         current_ltm_references: >
           NO LTM references. commit-code delegates to repo-orchestrator and project-orchestrator
           only. Neither agent has LTM loading protocol beyond repo-orchestrator's single
           branching.md reference.
 
-      - file: "core/components/recipes/create-pr/SKILL.md"
+      - file: "core/components/plays/create-pr/SKILL.md"
         current_ltm_references: >
           NO LTM references. create-pr delegates to repo-orchestrator and project-orchestrator.
           No LTM paths in any contract.
@@ -124,13 +124,13 @@ technology_dependencies:
 
   existing_ltm_patterns:
     ad_hoc_references:
-      - location: "core/components/recipes/prepare-implementation/SKILL.md:173-174"
+      - location: "core/components/plays/prepare-implementation/SKILL.md:173-174"
         field: "context.ltm_path"
         value: "~/.meridian/core/memory/"
         scope: "All 4 scan_directories"
         pattern: "Ad-hoc inline context field, not formalized in contract schema"
 
-      - location: "core/components/recipes/prepare-architecture/SKILL.md:104"
+      - location: "core/components/plays/prepare-architecture/SKILL.md:104"
         field: "config.ltm_architecture_path"
         value: "~/.meridian/core/memory/knowledge/architecture/"
         scope: "Architecture knowledge only"
@@ -164,7 +164,7 @@ technology_dependencies:
 ltm_findings:
   standards_found:
     - path: "~/.meridian/core/memory/standards/agent-contract.md"
-      summary: "Universal recipe→agent contract schema — 5 input fields, 4 output fields. No LTM wiring."
+      summary: "Universal play→agent contract schema — 5 input fields, 4 output fields. No LTM wiring."
     - path: "~/.meridian/core/memory/standards/_index.md"
       summary: "Standards index — covers agent-contract, brief-principles, commits, git, templates, agent-lifecycle."
     - path: "~/.meridian/core/memory/standards/git/branching.md"
@@ -204,11 +204,11 @@ ltm_findings:
     - "No resolution protocol standard exists — no ~/.meridian/core/memory/standards/ltm-resolution-protocol.md"
     - "No knowledge file template standard exists as a standalone spec file — template is embedded only in architecture/_index.md, not a reusable standard"
     - "No knowledge-extractor agent exists — capture-learning has PENDING C5-C10 constraints waiting for this agent"
-    - "No learn recipe exists — capture-learning only does archival today, extraction is fully PENDING"
+    - "No learn play exists — capture-learning only does archival today, extraction is fully PENDING"
     - "capture-learning has PENDING C5-C10 constraints: extraction/archival independence (C5), STM read-only during extraction (C6), dedup existing patterns (C7), two-tier knowledge metadata schema (C8), no traceability links to source issues (C9), holistic cross-technology knowledge organization (C10)"
-    - "ltm_context is not a recognized field in the agent contract schema — no standard for how recipes pass LTM context to agents"
+    - "ltm_context is not a recognized field in the agent contract schema — no standard for how plays pass LTM context to agents"
     - "No resolution_trace field in agent output contracts — LTM loading decisions are not surfaced for debugging or audit"
-    - "LTM loading is entirely agent-internal today — recipe contracts do not know what LTM the agent loaded"
+    - "LTM loading is entirely agent-internal today — play contracts do not know what LTM the agent loaded"
     - "No ltm_context field in discover-product, plan-roadmap, implement-epic, commit-code, create-pr contracts"
     - "prepare-implementation and prepare-architecture use ad-hoc config/context fields for LTM — inconsistent with each other and with the standard contract schema"
 
@@ -217,13 +217,13 @@ halt_conditions:
   rationale: >
     This is a brownfield implementation against the Meridian framework itself.
     All required source files exist and are readable. The spec describes additions to
-    existing agents and recipes, plus new components (knowledge-extractor agent, learn recipe,
+    existing agents and plays, plus new components (knowledge-extractor agent, learn play,
     ltm-resolution-protocol standard). No upstream locked artifacts are required — the codebase
     IS the input. No halt conditions exist.
 
   brownfield_notes:
     - "All 7 target agent files exist and are readable"
-    - "All 7 target recipe files exist and are readable"
+    - "All 7 target play files exist and are readable"
     - "LTM at ~/.meridian/core/memory/ has 4 top-level directories with known content"
     - "capture-learning/reference/intent.yaml has PENDING constraints C5-C10 already written, waiting for extraction skills"
     - "The spec can proceed directly to artifact generation — no dependency blockers"

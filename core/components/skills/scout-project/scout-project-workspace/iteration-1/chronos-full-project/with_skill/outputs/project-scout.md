@@ -37,7 +37,7 @@ Chronos is a personal AI for strategic leaders -- a dual-tempo, intent-driven PC
 |----------|--------|------------|
 | Vision | LOCKED | 5 strategic goals |
 | Product Spec | Active (v4.0.0) | 6 core behaviors, 5 architectural invariants |
-| Technical Approach | Active (v2.0.0) | 3 recipes, 2 deployment units |
+| Technical Approach | Active (v2.0.0) | 3 plays, 2 deployment units |
 | LLD | Active (v2.0.0) | 9 phases |
 | Scenarios | Active (v1.0.0) | 54 total: 35 automated, 19 hybrid |
 
@@ -45,7 +45,7 @@ Chronos is a personal AI for strategic leaders -- a dual-tempo, intent-driven PC
 
 - No LangChain/LangGraph -- orchestration is agentic via Claude tool_runner
 - No OpenAI -- all LLM and embeddings via Anthropic ecosystem (Anthropic SDK + voyage-3)
-- Recipes define what, agents determine how -- Phoenix chain (Signal -> Recipe -> Agent -> Skill -> Memory) must never collapse into Signal -> model call -> answer
+- Plays define what, agents determine how -- Phoenix chain (Signal -> Play -> Agent -> Skill -> Memory) must never collapse into Signal -> model call -> answer
 - Owner-only trust model in MVP -- single owner, unknown authors silently rejected
 - Silent capture -- no acknowledgment messages on signal intake; system stays quiet
 

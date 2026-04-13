@@ -18,7 +18,7 @@
 
 ### Root Cause
 
-The current `prepare-implementation` recipe treats artifact production (plan.yaml, tech.yaml, etc.) as a product-level concern, placing outputs under the product epics directory. But these artifacts are consumed at the issue/implementation level by `implement-epic`. There is no bridging step that relocates or links the epic context into the issue's STM, creating a disconnect between where context is produced and where it is consumed.
+The current `prepare-implementation` play treats artifact production (plan.yaml, tech.yaml, etc.) as a product-level concern, placing outputs under the product epics directory. But these artifacts are consumed at the issue/implementation level by `implement-epic`. There is no bridging step that relocates or links the epic context into the issue's STM, creating a disconnect between where context is produced and where it is consumed.
 
 ### Expected Behavior
 

@@ -1,0 +1,105 @@
+step_evals:
+  - id: SE-1
+    failure_condition_id: F1
+    skill: manage-issue
+    check: "Issue resolution produced a non-null issue number and the issue exists on GitHub as OPEN"
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml"
+    pass_criteria: "issue.number is a positive integer AND issue.state is 'open'"
+    fail_criteria: "issue.number is null or zero, OR issue.state is not 'open'"
+
+  - id: SE-2
+    failure_condition_id: F2
+    skill: setup-branch
+    check: "Branch name matches the convention {type}/{issue_number}-{slug}"
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/branch-result.yaml"
+    pass_criteria: "branch.name matches regex ^(feature|fix|hotfix|refactor|docs|chore)/[0-9]+-[a-z0-9-]+$"
+    fail_criteria: "branch.name does not match the naming convention pattern"
+
+  - id: SE-3
+    failure_condition_id: F3
+    skill: setup-branch
+    check: "STM directory exists at {stm_base}/{issue}/ after play completion"
+    artifact_pattern: "{stm_base}/{issue}/"
+    pass_criteria: "Directory exists and is non-empty"
+    fail_criteria: "Directory does not exist"
+
+  - id: SE-4
+    failure_condition_id: F4
+    skill: setup-branch
+    check: "Uncommitted changes from pre-play snapshot are still present in the working tree"
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/branch-result.yaml"
+    pass_criteria: "branch.changes_preserved is true AND git status --porcelain output matches or is superset of pre-play snapshot"
+    fail_criteria: "branch.changes_preserved is false OR files from pre-play snapshot are missing from working tree"
+
+  - id: SE-5
+    failure_condition_id: F5
+    skill: resolve-issues
+    check: "If inference confidence is 'low', the play halted and did not proceed to branch creation"
+    artifact_pattern: "{stm_base}/_pending/start-feature/issue-resolution.yaml"
+    pass_criteria: "inference.confidence is 'high' or 'medium', OR play halted before branch creation when confidence was 'low'"
+    fail_criteria: "inference.confidence is 'low' AND branch was created (branch-result.yaml exists)"
+
+  - id: SE-6
+    failure_condition_id: F6
+    skill: manage-issue
+    check: "If an existing open issue matched the inferred work, no new issue was created"
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml"
+    pass_criteria: "issue.created is false when inference.source is 'changed_files' and an existing open issue matched, OR issue.created is true only when no existing match was found"
+    fail_criteria: "issue.created is true when an existing open issue already matched the inferred work"
+
+  - id: SE-7
+    failure_condition_id: F7
+    skill: manage-issue
+    check: "If best candidate was a closed issue, user confirmation was obtained before reopening"
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml"
+    pass_criteria: "No closed issue was used without user confirmation, OR inference.ambiguity_resolved_by_user is true when a closed issue was selected"
+    fail_criteria: "A closed issue was matched or reopened without ambiguity_resolved_by_user being true"
+
+  - id: SE-8
+    failure_condition_id: F8
+    skill: resolve-issues
+    check: "If multiple candidate issues existed with no clear winner, user was asked to pick"
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml"
+    pass_criteria: "inference.candidates_considered <= 1 OR inference.confidence is 'high', OR inference.ambiguity_resolved_by_user is true when candidates_considered > 1 and confidence is not 'high'"
+    fail_criteria: "inference.candidates_considered > 1 AND inference.confidence is not 'high' AND inference.ambiguity_resolved_by_user is false"
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml, {stm_base}/{issue}/evidence/start-feature/branch-result.yaml"
+    check: "With uncommitted changes and no args: issue inferred and tracked, branch created with changes intact, STM directory ready"
+    pass_criteria: "issue-resolution.yaml has inference.source='changed_files' with non-null issue.number AND branch-result.yaml has branch.action='created' or 'switched' with changes_preserved=true AND {stm_base}/{issue}/ directory exists"
+    fail_criteria: "Any of: no issue resolved, branch not created, changes not preserved, STM directory missing"
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml, {stm_base}/{issue}/evidence/start-feature/branch-result.yaml"
+    check: "With explicit issue number: exact issue used, branch named with that number, STM directory initialized"
+    pass_criteria: "issue-resolution.yaml has inference.source='explicit_number' with issue.number matching input AND branch-result.yaml has branch.name containing that issue number AND {stm_base}/{issue}/ directory exists"
+    fail_criteria: "Issue number does not match input, OR branch name does not contain the issue number, OR STM directory missing"
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml, {stm_base}/{issue}/evidence/start-feature/branch-result.yaml"
+    check: "With descriptive title: new issue created with ~40-word body, branch created, STM directory initialized"
+    pass_criteria: "issue-resolution.yaml has issue.created=true with inference.source='explicit_title' AND issue body contains 25-60 word summary AND branch-result.yaml exists with valid branch AND {stm_base}/{issue}/ directory exists"
+    fail_criteria: "Issue not created, OR body outside 25-60 word range, OR branch not created, OR STM directory missing"
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/branch-result.yaml"
+    check: "With existing branch: switched (not recreated), no duplicate issue, changes preserved"
+    pass_criteria: "branch-result.yaml has branch.action='switched' with changes_preserved=true AND issue-resolution.yaml has issue.created=false"
+    fail_criteria: "Branch was recreated (action='created' when it already existed), OR duplicate issue created, OR changes not preserved"
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: Team Lead
+    artifact_pattern: "{stm_base}/{issue}/evidence/start-feature/issue-resolution.yaml, {stm_base}/{issue}/evidence/start-feature/branch-result.yaml"
+    check: "Every active piece of work has a corresponding open issue with clear title and summary body, traceable to a feature branch"
+    pass_criteria: "issue-resolution.yaml shows issue.state='open' with non-empty issue.title AND branch-result.yaml shows branch.pushed=true with branch.name containing issue.number"
+    fail_criteria: "Issue is not open, OR title is empty, OR branch is not pushed to origin, OR branch name does not contain issue number"

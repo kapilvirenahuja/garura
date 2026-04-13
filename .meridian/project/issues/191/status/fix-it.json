@@ -1,5 +1,5 @@
 {
-  "recipe": "meridian:fix-it",
+  "play": "meridian:fix-it",
   "issue": "191",
   "started_at": "2026-04-11T15:00:00Z",
   "tasks": {

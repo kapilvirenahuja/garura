@@ -1,0 +1,105 @@
+step_evals:
+  - id: SE-1
+    source_type: "failure_condition"
+    failure_condition_id: F1
+    constraint_id: null
+    skill: "play-orchestrator"
+    check: "Verify that the play did not proceed to implementation without the human approving the checkpoint via Tether"
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/**/checkpoint-record.*"
+    pass_criteria: "Checkpoint record exists with approval_status indicating Tether was received before any implementation step began"
+    fail_criteria: "No checkpoint record exists, or implementation artifacts have timestamps preceding the checkpoint approval"
+
+  - id: SE-2
+    source_type: "both"
+    failure_condition_id: F2
+    constraint_id: C3
+    skill: "tech-designer"
+    check: "Verify that RCA traces from symptom to specific root cause — the file, the logic, and why it is wrong — and is not a restatement of the issue title or problem description"
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/**/rca.*"
+    pass_criteria: "RCA artifact contains root_cause field that identifies a specific file, the specific logic within that file, and an explanation of why it is wrong — distinct from the issue title and problem description"
+    fail_criteria: "RCA artifact contains no root_cause identification, or the root_cause text is a restatement of the issue title or problem description without tracing to specific file and logic"
+
+  - id: SE-3
+    source_type: "both"
+    failure_condition_id: F3
+    constraint_id: C4
+    skill: "tech-designer"
+    check: "Verify that fix design includes at least one alternative considered with the reason it was rejected"
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/**/design.*"
+    pass_criteria: "Design artifact contains alternatives_considered with at least one entry, and each entry includes the reason it was rejected"
+    fail_criteria: "Design artifact contains no alternatives_considered entries, or entries exist without rejection reasons"
+
+  - id: SE-4
+    source_type: "failure_condition"
+    failure_condition_id: F4
+    constraint_id: null
+    skill: "ship"
+    check: "Verify that shipping completed fully — commits exist, PR was created, and PR was merged — with no intermediate state"
+    artifact_pattern: "{stm_base}/{issue}/evidence/ship/*"
+    pass_criteria: "Ship evidence artifact shows commit SHA, PR number, PR state as merged, and branch deletion confirmed"
+    fail_criteria: "Commits exist but no PR was created, or a PR exists but was not merged, or the branch remains in an intermediate state"
+
+  - id: SE-5
+    source_type: "failure_condition"
+    failure_condition_id: F5
+    constraint_id: null
+    skill: "manage-issue"
+    check: "Verify that the issue exists on GitHub and is in an open state when the play starts"
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/**/issue-read.*"
+    pass_criteria: "Issue read output shows the issue exists with state field equal to open"
+    fail_criteria: "Issue does not exist on GitHub, or issue state is not open"
+
+  - id: SE-6
+    source_type: "failure_condition"
+    failure_condition_id: F6
+    constraint_id: null
+    skill: "code-builder"
+    check: "Verify that implementation changes only touch files listed in the design's affected_files map, or any additional files have documented justification in the evidence"
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/**/implementation-report.*"
+    pass_criteria: "Every file in the implementation report's files_modified list appears in the design's affected_files map, or any file not in the map has a documented deviation with justification"
+    fail_criteria: "Implementation creates changes in files not listed in the design's affected_files map without documented justification in the evidence"
+
+  - id: SE-7
+    source_type: "failure_condition"
+    failure_condition_id: F7
+    constraint_id: null
+    skill: "code-builder"
+    check: "Verify that the code-builder agent's input contract does not contain checkpoint brief content"
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/**/code-builder-input.*"
+    pass_criteria: "Code-builder input contract contains STM design artifact paths only, with no checkpoint brief content or HTML brief data present in the input"
+    fail_criteria: "Code-builder agent receives checkpoint brief content in its input contract, violating context isolation"
+
+  - id: SE-8
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: C5
+    skill: "tech-designer"
+    check: "Verify that fix design includes a risk assessment with severity levels for each identified risk"
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/**/design.*"
+    pass_criteria: "Design artifact contains a risks section where each identified risk has an associated severity level"
+    fail_criteria: "Design artifact has no risk assessment, or risks exist without severity levels assigned to each"
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: "Developer"
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/**/delivery-record.*"
+    check: "The fix is merged to main, the PR links to the originating issue, the feature branch is deleted, and the evidence artifact contains the full RCA trace, design rationale, implementation record, and merge SHA"
+    pass_criteria: "Evidence artifact exists containing: merge SHA on main, PR URL linking to the originating issue, confirmation of feature branch deletion, RCA trace, design rationale, and implementation record"
+    fail_criteria: "Any of the following is missing: merge SHA, PR-to-issue link, branch deletion confirmation, RCA trace, design rationale, or implementation record"
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: "Tech Lead"
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/**/checkpoint-brief.*"
+    check: "The brief shows: root cause traced to specific code (not just symptoms), blast radius of affected files, proposed fix strategy, at least one alternative considered with rejection reason, risk table with severity levels, and confidence assessment"
+    pass_criteria: "Checkpoint brief contains all of: root cause traced to specific code, blast radius of affected files, proposed fix strategy, at least one alternative with rejection reason, risk table with severity levels, and confidence assessment"
+    fail_criteria: "Checkpoint brief is missing any of: specific-code root cause, blast radius, fix strategy, alternative with rejection reason, risk table with severity, or confidence assessment"
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: "QA Engineer"
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/**/delivery-record.*"
+    check: "The PR body and evidence artifact allow tracing: what was changed, why (root cause), what the blast radius was, and that the design was approved before implementation — the fix is auditable end-to-end"
+    pass_criteria: "PR body and evidence artifact together contain: list of changes made, root cause reference, blast radius, and checkpoint approval timestamp preceding implementation timestamp — full audit trail present"
+    fail_criteria: "Traceability is broken: changes lack root cause linkage, blast radius is undocumented, or no evidence that design approval preceded implementation"

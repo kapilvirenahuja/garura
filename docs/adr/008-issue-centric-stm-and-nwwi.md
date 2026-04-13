@@ -10,29 +10,29 @@ Accepted
 
 ## Context
 
-ADR 002 established the L1 checkpoint model: every recipe produces an artifact and stops at a checkpoint for human approval. It defined STM locations as `.meridian/{issue}/docs/` and `.meridian/{issue}/evidence/`.
+ADR 002 established the L1 checkpoint model: every play produces an artifact and stops at a checkpoint for human approval. It defined STM locations as `.meridian/{issue}/docs/` and `.meridian/{issue}/evidence/`.
 
 However, the actual implementation diverged. Checkpoints were stored at:
 
 ```
-.meridian/project/checkpoints/{recipe}/{timestamp}.md
+.meridian/project/checkpoints/{play}/{timestamp}.md
 ```
 
 This created several problems:
 
 1. **No issue traceability** — Timestamp-named files have no connection to the triggering issue. You must open a file to understand what it relates to.
 2. **Orphaned data** — Checkpoint files with `PENDING_APPROVAL` status are never updated. No mechanism links them back to the workflow that created them.
-3. **No resumability** — Checkpoints capture what was proposed and decided, but not enough state to resume a recipe after session loss.
+3. **No resumability** — Checkpoints capture what was proposed and decided, but not enough state to resume a play after session loss.
 4. **Contradicts ADR 002** — ADR 002 specifies `.meridian/{issue}/` as STM location, but checkpoints bypass this structure entirely.
 5. **Issue-agnostic** — The structure enables working without an issue, undermining traceability and audit requirements.
 
-Additionally, long-running recipes and cross-session workflows need a mechanism to checkpoint execution state and resume later — potentially from a different tool or session.
+Additionally, long-running plays and cross-session workflows need a mechanism to checkpoint execution state and resume later — potentially from a different tool or session.
 
 ## Decision
 
 ### 1. NWWI Principle: No Work Without an Issue
 
-All recipe work that produces checkpoints **must** be associated with a GitHub issue. The directory structure enforces this by requiring an issue number as the top-level organizer.
+All play work that produces checkpoints **must** be associated with a GitHub issue. The directory structure enforces this by requiring an issue number as the top-level organizer.
 
 **Enforcement point:** `commit-code` is the hard gate. No commit can proceed without an issue ID. This means:
 
@@ -54,8 +54,8 @@ All STM artifacts are organized under `.meridian/{issue-number}/`:
 │   ├── changes.md
 │   ├── tests.md
 │   └── validation.md
-└── checkpoint/                    # Recipe execution state
-    └── {recipe-name}/
+└── checkpoint/                    # Play execution state
+    └── {play-name}/
         └── {timestamp}.md
 ```
 
@@ -83,14 +83,14 @@ All STM artifacts are organized under `.meridian/{issue-number}/`:
 |----------|------|---------|----------|
 | **docs** | `{issue}/docs/` | Specifications, designs, analysis | `tech-designer` agent |
 | **evidence** | `{issue}/evidence/` | Test results, validation, change proof | `quality-validator` agent |
-| **checkpoint** | `{issue}/checkpoint/{recipe}/` | Recipe execution state for approval and resumption | Recipe orchestrator |
+| **checkpoint** | `{issue}/checkpoint/{play}/` | Play execution state for approval and resumption | Play orchestrator |
 
 ### 4. Two-Phase Write for Bootstrap
 
-The `start-feature` recipe creates the issue — but needs working space before the issue number exists. This is resolved with a two-phase write:
+The `start-feature` play creates the issue — but needs working space before the issue number exists. This is resolved with a two-phase write:
 
 1. **Phase 1:** Write to `_pending/` temporary location while issue is being created
-2. **Phase 2:** Move to `.meridian/{issue}/` once the issue number is known (within the same recipe run)
+2. **Phase 2:** Move to `.meridian/{issue}/` once the issue number is known (within the same play run)
 
 ```
 .meridian/
@@ -103,18 +103,18 @@ The `start-feature` recipe creates the issue — but needs working space before 
     └── ...
 ```
 
-`_pending/` is a transient location. Its contents must be migrated to an issue directory before the recipe completes. Orphaned `_pending/` entries indicate failed or abandoned recipe runs.
+`_pending/` is a transient location. Its contents must be migrated to an issue directory before the play completes. Orphaned `_pending/` entries indicate failed or abandoned play runs.
 
 ### 5. Mandatory Checkpoint Schema
 
-Every checkpoint file must include these structural elements, regardless of the recipe:
+Every checkpoint file must include these structural elements, regardless of the play:
 
 ```markdown
-# {Recipe Name} Checkpoint
+# {Play Name} Checkpoint
 
 ## Metadata
 - **Issue:** #{issue-number}
-- **Recipe:** {recipe-name}
+- **Play:** {play-name}
 - **Step:** {current-step} of {total-steps}
 - **Created:** {YYYY-MM-DD HH:MM:SS}
 - **Status:** {PENDING_APPROVAL|APPROVED|REJECTED}
@@ -128,19 +128,19 @@ Every checkpoint file must include these structural elements, regardless of the 
 {Structured results from completed steps — agent outputs, artifacts produced, decisions made}
 
 ## Current Step
-{What the recipe was doing when it checkpointed}
+{What the play was doing when it checkpointed}
 
 ## Inputs Needed to Continue
 {What the next step requires — parameters, decisions, approvals}
 ```
 
 **Mandatory fields:**
-- **Metadata** — Issue, recipe, step position, timestamp, status
+- **Metadata** — Issue, play, step position, timestamp, status
 - **Task list** — What was planned, what's done, what remains
 - **Completed outputs** — Agent results from prior steps
 - **Inputs needed to continue** — What's required to resume
 
-Recipes define additional fields specific to their domain on top of this base schema.
+Plays define additional fields specific to their domain on top of this base schema.
 
 ### 6. Checkpoint Resumption
 
@@ -148,14 +148,14 @@ A `/resume` skill provides the resumption interface:
 
 - **Input:** Issue ID (required)
 - **Behavior:**
-  1. Scans `.meridian/{issue}/checkpoint/` for all recipe checkpoints
+  1. Scans `.meridian/{issue}/checkpoint/` for all play checkpoints
   2. Identifies the most recent pending checkpoint
   3. If multiple pending checkpoints exist, presents a list for user selection
-  4. Loads the checkpoint context and re-enters the recipe at the recorded step
+  4. Loads the checkpoint context and re-enters the play at the recorded step
 
 **Design properties:**
 - User only needs to know the issue ID — `/resume 37`
-- No dependency on remembering which recipe or step
+- No dependency on remembering which play or step
 - Enables cross-session continuity (start in one session, resume in another)
 - Enables async review (checkpoint created → user reviews offline → resumes later)
 
@@ -183,20 +183,20 @@ Checkpoint artifacts **persist forever**. They are version controlled and commit
 
 ### Positive
 
-- **Full traceability** — Path alone tells you: which issue, which recipe, when
+- **Full traceability** — Path alone tells you: which issue, which play, when
 - **NWWI enforced** — Structure requires issue context; commit-code is the hard gate
-- **Resumable workflows** — Mandatory schema captures enough state to resume recipes
+- **Resumable workflows** — Mandatory schema captures enough state to resume plays
 - **Cross-session/cross-tool** — Plain markdown enables async review and tool handoff
-- **Token management** — Long-running recipes can checkpoint and release context
+- **Token management** — Long-running plays can checkpoint and release context
 - **Clean audit trail** — One directory per issue with complete lifecycle history
 - **Consistent with ADR 002** — Restores the issue-centric STM that ADR 002 specified but was never implemented
 
 ### Negative
 
 - **Ceremony for ad-hoc work** — Quick fixes require eventual issue creation before commit. Mitigation: enforcement is at commit time, not at work start. Exact ad-hoc flow is deferred for real-world validation.
-- **Migration required** — Existing timestamp-based checkpoints must be deprecated. All recipes need updating.
-- **Checkpoint schema overhead** — Every checkpoint must include mandatory fields even for simple recipes. Mitigation: schema is minimal; recipes add specifics only as needed.
-- **`_pending/` complexity** — Two-phase write adds a temporary directory and migration logic. Mitigation: only applies to `start-feature`; other recipes have issue context upfront.
+- **Migration required** — Existing timestamp-based checkpoints must be deprecated. All plays need updating.
+- **Checkpoint schema overhead** — Every checkpoint must include mandatory fields even for simple plays. Mitigation: schema is minimal; plays add specifics only as needed.
+- **`_pending/` complexity** — Two-phase write adds a temporary directory and migration logic. Mitigation: only applies to `start-feature`; other plays have issue context upfront.
 
 ### Supersedes
 
@@ -204,11 +204,11 @@ This ADR **supersedes the checkpoint location model** in ADR 002. Specifically:
 
 - ADR 002's artifact locations (`.meridian/{issue}/docs/` and `/evidence/`) remain unchanged
 - ADR 002's checkpoint model (artifact + checkpoint) remains unchanged
-- The checkpoint **storage path** changes from `.meridian/project/checkpoints/{recipe}/{timestamp}.md` to `.meridian/{issue}/checkpoint/{recipe}/{timestamp}.md`
+- The checkpoint **storage path** changes from `.meridian/project/checkpoints/{play}/{timestamp}.md` to `.meridian/{issue}/checkpoint/{play}/{timestamp}.md`
 - A new **mandatory checkpoint schema** is introduced
 - A new `/resume` skill is introduced
 
-ADR 002's core principle — every L1 produces an artifact and stops at a checkpoint — is preserved and strengthened.
+ADR 002's core principle — every play produces an artifact and stops at a checkpoint — is preserved and strengthened.
 
 ## Open Items (Deferred)
 
@@ -218,7 +218,7 @@ These items are acknowledged but intentionally deferred for real-world validatio
 |------|-------------------|
 | Ad-hoc work flow details | Needs to be seen in action before designing |
 | `/resume` skill implementation | Checkpoint schema must stabilize first |
-| Guardian integration with new checkpoints | Depends on L2 recipe development |
+| Guardian integration with new checkpoints | Depends on play development |
 | Checkpoint cleanup policy | Retention is "persist forever" for now; revisit if storage becomes a concern |
 
 ## Related ADRs
@@ -229,4 +229,4 @@ These items are acknowledged but intentionally deferred for real-world validatio
 
 ## References
 
-- GitHub Issue: [#7 — feat(stm): issue-centric artifact structure with checkpoint-based recipe resumption](https://github.com/kapilvirenahuja/meridian/issues/7)
+- GitHub Issue: [#7 — feat(stm): issue-centric artifact structure with checkpoint-based play resumption](https://github.com/kapilvirenahuja/meridian/issues/7)

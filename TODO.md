@@ -1,26 +1,26 @@
 # Meridian OS — Defects
 
-## DEF-001: Hardcoded paths in recipe pre-flight sections
+## DEF-001: Hardcoded paths in play pre-flight sections
 
 **Severity:** High
-**Affected recipes:** `implement-epic`, `prepare-implementation`, `start-feature`, `commit-code`
+**Affected plays:** `implement-epic`, `prepare-implementation`, `start-feature`, `commit-code`
 **Reported from:** Phoenix project (first external consumer)
 **Date:** 2026-04-10
 
 ### Problem
 
-Multiple recipes hardcode `.meridian/` directory paths in their pre-flight bash snippets instead of reading them from the project's `.meridian/core/config.yaml`. This breaks when a project's directory structure doesn't match the hardcoded assumptions.
+Multiple plays hardcode `.meridian/` directory paths in their pre-flight bash snippets instead of reading them from the project's `.meridian/core/config.yaml`. This breaks when a project's directory structure doesn't match the hardcoded assumptions.
 
 ### Specific issues
 
 **1. Config path resolution**
-- Recipes reference `core/config.yaml` but the actual location is `.meridian/core/config.yaml`
-- No recipe reads a `product.base-path` from config — `product_base` is hardcoded
+- Plays reference `core/config.yaml` but the actual location is `.meridian/core/config.yaml`
+- No play reads a `product.base-path` from config — `product_base` is hardcoded
 
 **2. Product base path hardcoded**
 - `implement-epic` hardcodes `product_base=".meridian/product"`
 - Actual Phoenix layout: `.meridian/project/product/phoenix`
-- The recipe should read `product.base-path` from `.meridian/core/config.yaml`
+- The play should read `product.base-path` from `.meridian/core/config.yaml`
 
 **3. Subdirectory assumptions**
 - `implement-epic` expects `{product_base}/architecture/architecture.yaml` and `{product_base}/roadmap/epics/{id}/`
@@ -31,7 +31,7 @@ Multiple recipes hardcode `.meridian/` directory paths in their pre-flight bash 
 
 ### Expected behavior
 
-All recipes should:
+All plays should:
 1. Resolve config from `.meridian/core/config.yaml` (project-local)
 2. Read `product.base-path` from config instead of hardcoding
 3. Read `stm.base-path` from config (already done, but via wrong config path)
@@ -46,7 +46,7 @@ All recipes should:
 ## DEF-002: `prepare-implementation` generates scope items without cross-epic data contracts
 
 **Severity:** Critical
-**Affected recipe:** `prepare-implementation` (Step 13 — tech-designer drafts plan.yaml)
+**Affected play:** `prepare-implementation` (Step 13 — tech-designer drafts plan.yaml)
 **Reported from:** Phoenix project — E1→E2 integration gap
 **Date:** 2026-04-11
 
@@ -78,7 +78,7 @@ Any cross-epic data handoff will silently fail. The implementation will pass all
 ## DEF-003: `implement-epic` eval generator has no cross-epic integration evals
 
 **Severity:** Critical
-**Affected recipe:** `implement-epic` (Step 4 — eval-generator)
+**Affected play:** `implement-epic` (Step 4 — eval-generator)
 **Reported from:** Phoenix project — E2 evals missed loader→executor handoff
 **Date:** 2026-04-11
 
@@ -104,7 +104,7 @@ The eval generator should receive one additional input: **prior epic's exit gate
 
 ### Impact
 
-Every cross-epic boundary will lack eval coverage. The judge will report 100% pass while critical integration paths are untested. This is the highest-risk gap in the recipe system — the first place where "all evals pass but the system doesn't work" can occur.
+Every cross-epic boundary will lack eval coverage. The judge will report 100% pass while critical integration paths are untested. This is the highest-risk gap in the play system — the first place where "all evals pass but the system doesn't work" can occur.
 
 ---
 

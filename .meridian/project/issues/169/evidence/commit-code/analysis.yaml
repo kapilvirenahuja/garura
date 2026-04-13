@@ -84,24 +84,24 @@ groups:
     issue: 169
     issue_title: "Client-side brief rendering"
     type: refactor
-    scope: recipes
-    subject: "update recipes and intents for client-side brief rendering (#169)"
+    scope: plays
+    subject: "update plays and intents for client-side brief rendering (#169)"
     confidence: high
     files:
-      # Recipes and intents updated to reference client-side rendering throughout
-      - path: "core/components/recipes/briefs/SKILL.md"
+      # Plays and intents updated to reference client-side rendering throughout
+      - path: "core/components/plays/briefs/SKILL.md"
         change: "updated description and step 3 to use direct YAML→JSON conversion and static template copy instead of doc-builder agent; added constraints C10, C11 to intent references"
-      - path: "core/components/recipes/briefs/reference/intent.yaml"
+      - path: "core/components/plays/briefs/reference/intent.yaml"
         change: "constraint C3 rewritten for client-side rendering; added C10 (YAML→HTML section mapping) and C11 (isomorphic JSON representation); updated C8 Phoenix design system rule"
-      - path: "core/components/recipes/discover-product/SKILL.md"
+      - path: "core/components/plays/discover-product/SKILL.md"
         change: "updated step 4 brief production to reference brief-render.js + static product-brief.html template instead of generate-product-brief skill; updated eval SE-20 with canonical LTM profile path validation"
-      - path: "core/components/recipes/plan-roadmap/SKILL.md"
+      - path: "core/components/plays/plan-roadmap/SKILL.md"
         change: "updated step 4 brief production to reference brief-render.js + roadmap-brief.html template; updated evals SE-11, SE-10 for Phoenix sidebar layout and verbatim transcription verification"
-      - path: "core/components/recipes/plan-roadmap/evals/evals.json"
+      - path: "core/components/plays/plan-roadmap/evals/evals.json"
         change: "fixed E-ID/F-ID eval assertion names and descriptions; updated expected_output for roadmap.yaml to include approved_brief_ref, open_questions, and E-IDs"
-      - path: "core/components/recipes/plan-roadmap/reference/intent.yaml"
+      - path: "core/components/plays/plan-roadmap/reference/intent.yaml"
         change: "C2 updated to Phoenix sidebar+chapters layout; C9 updated to require verbatim transcription of thesis, narrative, timeline, exclusions, and assumptions; C10 updated for Tether/Vanish/Orbit review actions"
-      - path: "core/components/recipes/prepare-implementation/SKILL.md"
+      - path: "core/components/plays/prepare-implementation/SKILL.md"
         change: "updated three step descriptions (steps 7, 9, 12/13) to reference brief-render.js + static templates instead of generate-implementation-brief skill"
 
   - id: group-5
@@ -117,18 +117,18 @@ groups:
         change: "updated start-feature pending args (issue number and branch name)"
       # New status tracking files for issue 169
       - path: ".meridian/project/issues/169/evidence/commit-code/"
-        change: "new evidence directory for commit-code recipe (includes this analysis.yaml and issue-mappings.yaml)"
+        change: "new evidence directory for commit-code play (includes this analysis.yaml and issue-mappings.yaml)"
       - path: ".meridian/project/issues/169/status/commit-code.json"
-        change: "new recipe status tracking file for commit-code execution"
+        change: "new play status tracking file for commit-code execution"
       - path: ".meridian/project/issues/169/status/ship.json"
-        change: "new recipe status tracking file for ship execution"
+        change: "new play status tracking file for ship execution"
       # New pending operational evidence
       - path: ".meridian/project/issues/_pending/start-feature/changed-files.txt"
         change: "new pending start-feature changed-files snapshot"
-      - path: ".meridian/project/issues/_pending/evidence/create-recipe/discover-product/"
-        change: "new evidence directory for discover-product recipe review (review-report.md)"
-      - path: ".meridian/project/issues/_pending/evidence/create-recipe/plan-roadmap/"
-        change: "new evidence directory for plan-roadmap recipe review (review-report.md)"
+      - path: ".meridian/project/issues/_pending/evidence/create-play/discover-product/"
+        change: "new evidence directory for discover-product play review (review-report.md)"
+      - path: ".meridian/project/issues/_pending/evidence/create-play/plan-roadmap/"
+        change: "new evidence directory for plan-roadmap play review (review-report.md)"
       - path: ".meridian/project/issues/_pending/evidence/merge-pr/"
         change: "new evidence file for prior merge-pr execution (20260325-000000.md)"
       # Issue 167 STM evidence — written during prior session
@@ -146,7 +146,7 @@ recommendation:
   reason: >
     All changes are on feat/169-client-side-brief-rendering, a single-issue feature
     branch. All five groups map with high confidence to issue #169. Groups 1–4 cover
-    the feature implementation (templates, removed skills, updated agents/recipes);
+    the feature implementation (templates, removed skills, updated agents/plays);
     group 5 covers STM/operational artifacts. No sensitive files, no breaking changes
     (pure framework refactor with no runtime code), no hotfix branch pattern.
     Approval is not required per C9 — all issue mappings are high confidence.

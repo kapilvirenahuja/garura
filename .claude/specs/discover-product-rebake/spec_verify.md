@@ -122,7 +122,7 @@ Each scenario is independently testable with clear pass/fail criteria.
 
 ---
 
-## V7: Rebaked recipe has conditional opportunity discovery gate
+## V7: Rebaked play has conditional opportunity discovery gate
 
 **What:** After rebake, the compiled SKILL.md includes a conditional gate before Step 1.
 
@@ -145,9 +145,9 @@ Each scenario is independently testable with clear pass/fail criteria.
 
 ## V8: Generated evals cover all new intent items
 
-**What:** The rebaked recipe's evals cover C12, C13, F8, F10, S4.
+**What:** The rebaked play's evals cover C12, C13, F8, F10, S4.
 
-**Setup:** Read the evals from the rebaked recipe or the evals.yaml generated during rebake.
+**Setup:** Read the evals from the rebaked play or the evals.yaml generated during rebake.
 
 **Pass criteria:**
 - C12 has at least one eval (artifact-verifiable or structural classification)

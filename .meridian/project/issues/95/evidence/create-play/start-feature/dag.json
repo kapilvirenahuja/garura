@@ -1,0 +1,140 @@
+{
+  "intent_hash": "a3f8c2e1d74b906f5a2c3e8d1f074b9a6c2e3f8d1074b9a6c2e3f8d1074b9a6",
+  "stm_base": ".meridian/project/issues/",
+  "stm_paths": {
+    "dag": ".meridian/project/issues/95/dag/start-feature.json"
+  },
+  "notes": [
+    "Stage 2 has one play-owned infrastructure task (git-status) that must precede the project-orchestrator task — both are within Stage 2 per direct-generation workflow.",
+    "C9 (no direct domain work in play) means git status check is the only play-inline operation in Stage 2; all issue resolution and branch operations delegate to agents.",
+    "Stage 5 STM init task is play-owned infrastructure; C8 requires STM directory guaranteed at {stm_base}/{issue}/ before play exits."
+  ],
+  "tasks": [
+    {
+      "id": "preflight-0",
+      "stage": 0,
+      "subject": "Workflow pre-flight",
+      "description": "Resolve stm_base from core/config.yaml (stm.base-path = .meridian/project/issues/). Verify the working directory is a git repository. Verify platform config (github.repo) is present in core/config.yaml. Hold stm_base for all downstream agent contracts. No agent calls — pure infrastructure.",
+      "owner": "play",
+      "blockedBy": [],
+      "blocks": ["intent-1"]
+    },
+    {
+      "id": "intent-1",
+      "stage": 1,
+      "subject": "Load or resolve task DAG",
+      "description": "Check STM cache at {stm_base}/95/dag/start-feature.json. If present and intent_hash matches sha256 of intent.yaml, skip re-resolution and load cached DAG. If stale or absent, resolve DAG using this intent.yaml, direct-generation.yaml workflow, and available agents. Pass config_path so resolved stm_base is embedded in the DAG.",
+      "owner": "intent-resolver",
+      "blockedBy": ["preflight-0"],
+      "blocks": ["readiness-git-status"]
+    },
+    {
+      "id": "readiness-git-status",
+      "stage": 2,
+      "subject": "Get changed files from working tree",
+      "description": "Run git status --porcelain to capture the current set of uncommitted changes. Record the output as the changed-files artifact to pass into the issue resolution task. This is the sole play-inline operation in Stage 2 — no domain logic, only state capture. Behavioral constraint (C2): do not stash, discard, or reset any changes at this step.",
+      "owner": "play",
+      "blockedBy": ["intent-1"],
+      "blocks": ["readiness-resolve-issue"]
+    },
+    {
+      "id": "readiness-resolve-issue",
+      "stage": 2,
+      "subject": "Resolve or create GitHub issue",
+      "description": "Invoke project-orchestrator with the changed-files artifact and any play arguments (issue number or title string). The agent uses resolve-issues skill to find a matching open issue, and manage-issue skill to create a new one if no match exists. Behavioral constraints embedded: (C1) single assessment-and-act flow, no mode flags; (C4) only open issues are eligible — if best candidate is closed, halt and obtain user confirmation before reopening; (C5) if multiple candidates exist with no clear winner, surface them for user selection; (C6) confidence-gated inference — low-confidence halts rather than acts on weak signal; (C10) if creating a new issue, body must contain ~40-word summary derived from changed files. Output: resolved issue number and title written to STM at {stm_base}/{issue}/.",
+      "owner": "project-orchestrator",
+      "blockedBy": ["readiness-git-status"],
+      "blocks": ["readiness-issue-eval"]
+    },
+    {
+      "id": "readiness-issue-eval",
+      "stage": 2,
+      "subject": "Evaluate issue resolution against failure conditions",
+      "description": "Validate the output of readiness-resolve-issue against failure conditions: F1 — confirm a GitHub issue is associated with the work (not null, not missing); F5 — confirm inference was high-confidence if changed-files were the signal (no low-confidence branch produced without halt); F6 — confirm no new issue was created when an existing open issue already matched; F7 — confirm no match or creation against a closed issue without user confirmation; F8 — confirm that if multiple candidates existed, user was asked to pick before proceeding. If any condition fails, halt the play and surface the specific failure condition ID.",
+      "owner": "play",
+      "blockedBy": ["readiness-resolve-issue"],
+      "blocks": ["gen-branch"]
+    },
+    {
+      "id": "gen-branch",
+      "stage": 5,
+      "subject": "Create or switch to feature branch",
+      "description": "Invoke repo-orchestrator with the resolved issue number and title from STM. The agent uses setup-branch skill to create or switch to a branch following naming convention {type}/{issue_number}-{slug} where type, issue number, and slug derive from the issue (C7). If the target branch already exists, switch to it without error or confirmation (C3). Uncommitted changes must be carried forward through branch creation or switch — never lost (C2). Output: branch name written to STM at {stm_base}/{issue}/.",
+      "owner": "repo-orchestrator",
+      "blockedBy": ["readiness-issue-eval"],
+      "blocks": ["gen-stm-init"]
+    },
+    {
+      "id": "gen-stm-init",
+      "stage": 5,
+      "subject": "Initialize STM directory for issue",
+      "description": "Play verifies that {stm_base}/{issue}/ exists. If absent, create the directory structure. This satisfies C8: the STM directory MUST exist at {stm_base}/{issue}/ when the play completes. No agent delegation — pure filesystem initialization. Record the stm_path in the generation output.",
+      "owner": "play",
+      "blockedBy": ["gen-branch"],
+      "blocks": ["gen-branch-stm-eval"]
+    },
+    {
+      "id": "gen-branch-stm-eval",
+      "stage": 5,
+      "subject": "Evaluate branch and STM against failure conditions",
+      "description": "Validate generation outputs against failure conditions: F2 — confirm checked-out branch follows {type}/{issue_number}-{slug} convention (regex match required); F3 — confirm STM directory exists at {stm_base}/{issue}/ (directory present check); F4 — confirm uncommitted changes present before play ran are still present in working tree (diff pre/post state — if changes were lost, halt and flag). If any condition fails, halt the play and surface the specific failure condition ID.",
+      "owner": "play",
+      "blockedBy": ["gen-stm-init"],
+      "blocks": ["scenario-s1", "scenario-s2", "scenario-s3", "scenario-s4", "scenario-s5"]
+    },
+    {
+      "id": "scenario-s1",
+      "stage": 6,
+      "subject": "Scenario S1: uncommitted changes with no arguments",
+      "description": "Evaluate scenario S1 — persona: Developer. Given: repository with uncommitted changes and no play arguments. Pass criteria: (1) a GitHub issue is tracked and open; (2) the feature branch is checked out and named per convention; (3) all uncommitted changes present before the play ran are still in the working tree; (4) STM directory exists at {stm_base}/{issue}/. Fail if any of the four criteria are not met.",
+      "owner": "play",
+      "blockedBy": ["gen-branch-stm-eval"],
+      "blocks": ["evidence-7"]
+    },
+    {
+      "id": "scenario-s2",
+      "stage": 6,
+      "subject": "Scenario S2: specific issue number as argument",
+      "description": "Evaluate scenario S2 — persona: Developer. Given: specific issue number provided as argument. Pass criteria: (1) that exact issue is tracked — no alternative issue was matched or created; (2) branch is checked out following naming convention derived from that issue number; (3) STM directory initialized at {stm_base}/{issue}/; (4) any uncommitted changes are preserved. Fail if any criteria are unmet or a different issue was used.",
+      "owner": "play",
+      "blockedBy": ["gen-branch-stm-eval"],
+      "blocks": ["evidence-7"]
+    },
+    {
+      "id": "scenario-s3",
+      "stage": 6,
+      "subject": "Scenario S3: descriptive title string as argument",
+      "description": "Evaluate scenario S3 — persona: Developer. Given: a descriptive title string provided as argument. Pass criteria: (1) a new GitHub issue was created matching that title and is visible on GitHub; (2) issue body contains a ~40-word summary; (3) branch is checked out named per convention from the new issue; (4) STM directory initialized. Fail if an existing issue was reused incorrectly, if issue body is missing the summary, or if branch is absent.",
+      "owner": "play",
+      "blockedBy": ["gen-branch-stm-eval"],
+      "blocks": ["evidence-7"]
+    },
+    {
+      "id": "scenario-s4",
+      "stage": 6,
+      "subject": "Scenario S4: target branch already exists",
+      "description": "Evaluate scenario S4 — persona: Developer. Given: target feature branch already exists from prior work. Pass criteria: (1) existing branch is switched to — no duplicate branch created; (2) uncommitted changes preserved in working tree; (3) STM directory confirmed present (not re-initialized from scratch if already exists); (4) no error or confirmation dialog was triggered for the existing branch. Fail if a duplicate branch was created or changes were lost.",
+      "owner": "play",
+      "blockedBy": ["gen-branch-stm-eval"],
+      "blocks": ["evidence-7"]
+    },
+    {
+      "id": "scenario-s5",
+      "stage": 6,
+      "subject": "Scenario S5: GitHub issues list audit by team lead",
+      "description": "Evaluate scenario S5 — persona: Team Lead. Given: GitHub issues list after developer ran the play. Pass criteria: (1) every piece of active work has a corresponding open issue; (2) each issue has a clear title and non-empty body with a summary of the work; (3) each issue is traceable to a feature branch via naming convention {type}/{issue_number}-{slug}. Fail if any active branch has no linked open issue, or if any issue body is empty.",
+      "owner": "play",
+      "blockedBy": ["gen-branch-stm-eval"],
+      "blocks": ["evidence-7"]
+    },
+    {
+      "id": "evidence-7",
+      "stage": 7,
+      "subject": "Write evidence and close",
+      "description": "Write evidence artifact to STM at {stm_base}/{issue}/evidence/start-feature/{YYYYMMDD-HHMMSS}.md. Evidence must include: resolved issue number and title, branch name, STM directory path, scenario validation results for S1–S5 (pass/fail per criterion), and any failure conditions encountered and how they were resolved. All paths in the evidence file use stm_base resolved from core/config.yaml — no hardcoded paths. Play exits after evidence is written.",
+      "owner": "play",
+      "blockedBy": ["scenario-s1", "scenario-s2", "scenario-s3", "scenario-s4", "scenario-s5"],
+      "blocks": []
+    }
+  ]
+}

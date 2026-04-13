@@ -9,7 +9,7 @@
 
 ## Intent
 
-Ensure P1 (start-feature), P4 (start-feature-planning), and P11 (commit-code) recipes all have consistent, mandatory workflow phases with explicit pre-flight, checkpoint, execution, and report steps — matching the commit-code reference pattern (G-300).
+Ensure P1 (start-feature), P4 (start-feature-planning), and P11 (commit-code) plays all have consistent, mandatory workflow phases with explicit pre-flight, checkpoint, execution, and report steps — matching the commit-code reference pattern (G-300).
 
 ---
 
@@ -19,9 +19,9 @@ Ensure P1 (start-feature), P4 (start-feature-planning), and P11 (commit-code) re
 
 | Phase | Step | Key Elements |
 |-------|------|--------------|
-| **Pre-flight** | Step 0 | Delegate to repo-orchestrator with recipe context code block + expected output YAML; forward PASS/FAIL results to all subsequent steps |
+| **Pre-flight** | Step 0 | Delegate to repo-orchestrator with play context code block + expected output YAML; forward PASS/FAIL results to all subsequent steps |
 | **Checkpoint** | Step 3 | Write artifact BEFORE approval (Status: PENDING_APPROVAL) → Tether/Vanish → update Status |
-| **Execution** | Step 4 | Per-action invocations with recipe context + expected output YAML; failure path with recovery |
+| **Execution** | Step 4 | Per-action invocations with play context + expected output YAML; failure path with recovery |
 | **Report** | Step 5 | Update checkpoint artifact + write evidence + final report template |
 
 ---
@@ -53,7 +53,7 @@ Evaluate pre-flight constraints before invoking any agent:
 **C2** (orchestrator evaluates directly): ...
 **C1** (requires git state — invoke `repo-orchestrator`): ...
 
-Provide recipe context:
+Provide play context:
 [code block with task]
 
 Expected output:
@@ -75,7 +75,7 @@ Pass pre-flight results to all subsequent agent invocations:
 
 **After:**
 ```
-[Recipe context code block with pre_flight results included]
+[Play context code block with pre_flight results included]
 
 Expected output (both modes):
 [YAML with success, branch, status, error fields]
@@ -207,7 +207,7 @@ Invoke `repo-orchestrator` with task: "Create and push branch `{type}/{issue_num
 ```
 Invoke `repo-orchestrator`:
 
-[Recipe context code block with pre_flight results included]
+[Play context code block with pre_flight results included]
 
 Expected output:
 [YAML with success, branch, status, error fields]
@@ -250,9 +250,9 @@ Present final report to user using `templates/feature-started.md`.
 
 ## P1, P4, P11 — Workflow Phases Comparison
 
-All three recipes now follow the same four-phase pattern:
+All three plays now follow the same four-phase pattern:
 
-| Recipe | Phase | Step | Checkpoint | Recipe Context | Expected Output | Failure Path | Evidence |
+| Play | Phase | Step | Checkpoint | Play Context | Expected Output | Failure Path | Evidence |
 |--------|-------|------|------------|-----------------|-----------------|--------------|----------|
 | **P1** | Pre-flight | 0 | — | ✅ Code block | ✅ YAML | ✅ (Step 0) | — |
 | **P1** | Checkpoint | 2 | ✅ Tether/Vanish | — | — | — | ✅ Artifact updated in Step 4 |
@@ -284,15 +284,15 @@ All three recipes now follow the same four-phase pattern:
 - [x] P4: Checkpoint artifact updated in Report step
 - [x] P4: Failure path for incomplete Plan sub-agent output documented
 - [x] P11 (commit-code): Reference pattern — no changes needed
-- [x] All three recipes now follow consistent four-phase workflow: pre-flight → checkpoint → execution → report
-- [x] All three recipes deployed to `~/.claude/skills/` (global mode)
+- [x] All three plays now follow consistent four-phase workflow: pre-flight → checkpoint → execution → report
+- [x] All three plays deployed to `~/.claude/skills/` (global mode)
 
 ---
 
 ## Files Updated
 
-- `/Users/kapilahuja/cto/builder/phoenix-os/core/components/recipes/start-feature/SKILL.md`
-- `/Users/kapilahuja/cto/builder/phoenix-os/core/components/recipes/start-feature-planning/SKILL.md`
+- `/Users/kapilahuja/cto/builder/phoenix-os/core/components/plays/start-feature/SKILL.md`
+- `/Users/kapilahuja/cto/builder/phoenix-os/core/components/plays/start-feature-planning/SKILL.md`
 
 ## Files Deployed
 

@@ -68,7 +68,7 @@ You produce specifications and analysis, not running tests. You answer "what mus
 
 ## Intent Recognition
 
-When you receive a JSON contract from the recipe orchestrator:
+When you receive a JSON contract from the play orchestrator:
 
 1. **Read intent.yaml** at `intent_path` from the contract. Understand the goal, constraints, failure conditions, and scenarios.
 2. **Identify your task.** Look at `task_id` in the contract to determine which phase of work is being requested. The `stm.input` paths tell you what's already been collected.
@@ -111,7 +111,7 @@ When you receive a prompt without a JSON contract (direct invocation), identify:
 1. **Task**: Is this test surface mapping, blast radius computation, baseline spec, or scenario authoring?
 2. **Scope**: What is the change surface being analyzed against?
 3. **Inputs**: What artifacts are already available? (dependency graph, change surface, test surface)
-4. **Constraints**: What boundaries from recipe context must shape this analysis?
+4. **Constraints**: What boundaries from play context must shape this analysis?
 
 ### Intent → Task Mapping
 
@@ -292,11 +292,11 @@ feature_gates:
 
 **Greenfield note:** When `test-surface.yaml` is empty (no existing tests) and the change surface contains only CREATE actions, skip Tier 1 (baseline) and Tier 3 (regression). Produce only Tier 2 new scenarios.
 
-## Recipe Context
+## Play Context
 
-When invoked by a recipe, you receive intent context in the prompt:
+When invoked by a play, you receive intent context in the prompt:
 
-- **Intent**: The recipe's goal — the WHY behind this testing analysis
+- **Intent**: The play's goal — the WHY behind this testing analysis
 - **Constraints**: Guardrails that MUST be validated before analysis begins
 - **Retry context**: If this is a retry, what failed and what was fixed
 
@@ -318,7 +318,7 @@ Constraints most relevant to this agent:
 If ANY constraint would be violated:
 1. Do NOT begin the analysis
 2. Return a structured failure per `structured-failure-protocol.md` with `constraint_violated` populated
-3. The recipe will decide how to handle (retry, escalate, or halt)
+3. The play will decide how to handle (retry, escalate, or halt)
 
 ## Context Loading
 
@@ -329,7 +329,7 @@ Context loading is targeted and evidence-based. Never bulk-load files — read w
 Read `core/config.yaml` to understand:
 - STM base path for evidence artifacts
 - Project structure and component paths
-- **Recipe constraints** — extract and validate before starting any analysis
+- **Play constraints** — extract and validate before starting any analysis
 
 ### Step 2: Identify Testing Domain
 
@@ -477,7 +477,7 @@ Load framework protocols from `docs/framework/` when referenced:
 
 ### Intent Awareness
 
-Recipe context (intent, constraints, retry) is validated in the Recipe Context section before analysis begins. When constructing failure reports, include the original intent and any constraint that was violated.
+Play context (intent, constraints, retry) is validated in the Play Context section before analysis begins. When constructing failure reports, include the original intent and any constraint that was violated.
 
 ### Self-Recovery (Moderate)
 
@@ -503,7 +503,7 @@ failure:
     responsible_domain: "{domain}"
     suggested_agent: "{agent, if known}"
   context:
-    intent_received: "{from recipe context}"
+    intent_received: "{from play context}"
     self_recovery_attempted: true|false
     self_recovery_details: "{alternate approaches tried}"
   suggested_fix: "{recommendation}"
@@ -519,4 +519,4 @@ failure:
 | Test framework not detectable — no config files found | Cannot map test surface without knowing the framework | `design` → `tech-architect` for architecture inference |
 | Coverage gaps exist but production file unreadable | Cannot specify baseline tests without reading the code | report with gap and unreadable file path |
 
-Do NOT return raw errors. Always return structured failures so the recipe can route the fix.
+Do NOT return raw errors. Always return structured failures so the play can route the fix.

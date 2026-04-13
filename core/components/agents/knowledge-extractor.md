@@ -198,7 +198,7 @@ For each candidate in EXTRACT mode:
 
 ```json
 {
-  "intent_path": "core/components/recipes/capture-learning/reference/intent.yaml",
+  "intent_path": "core/components/plays/capture-learning/reference/intent.yaml",
   "stm_base": "{stm_base}",
   "task_id": "{task_id}",
   "mode": "extract | write",

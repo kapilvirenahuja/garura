@@ -1,4 +1,4 @@
-# SPEC: #152 — Context-isolated validation for product recipes
+# SPEC: #152 — Context-isolated validation for product plays
 
 **Intent:** Replace self-validation with context-isolated judge evaluation
 **Constraints:** Must not break existing checkpoint flows, must preserve pre-lock resolution gate
@@ -8,9 +8,9 @@
 
 ### Summary
 
-Three product recipes (discover-product, plan-roadmap, prepare-architecture) lack independent validation. The most critical problem is discover-product where `product-strategist` both drafts AND validates the artifact — the definition of self-validation. The other two recipes have no validation agent at all, relying only on inline orchestrator scenario evals after the fact.
+Three product plays (discover-product, plan-roadmap, prepare-architecture) lack independent validation. The most critical problem is discover-product where `product-strategist` both drafts AND validates the artifact — the definition of self-validation. The other two plays have no validation agent at all, relying only on inline orchestrator scenario evals after the fact.
 
-The `implement-epic` recipe demonstrates the correct pattern: the judge agent receives only the artifact to evaluate (encrypted evals + key) and none of the builder's context. Applying this model to product recipes means routing the validation step through the judge instead of the drafter, passing only the artifact path with no drafting reasoning or intermediate outputs.
+The `implement-epic` play demonstrates the correct pattern: the judge agent receives only the artifact to evaluate (encrypted evals + key) and none of the builder's context. Applying this model to product plays means routing the validation step through the judge instead of the drafter, passing only the artifact path with no drafting reasoning or intermediate outputs.
 
 The judge agent has no Skill tool today. To invoke existing validation skills (`validate-product-vision`) and new ones (to be created), it needs the Skill tool added. Two new validation skills are required: `validate-roadmap` and `validate-architecture-design`. These follow the exact same pattern as the existing `validate-product-vision` and `validate-implementation-design` skills (model-invocable, Read-only, structured output).
 
@@ -18,7 +18,7 @@ The judge agent has no Skill tool today. To invoke existing validation skills (`
 
 ### Self-Validation Audit
 
-| Recipe | Drafter | Validator | Same Agent? | Validation Skill | Human Review Before? | Pre-Lock Gate After? |
+| Play | Drafter | Validator | Same Agent? | Validation Skill | Human Review Before? | Pre-Lock Gate After? |
 |--------|---------|-----------|-------------|-----------------|---------------------|---------------------|
 | discover-product | product-strategist (Step 3) | product-strategist (Step 6) | **YES — self-validation** | `validate-product-vision` | YES — Step 5 (brief review) | YES — Step 7 (resolution interview) |
 | plan-roadmap | product-strategist (Steps 2, 4, 6) | None — orchestrator runs SCEs inline | N/A (no validation agent) | None — step evals in orchestrator | YES — Step 5 (brief review) | YES — Step 5b (feasibility gate) |
@@ -110,9 +110,9 @@ The judge also needs the **Skill tool** added to its tools list to invoke these 
 | File | Role | Change Needed |
 |------|------|---------------|
 | `core/components/agents/judge.md` | Judge agent definition | Add `Skill` tool; extend identity to include artifact validation mode; add new input contract variants for product/roadmap/architecture; document context isolation rule (receive only artifact path, no drafting context) |
-| `core/components/recipes/discover-product/SKILL.md` | Recipe orchestration | Step 6: change agent from `product-strategist` to `judge`; update agent_boundaries table; pass only `product_yaml_path` — no drafting context in contract |
-| `core/components/recipes/plan-roadmap/SKILL.md` | Recipe orchestration | Add Step 6.5 (judge validation) between `produce-roadmap` (Step 6) and `scenario-evals` (Step 7); update status file schema; update agent_boundaries table |
-| `core/components/recipes/prepare-architecture/SKILL.md` | Recipe orchestration | Add Step 6c (judge validation) between `pre-lock-resolution` (Step 6b) and `lock` (Step 7); update status file schema; update agent_boundaries table |
+| `core/components/plays/discover-product/SKILL.md` | Play orchestration | Step 6: change agent from `product-strategist` to `judge`; update agent_boundaries table; pass only `product_yaml_path` — no drafting context in contract |
+| `core/components/plays/plan-roadmap/SKILL.md` | Play orchestration | Add Step 6.5 (judge validation) between `produce-roadmap` (Step 6) and `scenario-evals` (Step 7); update status file schema; update agent_boundaries table |
+| `core/components/plays/prepare-architecture/SKILL.md` | Play orchestration | Add Step 6c (judge validation) between `pre-lock-resolution` (Step 6b) and `lock` (Step 7); update status file schema; update agent_boundaries table |
 | `core/components/skills/validate-roadmap/SKILL.md` | NEW validation skill | Validate roadmap.yaml structural completeness: thesis, narrative, timeline horizons, feasibility entries, approved_brief_ref, critical_blockers/open_questions arrays; mirrors pattern of `validate-product-vision` |
 | `core/components/skills/validate-architecture-design/SKILL.md` | NEW validation skill | Validate architecture.yaml + quality-standards.yaml: stack specificity, NFR traceability, QP dimension coverage, debt_baseline initialization, agentic PCAM if applicable; mirrors pattern of `validate-implementation-design` |
 
@@ -120,11 +120,11 @@ The judge also needs the **Skill tool** added to its tools list to invoke these 
 
 ### Technical Approach
 
-**Strategy:** Add Skill tool to judge, create two missing validation skills, route validation steps in all three recipes through the judge — passing only artifact paths, never drafting context.
+**Strategy:** Add Skill tool to judge, create two missing validation skills, route validation steps in all three plays through the judge — passing only artifact paths, never drafting context.
 
 The key design constraint is: **the judge's input contract for product validation must contain only the artifact path(s), not the agent's intermediate reasoning, market context, or drafting notes.** The orchestrator is responsible for this filtering.
 
-#### Per-recipe changes
+#### Per-play changes
 
 **discover-product — Step 6:**
 ```
@@ -210,6 +210,6 @@ Place judge validation after drafting but before brief generation, so judge find
 |------|----------|-----------|
 | Judge scope creep — adding Skill tool may blur its identity as a pure implementation evaluator | Medium | Scope judge's validation mode strictly: in product artifact validation, it receives only artifact paths + validation skill name. Document this as a distinct operating mode in judge.md. |
 | New validation skills require new skill definitions (validate-roadmap, validate-architecture-design) | Low | Both follow the exact pattern of existing skills. Scope is bounded and well-precedented. |
-| Step numbering changes in plan-roadmap and prepare-architecture SKILL.md break resume logic | Medium | Status file schemas in both recipes must add new task entries. All sub-steps must be named and tracked. |
+| Step numbering changes in plan-roadmap and prepare-architecture SKILL.md break resume logic | Medium | Status file schemas in both plays must add new task entries. All sub-steps must be named and tracked. |
 | Judge validation adds latency between produce-roadmap / draft-quality-standards and lock | Low | Validation is a Read-only operation. Impact is minimal. |
 | If judge blocks, a new human interaction is introduced post-brief-review | Low | Same pattern as Step 7 in discover-product. Resolution interview + RESOLVED path is established. |

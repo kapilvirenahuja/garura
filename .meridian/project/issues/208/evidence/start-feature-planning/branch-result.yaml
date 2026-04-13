@@ -1,5 +1,5 @@
 branch:
-  name: feature/208-review-pr-recipe
+  name: feature/208-review-pr-play
   base: main
   pushed: true
   remote: origin

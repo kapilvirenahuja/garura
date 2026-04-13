@@ -1,34 +1,34 @@
-branch: feat/189-report-issue-recipe
+branch: feat/189-report-issue-play
 issue: 189
 analysis:
   groups:
     - id: group-1
       type: feat
       scope: report-issue
-      subject: "add report-issue recipe source"
+      subject: "add report-issue play source"
       files:
-        - core/components/recipes/report-issue/SKILL.md
-        - core/components/recipes/report-issue/reference/intent.yaml
-      rationale: "New recipe source files for meridian:report-issue — primary feature deliverable for issue #189"
+        - core/components/plays/report-issue/SKILL.md
+        - core/components/plays/report-issue/reference/intent.yaml
+      rationale: "New play source files for meridian:report-issue — primary feature deliverable for issue #189"
 
     - id: group-2
       type: docs
       scope: project
-      subject: "add recipe pipeline rules and defect tracking"
+      subject: "add play pipeline rules and defect tracking"
       files:
         - CLAUDE.md
         - TODO.md
-      rationale: "CLAUDE.md adds recipe pipeline rules (rebake workflow). TODO.md introduces DEF-001 defect tracking for hardcoded paths. Both are documentation-only changes."
+      rationale: "CLAUDE.md adds play pipeline rules (rebake workflow). TODO.md introduces DEF-001 defect tracking for hardcoded paths. Both are documentation-only changes."
 
     - id: group-3
       type: chore
       scope: stm
       subject: "update STM artifacts for issue 189 workflow"
       files:
-        - .meridian/project/issues/189/evidence/create-recipe/
+        - .meridian/project/issues/189/evidence/create-play/
         - .meridian/project/issues/189/evidence/start-feature/
         - .meridian/project/issues/183/evidence/commit-code/
-      rationale: "Operational STM evidence artifacts from recipe execution — not part of the feature itself. Separate chore commit."
+      rationale: "Operational STM evidence artifacts from play execution — not part of the feature itself. Separate chore commit."
 
     - id: group-4
       type: chore
@@ -47,9 +47,9 @@ analysis:
     hotfix_branch: false
 
   notes:
-    - "Branch name feat/189-report-issue-recipe confirms single primary issue (#189)"
+    - "Branch name feat/189-report-issue-play confirms single primary issue (#189)"
     - "STM artifacts (groups 3 and 4) are operational — should be committed separately from feature source"
     - "group-3 and group-4 could be merged into a single chore(stm) commit if preferred; they are separated here because group-4 involves deletion of _pending artifacts from a different workflow context"
-    - "core/components/recipes/report-issue/ is untracked — must be staged before commit"
+    - "core/components/plays/report-issue/ is untracked — must be staged before commit"
     - ".meridian/project/issues/189/ is untracked — must be staged before commit"
     - ".meridian/project/issues/183/evidence/commit-code/ is untracked — must be staged before commit"

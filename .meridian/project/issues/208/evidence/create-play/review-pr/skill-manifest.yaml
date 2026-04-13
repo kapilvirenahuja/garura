@@ -1,0 +1,7 @@
+play: review-pr
+skills:
+  - name: quality-check-scoped
+    path: core/components/skills/quality-check-scoped/SKILL.md
+    status: existing
+    used_by_step: 2
+    used_by_agent: quality-auditor

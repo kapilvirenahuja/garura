@@ -1,2 +1,2 @@
 ?? .claude/specs/discover-product-rebake/
-?? .claude/specs/recipe-eval-gen/
+?? .claude/specs/play-eval-gen/

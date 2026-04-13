@@ -1,8 +1,8 @@
 pr:
-  title: "feat(check-drift): add check-drift recipe and skill for implementation drift analysis (#110)"
+  title: "feat(check-drift): add check-drift play and skill for implementation drift analysis (#110)"
   target_branch: "main"
   target_confidence: "high"
-  source_branch: "feature/110-check-drift-recipe"
+  source_branch: "feature/110-check-drift-play"
   issue_number: 110
   issue_url: "https://github.com/kapilvirenahuja/meridian-os/issues/110"
   platform: "github"
@@ -15,7 +15,7 @@ commits:
     - hash: "a1b2e9a"
       type: "feat"
       scope: "check-drift"
-      subject: "add check-drift recipe and skill for implementation drift analysis (#110)"
+      subject: "add check-drift play and skill for implementation drift analysis (#110)"
       files_changed: 3
     - hash: "df1772f"
       type: "chore"
@@ -32,7 +32,7 @@ commits:
 
 changed_files:
   feature_files:
-    - core/components/recipes/check-drift/reference/intent.yaml
+    - core/components/plays/check-drift/reference/intent.yaml
     - core/components/skills/check-drift/SKILL.md
     - core/components/skills/check-drift/references/templates.md
   stm_files:
@@ -54,9 +54,9 @@ changed_files:
 checklist:
   - id: "CL-1"
     category: "structure"
-    item: "Recipe directory follows framework convention: reference/intent.yaml as the sole file under core/components/recipes/check-drift/"
-    trigger: "core/components/recipes/check-drift/reference/intent.yaml added — recipe has no additional files (no L1/L2 body file beyond intent)"
-    evidence: "git show a1b2e9a --stat confirms 1 recipe file: reference/intent.yaml only. Peer recipes (create-pr, commit-code) follow same structure: reference/ subdirectory with intent.yaml. PASS — structure matches framework convention."
+    item: "Play directory follows framework convention: reference/intent.yaml as the sole file under core/components/plays/check-drift/"
+    trigger: "core/components/plays/check-drift/reference/intent.yaml added — play has no additional files (no L1/L2 body file beyond intent)"
+    evidence: "git show a1b2e9a --stat confirms 1 play file: reference/intent.yaml only. Peer plays (create-pr, commit-code) follow same structure: reference/ subdirectory with intent.yaml. PASS — structure matches framework convention."
     priority: "high"
 
   - id: "CL-2"
@@ -68,15 +68,15 @@ checklist:
 
   - id: "CL-3"
     category: "intent-schema"
-    item: "Recipe intent.yaml follows canonical 4-field schema: intent, constraints, failure_conditions, scenarios — no implementation details leaked"
-    trigger: "core/components/recipes/check-drift/reference/intent.yaml — new recipe intent file"
+    item: "Play intent.yaml follows canonical 4-field schema: intent, constraints, failure_conditions, scenarios — no implementation details leaked"
+    trigger: "core/components/plays/check-drift/reference/intent.yaml — new play intent file"
     evidence: "Read of intent.yaml confirms: top-level keys are intent, constraints, failure_conditions, scenarios only. No triggers, inputs, outputs, agent names, or brief format fields present. Constraint IDs C1-C12, failure condition IDs F1-F10, scenario IDs S1-S7 all present with full prose. PASS — schema is pure."
     priority: "high"
 
   - id: "CL-4"
     category: "intent-completeness"
-    item: "Recipe intent constraints cover all critical behavioral properties: isolation, read-only, consistent IDs, template stability, cross-validation, contradiction resolution, scope resolution, executable recommendations, brief fidelity, memory path validity, defect delegation, drift categorization"
-    trigger: "core/components/recipes/check-drift/reference/intent.yaml — 12 constraints defined"
+    item: "Play intent constraints cover all critical behavioral properties: isolation, read-only, consistent IDs, template stability, cross-validation, contradiction resolution, scope resolution, executable recommendations, brief fidelity, memory path validity, defect delegation, drift categorization"
+    trigger: "core/components/plays/check-drift/reference/intent.yaml — 12 constraints defined"
     evidence: "C1: domain isolation before cross-validation. C2: read-only (no source modification). C3: consistent DRIFT/ADR/DEBT/MEM/REC IDs. C4: stable template structures. C5: cross-validation produces its own artifact. C6: contradictions must be resolved. C7: scope resolved before analysis. C8: executable recommendations. C9: brief derived from structured data. C10: memory items target valid paths. C11: structured defect manifest. C12: drift categorization by type and severity. All 12 are behavioral, not implementation. PASS."
     priority: "high"
 
@@ -104,28 +104,28 @@ checklist:
   - id: "CL-8"
     category: "cross-reference-consistency"
     item: "Constraints in intent.yaml are reinforced in SKILL.md process steps — no gap between declared rules and defined process"
-    trigger: "Relationship between recipe intent.yaml (C1-C12) and skill SKILL.md process (Steps 1-7)"
+    trigger: "Relationship between play intent.yaml (C1-C12) and skill SKILL.md process (Steps 1-7)"
     evidence: "C1 (isolation) → Step 2-5 run independently before Step 6. C2 (read-only) → SKILL.md 'What This Skill Does NOT Do' explicitly states no file modification. C3 (consistent IDs) → templates.md encodes ID schemes. C7 (scope first) → Scope Resolution section is first in SKILL.md. C8 (executable recommendations) → Steps 6 and templates enforce specific file/section/change format. C12 (categorization) → Step 2 defines context-drift, spec-drift, technology-drift. PASS — all critical constraints are operationalized."
     priority: "high"
 
   - id: "CL-9"
     category: "drift-type-alignment"
     item: "The three drift types defined in SKILL.md (context-drift, spec-drift, technology-drift) match the categorization constraint C12 in intent.yaml"
-    trigger: "Consistency between core/components/skills/check-drift/SKILL.md Step 2 and core/components/recipes/check-drift/reference/intent.yaml C12"
+    trigger: "Consistency between core/components/skills/check-drift/SKILL.md Step 2 and core/components/plays/check-drift/reference/intent.yaml C12"
     evidence: "intent.yaml C12: 'Drift items are categorized by type (context-drift, spec-drift, technology-drift)'. SKILL.md Step 2: defines context-drift, spec-drift, technology-drift with the same labels and matching descriptions. PASS — no divergence."
     priority: "medium"
 
   - id: "CL-10"
     category: "scenario-coverage"
     item: "7 scenarios in intent.yaml cover all observable personas: Developer, Tech Lead, Product Manager, Engineering Lead — including zero-drift case, contradiction detection, aggregation, and interruption/resume"
-    trigger: "core/components/recipes/check-drift/reference/intent.yaml — 7 scenarios defined"
+    trigger: "core/components/plays/check-drift/reference/intent.yaml — 7 scenarios defined"
     evidence: "S1: Developer with actual drift (primary happy path). S2: Tech Lead verifying credible zero-drift. S3: Tech Lead verifying contradiction resolution. S4: Product Manager reviewing technology-drift impact. S5: Developer resuming interrupted analysis. S6: Engineering Lead aggregating across issues. S7: Developer tracing defects to drift items. All 7 have given/then structure. PASS — comprehensive scenario coverage."
     priority: "medium"
 
   - id: "CL-11"
     category: "failure-condition-coverage"
     item: "10 failure conditions in intent.yaml are specific and binary — each is falsifiable without ambiguity"
-    trigger: "core/components/recipes/check-drift/reference/intent.yaml — F1-F10 defined"
+    trigger: "core/components/plays/check-drift/reference/intent.yaml — F1-F10 defined"
     evidence: "F1: empty artifacts without 90% confidence justification. F2: 'no items' without specific evidence. F3: unresolved cross-validation contradictions. F4: inconsistent IDs. F5: source file modification. F6: domain input contamination before cross-validation. F7: analysis without resolved scope. F8: vague recommendations. F9: brief-data discrepancy. F10: direct issue creation instead of defect manifest. Each is observable and binary. PASS."
     priority: "medium"
 
@@ -140,13 +140,13 @@ checklist:
     category: "issue-linkage"
     item: "PR is linked to issue #110 via branch name and commit footers"
     trigger: "issue-linkage.yaml confirms issue #110 with high confidence, all feature commits reference (#110)"
-    evidence: "issue-linkage.yaml: issue.number=110, title='Recipe: check-drift — multi-agent implementation alignment analysis', state=open, linkage.source=branch_name, confidence=high. Feature commit a1b2e9a subject ends with (#110). STM chore commits 460bb84 and df1772f both reference (#110). PASS — linkage is explicit and high-confidence."
+    evidence: "issue-linkage.yaml: issue.number=110, title='Play: check-drift — multi-agent implementation alignment analysis', state=open, linkage.source=branch_name, confidence=high. Feature commit a1b2e9a subject ends with (#110). STM chore commits 460bb84 and df1772f both reference (#110). PASS — linkage is explicit and high-confidence."
     priority: "high"
 
 verification_evidence:
   - checklist_id: "CL-1"
     result: "pass"
-    detail: "git show a1b2e9a --stat confirms 3 files: reference/intent.yaml, SKILL.md, references/templates.md. Recipe has only reference/intent.yaml — matches peer convention."
+    detail: "git show a1b2e9a --stat confirms 3 files: reference/intent.yaml, SKILL.md, references/templates.md. Play has only reference/intent.yaml — matches peer convention."
 
   - checklist_id: "CL-2"
     result: "fail"

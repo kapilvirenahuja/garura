@@ -1,4 +1,4 @@
-# Structural & Behavioral Verification: /ship L2 Recipe
+# Structural & Behavioral Verification: /ship High-Order Play
 <!-- T9 evidence | 2026-03-03 -->
 
 ## Summary
@@ -28,7 +28,7 @@
 
 ## Detail
 
-- G-001: All 5 required files present in `core/components/recipes/ship/`
+- G-001: All 5 required files present in `core/components/plays/ship/`
 - G-002: Frontmatter lines 1-6 — name, user-invocable, model, allowed-tools all correct
 - G-003: Version table lines 265-267 — Level L2, Distinct Agents 2
 - G-004: intent.yaml — 3 pre_flight (C1-C3), 8 behavioral (C4-C11), 7 failure_conditions (F1-F7)

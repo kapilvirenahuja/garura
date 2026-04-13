@@ -6,7 +6,7 @@
 #
 # FRAMEWORK NOTE:
 # meridian-os has zero conventional tests. Baseline tests in this context are:
-#   (1) Recipe evals (SE-* step evals, SCE-* scenario evals) verified against intent.yaml constraints
+#   (1) Play evals (SE-* step evals, SCE-* scenario evals) verified against intent.yaml constraints
 #   (2) Agent compliance checks (schema validation against agent-contract.md)
 #   (3) Schema validation checks for YAML artifacts
 #
@@ -24,9 +24,9 @@ baseline_tests:
   # These verify the already-changed pre-flight logic in SKILL.md
 
   - id: "BT-PRE-01"
-    category: "recipe_eval"
+    category: "play_eval"
     title: "Pre-flight continues when product.yaml absent"
-    target_file: "core/components/recipes/prepare-implementation/SKILL.md"
+    target_file: "core/components/plays/prepare-implementation/SKILL.md"
     coverage_gap_addressed: "SE-PRE-01 — pre-flight abort on missing product.yaml"
     verification_type: "constraint compliance"
     constraint_ref: "C1"
@@ -37,8 +37,8 @@ baseline_tests:
         No product.yaml exists at {product_base}/discovery/product.yaml.
       when: "Pre-flight check runs (Step 0 of pre-flight + Step 0 of workflow)"
       then:
-        - "Recipe does NOT emit any HALT message for missing product.yaml"
-        - "Recipe continues to Step 1 (epic dependency check) and beyond"
+        - "Play does NOT emit any HALT message for missing product.yaml"
+        - "Play continues to Step 1 (epic dependency check) and beyond"
         - "Step 0 records product_status = 'absent' in context-assembly.yaml"
         - "context-assembly.yaml.upstream_context.product.status == 'absent'"
         - "context-assembly.yaml.upstream_context.product.source contains 'No product.yaml'"
@@ -48,9 +48,9 @@ baseline_tests:
     passes_on_old_code: false  # Old SKILL.md would have halted here
 
   - id: "BT-PRE-02"
-    category: "recipe_eval"
+    category: "play_eval"
     title: "Pre-flight continues when roadmap.yaml absent"
-    target_file: "core/components/recipes/prepare-implementation/SKILL.md"
+    target_file: "core/components/plays/prepare-implementation/SKILL.md"
     coverage_gap_addressed: "SE-PRE-02 — pre-flight abort on missing roadmap.yaml"
     verification_type: "constraint compliance"
     constraint_ref: "C1, C15"
@@ -61,7 +61,7 @@ baseline_tests:
         No --epic flag provided.
       when: "Pre-flight and Step 0 run"
       then:
-        - "Recipe does NOT halt for missing roadmap.yaml"
+        - "Play does NOT halt for missing roadmap.yaml"
         - "context-assembly.yaml.upstream_context.roadmap.status == 'absent'"
         - "Epic dependency enforcement is skipped (Step 1 is no-op when no --epic + no roadmap)"
 
@@ -70,9 +70,9 @@ baseline_tests:
     passes_on_old_code: false
 
   - id: "BT-PRE-03"
-    category: "recipe_eval"
+    category: "play_eval"
     title: "Pre-flight HALTS only when no issue AND no epic"
-    target_file: "core/components/recipes/prepare-implementation/SKILL.md"
+    target_file: "core/components/plays/prepare-implementation/SKILL.md"
     coverage_gap_addressed: "F19 condition — still a hard halt but narrower scope"
     verification_type: "failure condition compliance"
     constraint_ref: "C14, F19"
@@ -83,7 +83,7 @@ baseline_tests:
         No STM directory for any issue. No --epic flag.
       when: "Pre-flight runs"
       then:
-        - "Recipe emits HALT with message referencing F19"
+        - "Play emits HALT with message referencing F19"
         - "Message includes: 'No issue resolved from branch and no --epic provided'"
         - "No STM artifacts are created"
 
@@ -92,9 +92,9 @@ baseline_tests:
     passes_on_old_code: true  # Old code also halted here (though for a different reason — missing epic flag)
 
   - id: "BT-PRE-04"
-    category: "recipe_eval"
+    category: "play_eval"
     title: "Architecture absence triggers discovery mode, not halt"
-    target_file: "core/components/recipes/prepare-implementation/SKILL.md"
+    target_file: "core/components/plays/prepare-implementation/SKILL.md"
     coverage_gap_addressed: "SE-PRE-03, F25 — architecture absent must trigger discovery mode"
     verification_type: "constraint compliance"
     constraint_ref: "C21, F25"
@@ -105,20 +105,20 @@ baseline_tests:
         {product_base}/architecture/architecture.yaml.
       when: "Step 0 records architecture_status, Step 2 dispatches tech-architect"
       then:
-        - "Recipe does NOT halt for missing architecture.yaml"
+        - "Play does NOT halt for missing architecture.yaml"
         - "Step 2 JSON contract includes discovery_mode: true"
         - "After Step 7: context-assembly.yaml.upstream_context.architecture.status == 'derived'"
         - "context-assembly.yaml.upstream_context.architecture.discovery_mode == true"
-        - "F25 is NOT triggered (recipe entered discovery mode, not skipped it)"
+        - "F25 is NOT triggered (play entered discovery mode, not skipped it)"
 
     verification_method: "Check context-assembly.yaml upstream_context.architecture section. Verify status='derived' and discovery_mode=true."
     passes_on_current_code: true
     passes_on_old_code: false
 
   - id: "BT-PRE-05"
-    category: "recipe_eval"
+    category: "play_eval"
     title: "Quality absence triggers discovery mode, not halt"
-    target_file: "core/components/recipes/prepare-implementation/SKILL.md"
+    target_file: "core/components/plays/prepare-implementation/SKILL.md"
     coverage_gap_addressed: "SE-PRE-04 — quality-standards.yaml absent must trigger discovery mode"
     verification_type: "constraint compliance"
     constraint_ref: "C22"
@@ -129,7 +129,7 @@ baseline_tests:
         {product_base}/architecture/quality-standards.yaml.
       when: "Step 0 runs"
       then:
-        - "Recipe does NOT halt for missing quality-standards.yaml"
+        - "Play does NOT halt for missing quality-standards.yaml"
         - "context-assembly.yaml.upstream_context.quality.status == 'derived'"
         - "context-assembly.yaml.upstream_context.quality.discovery_mode == true"
 
@@ -197,7 +197,7 @@ baseline_tests:
   - id: "BT-INT-01"
     category: "constraint_validation"
     title: "C1 constraint text does not contain 'required' or 'halt' for product.yaml/roadmap.yaml"
-    target_file: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    target_file: "core/components/plays/prepare-implementation/reference/intent.yaml"
     coverage_gap_addressed: "SE-PRE-01/02 — C1 must express soft-dependency behavior"
     verification_type: "constraint text check"
     constraint_ref: "C1"
@@ -220,7 +220,7 @@ baseline_tests:
   - id: "BT-INT-02"
     category: "constraint_validation"
     title: "C14 halt condition is narrowed to 'no issue AND no epic'"
-    target_file: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    target_file: "core/components/plays/prepare-implementation/reference/intent.yaml"
     coverage_gap_addressed: "BT-PRE-03 — F19 halt must remain but be narrower"
     verification_type: "constraint text check"
     constraint_ref: "C14"
@@ -238,7 +238,7 @@ baseline_tests:
   - id: "BT-INT-03"
     category: "constraint_validation"
     title: "C21 and C22 exist and describe discovery mode for architecture and quality"
-    target_file: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    target_file: "core/components/plays/prepare-implementation/reference/intent.yaml"
     coverage_gap_addressed: "SE-PRE-03/04 — discovery mode constraints must exist"
     verification_type: "constraint existence check"
     constraint_ref: "C21, C22"
@@ -256,7 +256,7 @@ baseline_tests:
   - id: "BT-INT-04"
     category: "constraint_validation"
     title: "F19 failure condition exists and references issue+epic resolution failure"
-    target_file: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    target_file: "core/components/plays/prepare-implementation/reference/intent.yaml"
     coverage_gap_addressed: "Preserving the one legitimate hard-halt"
     verification_type: "failure condition check"
     constraint_ref: "F19"
@@ -272,7 +272,7 @@ baseline_tests:
   - id: "BT-INT-05"
     category: "constraint_validation"
     title: "F25 failure condition exists and references discovery mode — not just absence"
-    target_file: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    target_file: "core/components/plays/prepare-implementation/reference/intent.yaml"
     coverage_gap_addressed: "SE-STEP2-01 — F25 must distinguish between 'absent and handled' vs 'absent and skipped'"
     verification_type: "failure condition check"
     constraint_ref: "F25"
@@ -360,20 +360,20 @@ baseline_tests:
     verification_method: "Read test-engineer.md — look for explicit handling of empty test_surface case."
     passes_on_current_code: null  # needs verification
 
-  # === CATEGORY 5: Pipeline Recipe Consistency ===
-  # Current-behavior baselines for the 3 co-change recipes (before any #183 changes)
+  # === CATEGORY 5: Pipeline Play Consistency ===
+  # Current-behavior baselines for the 3 co-change plays (before any #183 changes)
 
   - id: "BT-PCR-01"
     category: "schema_validation"
     title: "discover-product pre-flight: document current hard-halt conditions"
-    target_file: "core/components/recipes/discover-product/SKILL.md"
+    target_file: "core/components/plays/discover-product/SKILL.md"
     coverage_gap_addressed: "Co-change consistency check"
     verification_type: "pre-flight inventory"
 
     current_behavior_snapshot:
       purpose: >
         Record which upstream artifacts discover-product currently requires (hard-halt vs soft)
-        so that any #183 changes to pipeline recipe consistency can be evaluated against
+        so that any #183 changes to pipeline play consistency can be evaluated against
         this baseline.
       check: "Read pre-flight table in discover-product/SKILL.md and list all hard-halt conditions"
 
@@ -383,7 +383,7 @@ baseline_tests:
   - id: "BT-PCR-02"
     category: "schema_validation"
     title: "plan-roadmap pre-flight: document current hard-halt conditions"
-    target_file: "core/components/recipes/plan-roadmap/SKILL.md"
+    target_file: "core/components/plays/plan-roadmap/SKILL.md"
     coverage_gap_addressed: "Co-change consistency check"
     verification_type: "pre-flight inventory"
 
@@ -397,16 +397,16 @@ baseline_tests:
   - id: "BT-PCR-03"
     category: "schema_validation"
     title: "prepare-architecture pre-flight: document current hard-halt conditions"
-    target_file: "core/components/recipes/prepare-architecture/SKILL.md"
+    target_file: "core/components/plays/prepare-architecture/SKILL.md"
     coverage_gap_addressed: "Co-change consistency check"
     verification_type: "pre-flight inventory"
 
     current_behavior_snapshot:
       purpose: >
-        Record prepare-architecture's current pre-flight conditions. This recipe PRODUCES
+        Record prepare-architecture's current pre-flight conditions. This play PRODUCES
         architecture.yaml and quality-standards.yaml — the artifacts prepare-implementation
         now handles gracefully when absent. The relationship should be clear.
-      check: "Read pre-flight table and verify it does NOT hard-block on product.yaml or roadmap.yaml (it is itself an upstream recipe)"
+      check: "Read pre-flight table and verify it does NOT hard-block on product.yaml or roadmap.yaml (it is itself an upstream play)"
 
     verification_method: "Read prepare-architecture/SKILL.md pre-flight section."
     passes_on_current_code: true
@@ -451,7 +451,7 @@ baseline_tests:
 summary:
   total_baseline_tests: 17
   by_category:
-    recipe_eval: 5            # BT-PRE-01 through BT-PRE-05
+    play_eval: 5            # BT-PRE-01 through BT-PRE-05
     schema_validation: 5      # BT-CA-01, BT-CA-02, BT-PCR-01, BT-PCR-02, BT-PCR-03
     constraint_validation: 5  # BT-INT-01 through BT-INT-05
     agent_compliance: 3       # BT-AGT-01, BT-AGT-02, BT-AGT-03
@@ -472,8 +472,8 @@ summary:
     count: 5
     ids: ["BT-PRE-01", "BT-PRE-02", "BT-PRE-04", "BT-PRE-05", "BT-INT-01"]
     note: >
-      These 5 tests would FAIL on the old pre-#183 SKILL.md because the old recipe
-      would halt where the new recipe continues. This confirms the change surface
+      These 5 tests would FAIL on the old pre-#183 SKILL.md because the old play
+      would halt where the new play continues. This confirms the change surface
       is correctly characterized — the fix is a behavioral inversion, not an additive change.
 
   recommended_execution_order:
@@ -483,8 +483,8 @@ summary:
       - "BT-CA-01, BT-CA-02 — verify context-assembly.yaml schema"
       - "BT-AGT-01, BT-AGT-02 — verify agent frontmatter"
     phase_2_behavior_checks:
-      - "BT-PRE-01 through BT-PRE-05 — verify pre-flight behavior (require recipe invocation)"
+      - "BT-PRE-01 through BT-PRE-05 — verify pre-flight behavior (require play invocation)"
       - "BT-AGT-03 — verify test-engineer handles zero-tests case"
     phase_3_baseline_inventory:
-      - "BT-PCR-01, BT-PCR-02, BT-PCR-03 — record pipeline recipe pre-flight baselines"
+      - "BT-PCR-01, BT-PCR-02, BT-PCR-03 — record pipeline play pre-flight baselines"
       - "BT-SKL-01, BT-SKL-02 — record skill input requirement baselines"

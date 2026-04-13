@@ -7,7 +7,7 @@ readiness:
     state: "OPEN"
     url: "https://github.com/kapilvirenahuja/meridian-os/pull/97"
     base_ref: "main"
-    head_ref: "feature/95-intent-driven-recipe-architecture"
+    head_ref: "feature/95-intent-driven-play-architecture"
 
   mergeable_check:
     mergeable: true

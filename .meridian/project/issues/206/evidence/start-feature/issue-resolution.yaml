@@ -1,10 +1,10 @@
 issue:
   number: 206
-  title: "refactor: make brief generation opt-in across discovery, planning, and architecture recipes"
+  title: "refactor: make brief generation opt-in across discovery, planning, and architecture plays"
   labels:
     - enhancement
   state: open
-  body_summary: "Remove automatic brief generation steps from /discover-product, /plan-roadmap, and /prepare-architecture. Patch create-recipe compiler rule for opt-in briefs. Rewrite draft-roadmap to derive roadmap.yaml from YAML directly. Remove brief_r"
+  body_summary: "Remove automatic brief generation steps from /discover-product, /plan-roadmap, and /prepare-architecture. Patch create-play compiler rule for opt-in briefs. Rewrite draft-roadmap to derive roadmap.yaml from YAML directly. Remove brief_r"
   url: "https://github.com/kapilvirenahuja/meridian-os/issues/206"
   created: true
   closed: false

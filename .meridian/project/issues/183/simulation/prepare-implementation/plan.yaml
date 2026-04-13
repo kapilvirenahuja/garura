@@ -22,7 +22,7 @@ prerequisites:
         name: "Verify intent.yaml constraint consistency"
         status: "completed"
         file_changes:
-          - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+          - path: "core/components/plays/prepare-implementation/reference/intent.yaml"
             action: MODIFY
             change_ref: "change-surface.yaml/files[1]"
         exit_gate: >
@@ -37,7 +37,7 @@ prerequisites:
         name: "Verify SKILL.md pre-flight rewrite"
         status: "completed"
         file_changes:
-          - path: "core/components/recipes/prepare-implementation/SKILL.md"
+          - path: "core/components/plays/prepare-implementation/SKILL.md"
             action: MODIFY
             change_ref: "change-surface.yaml/files[0]"
         exit_gate: >
@@ -97,9 +97,9 @@ prerequisites:
 task_dag:
 
   - id: T-001
-    name: "Feature 1: Pipeline Recipe Consistency"
+    name: "Feature 1: Pipeline Play Consistency"
     description: >
-      Verify that the 3 co-change pipeline recipes (discover-product, plan-roadmap,
+      Verify that the 3 co-change pipeline plays (discover-product, plan-roadmap,
       prepare-architecture) are consistent with the new soft-dependency philosophy.
       Each may be a no-op or require a documentation update — determined by reading
       the current pre-flight tables.
@@ -111,7 +111,7 @@ task_dag:
         name: "Audit discover-product pre-flight hard-halt conditions"
         status: "pending"
         file_changes:
-          - path: "core/components/recipes/discover-product/SKILL.md"
+          - path: "core/components/plays/discover-product/SKILL.md"
             action: MODIFY
             change_ref: "change-surface.yaml/files[4]"
         exit_gate: >
@@ -127,7 +127,7 @@ task_dag:
         name: "Audit plan-roadmap pre-flight hard-halt conditions"
         status: "pending"
         file_changes:
-          - path: "core/components/recipes/plan-roadmap/SKILL.md"
+          - path: "core/components/plays/plan-roadmap/SKILL.md"
             action: MODIFY
             change_ref: "change-surface.yaml/files[5]"
         exit_gate: >
@@ -143,7 +143,7 @@ task_dag:
         name: "Document prepare-architecture relationship with prepare-implementation"
         status: "pending"
         file_changes:
-          - path: "core/components/recipes/prepare-architecture/SKILL.md"
+          - path: "core/components/plays/prepare-architecture/SKILL.md"
             action: MODIFY
             change_ref: "change-surface.yaml/files[6]"
         exit_gate: >
@@ -157,9 +157,9 @@ task_dag:
         verification_tests: [BT-PCR-03]
 
       - id: T-001-GATE
-        name: "Feature 1 Gate: Pipeline recipe consistency confirmed"
+        name: "Feature 1 Gate: Pipeline play consistency confirmed"
         exit_gate: >
-          All 3 pipeline recipes reviewed and updated or confirmed no-op.
+          All 3 pipeline plays reviewed and updated or confirmed no-op.
           No pre-flight inconsistencies with prepare-implementation's soft-dependency model.
           prepare-architecture relationship documented.
         depends_on: [T-001-1, T-001-2, T-001-3]
@@ -252,22 +252,22 @@ task_dag:
   - id: T-003
     name: "Feature 3: LTM Standards Creation"
     description: >
-      Create the new recipe-dependency-protocol.md LTM standard and extend
-      resolution-protocol.md with recipe-level context resolution hierarchy.
-      Codifies the new soft-dependency pattern so other recipes can follow it.
+      Create the new play-dependency-protocol.md LTM standard and extend
+      resolution-protocol.md with play-level context resolution hierarchy.
+      Codifies the new soft-dependency pattern so other plays can follow it.
     depends_on: [T-001-GATE]
 
     tasks:
 
       - id: T-003-1
-        name: "Create recipe-dependency-protocol.md LTM standard"
+        name: "Create play-dependency-protocol.md LTM standard"
         status: "pending"
         file_changes:
-          - path: "core/components/memory/standards/recipe-dependency-protocol.md"
+          - path: "core/components/memory/standards/play-dependency-protocol.md"
             action: CREATE
             change_ref: "change-surface.yaml/files[11]"
         exit_gate: >
-          recipe-dependency-protocol.md created at core/components/memory/standards/.
+          play-dependency-protocol.md created at core/components/memory/standards/.
           Codifies: (1) when to hard-halt vs soft-degrade for missing upstream artifacts,
           (2) the authority hierarchy for context resolution
           (locked → project LTM → codebase → user interview),
@@ -276,7 +276,7 @@ task_dag:
         depends_on: [T-001-GATE]
 
       - id: T-003-2
-        name: "Extend resolution-protocol.md with recipe-level context hierarchy"
+        name: "Extend resolution-protocol.md with play-level context hierarchy"
         status: "pending"
         file_changes:
           - path: "core/components/memory/standards/resolution-protocol.md"
@@ -285,7 +285,7 @@ task_dag:
         exit_gate: >
           resolution-protocol.md updated with note or section clarifying that
           C23's context resolution hierarchy (locked → project LTM → codebase → interview)
-          is the recipe-level equivalent of the R1-R4 agent-level hierarchy.
+          is the play-level equivalent of the R1-R4 agent-level hierarchy.
           The two hierarchies are documented as intentionally parallel.
           Existing R1-R4 content unchanged — this is an additive extension.
         depends_on: [T-001-GATE]
@@ -293,9 +293,9 @@ task_dag:
       - id: T-003-GATE
         name: "Feature 3 Gate: LTM standards updated"
         exit_gate: >
-          recipe-dependency-protocol.md created and follows knowledge-file-template.md.
-          resolution-protocol.md extended with recipe-level hierarchy note.
-          Standards are internally consistent — recipe-dependency-protocol references R1-R4 in resolution-protocol.
+          play-dependency-protocol.md created and follows knowledge-file-template.md.
+          resolution-protocol.md extended with play-level hierarchy note.
+          Standards are internally consistent — play-dependency-protocol references R1-R4 in resolution-protocol.
         depends_on: [T-003-1, T-003-2]
         scenario_gate:
           ids: [S2, S9]
@@ -305,8 +305,8 @@ task_dag:
     name: "Feature 4: Eval Update — Fix 3 Inverted Evals"
     description: >
       The 3 critical pre-flight evals have inverted pass/fail conditions after #183.
-      Old evals PASS when recipe halts for missing artifacts; new evals must PASS
-      when recipe CONTINUES. These must be corrected before the recipe can be considered
+      Old evals PASS when play halts for missing artifacts; new evals must PASS
+      when play CONTINUES. These must be corrected before the play can be considered
       correctly evaluated.
     depends_on: [T-000-GATE, T-001-GATE]
 
@@ -316,14 +316,14 @@ task_dag:
         name: "Fix SE-PRE-01: invert product.yaml absence eval"
         status: "pending"
         file_changes:
-          - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+          - path: "core/components/plays/prepare-implementation/reference/intent.yaml"
             action: MODIFY
             change_ref: "blast-radius.yaml/affected_evals[0]"
         exit_gate: >
           SE-PRE-01 eval (or its equivalent in intent.yaml scenarios/constraints) updated.
-          PASS condition: recipe continues when product.yaml absent and records
+          PASS condition: play continues when product.yaml absent and records
           upstream_context.product.status == 'absent' in context-assembly.yaml.
-          FAIL condition: recipe halts for missing product.yaml.
+          FAIL condition: play halts for missing product.yaml.
           Old pass condition (halt on missing product.yaml) has been removed.
         depends_on: [T-000-GATE]
         verification_tests: [BT-PRE-01]
@@ -332,14 +332,14 @@ task_dag:
         name: "Fix SE-PRE-02: invert roadmap.yaml absence eval"
         status: "pending"
         file_changes:
-          - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+          - path: "core/components/plays/prepare-implementation/reference/intent.yaml"
             action: MODIFY
             change_ref: "blast-radius.yaml/affected_evals[1]"
         exit_gate: >
           SE-PRE-02 eval updated.
-          PASS condition: recipe continues when roadmap.yaml absent; epic dependency
+          PASS condition: play continues when roadmap.yaml absent; epic dependency
           enforcement skipped; context-assembly.yaml shows roadmap.status == 'absent'.
-          FAIL condition: recipe halts for missing roadmap.yaml.
+          FAIL condition: play halts for missing roadmap.yaml.
         depends_on: [T-000-GATE]
         verification_tests: [BT-PRE-02]
 
@@ -347,11 +347,11 @@ task_dag:
         name: "Fix SE-PRE-03/04: add discovery mode evals for architecture and quality"
         status: "pending"
         file_changes:
-          - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+          - path: "core/components/plays/prepare-implementation/reference/intent.yaml"
             action: MODIFY
             change_ref: "blast-radius.yaml/affected_evals[2]"
         exit_gate: >
-          SE-PRE-03 eval updated: PASS when recipe enters discovery mode for absent
+          SE-PRE-03 eval updated: PASS when play enters discovery mode for absent
           architecture.yaml; context-assembly.yaml shows upstream_context.architecture.status
           == 'derived' and discovery_mode == true. F25 NOT triggered.
           SE-PRE-04 eval updated: same pattern for quality-standards.yaml (C22).
@@ -364,7 +364,7 @@ task_dag:
         name: "Extend SE-STEP2-01 and scenario evals S2/S7 for discovery mode"
         status: "pending"
         file_changes:
-          - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+          - path: "core/components/plays/prepare-implementation/reference/intent.yaml"
             action: MODIFY
             change_ref: "blast-radius.yaml/affected_evals[5]"
         exit_gate: >
@@ -408,7 +408,7 @@ task_dag:
           ~/.claude/agents/tech-architect.md updated.
           ~/.claude/agents/test-engineer.md updated.
           ~/.claude/skills/prepare-implementation.md updated.
-          ~/.meridian/core/memory/standards/ updated with new recipe-dependency-protocol.md.
+          ~/.meridian/core/memory/standards/ updated with new play-dependency-protocol.md.
         depends_on: [T-001-GATE, T-002-GATE, T-003-GATE, T-004-GATE]
 
       - id: T-005-2
@@ -450,7 +450,7 @@ summary:
       status: "completed"
 
     - feature_ref: F1
-      name: "Pipeline Recipe Consistency"
+      name: "Pipeline Play Consistency"
       tasks: 4
       files_changed: 3
       scenario_count: 2

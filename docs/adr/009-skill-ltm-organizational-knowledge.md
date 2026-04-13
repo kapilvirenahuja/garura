@@ -60,7 +60,7 @@ Allow skills to read from LTM at runtime for **organizational knowledge** — st
         └── evolutionary-scaling.md  # Application architecture decisions
 ```
 
-**Note:** Framework protocols (intent-driven-recovery.md, structured-failure-protocol.md, recipe-structure.md) are NOT organizational knowledge — they are Meridian internals and live in `docs/framework/`.
+**Note:** Framework protocols (intent-driven-recovery.md, structured-failure-protocol.md, play-structure.md) are NOT organizational knowledge — they are Meridian internals and live in `docs/framework/`.
 
 ### Skill Reference Pattern
 

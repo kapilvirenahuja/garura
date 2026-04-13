@@ -19,7 +19,7 @@ scenario_evals:
     status: PASS
     evidence: >
       Local HEAD is on main. git pull returns up to date. Feature branch
-      feat/189-report-issue-recipe absent locally and from remote.
+      feat/189-report-issue-play absent locally and from remote.
   SCE2_code_reviewer:
     status: PASS
     evidence: >

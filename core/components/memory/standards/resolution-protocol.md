@@ -73,7 +73,7 @@ domain question, the project-scoped (R2) answer is used (INV5).
 For domain topics that produced no answer from R2 or R3, the agent proceeds
 with general reasoning and records `resolved_from: "llm"` in the trace.
 
-LLM fallback entries are primary candidates for the `learn` recipe. Each
+LLM fallback entries are primary candidates for the `learn` play. Each
 fallback is a knowledge gap: the organization lacks persistent knowledge for
 this domain question and relies on general reasoning instead.
 
@@ -81,7 +81,7 @@ this domain question and relies on general reasoning instead.
 
 After completing R1-R4, write the resolution trace to STM:
 
-Path: `{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml`
+Path: `{stm_base}/{issue}/evidence/{play}/resolution-trace.yaml`
 
 ```yaml
 resolution_trace:
@@ -99,12 +99,12 @@ contract's `stm.output` block (per DD10 in tech.yaml).
 ## Context Isolation Exemptions
 
 The following agents NEVER receive `ltm_context` from any workflow. No
-recipe populates this field for them under any circumstances (INV4):
+play populates this field for them under any circumstances (INV4):
 
 - **eval-generator** — Must not see implementation code or prior outputs
 - **judge** — Receives only encrypted evals and the codebase
 
-Any recipe that attempts to pass `ltm_context` to either agent must be
+Any play that attempts to pass `ltm_context` to either agent must be
 treated as a defect.
 
 ## Backward Compatibility

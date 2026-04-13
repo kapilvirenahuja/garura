@@ -1,7 +1,7 @@
  M core/components/agents/eval-generator.md
  M core/components/agents/judge.md
  M core/components/agents/quality-auditor.md
- M core/components/recipes/implement-epic/SKILL.md
- M core/components/recipes/implement-epic/reference/intent.yaml
+ M core/components/plays/implement-epic/SKILL.md
+ M core/components/plays/implement-epic/reference/intent.yaml
  M core/components/skills/sync-claude/SKILL.md
 ?? core/components/skills/sync-claude/scripts/

@@ -64,13 +64,13 @@ Meridian uses a **three-layer hierarchy** for deterministic workflows:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      RECIPES                                │
-│  L2: Complex workflows, human only, chains L1s              │
-│  L1: Atomic activities, human OR model, artifact+checkpoint │
+│                      PLAYS                                │
+│  High-order: Complex workflows, human only, chains plays    │
+│  Atomic: Atomic activities, human OR model, artifact+chkpt  │
 └─────────────────────────────────────────────────────────────┘
                               │
-                    L1 → invokes agents (≤2 calls)
-                    L2 → chains L1s (with guardian checkpoints)
+                    Atomic → invokes agents (≤2 calls)
+                    High-order → chains plays (with guardian checkpoints)
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      AGENTS                                 │
@@ -98,8 +98,8 @@ Meridian uses a **three-layer hierarchy** for deterministic workflows:
 
 **Key Components:**
 
-- **L2 Recipes**: High-order workflows (human only), chain L1s with guardian checkpoints
-- **L1 Recipes**: Atomic activities (human OR model), always produce artifact + checkpoint
+- **High-Order Plays**: High-order workflows (human only), chain plays with guardian checkpoints
+- **Atomic Plays**: Atomic activities (human OR model), always produce artifact + checkpoint
 - **Agents**: Domain experts that make decisions, discover skills on the fly
 - **Skills**: Self-contained capabilities with local references (model invocable only)
 - **Memory**: LTM (skill overrides, synced at deployment) + STM (per-issue artifacts)
@@ -169,7 +169,7 @@ your-project/
 └── CLAUDE.md              # AI instructions (customizable)
 ```
 
-**Note:** Skills, agents, and recipes deploy to `~/.claude/` (global, shared across all projects) by default. The `.claude/` directory is no longer tracked in git.
+**Note:** Skills, agents, and plays deploy to `~/.claude/` (global, shared across all projects) by default. The `.claude/` directory is no longer tracked in git.
 
 **After installation:**
 
@@ -187,7 +187,7 @@ curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/meridian/main/insta
 
 **What gets upgraded (overwritten):**
 - `~/.claude/agents/` — Agent definitions (global deployment)
-- `~/.claude/skills/` — Skills and recipes (global deployment)
+- `~/.claude/skills/` — Skills and plays (global deployment)
 - `~/.meridian/core/memory/` — Memory (practices, templates, global)
 
 **What gets preserved:**
@@ -218,7 +218,7 @@ meridian/
 ├── installer/
 │   └── install.sh             # Curl-based installer script
 ├── core/
-│   ├── components/            # Source of truth (agents, skills, recipes, memory)
+│   ├── components/            # Source of truth (agents, skills, plays, memory)
 │   │   ├── agents/            # Agent definitions
 │   │   │   ├── code-builder.md
 │   │   │   ├── project-orchestrator.md
@@ -232,7 +232,7 @@ meridian/
 │   │   │   ├── setup-branch/
 │   │   │   ├── submit-pr/
 │   │   │   └── sync-claude/
-│   │   ├── recipes/           # L1 recipes (atomic activities)
+│   │   ├── plays/           # plays (atomic activities)
 │   │   │   ├── commit-code/
 │   │   │   ├── create-pr/
 │   │   │   ├── start-feature/
@@ -251,7 +251,7 @@ meridian/
 │   ├── adr/                   # Architecture Decision Records
 │   ├── philosophy/            # Core architecture philosophy
 │   ├── components/            # Component-level documentation
-│   └── usage/                 # Usage guides and recipes
+│   └── usage/                 # Usage guides and plays
 ├── CLAUDE.md                  # Project configuration
 └── README.md                  # This file
 ```
@@ -263,7 +263,7 @@ meridian/
 - **ADRs**: [`docs/adr/`](docs/adr/)
 
 ### Components
-- **Recipes**: [`docs/components/recipes.md`](docs/components/recipes.md)
+- **Plays**: [`docs/components/plays.md`](docs/components/plays.md)
 - **Agents**: [`docs/components/agents.md`](docs/components/agents.md)
 - **Skills**: [`docs/components/skills.md`](docs/components/skills.md)
 - **Memory**: [`docs/components/memory.md`](docs/components/memory.md)

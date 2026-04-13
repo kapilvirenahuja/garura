@@ -2,7 +2,7 @@
 
 ## VS-01: YAML-to-JSON Conversion Correctness
 
-**Description:** Given any of the 7 YAML artifact types, when the briefs recipe converts it to JSON, the JSON file must be a lossless, isomorphic representation of the YAML content.
+**Description:** Given any of the 7 YAML artifact types, when the briefs play converts it to JSON, the JSON file must be a lossless, isomorphic representation of the YAML content.
 
 **Pass Criteria:**
 - For each YAML file processed, a `.json` sibling exists at the same directory path
@@ -239,23 +239,23 @@
 - No `generate-product-brief` skill is invoked
 - No `draft-roadmap-brief` skill is invoked
 - No `doc-builder` agent is dispatched for brief generation
-- The briefs recipe uses only Bash (for YAML→JSON conversion), Read, and Write tools
+- The briefs play uses only Bash (for YAML→JSON conversion), Read, and Write tools
 - No Agent tool calls with subagent_type containing "doc-builder" or brief generation skills
 
-**Test Method:** Run the briefs recipe. Inspect the tool call log for any LLM skill/agent invocations. Zero found = pass.
+**Test Method:** Run the briefs play. Inspect the tool call log for any LLM skill/agent invocations. Zero found = pass.
 
 ---
 
 ## VS-17: Performance — Full Pipeline Under 5 Seconds
 
-**Description:** The briefs recipe processes all 7 artifact types (YAML→JSON + template copy) in under 5 seconds total.
+**Description:** The briefs play processes all 7 artifact types (YAML→JSON + template copy) in under 5 seconds total.
 
 **Pass Criteria:**
-- Wall-clock time from recipe start to completion is < 5 seconds for 7 artifacts
+- Wall-clock time from play start to completion is < 5 seconds for 7 artifacts
 - Individual artifact processing is < 1 second each
 - No network calls to LLM APIs during the pipeline
 
-**Test Method:** Time the briefs recipe execution with 7 changed YAMLs.
+**Test Method:** Time the briefs play execution with 7 changed YAMLs.
 
 ---
 
@@ -361,9 +361,9 @@
 
 ---
 
-## VS-25: Briefs Recipe Produces Complete Output
+## VS-25: Briefs Play Produces Complete Output
 
-**Description:** After running the briefs recipe, the briefs/ directory contains all expected files.
+**Description:** After running the briefs play, the briefs/ directory contains all expected files.
 
 **Pass Criteria:**
 - For each processed YAML: `{briefs_dir}/{artifact}-brief.html` exists
@@ -373,4 +373,4 @@
 - `{briefs_dir}/.checksums.json` exists and is updated
 - No orphaned HTML briefs from removed YAMLs (if applicable)
 
-**Test Method:** Run briefs recipe with all 7 artifact types. Verify file existence.
+**Test Method:** Run briefs play with all 7 artifact types. Verify file existence.

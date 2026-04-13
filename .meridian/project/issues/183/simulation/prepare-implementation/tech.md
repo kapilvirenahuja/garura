@@ -5,13 +5,13 @@
 
 ---
 
-## Architecture Diagram — Meridian Recipe Neighborhood (Post-#183)
+## Architecture Diagram — Meridian Play Neighborhood (Post-#183)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  COMPILATION FLOW                                                            │
 │                                                                              │
-│  reference/intent.yaml  ──/create-recipe──▶  SKILL.md                      │
+│  reference/intent.yaml  ──/create-play──▶  SKILL.md                      │
 │         (source)                              (compiled artifact)            │
 │                                                                              │
 │  C1-C32 constraints                          Runtime workflow                │
@@ -48,7 +48,7 @@
 
 ```
                         ┌─────────── Step 0 ────────────┐
-                        │  recipe inline (not an agent)  │
+                        │  play inline (not an agent)  │
                         │  Read product.yaml,            │
                         │  roadmap.yaml,                 │
                         │  architecture.yaml,            │
@@ -177,28 +177,28 @@ blast-radius.yaml ────────────────────�
 
 ### The Compiled Intent Pattern
 
-Every recipe in Meridian exists in two forms: the intent source (`reference/intent.yaml`) and the compiled runtime artifact (`SKILL.md`). These always co-change — editing SKILL.md directly violates the compilation pattern. The correct change mechanism is:
+Every play in Meridian exists in two forms: the intent source (`reference/intent.yaml`) and the compiled runtime artifact (`SKILL.md`). These always co-change — editing SKILL.md directly violates the compilation pattern. The correct change mechanism is:
 
 1. Edit `reference/intent.yaml` (the constraints, failure conditions, scenarios)
-2. Run `/create-recipe --rebake prepare-implementation`
+2. Run `/create-play --rebake prepare-implementation`
 3. SKILL.md is regenerated from the updated intent
 
 For #183, both files were modified in this branch via exactly this pattern. The before/after in tech.yaml captures what changed in intent.yaml (at the constraint level) and what changed in SKILL.md (at the compiled behavior level).
 
 ### How Step 0 Changed the Pre-flight Contract
 
-The old recipe had a simple pre-flight: check 4 files exist, halt if any is missing. The new recipe uses a two-phase entry:
+The old play had a simple pre-flight: check 4 files exist, halt if any is missing. The new play uses a two-phase entry:
 
 **Pre-flight** (still halts): config.yaml resolution, issue/epic resolution
 **Step 0** (never halts): upstream artifact availability check
 
-Step 0 is an inline recipe step, not an agent dispatch. It sets four status variables (`product_status`, `roadmap_status`, `architecture_status`, `quality_status`) to either `"absent"` or `"locked"`. These flags travel to downstream agents via their input contracts, enabling each agent to adapt its behavior without needing to re-check file existence.
+Step 0 is an inline play step, not an agent dispatch. It sets four status variables (`product_status`, `roadmap_status`, `architecture_status`, `quality_status`) to either `"absent"` or `"locked"`. These flags travel to downstream agents via their input contracts, enabling each agent to adapt its behavior without needing to re-check file existence.
 
 The critical semantic shift: `architecture_status == "absent"` does not mean "stop" — it means "enter discovery mode." Discovery mode is not a degraded path. It is a different data collection strategy: codebase scan + LTM + targeted user interview produces architecture understanding equivalent (in richness, if not in authority) to a locked architecture.yaml.
 
 ### Agent Separation: tech-architect vs. test-engineer
 
-Prior to #183, the recipe had two domain agents (tech-designer and product-strategist). The rebake introduced a third: test-engineer. This is not cosmetic — it enforces C32, the architectural separation of concerns principle:
+Prior to #183, the play had two domain agents (tech-designer and product-strategist). The rebake introduced a third: test-engineer. This is not cosmetic — it enforces C32, the architectural separation of concerns principle:
 
 | Concern | Agent | Why Separated |
 |---------|-------|---------------|
@@ -212,7 +212,7 @@ The separation prevents the common failure mode where the same agent that design
 
 `context-assembly.yaml` is consumed by 4 downstream tasks. `blast-radius.yaml` is consumed by 5. This creates a structural risk: any error or low-confidence entry in these artifacts propagates silently into all downstream work.
 
-The recipe addresses this with explicit Checkpoints 0 and 1 — human review gates at each fan-in point. The user reviews and approves context-assembly.yaml (Checkpoint 0) before blast radius begins, and reviews blast-radius.yaml + baseline-tests.yaml (Checkpoint 1) before design artifacts begin. Orbit handling allows in-place correction without restarting the phase.
+The play addresses this with explicit Checkpoints 0 and 1 — human review gates at each fan-in point. The user reviews and approves context-assembly.yaml (Checkpoint 0) before blast radius begins, and reviews blast-radius.yaml + baseline-tests.yaml (Checkpoint 1) before design artifacts begin. Orbit handling allows in-place correction without restarting the phase.
 
 ### Scenario Compartmentalization (C9)
 
@@ -231,33 +231,33 @@ This compartmentalization forces the implementer to build correct behavior drive
 
 ### Why NOT a feature flag for the old behavior?
 
-The hard-block behavior was not a feature — it was a design mistake. Making it optional via a flag would preserve two code paths indefinitely. Removing it entirely is correct: the new behavior (always proceed, derive context when needed) is strictly better than the old behavior (halt and require the user to run 3 other recipes first).
+The hard-block behavior was not a feature — it was a design mistake. Making it optional via a flag would preserve two code paths indefinitely. Removing it entirely is correct: the new behavior (always proceed, derive context when needed) is strictly better than the old behavior (halt and require the user to run 3 other plays first).
 
-The only legitimate "halt" in the entry sequence is F19 (no issue and no epic — nothing to scope the work against). Every other halt was protecting against a missing artifact that the recipe can now derive on its own.
+The only legitimate "halt" in the entry sequence is F19 (no issue and no epic — nothing to scope the work against). Every other halt was protecting against a missing artifact that the play can now derive on its own.
 
 ### Why discovery mode and not just "skip architecture"?
 
-A common misunderstanding of C21/C22 is that they allow the recipe to skip architecture understanding when architecture.yaml is absent. They do not. They change the data SOURCE for architecture understanding — from a locked artifact to a codebase scan + LTM + interview.
+A common misunderstanding of C21/C22 is that they allow the play to skip architecture understanding when architecture.yaml is absent. They do not. They change the data SOURCE for architecture understanding — from a locked artifact to a codebase scan + LTM + interview.
 
 The constraint states: "the goal is equivalent understanding, not a shortcut." This is load-bearing. tech.yaml produced in discovery mode must be as specific and as file-level precise as tech.yaml produced with a locked architecture.yaml. The only difference is the authority label in context-assembly.yaml (`"derived"` vs. `"locked"`).
 
-### Why must recipe-dependency-protocol.md be a new file and not an extension to resolution-protocol.md?
+### Why must play-dependency-protocol.md be a new file and not an extension to resolution-protocol.md?
 
 `resolution-protocol.md` defines the R1-R4 hierarchy for AGENT-level knowledge resolution. It is invoked when `ltm_context` appears in an agent's input contract. The mechanism is: locked YAML → project LTM → core LTM → LLM reasoning.
 
-The recipe-level soft-dependency pattern is structurally parallel but semantically distinct: it governs RECIPE pre-flight behavior, not agent cognition. The consumers are different (recipe orchestrators, not agents), the artifacts are different (SKILL.md pre-flight sections, not ltm_context blocks), and the decisions are different (halt vs. proceed decisions, not knowledge resolution decisions).
+The play-level soft-dependency pattern is structurally parallel but semantically distinct: it governs PLAY pre-flight behavior, not agent cognition. The consumers are different (play orchestrators, not agents), the artifacts are different (SKILL.md pre-flight sections, not ltm_context blocks), and the decisions are different (halt vs. proceed decisions, not knowledge resolution decisions).
 
 Merging them would blur a clear conceptual boundary. A cross-reference between the two files is appropriate.
 
-### Why do pipeline recipes (discover-product, plan-roadmap, prepare-architecture) need review but not necessarily changes?
+### Why do pipeline plays (discover-product, plan-roadmap, prepare-architecture) need review but not necessarily changes?
 
-Co-change history shows that cross-cutting changes to prepare-implementation always update all four pipeline recipes simultaneously. However, "update" does not always mean "change pre-flight behavior." For the upstream recipes:
+Co-change history shows that cross-cutting changes to prepare-implementation always update all four pipeline plays simultaneously. However, "update" does not always mean "change pre-flight behavior." For the upstream plays:
 
 - discover-product: produces product.yaml — its strict pre-flight (if it has one) protects the quality of its own outputs. #183 does not require relaxing it.
 - plan-roadmap: produces roadmap.yaml — same logic applies.
 - prepare-architecture: produces architecture.yaml + quality-standards.yaml — same logic.
 
-The required change for all three is documentation: add a pipeline topology note explaining what downstream prepare-implementation does when their outputs are absent. This makes the optional dependency explicit and helps users understand the tradeoff (run the upstream recipe → authoritative context vs. skip it → discovery mode).
+The required change for all three is documentation: add a pipeline topology note explaining what downstream prepare-implementation does when their outputs are absent. This makes the optional dependency explicit and helps users understand the tradeoff (run the upstream play → authoritative context vs. skip it → discovery mode).
 
 ---
 
@@ -267,9 +267,9 @@ The required change for all three is documentation: add a pipeline topology note
 |------|----------|------------|
 | context-assembly.yaml carries wrong authority label (e.g., "absent" instead of "derived" after discovery mode) | Critical | F25 failure condition + SE-08 eval checks status field explicitly. |
 | Downstream skills (draft-lld, draft-product-spec) invoked with null input paths they don't yet handle | High | Skills need discovery_mode input path (not-yet-applied changes). Until then, passing null produces unpredictable behavior. |
-| tech-architect and tech-designer used interchangeably in other recipes that weren't updated | Medium | tech-designer.md is retained. Other recipes reference tech-designer, not tech-architect. No collision currently — but a future recipe rebake could accidentally reference the wrong agent. |
+| tech-architect and tech-designer used interchangeably in other plays that weren't updated | Medium | tech-designer.md is retained. Other plays reference tech-designer, not tech-architect. No collision currently — but a future play rebake could accidentally reference the wrong agent. |
 | Blast radius eval conditions inverted — old evals PASS on the behavior being corrected | Critical (theoretical) | No evals currently run in meridian-os. But baseline-tests.yaml must specify the corrected eval conditions so when evals are introduced, they test the right behavior. |
-| Pipeline recipe review finds that discover-product DID have a product.yaml hard-block that should be relaxed | Low | The co-change review (not-yet-applied) will surface this. It is a discovery risk, not a design risk. |
+| Pipeline play review finds that discover-product DID have a product.yaml hard-block that should be relaxed | Low | The co-change review (not-yet-applied) will surface this. It is a discovery risk, not a design risk. |
 
 ---
 
@@ -298,7 +298,7 @@ Group C — Skill discovery mode handling (batch, all 4 follow same pattern):
   (Group B must complete before Group C — pipeline review may change skill contract requirements)
 
 Group D — LTM standard (can be done in parallel with Group C):
-  → core/components/memory/standards/recipe-dependency-protocol.md
+  → core/components/memory/standards/play-dependency-protocol.md
 ```
 
 Group A is done. Groups B → C → D constitute the remaining implementation surface.

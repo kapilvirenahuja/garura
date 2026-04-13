@@ -3,12 +3,12 @@ implementation:
   strategy: >
     Updated two intent.yaml files and their compiled SKILL.md artifacts to fix the
     prepare-implementation → implement-epic artifact path disconnect and add self-contained
-    setup to prepare-implementation. Changes were made directly (not via /create-recipe --rebake)
-    because the files are recipe infrastructure (.yaml, .md), not source code — code-builder
+    setup to prepare-implementation. Changes were made directly (not via /create-play --rebake)
+    because the files are play infrastructure (.yaml, .md), not source code — code-builder
     agent explicitly refuses non-code files.
 
   files_modified:
-    - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    - path: "core/components/plays/prepare-implementation/reference/intent.yaml"
       action: "modify"
       changes:
         - "Added C33: resolve/create GitHub issue before artifact production"
@@ -20,7 +20,7 @@ implementation:
         - "Added F29: artifact written before STM init"
         - "Added S14: developer invokes without prior start-feature"
 
-    - path: "core/components/recipes/prepare-implementation/SKILL.md"
+    - path: "core/components/plays/prepare-implementation/SKILL.md"
       action: "modify"
       changes:
         - "Updated Compiled From line: C1-C36, F1-F29, S1-S14"
@@ -30,30 +30,30 @@ implementation:
         - "Updated Step 0 (upstream artifact read) to depend on Step 0c instead of pre-flight"
         - "Updated intent_hash in Compilation Metadata"
 
-    - path: "core/components/recipes/implement-epic/reference/intent.yaml"
+    - path: "core/components/plays/implement-epic/reference/intent.yaml"
       action: "modify"
       changes:
         - "Added C24: design artifacts sourced from {stm_base}/{issue}/context/design/, architecture/quality from {product_base}/architecture/"
 
-    - path: "core/components/recipes/implement-epic/SKILL.md"
+    - path: "core/components/plays/implement-epic/SKILL.md"
       action: "modify"
       changes:
         - "Updated Compiled From line: C1-C24"
         - "Changed artifact_base from {product_base}/roadmap/epics/{epic_id} to {stm_base}/{issue}/context/design"
         - "Reordered path assignments: architecture_yaml_path and quality_standards_path now clearly separated as product-level"
-        - "Zero references to roadmap/epics in compiled recipe"
+        - "Zero references to roadmap/epics in compiled play"
         - "Updated intent_hash in Compilation Metadata"
 
   deviation_from_design:
     - description: >
-        Changes were applied directly to SKILL.md files instead of via /create-recipe --rebake.
+        Changes were applied directly to SKILL.md files instead of via /create-play --rebake.
         The design specified rebaking but code-builder agent cannot handle .yaml/.md files.
         The targeted edits match exactly what a rebake would produce — only the specified
-        sections changed, all other recipe content is structurally identical.
+        sections changed, all other play content is structurally identical.
       justification: >
         code-builder is documented as "ONLY for source code files (.py, .js, .ts, .go, .java, etc.).
         NEVER select for .md, .yaml, .json config, specs, docs." A full rebake would also
-        risk altering unrelated recipe content. Surgical edits are safer and verifiable.
+        risk altering unrelated play content. Surgical edits are safer and verifiable.
 
   self_tests:
     - check: "grep for flat lock path (stm_base}/${issue}/${artifact}) in prepare-implementation SKILL.md"

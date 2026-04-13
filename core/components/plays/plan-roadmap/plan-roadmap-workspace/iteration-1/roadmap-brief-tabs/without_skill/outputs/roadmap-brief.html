@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian OS — Roadmap Brief</title>
+<style>
+  :root {
+    --bg-primary: #0D1117;
+    --bg-secondary: #161B22;
+    --bg-tertiary: #21262D;
+    --bg-card: #1C2128;
+    --border-primary: #30363D;
+    --border-highlight: #58A6FF;
+    --color-water: #58A6FF;
+    --color-text-primary: #E6EDF3;
+    --color-text-secondary: #8B949E;
+    --color-text-muted: #6E7681;
+    --color-success: #3FB950;
+    --color-warning: #D29922;
+    --color-danger: #F85149;
+    --color-purple: #BC8CFF;
+    --color-orange: #F0883E;
+    --color-tether: #3FB950;
+    --color-vanish: #F85149;
+    --color-orbit: #D29922;
+    --radius: 8px;
+    --radius-sm: 4px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.3);
+    --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-primary);
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    padding: 24px 32px;
+  }
+  .header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+  }
+  .header .subtitle {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+  .header .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 12px;
+    vertical-align: middle;
+  }
+  .badge-locked { background: rgba(63,185,80,0.15); color: var(--color-success); border: 1px solid rgba(63,185,80,0.3); }
+
+  /* ── Tab Navigation ── */
+  .tab-nav {
+    display: flex;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    padding: 0 32px;
+    gap: 0;
+  }
+  .tab-btn {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: var(--font-sans);
+  }
+  .tab-btn:hover { color: var(--color-text-primary); }
+  .tab-btn.active {
+    color: var(--color-water);
+    border-bottom-color: var(--color-water);
+  }
+  .tab-btn .count {
+    display: inline-block;
+    background: var(--bg-tertiary);
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+    min-width: 18px;
+    text-align: center;
+  }
+
+  /* ── Tab Content ── */
+  .tab-content { display: none; padding: 32px; max-width: 1100px; margin: 0 auto; }
+  .tab-content.active { display: block; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--color-text-primary);
+  }
+  .card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--color-text-primary);
+  }
+  .card p, .card li {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+  }
+  .card ul { list-style: none; padding-left: 0; }
+  .card ul li { padding: 4px 0; padding-left: 18px; position: relative; }
+  .card ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-water);
+  }
+
+  /* ── Strategy Tab specifics ── */
+  .value-prop {
+    background: linear-gradient(135deg, rgba(88,166,255,0.08), rgba(188,140,255,0.06));
+    border: 1px solid rgba(88,166,255,0.2);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-text-primary);
+  }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+  }
+  .metric-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+  }
+  .metric-item .label { font-size: 12px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .metric-item .value { font-size: 20px; font-weight: 600; color: var(--color-water); }
+  .metric-item .desc { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
+
+  .goal-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .goal-card .goal-id {
+    display: inline-block;
+    background: rgba(88,166,255,0.12);
+    color: var(--color-water);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+  }
+  .goal-card .goal-title { font-size: 15px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 4px; }
+  .goal-card .goal-desc { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px; }
+  .goal-card .goal-metric { font-size: 12px; color: var(--color-text-muted); }
+  .goal-card .goal-target { color: var(--color-success); font-weight: 600; }
+
+  .persona-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .persona-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+  }
+  .persona-card .persona-id { font-size: 11px; color: var(--color-text-muted); font-family: var(--font-mono); margin-bottom: 6px; }
+  .persona-card .persona-name { font-size: 14px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 8px; }
+  .persona-card .persona-field { margin-bottom: 6px; }
+  .persona-card .persona-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .persona-card .persona-value { font-size: 13px; color: var(--color-text-secondary); }
+
+  .competitor-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+  }
+  .competitor-table th {
+    text-align: left;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-primary);
+  }
+  .competitor-table td {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    padding: 12px;
+    border-bottom: 1px solid var(--border-primary);
+    vertical-align: top;
+  }
+  .competitor-table tr:last-child td { border-bottom: none; }
+  .competitor-table .comp-name { font-weight: 600; color: var(--color-text-primary); }
+  .tag { display: inline-block; background: var(--bg-tertiary); padding: 2px 8px; border-radius: 4px; font-size: 11px; margin: 2px; }
+  .tag-strength { color: var(--color-success); }
+  .tag-weakness { color: var(--color-warning); }
+
+  /* ── Timeline Tab ── */
+  .timeline-section { margin-bottom: 32px; }
+  .timeline-section .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-primary);
+  }
+  .section-near .section-label { color: var(--color-success); }
+  .section-mid .section-label { color: var(--color-warning); }
+  .section-long .section-label { color: var(--color-purple); }
+
+  .epic-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    border-left: 3px solid var(--border-primary);
+  }
+  .section-near .epic-card { border-left-color: var(--color-success); }
+  .section-mid .epic-card { border-left-color: var(--color-warning); }
+  .section-long .epic-card { border-left-color: var(--color-purple); }
+
+  .epic-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .epic-id {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    color: var(--color-text-muted);
+  }
+  .epic-name { font-size: 16px; font-weight: 600; color: var(--color-text-primary); }
+  .epic-priority {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .priority-P1 { background: rgba(248,81,73,0.15); color: var(--color-danger); }
+  .priority-P2 { background: rgba(210,153,34,0.15); color: var(--color-warning); }
+  .priority-P3 { background: rgba(139,148,158,0.15); color: var(--color-text-secondary); }
+  .epic-foundation {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(88,166,255,0.12);
+    color: var(--color-water);
+    font-weight: 600;
+  }
+
+  .epic-body { margin-top: 8px; }
+  .epic-desc { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 12px; }
+  .epic-intent { margin-bottom: 12px; }
+  .epic-intent .intent-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .epic-intent .intent-text { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 8px; }
+
+  .epic-deps { font-size: 12px; color: var(--color-text-muted); margin-top: 8px; }
+  .epic-deps .dep-tag {
+    display: inline-block;
+    background: var(--bg-tertiary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    color: var(--color-text-secondary);
+    margin-left: 4px;
+  }
+
+  .epic-scenarios { margin-top: 16px; }
+  .scenario-item {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .scenario-item .scenario-given { color: var(--color-text-muted); }
+  .scenario-item .scenario-when { color: var(--color-water); }
+  .scenario-item .scenario-then { color: var(--color-success); }
+  .scenario-label { font-weight: 600; font-size: 11px; text-transform: uppercase; margin-right: 6px; }
+
+  .epic-failures { margin-top: 12px; }
+  .failure-item {
+    font-size: 13px;
+    color: var(--color-danger);
+    padding: 4px 0 4px 18px;
+    position: relative;
+  }
+  .failure-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-danger);
+  }
+
+  /* ── Feasibility Tab ── */
+  .risk-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-left: 3px solid var(--color-warning);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .assumption-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-left: 3px solid var(--color-water);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+  }
+
+  .oos-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-left: 3px solid var(--color-text-muted);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .oos-card .oos-cat { font-size: 14px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 4px; }
+  .oos-card .oos-reason { font-size: 13px; color: var(--color-text-secondary); }
+
+  .dep-graph {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-top: 16px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 2;
+    color: var(--color-text-secondary);
+  }
+  .dep-graph .dep-arrow { color: var(--color-water); }
+  .dep-graph .dep-node { color: var(--color-text-primary); font-weight: 600; }
+
+  .market-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 12px;
+  }
+  .market-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+  }
+  .market-item .market-label { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .market-item .market-value { font-size: 18px; font-weight: 600; color: var(--color-water); }
+  .market-item .market-desc { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
+
+  /* ── Comments Tab ── */
+  .comments-list { margin-bottom: 24px; }
+  .comment-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .comment-item .comment-selected-text {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--color-water);
+    margin-bottom: 12px;
+    word-break: break-word;
+  }
+  .comment-item .comment-body {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+  }
+  .comment-item .comment-meta {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .comment-item .comment-tab-source {
+    font-size: 11px;
+    color: var(--color-water);
+    font-family: var(--font-mono);
+  }
+  .comment-delete {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.15s;
+    font-family: var(--font-sans);
+  }
+  .comment-delete:hover { color: var(--color-danger); background: rgba(248,81,73,0.1); }
+
+  .no-comments {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--color-text-muted);
+    font-size: 14px;
+  }
+
+  /* ── Action Buttons ── */
+  .action-bar {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-primary);
+  }
+  .action-btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: var(--font-sans);
+    flex: 1;
+    text-align: center;
+  }
+  .action-btn:active { transform: scale(0.98); }
+  .btn-tether {
+    background: rgba(63,185,80,0.15);
+    color: var(--color-tether);
+    border: 1px solid rgba(63,185,80,0.3);
+  }
+  .btn-tether:hover { background: rgba(63,185,80,0.25); }
+  .btn-vanish {
+    background: rgba(248,81,73,0.15);
+    color: var(--color-vanish);
+    border: 1px solid rgba(248,81,73,0.3);
+  }
+  .btn-vanish:hover { background: rgba(248,81,73,0.25); }
+  .btn-orbit {
+    background: rgba(210,153,34,0.15);
+    color: var(--color-orbit);
+    border: 1px solid rgba(210,153,34,0.3);
+  }
+  .btn-orbit:hover { background: rgba(210,153,34,0.25); }
+
+  .action-result {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    display: none;
+  }
+  .action-result.visible { display: block; }
+  .action-result.tether { background: rgba(63,185,80,0.1); color: var(--color-tether); border: 1px solid rgba(63,185,80,0.2); }
+  .action-result.vanish { background: rgba(248,81,73,0.1); color: var(--color-vanish); border: 1px solid rgba(248,81,73,0.2); }
+  .action-result.orbit { background: rgba(210,153,34,0.1); color: var(--color-orbit); border: 1px solid rgba(210,153,34,0.2); }
+
+  /* ── Comment Tooltip ── */
+  .comment-tooltip {
+    position: fixed;
+    background: var(--bg-secondary);
+    border: 1px solid var(--color-water);
+    border-radius: var(--radius);
+    padding: 12px;
+    box-shadow: var(--shadow), 0 4px 16px rgba(0,0,0,0.4);
+    z-index: 1000;
+    display: none;
+    width: 320px;
+  }
+  .comment-tooltip.visible { display: block; }
+  .comment-tooltip textarea {
+    width: 100%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: var(--font-sans);
+    resize: vertical;
+    min-height: 60px;
+    outline: none;
+  }
+  .comment-tooltip textarea:focus { border-color: var(--color-water); }
+  .comment-tooltip .tooltip-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .tooltip-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+  .tooltip-save {
+    background: var(--color-water);
+    color: var(--bg-primary);
+  }
+  .tooltip-save:hover { opacity: 0.9; }
+  .tooltip-cancel {
+    background: var(--bg-tertiary);
+    color: var(--color-text-secondary);
+  }
+  .tooltip-cancel:hover { color: var(--color-text-primary); }
+
+  .tooltip-selected-preview {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin-bottom: 8px;
+    padding: 6px 8px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    border-left: 2px solid var(--color-water);
+    max-height: 60px;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  /* ── Text highlight for commented text ── */
+  .commented-text {
+    background: rgba(88,166,255,0.15);
+    border-bottom: 1px dashed var(--color-water);
+    cursor: pointer;
+    padding: 0 1px;
+  }
+
+  /* ── Export button ── */
+  .export-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 0;
+  }
+  .export-btn {
+    padding: 8px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: all 0.15s;
+  }
+  .export-btn:hover { color: var(--color-text-primary); border-color: var(--color-water); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .header { padding: 16px 20px; }
+    .tab-nav { padding: 0 16px; overflow-x: auto; }
+    .tab-btn { padding: 10px 14px; font-size: 13px; white-space: nowrap; }
+    .tab-content { padding: 20px 16px; }
+    .metric-grid, .persona-grid, .market-grid { grid-template-columns: 1fr; }
+    .action-bar { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<div class="header">
+  <h1>Meridian OS <span class="badge badge-locked">LOCKED</span></h1>
+  <div class="subtitle">Roadmap Brief &mdash; Intent-Driven AI Development Operating Layer</div>
+</div>
+
+<!-- ═══════════ TAB NAVIGATION ═══════════ -->
+<div class="tab-nav">
+  <button class="tab-btn active" data-tab="strategy">Strategy</button>
+  <button class="tab-btn" data-tab="timeline">Timeline</button>
+  <button class="tab-btn" data-tab="feasibility">Feasibility</button>
+  <button class="tab-btn" data-tab="comments">Comments <span class="count" id="comment-count">0</span></button>
+</div>
+
+<!-- ═══════════ STRATEGY TAB ═══════════ -->
+<div class="tab-content active" id="tab-strategy" data-selectable="true">
+
+  <div class="value-prop">
+    Meridian OS is the operating layer for intent-driven AI development. It gives AI assistants persistent project memory, structured workflows (plays), and a shared understanding of intent &mdash; so every AI session starts informed, not blank. Teams stop babysitting AI and start delegating to it.
+  </div>
+
+  <!-- Problem -->
+  <div class="card">
+    <h2>Problem</h2>
+    <p>Software teams using AI assistants waste enormous time on context switching, prompt engineering, and re-explaining project state to every new AI session. There is no durable, structured way for an AI to understand a project's intent, constraints, and current state.</p>
+  </div>
+
+  <!-- Target Users -->
+  <div class="card">
+    <h2>Target Users</h2>
+    <div class="persona-grid">
+      <div class="persona-card">
+        <div class="persona-id">U1</div>
+        <div class="persona-name">Engineering Lead at growth-stage startup</div>
+        <div class="persona-field">
+          <div class="persona-label">Goal</div>
+          <div class="persona-value">Delegate complex development workflows to AI without re-explaining context every session</div>
+        </div>
+        <div class="persona-field">
+          <div class="persona-label">Frustration</div>
+          <div class="persona-value">AI gives generic advice that ignores project architecture, past decisions, and current state</div>
+        </div>
+        <div class="persona-field">
+          <div class="persona-label">Context</div>
+          <div class="persona-value">Running 5-20 person engineering teams, using Claude or Cursor daily</div>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-id">U2</div>
+        <div class="persona-name">Solo founder with technical background</div>
+        <div class="persona-field">
+          <div class="persona-label">Goal</div>
+          <div class="persona-value">Move fast on 0-to-1 product without babysitting AI through every decision</div>
+        </div>
+        <div class="persona-field">
+          <div class="persona-label">Frustration</div>
+          <div class="persona-value">Re-explaining architecture decisions every session, getting inconsistent AI output</div>
+        </div>
+        <div class="persona-field">
+          <div class="persona-label">Context</div>
+          <div class="persona-value">Building alone, needs to ship quickly, can't afford wasted AI cycles</div>
+        </div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-id">U3</div>
+        <div class="persona-name">Platform engineer</div>
+        <div class="persona-field">
+          <div class="persona-label">Goal</div>
+          <div class="persona-value">Enforce consistent AI-assisted workflows across teams</div>
+        </div>
+        <div class="persona-field">
+          <div class="persona-label">Frustration</div>
+          <div class="persona-value">Every developer uses AI differently; no standard approach to AI-assisted development</div>
+        </div>
+        <div class="persona-field">
+          <div class="persona-label">Context</div>
+          <div class="persona-value">Responsible for internal tooling standards at mid-size companies</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strategic Goals -->
+  <div class="card">
+    <h2>Strategic Goals</h2>
+    <div class="goal-card">
+      <div class="goal-id">SG1</div>
+      <div class="goal-title">Persistent Context</div>
+      <div class="goal-desc">AI assistants retain full project intent, constraints, and decisions across sessions without manual re-entry</div>
+      <div class="goal-metric">Metric: Sessions with full context loaded &mdash; Target: <span class="goal-target">&gt; 90%</span></div>
+    </div>
+    <div class="goal-card">
+      <div class="goal-id">SG2</div>
+      <div class="goal-title">Structured Workflows</div>
+      <div class="goal-desc">Common development operations execute as repeatable, auditable plays</div>
+      <div class="goal-metric">Metric: Play execution success rate &mdash; Target: <span class="goal-target">&gt; 80% without human intervention</span></div>
+    </div>
+    <div class="goal-card">
+      <div class="goal-id">SG3</div>
+      <div class="goal-title">Audience-Separated Artifacts</div>
+      <div class="goal-desc">Product, engineering, and stakeholder artifacts generated from a single source of truth</div>
+      <div class="goal-metric">Metric: Artifacts derived from shared intent &mdash; Target: <span class="goal-target">100%</span></div>
+    </div>
+    <div class="goal-card">
+      <div class="goal-id">SG4</div>
+      <div class="goal-title">Progressive Enrichment</div>
+      <div class="goal-desc">Artifacts start lightweight and gain depth as the project matures</div>
+      <div class="goal-metric">Metric: Time from idea to first AI-assisted commit &mdash; Target: <span class="goal-target">&lt; 30 minutes</span></div>
+    </div>
+    <div class="goal-card">
+      <div class="goal-id">SG5</div>
+      <div class="goal-title">Zero-Friction Adoption</div>
+      <div class="goal-desc">Works with existing Claude Code setup; no new infrastructure, no new tools, no migration cost</div>
+      <div class="goal-metric">Metric: Setup time for new project &mdash; Target: <span class="goal-target">&lt; 5 minutes</span></div>
+    </div>
+  </div>
+
+  <!-- Differentiators -->
+  <div class="card">
+    <h2>Differentiators</h2>
+    <ul>
+      <li>Persistent project memory across AI sessions</li>
+      <li>Structured, auditable plays for development operations</li>
+      <li>Audience-separated artifact generation from single source of truth</li>
+      <li>Progressive enrichment &mdash; start lightweight, deepen as needed</li>
+      <li>Zero-friction adoption &mdash; works with existing Claude Code setup</li>
+    </ul>
+  </div>
+
+  <!-- Competitive Landscape -->
+  <div class="card">
+    <h2>Competitive Landscape</h2>
+    <table class="competitor-table">
+      <thead>
+        <tr><th>Competitor</th><th>Strengths</th><th>Weaknesses</th><th>Our Advantage</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="comp-name">GitHub Copilot / Cursor</td>
+          <td><span class="tag tag-strength">Deep IDE integration</span> <span class="tag tag-strength">Real-time code completion</span></td>
+          <td><span class="tag tag-weakness">No persistent project intent</span> <span class="tag tag-weakness">No workflow structure</span></td>
+          <td>Persistent context and structured plays vs session-scoped suggestions</td>
+        </tr>
+        <tr>
+          <td class="comp-name">Linear + Notion</td>
+          <td><span class="tag tag-strength">Project management workflows</span> <span class="tag tag-strength">Team collaboration</span></td>
+          <td><span class="tag tag-weakness">Humans bridge AI and project context</span> <span class="tag tag-weakness">No AI orchestration</span></td>
+          <td>AI-native orchestration layer, not a human PM tool</td>
+        </tr>
+        <tr>
+          <td class="comp-name">LangChain / LlamaIndex</td>
+          <td><span class="tag tag-strength">Flexible AI app frameworks</span> <span class="tag tag-strength">Large ecosystem</span></td>
+          <td><span class="tag tag-weakness">For building AI apps, not operating AI-assisted dev</span> <span class="tag tag-weakness">No intent model</span></td>
+          <td>Intent-driven development workflow, not a general-purpose AI framework</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Market Size -->
+  <div class="card">
+    <h2>Market Sizing</h2>
+    <div class="market-grid">
+      <div class="market-item">
+        <div class="market-label">TAM</div>
+        <div class="market-value">~$50B</div>
+        <div class="market-desc">Global AI developer tools market by 2028</div>
+      </div>
+      <div class="market-item">
+        <div class="market-label">SAM</div>
+        <div class="market-value">~$5B</div>
+        <div class="market-desc">AI-assisted development workflow segment</div>
+      </div>
+      <div class="market-item">
+        <div class="market-label">SOM</div>
+        <div class="market-value">~$200M</div>
+        <div class="market-desc">Early adopter segment (growth-stage startups using Claude/Cursor)</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ TIMELINE TAB ═══════════ -->
+<div class="tab-content" id="tab-timeline" data-selectable="true">
+
+  <!-- Near-term -->
+  <div class="timeline-section section-near">
+    <div class="section-label">Near-Term</div>
+
+    <div class="epic-card">
+      <div class="epic-header">
+        <span class="epic-id">F1</span>
+        <span class="epic-name">Persistent Project Memory</span>
+        <span class="epic-priority priority-P1">P1</span>
+        <span class="epic-foundation">Foundation</span>
+      </div>
+      <div class="epic-body">
+        <div class="epic-desc">Enable AI assistants to retain full project intent, constraints, and decisions across sessions through structured short-term and long-term memory systems.</div>
+        <div class="epic-intent">
+          <div class="intent-label">Today (Problem)</div>
+          <div class="intent-text">Every AI session starts from zero. Engineers waste 10-15 minutes per session re-explaining project context, architecture decisions, and current state. There is no persistent memory layer between sessions.</div>
+          <div class="intent-label">After (Outcome)</div>
+          <div class="intent-text">AI assistants will automatically load project intent, active constraints, and recent decisions at session start. Engineers begin working immediately without context re-entry.</div>
+          <div class="intent-label">Why Now</div>
+          <div class="intent-text">This directly enables SG1 (Persistent Context) and is foundational &mdash; every other epic depends on the memory layer existing.</div>
+        </div>
+        <div class="epic-deps">Dependencies: <em>None</em></div>
+        <div class="epic-scenarios">
+          <h3>Success Scenarios</h3>
+          <div class="scenario-item">
+            <div><span class="scenario-label scenario-given">Given:</span> <span class="scenario-given">A project with prior work tracked in STM</span></div>
+            <div><span class="scenario-label scenario-when">When:</span> <span class="scenario-when">Engineer starts a new Claude Code session</span></div>
+            <div><span class="scenario-label scenario-then">Then:</span> <span class="scenario-then">AI loads project context including active issue, recent decisions, and constraints within 5 seconds</span></div>
+          </div>
+          <div class="scenario-item">
+            <div><span class="scenario-label scenario-given">Given:</span> <span class="scenario-given">An engineer completes a play that produces artifacts</span></div>
+            <div><span class="scenario-label scenario-when">When:</span> <span class="scenario-when">A new session starts the next day</span></div>
+            <div><span class="scenario-label scenario-then">Then:</span> <span class="scenario-then">AI can reference yesterday's artifacts by path and summarize their content without re-reading</span></div>
+          </div>
+        </div>
+        <div class="epic-failures">
+          <h3>Failure Conditions</h3>
+          <div class="failure-item">AI session starts with no project context loaded despite STM directory existing</div>
+          <div class="failure-item">Memory loading takes more than 30 seconds, causing engineer to skip it</div>
+          <div class="failure-item">Memory from one project leaks into another project's session</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="epic-card">
+      <div class="epic-header">
+        <span class="epic-id">F2</span>
+        <span class="epic-name">Play Execution Engine</span>
+        <span class="epic-priority priority-P1">P1</span>
+        <span class="epic-foundation">Foundation</span>
+      </div>
+      <div class="epic-body">
+        <div class="epic-desc">Build the core play execution engine that runs plays with agent delegation, checkpoint handling, and evidence collection.</div>
+        <div class="epic-intent">
+          <div class="intent-label">Today (Problem)</div>
+          <div class="intent-text">Development operations like feature planning, code review, and shipping are currently ad-hoc. Each engineer prompts AI differently, producing inconsistent results with no audit trail.</div>
+          <div class="intent-label">After (Outcome)</div>
+          <div class="intent-text">Common development operations execute as structured plays &mdash; repeatable, auditable, and delegating to specialized agents. Every play produces evidence of what was done and why.</div>
+          <div class="intent-label">Why Now</div>
+          <div class="intent-text">This enables SG2 (Structured Workflows) and provides the execution backbone for all downstream features.</div>
+        </div>
+        <div class="epic-deps">Dependencies: <span class="dep-tag">F1</span></div>
+        <div class="epic-scenarios">
+          <h3>Success Scenarios</h3>
+          <div class="scenario-item">
+            <div><span class="scenario-label scenario-given">Given:</span> <span class="scenario-given">A play with 5 steps and 2 agent calls</span></div>
+            <div><span class="scenario-label scenario-when">When:</span> <span class="scenario-when">Engineer invokes the play</span></div>
+            <div><span class="scenario-label scenario-then">Then:</span> <span class="scenario-then">All steps execute in order, agents produce artifacts, evidence is written, and the play completes with a summary</span></div>
+          </div>
+          <div class="scenario-item">
+            <div><span class="scenario-label scenario-given">Given:</span> <span class="scenario-given">A play is interrupted mid-execution</span></div>
+            <div><span class="scenario-label scenario-when">When:</span> <span class="scenario-when">Engineer re-invokes the play</span></div>
+            <div><span class="scenario-label scenario-then">Then:</span> <span class="scenario-then">Execution resumes from the last incomplete step without re-running completed steps</span></div>
+          </div>
+        </div>
+        <div class="epic-failures">
+          <h3>Failure Conditions</h3>
+          <div class="failure-item">Play silently skips a step without logging why</div>
+          <div class="failure-item">Agent call fails but play continues as if it succeeded</div>
+          <div class="failure-item">Evidence file is missing or contains only a stub after play completion</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="epic-card">
+      <div class="epic-header">
+        <span class="epic-id">F3</span>
+        <span class="epic-name">Artifact Generation Pipeline</span>
+        <span class="epic-priority priority-P2">P2</span>
+      </div>
+      <div class="epic-body">
+        <div class="epic-desc">Implement the skill-based artifact generation system where specialized skills produce YAML artifacts and HTML briefs from structured inputs.</div>
+        <div class="epic-intent">
+          <div class="intent-label">Today (Problem)</div>
+          <div class="intent-text">Product, engineering, and stakeholder artifacts are maintained manually in parallel. Changes in one doc aren't reflected in others. Teams waste hours keeping docs in sync.</div>
+          <div class="intent-label">After (Outcome)</div>
+          <div class="intent-text">Artifacts are generated from a single source of truth by specialized skills. Product spec, architecture, scenarios, and plans each have a structured YAML + HTML brief pair, all derived from the same product intent.</div>
+          <div class="intent-label">Why Now</div>
+          <div class="intent-text">This enables SG3 (Audience-Separated Artifacts) &mdash; each audience gets their view without manual translation.</div>
+        </div>
+        <div class="epic-deps">Dependencies: <span class="dep-tag">F1</span> <span class="dep-tag">F2</span></div>
+        <div class="epic-scenarios">
+          <h3>Success Scenarios</h3>
+          <div class="scenario-item">
+            <div><span class="scenario-label scenario-given">Given:</span> <span class="scenario-given">A locked product.yaml exists</span></div>
+            <div><span class="scenario-label scenario-when">When:</span> <span class="scenario-when">Engineer runs /prepare-implementation</span></div>
+            <div><span class="scenario-label scenario-then">Then:</span> <span class="scenario-then">5 YAML artifacts and 5 HTML briefs are generated, each conforming to their schema</span></div>
+          </div>
+          <div class="scenario-item">
+            <div><span class="scenario-label scenario-given">Given:</span> <span class="scenario-given">A brief is generated</span></div>
+            <div><span class="scenario-label scenario-when">When:</span> <span class="scenario-when">Reviewer opens it in a browser</span></div>
+            <div><span class="scenario-label scenario-then">Then:</span> <span class="scenario-then">Tabbed layout renders, inline comments work, export produces valid JSON</span></div>
+          </div>
+        </div>
+        <div class="epic-failures">
+          <h3>Failure Conditions</h3>
+          <div class="failure-item">Generated YAML artifact is missing required schema fields</div>
+          <div class="failure-item">HTML brief has external CDN dependencies or broken JavaScript</div>
+          <div class="failure-item">Artifact references a field that doesn't exist in the source YAML</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mid-term -->
+  <div class="timeline-section section-mid">
+    <div class="section-label">Mid-Term</div>
+
+    <div class="epic-card">
+      <div class="epic-header">
+        <span class="epic-id">F4</span>
+        <span class="epic-name">Product Discovery Flow</span>
+        <span class="epic-priority priority-P2">P2</span>
+      </div>
+      <div class="epic-body">
+        <div class="epic-desc">Implement the /discover-product play flow from problem statement to locked product.yaml with market context, vision, and HTML brief review.</div>
+        <div class="epic-intent">
+          <div class="intent-label">Today (Problem)</div>
+          <div class="intent-text">Starting a new product requires extensive manual research, document creation, and stakeholder alignment. There is no structured path from idea to validated product vision.</div>
+          <div class="intent-label">After (Outcome)</div>
+          <div class="intent-text">Engineers run /discover-product with a problem statement and get a structured product.yaml with market context, vision, strategic goals, and an HTML brief for stakeholder review &mdash; all within a single session.</div>
+          <div class="intent-label">Why Now</div>
+          <div class="intent-text">This enables SG4 (Progressive Enrichment) &mdash; the product artifact starts with discovery and enriches through downstream plays.</div>
+        </div>
+        <div class="epic-deps">Dependencies: <span class="dep-tag">F2</span> <span class="dep-tag">F3</span></div>
+        <div class="epic-scenarios">
+          <h3>Success Scenarios</h3>
+          <div class="scenario-item">
+            <div><span class="scenario-label scenario-given">Given:</span> <span class="scenario-given">Engineer has a product idea described in 1-2 sentences</span></div>
+            <div><span class="scenario-label scenario-when">When:</span> <span class="scenario-when">They run /discover-product --phase draft</span></div>
+            <div><span class="scenario-label scenario-then">Then:</span> <span class="scenario-then">product.yaml is written with market context, vision, 3+ strategic goals, and a product-brief.html is generated for review</span></div>
+          </div>
+          <div class="scenario-item">
+            <div><span class="scenario-label scenario-given">Given:</span> <span class="scenario-given">product.yaml exists in DRAFT status</span></div>
+            <div><span class="scenario-label scenario-when">When:</span> <span class="scenario-when">Engineer runs /discover-product --phase lock</span></div>
+            <div><span class="scenario-label scenario-then">Then:</span> <span class="scenario-then">Status changes to LOCKED and downstream plays can consume it</span></div>
+          </div>
+        </div>
+        <div class="epic-failures">
+          <h3>Failure Conditions</h3>
+          <div class="failure-item">product.yaml has fewer than 3 strategic goals</div>
+          <div class="failure-item">product-brief.html has no feedback mechanism (missing inline comments)</div>
+          <div class="failure-item">LOCK phase silently overwrites content instead of only changing status</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Long-term -->
+  <div class="timeline-section section-long">
+    <div class="section-label">Long-Term</div>
+
+    <div class="epic-card">
+      <div class="epic-header">
+        <span class="epic-id">F5</span>
+        <span class="epic-name">Zero-Friction Onboarding</span>
+        <span class="epic-priority priority-P3">P3</span>
+      </div>
+      <div class="epic-body">
+        <div class="epic-desc">Ensure new projects can adopt Meridian OS with minimal setup &mdash; sync components, configure paths, and run first play within 5 minutes.</div>
+        <div class="epic-intent">
+          <div class="intent-label">Today (Problem)</div>
+          <div class="intent-text">Adopting new development tools typically requires infrastructure changes, team training, and workflow migration. Engineers resist tools that add setup overhead.</div>
+          <div class="intent-label">After (Outcome)</div>
+          <div class="intent-text">A new project runs /sync-claude and immediately has access to all plays, skills, and agents. First play execution happens within 5 minutes of setup.</div>
+          <div class="intent-label">Why Now</div>
+          <div class="intent-text">This enables SG5 (Zero-Friction Adoption) &mdash; the barrier to entry is near zero.</div>
+        </div>
+        <div class="epic-deps">Dependencies: <span class="dep-tag">F1</span> <span class="dep-tag">F2</span></div>
+        <div class="epic-scenarios">
+          <h3>Success Scenarios</h3>
+          <div class="scenario-item">
+            <div><span class="scenario-label scenario-given">Given:</span> <span class="scenario-given">A fresh git repository with no Meridian configuration</span></div>
+            <div><span class="scenario-label scenario-when">When:</span> <span class="scenario-when">Engineer clones meridian-os and runs /sync-claude</span></div>
+            <div><span class="scenario-label scenario-then">Then:</span> <span class="scenario-then">All skills and agents are deployed to ~/.claude/, and running /discover-product works immediately</span></div>
+          </div>
+          <div class="scenario-item">
+            <div><span class="scenario-label scenario-given">Given:</span> <span class="scenario-given">Engineer has Meridian configured globally</span></div>
+            <div><span class="scenario-label scenario-when">When:</span> <span class="scenario-when">They open a new project</span></div>
+            <div><span class="scenario-label scenario-then">Then:</span> <span class="scenario-then">Plays are available without any project-specific setup</span></div>
+          </div>
+        </div>
+        <div class="epic-failures">
+          <h3>Failure Conditions</h3>
+          <div class="failure-item">Setup requires more than 3 manual steps beyond git clone</div>
+          <div class="failure-item">/sync-claude overwrites user's existing ~/.claude/ customizations</div>
+          <div class="failure-item">First play fails because a config path was not resolved correctly</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ FEASIBILITY TAB ═══════════ -->
+<div class="tab-content" id="tab-feasibility" data-selectable="true">
+
+  <!-- Dependency Graph -->
+  <div class="card">
+    <h2>Dependency Graph</h2>
+    <div class="dep-graph">
+      <div><span class="dep-node">F1 Persistent Project Memory</span></div>
+      <div>&nbsp;&nbsp;<span class="dep-arrow">&rarr;</span> <span class="dep-node">F2 Play Execution Engine</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="dep-arrow">&rarr;</span> <span class="dep-node">F3 Artifact Generation Pipeline</span> <span style="color:var(--color-text-muted)">(also depends on F1)</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dep-arrow">&rarr;</span> <span class="dep-node">F4 Product Discovery Flow</span></div>
+      <div>&nbsp;&nbsp;<span class="dep-arrow">&rarr;</span> <span class="dep-node">F5 Zero-Friction Onboarding</span> <span style="color:var(--color-text-muted)">(also depends on F2)</span></div>
+    </div>
+  </div>
+
+  <!-- Risks -->
+  <div class="card">
+    <h2>Risks</h2>
+    <div class="risk-card">Claude Code API changes could break play execution model</div>
+    <div class="risk-card">Adoption requires teams to commit to structured workflows over ad-hoc prompting</div>
+    <div class="risk-card">Competing AI providers may build similar workflow layers natively</div>
+  </div>
+
+  <!-- Assumptions -->
+  <div class="card">
+    <h2>Assumptions</h2>
+    <div class="assumption-card">Claude Code will remain the primary execution environment for at least 12 months</div>
+    <div class="assumption-card">Teams are willing to adopt structured workflows if the friction is low enough</div>
+    <div class="assumption-card">Intent-driven development produces measurably better AI output than ad-hoc prompting</div>
+    <div class="assumption-card">The play/agent/skill hierarchy is sufficient to model most development workflows</div>
+  </div>
+
+  <!-- Out of Scope -->
+  <div class="card">
+    <h2>Out of Scope</h2>
+    <div class="oos-card">
+      <div class="oos-cat">Multi-provider support</div>
+      <div class="oos-reason">Focus on Claude Code first; other LLM providers are future scope</div>
+    </div>
+    <div class="oos-card">
+      <div class="oos-cat">Visual IDE plugins</div>
+      <div class="oos-reason">CLI-first approach; IDE integration is downstream</div>
+    </div>
+    <div class="oos-card">
+      <div class="oos-cat">Team collaboration features</div>
+      <div class="oos-reason">Single-developer workflow first; team features after core loop is proven</div>
+    </div>
+  </div>
+
+  <!-- Success Metrics -->
+  <div class="card">
+    <h2>Success Metrics</h2>
+    <div class="metric-grid">
+      <div class="metric-item">
+        <div class="label">SG1 &mdash; Persistent Context</div>
+        <div class="value">&gt; 90%</div>
+        <div class="desc">Sessions with full context loaded (session telemetry)</div>
+      </div>
+      <div class="metric-item">
+        <div class="label">SG2 &mdash; Structured Workflows</div>
+        <div class="value">&gt; 80%</div>
+        <div class="desc">Play success rate without human intervention</div>
+      </div>
+      <div class="metric-item">
+        <div class="label">SG4 &mdash; Progressive Enrichment</div>
+        <div class="value">&lt; 30 min</div>
+        <div class="desc">Idea to first AI-assisted commit (end-to-end timing)</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ COMMENTS TAB ═══════════ -->
+<div class="tab-content" id="tab-comments">
+
+  <div class="card">
+    <h2>Review Comments</h2>
+    <p style="margin-bottom:16px;">Select any text in the Strategy, Timeline, or Feasibility tabs to add a comment. Comments are persisted in localStorage.</p>
+
+    <div class="export-bar">
+      <button class="export-btn" id="export-comments-btn">Export Comments as JSON</button>
+    </div>
+
+    <div class="comments-list" id="comments-list">
+      <div class="no-comments" id="no-comments-msg">No comments yet. Select text in any tab to add your first comment.</div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-bar">
+      <button class="action-btn btn-tether" id="btn-tether">Tether</button>
+      <button class="action-btn btn-vanish" id="btn-vanish">Vanish</button>
+      <button class="action-btn btn-orbit" id="btn-orbit">Orbit</button>
+    </div>
+    <div class="action-result" id="action-result"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════ COMMENT TOOLTIP ═══════════ -->
+<div class="comment-tooltip" id="comment-tooltip">
+  <div class="tooltip-selected-preview" id="tooltip-preview"></div>
+  <textarea id="tooltip-textarea" placeholder="Add your comment..."></textarea>
+  <div class="tooltip-actions">
+    <button class="tooltip-btn tooltip-cancel" id="tooltip-cancel">Cancel</button>
+    <button class="tooltip-btn tooltip-save" id="tooltip-save">Save</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── Storage Key ──
+  var STORAGE_KEY = 'meridian-roadmap-brief-comments';
+
+  // ── State ──
+  var comments = loadComments();
+  var pendingSelection = null;
+  var activeTabForComment = null;
+
+  // ── Tab Switching ──
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabContents = document.querySelectorAll('.tab-content');
+
+  tabBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var tabId = btn.getAttribute('data-tab');
+      tabBtns.forEach(function(b) { b.classList.remove('active'); });
+      tabContents.forEach(function(tc) { tc.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+      hideTooltip();
+    });
+  });
+
+  // ── Comment System ──
+  var tooltip = document.getElementById('comment-tooltip');
+  var tooltipPreview = document.getElementById('tooltip-preview');
+  var tooltipTextarea = document.getElementById('tooltip-textarea');
+  var commentsList = document.getElementById('comments-list');
+  var noCommentsMsg = document.getElementById('no-comments-msg');
+  var commentCountEl = document.getElementById('comment-count');
+
+  // Listen for text selection on selectable tabs
+  document.addEventListener('mouseup', function(e) {
+    // Ignore if click is inside tooltip
+    if (tooltip.contains(e.target)) return;
+
+    var sel = window.getSelection();
+    var text = sel.toString().trim();
+
+    if (text.length < 3) {
+      // Don't hide immediately to allow tooltip interaction
+      return;
+    }
+
+    // Check if selection is within a selectable tab
+    var node = sel.anchorNode;
+    var tabContent = null;
+    while (node && node !== document) {
+      if (node.nodeType === 1 && node.getAttribute('data-selectable') === 'true') {
+        tabContent = node;
+        break;
+      }
+      node = node.parentNode;
+    }
+
+    if (!tabContent) return;
+
+    // Determine which tab
+    var tabName = tabContent.id.replace('tab-', '');
+    activeTabForComment = tabName.charAt(0).toUpperCase() + tabName.slice(1);
+
+    pendingSelection = text;
+    tooltipPreview.textContent = text.length > 120 ? text.substring(0, 120) + '...' : text;
+    tooltipTextarea.value = '';
+
+    // Position tooltip near the selection
+    var range = sel.getRangeAt(0);
+    var rect = range.getBoundingClientRect();
+    var tooltipWidth = 320;
+    var x = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+    var y = rect.bottom + 8;
+
+    // Keep within viewport
+    if (x < 8) x = 8;
+    if (x + tooltipWidth > window.innerWidth - 8) x = window.innerWidth - tooltipWidth - 8;
+    if (y + 200 > window.innerHeight) y = rect.top - 180;
+
+    tooltip.style.left = x + 'px';
+    tooltip.style.top = y + 'px';
+    tooltip.classList.add('visible');
+
+    setTimeout(function() { tooltipTextarea.focus(); }, 50);
+  });
+
+  // Hide tooltip on click outside
+  document.addEventListener('mousedown', function(e) {
+    if (!tooltip.contains(e.target) && tooltip.classList.contains('visible')) {
+      hideTooltip();
+    }
+  });
+
+  // Save comment
+  document.getElementById('tooltip-save').addEventListener('click', function() {
+    var body = tooltipTextarea.value.trim();
+    if (!body) { tooltipTextarea.focus(); return; }
+    if (!pendingSelection) return;
+
+    var comment = {
+      id: 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      selectedText: pendingSelection,
+      body: body,
+      tab: activeTabForComment || 'Unknown',
+      timestamp: new Date().toISOString()
+    };
+
+    comments.push(comment);
+    saveComments();
+    renderComments();
+    hideTooltip();
+    window.getSelection().removeAllRanges();
+  });
+
+  // Save on Enter (Shift+Enter for newline)
+  tooltipTextarea.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      document.getElementById('tooltip-save').click();
+    }
+    if (e.key === 'Escape') {
+      hideTooltip();
+    }
+  });
+
+  // Cancel
+  document.getElementById('tooltip-cancel').addEventListener('click', function() {
+    hideTooltip();
+  });
+
+  function hideTooltip() {
+    tooltip.classList.remove('visible');
+    pendingSelection = null;
+    activeTabForComment = null;
+  }
+
+  // ── Render Comments ──
+  function renderComments() {
+    commentCountEl.textContent = comments.length;
+
+    if (comments.length === 0) {
+      noCommentsMsg.style.display = 'block';
+      // Remove all comment items
+      var items = commentsList.querySelectorAll('.comment-item');
+      items.forEach(function(item) { item.remove(); });
+      return;
+    }
+
+    noCommentsMsg.style.display = 'none';
+
+    // Clear existing
+    var existingItems = commentsList.querySelectorAll('.comment-item');
+    existingItems.forEach(function(item) { item.remove(); });
+
+    // Render in reverse chronological order
+    var sorted = comments.slice().reverse();
+    sorted.forEach(function(c) {
+      var div = document.createElement('div');
+      div.className = 'comment-item';
+      div.setAttribute('data-comment-id', c.id);
+
+      var ts = new Date(c.timestamp);
+      var timeStr = ts.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' at ' + ts.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+      div.innerHTML = '<div class="comment-selected-text">' + escapeHtml(c.selectedText) + '</div>'
+        + '<div class="comment-body">' + escapeHtml(c.body) + '</div>'
+        + '<div class="comment-meta">'
+        + '<span><span class="comment-tab-source">' + escapeHtml(c.tab) + '</span> &middot; ' + timeStr + '</span>'
+        + '<button class="comment-delete" data-id="' + c.id + '" title="Delete comment">Delete</button>'
+        + '</div>';
+
+      commentsList.appendChild(div);
+    });
+
+    // Attach delete handlers
+    commentsList.querySelectorAll('.comment-delete').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = btn.getAttribute('data-id');
+        comments = comments.filter(function(c) { return c.id !== id; });
+        saveComments();
+        renderComments();
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  // ── Persistence ──
+  function saveComments() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+    } catch(e) { /* storage full or unavailable */ }
+  }
+
+  function loadComments() {
+    try {
+      var data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch(e) { return []; }
+  }
+
+  // ── Export Comments ──
+  document.getElementById('export-comments-btn').addEventListener('click', function() {
+    var exportData = {
+      brief: 'Meridian OS Roadmap Brief',
+      exportedAt: new Date().toISOString(),
+      totalComments: comments.length,
+      comments: comments
+    };
+    var blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'roadmap-brief-comments.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // ── Action Buttons (Tether / Vanish / Orbit) ──
+  var actionResult = document.getElementById('action-result');
+
+  document.getElementById('btn-tether').addEventListener('click', function() {
+    showActionResult('tether', 'Tether confirmed. Roadmap is approved and locked for execution. All epics proceed as planned.');
+  });
+
+  document.getElementById('btn-vanish').addEventListener('click', function() {
+    showActionResult('vanish', 'Vanish confirmed. Roadmap is rejected. Epics require re-scoping before further review.');
+  });
+
+  document.getElementById('btn-orbit').addEventListener('click', function() {
+    showActionResult('orbit', 'Orbit confirmed. Roadmap is deferred. Parking for further discussion before committing direction.');
+  });
+
+  function showActionResult(type, message) {
+    actionResult.className = 'action-result visible ' + type;
+    actionResult.textContent = message;
+
+    // Save the action to localStorage as well
+    try {
+      localStorage.setItem(STORAGE_KEY + '-action', JSON.stringify({
+        action: type,
+        message: message,
+        timestamp: new Date().toISOString()
+      }));
+    } catch(e) {}
+  }
+
+  // Restore action state on load
+  try {
+    var savedAction = localStorage.getItem(STORAGE_KEY + '-action');
+    if (savedAction) {
+      var action = JSON.parse(savedAction);
+      showActionResult(action.action, action.message);
+    }
+  } catch(e) {}
+
+  // ── Initial Render ──
+  renderComments();
+
+})();
+</script>
+
+</body>
+</html>

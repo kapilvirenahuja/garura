@@ -1,9 +1,9 @@
 {
-  "recipe": "ship",
+  "play": "ship",
   "issue": "110",
   "started_at": "2026-03-23T17:12:00Z",
   "completed_at": "2026-03-23T17:22:03Z",
-  "feature_branch": "feature/110-check-drift-recipe",
+  "feature_branch": "feature/110-check-drift-play",
   "tasks": {
     "commit-code": { "status": "completed", "completed_at": "2026-03-23T17:14:00Z" },
     "create-pr": { "status": "completed", "completed_at": "2026-03-23T17:18:00Z" },

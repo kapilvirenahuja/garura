@@ -1,6 +1,6 @@
-recipe: commit-code
+play: commit-code
 issue: 95
-branch: feature/95-intent-driven-recipe-architecture
+branch: feature/95-intent-driven-play-architecture
 executed_at: "2026-03-06"
 
 commits:

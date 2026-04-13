@@ -1,5 +1,5 @@
 {
-  "recipe": "create-pr",
+  "play": "create-pr",
   "issue": 171,
   "started_at": "2026-03-26T06:25:20Z",
   "tasks": {

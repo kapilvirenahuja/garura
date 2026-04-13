@@ -50,7 +50,7 @@ mappings:
       semantic_3: "plan-roadmap evals.json and intent.yaml updates for Phoenix sidebar layout and verbatim transcription align with broader brief-rendering redesign scope"
       proximity: "All five groups map to #169 — proximity reinforces shared issue context"
     conflicts: []
-    commit_message: "refactor(recipes): update recipes and intents for client-side brief rendering (#169)"
+    commit_message: "refactor(plays): update plays and intents for client-side brief rendering (#169)"
 
   - group_id: group-5
     issue_number: 169
@@ -77,6 +77,6 @@ summary:
     'feat/169-client-side-brief-rendering' contains the issue number (strong branch
     signal), and semantic signals align for every group: templates/JS engine match
     the issue's acceptance criteria, deleted skills match the LLM-removal criterion,
-    agent and recipe updates reflect the brief-render.js adoption, and STM files are
+    agent and play updates reflect the brief-render.js adoption, and STM files are
     explicitly scoped under issues/169/. No conflicts detected. No approval required
     per C9 — all mappings are high confidence.

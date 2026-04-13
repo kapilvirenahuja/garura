@@ -35,7 +35,7 @@ T2, T3, T4, T5 can run in parallel after T1. T6 is the final integration step.
 
 #### T2: Update `commit-code` Report step to commit evidence
 - **Files:**
-  - `core/components/recipes/commit-code/SKILL.md` — modify
+  - `core/components/plays/commit-code/SKILL.md` — modify
 - **Details:**
   - In Step 5 — Report, after writing the evidence file, add a delegation sub-step:
     ```
@@ -54,7 +54,7 @@ T2, T3, T4, T5 can run in parallel after T1. T6 is the final integration step.
 
 #### T3: Update `create-pr` Report step to commit evidence
 - **Files:**
-  - `core/components/recipes/create-pr/SKILL.md` — modify
+  - `core/components/plays/create-pr/SKILL.md` — modify
 - **Details:**
   - In Step 4 — Report, after writing the evidence file, add same delegation pattern as T2:
     ```
@@ -70,7 +70,7 @@ T2, T3, T4, T5 can run in parallel after T1. T6 is the final integration step.
 
 #### T4: Update `ship` Report step to commit evidence
 - **Files:**
-  - `core/components/recipes/ship/SKILL.md` — modify
+  - `core/components/plays/ship/SKILL.md` — modify
 - **Details:**
   - In Step 6 — Report, after writing the evidence file, add delegation pattern:
     ```
@@ -87,8 +87,8 @@ T2, T3, T4, T5 can run in parallel after T1. T6 is the final integration step.
 
 #### T5: Fix branch-creation timing in `start-feature-planning`
 - **Files:**
-  - `core/components/recipes/start-feature-planning/SKILL.md` — modify
-  - `core/components/recipes/start-feature-planning/reference/intent.yaml` — modify
+  - `core/components/plays/start-feature-planning/SKILL.md` — modify
+  - `core/components/plays/start-feature-planning/reference/intent.yaml` — modify
 - **Details:**
   - Restructure phases in SKILL.md — new order:
 
@@ -122,7 +122,7 @@ T2, T3, T4, T5 can run in parallel after T1. T6 is the final integration step.
     - `~/.claude/skills/ship/SKILL.md` (updated)
     - `~/.claude/skills/start-feature-planning/SKILL.md` (updated)
   - Run all V1–V10 verification steps from verify.md against deployed files
-  - Confirm agent limits: count distinct agents in each recipe's phase table
+  - Confirm agent limits: count distinct agents in each play's phase table
 - **Depends on:** T2, T3, T4, T5
 - **Expected Outcome:** All components deployed; all verification traces pass; no agent limit violations
 - **Verification:** V1–V10 all PASS

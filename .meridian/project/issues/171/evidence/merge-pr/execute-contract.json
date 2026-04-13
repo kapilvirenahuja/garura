@@ -1,5 +1,5 @@
 {
-  "intent_path": "core/components/recipes/merge-pr/reference/intent.yaml",
+  "intent_path": "core/components/plays/merge-pr/reference/intent.yaml",
   "stm_base": ".meridian/project/issues/",
   "stm": {
     "input": {

@@ -1,7 +1,7 @@
 issue:
   number: 182
-  title: "Sub-agent context resolution protocol, LTM hierarchy enforcement, and learning recipe"
-  body: "Agents skip the knowledge hierarchy when making domain decisions. No systematic project-level LTM consultation, core LTM is optional prose not enforced by contracts, and no write-back mechanism exists. Implement R1-R4 resolution protocol across all agents, add ltm_context to contract schema, and create a learn recipe for LTM promotion from STM evidence."
+  title: "Sub-agent context resolution protocol, LTM hierarchy enforcement, and learning play"
+  body: "Agents skip the knowledge hierarchy when making domain decisions. No systematic project-level LTM consultation, core LTM is optional prose not enforced by contracts, and no write-back mechanism exists. Implement R1-R4 resolution protocol across all agents, add ltm_context to contract schema, and create a learn play for LTM promotion from STM evidence."
   url: "https://github.com/kapilvirenahuja/meridian-os/issues/182"
   state: "open"
   created: true

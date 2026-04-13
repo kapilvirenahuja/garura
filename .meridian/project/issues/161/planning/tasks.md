@@ -21,11 +21,11 @@ T1 -> T2
 - **Verification:** Read SKILL.md, confirm new fields and process steps
 
 #### T2: Update plan-roadmap SKILL.md Step 2
-- **Files:** `core/components/recipes/plan-roadmap/SKILL.md`
+- **Files:** `core/components/plays/plan-roadmap/SKILL.md`
 - **Details:**
   1. Add explicit LTM discovery instructions after "Agent reads product.yaml"
   2. List the specific LTM paths to discover: epic-schema.md, epic-management-rules.md, domain-taxonomy modules
   3. Instruct agent to pass these as skill inputs
 - **Depends on:** T1
-- **Expected Outcome:** Recipe tells agent exactly what LTM to find
+- **Expected Outcome:** Play tells agent exactly what LTM to find
 - **Verification:** Read Step 2, confirm LTM checklist present

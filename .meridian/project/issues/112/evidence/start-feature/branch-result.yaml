@@ -1,20 +1,20 @@
 result:
   success: true
   branch:
-    name: "feature/112-recipe-eval-gen"
+    name: "feature/112-play-eval-gen"
     base_ref: "main"
     pushed: true
-    tracking: "origin/feature/112-recipe-eval-gen"
+    tracking: "origin/feature/112-play-eval-gen"
   worktree:
     used: false
     path: null
     reason: "minor dirty tree (3 untracked files) — stash strategy used"
   dirty_tree_handling:
     strategy: "stash"
-    stash_message: "meridian: pre-branch stash for feature/112-recipe-eval-gen"
+    stash_message: "meridian: pre-branch stash for feature/112-play-eval-gen"
     untracked_preserved: true
     files_preserved:
       - ".claude/specs/discover-product-rebake/"
-      - ".claude/specs/recipe-eval-gen/"
+      - ".claude/specs/play-eval-gen/"
       - ".meridian/project/issues/112/"
   error: null

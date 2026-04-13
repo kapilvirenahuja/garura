@@ -1,7 +1,7 @@
 commits:
   - group_id: "group-1"
     sha: "a1b2e9a"
-    message: "feat(check-drift): add check-drift recipe and skill for implementation drift analysis (#110)"
+    message: "feat(check-drift): add check-drift play and skill for implementation drift analysis (#110)"
     files_count: 3
     issue: 110
   - group_id: "group-2"
