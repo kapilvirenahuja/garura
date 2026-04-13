@@ -1,0 +1,39 @@
+recipe: discover-product
+compiled_at: 2026-04-13
+intent_hash: sha256:0474d47cc799c28e49220cb644bc6c950ecbe294cb261d7536323161f85666bc
+
+skills:
+  - name: discover-product-opportunity
+    status: existing
+    path: core/components/skills/discover-product-opportunity/
+    invoked_by: product-strategist
+    step: 2
+    writes: none (returns structured market_context)
+    role: Opportunity discovery — problem, target users, competitors, market size
+    conditional: C12 — skipped when intent is an internal library/component
+
+  - name: draft-product-vision
+    status: existing
+    path: core/components/skills/draft-product-vision/
+    invoked_by: product-strategist
+    step: 3
+    writes: "{product_base}/discovery/product.yaml"
+    role: >
+      Vision drafting. Writes full product.yaml with strategic_goals, scope,
+      profiles (PP/NFR/QP via cascade), decision_points, type, status=DRAFT.
+      Accepts market_context (product type) OR raw_intent (library type).
+      Honors profile_knowledge_path (C16) and preserves source scope
+      decisions (C18, C19).
+
+  - name: validate-product-vision
+    status: existing
+    path: core/components/skills/validate-product-vision/
+    invoked_by: judge
+    step: 5
+    writes: "{product_base}/discovery/validation-result.yaml"
+    role: >
+      Completeness and correctness validation. Returns validation_result with
+      ready_for_lock, completeness_score, issues (blocker/warning), checklist.
+      Type-aware — library type omits market-specific checks.
+
+no_new_skills_required: true

@@ -51,9 +51,10 @@ constraints:
 
   - id: C7
     rule: >
-      A human-reviewable brief must be produced and approved before artifacts
-      are locked. The brief must have chapters for Architecture, Stack & Platforms,
-      Agentic, Quality Standards, Profiles, Operations, and Decisions.
+      architecture.yaml and quality-standards.yaml must receive explicit
+      human approval at the recipe checkpoint before being locked. The
+      review surface is the file paths of the two artifacts. Users may
+      run /briefs separately to generate an HTML rendering if desired.
 
   - id: C8
     rule: >
@@ -63,8 +64,8 @@ constraints:
 
   - id: C9
     rule: >
-      Maximum 5 domain agent dispatches per invocation. Doc-builder and
-      repo-orchestrator are utility agents exempt from the count.
+      Maximum 5 domain agent dispatches per invocation. repo-orchestrator
+      is a utility agent exempt from the count.
 
   - id: C10
     rule: >
@@ -161,10 +162,12 @@ scenarios:
 
   - id: S3
     persona: Product Manager
-    given: The architecture brief with Profiles Summary and Architecture Overview tabs
+    given: The architecture.yaml and quality-standards.yaml artifacts
     then: >
-      Can understand the high-level technology decisions and their relationship
-      to the product's character without needing technical deep-dives.
+      Can read the profiles section and high-level technology decisions
+      to understand their relationship to the product's character. May
+      optionally run /briefs to generate an HTML rendering with Profiles
+      Summary and Architecture Overview chapters for easier review.
 
   - id: S4
     persona: Implementation Agent
@@ -184,9 +187,9 @@ scenarios:
 
   - id: S6
     persona: Decision Reviewer
-    given: The architecture brief with the Decisions chapter rendered
+    given: The decisions[] array in architecture.yaml
     then: >
       Can trace every architectural decision back to its driving factors (budget
       constraints, LTM knowledge recommendations, profile dimensions, or user
-      choices during planning), filter decisions by driver type, and verify that
-      rejected alternatives have stated rationale.
+      choices during planning), filter decisions by driver type via the tagged
+      reasons, and verify that rejected alternatives have stated rationale.

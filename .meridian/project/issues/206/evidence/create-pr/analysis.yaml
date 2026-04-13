@@ -1,0 +1,195 @@
+analysis:
+  branch: refactor/206-make-brief-generation-opt-in
+  base: main
+  branch_pattern: refactor
+  commits: 5
+  changes:
+    files: 29
+    additions: 1859
+    deletions: 661
+
+  suggested_title: "refactor(recipes): make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture (#206)"
+
+  context:
+    file_patterns_matched:
+      - name: "Recipe Definitions"
+        files: 4
+        trigger: "**/recipes/**/SKILL.md"
+        examples:
+          - core/components/recipes/discover-product/SKILL.md
+          - core/components/recipes/plan-roadmap/SKILL.md
+          - core/components/recipes/prepare-architecture/SKILL.md
+          - core/components/recipes/create-recipe/SKILL.md
+      - name: "Skill Definitions"
+        files: 2
+        trigger: "**/skills/**/*.md"
+        examples:
+          - core/components/skills/draft-roadmap/SKILL.md
+          - core/components/skills/validate-roadmap/SKILL.md
+      - name: "Configuration / YAML"
+        files: 14
+        trigger: "*.yaml"
+        examples:
+          - core/components/recipes/discover-product/reference/intent.yaml
+          - core/components/recipes/plan-roadmap/reference/intent.yaml
+          - core/components/recipes/prepare-architecture/reference/intent.yaml
+          - core/components/skills/draft-roadmap/schemas/roadmap.yaml
+      - name: "STM Evidence / Docs"
+        files: 15
+        trigger: ".meridian/**"
+        note: "STM artifacts for issues 200 and 206 — not framework components"
+      - name: "Core Components (sync required)"
+        files: 10
+        trigger: "core/components/**"
+
+    commit_types:
+      - type: "refactor"
+        count: 3
+        examples:
+          - "refactor(recipes): remove mandatory brief generation from discover-product, plan-roadmap, prepare-architecture"
+          - "refactor(create-recipe): remove mandatory doc-builder step before checkpoints"
+          - "refactor(skills): remove brief generation references from draft-roadmap and validate-roadmap"
+      - type: "chore"
+        count: 2
+        examples:
+          - "chore(stm): record start-feature pending state and issue 206 STM evidence"
+          - "chore(stm): record issue 200 create-recipe audit evidence for discover-product and plan-roadmap"
+
+    branch_modifiers:
+      - "refactor branch: standard priorities apply (no hotfix demotion, no release promotion)"
+      - "refactor commits trigger refactor-no-break rule (must-have)"
+
+  checklist:
+    must_have:
+      - id: "no-conflicts"
+        item: "No merge conflicts with main"
+        trigger: "Universal rule — always applied"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD exited 0, produced clean merge tree 91366c036664f3902512540f01fda6a7f2bb06dd. No conflicts."
+
+      - id: "no-secrets"
+        item: "No secrets committed"
+        trigger: "Universal rule — always applied"
+        status: "PASS"
+        evidence: "Pattern scan of git diff for password, api_key, secret, private_key, token across all changed core/components/ files returned no matches."
+
+      - id: "recipe-frontmatter"
+        item: "All changed recipes have valid frontmatter (name, description, user-invocable, allowed-tools)"
+        trigger: "Recipe SKILL.md files changed: discover-product, plan-roadmap, prepare-architecture, create-recipe"
+        status: "PASS"
+        evidence: |
+          - create-recipe: name ✓, description ✓, user-invokable ✓ (note: uses 'user-invokable' variant)
+          - discover-product: name ✓, description ✓, user-invocable ✓
+          - plan-roadmap: name ✓, description ✓, user-invocable ✓, model ✓, allowed-tools ✓
+          - prepare-architecture: name ✓, description ✓, user-invocable ✓
+          All four recipes have valid frontmatter.
+
+      - id: "recipe-workflow"
+        item: "All changed recipes define a Workflow section"
+        trigger: "Recipe SKILL.md files changed"
+        status: "PASS"
+        evidence: |
+          - create-recipe: ## Workflow section present (line 252 area)
+          - discover-product: ## Workflow section present (line 72)
+          - plan-roadmap: ## Workflow section present (line 60)
+          - prepare-architecture: ## Workflow section present (line 64)
+
+      - id: "recipe-checkpoint"
+        item: "All changed recipes define checkpoint behavior"
+        trigger: "Recipe SKILL.md files changed"
+        status: "PASS"
+        evidence: |
+          - discover-product: Checkpoint section present in workflow (step-based with Tether/Vanish gates)
+          - plan-roadmap: epics_feasibility_review checkpoint defined in workflow contract
+          - prepare-architecture: Explicit checkpoint section with ALWAYS required note (C7)
+          - create-recipe: checkpoint behavior defined in Structure A/B compilation guidance
+
+      - id: "skill-frontmatter"
+        item: "All changed skills have valid frontmatter (name, description, user-invocable, allowed-tools)"
+        trigger: "Skill SKILL.md files changed: draft-roadmap, validate-roadmap"
+        status: "PASS"
+        evidence: |
+          - draft-roadmap: name ✓, description ✓, user-invocable: false ✓, model ✓, allowed-tools ✓
+          - validate-roadmap: name ✓, description ✓, user-invocable: false ✓, model ✓, allowed-tools ✓
+
+      - id: "skill-io"
+        item: "All changed skills define Input and Output sections"
+        trigger: "Skill SKILL.md files changed"
+        status: "PASS"
+        evidence: |
+          - draft-roadmap: ## Input (line 23), ## Output (lines 19, 75) present
+          - validate-roadmap: ## Input (line 34), ## Output (lines 19, 64) present
+
+      - id: "config-valid"
+        item: "All changed YAML configuration files have valid syntax"
+        trigger: "YAML files changed in core/components/"
+        status: "PASS"
+        evidence: |
+          python3 yaml.safe_load validation passed for all 4 core YAML files:
+          - core/components/recipes/discover-product/reference/intent.yaml ✓
+          - core/components/recipes/plan-roadmap/reference/intent.yaml ✓
+          - core/components/recipes/prepare-architecture/reference/intent.yaml ✓
+          - core/components/skills/draft-roadmap/schemas/roadmap.yaml ✓
+
+      - id: "sync-claude"
+        item: "Components synced with core/components/ via /sync-claude"
+        trigger: "10 files changed under core/components/ — sync-claude rule triggered"
+        status: "REVIEW"
+        evidence: |
+          10 core/components files modified (4 recipe SKILL.md, 2 skill SKILL.md, 3 intent.yaml, 1 roadmap schema).
+          /sync-claude must be run before or after merge to keep ~/.claude/ in sync with core/components/.
+          This is a manual step — cannot be automated in PR analysis.
+
+      - id: "refactor-no-break"
+        item: "No breaking changes to output contracts"
+        trigger: "3 refactor commits — refactor-no-break rule triggered"
+        status: "PASS"
+        evidence: |
+          Verified ## Output sections intact in all changed skill files:
+          - draft-roadmap/SKILL.md: ## Output Schema (line 19) and ## Output (line 75) unchanged
+          - validate-roadmap/SKILL.md: ## Output Schema (line 19) and ## Output (line 64) unchanged
+          Recipe output contracts not changed — removals are limited to doc-builder step invocations
+          and brief-generation workflow steps. Downstream artifact schemas (product.yaml, roadmap.yaml,
+          epics.yaml) are not touched. No caller-facing output contracts broken.
+
+    nice_to_have:
+      - id: "recipe-agent-limit"
+        item: "Recipes respect agent call limits (L1 ≤2, L2 ≤5)"
+        trigger: "Recipe SKILL.md files changed"
+        status: "PASS"
+        evidence: |
+          plan-roadmap explicitly states: "Domain agent count: 3 (product-strategist, tech-designer, judge) — within L2 ≤5 budget."
+          doc-builder step removed from discover-product and plan-roadmap reduces agent calls, maintaining compliance.
+          prepare-architecture: orchestrator-only with delegated domain agents — within budget.
+
+      - id: "skill-constraints"
+        item: "Changed skills have Constraints sections"
+        trigger: "Skill SKILL.md files changed"
+        status: "PASS"
+        evidence: |
+          - draft-roadmap/SKILL.md: ## Constraints section present (line 94)
+          - validate-roadmap/SKILL.md: ## Constraints section present (line 84)
+
+      - id: "config-documented"
+        item: "YAML configuration changes have related documentation updates"
+        trigger: "YAML config files changed"
+        status: "PASS"
+        evidence: |
+          All three changed intent.yaml files are paired with corresponding SKILL.md recipe rewrites.
+          The intent.yaml changes (removing brief-generation constraints) are directly reflected in
+          the compiled SKILL.md artifacts. No standalone config change without narrative context.
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Create PR"
+
+  meta:
+    analyzed_at: "2026-04-13"
+    issue: 206
+    platform: github
+    constraints_applied:
+      - "C4: Checklist items tailored to actual changes (no generic items)"
+      - "C5: Every item has evidence from actual diff analysis"
+      - "C8: Branch is refactor/206-*, not main/master"
+    branch_pattern_effect: "refactor branch — standard priorities, no overrides applied"

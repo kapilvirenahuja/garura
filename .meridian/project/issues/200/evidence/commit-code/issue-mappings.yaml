@@ -1,0 +1,25 @@
+mappings:
+  - group_name: "quality-check skill and KB implementation"
+    issue_number: 200
+    issue_title: "feat: quality-check skill — parallel subagent assessment framework inspired by digital-stargate"
+    confidence: "high"
+    reasoning: >
+      Three corroborating signals. Branch signal: feature/200-quality-check-skill directly encodes issue #200.
+      Semantic signal 1: group scope is quality-check; issue title contains 'quality-check skill' — exact match.
+      Semantic signal 2: group files are core/components/skills/quality-check/ and
+      core/components/memory/knowledge/quality/; issue body describes parallel subagent assessment with
+      HTML reports — all files implement exactly that capability.
+      Semantic signal 3: group type is feat; issue label is enhancement — aligned commit type.
+    conflicts: []
+
+  - group_name: "issue 200 STM planning and feature-start evidence"
+    issue_number: 200
+    issue_title: "feat: quality-check skill — parallel subagent assessment framework inspired by digital-stargate"
+    confidence: "high"
+    reasoning: >
+      Two corroborating signals. Branch signal: feature/200-quality-check-skill directly encodes issue #200.
+      Semantic signal: all files in this group are scoped to .meridian/project/issues/200/evidence/ and
+      .meridian/project/issues/200/ — the path itself is an explicit binding to issue #200 with no ambiguity.
+      STM evidence records are operational artifacts of the feature work and belong to the same issue as
+      the feature source changes.
+    conflicts: []
