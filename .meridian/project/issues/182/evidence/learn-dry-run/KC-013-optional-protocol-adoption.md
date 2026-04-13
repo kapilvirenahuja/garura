@@ -4,7 +4,7 @@
 **When this applies:** Updating multiple agents to adopt a new optional protocol, where each agent needs the same structural change but with its own domain-specific behavior.
 **When this does NOT apply:** Mandatory protocol changes that all agents must adopt simultaneously; single-agent updates with no cross-agent consistency requirement.
 **Search patterns:** optional protocol, agent update pattern, protocol adoption, normative document reference, conditional step, per-agent diff
-**Provenance:** Issue #182 — learn recipe dry run
+**Provenance:** Issue #182 — learn play dry run
 **Created:** 2026-03-31
 
 ## Content
@@ -47,7 +47,7 @@ Without a consistent update pattern, each engineer updating an agent invents the
 
 ## Rationale
 
-Reference-over-embed is a universal principle in modular systems. API gateways reference auth policies rather than embed them; services reference configuration rather than hardcode it. The specific application to optional protocol adoption in agent systems generalizes from this principle. The four-step pattern described here is a repeatable recipe for any multi-agent protocol rollout.
+Reference-over-embed is a universal principle in modular systems. API gateways reference auth policies rather than embed them; services reference configuration rather than hardcode it. The specific application to optional protocol adoption in agent systems generalizes from this principle. The four-step pattern described here is a repeatable play for any multi-agent protocol rollout.
 
 ## Decay Tracking
 

@@ -4,7 +4,7 @@
 **When this applies:** Any agent implementing or consuming LTM knowledge lookup within the Meridian framework.
 **When this does NOT apply:** External search systems, retrieval-augmented generation pipelines, or any system that uses vector embeddings for knowledge retrieval.
 **Search patterns:** knowledge discovery, keyword matching, search patterns, LTM index, _index.md, deterministic lookup
-**Provenance:** Issue #182 — learn recipe dry run
+**Provenance:** Issue #182 — learn play dry run
 **Created:** 2026-03-31
 
 ## Content

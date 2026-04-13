@@ -14,7 +14,7 @@
 | Step 2 | Architecture inference (tech-architect) | PASS | Discovery mode. 362-line YAML + 394-line MD with diagrams |
 | Step 3 | Test surface mapping (test-engineer) | PASS | Zero tests found — valid for specification/framework project |
 | Step 4 | Dependency graph (tech-architect) | PASS | 30 nodes, 52 edges, 3 mermaid diagrams |
-| Step 5 | Git history analysis (tech-architect) | PASS | 8 recipe commits, 3 co-change patterns |
+| Step 5 | Git history analysis (tech-architect) | PASS | 8 play commits, 3 co-change patterns |
 | Step 6 | LTM consultation (tech-architect) | PASS | 16 findings, 7 gaps |
 | Step 7 | Context assembly (tech-architect) | PASS | Full discovery mode — architecture and quality derived |
 | Checkpoint 0 | Context assembly approval | SIMULATED | Would present to user for Tether/Vanish/Orbit |
@@ -49,17 +49,17 @@
 
 ## Key Findings
 
-1. **Discovery mode works.** Architecture and quality context were successfully derived from codebase scan + LTM when locked artifacts were absent. The recipe didn't halt.
+1. **Discovery mode works.** Architecture and quality context were successfully derived from codebase scan + LTM when locked artifacts were absent. The play didn't halt.
 
-2. **Zero test surface is valid.** Meridian-os is a specification/framework project. Its "tests" are recipe evals (SE-*/SCE-*) and agent audits (P1-P11), not conventional test frameworks. The blast radius pipeline correctly adapted — reinterpreting coverage gaps as eval coverage gaps.
+2. **Zero test surface is valid.** Meridian-os is a specification/framework project. Its "tests" are play evals (SE-*/SCE-*) and agent audits (P1-P11), not conventional test frameworks. The blast radius pipeline correctly adapted — reinterpreting coverage gaps as eval coverage gaps.
 
-3. **3 eval inversions are the critical risk.** Old evals asserted "recipe halts on missing X" — now that halt is removed, those evals would fail. These must be updated to assert "recipe enters discovery mode when X is absent."
+3. **3 eval inversions are the critical risk.** Old evals asserted "play halts on missing X" — now that halt is removed, those evals would fail. These must be updated to assert "play enters discovery mode when X is absent."
 
 4. **tech-architect is a bottleneck.** 8 of 13 tasks route through it. Architecture inference alone took 373s. Future optimization: consider splitting codebase scan from architecture synthesis.
 
-5. **Co-change patterns flag propagation risk.** Git history shows all 4 pipeline recipes change together. The intent change in prepare-implementation may need consistency review in discover-product, plan-roadmap, prepare-architecture.
+5. **Co-change patterns flag propagation risk.** Git history shows all 4 pipeline plays change together. The intent change in prepare-implementation may need consistency review in discover-product, plan-roadmap, prepare-architecture.
 
-6. **LTM has 7 gaps relevant to this recipe.** No soft dependency patterns, no codebase inference patterns, no testing knowledge. These will become capture-learning candidates after issue closure.
+6. **LTM has 7 gaps relevant to this play.** No soft dependency patterns, no codebase inference patterns, no testing knowledge. These will become capture-learning candidates after issue closure.
 
 ## Simulation Artifacts
 

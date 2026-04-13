@@ -1,0 +1,95 @@
+{
+  "intent_hash": "sha256:pending-runtime-computation",
+  "stm_base": ".meridian/project/issues/",
+  "stm_paths": {
+    "dag": ".meridian/project/issues/95/dag/merge-pr.json"
+  },
+  "notes": [
+    "intent_hash requires runtime SHA-256 of intent.yaml bytes — set to sentinel; play must replace on first execution.",
+    "Constraints C4, C5, C6 are behavioral — embedded in task descriptions, not separate tasks.",
+    "Single agent (repo-orchestrator) covers all domain stages (2, 5); no domain gap."
+  ],
+  "tasks": [
+    {
+      "id": "preflight-0",
+      "stage": 0,
+      "subject": "Workflow pre-flight",
+      "description": "Resolve stm_base from core/config.yaml (stm.base-path = .meridian/project/issues/). Hold resolved value for all downstream agent contract paths. Confirm workflow template is direct-generation (stages 0,1,2,5,6,7 only — no brief or checkpoint).",
+      "owner": "play",
+      "blockedBy": [],
+      "blocks": ["intent-resolution-1"]
+    },
+    {
+      "id": "intent-resolution-1",
+      "stage": 1,
+      "subject": "Load or resolve merge-pr task DAG",
+      "description": "Check DAG cache at .meridian/project/issues/95/dag/merge-pr.json. If absent or stale (intent_hash mismatch), invoke intent-resolver with intent_path, workflow_path, config_path, and agents list to produce a fresh DAG carrying the resolved stm_base field.",
+      "owner": "intent-resolver",
+      "blockedBy": ["preflight-0"],
+      "blocks": ["readiness-pr-check-2", "readiness-tree-check-2"]
+    },
+    {
+      "id": "readiness-pr-check-2",
+      "stage": 2,
+      "subject": "Verify PR exists and is mergeable",
+      "description": "repo-orchestrator must: (1) Confirm current branch is NOT main, master, or the repository default branch (C1 — hard stop if violated; maps to failure condition F5 check). (2) Verify a pull request exists on the platform for the current branch (C2 — if absent, halt and surface F5). (3) Check the PR for merge conflicts (C4 — if conflicts present, halt and surface F1; no auto-resolution attempted). Write PR metadata (number, base branch, merge status) to STM at {stm_base}95/design/pr-state.json.",
+      "owner": "repo-orchestrator",
+      "blockedBy": ["intent-resolution-1"],
+      "blocks": ["readiness-tree-eval-2"]
+    },
+    {
+      "id": "readiness-tree-check-2",
+      "stage": 2,
+      "subject": "Verify clean working tree",
+      "description": "repo-orchestrator must: (1) Confirm the working tree and index are clean — no uncommitted changes, no staged changes (C3). If dirty, halt immediately and surface failure condition F4 before any operation begins. Write tree-status result to STM at {stm_base}95/design/tree-state.json.",
+      "owner": "repo-orchestrator",
+      "blockedBy": ["intent-resolution-1"],
+      "blocks": ["readiness-tree-eval-2"]
+    },
+    {
+      "id": "readiness-tree-eval-2",
+      "stage": 2,
+      "subject": "Readiness gate evaluation",
+      "description": "Evaluate readiness results from both readiness tasks. Pass criteria: (a) PR exists for current branch (F5 not triggered), (b) PR has no merge conflicts (F1 not triggered), (c) current branch is not the default branch (C1 not violated), (d) working tree is clean (F4 not triggered). If any criterion fails, halt — do not proceed to generation. Write readiness-gate result to STM at {stm_base}95/design/readiness-gate.json.",
+      "owner": "repo-orchestrator",
+      "blockedBy": ["readiness-pr-check-2", "readiness-tree-check-2"],
+      "blocks": ["gen-merge-5"]
+    },
+    {
+      "id": "gen-merge-5",
+      "stage": 5,
+      "subject": "Merge PR using platform default strategy",
+      "description": "repo-orchestrator must: (1) Merge the pull request on the platform using the repository default merge strategy (C5 — no override or alternative strategy). (2) Switch local checkout to the base branch. (3) Pull the base branch to bring it up to date with remote. (4) Delete the feature branch locally. (5) Delete the feature branch on the remote — if the platform already deleted it (e.g., auto-delete on merge), treat 'branch not found' as success, not failure (C6). Expected final state: local checkout on base branch, base branch current with remote, feature branch absent locally and remotely, PR reflected as merged on platform. Write operation log to STM at {stm_base}95/design/merge-log.json.",
+      "owner": "repo-orchestrator",
+      "blockedBy": ["readiness-tree-eval-2"],
+      "blocks": ["scenario-s1-6", "scenario-s2-6"]
+    },
+    {
+      "id": "scenario-s1-6",
+      "stage": 6,
+      "subject": "Scenario S1: Developer can begin new feature from clean base",
+      "description": "Persona: Developer. Given: Terminal state after merge-pr completes — local repository and platform PR status. Then: Verify (a) local checkout is on the base branch, (b) base branch is fully up to date with remote (not behind), (c) feature branch does not exist locally, (d) feature branch does not exist on remote (or was already removed by platform — acceptable per C6). Pass: all four conditions hold. Fail: any condition fails, maps to failure condition F2 or F3.",
+      "owner": "play",
+      "blockedBy": ["gen-merge-5"],
+      "blocks": ["evidence-close-7"]
+    },
+    {
+      "id": "scenario-s2-6",
+      "stage": 6,
+      "subject": "Scenario S2: Code reviewer can confirm PR merged and commit present",
+      "description": "Persona: Code Reviewer. Given: Platform pull request page and base branch commit history. Then: Verify (a) the PR is reflected as merged on the platform, (b) the merge commit is present on the base branch. Pass: both conditions hold. Fail: PR not shown as merged or merge commit absent on base branch.",
+      "owner": "play",
+      "blockedBy": ["gen-merge-5"],
+      "blocks": ["evidence-close-7"]
+    },
+    {
+      "id": "evidence-close-7",
+      "stage": 7,
+      "subject": "Write evidence and close",
+      "description": "Write final evidence artifact to STM at {stm_base}95/evidence/merge-pr/{YYYYMMDD-HHMMSS}.md. Evidence must include: scenario S1 and S2 pass/fail results, PR number merged, base branch name, confirmation feature branch is absent locally and remotely, and the resolved stm_base value used throughout. Mark play complete.",
+      "owner": "play",
+      "blockedBy": ["scenario-s1-6", "scenario-s2-6"],
+      "blocks": []
+    }
+  ]
+}

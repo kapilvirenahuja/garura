@@ -778,7 +778,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">prepare-implementation / implement-epic path disconnect</div>
-            <div class="card-subtitle">Recipe pipeline handoff failure — wrong artifact base paths</div>
+            <div class="card-subtitle">Play pipeline handoff failure — wrong artifact base paths</div>
           </div>
           <span class="badge badge-high">High Severity</span>
         </div>
@@ -810,7 +810,7 @@
       <div class="cause-card primary">
         <div class="cause-label">Primary Cause</div>
         <div class="file-ref">
-          <span>core/components/recipes/implement-epic/SKILL.md</span>
+          <span>core/components/plays/implement-epic/SKILL.md</span>
           <span class="lines">lines 94&ndash;107</span>
         </div>
         <div class="cause-logic">
@@ -825,7 +825,7 @@
           <div class="cause-why-label">Why this happened</div>
           prepare-implementation was redesigned (TDD-first, issue #183) to write artifacts into
           <code style="font-size:11px;color:var(--color-water);">{stm_base}/{issue}/context/design/</code> — the issue STM —
-          but implement-epic's path resolution was never updated to match. The two recipes evolved
+          but implement-epic's path resolution was never updated to match. The two plays evolved
           independently and now point to different base directories.
         </div>
       </div>
@@ -834,7 +834,7 @@
       <div class="cause-card secondary">
         <div class="cause-label">Secondary Cause</div>
         <div class="file-ref">
-          <span>core/components/recipes/prepare-implementation/SKILL.md</span>
+          <span>core/components/plays/prepare-implementation/SKILL.md</span>
           <span class="lines">lines 42&ndash;65 (pre-flight)</span>
         </div>
         <div class="cause-logic">
@@ -844,7 +844,7 @@
         </div>
         <div class="cause-why">
           <div class="cause-why-label">Why this happened</div>
-          The recipe was designed as a pure artifact-production step (planning phase) that assumed
+          The play was designed as a pure artifact-production step (planning phase) that assumed
           upstream setup was complete. This made it dependent on start-feature or start-feature-planning
           being invoked separately — but the issue expected it to be self-contained, covering the full
           "ultra god mode" of planning context setup.
@@ -855,7 +855,7 @@
       <div class="cause-card tertiary">
         <div class="cause-label">Tertiary Cause</div>
         <div class="file-ref">
-          <span>core/components/recipes/prepare-implementation/SKILL.md</span>
+          <span>core/components/plays/prepare-implementation/SKILL.md</span>
           <span class="lines">lines 1207&ndash;1217 (Step 20 — Lock All Artifacts)</span>
         </div>
         <div class="cause-logic">
@@ -925,22 +925,22 @@
       <h3 style="font-size:13px;font-weight:700;color:var(--text-dimmed);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:12px;">Affected Files</h3>
       <div class="blast-grid">
         <div class="blast-file-card">
-          <div class="blast-file-path">core/components/recipes/implement-epic/SKILL.md</div>
-          <div class="blast-file-role">Compiled recipe — implements implement-epic orchestration and all artifact path resolution</div>
+          <div class="blast-file-path">core/components/plays/implement-epic/SKILL.md</div>
+          <div class="blast-file-role">Compiled play — implements implement-epic orchestration and all artifact path resolution</div>
           <div class="blast-file-change">Update artifact_base and all derived paths in pre-flight to read from {stm_base}/{issue}/context/design/ instead of {product_base}/roadmap/epics/{epic_id}/. Also update Step 1 (Build Context) JSON contract artifact paths passed to tech-designer.</div>
         </div>
         <div class="blast-file-card">
-          <div class="blast-file-path">core/components/recipes/implement-epic/reference/intent.yaml</div>
+          <div class="blast-file-path">core/components/plays/implement-epic/reference/intent.yaml</div>
           <div class="blast-file-role">Intent source — defines constraints, failure conditions, and scenarios for implement-epic</div>
           <div class="blast-file-change">Update artifact path constraints (C1, C3) and any scenario given/then blocks referencing the product epics path. Add constraint: all input artifacts must reside in issue STM ({stm_base}/{issue}/context/design/).</div>
         </div>
         <div class="blast-file-card">
-          <div class="blast-file-path">core/components/recipes/prepare-implementation/SKILL.md</div>
-          <div class="blast-file-role">Compiled recipe — defines prepare-implementation orchestration and all output paths</div>
+          <div class="blast-file-path">core/components/plays/prepare-implementation/SKILL.md</div>
+          <div class="blast-file-role">Compiled play — defines prepare-implementation orchestration and all output paths</div>
           <div class="blast-file-change">(1) Add issue/branch/STM setup phase before Context Resolution. (2) Fix Step 20 lock path from ${stm_base}/${issue}/${artifact} to ${stm_base}/${issue}/context/design/${artifact}.</div>
         </div>
         <div class="blast-file-card">
-          <div class="blast-file-path">core/components/recipes/prepare-implementation/reference/intent.yaml</div>
+          <div class="blast-file-path">core/components/plays/prepare-implementation/reference/intent.yaml</div>
           <div class="blast-file-role">Intent source — defines constraints, failure conditions, and scenarios for prepare-implementation</div>
           <div class="blast-file-change">Add constraints and failure conditions covering issue resolution, branch creation, and STM initialization. Update artifact path constraints to reflect context/design/ subdirectory. Update scenarios to include the setup phase.</div>
         </div>
@@ -992,12 +992,12 @@
         <div class="step-files">
           <div class="step-file-row">
             <span class="action-tag action-modify">modify</span>
-            <code style="font-size:12px;color:var(--color-water);">core/components/recipes/prepare-implementation/reference/intent.yaml</code>
+            <code style="font-size:12px;color:var(--color-water);">core/components/plays/prepare-implementation/reference/intent.yaml</code>
           </div>
         </div>
         <div class="step-details">
           Add constraints mirroring start-feature: C_SETUP_1 (resolve/create GitHub issue), C_SETUP_2 (create feature branch), C_SETUP_3 (initialize STM directory), C_SETUP_4 (lock step uses context/design/ path).
-          Add failure conditions F_SETUP_1 through F_SETUP_3. Add scenario S_SETUP: developer invokes prepare-implementation with no prior start-feature run — recipe creates issue, branch, STM, and completes all planning producing fully locked artifacts in <code style="font-size:11px;color:var(--color-water);">{stm_base}/{issue}/context/design/</code>.
+          Add failure conditions F_SETUP_1 through F_SETUP_3. Add scenario S_SETUP: developer invokes prepare-implementation with no prior start-feature run — play creates issue, branch, STM, and completes all planning producing fully locked artifacts in <code style="font-size:11px;color:var(--color-water);">{stm_base}/{issue}/context/design/</code>.
         </div>
         <div class="step-outcome">
           <div class="step-outcome-label">Expected Outcome</div>
@@ -1011,11 +1011,11 @@
         <div class="step-files">
           <div class="step-file-row">
             <span class="action-tag action-modify">modify</span>
-            <code style="font-size:12px;color:var(--color-water);">core/components/recipes/prepare-implementation/SKILL.md</code>
+            <code style="font-size:12px;color:var(--color-water);">core/components/plays/prepare-implementation/SKILL.md</code>
           </div>
         </div>
         <div class="step-details">
-          Run <code style="font-size:11px;color:var(--color-water);">/create-recipe --rebake prepare-implementation</code>.
+          Run <code style="font-size:11px;color:var(--color-water);">/create-play --rebake prepare-implementation</code>.
           Expected delta: new Phase 0 — Setup section (issue resolution via project-orchestrator, branch creation via repo-orchestrator, STM initialization). Pre-flight block updated to halt if no issue can be resolved and no --epic with roadmap is present. Step 20 lock paths updated from <code style="font-size:11px;color:var(--text-secondary);">${stm_base}/${issue}/${artifact}</code> to <code style="font-size:11px;color:var(--color-water);">${stm_base}/${issue}/context/design/${artifact}</code>.
         </div>
         <div class="step-outcome">
@@ -1030,7 +1030,7 @@
         <div class="step-files">
           <div class="step-file-row">
             <span class="action-tag action-modify">modify</span>
-            <code style="font-size:12px;color:var(--color-water);">core/components/recipes/implement-epic/reference/intent.yaml</code>
+            <code style="font-size:12px;color:var(--color-water);">core/components/plays/implement-epic/reference/intent.yaml</code>
           </div>
         </div>
         <div class="step-details">
@@ -1049,11 +1049,11 @@
         <div class="step-files">
           <div class="step-file-row">
             <span class="action-tag action-modify">modify</span>
-            <code style="font-size:12px;color:var(--color-water);">core/components/recipes/implement-epic/SKILL.md</code>
+            <code style="font-size:12px;color:var(--color-water);">core/components/plays/implement-epic/SKILL.md</code>
           </div>
         </div>
         <div class="step-details">
-          Run <code style="font-size:11px;color:var(--color-water);">/create-recipe --rebake implement-epic</code>.
+          Run <code style="font-size:11px;color:var(--color-water);">/create-play --rebake implement-epic</code>.
           Expected delta: pre-flight <code style="font-size:11px;color:var(--text-secondary);">artifact_base = "{stm_base}/{issue}/context/design"</code> with all four design artifact paths derived from it. architecture_yaml_path and quality_standards_path remain at <code style="font-size:11px;color:var(--text-secondary);">{product_base}/architecture/</code> — unchanged. Step 1 (Build Context) JSON contract updated to pass corrected artifact paths to tech-designer.
         </div>
         <div class="step-outcome">
@@ -1087,10 +1087,10 @@
       </div>
 
       <div class="alt-card">
-        <div class="alt-approach">Alt 3 — Add a new bridging recipe/step between prepare-implementation and implement-epic that reads from context/design/ and writes to product epics path (or vice versa).</div>
+        <div class="alt-approach">Alt 3 — Add a new bridging play/step between prepare-implementation and implement-epic that reads from context/design/ and writes to product epics path (or vice versa).</div>
         <div class="alt-rejected">
           <div class="alt-rejected-icon">&#10005;</div>
-          <div class="alt-reason">Overengineered. The problem is a path mismatch in two existing recipes — adding a third recipe to bridge them introduces an extra invocation step and a new failure surface without removing the underlying incoherence. Users would need to know to run the bridge recipe or it would be silently skipped.</div>
+          <div class="alt-reason">Overengineered. The problem is a path mismatch in two existing plays — adding a third play to bridge them introduces an extra invocation step and a new failure surface without removing the underlying incoherence. Users would need to know to run the bridge play or it would be silently skipped.</div>
         </div>
       </div>
 
@@ -1164,7 +1164,7 @@
       <div class="confidence-callout">
         <div class="confidence-icon">&#128994;</div>
         <div class="confidence-text">
-          <strong>High confidence.</strong> The root cause is traceable to specific file references and line numbers in two recipe SKILL.md files. The path mismatch is a deterministic failure — there is no ambiguity about why implement-epic halts. The fix is bounded to four files (two intent.yaml sources, two rebaked SKILL.md outputs) with well-defined self-tests. No speculative or exploratory changes are required.
+          <strong>High confidence.</strong> The root cause is traceable to specific file references and line numbers in two play SKILL.md files. The path mismatch is a deterministic failure — there is no ambiguity about why implement-epic halts. The fix is bounded to four files (two intent.yaml sources, two rebaked SKILL.md outputs) with well-defined self-tests. No speculative or exploratory changes are required.
         </div>
       </div>
     </section>

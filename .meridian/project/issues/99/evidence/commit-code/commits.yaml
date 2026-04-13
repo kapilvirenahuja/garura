@@ -3,7 +3,7 @@ commits:
     hash: 0cc8ff8
     type: feat
     scope: prepare-implementation
-    subject: "add prepare-implementation recipe and supporting skills (#99)"
+    subject: "add prepare-implementation play and supporting skills (#99)"
     issue: 99
     files_count: 13
     insertions: 3586
@@ -54,8 +54,8 @@ commits:
   - group_id: G5
     hash: ded4a91
     type: refactor
-    scope: recipes
-    subject: "update create-recipe and plan-roadmap for P11 and standardized artifacts (#99)"
+    scope: plays
+    subject: "update create-play and plan-roadmap for P11 and standardized artifacts (#99)"
     issue: 99
     files_count: 7
     insertions: 177

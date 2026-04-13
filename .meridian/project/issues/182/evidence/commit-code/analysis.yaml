@@ -19,7 +19,7 @@ changeset:
     - id: G2
       type: docs
       scope: "adr"
-      description: "Add ADR 015 documenting the LTM resolution protocol design decision — R1-R4 hierarchy, contract schema extension, agent scope, and learning recipe rationale"
+      description: "Add ADR 015 documenting the LTM resolution protocol design decision — R1-R4 hierarchy, contract schema extension, agent scope, and learning play rationale"
       risk: low
       files:
         - path: "docs/adr/015-ltm-resolution-protocol.md"
@@ -62,53 +62,53 @@ changeset:
 
     - id: G6
       type: feat
-      scope: "recipes"
-      description: "Add capture-learning recipe — new L2 recipe and intent.yaml that archives completed issue STM, extracts resolution-trace LLM fallbacks into knowledge candidates, presents them for human approval, and promotes approved patterns to LTM via knowledge-extractor"
+      scope: "plays"
+      description: "Add capture-learning play — new high-order play and intent.yaml that archives completed issue STM, extracts resolution-trace LLM fallbacks into knowledge candidates, presents them for human approval, and promotes approved patterns to LTM via knowledge-extractor"
       risk: low
       files:
-        - path: "core/components/recipes/capture-learning/SKILL.md"
+        - path: "core/components/plays/capture-learning/SKILL.md"
           status: modified
-        - path: "core/components/recipes/capture-learning/reference/intent.yaml"
+        - path: "core/components/plays/capture-learning/reference/intent.yaml"
           status: modified
 
     - id: G7
       type: feat
-      scope: "recipes"
-      description: "Update 6 existing recipes to populate ltm_context in their agent dispatch contracts — commit-code, create-pr, discover-product, implement-epic, plan-roadmap, prepare-architecture, prepare-implementation all gain ltm_context wiring for agent dispatches that support knowledge resolution"
+      scope: "plays"
+      description: "Update 6 existing plays to populate ltm_context in their agent dispatch contracts — commit-code, create-pr, discover-product, implement-epic, plan-roadmap, prepare-architecture, prepare-implementation all gain ltm_context wiring for agent dispatches that support knowledge resolution"
       risk: medium
       files:
-        - path: "core/components/recipes/commit-code/SKILL.md"
+        - path: "core/components/plays/commit-code/SKILL.md"
           status: modified
-        - path: "core/components/recipes/create-pr/SKILL.md"
+        - path: "core/components/plays/create-pr/SKILL.md"
           status: modified
-        - path: "core/components/recipes/discover-product/SKILL.md"
+        - path: "core/components/plays/discover-product/SKILL.md"
           status: modified
-        - path: "core/components/recipes/implement-epic/SKILL.md"
+        - path: "core/components/plays/implement-epic/SKILL.md"
           status: modified
-        - path: "core/components/recipes/plan-roadmap/SKILL.md"
+        - path: "core/components/plays/plan-roadmap/SKILL.md"
           status: modified
-        - path: "core/components/recipes/prepare-architecture/SKILL.md"
+        - path: "core/components/plays/prepare-architecture/SKILL.md"
           status: modified
-        - path: "core/components/recipes/prepare-implementation/SKILL.md"
+        - path: "core/components/plays/prepare-implementation/SKILL.md"
           status: modified
 
     - id: G8
       type: chore
       scope: "stm"
-      description: "Add STM evidence for issue 182 — create-recipe evidence (recipe analysis, evals, skill manifest, agent audits), capture-learning recipe design artifacts; and learn-dry-run evidence (15 KC candidate knowledge files from dry-run execution)"
+      description: "Add STM evidence for issue 182 — create-play evidence (play analysis, evals, skill manifest, agent audits), capture-learning play design artifacts; and learn-dry-run evidence (15 KC candidate knowledge files from dry-run execution)"
       risk: low
       files:
-        - path: ".meridian/project/issues/182/evidence/create-recipe/capture-learning/agent-audit-knowledge-extractor.md"
+        - path: ".meridian/project/issues/182/evidence/create-play/capture-learning/agent-audit-knowledge-extractor.md"
           status: new
-        - path: ".meridian/project/issues/182/evidence/create-recipe/capture-learning/agent-audit-repo-orchestrator.md"
+        - path: ".meridian/project/issues/182/evidence/create-play/capture-learning/agent-audit-repo-orchestrator.md"
           status: new
-        - path: ".meridian/project/issues/182/evidence/create-recipe/capture-learning/coverage-matrix.md"
+        - path: ".meridian/project/issues/182/evidence/create-play/capture-learning/coverage-matrix.md"
           status: new
-        - path: ".meridian/project/issues/182/evidence/create-recipe/capture-learning/evals.yaml"
+        - path: ".meridian/project/issues/182/evidence/create-play/capture-learning/evals.yaml"
           status: new
-        - path: ".meridian/project/issues/182/evidence/create-recipe/capture-learning/recipe-analysis.md"
+        - path: ".meridian/project/issues/182/evidence/create-play/capture-learning/play-analysis.md"
           status: new
-        - path: ".meridian/project/issues/182/evidence/create-recipe/capture-learning/skill-manifest.yaml"
+        - path: ".meridian/project/issues/182/evidence/create-play/capture-learning/skill-manifest.yaml"
           status: new
         - path: ".meridian/project/issues/182/evidence/learn-dry-run/KC-001-resolution-hierarchy.md"
           status: new
@@ -144,7 +144,7 @@ changeset:
     - id: G9
       type: chore
       scope: "stm"
-      description: "Add STM evidence for issue 182 prepare-implementation phase — resolution trace, dependency resolution report, and simulation artifacts from recipe dry-run"
+      description: "Add STM evidence for issue 182 prepare-implementation phase — resolution trace, dependency resolution report, and simulation artifacts from play dry-run"
       risk: low
       files:
         - path: ".meridian/project/issues/182/evidence/prepare-implementation/resolution-trace.yaml"
@@ -155,7 +155,7 @@ changeset:
     - id: G10
       type: chore
       scope: "stm"
-      description: "Add untracked STM directories for prior issues 176, 177, 179 — recipe execution evidence (start-feature, commit-code, create-pr, merge-pr, create-recipe) accumulated during issue 182 branch work"
+      description: "Add untracked STM directories for prior issues 176, 177, 179 — play execution evidence (start-feature, commit-code, create-pr, merge-pr, create-play) accumulated during issue 182 branch work"
       risk: low
       files:
         - path: ".meridian/project/issues/176/"

@@ -37,7 +37,7 @@ test_surface:
   finding: |
     The meridian-os codebase contains zero test files and zero test configuration.
     This is consistent with the project's nature — it is a framework of markdown
-    specifications, YAML artifacts, and agent/skill/recipe definitions rather than
+    specifications, YAML artifacts, and agent/skill/play definitions rather than
     a traditional software project with executable source code. Validation in this
-    codebase is handled through recipe evals and agent-level scenario verification,
+    codebase is handled through play evals and agent-level scenario verification,
     not through conventional test frameworks.

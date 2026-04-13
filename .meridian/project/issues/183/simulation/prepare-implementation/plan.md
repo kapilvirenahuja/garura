@@ -73,7 +73,7 @@ flowchart TD
     T002_4["T-002-4\ndraft-verif-scenarios\nzero-tests path"]
     T002_GATE["T-002-GATE\nSkill Discovery Mode\nComplete"]
 
-    T003_1["T-003-1\nCreate recipe-dependency\n-protocol.md"]
+    T003_1["T-003-1\nCreate play-dependency\n-protocol.md"]
     T003_2["T-003-2\nExtend resolution\n-protocol.md"]
     T003_GATE["T-003-GATE\nLTM Standards\nUpdated"]
 
@@ -150,13 +150,13 @@ All 4 tasks already applied on `feat/182-ltm-resolution-protocol`.
 
 ---
 
-### Feature 1 — Pipeline Recipe Consistency
+### Feature 1 — Pipeline Play Consistency
 
 **Can start:** After T-000-GATE  
 **Can run in parallel with:** Feature 2, Feature 4
 
-Three pipeline recipes must be consistency-checked per the co-change law
-(commit history shows all 4 pipeline recipes update together on cross-cutting changes).
+Three pipeline plays must be consistency-checked per the co-change law
+(commit history shows all 4 pipeline plays update together on cross-cutting changes).
 
 | Task | File | Action | Likely Outcome |
 |------|------|--------|----------------|
@@ -191,15 +191,15 @@ no prior art in meridian-os skill definitions.
 
 **Can start:** After T-001-GATE (depends on Feature 1 completing first)  
 **Rationale:** The new LTM standard must be consistent with what was verified in Feature 1 about
-the pipeline recipe soft-dependency philosophy. Feature 1 determines the authoritative semantics;
+the pipeline play soft-dependency philosophy. Feature 1 determines the authoritative semantics;
 Feature 3 codifies them.
 
 | Task | File | Content |
 |------|------|---------|
-| T-003-1 | memory/standards/recipe-dependency-protocol.md | NEW — hard-halt vs soft-degrade rules, authority hierarchy, checkpoint messaging |
-| T-003-2 | memory/standards/resolution-protocol.md | EXTEND — document C23 as recipe-level R1-R4 parallel |
+| T-003-1 | memory/standards/play-dependency-protocol.md | NEW — hard-halt vs soft-degrade rules, authority hierarchy, checkpoint messaging |
+| T-003-2 | memory/standards/resolution-protocol.md | EXTEND — document C23 as play-level R1-R4 parallel |
 
-**Design constraint:** recipe-dependency-protocol.md must follow knowledge-file-template.md
+**Design constraint:** play-dependency-protocol.md must follow knowledge-file-template.md
 (Tier 1 + Tier 2 metadata). It is a new standard, not a knowledge file — place in `standards/`
 not `knowledge/`.
 
@@ -289,18 +289,18 @@ share one target file (intent.yaml) — sequence them within the same file edit 
 
 | File | Feature | Action | Status |
 |------|---------|--------|--------|
-| core/components/recipes/prepare-implementation/reference/intent.yaml | Phase 0, F4 | MODIFY | Phase 0 done; F4 remaining |
-| core/components/recipes/prepare-implementation/SKILL.md | Phase 0 | MODIFY | DONE |
+| core/components/plays/prepare-implementation/reference/intent.yaml | Phase 0, F4 | MODIFY | Phase 0 done; F4 remaining |
+| core/components/plays/prepare-implementation/SKILL.md | Phase 0 | MODIFY | DONE |
 | core/components/agents/tech-architect.md | Phase 0 | MODIFY | DONE |
 | core/components/agents/test-engineer.md | Phase 0 | MODIFY | DONE |
-| core/components/recipes/discover-product/SKILL.md | F1 | MODIFY/no-op | Pending |
-| core/components/recipes/plan-roadmap/SKILL.md | F1 | MODIFY/no-op | Pending |
-| core/components/recipes/prepare-architecture/SKILL.md | F1 | MODIFY | Pending |
+| core/components/plays/discover-product/SKILL.md | F1 | MODIFY/no-op | Pending |
+| core/components/plays/plan-roadmap/SKILL.md | F1 | MODIFY/no-op | Pending |
+| core/components/plays/prepare-architecture/SKILL.md | F1 | MODIFY | Pending |
 | core/components/skills/draft-lld/SKILL.md | F2 | MODIFY | Pending |
 | core/components/skills/draft-implementation-plan/SKILL.md | F2 | MODIFY | Pending |
 | core/components/skills/draft-product-spec/SKILL.md | F2 | MODIFY | Pending |
 | core/components/skills/draft-verification-scenarios/SKILL.md | F2 | MODIFY | Pending |
-| core/components/memory/standards/recipe-dependency-protocol.md | F3 | CREATE | Pending |
+| core/components/memory/standards/play-dependency-protocol.md | F3 | CREATE | Pending |
 | core/components/memory/standards/resolution-protocol.md | F3 | MODIFY | Pending |
 | ~/.claude/ (deployed targets) | F5 | MODIFY (sync) | Pending |
 
@@ -312,7 +312,7 @@ share one target file (intent.yaml) — sequence them within the same file edit 
 |------|----------|-----------|
 | discover-product/plan-roadmap pre-flight changes may cascade to other issues | Medium | Read before modifying; validate changes are bounded to consistency notes |
 | intent.yaml receives 4 separate edits across F4 tasks — merge risk | Low | Batch all eval fixes into a single edit session for T-004 |
-| recipe-dependency-protocol.md may overlap with existing agent-contract.md scope | Low | Scope protocol to recipe-level behavior; agent-contract.md covers agent-level |
+| play-dependency-protocol.md may overlap with existing agent-contract.md scope | Low | Scope protocol to play-level behavior; agent-contract.md covers agent-level |
 | validate-implementation-design may surface new constraint violations post-edit | Medium | Exit gate for T-005-2 requires passing; if fails, add recovery tasks |
 | 4 BT-AGT tests in baseline-tests.yaml still show null pass status | Medium | Verify agent definitions in T-000-3/4 exit gates before marking complete |
 

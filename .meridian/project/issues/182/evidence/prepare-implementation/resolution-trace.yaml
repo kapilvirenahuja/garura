@@ -44,7 +44,7 @@ resolution_trace:
     source: null
     section: null
     authority: "none"
-    value: "Context isolation as security invariant. eval-generator and judge NEVER receive ltm_context. Any recipe passing ltm_context to them is a defect. Isolation prevents specification gaming."
+    value: "Context isolation as security invariant. eval-generator and judge NEVER receive ltm_context. Any play passing ltm_context to them is a defect. Isolation prevents specification gaming."
 
   - decision: "How should agents record which knowledge layer answered each domain question?"
     resolved_from: "llm"
@@ -78,19 +78,19 @@ resolution_trace:
 
   # --- Architecture Pattern Decisions ---
 
-  - decision: "What is the boundary between recipe orchestrator and agent specialist responsibilities?"
+  - decision: "What is the boundary between play orchestrator and agent specialist responsibilities?"
     resolved_from: "core"
     source: "~/.meridian/core/memory/knowledge/architecture/agentic/agent-orchestration.md"
     section: "Key Components"
     authority: "draft"
-    value: "Core LTM provided general multi-agent orchestration patterns (coordinator/specialist separation, tool delegation). Extended for Meridian: recipe owns workflow (step ordering, checkpoints, evidence). Agent owns domain decisions (context engineering, skill selection, constraint application). Recipe never does agent work; agent never orchestrates multi-step workflows."
+    value: "Core LTM provided general multi-agent orchestration patterns (coordinator/specialist separation, tool delegation). Extended for Meridian: play owns workflow (step ordering, checkpoints, evidence). Agent owns domain decisions (context engineering, skill selection, constraint application). Play never does agent work; agent never orchestrates multi-step workflows."
 
-  - decision: "Should archival and knowledge extraction be in the same recipe or separate?"
+  - decision: "Should archival and knowledge extraction be in the same play or separate?"
     resolved_from: "llm"
     source: null
     section: null
     authority: "none"
-    value: "Same recipe, separate phases. Archival and extraction share the issue closure trigger and sequential dependency (must archive before extracting from archive). Separating would create coordination overhead without benefit."
+    value: "Same play, separate phases. Archival and extraction share the issue closure trigger and sequential dependency (must archive before extracting from archive). Separating would create coordination overhead without benefit."
 
   - decision: "How should new file format standards handle existing non-conforming files?"
     resolved_from: "llm"
@@ -104,7 +104,7 @@ resolution_trace:
     source: "~/.meridian/core/memory/standards/agent-contract.md"
     section: "Input Contract"
     authority: "draft"
-    value: "Core LTM defines the universal agent contract schema (intent_path, stm_base, stm, task_id). Extended: add ltm_context as a formal optional field in agent-contract.md rather than passing project_base/core_base as ad-hoc parameters across recipes. One canonical schema, all agents reference it."
+    value: "Core LTM defines the universal agent contract schema (intent_path, stm_base, stm, task_id). Extended: add ltm_context as a formal optional field in agent-contract.md rather than passing project_base/core_base as ad-hoc parameters across plays. One canonical schema, all agents reference it."
 
   # --- Operational Pattern Decisions ---
 

@@ -182,7 +182,7 @@ scenarios:
     automation: "automated"
 
   # ========================================
-  # F3 — Learning Recipe
+  # F3 — Learning Play
   # ========================================
 
   - id: "S12"
@@ -290,7 +290,7 @@ scenarios:
     behavior_ref: "F4-B1"
     description: "New knowledge file contains all required Tier 1 metadata fields"
     expected_behavior: >
-      A new knowledge file is created (by the learning recipe or any other
+      A new knowledge file is created (by the learning play or any other
       mechanism). The file contains all Tier 1 metadata: title, search patterns,
       content body, and provenance (source, created date, author/origin).
     pass_criteria:

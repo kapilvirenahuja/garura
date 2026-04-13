@@ -11,7 +11,7 @@ rca:
 
   root_cause:
     summary: >
-      Step 3 of core/components/recipes/capture-learning/SKILL.md uses a hardcoded
+      Step 3 of core/components/plays/capture-learning/SKILL.md uses a hardcoded
       find command that matches ONLY files named 'resolution-trace.yaml'. In real
       project issues (Phoenix issues 1–22), resolution-trace.yaml is produced
       exclusively by the prepare-implementation skill's LTM resolution protocol.
@@ -19,14 +19,14 @@ rca:
       or fix-it produce NO resolution-trace.yaml files. Step 3 therefore returns an
       empty list for essentially every real issue, and knowledge-extractor is invoked
       with zero trace paths — guaranteed zero candidates.
-    file: "core/components/recipes/capture-learning/SKILL.md"
+    file: "core/components/plays/capture-learning/SKILL.md"
     location: "Step 3 — Locate Resolution Traces (lines 136-139)"
     specific_logic: |
       find {stm_archive}/{YYYY-MM}/{issue}/evidence/ -name "resolution-trace.yaml" -type f
     why_it_is_wrong: >
       The find pattern is an over-specific literal filename match. The intent (C12)
       says resolution traces are the "primary" promotion signal — not the only signal.
-      The recipe implemented "primary" as "exclusive", ignoring all other evidence
+      The play implemented "primary" as "exclusive", ignoring all other evidence
       artifacts (judge reports, RCA files, design artifacts, remediation records) that
       carry substantial learnable knowledge. The scan produces an empty list for any
       issue that did not run prepare-implementation, which is the majority.
@@ -50,14 +50,14 @@ rca:
       knowledge from the diverse artifact types that real issues produce.
 
   intent_misalignment:
-    file: "core/components/recipes/capture-learning/reference/intent.yaml"
+    file: "core/components/plays/capture-learning/reference/intent.yaml"
     location: "Constraint C12"
     text: >
       "Resolution traces with resolved_from='llm' are the primary promotion signal
       — decisions where the system lacked stored knowledge."
     analysis: >
       The word "primary" in C12 implies other signals may exist, but neither the
-      recipe nor the agent implements any secondary extraction path. The intent also
+      play nor the agent implements any secondary extraction path. The intent also
       describes the goal as extracting "reusable patterns from resolution traces" —
       this phrase was interpreted as "only resolution-trace.yaml files" rather than
       "traces of resolution activity" (evidence showing how decisions were made).
@@ -76,13 +76,13 @@ rca:
       have no such file.
 
   blast_radius:
-    - file: "core/components/recipes/capture-learning/SKILL.md"
-      role: "Recipe orchestrator — defines Step 3 scan and Step 4 contract shape"
+    - file: "core/components/plays/capture-learning/SKILL.md"
+      role: "Play orchestrator — defines Step 3 scan and Step 4 contract shape"
       impact: "Step 3 scan must be broadened; Step 4 contract must pass richer input"
     - file: "core/components/agents/knowledge-extractor.md"
       role: "Knowledge extraction agent — defines what to extract from evidence"
       impact: "EXTRACT mode must be extended to recognize and process non-trace evidence types"
-    - file: "core/components/recipes/capture-learning/reference/intent.yaml"
+    - file: "core/components/plays/capture-learning/reference/intent.yaml"
       role: "Intent contract defining constraints C12 and C15"
       impact: >
         C12 may need clarification to explicitly name additional evidence types as

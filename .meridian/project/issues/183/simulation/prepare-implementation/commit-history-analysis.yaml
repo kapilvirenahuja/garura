@@ -2,29 +2,29 @@ analysis:
   scope: "90-day git history for meridian-os"
   date: "2026-03-31"
   issue: 183
-  focus: "prepare-implementation recipe and its dependencies"
+  focus: "prepare-implementation play and its dependencies"
 
-recipe_direct_changes:
-  path: "core/components/recipes/prepare-implementation/"
+play_direct_changes:
+  path: "core/components/plays/prepare-implementation/"
   commits:
     - sha: ee8ed34
-      message: "feat: LTM resolution protocol — knowledge hierarchy, agent wiring, and capture-learning recipe #182"
+      message: "feat: LTM resolution protocol — knowledge hierarchy, agent wiring, and capture-learning play #182"
       issue: 182
       type: cross-cutting-update
     - sha: 43500b5
-      message: "refactor(recipes): update dependent recipe paths for product directory restructure #177"
+      message: "refactor(plays): update dependent play paths for product directory restructure #177"
       issue: 177
       type: path-refactor
     - sha: 28b729b
-      message: "refactor(recipes): update recipes and intents for client-side brief rendering (#169)"
+      message: "refactor(plays): update plays and intents for client-side brief rendering (#169)"
       issue: 169
       type: brief-rendering-update
     - sha: 5858c57
-      message: "feat(recipes): add prepare-architecture recipe, three-axis profiling, quality standards (#148)"
+      message: "feat(plays): add prepare-architecture play, three-axis profiling, quality standards (#148)"
       issue: 148
-      type: upstream-recipe-addition
+      type: upstream-play-addition
     - sha: 7c1e06b
-      message: "fix(recipes): add pre-lock resolution gate to block artifact freeze with unresolved items (#124)"
+      message: "fix(plays): add pre-lock resolution gate to block artifact freeze with unresolved items (#124)"
       issue: 125
       type: resolution-gate-fix
     - sha: f7daedd
@@ -36,7 +36,7 @@ recipe_direct_changes:
       issue: 118
       type: major-rebake
     - sha: 0cc8ff8
-      message: "feat(prepare-implementation): add prepare-implementation recipe and supporting skills (#99)"
+      message: "feat(prepare-implementation): add prepare-implementation play and supporting skills (#99)"
       issue: 99
       type: initial-creation
 
@@ -50,7 +50,7 @@ agent_changes:
         message: "refactor(config): update agents, config, and memory paths for product directory restructure #177"
         relevance: "Path updates for phase-based directories"
       - sha: 37633d9
-        message: "chore(followup): recipe reviews, quality-standards skill, ADR 014, taxonomy QP signals #150"
+        message: "chore(followup): play reviews, quality-standards skill, ADR 014, taxonomy QP signals #150"
         relevance: "Taxonomy and quality profile signal updates"
   product-strategist:
     commits:
@@ -70,30 +70,30 @@ agent_changes:
 co_change_patterns:
   - pattern: "prepare-implementation always changes with its intent.yaml"
     files:
-      - "core/components/recipes/prepare-implementation/SKILL.md"
-      - "core/components/recipes/prepare-implementation/reference/intent.yaml"
+      - "core/components/plays/prepare-implementation/SKILL.md"
+      - "core/components/plays/prepare-implementation/reference/intent.yaml"
     occurrences: 4
     commits: ["8ab6a91", "5858c57", "7c1e06b", "43500b5"]
 
-  - pattern: "Recipe cross-cutting updates touch all recipes simultaneously"
+  - pattern: "Play cross-cutting updates touch all plays simultaneously"
     files:
-      - "core/components/recipes/prepare-implementation/SKILL.md"
-      - "core/components/recipes/discover-product/SKILL.md"
-      - "core/components/recipes/plan-roadmap/SKILL.md"
-      - "core/components/recipes/prepare-architecture/SKILL.md"
+      - "core/components/plays/prepare-implementation/SKILL.md"
+      - "core/components/plays/discover-product/SKILL.md"
+      - "core/components/plays/plan-roadmap/SKILL.md"
+      - "core/components/plays/prepare-architecture/SKILL.md"
     occurrences: 4
     commits: ["ee8ed34", "43500b5", "28b729b", "7c1e06b"]
-    note: "Cross-cutting changes (path restructure, brief rendering, resolution gates, LTM protocol) always update all four pipeline recipes together"
+    note: "Cross-cutting changes (path restructure, brief rendering, resolution gates, LTM protocol) always update all four pipeline plays together"
 
-  - pattern: "Agent updates co-occur with recipe updates"
+  - pattern: "Agent updates co-occur with play updates"
     files:
       - "core/components/agents/tech-designer.md"
       - "core/components/agents/product-strategist.md"
-      - "core/components/recipes/prepare-implementation/SKILL.md"
+      - "core/components/plays/prepare-implementation/SKILL.md"
     occurrences: 2
     commits: ["ee8ed34", "9d8e8ce"]
 
-  - pattern: "Skills used by prepare-implementation change with upstream recipes"
+  - pattern: "Skills used by prepare-implementation change with upstream plays"
     files:
       - "core/components/skills/draft-lld/SKILL.md"
       - "core/components/skills/draft-implementation-plan/SKILL.md"
@@ -113,10 +113,10 @@ co_change_patterns:
 recent_activity_areas:
   high_activity:
     - area: "LTM resolution protocol (#182)"
-      description: "New knowledge hierarchy, agent wiring for knowledge-extractor, capture-learning recipe, resolution protocol standard"
+      description: "New knowledge hierarchy, agent wiring for knowledge-extractor, capture-learning play, resolution protocol standard"
       files_changed: 20+
     - area: "Product directory restructure (#177)"
-      description: "Phase-based directory paths for all artifacts — all recipes, skills, agents, and config updated"
+      description: "Phase-based directory paths for all artifacts — all plays, skills, agents, and config updated"
       files_changed: 25+
     - area: "Implement-epic TDD redesign (#179)"
       description: "Engineering-manager agent, TDD separation for code-builder and quality-auditor"
@@ -130,7 +130,7 @@ recent_activity_areas:
       files_changed: 5
   low_activity:
     - area: "Pre-lock resolution gate (#124/#125)"
-      description: "Resolution gate added across discovery, planning, and implementation recipes"
+      description: "Resolution gate added across discovery, planning, and implementation plays"
       files_changed: 8
 
 relevance_to_issue_183:
@@ -140,12 +140,12 @@ relevance_to_issue_183:
     - sha: ee8ed34
       reason: "LTM resolution protocol added knowledge hierarchy and resolution protocol to all agents. Any new prepare-implementation changes must be compatible with this."
     - sha: 43500b5
-      reason: "Path restructure changed artifact paths in the recipe. Current recipe references phase-based directories."
+      reason: "Path restructure changed artifact paths in the play. Current play references phase-based directories."
     - sha: 7c1e06b
-      reason: "Pre-lock resolution gate is a constraint the recipe enforces. Any changes must preserve this."
+      reason: "Pre-lock resolution gate is a constraint the play enforces. Any changes must preserve this."
 
   context_commits:
     - sha: d04a80a
-      reason: "Implement-epic TDD redesign shows the pattern for recipe rebakes — how agent roles get split and gates get added."
+      reason: "Implement-epic TDD redesign shows the pattern for play rebakes — how agent roles get split and gates get added."
     - sha: 5858c57
       reason: "Prepare-architecture creation shows how upstream locked artifacts flow into prepare-implementation."

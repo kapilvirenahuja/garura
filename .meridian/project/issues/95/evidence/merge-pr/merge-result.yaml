@@ -10,7 +10,7 @@ result:
     success: true
 
   branch_operations:
-    feature_branch: "feature/95-intent-driven-recipe-architecture"
+    feature_branch: "feature/95-intent-driven-play-architecture"
     base_branch: "main"
     checkout_success: true
     pull_success: true

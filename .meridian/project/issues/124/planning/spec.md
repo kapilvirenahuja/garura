@@ -4,34 +4,34 @@
 **Intent:** Add a pre-lock resolution gate to /discover-product, /plan-roadmap, and /prepare-implementation that blocks artifact freezing when blockers, open questions, or high-risk items remain unresolved, and immediately starts a user interview to collect inline resolutions.
 
 **Constraints:**
-- Modify only the 3 compiled recipe SKILL.md files
+- Modify only the 3 compiled play SKILL.md files
 - Do not modify validate-product-vision or validate-implementation-design skills
 - Must work within existing Tether/Vanish checkpoint pattern
 - User interview means: structured table + RESOLVED keyword + resolution artifact
 
 **Failure Conditions:**
-- Recipe locks an artifact while open questions or high-risk items exist
-- Recipe silently ignores blockers
-- Recipe offers a bypass that allows Tether to skip unresolved blockers
+- Play locks an artifact while open questions or high-risk items exist
+- Play silently ignores blockers
+- Play offers a bypass that allows Tether to skip unresolved blockers
 - Resolutions are not recorded as an artifact before lock executes
 
 ### Summary
 
-Three recipes currently allow artifacts to be frozen without verifying that blockers, open questions, and high-risk items are resolved:
+Three plays currently allow artifacts to be frozen without verifying that blockers, open questions, and high-risk items are resolved:
 
 1. **discover-product Step 7**: "accept risk" Tether bypass allows locking despite blockers. Warnings auto-proceed silently. No open question scan.
 2. **plan-roadmap Step 5**: Tether proceeds without reading feasibility.yaml for critical_blockers or open_questions arrays.
 3. **prepare-implementation Step 18**: After V1-V14 pass, no scan of artifacts for open_questions[] or risks[] with severity: "high".
 
-Fix: Insert recipe-owned resolution gate before each lock action. Gate reads existing artifact fields, classifies unresolved items (blockers, open questions, high-risk), surfaces them in a structured table, collects answers via RESOLVED keyword, writes pre-lock-resolutions.yaml to STM.
+Fix: Insert play-owned resolution gate before each lock action. Gate reads existing artifact fields, classifies unresolved items (blockers, open questions, high-risk), surfaces them in a structured table, collects answers via RESOLVED keyword, writes pre-lock-resolutions.yaml to STM.
 
 ### Affected Files
 
 | File | Role | Change Needed |
 |------|------|---------------|
-| core/components/recipes/discover-product/SKILL.md | discover-product recipe | Replace "accept risk" bypass in Step 7 with mandatory resolution interview; add pre-lock-resolution task to status schema |
-| core/components/recipes/plan-roadmap/SKILL.md | plan-roadmap recipe | Add pre-lock-resolution to task graph; modify Step 5 Tether to read feasibility.yaml and gate on non-empty critical_blockers/open_questions |
-| core/components/recipes/prepare-implementation/SKILL.md | prepare-implementation recipe | Add artifact scan in Step 18 for open_questions[] and high-severity risks[]; present resolution interview before Tether-to-lock |
+| core/components/plays/discover-product/SKILL.md | discover-product play | Replace "accept risk" bypass in Step 7 with mandatory resolution interview; add pre-lock-resolution task to status schema |
+| core/components/plays/plan-roadmap/SKILL.md | plan-roadmap play | Add pre-lock-resolution to task graph; modify Step 5 Tether to read feasibility.yaml and gate on non-empty critical_blockers/open_questions |
+| core/components/plays/prepare-implementation/SKILL.md | prepare-implementation play | Add artifact scan in Step 18 for open_questions[] and high-severity risks[]; present resolution interview before Tether-to-lock |
 
 ### Technical Approach
 

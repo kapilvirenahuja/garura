@@ -4,7 +4,7 @@ result:
     number: 101
     url: "https://github.com/kapilvirenahuja/meridian-os/pull/101"
     state: "open"
-    title: "feat(prepare-implementation): add recipe and standardize YAML/HTML artifact pairs (#99)"
+    title: "feat(prepare-implementation): add play and standardize YAML/HTML artifact pairs (#99)"
   checklist:
     required_count: 13
     optional_count: 5
@@ -16,7 +16,7 @@ meta:
   base: main
   platform: github
   created_at: "2026-03-16"
-  intent_path: core/components/recipes/create-pr/reference/intent.yaml
+  intent_path: core/components/plays/create-pr/reference/intent.yaml
 
 constraints_satisfied:
   C1: "Platform determined from core/config.yaml (github)"

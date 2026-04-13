@@ -3,7 +3,7 @@ readiness:
   pr:
     number: 207
     url: "https://github.com/kapilvirenahuja/meridian-os/pull/207"
-    title: "refactor(recipes): make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture (#206)"
+    title: "refactor(plays): make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture (#206)"
     state: "OPEN"
     base_branch: "main"
     feature_branch: "refactor/206-make-brief-generation-opt-in"

@@ -4,7 +4,7 @@
 **When this applies:** Designing or configuring eval-generator agents, judge agents, or any agent whose outputs are used to assess the quality of another agent's work.
 **When this does NOT apply:** Domain agents that produce primary artifacts (not evaluations); agents that must share context to collaborate on a single output.
 **Search patterns:** context isolation, eval isolation, judge agent, eval-generator, test-case optimization, evaluation independence, security invariant
-**Provenance:** Issue #182 — learn recipe dry run
+**Provenance:** Issue #182 — learn play dry run
 **Created:** 2026-03-31
 
 ## Content
@@ -21,7 +21,7 @@ Eval-generator and judge agents must receive NO organizational knowledge and NO 
 - NOT in input: who produced the artifact, what approach was used, what the producer intended
 - Rationale: judges that know the intent can rationalize away failures ("the intent was right even if the output is wrong")
 
-**Enforcement mechanism:** The recipe that invokes eval-generator and judge agents is responsible for filtering context before passing it. The recipe does NOT pass its full STM or LTM context. It passes only the explicitly listed input fields.
+**Enforcement mechanism:** The play that invokes eval-generator and judge agents is responsible for filtering context before passing it. The play does NOT pass its full STM or LTM context. It passes only the explicitly listed input fields.
 
 **This is a security invariant, not a convenience tradeoff.** When isolation is relaxed "just this once" for speed, the evaluation result becomes unreliable. A contaminated eval that passes is worse than no eval — it creates false confidence.
 

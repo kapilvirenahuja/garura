@@ -1,5 +1,5 @@
 {
-  "recipe": "ship",
+  "play": "ship",
   "issue": "198",
   "started_at": "2026-04-12T00:00:00Z",
   "feature_branch": "fix/198-sync-claude-fork-execution",

@@ -1,23 +1,23 @@
 branch_signal:
-  branch: feature/123-briefs-recipe-sync-droids-factory-support
+  branch: feature/123-briefs-play-sync-droids-factory-support
   issue_reference: "123"
 
 mappings:
   - group_id: G1
     type: feat
     scope: components
-    subject: "add briefs recipe, sync-droids skill, and Factory Droid support"
+    subject: "add briefs play, sync-droids skill, and Factory Droid support"
     mapped_issue:
       number: 123
-      title: "Add briefs recipe, sync-droids skill, and Factory Droid support"
+      title: "Add briefs play, sync-droids skill, and Factory Droid support"
       labels: [enhancement]
       state: open
     confidence: high
     signals:
       branch: match
       semantic: >
-        Group description 'add briefs recipe, sync-droids skill, and Factory Droid support'
-        is an exact match to issue #123 title. Files include core/components/recipes/briefs/,
+        Group description 'add briefs play, sync-droids skill, and Factory Droid support'
+        is an exact match to issue #123 title. Files include core/components/plays/briefs/,
         core/components/skills/sync-droids/, AGENTS.md, and core/config.yaml — all directly
         implementing the feature described in issue #123. Label 'enhancement' aligns with feat type.
       proximity: >
@@ -32,20 +32,20 @@ mappings:
   - group_id: G2
     type: chore
     scope: stm
-    subject: "record create-recipe evidence and spec for briefs recipe"
+    subject: "record create-play evidence and spec for briefs play"
     mapped_issue:
       number: 123
-      title: "Add briefs recipe, sync-droids skill, and Factory Droid support"
+      title: "Add briefs play, sync-droids skill, and Factory Droid support"
       labels: [enhancement]
       state: open
     confidence: high
     signals:
       branch: match
       semantic: >
-        STM evidence files (.meridian/project/issues/_pending/evidence/create-recipe/briefs/)
+        STM evidence files (.meridian/project/issues/_pending/evidence/create-play/briefs/)
         are operational artifacts produced while implementing issue #123. The spec document
-        (2026-03-24-briefs-recipe-checksum-driven-brief-regeneration.md) directly describes
-        the briefs recipe being delivered under issue #123.
+        (2026-03-24-briefs-play-checksum-driven-brief-regeneration.md) directly describes
+        the briefs play being delivered under issue #123.
       proximity: >
         G1 maps to #123 as the primary implementation group. G2 represents supporting
         operational evidence — both belong to the same issue scope.
@@ -70,4 +70,4 @@ summary:
     All change groups map to issue #123 with high confidence.
     Branch name contains explicit issue reference (#123).
     No competing issue candidates detected among 17 open issues.
-    Recipe may proceed without human approval checkpoint (C9 satisfied).
+    Play may proceed without human approval checkpoint (C9 satisfied).

@@ -16,14 +16,14 @@
 
 The product-strategist agent has general instructions to search `~/.meridian/core/memory/` for domain-relevant content before invoking skills. However, this search is described generically ("search standards/**") and in practice the agent either skips it or searches too narrowly — finding `epic-schema.md` but missing `agent-lifecycle/epic-management-rules.md` and `knowledge/domain-taxonomy/`.
 
-The fix adds two new required input fields to `scope-roadmap-epics` that the agent must pass: `epic_rules_path` (epic management rules) and `domain_taxonomy_paths` (list of domain taxonomy module paths). The skill then reads and applies these rules during epic derivation. The recipe contract is also updated to remind the agent what LTM paths to discover.
+The fix adds two new required input fields to `scope-roadmap-epics` that the agent must pass: `epic_rules_path` (epic management rules) and `domain_taxonomy_paths` (list of domain taxonomy module paths). The skill then reads and applies these rules during epic derivation. The play contract is also updated to remind the agent what LTM paths to discover.
 
 ### Affected Files
 
 | File | Role | Change Needed |
 |------|------|---------------|
 | `core/components/skills/scope-roadmap-epics/SKILL.md` | Epic scoping skill | Add `epic_rules_path` and `domain_taxonomy_paths` inputs, add process steps to read and apply them |
-| `core/components/recipes/plan-roadmap/SKILL.md` | Recipe orchestrator | Update Step 2 description to list LTM paths agent must discover and pass |
+| `core/components/plays/plan-roadmap/SKILL.md` | Play orchestrator | Update Step 2 description to list LTM paths agent must discover and pass |
 
 ### Technical Approach
 
@@ -31,8 +31,8 @@ The fix adds two new required input fields to `scope-roadmap-epics` that the age
 
 **Alternatives Considered:**
 - Hardcode LTM paths in the skill itself → rejected because skills should not search LTM (agent's responsibility per architecture)
-- Add paths to the recipe JSON contract → rejected because the recipe doesn't know which domain taxonomy modules are relevant (that's the agent's job based on the product vertical)
+- Add paths to the play JSON contract → rejected because the play doesn't know which domain taxonomy modules are relevant (that's the agent's job based on the product vertical)
 
 **Risks:**
-- Agent still doesn't pass the paths → mitigated by recipe text explicitly listing what to discover
+- Agent still doesn't pass the paths → mitigated by play text explicitly listing what to discover
 - LTM files don't exist → mitigated by making fields optional with fallback behavior

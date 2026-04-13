@@ -14,15 +14,15 @@ analysis:
       message: "chore(stm): update ship status for #191"
   context:
     file_patterns_matched:
-      - core/components/recipes/prepare-implementation/
-      - core/components/recipes/implement-epic/
+      - core/components/plays/prepare-implementation/
+      - core/components/plays/implement-epic/
     commit_types:
       - fix
       - chore
   checklist:
     must_have:
       - item: "Both SKILL.md files updated"
-        trigger: "Core recipe changes required"
+        trigger: "Core play changes required"
         status: PASS
         evidence: "prepare-implementation SKILL.md adds Phase 0 (Steps 0a-0c), fix lock path; implement-epic SKILL.md updates artifact_base"
       - item: "Both intent.yaml files updated"

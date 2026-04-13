@@ -1,6 +1,6 @@
 issue:
   number: 112
-  title: "feat(create-recipe): deterministic eval generation from intent constraints"
+  title: "feat(create-play): deterministic eval generation from intent constraints"
   url: "https://github.com/kapilvirenahuja/meridian-os/issues/112"
   state: "open"
   created: true

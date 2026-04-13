@@ -3,7 +3,7 @@ design:
     Fix implement-epic to read artifacts from the issue STM context/design/ path where
     prepare-implementation already writes them, AND add issue/branch/STM setup to
     prepare-implementation's pre-flight so it becomes self-contained. Both changes go
-    through intent.yaml → /create-recipe --rebake per project rules — SKILL.md files
+    through intent.yaml → /create-play --rebake per project rules — SKILL.md files
     are compiled artifacts and must never be edited directly.
 
   approach:
@@ -23,7 +23,7 @@ design:
           Update prepare-implementation/reference/intent.yaml — add setup phase constraints
           and fix artifact lock path.
         files:
-          - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+          - path: "core/components/plays/prepare-implementation/reference/intent.yaml"
             action: "modify"
             details: >
               Add constraints mirroring start-feature:
@@ -33,12 +33,12 @@ design:
                 C_SETUP_4: Artifact lock step must use path {stm_base}/{issue}/context/design/{artifact},
                            not {stm_base}/{issue}/{artifact}.
               Add failure conditions:
-                F_SETUP_1: Recipe proceeds to Context Resolution without a resolved issue number.
+                F_SETUP_1: Play proceeds to Context Resolution without a resolved issue number.
                 F_SETUP_2: Artifacts are locked but no feature branch exists matching the naming convention.
                 F_SETUP_3: Any design artifact is written before the STM directory is initialized.
               Add scenario:
                 S_SETUP: Developer invokes prepare-implementation with no prior start-feature run.
-                         The recipe creates the issue, creates the branch, initializes STM, and
+                         The play creates the issue, creates the branch, initializes STM, and
                          completes all planning — producing fully locked artifacts in
                          {stm_base}/{issue}/context/design/.
         expected_outcome: >
@@ -53,10 +53,10 @@ design:
       - description: >
           Rebake prepare-implementation SKILL.md from updated intent.yaml.
         files:
-          - path: "core/components/recipes/prepare-implementation/SKILL.md"
+          - path: "core/components/plays/prepare-implementation/SKILL.md"
             action: "modify"
             details: >
-              Run /create-recipe --rebake prepare-implementation.
+              Run /create-play --rebake prepare-implementation.
               The rebake will produce an updated SKILL.md that includes:
               - Phase 0 — Setup: issue resolution (delegate to project-orchestrator),
                 branch creation (delegate to repo-orchestrator), STM initialization.
@@ -76,7 +76,7 @@ design:
       - description: >
           Update implement-epic/reference/intent.yaml — correct artifact path constraints.
         files:
-          - path: "core/components/recipes/implement-epic/reference/intent.yaml"
+          - path: "core/components/plays/implement-epic/reference/intent.yaml"
             action: "modify"
             details: >
               Update the artifact path referenced in C1 (plan.yaml must be LOCKED) and
@@ -99,10 +99,10 @@ design:
       - description: >
           Rebake implement-epic SKILL.md from updated intent.yaml.
         files:
-          - path: "core/components/recipes/implement-epic/SKILL.md"
+          - path: "core/components/plays/implement-epic/SKILL.md"
             action: "modify"
             details: >
-              Run /create-recipe --rebake implement-epic.
+              Run /create-play --rebake implement-epic.
               The rebake will produce an updated SKILL.md where pre-flight reads:
                 artifact_base = "{stm_base}/{issue}/context/design"
                 plan_yaml_path      = "{artifact_base}/plan.yaml"
@@ -147,13 +147,13 @@ design:
         actual path incoherence.
 
     - approach: >
-        Add a new bridging recipe/step between prepare-implementation and implement-epic
+        Add a new bridging play/step between prepare-implementation and implement-epic
         that reads from context/design/ and writes to product epics path (or vice versa).
       reason_rejected: >
-        Overengineered. The problem is a path mismatch in two existing recipes — adding
-        a third recipe to bridge them introduces an extra invocation step and a new failure
+        Overengineered. The problem is a path mismatch in two existing plays — adding
+        a third play to bridge them introduces an extra invocation step and a new failure
         surface without removing the underlying incoherence. Users would need to know to
-        run the bridge recipe or it would be silently skipped.
+        run the bridge play or it would be silently skipped.
 
     - approach: >
         Change prepare-implementation's output to write artifacts directly to the product
@@ -221,28 +221,28 @@ design:
       severity: "low"
 
   affected_files:
-    - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    - path: "core/components/plays/prepare-implementation/reference/intent.yaml"
       role: "Source of truth for prepare-implementation constraints — drives SKILL.md via rebake"
       change_needed: >
         Add setup phase constraints (issue resolution, branch creation, STM init).
         Fix artifact lock path constraint to reference context/design/ subdirectory.
         Add corresponding failure conditions and a setup scenario.
 
-    - path: "core/components/recipes/prepare-implementation/SKILL.md"
-      role: "Compiled recipe artifact — orchestrates the full prepare-implementation workflow"
+    - path: "core/components/plays/prepare-implementation/SKILL.md"
+      role: "Compiled play artifact — orchestrates the full prepare-implementation workflow"
       change_needed: >
         Rebake from updated intent.yaml. Expected delta: new Phase 0 — Setup section,
         corrected Step 20 lock paths.
 
-    - path: "core/components/recipes/implement-epic/reference/intent.yaml"
+    - path: "core/components/plays/implement-epic/reference/intent.yaml"
       role: "Source of truth for implement-epic constraints — drives SKILL.md via rebake"
       change_needed: >
         Update artifact path constraints for plan.yaml, features.yaml, tech.yaml,
         scenarios.yaml to derive from {stm_base}/{issue}/context/design/ instead of
         {product_base}/roadmap/epics/{epic_id}/.
 
-    - path: "core/components/recipes/implement-epic/SKILL.md"
-      role: "Compiled recipe artifact — orchestrates the full implement-epic TDD workflow"
+    - path: "core/components/plays/implement-epic/SKILL.md"
+      role: "Compiled play artifact — orchestrates the full implement-epic TDD workflow"
       change_needed: >
         Rebake from updated intent.yaml. Expected delta: pre-flight artifact_base and
         four derived paths updated; Step 1 JSON contract paths updated. All other

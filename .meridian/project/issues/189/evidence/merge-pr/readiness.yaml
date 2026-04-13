@@ -1,10 +1,10 @@
 readiness:
   pr_number: 190
-  pr_title: "feat(report-issue): add meridian:report-issue recipe for defect filing #189"
+  pr_title: "feat(report-issue): add meridian:report-issue play for defect filing #189"
   pr_state: "OPEN"
   mergeable: true
   base_branch: main
-  head_branch: feat/189-report-issue-recipe
+  head_branch: feat/189-report-issue-play
   clean_tree: true
   constraint_checks:
     C1_not_default_branch: PASS

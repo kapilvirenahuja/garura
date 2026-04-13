@@ -4,7 +4,7 @@ issue:
   labels:
     - bug
   state: open
-  body_summary: "The discover-product recipe has a structural flaw: `product-strategist` drafts the vision (Step 3) and then validates its own output (Step 6) using `validate-product-vision`. Same agent, same model, same context."
+  body_summary: "The discover-product play has a structural flaw: `product-strategist` drafts the vision (Step 3) and then validates its own output (Step 6) using `validate-product-vision`. Same agent, same model, same context."
   url: "https://github.com/kapilvirenahuja/meridian-os/issues/152"
   created: true
   closed: false

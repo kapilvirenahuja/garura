@@ -1,27 +1,27 @@
 ---
 # commit-code stage 5 output
-# Branch: feature/95-intent-driven-recipe-architecture
+# Branch: feature/95-intent-driven-play-architecture
 # Generated: 2026-03-06
-# Updated: 2026-03-06 (current session — discover-product, create-recipe, doc-builder, and templates additions)
+# Updated: 2026-03-06 (current session — discover-product, create-play, doc-builder, and templates additions)
 
 status: completed
 total_commits: 26
-note: "Updated with commits for discover-product recompilation, create-recipe --review mode, new doc-builder agent, generate-product-brief skill, draft-product-vision fix, LTM templates, STM evidence artifacts, and plan-roadmap recipe rebake (current session)"
+note: "Updated with commits for discover-product recompilation, create-play --review mode, new doc-builder agent, generate-product-brief skill, draft-product-vision fix, LTM templates, STM evidence artifacts, and plan-roadmap play rebake (current session)"
 
 commits:
   - id: C1
     group: G1
     hash: 7cc5072
     type: refactor
-    scope: recipes
-    subject: "rebuild capture-learning recipe to L1 intent-driven architecture (#95)"
-    message: "refactor(recipes): rebuild capture-learning recipe to L1 intent-driven architecture (#95)"
+    scope: plays
+    subject: "rebuild capture-learning play to L1 intent-driven architecture (#95)"
+    message: "refactor(plays): rebuild capture-learning play to L1 intent-driven architecture (#95)"
     files:
       staged:
-        - core/components/recipes/capture-learning/SKILL.md
-        - core/components/recipes/capture-learning/reference/intent.yaml
+        - core/components/plays/capture-learning/SKILL.md
+        - core/components/plays/capture-learning/reference/intent.yaml
       deleted:
-        - core/components/recipes/capture-learning/templates/capture-report.md
+        - core/components/plays/capture-learning/templates/capture-report.md
     stats:
       files_changed: 3
       insertions: 280
@@ -34,15 +34,15 @@ commits:
     hash: 4dc1d62
     type: chore
     scope: stm
-    subject: "record create-recipe evidence artifacts for capture-learning rebuild (#95)"
-    message: "chore(stm): record create-recipe evidence artifacts for capture-learning rebuild (#95)"
+    subject: "record create-play evidence artifacts for capture-learning rebuild (#95)"
+    message: "chore(stm): record create-play evidence artifacts for capture-learning rebuild (#95)"
     files:
       staged:
-        - .meridian/project/issues/95/evidence/create-recipe/capture-learning/agent-audit-project-orchestrator.md
-        - .meridian/project/issues/95/evidence/create-recipe/capture-learning/agent-audit-repo-orchestrator.md
-        - .meridian/project/issues/95/evidence/create-recipe/capture-learning/dag.json
-        - .meridian/project/issues/95/evidence/create-recipe/capture-learning/evals.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/capture-learning/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-play/capture-learning/agent-audit-project-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-play/capture-learning/agent-audit-repo-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-play/capture-learning/dag.json
+        - .meridian/project/issues/95/evidence/create-play/capture-learning/evals.yaml
+        - .meridian/project/issues/95/evidence/create-play/capture-learning/skill-manifest.yaml
     stats:
       files_changed: 5
       insertions: 318
@@ -72,21 +72,21 @@ commits:
     group: G4
     hash: 38acb85
     type: refactor
-    scope: recipes
-    subject: "update commit-code and create-recipe components for intent-driven architecture"
-    message: "refactor(recipes): update commit-code and create-recipe components for intent-driven architecture (#95)"
+    scope: plays
+    subject: "update commit-code and create-play components for intent-driven architecture"
+    message: "refactor(plays): update commit-code and create-play components for intent-driven architecture (#95)"
     issue_ref: 95
     files:
       - core/components/memory/standards/agent-contract.md
       - core/components/memory/workflows/direct-generation.yaml
       - core/components/memory/workflows/readiness-brief-generation.yaml
       - core/components/memory/workflows/readiness-only.yaml
-      - core/components/recipes/commit-code/SKILL.md
-      - core/components/recipes/commit-code/reference/intent.yaml
-      - core/components/recipes/create-recipe/SKILL.md
-      - core/components/recipes/create-recipe/reference/audit-checklist.md
-      - core/components/recipes/create-recipe/reference/compiled-example.md
-      - docs/adr/013-recipe-maturity-model.md
+      - core/components/plays/commit-code/SKILL.md
+      - core/components/plays/commit-code/reference/intent.yaml
+      - core/components/plays/create-play/SKILL.md
+      - core/components/plays/create-play/reference/audit-checklist.md
+      - core/components/plays/create-play/reference/compiled-example.md
+      - docs/adr/013-play-maturity-model.md
     stats:
       files_changed: 10
       insertions: 1334
@@ -98,17 +98,17 @@ commits:
     hash: 274879b
     type: chore
     scope: stm
-    subject: "record create-recipe evidence artifacts for issue #95"
-    message: "chore(stm): record create-recipe evidence artifacts for issue #95 (#95)"
+    subject: "record create-play evidence artifacts for issue #95"
+    message: "chore(stm): record create-play evidence artifacts for issue #95 (#95)"
     issue_ref: 95
     files:
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-project-orchestrator.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/agent-audit-repo-orchestrator.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/intent-gap-report.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/recipe-analysis.md
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/scenario-evals.yaml
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/skill-manifest.yaml
-      - .meridian/project/issues/95/evidence/create-recipe/commit-code/step-evals.yaml
+      - .meridian/project/issues/95/evidence/create-play/commit-code/agent-audit-project-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-play/commit-code/agent-audit-repo-orchestrator.md
+      - .meridian/project/issues/95/evidence/create-play/commit-code/intent-gap-report.md
+      - .meridian/project/issues/95/evidence/create-play/commit-code/play-analysis.md
+      - .meridian/project/issues/95/evidence/create-play/commit-code/scenario-evals.yaml
+      - .meridian/project/issues/95/evidence/create-play/commit-code/skill-manifest.yaml
+      - .meridian/project/issues/95/evidence/create-play/commit-code/step-evals.yaml
     stats:
       files_changed: 7
       insertions: 493
@@ -125,8 +125,8 @@ commits:
     issue_ref: 95
     files:
       staged:
-        - core/components/recipes/create-pr/SKILL.md
-        - core/components/recipes/create-pr/reference/intent.yaml
+        - core/components/plays/create-pr/SKILL.md
+        - core/components/plays/create-pr/reference/intent.yaml
     stats:
       files_changed: 2
       insertions: 183
@@ -138,15 +138,15 @@ commits:
     hash: 4f2f8a2
     type: chore
     scope: stm
-    subject: "record create-recipe evidence artifacts for create-pr"
-    message: "chore(stm): record create-recipe evidence artifacts for create-pr (#95)"
+    subject: "record create-play evidence artifacts for create-pr"
+    message: "chore(stm): record create-play evidence artifacts for create-pr (#95)"
     issue_ref: 95
     files:
       staged:
-        - .meridian/project/issues/95/evidence/create-recipe/create-pr/skill-manifest.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/create-pr/intent-gap-report.md
-        - .meridian/project/issues/95/evidence/create-recipe/create-pr/recipe-analysis.md
-        - .meridian/project/issues/95/evidence/create-recipe/create-pr/step-evals.yaml
+        - .meridian/project/issues/95/evidence/create-play/create-pr/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-play/create-pr/intent-gap-report.md
+        - .meridian/project/issues/95/evidence/create-play/create-pr/play-analysis.md
+        - .meridian/project/issues/95/evidence/create-play/create-pr/step-evals.yaml
     stats:
       files_changed: 4
       insertions: 296
@@ -165,8 +165,8 @@ commits:
     confidence: high
     files:
       staged:
-        - core/components/recipes/merge-pr/SKILL.md
-        - core/components/recipes/merge-pr/reference/intent.yaml
+        - core/components/plays/merge-pr/SKILL.md
+        - core/components/plays/merge-pr/reference/intent.yaml
     stats:
       files_changed: 2
       insertions: 151
@@ -178,16 +178,16 @@ commits:
     hash: b7f6946
     type: chore
     scope: stm
-    subject: "record create-recipe evidence artifacts for merge-pr (#95)"
-    message: "chore(stm): record create-recipe evidence artifacts for merge-pr (#95)"
+    subject: "record create-play evidence artifacts for merge-pr (#95)"
+    message: "chore(stm): record create-play evidence artifacts for merge-pr (#95)"
     issue_ref: 95
     confidence: high
     files:
       staged:
-        - .meridian/project/issues/95/evidence/create-recipe/merge-pr/agent-audit-repo-orchestrator.md
-        - .meridian/project/issues/95/evidence/create-recipe/merge-pr/evals.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/merge-pr/recipe-analysis.md
-        - .meridian/project/issues/95/evidence/create-recipe/merge-pr/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-play/merge-pr/agent-audit-repo-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-play/merge-pr/evals.yaml
+        - .meridian/project/issues/95/evidence/create-play/merge-pr/play-analysis.md
+        - .meridian/project/issues/95/evidence/create-play/merge-pr/skill-manifest.yaml
         - .meridian/project/issues/95/evidence/create-pr/analysis.yaml
         - .meridian/project/issues/95/evidence/create-pr/issue-linkage.yaml
         - .meridian/project/issues/95/evidence/commit-code/analysis.yaml
@@ -210,7 +210,7 @@ commits:
     confidence: high
     files:
       staged:
-        - core/components/recipes/ship/SKILL.md
+        - core/components/plays/ship/SKILL.md
     stats:
       files_changed: 1
       insertions: 148
@@ -223,17 +223,17 @@ commits:
     hash: 0779617
     type: chore
     scope: stm
-    subject: "record create-recipe evidence artifacts for ship (#95)"
-    message: "chore(stm): record create-recipe evidence artifacts for ship (#95)"
+    subject: "record create-play evidence artifacts for ship (#95)"
+    message: "chore(stm): record create-play evidence artifacts for ship (#95)"
     issue_ref: 95
     confidence: high
     files:
       staged:
-        - .meridian/project/issues/95/evidence/create-recipe/ship/agent-audit-project-orchestrator.md
-        - .meridian/project/issues/95/evidence/create-recipe/ship/agent-audit-repo-orchestrator.md
-        - .meridian/project/issues/95/evidence/create-recipe/ship/evals.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/ship/recipe-analysis.md
-        - .meridian/project/issues/95/evidence/create-recipe/ship/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-play/ship/agent-audit-project-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-play/ship/agent-audit-repo-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-play/ship/evals.yaml
+        - .meridian/project/issues/95/evidence/create-play/ship/play-analysis.md
+        - .meridian/project/issues/95/evidence/create-play/ship/skill-manifest.yaml
     stats:
       files_changed: 5
       insertions: 293
@@ -252,7 +252,7 @@ commits:
     confidence: high
     files:
       staged:
-        - core/components/recipes/start-feature/SKILL.md
+        - core/components/plays/start-feature/SKILL.md
     stats:
       files_changed: 1
       insertions: 196
@@ -265,16 +265,16 @@ commits:
     hash: 90d91e6
     type: chore
     scope: stm
-    subject: "record create-recipe evidence artifacts for start-feature"
-    message: "chore(stm): record create-recipe evidence artifacts for start-feature (#95)"
+    subject: "record create-play evidence artifacts for start-feature"
+    message: "chore(stm): record create-play evidence artifacts for start-feature (#95)"
     issue_ref: 95
     confidence: high
     files:
       staged:
-        - .meridian/project/issues/95/evidence/create-recipe/start-feature/agent-audit-project-orchestrator.md
-        - .meridian/project/issues/95/evidence/create-recipe/start-feature/agent-audit-repo-orchestrator.md
-        - .meridian/project/issues/95/evidence/create-recipe/start-feature/evals.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/start-feature/recipe-analysis.md
+        - .meridian/project/issues/95/evidence/create-play/start-feature/agent-audit-project-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-play/start-feature/agent-audit-repo-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-play/start-feature/evals.yaml
+        - .meridian/project/issues/95/evidence/create-play/start-feature/play-analysis.md
     stats:
       files_changed: 4
       insertions: 218
@@ -288,8 +288,8 @@ commits:
     hash: 5518925
     type: chore
     scope: stm
-    subject: "record create-recipe evidence artifacts for start-feature-planning (#95)"
-    message: "chore(stm): record create-recipe evidence artifacts for start-feature-planning (#95)"
+    subject: "record create-play evidence artifacts for start-feature-planning (#95)"
+    message: "chore(stm): record create-play evidence artifacts for start-feature-planning (#95)"
     issue_ref: 95
     confidence: high
     files:
@@ -298,8 +298,8 @@ commits:
         - .meridian/project/issues/95/evidence/commit-code/commits.yaml
         - .meridian/project/issues/95/evidence/commit-code/issue-mappings.yaml
         - .meridian/project/issues/95/evidence/commit-code/push-result.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/start-feature-planning/evals.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/start-feature-planning/recipe-analysis.md
+        - .meridian/project/issues/95/evidence/create-play/start-feature-planning/evals.yaml
+        - .meridian/project/issues/95/evidence/create-play/start-feature-planning/play-analysis.md
     stats:
       files_changed: 6
       insertions: 385
@@ -319,8 +319,8 @@ commits:
     confidence: high
     files:
       staged:
-        - core/components/recipes/capture-learning/SKILL.md
-        - core/components/recipes/capture-learning/reference/intent.yaml
+        - core/components/plays/capture-learning/SKILL.md
+        - core/components/plays/capture-learning/reference/intent.yaml
     stats:
       files_changed: 2
       insertions: 288
@@ -333,15 +333,15 @@ commits:
     hash: c8191fb
     type: chore
     scope: stm
-    subject: "record create-recipe evidence artifacts for capture-learning (#95)"
-    message: "chore(stm): record create-recipe evidence artifacts for capture-learning (#95)"
+    subject: "record create-play evidence artifacts for capture-learning (#95)"
+    message: "chore(stm): record create-play evidence artifacts for capture-learning (#95)"
     issue_ref: 95
     confidence: high
     files:
       staged:
-        - .meridian/project/issues/95/evidence/create-recipe/capture-learning/evals.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/capture-learning/skill-manifest.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/capture-learning/recipe-analysis.md
+        - .meridian/project/issues/95/evidence/create-play/capture-learning/evals.yaml
+        - .meridian/project/issues/95/evidence/create-play/capture-learning/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-play/capture-learning/play-analysis.md
         - .meridian/project/issues/95/evidence/commit-code/commits.yaml
     stats:
       files_changed: 4
@@ -362,8 +362,8 @@ commits:
     confidence: high
     files:
       staged:
-        - core/components/recipes/discover-product/SKILL.md
-        - core/components/recipes/discover-product/reference/intent.yaml
+        - core/components/plays/discover-product/SKILL.md
+        - core/components/plays/discover-product/reference/intent.yaml
     stats:
       files_changed: 2
       insertions: 467
@@ -376,14 +376,14 @@ commits:
     group: group-2
     hash: b8c29fa
     type: feat
-    scope: create-recipe
+    scope: create-play
     subject: "add --review mode with G1-G10 gap checks (#95)"
-    message: "feat(create-recipe): add --review mode with G1-G10 gap checks (#95)"
+    message: "feat(create-play): add --review mode with G1-G10 gap checks (#95)"
     issue_ref: 95
     confidence: high
     files:
       staged:
-        - core/components/recipes/create-recipe/SKILL.md
+        - core/components/plays/create-play/SKILL.md
     stats:
       files_changed: 1
       insertions: 63
@@ -481,18 +481,18 @@ commits:
     hash: 80c64cf
     type: chore
     scope: stm
-    subject: "record create-recipe evidence artifacts for discover-product (#95)"
-    message: "chore(stm): record create-recipe evidence artifacts for discover-product (#95)"
+    subject: "record create-play evidence artifacts for discover-product (#95)"
+    message: "chore(stm): record create-play evidence artifacts for discover-product (#95)"
     issue_ref: 95
     confidence: high
     files:
       staged:
-        - .meridian/project/issues/95/evidence/create-recipe/discover-product/recipe-analysis.md
-        - .meridian/project/issues/95/evidence/create-recipe/discover-product/skill-manifest.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/discover-product/evals.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/discover-product/agent-audit-product-strategist.md
-        - .meridian/project/issues/95/evidence/create-recipe/discover-product/agent-audit-doc-builder.md
-        - .meridian/project/issues/95/evidence/create-recipe/discover-product/review-report.md
+        - .meridian/project/issues/95/evidence/create-play/discover-product/play-analysis.md
+        - .meridian/project/issues/95/evidence/create-play/discover-product/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-play/discover-product/evals.yaml
+        - .meridian/project/issues/95/evidence/create-play/discover-product/agent-audit-product-strategist.md
+        - .meridian/project/issues/95/evidence/create-play/discover-product/agent-audit-doc-builder.md
+        - .meridian/project/issues/95/evidence/create-play/discover-product/review-report.md
     stats:
       files_changed: 6
       insertions: 419
@@ -530,16 +530,16 @@ commits:
     hash: de97041
     type: feat
     scope: plan-roadmap
-    subject: "rebake recipe with intent.yaml, roadmap-brief template, and product-strategist agent updates"
-    message: "feat(plan-roadmap): rebake recipe with intent.yaml, roadmap-brief template, and product-strategist agent updates (#95)"
+    subject: "rebake play with intent.yaml, roadmap-brief template, and product-strategist agent updates"
+    message: "feat(plan-roadmap): rebake play with intent.yaml, roadmap-brief template, and product-strategist agent updates (#95)"
     issue_ref: 95
     confidence: high
     files:
       staged:
         - core/components/agents/product-strategist.md
         - core/components/memory/standards/templates/roadmap-brief.html
-        - core/components/recipes/plan-roadmap/SKILL.md
-        - core/components/recipes/plan-roadmap/reference/intent.yaml
+        - core/components/plays/plan-roadmap/SKILL.md
+        - core/components/plays/plan-roadmap/reference/intent.yaml
         - core/components/skills/draft-roadmap-brief/SKILL.md
     stats:
       files_changed: 5
@@ -553,19 +553,19 @@ commits:
     hash: ebe0dc3
     type: chore
     scope: stm
-    subject: "record create-recipe evidence and update commit-code tracking"
-    message: "chore(stm): record create-recipe evidence and update commit-code tracking (#95)"
+    subject: "record create-play evidence and update commit-code tracking"
+    message: "chore(stm): record create-play evidence and update commit-code tracking (#95)"
     issue_ref: 95
     confidence: high
     files:
       staged:
         - .meridian/project/issues/95/status/commit-code.json
-        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-product-strategist.md
-        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-repo-orchestrator.md
-        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/agent-audit-tech-designer.md
-        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/evals.yaml
-        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/recipe-analysis.md
-        - .meridian/project/issues/95/evidence/create-recipe/plan-roadmap/skill-manifest.yaml
+        - .meridian/project/issues/95/evidence/create-play/plan-roadmap/agent-audit-product-strategist.md
+        - .meridian/project/issues/95/evidence/create-play/plan-roadmap/agent-audit-repo-orchestrator.md
+        - .meridian/project/issues/95/evidence/create-play/plan-roadmap/agent-audit-tech-designer.md
+        - .meridian/project/issues/95/evidence/create-play/plan-roadmap/evals.yaml
+        - .meridian/project/issues/95/evidence/create-play/plan-roadmap/play-analysis.md
+        - .meridian/project/issues/95/evidence/create-play/plan-roadmap/skill-manifest.yaml
     stats:
       files_changed: 7
       insertions: 257
@@ -582,7 +582,7 @@ validation:
   branch_correct: true
 
 constraint_check:
-  C1: PASS  # executed on feature/95-intent-driven-recipe-architecture
+  C1: PASS  # executed on feature/95-intent-driven-play-architecture
   C3: PASS  # all groups map to existing open issue #95
   C4: PASS  # no sensitive files in changeset
   C5: PASS  # all commits follow conventional format
@@ -600,7 +600,7 @@ failure_conditions:
 push:
   status: success
   remote: origin
-  ref: feature/95-intent-driven-recipe-architecture
+  ref: feature/95-intent-driven-play-architecture
   branch_tracking: set
 
 summary:
@@ -613,9 +613,9 @@ summary:
     fix: 1
     chore: 12
   notes:
-    - "C25-C26 comprise plan-roadmap recipe rebake with intent.yaml, templates, and agent updates"
-    - "C25 recompiles plan-roadmap recipe with new intent.yaml, roadmap-brief.html template, and updated product-strategist agent"
-    - "C26 records create-recipe evidence for plan-roadmap"
+    - "C25-C26 comprise plan-roadmap play rebake with intent.yaml, templates, and agent updates"
+    - "C25 recompiles plan-roadmap play with new intent.yaml, roadmap-brief.html template, and updated product-strategist agent"
+    - "C26 records create-play evidence for plan-roadmap"
     - "All files staged specifically — no git add -A used"
     - "All commit messages describe actual changes (F2)"
     - "All mappings high-confidence; no approval required per C9"

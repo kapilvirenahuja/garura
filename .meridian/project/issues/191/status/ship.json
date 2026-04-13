@@ -1,5 +1,5 @@
 {
-  "recipe": "ship",
+  "play": "ship",
   "issue": "191",
   "started_at": "2026-04-11T16:05:00Z",
   "feature_branch": "fix/191-prepare-impl-stm-setup",

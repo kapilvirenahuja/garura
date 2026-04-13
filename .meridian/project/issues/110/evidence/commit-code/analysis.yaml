@@ -1,6 +1,6 @@
 groups:
   - id: "group-1"
-    concern: "New check-drift recipe and skill implementation — core/components source files for issue #110"
+    concern: "New check-drift play and skill implementation — core/components source files for issue #110"
     type: "feat"
     scope: "check-drift"
     risk: "low"
@@ -8,12 +8,12 @@ groups:
       issue: 110
       confidence: high
       rationale: >
-        Files live under core/components/recipes/check-drift/ and core/components/skills/check-drift/.
+        Files live under core/components/plays/check-drift/ and core/components/skills/check-drift/.
         Issue #110 start-feature evidence confirms this is the current active work unit. The SKILL.md,
         intent.yaml, and templates.md are the canonical implementation artifacts for the check-drift
         capability.
     files:
-      - path: "core/components/recipes/check-drift/reference/intent.yaml"
+      - path: "core/components/plays/check-drift/reference/intent.yaml"
         status: untracked
       - path: "core/components/skills/check-drift/SKILL.md"
         status: untracked
@@ -56,7 +56,7 @@ groups:
         (args.yaml, branch-result.yaml, changed-files.txt, issue-resolution.yaml, 20260323-171101.md)
         and status checkpoints (ship.json, start-feature.json). These are STM evidence for issue #110.
         Note: the commit-code analysis.yaml being written now will also land in this same STM path
-        but is produced as part of this recipe run, not pre-existing.
+        but is produced as part of this play run, not pre-existing.
     files:
       - path: ".meridian/project/issues/110/evidence/start-feature/20260323-171101.md"
         status: untracked
@@ -90,7 +90,7 @@ groups:
     notes: >
       Not a secrets file — no API keys, tokens, or credentials present. Risk is medium because
       there is no issue mapping (C3 violation risk) and committing local tool config without an
-      issue reference violates the recipe's C3 constraint. This group should be surfaced for
+      issue reference violates the play's C3 constraint. This group should be surfaced for
       human review before committing.
     files:
       - path: ".claude/settings.json"
@@ -109,7 +109,7 @@ constraints_flagged:
   - constraint: C3
     group: "group-4"
     detail: >
-      .claude/settings.json cannot be mapped to an existing issue. Recipe must halt on this
+      .claude/settings.json cannot be mapped to an existing issue. Play must halt on this
       group and instruct user to either exclude the file or create an issue for it.
   - constraint: C9
     group: "group-4"

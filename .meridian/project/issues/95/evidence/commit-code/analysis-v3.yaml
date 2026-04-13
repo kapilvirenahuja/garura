@@ -1,5 +1,5 @@
 branch:
-  name: feature/95-intent-driven-recipe-architecture
+  name: feature/95-intent-driven-play-architecture
   issue: 95
   is_hotfix: false
 
@@ -14,12 +14,12 @@ groups:
     issue: 95
     type: refactor
     scope: create-pr
-    subject: "refactor create-pr recipe and submit-pr skill to JSON contract + multi-platform architecture"
+    subject: "refactor create-pr play and submit-pr skill to JSON contract + multi-platform architecture"
     confidence: high
     rationale: >
-      All modified and deleted files belong to the create-pr recipe and submit-pr skill refactor.
-      The branch signal (feature/95-intent-driven-recipe-architecture) confirms issue #95.
-      The dominant change type is refactoring: existing recipe and skill are restructured to use
+      All modified and deleted files belong to the create-pr play and submit-pr skill refactor.
+      The branch signal (feature/95-intent-driven-play-architecture) confirms issue #95.
+      The dominant change type is refactoring: existing play and skill are restructured to use
       JSON contracts, multi-platform dispatch, intent-resolver agent, and STM data flow.
       No new capability is introduced — the pattern of how create-pr operates is redesigned.
       Deleted template files (approval-prompt.md, checkpoint.md, final-report.md) are removed
@@ -28,24 +28,24 @@ groups:
       Type is refactor (dominant) with embedded feat signals (multi-platform support) —
       kept as one group per issue-first grouping rules.
     files:
-      - path: "core/components/recipes/create-pr/SKILL.md"
+      - path: "core/components/plays/create-pr/SKILL.md"
         status: modified
         description: >
-          Refactored recipe to use JSON contract dispatch pattern, fixed stages (0-7),
+          Refactored play to use JSON contract dispatch pattern, fixed stages (0-7),
           intent-resolver agent, STM data flow rules, two eval levels, DAG caching/resumption.
           Removed in-memory prose-based agent invocation in favour of structured JSON contracts.
-      - path: "core/components/recipes/create-pr/reference/intent.yaml"
+      - path: "core/components/plays/create-pr/reference/intent.yaml"
         status: modified
         description: >
           Replaced pre_flight/behavioral split with flat constraint list (C1-C7) and
           structured failure_conditions (F1-F5) with IDs. Added acceptance scenarios (S1-S2).
-      - path: "core/components/recipes/create-pr/templates/approval-prompt.md"
+      - path: "core/components/plays/create-pr/templates/approval-prompt.md"
         status: deleted
         description: Template removed as part of refactor — approval now handled inline via STM confidence gate.
-      - path: "core/components/recipes/create-pr/templates/checkpoint.md"
+      - path: "core/components/plays/create-pr/templates/checkpoint.md"
         status: deleted
         description: Template removed — checkpoint artifacts written directly to STM paths.
-      - path: "core/components/recipes/create-pr/templates/final-report.md"
+      - path: "core/components/plays/create-pr/templates/final-report.md"
         status: deleted
         description: Template removed — reporting handled inline post-generation.
       - path: "core/components/skills/submit-pr/SKILL.md"
@@ -68,7 +68,7 @@ groups:
     subject: "record STM evidence and working artifacts for issue #95"
     confidence: high
     rationale: >
-      STM files under .meridian/95/ and .meridian/recipe-creation/create-pr/ are operational
+      STM files under .meridian/95/ and .meridian/play-creation/create-pr/ are operational
       artifacts — evidence, DAG, evals, and design files — not part of the feature code itself.
       Per issue-first grouping rules, STM artifacts that are operational (not part of the feature)
       are the one valid exception case to split within a single issue. These are chore(stm) commits.
@@ -94,10 +94,10 @@ groups:
       - path: ".meridian/95/delivery/"
         status: untracked
         description: Delivery artifacts directory for issue #95.
-      - path: ".meridian/recipe-creation/create-pr/"
+      - path: ".meridian/play-creation/create-pr/"
         status: untracked
         description: >
-          Recipe creation working files: agent-audit-project-orchestrator.md,
+          Play creation working files: agent-audit-project-orchestrator.md,
           agent-audit-repo-orchestrator.md, dag.json, scenario-evals.yaml,
           skill-manifest.yaml, step-evals-analyze-pr.yaml, step-evals-submit-pr.yaml.
 
@@ -115,25 +115,25 @@ risks:
         create-pr intent.yaml: constraint IDs changed (pre_flight.C1-C4 + behavioral.C5-C9 → flat C1-C7).
         Any external tooling or agent that references constraint IDs by the old scheme will need updating.
       files:
-        - "core/components/recipes/create-pr/reference/intent.yaml"
+        - "core/components/plays/create-pr/reference/intent.yaml"
       severity: low
-      note: ID scheme is internal to the recipe. No external callers known.
+      note: ID scheme is internal to the play. No external callers known.
     - description: >
         Three template files deleted: approval-prompt.md, checkpoint.md, final-report.md.
         Any reference to these paths from external tooling or documentation will be broken.
       files:
-        - "core/components/recipes/create-pr/templates/approval-prompt.md"
-        - "core/components/recipes/create-pr/templates/checkpoint.md"
-        - "core/components/recipes/create-pr/templates/final-report.md"
+        - "core/components/plays/create-pr/templates/approval-prompt.md"
+        - "core/components/plays/create-pr/templates/checkpoint.md"
+        - "core/components/plays/create-pr/templates/final-report.md"
       severity: medium
-      note: Internal to the recipe. No evidence of external references detected.
+      note: Internal to the play. No evidence of external references detected.
   ambiguous_types: []
   hotfix_branch: false
 
 issue_mapping:
   - issue: 95
     confidence: high
-    signal: branch name (feature/95-intent-driven-recipe-architecture)
+    signal: branch name (feature/95-intent-driven-play-architecture)
     groups: [G1, G2]
 
 suggested_commits:

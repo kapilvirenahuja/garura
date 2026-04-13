@@ -7,7 +7,7 @@ analysis:
     files: 106
     additions: 11793
     deletions: 749
-  suggested_title: "feat(prepare-implementation): add recipe and standardize YAML/HTML artifact pairs (#99)"
+  suggested_title: "feat(prepare-implementation): add play and standardize YAML/HTML artifact pairs (#99)"
 
   context:
     file_patterns_matched:
@@ -20,12 +20,12 @@ analysis:
       - name: "Skill Definitions (updated)"
         files: 8
         trigger: "core/components/skills/**/SKILL.md"
-      - name: "Recipe Definitions (new)"
+      - name: "Play Definitions (new)"
         files: 1
-        trigger: "core/components/recipes/**/SKILL.md"
-      - name: "Recipe Definitions (updated)"
+        trigger: "core/components/plays/**/SKILL.md"
+      - name: "Play Definitions (updated)"
         files: 4
-        trigger: "core/components/recipes/**/SKILL.md"
+        trigger: "core/components/plays/**/SKILL.md"
       - name: "Configuration / YAML Schemas"
         files: 14
         trigger: "*.yaml, *.yml"
@@ -47,12 +47,12 @@ analysis:
         examples:
           - "feat(schemas): add YAML schemas for skill artifact outputs"
           - "feat(agents): extend agents with prepare-implementation skill bindings"
-          - "feat(prepare-implementation): add prepare-implementation recipe and supporting skills"
+          - "feat(prepare-implementation): add prepare-implementation play and supporting skills"
       - type: "refactor"
         count: 3
         examples:
           - "refactor(epic-schema): rename E-IDs to F-IDs and strategic_goal to strategic_goal_ref"
-          - "refactor(recipes): update create-recipe and plan-roadmap for P11 and standardized artifacts"
+          - "refactor(plays): update create-play and plan-roadmap for P11 and standardized artifacts"
           - "refactor(skills): update existing skills to standardized YAML artifact contracts"
       - type: "chore"
         count: 5
@@ -100,23 +100,23 @@ analysis:
         status: "PASS"
         evidence: "All new skills have ## Input and ## Output (or ## Output Schema) sections confirmed by review. Updated skills retain their existing Input/Output definitions."
 
-      - id: "recipe-frontmatter"
-        item: "Recipe has valid frontmatter (name, description, user-invocable, allowed-tools)"
-        trigger: "5 recipe SKILL.md files changed (1 new: prepare-implementation, 4 updated)"
+      - id: "play-frontmatter"
+        item: "Play has valid frontmatter (name, description, user-invocable, allowed-tools)"
+        trigger: "5 play SKILL.md files changed (1 new: prepare-implementation, 4 updated)"
         status: "PASS"
-        evidence: "prepare-implementation frontmatter confirmed: name, description, user-invocable fields present. Updated recipes (create-recipe, discover-product, plan-roadmap, create-recipe audit-checklist) retain valid frontmatter. Level is defined in ## Version metadata (maturity: L2)."
+        evidence: "prepare-implementation frontmatter confirmed: name, description, user-invocable fields present. Updated plays (create-play, discover-product, plan-roadmap, create-play audit-checklist) retain valid frontmatter. Level is defined in ## Version metadata (maturity: L2)."
 
-      - id: "recipe-workflow"
-        item: "Recipe defines workflow section"
-        trigger: "5 recipe SKILL.md files changed"
+      - id: "play-workflow"
+        item: "Play defines workflow section"
+        trigger: "5 play SKILL.md files changed"
         status: "PASS"
-        evidence: "prepare-implementation has ## Workflow section at line 67. All updated recipes retain their ## Workflow sections confirmed by grep."
+        evidence: "prepare-implementation has ## Workflow section at line 67. All updated plays retain their ## Workflow sections confirmed by grep."
 
-      - id: "recipe-checkpoint"
-        item: "Recipe defines checkpoint behavior"
-        trigger: "5 recipe SKILL.md files changed"
+      - id: "play-checkpoint"
+        item: "Play defines checkpoint behavior"
+        trigger: "5 play SKILL.md files changed"
         status: "PASS"
-        evidence: "prepare-implementation defines 3 checkpoints (lines 596-629). plan-roadmap checkpoint at line 215. discover-product checkpoints at lines 209, 316. create-recipe checkpoint behavior defined at line 250."
+        evidence: "prepare-implementation defines 3 checkpoints (lines 596-629). plan-roadmap checkpoint at line 215. discover-product checkpoints at lines 209, 316. create-play checkpoint behavior defined at line 250."
 
       - id: "config-valid"
         item: "Configuration syntax valid (YAML schemas)"
@@ -128,19 +128,19 @@ analysis:
         item: "Components synced with core/components/ via /sync-claude"
         trigger: "core/components/** changed — 106 files modified"
         status: "PASS"
-        evidence: "Verified ~/.claude/skills/ contains all 9 new skills: audit-spec-gaps, draft-lld, draft-product-spec, draft-scenario-mapping, draft-technical-approach, draft-verification-scenarios, generate-implementation-brief, scout-project, validate-implementation-design — and prepare-implementation recipe. Deployment is current."
+        evidence: "Verified ~/.claude/skills/ contains all 9 new skills: audit-spec-gaps, draft-lld, draft-product-spec, draft-scenario-mapping, draft-technical-approach, draft-verification-scenarios, generate-implementation-brief, scout-project, validate-implementation-design — and prepare-implementation play. Deployment is current."
 
       - id: "refactor-no-break"
         item: "No breaking changes to output contracts in refactored skills"
-        trigger: "refactor commits: 3 refactor-type commits touching existing skills and recipes"
+        trigger: "refactor commits: 3 refactor-type commits touching existing skills and plays"
         status: "PASS"
         evidence: "Output section diffs reviewed for scope-roadmap-epics (vision.md → product.yaml input change is additive/contract migration, not removal), draft-product-vision (added ## Output Schema pointing to schema file — additive), generate-product-brief (added ## Output Schema — additive). No Output section content was removed. Refactor is input-contract migration from vision.md to product.yaml, consistent with feature intent."
 
       - id: "feat-documented"
         item: "Feature documented in README or docs"
-        trigger: "3 feat-type commits adding new recipe, skills, and schemas"
+        trigger: "3 feat-type commits adding new play, skills, and schemas"
         status: "REVIEW"
-        evidence: "No README or docs/ changes detected in the diff. The feature adds prepare-implementation recipe, 9 new skills, and 14 YAML schemas. These are self-documenting (each has a SKILL.md with purpose/input/output), but no top-level README update or docs/components/ doc was added. Manual review required to determine if README update is needed."
+        evidence: "No README or docs/ changes detected in the diff. The feature adds prepare-implementation play, 9 new skills, and 14 YAML schemas. These are self-documenting (each has a SKILL.md with purpose/input/output), but no top-level README update or docs/components/ doc was added. Manual review required to determine if README update is needed."
 
     nice_to_have:
       - id: "agent-naming"
@@ -155,9 +155,9 @@ analysis:
         status: "PASS"
         evidence: "New skills reviewed — audit-spec-gaps, generate-implementation-brief, scout-project all have ## Constraints sections. draft-* skills define equivalent behavioral rules inline."
 
-      - id: "recipe-agent-limit"
-        item: "Recipe respects agent call limits (L2 <= 5 domain agents)"
-        trigger: "Recipe files changed — prepare-implementation is L2"
+      - id: "play-agent-limit"
+        item: "Play respects agent call limits (L2 <= 5 domain agents)"
+        trigger: "Play files changed — prepare-implementation is L2"
         status: "PASS"
         evidence: "prepare-implementation: 2 domain agents (product-strategist, tech-designer), utility agents (doc-builder, repo-orchestrator) exempt per memory/feedback_agent_budget_scope.md. DRAFT phase: 5 domain calls (product-strategist ×3, tech-designer ×2). VALIDATE: 1 additional domain call. Within L2 budget per phase invocation."
 
@@ -169,9 +169,9 @@ analysis:
 
       - id: "feat-adr"
         item: "Significant feature has ADR"
-        trigger: "Large feat commits — prepare-implementation recipe (672 lines), generate-implementation-brief skill (827 lines), 9 new skills, 14 schemas"
+        trigger: "Large feat commits — prepare-implementation play (672 lines), generate-implementation-brief skill (827 lines), 9 new skills, 14 schemas"
         status: "REVIEW"
-        evidence: "No new ADR found in docs/adr/ for this feature. The change introduces a new recipe pattern (prepare-implementation) and a standardized YAML+HTML artifact pair system. This may warrant an ADR given its architectural scope. Manual decision required."
+        evidence: "No new ADR found in docs/adr/ for this feature. The change introduces a new play pattern (prepare-implementation) and a standardized YAML+HTML artifact pair system. This may warrant an ADR given its architectural scope. Manual decision required."
 
   blocking_issues: []
 
@@ -180,7 +180,7 @@ analysis:
 
   notes:
     - "All must-have items PASS. No blocking issues."
-    - "3 nice-to-have REVIEW items require human judgment: README docs update, YAML schema system documentation, and potential ADR for new recipe architecture."
+    - "3 nice-to-have REVIEW items require human judgment: README docs update, YAML schema system documentation, and potential ADR for new play architecture."
     - "Secret scan false positives: all 20 matches are 'CSS design token' and 'total_tokens' usage metric references — not credentials."
     - "Issue linked: #99 (https://github.com/kapilvirenahuja/meridian-os/issues/99) — title and commits reference issue #99 consistently."
-    - "Suggested PR title uses 'feat(prepare-implementation)' as primary commit type to reflect the new recipe addition as the headline change."
+    - "Suggested PR title uses 'feat(prepare-implementation)' as primary commit type to reflect the new play addition as the headline change."

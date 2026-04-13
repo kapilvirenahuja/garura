@@ -68,18 +68,18 @@ commits:
     group_id: group-4
     hash: 28b729b
     type: refactor
-    scope: recipes
-    subject: "update recipes and intents for client-side brief rendering (#169)"
-    full_message: "refactor(recipes): update recipes and intents for client-side brief rendering (#169)"
+    scope: plays
+    subject: "update plays and intents for client-side brief rendering (#169)"
+    full_message: "refactor(plays): update plays and intents for client-side brief rendering (#169)"
     files_count: 7
     files:
-      - core/components/recipes/briefs/SKILL.md
-      - core/components/recipes/briefs/reference/intent.yaml
-      - core/components/recipes/discover-product/SKILL.md
-      - core/components/recipes/plan-roadmap/SKILL.md
-      - core/components/recipes/plan-roadmap/evals/evals.json
-      - core/components/recipes/plan-roadmap/reference/intent.yaml
-      - core/components/recipes/prepare-implementation/SKILL.md
+      - core/components/plays/briefs/SKILL.md
+      - core/components/plays/briefs/reference/intent.yaml
+      - core/components/plays/discover-product/SKILL.md
+      - core/components/plays/plan-roadmap/SKILL.md
+      - core/components/plays/plan-roadmap/evals/evals.json
+      - core/components/plays/plan-roadmap/reference/intent.yaml
+      - core/components/plays/prepare-implementation/SKILL.md
 
   - id: commit-5
     group_id: group-5

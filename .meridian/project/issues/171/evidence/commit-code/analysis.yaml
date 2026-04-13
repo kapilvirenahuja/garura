@@ -25,10 +25,10 @@ groups:
         description: Cleared changed-files list (reset for new start-feature session)
       - path: .meridian/project/issues/171/status/commit-code.json
         status: untracked
-        description: New status tracking file for commit-code recipe on issue #171
+        description: New status tracking file for commit-code play on issue #171
       - path: .meridian/project/issues/171/status/ship.json
         status: untracked
-        description: New status tracking file for ship recipe on issue #171
+        description: New status tracking file for ship play on issue #171
 
 risks:
   sensitive_files: []
@@ -40,5 +40,5 @@ recommendation:
   checkpoint_needed: false
   reason: >
     All 4 changed files are STM operational artifacts (start-feature and ship
-    recipe state) clearly mapped to issue #171 with high confidence. Branch name
+    play state) clearly mapped to issue #171 with high confidence. Branch name
     confirms issue mapping. No sensitive files, no breaking changes detected.

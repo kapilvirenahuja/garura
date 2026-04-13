@@ -41,8 +41,8 @@ analysis:
   observations:
     note: >
       This branch contains exclusively STM operational artifacts (start-feature,
-      commit-code, and ship recipe tracking files). No functional code changes
-      (no agent definitions, skill definitions, recipe definitions, configuration,
+      commit-code, and ship play tracking files). No functional code changes
+      (no agent definitions, skill definitions, play definitions, configuration,
       or documentation files outside .meridian/) are present in the diff against main.
       Issue #171 describes "polish client-side brief rendering" improvements, but
       the acceptance criteria appear to be tracked via this STM-only branch rather
@@ -70,8 +70,8 @@ analysis:
       reason: "No agent definition files changed"
     - id: skill-frontmatter
       reason: "No skill definition files changed"
-    - id: recipe-frontmatter
-      reason: "No recipe definition files changed"
+    - id: play-frontmatter
+      reason: "No play definition files changed"
     - id: adr-structure
       reason: "No ADR files changed"
     - id: docs-consistent

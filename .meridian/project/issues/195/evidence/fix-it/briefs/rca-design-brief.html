@@ -623,7 +623,7 @@
       <div class="root-cause-card">
         <div class="field-row">
           <div class="field-key">File</div>
-          <div class="field-val"><span class="code-path">core/components/recipes/capture-learning/SKILL.md</span></div>
+          <div class="field-val"><span class="code-path">core/components/plays/capture-learning/SKILL.md</span></div>
         </div>
         <div class="field-row">
           <div class="field-key">Location</div>
@@ -637,14 +637,14 @@
         </div>
         <div class="field-row">
           <div class="field-key">Why Wrong</div>
-          <div class="field-val">The find pattern is an over-specific literal filename match. The intent (C12) says resolution traces are the "primary" promotion signal — not the only signal. The recipe implemented "primary" as "exclusive", ignoring all other evidence artifacts (judge reports, RCA files, design artifacts, remediation records) that carry substantial learnable knowledge. The scan produces an empty list for any issue that did not run prepare-implementation, which is the majority of real issues.</div>
+          <div class="field-val">The find pattern is an over-specific literal filename match. The intent (C12) says resolution traces are the "primary" promotion signal — not the only signal. The play implemented "primary" as "exclusive", ignoring all other evidence artifacts (judge reports, RCA files, design artifacts, remediation records) that carry substantial learnable knowledge. The scan produces an empty list for any issue that did not run prepare-implementation, which is the majority of real issues.</div>
         </div>
       </div>
 
       <div class="intent-misalign-card">
         <div class="intent-misalign-label">Intent Misalignment — C12 in capture-learning/reference/intent.yaml</div>
         <div class="intent-quote">"Resolution traces with resolved_from='llm' are the primary promotion signal — decisions where the system lacked stored knowledge."</div>
-        <div class="intent-analysis">The word "primary" implies other signals may exist, but neither the recipe nor the agent implements any secondary extraction path. The phrase "reusable patterns from resolution traces" was interpreted as "only resolution-trace.yaml files" rather than "traces of resolution activity" — evidence showing how decisions were made.</div>
+        <div class="intent-analysis">The word "primary" implies other signals may exist, but neither the play nor the agent implements any secondary extraction path. The phrase "reusable patterns from resolution traces" was interpreted as "only resolution-trace.yaml files" rather than "traces of resolution activity" — evidence showing how decisions were made.</div>
       </div>
     </section>
 
@@ -702,8 +702,8 @@
 
       <div class="blast-item">
         <div class="blast-item-main">
-          <div class="blast-path"><span class="code-path">core/components/recipes/capture-learning/SKILL.md</span></div>
-          <div class="blast-role">Recipe orchestrator — defines Step 3 scan and Step 4 contract shape</div>
+          <div class="blast-path"><span class="code-path">core/components/plays/capture-learning/SKILL.md</span></div>
+          <div class="blast-role">Play orchestrator — defines Step 3 scan and Step 4 contract shape</div>
           <div class="blast-impact">Step 3 scan must be broadened to cover multiple artifact types; Step 4 contract must pass richer input as <span class="code-path">evidence_paths</span> rather than <span class="code-path">trace_paths</span>. NOTE: This is a compiled artifact — changes must flow through intent.yaml rebake, not direct edit.</div>
         </div>
       </div>
@@ -718,7 +718,7 @@
 
       <div class="blast-item">
         <div class="blast-item-main">
-          <div class="blast-path"><span class="code-path">core/components/recipes/capture-learning/reference/intent.yaml</span></div>
+          <div class="blast-path"><span class="code-path">core/components/plays/capture-learning/reference/intent.yaml</span></div>
           <div class="blast-role">Intent contract defining constraints C12 and C15</div>
           <div class="blast-impact">C12 must be updated to explicitly name additional evidence types as extraction sources. C15 zero-candidate exit condition must be updated from "no resolution traces with resolved_from='llm'" to "no extractable signals across all recognized artifact types." A rebake will be required after intent changes since SKILL.md is a compiled artifact.</div>
         </div>
@@ -734,9 +734,9 @@
 
       <div class="chosen-strategy-card">
         <div class="strategy-name">Broaden scan + extend extraction to multiple evidence types</div>
-        <div class="card-value">Fix at both layers simultaneously: (1) update intent.yaml C12 to name additional evidence types as extraction sources, (2) rebake recipe so Step 3 scans for all recognized evidence artifact types rather than only resolution-trace.yaml, (3) extend knowledge-extractor EXTRACT mode to understand diverse artifact formats and extract knowledge signals from each. The synthesis and deduplication logic is preserved unchanged — only the input acquisition and signal extraction change.</div>
+        <div class="card-value">Fix at both layers simultaneously: (1) update intent.yaml C12 to name additional evidence types as extraction sources, (2) rebake play so Step 3 scans for all recognized evidence artifact types rather than only resolution-trace.yaml, (3) extend knowledge-extractor EXTRACT mode to understand diverse artifact formats and extract knowledge signals from each. The synthesis and deduplication logic is preserved unchanged — only the input acquisition and signal extraction change.</div>
         <div style="margin-top: 12px; font-size: 13px; color: var(--text-secondary);">
-          <strong style="color: var(--color-air);">Why chosen:</strong> Addresses both the primary bottleneck (recipe scan) and the contributing cause (extraction logic) in one coherent change. Starting at intent.yaml ensures the fix goes through the correct compilation pipeline (rebake) rather than violating the "do not edit SKILL.md manually" constraint. The synthesis and LTM write pipeline is sound and reused unchanged.
+          <strong style="color: var(--color-air);">Why chosen:</strong> Addresses both the primary bottleneck (play scan) and the contributing cause (extraction logic) in one coherent change. Starting at intent.yaml ensures the fix goes through the correct compilation pipeline (rebake) rather than violating the "do not edit SKILL.md manually" constraint. The synthesis and LTM write pipeline is sound and reused unchanged.
         </div>
       </div>
     </section>
@@ -762,13 +762,13 @@
 
       <div class="alt-card">
         <div class="alt-header">
-          <div class="alt-name">Alt 2: Enforce resolution-trace.yaml production from all recipes</div>
+          <div class="alt-name">Alt 2: Enforce resolution-trace.yaml production from all plays</div>
           <div class="alt-rejected-badge">Rejected</div>
         </div>
-        <div class="alt-desc">Require every recipe (start-feature, implement-epic, fix-it, commit-code) to produce a resolution-trace.yaml with resolved_from entries. Adapter logic transforms existing evidence into resolution-trace format before capture-learning runs.</div>
+        <div class="alt-desc">Require every play (start-feature, implement-epic, fix-it, commit-code) to produce a resolution-trace.yaml with resolved_from entries. Adapter logic transforms existing evidence into resolution-trace format before capture-learning runs.</div>
         <div class="alt-rejection">
           <div class="rejection-label">Rejection Reason</div>
-          High blast radius requiring changes to 5+ independent recipes, each with their own intent.yaml and rebake requirements. Creates artificial data transformation between recipes. Produces a synthetic artifact that doesn't naturally emerge from the work, reducing its quality as a knowledge signal. The chosen approach is lower risk and more natural — it teaches capture-learning to understand evidence as it actually exists, rather than forcing all evidence into one format.
+          High blast radius requiring changes to 5+ independent plays, each with their own intent.yaml and rebake requirements. Creates artificial data transformation between plays. Produces a synthetic artifact that doesn't naturally emerge from the work, reducing its quality as a knowledge signal. The chosen approach is lower risk and more natural — it teaches capture-learning to understand evidence as it actually exists, rather than forcing all evidence into one format.
         </div>
       </div>
 
@@ -802,9 +802,9 @@
         </thead>
         <tbody>
           <tr>
-            <td>SKILL.md is a compiled artifact — direct edits violate the stated constraint. If the fix edits SKILL.md directly instead of going through rebake, the <span class="code-path">intent_hash</span> in compilation metadata will become stale, creating drift between intent.yaml and the compiled recipe.</td>
+            <td>SKILL.md is a compiled artifact — direct edits violate the stated constraint. If the fix edits SKILL.md directly instead of going through rebake, the <span class="code-path">intent_hash</span> in compilation metadata will become stale, creating drift between intent.yaml and the compiled play.</td>
             <td><span class="severity-badge severity-high">High</span></td>
-            <td>Fix MUST follow the intent.yaml → /create-recipe --rebake path. The execution plan explicitly gates on this. Reviewer must verify intent_hash is updated in the rebaked SKILL.md.</td>
+            <td>Fix MUST follow the intent.yaml → /create-play --rebake path. The execution plan explicitly gates on this. Reviewer must verify intent_hash is updated in the rebaked SKILL.md.</td>
           </tr>
           <tr>
             <td>knowledge-extractor EXTRACT mode changes could alter synthesis behavior for resolution-trace.yaml (the existing working case). Regression risk on issues that do produce resolution traces.</td>
@@ -812,7 +812,7 @@
             <td>Preserve the existing resolved_from: 'llm' extraction branch unchanged as a first-class path. New artifact type parsers are additive code paths, not replacements. Test the agent against a known resolution-trace.yaml to verify existing behavior is unaffected.</td>
           </tr>
           <tr>
-            <td>Different evidence artifact schemas (judge reports, RCA files, remediation records) are not formally specified — their field names and structure may vary across recipes and evolve over time. Hardcoding field names in the extractor creates brittleness.</td>
+            <td>Different evidence artifact schemas (judge reports, RCA files, remediation records) are not formally specified — their field names and structure may vary across plays and evolve over time. Hardcoding field names in the extractor creates brittleness.</td>
             <td><span class="severity-badge severity-medium">Medium</span></td>
             <td>Use pattern-matching heuristics that degrade gracefully (if expected field absent, skip that artifact rather than fail). Document the extraction heuristics per artifact type. Log unexpected schemas in candidates.yaml summary rather than erroring.</td>
           </tr>
@@ -822,9 +822,9 @@
             <td>The synthesis step already groups and consolidates raw signals. Preserve the 3-5 target guidance and the 7-candidate ceiling from C13/F11. The synthesis step is the natural throttle — already designed to compress many raw signals into few patterns.</td>
           </tr>
           <tr>
-            <td>C15 zero-candidate exit currently triggers when no resolved_from: 'llm' entries exist. After the fix, if C15 is not updated in intent.yaml, the recipe may incorrectly exit clean when only the narrow trace check fails but other evidence exists.</td>
+            <td>C15 zero-candidate exit currently triggers when no resolved_from: 'llm' entries exist. After the fix, if C15 is not updated in intent.yaml, the play may incorrectly exit clean when only the narrow trace check fails but other evidence exists.</td>
             <td><span class="severity-badge severity-low">Low</span></td>
-            <td>Update C15 in intent.yaml explicitly to state "when no extractable evidence signals exist across all recognized artifact types." Include this in the rebake so the compiled recipe's Step 4 zero-candidate logic reflects the updated condition.</td>
+            <td>Update C15 in intent.yaml explicitly to state "when no extractable evidence signals exist across all recognized artifact types." Include this in the rebake so the compiled play's Step 4 zero-candidate logic reflects the updated condition.</td>
           </tr>
         </tbody>
       </table>
@@ -870,7 +870,7 @@
         <div class="step-number-circle">1</div>
         <div>
           <div class="step-title">Update intent.yaml — expand extraction scope and clarify C12/C15</div>
-          <div class="step-file"><span class="code-path">core/components/recipes/capture-learning/reference/intent.yaml</span> &nbsp;·&nbsp; owner: code-builder &nbsp;·&nbsp; action: modify</div>
+          <div class="step-file"><span class="code-path">core/components/plays/capture-learning/reference/intent.yaml</span> &nbsp;·&nbsp; owner: code-builder &nbsp;·&nbsp; action: modify</div>
           <div class="step-details">Modify constraint C12: change wording from "Resolution traces with resolved_from='llm' are the primary promotion signal" to explicitly name additional evidence artifact types as secondary extraction sources. Add a list of recognized artifact types: resolution-trace.yaml (primary), judge-report*.yaml, rca.yaml, design.yaml, remediation-*.md, quality-report.yaml, drift-report.md. Modify constraint C15: change "no resolution traces with resolved_from='llm' entries exist" to "no extractable signals exist across all recognized artifact types."</div>
           <div class="step-self-test">
             <div class="self-test-label">Self-Test</div>
@@ -895,9 +895,9 @@
       <div class="step-card">
         <div class="step-number-circle">3</div>
         <div>
-          <div class="step-title">Rebake capture-learning recipe from updated intent.yaml</div>
-          <div class="step-file"><span class="code-path">/create-recipe --rebake capture-learning</span> &nbsp;·&nbsp; owner: code-builder &nbsp;·&nbsp; action: command</div>
-          <div class="step-details">Run /create-recipe --rebake to recompile SKILL.md from the updated intent.yaml. The rebake must produce a new Step 3 that scans for all recognized artifact types (not just resolution-trace.yaml) and a new Step 4 contract that passes evidence_paths (not trace_paths) to the knowledge-extractor agent. Verify that the compilation metadata in SKILL.md shows an updated intent_hash reflecting the new C12/C15 content. Prior hash to invalidate: <span class="code-path">sha256:e1699de3f527be9d1b2d67ddb7a811370391ac6ed35a5e3424f86b2a047d3fa4</span>.</div>
+          <div class="step-title">Rebake capture-learning play from updated intent.yaml</div>
+          <div class="step-file"><span class="code-path">/create-play --rebake capture-learning</span> &nbsp;·&nbsp; owner: code-builder &nbsp;·&nbsp; action: command</div>
+          <div class="step-details">Run /create-play --rebake to recompile SKILL.md from the updated intent.yaml. The rebake must produce a new Step 3 that scans for all recognized artifact types (not just resolution-trace.yaml) and a new Step 4 contract that passes evidence_paths (not trace_paths) to the knowledge-extractor agent. Verify that the compilation metadata in SKILL.md shows an updated intent_hash reflecting the new C12/C15 content. Prior hash to invalidate: <span class="code-path">sha256:e1699de3f527be9d1b2d67ddb7a811370391ac6ed35a5e3424f86b2a047d3fa4</span>.</div>
           <div class="step-self-test">
             <div class="self-test-label">Self-Test</div>
             Grep SKILL.md for "resolution-trace.yaml" — it should appear only as ONE of multiple file types in the Step 3 find command, not as the sole target. Grep for "evidence_paths" — it should appear in the Step 4 contract. Verify intent_hash in compilation metadata has changed from the prior value.
@@ -910,7 +910,7 @@
         <div>
           <div class="step-title">Sync updated components to global deployment</div>
           <div class="step-file"><span class="code-path">/sync-claude</span> &nbsp;·&nbsp; owner: code-builder &nbsp;·&nbsp; action: command</div>
-          <div class="step-details">After SKILL.md is rebaked and knowledge-extractor.md is updated, run /sync-claude to deploy the updated components from core/components/ to ~/.claude/ (global). This ensures the running environment uses the fixed versions of both the recipe and the agent.</div>
+          <div class="step-details">After SKILL.md is rebaked and knowledge-extractor.md is updated, run /sync-claude to deploy the updated components from core/components/ to ~/.claude/ (global). This ensures the running environment uses the fixed versions of both the play and the agent.</div>
           <div class="step-self-test">
             <div class="self-test-label">Self-Test</div>
             Read <span class="code-path">~/.claude/agents/knowledge-extractor.md</span> and verify evidence_paths is present in the input contract section. Read <span class="code-path">~/.claude/skills/capture-learning/SKILL.md</span> and verify Step 3 scans multiple artifact types.

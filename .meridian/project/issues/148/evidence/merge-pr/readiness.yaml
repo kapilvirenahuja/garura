@@ -1,5 +1,5 @@
 pr_number: 149
-title: "feat(recipes): add prepare-architecture recipe, three-axis profiling, quality standards (#148)"
+title: "feat(plays): add prepare-architecture play, three-axis profiling, quality standards (#148)"
 state: OPEN
 mergeable: true
 base_branch: main

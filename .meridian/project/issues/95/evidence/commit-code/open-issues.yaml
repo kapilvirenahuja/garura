@@ -7,7 +7,7 @@ meta:
 
 issues:
   - number: 95
-    title: "feat(recipe-framework): intent-driven recipe architecture"
+    title: "feat(play-framework): intent-driven play architecture"
     labels: ["enhancement"]
     state: open
     url: "https://github.com/kapilvirenahuja/meridian-os/issues/95"
@@ -42,7 +42,7 @@ issues:
     type_hint: null
 
   - number: 88
-    title: "Explore direct skill invocation for L2 fixed-DAG recipes"
+    title: "Explore direct skill invocation for L2 fixed-DAG plays"
     labels: []
     state: open
     url: "https://github.com/kapilvirenahuja/meridian-os/issues/88"

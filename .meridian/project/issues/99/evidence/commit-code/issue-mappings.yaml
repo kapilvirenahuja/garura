@@ -6,9 +6,9 @@ mappings:
     signals:
       branch: "feature/99-standardize-artifact-naming-yaml-html-brief-pairs contains #99"
       semantic:
-        - "prepare-implementation recipe and skills match AC item: 'prepare-implementation recipe updated with new artifact naming'"
+        - "prepare-implementation play and skills match AC item: 'prepare-implementation play updated with new artifact naming'"
         - "New skills (audit-spec-gaps, draft-lld, draft-product-spec, draft-scenario-mapping, draft-technical-approach, draft-verification-scenarios, generate-implementation-brief, scout-project, validate-implementation-design) directly support the prepare-implementation workflow described in issue body"
-        - "Scope 'prepare-implementation' aligns with issue body mentioning /prepare-implementation recipe"
+        - "Scope 'prepare-implementation' aligns with issue body mentioning /prepare-implementation play"
     conflicts: []
     reasoning: >
       Branch signal is definitive (#99 explicit in branch name). Semantic signals
@@ -23,7 +23,7 @@ mappings:
     signals:
       branch: "feature/99-standardize-artifact-naming-yaml-html-brief-pairs contains #99"
       semantic:
-        - "Agent extensions for prepare-implementation bindings directly support the new recipe defined under issue #99"
+        - "Agent extensions for prepare-implementation bindings directly support the new play defined under issue #99"
         - "doc-builder, product-strategist, tech-designer updates align with skill pool additions for YAML/HTML artifact pipeline"
         - "Context loading protocol in tech-designer supports the standardized artifact consumption pattern in issue #99"
     conflicts: []
@@ -57,7 +57,7 @@ mappings:
       semantic:
         - "Issue title explicitly says 'standardize artifact naming' — this group updates existing skills to standardized contracts"
         - "assess-feasibility v2 (epics_path → product_yaml_path) is the canonical artifact naming change the issue describes"
-        - "All 11 modified skills align with issue AC: 'discover-product recipe updated', 'plan-roadmap recipe updated' (upstream skill changes)"
+        - "All 11 modified skills align with issue AC: 'discover-product play updated', 'plan-roadmap play updated' (upstream skill changes)"
     conflicts: []
     reasoning: >
       Branch signal is definitive. This group is the core refactor work that
@@ -72,13 +72,13 @@ mappings:
     signals:
       branch: "feature/99-standardize-artifact-naming-yaml-html-brief-pairs contains #99"
       semantic:
-        - "Issue AC explicitly states: 'discover-product recipe updated with new artifact naming'"
-        - "Issue AC explicitly states: 'plan-roadmap recipe updated with new artifact naming'"
-        - "create-recipe P11 addition (context sufficiency) directly supports the standardized artifact consumption pattern"
+        - "Issue AC explicitly states: 'discover-product play updated with new artifact naming'"
+        - "Issue AC explicitly states: 'plan-roadmap play updated with new artifact naming'"
+        - "create-play P11 addition (context sufficiency) directly supports the standardized artifact consumption pattern"
     conflicts: []
     reasoning: >
-      Branch signal is definitive. Two of the three modified recipes are named
-      verbatim in issue #99's acceptance criteria. The create-recipe P11 addition
+      Branch signal is definitive. Two of the three modified plays are named
+      verbatim in issue #99's acceptance criteria. The create-play P11 addition
       is supporting infrastructure for the same artifact standardization effort.
 
   - group_id: G6

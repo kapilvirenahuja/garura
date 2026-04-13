@@ -3,8 +3,8 @@ mappings:
     issue_number: 110
     confidence: "high"
     reasoning: >
-      Files live under core/components/recipes/check-drift/ and core/components/skills/check-drift/.
-      Issue #110 (OPEN — "Recipe: check-drift — multi-agent implementation alignment analysis") is
+      Files live under core/components/plays/check-drift/ and core/components/skills/check-drift/.
+      Issue #110 (OPEN — "Play: check-drift — multi-agent implementation alignment analysis") is
       the active work unit. The SKILL.md, intent.yaml, and templates.md are canonical implementation
       artifacts for the check-drift capability, directly traceable to this issue.
 

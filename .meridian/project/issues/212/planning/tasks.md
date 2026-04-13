@@ -129,8 +129,8 @@ T8 ──► T9 (L1/L2 level-drop deliberate edits) ──► T10 (verification)
   - "L2 recipe" → "play" (drop L2 qualifier)
   - "L1/L2 recipes" → "plays"
   - "L2 → L1 → Skills" hierarchy label: preserved (level numbers, not tied to "recipe")
-  - "L2 | BUILD" maturity table description: reword to remove "recipe" without producing "L2 play"
-  - "L1 | REJECT | L1 recipes are structureless" → "L1 | REJECT | L1 plays are structureless"
+  - "L2 | BUILD" maturity table description: reword to remove "recipe" without producing "high-order play"
+  - "L1 | REJECT | L1 recipes are structureless" → "L1 | REJECT | Atomic plays are structureless"
   - "L1 recipe execution engine" in eval fixtures → "atomic play execution engine"
 - **Depends on:** T8
 - **Expected Outcome:** Zero occurrences of "L1 recipe" or "L2 recipe" patterns

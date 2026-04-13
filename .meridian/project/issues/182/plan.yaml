@@ -1,5 +1,5 @@
 # plan.yaml — Issue #182
-# Sub-Agent Context Resolution Protocol, LTM Hierarchy Enforcement, and Learning Recipe
+# Sub-Agent Context Resolution Protocol, LTM Hierarchy Enforcement, and Learning Play
 # Status: DRAFT
 # Created: 2026-03-26
 # Rewritten: 2026-03-26 — explicit task DAG with depends_on, parallel_with, per-task exit_gate
@@ -17,13 +17,13 @@ tech_ref: ".meridian/project/issues/182/tech.yaml"
 
 prerequisites:
   - id: P0-S1
-    description: "Create directory structure for new recipe"
+    description: "Create directory structure for new play"
     key_files:
-      - path: "core/components/recipes/learn/"
+      - path: "core/components/plays/learn/"
         action: create_directory
-      - path: "core/components/recipes/learn/reference/"
+      - path: "core/components/plays/learn/reference/"
         action: create_directory
-    exit_gate: "core/components/recipes/learn/ and core/components/recipes/learn/reference/ directories exist. All other target directories (core/components/memory/standards/, core/components/agents/, core/components/recipes/, docs/adr/) confirmed present."
+    exit_gate: "core/components/plays/learn/ and core/components/plays/learn/reference/ directories exist. All other target directories (core/components/memory/standards/, core/components/agents/, core/components/plays/, docs/adr/) confirmed present."
 
 # ─────────────────────────────────────────────────────────────────────────────
 # EXECUTION ORDER — Explicit task DAG
@@ -197,9 +197,9 @@ execution_order:
       count: 0
 
   # ─────────────────────────────────────────────────────────────────────────
-  # PHASE 3 — Recipe Contract Updates
+  # PHASE 3 — Play Contract Updates
   # T3.1 through T3.7 are all independent — parallel execution permitted.
-  # T3.8 deploys after all seven recipe files are updated.
+  # T3.8 deploys after all seven play files are updated.
   # ─────────────────────────────────────────────────────────────────────────
 
   - id: T3.1
@@ -208,11 +208,11 @@ execution_order:
     scope_items:
       - description: "Add ltm_context field to product-strategist dispatch contract. project_base: .meridian/product/discovery/, core_base: ~/.meridian/core/memory/, query_domains: [domain-taxonomy, standards]. No locked_artifacts — all discovery-stage knowledge is advisory."
         key_files:
-          - path: "core/components/recipes/discover-product/SKILL.md"
+          - path: "core/components/plays/discover-product/SKILL.md"
             action: modify
     depends_on: ["T2.6"]
     parallel_with: ["T3.2", "T3.3", "T3.4", "T3.5", "T3.6", "T3.7"]
-    exit_gate: "All product-strategist dispatch contracts in the recipe have ltm_context field"
+    exit_gate: "All product-strategist dispatch contracts in the play have ltm_context field"
     scenario_gate:
       scenario_ids: []
       count: 0
@@ -223,7 +223,7 @@ execution_order:
     scope_items:
       - description: "Add ltm_context to product-strategist and tech-designer dispatch contracts. project_base: .meridian/product/roadmap/, core_base: ~/.meridian/core/memory/, query_domains: [architecture, standards, domain-taxonomy]."
         key_files:
-          - path: "core/components/recipes/plan-roadmap/SKILL.md"
+          - path: "core/components/plays/plan-roadmap/SKILL.md"
             action: modify
     depends_on: ["T2.6"]
     parallel_with: ["T3.1", "T3.3", "T3.4", "T3.5", "T3.6", "T3.7"]
@@ -238,7 +238,7 @@ execution_order:
     scope_items:
       - description: "Remove config.ltm_architecture_path field from Step 2 tech-designer dispatch contract. Replace with standard ltm_context: project_base: .meridian/product/architecture/, core_base: ~/.meridian/core/memory/, query_domains: [architecture, standards], locked_artifacts: any locked architecture decisions."
         key_files:
-          - path: "core/components/recipes/prepare-architecture/SKILL.md"
+          - path: "core/components/plays/prepare-architecture/SKILL.md"
             action: modify
     depends_on: ["T2.6"]
     parallel_with: ["T3.1", "T3.2", "T3.4", "T3.5", "T3.6", "T3.7"]
@@ -253,7 +253,7 @@ execution_order:
     scope_items:
       - description: "Remove context block containing ltm_path and scan_directories fields from Step 3 tech-designer dispatch contract. Replace with standard ltm_context: project_base: .meridian/product/architecture/, core_base: ~/.meridian/core/memory/, query_domains: [standards, knowledge, formats]."
         key_files:
-          - path: "core/components/recipes/prepare-implementation/SKILL.md"
+          - path: "core/components/plays/prepare-implementation/SKILL.md"
             action: modify
     depends_on: ["T2.6"]
     parallel_with: ["T3.1", "T3.2", "T3.3", "T3.5", "T3.6", "T3.7"]
@@ -268,7 +268,7 @@ execution_order:
     scope_items:
       - description: "Add ltm_context to tech-designer (Context Builder step), code-builder, and quality-auditor dispatch contracts. project_base: .meridian/product/architecture/, core_base: ~/.meridian/core/memory/. query_domains per agent: tech-designer [architecture, standards, knowledge], code-builder [standards], quality-auditor [standards]. IMPORTANT: do NOT add ltm_context to eval-generator or judge contracts — context isolation invariant."
         key_files:
-          - path: "core/components/recipes/implement-epic/SKILL.md"
+          - path: "core/components/plays/implement-epic/SKILL.md"
             action: modify
     depends_on: ["T2.6"]
     parallel_with: ["T3.1", "T3.2", "T3.3", "T3.4", "T3.6", "T3.7"]
@@ -283,7 +283,7 @@ execution_order:
     scope_items:
       - description: "Add ltm_context to repo-orchestrator dispatch contract. project_base: .meridian/product/architecture/, core_base: ~/.meridian/core/memory/, query_domains: [standards/git]."
         key_files:
-          - path: "core/components/recipes/commit-code/SKILL.md"
+          - path: "core/components/plays/commit-code/SKILL.md"
             action: modify
     depends_on: ["T2.6"]
     parallel_with: ["T3.1", "T3.2", "T3.3", "T3.4", "T3.5", "T3.7"]
@@ -298,7 +298,7 @@ execution_order:
     scope_items:
       - description: "Add ltm_context to repo-orchestrator dispatch contract. Same structure as commit-code: project_base: .meridian/product/architecture/, core_base: ~/.meridian/core/memory/, query_domains: [standards/git]."
         key_files:
-          - path: "core/components/recipes/create-pr/SKILL.md"
+          - path: "core/components/plays/create-pr/SKILL.md"
             action: modify
     depends_on: ["T2.6"]
     parallel_with: ["T3.1", "T3.2", "T3.3", "T3.4", "T3.5", "T3.6"]
@@ -309,19 +309,19 @@ execution_order:
 
   - id: T3.8
     feature_id: F2
-    description: "Deploy updated recipes via /sync-claude"
+    description: "Deploy updated plays via /sync-claude"
     scope_items:
-      - description: "Run /sync-claude after all seven recipe files are updated to deploy to ~/.claude/skills/. Verify no recipe dispatches eval-generator or judge with ltm_context."
+      - description: "Run /sync-claude after all seven play files are updated to deploy to ~/.claude/skills/. Verify no play dispatches eval-generator or judge with ltm_context."
         key_files: []
     depends_on: ["T3.1", "T3.2", "T3.3", "T3.4", "T3.5", "T3.6", "T3.7"]
     parallel_with: []
-    exit_gate: "All 7 recipe SKILL.md files deployed to ~/.claude/skills/. Zero references to config.ltm_architecture_path or context.ltm_path in deployed copies. No recipe dispatches eval-generator or judge with ltm_context."
+    exit_gate: "All 7 play SKILL.md files deployed to ~/.claude/skills/. Zero references to config.ltm_architecture_path or context.ltm_path in deployed copies. No play dispatches eval-generator or judge with ltm_context."
     scenario_gate:
       scenario_ids: []
       count: 0
 
   # ─────────────────────────────────────────────────────────────────────────
-  # PHASE 4 — Learning Recipe
+  # PHASE 4 — Learning Play
   # T4.1 depends on T1.1b (knowledge-file-template.md must exist).
   # T4.1 is independent of T3.8 — can run in parallel with Phase 3.
   # T4.2 → T4.3 → T4.4 → T4.5 are sequential.
@@ -344,11 +344,11 @@ execution_order:
 
   - id: T4.2
     feature_id: F3
-    description: "Create learn recipe intent.yaml"
+    description: "Create learn play intent.yaml"
     scope_items:
-      - description: "Intent definition following canonical 4-field schema (intent, constraints, failure_conditions, scenarios). Intent: surface LLM-fallback decisions from resolution traces and promote approved candidates to persistent LTM. Constraints: INV2 (no writes without human approval), INV4 (no context-isolated agent receives promoted knowledge), INV5 (scope classification respects project-over-core), read-only against resolution traces and evidence. Failure conditions: knowledge written without approval, llm-fallback entries not surfaced, project-scoped candidate written to core layer, duplicate presented without dedup flag, recipe modifies input artifacts. References PENDING constraints C5-C10 from capture-learning/reference/intent.yaml as the learn recipe's implementation mandate."
+      - description: "Intent definition following canonical 4-field schema (intent, constraints, failure_conditions, scenarios). Intent: surface LLM-fallback decisions from resolution traces and promote approved candidates to persistent LTM. Constraints: INV2 (no writes without human approval), INV4 (no context-isolated agent receives promoted knowledge), INV5 (scope classification respects project-over-core), read-only against resolution traces and evidence. Failure conditions: knowledge written without approval, llm-fallback entries not surfaced, project-scoped candidate written to core layer, duplicate presented without dedup flag, play modifies input artifacts. References PENDING constraints C5-C10 from capture-learning/reference/intent.yaml as the learn play's implementation mandate."
         key_files:
-          - path: "core/components/recipes/learn/reference/intent.yaml"
+          - path: "core/components/plays/learn/reference/intent.yaml"
             action: new
     depends_on: ["T4.1"]
     parallel_with: []
@@ -359,11 +359,11 @@ execution_order:
 
   - id: T4.3
     feature_id: F3
-    description: "Compile learn SKILL.md via /create-recipe"
+    description: "Compile learn SKILL.md via /create-play"
     scope_items:
-      - description: "Structure B L1 recipe (max 2 agent calls). Step 1 (Extract): dispatch knowledge-extractor in EXTRACT mode with resolution trace paths from STM — produces candidates.yaml. Step 2 (Promote): present candidates.yaml to operator for Tether/Vanish approval. Operator sets approval_status per candidate. On Tether: dispatch knowledge-extractor in WRITE mode with approved candidates only. On Vanish: abort, no writes. Recipe is read-only against resolution traces and evidence throughout."
+      - description: "Structure B atomic play (max 2 agent calls). Step 1 (Extract): dispatch knowledge-extractor in EXTRACT mode with resolution trace paths from STM — produces candidates.yaml. Step 2 (Promote): present candidates.yaml to operator for Tether/Vanish approval. Operator sets approval_status per candidate. On Tether: dispatch knowledge-extractor in WRITE mode with approved candidates only. On Vanish: abort, no writes. Play is read-only against resolution traces and evidence throughout."
         key_files:
-          - path: "core/components/recipes/learn/SKILL.md"
+          - path: "core/components/plays/learn/SKILL.md"
             action: new
     depends_on: ["T4.2"]
     parallel_with: []
@@ -376,20 +376,20 @@ execution_order:
     feature_id: F3
     description: "Update capture-learning to activate C5-C10"
     scope_items:
-      - description: "Remove PENDING markers from C5-C10 in capture-learning intent.yaml. Change status from PENDING to RESOLVED. Add reference: Resolved by: core/components/recipes/learn/ (Issue #182). No other changes."
+      - description: "Remove PENDING markers from C5-C10 in capture-learning intent.yaml. Change status from PENDING to RESOLVED. Add reference: Resolved by: core/components/plays/learn/ (Issue #182). No other changes."
         key_files:
-          - path: "core/components/recipes/capture-learning/reference/intent.yaml"
+          - path: "core/components/plays/capture-learning/reference/intent.yaml"
             action: modify
     depends_on: ["T4.3"]
     parallel_with: []
-    exit_gate: "C5-C10 constraints in capture-learning/reference/intent.yaml have status RESOLVED with reference to learn recipe. No other content changed."
+    exit_gate: "C5-C10 constraints in capture-learning/reference/intent.yaml have status RESOLVED with reference to learn play. No other content changed."
     scenario_gate:
       scenario_ids: []
       count: 0
 
   - id: T4.5
     feature_id: F3
-    description: "Deploy learn recipe and knowledge-extractor via /sync-claude"
+    description: "Deploy learn play and knowledge-extractor via /sync-claude"
     scope_items:
       - description: "Run /sync-claude to deploy knowledge-extractor.md to ~/.claude/agents/ and learn/SKILL.md to ~/.claude/skills/."
         key_files: []
@@ -410,11 +410,11 @@ execution_order:
     feature_id: F1
     description: "End-to-end validation"
     scope_items:
-      - description: "Run verification steps from scenarios.yaml S1-S22. Test: backward compat (ltm_context absent), R1-R4 resolution ordering, locked vs draft authority, context isolation (eval-generator and judge never receive ltm_context), ad-hoc reference elimination, learn recipe full flow, knowledge file tier metadata."
+      - description: "Run verification steps from scenarios.yaml S1-S22. Test: backward compat (ltm_context absent), R1-R4 resolution ordering, locked vs draft authority, context isolation (eval-generator and judge never receive ltm_context), ad-hoc reference elimination, learn play full flow, knowledge file tier metadata."
         key_files: []
     depends_on: ["T3.8", "T4.5"]
     parallel_with: []
-    exit_gate: "All 22 acceptance scenarios pass. No recipe dispatches eval-generator or judge with ltm_context. Resolution traces contain resolved_from values. learn recipe runs end-to-end without errors."
+    exit_gate: "All 22 acceptance scenarios pass. No play dispatches eval-generator or judge with ltm_context. Resolution traces contain resolved_from values. learn play runs end-to-end without errors."
     scenario_gate:
       scenario_ids: ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13", "S14", "S15", "S16", "S17", "S18", "S19", "S20", "S21", "S22"]
       count: 22
@@ -423,7 +423,7 @@ execution_order:
     feature_id: F1
     description: "Write ADR 015 — LTM Resolution Protocol"
     scope_items:
-      - description: "Architecture Decision Record documenting: DD1 (optional contract field vs required), DD3 (context-isolation exemptions for eval-generator and judge), DD4 (file-reads-only, no LLM calls during resolution), DD5 (R1-R4 ordering and authority semantics), DD6 (project-scoped overrides core-scoped), DD7 (staleness tracking without auto-rejection), DD8 (learn recipe as separate concern from capture-learning), DD9 (existing files grandfathered), DD10 (resolution trace written to STM artifact not inline). Status: ACCEPTED. Related ADRs: 009, 001."
+      - description: "Architecture Decision Record documenting: DD1 (optional contract field vs required), DD3 (context-isolation exemptions for eval-generator and judge), DD4 (file-reads-only, no LLM calls during resolution), DD5 (R1-R4 ordering and authority semantics), DD6 (project-scoped overrides core-scoped), DD7 (staleness tracking without auto-rejection), DD8 (learn play as separate concern from capture-learning), DD9 (existing files grandfathered), DD10 (resolution trace written to STM artifact not inline). Status: ACCEPTED. Related ADRs: 009, 001."
         key_files:
           - path: "docs/adr/015-ltm-resolution-protocol.md"
             action: new
@@ -462,7 +462,7 @@ summary:
     phase_0_prerequisites: 1    # P0-S1
     phase_1_standards: 4        # T1.1, T1.1b, T1.2, T1.3
     phase_2_agents: 6           # T2.1, T2.2, T2.3, T2.4, T2.5, T2.6
-    phase_3_recipes: 8          # T3.1, T3.2, T3.3, T3.4, T3.5, T3.6, T3.7, T3.8
+    phase_3_plays: 8          # T3.1, T3.2, T3.3, T3.4, T3.5, T3.6, T3.7, T3.8
     phase_4_learning: 5         # T4.1, T4.2, T4.3, T4.4, T4.5
     phase_5_validation: 2       # T5.1, T5.2
   scenario_coverage:
@@ -481,7 +481,7 @@ summary:
     T3.4:  ["S9"]                           # F2: ad-hoc elimination in prepare-implementation
     T3.5:  ["S8", "S9", "S10", "S11"]      # F2: implement-epic full wiring + isolation
     T4.1:  ["S12"]                          # F3: extraction from resolution traces
-    T4.3:  ["S13", "S14", "S15", "S16", "S17"]  # F3: learn recipe flow
+    T4.3:  ["S13", "S14", "S15", "S16", "S17"]  # F3: learn play flow
     T5.1:  ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12", "S13", "S14", "S15", "S16", "S17", "S18", "S19", "S20", "S21", "S22"]  # all 22
   parallel_opportunities:
     - description: "T1.1 and T1.1b run in parallel (both unblocked at start)"

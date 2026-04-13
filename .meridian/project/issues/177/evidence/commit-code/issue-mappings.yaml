@@ -1,8 +1,8 @@
 mappings:
-  - group: "recipes"
+  - group: "plays"
     issue: 177
     confidence: high
-    reasoning: "Direct implementation of #177 — restructure product artifact directory layout. Main recipe SKILL.md files and reference intent.yaml files updated to use phase-based fixed paths under .meridian/product/ instead of slug-based .meridian/project/product/{slug}/ paths."
+    reasoning: "Direct implementation of #177 — restructure product artifact directory layout. Main play SKILL.md files and reference intent.yaml files updated to use phase-based fixed paths under .meridian/product/ instead of slug-based .meridian/project/product/{slug}/ paths."
 
   - group: "skills"
     issue: 177
@@ -14,7 +14,7 @@ mappings:
     confidence: high
     reasoning: "Direct implementation of #177 — agent definitions updated to reference new artifact paths, core/config.yaml updated to reflect new stm path conventions, and memory/standards files updated so LTM guidance aligns with the new directory structure."
 
-  - group: "other-recipes"
+  - group: "other-plays"
     issue: 177
     confidence: high
-    reasoning: "Direct implementation of #177 — supporting recipes (briefs, prepare-implementation, implement-epic) updated to use the phase-based directory structure. These recipes read/write product artifacts produced by the main recipes and must stay consistent."
+    reasoning: "Direct implementation of #177 — supporting plays (briefs, prepare-implementation, implement-epic) updated to use the phase-based directory structure. These plays read/write product artifacts produced by the main plays and must stay consistent."

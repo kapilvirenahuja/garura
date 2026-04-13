@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-25
 **Issue:** #150 — Followup #148 reviews, evals, sync
-**Goal:** Verify that all skills and recipes referencing profiles degrade gracefully when profiles are absent from product.yaml.
+**Goal:** Verify that all skills and plays referencing profiles degrade gracefully when profiles are absent from product.yaml.
 
 ---
 
@@ -64,13 +64,13 @@
 
 ### 4. prepare-implementation/SKILL.md
 
-**Guard found:** N/A — profiles are not a direct input to this recipe.
+**Guard found:** N/A — profiles are not a direct input to this play.
 
 **Assessment:** ✅ Correct by design. prepare-implementation's pre-flight checks are:
 - C21: Locked `architecture.yaml` exists → **Hard halt** if missing
 - C22: Locked `quality-standards.yaml` exists → **Hard halt** if missing
 
-Profiles are consumed *transitively* — they are embedded in `architecture.yaml` and `quality-standards.yaml`, which were produced by `prepare-architecture` (which DOES require profiles). Step 0 says "Extract technology selections, quality standards, and profile context from architecture.yaml and quality-standards.yaml." The recipe never reads profiles directly from product.yaml.
+Profiles are consumed *transitively* — they are embedded in `architecture.yaml` and `quality-standards.yaml`, which were produced by `prepare-architecture` (which DOES require profiles). Step 0 says "Extract technology selections, quality standards, and profile context from architecture.yaml and quality-standards.yaml." The play never reads profiles directly from product.yaml.
 
 **Implication:** A product.yaml without profiles cannot reach prepare-implementation because prepare-architecture (which produces the required upstream artifacts) would hard-halt first. The transitive dependency chain correctly enforces the profile requirement where needed.
 
@@ -81,9 +81,9 @@ Profiles are consumed *transitively* — they are embedded in `architecture.yaml
 **Guard found:** Pre-flight HARD HALT:
 > "Product has `profiles` section with all 3 sub-sections (`product_profile`, `nfr_profile`, `quality_profile`) | C1, F6 | Hard halt — profiles required for profile-driven architecture"
 
-**Assessment:** ✅ Correct. This recipe's entire purpose is profile-driven architecture design. Profiles are not optional here — they are the primary input that drives NFR derivation (C4), technology selection (C3), and quality standards (C5). A hard halt is the correct behavior because producing architecture without profiles would violate the recipe's core intent.
+**Assessment:** ✅ Correct. This play's entire purpose is profile-driven architecture design. Profiles are not optional here — they are the primary input that drives NFR derivation (C4), technology selection (C3), and quality standards (C5). A hard halt is the correct behavior because producing architecture without profiles would violate the play's core intent.
 
-**Note:** This is the only recipe that REQUIRES profiles with a hard halt. This is intentional — prepare-architecture is the boundary where profiles become mandatory. Downstream recipes (prepare-implementation) inherit the guarantee transitively.
+**Note:** This is the only play that REQUIRES profiles with a hard halt. This is intentional — prepare-architecture is the boundary where profiles become mandatory. Downstream plays (prepare-implementation) inherit the guarantee transitively.
 
 ---
 

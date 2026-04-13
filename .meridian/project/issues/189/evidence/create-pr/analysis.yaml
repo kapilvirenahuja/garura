@@ -1,5 +1,5 @@
 analysis:
-  branch: feat/189-report-issue-recipe
+  branch: feat/189-report-issue-play
   base: main
   branch_pattern: feature
   commits: 4
@@ -7,13 +7,13 @@ analysis:
     files: 16
     additions: 1145
     deletions: 2
-  suggested_title: "feat(report-issue): add meridian:report-issue recipe for defect filing #189"
+  suggested_title: "feat(report-issue): add meridian:report-issue play for defect filing #189"
 
   context:
     file_patterns_matched:
-      - name: "Recipe Definitions"
+      - name: "Play Definitions"
         files: 2
-        trigger: "**/recipes/**/*.md, **/recipes/**/SKILL.md"
+        trigger: "**/plays/**/*.md, **/plays/**/SKILL.md"
       - name: "Configuration / YAML"
         files: 10
         trigger: "*.yaml, *.yml"
@@ -29,7 +29,7 @@ analysis:
     commit_types:
       - type: "feat"
         count: 1
-        example: "feat(report-issue): add report-issue recipe source #189"
+        example: "feat(report-issue): add report-issue play source #189"
       - type: "docs"
         count: 1
         example: "docs(project): update CLAUDE.md and TODO.md #189"
@@ -53,33 +53,33 @@ analysis:
         status: "PASS"
         evidence: "Pattern scan across all changed files (CLAUDE.md, TODO.md, SKILL.md, intent.yaml, all STM YAMLs) found no matches for password/secret/token/api_key/private_key/BEGIN RSA/BEGIN EC/BEGIN PRIVATE"
 
-      - id: "recipe-frontmatter"
-        item: "Recipe has valid frontmatter (name, description, user-invokable, allowed-tools)"
-        trigger: "core/components/recipes/report-issue/SKILL.md matched **/recipes/**/SKILL.md"
+      - id: "play-frontmatter"
+        item: "Play has valid frontmatter (name, description, user-invokable, allowed-tools)"
+        trigger: "core/components/plays/report-issue/SKILL.md matched **/plays/**/SKILL.md"
         status: "PASS"
-        evidence: "Frontmatter present: name='meridian:report-issue', description present, user-invokable=true. Note: allowed-tools not explicitly listed (recipe delegates to project-orchestrator agent; no direct tool use in recipe body)"
+        evidence: "Frontmatter present: name='meridian:report-issue', description present, user-invokable=true. Note: allowed-tools not explicitly listed (play delegates to project-orchestrator agent; no direct tool use in play body)"
 
-      - id: "recipe-workflow"
-        item: "Recipe defines workflow"
-        trigger: "core/components/recipes/report-issue/SKILL.md matched **/recipes/**/SKILL.md"
+      - id: "play-workflow"
+        item: "Play defines workflow"
+        trigger: "core/components/plays/report-issue/SKILL.md matched **/plays/**/SKILL.md"
         status: "PASS"
         evidence: "## Workflow section present at line 73 with 6 numbered steps across Execution, Approval, Scenario Validation, and Evidence & Close phases"
 
-      - id: "recipe-checkpoint"
-        item: "Recipe defines checkpoint / pause-and-resume behavior"
-        trigger: "core/components/recipes/report-issue/SKILL.md matched **/recipes/**/SKILL.md"
+      - id: "play-checkpoint"
+        item: "Play defines checkpoint / pause-and-resume behavior"
+        trigger: "core/components/plays/report-issue/SKILL.md matched **/plays/**/SKILL.md"
         status: "PASS"
         evidence: "## Pause and Resume section present at line 260; defines status file, executor loop, fresh-start and resume logic"
 
       - id: "config-valid"
         item: "Configuration syntax valid (YAML lint)"
-        trigger: "core/components/recipes/report-issue/reference/intent.yaml matched *.yaml"
+        trigger: "core/components/plays/report-issue/reference/intent.yaml matched *.yaml"
         status: "PASS"
         evidence: "Python yaml.safe_load on intent.yaml succeeded with no errors"
 
       - id: "sync-claude"
         item: "Components synced with core/components/ via /sync-claude"
-        trigger: "core/components/recipes/report-issue/SKILL.md and intent.yaml changed under core/components/**"
+        trigger: "core/components/plays/report-issue/SKILL.md and intent.yaml changed under core/components/**"
         status: "REVIEW"
         evidence: "core/components/ was modified. Sync state cannot be verified from git alone. Reviewer must confirm /sync-claude (global) or /sync-claude --project was run and deployed artifacts are current."
 
@@ -90,29 +90,29 @@ analysis:
         evidence: "No README.md or docs/ files appear in the diff. CLAUDE.md and TODO.md were updated (docs(project) commit 5db979a) but do not reference report-issue content. Reviewer should confirm whether entry in docs/components/ or README is required, or whether SKILL.md self-documentation is sufficient."
 
     nice_to_have:
-      - id: "recipe-agent-limit"
-        item: "Recipe respects agent call limits (L2 ≤5)"
-        trigger: "core/components/recipes/report-issue/SKILL.md matched **/recipes/**/SKILL.md"
+      - id: "play-agent-limit"
+        item: "Play respects agent call limits (L2 ≤5)"
+        trigger: "core/components/plays/report-issue/SKILL.md matched **/plays/**/SKILL.md"
         status: "PASS"
-        evidence: "Recipe is L2 (maturity: L2 at line 305). Domain agent calls: 1 (project-orchestrator, Step 2). Utility agents: 0. Total: 1 — well within L2 ≤5 limit."
+        evidence: "Play is L2 (maturity: L2 at line 305). Domain agent calls: 1 (project-orchestrator, Step 2). Utility agents: 0. Total: 1 — well within L2 ≤5 limit."
 
       - id: "feat-adr"
         item: "Significant features have ADR"
-        trigger: "feat: commit type found; 1145 additions across new recipe files"
+        trigger: "feat: commit type found; 1145 additions across new play files"
         status: "REVIEW"
-        evidence: "No new ADR file found in docs/adr/. Recipe adds a new L2 workflow capability. Reviewer should assess whether an ADR is warranted (existing ADRs cover recipe-level patterns; a recipe addition is typically below ADR threshold)."
+        evidence: "No new ADR file found in docs/adr/. Play adds a new L2 workflow capability. Reviewer should assess whether an ADR is warranted (existing ADRs cover play-level patterns; a play addition is typically below ADR threshold)."
 
       - id: "config-documented"
         item: "Configuration changes documented"
-        trigger: "core/components/recipes/report-issue/reference/intent.yaml matched *.yaml"
+        trigger: "core/components/plays/report-issue/reference/intent.yaml matched *.yaml"
         status: "PASS"
-        evidence: "intent.yaml is the source-of-truth config for the recipe; it is accompanied by SKILL.md which documents all constraints, workflow, and compilation metadata. No standalone config changed."
+        evidence: "intent.yaml is the source-of-truth config for the play; it is accompanied by SKILL.md which documents all constraints, workflow, and compilation metadata. No standalone config changed."
 
       - id: "docs-examples"
         item: "Documentation includes examples"
         trigger: "CLAUDE.md matched docs/philosophy/*.md, CLAUDE.md rule"
         status: "PASS"
-        evidence: "SKILL.md contains code block examples for Pre-flight bash, Step 1 body format, Step 2 JSON contract, and Pause/Resume executor loop. Recipe is self-documenting."
+        evidence: "SKILL.md contains code block examples for Pre-flight bash, Step 1 body format, Step 2 JSON contract, and Pause/Resume executor loop. Play is self-documenting."
 
   blocking_issues: []
 

@@ -17,11 +17,11 @@ scenario_evals:
 
       - check: "Feature branch not found locally"
         status: PASS
-        evidence: "git branch did not contain feature/95-intent-driven-recipe-architecture"
+        evidence: "git branch did not contain feature/95-intent-driven-play-architecture"
 
       - check: "Feature branch not found remotely"
         status: PASS
-        evidence: "git branch -r did not contain feature/95-intent-driven-recipe-architecture"
+        evidence: "git branch -r did not contain feature/95-intent-driven-play-architecture"
 
     verdict: PASS
 
@@ -41,7 +41,7 @@ scenario_evals:
 
       - check: "Merge commit present in main log"
         status: PASS
-        evidence: "git log main shows 110052a Merge pull request #97 from kapilvirenahuja/feature/95-intent-driven-recipe-architecture"
+        evidence: "git log main shows 110052a Merge pull request #97 from kapilvirenahuja/feature/95-intent-driven-play-architecture"
 
     verdict: PASS
 

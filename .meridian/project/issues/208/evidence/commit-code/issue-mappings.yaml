@@ -1,36 +1,36 @@
 validated_at: "2026-04-13"
-recipe_step: resolve-issues
+play_step: resolve-issues
 
 mappings:
   - group_id: 1
     issue_number: 208
-    issue_title: "Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection"
+    issue_title: "Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection"
     issue_state: open
     confidence: high
     type_hint: feature
     reasoning: >
       Group 1 directly implements the primary deliverable of issue #208: the review-pr L2
-      recipe (SKILL.md + intent.yaml), the quality-check-scoped skill (SKILL.md +
+      play (SKILL.md + intent.yaml), the quality-check-scoped skill (SKILL.md +
       finding-schema.md + input-contract.md), config additions for the review-pr pipeline,
-      and ship recipe updates to wire the new quality gate. These changes constitute the
+      and ship play updates to wire the new quality gate. These changes constitute the
       core build work described in the issue title. STM evidence artifacts for #208 are
       also included. Mapping is unambiguous — no competing issues.
 
   - group_id: 2
     issue_number: 208
-    issue_title: "Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection"
+    issue_title: "Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection"
     issue_state: open
     confidence: high
     type_hint: refactor
     reasoning: >
       Group 2 is a structural reorganization performed on this feature branch to support
-      the review-pr recipe. It includes: the PR severity taxonomy standard
+      the review-pr play. It includes: the PR severity taxonomy standard
       (pr-severity-taxonomy.md) introduced specifically for quality-check-scoped, the
-      ADR 016 promotion of agent-contract.md (referenced by the new recipe's agent
+      ADR 016 promotion of agent-contract.md (referenced by the new play's agent
       contract pattern), and cleanup of standards/templates/ by relocating files to
       their owning components. While typed as refactor (no behavior change), this work
       is scoped to and motivated by issue #208. No separate issue exists for this
-      structural cleanup, and the branch is feature/208-review-pr-recipe.
+      structural cleanup, and the branch is feature/208-review-pr-play.
 
 scope_exclusions:
   - issue_number: 209

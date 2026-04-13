@@ -1,0 +1,463 @@
+{
+  "intent_hash": "<sha256-of-intent.yaml-computed-at-runtime>",
+  "stm_paths": {
+    "dag": ".meridian/play-creation/create-pr/dag.json"
+  },
+  "notes": [
+    "Stages 3 and 4 are skippable when all confidence levels from Stage 2 analyze-pr output are high; play must evaluate confidence gate before executing brief-1 and checkpoint-1.",
+    "project-orchestrator assigned to readiness-2 (issue linkage) based on domain fit for project/issue tracking; repo-orchestrator assigned to all other domain stages.",
+    "scenario-evals.yaml references 15 evals but the file does not yet exist; scenario-eval-1 and scenario-eval-2 are derived from intent.yaml S1 and S2; scenario-eval-3 through scenario-eval-15 are placeholders pending scenario-evals.yaml authoring."
+  ],
+  "tasks": [
+    {
+      "id": "preflight-1",
+      "stage": 0,
+      "subject": "Branch guard",
+      "description": "Verify the current branch is not a protected branch (e.g., main, master, develop). Fail if the play is invoked on a branch that should not be the source of a PR. Constraint C2: play never modifies code — this check is read-only.",
+      "owner": "play",
+      "blockedBy": [],
+      "blocks": ["preflight-2", "preflight-3", "preflight-4", "preflight-5", "preflight-6", "preflight-7"],
+      "status": "pending"
+    },
+    {
+      "id": "preflight-2",
+      "stage": 0,
+      "subject": "Clean working tree check",
+      "description": "Verify the working tree has no uncommitted changes. Constraint C3: all local changes must be committed before the PR is created. Fail if there are unstaged or staged but uncommitted files.",
+      "owner": "play",
+      "blockedBy": ["preflight-1"],
+      "blocks": ["preflight-7"],
+      "status": "pending"
+    },
+    {
+      "id": "preflight-3",
+      "stage": 0,
+      "subject": "Push check",
+      "description": "Verify the current branch exists on the remote and the local HEAD matches the remote HEAD. Constraint C3: all changes must be pushed before PR creation. Fail if the branch is not yet pushed or is behind the remote.",
+      "owner": "play",
+      "blockedBy": ["preflight-1"],
+      "blocks": ["preflight-7"],
+      "status": "pending"
+    },
+    {
+      "id": "preflight-4",
+      "stage": 0,
+      "subject": "Platform config check",
+      "description": "Read project configuration to determine the git platform (GitHub, GitLab, Bitbucket). Constraint C1: platform is determined from config, not hardcoded. Fail if no platform config is found or the value is unrecognized.",
+      "owner": "play",
+      "blockedBy": ["preflight-1"],
+      "blocks": ["preflight-5"],
+      "status": "pending"
+    },
+    {
+      "id": "preflight-5",
+      "stage": 0,
+      "subject": "Platform reference validation",
+      "description": "Validate that the platform API credentials and repo reference are present and resolvable. Fail if the platform token is missing, expired, or the repo reference cannot be resolved. Depends on preflight-4 establishing the platform.",
+      "owner": "play",
+      "blockedBy": ["preflight-4"],
+      "blocks": ["preflight-7"],
+      "status": "pending"
+    },
+    {
+      "id": "preflight-6",
+      "stage": 0,
+      "subject": "Open issues exist check",
+      "description": "Verify at least one open issue is linked or resolvable for this branch. Failure condition F1: PR must have a linked issue. Fail pre-flight if no candidate issues can be found before readiness analysis begins.",
+      "owner": "play",
+      "blockedBy": ["preflight-1"],
+      "blocks": ["preflight-7"],
+      "status": "pending"
+    },
+    {
+      "id": "preflight-7",
+      "stage": 0,
+      "subject": "Commits ahead of base check",
+      "description": "Verify the current branch has at least one commit ahead of the base branch. Fail if the branch has no commits ahead — there is nothing to PR. Requires clean tree (preflight-2), push (preflight-3), platform reference (preflight-5), and issues check (preflight-6) to have passed.",
+      "owner": "play",
+      "blockedBy": ["preflight-2", "preflight-3", "preflight-5", "preflight-6"],
+      "blocks": ["intent-1"],
+      "status": "pending"
+    },
+    {
+      "id": "intent-1",
+      "stage": 1,
+      "subject": "Intent resolution",
+      "description": "Resolve intent.yaml into the task DAG for the create-pr play. Hash intent.yaml, map constraints and failure conditions to tasks, assign agents, and write the DAG to STM. This task is self-referential — it represents the current resolution pass.",
+      "owner": "intent-resolver",
+      "blockedBy": ["preflight-7"],
+      "blocks": ["readiness-1", "readiness-2"],
+      "status": "pending"
+    },
+    {
+      "id": "readiness-1",
+      "stage": 2,
+      "subject": "Analyze PR with analyze-pr skill",
+      "description": "repo-orchestrator invokes the analyze-pr skill to inspect the diff, determine the target branch with confidence scoring, build a quality checklist tailored to the actual changes (constraint C4: no generic items), and produce evidence backing for each checklist item (constraint C5). Output written to STM. Behavioral constraints: platform determined from config (C1), play is read-only (C2).",
+      "owner": "repo-orchestrator",
+      "blockedBy": ["intent-1"],
+      "blocks": ["readiness-eval-1", "readiness-eval-2", "readiness-eval-3", "readiness-eval-4", "readiness-eval-5", "readiness-eval-6", "readiness-eval-7"],
+      "status": "pending"
+    },
+    {
+      "id": "readiness-2",
+      "stage": 2,
+      "subject": "Resolve issue linkage",
+      "description": "project-orchestrator resolves the issue linked to the current branch. Failure condition F1: PR must have a linked issue — this task must produce a confirmed issue link written to STM, or fail. Cross-references preflight-6 candidate issues with branch name, commit messages, and project tracker state.",
+      "owner": "project-orchestrator",
+      "blockedBy": ["intent-1"],
+      "blocks": ["readiness-eval-1"],
+      "status": "pending"
+    },
+    {
+      "id": "readiness-eval-1",
+      "stage": 2,
+      "subject": "Eval: issue link confirmed",
+      "description": "PASS: STM contains a confirmed, resolved issue link with issue ID and platform URL. FAIL: issue link is missing, unresolved, or points to a closed/non-existent issue. Maps to failure condition F1. Requires both readiness-1 (for branch context) and readiness-2 (for issue resolution) to complete.",
+      "owner": "play",
+      "blockedBy": ["readiness-1", "readiness-2"],
+      "blocks": ["readiness-eval-2"],
+      "status": "pending"
+    },
+    {
+      "id": "readiness-eval-2",
+      "stage": 2,
+      "subject": "Eval: target branch confidence is high",
+      "description": "PASS: analyze-pr output contains a target branch selection with confidence = high. FAIL: confidence is medium or low, requiring user confirmation per constraint C7 and failure condition F5. If FAIL, the play must route to human checkpoint regardless of other confidence signals.",
+      "owner": "play",
+      "blockedBy": ["readiness-eval-1"],
+      "blocks": ["readiness-eval-3"],
+      "status": "pending"
+    },
+    {
+      "id": "readiness-eval-3",
+      "stage": 2,
+      "subject": "Eval: checklist items are change-specific",
+      "description": "PASS: every checklist item in STM is traceable to a specific file, function, or pattern in the diff. FAIL: one or more items are generic (e.g., 'ensure tests pass' with no connection to changed test files). Maps to constraint C4 and failure condition F2.",
+      "owner": "play",
+      "blockedBy": ["readiness-eval-2"],
+      "blocks": ["readiness-eval-4"],
+      "status": "pending"
+    },
+    {
+      "id": "readiness-eval-4",
+      "stage": 2,
+      "subject": "Eval: every checklist item has evidence",
+      "description": "PASS: every checklist item in STM has an associated evidence entry (file reference, line number, test result, or artifact path). FAIL: one or more items have no evidence. Maps to constraint C5 and failure condition F3.",
+      "owner": "play",
+      "blockedBy": ["readiness-eval-3"],
+      "blocks": ["readiness-eval-5"],
+      "status": "pending"
+    },
+    {
+      "id": "readiness-eval-5",
+      "stage": 2,
+      "subject": "Eval: platform config resolved",
+      "description": "PASS: analyze-pr output confirms the git platform was read from project configuration, not hardcoded. FAIL: platform was defaulted or assumed. Maps to constraint C1.",
+      "owner": "play",
+      "blockedBy": ["readiness-eval-4"],
+      "blocks": ["readiness-eval-6"],
+      "status": "pending"
+    },
+    {
+      "id": "readiness-eval-6",
+      "stage": 2,
+      "subject": "Eval: no code modifications during analysis",
+      "description": "PASS: working tree is clean after readiness stage (no files modified, staged, or created by the play). FAIL: any file was modified during analysis. Maps to constraint C2.",
+      "owner": "play",
+      "blockedBy": ["readiness-eval-5"],
+      "blocks": ["readiness-eval-7"],
+      "status": "pending"
+    },
+    {
+      "id": "readiness-eval-7",
+      "stage": 2,
+      "subject": "Eval: overall readiness confidence gate",
+      "description": "PASS: all confidence signals from analyze-pr are high — target branch, checklist completeness, evidence coverage. FAIL: any signal is below high. This gate determines whether stages 3 and 4 are skipped (all high) or executed (any below high). Result written to STM as confidence_gate: pass|fail.",
+      "owner": "play",
+      "blockedBy": ["readiness-eval-6"],
+      "blocks": ["brief-1"],
+      "status": "pending"
+    },
+    {
+      "id": "brief-1",
+      "stage": 3,
+      "subject": "Create human-readable PR brief",
+      "description": "repo-orchestrator reads STM artifacts from Stage 2 (target branch, checklist, evidence, issue link, confidence gate result) and produces a human-readable brief summarizing the proposed PR. Skippable: if readiness-eval-7 confidence_gate = pass (all high), this stage and stage 4 are bypassed and execution proceeds directly to gen-1. Brief must NOT re-derive data — it reads STM only.",
+      "owner": "repo-orchestrator",
+      "blockedBy": ["readiness-eval-7"],
+      "blocks": ["checkpoint-1"],
+      "status": "pending",
+      "skippable": true,
+      "skip_condition": "confidence_gate == pass"
+    },
+    {
+      "id": "checkpoint-1",
+      "stage": 4,
+      "subject": "Human checkpoint — Tether / Vanish",
+      "description": "Present the PR brief to the user and await confirmation. Tether: proceed to generation. Vanish: abort play. Skippable: if readiness-eval-7 confidence_gate = pass (all high), this stage is bypassed. Constraint C7: auto-submit only when all confidence signals are high.",
+      "owner": "play",
+      "blockedBy": ["brief-1"],
+      "blocks": ["gen-1", "gen-2"],
+      "status": "pending",
+      "skippable": true,
+      "skip_condition": "confidence_gate == pass"
+    },
+    {
+      "id": "gen-1",
+      "stage": 5,
+      "subject": "Push branch to remote",
+      "description": "repo-orchestrator pushes the current branch to the remote platform. Constraint C3: all local changes must be pushed before PR creation. Constraint C2: push only — no code modifications, no rebases, no amends. If the branch is already up to date (confirmed by preflight-3), this is a no-op verify step.",
+      "owner": "repo-orchestrator",
+      "blockedBy": ["checkpoint-1"],
+      "blocks": ["gen-2"],
+      "status": "pending"
+    },
+    {
+      "id": "gen-2",
+      "stage": 5,
+      "subject": "Create PR with submit-pr skill",
+      "description": "repo-orchestrator invokes the submit-pr skill to create the PR on the configured platform. PR body must include: linked issue reference (F1), tailored quality checklist (C4, F2), evidence for each item (C5, F3), and eval results when evals pass (C6, F4). Target branch from STM analyze-pr output. Constraint C7: auto-submit only when confidence_gate = pass.",
+      "owner": "repo-orchestrator",
+      "blockedBy": ["gen-1"],
+      "blocks": ["gen-eval-1", "gen-eval-2", "gen-eval-3", "gen-eval-4", "gen-eval-5", "gen-eval-6"],
+      "status": "pending"
+    },
+    {
+      "id": "gen-eval-1",
+      "stage": 5,
+      "subject": "Eval: PR created on correct platform",
+      "description": "PASS: PR URL returned by submit-pr matches the platform determined in preflight-4 (GitHub, GitLab, or Bitbucket). FAIL: PR created on wrong platform or platform mismatch detected. Maps to constraint C1.",
+      "owner": "play",
+      "blockedBy": ["gen-2"],
+      "blocks": ["gen-eval-2"],
+      "status": "pending"
+    },
+    {
+      "id": "gen-eval-2",
+      "stage": 5,
+      "subject": "Eval: PR linked to issue",
+      "description": "PASS: PR body or PR metadata contains the issue link resolved in readiness-2. FAIL: PR has no issue reference. Maps to failure condition F1.",
+      "owner": "play",
+      "blockedBy": ["gen-eval-1"],
+      "blocks": ["gen-eval-3"],
+      "status": "pending"
+    },
+    {
+      "id": "gen-eval-3",
+      "stage": 5,
+      "subject": "Eval: checklist in PR body is change-specific",
+      "description": "PASS: every checklist item in the PR body is traceable to specific changes in the diff — no generic items. FAIL: one or more generic checklist items present. Maps to constraint C4 and failure condition F2.",
+      "owner": "play",
+      "blockedBy": ["gen-eval-2"],
+      "blocks": ["gen-eval-4"],
+      "status": "pending"
+    },
+    {
+      "id": "gen-eval-4",
+      "stage": 5,
+      "subject": "Eval: every PR checklist item has evidence",
+      "description": "PASS: every checklist item in the PR body has associated evidence (file path, line reference, test result, or artifact). FAIL: any item is unsupported. Maps to constraint C5 and failure condition F3.",
+      "owner": "play",
+      "blockedBy": ["gen-eval-3"],
+      "blocks": ["gen-eval-5"],
+      "status": "pending"
+    },
+    {
+      "id": "gen-eval-5",
+      "stage": 5,
+      "subject": "Eval: eval results embedded in PR",
+      "description": "PASS: PR body or PR comments contain the eval results from readiness step-evals. FAIL: evals passed but PR body has no eval output. Maps to constraint C6 and failure condition F4.",
+      "owner": "play",
+      "blockedBy": ["gen-eval-4"],
+      "blocks": ["gen-eval-6"],
+      "status": "pending"
+    },
+    {
+      "id": "gen-eval-6",
+      "stage": 5,
+      "subject": "Eval: target branch matches high-confidence selection",
+      "description": "PASS: PR targets the branch selected by analyze-pr with high confidence, or the branch confirmed by the user at checkpoint-1. FAIL: PR targets a branch that was selected with less than high confidence and user was not asked to confirm. Maps to constraint C7 and failure condition F5.",
+      "owner": "play",
+      "blockedBy": ["gen-eval-5"],
+      "blocks": ["scenario-eval-1", "scenario-eval-2", "scenario-eval-3", "scenario-eval-4", "scenario-eval-5", "scenario-eval-6", "scenario-eval-7", "scenario-eval-8", "scenario-eval-9", "scenario-eval-10", "scenario-eval-11", "scenario-eval-12", "scenario-eval-13", "scenario-eval-14", "scenario-eval-15"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-1",
+      "stage": 6,
+      "subject": "Scenario S1: Code Reviewer — assess merge safety",
+      "description": "Persona: Code Reviewer. Given: a pull request on the git platform. PASS: reviewer can assess whether changes are safe to merge, understand rationale via the checklist and evidence, and trace the work back to the originating issue — sufficient to approve, reject, or comment without needing external context. FAIL: any of these three reviewer needs cannot be met from the PR alone.",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-2",
+      "stage": 6,
+      "subject": "Scenario S2: Author — verify submission readiness",
+      "description": "Persona: Author (Developer). Given: a pull request on the git platform with eval results. PASS: author can verify all changes are accounted for in the checklist, evidence supports each item, and the PR is linked to the correct issue — confident the PR is submission-ready. FAIL: checklist gaps, missing evidence, or wrong issue link prevent author confidence.",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-3",
+      "stage": 6,
+      "subject": "Scenario: PR body self-contained for review",
+      "description": "PASS: PR body contains all information a reviewer needs without navigating to external systems (issue tracker, CI logs, or local repo). FAIL: PR body requires external context to understand scope, rationale, or quality status. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-4",
+      "stage": 6,
+      "subject": "Scenario: issue traceability end-to-end",
+      "description": "PASS: navigating from the PR to the issue and back is unambiguous — issue link in PR body resolves to the correct open issue, and the issue references or can be linked to the PR URL. FAIL: link is broken, points to wrong issue, or issue is closed/deleted. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-5",
+      "stage": 6,
+      "subject": "Scenario: checklist completeness for diff scope",
+      "description": "PASS: checklist covers all meaningful change categories present in the diff (e.g., schema changes, API changes, config changes, test changes). FAIL: a category of change in the diff has no corresponding checklist coverage. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-6",
+      "stage": 6,
+      "subject": "Scenario: evidence is verifiable",
+      "description": "PASS: every evidence entry in the PR body points to a real artifact (file that exists, test that ran, line that changed). FAIL: evidence references non-existent files, passing tests that weren't run, or fabricated line numbers. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-7",
+      "stage": 6,
+      "subject": "Scenario: no code change by play",
+      "description": "PASS: git diff between pre-play and post-play state shows no changes to source files — only a new PR on the platform. FAIL: any file was modified, staged, rebased, or amended during play execution. Maps to constraint C2. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-8",
+      "stage": 6,
+      "subject": "Scenario: confidence gate routes correctly",
+      "description": "PASS: when all confidence signals are high, stages 3 and 4 are skipped and PR is auto-submitted. When any signal is below high, brief and checkpoint are executed before PR creation. FAIL: wrong routing — skipped when should have checked, or checked when could have skipped. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-9",
+      "stage": 6,
+      "subject": "Scenario: eval results present in PR when evals pass",
+      "description": "PASS: when all step-evals pass, their output is embedded in the PR body or posted as a PR comment. FAIL: evals passed but no eval output appears in the PR. Maps to constraint C6 and failure condition F4. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-10",
+      "stage": 6,
+      "subject": "Scenario: eval failures written to STM not PR",
+      "description": "PASS: when step-evals fail, their output is written to STM (not embedded in PR body). FAIL: failed eval output appears in the PR body or is silently discarded. Maps to constraint C6. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-11",
+      "stage": 6,
+      "subject": "Scenario: platform determined from config",
+      "description": "PASS: the created PR URL matches the platform specified in project config. If config says GitHub, PR is on GitHub. FAIL: PR created on a hardcoded or defaulted platform that differs from config. Maps to constraint C1. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-12",
+      "stage": 6,
+      "subject": "Scenario: low-confidence branch selection triggers confirmation",
+      "description": "PASS: when target branch confidence is below high, the user is presented with the options and must confirm before PR is created. FAIL: PR is created targeting a low-confidence branch without user confirmation. Maps to constraint C7 and failure condition F5. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-13",
+      "stage": 6,
+      "subject": "Scenario: PR not created when pre-flight fails",
+      "description": "PASS: if any Stage 0 pre-flight check fails (no linked issue, dirty tree, no commits ahead), the play halts before creating a PR. FAIL: PR is created despite a pre-flight failure. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-14",
+      "stage": 6,
+      "subject": "Scenario: PR idempotency — no duplicate PRs",
+      "description": "PASS: if a PR already exists for the branch, the play detects it and does not create a duplicate. FAIL: a second PR is created for the same branch targeting the same base. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "scenario-eval-15",
+      "stage": 6,
+      "subject": "Scenario: STM artifacts complete after play",
+      "description": "PASS: STM at .meridian/{issue}/ contains all expected artifacts after play completion — analyze-pr output, issue link, checklist, evidence, eval results, and PR URL. FAIL: any expected STM artifact is missing or empty. Source: scenario-evals.yaml (pending authoring).",
+      "owner": "play",
+      "blockedBy": ["gen-eval-6"],
+      "blocks": ["evidence-1"],
+      "status": "pending"
+    },
+    {
+      "id": "evidence-1",
+      "stage": 7,
+      "subject": "Evidence collection and play close",
+      "description": "Collect all STM artifacts from all stages, write evidence bundle to .meridian/{issue}/evidence/create-pr/. Include: analyze-pr output, issue link, checklist, evidence entries, eval results (pass or fail), scenario eval results, PR URL, and intent_hash. Mark play as complete. If any scenario eval failed, write failure report alongside evidence.",
+      "owner": "play",
+      "blockedBy": [
+        "scenario-eval-1",
+        "scenario-eval-2",
+        "scenario-eval-3",
+        "scenario-eval-4",
+        "scenario-eval-5",
+        "scenario-eval-6",
+        "scenario-eval-7",
+        "scenario-eval-8",
+        "scenario-eval-9",
+        "scenario-eval-10",
+        "scenario-eval-11",
+        "scenario-eval-12",
+        "scenario-eval-13",
+        "scenario-eval-14",
+        "scenario-eval-15"
+      ],
+      "blocks": [],
+      "status": "pending"
+    }
+  ]
+}

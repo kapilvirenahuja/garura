@@ -1,6 +1,6 @@
 issue:
   number: 206
-  title: "refactor: make brief generation opt-in across discovery, planning, and architecture recipes"
+  title: "refactor: make brief generation opt-in across discovery, planning, and architecture plays"
   state: open
   labels:
     - enhancement

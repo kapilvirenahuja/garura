@@ -1,5 +1,5 @@
 analysis:
-  branch: feature/208-review-pr-recipe
+  branch: feature/208-review-pr-play
   base: main
   branch_pattern: feature
   commits: 4
@@ -7,13 +7,13 @@ analysis:
     files: 65
     additions: 2510
     deletions: 439
-  suggested_title: "feat(recipes): add review-pr recipe, quality-check-scoped skill, ADR 016, and supporting standards"
+  suggested_title: "feat(plays): add review-pr play, quality-check-scoped skill, ADR 016, and supporting standards"
 
   context:
     file_patterns_matched:
-      - name: "Recipe definitions"
+      - name: "Play definitions"
         files: 5
-        trigger: "**/recipes/**/SKILL.md"
+        trigger: "**/plays/**/SKILL.md"
       - name: "Skill definitions"
         files: 3
         trigger: "**/skills/**/*.md"
@@ -35,7 +35,7 @@ analysis:
     commit_types:
       - type: "feat"
         count: 1
-        example: "feat(recipes): add review-pr recipe, quality-check-scoped skill, and supporting config (#208)"
+        example: "feat(plays): add review-pr play, quality-check-scoped skill, and supporting config (#208)"
       - type: "refactor"
         count: 1
         example: "refactor(standards): move templates to owning components, promote agent-contract.md to ADR, relocate brief-principles (#208)"
@@ -59,33 +59,33 @@ analysis:
         status: "PASS"
         evidence: "Pattern scan found only documentation examples of secret patterns (grep rules in quality-check-scoped reference files, not real credentials). No actual api_key=, password=, or key material present in changed files."
 
-      - id: "recipe-frontmatter-review-pr"
-        item: "review-pr recipe has valid frontmatter"
-        trigger: "core/components/recipes/review-pr/SKILL.md added"
+      - id: "play-frontmatter-review-pr"
+        item: "review-pr play has valid frontmatter"
+        trigger: "core/components/plays/review-pr/SKILL.md added"
         status: "PASS"
         evidence: "Frontmatter present: name=meridian:review-pr, description present, user-invocable=true"
 
-      - id: "recipe-frontmatter-ship"
-        item: "ship recipe has valid frontmatter"
-        trigger: "core/components/recipes/ship/SKILL.md changed"
+      - id: "play-frontmatter-ship"
+        item: "ship play has valid frontmatter"
+        trigger: "core/components/plays/ship/SKILL.md changed"
         status: "PASS"
         evidence: "Frontmatter present: name=ship, description present, user-invokable=true"
 
-      - id: "recipe-workflow-review-pr"
-        item: "review-pr recipe defines workflow"
-        trigger: "Recipe definition changed"
+      - id: "play-workflow-review-pr"
+        item: "review-pr play defines workflow"
+        trigger: "Play definition changed"
         status: "PASS"
         evidence: "## Workflow section present at line 75 of review-pr/SKILL.md"
 
-      - id: "recipe-workflow-ship"
-        item: "ship recipe defines workflow"
-        trigger: "Recipe definition changed"
+      - id: "play-workflow-ship"
+        item: "ship play defines workflow"
+        trigger: "Play definition changed"
         status: "PASS"
         evidence: "## Workflow section present at line 74 of ship/SKILL.md"
 
-      - id: "recipe-checkpoint"
-        item: "Recipes define checkpoint behavior"
-        trigger: "Recipe definitions changed"
+      - id: "play-checkpoint"
+        item: "Plays define checkpoint behavior"
+        trigger: "Play definitions changed"
         status: "PASS"
         evidence: "review-pr has Step 4.5 Optional Approval Gate with Tether/Vanish prompt (line 302). ship documents approval_override for checkpoint suppression."
 
@@ -115,9 +115,9 @@ analysis:
 
       - id: "docs-consistent"
         item: "Documentation consistent with implementation"
-        trigger: "docs/components/recipes.md, docs/components/skills.md changed"
+        trigger: "docs/components/plays.md, docs/components/skills.md changed"
         status: "REVIEW"
-        evidence: "ship/SKILL.md references review-pr integration at line 328. docs/components/recipes.md documents ship with review-pr in pipeline description but does not list review-pr as a standalone catalog entry. Manual verification needed: does review-pr require its own catalog row?"
+        evidence: "ship/SKILL.md references review-pr integration at line 328. docs/components/plays.md documents ship with review-pr in pipeline description but does not list review-pr as a standalone catalog entry. Manual verification needed: does review-pr require its own catalog row?"
 
       - id: "config-valid"
         item: "Configuration syntax valid"
@@ -129,11 +129,11 @@ analysis:
         item: "Refactor introduces no breaking changes to contracts"
         trigger: "refactor commit present — agent-contract.md deleted, ADR 016 added"
         status: "PASS"
-        evidence: "Content fully preserved in ADR 016 (8 occurrences of Output Contract/Input Contract/stm.output/stm.input). _index.md updated with note pointing to ADR 016. No recipe or agent hardcodes the deleted file path — it was memory/standards (LTM), not a runtime import path."
+        evidence: "Content fully preserved in ADR 016 (8 occurrences of Output Contract/Input Contract/stm.output/stm.input). _index.md updated with note pointing to ADR 016. No play or agent hardcodes the deleted file path — it was memory/standards (LTM), not a runtime import path."
 
       - id: "sync-claude"
         item: "Components synced with core/components/ after merge"
-        trigger: "core/components/** changed (new recipe + skill added)"
+        trigger: "core/components/** changed (new play + skill added)"
         status: "REVIEW"
         evidence: "/sync-claude must be run post-merge to deploy to ~/.claude/. Cannot auto-verify in analysis — requires manual confirmation that sync will occur after merge."
 
@@ -141,12 +141,12 @@ analysis:
         item: "New feature documented in docs"
         trigger: "feat commit present"
         status: "PASS"
-        evidence: "docs/components/recipes.md and docs/components/skills.md both changed. review-pr is described in recipes.md (ship pipeline). quality-check-scoped is referenced in skills.md. docs/design/briefs.md relocated from memory/."
+        evidence: "docs/components/plays.md and docs/components/skills.md both changed. review-pr is described in plays.md (ship pipeline). quality-check-scoped is referenced in skills.md. docs/design/briefs.md relocated from memory/."
 
     nice_to_have:
-      - id: "recipe-agent-limit"
-        item: "Recipes respect agent call limits"
-        trigger: "Recipe definitions changed"
+      - id: "play-agent-limit"
+        item: "Plays respect agent call limits"
+        trigger: "Play definitions changed"
         status: "PASS"
         evidence: "review-pr explicitly states Domain agent count: 3 unique (tech-designer, quality-auditor, repo-orchestrator-as-ranker). Within L2 budget of 5 (C5)."
 
@@ -178,16 +178,16 @@ analysis:
         item: "Configuration changes documented"
         trigger: "core/config.yaml changed"
         status: "PASS"
-        evidence: "New config keys (review-pr block, standards.pr-severity-taxonomy path) correspond to new recipe. docs reference the new configuration."
+        evidence: "New config keys (review-pr block, standards.pr-severity-taxonomy path) correspond to new play. docs reference the new configuration."
 
   blocking_issues: []
 
   review_required:
     - item: "docs-consistent"
-      reason: "review-pr may need a standalone catalog entry in docs/components/recipes.md"
+      reason: "review-pr may need a standalone catalog entry in docs/components/plays.md"
       trigger: "Architecture docs changed"
     - item: "sync-claude"
-      reason: "/sync-claude must be run after merge to deploy new recipe and skill to ~/.claude/"
+      reason: "/sync-claude must be run after merge to deploy new play and skill to ~/.claude/"
       trigger: "core/components/** changed"
 
   ready: true

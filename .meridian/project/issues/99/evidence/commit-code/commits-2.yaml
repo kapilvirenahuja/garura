@@ -38,34 +38,34 @@ commits:
     subject: "add plan-roadmap evals, workspace iterations, and scout-project workspace artifacts"
     issue: "99"
     files:
-      - core/components/recipes/plan-roadmap/evals/evals.json
-      - core/components/recipes/plan-roadmap/evals/fixtures/epics.yaml
-      - core/components/recipes/plan-roadmap/evals/fixtures/feasibility.yaml
-      - core/components/recipes/plan-roadmap/evals/fixtures/product.yaml
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/eval_metadata.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/with_skill/grading.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/with_skill/outputs/roadmap.yaml
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/with_skill/timing.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/without_skill/grading.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/without_skill/outputs/roadmap.yaml
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/without_skill/timing.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/eval_metadata.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/with_skill/grading.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/with_skill/outputs/roadmap-brief.html
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/with_skill/timing.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/without_skill/grading.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/without_skill/outputs/roadmap-brief.html
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/without_skill/timing.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/eval_metadata.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/with_skill/grading.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/with_skill/outputs/epics.yaml
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/with_skill/timing.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/without_skill/grading.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/without_skill/outputs/epics.yaml
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/without_skill/timing.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-2/scope-epics-from-product/with_skill/grading.json
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-2/scope-epics-from-product/with_skill/outputs/epics.yaml
-      - core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-2/scope-epics-from-product/with_skill/timing.json
+      - core/components/plays/plan-roadmap/evals/evals.json
+      - core/components/plays/plan-roadmap/evals/fixtures/epics.yaml
+      - core/components/plays/plan-roadmap/evals/fixtures/feasibility.yaml
+      - core/components/plays/plan-roadmap/evals/fixtures/product.yaml
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/eval_metadata.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/with_skill/grading.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/with_skill/outputs/roadmap.yaml
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/with_skill/timing.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/without_skill/grading.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/without_skill/outputs/roadmap.yaml
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/draft-roadmap-yaml/without_skill/timing.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/eval_metadata.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/with_skill/grading.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/with_skill/outputs/roadmap-brief.html
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/with_skill/timing.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/without_skill/grading.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/without_skill/outputs/roadmap-brief.html
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/roadmap-brief-tabs/without_skill/timing.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/eval_metadata.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/with_skill/grading.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/with_skill/outputs/epics.yaml
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/with_skill/timing.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/without_skill/grading.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/without_skill/outputs/epics.yaml
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1/scope-epics-from-product/without_skill/timing.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-2/scope-epics-from-product/with_skill/grading.json
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-2/scope-epics-from-product/with_skill/outputs/epics.yaml
+      - core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-2/scope-epics-from-product/with_skill/timing.json
       - core/components/skills/scout-project/scout-project-workspace/iteration-1/chronos-full-project/eval_metadata.json
       - core/components/skills/scout-project/scout-project-workspace/iteration-1/chronos-full-project/with_skill/grading.json
       - core/components/skills/scout-project/scout-project-workspace/iteration-1/chronos-full-project/with_skill/outputs/project-scout.md

@@ -1,5 +1,5 @@
 # tech.yaml — Issue #182
-# Sub-Agent Context Resolution Protocol, LTM Hierarchy Enforcement, and Learning Recipe
+# Sub-Agent Context Resolution Protocol, LTM Hierarchy Enforcement, and Learning Play
 # Status: DRAFT
 # Created: 2026-03-26
 # Rewritten: 2026-03-26 — full implementation detail added
@@ -102,7 +102,7 @@ project_structure:
         For domain topics that produced no answer from R2 or R3, the agent proceeds
         with general reasoning and records `resolved_from: "llm"` in the trace.
 
-        LLM fallback entries are primary candidates for the `learn` recipe. Each
+        LLM fallback entries are primary candidates for the `learn` play. Each
         fallback is a knowledge gap: the organization lacks persistent knowledge for
         this domain question and relies on general reasoning instead.
 
@@ -110,7 +110,7 @@ project_structure:
 
         After completing R1-R4, write the resolution trace to STM:
 
-        Path: `{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml`
+        Path: `{stm_base}/{issue}/evidence/{play}/resolution-trace.yaml`
 
         ```yaml
         resolution_trace:
@@ -128,12 +128,12 @@ project_structure:
         ## Context Isolation Exemptions
 
         The following agents NEVER receive `ltm_context` from any workflow. No
-        recipe populates this field for them under any circumstances (INV4):
+        play populates this field for them under any circumstances (INV4):
 
         - **eval-generator** — Must not see implementation code or prior outputs
         - **judge** — Receives only encrypted evals and the codebase
 
-        Any recipe that attempts to pass `ltm_context` to either agent must be
+        Any play that attempts to pass `ltm_context` to either agent must be
         treated as a defect.
 
         ## Backward Compatibility
@@ -160,7 +160,7 @@ project_structure:
         # Knowledge File Template
 
         This is the canonical template for all knowledge files written by the
-        `learn` recipe. Existing files are grandfathered. New files must conform
+        `learn` play. Existing files are grandfathered. New files must conform
         from day one.
 
         Two tiers of metadata exist:
@@ -256,7 +256,7 @@ project_structure:
         - [ ] Entry added to appropriate _index.md
 
     - path: "core/components/agents/knowledge-extractor.md"
-      component: "learning-recipe"
+      component: "learning-play"
       feature: "F3"
       description: >
         New agent responsible for STM-to-LTM promotion. Two modes: EXTRACT (scan
@@ -346,7 +346,7 @@ project_structure:
 
         ```json
         {
-          "intent_path": "core/components/recipes/learn/reference/intent.yaml",
+          "intent_path": "core/components/plays/learn/reference/intent.yaml",
           "stm_base": "{stm_base}",
           "task_id": "{task_id}",
           "mode": "extract | write",
@@ -356,7 +356,7 @@ project_structure:
           },
           "stm": {
             "input": {
-              "trace_paths": ["{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml"],
+              "trace_paths": ["{stm_base}/{issue}/evidence/{play}/resolution-trace.yaml"],
               "candidates_path": null
             },
             "output": {
@@ -407,11 +407,11 @@ project_structure:
         - Register every written file in the appropriate _index.md
         - Return summary statistics in output contract
 
-    - path: "core/components/recipes/learn/reference/intent.yaml"
-      component: "learning-recipe"
+    - path: "core/components/plays/learn/reference/intent.yaml"
+      component: "learning-play"
       feature: "F3"
       description: >
-        Intent definition for the learn recipe. Uses the canonical 4-field schema.
+        Intent definition for the learn play. Uses the canonical 4-field schema.
         Resolves PENDING constraints C5-C10 from capture-learning/reference/intent.yaml.
       full_content: |
         intent: >
@@ -440,7 +440,7 @@ project_structure:
           - "LLM-fallback entries in resolution traces are ignored and not surfaced as candidates"
           - "A candidate classified as project-scoped is written to the core-scoped layer, or vice versa"
           - "A duplicate candidate is presented without a dedup flag and the existing entry shown"
-          - "The recipe modifies any resolution trace or evidence artifact (it must be read-only against its inputs)"
+          - "The play modifies any resolution trace or evidence artifact (it must be read-only against its inputs)"
           - "The approval queue is shown when zero candidates exist"
 
         scenarios:
@@ -451,11 +451,11 @@ project_structure:
           - "S16: scope classification assigns project vs core correctly"
           - "S17: written candidate lands in the correct scope layer"
 
-    - path: "core/components/recipes/learn/SKILL.md"
-      component: "learning-recipe"
+    - path: "core/components/plays/learn/SKILL.md"
+      component: "learning-play"
       feature: "F3"
       description: >
-        Compiled learn recipe. L1 (human-invocable). Two-step: Step 1 (extract
+        Compiled learn play. L1 (human-invocable). Two-step: Step 1 (extract
         candidates), Step 2 (human approval gate + write approved). Max 2 agent
         calls (L1 constraint). Read-only against resolution traces throughout.
       full_content: |
@@ -474,10 +474,10 @@ project_structure:
 
         ## Compiled From
 
-        This recipe was compiled from `reference/intent.yaml` by `/create-recipe`.
+        This play was compiled from `reference/intent.yaml` by `/create-play`.
         Intent defines constraints (C1-C6) and failure conditions.
-        To modify this recipe, update `reference/intent.yaml` and re-run
-        `/create-recipe --rebake learn`.
+        To modify this play, update `reference/intent.yaml` and re-run
+        `/create-play --rebake learn`.
         Do NOT edit this file manually — it is a compiled artifact.
 
         ## Role
@@ -521,7 +521,7 @@ project_structure:
 
         ```json
         {
-          "intent_path": "core/components/recipes/learn/reference/intent.yaml",
+          "intent_path": "core/components/plays/learn/reference/intent.yaml",
           "stm_base": "{stm_base}",
           "task_id": "extract-candidates",
           "mode": "extract",
@@ -531,7 +531,7 @@ project_structure:
           },
           "stm": {
             "input": {
-              "trace_paths": ["{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml"],
+              "trace_paths": ["{stm_base}/{issue}/evidence/{play}/resolution-trace.yaml"],
               "candidates_path": null
             },
             "output": {
@@ -586,7 +586,7 @@ project_structure:
 
         ```json
         {
-          "intent_path": "core/components/recipes/learn/reference/intent.yaml",
+          "intent_path": "core/components/plays/learn/reference/intent.yaml",
           "stm_base": "{stm_base}",
           "task_id": "write-candidates",
           "mode": "write",
@@ -645,7 +645,7 @@ project_structure:
       file_changes:
         - section: "Input Contract JSON block"
           what: "Add ltm_context optional field to the JSON example"
-          add_after: '"task_id": "<unique task identifier from compiled recipe step>"'
+          add_after: '"task_id": "<unique task identifier from compiled play step>"'
           content: |
             "ltm_context": {
               "project_base": "<root path for project-scoped knowledge — optional field>",
@@ -657,9 +657,9 @@ project_structure:
 
         - section: "Input Contract field definitions table"
           what: "Add row for ltm_context field"
-          add_after: "| `task_id` | Yes | Compiled step ID | Unique within the recipe. Also used as key in the status file for pause/resume. |"
+          add_after: "| `task_id` | Yes | Compiled step ID | Unique within the play. Also used as key in the status file for pause/resume. |"
           content: |
-            | `ltm_context` | No | Recipe populates when agent should consult organizational knowledge | Optional context block. When present, agent follows R1-R4 from `resolution-protocol.md`. When absent, agent operates exactly as before. Sub-fields: `project_base` (path), `core_base` (path, default `~/.meridian/core/memory/`), `query_domains` (string[]), `locked_artifacts` (string[], filenames only). |
+            | `ltm_context` | No | Play populates when agent should consult organizational knowledge | Optional context block. When present, agent follows R1-R4 from `resolution-protocol.md`. When absent, agent operates exactly as before. Sub-fields: `project_base` (path), `core_base` (path, default `~/.meridian/core/memory/`), `query_domains` (string[]), `locked_artifacts` (string[], filenames only). |
 
         - section: "Output Contract JSON block"
           what: "Add resolution_trace_path optional field to stm.output in the JSON example"
@@ -739,10 +739,10 @@ project_structure:
 
             **R4** — Domains with no answer from R2 or R3 are flagged as
             `resolved_from: "llm"`. Proceed with general reasoning for these domains.
-            These entries are learning candidates for the `learn` recipe.
+            These entries are learning candidates for the `learn` play.
 
             Write resolution trace to:
-            `{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml`
+            `{stm_base}/{issue}/evidence/{play}/resolution-trace.yaml`
 
             Add `resolution_trace_path` to the output contract's `stm.output` block.
 
@@ -782,7 +782,7 @@ project_structure:
                - **R3** — Query `core_base` via `_index.md` and search_patterns headers
                - **R4** — Flag unresolved domains as `resolved_from: "llm"` in trace
 
-               Write resolution trace to `{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml`.
+               Write resolution trace to `{stm_base}/{issue}/evidence/{play}/resolution-trace.yaml`.
                Add `resolution_trace_path` to output contract's `stm.output` block.
 
                **When `ltm_context` is absent:** Search `~/.meridian/core/memory/` for
@@ -815,7 +815,7 @@ project_structure:
       file_changes:
         - section: "Context Loading — Before Implementation"
           what: "Add optional LTM Context paragraph after the existing content"
-          find_text: "- **Recipe constraints** — extract and validate before starting any step"
+          find_text: "- **Play constraints** — extract and validate before starting any step"
           add_after: true
           content: |
 
@@ -905,8 +905,8 @@ project_structure:
             "resolution_trace_path": null
           note: "null when ltm_context was absent"
 
-    - path: "core/components/recipes/discover-product/SKILL.md"
-      component: "recipe-updates"
+    - path: "core/components/plays/discover-product/SKILL.md"
+      component: "play-updates"
       feature: "F2"
       file_changes:
         - section: "product-strategist dispatch contract"
@@ -923,8 +923,8 @@ project_structure:
             Discovery is the first phase; no authoritative project decisions exist yet.
             Add to the existing JSON contract block for the product-strategist step.
 
-    - path: "core/components/recipes/plan-roadmap/SKILL.md"
-      component: "recipe-updates"
+    - path: "core/components/plays/plan-roadmap/SKILL.md"
+      component: "play-updates"
       feature: "F2"
       file_changes:
         - section: "product-strategist dispatch contract"
@@ -948,8 +948,8 @@ project_structure:
               "locked_artifacts": []
             }
 
-    - path: "core/components/recipes/prepare-architecture/SKILL.md"
-      component: "recipe-updates"
+    - path: "core/components/plays/prepare-architecture/SKILL.md"
+      component: "play-updates"
       feature: "F2"
       file_changes:
         - section: "Step 2 — tech-designer dispatch contract"
@@ -978,8 +978,8 @@ project_structure:
             The information previously at ltm_architecture_path (~/.meridian/core/memory/knowledge/architecture/)
             is now accessible via ltm_context.core_base + query_domain "architecture".
 
-    - path: "core/components/recipes/prepare-implementation/SKILL.md"
-      component: "recipe-updates"
+    - path: "core/components/plays/prepare-implementation/SKILL.md"
+      component: "play-updates"
       feature: "F2"
       file_changes:
         - section: "Step 3 — Read LTM — tech-designer dispatch contract"
@@ -1013,8 +1013,8 @@ project_structure:
             The equivalent information from scan_directories is now expressed via
             query_domains ["standards", "knowledge", "formats"].
 
-    - path: "core/components/recipes/implement-epic/SKILL.md"
-      component: "recipe-updates"
+    - path: "core/components/plays/implement-epic/SKILL.md"
+      component: "play-updates"
       feature: "F2"
       file_changes:
         - section: "tech-designer dispatch contract (Context Builder step)"
@@ -1066,15 +1066,15 @@ project_structure:
             judge dispatch contract does NOT contain ltm_context.
             These agents are context-isolated (INV4) and must never receive this field.
 
-    - path: "core/components/recipes/commit-code/SKILL.md"
-      component: "recipe-updates"
+    - path: "core/components/plays/commit-code/SKILL.md"
+      component: "play-updates"
       feature: "F2"
       file_changes:
         - section: "Step 1 — Analyze Changes — repo-orchestrator dispatch contract"
           what: "Add ltm_context to the repo-orchestrator contract"
           current_contract_snippet: |
             {
-              "intent_path": "core/components/recipes/commit-code/reference/intent.yaml",
+              "intent_path": "core/components/plays/commit-code/reference/intent.yaml",
               "stm_base": "{stm_base}",
               "stm": {
                 "input": {},
@@ -1093,7 +1093,7 @@ project_structure:
             }
           result_contract: |
             {
-              "intent_path": "core/components/recipes/commit-code/reference/intent.yaml",
+              "intent_path": "core/components/plays/commit-code/reference/intent.yaml",
               "stm_base": "{stm_base}",
               "ltm_context": {
                 "project_base": ".meridian/product/architecture/",
@@ -1115,8 +1115,8 @@ project_structure:
             query_domains ["standards/git"] ensures the agent resolves branching,
             commit message, and PR convention questions through the hierarchy.
 
-    - path: "core/components/recipes/create-pr/SKILL.md"
-      component: "recipe-updates"
+    - path: "core/components/plays/create-pr/SKILL.md"
+      component: "play-updates"
       feature: "F2"
       file_changes:
         - section: "repo-orchestrator dispatch contract"
@@ -1133,18 +1133,18 @@ project_structure:
             the hierarchy rather than the agent's internal prose reference.
             query_domains ["standards/git"] covers branching and PR convention lookups.
 
-    - path: "core/components/recipes/capture-learning/reference/intent.yaml"
-      component: "learning-recipe"
+    - path: "core/components/plays/capture-learning/reference/intent.yaml"
+      component: "learning-play"
       feature: "F3"
       file_changes:
         - section: "PENDING constraints C5-C10"
-          what: "Update PENDING constraints to RESOLVED, reference the learn recipe"
+          what: "Update PENDING constraints to RESOLVED, reference the learn play"
           note: >
             Find the constraints marked PENDING (C5-C10) in capture-learning's intent.yaml.
             Change their status from PENDING to RESOLVED. Add a reference:
-            "Resolved by: core/components/recipes/learn/ (Issue #182)".
+            "Resolved by: core/components/plays/learn/ (Issue #182)".
             No other changes — capture-learning's archival responsibilities are unchanged.
-            The learn recipe implements the extraction capability that C5-C10 originally
+            The learn play implements the extraction capability that C5-C10 originally
             anticipated but left pending.
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1156,9 +1156,9 @@ components:
 
   contract-schema:
     description: >
-      The universal recipe→agent communication protocol. This component owns
+      The universal play→agent communication protocol. This component owns
       the ltm_context and resolution_trace field additions. It is the foundation
-      all other components depend on — no agent or recipe update is valid without
+      all other components depend on — no agent or play update is valid without
       the schema being authoritative first.
     files:
       - "core/components/memory/standards/agent-contract.md"
@@ -1193,26 +1193,26 @@ components:
     feature: "F1"
     phase: 2
 
-  recipe-updates:
+  play-updates:
     description: >
-      Seven recipe SKILL.md files updated to populate ltm_context in agent
+      Seven play SKILL.md files updated to populate ltm_context in agent
       dispatch contracts. Two of these (prepare-architecture, prepare-implementation)
       additionally remove ad-hoc LTM references and replace with the standard field.
       Changes are additive — one optional field added per relevant agent contract.
     files:
-      - "core/components/recipes/discover-product/SKILL.md"
-      - "core/components/recipes/plan-roadmap/SKILL.md"
-      - "core/components/recipes/prepare-architecture/SKILL.md"
-      - "core/components/recipes/prepare-implementation/SKILL.md"
-      - "core/components/recipes/implement-epic/SKILL.md"
-      - "core/components/recipes/commit-code/SKILL.md"
-      - "core/components/recipes/create-pr/SKILL.md"
+      - "core/components/plays/discover-product/SKILL.md"
+      - "core/components/plays/plan-roadmap/SKILL.md"
+      - "core/components/plays/prepare-architecture/SKILL.md"
+      - "core/components/plays/prepare-implementation/SKILL.md"
+      - "core/components/plays/implement-epic/SKILL.md"
+      - "core/components/plays/commit-code/SKILL.md"
+      - "core/components/plays/create-pr/SKILL.md"
     feature: "F2"
     phase: 3
 
-  learning-recipe:
+  learning-play:
     description: >
-      The learn recipe and the knowledge-extractor agent that powers it. Provides
+      The learn play and the knowledge-extractor agent that powers it. Provides
       the feedback loop from completed work back to persistent knowledge layers.
       Reads resolution traces (read-only), extracts LLM-fallback candidates,
       deduplicates, presents human approval gate, writes approved candidates
@@ -1220,16 +1220,16 @@ components:
       capture-learning.
     files:
       - "core/components/agents/knowledge-extractor.md"
-      - "core/components/recipes/learn/reference/intent.yaml"
-      - "core/components/recipes/learn/SKILL.md"
-      - "core/components/recipes/capture-learning/reference/intent.yaml"  # modify only
+      - "core/components/plays/learn/reference/intent.yaml"
+      - "core/components/plays/learn/SKILL.md"
+      - "core/components/plays/capture-learning/reference/intent.yaml"  # modify only
     feature: "F3"
     phase: 4
 
   knowledge-standard:
     description: >
       The canonical knowledge file template. Required for all new files written
-      by the learning recipe. Existing files are grandfathered. Defines Tier 1
+      by the learning play. Existing files are grandfathered. Defines Tier 1
       and Tier 2 metadata, search pattern conventions, index registration rules,
       and staleness tracking.
     files:
@@ -1255,13 +1255,13 @@ feature_mapping:
   F2:
     name: "Knowledge Hierarchy Enforcement"
     delivered_by:
-      - "recipe-updates"        # workflows that populate ltm_context
-    depends_on: ["F1"]          # recipes wire to agents that already understand R1-R4
+      - "play-updates"        # workflows that populate ltm_context
+    depends_on: ["F1"]          # plays wire to agents that already understand R1-R4
 
   F3:
-    name: "Learning Recipe"
+    name: "Learning Play"
     delivered_by:
-      - "learning-recipe"       # knowledge-extractor + learn recipe
+      - "learning-play"       # knowledge-extractor + learn play
     depends_on: ["F1", "F2"]   # needs resolution traces (F1) from populated workflows (F2)
 
   F4:
@@ -1273,7 +1273,7 @@ feature_mapping:
 # ─────────────────────────────────────────────────────────────────────────────
 # DATA MODELS
 # Exact schemas for every new data structure. These are the authoritative
-# definitions — agent files and recipe files reference these schemas.
+# definitions — agent files and play files reference these schemas.
 # ─────────────────────────────────────────────────────────────────────────────
 
 data_models:
@@ -1366,7 +1366,7 @@ data_models:
         ]
       }
     output_contract_field: |
-      "resolution_trace_path": "{stm_base}/{issue}/evidence/{recipe}/resolution-trace.yaml"
+      "resolution_trace_path": "{stm_base}/{issue}/evidence/{play}/resolution-trace.yaml"
 
   knowledge_candidate:
     description: "Output schema for knowledge-extractor agent EXTRACT mode. Intermediate artifact in candidates.yaml."
@@ -1492,7 +1492,7 @@ resolution_protocol:
     R4:
       name: "Flag LLM fallback"
       description: "Domains with no answer from R2 or R3 proceed with general reasoning. Record resolved_from: 'llm', authority: 'none'."
-      learning_signal: "LLM fallback entries are primary candidates for the learn recipe. Each represents a knowledge gap."
+      learning_signal: "LLM fallback entries are primary candidates for the learn play. Each represents a knowledge gap."
 
   not_found_semantics:
     - condition: "File does not exist at the path"
@@ -1516,18 +1516,18 @@ resolution_protocol:
   invariants:
     INV1: "Resolution is file reads + keyword matching only. No LLM calls during resolution."
     INV3: "When ltm_context is absent, skip R1-R4 entirely. Agent operates exactly as before."
-    INV4: "eval-generator and judge never receive ltm_context from any recipe. Hard exemption."
+    INV4: "eval-generator and judge never receive ltm_context from any play. Hard exemption."
     INV5: "Project-scoped knowledge overrides core-scoped knowledge on conflict."
 
 # ─────────────────────────────────────────────────────────────────────────────
-# RECIPE CONTRACT CHANGES
-# Per-recipe summary of which steps are affected and what the exact field looks like.
+# PLAY CONTRACT CHANGES
+# Per-play summary of which steps are affected and what the exact field looks like.
 # ─────────────────────────────────────────────────────────────────────────────
 
-recipe_contract_changes:
+play_contract_changes:
 
-  - recipe: "prepare-architecture"
-    file: "core/components/recipes/prepare-architecture/SKILL.md"
+  - play: "prepare-architecture"
+    file: "core/components/plays/prepare-architecture/SKILL.md"
     steps_affected:
       - step: "Step 2 (tech-designer — Scan Codebase & Read LTM)"
         change: "Replace config.ltm_architecture_path with standard ltm_context"
@@ -1543,8 +1543,8 @@ recipe_contract_changes:
         "locked_artifacts": ["{product.yaml filename if LOCKED}"]
       }
 
-  - recipe: "prepare-implementation"
-    file: "core/components/recipes/prepare-implementation/SKILL.md"
+  - play: "prepare-implementation"
+    file: "core/components/plays/prepare-implementation/SKILL.md"
     steps_affected:
       - step: "Step 3 (tech-designer — Read LTM)"
         change: "Replace context.ltm_path + context.scan_directories with standard ltm_context"
@@ -1561,8 +1561,8 @@ recipe_contract_changes:
         "locked_artifacts": ["architecture.yaml", "quality-standards.yaml"]
       }
 
-  - recipe: "implement-epic"
-    file: "core/components/recipes/implement-epic/SKILL.md"
+  - play: "implement-epic"
+    file: "core/components/plays/implement-epic/SKILL.md"
     steps_affected:
       - step: "tech-designer (Context Builder step)"
         query_domains: ["architecture", "standards", "knowledge"]
@@ -1578,10 +1578,10 @@ recipe_contract_changes:
       - "eval-generator — context-isolated (INV4)"
       - "judge — context-isolated (INV4)"
     adds: "ltm_context to each affected step"
-    removes: "nothing (no existing ad-hoc LTM fields in this recipe)"
+    removes: "nothing (no existing ad-hoc LTM fields in this play)"
 
-  - recipe: "commit-code"
-    file: "core/components/recipes/commit-code/SKILL.md"
+  - play: "commit-code"
+    file: "core/components/plays/commit-code/SKILL.md"
     steps_affected:
       - step: "Step 1 (repo-orchestrator — Analyze Changes)"
         query_domains: ["standards/git"]
@@ -1595,8 +1595,8 @@ recipe_contract_changes:
       }
     note: "Replaces the agent's prose-level reference to standards/git/branching.md with structured hierarchy resolution"
 
-  - recipe: "create-pr"
-    file: "core/components/recipes/create-pr/SKILL.md"
+  - play: "create-pr"
+    file: "core/components/plays/create-pr/SKILL.md"
     steps_affected:
       - step: "repo-orchestrator dispatch"
         query_domains: ["standards/git"]
@@ -1609,8 +1609,8 @@ recipe_contract_changes:
         "locked_artifacts": []
       }
 
-  - recipe: "discover-product"
-    file: "core/components/recipes/discover-product/SKILL.md"
+  - play: "discover-product"
+    file: "core/components/plays/discover-product/SKILL.md"
     steps_affected:
       - step: "product-strategist dispatch"
         query_domains: ["domain-taxonomy", "standards"]
@@ -1623,8 +1623,8 @@ recipe_contract_changes:
         "locked_artifacts": []
       }
 
-  - recipe: "plan-roadmap"
-    file: "core/components/recipes/plan-roadmap/SKILL.md"
+  - play: "plan-roadmap"
+    file: "core/components/plays/plan-roadmap/SKILL.md"
     steps_affected:
       - step: "product-strategist dispatch"
         query_domains: ["architecture", "standards", "domain-taxonomy"]
@@ -1646,7 +1646,7 @@ libraries_and_dependencies:
     No new runtime libraries, packages, SDKs, or build tools are introduced.
     The only "dependencies" are within the Meridian framework itself:
     the contract schema (agent-contract.md) must be updated before agent
-    definitions, which must be updated before recipe SKILL.md files.
+    definitions, which must be updated before play SKILL.md files.
 
   internal_dependencies:
     - from: "agent-updates"
@@ -1654,28 +1654,28 @@ libraries_and_dependencies:
       type: "schema conformance"
       reason: "Agents reference ltm_context and resolution_trace fields defined in agent-contract.md"
 
-    - from: "recipe-updates"
+    - from: "play-updates"
       to: "agent-updates"
       type: "behavioral dependency"
-      reason: "Recipes populate ltm_context only after agents are defined to handle it"
+      reason: "Plays populate ltm_context only after agents are defined to handle it"
 
-    - from: "recipe-updates"
+    - from: "play-updates"
       to: "contract-schema"
       type: "schema conformance"
-      reason: "ltm_context field in recipe contracts conforms to the schema in agent-contract.md"
+      reason: "ltm_context field in play contracts conforms to the schema in agent-contract.md"
 
-    - from: "learning-recipe"
+    - from: "learning-play"
       to: "resolution-protocol"
       type: "reads"
       reason: "knowledge-extractor reads resolution traces whose structure is defined by R1-R4"
 
-    - from: "learning-recipe"
+    - from: "learning-play"
       to: "knowledge-standard"
       type: "writes to"
       reason: "Approved candidates are written as knowledge files conforming to knowledge-file-template.md"
 
-    - from: "learning-recipe"
-      to: "recipe-updates"
+    - from: "learning-play"
+      to: "play-updates"
       type: "consumes output of"
       reason: "Resolution traces are only produced when workflows populate ltm_context (F2)"
 
@@ -1694,11 +1694,11 @@ design_decisions:
       the field is absent.
     rationale: >
       Backward compatibility is unconditional (INV3). Making the field required
-      would break every existing recipe that has not been updated. Phased rollout
-      (F2 recipe updates) populates the field recipe-by-recipe without a flag day.
+      would break every existing play that has not been updated. Phased rollout
+      (F2 play updates) populates the field play-by-play without a flag day.
     alternative_rejected: >
       Making ltm_context required was considered and rejected specifically because
-      it would break all existing recipes before F2 work is complete.
+      it would break all existing plays before F2 work is complete.
     risk: >
       An agent that does not receive ltm_context falls back to its prior behavior
       (ad-hoc LTM loading or no LTM loading). This is the intended fallback,
@@ -1722,7 +1722,7 @@ design_decisions:
     title: "eval-generator and judge are unconditionally exempt from ltm_context"
     decision: >
       eval-generator and judge do not receive ltm_context from any workflow, ever.
-      No recipe populates the field for these agents.
+      No play populates the field for these agents.
     rationale: >
       Both agents are context-isolated by design (INV4). eval-generator must not
       see implementation code or prior outputs to avoid test-case optimization.
@@ -1783,7 +1783,7 @@ design_decisions:
       rejection. Automated remediation (archival, re-validation) is deferred.
     rationale: >
       Stale knowledge is better than no knowledge. Auto-rejection would force
-      more LLM fallbacks, which are the exact gaps the learning recipe is
+      more LLM fallbacks, which are the exact gaps the learning play is
       designed to fill. Operators see the staleness flag and can decide to
       validate or replace the file through normal channels.
     deferred: >
@@ -1792,36 +1792,36 @@ design_decisions:
       has been running for some time.
 
   DD8:
-    title: "learn recipe is separate from capture-learning — archival vs. promotion are distinct concerns"
+    title: "learn play is separate from capture-learning — archival vs. promotion are distinct concerns"
     decision: >
-      The learn recipe is a new, independent recipe. It does not extend or modify
+      The learn play is a new, independent play. It does not extend or modify
       capture-learning.
     rationale: >
       capture-learning is about archival — preserving completed work artifacts
       for historical reference. learn is about promotion — extracting valuable
       decisions from transient artifacts and elevating them to persistent knowledge.
       These are different operations with different triggers, different inputs,
-      and different output destinations. Merging them would create a recipe with
+      and different output destinations. Merging them would create a play with
       two unrelated responsibilities.
     note: >
       The PENDING constraints C5-C10 in capture-learning/reference/intent.yaml
       referenced an extraction capability that was never built. This spec builds
-      that capability as a standalone recipe, not as an extension of capture-learning.
+      that capability as a standalone play, not as an extension of capture-learning.
       The pending constraints in capture-learning can be updated to reference
-      the learn recipe instead.
+      the learn play instead.
 
   DD9:
     title: "Existing knowledge files are grandfathered — no forced migration"
     decision: >
       The 42+ existing knowledge files under ~/.meridian/core/memory/knowledge/
       are not required to conform to the new knowledge-file-template.md standard.
-      They continue to work as before. New files created by the learning recipe
+      They continue to work as before. New files created by the learning play
       must conform from day one.
     rationale: >
       Forced migration of 42+ files would be a substantial, risky scope addition
       that blocks the protocol rollout. The existing files already work for the
       agents that use them. The template standard is forward-looking — it governs
-      what the learning recipe produces, not what currently exists.
+      what the learning play produces, not what currently exists.
 
   DD10:
     title: "Resolution trace written to STM artifacts, not returned inline in output contract"
@@ -1851,7 +1851,7 @@ implementation_phases:
     name: "Schema and Standards Foundation"
     description: >
       Establish the normative documents that all subsequent work conforms to.
-      No agent or recipe changes yet — only the documents that define the shape.
+      No agent or play changes yet — only the documents that define the shape.
     components:
       - "contract-schema"
       - "resolution-protocol"
@@ -1887,43 +1887,43 @@ implementation_phases:
       without ltm_context.
 
   phase_3:
-    name: "Recipe Contract Updates"
+    name: "Play Contract Updates"
     description: >
-      Add ltm_context to seven recipe SKILL.md files. Replace two existing
+      Add ltm_context to seven play SKILL.md files. Replace two existing
       ad-hoc references with the standard field.
     components:
-      - "recipe-updates"
+      - "play-updates"
     files:
-      - "core/components/recipes/discover-product/SKILL.md"
-      - "core/components/recipes/plan-roadmap/SKILL.md"
-      - "core/components/recipes/prepare-architecture/SKILL.md"
-      - "core/components/recipes/prepare-implementation/SKILL.md"
-      - "core/components/recipes/implement-epic/SKILL.md"
-      - "core/components/recipes/commit-code/SKILL.md"
-      - "core/components/recipes/create-pr/SKILL.md"
+      - "core/components/plays/discover-product/SKILL.md"
+      - "core/components/plays/plan-roadmap/SKILL.md"
+      - "core/components/plays/prepare-architecture/SKILL.md"
+      - "core/components/plays/prepare-implementation/SKILL.md"
+      - "core/components/plays/implement-epic/SKILL.md"
+      - "core/components/plays/commit-code/SKILL.md"
+      - "core/components/plays/create-pr/SKILL.md"
     blocked_by: ["phase_2"]
     exit_gate: >
-      All seven recipes include ltm_context in dispatch contracts for participating
+      All seven plays include ltm_context in dispatch contracts for participating
       agents. prepare-architecture and prepare-implementation no longer contain
       ad-hoc ltm_architecture_path or ltm_path fields. Context-isolated agents
-      (eval-generator, judge) receive no ltm_context field in any recipe.
+      (eval-generator, judge) receive no ltm_context field in any play.
 
   phase_4:
-    name: "Learning Recipe and Knowledge Extractor"
+    name: "Learning Play and Knowledge Extractor"
     description: >
-      Build the feedback loop: knowledge-extractor agent + learn recipe.
-      The learn recipe can only surface meaningful candidates once F1 and F2
+      Build the feedback loop: knowledge-extractor agent + learn play.
+      The learn play can only surface meaningful candidates once F1 and F2
       are in place and generating resolution traces.
     components:
-      - "learning-recipe"
+      - "learning-play"
     files:
       - "core/components/agents/knowledge-extractor.md"
-      - "core/components/recipes/learn/reference/intent.yaml"
-      - "core/components/recipes/learn/SKILL.md"
-      - "core/components/recipes/capture-learning/reference/intent.yaml"  # modify
+      - "core/components/plays/learn/reference/intent.yaml"
+      - "core/components/plays/learn/SKILL.md"
+      - "core/components/plays/capture-learning/reference/intent.yaml"  # modify
     blocked_by: ["phase_3"]
     exit_gate: >
-      learn recipe runs end-to-end. knowledge-extractor produces candidates.yaml
+      learn play runs end-to-end. knowledge-extractor produces candidates.yaml
       with LLM-fallback entries from resolution traces. Human approval gate (Tether/
       Vanish) operates correctly. Approved candidates are written to the correct
       scope layer in canonical knowledge-file-template.md format. Read-only

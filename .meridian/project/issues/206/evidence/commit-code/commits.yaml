@@ -2,25 +2,25 @@ commits:
   - group_id: G1
     hash: 8583aed
     type: refactor
-    scope: recipes
+    scope: plays
     subject: "remove mandatory brief generation from discover-product, plan-roadmap, prepare-architecture"
     issue: 206
     files:
-      - core/components/recipes/discover-product/SKILL.md
-      - core/components/recipes/discover-product/reference/intent.yaml
-      - core/components/recipes/plan-roadmap/SKILL.md
-      - core/components/recipes/plan-roadmap/reference/intent.yaml
-      - core/components/recipes/prepare-architecture/SKILL.md
-      - core/components/recipes/prepare-architecture/reference/intent.yaml
+      - core/components/plays/discover-product/SKILL.md
+      - core/components/plays/discover-product/reference/intent.yaml
+      - core/components/plays/plan-roadmap/SKILL.md
+      - core/components/plays/plan-roadmap/reference/intent.yaml
+      - core/components/plays/prepare-architecture/SKILL.md
+      - core/components/plays/prepare-architecture/reference/intent.yaml
 
   - group_id: G2
     hash: a8bf75e
     type: refactor
-    scope: create-recipe
+    scope: create-play
     subject: "remove mandatory doc-builder step before checkpoints"
     issue: 206
     files:
-      - core/components/recipes/create-recipe/SKILL.md
+      - core/components/plays/create-play/SKILL.md
 
   - group_id: G3
     hash: 0457e6b
@@ -49,11 +49,11 @@ commits:
     hash: d3f284a
     type: chore
     scope: stm
-    subject: "record issue 200 create-recipe audit evidence for discover-product and plan-roadmap"
+    subject: "record issue 200 create-play audit evidence for discover-product and plan-roadmap"
     issue: 200
     files:
-      - .meridian/project/issues/200/evidence/create-recipe/discover-product/
-      - .meridian/project/issues/200/evidence/create-recipe/plan-roadmap/
+      - .meridian/project/issues/200/evidence/create-play/discover-product/
+      - .meridian/project/issues/200/evidence/create-play/plan-roadmap/
 
 push:
   status: success

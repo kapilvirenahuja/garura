@@ -6,11 +6,11 @@ standards_set:
 severity_taxonomy_path: ./core/components/memory/standards/git/pr-severity-taxonomy.md
 
 intent_summary: >
-  Add the review-pr L2 recipe (diff-scoped, deterministic PR quality gate with P1–P4 severity
+  Add the review-pr high-order play (diff-scoped, deterministic PR quality gate with P1–P4 severity
   taxonomy, weighted confidence formula, and git-history reviewer selection) and the
   quality-check-scoped skill it depends on. Also refactor standards/templates/ by moving
   HTML/CSS/JS templates to their owning components, promote agent-contract.md to ADR 016,
-  and wire a bypass-conditional review-pr gate into the ship recipe between create-pr and
+  and wire a bypass-conditional review-pr gate into the ship play between create-pr and
   merge-pr.
 
 intent_source: pr_body
@@ -18,22 +18,22 @@ intent_source: pr_body
 pr:
   number: 211
   author: kapilvirenahuja
-  head_branch: feature/208-review-pr-recipe
+  head_branch: feature/208-review-pr-play
   base_branch: main
   closes_issue: 208
 
 changed_paths:
-  # Core recipe and skill deliverables
-  - core/components/recipes/review-pr/SKILL.md
-  - core/components/recipes/review-pr/reference/intent.yaml
+  # Core play and skill deliverables
+  - core/components/plays/review-pr/SKILL.md
+  - core/components/plays/review-pr/reference/intent.yaml
   - core/components/skills/quality-check-scoped/SKILL.md
   - core/components/skills/quality-check-scoped/reference/finding-schema.md
   - core/components/skills/quality-check-scoped/reference/input-contract.md
   # Config additions
   - core/config.yaml
-  # Ship recipe update
-  - core/components/recipes/ship/SKILL.md
-  - core/components/recipes/ship/reference/intent.yaml
+  # Ship play update
+  - core/components/plays/ship/SKILL.md
+  - core/components/plays/ship/reference/intent.yaml
   # Standards restructure
   - core/components/memory/standards/git/pr-severity-taxonomy.md
   - core/components/memory/standards/_index.md
@@ -42,29 +42,29 @@ changed_paths:
   - docs/adr/016-agent-json-contract.md
   # Docs moved/updated
   - docs/design/briefs.md
-  - docs/components/recipes.md
+  - docs/components/plays.md
   - docs/components/skills.md
   - docs/components/memory.md
-  # Templates moved to briefs recipe
-  - core/components/recipes/briefs/SKILL.md
-  - core/components/recipes/briefs/templates/
+  # Templates moved to briefs play
+  - core/components/plays/briefs/SKILL.md
+  - core/components/plays/briefs/templates/
   # Agents updated for new template paths
   - core/components/agents/doc-builder.md
   - core/components/agents/product-strategist.md
   # Skills updated for restructure
-  - core/components/recipes/create-recipe/SKILL.md
-  - core/components/recipes/plan-roadmap/SKILL.md
+  - core/components/plays/create-play/SKILL.md
+  - core/components/plays/plan-roadmap/SKILL.md
   - core/components/skills/scope-roadmap-epics/SKILL.md
   - core/components/skills/scope-roadmap-epics/reference/epic-schema.md
   # STM evidence artifacts
   - .meridian/project/issues/208/evidence/commit-code/analysis.yaml
   - .meridian/project/issues/208/evidence/commit-code/commits.yaml
   - .meridian/project/issues/208/evidence/commit-code/issue-mappings.yaml
-  - .meridian/project/issues/208/evidence/create-recipe/review-pr/agent-audit.md
-  - .meridian/project/issues/208/evidence/create-recipe/review-pr/constraint-classifications.yaml
-  - .meridian/project/issues/208/evidence/create-recipe/review-pr/coverage-matrix.md
-  - .meridian/project/issues/208/evidence/create-recipe/review-pr/evals.yaml
-  - .meridian/project/issues/208/evidence/create-recipe/review-pr/skill-manifest.yaml
+  - .meridian/project/issues/208/evidence/create-play/review-pr/agent-audit.md
+  - .meridian/project/issues/208/evidence/create-play/review-pr/constraint-classifications.yaml
+  - .meridian/project/issues/208/evidence/create-play/review-pr/coverage-matrix.md
+  - .meridian/project/issues/208/evidence/create-play/review-pr/evals.yaml
+  - .meridian/project/issues/208/evidence/create-play/review-pr/skill-manifest.yaml
   - .meridian/project/issues/208/evidence/start-feature-planning/20260413-190558.md
   - .meridian/project/issues/208/evidence/start-feature-planning/args.yaml
   - .meridian/project/issues/208/evidence/start-feature-planning/branch-result.yaml

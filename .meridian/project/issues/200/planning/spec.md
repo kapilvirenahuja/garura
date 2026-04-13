@@ -83,7 +83,7 @@ The tech-debt subagent assesses: Are debt decisions recorded? Is there a debt re
 **Alternatives Considered:**
 - *Hardcoded rule files (132 files like stargate)* — Rejected: duplicates KB, not reusable, stale on arrival
 - *DevEx as 11th category instead of tech-debt* — Rejected: DevEx is spread across documentation (onboarding) and operations (tooling); tech debt governance is a distinct decision framework with its own assessment criteria
-- *L2 recipe instead of skill* — Rejected: explore subagents are exempt; skill is sufficient
+- *high-order play instead of skill* — Rejected: explore subagents are exempt; skill is sufficient
 - *Reuse quality-auditor* — Rejected: different purposes (gate vs. assessment)
 
 **Risks:**

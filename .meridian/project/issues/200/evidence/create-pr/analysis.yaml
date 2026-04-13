@@ -38,7 +38,7 @@ checklist:
   - item: "SKILL.md defines canonical ## Input and ## Output sections"
     priority: high
     trigger: "skill-io rule triggered: SKILL.md added — skill contract requires explicit Input and Output sections for calling agents to parse"
-    evidence: "SKILL.md has no top-level ## Input or ## Output sections. Output specification is embedded inside ## Step 5 sub-sections (### Output Path, ### Output Files). Calling agents and recipes rely on these canonical sections to understand the skill contract."
+    evidence: "SKILL.md has no top-level ## Input or ## Output sections. Output specification is embedded inside ## Step 5 sub-sections (### Output Path, ### Output Files). Calling agents and plays rely on these canonical sections to understand the skill contract."
     status: needs-review
 
   - item: "SKILL.md has ## Version section with version and category metadata"

@@ -8,18 +8,18 @@
 - [ ] Dashboard launches with `npx meridian-dashboard` (or `node dashboard/server.js` for local dev)
 - [ ] Real-time task state streaming via SSE -- changing a task JSON file triggers UI update within 1 second
 - [ ] Kanban view displays tasks in Pending/In Progress/Completed columns with dependency visualization
-- [ ] Recipe execution timeline view shows phases with current step highlighted
+- [ ] Play execution timeline view shows phases with current step highlighted
 - [ ] Guardian decision feed shows APPROVED/REJECTED/PENDING_APPROVAL/AUTO_APPROVED checkpoints with rationale
 - [ ] Evidence artifact feed shows new evidence files as they appear in `.meridian/{issue}/evidence/`
 - [ ] Session auto-discovery detects new sessions in `~/.claude/tasks/` without restart
-- [ ] Desktop notifications fire on task completion and recipe checkpoint events
-- [ ] Issue context panel links issue number → branch name → recipe checkpoints → evidence
+- [ ] Desktop notifications fire on task completion and play checkpoint events
+- [ ] Issue context panel links issue number → branch name → play checkpoints → evidence
 - [ ] Dashboard is read-only -- zero writes to any watched directory
 - [ ] SSE automatically reconnects after connection drop
 - [ ] Dark/light mode toggle works
 - [ ] Dashboard handles empty/partially-initialized STM directories without errors
-- [ ] Checkpoint markdown files from all existing recipes (start-feature, commit-code, create-pr, start-feature-planning) parse correctly
-- [ ] Evidence markdown files from all recipes parse correctly
+- [ ] Checkpoint markdown files from all existing plays (start-feature, commit-code, create-pr, start-feature-planning) parse correctly
+- [ ] Evidence markdown files from all plays parse correctly
 - [ ] Archived issues (`.meridian/_archive/`) are visually distinguished from active issues
 
 ## Verification Steps
@@ -28,15 +28,15 @@
 |------|--------|-----------------|------|-----------|
 | V1: Server starts | Run `node dashboard/server.js` | Server logs "Listening on http://localhost:3456" (or configured port) | G-001 | Yes |
 | V2: Task JSON parsing | Place a test task JSON in a mock session dir | Task appears in API response with correct fields | G-002 | Yes |
-| V3: Checkpoint parsing | Parse `.meridian/63/checkpoint/commit-code/20260227-172553.md` | Extracts: Recipe=commit-code, Issue=#63, Status=APPROVED, Decision="Auto-approved" | G-003 | Yes |
-| V4: Evidence parsing | Parse `.meridian/63/evidence/create-pr/20260227-172925.md` | Extracts: Recipe=create-pr, Issue=#63, PR=#69, Commits table | G-004 | Yes |
+| V3: Checkpoint parsing | Parse `.meridian/63/checkpoint/commit-code/20260227-172553.md` | Extracts: Play=commit-code, Issue=#63, Status=APPROVED, Decision="Auto-approved" | G-003 | Yes |
+| V4: Evidence parsing | Parse `.meridian/63/evidence/create-pr/20260227-172925.md` | Extracts: Play=create-pr, Issue=#63, PR=#69, Commits table | G-004 | Yes |
 | V5: SSE connection | Open browser, verify EventSource connects to `/api/events` | Green connection indicator, initial ping received | G-005 | Yes |
 | V6: Real-time task update | Modify a task JSON file while dashboard is open | Kanban board updates within 1 second without page refresh | G-006 | Yes |
 | V7: Real-time STM update | Create a new checkpoint file in `.meridian/{issue}/checkpoint/` | Guardian log updates with new entry | G-007 | Yes |
 | V8: Session discovery | Dashboard lists sessions from `~/.claude/tasks/` | At least one session visible in sidebar | G-008 | Yes |
 | V9: Issue discovery | Dashboard lists active Meridian issues | Issues 54, 63, 65, 67, 68 visible | G-009 | Yes |
 | V10: Kanban view | Select a session with tasks | Tasks distributed across Pending/In Progress/Completed columns | G-010 | Yes |
-| V11: Recipe timeline | Select an issue with checkpoint history | Timeline shows recipe phases with step progression | G-011 | Yes |
+| V11: Play timeline | Select an issue with checkpoint history | Timeline shows play phases with step progression | G-011 | Yes |
 | V12: Dependency visualization | View tasks with blocks/blockedBy relationships | Visual arrows or indicators connecting dependent tasks | G-012 | No |
 | V13: Desktop notifications | Complete a task while dashboard is backgrounded | Browser notification fires with task subject | G-013 | No |
 | V14: Dark/light mode | Toggle theme | All elements render correctly in both modes | G-014 | No |
@@ -54,7 +54,7 @@
 | Checkpoint file has non-standard format (missing Metadata section) | Show raw file content with "unparsed" indicator; do not crash |
 | Task JSON is malformed (partial write, invalid JSON) | Skip the task file, log warning, do not crash |
 | Session directory is empty (has .lock and .highwatermark but no task files) | Show session as "empty" in sidebar; do not crash |
-| Multiple checkpoint files for same recipe (e.g., commit-code has 3 runs) | Show all in chronological order in guardian log |
+| Multiple checkpoint files for same play (e.g., commit-code has 3 runs) | Show all in chronological order in guardian log |
 | `.meridian/_archive/` contains issues that also exist in `.meridian/` (should not happen but defensive) | Show active version; log warning about duplicate |
 | chokidar fires rapid events during `git checkout` (many file changes) | Debounce prevents UI storm; batch updates into single SSE event |
 | User opens multiple browser tabs | Each tab maintains its own SSE connection; all receive same events |

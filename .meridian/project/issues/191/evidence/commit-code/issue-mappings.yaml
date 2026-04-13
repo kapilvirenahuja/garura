@@ -20,8 +20,8 @@ mappings:
         Group scope is 'prepare-implementation' — the exact component named in the issue title
         and body. Change adds Phase 0 (Setup) with issue resolution, branch creation, and STM
         initialization — precisely what issue #191 mandates. File paths
-        core/components/recipes/prepare-implementation/SKILL.md and intent.yaml are the
-        canonical implementation artifacts for the prepare-implementation recipe.
+        core/components/plays/prepare-implementation/SKILL.md and intent.yaml are the
+        canonical implementation artifacts for the prepare-implementation play.
       proximity: >
         G2 also maps to #191, reinforcing that all changes on this branch target the same defect.
     reasoning: >
@@ -47,7 +47,7 @@ mappings:
         from the STM path, not from the product epics folder.' G2 adds constraint C24 enforcing
         exactly this. The group's description ('source design artifacts from issue STM instead of
         product base') is a direct literal match to the issue's expected behavior. Files changed
-        are core/components/recipes/implement-epic/SKILL.md and intent.yaml.
+        are core/components/plays/implement-epic/SKILL.md and intent.yaml.
       proximity: >
         G1 also maps to #191 (coupled changes noted in analysis risks), reinforcing that G2
         is part of the same coordinated fix.
@@ -60,7 +60,7 @@ mappings:
   - group_id: G3
     type: chore
     scope: stm
-    subject: "commit fix-it recipe evidence for issue #191"
+    subject: "commit fix-it play evidence for issue #191"
     issue:
       number: 191
       title: "[DEF][Critical] prepare-implementation does not set up issue/branch/STM — context stranded in product epics"
@@ -73,7 +73,7 @@ mappings:
       semantic: >
         All files in the group reside under .meridian/project/issues/191/ — the STM directory
         scoped to issue #191. File names (rca.yaml, design.yaml, implementation-report.yaml,
-        branch-result.yaml, fix-it.json, ship.json) are fix-it and ship recipe artifacts for
+        branch-result.yaml, fix-it.json, ship.json) are fix-it and ship play artifacts for
         this specific issue. The group subject explicitly names issue #191.
       proximity: >
         All three groups map to #191, confirming this is the single issue addressed by the

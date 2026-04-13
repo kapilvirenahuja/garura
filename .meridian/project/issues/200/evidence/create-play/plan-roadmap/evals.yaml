@@ -1,0 +1,311 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: scope-roadmap-epics
+    check: "Every epic represents a distinct, deliverable capability — not task-level granularity and not multiple unrelated capabilities merged."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "Every epic in epics.yaml is a distinct deliverable capability with a unique scope within a strategic goal."
+    fail_criteria: "Any epic is task-level granular or bundles multiple unrelated capabilities."
+
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: draft-roadmap
+    check: "Every epic in roadmap.yaml timeline.epic_refs has a corresponding feasibility entry and represents a distinct deliverable capability."
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml"
+    pass_criteria: "Every timeline epic_ref resolves to a feasibility entry and each epic is a distinct deliverable capability."
+    fail_criteria: "Any timeline epic_ref has no feasibility entry, or any epic is task-level or bundles unrelated capabilities."
+
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: scope-roadmap-epics
+    check: "Every epic traces to a strategic goal from the locked product.yaml via strategic_goal_ref."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "Every epic's strategic_goal_ref matches an SG-ID present in product.yaml strategic_goals."
+    fail_criteria: "Any epic is missing strategic_goal_ref or the ref does not match any SG-ID in product.yaml."
+
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: draft-roadmap
+    check: "Every feasibility entry in roadmap.yaml has an epic_ref that corresponds to an epic referenced in timeline."
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml"
+    pass_criteria: "Every feasibility[].epic_ref matches an epic referenced in timeline[].epic_refs."
+    fail_criteria: "Any feasibility entry's epic_ref does not appear in any timeline horizon."
+
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: scope-roadmap-epics
+    check: "Every epic has complete IDD fields: intent, constraints (in_scope/out_of_scope/must_not_break), success_scenarios (minimum 2, given/when/then), failure_conditions (2-4 observable outcomes)."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "Every epic has non-empty intent, constraints, success_scenarios (>=2), and failure_conditions (2-4)."
+    fail_criteria: "Any epic is missing one or more IDD fields or has empty values."
+
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: draft-roadmap
+    check: "roadmap.yaml contains non-empty thesis, narrative, at least 1 horizon in timeline, at least 1 entry in feasibility, critical_blockers key, open_questions key, and risk_summary."
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml"
+    pass_criteria: "All required roadmap.yaml sections are present and non-empty where required."
+    fail_criteria: "Any required roadmap.yaml section is missing or null."
+
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: draft-roadmap
+    check: "roadmap.yaml is produced only after epics.yaml and feasibility.yaml have received explicit human approval at the play checkpoint."
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml"
+    pass_criteria: "The checkpoint record shows brief_review (epics+feasibility review) status=approved before roadmap.yaml was written."
+    fail_criteria: "roadmap.yaml exists while the checkpoint status for epics+feasibility approval is not approved."
+
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: null
+    skill: draft-roadmap
+    check: "roadmap.yaml thesis, narrative, timeline sequencing, exclusions, and assumptions match the locked upstream product.yaml and approved epics/feasibility — no regeneration or paraphrasing."
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml"
+    pass_criteria: "exclusions match product.yaml scope.out_of_scope verbatim; assumptions match product.yaml assumptions verbatim; feasibility entries match feasibility.yaml; timeline epic_refs match epics.yaml E-IDs."
+    fail_criteria: "Any field in roadmap.yaml differs from the locked upstream artifacts indicating regeneration rather than verbatim transcription."
+
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: draft-roadmap
+    check: "roadmap.yaml is not produced while critical_blockers or open_questions from the feasibility assessment remain unresolved."
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml"
+    pass_criteria: "Either feasibility critical_blockers and open_questions are empty, or a pre-lock-resolutions.yaml artifact exists collecting the user resolutions prior to roadmap.yaml creation."
+    fail_criteria: "roadmap.yaml exists while feasibility.yaml has non-empty critical_blockers or open_questions and no pre-lock-resolutions.yaml records the user decisions."
+
+  - id: SE-10
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: null
+    skill: scope-roadmap-epics
+    check: "Every epic has a non-empty ltm_citations field listing the LTM/memory file paths consulted when LTM knowledge files were available."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "Every epic.ltm_citations is a non-empty list of file paths when LTM files were available."
+    fail_criteria: "Any epic has an empty ltm_citations while LTM files were available to the agent."
+
+  - id: SE-11
+    source_type: failure_condition
+    failure_condition_id: F10
+    constraint_id: null
+    skill: scope-roadmap-epics
+    check: "The confidence assessment was performed by a context-isolated judge, not by the same agent that scoped the epics."
+    artifact_pattern: "{artifact_base}/roadmap/confidence-report.yaml"
+    pass_criteria: "confidence-report.yaml assessed_by field equals 'judge' and the judge was invoked with only epics.yaml and product.yaml as context."
+    fail_criteria: "assessed_by is not 'judge' or the scoring agent received drafting context beyond epics.yaml and product.yaml."
+
+  - id: SE-12
+    source_type: failure_condition
+    failure_condition_id: F11
+    constraint_id: null
+    skill: scope-roadmap-epics
+    check: "Every discrete capability in product.yaml scope.in_scope has an owning epic — appears in at least one epic's in_scope field."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "Every product.yaml scope.in_scope item is explicitly claimed by at least one epic's in_scope list."
+    fail_criteria: "Any product.yaml scope.in_scope item has no owning epic or was silently absorbed as an implementation detail."
+
+  - id: SE-13
+    source_type: failure_condition
+    failure_condition_id: F12
+    constraint_id: null
+    skill: scope-roadmap-epics
+    check: "No epic's in_scope contains a capability that is explicitly listed in product.yaml scope.out_of_scope or marked as deferred."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "No epic in_scope item appears in product.yaml scope.out_of_scope or is marked deferred."
+    fail_criteria: "Any epic claims a capability that the product vision explicitly excludes or defers."
+
+  - id: SE-14
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: assess-feasibility
+    check: "Every epic has a feasibility entry with risk_level, technical_risks, blockers, sequencing_constraints, and architecture_impact."
+    artifact_pattern: "{artifact_base}/roadmap/feasibility.yaml"
+    pass_criteria: "Every epic from epics.yaml has a feasibility entry with all required fields non-empty (blockers may be empty list)."
+    fail_criteria: "Any epic has no feasibility entry or any feasibility entry is missing a required field."
+
+  - id: SE-15
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: validate-roadmap
+    check: "validate-roadmap returns ready_for_lock only when all mandatory checklist items pass and no blocker-severity issues remain."
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml"
+    pass_criteria: "validation_result.ready_for_lock is true AND validation_result.issues contains no blocker-severity entries AND completeness_score >= 70."
+    fail_criteria: "ready_for_lock is true while blocker-severity issues exist or completeness_score < 70."
+
+  - id: SE-16
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C5
+    skill: scope-roadmap-epics
+    check: "The number of epics is a natural outcome of the product's strategic goals — each epic traces to a named goal and represents a distinct, deliverable capability."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "Every epic traces to a named strategic goal and each epic is a distinct deliverable capability."
+    fail_criteria: "Epic count is artificially constrained, an epic does not trace to a named goal, or an epic is not at the level of a distinct deliverable capability."
+
+  - id: SE-17
+    source_type: both
+    failure_condition_id: F3
+    constraint_id: C6
+    skill: scope-roadmap-epics
+    check: "Every epic has complete IDD fields: intent (problem, outcome, strategic connection), constraints (in_scope, out_of_scope, must_not_break), success scenarios (minimum 2, given/when/then), and failure conditions (2-4 observable outcomes)."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "Every epic has all four IDD field groups populated per the constraint's rule."
+    fail_criteria: "Any epic is missing one or more IDD fields."
+
+  - id: SE-18
+    source_type: both
+    failure_condition_id: F2
+    constraint_id: C7
+    skill: scope-roadmap-epics
+    check: "Every epic traces to a named strategic goal from the locked vision — no orphan epics."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "Every epic has a strategic_goal_ref matching an SG-ID in product.yaml."
+    fail_criteria: "Any epic is an orphan (no valid strategic_goal_ref)."
+
+  - id: SE-19
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C13
+    skill: scope-roadmap-epics
+    check: "Epics use E-IDs (E1, E2, E3...) throughout all roadmap pipeline artifacts."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "Every epic id matches /^E\\d+$/."
+    fail_criteria: "Any epic id uses F-prefix or a non E-ID format."
+
+  - id: SE-20
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C13
+    skill: draft-roadmap
+    check: "Epic IDs in roadmap.yaml timeline, feasibility, risk_summary, and critical_blockers use E-IDs consistent with epics.yaml."
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml"
+    pass_criteria: "All epic references in roadmap.yaml use E-IDs and match IDs in epics.yaml."
+    fail_criteria: "Any roadmap.yaml epic reference uses F-prefix or an ID not in epics.yaml."
+
+  - id: SE-21
+    source_type: both
+    failure_condition_id: F9
+    constraint_id: C14
+    skill: scope-roadmap-epics
+    check: "Every epic includes an ltm_citations field listing the LTM/memory file paths consulted when deriving that epic."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "Every epic has a non-empty ltm_citations list."
+    fail_criteria: "Any epic has missing or empty ltm_citations."
+
+  - id: SE-22
+    source_type: both
+    failure_condition_id: F11
+    constraint_id: C16
+    skill: scope-roadmap-epics
+    check: "Every discrete capability listed in product.yaml scope.in_scope maps to at least one epic's in_scope as that epic's owned responsibility."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "Every product.yaml scope.in_scope capability is explicitly claimed in at least one epic's in_scope field."
+    fail_criteria: "Any in_scope capability has no owning epic or is silently absorbed as an implementation detail."
+
+  - id: SE-23
+    source_type: both
+    failure_condition_id: F12
+    constraint_id: C17
+    skill: scope-roadmap-epics
+    check: "No epic's in_scope contains any capability that appears in product.yaml scope.out_of_scope or is explicitly marked as deferred."
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml"
+    pass_criteria: "No epic in_scope item matches a product.yaml scope.out_of_scope or deferred item."
+    fail_criteria: "Any epic in_scope contains a capability the product vision explicitly excludes or defers — a deferred_violation."
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Product Manager
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml, {artifact_base}/roadmap/epics.yaml, {artifact_base}/roadmap/feasibility.yaml"
+    check: "A Product Manager can clearly describe each epic's intent, constraints, and success criteria to stakeholders without additional research."
+    pass_criteria: "Every epic in epics.yaml has non-empty intent, constraints, and success_scenarios; roadmap.yaml thesis and narrative are self-contained and readable without cross-references."
+    fail_criteria: "Any epic lacks clear intent/constraints/success criteria, or roadmap.yaml requires external research to interpret."
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Product Owner
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml, {artifact_base}/roadmap/epics.yaml"
+    check: "A Product Owner can break every epic into backlog items with clear acceptance criteria derived from the epic's success scenarios and failure conditions."
+    pass_criteria: "Every epic has at least 2 binary testable success_scenarios (given/when/then) and 2-4 observable failure_conditions suitable for deriving backlog acceptance criteria."
+    fail_criteria: "Any epic has scenarios/failure conditions that are not binary testable or not observable."
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: Engineering Lead
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml"
+    check: "An Engineering Lead can identify technical dependencies, risk levels, and blockers across all features and sequence engineering work using the feasibility section of roadmap.yaml."
+    pass_criteria: "Every feasibility entry has risk_level, technical_risks with affected_systems, blockers, sequencing_constraints, and architecture_impact populated; sequencing_constraints reference concrete upstream epics where dependencies exist."
+    fail_criteria: "Any feasibility entry has empty sequencing_constraints for a dependent epic, generic architecture_impact, or missing fields that prevent engineering sequencing."
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Stakeholder
+    artifact_pattern: "{artifact_base}/roadmap/epics.yaml, {artifact_base}/roadmap/feasibility.yaml"
+    check: "A Stakeholder can review epics.yaml and feasibility.yaml at the play checkpoint, identify blockers that need resolution, and approve/reject/request changes via the play checkpoint flow."
+    pass_criteria: "epics.yaml and feasibility.yaml are presented as the checkpoint review surface; feasibility.yaml surfaces critical_blockers and open_questions so the stakeholder can identify items requiring resolution."
+    fail_criteria: "The checkpoint review surface is not epics.yaml + feasibility.yaml, or feasibility.yaml does not surface blockers/open questions for stakeholder review."
+
+  - id: SCE-5a
+    scenario_id: S5
+    persona: Technical Architect
+    artifact_pattern: "{artifact_base}/roadmap/roadmap.yaml"
+    check: "A Technical Architect can identify architecture-impacting features, shared infrastructure needs, and cross-cutting technical risks from the feasibility section and risk_summary of roadmap.yaml."
+    pass_criteria: "risk_summary.foundation_epics is non-empty when any epic has foundation_investment=true; risk_summary high_risk_count matches count of epics with risk_level=high; at least one feasibility entry identifies shared infrastructure in architecture_impact."
+    fail_criteria: "risk_summary counts are inconsistent with feasibility data, foundation_epics is empty when foundation epics exist, or no shared infrastructure needs are surfaced."
+
+  - id: SCE-5b
+    scenario_id: S7
+    persona: Technical Architect
+    artifact_pattern: "{artifact_base}/discovery/product.yaml, {artifact_base}/roadmap/epics.yaml"
+    check: "A Technical Architect can verify that epic scope and depth reflect the product.yaml three-axis profile values."
+    pass_criteria: "When product.yaml profiles are present, epic depth correlates with PP-6 (low PP-6 yields lightweight epics; high PP-6 yields comprehensive epics with infrastructure/quality considerations); when profiles are absent the check is vacuously satisfied."
+    fail_criteria: "Epic depth contradicts profiles — e.g., heavyweight infrastructure epics for a POC-level product, or lightweight epics for an enterprise product."
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: Product Manager
+    artifact_pattern: "{artifact_base}/evidence/plan-roadmap/pre-lock-resolutions.yaml"
+    check: "A Product Manager can resolve each critical blocker and open question through a structured resolution interview, with all resolutions captured in an audit artifact before roadmap production proceeds."
+    pass_criteria: "When feasibility.yaml has non-empty critical_blockers or open_questions, a pre-lock-resolutions.yaml exists listing each item with its user resolution and a timestamp, and roadmap.yaml was created only after that artifact."
+    fail_criteria: "roadmap.yaml exists while critical_blockers/open_questions remain unresolved, resolutions are not recorded, or the interview did not list each item individually."
+
+  - id: SCE-7
+    scenario_id: S8
+    persona: Product Manager
+    artifact_pattern: "{artifact_base}/evidence/plan-roadmap/{YYYYMMDD-HHMMSS}.md, {artifact_base}/roadmap/epics.yaml"
+    check: "A Product Manager can trace each epic back to the specific LTM knowledge files that informed its derivation via the evidence report."
+    pass_criteria: "Every epic in epics.yaml has a non-empty ltm_citations list AND the evidence report surfaces those citations per epic."
+    fail_criteria: "Any epic lacks citations or the evidence report omits them."
+
+  - id: SCE-8
+    scenario_id: S9
+    persona: Stakeholder
+    artifact_pattern: "{artifact_base}/roadmap/confidence-report.yaml"
+    check: "A Stakeholder can see an independent (not self-assessed) confidence score per epic with rationale."
+    pass_criteria: "confidence-report.yaml assessed_by is 'judge'; every epic from epics.yaml has a confidence entry with confidence (high/medium/low), non-empty rationale, scenario_metric_coverage, falsifiability, and coverage_gaps; summary counts are consistent with per-epic scores."
+    fail_criteria: "assessed_by is not 'judge', any epic is missing or has empty rationale, or summary counts are inconsistent with per-epic scores."
+
+  - id: SCE-9
+    scenario_id: S10
+    persona: Product Manager
+    artifact_pattern: "{artifact_base}/roadmap/coverage-check.yaml"
+    check: "A Product Manager can verify that every product.yaml scope.in_scope capability has an explicit epic owner, no epic claims deferred capabilities, and any cross-cutting capabilities are documented with horizontal epic exceptions."
+    pass_criteria: "Every product.yaml scope.in_scope item has status 'covered' (mapped to at least one epic's in_scope); no entry has status 'deferred_violation'; any cross-cutting capabilities have cross_cutting_justification documented in the owning epic."
+    fail_criteria: "Any in_scope item is orphaned, any deferred item appears in an epic's in_scope, or cross-cutting justifications are missing."

@@ -1,10 +1,10 @@
 result:
   success: true
   branch:
-    name: "feat/192-fix-it-recipe"
+    name: "feat/192-fix-it-play"
     base_ref: "main"
     pushed: true
-    tracking: "origin/feat/192-fix-it-recipe"
+    tracking: "origin/feat/192-fix-it-play"
   stm:
     issue: 192
     directories_created:

@@ -1,16 +1,16 @@
 ---
 # issue-mappings output
-# Branch: feature/95-intent-driven-recipe-architecture
+# Branch: feature/95-intent-driven-play-architecture
 # Generated: 2026-03-06T21:00:00+0530
-# Stage: commit-code recipe — resolve-issues step
+# Stage: commit-code play — resolve-issues step
 # Session: STM tracking files (commits.yaml + commit-code.json) from current commit-code run
 
 resolved_at: "2026-03-06T21:00:00+0530"
-branch: feature/95-intent-driven-recipe-architecture
+branch: feature/95-intent-driven-play-architecture
 
 open_issues_surveyed:
   - number: 95
-    title: "feat(recipe-framework): intent-driven recipe architecture"
+    title: "feat(play-framework): intent-driven play architecture"
     labels: [enhancement]
   - number: 93
     title: "feat: intent-driven eval generation and review-pr integration"
@@ -25,7 +25,7 @@ open_issues_surveyed:
     title: "Agent response format: add skill-to-contract transformation examples (Option B)"
     labels: []
   - number: 88
-    title: "Explore direct skill invocation for L2 fixed-DAG recipes"
+    title: "Explore direct skill invocation for L2 fixed-DAG plays"
     labels: []
   - number: 87
     title: "Reduce redundant file reads via contract-carried intent summary"
@@ -55,17 +55,17 @@ open_issues_surveyed:
 groups:
   - group_id: group-1
     issue_number: 95
-    issue_title: "feat(recipe-framework): intent-driven recipe architecture"
+    issue_title: "feat(play-framework): intent-driven play architecture"
     issue_state: open
     confidence: high
     reasoning: >
       group-1 contains two STM tracking files: commits.yaml (the commit ledger recording
-      C17-C24 and prior session entries) and commit-code.json (recipe status tracker
+      C17-C24 and prior session entries) and commit-code.json (play status tracker
       resetting task lifecycle timestamps for the current commit-code session). Both files
       live under .meridian/project/issues/95/ — the STM path directly encodes issue #95
       via the STM path binding convention (ADR 008/012). This is the strongest possible
       mapping signal: the files themselves are namespaced to #95's STM workspace.
-      Additionally, the branch name feature/95-intent-driven-recipe-architecture
+      Additionally, the branch name feature/95-intent-driven-play-architecture
       encodes #95 (branch signal, strong). No other open issue can claim files
       under .meridian/project/issues/95/ — STM path binding is unambiguous.
       Both files are pure operational evidence/tracking artifacts with no source code

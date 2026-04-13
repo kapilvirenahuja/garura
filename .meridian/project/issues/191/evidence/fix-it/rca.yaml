@@ -9,7 +9,7 @@ rca:
 
   root_cause:
     primary:
-      file: "core/components/recipes/implement-epic/SKILL.md"
+      file: "core/components/plays/implement-epic/SKILL.md"
       lines: "94-107"
       logic: >
         The pre-flight block hardcodes artifact_base = "{product_base}/roadmap/epics/{epic_id}"
@@ -19,11 +19,11 @@ rca:
       why: >
         prepare-implementation was redesigned (TDD-first, issue #183) to write artifacts
         into {stm_base}/{issue}/context/design/ — the issue STM — but implement-epic's
-        path resolution was never updated to match. The two recipes evolved independently
+        path resolution was never updated to match. The two plays evolved independently
         and now point to different base directories.
 
     secondary:
-      file: "core/components/recipes/prepare-implementation/SKILL.md"
+      file: "core/components/plays/prepare-implementation/SKILL.md"
       lines: "42-65 (pre-flight)"
       logic: >
         prepare-implementation parses issue from branch name and resolves stm_base but
@@ -31,13 +31,13 @@ rca:
         start-feature already ran. There is no issue/branch/STM setup in prepare-implementation's
         own workflow.
       why: >
-        The recipe was designed as a pure artifact-production step (planning phase) that
+        The play was designed as a pure artifact-production step (planning phase) that
         assumed upstream setup was complete. This made it dependent on start-feature or
         start-feature-planning being invoked separately — but the issue expected it to be
         self-contained, covering the full "ultra god mode" of planning context setup.
 
     tertiary:
-      file: "core/components/recipes/prepare-implementation/SKILL.md"
+      file: "core/components/plays/prepare-implementation/SKILL.md"
       lines: "1207-1217 (Step 20 — Lock All Artifacts)"
       logic: >
         The lock step iterates artifacts at path ${stm_base}/${issue}/${artifact} (flat),
@@ -80,28 +80,28 @@ rca:
 
   blast_radius:
     affected_files:
-      - path: "core/components/recipes/implement-epic/SKILL.md"
-        role: "Compiled recipe — defines implement-epic orchestration and all artifact path resolution"
+      - path: "core/components/plays/implement-epic/SKILL.md"
+        role: "Compiled play — defines implement-epic orchestration and all artifact path resolution"
         change_needed: >
           Update artifact_base and all derived paths in pre-flight to read from
           {stm_base}/{issue}/context/design/ instead of {product_base}/roadmap/epics/{epic_id}/.
           Also update Step 1 (Build Context) JSON contract artifact paths passed to tech-designer.
 
-      - path: "core/components/recipes/implement-epic/reference/intent.yaml"
+      - path: "core/components/plays/implement-epic/reference/intent.yaml"
         role: "Intent source — defines constraints, failure conditions, and scenarios for implement-epic"
         change_needed: >
           Update artifact path constraints (C1, C3) and any scenario given/then blocks that
           reference the product epics path. Add constraint: all input artifacts must reside
           in issue STM ({stm_base}/{issue}/context/design/).
 
-      - path: "core/components/recipes/prepare-implementation/SKILL.md"
-        role: "Compiled recipe — defines prepare-implementation orchestration and all output paths"
+      - path: "core/components/plays/prepare-implementation/SKILL.md"
+        role: "Compiled play — defines prepare-implementation orchestration and all output paths"
         change_needed: >
           (1) Add issue/branch/STM setup phase before Context Resolution — resolve/create issue,
           create branch, initialize STM — mirroring start-feature. (2) Fix Step 20 lock path
           from ${stm_base}/${issue}/${artifact} to ${stm_base}/${issue}/context/design/${artifact}.
 
-      - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+      - path: "core/components/plays/prepare-implementation/reference/intent.yaml"
         role: "Intent source — defines constraints, failure conditions, and scenarios for prepare-implementation"
         change_needed: >
           Add constraints and failure conditions covering issue resolution, branch creation,

@@ -81,25 +81,25 @@ analysis:
       subject: "add plan-roadmap evals, workspace iterations, and scout-project workspace artifacts"
       confidence: "medium"
       notes: >
-        These are workspace/eval artifacts under core/components/recipes/plan-roadmap/ and
+        These are workspace/eval artifacts under core/components/plays/plan-roadmap/ and
         core/components/skills/scout-project/. Medium confidence because it is unclear whether
         these are intentional deliverables for issue #99 or transient working artifacts that
         should be excluded. They do not appear to be feature code — they are iteration outputs
         and eval fixtures.
       files:
-        - path: "core/components/recipes/plan-roadmap/evals/evals.json"
+        - path: "core/components/plays/plan-roadmap/evals/evals.json"
           status: "untracked"
-          description: "Eval definition file for plan-roadmap recipe"
-        - path: "core/components/recipes/plan-roadmap/evals/fixtures/"
+          description: "Eval definition file for plan-roadmap play"
+        - path: "core/components/plays/plan-roadmap/evals/fixtures/"
           status: "untracked"
           description: "Eval fixture directory"
-        - path: "core/components/recipes/plan-roadmap/evals/outputs/"
+        - path: "core/components/plays/plan-roadmap/evals/outputs/"
           status: "untracked"
           description: "Eval outputs directory"
-        - path: "core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-1"
+        - path: "core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-1"
           status: "untracked"
           description: "Workspace iteration 1 for plan-roadmap"
-        - path: "core/components/recipes/plan-roadmap/plan-roadmap-workspace/iteration-2"
+        - path: "core/components/plays/plan-roadmap/plan-roadmap-workspace/iteration-2"
           status: "untracked"
           description: "Workspace iteration 2 for plan-roadmap"
         - path: "core/components/skills/scout-project/scout-project-workspace/iteration-1"

@@ -13,7 +13,7 @@ identity:
     through discovery mode. The result is the same set of implementation-ready
     design artifacts regardless of entry path.
   for_whom: >
-    Recipe maintainers who define the preparation workflow, practitioners who
+    Play maintainers who define the preparation workflow, practitioners who
     invoke it on issues or epics, and downstream agents who consume the design
     artifacts for implementation and validation.
 
@@ -57,7 +57,7 @@ scope:
     - "Task DAG with file-level change specifications and per-task exit gates"
     - "Context assembly intermediate artifact capturing all upstream state"
   out_of_scope:
-    - "Changes to upstream recipes that produce product vision or roadmap artifacts"
+    - "Changes to upstream plays that produce product vision or roadmap artifacts"
     - "Runtime execution engine or CI pipeline integration"
     - "Automatic creation of missing upstream artifacts on behalf of the user"
     - "Multi-issue or multi-epic batch processing in a single invocation"
@@ -143,7 +143,7 @@ features:
       conventional test suites, this means identifying directly and transitively
       impacted tests. For codebases without conventional tests, the blast radius
       is reinterpreted in terms of the codebase's actual quality mechanisms
-      (recipe evaluations, agent compliance checks, constraint coverage).
+      (play evaluations, agent compliance checks, constraint coverage).
     behaviors:
       - id: B3.1
         description: >

@@ -4,7 +4,7 @@
 **When this applies:** Authoring new knowledge files, validating existing knowledge files, or implementing agents that read and interpret knowledge file metadata.
 **When this does NOT apply:** Ephemeral notes, STM files, or any artifact not intended for LTM promotion.
 **Search patterns:** knowledge file metadata, tier 1, tier 2, metadata template, scope annotation, decay tracking, knowledge file format
-**Provenance:** Issue #182 — learn recipe dry run
+**Provenance:** Issue #182 — learn play dry run
 **Created:** 2026-03-31
 
 ## Content

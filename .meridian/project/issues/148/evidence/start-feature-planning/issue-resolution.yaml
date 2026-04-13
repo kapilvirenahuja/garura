@@ -1,14 +1,14 @@
 issue:
   number: 148
-  title: "Add prepare-architecture recipe, three-axis project profiling (PP+NFR+QP in discover-product), quality standards, refactor prepare-implementation"
+  title: "Add prepare-architecture play, three-axis project profiling (PP+NFR+QP in discover-product), quality standards, refactor prepare-implementation"
   body: |
     ## Description
 
-    This epic introduces a dedicated architecture planning recipe, extends the product discovery workflow to derive three complementary project profiles, and refactors downstream recipes to consume these profiles as locked upstream inputs.
+    This epic introduces a dedicated architecture planning play, extends the product discovery workflow to derive three complementary project profiles, and refactors downstream plays to consume these profiles as locked upstream inputs.
 
-    ### 1. New Recipe: prepare-architecture
+    ### 1. New Play: prepare-architecture
 
-    A new L2 recipe that derives NFR and quality profiles from the product profile, selects an architecture using LTM knowledge, and produces two output artifacts:
+    A new high-order play that derives NFR and quality profiles from the product profile, selects an architecture using LTM knowledge, and produces two output artifacts:
     - `architecture.yaml` — technology selections, NFRs, platforms, integrations, and agentic PCAM design
     - `quality-standards.yaml` — quality profile dimensions with measurable thresholds
 
@@ -43,7 +43,7 @@ issue:
 
     ## Acceptance Criteria
 
-    - [ ] `prepare-architecture` recipe implemented and produces `architecture.yaml` and `quality-standards.yaml`
+    - [ ] `prepare-architecture` play implemented and produces `architecture.yaml` and `quality-standards.yaml`
     - [ ] `discover-product` derives PP, NFR, and QP during vision drafting and persists all three to `product.yaml`
     - [ ] `plan-roadmap` consumes all three profiles for epic scoping
     - [ ] `prepare-implementation` refactored to require locked `architecture.yaml` as upstream input

@@ -1,18 +1,18 @@
 pr:
   number: 211
-  title: "feat(recipes): add review-pr recipe, quality-check-scoped skill, ADR 016, and supporting standards"
+  title: "feat(plays): add review-pr play, quality-check-scoped skill, ADR 016, and supporting standards"
   url: "https://github.com/kapilvirenahuja/meridian-os/pull/211"
   state: OPEN
   author: kapilvirenahuja
   base_branch: main
-  head_branch: feature/208-review-pr-recipe
+  head_branch: feature/208-review-pr-play
   created_at: "2026-04-13T16:12:15Z"
   updated_at: "2026-04-13T16:12:15Z"
   labels: []
   closes_issue: 208
 
 summary: >
-  Adds the review-pr L2 recipe with diff-scoped quality standards, severity taxonomy,
+  Adds the review-pr high-order play with diff-scoped quality standards, severity taxonomy,
   and reviewer selection. Includes the quality-check-scoped skill, ADR 016 (agent JSON
   contract), refactored standards layout, and supporting configuration changes.
 
@@ -22,15 +22,15 @@ checklist_status:
       status: PASS
     - item: "No secrets committed"
       status: PASS
-    - item: "review-pr recipe has valid frontmatter"
+    - item: "review-pr play has valid frontmatter"
       status: PASS
-    - item: "ship recipe has valid frontmatter"
+    - item: "ship play has valid frontmatter"
       status: PASS
-    - item: "review-pr recipe defines workflow"
+    - item: "review-pr play defines workflow"
       status: PASS
-    - item: "ship recipe defines workflow"
+    - item: "ship play defines workflow"
       status: PASS
-    - item: "Recipes define checkpoint behavior"
+    - item: "Plays define checkpoint behavior"
       status: PASS
     - item: "quality-check-scoped skill has valid frontmatter"
       status: PASS
@@ -42,7 +42,7 @@ checklist_status:
       status: PASS
     - item: "Documentation consistent with implementation"
       status: REVIEW
-      note: "review-pr may need standalone catalog entry in docs/components/recipes.md"
+      note: "review-pr may need standalone catalog entry in docs/components/plays.md"
     - item: "Configuration syntax valid"
       status: PASS
     - item: "Refactor introduces no breaking changes to contracts"
@@ -51,7 +51,7 @@ checklist_status:
       status: REVIEW
       note: "/sync-claude must be run post-merge"
   optional:
-    - item: "Recipes respect agent call limits"
+    - item: "Plays respect agent call limits"
       status: PASS
     - item: "Agent naming follows {domain}-{role} convention"
       status: PASS

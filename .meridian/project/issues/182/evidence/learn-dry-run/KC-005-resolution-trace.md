@@ -4,7 +4,7 @@
 **When this applies:** Any agent that performs knowledge resolution and must record which layer answered each query, for downstream auditability or knowledge gap detection.
 **When this does NOT apply:** Agents that do not perform LTM resolution (pure producers, utility agents); situations where STM is unavailable and there is no persistent store for the trace.
 **Search patterns:** resolution trace, decision auditability, LTM source tracking, ungrounded fallback, knowledge gap, trace file, STM trace
-**Provenance:** Issue #182 — learn recipe dry run
+**Provenance:** Issue #182 — learn play dry run
 **Created:** 2026-03-31
 
 ## Content
@@ -21,11 +21,11 @@ A resolution trace records every decision an agent made during knowledge resolut
   flagged_ungrounded: false
 ```
 
-**Trace location:** Written to STM, not embedded in the agent's output contract. This keeps output payloads lean — consumers receive the decision, not the full provenance chain. The trace is available for audit and for the learn recipe to scan.
+**Trace location:** Written to STM, not embedded in the agent's output contract. This keeps output payloads lean — consumers receive the decision, not the full provenance chain. The trace is available for audit and for the learn play to scan.
 
 **Ungrounded entries:** When Layer 3 (LLM reasoning) answers a query, `flagged_ungrounded: true` is set and `source_file` is null. These entries are the primary signal for knowledge promotion — they show where the organization has not yet captured a decision.
 
-**Trace usage in learn recipe:** The learn recipe reads resolution traces from STM evidence as one of its extraction sources. It identifies ungrounded entries, clusters them by topic, and generates knowledge candidates for those gaps.
+**Trace usage in learn play:** The learn play reads resolution traces from STM evidence as one of its extraction sources. It identifies ungrounded entries, clusters them by topic, and generates knowledge candidates for those gaps.
 
 **Trace does not block:** A resolution trace entry is informational. An ungrounded entry does not halt the agent or fail the workflow. It is recorded and the agent proceeds with the LLM-derived answer.
 
@@ -33,7 +33,7 @@ A resolution trace records every decision an agent made during knowledge resolut
 
 ## Why It Matters
 
-Without traces, knowledge gaps are invisible until something goes wrong. With traces, every LLM fallback is a logged event that the learn recipe can convert into a knowledge candidate. The organization's knowledge gaps become a prioritized work queue rather than unknown unknowns. Additionally, when agents make wrong decisions, traces make the source auditable — "the agent used core file X, which was stale" is actionable; "the agent was wrong" is not.
+Without traces, knowledge gaps are invisible until something goes wrong. With traces, every LLM fallback is a logged event that the learn play can convert into a knowledge candidate. The organization's knowledge gaps become a prioritized work queue rather than unknown unknowns. Additionally, when agents make wrong decisions, traces make the source auditable — "the agent used core file X, which was stale" is actionable; "the agent was wrong" is not.
 
 ## Applicability Boundaries
 

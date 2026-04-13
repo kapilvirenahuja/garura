@@ -19,23 +19,23 @@ ltm_consultation:
     # === DIRECTLY APPLICABLE TO ISSUE #183 ===
 
     - path: "~/.meridian/core/memory/standards/agent-contract.md"
-      summary: "Universal recipe-to-agent JSON contract schema. Defines input/output contracts, STM path conventions, wiring rules, and the optional ltm_context field. Specifies that ltm_context is OPTIONAL — agents without it operate identically to pre-protocol behavior."
+      summary: "Universal play-to-agent JSON contract schema. Defines input/output contracts, STM path conventions, wiring rules, and the optional ltm_context field. Specifies that ltm_context is OPTIONAL — agents without it operate identically to pre-protocol behavior."
       applies_to: "All agent dispatches in prepare-implementation. The contract schema governs how tech-architect, test-engineer, product-strategist, doc-builder, and repo-orchestrator receive work. Critical for #183 because the contract's ltm_context.locked_artifacts field is the mechanism for signaling which upstream artifacts exist — making 'soft dependency' expressible at the contract level."
       relevance: high
 
     - path: "~/.meridian/core/memory/standards/resolution-protocol.md"
       summary: "R1-R4 four-step resolution protocol. Defines 3-layer knowledge hierarchy: project LTM (LOCKED > DRAFT) -> core LTM (advisory) -> LLM fallback. Agents query ltm_context.project_base for project-scoped knowledge, then core_base for organizational knowledge, then fall back to LLM reasoning. LOCKED artifacts are authoritative and stop descent. DRAFT artifacts are advisory."
-      applies_to: "Directly relevant to #183's core problem — the resolution protocol already defines a graceful degradation model (R2 miss -> R3 -> R4). The prepare-implementation recipe should mirror this: when product.yaml or roadmap.yaml are absent, agents should descend to codebase inference and LLM reasoning rather than hard-halting. The resolution protocol's authority semantics (LOCKED = authoritative, DRAFT = advisory, absent = no opinion) provide the exact vocabulary for expressing soft dependencies."
+      applies_to: "Directly relevant to #183's core problem — the resolution protocol already defines a graceful degradation model (R2 miss -> R3 -> R4). The prepare-implementation play should mirror this: when product.yaml or roadmap.yaml are absent, agents should descend to codebase inference and LLM reasoning rather than hard-halting. The resolution protocol's authority semantics (LOCKED = authoritative, DRAFT = advisory, absent = no opinion) provide the exact vocabulary for expressing soft dependencies."
       relevance: critical
 
     - path: "~/.meridian/core/memory/standards/agent-lifecycle/epic-management-rules.md"
       summary: "Seven rules governing epic structure: vertical slice delivery, single module scope, mocks as phased delivery, scope boundaries (in_scope/out_of_scope/must_not_break), success verifiability (given/when/then), dependency discipline (F-IDs, no circular deps), foundation investments. References domain-taxonomy for module boundaries."
-      applies_to: "Applies when prepare-implementation is invoked with an --epic flag and roadmap.yaml exists. Rules constrain how the recipe interprets epic scope, dependencies, and success criteria. For #183, the epic management rules still apply when roadmap.yaml IS present — the change is only about what happens when it is NOT present."
+      applies_to: "Applies when prepare-implementation is invoked with an --epic flag and roadmap.yaml exists. Rules constrain how the play interprets epic scope, dependencies, and success criteria. For #183, the epic management rules still apply when roadmap.yaml IS present — the change is only about what happens when it is NOT present."
       relevance: medium
 
     - path: "~/.meridian/core/memory/standards/templates/intent-schema.yaml"
       summary: "Canonical 4-field intent schema: intent, constraints, failure_conditions, scenarios. Constraints are falsifiable boundaries, failure conditions are observable artifact states, scenarios are persona-driven acceptance tests with given/then."
-      applies_to: "The prepare-implementation recipe's own intent.yaml follows this schema. Relevant for understanding which constraints (C1, C14, C21-C23) govern the soft-dependency behavior being modified in #183."
+      applies_to: "The prepare-implementation play's own intent.yaml follows this schema. Relevant for understanding which constraints (C1, C14, C21-C23) govern the soft-dependency behavior being modified in #183."
       relevance: medium
 
     - path: "~/.meridian/core/memory/standards/templates/epic-schema.md"
@@ -51,12 +51,12 @@ ltm_consultation:
       relevance: medium
 
     - path: "~/.meridian/core/memory/workflows/direct-generation.yaml"
-      summary: "Structure B workflow template — four-phase fast flow (pre-flight, execution, approval, evidence). Simpler alternative for low-risk recipes."
+      summary: "Structure B workflow template — four-phase fast flow (pre-flight, execution, approval, evidence). Simpler alternative for low-risk plays."
       applies_to: "Not directly used by prepare-implementation, but provides context on workflow alternatives. No impact from #183."
       relevance: low
 
     - path: "~/.meridian/core/memory/workflows/readiness-only.yaml"
-      summary: "Readiness-only workflow — four-phase assessment flow (pre-flight, preparation, scenario-validation, evidence). For analysis recipes without generation."
+      summary: "Readiness-only workflow — four-phase assessment flow (pre-flight, preparation, scenario-validation, evidence). For analysis plays without generation."
       applies_to: "Not used by prepare-implementation. No impact from #183."
       relevance: low
 
@@ -105,7 +105,7 @@ ltm_consultation:
 
     - path: "~/.meridian/core/memory/standards/knowledge-file-template.md"
       summary: "Canonical template for knowledge files: Tier 1 (all files: title, scope, trigger/exclusion, search patterns, provenance, content, rationale) and Tier 2 (core-scoped: applicability boundaries, cross-project rationale, decay tracking). Also defines Pattern Knowledge variant for reusable decision guidance."
-      applies_to: "capture-learning/learn recipe uses when writing new knowledge. For #183, relevant only if the fix generates learnings worth persisting to LTM. Not directly consumed by prepare-implementation."
+      applies_to: "capture-learning/learn play uses when writing new knowledge. For #183, relevant only if the fix generates learnings worth persisting to LTM. Not directly consumed by prepare-implementation."
       relevance: low
 
     # === FORMATS ===
@@ -118,8 +118,8 @@ ltm_consultation:
   gaps:
 
     - category: "soft dependency patterns"
-      description: "No LTM knowledge about how recipes should handle optional upstream artifacts. The resolution protocol defines knowledge hierarchy for agents, but there is no equivalent recipe-level standard for 'graceful degradation when locked artifacts are absent.' Each recipe must invent its own approach."
-      impact: "The fix for #183 will establish a pattern that other recipes may need. Without a standard, each recipe could handle missing inputs differently — inconsistent UX and unpredictable behavior."
+      description: "No LTM knowledge about how plays should handle optional upstream artifacts. The resolution protocol defines knowledge hierarchy for agents, but there is no equivalent play-level standard for 'graceful degradation when locked artifacts are absent.' Each play must invent its own approach."
+      impact: "The fix for #183 will establish a pattern that other plays may need. Without a standard, each play could handle missing inputs differently — inconsistent UX and unpredictable behavior."
 
     - category: "codebase inference patterns"
       description: "No LTM knowledge about how to infer product context, architecture decisions, or project profiles from codebase analysis alone. The profiling model assumes a BRD/PRD exists. When product.yaml is absent, agents have no standard method for deriving equivalent context from code."
@@ -129,9 +129,9 @@ ltm_consultation:
       description: "No LTM knowledge about testing standards, frameworks, or TDD practices. The quality-profile.md defines QP-1 (Testing Depth) dimensions but there are no knowledge files about specific testing approaches, framework selection, or baseline test patterns."
       impact: "test-engineer agent must derive all testing context from codebase analysis. For #183 specifically, the test surface mapping already found zero tests in meridian-os — this gap is not blocking but would matter for target projects."
 
-    - category: "recipe dependency hierarchy"
-      description: "No LTM standard defining which recipe outputs are hard prerequisites vs soft inputs for other recipes. The prepare-implementation recipe hardcodes its dependency on product.yaml and roadmap.yaml in pre-flight, but there is no cross-recipe dependency map."
-      impact: "The fix for #183 changes prepare-implementation's dependency posture, but without a recipe dependency standard, the decision is local rather than systematic. Future recipes may face the same question."
+    - category: "play dependency hierarchy"
+      description: "No LTM standard defining which play outputs are hard prerequisites vs soft inputs for other plays. The prepare-implementation play hardcodes its dependency on product.yaml and roadmap.yaml in pre-flight, but there is no cross-play dependency map."
+      impact: "The fix for #183 changes prepare-implementation's dependency posture, but without a play dependency standard, the decision is local rather than systematic. Future plays may face the same question."
 
     - category: "degraded-mode UX patterns"
       description: "No LTM knowledge about how to communicate degraded-mode operation to users. When prepare-implementation proceeds without product.yaml, the user should understand what context is missing and what inferences are being made — but there is no standard for this communication."

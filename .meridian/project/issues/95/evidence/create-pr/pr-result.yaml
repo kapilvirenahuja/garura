@@ -1,7 +1,7 @@
 pr_number: 96
 pr_url: "https://github.com/kapilvirenahuja/meridian-os/pull/96"
 state: open
-title: "feat(recipe-framework): intent-driven recipe architecture (#95)"
+title: "feat(play-framework): intent-driven play architecture (#95)"
 target_branch: main
 issue: 95
 created_at: "2026-03-06T00:00:00Z"

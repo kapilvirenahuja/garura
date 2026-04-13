@@ -13,22 +13,22 @@ commits:
 
   - hash: a8e48d9
     type: feat
-    scope: recipe
+    scope: play
     subject: rebake prepare-architecture with decisions constraints #174
     files:
-      - core/components/recipes/prepare-architecture/SKILL.md
-      - core/components/recipes/prepare-architecture/reference/intent.yaml
+      - core/components/plays/prepare-architecture/SKILL.md
+      - core/components/plays/prepare-architecture/reference/intent.yaml
     group: 2
-    purpose: Recipe updates for architectural decisions array support
+    purpose: Play updates for architectural decisions array support
 
   - hash: cebb0e1
     type: chore
     scope: stm
-    subject: record create-recipe rebake evidence for #174
+    subject: record create-play rebake evidence for #174
     files:
-      - .meridian/project/issues/_rebake/evidence/create-recipe/prepare-architecture/coverage-matrix.md
+      - .meridian/project/issues/_rebake/evidence/create-play/prepare-architecture/coverage-matrix.md
     group: 3
-    purpose: STM evidence checkpoint for recipe rebake
+    purpose: STM evidence checkpoint for play rebake
 
 status: "complete"
 pushed: true

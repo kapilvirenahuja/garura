@@ -1,12 +1,12 @@
 input_type: title
-value: "Build review-pr L2 recipe with diff-scoped quality standards, severity taxonomy, and reviewer selection"
+value: "Build review-pr high-order play with diff-scoped quality standards, severity taxonomy, and reviewer selection"
 parent: null
 body: |
   ## Intent
 
-  Build the `review-pr` L2 recipe for meridian-os plus dependent changes. This is a new recipe that reviews a PR against diff-scoped quality standards, blocks on P1 findings, surfaces P2/P3 highlights, gates on a confidence score, and selects the top 3 reviewers from recent committers on changed paths.
+  Build the `review-pr` high-order play for meridian-os plus dependent changes. This is a new play that reviews a PR against diff-scoped quality standards, blocks on P1 findings, surfaces P2/P3 highlights, gates on a confidence score, and selects the top 3 reviewers from recent committers on changed paths.
 
-  Follow meridian's recipe authoring flow: author `reference/intent.yaml`, then `/create-recipe` bakes `SKILL.md`. Never edit `SKILL.md` directly.
+  Follow meridian's play authoring flow: author `reference/intent.yaml`, then `/create-play` bakes `SKILL.md`. Never edit `SKILL.md` directly.
 
   ## Scope
 
@@ -35,7 +35,7 @@ body: |
   - Output: findings classified P1-P4, each citing a standard ID
   - Scoped to diff only — never full repo (unlike `/quality-check`)
 
-  ### 4. `review-pr` recipe (L2, ≤5 agents)
+  ### 4. `review-pr` play (L2, ≤5 agents)
   - Pre-flight: `repo-orchestrator` fetches PR diff, paths, body, linked issue; validate config + KB taxonomy
   - Step 1 Context Load (`tech-designer`): resolve standards from config `standards_order`, bind intent from issue intent.yaml or PR body
   - Step 2 Scoped Quality Eval (`quality-auditor` via `quality-check-scoped`): produce classified findings
@@ -50,11 +50,11 @@ body: |
     - SCE-4: fallback reviewers kick in when git history < 3
     - SCE-5: determinism — same PR twice produces identical classification
 
-  ### 5. `ship` recipe change
+  ### 5. `ship` play change
   - Read `core/config.yaml` `review-pr.bypass`
   - If `false`: insert Step 2.5 invoking `review-pr` between `create-pr` and `merge-pr`
   - P1 finding or confidence < threshold halts ship
-  - Update ship `reference/intent.yaml`, re-bake via `/create-recipe`
+  - Update ship `reference/intent.yaml`, re-bake via `/create-play`
   - This changes ship's "no approvals at any stage" contract — update intent wording
 
   ### 6. `create-pr` — DO NOT MODIFY
@@ -62,7 +62,7 @@ body: |
 
   ### 7. `idsd.md` updates
   - Mark P13 `review-pr` COMPLETE
-  - Add `review-pr` section under "Recipe Specs — Code-2-Test"
+  - Add `review-pr` section under "Play Specs — Code-2-Test"
   - Note ship's new bypass-conditional review step
 
   ## Open Decisions (resolve during planning)
@@ -71,10 +71,10 @@ body: |
 
   ## Constraints
   - Follow IDD: `intent.yaml` is source of truth, `SKILL.md` is compiled artifact
-  - Recipe L1 ≤2 agents, L2 ≤5 agents (domain); utility agents exempt
+  - Play L1 ≤2 agents, L2 ≤5 agents (domain); utility agents exempt
   - Standards hierarchy KB → LTM → STM, paths from config only
   - All findings must cite a standard ID (F3 guard)
   - Severity classification must be deterministic across runs
 
   ## Deliverable
-  A step-by-step build plan covering KB taxonomy, config extension, `quality-check-scoped` skill, `review-pr` recipe, ship re-bake, and idsd.md updates — in the correct dependency order, ready to execute in this repo.
+  A step-by-step build plan covering KB taxonomy, config extension, `quality-check-scoped` skill, `review-pr` play, ship re-bake, and idsd.md updates — in the correct dependency order, ready to execute in this repo.

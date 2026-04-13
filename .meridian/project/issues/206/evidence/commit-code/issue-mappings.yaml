@@ -7,7 +7,7 @@ mappings:
     type_hint: refactor
     confidence: high
     rationale: >
-      Branch is refactor/206-make-brief-generation-opt-in. G1 contains the core recipe
+      Branch is refactor/206-make-brief-generation-opt-in. G1 contains the core play
       changes that implement the opt-in brief generation pattern — directly and exclusively
       the subject of issue #206. Branch name signal, file scope, and group subject all
       align unambiguously.
@@ -20,7 +20,7 @@ mappings:
     type_hint: refactor
     confidence: high
     rationale: >
-      create-recipe compiler rule update removes mandatory doc-builder step before
+      create-play compiler rule update removes mandatory doc-builder step before
       checkpoints — a direct consequence of the opt-in brief pattern introduced by #206.
       Scope is bounded to supporting the same refactor; no competing issue exists.
 
@@ -34,7 +34,7 @@ mappings:
     rationale: >
       draft-roadmap, validate-roadmap, and roadmap schema changes remove brief generation
       references and align with the opt-in pattern. These are skill-layer counterparts
-      to the recipe-layer changes in G1, all within the #206 refactor scope.
+      to the play-layer changes in G1, all within the #206 refactor scope.
 
   - group_id: G4
     issue_number: 206
@@ -57,7 +57,7 @@ mappings:
     type_hint: chore
     confidence: high
     rationale: >
-      These are residual STM artifacts from the create-recipe rebake work done under
+      These are residual STM artifacts from the create-play rebake work done under
       issue #200 (discover-product and plan-roadmap audit artifacts). Issue #200 is
       confirmed OPEN. The STM paths contain the issue number (200) and the files were
       never committed — they belong to #200's work trail, not to the #206 refactor.

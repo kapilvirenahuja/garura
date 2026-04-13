@@ -13,7 +13,7 @@ upstream_context:
     authority: none
     discovery_mode: false
     note: >
-      C1 governs this absence — recipe must proceed. No product vision, strategic goals,
+      C1 governs this absence — play must proceed. No product vision, strategic goals,
       or three-axis profiles (PP/NFR/QP) are available. product-strategist and tech-architect
       must derive product context from codebase + issue description + LLM reasoning (R4).
 
@@ -24,7 +24,7 @@ upstream_context:
     authority: none
     discovery_mode: false
     note: >
-      C1 governs this absence — recipe must proceed. No roadmap phasing, epic dependency
+      C1 governs this absence — play must proceed. No roadmap phasing, epic dependency
       chains, or priority ordering available. Epic dependency enforcement does not apply (C15).
       Issue #183 scopes the work; --epic flag path is unavailable.
 
@@ -51,7 +51,7 @@ upstream_context:
     note: >
       No locked quality-standards.yaml found. C22 activated: quality context derived from
       toolchain detection. No test framework config found. No CI pipeline files (.github/workflows,
-      .circleci). No coverage config. Quality validation is performed via recipe evals
+      .circleci). No coverage config. Quality validation is performed via play evals
       (SE-*, SCE-*) and agent audit checks (P1-P11) at the framework level. Targeted user
       interview needed to establish quality gates for this framework's evaluation model.
 
@@ -61,8 +61,8 @@ phase1_summary:
     status: completed
     summary: >
       Meridian-os is a pure specification framework — no runtime, no compiled code, no server.
-      Physical modules: agents/ (15 files), recipes/ (15 SKILL.md compiled files), skills/ (34),
-      memory/ (68 files). Core design patterns: Three-Layer Hierarchy (Recipe→Agent→Skill),
+      Physical modules: agents/ (15 files), plays/ (15 SKILL.md compiled files), skills/ (34),
+      memory/ (68 files). Core design patterns: Three-Layer Hierarchy (Play→Agent→Skill),
       Compiled Intent (intent.yaml→SKILL.md), STM as inter-agent transport (Phoenix Architecture),
       JSON Contract Communication, DRAFT→VALIDATE→LOCKED lifecycle, LTM Resolution Protocol (R1-R4),
       Issue-Centric STM (NWWI), Agent-First Delegation, Parallel Phase Dispatch, Dual Format Output,
@@ -79,13 +79,13 @@ phase1_summary:
     status: completed
     summary: >
       ZERO test files found. Zero test framework configuration. Zero CI pipelines.
-      All quality validation is performed via recipe-level evals (scenario-based, eval-generator
+      All quality validation is performed via play-level evals (scenario-based, eval-generator
       + judge agent) and agent audit checks. This is by design for a framework of markdown/YAML
       specifications rather than compiled software. Conventional blast radius (which tests break)
-      does not apply — blast radius must be reinterpreted as: which recipe behaviors, contract
+      does not apply — blast radius must be reinterpreted as: which play behaviors, contract
       behaviors, and agent compliance checks are affected by the change.
     key_insight: >
-      For meridian-os, 'test coverage' = recipe intent constraints (C1-C32) that have
+      For meridian-os, 'test coverage' = play intent constraints (C1-C32) that have
       corresponding evals (SE-*, SCE-*). A coverage gap = a constraint or behavior with
       no eval checking it.
 
@@ -93,18 +93,18 @@ phase1_summary:
     file: "dependency-graph.yaml"
     status: completed
     summary: >
-      30 nodes, 52 edges mapped for the prepare-implementation neighborhood. Recipe dispatches
+      30 nodes, 52 edges mapped for the prepare-implementation neighborhood. Play dispatches
       5 agents (3 domain, 2 utility). tech-architect owns 8 of 13 tasks (dominant agent).
       Critical fan-in hotspots: context-assembly.yaml (consumed by 4 downstream tasks),
       blast-radius.yaml (consumed by 5 downstream tasks). Key coupling: all agents governed
       by std-agent-contract. Resolution-protocol governs tech-architect, product-strategist,
       repo-orchestrator. Co-change pattern: cross-cutting changes always update all 4 pipeline
-      recipes simultaneously (prepare-implementation, discover-product, plan-roadmap, prepare-architecture).
+      plays simultaneously (prepare-implementation, discover-product, plan-roadmap, prepare-architecture).
     issue_183_relevance: >
       The hard-block behavior being removed lives in pre-flight Step 0 of SKILL.md
-      (the recipe inline step, not a delegated agent task). SKILL.md and intent.yaml always
+      (the play inline step, not a delegated agent task). SKILL.md and intent.yaml always
       co-change (4 occurrences in history). Any SKILL.md change requires a corresponding
-      intent.yaml update and rebake via /create-recipe.
+      intent.yaml update and rebake via /create-play.
 
   git_history:
     file: "commit-history-analysis.yaml"
@@ -113,13 +113,13 @@ phase1_summary:
       8 direct commits to prepare-implementation in 90 days. Most recent major rebake: 8ab6a91
       (epic-scoped with context resolution and dependency graph). Cross-cutting pattern confirmed:
       path restructure (#177), brief rendering (#169), LTM protocol (#182) all updated all
-      4 pipeline recipes simultaneously. Co-change: SKILL.md always changes with intent.yaml.
-      Agents co-change with recipe on protocol updates. Skills co-change with recipes on
+      4 pipeline plays simultaneously. Co-change: SKILL.md always changes with intent.yaml.
+      Agents co-change with play on protocol updates. Skills co-change with plays on
       path restructures.
     issue_183_relevance: >
       The LTM resolution protocol commit (ee8ed34, #182) is the most recent cross-cutting change.
       Any #183 changes must remain compatible with the resolution protocol additions.
-      The rebake pattern (intent.yaml → /create-recipe → SKILL.md) is the established
+      The rebake pattern (intent.yaml → /create-play → SKILL.md) is the established
       change mechanism — it must be followed for #183.
 
   ltm_findings:
@@ -131,9 +131,9 @@ phase1_summary:
       its R1→R4 degradation model provides the exact vocabulary for expressing soft dependencies
       (LOCKED=authoritative, absent=no opinion). agent-contract.md confirms ltm_context is
       OPTIONAL — backward compat pattern already exists. 6 LTM gaps identified that are
-      relevant to #183: (1) no standard for recipe-level soft dependency patterns,
+      relevant to #183: (1) no standard for play-level soft dependency patterns,
       (2) no codebase-inference guidance for product context when product.yaml absent,
-      (3) no testing patterns knowledge, (4) no recipe dependency hierarchy standard,
+      (3) no testing patterns knowledge, (4) no play dependency hierarchy standard,
       (5) no degraded-mode UX patterns standard, (6) no change surface analysis patterns.
       Gaps 1 and 4 are directly actionable — fix for #183 may establish new LTM standards.
 
@@ -182,7 +182,7 @@ confidence_assessment:
     Architecture understanding is solid (codebase is self-documenting via ADRs and component docs).
     Product/roadmap context is fully absent — all product-level decisions must be inferred from
     issue description and codebase. Quality context is low confidence — no conventional
-    test infrastructure exists. The recipe can proceed per C1 and C21-C23, but artifacts
+    test infrastructure exists. The play can proceed per C1 and C21-C23, but artifacts
     will carry explicit flags for all inferred vs. authoritative context.
 
 # --- Open Items for Checkpoint 0 ---
@@ -193,7 +193,7 @@ checkpoint_0_items:
     blocking: false
 
   - item: "Targeted interview for architecture gaps: deployment model, model selection policy, tool permission boundaries"
-    owner: recipe
+    owner: play
     blocking: false
 
   - item: "Quality gate establishment — no test framework found; user must define eval-based quality standards for this issue"

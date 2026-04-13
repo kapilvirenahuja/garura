@@ -11,8 +11,8 @@ analysis:
       issue: 191
       issue_confidence: high
       files:
-        - core/components/recipes/prepare-implementation/SKILL.md
-        - core/components/recipes/prepare-implementation/reference/intent.yaml
+        - core/components/plays/prepare-implementation/SKILL.md
+        - core/components/plays/prepare-implementation/reference/intent.yaml
       summary: >
         Adds Phase 0 (Setup) to prepare-implementation with three new steps:
         Step 0a resolves or creates a GitHub issue via project-orchestrator,
@@ -31,8 +31,8 @@ analysis:
       issue: 191
       issue_confidence: high
       files:
-        - core/components/recipes/implement-epic/SKILL.md
-        - core/components/recipes/implement-epic/reference/intent.yaml
+        - core/components/plays/implement-epic/SKILL.md
+        - core/components/plays/implement-epic/reference/intent.yaml
       summary: >
         Adds constraint C24: all input design artifacts (plan.yaml, features.yaml,
         tech.yaml, scenarios.yaml) must be sourced from the issue STM at
@@ -44,7 +44,7 @@ analysis:
     - id: G3
       type: chore
       scope: stm
-      subject: "commit fix-it recipe evidence for issue #191"
+      subject: "commit fix-it play evidence for issue #191"
       issue: 191
       issue_confidence: high
       files:
@@ -57,9 +57,9 @@ analysis:
         - .meridian/project/issues/191/status/fix-it.json
         - .meridian/project/issues/191/status/ship.json
       summary: >
-        STM evidence directory for issue #191 produced by the fix-it recipe.
+        STM evidence directory for issue #191 produced by the fix-it play.
         Contains RCA, design decisions, implementation report, branch result,
-        HTML briefs, and recipe status checkpoints. These are issue-scoped
+        HTML briefs, and play status checkpoints. These are issue-scoped
         artifacts, not source code changes.
 
   risks:

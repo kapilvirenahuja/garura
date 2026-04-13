@@ -1,0 +1,22 @@
+play: "plan-roadmap"
+skills:
+  - name: "scope-roadmap-epics"
+    path: "core/components/skills/scope-roadmap-epics/SKILL.md"
+    status: existing
+    notes: "No constraint ID references to update"
+  - name: "assess-feasibility"
+    path: "core/components/skills/assess-feasibility/SKILL.md"
+    status: existing
+    notes: "No constraint ID references to update"
+  - name: "draft-roadmap-brief"
+    path: "core/components/skills/draft-roadmap-brief/SKILL.md"
+    status: modified
+    modification: "Update C-TEMPLATE reference to C2 for template_ref lookup from intent.yaml"
+  - name: "draft-roadmap"
+    path: "core/components/skills/draft-roadmap/SKILL.md"
+    status: existing
+    notes: "No constraint ID references to update"
+  - name: "generate-engineering-view"
+    path: "core/components/skills/generate-engineering-view/SKILL.md"
+    status: existing
+    notes: "No constraint ID references to update"

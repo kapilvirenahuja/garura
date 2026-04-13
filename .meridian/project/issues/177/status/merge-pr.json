@@ -1,5 +1,5 @@
 {
-  "recipe": "merge-pr",
+  "play": "merge-pr",
   "issue": "177",
   "started_at": "2026-03-26T00:00:00Z",
   "tasks": {

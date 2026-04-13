@@ -15,7 +15,7 @@
 - [ ] `work-state.md` is created by `start-feature-planning` after `tasks.md` is written — no manual step required
 - [ ] `work-state.md` lives at `.meridian/{issue}/work-state.md`, consistent with ADR 008's issue-centric hierarchy
 - [ ] Injected SessionStart context is under 1,000 tokens (verified by counting tokens in the hook output)
-- [ ] Existing recipes (`commit-code`, `start-feature`, `create-pr`) continue to work unchanged — no breaking changes to existing STM structure or recipe contracts
+- [ ] Existing plays (`commit-code`, `start-feature`, `create-pr`) continue to work unchanged — no breaking changes to existing STM structure or play contracts
 - [ ] Hook scripts are delivered via `track-work-state` skill and deployed by `/sync-claude` — no manual hook installation required
 
 ---
@@ -28,11 +28,11 @@
 | 2. SessionStart injection | Open a new Claude Code session on the issue branch, check conversation for injected context | Work-state summary appears in context before first user prompt |
 | 3. Task completion updates state | Mark a task complete via `TaskUpdate`, wait 1s, read `work-state.md` | Task status changed from `in_progress` to `completed`, `last_updated` timestamp updated |
 | 4. PreCompact commits state | Trigger `/compact`, check `git log` | A commit exists with message `chore(stm): work-state sync for #66` |
-| 5. Cold-start resume | Close session, open new session, run `/resume-work 66` | Recipe reads `work-state.md` only and outputs complete context in under 5 seconds |
+| 5. Cold-start resume | Close session, open new session, run `/resume-work 66` | Play reads `work-state.md` only and outputs complete context in under 5 seconds |
 | 6. Multi-agent safety test | Run two agents concurrently marking different tasks complete | Both updates appear in `work-state.md`, no data corruption, both task statuses correct |
-| 7. Stale state detection | Set `last_updated` to 48h ago in work-state, run `/resume-work 66` | Recipe warns about stale state, offers to rebuild from `tasks.md` and checkpoint history |
+| 7. Stale state detection | Set `last_updated` to 48h ago in work-state, run `/resume-work 66` | Play warns about stale state, offers to rebuild from `tasks.md` and checkpoint history |
 | 8. Context size check | Run `wc -c` on hook output or count tokens | Injected context is under 1,000 tokens |
-| 9. No breaking changes | Run existing `commit-code` recipe on a clean branch | Recipe completes without errors; no changes to evidence/checkpoint artifacts |
+| 9. No breaking changes | Run existing `commit-code` play on a clean branch | Play completes without errors; no changes to evidence/checkpoint artifacts |
 | 10. Sync-claude deploys hook | Run `/sync-claude`, check `~/.claude/settings.json` for hook entries | `SessionStart` and `PreCompact` hooks are registered; hook script exists at `~/.claude/hooks/meridian-session.sh` |
 
 ---
