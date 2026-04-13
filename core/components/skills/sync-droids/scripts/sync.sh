@@ -182,7 +182,7 @@ transform_agent_to_droid() {
   } > "$dst"
 }
 
-# Transform a skill/recipe SKILL.md for Factory (strip unsupported frontmatter fields)
+# Transform a skill/play SKILL.md for Factory (strip unsupported frontmatter fields)
 transform_skill() {
   local src="$1"
   local dst="$2"
@@ -248,13 +248,13 @@ for skill_dir in "$SOURCE/skills"/*/; do
   fi
 done
 
-# Step 3: Copy and transform recipes (into skills — Factory uses single folder)
-for recipe_dir in "$SOURCE/recipes"/*/; do
-  [ ! -d "$recipe_dir" ] && continue
-  recipe_name="$(basename "$recipe_dir")"
-  cp -R "$recipe_dir" "$TARGET_DIR/skills/$recipe_name"
-  if [ -f "$recipe_dir/SKILL.md" ]; then
-    transform_skill "$recipe_dir/SKILL.md" "$TARGET_DIR/skills/$recipe_name/SKILL.md"
+# Step 3: Copy and transform plays (into skills — Factory uses single folder)
+for play_dir in "$SOURCE/plays"/*/; do
+  [ ! -d "$play_dir" ] && continue
+  play_name="$(basename "$play_dir")"
+  cp -R "$play_dir" "$TARGET_DIR/skills/$play_name"
+  if [ -f "$play_dir/SKILL.md" ]; then
+    transform_skill "$play_dir/SKILL.md" "$TARGET_DIR/skills/$play_name/SKILL.md"
   fi
 done
 

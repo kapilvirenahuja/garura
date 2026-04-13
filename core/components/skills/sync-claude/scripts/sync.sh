@@ -42,8 +42,8 @@ rm -rf "${TARGET_DIR:?}/skills"/* "${TARGET_DIR:?}/agents"/* 2>/dev/null || true
 # Step 2: Copy skills
 cp -R "$SOURCE/skills"/* "$TARGET_DIR/skills/" 2>/dev/null || true
 
-# Step 3: Copy recipes (into skills — Claude Code uses single folder)
-cp -R "$SOURCE/recipes"/* "$TARGET_DIR/skills/" 2>/dev/null || true
+# Step 3: Copy plays (into skills — Claude Code uses single folder)
+cp -R "$SOURCE/plays"/* "$TARGET_DIR/skills/" 2>/dev/null || true
 
 # Step 4: Copy agents
 cp "$SOURCE/agents"/*.md "$TARGET_DIR/agents/" 2>/dev/null || true

@@ -20,4 +20,4 @@ bash core/components/skills/sync-droids/scripts/sync.sh
 bash core/components/skills/sync-droids/scripts/sync.sh --project
 ```
 
-The script handles everything: clean, transform agents to droids, copy skills/recipes, sync memory, report.
+The script handles everything: clean, transform agents to droids, copy skills/plays, sync memory, report.

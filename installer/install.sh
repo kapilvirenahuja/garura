@@ -93,7 +93,7 @@ transform_config() {
     | sed -E "s/^([[:space:]]*name:[[:space:]]*).+$/\1$name/" \
     | sed -E "s/^([[:space:]]*type:[[:space:]]*).+$/\1Project/" \
     | sed -E "s|^([[:space:]]*skills:[[:space:]]*).+$|\1./.claude/skills/|" \
-    | sed -E "s|^([[:space:]]*recipes:[[:space:]]*).+$|\1./.claude/skills/|" \
+    | sed -E "s|^([[:space:]]*plays:[[:space:]]*).+$|\1./.claude/skills/|" \
     | sed -E "s|^([[:space:]]*agents:[[:space:]]*).+$|\1./.claude/agents/|" \
     | sed -E "s|^([[:space:]]*memory:[[:space:]]*).+$|\1~/.meridian/core/memory/|" \
     | sed -E '/^platform:/d' \
@@ -123,7 +123,7 @@ with open('$tmpfile', 'r') as f:
 new_diagram = '''\`\`\`
 .claude/                   # AI components (managed by Meridian)
 \u251c\u2500\u2500 agents/               # Agent definitions
-\u2514\u2500\u2500 skills/               # Skills + recipes
+\u2514\u2500\u2500 skills/               # Skills + plays
 
 .meridian/
 \u251c\u2500\u2500 core/
@@ -194,12 +194,12 @@ if [ "$MODE" = "init" ]; then
     deploy_skills "$COMPONENTS_DIR/skills" "$TARGET_DIR/.claude/skills"
   fi
 
-  # 3. Deploy recipes → .claude/skills/
-  if [ -d "$COMPONENTS_DIR/recipes" ]; then
-    info "  Deploying recipes..."
-    for recipe_dir in "$COMPONENTS_DIR/recipes"/*/; do
-      local_name="$(basename "$recipe_dir")"
-      copy_dir "$recipe_dir" "$TARGET_DIR/.claude/skills/$local_name"
+  # 3. Deploy plays → .claude/skills/
+  if [ -d "$COMPONENTS_DIR/plays" ]; then
+    info "  Deploying plays..."
+    for play_dir in "$COMPONENTS_DIR/plays"/*/; do
+      local_name="$(basename "$play_dir")"
+      copy_dir "$play_dir" "$TARGET_DIR/.claude/skills/$local_name"
     done
   fi
 
@@ -234,7 +234,7 @@ if [ "$MODE" = "init" ]; then
   ok ""
   ok "Project structure created:"
   ok "  .claude/agents/      — Agent definitions"
-  ok "  .claude/skills/      — Skills and recipes"
+  ok "  .claude/skills/      — Skills and plays"
   ok "  .meridian/core/    — Memory and config"
   ok "  .meridian/project/ — Project artifacts"
   ok "  src/                 — Source code"
@@ -265,12 +265,12 @@ else
     deploy_skills "$COMPONENTS_DIR/skills" "$TARGET_DIR/.claude/skills"
   fi
 
-  # 3. Upgrade recipes
-  if [ -d "$COMPONENTS_DIR/recipes" ]; then
-    info "  Upgrading recipes..."
-    for recipe_dir in "$COMPONENTS_DIR/recipes"/*/; do
-      local_name="$(basename "$recipe_dir")"
-      copy_dir "$recipe_dir" "$TARGET_DIR/.claude/skills/$local_name"
+  # 3. Upgrade plays
+  if [ -d "$COMPONENTS_DIR/plays" ]; then
+    info "  Upgrading plays..."
+    for play_dir in "$COMPONENTS_DIR/plays"/*/; do
+      local_name="$(basename "$play_dir")"
+      copy_dir "$play_dir" "$TARGET_DIR/.claude/skills/$local_name"
     done
   fi
 
@@ -299,7 +299,7 @@ else
   ok ""
   ok "Updated (overwritten):"
   ok "  .claude/agents/              — Agent definitions"
-  ok "  .claude/skills/              — Skills and recipes"
+  ok "  .claude/skills/              — Skills and plays"
   ok "  ~/.meridian/core/memory/   — Memory (practices, templates)"
   ok ""
   ok "Review these files for changes:"
