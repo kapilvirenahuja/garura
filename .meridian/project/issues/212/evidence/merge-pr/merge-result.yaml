@@ -1,0 +1,24 @@
+result:
+  status: merged
+  pr_number: 213
+  merge_sha: "727d7515417652d5e1e8b508ce09d6818b0ac775"
+  base_branch: main
+  branch_deleted: true
+  branch_deleted_locally: true
+  branch_deleted_remotely: true
+  branch_deleted_note: "Remote branch auto-deleted by GitHub on merge (C6 — treated as success)"
+  local_head: main
+  local_up_to_date: true
+  platform_state: MERGED
+  merged_at: "2026-04-13"
+
+evals:
+  SE-1: PASS  # mergeable == true before merge attempted
+  SE-2: PASS  # branch_deleted == true, absent locally and on remote
+  SE-3: PASS  # local checkout on main, up to date with origin/main
+  SE-4: PASS  # working tree was clean before merge
+  SE-5: PASS  # PR #213 state == MERGED, pr_number set
+
+scenario_evals:
+  SCE-1: PASS  # Local HEAD on main, up to date, feature branch absent locally and remotely
+  SCE-2: PASS  # PR #213 state is MERGED on platform, merge SHA 727d751 present in git log on main
