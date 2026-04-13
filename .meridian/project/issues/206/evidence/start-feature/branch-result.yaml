@@ -1,0 +1,13 @@
+result:
+  success: true
+  branch:
+    name: "refactor/206-make-brief-generation-opt-in"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/refactor/206-make-brief-generation-opt-in"
+  worktree:
+    used: false
+    note: "setup-branch initially created a worktree at meridian-os-206-make-brief-generation-opt-in (dirty tree threshold). Worktree was removed and branch was checked out in the primary working directory so uncommitted changes carry forward to the feature branch per C2."
+  original_tree_preserved: true
+  changes_on_feature_branch: true
+  error: null

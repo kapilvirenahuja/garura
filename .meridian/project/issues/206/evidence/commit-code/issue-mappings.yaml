@@ -1,0 +1,83 @@
+mappings:
+  - group_id: G1
+    issue_number: 206
+    issue_title: "refactor: make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture"
+    issue_state: open
+    issue_url: https://github.com/kapilvirenahuja/meridian-os/issues/206
+    type_hint: refactor
+    confidence: high
+    rationale: >
+      Branch is refactor/206-make-brief-generation-opt-in. G1 contains the core recipe
+      changes that implement the opt-in brief generation pattern — directly and exclusively
+      the subject of issue #206. Branch name signal, file scope, and group subject all
+      align unambiguously.
+
+  - group_id: G2
+    issue_number: 206
+    issue_title: "refactor: make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture"
+    issue_state: open
+    issue_url: https://github.com/kapilvirenahuja/meridian-os/issues/206
+    type_hint: refactor
+    confidence: high
+    rationale: >
+      create-recipe compiler rule update removes mandatory doc-builder step before
+      checkpoints — a direct consequence of the opt-in brief pattern introduced by #206.
+      Scope is bounded to supporting the same refactor; no competing issue exists.
+
+  - group_id: G3
+    issue_number: 206
+    issue_title: "refactor: make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture"
+    issue_state: open
+    issue_url: https://github.com/kapilvirenahuja/meridian-os/issues/206
+    type_hint: refactor
+    confidence: high
+    rationale: >
+      draft-roadmap, validate-roadmap, and roadmap schema changes remove brief generation
+      references and align with the opt-in pattern. These are skill-layer counterparts
+      to the recipe-layer changes in G1, all within the #206 refactor scope.
+
+  - group_id: G4
+    issue_number: 206
+    issue_title: "refactor: make brief generation opt-in across discover-product, plan-roadmap, prepare-architecture"
+    issue_state: open
+    issue_url: https://github.com/kapilvirenahuja/meridian-os/issues/206
+    type_hint: chore
+    confidence: high
+    rationale: >
+      STM evidence directories and pending start-feature artifacts were created as part
+      of the #206 workflow execution. The issue number appears directly in the STM paths
+      (.meridian/project/issues/206/evidence/). Type is chore as these are workflow
+      bookkeeping artifacts, not functional changes.
+
+  - group_id: G5
+    issue_number: 200
+    issue_title: "feat: quality-check skill — parallel subagent assessment framework inspired by digital-stargate"
+    issue_state: open
+    issue_url: https://github.com/kapilvirenahuja/meridian-os/issues/200
+    type_hint: chore
+    confidence: high
+    rationale: >
+      These are residual STM artifacts from the create-recipe rebake work done under
+      issue #200 (discover-product and plan-roadmap audit artifacts). Issue #200 is
+      confirmed OPEN. The STM paths contain the issue number (200) and the files were
+      never committed — they belong to #200's work trail, not to the #206 refactor.
+      Committing as a separate chore referencing #200 satisfies constraint C3 (every
+      commit references an existing issue) and keeps the #206 commits clean.
+    action: commit
+    action_note: >
+      Commit as a separate chore commit referencing #200. Do not fold into #206 commits.
+
+approval_required: false
+approval_rationale: >
+  All five groups have high confidence mappings. Per constraint C9, human approval is
+  only required when any group has less than high confidence. No approval gate needed
+  before committing.
+
+summary:
+  total_groups: 5
+  mapped_to_206: 4
+  mapped_to_200: 1
+  excluded: 0
+  conflicts: 0
+  all_map_to_open_issues: true
+  constraint_C3_satisfied: true

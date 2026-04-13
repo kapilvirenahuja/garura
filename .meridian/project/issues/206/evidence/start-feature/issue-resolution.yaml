@@ -1,0 +1,22 @@
+issue:
+  number: 206
+  title: "refactor: make brief generation opt-in across discovery, planning, and architecture recipes"
+  labels:
+    - enhancement
+  state: open
+  body_summary: "Remove automatic brief generation steps from /discover-product, /plan-roadmap, and /prepare-architecture. Patch create-recipe compiler rule for opt-in briefs. Rewrite draft-roadmap to derive roadmap.yaml from YAML directly. Remove brief_r"
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/206"
+  created: true
+  closed: false
+  parent_issue: null
+  type_hint: "refactor"
+
+resolution:
+  method: created
+  confidence: none
+  reasoning: >
+    No open issue matched the inferred work. Searched open issues for brief-related
+    content — only #120 (PhoenixOS design system tokens) and #92 (interactive HTML
+    briefs with feedback) were found, neither covering opt-in brief pipeline removal.
+    No branch signal (on main). Zero semantic overlap with any open issue. New issue
+    #206 created per C10 with ~40-word body summarizing the inferred work.
