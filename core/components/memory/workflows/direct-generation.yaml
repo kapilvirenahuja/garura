@@ -1,15 +1,15 @@
 name: direct-generation
 description: >
   Structure B — Fast execution flow. Pre-flight, execution, approval, evidence.
-  Use for simpler domain work, single-agent recipes, or low-risk operations
+  Use for simpler domain work, single-agent plays, or low-risk operations
   where preparation and checkpoint are not needed.
 structure: B
 
 phases:
   - phase: pre-flight
-    owner_type: recipe
+    owner_type: play
     description: >
-      Infrastructure checks before domain work. Recipe MUST resolve stm_base from
+      Infrastructure checks before domain work. Play MUST resolve stm_base from
       core/config.yaml (stm.base-path) and hold it for all downstream contract paths.
       All agent contracts use {stm_base}/{issue}/ — never hardcoded paths.
       Check for status file and resume if present.
@@ -23,12 +23,12 @@ phases:
       Step evals validate output after completion.
 
   - phase: approval
-    owner_type: recipe
+    owner_type: play
     description: >
       Final human approval. Present results to user. Tether/Vanish.
 
   - phase: evidence
-    owner_type: recipe
+    owner_type: play
     description: >
       Write evidence artifacts and checkpoint to STM. All paths use the resolved
       stm_base. Self-commit evidence files (ADR 012) — non-blocking on failure.

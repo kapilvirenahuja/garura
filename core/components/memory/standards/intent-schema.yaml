@@ -1,9 +1,9 @@
 # Intent Schema — Canonical Contract
 # This is the schema that intent-crafter produces and intent-resolver consumes.
-# Any recipe can serve an intent. Intent says nothing about execution.
+# Any play can serve an intent. Intent says nothing about execution.
 
 intent: <string>                       # What the user wants — goal + expected outputs
-                                       # Implementation-agnostic. No recipe, agent, or skill names.
+                                       # Implementation-agnostic. No play, agent, or skill names.
 
 constraints:                           # Boundaries on acceptable output/behavior
   - id: <string>                       # Unique ID (C1, C2, ...)

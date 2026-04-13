@@ -1,15 +1,15 @@
 name: readiness-only
 description: >
-  Readiness phase only — no generation. Use for recipes that produce analysis
+  Readiness phase only — no generation. Use for plays that produce analysis
   or assessment artifacts without needing a separate execution step
   (feasibility checks, validation, audits).
 structure: readiness-only
 
 phases:
   - phase: pre-flight
-    owner_type: recipe
+    owner_type: play
     description: >
-      Infrastructure checks before domain work. Recipe MUST resolve stm_base from
+      Infrastructure checks before domain work. Play MUST resolve stm_base from
       core/config.yaml (stm.base-path) and hold it for all downstream contract paths.
       All agent contracts use {stm_base}/{issue}/ — never hardcoded paths.
       Check for status file and resume if present.
@@ -23,13 +23,13 @@ phases:
       Step evals validate output after completion.
 
   - phase: scenario-validation
-    owner_type: recipe
+    owner_type: play
     description: >
       E2E scenario evals. Validate readiness artifacts against acceptance scenarios
-      from the compiled recipe.
+      from the compiled play.
 
   - phase: evidence
-    owner_type: recipe
+    owner_type: play
     description: >
       Write evidence artifacts and checkpoint to STM. All paths use the resolved
       stm_base. Self-commit evidence files (ADR 012) — non-blocking on failure.
