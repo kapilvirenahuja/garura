@@ -1,0 +1,78 @@
+intent: >
+  Create a pull request on the user's configured git platform, linked to the
+  originating issue. The PR body contains a dynamic quality checklist tailored
+  to the actual changes, with evidence backing every item. Eval results are
+  embedded in the PR as quality proof. Approval is confidence-gated: auto-submit
+  when confidence is high, checkpoint for user decision when confidence is low.
+
+constraints:
+  - id: C1
+    rule: >
+      The git platform (GitHub, GitLab, Bitbucket) is determined from project
+      configuration, not hardcoded.
+  - id: C2
+    rule: >
+      The play never modifies code, amends commits, or rebases. It is
+      read-only with respect to the codebase.
+  - id: C3
+    rule: >
+      All local changes are committed and pushed to the remote before the
+      PR is created.
+  - id: C4
+    rule: >
+      Quality checklist items are tailored to the nature of the changes in
+      the diff. Generic items not connected to what actually changed are
+      not acceptable.
+  - id: C5
+    rule: >
+      Every checklist item has evidence backing it derived from analysis
+      of the actual changes.
+  - id: C6
+    rule: >
+      When evals pass, eval results are included in the PR body or comments.
+      When evals fail, eval output is written to STM.
+  - id: C7
+    rule: >
+      The PR is auto-submitted only when confidence is high across all
+      decisions (target branch, checklist completeness, eval results).
+      Any decision with less than high confidence requires user confirmation.
+  - id: C8
+    rule: >
+      The play must not operate on main, master, or the repository's default
+      branch. PRs are created from feature branches only.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      The PR has no linked issue.
+  - id: F2
+    condition: >
+      The quality checklist contains generic items not relevant to the
+      actual changes in the diff.
+  - id: F3
+    condition: >
+      One or more checklist items lack evidence backing.
+  - id: F4
+    condition: >
+      Evals passed but the PR body does not contain eval results.
+  - id: F5
+    condition: >
+      The PR targets a branch that was selected with less than high
+      confidence and the user was not asked to confirm.
+
+scenarios:
+  - id: S1
+    persona: Code Reviewer
+    given: A pull request on the git platform
+    then: >
+      Can assess whether the changes are safe to merge, understand the
+      rationale via the checklist and evidence, and trace the work back
+      to the originating issue — sufficient to approve, reject, or
+      comment without needing external context.
+  - id: S2
+    persona: Author (Developer)
+    given: A pull request on the git platform with eval results
+    then: >
+      Can verify that all changes are accounted for in the checklist,
+      that evidence supports each item, and that the PR is linked to
+      the correct issue — confident the PR is submission-ready.

@@ -1,0 +1,140 @@
+epics:
+  - id: "F1"
+    name: "Persistent Project Memory"
+    strategic_goal_ref: "SG1"
+    description: "Enable AI assistants to retain full project intent, constraints, and decisions across sessions through structured short-term and long-term memory systems."
+    bucket: "near"
+    priority: "P1"
+    depends_on: []
+    foundation: true
+    intent:
+      p1: "Today, every AI session starts from zero. Engineers waste 10-15 minutes per session re-explaining project context, architecture decisions, and current state. There is no persistent memory layer between sessions."
+      p2: "After this epic, AI assistants will automatically load project intent, active constraints, and recent decisions at session start. Engineers begin working immediately without context re-entry."
+      p3: "This directly enables SG1 (Persistent Context) and is foundational — every other epic depends on the memory layer existing."
+    constraints:
+      in_scope: "STM (issue-scoped short-term memory), LTM (cross-project long-term memory), memory resolution from config, session-start context loading"
+      out_of_scope: "Embedding-based semantic search, vector databases, cloud-hosted memory sync"
+      must_not_break: "Existing CLAUDE.md project instructions, git-based workflow, file system permissions"
+    success_scenarios:
+      - given: "A project with prior work tracked in STM"
+        when: "Engineer starts a new Claude Code session"
+        then: "AI loads project context including active issue, recent decisions, and constraints within 5 seconds"
+      - given: "An engineer completes a play that produces artifacts"
+        when: "A new session starts the next day"
+        then: "AI can reference yesterday's artifacts by path and summarize their content without re-reading"
+    failure_conditions:
+      - "AI session starts with no project context loaded despite STM directory existing"
+      - "Memory loading takes more than 30 seconds, causing engineer to skip it"
+      - "Memory from one project leaks into another project's session"
+
+  - id: "F2"
+    name: "Play Execution Engine"
+    strategic_goal_ref: "SG2"
+    description: "Build the core play execution engine that runs plays with agent delegation, checkpoint handling, and evidence collection."
+    bucket: "near"
+    priority: "P1"
+    depends_on: ["F1"]
+    foundation: true
+    intent:
+      p1: "Development operations like feature planning, code review, and shipping are currently ad-hoc. Each engineer prompts AI differently, producing inconsistent results with no audit trail."
+      p2: "After this epic, common development operations execute as structured plays — repeatable, auditable, and delegating to specialized agents. Every play produces evidence of what was done and why."
+      p3: "This enables SG2 (Structured Workflows) and provides the execution backbone for all downstream features."
+    constraints:
+      in_scope: "Play execution, agent delegation via JSON contracts, checkpoint/evidence system, pause/resume via status files"
+      out_of_scope: "Visual play builder, drag-and-drop workflow editor, multi-user concurrent play execution"
+      must_not_break: "Claude Code tool permissions, existing git workflows, file system state"
+    success_scenarios:
+      - given: "A play with 5 steps and 2 agent calls"
+        when: "Engineer invokes the play"
+        then: "All steps execute in order, agents produce artifacts, evidence is written, and the play completes with a summary"
+      - given: "A play is interrupted mid-execution"
+        when: "Engineer re-invokes the play"
+        then: "Execution resumes from the last incomplete step without re-running completed steps"
+    failure_conditions:
+      - "Play silently skips a step without logging why"
+      - "Agent call fails but play continues as if it succeeded"
+      - "Evidence file is missing or contains only a stub after play completion"
+
+  - id: "F3"
+    name: "Artifact Generation Pipeline"
+    strategic_goal_ref: "SG3"
+    description: "Implement the skill-based artifact generation system where specialized skills produce YAML artifacts and HTML briefs from structured inputs."
+    bucket: "near"
+    priority: "P2"
+    depends_on: ["F1", "F2"]
+    foundation: false
+    intent:
+      p1: "Product, engineering, and stakeholder artifacts are maintained manually in parallel. Changes in one doc aren't reflected in others. Teams waste hours keeping docs in sync."
+      p2: "After this epic, artifacts are generated from a single source of truth by specialized skills. Product spec, architecture, scenarios, and plans each have a structured YAML + HTML brief pair, all derived from the same product intent."
+      p3: "This enables SG3 (Audience-Separated Artifacts) — each audience gets their view without manual translation."
+    constraints:
+      in_scope: "7 artifact types (product, roadmap, features, architecture, tech, scenarios, plan), YAML schemas, HTML brief generation with tabs and inline comments, hub page"
+      out_of_scope: "PDF export, Confluence/Notion sync, real-time collaborative editing"
+      must_not_break: "Existing play execution model, file system artifact storage, checkpoint/evidence system"
+    success_scenarios:
+      - given: "A locked product.yaml exists"
+        when: "Engineer runs /prepare-implementation"
+        then: "5 YAML artifacts and 5 HTML briefs are generated, each conforming to their schema"
+      - given: "A brief is generated"
+        when: "Reviewer opens it in a browser"
+        then: "Tabbed layout renders, inline comments work, export produces valid JSON"
+    failure_conditions:
+      - "Generated YAML artifact is missing required schema fields"
+      - "HTML brief has external CDN dependencies or broken JavaScript"
+      - "Artifact references a field that doesn't exist in the source YAML"
+
+  - id: "F4"
+    name: "Product Discovery Flow"
+    strategic_goal_ref: "SG4"
+    description: "Implement the /discover-product play flow from problem statement to locked product.yaml with market context, vision, and HTML brief review."
+    bucket: "mid"
+    priority: "P2"
+    depends_on: ["F2", "F3"]
+    foundation: false
+    intent:
+      p1: "Starting a new product requires extensive manual research, document creation, and stakeholder alignment. There is no structured path from idea to validated product vision."
+      p2: "After this epic, engineers run /discover-product with a problem statement and get a structured product.yaml with market context, vision, strategic goals, and an HTML brief for stakeholder review — all within a single session."
+      p3: "This enables SG4 (Progressive Enrichment) — the product artifact starts with discovery and enriches through downstream plays."
+    constraints:
+      in_scope: "Market context research, vision drafting, product.yaml generation, product-brief.html with tabs and inline comments, DRAFT/VALIDATE/LOCK lifecycle"
+      out_of_scope: "Automated market research via web scraping, competitor financial analysis, pricing strategy"
+      must_not_break: "Existing play execution model, product.yaml schema contract"
+    success_scenarios:
+      - given: "Engineer has a product idea described in 1-2 sentences"
+        when: "They run /discover-product --phase draft 'QR code activation with commission tracking'"
+        then: "product.yaml is written with market context, vision, 3+ strategic goals, and a product-brief.html is generated for review"
+      - given: "product.yaml exists in DRAFT status"
+        when: "Engineer runs /discover-product --phase lock"
+        then: "Status changes to LOCKED and downstream plays can consume it"
+    failure_conditions:
+      - "product.yaml has fewer than 3 strategic goals"
+      - "product-brief.html has no feedback mechanism (missing inline comments)"
+      - "LOCK phase silently overwrites content instead of only changing status"
+
+  - id: "F5"
+    name: "Zero-Friction Onboarding"
+    strategic_goal_ref: "SG5"
+    description: "Ensure new projects can adopt Meridian OS with minimal setup — sync components, configure paths, and run first play within 5 minutes."
+    bucket: "long"
+    priority: "P3"
+    depends_on: ["F1", "F2"]
+    foundation: false
+    intent:
+      p1: "Adopting new development tools typically requires infrastructure changes, team training, and workflow migration. Engineers resist tools that add setup overhead."
+      p2: "After this epic, a new project runs /sync-claude and immediately has access to all plays, skills, and agents. First play execution happens within 5 minutes of setup."
+      p3: "This enables SG5 (Zero-Friction Adoption) — the barrier to entry is near zero."
+    constraints:
+      in_scope: "/sync-claude command, config.yaml resolution, global vs project mode deployment, CLAUDE.md generation"
+      out_of_scope: "Docker-based deployment, cloud-hosted Meridian instances, enterprise SSO integration"
+      must_not_break: "Existing ~/.claude/ configuration, user's global Claude Code settings"
+    success_scenarios:
+      - given: "A fresh git repository with no Meridian configuration"
+        when: "Engineer clones meridian-os and runs /sync-claude"
+        then: "All skills and agents are deployed to ~/.claude/, and running /discover-product works immediately"
+      - given: "Engineer has Meridian configured globally"
+        when: "They open a new project"
+        then: "Plays are available without any project-specific setup"
+    failure_conditions:
+      - "Setup requires more than 3 manual steps beyond git clone"
+      - "/sync-claude overwrites user's existing ~/.claude/ customizations"
+      - "First play fails because a config path was not resolved correctly"

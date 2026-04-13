@@ -1,0 +1,117 @@
+slug: "meridian-os"
+status: "LOCKED"
+created_at: "2026-03-01T00:00:00+0530"
+updated_at: "2026-03-04T00:00:00+0530"
+
+problem: "Software teams using AI assistants waste enormous time on context switching, prompt engineering, and re-explaining project state to every new AI session. There is no durable, structured way for an AI to understand a project's intent, constraints, and current state."
+
+target_users:
+  - id: "U1"
+    persona: "Engineering Lead at growth-stage startup"
+    goal: "Delegate complex development workflows to AI without re-explaining context every session"
+    frustration: "AI gives generic advice that ignores project architecture, past decisions, and current state"
+    context: "Running 5-20 person engineering teams, using Claude or Cursor daily"
+  - id: "U2"
+    persona: "Solo founder with technical background"
+    goal: "Move fast on 0→1 product without babysitting AI through every decision"
+    frustration: "Re-explaining architecture decisions every session, getting inconsistent AI output"
+    context: "Building alone, needs to ship quickly, can't afford wasted AI cycles"
+  - id: "U3"
+    persona: "Platform engineer"
+    goal: "Enforce consistent AI-assisted workflows across teams"
+    frustration: "Every developer uses AI differently; no standard approach to AI-assisted development"
+    context: "Responsible for internal tooling standards at mid-size companies"
+
+competitors:
+  - name: "GitHub Copilot / Cursor"
+    strengths: ["Deep IDE integration", "Real-time code completion"]
+    weaknesses: ["No persistent project intent", "No workflow structure"]
+    our_advantage: "Persistent context and structured plays vs session-scoped suggestions"
+  - name: "Linear + Notion"
+    strengths: ["Project management workflows", "Team collaboration"]
+    weaknesses: ["Humans bridge AI and project context", "No AI orchestration"]
+    our_advantage: "AI-native orchestration layer, not a human PM tool"
+  - name: "LangChain / LlamaIndex"
+    strengths: ["Flexible AI app frameworks", "Large ecosystem"]
+    weaknesses: ["For building AI apps, not operating AI-assisted dev", "No intent model"]
+    our_advantage: "Intent-driven development workflow, not a general-purpose AI framework"
+
+market_size:
+  tam: "~$50B global AI developer tools market by 2028"
+  sam: "~$5B AI-assisted development workflow segment"
+  som: "~$200M early adopter segment (growth-stage startups using Claude/Cursor)"
+  note: "Derived from AI developer tools market reports and Claude Code adoption trends"
+
+differentiators:
+  - "Persistent project memory across AI sessions"
+  - "Structured, auditable plays for development operations"
+  - "Audience-separated artifact generation from single source of truth"
+  - "Progressive enrichment — start lightweight, deepen as needed"
+  - "Zero-friction adoption — works with existing Claude Code setup"
+
+risks:
+  - "Claude Code API changes could break play execution model"
+  - "Adoption requires teams to commit to structured workflows over ad-hoc prompting"
+  - "Competing AI providers may build similar workflow layers natively"
+
+value_proposition: "Meridian OS is the operating layer for intent-driven AI development. It gives AI assistants persistent project memory, structured workflows (plays), and a shared understanding of intent — so every AI session starts informed, not blank. Teams stop babysitting AI and start delegating to it."
+
+strategic_goals:
+  - id: "SG1"
+    title: "Persistent Context"
+    description: "AI assistants retain full project intent, constraints, and decisions across sessions without manual re-entry"
+    metric: "Percentage of AI sessions starting with full project context"
+    target: "> 90%"
+    measurement: "Session telemetry — context loaded vs blank start"
+  - id: "SG2"
+    title: "Structured Workflows"
+    description: "Common development operations execute as repeatable, auditable plays"
+    metric: "Play execution success rate"
+    target: "> 80% without human intervention"
+    measurement: "Play completion tracking with eval pass rates"
+  - id: "SG3"
+    title: "Audience-Separated Artifacts"
+    description: "Product, engineering, and stakeholder artifacts generated from a single source of truth"
+    metric: "Artifact generation from single source"
+    target: "100% of artifacts derived from shared intent"
+    measurement: "Traceability audit — artifact lineage to source"
+  - id: "SG4"
+    title: "Progressive Enrichment"
+    description: "Artifacts start lightweight and gain depth as the project matures"
+    metric: "Time from idea to first AI-assisted commit"
+    target: "< 30 minutes"
+    measurement: "End-to-end timing from /discover-product to first commit"
+  - id: "SG5"
+    title: "Zero-Friction Adoption"
+    description: "Works with existing Claude Code setup; no new infrastructure, no new tools, no migration cost"
+    metric: "Setup time for new project"
+    target: "< 5 minutes"
+    measurement: "Time from git clone to first play execution"
+
+success_metrics:
+  - strategic_goal_ref: "SG1"
+    metric: "Sessions with full context"
+    target: "> 90%"
+    measurement_method: "Session telemetry"
+  - strategic_goal_ref: "SG2"
+    metric: "Play success rate"
+    target: "> 80%"
+    measurement_method: "Play completion tracking"
+  - strategic_goal_ref: "SG4"
+    metric: "Idea to commit time"
+    target: "< 30 minutes"
+    measurement_method: "End-to-end timing"
+
+assumptions:
+  - "Claude Code will remain the primary execution environment for at least 12 months"
+  - "Teams are willing to adopt structured workflows if the friction is low enough"
+  - "Intent-driven development produces measurably better AI output than ad-hoc prompting"
+  - "The play/agent/skill hierarchy is sufficient to model most development workflows"
+
+out_of_scope:
+  - category: "Multi-provider support"
+    rationale: "Focus on Claude Code first; other LLM providers are future scope"
+  - category: "Visual IDE plugins"
+    rationale: "CLI-first approach; IDE integration is downstream"
+  - category: "Team collaboration features"
+    rationale: "Single-developer workflow first; team features after core loop is proven"
