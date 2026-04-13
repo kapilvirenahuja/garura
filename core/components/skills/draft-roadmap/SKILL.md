@@ -12,7 +12,7 @@ Model-invocable skill for generating the full roadmap.yaml artifact by composing
 
 ## Purpose
 
-Generate `roadmap.yaml` by reading `product.yaml` (vision, strategic_goals, scope, assumptions), `epics.yaml` (scoped IDD epics), and `feasibility.yaml` (per-epic risk, blockers, sequencing) and composing a single consolidated artifact. This is the machine-readable artifact consumed by downstream recipes (manage-backlog, start-feature-planning, plan-architecture).
+Generate `roadmap.yaml` by reading `product.yaml` (vision, strategic_goals, scope, assumptions), `epics.yaml` (scoped IDD epics), and `feasibility.yaml` (per-epic risk, blockers, sequencing) and composing a single consolidated artifact. This is the machine-readable artifact consumed by downstream plays (manage-backlog, start-feature-planning, plan-architecture).
 
 You DO produce the roadmap artifact. You do NOT validate feasibility, render briefs, or decide what happens next.
 

@@ -1,6 +1,6 @@
 ---
 name: meridian:quality-check-scoped
-description: Diff-bounded single-pass quality evaluation for PR review. Reads KB standards from standards_order paths resolved from config, filters to domains touched by changed_paths, evaluates standard-ID checks against the diff using mechanical match rules from pr-severity-taxonomy.md, classifies every finding deterministically, and emits findings.yaml. Reuses /quality-check KB data — NOT its 11-subagent execution model. Use only from review-pr recipe; never invoke standalone for full-repo audits.
+description: Diff-bounded single-pass quality evaluation for PR review. Reads KB standards from standards_order paths resolved from config, filters to domains touched by changed_paths, evaluates standard-ID checks against the diff using mechanical match rules from pr-severity-taxonomy.md, classifies every finding deterministically, and emits findings.yaml. Reuses /quality-check KB data — NOT its 11-subagent execution model. Use only from review-pr play; never invoke standalone for full-repo audits.
 user-invocable: false
 ---
 
@@ -15,7 +15,7 @@ Single-pass diff-bounded evaluation. Reuses the KB used by `/quality-check` but 
 | Scope | Full repo | Diff only |
 | Execution | 11 parallel subagents | Single pass |
 | Output | Spider chart + scored audit | `findings.yaml` |
-| Invocable | User | Recipe only (review-pr) |
+| Invocable | User | Play only (review-pr) |
 | KB usage | All standards in all domains | Only standards whose taxonomy match rule fires on the diff |
 
 ## Input Contract

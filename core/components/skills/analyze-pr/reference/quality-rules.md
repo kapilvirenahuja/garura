@@ -4,7 +4,7 @@ Quality rules for PR analysis in **agentic/prompting projects**.
 
 This ruleset is designed for projects where the primary artifacts are:
 - Agent definitions (`.md`)
-- Skill/Recipe definitions (`.md`)
+- Skill/Play definitions (`.md`)
 - Documentation and ADRs (`.md`)
 - Configuration (`.yaml`)
 
@@ -41,16 +41,16 @@ This ruleset is designed for projects where the primary artifacts are:
 | `skill-io` | must-have | Skill defines Input and Output | Check for ## Input and ## Output sections |
 | `skill-constraints` | nice-to-have | Skill has constraints | Check for ## Constraints section |
 
-### When: Recipe Definitions Changed
+### When: Play Definitions Changed
 
-**Triggers:** `**/recipes/**/*.md`, `**/recipes/**/SKILL.md`
+**Triggers:** `**/plays/**/*.md`, `**/plays/**/SKILL.md`
 
 | ID | Priority | Item | Verification |
 |----|----------|------|--------------|
-| `recipe-frontmatter` | must-have | Recipe has valid frontmatter | Check: name, description, user-invocable, allowed-tools. Note: `level` is in `## Version` metadata, not frontmatter |
-| `recipe-workflow` | must-have | Recipe defines workflow | Check for ## Workflow section |
-| `recipe-checkpoint` | must-have | Recipe defines checkpoint behavior | Check for checkpoint in workflow |
-| `recipe-agent-limit` | nice-to-have | Recipe respects agent call limits | L1 ≤2, L2 ≤5 |
+| `play-frontmatter` | must-have | Play has valid frontmatter | Check: name, description, user-invocable, allowed-tools. Note: `level` is in `## Version` metadata, not frontmatter |
+| `play-workflow` | must-have | Play defines workflow | Check for ## Workflow section |
+| `play-checkpoint` | must-have | Play defines checkpoint behavior | Check for checkpoint in workflow |
+| `play-agent-limit` | nice-to-have | Play respects agent call limits | L1 ≤2, L2 ≤5 |
 
 ### When: ADRs Changed
 

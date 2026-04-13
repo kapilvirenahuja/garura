@@ -46,7 +46,7 @@ Once scope is resolved, gather these automatically:
 ### From `.meridian/project/issues/{issue}/` (STM)
 - `CONTEXT.md` — scoped implementation context
 - `evidence/implement-epic/` — judge reports, quality reports, defect logs, remediation logs
-- `status/` — recipe execution state
+- `status/` — play execution state
 
 ### From LTM (if available)
 - `core/components/memory/knowledge/` — existing architecture knowledge

@@ -1,6 +1,6 @@
 ---
 name: evals-creator
-description: Generate step evals and scenario evals from intent.yaml and skill contracts, including constraint-driven evals for artifact-verifiable constraints. Use when building a new recipe or updating evals after intent changes.
+description: Generate step evals and scenario evals from intent.yaml and skill contracts, including constraint-driven evals for artifact-verifiable constraints. Use when building a new play or updating evals after intent changes.
 user-invocable: false
 model: opus
 allowed-tools: Read, Write
@@ -14,7 +14,7 @@ Model-invocable skill for generating eval definitions from intent.yaml and skill
 
 ## Purpose
 
-Read an intent.yaml and a set of skill output contracts to produce two levels of eval definitions: step evals (agent self-validates after skill output) and scenario evals (recipe validates E2E). Each eval is binary, traceable to its source in intent.yaml, and grounded in observable artifact state.
+Read an intent.yaml and a set of skill output contracts to produce two levels of eval definitions: step evals (agent self-validates after skill output) and scenario evals (play validates E2E). Each eval is binary, traceable to its source in intent.yaml, and grounded in observable artifact state.
 
 You DO generate eval definitions mapped to failure conditions and scenarios. You do NOT execute evals, run tests, or modify skills/agents.
 
@@ -24,7 +24,7 @@ Receive from agent:
 - `intent_path` — (required) Full path to intent.yaml
 - `skill_contracts` — (required) List of objects: `[{ "skill_name": "<name>", "contract_path": "<path to SKILL.md or output contract>" }]`
 - `output_path` — (required) Path where evals YAML should be written (STM path)
-- `constraint_classifications` — (optional) List of objects: `[{ "id": "C1", "category": "pre-flight|artifact-verifiable|structural" }]`. When provided, evals are generated for constraints classified as `artifact-verifiable`. Constraints classified as `pre-flight` or `structural` are ignored (those are enforced by the recipe's structure, not by evals).
+- `constraint_classifications` — (optional) List of objects: `[{ "id": "C1", "category": "pre-flight|artifact-verifiable|structural" }]`. When provided, evals are generated for constraints classified as `artifact-verifiable`. Constraints classified as `pre-flight` or `structural` are ignored (those are enforced by the play's structure, not by evals).
 
 ## Pre-conditions
 
@@ -115,7 +115,7 @@ evals:
     scenarios_uncovered: []
 ```
 
-The full eval definitions are written to `path`. Downstream agents and recipes MUST read from that file — do NOT pass eval content through memory.
+The full eval definitions are written to `path`. Downstream agents and plays MUST read from that file — do NOT pass eval content through memory.
 
 ## Constraints
 

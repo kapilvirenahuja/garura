@@ -2,7 +2,7 @@
 ---
 intent: "{product vision intent — populated at generation time}"
 constraints:
-  - "{key constraint from discover-product recipe}"
+  - "{key constraint from discover-product play}"
 failure_conditions:
   - "{when this vision document is considered invalid}"
 ---
