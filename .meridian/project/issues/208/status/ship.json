@@ -8,8 +8,8 @@
     "commit-code": { "status": "completed" },
     "create-pr": { "status": "completed", "pr_number": 211 },
     "review-pr": { "status": "skipped", "bypass": true, "routing": null },
-    "merge-pr": { "status": "in_progress" },
-    "scenario-evals": { "status": "pending" },
-    "write-evidence": { "status": "pending" }
+    "merge-pr": { "status": "completed", "pr_number": 211, "merge_sha": "211c2075c3d84edce366c518a46e2402ecff1b22" },
+    "scenario-evals": { "status": "completed" },
+    "write-evidence": { "status": "completed" }
   }
 }
