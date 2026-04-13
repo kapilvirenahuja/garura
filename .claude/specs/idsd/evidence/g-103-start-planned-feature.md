@@ -1,7 +1,7 @@
 # G-103 Evidence: start-planned-feature IDD Compliance
 
 **Gate:** G-103
-**Recipe:** start-planned-feature v3.0.0
+**Play:** start-planned-feature v3.0.0
 **Verified:** 2026-02-22
 **Status:** PASS (20/20 criteria)
 

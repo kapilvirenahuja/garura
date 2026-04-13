@@ -4,7 +4,7 @@
 
 ## Summary
 
-| Recipe | Constraints | Failure Conditions | Orphaned | Invented | Fields Preserved | Status |
+| Play | Constraints | Failure Conditions | Orphaned | Invented | Fields Preserved | Status |
 |--------|------------|-------------------|----------|----------|-----------------|--------|
 | commit-code | 95% | 100% | 2 minor | None | All | VERIFIED |
 | create-pr | 100% | 95% | None | None | All | VERIFIED |
@@ -19,4 +19,4 @@
 
 ## Conclusion
 
-All four recipes pass verification. Every front-matter item traces to the workflow body. No invented items. No workflow body modifications.
+All four plays pass verification. Every front-matter item traces to the workflow body. No invented items. No workflow body modifications.

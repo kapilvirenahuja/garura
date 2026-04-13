@@ -10,11 +10,11 @@
 
 ### ✅ G-901: IDD Intent Propagation
 
-**Checkpoint:** `create-pr` recipe passes intent string to repo-orchestrator invocation.
+**Checkpoint:** `create-pr` play passes intent string to repo-orchestrator invocation.
 
 **Evidence:**
 ```markdown
-File: core/components/recipes/create-pr/SKILL.md
+File: core/components/plays/create-pr/SKILL.md
 
 Step 1 (Analyze):
 Intent to propagate: Pass the following as the first line of the agent invocation context:
@@ -32,11 +32,11 @@ Intent to propagate: Pass the following as the first line of the agent invocatio
 
 ### ✅ G-904: Tether/Vanish Checkpoint Pattern
 
-**Checkpoint:** `create-pr` recipe uses Tether/Vanish at approval point (no AskUserQuestion).
+**Checkpoint:** `create-pr` play uses Tether/Vanish at approval point (no AskUserQuestion).
 
 **Evidence:**
 ```markdown
-File: core/components/recipes/create-pr/SKILL.md line 84, 203:
+File: core/components/plays/create-pr/SKILL.md line 84, 203:
 
 Type **Tether** to create the PR or **Vanish** to cancel.
 ```
@@ -51,7 +51,7 @@ Type **Tether** to create the PR or **Vanish** to cancel.
 
 **Evidence:**
 ```markdown
-File: core/components/recipes/create-pr/SKILL.md lines 8-27:
+File: core/components/plays/create-pr/SKILL.md lines 8-27:
 
 intent: >
   Submit work for peer review via a pull request with dynamically generated,
@@ -142,7 +142,7 @@ Added `## References` table documenting all three templates and their usage.
 
 **Status:** ✅ PASS (with enhancements)
 
-All verification criteria met. `create-pr` recipe v2.2.0:
+All verification criteria met. `create-pr` play v2.2.0:
 - ✅ Has IDD intent header with intent/constraints/failure_conditions
 - ✅ Propagates intent to repo-orchestrator calls in canonical format
 - ✅ Uses Tether/Vanish checkpoint pattern (no AskUserQuestion)

@@ -7,7 +7,7 @@
 
 ## Problem
 
-prepare-implementation is the heavyweight preparation recipe — the entry point for all serious development work. If this recipe gets context right, implement-epic becomes mechanical execution.
+prepare-implementation is the heavyweight preparation play — the entry point for all serious development work. If this play gets context right, implement-epic becomes mechanical execution.
 
 Today it has three critical flaws:
 
@@ -29,7 +29,7 @@ Today it has three critical flaws:
 
 **Never halt the user.** IDD is about helping users, not blocking them. When upstream artifacts are missing, derive what you can, discover what you must, and work with the user to fill genuine gaps. Halting is SDD behavior.
 
-**Architecture and quality are essential context.** While product.yaml and roadmap.yaml are nice-to-have, architecture.yaml and quality-standards.yaml represent critical context. When they don't exist as locked artifacts, the recipe must discover/infer this information from the codebase and work with the user to establish it — not skip it.
+**Architecture and quality are essential context.** While product.yaml and roadmap.yaml are nice-to-have, architecture.yaml and quality-standards.yaml represent critical context. When they don't exist as locked artifacts, the play must discover/infer this information from the codebase and work with the user to establish it — not skip it.
 
 ## Pipeline Position
 
@@ -48,7 +48,7 @@ prepare-implementation is the heavyweight path. start-feature-planning is the li
 
 ## Entry Resolution
 
-The recipe accepts work from multiple sources — no single entry point is required:
+The play accepts work from multiple sources — no single entry point is required:
 
 | Source | Detection | Resolution |
 |--------|-----------|------------|
@@ -82,50 +82,50 @@ Mark as gap → address via user interview with targeted questions
 | product.yaml | Strategic goals, users, scope | Issue body, repo README, prior epic features.yaml |
 | roadmap.yaml | Epic ordering, depends_on | Issue body IS the epic. No ordering needed for single-issue work |
 
-When missing, the recipe proceeds with what's available. No discovery session needed.
+When missing, the play proceeds with what's available. No discovery session needed.
 
 ### Architecture + Quality (essential — discover if missing)
 
 | Artifact | What it provides | When missing |
 |----------|-----------------|-------------|
-| architecture.yaml | Tech selections, platforms, design patterns, logical architecture | **Must be discovered.** Codebase scan + LTM + user interview to establish. Recipe works with user to build this understanding before proceeding. |
+| architecture.yaml | Tech selections, platforms, design patterns, logical architecture | **Must be discovered.** Codebase scan + LTM + user interview to establish. Play works with user to build this understanding before proceeding. |
 | quality-standards.yaml | QP levels, testing, CI/CD, coverage | **Must be discovered.** Toolchain detection + LTM + user interview to establish quality gates. |
 
-When architecture.yaml or quality-standards.yaml are missing, the recipe doesn't halt — but it doesn't skip either. It enters a **discovery mode** where it derives what it can from the codebase and works with the user to fill gaps. The goal is that by the end of context resolution, the recipe has equivalent understanding to what these files would have provided.
+When architecture.yaml or quality-standards.yaml are missing, the play doesn't halt — but it doesn't skip either. It enters a **discovery mode** where it derives what it can from the codebase and works with the user to fill gaps. The goal is that by the end of context resolution, the play has equivalent understanding to what these files would have provided.
 
 Output: `{stm_base}/{issue}/evidence/prepare-implementation/context-assembly.yaml`
 
 ## Data Collection Architecture
 
-**Recipe orchestrates, agents collect, STM stores, paths flow.**
+**Play orchestrates, agents collect, STM stores, paths flow.**
 
-Sub-agents cannot call other sub-agents. Therefore, the recipe is responsible for:
+Sub-agents cannot call other sub-agents. Therefore, the play is responsible for:
 1. Dispatching each data collection agent in parallel where possible
 2. Receiving output paths from each agent
 3. Storing all collected data in STM on disk
 4. Passing STM paths to downstream agents that need the data
 
 ```
-Recipe dispatches in parallel:
+Play dispatches in parallel:
   ├── tech-architect agent → STM: architecture-inference.md
   ├── test-engineer agent → STM: test-surface.yaml
   ├── tech-architect agent → STM: dependency-graph.yaml
   └── git-historian → STM: commit-history-analysis.md
       
-Recipe collects all STM paths, passes to next phase:
+Play collects all STM paths, passes to next phase:
   └── tech-architect agent (blast radius) ← reads all STM paths
 ```
 
-All work is issue-mapped. Even when working on an epic, there must be an issue (via /start-feature). All intermediate data lives in `{stm_base}/{issue}/evidence/prepare-implementation/`. There is no `{epic_base}` path — the recipe always uses `{stm_base}/{issue}/`.
+All work is issue-mapped. Even when working on an epic, there must be an issue (via /start-feature). All intermediate data lives in `{stm_base}/{issue}/evidence/prepare-implementation/`. There is no `{epic_base}` path — the play always uses `{stm_base}/{issue}/`.
 
 ## Phase 1: Codebase Understanding (Deep Scan)
 
 This is NOT "find what frameworks exist." This is "understand the system."
 
-All Phase 1 steps can run in parallel — they're independent data collection tasks orchestrated by the recipe.
+All Phase 1 steps can run in parallel — they're independent data collection tasks orchestrated by the play.
 
 ### Step 1A — Architecture Inference
-**Agent: tech-architect** (new agent — tech-designer continues for other recipes)
+**Agent: tech-architect** (new agent — tech-designer continues for other plays)
 
 Read the codebase to understand:
 - Module/package structure and boundaries
@@ -242,7 +242,7 @@ This is the core innovation. Given the issue/epic + codebase understanding, dete
 ### Step 2A — Change Surface Identification
 **Agent: tech-architect**
 
-Given the issue description + all Phase 1 outputs (paths passed by recipe):
+Given the issue description + all Phase 1 outputs (paths passed by play):
 - What files need to change? (CREATE / MODIFY / DELETE)
 - What functions/methods/classes are affected?
 - What interfaces change? (function signatures, API contracts, data schemas)
@@ -255,17 +255,17 @@ change_surface:
   description: "Remove hard-halt on missing upstream artifacts in prepare-implementation"
   
   files:
-    - path: "core/components/recipes/prepare-implementation/reference/intent.yaml"
+    - path: "core/components/plays/prepare-implementation/reference/intent.yaml"
       action: MODIFY
       what_changes: "Constraints C1, C14, C15, C21, C22 — remove hard-halt, add resolution hierarchy"
       confidence: high
-      source: "direct — this is the intent file for the recipe being changed"
+      source: "direct — this is the intent file for the play being changed"
       
     - path: "core/components/agents/tech-designer.md"
       action: MODIFY
       what_changes: "Expand codebase understanding capabilities"
       confidence: high
-      source: "dependency graph — agent is dispatched by the recipe"
+      source: "dependency graph — agent is dispatched by the play"
       
     - path: "core/components/agents/quality-auditor.md"
       action: MODIFY
@@ -291,7 +291,7 @@ Intersect change surface with test surface using the dependency graph:
 ```yaml
 blast_radius:
   directly_impacted:
-    - test_file: "tests/recipes/prepare-implementation.test.ts"
+    - test_file: "tests/plays/prepare-implementation.test.ts"
       test_name: "halts on missing product.yaml"
       tests_what: "Pre-flight hard-halt behavior"
       would_break: true
@@ -307,14 +307,14 @@ blast_radius:
       action: "KEEP as-is — regression safety net"
 
   coverage_gaps:
-    - file: "core/components/recipes/prepare-implementation/SKILL.md"
+    - file: "core/components/plays/prepare-implementation/SKILL.md"
       area: "Context resolution from codebase scan"
       current_behavior: "Not tested — pre-flight halts before reaching this path"
       risk: high
       baseline_test_needed: true
       
   regression_surface:
-    - test_file: "tests/recipes/prepare-implementation.test.ts"
+    - test_file: "tests/plays/prepare-implementation.test.ts"
       test_name: "produces locked artifacts from epic"
       risk_level: low
       reason: "Epic path unchanged — should still pass"
@@ -339,10 +339,10 @@ baseline_tests:
   - id: BT-001
     coverage_gap_ref: "context-resolution-from-scan"
     target:
-      file: "core/components/recipes/prepare-implementation/SKILL.md"
+      file: "core/components/plays/prepare-implementation/SKILL.md"
       area: "Context resolution when architecture.yaml missing"
     current_behavior: |
-      Recipe halts with "Hard halt — run /prepare-architecture first"
+      Play halts with "Hard halt — run /prepare-architecture first"
     test_spec:
       type: "integration"
       setup: |
@@ -352,7 +352,7 @@ baseline_tests:
       action: |
         - Invoke prepare-implementation context resolution
       assert: |
-        - Recipe does NOT halt
+        - Play does NOT halt
         - context-assembly.yaml has architecture.status = "derived"
         - architecture section includes express 4.18 from package.json
     priority: high
@@ -464,7 +464,7 @@ baseline_scenarios:
   - id: BS-001
     source: "BT-001"
     description: "Current pre-flight halts on missing architecture.yaml"
-    expected_behavior: "Recipe throws hard-halt error"
+    expected_behavior: "Play throws hard-halt error"
     pass_criteria: "Error message contains 'run /prepare-architecture first'"
     automation: automated
     
@@ -472,7 +472,7 @@ baseline_scenarios:
 new_scenarios:
   - id: NS-001
     feature_ref: "F1"
-    description: "Recipe resolves architecture from codebase when architecture.yaml missing"
+    description: "Play resolves architecture from codebase when architecture.yaml missing"
     expected_behavior: "context-assembly.yaml contains derived architecture"
     pass_criteria: "architecture.status == 'derived' AND technology entries present"
     automation: automated
@@ -504,7 +504,7 @@ task_dag:
       - id: T-000-1
         name: "Implement baseline test BT-001"
         file_changes:
-          - path: "tests/recipes/context-resolution.test.ts"
+          - path: "tests/plays/context-resolution.test.ts"
             action: CREATE
         exit_gate: "Test passes on current codebase"
         depends_on: []
@@ -541,7 +541,7 @@ task_dag:
 
 ## Agent Allocation
 
-**No budget limit for this recipe.** This is the heavyweight — it must get context right. Use as many agents and dispatches as needed.
+**No budget limit for this play.** This is the heavyweight — it must get context right. Use as many agents and dispatches as needed.
 
 | Agent | Domain | Phases |
 |-------|--------|--------|
@@ -553,7 +553,7 @@ task_dag:
 
 Key principle: **keep testing and architecture sub-agents separate.** The tech-architect understands the system's design. The test-engineer understands how to verify it. These are different skills and mixing them produces worse output.
 
-The tech-architect agent is new (separate from tech-designer, which continues to serve other recipes). It needs:
+The tech-architect agent is new (separate from tech-designer, which continues to serve other plays). It needs:
 - Deep codebase reading capability
 - Design pattern recognition
 - Logical architecture inference
@@ -638,11 +638,11 @@ Artifacts that are purely structured data stay YAML-only.
 ## Intent Changes Required
 
 ### Constraints to modify
-- **C1:** Product.yaml and roadmap.yaml are nice-to-have. When present and locked, they're authoritative. When absent, recipe proceeds with issue context. No halt.
+- **C1:** Product.yaml and roadmap.yaml are nice-to-have. When present and locked, they're authoritative. When absent, play proceeds with issue context. No halt.
 - **C10:** Update "three checkpoints" → "five checkpoints" (context assembly, blast radius, features, tech+LLD, scenarios+plan).
 - **C14:** `--epic` optional. Auto-resolve issue from branch/STM. Halt only when neither epic nor issue available.
 - **C15:** Epic dependency enforcement only when roadmap exists. Not applicable for issue-driven entry.
-- **C21:** Architecture.yaml is essential context but not a hard-halt. When absent, recipe enters discovery mode — derives from codebase scan + LTM + user interview to establish equivalent understanding. Works with user to build this context.
+- **C21:** Architecture.yaml is essential context but not a hard-halt. When absent, play enters discovery mode — derives from codebase scan + LTM + user interview to establish equivalent understanding. Works with user to build this context.
 - **C22:** Quality-standards.yaml is essential context but not a hard-halt. Same discovery mode as C21.
 
 ### New constraints
@@ -653,7 +653,7 @@ Artifacts that are purely structured data stay YAML-only.
 - **C27:** tech.yaml must contain file-level change specifications: for MODIFY files, exact location and before/after; for CREATE files, content template.
 - **C28:** scenarios.yaml must contain three tiers: baseline (existing behavior), new (from features), regression (from blast radius). Feature gates must reference all three tiers.
 - **C29:** Git commit history must be analyzed as a parallel data source during codebase understanding. Co-change patterns, recent activity, and commit messages inform the change surface and blast radius.
-- **C30:** All intermediate data collected by agents must be stored in STM on disk. The recipe orchestrates by passing STM paths between agents — never by passing data through memory or conversation context.
+- **C30:** All intermediate data collected by agents must be stored in STM on disk. The play orchestrates by passing STM paths between agents — never by passing data through memory or conversation context.
 - **C31:** Artifacts that benefit from diagrams and narrative use dual format (YAML + MD): architecture-inference, dependency-graph, commit-history-analysis, tech, plan. Pure data artifacts stay YAML-only: context-assembly, test-surface, change-surface, blast-radius, baseline-tests, features, scenarios.
 - **C32:** Testing and architecture agent work must be separated. The tech-architect understands the system's design; the test-engineer understands how to verify it. These are different domains with different agents.
 
@@ -662,13 +662,13 @@ Artifacts that are purely structured data stay YAML-only.
 - **F18:** Remove (was hard-halt on missing architecture/quality-standards)
 
 ### New failure conditions
-- **F19:** Recipe proceeded with no issue AND no epic — nothing to scope against
+- **F19:** Play proceeded with no issue AND no epic — nothing to scope against
 - **F20:** Design artifacts produced without blast radius analysis completing
 - **F21:** Coverage gaps exist in change surface without baseline test specifications
 - **F22:** plan.yaml tasks lack `depends_on` chains or per-task file lists
 - **F23:** tech.yaml MODIFY entries lack before/after change specifications
 - **F24:** Baseline test specification doesn't cover every coverage gap in blast radius
-- **F25:** Architecture context missing and recipe didn't enter discovery mode
+- **F25:** Architecture context missing and play didn't enter discovery mode
 - **F26:** Intermediate agent data not stored in STM — passed through memory instead
 
 ### Existing scenarios to update
@@ -685,7 +685,7 @@ Artifacts that are purely structured data stay YAML-only.
 
 ## Model and Reasoning Configuration
 
-Per user direction: all agents in prepare-implementation should run on the best available model with maximum reasoning effort. This recipe is make-or-break — thoroughness over speed, always.
+Per user direction: all agents in prepare-implementation should run on the best available model with maximum reasoning effort. This play is make-or-break — thoroughness over speed, always.
 
 - All agent dispatches: highest-capability model, maximum reasoning
 - No token economy constraints

@@ -96,7 +96,7 @@ NeuroSDLC agents execute codified transformations deterministically. Immediate p
 
 ### The Goodhart's Law Question
 
-IDSD's compartmented evaluation introduces an information barrier between builder and validator agents. The recipe orchestration layer splits the intent triple, routing goal+constraints to the builder and failure_conditions+output to the validator. Symptom-based feedback preserves the barrier during iteration. This is architecturally novel in the AI-native SDLC space — no other published methodology separates generation and validation context — though it has zero production testing.
+IDSD's compartmented evaluation introduces an information barrier between builder and validator agents. The play orchestration layer splits the intent triple, routing goal+constraints to the builder and failure_conditions+output to the validator. Symptom-based feedback preserves the barrier during iteration. This is architecturally novel in the AI-native SDLC space — no other published methodology separates generation and validation context — though it has zero production testing.
 
 | Layer | IDSD | NeuroSDLC |
 |---|---|---|
@@ -127,7 +127,7 @@ IDSD is architecturally designed for enterprise teams:
 - Enterprise Wrapper documents governance, memory federation, and Hive Mind (cross-agent coordination)
 - 5 AI Squad roles designed for team operation, including "Validator per 2-3 teams"
 - LTM is globally deployable (`~/.meridian/core/memory/`)
-- Recipes abstract all complexity — any developer invokes `/build-feature` without understanding internals
+- Plays abstract all complexity — any developer invokes `/build-feature` without understanding internals
 
 NeuroSDLC is architecturally designed for enterprise teams:
 - Role-based cognitive assets give each role (BA, QA, Dev, PO) specific workflows
@@ -142,8 +142,8 @@ NeuroSDLC is architecturally designed for enterprise teams:
 |---|---|---|
 | Multi-person validated | No — validated at single developer | Yes — production deployments with teams |
 | LTM conflict resolution | Git handles file-level conflicts. `capture-learning` has semantic conflict detection designed but not built. STM→LTM promotion goes through PR workflow — project-level reviewed by team, org-level reviewed by engineering leaders/CTOs | P3-Hub is project-scoped. No cross-project knowledge sharing |
-| Cross-developer visibility | Present via Git/GitHub (issues, branches, PRs, STM artifacts committed to branches). NWWI (No Work Without Issue) enforced in recipes | Present via IDE integration and role-specific dashboards |
-| Governance | 10+ mechanisms built: DRAFT/VALIDATE/LOCKED lifecycle, Tether/Vanish gates, Guardian Logic, NWWI gate, ICS, compartmented evaluation, protected branch enforcement, sensitive file detection. Recipe-enforced (agent-layer), not CI-enforced | Built into cognitive asset workflows. IDE-enforced |
+| Cross-developer visibility | Present via Git/GitHub (issues, branches, PRs, STM artifacts committed to branches). NWWI (No Work Without Issue) enforced in plays | Present via IDE integration and role-specific dashboards |
+| Governance | 10+ mechanisms built: DRAFT/VALIDATE/LOCKED lifecycle, Tether/Vanish gates, Guardian Logic, NWWI gate, ICS, compartmented evaluation, protected branch enforcement, sensitive file detection. Play-enforced (agent-layer), not CI-enforced | Built into cognitive asset workflows. IDE-enforced |
 | Role-specific tooling | Same CLI for all roles. Non-developer roles depend on platform evolution (Claude Co-Work, IDE integrations) | BA gets BA tools, QA gets QA tools, PO gets PO tools. Purpose-built per role |
 | Onboarding | Learn to write intents. Conceptually simple, practically deep. Time-to-first-value: minutes (`/build-feature "Add CSV export"` works immediately) | Learn 6D lifecycle, 30+ cognitive assets, IDE workflows. Time-to-first-value: weeks to months |
 
@@ -165,7 +165,7 @@ NeuroSDLC:
 
 | Aspect | IDSD | NeuroSDLC |
 |---|---|---|
-| Architecture | 3.0 — enterprise-designed, governance-rich, recipe abstraction enables N-developer use | 3.5 — role-specific, IDE-integrated, structured onboarding, production-tested design |
+| Architecture | 3.0 — enterprise-designed, governance-rich, play abstraction enables N-developer use | 3.5 — role-specific, IDE-integrated, structured onboarding, production-tested design |
 | Implementation | 2.0 — validated at 1 person, 10+ governance mechanisms built, but no multi-person production evidence | 3.0 — production deployments with teams, role-based workflows operational |
 | Trajectory | 3.0 — server LTM, domain parameters, tool integrations, dashboard all plausible with architectural support | 1.5 — no stated evolution plans for cross-project learning, adaptive assets, or role evolution |
 
@@ -192,10 +192,10 @@ IDSD's slower approach grounds LTM in actual work experience. Knowledge that ent
 | Layer | IDSD | NeuroSDLC |
 |---|---|---|
 | Architecture | Learn-2-Memory phase is a first-class SDLC phase. STM→LTM promotion mechanism designed. | Code2X agents integrated into the 6D lifecycle. Reverse-engineering is architecturally supported. |
-| Implementation | No brownfield bootstrap recipe exists. Organic accumulation only. | Nine Code2X agents operational. Day-one documentation generation available. |
-| Trajectory | Brownfield bootstrap recipe ("codebase-to-LTM") recognized as needed. Concept only — not specified, not on near-term roadmap. | No stated plans for Code2X quality feedback (correcting wrong artifacts back into the system). No cross-project learning from brownfield exercises. |
+| Implementation | No brownfield bootstrap play exists. Organic accumulation only. | Nine Code2X agents operational. Day-one documentation generation available. |
+| Trajectory | Brownfield bootstrap play ("codebase-to-LTM") recognized as needed. Concept only — not specified, not on near-term roadmap. | No stated plans for Code2X quality feedback (correcting wrong artifacts back into the system). No cross-project learning from brownfield exercises. |
 
-**Recommendation**: For brownfield adoption, NeuroSDLC offers faster time-to-first-understanding. IDSD offers higher long-term knowledge fidelity. The choice depends on urgency: if the team needs to ship changes within weeks, Code2X's imperfect map is more useful than no map. If the team has months, IDSD's organic approach produces more accurate knowledge. IDSD's brownfield bootstrap recipe is a concept-stage gap, not a structural limitation.
+**Recommendation**: For brownfield adoption, NeuroSDLC offers faster time-to-first-understanding. IDSD offers higher long-term knowledge fidelity. The choice depends on urgency: if the team needs to ship changes within weeks, Code2X's imperfect map is more useful than no map. If the team has months, IDSD's organic approach produces more accurate knowledge. IDSD's brownfield bootstrap play is a concept-stage gap, not a structural limitation.
 
 ---
 
@@ -232,7 +232,7 @@ Cognitive assets give AI agents detailed playbooks — L2 pairing through prescr
 | | IDSD | NeuroSDLC |
 |---|---|---|
 | **Architecture** | L3-ready. Intent model, compartmented evaluation, agent autonomy, Guardian Logic all designed for human-as-reviewer, not human-as-doer. | L2 architecture with L3 aspirations. Cognitive assets prescribe execution; agents don't make autonomous decisions. |
-| **Implementation** | Partial. `start-planned-feature` has autonomous execution. 19 recipes specified, ~4 built. | Partial. Full artifact chain and validators exist, but developer actively manages chain. |
+| **Implementation** | Partial. `start-planned-feature` has autonomous execution. 19 plays specified, ~4 built. | Partial. Full artifact chain and validators exist, but developer actively manages chain. |
 | **Trajectory** | 3-6 months building specified components (author's estimate, not independently validated). Assumes specifications work as designed — untested. | 12-18 months of deliberate architectural evolution. Would require widening agent decision space within cognitive assets — significant but incremental, not a wholesale replacement. |
 
 ### Path to L4
@@ -245,8 +245,8 @@ NeuroSDLC's artifact chain IS heavyweight specs — but human-curated, not syste
 
 | Layer | IDSD | NeuroSDLC |
 |---|---|---|
-| **Architecture** | Memory architecture (STM→LTM promotion) captures intent→outcome pairs. `capture-learning` recipe specified with concrete skill contracts (`extract-patterns`, `draft-ltm-entry`). ICS designed as training signal for Learn-2-Memory. This is the accumulation path toward self-generation — architecturally present, not yet the generation step itself. | P3-Hub is a static library. No architectural mechanism for assets to learn from execution outcomes. No feedback loop from deploy back to specify. The lifecycle ends at Deploy. |
-| **Implementation** | `capture-learning` recipe specified but not built. No production intent self-generation. Current mode: humans write intents. | No implementation of any learning feedback loop. Cognitive assets are manually authored and updated. |
+| **Architecture** | Memory architecture (STM→LTM promotion) captures intent→outcome pairs. `capture-learning` play specified with concrete skill contracts (`extract-patterns`, `draft-ltm-entry`). ICS designed as training signal for Learn-2-Memory. This is the accumulation path toward self-generation — architecturally present, not yet the generation step itself. | P3-Hub is a static library. No architectural mechanism for assets to learn from execution outcomes. No feedback loop from deploy back to specify. The lifecycle ends at Deploy. |
+| **Implementation** | `capture-learning` play specified but not built. No production intent self-generation. Current mode: humans write intents. | No implementation of any learning feedback loop. Cognitive assets are manually authored and updated. |
 | **Trajectory** | Monitoring-to-Design phase planned: production feedback, analytics, usage patterns → auto-generated intents. Pure concept, 18-24 months. The concept of "hypothesis" (purpose above intents) would anchor L5 — systems generate intents from hypotheses using rich LTM. Not designed. | No plans for adaptive cognitive assets. No plans for production feedback loop. The "continuous improvement" in Beacon refers to running more stories under the same vision — not learning that changes the vision. Zero architectural evidence of learning being designed. |
 
 ### Hard Ceilings
@@ -288,8 +288,8 @@ NeuroSDLC's validators share context with generators → at L4+, verification de
 | **Total** | **11.0/24** | **5.5/24** | **13.0/24** | **19.5/24** | **18.5/24** | **17.5/24** |
 
 Enterprise Readiness justifications:
-- Multi-role enablement: NeuroSDLC provides role-specific cognitive assets (BA, QA, Dev, PO), IDE integration for non-technical roles, and structured per-role workflows. IDSD provides a single CLI interface for all roles, relying on recipe abstraction and platform evolution for role-specific experiences.
-- Brownfield on-ramp: NeuroSDLC's nine Code2X agents generate documentation for existing codebases in hours. IDSD has no equivalent — organic accumulation only, with a bootstrap recipe at concept stage.
+- Multi-role enablement: NeuroSDLC provides role-specific cognitive assets (BA, QA, Dev, PO), IDE integration for non-technical roles, and structured per-role workflows. IDSD provides a single CLI interface for all roles, relying on play abstraction and platform evolution for role-specific experiences.
+- Brownfield on-ramp: NeuroSDLC's nine Code2X agents generate documentation for existing codebases in hours. IDSD has no equivalent — organic accumulation only, with a bootstrap play at concept stage.
 - Compliance/audit trail: NeuroSDLC's 15-20+ artifacts per feature create extensive audit trails. IDSD's 3-5 artifacts prioritize minimalism over traceability, with compliance mode at concept stage.
 - Team onboarding: NeuroSDLC has structured training journeys per role. IDSD onboarding is "learn to write intents" — conceptually simple but with a deep mastery curve.
 - Production deployment maturity: NeuroSDLC has production team deployments. IDSD is validated at single developer only.
@@ -307,7 +307,7 @@ Agent autonomy:
 
 Self-healing on failure:
 - IDSD Arch 3.0: Convergence protocols, symptom-based feedback, compartmented evaluation enable independent recovery.
-- IDSD Impl 2.0: Basic error handling in recipes. Convergence protocols not yet operational.
+- IDSD Impl 2.0: Basic error handling in plays. Convergence protocols not yet operational.
 - IDSD Traj 3.5: Full convergence + escalation designed.
 - Neuro Arch 2.0: Validators at each step provide defect detection. No autonomous recovery loop — failures escalate to humans.
 - Neuro Impl 2.0: Validators operational. Manual escalation.
@@ -322,7 +322,7 @@ Spec self-generation:
 - Neuro Traj 1.0: No plans for forward spec generation or adaptive specification.
 
 Process self-evolution:
-- IDSD Arch 2.5: STM→LTM promotion architecture. `capture-learning` recipe specified with concrete skill contracts. ICS designed as feedback signal. P8 health signals defined. High-order agents designed for LTM governance.
+- IDSD Arch 2.5: STM→LTM promotion architecture. `capture-learning` play specified with concrete skill contracts. ICS designed as feedback signal. P8 health signals defined. High-order agents designed for LTM governance.
 - IDSD Impl 1.5: STM/LTM storage exists. Promotion is manual. `capture-learning` not built. No ICS data collection.
 - IDSD Traj 3.0: Automated capture-learning, ICS feedback, LTM quality/decay scoring planned.
 - Neuro Arch 1.0: P3-Hub is static but provides a functioning manual process for asset management. Cognitive assets can be versioned and updated. No automated feedback loop from execution, but the asset structure could support one.
@@ -333,8 +333,8 @@ Vendor independence:
 - Both 3.0 across all layers. File-based portable abstractions. Both single-runtime in production today.
 
 Org scalability:
-- IDSD Arch 3.0: Enterprise Wrapper, Memory Federation, Hive Mind, recipe abstraction, 10+ governance mechanisms. Designed for enterprise teams.
-- IDSD Impl 2.0: Validated at 1 person. Governance mechanisms built but recipe-enforced not CI-enforced. No role-specific tooling. CLI only. GitHub integrations exist.
+- IDSD Arch 3.0: Enterprise Wrapper, Memory Federation, Hive Mind, play abstraction, 10+ governance mechanisms. Designed for enterprise teams.
+- IDSD Impl 2.0: Validated at 1 person. Governance mechanisms built but play-enforced not CI-enforced. No role-specific tooling. CLI only. GitHub integrations exist.
 - IDSD Traj 3.0: Server LTM, domain parameters, tool integrations (Jira, Notion), cross-team visibility dashboard. Architecture supports all; implementation incremental.
 - Neuro Arch 3.5: Role-based cognitive assets, IDE integration for all roles, structured onboarding, 30+ assets mapped to roles and phases.
 - Neuro Impl 3.0: Production team deployments. Role-specific workflows operational.
@@ -443,8 +443,8 @@ NeuroSDLC is resilient to reasoning regression (prescriptive playbooks still wor
 
 ### Key gaps for IDSD (priority order):
 
-1. **`capture-learning` recipe — make it operational.** This is the foundation for process self-evolution AND the precondition for eventual intent self-generation. Every other trajectory goal depends on LTM actually being populated from work. Highest leverage investment.
-2. **Brownfield bootstrap recipe.** Purpose-built "codebase-to-LTM" for cold-start on legacy codebases. Currently concept-only. Real enterprises need this for adoption.
+1. **`capture-learning` play — make it operational.** This is the foundation for process self-evolution AND the precondition for eventual intent self-generation. Every other trajectory goal depends on LTM actually being populated from work. Highest leverage investment.
+2. **Brownfield bootstrap play.** Purpose-built "codebase-to-LTM" for cold-start on legacy codebases. Currently concept-only. Real enterprises need this for adoption.
 3. **LTM quality/decay automation.** As LTM grows, automated freshness scoring, relevance decay, and contradiction detection become critical. The 20-file audit rule is insufficient for enterprise scale. Planned but not designed.
 4. **Multi-stakeholder intent negotiation.** Mechanism for resolving conflicting goals. Not designed. Real for enterprise contexts.
 5. **Compliance artifact mode.** Optional expansion for regulated industries. Concept-stage. Additive to existing architecture.

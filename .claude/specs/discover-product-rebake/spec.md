@@ -2,17 +2,17 @@
 
 ## Problem
 
-The discover-product recipe assumes every product has a market to discover. When the intent describes an internal library, microservice, or technical component, Step 1 (discover-product-opportunity) produces fabricated market data — fake competitors, invented personas, meaningless TAM/SAM/SOM. This pollutes the product.yaml and produces an HTML brief with empty or misleading sections.
+The discover-product play assumes every product has a market to discover. When the intent describes an internal library, microservice, or technical component, Step 1 (discover-product-opportunity) produces fabricated market data — fake competitors, invented personas, meaningless TAM/SAM/SOM. This pollutes the product.yaml and produces an HTML brief with empty or misleading sections.
 
 Additionally, the validation skill has hardcoded thresholds (>=2 personas, >=2 competitors) that are meaningless for internal tools, causing libraries to fail validation on irrelevant criteria.
 
 ## Dependency
 
-**This spec MUST be executed AFTER the `recipe-eval-gen` spec is complete.** When discover-product is rebaked, it should use the new compiler that wires generated evals into the VALIDATE phase. The intent.yaml changes below are written with eval generation in mind — constraints are specific enough for automated eval generation.
+**This spec MUST be executed AFTER the `play-eval-gen` spec is complete.** When discover-product is rebaked, it should use the new compiler that wires generated evals into the VALIDATE phase. The intent.yaml changes below are written with eval generation in mind — constraints are specific enough for automated eval generation.
 
 ## Desired Outcome
 
-discover-product handles both market-facing products and internal libraries/components through a single recipe. Opportunity discovery is skipped when unnecessary. Validation adapts to what is present rather than enforcing market-specific checklist items. The HTML brief renders what exists and skips empty sections.
+discover-product handles both market-facing products and internal libraries/components through a single play. Opportunity discovery is skipped when unnecessary. Validation adapts to what is present rather than enforcing market-specific checklist items. The HTML brief renders what exists and skips empty sections.
 
 ## Scope
 
@@ -22,13 +22,13 @@ discover-product handles both market-facing products and internal libraries/comp
 3. draft-product-vision skill changes (accept missing market_context, write `type` field)
 4. validate-product-vision skill changes (type-aware checklist adaptation)
 5. generate-product-brief skill changes (conditional tab rendering, skip empty sections)
-6. discover-product SKILL.md recompilation via `/create-recipe --rebake`
+6. discover-product SKILL.md recompilation via `/create-play --rebake`
 
 ### Out of Scope
 - discover-product-opportunity skill (no changes — it just doesn't get called)
-- create-recipe compiler changes (separate spec: `recipe-eval-gen`)
-- New recipes or agents
-- Changes to downstream recipes (plan-roadmap, scope-epics)
+- create-play compiler changes (separate spec: `play-eval-gen`)
+- New plays or agents
+- Changes to downstream plays (plan-roadmap, scope-epics)
 
 ---
 
@@ -243,7 +243,7 @@ For library: 3 items at ~33% each for completeness scoring. For product: 5 items
 
 ### Future: Eval-Driven Validation
 
-Once create-recipe supports wiring generated evals into runtime (per recipe-eval-gen spec), validate-product-vision may be replaced entirely by eval execution. The intent.yaml constraints (C12, C13) and failure conditions (F1, F8, F10) are written to be eval-generatable. The type-aware checklist is a bridge.
+Once create-play supports wiring generated evals into runtime (per play-eval-gen spec), validate-product-vision may be replaced entirely by eval execution. The intent.yaml constraints (C12, C13) and failure conditions (F1, F8, F10) are written to be eval-generatable. The type-aware checklist is a bridge.
 
 ---
 
@@ -288,21 +288,21 @@ No design system changes — same LifeOS Dark tokens.
 
 ---
 
-## Change 6: Recipe Recompilation
+## Change 6: Play Recompilation
 
-The recipe SKILL.md is NOT hand-edited. After all skill changes are complete:
+The play SKILL.md is NOT hand-edited. After all skill changes are complete:
 ```
-/create-recipe --rebake discover-product
+/create-play --rebake discover-product
 ```
 
-The compiler (with recipe-eval-gen changes) will produce a new SKILL.md that:
+The compiler (with play-eval-gen changes) will produce a new SKILL.md that:
 1. Adds a conditional gate before Step 1 (assess whether to skip opportunity discovery per C12)
 2. Modifies the Step 1 → Step 2 contract to pass either `market_context` or `raw_intent`
 3. Adjusts C5 agent budget callout
 4. Generates evals from F8 and F10 via evals-creator (not hand-authored)
 5. Updates scenario validations with generated SCE-4 for type=library
 
-### Expected Recipe Flow After Rebake
+### Expected Play Flow After Rebake
 
 **DRAFT Phase (type=product, unchanged):**
 ```
@@ -325,10 +325,10 @@ Agent budget when skipped: 2 dispatches (1 product-strategist for draft, 1 doc-b
 3. **Update draft-product-vision SKILL.md** — Accept raw_intent, conditional composition, type field
 4. **Update validate-product-vision SKILL.md** — Type-aware checklist, dynamic scoring
 5. **Update generate-product-brief SKILL.md** — Conditional tab rendering, skip empty sections
-6. **Rebake recipe** — `/create-recipe --rebake discover-product` (AFTER recipe-eval-gen is done)
+6. **Rebake play** — `/create-play --rebake discover-product` (AFTER play-eval-gen is done)
 7. **Sync** — `/sync-claude`
 
-Steps 2-5 can be parallelized. Step 1 goes first (intent is source of truth). Step 6 depends on all previous steps AND the recipe-eval-gen spec being complete.
+Steps 2-5 can be parallelized. Step 1 goes first (intent is source of truth). Step 6 depends on all previous steps AND the play-eval-gen spec being complete.
 
 ---
 
@@ -345,7 +345,7 @@ Steps 2-5 can be parallelized. Step 1 goes first (intent is source of truth). St
 
 | File | Role |
 |------|------|
-| `core/components/recipes/discover-product/reference/intent.yaml` | Primary: receives C12, C13, F8, F10, S4 |
+| `core/components/plays/discover-product/reference/intent.yaml` | Primary: receives C12, C13, F8, F10, S4 |
 | `core/components/skills/draft-product-vision/SKILL.md` | Accept raw_intent, conditional composition, type field |
 | `core/components/skills/draft-product-vision/schemas/product.yaml` | Schema: type field addition |
 | `core/components/skills/validate-product-vision/SKILL.md` | Type-aware checklist with dynamic field omission |

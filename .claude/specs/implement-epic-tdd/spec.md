@@ -8,7 +8,7 @@
 
 ## 1. Problem Statement
 
-Six structural gaps in the current `implement-epic` recipe undermine TDD integrity and quality enforcement. Three were identified through design analysis; three were discovered through live evidence from the felly-club E1 implementation.
+Six structural gaps in the current `implement-epic` play undermine TDD integrity and quality enforcement. Three were identified through design analysis; three were discovered through live evidence from the felly-club E1 implementation.
 
 ### Gap 1: Same agent writes tests and code (context bias)
 
@@ -58,7 +58,7 @@ Nobody reads `quality-standards.yaml` and certifies implementation meets the pro
 
 Despite overall FAIL, the pipeline proceeded to judge (25 evals), ran a fix loop, reached 100% pass rate, and is now finalizing. Quality gates are treated as informational, not blocking. The orchestrator does not check `quality-report.yaml` overall status before proceeding to Step 8 (judge).
 
-**Root cause:** The implement-epic recipe has no gate between Step 7 (quality-auditor) and Step 8 (judge) that halts on quality FAIL. The step dependency is `Step 8 depends on Step 6` — it bypasses Step 7's result entirely.
+**Root cause:** The implement-epic play has no gate between Step 7 (quality-auditor) and Step 8 (judge) that halts on quality FAIL. The step dependency is `Step 8 depends on Step 6` — it bypasses Step 7's result entirely.
 
 ### Gap 5: Fix loop derives remediation from judge only, ignores quality gate failures (CRITICAL)
 
@@ -90,7 +90,7 @@ The eval-generator is supposed to produce fresh evals independently (C9). The fr
 
 **New sub-agent role: test-writer**
 
-Implemented as a scoped role definition within the `implement-epic` recipe, not a standalone agent file. Per ADR 004, `test-writer` is "too granular" for a standalone agent, but within implement-epic it's a context-isolated sub-role with asymmetric information constraints.
+Implemented as a scoped role definition within the `implement-epic` play, not a standalone agent file. Per ADR 004, `test-writer` is "too granular" for a standalone agent, but within implement-epic it's a context-isolated sub-role with asymmetric information constraints.
 
 **Step restructuring — Step 6 splits into 6a and 6b:**
 
@@ -465,12 +465,12 @@ Phase: Scenario Validation + Evidence
 
 | File | Changes |
 |------|---------|
-| `core/components/recipes/implement-epic/reference/intent.yaml` | Add C17-C23, F15-F22, update C5/C14/C15/C16, add scenarios S9-S12 |
-| `core/components/recipes/implement-epic/SKILL.md` | Step 3 enrichment, new 3b, split 6→6a/6b, new 7b, quality gate hard stop, unified remediation in Step 9, eval count audit in Step 12b, fix loop 10b/11b/11b, updated evals SE-14 through SE-20 |
+| `core/components/plays/implement-epic/reference/intent.yaml` | Add C17-C23, F15-F22, update C5/C14/C15/C16, add scenarios S9-S12 |
+| `core/components/plays/implement-epic/SKILL.md` | Step 3 enrichment, new 3b, split 6→6a/6b, new 7b, quality gate hard stop, unified remediation in Step 9, eval count audit in Step 12b, fix loop 10b/11b/11b, updated evals SE-14 through SE-20 |
 | `core/components/agents/code-builder.md` | Add `read_only_files` contract support, checksum verification |
 | `core/components/agents/quality-auditor.md` | Update report schema for QP thresholds |
 | `docs/components/agents.md` | Add engineering-manager, document test-writer role |
-| `docs/adr/004-agent-naming.md` | Note on engineering-manager naming, test-writer as recipe-scoped role |
+| `docs/adr/004-agent-naming.md` | Note on engineering-manager naming, test-writer as play-scoped role |
 
 ### Create
 

@@ -1,8 +1,8 @@
-# Integration Test: discover-product Recipe (DRAFT phase)
+# Integration Test: discover-product Play (DRAFT phase)
 
 **Date:** 2026-02-25
-**Type:** End-to-end recipe execution with real prompt
-**Recipe:** discover-product --phase draft
+**Type:** End-to-end play execution with real prompt
+**Play:** discover-product --phase draft
 **Test Prompt:** "AI-powered commission tracking and dispute resolution platform for B2B SaaS marketplaces connecting sellers and buyers with transparent revenue sharing"
 
 ---
@@ -66,11 +66,11 @@
 ### DEFECT-1: STM artifacts created at global path instead of project-local
 
 **Severity:** High
-**Location:** Recipe orchestrator (path construction during mkdir + agent invocation)
+**Location:** Play orchestrator (path construction during mkdir + agent invocation)
 **Expected:** Artifacts at `.meridian/project/product/` (relative to project root)
 **Actual:** Artifacts at `~/.meridian/project/product/` (user home directory)
 **Root cause:** Orchestrator used absolute path `/Users/kapilahuja/.meridian/` instead of project-relative `.meridian/`. The `artifact_base` passed to the agent was an absolute path rooted at home.
-**Fix needed:** Recipe orchestrator must resolve `.meridian/` relative to the current working directory (project root), not as a global path. The recipe SKILL.md Step 2 specifies `artifact_base: ".meridian/project/product/"` — a relative path — but the orchestrator expanded it incorrectly.
+**Fix needed:** Play orchestrator must resolve `.meridian/` relative to the current working directory (project root), not as a global path. The play SKILL.md Step 2 specifies `artifact_base: ".meridian/project/product/"` — a relative path — but the orchestrator expanded it incorrectly.
 **Remediation:** Artifacts moved to correct project-local path post-execution.
 
 ### DEFECT-2: Multi-intent compound execution incomplete on first invocation
@@ -80,7 +80,7 @@
 **Expected:** Single agent call handles both draft-product-vision AND generate-business-review
 **Actual:** Agent only completed draft-product-vision. Required resume to complete generate-business-review.
 **Root cause:** Despite the new Multi-Intent Recognition framework in the agent definition, the agent treated the compound task as a single-skill invocation. The multi-intent decomposition did not trigger — likely because the prompt framed it as one task ("draft vision then generate business review") rather than two explicit intents.
-**Fix needed:** Either (a) strengthen multi-intent recognition to detect sequential skill dependencies in task descriptions, or (b) recipe sends two explicit intents in a clearly decomposed format the agent can parse reliably.
+**Fix needed:** Either (a) strengthen multi-intent recognition to detect sequential skill dependencies in task descriptions, or (b) play sends two explicit intents in a clearly decomposed format the agent can parse reliably.
 
 ---
 
@@ -105,5 +105,5 @@
 
 **FAIL — 2 defects found**
 
-- DEFECT-1 (High): Path resolution — fixable in recipe orchestrator
+- DEFECT-1 (High): Path resolution — fixable in play orchestrator
 - DEFECT-2 (Medium): Multi-intent execution reliability — needs agent framework refinement

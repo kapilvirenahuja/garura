@@ -2,7 +2,7 @@
 
 **Version:** 3.0.0
 **Date:** 2026-03-17 (updated from 2026-02-21)
-**Status:** IN PROGRESS — Core recipe gates complete. Gates for P7-P19 pending. New gates added for implement-epic, prepare-implementation, ship, merge-pr.
+**Status:** IN PROGRESS — Core play gates complete. Gates for P7-P19 pending. New gates added for implement-epic, prepare-implementation, ship, merge-pr.
 **Tasks Reference:** `idsd-tasks.md`
 **Spec Reference:** `idsd.md`
 
@@ -22,27 +22,27 @@ Gates G-100, G-103 confirmed passing. Gates G-104 through G-106 updated for new 
 ## How To Use This Document
 
 Each verification gate defines:
-- **Gate ID** — Unique identifier organized by recipe priority range (G-0XX cross-cutting/universal, G-1XX P1-P5, G-2XX P6-P10, G-3XX P11-P15, G-4XX P16-P19)
+- **Gate ID** — Unique identifier organized by play priority range (G-0XX cross-cutting/universal, G-1XX P1-P5, G-2XX P6-P10, G-3XX P11-P15, G-4XX P16-P19)
 - **Name** — What is being verified
-- **Recipe Priority / SDLC Phase** — Which prioritized recipe and SDLC phase this gate applies to
+- **Play Priority / SDLC Phase** — Which prioritized play and SDLC phase this gate applies to
 - **Mandatory** — Whether this is a hard blocker (YES) or advisory (NO)
 - **Depends On** — Other gates that must pass first
 - **Verification Steps** — Concrete checkable criteria with checkboxes
 - **Evidence** — What artifact proves the gate passed (stored in `evidence/`)
 
-Gates are organized by build priority order (P1 first), not by waves. Cross-cutting gates (G-0XX) apply across all recipes and are checked continuously.
+Gates are organized by build priority order (P1 first), not by waves. Cross-cutting gates (G-0XX) apply across all plays and are checked continuously.
 
 ---
 
 ## Cross-Cutting Gates (G-0XX)
 
-These gates apply to all recipes and must be satisfied throughout the build.
+These gates apply to all plays and must be satisfied throughout the build.
 
 ### G-001: Structured Failure Protocol on All Agents
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — all recipes |
+| Play Priority | Cross-cutting — all plays |
 | SDLC Phase | All phases |
 | Mandatory | YES |
 | Depends On | — |
@@ -69,40 +69,40 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 ---
 
-### G-002: IDD Intent Propagation in All Prioritized Recipes
+### G-002: IDD Intent Propagation in All Prioritized Plays
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — P1 through P19 |
+| Play Priority | Cross-cutting — P1 through P19 |
 | SDLC Phase | All phases |
 | Mandatory | YES |
 | Depends On | — |
 
 **Verification Steps:**
-- [ ] `start-feature` recipe passes intent string to project-orchestrator and repo-orchestrator invocations
-- [ ] `capture-learning` recipe passes intent string to agent invocation
-- [ ] `implement-feature` recipe passes intent string including bundle id and vertical to code-builder invocation
-- [ ] `implement-feature` recipe passes intent string including gate subset to validator invocation
-- [ ] `start-planned-feature` recipe passes intent string to Plan sub-agent and code-builder invocations
-- [ ] `discover-product` recipe passes intent string to product-strategist invocation
-- [ ] `plan-roadmap` recipe passes intent string to product-strategist invocation
-- [ ] `manage-backlog` recipe passes intent string to product-strategist invocation
-- [ ] `refine-backlog` recipe passes intent string to product-strategist invocation
-- [ ] `build-feature` recipe passes intent string to code-builder and repo-orchestrator invocations
-- [ ] `verify-feature` recipe passes intent string to validator invocation
-- [ ] `commit-code` recipe passes intent string to repo-orchestrator and project-orchestrator invocations
-- [ ] `create-pr` recipe passes intent string to repo-orchestrator invocation
-- [ ] `review-pr` recipe passes intent string to validator and tech-designer invocations
-- [ ] `deliver-feature` recipe passes intent string to validator and repo-orchestrator invocations
-- [ ] `run-demo` recipe passes intent string to project-orchestrator and product-strategist invocations
-- [ ] `release` recipe passes intent string to repo-orchestrator and validator invocations
-- [ ] `fix-bug` recipe passes intent string to tech-designer and code-builder invocations
-- [ ] `review-architecture` recipe passes intent string to tech-designer and validator invocations
-- [ ] `generate-docs` recipe passes intent string to agent invocation
-- [ ] Intent format in all recipes: `"Intent: {verb}: {artifact_or_scope} — {context_hint}"` (canonical format from idsd.md Intent Propagation Format section)
+- [ ] `start-feature` play passes intent string to project-orchestrator and repo-orchestrator invocations
+- [ ] `capture-learning` play passes intent string to agent invocation
+- [ ] `implement-feature` play passes intent string including bundle id and vertical to code-builder invocation
+- [ ] `implement-feature` play passes intent string including gate subset to validator invocation
+- [ ] `start-planned-feature` play passes intent string to Plan sub-agent and code-builder invocations
+- [ ] `discover-product` play passes intent string to product-strategist invocation
+- [ ] `plan-roadmap` play passes intent string to product-strategist invocation
+- [ ] `manage-backlog` play passes intent string to product-strategist invocation
+- [ ] `refine-backlog` play passes intent string to product-strategist invocation
+- [ ] `build-feature` play passes intent string to code-builder and repo-orchestrator invocations
+- [ ] `verify-feature` play passes intent string to validator invocation
+- [ ] `commit-code` play passes intent string to repo-orchestrator and project-orchestrator invocations
+- [ ] `create-pr` play passes intent string to repo-orchestrator invocation
+- [ ] `review-pr` play passes intent string to validator and tech-designer invocations
+- [ ] `deliver-feature` play passes intent string to validator and repo-orchestrator invocations
+- [ ] `run-demo` play passes intent string to project-orchestrator and product-strategist invocations
+- [ ] `release` play passes intent string to repo-orchestrator and validator invocations
+- [ ] `fix-bug` play passes intent string to tech-designer and code-builder invocations
+- [ ] `review-architecture` play passes intent string to tech-designer and validator invocations
+- [ ] `generate-docs` play passes intent string to agent invocation
+- [ ] Intent format in all plays: `"Intent: {verb}: {artifact_or_scope} — {context_hint}"` (canonical format from idsd.md Intent Propagation Format section)
 - [ ] Intent is passed as first line of each agent invocation context block — not implicit
 
-**Evidence:** `evidence/g-002-intent-propagation.md` — intent string from each recipe's agent invocation blocks
+**Evidence:** `evidence/g-002-intent-propagation.md` — intent string from each play's agent invocation blocks
 
 ---
 
@@ -110,27 +110,27 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — all recipes with user-facing checkpoints |
+| Play Priority | Cross-cutting — all plays with user-facing checkpoints |
 | SDLC Phase | All phases |
 | Mandatory | YES |
 | Depends On | — |
 
 **Verification Steps:**
-- [ ] `start-feature` recipe has Tether/Vanish checkpoint after issue + branch creation
-- [ ] `discover-product` recipe has Tether/Vanish checkpoint after draft phase, after validate phase
-- [ ] `plan-roadmap` recipe has Tether/Vanish checkpoint after draft phase, after validate phase
-- [ ] `manage-backlog` recipe has Tether/Vanish checkpoint after draft phase, after validate phase
-- [ ] `implement-feature` recipe has Tether/Vanish checkpoint after each vertical
-- [ ] `implement-feature` recipe has Tether/Vanish checkpoint after final validation
-- [ ] `deliver-feature` recipe has Tether/Vanish checkpoint before merge (after PR creation)
-- [ ] `build-feature` recipe has Tether/Vanish checkpoint after commit
-- [ ] `fix-bug` recipe has Tether/Vanish checkpoint after RCA + fix summary
-- [ ] `release` recipe has Tether/Vanish checkpoint before tagging
-- [ ] `run-demo` recipe has Tether/Vanish checkpoint after demo script generation
-- [ ] No recipe uses `AskUserQuestion` tool — all checkpoints are output-and-wait pattern
+- [ ] `start-feature` play has Tether/Vanish checkpoint after issue + branch creation
+- [ ] `discover-product` play has Tether/Vanish checkpoint after draft phase, after validate phase
+- [ ] `plan-roadmap` play has Tether/Vanish checkpoint after draft phase, after validate phase
+- [ ] `manage-backlog` play has Tether/Vanish checkpoint after draft phase, after validate phase
+- [ ] `implement-feature` play has Tether/Vanish checkpoint after each vertical
+- [ ] `implement-feature` play has Tether/Vanish checkpoint after final validation
+- [ ] `deliver-feature` play has Tether/Vanish checkpoint before merge (after PR creation)
+- [ ] `build-feature` play has Tether/Vanish checkpoint after commit
+- [ ] `fix-bug` play has Tether/Vanish checkpoint after RCA + fix summary
+- [ ] `release` play has Tether/Vanish checkpoint before tagging
+- [ ] `run-demo` play has Tether/Vanish checkpoint after demo script generation
+- [ ] No play uses `AskUserQuestion` tool — all checkpoints are output-and-wait pattern
 - [ ] Tether → proceed; Vanish → cancel; any other response → clarify
 
-**Evidence:** `evidence/g-003-tether-vanish.md` — checkpoint blocks from each recipe, AskUserQuestion absence confirmation
+**Evidence:** `evidence/g-003-tether-vanish.md` — checkpoint blocks from each play, AskUserQuestion absence confirmation
 
 ---
 
@@ -138,7 +138,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — build-feature, implement-feature, verify-feature |
+| Play Priority | Cross-cutting — build-feature, implement-feature, verify-feature |
 | SDLC Phase | Spec-2-Code, Code-2-Test |
 | Mandatory | YES |
 | Depends On | — |
@@ -147,13 +147,13 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] spec-structure LTM practice documents the context budget table: bundle ≤12K, gate subset ≤3K, task context ≤2K, total ≤17K
 - [ ] bundler skill enforces 12K token limit at generation time — fails if exceeded
 - [ ] cascade-sync enforces 12K token limit at regeneration time — fails if exceeded
-- [ ] `implement-feature` and `build-feature` recipes load ONE bundle per agent invocation (not multiple bundles simultaneously)
-- [ ] `implement-feature` recipe loads ONLY relevant gates (subset) per agent invocation
+- [ ] `implement-feature` and `build-feature` plays load ONE bundle per agent invocation (not multiple bundles simultaneously)
+- [ ] `implement-feature` play loads ONLY relevant gates (subset) per agent invocation
 - [ ] Agent invocations for code-builder do NOT include the full technical-design.md or ux-spec.md — only the vertical bundle
 - [ ] `validate-implementation` skill loads gate results from evidence files (already computed) — not re-runs full spec
 - [ ] Failure condition from spec enforced: agent loads >20K tokens → halt, bundle is too fat
 
-**Evidence:** `evidence/g-004-context-budget.md` — spec-structure LTM budget table, bundler enforcement check, recipe invocation analysis
+**Evidence:** `evidence/g-004-context-budget.md` — spec-structure LTM budget table, bundler enforcement check, play invocation analysis
 
 ---
 
@@ -161,7 +161,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — all phase-lock flows, implement-feature |
+| Play Priority | Cross-cutting — all phase-lock flows, implement-feature |
 | SDLC Phase | All phases |
 | Mandatory | YES |
 | Depends On | — |
@@ -178,11 +178,11 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Rule IDs, gate IDs, and task IDs preserved across regeneration
 - [ ] Skill fails when regenerated bundle exceeds 12K tokens
 - [ ] cascade-sync runs as mandatory step in ALL `--phase lock` flows
-- [ ] `implement-feature` recipe runs cascade-sync (check_only=true) at start to verify bundles not stale
+- [ ] `implement-feature` play runs cascade-sync (check_only=true) at start to verify bundles not stale
 - [ ] Reference file exists: `cascade-sync/reference/sync-rules.md`
 - [ ] Anti-pattern blocked: locking Tier 1 without regenerating Tier 2 bundles
 - [ ] Anti-pattern blocked: running implement-feature with stale bundles (halts with error)
-- [ ] When check_only=true and stale artifacts found: recipe halts and lists stale files with regeneration instructions
+- [ ] When check_only=true and stale artifacts found: play halts and lists stale files with regeneration instructions
 - [ ] Structured failure message includes: which artifacts are stale, their source spec path, command to regenerate (run `--phase lock` on parent spec)
 - [ ] Auto-regeneration does NOT happen in check_only mode — user must explicitly trigger lock phase
 
@@ -194,13 +194,13 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — start-feature (P1) routing |
+| Play Priority | Cross-cutting — start-feature (P1) routing |
 | SDLC Phase | Universal Precursor |
 | Mandatory | YES |
 | Depends On | G-100 |
 
 **Verification Steps:**
-- [ ] `start-feature` recipe documentation or routing section identifies three speeds: Fast (minutes), Planned (hours), Strategic (days)
+- [ ] `start-feature` play documentation or routing section identifies three speeds: Fast (minutes), Planned (hours), Strategic (days)
 - [ ] Fast speed routes to: `build-feature` → `commit-code` → `deliver-feature`
 - [ ] Planned speed routes to: `start-planned-feature` (Design-2-Code L2)
 - [ ] Strategic speed routes to: full SDLC pipeline starting with `discover-product`
@@ -215,7 +215,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — discover-product (P5), plan-roadmap (P6), manage-backlog (P7) |
+| Play Priority | Cross-cutting — discover-product (P5), plan-roadmap (P6), manage-backlog (P7) |
 | SDLC Phase | Product-2-Design |
 | Mandatory | YES |
 | Depends On | G-110, G-200, G-210 |
@@ -227,62 +227,62 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `--phase lock` is blocked when validation has blocker-severity issues
 - [ ] Lock prerequisite chain is enforced: vision LOCKED before roadmap can DRAFT
 - [ ] roadmap LOCKED before backlog epic can DRAFT
-- [ ] backlog epic LOCKED before `define-feature` can start (backlog recipe for future use)
+- [ ] backlog epic LOCKED before `define-feature` can start (backlog play for future use)
 - [ ] Attempting to LOCK with unresolved blockers returns structured failure
-- [ ] Validate-phase rejection (Vanish) cycles back to DRAFT with feedback — recipe does NOT halt
+- [ ] Validate-phase rejection (Vanish) cycles back to DRAFT with feedback — play does NOT halt
 - [ ] Cycle-back passes validation issues list as `feedback` to draft agent re-invocation
 - [ ] Maximum 2 cycle-back iterations before structured failure is returned
-- [ ] Recipes that support cycle-back: discover-product, plan-roadmap, manage-backlog
+- [ ] Plays that support cycle-back: discover-product, plan-roadmap, manage-backlog
 - [ ] LOCKED artifacts cannot be directly edited without dropping to DRAFT first
 - [ ] Lock prerequisite chain does NOT require OKRs — vision LOCKED is sufficient for roadmap DRAFT
 
-**Evidence:** `evidence/g-007-lifecycle-enforcement.md` — each prerequisite step documented with recipe invocation trace
+**Evidence:** `evidence/g-007-lifecycle-enforcement.md` — each prerequisite step documented with play invocation trace
 
 ---
 
-### G-008: Agent-First Pattern in All Recipes
+### G-008: Agent-First Pattern in All Plays
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — all recipes |
+| Play Priority | Cross-cutting — all plays |
 | SDLC Phase | All phases |
 | Mandatory | YES |
 | Depends On | — |
 
 **Verification Steps:**
-- [ ] No recipe performs git operations directly — all git work delegated to repo-orchestrator
-- [ ] No recipe performs issue tracking directly — all issue work delegated to project-orchestrator
-- [ ] No recipe performs code writing directly — all implementation delegated to code-builder
-- [ ] No recipe performs validation/testing directly — all verification delegated to validator
-- [ ] No recipe performs product strategy directly — all product work delegated to product-strategist
-- [ ] No recipe performs architecture analysis directly — all design work delegated to tech-designer
-- [ ] Agent invocations in all recipes use Task tool (not inline tool use)
+- [ ] No play performs git operations directly — all git work delegated to repo-orchestrator
+- [ ] No play performs issue tracking directly — all issue work delegated to project-orchestrator
+- [ ] No play performs code writing directly — all implementation delegated to code-builder
+- [ ] No play performs validation/testing directly — all verification delegated to validator
+- [ ] No play performs product strategy directly — all product work delegated to product-strategist
+- [ ] No play performs architecture analysis directly — all design work delegated to tech-designer
+- [ ] Agent invocations in all plays use Task tool (not inline tool use)
 
-**Evidence:** `evidence/g-008-agent-first.md` — each recipe's agent delegation pattern, confirmation that no recipe uses direct tool calls for domain work
+**Evidence:** `evidence/g-008-agent-first.md` — each play's agent delegation pattern, confirmation that no play uses direct tool calls for domain work
 
 ---
 
-### G-009: L1 and L2 Recipe Level Constraints
+### G-009: Play Level Constraints
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — all recipes |
+| Play Priority | Cross-cutting — all plays |
 | SDLC Phase | All phases |
 | Mandatory | YES |
 | Depends On | — |
 
 **Verification Steps:**
-- [ ] All L1 recipes declare ≤2 domain agent calls: capture-learning, manage-backlog, refine-backlog, build-feature, verify-feature, review-pr, run-demo, release, fix-bug, review-architecture, generate-docs
-- [ ] All L2 recipes declare ≤5 domain agent calls: start-feature, discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature-planning, commit-code, create-pr, deliver-feature
-- [ ] Structure C recipes (ship) delegate domain work entirely to sub-recipes — 0 direct agent calls
-- [ ] L1 recipes are invocable by both Human and Model
-- [ ] L2 recipes are invocable by Human only
-- [ ] Each recipe file explicitly declares its Level (L1 or L2) in its compilation metadata
-- [ ] Each recipe file explicitly declares its agent call count in compilation metadata
+- [ ] All atomic plays declare ≤2 domain agent calls: capture-learning, manage-backlog, refine-backlog, build-feature, verify-feature, review-pr, run-demo, release, fix-bug, review-architecture, generate-docs
+- [ ] All high-order plays declare ≤5 domain agent calls: start-feature, discover-product, plan-roadmap, prepare-implementation, implement-epic, start-feature-planning, commit-code, create-pr, deliver-feature
+- [ ] Structure C plays (ship) delegate domain work entirely to sub-plays — 0 direct agent calls
+- [ ] Atomic plays are invocable by both Human and Model
+- [ ] High-order plays are invocable by Human only
+- [ ] Each play file explicitly declares its Level in its compilation metadata
+- [ ] Each play file explicitly declares its agent call count in compilation metadata
 - [ ] Utility agents (doc-builder, repo-orchestrator) are EXEMPT from the L2 ≤5 budget — domain agents only count
 - [ ] implement-epic domain count: 6 clean run (tech-designer + eval-generator + code-builder + quality-auditor + judge + product-strategist); up to 15 with 3 fix iterations — this is within spec because utility agents are exempt
 
-**Evidence:** `evidence/g-009-recipe-level-constraints.md` — level declaration and agent call count from each recipe file's compilation metadata
+**Evidence:** `evidence/g-009-play-level-constraints.md` — level declaration and agent call count from each play file's compilation metadata
 
 ---
 
@@ -290,7 +290,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — implement-epic (P3), build-feature (P9), verify-feature (P10) |
+| Play Priority | Cross-cutting — implement-epic (P3), build-feature (P9), verify-feature (P10) |
 | SDLC Phase | Spec-2-Code, Code-2-Test |
 | Mandatory | YES |
 | Depends On | — |
@@ -304,9 +304,9 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `implement-epic` Step 7 contract (quality-auditor) `stm.input` contains ONLY: `quality_gates_path`, `project_root` — nothing else
 - [ ] `implement-epic` fix loop (Step 9): orchestrator strips eval IDs, eval text, pass criteria, raw scores — passes only category + description + expected behavior to builder
 - [ ] `implement-epic` fix loop (Step 12): old eval files are DELETED before new eval-generator (new instance) runs
-- [ ] Recipe explicitly documents 4-way isolation as a "Context isolation invariant" in Role section
-- [ ] `build-feature` recipe (P9, when built): code-builder receives bundle content ONLY — not verify.md, not gate IDs
-- [ ] `verify-feature` recipe (P10, when built): validator receives verify.md + implementation output ONLY — not bundle contents
+- [ ] Play explicitly documents 4-way isolation as a "Context isolation invariant" in Role section
+- [ ] `build-feature` play (P9, when built): code-builder receives bundle content ONLY — not verify.md, not gate IDs
+- [ ] `verify-feature` play (P10, when built): validator receives verify.md + implementation output ONLY — not bundle contents
 
 **Evidence:** `evidence/g-010-compartmented-evaluation.md` — implement-epic agent contract stm.input fields, eval storage path verification, fix loop remediation stripping logic
 
@@ -314,24 +314,24 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 ---
 
-## New Recipe Gates (G-0XX continued)
+## New Play Gates (G-0XX continued)
 
-### G-011: implement-epic Recipe — Eval-Driven TDD with Context Isolation
+### G-011: implement-epic Play — Eval-Driven TDD with Context Isolation
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P3 — implement-epic |
+| Play Priority | P3 — implement-epic |
 | SDLC Phase | Spec-2-Code (renamed from Spec-2-Test) |
 | Mandatory | YES |
 | Depends On | G-010 |
 
 **Verification Steps:**
-- [x] File exists at `core/components/recipes/implement-epic/SKILL.md`
-- [x] Recipe is compiled artifact (see `Compiled From` header)
-- [x] Recipe declares `model: opus` in frontmatter
-- [x] Recipe declares `maturity: L2` in compilation metadata
-- [x] Recipe accepts `--epic <feature-id>` argument (F1, F2, etc.)
-- [x] Recipe accepts `--issue <issue-number>` argument (optional)
+- [x] File exists at `core/components/plays/implement-epic/SKILL.md`
+- [x] Play is compiled artifact (see `Compiled From` header)
+- [x] Play declares `model: opus` in frontmatter
+- [x] Play declares `maturity: L2` in compilation metadata
+- [x] Play accepts `--epic <feature-id>` argument (F1, F2, etc.)
+- [x] Play accepts `--issue <issue-number>` argument (optional)
 - [x] Pre-flight: plan.yaml must be LOCKED (C1)
 - [x] Pre-flight: feature must have >=1 success scenario and >=1 failure condition (C2)
 - [x] Pre-flight: all prerequisite sequences complete (C3)
@@ -352,23 +352,23 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [x] 3 new agents built: eval-generator, quality-auditor, judge
 - [x] Extraction candidates documented (5 inline contracts flagged for future skill extraction)
 
-**Evidence:** `evidence/g-011-implement-epic.md` — recipe compilation metadata, agent isolation contract fields, eval storage path, fix loop behavior, TDD enforcement
+**Evidence:** `evidence/g-011-implement-epic.md` — play compilation metadata, agent isolation contract fields, eval storage path, fix loop behavior, TDD enforcement
 
 ---
 
-### G-012: prepare-implementation Recipe — 5-Artifact Design Suite
+### G-012: prepare-implementation Play — 5-Artifact Design Suite
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | NEW (between P6 and P7) — prepare-implementation |
+| Play Priority | NEW (between P6 and P7) — prepare-implementation |
 | SDLC Phase | Prep-2-Implement |
 | Mandatory | YES |
 | Depends On | G-010 |
 
 **Verification Steps:**
-- [x] File exists at `core/components/recipes/prepare-implementation/SKILL.md`
-- [x] Recipe is compiled artifact
-- [x] Recipe accepts `--phase <draft|validate|lock>` argument
+- [x] File exists at `core/components/plays/prepare-implementation/SKILL.md`
+- [x] Play is compiled artifact
+- [x] Play accepts `--phase <draft|validate|lock>` argument
 - [x] DRAFT phase: 3 stages with 3 human checkpoints (Tether/Orbit/Vanish per stage)
 - [x] Stage 1: product-strategist → draft-product-spec → features.yaml (NO technology names allowed)
 - [x] Stage 1: doc-builder → features-brief.html + hub.html
@@ -381,33 +381,33 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [x] Stage 3: plan.yaml contains ZERO scenario descriptions or scenario text — IDs and counts only
 - [x] Stage 3: doc-builder → scenarios-brief.html + plan-brief.html + hub.html
 - [x] VALIDATE phase: product-strategist → validate-implementation-design → 14 checks (V1-V14)
-- [x] LOCK phase: recipe sets status LOCKED on all 5 artifacts (no agent calls)
+- [x] LOCK phase: play sets status LOCKED on all 5 artifacts (no agent calls)
 - [x] Output artifacts: features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml (5 total)
 - [x] Review briefs: features-brief.html, architecture-brief.html, tech-brief.html, scenarios-brief.html, plan-brief.html (5 total)
 - [x] Hub: hub.html regenerated after each checkpoint
 - [x] Feature IDs use F-IDs (F1, F2) not E-IDs
 - [ ] All 5 artifacts validated against schemas in `.claude/specs/artifact-schemas/`
-- [ ] **PENDING-REFACTOR (#106):** When #106 resolves, features.yaml moves to plan-roadmap; architecture.yaml + tech.yaml move to design-arch; this recipe slims to scenarios + plan + evals only
+- [ ] **PENDING-REFACTOR (#106):** When #106 resolves, features.yaml moves to plan-roadmap; architecture.yaml + tech.yaml move to design-arch; this play slims to scenarios + plan + evals only
 
-**Evidence:** `evidence/g-012-prepare-implementation.md` — recipe compilation metadata, 3-stage checkpoint structure, scenario compartmentalization, 5 output artifacts confirmed
+**Evidence:** `evidence/g-012-prepare-implementation.md` — play compilation metadata, 3-stage checkpoint structure, scenario compartmentalization, 5 output artifacts confirmed
 
 ---
 
-### G-013: ship and merge-pr Recipes — Delivery Pipeline
+### G-013: ship and merge-pr Plays — Delivery Pipeline
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | NEW — ship (chains commit-code + create-pr + merge-pr) |
+| Play Priority | NEW — ship (chains commit-code + create-pr + merge-pr) |
 | SDLC Phase | Code-2-Merged |
 | Mandatory | YES |
 | Depends On | G-011 |
 
 **Verification Steps:**
-- [x] File exists at `core/components/recipes/ship/SKILL.md`
-- [x] File exists at `core/components/recipes/merge-pr/SKILL.md`
-- [x] ship recipe is compiled artifact
-- [x] ship declares `workflow_structure: C` (chains sub-recipes) in compilation metadata
-- [x] ship declares `sub_recipes: 3 (commit-code, create-pr, merge-pr)`
+- [x] File exists at `core/components/plays/ship/SKILL.md`
+- [x] File exists at `core/components/plays/merge-pr/SKILL.md`
+- [x] ship play is compiled artifact
+- [x] ship declares `workflow_structure: C` (chains sub-plays) in compilation metadata
+- [x] ship declares `sub_plays: 3 (commit-code, create-pr, merge-pr)`
 - [x] ship passes `approval_override: auto-proceed` to commit-code
 - [x] ship passes `approval_override: auto-proceed` to create-pr
 - [x] ship halts immediately if commit-code fails — does not continue to create-pr
@@ -419,63 +419,63 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [x] ship SCE-2: PR state MERGED, linked to originating issue, quality checklist in PR body
 - [x] Evidence self-commit lands on main (not feature branch — branch is gone after merge-pr)
 
-**Evidence:** `evidence/g-013-ship-merge-pr.md` — ship compilation metadata, sub-recipe chain, approval override behavior, merge-pr branch cleanup, evidence on main
+**Evidence:** `evidence/g-013-ship-merge-pr.md` — ship compilation metadata, sub-play chain, approval override behavior, merge-pr branch cleanup, evidence on main
 
 ---
 
 ## P1-P5 Gates (G-1XX)
 
-### G-100: start-feature Recipe — IDD Compliance and Resume Mode
+### G-100: start-feature Play — IDD Compliance and Resume Mode
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P1 — start-feature |
+| Play Priority | P1 — start-feature |
 | SDLC Phase | Universal Precursor |
 | Mandatory | YES |
 | Depends On | — |
 
 **Verification Steps:**
-- [x] File exists at `core/components/recipes/start-feature/SKILL.md`
-- [x] Recipe is compiled artifact (see `Compiled From` header)
-- [x] Recipe declares `maturity: L2` in compilation metadata
-- [x] Recipe declares `agents: 2 (project-orchestrator, repo-orchestrator)` in compilation metadata
-- [x] Recipe accepts three input patterns: no args (infer from changed files), issue number, title string
+- [x] File exists at `core/components/plays/start-feature/SKILL.md`
+- [x] Play is compiled artifact (see `Compiled From` header)
+- [x] Play declares `maturity: L2` in compilation metadata
+- [x] Play declares `agents: 2 (project-orchestrator, repo-orchestrator)` in compilation metadata
+- [x] Play accepts three input patterns: no args (infer from changed files), issue number, title string
 - [x] Single flow — all three patterns converge on same downstream (no separate NEW/RESUME modes)
 - [x] Uncommitted changes always preserved (never lost)
 - [x] project-orchestrator invoked via JSON contract for issue resolution/creation
 - [x] repo-orchestrator invoked via JSON contract for branch creation/switch
 - [x] Branch naming convention: `{type}/{issue_number}-{slug}`
 - [x] STM directory created at `{stm_base}/{issue}/`
-- [x] Confidence-gated: low-confidence issue mapping halts recipe
-- [x] Ambiguity handling: recipe presents candidates to user when multiple issues match
+- [x] Confidence-gated: low-confidence issue mapping halts play
+- [x] Ambiguity handling: play presents candidates to user when multiple issues match
 - [x] Resume: status file at `{stm_base}/{issue}/status/start-feature.json`
 - [x] Evidence written to `{stm_base}/{issue}/evidence/start-feature/{YYYYMMDD-HHMMSS}.md`
 - [x] Evidence self-commit via repo-orchestrator (non-blocking)
 - [x] 10 step evals (SE-1 through SE-10), 5 scenario evals (SCE-1 through SCE-5, context-selected)
 
-**Evidence:** `evidence/g-100-start-feature.md` — recipe compiled artifact, single-flow input handling, confidence gating, branch naming, STM initialization
+**Evidence:** `evidence/g-100-start-feature.md` — play compiled artifact, single-flow input handling, confidence gating, branch naming, STM initialization
 
 ---
 
-### G-101: capture-learning Recipe — New Recipe Exists with Skill Contracts
+### G-101: capture-learning Play — New Play Exists with Skill Contracts
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P2 — capture-learning |
+| Play Priority | P2 — capture-learning |
 | SDLC Phase | Learn-2-Memory |
 | Mandatory | YES |
 | Depends On | — |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/capture-learning/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 1`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Promote patterns, decisions, and learnings from STM into LTM"
-- [ ] Recipe failure_conditions include: "No completed work artifacts to learn from", "Proposed LTM entry contradicts existing practice without ADR justification"
-- [ ] Recipe accepts `--source <path>` argument (optional)
-- [ ] Recipe accepts `--type <practice|standard|template>` argument (optional)
-- [ ] Recipe accepts `[intent]` free-text argument
-- [ ] Recipe invokes agent (product-strategist or knowledge agent)
+- [ ] File exists at `core/components/plays/capture-learning/SKILL.md`
+- [ ] Play declares `Level: L1` and `Agent Calls: 1`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Promote patterns, decisions, and learnings from STM into LTM"
+- [ ] Play failure_conditions include: "No completed work artifacts to learn from", "Proposed LTM entry contradicts existing practice without ADR justification"
+- [ ] Play accepts `--source <path>` argument (optional)
+- [ ] Play accepts `--type <practice|standard|template>` argument (optional)
+- [ ] Play accepts `[intent]` free-text argument
+- [ ] Play invokes agent (product-strategist or knowledge agent)
 - [ ] File exists at `core/components/skills/extract-patterns/SKILL.md`
 - [ ] File exists at `core/components/skills/draft-ltm-entry/SKILL.md`
 - [ ] `extract-patterns` skill input contract declares: completed_work_path (or intent), scope (practices/standards/templates)
@@ -483,37 +483,37 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `draft-ltm-entry` skill input contract declares: patterns (from extract-patterns), type (practice|standard|template)
 - [ ] `draft-ltm-entry` skill output contract declares: ltm_entry with path, title, content, append_or_merge
 - [ ] Generated LTM entries target `core/components/memory/` directory (not STM)
-- [ ] Recipe does NOT overwrite existing LTM — output contract specifies append or propose merge
-- [ ] Recipe includes STM→LTM promotion step: issue-specific learnings captured in `.meridian/{issue}/` STM are promoted into long-term organizational memory at `core/components/memory/`
-- [ ] Recipe documents LTM governance workflow: generated entries staged for PR-based review, NOT written directly to `core/components/memory/`
-- [ ] Recipe documents tiered review: project-level LTM → team leads review; org-level LTM → engineering leaders/CTOs review
+- [ ] Play does NOT overwrite existing LTM — output contract specifies append or propose merge
+- [ ] Play includes STM→LTM promotion step: issue-specific learnings captured in `.meridian/{issue}/` STM are promoted into long-term organizational memory at `core/components/memory/`
+- [ ] Play documents LTM governance workflow: generated entries staged for PR-based review, NOT written directly to `core/components/memory/`
+- [ ] Play documents tiered review: project-level LTM → team leads review; org-level LTM → engineering leaders/CTOs review
 - [ ] `extract-patterns` skill contract documents semantic overlap detection with existing LTM entries (designed capability — may not be built in v1)
 - [ ] `draft-ltm-entry` skill contract documents conflict detection: checks for contradictions with existing LTM before proposing writes
-- [ ] Recipe references LTM governance section in `docs/philosophy/idsd.md`
+- [ ] Play references LTM governance section in `docs/philosophy/idsd.md`
 
-**Evidence:** `evidence/g-101-capture-learning.md` — recipe file, skill contracts, LTM output path, non-overwrite behavior
+**Evidence:** `evidence/g-101-capture-learning.md` — play file, skill contracts, LTM output path, non-overwrite behavior
 
 ---
 
-### G-102: implement-feature Recipe — L2 Multi-Vertical Orchestration
+### G-102: implement-feature Play — L2 Multi-Vertical Orchestration
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P3 — implement-feature |
+| Play Priority | P3 — implement-feature |
 | SDLC Phase | Spec-2-Test (Compound L2) |
 | Mandatory | YES |
 | Depends On | G-020, G-021, G-022, G-023 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/implement-feature/SKILL.md`
-- [ ] Recipe declares `Level: L2` and `Agent Calls: ≤5 (typical: 3-4)`
-- [ ] Recipe declares `Agents: code-builder, validator, repo-orchestrator`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Implement a feature end-to-end: build all verticals, verify all gates"
-- [ ] Recipe failure_conditions include: "Mandatory gates fail after all build attempts", "Bundle staleness detected at start"
-- [ ] Recipe accepts `--spec <path>` argument
-- [ ] Recipe accepts `--vertical <N>` argument (optional, for single-vertical runs)
-- [ ] Recipe accepts `[intent]` free-text argument
+- [ ] File exists at `core/components/plays/implement-feature/SKILL.md`
+- [ ] Play declares `Level: L2` and `Agent Calls: ≤5 (typical: 3-4)`
+- [ ] Play declares `Agents: code-builder, validator, repo-orchestrator`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Implement a feature end-to-end: build all verticals, verify all gates"
+- [ ] Play failure_conditions include: "Mandatory gates fail after all build attempts", "Bundle staleness detected at start"
+- [ ] Play accepts `--spec <path>` argument
+- [ ] Play accepts `--vertical <N>` argument (optional, for single-vertical runs)
+- [ ] Play accepts `[intent]` free-text argument
 - [ ] Execution flow step 1 — context resolution: spec provided → runs cascade-sync (check_only=true), reads tasks.md; intent only → derives plan from intent + codebase + LTM
 - [ ] Execution flow step 2 — per vertical: invokes build-feature --bundle v{N}-backend, invokes build-feature --bundle v{N}-frontend
 - [ ] Execution flow step 2 — per vertical: invokes verify-feature --spec {path} --gate {vertical gates}
@@ -523,63 +523,63 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Backend and frontend of same vertical can run in parallel per spec
 - [ ] Different verticals run sequentially
 
-**Evidence:** `evidence/g-102-implement-feature.md` — recipe file, execution flow per step, vertical handling, checkpoint pattern, agent call budget
+**Evidence:** `evidence/g-102-implement-feature.md` — play file, execution flow per step, vertical handling, checkpoint pattern, agent call budget
 
 ---
 
-### G-103: start-planned-feature Recipe — IDD Compliance Review
+### G-103: start-planned-feature Play — IDD Compliance Review
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P4 — start-planned-feature |
+| Play Priority | P4 — start-planned-feature |
 | SDLC Phase | Design-2-Code (Compound L2) |
 | Mandatory | YES |
 | Depends On | — |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/start-planned-feature/SKILL.md`
-- [ ] Recipe declares `Level: L2` and `Agent Calls: ≤5`
-- [ ] Recipe declares `Agents: project-orchestrator, Plan sub-agent (Claude OOTB), code-builder, repo-orchestrator`
-- [ ] Recipe has IDD intent header: `intent`, `constraints`, `failure_conditions` fields
-- [ ] Recipe intent captures: quick idea-to-PR with lightweight IDD-aware planning
-- [ ] Recipe constraints include: embeds start-feature flow, lightweight IDD-aware planning artifacts, code-builder scoped to CODE only
-- [ ] Recipe failure_conditions include: "Intent too vague to derive design", "Implementation fails tests", "User rejects plan (Vanish)"
-- [ ] Recipe embeds start-feature flow: issue resolution + branch creation + STM initialization (does not call start-feature separately)
+- [ ] File exists at `core/components/plays/start-planned-feature/SKILL.md`
+- [ ] Play declares `Level: L2` and `Agent Calls: ≤5`
+- [ ] Play declares `Agents: project-orchestrator, Plan sub-agent (Claude OOTB), code-builder, repo-orchestrator`
+- [ ] Play has IDD intent header: `intent`, `constraints`, `failure_conditions` fields
+- [ ] Play intent captures: quick idea-to-PR with lightweight IDD-aware planning
+- [ ] Play constraints include: embeds start-feature flow, lightweight IDD-aware planning artifacts, code-builder scoped to CODE only
+- [ ] Play failure_conditions include: "Intent too vague to derive design", "Implementation fails tests", "User rejects plan (Vanish)"
+- [ ] Play embeds start-feature flow: issue resolution + branch creation + STM initialization (does not call start-feature separately)
 - [ ] Plan sub-agent prompt instructs IDD intent header on each planning artifact (spec.md, verify.md, tasks.md)
 - [ ] Planning artifacts are lightweight: no formal gates, no bundles, no audience separation
 - [ ] Planning artifacts stored at `.meridian/{issue}/planning/` (not `.meridian/{issue}/spec/`)
 - [ ] code-builder invocation is scoped to CODE only (no docs, no markdown, no config)
-- [ ] Recipe builds working code with tests
-- [ ] Recipe commits via repo-orchestrator (agent-first — not direct git)
-- [ ] Recipe has single Tether/Vanish checkpoint (after plan, before execution)
+- [ ] Play builds working code with tests
+- [ ] Play commits via repo-orchestrator (agent-first — not direct git)
+- [ ] Play has single Tether/Vanish checkpoint (after plan, before execution)
 - [ ] Agent Routing Table present (Domain / Agent / Intent Slice format)
 - [ ] Templates externalized to `templates/` directory (checkpoint, approval-prompt, final-report)
 - [ ] Recovery section present with structured-failure-protocol + intent-driven-recovery references
 - [ ] No AskUserQuestion usage — all checkpoints are output-and-wait
 
-**Evidence:** `evidence/g-103-start-planned-feature.md` — recipe file IDD header, agent routing table, embedded start-feature flow, IDD-aware planning artifacts, code-builder scope, template externalization
+**Evidence:** `evidence/g-103-start-planned-feature.md` — play file IDD header, agent routing table, embedded start-feature flow, IDD-aware planning artifacts, code-builder scope, template externalization
 
 ---
 
-### G-104: discover-product Recipe — New Recipe with Full Phase Handling ✓ PASSING
+### G-104: discover-product Play — New Play with Full Phase Handling ✓ PASSING
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P5 — discover-product |
+| Play Priority | P5 — discover-product |
 | SDLC Phase | Product-2-Design |
 | Mandatory | YES |
 | Depends On | G-110 |
 
 **Verification Steps:**
-- [x] File exists at `core/components/recipes/discover-product/SKILL.md`
-- [x] Recipe is a compiled artifact (see `Compiled From` header referencing reference/intent.yaml)
-- [x] Recipe declares `maturity: L2` in compilation metadata
-- [x] Recipe declares agent calls: product-strategist ×2, doc-builder ×1 in DRAFT; product-strategist ×1 in VALIDATE; 0 in LOCK
-- [x] Recipe declares `Agents: product-strategist, doc-builder, repo-orchestrator`
-- [x] Recipe has IDD intent header implied via intent_path in JSON contracts (JSON contract pattern replaces inline header)
-- [x] Recipe accepts `--phase <draft|validate|lock>` argument
-- [x] Recipe accepts `--artifact <path>` argument for validate/lock phases
-- [x] Recipe accepts `[intent]` free-text argument
+- [x] File exists at `core/components/plays/discover-product/SKILL.md`
+- [x] Play is a compiled artifact (see `Compiled From` header referencing reference/intent.yaml)
+- [x] Play declares `maturity: L2` in compilation metadata
+- [x] Play declares agent calls: product-strategist ×2, doc-builder ×1 in DRAFT; product-strategist ×1 in VALIDATE; 0 in LOCK
+- [x] Play declares `Agents: product-strategist, doc-builder, repo-orchestrator`
+- [x] Play has IDD intent header implied via intent_path in JSON contracts (JSON contract pattern replaces inline header)
+- [x] Play accepts `--phase <draft|validate|lock>` argument
+- [x] Play accepts `--artifact <path>` argument for validate/lock phases
+- [x] Play accepts `[intent]` free-text argument
 - [x] Draft phase output: `.meridian/project/product/{slug}/product.yaml` (status DRAFT) — **NOT vision.md**
 - [x] product.yaml consolidates market context + vision in single file
 - [x] product.yaml includes `strategic_goals[].id` (SG-IDs for downstream reference) — NOT OKRs
@@ -587,14 +587,14 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [x] Draft phase: doc-builder generates `hub.html`
 - [x] Draft checkpoint: Tether/Vanish + optional feedback JSON from inline comment system
 - [x] Validate phase: product-strategist → validate-product-vision → validation_result
-- [x] Validate phase: cycle-back on Vanish (max 2 iterations) — recipe does NOT halt on first Vanish
-- [x] Lock phase: recipe directly sets status: LOCKED (no agent call) — **no cascade-sync in this recipe**
-- [x] Domain clarification handling: if product domain ambiguous, recipe presents candidates, user picks
+- [x] Validate phase: cycle-back on Vanish (max 2 iterations) — play does NOT halt on first Vanish
+- [x] Lock phase: play directly sets status: LOCKED (no agent call) — **no cascade-sync in this play**
+- [x] Domain clarification handling: if product domain ambiguous, play presents candidates, user picks
 - [x] Resume: status file at `{product_base}/{slug}/status/discover-product.json`
 - [x] Evidence self-commit via repo-orchestrator (non-blocking)
 - [ ] product.yaml schema validated against `.claude/specs/artifact-schemas/product.yaml`
 
-**Evidence:** `evidence/g-104-discover-product.md` — recipe file, phase handling, product.yaml (not vision.md), product-brief.html (not brief.html), Strategic Goals present, no OKR references
+**Evidence:** `evidence/g-104-discover-product.md` — play file, phase handling, product.yaml (not vision.md), product-brief.html (not brief.html), Strategic Goals present, no OKR references
 
 ---
 
@@ -602,7 +602,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P5-P8 — discover-product, plan-roadmap, manage-backlog, refine-backlog |
+| Play Priority | P5-P8 — discover-product, plan-roadmap, manage-backlog, refine-backlog |
 | SDLC Phase | Product-2-Design |
 | Mandatory | YES |
 | Depends On | — |
@@ -612,7 +612,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Agent file declares `domain: product` and `role: strategist`
 - [ ] Agent file declares `model: sonnet`
 - [ ] Agent file lists required tools: Task, Read, Write, Glob, Grep, Skill
-- [ ] Agent file includes IDD awareness section: reads intent from recipe, reads LTM memory
+- [ ] Agent file includes IDD awareness section: reads intent from play, reads LTM memory
 - [ ] Agent file includes structured failure protocol reference
 - [ ] Agent file lists available skills: discover-product-opportunity, draft-product-vision, validate-product-vision, prioritize-product-features, draft-product-roadmap, validate-product-roadmap, decompose-product-epic, draft-product-stories, validate-product-backlog, generate-business-review
 - [ ] Agent file does NOT list OKR skills: draft-product-okrs, validate-product-okrs are absent
@@ -628,7 +628,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P5-P8 — discover-product, plan-roadmap, manage-backlog, refine-backlog |
+| Play Priority | P5-P8 — discover-product, plan-roadmap, manage-backlog, refine-backlog |
 | SDLC Phase | Product-2-Design |
 | Mandatory | YES |
 | Depends On | G-105 |
@@ -671,7 +671,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P5-P8 — discover-product, plan-roadmap, manage-backlog, refine-backlog |
+| Play Priority | P5-P8 — discover-product, plan-roadmap, manage-backlog, refine-backlog |
 | SDLC Phase | Product-2-Design |
 | Mandatory | YES |
 | Depends On | G-106 |
@@ -703,7 +703,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P5-P8 — all Product-2-Design recipes |
+| Play Priority | P5-P8 — all Product-2-Design plays |
 | SDLC Phase | Product-2-Design |
 | Mandatory | YES |
 | Depends On | G-107 |
@@ -714,8 +714,8 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `backlog-epic.md` template includes `## Intent` section
 - [ ] `business-review.md` template includes `## Intent` section
 - [ ] Intent header format matches spec: `**Intent:** {statement}`, `**Constraints:** {list}`, `**Failure Conditions:** {list}`
-- [ ] Intent content is propagated from the parent recipe's intent into the artifact (not left blank)
-- [ ] All prioritized P5-P8 recipe files themselves start with an IDD intent header in YAML block format
+- [ ] Intent content is propagated from the parent play's intent into the artifact (not left blank)
+- [ ] All prioritized P5-P8 play files themselves start with an IDD intent header in YAML block format
 
 **Evidence:** `evidence/g-108-idd-headers-product.md` — each template's Intent section extracted and verified
 
@@ -725,7 +725,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — P5-P10 (all design/spec/code phases) |
+| Play Priority | Cross-cutting — P5-P10 (all design/spec/code phases) |
 | SDLC Phase | Product-2-Design, Spec-2-Code, Code-2-Test |
 | Mandatory | YES |
 | Depends On | — |
@@ -751,7 +751,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P10, P14, P13, P16, P18 — verify-feature, deliver-feature, review-pr, release, review-architecture |
+| Play Priority | P10, P14, P13, P16, P18 — verify-feature, deliver-feature, review-pr, release, review-architecture |
 | SDLC Phase | Code-2-Test, Test-2-Run, Audit-2-Fix |
 | Mandatory | YES |
 | Depends On | — |
@@ -763,7 +763,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Agent file lists required tools: Task, Read, Bash, Glob, Grep, Skill
 - [ ] Agent file lists available skills: verify-gate, run-test-suite, validate-implementation
 - [ ] Agent file includes IDD awareness section
-- [ ] Agent file reads intent from recipe invocation
+- [ ] Agent file reads intent from play invocation
 - [ ] Agent file reads LTM: quality standards, testing conventions
 - [ ] Agent file reads STM: verify.md gates, implementation context
 - [ ] Agent file produces evidence artifacts for each gate it verifies
@@ -777,22 +777,22 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 ## P6-P10 Gates (G-2XX)
 
-### G-200: plan-roadmap Recipe — New Recipe with Full Phase Handling ✓ PASSING
+### G-200: plan-roadmap Play — New Play with Full Phase Handling ✓ PASSING
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P6 — plan-roadmap |
+| Play Priority | P6 — plan-roadmap |
 | SDLC Phase | Product-2-Design |
 | Mandatory | YES |
 | Depends On | G-104, G-105 |
 
 **Verification Steps:**
-- [x] File exists at `core/components/recipes/plan-roadmap/SKILL.md`
-- [x] Recipe is compiled artifact (see `Compiled From` header)
-- [x] Recipe declares `maturity: L2` in compilation metadata
-- [x] Recipe declares `agents: 3 (product-strategist, tech-designer, repo-orchestrator)` in compilation metadata
-- [x] Recipe accepts `--product <path>` argument (locked product.yaml required — NOT optional)
-- [x] Recipe accepts `--resume` argument (no --product needed)
+- [x] File exists at `core/components/plays/plan-roadmap/SKILL.md`
+- [x] Play is compiled artifact (see `Compiled From` header)
+- [x] Play declares `maturity: L2` in compilation metadata
+- [x] Play declares `agents: 3 (product-strategist, tech-designer, repo-orchestrator)` in compilation metadata
+- [x] Play accepts `--product <path>` argument (locked product.yaml required — NOT optional)
+- [x] Play accepts `--resume` argument (no --product needed)
 - [x] Pre-flight: product.yaml must have `Status: LOCKED` (hard halt if not locked)
 - [x] Step 2: product-strategist → scope-roadmap-epics → epics YAML with strategic_goal_ref (SG-IDs from product.yaml) — **NOT RICE/MoSCoW scoring**
 - [x] Step 2 eval: epic count 3-6 enforced; strategic_goal_ref must match SG-IDs in product.yaml
@@ -810,61 +810,61 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] roadmap.yaml schema validated against `.claude/specs/artifact-schemas/roadmap.yaml`
 - [ ] **PENDING-REFACTOR (#106):** features.yaml will be produced here (not in prepare-implementation) after #106 resolves
 
-**Evidence:** `evidence/g-200-plan-roadmap.md` — recipe compiled artifact, roadmap.yaml schema (not roadmap.md), strategic_goal_ref (SG-IDs), brief approval gate, feasibility consolidated
+**Evidence:** `evidence/g-200-plan-roadmap.md` — play compiled artifact, roadmap.yaml schema (not roadmap.md), strategic_goal_ref (SG-IDs), brief approval gate, feasibility consolidated
 
 ---
 
-### G-210: manage-backlog Recipe — New Recipe with Full Phase Handling
+### G-210: manage-backlog Play — New Play with Full Phase Handling
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P7 — manage-backlog |
+| Play Priority | P7 — manage-backlog |
 | SDLC Phase | Product-2-Design |
 | Mandatory | YES |
 | Depends On | G-200, G-105, G-106, G-107 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/manage-backlog/SKILL.md`
-- [ ] Recipe declares `Level: L1`
-- [ ] Recipe declares agent calls: 2 (draft), 1 (validate), 0 (lock)
-- [ ] Recipe declares `Agents: product-strategist`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Decompose a roadmap feature into an INVEST-compliant epic with user stories"
-- [ ] Recipe failure_conditions include: "Epic too large to decompose (>15 stories suggests splitting)", "Stories violate INVEST principles"
-- [ ] Recipe accepts `--phase <draft|validate|lock>` argument
-- [ ] Recipe accepts `--artifact <path>` argument for validate/lock phases
-- [ ] Recipe accepts `[intent]` or epic description as input
+- [ ] File exists at `core/components/plays/manage-backlog/SKILL.md`
+- [ ] Play declares `Level: L1`
+- [ ] Play declares agent calls: 2 (draft), 1 (validate), 0 (lock)
+- [ ] Play declares `Agents: product-strategist`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Decompose a roadmap feature into an INVEST-compliant epic with user stories"
+- [ ] Play failure_conditions include: "Epic too large to decompose (>15 stories suggests splitting)", "Stories violate INVEST principles"
+- [ ] Play accepts `--phase <draft|validate|lock>` argument
+- [ ] Play accepts `--artifact <path>` argument for validate/lock phases
+- [ ] Play accepts `[intent]` or epic description as input
 - [ ] Draft phase: invokes product-strategist → decompose-product-epic → draft-product-stories
 - [ ] Draft phase output: `.meridian/project/product/{slug}/backlog/{epic}.md` (status DRAFT)
 - [ ] Validate phase: invokes product-strategist → validate-product-backlog
 - [ ] Lock phase: runs cascade-sync, sets backlog/{epic}.md to LOCKED
-- [ ] Recipe works with roadmap.md as input OR intent alone (intent-sufficient)
+- [ ] Play works with roadmap.md as input OR intent alone (intent-sufficient)
 - [ ] Each story in output has acceptance criteria
 - [ ] Stories are independently deliverable per INVEST
 
-**Evidence:** `evidence/g-210-manage-backlog.md` — recipe file, INVEST compliance checks, phase handling, output path
+**Evidence:** `evidence/g-210-manage-backlog.md` — play file, INVEST compliance checks, phase handling, output path
 
 ---
 
-### G-220: refine-backlog Recipe — New Recipe Exists with Skill Contracts
+### G-220: refine-backlog Play — New Play Exists with Skill Contracts
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P8 — refine-backlog |
+| Play Priority | P8 — refine-backlog |
 | SDLC Phase | Product-2-Design |
 | Mandatory | YES |
 | Depends On | G-210, G-105 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/refine-backlog/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 2`
-- [ ] Recipe declares `Agents: product-strategist`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Groom existing backlog — reprioritize stories, split large ones, update estimates"
-- [ ] Recipe failure_conditions include: "No existing backlog to refine", "Refinement introduces circular dependencies"
-- [ ] Recipe reads existing backlog/{epic}.md before modifying
-- [ ] Recipe preserves story IDs for traceability
-- [ ] Recipe re-validates INVEST compliance after changes
+- [ ] File exists at `core/components/plays/refine-backlog/SKILL.md`
+- [ ] Play declares `Level: L1` and `Agent Calls: 2`
+- [ ] Play declares `Agents: product-strategist`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Groom existing backlog — reprioritize stories, split large ones, update estimates"
+- [ ] Play failure_conditions include: "No existing backlog to refine", "Refinement introduces circular dependencies"
+- [ ] Play reads existing backlog/{epic}.md before modifying
+- [ ] Play preserves story IDs for traceability
+- [ ] Play re-validates INVEST compliance after changes
 - [ ] File exists at `core/components/skills/analyze-backlog/SKILL.md`
 - [ ] `analyze-backlog` input contract declares: backlog_path, focus (split|reprioritize|estimate|all)
 - [ ] `analyze-backlog` output contract declares: analysis with stories_needing_attention[], recommendations[]
@@ -873,29 +873,29 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `refine-product-stories` output contract declares: updated_backlog with path, stories_modified, stories_split, invest_score
 - [ ] Story IDs preserved in output (not reassigned during refinement)
 
-**Evidence:** `evidence/g-220-refine-backlog.md` — recipe file, skill contracts, ID preservation behavior
+**Evidence:** `evidence/g-220-refine-backlog.md` — play file, skill contracts, ID preservation behavior
 
 ---
 
-### G-230: build-feature Recipe — New Recipe with Skill Contracts
+### G-230: build-feature Play — New Play with Skill Contracts
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P9 — build-feature |
+| Play Priority | P9 — build-feature |
 | SDLC Phase | Spec-2-Code |
 | Mandatory | YES |
 | Depends On | G-109, G-110 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/build-feature/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 2`
-- [ ] Recipe declares `Agents: code-builder, repo-orchestrator`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Build implementation code from a spec bundle or intent"
-- [ ] Recipe failure_conditions include: "Bundle exceeds 12K token budget", "No clear implementation scope derivable from intent", "Tests fail after implementation"
-- [ ] Recipe accepts `--bundle <id>` argument
-- [ ] Recipe accepts `--spec <path>` argument
-- [ ] Recipe accepts `[intent]` free-text argument
+- [ ] File exists at `core/components/plays/build-feature/SKILL.md`
+- [ ] Play declares `Level: L1` and `Agent Calls: 2`
+- [ ] Play declares `Agents: code-builder, repo-orchestrator`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Build implementation code from a spec bundle or intent"
+- [ ] Play failure_conditions include: "Bundle exceeds 12K token budget", "No clear implementation scope derivable from intent", "Tests fail after implementation"
+- [ ] Play accepts `--bundle <id>` argument
+- [ ] Play accepts `--spec <path>` argument
+- [ ] Play accepts `[intent]` free-text argument
 - [ ] Context resolution: bundle provided → load bundle (≤12K tokens); spec path → read tasks.md, derive bundle; intent only → derive from intent + codebase + LTM
 - [ ] Agent step 1: code-builder invoked with bundle context (≤12K tokens)
 - [ ] Agent step 2: repo-orchestrator invoked via commit-code pattern
@@ -903,36 +903,36 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Implementation produces working code with unit tests
 - [ ] Commits happen via repo-orchestrator (agent-first — not direct git)
 
-**Evidence:** `evidence/g-230-build-feature.md` — recipe file, context resolution flow, agent delegation, checkpoint pattern
+**Evidence:** `evidence/g-230-build-feature.md` — play file, context resolution flow, agent delegation, checkpoint pattern
 
 ---
 
-### G-240: verify-feature Recipe — New Recipe with Skill Contracts
+### G-240: verify-feature Play — New Play with Skill Contracts
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P10 — verify-feature |
+| Play Priority | P10 — verify-feature |
 | SDLC Phase | Code-2-Test |
 | Mandatory | YES |
 | Depends On | G-110, G-241, G-242, G-243 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/verify-feature/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 1`
-- [ ] Recipe declares `Agents: validator`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Verify implementation against quality gates"
-- [ ] Recipe failure_conditions include: "No gates defined and intent too vague to derive criteria", "Evidence cannot be produced (e.g., no tests exist)"
-- [ ] Recipe accepts `--spec <path>` argument
-- [ ] Recipe accepts `--gate <gate-id>` argument (for single-gate verification)
-- [ ] Recipe accepts `--all` flag (for full verification)
-- [ ] Recipe accepts `[intent]` free-text argument
-- [ ] Recipe invokes validator agent
-- [ ] Recipe produces evidence artifact for each gate checked (in `evidence/` directory)
-- [ ] Recipe runs test suite and reports coverage
-- [ ] Recipe reports blocking issues clearly in output
+- [ ] File exists at `core/components/plays/verify-feature/SKILL.md`
+- [ ] Play declares `Level: L1` and `Agent Calls: 1`
+- [ ] Play declares `Agents: validator`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Verify implementation against quality gates"
+- [ ] Play failure_conditions include: "No gates defined and intent too vague to derive criteria", "Evidence cannot be produced (e.g., no tests exist)"
+- [ ] Play accepts `--spec <path>` argument
+- [ ] Play accepts `--gate <gate-id>` argument (for single-gate verification)
+- [ ] Play accepts `--all` flag (for full verification)
+- [ ] Play accepts `[intent]` free-text argument
+- [ ] Play invokes validator agent
+- [ ] Play produces evidence artifact for each gate checked (in `evidence/` directory)
+- [ ] Play runs test suite and reports coverage
+- [ ] Play reports blocking issues clearly in output
 
-**Evidence:** `evidence/g-240-verify-feature.md` — recipe file, gate evidence output pattern, test suite integration
+**Evidence:** `evidence/g-240-verify-feature.md` — play file, gate evidence output pattern, test suite integration
 
 ---
 
@@ -940,7 +940,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P10 — verify-feature (via validator agent) |
+| Play Priority | P10 — verify-feature (via validator agent) |
 | SDLC Phase | Code-2-Test |
 | Mandatory | YES |
 | Depends On | G-110 |
@@ -965,7 +965,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P10 — verify-feature (via validator agent) |
+| Play Priority | P10 — verify-feature (via validator agent) |
 | SDLC Phase | Code-2-Test |
 | Mandatory | YES |
 | Depends On | G-110 |
@@ -989,7 +989,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P10, P14 — verify-feature, deliver-feature |
+| Play Priority | P10, P14 — verify-feature, deliver-feature |
 | SDLC Phase | Code-2-Test, Test-2-Run |
 | Mandatory | YES |
 | Depends On | G-110, G-241 |
@@ -1003,7 +1003,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] Skill reads feature spec's verify.md to get the full gate list
 - [ ] Skill reads evidence files in evidence/ to determine gate pass/fail status
 - [ ] If any mandatory gate is not in pass status → `ready_for_delivery: false`
-- [ ] `deliver-feature` recipe halts before PR creation if `ready_for_delivery: false`
+- [ ] `deliver-feature` play halts before PR creation if `ready_for_delivery: false`
 - [ ] Reference file exists: `validate-implementation/reference/quality-standards.md`
 
 **Evidence:** `evidence/g-243-validate-implementation.md` — skill file, gate list verification logic, halt-on-failure behavior
@@ -1012,83 +1012,83 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 ## P11-P15 Gates (G-3XX)
 
-### G-300: commit-code Recipe — IDD Compliance Review
+### G-300: commit-code Play — IDD Compliance Review
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P11 — commit-code |
+| Play Priority | P11 — commit-code |
 | SDLC Phase | Code-2-Test |
 | Mandatory | YES |
 | Depends On | G-100 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/commit-code/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Distinct Agents: 2` in version table
-- [ ] Recipe declares `Agents: repo-orchestrator, project-orchestrator` in agent routing table
-- [ ] Recipe has IDD intent header: `intent`, `constraints`, `failure_conditions` fields
-- [ ] Recipe intent captures: safely persist completed work as conventional commits with traceability
-- [ ] Recipe constraints include: group changes by concern, conventional commit format, NWWI (every commit traces to valid issue)
-- [ ] Recipe failure_conditions include: protected branch, no valid issue ID, user rejects (Vanish), working tree not clean, format validation fails
+- [ ] File exists at `core/components/plays/commit-code/SKILL.md`
+- [ ] Play declares `Level: L1` and `Distinct Agents: 2` in version table
+- [ ] Play declares `Agents: repo-orchestrator, project-orchestrator` in agent routing table
+- [ ] Play has IDD intent header: `intent`, `constraints`, `failure_conditions` fields
+- [ ] Play intent captures: safely persist completed work as conventional commits with traceability
+- [ ] Play constraints include: group changes by concern, conventional commit format, NWWI (every commit traces to valid issue)
+- [ ] Play failure_conditions include: protected branch, no valid issue ID, user rejects (Vanish), working tree not clean, format validation fails
 - [ ] No uncommitted changes → graceful bypass (not a failure condition)
-- [ ] Recipe groups changes by concern (feature, fix, refactor) — not bulk add
-- [ ] Recipe uses conventional commit format
+- [ ] Play groups changes by concern (feature, fix, refactor) — not bulk add
+- [ ] Play uses conventional commit format
 - [ ] Agent routing table maps domains to agents with intent slices
-- [ ] Recipe propagates intent to agent invocations via recipe context block
+- [ ] Play propagates intent to agent invocations via play context block
 - [ ] Structured failure handling verified (recovery protocol with 2-retry limit)
 - [ ] Templates externalized to `templates/` directory (checkpoint, approval-prompt, commit-summary)
 
-**Evidence:** `evidence/g-300-commit-code.md` — recipe file IDD header, agent routing, conventional commit enforcement, template verification
+**Evidence:** `evidence/g-300-commit-code.md` — play file IDD header, agent routing, conventional commit enforcement, template verification
 
 ---
 
-### G-310: create-pr Recipe — IDD Compliance Review
+### G-310: create-pr Play — IDD Compliance Review
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P12 — create-pr |
+| Play Priority | P12 — create-pr |
 | SDLC Phase | Test-2-Run |
 | Mandatory | YES |
 | Depends On | G-100 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/create-pr/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 1`
-- [ ] Recipe declares `Agents: repo-orchestrator`
-- [ ] Recipe has IDD intent header: `intent`, `constraints`, `failure_conditions` fields
-- [ ] Recipe intent states: "Push branch and create pull request with quality checklist"
-- [ ] Recipe constraints include: "Must generate context-aware quality checklist", "Must include change summary", "Must link to issue if available"
-- [ ] Recipe failure_conditions include: "No commits to push", "Branch conflicts with target"
-- [ ] Recipe generates context-aware quality checklist in PR description
-- [ ] Recipe includes change summary in PR
-- [ ] Recipe links to GitHub issue if available
-- [ ] Recipe propagates intent to repo-orchestrator
+- [ ] File exists at `core/components/plays/create-pr/SKILL.md`
+- [ ] Play declares `Level: L1` and `Agent Calls: 1`
+- [ ] Play declares `Agents: repo-orchestrator`
+- [ ] Play has IDD intent header: `intent`, `constraints`, `failure_conditions` fields
+- [ ] Play intent states: "Push branch and create pull request with quality checklist"
+- [ ] Play constraints include: "Must generate context-aware quality checklist", "Must include change summary", "Must link to issue if available"
+- [ ] Play failure_conditions include: "No commits to push", "Branch conflicts with target"
+- [ ] Play generates context-aware quality checklist in PR description
+- [ ] Play includes change summary in PR
+- [ ] Play links to GitHub issue if available
+- [ ] Play propagates intent to repo-orchestrator
 - [ ] Structured failure handling verified
 
-**Evidence:** `evidence/g-310-create-pr.md` — recipe file IDD header, quality checklist generation, issue linking
+**Evidence:** `evidence/g-310-create-pr.md` — play file IDD header, quality checklist generation, issue linking
 
 ---
 
-### G-320: review-pr Recipe — New Recipe Exists with Skill Contracts
+### G-320: review-pr Play — New Play Exists with Skill Contracts
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P13 — review-pr |
+| Play Priority | P13 — review-pr |
 | SDLC Phase | Code-2-Test |
 | Mandatory | YES |
 | Depends On | G-110 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/review-pr/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 2`
-- [ ] Recipe declares `Agents: validator, tech-designer`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Perform structured code review — security, architecture, performance, correctness"
-- [ ] Recipe failure_conditions include: "PR has no diff (empty PR)", "Cannot access repository or PR"
-- [ ] Recipe accepts PR URL or branch name as input
-- [ ] Recipe accepts `[intent]` describing what to review
-- [ ] Recipe checks against project quality standards from LTM
-- [ ] Recipe produces actionable review comments (not vague suggestions)
-- [ ] Recipe flags blocking issues vs suggestions in output
+- [ ] File exists at `core/components/plays/review-pr/SKILL.md`
+- [ ] Play declares `Level: L1` and `Agent Calls: 2`
+- [ ] Play declares `Agents: validator, tech-designer`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Perform structured code review — security, architecture, performance, correctness"
+- [ ] Play failure_conditions include: "PR has no diff (empty PR)", "Cannot access repository or PR"
+- [ ] Play accepts PR URL or branch name as input
+- [ ] Play accepts `[intent]` describing what to review
+- [ ] Play checks against project quality standards from LTM
+- [ ] Play produces actionable review comments (not vague suggestions)
+- [ ] Play flags blocking issues vs suggestions in output
 - [ ] File exists at `core/components/skills/analyze-pr/SKILL.md` (existing skill, referenced)
 - [ ] File exists at `core/components/skills/review-code-quality/SKILL.md`
 - [ ] `review-code-quality` input contract declares: pr_diff, quality_standards_path, focus_areas (security|architecture|performance|correctness)
@@ -1097,29 +1097,29 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `post-review-comments` input contract declares: pr_url, review (from review-code-quality), comment_format
 - [ ] `post-review-comments` output contract declares: comments_posted_count, pr_review_url
 
-**Evidence:** `evidence/g-320-review-pr.md` — recipe file, skill contracts, blocking vs suggestion separation
+**Evidence:** `evidence/g-320-review-pr.md` — play file, skill contracts, blocking vs suggestion separation
 
 ---
 
-### G-330: deliver-feature Recipe — New L2 Recipe with Pre-delivery Validation
+### G-330: deliver-feature Play — New High-Order Play with Pre-delivery Validation
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P14 — deliver-feature |
+| Play Priority | P14 — deliver-feature |
 | SDLC Phase | Test-2-Run |
 | Mandatory | YES |
 | Depends On | G-243, G-310, G-331 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/deliver-feature/SKILL.md`
-- [ ] Recipe declares `Level: L2` and `Agent Calls: ≤4`
-- [ ] Recipe declares `Agents: validator, repo-orchestrator`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Ship a verified feature to the target branch via PR"
-- [ ] Recipe failure_conditions include: "Mandatory gates not passed and user declines to run verify-feature", "PR creation fails"
-- [ ] Recipe accepts `--spec <path>` argument
-- [ ] Recipe accepts `--target-branch <branch>` argument (optional)
-- [ ] Recipe accepts `[intent]` free-text argument
+- [ ] File exists at `core/components/plays/deliver-feature/SKILL.md`
+- [ ] Play declares `Level: L2` and `Agent Calls: ≤4`
+- [ ] Play declares `Agents: validator, repo-orchestrator`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Ship a verified feature to the target branch via PR"
+- [ ] Play failure_conditions include: "Mandatory gates not passed and user declines to run verify-feature", "PR creation fails"
+- [ ] Play accepts `--spec <path>` argument
+- [ ] Play accepts `--target-branch <branch>` argument (optional)
+- [ ] Play accepts `[intent]` free-text argument
 - [ ] Step 1: invokes validator to confirm delivery readiness (`ready_for_delivery: true`)
 - [ ] Step 1 fails if any mandatory gate is not in pass status → structured failure returned
 - [ ] Step 2: invokes repo-orchestrator to create PR (via create-pr) with gate summary + evidence manifest + change summary
@@ -1129,7 +1129,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] PR description includes evidence manifest and gate summary
 - [ ] Skills invoked: verify-gate, validate-implementation, generate-delivery-report, create-pr
 
-**Evidence:** `evidence/g-330-deliver-feature.md` — recipe file, pre-delivery validation gate, PR creation with evidence, checkpoint pattern
+**Evidence:** `evidence/g-330-deliver-feature.md` — play file, pre-delivery validation gate, PR creation with evidence, checkpoint pattern
 
 ---
 
@@ -1137,7 +1137,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P14 — deliver-feature |
+| Play Priority | P14 — deliver-feature |
 | SDLC Phase | Test-2-Run |
 | Mandatory | YES |
 | Depends On | G-243 |
@@ -1158,26 +1158,26 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 ---
 
-### G-340: run-demo Recipe — New Recipe Exists with Skill Contracts
+### G-340: run-demo Play — New Play Exists with Skill Contracts
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P15 — run-demo |
+| Play Priority | P15 — run-demo |
 | SDLC Phase | Test-2-Run |
 | Mandatory | YES |
 | Depends On | G-105 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/run-demo/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 2`
-- [ ] Recipe declares `Agents: project-orchestrator, product-strategist`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Generate sprint review materials — changelog, demo script, metrics summary"
-- [ ] Recipe failure_conditions include: "No completed work in the period"
-- [ ] Recipe reads completed work from git log and closed issues (or intent describing what to demo)
-- [ ] Recipe produces human-readable demo script with talking points
-- [ ] Recipe includes before/after metrics if available
-- [ ] Recipe has Tether/Vanish checkpoint after demo script generation
+- [ ] File exists at `core/components/plays/run-demo/SKILL.md`
+- [ ] Play declares `Level: L1` and `Agent Calls: 2`
+- [ ] Play declares `Agents: project-orchestrator, product-strategist`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Generate sprint review materials — changelog, demo script, metrics summary"
+- [ ] Play failure_conditions include: "No completed work in the period"
+- [ ] Play reads completed work from git log and closed issues (or intent describing what to demo)
+- [ ] Play produces human-readable demo script with talking points
+- [ ] Play includes before/after metrics if available
+- [ ] Play has Tether/Vanish checkpoint after demo script generation
 - [ ] File exists at `core/components/skills/generate-changelog/SKILL.md`
 - [ ] `generate-changelog` input contract declares: since_tag_or_date, pr_descriptions (optional), commit_log
 - [ ] `generate-changelog` output contract declares: changelog with categorized entries (features, fixes, improvements, breaking)
@@ -1185,32 +1185,32 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `draft-demo-script` input contract declares: changelog (from generate-changelog), audience, duration_minutes
 - [ ] `draft-demo-script` output contract declares: demo_script with sections[title, talking_points[], screen_or_flow_ref], metrics_summary
 
-**Evidence:** `evidence/g-340-run-demo.md` — recipe file, skill contracts, demo script output structure
+**Evidence:** `evidence/g-340-run-demo.md` — play file, skill contracts, demo script output structure
 
 ---
 
 ## P16-P19 Gates (G-4XX)
 
-### G-400: release Recipe — New Recipe Exists with Skill Contracts
+### G-400: release Play — New Play Exists with Skill Contracts
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P16 — release |
+| Play Priority | P16 — release |
 | SDLC Phase | Test-2-Run |
 | Mandatory | YES |
 | Depends On | G-110, G-340 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/release/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 2`
-- [ ] Recipe declares `Agents: repo-orchestrator, validator`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Create a release — version bump, changelog, tag, deploy"
-- [ ] Recipe failure_conditions include: "Unreleased breaking changes without major version bump", "Failing tests on release branch"
-- [ ] Recipe follows semantic versioning (major.minor.patch)
-- [ ] Recipe aggregates all changes since last release
-- [ ] Recipe produces release notes from PR descriptions and commits
-- [ ] Recipe has Tether/Vanish checkpoint before tagging
+- [ ] File exists at `core/components/plays/release/SKILL.md`
+- [ ] Play declares `Level: L1` and `Agent Calls: 2`
+- [ ] Play declares `Agents: repo-orchestrator, validator`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Create a release — version bump, changelog, tag, deploy"
+- [ ] Play failure_conditions include: "Unreleased breaking changes without major version bump", "Failing tests on release branch"
+- [ ] Play follows semantic versioning (major.minor.patch)
+- [ ] Play aggregates all changes since last release
+- [ ] Play produces release notes from PR descriptions and commits
+- [ ] Play has Tether/Vanish checkpoint before tagging
 - [ ] File exists at `core/components/skills/bump-version/SKILL.md`
 - [ ] `bump-version` input contract declares: current_version, change_types (breaking|feature|fix|chore), bump_override (optional)
 - [ ] `bump-version` output contract declares: new_version, bump_type (major|minor|patch), justification
@@ -1219,28 +1219,28 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `create-release` input contract declares: version, changelog_content, branch, target_repo
 - [ ] `create-release` output contract declares: release with tag, github_release_url, assets[]
 
-**Evidence:** `evidence/g-400-release.md` — recipe file, semantic versioning enforcement, skill contracts, changelog sharing with run-demo
+**Evidence:** `evidence/g-400-release.md` — play file, semantic versioning enforcement, skill contracts, changelog sharing with run-demo
 
 ---
 
-### G-410: fix-bug Recipe — New Recipe with RCA + Regression Flow
+### G-410: fix-bug Play — New Play with RCA + Regression Flow
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P17 — fix-bug |
+| Play Priority | P17 — fix-bug |
 | SDLC Phase | Run-2-Monitor |
 | Mandatory | YES |
 | Depends On | G-100 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/fix-bug/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 2`
-- [ ] Recipe declares `Agents: tech-designer (diagnose), code-builder (fix)`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Diagnose, fix, and verify a bug"
-- [ ] Recipe constraints include: "Must diagnose root cause before fixing (not just patch symptoms)", "Must add regression test for the fix", "Must commit via repo-orchestrator (agent-first)"
-- [ ] Recipe failure_conditions include: "Cannot reproduce the bug", "Fix introduces new test failures"
-- [ ] Recipe accepts bug description, error logs, issue reference, or intent as input
+- [ ] File exists at `core/components/plays/fix-bug/SKILL.md`
+- [ ] Play declares `Level: L1` and `Agent Calls: 2`
+- [ ] Play declares `Agents: tech-designer (diagnose), code-builder (fix)`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Diagnose, fix, and verify a bug"
+- [ ] Play constraints include: "Must diagnose root cause before fixing (not just patch symptoms)", "Must add regression test for the fix", "Must commit via repo-orchestrator (agent-first)"
+- [ ] Play failure_conditions include: "Cannot reproduce the bug", "Fix introduces new test failures"
+- [ ] Play accepts bug description, error logs, issue reference, or intent as input
 - [ ] Step 1: invokes tech-designer for root cause analysis (not code-builder — diagnose first)
 - [ ] Step 2: invokes code-builder for fix + regression test + commit
 - [ ] Checkpoint: presents RCA + fix summary (Tether/Vanish)
@@ -1252,31 +1252,31 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `fix-and-test` output contract declares: fix with files_changed[], regression_test_path, test_result
 - [ ] Commit happens via repo-orchestrator (agent-first)
 
-**Evidence:** `evidence/g-410-fix-bug.md` — recipe file, diagnose-first flow, regression test requirement, skill contracts
+**Evidence:** `evidence/g-410-fix-bug.md` — play file, diagnose-first flow, regression test requirement, skill contracts
 
 ---
 
-### G-420: review-architecture Recipe — New Recipe with Codebase Analysis
+### G-420: review-architecture Play — New Play with Codebase Analysis
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P18 — review-architecture |
+| Play Priority | P18 — review-architecture |
 | SDLC Phase | Audit-2-Fix |
 | Mandatory | YES |
 | Depends On | G-110 |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/review-architecture/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 2`
-- [ ] Recipe declares `Agents: tech-designer, validator`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Evaluate system architecture health — patterns, dependencies, tech debt, scalability"
-- [ ] Recipe constraints include: "Must read codebase structure, not just docs", "Must check against LTM architecture standards", "Must produce actionable findings (not vague observations)"
-- [ ] Recipe failure_conditions include: "Codebase too large to analyze within context budget", "No architecture standards in LTM to review against"
-- [ ] Recipe accepts codebase path, existing ADRs, or intent describing focus area
-- [ ] Recipe reads actual codebase (not just docs) via tech-designer
-- [ ] Recipe checks against LTM architecture standards
-- [ ] Recipe produces architecture-review.md with findings, recommendations, proposed ADRs
+- [ ] File exists at `core/components/plays/review-architecture/SKILL.md`
+- [ ] Play declares `Level: L1` and `Agent Calls: 2`
+- [ ] Play declares `Agents: tech-designer, validator`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Evaluate system architecture health — patterns, dependencies, tech debt, scalability"
+- [ ] Play constraints include: "Must read codebase structure, not just docs", "Must check against LTM architecture standards", "Must produce actionable findings (not vague observations)"
+- [ ] Play failure_conditions include: "Codebase too large to analyze within context budget", "No architecture standards in LTM to review against"
+- [ ] Play accepts codebase path, existing ADRs, or intent describing focus area
+- [ ] Play reads actual codebase (not just docs) via tech-designer
+- [ ] Play checks against LTM architecture standards
+- [ ] Play produces architecture-review.md with findings, recommendations, proposed ADRs
 - [ ] File exists at `core/components/skills/analyze-architecture/SKILL.md`
 - [ ] `analyze-architecture` input contract declares: codebase_path, focus_areas (patterns|dependencies|tech-debt|scalability|all)
 - [ ] `analyze-architecture` output contract declares: analysis with components[], dependencies[], anti_patterns[], tech_debt_items[]
@@ -1284,31 +1284,31 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `evaluate-tech-debt` input contract declares: analysis (from analyze-architecture), severity_threshold
 - [ ] `evaluate-tech-debt` output contract declares: tech_debt_report with items[description, severity, estimated_effort, priority], total_debt_score
 
-**Evidence:** `evidence/g-420-review-architecture.md` — recipe file, codebase-reading flow (not just docs), skill contracts, actionable findings requirement
+**Evidence:** `evidence/g-420-review-architecture.md` — play file, codebase-reading flow (not just docs), skill contracts, actionable findings requirement
 
 ---
 
-### G-430: generate-docs Recipe — New Recipe Exists with Accuracy Enforcement
+### G-430: generate-docs Play — New Play Exists with Accuracy Enforcement
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | P19 — generate-docs |
+| Play Priority | P19 — generate-docs |
 | SDLC Phase | Audit-2-Fix |
 | Mandatory | YES |
 | Depends On | — |
 
 **Verification Steps:**
-- [ ] File exists at `core/components/recipes/generate-docs/SKILL.md`
-- [ ] Recipe declares `Level: L1` and `Agent Calls: 1`
-- [ ] Recipe declares `Agents: specifier (or tech-designer)`
-- [ ] Recipe has IDD intent header with intent, constraints, failure_conditions
-- [ ] Recipe intent states: "Generate documentation from code and specs — API docs, technical docs, onboarding"
-- [ ] Recipe constraints include: "Must read actual code, not just comments", "Must follow project documentation conventions (from LTM)", "Must be accurate — no hallucinated APIs or parameters"
-- [ ] Recipe failure_conditions include: "Code has no clear public API surface", "Generated docs contradict actual code behavior"
-- [ ] Recipe accepts codebase path + existing docs as input
-- [ ] Recipe accepts `[intent]` describing what to document
-- [ ] Recipe reads actual code (not just existing documentation)
-- [ ] Recipe follows project documentation conventions from LTM
+- [ ] File exists at `core/components/plays/generate-docs/SKILL.md`
+- [ ] Play declares `Level: L1` and `Agent Calls: 1`
+- [ ] Play declares `Agents: specifier (or tech-designer)`
+- [ ] Play has IDD intent header with intent, constraints, failure_conditions
+- [ ] Play intent states: "Generate documentation from code and specs — API docs, technical docs, onboarding"
+- [ ] Play constraints include: "Must read actual code, not just comments", "Must follow project documentation conventions (from LTM)", "Must be accurate — no hallucinated APIs or parameters"
+- [ ] Play failure_conditions include: "Code has no clear public API surface", "Generated docs contradict actual code behavior"
+- [ ] Play accepts codebase path + existing docs as input
+- [ ] Play accepts `[intent]` describing what to document
+- [ ] Play reads actual code (not just existing documentation)
+- [ ] Play follows project documentation conventions from LTM
 - [ ] File exists at `core/components/skills/extract-api-surface/SKILL.md`
 - [ ] `extract-api-surface` input contract declares: codebase_path, scope (public|all), output_format (openapi|markdown|yaml)
 - [ ] `extract-api-surface` output contract declares: api_surface with endpoints[], types[], functions[], schemas[]
@@ -1316,7 +1316,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 - [ ] `draft-documentation` input contract declares: api_surface (from extract-api-surface), doc_type (api|guide|readme|onboarding), conventions_path (from LTM)
 - [ ] `draft-documentation` output contract declares: documentation with path, doc_type, sections[], accuracy_check_passed
 
-**Evidence:** `evidence/g-430-generate-docs.md` — recipe file, actual-code-reading enforcement, skill contracts, accuracy check
+**Evidence:** `evidence/g-430-generate-docs.md` — play file, actual-code-reading enforcement, skill contracts, accuracy check
 
 ---
 
@@ -1326,7 +1326,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — all phases |
+| Play Priority | Cross-cutting — all phases |
 | SDLC Phase | All phases |
 | Mandatory | YES |
 | Depends On | G-100 |
@@ -1352,7 +1352,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — build-feature, implement-feature |
+| Play Priority | Cross-cutting — build-feature, implement-feature |
 | SDLC Phase | Spec-2-Code |
 | Mandatory | YES |
 | Depends On | — |
@@ -1383,7 +1383,7 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 | Property | Value |
 |----------|-------|
-| Recipe Priority | Cross-cutting — all existing agents |
+| Play Priority | Cross-cutting — all existing agents |
 | SDLC Phase | All phases |
 | Mandatory | YES |
 | Depends On | G-001 |
@@ -1404,20 +1404,20 @@ These gates apply to all recipes and must be satisfied throughout the build.
 
 ## Gate Summary Table
 
-| ID | Name | Recipe Priority | SDLC Phase | Mandatory | Depends On |
+| ID | Name | Play Priority | SDLC Phase | Mandatory | Depends On |
 |----|------|-----------------|------------|-----------|------------|
 | G-001 | Structured Failure Protocol on All Agents | Cross-cutting | All | YES | — |
-| G-002 | IDD Intent Propagation in All Recipes | Cross-cutting | All | YES | — |
+| G-002 | IDD Intent Propagation in All Plays | Cross-cutting | All | YES | — |
 | G-003 | Tether/Vanish Checkpoint Pattern | Cross-cutting | All | YES | — |
 | G-004 | Context Budget Enforced Across Agent Invocations | Cross-cutting | Spec-2-Code, Code-2-Test | YES | — |
 | G-005 | Cascade Sync Prevents Stale Artifacts | Cross-cutting | All | YES | — |
 | G-006 | Three-Speeds Model Routing in Universal Precursor | Cross-cutting | Universal Precursor | YES | G-100 |
 | G-007 | Artifact Lifecycle Enforcement (DRAFT → VALIDATE → LOCKED) | Cross-cutting | Product-2-Design | YES | G-110, G-200, G-210 |
-| G-008 | Agent-First Pattern in All Recipes | Cross-cutting | All | YES | — |
-| G-009 | L1 and L2 Recipe Level Constraints | Cross-cutting | All | YES | — |
+| G-008 | Agent-First Pattern in All Plays | Cross-cutting | All | YES | — |
+| G-009 | Play Level Constraints | Cross-cutting | All | YES | — |
 | G-010 | Compartmented Evaluation — Builder/Validator Information Barrier | Cross-cutting | Spec-2-Code, Code-2-Test | YES | G-230, G-240 |
 | G-100 | start-feature IDD Compliance and Resume Mode | P1 | Universal Precursor | YES | — |
-| G-101 | capture-learning Recipe and Skill Contracts | P2 | Learn-2-Memory | YES | — |
+| G-101 | capture-learning Play and Skill Contracts | P2 | Learn-2-Memory | YES | — |
 | G-102 | implement-feature L2 Multi-Vertical Orchestration | P3 | Spec-2-Test | YES | G-020, G-021, G-022, G-023 |
 | G-103 | start-planned-feature IDD Compliance Review | P4 | Design-2-Code | YES | G-100 |
 | G-104 | discover-product Full Phase Handling | P5 | Product-2-Design | YES | G-110 |
@@ -1429,22 +1429,22 @@ These gates apply to all recipes and must be satisfied throughout the build.
 | G-110 | validator Agent Contract | P10, P14, P13, P16, P18 | Code-2-Test, Test-2-Run, Audit-2-Fix | YES | — |
 | G-200 | plan-roadmap Full Phase Handling | P6 | Product-2-Design | YES | G-104, G-105, G-106, G-107 |
 | G-210 | manage-backlog Full Phase Handling | P7 | Product-2-Design | YES | G-200, G-105, G-106, G-107 |
-| G-220 | refine-backlog Recipe and Skill Contracts | P8 | Product-2-Design | YES | G-210, G-105 |
-| G-230 | build-feature Recipe and Skill Contracts | P9 | Spec-2-Code | YES | G-109, G-110 |
-| G-240 | verify-feature Recipe and Skill Contracts | P10 | Code-2-Test | YES | G-110, G-241, G-242, G-243 |
+| G-220 | refine-backlog Play and Skill Contracts | P8 | Product-2-Design | YES | G-210, G-105 |
+| G-230 | build-feature Play and Skill Contracts | P9 | Spec-2-Code | YES | G-109, G-110 |
+| G-240 | verify-feature Play and Skill Contracts | P10 | Code-2-Test | YES | G-110, G-241, G-242, G-243 |
 | G-241 | verify-gate Skill with Evidence | P10 | Code-2-Test | YES | G-110 |
 | G-242 | run-test-suite Reports Coverage | P10 | Code-2-Test | YES | G-110 |
 | G-243 | validate-implementation Confirms Gate Readiness | P10, P14 | Code-2-Test, Test-2-Run | YES | G-110, G-241 |
 | G-300 | commit-code IDD Compliance Review | P11 | Code-2-Test | YES | G-100 |
 | G-310 | create-pr IDD Compliance Review | P12 | Test-2-Run | YES | G-100 |
-| G-320 | review-pr Recipe and Skill Contracts | P13 | Code-2-Test | YES | G-110 |
+| G-320 | review-pr Play and Skill Contracts | P13 | Code-2-Test | YES | G-110 |
 | G-330 | deliver-feature L2 with Pre-delivery Validation | P14 | Test-2-Run | YES | G-243, G-310, G-331 |
 | G-331 | generate-delivery-report Complete Output | P14 | Test-2-Run | YES | G-243 |
-| G-340 | run-demo Recipe and Skill Contracts | P15 | Test-2-Run | YES | G-105 |
-| G-400 | release Recipe and Skill Contracts | P16 | Test-2-Run | YES | G-110, G-340 |
-| G-410 | fix-bug Recipe with RCA and Regression Flow | P17 | Run-2-Monitor | YES | G-100 |
-| G-420 | review-architecture Recipe with Codebase Analysis | P18 | Audit-2-Fix | YES | G-110 |
-| G-430 | generate-docs Recipe with Accuracy Enforcement | P19 | Audit-2-Fix | YES | — |
+| G-340 | run-demo Play and Skill Contracts | P15 | Test-2-Run | YES | G-105 |
+| G-400 | release Play and Skill Contracts | P16 | Test-2-Run | YES | G-110, G-340 |
+| G-410 | fix-bug Play with RCA and Regression Flow | P17 | Run-2-Monitor | YES | G-100 |
+| G-420 | review-architecture Play with Codebase Analysis | P18 | Audit-2-Fix | YES | G-110 |
+| G-430 | generate-docs Play with Accuracy Enforcement | P19 | Audit-2-Fix | YES | — |
 | G-500 | Storage Layout Matches Spec | Cross-cutting | All | YES | G-100 |
 | G-501 | bundler Skill Produces Bundles ≤12K Tokens | Cross-cutting | Spec-2-Code | YES | — |
 | G-502 | Existing Agent Files IDD-Compliant | Cross-cutting | All | YES | G-001 |
@@ -1457,10 +1457,10 @@ This matrix shows which gates cover which architectural rules and principles fro
 
 | Architectural Rule / Principle | Gates That Verify It |
 |-------------------------------|----------------------|
-| **IDD Intent Headers** — all recipes and artifacts have intent/constraints/failure_conditions | G-002, G-100, G-103, G-104, G-108 |
-| **Agent-First Pattern** — no recipe uses tools directly when an agent covers the domain | G-008, G-300, G-310 |
-| **L1 Recipe Constraint** — ≤2 agent calls | G-009, G-100, G-101, G-104, G-200, G-210, G-220, G-230, G-240, G-300, G-310, G-320, G-340, G-400, G-410, G-420, G-430 |
-| **L2 Recipe Constraint** — ≤5 agent calls | G-009, G-102, G-103, G-330 |
+| **IDD Intent Headers** — all plays and artifacts have intent/constraints/failure_conditions | G-002, G-100, G-103, G-104, G-108 |
+| **Agent-First Pattern** — no play uses tools directly when an agent covers the domain | G-008, G-300, G-310 |
+| **Atomic Play Constraint** — ≤2 agent calls | G-009, G-100, G-101, G-104, G-200, G-210, G-220, G-230, G-240, G-300, G-310, G-320, G-340, G-400, G-410, G-420, G-430 |
+| **High-Order Play Constraint** — ≤5 agent calls | G-009, G-102, G-103, G-330 |
 | **Context Bundles** — agents load ≤12K per vertical | G-004, G-501, G-230, G-102 |
 | **Context Budget Total ≤17K per task** | G-004, G-109 |
 | **Audience Separation** — one stakeholder per Tier 1 artifact | G-107, G-108, G-106 |
@@ -1472,8 +1472,8 @@ This matrix shows which gates cover which architectural rules and principles fro
 | **Three-Speeds Model** — Fast / Planned / Strategic routing | G-006 |
 | **Structured Failure Protocol** — no raw errors from agents | G-001, G-502 |
 | **Tether/Vanish Checkpoints** — no AskUserQuestion | G-003 |
-| **Intent-Sufficiency** — any recipe works from intent alone, upstream artifacts enrich not block | G-100, G-104, G-200, G-210, G-230 |
-| **Non-Linear Invocation** — any recipe callable at any point if intent/constraints/failure_conditions satisfied | G-002, G-008 |
+| **Intent-Sufficiency** — any play works from intent alone, upstream artifacts enrich not block | G-100, G-104, G-200, G-210, G-230 |
+| **Non-Linear Invocation** — any play callable at any point if intent/constraints/failure_conditions satisfied | G-002, G-008 |
 | **Rule ID Preservation** — BIZ-001 stays BIZ-001 across bundles | G-501, G-005 |
 | **Gate-to-Task Mapping** — all tasks map to at least one gate | G-109 |
 | **Evidence Collection** — each gate produces evidence artifact | G-241, G-243, G-330, G-331 |

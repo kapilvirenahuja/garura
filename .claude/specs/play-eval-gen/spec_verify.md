@@ -1,4 +1,4 @@
-# Verification Scenarios: recipe-eval-gen
+# Verification Scenarios: play-eval-gen
 
 Each scenario is independently testable with clear pass/fail criteria.
 
@@ -80,11 +80,11 @@ Each scenario is independently testable with clear pass/fail criteria.
 
 ---
 
-## V5: create-recipe Step 6a classifies all constraints
+## V5: create-play Step 6a classifies all constraints
 
 **What:** The new constraint classification sub-step assigns every constraint to exactly one category.
 
-**Setup:** Run create-recipe compilation against discover-product (11 constraints).
+**Setup:** Run create-play compilation against discover-product (11 constraints).
 
 **Pass criteria:**
 - Every constraint C1-C11 appears in the `constraint_classifications` list
@@ -102,9 +102,9 @@ Each scenario is independently testable with clear pass/fail criteria.
 
 ## V6: Coverage matrix is complete — zero gaps
 
-**What:** The compiled recipe includes a coverage matrix with every intent item mapped.
+**What:** The compiled play includes a coverage matrix with every intent item mapped.
 
-**Setup:** Run create-recipe compilation against discover-product. Inspect the coverage matrix in the evidence output.
+**Setup:** Run create-play compilation against discover-product. Inspect the coverage matrix in the evidence output.
 
 **Pass criteria:**
 - Coverage matrix has one row per intent item (all C-n, F-n, S-n)
@@ -126,9 +126,9 @@ Each scenario is independently testable with clear pass/fail criteria.
 
 ## V7: Compiled SKILL.md embeds evals at correct positions
 
-**What:** The compiled recipe places evals immediately after the steps they validate.
+**What:** The compiled play places evals immediately after the steps they validate.
 
-**Setup:** Run create-recipe compilation against ship. Read the output SKILL.md.
+**Setup:** Run create-play compilation against ship. Read the output SKILL.md.
 
 **Pass criteria:**
 - Step evals appear immediately after the step they reference (e.g., evals for merge-pr's skill appear after Step 2)

@@ -30,12 +30,12 @@
 | T9 | `docs/components/agents.md` | Add engineering-manager, note test-writer | code-builder |
 | T10 | `docs/adr/004-agent-naming.md` | Add "manager" role, note test-writer exception | code-builder |
 
-### Serial — Recipe Compilation
+### Serial — Play Compilation
 
 | Task | What | Depends On |
 |------|------|------------|
-| T11 | `/create-recipe --rebake implement-epic` | T1-T10 all complete |
-| T12 | `/create-recipe --review` | T11 |
+| T11 | `/create-play --rebake implement-epic` | T1-T10 all complete |
+| T12 | `/create-play --review` | T11 |
 | T13 | `/skill-creator` review | T12 |
 
 ---
@@ -54,5 +54,5 @@ T10 (ADR 004, needs T6) ───┘
 ## Risk Areas
 
 1. **Rebake scope:** Major SKILL.md rewrite — new steps 3b/6a/6b/7b/10b/11b/12b, new sub-role concept (test-writer), hard quality gate, unified remediation. May need manual guidance during interactive rebake.
-2. **test-writer as sub-role:** Not a standalone agent file. Recipe compiler may not have seen this pattern before.
+2. **test-writer as sub-role:** Not a standalone agent file. Play compiler may not have seen this pattern before.
 3. **Docs staleness:** agents.md lists 5 agents but 11 exist. Minimal update (add EM only) vs full refresh is a scope decision.

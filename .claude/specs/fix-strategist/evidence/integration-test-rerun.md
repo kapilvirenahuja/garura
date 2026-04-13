@@ -1,8 +1,8 @@
-# Integration Test RERUN: discover-product Recipe (DRAFT phase)
+# Integration Test RERUN: discover-product Play (DRAFT phase)
 
 **Date:** 2026-02-25
 **Type:** Regression test after DEFECT-1 and DEFECT-2 fixes
-**Recipe:** discover-product --phase draft
+**Play:** discover-product --phase draft
 **Test Prompt:** "AI-powered commission tracking and dispute resolution platform for B2B SaaS marketplaces connecting sellers and buyers with transparent revenue sharing"
 
 ---
@@ -11,8 +11,8 @@
 
 | Defect | Fix Applied | File Changed |
 |--------|-------------|--------------|
-| DEFECT-1: STM at global path | Added path resolution rule to recipe, updated C6 to say "relative to project root" | `discover-product/SKILL.md`, `reference/intent.yaml` |
-| DEFECT-2: Multi-intent incomplete | Explicit `Intents:` block with `intent_count` + `dependency` in recipe Step 2. Strengthened agent multi-intent recognition with detection signals and "completing only first intent is a failure" rule | `discover-product/SKILL.md`, `product-strategist.md` |
+| DEFECT-1: STM at global path | Added path resolution rule to play, updated C6 to say "relative to project root" | `discover-product/SKILL.md`, `reference/intent.yaml` |
+| DEFECT-2: Multi-intent incomplete | Explicit `Intents:` block with `intent_count` + `dependency` in play Step 2. Strengthened agent multi-intent recognition with detection signals and "completing only first intent is a failure" rule | `discover-product/SKILL.md`, `product-strategist.md` |
 
 ---
 

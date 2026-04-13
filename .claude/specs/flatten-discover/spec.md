@@ -29,14 +29,14 @@ Single invocation: `/discover-product "intent text"` → draft → brief → che
 
 ### Workflow (10 steps, single flow)
 
-1. **Assess Intent** — C12 signals, C13 type (recipe, no agent)
+1. **Assess Intent** — C12 signals, C13 type (play, no agent)
 2. **Discover Opportunity** — conditional skip per C12 (product-strategist)
 3. **Draft Vision** — writes product.yaml DRAFT (product-strategist)
 4. **Generate Brief** — writes product-brief.html (doc-builder, utility)
 5. **Checkpoint: Brief Review** — Tether/Vanish (C8, C10)
 6. **Validate Vision** — run checklist (product-strategist)
 7. **Checkpoint: Validation** — skip if clean, show issues if blockers (cycle-back per C9)
-8. **Lock** — status DRAFT → LOCKED (recipe, no agent)
+8. **Lock** — status DRAFT → LOCKED (play, no agent)
 9. **Evidence** — write + self-commit
 10. **Summary** — "Continue with /plan-roadmap"
 
@@ -51,5 +51,5 @@ Remove `active_phase`. Flat 10-task sequence. Resume works identically.
 ## Execution
 
 1. Update intent.yaml
-2. `/create-recipe --rebake discover-product`
+2. `/create-play --rebake discover-product`
 3. `/sync-claude`

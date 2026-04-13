@@ -22,7 +22,7 @@ Update Meridian philosophy documents, core architecture, and ADRs. **No implemen
 
 | In Scope | Out of Scope |
 |----------|--------------|
-| Philosophy documents | Recipe implementation |
+| Philosophy documents | Play implementation |
 | Core architecture definition | Skill implementation |
 | ADRs | Code changes |
 | Component-level documentation | Folder restructuring |
@@ -73,7 +73,7 @@ CLAUDE.md documents one pattern but uses inconsistent examples:
 
 ```
 core/
-├── recipes/          # Was: commands/ — source recipes (L1, L2, L3)
+├── plays/          # Was: commands/ — source plays (L1, L2, L3)
 ├── agents/           # Agent definitions (5 SDLC roles)
 ├── skills/           # True skills (model invocable)
 └── memory/           # LTM — includes templates, practices, standards
@@ -82,36 +82,36 @@ core/
     └── tools/
 ```
 
-**Note**: `core/commands/` → `core/recipes/`. Templates moved into memory.
+**Note**: `core/commands/` → `core/plays/`. Templates moved into memory.
 
 ---
 
 ### Three-Layer Hierarchy
 
 ```
-L2 Recipes (High-Order)     User intent: fix-bug, code-microservice
+L2 Plays (High-Order)     User intent: fix-bug, code-microservice
         ↓
-L1 Recipes (Activities)     Atomic units: analyze-bug, design-fix, implement-fix
+L1 Plays (Activities)     Atomic units: analyze-bug, design-fix, implement-fix
         ↓
 Skills (Learned Capabilities)   Agent knowledge: write-java-code, create-selenium-tests
 ```
 
 | Layer | Purpose | Invocability | Examples |
 |-------|---------|--------------|----------|
-| **L2 Recipes** | Workflow chaining L1s | Human only | `fix-bug`, `code-microservice` |
-| **L1 Recipes** | Atomic activity → artifact → checkpoint | Human OR Model | `analyze-bug`, `design-fix` |
+| **L2 Plays** | Workflow chaining L1s | Human only | `fix-bug`, `code-microservice` |
+| **L1 Plays** | Atomic activity → artifact → checkpoint | Human OR Model | `analyze-bug`, `design-fix` |
 | **Skills** | Learned capabilities agents use | Model only (via agent) | `write-java-code`, `do-rca-analysis` |
 
-### L1 Recipe Behavior
+### L1 Play Behavior
 
-Every L1 recipe:
+Every L1 play:
 1. **Calls agent(s)** — agent does the work
 2. **Agent produces artifact** — tangible output (RCA doc, code, test)
 3. **Stops at checkpoint** — waits for human approval
 4. **Clean boundary** — ready to chain into L2
 
 ```
-L1 Recipe: analyze-bug
+L1 Play: analyze-bug
     │
     └── Invokes agent: tech-designer
               │
@@ -122,16 +122,16 @@ L1 Recipe: analyze-bug
     └── CHECKPOINT: Present RCA for approval
 ```
 
-### L2 Recipe Behavior
+### L2 Play Behavior
 
-L2 recipes chain L1 recipes:
-1. **Workflow** — sequences L1 recipes
+L2 plays chain L1 plays:
+1. **Workflow** — sequences L1 plays
 2. **Guardian agent** — validates if human approval can be skipped
 3. **Hooks** — show progression between steps
 4. **Non-stop work** — bypasses checkpoints when safe
 
 ```
-L2 Recipe: fix-bug
+L2 Play: fix-bug
     │
     ├── L1: analyze-bug → [Guardian: skip approval?] →
     ├── L1: design-fix → [Guardian: skip approval?] →
@@ -144,10 +144,10 @@ L2 Recipe: fix-bug
 
 | Rule | Applies To | Rationale |
 |------|------------|-----------|
-| **Produces artifact** | L1 Recipes | Clean checkpoint boundaries |
-| **Chains L1s** | L2 Recipes | Workflow = sequence of atomic activities |
-| **Guardian validates** | L2 Recipes | Decides if human approval can be skipped |
-| **Agent produces** | Artifacts | Agent does work, recipe orchestrates |
+| **Produces artifact** | L1 Plays | Clean checkpoint boundaries |
+| **Chains L1s** | L2 Plays | Workflow = sequence of atomic activities |
+| **Guardian validates** | L2 Plays | Decides if human approval can be skipped |
+| **Agent produces** | Artifacts | Agent does work, play orchestrates |
 | **Learned capabilities** | Skills | Technology/methodology specific knowledge |
 
 ---
@@ -156,12 +156,12 @@ L2 Recipe: fix-bug
 
 | Component | Pattern | Examples |
 |-----------|---------|----------|
-| **L2 Recipes** | `{action}-{object}` (high-order) | `fix-bug`, `code-microservice`, `create-feature` |
-| **L1 Recipes** | `{action}-{object}` (activity) | `analyze-bug`, `design-fix`, `implement-fix` |
+| **L2 Plays** | `{action}-{object}` (high-order) | `fix-bug`, `code-microservice`, `create-feature` |
+| **L1 Plays** | `{action}-{object}` (activity) | `analyze-bug`, `design-fix`, `implement-fix` |
 | **Skills** | `{action}-{technology/methodology}` | `write-java-code`, `create-selenium-tests`, `do-rca-analysis` |
 | **Agents** | `{domain}-{role}` | `code-builder`, `quality-validator`, `project-orchestrator` |
 
-#### Recipe Naming (High-Order & Activities)
+#### Play Naming (High-Order & Activities)
 
 **L2 (High-Order)** — User intent, workflow:
 - `fix-bug`, `code-microservice`, `create-feature`, `review-pr`
@@ -181,7 +181,7 @@ Skills = what agents LEARN (technology/methodology specific):
 | `apply-{pattern}` | `apply-tdd-pattern`, `apply-clean-architecture` |
 
 **Key distinction:**
-- Recipes = activities (what to do)
+- Plays = activities (what to do)
 - Skills = capabilities (how to do it)
 
 #### Agent Naming — `{domain}-{role}` Pattern
@@ -233,14 +233,14 @@ All agents use `{domain}-{role}` pattern. 1 agent = 1 thing done perfectly.
 | Type | Lifecycle | Purpose | Location |
 |------|-----------|---------|----------|
 | **LTM (Long-Term Memory)** | Project setup → persists | Practices, standards, templates | `core/memory/` |
-| **STM (Short-Term Memory)** | Recipe start → recipe end | Artifacts created during recipe | `.meridian/{issue_number}/` |
+| **STM (Short-Term Memory)** | Play start → play end | Artifacts created during play | `.meridian/{issue_number}/` |
 
 ### STM Folder Structure
 
 ```
 .meridian/
 └── {issue_number}/
-    ├── docs/           # Specs, designs, plans created during recipe
+    ├── docs/           # Specs, designs, plans created during play
     │   ├── spec.md
     │   ├── tech-design.md
     │   └── rca.md
@@ -267,23 +267,23 @@ All agents use `{domain}-{role}` pattern. 1 agent = 1 thing done perfectly.
                               │
 ┌─────────────────────────────────────────────────────────────┐
 │                    STM (Short-Term Memory)                  │
-│  Created: When recipe starts                                │
+│  Created: When play starts                                │
 │  Contains: Artifacts (docs, evidence) for this issue        │
 │  Location: .meridian/{issue_number}/                      │
-│  Lifecycle: Recipe execution                                │
+│  Lifecycle: Play execution                                │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### STM → LTM Persistence
 
-When recipe finishes, `persist` skill converts critical parts to LTM:
+When play finishes, `persist` skill converts critical parts to LTM:
 - Successful patterns discovered
 - New learnings about codebase
 - Reusable solutions
 - Updated best practices
 
 ```
-Recipe completes
+Play completes
     │
     └── Skill: persist
           │
@@ -298,7 +298,7 @@ Recipe completes
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      RECIPES                                │
+│                      PLAYS                                │
 │  Defined in skills, human invocable                         │
 │  NEVER FORKED — steps/order to follow                       │
 ├─────────────────────────────────────────────────────────────┤
@@ -318,14 +318,14 @@ Recipe completes
 │  Stable — don't change over time                            │
 └─────────────────────────────────────────────────────────────┘
                               │
-                    called by L1 recipes OR agents
+                    called by L1 plays OR agents
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                        AGENTS                               │
 │  Truly agentic — make ALL decisions                         │
 │  Judges, not executors                                      │
 │  Have context that needs sharing                            │
-│  Called by L2 recipes                                       │
+│  Called by L2 plays                                       │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -340,28 +340,28 @@ Recipe completes
 
 ## Flow Examples
 
-### L1 Recipe Flow (Simple)
+### L1 Play Flow (Simple)
 ```
-User invokes /commit (L1 Recipe)
+User invokes /commit (L1 Play)
     │
-    └── Recipe calls ≤2 True Skills
+    └── Play calls ≤2 True Skills
               │
               └── Skills execute (model invocable, share context)
 ```
 
-### L2 Recipe Flow (Complex)
+### L2 Play Flow (Complex)
 ```
-User invokes /fix-bug (L2 Recipe)
+User invokes /fix-bug (L2 Play)
     │
-    ├── Recipe invokes Agent 1 (analyst)
+    ├── Play invokes Agent 1 (analyst)
     │         └── Agent makes decisions, calls true skills as needed
     │
     ├── ═══ HUMAN CHECKPOINT ═══
     │
-    ├── Recipe invokes Agent 2 (implementer)
+    ├── Play invokes Agent 2 (implementer)
     │         └── Agent makes decisions, calls true skills as needed
     │
-    ├── Recipe invokes Agent 3 (guardian)
+    ├── Play invokes Agent 3 (guardian)
     │         └── Agent reviews, makes judgment
     │
     └── ═══ HUMAN CHECKPOINT ═══
@@ -374,10 +374,10 @@ User invokes /fix-bug (L2 Recipe)
 | # | Story | Issue | PR | Status |
 |---|-------|-------|----|----|
 | 1 | Update Meridian philosophy to use skills | #308 | #315 | Complete |
-| 2 | Create L1 recipe: commit-code | #309 | — | Pending |
-| 3 | Create L2 recipe: fix-bug | #310 | — | Pending |
-| 4 | Create L1 recipe: start-work (refactor) | #311 | — | Pending |
-| 5 | Create L1 recipes: GitHub issue ops (refactor) | #312 | — | Pending |
+| 2 | Create L1 play: commit-code | #309 | — | Pending |
+| 3 | Create L2 play: fix-bug | #310 | — | Pending |
+| 4 | Create L1 play: start-work (refactor) | #311 | — | Pending |
+| 5 | Create L1 plays: GitHub issue ops (refactor) | #312 | — | Pending |
 | 6 | Create meta-skills: Meridian builder | #313 | — | Pending |
 | 7 | Create meta-skill: Code review | #314 | — | Pending |
 
@@ -395,12 +395,12 @@ User invokes /fix-bug (L2 Recipe)
 | # | File | Purpose | Story |
 |---|------|---------|-------|
 | 3 | `docs/philosophy/architecture.md` | 3-layer hierarchy, guardian model | Story 1 |
-| 4 | `docs/components/recipes.md` | L1/L2 recipes, chaining model | Story 1 |
+| 4 | `docs/components/plays.md` | L1/L2 plays, chaining model | Story 1 |
 | 5 | `docs/components/agents.md` | {domain}-{role} pattern, 6 agents | Story 1 |
 | 6 | `docs/components/skills.md` | Learned capabilities, skill catalog | Story 1 |
 | 7 | `docs/components/memory.md` | STM/LTM dual system | Story 1 |
 
-### L1 Recipe Definitions (10)
+### L1 Play Definitions (10)
 | # | File | Purpose | Story |
 |---|------|---------|-------|
 | 8 | `core/commands/meridian/l1/analyze-bug.md` | Analyze bug, produce RCA | Story 3 |
@@ -414,7 +414,7 @@ User invokes /fix-bug (L2 Recipe)
 | 16 | `core/commands/meridian/l1/record-issue.md` | Create/update GitHub issue (refactor) | Story 5 |
 | 17 | `core/commands/meridian/l1/record-subtasks.md` | Create subtasks for issue (refactor) | Story 5 |
 
-### L2 Recipe Definitions (1)
+### L2 Play Definitions (1)
 | # | File | Purpose | Story |
 |---|------|---------|-------|
 | 18 | `core/commands/meridian/l2/fix-bug.md` | Chain L1s with guardian | Story 3 |
@@ -432,7 +432,7 @@ User invokes /fix-bug (L2 Recipe)
 ### Meta-Skills (5)
 | # | File | Purpose | Story |
 |---|------|---------|-------|
-| 25 | `core/commands/meridian/meta/mrd-create-recipe.md` | Create L1/L2 recipe | Story 6 |
+| 25 | `core/commands/meridian/meta/mrd-create-play.md` | Create L1/L2 play | Story 6 |
 | 26 | `core/commands/meridian/meta/mrd-create-agent.md` | Create agent definition | Story 6 |
 | 27 | `core/commands/meridian/meta/mrd-create-skill.md` | Create skill definition | Story 6 |
 | 28 | `core/commands/meridian/meta/mrd-create-memory.md` | Create memory entry | Story 6 |
@@ -458,7 +458,7 @@ After updates:
 2. [x] CLAUDE.md provides operational guidance (naming conventions fixed)
 3. [x] Philosophy doc serves as detailed reference
 4. [x] Component docs explain each component in detail
-5. [ ] Recipe docs explain fix-bug (L2) and commit-code (L1)
+5. [ ] Play docs explain fix-bug (L2) and commit-code (L1)
 6. [x] ADRs document all key decisions with rationale
 7. [x] All documents consistent in terminology
 
@@ -466,31 +466,31 @@ After updates:
 - [x] No references to deprecated `bug-analyzer`, `bug-implementer` in new docs
 - [x] Agent naming follows TWO patterns only (keepers + roles)
 - [ ] Skill names use optional qualifiers correctly
-- [ ] Recipe names follow `{action}-{object}` pattern
-- [x] All docs reference `core/commands/` (not `core/recipes/`)
+- [ ] Play names follow `{action}-{object}` pattern
+- [x] All docs reference `core/commands/` (not `core/plays/`)
 
 ### Cross-Reference Validation
 - [x] README.md ↔ CLAUDE.md use same terminology
 - [x] ADRs reference component docs
-- [ ] Recipe docs reference skill/agent docs
+- [ ] Play docs reference skill/agent docs
 
 ---
 
-# Fix-Bug Recipe Design (L2)
+# Fix-Bug Play Design (L2)
 
 ## Overview
 
-L2 recipe = workflow that chains L1 recipes. Guardian validates if human approval can be skipped at each checkpoint.
+L2 play = workflow that chains L1 plays. Guardian validates if human approval can be skipped at each checkpoint.
 
-## Recipe Metadata
+## Play Metadata
 
 ```yaml
 ---
 name: fix-bug
 level: L2
 invocable: human
-description: Chains L1 recipes for end-to-end bug fixing
-l1-recipes:
+description: Chains L1 plays for end-to-end bug fixing
+l1-plays:
   - analyze-bug
   - design-fix
   - implement-fix
@@ -499,7 +499,7 @@ l1-recipes:
 ---
 ```
 
-## L2 Flow (Chained L1 Recipes)
+## L2 Flow (Chained L1 Plays)
 
 ```
 L2: fix-bug
@@ -555,7 +555,7 @@ workflow-guardian evaluates at each checkpoint:
 
 ---
 
-## L1 Recipe Definitions
+## L1 Play Definitions
 
 ### L1: analyze-bug
 
@@ -740,7 +740,7 @@ Input: validated implementation
 
 ### Fix-Bug (L2) Call Matrix
 
-| L1 Recipe | Agent | Skills Used |
+| L1 Play | Agent | Skills Used |
 |-----------|-------|-------------|
 | **analyze-bug** | tech-designer | `do-rca-analysis`, `do-impact-analysis` |
 | **design-fix** | tech-designer | `apply-clean-architecture` |
@@ -750,7 +750,7 @@ Input: validated implementation
 
 ### Commit-Code (L1) Call Matrix
 
-| L1 Recipe | Agent | Skills Used |
+| L1 Play | Agent | Skills Used |
 |-----------|-------|-------------|
 | **commit-code** | repo-orchestrator | (git operations, not skills) |
 
@@ -848,7 +848,7 @@ Before PR creation:
 
 ## Full Completion Criteria
 
-Recipe is complete only when:
+Play is complete only when:
 1. RCA approved by user
 2. Solution approved by user
 3. All tasks implemented
@@ -860,13 +860,13 @@ Recipe is complete only when:
 
 ---
 
-# Commit-Code Recipe Design (L1)
+# Commit-Code Play Design (L1)
 
 ## Overview
 
-L1 recipe that intelligently commits uncommitted changes. Produces artifact (commit summary) and stops at checkpoint.
+L1 play that intelligently commits uncommitted changes. Produces artifact (commit summary) and stops at checkpoint.
 
-## Recipe Metadata
+## Play Metadata
 
 ```yaml
 ---
@@ -917,7 +917,7 @@ Input: uncommitted changes
 
 ## Completion Criteria
 
-Recipe complete when:
+Play complete when:
 1. All changes analyzed
 2. Logical groupings determined
 3. Commits created with proper messages
@@ -934,11 +934,11 @@ Before implementation, create 7 stories in GitHub. Each story = independent bran
 | # | Story | Description | Scope |
 |---|-------|-------------|-------|
 | 1 | **Update Meridian philosophy to use skills** | ADRs, philosophy docs, component docs, agent definitions | Foundation |
-| 2 | **Create L1 recipe: commit-code** | L1 recipe definition + agent integration | Standalone L1 |
-| 3 | **Create L2 recipe: fix-bug** | L2 recipe + L1 recipes it chains | Full workflow |
-| 4 | **Create L1 recipe: start-work** | Refactor existing command to L1 model | Migration |
-| 5 | **Create L1 recipes: GitHub issue operations** | Refactor issue commands to L1 recipes | Migration |
-| 6 | **Create meta-skills: Meridian builder** | Skills for building recipes, agents, skills, memory | Meta |
+| 2 | **Create L1 play: commit-code** | L1 play definition + agent integration | Standalone L1 |
+| 3 | **Create L2 play: fix-bug** | L2 play + L1 plays it chains | Full workflow |
+| 4 | **Create L1 play: start-work** | Refactor existing command to L1 model | Migration |
+| 5 | **Create L1 plays: GitHub issue operations** | Refactor issue commands to L1 plays | Migration |
+| 6 | **Create meta-skills: Meridian builder** | Skills for building plays, agents, skills, memory | Meta |
 | 7 | **Create meta-skill: Meridian code review** | Code review skill for Meridian patterns | Meta |
 
 ---
@@ -986,7 +986,7 @@ For EACH story, follow this workflow:
 **Parallelization:**
 - Stories 2, 3, 4 can run in parallel after Story 1
 - Stories 6, 7 can run in parallel after Story 1
-- Story 5 (L2: fix-bug) waits for all L1 recipes
+- Story 5 (L2: fix-bug) waits for all L1 plays
 
 ---
 

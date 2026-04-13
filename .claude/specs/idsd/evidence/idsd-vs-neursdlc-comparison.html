@@ -730,7 +730,7 @@
     <p><strong>NeuroSDLC agents</strong> execute codified transformations deterministically. Immediate predictability — a team that adopted it yesterday gets the same output quality as one that adopted it a year ago. But a ceiling when the model outgrows the playbook.</p>
 
     <h3>The Goodhart's Law Question</h3>
-    <p>IDSD's compartmented evaluation introduces an information barrier between builder and validator agents. The recipe orchestration layer splits the intent triple, routing goal+constraints to the builder and failure_conditions+output to the validator. Symptom-based feedback preserves the barrier during iteration. This is architecturally novel in the AI-native SDLC space — no other published methodology separates generation and validation context — though it has zero production testing.</p>
+    <p>IDSD's compartmented evaluation introduces an information barrier between builder and validator agents. The play orchestration layer splits the intent triple, routing goal+constraints to the builder and failure_conditions+output to the validator. Symptom-based feedback preserves the barrier during iteration. This is architecturally novel in the AI-native SDLC space — no other published methodology separates generation and validation context — though it has zero production testing.</p>
 
     <table>
       <thead>
@@ -790,7 +790,7 @@
           <li>Enterprise Wrapper documents governance, memory federation, and Hive Mind (cross-agent coordination)</li>
           <li>5 AI Squad roles designed for team operation, including "Validator per 2-3 teams"</li>
           <li>LTM globally deployable (<code>~/.meridian/core/memory/</code>)</li>
-          <li>Recipes abstract all complexity — any developer invokes <code>/build-feature</code> without understanding internals</li>
+          <li>Plays abstract all complexity — any developer invokes <code>/build-feature</code> without understanding internals</li>
         </ul>
       </div>
       <div class="vs-card neuro-card">
@@ -827,12 +827,12 @@
         </tr>
         <tr>
           <td>Cross-developer visibility</td>
-          <td class="idsd-col">Present via Git/GitHub (issues, branches, PRs, STM artifacts). NWWI (No Work Without Issue) enforced in recipes</td>
+          <td class="idsd-col">Present via Git/GitHub (issues, branches, PRs, STM artifacts). NWWI (No Work Without Issue) enforced in plays</td>
           <td class="neuro-col">Present via IDE integration and role-specific dashboards</td>
         </tr>
         <tr>
           <td>Governance</td>
-          <td class="idsd-col">10+ mechanisms built: DRAFT/VALIDATE/LOCKED lifecycle, Tether/Vanish gates, Guardian Logic, NWWI gate, ICS, compartmented evaluation, protected branch enforcement. Recipe-enforced (agent-layer), not CI-enforced</td>
+          <td class="idsd-col">10+ mechanisms built: DRAFT/VALIDATE/LOCKED lifecycle, Tether/Vanish gates, Guardian Logic, NWWI gate, ICS, compartmented evaluation, protected branch enforcement. Play-enforced (agent-layer), not CI-enforced</td>
           <td class="neuro-col">Built into cognitive asset workflows. IDE-enforced</td>
         </tr>
         <tr>
@@ -882,7 +882,7 @@
       <tbody>
         <tr>
           <td>Architecture</td>
-          <td class="idsd-col">3.0 — enterprise-designed, governance-rich, recipe abstraction enables N-developer use</td>
+          <td class="idsd-col">3.0 — enterprise-designed, governance-rich, play abstraction enables N-developer use</td>
           <td class="neuro-col">3.5 — role-specific, IDE-integrated, structured onboarding, production-tested design</td>
         </tr>
         <tr>
@@ -934,12 +934,12 @@
         </tr>
         <tr>
           <td>Implementation</td>
-          <td class="idsd-col">No brownfield bootstrap recipe exists. Organic accumulation only.</td>
+          <td class="idsd-col">No brownfield bootstrap play exists. Organic accumulation only.</td>
           <td class="neuro-col">Nine Code2X agents operational. Day-one documentation generation available.</td>
         </tr>
         <tr>
           <td>Trajectory</td>
-          <td class="idsd-col">Brownfield bootstrap recipe ("codebase-to-LTM") recognized as needed. Concept only — not specified, not on near-term roadmap.</td>
+          <td class="idsd-col">Brownfield bootstrap play ("codebase-to-LTM") recognized as needed. Concept only — not specified, not on near-term roadmap.</td>
           <td class="neuro-col">No stated plans for Code2X quality feedback (correcting wrong artifacts). No cross-project learning from brownfield exercises.</td>
         </tr>
       </tbody>
@@ -947,7 +947,7 @@
 
     <div class="callout callout-verdict">
       <span class="callout-label">Recommendation</span>
-      For brownfield adoption, NeuroSDLC offers faster time-to-first-understanding. IDSD offers higher long-term knowledge fidelity. The choice depends on urgency: if the team needs to ship within weeks, Code2X's imperfect map is more useful than no map. If the team has months, IDSD's organic approach produces more accurate knowledge. IDSD's brownfield bootstrap recipe is a concept-stage gap, not a structural limitation.
+      For brownfield adoption, NeuroSDLC offers faster time-to-first-understanding. IDSD offers higher long-term knowledge fidelity. The choice depends on urgency: if the team needs to ship within weeks, Code2X's imperfect map is more useful than no map. If the team has months, IDSD's organic approach produces more accurate knowledge. IDSD's brownfield bootstrap play is a concept-stage gap, not a structural limitation.
     </div>
   </section>
 
@@ -1011,7 +1011,7 @@ L5  Dark Factory    ████████████████████
         </tr>
         <tr>
           <td><strong>Implementation</strong></td>
-          <td class="idsd-col">Partial. <code>start-planned-feature</code> has autonomous execution. 19 recipes specified, ~4 built.</td>
+          <td class="idsd-col">Partial. <code>start-planned-feature</code> has autonomous execution. 19 plays specified, ~4 built.</td>
           <td class="neuro-col">Partial. Full artifact chain and validators exist, but developer actively manages chain.</td>
         </tr>
         <tr>
@@ -1038,12 +1038,12 @@ L5  Dark Factory    ████████████████████
       <tbody>
         <tr>
           <td><strong>Architecture</strong></td>
-          <td class="idsd-col">Memory architecture (STM→LTM promotion) captures intent→outcome pairs. <code>capture-learning</code> recipe specified with concrete skill contracts. ICS designed as training signal. This is the accumulation path toward self-generation — architecturally present, not yet the generation step itself.</td>
+          <td class="idsd-col">Memory architecture (STM→LTM promotion) captures intent→outcome pairs. <code>capture-learning</code> play specified with concrete skill contracts. ICS designed as training signal. This is the accumulation path toward self-generation — architecturally present, not yet the generation step itself.</td>
           <td class="neuro-col">P3-Hub is a static library. No architectural mechanism for assets to learn from execution outcomes. No feedback loop from deploy back to specify. The lifecycle ends at Deploy.</td>
         </tr>
         <tr>
           <td><strong>Implementation</strong></td>
-          <td class="idsd-col"><code>capture-learning</code> recipe specified but not built. No production intent self-generation. Current mode: humans write intents.</td>
+          <td class="idsd-col"><code>capture-learning</code> play specified but not built. No production intent self-generation. Current mode: humans write intents.</td>
           <td class="neuro-col">No implementation of any learning feedback loop. Cognitive assets are manually authored and updated.</td>
         </tr>
         <tr>
@@ -1285,8 +1285,8 @@ L5  Dark Factory    ████████████████████
     <div class="callout callout-insight">
       <span class="callout-label">Enterprise Readiness Justifications</span>
       <ul style="margin-top: 8px; padding-left: 20px; font-size: 14px; color: var(--text-muted);">
-        <li><strong style="color: var(--text);">Multi-role enablement:</strong> NeuroSDLC provides role-specific cognitive assets (BA, QA, Dev, PO), IDE integration for non-technical roles, and structured per-role workflows. IDSD provides a single CLI interface for all roles, relying on recipe abstraction and platform evolution.</li>
-        <li><strong style="color: var(--text);">Brownfield on-ramp:</strong> NeuroSDLC's nine Code2X agents generate documentation for existing codebases in hours. IDSD has no equivalent — organic accumulation only, bootstrap recipe at concept stage.</li>
+        <li><strong style="color: var(--text);">Multi-role enablement:</strong> NeuroSDLC provides role-specific cognitive assets (BA, QA, Dev, PO), IDE integration for non-technical roles, and structured per-role workflows. IDSD provides a single CLI interface for all roles, relying on play abstraction and platform evolution.</li>
+        <li><strong style="color: var(--text);">Brownfield on-ramp:</strong> NeuroSDLC's nine Code2X agents generate documentation for existing codebases in hours. IDSD has no equivalent — organic accumulation only, bootstrap play at concept stage.</li>
         <li><strong style="color: var(--text);">Compliance/audit trail:</strong> NeuroSDLC's 15–20+ artifacts per feature create extensive audit trails. IDSD's 3–5 artifacts prioritize minimalism over traceability, with compliance mode at concept stage.</li>
         <li><strong style="color: var(--text);">Team onboarding:</strong> NeuroSDLC has structured training journeys per role. IDSD onboarding is "learn to write intents" — conceptually simple but with a deep mastery curve.</li>
         <li><strong style="color: var(--text);">Production deployment maturity:</strong> NeuroSDLC has production team deployments. IDSD is validated at single developer only.</li>
@@ -1441,8 +1441,8 @@ L5  Dark Factory    ████████████████████
       <div class="vs-card idsd-card">
         <h4>Key gaps for IDSD (priority order)</h4>
         <ol style="padding-left: 18px; font-size: 14px; color: var(--text-muted);">
-          <li style="margin-bottom: 8px;"><strong style="color:var(--text);"><code>capture-learning</code> recipe — make it operational.</strong> This is the foundation for process self-evolution AND the precondition for eventual intent self-generation. Every other trajectory goal depends on LTM actually being populated from work. Highest leverage investment.</li>
-          <li style="margin-bottom: 8px;"><strong style="color:var(--text);">Brownfield bootstrap recipe.</strong> Purpose-built "codebase-to-LTM" for cold-start on legacy codebases. Currently concept-only. Real enterprises need this for adoption.</li>
+          <li style="margin-bottom: 8px;"><strong style="color:var(--text);"><code>capture-learning</code> play — make it operational.</strong> This is the foundation for process self-evolution AND the precondition for eventual intent self-generation. Every other trajectory goal depends on LTM actually being populated from work. Highest leverage investment.</li>
+          <li style="margin-bottom: 8px;"><strong style="color:var(--text);">Brownfield bootstrap play.</strong> Purpose-built "codebase-to-LTM" for cold-start on legacy codebases. Currently concept-only. Real enterprises need this for adoption.</li>
           <li style="margin-bottom: 8px;"><strong style="color:var(--text);">LTM quality/decay automation.</strong> As LTM grows, automated freshness scoring, relevance decay, and contradiction detection become critical. Planned but not designed.</li>
           <li style="margin-bottom: 8px;"><strong style="color:var(--text);">Multi-stakeholder intent negotiation.</strong> Mechanism for resolving conflicting goals. Not designed. Real for enterprise contexts.</li>
           <li><strong style="color:var(--text);">Compliance artifact mode.</strong> Optional expansion for regulated industries. Concept-stage. Additive to existing architecture.</li>

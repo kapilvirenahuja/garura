@@ -9,10 +9,10 @@ All four agents have a `## Memory` section that references `~/.meridian/core/mem
 - Fail: any agent missing LTM reference
 
 ### G2: Intent Propagation (Mandatory)
-At least one recipe passes intent context in its agent invocation prompt.
-- Evidence: grep recipe SKILL.md for intent propagation pattern in agent invocation
-- Pass: commit-code recipe propagates intent to repo-orchestrator and project-orchestrator
-- Fail: no recipe propagates intent
+At least one play passes intent context in its agent invocation prompt.
+- Evidence: grep play SKILL.md for intent propagation pattern in agent invocation
+- Pass: commit-code play propagates intent to repo-orchestrator and project-orchestrator
+- Fail: no play propagates intent
 
 ### G3: Agent Self-Recovery (Mandatory)
 Orchestrator agents (repo, project) document domain-level self-recovery with concrete examples.
@@ -26,11 +26,11 @@ All four agents document the structured failure return format for cross-domain f
 - Pass: all agents return `failure:` block with `what_failed`, `why`, `domain_assessment`, `suggested_fix`
 - Fail: any agent returns raw errors or unstructured failure messages
 
-### G5: Recipe-Level Retry (Mandatory)
-At least one recipe demonstrates the cross-domain recovery conversation (invoke Agent A → failure → invoke Agent B → retry Agent A).
-- Evidence: read recipe workflow for retry logic or recovery conversation pattern
-- Pass: recipe documents how it handles structured failures from agents
-- Fail: recipe has no handling for structured failures
+### G5: Play-Level Retry (Mandatory)
+At least one play demonstrates the cross-domain recovery conversation (invoke Agent A → failure → invoke Agent B → retry Agent A).
+- Evidence: read play workflow for retry logic or recovery conversation pattern
+- Pass: play documents how it handles structured failures from agents
+- Fail: play has no handling for structured failures
 
 ### G6: No Breaking Changes (Mandatory)
 Existing agent output contracts are unchanged. Recovery adds behavior, doesn't change success interfaces.
@@ -39,13 +39,13 @@ Existing agent output contracts are unchanged. Recovery adds behavior, doesn't c
 - Fail: any success output contract modified
 
 ### G7: Recovery Loop Prevention (Mandatory)
-Agents and recipes have retry limits to prevent infinite recovery loops.
-- Evidence: read agent recovery sections and recipe recovery handling for attempt limits
-- Pass: explicit limit documented (max 2 retry cycles per agent per recipe execution)
+Agents and plays have retry limits to prevent infinite recovery loops.
+- Evidence: read agent recovery sections and play recovery handling for attempt limits
+- Pass: explicit limit documented (max 2 retry cycles per agent per play execution)
 - Fail: no limit specified
 
 ### G8: Cross-Domain Example (Nice-to-have)
-At least one end-to-end example showing Agent A fails → recipe routes to Agent B → Agent B fixes → Agent A retries successfully.
-- Evidence: worked example in a recipe or in LTM practice doc
+At least one end-to-end example showing Agent A fails → play routes to Agent B → Agent B fixes → Agent A retries successfully.
+- Evidence: worked example in a play or in LTM practice doc
 - Pass: complete worked example with all protocol steps
 - Fail: no end-to-end example

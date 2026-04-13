@@ -17,8 +17,8 @@
 | G-008: Multi-Intent Support | Yes | PASS | [g008-multi-intent.md](g008-multi-intent.md) |
 | G-009: No Bash Section | Yes | PASS | [g009-no-bash.md](g009-no-bash.md) |
 | G-010: Tech Context Awareness | No | PASS | [g010-tech-context.md](g010-tech-context.md) |
-| G-011: Recipe Domain Clarification | Yes | PASS | [g011-recipe-domain.md](g011-recipe-domain.md) |
-| G-012: Recipe Constraint Updated | Yes | PASS | [g012-c12-constraint.md](g012-c12-constraint.md) |
+| G-011: Play Domain Clarification | Yes | PASS | [g011-play-domain.md](g011-play-domain.md) |
+| G-012: Play Constraint Updated | Yes | PASS | [g012-c12-constraint.md](g012-c12-constraint.md) |
 | G-013: P-Label Replacement All Files | Yes | PASS | [g013-plabel-all.md](g013-plabel-all.md) |
 | G-014: New Skill Conventions | Yes | PASS | [g007-research-skill.md](g007-research-skill.md) |
 | G-016: Compound Output Contract | Yes | PASS | [g016-compound-output.md](g016-compound-output.md) |
@@ -44,7 +44,7 @@ Each gate has a dedicated evidence file containing:
 ├── g008-multi-intent.md
 ├── g009-no-bash.md
 ├── g010-tech-context.md
-├── g011-recipe-domain.md
+├── g011-play-domain.md
 ├── g012-c12-constraint.md
 ├── g013-plabel-all.md
 └── g016-compound-output.md
@@ -57,8 +57,8 @@ Each gate has a dedicated evidence file containing:
 | `core/components/agents/product-strategist.md` | Major rewrite (D1-D9) |
 | `core/components/skills/research-domain-context/SKILL.md` | New file (D7) |
 | `core/components/skills/generate-business-review/SKILL.md` | P-label fix (D4) |
-| `core/components/recipes/discover-product/SKILL.md` | Domain clarification sub-flow (D6/D7) |
-| `core/components/recipes/discover-product/reference/intent.yaml` | C12 + failure condition (D7) |
+| `core/components/plays/discover-product/SKILL.md` | Domain clarification sub-flow (D6/D7) |
+| `core/components/plays/discover-product/reference/intent.yaml` | C12 + failure condition (D7) |
 | `.claude/specs/idsd/evidence/g-104-discover-product.md` | Updated with defect fix gates |
 
 ## Defects Resolved
@@ -68,10 +68,10 @@ Each gate has a dedicated evidence file containing:
 | D1: Wrong Model | Fixed — opus |
 | D2: Core Principle Missing Intent Structure | Fixed — two-level structure |
 | D3: Orphan Skills | Fixed — 8 removed, 1 added (research-domain-context) |
-| D4: Undefined P-Labels | Fixed — all replaced with recipe names |
+| D4: Undefined P-Labels | Fixed — all replaced with play names |
 | D5: Redundant Intent Sections | Fixed — merged into single section |
 | D6: LTM Loading Underspecified | Fixed — 8-step domain-aware strategy |
-| D7: No Domain Context Mechanism | Fixed — research skill + recipe sub-flow |
+| D7: No Domain Context Mechanism | Fixed — research skill + play sub-flow |
 | D8: Multi-Intent Not Supported | Fixed — compound output + partial failure |
 | D9: Bash Section Anti-Pattern | Fixed — removed entirely |
 | D10: Tech Awareness Missing | Fixed — Step 7 in Context Loading |

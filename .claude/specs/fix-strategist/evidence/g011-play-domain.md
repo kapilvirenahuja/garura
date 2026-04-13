@@ -1,4 +1,4 @@
-# G-011: Recipe Handles Domain Clarification
+# G-011: Play Handles Domain Clarification
 
 **Gate:** discover-product/SKILL.md has a sub-flow for handling `domain_clarification_needed` structured return from agent.
 **Mandatory:** Yes
@@ -6,7 +6,7 @@
 
 ## Test
 
-**Prompt:** `grep "domain_clarification_needed" core/components/recipes/discover-product/SKILL.md`
+**Prompt:** `grep "domain_clarification_needed" core/components/plays/discover-product/SKILL.md`
 
 **Output:**
 ```
@@ -19,7 +19,7 @@
 If the agent returns `domain_clarification_needed` instead of `market_context`:
 1. Present the candidate domains to the user
 2. Parse user response — map to one of the candidates or accept a custom domain
-3. Re-invoke the same agent call with confirmed domain injected into recipe context
+3. Re-invoke the same agent call with confirmed domain injected into play context
 4. This re-invocation does NOT count against the agent call limit (C5)
 5. If user rejects all candidates and provides no alternative → halt with failure condition
 ```

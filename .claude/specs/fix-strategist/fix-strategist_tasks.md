@@ -18,14 +18,14 @@ T9 (tech awareness) ────────┘                    │          
 T10 (new skill: research-domain-context) ────────┘                        │
                                                                           │
 T4 runs in parallel with:                                                 │
-  T11a (P-labels in recipe final-report.md) ─────┐                        │
+  T11a (P-labels in play final-report.md) ─────┐                        │
   T11b (P-labels in generate-business-review) ───┤                        │
                                                  │                        │
 T12 (verify agent) ──────────────────────────────┤                        │
-                                                 ├─→ T13 (recipe changes) ─┤
+                                                 ├─→ T13 (play changes) ─┤
 T10 (new skill) ─────────────────────────────────┘                        │
                                                                           │
-T13 (recipe SKILL.md + intent.yaml changes) ──→ T14 (verify recipe) ─────┤
+T13 (play SKILL.md + intent.yaml changes) ──→ T14 (verify play) ─────┤
                                                                           │
 T14 ──→ T15 (update evidence g-104) ──→ T16 (final verification)         │
                                                                           │
@@ -73,7 +73,7 @@ Keep the autonomy statement ("You do NOT follow step-by-step workflows") but gro
 Note: Do NOT add placeholder entries for future skills. Skills get added when created.
 **Verification:** G-003
 
-### T4: Replace P-labels with recipe names (agent file)
+### T4: Replace P-labels with play names (agent file)
 **File:** `core/components/agents/product-strategist.md`
 **Agent:** Direct edit
 **Blocked by:** None
@@ -83,7 +83,7 @@ Note: Do NOT add placeholder entries for future skills. Skills get added when cr
 - P7 → `manage-backlog`
 - P8 → `refine-backlog`
 
-In Available Skills "Used By" column, use full recipe names.
+In Available Skills "Used By" column, use full play names.
 **Verification:** G-004 (partial — agent file only)
 
 ### T5: Merge redundant intent mapping sections
@@ -105,7 +105,7 @@ In Available Skills "Used By" column, use full recipe names.
 
 1. **Understand Domain** — From incoming intent, classify the vertical domain and product category. Use keywords, industry markers, user personas mentioned in the problem statement.
 
-2. **Assess Confidence** — If domain classification is high-confidence (clear industry markers, specific user types), proceed without confirmation. If ambiguous, return `domain_clarification_needed` structured response to recipe with top 2-3 candidate domains.
+2. **Assess Confidence** — If domain classification is high-confidence (clear industry markers, specific user types), proceed without confirmation. If ambiguous, return `domain_clarification_needed` structured response to play with top 2-3 candidate domains.
 
 3. **Selective LTM Search** — Search `~/.meridian/core/memory/` using Glob/Grep for domain-relevant content:
    - `memory/standards/` — always load (formatting, quality rules)
@@ -141,7 +141,7 @@ In Available Skills "Used By" column, use full recipe names.
 
 3. **Add Data Flow rule:**
    - When skill B depends on output of skill A, pass A's output as input to B
-   - The agent manages this data flow, not the recipe
+   - The agent manages this data flow, not the play
 
 4. **Add Compound Output Contract** to Output Contracts section:
    ```yaml
@@ -160,7 +160,7 @@ In Available Skills "Used By" column, use full recipe names.
 5. **Add Partial Failure rule:**
    - If skill N fails in a chain, return completed results + structured failure for failed skill
    - Do NOT roll back completed skills (their artifacts are already written)
-   - Recipe decides how to handle partial results
+   - Play decides how to handle partial results
 
 6. **Update Handling Ambiguity:**
    - Replace "Don't chain" with "Don't assume intents not present in the prompt"
@@ -234,7 +234,7 @@ domain_context:
 **Verification:** G-007, G-014
 
 ### T11a: Replace P-labels in final-report.md
-**File:** `core/components/recipes/discover-product/templates/final-report.md`
+**File:** `core/components/plays/discover-product/templates/final-report.md`
 **Agent:** Direct edit (trivial)
 **Blocked by:** None (parallel with T1-T9)
 **Action:** Replace P6 references with `plan-roadmap`.
@@ -253,10 +253,10 @@ domain_context:
 **Action:** Run gates G-001 through G-010, G-016. Record evidence.
 **Verification:** All Phase 1 + Phase 2 gates
 
-### T13: Update recipe for domain clarification + compound output
+### T13: Update play for domain clarification + compound output
 **Files:**
-- `core/components/recipes/discover-product/SKILL.md`
-- `core/components/recipes/discover-product/reference/intent.yaml`
+- `core/components/plays/discover-product/SKILL.md`
+- `core/components/plays/discover-product/reference/intent.yaml`
 **Agent:** Direct edit
 **Blocked by:** T12 (agent must be verified first)
 **Action:**
@@ -269,14 +269,14 @@ domain_context:
 2. **SKILL.md:** Update agent invocation contexts to include domain context when available.
 
 3. **intent.yaml:** Add behavioral constraint:
-   - `C12: Domain context — agent must attempt domain classification before skill invocation. If classification is ambiguous, return domain_clarification_needed to recipe.`
+   - `C12: Domain context — agent must attempt domain classification before skill invocation. If classification is ambiguous, return domain_clarification_needed to play.`
 
 4. **intent.yaml:** Add failure condition:
    - `Domain unresolvable — user rejects all proposed domains and provides no alternative`
 
 **Verification:** G-011, G-012
 
-### T14: Verify recipe changes (Phase 3 gates)
+### T14: Verify play changes (Phase 3 gates)
 **Agent:** Sub-agent (Explore for verification)
 **Blocked by:** T13, T11a, T11b
 **Action:** Run gates G-007, G-011, G-012, G-013, G-014. Record evidence.
@@ -317,10 +317,10 @@ domain_context:
 - T12 — verify agent
 
 ### Wave 5 (depends on T12)
-- T13 — recipe changes
+- T13 — play changes
 
 ### Wave 6 (depends on T13)
-- T14 — verify recipe
+- T14 — verify play
 
 ### Wave 7 (depends on T14)
 - T15 — update evidence
@@ -339,5 +339,5 @@ domain_context:
 | T10 | code-builder | New skill file creation following conventions |
 | T11a, T11b | Direct edit | Trivial label replacements |
 | T12, T14, T16 | Explore | Read-only verification sweeps |
-| T13 | Direct edit | Recipe modification |
+| T13 | Direct edit | Play modification |
 | T15 | Direct edit | Evidence update |

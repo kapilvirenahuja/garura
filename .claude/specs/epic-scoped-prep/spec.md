@@ -184,6 +184,6 @@ The implementation agent reads ONLY these artifacts. No codebase scanning, no LT
 ## Execution
 
 1. Update intent.yaml with new constraints
-2. `/create-recipe --rebake prepare-implementation`
+2. `/create-play --rebake prepare-implementation`
 3. `/sync-claude`
 4. Test with a real epic — iterate on eval criteria

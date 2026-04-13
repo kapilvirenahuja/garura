@@ -7,5 +7,5 @@
 - **Deliverables**:
   - New LTM: `structured-failure-protocol.md`
   - 4 agents updated: repo-orchestrator, project-orchestrator, code-builder, tech-designer
-  - commit-code recipe: intent propagation + agent failure handling
+  - commit-code play: intent propagation + agent failure handling
 - **Note**: G8 (cross-domain worked example) partial — conceptual examples exist but no full walkthrough doc. Nice-to-have.

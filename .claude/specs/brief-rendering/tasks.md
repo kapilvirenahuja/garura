@@ -23,8 +23,8 @@ T12: Verify all 7 templates render correctly     ←── T5-T11 (VS-02,03,04,0
 T13: Convert hub.html to static template          ←── T1
 T14: Verify hub.html renders from hub.json       ←── T13 (VS-20)
     ↓
-T15: Update briefs recipe (YAML→JSON + template copy) ←── T12, T14
-T16: Verify recipe pipeline (VS-16,17,18,19,25) ←── T15
+T15: Update briefs play (YAML→JSON + template copy) ←── T12, T14
+T16: Verify play pipeline (VS-16,17,18,19,25) ←── T15
     ↓
 T17: Verify UX preservation (VS-21,22,23,24)    ←── T16
     ↓
@@ -163,9 +163,9 @@ Each fixture must be a valid JSON representation of the corresponding YAML schem
 - Per-epic sections render correctly
 **Blocked by:** T13, T3
 
-### T15: Update Briefs Recipe
+### T15: Update Briefs Play
 **Agent:** code-builder
-**Description:** Rewrite `core/components/recipes/briefs/SKILL.md` to replace LLM-based generation with:
+**Description:** Rewrite `core/components/plays/briefs/SKILL.md` to replace LLM-based generation with:
 1. Pre-flight and context resolution — unchanged
 2. Checksum comparison — unchanged
 3. For each changed YAML:
@@ -183,9 +183,9 @@ Remove all doc-builder agent delegation. Remove all LLM skill references.
 Update the intent.yaml constraints (C3, C8) and add C10, C11.
 **Blocked by:** T12, T14
 
-### T16: Verify Recipe Pipeline
+### T16: Verify Play Pipeline
 **Agent:** quality-auditor
-**Description:** Run the updated briefs recipe against a test product directory and verify:
+**Description:** Run the updated briefs play against a test product directory and verify:
 - VS-16: No LLM invocation
 - VS-17: Completes in <5 seconds
 - VS-18: Deterministic output (run twice, diff)
@@ -209,12 +209,12 @@ Update the intent.yaml constraints (C3, C8) and add C10, C11.
 - `core/components/skills/generate-product-brief/` — delete directory
 - `core/components/skills/draft-roadmap-brief/` — delete directory
 
-Update any references to these skills in other files (doc-builder agent, briefs recipe if not already updated).
+Update any references to these skills in other files (doc-builder agent, briefs play if not already updated).
 **Blocked by:** T17
 
 ### T19: Update doc-builder Agent
 **Agent:** code-builder
-**Description:** Update `core/components/agents/doc-builder.md` to remove brief generation responsibilities. The agent may still be needed for other purposes — check if any other recipes/skills reference it. If doc-builder is only used for briefs, archive it. If used elsewhere, remove only the brief-related sections.
+**Description:** Update `core/components/agents/doc-builder.md` to remove brief generation responsibilities. The agent may still be needed for other purposes — check if any other plays/skills reference it. If doc-builder is only used for briefs, archive it. If used elsewhere, remove only the brief-related sections.
 **Blocked by:** T17
 
 ### T20: Final Integration Verification
