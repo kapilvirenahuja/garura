@@ -1,8 +1,8 @@
 # IDSD — Intent Driven Software Development: Complete Lifecycle Specification
 
-**Version:** 3.0.0
-**Date:** 2026-03-17
-**Status:** IN PROGRESS — Major restructure. Core recipes complete. Pipeline refactor pending (#106).
+**Version:** 3.1.0
+**Date:** 2026-04-13
+**Status:** IN PROGRESS — Major restructure. Core recipes complete. Pipeline refactor pending (#106). Recent hardening via #191, #195, #200, #206.
 **Author:** Meridian
 
 ---
@@ -32,7 +32,7 @@
 
 ---
 
-## Progress Tracker (as of 2026-03-17)
+## Progress Tracker (as of 2026-04-13)
 
 ### Architecture Change Notice
 
@@ -56,27 +56,30 @@ See section "SDLC Phases" for the current diagram (marked CURRENT) and the pendi
 | Priority | Recipe | Status | Notes |
 |---|---|---|---|
 | P1 | start-feature | ✅ COMPLETE | L2, compiled from intent, uses project-orchestrator + repo-orchestrator |
-| P2 | capture-learning | ⚠️ PARTIAL | Recipe exists, 2 skills missing (extract-patterns, draft-ltm-entry) |
-| P3 | implement-epic (was implement-feature) | ✅ COMPLETE | L2, eval-driven TDD loop, 7 agents, context isolation, model: opus |
+| P2 | capture-learning | ⚠️ NEEDS FIX | Recipe exists, 2 skills missing (extract-patterns, draft-ltm-entry). **Updated #195 (2026-04):** extraction broadened to multi-format evidence scanning. **2026-04-13:** flagged for further fixes |
+| P3 | implement-epic (was implement-feature) | ✅ COMPLETE | L2, eval-driven TDD loop, 7 agents, context isolation, model: opus. **Updated #191 (2026-04):** sources design artifacts from issue STM instead of product epics |
 | P4 | start-feature-planning | ✅ COMPLETE | Renamed from start-planned-feature, IDD refactored |
-| P5 | discover-product | ✅ COMPLETE | Produces product.yaml + product-brief.html |
-| P6 | plan-roadmap | ✅ COMPLETE | L2, reads product.yaml, produces roadmap.yaml + roadmap-brief.html |
-| P7 | manage-backlog | ❌ NOT STARTED | 3 skills missing |
-| P8 | refine-backlog | ❌ NOT STARTED | 1 of 2 skills exists (analyze-backlog) |
-| P9 | build-feature | ❌ NOT STARTED | Recipe missing |
-| P10 | verify-feature | ❌ NOT STARTED | Blocked by validator agent |
+| P5 | discover-product | ✅ COMPLETE | Produces product.yaml + product-brief.html. **Updated #206 (2026-04):** brief generation made opt-in (doc-builder no longer mandatory) |
+| P6 | plan-roadmap | ✅ COMPLETE | L2, reads product.yaml, produces roadmap.yaml + roadmap-brief.html. **Updated #206 (2026-04):** brief generation made opt-in; draft-roadmap/validate-roadmap no longer reference briefs |
+| P7 | manage-backlog | 🚫 NOT NEEDED | Descoped 2026-04-13 |
+| P8 | refine-backlog | 🚫 NOT NEEDED | Descoped 2026-04-13 |
+| P9 | build-feature | ✅ COMPLETE | Delivered via `implement-epic` |
+| P10 | verify-feature | ✅ COMPLETE | Delivered via `check-drift` |
 | P11 | commit-code | ✅ COMPLETE | L2, repo-orchestrator + project-orchestrator, auto-proceed mode |
 | P12 | create-pr | ✅ COMPLETE | L2, quality checklist with evidence, confidence-gated |
 | P13 | review-pr | ❌ NOT STARTED | Blocked by validator agent |
-| P14 | deliver-feature | ❌ NOT STARTED | Blocked by validator agent |
-| P15 | run-demo | ❌ NOT STARTED | 2 skills missing |
-| P16 | release | ❌ NOT STARTED | Blocked by P15 (needs generate-changelog) |
-| P17 | fix-bug | ❌ NOT STARTED | 2 skills missing |
-| P18 | review-architecture | ❌ NOT STARTED | Blocked by validator agent |
-| P19 | generate-docs | ❌ NOT STARTED | 2 skills missing |
+| P14 | deliver-feature | ✅ COMPLETE | Delivered via `implement-epic` |
+| P15 | run-demo | 🚫 NOT NEEDED | Descoped 2026-04-13 |
+| P16 | release | ❌ NOT STARTED | Needs generate-changelog — kept pending |
+| P17 | fix-bug | ✅ COMPLETE | Delivered as `/fix-it` — RCA-driven defect resolution skill |
+| P18 | review-architecture | ✅ COMPLETE | Delivered via `quality-check` skill (#200, 2026-04) |
+| P19 | generate-docs | ❌ NOT STARTED | 2 skills missing — kept pending |
 | — | ship | ✅ COMPLETE | L2 Structure C, chains commit-code → create-pr → merge-pr |
 | — | merge-pr | ✅ COMPLETE | L2, merge + switch to main + cleanup |
-| — | prepare-implementation | ✅ COMPLETE | L2, produces features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml + 5 briefs + hub.html |
+| — | prepare-implementation | ✅ COMPLETE | L2, produces features.yaml, architecture.yaml, tech.yaml, scenarios.yaml, plan.yaml + 5 briefs + hub.html. **Updated #191 (2026-04):** Phase 0 STM setup added, artifact lock path fixed |
+| — | prepare-architecture | ✅ COMPLETE | **Updated #206 (2026-04):** brief generation made opt-in |
+| — | create-recipe | ✅ COMPLETE | **Updated #200 (2026-04):** removed mandatory doc-builder step before checkpoints |
+| — | quality-check | ✅ NEW | **Added #200 (2026-04):** LTM-driven quality assessment framework with 11-domain KB (skill, not a recipe) |
 
 ### Component Inventory
 
@@ -90,8 +93,8 @@ See section "SDLC Phases" for the current diagram (marked CURRENT) and the pendi
 ### Dependency Blockers
 
 ```
-validator agent (not yet built) ──► P10, P13, P14, P18 (4 priorities blocked)
-P15 (generate-changelog) ──► P16 (1 priority blocked)
+validator agent (not yet built) ──► P13 review-pr (1 priority blocked)
+generate-changelog (source TBD — P15 descoped) ──► P16 release (1 priority blocked)
 ```
 
 ---
@@ -293,19 +296,19 @@ Recipes are built one at a time. Priority set by user. Existing recipes marked f
 | 4 | `start-feature-planning` | L2 | ✅ COMPLETE | Was start-planned-feature |
 | 5 | `discover-product` | L2 | ✅ COMPLETE | Produces product.yaml + product-brief.html |
 | 6 | `plan-roadmap` | L2 | ✅ COMPLETE | Reads product.yaml, produces roadmap.yaml + roadmap-brief.html |
-| 7 | `manage-backlog` | L1 | ❌ NOT STARTED | 3 skills missing |
-| 8 | `refine-backlog` | L1 | ❌ NOT STARTED | 1 of 2 skills exists |
-| 9 | `build-feature` | L1 | ❌ NOT STARTED | Recipe missing |
-| 10 | `verify-feature` | L1 | ❌ NOT STARTED | Blocked by validator |
+| 7 | `manage-backlog` | L1 | 🚫 NOT NEEDED | Descoped 2026-04-13 |
+| 8 | `refine-backlog` | L1 | 🚫 NOT NEEDED | Descoped 2026-04-13 |
+| 9 | `build-feature` | L1 | ✅ COMPLETE | Delivered via `implement-epic` |
+| 10 | `verify-feature` | L1 | ✅ COMPLETE | Delivered via `check-drift` |
 | 11 | `commit-code` | L2 | ✅ COMPLETE | Auto-proceed mode via ship |
 | 12 | `create-pr` | L2 | ✅ COMPLETE | Confidence-gated |
 | 13 | `review-pr` | L1 | ❌ NOT STARTED | Blocked by validator |
-| 14 | `deliver-feature` | L2 | ❌ NOT STARTED | Blocked by validator |
-| 15 | `run-demo` | L1 | ❌ NOT STARTED | 2 skills missing |
-| 16 | `release` | L1 | ❌ NOT STARTED | Blocked by P15 |
-| 17 | `fix-bug` | L1 | ❌ NOT STARTED | 2 skills missing |
-| 18 | `review-architecture` | L1 | ❌ NOT STARTED | Blocked by validator |
-| 19 | `generate-docs` | L1 | ❌ NOT STARTED | 2 skills missing |
+| 14 | `deliver-feature` | L2 | ✅ COMPLETE | Delivered via `implement-epic` |
+| 15 | `run-demo` | L1 | 🚫 NOT NEEDED | Descoped 2026-04-13 |
+| 16 | `release` | L1 | ❌ NOT STARTED | Needs generate-changelog — kept pending |
+| 17 | `fix-bug` | L1 | ✅ COMPLETE | Delivered as `/fix-it` |
+| 18 | `review-architecture` | L1 | ✅ COMPLETE | Delivered via `quality-check` |
+| 19 | `generate-docs` | L1 | ❌ NOT STARTED | 2 skills missing — kept pending |
 | — | `ship` | L2 | ✅ COMPLETE | Structure C: chains commit-code + create-pr + merge-pr |
 | — | `merge-pr` | L2 | ✅ COMPLETE | Merge + switch to main + branch cleanup |
 | — | `prepare-implementation` | L2 | ✅ COMPLETE | 5 YAML artifacts + 5 briefs + hub.html |
@@ -399,6 +402,7 @@ Examples:
 ### Recipe: `capture-learning` (P2 — PARTIAL)
 
 **File:** `core/components/recipes/capture-learning/SKILL.md`
+**Recent Updates:** #195 (2026-04) — broadened extraction from resolution-trace-only to multi-format evidence scanning so capture-learning no longer returns zero knowledge when traces are absent.
 
 ```yaml
 intent: "Promote patterns, decisions, and learnings from STM into LTM"
@@ -477,6 +481,7 @@ tools: [Task, Read, Write, Glob, Grep, Skill]
 
 **File:** `core/components/recipes/discover-product/SKILL.md`
 **Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
+**Recent Updates:** #206 (2026-04) — brief generation made opt-in. doc-builder step no longer mandatory before human checkpoints.
 
 ```yaml
 intent: "Discover product vision, strategic goals, and market positioning"
@@ -540,6 +545,7 @@ Step 2: Evidence
 
 **File:** `core/components/recipes/plan-roadmap/SKILL.md`
 **Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
+**Recent Updates:** #206 (2026-04) — brief generation made opt-in; `draft-roadmap` and `validate-roadmap` skills no longer reference brief generation.
 
 ```yaml
 intent: "Plan a time-phased product roadmap from a locked product definition"
@@ -593,7 +599,7 @@ Step 8: Evidence + evidence self-commit
 - `approved_brief_ref` — path to the approved roadmap-brief.html
 - `thesis`, `narrative`, `timeline[]`, `critical_blockers`, `open_questions`, `risk_summary`
 
-**PENDING-REFACTOR (#106):** features.yaml will move here (from prepare-implementation) in the restructured pipeline.
+**RESOLVED (2026-04-13):** The prepare-implementation slim-down / features.yaml split is no longer planned — current prepare-implementation shape is final.
 
 ---
 
@@ -603,6 +609,7 @@ Step 8: Evidence + evidence self-commit
 
 **File:** `core/components/recipes/prepare-implementation/SKILL.md`
 **Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-16)
+**Recent Updates:** #191 (2026-04) — added Phase 0 STM setup and fixed artifact lock path so the recipe correctly initializes issue STM before drafting.
 
 ```yaml
 intent: "Produce implementation-ready design artifacts from product intent"
@@ -695,7 +702,7 @@ Step 15: Evidence + evidence self-commit
 - `scenarios.yaml` — scenario groups with feature_ref, behavior_ref, pass_criteria, automation classification, feature_gates, coverage
 - `plan.yaml` — prerequisites (Phase 0), execution_order as vertical slices (scope items with key_files, exit_gate, scenario_gate), summary table with cumulative_scenarios
 
-**PENDING-REFACTOR (#106):** After Issue #106, prepare-implementation will slim down to: scenarios.yaml + plan.yaml + evals setup ONLY. features.yaml moves to plan-roadmap; architecture.yaml and tech.yaml move to design-arch.
+**RESOLVED (2026-04-13):** prepare-implementation slim-down dropped. The recipe keeps its current 5-artifact shape (features, architecture, tech, scenarios, plan). Design recipes (see #106) will plug in alongside it, not replace its outputs.
 
 ---
 
@@ -705,6 +712,7 @@ Step 15: Evidence + evidence self-commit
 
 **File:** `core/components/recipes/implement-epic/SKILL.md`
 **Compiled From:** `reference/intent.yaml` via create-recipe (2026-03-17)
+**Recent Updates:** #191 (2026-04) — sources design artifacts from issue STM instead of product epics, aligning execution with the per-issue preparation flow.
 
 ```yaml
 intent: "Implement a feature from a locked execution plan through an eval-driven TDD loop"
