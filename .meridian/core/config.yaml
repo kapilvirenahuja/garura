@@ -73,7 +73,7 @@ review-pr:
 # Product artifacts — parallel to project, not nested (ADR 017 whitelist)
 # Only 3 directories permitted: product/ux/arch. Operational artifacts (checkpoints,
 # status, evidence) for product-scoped plays live INSIDE these buckets using
-# underscore-prefixed subfolders (e.g., product/_checkpoints/spec-product/).
+# underscore-prefixed subfolders (e.g., product/_checkpoints/specify-product/).
 product:
   base-path: .meridian/product/
   directories:

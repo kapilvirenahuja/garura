@@ -32,8 +32,8 @@ Per ADR 017 (2026-04-14), `.meridian/` is a strict folder whitelist:
 │   ├── config.yaml                  # moved from repo root core/config.yaml
 │   └── memory/                      # gitignored; synced from core/components/memory/
 ├── product/
-│   ├── product/                     # spec-product outputs (epics, scope, quality profile)
-│   ├── ux/                          # design-product outputs (personas, screens, flows, wireframes)
+│   ├── product/                     # specify-product outputs (epics, scope, quality profile)
+│   ├── ux/                          # design-exp outputs (personas, screens, flows, wireframes)
 │   └── arch/                        # build-arch outputs (architecture.yaml, quality-standards.yaml)
 └── project/
     └── issues/
@@ -47,7 +47,7 @@ Per ADR 017 (2026-04-14), `.meridian/` is a strict folder whitelist:
             └── review/              # review artifacts
 ```
 
-Operational artifacts for product-scoped plays (checkpoints, status, resume state) live INSIDE the three `product/` buckets using underscore-prefixed subfolders (e.g., `.meridian/product/product/_checkpoints/spec-product/20260414.md`). No siblings are permitted.
+Operational artifacts for product-scoped plays (checkpoints, status, resume state) live INSIDE the three `product/` buckets using underscore-prefixed subfolders (e.g., `.meridian/product/product/_checkpoints/specify-product/20260414.md`). No siblings are permitted.
 
 The `write-evidence` skill (invoked by the `scriber` agent) is the single chokepoint that enforces whitelist compliance at the write boundary.
 

@@ -15,7 +15,7 @@ Three separate frictions accumulated in Meridian's folder and play conventions a
 
 3. **Play ceremony inflation.** ADR 013 introduced Level-1 / Level-2 plays with a "≤5 domain agent" budget. In practice the levels added compliance overhead without improving coherence — a well-shaped play fails its scenario evals if it's bloated, regardless of agent count. The "bake" terminology for play compilation (`/create-play --bake`) carried a cooking metaphor that didn't match the sports metaphor the rest of the framework uses (plays are *run*, teams are *built*).
 
-These frictions became blocking when the product-planning pipeline (`spec-product`, `design-product`, `build-arch`) was designed — the new plays needed a predictable folder layout, a clean config location, and terminology that matched the sports metaphor. Fixing them piecemeal would leave the framework inconsistent during the transition, so the cleanup lands as one ADR.
+These frictions became blocking when the product-planning pipeline (`specify-product`, `design-exp`, `build-arch`) was designed — the new plays needed a predictable folder layout, a clean config location, and terminology that matched the sports metaphor. Fixing them piecemeal would leave the framework inconsistent during the transition, so the cleanup lands as one ADR.
 
 ## Decision
 
@@ -27,8 +27,8 @@ The `.meridian/` tree allows ONLY these folders. No other top-level or second-le
 .meridian/
 ├── core/                                     # framework state (config, synced memory)
 ├── product/
-│   ├── product/                              # spec-product outputs (epics, scope, quality profile)
-│   ├── ux/                                   # design-product outputs (personas, screens, flows, wireframes)
+│   ├── product/                              # specify-product outputs (epics, scope, quality profile)
+│   ├── ux/                                   # design-exp outputs (personas, screens, flows, wireframes)
 │   └── arch/                                 # build-arch outputs (architecture.yaml, quality-standards.yaml)
 └── project/
     └── issues/
@@ -42,7 +42,7 @@ The `.meridian/` tree allows ONLY these folders. No other top-level or second-le
             └── review/                       # review artifacts
 ```
 
-**Operational artifacts for product-scoped plays** (checkpoints, status files, resume state for `/spec-product`, `/design-product`, `/build-arch`) live INSIDE `product/`, `ux/`, or `arch/` using underscore-prefixed subfolders — e.g., `.meridian/product/product/_checkpoints/spec-product/20260414.md`. These are legal because they don't introduce new top-level siblings; they live inside the three whitelisted buckets.
+**Operational artifacts for product-scoped plays** (checkpoints, status files, resume state for `/specify-product`, `/design-exp`, `/build-arch`) live INSIDE `product/`, `ux/`, or `arch/` using underscore-prefixed subfolders — e.g., `.meridian/product/product/_checkpoints/specify-product/20260414.md`. These are legal because they don't introduce new top-level siblings; they live inside the three whitelisted buckets.
 
 **Amendment explicitly rejected:** during planning for this work, a proposal was made to add `evidence/`, `checkpoints/`, and `status/` as new siblings under `.meridian/product/`. That proposal is REJECTED. The three-bucket shape (`product/`, `ux/`, `arch/`) is the core principle. New plays that need ops files use underscore-prefixed subfolders inside the existing buckets.
 
@@ -100,7 +100,7 @@ ADR 013 (Play Maturity Model) is superseded by this decision for the L1/L2 porti
 
 The `/create-play --bake` and `/create-play --rebake` subcommands are renamed to `/create-play --build`. This is a HARD CUT — no alias. After this ADR lands, `/create-play --bake` fails with unknown-option.
 
-Reasoning: the sports metaphor rest of the framework uses (build the team, run the play) is clean; "bake" was a leftover cooking metaphor from early prototypes. Build aligns with (a) the verb sequence `spec-product` → `design-product` → `build-arch`, and (b) the natural pipeline *create → build → run*.
+Reasoning: the sports metaphor rest of the framework uses (build the team, run the play) is clean; "bake" was a leftover cooking metaphor from early prototypes. Build aligns with (a) the verb sequence `specify-product` → `design-exp` → `build-arch`, and (b) the natural pipeline *create → build → run*.
 
 Every doc, agent, skill, and play that references "bake"/"baked"/"baking" in a play-compilation context is updated. User memory ("Recipe changes only through rebake") remains semantically correct — the behavior is still "never edit SKILL.md directly; update intent.yaml and rebuild" — only the verb changes.
 
@@ -130,7 +130,7 @@ Every doc, agent, skill, and play that references "bake"/"baked"/"baking" in a p
 | Phase the folder migration (dual-path coexistence) | Every play would need to read both old and new paths. Dual-path bugs are easy to write and hard to find. One-shot migration is cleaner. |
 | Keep L1/L2 classification as advisory | The classification was always used as a gate, not advice. "Advisory" in practice means "ignored until it blocks you". Better to delete. |
 | Soft alias `--bake` during migration | Half-state creates ongoing confusion about the canonical verb. Hard cut forces consistency from day one. Users who prefer `--bake` aren't served by silently accepting it. |
-| Keep the "bake" metaphor | Inconsistent with the sports metaphor the rest of the framework uses. The verb sequence `spec-product` / `design-product` / `build-arch` works better with "build" than "bake". |
+| Keep the "bake" metaphor | Inconsistent with the sports metaphor the rest of the framework uses. The verb sequence `specify-product` / `design-exp` / `build-arch` works better with "build" than "bake". |
 
 ## Migration Plan (214.2)
 

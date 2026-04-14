@@ -96,7 +96,7 @@ Foundation epics go in the `near` bucket with `P1` priority because nothing else
 
 ## Consumers
 
-These rules apply to any agent or skill that defines, scopes, or validates epics and features. The product-planning pipeline (`/spec-product` → `/design-product` → `/build-arch`) and the implementation pipeline (`prepare-implementation`, `implement-epic`) read this file during their context-loading step and enforce the rules against their outputs.
+These rules apply to any agent or skill that defines, scopes, or validates epics and features. The product-planning pipeline (`/specify-product` → `/design-exp` → `/build-arch`) and the implementation pipeline (`prepare-implementation`, `implement-epic`) read this file during their context-loading step and enforce the rules against their outputs.
 
 ## Relationship to Domain Taxonomy
 

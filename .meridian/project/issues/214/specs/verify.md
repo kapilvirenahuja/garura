@@ -45,27 +45,27 @@
 - [ ] `core/components/memory/knowledge/_index.md` + `domain-taxonomy/_index.md` updated to document the extended section conventions.
 - [ ] `docs/components/memory.md` documents the extended markdown structure, the cross-tree constraint format, profile-driven configuration, and the Domain → Capability → Intent Epic three-layer hierarchy. The three-subgraph Graphiti mapping is described as a conceptual overlay on the existing tree.
 
-### Sub-issue 214.5 — `/spec-product` pipeline
-- [ ] `core/components/plays/spec-product/reference/intent.yaml` exists and uses the canonical intent.yaml shape: metadata (`name`, `description`, `version: 0.1.0`, `checksum: <computed>`) + 4 content fields (`intent`, `constraints`, `failure_conditions`, `scenarios`). No other top-level fields.
+### Sub-issue 214.5 — `/specify-product` pipeline
+- [ ] `core/components/plays/specify-product/reference/intent.yaml` exists and uses the canonical intent.yaml shape: metadata (`name`, `description`, `version: 0.1.0`, `checksum: <computed>`) + 4 content fields (`intent`, `constraints`, `failure_conditions`, `scenarios`). No other top-level fields.
 - [ ] intent.yaml absorbs key patterns from `deprecated-play-patterns.md` (pre-lock resolution gate, three-axis profile derivation, decision_points).
-- [ ] `core/components/plays/spec-product/` has a compiled play artifact produced by `/create-play --build spec-product` (final verb pending approval-gate confirmation). The compiled artifact carries the same checksum as the intent.yaml — drift detection works.
+- [ ] `core/components/plays/specify-product/` has a compiled play artifact produced by `/create-play --build specify-product` (final verb pending approval-gate confirmation). The compiled artifact carries the same checksum as the intent.yaml — drift detection works.
 - [ ] `core/components/agents/product-keeper.md` and `market-analyst.md` exist and follow the standard agent pattern.
 - [ ] Skills exist: `configure-capabilities`, `enrich-capabilities`, `generate-intent-epics`, `validate-intent-epics`, `derive-quality-profile-from-epics`, `research-market-opportunity`. Each has SKILL.md with Purpose / Input / Process / Output / Constraints sections.
-- [ ] `/create-play --review spec-product` (or `--build-check`) prints G1-G11 all PASS.
+- [ ] `/create-play --review specify-product` (or `--build-check`) prints G1-G11 all PASS.
 - [ ] Plan-product dispatches the scriber agent for evidence writes (confirmed by reading the compiled artifact).
-- [ ] Running `/spec-product "B2B SaaS platform for healthcare appointment scheduling"` end-to-end produces: `market-brief.md`, `scope.yaml`, ≥5 intent epics (each with all mandatory fields filled, ≥2 success scenarios, ≥2 failure scenarios, quantified constraints), `quality-profile.yaml` — all under `.meridian/product/product/`.
+- [ ] Running `/specify-product "B2B SaaS platform for healthcare appointment scheduling"` end-to-end produces: `market-brief.md`, `scope.yaml`, ≥5 intent epics (each with all mandatory fields filled, ≥2 success scenarios, ≥2 failure scenarios, quantified constraints), `quality-profile.yaml` — all under `.meridian/product/product/`.
 - [ ] `validate-intent-epics` returns structured failure on an epic with an empty mandatory field — play halts, does not proceed to write.
 - [ ] `validate-intent-epics` returns structured failure on an epic with `performance: "fast"` or `security: "secure"` — unquantified constraints.
 - [ ] Every generated intent epic has a `kb_source` field pointing at a real feature ID in a `domain-taxonomy/*.md` file (e.g., `UM-F001`, `CM-F003`).
 
-### Sub-issue 214.6 — `/design-product` pipeline
-- [ ] `core/components/plays/design-product/reference/intent.yaml` exists with metadata (name, description, version, checksum) + 4 content fields.
-- [ ] `core/components/plays/design-product/` has a compiled play artifact with matching checksum (drift detection works).
+### Sub-issue 214.6 — `/design-exp` pipeline
+- [ ] `core/components/plays/design-exp/reference/intent.yaml` exists with metadata (name, description, version, checksum) + 4 content fields.
+- [ ] `core/components/plays/design-exp/` has a compiled play artifact with matching checksum (drift detection works).
 - [ ] `core/components/agents/designer.md` exists and follows the standard agent pattern.
 - [ ] Skills exist: `synthesize-personas`, `generate-screen-inventory`, `validate-screen-coverage`, `map-user-flows`, `generate-wireframes`, `compile-design-spec`. Each has a complete SKILL.md.
-- [ ] `/create-play --review design-product` prints G1-G11 all PASS.
+- [ ] `/create-play --review design-exp` prints G1-G11 all PASS.
 - [ ] Design-product dispatches the scriber agent for evidence writes.
-- [ ] Running `/design-product` against spec-product output produces: `personas.md` (≥2 JTBD personas), `screens/*.yaml` (every capability maps to ≥1 screen, every screen has ≥3 states), `flows/*.md` (every success_scenario has a flow, every failure_scenario has a recovery flow), `wireframes/*.md` (structured text, component lists), `design-spec.md` — all under `.meridian/product/ux/`.
+- [ ] Running `/design-exp` against specify-product output produces: `personas.md` (≥2 JTBD personas), `screens/*.yaml` (every capability maps to ≥1 screen, every screen has ≥3 states), `flows/*.md` (every success_scenario has a flow, every failure_scenario has a recovery flow), `wireframes/*.md` (structured text, component lists), `design-spec.md` — all under `.meridian/product/ux/`.
 - [ ] `validate-screen-coverage` returns structured failure on a screen with <3 states.
 - [ ] `validate-screen-coverage` returns structured failure on a capability unmapped to any screen.
 
@@ -74,10 +74,10 @@
 - [ ] `core/components/plays/build-arch/reference/intent.yaml` exists with metadata (name, description, version, checksum) and 4 content fields (intent, constraints, failure_conditions, scenarios).
 - [ ] `core/components/plays/build-arch/` play directory contains compiled artifact (SKILL.md or equivalent), templates (checkpoint, approval-prompt, final-report), and evals.
 - [ ] Any new agents/skills required for build-arch are created (scope determined during 214.7 intent crafting — likely reuses `tech-designer` / `tech-architect` + a handful of new structure-generation skills).
-- [ ] `/build-arch` reads spec-product + design-product artifacts from the new whitelist-compliant locations (`.meridian/product/product/`, `.meridian/product/ux/`).
+- [ ] `/build-arch` reads specify-product + design-exp artifacts from the new whitelist-compliant locations (`.meridian/product/product/`, `.meridian/product/ux/`).
 - [ ] `/create-play --review build-arch` (or `--build-check build-arch` depending on final verb) prints G1-G11 all PASS.
-- [ ] End-to-end integration: `/spec-product` → `/design-product` → `/build-arch` against a fixture produces `architecture.yaml` and `quality-standards.yaml` under `.meridian/product/arch/` with traces back to spec-product quality profile and design-product screen inventory.
-- [ ] Spec-arch dispatches the `scriber` agent for evidence writes (same pattern as spec-product and design-product).
+- [ ] End-to-end integration: `/specify-product` → `/design-exp` → `/build-arch` against a fixture produces `architecture.yaml` and `quality-standards.yaml` under `.meridian/product/arch/` with traces back to specify-product quality profile and design-exp screen inventory.
+- [ ] Spec-arch dispatches the `scriber` agent for evidence writes (same pattern as specify-product and design-exp).
 - [ ] No remaining references to `/prepare-architecture` in docs, agents, or skills (every reference rewritten to `/build-arch`).
 
 ## Verification Steps
@@ -85,7 +85,7 @@
 | Step | Method | Expected Outcome |
 |------|--------|------------------|
 | Verify scriber agent exists and is wired | Read `core/components/agents/scriber.md`; grep `commit-code` SKILL.md for scriber dispatch | Agent file exists; dispatch present |
-| Verify scriber is dispatched in new plays | After 214.5/214.6, grep `spec-product` and `design-product` SKILL.md for scriber references | Non-zero matches in both |
+| Verify scriber is dispatched in new plays | After 214.5/214.6, grep `specify-product` and `design-exp` SKILL.md for scriber references | Non-zero matches in both |
 | Verify config.yaml reflects whitelist | Read `.meridian/core/config.yaml` after 214.2 merge | `product.directories` has 3 keys exactly; `stm.structure` has 5 keys exactly |
 | Verify no orphan old-path references | Grep for old paths across `core/components/` | Zero matches after 214.2 |
 | Verify deprecated-play-patterns captured | Read `core/components/memory/knowledge/deprecated-play-patterns.md` | Contains: resolution gates, three-axis derivation, decision_points, deferred scope, resolution interview logic |
@@ -94,15 +94,15 @@
 | Verify cross-tree constraints | yamllint on `_cross-tree-constraints.yaml`; confirm each constraint references a real feature ID | All pass |
 | Verify no parallel YAML capability tree | `ls core/components/memory/knowledge/capabilities/` | "No such file or directory" |
 | Verify KB bootstrap loadable | Read a capability YAML file | All 6 content blocks populated |
-| Verify spec-product intent purity | `grep '^name:\|^description:\|^version:' core/components/plays/spec-product/reference/intent.yaml` | Zero matches |
-| Verify spec-product compiles | `/create-play --review spec-product` after compile step | G1-G11 all PASS; checksum in intent.yaml matches compiled artifact |
-| Verify spec-product end-to-end | Run `/spec-product "HealthSync clinic scheduling"` | All SCE-* pass; expected artifacts produced |
+| Verify specify-product intent purity | `grep '^name:\|^description:\|^version:' core/components/plays/specify-product/reference/intent.yaml` | Zero matches |
+| Verify specify-product compiles | `/create-play --review specify-product` after compile step | G1-G11 all PASS; checksum in intent.yaml matches compiled artifact |
+| Verify specify-product end-to-end | Run `/specify-product "HealthSync clinic scheduling"` | All SCE-* pass; expected artifacts produced |
 | Verify Intent Epic validator blocks shallow output | Hand-craft an epic with empty `failure_scenarios`; feed to validator | Structured failure with field-level error; play halts |
 | Verify quantified-constraint enforcement | Hand-craft an epic with `performance: "fast"`; feed to validator | Structured failure citing unquantified constraint |
-| Verify design-product screen coverage | Run `/design-product` after spec-product | Every capability has ≥1 screen; every screen has ≥3 states |
-| Verify flow coverage | Parse flows/*.md after design-product run | Count matches success + failure scenarios from epics |
+| Verify design-exp screen coverage | Run `/design-exp` after specify-product | Every capability has ≥1 screen; every screen has ≥3 states |
+| Verify flow coverage | Parse flows/*.md after design-exp run | Count matches success + failure scenarios from epics |
 | Verify folder compliance (strict) | Enumerate all directories under `.meridian/` after end-to-end run | Every directory is in the whitelist; no siblings of product/ux/arch under `.meridian/product/` |
-| Verify prepare-architecture chain | After 214.7, run `/spec-product` → `/design-product` → `/prepare-architecture` | Pre-flight passes with new paths; produces arch artifacts |
+| Verify prepare-architecture chain | After 214.7, run `/specify-product` → `/design-exp` → `/prepare-architecture` | Pre-flight passes with new paths; produces arch artifacts |
 
 ## Scenario Coverage
 
@@ -110,8 +110,8 @@ Each acceptance scenario from the issue body (and the to-be-drafted intent.yaml 
 
 | Scenario (from issue body or upcoming intent.yaml) | Verified by |
 |---|---|
-| AS1: Full `/spec-product` run against healthcare/HIPAA/high-security profile produces enriched intent epics with every mandatory field filled, traced to KB capabilities, with no generic content | Validator enforcement; cross-tree constraint application; end-to-end fixture run |
-| AS2: `/design-product` after `/spec-product` produces complete screen inventory — every capability → ≥1 screen, every screen → ≥3 states, every success scenario → flow, every failure scenario → recovery flow | validate-screen-coverage enforcement; end-to-end fixture run |
+| AS1: Full `/specify-product` run against healthcare/HIPAA/high-security profile produces enriched intent epics with every mandatory field filled, traced to KB capabilities, with no generic content | Validator enforcement; cross-tree constraint application; end-to-end fixture run |
+| AS2: `/design-exp` after `/specify-product` produces complete screen inventory — every capability → ≥1 screen, every screen → ≥3 states, every success scenario → flow, every failure scenario → recovery flow | validate-screen-coverage enforcement; end-to-end fixture run |
 | AS3: `/prepare-architecture` finds all mandatory handoff artifacts in expected locations per the whitelist | 214.7 integration test |
 | AS4: Plan explicitly reconciles every existing play — no silent deletion, no silent coexistence | 214.3 capture-to-deprecated-patterns file; spec.md reconciliation table |
 | AS5 (new, per user directive 2026-04-14): Evidence writing in all new plays is backgrounded via scriber | 214.1 reference adopter; grep check in 214.5/214.6 SKILL.md |
@@ -121,12 +121,12 @@ Each acceptance scenario from the issue body (and the to-be-drafted intent.yaml 
 
 | Scenario | Expected Behavior |
 |----------|-------------------|
-| `/spec-product` invoked with <5 meaningful words | Pre-flight halts (pattern captured from deprecated discover-product) |
-| `/spec-product` invoked without a project profile | Interactive Q&A collects profile fields; play pauses until collected |
-| `/spec-product` invoked against a product that already has locked epics | Pre-flight detects status: LOCKED and halts |
+| `/specify-product` invoked with <5 meaningful words | Pre-flight halts (pattern captured from deprecated discover-product) |
+| `/specify-product` invoked without a project profile | Interactive Q&A collects profile fields; play pauses until collected |
+| `/specify-product` invoked against a product that already has locked epics | Pre-flight detects status: LOCKED and halts |
 | KB has zero capability files for a selected domain | `configure-capabilities` returns structured failure; play cycles back with message "domain X has no capabilities in KB — add capability YAML or adjust scope" |
 | Cross-tree constraint references a capability that doesn't exist | Schema validator rejects at bootstrap (214.4 test) |
-| `/design-product` invoked before `/spec-product` completes | Pre-flight fails with "spec-product artifacts not found at .meridian/product/product/" |
+| `/design-exp` invoked before `/specify-product` completes | Pre-flight fails with "specify-product artifacts not found at .meridian/product/product/" |
 | Intent epic has 1 success_scenario and 2 failure_scenarios | Validator rejects with "minimum 2 success scenarios required" |
 | Screen has exactly 2 states | validate-screen-coverage rejects with "minimum 3 states required" |
 | Capability has `inclusion: conditional` but no `condition:` field | Schema validator rejects at load time |
@@ -147,4 +147,4 @@ Specific checks after the full sequence:
 - `.meridian/core/config.yaml` `product.directories` has exactly 3 keys (`product`, `ux`, `arch`) — no more, no fewer.
 - `.meridian/core/config.yaml` `stm.structure` has exactly 5 keys (`specs`, `evidence`, `checkpoint`, `context`, `review`).
 - Grep for old path references returns zero matches across `core/components/` and `docs/`.
-- End-to-end fixture runs of `/spec-product` and `/design-product` produce files only within their respective whitelist buckets.
+- End-to-end fixture runs of `/specify-product` and `/design-exp` produce files only within their respective whitelist buckets.

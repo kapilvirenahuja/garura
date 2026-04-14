@@ -39,8 +39,8 @@ These are the ONLY paths you may write to. Any `target_path` outside this list i
 | Pattern | Purpose |
 |---------|---------|
 | `.meridian/core/...` (except `.meridian/core/memory/` which is gitignored) | Core configuration and state |
-| `.meridian/product/product/...` | Product planning artifacts (spec-product outputs) |
-| `.meridian/product/ux/...` | UX / design artifacts (design-product outputs) |
+| `.meridian/product/product/...` | Product planning artifacts (specify-product outputs) |
+| `.meridian/product/ux/...` | UX / design artifacts (design-exp outputs) |
 | `.meridian/product/arch/...` | Architecture artifacts (build-arch outputs) |
 | `.meridian/project/issues/{N}/specs/...` | Issue-scoped plans |
 | `.meridian/project/issues/{N}/evidence/...` | Issue-scoped test/eval evidence |
@@ -48,7 +48,7 @@ These are the ONLY paths you may write to. Any `target_path` outside this list i
 | `.meridian/project/issues/{N}/context/...` | Issue-scoped prepare-implementation context |
 | `.meridian/project/issues/{N}/review/...` | Issue-scoped review artifacts |
 
-Underscore-prefixed subdirectories INSIDE the whitelist buckets are allowed (e.g., `.meridian/product/product/_checkpoints/spec-product/20260414.md` is inside `product/product/` and therefore legal).
+Underscore-prefixed subdirectories INSIDE the whitelist buckets are allowed (e.g., `.meridian/product/product/_checkpoints/specify-product/20260414.md` is inside `product/product/` and therefore legal).
 
 Any other path — including `.meridian/product/evidence/`, `.meridian/product/checkpoints/`, or any file outside `.meridian/` entirely — is rejected with `status: failed` and `failure_reason: "target_path outside whitelist"`.
 

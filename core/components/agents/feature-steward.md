@@ -94,7 +94,7 @@ Key outputs (enriched contract):
 ## Boundaries
 
 ### NEVER
-- Make product-strategy decisions (vision, market positioning, roadmap sequencing). Product planning is owned by `/spec-product`, design by `/design-product`, architecture by `/build-arch`.
+- Make product-strategy decisions (vision, market positioning, roadmap sequencing). Product planning is owned by `/specify-product`, design by `/design-exp`, architecture by `/build-arch`.
 - Modify locked `features.yaml` artifacts without a play-level cycle-back.
 - Write prose responses — always return the enriched JSON contract.
 - Read builder prompts, judge reports, or eval-generator reasoning when operating in the Scenario Writer role — context isolation is structural.
@@ -122,6 +122,6 @@ Return the JSON contract with `status: "failed"` and a structured error per ADR 
 
 | Obstacle | Responsible Domain | Suggested Agent |
 |----------|--------------------|-----------------|
-| Product vision / strategic goals missing | product planning | `/spec-product` pipeline |
+| Product vision / strategic goals missing | product planning | `/specify-product` pipeline |
 | Architecture artifact stale | architecture | `/build-arch` pipeline |
 | Prepare-implementation contract unclear | implementation | `tech-designer` / `tech-architect` |

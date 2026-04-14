@@ -61,7 +61,7 @@ Rationale: the user's directive 2026-04-14 was "after these product strategist w
 3. **Remove** all references to: `draft-product-vision`, `validate-product-vision`, `scope-roadmap-epics`, `draft-roadmap`, `validate-roadmap`, `discover-product-opportunity`, `assess-feasibility` (even though it survives — tech-designer owns it now).
 4. **Rewrite** its Identity and Domain statements to reflect the narrower scope: product specifications and implementation validation, NOT product discovery / vision / roadmapping.
 5. **Update** docs/components/agents.md — product-strategist entry narrows its description to features.yaml + implementation-design work.
-6. **Consider renaming** `product-strategist` → `spec-validator` or `feature-steward` to avoid confusion with the new spec-product play. NOT doing it in 214.3 — rename requires cascading updates across prepare-implementation / implement-epic. Flag as a follow-up issue.
+6. **Consider renaming** `product-strategist` → `spec-validator` or `feature-steward` to avoid confusion with the new specify-product play. NOT doing it in 214.3 — rename requires cascading updates across prepare-implementation / implement-epic. Flag as a follow-up issue.
 
 **Prepare-implementation reassignment:** NO reassignment needed. product-strategist continues to own its surviving skills, and prepare-implementation keeps dispatching it. Both work.
 
@@ -125,7 +125,7 @@ Plays that dispatch `tech-designer` with `draft-technical-approach` (still works
 
 1. `judge.md` Skill inventory needs cleanup — drop references to deleted validation skills. Add to T16.
 2. `product-strategist` description/identity rewrite — make the narrower scope explicit. Part of T16.
-3. Optional: rename `product-strategist` to something that doesn't collide with `spec-product`. Deferred to follow-up issue.
+3. Optional: rename `product-strategist` to something that doesn't collide with `specify-product`. Deferred to follow-up issue.
 4. `agents.md` table description for product-strategist needs update in T16.
 5. `assess-feasibility` skill location — still used by tech-designer, but was under plan-roadmap's orbit historically. Confirm it's `core/components/skills/assess-feasibility/` (standalone skill) and not buried inside plan-roadmap's tree. (Audit confirms: it is standalone — stays put.)
 

@@ -6,7 +6,7 @@ This file captures valuable patterns from four plays deleted in Meridian OS 214.
 - `discover-product-opportunity` skill (deleted 214.3)
 - `prepare-architecture` (deleted 214.7)
 
-The new plays `spec-product`, `design-product`, and `build-arch` consult this file
+The new plays `specify-product`, `design-exp`, and `build-arch` consult this file
 during intent crafting so field-tested patterns are not lost in the rewrite.
 
 Source: extracted by 214.3 T12-T13 task. Reading scope was the four plays' intent.yaml
@@ -48,7 +48,7 @@ checklist applies (`validate-product-vision` skips `target_users_identified` and
 `competitive_landscape_covered` for library type, lowers `assumptions_listed` from
 ≥3 to ≥1, and keeps strategic_goals threshold at ≥3).
 
-**How to absorb.** `spec-product`. The new play must inherit both the three-signal
+**How to absorb.** `specify-product`. The new play must inherit both the three-signal
 classifier and the type-conditional budget. The `validate-product-spec` (or whatever
 replaces validate-product-vision) must keep type-aware checklists. The fabricated-data
 failure (F8) must remain a hard halt — the new play should reproduce the constraint
@@ -108,7 +108,7 @@ pre_lock_resolutions:
       resolution: "{user answer in their own words}"
 ```
 
-**How to absorb.** `spec-product`. Carry forward all three branches. The placeholder
+**How to absorb.** `specify-product`. Carry forward all three branches. The placeholder
 scanner regex `/\bTBD\b|unclear|to be determined|\?$/i` is field-tested and must not
 be relaxed. The non-bypass property (C15, F12) must remain a hard constraint with an
 eval — losing it is the kind of regression that takes months to detect. Branch B
@@ -184,7 +184,7 @@ If the agent invents dimensions or skips reading LTM, F14 fires.
 Ambition) drives the cascade hard: a library at PP-6 = 1 (POC) defaults all NFR and
 QP to 1.
 
-**How to absorb.** `spec-product`. This pattern MUST be preserved end-to-end:
+**How to absorb.** `specify-product`. This pattern MUST be preserved end-to-end:
 - The cascade order is non-negotiable — it's what makes "knobs not questions" work
 - LTM dimension definitions are the source of truth — the new spec play MUST read
   them and the agent MUST be forbidden from inventing dimensions
@@ -196,7 +196,7 @@ QP to 1.
 - Every dimension MUST carry a `rationale` field at lock time (F13 will fire otherwise)
 
 Consider extracting the cascade into a stand-alone skill (`derive-project-profiles`)
-that `spec-product` calls and that other plays can also invoke if needed.
+that `specify-product` calls and that other plays can also invoke if needed.
 
 ---
 
@@ -243,7 +243,7 @@ decision_point; the user's choice becomes the artifact.
 every capability in the source against the artifact and flags `dropped`, `partial`,
 `drifted`, and silent overrides as failures.
 
-**How to absorb.** `spec-product`. This is the discipline that makes IDSD-driven
+**How to absorb.** `specify-product`. This is the discipline that makes IDSD-driven
 specs trustworthy. The `decision_points` schema (`field`, `original_requirement`,
 `proposed_alternative`, `rationale`) is minimal but load-bearing — keep it. The
 new play must:
@@ -279,7 +279,7 @@ mid-flight.
 - Manual unlock: not provided by the play. The user must edit product.yaml directly
   to set status back to DRAFT before re-running.
 
-**How to absorb.** `spec-product`. Keep the hard re-discovery block. Keep manual
+**How to absorb.** `specify-product`. Keep the hard re-discovery block. Keep manual
 unlock as the only path back to DRAFT — having a play-driven unlock would defeat
 the protection. The lock step itself is trivial (read, mutate status, write) and
 should NOT be delegated to an agent — orchestrator owns it.
@@ -338,7 +338,7 @@ from the input and verifies each one against the output. Per-facet status:
 NOT a hard halt — the user gets to see the drop and decide whether to re-draft or
 proceed. The judge cannot decide unilaterally that a drop is fatal.
 
-**How to absorb.** `spec-product` (and applicable to all three new plays — context
+**How to absorb.** `specify-product` (and applicable to all three new plays — context
 isolation is cross-cutting). The contract template is reusable across plays — only
 `check_type`, `input_path`, and `output_path` change. Consider extracting into a
 shared skill `check-input-output-coverage` that all three new plays invoke. The
@@ -376,7 +376,7 @@ can't, an HTML brief that paraphrases the YAML is itself a regression risk (the
 brief might say things the YAML doesn't). The play presents the YAML path and lets
 the user open it in their editor.
 
-**How to absorb.** `spec-product`. Inherit:
+**How to absorb.** `specify-product`. Inherit:
 - Write checkpoint artifact BEFORE prompting
 - Use `Tether` / `Vanish` keywords (not `yes` / `no`)
 - Review surface is the YAML file path, not a derived view
@@ -412,7 +412,7 @@ C5 budgets are designed so cycle-backs fit within the agent budget:
 - Product: 3 base + 1 cycle-back = 4 (within ≤5)
 - Library: 2 base + 2 cycle-backs = 4 (within ≤5)
 
-**How to absorb.** `spec-product`. Carry forward:
+**How to absorb.** `specify-product`. Carry forward:
 - `iteration_count` in the play status file
 - Type-dependent limits
 - Pre-counted budget so cycle-backs don't blow the agent ceiling
@@ -442,7 +442,7 @@ would penalize the user for the agent's confusion. Treating clarification as a
 5. Re-invocation is exempt from C5 budget
 6. If user rejects all candidates AND provides no alternative, hard halt (F2)
 
-**How to absorb.** `spec-product`. Inherit the pattern but generalize: any
+**How to absorb.** `specify-product`. Inherit the pattern but generalize: any
 "please clarify X" round trip from an agent should be exempt from the budget,
 not just domain. Consider a structured agent return type `clarification_needed`
 that the orchestrator handles uniformly across all agents.
@@ -510,7 +510,7 @@ The 7 enforced rules from `epic-management-rules.md`:
 7. **Foundation investments** — shared infrastructure marked `foundation_investment: true`,
    placed in `near` bucket with P1 priority
 
-**How to absorb.** `design-product` (this play absorbs scope-roadmap-epics' job).
+**How to absorb.** `design-exp` (this play absorbs scope-roadmap-epics' job).
 Critical to preserve:
 - The 14-field schema exactly (changing it breaks every downstream play)
 - The natural-count rule with explicit "NEVER target a specific count" constraint
@@ -560,7 +560,7 @@ timeline:
 `bucket` values are LOWERCASE only — `Near`, `Mid`, `Far`, or `horizon` are schema
 violations.
 
-**How to absorb.** `design-product`. The dependency-driven bucketing is sound and
+**How to absorb.** `design-exp`. The dependency-driven bucketing is sound and
 should survive the rewrite. Two refinements to consider:
 - The current rule ("epics with no deps go near") doesn't account for cases where
   ALL initial epics could fit in near, leaving mid/long empty. The new play should
@@ -629,7 +629,7 @@ There is NO re-validation step here (unlike discover-product Branch C) — the u
 resolution is final, because the items being resolved are by definition not validation
 issues but planning unknowns.
 
-**How to absorb.** `design-product`. The trigger schema (critical_blockers +
+**How to absorb.** `design-exp`. The trigger schema (critical_blockers +
 open_questions in feasibility) is the differentiator from the discover-product
 gate. The feasibility intermediate artifact must keep these two arrays as distinct
 top-level fields so the gate has unambiguous triggers.
@@ -692,7 +692,7 @@ beyond what profiles suggest indicate scope creep or profile miscalibration.
 (low-risk doesn't mean zero considerations). Open_questions has at least one entry
 if any genuinely exist; empty list only if there are truly none.
 
-**How to absorb.** `design-product` (or `build-arch` if feasibility moves later in
+**How to absorb.** `design-exp` (or `build-arch` if feasibility moves later in
 the pipeline). Critical:
 - Keep the flat schema; do NOT add RICE
 - Keep profile-driven risk calibration
@@ -739,7 +739,7 @@ regeneration rather than transcription.
 feasibility.yaml, roadmap.yaml) and verify exclusions, assumptions, feasibility
 entries, and timeline epic_refs all match.
 
-**How to absorb.** `design-product`. The verbatim rule must survive — it's the
+**How to absorb.** `design-exp`. The verbatim rule must survive — it's the
 guarantee that downstream plays can read roadmap.yaml without worrying about drift
 from product.yaml. Two refinements:
 - The new play might collapse roadmap.yaml and feasibility.yaml into a single
@@ -803,7 +803,7 @@ confidence_report:
 Eval SE-11 checks `assessed_by == "judge"` and verifies the contract has only
 artifact paths.
 
-**How to absorb.** `design-product`. The four assessment dimensions (confidence,
+**How to absorb.** `design-exp`. The four assessment dimensions (confidence,
 scenario_metric_coverage, falsifiability, coverage_gaps) are all useful — keep
 them. The `assessed_by` field is the integrity check that catches self-assessment
 regressions.
@@ -844,7 +844,7 @@ has two choices:
 
 Silent absorption is forbidden — every fragment must have an owner.
 
-**How to absorb.** `design-product`. The two new statuses (`orphaned_scope`,
+**How to absorb.** `design-exp`. The two new statuses (`orphaned_scope`,
 `deferred_violation`) are the two most valuable enforcement gates in the entire
 play. They MUST survive the rewrite. The cross-cutting exception (with
 `cross_cutting_justification`) is also field-tested and prevents the alternative
@@ -899,7 +899,7 @@ Optional `market_hints` input enrichment:
 - `geography` (e.g., "North America", "APAC")
 - `target_segment` (e.g., "SMB", "enterprise", "consumer")
 
-**How to absorb.** `spec-product`. The new play absorbs market context extraction
+**How to absorb.** `specify-product`. The new play absorbs market context extraction
 into its draft phase. The 6-field schema is minimal but complete — keep it intact.
 The "structured data only, no file writes" pattern is correct for a sub-skill;
 the parent draft-product-vision skill is the one that writes the consolidated
@@ -929,7 +929,7 @@ The output's `problem` field is this restated sentence — not the raw input. Th
 agent must distinguish "the product being built" from "the underlying user
 problem" before writing the field.
 
-**How to absorb.** `spec-product`. This is a two-line constraint that has
+**How to absorb.** `specify-product`. This is a two-line constraint that has
 disproportionate value. Carry it forward verbatim. The new play should put this
 pattern in the draft skill's process steps, not the play orchestrator.
 
@@ -962,7 +962,7 @@ market_size:
 For library-type intents, market_size is always null (the type bifurcation pattern
 in discover-product Pattern 1 prevents fabrication of market data for libraries).
 
-**How to absorb.** `spec-product`. Carry forward the nullable schema and the
+**How to absorb.** `specify-product`. Carry forward the nullable schema and the
 forbidden-fabrication constraint. The note field is the audit trail for why
 estimates are missing — it MUST remain non-null even when TAM/SAM/SOM are null.
 
@@ -1631,12 +1631,12 @@ artifacts and per-issue STM for feature implementation.
 - Context isolation explicitly noted as cross-cutting
 
 **Absorber assignments made (per advisor):**
-- spec-product: Patterns 1-9 of discover-product, all 3 of discover-product-opportunity
-- design-product: Patterns 1-7 of plan-roadmap
+- specify-product: Patterns 1-9 of discover-product, all 3 of discover-product-opportunity
+- design-exp: Patterns 1-7 of plan-roadmap
 - build-arch: Patterns 1-8 of prepare-architecture
 
 **Borderline inclusions:**
-- Three-axis profile derivation cascade lives in `draft-product-vision` (the skill, not the play). Captured under discover-product because the play orchestrates it. Flagged in open questions whether the new spec-product should keep it inside the draft skill or extract a stand-alone `derive-project-profiles` skill.
+- Three-axis profile derivation cascade lives in `draft-product-vision` (the skill, not the play). Captured under discover-product because the play orchestrates it. Flagged in open questions whether the new specify-product should keep it inside the draft skill or extract a stand-alone `derive-project-profiles` skill.
 - Time-bucketing schema lives in `epic-schema.md`, not in plan-roadmap intent.yaml. Captured because it is load-bearing for plan-roadmap and would be lost if not.
 - Library vs product type bifurcation included even though it could look like Meridian boilerplate — the budget changes and validation criteria change in non-trivial ways.
 

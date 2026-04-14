@@ -344,8 +344,8 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
 | Checkpoints | `.meridian/project/issues/{N}/checkpoint/{play-name}/{timestamp}.md` |
 | Context (prepare-implementation, build-arch) | `.meridian/project/issues/{N}/context/` |
 | Review artifacts | `.meridian/project/issues/{N}/review/` |
-| Product planning (spec-product output) | `.meridian/product/product/` |
-| UX (design-product output) | `.meridian/product/ux/` |
+| Product planning (specify-product output) | `.meridian/product/product/` |
+| UX (design-exp output) | `.meridian/product/ux/` |
 | Architecture (build-arch output) | `.meridian/product/arch/` |
 | External | Returned directly (URLs, IDs) |
 

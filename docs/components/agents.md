@@ -89,7 +89,7 @@ Meridian avoids both extremes:
 
 **Failure semantics:** scriber failure never halts a play. Evidence writes are non-critical by definition. On failure, the orchestrator logs a warning and continues. Exception: if a specific evidence write is required for a downstream step (e.g., self-commit), that specific write is blocking and scriber is awaited synchronously for that call.
 
-**Reference adopter:** the `commit-code` play's `intent.yaml` carries constraint C8 that delegates evidence writes to scriber. This is the first play to adopt the pattern. Future plays (`spec-product`, `design-product`, `build-arch`) ship with scriber dispatch built in from the start.
+**Reference adopter:** the `commit-code` play's `intent.yaml` carries constraint C8 that delegates evidence writes to scriber. This is the first play to adopt the pattern. Future plays (`specify-product`, `design-exp`, `build-arch`) ship with scriber dispatch built in from the start.
 
 ## Agent Behavior
 
