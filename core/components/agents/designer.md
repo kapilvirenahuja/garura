@@ -84,7 +84,7 @@ Key inputs:
 - `task_id` — unique step identifier
 
 Key outputs:
-- `stm.output` paths populated with real artifact paths under `.meridian/product/ux/`
+- `stm.output` paths populated with real artifact paths under `{product_base}experience/` (per D1 folder restructure — the former `ux/` folder is now `experience/`; path resolution goes through the contract's `{product_base}` placeholder rather than assuming relative-working-directory paths)
 - `notes[]` — up to 3 one-sentence findings
 - `step_failure` — null on success, populated on unrecoverable failure
 

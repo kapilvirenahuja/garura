@@ -1,51 +1,91 @@
 play: design-exp
-rebake_trigger: "Defect 10 — pre-D1 folder path corrections in C1 and C10"
+rebake_trigger: >
+  D15 (Pull-to-Product Principle / C14 + F13) and D16 (MVP Focus / C15 + F14)
+  intent-level additions, combined with contract-surface propagation from the
+  parallel Phase 2 skill-contract updates.
 mode: rebake
+
+phase_2_defects_propagated:
+  - D11   # {product_base}experience/... paths in skill docs
+  - D12   # output_path / output_dir renamed to domain-named parameters
+  - D19   # screen frontmatter capabilities list + capability_classification
+  - D20   # validate-screen-coverage accepts mode: strict | partial
+  - D21   # every skill uses {product_base} placeholder discipline
 
 skills:
   # Step-producing skills (passed to evals-creator)
   - name: synthesize-personas
     path: core/components/skills/synthesize-personas/SKILL.md
-    status: existing
-    role: "Step 1 — JTBD persona synthesis from intent epics"
-    d10_impact: none
+    status: existing modified
+    role: "Step 1 — JTBD persona synthesis, narrowed by mvp-recommendation.md primary use cases (C15)"
+    phase_2_changes:
+      - "D12: output_path → personas_path"
+      - "D21: {product_base} placeholder discipline"
+    contract_surface_changes_this_bake:
+      - "NEW: mvp_recommendation_path input (C15)"
+      - "REMOVE: ltm_domain_taxonomy_path; REPLACE: product_research_path (C14)"
 
   - name: generate-screen-inventory
     path: core/components/skills/generate-screen-inventory/SKILL.md
-    status: existing
-    role: "Step 3 — derive screens from capabilities, ≥3 states per screen"
-    d10_impact: none
+    status: existing modified
+    role: "Step 3 — derive screens per user-surface capability, ≥3 states per screen"
+    phase_2_changes:
+      - "D12: output_dir → screens_dir"
+      - "D19: capabilities: list frontmatter + optional capability_classification"
+      - "D21: {product_base} placeholder discipline"
+    contract_surface_changes_this_bake:
+      - "REMOVE: ltm_domain_taxonomy_path; REPLACE: product_research_path (C14)"
 
   - name: validate-screen-coverage
     path: core/components/skills/validate-screen-coverage/SKILL.md
-    status: existing
-    role: "Steps 4 + 7 — blocking validator (pre-flow and post-flow passes)"
-    d10_impact: none
+    status: existing modified
+    role: "Steps 4 + 7 — blocking validator (pre-flow + post-flow passes)"
+    phase_2_changes:
+      - "D12: output_path → validation_path"
+      - "D19: capability coverage now computed over UNION of all screens' capabilities lists; substrate/admin_only exempt from coverage rule"
+      - "D20: accepts mode: strict | partial (default strict) — partial reports orphan scenarios without flipping status"
+      - "D21: {product_base} placeholder discipline"
+    contract_surface_changes_this_bake:
+      - "REMOVE: ltm_domain_taxonomy_path; REPLACE: product_research_path (C14)"
+      - "NEW: explicit mode: \"strict\" in contract inputs (D20)"
 
   - name: map-user-flows
     path: core/components/skills/map-user-flows/SKILL.md
-    status: existing
-    role: "Step 6 — Mermaid flow diagrams for success + recovery scenarios"
-    d10_impact: none
+    status: existing modified
+    role: "Step 6 — Mermaid flow diagrams for success + recovery, narrowed by primary use cases (C15)"
+    phase_2_changes:
+      - "D12: output_dir → flows_dir"
+      - "D21: {product_base} placeholder discipline"
+    contract_surface_changes_this_bake:
+      - "None — map-user-flows never took ltm_domain_taxonomy_path. C15 narrowing is inherited from upstream personas + screens."
 
   - name: generate-wireframes
     path: core/components/skills/generate-wireframes/SKILL.md
-    status: existing
+    status: existing modified
     role: "Step 8 — append ## Wireframe section to each screen MD file"
-    d10_impact: none
+    phase_2_changes:
+      - "D11: {product_base}experience/ path labels"
+      - "D21: {product_base} placeholder discipline"
+    contract_surface_changes_this_bake:
+      - "REMOVE: ltm_domain_taxonomy_path; REPLACE: product_research_path (C14)"
 
   - name: compile-design-spec
     path: core/components/skills/compile-design-spec/SKILL.md
-    status: existing
+    status: existing modified
     role: "Step 9 — consolidate personas/screens/flows/wireframes into design-spec.md"
-    d10_impact: none
+    phase_2_changes:
+      - "D12: output_path → design_spec_path"
+      - "D21: {product_base} placeholder discipline"
+    contract_surface_changes_this_bake:
+      - "None — compile-design-spec never took ltm_domain_taxonomy_path. Reads from already-narrowed personas + screens + flows."
 
-  # Pre-flight gate skill (NOT passed to evals-creator — not a step-producing skill)
+  # Pre-flight gate skill (NOT passed to evals-creator)
   - name: validate-kb-extension
     path: core/components/skills/validate-kb-extension/SKILL.md
-    status: existing
+    status: existing unchanged
     role: "Pre-flight gate — KB catalog consistency check (C2)"
-    d10_impact: none
+    phase_2_changes: []
+    contract_surface_changes_this_bake: []
     evals_creator_input: false
 
 summary:
@@ -53,11 +93,18 @@ summary:
   step_producing: 6
   pre_flight_gate: 1
   all_existing: true
-  all_modified: false
+  all_step_producing_modified_in_phase_2: true
   any_new: false
   evals_creator_skill_contracts_count: 6
+  contract_surface_swaps_this_bake:
+    remove_ltm_domain_taxonomy_path_from_stages: [1, 3, 4, 7, 8]
+    add_product_research_path_to_stages: [1, 3, 4, 7, 8]
+    add_mvp_recommendation_path_to_stages: [1]
+    add_explicit_strict_mode_to_stages: [4, 7]
 
 notes:
   - "Every skill listed exists on disk and has a valid SKILL.md contract."
-  - "The skill contracts themselves still contain some narrative text referencing .meridian/product/ux/ — this is out of scope for D10. The play SKILL.md uses its own JSON contract paths, which are authoritative."
+  - "All 6 step-producing skills are marked 'existing modified' because Phase 2 (D11/D12/D19/D20/D21) touched each of them."
   - "validate-kb-extension is intentionally excluded from the evals-creator skill_contracts list because it runs in pre-flight, not as a step that produces an artifact evaluated by SE-* evals."
+  - "Known out-of-scope drift: the 6 design skills still declare ltm_domain_taxonomy_path in their own Input sections — a separate skill-level rebake will align the skill input labels to product_research_path. C14 is a play-level structural constraint and is enforced by auditing the compiled SKILL.md's JSON contract blocks."
+  - "Known out-of-scope drift: designer.md line 88 still references .meridian/product/ux/ in narrative — a separate agent rebake will correct it."

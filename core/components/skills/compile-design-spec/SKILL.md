@@ -1,6 +1,6 @@
 ---
 name: compile-design-spec
-description: Consolidate personas, screens, flows, wireframes, and interaction patterns into a single `design-spec.md` at `.meridian/product/ux/design-spec.md`. The consolidated spec is the handoff deliverable for build-arch and implementation.
+description: Consolidate personas, screens, flows, wireframes, and interaction patterns into a single `design-spec.md` at `{product_base}experience/design-spec.md`. The consolidated spec is the handoff deliverable for build-arch and implementation.
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Glob
@@ -16,15 +16,18 @@ A single readable document that ties the UX design together: who the users are, 
 
 ## Input
 
-Receive from the designer agent:
-- `personas_path` (path, required) — `.meridian/product/ux/personas.md`
-- `screens_dir` (path, required) — `.meridian/product/ux/screens/`
-- `flows_dir` (path, required) — `.meridian/product/ux/flows/`
-- `scope_path` (path, required) — `.meridian/product/product/scope.yaml`
-- `quality_profile_path` (path, required) — `.meridian/product/product/quality-profile.yaml` (for accessibility targets)
-- `output_path` (string, required) — `.meridian/product/ux/design-spec.md`
+Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.meridian/product/` or assume a working directory.
+
+- `personas_path` (path, required) — typically `{product_base}experience/personas.md`
+- `screens_dir` (path, required) — typically `{product_base}experience/screens/`
+- `flows_dir` (path, required) — typically `{product_base}experience/flows/`
+- `scope_path` (path, required) — typically `{product_base}scope/scope.yaml`
+- `quality_profile_path` (path, required) — typically `{product_base}specification/quality-profile.yaml` (for accessibility targets)
+- `design_spec_path` (string, required) — typically `{product_base}experience/design-spec.md`
 
 ## Process
+
+Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.meridian/product/` or assume a working directory.
 
 ### 1. Load inputs
 
@@ -135,7 +138,7 @@ A single product-wide table of interaction decisions, extracted from each screen
 
 ### 3. Write design-spec.md
 
-Write the composed document to `{output_path}`. Overwrite if it already exists — this is the consolidation skill, it's the last writer.
+Write the composed document to `{design_spec_path}`. Overwrite if it already exists — this is the consolidation skill, it's the last writer.
 
 ### 4. Return output contract
 
@@ -156,7 +159,7 @@ design_spec:
 - NEVER add new personas, screens, or flows. This is a consolidation skill; it does not generate new content.
 - NEVER include visual design decisions. Structural only.
 - NEVER omit a capability, persona, screen, or flow that exists in the input artifacts. The consolidated spec is exhaustive.
-- NEVER write to a path other than `{output_path}`.
+- NEVER write to a path other than `{design_spec_path}`.
 - ALWAYS embed the actual Mermaid diagram content from each flow file (not a reference link) — the spec should be self-contained for downstream readers.
 - ALWAYS link to individual screen files for full wireframe detail — the spec summary is a pointer, not a full copy.
 - ALWAYS pull the accessibility target from `quality-profile.yaml` — do not hard-code.

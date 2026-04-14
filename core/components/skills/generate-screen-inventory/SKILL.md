@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Glob, Grep
 
 # generate-screen-inventory
 
-Called by `designer` during `design-exp` Stage 2. Produces one Markdown file per screen under `.meridian/product/ux/screens/`.
+Called by `designer` during `design-exp` Stage 2. Produces one Markdown file per screen under `{product_base}experience/screens/`.
 
 ## Purpose
 
@@ -16,16 +16,19 @@ Turn enriched capabilities into concrete screens. Every capability maps to at le
 
 ## Input
 
-Receive from the designer agent:
-- `scope_path` (path, required) — `.meridian/product/product/scope.yaml`
-- `enriched_capabilities_path` (path, required) — `.meridian/product/product/enriched-capabilities.yaml`
-- `epics_dir` (path, required) — `.meridian/product/product/epics/`
-- `personas_path` (path, required) — `.meridian/product/ux/personas.md` (from Stage 1)
-- `ltm_domain_taxonomy_path` (path, required) — for KB UX hints
+Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.meridian/product/` or assume a working directory.
+
+- `scope_path` (path, required) — typically `{product_base}scope/scope.yaml`
+- `enriched_capabilities_path` (path, required) — typically `{product_base}scope/enriched-capabilities.yaml`
+- `epics_dir` (path, required) — typically `{product_base}scope/epics/`
+- `personas_path` (path, required) — typically `{product_base}experience/personas.md` (from Stage 1)
+- `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads domain UX hints from the product's research folder ONLY — never directly from `core/components/memory/knowledge/domain/`. Passing `ltm_domain_taxonomy_path` is a structural failure (design-exp intent.yaml F13).
 - `ltm_screen_inventory_schema_path` (path, required) — the schema contract (describes MD section conventions)
-- `output_dir` (string, required) — `.meridian/product/ux/screens/`
+- `screens_dir` (string, required) — typically `{product_base}experience/screens/`
 
 ## Process
+
+Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.meridian/product/` or assume a working directory.
 
 ### 1. Load inputs
 
@@ -62,13 +65,19 @@ Pick the states that make sense for the capability. A login screen has default +
 
 ### 4. Write one MD file per screen
 
-Each file has YAML frontmatter with identity (id, capability, name) and Markdown body with structured sections. Example layout for `screens/SCR-user-login-primary.md`:
+Each file has YAML frontmatter with identity (id, capabilities, name) and Markdown body with structured sections. The `capabilities` field is a **list**, not a scalar — most screens list a single capability, but screens that legitimately exercise multiple capabilities (e.g., an `account-setup` screen covering UM-F001 + UM-F002 + UM-F003) MUST list all of them.
+
+An optional per-screen frontmatter field `capability_classification` classifies the screen as `user_surface`, `substrate`, or `admin_only`. The default is `user_surface`. The capability-coverage rule (enforced by `validate-screen-coverage`) fires only against `user_surface` capabilities; `substrate` and `admin_only` screens are exempt from being required to cover user-facing scope.
+
+Example layout for `screens/SCR-user-login-primary.md`:
 
 ```markdown
 ---
 id: SCR-user-login-primary
-capability: UM-F001
+capabilities:
+  - UM-F001
 name: Login
+capability_classification: user_surface
 ---
 
 # Login
@@ -161,30 +170,34 @@ The `## Wireframe` section is NOT written by this skill — it's appended later 
 
 ```yaml
 screens:
-  output_dir: <path>
+  screens_dir: <path>
   file_count: <int>
   files:
     - path: <absolute>
-      capability: <feature ID>
+      capabilities: [<feature ID>, ...]
+      capability_classification: user_surface | substrate | admin_only
       state_count: <int>
   capability_coverage:
     capabilities_total: <int>
     capabilities_with_screens: <int>
-    orphan_capabilities: []  # must be empty
+    orphan_capabilities: []  # must be empty (user_surface only)
 ```
 
 ## Constraints
 
-- NEVER leave a capability without at least one screen. Every scope entry gets covered.
+- NEVER leave a user-facing capability without at least one screen. Every `user_surface` scope entry gets covered.
 - NEVER produce a screen with fewer than 3 states.
 - NEVER pad state count with fake states. If a capability naturally has only 3 states, list only those 3.
 - NEVER write generic layout descriptors (`"a form"`, `"a page"`). Layout is a named hint or a specific composition.
 - NEVER invent personas. Pull from `personas.md`.
 - NEVER invent capabilities. Pull from `scope.selected_capabilities`.
+- NEVER write `capability:` as a scalar in frontmatter. Always emit `capabilities:` as a YAML list with at least one entry.
 - NEVER write the `## Wireframe` section. That's `generate-wireframes`'s job.
 - ALWAYS name components concretely (`email-input`, not `"input field"`).
 - ALWAYS write one file per screen. No bundled multi-screen files.
 - ALWAYS use the file format defined in `screen-inventory-schema.yaml` (Markdown with frontmatter + sections).
+- ALWAYS list every capability a screen legitimately exercises in `capabilities:` — multi-capability screens (e.g., account-setup exercising UM-F001 + UM-F002) list all of them, not just the primary.
+- ALWAYS set `capability_classification` explicitly when the screen is `substrate` or `admin_only`; omit or set `user_surface` otherwise.
 - Read KB feature blocks selectively via grep.
 
 ## Version
@@ -194,4 +207,4 @@ screens:
 | Version | 0.1.0 |
 | Category | ux-design |
 | Created | 2026-04-14 |
-| Related | `core/components/skills/validate-screen-coverage`, `core/components/skills/generate-wireframes`, `core/components/memory/standards/screen-inventory-schema.yaml` |
+| Related | `core/components/skills/validate-screen-coverage`, `core/components/skills/generate-wireframes`, `core/components/memory/standards/schemas/screen-inventory.yaml` |

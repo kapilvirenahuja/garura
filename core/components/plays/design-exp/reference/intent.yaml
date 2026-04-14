@@ -127,6 +127,39 @@ constraints:
       what components exist and where; they do not specify pixel-perfect
       appearance.
 
+  - id: C14
+    rule: >
+      The domain library is read from .meridian/product/research/ only —
+      never directly from core/components/memory/knowledge/domain/. Every
+      stage that needs domain content (synthesize-personas, generate-
+      screen-inventory, map-user-flows, generate-wireframes, validate-
+      screen-coverage) receives the product_research_path input and
+      resolves {product_base}research/{domain}.md for each selected
+      domain. Per rules/product.md Rule 15 (Pull-to-Product Principle /
+      Defect 8), KB-sourced domain definitions are copied into
+      product/research/ at specify-product Stage 2 with a provenance
+      header; design-exp consumes those frozen copies so a KB edit does
+      not retroactively change an in-flight or historical design run.
+      The play never sends ltm_domain_taxonomy_path to downstream skills;
+      using that input name is a structural failure.
+
+  - id: C15
+    rule: >
+      The MVP recommendation at .meridian/product/scope/mvp-recommendation.md
+      must exist and be non-empty before Stage 1 persona synthesis begins.
+      The recommendation identifies primary use cases and deferred use
+      cases with v1.1+ triggers. design-exp's Stage 1 reads the primary
+      use cases and synthesizes one persona per primary use case (not one
+      per every user-type implied by scope.selected_capabilities).
+      Capabilities that serve only deferred use cases either get skipped
+      (if classification == user_surface AND serves only deferred cases)
+      or surface with a flagged note in the generated design-spec.
+      Stage 3 screen inventory and Stage 6 user flows inherit the same
+      narrowing — flows for deferred-use-case-only scenarios are not
+      authored. Per rules/product.md Rule 13 (MVP Focus / Defect 6),
+      missing or empty mvp-recommendation.md halts pre-flight with a
+      clear message pointing the user at the expected artifact shape.
+
 failure_conditions:
   - id: F1
     condition: >
@@ -188,6 +221,25 @@ failure_conditions:
       The play generates visual design elements (color palettes, typography
       stacks, spacing scales) — that is out of scope for design-exp and
       must be deferred to a downstream visual-design play.
+
+  - id: F13
+    condition: >
+      Any stage of the play passes `ltm_domain_taxonomy_path` as a skill
+      input, or any skill reads domain content directly from
+      `core/components/memory/knowledge/domain/` instead of from
+      `{product_base}research/`. This is a violation of C14 / rules/
+      product.md Rule 15 (Pull-to-Product Principle) and breaks the
+      product-run reproducibility guarantee.
+
+  - id: F14
+    condition: >
+      Stage 1 synthesize-personas generates a persona for a use case that
+      is not listed in mvp-recommendation.md's primary_use_cases block,
+      OR Stage 3 generate-screen-inventory creates a user-surface screen
+      for a capability that serves only deferred use cases, OR Stage 6
+      map-user-flows authors a flow for a scenario that belongs to a
+      deferred-use-case-only epic. Any of these is a violation of C15 /
+      rules/product.md Rule 13 (MVP Focus).
 
 scenarios:
   - id: S1

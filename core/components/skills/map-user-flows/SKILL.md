@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Glob, Grep
 
 # map-user-flows
 
-Called by `designer` during `design-exp` Stage 3. Produces one Markdown file per flow under `.meridian/product/ux/flows/`.
+Called by `designer` during `design-exp` Stage 3. Produces one Markdown file per flow under `{product_base}experience/flows/`.
 
 ## Purpose
 
@@ -16,13 +16,16 @@ For every persona journey implied by the intent epics' success and failure scena
 
 ## Input
 
-Receive from the designer agent:
-- `personas_path` (path, required) — `.meridian/product/ux/personas.md`
-- `screens_dir` (path, required) — `.meridian/product/ux/screens/`
-- `epics_dir` (path, required) — `.meridian/product/product/epics/`
-- `output_dir` (string, required) — `.meridian/product/ux/flows/`
+Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.meridian/product/` or assume a working directory.
+
+- `personas_path` (path, required) — typically `{product_base}experience/personas.md`
+- `screens_dir` (path, required) — typically `{product_base}experience/screens/`
+- `epics_dir` (path, required) — typically `{product_base}scope/epics/`
+- `flows_dir` (string, required) — typically `{product_base}experience/flows/`
 
 ## Process
+
+Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.meridian/product/` or assume a working directory.
 
 ### 1. Load inputs
 
@@ -130,7 +133,7 @@ flowchart LR
 
 ```yaml
 flows:
-  output_dir: <path>
+  flows_dir: <path>
   total_flows: <int>
   success_flows: <int>
   recovery_flows: <int>

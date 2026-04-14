@@ -13,15 +13,35 @@ step_evals:
 
   - id: SE-2
     source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: generate-screen-inventory
+    check: "The screens directory exists and contains at least one screen MD file (the play completes with zero screens is a failure)."
+    artifact_pattern: "{product_base}experience/screens/*.md"
+    pass_criteria: "At least one screen MD file exists under {product_base}experience/screens/."
+    fail_criteria: "screens/ directory is missing, empty, or contains zero screen MD files."
+
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: map-user-flows
+    check: "The flows directory exists and contains at least one flow MD file (the play completes with zero flows is a failure)."
+    artifact_pattern: "{product_base}experience/flows/*.md"
+    pass_criteria: "At least one flow MD file exists under {product_base}experience/flows/."
+    fail_criteria: "flows/ directory is missing, empty, or contains zero flow MD files."
+
+  - id: SE-4
+    source_type: failure_condition
     failure_condition_id: F2
     constraint_id: null
     skill: synthesize-personas
-    check: "Every persona in personas.md has at least one job story in the 'When [situation], I want to [motivation], so I can [outcome]' structure. No demographic-driven, narrative-only, or missing-structure personas."
+    check: "Every persona in personas.md is in JTBD format — not demographic-driven, not narrative-only, and not missing the 'When [situation], I want [motivation], so I can [outcome]' structure."
     artifact_pattern: "{product_base}experience/personas.md"
-    pass_criteria: "Every persona entry contains a job story matching the When/I want to/so I can structure."
-    fail_criteria: "Any persona uses demographic framing, narrative-only description, or is missing the JTBD structure."
+    pass_criteria: "Every persona entry contains a job story matching the When/I want to/so I can structure; no persona uses demographic framing or narrative-only description."
+    fail_criteria: "Any persona uses demographic-driven framing, narrative-only description, or is missing the When/I want to/so I can JTBD structure."
 
-  - id: SE-3
+  - id: SE-5
     source_type: failure_condition
     failure_condition_id: F3
     constraint_id: null
@@ -31,7 +51,7 @@ step_evals:
     pass_criteria: "The Capability → Persona Map table references every persona, and every persona is linked to at least one scope capability."
     fail_criteria: "Any persona is not mapped to at least one capability from the specify-product scope."
 
-  - id: SE-4
+  - id: SE-6
     source_type: failure_condition
     failure_condition_id: F4
     constraint_id: null
@@ -41,7 +61,7 @@ step_evals:
     pass_criteria: "validation result shows coverage.capabilities_covered == capabilities_total and coverage.orphan_capabilities is empty."
     fail_criteria: "Any capability from specify-product's selected_capabilities has zero screens in the inventory."
 
-  - id: SE-5
+  - id: SE-7
     source_type: failure_condition
     failure_condition_id: F5
     constraint_id: null
@@ -51,7 +71,7 @@ step_evals:
     pass_criteria: "validation result shows summary.by_category.state_count_below_min == 0."
     fail_criteria: "Any screen has fewer than three distinct states."
 
-  - id: SE-6
+  - id: SE-8
     source_type: failure_condition
     failure_condition_id: F6
     constraint_id: null
@@ -61,7 +81,7 @@ step_evals:
     pass_criteria: "validation result shows coverage.success_scenarios_with_flow == success_scenarios_total."
     fail_criteria: "Any success_scenario from any intent epic has zero user flows referencing it."
 
-  - id: SE-7
+  - id: SE-9
     source_type: failure_condition
     failure_condition_id: F7
     constraint_id: null
@@ -71,7 +91,7 @@ step_evals:
     pass_criteria: "validation result shows coverage.failure_scenarios_with_recovery == failure_scenarios_total."
     fail_criteria: "Any failure_scenario from any intent epic has zero recovery flows referencing it."
 
-  - id: SE-8
+  - id: SE-10
     source_type: failure_condition
     failure_condition_id: F8
     constraint_id: null
@@ -81,7 +101,7 @@ step_evals:
     pass_criteria: "Every screen MD file contains a ## Wireframe section with a named layout pattern and named components; no screen wireframe contains blacklisted generic phrases."
     fail_criteria: "Any wireframe contains vague descriptions without named components and a specific layout pattern."
 
-  - id: SE-9
+  - id: SE-11
     source_type: failure_condition
     failure_condition_id: F9
     constraint_id: null
@@ -91,7 +111,7 @@ step_evals:
     pass_criteria: "Every screen MD file with non-empty default-state actions contains an ## Accessibility entry referencing a specific WCAG level."
     fail_criteria: "Any interactive screen is missing accessibility requirements."
 
-  - id: SE-10
+  - id: SE-12
     source_type: failure_condition
     failure_condition_id: F10
     constraint_id: null
@@ -101,7 +121,7 @@ step_evals:
     pass_criteria: "Three checkpoint artifacts exist under {product_base}_checkpoints/design-exp/ corresponding to Stage 1 (personas), Stage 2 (screens), and Stage 6 (final spec); each records a Tether/Vanish/Orbit response."
     fail_criteria: "Any of the three mandatory checkpoint artifacts is missing, or any checkpoint was skipped without a recorded Tether/Vanish/Orbit response."
 
-  - id: SE-11
+  - id: SE-13
     source_type: failure_condition
     failure_condition_id: F11
     constraint_id: null
@@ -111,7 +131,7 @@ step_evals:
     pass_criteria: "Every artifact path falls under one of: {product_base}experience/, {product_base}_checkpoints/design-exp/, {product_base}_evidence/design-exp/, {product_base}_status/design-exp.json; evidence/checkpoint/status writes are attributable to scriber."
     fail_criteria: "An artifact is written to a path outside the ADR 017 whitelist, or any evidence/checkpoint/status file is written without going through the scriber agent."
 
-  - id: SE-12
+  - id: SE-14
     source_type: failure_condition
     failure_condition_id: F12
     constraint_id: null
@@ -121,9 +141,49 @@ step_evals:
     pass_criteria: "design-spec.md contains no color hex codes, no rgb()/hsl() calls, no pixel spacing values, no font family names, and no brand asset references."
     fail_criteria: "design-spec.md contains any visual-design element — color palette, typography stack, or spacing scale."
 
+  - id: SE-15
+    source_type: failure_condition
+    failure_condition_id: F13
+    constraint_id: null
+    skill: compile-design-spec
+    check: "No stage of the play passes `ltm_domain_taxonomy_path` as a skill input, and no skill reads domain content directly from `core/components/memory/knowledge/domain/` instead of from `{product_base}research/`. The compiled play's JSON contract blocks and the produced design artifacts must be free of the legacy ltm_domain_taxonomy_path reference."
+    artifact_pattern: "{product_base}experience/design-spec.md"
+    pass_criteria: "design-spec.md and every upstream produced artifact references `{product_base}research/` as the provenance source for domain content; no artifact cites `core/components/memory/knowledge/domain/` as its source; no artifact cites an `ltm_domain_taxonomy_path` parameter."
+    fail_criteria: "Any produced artifact cites `core/components/memory/knowledge/domain/` as its domain source, or any skill-invocation record surfaced in the design artifacts references `ltm_domain_taxonomy_path` as an input."
+
+  - id: SE-16
+    source_type: failure_condition
+    failure_condition_id: F14
+    constraint_id: null
+    skill: synthesize-personas
+    check: "Stage 1 synthesize-personas does not generate a persona for a use case that is not listed in mvp-recommendation.md's primary_use_cases block. Every persona in personas.md traces to a primary use case from mvp-recommendation.md."
+    artifact_pattern: "{product_base}experience/personas.md"
+    pass_criteria: "Every persona entry in personas.md references at least one primary use case drawn from mvp-recommendation.md; no persona is justified solely by a deferred use case."
+    fail_criteria: "Any persona in personas.md is generated for a use case that is not listed in mvp-recommendation.md's primary_use_cases block."
+
+  - id: SE-17
+    source_type: failure_condition
+    failure_condition_id: F14
+    constraint_id: null
+    skill: generate-screen-inventory
+    check: "Stage 3 generate-screen-inventory does not create a user-surface screen for a capability that serves only deferred use cases. Every user-surface screen in screens/ serves at least one primary use case from mvp-recommendation.md."
+    artifact_pattern: "{product_base}experience/screens/*.md"
+    pass_criteria: "Every screen MD file with capability_classification user_surface (or absent, defaulting to user_surface) references at least one capability that serves a primary use case from mvp-recommendation.md; no user-surface screen is generated solely for a deferred-only capability."
+    fail_criteria: "Any user-surface screen is created for a capability that serves only deferred use cases from mvp-recommendation.md."
+
+  - id: SE-18
+    source_type: failure_condition
+    failure_condition_id: F14
+    constraint_id: null
+    skill: map-user-flows
+    check: "Stage 6 map-user-flows does not author a flow for a scenario that belongs to a deferred-use-case-only epic. Every flow in flows/ traces to a primary use case from mvp-recommendation.md."
+    artifact_pattern: "{product_base}experience/flows/*.md"
+    pass_criteria: "Every flow MD file's frontmatter source_scenario references an epic whose capability serves at least one primary use case from mvp-recommendation.md; no flow is authored for a scenario belonging to a deferred-use-case-only epic."
+    fail_criteria: "Any flow is authored for a scenario that belongs to a deferred-use-case-only epic."
+
   # ===== Artifact-verifiable constraint evals =====
 
-  - id: SE-13
+  - id: SE-19
     source_type: constraint
     failure_condition_id: null
     constraint_id: C3
@@ -133,7 +193,7 @@ step_evals:
     pass_criteria: "Every persona entry includes at least one job story matching the When/I want to/so I can structure; no demographic-driven persona appears."
     fail_criteria: "Any persona uses demographic-driven framing or does not include the JTBD format."
 
-  - id: SE-14
+  - id: SE-20
     source_type: constraint
     failure_condition_id: null
     constraint_id: C4
@@ -143,7 +203,7 @@ step_evals:
     pass_criteria: "Every persona has at least one capability from scope.selected_capabilities in its 'Capabilities Mapped' list; the Capability → Persona Map table shows zero unmapped personas."
     fail_criteria: "Any persona has no capability from scope.selected_capabilities."
 
-  - id: SE-15
+  - id: SE-21
     source_type: constraint
     failure_condition_id: null
     constraint_id: C5
@@ -153,17 +213,17 @@ step_evals:
     pass_criteria: "validation result shows coverage.capabilities_covered == capabilities_total and coverage.orphan_capabilities is empty."
     fail_criteria: "Any capability in scope.selected_capabilities has no screen in the screen inventory."
 
-  - id: SE-16
+  - id: SE-22
     source_type: constraint
     failure_condition_id: null
     constraint_id: C6
     skill: generate-screen-inventory
-    check: "Every screen enumerates at least three distinct states. The minimum is default + one loading/initial + one error/lockout state. Two-state screens fail validation."
+    check: "Every screen enumerates at least three distinct states. The minimum is default + one loading/initial + one error/lockout state, but additional states (empty, populated, success, mfa_challenge, etc.) are encouraged. Two-state screens fail validation."
     artifact_pattern: "{product_base}experience/validation-screens-pre-flow.yaml"
     pass_criteria: "validation result shows summary.by_category.state_count_below_min == 0; every screen record has state_count >= 3."
     fail_criteria: "Any screen has fewer than three distinct states."
 
-  - id: SE-17
+  - id: SE-23
     source_type: constraint
     failure_condition_id: null
     constraint_id: C7
@@ -173,34 +233,34 @@ step_evals:
     pass_criteria: "validation result shows coverage.success_scenarios_with_flow == success_scenarios_total AND coverage.failure_scenarios_with_recovery == failure_scenarios_total."
     fail_criteria: "Any success_scenario has zero flows OR any failure_scenario has zero recovery flows."
 
-  - id: SE-18
+  - id: SE-24
     source_type: constraint
     failure_condition_id: null
     constraint_id: C8
     skill: generate-wireframes
-    check: "Every wireframe specifies concrete layout, component list, data fields, and available actions per state. Generic descriptions ('a login form', 'a dashboard') are blocking failures — the wireframe must name the components (email-input, password-input, submit-button, error-toast) and the layout pattern (centered-card, sidebar-content, two-column)."
+    check: "Every wireframe specifies concrete layout, component list, data fields, and available actions per state. Generic descriptions ('a login form', 'a dashboard') are blocking validation failures — the wireframe must name the components (email-input, password-input, submit-button, error-toast) and the layout pattern (centered-card, sidebar-content, two-column)."
     artifact_pattern: "{product_base}experience/screens/*.md"
     pass_criteria: "Every screen MD file's ## Wireframe section contains: a named Layout pattern, per-state visible components with concrete names, per-state interactive affordances mapped to named components; no screen contains blacklisted generic phrases."
     fail_criteria: "Any wireframe is missing concrete layout, component list, data fields, or actions per state, or uses generic descriptions without named components."
 
-  - id: SE-19
+  - id: SE-25
     source_type: constraint
     failure_condition_id: null
     constraint_id: C9
     skill: generate-wireframes
-    check: "Every interactive screen (any screen with non-empty actions in its default state) carries accessibility requirements referencing a specific WCAG level. Screens without accessibility requirements fail validation."
+    check: "Every interactive screen (any screen with non-empty actions in its default state) must carry accessibility requirements referencing a specific WCAG level. Screens without accessibility requirements fail validation."
     artifact_pattern: "{product_base}experience/screens/*.md"
     pass_criteria: "Every screen whose default state has non-empty actions contains an ## Accessibility section referencing a specific WCAG level."
     fail_criteria: "Any interactive screen lacks an accessibility entry referencing a specific WCAG level."
 
-  - id: SE-20
+  - id: SE-26
     source_type: constraint
     failure_condition_id: null
     constraint_id: C12
     skill: compile-design-spec
-    check: "Three human review checkpoints are present: after persona synthesis, after screen inventory generation, and after the final design spec is compiled. Each checkpoint produces a checkpoint artifact before the gate and waits for Tether/Vanish/Orbit. Orbit cycles back to the stage that produced the artifact under review."
+    check: "Three human review checkpoints are mandatory: after persona synthesis, after screen inventory generation, and after the final design spec is compiled. Each checkpoint produces a checkpoint artifact before the gate and waits for Tether/Vanish/Orbit. Orbit cycles back to the stage that produced the artifact under review."
     artifact_pattern: "{product_base}_checkpoints/design-exp/*.md"
-    pass_criteria: "Three distinct checkpoint artifacts exist corresponding to Stage 1 (personas), Stage 2 (screens), Stage 6 (final spec); each records a Tether/Vanish/Orbit response; Orbit responses cycle back to the originating stage."
+    pass_criteria: "Three distinct checkpoint artifacts exist corresponding to Stage 1 (personas), Stage 2 (screens), and Stage 6 (final spec); each records a Tether/Vanish/Orbit response; Orbit responses cycle back to the originating stage."
     fail_criteria: "Any of the three checkpoint artifacts is missing, or any checkpoint does not record a Tether/Vanish/Orbit response."
 
 scenario_evals:

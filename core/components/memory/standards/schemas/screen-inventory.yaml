@@ -11,14 +11,17 @@
 # Per user directive 2026-04-14, screens and wireframes are authored as
 # Markdown files (.md), NOT YAML. Each `screens/{screen-id}.md` file carries
 # the schema fields below as Markdown sections. Frontmatter holds identity
-# (id, capability, name). Body holds the structured sections.
+# (id, capabilities (list), name, optional capability_classification). Body
+# holds the structured sections.
 #
 # Example file layout:
 #
 #   ---
 #   id: SCR-user-login-primary
-#   capability: UM-F001
+#   capabilities:
+#     - UM-F001
 #   name: Login
+#   capability_classification: user_surface
 #   ---
 #
 #   # Login
@@ -91,13 +94,43 @@ id: <string>                           # Unique screen ID: "SCR-{domain}-{capabi
                                        # Example: "SCR-user-login-primary"
                                        # Required. Unique across all screens in a product.
 
-capability: <string>                   # Feature ID from domain-taxonomy
+capabilities:                          # REQUIRED. YAML list with minimum 1 entry.
+  - <string>                           # Feature ID(s) from domain-taxonomy
                                        # Example: "UM-F001"
-                                       # Must match a real feature ID. Links the screen
-                                       # back to the capability that motivated it.
+                                       # Each entry must match a real feature ID.
+                                       #
+                                       # Screens that legitimately exercise multiple
+                                       # capabilities (e.g., an account-setup screen
+                                       # exercising UM-F001 + UM-F002 + UM-F003) MUST
+                                       # list all of them — do NOT collapse to a single
+                                       # "primary" capability. The coverage rule
+                                       # computes its union across all screen files.
+                                       #
+                                       # A scalar `capability:` field (the legacy
+                                       # shape) is a blocking violation. Always use
+                                       # the `capabilities:` list form.
 
 name: <string>                         # Human-readable screen name
                                        # Example: "Login" | "Password Reset" | "Dashboard"
+
+capability_classification: <string>    # OPTIONAL. One of:
+                                       #   user_surface (default) — a screen a real
+                                       #     end user interacts with; participates in
+                                       #     the capability-coverage rule.
+                                       #   substrate — a technical-surface screen
+                                       #     (healthcheck UI, debug console, system
+                                       #     dashboard). Exempt from the user-surface
+                                       #     coverage rule.
+                                       #   admin_only — an admin-console screen that
+                                       #     real end users never see. Also exempt
+                                       #     from user-surface coverage.
+                                       #
+                                       # The capability-coverage rule (enforced by
+                                       # validate-screen-coverage) fires ONLY against
+                                       # user_surface capabilities — substrate and
+                                       # admin_only screens still run every per-screen
+                                       # check but do not count toward coverage of
+                                       # user-facing scope.
 
 purpose: <string>                      # REQUIRED. One sentence explaining what this
                                        # screen is for, from the user's perspective.
@@ -188,9 +221,10 @@ accessibility:                         # REQUIRED. Minimum 1 entry per interacti
 #
 # Per-screen rules:
 #   1. MANDATORY FIELDS present and non-empty:
-#      id, capability, name, purpose, personas (≥1), states (≥3 entries),
-#      navigation.entry_points (≥1), navigation.exit_points (at least success),
-#      accessibility (≥1).
+#      id, capabilities (list, ≥1 entries), name, purpose, personas (≥1),
+#      states (≥3 entries), navigation.entry_points (≥1),
+#      navigation.exit_points (at least success), accessibility (≥1).
+#      A scalar `capability:` field is a legacy_singular_capability violation.
 #
 #   2. STATE COVERAGE:
 #      states must include AT LEAST 3 distinct state keys.
@@ -205,22 +239,38 @@ accessibility:                         # REQUIRED. Minimum 1 entry per interacti
 #      composition description.
 #
 #   4. TRACEABILITY:
-#      capability must exist as a feature ID in the referenced domain file
-#      under core/components/memory/knowledge/domain-taxonomy/{domain}.md.
+#      Every entry in a screen's `capabilities` list must exist as a feature
+#      ID in the referenced domain file under
+#      core/components/memory/knowledge/domain/{domain}.md. Dangling entries
+#      produce a `dangling_capability` violation.
+#
+#   5. CLASSIFICATION VALIDITY:
+#      If `capability_classification` is present, its value must be one of
+#      `user_surface`, `substrate`, `admin_only`. Anything else is a
+#      `bad_capability_classification` violation. Absent defaults to
+#      `user_surface`.
 #
 # Cross-screen rules (computed across all screens in an inventory):
 #
-#   5. CAPABILITY COVERAGE:
-#      Every capability selected by specify-product must map to AT LEAST one
-#      screen. If a capability has zero screens, the validator fails with
-#      "capability X has no screens".
+#   6. CAPABILITY COVERAGE (user_surface only):
+#      Every user_surface capability selected by specify-product must appear
+#      in the UNION of every screen file's `capabilities` list. Multi-capability
+#      screens contribute every entry to the union. Screens marked
+#      `capability_classification: substrate | admin_only` still contribute
+#      their entries to the union for traceability but are exempt from being
+#      the REQUIRED carrier of user-facing coverage. If a user-surface
+#      capability is not covered, the validator emits an `orphan_capability`
+#      violation.
 #
-#   6. SCENARIO COVERAGE:
+#   7. SCENARIO COVERAGE:
 #      Every success_scenario from every intent epic must have AT LEAST one
 #      user flow (flows/*.md) that references a screen from this inventory.
-#      Every failure_scenario must have a recovery flow.
+#      Every failure_scenario must have a recovery flow. Validator mode:
+#      `strict` (default) flips overall status on any orphan scenario;
+#      `partial` reports orphans in `orphan_scenarios_in_partial` without
+#      flipping status. Use `partial` ONLY for iterative/test runs.
 #
-#   7. ACCESSIBILITY COVERAGE:
+#   8. ACCESSIBILITY COVERAGE:
 #      Every screen with at least one action in its default state must have
 #      accessibility entries. Read-only screens (all states have empty actions
 #      lists) may skip.
@@ -231,6 +281,6 @@ accessibility:                         # REQUIRED. Minimum 1 entry per interacti
 
 # Related:
 # - docs/adr/017-folder-whitelist.md (ADR that motivates the new schemas)
-# - core/components/memory/standards/intent-epic-schema.yaml (upstream spec)
-# - core/components/memory/standards/kb-extension-conventions.md (KB file structure)
+# - core/components/memory/standards/schemas/intent-epic.yaml (upstream spec)
+# - core/components/memory/standards/rules/kb-extension.md (KB file structure)
 # - core/components/plays/design-exp/ (consumer — built in 214.6)

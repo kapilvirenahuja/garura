@@ -16,15 +16,19 @@ Extract user types from the intent epics' success_scenarios and failure_scenario
 
 ## Input
 
-Receive from the designer agent:
-- `epics_dir` (path, required) — `.meridian/product/product/epics/`
-- `scope_path` (path, required) — `.meridian/product/product/scope.yaml`
-- `ltm_domain_taxonomy_path` (path, required) — for KB-grounded user-type hints
-- `output_path` (string, required) — typically `.meridian/product/ux/personas.md`
+Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.meridian/product/` or assume a working directory.
+
+- `epics_dir` (path, required) — typically `{product_base}scope/epics/`
+- `scope_path` (path, required) — typically `{product_base}scope/scope.yaml`
+- `mvp_recommendation_path` (path, required) — `{product_base}scope/mvp-recommendation.md` (per rules/product.md Rule 13 MVP Focus / design-exp C15). This skill reads the `Primary Focus` section to extract primary use cases and authors one persona per primary use case. Capabilities that serve only deferred use cases do NOT get a persona, and downstream stages inherit the narrowing via the personas.md output. Missing or empty file returns structured failure `{what_failed: missing_mvp_recommendation}` — the play's pre-flight should have caught this but the skill re-checks defensively.
+- `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads domain user-type hints from the product's research folder ONLY — never directly from `core/components/memory/knowledge/domain/`. Passing `ltm_domain_taxonomy_path` is a structural failure (design-exp intent.yaml F13).
+- `personas_path` (string, required) — typically `{product_base}experience/personas.md`
 
 ## Process
 
 ### 1. Load inputs
+
+Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.meridian/product/` or assume a working directory.
 
 - Glob `{epics_dir}/*.yaml` and load each intent epic.
 - Load `scope.yaml` for the selected capability list.
