@@ -23,7 +23,7 @@ Execute these checks before any domain work. Orchestrator owns — do not delega
 |-------|-----------|-------------------|
 | Resolve `product_base` from `.meridian/core/config.yaml` product.base-path | — | Hard halt — config is required |
 | Resolve `stm_base` from `.meridian/core/config.yaml` stm.base-path | — | Hard halt — config is required |
-| Product directory exists with at least one product.yaml | C4 | Graceful halt: "No product artifacts found. Run /discover-product first." |
+| Product directory exists with at least one product artifact | C4 | Graceful halt: "No product artifacts found. Run the product-planning pipeline first to produce product artifacts." |
 | Derive context (branch, issue, epic) | C1 | Continue with full scan if no context derivable |
 
 ```bash

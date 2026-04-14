@@ -1,6 +1,6 @@
 # quality-standards.yaml — Schema Definition
 # Quality engineering standards derived from Quality Profile
-# Produced by: /prepare-architecture
+# Produced by: architecture-design pipeline
 # Lifecycle: DRAFT → LOCKED
 # Depends on: product.yaml (profiles.quality_profile)
 

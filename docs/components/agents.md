@@ -59,7 +59,7 @@ Meridian avoids both extremes:
 
 | Agent | Domain | Role | Model | Description |
 |-------|--------|------|-------|-------------|
-| `feature-steward` | product | strategist | opus | Autonomous decision-maker for product discovery, vision, roadmapping, and backlog management |
+| `feature-steward` | feature-spec | steward | opus | Autonomous owner of feature specification (features.yaml), implementation-design cross-validation, and manual test scenario generation |
 | `tech-designer` | design | designer | sonnet | Technical analysis, RCA, and solution design for features and bugs |
 | `code-builder` | implementation | builder | sonnet | Executes structured execution plans for software implementation — requires a formal plan as input. ONLY for source code files. |
 | `repo-orchestrator` | repo | orchestrator | sonnet | Autonomous decision-maker for repository operations (commits, branches, PRs, git state) |
@@ -121,23 +121,21 @@ The agent's entire response is ONE JSON object. No prose, no YAML blocks, no val
 
 ```json
 {
-  "intent_path": "reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
-  "slug": "chronos",
+  "intent_path": "core/components/plays/prepare-implementation/reference/intent.yaml",
+  "stm_base": ".meridian/project/issues/",
   "stm": {
-    "vision_path": ".meridian/project/product/chronos/vision.md",
-    "epics_path": ".meridian/project/product/chronos/epics.yaml",
-    "feasibility_path": null,
-    "brief_path": null,
-    "approved_brief_path": null,
-    "roadmap_path": null,
-    "engineering_view_path": null
+    "input": {
+      "features_yaml_path": ".meridian/project/issues/42/specs/features.yaml"
+    },
+    "output": {
+      "technical_approach_path": ".meridian/project/issues/42/specs/technical-approach.md",
+      "tech_yaml_path": ".meridian/project/issues/42/specs/tech.yaml"
+    }
   },
-  "checkpoints": [{ "name": "brief_review", "status": "pending" }],
-  "evidence": [{ "name": "plan-roadmap", "location": null }],
+  "task_id": "draft-tech-context",
   "notes": [
-    "5 epics derived — all trace to distinct strategic goals",
-    "E2 depends on E1 foundation investment — sequencing constraint"
+    "Two competing framework options surfaced — chose the one matching existing LTM conventions",
+    "Blast radius limited to two modules — documented in features.blast_radius"
   ],
   "step_failure": null
 }
@@ -164,21 +162,20 @@ Each agent owns a set of skills. Agents invoke skills via the **Skill tool** pro
 
 | Skill | Purpose |
 |-------|---------|
-| `discover-product-opportunity` | Parse problem/idea, extract market context |
-| `draft-product-vision` | Create vision.md with Strategic Goals |
-| `validate-product-vision` | Check vision completeness before lock |
-| `generate-business-review` | PM-facing business review from any product artifact |
-| `research-domain-context` | Research vertical domain knowledge via web when LTM is insufficient |
-| `scope-roadmap-epics` | Extract epics from locked vision, scope into time buckets and priorities |
-| `draft-roadmap-brief` | Generate lightweight review brief — bound by brief constraints |
-| `draft-roadmap` | Generate full agentic roadmap.md post-Tether |
-| `generate-engineering-view` | Engineering-facing roadmap view — no business content |
+| `draft-product-spec` | Create `features.yaml` defining product behaviors, invariants, scope boundaries, and acceptance criteria (implementation-agnostic) |
+| `draft-verification-scenarios` | Create verification scenarios with pass/fail criteria and automation classification |
+| `validate-implementation-design` | Cross-validate `prepare-implementation` artifacts for coverage, compartmentalization, audience separation |
+
+In addition to these skills, `feature-steward` owns a direct role in `implement-epic` — the Scenario Writer role — which generates manual test scenarios from feature success scenarios plus the deployed URL. No skill is invoked for that role; the agent produces the scenarios directly.
 
 ### tech-designer Skill Pool
 
 | Skill | Purpose |
 |-------|---------|
-| `assess-feasibility` | Assess technical feasibility of scoped epics — invoked when `stm.feasibility_path` is null and `stm.epics_path` is non-null |
+| `draft-technical-approach` | Draft technical approach document from features specification |
+| `draft-lld` | Draft low-level design from features + technical approach |
+| `research-domain-context` | Research vertical domain knowledge via web when LTM is insufficient |
+| `draft-implementation-plan` | Produce execution plan with scope items, file paths, and exit gates |
 
 For direct invocations (no JSON contract), tech-designer performs RCA and feature analysis directly using its tools rather than via skills.
 

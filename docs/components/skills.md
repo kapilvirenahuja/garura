@@ -59,25 +59,17 @@ Meta-utility skills:
 | `manage-issue` | false | sonnet | Read, create, close, or resolve GitHub issues with optional sub-issue attachment |
 | `archive-issue-stm` | false | haiku | Archive a closed issue's STM directory into year-month buckets |
 
-### Product Strategy Skills
+### Product / Feature / Implementation Design Skills
 
 | Skill | User-Invocable | Model | Description |
 |-------|----------------|-------|-------------|
-| `discover-product-opportunity` | false | sonnet | Parse a product problem or idea and extract market context — users, competitors, market size, differentiators, risks |
-| `draft-product-vision` | false | sonnet | Create a product vision document with Strategic Goals from market context |
-| `validate-product-vision` | false | sonnet | Validate a product vision document for completeness and readiness to lock |
-| `generate-business-review` | false | sonnet | Generate a PM-facing business review from any product artifact — plain language, no engineering details |
+| `draft-product-spec` | false | sonnet | Create `features.yaml` defining product behaviors, invariants, scope boundaries, and acceptance criteria (implementation-agnostic) |
+| `draft-verification-scenarios` | false | sonnet | Create verification scenarios with pass/fail criteria and automation classification |
+| `validate-implementation-design` | false | sonnet | Cross-validate prepare-implementation artifacts for coverage, compartmentalization, and audience separation |
+| `draft-technical-approach` | false | sonnet | Draft technical approach document from features specification |
+| `draft-lld` | false | sonnet | Draft low-level design from features and technical approach |
+| `draft-implementation-plan` | false | sonnet | Produce execution plan with scope items, file paths, and exit gates |
 | `research-domain-context` | false | sonnet | Research vertical domain knowledge via web when LTM is insufficient |
-
-### Roadmap Skills
-
-| Skill | User-Invocable | Model | Description |
-|-------|----------------|-------|-------------|
-| `scope-roadmap-epics` | false | sonnet | Extract epics from a locked product vision, scope them with IDD fields (intent, constraints, scenarios, failure conditions), and write to STM |
-| `assess-feasibility` | false | sonnet | Assess technical feasibility of scoped epics — risk levels, blockers, sequencing constraints, architecture impact |
-| `draft-roadmap-brief` | false | sonnet | Render the human review brief from scoped IDD epics — pure template renderer, no content generation |
-| `draft-roadmap` | false | sonnet | Generate the full agentic roadmap.md — produced ONLY after the brief is Tether-approved |
-| `generate-engineering-view` | false | sonnet | Generate an engineering-facing roadmap view from an approved roadmap.md — zero business content |
 
 ### Meta-Utility Skills
 
@@ -95,10 +87,16 @@ Plays are user-invocable workflows that orchestrate agents and skills. They depl
 | `start-feature-planning` | true | sonnet | Resolve issue, plan with IDD principles, create branch, deliver planning artifacts |
 | `commit-code` | true | sonnet | Commit code changes grouped by issue type with conventional messages |
 | `create-pr` | true | sonnet | Create pull request with dynamic, context-aware quality checklist |
+| `review-pr` | true | sonnet | Diff-scoped quality review for a pull request |
+| `merge-pr` | true | sonnet | Merge a pull request and clean up the branch |
 | `ship` | true | sonnet | Deliver current branch work to main — commit, PR, review, merge, return |
 | `capture-learning` | true | sonnet | Capture learnings from completed work and archive STM directories |
-| `discover-product` | true | sonnet | Discover product vision, strategic goals, and market positioning — Phase 1 of the IDSD strategic track |
-| `plan-roadmap` | true | sonnet | Plan a time-phased product roadmap from a locked vision |
+| `fix-it` | true | sonnet | RCA-driven defect resolution — traces root cause, designs fix, ships |
+| `prepare-implementation` | true | sonnet | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
+| `implement-epic` | true | sonnet | Implement a feature through an eval-driven TDD loop |
+| `create-play` | true | sonnet | Compile a new play from an intent.yaml |
+| `briefs` | true | sonnet | Regenerate HTML briefs from product YAML artifacts |
+| `report-issue` | true | sonnet | Report a defect against Meridian OS |
 
 ## Skill Properties
 
@@ -156,11 +154,12 @@ Each skill defines a different output contract structure. Key skills and their o
 
 | Skill | Output Key | Key Fields |
 |-------|-----------|------------|
-| `scope-roadmap-epics` | `scoped_epics` | `epics_path`, `slug`, `epic_count` |
-| `assess-feasibility` | `feasibility` | `feasibility_path`, `slug`, `epic_count`, `high_risk_count`, `blocker_count`, `open_questions_count` |
-| `draft-roadmap-brief` | `brief` | `path`, `epic_count`, `sections_present`, `c_brief_1_pass`, `c_brief_2_pass` |
-| `draft-roadmap` | `roadmap` | `path`, `slug`, `epic_count`, `milestones`, `status`, `approved_brief` |
-| `generate-engineering-view` | `engineering_view` | `path`, `slug`, `epic_count`, `high_risk_count`, `open_questions_count` |
+| `draft-product-spec` | `features` | `features_path`, `feature_count`, `invariants_count` |
+| `draft-technical-approach` | `technical_approach` | `technical_approach_path`, `decisions_count` |
+| `draft-lld` | `tech` | `tech_path`, `components_count` |
+| `draft-verification-scenarios` | `scenarios` | `scenarios_path`, `scenario_count`, `coverage.total_scenarios` |
+| `draft-implementation-plan` | `plan` | `plan_path`, `execution_order_count` |
+| `validate-implementation-design` | `validation` | `validation_path`, `pass`, `findings_count` |
 
 Full output specifications are in each skill's `SKILL.md`. Skills write detailed data to STM files — the output contract carries only paths and summary metadata.
 
@@ -323,7 +322,7 @@ allowed-tools: {Tool1, Tool2}
 | Model | When To Use | Examples |
 |-------|-------------|----------|
 | `haiku` | Execution-only skills — no analysis, no decision-making, fast operations | `create-commit`, `setup-branch`, `submit-pr`, `sync-claude`, `archive-issue-stm` |
-| `sonnet` | Analysis skills — reasoning, categorization, pattern matching, complex logic | `analyze-changes`, `analyze-pr`, `manage-issue`, `scope-roadmap-epics`, `assess-feasibility` |
+| `sonnet` | Analysis skills — reasoning, categorization, pattern matching, complex logic | `analyze-changes`, `analyze-pr`, `manage-issue`, `draft-product-spec`, `draft-technical-approach` |
 
 **Rule of thumb:** If the skill just runs commands and formats output, use `haiku`. If the skill needs to read, reason, and categorize, use `sonnet`.
 
@@ -344,7 +343,7 @@ Load patterns from: `reference/risks.md`
 Organizational standards that adopters customize — commit categories, issue templates, quality gates, epic schemas. These live in LTM and are referenced by well-known paths. The agent discovers the path and passes it to the skill as an input parameter.
 
 ```markdown
-Skill loads from its own bundled reference: skills/scope-roadmap-epics/reference/epic-schema.md
+Skill loads from its own bundled reference (e.g., `skills/{skill-name}/reference/{ref-file}.md`)
 (Schemas tightly coupled to one skill belong with that skill, not in shared LTM.)
 ```
 

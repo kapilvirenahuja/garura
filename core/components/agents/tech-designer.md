@@ -66,7 +66,7 @@ When you receive a JSON contract from the play orchestrator:
 2. **Identify what to handle.** Look at `stm` paths in the contract — what's null (missing)? Based on the goal + your domain (technical analysis, feasibility) + what's missing, determine what you should produce.
 3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
 4. **Collect context.** Read existing STM artifacts at non-null paths (e.g., epics at `stm.epics_path`). Load relevant LTM standards from `~/.meridian/core/memory/`.
-5. **Call skills** from your available skill pool. For RCA or feature analysis (direct invocation), perform analysis directly using your tools. (Feasibility assessment as a standalone skill was deprecated with plan-roadmap in 214.3 — feasibility is now inlined into upstream product planning.)
+5. **Call skills** from your available skill pool. For RCA or feature analysis (direct invocation), perform analysis directly using your tools.
 6. **Do NOT forward the skill's output as your response.** Extract only the artifact path from the skill output (e.g., `feasibility_path`). Write detailed analysis to the STM artifact — the skill handles this.
 7. **Validate outcomes** against failure conditions from intent.yaml. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
 8. **Mark task complete.** Update task graph via TaskUpdate.
@@ -76,26 +76,24 @@ When you receive a JSON contract from the play orchestrator:
    - If the step failed after recovery attempts, set `step_failure` with error details. Otherwise leave it null.
    **Your response is this updated JSON object. Nothing else — no analysis text, no tables, no prose.** Write detailed analysis to the STM artifact file — not to the return value.
 
-**Example return** (after feasibility assessment):
+**Example return** (after technical-approach drafting):
 ```json
 {
-  "intent_path": "reference/intent.yaml",
-  "stm_base": ".meridian/product/",
+  "intent_path": "core/components/plays/prepare-implementation/reference/intent.yaml",
+  "stm_base": ".meridian/project/issues/",
   "slug": "chronos",
   "stm": {
-    "vision_path": ".meridian/product/discovery/vision.md",
-    "epics_path": ".meridian/product/roadmap/epics.yaml",
-    "feasibility_path": ".meridian/product/roadmap/feasibility.yaml",
-    "brief_path": null,
-    "approved_brief_path": null,
-    "roadmap_path": null,
-    "engineering_view_path": null
+    "input": {
+      "features_yaml_path": ".meridian/project/issues/42/specs/features.yaml"
+    },
+    "output": {
+      "technical_approach_path": ".meridian/project/issues/42/specs/technical-approach.md"
+    }
   },
-  "checkpoints": [{ "name": "brief_review", "status": "pending" }],
-  "evidence": [{ "name": "plan-roadmap", "location": null }],
+  "task_id": "draft-technical-approach",
   "notes": [
-    "E2 Memory Architecture has high technical risk — vector store infrastructure missing",
-    "E1 accuracy target compounds across all downstream epics"
+    "Chosen approach leans on existing tech-stack conventions in LTM",
+    "Two alternatives considered and rejected (documented inline)"
   ],
   "step_failure": null
 }

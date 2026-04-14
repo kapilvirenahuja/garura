@@ -23,7 +23,7 @@ The output MUST conform to `schemas/architecture.yaml` in this skill's directory
 ## Input
 
 Receive from agent:
-- `features_yaml_path` — (required for prepare-implementation, optional for prepare-architecture) Path to features.yaml
+- `features_yaml_path` — (required) Path to features.yaml
 - `intent` — (optional) Product intent string for additional context
 - `vision_path` — (optional) Path to a locked vision document for enrichment
 - `output_base` — (required) Base path for output, e.g., `.meridian/product/architecture/`
@@ -34,7 +34,7 @@ Receive from agent:
 
 ## Process
 
-1. **Read features specification:** If `features_yaml_path` is provided, load the document. Extract: product identity, architectural invariants, feature list, behaviors, blast_radius entries, and scope boundaries. If not provided (prepare-architecture context), derive feature context from product.yaml and roadmap.yaml.
+1. **Read features specification:** Load the `features_yaml_path` document. Extract: product identity, architectural invariants, feature list, behaviors, blast_radius entries, and scope boundaries.
 
 2. **Read vision and profiles (if provided):** If `vision_path` or `product_yaml_path` is provided, load and extract strategic goals, target users, value proposition, and profiles for architectural context. If `profiles_ref` is provided, extract all three profile axes (PP, NFR, QP) — these are primary inputs for technology selection and NFR derivation.
 

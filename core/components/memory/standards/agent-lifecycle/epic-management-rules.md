@@ -96,15 +96,7 @@ Foundation epics go in the `near` bucket with `P1` priority because nothing else
 
 ## Consumers
 
-| Rule | Agents/Skills That Apply It |
-|------|-----------------------------|
-| Vertical Slice Delivery | feature-steward (scope-roadmap-epics), tech-designer (assess-feasibility) |
-| Single Module Scope | feature-steward (scope-roadmap-epics) |
-| Mocks as Phased Delivery | feature-steward (draft-roadmap), tech-designer (assess-feasibility) |
-| Scope Boundaries | feature-steward (scope-roadmap-epics), tech-designer (assess-feasibility) |
-| Success Verifiability | feature-steward (scope-roadmap-epics) |
-| Dependency Discipline | feature-steward (scope-roadmap-epics, draft-roadmap) |
-| Foundation Investments | feature-steward (scope-roadmap-epics, draft-roadmap) |
+These rules apply to any agent or skill that defines, scopes, or validates epics and features. The product-planning pipeline (`/spec-product` → `/design-product` → `/build-arch`) and the implementation pipeline (`prepare-implementation`, `implement-epic`) read this file during their context-loading step and enforce the rules against their outputs.
 
 ## Relationship to Domain Taxonomy
 

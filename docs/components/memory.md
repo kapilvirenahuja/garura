@@ -108,7 +108,7 @@ core/components/memory/
     └── architecture/
 
 # Skill/play-specific schemas and templates live with the owning component:
-#   core/components/skills/scope-roadmap-epics/reference/epic-schema.md
+#   core/components/skills/{skill-name}/reference/{schema-or-spec}.md
 #   core/components/plays/briefs/templates/{*-brief.html, brief-common.css, brief-render.js, hub.html, fixtures/}
 # Foundational architecture rules live in docs/adr/, not standards/.
 ```

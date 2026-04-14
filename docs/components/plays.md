@@ -55,7 +55,7 @@ Play context:
 
 ### Pattern B — Task-Driven DAG Plays
 
-Used by plays like `plan-roadmap`. The play creates the full task graph upfront using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order. Agents communicate via a **JSON contract** rather than per-step YAML context blocks.
+Used by plays like `prepare-implementation`. The play creates the full task graph upfront using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order. Agents communicate via a **JSON contract** rather than per-step YAML context blocks.
 
 ```
 Pre-flight → Create Task Graph → Execute Capabilities (in dependency order) → Checkpoint → Execute Post-Checkpoint Capabilities → Report
@@ -87,7 +87,7 @@ The JSON contract is the primary communication mechanism in task-driven plays. A
     { "name": "brief_review", "status": "pending" }
   ],
   "evidence": [
-    { "name": "plan-roadmap", "location": null }
+    { "name": "prepare-implementation", "location": null }
   ],
   "notes": [],
   "step_failure": null
@@ -172,28 +172,35 @@ This separation means agents can read the user contract independently without pa
 
 ### intent.yaml Schema (Task-Driven Plays)
 
-`plan-roadmap` uses a minimal intent.yaml that is readable by both agents and users:
+`prepare-implementation` uses the canonical intent.yaml shape — metadata plus the four content fields — readable by both agents and users:
 
 ```yaml
-name: plan-roadmap
-goal: "Prepare a roadmap"
+name: prepare-implementation
+description: "Produce implementation-ready design artifacts (features, architecture, tech, scenarios, plan) for a feature."
+version: 0.1.0
+checksum: "<sha256 of normalized content zone>"
+
+intent: >
+  Given a feature specification, produce implementation-ready artifacts
+  that a code-builder can execute against: features, architecture, tech,
+  verification scenarios, and execution plan — each audited and
+  cross-validated before lock.
 
 constraints:
-  - id: C-TEMPLATE
-    rule: "Follow the roadmap brief template"
-    template_ref: "plays/briefs/templates/roadmap-brief.html"
-  - id: C-LOCKED
-    rule: "Vision must be locked before roadmap planning"
+  - id: C1
+    rule: "features.yaml must exist and be locked before proceeding to architecture"
+  - id: C2
+    rule: "Every epic in the plan must trace to at least one feature and one scenario"
 
 failure_conditions:
-  - "Fewer than 3 epics"
-  - "Roadmap is not internally consistent"
+  - id: F1
+    condition: "Any mandatory artifact (features, architecture, tech, scenarios, plan) is missing at lock time"
 
 scenarios:
   - id: S1
-    persona: "Product Manager"
-    given: "Approved roadmap brief"
-    then: "Can clearly describe each epic's intent, constraints, and success criteria"
+    persona: "code-builder"
+    given: "A locked execution plan entry and its referenced artifacts"
+    then: "Can determine scope, exit gate, and starting file set without asking the author"
 ```
 
 ### intent.yaml Schema (Linear Step Plays)
@@ -251,28 +258,29 @@ Task-driven plays support resuming from a checkpoint. The `--resume` flag instru
    - `brief_review.status: approved` with downstream `stm` paths null → jump to post-checkpoint execution
 4. Report to user what it is resuming from
 
-If no checkpoint is found, the play halts with a message directing the user to start fresh with the full invocation (e.g., `/plan-roadmap`).
+If no checkpoint is found, the play halts with a message directing the user to start fresh with the full invocation (e.g., `/prepare-implementation`).
 
 ```
-/plan-roadmap --resume
+/prepare-implementation --resume
 ```
 
 ## Capability Graph (Task-Driven Plays)
 
 Task-driven plays declare a capability graph that defines the execution DAG. This is the static description of what the play will create when it builds the task graph.
 
-Example from `plan-roadmap`:
+Example from `prepare-implementation`:
 
 | # | Capability | Agent | Needs | Produces |
 |---|------------|-------|-------|----------|
-| 1 | Scope epics with IDD fields | feature-steward | vision | epics.yaml |
-| 2 | Assess technical feasibility | tech-designer | epics.yaml | feasibility.yaml |
-| 3 | Produce reviewable brief | feature-steward | epics, feasibility, vision | brief.html |
-| — | CHECKPOINT: human review | orchestrator | brief.html | approved_brief |
-| 4 | Produce full roadmap | feature-steward | epics, feasibility, approved brief | roadmap.md |
-| 5 | Produce engineering view | feature-steward | roadmap.md | roadmap-engineering.md |
+| 1 | Draft product spec (features.yaml) | feature-steward | feature intent | features.yaml |
+| 2 | Draft technical approach | tech-designer | features.yaml | technical-approach.md |
+| 3 | Draft low-level design | tech-architect | features.yaml, technical-approach.md | tech.yaml |
+| 4 | Draft verification scenarios | feature-steward | features.yaml | scenarios.yaml |
+| — | CHECKPOINT: human review | orchestrator | features, tech, scenarios | approved_design |
+| 5 | Draft execution plan | tech-designer | features, tech, scenarios, approved design | plan.yaml |
+| 6 | Cross-validate all artifacts | feature-steward | features, tech, scenarios, plan | validation-result.yaml |
 
-**Capability graph vs. task graph:** The capability graph (5 capabilities + checkpoint) shows WHAT gets produced — the deliverables and their data dependencies. The task graph adds orchestrator-owned tasks that are not capabilities: the human review checkpoint task and the final report task. This brings the total task count to 7 for `plan-roadmap`. The two views are complementary: the capability graph is the design-time declaration; the task graph is the runtime execution plan created from it.
+**Capability graph vs. task graph:** The capability graph (6 capabilities + checkpoint) shows WHAT gets produced — the deliverables and their data dependencies. The task graph adds orchestrator-owned tasks that are not capabilities: the human review checkpoint task and the final report task. The two views are complementary: the capability graph is the design-time declaration; the task graph is the runtime execution plan created from it.
 
 ## Recovery
 
@@ -310,27 +318,35 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
 
 ## Complete Play Roster
 
-| Play | Level | Pattern | Purpose |
-|--------|-------|---------|---------|
-| `commit-code` | L1 | Linear | Commit changes grouped by concern with conventional messages |
-| `create-pr` | L1 | Linear | Create a pull request with review checklist |
-| `start-feature` | L1 | Linear | Start a new feature branch from an issue |
-| `start-feature-planning` | L1 | Linear | Plan a feature before implementation |
-| `discover-product` | L1 | Linear | Discover and document product requirements |
-| `capture-learning` | L1 | Linear | Capture learnings to LTM (archival) |
-| `ship` | L2 | Linear (chains L1s) | Deliver branch work — commit, PR, review, merge, return |
-| `plan-roadmap` | L2 | Task-Driven DAG | Scope epics, produce brief, get approval, produce roadmap |
+| Play | Pattern | Purpose |
+|--------|---------|---------|
+| `commit-code` | Linear | Commit changes grouped by concern with conventional messages |
+| `create-pr` | Linear | Create a pull request with review checklist |
+| `review-pr` | Linear | Diff-scoped quality review for a pull request |
+| `merge-pr` | Linear | Merge a pull request and clean up the branch |
+| `start-feature` | Linear | Start a new feature branch from an issue |
+| `start-feature-planning` | Linear | Plan a feature before implementation |
+| `capture-learning` | Linear | Capture learnings to LTM (archival) |
+| `briefs` | Linear | Regenerate HTML briefs from product YAML artifacts |
+| `fix-it` | Task-Driven | RCA-driven defect resolution — root-cause trace, design fix, ship |
+| `prepare-implementation` | Task-Driven | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
+| `implement-epic` | Task-Driven | Implement a feature through an eval-driven TDD loop |
+| `create-play` | Task-Driven | Compile a new play from an intent.yaml |
+| `ship` | Linear (chains atomic plays) | Deliver branch work — commit, PR, review, merge, return |
+| `report-issue` | Linear | Report a defect against Meridian OS |
 
-## Artifact Locations
+## Artifact Locations (per ADR 017 whitelist)
 
 | Artifact Type | Location Pattern |
-|---------------|-----------------|
-| Specifications | `.meridian/{issue}/spec/` |
-| Design | `.meridian/{issue}/design/` |
-| Evidence | `.meridian/{issue}/evidence/` |
-| Delivery | `.meridian/{issue}/delivery/` |
-| Checkpoints | `.meridian/{issue}/checkpoint/{play-name}/{timestamp}.md` |
-| Product artifacts | `.meridian/project/product/{slug}/` |
+|---------------|------------------|
+| Specifications (issue-scoped) | `.meridian/project/issues/{N}/specs/` |
+| Evidence | `.meridian/project/issues/{N}/evidence/{play-name}/{timestamp}.md` |
+| Checkpoints | `.meridian/project/issues/{N}/checkpoint/{play-name}/{timestamp}.md` |
+| Context (prepare-implementation, build-arch) | `.meridian/project/issues/{N}/context/` |
+| Review artifacts | `.meridian/project/issues/{N}/review/` |
+| Product planning (spec-product output) | `.meridian/product/product/` |
+| UX (design-product output) | `.meridian/product/ux/` |
+| Architecture (build-arch output) | `.meridian/product/arch/` |
 | External | Returned directly (URLs, IDs) |
 
 ## Task Framework Integration
