@@ -714,6 +714,89 @@ Both now land in the same physical location, with different `origin` provenance.
 
 ---
 
+## Defect 10 — design-exp play carries stale pre-D1 folder paths (blocker for execution)
+
+**Status:** OPEN — recorded 2026-04-14 during the pre-test read of design-exp/SKILL.md
+**Severity:** Critical (blocker — running the play as-is halts immediately at pre-flight because the referenced paths do not exist post-D1)
+**Reported:** 2026-04-14 (user: "fix this defect. this is detrimental and blocker")
+**Surfaced by:** Reading the compiled `core/components/plays/design-exp/SKILL.md` and its source `core/components/plays/design-exp/reference/intent.yaml` before attempting the design-exp test run against the Graveyard Crew fixture
+
+### Observation
+
+The design-exp play was compiled before Defect 1's folder restructure landed. It references two obsolete paths throughout its intent.yaml AND the inherited compiled SKILL.md:
+
+1. **`.meridian/product/product/`** — the old doubled folder. Per D1, this flattened to `.meridian/product/`, with SDLC-stage sub-folders (`user-provided/`, `specification/`, `scope/`, `architecture/`, `experience/`, `research/`). The doubled path NO LONGER EXISTS.
+
+2. **`.meridian/product/ux/`** — the old UX output folder. Per D1, this was renamed to `.meridian/product/experience/`. The `ux/` folder NO LONGER EXISTS.
+
+**Concrete evidence in the intent.yaml:**
+- C1 rule: "Pre-flight reads scope.yaml, enriched-capabilities.yaml, epics/*.yaml, and quality-profile.yaml from **.meridian/product/product/**. Missing or DRAFT-status artifacts halt pre-flight."
+- C10 rule: "Artifacts land under **.meridian/product/ux/** per ADR 017."
+
+**Concrete evidence in the compiled SKILL.md (~30+ occurrences across the file):**
+- Pre-flight bash: `for f in scope.yaml ...; do test -f "${product_base}product/$f" || halt`
+- Stage 1 Persona Synthesis contract: `"epics_dir": "{product_base}product/epics/"`, `"scope_path": "{product_base}product/scope.yaml"`, `"personas_path": "{product_base}ux/personas.md"`
+- Stage 2 Screen Inventory contract: `"enriched_capabilities_path": "{product_base}product/enriched-capabilities.yaml"`, `"screens_dir": "{product_base}ux/screens/"`
+- Stage 3 validation: `"validation_path": "{product_base}ux/validation-screens-pre-flow.yaml"`
+- Every subsequent stage carries the same stale paths
+- The Evidence & Close self-commit file list references `{product_base}ux/personas.md`, `{product_base}ux/screens/*.md`, `{product_base}ux/flows/*.md`, etc.
+- The Pause and Resume status file path: `{product_base}ux/_status/design-exp.json`
+
+**Why it's a blocker:** running the play against any Graveyard-Crew-style fixture halts at pre-flight because `.meridian/product/product/scope.yaml` does not exist (the file is at `.meridian/product/scope/scope.yaml`). Even if pre-flight were bypassed, every subsequent stage would write to `.meridian/product/ux/`, which does not exist and is not in the ADR 017 whitelist — every write would be refused. No portion of the play can execute end-to-end until the paths are corrected.
+
+### Why this slipped through
+
+The specify-product play was rebaked when D1 landed (see prior drift notices in specify-product/SKILL.md). design-exp was NOT rebaked at the same time — likely because design-exp is downstream and nobody exercised it end-to-end during the D1 fix pass. The stale paths sat dormant until the design-exp test run attempted to start.
+
+This is a **regression** class of defect: D1 was a framework-wide rename that should have cascaded to every play in the repo, but the cascade missed design-exp. Any other play compiled before D1 (build-arch is a candidate — worth checking when it comes up) may have the same issue.
+
+### Expected
+
+All `.meridian/product/product/` references resolve to the correct stage folder (`scope/`, `specification/`, etc.), and all `.meridian/product/ux/` references resolve to `.meridian/product/experience/`. Specifically:
+
+| Current (broken) | Correct (post-D1) |
+|---|---|
+| `.meridian/product/product/scope.yaml` | `.meridian/product/scope/scope.yaml` |
+| `.meridian/product/product/enriched-capabilities.yaml` | `.meridian/product/scope/enriched-capabilities.yaml` |
+| `.meridian/product/product/epics/*.yaml` | `.meridian/product/scope/epics/*.yaml` |
+| `.meridian/product/product/quality-profile.yaml` | `.meridian/product/specification/quality-profile.yaml` |
+| `.meridian/product/ux/personas.md` | `.meridian/product/experience/personas.md` |
+| `.meridian/product/ux/screens/` | `.meridian/product/experience/screens/` |
+| `.meridian/product/ux/flows/` | `.meridian/product/experience/flows/` |
+| `.meridian/product/ux/design-spec.md` | `.meridian/product/experience/design-spec.md` |
+| `.meridian/product/ux/_checkpoints/design-exp/` | `.meridian/product/_checkpoints/design-exp/` (per D1, `_checkpoints/` is at product root, orthogonal to stages) |
+| `.meridian/product/ux/_evidence/design-exp/` | `.meridian/product/_evidence/design-exp/` |
+| `.meridian/product/ux/_status/design-exp.json` | `.meridian/product/_status/design-exp.json` |
+
+Note the lifecycle folders (`_checkpoints/`, `_evidence/`, `_status/`) live at the product root per ADR 017 — they are NOT nested under `ux/` or `experience/`. The current intent.yaml's C10 also needs updating to reflect that.
+
+### Affected surfaces
+
+- `core/components/plays/design-exp/reference/intent.yaml` — C1 and C10 rules (the authoritative source, drives the rebake)
+- `core/components/plays/design-exp/SKILL.md` — all 30+ path references (picked up automatically via rebake from the corrected intent)
+- Any play or skill that READS from a `design-exp` output path with hardcoded references (check build-arch, prepare-implementation) — if they reference `.meridian/product/ux/`, they need updates too
+- `build-arch/reference/intent.yaml` and `SKILL.md` — **probably the same drift class**; verify when build-arch is next exercised. Flag as Defect 10 companion if confirmed.
+
+### Fix approach
+
+**This pass (immediate):**
+1. Update `design-exp/reference/intent.yaml` — rewrite C1 and C10 to use the post-D1 paths (see table above).
+2. Commit the intent.yaml change as a safety net before rebake.
+3. Run `/create-play --rebake design-exp` — this regenerates the compiled SKILL.md with correct paths throughout.
+4. Verify: grep the new compiled SKILL.md for `product/product/` and `/ux/` — both should be zero occurrences.
+5. Commit the rebake.
+6. Run the design-exp MV Demo against the Graveyard Crew fixture to surface any further (non-path) defects.
+
+**Follow-up (not this pass):**
+- Audit build-arch/reference/intent.yaml + SKILL.md for the same stale-path pattern. If found, log Defect 10b and apply the same rebake-with-corrected-paths fix.
+- Audit any other pre-D1-compiled play (scan `docs/adr/017-folder-whitelist.md`'s date vs each play's `compiled_at` metadata).
+
+### Why we're not batching this with Rules 13/14/15 enforcement
+
+D10 is a **blocker** — nothing about design-exp runs until the paths are correct. Rules 13/14/15 enforcement (MVP narrowing, abstraction-layer boundary, pull-to-product) is a **quality gap** — design-exp could run without them, it would just produce sub-optimal output (screens for deferred use cases, etc.). The user directive was "fix this defect. this is detrimental and blocker" — singular, path-focused. The R13/R14/R15 gap will surface during the test run and can be logged as a follow-up defect there.
+
+---
+
 ## Defect 9 — MVP recommendation belongs in scope/, not specification/
 
 **Status:** OPEN — recorded 2026-04-14 (same run, immediately after mvp-recommendation.md was authored in the wrong folder)

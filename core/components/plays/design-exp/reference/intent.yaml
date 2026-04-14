@@ -25,10 +25,16 @@ intent: >
 constraints:
   - id: C1
     rule: >
-      The specify-product pipeline artifacts must exist and be locked before
-      design-exp begins. Pre-flight reads scope.yaml, enriched-capabilities.
-      yaml, epics/*.yaml, and quality-profile.yaml from .meridian/product/
-      product/. Missing or DRAFT-status artifacts halt pre-flight.
+      The specify-product pipeline artifacts must exist and be locked
+      before design-exp begins. Pre-flight reads
+      .meridian/product/scope/scope.yaml,
+      .meridian/product/scope/enriched-capabilities.yaml,
+      .meridian/product/scope/epics/*.yaml, and
+      .meridian/product/specification/quality-profile.yaml. The post-D1
+      folder layout applies — there is no .meridian/product/product/
+      doubled folder and no single monolithic .meridian/product/ dump;
+      each artifact lives under its SDLC-stage sub-folder per ADR 017.
+      Missing or DRAFT-status artifacts halt pre-flight.
 
   - id: C2
     rule: >
@@ -86,9 +92,17 @@ constraints:
 
   - id: C10
     rule: >
-      Artifacts land under .meridian/product/ux/ per ADR 017. Evidence,
+      Design artifacts (personas, screens, flows, wireframes,
+      design-spec) land under .meridian/product/experience/ per
+      ADR 017 post-D1 folder whitelist — the former
+      .meridian/product/ux/ folder was renamed to experience/.
+      Lifecycle artifacts (checkpoints, evidence, status) live at the
+      product root, orthogonal to SDLC stages: checkpoints at
+      .meridian/product/_checkpoints/design-exp/, evidence at
+      .meridian/product/_evidence/design-exp/, status at
+      .meridian/product/_status/design-exp.json. All evidence,
       checkpoint, and status writes go through the scriber agent. The
-      play never writes evidence files directly.
+      play never writes these directly.
 
   - id: C11
     rule: >
