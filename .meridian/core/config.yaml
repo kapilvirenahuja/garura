@@ -59,7 +59,7 @@ stm:
 
 # Standards resolution — first play-specific section; pattern for future plays
 standards:
-  pr-severity-taxonomy: ./core/components/memory/standards/git/pr-severity-taxonomy.md
+  pr-severity-taxonomy: ./core/components/memory/standards/rules/pr.md
 
 # review-pr play configuration
 review-pr:
@@ -71,12 +71,28 @@ review-pr:
   activity_window_days: 90
 
 # Product artifacts — parallel to project, not nested (ADR 017 whitelist)
-# Only 3 directories permitted: product/ux/arch. Operational artifacts (checkpoints,
-# status, evidence) for product-scoped plays live INSIDE these buckets using
-# underscore-prefixed subfolders (e.g., product/_checkpoints/specify-product/).
+# Stage-centric sub-folders, one per SDLC stage. Operational artifacts
+# (checkpoints, status, evidence) for product-scoped plays live at the
+# product root using underscore-prefixed subfolders, orthogonal to the
+# stage layout. The 6 stage folders are all direct children of base-path.
+#
+# Layout (defect D1 fix 2026-04-14; D8/D9 updates 2026-04-14):
+#   .meridian/product/
+#   ├── user-provided/     user inputs (brief + future notes / questions)
+#   ├── specification/     market-brief, project-profile, quality-profile, domain-selection, domain-grounding (opportunity + domain shape — what the product SPACE is)
+#   ├── scope/             mvp-recommendation, scope.yaml, enriched-capabilities, validation-intent-epics, epics/ (v1 scope contract — what we're BUILDING)
+#   ├── architecture/      build-architecture output
+#   ├── experience/        design-experience output
+#   ├── research/          product domain library — KB copies (with provenance header, origin: kb) + researched domains (origin: stm_research), both scoped to this product run (Defect 8 Pull-to-Product)
+#   ├── _checkpoints/      play-lifecycle (orthogonal to stages)
+#   ├── _evidence/         play-lifecycle (orthogonal to stages)
+#   └── _status/           play-lifecycle (orthogonal to stages)
 product:
   base-path: .meridian/product/
   directories:
-    product: product/
-    ux: ux/
-    arch: arch/
+    user-provided: user-provided/
+    specification: specification/
+    scope: scope/
+    architecture: architecture/
+    experience: experience/
+    research: research/

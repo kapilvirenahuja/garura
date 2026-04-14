@@ -50,9 +50,12 @@ constraints:
   - id: C4
     rule: >
       Every selected capability must be a real feature ID from an existing
-      domain-taxonomy markdown file. The play cannot invent capabilities or
-      pick from a hallucinated catalog. The selection is constrained to what
-      the KB actually contains.
+      domain-taxonomy markdown file. The source may be the LTM catalog or
+      an STM research directory produced by the KB-gap research flow;
+      capabilities sourced from STM research are tagged
+      source: provisional_stm_research and carry a kb_source.provisional
+      flag through downstream epics. The play cannot invent capabilities or
+      pick from a hallucinated catalog.
 
   - id: C5
     rule: >
@@ -101,7 +104,7 @@ constraints:
 
   - id: C10
     rule: >
-      All product-scoped artifacts land under .meridian/product/product/ per
+      All product-scoped artifacts land under .meridian/product/ per
       the ADR 017 whitelist. No writes outside this directory except
       checkpoint, status, and evidence files that go through the scriber
       agent. The play never writes evidence files directly — scriber dispatch
@@ -140,6 +143,50 @@ constraints:
       Blockers and placeholders force an interactive RESOLVED-keyword
       interview; there is no accept-risk bypass for blockers — only
       RESOLVED or Vanish. The audit artifact records every resolution.
+
+  - id: C15
+    rule: >
+      An MVP recommendation artifact must exist at
+      .meridian/product/scope/mvp-recommendation.md before capability
+      configuration (Stage 3) begins. The artifact is authored at
+      Stage 2.75, between domain-selection and configure-capabilities,
+      and identifies the primary use cases, deferred use cases with
+      v1.1+ triggers, and any architecture directions committed at
+      spec time. configure-capabilities reads the recommendation and
+      narrows the capability walk to the primary use cases; non-primary
+      capabilities land in a deferred_capabilities section of scope.yaml
+      with rationale. Missing recommendation halts the play pre-flight
+      for Stage 3 per rules/product.md Rule 13. See Defect 6 and
+      Defect 9.
+
+  - id: C16
+    rule: >
+      Artifacts produced by this play stay implementation-agnostic.
+      No file under .meridian/product/research/, .meridian/product/
+      specification/, or .meridian/product/scope/ may reference a
+      specific database engine, SDK method or parameter, framework,
+      programming language, build tool, table schema with column
+      definitions, wire protocol or endpoint path, cryptographic
+      construction, or model version identifier. Allowed vocabulary is
+      domain-level ("append-only ledger", "pluggable measurement
+      adapter", "structured-output enforcement", "controlled-determinism
+      contract"). Skills that author these artifacts reject outputs
+      containing the deny-list tokens. See rules/product.md Rule 14
+      and Defect 7.
+
+  - id: C17
+    rule: >
+      KB-sourced domain definitions are copied into the product's
+      research folder at selection time, with a provenance header
+      recording origin, KB path, copy timestamp, and KB content hash.
+      Stage 3 and every later stage read the domain library from
+      .meridian/product/research/ only — never directly from
+      core/components/memory/knowledge/domain/. This makes every
+      product run reproducible (a KB edit does not retroactively
+      change historical runs) and gives the product a single read
+      path for domain content regardless of whether a domain arrived
+      from KB or from STM research. See rules/product.md Rule 15 and
+      Defect 8.
 
 failure_conditions:
   - id: F1
@@ -210,6 +257,17 @@ failure_conditions:
       selected capabilities clearly warrant sub-issue phasing. The play
       must surface a phasing recommendation when the epic count exceeds the
       appetite's reasonable bandwidth.
+
+  - id: F13
+    condition: >
+      Any file under .meridian/product/research/, .meridian/product/
+      specification/, or .meridian/product/scope/ written by this play
+      contains an implementation-specific token from the abstraction-
+      layer deny-list (specific database engines, SDK method names,
+      framework identifiers, programming-language type signatures,
+      wire-level protocol identifiers, cryptographic construction
+      details, or model version strings). Output of this shape is a
+      structural failure per C16 / rules/product.md Rule 14.
 
 scenarios:
   - id: S1

@@ -26,10 +26,23 @@ The `.meridian/` tree allows ONLY these folders. No other top-level or second-le
 ```
 .meridian/
 ├── core/                                     # framework state (config, synced memory)
-├── product/
-│   ├── product/                              # specify-product outputs (epics, scope, quality profile)
-│   ├── ux/                                   # design-exp outputs (personas, screens, flows, wireframes)
-│   └── arch/                                 # build-arch outputs (architecture.yaml, quality-standards.yaml)
+├── product/                                  # the product being built — all SDLC stages
+│   ├── user-provided/                        # user inputs: project brief + notes + questions
+│   ├── specification/                        # opportunity + domain shape: market-brief, project-profile,
+│   │                                         # domain-selection, domain-grounding, quality-profile
+│   ├── scope/                                # v1 scope contract: mvp-recommendation, scope.yaml,
+│   │   ├── mvp-recommendation.md             # enriched-capabilities, validation-intent-epics, epics/
+│   │   ├── scope.yaml
+│   │   ├── enriched-capabilities.yaml
+│   │   ├── validation-intent-epics.yaml
+│   │   └── epics/                            # one YAML per intent epic
+│   ├── architecture/                         # architecture-stage output (build-architecture play)
+│   ├── experience/                           # experience-stage output (design-experience play)
+│   ├── research/                             # product domain library: KB copies + researched domains
+│   │                                         # (Defect 8 Pull-to-Product)
+│   ├── _checkpoints/                         # play-lifecycle: per-stage Tether/Vanish artifacts
+│   ├── _evidence/                            # play-lifecycle: play-close self-commit files
+│   └── _status/                              # play-lifecycle: resume state for paused plays
 └── project/
     └── issues/
         ├── _pending/                         # pre-issue pending artifacts
@@ -38,13 +51,19 @@ The `.meridian/` tree allows ONLY these folders. No other top-level or second-le
             ├── specs/                        # plans
             ├── evidence/                     # test and eval evidence
             ├── checkpoint/                   # play approval gates
-            ├── context/                      # prepare-implementation / build-arch context
+            ├── context/                      # prepare-implementation / build-architecture context
             └── review/                       # review artifacts
 ```
 
-**Operational artifacts for product-scoped plays** (checkpoints, status files, resume state for `/specify-product`, `/design-exp`, `/build-arch`) live INSIDE `product/`, `ux/`, or `arch/` using underscore-prefixed subfolders — e.g., `.meridian/product/product/_checkpoints/specify-product/20260414.md`. These are legal because they don't introduce new top-level siblings; they live inside the three whitelisted buckets.
+**Stage-centric vs play-centric:** `.meridian/product/` is organized by SDLC stage (user-provided → specification → scope → architecture → experience), not by play. A single stage folder may hold output from multiple plays — e.g., `specification/` holds market-brief (from specify-product's Stage 1 market-analyst), project-profile (user-provided during pre-flight), quality-profile (from specify-product's Stage 6 product-keeper). The folder name describes *what the artifact is*, not *which play produced it*.
 
-**Amendment explicitly rejected:** during planning for this work, a proposal was made to add `evidence/`, `checkpoints/`, and `status/` as new siblings under `.meridian/product/`. That proposal is REJECTED. The three-bucket shape (`product/`, `ux/`, `arch/`) is the core principle. New plays that need ops files use underscore-prefixed subfolders inside the existing buckets.
+**`research/` is the product's frozen domain library (Defect 8 Pull-to-Product).** Per `rules/product.md` Rule 15, every domain the product uses lands here at Stage 2 selection time — whether the content came from the canonical KB (`core/components/memory/knowledge/domain/`) or from fresh research. Each file carries a provenance header: `origin: kb` (with `kb_sha_at_copy`, `editable: false`) for copies, or `origin: stm_research` (editable: true, pending future `/capture-learning` promotion) for freshly-authored content. Stage 3 and every later stage (configure-capabilities, enrich-capabilities, generate-intent-epics) read from this folder ONLY — they do not read from the KB directly. This makes every product run reproducible (a KB edit does not retroactively change historical runs) and gives the product a single read path for domain content regardless of origin.
+
+**`scope/mvp-recommendation.md` (Defect 9).** The MVP recommendation artifact is a scope-narrowing decision authored at Stage 2.75 (between domain-selection and configure-capabilities). It lives in `scope/`, not `specification/`, because it answers "what are we building for v1?" (a scope question), not "what is the opportunity?" (a specification question). Required by Rule 13 and C15. configure-capabilities reads it to narrow the capability walk to primary use cases.
+
+**`_checkpoints/` / `_evidence/` / `_status/` are orthogonal play-lifecycle folders.** They live at the product root alongside the stage folders, not inside them. A single play writes to all three: it produces Tether artifacts in `_checkpoints/{play-name}/`, evidence at close in `_evidence/{play-name}/`, and a resume status file at `_status/{play-name}.json`. Keeping them at the root reflects that play lifecycle is orthogonal to SDLC stage — a single play can write across multiple stage folders in one run.
+
+**Defect 1 amendment (2026-04-14):** the earlier `.meridian/product/` + `ux/` + `arch/` three-bucket layout is REPLACED by the stage-centric layout above. The doubled `product/product` name was awkward in practice and the play-centric three buckets didn't extend cleanly to cross-stage artifacts. The new layout makes the SDLC visible in the folder structure: a reviewer can walk `user-provided → specification → scope → architecture → experience` and see the product take shape stage by stage.
 
 ### 2. Config relocation
 
@@ -56,18 +75,23 @@ Rationale: the config describes `.meridian/` state; it belongs there. Reposition
 
 ### 3. Config content reconciliation
 
-**`product.directories`** becomes exactly three keys:
+**`product.directories`** (updated 2026-04-14 per Defect 1) becomes exactly six stage keys:
 
 ```yaml
 product:
   base-path: .meridian/product/
   directories:
-    product: product/
-    ux: ux/
-    arch: arch/
+    user-provided: user-provided/
+    specification: specification/
+    scope: scope/
+    architecture: architecture/
+    experience: experience/
+    research: research/
 ```
 
-The keys `discovery`, `roadmap`, `architecture`, `evidence`, `briefs`, `checkpoints`, `status` are removed. Plays that wrote to those paths are either rebuilt (if surviving) or deleted (if being deprecated).
+The play-lifecycle folders (`_checkpoints/`, `_evidence/`, `_status/`) are NOT listed under `directories` — they're orthogonal to the stage layout and live at the product root by convention, not by config.
+
+The prior three-key layout (`product / ux / arch`) is superseded. The keys `discovery`, `roadmap`, `architecture`, `evidence`, `briefs`, `checkpoints`, `status` from the even-earlier seven-key layout remain removed.
 
 **`stm.structure`** becomes exactly five keys:
 
