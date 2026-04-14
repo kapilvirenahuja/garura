@@ -4,6 +4,80 @@
 # the output of /design-exp's screen-inventory generation step. Every screen
 # produced by the pipeline must conform.
 #
+# ──────────────────────────────────────────────────────────────────────────
+# FILE FORMAT — Markdown with structured sections
+# ──────────────────────────────────────────────────────────────────────────
+#
+# Per user directive 2026-04-14, screens and wireframes are authored as
+# Markdown files (.md), NOT YAML. Each `screens/{screen-id}.md` file carries
+# the schema fields below as Markdown sections. Frontmatter holds identity
+# (id, capability, name). Body holds the structured sections.
+#
+# Example file layout:
+#
+#   ---
+#   id: SCR-user-login-primary
+#   capability: UM-F001
+#   name: Login
+#   ---
+#
+#   # Login
+#
+#   ## Purpose
+#   <string — required>
+#
+#   ## Personas
+#   - end-user
+#   - admin
+#
+#   ## States
+#
+#   ### default
+#   - Description: Ready for credential input
+#   - Layout: centered-card
+#   - Data: []
+#   - Actions: submit-credentials, forgot-password, register
+#   - Components:
+#     - email-input
+#     - password-input (with show/hide toggle)
+#     - remember-me-checkbox
+#     - submit-button
+#     - forgot-password-link
+#     - register-link
+#
+#   ### loading
+#   - Description: Initial page load, checking for existing session
+#   - Data: []
+#   - Actions: []
+#
+#   ### error
+#   - Description: Invalid credentials submitted
+#   - Data: []
+#   - Actions: retry, forgot-password
+#   - Behavior: Inline error above form. Do NOT reveal whether email exists.
+#
+#   ## Navigation
+#   - Entry points: direct-url, session-expired-redirect, register-success
+#   - Exit points:
+#     - success: dashboard
+#     - forgot_password: password-reset
+#     - register: registration
+#
+#   ## Accessibility
+#   - WCAG 2.1 AA minimum
+#   - Keyboard navigation through all form fields
+#   - Screen reader announcements for validation errors
+#
+#   ## Wireframe
+#   <appended by generate-wireframes skill — structured layout description
+#    with explicit components, data placement, and interaction patterns>
+#
+# The schema below defines the DATA shape. The file is MD; the validators
+# parse these sections. YAML-like lists and key-value pairs inside sections
+# use Markdown bullets and indentation, not YAML.
+#
+# ──────────────────────────────────────────────────────────────────────────
+#
 # Enforcement: validate-screen-coverage skill (built in 214.6) is a blocking
 # validator. It refuses to write screens that violate this schema. It also
 # enforces cross-screen rules: every capability maps to ≥1 screen; every
