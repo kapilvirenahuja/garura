@@ -1,0 +1,261 @@
+step_evals:
+  # ===== Failure condition evals =====
+
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: synthesize-personas
+    check: "personas.md exists and is non-empty; persona count >= 1 (the play completes with zero personas is a failure)."
+    artifact_pattern: "{product_base}experience/personas.md"
+    pass_criteria: "personas.md exists and contains at least one persona entry."
+    fail_criteria: "personas.md missing, empty, or contains zero personas."
+
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: synthesize-personas
+    check: "Every persona in personas.md has at least one job story in the 'When [situation], I want to [motivation], so I can [outcome]' structure. No demographic-driven, narrative-only, or missing-structure personas."
+    artifact_pattern: "{product_base}experience/personas.md"
+    pass_criteria: "Every persona entry contains a job story matching the When/I want to/so I can structure."
+    fail_criteria: "Any persona uses demographic framing, narrative-only description, or is missing the JTBD structure."
+
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: synthesize-personas
+    check: "Every persona is mapped to at least one capability from the specify-product scope (no unmapped personas)."
+    artifact_pattern: "{product_base}experience/personas.md"
+    pass_criteria: "The Capability → Persona Map table references every persona, and every persona is linked to at least one scope capability."
+    fail_criteria: "Any persona is not mapped to at least one capability from the specify-product scope."
+
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: validate-screen-coverage
+    check: "Every capability from specify-product's selected_capabilities has at least one screen in the inventory (no capability has zero screens)."
+    artifact_pattern: "{product_base}experience/validation-screens-pre-flow.yaml"
+    pass_criteria: "validation result shows coverage.capabilities_covered == capabilities_total and coverage.orphan_capabilities is empty."
+    fail_criteria: "Any capability from specify-product's selected_capabilities has zero screens in the inventory."
+
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: validate-screen-coverage
+    check: "No screen has fewer than three distinct states."
+    artifact_pattern: "{product_base}experience/validation-screens-pre-flow.yaml"
+    pass_criteria: "validation result shows summary.by_category.state_count_below_min == 0."
+    fail_criteria: "Any screen has fewer than three distinct states."
+
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: validate-screen-coverage
+    check: "Every success_scenario from every intent epic has at least one user flow referencing it (no orphan success scenario)."
+    artifact_pattern: "{product_base}experience/validation-screens-with-flows.yaml"
+    pass_criteria: "validation result shows coverage.success_scenarios_with_flow == success_scenarios_total."
+    fail_criteria: "Any success_scenario from any intent epic has zero user flows referencing it."
+
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: null
+    skill: validate-screen-coverage
+    check: "Every failure_scenario from every intent epic has at least one recovery flow referencing it (no orphan failure scenario)."
+    artifact_pattern: "{product_base}experience/validation-screens-with-flows.yaml"
+    pass_criteria: "validation result shows coverage.failure_scenarios_with_recovery == failure_scenarios_total."
+    fail_criteria: "Any failure_scenario from any intent epic has zero recovery flows referencing it."
+
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: generate-wireframes
+    check: "No wireframe contains vague descriptions ('a form', 'the dashboard') without named components and a specific layout pattern. Each screen's ## Wireframe section names components and specifies a layout pattern."
+    artifact_pattern: "{product_base}experience/screens/*.md"
+    pass_criteria: "Every screen MD file contains a ## Wireframe section with a named layout pattern and named components; no screen wireframe contains blacklisted generic phrases."
+    fail_criteria: "Any wireframe contains vague descriptions without named components and a specific layout pattern."
+
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: null
+    skill: generate-wireframes
+    check: "Every interactive screen (any screen with non-empty actions in its default state) carries accessibility requirements referencing a specific WCAG level."
+    artifact_pattern: "{product_base}experience/screens/*.md"
+    pass_criteria: "Every screen MD file with non-empty default-state actions contains an ## Accessibility entry referencing a specific WCAG level."
+    fail_criteria: "Any interactive screen is missing accessibility requirements."
+
+  - id: SE-10
+    source_type: failure_condition
+    failure_condition_id: F10
+    constraint_id: null
+    skill: compile-design-spec
+    check: "All three mandatory checkpoint artifacts exist (after persona synthesis, after screen inventory generation, after the final design spec). No checkpoint was skipped without a recorded Tether/Vanish/Orbit response."
+    artifact_pattern: "{product_base}_checkpoints/design-exp/*.md"
+    pass_criteria: "Three checkpoint artifacts exist under {product_base}_checkpoints/design-exp/ corresponding to Stage 1 (personas), Stage 2 (screens), and Stage 6 (final spec); each records a Tether/Vanish/Orbit response."
+    fail_criteria: "Any of the three mandatory checkpoint artifacts is missing, or any checkpoint was skipped without a recorded Tether/Vanish/Orbit response."
+
+  - id: SE-11
+    source_type: failure_condition
+    failure_condition_id: F11
+    constraint_id: null
+    skill: compile-design-spec
+    check: "No artifact is written outside the ADR 017 whitelist. Every evidence, checkpoint, and status file is written through the scriber agent."
+    artifact_pattern: "{product_base}experience/**, {product_base}_checkpoints/design-exp/**, {product_base}_evidence/design-exp/**, {product_base}_status/design-exp.json"
+    pass_criteria: "Every artifact path falls under one of: {product_base}experience/, {product_base}_checkpoints/design-exp/, {product_base}_evidence/design-exp/, {product_base}_status/design-exp.json; evidence/checkpoint/status writes are attributable to scriber."
+    fail_criteria: "An artifact is written to a path outside the ADR 017 whitelist, or any evidence/checkpoint/status file is written without going through the scriber agent."
+
+  - id: SE-12
+    source_type: failure_condition
+    failure_condition_id: F12
+    constraint_id: null
+    skill: compile-design-spec
+    check: "The play generates no visual design elements (color palettes, typography stacks, spacing scales). Visual design is out of scope for design-exp and must be deferred to a downstream visual-design play."
+    artifact_pattern: "{product_base}experience/design-spec.md"
+    pass_criteria: "design-spec.md contains no color hex codes, no rgb()/hsl() calls, no pixel spacing values, no font family names, and no brand asset references."
+    fail_criteria: "design-spec.md contains any visual-design element — color palette, typography stack, or spacing scale."
+
+  # ===== Artifact-verifiable constraint evals =====
+
+  - id: SE-13
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C3
+    skill: synthesize-personas
+    check: "Every persona in personas.md uses the Jobs-To-Be-Done format: 'When [situation], I want to [motivation], so I can [outcome]'. Any demographic-driven persona ('Sarah, 34, marketing manager') is a blocking validation failure."
+    artifact_pattern: "{product_base}experience/personas.md"
+    pass_criteria: "Every persona entry includes at least one job story matching the When/I want to/so I can structure; no demographic-driven persona appears."
+    fail_criteria: "Any persona uses demographic-driven framing or does not include the JTBD format."
+
+  - id: SE-14
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C4
+    skill: synthesize-personas
+    check: "Every persona is mapped to at least one capability from specify-product's selected_capabilities. Unmapped personas are a validation failure."
+    artifact_pattern: "{product_base}experience/personas.md"
+    pass_criteria: "Every persona has at least one capability from scope.selected_capabilities in its 'Capabilities Mapped' list; the Capability → Persona Map table shows zero unmapped personas."
+    fail_criteria: "Any persona has no capability from scope.selected_capabilities."
+
+  - id: SE-15
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C5
+    skill: generate-screen-inventory
+    check: "Every capability in scope.selected_capabilities maps to at least one screen in the screen inventory. Capability coverage gaps block the pipeline."
+    artifact_pattern: "{product_base}experience/validation-screens-pre-flow.yaml"
+    pass_criteria: "validation result shows coverage.capabilities_covered == capabilities_total and coverage.orphan_capabilities is empty."
+    fail_criteria: "Any capability in scope.selected_capabilities has no screen in the screen inventory."
+
+  - id: SE-16
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C6
+    skill: generate-screen-inventory
+    check: "Every screen enumerates at least three distinct states. The minimum is default + one loading/initial + one error/lockout state. Two-state screens fail validation."
+    artifact_pattern: "{product_base}experience/validation-screens-pre-flow.yaml"
+    pass_criteria: "validation result shows summary.by_category.state_count_below_min == 0; every screen record has state_count >= 3."
+    fail_criteria: "Any screen has fewer than three distinct states."
+
+  - id: SE-17
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C7
+    skill: map-user-flows
+    check: "Every success_scenario in every intent epic maps to at least one user flow in flows/. Every failure_scenario maps to at least one recovery flow. Missing flows block the pipeline."
+    artifact_pattern: "{product_base}experience/validation-screens-with-flows.yaml"
+    pass_criteria: "validation result shows coverage.success_scenarios_with_flow == success_scenarios_total AND coverage.failure_scenarios_with_recovery == failure_scenarios_total."
+    fail_criteria: "Any success_scenario has zero flows OR any failure_scenario has zero recovery flows."
+
+  - id: SE-18
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C8
+    skill: generate-wireframes
+    check: "Every wireframe specifies concrete layout, component list, data fields, and available actions per state. Generic descriptions ('a login form', 'a dashboard') are blocking failures — the wireframe must name the components (email-input, password-input, submit-button, error-toast) and the layout pattern (centered-card, sidebar-content, two-column)."
+    artifact_pattern: "{product_base}experience/screens/*.md"
+    pass_criteria: "Every screen MD file's ## Wireframe section contains: a named Layout pattern, per-state visible components with concrete names, per-state interactive affordances mapped to named components; no screen contains blacklisted generic phrases."
+    fail_criteria: "Any wireframe is missing concrete layout, component list, data fields, or actions per state, or uses generic descriptions without named components."
+
+  - id: SE-19
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C9
+    skill: generate-wireframes
+    check: "Every interactive screen (any screen with non-empty actions in its default state) carries accessibility requirements referencing a specific WCAG level. Screens without accessibility requirements fail validation."
+    artifact_pattern: "{product_base}experience/screens/*.md"
+    pass_criteria: "Every screen whose default state has non-empty actions contains an ## Accessibility section referencing a specific WCAG level."
+    fail_criteria: "Any interactive screen lacks an accessibility entry referencing a specific WCAG level."
+
+  - id: SE-20
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C12
+    skill: compile-design-spec
+    check: "Three human review checkpoints are present: after persona synthesis, after screen inventory generation, and after the final design spec is compiled. Each checkpoint produces a checkpoint artifact before the gate and waits for Tether/Vanish/Orbit. Orbit cycles back to the stage that produced the artifact under review."
+    artifact_pattern: "{product_base}_checkpoints/design-exp/*.md"
+    pass_criteria: "Three distinct checkpoint artifacts exist corresponding to Stage 1 (personas), Stage 2 (screens), Stage 6 (final spec); each records a Tether/Vanish/Orbit response; Orbit responses cycle back to the originating stage."
+    fail_criteria: "Any of the three checkpoint artifacts is missing, or any checkpoint does not record a Tether/Vanish/Orbit response."
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: "{product_base}experience/screens/*.md"
+    check: "Given the screen inventory with all state entries and the wireframe for a specific screen, the developer can build the screen layout directly from the specification — components, data fields, layout pattern, and actions are all explicit — without asking the designer for clarification."
+    pass_criteria: "Every screen MD file contains a ## Wireframe section with an explicit layout pattern, named components, data fields, and actions per state; a developer reading any screen file can build the layout without external clarification."
+    fail_criteria: "Any screen's wireframe lacks an explicit layout pattern, named components, data fields, or per-state actions."
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Designer (external, receiving the spec)
+    artifact_pattern: "{product_base}experience/personas.md"
+    check: "Given the personas.md file with JTBD persona profiles and capability mapping, the external designer can validate that every target user type is represented, and can add visual design (colors, type, spacing) on top without re-deriving the interaction structure."
+    pass_criteria: "personas.md uses JTBD format throughout; every persona has at least one 'When [situation], I want [motivation], so I can [outcome]' job story; every persona maps to at least one capability from the scope; the Capability → Persona Map covers all scope capabilities."
+    fail_criteria: "Any persona is not in JTBD format, or any persona is not mapped to at least one scope capability."
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: Product Manager
+    artifact_pattern: "{product_base}experience/flows/*.md"
+    check: "Given the user flow diagrams for both success and recovery paths, the PM can trace each persona's journey through the product and verify that every edge case raised in the intent epics has a corresponding flow."
+    pass_criteria: "For every intent epic success_scenario and failure_scenario, at least one flow MD file in flows/ references the scenario via its frontmatter source_scenario field; recovery flows exist for every failure scenario."
+    fail_criteria: "Any success_scenario or failure_scenario from any intent epic has zero flow files referencing it."
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Technical Architect
+    artifact_pattern: "{product_base}experience/screens/*.md"
+    check: "Given the screen inventory with state counts, data requirements, and action lists, the Technical Architect can estimate frontend complexity (state management needs, API surface, routing depth) without needing to see visual mockups."
+    pass_criteria: "Every screen MD file discloses its state count, data requirements per state, and action lists per state in the ## States section; navigation entry and exit points are listed in the ## Navigation section."
+    fail_criteria: "Any screen lacks state count, data requirements, action lists, or navigation entry/exit information."
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: Accessibility Lead
+    artifact_pattern: "{product_base}experience/screens/*.md"
+    check: "Given the wireframes and accessibility requirements per screen, the Accessibility Lead can verify WCAG conformance plans for every interactive screen and flag any screen whose requirements fall below the product's accessibility quality target."
+    pass_criteria: "Every interactive screen's ## Accessibility section references a specific WCAG level that matches or exceeds the product's quality-profile.interaction_capability target."
+    fail_criteria: "Any interactive screen's accessibility reference is missing or falls below the product's quality-profile interaction_capability target."
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: Developer
+    artifact_pattern: "{product_base}experience/design-spec.md"
+    check: "Given the interaction pattern specifications, the developer can implement form validation, loading indicators, error messaging, and empty states consistently across the product without re-inventing patterns per screen."
+    pass_criteria: "design-spec.md section 5 'Interaction Patterns' contains a product-wide table with a single decision per pattern (form validation, loading indicators, error placement, empty states, transitions); decisions are applied consistently across listed screens."
+    fail_criteria: "design-spec.md section 5 is missing, or any interaction pattern lacks a single product-wide decision."
+
+  - id: SCE-7
+    scenario_id: S7
+    persona: Product Manager (at final review)
+    artifact_pattern: "{product_base}experience/design-spec.md"
+    check: "Given the consolidated design-spec.md linking personas, screens, flows, wireframes, and interaction patterns, the PM can approve the full design package in one Tether decision, or Orbit with feedback to a specific stage without losing the context of the unchanged stages."
+    pass_criteria: "design-spec.md contains all sections 1-7 (Scope, Personas, Screen Inventory, User Flows, Interaction Patterns, Accessibility Summary, Handoff Notes); section 7 Handoff Notes points at downstream consumers (build-arch, implement-epic) and explicitly notes that visual design is out of scope; the PM can approve the full package at Checkpoint 3 with a single Tether."
+    fail_criteria: "design-spec.md is missing any of sections 1-7, or section 7 does not point at downstream consumers and note visual design is out of scope."

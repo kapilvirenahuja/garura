@@ -1,0 +1,63 @@
+play: design-exp
+rebake_trigger: "Defect 10 — pre-D1 folder path corrections in C1 and C10"
+mode: rebake
+
+skills:
+  # Step-producing skills (passed to evals-creator)
+  - name: synthesize-personas
+    path: core/components/skills/synthesize-personas/SKILL.md
+    status: existing
+    role: "Step 1 — JTBD persona synthesis from intent epics"
+    d10_impact: none
+
+  - name: generate-screen-inventory
+    path: core/components/skills/generate-screen-inventory/SKILL.md
+    status: existing
+    role: "Step 3 — derive screens from capabilities, ≥3 states per screen"
+    d10_impact: none
+
+  - name: validate-screen-coverage
+    path: core/components/skills/validate-screen-coverage/SKILL.md
+    status: existing
+    role: "Steps 4 + 7 — blocking validator (pre-flow and post-flow passes)"
+    d10_impact: none
+
+  - name: map-user-flows
+    path: core/components/skills/map-user-flows/SKILL.md
+    status: existing
+    role: "Step 6 — Mermaid flow diagrams for success + recovery scenarios"
+    d10_impact: none
+
+  - name: generate-wireframes
+    path: core/components/skills/generate-wireframes/SKILL.md
+    status: existing
+    role: "Step 8 — append ## Wireframe section to each screen MD file"
+    d10_impact: none
+
+  - name: compile-design-spec
+    path: core/components/skills/compile-design-spec/SKILL.md
+    status: existing
+    role: "Step 9 — consolidate personas/screens/flows/wireframes into design-spec.md"
+    d10_impact: none
+
+  # Pre-flight gate skill (NOT passed to evals-creator — not a step-producing skill)
+  - name: validate-kb-extension
+    path: core/components/skills/validate-kb-extension/SKILL.md
+    status: existing
+    role: "Pre-flight gate — KB catalog consistency check (C2)"
+    d10_impact: none
+    evals_creator_input: false
+
+summary:
+  total_skills: 7
+  step_producing: 6
+  pre_flight_gate: 1
+  all_existing: true
+  all_modified: false
+  any_new: false
+  evals_creator_skill_contracts_count: 6
+
+notes:
+  - "Every skill listed exists on disk and has a valid SKILL.md contract."
+  - "The skill contracts themselves still contain some narrative text referencing .meridian/product/ux/ — this is out of scope for D10. The play SKILL.md uses its own JSON contract paths, which are authoritative."
+  - "validate-kb-extension is intentionally excluded from the evals-creator skill_contracts list because it runs in pre-flight, not as a step that produces an artifact evaluated by SE-* evals."
