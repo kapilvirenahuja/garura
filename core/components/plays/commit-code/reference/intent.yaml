@@ -35,6 +35,14 @@ constraints:
       After commits are created, the branch must be pushed to the remote.
       Push failure is non-blocking — commits are valid regardless of push
       outcome. The play logs the failure and continues.
+  - id: C8
+    rule: >
+      Evidence artifacts (per-step traces, commit-outcome summaries, status
+      updates) must be delegated to the scriber agent via its JSON contract.
+      The orchestrator does not write evidence files directly. Scriber runs
+      in the background so evidence I/O does not block the commit sequence,
+      and whitelist compliance for evidence paths is enforced at one
+      boundary (the write-evidence skill).
   - id: C9
     rule: >
       Human approval is required before committing when any change group's

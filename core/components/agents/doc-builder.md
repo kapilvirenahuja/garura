@@ -68,7 +68,7 @@ This agent communicates with plays via JSON contracts.
 ```json
 {
   "intent_path": "<path to play's reference/intent.yaml>",
-  "stm_base": "<resolved from core/config.yaml stm.base-path>",
+  "stm_base": "<resolved from .meridian/core/config.yaml stm.base-path>",
   "artifact_base": "<base path where YAML artifacts live>",
   "slug": "<product slug>",
   "briefs_requested": ["features", "architecture"],

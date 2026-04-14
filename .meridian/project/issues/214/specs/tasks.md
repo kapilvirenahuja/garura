@@ -13,9 +13,9 @@
 | 214.2 | chore(config): move config to `.meridian/core/`, adopt folder whitelist, retire play levels and "bake" terminology | T6 → T6a → T6b → T6c → T7 → T8 → T9 → T10 → T11 | 214.1 | M (3-4 days — bigger than originally planned due to config move + CLAUDE.md + terminology rename) |
 | 214.3 | chore(plays): capture production detail from deprecated plays (including prepare-architecture), then delete the 3 immediately-deprecated plays | T12-T17 | 214.2 | M (2-3 days) |
 | 214.4 | feat(memory): extend existing `domain-taxonomy/*.md` files + add `_cross-tree-constraints.yaml` | T18-T22 | 214.3 | M (2-3 days — smaller than originally planned because we reuse existing markdown) |
-| 214.5 | feat(play): `/plan-product` pipeline — fresh build with Product Keeper and Market Analyst agents | T23-T31 | 214.4 | XL (5-7 days) |
+| 214.5 | feat(play): `/spec-product` pipeline — fresh build with Product Keeper and Market Analyst agents | T23-T31 | 214.4 | XL (5-7 days) |
 | 214.6 | feat(play): `/design-product` pipeline — fresh build with Designer agent | T32-T36 | 214.5 | L (4-5 days) |
-| 214.7 | feat(play): `/spec-arch` — fresh build replacing deleted `/prepare-architecture` | T37-T38 | 214.6 | L (4-5 days) |
+| 214.7 | feat(play): `/build-arch` — fresh build replacing deleted `/prepare-architecture` | T37-T38 | 214.6 | L (4-5 days) |
 
 ## Dependency Graph
 
@@ -28,11 +28,11 @@ T12 → T13 → T14 → T15 → T16 → T17                              (Sub-21
                               ↓
 T18 → T19 → T20 → T21 → T22                                    (Sub-214.4 — extend domain-taxonomy markdown)
                         ↓
-T23 → T24 → T25 → T26 → T27 → T28 → T29 → T30 → T31            (Sub-214.5 — plan-product)
+T23 → T24 → T25 → T26 → T27 → T28 → T29 → T30 → T31            (Sub-214.5 — spec-product)
                                                 ↓
 T32 → T33 → T34 → T35 → T36                                    (Sub-214.6 — design-product)
                                           ↓
-T37 → T38                                                       (Sub-214.7 — spec-arch fresh build)
+T37 → T38                                                       (Sub-214.7 — build-arch fresh build)
 ```
 
 ---
@@ -95,7 +95,7 @@ T37 → T38                                                       (Sub-214.7 —
 #### T6: Draft ADR 017 — Strict Folder Whitelist (no amendment)
 - **Sub-issue:** 214.2
 - **Files:** Create `/Users/kapilahuja/cto/builder/meridian-os/docs/adr/017-folder-whitelist.md`
-- **Details:** Full ADR covering (a) the strict `.meridian/` folder whitelist: `core/`, `product/{product,ux,arch}`, `project/issues/{n}/{specs,evidence,checkpoint,context,review}` — and NOTHING ELSE; (b) the explicit rejection of the Plan sub-agent's proposed amendment to add `evidence/checkpoints/status/` as siblings under `.meridian/product/`; (c) the pattern for routing ops artifacts INSIDE the whitelist buckets using underscore-prefixed subfolders (`.meridian/product/product/_checkpoints/plan-product/20260414.md`); (d) migration path from `product.directories` (discovery/roadmap/architecture/briefs) to `product/ux/arch`; (e) migration from `stm.structure` (spec/design/evidence/delivery/checkpoint) to `specs/evidence/checkpoint/context/review`; (f) rationale; (g) related ADRs (008 issue-centric STM, 014 three-axis profiling, 016 agent JSON contract). Status: Proposed.
+- **Details:** Full ADR covering (a) the strict `.meridian/` folder whitelist: `core/`, `product/{product,ux,arch}`, `project/issues/{n}/{specs,evidence,checkpoint,context,review}` — and NOTHING ELSE; (b) the explicit rejection of the Plan sub-agent's proposed amendment to add `evidence/checkpoints/status/` as siblings under `.meridian/product/`; (c) the pattern for routing ops artifacts INSIDE the whitelist buckets using underscore-prefixed subfolders (`.meridian/product/product/_checkpoints/spec-product/20260414.md`); (d) migration path from `product.directories` (discovery/roadmap/architecture/briefs) to `product/ux/arch`; (e) migration from `stm.structure` (spec/design/evidence/delivery/checkpoint) to `specs/evidence/checkpoint/context/review`; (f) rationale; (g) related ADRs (008 issue-centric STM, 014 three-axis profiling, 016 agent JSON contract). Status: Proposed.
 - **Depends on:** none (depends on 214.1 completing)
 - **Expected Outcome:** A reviewable ADR capturing the decision.
 - **Verification:** File exists; structure matches other ADRs; amendment explicitly rejected.
@@ -133,7 +133,7 @@ T37 → T38                                                       (Sub-214.7 —
 - **Details:** Per user directive 2026-04-14: HARD CUT. No alias. No backwards compatibility for `--bake`. The rename is surgical and global. After this task, any invocation of `/create-play --bake` must fail with unknown-option. Update the `create-play` skill's Purpose / Process / Constraints / examples sections to use `--build` throughout. Update CLAUDE.md's "bake" references (if any remained after T6b). The compiled play artifacts' Compilation Metadata comments that already contain "bake" get refreshed when each play is rebuilt in T10 or its own sub-issue.
 - **Depends on:** T6b
 - **Expected Outcome:** `--build` is the only verb; `--bake` / `--rebake` are gone.
-- **Verification:** `grep '\-\-bake\|\-\-rebake' core/components/ docs/ CLAUDE.md` returns zero matches. `/create-play --help` documents `--build`. Sanity check: attempting `/create-play --bake plan-product` returns an unknown-option error.
+- **Verification:** `grep '\-\-bake\|\-\-rebake' core/components/ docs/ CLAUDE.md` returns zero matches. `/create-play --help` documents `--build`. Sanity check: attempting `/create-play --bake spec-product` returns an unknown-option error.
 - **Rollback plan:** git checkout on create-play skill and every modified file.
 
 #### T7: Rewrite `.meridian/core/config.yaml` `product.directories` block
@@ -144,9 +144,9 @@ T37 → T38                                                       (Sub-214.7 —
   product:
     base-path: .meridian/product/
     directories:
-      product: product/     # epics, scope, project profile (plan-product outputs)
+      product: product/     # epics, scope, project profile (spec-product outputs)
       ux: ux/               # personas, screens, flows, wireframes (design-product outputs)
-      arch: arch/           # architecture.yaml, quality-standards.yaml (spec-arch outputs)
+      arch: arch/           # architecture.yaml, quality-standards.yaml (build-arch outputs)
   ```
   Remove `discovery/`, `roadmap/`, `architecture/`, `evidence/`, `briefs/`, `checkpoints/`, `status/` keys.
 - **Depends on:** T6c
@@ -219,7 +219,7 @@ T37 → T38                                                       (Sub-214.7 —
 #### T12: Capture patterns from `discover-product`
 - **Sub-issue:** 214.3
 - **Files:** Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/deprecated-play-patterns.md`
-- **Details:** Read `core/components/plays/discover-product/reference/intent.yaml` and `SKILL.md`. Extract every valuable pattern into deprecated-play-patterns.md — organized by pattern name. At minimum: pre-lock resolution gate (what it does, when it fires, how it's structured), decision_points (schema, semantics, UX), deferred scope enforcement, vision locking semantics, three-axis profile derivation (PP/NFR/QP), product.yaml freezing lifecycle. Each pattern: (a) description, (b) why it was valuable, (c) how it should be absorbed into plan-product.
+- **Details:** Read `core/components/plays/discover-product/reference/intent.yaml` and `SKILL.md`. Extract every valuable pattern into deprecated-play-patterns.md — organized by pattern name. At minimum: pre-lock resolution gate (what it does, when it fires, how it's structured), decision_points (schema, semantics, UX), deferred scope enforcement, vision locking semantics, three-axis profile derivation (PP/NFR/QP), product.yaml freezing lifecycle. Each pattern: (a) description, (b) why it was valuable, (c) how it should be absorbed into spec-product.
 - **Depends on:** none (depends on 214.2 completing)
 - **Expected Outcome:** Pattern capture file exists with discover-product patterns.
 - **Verification:** File exists; each pattern has description + rationale + absorption note.
@@ -228,7 +228,7 @@ T37 → T38                                                       (Sub-214.7 —
 #### T13: Capture patterns from `plan-roadmap`, `discover-product-opportunity`, and `prepare-architecture`
 - **Sub-issue:** 214.3
 - **Files:** Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/deprecated-play-patterns.md`
-- **Details:** Read plan-roadmap, discover-product-opportunity, and prepare-architecture source files. Extract patterns: RICE/feasibility scoring, roadmap time-bucketing, epic-scoping from locked product, critical-blocker resolution, engineering-view generation, market-research opportunity extraction, architecture decision-recording format, quality-attribute scenario extraction, technology selection driver framing, ISO 25010 mapping. Append to deprecated-play-patterns.md. The prepare-architecture capture is especially important because spec-arch (214.7) is a fresh build that must absorb these patterns.
+- **Details:** Read plan-roadmap, discover-product-opportunity, and prepare-architecture source files. Extract patterns: RICE/feasibility scoring, roadmap time-bucketing, epic-scoping from locked product, critical-blocker resolution, engineering-view generation, market-research opportunity extraction, architecture decision-recording format, quality-attribute scenario extraction, technology selection driver framing, ISO 25010 mapping. Append to deprecated-play-patterns.md. The prepare-architecture capture is especially important because build-arch (214.7) is a fresh build that must absorb these patterns.
 - **Depends on:** T12
 - **Expected Outcome:** Pattern capture is complete for all four deprecated plays.
 - **Verification:** File has sections for discover-product, plan-roadmap, discover-product-opportunity, and prepare-architecture.
@@ -380,7 +380,7 @@ T37 → T38                                                       (Sub-214.7 —
   - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/_index.md`
   - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain-taxonomy/_index.md`
 - **Details:**
-  - `validate-kb-extension` skill walks every feature in every domain-taxonomy markdown file and asserts all 5 new sections are present with non-empty content. Returns structured failure if any feature is incomplete. Used by 214.4 acceptance check and by plan-product's pre-flight.
+  - `validate-kb-extension` skill walks every feature in every domain-taxonomy markdown file and asserts all 5 new sections are present with non-empty content. Returns structured failure if any feature is incomplete. Used by 214.4 acceptance check and by spec-product's pre-flight.
   - `memory.md`: add "KB Capability Model via extended domain-taxonomy" section — the 5 sections, cross-tree constraint format, three-subgraph Graphiti mapping (conceptual: domain-taxonomy prose = Community, extended sections = Semantic Entity, Experiential block = Episode), profile-driven configuration flow, Domain → Capability → Intent Epic hierarchy. Note: capabilities/*.yaml tree is explicitly NOT created — the existing markdown tree IS the KB.
   - `_index.md` (both knowledge/ and domain-taxonomy/): cross-reference the new conventions and point at `kb-extension-conventions.md`.
 - **Depends on:** T21
@@ -390,12 +390,12 @@ T37 → T38                                                       (Sub-214.7 —
 
 ---
 
-### Sub-issue 214.5 — `/plan-product` pipeline
+### Sub-issue 214.5 — `/spec-product` pipeline
 
-#### T23: Craft `plan-product` intent.yaml via `intent-crafter`
+#### T23: Craft `spec-product` intent.yaml via `intent-crafter`
 - **Sub-issue:** 214.5
-- **Files:** Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/plan-product/reference/intent.yaml`
-- **Details:** Invoke `intent-crafter` agent to craft intent.yaml from the following inputs: (a) spec.md from this STM, (b) deprecated-play-patterns.md from 214.3, (c) reference docs (play-specifications.md stages 1-7), (d) intent-yaml-schema.yaml + intent-epic-schema.yaml + kb-extension-conventions.md from 214.4. The intent.yaml must carry: **metadata zone** — `name: plan-product`, `description: "Transform a product idea plus project profile into enriched intent epics via KB-driven capability configuration"`, `version: 0.1.0`, `checksum: <computed by compile step>`; **content zone** — `intent`, `constraints`, `failure_conditions`, `scenarios` only. Constraints should cover: product description length, profile completeness, KB accessibility (existence of extended domain-taxonomy files), delegation rules (all domain work via Market Analyst / Product Keeper / judge), whitelist compliance, kb_source traceability (every epic references a real feature ID like UM-F001), validator blocking, min ≥2 success_scenarios and ≥2 failure_scenarios per epic, quantified constraints, checkpoint artifacts, cross-tree constraint application, scriber dispatch for evidence, three-layer hierarchy, no agent-count budget (plays are just plays). Must absorb deprecated-play-patterns.md key patterns: pre-lock resolution gate, three-axis profile derivation, decision_points, deferred scope enforcement.
+- **Files:** Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-product/reference/intent.yaml`
+- **Details:** Invoke `intent-crafter` agent to craft intent.yaml from the following inputs: (a) spec.md from this STM, (b) deprecated-play-patterns.md from 214.3, (c) reference docs (play-specifications.md stages 1-7), (d) intent-yaml-schema.yaml + intent-epic-schema.yaml + kb-extension-conventions.md from 214.4. The intent.yaml must carry: **metadata zone** — `name: spec-product`, `description: "Transform a product idea plus project profile into enriched intent epics via KB-driven capability configuration"`, `version: 0.1.0`, `checksum: <computed by compile step>`; **content zone** — `intent`, `constraints`, `failure_conditions`, `scenarios` only. Constraints should cover: product description length, profile completeness, KB accessibility (existence of extended domain-taxonomy files), delegation rules (all domain work via Market Analyst / Product Keeper / judge), whitelist compliance, kb_source traceability (every epic references a real feature ID like UM-F001), validator blocking, min ≥2 success_scenarios and ≥2 failure_scenarios per epic, quantified constraints, checkpoint artifacts, cross-tree constraint application, scriber dispatch for evidence, three-layer hierarchy, no agent-count budget (plays are just plays). Must absorb deprecated-play-patterns.md key patterns: pre-lock resolution gate, three-axis profile derivation, decision_points, deferred scope enforcement.
 - **Depends on:** none (depends on 214.4 completing)
 - **Expected Outcome:** Canonical intent.yaml with metadata + 4 content fields.
 - **Verification:** grep for top-level keys finds EXACTLY `name`, `description`, `version`, `checksum`, `intent`, `constraints`, `failure_conditions`, `scenarios` (eight top-level keys) and nothing else; yamllint passes.
@@ -465,24 +465,24 @@ T37 → T38                                                       (Sub-214.7 —
 - **Verification:** SKILL.md documents ISO 25010 mapping.
 - **Rollback plan:** Delete.
 
-#### T30: Bake `plan-product` via `/create-play`
+#### T30: Bake `spec-product` via `/create-play`
 - **Sub-issue:** 214.5
 - **Files:**
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/plan-product/SKILL.md` (via compile)
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/plan-product/templates/checkpoint.md`
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/plan-product/templates/approval-prompt.md`
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/plan-product/templates/final-report.md`
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/plan-product/evals/evals.json`
-- **Details:** Run `/create-play plan-product` in new mode. Compiler reads intent.yaml from T23, performs skill inventory (T26-T29), audits Product Keeper + Market Analyst, selects Workflow Structure A with 4 checkpoints (market review, domain review, capability review, epic review), bakes SKILL.md, invokes `evals-creator` for step + scenario evals. Run `/create-play --review plan-product` → G1-G11 PASS. Confirm the baked SKILL.md dispatches the scriber agent for evidence writes (inherited from the 214.1 pattern).
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-product/SKILL.md` (via compile)
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-product/templates/checkpoint.md`
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-product/templates/approval-prompt.md`
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-product/templates/final-report.md`
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-product/evals/evals.json`
+- **Details:** Run `/create-play spec-product` in new mode. Compiler reads intent.yaml from T23, performs skill inventory (T26-T29), audits Product Keeper + Market Analyst, selects Workflow Structure A with 4 checkpoints (market review, domain review, capability review, epic review), bakes SKILL.md, invokes `evals-creator` for step + scenario evals. Run `/create-play --review spec-product` → G1-G11 PASS. Confirm the baked SKILL.md dispatches the scriber agent for evidence writes (inherited from the 214.1 pattern).
 - **Depends on:** T29
-- **Expected Outcome:** plan-product compiled and reviewable.
+- **Expected Outcome:** spec-product compiled and reviewable.
 - **Verification:** G1-G11 PASS; SKILL.md references scriber; intent_hash matches.
-- **Rollback plan:** Delete `core/components/plays/plan-product/`.
+- **Rollback plan:** Delete `core/components/plays/spec-product/`.
 
-#### T31: End-to-end test `plan-product` against a fixture
+#### T31: End-to-end test `spec-product` against a fixture
 - **Sub-issue:** 214.5
 - **Files:** None created; run-only verification.
-- **Details:** Run `/plan-product "B2B SaaS platform for healthcare appointment scheduling"` with a pre-built healthcare+HIPAA+high-security profile. Respond to checkpoints with realistic data. Verify output: market-brief.md, scope.yaml, ≥5 intent epics (each with all mandatory fields, ≥2 success, ≥2 failure, quantified constraints, kb_source traceable), quality-profile.yaml. Verify scriber was used (check for background evidence writes). Verify validators caught a hand-injected empty failure_scenarios field.
+- **Details:** Run `/spec-product "B2B SaaS platform for healthcare appointment scheduling"` with a pre-built healthcare+HIPAA+high-security profile. Respond to checkpoints with realistic data. Verify output: market-brief.md, scope.yaml, ≥5 intent epics (each with all mandatory fields, ≥2 success, ≥2 failure, quantified constraints, kb_source traceable), quality-profile.yaml. Verify scriber was used (check for background evidence writes). Verify validators caught a hand-injected empty failure_scenarios field.
 - **Depends on:** T30
 - **Expected Outcome:** End-to-end pipeline produces structurally-deep artifacts.
 - **Verification:** All acceptance criteria under 214.5 PASS.
@@ -497,7 +497,7 @@ T37 → T38                                                       (Sub-214.7 —
 - **Files:**
   - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/design-product/reference/intent.yaml`
   - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/agents/designer.md`
-- **Details:** intent.yaml: metadata zone (`name: design-product`, `description: "Transform plan-product intent epics into personas, screens, flows, and wireframes"`, `version: 0.1.0`, `checksum`) + 4 content fields. Constraints cover pre-flight check for plan-product artifacts, delegation to Designer, whitelist compliance, capability→screen coverage (every capability gets ≥1 screen), ≥3 states per screen, flow coverage (every success scenario → flow; every failure scenario → recovery flow), JTBD personas, non-generic wireframes, accessibility per screen, checkpoint artifacts, RESOLVED/Vanish only, scriber dispatch. No agent-count budget. Failure conditions F1-F10. Scenarios S1-S7. Designer agent frontmatter: `name: designer`, `domain: ux`, `role: designer`. Skills table: all six design skills. Intent Recognition, Context Loading (reads the extended `domain-taxonomy/*.md` sections for UX patterns — no parallel YAML tree), Output Contracts.
+- **Details:** intent.yaml: metadata zone (`name: design-product`, `description: "Transform spec-product intent epics into personas, screens, flows, and wireframes"`, `version: 0.1.0`, `checksum`) + 4 content fields. Constraints cover pre-flight check for spec-product artifacts, delegation to Designer, whitelist compliance, capability→screen coverage (every capability gets ≥1 screen), ≥3 states per screen, flow coverage (every success scenario → flow; every failure scenario → recovery flow), JTBD personas, non-generic wireframes, accessibility per screen, checkpoint artifacts, RESOLVED/Vanish only, scriber dispatch. No agent-count budget. Failure conditions F1-F10. Scenarios S1-S7. Designer agent frontmatter: `name: designer`, `domain: ux`, `role: designer`. Skills table: all six design skills. Intent Recognition, Context Loading (reads the extended `domain-taxonomy/*.md` sections for UX patterns — no parallel YAML tree), Output Contracts.
 - **Depends on:** none (depends on 214.5 completing)
 - **Expected Outcome:** Intent (with metadata) + agent ready.
 - **Verification:** Top-level keys are EXACTLY `name`, `description`, `version`, `checksum`, `intent`, `constraints`, `failure_conditions`, `scenarios`; agent has full structural pattern.
@@ -551,10 +551,10 @@ T37 → T38                                                       (Sub-214.7 —
 #### T36: End-to-end integration test and doc updates
 - **Sub-issue:** 214.6
 - **Files:**
-  - Modify `/Users/kapilahuja/cto/builder/meridian-os/docs/components/plays.md` (add plan-product + design-product rows)
+  - Modify `/Users/kapilahuja/cto/builder/meridian-os/docs/components/plays.md` (add spec-product + design-product rows)
   - Modify `/Users/kapilahuja/cto/builder/meridian-os/docs/components/agents.md` (add Product Keeper, Market Analyst, Designer rows)
   - Modify `/Users/kapilahuja/cto/builder/meridian-os/docs/philosophy/architecture.md` (add KB-driven pipeline section)
-- **Details:** Run `/plan-product` → `/design-product` end-to-end against the 214.5 fixture. Verify every acceptance criterion in the VERIFY section for 214.6. Update docs with the new plays and agents. Add reconciliation note about deprecated plays pointing to deprecated-play-patterns.md for historical context.
+- **Details:** Run `/spec-product` → `/design-product` end-to-end against the 214.5 fixture. Verify every acceptance criterion in the VERIFY section for 214.6. Update docs with the new plays and agents. Add reconciliation note about deprecated plays pointing to deprecated-play-patterns.md for historical context.
 - **Depends on:** T35
 - **Expected Outcome:** Full chain works; docs reflect reality.
 - **Verification:** End-to-end run produces all expected artifacts; docs match.
@@ -562,36 +562,36 @@ T37 → T38                                                       (Sub-214.7 —
 
 ---
 
-### Sub-issue 214.7 — `/spec-arch` fresh build (replaces deleted `/prepare-architecture`)
+### Sub-issue 214.7 — `/build-arch` fresh build (replaces deleted `/prepare-architecture`)
 
-#### T37: Delete `prepare-architecture` and craft `spec-arch` intent.yaml
+#### T37: Delete `prepare-architecture` and craft `build-arch` intent.yaml
 - **Sub-issue:** 214.7
 - **Files:**
   - Delete `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/prepare-architecture/` (entire directory — pattern capture already done in 214.3)
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-arch/reference/intent.yaml`
-- **Details:** Delete prepare-architecture first (prepare-architecture patterns were captured into `deprecated-play-patterns.md` during 214.3 — if that capture was skipped for prepare-architecture specifically, do it here first before deletion). Invoke `intent-crafter` to draft spec-arch intent.yaml with metadata zone (`name: spec-arch`, `description: "Specify architecture for a product given its plan and design artifacts"`, `version: 0.1.0`, `checksum: <computed>`) and the 4 content fields. Constraints cover: pre-flight check for plan-product + design-product artifacts at whitelist-compliant paths; delegation to tech-designer / tech-architect; whitelist compliance for output paths (`.meridian/product/arch/`); scriber dispatch for evidence; structural depth enforcement via a new `validate-architecture-spec` skill that asserts every intent epic maps to at least one architectural decision and every quality attribute has an addressing mechanism. Failure conditions cover: no architecture derived, decisions unsupported by intent epic constraints, quality profile constraints ignored, upstream artifact mismatch. Scenarios cover the tech-architect handoff and the downstream consumer (prepare-implementation) contract. Absorb prepare-architecture patterns from `deprecated-play-patterns.md`.
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/build-arch/reference/intent.yaml`
+- **Details:** Delete prepare-architecture first (prepare-architecture patterns were captured into `deprecated-play-patterns.md` during 214.3 — if that capture was skipped for prepare-architecture specifically, do it here first before deletion). Invoke `intent-crafter` to draft build-arch intent.yaml with metadata zone (`name: build-arch`, `description: "Specify architecture for a product given its plan and design artifacts"`, `version: 0.1.0`, `checksum: <computed>`) and the 4 content fields. Constraints cover: pre-flight check for spec-product + design-product artifacts at whitelist-compliant paths; delegation to tech-designer / tech-architect; whitelist compliance for output paths (`.meridian/product/arch/`); scriber dispatch for evidence; structural depth enforcement via a new `validate-architecture-spec` skill that asserts every intent epic maps to at least one architectural decision and every quality attribute has an addressing mechanism. Failure conditions cover: no architecture derived, decisions unsupported by intent epic constraints, quality profile constraints ignored, upstream artifact mismatch. Scenarios cover the tech-architect handoff and the downstream consumer (prepare-implementation) contract. Absorb prepare-architecture patterns from `deprecated-play-patterns.md`.
 - **Depends on:** none (depends on 214.6 completing and 214.3 pattern capture covering prepare-architecture)
 - **Expected Outcome:** Old play deleted; new intent.yaml ready for compile.
-- **Verification:** prepare-architecture directory no longer exists; spec-arch intent.yaml uses the metadata + 4-content-field shape.
-- **Rollback plan:** git restore on deleted directory; delete spec-arch intent.yaml.
+- **Verification:** prepare-architecture directory no longer exists; build-arch intent.yaml uses the metadata + 4-content-field shape.
+- **Rollback plan:** git restore on deleted directory; delete build-arch intent.yaml.
 
-#### T38: Create new spec-arch skills, compile the play, run full-chain integration test
+#### T38: Create new build-arch skills, compile the play, run full-chain integration test
 - **Sub-issue:** 214.7
 - **Files:**
   - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/skills/validate-architecture-spec/SKILL.md` (new skill)
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-arch/SKILL.md` (via compile — final verb confirmed at 214 approval gate)
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-arch/templates/checkpoint.md`
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-arch/templates/approval-prompt.md`
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-arch/templates/final-report.md`
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-arch/evals/evals.json`
-  - Modify `/Users/kapilahuja/cto/builder/meridian-os/docs/components/plays.md` (add spec-arch; remove prepare-architecture references)
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/build-arch/SKILL.md` (via compile — final verb confirmed at 214 approval gate)
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/build-arch/templates/checkpoint.md`
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/build-arch/templates/approval-prompt.md`
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/build-arch/templates/final-report.md`
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/build-arch/evals/evals.json`
+  - Modify `/Users/kapilahuja/cto/builder/meridian-os/docs/components/plays.md` (add build-arch; remove prepare-architecture references)
   - Modify `/Users/kapilahuja/cto/builder/meridian-os/docs/components/agents.md` (update tech-designer / tech-architect entries if input contract changed)
-  - Modify `/Users/kapilahuja/cto/builder/meridian-os/docs/philosophy/architecture.md` (update KB-driven pipeline section to reference spec-arch)
-- **Details:** Create `validate-architecture-spec` skill: asserts every intent epic is traced to at least one architectural decision and every quality attribute in the quality profile has at least one addressing mechanism in the arch output. Run `/create-play --build spec-arch` — compiler reads T37 intent, skill inventory (reuses existing tech-designer / tech-architect + the new validator), audits agents, selects workflow, produces compiled artifact + evals. `/create-play --review spec-arch` → G1-G11 PASS. End-to-end integration test: `/plan-product` → `/design-product` → `/spec-arch` against a fixture. Confirm `architecture.yaml` and `quality-standards.yaml` produced under `.meridian/product/arch/` with explicit traces back to plan-product quality profile and design-product screen inventory. Grep `docs/` and `core/components/` for any remaining `prepare-architecture` references and remove them.
+  - Modify `/Users/kapilahuja/cto/builder/meridian-os/docs/philosophy/architecture.md` (update KB-driven pipeline section to reference build-arch)
+- **Details:** Create `validate-architecture-spec` skill: asserts every intent epic is traced to at least one architectural decision and every quality attribute in the quality profile has at least one addressing mechanism in the arch output. Run `/create-play --build build-arch` — compiler reads T37 intent, skill inventory (reuses existing tech-designer / tech-architect + the new validator), audits agents, selects workflow, produces compiled artifact + evals. `/create-play --review build-arch` → G1-G11 PASS. End-to-end integration test: `/spec-product` → `/design-product` → `/build-arch` against a fixture. Confirm `architecture.yaml` and `quality-standards.yaml` produced under `.meridian/product/arch/` with explicit traces back to spec-product quality profile and design-product screen inventory. Grep `docs/` and `core/components/` for any remaining `prepare-architecture` references and remove them.
 - **Depends on:** T37
-- **Expected Outcome:** spec-arch compiles cleanly; full three-play chain works end-to-end; no stale prepare-architecture references.
+- **Expected Outcome:** build-arch compiles cleanly; full three-play chain works end-to-end; no stale prepare-architecture references.
 - **Verification:** G1-G11 PASS; integration produces arch artifacts with traces; grep for `prepare-architecture` returns zero matches in `docs/` and `core/components/`.
-- **Rollback plan:** Delete spec-arch directory; git restore prepare-architecture directory; git checkout on docs.
+- **Rollback plan:** Delete build-arch directory; git restore prepare-architecture directory; git checkout on docs.
 
 ---
 
@@ -605,7 +605,7 @@ T37 → T38                                                       (Sub-214.7 —
 - **Capture-then-delete** (214.3) protects accumulated production detail (resolution gates, three-axis profile, decision_points, quality-standards derivation from prepare-architecture) before the deprecated plays disappear.
 - **KB extension, not parallel tree** (214.4) — existing `domain-taxonomy/*.md` files extended with 5 new sections; the ONLY new KB file is `_cross-tree-constraints.yaml`.
 - **Plan-product and design-product are fresh builds** (214.5, 214.6) absorbing captured patterns, using the scriber pattern, and reading from the extended markdown KB.
-- **Spec-arch is a fresh build replacing prepare-architecture** (214.7) — renamed for naming consistency with plan-product / design-product. Full rewrite, not a contract update.
+- **Spec-arch is a fresh build replacing prepare-architecture** (214.7) — renamed for naming consistency with spec-product / design-product. Full rewrite, not a contract update.
 - **Structural depth enforcement** via validators is non-negotiable; shallow outputs become structurally impossible.
 - **Intent schema with metadata** — every new intent.yaml has name, description, version, checksum + 4 content fields.
 
@@ -613,11 +613,11 @@ T37 → T38                                                       (Sub-214.7 —
 
 - `/Users/kapilahuja/cto/builder/meridian-os/.meridian/core/config.yaml` — moved location; whitelist reconciliation; blocks everything downstream (214.2).
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/agents/scriber.md` — utility agent every new play depends on (214.1).
-- `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/deprecated-play-patterns.md` — captured value from soon-to-be-deleted plays (discover-product, plan-roadmap, discover-product-opportunity, prepare-architecture); input to new plays' intent crafting (214.3 + referenced by 214.7 for spec-arch).
+- `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/deprecated-play-patterns.md` — captured value from soon-to-be-deleted plays (discover-product, plan-roadmap, discover-product-opportunity, prepare-architecture); input to new plays' intent crafting (214.3 + referenced by 214.7 for build-arch).
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/intent-yaml-schema.yaml` — canonical intent.yaml shape with metadata + 4 content fields (214.4).
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/kb-extension-conventions.md` — the 5 new markdown section headings and their structures (214.4).
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain-taxonomy/_cross-tree-constraints.yaml` — the ONLY new KB file; deterministic profile-driven configuration (214.4).
-- `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/plan-product/reference/intent.yaml` — metadata + 4 content fields; defines all constraints, failure conditions, scenarios (214.5).
+- `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-product/reference/intent.yaml` — metadata + 4 content fields; defines all constraints, failure conditions, scenarios (214.5).
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/design-product/reference/intent.yaml` — metadata + 4 content fields (214.6).
-- `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/spec-arch/reference/intent.yaml` — metadata + 4 content fields; replaces prepare-architecture (214.7).
+- `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/build-arch/reference/intent.yaml` — metadata + 4 content fields; replaces prepare-architecture (214.7).
 - `CLAUDE.md` (project root) — remove section 4 "Play Constraints"; update play terminology to drop "bake" (214.2).

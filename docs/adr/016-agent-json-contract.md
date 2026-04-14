@@ -25,7 +25,7 @@ The universal protocol for play → agent communication is the **Agent JSON Cont
 ```json
 {
   "intent_path": "<path to play's reference/intent.yaml>",
-  "stm_base": "<resolved from core/config.yaml stm.base-path>",
+  "stm_base": "<resolved from .meridian/core/config.yaml stm.base-path>",
   "stm": {
     "input": {
       "<named_key>": "<path to input artifact in STM>"
@@ -41,7 +41,7 @@ The universal protocol for play → agent communication is the **Agent JSON Cont
 | Field | Required | Source | Description |
 |-------|----------|--------|-------------|
 | `intent_path` | Yes | Play's `reference/intent.yaml` | Agent reads this to understand constraints, failure conditions, scenarios |
-| `stm_base` | Yes | `core/config.yaml` → `stm.base-path` | Root path for all STM artifacts. Resolved during pre-flight. |
+| `stm_base` | Yes | `.meridian/core/config.yaml` → `stm.base-path` | Root path for all STM artifacts. Resolved during pre-flight. |
 | `stm.input` | Yes | Prior steps' `stm.output` paths | Named paths to artifacts this step needs to read. Empty `{}` if first step. |
 | `stm.output` | Yes | Compiler determines during compilation | Named paths where agent writes its artifacts. Become `stm.input` for downstream steps. |
 | `task_id` | Yes | Compiled step ID | Unique within the play. Also used as key in the status file for pause/resume. |

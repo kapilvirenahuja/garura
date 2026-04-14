@@ -15,23 +15,16 @@ Plays define **what to do and in what order**. They are the entry points for all
 | **Checkpoint-gated** | Plays stop for approval at defined points |
 | **Deterministic** | Same play = same flow, predictable behavior |
 
-## Play Levels
+## Plays
 
-| Level | Invocability | Max Agent Calls | Purpose |
-|-------|--------------|-----------------|---------|
-| **L1** | Human OR Model | ≤2 distinct agents | Atomic activities |
-| **L2** | Human only | ≤5 distinct agents (ideal 3) | High-order workflows |
+Per ADR 017 (2026-04-14), play levels (L1/L2) and agent-count budgets are retired. A play is just a play — coherence is enforced by the intent schema (constraints, failure conditions, scenarios) and by evals, not by a level or agent-count ceiling. Play authors focus on structural correctness, not compliance bookkeeping.
 
-Recovery agent calls and Claude built-in sub-agents (Task, Plan, Explore) are exempt from the agent limit.
+Plays still distinguish themselves along two axes:
 
-### When to Use Each Level
+- **Invocability**: some plays are human-only (they stop at checkpoints waiting for Tether/Vanish); others can be model-invoked for automated sequencing.
+- **Chaining**: some plays chain other plays (e.g., `ship` chains `commit-code` → `create-pr` → `review-pr` → `merge-pr`); most are standalone.
 
-| Use L1 When | Use L2 When |
-|-------------|-------------|
-| Single-purpose task | Multi-step workflow |
-| Can be model-invoked | Needs human oversight |
-| Produces one artifact | Chains multiple artifacts |
-| Simple checkpoint | Multiple checkpoints or task graph |
+Neither of these requires a level label.
 
 ## Two Play Patterns
 

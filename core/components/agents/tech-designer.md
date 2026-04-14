@@ -171,7 +171,7 @@ Context loading is selective and domain-aware. Never bulk-load memory — search
 
 ### Step 1: Load Config
 
-Read `core/config.yaml` to understand:
+Read `.meridian/core/config.yaml` to understand:
 - Project structure and component paths
 - STM paths for evidence output
 - Platform and repository configuration

@@ -1,12 +1,12 @@
 ---
 name: create-play
-description: Compile a new play from intent — interview for intent, identify skills and agents, select workflow, compile a deterministic SKILL.md. Use when building a new play, re-baking an existing one, or reviewing a play for gaps.
+description: Compile a new play from intent — interview for intent, identify skills and agents, select workflow, compile a deterministic SKILL.md. Use when building a new play, rebuilding an existing one, or reviewing a play for gaps.
 user-invokable: true
 ---
 
 # create-play
 
-The play compiler. Takes an intent.yaml (existing or newly crafted) and produces a compiled, deterministic play as a single SKILL.md file. Workflow structure, task ordering, eval criteria, and pre-flight checks are baked into the compiled output.
+The play compiler. Takes an intent.yaml (existing or newly crafted) and produces a compiled, deterministic play as a single SKILL.md file. Workflow structure, task ordering, eval criteria, and pre-flight checks are built into the compiled output.
 
 ## Maturity Level Guards
 
@@ -47,7 +47,7 @@ Ask the user for the **play name**. Check if `core/components/plays/{play-name}/
 |---------------|------|------|
 | Neither | — | **New** — build from scratch |
 | intent.yaml only | — | **New** — intent exists, build play |
-| Both | `--rebake` | **Rebake** — rebuild play from existing intent |
+| Both | `--build` | **Rebake** — rebuild play from existing intent |
 | Both | `--review` | **Review** — diagnose gaps, no modifications |
 
 Create STM directory at `{stm_base}/{issue}/evidence/create-play/{play-name}/`.
@@ -62,7 +62,7 @@ Perform the deep read (same as Review mode Step R1 below), then move to Step 2.
 
 #### Review mode
 
-Review is diagnostic only — it reads everything, finds gaps, and reports. It NEVER modifies files. If the user wants to fix gaps, they run `--rebake` afterward.
+Review is diagnostic only — it reads everything, finds gaps, and reports. It NEVER modifies files. If the user wants to fix gaps, they run `--build` afterward.
 
 **Step R1 — Deep Read**
 
@@ -121,7 +121,7 @@ Present to user:
 **Summary:** {X}/11 PASS, {Y} GAPs found
 
 {If GAPs > 0:}
-Run `/create-play --rebake {play-name}` to fix identified gaps.
+Run `/create-play --build {play-name}` to fix identified gaps.
 ```
 
 **Review mode terminates here.** No Steps 2-7. No modifications to any files.
@@ -142,7 +142,7 @@ Context:
 
 The crafter runs a detailed interview: goal, constraints, failure conditions, acceptance scenarios.
 
-#### Rebake mode
+#### Rebuild mode
 
 Invoke `intent-crafter` agent with existing intent and play analysis as context:
 
@@ -153,7 +153,7 @@ Context:
   existing_intent_path: "core/components/plays/{play-name}/reference/intent.yaml"
   play_analysis_path: "{stm_base}/{issue}/evidence/create-play/{play-name}/play-analysis.md"
   output_path: "core/components/plays/{play-name}/reference/intent.yaml"
-  mode: "rebake"
+  mode: "rebuild"
 ```
 
 The crafter reads the play analysis from STM — the full mapping of agents, skills, contracts, and constraint coverage — and checks the existing intent against it. It identifies gaps: missing constraints, uncovered failure modes, scenarios that don't match real usage.
@@ -357,13 +357,13 @@ Write `core/components/plays/{play-name}/SKILL.md` with ALL required sections:
 - Each agent dispatch includes the full JSON contract template with `stm` paths (per ADR 016)
 - Step evals appear immediately after the step they validate
 - Critical rule for Structure A: execution phase agents read STM data, NEVER the checkpoint brief
-- No runtime DAG — task ordering is baked into SKILL.md
+- No runtime DAG — task ordering is built into SKILL.md
 - No runtime intent resolution — everything the play needs is compiled in
 - Intent hash in Compilation Metadata section (end of file) for drift detection — NOT in frontmatter
 - **Checkpoint review surface:** Human checkpoints present the YAML artifact file paths as the review surface by default. Domain agents produce artifacts → play presents the artifact paths for human review (Tether/Vanish/Orbit). Users may run `/briefs` separately on demand to generate HTML renderings. Do NOT insert a `doc-builder` step before checkpoints unless intent.yaml explicitly mandates brief generation as a constraint. Briefs are opt-in, not mandatory.
 - **Agent budget — domain vs utility:** The ≤5 agent call limit applies to domain agents only. Utility agents (`repo-orchestrator` for commits/evidence, and `doc-builder` when a play explicitly opts into brief generation) are exempt. Compilation Metadata must list domain and utility agents separately.
 
-**Pause and Resume (baked into compiled play):**
+**Pause and Resume (built into compiled play):**
 1. Issue detection in pre-flight (extract from branch name or user input)
 2. Status file at `{stm_base}/{issue}/status/{play-name}.json`
 3. Write status after every step completion

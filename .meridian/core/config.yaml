@@ -42,19 +42,20 @@ ltm:
   project-target: ./.meridian/core/memory/
   global-target: ~/.meridian/core/memory/
 
-# Short-Term Memory (STM) — Issue-centric artifacts (ADR 008, ADR 010)
+# Short-Term Memory (STM) — Issue-centric artifacts (ADR 008, ADR 010, ADR 017)
 # Variables: {stm_base} = base-path, {stm_pending} = pending-path, {stm_archive} = archive-path
 # All agents, plays, and skills resolve these from config — never hardcode paths.
+# Per ADR 017, only 5 structure keys are permitted: specs, evidence, checkpoint, context, review.
 stm:
   base-path: .meridian/project/issues/
   pending-path: .meridian/project/issues/_pending/
   archive-path: .meridian/project/issues/_archive/
   structure:
-    spec: "{issue-number}/spec/"
-    design: "{issue-number}/design/"
+    specs: "{issue-number}/specs/"
     evidence: "{issue-number}/evidence/{play-name}/{YYYYMMDD-HHMMSS}.md"
-    delivery: "{issue-number}/delivery/"
     checkpoint: "{issue-number}/checkpoint/{play-name}/{YYYYMMDD-HHMMSS}.md"
+    context: "{issue-number}/context/"
+    review: "{issue-number}/review/"
 
 # Standards resolution — first play-specific section; pattern for future plays
 standards:
@@ -69,14 +70,13 @@ review-pr:
   fallback_reviewers: []
   activity_window_days: 90
 
-# Product artifacts — parallel to project, not nested
+# Product artifacts — parallel to project, not nested (ADR 017 whitelist)
+# Only 3 directories permitted: product/ux/arch. Operational artifacts (checkpoints,
+# status, evidence) for product-scoped plays live INSIDE these buckets using
+# underscore-prefixed subfolders (e.g., product/_checkpoints/spec-product/).
 product:
   base-path: .meridian/product/
   directories:
-    discovery: discovery/
-    roadmap: roadmap/
-    architecture: architecture/
-    evidence: evidence/
-    briefs: briefs/
-    checkpoints: checkpoints/
-    status: status/
+    product: product/
+    ux: ux/
+    arch: arch/

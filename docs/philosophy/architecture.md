@@ -38,7 +38,7 @@ Meridian implements Intent-Driven Software Development through a **three-layer h
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                        MEMORY                               │
-│  LTM: Practices, config (core/memory/, core/config.yaml)    │
+│  LTM: Practices, config (core/memory/, .meridian/core/config.yaml)    │
 │  STM: Artifacts per issue (.meridian/{issue}/)              │
 └─────────────────────────────────────────────────────────────┘
 ```

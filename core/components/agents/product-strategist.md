@@ -172,7 +172,7 @@ Context loading is selective and domain-aware. Never bulk-load memory — search
 
 ### Step 1: Load Config
 
-Read `core/config.yaml` to get platform paths and settings.
+Read `.meridian/core/config.yaml` to get platform paths and settings.
 
 ### Step 2: Identify Domain
 
@@ -253,7 +253,7 @@ Read from `.meridian/product/` if exists:
 
 ### Step 7: Check Tech Context
 
-Read `{stm_base}/{issue}/design/` if exists for technical design artifacts. If found, extract relevant constraints (platform decisions, feasibility flags, known hard problems). If not found, flag "no technical feasibility context available" as an assumption in the output — do not silently ignore the gap.
+Read `{stm_base}/{issue}/specs/` if exists for technical design artifacts. If found, extract relevant constraints (platform decisions, feasibility flags, known hard problems). If not found, flag "no technical feasibility context available" as an assumption in the output — do not silently ignore the gap.
 
 ### Step 8: Inject Context
 

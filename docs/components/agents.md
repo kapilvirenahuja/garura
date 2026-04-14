@@ -65,6 +65,31 @@ Meridian avoids both extremes:
 | `repo-orchestrator` | repo | orchestrator | sonnet | Autonomous decision-maker for repository operations (commits, branches, PRs, git state) |
 | `project-orchestrator` | project | orchestrator | sonnet | Autonomous decision-maker for project management operations (issues, tracking, planning) |
 | `engineering-manager` | engineering | manager | sonnet | QP compliance certifier — verifies implementation meets Quality Profile standards |
+| `scriber` | infra | evidence-writer | haiku | Utility agent. Writes evidence, checkpoint, and status artifacts to disk for plays, enforcing the `.meridian/` folder whitelist at the write boundary. Runs in the background so orchestrators can continue domain work in parallel with evidence I/O. |
+
+### Scriber dispatch pattern (Utility agent, 214.1)
+
+`scriber` is a utility agent — it performs no domain reasoning and owns no decisions about content. Plays dispatch it via the Agent tool with `run_in_background: true` for every write that lands in the `.meridian/` folder whitelist (evidence, checkpoint, status artifacts). The scriber invokes the `write-evidence` skill, which is the single chokepoint that validates paths against the 9 whitelist patterns before calling `Write`.
+
+**When to dispatch scriber instead of writing inline:**
+
+| Artifact | Writer | Rationale |
+|----------|--------|-----------|
+| Plan output (spec.md, verify.md, tasks.md) | Play (inline) | User reads immediately — synchronous |
+| Final report presented at play end | Play (inline) | User is waiting — synchronous |
+| Checkpoint file at approval gate | `scriber` | Written before the gate; gate itself is user-blocked, so background write is fine |
+| Checkpoint status updates after gate | `scriber` | Non-blocking status updates as the play progresses |
+| Evidence files (step evals, scenario evals, traces) | `scriber` | Accumulated during play run; not user-facing until review |
+| Status / resume-state files | `scriber` | Written continuously during play execution |
+| Self-commit prep (files to stage) | Play (inline) | Orchestrator needs the paths in the same step |
+
+**Rule of thumb:** if the orchestrator reads the file back in the same step, it writes inline. If the file is for later consumption (user review, resume, audit), it goes through scriber.
+
+**Non-blocking guarantees:** scriber runs with `run_in_background: true`. Plays do NOT wait for scriber to finish before continuing. At play shutdown, the orchestrator briefly waits for any outstanding scriber tasks to complete (bounded wait) and then stages the scriber-written files for the self-commit step.
+
+**Failure semantics:** scriber failure never halts a play. Evidence writes are non-critical by definition. On failure, the orchestrator logs a warning and continues. Exception: if a specific evidence write is required for a downstream step (e.g., self-commit), that specific write is blocking and scriber is awaited synchronously for that call.
+
+**Reference adopter:** the `commit-code` play's `intent.yaml` carries constraint C8 that delegates evidence writes to scriber. This is the first play to adopt the pattern. Future plays (`spec-product`, `design-product`, `build-arch`) ship with scriber dispatch built in from the start.
 
 ## Agent Behavior
 
@@ -255,7 +280,7 @@ Play → invokes → Agent → uses → Skills
 ## Context Building
 
 Agents build context by:
-1. Reading `core/config.yaml` for platform paths and settings
+1. Reading `.meridian/core/config.yaml` for platform paths and settings
 2. Reading intent.yaml from the JSON contract (when in contract mode)
 3. Searching LTM (`~/.meridian/core/memory/`) selectively — by domain keywords, not bulk loading
 4. Reading existing STM artifacts at non-null `stm` paths

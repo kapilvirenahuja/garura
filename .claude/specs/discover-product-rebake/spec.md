@@ -22,7 +22,7 @@ discover-product handles both market-facing products and internal libraries/comp
 3. draft-product-vision skill changes (accept missing market_context, write `type` field)
 4. validate-product-vision skill changes (type-aware checklist adaptation)
 5. generate-product-brief skill changes (conditional tab rendering, skip empty sections)
-6. discover-product SKILL.md recompilation via `/create-play --rebake`
+6. discover-product SKILL.md recompilation via `/create-play --build`
 
 ### Out of Scope
 - discover-product-opportunity skill (no changes — it just doesn't get called)
@@ -292,7 +292,7 @@ No design system changes — same LifeOS Dark tokens.
 
 The play SKILL.md is NOT hand-edited. After all skill changes are complete:
 ```
-/create-play --rebake discover-product
+/create-play --build discover-product
 ```
 
 The compiler (with play-eval-gen changes) will produce a new SKILL.md that:
@@ -325,7 +325,7 @@ Agent budget when skipped: 2 dispatches (1 product-strategist for draft, 1 doc-b
 3. **Update draft-product-vision SKILL.md** — Accept raw_intent, conditional composition, type field
 4. **Update validate-product-vision SKILL.md** — Type-aware checklist, dynamic scoring
 5. **Update generate-product-brief SKILL.md** — Conditional tab rendering, skip empty sections
-6. **Rebake play** — `/create-play --rebake discover-product` (AFTER play-eval-gen is done)
+6. **Rebake play** — `/create-play --build discover-product` (AFTER play-eval-gen is done)
 7. **Sync** — `/sync-claude`
 
 Steps 2-5 can be parallelized. Step 1 goes first (intent is source of truth). Step 6 depends on all previous steps AND the play-eval-gen spec being complete.

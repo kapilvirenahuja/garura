@@ -4,7 +4,7 @@ intent: >
   submit a pull request, optionally run the review-pr quality gate, merge
   the PR, switch to main, pull latest, and delete the feature branch
   (local and remote). Auto-proceeds end-to-end unless the review-pr
-  quality gate blocks. When review-pr.bypass is false in core/config.yaml,
+  quality gate blocks. When review-pr.bypass is false in .meridian/core/config.yaml,
   review-pr runs between create-pr and merge-pr; a P1 finding or
   sub-threshold confidence halts the pipeline before merge. Set
   review-pr.bypass to true to preserve the unconditional auto-proceed
@@ -21,7 +21,7 @@ constraints:
     rule: >
       All chained operations execute without human approval gates,
       EXCEPT the review-pr quality gate when review-pr.bypass is false
-      in core/config.yaml. When bypass is true, the pipeline auto-proceeds
+      in .meridian/core/config.yaml. When bypass is true, the pipeline auto-proceeds
       end-to-end at every step.
   - id: C3
     rule: >

@@ -228,7 +228,7 @@ Before this change is considered complete, run the following validation:
 
 ### Gate 1: Rebake discover-product
 
-1. Run `/create-play --rebake discover-product` with the updated pipeline
+1. Run `/create-play --build discover-product` with the updated pipeline
 2. Compare generated evals vs current hand-authored evals:
    - **Coverage:** All 11 constraints, 7 failure conditions, 3 scenarios must be covered (currently 5+ constraints are uncovered)
    - **Alignment:** SE-3 should correctly map to F2 (domain unresolvable), not test persona count
@@ -237,7 +237,7 @@ Before this change is considered complete, run the following validation:
 
 ### Gate 2: Rebake commit-code (cross-validation)
 
-1. Run `/create-play --rebake commit-code` with the updated pipeline
+1. Run `/create-play --build commit-code` with the updated pipeline
 2. Compare generated evals vs the hand-authored evals in the current compiled play
 3. The generated output should be structurally equivalent but with better traceability and no threshold invention
 

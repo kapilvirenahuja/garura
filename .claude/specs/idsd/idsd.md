@@ -867,7 +867,7 @@ Step 19: Write evidence, present final report, evidence self-commit
 **Generates:** PR with dynamic quality checklist, change-specific evidence, embedded eval results
 
 **Key behaviors:**
-- Platform-agnostic (reads `platform:` from core/config.yaml)
+- Platform-agnostic (reads `platform:` from .meridian/core/config.yaml)
 - Checklist items are change-specific (every item has trigger reason tracing to diff)
 - Confidence-gated — high confidence auto-submits; low confidence requires human review
 - Checkpoint SKIPPED when all confidence signals high

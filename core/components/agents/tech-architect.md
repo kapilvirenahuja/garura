@@ -245,7 +245,7 @@ Context loading is selective and task-aware. Load only what is relevant to the c
 
 ### Step 1: Load Config
 
-Read `core/config.yaml` to understand:
+Read `.meridian/core/config.yaml` to understand:
 - STM paths for evidence output
 - Platform and repository configuration
 - **Play constraints** — extract and validate before starting analysis

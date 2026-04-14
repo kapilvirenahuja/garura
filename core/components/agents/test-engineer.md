@@ -326,7 +326,7 @@ Context loading is targeted and evidence-based. Never bulk-load files — read w
 
 ### Step 1: Load Config
 
-Read `core/config.yaml` to understand:
+Read `.meridian/core/config.yaml` to understand:
 - STM base path for evidence artifacts
 - Project structure and component paths
 - **Play constraints** — extract and validate before starting any analysis

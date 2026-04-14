@@ -27,7 +27,7 @@ core/components/           # Source of truth (edit here)
 - Memory deploys to `~/.meridian/core/memory/` (global mode, default) or `.meridian/core/memory/` (project mode, ephemeral)
 - The `sync-droids` script transforms Claude Code agents into Factory Droid format during deployment
 
-**Data Flow:** High-order play → chains atomic plays → play invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `core/config.yaml`)
+**Data Flow:** High-order play → chains atomic plays → play invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `.meridian/core/config.yaml`)
 
 ## Tool Name Mapping
 
@@ -154,7 +154,7 @@ Always use Task tools for non-trivial work. Plan before executing.
 
 ## Reference
 
-- `core/config.yaml` — Paths and settings
+- `.meridian/core/config.yaml` — Paths and settings
 - `docs/adr/` — Architecture Decision Records (8 ADRs)
 - `docs/philosophy/` — Core architecture philosophy
 - `docs/components/` — Agent, skill, play, memory documentation
