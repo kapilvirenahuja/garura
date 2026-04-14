@@ -40,7 +40,7 @@ The play passes four things:
   "workflow_path": "<path to LTM workflow template>",
   "config_path": "<path to .meridian/core/config.yaml>",
   "agents": [
-    { "name": "product-strategist", "domain": "product" },
+    { "name": "feature-steward", "domain": "product" },
     { "name": "tech-designer", "domain": "design" }
   ]
 }

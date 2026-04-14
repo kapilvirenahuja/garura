@@ -265,12 +265,12 @@ Example from `plan-roadmap`:
 
 | # | Capability | Agent | Needs | Produces |
 |---|------------|-------|-------|----------|
-| 1 | Scope epics with IDD fields | product-strategist | vision | epics.yaml |
+| 1 | Scope epics with IDD fields | feature-steward | vision | epics.yaml |
 | 2 | Assess technical feasibility | tech-designer | epics.yaml | feasibility.yaml |
-| 3 | Produce reviewable brief | product-strategist | epics, feasibility, vision | brief.html |
+| 3 | Produce reviewable brief | feature-steward | epics, feasibility, vision | brief.html |
 | — | CHECKPOINT: human review | orchestrator | brief.html | approved_brief |
-| 4 | Produce full roadmap | product-strategist | epics, feasibility, approved brief | roadmap.md |
-| 5 | Produce engineering view | product-strategist | roadmap.md | roadmap-engineering.md |
+| 4 | Produce full roadmap | feature-steward | epics, feasibility, approved brief | roadmap.md |
+| 5 | Produce engineering view | feature-steward | roadmap.md | roadmap-engineering.md |
 
 **Capability graph vs. task graph:** The capability graph (5 capabilities + checkpoint) shows WHAT gets produced — the deliverables and their data dependencies. The task graph adds orchestrator-owned tasks that are not capabilities: the human review checkpoint task and the final report task. This brings the total task count to 7 for `plan-roadmap`. The two views are complementary: the capability graph is the design-time declaration; the task graph is the runtime execution plan created from it.
 

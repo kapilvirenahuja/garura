@@ -28,7 +28,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 |-------|------|--------|--------|
 | `tech-architect` | domain | Architecture inference, dependency graph, git history, LTM consultation, context assembly, change surface, tech.yaml + LLD, plan.yaml + DAG | Context Resolution (Steps 2, 4, 5, 6, 7), Blast Radius (Step 8), DRAFT Stages 2 and 3 (Steps 13, 16) |
 | `test-engineer` | domain | Test surface mapping, blast radius computation, baseline test specification, three-tier scenarios | Context Resolution (Step 3), Blast Radius (Steps 9, 10), DRAFT Stage 3 (Step 15) |
-| `product-strategist` | domain | features.yaml, cross-validation | DRAFT Stage 1 (Step 11), VALIDATE (Step 18) |
+| `feature-steward` | domain | features.yaml, cross-validation | DRAFT Stage 1 (Step 11), VALIDATE (Step 18) |
 | `doc-builder` | utility | HTML briefs for each checkpoint | DRAFT Stages 1, 2, 3 (Steps 12, 14, 17) |
 | `repo-orchestrator` | utility | Evidence self-commit | Evidence & Close (Step 22) |
 
@@ -696,7 +696,7 @@ Type **Orbit** with feedback to revise the change surface and recompute.
 ---
 
 **Step 11 — Draft Features**
-Owner: `product-strategist`
+Owner: `feature-steward`
 Depends on: Checkpoint 1
 Skill: `draft-product-spec`
 
@@ -782,7 +782,7 @@ Type **Vanish** to halt.
 Type **Orbit** with feedback to revise features before tech design begins.
 ```
 
-**Orbit handling:** Pass feedback to product-strategist, re-run Step 11 with feedback as additional input, regenerate brief, re-present Checkpoint 2.
+**Orbit handling:** Pass feedback to feature-steward, re-run Step 11 with feedback as additional input, regenerate brief, re-present Checkpoint 2.
 
 **SE-15 (C10, C18, F12):** User must type "Tether" before Step 13 executes.
 
@@ -1143,7 +1143,7 @@ Type **Orbit** with feedback to revise scenarios, plan, or both.
 ---
 
 **Step 18 — Cross-Validate**
-Owner: `product-strategist`
+Owner: `feature-steward`
 Depends on: Checkpoint 4
 Skill: `validate-implementation-design`
 
@@ -1495,7 +1495,7 @@ for each step in compiled order:
 | compiled_at | 2026-03-31T12:00:00+0530 |
 | maturity | L2 |
 | workflow_structure | A — Full checkpoint flow (5 checkpoints) |
-| domain_agents | 3 (tech-architect, test-engineer, product-strategist) |
+| domain_agents | 3 (tech-architect, test-engineer, feature-steward) |
 | utility_agents | 2 (doc-builder, repo-orchestrator) |
 | agent_budget | exempt — no budget limit. Rationale: prepare-implementation is the make-or-break context pass for all downstream implementation work. If context is wrong, implement-epic executes the wrong plan. Thoroughness is the primary value of this play. Every agent dispatch contributes directly to artifact quality. Imposing a budget would degrade completeness, which defeats the play's core purpose. |
 | parallel_phases | Steps 2-6 (Phase 1 parallel context collection), Steps 15-16 (Stage 3 parallel scenarios + plan) |

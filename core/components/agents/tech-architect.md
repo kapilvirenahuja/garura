@@ -491,7 +491,7 @@ architecture:
 - Modify source code files
 - Do test surface mapping — that is test-engineer's domain
 - Do blast radius computation — that is test-engineer's domain
-- Produce scenarios.yaml — that is test-engineer and product-strategist's domain
+- Produce scenarios.yaml — that is test-engineer and feature-steward's domain
 - Specify baseline tests — that is test-engineer's domain
 - Ask user questions directly — return to caller for user interaction
 - Use `AskUserQuestion` tool — callers handle user interaction

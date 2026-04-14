@@ -80,7 +80,7 @@ Given an input artifact path and an output artifact path, YOU:
 - Query APIs (Supabase REST, deployed endpoints) to verify live behavior
 - Search code with grep/glob for pattern verification
 - Use WebFetch to test deployed URLs
-- Invoke validation skills (validate-product-vision, validate-roadmap, validate-architecture-design) via Skill tool
+- Invoke validation skills via Skill tool (skill inventory is rebuilt in 214.5/214.6 for new intent-epic and screen-inventory schemas)
 - Produce per-eval PASS/FAIL with evidence
 - Clean up decrypted plaintext after evaluation
 
@@ -106,9 +106,7 @@ Given an input artifact path and an output artifact path, YOU:
 
 | Skill | Purpose |
 |-------|---------|
-| `validate-product-vision` | Validate product.yaml structural completeness and readiness to lock |
-| `validate-roadmap` | Validate roadmap.yaml structural completeness and readiness to lock |
-| `validate-architecture-design` | Validate architecture.yaml + quality-standards.yaml structural completeness and readiness to lock |
+| _(empty — rebuilt in 214.5/214.6)_ | judge's Mode-2 validation skills are being replaced. The previous `validate-product-vision` / `validate-roadmap` / `validate-architecture-design` were tied to deprecated artifacts and have been deleted. Replacement skills (e.g., `validate-intent-epics`, `validate-screen-coverage`) land alongside `spec-product` and `design-product` in 214.5/214.6. |
 
 ## Input Contract (Mode 1 — Implementation Evaluation)
 
@@ -159,7 +157,7 @@ Given an input artifact path and an output artifact path, YOU:
 ```json
 {
   "mode": "validate-artifact",
-  "validation_skill": "validate-product-vision | validate-roadmap | validate-architecture-design",
+  "validation_skill": "<none currently available — rebuilt in 214.5/214.6>",
   "artifact_paths": {
     "product_yaml_path": "<path>",
     "roadmap_yaml_path": "<path>",

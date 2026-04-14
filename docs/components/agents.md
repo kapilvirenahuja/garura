@@ -59,7 +59,7 @@ Meridian avoids both extremes:
 
 | Agent | Domain | Role | Model | Description |
 |-------|--------|------|-------|-------------|
-| `product-strategist` | product | strategist | opus | Autonomous decision-maker for product discovery, vision, roadmapping, and backlog management |
+| `feature-steward` | product | strategist | opus | Autonomous decision-maker for product discovery, vision, roadmapping, and backlog management |
 | `tech-designer` | design | designer | sonnet | Technical analysis, RCA, and solution design for features and bugs |
 | `code-builder` | implementation | builder | sonnet | Executes structured execution plans for software implementation — requires a formal plan as input. ONLY for source code files. |
 | `repo-orchestrator` | repo | orchestrator | sonnet | Autonomous decision-maker for repository operations (commits, branches, PRs, git state) |
@@ -160,7 +160,7 @@ Each agent defines skill-specific return formats in its Output Contracts section
 
 Each agent owns a set of skills. Agents invoke skills via the **Skill tool** provided by Claude Code. Agents are the only callers of those skills within their domain. The agent's skill pool table documents which skills it owns and when to use each.
 
-### product-strategist Skill Pool
+### feature-steward Skill Pool
 
 | Skill | Purpose |
 |-------|---------|

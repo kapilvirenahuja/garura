@@ -98,13 +98,13 @@ Foundation epics go in the `near` bucket with `P1` priority because nothing else
 
 | Rule | Agents/Skills That Apply It |
 |------|-----------------------------|
-| Vertical Slice Delivery | product-strategist (scope-roadmap-epics), tech-designer (assess-feasibility) |
-| Single Module Scope | product-strategist (scope-roadmap-epics) |
-| Mocks as Phased Delivery | product-strategist (draft-roadmap), tech-designer (assess-feasibility) |
-| Scope Boundaries | product-strategist (scope-roadmap-epics), tech-designer (assess-feasibility) |
-| Success Verifiability | product-strategist (scope-roadmap-epics) |
-| Dependency Discipline | product-strategist (scope-roadmap-epics, draft-roadmap) |
-| Foundation Investments | product-strategist (scope-roadmap-epics, draft-roadmap) |
+| Vertical Slice Delivery | feature-steward (scope-roadmap-epics), tech-designer (assess-feasibility) |
+| Single Module Scope | feature-steward (scope-roadmap-epics) |
+| Mocks as Phased Delivery | feature-steward (draft-roadmap), tech-designer (assess-feasibility) |
+| Scope Boundaries | feature-steward (scope-roadmap-epics), tech-designer (assess-feasibility) |
+| Success Verifiability | feature-steward (scope-roadmap-epics) |
+| Dependency Discipline | feature-steward (scope-roadmap-epics, draft-roadmap) |
+| Foundation Investments | feature-steward (scope-roadmap-epics, draft-roadmap) |
 
 ## Relationship to Domain Taxonomy
 

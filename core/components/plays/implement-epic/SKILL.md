@@ -7,7 +7,7 @@ model: opus
 
 # implement-epic
 
-Given a locked execution plan entry and a defined feature, produce a working implementation through an eval-driven TDD loop. Context isolation is structural: the test-writer receives only behavioral specifications (TEST-CONTEXT.md), the code-builder receives CONTEXT.md plus read-only test files, the eval generator reads only specs, the judge reads only evals. An engineering-manager certifies QP compliance after quality gates pass. Quality gate FAIL is a hard stop — the judge does not execute while gates are failing. Remediation draws from all three sources: judge failures, quality gate failures, and QP threshold failures. Eval count stability is audited across fix iterations. A product-strategist generates manual test scenarios. The process produces committed code, a judge report, quality report, EM certification, and manual test scenarios.
+Given a locked execution plan entry and a defined feature, produce a working implementation through an eval-driven TDD loop. Context isolation is structural: the test-writer receives only behavioral specifications (TEST-CONTEXT.md), the code-builder receives CONTEXT.md plus read-only test files, the eval generator reads only specs, the judge reads only evals. An engineering-manager certifies QP compliance after quality gates pass. Quality gate FAIL is a hard stop — the judge does not execute while gates are failing. Remediation draws from all three sources: judge failures, quality gate failures, and QP threshold failures. Eval count stability is audited across fix iterations. A feature-steward generates manual test scenarios. The process produces committed code, a judge report, quality report, EM certification, and manual test scenarios.
 
 ## Compiled From
 
@@ -33,7 +33,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 | `quality-auditor` | Quality Auditor | Lint, test, type check, build, QP-derived gates | Implemented code, quality vision gates | Evals, builder prompts, judge reports, EM report, eval-generator output | Execution (7) + Fix Loop (11) | Domain (1 call per iteration) |
 | `engineering-manager` | QP Certifier | Compare actual measurements vs QP thresholds | quality-standards.yaml + quality-report.yaml | Evals, judge reports, builder prompts, feature specs, scenarios | Execution (7b) + Fix Loop (11b) | Domain (1 call per iteration) |
 | `judge` | Judge | Decrypt evals, run checks, report | Encrypted evals + decryption key, project location, credentials | Builder prompts, builder reasoning, eval-generator prompts, quality results, EM report | Execution (8) + Fix Loop (13) | Domain (1 call per iteration) |
-| `product-strategist` | Scenario Writer | Generate manual test scenarios | Feature success scenarios, plan.yaml exit gate, deployed URL | Evals, builder prompts, judge reports | Finalize | Domain (1 call) |
+| `feature-steward` | Scenario Writer | Generate manual test scenarios | Feature success scenarios, plan.yaml exit gate, deployed URL | Evals, builder prompts, judge reports | Finalize | Domain (1 call) |
 | `repo-orchestrator` | Git | Commit, push, evidence self-commit | Committed files | — | Finalize, Evidence | Utility (exempt) |
 
 **Context isolation invariants (C4/C5/C6/C17):** The orchestrator is the ONLY entity that touches multiple agent outputs. When passing information between agents, the orchestrator MUST filter. Specifically:
@@ -868,7 +868,7 @@ Present to user and halt.
 ### Phase: Finalize
 
 **Step 15 — Generate Test Scenarios**
-Owner: `product-strategist` (as Scenario Writer)
+Owner: `feature-steward` (as Scenario Writer)
 Depends on: Step 8 or Step 13 (all evals pass)
 
 ```json
@@ -1155,7 +1155,7 @@ Inline agent contracts in this play may be extracted into standalone skills afte
 | compiled_at | 2026-03-27 |
 | maturity | L2 |
 | workflow_structure | A (with conditional fix loop in execution phase) |
-| domain_agents | 8 (tech-designer, eval-generator, test-writer, code-builder, quality-auditor, engineering-manager, judge, product-strategist) |
+| domain_agents | 8 (tech-designer, eval-generator, test-writer, code-builder, quality-auditor, engineering-manager, judge, feature-steward) |
 | utility_agents | 1 (repo-orchestrator) |
 | domain_calls_clean_run | 8 (context + evals + test-writer + builder + quality-auditor + EM + judge + scenarios) |
 | domain_calls_max_fix_loop | 26 (clean run + 3 × [fix + optional-test-update + quality + EM + fresh-evals + fresh-judge]) |

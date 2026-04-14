@@ -4,7 +4,7 @@ The standard that all participating agents follow when `ltm_context` is
 present in their input contract. Defines the four-step resolution order,
 authority semantics, trace output requirements, and exemptions.
 
-Referenced by: tech-designer, product-strategist, repo-orchestrator
+Referenced by: tech-designer, feature-steward, repo-orchestrator
 
 ## Overview
 

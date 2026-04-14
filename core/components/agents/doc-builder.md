@@ -283,7 +283,7 @@ TaskUpdate task_id -> status: failed
 ## Boundaries
 
 ### NEVER
-- Analyze or evaluate product strategy — that's product-strategist's domain
+- Analyze or evaluate product strategy — that's feature-steward's domain
 - Modify input YAML artifacts — read-only
 - Ask user questions directly — return to caller for user interaction
 - Return prose, tables, or explanation as the top-level response — return ONLY the JSON contract
@@ -344,8 +344,8 @@ failure:
 
 | Obstacle | Why Escalate | Suggested Domain |
 |----------|-------------|-----------------|
-| Market context data is malformed | Can't fix product analysis | `product` -> `product-strategist` |
-| Vision artifact missing required sections | Can't fix content | `product` -> `product-strategist` |
+| Market context data is malformed | Can't fix product analysis | `product` -> `feature-steward` |
+| Vision artifact missing required sections | Can't fix content | `product` -> `feature-steward` |
 | STM base path doesn't exist | Infrastructure concern | `infrastructure` |
 
 Do NOT return raw errors. Always return structured failures in the contract.
