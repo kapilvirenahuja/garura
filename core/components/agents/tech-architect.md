@@ -343,6 +343,9 @@ When invoked via JSON contract, delegate artifact production to skills when avai
 | Skill | When | Input | Produces |
 |-------|------|-------|----------|
 | `research-domain-context` | LTM insufficient for framework/pattern coverage | `domain`, `knowledge_gaps`, `problem_statement`, `output_base` | `domain-context.md` at `{output_base}/domain-context.md` |
+| `derive-architecture-spec` | build-arch Stage 1 — deriving architecture.yaml from locked specify-product + design-exp artifacts | `scope_path`, `enriched_capabilities_path`, `epics_dir`, `quality_profile_path`, `design_spec_path`, `screens_dir`, `ltm_architecture_path`, `output_path` | `architecture.yaml` with stack, components, data model, API surface, deployment, ADR log |
+| `derive-quality-standards` | build-arch Stage 2 — deriving quality-standards.yaml from quality-profile and architecture | `quality_profile_path`, `architecture_path`, `project_profile_path`, `ltm_quality_path`, `output_path` | `quality-standards.yaml` with per-QP-dimension standards and ISO 25010 coverage table |
+| `validate-architecture-spec` | build-arch Stages 1 and 2 post-generation validation | `architecture_path`, `quality_standards_path`, `scope_path`, `epics_dir`, `quality_profile_path`, `ltm_architecture_path`, `output_path` | Blocking validator; structured failure on any violation |
 
 For architecture inference, dependency graph, git history, change surface, tech artifacts, and plan artifacts — perform analysis directly. These are core architect capabilities, not delegated skills.
 

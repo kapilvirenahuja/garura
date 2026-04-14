@@ -1,0 +1,227 @@
+name: build-arch
+description: >
+  Transform locked specify-product and design-exp output into a concrete
+  architecture specification and quality-standards definition. Every
+  technology choice and every architectural decision traces to a specific
+  driver in the upstream artifacts. No vague references; no ungrounded
+  choices.
+version: 0.1.0
+checksum: "<computed by /create-play --build>"
+
+intent: >
+  Given the locked output of /specify-product (scope, enriched capabilities,
+  intent epics, quality profile) and /design-exp (personas, screens, flows,
+  design spec), produce a complete architecture specification: architecture.
+  yaml carrying stack selections, component boundaries, data model, API
+  surface, deployment shape, integration points, and an ADR log; and
+  quality-standards.yaml carrying concrete engineering standards per ISO
+  25010 characteristic derived from the upstream quality profile. Every
+  technology choice names a specific product (not a category); every
+  architectural decision cites the specific epic constraint, scenario, or
+  quality target that drove it. Vague choices and ungrounded decisions are
+  blocking validation failures.
+
+constraints:
+  - id: C1
+    rule: >
+      specify-product artifacts must exist and be LOCKED before build-arch
+      begins. Pre-flight reads scope.yaml, enriched-capabilities.yaml,
+      epics/*.yaml, quality-profile.yaml from .meridian/product/product/.
+      Missing or DRAFT-status artifacts halt pre-flight.
+
+  - id: C2
+    rule: >
+      design-exp artifacts must exist and be LOCKED before build-arch
+      begins. Pre-flight reads personas.md, screens/*.md, flows/*.md,
+      design-spec.md from .meridian/product/ux/. Missing or DRAFT-status
+      artifacts halt pre-flight.
+
+  - id: C3
+    rule: >
+      Every technology choice in architecture.yaml must name a specific
+      product or library — "PostgreSQL 16", "Next.js 14 App Router",
+      "AWS Lambda", "Temporal" — never a category ("a relational
+      database", "a message queue", "a frontend framework").
+
+  - id: C4
+    rule: >
+      Every architectural decision must carry rationale that cites at
+      least one specific driver from the upstream artifacts: an epic
+      constraint, a quality-profile target, a screen-inventory complexity
+      hint, a flow-coverage requirement, or a compliance mandate. Decisions
+      without cited drivers are blocking validation failures.
+
+  - id: C5
+    rule: >
+      Every selected capability from specify-product.scope must map to
+      at least one architectural component in architecture.yaml. Orphan
+      capabilities are a validation failure.
+
+  - id: C6
+    rule: >
+      Every intent epic's performance constraint (from `constraints.
+      performance`) must map to a specific architectural mechanism in
+      architecture.yaml (caching strategy, query pattern, infrastructure
+      tier, etc.). Unmet performance targets are a validation failure.
+
+  - id: C7
+    rule: >
+      Every ISO 25010 characteristic with relevance != 'not_applicable' in
+      quality-profile.yaml must have at least one corresponding entry in
+      quality-standards.yaml. Orphan characteristics are a validation
+      failure.
+
+  - id: C8
+    rule: >
+      Every entry in quality-standards.yaml must specify concrete standards
+      and named tooling. "Use a linter" is invalid; "ESLint with Airbnb
+      config" is valid. "Test thoroughly" is invalid; "Jest with 80%
+      coverage threshold on new code; Playwright for happy-path E2E" is
+      valid.
+
+  - id: C9
+    rule: >
+      Architectural Decision Records (ADRs) must be produced for every
+      "non-obvious" decision. Non-obvious = at least two viable
+      alternatives existed AND the choice narrows a future path. The ADR
+      log carries the decision, alternatives considered, chosen option,
+      and the upstream driver.
+
+  - id: C10
+    rule: >
+      Artifacts land under .meridian/product/arch/ per ADR 017. Evidence,
+      checkpoint, and status writes go through the scriber agent. The
+      play never writes evidence files directly.
+
+  - id: C11
+    rule: >
+      Domain work is delegated to agents. The orchestrator dispatches
+      tech-architect for architecture derivation and tech-designer for
+      quality-standards derivation. Scriber is dispatched in the
+      background for evidence, checkpoint, and status writes.
+
+  - id: C12
+    rule: >
+      Two human review checkpoints are mandatory: after architecture
+      derivation and after quality-standards derivation (before final
+      lock). Each checkpoint produces an artifact and waits for
+      Tether/Vanish/Orbit. Orbit cycles back to the stage that produced
+      the artifact.
+
+  - id: C13
+    rule: >
+      build-arch is the last specify/design-stage play before
+      implementation. It does NOT produce code. It does NOT produce test
+      suites. It produces the two handoff artifacts (architecture.yaml
+      and quality-standards.yaml) that prepare-implementation reads to
+      scope per-feature implementation plans.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      The play completes with zero architectural components in
+      architecture.yaml or zero standards in quality-standards.yaml.
+
+  - id: F2
+    condition: >
+      Any technology choice in architecture.yaml uses a category term
+      rather than a specific product name.
+
+  - id: F3
+    condition: >
+      Any architectural decision lacks a cited driver from the upstream
+      artifacts.
+
+  - id: F4
+    condition: >
+      Any capability from specify-product.scope has zero mappings in
+      architecture.yaml.
+
+  - id: F5
+    condition: >
+      Any intent epic performance constraint has no corresponding
+      architectural mechanism.
+
+  - id: F6
+    condition: >
+      Any relevant ISO 25010 characteristic from quality-profile.yaml
+      has no entry in quality-standards.yaml.
+
+  - id: F7
+    condition: >
+      Any quality-standards entry uses vague language without named
+      tooling, thresholds, or concrete practices.
+
+  - id: F8
+    condition: >
+      A non-obvious architectural decision ships without an ADR.
+
+  - id: F9
+    condition: >
+      Any of the two mandatory checkpoint artifacts is missing.
+
+  - id: F10
+    condition: >
+      An artifact is written outside the ADR 017 whitelist or any
+      evidence file bypasses the scriber.
+
+  - id: F11
+    condition: >
+      The play produces code, test suites, or implementation-level work
+      products. Those belong downstream in prepare-implementation and
+      implement-epic.
+
+scenarios:
+  - id: S1
+    persona: Technical Architect
+    given: >
+      The locked architecture.yaml with stack, components, data model,
+      and ADR log
+    then: >
+      Can present the architectural direction to stakeholders with every
+      decision traced to a business driver — no "we picked X because we
+      like it".
+
+  - id: S2
+    persona: Engineering Manager
+    given: >
+      quality-standards.yaml with per-characteristic standards, named
+      tooling, and concrete thresholds
+    then: >
+      Can set up CI/CD gates and code-review standards without re-
+      deriving the thresholds from scratch.
+
+  - id: S3
+    persona: Implementation Lead (reading architecture.yaml for a specific epic)
+    given: >
+      architecture.yaml components mapped to the epic's capability + the
+      epic's constraints section
+    then: >
+      Can scope the implementation plan knowing which components are
+      touched, what the performance budget is, and which standards apply.
+
+  - id: S4
+    persona: Security Architect
+    given: >
+      The security profile + security-related ADRs in architecture.yaml
+    then: >
+      Can verify that every security constraint from the upstream epics
+      is addressed by a specific architectural control (authentication,
+      encryption, access control, audit logging).
+
+  - id: S5
+    persona: Product Manager (at final review)
+    given: >
+      The architecture.yaml with stack names and cost/complexity estimates
+    then: >
+      Can assess whether the chosen architecture fits the appetite and
+      team skillset, and push back on over-engineering at Checkpoint 1.
+
+  - id: S6
+    persona: DevOps / Platform Engineer
+    given: >
+      architecture.yaml deployment section + quality-standards.yaml
+      operational standards
+    then: >
+      Can plan infrastructure-as-code, observability, and on-call
+      procedures without needing the architect to clarify intent.
