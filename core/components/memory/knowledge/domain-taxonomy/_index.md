@@ -24,9 +24,9 @@ Load when:
 
 ## Feature Schema
 
-Every feature in a module file follows this structure. All four sections are required — they provide the semantic context an agent needs to reason about applicability and depth.
+Every feature in a module file carries NINE required sections — four prose sections for human context and five structured sections for programmatic consumption by the product-planning pipeline.
 
-### Required Sections Per Feature
+### Human prose sections (read by humans and agents)
 
 **When It Matters** — Prose describing the conditions under which this feature becomes essential. References industry verticals, persona types, regulatory contexts, and business scenarios. This is NOT a conditional rule — it's context for agent judgment.
 
@@ -39,6 +39,24 @@ Every feature in a module file follows this structure. All four sections are req
 **Signals** — What in a BRD or project profile would indicate this feature is needed. References Product Profile dimensions (PP-1 through PP-7) and NFR Profile dimensions (NFR-1 through NFR-7) by ID where relevant. Also includes BRD keywords that suggest this feature.
 
 **Tradeoffs** — What you gain by including this feature and what it costs. Helps the agent reason about priority and phasing — a feature with high gains but high cost might be deferred to a later phase.
+
+### Structured sections (read by the product-planning pipeline)
+
+Added in 214.4 per ADR 017. The contract is defined in `core/components/memory/standards/kb-extension-conventions.md` and enforced by the `validate-kb-extension` skill.
+
+**Inclusion** — Whether this feature is mandatory / optional / conditional, with `Mandatory when`, `Conditional when`, and `Exclude when` rules referencing `project_profile.*` fields. Drives automatic capability selection in `specify-product` stage 3.
+
+**Success Criteria** — Measurable outcomes. Every entry must be quantified (number + unit, percentage, or specific threshold). Drives the intent-epic template's success_scenarios field.
+
+**Failure Scenarios** — At least two failure modes, each with Scenario / Impact / Mitigation sub-fields. Drives the intent-epic template's failure_scenarios field. This is the section that prevents "sounds good, means nothing" shallow epics — the validator refuses to accept empty failure scenarios.
+
+**Cross-Tree Refs** — References to constraint rules in `_cross-tree-constraints.yaml` that involve this feature, in the form `CTC-NNN`. The linter asserts every reference resolves to a real constraint.
+
+**Experiential** — Bootstrap block for `/capture-learning` and future `/promote-to-kb` to write experiential learnings (usage count, scenario outcomes, common mistakes, last-promoted timestamp). Starts empty for new features.
+
+### Cross-tree constraints file
+
+`_cross-tree-constraints.yaml` sits alongside the domain-taxonomy files and holds constraint rules in the form `(condition) ⇒ (include/exclude capability X)`. The Product Keeper agent walks each constraint during `specify-product` stage 3, checks the LHS against the project profile and already-selected capabilities, and enforces the RHS. See the file header for the schema and the 10 bootstrap constraints (CTC-001 through CTC-010).
 
 ### Example Feature Entry
 

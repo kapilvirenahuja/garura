@@ -1,0 +1,138 @@
+# Cross-Tree Constraints — Project Profile → Capability Inclusion Rules
+#
+# Read by /specify-product's configure-capabilities skill during capability
+# configuration (214.5). The skill walks each constraint, checks the LHS
+# `condition` against the project profile and already-selected capabilities,
+# and forces include or exclude of the RHS capability.
+#
+# Each constraint references real feature IDs from the extended
+# domain-taxonomy/*.md files. The validate-kb-extension skill (214.4 T22)
+# verifies that every feature ID named here resolves to an existing feature
+# in the markdown catalog.
+#
+# Schema: see core/components/memory/standards/kb-extension-conventions.md
+# Related: ADR 017 (folder whitelist + 5-stage SDLC framing)
+
+constraints:
+  - id: CTC-001
+    description: "High-security profiles require multi-factor authentication"
+    condition: "project_profile.security_level in ['high', 'critical']"
+    implies_include:
+      - UM-F004   # Multi-Factor Authentication (MFA)
+    rationale: >
+      NIST 800-63B and most enterprise security baselines require MFA for
+      systems handling high-sensitivity data. Selecting a high security level
+      without MFA leaves the auth stack incomplete.
+
+  - id: CTC-002
+    description: "Healthcare compliance (HIPAA) requires audit logging"
+    condition: "'HIPAA' in project_profile.compliance"
+    implies_include:
+      - UM-F008   # User Analytics / Audit Trail
+    rationale: >
+      HHS 164.312 technical safeguards require audit controls that record
+      and examine activity in systems containing PHI. Audit logging at
+      Standard depth or higher is the minimum conforming implementation.
+
+  - id: CTC-003
+    description: "Regulated industries require multi-factor authentication"
+    condition: "project_profile.industry in ['BFSI', 'healthcare', 'government']"
+    implies_include:
+      - UM-F004   # Multi-Factor Authentication (MFA)
+    rationale: >
+      BFSI (PCI-DSS 8.3), healthcare (HIPAA technical safeguards), and
+      government systems (FISMA IA-2) all mandate MFA for privileged access.
+      Regulated-industry projects cannot ship without it.
+
+  - id: CTC-004
+    description: "Consumer products imply social login for conversion"
+    condition: "project_profile.audience == 'B2C' and project_profile.delivery_ambition >= 3"
+    implies_include:
+      - UM-F007   # Social Login (OAuth2)
+    rationale: >
+      Consumer products measuring signup-to-activation conversion routinely
+      see 30-50% uplift from social login versus email/password-only.
+      Market-ready B2C products omit social login at the cost of growth.
+
+  - id: CTC-005
+    description: "Tight timeline excludes advanced-depth custom integrations"
+    condition: "project_profile.timeline == 'tight'"
+    implies_exclude_depth:
+      - advanced    # skip Advanced depth for integration-heavy features
+      - enterprise  # skip Enterprise depth entirely
+    rationale: >
+      Time-boxed delivery (appetite <= 6 weeks typical) cannot absorb
+      custom integration work. Features that would otherwise default to
+      Advanced or Enterprise depth are capped at Standard to protect
+      the appetite.
+
+  - id: CTC-006
+    description: "GDPR compliance requires profile data export and deletion"
+    condition: "'GDPR' in project_profile.compliance or project_profile.geographic_scope contains 'EU'"
+    implies_include:
+      - UM-F005   # User Profile (Primary) — at Advanced depth for data export
+    rationale: >
+      GDPR Articles 15 (right of access) and 17 (right to erasure) require
+      self-service data export and deletion. The primary user profile must
+      be included at Advanced depth or higher to carry these features.
+
+  - id: CTC-007
+    description: "Physical goods commerce requires inventory management"
+    condition: "project_profile.business_model in ['ecommerce', 'marketplace', 'retail'] and project_profile.product_type == 'physical_goods'"
+    implies_include:
+      - CM-F004   # Inventory Management
+    rationale: >
+      Physical goods cannot ship what isn't in stock. Omitting inventory
+      management produces oversell events, refund costs, and reputational
+      damage on the first stockout.
+
+  - id: CTC-008
+    description: "Marketplace platforms require multi-seller order handling"
+    condition: "project_profile.persona_complexity == 5 and project_profile.business_model == 'marketplace'"
+    implies_include:
+      - CM-F003   # Order Management (at Enterprise depth for multi-seller split)
+    rationale: >
+      Marketplace platforms must split orders across sellers, route payments
+      by seller, and handle per-seller fulfillment SLAs. Standard order
+      management is insufficient — Enterprise depth is required.
+
+  - id: CTC-009
+    description: "Enterprise SSO-only auth excludes password recovery and social login"
+    condition: "project_profile.auth_methods == ['sso_only']"
+    implies_exclude:
+      - UM-F003   # Password Reset / Recovery
+      - UM-F007   # Social Login (OAuth2)
+    rationale: >
+      SSO-only authentication delegates identity to an external IdP. The
+      application does not own passwords, so password recovery is not
+      applicable. Social login competes with the enterprise IdP and
+      should be excluded.
+
+  - id: CTC-010
+    description: "POC / MVP delivery ambition skips advanced onboarding and personalization"
+    condition: "project_profile.delivery_ambition <= 2"
+    implies_exclude_depth:
+      - advanced   # features stay at Standard or lower
+      - enterprise
+    rationale: >
+      Delivery Ambition 1 (POC) or 2 (MVP) prioritizes shipping a working
+      product over polish. Advanced onboarding wizards, behavioral
+      personalization, and enterprise features are deferred to post-MVP.
+
+# Linter rules (validate-kb-extension enforces these at 214.4 T22):
+#
+# 1. Every `implies_include` and `implies_exclude` entry must reference a
+#    real feature ID that exists in one of the domain-taxonomy markdown files.
+#    Dangling references fail validation.
+#
+# 2. Every `condition` string must reference only known project_profile
+#    fields. The known fields are defined in the intent-epic-schema.yaml
+#    validation_rules section.
+#
+# 3. Every constraint must have an `id` in CTC-NNN format, a `description`,
+#    a `condition`, at least one action (implies_include / implies_exclude /
+#    implies_include_depth / implies_exclude_depth), and a `rationale`.
+#
+# 4. CTC-001 through CTC-010 are bootstrap constraints. More may be added
+#    over time as new project-profile dimensions are discovered. Additions
+#    follow the same schema.

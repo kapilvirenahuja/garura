@@ -25,6 +25,36 @@ Any application with user accounts. PP-1 (User Sophistication) determines depth:
 **Tradeoffs:**
 Including at higher depth: better security posture, enterprise readiness, improved user experience, reduced account compromise risk. Cost: integration complexity (OAuth providers, SAML IdPs, directory services), ongoing maintenance of multiple auth flows, vendor dependencies (Auth0, Cognito, Clerk), increased onboarding complexity for the development team.
 
+### Inclusion
+- Default: **mandatory**
+- Mandatory when: `project_profile.audience in ['B2C', 'B2B', 'B2B2C']`
+- Conditional when: `project_profile.audience == 'internal' and project_profile.security_level in ['medium', 'high', 'critical']`
+- Exclude when: `project_profile.audience == 'internal' and project_profile.security_level == 'low' and project_profile.delivery_ambition <= 2`
+
+### Success Criteria
+- Login success rate > 95% on first attempt
+- p95 login latency < 500ms under 10K concurrent sessions
+- Failed-login brute force blocked within 5 attempts per account per 15 minutes
+
+### Failure Scenarios
+- Scenario: Login endpoint accepts unlimited attempts from a single IP
+  - Impact: Credential-stuffing attackers compromise accounts and the incident becomes a breach disclosure event
+  - Mitigation: Enforce per-account and per-IP rate limits with exponential backoff on the login endpoint at the Standard depth or higher
+- Scenario: Session cookies leak via XSS or insecure transport
+  - Impact: Account takeover without triggering any authentication event, undetectable in logs
+  - Mitigation: Issue HttpOnly + Secure + SameSite cookies, bind sessions to TLS, and rotate session IDs on privilege change
+
+### Cross-Tree Refs
+- (none)
+
+### Experiential
+- Usage count: 0
+- Scenarios observed: (none — bootstrap)
+- Common mistakes:
+  - Skipping rate limiting on the login endpoint because "the WAF will handle it"
+  - Building multiple auth flows (password + social + SSO) without a unified session model, leading to inconsistent expiry and logout behavior
+- Last promoted: never
+
 ---
 
 ### UM-F002: Registration / Onboarding
@@ -45,6 +75,36 @@ Any product with user acquisition. PP-1 (User Sophistication) determines frictio
 
 **Tradeoffs:**
 Including advanced onboarding: higher activation rates, lower churn, faster time-to-value for users. Cost: significant front-end development, content creation for tutorials, ongoing maintenance as product evolves, A/B testing needed to optimize flows.
+
+### Inclusion
+- Default: **mandatory**
+- Mandatory when: `project_profile.audience in ['B2C', 'B2B', 'B2B2C']`
+- Conditional when: `project_profile.audience == 'internal' and project_profile.delivery_ambition >= 3`
+- Exclude when: `project_profile.delivery_ambition <= 2 and project_profile.audience == 'internal'`
+
+### Success Criteria
+- Signup-to-activation conversion rate > 60% within 7 days of registration
+- Email verification completion rate > 85% within 24 hours of signup
+- p95 time from form submit to first successful app screen < 3s
+
+### Failure Scenarios
+- Scenario: Signup form asks for 10+ fields before the user sees any product value
+  - Impact: Consumer drop-off exceeds 50% at the form, wasting acquisition spend and skewing funnel analytics
+  - Mitigation: Collect only email and password at signup; defer profile enrichment to post-activation progressive onboarding
+- Scenario: Email verification link expires or is lost and the user has no recovery path
+  - Impact: New users sit in a verified=false state, never activate, and churn silently
+  - Mitigation: Time-limited tokens with a visible "resend verification" affordance on login, plus a background reminder 24h after signup
+
+### Cross-Tree Refs
+- (none)
+
+### Experiential
+- Usage count: 0
+- Scenarios observed: (none — bootstrap)
+- Common mistakes:
+  - Shipping an advanced onboarding wizard without A/B testing to confirm it actually lifts activation
+  - Treating onboarding content as a one-time deliverable that's never updated as the product evolves
+- Last promoted: never
 
 ---
 
@@ -67,6 +127,36 @@ Required whenever UM-F001 uses password-based auth. NFR-2 (Security) >= 3 pushes
 **Tradeoffs:**
 Including at higher depth: reduced support burden, better security (prevents account takeover via reset flow), compliance readiness. Cost: SMS delivery costs, additional UX flows to design and test, complexity of token management and session invalidation.
 
+### Inclusion
+- Default: **conditional**
+- Mandatory when: `project_profile.auth_methods contains 'password'`
+- Conditional when: `project_profile.security_level in ['high', 'critical']` (requires Advanced depth with multi-channel recovery)
+- Exclude when: `project_profile.auth_methods == ['sso_only'] or project_profile.auth_methods == ['passwordless_only']`
+
+### Success Criteria
+- Reset token usage latency p95 < 2s from link click to password change screen
+- Reset flow completion rate > 80% once the reset email is opened
+- Reset tokens expire within 60 minutes and are single-use 100% of the time
+
+### Failure Scenarios
+- Scenario: Reset token is reusable or does not expire
+  - Impact: Attacker who captures an old reset email from a compromised inbox takes over the account months later
+  - Mitigation: Enforce one-time-use tokens with a 60-minute TTL and invalidate all existing tokens on any successful reset
+- Scenario: Password change does not terminate existing sessions
+  - Impact: A compromised session survives the user's recovery attempt, defeating the purpose of the reset
+  - Mitigation: Force logout of all sessions on password change at Advanced depth or higher, and send a confirmation email with "this wasn't me" recovery link
+
+### Cross-Tree Refs
+- (none)
+
+### Experiential
+- Usage count: 0
+- Scenarios observed: (none — bootstrap)
+- Common mistakes:
+  - Failing to invalidate previously-issued reset tokens when a new one is generated
+  - Sending reset links without rate-limiting the request endpoint, enabling email-bombing attacks on a target user
+- Last promoted: never
+
 ---
 
 ### UM-F004: Multi-Factor Authentication (MFA)
@@ -87,6 +177,37 @@ PP-7 (Industry Vertical) >= 4 strongly suggests MFA. PP-3 (Persona Complexity) >
 
 **Tradeoffs:**
 Including: stronger security posture, compliance readiness (SOC2, HIPAA, PCI-DSS), enterprise sales eligibility, reduced account compromise risk. Cost: user friction during onboarding and every login, SMS delivery costs if using SMS as factor, support burden for lockouts and lost devices, integration complexity with authenticator apps and hardware keys.
+
+### Inclusion
+- Default: **conditional**
+- Mandatory when: `project_profile.security_level in ['high', 'critical'] or project_profile.industry in ['BFSI', 'healthcare', 'government'] or project_profile.compliance contains any of ['SOC2', 'ISO27001', 'HIPAA', 'PCI-DSS']`
+- Conditional when: `project_profile.persona_complexity >= 4` (required at minimum for admin roles)
+- Exclude when: `project_profile.security_level == 'low' and project_profile.audience == 'B2C' and project_profile.delivery_ambition <= 2`
+
+### Success Criteria
+- MFA enrollment rate > 90% for users in roles where MFA is enforced
+- MFA challenge-to-verification latency p95 < 10s
+- Recovery code usage resolves > 95% of lost-device support cases without human support intervention
+
+### Failure Scenarios
+- Scenario: User loses their authenticator device with no recovery codes on file
+  - Impact: Permanent account lockout, support ticket, and potential data loss for the user
+  - Mitigation: Mandate recovery-code generation during enrollment and display them once with explicit "save this now" confirmation before proceeding
+- Scenario: SMS fallback is the only second factor and the attacker SIM-swaps the user
+  - Impact: MFA is bypassed and the account is compromised despite the security control
+  - Mitigation: Offer TOTP or WebAuthn as the primary factor, treat SMS as fallback only, and warn users during enrollment that SMS is the weakest option
+
+### Cross-Tree Refs
+- CTC-001 (High security profiles require MFA) — this feature is IMPLIED
+- CTC-003 (Regulated industries require MFA) — this feature is IMPLIED
+
+### Experiential
+- Usage count: 0
+- Scenarios observed: (none — bootstrap)
+- Common mistakes:
+  - Enforcing MFA on every login for low-risk consumer flows, driving onboarding friction and drop-off
+  - Using SMS as the sole second factor because it's easiest to integrate, ignoring SIM-swap risk
+- Last promoted: never
 
 ---
 
@@ -109,6 +230,35 @@ Required for any product with user accounts. PP-4 (Geographic Scope) >= 3 needs 
 **Tradeoffs:**
 Including at higher depth: better user experience, personalization foundation, compliance readiness (data portability). Cost: storage for profile media (avatars), GDPR data export implementation, profile editing UX across devices, privacy settings complexity.
 
+### Inclusion
+- Default: **mandatory**
+- Mandatory when: `project_profile.audience in ['B2C', 'B2B', 'B2B2C', 'internal']`
+- Conditional when: `project_profile.compliance contains any of ['GDPR', 'CCPA']` (requires Advanced depth for data export and deletion)
+
+### Success Criteria
+- Profile edit save success rate > 99% across supported devices
+- p95 profile load latency < 300ms
+- GDPR data export request fulfilled within 30 days 100% of the time (when Advanced depth is included)
+
+### Failure Scenarios
+- Scenario: Email change takes effect immediately without re-verification
+  - Impact: An attacker who hijacks a session silently redirects all account communication to a mailbox they control, defeating password-reset protections
+  - Mitigation: Require confirmation from both the old and new email addresses before the email change takes effect, and log the event to the audit trail
+- Scenario: Avatar upload accepts arbitrary file types and sizes
+  - Impact: Storage costs balloon, the CDN serves malicious files, and the upload endpoint becomes a DoS vector
+  - Mitigation: Whitelist image MIME types, enforce a maximum size of 5MB, and re-encode uploads server-side to strip metadata and embedded payloads
+
+### Cross-Tree Refs
+- (none)
+
+### Experiential
+- Usage count: 0
+- Scenarios observed: (none — bootstrap)
+- Common mistakes:
+  - Storing profile media in the same bucket as application assets, mixing privacy scopes
+  - Deferring GDPR data export tooling until a regulator asks for it, then scrambling under a 30-day deadline
+- Last promoted: never
+
 ---
 
 ### UM-F006: User Profile (Extended / Preferences)
@@ -129,6 +279,35 @@ PP-2 (UX Maturity) >= 3 suggests preferences beyond basic theme. Products with p
 
 **Tradeoffs:**
 Including: more personalized experience, higher user satisfaction, better engagement metrics, foundation for recommendation engine. Cost: preference management UI, storage and sync complexity, risk of "settings bloat" where too many options overwhelm users, ongoing maintenance as product evolves.
+
+### Inclusion
+- Default: **optional**
+- Mandatory when: `project_profile.has_personalization_module == true or project_profile.ux_maturity >= 3`
+- Conditional when: `project_profile.persona_complexity >= 3` (role-based default configurations become valuable)
+
+### Success Criteria
+- Preference save-to-effect latency < 1s end-to-end across the user's active sessions
+- Preference sync consistency across devices > 99% within 5s of a change
+- Opt-out honoring for communication preferences enforced within 1 notification cycle (100% of the time)
+
+### Failure Scenarios
+- Scenario: Preferences UI exposes 40+ toggles on a single screen
+  - Impact: Users abandon customization entirely, support tickets rise, and the personalization investment produces no measurable engagement lift
+  - Mitigation: Apply progressive disclosure — show the 3-5 most-used preferences first, nest the rest behind "advanced" sections, and measure which settings users actually touch
+- Scenario: Preferences fail to sync when the user switches devices
+  - Impact: The user sees stale or reset settings and loses trust that the product remembers them
+  - Mitigation: Persist preferences server-side with a conflict-resolution rule (last-write-wins with timestamp) and surface a "syncing" indicator during propagation
+
+### Cross-Tree Refs
+- (none)
+
+### Experiential
+- Usage count: 0
+- Scenarios observed: (none — bootstrap)
+- Common mistakes:
+  - Exposing every preference as a top-level setting instead of progressively disclosing by usage frequency ("settings bloat")
+  - Treating preferences as a ship-once feature, accumulating dead toggles for removed product features
+- Last promoted: never
 
 ---
 
@@ -151,6 +330,36 @@ PP-1 (User Sophistication) >= 4 (consumer) strongly suggests social login. PP-1 
 **Tradeoffs:**
 Including: lower registration friction, higher conversion rates, verified email addresses, pre-populated profile data. Cost: provider SDK dependencies, ongoing maintenance as providers change APIs, privacy considerations (data sharing with providers), app review requirements (Apple), multiple login path testing.
 
+### Inclusion
+- Default: **optional**
+- Mandatory when: `project_profile.audience == 'B2C' and project_profile.delivery_ambition >= 3`
+- Conditional when: `project_profile.user_sophistication >= 4` (consumer audiences expect social login)
+- Exclude when: `project_profile.audience == 'internal' or project_profile.auth_methods == ['sso_only']`
+
+### Success Criteria
+- OAuth callback round-trip p95 < 2s from provider redirect to session established
+- Social-signup conversion rate > 40% higher than email/password signup on consumer-facing flows
+- Account-linking success rate > 98% when the social email matches an existing local account
+
+### Failure Scenarios
+- Scenario: OAuth callback does not validate the state parameter
+  - Impact: CSRF attacker forces a victim to link their account to the attacker's identity, enabling persistent account takeover
+  - Mitigation: Generate a cryptographically random state token per authorization request, bind it to the user's session, and reject callbacks where state does not match
+- Scenario: A provider changes its API and the social login button silently breaks
+  - Impact: A percentage of new-user signups fail with no error surfaced, conversion drops, and the problem is only caught days later via funnel metrics
+  - Mitigation: Synthetic end-to-end test per provider running hourly, with alerting on callback failure rate crossing 2%
+
+### Cross-Tree Refs
+- CTC-004 (Consumer products imply social login) — this feature is IMPLIED
+
+### Experiential
+- Usage count: 0
+- Scenarios observed: (none — bootstrap)
+- Common mistakes:
+  - Coupling business logic directly to a specific provider's user object, making it painful to add a second provider later
+  - Skipping the Apple "Sign in with Apple" integration when targeting iOS, causing App Store review rejection
+- Last promoted: never
+
 ---
 
 ### UM-F008: User Analytics / Audit Trail
@@ -171,3 +380,33 @@ PP-7 (Industry Vertical) >= 4 (regulated) makes audit trails essential. NFR-1 (R
 
 **Tradeoffs:**
 Including: compliance readiness, security incident investigation capability, product usage insights, legal protection. Cost: storage for high-volume event data, query performance for large audit tables, immutability infrastructure (append-only stores), privacy implications of tracking user behavior (GDPR data minimization), dashboard development and maintenance.
+
+### Inclusion
+- Default: **conditional**
+- Mandatory when: `project_profile.compliance contains any of ['HIPAA', 'SOX', 'PCI-DSS', 'SOC2'] or project_profile.industry in ['BFSI', 'healthcare', 'government']`
+- Conditional when: `project_profile.data_sensitivity >= 4` (immutable logging required) or `project_profile.delivery_ambition >= 3` (analytics for product decisions)
+- Exclude when: `project_profile.delivery_ambition <= 2 and project_profile.compliance == []`
+
+### Success Criteria
+- Audit event capture rate = 100% for authentication and privileged-action events (zero dropped events)
+- Audit query p95 latency < 2s over a rolling 90-day window
+- Audit log tamper-evidence verification passes 100% of scheduled integrity checks (at Advanced depth or higher)
+
+### Failure Scenarios
+- Scenario: Audit events are written to the same mutable database as application data
+  - Impact: An attacker with write access can erase their own trail, defeating the compliance and forensics value of the log
+  - Mitigation: Write audit events to an append-only store (or a WORM bucket) with cryptographic chaining, separate from application storage, at Advanced depth or higher
+- Scenario: High event volume overwhelms storage, and retention is silently truncated
+  - Impact: Regulatory deadlines are missed because events from the relevant window no longer exist, triggering compliance findings
+  - Mitigation: Define an explicit retention policy matching the strictest applicable regulation, alert on ingestion lag > 5 minutes, and archive cold events to object storage rather than deleting them
+
+### Cross-Tree Refs
+- CTC-002 (Healthcare compliance requires audit logging) — this feature is IMPLIED
+
+### Experiential
+- Usage count: 0
+- Scenarios observed: (none — bootstrap)
+- Common mistakes:
+  - Logging everything into unstructured application logs so the data is impossible to query for compliance reports
+  - Tracking user behavior at high granularity without a GDPR data-minimization review, creating privacy liability
+- Last promoted: never

@@ -1,25 +1,73 @@
 # Intent Schema — Canonical Contract
-# This is the schema that intent-crafter produces and intent-resolver consumes.
+# This is the schema that intent-crafter produces and /create-play consumes.
 # Any play can serve an intent. Intent says nothing about execution.
+#
+# Intent YAML has TWO zones: metadata and content. Both are required.
 
-intent: <string>                       # What the user wants — goal + expected outputs
-                                       # Implementation-agnostic. No play, agent, or skill names.
+# ──────────────────────────────────────────────────────────────────────────
+# METADATA ZONE — describes the intent itself
+# ──────────────────────────────────────────────────────────────────────────
+
+name: <string>                         # Short human-readable play name (kebab-case)
+                                       # Example: "specify-product"
+                                       # Must match the parent directory name in
+                                       # core/components/plays/{name}/.
+
+description: <string>                  # One-sentence discoverability text
+                                       # Example: "Transform a product idea plus
+                                       # project profile into enriched intent epics
+                                       # via KB-driven capability configuration."
+
+version: <string>                      # Semver (e.g. "0.1.0")
+                                       # Starts at 0.1.0 for new intents.
+                                       # Bump on any content-zone edit that changes
+                                       # constraints / failure_conditions / scenarios
+                                       # semantics. Metadata-only edits don't bump.
+
+checksum: <string>                     # sha256 hash of the normalized content zone
+                                       # (see Checksum rule below).
+                                       # Maintained by the `/create-play --build` step.
+                                       # Drift detection: if the on-disk checksum does
+                                       # NOT equal the computed checksum of the current
+                                       # content zone, the play's compiled artifact is
+                                       # stale and must be rebuilt.
+
+# ──────────────────────────────────────────────────────────────────────────
+# CONTENT ZONE — the four canonical fields
+# ──────────────────────────────────────────────────────────────────────────
+
+intent: <string>                       # What the user wants — goal + expected outputs.
+                                       # Implementation-agnostic. No play, agent, or
+                                       # skill names.
 
 constraints:                           # Boundaries on acceptable output/behavior
   - id: <string>                       # Unique ID (C1, C2, ...)
     rule: <string>                     # A falsifiable boundary statement
 
-failure_conditions:                    # Observable states in the output that constitute failure
+failure_conditions:                    # Observable states in the output that
+                                       # constitute failure
   - id: <string>                       # Unique ID (F1, F2, ...)
-    condition: <string>                # A state observable in artifacts — not an event
+    condition: <string>                # A state observable in artifacts — not an
+                                       # event
 
-scenarios:                             # E2E acceptance — what personas can DO with the output
+scenarios:                             # E2E acceptance — what personas can DO with
+                                       # the output
   - id: <string>                       # Unique ID (S1, S2, ...)
     persona: <string>                  # A human role who consumes the output
     given: <string>                    # An artifact they receive
-    then: <string>                     # What they can do with it — an outcome, not a process
+    then: <string>                     # What they can do with it — an outcome, not
+                                       # a process
 
+# ──────────────────────────────────────────────────────────────────────────
 # Crafting Principles (quality gate for authoring)
+# ──────────────────────────────────────────────────────────────────────────
+#
+# Top-level fields:
+#   - EXACTLY these 8 fields permitted: name, description, version, checksum,
+#     intent, constraints, failure_conditions, scenarios. No others.
+#   - Implementation details (triggers, inputs, outputs, agent names, brief format,
+#     defect handlers) are forbidden anywhere in intent.yaml. Those belong in the
+#     compiled play artifact, not in intent.
 #
 # Constraints:
 #   - Defines a boundary, not a method
@@ -39,3 +87,36 @@ scenarios:                             # E2E acceptance — what personas can DO
 #   - Describes an outcome, not a process
 #   - given = artifact they receive, then = what they can do with it
 #   - End-to-end acceptance — validates whole workflow output, not a single step
+#
+# ──────────────────────────────────────────────────────────────────────────
+# Checksum rule (for the `checksum` metadata field)
+# ──────────────────────────────────────────────────────────────────────────
+#
+# Algorithm: sha256 over the normalized content zone.
+#
+# Normalization steps (the `/create-play --build` step performs these):
+#   1. Load the intent.yaml into an ordered mapping.
+#   2. Extract ONLY the content-zone keys: intent, constraints, failure_conditions,
+#      scenarios. The metadata keys (name, description, version, checksum) are
+#      EXCLUDED from the hash — otherwise the checksum would be recursive.
+#   3. Re-serialize the content zone to YAML with deterministic rules:
+#      - Keys sorted alphabetically at every nesting level
+#      - List items preserved in document order (they're semantically ordered)
+#      - LF line endings (no CRLF)
+#      - UTF-8 encoding
+#      - No trailing whitespace
+#      - No comments
+#      - Block style (not flow) for maps and lists
+#   4. Compute sha256 over the UTF-8 byte stream of the serialized output.
+#   5. Write the hex digest as the `checksum` field value.
+#
+# Drift detection:
+#   - The compiled play artifact records the intent_hash in its Compilation Metadata.
+#   - On play run, the orchestrator recomputes the checksum from the current
+#     intent.yaml and compares. Mismatch means the compiled artifact is stale.
+#   - On intent.yaml edit, `/create-play --build` recomputes and overwrites.
+#
+# Related:
+#   - docs/adr/016-agent-json-contract.md (intent path in every contract)
+#   - docs/adr/017-folder-whitelist.md (decision record for metadata shape)
+#   - core/components/memory/MEMORY.md feedback_intent_schema_purity.md
