@@ -188,6 +188,49 @@ constraints:
       from KB or from STM research. See rules/product.md Rule 15 and
       Defect 8.
 
+  - id: C18
+    rule: >
+      Decision Surfacing Discipline. Every inferred decision produced by
+      any skill in this play — every classification, synthesis, selection,
+      enumeration, or threshold the agent reasons to rather than reading
+      verbatim from a user-provided artifact — must be tagged with a
+      confidence tier and surfaced to the user before it is committed
+      downstream. Tiers are assigned by grounding source: HIGH when the
+      decision is a direct match against a KB rule, file, or catalog entry;
+      MID when the agent built context via web research because no KB
+      grounding existed; LOW when neither KB nor research yielded a
+      grounding source. Each decision records: tier, grounding_source
+      (KB file path / web citation / "no source"), recommendation,
+      alternatives_considered, and the user's response (accept / override
+      / orbit). The orchestrator presents decisions per tier: HIGH as a
+      batch confirmation (user may Tether all or Orbit any single one to
+      reopen for one-by-one review); MID as a batch with explicit
+      questions and recommendations (user may accept the batch or drill
+      one-by-one); LOW always one-by-one with no batching. High confidence
+      is permission to batch — never permission to skip user review.
+      configure-capabilities is the canonical exemplar for the
+      one-by-one Q&A presentation depth; new and updated skills must
+      match its grounding-question format and recording structure.
+      Decisions that merely echo upstream user input — project-profile
+      pins, locked epic fields, copying a slug, assigning a timestamp —
+      are not "decided" by the play and are exempt. See Defect 23.
+
+  - id: C19
+    rule: >
+      Every skill that produces inferred decisions must emit a
+      decision-manifest.yaml as part of its output contract, written
+      alongside its primary artifact. Each manifest entry carries:
+      decision_id, decision_type, tier (high|mid|low), grounding_source
+      (kb_path | web_citation | none), recommendation,
+      alternatives_considered, agent_reasoning_summary, and (after the
+      orchestrator drives the surfacing flow) user_response
+      (accept | override | orbit) plus user_response_detail. The play
+      orchestrator walks the manifest after each skill completes and
+      drives the tiered presentation flow defined in C18 before any
+      downstream skill consumes the artifact. A skill that produces
+      inferred decisions and writes no manifest is a structural
+      violation. See Defect 23.
+
 failure_conditions:
   - id: F1
     condition: >
@@ -268,6 +311,22 @@ failure_conditions:
       wire-level protocol identifiers, cryptographic construction
       details, or model version strings). Output of this shape is a
       structural failure per C16 / rules/product.md Rule 14.
+
+  - id: F14
+    condition: >
+      Any skill commits an inferred decision to a downstream artifact
+      (epic, scope, quality-profile, grounding-questions) without first
+      surfacing it to the user via the tier-appropriate flow defined in
+      C18. Silent commits — including high-confidence auto-resolution
+      and silent KB-single-candidate selection — are blocking failures.
+
+  - id: F15
+    condition: >
+      A skill that produces inferred decisions completes without writing
+      a decision-manifest.yaml, or writes a manifest that omits the
+      tier, grounding_source, recommendation, or alternatives_considered
+      fields for any decision, or fails to update user_response after
+      the orchestrator runs the surfacing flow.
 
 scenarios:
   - id: S1
