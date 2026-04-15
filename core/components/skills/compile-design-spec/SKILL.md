@@ -8,6 +8,8 @@ allowed-tools: Read, Write, Glob
 
 # compile-design-spec
 
+> **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes. Note: this skill is a consolidation skill — most decisions were made upstream; the manifest may have few or zero entries if no new inferences are introduced. An empty-decision manifest is valid; the manifest must still be emitted.
+
 Called by `designer` during `design-exp` Stage 6. Produces the final consolidated design specification.
 
 ## Purpose
@@ -24,6 +26,7 @@ Receive from the designer agent. All paths resolve against `{product_base}` supp
 - `scope_path` (path, required) — typically `{product_base}scope/scope.yaml`
 - `quality_profile_path` (path, required) — typically `{product_base}specification/quality-profile.yaml` (for accessibility targets)
 - `design_spec_path` (string, required) — typically `{product_base}experience/design-spec.md`
+- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifact (e.g., `{product_base}experience/decision-manifest-compile-design-spec.yaml`). Exact path is passed by the calling agent.
 
 ## Process
 
@@ -136,6 +139,42 @@ A single product-wide table of interaction decisions, extracted from each screen
 - **Flow coverage** verified by `validate-screen-coverage`: every epic success/failure scenario has at least one flow. See `flows_dir` for the full set.
 ```
 
+### 2b. Emit decision manifest
+
+Before writing design-spec.md, write `decision-manifest.yaml` to `{decision_manifest_path}`.
+
+Record any inferred decisions introduced during the assembly and consolidation process. Assign tier at runtime based on grounding source: **high** when the decision was a direct match against a KB rule, file, or catalog entry; **mid** when context was built via web research; **low** when neither KB nor research yielded a grounding source.
+
+**Decisions to record** (decision_id prefix: `D-cds-`):
+
+| decision_id | decision_type | What is being decided |
+|-------------|---------------|-----------------------|
+| `D-cds-001` | `section-ordering-and-emphasis` | Any choices made about what to embed inline vs reference-link, the order in which capabilities appear in the Screen Inventory section, and which interaction patterns from upstream screens are surfaced in the product-wide table (Step 2) |
+
+**Note:** this skill is a consolidation skill. If no new inferences are introduced beyond pulling existing content verbatim from upstream artifacts, the `decisions` list is empty. An empty list is valid — emit the manifest with `decisions: []`. The orchestrator still processes an empty manifest (it simply has no decisions to surface).
+
+```yaml
+schema_version: "1.0"
+skill: "compile-design-spec"
+generated_at: "{ISO8601}"
+decisions:
+  - decision_id: "D-cds-001"
+    decision_type: "section-ordering-and-emphasis"
+    tier: high | mid | low   # assign at runtime per grounding source
+    grounding_source:
+      kind: kb_path | web_citation | none
+      ref: "{KB file path | URL | null}"
+      excerpt: "{optional short quote when kind=kb_path}"
+    recommendation: "{the ordering or emphasis choice made}"
+    alternatives_considered:
+      - alt: "{alternative ordering}"
+        why_not: "{one-line dismissal reason}"
+    agent_reasoning_summary: "{2-3 sentence explanation}"
+    user_response: null
+    user_response_detail: null
+  # ... or leave decisions: [] if no new inferences were introduced
+```
+
 ### 3. Write design-spec.md
 
 Write the composed document to `{design_spec_path}`. Overwrite if it already exists — this is the consolidation skill, it's the last writer.
@@ -151,6 +190,9 @@ design_spec:
   capabilities_covered: <int>
   interaction_patterns_count: <int>
   accessibility_target: <string from quality-profile>
+decision_manifest:
+  path: <written path>
+  decisions_recorded: <int>   # 0 is valid for a pure-consolidation run
 ```
 
 ## Constraints
@@ -159,16 +201,19 @@ design_spec:
 - NEVER add new personas, screens, or flows. This is a consolidation skill; it does not generate new content.
 - NEVER include visual design decisions. Structural only.
 - NEVER omit a capability, persona, screen, or flow that exists in the input artifacts. The consolidated spec is exhaustive.
-- NEVER write to a path other than `{design_spec_path}`.
+- NEVER write to a path other than `{design_spec_path}` and `{decision_manifest_path}`.
 - ALWAYS embed the actual Mermaid diagram content from each flow file (not a reference link) — the spec should be self-contained for downstream readers.
 - ALWAYS link to individual screen files for full wireframe detail — the spec summary is a pointer, not a full copy.
 - ALWAYS pull the accessibility target from `quality-profile.yaml` — do not hard-code.
+- NEVER commit an inferred decision to the primary artifact (design-spec.md) without recording it in `decision-manifest.yaml` first.
+- NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.
+- ALWAYS include `alternatives_considered` (≥1 entry) for every decision recorded; emit `decisions: []` if no new inferences were introduced.
 
 ## Version
 
 | Field | Value |
 |-------|-------|
-| Version | 0.1.0 |
+| Version | 0.2.0 |
 | Category | ux-design |
 | Created | 2026-04-14 |
 | Related | `core/components/skills/synthesize-personas`, `core/components/skills/generate-screen-inventory`, `core/components/skills/map-user-flows`, `core/components/skills/generate-wireframes` |

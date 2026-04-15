@@ -8,6 +8,8 @@ allowed-tools: Read, Write, Glob, Grep
 
 # configure-capabilities
 
+> **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
+
 Model-invocable skill for selecting capabilities from the KB catalog against a project profile. Called by the `product-keeper` agent during `specify-product` Stage 3.
 
 ## Purpose
@@ -34,6 +36,7 @@ Receive from product-keeper agent:
 - `optional_capability_selections` (list, optional) — user-approved optional capabilities from checkpoint
 - `output_path` (string, required) — typically `.meridian/product/scope/scope.yaml`
 - `grounding_questions_path` (string, required) — typically `.meridian/product/user-provided/grounding-questions.md`. Per rules/product.md Rule 12, this file is the cumulative question log: the skill READS it at start to pick up prior user answers, APPENDS new questions during Step 1e, and NEVER overwrites existing entries.
+- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifact (e.g., `.meridian/product/scope/decision-manifest-configure-capabilities.yaml`). Exact path is passed by the calling agent.
 
 ## Domain Library Reads (single read path per Rule 15 Pull-to-Product)
 
@@ -271,6 +274,47 @@ within_domain_coverage_gaps:             # per rules/product.md Rule 10 — surf
     - ...
 ```
 
+### 7b. Emit decision manifest
+
+Before returning the output contract, write `decision-manifest.yaml` to `{decision_manifest_path}`.
+
+Record every inferred decision produced during Steps 1b–1e. Each decision entry follows the schema below. Assign tier at runtime based on grounding source: **high** when the decision was a direct match against a KB rule, file, or catalog entry (including `kb_catalog_single_candidate`); **mid** when context was built via web research because no KB grounding existed; **low** when neither KB nor research yielded a grounding source.
+
+**Decisions to record** (decision_id prefix: `D-cc-`):
+
+| decision_id | decision_type | What is being decided |
+|-------------|---------------|-----------------------|
+| `D-cc-001` | `within-domain-gap-classification` | Coverage classification (`full`/`partial`/`missing`) for each implied need against domain features (Step 1b) |
+| `D-cc-002` | `vertical-vs-component-classification` | Whether each resolved feature is `vertical` or `component` and its `rolls_up_into` assignment (Step 1c) |
+| `D-cc-003` | `provenance-tagging` | Source classification for each feature (`brief_explicit`, `brief_inferred`, `rule_derived`, `research_supplemental`, `assumption`) (Step 1d) |
+| `D-cc-004` | `grounding-question-generation` | Which within-domain gaps and assumption-sourced features warrant grounding questions, and what the question text is (Step 1e) |
+
+Each decision entry in the manifest:
+
+```yaml
+schema_version: "1.0"
+skill: "configure-capabilities"
+generated_at: "{ISO8601}"
+decisions:
+  - decision_id: "D-cc-001"
+    decision_type: "within-domain-gap-classification"
+    tier: high | mid | low   # assign at runtime per grounding source
+    grounding_source:
+      kind: kb_path | web_citation | none
+      ref: "{KB file path | URL | null}"
+      excerpt: "{optional short quote when kind=kb_path}"
+    recommendation: "{the agent's proposed classification per implied need}"
+    alternatives_considered:
+      - alt: "{alternative classification}"
+        why_not: "{one-line dismissal reason}"
+    agent_reasoning_summary: "{2-3 sentence explanation}"
+    user_response: null        # filled in by orchestrator after surfacing flow
+    user_response_detail: null
+  # ... one entry per decision listed above
+```
+
+**NOTE:** This skill is the canonical exemplar for the 1-by-1 Q&A flow (configure-capabilities' existing grounding-question pattern). The manifest adds a durable audit record alongside the existing interaction flow — preserve all current user-question behavior in Steps 1b–1e; the manifest is additional, not a replacement.
+
 ### 8. Return the output contract
 
 ```yaml
@@ -283,6 +327,9 @@ scope:
   constraints_fired: <int>     # equals len(constraint_trace.applied)
   constraints_not_applicable: <int>  # equals len(constraint_trace.not_applicable); constraints_fired + this = constraints_walked
   dangling_feature_refs: <int> # must be 0 — any >0 is a structured failure
+decision_manifest:
+  path: <written path>
+  decisions_recorded: <int>   # count of decision entries in the manifest
 ```
 
 ## Constraints
@@ -304,12 +351,15 @@ scope:
 - ALWAYS attach a `provenance` block to every selected_capability (Step 1d) per `rules/features.md` Rule 8. Every capability has source + source_quote + confidence; never silently accept `assumption` sources in the scope body.
 - NEVER write kb_default or assumption-sourced features / constraints as silent facts. Surface them at the capability-configuration checkpoint under `inferences_pending_review` and wait for user grounding per `rules/product.md` Rule 11.
 - ALWAYS capture every inference as a question in `.meridian/product/user-provided/grounding-questions.md` (Step 1e) per `rules/product.md` Rule 12. Append-only, cumulative across runs. Read the file at the start of every invocation to re-use prior user answers; never re-ask a question the user has already resolved.
+- NEVER commit an inferred decision to the primary artifact (scope.yaml) without recording it in `decision-manifest.yaml` first.
+- NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.
+- ALWAYS include `alternatives_considered` (≥1 entry) for every decision, even high-confidence ones.
 
 ## Version
 
 | Field | Value |
 |-------|-------|
-| Version | 0.1.0 |
+| Version | 0.2.0 |
 | Category | product-planning |
 | Created | 2026-04-14 |
 | Related | `core/components/agents/product-keeper.md`, `core/components/memory/standards/rules/kb-extension.md`, `core/components/memory/knowledge/domain/_cross-tree-constraints.yaml` |

@@ -8,6 +8,8 @@ allowed-tools: Read, Write, Glob, Grep, Edit
 
 # generate-wireframes
 
+> **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
+
 Called by `designer` during `design-exp` Stage 4. For every existing screen MD file, appends a `## Wireframe` section describing layout and component placement per state.
 
 ## Purpose
@@ -20,6 +22,7 @@ Receive from the designer agent. All paths resolve against `{product_base}` supp
 
 - `screens_dir` (path, required) — typically `{product_base}experience/screens/` (contains MD files from Stage 2)
 - `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads UX prose + wireframe hints (from each domain's `Tradeoffs` and `Depth Spectrum` sections) from the product's research folder ONLY — never directly from `core/components/memory/knowledge/domain/`. Passing `ltm_domain_taxonomy_path` is a structural failure (design-exp intent.yaml F13).
+- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the updated screen files (e.g., `{product_base}experience/decision-manifest-generate-wireframes.yaml`). Exact path is passed by the calling agent.
 
 ## Process
 
@@ -144,6 +147,41 @@ State: error-<reason>    Recovery: <retry path>
 - High-contrast considerations: <any layout choices that compact or expand in high-contrast mode>
 ```
 
+### 2c. Emit decision manifest
+
+Before rewriting any screen file, write `decision-manifest.yaml` to `{decision_manifest_path}`.
+
+Record every inferred decision produced during Steps 2a and 2b. Assign tier at runtime based on grounding source: **high** when the decision was a direct match against a KB rule, file, or catalog entry; **mid** when context was built via web research; **low** when neither KB nor research yielded a grounding source.
+
+**Decisions to record** (decision_id prefix: `D-gw-`):
+
+| decision_id | decision_type | What is being decided |
+|-------------|---------------|-----------------------|
+| `D-gw-001` | `ascii-layout-authoring` | The ASCII/Unicode box-drawing layout structure chosen for each screen state — what components appear where, what is above the fold, how the layout reflects the screen's purpose (Step 2a) |
+| `D-gw-002` | `layout-spec-prose-authoring` | The Layout Spec content authored for each screen — layout pattern name, grid regions, interaction pattern decisions (form validation style, loading indicator type, error placement, empty-state treatment, transition style), and data binding narrative (Step 2b) |
+
+```yaml
+schema_version: "1.0"
+skill: "generate-wireframes"
+generated_at: "{ISO8601}"
+decisions:
+  - decision_id: "D-gw-001"
+    decision_type: "ascii-layout-authoring"
+    tier: high | mid | low   # assign at runtime per grounding source
+    grounding_source:
+      kind: kb_path | web_citation | none
+      ref: "{KB file path | URL | null}"
+      excerpt: "{optional short quote when kind=kb_path}"
+    recommendation: "{the layout structure chosen for the screen}"
+    alternatives_considered:
+      - alt: "{alternative layout approach}"
+        why_not: "{one-line dismissal reason}"
+    agent_reasoning_summary: "{2-3 sentence explanation}"
+    user_response: null
+    user_response_detail: null
+  # ... one entry per decision listed above (repeat per screen for D-gw-001 and D-gw-002)
+```
+
 ### 3. Rewrite the screen MD file with visual-first ordering
 
 This skill does NOT simply append. It rewrites the file section order using the following discipline:
@@ -164,6 +202,9 @@ wireframes:
   screens_skipped: <int>  # already had wireframes and no changes needed
   total_screens: <int>
   generic_phrase_rejections: <int>  # count of wireframes that failed the specificity check
+decision_manifest:
+  path: <written path>
+  decisions_recorded: <int>
 ```
 
 ## Constraints
@@ -177,12 +218,15 @@ wireframes:
 - ALWAYS keep the interaction pattern decision consistent across states for the same screen.
 - ALWAYS read the KB feature block's `Tradeoffs` section for layout hints — that prose often captures industry-standard placement.
 - Read screens and KB selectively via grep.
+- NEVER commit an inferred decision to the primary artifacts (screen MD files) without recording it in `decision-manifest.yaml` first.
+- NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.
+- ALWAYS include `alternatives_considered` (≥1 entry) for every decision, even high-confidence ones.
 
 ## Version
 
 | Field | Value |
 |-------|-------|
-| Version | 0.1.0 |
+| Version | 0.2.0 |
 | Category | ux-design |
 | Created | 2026-04-14 |
 | Related | `core/components/skills/generate-screen-inventory`, `core/components/skills/validate-screen-coverage` |

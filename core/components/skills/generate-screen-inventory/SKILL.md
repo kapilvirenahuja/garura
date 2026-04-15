@@ -8,6 +8,8 @@ allowed-tools: Read, Write, Glob, Grep
 
 # generate-screen-inventory
 
+> **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
+
 Called by `designer` during `design-exp` Stage 2. Produces one Markdown file per screen under `{product_base}experience/screens/`.
 
 ## Purpose
@@ -25,6 +27,7 @@ Receive from the designer agent. All paths resolve against `{product_base}` supp
 - `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads domain UX hints from the product's research folder ONLY — never directly from `core/components/memory/knowledge/domain/`. Passing `ltm_domain_taxonomy_path` is a structural failure (design-exp intent.yaml F13).
 - `ltm_screen_inventory_schema_path` (path, required) — the schema contract (describes MD section conventions)
 - `screens_dir` (string, required) — typically `{product_base}experience/screens/`
+- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifacts (e.g., `{product_base}experience/decision-manifest-generate-screen-inventory.yaml`). Exact path is passed by the calling agent.
 
 ## Process
 
@@ -186,6 +189,47 @@ Authenticate existing users and route them to their dashboard. Primary credentia
 
 The `## Wireframe` section is NOT written by this skill — it's appended later by `generate-wireframes`.
 
+### 4b. Emit decision manifest
+
+Before returning the output contract, write `decision-manifest.yaml` to `{decision_manifest_path}`.
+
+Record every inferred decision produced during Steps 2–4. Assign tier at runtime based on grounding source: **high** when the decision was a direct match against a KB rule, file, or catalog entry; **mid** when context was built via web research; **low** when neither KB nor research yielded a grounding source.
+
+**Decisions to record** (decision_id prefix: `D-gsi-`):
+
+| decision_id | decision_type | What is being decided |
+|-------------|---------------|-----------------------|
+| `D-gsi-001` | `screen-count-per-capability` | Whether a capability warrants one primary screen or multiple screens, and the total count derived from depth and scenario count (Step 2) |
+| `D-gsi-002` | `supporting-screen-choice` | Whether error recovery, confirmation, or step-by-step supporting screens are added and which failure scenarios drove each addition (Step 2) |
+| `D-gsi-003` | `admin-screen-choice` | Whether a separate admin-facing screen is generated based on persona mapping and business rules mentioning admin-level access (Step 2) |
+| `D-gsi-004` | `state-enumeration` | Which states are selected for each screen from the available menu (`default`, `loading`, `empty`, `error`, `populated`, `success`, `lockout`, `mfa_challenge`) and the reasoning for each inclusion/exclusion (Step 3) |
+| `D-gsi-005` | `state-description-writing` | The descriptive text authored for each screen state — what the user sees, the layout cue, and the action model (Step 3) |
+| `D-gsi-006` | `component-naming` | The concrete component names chosen for each screen's states (e.g., `email-input`, `submit-button`, `lockout-banner`) (Step 3) |
+| `D-gsi-007` | `layout-pattern-assignment` | The named layout pattern assigned to each screen (`centered-card`, `sidebar-content`, `two-column`, etc.) (Step 3) |
+| `D-gsi-008` | `capability-classification` | Whether each screen is classified `user_surface`, `substrate`, or `admin_only` and the rule or signal that drove the classification (Step 4) |
+
+```yaml
+schema_version: "1.0"
+skill: "generate-screen-inventory"
+generated_at: "{ISO8601}"
+decisions:
+  - decision_id: "D-gsi-001"
+    decision_type: "screen-count-per-capability"
+    tier: high | mid | low   # assign at runtime per grounding source
+    grounding_source:
+      kind: kb_path | web_citation | none
+      ref: "{KB file path | URL | null}"
+      excerpt: "{optional short quote when kind=kb_path}"
+    recommendation: "{screen count and screen names derived for the capability}"
+    alternatives_considered:
+      - alt: "{alternative screen count or decomposition}"
+        why_not: "{one-line dismissal reason}"
+    agent_reasoning_summary: "{2-3 sentence explanation}"
+    user_response: null
+    user_response_detail: null
+  # ... one entry per decision listed above (repeat per capability for D-gsi-001 through D-gsi-007)
+```
+
 ### 5. Return output contract
 
 ```yaml
@@ -201,6 +245,9 @@ screens:
     capabilities_total: <int>
     capabilities_with_screens: <int>
     orphan_capabilities: []  # must be empty (user_surface only)
+decision_manifest:
+  path: <written path>
+  decisions_recorded: <int>
 ```
 
 ## Constraints
@@ -219,12 +266,15 @@ screens:
 - ALWAYS list every capability a screen legitimately exercises in `capabilities:` — multi-capability screens (e.g., account-setup exercising UM-F001 + UM-F002) list all of them, not just the primary.
 - ALWAYS set `capability_classification` explicitly when the screen is `substrate` or `admin_only`; omit or set `user_surface` otherwise.
 - Read KB feature blocks selectively via grep.
+- NEVER commit an inferred decision to the primary artifacts (screen MD files) without recording it in `decision-manifest.yaml` first.
+- NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.
+- ALWAYS include `alternatives_considered` (≥1 entry) for every decision, even high-confidence ones.
 
 ## Version
 
 | Field | Value |
 |-------|-------|
-| Version | 0.1.0 |
+| Version | 0.2.0 |
 | Category | ux-design |
 | Created | 2026-04-14 |
 | Related | `core/components/skills/validate-screen-coverage`, `core/components/skills/generate-wireframes`, `core/components/memory/standards/schemas/screen-inventory.yaml` |

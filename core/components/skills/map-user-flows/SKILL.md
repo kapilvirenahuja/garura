@@ -8,6 +8,8 @@ allowed-tools: Read, Write, Glob, Grep
 
 # map-user-flows
 
+> **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
+
 Called by `designer` during `design-exp` Stage 3. Produces one Markdown file per flow under `{product_base}experience/flows/`.
 
 ## Purpose
@@ -22,6 +24,7 @@ Receive from the designer agent. All paths resolve against `{product_base}` supp
 - `screens_dir` (path, required) — typically `{product_base}experience/screens/`
 - `epics_dir` (path, required) — typically `{product_base}scope/epics/`
 - `flows_dir` (string, required) — typically `{product_base}experience/flows/`
+- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifacts (e.g., `{product_base}experience/decision-manifest-map-user-flows.yaml`). Exact path is passed by the calling agent.
 
 ## Process
 
@@ -54,6 +57,42 @@ Walk the `success_scenarios` and `failure_scenarios` of each epic:
 - Start from the screen where the failure manifests (error state).
 - Trace the recovery path: error → retry action → success screen OR alternative recovery screen.
 - If the epic specifies a specific recovery (from the `Mitigation:` sub-field), prefer that path.
+
+### 3b. Emit decision manifest
+
+Before writing any flow file, write `decision-manifest.yaml` to `{decision_manifest_path}`.
+
+Record every inferred decision produced during Steps 2 and 3. Assign tier at runtime based on grounding source: **high** when the decision was a direct match against a KB rule, file, or catalog entry; **mid** when context was built via web research; **low** when neither KB nor research yielded a grounding source.
+
+**Decisions to record** (decision_id prefix: `D-muf-`):
+
+| decision_id | decision_type | What is being decided |
+|-------------|---------------|-----------------------|
+| `D-muf-001` | `persona-scenario-assignment` | For each success scenario, which persona is identified as the driving actor based on text similarity to persona job stories (Step 3) |
+| `D-muf-002` | `screen-sequence-trace` | For each success scenario, the ordered sequence of screens traced from entry point to scenario completion (Step 3) |
+| `D-muf-003` | `recovery-path-design` | For each failure scenario, the recovery screen sequence designed from the error state to resolution (including any inferred intermediate screens when the mitigation field is vague) (Step 3) |
+
+```yaml
+schema_version: "1.0"
+skill: "map-user-flows"
+generated_at: "{ISO8601}"
+decisions:
+  - decision_id: "D-muf-001"
+    decision_type: "persona-scenario-assignment"
+    tier: high | mid | low   # assign at runtime per grounding source
+    grounding_source:
+      kind: kb_path | web_citation | none
+      ref: "{KB file path | URL | null}"
+      excerpt: "{optional short quote when kind=kb_path}"
+    recommendation: "{the persona assigned to the scenario}"
+    alternatives_considered:
+      - alt: "{alternative persona}"
+        why_not: "{one-line dismissal reason}"
+    agent_reasoning_summary: "{2-3 sentence explanation}"
+    user_response: null
+    user_response_detail: null
+  # ... one entry per decision listed above (repeat per scenario for D-muf-001 through D-muf-003)
+```
 
 ### 4. Write one MD file per flow
 
@@ -143,6 +182,9 @@ flows:
     failure_scenarios_total: <int>
     failure_scenarios_with_recovery: <int>
     orphan_scenarios: []  # must be empty
+decision_manifest:
+  path: <written path>
+  decisions_recorded: <int>
 ```
 
 ## Constraints
@@ -154,12 +196,15 @@ flows:
 - NEVER use free-form prose diagrams. Always use Mermaid `flowchart` syntax so the diagrams are renderable.
 - ALWAYS name nodes using actual screen IDs + state names (`SCR_user_login_primary_default`), with underscores replacing hyphens for Mermaid compatibility.
 - ALWAYS include "Screens referenced" and "Annotations" sections for human reviewers.
+- NEVER commit an inferred decision to the primary artifacts (flow MD files) without recording it in `decision-manifest.yaml` first.
+- NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.
+- ALWAYS include `alternatives_considered` (≥1 entry) for every decision, even high-confidence ones.
 
 ## Version
 
 | Field | Value |
 |-------|-------|
-| Version | 0.1.0 |
+| Version | 0.2.0 |
 | Category | ux-design |
 | Created | 2026-04-14 |
 | Related | `core/components/skills/generate-screen-inventory`, `core/components/skills/validate-screen-coverage` |
