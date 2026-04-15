@@ -8,6 +8,8 @@ allowed-tools: Read, Write, Glob
 
 # derive-quality-profile-from-epics
 
+> **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
+
 Model-invocable skill for deriving the product's quality profile from a validated intent-epic set. Called by `product-keeper` during `specify-product` Stage 6.
 
 ## Purpose
@@ -20,7 +22,8 @@ Receive from product-keeper:
 - `epics_dir` (path, required) — validated intent epics directory
 - `project_profile_path` (path, required) — for profile-level NFR levels
 - `validation_path` (path, required) — the validation result from validate-intent-epics (used to confirm all epics are passed before aggregation)
-- `output_path` (string, required) — typically `.meridian/product/product/quality-profile.yaml`
+- `output_path` (string, required) — typically `.meridian/product/specification/quality-profile.yaml`
+- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifact (e.g., `.meridian/product/specification/decision-manifest-derive-quality-profile.yaml`). Exact path is passed by the calling agent.
 
 ## Process
 
@@ -88,6 +91,43 @@ security_profile:
   compliance_mandates: <list from compliance constraints across epics>
 ```
 
+### 5b. Emit decision manifest
+
+Before composing the quality profile artifact, write `decision-manifest.yaml` to `{decision_manifest_path}`.
+
+Record every inferred decision produced during Steps 3–5. Assign tier at runtime based on grounding source: **high** when the decision was a direct match against a KB rule, file, or catalog entry; **mid** when context was built via web research; **low** when neither KB nor research yielded a grounding source.
+
+**Decisions to record** (decision_id prefix: `D-dqp-`):
+
+| decision_id | decision_type | What is being decided |
+|-------------|---------------|-----------------------|
+| `D-dqp-001` | `constraint-aggregation-pick` | When multiple epics cite different targets for the same performance dimension, which is selected as the product-level target and why the "strictest wins" aggregation logic is applied (Step 3) |
+| `D-dqp-002` | `security-characteristic-ratchet` | Which epic's security constraint drives the product-level security characteristic floor (e.g., which epic named `NIST 800-63B AAL3`) and which did not, producing the ratchet (Step 3) |
+| `D-dqp-003` | `risk-severity-inference` | For each risk entry, whether severity is classified `high`/`medium`/`low` based on how many epics cite the same experiential warning (threshold: 3+ = high) (Step 4) |
+| `D-dqp-004` | `security-profile-derivation` | Which authentication method, authorization model, encryption level, and audit trail coverage are inferred from business_rules and compliance constraints across epics (Step 5) |
+
+```yaml
+schema_version: "1.0"
+skill: "derive-quality-profile-from-epics"
+generated_at: "{ISO8601}"
+decisions:
+  - decision_id: "D-dqp-001"
+    decision_type: "constraint-aggregation-pick"
+    tier: high | mid | low   # assign at runtime per grounding source
+    grounding_source:
+      kind: kb_path | web_citation | none
+      ref: "{KB file path | URL | null}"
+      excerpt: "{optional short quote when kind=kb_path}"
+    recommendation: "{the selected strictest target and source epic}"
+    alternatives_considered:
+      - alt: "{relaxed target from another epic}"
+        why_not: "{one-line dismissal reason}"
+    agent_reasoning_summary: "{2-3 sentence explanation}"
+    user_response: null
+    user_response_detail: null
+  # ... one entry per decision listed above
+```
+
 ### 6. Compose the quality profile
 
 ```yaml
@@ -142,6 +182,9 @@ quality_profile:
   characteristics_not_applicable: <int>
   risk_register_count: <int>
   security_profile_complete: true | false
+decision_manifest:
+  path: <written path>
+  decisions_recorded: <int>
 ```
 
 ## Constraints
@@ -153,12 +196,15 @@ quality_profile:
 - ALWAYS classify every risk by severity based on how many epics cite it.
 - ALWAYS produce a handoff_notes section pointing at the downstream consumer (build-arch).
 - ALWAYS scope output to `{output_path}` — one file, no scattered artifacts.
+- NEVER commit an inferred decision to the primary artifact (quality-profile.yaml) without recording it in `decision-manifest.yaml` first.
+- NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.
+- ALWAYS include `alternatives_considered` (≥1 entry) for every decision, even high-confidence ones.
 
 ## Version
 
 | Field | Value |
 |-------|-------|
-| Version | 0.1.0 |
+| Version | 0.2.0 |
 | Category | product-planning |
 | Created | 2026-04-14 |
 | Related | `core/components/skills/validate-intent-epics`, `core/components/plays/build-arch/` (consumer in 214.7), ISO/IEC 25010:2023 |
