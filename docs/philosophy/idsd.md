@@ -2,7 +2,7 @@
 
 > **Scope**: Meridian Methodology
 > **Status**: Active
-> **Last Updated**: 2026-02-21
+> **Last Updated**: 2026-04-15
 > **Foundation**: IDD (Intent-Driven Development) — see `intent-driven-development.md`
 
 ## Overview
@@ -32,8 +32,8 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 ├─────────────────────────────────────────────────────────────┤
 │  AI DOMAIN                                                  │
 │                                                             │
-│  Element 4: Agents ────────────────► 8 Agents (5 impl.)      │
-│  Element 5: Memory ────────────────► LTM + STM              │
+│  Element 4: Agents ────────────────► 19 Agents              │
+│  Element 5: Memory ────────────────► KB + LTM + STM         │
 │  Element 6: Skills ────────────────► Skills                  │
 │  Element 7: Context-Aware Decisions► Context Bundles         │
 │                                                             │
@@ -51,8 +51,8 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 | 1 | Intent Layer | Plays — atomic (≤2 agents), high-order (≤5 agents). Every play has IDD intent header (intent/constraints/failure_conditions). |
 | 2 | Signals | User CLI invocations (`/build-feature`, `/commit-code`). All signals enter via plays. |
 | 3 | Orchestrated Intent | Play Levels. Three speeds: Fast (minutes), Planned (hours), Strategic (days). |
-| 4 | Agents | 8 agents (5 implemented, 3 planned): code-builder, tech-designer, repo-orchestrator, project-orchestrator, feature-steward. Planned: quality-validator, workflow-guardian, spec-author. Agent-first pattern. |
-| 5 | Memory | LTM: `core/components/memory/` (practices, standards, templates). STM: `.meridian/{issue}/` (per-issue work). |
+| 4 | Agents | 19 agents across 7 roles: code-builder, tech-designer, tech-architect, repo-orchestrator, project-orchestrator, feature-steward, quality-auditor, judge, eval-generator, engineering-manager, test-engineer, designer, doc-builder, product-keeper, market-analyst, knowledge-extractor, scriber, intent-crafter, intent-resolver. Agent-first pattern. |
+| 5 | Memory | Three-layer memory: KB (`~/.meridian/core/memory/`) — global org knowledge. LTM (`{product_base}`) — project-specific. STM (`{stm_base}/{issue}/`) — per-issue. Flow: KB → LTM → STM. |
 | 6 | Skills | Bounded capabilities invoked by agents. Each skill has SKILL.md with input/output contracts. |
 | 7 | Context-Aware Decisions | Context bundles ≤12K tokens. Audience separation (Tier 1/2/3). Agents read LTM + STM. |
 | 8 | Generation-Verification | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per play. Evidence artifacts. Tether/Vanish checkpoints. |
@@ -154,47 +154,71 @@ Agent → Skill → Artifact
 IDSD defines 8 phases (5 primary, 3 supporting):
 
 ```
-┌───────────────────────────────────────────────────────────────────────────────┐
-│                     start-feature (universal precursor)                       │
-│                  NEW → create issue + branch                                  │
-│                  RESUME → resolve existing issue, prepare env                 │
-└──────────────────────────┬────────────────────────────────────────────────────┘
-                           │
-    ┌──────────────────────┼─────────────────────────┐
-    │                      │                         │
-    Fast (minutes)   Planned (hours)         Strategic (days)
-    build-feature    start-planned-feature   full SDLC pipeline
-    │                      │                         │
-    ▼                      ▼                         ▼
-
 Primary Phases (linear pipeline)
 ────────────────────────────────────────────────────────────────────────────────
-Product-2-Design  Design-2-Spec  Spec-2-Code  Code-2-Test  Test-2-Run
-┌──────────────┐ ┌────────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
-│discover-     │ │define-     │ │build-    │ │verify-   │ │create-pr │
-│product       │ │feature     │ │feature   │ │feature   │ │deliver-  │
-│plan-roadmap  │ │design-     │ │          │ │commit-   │ │feature   │
-│manage-       │ │feature     │ │          │ │code      │ │release   │
-│backlog       │ │create-     │ │          │ │review-pr │ │run-demo  │
-│refine-       │ │wireframes  │ │          │ │          │ │          │
-│backlog       │ │create-adr  │ │          │ │          │ │          │
-└──────────────┘ └────────────┘ └──────────┘ └──────────┘ └──────────┘
+Product-2-Spec    Spec-2-Design   Design-2-Code          Code-2-Test   Test-2-Run
+┌─────────────┐  ┌─────────────┐  ┌──────────────────┐  ┌──────────┐  ┌──────────┐
+│specify-     │  │design-exp   │  │  Epic Trinity    │  │commit-   │  │merge-pr  │
+│product      │  │build-arch   │  │  prepare-epic    │  │code      │  │capture-  │
+│             │  │             │  │  implement-epic  │  │create-pr │  │learning  │
+│             │  │             │  │  validate-epic   │  │review-pr │  │          │
+└─────────────┘  └─────────────┘  └──────────────────┘  └──────────┘  └──────────┘
+
+Shortcuts:  /ship    — commit → PR → review → merge in one command
+Bug path:   /fix-it  — RCA-driven defect resolution
 
 Supporting Phases (continuous)
 ────────────────────────────────────────────────────────────────────────────────
-Run-2-Monitor     Audit-2-Fix                Learn-2-Memory
-┌──────────────┐ ┌──────────────┐           ┌──────────────┐
-│fix-bug       │ │review-arch   │           │run-retro     │
-│hotfix        │ │audit-security│           │capture-      │
-│              │ │audit-perf    │           │learning      │
-│              │ │audit-a11y    │           │run-standup   │
-│              │ │generate-docs │           │              │
-└──────────────┘ └──────────────┘           └──────────────┘
+Run-2-Monitor      Audit-2-Fix              Learn-2-Memory
+┌──────────────┐  ┌──────────────┐          ┌──────────────┐
+│fix-it        │  │quality-check │          │capture-      │
+│              │  │(skill)       │          │learning      │
+└──────────────┘  └──────────────┘          └──────────────┘
 ```
 
-#### Planned Phase: Monitor-to-Design
+### Design-2-Code: The Epic Trinity
 
-> **Status**: Concept only — not specified, not on near-term roadmap. Timeline: 18-24 months.
+The Epic Trinity is the core implementation loop — three sequenced plays that carry a feature from locked design to verified code:
+
+```
+prepare-epic → implement-epic → validate-epic
+     │               │                │
+     ▼               ▼                ▼
+LLD + plan +    TDD code +       E2E tests +
+context pkg    unit tests +     QA verdict
+               eval loop        ACCEPT/REJECT
+```
+
+#### Context Boundary
+
+Each play has strict memory access rules enforced by the architecture:
+
+| Play | Reads | Writes | Memory Constraint |
+|------|-------|--------|------------------|
+| `prepare-epic` | KB + LTM + STM | STM context package | Bridge layer: reads all sources, writes only to STM |
+| `implement-epic` | STM ONLY | STM (code, tests, evidence) | **KB/LTM FORBIDDEN** |
+| `validate-epic` | STM ONLY + deployed env | STM (QA verdict, evidence) | **KB/LTM FORBIDDEN** |
+
+#### Dual-Level Verification
+
+The Trinity enforces verification at two levels:
+
+| Level | Play | Builder | Validator | Scope |
+|-------|------|---------|-----------|-------|
+| Unit | `implement-epic` | code-builder | judge | Unit tests, code quality, eval-driven TDD loop |
+| System | `validate-epic` | implement-epic output | judge | E2E tests, scenario coverage, QA verdict (ACCEPT/REJECT) |
+
+#### Outputs
+
+| Play | Output Artifacts |
+|------|----------------|
+| `prepare-epic` | `tech.yaml` (LLD), `scenarios.yaml`, `plan.yaml`, `context/` package in STM |
+| `implement-epic` | Working code, unit tests, eval evidence in STM |
+| `validate-epic` | QA verdict (ACCEPT or REJECT), E2E test results, scenario coverage report |
+
+### Planned Phase: Monitor-to-Design
+
+> **Status**: Planned — Issue #217. Timeline: 18-24 months.
 
 Monitor-to-Design closes the feedback loop from production back to the design phase:
 
@@ -202,7 +226,7 @@ Monitor-to-Design closes the feedback loop from production back to the design ph
 Production monitoring signals (latency, errors, usage patterns)
         │
         ▼
-Pattern correlation against LTM
+Pattern correlation against KB + LTM
         │
         ▼
 Auto-generated intent candidates
@@ -220,24 +244,14 @@ This phase is the operational mechanism for IDD Hypothesis H1 (Memory-Driven Int
 
 | Phase | Type | Focus | Example Plays |
 |-------|------|-------|-----------------|
-| Product-2-Design | Primary | Discovery, vision, roadmap, backlog | discover-product, plan-roadmap, manage-backlog |
-| Design-2-Spec | Primary | Feature definition, wireframes, ADRs | define-feature, create-wireframes, create-adr |
-| Spec-2-Code | Primary | Implementation from spec or intent | build-feature |
-| Code-2-Test | Primary | Verification, commits, review | verify-feature, commit-code, review-pr |
-| Test-2-Run | Primary | Delivery, demos, releases | create-pr, deliver-feature, run-demo, release |
-| Run-2-Monitor | Supporting | Post-deployment monitoring and incident response | fix-bug, hotfix |
-| Audit-2-Fix | Supporting | Quality audits and documentation | audit-security, audit-perf, audit-a11y, review-arch, generate-docs |
-| Learn-2-Memory | Supporting | Retrospectives, knowledge capture, STM→LTM promotion | capture-learning, run-retro, run-standup |
-
-### Three Execution Speeds
-
-| Speed | Duration | Entry Point | Example |
-|-------|----------|-------------|---------|
-| Fast | Minutes | build-feature | One intent → working code → commit |
-| Planned | Hours | start-planned-feature | Design + build in one flow |
-| Strategic | Days | Full SDLC pipeline | Product discovery → delivery |
-
-All speeds start with `start-feature` (universal precursor).
+| Product-2-Spec | Primary | Product specification, scope, quality profile | specify-product |
+| Spec-2-Design | Primary | UX design, architecture | design-exp, build-arch |
+| Design-2-Code | Primary | Implementation from locked design | prepare-epic, implement-epic, validate-epic |
+| Code-2-Test | Primary | Commits, PR creation, code review | commit-code, create-pr, review-pr |
+| Test-2-Run | Primary | Merge, learning capture | merge-pr, capture-learning |
+| Run-2-Monitor | Supporting | Post-deployment incident response | fix-it |
+| Audit-2-Fix | Supporting | Quality audits | quality-check (skill) |
+| Learn-2-Memory | Supporting | Knowledge capture, STM→LTM promotion | capture-learning |
 
 ### Intent Primacy
 
@@ -261,30 +275,43 @@ Plays → Agents → Skills → Memory (LTM + STM)
 
 ### Agent Taxonomy (IDSD-specific)
 
-IDSD maps the AI Squad Framework roles to 8 Meridian agents (5 implemented, 3 planned):
+IDSD maps the AI Squad Framework roles to 19 Meridian agents across 7 roles — all implemented:
 
-| AI Squad Role | Meridian Agent(s) | IDD Element |
-|---------------|--------------------|----|
-| Specifier | feature-steward, spec-author *(planned)* | Element 4 |
-| Designer | tech-designer | Element 4 |
+| Role | Meridian Agent(s) | IDD Element |
+|------|-------------------|----|
 | Builder | code-builder | Element 4 |
-| Validator | quality-validator *(planned)* | Elements 4 + 8 |
+| Designer | tech-designer, tech-architect, designer | Element 4 |
+| Specifier | feature-steward, product-keeper | Element 4 |
+| Validator | quality-auditor, judge, eval-generator, engineering-manager, test-engineer | Elements 4 + 8 |
 | Orchestrator | repo-orchestrator, project-orchestrator | Elements 3 + 4 |
+| Knowledge | knowledge-extractor, market-analyst, scriber | Elements 4 + 5 |
+| Framework | doc-builder, intent-crafter, intent-resolver | Element 4 |
 
-5 roles replace 12-16 traditional roles. AI handles execution; humans steer intent.
+7 roles replace 12-16 traditional roles. AI handles execution; humans steer intent.
 
 **Full agent roster:**
 
-| Agent | Domain | Role | SDLC Phases | Status |
-|-------|--------|------|-------------|--------|
-| code-builder | implementation | builder | Spec-2-Code | Implemented |
-| tech-designer | design | designer | Design-2-Code, Run-2-Monitor, Audit-2-Fix | Implemented |
-| repo-orchestrator | repo | orchestrator | Universal | Implemented |
-| project-orchestrator | project | orchestrator | Universal | Implemented |
-| quality-validator | quality | validator | Code-2-Test, Test-2-Run, Audit-2-Fix | Planned |
-| workflow-guardian | workflow | guardian | L2 checkpoint validation | Planned |
-| feature-steward | product | strategist | Product-2-Design | Implemented |
-| spec-author | specification | author | Design-2-Spec, Audit-2-Fix | Planned |
+| Agent | Domain | Role | SDLC Phases |
+|-------|--------|------|-------------|
+| code-builder | implementation | builder | Design-2-Code |
+| tech-designer | design | designer | Spec-2-Design, Run-2-Monitor, Audit-2-Fix |
+| tech-architect | architecture | designer | Spec-2-Design |
+| designer | UX | designer | Spec-2-Design |
+| feature-steward | product | specifier | Product-2-Spec |
+| product-keeper | product | specifier | Product-2-Spec |
+| quality-auditor | quality | validator | Code-2-Test, Audit-2-Fix |
+| judge | evaluation | validator | Design-2-Code (unit + system) |
+| eval-generator | evaluation | validator | Design-2-Code |
+| engineering-manager | quality | validator | Audit-2-Fix |
+| test-engineer | testing | validator | Design-2-Code, Code-2-Test |
+| repo-orchestrator | repo | orchestrator | Universal |
+| project-orchestrator | project | orchestrator | Universal |
+| knowledge-extractor | knowledge | knowledge | Learn-2-Memory |
+| market-analyst | market | knowledge | Product-2-Spec |
+| scriber | documentation | knowledge | Universal |
+| doc-builder | documentation | framework | Universal |
+| intent-crafter | intent | framework | Product-2-Spec |
+| intent-resolver | intent | framework | Design-2-Code |
 
 #### Compartmented Evaluation Classification
 
@@ -292,9 +319,16 @@ Under IDD Principle 4, agents are classified by their role in the information ba
 
 | Classification | Agents | What They Receive | When Barrier Active |
 |---------------|--------|-------------------|-------------------|
-| **Builders** | code-builder, tech-designer, spec-author *(planned)* | Goal + Constraints (no failure conditions) | In barrier-eligible plays |
-| **Validators** | quality-validator *(planned)* | Failure Conditions + Builder Output (no goal/constraints) | In barrier-eligible plays |
-| **Neutral** | feature-steward, repo-orchestrator, project-orchestrator | Full intent (all elements) | Always — these agents perform mechanical or discovery operations |
+| **Builders** | code-builder, tech-designer | Goal + Constraints (no failure conditions) | In barrier-eligible plays |
+| **Validators** | judge | Failure Conditions + Builder Output (no goal/constraints) | In barrier-eligible plays |
+| **Neutral** | feature-steward, product-keeper, repo-orchestrator, project-orchestrator | Full intent (all elements) | Always — these agents perform mechanical or discovery operations |
+
+**Dual-Level Implementation:**
+
+| Level | Play | Builder | Validator |
+|-------|------|---------|-----------|
+| Unit | `implement-epic` | code-builder (generates code) | judge (evaluates against failure conditions) |
+| System | `validate-epic` | implement-epic output (code under test) | judge (evaluates E2E scenarios) |
 
 In barrier-exempt plays (commit-code, create-pr, etc.), all agents receive the full intent regardless of classification.
 
@@ -341,9 +375,9 @@ Output (DRAFT → VALIDATE → LOCKED)
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  LONG-TERM MEMORY (LTM)                                │
-│  Persistent across sessions, branches, and projects     │
-│  Set by Architects, deployed to all projects            │
+│  KNOWLEDGE BASE (KB)                                    │
+│  Global org knowledge — persistent across all projects  │
+│  Set by Framework authors, deployed globally            │
 │                                                         │
 │  ┌─────────────┐  ┌──────────────┐  ┌──────────────┐  │
 │  │   Domain     │  │ Architecture │  │  Technology   │  │
@@ -368,31 +402,68 @@ Output (DRAFT → VALIDATE → LOCKED)
 │  Storage: core/components/memory/{dimension}/           │
 │  Deployed to: ~/.meridian/core/memory/                  │
 │  Version controlled via Git repository                  │
+│                                                         │
+│  ⛔ FORBIDDEN for implement-epic and validate-epic      │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│  LONG-TERM MEMORY (LTM)                                 │
+│  Project-specific product artifacts                     │
+│  Generated and consumed per product                     │
+│                                                         │
+│  • Locked product spec (specify-product)                │
+│  • Locked UX design (design-exp)                        │
+│  • Locked architecture (build-arch)                     │
+│  • Epic context packages (prepare-epic)                 │
+│                                                         │
+│  Storage: {product_base} (.meridian/product/)           │
+│  Lifecycle: Product-scoped, grows per-epic              │
+│                                                         │
+│  ⛔ FORBIDDEN for implement-epic and validate-epic      │
 └─────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐
 │  SHORT-TERM MEMORY (STM)                                │
-│  Session and branch-specific context                    │
+│  Per-issue context — self-contained package             │
 │                                                         │
+│  • Context package assembled by prepare-epic            │
 │  • Current branch state                                 │
 │  • Active failures and RCA findings                     │
-│  • In-progress changes and decisions                    │
-│  • Generated specs (intermediate artifacts)             │
+│  • In-progress code, tests, evidence                    │
+│  • QA verdict from validate-epic                        │
 │  • Task context and evidence                            │
-│  • Design documents for current workflow                │
 │                                                         │
-│  Storage: .meridian/{issue}/                            │
-│  Lifecycle: Branch-scoped, may be promoted to LTM       │
+│  Storage: {stm_base}/{issue}/context/                   │
+│  Lifecycle: Issue-scoped, promoted to LTM via           │
+│             capture-learning                            │
 └─────────────────────────────────────────────────────────┘
 ```
 
-#### LTM Governance via Git
+#### Context Boundary Rule
 
-In IDSD, LTM is version-controlled in Git repositories. This provides natural infrastructure for governance:
+**`prepare-epic` is the boundary layer.** It is the only play in the Epic Trinity that reads from KB and LTM. It assembles a self-contained context package and writes it to STM. Once the context package exists in STM, `implement-epic` and `validate-epic` operate exclusively from it.
 
-**File-Level Conflict Resolution**: Competing changes to the same LTM practice file surface as Git merge conflicts. Two developers capturing contradictory learnings about the same subsystem must resolve the conflict explicitly — Git's merge mechanism enforces this automatically.
+```
+KB ──────────────────────────────────────────────────┐
+                                                      ▼
+LTM ─────────────────────────────────────► prepare-epic → context/ → STM
+                                                      │
+                                                      ▼
+STM (context/) ──────────────────────────► implement-epic (STM ONLY)
+                                                      │
+                                                      ▼
+STM (code + env) ────────────────────────► validate-epic (STM ONLY + deployed env)
+```
 
-**STM→LTM Promotion Workflow**: Promotion follows a PR-based governance model with tiered review:
+This boundary is enforced by constraint, not convention: `implement-epic` and `validate-epic` receive STM paths only; KB and LTM paths are never passed to these plays.
+
+#### KB Governance via Git
+
+In IDSD, the KB is version-controlled in Git repositories. This provides natural infrastructure for governance:
+
+**File-Level Conflict Resolution**: Competing changes to the same KB practice file surface as Git merge conflicts. Two developers capturing contradictory learnings about the same subsystem must resolve the conflict explicitly — Git's merge mechanism enforces this automatically.
+
+**STM→KB Promotion Workflow**: Promotion follows a PR-based governance model with tiered review:
 
 ```
 Developer captures learning (STM)
@@ -401,30 +472,30 @@ Developer captures learning (STM)
 capture-learning play extracts pattern
         │
         ▼
-draft-ltm-entry skill creates LTM file
+draft-ltm-entry skill creates KB entry
         │
         ▼
 PR created for review
         │
-        ├── Project-level LTM → Team leads review
+        ├── Project-level KB → Team leads review
         │   (e.g., "this service uses connection pooling")
         │
-        └── Org-level LTM → Engineering leaders / CTOs review
+        └── Org-level KB → Engineering leaders / CTOs review
             (e.g., "all services use structured JSON logging")
         │
         ▼
 Merged → deployed to ~/.meridian/core/memory/ via /sync-claude
 ```
 
-**Semantic Conflict Detection**: Git catches file-level conflicts, but not semantic contradictions (e.g., one practice says "always use retry logic" while another says "never retry inside transactions"). The `capture-learning` play is designed with an `extract-patterns` skill that should detect semantic overlap with existing LTM entries — but this capability is not yet built. Current state: manual review during PR process.
+**Semantic Conflict Detection**: Git catches file-level conflicts, but not semantic contradictions (e.g., one practice says "always use retry logic" while another says "never retry inside transactions"). The `capture-learning` play is designed with an `extract-patterns` skill that should detect semantic overlap with existing KB entries — but this capability is not yet built. Current state: manual review during PR process.
 
-**Cross-Developer Visibility**: All LTM changes are visible in the Git history. All STM artifacts are committed to feature branches and visible via GitHub (issues, branches, PRs). The NWWI (No Work Without Issue) gate ensures every piece of work is trackable.
+**Cross-Developer Visibility**: All KB changes are visible in the Git history. All STM artifacts are committed to feature branches and visible via GitHub (issues, branches, PRs). The NWWI (No Work Without Issue) gate ensures every piece of work is trackable.
 
 #### Memory Evolution Trajectory
 
 > **Status**: Concept to early design. Timeline: 12-24 months.
 
-The current Git-based memory architecture is the foundation. The evolution path:
+The current Git-based KB architecture is the foundation. The evolution path:
 
 | Stage | Storage | Access | Search | Status |
 |-------|---------|--------|--------|--------|
@@ -433,18 +504,19 @@ The current Git-based memory architecture is the foundation. The evolution path:
 | **Stage 3** | Server-based + semantic index | MCP + API | Semantic search (vector embeddings) | Concept — 12-18 months |
 | **Stage 4** | Federated (org-wide) | MCP + API + federation protocol | Cross-project semantic search | Vision — 18-24 months |
 
-Each stage is additive — Stage 2 does not replace Stage 1; it adds a server layer on top of the same Git-backed storage. This means the core memory format (markdown files in Git) remains the source of truth throughout evolution.
+Each stage is additive — Stage 2 does not replace Stage 1; it adds a server layer on top of the same Git-backed storage. This means the core KB format (markdown files in Git) remains the source of truth throughout evolution.
 
-**LTM Quality & Decay**: As LTM grows beyond the 20-file audit threshold (IDD P5), automated quality mechanisms become necessary:
-- **Freshness scoring**: Track when each LTM entry was last validated against production reality
+**KB Quality & Decay**: As the KB grows beyond the 20-file audit threshold (IDD P5), automated quality mechanisms become necessary:
+- **Freshness scoring**: Track when each KB entry was last validated against production reality
 - **Relevance decay**: Flag practices that haven't been referenced by agents in N months
-- **Contradiction detection**: Semantic analysis of LTM entries for conflicting guidance
+- **Contradiction detection**: Semantic analysis of KB entries for conflicting guidance
 
 Status: Planned, not designed. Currently relies on manual PR review and the P5 hygiene rule.
 
 Storage paths:
-- LTM: `core/components/memory/{dimension}/` → deployed to `~/.meridian/core/memory/`
-- STM: `.meridian/{issue}/` — per-issue, branch-scoped
+- KB: `core/components/memory/{dimension}/` → deployed to `~/.meridian/core/memory/`
+- LTM: `{product_base}` (`.meridian/product/`) — project-specific, product-scoped
+- STM: `{stm_base}/{issue}/` — per-issue, branch-scoped
 
 ### Audience Separation
 
@@ -706,26 +778,27 @@ Not all plays benefit from compartmented evaluation. The barrier applies to play
 
 | Play | Barrier? | Reasoning |
 |--------|----------|-----------|
-| build-feature | ✓ Eligible | Builder makes design and implementation decisions |
-| define-feature | ✓ Eligible | Specifier makes scoping and requirements decisions |
-| design-feature | ✓ Eligible | Designer makes architectural decisions |
-| fix-bug | ✓ Eligible | Builder chooses fix strategy |
+| prepare-epic | ✓ Eligible | Designer makes architectural and LLD decisions |
+| implement-epic | ✓ Eligible | Builder makes design and implementation decisions |
+| validate-epic | ✓ Eligible | Judge evaluates implement-epic output against scenarios |
+| fix-it | ✓ Eligible | Builder chooses fix strategy |
+| specify-product | ✗ Exempt | Product specification — outputs are human-reviewed before implementation |
+| design-exp | ✗ Exempt | UX design — outputs are human-reviewed before implementation |
+| build-arch | ✗ Exempt | Architecture — outputs are human-reviewed before implementation |
 | commit-code | ✗ Exempt | Mechanical — deterministic output |
 | create-pr | ✗ Exempt | Mechanical — deterministic output |
-| create-branch | ✗ Exempt | Mechanical — deterministic output |
-| generate-docs | ✗ Exempt | Descriptive — output determined by input |
-| audit-security | ✗ Exempt | Audit IS validation — agent is already the validator |
 | review-pr | ✗ Exempt | Review IS validation — agent is already the validator |
+| merge-pr | ✗ Exempt | Mechanical — deterministic output |
 
 ### Agent Roles in Compartmented Evaluation
 
 | Agent | Role in Barrier | Sees Goal+Constraints | Sees Failure Conditions | Notes |
 |-------|----------------|----------------------|------------------------|-------|
-| code-builder | Builder | ✓ | ✗ | Primary builder for Spec-2-Code |
-| tech-designer | Builder | ✓ | ✗ | Builder for design decisions |
-| spec-author *(planned)* | Builder | ✓ | ✗ | Builder for specification generation |
-| quality-validator *(planned)* | Validator | ✗ | ✓ | Primary validator across all phases |
-| feature-steward *(planned)* | Neutral | ✓ | ✓ | Operates at discovery level — no barrier needed |
+| code-builder | Builder | ✓ | ✗ | Primary builder — implement-epic (unit level) |
+| tech-designer | Builder | ✓ | ✗ | Builder for design decisions — prepare-epic |
+| judge | Validator | ✗ | ✓ | Validator at both unit (implement-epic) and system (validate-epic) levels |
+| feature-steward | Neutral | ✓ | ✓ | Operates at discovery level — no barrier needed |
+| product-keeper | Neutral | ✓ | ✓ | Product specification — no barrier needed |
 | repo-orchestrator | Neutral | ✓ | ✓ | Mechanical operations — no barrier needed |
 | project-orchestrator | Neutral | ✓ | ✓ | Coordination operations — no barrier needed |
 
@@ -774,14 +847,28 @@ This alignment is natural: barrier-eligible plays are exactly those where busine
 
 ## IDSD Development Loop
 
-The core development loop in IDSD:
+The complete IDSD development loop:
+
+**Product Planning (once per product):**
 
 ```
-1. start-feature          → Create/resume work context (issue + branch + STM)
-2. [Speed-appropriate plays] → Fast / Planned / Strategic track
-3. commit-code            → Persist changes with conventional commits
-4. create-pr / deliver-feature → Ship to target branch
-5. capture-learning       → Promote patterns to LTM
+1. specify-product    → locked epics, scope, quality profile
+2. design-exp         → locked UX
+3. build-arch         → locked 5-artifact architecture
+```
+
+**Per Epic:**
+
+```
+4. start-feature      → issue + branch + STM directory
+5. prepare-epic       → LLD, scenarios, plan, context package
+                        (reads KB + LTM → writes STM)
+6. implement-epic     → TDD code, unit tests, eval evidence
+                        (STM ONLY — KB/LTM FORBIDDEN)
+7. validate-epic      → E2E tests, QA verdict (ACCEPT/REJECT)
+                        (STM ONLY + deployed env — KB/LTM FORBIDDEN)
+8. /ship              → commit → PR → review → merge
+9. capture-learning   → archive STM, promote patterns to LTM
 ```
 
 ---
@@ -820,14 +907,15 @@ Lock phase MUST run cascade-sync before setting LOCKED status.
 │  MERIDIAN INTERFACE (Enterprise Layer)                      │
 │                                                             │
 │  Governance        │ Quality Gates    │ Memory Federation   │
-│  Policies,         │ Validation       │ LTM deployed to     │
+│  Policies,         │ Validation       │ KB deployed to      │
 │  guardrails,       │ checkpoints      │ all projects from   │
 │  approval          │ between SDLC     │ central standards   │
 │  workflows         │ phases           │ (set by Architect)  │
 │                    │                  │                     │
 │  Cognitive Engine  │ MCP Integration  │ Hive Mind (Tasks)   │
 │  Context assembly  │ Tool-agnostic    │ Cross-agent         │
-│  from LTM + STM   │ external access  │ coordination        │
+│  from KB + LTM    │ external access  │ coordination        │
+│  + STM             │                  │                     │
 │                    │                  │                     │
 │  Barrier Integrity │                  │                     │
 │  Constraint-failure│                  │                     │
@@ -841,7 +929,7 @@ Lock phase MUST run cascade-sync before setting LOCKED status.
 | Tool | Status | Integration |
 |------|--------|-------------|
 | GitHub (Issues, PRs, Branches) | Built | Via `gh` CLI and MCP GitHub Server |
-| Git (Version Control, LTM Storage) | Built | Native CLI |
+| Git (Version Control, KB Storage) | Built | Native CLI |
 | Jira | Architecture supports | MCP server — incremental addition |
 | Notion / Wikis | Architecture supports | MCP server — incremental addition |
 | Linear | Architecture supports | MCP server — incremental addition |
@@ -869,6 +957,6 @@ Adding new tool integrations is incremental — each tool gets an MCP server; sk
 ---
 
 **Author**: Kapil Viren Ahuja
-**Version**: 1.0.0
-**Last Updated**: 2026-02-21
+**Version**: 2.0.0
+**Last Updated**: 2026-04-15
 **Status**: Active
