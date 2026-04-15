@@ -2,7 +2,7 @@
 name: tech-architect
 domain: architecture
 role: architect
-description: "Deep codebase architecture analysis, design pattern recognition, logical architecture inference, LLD production, dependency graph construction, change surface identification, and implementation planning. The heavyweight technical agent for prepare-implementation."
+description: "Deep codebase architecture analysis, design pattern recognition, logical architecture inference, LLD production, dependency graph construction, change surface identification, and implementation planning. The heavyweight technical agent for prepare-epic."
 model: opus
 tools:
   - Bash
@@ -97,8 +97,8 @@ When you receive a JSON contract from the play orchestrator:
       "issue_path": ".meridian/project/issues/183/issue.md"
     },
     "output": {
-      "architecture_inference_yaml": ".meridian/project/issues/183/evidence/prepare-implementation/architecture-inference.yaml",
-      "architecture_inference_md": ".meridian/project/issues/183/evidence/prepare-implementation/architecture-inference.md"
+      "architecture_inference_yaml": ".meridian/project/issues/183/evidence/prepare-epic/architecture-inference.yaml",
+      "architecture_inference_md": ".meridian/project/issues/183/evidence/prepare-epic/architecture-inference.md"
     }
   },
   "task_id": "1A-architecture-inference",
@@ -306,7 +306,7 @@ Input:
   domain: "{identified technical domain}"
   knowledge_gaps: ["{what LTM didn't cover}"]
   problem_statement: "{technical problem from issue or intent}"
-  output_base: "{stm_base}/{issue}/evidence/prepare-implementation/"
+  output_base: "{stm_base}/{issue}/evidence/prepare-epic/"
 ```
 
 The skill performs web research, writes `domain-context.md` to STM, and returns coverage metadata. Load the resulting STM artifact as enrichment context.

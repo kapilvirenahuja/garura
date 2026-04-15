@@ -461,7 +461,7 @@ Source: `plan.yaml`
 
 ## Context Sections
 
-When a brief is reviewed as part of a multi-stage play (e.g., `/prepare-implementation`),
+When a brief is reviewed as part of a multi-stage play (e.g., `/prepare-epic`),
 previously approved artifacts may be shown as non-reviewable context within a tab.
 
 **Context sections:**

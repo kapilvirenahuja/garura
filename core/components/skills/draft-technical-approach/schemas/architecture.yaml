@@ -1,6 +1,6 @@
 # architecture.yaml — Schema Definition
 # Architecture, technology selections, platforms, and agentic design
-# Produced by: /prepare-implementation (Stage 2)
+# Produced by: /prepare-epic (Stage 2)
 # Lifecycle: DRAFT → VALIDATED → LOCKED
 # Depends on: features.yaml
 # Related: tech.yaml (low-level implementation detail — separate artifact)

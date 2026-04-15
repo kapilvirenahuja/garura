@@ -1,0 +1,893 @@
+# evals.yaml — prepare-epic play (prepare-epic)
+# Generated from intent.yaml constraints (C1-C35), failure conditions (F1-F26), and scenarios (S1-S13)
+# Aligned with upstream trinity: specify-product → design-exp → build-arch → prepare-epic
+
+# =============================================================================
+# STEP EVALS (SE-*)
+# Each eval checks a step's artifact against the intent constraints and failure
+# conditions it is responsible for honoring.
+# =============================================================================
+
+step_evals:
+
+  # ---------------------------------------------------------------------------
+  # Pre-flight — Upstream artifact validation
+  # ---------------------------------------------------------------------------
+
+  - id: SE-1
+    step: 1
+    name: "Pre-flight validates all upstream locked artifacts exist"
+    validates: [C1, C34, F24]
+    check: >
+      Verify the pre-flight step checks for existence of all upstream locked
+      artifacts: specify-product epics at {product_base}scope/epics/{epic_id}.yaml,
+      scope at {product_base}scope/scope.yaml, quality profile at
+      {product_base}specification/quality-profile.yaml; design-exp design-spec at
+      {product_base}experience/design-spec.md, screens at
+      {product_base}experience/screens/*.md; build-arch 5 artifacts at
+      {product_base}architecture/ (logical-architecture.yaml,
+      physical-architecture.yaml, nfr-spec.yaml, quality-vision.yaml,
+      design-patterns.yaml). Hard halt if any is missing.
+    pass_criteria: >
+      Every upstream artifact path is checked. If any artifact is missing, the
+      play halts with a clear error identifying the missing artifact(s). No
+      fallback to discovery mode. No degraded execution. The play does not
+      proceed to context resolution without all upstream artifacts confirmed
+      present.
+
+  # ---------------------------------------------------------------------------
+  # tech.yaml — LLD (interface-level design)
+  # ---------------------------------------------------------------------------
+
+  - id: SE-2
+    step: 13
+    name: "tech.yaml contains interface-level design sections"
+    validates: [C23, F18]
+    check: >
+      Verify tech.yaml contains all required interface-level design sections:
+      api_contracts, internal_interfaces, service_contracts, frontend_spec,
+      backend_spec, data_spec, communication_channels, and mock_strategy.
+      For MODIFY files: contract-level design specifying interface changes.
+      For CREATE files: interface specifications and component contracts.
+      For DELETE files: justification.
+    pass_criteria: >
+      All required sections present with non-empty content: api_contracts,
+      internal_interfaces, frontend_spec, backend_spec, data_spec,
+      communication_channels, mock_strategy. Every MODIFY entry has
+      contract-level interface change specification. Every CREATE entry has
+      interface specifications and component contracts. Every DELETE entry
+      has justification. No section is a placeholder stub.
+
+  - id: SE-3
+    step: 13
+    name: "tech.yaml mock_strategy section is non-empty when change surface includes external dependencies"
+    validates: [C33, F26]
+    check: >
+      Identify external dependencies in the change surface (third-party APIs,
+      databases, message queues, notification services, payment providers, etc.).
+      If any external dependencies exist, verify tech.yaml mock_strategy section
+      contains: external_services entries with service name, mock_approach, and
+      mock_shape; test_doubles entries with interface, mock_type, and when to use.
+    pass_criteria: >
+      When external dependencies are present in the change surface:
+      mock_strategy.external_services has at least one entry per external
+      dependency. mock_strategy.test_doubles lists every interface that needs
+      a test double. Each entry has non-empty mock_approach and mock_shape
+      (or mock_type and usage context). When no external dependencies exist,
+      mock_strategy contains an explicit note stating no external mocks needed.
+
+  - id: SE-4
+    step: 13
+    name: "tech.yaml interface definitions cover every API endpoint and module interface in the change surface"
+    validates: [C35, F25]
+    check: >
+      Extract all API endpoints and module interfaces from the change surface
+      (identified during blast radius analysis). For each endpoint, verify a
+      corresponding entry exists in tech.yaml api_contracts. For each module
+      interface, verify a corresponding entry in internal_interfaces. Cross-check
+      that no interface in the change surface lacks a tech.yaml definition.
+    pass_criteria: >
+      Every API endpoint in the change surface has a matching api_contracts
+      entry with method, path, request/response schema, error codes. Every
+      module interface in the change surface has a matching internal_interfaces
+      entry with module, function, signature, and consumers. Zero interfaces
+      in the change surface without corresponding tech.yaml definitions.
+
+  # ---------------------------------------------------------------------------
+  # scenarios.yaml — 3-tier verification scenarios
+  # ---------------------------------------------------------------------------
+
+  - id: SE-5
+    step: 15
+    name: "Every scenario has all required fields"
+    validates: [C7, F6]
+    check: >
+      For every verification scenario in scenarios.yaml groups, verify presence of:
+      (1) description — concrete situation being tested, (2) expected_behavior —
+      observable outcomes, (3) pass_criteria — explicit binary conditions,
+      (4) automation classification — either Automated or Hybrid.
+    pass_criteria: >
+      Every scenario in scenarios.yaml contains all four required fields with
+      non-empty content. No scenario is missing description, expected_behavior,
+      pass_criteria, or automation classification.
+
+  - id: SE-6
+    step: 15
+    name: "Hybrid scenarios document manual element"
+    validates: [C7]
+    check: >
+      For every scenario in scenarios.yaml classified as Hybrid, verify a
+      manual_element field exists that documents which element requires human
+      judgment and what the human evaluates.
+    pass_criteria: >
+      Every Hybrid scenario has a documented manual_element. No Hybrid scenario
+      is missing the manual_element field.
+
+  - id: SE-7
+    step: 15
+    name: "Full behavior-to-scenario coverage"
+    validates: [C8, F7]
+    check: >
+      Extract every product behavior from the locked epic produced by
+      specify-product (behaviors list, success_scenarios, behavioral invariants).
+      For each behavior, verify at least one scenario in scenarios.yaml covers
+      it. Coverage is measured by traceability via feature_ref and behavior_ref
+      back-links.
+    pass_criteria: >
+      Every product behavior in the locked epic has at least one corresponding
+      scenario in scenarios.yaml. The coverage section in scenarios.yaml
+      confirms full coverage with zero uncovered_behaviors. Traceability is
+      demonstrable via feature_ref and behavior_ref fields.
+
+  - id: SE-8
+    step: 15
+    name: "scenarios.yaml audience is validators only"
+    validates: [C11]
+    check: >
+      Scan scenarios.yaml for implementation details: file paths, code snippets,
+      technology-specific assertions (e.g., "check Postgres table"), internal
+      component names, or implementation guidance. Scenarios should describe
+      observable product behavior, not internal mechanics.
+    pass_criteria: >
+      Zero implementation details or file paths found in scenario descriptions,
+      expected_behavior, or pass_criteria. Scenarios are testable by a validator
+      without implementation knowledge.
+
+  - id: SE-9
+    step: 15
+    name: "scenarios.yaml contains three tiers"
+    validates: [C24]
+    check: >
+      Verify scenarios.yaml contains three scenario tiers: (1) baseline
+      scenarios — existing behavior from blast radius coverage gaps that must
+      pass on unmodified code, (2) new scenarios — target behavior defined by
+      the locked epic, (3) regression scenarios — existing behavior from blast
+      radius that must still pass after changes. Verify feature_gates reference
+      all three tiers.
+    pass_criteria: >
+      All three tiers present with non-empty content. Baseline scenarios target
+      current code behavior. New scenarios trace to locked epic behaviors.
+      Regression scenarios trace to blast radius impacted areas. Feature gates
+      include scenario IDs from all three tiers. No tier is empty when the
+      change surface is non-trivial.
+
+  # ---------------------------------------------------------------------------
+  # plan.yaml — Task DAG
+  # ---------------------------------------------------------------------------
+
+  - id: SE-10
+    step: 16
+    name: "Every plan.yaml task has file path mapping with change type"
+    validates: [C5, F4]
+    check: >
+      For every task in plan.yaml, inspect the scope_items or file_changes list.
+      Every task must have a non-empty key_files or file_changes field containing
+      one or more specific file paths with change type (CREATE, MODIFY, DELETE).
+      File paths must be consistent with the project structure in tech.yaml.
+    pass_criteria: >
+      Every task in plan.yaml has at least one file path with an explicit
+      change type (CREATE, MODIFY, or DELETE). Zero tasks with empty or missing
+      file lists or missing change types.
+
+  - id: SE-11
+    step: 16
+    name: "Every feature slice delivers end-to-end capability"
+    validates: [C6, F3]
+    check: >
+      For every feature slice in plan.yaml, verify it delivers a testable
+      end-to-end capability. A feature slice that creates only infrastructure,
+      only API routes, or only UI components without a complete testable path
+      is invalid — except prerequisites (Phase 0), which covers project scaffold
+      and baseline test implementation.
+    pass_criteria: >
+      Every feature slice's exit_gate describes a working capability that can
+      be independently observed and tested. The scope_items or file_changes
+      together span enough layers to deliver that capability. Prerequisites
+      (Phase 0) are excluded from this check.
+
+  - id: SE-12
+    step: 16
+    name: "plan.yaml is compartmentalized from scenarios"
+    validates: [C9, F8]
+    check: >
+      Scan plan.yaml for any scenario descriptions, scenario text, or explicit
+      links to scenarios.yaml content. The plan must reference scenario IDs in
+      scenario_gate fields only — no scenario descriptions, no scenario content.
+    pass_criteria: >
+      Zero scenario descriptions found in plan.yaml. Zero references to scenario
+      content. scenario_gate fields contain only scenario IDs and counts.
+
+  - id: SE-13
+    step: 16
+    name: "plan.yaml summary with cumulative scenario counts"
+    validates: [C12]
+    check: >
+      Verify plan.yaml contains a summary section with per-feature rows showing:
+      feature_ref, delivers (one-line), scope_items count, scenario_count, and
+      cumulative_scenarios. Final cumulative_scenarios must equal the total
+      scenarios across all feature gates.
+    pass_criteria: >
+      Summary section present with all required columns. scenario_count values
+      are integers, not ID lists. cumulative_scenarios column is monotonically
+      increasing. Final cumulative value equals the sum of all individual
+      scenario_count values.
+
+  - id: SE-14
+    step: 16
+    name: "Every task has an observable exit gate"
+    validates: [C13, F5]
+    check: >
+      For every task in plan.yaml (and prerequisites), verify an exit_gate
+      field exists. The exit gate must describe observable outcomes (e.g.,
+      "User can log in via OAuth, session persisted to database") not process
+      steps (e.g., "Phase complete" or "Code reviewed").
+    pass_criteria: >
+      Every task has a non-empty exit_gate. Zero exit gates that reference
+      process steps instead of observable outcomes.
+
+  - id: SE-15
+    step: 16
+    name: "plan.yaml has minimum feature slice count"
+    validates: [F9]
+    check: >
+      Count feature slices in the task DAG in plan.yaml (excluding
+      prerequisites). The plan must contain at least 2 feature slices.
+    pass_criteria: >
+      Task DAG contains >= 2 feature slices. Prerequisites section is present
+      but excluded from the count.
+
+  - id: SE-16
+    step: 16
+    name: "plan.yaml task DAG has explicit depends_on chains"
+    validates: [C22, F17]
+    check: >
+      Verify plan.yaml contains a task-level DAG with explicit depends_on
+      fields between tasks. Each task must specify which tasks it depends on.
+      The DAG must be acyclic. Tasks must reference interface-level
+      specifications from tech.yaml via spec_ref or similar back-links.
+    pass_criteria: >
+      Every non-root task has a depends_on field referencing at least one
+      predecessor task. The dependency graph is a valid DAG (no cycles). Tasks
+      that consume interfaces from tech.yaml reference the relevant spec IDs.
+      Zero orphan tasks disconnected from the DAG.
+
+  # ---------------------------------------------------------------------------
+  # Cross-validation
+  # ---------------------------------------------------------------------------
+
+  - id: SE-17
+    step: 18
+    name: "All validation checks executed"
+    validates: [C3, C4, C5, C6, C7, C8, C9, C11, C12, C13, C22, C23, C24, C33, C35]
+    check: >
+      Verify the cross-validation step checks consistency across all three
+      design artifacts (tech.yaml, scenarios.yaml, plan.yaml) and their
+      alignment with the upstream locked epic and build-arch architecture
+      output. Verify each validation check has a PASS or FAIL status. Verify
+      ready_for_lock is true only when all checks pass and no blocker-severity
+      issues exist. Every individual violation is listed in the issues array
+      with check_id, message, and severity.
+    pass_criteria: >
+      All validation checks executed with status (PASS or FAIL) for each.
+      ready_for_lock is false if any check has FAIL status. Issues array
+      contains one entry per violation found, with no violations summarized
+      or collapsed. Checks cover: locked epic behaviors ↔ scenario coverage,
+      tech.yaml ↔ build-arch alignment, plan.yaml tasks ↔ tech.yaml specs,
+      audience separation, and compartmentalization.
+
+  # ---------------------------------------------------------------------------
+  # Pre-lock resolution
+  # ---------------------------------------------------------------------------
+
+  - id: SE-18
+    step: 19
+    name: "Pre-lock resolution of open questions and high-severity risks"
+    validates: [C18, F14]
+    check: >
+      After structural validation passes, verify the play scanned all three
+      design artifacts (tech.yaml, scenarios.yaml, plan.yaml) for
+      open_questions[] fields and for risks[] or risk_assessment[] entries
+      with severity "high". If any are found, verify a structured resolution
+      interview was presented to the user. Verify all resolutions were written
+      to pre-lock-resolutions.yaml before lock executed.
+    pass_criteria: >
+      If open_questions or high-severity risks exist: every item was surfaced
+      to the user, every item received explicit resolution (RESOLVED keyword),
+      all resolutions recorded in pre-lock-resolutions.yaml with the original
+      question/risk and user resolution. If no open questions or high risks
+      exist: pre-lock-resolutions.yaml notes "no items required resolution."
+      Lock did not execute while unresolved items remained.
+
+  # ---------------------------------------------------------------------------
+  # Lock
+  # ---------------------------------------------------------------------------
+
+  - id: SE-19
+    step: 20
+    name: "All three design artifacts locked with no content changes"
+    validates: [C2, C32]
+    check: >
+      Read all 3 design artifacts (tech.yaml, scenarios.yaml, plan.yaml) at
+      {stm_base}/{issue}/context/design/ and verify each contains
+      `status: "LOCKED"`. Compare artifact content to the DRAFT version — the
+      only change should be the status field from DRAFT to LOCKED. No behavioral
+      content, interface definitions, scenarios, scope items, or task DAG
+      entries should be modified.
+    pass_criteria: >
+      All 3 design artifacts contain `status: "LOCKED"`. Diff between DRAFT
+      and LOCKED versions shows only the status field change — zero content
+      modifications. Artifacts reside at the correct path
+      ({stm_base}/{issue}/context/design/).
+
+  # ---------------------------------------------------------------------------
+  # Checkpoints — 4 human review gates
+  # ---------------------------------------------------------------------------
+
+  - id: SE-20
+    step: 8
+    name: "Checkpoint 0 — context assembly requires approval before blast radius"
+    validates: [C10, C14, C15, C16, C19, C25, F10, F11, F13]
+    check: >
+      Verify that the context assembly report was presented to the user at
+      Checkpoint 0 showing: architecture inference results (module structure,
+      design patterns, framework conventions from codebase + locked architecture
+      as input), test surface mapping, dependency graph, git commit history
+      analysis, LTM findings and gaps, and context source hierarchy (locked
+      vs issue-scoped). Verify the user gave explicit approval (Tether) before
+      blast radius analysis began.
+    pass_criteria: >
+      Context assembly report presented before Checkpoint 0. Report shows
+      how the epic maps onto the locked architecture. LTM findings and gaps
+      both documented. Git history co-change patterns included. Checkpoint 0
+      resolved with Tether before blast radius steps began. Status shows
+      checkpoint-0 completed before blast radius analysis started.
+
+  - id: SE-21
+    step: 12
+    name: "Checkpoint 1 — blast radius and baseline tests require approval before LLD"
+    validates: [C10, C16, C20, C21, F10, F15, F16, F19]
+    check: >
+      Verify that the blast radius report was presented to the user at
+      Checkpoint 1 showing: change surface (all files impacted), test impact
+      analysis (which tests are affected), coverage gaps (code paths without
+      tests), and baseline test specifications for every coverage gap. Verify
+      the user gave explicit approval (Tether) before LLD generation (tech.yaml)
+      began.
+    pass_criteria: >
+      Blast radius report presented before Checkpoint 1. Change surface fully
+      characterized via test impact analysis. Every coverage gap has a baseline
+      test specification that targets current behavior. Checkpoint 1 resolved
+      with Tether before tech.yaml generation started. Status shows checkpoint-1
+      completed before LLD generation began.
+
+  - id: SE-22
+    step: 14
+    name: "Checkpoint 2 — LLD review requires approval before scenarios and plan"
+    validates: [C10, F10]
+    check: >
+      Verify that tech.yaml (and tech.md if produced) was presented to the
+      user for review at Checkpoint 2 and received explicit approval (Tether)
+      before scenario generation and plan generation began. Verify the LLD
+      contains interface-level design (api_contracts, internal_interfaces,
+      frontend_spec, backend_spec, data_spec, communication_channels,
+      mock_strategy) — not file-level before/after code.
+    pass_criteria: >
+      tech.yaml presented before Checkpoint 2. LLD content is interface-level
+      design, not code-level diffs. Checkpoint 2 resolved with Tether before
+      scenarios.yaml and plan.yaml generation started. Status shows checkpoint-2
+      completed before scenario and plan generation began.
+
+  - id: SE-23
+    step: 17
+    name: "Checkpoint 3 — scenarios and plan require approval before validation"
+    validates: [C10, F10]
+    check: >
+      Verify that scenarios.yaml and plan.yaml were presented to the user
+      for consolidated review at Checkpoint 3 and received explicit approval
+      (Tether) before cross-validation (Step 18) was executed. Verify
+      scenarios.yaml shows 3-tier structure and plan.yaml shows task DAG
+      with depends_on chains.
+    pass_criteria: >
+      Scenarios.yaml and plan.yaml presented before Checkpoint 3. Checkpoint 3
+      resolved with Tether before cross-validation began. Status shows
+      checkpoint-3 completed before validation started.
+
+
+# =============================================================================
+# SCENARIO EVALS (SCE-*)
+# Each eval verifies one end-to-end acceptance scenario (S1-S13) from intent.yaml.
+# =============================================================================
+
+scenario_evals:
+
+  - id: SCE-1
+    scenario: S1
+    persona: "Product Owner"
+    name: "Behavior-to-scenario traceability"
+    check: >
+      Given the locked epic from specify-product and scenarios.yaml, extract
+      every product behavior from the locked epic (behaviors list, success
+      scenarios, invariants). For each behavior, locate the corresponding
+      scenario(s) in scenarios.yaml that test it via feature_ref and
+      behavior_ref back-links. Verify every scenario has clear pass_criteria
+      that the product owner can evaluate without technical knowledge.
+    pass_criteria: >
+      Every product behavior in the locked epic maps to at least one scenario
+      in scenarios.yaml. Every mapped scenario has explicit pass_criteria that
+      are evaluable by a non-technical product owner. Zero uncovered behaviors
+      (confirmed by scenarios.yaml coverage.uncovered_behaviors being empty).
+      Traceability is demonstrable via feature_ref and behavior_ref fields.
+
+  - id: SCE-2
+    scenario: S2
+    persona: "Technical Architect"
+    name: "Technology stack faithfully implements product spec"
+    check: >
+      Given the locked epic from specify-product and the build-arch 5-artifact
+      output (logical-architecture.yaml, physical-architecture.yaml,
+      nfr-spec.yaml, quality-vision.yaml, design-patterns.yaml), for each
+      product behavior and invariant in the locked epic, verify that the
+      architecture artifacts provide concrete technology selections and
+      architectural decisions that enable that behavior. Identify any product
+      behavior that lacks architectural support or any architectural decision
+      that contradicts a product invariant.
+    pass_criteria: >
+      Every product behavior has a corresponding architectural component and
+      technology selection in the build-arch output. Every product invariant is
+      honored by the architecture (no contradictions). The architect can confirm
+      alignment between product intent and implementation architecture with zero
+      gaps or misalignments.
+
+  - id: SCE-3
+    scenario: S3
+    persona: "Engineering Lead"
+    name: "Single-task implementability without external context"
+    check: >
+      Select any single task in plan.yaml (any task after prerequisites). Given
+      only that task's file paths with change types, the exit_gate, and the
+      established architecture context (build-arch output + tech.yaml), verify
+      the engineering lead has sufficient context to assign the task to an
+      implementer. The implementer must NOT need access to other tasks, the
+      full locked epic, or scenarios.yaml to begin coding.
+    pass_criteria: >
+      For any selected task: (1) file paths have explicit change types (CREATE,
+      MODIFY, DELETE) for every file, (2) exit_gate defines an observable
+      testable outcome, (3) technology stack from build-arch and interface specs
+      from tech.yaml cover all technologies and interfaces referenced, (4) no
+      file change requires reading another task to understand. The engineering
+      lead can hand off the task as a self-contained work package.
+
+  - id: SCE-4
+    scenario: S4
+    persona: "Quality Lead"
+    name: "Feature-gated validation plan from scenarios.yaml and plan.yaml"
+    check: >
+      Given the locked scenarios.yaml and plan.yaml, construct a validation plan:
+      for each feature slice in plan.yaml, read the scenario_gate to get the
+      required scenario IDs, then look up those scenario IDs in scenarios.yaml
+      feature_gates. Verify every scenario ID resolves to a real scenario. Verify
+      plan.yaml does not expose scenario content — only IDs.
+    pass_criteria: >
+      The quality lead can construct a complete feature-gated validation plan
+      from scenarios.yaml feature_gates and plan.yaml scenario_gate fields alone.
+      Every scenario ID in plan.yaml resolves to an existing scenario in
+      scenarios.yaml. plan.yaml contains no scenario descriptions — only IDs and
+      counts. Implementers cannot derive test expectations from plan.yaml.
+
+  - id: SCE-5
+    scenario: S5
+    persona: "Technical Architect"
+    name: "plan.yaml summary provides implementation sequence and scenario accounting"
+    check: >
+      Given the locked plan.yaml summary section, verify the architect can
+      determine: (1) the implementation sequence (execution order), (2) what
+      each feature slice delivers as a working capability, (3) the scenario count
+      per feature, and (4) the cumulative_scenarios count reaches the total number
+      of verification scenarios by the final feature. Verify scenario counts are
+      integers only (not scenario IDs — compartmentalization).
+    pass_criteria: >
+      Summary section shows clear sequential ordering. Each row describes what
+      the feature delivers. Scenario counts are integers (no scenario IDs).
+      cumulative_scenarios is monotonically increasing. Final cumulative value
+      equals total scenario count from scenarios.yaml. The architect can plan
+      the full implementation sequence from the summary table alone.
+
+  - id: SCE-6
+    scenario: S6
+    persona: "Engineering Lead"
+    name: "Context assembly and blast radius verify codebase understanding"
+    check: >
+      Given the context assembly and blast radius reports, verify the
+      engineering lead can confirm: (1) codebase architecture is understood
+      (design patterns, framework conventions, logical architecture),
+      (2) all technology dependencies are identified, (3) test coverage is
+      mapped, (4) the change surface is fully characterized, and (5) coverage
+      gaps have baseline test specifications. Verify sufficient confidence to
+      approve proceeding to artifact generation.
+    pass_criteria: >
+      Architecture inference covers module structure, service boundaries, data
+      flow, and design patterns. Test surface maps all test files and their
+      coverage. Dependency graph includes file imports, module APIs, and service
+      messaging. Git history analysis shows co-change patterns and recent
+      activity. Every coverage gap has a baseline test specification targeting
+      current behavior. The engineering lead has full visibility into what the
+      change will impact.
+
+  - id: SCE-7
+    scenario: S7
+    persona: "Implementation Agent"
+    name: "Implement any task from locked artifacts without codebase scanning"
+    check: >
+      Given the locked artifacts (locked epic, tech.yaml, scenarios.yaml,
+      plan.yaml) and build-arch architecture output, select any task from
+      plan.yaml. Verify the implementation agent can implement the task
+      using only the provided artifacts — without scanning the codebase,
+      reading LTM, or resolving dependencies. File paths, change types,
+      interface specifications, and exit gates must all be explicit.
+    pass_criteria: >
+      For any selected task: file paths are absolute/project-relative (not
+      "see codebase"). Change types are explicit (CREATE, MODIFY, DELETE).
+      Interface specifications from tech.yaml provide contract-level detail
+      for every interface change. Exit gates describe observable outcomes.
+      Zero implicit references (no "follow existing patterns" or "use
+      available port").
+
+  - id: SCE-8
+    scenario: S8
+    persona: "Technical Architect"
+    name: "Pre-lock resolutions audit trail"
+    check: >
+      Given tech.yaml containing open_questions[] and high-severity risks,
+      plus the pre-lock-resolutions.yaml audit artifact, verify that every
+      high-severity risk and every open question across the three design
+      artifacts was surfaced to the user, that each received an explicit
+      resolution, and that resolutions are recorded in
+      pre-lock-resolutions.yaml as an audit trail.
+    pass_criteria: >
+      Every open_questions[] entry across tech.yaml, scenarios.yaml, and
+      plan.yaml has a corresponding resolution in pre-lock-resolutions.yaml.
+      Every high-severity risk has a corresponding resolution. Each resolution
+      records the original item and the user's RESOLVED response. No
+      unresolved items remain at lock time.
+
+  - id: SCE-9
+    scenario: S9
+    persona: "Engineer"
+    name: "Blast radius fully characterizes impact zone"
+    check: >
+      Given the blast radius report and baseline test specifications, verify
+      every impacted test is identified (direct and transitive), every coverage
+      gap has a baseline test specification, co-change patterns from git
+      history were considered, and the change surface is fully characterized —
+      no uncharacterized code paths in the impact zone.
+    pass_criteria: >
+      Every file in the change surface has its test coverage mapped. Every
+      transitive dependency of changed files is identified. Coverage gaps have
+      baseline test specifications that pass on unmodified code. Git co-change
+      patterns informed the change surface. Zero uncharacterized code paths in
+      the impact zone.
+
+  - id: SCE-10
+    scenario: S10
+    persona: "Implementation Agent"
+    name: "Task DAG execution with interface-level specs"
+    check: >
+      Given the task DAG in plan.yaml with depends_on chains and interface-level
+      specs in tech.yaml, verify tasks can be executed in dependency order where
+      each task specifies exact files, exact change types, exact interface
+      contracts (for MODIFY) or component specifications (for CREATE), and exact
+      exit gates — no design decisions required at build time.
+    pass_criteria: >
+      depends_on chains produce a valid topological order. Each task's file
+      list matches tech.yaml file_changes entries. Interface contracts from
+      tech.yaml provide sufficient detail for implementation. Exit gates are
+      verifiable without reading other tasks. The implementation agent makes
+      zero design decisions — all decisions are pre-made in the artifacts.
+
+  - id: SCE-11
+    scenario: S11
+    persona: "Quality Lead"
+    name: "Three-tier scenarios enable staged validation"
+    check: >
+      Given three-tier scenarios.yaml (baseline, new, regression) and
+      feature_gates, verify the quality lead can: (1) run baseline tests on
+      current unmodified code and confirm they pass, (2) understand that new
+      tests define the target behavior for the change, (3) confirm regression
+      tests ensure nothing outside the change surface breaks. All three tiers
+      must be mapped to features via feature_gates.
+    pass_criteria: >
+      Baseline scenarios pass on current code (they test existing behavior).
+      New scenarios trace to locked epic behaviors (they test target behavior).
+      Regression scenarios trace to blast radius (they protect unchanged code).
+      Feature gates include IDs from all three tiers. The quality lead can
+      stage validation: baseline first (pre-change), then new + regression
+      (post-change).
+
+  - id: SCE-12
+    scenario: S12
+    persona: "Technical Architect"
+    name: "Architecture inference and rich documentation"
+    check: >
+      Given architecture-inference.md and tech.md, verify the technical
+      architect can review the logical architecture, design patterns in use,
+      framework conventions, and low-level design with diagrams — understanding
+      the system's structure beyond what YAML fields can express.
+    pass_criteria: >
+      architecture-inference.md contains module structure, service boundaries,
+      data flow, and design patterns identified from the codebase. tech.md
+      contains architecture diagrams (mermaid), data flow diagrams, and design
+      decision rationale. Both documents provide narrative context that
+      supplements the structured YAML artifacts.
+
+  - id: SCE-13
+    scenario: S13
+    persona: "Developer"
+    name: "Cold start — no prior setup required"
+    check: >
+      Given a developer who invokes prepare-epic with no prior
+      start-feature or start-feature-planning run (no issue exists, no branch
+      exists, no STM directory exists), verify the play creates the issue,
+      creates the branch, initializes STM, and completes all planning —
+      producing fully locked artifacts in {stm_base}/{issue}/context/design/.
+    pass_criteria: >
+      Issue created or resolved before context resolution. Feature branch
+      created with type/issue-slug convention. STM directory initialized at
+      {stm_base}/{issue}/. All design artifacts produced and locked at
+      {stm_base}/{issue}/context/design/. The developer never needs to run
+      start-feature separately. Cold start produces identical artifact quality
+      to warm start.
+
+
+# =============================================================================
+# COVERAGE SUMMARY
+# Maps every constraint and failure condition to the step evals that validate it.
+# =============================================================================
+
+coverage_summary:
+  constraints:
+    C1:
+      description: "Upstream locked artifacts from specify-product, design-exp, build-arch are REQUIRED"
+      covered_by: [SE-1]
+    C2:
+      description: "Single invocation per issue — context through lock in one flow"
+      covered_by: [SE-19]
+    C3:
+      description: "Behaviors from upstream locked epic — play does NOT generate features.yaml"
+      covered_by: [SE-7, SE-17]
+    C4:
+      description: "tech.yaml aligns with build-arch architecture output"
+      covered_by: [SE-17]
+    C5:
+      description: "Every plan.yaml task maps to file paths with change types"
+      covered_by: [SE-10, SE-17]
+    C6:
+      description: "Every feature slice delivers end-to-end testable capability"
+      covered_by: [SE-11, SE-17]
+    C7:
+      description: "Every scenario has description, expected_behavior, pass_criteria, automation"
+      covered_by: [SE-5, SE-6, SE-17]
+    C8:
+      description: "Every product behavior in locked epic covered by at least one scenario"
+      covered_by: [SE-7, SE-17]
+    C9:
+      description: "Scenarios compartmentalized from implementer — no scenario content in plan.yaml"
+      covered_by: [SE-12, SE-17]
+    C10:
+      description: "Four human review checkpoints — context assembly, blast radius, LLD, scenarios+plan"
+      covered_by: [SE-20, SE-21, SE-22, SE-23]
+    C11:
+      description: "Each artifact serves its distinct audience — no collision"
+      covered_by: [SE-8, SE-17]
+    C12:
+      description: "plan.yaml summary with scenario counts; feature_gates in scenarios.yaml"
+      covered_by: [SE-13, SE-17]
+    C13:
+      description: "Every task has exit gate with observable outcomes"
+      covered_by: [SE-14, SE-17]
+    C14:
+      description: "Deep codebase understanding — architecture inference, test surface, deps, git history"
+      covered_by: [SE-20]
+    C15:
+      description: "LTM consultation — findings and gaps documented"
+      covered_by: [SE-20]
+    C16:
+      description: "Context assembly and blast radius require user approval before artifact generation"
+      covered_by: [SE-20, SE-21]
+    C17:
+      description: "Existing artifacts read-only inputs — all work issue-mapped"
+      covered_by: [SE-17]
+    C18:
+      description: "Pre-lock resolution of open questions and high-severity risks"
+      covered_by: [SE-18]
+    C19:
+      description: "Context resolution hierarchy — locked (upstream) and issue-scoped (codebase)"
+      covered_by: [SE-20]
+    C20:
+      description: "Test-driven blast radius analysis before design artifact generation"
+      covered_by: [SE-21]
+    C21:
+      description: "Baseline tests for every coverage gap in change surface"
+      covered_by: [SE-21]
+    C22:
+      description: "plan.yaml task-level DAG with depends_on chains and per-task file lists"
+      covered_by: [SE-16]
+    C23:
+      description: "tech.yaml interface-level design — api_contracts, internal_interfaces, specs, mock_strategy"
+      covered_by: [SE-2, SE-17]
+    C24:
+      description: "Three-tier scenarios — baseline, new, regression"
+      covered_by: [SE-9, SE-17]
+    C25:
+      description: "Git commit history analysis as parallel codebase understanding input"
+      covered_by: [SE-20]
+    C26:
+      description: "Intermediate agent data stored in STM on disk — not conversation memory"
+      covered_by: [SE-17]
+    C27:
+      description: "Dual format for artifacts benefiting from diagrams and narrative"
+      covered_by: [SE-17]
+    C28:
+      description: "Testing and architecture agent work separated"
+      covered_by: [SE-17]
+    C29:
+      description: "Must resolve or create GitHub issue before artifact production"
+      covered_by: [SE-1]
+    C30:
+      description: "Must create feature branch before artifacts"
+      covered_by: [SE-1]
+    C31:
+      description: "Must initialize STM directory before writing artifacts"
+      covered_by: [SE-1]
+    C32:
+      description: "Artifact lock path convention — {stm_base}/{issue}/context/design/"
+      covered_by: [SE-19]
+    C33:
+      description: "tech.yaml mock_strategy section for external dependency mocking"
+      covered_by: [SE-3, SE-17]
+    C34:
+      description: "Pre-flight validates all upstream locked artifacts exist"
+      covered_by: [SE-1]
+    C35:
+      description: "tech.yaml interface definitions cover every API endpoint and module interface"
+      covered_by: [SE-4, SE-17]
+
+  failure_conditions:
+    F1:
+      description: "Locked epic contains technology names or implementation details"
+      covered_by: [SE-1, SE-17]
+    F2:
+      description: "tech.yaml contradicts established architecture from build-arch"
+      covered_by: [SE-17]
+    F3:
+      description: "Feature slice does not deliver end-to-end capability"
+      covered_by: [SE-11, SE-17]
+    F4:
+      description: "Plan task lacks file path mappings with change types"
+      covered_by: [SE-10, SE-17]
+    F5:
+      description: "Task has no exit_gate or exit_gate references process steps"
+      covered_by: [SE-14, SE-17]
+    F6:
+      description: "Scenario missing required fields"
+      covered_by: [SE-5, SE-17]
+    F7:
+      description: "Product behavior in locked epic has no corresponding scenario"
+      covered_by: [SE-7, SE-17]
+    F8:
+      description: "plan.yaml contains scenario descriptions or content"
+      covered_by: [SE-12, SE-17]
+    F9:
+      description: "plan.yaml has fewer than 2 feature slices"
+      covered_by: [SE-15, SE-17]
+    F10:
+      description: "Artifacts produced without passing all four human review checkpoints"
+      covered_by: [SE-20, SE-21, SE-22, SE-23]
+    F11:
+      description: "Codebase understanding missed technology deps, patterns, or structures"
+      covered_by: [SE-20]
+    F12:
+      description: "Artifacts contain implicit references to undocumented codebase state"
+      covered_by: [SE-17]
+    F13:
+      description: "LTM not consulted or findings/gaps not documented"
+      covered_by: [SE-20]
+    F14:
+      description: "Artifacts locked with unresolved open questions or high-severity risks"
+      covered_by: [SE-18]
+    F15:
+      description: "Design artifacts produced without blast radius analysis completing"
+      covered_by: [SE-21]
+    F16:
+      description: "Coverage gaps without corresponding baseline test specifications"
+      covered_by: [SE-21]
+    F17:
+      description: "plan.yaml tasks lack depends_on chains or per-task file lists"
+      covered_by: [SE-16, SE-17]
+    F18:
+      description: "tech.yaml lacks contract-level interface definitions"
+      covered_by: [SE-2, SE-17]
+    F19:
+      description: "Baseline tests do not cover every coverage gap in blast radius"
+      covered_by: [SE-21]
+    F20:
+      description: "Intermediate agent data not stored in STM — passed through conversation"
+      covered_by: [SE-17]
+    F21:
+      description: "Play proceeds to context resolution without resolved issue"
+      covered_by: [SE-1]
+    F22:
+      description: "Artifacts locked without feature branch matching type/issue-slug"
+      covered_by: [SE-1]
+    F23:
+      description: "Design artifact written before STM directory initialized"
+      covered_by: [SE-1]
+    F24:
+      description: "Upstream locked artifacts not found at expected paths"
+      covered_by: [SE-1]
+    F25:
+      description: "tech.yaml missing interface definitions for API/module changes in change surface"
+      covered_by: [SE-4, SE-17]
+    F26:
+      description: "tech.yaml missing mock_strategy when external dependencies in change surface"
+      covered_by: [SE-3, SE-17]
+
+  scenarios:
+    S1:
+      description: "Product Owner — behavior-to-scenario traceability via locked epic"
+      covered_by: SCE-1
+    S2:
+      description: "Technical Architect — technology stack implements product spec via build-arch"
+      covered_by: SCE-2
+    S3:
+      description: "Engineering Lead — single-task implementability from plan.yaml"
+      covered_by: SCE-3
+    S4:
+      description: "Quality Lead — feature-gated validation plan"
+      covered_by: SCE-4
+    S5:
+      description: "Technical Architect — plan.yaml summary and scenario accounting"
+      covered_by: SCE-5
+    S6:
+      description: "Engineering Lead — context assembly and blast radius verification"
+      covered_by: SCE-6
+    S7:
+      description: "Implementation Agent — implement from locked artifacts without codebase scanning"
+      covered_by: SCE-7
+    S8:
+      description: "Technical Architect — pre-lock resolutions audit trail"
+      covered_by: SCE-8
+    S9:
+      description: "Engineer — blast radius fully characterizes impact zone"
+      covered_by: SCE-9
+    S10:
+      description: "Implementation Agent — task DAG execution with interface-level specs"
+      covered_by: SCE-10
+    S11:
+      description: "Quality Lead — three-tier scenarios enable staged validation"
+      covered_by: SCE-11
+    S12:
+      description: "Technical Architect — architecture inference and rich documentation"
+      covered_by: SCE-12
+    S13:
+      description: "Developer — cold start with no prior setup"
+      covered_by: SCE-13

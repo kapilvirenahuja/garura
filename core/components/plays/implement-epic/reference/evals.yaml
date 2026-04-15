@@ -1,0 +1,867 @@
+# evals.yaml — implement-epic play
+# Generated from intent.yaml constraints (C1-C26), failure conditions (F1-F22), and scenarios (S1-S12)
+# Aligned with the refactored intent: no separate EM agent, quality-auditor absorbs QP certification,
+# eval-generator scoped to unit test coverage completeness, judge scoped to developer self-review,
+# mock setup required, integration test pass required, sequential scope-item TDD cycles.
+
+# =============================================================================
+# STEP EVALS (SE-*)
+# Each eval checks a step's artifact against the intent constraints and failure
+# conditions it is responsible for honoring.
+# =============================================================================
+
+step_evals:
+
+  # ---------------------------------------------------------------------------
+  # Step 1 — Pre-flight validation
+  # ---------------------------------------------------------------------------
+
+  - id: SE-1
+    step: 1
+    name: "Plan entry has LOCKED status"
+    validates: [C1, F8]
+    check: >
+      Read the plan.yaml execution_order entry referenced by the target feature.
+      Verify the entry's status field is exactly "LOCKED". Check that status is
+      not "DRAFT", "IN_PROGRESS", or any other value.
+    pass_criteria: >
+      The referenced execution_order entry has status: "LOCKED". Any other status
+      value causes a hard halt — implementation does not proceed.
+
+  - id: SE-2
+    step: 1
+    name: "Feature has success scenarios and failure conditions"
+    validates: [C2, F9]
+    check: >
+      Read the target feature in features.yaml. Verify that
+      success_scenarios is a non-empty list with at least one entry. Verify that
+      failure_conditions is a non-empty list with at least one entry. Verify
+      that the plan.yaml execution_order entry has a non-empty exit_gate field.
+    pass_criteria: >
+      Feature has >= 1 success_scenario and >= 1 failure_condition in
+      features.yaml. The plan.yaml entry has a non-empty exit_gate. Zero of
+      these fields are null, empty lists, or absent.
+
+  - id: SE-3
+    step: 1
+    name: "All prerequisite execution order entries complete"
+    validates: [C3]
+    check: >
+      Read the plan.yaml execution_order and identify all entries that the
+      target entry depends on (via depends_on or prerequisite references).
+      Verify each prerequisite entry has a status indicating completion
+      (e.g., "COMPLETE" or "DONE"). No prerequisite may be in LOCKED, DRAFT,
+      or IN_PROGRESS state.
+    pass_criteria: >
+      Every prerequisite execution_order entry has a completed status. Zero
+      prerequisites remain unfinished. If no prerequisites exist, this check
+      passes trivially.
+
+  - id: SE-4
+    step: 1
+    name: "Input artifacts sourced from correct paths"
+    validates: [C23]
+    check: >
+      Verify that plan.yaml, features.yaml, tech.yaml, and scenarios.yaml are
+      read from {stm_base}/{issue}/context/design/ where prepare-epic wrote
+      them. Verify that build-arch architecture artifacts (logical-architecture.yaml,
+      physical-architecture.yaml, nfr-spec.yaml, quality-vision.yaml,
+      design-patterns.yaml) are sourced from {product_base}architecture/. Verify
+      the artifact_base is derived from the issue STM path, not hardcoded.
+    pass_criteria: >
+      All four design artifacts resolved from issue STM path. All five
+      architecture artifacts resolved from product_base. No artifact loaded
+      from a hardcoded path or incorrect directory. artifact_base is dynamically
+      derived from STM config.
+
+  # ---------------------------------------------------------------------------
+  # Step 2 — Quality vision gates setup
+  # ---------------------------------------------------------------------------
+
+  - id: SE-5
+    step: 2
+    name: "Quality vision gates derive thresholds from quality-vision.yaml"
+    validates: [C15, C19, F16]
+    check: >
+      When {product_base}architecture/quality-vision.yaml exists, verify that
+      quality-vision-gates.yaml thresholds are derived from it using the QP
+      translation table: QP-1 levels map to min_coverage percentages, QP-2
+      levels map to complexity limits, QP-7 levels map to security scan
+      requirements. Verify no QP dimension with level >= 2 has a null threshold.
+      When quality-vision.yaml is absent, verify gates are detected from
+      toolchain defaults.
+    pass_criteria: >
+      Every QP dimension with level >= 2 in quality-vision.yaml has a non-null
+      concrete threshold in quality-vision-gates.yaml. QP translation table was
+      applied correctly. No manual override of QP-derived thresholds. If
+      quality-vision.yaml is absent, toolchain defaults are used instead.
+
+  # ---------------------------------------------------------------------------
+  # Step 3 — Mock infrastructure setup
+  # ---------------------------------------------------------------------------
+
+  - id: SE-6
+    step: 3
+    name: "Mock infrastructure created from tech.yaml mock_strategy"
+    validates: [C24, F20]
+    check: >
+      Read tech.yaml mock_strategy section. For each external_service entry,
+      verify the specified mock_approach was instantiated (e.g., in-memory event
+      bus created, test database configured, mock service stubs from LLD interface
+      definitions created). For each test_double entry, verify the mock type is
+      available in the test environment. Verify mock setup completed before the
+      test-writer agent is invoked.
+    pass_criteria: >
+      Every external_service in mock_strategy has a functioning mock instance.
+      Every test_double is available for import in test files. Mock setup
+      completed before test-writer invocation. If any mock fails to instantiate,
+      the process halts — test-writer does not proceed.
+
+  # ---------------------------------------------------------------------------
+  # Step 4 — CONTEXT.md generation
+  # ---------------------------------------------------------------------------
+
+  - id: SE-7
+    step: 4
+    name: "CONTEXT.md has all required sections scoped to target feature"
+    validates: [C13]
+    check: >
+      Read the generated CONTEXT.md. Verify it contains all 6 required sections:
+      (1) Scope — what scope items the builder implements, (2) Architecture —
+      relevant architectural decisions from build-arch artifacts, (3) Tech Stack —
+      technology choices from tech.yaml, (4) Domain Rules — business rules and
+      constraints from features.yaml, (5) Files You Own — specific file paths
+      the builder creates or modifies, (6) Conventions — coding standards and
+      patterns. Verify all content is scoped to the target feature only — no
+      information about other features in the execution order.
+    pass_criteria: >
+      All 6 sections present and non-empty. Content references only the target
+      feature's scope items, architecture, and file paths. Zero references to
+      other features' scope items or files. CONTEXT.md is distilled from
+      plan.yaml entry, build-arch artifacts, and tech.yaml.
+
+  # ---------------------------------------------------------------------------
+  # Step 5 — TEST-CONTEXT.md generation
+  # ---------------------------------------------------------------------------
+
+  - id: SE-8
+    step: 5
+    name: "TEST-CONTEXT.md is behavioral only — no file paths or architecture"
+    validates: [C17, F14]
+    check: >
+      Read the generated TEST-CONTEXT.md. Verify it contains scope item
+      descriptions and acceptance criteria extracted from CONTEXT.md 'Scope'
+      section and features.yaml success_scenarios. Scan for prohibited content:
+      file paths from CONTEXT.md 'Files You Own', build-arch architecture
+      artifact references, tech.yaml references, technology choices, framework
+      names, implementation-specific information, or structural assertions.
+    pass_criteria: >
+      TEST-CONTEXT.md contains behavioral descriptions and acceptance criteria
+      only. Zero file paths found. Zero architecture references. Zero technology
+      choices or framework names. Zero structural assertions (e.g., "check that
+      class X has method Y"). All assertions describe observable behavior, not
+      internal structure.
+
+  # ---------------------------------------------------------------------------
+  # Step 6 — Evaluation generation
+  # ---------------------------------------------------------------------------
+
+  - id: SE-9
+    step: 6
+    name: "Eval-generator scoped to unit test coverage completeness"
+    validates: [C4, C8, F7]
+    check: >
+      Verify the eval-generator received only: features.yaml behaviors,
+      scenarios.yaml verification scenarios, feature success/failure conditions,
+      and plan.yaml exit gate criteria. Verify it did NOT receive: vision
+      documents, design tokens, build-arch artifacts, tech.yaml, full plan.yaml,
+      implementation code, builder prompts, or prior evaluation results. Verify
+      generated evals are scoped to unit test coverage: 'Does every behavior
+      have a unit test?', 'Do tests cover success AND failure conditions?',
+      'Are edge cases represented in unit tests?' Verify evals do NOT check
+      system behavior, deployed endpoints, UI rendering, or e2e flows.
+    pass_criteria: >
+      Eval-generator input context contains only the 4 permitted sources. Zero
+      prohibited sources in input. All generated evals are unit-test-coverage
+      questions. Zero evals reference deployed environments, HTTP endpoints,
+      browser automation, or system-level behavior.
+
+  - id: SE-10
+    step: 6
+    name: "Evaluations encrypted and stored outside repository"
+    validates: [C7, C8, F4]
+    check: >
+      After eval generation, verify: (1) evaluation files are stored outside
+      the project repository tree — no eval content (encrypted or plaintext)
+      exists inside the repo at any point, (2) plaintext evaluation content is
+      deleted after encryption, (3) only encrypted eval files remain on disk,
+      (4) the encryption key/capability is accessible only to the judge.
+    pass_criteria: >
+      Zero eval files (encrypted or plaintext) inside the project repository
+      tree. Zero plaintext eval files on disk after encryption step. Encrypted
+      eval files exist only outside the repo. Judge is the sole decryption
+      capability holder.
+
+  # ---------------------------------------------------------------------------
+  # Step 7 — Per-scope-item TDD cycle (test-writer → code-builder)
+  # ---------------------------------------------------------------------------
+
+  - id: SE-11
+    step: 7
+    name: "Test-writer receives only TEST-CONTEXT.md"
+    validates: [C16, C17, F14]
+    check: >
+      Inspect the test-writer agent's input context for each scope item. Verify
+      it received only TEST-CONTEXT.md (behavioral specs). Verify it did NOT
+      receive: CONTEXT.md, CONTEXT.md 'Files You Own' section, file paths,
+      architecture decisions, technology choices, build-arch artifact references,
+      tech.yaml references, or any implementation context. Verify test
+      assertions are behavioral — they assert on observable outcomes, not
+      structural implementation details.
+    pass_criteria: >
+      Test-writer input context contains only TEST-CONTEXT.md. Zero file paths
+      in input. Zero architecture references. Zero technology choices. All
+      authored tests assert behavioral outcomes (e.g., "returns expected result
+      when given input X") not structural details (e.g., "calls method Y on
+      class Z").
+
+  - id: SE-12
+    step: 7
+    name: "Code-builder receives only CONTEXT.md and read-only test files"
+    validates: [C5, F5]
+    check: >
+      Inspect the code-builder agent's input context for each scope item. Verify
+      it received only: CONTEXT.md (architecture, scope, file ownership,
+      conventions) and test file paths (marked read-only). Verify it did NOT
+      receive: features.yaml, scenarios.yaml, evaluation criteria, evaluation
+      IDs, judge reports, pass/fail thresholds, eval-generator prompts, or
+      quality agent results. Verify the builder implements each scope item to
+      make existing tests pass.
+    pass_criteria: >
+      Code-builder input context contains only CONTEXT.md and read-only test
+      file paths. Zero evaluation content in input. Zero features.yaml or
+      scenarios.yaml content in input. Zero judge report content in input.
+      Builder's objective is solely to make tests pass.
+
+  - id: SE-13
+    step: 7
+    name: "Test file checksums unchanged after code-builder"
+    validates: [C18, F15]
+    check: >
+      For each scope item: (1) record SHA-256 checksums of all test files after
+      the test-writer returns, (2) pass test files to code-builder as read-only,
+      (3) re-compute SHA-256 checksums of all test files after code-builder
+      returns, (4) compare pre and post checksums. Any mismatch indicates the
+      code-builder modified test files.
+    pass_criteria: >
+      Every test file checksum matches between post-test-writer and
+      post-code-builder states. Zero checksum mismatches. If any mismatch is
+      detected, it is reported as failure condition F15.
+
+  - id: SE-14
+    step: 7
+    name: "Scope items executed sequentially, not batched"
+    validates: [C16]
+    check: >
+      Verify that scope items are processed one at a time: each scope item's
+      full cycle (test-writer → code-builder → quality check) completes before
+      the next scope item begins. No two scope items are in-flight
+      simultaneously. The orchestrator does not batch test-writing or
+      code-building across multiple scope items.
+    pass_criteria: >
+      Each scope item's TDD cycle (test-writer → code-builder → quality check)
+      completes before the next scope item starts. Evidence shows sequential
+      timestamps — no overlap between scope item cycles. Zero batched operations
+      across scope items.
+
+  # ---------------------------------------------------------------------------
+  # Step 8 — Integration test pass
+  # ---------------------------------------------------------------------------
+
+  - id: SE-15
+    step: 8
+    name: "Full test suite passes after all scope items complete"
+    validates: [C25, F21]
+    check: >
+      After all scope items have completed their individual TDD cycles, verify
+      the orchestrator runs the full test suite (unit + integration with mocks).
+      Verify all tests pass — both individual scope-item tests and cross-scope-item
+      integration tests. If any test fails, verify the failure enters the fix
+      loop rather than being silently ignored.
+    pass_criteria: >
+      Full test suite (unit + integration with mocks) executed after all scope
+      items complete. All tests pass. If integration tests fail, the failure is
+      routed to the fix loop. Zero test failures silently ignored.
+
+  # ---------------------------------------------------------------------------
+  # Step 9 — Quality-auditor gate
+  # ---------------------------------------------------------------------------
+
+  - id: SE-16
+    step: 9
+    name: "Quality-auditor checks all gates and includes QP certification"
+    validates: [C14, C20, C26, F1, F11, F12, F13, F17, F22]
+    check: >
+      Verify quality-auditor independently checks: (1) linting — zero violations,
+      (2) unit tests — all pass with coverage at or above threshold, (3) type
+      checking — zero errors, (4) build — succeeds without errors, (5) coverage
+      against quality vision gates. When quality-vision.yaml exists, verify the
+      report includes a qp_certification section with: overall (CERTIFIED|BLOCKED),
+      per-dimension checks with level/threshold/actual_value/status (PASS|FAIL),
+      and a blockers list. Verify the quality-auditor did NOT receive: evaluations,
+      builder prompts, builder reasoning, eval-generator prompts, or judge reports.
+      Verify that if overall is FAIL or qp_certification.overall is BLOCKED, the
+      judge does NOT execute.
+    pass_criteria: >
+      Quality report covers all 5 gate categories (lint, unit tests, typecheck,
+      build, coverage). When quality-vision.yaml exists, qp_certification section
+      is present with all required fields. Quality-auditor input is clean of
+      prohibited sources. If overall FAIL or qp_certification BLOCKED, judge
+      execution is blocked — the fix loop runs instead.
+
+  - id: SE-17
+    step: 9
+    name: "Project build and type-check succeed"
+    validates: [C12, F1]
+    check: >
+      Verify that after implementation is complete, the project builds successfully
+      and type checking passes without errors. Both checks are performed by the
+      quality-auditor as part of its gate verification.
+    pass_criteria: >
+      Build command exits with code 0. Type-check command exits with code 0.
+      Zero build errors. Zero type-check errors.
+
+  # ---------------------------------------------------------------------------
+  # Step 10 — Judge execution
+  # ---------------------------------------------------------------------------
+
+  - id: SE-18
+    step: 10
+    name: "Judge receives only encrypted evals and project artifacts"
+    validates: [C6, C7, F4, F6]
+    check: >
+      Inspect the judge agent's input context. Verify it received only:
+      (1) encrypted evaluations (decryptable only by judge), (2) implementation
+      artifacts (code and build output). Verify it did NOT receive: builder
+      prompts, builder reasoning, implementation rationale, eval-generator
+      prompts, or quality agent results. Verify the judge acts as developer
+      self-review: checking if unit tests genuinely exercise behavior, if there
+      are trivially passing tests, and if coverage aligns with spec. Verify
+      the judge does NOT exercise a deployed environment, run browser automation,
+      or make HTTP requests.
+    pass_criteria: >
+      Judge input contains only encrypted evals and project code. Zero builder
+      prompts in input. Zero builder reasoning in input. Zero quality agent
+      results in input. Judge checks are scoped to developer self-review of
+      unit tests. Zero deployed-environment interactions by judge.
+
+  - id: SE-19
+    step: 10
+    name: "First-run judge failure rate below 50%"
+    validates: [F2]
+    check: >
+      After the first judge run, compute the evaluation failure rate: count of
+      failing evals divided by total evals. If the failure rate exceeds 50%,
+      verify this is captured as a reportable condition. The fix loop may still
+      proceed, but the high initial failure rate is documented.
+    pass_criteria: >
+      First-run judge failure rate is computed and recorded. If > 50%, a
+      structured alert is included in the judge report. The condition is
+      documented for engineering lead review per scenario S5.
+
+  # ---------------------------------------------------------------------------
+  # Step 11 — Fix loop
+  # ---------------------------------------------------------------------------
+
+  - id: SE-20
+    step: 11
+    name: "Fix loop capped at 3 iterations"
+    validates: [C11, F3]
+    check: >
+      Verify the fix loop counter increments with each iteration and the loop
+      terminates after a maximum of 3 iterations. If evaluations still fail
+      after 3 rounds, verify the process halts with a structured failure report
+      (not a silent exit or infinite loop). The failure report must list which
+      evaluations persistently failed and what remediation was attempted.
+    pass_criteria: >
+      Fix loop executes at most 3 iterations. After 3 failed iterations, a
+      structured failure report is produced. Zero additional iterations beyond 3.
+      Failure report contains: persistently failing eval IDs, remediation
+      attempted per iteration, and clear escalation path.
+
+  - id: SE-21
+    step: 11
+    name: "Remediation draws from both quality-auditor and judge sources"
+    validates: [C21, F18]
+    check: >
+      Verify the remediation step reads two sources: (1) judge-report.yaml for
+      behavioral failures, (2) quality-report.yaml for gate failures and QP
+      threshold failures (including qp_certification section). Verify remediation
+      instructions are categorized as behavioral, tooling, or quality. Verify
+      that if either source contains failures, it is included in remediation —
+      no source with failures may be omitted.
+    pass_criteria: >
+      Remediation reads both judge-report.yaml and quality-report.yaml. Both
+      sources are re-checked after each fix iteration. If quality-report.yaml
+      has failures, remediation includes quality/tooling instructions. If
+      judge-report.yaml has failures, remediation includes behavioral
+      instructions. Zero failing sources omitted from remediation.
+
+  - id: SE-22
+    step: 11
+    name: "Builder receives only remediation instructions, not raw reports"
+    validates: [C10, F5]
+    check: >
+      During fix iterations, verify the code-builder receives only remediation
+      instructions derived from judge failures. Verify it does NOT receive:
+      evaluation IDs, evaluation text, pass criteria, raw judge report content,
+      quality-report.yaml content, or qp_certification details. Remediation
+      instructions describe what to fix without exposing evaluation internals.
+    pass_criteria: >
+      Builder input during fix iterations contains only remediation instructions.
+      Zero evaluation IDs in builder input. Zero evaluation text in builder input.
+      Zero raw judge report content in builder input. Zero quality report content
+      in builder input.
+
+  - id: SE-23
+    step: 11
+    name: "Fresh evaluations generated per fix iteration"
+    validates: [C9, F10]
+    check: >
+      After each fix iteration, verify: (1) old evaluations are discarded
+      entirely, (2) a fresh evaluation agent with no knowledge of prior
+      evaluations generates new evaluations from the original specs, (3) the
+      judge runs against the freshly generated evaluations, not the previous
+      iteration's evaluations. Verify the fresh eval-generator has no access
+      to prior eval IDs, prior eval text, or prior judge results.
+    pass_criteria: >
+      Each fix iteration uses freshly generated evaluations. Old evals are
+      discarded before new generation. Fresh eval-generator has zero knowledge
+      of prior evals. Judge receives only the current iteration's encrypted
+      evals. Zero reuse of previous iteration's evaluations.
+
+  - id: SE-24
+    step: 11
+    name: "Eval count audit with consolidation rationale"
+    validates: [C22, F19]
+    check: >
+      When fresh evals are generated during a fix iteration, verify the
+      orchestrator compares eval count against the original manifest. If the
+      count decreased, verify each removed eval ID has a consolidation_rationale
+      explaining why it was removed. If no rationale is provided for a removed
+      eval, verify the fresh eval set is rejected and the eval-generator is
+      re-invoked. Verify eval count may increase but may not decrease without
+      documented explanation.
+    pass_criteria: >
+      Eval-audit artifact exists documenting the count delta between original
+      and fresh eval sets. If eval count decreased, every removed eval ID has
+      a consolidation_rationale. If rationale is missing for any removed eval,
+      the eval set is rejected. Zero silent eval disappearances between
+      iterations.
+
+
+# =============================================================================
+# SCENARIO EVALS (SCE-*)
+# Each eval verifies one end-to-end acceptance scenario (S1-S12) from intent.yaml.
+# =============================================================================
+
+scenario_evals:
+
+  - id: SCE-1
+    scenario: S1
+    persona: "Engineer"
+    name: "Clean run — all evals pass first time"
+    check: >
+      Given a locked plan.yaml entry, a fully-defined feature, and a passing
+      project build: trigger the implementation process end-to-end. Verify the
+      engineer receives committed code that passes all unit evaluations on the
+      first judge run. The fix loop does not execute. Quality-auditor reports
+      PASS with CERTIFIED. Judge reports all evals passing.
+    pass_criteria: >
+      Implementation completes without entering the fix loop. Quality-auditor
+      overall: PASS, qp_certification.overall: CERTIFIED. Judge report shows
+      0 failing evaluations. Code is committed to the feature branch. The
+      engineer has a working implementation from a single pass through the
+      pipeline.
+
+  - id: SCE-2
+    scenario: S2
+    persona: "Engineer"
+    name: "Fix loop with fresh evals per iteration"
+    check: >
+      Given a judge report showing evaluation failures after the first attempt:
+      verify the fix loop executes. Each iteration must produce fresh evaluations
+      (not reuse prior iteration's evals). The fresh eval-generator has no
+      knowledge of prior evals. The judge runs against the new evals. The loop
+      continues until all evals pass or 3 iterations are exhausted.
+    pass_criteria: >
+      Fix loop executed at least 1 iteration. Each iteration generated fresh
+      evals from original specs. Judge in each iteration ran against that
+      iteration's fresh evals, not prior iteration's. Fresh eval-generator had
+      zero knowledge of prior evals. Loop terminated when all evals passed or
+      after 3 iterations.
+
+  - id: SCE-3
+    scenario: S3
+    persona: "QA Engineer"
+    name: "Verification scenarios executable against deployed implementation"
+    check: >
+      Given the scenarios.yaml verification scenarios and the committed
+      implementation: verify that the QA engineer can execute each verification
+      scenario against the deployed environment and verify expected user-facing
+      behaviors match actual behavior. The QA engineer does not need to read the
+      codebase or reference encrypted evals to perform verification.
+    pass_criteria: >
+      Each verification scenario in scenarios.yaml is executable against the
+      deployed implementation. Expected behaviors match actual behaviors. The QA
+      engineer can verify without codebase access or eval references. Scenarios
+      describe observable outcomes that are independently verifiable.
+
+  - id: SCE-4
+    scenario: S4
+    persona: "Security Auditor"
+    name: "Agent isolation — no cross-boundary information leakage"
+    check: >
+      Inspect the input contexts of all agents: (1) code-builder — zero
+      evaluation content, zero features.yaml, zero scenarios.yaml, zero judge
+      reports, (2) eval-generator — zero implementation code, zero builder
+      prompts, zero prior eval results, (3) judge — zero builder prompts, zero
+      builder reasoning, zero quality results, (4) quality-auditor — zero
+      evals, zero builder prompts, zero eval-generator prompts, zero judge
+      reports. Verify security standards from quality vision gates are met.
+    pass_criteria: >
+      Every agent received only its designated inputs. Zero cross-boundary
+      information detected. Builder has zero eval content. Judge has zero
+      builder prompts. Eval-generator has zero implementation code.
+      Quality-auditor has zero eval content. Security quality vision gates met.
+
+  - id: SCE-5
+    scenario: S5
+    persona: "Engineering Lead"
+    name: "Structured failure report after 3 exhausted iterations"
+    check: >
+      Given 3 fix iterations exhausted with at least one eval still failing:
+      verify a structured failure report is produced. The report must identify
+      which evaluations persistently failed, what remediation was attempted in
+      each iteration (from both quality-auditor and judge sources), and provide
+      sufficient context for the engineering lead to decide whether to
+      restructure the feature scope or escalate.
+    pass_criteria: >
+      Structured failure report exists with: persistently failing eval IDs,
+      per-iteration remediation attempts (behavioral + quality), iteration
+      count confirming 3 iterations ran, and clear next-step guidance
+      (restructure scope or escalate). Report is actionable without reading
+      raw eval content.
+
+  - id: SCE-6
+    scenario: S6
+    persona: "Performance Auditor"
+    name: "Quality vision gates enforce performance thresholds"
+    check: >
+      Given quality vision gates defining performance thresholds (bundle size,
+      lighthouse scores, runtime performance): verify the quality-auditor checks
+      actual metrics against these thresholds. If any metric falls below the
+      threshold, verify it is reported in quality-report.yaml and blocks the
+      judge from proceeding.
+    pass_criteria: >
+      Quality vision gates include performance thresholds derived from
+      quality-vision.yaml. Actual measurements are compared against thresholds.
+      Metrics below threshold appear in quality-report.yaml with FAIL status.
+      Judge does not execute while any quality gate is in FAIL state.
+
+  - id: SCE-7
+    scenario: S7
+    persona: "Evals Engineer"
+    name: "Every eval executed with full feature behavior coverage"
+    check: >
+      Given the judge report, eval execution results, and features.yaml
+      behaviors list: verify every generated eval was executed (none skipped).
+      Verify every feature behavior has at least one eval covering it. Verify
+      the overall pass rate meets the defined threshold. Verify eval coverage
+      is scoped to unit test completeness.
+    pass_criteria: >
+      Every eval in the manifest was executed by the judge. Every feature
+      behavior in features.yaml maps to at least one eval. Overall pass rate
+      is computed and meets threshold. Zero evals skipped. Zero behaviors
+      without eval coverage.
+
+  - id: SCE-8
+    scenario: S8
+    persona: "Quality Lead"
+    name: "QP certification in quality-auditor report"
+    check: >
+      Given quality-vision.yaml declaring QP levels >= 2 for testing, code
+      quality, and security dimensions: verify the quality-auditor report
+      includes a qp_certification section. Verify per-dimension checks with
+      level, threshold, actual_value, and status (PASS/FAIL). Verify overall
+      is CERTIFIED only when all dimensions pass. Verify no QP dimension was
+      skipped. Verify this replaces any separate em-certification.yaml artifact.
+    pass_criteria: >
+      qp_certification section present in quality-report.yaml. Every QP
+      dimension with level >= 2 has a concrete threshold (not null), actual
+      measurement, and PASS/FAIL status. overall is CERTIFIED only when all
+      dimensions PASS. No separate em-certification.yaml exists. No QP
+      dimension skipped.
+
+  - id: SCE-9
+    scenario: S9
+    persona: "Testing Architect"
+    name: "Test-writer / code-builder separation with checksum enforcement"
+    check: >
+      Given an epic using the test-writer / code-builder separation: verify
+      (1) test files were authored by the test-writer from TEST-CONTEXT.md
+      (behavioral specs only), (2) code-builder received test files as
+      read-only, (3) checksums recorded after test-writer match checksums after
+      code-builder, (4) all tests assert behavioral outcomes not structural
+      implementation details.
+    pass_criteria: >
+      Test-writer authored tests from TEST-CONTEXT.md only. Code-builder
+      received test files as read-only input. Checksum comparison shows zero
+      modifications by code-builder. Test assertions are behavioral (observable
+      outcomes) not structural (class/method existence). No test file was
+      modified between test-writer completion and code-builder completion.
+
+  - id: SCE-10
+    scenario: S10
+    persona: "Build Engineer"
+    name: "Quality gate blocks judge when FAIL or BLOCKED"
+    check: >
+      Given the quality-auditor reports overall FAIL or qp_certification.overall
+      BLOCKED: verify the judge did NOT execute. Verify one gate controls judge
+      access — quality-auditor must report PASS with CERTIFIED. Verify the fix
+      loop addressed tooling and QP failures alongside behavioral failures. After
+      fix iteration, verify quality-auditor reports PASS with CERTIFIED before
+      the judge runs.
+    pass_criteria: >
+      Judge execution is blocked when quality-auditor reports FAIL or BLOCKED.
+      One gate, not two sequential gates. Fix loop addresses all failure sources
+      (quality + behavioral). After successful fix, quality-auditor PASS with
+      CERTIFIED precedes judge execution. Zero instances of judge running while
+      quality gate is FAIL or BLOCKED.
+
+  - id: SCE-11
+    scenario: S11
+    persona: "Eval Auditor"
+    name: "Eval count delta tracked with consolidation rationale"
+    check: >
+      Given fresh evals generated during a fix iteration with a different eval
+      count than the original: verify an eval-audit artifact exists documenting
+      the count delta. If evals were removed, verify each removed eval has a
+      consolidation_rationale. Verify no evals silently disappeared between
+      iterations.
+    pass_criteria: >
+      Eval-audit artifact exists with original count, fresh count, and delta.
+      If delta is negative (evals removed), every removed eval ID has a
+      consolidation_rationale. If rationale is missing, the eval set was
+      rejected and eval-generator re-invoked. Eval count may increase but
+      never decreases without explanation.
+
+  - id: SCE-12
+    scenario: S12
+    persona: "Developer"
+    name: "Mock infrastructure setup before test-writer"
+    check: >
+      Given tech.yaml contains mock_strategy with external service mocks and
+      test doubles: verify mock infrastructure is set up before the test-writer
+      runs. Verify test-writer can author tests against defined mock shapes.
+      Verify code-builder implements against the same mocked dependencies. If
+      mock setup fails, verify test-writer is blocked from proceeding.
+    pass_criteria: >
+      Mock infrastructure instantiated from tech.yaml mock_strategy before
+      test-writer invocation. Test-writer authored tests using the defined
+      mock shapes. Code-builder used the same mocked dependencies. Mock setup
+      failure caused a hard halt — test-writer did not proceed without
+      functioning mocks.
+
+
+# =============================================================================
+# COVERAGE SUMMARY
+# Maps every constraint and failure condition to the step evals that validate it.
+# =============================================================================
+
+coverage_summary:
+  constraints:
+    C1:
+      description: "Plan entry status must be LOCKED"
+      covered_by: [SE-1]
+    C2:
+      description: "Feature must have success scenarios and failure conditions"
+      covered_by: [SE-2]
+    C3:
+      description: "All prerequisite execution order entries must be complete"
+      covered_by: [SE-3]
+    C4:
+      description: "Eval-generator receives only specified inputs, scoped to unit test coverage"
+      covered_by: [SE-9]
+    C5:
+      description: "Code-builder receives only CONTEXT.md and read-only test files"
+      covered_by: [SE-12]
+    C6:
+      description: "Judge receives only encrypted evals and implementation artifacts"
+      covered_by: [SE-18]
+    C7:
+      description: "Evaluations encrypted at rest, plaintext deleted after encryption"
+      covered_by: [SE-10, SE-18]
+    C8:
+      description: "Evaluation files stored outside project repository tree"
+      covered_by: [SE-9, SE-10]
+    C9:
+      description: "Fresh evaluations per fix iteration, old discarded"
+      covered_by: [SE-23]
+    C10:
+      description: "Builder receives only remediation instructions, not raw reports"
+      covered_by: [SE-22]
+    C11:
+      description: "Fix loop max 3 iterations, structured failure on exhaustion"
+      covered_by: [SE-20]
+    C12:
+      description: "Project build and type-check succeed after implementation"
+      covered_by: [SE-17]
+    C13:
+      description: "CONTEXT.md generated with 6 sections scoped to target feature"
+      covered_by: [SE-7]
+    C14:
+      description: "Quality-auditor verifies lint, tests, typecheck, build, coverage, and QP"
+      covered_by: [SE-16]
+    C15:
+      description: "Quality vision gates derive thresholds from quality-vision.yaml"
+      covered_by: [SE-5]
+    C16:
+      description: "Sequential scope-item TDD cycles, test-writer before code-builder"
+      covered_by: [SE-11, SE-14]
+    C17:
+      description: "Test-writer receives only TEST-CONTEXT.md, behavioral assertions only"
+      covered_by: [SE-8, SE-11]
+    C18:
+      description: "Test files read-only for code-builder, checksum enforcement"
+      covered_by: [SE-13]
+    C19:
+      description: "QP-derived thresholds from quality-vision.yaml, no manual override"
+      covered_by: [SE-5]
+    C20:
+      description: "Quality-auditor FAIL or BLOCKED prevents judge execution"
+      covered_by: [SE-16]
+    C21:
+      description: "Remediation from dual sources: judge-report and quality-report"
+      covered_by: [SE-21]
+    C22:
+      description: "Eval count audit with consolidation rationale for removed evals"
+      covered_by: [SE-24]
+    C23:
+      description: "Artifacts sourced from issue STM and product_base architecture"
+      covered_by: [SE-4]
+    C24:
+      description: "Mock infrastructure setup from tech.yaml mock_strategy before tests"
+      covered_by: [SE-6]
+    C25:
+      description: "Full test suite (unit + integration) after all scope items complete"
+      covered_by: [SE-15]
+    C26:
+      description: "Quality-auditor report includes qp_certification section"
+      covered_by: [SE-16]
+
+  failure_conditions:
+    F1:
+      description: "Build or type-check errors after implementation"
+      covered_by: [SE-16, SE-17]
+    F2:
+      description: ">50% eval failure rate on first judge run"
+      covered_by: [SE-19]
+    F3:
+      description: "3 fix iterations exhausted with evals still failing"
+      covered_by: [SE-20]
+    F4:
+      description: "Plaintext eval files on disk or eval content inside repo"
+      covered_by: [SE-10, SE-18]
+    F5:
+      description: "Builder input contains eval IDs, eval text, or raw judge report"
+      covered_by: [SE-12, SE-22]
+    F6:
+      description: "Judge input contains builder prompts or implementation rationale"
+      covered_by: [SE-18]
+    F7:
+      description: "Eval-generator input contains implementation code or prior eval results"
+      covered_by: [SE-9]
+    F8:
+      description: "Plan entry status is not LOCKED at implementation start"
+      covered_by: [SE-1]
+    F9:
+      description: "No exit gate, no success scenarios, or no failure conditions"
+      covered_by: [SE-2]
+    F10:
+      description: "Judge re-uses previous iteration's evals instead of fresh ones"
+      covered_by: [SE-23]
+    F11:
+      description: "Unit tests absent for implemented scope item"
+      covered_by: [SE-16]
+    F12:
+      description: "Linting violations in implemented code"
+      covered_by: [SE-16]
+    F13:
+      description: "Quality vision gate thresholds not met"
+      covered_by: [SE-16]
+    F14:
+      description: "Test-writer input contains file paths, architecture, or implementation context"
+      covered_by: [SE-8, SE-11]
+    F15:
+      description: "Code-builder modified test files — checksum mismatch"
+      covered_by: [SE-13]
+    F16:
+      description: "QP dimensions >= 2 have null thresholds in quality vision gates"
+      covered_by: [SE-5]
+    F17:
+      description: "Judge executed while quality-report shows FAIL"
+      covered_by: [SE-16]
+    F18:
+      description: "Failing source omitted from remediation instructions"
+      covered_by: [SE-21]
+    F19:
+      description: "Eval count decreased without consolidation_rationale"
+      covered_by: [SE-24]
+    F20:
+      description: "Mock infrastructure setup failed — test-writer blocked"
+      covered_by: [SE-6]
+    F21:
+      description: "Integration test suite fails after individual scope items passed"
+      covered_by: [SE-15]
+    F22:
+      description: "Quality-auditor report missing qp_certification when quality-vision.yaml exists"
+      covered_by: [SE-16]
+
+  scenarios:
+    S1:
+      description: "Engineer — clean run, all evals pass first time"
+      covered_by: SCE-1
+    S2:
+      description: "Engineer — fix loop with fresh evals per iteration"
+      covered_by: SCE-2
+    S3:
+      description: "QA Engineer — verification scenarios against deployed implementation"
+      covered_by: SCE-3
+    S4:
+      description: "Security Auditor — agent isolation, no cross-boundary leakage"
+      covered_by: SCE-4
+    S5:
+      description: "Engineering Lead — structured failure report after 3 exhausted iterations"
+      covered_by: SCE-5
+    S6:
+      description: "Performance Auditor — quality vision gates enforce performance thresholds"
+      covered_by: SCE-6
+    S7:
+      description: "Evals Engineer — every eval executed, full behavior coverage"
+      covered_by: SCE-7
+    S8:
+      description: "Quality Lead — QP certification in quality-auditor report"
+      covered_by: SCE-8
+    S9:
+      description: "Testing Architect — test-writer/builder separation with checksums"
+      covered_by: SCE-9
+    S10:
+      description: "Build Engineer — quality gate blocks judge when FAIL or BLOCKED"
+      covered_by: SCE-10
+    S11:
+      description: "Eval Auditor — eval count delta with consolidation rationale"
+      covered_by: SCE-11
+    S12:
+      description: "Developer — mock infrastructure setup before test-writer"
+      covered_by: SCE-12

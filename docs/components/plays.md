@@ -55,7 +55,7 @@ Play context:
 
 ### Pattern B — Task-Driven DAG Plays
 
-Used by plays like `prepare-implementation`. The play creates the full task graph upfront using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order. Agents communicate via a **JSON contract** rather than per-step YAML context blocks.
+Used by plays like `prepare-epic`. The play creates the full task graph upfront using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order. Agents communicate via a **JSON contract** rather than per-step YAML context blocks.
 
 ```
 Pre-flight → Create Task Graph → Execute Capabilities (in dependency order) → Checkpoint → Execute Post-Checkpoint Capabilities → Report
@@ -87,7 +87,7 @@ The JSON contract is the primary communication mechanism in task-driven plays. A
     { "name": "brief_review", "status": "pending" }
   ],
   "evidence": [
-    { "name": "prepare-implementation", "location": null }
+    { "name": "prepare-epic", "location": null }
   ],
   "notes": [],
   "step_failure": null
@@ -172,10 +172,10 @@ This separation means agents can read the user contract independently without pa
 
 ### intent.yaml Schema (Task-Driven Plays)
 
-`prepare-implementation` uses the canonical intent.yaml shape — metadata plus the four content fields — readable by both agents and users:
+`prepare-epic` uses the canonical intent.yaml shape — metadata plus the four content fields — readable by both agents and users:
 
 ```yaml
-name: prepare-implementation
+name: prepare-epic
 description: "Produce implementation-ready design artifacts (features, architecture, tech, scenarios, plan) for a feature."
 version: 0.1.0
 checksum: "<sha256 of normalized content zone>"
@@ -258,17 +258,17 @@ Task-driven plays support resuming from a checkpoint. The `--resume` flag instru
    - `brief_review.status: approved` with downstream `stm` paths null → jump to post-checkpoint execution
 4. Report to user what it is resuming from
 
-If no checkpoint is found, the play halts with a message directing the user to start fresh with the full invocation (e.g., `/prepare-implementation`).
+If no checkpoint is found, the play halts with a message directing the user to start fresh with the full invocation (e.g., `/prepare-epic`).
 
 ```
-/prepare-implementation --resume
+/prepare-epic --resume
 ```
 
 ## Capability Graph (Task-Driven Plays)
 
 Task-driven plays declare a capability graph that defines the execution DAG. This is the static description of what the play will create when it builds the task graph.
 
-Example from `prepare-implementation`:
+Example from `prepare-epic`:
 
 | # | Capability | Agent | Needs | Produces |
 |---|------------|-------|-------|----------|
@@ -329,7 +329,7 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
 | `capture-learning` | Linear | Capture learnings to LTM (archival) |
 | `briefs` | Linear | Regenerate HTML briefs from product YAML artifacts |
 | `fix-it` | Task-Driven | RCA-driven defect resolution — root-cause trace, design fix, ship |
-| `prepare-implementation` | Task-Driven | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
+| `prepare-epic` | Task-Driven | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
 | `implement-epic` | Task-Driven | Implement a feature through an eval-driven TDD loop |
 | `create-play` | Task-Driven | Compile a new play from an intent.yaml |
 | `ship` | Linear (chains atomic plays) | Deliver branch work — commit, PR, review, merge, return |
@@ -342,7 +342,7 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
 | Specifications (issue-scoped) | `.meridian/project/issues/{N}/specs/` |
 | Evidence | `.meridian/project/issues/{N}/evidence/{play-name}/{timestamp}.md` |
 | Checkpoints | `.meridian/project/issues/{N}/checkpoint/{play-name}/{timestamp}.md` |
-| Context (prepare-implementation, build-arch) | `.meridian/project/issues/{N}/context/` |
+| Context (prepare-epic, build-arch) | `.meridian/project/issues/{N}/context/` |
 | Review artifacts | `.meridian/project/issues/{N}/review/` |
 | Product planning (specify-product output) | `.meridian/product/` |
 | UX (design-exp output) | `.meridian/product/ux/` |

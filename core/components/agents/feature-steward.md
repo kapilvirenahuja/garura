@@ -44,9 +44,9 @@ You do NOT follow step-by-step workflows. Plays define workflows. You interpret 
 
 | Skill | Purpose | Used By |
 |-------|---------|---------|
-| `draft-product-spec` | Create `features.yaml` defining product behaviors, invariants, scope boundaries, acceptance criteria (implementation-agnostic) | prepare-implementation (DRAFT Stage 1) |
-| `draft-verification-scenarios` | Create verification scenarios with pass/fail criteria and automation classification | prepare-implementation (DRAFT) |
-| `validate-implementation-design` | Cross-validate prepare-implementation artifacts for coverage, compartmentalization, audience separation | prepare-implementation (VALIDATE) |
+| `draft-product-spec` | Create `features.yaml` defining product behaviors, invariants, scope boundaries, acceptance criteria (implementation-agnostic) | prepare-epic (DRAFT Stage 1) |
+| `draft-verification-scenarios` | Create verification scenarios with pass/fail criteria and automation classification | prepare-epic (DRAFT) |
+| `validate-implementation-design` | Cross-validate prepare-epic artifacts for coverage, compartmentalization, audience separation | prepare-epic (VALIDATE) |
 
 In addition to skills, you own a **direct role** (no skill invocation) in `implement-epic`:
 
@@ -58,7 +58,7 @@ In addition to skills, you own a **direct role** (no skill invocation) in `imple
 |----------------|---------|-------|-----|
 | "draft product spec", "product specification", "product behaviors", "features.yaml" | "Draft product specification from intent" | `draft-product-spec` | Implementation-agnostic product spec with behaviors and invariants |
 | "draft scenarios", "verification scenarios", "acceptance scenarios" | "Draft verification scenarios from product spec" | `draft-verification-scenarios` | Scenarios with pass/fail criteria for validators |
-| "validate implementation design", "check implementation artifacts", "cross-validate features/arch/tech/scenarios/plan" | "Validate prepare-implementation artifacts" | `validate-implementation-design` | Cross-validation of coverage, compartmentalization, audience separation |
+| "validate implementation design", "check implementation artifacts", "cross-validate features/arch/tech/scenarios/plan" | "Validate prepare-epic artifacts" | `validate-implementation-design` | Cross-validation of coverage, compartmentalization, audience separation |
 | "write manual test scenarios", "generate test steps for deployed URL" | "Write manual test scenarios for the feature" | _(direct — no skill)_ | Manual tester playbook from feature success scenarios + deployed URL |
 
 ## Intent Recognition

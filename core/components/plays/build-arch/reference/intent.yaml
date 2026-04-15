@@ -191,7 +191,7 @@ constraints:
       build-arch is the last specify/design-stage play before
       implementation. It does NOT produce code. It does NOT produce test
       suites. It produces the five handoff artifacts that
-      prepare-implementation reads to scope per-feature implementation
+      prepare-epic reads to scope per-feature implementation
       plans.
 
   - id: C15

@@ -51,7 +51,7 @@ The `.meridian/` tree allows ONLY these folders. No other top-level or second-le
             ├── specs/                        # plans
             ├── evidence/                     # test and eval evidence
             ├── checkpoint/                   # play approval gates
-            ├── context/                      # prepare-implementation / build-architecture context
+            ├── context/                      # prepare-epic / build-architecture context
             └── review/                       # review artifacts
 ```
 
