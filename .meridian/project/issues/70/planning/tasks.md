@@ -137,7 +137,7 @@ T1 (ADR 011)
 
   **Runtime dispatch:**
   - If `VERCEL` env var is set: invoke `fetch-ltm` skill with `logical_path: standards/git/branching.md`
-  - Otherwise: Read from `~/.meridian/core/memory/standards/git/branching.md`
+  - Otherwise: Read from `~/.meridian/core/memory/standards/rules/git.md`
   ```
 
   For `product-strategist.md`, update the Selective LTM Search section:
@@ -157,7 +157,7 @@ T1 (ADR 011)
 - **Files:**
   - `core/components/memory/knowledge/_index.md` — Edit: add Blob Key column
   - `core/components/memory/standards/_index.md` — Edit: add Blob Key column
-  - `core/components/memory/formats/_index.md` — Edit: add Blob Key column
+  - `core/components/memory/standards/templates/_index.md` — Edit: add Blob Key column
 - **Details:**
   In each index file, add `Blob Key (Vercel)` column to the Contents table.
   Value = relative path from LTM root (identical to the Path column value).
@@ -177,7 +177,7 @@ T1 (ADR 011)
 - **Files:** No file changes; verification only
 - **Details:**
   In a local Claude Code session (no `VERCEL` env var set):
-  1. Invoke `analyze-changes` skill on a repo with staged changes → confirm `categories.md` is loaded from `~/.meridian/core/memory/standards/commits/categories.md`
+  1. Invoke `analyze-changes` skill on a repo with staged changes → confirm `categories.md` is loaded from `~/.meridian/core/memory/standards/rules/commits.md`
   2. Invoke `manage-issue` with `action: create` → confirm template loads from `formats/github-issue.md`
   3. Run `git diff main -- core/components/skills/` → confirm zero changes to existing SKILL.md files (only `sync-claude/SKILL.md` and new `fetch-ltm/SKILL.md` should appear)
 - **Depends on:** T5, T6

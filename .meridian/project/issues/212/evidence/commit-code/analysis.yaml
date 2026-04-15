@@ -144,9 +144,9 @@ groups:
     file_count: 7
     files:
       - "core/components/memory/standards/_index.md"
-      - "core/components/memory/standards/intent-schema.yaml"
-      - "core/components/memory/standards/knowledge-file-template.md"
-      - "core/components/memory/standards/resolution-protocol.md"
+      - "core/components/memory/standards/schemas/intent.yaml"
+      - "core/components/memory/standards/templates/knowledge-file.md"
+      - "core/components/memory/standards/rules/resolution.md"
       - "core/components/memory/workflows/direct-generation.yaml"
       - "core/components/memory/workflows/readiness-brief-generation.yaml"
       - "core/components/memory/workflows/readiness-only.yaml"

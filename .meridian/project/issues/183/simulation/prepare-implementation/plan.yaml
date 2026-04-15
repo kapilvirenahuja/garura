@@ -279,7 +279,7 @@ task_dag:
         name: "Extend resolution-protocol.md with play-level context hierarchy"
         status: "pending"
         file_changes:
-          - path: "core/components/memory/standards/resolution-protocol.md"
+          - path: "core/components/memory/standards/rules/resolution.md"
             action: MODIFY
             change_ref: "change-surface.yaml/files[12]"
         exit_gate: >

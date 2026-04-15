@@ -23,7 +23,7 @@ ltm_consultation:
       applies_to: "All agent dispatches in prepare-implementation. The contract schema governs how tech-architect, test-engineer, product-strategist, doc-builder, and repo-orchestrator receive work. Critical for #183 because the contract's ltm_context.locked_artifacts field is the mechanism for signaling which upstream artifacts exist — making 'soft dependency' expressible at the contract level."
       relevance: high
 
-    - path: "~/.meridian/core/memory/standards/resolution-protocol.md"
+    - path: "~/.meridian/core/memory/standards/rules/resolution.md"
       summary: "R1-R4 four-step resolution protocol. Defines 3-layer knowledge hierarchy: project LTM (LOCKED > DRAFT) -> core LTM (advisory) -> LLM fallback. Agents query ltm_context.project_base for project-scoped knowledge, then core_base for organizational knowledge, then fall back to LLM reasoning. LOCKED artifacts are authoritative and stop descent. DRAFT artifacts are advisory."
       applies_to: "Directly relevant to #183's core problem — the resolution protocol already defines a graceful degradation model (R2 miss -> R3 -> R4). The prepare-implementation play should mirror this: when product.yaml or roadmap.yaml are absent, agents should descend to codebase inference and LLM reasoning rather than hard-halting. The resolution protocol's authority semantics (LOCKED = authoritative, DRAFT = advisory, absent = no opinion) provide the exact vocabulary for expressing soft dependencies."
       relevance: critical
@@ -69,48 +69,48 @@ ltm_consultation:
 
     # === KNOWLEDGE REFERENCE (ARCHITECTURE) ===
 
-    - path: "~/.meridian/core/memory/knowledge/architecture/_index.md"
+    - path: "~/.meridian/core/memory/knowledge/arch/_index.md"
       summary: "Index of 35+ architecture knowledge files across 6 categories: patterns (6), agentic (5), stacks (11), platforms (6), data (6), operations (5). Each file has search patterns for agent discovery. Defines the architecture file template with required sections."
       applies_to: "tech-architect agent consults architecture knowledge during LTM resolution (R3) when designing tech.yaml. For #183, these files are the 'core LTM fallback' when project-scoped architecture.yaml is absent — the resolution protocol descends to these files for technology selection guidance."
       relevance: medium
 
-    - path: "~/.meridian/core/memory/knowledge/project-profiling/_index.md"
+    - path: "~/.meridian/core/memory/knowledge/product/_index.md"
       summary: "Three-axis profiling model (Product Profile 7 dims, NFR Profile 7+ dims, Quality Profile 7 dims). Sequential cascade: PP -> NFR -> QP. Profiles are knobs derived by agents from BRD, not cold questionnaires. Quality Profile establishes technical debt baseline."
       applies_to: "prepare-implementation reads profiles from product.yaml to inform architecture and quality decisions. For #183, when product.yaml is absent, profiling information is unavailable — agents must infer project characteristics from codebase analysis instead. This is a key knowledge gap that the 'without product.yaml' path must address."
       relevance: medium
 
-    - path: "~/.meridian/core/memory/knowledge/domain-taxonomy/_index.md"
+    - path: "~/.meridian/core/memory/knowledge/domain/_index.md"
       summary: "5 module feature catalogs (user-management, payments, commerce, search, personalization) with semantic context. Each feature has: When It Matters, Depth Spectrum, Signals, Tradeoffs. Used during epic scoping and feature reasoning."
       applies_to: "product-strategist consults domain taxonomy when generating features.yaml. For #183, taxonomy is still available as core LTM even when product.yaml is absent — agent can infer applicable modules from codebase rather than from product vision."
       relevance: low
 
     # === VERSION CONTROL & COMMITS ===
 
-    - path: "~/.meridian/core/memory/standards/commits/categories.md"
+    - path: "~/.meridian/core/memory/standards/rules/commits.md"
       summary: "Conventional commit types (feat, fix, refactor, docs, chore, test, perf, style), scope detection rules, mixed type resolution (split into separate commits)."
       applies_to: "repo-orchestrator uses during evidence self-commit phase. Standard operational knowledge — not impacted by #183."
       relevance: low
 
-    - path: "~/.meridian/core/memory/standards/commits/quality-rules.md"
+    - path: "~/.meridian/core/memory/standards/rules/commits.md"
       summary: "Commit format validation rules: conventional format (must-have), no secrets (must-have), no large files (must-have), subject rules (length, case, period, mood), body rules."
       applies_to: "repo-orchestrator uses during evidence self-commit. Standard operational — not impacted by #183."
       relevance: low
 
-    - path: "~/.meridian/core/memory/standards/git/branching.md"
+    - path: "~/.meridian/core/memory/standards/rules/git.md"
       summary: "Branch naming conventions (feature/*, fix/*, hotfix/*, etc.), quality gate implications per branch type, naming best practices."
       applies_to: "setup-branch and repo-orchestrator use. Standard operational — not impacted by #183."
       relevance: low
 
     # === KNOWLEDGE TEMPLATES ===
 
-    - path: "~/.meridian/core/memory/standards/knowledge-file-template.md"
+    - path: "~/.meridian/core/memory/standards/templates/knowledge-file.md"
       summary: "Canonical template for knowledge files: Tier 1 (all files: title, scope, trigger/exclusion, search patterns, provenance, content, rationale) and Tier 2 (core-scoped: applicability boundaries, cross-project rationale, decay tracking). Also defines Pattern Knowledge variant for reusable decision guidance."
       applies_to: "capture-learning/learn play uses when writing new knowledge. For #183, relevant only if the fix generates learnings worth persisting to LTM. Not directly consumed by prepare-implementation."
       relevance: low
 
     # === FORMATS ===
 
-    - path: "~/.meridian/core/memory/formats/github-issue.md"
+    - path: "~/.meridian/core/memory/standards/templates/github-issue.md"
       summary: "GitHub issue body template: Description + Acceptance Criteria checklist. Field derivation rules for title, labels, acceptance criteria. CLI command template."
       applies_to: "manage-issue skill uses. Not consumed by prepare-implementation. No impact from #183."
       relevance: none

@@ -159,7 +159,7 @@ blast_radius:
         severity: medium
         eval_needed: false  # contract is backward compatible — ltm_context is optional
 
-      - standard: "core/components/memory/standards/resolution-protocol.md"
+      - standard: "core/components/memory/standards/rules/resolution.md"
         impact: >
           The R1-R4 protocol governs agent-level knowledge resolution. C23 establishes
           a parallel play-level hierarchy. If the resolution-protocol.md is updated to

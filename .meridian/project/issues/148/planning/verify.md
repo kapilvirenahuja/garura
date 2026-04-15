@@ -5,7 +5,7 @@
 
 ### Acceptance Criteria
 
-- [ ] `quality-profile.md` exists at `core/components/memory/knowledge/project-profiling/quality-profile.md` with exactly 7 QP dimensions, each having a 5-level table (Level | Label | Description | Examples) matching the format in `product-profile.md` and `nfr-profile.md`
+- [ ] `quality-profile.md` exists at `core/components/memory/knowledge/product/quality-profile.md` with exactly 7 QP dimensions, each having a 5-level table (Level | Label | Description | Examples) matching the format in `product-profile.md` and `nfr-profile.md`
 - [ ] `_index.md` references "Three-Axis Model" (not "Two-Axis"), lists all three profiles (PP, NFR, QP) in the contents table, and the flow diagram includes QP derivation after NFR
 - [ ] `product.yaml` schema has a `profiles` section with `product_profile`, `nfr_profile`, and `quality_profile` sub-sections, each containing dimension entries with `id`, `level`, and optional `rationale`
 - [ ] `draft-product-vision/SKILL.md` includes profile derivation logic: PP → NFR → QP sequential derivation, writes profiles to `product.yaml`

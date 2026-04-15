@@ -18,7 +18,7 @@ T17 -> T18 (integration + sync)
 ### Task Breakdown
 
 #### T1: Establish quality knowledge file convention
-- **Files:** Read `core/components/memory/standards/knowledge-file-template.md` (no changes)
+- **Files:** Read `core/components/memory/standards/templates/knowledge-file.md` (no changes)
 - **Details:** Define the quality-specific Content section format: (1) brief description, (2) checklist table with columns `ID | Check Item | QP Level Threshold | Measurement | Tool Reference`, (3) anti-patterns. Document convention in `quality/_index.md` (created in T13).
 - **Depends on:** None
 - **Expected Outcome:** Clear specification for quality knowledge file internal structure

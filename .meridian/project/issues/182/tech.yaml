@@ -18,7 +18,7 @@ project_structure:
 
   create:
 
-    - path: "core/components/memory/standards/resolution-protocol.md"
+    - path: "core/components/memory/standards/rules/resolution.md"
       component: "resolution-protocol"
       feature: "F1"
       description: >
@@ -150,7 +150,7 @@ project_structure:
         its `staleness_window`, add a `stale: true` flag to that resolution trace
         entry. Stale files remain usable — the flag is a signal, not a rejection.
 
-    - path: "core/components/memory/standards/knowledge-file-template.md"
+    - path: "core/components/memory/standards/templates/knowledge-file.md"
       component: "knowledge-standard"
       feature: "F4"
       description: >
@@ -959,7 +959,7 @@ project_structure:
             Add ltm_context as a top-level field in the Step 2 JSON contract.
           current_contract_snippet: |
             "config": {
-              "ltm_architecture_path": "~/.meridian/core/memory/knowledge/architecture/",
+              "ltm_architecture_path": "~/.meridian/core/memory/knowledge/arch/",
               "profiles": "{extracted profiles from Step 1}"
             }
           replace_with: |
@@ -975,7 +975,7 @@ project_structure:
           verification: >
             After change: Step 2 JSON contract contains ltm_context at top level.
             config.ltm_architecture_path is ABSENT. config.profiles remains.
-            The information previously at ltm_architecture_path (~/.meridian/core/memory/knowledge/architecture/)
+            The information previously at ltm_architecture_path (~/.meridian/core/memory/knowledge/arch/)
             is now accessible via ltm_context.core_base + query_domain "architecture".
 
     - path: "core/components/plays/prepare-implementation/SKILL.md"
@@ -1171,7 +1171,7 @@ components:
       architectural decision. Together these form the authoritative specification
       that agent updates must conform to.
     files:
-      - "core/components/memory/standards/resolution-protocol.md"
+      - "core/components/memory/standards/rules/resolution.md"
       - "docs/adr/015-ltm-resolution-protocol.md"
     feature: "F1"
     phase: 1
@@ -1233,7 +1233,7 @@ components:
       and Tier 2 metadata, search pattern conventions, index registration rules,
       and staleness tracking.
     files:
-      - "core/components/memory/standards/knowledge-file-template.md"
+      - "core/components/memory/standards/templates/knowledge-file.md"
     feature: "F4"
     phase: 1
 
@@ -1456,12 +1456,12 @@ data_models:
 # ─────────────────────────────────────────────────────────────────────────────
 # RESOLUTION PROTOCOL — Full Definition
 # Embedded here for implementer reference. Canonical text goes in
-# core/components/memory/standards/resolution-protocol.md.
+# core/components/memory/standards/rules/resolution.md.
 # ─────────────────────────────────────────────────────────────────────────────
 
 resolution_protocol:
   name: "R1-R4 Agent Resolution Protocol"
-  standard_path: "core/components/memory/standards/resolution-protocol.md"
+  standard_path: "core/components/memory/standards/rules/resolution.md"
   steps:
     R1:
       name: "Identify decision domains"
@@ -1858,8 +1858,8 @@ implementation_phases:
       - "knowledge-standard"
     files:
       - "core/components/memory/standards/agent-contract.md"         # MODIFY
-      - "core/components/memory/standards/resolution-protocol.md"    # CREATE
-      - "core/components/memory/standards/knowledge-file-template.md"  # CREATE
+      - "core/components/memory/standards/rules/resolution.md"    # CREATE
+      - "core/components/memory/standards/templates/knowledge-file.md"  # CREATE
     exit_gate: >
       agent-contract.md contains ltm_context and resolution_trace field definitions.
       resolution-protocol.md defines R1-R4 with authority semantics and exemptions.

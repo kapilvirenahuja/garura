@@ -34,7 +34,7 @@ T17 -> T15
 #### T1: Create quality-profile.md (7 QP dimensions)
 
 - **Files:**
-  - `core/components/memory/knowledge/project-profiling/quality-profile.md` — **create**
+  - `core/components/memory/knowledge/product/quality-profile.md` — **create**
 - **Details:**
   Define 7 Quality Profile dimensions following the exact format in `product-profile.md` and `nfr-profile.md`:
   - **QP-1: Reliability** — defect tolerance, recovery expectations, failure handling depth. Levels from "best effort" (1) to "zero-defect mission-critical" (5).
@@ -78,7 +78,7 @@ T17 -> T15
 #### T2: Update _index.md to Three-Axis Model
 
 - **Files:**
-  - `core/components/memory/knowledge/project-profiling/_index.md` — **modify**
+  - `core/components/memory/knowledge/product/_index.md` — **modify**
 - **Details:**
   1. Change the title heading from "Two-Axis Model" (`## Two-Axis Model`) to `## Three-Axis Model`.
   2. Add `quality-profile.md` entry to the `## Contents` table:
@@ -154,7 +154,7 @@ T17 -> T15
   - `core/components/skills/draft-product-vision/SKILL.md` — **modify**
 - **Details:**
   1. **Add new input fields** in the `## Input` section:
-     - `profiles_knowledge_path` — (optional) Path to LTM project-profiling directory. Default: `~/.meridian/core/memory/knowledge/project-profiling/`
+     - `profiles_knowledge_path` — (optional) Path to LTM project-profiling directory. Default: `~/.meridian/core/memory/knowledge/product/`
 
   2. **Add profile derivation to Process** — insert new steps after Step 4 (compose product.yaml) and before Step 5 (write artifact):
      ```

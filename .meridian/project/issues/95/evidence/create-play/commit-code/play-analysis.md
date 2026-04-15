@@ -104,7 +104,7 @@ Evidence & Close
 ### analyze-changes
 - Input: git state (read via bash)
 - Output: groups (type, scope, subject, files), risks (sensitive, breaking, ambiguous, hotfix)
-- Categories from LTM: `~/.meridian/core/memory/standards/commits/categories.md`
+- Categories from LTM: `~/.meridian/core/memory/standards/rules/commits.md`
 - Risk patterns from: `reference/risks.md`
 
 ### create-commit

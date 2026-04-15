@@ -3,8 +3,8 @@ commits:
     sha: "0179344"
     message: "feat(memory): add resolution protocol and knowledge file template standards #182"
     files:
-      - core/components/memory/standards/resolution-protocol.md
-      - core/components/memory/standards/knowledge-file-template.md
+      - core/components/memory/standards/rules/resolution.md
+      - core/components/memory/standards/templates/knowledge-file.md
       - core/components/memory/standards/_index.md
 
   - group_id: G2

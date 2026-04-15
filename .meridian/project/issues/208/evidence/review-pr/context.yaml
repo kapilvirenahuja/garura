@@ -3,7 +3,7 @@ standards_set:
   ltm: ./.meridian/core/memory/knowledge/quality/
   stm: .meridian/project/issues/208/spec/quality/
 
-severity_taxonomy_path: ./core/components/memory/standards/git/pr-severity-taxonomy.md
+severity_taxonomy_path: ./core/components/memory/standards/rules/pr.md
 
 intent_summary: >
   Add the review-pr high-order play (diff-scoped, deterministic PR quality gate with P1–P4 severity
@@ -35,9 +35,9 @@ changed_paths:
   - core/components/plays/ship/SKILL.md
   - core/components/plays/ship/reference/intent.yaml
   # Standards restructure
-  - core/components/memory/standards/git/pr-severity-taxonomy.md
+  - core/components/memory/standards/rules/pr.md
   - core/components/memory/standards/_index.md
-  - core/components/memory/standards/intent-schema.yaml
+  - core/components/memory/standards/schemas/intent.yaml
   # ADR
   - docs/adr/016-agent-json-contract.md
   # Docs moved/updated
@@ -100,7 +100,7 @@ config_keys_present:
   activity_window_days: 90
 
 taxonomy_file_present: true
-taxonomy_path_verified: ./core/components/memory/standards/git/pr-severity-taxonomy.md
+taxonomy_path_verified: ./core/components/memory/standards/rules/pr.md
 
 # SE-4 eval trace — C4 compliance
 se4_eval:

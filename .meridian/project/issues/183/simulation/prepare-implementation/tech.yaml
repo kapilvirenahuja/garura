@@ -771,7 +771,7 @@ open_questions:
       Should play-dependency-protocol.md be a new file, or should its content be
       added as a section to the existing resolution-protocol.md?
     owner: user
-    affects: core/components/memory/standards/resolution-protocol.md
+    affects: core/components/memory/standards/rules/resolution.md
     blocking: false
     recommendation: >
       New file. resolution-protocol.md is scoped to agent-level R1-R4 behavior.
