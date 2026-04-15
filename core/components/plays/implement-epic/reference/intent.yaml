@@ -1,31 +1,52 @@
 intent: >
-  Given a locked execution plan entry and a defined feature with success scenarios and failure conditions,
-  produce a working implementation that passes all independently-generated evaluations and
-  meets project quality standards. Test authorship is isolated: a test-writer agent writes
-  behavioral tests from specifications before the code-builder sees them, preventing context
-  bias in the red-green cycle. The quality-auditor handles both quality gates AND QP certification
-  in a single step — no separate engineering-manager agent. Eval-generator is scoped to unit test
-  coverage completeness: 'did you test all behaviors?' Judge is scoped to developer self-review:
-  'are unit tests genuinely covering the spec?' System-level verification (e2e, integration against
-  real services) is handled by validate-epic, not this play. When failures occur, remediation draws
-  from two sources: quality-auditor failures (including QP threshold failures) and judge failures.
-  Eval count stability is audited across fix iterations to prevent silent eval reduction.
+  Given a locked execution plan milestone (a single feature phase identified by milestone_id,
+  such as T-001, from plan.yaml) and the milestone's scope items with success scenarios and
+  failure conditions, produce a working implementation that passes all independently-generated
+  evaluations and meets project quality standards. implement-epic runs per milestone —
+  after each milestone completes, validate-epic runs for that milestone before the next
+  milestone begins.
+
+  Test authorship is isolated and spec-driven: a test-writer agent writes behavioral tests from
+  TEST-CONTEXT.md (behavioral specs derived from epic-spec.yaml and scenarios) before
+  implementation begins. The code-builder works independently from CONTEXT.md (derived from
+  tech.yaml contracts: api_contracts, internal_interfaces, service_contracts) and NEVER sees
+  test files, test code, or test assertions. The orchestrator runs tests mechanically and
+  produces spec-referenced status reports mapping failures to contract IDs from tech.yaml
+  (e.g., API-001, INT-001) — status reports never contain test code, assertion text, or mock data.
+
+  When the same contract fails twice (implementation cycles 1 and 2), a judge-as-arbiter reviews
+  the SPEC contracts and the STATUS REPORT (not implementation code, not test code) and attributes
+  fault: "implementation wrong" gives the builder a 3rd cycle with the judge's finding added to
+  the status report; "implementation correct per spec" re-invokes the test-writer to fix the
+  failing test; "spec ambiguous" triggers a human checkpoint (Orbit). Maximum 3 total
+  implementation cycles.
+
+  The quality-auditor handles both quality gates AND QP certification in a single step — no
+  separate engineering-manager agent needed. When failures occur, remediation draws from two
+  sources: spec-referenced status reports (behavioral failures mapped to contract IDs) and
+  quality-auditor failures (including QP threshold failures). Eval-generator is scoped to unit
+  test coverage completeness: 'did you test all behaviors?' Judge eval-review mode is scoped to
+  developer self-review: 'are unit tests genuinely covering the spec?' Eval count stability is
+  audited across fix iterations to prevent silent eval reduction. System-level verification
+  (e2e, integration against real services) is handled by validate-epic, not this play.
 
 constraints:
   - id: C1
     rule: >
-      The plan.yaml execution order entry referenced by the feature must have status: "LOCKED".
+      The plan.yaml execution order entry referenced by the milestone_id must have status: "LOCKED".
       An entry in DRAFT status is not eligible for implementation.
 
   - id: C2
     rule: >
-      The feature must have at least one success scenario and at least one failure condition
-      defined in features.yaml before implementation begins.
+      The milestone's feature phase must have at least one success scenario and at least one failure
+      condition defined in features.yaml before implementation begins.
 
   - id: C3
     rule: >
-      All prerequisite execution order entries (entries the target entry depends on) must be
-      complete before implementation of the target entry begins.
+      All prerequisite feature phases listed in the target milestone's depends_on entries in
+      plan.yaml must have status: "COMPLETE" before implementation of the target milestone begins.
+      The pre-flight step validates each depends_on milestone status and halts with structured
+      failure (F24) if any dependency is not complete.
 
   - id: C4
     rule: >
@@ -41,23 +62,27 @@ constraints:
 
   - id: C5
     rule: >
-      The code-builder receives only: CONTEXT.md (which describes the architecture, scope items,
-      file ownership, and conventions) and test file paths (marked read-only). It does not
-      receive: features.yaml, scenarios.yaml, evaluation criteria, evaluation IDs, judge reports,
-      or pass/fail thresholds. The builder implements each scope item to make existing tests
-      pass — test first, then implementation, then verification — before moving to the next
-      scope item. Test files are authored by the test-writer, not the builder. The builder
-      MUST NOT modify test files.
+      The code-builder receives only: CONTEXT.md (derived from tech.yaml contracts — api_contracts,
+      internal_interfaces, service_contracts — plus scope items and architecture decisions) and
+      architecture-context.yaml from STM. It does not receive: features.yaml, scenarios.yaml,
+      TEST-CONTEXT.md, test file paths, test code, test assertions, mock data patterns, evaluation
+      criteria, evaluation IDs, judge reports, or pass/fail thresholds. The builder implements each
+      scope item from the SPEC (CONTEXT.md) — never from tests. The builder MUST NOT read or
+      reference any test files.
 
   - id: C6
     rule: >
-      The judge receives only: encrypted evaluations and implementation artifacts (deployed
-      code and build output). It does not receive: builder prompts, builder reasoning,
-      implementation rationale, evaluation-generator prompts, or quality agent results. The
-      judge acts as DEVELOPER SELF-REVIEW: 'Do unit tests genuinely exercise behavior?', 'Are
-      there trivially passing tests?', 'Does coverage align with the spec, not just hit line
-      count?' The judge does NOT exercise a deployed environment, run browser automation, or
-      make HTTP requests to deployed services.
+      The judge operates in two modes. In EVAL-REVIEW mode (standard operation after quality-auditor
+      CERTIFIED): the judge receives only encrypted evaluations and implementation artifacts (deployed
+      code and build output). It does not receive: builder prompts, builder reasoning, implementation
+      rationale, evaluation-generator prompts, or quality agent results. The judge acts as DEVELOPER
+      SELF-REVIEW: 'Do unit tests genuinely exercise behavior?', 'Are there trivially passing tests?',
+      'Does coverage align with the spec, not just hit line count?' In ARBITER mode (invoked per C30
+      when same contract fails twice): the judge receives only SPEC contracts from tech.yaml and the
+      spec-referenced STATUS REPORT — not implementation code, test code, or eval content. The
+      isolation guarantee — no builder prompts, no reasoning artifacts, no eval-generator content —
+      applies in both modes. The judge does NOT exercise a deployed environment, run browser
+      automation, or make HTTP requests to deployed services in either mode.
 
   - id: C7
     rule: >
@@ -76,8 +101,12 @@ constraints:
 
   - id: C10
     rule: >
-      The builder receives only remediation instructions derived from judge failures.
-      It does not receive evaluation IDs, evaluation text, pass criteria, or the raw judge report.
+      The builder receives only remediation instructions derived from spec-referenced status reports.
+      Status reports map failures to contract IDs from tech.yaml (e.g., API-001 for api_contracts,
+      INT-001 for internal_interfaces, SVC-001 for service_contracts) and describe expected behavior
+      per spec. Status reports MUST NOT contain test code, assertion text, mock data patterns,
+      evaluation IDs, evaluation text, or raw judge report content. The builder NEVER receives
+      test file content or pass/fail criteria in evaluation terms.
 
   - id: C11
     rule: >
@@ -92,10 +121,12 @@ constraints:
   - id: C13
     rule: >
       A codebase context document (CONTEXT.md) is generated before implementation begins,
-      distilled from plan.yaml execution order entry, build-arch architecture artifacts
-      (logical-architecture.yaml, physical-architecture.yaml, design-patterns.yaml), and
-      tech.yaml, reflecting the current scope, tech decisions, domain rules, and constraints
-      for the target feature only.
+      distilled from the target milestone's plan.yaml scope items and tech.yaml contracts
+      (api_contracts, internal_interfaces, service_contracts) plus architecture decisions
+      relevant to the milestone. CONTEXT.md describes the API surface, interface contracts,
+      service contracts, scope items, file ownership, and conventions for the target milestone
+      only. It does NOT include behavioral descriptions from features.yaml — those feed
+      TEST-CONTEXT.md via the test-writer path, not CONTEXT.md.
 
   - id: C14
     rule: >
@@ -117,12 +148,13 @@ constraints:
 
   - id: C16
     rule: >
-      Each scope item's tests are authored by the test-writer agent from specifications
-      (TEST-CONTEXT.md) before the code-builder sees them. The code-builder receives test
-      files as read-only input and implements each scope item to make its tests pass. Scope
-      items are not batched -- one scope item's implement-verify cycle completes before the
-      next scope item begins. The orchestrator records test file checksums after the test-writer
-      returns and verifies they are unchanged after the code-builder returns.
+      Test-writer and code-builder work independently from the SPEC — neither sees the other's
+      work product. The test-writer writes behavioral tests from TEST-CONTEXT.md. The code-builder
+      writes implementation from CONTEXT.md (tech.yaml contracts). The orchestrator runs tests
+      mechanically after both complete and produces spec-referenced status reports mapping failures
+      to contract IDs. Scope items are not batched — one scope item's write-test / write-code /
+      run-tests cycle completes before the next scope item begins. This replaces the prior
+      red-green TDD cycle in which the builder received test files as read-only input.
 
   - id: C17
     rule: >
@@ -134,9 +166,13 @@ constraints:
 
   - id: C18
     rule: >
-      Test files authored by the test-writer are read-only for the code-builder. The orchestrator
-      records test file checksums before passing to the code-builder and verifies checksums are
-      unchanged after the code-builder returns. Checksum mismatch is a failure condition (F15).
+      The orchestrator's spec-referenced status report maps each test failure to a contract ID
+      from tech.yaml (e.g., API-001 for api_contracts, INT-001 for internal_interfaces,
+      SVC-001 for service_contracts). For each failing contract, the status report states the
+      expected behavior per spec and the observed deviation. Status reports MUST NOT contain
+      test source code, assertion text, test file paths, mock data, or implementation code.
+      The status report is the ONLY channel through which test results reach the builder or
+      judge-as-arbiter.
 
   - id: C19
     rule: >
@@ -153,11 +189,11 @@ constraints:
 
   - id: C21
     rule: >
-      The remediation step reads two sources: judge-report.yaml (behavioral failures) and
-      quality-report.yaml (gate failures and QP threshold failures, including the
-      qp_certification section). Remediation instructions are categorized as behavioral,
-      tooling, or quality. Both sources are re-checked after each fix iteration. No source
-      with failures may be omitted from remediation.
+      The remediation step reads two sources: spec-referenced status reports (behavioral failures
+      mapped to tech.yaml contract IDs) and quality-report.yaml (gate failures and QP threshold
+      failures, including the qp_certification section). Remediation instructions are categorized
+      as behavioral, tooling, or quality. Both sources are re-checked after each fix iteration.
+      No source with failures may be omitted from remediation.
 
   - id: C22
     rule: >
@@ -186,9 +222,11 @@ constraints:
 
   - id: C25
     rule: >
-      After all scope items complete their individual TDD cycles (test-writer → code-builder
-      → quality check), the orchestrator runs the full test suite (unit + integration with
-      mocks) to verify cross-scope-item behavior. Integration test failure enters the fix loop.
+      After all milestone scope items complete their individual write-test / write-code /
+      run-tests cycles, the orchestrator runs the full test suite (unit + integration with
+      mocks) to verify cross-scope-item behavior within the milestone. Integration test failure
+      enters the fix loop. Regression tests for previously completed milestones are included
+      to verify no prior milestone behavior was broken.
 
   - id: C26
     rule: >
@@ -207,6 +245,55 @@ constraints:
       include ltm_context fields, product_base paths, or core/memory paths.
       Violation of this boundary means prepare-epic's context package is
       incomplete, not that implement-epic should reach outside STM.
+
+  - id: C28
+    rule: >
+      implement-epic accepts a milestone_id parameter (e.g., T-001) identifying a single feature
+      phase from plan.yaml's execution_order. Each invocation implements ONLY the scope items of
+      the specified milestone. After the milestone completes, validate-epic is called for that
+      milestone before implement-epic is invoked for the next milestone (T-002, T-003, etc.).
+      The pre-flight step resolves the milestone entry from plan.yaml, confirms its status is
+      LOCKED, and verifies all depends_on milestones are COMPLETE per C3.
+
+  - id: C29
+    rule: >
+      The code-builder's input context MUST NOT contain test file paths, test code, test assertions,
+      mock data patterns derived from test files, evaluation IDs, evaluation text, or eval pass
+      criteria. The orchestrator performs a hard pre-invocation check before each builder
+      invocation: if any prohibited content is detected in the builder context, the invocation is
+      aborted and F5 is triggered. This check occurs before every builder invocation — initial
+      implementation and remediation iterations alike.
+
+  - id: C30
+    rule: >
+      When the same tech.yaml contract ID appears in the spec-referenced status report for two
+      consecutive implementation cycles, the orchestrator escalates to judge-as-arbiter. The judge
+      reads ONLY: SPEC contracts from tech.yaml and the spec-referenced STATUS REPORT — never
+      implementation code, test code, test assertions, or eval content. The judge renders one of
+      three verdicts: "implementation_wrong" (builder receives a 3rd cycle with judge's diagnostic
+      appended to the status report), "implementation_correct_per_spec" (test-writer is re-invoked
+      to fix the failing test for that contract), or "spec_ambiguous" (human checkpoint — Orbit
+      response required before proceeding). Judge-as-arbiter MUST NOT be invoked before two
+      consecutive failures on the same contract — invocation on a first failure triggers F25.
+
+  - id: C31
+    rule: >
+      Both test-writer and code-builder derive independently from the same SPEC — tech.yaml
+      contracts are the single source of truth for both. The test-writer derives behavioral
+      expectations from epic-spec.yaml and scenarios.yaml (captured in TEST-CONTEXT.md). The
+      code-builder derives implementation contracts from tech.yaml api_contracts,
+      internal_interfaces, and service_contracts (captured in CONTEXT.md). Neither agent's work
+      product is input to the other agent. Alignment between tests and implementation emerges from
+      shared fidelity to the spec, not from cross-agent visibility.
+
+  - id: C32
+    rule: >
+      All inter-agent communication flows through spec references and status reports — never
+      through direct work product visibility. Builder → Orchestrator: implementation code only.
+      Orchestrator → Builder: spec-referenced status reports with contract IDs only.
+      Test-writer → Orchestrator: test files only (orchestrator never forwards test content to
+      builder). Orchestrator → Judge (arbiter mode): spec contracts and status report only.
+      No agent sees another agent's source code, test code, prompts, or reasoning artifacts.
 
 failure_conditions:
   - id: F1
@@ -229,8 +316,9 @@ failure_conditions:
 
   - id: F5
     condition: >
-      The builder agent's input context contains any evaluation ID, evaluation text,
-      evaluation pass criteria, or raw judge report content.
+      The builder agent's input context contains any test file path, test code, test assertion
+      text, mock data patterns derived from test files, evaluation ID, evaluation text, evaluation
+      pass criteria, or raw judge report content.
 
   - id: F6
     condition: >
@@ -244,12 +332,12 @@ failure_conditions:
 
   - id: F8
     condition: >
-      The plan.yaml execution order entry referenced by the feature has a status other
+      The plan.yaml execution order entry referenced by the milestone_id has a status other
       than LOCKED at the time implementation begins.
 
   - id: F9
     condition: >
-      The feature has no exit gate defined in plan.yaml execution_order[].exit_gate,
+      The milestone's feature phase has no exit gate defined in plan.yaml execution_order[].exit_gate,
       or the feature in features.yaml has no success scenarios or failure conditions
       to generate evaluations from.
 
@@ -280,8 +368,10 @@ failure_conditions:
 
   - id: F15
     condition: >
-      The code-builder modified one or more test files authored by the test-writer. Checksum
-      mismatch between post-test-writer and post-code-builder states.
+      The spec-referenced status report produced by the orchestrator contains test source code,
+      assertion text, test file paths, mock data patterns, or implementation code. The status
+      report must describe failures exclusively in terms of tech.yaml contract IDs and expected
+      behavior per spec.
 
   - id: F16
     condition: >
@@ -295,8 +385,8 @@ failure_conditions:
 
   - id: F18
     condition: >
-      quality-report.yaml (including qp_certification section) or judge-report.yaml contains
-      failures but remediation instructions have zero entries from that source. A failing
+      quality-report.yaml (including qp_certification section) or spec-referenced status reports
+      contain failures but remediation instructions have zero entries from that source. A failing
       source was omitted from the fix loop.
 
   - id: F19
@@ -325,19 +415,31 @@ failure_conditions:
       or LTM ({product_base}). Agent contracts contain ltm_context fields,
       product_base references, or paths outside {stm_base}/{issue}/.
 
+  - id: F24
+    condition: >
+      One or more depends_on milestones for the target milestone_id do not have status: "COMPLETE"
+      in plan.yaml at the time implement-epic begins. Milestone dependency pre-flight failed or
+      was skipped.
+
+  - id: F25
+    condition: >
+      Judge-as-arbiter was invoked after only one failed implementation cycle for a given contract.
+      Arbiter escalation is only valid when the same contract ID appears in the status report for
+      two consecutive cycles — invocation on a first failure violates C30.
+
 scenarios:
   - id: S1
     persona: "Engineer"
     given: >
-      A locked plan.yaml execution order entry, a fully-defined feature in features.yaml, and a passing project build
+      A locked plan.yaml milestone entry, a fully-defined feature phase in features.yaml, and a passing project build
     then: >
-      Can trigger the implementation process and receive committed, deployed code
-      that passes all evaluations on the first judge run with no fix loop required
+      Can trigger the implementation process for the specified milestone_id and receive committed,
+      deployed code that passes all evaluations on the first judge run with no fix loop required
 
   - id: S2
     persona: "Engineer"
     given: >
-      A judge report showing evaluation failures after the first implementation attempt
+      A judge report showing evaluation failures after the first implementation attempt for a milestone
     then: >
       Can observe the fix loop execute up to 3 iterations, with each iteration producing
       fresh evaluations and a fresh judge run, until all evaluations pass
@@ -402,13 +504,15 @@ scenarios:
   - id: S9
     persona: "Testing Architect"
     given: >
-      An epic implementation used the test-writer / code-builder separation
+      An epic implementation used the test-writer / code-builder separation for a milestone
     when: >
-      The testing architect audits test authorship
+      The testing architect audits test authorship and agent isolation
     then: >
       Test files were authored by the test-writer agent from TEST-CONTEXT.md (behavioral specs
-      only). The code-builder received test files as read-only. Checksums confirm no test files
-      were modified by the builder. Tests assert behavioral outcomes, not structural
+      only). The code-builder NEVER received test files, test code, or assertion text — its only
+      inputs were CONTEXT.md (derived from tech.yaml contracts) and architecture-context.yaml.
+      All test results flowed to the builder exclusively via spec-referenced status reports
+      mapping failures to tech.yaml contract IDs. Tests assert behavioral outcomes, not structural
       implementation details.
 
   - id: S10
@@ -439,6 +543,24 @@ scenarios:
     given: >
       tech.yaml contains mock_strategy with external service mocks and test doubles
     then: >
-      Mock infrastructure is set up before test-writer runs, test-writer can author tests
-      against defined mock shapes, and code-builder implements against the same mocked
-      dependencies
+      Mock infrastructure is set up before test-writer runs. Test-writer authors tests against
+      defined mock shapes from TEST-CONTEXT.md. Code-builder implements against the same mocked
+      dependencies described as service contracts in CONTEXT.md (derived from tech.yaml). The
+      orchestrator runs tests against mock infrastructure and produces spec-referenced status
+      reports — mock details never appear in status reports or builder context.
+
+  - id: S13
+    persona: "Engineer"
+    given: >
+      A locked plan.yaml with milestones T-001, T-002, T-003 where T-002 depends_on T-001
+      and T-003 depends_on T-002
+    when: >
+      The engineer triggers milestone-based implementation
+    then: >
+      implement-epic is invoked with milestone_id: T-001. Pre-flight confirms T-001's depends_on
+      list is empty (or all satisfied). T-001 scope items are implemented, tested, and verified.
+      validate-epic runs for T-001 and passes. implement-epic is then invoked with milestone_id:
+      T-002 — pre-flight confirms T-001 is COMPLETE. T-002 scope items are implemented. This
+      pattern continues for each milestone. A milestone cannot begin until its predecessor has
+      both completed implement-epic AND passed validate-epic. Attempting to invoke implement-epic
+      for T-002 before T-001 is COMPLETE halts with F24.

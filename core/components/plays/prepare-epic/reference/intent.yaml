@@ -304,8 +304,82 @@ constraints:
       decisions from design-exp output scoped to this epic;
       (4) architecture-context.yaml — architecture decisions relevant to this epic
       extracted from build-arch's 5 artifacts, including technology stack, design
-      patterns, and NFR thresholds.
+      patterns, and NFR thresholds;
+      (5) plan-milestone-summary.yaml — the plan.yaml summary section extracted
+      as a standalone artifact, containing per-milestone rows with milestone_id,
+      delivers, scenario_gate.ids[], cumulative_scenarios (the running union of
+      all scenario IDs from this milestone and all prior milestones), and
+      depends_on references, so that implement-epic and validate-epic can
+      determine which milestone they are working on, what scenarios belong to
+      it, and what scenarios constitute the full regression suite up to that point.
       The STM context directory is the complete input contract for downstream plays.
+
+  - id: C37
+    rule: >
+      Each feature phase in plan.yaml IS a milestone and is the atomic unit of
+      the implement→validate cycle. Every feature phase (T-001, T-002, etc.)
+      must include all of the following fields:
+      (a) milestone_id — the phase identifier matching the feature phase ID
+      (e.g., T-001);
+      (b) scenario_gate.ids[] — the explicit list of scenario IDs that
+      validate-epic must run when validating this milestone (not counts alone —
+      actual IDs so validate-epic can select the correct scenarios from
+      scenarios.yaml);
+      (c) depends_on — the milestone_id(s) of prior milestones that must be in
+      ACCEPTED status (as determined by validate-epic) before this milestone
+      may begin; the first milestone has an empty or absent depends_on;
+      (d) delivers — a one-sentence description of the testable end-to-end
+      capability this milestone delivers, sufficient to confirm scope without
+      reading individual tasks.
+      plan.yaml tasks within a feature phase inherit that phase's milestone_id
+      via their phase membership. A plan.yaml feature phase missing any of
+      these fields is structurally incomplete.
+
+  - id: C38
+    rule: >
+      The plan.yaml summary section must include cumulative_scenarios per
+      milestone row — the running union of all scenario IDs from this milestone
+      and all prior milestones in execution order. This cumulative list is how
+      validate-epic constructs the full regression suite for each milestone:
+      when validating T-002, validate-epic runs T-001's scenarios plus T-002's
+      scenarios. The cumulative_scenarios list must be explicit (actual IDs, not
+      counts) in plan-milestone-summary.yaml so that validate-epic can select
+      and run the complete regression suite without reading scenarios.yaml or
+      prior milestones' scenario_gate fields. A summary row with only a
+      cumulative scenario count (integer) but no cumulative ID list violates
+      this constraint.
+
+  - id: C39
+    rule: >
+      Each milestone's depends_on must enforce acceptance-based sequencing,
+      not task-completion-based sequencing. The sequential
+      implement→validate→implement→validate chain requires that milestone T-002
+      cannot begin until milestone T-001 has been explicitly ACCEPTED by
+      validate-epic (ACCEPTED status, not merely all T-001 implementation tasks
+      marked done). plan.yaml must make acceptance-based dependency explicit in
+      the milestone depends_on field. A depends_on that references only
+      implementation tasks (not the prior milestone's validate-epic gate)
+      does not satisfy this constraint. The milestone dependency chain must be
+      readable by implement-epic and validate-epic directly from
+      plan-milestone-summary.yaml without parsing the full task DAG.
+
+  - id: C40
+    rule: >
+      tech.yaml's api_contracts, internal_interfaces, and service_contracts
+      must be thorough enough to support independent, parallel development by
+      a test-writer and a code-builder who never see each other's output.
+      Specifically: a test-writer must be able to write comprehensive
+      behavioral tests from contracts alone; a code-builder must be able to
+      implement fully from contracts alone. Interface definitions must specify
+      all of the following for every contract entry: request/response shapes
+      (field names, types, required vs optional), error conditions with their
+      corresponding error response shapes, behavior contracts (preconditions,
+      postconditions, and invariants that hold across calls), and edge cases
+      that produce observable differences in behavior. A contract entry that
+      omits error shapes, behavior contracts, or edge cases is incomplete.
+      tech.yaml interface definitions that require either party to inspect the
+      other's work product — or to read the codebase — to fill in missing
+      contract detail are a constraint violation.
 
 failure_conditions:
   - id: F1
@@ -456,6 +530,34 @@ failure_conditions:
     condition: >
       tech.yaml missing mock_strategy section when external dependencies
       exist in the change surface.
+
+  - id: F27
+    condition: >
+      Any feature phase in plan.yaml is missing one or more required milestone
+      fields: milestone_id, scenario_gate.ids[] (actual IDs, not count only),
+      depends_on (for any non-first milestone), or delivers. A feature phase
+      without all four fields is not milestone-ready and cannot be consumed by
+      implement-epic or validate-epic.
+
+  - id: F28
+    condition: >
+      The plan.yaml summary section (and the derived plan-milestone-summary.yaml
+      in the STM context package) does not include cumulative_scenarios as an
+      explicit list of scenario IDs per milestone row. Providing only an integer
+      count without the actual ID list prevents validate-epic from constructing
+      the regression suite for each milestone without re-reading scenarios.yaml
+      and all prior milestone scenario_gate fields.
+
+  - id: F29
+    condition: >
+      tech.yaml interface definitions (api_contracts, internal_interfaces,
+      service_contracts) are insufficient for independent authorship: one or
+      more contract entries are missing request/response field shapes, error
+      conditions with error response shapes, behavior contracts
+      (preconditions/postconditions/invariants), or edge cases with observable
+      behavioral differences. A test-writer or code-builder would need to
+      inspect the other's work product or read the codebase to fill in the
+      missing contract detail.
 
 scenarios:
   - id: S1
