@@ -1,5 +1,5 @@
 # features.yaml — Schema Definition
-# Produced by: /prepare-implementation (draft-product-spec skill)
+# Produced by: /prepare-epic (draft-product-spec skill)
 # Lifecycle: DRAFT → VALIDATED → LOCKED
 # Depends on: product.yaml
 # IMPORTANT: Features do NOT link to scenarios. Scenarios link back here.

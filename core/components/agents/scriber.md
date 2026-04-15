@@ -45,7 +45,7 @@ These are the ONLY paths you may write to. Any `target_path` outside this list i
 | `.meridian/project/issues/{N}/specs/...` | Issue-scoped plans |
 | `.meridian/project/issues/{N}/evidence/...` | Issue-scoped test/eval evidence |
 | `.meridian/project/issues/{N}/checkpoint/...` | Issue-scoped play approval gates |
-| `.meridian/project/issues/{N}/context/...` | Issue-scoped prepare-implementation context |
+| `.meridian/project/issues/{N}/context/...` | Issue-scoped prepare-epic context |
 | `.meridian/project/issues/{N}/review/...` | Issue-scoped review artifacts |
 
 Underscore-prefixed subdirectories INSIDE the product root are allowed (e.g., `.meridian/product/_checkpoints/specify-product/20260414.md` lives at the product root alongside the stage folders and is therefore legal).

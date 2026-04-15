@@ -121,7 +121,7 @@ The agent's entire response is ONE JSON object. No prose, no YAML blocks, no val
 
 ```json
 {
-  "intent_path": "core/components/plays/prepare-implementation/reference/intent.yaml",
+  "intent_path": "core/components/plays/prepare-epic/reference/intent.yaml",
   "stm_base": ".meridian/project/issues/",
   "stm": {
     "input": {
@@ -164,7 +164,7 @@ Each agent owns a set of skills. Agents invoke skills via the **Skill tool** pro
 |-------|---------|
 | `draft-product-spec` | Create `features.yaml` defining product behaviors, invariants, scope boundaries, and acceptance criteria (implementation-agnostic) |
 | `draft-verification-scenarios` | Create verification scenarios with pass/fail criteria and automation classification |
-| `validate-implementation-design` | Cross-validate `prepare-implementation` artifacts for coverage, compartmentalization, audience separation |
+| `validate-implementation-design` | Cross-validate `prepare-epic` artifacts for coverage, compartmentalization, audience separation |
 
 In addition to these skills, `feature-steward` owns a direct role in `implement-epic` — the Scenario Writer role — which generates manual test scenarios from feature success scenarios plus the deployed URL. No skill is invoked for that role; the agent produces the scenarios directly.
 

@@ -1,0 +1,263 @@
+intent: >
+  Given committed code from implement-epic on a feature branch and locked verification scenarios
+  from prepare-epic, deploy to a preview/staging environment and execute system-level verification
+  against acceptance criteria. An eval-generator produces system-behavior evals scoped to
+  "does the deployed product work end-to-end?" — not unit test coverage. A test-engineer authors
+  e2e test scripts (Playwright, Cypress, or project-appropriate framework) from scenarios.yaml
+  and design-spec screens, exercising the deployed environment via browser automation or HTTP
+  requests. E2E execution runs all 3 scenario tiers in order: baseline, new, regression.
+  A judge exercises the running product independently via the deployed environment — this is
+  QA acceptance, not developer self-check. A feature-steward generates manual test scenarios
+  for anything e2e automation cannot cover. When judge failures occur, remediation routes back
+  to implement-epic for code changes — validate-epic does not invoke code-builder directly.
+  After implement-epic fixes and re-commits, validate-epic re-deploys and re-runs. Max 3 fix
+  iterations. The final output is a QA verdict: ACCEPT or REJECT.
+
+constraints:
+  - id: C1
+    rule: >
+      implement-epic must have completed for this epic before validate-epic runs. Pre-flight
+      verifies: judge-report.yaml exists with pass rate meeting threshold, quality-report.yaml
+      shows overall PASS with QP CERTIFIED. Hard halt if implement-epic is incomplete.
+
+  - id: C2
+    rule: >
+      A deployment environment (preview, staging, or local docker-compose) must be accessible
+      before e2e tests run. The play does not provision infrastructure — it requires an
+      accessible environment. Pre-flight verifies the environment is reachable via health
+      check before proceeding.
+
+  - id: C3
+    rule: >
+      The eval-generator receives ONLY: locked epic behaviors, scenarios.yaml (all 3 tiers:
+      baseline, new, regression), plan.yaml exit gates, and design-spec screens. It is scoped
+      to SYSTEM BEHAVIOR — "Does the deployed product work end-to-end?" It does NOT receive:
+      unit test code, builder prompts, prior evals, implementation code, quality-auditor
+      results from implement-epic, or judge reports from implement-epic.
+
+  - id: C4
+    rule: >
+      The test-engineer authors e2e test scripts (Playwright, Cypress, or project-appropriate
+      e2e framework) from scenarios.yaml and design-spec screens. Tests exercise the deployed
+      environment via browser automation or HTTP requests — not mocked services. Test scripts
+      target the deployment URL, not localhost unit test runners.
+
+  - id: C5
+    rule: >
+      E2E test execution runs all 3 scenario tiers in order: (1) baseline scenarios — verify
+      existing behavior unbroken, (2) new scenarios — verify new behavior works, (3) regression
+      scenarios — verify nothing outside change surface broke. Execution halts on baseline
+      failure — new and regression tiers do not execute if baseline fails.
+
+  - id: C6
+    rule: >
+      The judge receives ONLY: encrypted system-level evals and deployed environment access
+      (URL, credentials). It does NOT receive: builder prompts, unit test code, quality-auditor
+      results from implement-epic, eval-generator prompts, implementation source code, or
+      prior judge reports from implement-epic. The judge exercises the running product via
+      HTTP calls and/or browser automation against the deployed environment.
+
+  - id: C7
+    rule: >
+      Evaluations are encrypted at rest. Same encryption/isolation model as implement-epic.
+      Plaintext evaluation content is deleted after encryption. Eval files are stored outside
+      the project repository tree. No evaluation content (encrypted or plaintext) exists
+      inside the repository at any point.
+
+  - id: C8
+    rule: >
+      The fix loop routes remediation back to implement-epic for code changes. validate-epic
+      does NOT invoke code-builder directly. After implement-epic fixes and re-commits,
+      validate-epic re-deploys and re-runs the full e2e suite and judge evaluation. The
+      remediation handoff includes: which scenarios failed, which judge evals failed, and
+      structured remediation instructions.
+
+  - id: C9
+    rule: >
+      The fix loop runs a maximum of 3 iterations. If system-level evals still fail after
+      3 rounds, the process halts with a structured failure report including: persistent
+      failures with per-scenario detail, remediation attempted per iteration (including
+      implement-epic re-runs), and recommendation for scope restructuring or escalation.
+
+  - id: C10
+    rule: >
+      The feature-steward generates manual test scenarios for anything e2e automation cannot
+      cover: visual review, UX flow validation, accessibility spot-checks, complex multi-step
+      user journeys requiring human judgment. Produces a numbered QA checklist with clear
+      pass/fail criteria per item.
+
+  - id: C11
+    rule: >
+      The QA verdict is ACCEPT or REJECT. ACCEPT requires: all automated e2e tests PASS,
+      judge evals meet threshold (configurable, default 100%), and manual test scenario
+      checklist is generated. REJECT includes: which scenarios failed, which judge evals
+      failed, what remediation was attempted, and iteration history.
+
+  - id: C12
+    rule: >
+      E2E test results must include traces, screenshots, and response bodies as evidence
+      artifacts. Not just PASS/FAIL — reviewable artifacts that allow post-hoc debugging
+      and audit. Evidence is stored in the issue STM evidence directory.
+
+  - id: C13
+    rule: >
+      Scenarios from prepare-epic (scenarios.yaml) are the test contract. validate-epic does
+      NOT author new scenarios — it executes the locked scenarios from prepare-epic. The
+      3-tier scenario set (baseline, new, regression) is immutable during validation.
+
+  - id: C14
+    rule: >
+      Context isolation between eval-generator and judge follows the same compartmented model
+      as implement-epic: eval-generator never sees implementation code or builder prompts,
+      judge never sees eval-generator prompts or quality-auditor results. Each agent operates
+      in a sealed input context with no cross-contamination.
+
+  - id: C15
+    rule: >
+      validate-epic reads ONLY from STM at {stm_base}/{issue}/context/ and the
+      deployed environment. KB (~/.meridian/core/memory/) and LTM ({product_base})
+      are FORBIDDEN. All context — epic specification, scenarios, design context,
+      API contracts — must exist in the STM context package produced by
+      prepare-epic. No agent contract may include ltm_context fields, product_base
+      paths, or core/memory paths.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      implement-epic did not complete — judge-report.yaml is missing or shows failures below
+      threshold, or quality-report.yaml shows overall FAIL or QP BLOCKED. validate-epic
+      cannot proceed without a completed, quality-certified implementation.
+
+  - id: F2
+    condition: >
+      The deployment environment is not accessible — health check fails, URL is unreachable,
+      or services are not running. E2E tests cannot execute against a non-running service.
+
+  - id: F3
+    condition: >
+      Three fix iterations have been exhausted and system-level evals still contain at least
+      one failing evaluation. The structured failure report is produced and the process halts.
+
+  - id: F4
+    condition: >
+      validate-epic invoked code-builder directly instead of routing fixes through
+      implement-epic. Code changes must flow through implement-epic's TDD cycle, not
+      bypass it.
+
+  - id: F5
+    condition: >
+      E2E test scripts use a unit test framework (Jest, pytest, vitest) instead of an e2e
+      framework (Playwright, Cypress, or equivalent browser automation / HTTP integration
+      tool). Tests must exercise the deployed environment, not run in-process.
+
+  - id: F6
+    condition: >
+      The judge executed without a deployed environment — judge report is based on source
+      code reading, static analysis, or unit test results rather than runtime behavior of
+      the deployed product.
+
+  - id: F7
+    condition: >
+      The eval-generator's input context contains implementation code, builder prompts,
+      unit test code, quality-auditor results from implement-epic, or prior judge reports.
+      Eval-generator scope is strictly system-behavior from specs.
+
+  - id: F8
+    condition: >
+      The judge's input context contains eval-generator prompts, builder prompts,
+      quality-auditor results from implement-epic, implementation source code, or unit
+      test code. Judge scope is strictly deployed-product exercise.
+
+  - id: F9
+    condition: >
+      E2E test results lack evidence artifacts — no screenshots, no traces, no response
+      bodies. Results contain only PASS/FAIL without reviewable supporting material.
+
+  - id: F10
+    condition: >
+      Baseline scenarios (Tier 1) failed but new scenarios (Tier 2) were still executed.
+      Execution must halt on baseline failure — new and regression tiers are skipped when
+      baseline is broken.
+
+  - id: F11
+    condition: >
+      No manual test scenarios were produced — the feature-steward step was skipped or
+      produced an empty checklist. Every validation must include a manual QA checklist.
+
+  - id: F12
+    condition: >
+      QA verdict is ACCEPT but automated e2e tests have failures — the verdict contradicts
+      the evidence. ACCEPT is only valid when all automated e2e tests PASS and judge evals
+      meet threshold.
+
+  - id: F13
+    condition: >
+      Any agent invoked by validate-epic reads from KB (~/.meridian/core/memory/)
+      or LTM ({product_base}). Agent contracts contain ltm_context fields,
+      product_base references, or paths outside {stm_base}/{issue}/ and the
+      deployed environment URL.
+
+scenarios:
+  - id: S1
+    persona: "QA Engineer"
+    given: >
+      Committed code from implement-epic and a deployed preview environment with all
+      services running
+    then: >
+      Can run the full e2e suite (baseline → new → regression) and receive a structured
+      results report with per-scenario PASS/FAIL and evidence artifacts (screenshots,
+      traces, response bodies) for every test execution
+
+  - id: S2
+    persona: "QA Engineer"
+    given: >
+      The manual test scenarios checklist produced by the feature-steward
+    then: >
+      Can execute hybrid/manual test scenarios against the deployed environment without
+      reading source code, with clear pass/fail criteria for each checklist item
+
+  - id: S3
+    persona: "Security Auditor"
+    given: >
+      The input contexts of all agents (eval-generator, judge, test-engineer) and the
+      compartmented isolation model
+    then: >
+      Can verify no agent received information outside its designated scope — eval-generator
+      has zero implementation code, judge has zero eval-generator prompts, test-engineer
+      has zero implementation details beyond scenarios and design-spec screens
+
+  - id: S4
+    persona: "Engineering Lead"
+    given: >
+      A structured failure report produced after 3 fix iterations are exhausted
+    then: >
+      Can identify persistent system-level failures, see remediation history including
+      implement-epic re-runs per iteration, and decide whether to restructure scope
+      or escalate
+
+  - id: S5
+    persona: "Product Owner"
+    given: >
+      The QA verdict (ACCEPT or REJECT) and e2e evidence (screenshots, traces, response
+      bodies)
+    then: >
+      Can make a release decision without running tests themselves — the verdict and
+      evidence provide sufficient confidence for go/no-go
+
+  - id: S6
+    persona: "Testing Architect"
+    given: >
+      The e2e-results.yaml execution report
+    then: >
+      Can verify all 3 scenario tiers were executed in order, baseline failures halted
+      execution of subsequent tiers, and evidence artifacts (screenshots, traces, response
+      bodies) exist for every executed test
+
+  - id: S7
+    persona: "Developer"
+    given: >
+      Judge failures in validate-epic with structured remediation instructions
+    then: >
+      Can make targeted fixes via implement-epic without re-running the full implementation
+      cycle — remediation instructions identify specific system-level failures, affected
+      scenarios, and suggested fix areas

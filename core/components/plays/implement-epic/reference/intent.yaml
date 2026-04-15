@@ -3,11 +3,12 @@ intent: >
   produce a working implementation that passes all independently-generated evaluations and
   meets project quality standards. Test authorship is isolated: a test-writer agent writes
   behavioral tests from specifications before the code-builder sees them, preventing context
-  bias in the red-green cycle. A quality agent verifies gates (build, lint, typecheck, coverage)
-  derived from the project's Quality Profile. An engineering-manager agent certifies QP compliance
-  before behavioral evaluation begins — quality gate FAIL and EM BLOCKED are hard stops, not
-  informational. A judge evaluates behavior independently. When failures occur, remediation draws
-  from all three sources: judge failures, quality gate failures, and QP threshold failures.
+  bias in the red-green cycle. The quality-auditor handles both quality gates AND QP certification
+  in a single step — no separate engineering-manager agent. Eval-generator is scoped to unit test
+  coverage completeness: 'did you test all behaviors?' Judge is scoped to developer self-review:
+  'are unit tests genuinely covering the spec?' System-level verification (e2e, integration against
+  real services) is handled by validate-epic, not this play. When failures occur, remediation draws
+  from two sources: quality-auditor failures (including QP threshold failures) and judge failures.
   Eval count stability is audited across fix iterations to prevent silent eval reduction.
 
 constraints:
@@ -30,8 +31,13 @@ constraints:
     rule: >
       The evaluation generator receives only: features.yaml behaviors, scenarios.yaml
       verification scenarios, feature success/failure conditions, and plan.yaml exit gate criteria.
-      It does not receive: vision documents, design tokens, architecture.yaml, tech.yaml,
-      plan.yaml (full), implementation code, builder prompts, or prior evaluation results.
+      It does not receive: vision documents, design tokens, build-arch architecture artifacts
+      (logical-architecture.yaml, physical-architecture.yaml, nfr-spec.yaml, quality-vision.yaml,
+      design-patterns.yaml), tech.yaml, plan.yaml (full), implementation code, builder prompts,
+      or prior evaluation results. Evals are scoped to UNIT TEST COVERAGE COMPLETENESS: 'Does
+      every behavior in the epic have a unit test?', 'Do tests cover success scenarios AND failure
+      conditions?', 'Are edge cases from scenarios.yaml represented in unit tests?' Evals do NOT
+      check system behavior, deployed endpoints, UI rendering, or e2e flows.
 
   - id: C5
     rule: >
@@ -47,7 +53,11 @@ constraints:
     rule: >
       The judge receives only: encrypted evaluations and implementation artifacts (deployed
       code and build output). It does not receive: builder prompts, builder reasoning,
-      implementation rationale, evaluation-generator prompts, or quality agent results.
+      implementation rationale, evaluation-generator prompts, or quality agent results. The
+      judge acts as DEVELOPER SELF-REVIEW: 'Do unit tests genuinely exercise behavior?', 'Are
+      there trivially passing tests?', 'Does coverage align with the spec, not just hit line
+      count?' The judge does NOT exercise a deployed environment, run browser automation, or
+      make HTTP requests to deployed services.
 
   - id: C7
     rule: >
@@ -82,25 +92,28 @@ constraints:
   - id: C13
     rule: >
       A codebase context document (CONTEXT.md) is generated before implementation begins,
-      distilled from plan.yaml execution order entry, architecture.yaml, and tech.yaml,
-      reflecting the current scope, tech decisions, domain rules, and constraints for the
-      target feature only.
+      distilled from plan.yaml execution order entry, build-arch architecture artifacts
+      (logical-architecture.yaml, physical-architecture.yaml, design-patterns.yaml), and
+      tech.yaml, reflecting the current scope, tech decisions, domain rules, and constraints
+      for the target feature only.
 
   - id: C14
     rule: >
-      A quality agent independently verifies linting, unit tests, type checking, and build
-      against the project's quality vision gates, which include QP-derived thresholds when
-      quality-standards.yaml is present. It does not receive: evaluations, builder prompts,
-      builder reasoning, eval-generator prompts, or judge reports. The quality agent reports
-      measurements against declared thresholds.
+      The quality-auditor independently verifies linting, unit tests, type checking, build,
+      and coverage against the project's quality vision gates. It also checks QP compliance:
+      actual measurements versus thresholds from quality-vision.yaml (from build-arch output).
+      Its report includes a qp_certification section with per-dimension PASS/FAIL, overall
+      CERTIFIED|BLOCKED, and blockers list. No separate engineering-manager agent is needed.
+      It does not receive: evaluations, builder prompts, builder reasoning, eval-generator
+      prompts, or judge reports.
 
   - id: C15
     rule: >
       Project quality standards (quality vision gates) are captured in STM before the quality
-      agent runs. When .meridian/product/architecture/quality-standards.yaml exists, gates MUST
-      derive thresholds from it using the QP translation table. When absent, gates are detected
-      from toolchain defaults. The quality-standards.yaml is the authoritative source for
-      coverage targets, complexity limits, and security scan requirements.
+      agent runs. When {product_base}architecture/quality-vision.yaml exists (from build-arch),
+      gates MUST derive thresholds from it using the QP translation table. When absent, gates
+      are detected from toolchain defaults. The quality-vision.yaml is the authoritative source
+      for coverage targets, complexity limits, and security scan requirements.
 
   - id: C16
     rule: >
@@ -123,38 +136,30 @@ constraints:
     rule: >
       Test files authored by the test-writer are read-only for the code-builder. The orchestrator
       records test file checksums before passing to the code-builder and verifies checksums are
-      unchanged after the code-builder returns. Checksum mismatch is a failure condition (F16).
+      unchanged after the code-builder returns. Checksum mismatch is a failure condition (F15).
 
   - id: C19
     rule: >
-      The engineering-manager agent certifies QP compliance after the quality-auditor runs and
-      before the judge runs. It receives quality-standards.yaml and quality-report.yaml. It does
-      not receive evals, judge reports, builder prompts, or feature specs. If the EM reports
-      BLOCKED, the judge does not execute. Blocked QP dimensions enter the fix loop for
-      remediation.
-
-  - id: C20
-    rule: >
-      When quality-standards.yaml exists, quality vision gate thresholds MUST be derived from
+      When quality-vision.yaml exists, quality vision gate thresholds MUST be derived from
       it. The orchestrator translates QP dimension levels to concrete thresholds: QP-1 levels
       map to min_coverage percentages, QP-2 levels map to complexity limits, QP-7 levels map
       to security scan requirements. Manual override of QP-derived thresholds is not permitted.
 
+  - id: C20
+    rule: >
+      If the quality-auditor reports overall FAIL OR qp_certification.overall BLOCKED, the
+      orchestrator MUST NOT proceed to judge. One gate, not two sequential gates. The judge
+      only executes after quality-auditor reports PASS with CERTIFIED.
+
   - id: C21
     rule: >
-      If the quality-auditor reports overall FAIL, the orchestrator MUST NOT proceed to EM
-      certification or judge. Quality gate failures enter the fix loop as 'tooling' category
-      remediation. The judge only executes after quality gates PASS AND EM certifies CERTIFIED.
+      The remediation step reads two sources: judge-report.yaml (behavioral failures) and
+      quality-report.yaml (gate failures and QP threshold failures, including the
+      qp_certification section). Remediation instructions are categorized as behavioral,
+      tooling, or quality. Both sources are re-checked after each fix iteration. No source
+      with failures may be omitted from remediation.
 
   - id: C22
-    rule: >
-      The remediation step reads three sources: judge-report.yaml (behavioral failures),
-      quality-report.yaml (gate failures), and em-certification.yaml (QP threshold failures).
-      Remediation instructions are categorized as behavioral, tooling, or quality. All three
-      sources are re-checked after each fix iteration. No source with failures may be omitted
-      from remediation.
-
-  - id: C23
     rule: >
       When fresh evals are generated during a fix iteration, the orchestrator compares eval
       count against the original manifest. If the count decreased, the eval-generator must
@@ -162,13 +167,46 @@ constraints:
       the fresh eval set is rejected and the eval-generator is re-invoked. Eval count may
       increase (new behaviors discovered) but may not decrease without documented explanation.
 
-  - id: C24
+  - id: C23
     rule: >
       All input design artifacts (plan.yaml, features.yaml, tech.yaml, scenarios.yaml) must
       be sourced from the issue STM at {stm_base}/{issue}/context/design/, where
-      prepare-implementation writes them. Architecture.yaml and quality-standards.yaml remain
-      sourced from {product_base}/architecture/ — they are product-level artifacts, not
+      prepare-epic writes them. Build-arch architecture artifacts (logical-architecture.yaml,
+      physical-architecture.yaml, nfr-spec.yaml, quality-vision.yaml, design-patterns.yaml)
+      are sourced from {product_base}architecture/ — they are product-level artifacts, not
       issue-specific. The pre-flight must derive artifact_base from the issue STM path.
+
+  - id: C24
+    rule: >
+      Before test-writer runs, the orchestrator reads tech.yaml mock_strategy section and
+      ensures mock infrastructure exists. This may include creating mock service stubs from
+      LLD interface definitions, setting up test database configuration, and configuring
+      in-memory event buses. Mock setup failure is a hard halt — test-writer cannot author
+      tests against undefined mocks.
+
+  - id: C25
+    rule: >
+      After all scope items complete their individual TDD cycles (test-writer → code-builder
+      → quality check), the orchestrator runs the full test suite (unit + integration with
+      mocks) to verify cross-scope-item behavior. Integration test failure enters the fix loop.
+
+  - id: C26
+    rule: >
+      The quality-auditor report must include a qp_certification section when quality-vision.yaml
+      exists. The section contains: overall (CERTIFIED|BLOCKED), per-dimension checks with level,
+      threshold, actual_value, and status (PASS|FAIL), and a blockers list. This replaces the
+      separate em-certification.yaml artifact.
+
+  - id: C27
+    rule: >
+      implement-epic reads ONLY from STM at {stm_base}/{issue}/context/. KB
+      (~/.meridian/core/memory/) and LTM ({product_base}) are FORBIDDEN. All
+      context needed for implementation — architecture decisions, quality gates,
+      epic specification, design context — must exist in the STM context
+      package produced by prepare-epic. No agent contract in implement-epic may
+      include ltm_context fields, product_base paths, or core/memory paths.
+      Violation of this boundary means prepare-epic's context package is
+      incomplete, not that implement-epic should reach outside STM.
 
 failure_conditions:
   - id: F1
@@ -222,65 +260,70 @@ failure_conditions:
 
   - id: F11
     condition: >
-      No manual test scenarios are produced alongside the implementation.
-
-  - id: F12
-    condition: >
       Unit tests fail or are absent for any implemented scope item. A scope item
       without a corresponding test that exercises its behavior is incomplete.
 
-  - id: F13
+  - id: F12
     condition: >
       Linting violations exist in the implemented code after implementation is complete.
 
-  - id: F14
+  - id: F13
     condition: >
       Code quality standards defined in the project's quality vision gates are not met.
       Any metric falling below the threshold specified in the vision gates constitutes failure.
 
-  - id: F15
+  - id: F14
     condition: >
       The test-writer agent's input context contains file paths from CONTEXT.md 'Files You Own',
-      architecture.yaml references, tech.yaml references, or any implementation-specific
+      build-arch architecture artifact references, tech.yaml references, or any implementation-specific
       information. TEST-CONTEXT.md contains file paths or technology decisions.
 
-  - id: F16
+  - id: F15
     condition: >
       The code-builder modified one or more test files authored by the test-writer. Checksum
       mismatch between post-test-writer and post-code-builder states.
 
+  - id: F16
+    condition: >
+      quality-vision.yaml exists but quality vision gate thresholds contain null entries for
+      dimensions that have QP levels >= 2. The QP translation step was skipped or failed.
+
   - id: F17
     condition: >
-      The engineering-manager certification reports BLOCKED because a QP dimension's actual
-      measurement falls below the threshold derived from quality-standards.yaml. This enters
-      the fix loop -- hard halt only after 3 fix iterations (F3).
+      The judge executed while quality-report.yaml shows overall FAIL. Quality gates were not
+      blocking — the pipeline proceeded despite gate failures.
 
   - id: F18
     condition: >
-      The judge executed without a prior engineering-manager certification of CERTIFIED.
-      judge-report.yaml exists but em-certification.yaml does not exist or shows BLOCKED.
+      quality-report.yaml (including qp_certification section) or judge-report.yaml contains
+      failures but remediation instructions have zero entries from that source. A failing
+      source was omitted from the fix loop.
 
   - id: F19
     condition: >
-      quality-standards.yaml exists but quality-vision-gates.yaml was generated with null
-      thresholds for dimensions that have QP levels >= 2. The QP translation step was skipped
-      or failed.
+      Fresh eval count is less than original eval count and no consolidation_rationale artifact
+      exists explaining which eval IDs were removed and why.
 
   - id: F20
     condition: >
-      The judge executed while quality-report.yaml shows overall FAIL. Quality gates were not
-      blocking -- the pipeline proceeded despite gate failures.
+      Mock infrastructure setup failed — tech.yaml mock_strategy references services or test
+      doubles that could not be instantiated. Test-writer cannot proceed.
 
   - id: F21
     condition: >
-      quality-report.yaml or em-certification.yaml contains failures but remediation
-      instructions have zero entries from that source. A failing source was omitted from
-      the fix loop.
+      Integration test pass failed — full test suite (unit + integration with mocks) fails
+      after individual scope items passed. Cross-scope-item behavior is broken.
 
   - id: F22
     condition: >
-      Fresh eval count is less than original eval count and no consolidation_rationale artifact
-      exists explaining which eval IDs were removed and why.
+      quality-auditor report missing qp_certification section when quality-vision.yaml exists
+      at {product_base}architecture/quality-vision.yaml.
+
+  - id: F23
+    condition: >
+      Any agent invoked by implement-epic reads from KB (~/.meridian/core/memory/)
+      or LTM ({product_base}). Agent contracts contain ltm_context fields,
+      product_base references, or paths outside {stm_base}/{issue}/.
 
 scenarios:
   - id: S1
@@ -311,12 +354,12 @@ scenarios:
   - id: S4
     persona: "Security Auditor"
     given: >
-      The input contexts of all agents (builder, evaluation generator, judge, quality agent)
+      The input contexts of all agents (builder, evaluation generator, judge, quality-auditor)
       and the project's security quality vision gates
     then: >
-      Can verify that no agent received information outside its designated scope --
+      Can verify that no agent received information outside its designated scope —
       builder has zero evaluation content, judge has zero builder prompts, evaluation
-      generator has zero implementation code, quality agent has zero eval content --
+      generator has zero implementation code, quality-auditor has zero eval content —
       and that security standards defined in the quality vision gates are met
 
   - id: S5
@@ -328,14 +371,6 @@ scenarios:
       in each iteration, and decide whether to restructure the feature scope or escalate
 
   - id: S6
-    persona: "Engineer"
-    given: >
-      A feature with external dependencies that cannot be fully evaluated by automated checks
-    then: >
-      Can use the manual test scenarios to validate integration points that require
-      a running deployed environment, covering what automated evaluations cannot reach
-
-  - id: S7
     persona: "Performance Auditor"
     given: >
       The deployed preview environment and the project's quality vision gates defining
@@ -344,7 +379,7 @@ scenarios:
       Can verify that bundle size, lighthouse scores, and runtime performance metrics
       meet or exceed the thresholds defined in the quality vision gates
 
-  - id: S8
+  - id: S7
     persona: "Evals Engineer"
     given: >
       The judge report, eval execution results, and the features.yaml behaviors list
@@ -352,19 +387,19 @@ scenarios:
       Can verify that every eval was executed, every feature behavior has eval
       coverage, and the overall pass rate meets the defined threshold
 
-  - id: S9
+  - id: S8
     persona: "Quality Lead"
     given: >
-      An epic implementation has completed with quality-standards.yaml declaring QP levels
+      An epic implementation has completed with quality-vision.yaml declaring QP levels
       >= 2 for testing, code quality, and security dimensions
     when: >
-      The quality lead reviews the EM certification report
+      The quality lead reviews the quality-auditor QP certification report
     then: >
       Every QP dimension with level >= 2 has a concrete threshold in quality-vision-gates.yaml
-      (not null). The em-certification.yaml shows per-dimension PASS/FAIL with actual
-      measurements. No QP dimension was skipped.
+      (not null). The quality-report.yaml qp_certification section shows per-dimension
+      PASS/FAIL with actual measurements. No QP dimension was skipped.
 
-  - id: S10
+  - id: S9
     persona: "Testing Architect"
     given: >
       An epic implementation used the test-writer / code-builder separation
@@ -376,18 +411,19 @@ scenarios:
       were modified by the builder. Tests assert behavioral outcomes, not structural
       implementation details.
 
-  - id: S11
+  - id: S10
     persona: "Build Engineer"
     given: >
-      The quality-auditor reports overall FAIL (e.g., build errors, lint violations)
+      The quality-auditor reports overall FAIL or qp_certification.overall BLOCKED
     when: >
       The build engineer checks pipeline behavior
     then: >
-      The judge did NOT execute while gates were failing. The fix loop addressed tooling
-      failures (build, lint) alongside behavioral failures. After fix iteration, all quality
-      gates pass before the judge runs.
+      The judge did NOT execute while quality-auditor reported FAIL or BLOCKED. One gate
+      controls judge access — quality-auditor PASS with CERTIFIED required. The fix loop
+      addressed tooling and QP failures alongside behavioral failures. After fix iteration,
+      quality-auditor reports PASS with CERTIFIED before the judge runs.
 
-  - id: S12
+  - id: S11
     persona: "Eval Auditor"
     given: >
       Fresh evals were generated during a fix iteration with a different eval count than
@@ -397,3 +433,12 @@ scenarios:
     then: >
       An eval-audit artifact exists documenting the count delta. If evals were removed, each
       has a consolidation_rationale. No evals silently disappeared between iterations.
+
+  - id: S12
+    persona: "Developer"
+    given: >
+      tech.yaml contains mock_strategy with external service mocks and test doubles
+    then: >
+      Mock infrastructure is set up before test-writer runs, test-writer can author tests
+      against defined mock shapes, and code-builder implements against the same mocked
+      dependencies

@@ -79,7 +79,7 @@ When you receive a JSON contract from the play orchestrator:
 **Example return** (after technical-approach drafting):
 ```json
 {
-  "intent_path": "core/components/plays/prepare-implementation/reference/intent.yaml",
+  "intent_path": "core/components/plays/prepare-epic/reference/intent.yaml",
   "stm_base": ".meridian/project/issues/",
   "slug": "chronos",
   "stm": {

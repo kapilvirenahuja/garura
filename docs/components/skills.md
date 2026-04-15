@@ -65,7 +65,7 @@ Meta-utility skills:
 |-------|----------------|-------|-------------|
 | `draft-product-spec` | false | sonnet | Create `features.yaml` defining product behaviors, invariants, scope boundaries, and acceptance criteria (implementation-agnostic) |
 | `draft-verification-scenarios` | false | sonnet | Create verification scenarios with pass/fail criteria and automation classification |
-| `validate-implementation-design` | false | sonnet | Cross-validate prepare-implementation artifacts for coverage, compartmentalization, and audience separation |
+| `validate-implementation-design` | false | sonnet | Cross-validate prepare-epic artifacts for coverage, compartmentalization, and audience separation |
 | `draft-technical-approach` | false | sonnet | Draft technical approach document from features specification |
 | `draft-lld` | false | sonnet | Draft low-level design from features and technical approach |
 | `draft-implementation-plan` | false | sonnet | Produce execution plan with scope items, file paths, and exit gates |
@@ -92,7 +92,7 @@ Plays are user-invocable workflows that orchestrate agents and skills. They depl
 | `ship` | true | sonnet | Deliver current branch work to main — commit, PR, review, merge, return |
 | `capture-learning` | true | sonnet | Capture learnings from completed work and archive STM directories |
 | `fix-it` | true | sonnet | RCA-driven defect resolution — traces root cause, designs fix, ships |
-| `prepare-implementation` | true | sonnet | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
+| `prepare-epic` | true | sonnet | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
 | `implement-epic` | true | sonnet | Implement a feature through an eval-driven TDD loop |
 | `create-play` | true | sonnet | Compile a new play from an intent.yaml |
 | `briefs` | true | sonnet | Regenerate HTML briefs from product YAML artifacts |

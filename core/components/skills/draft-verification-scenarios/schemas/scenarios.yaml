@@ -1,6 +1,6 @@
 # scenarios.yaml — Schema Definition
 # Consolidates: scenarios.md + feature-back-link portion of scenario-mapping.md
-# Produced by: /prepare-implementation (Stage 3)
+# Produced by: /prepare-epic (Stage 3)
 # Lifecycle: DRAFT → VALIDATED → LOCKED
 # Depends on: features.yaml (back-links TO features; features do NOT link here)
 # IMPORTANT: Scenarios link back to features. Features never link to scenarios.

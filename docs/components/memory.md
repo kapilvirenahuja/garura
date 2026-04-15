@@ -43,7 +43,7 @@ Per ADR 017 (2026-04-14), `.meridian/` is a strict folder whitelist:
             ├── specs/               # plans
             ├── evidence/            # test and eval evidence
             ├── checkpoint/          # play approval gates
-            ├── context/             # prepare-implementation / build-arch context
+            ├── context/             # prepare-epic / build-arch context
             └── review/              # review artifacts
 ```
 
