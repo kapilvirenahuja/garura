@@ -5,7 +5,7 @@
 
 ## Purpose
 
-`core/components/memory/knowledge/domain-taxonomy/*.md` files are Meridian's feature catalog — `user-management.md`, `commerce.md`, `payments.md`, `personalization.md`, `search.md`. Each file enumerates features with IDs like `UM-F001`, `CM-F001`, `PY-F001`, `PS-F001`, `SR-F001`. These feature IDs function as **capability identifiers** for the product-planning pipeline.
+`core/components/memory/knowledge/domain/*.md` files are Meridian's feature catalog — `user-management.md`, `commerce.md`, `payments.md`, `personalization.md`, `search.md`. Each file enumerates features with IDs like `UM-F001`, `CM-F001`, `PY-F001`, `PS-F001`, `SR-F001`. These feature IDs function as **capability identifiers** for the product-planning pipeline.
 
 Each feature in the catalog carries a rich prose description — `When It Matters`, `Depth Spectrum`, `Signals`, `Tradeoffs`. This prose is human-readable and captures nuance, but it lacks the structure a programmatic pipeline needs to:
 

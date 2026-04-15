@@ -42,7 +42,7 @@ Every feature in a module file carries NINE required sections — four prose sec
 
 ### Structured sections (read by the product-planning pipeline)
 
-Added in 214.4 per ADR 017. The contract is defined in `core/components/memory/standards/kb-extension-conventions.md` and enforced by the `validate-kb-extension` skill.
+Added in 214.4 per ADR 017. The contract is defined in `core/components/memory/standards/rules/kb-extension.md` and enforced by the `validate-kb-extension` skill.
 
 **Inclusion** — Whether this feature is mandatory / optional / conditional, with `Mandatory when`, `Conditional when`, and `Exclude when` rules referencing `project_profile.*` fields. Drives automatic capability selection in `specify-product` stage 3.
 

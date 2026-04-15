@@ -25,6 +25,22 @@ capability: <string>                   # Specific feature ID from the domain fil
                                        # Must match a real feature ID in the referenced domain.
 
 # ──────────────────────────────────────────────────────────────────────────
+# Provenance (Rule 8 — features.md)
+# ──────────────────────────────────────────────────────────────────────────
+
+provenance:                            # REQUIRED per rules/features.md Rule 8
+  source: <enum>                       # brief_explicit | brief_inferred |
+                                       # rule_derived | research_supplemental |
+                                       # profile_default | assumption
+  source_quote: <string>               # Verbatim brief text, OR 'CTC-NNN' for rule_derived,
+                                       # OR 'profile.<field>' for profile_default,
+                                       # OR 'needs_user_grounding' for assumption
+  confidence: <enum>                   # high | medium | low
+                                       # NOTE: assumption-sourced capabilities with confidence=low
+                                       # are NEVER valid in the scope body; they live in
+                                       # assumptions_requiring_validation until user grounds them.
+
+# ──────────────────────────────────────────────────────────────────────────
 # WHAT — problem + intent
 # ──────────────────────────────────────────────────────────────────────────
 
@@ -60,6 +76,20 @@ anti_goals:                            # REQUIRED. Explicit exclusions — "no-g
                                        # Example: "No social login in v1"
                                        # Shape Up's Anti-Goals prevent scope creep.
 
+must_not_break:                        # REQUIRED per rules/epics.md Rule 4.
+  - <string>                           # Existing capabilities this epic cannot regress.
+                                       # May contain a single entry reading
+                                       # "None — foundational epic" for foundation work.
+                                       # Example: "Existing login flow must continue
+                                       # working for users without MFA enrolled"
+
+cross_cutting_justification: <string>  # OPTIONAL. Required ONLY when this epic crosses
+                                       # domain boundaries (see rules/epics.md Rule 2
+                                       # exception). Names the product.scope item the
+                                       # epic owns, why single-module-scope doesn't
+                                       # apply, and how ownership is delineated across
+                                       # the modules it touches.
+
 # ──────────────────────────────────────────────────────────────────────────
 # OUTCOMES — scenarios
 # ──────────────────────────────────────────────────────────────────────────
@@ -77,19 +107,38 @@ failure_scenarios:                     # REQUIRED. Minimum 2 entries.
 # CONSTRAINTS — quantified
 # ──────────────────────────────────────────────────────────────────────────
 
-constraints:                           # REQUIRED. All sub-fields must be quantified.
-                                       # The validator rejects vague values like
-                                       # "fast" or "secure" — every field needs a
-                                       # number+unit or a named standard.
-  performance: <string>                # MUST contain a number + unit
+constraints:                           # REQUIRED. All sub-fields must be quantified AND sourced.
+                                       # Per rules/features.md Rule 9, every numeric value must
+                                       # cite its source_for_quantification. Values tagged
+                                       # kb_default or assumption are surfaced at the capability-
+                                       # configuration checkpoint for user confirmation BEFORE
+                                       # landing in an intent epic.
+  performance:
+    value: <string>                    # MUST contain a number + unit
                                        # Example: "p95 login < 500ms at 10K concurrent"
-  security: <string>                   # MUST reference a named standard or control
-                                       # Example: "OWASP Top 10 compliance, bcrypt hashing"
-  accessibility: <string>              # MUST specify a WCAG level
-                                       # Example: "WCAG 2.1 AA minimum"
+    source_for_quantification:
+      source: <enum>                   # brief | profile_nfr | kb_default | assumption
+      source_reference: <string>       # Verbatim brief quote, OR 'profile.nfr_scale=2',
+                                       # OR 'kb.user-management.UM-F001.success_criteria[0]',
+                                       # OR 'needs_user_grounding' for assumption
+  security:
+    value: <string>                    # MUST reference a named standard or control
+                                       # Example: "OWASP ASVS Level 2, argon2id hashing"
+    source_for_quantification:
+      source: <enum>                   # brief | profile_nfr | kb_default | assumption
+      source_reference: <string>       # Reference per the performance rules
+  accessibility:
+    value: <string>                    # MUST specify a WCAG level
+                                       # Example: "WCAG 2.1 AA"
+    source_for_quantification:
+      source: <enum>                   # brief | profile_nfr | kb_default | assumption
+      source_reference: <string>
   compliance:                          # MAY be empty list if no compliance mandates
-    - <string>                         # Each entry names a specific regulation
+    - value: <string>                  # Each entry names a specific regulation
                                        # Example: "HIPAA audit trail for all auth events"
+      source_for_quantification:
+        source: <enum>
+        source_reference: <string>
 
 # ──────────────────────────────────────────────────────────────────────────
 # BUSINESS RULES — from KB, profile-adjusted
@@ -122,6 +171,29 @@ dependencies:                          # REQUIRED. May be empty list.
                                        # dependencies that create risk.
                                        # Example: "Email service for password reset"
 
+depends_on:                            # REQUIRED per rules/epics.md Rule 6.
+  - <string>                           # May be empty list. Each entry is another
+                                       # EPIC id from the same product scope. The
+                                       # validator runs a cycle check across all
+                                       # epics — circular depends_on is a blocking
+                                       # violation.
+                                       # Example: ["EPIC-user-login-001"]
+
+foundation_investment: <boolean>       # REQUIRED per rules/epics.md Rule 7. Default
+                                       # false. Set true when this epic is shared
+                                       # infrastructure enabling 2+ other epics.
+                                       # The validator flags any epic with ≥2
+                                       # incoming depends_on references that does
+                                       # NOT carry foundation_investment: true.
+
+uses_mocks: <boolean>                  # OPTIONAL. Default false. Set true when this
+                                       # epic relies on mocks for phased delivery
+                                       # (see rules/epics.md Rule 3).
+
+demock_epic_ref: <string>              # OPTIONAL. Required when uses_mocks == true.
+                                       # The EPIC id of the follow-up epic that
+                                       # replaces the mocks with real integrations.
+
 # ──────────────────────────────────────────────────────────────────────────
 # KB TRACEABILITY — every epic traces to source
 # ──────────────────────────────────────────────────────────────────────────
@@ -136,42 +208,113 @@ kb_source:                             # REQUIRED.
     - <string>                         # feature's `Experiential` section.
 
 # ──────────────────────────────────────────────────────────────────────────
-# Validation rules (enforced by validate-intent-epics skill, 214.5 T28)
+# Validation rules (enforced by validate-intent-epics skill)
 # ──────────────────────────────────────────────────────────────────────────
 #
-# validate-intent-epics enforces:
+# validate-intent-epics loads `core/components/memory/standards/rules/epics.md`,
+# `rules/features.md`, and `rules/scenarios.md` as its authoritative rule source
+# and enforces:
 #
-#   1. MANDATORY FIELDS present and non-empty:
+#   1. MANDATORY FIELDS (rules/features.md Rule 1):
 #      id, domain, capability, problem_statement, intent, appetite,
-#      in_scope (≥1), anti_goals (≥1), success_scenarios (≥2),
-#      failure_scenarios (≥2), constraints (all 4 sub-fields),
-#      business_rules (≥1), hypothesis, assumptions_requiring_validation (≥1),
-#      dependencies (may be empty list, but the key must be present),
+#      in_scope (≥1), anti_goals (≥1), must_not_break (≥1),
+#      success_scenarios (≥2), failure_scenarios (≥2),
+#      constraints (all 4 sub-fields), business_rules (≥1), hypothesis,
+#      assumptions_requiring_validation (≥1), dependencies (key present),
+#      depends_on (key present), foundation_investment (boolean present),
 #      kb_source.capability, kb_source.rules_applied (may be empty list).
 #
-#   2. QUANTIFICATION regex on constraints:
+#   2. QUANTIFICATION regex on constraints (rules/features.md Rule 2):
 #      performance   matches /\d+\s*(ms|s|rps|%|qps|MB|GB|ops)/i
 #      security      matches a named standard: OWASP, NIST, PCI-DSS, SOC2,
 #                    ISO 27001, bcrypt, argon2, SAML, OAuth2, etc.
 #      accessibility matches /WCAG\s*\d+(\.\d+)?\s*(A|AA|AAA)/i
-#      compliance    each entry matches a regulation: GDPR, HIPAA, PCI-DSS,
-#                    SOC2, CCPA, etc. (Empty list allowed if no regulations apply.)
+#      compliance    each entry matches a regulation, or list may be empty.
 #
-#   3. COUNT thresholds:
+#   3. COUNT thresholds (rules/features.md Rule 4, rules/scenarios.md Rule 5):
 #      success_scenarios       length >= 2
 #      failure_scenarios       length >= 2
-#      in_scope               length >= 1
-#      anti_goals             length >= 1
-#      business_rules         length >= 1
+#      in_scope, anti_goals, must_not_break, business_rules   length >= 1
 #
-#   4. TRACEABILITY:
-#      kb_source.capability must equal the `capability` field
-#      kb_source.capability must exist as a feature ID in the referenced domain
-#      file under core/components/memory/knowledge/domain-taxonomy/{domain}.md
+#   4. TRACEABILITY (rules/features.md Rule 5):
+#      kb_source.capability must equal the `capability` field.
+#      kb_source.capability must exist as a feature ID in the referenced
+#      domain file — either LTM (core/components/memory/knowledge/domain-
+#      taxonomy/{domain}.md) OR STM research ({product_base}/kb-
+#      research/{domain}.md) when kb_source.provisional == true.
 #
-#   5. HYPOTHESIS format:
-#      hypothesis must contain all three phrases: "We believe that", "result in",
-#      "We will know this is true when"
+#   5. HYPOTHESIS format (rules/features.md Rule 3):
+#      hypothesis must contain all three phrases: "We believe that",
+#      "result in", "We will know this is true when".
+#
+#   6. VERTICAL SLICE (rules/epics.md Rule 1):
+#      Two checks:
+#      (a) Actor test — `intent` field's grammatical subject must be a named
+#          persona (from personas.md) or a canonical role (user, admin,
+#          developer, operator). Disallow-list of subsystem/component names
+#          as actor: analyst, improver, judge, scorer, pipeline, parser,
+#          validator, agent (when used adjectivally), skill, plugin, adapter,
+#          catalog, store, vault, ledger, registry, service, handler, worker.
+#          Violation category: `subsystem_actor`.
+#      (b) Outcome test — `success_scenarios[0].then` must describe an
+#          observable change in user state. Disallow-list of system-behavior
+#          terminal verbs: produce, return, emit, write, persist, compute,
+#          normalize, parse, validate (unless paired with a user observation).
+#          Violation category: `non_observable_outcome`.
+#      Also still catches the legacy regex for "set up the database / api /
+#      pipeline" — violation category `horizontal_layer_intent`.
+#
+#   7. SINGLE MODULE SCOPE (rules/epics.md Rule 2):
+#      `domain` must hold exactly one value. If `cross_cutting_justification`
+#      is non-empty, the epic may reference features from multiple domains
+#      in `in_scope`; otherwise all in_scope entries must belong to the
+#      single `domain`. Violation category: `multi_module_scope`.
+#
+#   8. MOCK DE-MOCKING (rules/epics.md Rule 3):
+#      If `uses_mocks == true`, `demock_epic_ref` must be non-empty and
+#      must resolve to another EPIC id in the same epics directory.
+#      Violation category: `unreplaced_mock`.
+#
+#   9. SUCCESS VERIFIABILITY (rules/epics.md Rule 5, rules/scenarios.md Rule 2):
+#      Every success_scenarios[].then string is greped for the blacklist
+#      {should, smooth, intuitive, seamless, better, user-friendly}.
+#      Any match is a violation. Category: `should_language`.
+#
+#  10. DEPENDENCY DISCIPLINE (rules/epics.md Rule 6):
+#      Load every epic in the epics directory. Build the depends_on graph.
+#      Run a topological sort. Any cycle is violation category
+#      `dependency_cycle`.
+#
+#  11. FOUNDATION INVESTMENT (rules/epics.md Rule 7):
+#      Count the incoming depends_on references per epic. Any epic with
+#      ≥2 incoming references that does NOT carry `foundation_investment:
+#      true` is violation category `missing_foundation_flag`.
+#
+#  12. PLACEHOLDER DETECTION (rules/features.md Rule 1):
+#      Scan every string value for TBD, to be determined, unclear, ???,
+#      "to do", lone trailing "?". Violation category: `placeholder_value`.
+#
+#  13. PROVENANCE TRACKING (rules/features.md Rule 8):
+#      Every epic must carry a top-level `provenance` block with source,
+#      source_quote, and confidence. Violation category: `missing_provenance`.
+#      Epics with `provenance.source == "assumption"` are rejected from the
+#      scope body — they must live in `assumptions_requiring_validation`
+#      until user grounding occurs. Violation category: `unconfirmed_inference`.
+#
+#  14. CONSTRAINT JUSTIFICATION (rules/features.md Rule 9):
+#      Every constraint entry (performance, security, accessibility, each
+#      compliance list entry) must carry a `source_for_quantification`
+#      block. Violation category: `unsourced_constraint`.
+#      Cross-check numeric values against the project profile — e.g., a
+#      concurrent-sessions target > 1000 on a profile with nfr_scale < 3
+#      flags `profile_mismatch`.
+#
+#  15. AGGRESSIVE QUESTIONING (rules/product.md Rule 11):
+#      Values with source_for_quantification.source in {kb_default, assumption}
+#      are surfaced at the capability-configuration checkpoint. If they still
+#      appear in an intent epic's constraints after the checkpoint without
+#      user grounding (source having been updated to brief / profile_nfr),
+#      they are a violation category `unconfirmed_inference`.
 #
 # On any violation, validate-intent-epics returns a structured failure with
 # per-field error messages. The calling play (specify-product) halts and
@@ -179,5 +322,5 @@ kb_source:                             # REQUIRED.
 
 # Related:
 # - docs/adr/017-folder-whitelist.md (ADR that motivates the new schemas)
-# - core/components/memory/standards/kb-extension-conventions.md (KB file structure)
+# - core/components/memory/standards/rules/kb-extension.md (KB file structure)
 # - core/components/plays/specify-product/ (consumer — built in 214.5)

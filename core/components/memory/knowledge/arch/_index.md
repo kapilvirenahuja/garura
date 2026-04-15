@@ -16,6 +16,7 @@ Agents and skills query this directory when they need to know: **"How should we 
 | `event-driven.md` | Async messaging, pub/sub, event sourcing, reactive systems | event-driven, pub/sub, messaging, async, reactive, decoupled |
 | `cqrs-event-sourcing.md` | Command/query separation, event logs as source of truth | CQRS, event sourcing, command query, audit, temporal |
 | `evolutionary-scaling.md` | Phase-based evolution from monolith to services (existing) | startup, evolutionary, scaling, phases, strangler fig |
+| `frontend-component-orchestration.md` | Primitive/Block/Card hierarchy, event-driven Cards, RSC client-boundary discipline, Extend-Before-Create | frontend, component hierarchy, atomic design, primitives, blocks, cards, orchestration, RSC, client boundary, monorepo, extend before create |
 
 ### agentic/ — AI and Agentic Architectures
 

@@ -10,7 +10,7 @@
 # verifies that every feature ID named here resolves to an existing feature
 # in the markdown catalog.
 #
-# Schema: see core/components/memory/standards/kb-extension-conventions.md
+# Schema: see core/components/memory/standards/rules/kb-extension.md
 # Related: ADR 017 (folder whitelist + 5-stage SDLC framing)
 
 constraints:
