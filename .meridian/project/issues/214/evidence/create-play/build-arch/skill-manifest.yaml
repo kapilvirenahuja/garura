@@ -1,0 +1,83 @@
+play: build-arch
+mode: rebake
+defect: D22
+rebake_reason: |
+  Pure path-fix rebake. The post-D1 folder layout (ADR 017) split
+  .meridian/product/ into stage sub-folders, and ux/ + arch/ were
+  renamed to experience/ + architecture/. intent.yaml C1, C2, C10
+  carried the new paths; build-arch skills carried the new paths;
+  SKILL.md still carried the pre-D1 paths.
+skills:
+  - name: derive-architecture-spec
+    path: core/components/skills/derive-architecture-spec/SKILL.md
+    status: existing
+    paths_updated: true
+    update_summary: |
+      Input section: scope_path -> .meridian/product/scope/scope.yaml
+      Input section: enriched_capabilities_path -> .meridian/product/scope/
+      Input section: epics_dir -> .meridian/product/scope/epics/
+      Input section: quality_profile_path -> .meridian/product/specification/quality-profile.yaml
+      Input section: design_spec_path -> .meridian/product/experience/design-spec.md
+      Input section: screens_dir -> .meridian/product/experience/screens/
+      Input section: output_path -> .meridian/product/architecture/architecture.yaml
+      Header: produces architecture.yaml at .meridian/product/architecture/architecture.yaml
+  - name: derive-quality-standards
+    path: core/components/skills/derive-quality-standards/SKILL.md
+    status: existing
+    paths_updated: true
+    update_summary: |
+      Input section: quality_profile_path -> .meridian/product/specification/quality-profile.yaml
+      Input section: architecture_path -> .meridian/product/architecture/architecture.yaml
+      Input section: output_path -> .meridian/product/architecture/quality-standards.yaml
+      Header: produces quality-standards.yaml at .meridian/product/architecture/quality-standards.yaml
+  - name: validate-architecture-spec
+    path: core/components/skills/validate-architecture-spec/SKILL.md
+    status: existing
+    paths_updated: true
+    update_summary: |
+      Input section: architecture_path -> .meridian/product/architecture/architecture.yaml
+      Input section: quality_standards_path -> .meridian/product/architecture/quality-standards.yaml
+      Input section: scope_path -> .meridian/product/scope/scope.yaml
+  - name: validate-kb-extension
+    path: core/components/skills/validate-kb-extension/SKILL.md
+    status: existing
+    paths_updated: false
+    update_summary: |
+      KB catalog gate. Untouched by D22 — reads kb_root from contract,
+      not from product folder layout.
+  - name: write-evidence
+    path: core/components/skills/write-evidence/SKILL.md
+    status: existing
+    paths_updated: false
+    update_summary: |
+      Atomic file writer used by scriber. Untouched by D22 — accepts
+      any path the scriber whitelist permits.
+agents:
+  - name: tech-architect
+    path: core/components/agents/tech-architect.md
+    status: existing
+    audit: 11/11 PASS (reused from 2026-04-14)
+    paths_updated: false
+  - name: tech-designer
+    path: core/components/agents/tech-designer.md
+    status: existing
+    audit: existing utility (no re-audit required)
+    paths_updated: false
+  - name: scriber
+    path: core/components/agents/scriber.md
+    status: existing
+    audit: utility — exempt from domain-budget
+    paths_updated: true
+    update_summary: |
+      Whitelist patterns table updated: experience/ added (post-D1 rename
+      from ux/), architecture/ added (post-D1 rename from arch/).
+  - name: repo-orchestrator
+    path: core/components/agents/repo-orchestrator.md
+    status: existing
+    audit: utility — exempt from domain-budget
+    paths_updated: false
+gate_status: PASS
+gate_notes: |
+  All skills exist. All agents exist. Path migrations on disk are
+  consistent with intent.yaml C1 (specify-product), C2 (design-exp),
+  and C10 (build-arch artifact home).

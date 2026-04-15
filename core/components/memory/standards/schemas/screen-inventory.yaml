@@ -14,6 +14,24 @@
 # (id, capabilities (list), name, optional capability_classification). Body
 # holds the structured sections.
 #
+# Visual-first section order (2026-04-15 structural change):
+# `## Wireframe` (Unicode/ASCII per state) is the FIRST body section after
+# the H1, BEFORE any prose annotation. Rationale: a human opening a screen
+# file should SEE the layout at a glance before reading any prose. The
+# detailed layout spec (component inventory, layout pattern, per-state spec,
+# interaction patterns, data binding) is appended as `## Layout Spec` at the
+# BOTTOM of the file. The middle (Purpose, Personas, States, Navigation,
+# Accessibility) holds the annotation that contextualizes both surfaces.
+#
+# Section order (required):
+#   1. ## Wireframe        — visual, emitted/filled by generate-wireframes (Stage 4)
+#   2. ## Purpose
+#   3. ## Personas
+#   4. ## States
+#   5. ## Navigation
+#   6. ## Accessibility
+#   7. ## Layout Spec      — machine-spec, appended by generate-wireframes (Stage 4)
+#
 # Example file layout:
 #
 #   ---
@@ -25,6 +43,50 @@
 #   ---
 #
 #   # Login
+#
+#   ## Wireframe
+#
+#   ### State: default
+#
+#   ```text
+#   ┌──────────────────────────────────────────────┐
+#   │                                              │
+#   │                   LOGIN                      │
+#   │                                              │
+#   │        ┌──────────────────────────┐          │
+#   │        │ Email                    │          │
+#   │        │ ┌──────────────────────┐ │          │
+#   │        │ │ you@example.com      │ │          │
+#   │        │ └──────────────────────┘ │          │
+#   │        │                          │          │
+#   │        │ Password                 │          │
+#   │        │ ┌──────────────────────┐ │          │
+#   │        │ │ ••••••••             │ │          │
+#   │        │ └──────────────────────┘ │          │
+#   │        │                          │          │
+#   │        │ ┌──────────────────────┐ │          │
+#   │        │ │    Sign in       →   │ │          │
+#   │        │ └──────────────────────┘ │          │
+#   │        │                          │          │
+#   │        │ Forgot your password?    │          │
+#   │        │ Create an account        │          │
+#   │        └──────────────────────────┘          │
+#   │                                              │
+#   └──────────────────────────────────────────────┘
+#   ```
+#   Layout: centered-card    Viewport: desktop ≥1024
+#
+#   ### State: loading
+#   ```text
+#   ...
+#   ```
+#   State: loading   Components: progress-spinner, disabled-submit
+#
+#   ### State: error
+#   ```text
+#   ...
+#   ```
+#   State: error-bad-credentials   Recovery: retry or forgot-password
 #
 #   ## Purpose
 #   <string — required>
@@ -71,9 +133,10 @@
 #   - Keyboard navigation through all form fields
 #   - Screen reader announcements for validation errors
 #
-#   ## Wireframe
-#   <appended by generate-wireframes skill — structured layout description
-#    with explicit components, data placement, and interaction patterns>
+#   ## Layout Spec
+#   <detailed machine-parseable spec appended by generate-wireframes —
+#    layout pattern, component inventory, per-state layout details,
+#    interaction patterns, data binding, accessibility wireframe notes>
 #
 # The schema below defines the DATA shape. The file is MD; the validators
 # parse these sections. YAML-like lists and key-value pairs inside sections

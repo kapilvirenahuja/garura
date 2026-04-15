@@ -65,7 +65,17 @@ Pick the states that make sense for the capability. A login screen has default +
 
 ### 4. Write one MD file per screen
 
-Each file has YAML frontmatter with identity (id, capabilities, name) and Markdown body with structured sections. The `capabilities` field is a **list**, not a scalar — most screens list a single capability, but screens that legitimately exercise multiple capabilities (e.g., an `account-setup` screen covering UM-F001 + UM-F002 + UM-F003) MUST list all of them.
+Each file has YAML frontmatter with identity (id, capabilities, name) and a Markdown body with structured sections in a **specific order**:
+
+1. `## Wireframe` — **visual first.** A placeholder section that `generate-wireframes` (Stage 4) fills with Unicode/ASCII box-drawing per state. `generate-screen-inventory` writes the placeholder comment; it does NOT author ASCII. The principle: when a human opens a screen file, they should SEE the layout at a glance before reading prose.
+2. `## Purpose` — one or two paragraphs on what the screen is for.
+3. `## Personas` — list of personas that interact with this screen (from `personas.md`).
+4. `## States` — structured list of states (default, loading, error, etc.) with per-state description, layout, data, actions, components.
+5. `## Navigation` — entry and exit points.
+6. `## Accessibility` — WCAG level + keyboard + screen-reader notes.
+7. `## Layout Spec` — appended by `generate-wireframes` (Stage 4) below the Accessibility section. Contains the detailed layout pattern, component inventory, per-state layout spec, interaction patterns, data binding, and accessibility details. This is the machine-parseable spec that downstream skills (e.g., `build-arch`) consume.
+
+The `capabilities` field in frontmatter is a **list**, not a scalar — most screens list a single capability, but screens that legitimately exercise multiple capabilities (e.g., an `account-setup` screen covering UM-F001 + UM-F002 + UM-F003) MUST list all of them.
 
 An optional per-screen frontmatter field `capability_classification` classifies the screen as `user_surface`, `substrate`, or `admin_only`. The default is `user_surface`. The capability-coverage rule (enforced by `validate-screen-coverage`) fires only against `user_surface` capabilities; `substrate` and `admin_only` screens are exempt from being required to cover user-facing scope.
 
@@ -81,6 +91,16 @@ capability_classification: user_surface
 ---
 
 # Login
+
+## Wireframe
+
+<!-- Placeholder — filled by generate-wireframes (Stage 4).
+     Expected output: one Unicode/ASCII box-drawing block per
+     state declared in ## States below, wrapped in a ```text
+     fenced code block, so the reader sees the layout before
+     reading any prose. generate-wireframes reads this file,
+     replaces this placeholder in-place, and appends a
+     ## Layout Spec section at the end of the file. -->
 
 ## Purpose
 

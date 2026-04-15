@@ -39,16 +39,16 @@ These are the ONLY paths you may write to. Any `target_path` outside this list i
 | Pattern | Purpose |
 |---------|---------|
 | `.meridian/core/...` (except `.meridian/core/memory/` which is gitignored) | Core configuration and state |
-| `.meridian/product/product/...` | Product planning artifacts (specify-product outputs) |
-| `.meridian/product/ux/...` | UX / design artifacts (design-exp outputs) |
-| `.meridian/product/arch/...` | Architecture artifacts (build-arch outputs) |
+| `.meridian/product/...` | Product planning artifacts (specify-product outputs) |
+| `.meridian/product/experience/...` | UX / design artifacts (design-exp outputs, post-D1 folder rename from `ux/`) |
+| `.meridian/product/architecture/...` | Architecture artifacts (build-arch outputs, post-D1 folder rename from `arch/`) |
 | `.meridian/project/issues/{N}/specs/...` | Issue-scoped plans |
 | `.meridian/project/issues/{N}/evidence/...` | Issue-scoped test/eval evidence |
 | `.meridian/project/issues/{N}/checkpoint/...` | Issue-scoped play approval gates |
 | `.meridian/project/issues/{N}/context/...` | Issue-scoped prepare-implementation context |
 | `.meridian/project/issues/{N}/review/...` | Issue-scoped review artifacts |
 
-Underscore-prefixed subdirectories INSIDE the whitelist buckets are allowed (e.g., `.meridian/product/product/_checkpoints/specify-product/20260414.md` is inside `product/product/` and therefore legal).
+Underscore-prefixed subdirectories INSIDE the product root are allowed (e.g., `.meridian/product/_checkpoints/specify-product/20260414.md` lives at the product root alongside the stage folders and is therefore legal).
 
 Any other path — including `.meridian/product/evidence/`, `.meridian/product/checkpoints/`, or any file outside `.meridian/` entirely — is rejected with `status: failed` and `failure_reason: "target_path outside whitelist"`.
 
@@ -85,7 +85,7 @@ This agent communicates with plays via JSON contracts.
 | `scribe_task.operation` | Yes | One of `write_evidence`, `write_checkpoint`, `write_status`, `append_evidence` |
 | `scribe_task.target_path` | Yes | Whitelist-compliant path. Scriber rejects anything else. |
 | `scribe_task.content` | Yes | Body as a string (markdown or YAML). |
-| `scribe_task.template` | No | If provided, scriber reads the template from `core/components/memory/formats/` and substitutes `{{placeholder}}` markers using `content` + `metadata` fields |
+| `scribe_task.template` | No | If provided, scriber reads the template from `core/components/memory/standards/templates/` and substitutes `{{placeholder}}` markers using `content` + `metadata` fields |
 | `scribe_task.metadata` | Yes | Stamped into the file header for audit. Must include `play_name` and `issue_number`. |
 | `task_id` | Yes | Echoed back in the response |
 
@@ -123,7 +123,7 @@ On failure:
 
 1. **Parse contract** — Extract `scribe_task.operation`, `target_path`, `content`, `template`, `metadata`, `task_id`.
 2. **Validate path against whitelist** — Check `target_path` matches one of the 9 whitelist patterns above. If not, return structured failure with `failure_reason: whitelist_violation`.
-3. **Prepare content** — If `template` is set, read the template from `core/components/memory/formats/{template-name}.md`, substitute `{{placeholder}}` markers from `content` and `metadata`. If `template` is null, use `content` as-is.
+3. **Prepare content** — If `template` is set, read the template from `core/components/memory/standards/templates/{template-name}.md`, substitute `{{placeholder}}` markers from `content` and `metadata`. If `template` is null, use `content` as-is.
 4. **Invoke `write-evidence` skill** — Pass the validated path and prepared content. The skill enforces atomic writes and handles parent-directory creation.
 5. **Return contract** — On success, return `status: completed` with `scribe_result` populated. On failure, return `status: failed` with `error` populated.
 

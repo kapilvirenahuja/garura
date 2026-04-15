@@ -160,6 +160,27 @@ constraints:
       missing or empty mvp-recommendation.md halts pre-flight with a
       clear message pointing the user at the expected artifact shape.
 
+  - id: C16
+    rule: >
+      Every screen file under {product_base}experience/screens/ is
+      visual-first. The required body section order (after the H1) is:
+      (1) `## Wireframe` containing one Unicode/ASCII box-drawing block
+      per state enumerated in the file's `## States` section;
+      (2) `## Purpose`; (3) `## Personas`; (4) `## States`;
+      (5) `## Navigation`; (6) `## Accessibility`; (7) `## Layout Spec`
+      with the detailed layout pattern, component inventory, per-state
+      spec, interaction patterns, data binding, and accessibility notes.
+      `## Wireframe` is the FIRST body section (a reader opens the file
+      and SEES the layout at a glance before reading any prose);
+      `## Layout Spec` is the LAST body section (machine-parseable
+      surface consumed by downstream skills). generate-screen-inventory
+      emits the skeleton with a `## Wireframe` placeholder comment;
+      generate-wireframes replaces the placeholder with Unicode/ASCII
+      per state AND appends `## Layout Spec` at the bottom.
+      Wireframes use only ASCII-safe Unicode box-drawing characters,
+      stay under 80 columns per line, and carry no visual-design
+      elements (no hex, no pixel/rem, no font-family names).
+
 failure_conditions:
   - id: F1
     condition: >
@@ -240,6 +261,17 @@ failure_conditions:
       map-user-flows authors a flow for a scenario that belongs to a
       deferred-use-case-only epic. Any of these is a violation of C15 /
       rules/product.md Rule 13 (MVP Focus).
+
+  - id: F15
+    condition: >
+      Any screen file under {product_base}experience/screens/ violates
+      the visual-first section order: `## Wireframe` is not the first
+      body section after the H1, OR `## Layout Spec` is missing or not
+      the last body section, OR any state declared in `## States` lacks
+      a corresponding Unicode/ASCII wireframe block in the
+      `## Wireframe` section, OR any wireframe block contains visual-
+      design elements (hex codes, pixel/rem values, font-family names).
+      Violation of C16.
 
 scenarios:
   - id: S1

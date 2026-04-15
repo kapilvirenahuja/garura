@@ -29,17 +29,61 @@ Resolve each input path by substituting `{product_base}` from the incoming JSON 
 
 Glob `{screens_dir}/*.md` and load each screen file. Parse frontmatter (id, capability, name) and body sections.
 
-### 2. For each screen, compose the Wireframe section
+### 2. For each screen, compose TWO blocks — visual wireframe (top) and layout spec (bottom)
 
 Read:
 - The existing `## States` section (you need to know every state and its components/actions/data).
-- The KB feature block for the screen's `capability` (grep the domain-taxonomy file and pull the `Tradeoffs` prose — it often hints at component priorities and layout).
-- The KB feature block's `Inclusion` and `Depth Spectrum` sections to know which depth level is active.
+- The domain-taxonomy file for the screen's capability from `product_research_path` (pull the `Tradeoffs` prose and the `Depth Spectrum` active tier for layout hints).
 
-Compose a `## Wireframe` section with these subsections:
+The screen file's skeleton — emitted by `generate-screen-inventory` in Stage 2 — has a `## Wireframe` placeholder directly under the H1, followed by the annotation sections (Purpose, Personas, States, Navigation, Accessibility). This skill produces **two outputs per screen**:
+
+1. **Visual wireframe content** — replaces the `## Wireframe` placeholder at the TOP of the file. This is the human-facing glance-value surface: a reader opens the file and SEES the layout before reading any prose. One Unicode/ASCII box-drawing block per state enumerated in the existing `## States` section.
+2. **Layout spec content** — appended as a NEW `## Layout Spec` section at the BOTTOM of the file (after `## Accessibility`). This is the machine-facing surface: detailed layout pattern, component inventory, per-state spec, interaction patterns, data binding, accessibility notes. Downstream skills (e.g., build-arch) consume this section.
+
+#### 2a. Compose the visual wireframe block (top-of-file)
+
+One fenced code block per state using `text` as the language hint. Each block is a Unicode/ASCII box-drawing representation of the screen's layout in that state. Every component from the state's `Components:` list must be visible in the diagram (positionally) or in a single-line caption below the box. After the box, a single-line caption states the layout pattern name and one distinguishing feature.
 
 ```markdown
 ## Wireframe
+
+### State: default
+
+<fenced code block with Unicode/ASCII box-drawing — one screen layout per state.
+Use box-drawing characters: `┌ ─ ┐ │ └ ┘ ├ ┤ ┬ ┴ ┼` and safe fills.
+Keep every line under 80 columns so the block renders in narrow terminals.>
+
+Layout: centered-card    Viewport: desktop ≥1024
+
+### State: loading
+
+<fenced code block>
+
+State: loading    Components: progress-spinner, disabled-submit
+
+### State: error
+
+<fenced code block>
+
+State: error-<reason>    Recovery: <retry path>
+
+<repeat for every state the screen enumerates>
+```
+
+**Box-drawing rules:**
+- Use only ASCII-safe Unicode box-drawing characters. No emoji inside the box (emoji outside the box in captions is allowed).
+- Every line of the same box has identical length (pad with spaces). The box must be a rectangle.
+- Form fields are drawn as nested rectangles inside the card. Buttons are drawn as filled rectangles with the label inside.
+- Disabled components are marked with a parenthetical `(disabled)` tag in the line below, not by altering the drawing.
+- Spinners are drawn as `⟳` or `◯` inside the button rectangle.
+- State badges (success check, error warning) use `✓`, `⚠`, `✗` as single-character markers.
+- Component count per screen per state should match the state's declared `Components:` list in the annotation body.
+- No hex codes, no pixel/rem/em values, no font family names — the box is low-fidelity structural only.
+
+#### 2b. Compose the layout spec block (bottom-of-file)
+
+```markdown
+## Layout Spec
 
 ### Layout pattern
 
@@ -53,34 +97,31 @@ Compose a `## Wireframe` section with these subsections:
 - (optional) Sidebar: <what sits here>
 - (optional) Below-the-fold: <what sits here>
 
-### Per-state wireframe
+### Component inventory
+
+| Component | Abstract name | Purpose |
+|---|---|---|
+| ... | `submit-button` | Commit the active form |
+
+### Per-state spec
 
 #### default
 
-<free-form but specific layout description for the default state>
-
-Visible components (in reading order):
-1. <component 1 — where it sits>
-2. <component 2 — where it sits>
-3. ...
-
-Interactive affordances:
-- <action 1 — mapped to a visible component>
-- <action 2>
-
-Transition rules:
-- On `<action>` → transition to `<next state>` with `<loading indicator type>`
-- On error → show `<error-state component>` at `<position>`
+- Layout: <concrete placement narrative>
+- Components visible (reading order): <ordered list>
+- Data fields rendered: <what state the view reads>
+- Actions available: <button/link names + targets>
+- Transitions: <on-action → next state with indicator>
 
 #### loading
 
-<layout description for the loading state — typically a skeleton or spinner overlay over the default layout>
+<layout spec for loading — typically a skeleton or spinner overlay over the default layout>
 
 #### error
 
-<layout description for the error state — where the error banner sits, whether the form is still visible or replaced>
+<layout spec for error — where the banner sits, whether the form is still visible or replaced>
 
-<repeat for every state the screen enumerates>
+<repeat for every state>
 
 ### Interaction patterns
 
@@ -90,6 +131,12 @@ Transition rules:
 - Empty-state treatment: <illustration + CTA / blank with button / list with placeholder rows>
 - Transition animations: <none / fade / slide — low-fidelity decisions only, no timing specs>
 
+### Data binding
+
+- Reads from: <which bounded contexts / artifacts the screen consumes>
+- Writes to: <which systems the screen mutates — usually none for reader screens>
+- Real-time sources: <any subscribed state>
+
 ### Accessibility wireframe notes
 
 - Focus order: <ordered list of components the tab key visits>
@@ -97,11 +144,17 @@ Transition rules:
 - High-contrast considerations: <any layout choices that compact or expand in high-contrast mode>
 ```
 
-### 3. Append to the existing screen MD file
+### 3. Rewrite the screen MD file with visual-first ordering
 
-Use the `Edit` tool to append the `## Wireframe` section after the existing `## Accessibility` section. Do NOT rewrite the file from scratch — only add the new section.
+This skill does NOT simply append. It rewrites the file section order using the following discipline:
 
-If a `## Wireframe` section already exists (idempotent run or retry), REPLACE it rather than duplicating.
+1. **Read** the full screen file produced by `generate-screen-inventory`.
+2. **Find the `## Wireframe` placeholder** — the HTML-commented block directly under the H1.
+3. **Replace the placeholder** with the visual wireframe block composed in Step 2a. The file's section order after this replacement is: frontmatter → H1 → `## Wireframe` (real ASCII) → `## Purpose` → `## Personas` → `## States` → `## Navigation` → `## Accessibility`.
+4. **Append** the `## Layout Spec` block composed in Step 2b after the `## Accessibility` section.
+5. **Preserve** all other content verbatim. Do not re-author the annotation sections.
+
+Idempotent run: if the `## Wireframe` section is already populated (contains non-placeholder content) AND `## Layout Spec` is present, regenerate both from the current `## States` content and rewrite, preserving the surrounding annotation sections.
 
 ### 4. Return output contract
 

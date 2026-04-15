@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Glob, Grep
 
 # derive-quality-standards
 
-Called by `tech-designer` during `build-arch` Stage 2. Produces `quality-standards.yaml` at `.meridian/product/arch/quality-standards.yaml`.
+Called by `tech-designer` during `build-arch` Stage 2. Produces `quality-standards.yaml` at `.meridian/product/architecture/quality-standards.yaml`.
 
 ## Purpose
 
@@ -17,11 +17,11 @@ The upstream quality profile carries ISO 25010 characteristics with measurable t
 ## Input
 
 Receive from the tech-designer agent:
-- `quality_profile_path` (path, required) — `.meridian/product/product/quality-profile.yaml`
-- `architecture_path` (path, required) — `.meridian/product/arch/architecture.yaml` (from Stage 1; tells us the stack)
+- `quality_profile_path` (path, required) — `.meridian/product/specification/quality-profile.yaml`
+- `architecture_path` (path, required) — `.meridian/product/architecture/architecture.yaml` (from Stage 1; tells us the stack)
 - `project_profile_path` (path, required) — for team size, delivery ambition, security level
 - `ltm_quality_path` (path, required) — `core/components/memory/knowledge/quality/` (11 dimensions of quality standards per QP level)
-- `output_path` (string, required) — `.meridian/product/arch/quality-standards.yaml`
+- `output_path` (string, required) — `.meridian/product/architecture/quality-standards.yaml`
 
 ## Process
 

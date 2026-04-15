@@ -17,9 +17,9 @@ Enforce the `build-arch` intent.yaml contract against the actual output. Checks 
 ## Input
 
 Receive from tech-architect:
-- `architecture_path` (path, required) — `.meridian/product/arch/architecture.yaml`
-- `quality_standards_path` (path, optional — required in Stage 2 validation, null in Stage 1) — `.meridian/product/arch/quality-standards.yaml`
-- `scope_path` (path, required) — `.meridian/product/product/scope.yaml`
+- `architecture_path` (path, required) — `.meridian/product/architecture/architecture.yaml`
+- `quality_standards_path` (path, optional — required in Stage 2 validation, null in Stage 1) — `.meridian/product/architecture/quality-standards.yaml`
+- `scope_path` (path, required) — `.meridian/product/scope/scope.yaml`
 - `epics_dir` (path, required)
 - `quality_profile_path` (path, required)
 - `ltm_architecture_path` (path, required) — for known technology name list

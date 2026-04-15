@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Glob, Grep, WebSearch, WebFetch
 
 # derive-architecture-spec
 
-Called by `tech-architect` during `build-arch` Stage 1. Produces `architecture.yaml` at `.meridian/product/arch/architecture.yaml`.
+Called by `tech-architect` during `build-arch` Stage 1. Produces `architecture.yaml` at `.meridian/product/architecture/architecture.yaml`.
 
 ## Purpose
 
@@ -17,14 +17,14 @@ Turn the locked product + UX output into a concrete architecture: which stack, w
 ## Input
 
 Receive from the tech-architect agent:
-- `scope_path` (path, required) — `.meridian/product/product/scope.yaml`
+- `scope_path` (path, required) — `.meridian/product/scope/scope.yaml`
 - `enriched_capabilities_path` (path, required)
-- `epics_dir` (path, required) — `.meridian/product/product/epics/`
-- `quality_profile_path` (path, required) — `.meridian/product/product/quality-profile.yaml`
-- `design_spec_path` (path, required) — `.meridian/product/ux/design-spec.md`
-- `screens_dir` (path, required) — `.meridian/product/ux/screens/` (for state-count complexity hints)
-- `ltm_architecture_path` (path, required) — `core/components/memory/knowledge/architecture/`
-- `output_path` (string, required) — `.meridian/product/arch/architecture.yaml`
+- `epics_dir` (path, required) — `.meridian/product/scope/epics/`
+- `quality_profile_path` (path, required) — `.meridian/product/specification/quality-profile.yaml`
+- `design_spec_path` (path, required) — `.meridian/product/experience/design-spec.md`
+- `screens_dir` (path, required) — `.meridian/product/experience/screens/` (for state-count complexity hints)
+- `ltm_architecture_path` (path, required) — `core/components/memory/knowledge/arch/`
+- `output_path` (string, required) — `.meridian/product/architecture/architecture.yaml`
 
 ## Process
 

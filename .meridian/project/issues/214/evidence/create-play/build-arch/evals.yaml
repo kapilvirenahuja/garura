@@ -1,0 +1,275 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: derive-architecture-spec
+    check: |
+      The play does not complete with zero architectural components in
+      architecture.yaml.
+    artifact_pattern: ".meridian/product/architecture/architecture.yaml"
+    pass_criteria: |
+      architecture.yaml exists and its components_count (from the
+      derive-architecture-spec output contract) is >= 1.
+    fail_criteria: |
+      architecture.yaml is missing, empty, or its components_count == 0.
+
+  - id: SE-2
+    source_type: both
+    failure_condition_id: F2
+    constraint_id: C3
+    skill: validate-architecture-spec
+    check: |
+      Every technology choice in architecture.yaml names a specific product
+      or library — never a category ("a relational database", "a message
+      queue", "a frontend framework").
+    artifact_pattern: ".meridian/product/architecture/validation-architecture.yaml"
+    pass_criteria: |
+      validation_path.summary.by_category.category_term == 0.
+    fail_criteria: |
+      validation_path.summary.by_category.category_term > 0 (one or more
+      stack choices use a category term rather than a specific product
+      name).
+
+  - id: SE-3
+    source_type: both
+    failure_condition_id: F3
+    constraint_id: C4
+    skill: validate-architecture-spec
+    check: |
+      Every architectural decision carries rationale that cites at least
+      one specific driver from the upstream artifacts: an epic constraint,
+      a quality-profile target, a screen-inventory complexity hint, a
+      flow-coverage requirement, or a compliance mandate.
+    artifact_pattern: ".meridian/product/architecture/validation-architecture.yaml"
+    pass_criteria: |
+      validation_path.summary.by_category.uncited_decision == 0.
+    fail_criteria: |
+      validation_path.summary.by_category.uncited_decision > 0 (one or
+      more decisions lack a cited driver).
+
+  - id: SE-4
+    source_type: both
+    failure_condition_id: F4
+    constraint_id: C5
+    skill: validate-architecture-spec
+    check: |
+      Every selected capability from specify-product.scope maps to at
+      least one architectural component in architecture.yaml. Orphan
+      capabilities are a validation failure.
+    artifact_pattern: ".meridian/product/architecture/validation-architecture.yaml"
+    pass_criteria: |
+      validation_path.summary.by_category.orphan_capability == 0.
+    fail_criteria: |
+      validation_path.summary.by_category.orphan_capability > 0 (one or
+      more capabilities have no component mapping).
+
+  - id: SE-5
+    source_type: both
+    failure_condition_id: F5
+    constraint_id: C6
+    skill: validate-architecture-spec
+    check: |
+      Every intent epic's performance constraint maps to a specific
+      architectural mechanism in architecture.yaml (caching strategy,
+      query pattern, infrastructure tier, etc.).
+    artifact_pattern: ".meridian/product/architecture/validation-architecture.yaml"
+    pass_criteria: |
+      validation_path.summary.by_category.missing_performance_mapping == 0.
+    fail_criteria: |
+      validation_path.summary.by_category.missing_performance_mapping > 0
+      (one or more performance targets are unmet).
+
+  - id: SE-6
+    source_type: both
+    failure_condition_id: F8
+    constraint_id: C9
+    skill: validate-architecture-spec
+    check: |
+      Architectural Decision Records (ADRs) are produced for every
+      non-obvious decision (at least two viable alternatives existed AND
+      the choice narrows a future path). Each ADR carries the decision,
+      alternatives considered, chosen option, and the upstream driver.
+    artifact_pattern: ".meridian/product/architecture/validation-architecture.yaml"
+    pass_criteria: |
+      validation_path.summary.by_category.incomplete_adr == 0.
+    fail_criteria: |
+      validation_path.summary.by_category.incomplete_adr > 0 (one or more
+      non-obvious decisions ship without an ADR or with an ADR missing
+      required fields).
+
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: derive-quality-standards
+    check: |
+      The play does not complete with zero standards in
+      quality-standards.yaml.
+    artifact_pattern: ".meridian/product/architecture/quality-standards.yaml"
+    pass_criteria: |
+      quality-standards.yaml exists and its qp_dimensions_covered (from
+      the derive-quality-standards output contract) is >= 1.
+    fail_criteria: |
+      quality-standards.yaml is missing, empty, or qp_dimensions_covered
+      == 0.
+
+  - id: SE-8
+    source_type: both
+    failure_condition_id: F6
+    constraint_id: C7
+    skill: validate-architecture-spec
+    check: |
+      Every ISO 25010 characteristic with relevance != 'not_applicable'
+      in quality-profile.yaml has at least one corresponding entry in
+      quality-standards.yaml.
+    artifact_pattern: ".meridian/product/architecture/validation-full.yaml"
+    pass_criteria: |
+      validation_path.summary.by_category.orphan_iso_characteristic == 0.
+    fail_criteria: |
+      validation_path.summary.by_category.orphan_iso_characteristic > 0
+      (one or more relevant ISO 25010 characteristics have no entry in
+      quality-standards.yaml).
+
+  - id: SE-9
+    source_type: both
+    failure_condition_id: F7
+    constraint_id: C8
+    skill: validate-architecture-spec
+    check: |
+      Every entry in quality-standards.yaml specifies concrete standards
+      and named tooling. Vague language without named tooling, thresholds,
+      or concrete practices is a violation.
+    artifact_pattern: ".meridian/product/architecture/validation-full.yaml"
+    pass_criteria: |
+      validation_path.summary.by_category.qp_vagueness == 0.
+    fail_criteria: |
+      validation_path.summary.by_category.qp_vagueness > 0 (one or more
+      quality-standards entries use vague language without named tooling
+      or measurable thresholds).
+
+  - id: SE-10
+    source_type: both
+    failure_condition_id: F9
+    constraint_id: C12
+    skill: validate-architecture-spec
+    check: |
+      Two human review checkpoint artifacts exist — one after architecture
+      derivation and one after quality-standards derivation (before final
+      lock).
+    artifact_pattern: ".meridian/product/_checkpoints/build-arch/*.md"
+    pass_criteria: |
+      Two checkpoint artifacts are present under
+      .meridian/product/_checkpoints/build-arch/ — one for
+      stage-1-architecture and one for stage-2-quality-standards — each
+      with a Status header.
+    fail_criteria: |
+      One or both checkpoint artifacts is missing from
+      .meridian/product/_checkpoints/build-arch/.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Technical Architect
+    artifact_pattern: ".meridian/product/architecture/architecture.yaml"
+    check: |
+      The locked architecture.yaml carries every decision traced to a
+      business driver — the architect can present the architectural
+      direction to stakeholders without "we picked X because we like it".
+    pass_criteria: |
+      Every decision in architecture.yaml (stack choices, components,
+      ADRs, integrations) has a non-empty rationale field naming at least
+      one specific driver from the upstream artifacts.
+    fail_criteria: |
+      One or more decisions has an empty rationale or no cited driver.
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Engineering Manager
+    artifact_pattern: ".meridian/product/architecture/quality-standards.yaml"
+    check: |
+      quality-standards.yaml carries per-characteristic standards, named
+      tooling, and concrete thresholds — the EM can set up CI/CD gates
+      and code-review standards without re-deriving the thresholds from
+      scratch.
+    pass_criteria: |
+      Every standard under qp_dimensions has a non-empty enforcement
+      field, a named tooling field, and a concrete threshold value an EM
+      can copy directly into CI configuration or branch protection rules.
+    fail_criteria: |
+      One or more standards lack enforcement, named tooling, or a
+      concrete threshold value.
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: Implementation Lead
+    artifact_pattern: ".meridian/product/architecture/architecture.yaml"
+    check: |
+      architecture.yaml components are mapped to the epic's capability
+      and the epic's constraints section — the implementation lead can
+      scope the implementation plan knowing which components are touched,
+      what the performance budget is, and which standards apply.
+    pass_criteria: |
+      Every component in architecture.yaml.components has a capability
+      field referencing a capability ID from scope, a performance_budget
+      field with source citation, and a depends_on field listing
+      upstream components.
+    fail_criteria: |
+      One or more components is missing the capability mapping,
+      performance_budget, or depends_on field.
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Security Architect
+    artifact_pattern: ".meridian/product/architecture/architecture.yaml"
+    check: |
+      Every security constraint from the upstream epics is addressed by
+      a specific architectural control (authentication, encryption,
+      access control, audit logging) with a cited driver pointing to the
+      epic's security constraint.
+    pass_criteria: |
+      For every intent epic in
+      .meridian/product/scope/epics/*.yaml that has a constraints.security
+      field, there is at least one architectural control in
+      architecture.yaml (within a component's rationale, an ADR, or an
+      integration's security notes) that cites the epic's security
+      constraint as its driver.
+    fail_criteria: |
+      One or more epic security constraints has no corresponding
+      architectural control with a cited driver.
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: Product Manager
+    artifact_pattern: ".meridian/product/_checkpoints/build-arch/stage-1-architecture-*.md"
+    check: |
+      The Checkpoint 1 presentation contains stack names plus high-level
+      summary counts and rationale — the PM can assess whether the
+      chosen architecture fits the appetite and team skillset, and push
+      back on over-engineering at Checkpoint 1.
+    pass_criteria: |
+      Checkpoint 1 artifact contains stack named choices, components
+      count with capability coverage ratio, ADR count, and integration
+      count — readable without engineering background.
+    fail_criteria: |
+      Checkpoint 1 artifact is missing the summary counts or omits the
+      stack named choices and ADR count.
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: DevOps / Platform Engineer
+    artifact_pattern: ".meridian/product/architecture/architecture.yaml + .meridian/product/architecture/quality-standards.yaml"
+    check: |
+      architecture.yaml deployment section + quality-standards.yaml
+      operational standards together carry enough specifics for the
+      DevOps engineer to plan infrastructure-as-code, observability, and
+      on-call procedures without needing the architect to clarify intent.
+    pass_criteria: |
+      architecture.yaml.deployment section has hosting, environments,
+      and observability sub-fields populated; quality-standards.yaml has
+      a qp_5_observability dimension with named tooling, thresholds, and
+      enforcement.
+    fail_criteria: |
+      Deployment section is missing one or more of hosting, environments,
+      observability OR qp_5_observability dimension is absent or
+      incomplete.

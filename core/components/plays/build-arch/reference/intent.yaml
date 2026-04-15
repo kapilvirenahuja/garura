@@ -25,16 +25,26 @@ constraints:
   - id: C1
     rule: >
       specify-product artifacts must exist and be LOCKED before build-arch
-      begins. Pre-flight reads scope.yaml, enriched-capabilities.yaml,
-      epics/*.yaml, quality-profile.yaml from .meridian/product/product/.
-      Missing or DRAFT-status artifacts halt pre-flight.
+      begins. Pre-flight reads
+      .meridian/product/scope/scope.yaml,
+      .meridian/product/scope/enriched-capabilities.yaml,
+      .meridian/product/scope/epics/*.yaml, and
+      .meridian/product/specification/quality-profile.yaml. The post-D1
+      folder layout applies — there is no .meridian/product/product/
+      doubled folder; each artifact lives under its SDLC-stage sub-folder
+      per ADR 017. Missing or DRAFT-status artifacts halt pre-flight.
 
   - id: C2
     rule: >
       design-exp artifacts must exist and be LOCKED before build-arch
-      begins. Pre-flight reads personas.md, screens/*.md, flows/*.md,
-      design-spec.md from .meridian/product/ux/. Missing or DRAFT-status
-      artifacts halt pre-flight.
+      begins. Pre-flight reads
+      .meridian/product/experience/personas.md,
+      .meridian/product/experience/screens/*.md,
+      .meridian/product/experience/flows/*.md, and
+      .meridian/product/experience/design-spec.md. The post-D1 folder
+      layout applies — the former .meridian/product/ux/ folder was
+      renamed to experience/ per ADR 017 folder whitelist. Missing or
+      DRAFT-status artifacts halt pre-flight.
 
   - id: C3
     rule: >
@@ -89,7 +99,9 @@ constraints:
 
   - id: C10
     rule: >
-      Artifacts land under .meridian/product/arch/ per ADR 017. Evidence,
+      Artifacts land under .meridian/product/architecture/ per ADR 017
+      (post-D1 folder layout — the former `arch/` was renamed to
+      `architecture/`). Evidence,
       checkpoint, and status writes go through the scriber agent. The
       play never writes evidence files directly.
 
