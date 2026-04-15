@@ -32,7 +32,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 | `repo-orchestrator` | Reviewer ranking from git log; emit `reviewers.yaml` | Step 4 Reviewer Selection | Domain (ranker role) |
 | `repo-orchestrator` | Post structured PR comment, request-changes/add-reviewer, evidence self-commit | Steps 5–6 | Utility (exempt) |
 
-**Domain agent count:** 3 unique (`tech-designer`, `quality-auditor`, `repo-orchestrator-as-ranker`). Within L2 budget of 5 (C5).
+**Domain agent count:** 3 unique (`tech-designer`, `quality-auditor`, `repo-orchestrator-as-ranker`). Within agent budget of 5 (C5).
 
 **Forbidden play actions (C10):** Never invoke `create-pr` or modify any file under `core/components/plays/create-pr/`.
 
@@ -130,7 +130,7 @@ standards_set:
   kb: ~/.meridian/core/memory/knowledge/quality/
   ltm: .meridian/core/memory/knowledge/quality/
   stm: .meridian/project/issues/{issue}/spec/quality/
-severity_taxonomy_path: ./core/components/memory/standards/git/pr-severity-taxonomy.md
+severity_taxonomy_path: ./core/components/memory/standards/rules/pr.md
 intent_summary: "{1–3 sentence summary}"
 intent_source: "spec/intent.yaml" | "pr_body"
 ```
@@ -461,7 +461,6 @@ for each step in compiled order:
 | intent_hash | sha256:10922b6450028e1fdcb1f5acfca15f421084eca71002f2d817cb4602d882afaa |
 | compiled_by | create-play |
 | compiled_at | 2026-04-13 |
-| maturity | L2 |
 | workflow_structure | A |
 | domain_agents | 3 (tech-designer, quality-auditor, repo-orchestrator-as-ranker) |
 | utility_agents | 1 (repo-orchestrator for git/PR ops + evidence) |

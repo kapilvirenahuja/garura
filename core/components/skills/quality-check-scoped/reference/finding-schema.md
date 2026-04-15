@@ -8,7 +8,7 @@ meta:
   diff_path: ".meridian/project/issues/208/evidence/review-pr/diff.patch"
   changed_paths_count: 12
   scan_coverage: 0.83
-  taxonomy_path: "./core/components/memory/standards/git/pr-severity-taxonomy.md"
+  taxonomy_path: "./core/components/memory/standards/rules/pr.md"
   standards_relevant: 7
 
 findings:

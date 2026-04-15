@@ -8,17 +8,11 @@ user-invokable: true
 
 The play compiler. Takes an intent.yaml (existing or newly crafted) and produces a compiled, deterministic play as a single SKILL.md file. Workflow structure, task ordering, eval criteria, and pre-flight checks are built into the compiled output.
 
-## Maturity Level Guards
+## Structural Gate
 
-**BEFORE doing anything, determine what the user is asking to build.**
+**BEFORE doing anything, determine if the requested play has enough structure to compile.**
 
-| Level | Action | Response |
-|-------|--------|----------|
-| L1 | REJECT | Plays at this level are structureless — no constraints, no evals, no checkpoints. Define constraints, failure conditions, and scenarios to make it L2. |
-| L2 | BUILD | Proceed with compilation. |
-| L3 | DEFER | L3 puts workflow structure into intent. The compiler doesn't support it yet. Build as L2 now? |
-| L4 | DEFER | L4 is runtime resolution. We're at L2. Build as compiled play instead? |
-| L5 | DEFER | L5 is the dark factory. Start with intent.yaml and we'll compile a solid L2. |
+A play is compilable when its intent defines — at minimum — constraints, failure conditions, and acceptance scenarios. Structureless intents (no constraints, no evals, no scenarios) are rejected with a prompt to define them first. Ideas that describe runtime DAGs, dynamic intent resolution, or self-assembling workflows are deferred — the compiler produces deterministic, compiled plays only. In every case, the answer is the same: go back to intent.yaml, pin down what the play guarantees, and re-run this skill.
 
 ## Role
 
@@ -35,7 +29,7 @@ You are the **play compiler** and **architectural gatekeeper**. You own the pipe
 - `reference/audit-checklist.md` — P1-P10 agent compliance checklist
 - `reference/compiled-example.md` — target output format for compiled plays
 - `docs/adr/016-agent-json-contract.md` — universal JSON contract schema
-- `docs/adr/013-play-maturity-model.md` — L2 design elements and workflow structures
+- `docs/adr/013-play-maturity-model.md` — design elements and workflow structures
 
 ## Compilation Pipeline
 
@@ -242,7 +236,7 @@ For new agents: interview user for name, domain, skills it needs. Build definiti
 
 ### Step 5 — Workflow Selection
 
-Reference: `docs/adr/013-play-maturity-model.md` — L2 workflow structures.
+Reference: `docs/adr/013-play-maturity-model.md` — workflow structures. Canonical workflow phase definitions live in `reference/workflows/` alongside this skill.
 
 #### New mode
 
@@ -252,14 +246,22 @@ Present the three structures:
 Structure A — Full checkpoint flow:
   Pre-flight → Preparation → Checkpoint (skippable) → Execution → Evidence
   Best for: multiple agents, confidence-gated review
+  Canonical phases: reference/workflows/readiness-brief-generation.yaml
 
 Structure B — Fast execution flow:
-  Pre-flight → Execution → Approval
+  Pre-flight → Execution → Approval → Evidence
   Best for: simpler work, single-agent, low-risk
+  Canonical phases: reference/workflows/direct-generation.yaml
 
-Structure C — Higher-order L2 (chained plays):
+Structure C — Higher-order flow (chained plays):
   Pre-flight → Play-1 → STM handoff → Play-2 → ... → Evidence
   Best for: composing existing plays
+  (No dedicated phase file yet — derived from the chained plays' own structures)
+
+Structure readiness-only — Analysis-only flow:
+  Pre-flight → Preparation → Scenario Validation → Evidence
+  Best for: feasibility checks, validation, audits (no generation step)
+  Canonical phases: reference/workflows/readiness-only.yaml
 ```
 
 User selects.
@@ -352,7 +354,7 @@ Write `core/components/plays/{play-name}/SKILL.md` with ALL required sections:
 - Each eval shows its source ID: `**SE-X (F-n/C-n):** {check}`
 - Scenario evals are embedded in the Scenario Validation section: `**SCE-X (S-n — {persona}):** {check}`
 
-**Compilation rules (from ADR 013 L2):**
+**Compilation rules (from ADR 013):**
 - Workflow steps are sequential with named phases — not abstract stage numbers
 - Each agent dispatch includes the full JSON contract template with `stm` paths (per ADR 016)
 - Step evals appear immediately after the step they validate
@@ -401,7 +403,7 @@ Write coverage matrix to `{stm_base}/{issue}/evidence/create-play/{play-name}/co
 ```markdown
 ## Play Compiled: {play-name}
 
-**Maturity:** L2 | **Workflow:** Structure {A|B|C} | **Intent hash:** {sha256}
+**Workflow:** Structure {A|B|C} | **Intent hash:** {sha256}
 
 **Files:**
 - `core/components/plays/{play-name}/SKILL.md` (compiled)
@@ -417,8 +419,8 @@ Run `/sync-claude` to deploy.
 ## Constraints
 
 - NEVER build structureless plays — reject with explanation
-- NEVER produce a play with runtime DAG or runtime intent resolution — L2 is compiled
-- NEVER ship intent-resolver as a runtime dependency — it does not exist in L2
+- NEVER produce a play with runtime DAG or runtime intent resolution — compiled plays are deterministic
+- NEVER ship intent-resolver as a runtime dependency — it does not exist in compiled plays
 - NEVER skip intent definition, eval generation, or agent audit
 - NEVER assemble a play missing any required section from Step 6b
 - NEVER do agent or skill domain work directly — delegate to intent-crafter, /skill-creator, evals-creator
@@ -427,7 +429,7 @@ Run `/sync-claude` to deploy.
 - ALWAYS audit every agent against all 11 principles
 - ALWAYS re-audit after upgrading an agent
 - ALWAYS write analysis artifacts to STM
-- ALWAYS reference ADR 013 for L2 design elements
-- For L3-L5 requests — acknowledge and defer, do not reject
+- ALWAYS reference ADR 013 for design elements
+- For requests describing runtime DAGs, dynamic intent resolution, or self-assembling workflows — acknowledge and defer, do not reject
 - NEVER modify any file in review mode — review is read-only diagnostic
 - ALWAYS write the review report to STM even if all checks pass

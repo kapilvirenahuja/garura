@@ -1153,7 +1153,6 @@ Inline agent contracts in this play may be extracted into standalone skills afte
 | intent_hash | sha256:ab5525d7ea739cf1e44f29e8cc4f973fed6b716b2472e804fca82b822d7f81ac |
 | compiled_by | /create-play |
 | compiled_at | 2026-03-27 |
-| maturity | L2 |
 | workflow_structure | A (with conditional fix loop in execution phase) |
 | domain_agents | 8 (tech-designer, eval-generator, test-writer, code-builder, quality-auditor, engineering-manager, judge, feature-steward) |
 | utility_agents | 1 (repo-orchestrator) |

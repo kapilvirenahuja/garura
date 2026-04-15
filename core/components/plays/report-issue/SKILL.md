@@ -302,7 +302,6 @@ for each step in compiled order:
 | intent_hash | sha256:48cbe511a9d02a40a36f780d25776e736639fd24fa3f60d37098f1b581f99991 |
 | compiled_by | create-play |
 | compiled_at | 2026-04-11T11:56:32Z |
-| maturity | L2 |
 | workflow_structure | B |
 | domain_agents | 1 (project-orchestrator) |
 | utility_agents | 0 |

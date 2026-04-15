@@ -44,7 +44,7 @@ Execute these checks before any sub-play invocation:
 | Platform config exists | implicit | Hard halt — no platform configured |
 | Resolve `review-pr.bypass` from `.meridian/core/config.yaml` | C7 | Hard halt if key missing — "review-pr.bypass not set in config" |
 | When `review-pr.bypass == false`: `core/components/plays/review-pr/SKILL.md` exists | C7 | Hard halt — "review-pr play missing; cannot enforce gate" |
-| When `review-pr.bypass == false`: `core/components/memory/standards/git/pr-severity-taxonomy.md` exists at config-resolved path | C7 | Hard halt — "PR severity taxonomy missing" |
+| When `review-pr.bypass == false`: `core/components/memory/standards/rules/pr.md` exists at config-resolved path | C7 | Hard halt — "PR severity taxonomy missing" |
 
 ```bash
 stm_base=$(grep 'base-path' .meridian/core/config.yaml | head -1 | awk '{print $2}')
@@ -76,7 +76,7 @@ Ship's pre-flight is lighter than individual sub-play pre-flights because each s
 ### Phase: Commit
 
 **Step 1 — Commit Changes**
-Owner: `commit-code` (L2 sub-play)
+Owner: `commit-code` (sub-play)
 Depends on: pre-flight
 
 ```
@@ -98,7 +98,7 @@ Context: approval_override: "auto-proceed"
 ### Phase: Pull Request
 
 **Step 2 — Create Pull Request**
-Owner: `create-pr` (L2 sub-play)
+Owner: `create-pr` (sub-play)
 Depends on: Step 1
 
 ```
@@ -121,7 +121,7 @@ create-pr reads commit records from STM (written by commit-code) to inform PR co
 ### Phase: Quality Gate (conditional — runs only when `review-pr.bypass == false`)
 
 **Step 2.5 — Review PR**
-Owner: `review-pr` (L2 sub-play)
+Owner: `review-pr` (sub-play)
 Depends on: Step 2
 Skip when: `review-pr.bypass == true`
 
@@ -154,7 +154,7 @@ After review-pr completes, ship reads `{stm_base}/{issue}/evidence/review-pr/con
 ### Phase: Merge & Cleanup
 
 **Step 3 — Merge, Switch, Pull, Delete**
-Owner: `merge-pr` (L2 sub-play)
+Owner: `merge-pr` (sub-play)
 Depends on: Step 2 (always) + Step 2.5 (when bypass=false; routing must be `pass`)
 
 ```
@@ -260,7 +260,6 @@ for each step in compiled order:
 | intent_hash | sha256:5947a743752b921530a3d3b544dd6de8b26b4c3f72a5ff13e16bb3aeac54b5fe |
 | compiled_by | create-play |
 | compiled_at | 2026-04-13 |
-| maturity | L2 |
 | workflow_structure | C |
 | sub_plays | 4 (commit-code, create-pr, review-pr [conditional], merge-pr) |
 | step_evals | 0 (delegated to sub-plays) |

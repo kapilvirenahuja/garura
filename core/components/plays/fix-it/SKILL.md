@@ -297,7 +297,7 @@ If code-builder fails → self-recovery (max 2 retries). If still fails → HALT
 ### Phase: Execution — Ship
 
 **Step 7 — Ship Fix**
-Owner: `ship` (L2 sub-play)
+Owner: `ship` (sub-play)
 Depends on: Step 6
 
 Invoke `ship` via Skill tool with approval override:
@@ -436,7 +436,6 @@ for each step in compiled order:
 | intent_hash | sha256:91405a990b52a4b3118289754e3c0cade61cf0992800e2fb9f9115750cf909df |
 | compiled_by | create-play |
 | compiled_at | 2026-04-11T14:30:00Z |
-| maturity | L2 |
 | workflow_structure | A |
 | domain_agents | 3 (project-orchestrator, tech-designer, code-builder) |
 | utility_agents | 2 (doc-builder, repo-orchestrator) |

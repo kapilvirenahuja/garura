@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Bash
 
 # validate-kb-extension
 
-Model-invocable skill for verifying the KB domain-taxonomy catalog conforms to the extension conventions defined in `core/components/memory/standards/kb-extension-conventions.md`. Invoked by the `specify-product` play's pre-flight (214.5) and as the 214.4 T22 acceptance check.
+Model-invocable skill for verifying the KB domain-taxonomy catalog conforms to the extension conventions defined in `core/components/memory/standards/rules/kb-extension.md`. Invoked by the `specify-product` play's pre-flight (214.5) and as the 214.4 T22 acceptance check.
 
 ## Purpose
 
@@ -17,9 +17,9 @@ Prevent shallow / incomplete KB entries from reaching the pipeline. A capability
 ## Input
 
 Receive from the calling agent:
-- `kb_root` (string, required) — path to `core/components/memory/knowledge/domain-taxonomy/` or the deployed equivalent
+- `kb_root` (string, required) — path to `core/components/memory/knowledge/domain/` or the deployed equivalent
 - `constraints_path` (string, required) — path to `_cross-tree-constraints.yaml` inside `kb_root`
-- `conventions_path` (string, required) — path to `core/components/memory/standards/kb-extension-conventions.md` (the contract)
+- `conventions_path` (string, required) — path to `core/components/memory/standards/rules/kb-extension.md` (the contract)
 
 ## Process
 
@@ -132,4 +132,4 @@ The calling agent treats `status: failed` as a structured failure — the parent
 | Version | 0.1.0 |
 | Category | validation |
 | Created | 2026-04-14 |
-| Related | `core/components/memory/standards/kb-extension-conventions.md`, `core/components/memory/standards/intent-epic-schema.yaml`, `core/components/memory/knowledge/domain-taxonomy/_cross-tree-constraints.yaml` |
+| Related | `core/components/memory/standards/rules/kb-extension.md`, `core/components/memory/standards/schemas/intent-epic.yaml`, `core/components/memory/knowledge/domain/_cross-tree-constraints.yaml` |

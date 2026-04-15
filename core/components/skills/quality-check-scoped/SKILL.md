@@ -31,7 +31,7 @@ standards_set:                                                    # resolved fro
   kb: ~/.meridian/core/memory/knowledge/quality/
   ltm: ./.meridian/core/memory/knowledge/quality/
   stm: .meridian/project/issues/{issue}/specs/quality/
-severity_taxonomy_path: ./core/components/memory/standards/git/pr-severity-taxonomy.md
+severity_taxonomy_path: ./core/components/memory/standards/rules/pr.md
 intent_summary: "Add email verification flow"                     # 1–3 sentences from spec/intent.yaml or PR body
 output_path: "{stm_base}/{issue}/evidence/review-pr/findings.yaml"
 ```
@@ -146,4 +146,4 @@ Two back-to-back invocations on the same `(diff_path, changed_paths, taxonomy_pa
 
 - Input contract: `reference/input-contract.md`
 - Output schema: `reference/finding-schema.md`
-- Taxonomy: `core/components/memory/standards/git/pr-severity-taxonomy.md`
+- Taxonomy: `core/components/memory/standards/rules/pr.md`

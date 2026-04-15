@@ -1493,7 +1493,6 @@ for each step in compiled order:
 | intent_hash | sha256:94a0d47c582b30f661d77d6e4ee1746c7f8bdabb2fb8620a1e94d170ade29bdc |
 | compiled_by | create-play |
 | compiled_at | 2026-03-31T12:00:00+0530 |
-| maturity | L2 |
 | workflow_structure | A — Full checkpoint flow (5 checkpoints) |
 | domain_agents | 3 (tech-architect, test-engineer, feature-steward) |
 | utility_agents | 2 (doc-builder, repo-orchestrator) |

@@ -31,7 +31,7 @@ standards_set:
   kb: ~/.meridian/core/memory/knowledge/quality/
   ltm: .meridian/core/memory/knowledge/quality/
   stm: .meridian/project/issues/208/spec/quality/
-severity_taxonomy_path: ./core/components/memory/standards/git/pr-severity-taxonomy.md
+severity_taxonomy_path: ./core/components/memory/standards/rules/pr.md
 intent_summary: "Add email verification flow with token expiry."
 output_path: .meridian/project/issues/208/evidence/review-pr/findings.yaml
 ```

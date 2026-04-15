@@ -323,7 +323,6 @@ for each step in compiled order:
 | intent_hash | sha256:bcdd394f617b2145e8c23fba7b3d7e7c0adb06a47216eeee43eaabccf94add2b |
 | compiled_by | create-play |
 | compiled_at | 2026-03-06 |
-| maturity | L2 |
 | workflow_structure | B |
 | agents | 2 (project-orchestrator, repo-orchestrator) |
 | step_evals | 10 (after Steps 2, 3, 4) |

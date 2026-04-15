@@ -38,7 +38,7 @@ constraints:
 
   - id: C5
     rule: >
-      The play MUST stay within the L2 budget — no more than 5
+      The play MUST stay within the agent budget — no more than 5
       domain agents (utility agents repo-orchestrator and doc-builder
       are exempt).
 

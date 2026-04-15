@@ -368,7 +368,6 @@ This play is lightweight and idempotent — no pause/resume needed. Re-running `
 | compiled_by | create-play |
 | compiled_at | 2026-03-26 |
 | rebaked_at | 2026-03-26 |
-| maturity | L2 |
 | workflow_structure | B (fast execution flow) |
 | domain_agents | 0 |
 | utility_agents | 0 |
