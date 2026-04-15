@@ -73,15 +73,15 @@ Seven rules for epic lifecycle best practices in `standards/` (always loaded). U
 | File | Role | Change Needed |
 |------|------|---------------|
 | `core/components/memory/knowledge/_index.md` | LTM knowledge catalog | Modify: add `domain-taxonomy/` and `project-profiling/` entries |
-| `core/components/memory/knowledge/domain-taxonomy/_index.md` | Taxonomy directory catalog | Create: catalog 5 modules, explain semantic feature model |
-| `core/components/memory/knowledge/domain-taxonomy/user-management.md` | User Management features | Create: 8 semantically rich features |
-| `core/components/memory/knowledge/domain-taxonomy/payments.md` | Payments features | Create: 7 semantically rich features |
-| `core/components/memory/knowledge/domain-taxonomy/commerce.md` | Commerce features | Create: 8 semantically rich features |
-| `core/components/memory/knowledge/domain-taxonomy/search.md` | Search features | Create: 5 semantically rich features |
-| `core/components/memory/knowledge/domain-taxonomy/personalization.md` | Personalization features | Create: 6 semantically rich features |
-| `core/components/memory/knowledge/project-profiling/_index.md` | Profiling directory catalog | Create: explain two-axis model, flow |
-| `core/components/memory/knowledge/project-profiling/product-profile.md` | 7 product profile dimensions | Create: PP-1 through PP-7, 5 levels each |
-| `core/components/memory/knowledge/project-profiling/nfr-profile.md` | 7 NFR dimensions (extensible) | Create: NFR-1 through NFR-7, 5 levels each |
+| `core/components/memory/knowledge/domain/_index.md` | Taxonomy directory catalog | Create: catalog 5 modules, explain semantic feature model |
+| `core/components/memory/knowledge/domain/user-management.md` | User Management features | Create: 8 semantically rich features |
+| `core/components/memory/knowledge/domain/payments.md` | Payments features | Create: 7 semantically rich features |
+| `core/components/memory/knowledge/domain/commerce.md` | Commerce features | Create: 8 semantically rich features |
+| `core/components/memory/knowledge/domain/search.md` | Search features | Create: 5 semantically rich features |
+| `core/components/memory/knowledge/domain/personalization.md` | Personalization features | Create: 6 semantically rich features |
+| `core/components/memory/knowledge/product/_index.md` | Profiling directory catalog | Create: explain two-axis model, flow |
+| `core/components/memory/knowledge/product/product-profile.md` | 7 product profile dimensions | Create: PP-1 through PP-7, 5 levels each |
+| `core/components/memory/knowledge/product/nfr-profile.md` | 7 NFR dimensions (extensible) | Create: NFR-1 through NFR-7, 5 levels each |
 | `core/components/memory/standards/_index.md` | LTM standards catalog | Modify: add `agent-lifecycle/` entry |
 | `core/components/memory/standards/agent-lifecycle/epic-management-rules.md` | Epic lifecycle best practices | Create: 7 rules |
 

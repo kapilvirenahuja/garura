@@ -1,0 +1,98 @@
+# Meridian Configuration
+
+project:
+  name: Meridian
+  type: Agentic Framework
+
+platform: github
+
+github:
+  repo: https://github.com/kapilvirenahuja/meridian.git
+
+# Source of truth locations
+components:
+  skills: ./core/components/skills/
+  plays: ./core/components/plays/
+  agents: ./core/components/agents/
+  memory: ./core/components/memory/
+
+# Claude Code derived locations (populated by /sync-claude)
+claude:
+  skills: ./.claude/skills/
+  agents: ./.claude/agents/
+
+# Global Claude Code locations (for /sync-claude default global mode)
+global-claude:
+  skills: ~/.claude/skills/
+  agents: ~/.claude/agents/
+
+# Factory Droid derived locations (populated by /sync-droids)
+factory:
+  skills: ./.factory/skills/
+  droids: ./.factory/droids/
+
+# Global Factory Droid locations (for /sync-droids default global mode)
+global-factory:
+  skills: ~/.factory/skills/
+  droids: ~/.factory/droids/
+
+# Long-Term Memory (LTM)
+ltm:
+  source: ./core/components/memory/
+  project-target: ./.meridian/core/memory/
+  global-target: ~/.meridian/core/memory/
+
+# Short-Term Memory (STM) — Issue-centric artifacts (ADR 008, ADR 010, ADR 017)
+# Variables: {stm_base} = base-path, {stm_pending} = pending-path, {stm_archive} = archive-path
+# All agents, plays, and skills resolve these from config — never hardcode paths.
+# Per ADR 017, only 5 structure keys are permitted: specs, evidence, checkpoint, context, review.
+stm:
+  base-path: .meridian/project/issues/
+  pending-path: .meridian/project/issues/_pending/
+  archive-path: .meridian/project/issues/_archive/
+  structure:
+    specs: "{issue-number}/specs/"
+    evidence: "{issue-number}/evidence/{play-name}/{YYYYMMDD-HHMMSS}.md"
+    checkpoint: "{issue-number}/checkpoint/{play-name}/{YYYYMMDD-HHMMSS}.md"
+    context: "{issue-number}/context/"
+    review: "{issue-number}/review/"
+
+# Standards resolution — first play-specific section; pattern for future plays
+standards:
+  pr-severity-taxonomy: ./core/components/memory/standards/rules/pr.md
+
+# review-pr play configuration
+review-pr:
+  bypass: true
+  confidence_threshold: 0.5
+  reviewer_count: 3
+  standards_order: [kb, ltm, stm]
+  fallback_reviewers: []
+  activity_window_days: 90
+
+# Product artifacts — parallel to project, not nested (ADR 017 whitelist)
+# Stage-centric sub-folders, one per SDLC stage. Operational artifacts
+# (checkpoints, status, evidence) for product-scoped plays live at the
+# product root using underscore-prefixed subfolders, orthogonal to the
+# stage layout. The 6 stage folders are all direct children of base-path.
+#
+# Layout (defect D1 fix 2026-04-14; D8/D9 updates 2026-04-14):
+#   .meridian/product/
+#   ├── user-provided/     user inputs (brief + future notes / questions)
+#   ├── specification/     market-brief, project-profile, quality-profile, domain-selection, domain-grounding (opportunity + domain shape — what the product SPACE is)
+#   ├── scope/             mvp-recommendation, scope.yaml, enriched-capabilities, validation-intent-epics, epics/ (v1 scope contract — what we're BUILDING)
+#   ├── architecture/      build-architecture output
+#   ├── experience/        design-experience output
+#   ├── research/          product domain library — KB copies (with provenance header, origin: kb) + researched domains (origin: stm_research), both scoped to this product run (Defect 8 Pull-to-Product)
+#   ├── _checkpoints/      play-lifecycle (orthogonal to stages)
+#   ├── _evidence/         play-lifecycle (orthogonal to stages)
+#   └── _status/           play-lifecycle (orthogonal to stages)
+product:
+  base-path: .meridian/product/
+  directories:
+    user-provided: user-provided/
+    specification: specification/
+    scope: scope/
+    architecture: architecture/
+    experience: experience/
+    research: research/

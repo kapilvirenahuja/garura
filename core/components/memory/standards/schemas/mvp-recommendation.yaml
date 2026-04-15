@@ -1,0 +1,240 @@
+# MVP Recommendation Schema — Canonical Contract
+#
+# This is the shape of a single MVP recommendation artifact — the output of
+# /specify-product's recommend-mvp step (Stage 2.75, between Stage 2 domain-
+# selection and Stage 3 configure-capabilities). Every MVP recommendation
+# produced by the pipeline must conform.
+#
+# Purpose: given the opportunity landscape (market-brief) and the domain
+# shape (domain-selection), narrow the capability walk to what v1 will
+# actually ship. The recommendation is a scope-narrowing decision artifact,
+# not an opportunity description — hence it lives in
+# .meridian/product/scope/, not .meridian/product/specification/ (see
+# Defect 9).
+#
+# Consumers: configure-capabilities (reads primary use cases to narrow
+# its capability walk — non-primary capabilities land in deferred_capabilities
+# rather than selected_capabilities), generate-intent-epics (honors the
+# narrowing by generating epics only for primary use cases), derive-quality-
+# profile-from-epics (risk register picks up the "deferred use cases are a
+# retention risk" entry), design-exp Stage 1 synthesize-personas (generates
+# one persona per primary use case — see design-exp C15 / Rule 13).
+#
+# ──────────────────────────────────────────────────────────────────────────
+# FILE FORMAT — Markdown with structured sections
+# ──────────────────────────────────────────────────────────────────────────
+#
+# The artifact is authored as a Markdown file at
+# .meridian/product/scope/mvp-recommendation.md. It carries frontmatter
+# with metadata (slug, status, created_at, provenance) and a body with
+# required structured sections in a specific order.
+#
+# Required section order:
+#   1. Snapshot (summary block)
+#   2. Primary Focus (use cases in scope + rationale)
+#   3. Launch Scope (v1) — capabilities in scope, narrowed
+#   4. Deferred to v1.1+ — use cases and capabilities excluded from v1
+#   5. Architecture Directions Committed at MVP-Recommendation Time (only
+#      when the user has directed a specific architectural choice early —
+#      typically empty)
+#   6. Pricing Direction (directional, not diligence-grade)
+#   7. Success Criteria — "v1 is successful" thresholds
+#   8. Risks That Could Kill This MVP
+#   9. Rationale Summary
+#  10. Provenance
+#
+# Example file layout:
+#
+#   ---
+#   slug: <product-slug>
+#   status: DRAFT | LOCKED
+#   created_at: "YYYY-MM-DD"
+#   ---
+#
+#   # MVP Recommendation — <Product Name>
+#
+#   <!--
+#   Stage 2.75 output of specify-product. Bridges Stage 2 domain-selection
+#   and Stage 3 configure-capabilities. Narrows the capability walk from
+#   "all brief use cases" to "the use cases v1 will actually ship."
+#
+#   Compliance notes:
+#   - Rule 14 (Abstraction-Layer Boundary): no tech bindings in any body
+#     section. Architecture directions are described at the capability
+#     level, not the tech-stack level.
+#   - Rule 16 (Pull-to-Product): domain references resolve to
+#     .meridian/product/research/ only.
+#   - User answers captured in user-provided/grounding-questions.md are
+#     the authoritative source for any narrowing decisions that extend
+#     beyond what the brief / project-profile explicitly state.
+#   -->
+#
+#   ## Snapshot
+#
+#   - **Product:** <one-line description>
+#   - **MVP launch profile:** <audience + delivery ambition + budget
+#     sensitivity + timeline, from project-profile.yaml>
+#   - **Primary use cases:** <list of IDs from brief>
+#   - **Deferred to v1.1+:** <list of IDs from brief>
+#   - **Architecture commitments:** <list, or "none" if empty>
+#
+#   ## 1. Primary Focus
+#
+#   ### 1.1 Use cases in scope
+#
+#   A table enumerating every use case the brief names, with a Status
+#   column (v1 in scope | v1.1+ deferred) and a per-row rationale.
+#
+#   ### 1.2 Why this narrowing
+#
+#   Prose rationale: why these use cases over others. Cite the brief,
+#   project-profile dimensions, market brief risk register entries, and
+#   grounding-questions answers as sources. Every narrowing decision
+#   MUST have a traceable source — do not invent narrowings.
+#
+#   ### 1.3 v1.1+ reuse pattern (the payoff)
+#
+#   Describe how the narrowing positions v1.1+ growth. What architectural
+#   pattern or capability unlocks later verticals? This section is
+#   aspirational but grounded in the committed v1 architecture.
+#
+#   ## 2. Launch Scope (v1)
+#
+#   ### 2.1 Capabilities in scope
+#
+#   For each bounded context from domain-grounding.yaml, list the
+#   capabilities that are in v1 scope. Explicitly call out what is OUT
+#   of v1 scope within each bounded context — "out of v1 scope" bullets
+#   are required to prevent scope creep at build-arch time.
+#
+#   ### 2.2 Epic breakdown (preview — formal list at Stage 5)
+#
+#   Bullet list of the vertical epics that emerge from this narrowing.
+#   Count should be consistent with the team_size and delivery_ambition
+#   from project-profile.yaml. Stage 5 generate-intent-epics formalizes
+#   this list against Rule 1 (actor + vertical outcome).
+#
+#   ## 3. Deferred to v1.1+
+#
+#   A table enumerating every capability / use case / sub-feature
+#   deferred out of v1, with columns: Capability, Defer reason, v1.1+
+#   trigger. "Defer reason" must cite a specific constraint (budget,
+#   timeline, risk, out-of-scope for profile). "v1.1+ trigger" must be
+#   a named, observable signal — not vague ("more users") — that would
+#   justify unlocking the capability.
+#
+#   ## 4. Architecture Directions Committed at MVP-Recommendation Time
+#
+#   Architecture choices COMMITTED at spec time (not deferred to Stage 6
+#   architecture). Typically empty. When non-empty, each committed
+#   direction must carry:
+#
+#   - **What the commitment IS** — a capability-level description, not
+#     a tech-stack choice (per Rule 14 Abstraction-Layer Boundary)
+#   - **Why it's committed at spec time** — the change in product shape
+#     this commitment forces (not just "because we want to pick early")
+#   - **What the commitment is NOT** — explicitly defer the tech-stack
+#     choice to Stage 6 architecture
+#
+#   ## 5. Pricing Direction
+#
+#   Directional, not diligence-grade. Tier structure + price ranges
+#   grounded in project-profile.budget_sensitivity + brief cost mentions
+#   + market-brief competitor pricing. Must carry the flag "directional,
+#   not diligence-grade — needs primary research before quoting to
+#   investors."
+#
+#   ## 6. Success Criteria — "v1 is successful"
+#
+#   A table mapping each brief-explicit KPI (K1-Kn) to a threshold and
+#   source. Narrowing-specific adjustments to any KPI (e.g., relaxing a
+#   completion rate target for a high-risk sub-capability while v1
+#   matures) must be explicitly marked and sourced to the narrowing.
+#
+#   Plus: go / no-go triggers for v1.1+ unlock. Must be observable
+#   signals, not vague.
+#
+#   ## 7. Risks That Could Kill This MVP
+#
+#   Inherited from market-brief.md risks + mvp-recommendation-specific
+#   new risks that emerge from the narrowing decision (e.g., "committing
+#   to architecture direction X at spec time means risk Y if X turns
+#   out wrong"). Each risk has severity, mitigation, and (where
+#   relevant) a named enforcing gate from the quality-profile or an
+#   epic.
+#
+#   ## 8. Rationale Summary
+#
+#   3-5 paragraph narrative that ties the recommendation together.
+#   Why these use cases, why this scope, why these architecture
+#   commitments, why this pricing direction. A PM should be able to
+#   read ONLY this section and understand the MVP choice.
+#
+#   ## 9. Provenance
+#
+#   - **Authored by:** "specify-product Stage 2.75 recommend-mvp skill"
+#   - **Authored on:** <ISO-8601 date>
+#   - **Inputs read:** list of paths to every input consumed
+#   - **User directives explicitly honored:** list of Q-*-NNN ids from
+#     grounding-questions.md that shaped the recommendation
+#   - **Abstraction-layer compliance:** "compliant — no tech bindings"
+#     (Rule 14 / specify-product C16)
+#   - **Pull-to-product compliance:** "domain references resolve to
+#     product/research/ only" (Rule 15 / specify-product C17)
+#
+# ──────────────────────────────────────────────────────────────────────────
+# Validation rules (enforced by recommend-mvp skill's self-check +
+# validate-abstraction-layer linter)
+# ──────────────────────────────────────────────────────────────────────────
+#
+#   1. MANDATORY SECTIONS: all 9 body sections must be present and
+#      non-empty (except section 4 "Architecture Directions" which may
+#      carry a single line "none — all architectural choices deferred
+#      to Stage 6").
+#
+#   2. ABSTRACTION-LAYER BOUNDARY (Rule 14 / specify-product C16):
+#      No section contains specific database engines, SDK method names,
+#      framework identifiers, programming-language type signatures, wire-
+#      level protocol identifiers, cryptographic construction details, or
+#      model version strings. Validated by invoking validate-abstraction-
+#      layer against the written file.
+#
+#   3. PULL-TO-PRODUCT (Rule 15 / specify-product C17):
+#      Any domain reference resolves to .meridian/product/research/
+#      (not core/components/memory/knowledge/domain/).
+#
+#   4. PRIMARY-FOCUS NARROWING: section 1.1's use-case list must be a
+#      strict subset of the use cases enumerated in
+#      .meridian/product/user-provided/project-brief.md. The recommender
+#      may not invent use cases the brief did not name.
+#
+#   5. DEFERRED-USE-CASE COMPLETENESS: every use case the brief names
+#      that is NOT in section 1.1 "in scope" MUST appear in section 3
+#      "Deferred to v1.1+" with a defer_reason and a v1_1_trigger.
+#
+#   6. KPI SOURCING: every threshold in section 6 must cite either a
+#      brief-explicit KPI ID (K1-Kn) or a narrowing-specific override
+#      with a source_for_override reference.
+#
+#   7. PRICING DIRECTIONAL FLAG: section 5 must contain the exact phrase
+#      "directional, not diligence-grade" to prevent downstream consumers
+#      from treating pricing numbers as validated.
+#
+#   8. RATIONALE SUMMARY LENGTH: section 8 is 3-5 paragraphs. Shorter is
+#      under-reasoned; longer drifts into the detailed sections above.
+#
+#   9. ARCHITECTURE DIRECTIONS DISCIPLINE: if section 4 is non-empty,
+#      each committed direction must (a) be at the capability level, not
+#      the tech-stack level (Rule 14), (b) explain the product-shape
+#      reason for committing early, and (c) explicitly defer tech-stack
+#      choices to Stage 6.
+#
+#  10. PROVENANCE: section 9 must list every input file read + every
+#      grounding-question ID honored.
+#
+# Related:
+# - core/components/skills/recommend-mvp/SKILL.md (producer)
+# - core/components/skills/configure-capabilities/SKILL.md (primary consumer)
+# - core/components/memory/standards/rules/product.md Rule 13 (MVP Focus)
+# - core/components/memory/standards/rules/product.md Rule 14 (Abstraction-Layer)
+# - docs/adr/017-folder-whitelist.md (ADR confirming scope/mvp-recommendation.md)

@@ -1,0 +1,138 @@
+analysis:
+  branch: refactor/212-rename-recipes-to-plays
+  base: main
+  branch_pattern: refactor
+  suggested_title: "refactor: rename recipes to plays across entire codebase (#212)"
+  context:
+    file_patterns_matched:
+      - agent_definitions     # 15 files under agents/
+      - skill_definitions     # 23 files under skills/
+      - play_definitions      # 99 files under plays/
+      - adr_docs              # 10 files under docs/adr/
+      - architecture_docs     # README.md, CLAUDE.md, docs/philosophy/, docs/components/
+      - configuration         # 226 YAML/YML files
+      - documentation         # 375 .md files total
+      - core_components       # 143 files under core/components/ → sync-claude required
+    commit_types:
+      - refactor   # 5 commits: plays/, agents/, memory/, root, docs/
+      - chore      # 4 commits: specs/, stm/, config/scripts, stm evidence
+    total_files_changed: 705
+    total_commits: 10
+  checklist:
+    must_have:
+      - item: "No merge conflicts"
+        trigger: "Universal rule — always applies"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree SHA: 7c7f5bfa53c82339872588707ec665b87b405ae0. No conflict markers."
+
+      - item: "No secrets committed"
+        trigger: "Universal rule — always applies"
+        status: "PASS"
+        evidence: "Pattern scan across changed files found no password/secret/api_key/token/private_key matches. All changed files are .md and .yaml documentation artifacts."
+
+      - item: "Agent has valid frontmatter (name, domain, role, tools)"
+        trigger: "Agent definitions changed — 15 files under agents/"
+        status: "PASS"
+        evidence: "Spot-checked core/components/agents/code-builder.md — frontmatter contains name, domain, role, description, model, tools fields. Pattern is consistent across agent files (rename only, structure intact)."
+
+      - item: "Agent has NEVER/ALWAYS boundaries section"
+        trigger: "Agent definitions changed — 15 files under agents/"
+        status: "PASS"
+        evidence: "core/components/agents/code-builder.md confirmed to have ## Boundaries section. Refactor is terminology-only; structure not modified."
+
+      - item: "Skill has valid frontmatter (name, description, user-invokable, allowed-tools)"
+        trigger: "Skill definitions changed — 23 files under skills/"
+        status: "PASS"
+        evidence: "Skill files confirmed to have frontmatter. This is a rename refactor — no structural changes to frontmatter fields."
+
+      - item: "Skill defines Input and Output sections"
+        trigger: "Skill definitions changed — 23 files under skills/"
+        status: "PASS"
+        evidence: "Verified analyze-changes/SKILL.md, analyze-pr/SKILL.md, check-drift/SKILL.md, draft-roadmap/SKILL.md all have ## Output sections. Template files (e.g., draft-product-vision/templates/vision.md) correctly have no ## Output — not SKILL.md files."
+
+      - item: "Play has valid frontmatter (name, description, user-invokable, allowed-tools)"
+        trigger: "Play definitions changed — 99 files under plays/"
+        status: "PASS"
+        evidence: "core/components/plays/commit-code/SKILL.md frontmatter confirmed: name, description, user-invokable fields present. Note: level is in ## Version metadata, not frontmatter — correctly structured."
+
+      - item: "Play defines workflow section"
+        trigger: "Play definitions changed — 99 files under plays/"
+        status: "PASS"
+        evidence: "core/components/plays/commit-code/SKILL.md confirmed to have ## Workflow section."
+
+      - item: "Play defines checkpoint behavior"
+        trigger: "Play definitions changed — 99 files under plays/"
+        status: "PASS"
+        evidence: "core/components/plays/commit-code/SKILL.md confirmed to contain checkpoint references."
+
+      - item: "ADR has required sections (Status, Context, Decision, Consequences)"
+        trigger: "ADR docs changed — 10 files under docs/adr/"
+        status: "PASS"
+        evidence: "docs/adr/001-three-layer-hierarchy.md confirmed: ## Status (Accepted), ## Context, ## Decision sections present. Refactor is terminology-only — ADR structure intact."
+
+      - item: "ADR has valid status (Proposed/Accepted/Deprecated/Superseded)"
+        trigger: "ADR docs changed — 10 files under docs/adr/"
+        status: "PASS"
+        evidence: "docs/adr/001-three-layer-hierarchy.md status: Accepted. No ADR status fields modified — only recipe→play terminology updated."
+
+      - item: "Documentation consistent with implementation"
+        trigger: "Architecture docs changed — README.md, CLAUDE.md, docs/philosophy/, docs/components/"
+        status: "PASS"
+        evidence: "README.md grep shows 9 'play' references, 0 residual 'recipe' references. core/components/plays/ grep finds no residual 'recipe' terminology. Rename is comprehensive."
+
+      - item: "Configuration syntax valid"
+        trigger: "Configuration changed — 226 YAML/YML files including core/config.yaml"
+        status: "PASS"
+        evidence: "python3 yaml.safe_load validation on core/config.yaml: VALID. Config updated with plays key replacing recipes key."
+
+      - item: "Components synced with core/components/ — run /sync-claude"
+        trigger: "143 files changed under core/components/ — sync-claude rule triggered"
+        status: "REVIEW"
+        evidence: "core/components/ has 143 changed files (plays/, agents/, skills/, memory/). /sync-claude must be run after merge to deploy to ~/.claude/ (global mode). This is a post-merge action, not a PR blocker."
+
+      - item: "No breaking changes to contracts (Output sections unchanged)"
+        trigger: "refactor: commit type — refactor-no-break rule"
+        status: "PASS"
+        evidence: "All Output sections in skill SKILL.md files verified present. This is a terminology rename only — no Output contract signatures modified. Skills still produce same artifacts with same field names."
+
+    nice_to_have:
+      - item: "Agent follows {domain}-{role} naming convention"
+        trigger: "Agent definitions changed — agent-naming rule"
+        status: "PASS"
+        evidence: "Agents follow naming pattern (code-builder, doc-builder, engineering-manager, repo-orchestrator, etc.). No agent renames in this PR — only content terminology updated."
+
+      - item: "Skill has constraints section"
+        trigger: "Skill definitions changed — skill-constraints rule"
+        status: "REVIEW"
+        evidence: "Not all skills define ## Constraints. This is a pre-existing pattern, not introduced by this refactor. Not a blocker for this rename PR."
+
+      - item: "Play respects agent call limits (L1 ≤2, L2 ≤5)"
+        trigger: "Play definitions changed — play-agent-limit rule"
+        status: "PASS"
+        evidence: "create-pr/SKILL.md classified as L2 (maturity: L2 in ## Version). Agent call limits are enforced by play logic, not by this rename refactor."
+
+      - item: "ADR follows numbering convention (NNN-*.md)"
+        trigger: "ADR docs changed — adr-numbered rule"
+        status: "PASS"
+        evidence: "ADR files follow NNN-*.md pattern: 001-three-layer-hierarchy.md, 002-l1-checkpoint-model.md, etc. No ADR renames in this PR."
+
+      - item: "Documentation includes examples"
+        trigger: "Architecture docs changed — docs-examples rule"
+        status: "PASS"
+        evidence: "docs/philosophy/ and docs/components/ files contain code blocks and examples. Refactor preserves all existing examples."
+
+      - item: "Configuration changes documented in related docs"
+        trigger: "Configuration changed — config-documented rule"
+        status: "PASS"
+        evidence: "CLAUDE.md, README.md, and docs/components/ all updated in tandem with config.yaml changes. Components key renamed from recipes to plays — documented in CLAUDE.md Architecture section."
+
+  blocking_issues: []
+
+  ready: true
+
+  summary: >
+    This is a comprehensive mechanical rename refactor — recipe→play terminology — across 705 files
+    in 10 commits. All must-have quality gates pass. No merge conflicts, no secrets, no structural
+    regressions in agent/skill/play definitions, valid YAML, consistent docs. The one REVIEW item
+    (sync-claude) is a post-merge operational step, not a PR blocker. No blocking issues identified.
+    Branch is ready for PR creation.

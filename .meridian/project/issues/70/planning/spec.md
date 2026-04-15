@@ -19,7 +19,7 @@
 
 ## Summary
 
-Meridian's LTM knowledge layer was designed for local developer machines. Per ADR 009, skills and agents resolve organizational knowledge at runtime via hardcoded `~/.meridian/core/memory/` filesystem paths. This model is fundamentally incompatible with Vercel's serverless environment: Vercel functions run in a stateless, ephemeral container where the filesystem is read-only (except `/tmp`, which is per-invocation and non-persistent), and `~/` home directory paths simply do not exist in the Lambda execution environment. Every LTM read that references `~/.meridian/core/memory/standards/commits/categories.md` will fail at runtime with `ENOENT` or `EROFS`.
+Meridian's LTM knowledge layer was designed for local developer machines. Per ADR 009, skills and agents resolve organizational knowledge at runtime via hardcoded `~/.meridian/core/memory/` filesystem paths. This model is fundamentally incompatible with Vercel's serverless environment: Vercel functions run in a stateless, ephemeral container where the filesystem is read-only (except `/tmp`, which is per-invocation and non-persistent), and `~/` home directory paths simply do not exist in the Lambda execution environment. Every LTM read that references `~/.meridian/core/memory/standards/rules/commits.md` will fail at runtime with `ENOENT` or `EROFS`.
 
 The correct resolution is an adapter pattern that introduces a `LtmBackend` interface sitting between the resolve-path convention and the actual storage mechanism. In the local runtime, the adapter resolves the path on the filesystem exactly as today. In a Vercel runtime, the adapter resolves the same logical path against Vercel Blob (object storage). The skill and agent definitions do not change — the path strings remain the stable API contract. What changes is the resolution layer that converts those path strings to bytes. This is documented as ADR 011 and does not supersede ADR 009; it extends it by adding a resolution layer.
 
@@ -58,7 +58,7 @@ ADR 009 explicitly says adopters customize LTM to teach the system their standar
 | `core/components/agents/product-strategist.md` | Agent using Glob/Grep on `knowledge/` | Update: index-first fetch strategy for Vercel context |
 | `core/components/skills/fetch-ltm/SKILL.md` | New model-invocable skill | Create: fetch LTM content from Vercel Blob by logical path |
 | `core/components/memory/standards/_index.md` | Standards index | Update: add Blob key column |
-| `core/components/memory/formats/_index.md` | Formats index | Update: add Blob key column |
+| `core/components/memory/standards/templates/_index.md` | Formats index | Update: add Blob key column |
 
 ## Technical Approach
 
@@ -68,7 +68,7 @@ The path strings in skill and agent definitions are left entirely unchanged. A r
 
 ```
 Skill or Agent holds:
-  "~/.meridian/core/memory/standards/commits/categories.md"
+  "~/.meridian/core/memory/standards/rules/commits.md"
         |
         v
   LTM Path Resolver (new, per-runtime)

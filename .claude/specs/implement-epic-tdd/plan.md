@@ -34,7 +34,7 @@
 
 | Task | What | Depends On |
 |------|------|------------|
-| T11 | `/create-play --rebake implement-epic` | T1-T10 all complete |
+| T11 | `/create-play --build implement-epic` | T1-T10 all complete |
 | T12 | `/create-play --review` | T11 |
 | T13 | `/skill-creator` review | T12 |
 

@@ -59,12 +59,37 @@ Meridian avoids both extremes:
 
 | Agent | Domain | Role | Model | Description |
 |-------|--------|------|-------|-------------|
-| `product-strategist` | product | strategist | opus | Autonomous decision-maker for product discovery, vision, roadmapping, and backlog management |
+| `feature-steward` | feature-spec | steward | opus | Autonomous owner of feature specification (features.yaml), implementation-design cross-validation, and manual test scenario generation |
 | `tech-designer` | design | designer | sonnet | Technical analysis, RCA, and solution design for features and bugs |
 | `code-builder` | implementation | builder | sonnet | Executes structured execution plans for software implementation — requires a formal plan as input. ONLY for source code files. |
 | `repo-orchestrator` | repo | orchestrator | sonnet | Autonomous decision-maker for repository operations (commits, branches, PRs, git state) |
 | `project-orchestrator` | project | orchestrator | sonnet | Autonomous decision-maker for project management operations (issues, tracking, planning) |
 | `engineering-manager` | engineering | manager | sonnet | QP compliance certifier — verifies implementation meets Quality Profile standards |
+| `scriber` | infra | evidence-writer | haiku | Utility agent. Writes evidence, checkpoint, and status artifacts to disk for plays, enforcing the `.meridian/` folder whitelist at the write boundary. Runs in the background so orchestrators can continue domain work in parallel with evidence I/O. |
+
+### Scriber dispatch pattern (Utility agent, 214.1)
+
+`scriber` is a utility agent — it performs no domain reasoning and owns no decisions about content. Plays dispatch it via the Agent tool with `run_in_background: true` for every write that lands in the `.meridian/` folder whitelist (evidence, checkpoint, status artifacts). The scriber invokes the `write-evidence` skill, which is the single chokepoint that validates paths against the 9 whitelist patterns before calling `Write`.
+
+**When to dispatch scriber instead of writing inline:**
+
+| Artifact | Writer | Rationale |
+|----------|--------|-----------|
+| Plan output (spec.md, verify.md, tasks.md) | Play (inline) | User reads immediately — synchronous |
+| Final report presented at play end | Play (inline) | User is waiting — synchronous |
+| Checkpoint file at approval gate | `scriber` | Written before the gate; gate itself is user-blocked, so background write is fine |
+| Checkpoint status updates after gate | `scriber` | Non-blocking status updates as the play progresses |
+| Evidence files (step evals, scenario evals, traces) | `scriber` | Accumulated during play run; not user-facing until review |
+| Status / resume-state files | `scriber` | Written continuously during play execution |
+| Self-commit prep (files to stage) | Play (inline) | Orchestrator needs the paths in the same step |
+
+**Rule of thumb:** if the orchestrator reads the file back in the same step, it writes inline. If the file is for later consumption (user review, resume, audit), it goes through scriber.
+
+**Non-blocking guarantees:** scriber runs with `run_in_background: true`. Plays do NOT wait for scriber to finish before continuing. At play shutdown, the orchestrator briefly waits for any outstanding scriber tasks to complete (bounded wait) and then stages the scriber-written files for the self-commit step.
+
+**Failure semantics:** scriber failure never halts a play. Evidence writes are non-critical by definition. On failure, the orchestrator logs a warning and continues. Exception: if a specific evidence write is required for a downstream step (e.g., self-commit), that specific write is blocking and scriber is awaited synchronously for that call.
+
+**Reference adopter:** the `commit-code` play's `intent.yaml` carries constraint C8 that delegates evidence writes to scriber. This is the first play to adopt the pattern. Future plays (`specify-product`, `design-exp`, `build-arch`) ship with scriber dispatch built in from the start.
 
 ## Agent Behavior
 
@@ -96,23 +121,21 @@ The agent's entire response is ONE JSON object. No prose, no YAML blocks, no val
 
 ```json
 {
-  "intent_path": "reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
-  "slug": "chronos",
+  "intent_path": "core/components/plays/prepare-implementation/reference/intent.yaml",
+  "stm_base": ".meridian/project/issues/",
   "stm": {
-    "vision_path": ".meridian/project/product/chronos/vision.md",
-    "epics_path": ".meridian/project/product/chronos/epics.yaml",
-    "feasibility_path": null,
-    "brief_path": null,
-    "approved_brief_path": null,
-    "roadmap_path": null,
-    "engineering_view_path": null
+    "input": {
+      "features_yaml_path": ".meridian/project/issues/42/specs/features.yaml"
+    },
+    "output": {
+      "technical_approach_path": ".meridian/project/issues/42/specs/technical-approach.md",
+      "tech_yaml_path": ".meridian/project/issues/42/specs/tech.yaml"
+    }
   },
-  "checkpoints": [{ "name": "brief_review", "status": "pending" }],
-  "evidence": [{ "name": "plan-roadmap", "location": null }],
+  "task_id": "draft-tech-context",
   "notes": [
-    "5 epics derived — all trace to distinct strategic goals",
-    "E2 depends on E1 foundation investment — sequencing constraint"
+    "Two competing framework options surfaced — chose the one matching existing LTM conventions",
+    "Blast radius limited to two modules — documented in features.blast_radius"
   ],
   "step_failure": null
 }
@@ -135,25 +158,24 @@ Each agent defines skill-specific return formats in its Output Contracts section
 
 Each agent owns a set of skills. Agents invoke skills via the **Skill tool** provided by Claude Code. Agents are the only callers of those skills within their domain. The agent's skill pool table documents which skills it owns and when to use each.
 
-### product-strategist Skill Pool
+### feature-steward Skill Pool
 
 | Skill | Purpose |
 |-------|---------|
-| `discover-product-opportunity` | Parse problem/idea, extract market context |
-| `draft-product-vision` | Create vision.md with Strategic Goals |
-| `validate-product-vision` | Check vision completeness before lock |
-| `generate-business-review` | PM-facing business review from any product artifact |
-| `research-domain-context` | Research vertical domain knowledge via web when LTM is insufficient |
-| `scope-roadmap-epics` | Extract epics from locked vision, scope into time buckets and priorities |
-| `draft-roadmap-brief` | Generate lightweight review brief — bound by brief constraints |
-| `draft-roadmap` | Generate full agentic roadmap.md post-Tether |
-| `generate-engineering-view` | Engineering-facing roadmap view — no business content |
+| `draft-product-spec` | Create `features.yaml` defining product behaviors, invariants, scope boundaries, and acceptance criteria (implementation-agnostic) |
+| `draft-verification-scenarios` | Create verification scenarios with pass/fail criteria and automation classification |
+| `validate-implementation-design` | Cross-validate `prepare-implementation` artifacts for coverage, compartmentalization, audience separation |
+
+In addition to these skills, `feature-steward` owns a direct role in `implement-epic` — the Scenario Writer role — which generates manual test scenarios from feature success scenarios plus the deployed URL. No skill is invoked for that role; the agent produces the scenarios directly.
 
 ### tech-designer Skill Pool
 
 | Skill | Purpose |
 |-------|---------|
-| `assess-feasibility` | Assess technical feasibility of scoped epics — invoked when `stm.feasibility_path` is null and `stm.epics_path` is non-null |
+| `draft-technical-approach` | Draft technical approach document from features specification |
+| `draft-lld` | Draft low-level design from features + technical approach |
+| `research-domain-context` | Research vertical domain knowledge via web when LTM is insufficient |
+| `draft-implementation-plan` | Produce execution plan with scope items, file paths, and exit gates |
 
 For direct invocations (no JSON contract), tech-designer performs RCA and feature analysis directly using its tools rather than via skills.
 
@@ -255,7 +277,7 @@ Play → invokes → Agent → uses → Skills
 ## Context Building
 
 Agents build context by:
-1. Reading `core/config.yaml` for platform paths and settings
+1. Reading `.meridian/core/config.yaml` for platform paths and settings
 2. Reading intent.yaml from the JSON contract (when in contract mode)
 3. Searching LTM (`~/.meridian/core/memory/`) selectively — by domain keywords, not bulk loading
 4. Reading existing STM artifacts at non-null `stm` paths

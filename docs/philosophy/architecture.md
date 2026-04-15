@@ -38,7 +38,7 @@ Meridian implements Intent-Driven Software Development through a **three-layer h
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                        MEMORY                               │
-│  LTM: Practices, config (core/memory/, core/config.yaml)    │
+│  LTM: Practices, config (core/memory/, .meridian/core/config.yaml)    │
 │  STM: Artifacts per issue (.meridian/{issue}/)              │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -285,7 +285,7 @@ Prompt Crafting is how the play communicates with agents. The rule: the JSON con
 
 ```
 WRONG:
-  "You are the product-strategist agent. Your task is to scope epics.
+  "You are the feature-steward agent. Your task is to scope epics.
    Rules: [list of rules]
    {JSON contract here}"
 

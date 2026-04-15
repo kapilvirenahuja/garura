@@ -65,13 +65,13 @@ module_structure:
     subdirectories:
       - path: "memory/standards/"
         role: "Rules and conventions: agent-contract schema, git/commit standards, resolution protocol (R1-R4), epic management rules, knowledge file template"
-      - path: "memory/knowledge/architecture/"
+      - path: "memory/knowledge/arch/"
         role: "Architecture reference: patterns (modular-monolith, microservices, event-driven, CQRS, serverless, evolutionary-scaling), stacks (React/Next.js, Python/FastAPI, Node.js, Go, Java/Spring, .NET, Vue, Angular, Flutter, React Native), platforms (AWS, GCP, Azure, Vercel, Railway, self-hosted), data (relational, NoSQL, vector, messaging, search), operations (CI/CD, containers, observability, IaC, security), agentic (RAG-vector, RAG-graph, RAG-hybrid, agent-orchestration, LLM-infrastructure)"
-      - path: "memory/knowledge/domain-taxonomy/"
+      - path: "memory/knowledge/domain/"
         role: "Domain module taxonomy (commerce, payments, search, user-management, personalization)"
-      - path: "memory/knowledge/project-profiling/"
+      - path: "memory/knowledge/product/"
         role: "Three-axis profiling templates (PP, NFR, QP)"
-      - path: "memory/formats/"
+      - path: "memory/standards/templates/"
         role: "Output format references (GitHub issue format, brief principles)"
 
   - path: "core/"
@@ -135,7 +135,7 @@ design_patterns:
     authority: "Multiple ADRs, product-strategist, tech-designer"
 
   - pattern: "LTM Resolution Protocol (R1-R4 Hierarchy)"
-    location: "core/components/memory/standards/resolution-protocol.md; participating agents: tech-designer, product-strategist, repo-orchestrator, tech-architect"
+    location: "core/components/memory/standards/rules/resolution.md; participating agents: tech-designer, product-strategist, repo-orchestrator, tech-architect"
     evidence: "ADR-015. When ltm_context is in input contract, agents resolve domain decisions through 3 layers: Layer 1 = project LTM (.meridian/product/ LOCKED artifacts), Layer 2 = core LTM (~/.meridian/core/memory/), Layer 3 = LLM reasoning (flagged). Every resolved decision written to resolution-trace.yaml in STM. Backward compatible: absent ltm_context = skip entirely."
     authority: "ADR-015, resolution-protocol.md"
 

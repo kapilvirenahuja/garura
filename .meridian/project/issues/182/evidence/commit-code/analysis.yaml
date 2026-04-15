@@ -9,9 +9,9 @@ changeset:
       description: "Add resolution-protocol.md and knowledge-file-template.md — new LTM standards defining the R1-R4 resolution hierarchy and canonical knowledge file format"
       risk: low
       files:
-        - path: "core/components/memory/standards/resolution-protocol.md"
+        - path: "core/components/memory/standards/rules/resolution.md"
           status: new
-        - path: "core/components/memory/standards/knowledge-file-template.md"
+        - path: "core/components/memory/standards/templates/knowledge-file.md"
           status: new
         - path: "core/components/memory/standards/_index.md"
           status: modified

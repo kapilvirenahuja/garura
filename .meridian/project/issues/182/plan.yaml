@@ -46,7 +46,7 @@ execution_order:
     scope_items:
       - description: "Define R1-R4 protocol, resolution trace schema, not-found semantics, conflict resolution, context-isolation exemptions, backward-compatibility guarantee"
         key_files:
-          - path: "core/components/memory/standards/resolution-protocol.md"
+          - path: "core/components/memory/standards/rules/resolution.md"
             action: new
           - path: "core/components/memory/standards/_index.md"
             action: modify
@@ -63,7 +63,7 @@ execution_order:
     scope_items:
       - description: "Define Tier 1/Tier 2 metadata, decay rules, naming convention, discoverability, index registration convention, grandfathering rule"
         key_files:
-          - path: "core/components/memory/standards/knowledge-file-template.md"
+          - path: "core/components/memory/standards/templates/knowledge-file.md"
             action: new
           - path: "core/components/memory/standards/_index.md"
             action: modify

@@ -51,7 +51,7 @@ analysis:
         item: "Components synced with core/components/"
         trigger: "54 files changed under core/components/memory/ — sync-required rule triggered"
         status: REVIEW
-        evidence: "54 files changed in core/components/memory/knowledge/ and core/components/memory/standards/. Run /sync-claude after merge to deploy updated memory to ~/.meridian/core/memory/ and ~/.claude/. Verify with: ls ~/.meridian/core/memory/knowledge/domain-taxonomy/ && ls ~/.meridian/core/memory/knowledge/architecture/"
+        evidence: "54 files changed in core/components/memory/knowledge/ and core/components/memory/standards/. Run /sync-claude after merge to deploy updated memory to ~/.meridian/core/memory/ and ~/.claude/. Verify with: ls ~/.meridian/core/memory/knowledge/domain/ && ls ~/.meridian/core/memory/knowledge/arch/"
 
       - id: config-valid
         item: "Configuration syntax valid (YAML files)"
@@ -76,7 +76,7 @@ analysis:
         item: "Configuration changes documented"
         trigger: ".gitignore change — config documentation rule triggered"
         status: PASS
-        evidence: ".gitignore updated with '!core/components/memory/knowledge/architecture/data/' negation pattern to allow architecture/data/ knowledge files to be tracked despite the data/ ignore rule. Purpose is self-evident from the exception pattern."
+        evidence: ".gitignore updated with '!core/components/memory/knowledge/arch/data/' negation pattern to allow architecture/data/ knowledge files to be tracked despite the data/ ignore rule. Purpose is self-evident from the exception pattern."
 
   blocking_issues: []
 

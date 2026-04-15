@@ -1,0 +1,349 @@
+# Screen Inventory Schema — Canonical Contract
+#
+# This is the shape of a single screen inventory entry — one file per screen,
+# the output of /design-exp's screen-inventory generation step. Every screen
+# produced by the pipeline must conform.
+#
+# ──────────────────────────────────────────────────────────────────────────
+# FILE FORMAT — Markdown with structured sections
+# ──────────────────────────────────────────────────────────────────────────
+#
+# Per user directive 2026-04-14, screens and wireframes are authored as
+# Markdown files (.md), NOT YAML. Each `screens/{screen-id}.md` file carries
+# the schema fields below as Markdown sections. Frontmatter holds identity
+# (id, capabilities (list), name, optional capability_classification). Body
+# holds the structured sections.
+#
+# Visual-first section order (2026-04-15 structural change):
+# `## Wireframe` (Unicode/ASCII per state) is the FIRST body section after
+# the H1, BEFORE any prose annotation. Rationale: a human opening a screen
+# file should SEE the layout at a glance before reading any prose. The
+# detailed layout spec (component inventory, layout pattern, per-state spec,
+# interaction patterns, data binding) is appended as `## Layout Spec` at the
+# BOTTOM of the file. The middle (Purpose, Personas, States, Navigation,
+# Accessibility) holds the annotation that contextualizes both surfaces.
+#
+# Section order (required):
+#   1. ## Wireframe        — visual, emitted/filled by generate-wireframes (Stage 4)
+#   2. ## Purpose
+#   3. ## Personas
+#   4. ## States
+#   5. ## Navigation
+#   6. ## Accessibility
+#   7. ## Layout Spec      — machine-spec, appended by generate-wireframes (Stage 4)
+#
+# Example file layout:
+#
+#   ---
+#   id: SCR-user-login-primary
+#   capabilities:
+#     - UM-F001
+#   name: Login
+#   capability_classification: user_surface
+#   ---
+#
+#   # Login
+#
+#   ## Wireframe
+#
+#   ### State: default
+#
+#   ```text
+#   ┌──────────────────────────────────────────────┐
+#   │                                              │
+#   │                   LOGIN                      │
+#   │                                              │
+#   │        ┌──────────────────────────┐          │
+#   │        │ Email                    │          │
+#   │        │ ┌──────────────────────┐ │          │
+#   │        │ │ you@example.com      │ │          │
+#   │        │ └──────────────────────┘ │          │
+#   │        │                          │          │
+#   │        │ Password                 │          │
+#   │        │ ┌──────────────────────┐ │          │
+#   │        │ │ ••••••••             │ │          │
+#   │        │ └──────────────────────┘ │          │
+#   │        │                          │          │
+#   │        │ ┌──────────────────────┐ │          │
+#   │        │ │    Sign in       →   │ │          │
+#   │        │ └──────────────────────┘ │          │
+#   │        │                          │          │
+#   │        │ Forgot your password?    │          │
+#   │        │ Create an account        │          │
+#   │        └──────────────────────────┘          │
+#   │                                              │
+#   └──────────────────────────────────────────────┘
+#   ```
+#   Layout: centered-card    Viewport: desktop ≥1024
+#
+#   ### State: loading
+#   ```text
+#   ...
+#   ```
+#   State: loading   Components: progress-spinner, disabled-submit
+#
+#   ### State: error
+#   ```text
+#   ...
+#   ```
+#   State: error-bad-credentials   Recovery: retry or forgot-password
+#
+#   ## Purpose
+#   <string — required>
+#
+#   ## Personas
+#   - end-user
+#   - admin
+#
+#   ## States
+#
+#   ### default
+#   - Description: Ready for credential input
+#   - Layout: centered-card
+#   - Data: []
+#   - Actions: submit-credentials, forgot-password, register
+#   - Components:
+#     - email-input
+#     - password-input (with show/hide toggle)
+#     - remember-me-checkbox
+#     - submit-button
+#     - forgot-password-link
+#     - register-link
+#
+#   ### loading
+#   - Description: Initial page load, checking for existing session
+#   - Data: []
+#   - Actions: []
+#
+#   ### error
+#   - Description: Invalid credentials submitted
+#   - Data: []
+#   - Actions: retry, forgot-password
+#   - Behavior: Inline error above form. Do NOT reveal whether email exists.
+#
+#   ## Navigation
+#   - Entry points: direct-url, session-expired-redirect, register-success
+#   - Exit points:
+#     - success: dashboard
+#     - forgot_password: password-reset
+#     - register: registration
+#
+#   ## Accessibility
+#   - WCAG 2.1 AA minimum
+#   - Keyboard navigation through all form fields
+#   - Screen reader announcements for validation errors
+#
+#   ## Layout Spec
+#   <detailed machine-parseable spec appended by generate-wireframes —
+#    layout pattern, component inventory, per-state layout details,
+#    interaction patterns, data binding, accessibility wireframe notes>
+#
+# The schema below defines the DATA shape. The file is MD; the validators
+# parse these sections. YAML-like lists and key-value pairs inside sections
+# use Markdown bullets and indentation, not YAML.
+#
+# ──────────────────────────────────────────────────────────────────────────
+#
+# Enforcement: validate-screen-coverage skill (built in 214.6) is a blocking
+# validator. It refuses to write screens that violate this schema. It also
+# enforces cross-screen rules: every capability maps to ≥1 screen; every
+# success_scenario has a flow; every failure_scenario has a recovery flow.
+
+# ──────────────────────────────────────────────────────────────────────────
+# Identity
+# ──────────────────────────────────────────────────────────────────────────
+
+id: <string>                           # Unique screen ID: "SCR-{domain}-{capability}-{name}"
+                                       # Example: "SCR-user-login-primary"
+                                       # Required. Unique across all screens in a product.
+
+capabilities:                          # REQUIRED. YAML list with minimum 1 entry.
+  - <string>                           # Feature ID(s) from domain-taxonomy
+                                       # Example: "UM-F001"
+                                       # Each entry must match a real feature ID.
+                                       #
+                                       # Screens that legitimately exercise multiple
+                                       # capabilities (e.g., an account-setup screen
+                                       # exercising UM-F001 + UM-F002 + UM-F003) MUST
+                                       # list all of them — do NOT collapse to a single
+                                       # "primary" capability. The coverage rule
+                                       # computes its union across all screen files.
+                                       #
+                                       # A scalar `capability:` field (the legacy
+                                       # shape) is a blocking violation. Always use
+                                       # the `capabilities:` list form.
+
+name: <string>                         # Human-readable screen name
+                                       # Example: "Login" | "Password Reset" | "Dashboard"
+
+capability_classification: <string>    # OPTIONAL. One of:
+                                       #   user_surface (default) — a screen a real
+                                       #     end user interacts with; participates in
+                                       #     the capability-coverage rule.
+                                       #   substrate — a technical-surface screen
+                                       #     (healthcheck UI, debug console, system
+                                       #     dashboard). Exempt from the user-surface
+                                       #     coverage rule.
+                                       #   admin_only — an admin-console screen that
+                                       #     real end users never see. Also exempt
+                                       #     from user-surface coverage.
+                                       #
+                                       # The capability-coverage rule (enforced by
+                                       # validate-screen-coverage) fires ONLY against
+                                       # user_surface capabilities — substrate and
+                                       # admin_only screens still run every per-screen
+                                       # check but do not count toward coverage of
+                                       # user-facing scope.
+
+purpose: <string>                      # REQUIRED. One sentence explaining what this
+                                       # screen is for, from the user's perspective.
+                                       # Example: "Authenticate existing users and
+                                       # route them to their dashboard."
+
+# ──────────────────────────────────────────────────────────────────────────
+# Personas — who uses this screen
+# ──────────────────────────────────────────────────────────────────────────
+
+personas:                              # REQUIRED. Minimum 1 entry.
+  - <string>                           # JTBD persona identifier from personas.md
+                                       # produced in design-exp stage 1.
+                                       # Example: "end-user" | "admin" | "support"
+
+# ──────────────────────────────────────────────────────────────────────────
+# States — the screen across its lifecycle
+# ──────────────────────────────────────────────────────────────────────────
+
+states:                                # REQUIRED. Minimum 3 entries.
+                                       # At least: default, loading (or initial),
+                                       # error. Additional states (empty, success,
+                                       # partial, lockout, etc.) are allowed.
+  default:                             # The "normal" state of the screen
+    description: <string>              # What the user sees when all is well
+    data: [<string>]                   # List of data elements shown
+    actions: [<string>]                # List of interactive elements (buttons, links)
+    layout: <string>                   # Coarse layout hint (e.g. "centered-card",
+                                       # "two-column", "sidebar-content")
+    components:                        # List of reusable UI components
+      - <string>                       # Example: "email-input", "password-input
+                                       # (with show/hide toggle)", "submit-button"
+
+  loading:                             # The state while data is being fetched
+    description: <string>
+    data: [<string>]                   # Typically empty list
+    actions: [<string>]                # Typically empty list
+
+  error:                               # The state when something has gone wrong
+    description: <string>
+    data: [<string>]                   # Error message, retry context
+    actions: [<string>]                # Retry, contact support, go back
+    behavior: <string>                 # Describes how the error is surfaced
+                                       # (inline message, toast, full-page takeover)
+
+  # Additional states — any of these are permitted as needed:
+  # empty:        <description + how to guide the user to populate>
+  # populated:    <description + data/actions for the rich state>
+  # success:      <description + confirmation state after a completed action>
+  # lockout:      <description + what the user can do while locked out>
+  # mfa_challenge: <description + MFA flow state>
+  # Each additional state follows the same sub-shape as above.
+
+# ──────────────────────────────────────────────────────────────────────────
+# Navigation — how users get in and out
+# ──────────────────────────────────────────────────────────────────────────
+
+navigation:                            # REQUIRED.
+  entry_points:                        # REQUIRED. Minimum 1 entry.
+    - <string>                         # How a user lands on this screen
+                                       # Example: "direct-url", "session-expired-redirect"
+
+  exit_points:                         # REQUIRED. Key outcomes lead to named screens.
+    success: <string>                  # Where the user goes after a successful action
+                                       # Example: "dashboard"
+    # Additional named exit keys as needed:
+    # forgot_password: <destination>
+    # register: <destination>
+    # cancel: <destination>
+
+# ──────────────────────────────────────────────────────────────────────────
+# Accessibility — required per interactive screen
+# ──────────────────────────────────────────────────────────────────────────
+
+accessibility:                         # REQUIRED. Minimum 1 entry per interactive
+  - <string>                           # screen. Each entry is a specific requirement
+                                       # or control.
+                                       # Example: "WCAG 2.1 AA minimum"
+                                       # "Keyboard-navigable through all form fields"
+                                       # "Screen reader announcements on validation
+                                       # errors"
+
+# ──────────────────────────────────────────────────────────────────────────
+# Validation rules (enforced by validate-screen-coverage skill, 214.6 T33)
+# ──────────────────────────────────────────────────────────────────────────
+#
+# validate-screen-coverage enforces:
+#
+# Per-screen rules:
+#   1. MANDATORY FIELDS present and non-empty:
+#      id, capabilities (list, ≥1 entries), name, purpose, personas (≥1),
+#      states (≥3 entries), navigation.entry_points (≥1),
+#      navigation.exit_points (at least success), accessibility (≥1).
+#      A scalar `capability:` field is a legacy_singular_capability violation.
+#
+#   2. STATE COVERAGE:
+#      states must include AT LEAST 3 distinct state keys.
+#      The 3 minimum may be drawn from: {default, loading, error, empty,
+#      populated, success, lockout, mfa_challenge, ...}. The names matter;
+#      "default + foo + bar" is fine as long as at least one of them is an
+#      error-adjacent state (error / lockout / timeout).
+#
+#   3. LAYOUT SPECIFICITY:
+#      states.default.layout must not be a vague phrase like "generic layout"
+#      or "a form". It must be one of the named layout hints or a specific
+#      composition description.
+#
+#   4. TRACEABILITY:
+#      Every entry in a screen's `capabilities` list must exist as a feature
+#      ID in the referenced domain file under
+#      core/components/memory/knowledge/domain/{domain}.md. Dangling entries
+#      produce a `dangling_capability` violation.
+#
+#   5. CLASSIFICATION VALIDITY:
+#      If `capability_classification` is present, its value must be one of
+#      `user_surface`, `substrate`, `admin_only`. Anything else is a
+#      `bad_capability_classification` violation. Absent defaults to
+#      `user_surface`.
+#
+# Cross-screen rules (computed across all screens in an inventory):
+#
+#   6. CAPABILITY COVERAGE (user_surface only):
+#      Every user_surface capability selected by specify-product must appear
+#      in the UNION of every screen file's `capabilities` list. Multi-capability
+#      screens contribute every entry to the union. Screens marked
+#      `capability_classification: substrate | admin_only` still contribute
+#      their entries to the union for traceability but are exempt from being
+#      the REQUIRED carrier of user-facing coverage. If a user-surface
+#      capability is not covered, the validator emits an `orphan_capability`
+#      violation.
+#
+#   7. SCENARIO COVERAGE:
+#      Every success_scenario from every intent epic must have AT LEAST one
+#      user flow (flows/*.md) that references a screen from this inventory.
+#      Every failure_scenario must have a recovery flow. Validator mode:
+#      `strict` (default) flips overall status on any orphan scenario;
+#      `partial` reports orphans in `orphan_scenarios_in_partial` without
+#      flipping status. Use `partial` ONLY for iterative/test runs.
+#
+#   8. ACCESSIBILITY COVERAGE:
+#      Every screen with at least one action in its default state must have
+#      accessibility entries. Read-only screens (all states have empty actions
+#      lists) may skip.
+#
+# On any violation, validate-screen-coverage returns a structured failure with
+# per-screen error messages. The calling play (design-exp) halts and cycles
+# back to generate-screen-inventory with the error context.
+
+# Related:
+# - docs/adr/017-folder-whitelist.md (ADR that motivates the new schemas)
+# - core/components/memory/standards/schemas/intent-epic.yaml (upstream spec)
+# - core/components/memory/standards/rules/kb-extension.md (KB file structure)
+# - core/components/plays/design-exp/ (consumer — built in 214.6)

@@ -122,9 +122,9 @@ groups:
         change: "new docs/design/ directory with briefs.md (from brief-principles.md)"
       - path: "core/components/plays/briefs/templates/"
         change: "new templates/ under briefs play — all HTML/CSS/JS templates moved here"
-      - path: "core/components/memory/standards/intent-schema.yaml"
+      - path: "core/components/memory/standards/schemas/intent.yaml"
         change: "canonical intent-schema.yaml now at standards root (moved out of standards/templates/)"
-      - path: "core/components/memory/standards/git/pr-severity-taxonomy.md"
+      - path: "core/components/memory/standards/rules/pr.md"
         change: "new PR severity taxonomy standard (P1-P4 mechanical rules) for review-pr/quality-check-scoped"
       # Index and agent reference updates
       - path: "core/components/memory/standards/_index.md"

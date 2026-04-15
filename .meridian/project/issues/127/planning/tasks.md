@@ -22,7 +22,7 @@ All ──→ Verification
 ## Task Breakdown
 
 ### T1: Create `knowledge/domain-taxonomy/_index.md`
-- **Files:** `core/components/memory/knowledge/domain-taxonomy/_index.md` → create
+- **Files:** `core/components/memory/knowledge/domain/_index.md` → create
 - **Details:** Catalog file covering:
   - Purpose: module-feature taxonomy where each feature carries semantic context for agent reasoning
   - Contents table: 5 module `.md` files with module name, feature count, search patterns
@@ -39,7 +39,7 @@ All ──→ Verification
 - **Verification:** All 5 modules mentioned; all 4 semantic sections documented
 
 ### T2: Create `knowledge/domain-taxonomy/user-management.md`
-- **Files:** `core/components/memory/knowledge/domain-taxonomy/user-management.md` → create
+- **Files:** `core/components/memory/knowledge/domain/user-management.md` → create
 - **Details:** Module file with 8 semantically rich features. Format:
 
   ```markdown
@@ -98,7 +98,7 @@ All ──→ Verification
 - **Verification:** Grep for all 4 section headings per feature; count features >= 5
 
 ### T3: Create `knowledge/domain-taxonomy/payments.md`
-- **Files:** `core/components/memory/knowledge/domain-taxonomy/payments.md` → create
+- **Files:** `core/components/memory/knowledge/domain/payments.md` → create
 - **Details:** Same format. Features (7):
   - PM-F001: Payment Processing (cards, bank transfer)
   - PM-F002: Checkout / Payment UX
@@ -114,7 +114,7 @@ All ──→ Verification
 - **Verification:** All features have 4 sections; PM-F003 references industry/risk context
 
 ### T4: Create `knowledge/domain-taxonomy/commerce.md`
-- **Files:** `core/components/memory/knowledge/domain-taxonomy/commerce.md` → create
+- **Files:** `core/components/memory/knowledge/domain/commerce.md` → create
 - **Details:** Same format. Features (8):
   - CM-F001: Product Catalog
   - CM-F002: Shopping Cart
@@ -129,7 +129,7 @@ All ──→ Verification
 - **Verification:** All features have 4 sections
 
 ### T5: Create `knowledge/domain-taxonomy/search.md`
-- **Files:** `core/components/memory/knowledge/domain-taxonomy/search.md` → create
+- **Files:** `core/components/memory/knowledge/domain/search.md` → create
 - **Details:** Same format. Features (5):
   - SR-F001: Full-Text Search
   - SR-F002: Faceted Filtering
@@ -143,7 +143,7 @@ All ──→ Verification
 - **Verification:** SR-F001 depth spectrum has at least 4 levels
 
 ### T6: Create `knowledge/domain-taxonomy/personalization.md`
-- **Files:** `core/components/memory/knowledge/domain-taxonomy/personalization.md` → create
+- **Files:** `core/components/memory/knowledge/domain/personalization.md` → create
 - **Details:** Same format. Features (6):
   - PS-F001: Basic Recommendations (rule-based)
   - PS-F002: ML-Based Recommendations
@@ -156,7 +156,7 @@ All ──→ Verification
 - **Verification:** All features have 4 sections
 
 ### T7: Create `knowledge/project-profiling/_index.md`
-- **Files:** `core/components/memory/knowledge/project-profiling/_index.md` → create
+- **Files:** `core/components/memory/knowledge/product/_index.md` → create
 - **Details:** Catalog file covering:
   - Purpose: two-axis profiling — Product Profile + NFR Profile
   - Contents: `product-profile.md` and `nfr-profile.md`
@@ -170,7 +170,7 @@ All ──→ Verification
 - **Verification:** Both filenames mentioned; flow section exists
 
 ### T8: Create `knowledge/project-profiling/product-profile.md`
-- **Files:** `core/components/memory/knowledge/project-profiling/product-profile.md` → create
+- **Files:** `core/components/memory/knowledge/product/product-profile.md` → create
 - **Details:** 7 dimensions x 5 levels in Markdown. Format:
 
   ```markdown
@@ -213,7 +213,7 @@ All ──→ Verification
 - **Verification:** All PP-1 through PP-7 present; level tables have 5 rows each; NFR guidance exists
 
 ### T9: Create `knowledge/project-profiling/nfr-profile.md`
-- **Files:** `core/components/memory/knowledge/project-profiling/nfr-profile.md` → create
+- **Files:** `core/components/memory/knowledge/product/nfr-profile.md` → create
 - **Details:** 7 NFR dimensions x 5 levels (extensible). Same table format. Dimensions:
   - NFR-1: Risk (Low → Critical)
   - NFR-2: Security (Consumer Basic → BFSI Grade)

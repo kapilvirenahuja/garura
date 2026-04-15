@@ -1,0 +1,12 @@
+readiness:
+  pr_number: 213
+  pr_title: "refactor: rename 'recipes' to 'plays' across the entire codebase (#212)"
+  pr_state: OPEN
+  mergeable: MERGEABLE
+  head_branch: refactor/212-rename-recipes-to-plays
+  base_branch: main
+  pr_url: https://github.com/kapilvirenahuja/meridian-os/pull/213
+  working_tree_clean: true
+  working_tree_notes: "Untracked STM files only — no staged or unstaged changes"
+  verdict: READY
+  checked_at: "2026-04-13"

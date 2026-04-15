@@ -108,9 +108,10 @@ In Available Skills "Used By" column, use full play names.
 2. **Assess Confidence** — If domain classification is high-confidence (clear industry markers, specific user types), proceed without confirmation. If ambiguous, return `domain_clarification_needed` structured response to play with top 2-3 candidate domains.
 
 3. **Selective LTM Search** — Search `~/.meridian/core/memory/` using Glob/Grep for domain-relevant content:
-   - `memory/standards/` — always load (formatting, quality rules)
+   - `memory/standards/rules/` — always load (rules for every domain surface)
+   - `memory/standards/schemas/` — load when writing YAML artifacts
+   - `memory/standards/templates/` — load relevant output templates
    - `memory/knowledge/{domain}/` — load if domain directory exists
-   - `memory/formats/` — load relevant output templates
    Do NOT bulk-load. Search, filter, load relevant files only.
 
 4. **Evaluate LTM Sufficiency** — After loading, assess: Does loaded LTM provide enough domain context for the requested skill? If coverage is thin or absent:

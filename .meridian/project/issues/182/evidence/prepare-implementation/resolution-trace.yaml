@@ -80,7 +80,7 @@ resolution_trace:
 
   - decision: "What is the boundary between play orchestrator and agent specialist responsibilities?"
     resolved_from: "core"
-    source: "~/.meridian/core/memory/knowledge/architecture/agentic/agent-orchestration.md"
+    source: "~/.meridian/core/memory/knowledge/arch/agentic/agent-orchestration.md"
     section: "Key Components"
     authority: "draft"
     value: "Core LTM provided general multi-agent orchestration patterns (coordinator/specialist separation, tool delegation). Extended for Meridian: play owns workflow (step ordering, checkpoints, evidence). Agent owns domain decisions (context engineering, skill selection, constraint application). Play never does agent work; agent never orchestrates multi-step workflows."

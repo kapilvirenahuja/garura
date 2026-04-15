@@ -196,7 +196,7 @@ R4: No answer from R2/R3
 Output: resolution-trace.yaml to STM
 ```
 
-**Evidence:** `core/components/memory/standards/resolution-protocol.md`, `docs/adr/015-ltm-resolution-protocol.md`, agent definitions for tech-designer/product-strategist/repo-orchestrator.
+**Evidence:** `core/components/memory/standards/rules/resolution.md`, `docs/adr/015-ltm-resolution-protocol.md`, agent definitions for tech-designer/product-strategist/repo-orchestrator.
 
 ### 5. Scenario Compartmentalization
 

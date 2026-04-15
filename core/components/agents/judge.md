@@ -80,7 +80,7 @@ Given an input artifact path and an output artifact path, YOU:
 - Query APIs (Supabase REST, deployed endpoints) to verify live behavior
 - Search code with grep/glob for pattern verification
 - Use WebFetch to test deployed URLs
-- Invoke validation skills (validate-product-vision, validate-roadmap, validate-architecture-design) via Skill tool
+- Invoke validation skills via Skill tool when dispatched in Mode 2
 - Produce per-eval PASS/FAIL with evidence
 - Clean up decrypted plaintext after evaluation
 
@@ -106,9 +106,8 @@ Given an input artifact path and an output artifact path, YOU:
 
 | Skill | Purpose |
 |-------|---------|
-| `validate-product-vision` | Validate product.yaml structural completeness and readiness to lock |
-| `validate-roadmap` | Validate roadmap.yaml structural completeness and readiness to lock |
-| `validate-architecture-design` | Validate architecture.yaml + quality-standards.yaml structural completeness and readiness to lock |
+
+Mode-2 validation skills are assigned per-play at dispatch time via the `validation_skill` field of the input contract. The caller supplies the skill name and the artifact paths.
 
 ## Input Contract (Mode 1 — Implementation Evaluation)
 
@@ -159,7 +158,7 @@ Given an input artifact path and an output artifact path, YOU:
 ```json
 {
   "mode": "validate-artifact",
-  "validation_skill": "validate-product-vision | validate-roadmap | validate-architecture-design",
+  "validation_skill": "<skill-name supplied by the calling play>",
   "artifact_paths": {
     "product_yaml_path": "<path>",
     "roadmap_yaml_path": "<path>",

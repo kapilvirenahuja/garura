@@ -14,7 +14,7 @@ Multiple plays hardcode `.meridian/` directory paths in their pre-flight bash sn
 ### Specific issues
 
 **1. Config path resolution**
-- Plays reference `core/config.yaml` but the actual location is `.meridian/core/config.yaml`
+- Plays reference `.meridian/core/config.yaml` but the actual location is `.meridian/core/config.yaml`
 - No play reads a `product.base-path` from config — `product_base` is hardcoded
 
 **2. Product base path hardcoded**
@@ -27,7 +27,7 @@ Multiple plays hardcode `.meridian/` directory paths in their pre-flight bash sn
 - Phoenix uses a flat layout: `architecture.yaml` and `epics/{id}/` directly under the product base — no `architecture/` or `roadmap/` subdirectories
 
 **4. STM base path**
-- `start-feature` greps `core/config.yaml` for `stm.base-path` — correct approach, but the config file path itself is wrong (should be `.meridian/core/config.yaml`)
+- `start-feature` greps `.meridian/core/config.yaml` for `stm.base-path` — correct approach, but the config file path itself is wrong (should be `.meridian/core/config.yaml`)
 
 ### Expected behavior
 

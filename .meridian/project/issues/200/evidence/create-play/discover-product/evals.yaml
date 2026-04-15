@@ -191,7 +191,7 @@ step_evals:
       Profiles are derived from canonical LTM definitions in PP -> NFR -> QP cascade.
     pass: >
       Step 3 contract includes config.profile_knowledge_path pointing at
-      ~/.meridian/core/memory/knowledge/project-profiling/. product.yaml
+      ~/.meridian/core/memory/knowledge/product/. product.yaml
       profiles.product_profile keys are pp1_user_sophistication .. pp7_industry_vertical,
       profiles.nfr_profile keys are nfr1_risk .. nfr7_data_sensitivity, and
       profiles.quality_profile keys are qp1_testing_depth .. qp7_security_testing.

@@ -197,7 +197,7 @@ Feature 3 codifies them.
 | Task | File | Content |
 |------|------|---------|
 | T-003-1 | memory/standards/play-dependency-protocol.md | NEW — hard-halt vs soft-degrade rules, authority hierarchy, checkpoint messaging |
-| T-003-2 | memory/standards/resolution-protocol.md | EXTEND — document C23 as play-level R1-R4 parallel |
+| T-003-2 | memory/standards/rules/resolution.md | EXTEND — document C23 as play-level R1-R4 parallel |
 
 **Design constraint:** play-dependency-protocol.md must follow knowledge-file-template.md
 (Tier 1 + Tier 2 metadata). It is a new standard, not a knowledge file — place in `standards/`
@@ -301,7 +301,7 @@ share one target file (intent.yaml) — sequence them within the same file edit 
 | core/components/skills/draft-product-spec/SKILL.md | F2 | MODIFY | Pending |
 | core/components/skills/draft-verification-scenarios/SKILL.md | F2 | MODIFY | Pending |
 | core/components/memory/standards/play-dependency-protocol.md | F3 | CREATE | Pending |
-| core/components/memory/standards/resolution-protocol.md | F3 | MODIFY | Pending |
+| core/components/memory/standards/rules/resolution.md | F3 | MODIFY | Pending |
 | ~/.claude/ (deployed targets) | F5 | MODIFY (sync) | Pending |
 
 ---

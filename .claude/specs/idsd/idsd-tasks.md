@@ -48,7 +48,7 @@ The following artifact names changed from the original spec. All tasks below and
 
 **PENDING-REFACTOR (#106):** When Issue #106 is resolved, new tasks will be added for:
 - Moving features.yaml authorship from prepare-implementation to plan-roadmap
-- New plays: design-ux, design-services, design-arch
+- New plays: design-ux, design-services, build-arch
 - Slimming prepare-implementation to scenarios + plan + evals only
 - New tasks will be added to this file when #106 is scoped
 
@@ -272,7 +272,7 @@ T-900+ are cross-cutting tasks that run after all play groups.
 
 > Artifact naming update: output is roadmap.yaml (not roadmap.md). roadmap-brief.html (not brief.html).
 > Reads product.yaml (not vision.md). Uses --product argument (not --vision).
-> Engineering view removed from output — will move to design-arch per PENDING-REFACTOR (#106).
+> Engineering view removed from output — will move to build-arch per PENDING-REFACTOR (#106).
 > New skills: scope-roadmap-epics, assess-feasibility (tech-designer), draft-roadmap-brief, draft-roadmap (product-strategist).
 > strategic_goal_ref field (SG-ID) replaces free-text strategic_goal in epics.
 
@@ -374,7 +374,7 @@ T-900+ are cross-cutting tasks that run after all play groups.
 ### NEW: `prepare-implementation` (NEW — not in original P1-P19 priority list) ✓ COMPLETE
 
 > Not in the original priority list. Built to bridge plan-roadmap → implement-epic with a full 5-artifact design suite.
-> PENDING-REFACTOR (#106): After #106, prepare-implementation will slim down — features.yaml moves to plan-roadmap, architecture.yaml + tech.yaml move to design-arch.
+> PENDING-REFACTOR (#106): After #106, prepare-implementation will slim down — features.yaml moves to plan-roadmap, architecture.yaml + tech.yaml move to build-arch.
 
 | ID | Task | Description | Depends On | Agent | Gate | Status |
 |----|------|-------------|------------|-------|------|--------|

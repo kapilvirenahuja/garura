@@ -31,8 +31,8 @@ The `discover-product` play is extended so that during vision drafting (Step 3),
 
 | File | Role | Change Needed |
 |------|------|---------------|
-| `core/components/memory/knowledge/project-profiling/quality-profile.md` | LTM knowledge | **Create** — 7 QP dimensions (reliability, performance, security, usability, maintainability, observability, compliance) following the 5-level pattern |
-| `core/components/memory/knowledge/project-profiling/_index.md` | LTM index | **Modify** — Rename "Two-Axis Model" → "Three-Axis Model", add QP description, update flow diagram, add QP to contents table |
+| `core/components/memory/knowledge/product/quality-profile.md` | LTM knowledge | **Create** — 7 QP dimensions (reliability, performance, security, usability, maintainability, observability, compliance) following the 5-level pattern |
+| `core/components/memory/knowledge/product/_index.md` | LTM index | **Modify** — Rename "Two-Axis Model" → "Three-Axis Model", add QP description, update flow diagram, add QP to contents table |
 | `core/components/skills/draft-product-vision/schemas/product.yaml` | Schema | **Modify** — Add `profiles` section with `product_profile`, `nfr_profile`, `quality_profile` sub-sections |
 | `core/components/skills/draft-product-vision/SKILL.md` | Skill | **Modify** — Add profile derivation logic to the compose step; derive PP → NFR → QP in order |
 | `core/components/plays/discover-product/reference/intent.yaml` | Play intent | **Modify** — Add constraints for profile derivation (3 profiles written to product.yaml), update scenarios |

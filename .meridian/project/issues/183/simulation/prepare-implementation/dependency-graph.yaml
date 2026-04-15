@@ -276,7 +276,7 @@ nodes:
 
   - id: std-resolution-protocol
     type: standard
-    path: core/components/memory/standards/resolution-protocol.md
+    path: core/components/memory/standards/rules/resolution.md
     description: "R1-R4 LTM resolution protocol — hierarchy enforcement, authority semantics (LOCKED/DRAFT), resolution trace schema"
     referenced_by:
       - tech-architect     # carries ltm_context in Steps 1A, 1E
@@ -302,7 +302,7 @@ nodes:
 
   - id: std-knowledge-file-template
     type: standard
-    path: core/components/memory/standards/knowledge-file-template.md
+    path: core/components/memory/standards/templates/knowledge-file.md
     description: "Canonical knowledge file template for LTM entries — Tier 1/2 metadata, staleness rules, index registration"
     referenced_by:
       - tech-architect     # 1E-ltm-consultation reads LTM using this schema

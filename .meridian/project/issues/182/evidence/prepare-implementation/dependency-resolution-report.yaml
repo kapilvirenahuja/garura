@@ -84,7 +84,7 @@ technology_dependencies:
         current_ltm_references: >
           EXPLICIT LTM reference found in Step 2 contract config block:
             "config": {
-              "ltm_architecture_path": "~/.meridian/core/memory/knowledge/architecture/",
+              "ltm_architecture_path": "~/.meridian/core/memory/knowledge/arch/",
               "profiles": "{extracted profiles from Step 1}"
             }
           Scoped narrowly to architecture knowledge only. Ad-hoc config field, not formal
@@ -132,7 +132,7 @@ technology_dependencies:
 
       - location: "core/components/plays/prepare-architecture/SKILL.md:104"
         field: "config.ltm_architecture_path"
-        value: "~/.meridian/core/memory/knowledge/architecture/"
+        value: "~/.meridian/core/memory/knowledge/arch/"
         scope: "Architecture knowledge only"
         pattern: "Ad-hoc config field, narrowly scoped"
 
@@ -144,7 +144,7 @@ technology_dependencies:
 
     knowledge_file_format: >
       Files follow a structured 8-section template defined in
-      ~/.meridian/core/memory/knowledge/architecture/_index.md.
+      ~/.meridian/core/memory/knowledge/arch/_index.md.
       Required sections: When to Choose, When to Avoid, Scale Profile (table),
       Key Components (table), Reference Architecture (directory structure),
       Evolution Paths (table), Tradeoffs (table), Anti-Patterns (table).
@@ -154,11 +154,11 @@ technology_dependencies:
       stacks/, platforms/, data/, operations/.
 
     index_files:
-      - path: "~/.meridian/core/memory/formats/_index.md"
+      - path: "~/.meridian/core/memory/standards/templates/_index.md"
       - path: "~/.meridian/core/memory/knowledge/_index.md"
-      - path: "~/.meridian/core/memory/knowledge/architecture/_index.md"
-      - path: "~/.meridian/core/memory/knowledge/project-profiling/_index.md"
-      - path: "~/.meridian/core/memory/knowledge/domain-taxonomy/_index.md"
+      - path: "~/.meridian/core/memory/knowledge/arch/_index.md"
+      - path: "~/.meridian/core/memory/knowledge/product/_index.md"
+      - path: "~/.meridian/core/memory/knowledge/domain/_index.md"
       - path: "~/.meridian/core/memory/standards/_index.md"
 
 ltm_findings:
@@ -167,7 +167,7 @@ ltm_findings:
       summary: "Universal play→agent contract schema — 5 input fields, 4 output fields. No LTM wiring."
     - path: "~/.meridian/core/memory/standards/_index.md"
       summary: "Standards index — covers agent-contract, brief-principles, commits, git, templates, agent-lifecycle."
-    - path: "~/.meridian/core/memory/standards/git/branching.md"
+    - path: "~/.meridian/core/memory/standards/rules/git.md"
       summary: "Branch naming conventions — only LTM standard referenced by repo-orchestrator."
     - path: "~/.meridian/core/memory/standards/agent-lifecycle/epic-management-rules.md"
       summary: "Epic management rules for agent lifecycle."
@@ -178,7 +178,7 @@ ltm_findings:
     - category: "knowledge/architecture/"
       count: 42
       subcategories: ["patterns (6)", "agentic (5)", "stacks (11)", "platforms (6)", "data (6)", "operations (5)"]
-      template_defined_in: "~/.meridian/core/memory/knowledge/architecture/_index.md"
+      template_defined_in: "~/.meridian/core/memory/knowledge/arch/_index.md"
       summary: >
         Architecture knowledge files follow an 8-section markdown template. _index.md
         defines the template and lists all files with search patterns for discovery.

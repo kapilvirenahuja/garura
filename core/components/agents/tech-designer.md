@@ -66,7 +66,7 @@ When you receive a JSON contract from the play orchestrator:
 2. **Identify what to handle.** Look at `stm` paths in the contract — what's null (missing)? Based on the goal + your domain (technical analysis, feasibility) + what's missing, determine what you should produce.
 3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
 4. **Collect context.** Read existing STM artifacts at non-null paths (e.g., epics at `stm.epics_path`). Load relevant LTM standards from `~/.meridian/core/memory/`.
-5. **Call skills** from your available skill pool. For feasibility assessment, invoke `assess-feasibility` via the Skill tool. Pass `epics_path`, `artifact_base` (= `stm_base`), and `slug` from the contract. For RCA or feature analysis (direct invocation), perform analysis directly using your tools.
+5. **Call skills** from your available skill pool. For RCA or feature analysis (direct invocation), perform analysis directly using your tools.
 6. **Do NOT forward the skill's output as your response.** Extract only the artifact path from the skill output (e.g., `feasibility_path`). Write detailed analysis to the STM artifact — the skill handles this.
 7. **Validate outcomes** against failure conditions from intent.yaml. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
 8. **Mark task complete.** Update task graph via TaskUpdate.
@@ -76,26 +76,24 @@ When you receive a JSON contract from the play orchestrator:
    - If the step failed after recovery attempts, set `step_failure` with error details. Otherwise leave it null.
    **Your response is this updated JSON object. Nothing else — no analysis text, no tables, no prose.** Write detailed analysis to the STM artifact file — not to the return value.
 
-**Example return** (after feasibility assessment):
+**Example return** (after technical-approach drafting):
 ```json
 {
-  "intent_path": "reference/intent.yaml",
-  "stm_base": ".meridian/product/",
+  "intent_path": "core/components/plays/prepare-implementation/reference/intent.yaml",
+  "stm_base": ".meridian/project/issues/",
   "slug": "chronos",
   "stm": {
-    "vision_path": ".meridian/product/discovery/vision.md",
-    "epics_path": ".meridian/product/roadmap/epics.yaml",
-    "feasibility_path": ".meridian/product/roadmap/feasibility.yaml",
-    "brief_path": null,
-    "approved_brief_path": null,
-    "roadmap_path": null,
-    "engineering_view_path": null
+    "input": {
+      "features_yaml_path": ".meridian/project/issues/42/specs/features.yaml"
+    },
+    "output": {
+      "technical_approach_path": ".meridian/project/issues/42/specs/technical-approach.md"
+    }
   },
-  "checkpoints": [{ "name": "brief_review", "status": "pending" }],
-  "evidence": [{ "name": "plan-roadmap", "location": null }],
+  "task_id": "draft-technical-approach",
   "notes": [
-    "E2 Memory Architecture has high technical risk — vector store infrastructure missing",
-    "E1 accuracy target compounds across all downstream epics"
+    "Chosen approach leans on existing tech-stack conventions in LTM",
+    "Two alternatives considered and rejected (documented inline)"
   ],
   "step_failure": null
 }
@@ -171,7 +169,7 @@ Context loading is selective and domain-aware. Never bulk-load memory — search
 
 ### Step 1: Load Config
 
-Read `core/config.yaml` to understand:
+Read `.meridian/core/config.yaml` to understand:
 - Project structure and component paths
 - STM paths for evidence output
 - Platform and repository configuration
@@ -186,7 +184,7 @@ From the incoming intent or product specification, classify the technical domain
 
 ### Step 2b — LTM Context Resolution (when ltm_context present)
 
-If the contract contains `ltm_context`, follow R1-R4 from `~/.meridian/core/memory/standards/resolution-protocol.md`:
+If the contract contains `ltm_context`, follow R1-R4 from `~/.meridian/core/memory/standards/rules/resolution.md`:
 
 - **R1:** Identify decision domains from task intent + `ltm_context.query_domains`
 - **R2:** For each domain, search `ltm_context.project_base` for relevant files. Check `ltm_context.locked_artifacts` first — if LOCKED, use as authoritative (stop descending). If DRAFT, use as advisory (continue descending).
@@ -204,9 +202,9 @@ Search `~/.meridian/core/memory/` for domain-relevant content using Glob and Gre
 | What to Load | Path Pattern | When |
 |-------------|--------------|------|
 | Standards (coding conventions, quality rules) | `memory/standards/**` | Always — these are universal |
-| Architecture knowledge | `memory/knowledge/architecture/**` | When designing architecture or LLD |
+| Architecture knowledge | `memory/knowledge/arch/**` | When designing architecture or LLD |
 | Technology-specific knowledge | `memory/knowledge/{tech-domain}/**` | If domain directory exists |
-| Output formats | `memory/formats/**` | When skill produces artifacts |
+| Output formats | `memory/standards/templates/**` | When skill produces artifacts |
 
 **Do NOT** load everything. Search by technology keywords, architecture patterns, and skill type. If a file isn't relevant to the current intent, skip it.
 
@@ -269,11 +267,12 @@ When invoked via JSON contract, delegate artifact production to skills:
 
 | Skill | When | Input | Produces |
 |-------|------|-------|----------|
-| `assess-feasibility` | `stm.feasibility_path` is null and `stm.epics_path` is non-null | `epics_path`, `artifact_base` (= `stm_base`), `slug` | `feasibility.yaml` at `.meridian/product/roadmap/feasibility.yaml` |
 | `draft-technical-approach` | `stm.technical_approach_path` is null and `stm.product_spec_path` is non-null | `product_spec_path`, `intent` (optional), `vision_path` (optional), `output_base` | `technical-approach.md` at `{output_base}/technical-approach.md` |
 | `draft-lld` | `stm.lld_path` is null and `stm.product_spec_path` + `stm.technical_approach_path` are non-null | `product_spec_path`, `technical_approach_path`, `output_base` | `lld.md` at `{output_base}/lld.md` |
 | `research-domain-context` | LTM insufficient for technology selection or architecture decisions | `domain`, `knowledge_gaps`, `problem_statement`, `output_base` | `domain-context.md` at `{output_base}/domain-context.md` |
 | `draft-implementation-plan` | Create execution plan with scope items, file paths, exit gates | `features_yaml_path`, `architecture_yaml_path`, `tech_yaml_path`, `scenarios_yaml_path`, `output_base` | `plan.yaml` at `{output_base}/plan.yaml` |
+| `derive-nfr-spec` | build-arch Stage 3 — NFR re-statement, adjustments, and per-NFR delivery mechanism linkage | `quality_profile_path`, `epics_dir`, `logical_architecture_path`, `physical_architecture_path`, `output_path` | `nfr-spec.yaml` + `decision-manifest-derive-nfr-spec.yaml` |
+| `derive-quality-vision` | build-arch Stage 4 — ISO 25010 vision narrative + per-characteristic design linkage, tooling, thresholds, lifecycle gates | `quality_profile_path`, `nfr_spec_path`, `logical_architecture_path`, `physical_architecture_path`, `ltm_quality_path`, `output_path` | `quality-vision.yaml` + `decision-manifest-derive-quality-vision.yaml` |
 
 **Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract the artifact path from the skill output — do NOT forward the skill's YAML as your response.
 

@@ -17,7 +17,7 @@
 
 | Step | Method | Expected Outcome | Gate | Mandatory |
 |------|--------|-----------------|------|-----------|
-| V1: Local regression — analyze-changes | Invoke `analyze-changes` skill locally; confirm `~/.meridian/core/memory/standards/commits/categories.md` is read | Skill produces analysis output without error | G1 | Yes |
+| V1: Local regression — analyze-changes | Invoke `analyze-changes` skill locally; confirm `~/.meridian/core/memory/standards/rules/commits.md` is read | Skill produces analysis output without error | G1 | Yes |
 | V2: Local regression — manage-issue | Invoke `manage-issue` with `action: create`; confirm template loads from `formats/github-issue.md` | Issue body uses template structure | G1 | Yes |
 | V3: Blob upload verification | Run `sync-claude --vercel`; inspect Vercel Blob store | All LTM files appear as Blob objects with correct key paths | G2 | Yes |
 | V4: Vercel runtime LTM read | Deploy Vercel function invoking `fetch-ltm` with `logical_path: standards/commits/categories.md` | Function returns file content with HTTP 200; matches source file | G2 | Yes |

@@ -26,7 +26,7 @@ core/components/           # Source of truth (edit here)
 - Components deploy to `~/.claude/` (global mode, default) or `.claude/` (project mode, ephemeral)
 - Memory deploys to `~/.meridian/core/memory/` (global mode, default) or `.meridian/core/memory/` (project mode, ephemeral)
 
-**Data Flow:** High-order play → chains atomic plays → play invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `core/config.yaml`)
+**Data Flow:** Play → invokes agents via Task tool → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `.meridian/core/config.yaml`)
 
 ## Behavioral Rules
 
@@ -99,12 +99,9 @@ Parse: `Tether`/`tether` → proceed. `Vanish`/`vanish` → cancel. Else → cla
 
 Applies to: commits, PRs, protected branches, destructive actions.
 
-### 4. Play Constraints
+### 4. Plays
 
-| Level | Invocability | Max Agent Calls |
-|-------|--------------|-----------------|
-| L1 | Human OR Model | ≤2 |
-| L2 | Human only | ≤5 (ideal 3) |
+A play is just a play — coherence is enforced by the intent schema and evals, not by a level or agent-count budget.
 
 ### 5. Task-Driven Workflow
 
@@ -143,11 +140,11 @@ TaskCreate: "Verify Y" (agent: quality-validator) → blockedBy: [implement Y]
 
 ## Play Pipeline Rules
 
-When modifying skills or plays, always go through the `intent.yaml` → rebake workflow. Never edit skill files directly.
+When modifying skills or plays, always go through the `intent.yaml` → `/create-play --build` workflow. Never edit skill files directly.
 
 ## Reference
 
-- `core/config.yaml` — Paths and settings
+- `.meridian/core/config.yaml` — Paths and settings
 - `docs/adr/` — Architecture Decision Records (8 ADRs)
 - `docs/philosophy/` — Core architecture philosophy
 - `docs/components/` — Agent, skill, play, memory documentation

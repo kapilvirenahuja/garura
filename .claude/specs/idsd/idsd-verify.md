@@ -387,7 +387,7 @@ These gates apply to all plays and must be satisfied throughout the build.
 - [x] Hub: hub.html regenerated after each checkpoint
 - [x] Feature IDs use F-IDs (F1, F2) not E-IDs
 - [ ] All 5 artifacts validated against schemas in `.claude/specs/artifact-schemas/`
-- [ ] **PENDING-REFACTOR (#106):** When #106 resolves, features.yaml moves to plan-roadmap; architecture.yaml + tech.yaml move to design-arch; this play slims to scenarios + plan + evals only
+- [ ] **PENDING-REFACTOR (#106):** When #106 resolves, features.yaml moves to plan-roadmap; architecture.yaml + tech.yaml move to build-arch; this play slims to scenarios + plan + evals only
 
 **Evidence:** `evidence/g-012-prepare-implementation.md` — play compilation metadata, 3-stage checkpoint structure, scenario compartmentalization, 5 output artifacts confirmed
 

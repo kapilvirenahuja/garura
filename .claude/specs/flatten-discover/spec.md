@@ -51,5 +51,5 @@ Remove `active_phase`. Flat 10-task sequence. Resume works identically.
 ## Execution
 
 1. Update intent.yaml
-2. `/create-play --rebake discover-product`
+2. `/create-play --build discover-product`
 3. `/sync-claude`

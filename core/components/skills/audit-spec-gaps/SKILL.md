@@ -29,7 +29,7 @@ Find YAML artifacts by scanning these locations in order (stop at first hit per 
 | Execution plan | `.meridian/product/roadmap/plan.yaml`, `specs/plan*` |
 | Product & roadmap | `.meridian/product/discovery/product.yaml`, `.meridian/product/roadmap/roadmap.yaml` |
 | Project context | `CLAUDE.md`, `README.md`, `.claude/agents/*.md` |
-| Config/paths | `core/config.yaml`, `**/config.yaml`, `**/config.yml` |
+| Config/paths | `.meridian/core/config.yaml`, `**/config.yaml`, `**/config.yml` |
 
 Also scan broadly for any `.yaml` files under `.meridian/product/` — artifact filenames should match the standard names above, but discover flexibly and categorize by content if needed.
 

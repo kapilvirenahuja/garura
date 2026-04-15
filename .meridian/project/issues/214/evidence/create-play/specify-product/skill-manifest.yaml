@@ -1,0 +1,103 @@
+play: specify-product
+rebake_reason: Land defects D6/D7/D8/D9 (MVP recommendation, abstraction-layer boundary, pull-to-product, scope/ location)
+intent_hash_new: sha256:a2c724a1eff3c7d7b85328c41dd71d003dae954b667ebbcad2dd838818b632e5
+rebake_date: 2026-04-14
+
+skills:
+  - name: research-market-opportunity
+    path: core/components/skills/research-market-opportunity/SKILL.md
+    status: existing
+    invoked_by: market-analyst
+    phase: "Preparation — Market Intelligence"
+    changes_in_this_rebake: none
+
+  - name: configure-capabilities
+    path: core/components/skills/configure-capabilities/SKILL.md
+    status: modified
+    invoked_by: product-keeper
+    phase: "Execution — Capability Configuration"
+    changes_in_this_rebake: >
+      Already updated in place (not by this rebake) to add:
+      Input field mvp_recommendation_path (required, Rule 13/C15);
+      Input field product_domain_library_path (required, Rule 15/C17);
+      Demoted ltm_domain_taxonomy_path to Stage-2-only;
+      New Step 0 MVP recommendation pre-flight;
+      Step 1 now reads from product_domain_library_path only (no KB fallback);
+      Abstraction-layer deny-list constraint in Constraints (Rule 14/C16).
+      This rebake wires the updated inputs into the play's Step 6 (was Step 5) JSON contract.
+
+  - name: enrich-capabilities
+    path: core/components/skills/enrich-capabilities/SKILL.md
+    status: existing
+    invoked_by: product-keeper
+    phase: "Execution — Enrichment"
+    changes_in_this_rebake: none
+
+  - name: generate-intent-epics
+    path: core/components/skills/generate-intent-epics/SKILL.md
+    status: existing
+    invoked_by: product-keeper
+    phase: "Execution — Epic Generation + Validation"
+    changes_in_this_rebake: none
+
+  - name: validate-intent-epics
+    path: core/components/skills/validate-intent-epics/SKILL.md
+    status: existing
+    invoked_by: product-keeper (delegates to the skill directly)
+    phase: "Execution — Epic Generation + Validation"
+    changes_in_this_rebake: none
+
+  - name: derive-quality-profile-from-epics
+    path: core/components/skills/derive-quality-profile-from-epics/SKILL.md
+    status: existing
+    invoked_by: product-keeper
+    phase: "Execution — Quality Profile"
+    changes_in_this_rebake: none
+
+  - name: validate-kb-extension
+    path: core/components/skills/validate-kb-extension/SKILL.md
+    status: existing
+    invoked_by: play (pre-flight)
+    phase: "Pre-flight"
+    changes_in_this_rebake: none
+
+agents:
+  domain:
+    - name: market-analyst
+      path: core/components/agents/market-analyst.md
+      status: existing
+      phases: ["Preparation — Market Intelligence"]
+    - name: product-keeper
+      path: core/components/agents/product-keeper.md
+      status: existing
+      phases:
+        - "Preparation — Domain Selection"
+        - "Execution — Capability Configuration"
+        - "Execution — Enrichment"
+        - "Execution — Epic Generation + Validation"
+        - "Execution — Quality Profile"
+    - name: judge
+      path: core/components/agents/judge.md
+      status: existing
+      phases: ["Execution — Epic Generation + Validation (schema validation)"]
+  utility:
+    - name: scriber
+      path: core/components/agents/scriber.md
+      status: existing
+      exempt_from_budget: true
+    - name: repo-orchestrator
+      path: core/components/agents/repo-orchestrator.md
+      status: existing
+      exempt_from_budget: true
+
+budget_check:
+  domain_agents: 3
+  domain_agent_budget: 5
+  within_budget: true
+  utility_agents_exempt: 2
+
+notes:
+  - All skills the play uses already exist.
+  - Only configure-capabilities had a source change (landed separately, not in this rebake).
+  - No new skills required by D6/D7/D8/D9 beyond configure-capabilities updates.
+  - A future recommend-mvp skill is contemplated for Stage 2.75 automation but is explicitly DEFERRED. The rebake's Stage 2.75 is a pre-flight check step with manual authoring by the user.

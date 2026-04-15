@@ -180,7 +180,7 @@ Follow R1-R4 from the resolution protocol when `ltm_context` is present. When ab
 
 1. **Identify relevant domains** — From current issue and architecture findings
 2. **Search standards** — `~/.meridian/core/memory/standards/**`
-3. **Search knowledge** — `~/.meridian/core/memory/knowledge/architecture/**` and technology-specific directories
+3. **Search knowledge** — `~/.meridian/core/memory/knowledge/arch/**` and technology-specific directories
 4. **Evaluate sufficiency** — Does LTM cover the patterns and decisions relevant to this issue?
 
 Produce `ltm-findings.yaml` with relevant standards and patterns, keyed by domain.
@@ -245,7 +245,7 @@ Context loading is selective and task-aware. Load only what is relevant to the c
 
 ### Step 1: Load Config
 
-Read `core/config.yaml` to understand:
+Read `.meridian/core/config.yaml` to understand:
 - STM paths for evidence output
 - Platform and repository configuration
 - **Play constraints** — extract and validate before starting analysis
@@ -266,7 +266,7 @@ From `task_id` in the contract, determine exactly which analysis to perform. Do 
 
 ### Step 2b — LTM Context Resolution (when ltm_context present)
 
-If the contract contains `ltm_context`, follow R1-R4 from `~/.meridian/core/memory/standards/resolution-protocol.md`:
+If the contract contains `ltm_context`, follow R1-R4 from `~/.meridian/core/memory/standards/rules/resolution.md`:
 
 - **R1:** Identify decision domains from task intent + `ltm_context.query_domains`
 - **R2:** For each domain, search `ltm_context.project_base` for relevant files. Check `ltm_context.locked_artifacts` first — if LOCKED, use as authoritative (stop descending). If DRAFT, use as advisory (continue descending).
@@ -284,9 +284,9 @@ Search `~/.meridian/core/memory/` for content relevant to the current task:
 | What to Load | Path Pattern | When |
 |-------------|--------------|------|
 | Standards (conventions, quality rules) | `memory/standards/**` | Always — universal guardrails |
-| Architecture knowledge | `memory/knowledge/architecture/**` | For 1A, 1C, 2A, 3-tech |
+| Architecture knowledge | `memory/knowledge/arch/**` | For 1A, 1C, 2A, 3-tech |
 | Technology-specific knowledge | `memory/knowledge/{tech-domain}/**` | When domain directory exists |
-| Output formats | `memory/formats/**` | When producing structured artifacts |
+| Output formats | `memory/standards/templates/**` | When producing structured artifacts |
 
 Do NOT load everything. Search by technology keywords, architecture patterns, and task type.
 
@@ -343,6 +343,10 @@ When invoked via JSON contract, delegate artifact production to skills when avai
 | Skill | When | Input | Produces |
 |-------|------|-------|----------|
 | `research-domain-context` | LTM insufficient for framework/pattern coverage | `domain`, `knowledge_gaps`, `problem_statement`, `output_base` | `domain-context.md` at `{output_base}/domain-context.md` |
+| `derive-logical-architecture` | build-arch Stage 1 — tech-agnostic bounded contexts, components, data model, capability-level API surface, integration points | `scope_path`, `enriched_capabilities_path`, `epics_dir`, `quality_profile_path`, `design_spec_path`, `screens_dir`, `ltm_architecture_path`, `output_path` | `logical-architecture.yaml` + `decision-manifest-derive-logical-architecture.yaml` |
+| `derive-physical-architecture` | build-arch Stage 2 — specific stack picks with source_type discipline, deployment topology, runtime tiers | `logical_architecture_path`, `project_profile_path`, `ltm_architecture_path`, `output_path` | `physical-architecture.yaml` + `decision-manifest-derive-physical-architecture.yaml` |
+| `derive-design-patterns` | build-arch Stage 5 — system/layer/component/cross-cutting pattern catalog with rationale drivers and source_type | `logical_architecture_path`, `physical_architecture_path`, `nfr_spec_path`, `ltm_architecture_path`, `output_path` | `design-patterns.yaml` + `decision-manifest-derive-design-patterns.yaml` |
+| `validate-architecture-spec` | build-arch post-generation — single 20-check pass (V1-V20) across all 5 artifacts and 5 manifests | `logical_architecture_path`, `physical_architecture_path`, `nfr_spec_path`, `quality_vision_path`, `design_patterns_path`, plus 5 decision manifest paths, `scope_path`, `epics_dir`, `quality_profile_path`, `project_profile_path`, `output_path` | Blocking validator; structured failure on any V violation |
 
 For architecture inference, dependency graph, git history, change surface, tech artifacts, and plan artifacts — perform analysis directly. These are core architect capabilities, not delegated skills.
 
@@ -491,7 +495,7 @@ architecture:
 - Modify source code files
 - Do test surface mapping — that is test-engineer's domain
 - Do blast radius computation — that is test-engineer's domain
-- Produce scenarios.yaml — that is test-engineer and product-strategist's domain
+- Produce scenarios.yaml — that is test-engineer and feature-steward's domain
 - Specify baseline tests — that is test-engineer's domain
 - Ask user questions directly — return to caller for user interaction
 - Use `AskUserQuestion` tool — callers handle user interaction
@@ -545,7 +549,7 @@ Bash is available for **read-only operations only**:
 Load framework protocols from `docs/framework/` when referenced:
 - `structured-failure-protocol.md` — Structured failure return format
 
-Load resolution protocol from `~/.meridian/core/memory/standards/resolution-protocol.md` when `ltm_context` is present.
+Load resolution protocol from `~/.meridian/core/memory/standards/rules/resolution.md` when `ltm_context` is present.
 
 ## Recovery
 

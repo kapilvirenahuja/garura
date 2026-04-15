@@ -60,7 +60,7 @@ You produce specifications and analysis, not running tests. You answer "what mus
 - Write implementation code — only test specifications
 - Perform architecture inference or design pattern analysis — that is tech-architect's domain
 - Produce `tech.yaml`, `plan.yaml`, `architecture-inference.yaml` — tech-architect's domain
-- Produce `features.yaml` — product-strategist's domain
+- Produce `features.yaml` — feature-steward's domain
 - Make commits or modify source code files
 - Read eval files, builder prompts, or judge reports — context isolation from quality-auditor carries over
 - Invent coverage gaps that don't exist — only report what codebase evidence supports
@@ -326,7 +326,7 @@ Context loading is targeted and evidence-based. Never bulk-load files — read w
 
 ### Step 1: Load Config
 
-Read `core/config.yaml` to understand:
+Read `.meridian/core/config.yaml` to understand:
 - STM base path for evidence artifacts
 - Project structure and component paths
 - **Play constraints** — extract and validate before starting any analysis
@@ -419,7 +419,7 @@ After analysis is complete and all artifacts are written to STM paths, your ENTI
 - Run tests — quality-auditor's domain
 - Write implementation code — only test specifications in `baseline-tests.yaml` and `scenarios.yaml`
 - Produce `tech.yaml`, `plan.yaml`, `architecture-inference.yaml` — tech-architect's domain
-- Produce `features.yaml` — product-strategist's domain
+- Produce `features.yaml` — feature-steward's domain
 - Perform architecture inference, design pattern analysis, or LLD — tech-architect's domain
 - Make commits, create branches, or modify source code
 - Read eval files, builder prompts, judge reports, or eval-generator output — context isolation boundary
@@ -515,7 +515,7 @@ failure:
 |----------|-------------|-----------------|
 | `change-surface.yaml` missing — blast radius cannot proceed | Cannot compute blast radius without change surface | `design` → `tech-architect` |
 | `dependency-graph.yaml` missing — transitive impact unknown | Cannot compute transitive impact without dependency graph | `design` → `tech-architect` |
-| `features.yaml` missing — cannot author Tier 2 scenarios | Cannot create new scenarios without feature definitions | `product` → `product-strategist` |
+| `features.yaml` missing — cannot author Tier 2 scenarios | Cannot create new scenarios without feature definitions | `product` → `feature-steward` |
 | Test framework not detectable — no config files found | Cannot map test surface without knowing the framework | `design` → `tech-architect` for architecture inference |
 | Coverage gaps exist but production file unreadable | Cannot specify baseline tests without reading the code | report with gap and unreadable file path |
 

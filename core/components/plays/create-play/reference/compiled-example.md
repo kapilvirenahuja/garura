@@ -43,14 +43,14 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `core/config.yaml` | — | Hard halt |
+| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt |
 | Branch guard | C1 | Hard halt |
 | Changes exist | C2 | Graceful exit |
 | Sensitive file scan | C4 | Hard block |
 | Open issues exist | C3 | Hard halt |
 
 ```bash
-stm_base=$(grep '^\s*base-path:' core/config.yaml | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | awk '{print $2}')
 branch=$(git branch --show-current)
 default_branch=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
 # C1: halt if branch == default_branch
@@ -251,7 +251,6 @@ for each step in compiled order:
 | intent_hash | sha256:a1b2c3d4... |
 | compiled_by | create-play |
 | compiled_at | 2026-03-06T12:00:00+0530 |
-| maturity | L2 |
 | workflow_structure | A |
 | agents | 2 (repo-orchestrator, project-orchestrator) |
 | step_evals | 4 (after Steps 1, 2, 5, 6) |

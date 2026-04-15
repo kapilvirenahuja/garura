@@ -63,7 +63,7 @@ An agent referencing non-existent skills creates false capability awareness. The
 **Fix:** Redesign Context Loading with a domain-aware loading strategy:
 
 1. **Understand domain** — From the incoming intent and any provided context, identify the vertical domain (BFSI, retail, SaaS, etc.) and product category.
-2. **Selective LTM search** — Search LTM for domain-relevant standards, formats, and knowledge. Use Glob/Grep to find relevant files, not bulk-load everything. Prioritize: `memory/standards/` (always relevant), `memory/knowledge/{domain}/` (if exists), `memory/formats/` (for output shaping).
+2. **Selective LTM search** — Search LTM for domain-relevant rules, schemas, templates, and knowledge. Use Glob/Grep to find relevant files, not bulk-load everything. Prioritize: `memory/standards/rules/` (always relevant), `memory/standards/schemas/` (for artifact shape), `memory/standards/templates/` (for output shaping), `memory/knowledge/{domain}/` (if exists).
 3. **Domain confirmation** — If domain is ambiguous (agent cannot confidently classify), return a structured `domain_clarification_needed` response to the play caller. The play handles user interaction. If domain is obvious from context, proceed without confirmation.
 4. **Fallback: Web research** — If LTM has insufficient domain knowledge (no relevant entries or coverage too thin), invoke the `research-domain-context` skill for web-based research. Capture results as STM artifacts for this project.
 5. **Load STM** — Read `.meridian/project/product/` for existing product artifacts that provide enrichment context.

@@ -1,0 +1,132 @@
+play: design-exp
+rebake_trigger: >
+  Visual-first screen file shape — C16 (required body section order with
+  `## Wireframe` first and `## Layout Spec` last, including ASCII box-drawing
+  per state) and F15 (any violation of that order, missing wireframe block,
+  or visual-design element inside a wireframe is a structural failure).
+mode: rebake
+
+prior_rebake: >
+  D15 (Pull-to-Product / C14 + F13) + D16 (MVP Focus / C15 + F14). All
+  intent items, all contract surface, all paths, all agents, and all 10
+  workflow steps from the D15/D16 bake are preserved intact. This bake is
+  a SHAPE-ONLY update on the screen MD files emitted by Stage 3 and
+  rewritten by Stage 8. Zero contract changes. Zero new stages. Zero new
+  agents.
+
+phase_2_defects_propagated:
+  - D11   # {product_base}experience/... paths in skill docs (preserved from D15/D16 bake)
+  - D12   # output_path / output_dir renamed to domain-named parameters (preserved)
+  - D19   # screen frontmatter capabilities list + capability_classification (preserved)
+  - D20   # validate-screen-coverage accepts mode: strict | partial (preserved)
+  - D21   # every skill uses {product_base} placeholder discipline (preserved)
+
+visual_first_shape_changes_this_bake:
+  - "generate-screen-inventory: emits screen-file skeleton with `## Wireframe` as the FIRST body section after the H1, populated with an HTML-comment placeholder. The skill explicitly does NOT author wireframe ASCII (Stage 8's job) and explicitly does NOT emit `## Layout Spec` (also Stage 8's job)."
+  - "generate-wireframes: split into Step 2a (compose visual wireframe block — one Unicode/ASCII box-drawing per state, ASCII-safe characters, ≤80 columns, no visual-design elements) and Step 2b (compose layout spec block — machine-parseable detailed spec). Step 3 rewrites the screen file: replaces the `## Wireframe` placeholder at the TOP with the visual block AND appends `## Layout Spec` at the BOTTOM."
+  - "screen-inventory.yaml schema: documents the required visual-first section order (Wireframe → Purpose → Personas → States → Navigation → Accessibility → Layout Spec) with a full example showing the visual block at the top and the spec block at the bottom."
+
+skills:
+  # Step-producing skills (passed to evals-creator)
+  - name: synthesize-personas
+    path: core/components/skills/synthesize-personas/SKILL.md
+    status: existing modified
+    role: "Step 1 — JTBD persona synthesis, narrowed by mvp-recommendation.md primary use cases (C15)"
+    phase_2_changes:
+      - "D12: output_path → personas_path"
+      - "D21: {product_base} placeholder discipline"
+    contract_surface_changes_this_bake:
+      - "None — synthesize-personas was unchanged in the visual-first pass. Continues to take mvp_recommendation_path + product_research_path from the D15/D16 bake."
+
+  - name: generate-screen-inventory
+    path: core/components/skills/generate-screen-inventory/SKILL.md
+    status: existing modified
+    role: "Step 3 — derive screens per user-surface capability, ≥3 states per screen, emit visual-first skeleton (C16)"
+    phase_2_changes:
+      - "D12: output_dir → screens_dir"
+      - "D19: capabilities: list frontmatter + optional capability_classification"
+      - "D21: {product_base} placeholder discipline"
+    visual_first_changes_this_bake:
+      - "Output Format step now writes the skeleton with `## Wireframe` as the FIRST body section after the H1 (between H1 and `## Purpose`), containing only an HTML-comment placeholder explaining what Stage 8 (generate-wireframes) will fill in."
+      - "Existing section order (Purpose → Personas → States → Navigation → Accessibility) is preserved AFTER the placeholder."
+      - "Skill explicitly does NOT author ASCII wireframes — that's Stage 8's job."
+      - "Skill explicitly does NOT emit `## Layout Spec` — that's Stage 8's job."
+    contract_surface_changes_this_bake:
+      - "None — JSON contract input/output unchanged from the D15/D16 bake. The SHAPE of the produced screen MD file is what changes, not the contract paths."
+
+  - name: validate-screen-coverage
+    path: core/components/skills/validate-screen-coverage/SKILL.md
+    status: existing modified
+    role: "Steps 4 + 7 — blocking validator (pre-flow + post-flow passes)"
+    phase_2_changes:
+      - "D12: output_path → validation_path"
+      - "D19: capability coverage now computed over UNION of all screens' capabilities lists; substrate/admin_only exempt from coverage rule"
+      - "D20: accepts mode: strict | partial (default strict) — partial reports orphan scenarios without flipping status"
+      - "D21: {product_base} placeholder discipline"
+    contract_surface_changes_this_bake:
+      - "None — JSON contract input/output unchanged from the D15/D16 bake."
+
+  - name: map-user-flows
+    path: core/components/skills/map-user-flows/SKILL.md
+    status: existing modified
+    role: "Step 6 — Mermaid flow diagrams for success + recovery, narrowed by primary use cases (C15)"
+    phase_2_changes:
+      - "D12: output_dir → flows_dir"
+      - "D21: {product_base} placeholder discipline"
+    contract_surface_changes_this_bake:
+      - "None — JSON contract input/output unchanged from the D15/D16 bake."
+
+  - name: generate-wireframes
+    path: core/components/skills/generate-wireframes/SKILL.md
+    status: existing modified
+    role: "Step 8 — rewrite each screen MD file with visual-first ordering: replace `## Wireframe` placeholder at top with Unicode/ASCII per state, append `## Layout Spec` at bottom (C16)"
+    phase_2_changes:
+      - "D11: {product_base}experience/ path labels"
+      - "D21: {product_base} placeholder discipline"
+    visual_first_changes_this_bake:
+      - "Process split into Step 2a (compose visual wireframe block — one Unicode/ASCII box-drawing block per state declared in `## States`, ASCII-safe Unicode characters, lines ≤80 columns, no hex/px/rem/font-family) and Step 2b (compose layout spec block — machine-parseable detailed spec)."
+      - "Step 3 of the skill rewrites the screen file: reads the placeholder shape from Stage 3, replaces the `## Wireframe` placeholder with the visual block, appends `## Layout Spec` at the end. Idempotent on re-runs."
+      - "Skill no longer 'appends a `## Wireframe` section' — it REPLACES the placeholder at the top AND APPENDS `## Layout Spec` at the bottom. The play's narrative for Stage 8 must reflect this."
+    contract_surface_changes_this_bake:
+      - "None — JSON contract input/output unchanged from the D15/D16 bake. The change is to the SHAPE of the rewritten screen files."
+
+  - name: compile-design-spec
+    path: core/components/skills/compile-design-spec/SKILL.md
+    status: existing modified
+    role: "Step 9 — consolidate personas/screens/flows/wireframes into design-spec.md"
+    phase_2_changes:
+      - "D12: output_path → design_spec_path"
+      - "D21: {product_base} placeholder discipline"
+    contract_surface_changes_this_bake:
+      - "None — JSON contract input/output unchanged from the D15/D16 bake."
+
+  # Pre-flight gate skill (NOT passed to evals-creator)
+  - name: validate-kb-extension
+    path: core/components/skills/validate-kb-extension/SKILL.md
+    status: existing unchanged
+    role: "Pre-flight gate — KB catalog consistency check (C2)"
+    phase_2_changes: []
+    visual_first_changes_this_bake: []
+    contract_surface_changes_this_bake: []
+    evals_creator_input: false
+
+summary:
+  total_skills: 7
+  step_producing: 6
+  pre_flight_gate: 1
+  all_existing: true
+  any_new: false
+  evals_creator_skill_contracts_count: 6
+  visual_first_skill_changes_this_bake:
+    skills_touched: [generate-screen-inventory, generate-wireframes]
+    contract_surface_changes: 0
+    shape_only: true
+
+notes:
+  - "Every skill listed exists on disk and has a valid SKILL.md contract."
+  - "All 6 step-producing skills are marked 'existing modified' because Phase 2 + this visual-first pass touched at least some of them."
+  - "Only 2 of the 6 (generate-screen-inventory, generate-wireframes) were touched in THIS bake. The other 4 carry forward from the D15/D16 bake unchanged."
+  - "validate-kb-extension is intentionally excluded from the evals-creator skill_contracts list because it runs in pre-flight, not as a step that produces an artifact evaluated by SE-* evals."
+  - "The visual-first SHAPE change is internal to the screen MD file body. The play's JSON contract surface is unchanged from the D15/D16 bake. The compiled SKILL.md narrative for Stages 3 and 8 must reflect the new shape so a human reader of the play file understands what each stage produces."
+  - "Known out-of-scope drift (carried from D15/D16): the 6 design skills still declare ltm_domain_taxonomy_path in their own Input sections — a separate skill-level rebake will align the skill input labels to product_research_path. C14 is a play-level structural constraint enforced by auditing the compiled SKILL.md's JSON contract blocks."
+  - "Known out-of-scope drift (carried from D15/D16): designer.md line 88 still references .meridian/product/ux/ in narrative — a separate agent rebake will correct it."

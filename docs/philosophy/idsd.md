@@ -51,7 +51,7 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 | 1 | Intent Layer | Plays — atomic (≤2 agents), high-order (≤5 agents). Every play has IDD intent header (intent/constraints/failure_conditions). |
 | 2 | Signals | User CLI invocations (`/build-feature`, `/commit-code`). All signals enter via plays. |
 | 3 | Orchestrated Intent | Play Levels. Three speeds: Fast (minutes), Planned (hours), Strategic (days). |
-| 4 | Agents | 8 agents (5 implemented, 3 planned): code-builder, tech-designer, repo-orchestrator, project-orchestrator, product-strategist. Planned: quality-validator, workflow-guardian, spec-author. Agent-first pattern. |
+| 4 | Agents | 8 agents (5 implemented, 3 planned): code-builder, tech-designer, repo-orchestrator, project-orchestrator, feature-steward. Planned: quality-validator, workflow-guardian, spec-author. Agent-first pattern. |
 | 5 | Memory | LTM: `core/components/memory/` (practices, standards, templates). STM: `.meridian/{issue}/` (per-issue work). |
 | 6 | Skills | Bounded capabilities invoked by agents. Each skill has SKILL.md with input/output contracts. |
 | 7 | Context-Aware Decisions | Context bundles ≤12K tokens. Audience separation (Tier 1/2/3). Agents read LTM + STM. |
@@ -265,7 +265,7 @@ IDSD maps the AI Squad Framework roles to 8 Meridian agents (5 implemented, 3 pl
 
 | AI Squad Role | Meridian Agent(s) | IDD Element |
 |---------------|--------------------|----|
-| Specifier | product-strategist, spec-author *(planned)* | Element 4 |
+| Specifier | feature-steward, spec-author *(planned)* | Element 4 |
 | Designer | tech-designer | Element 4 |
 | Builder | code-builder | Element 4 |
 | Validator | quality-validator *(planned)* | Elements 4 + 8 |
@@ -283,7 +283,7 @@ IDSD maps the AI Squad Framework roles to 8 Meridian agents (5 implemented, 3 pl
 | project-orchestrator | project | orchestrator | Universal | Implemented |
 | quality-validator | quality | validator | Code-2-Test, Test-2-Run, Audit-2-Fix | Planned |
 | workflow-guardian | workflow | guardian | L2 checkpoint validation | Planned |
-| product-strategist | product | strategist | Product-2-Design | Implemented |
+| feature-steward | product | strategist | Product-2-Design | Implemented |
 | spec-author | specification | author | Design-2-Spec, Audit-2-Fix | Planned |
 
 #### Compartmented Evaluation Classification
@@ -294,7 +294,7 @@ Under IDD Principle 4, agents are classified by their role in the information ba
 |---------------|--------|-------------------|-------------------|
 | **Builders** | code-builder, tech-designer, spec-author *(planned)* | Goal + Constraints (no failure conditions) | In barrier-eligible plays |
 | **Validators** | quality-validator *(planned)* | Failure Conditions + Builder Output (no goal/constraints) | In barrier-eligible plays |
-| **Neutral** | product-strategist, repo-orchestrator, project-orchestrator | Full intent (all elements) | Always — these agents perform mechanical or discovery operations |
+| **Neutral** | feature-steward, repo-orchestrator, project-orchestrator | Full intent (all elements) | Always — these agents perform mechanical or discovery operations |
 
 In barrier-exempt plays (commit-code, create-pr, etc.), all agents receive the full intent regardless of classification.
 
@@ -725,7 +725,7 @@ Not all plays benefit from compartmented evaluation. The barrier applies to play
 | tech-designer | Builder | ✓ | ✗ | Builder for design decisions |
 | spec-author *(planned)* | Builder | ✓ | ✗ | Builder for specification generation |
 | quality-validator *(planned)* | Validator | ✗ | ✓ | Primary validator across all phases |
-| product-strategist *(planned)* | Neutral | ✓ | ✓ | Operates at discovery level — no barrier needed |
+| feature-steward *(planned)* | Neutral | ✓ | ✓ | Operates at discovery level — no barrier needed |
 | repo-orchestrator | Neutral | ✓ | ✓ | Mechanical operations — no barrier needed |
 | project-orchestrator | Neutral | ✓ | ✓ | Coordination operations — no barrier needed |
 

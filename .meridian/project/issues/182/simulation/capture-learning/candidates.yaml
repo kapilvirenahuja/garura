@@ -26,7 +26,7 @@ candidates:
     proposed_scope: "core"
     proposed_scope_rationale: "Layered knowledge resolution is a general-purpose agentic pattern applicable to any multi-agent system that maintains organizational memory — not specific to this project's domain."
     dedup_status: "near-duplicate"
-    dedup_conflict_path: "~/.meridian/core/memory/standards/resolution-protocol.md"
+    dedup_conflict_path: "~/.meridian/core/memory/standards/rules/resolution.md"
     approval_status: "pending"
 
   - id: "KC-002"

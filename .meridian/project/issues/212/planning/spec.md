@@ -39,9 +39,9 @@ The approach must sequence directory renames (`git mv`) before content edits to 
 | `core/components/plays/*/SKILL.md` (all remaining plays) | SKILL.md | All recipe/Recipe/recipes content references |
 | `core/components/agents/*.md` (all 15) | Agent definitions | `create-recipe` → `create-play`; "recipe" → "play"; "run a recipe" → "run a play" |
 | `core/components/memory/standards/_index.md` | Memory standard | `create-recipe` consumer → `create-play` |
-| `core/components/memory/standards/intent-schema.yaml` | Memory standard | "Any recipe can serve an intent" → "Any play can serve an intent" |
-| `core/components/memory/standards/knowledge-file-template.md` | Memory standard | `learn` recipe reference |
-| `core/components/memory/standards/resolution-protocol.md` | Memory standard | `recipe` variable path reference |
+| `core/components/memory/standards/schemas/intent.yaml` | Memory standard | "Any recipe can serve an intent" → "Any play can serve an intent" |
+| `core/components/memory/standards/templates/knowledge-file.md` | Memory standard | `learn` recipe reference |
+| `core/components/memory/standards/rules/resolution.md` | Memory standard | `recipe` variable path reference |
 | `core/components/memory/workflows/*.yaml` (×3) | Workflow | recipe owner type references |
 | `core/components/skills/analyze-changes/SKILL.md` | SKILL.md | recipe references |
 | `core/components/skills/analyze-pr/reference/quality-rules.md` | Reference | recipe references |

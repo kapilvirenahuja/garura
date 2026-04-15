@@ -152,11 +152,11 @@ Task-driven plays declare their execution DAG as a capability graph table in SKI
 ```
 | # | Capability | Agent | Needs | Produces |
 |---|------------|-------|-------|----------|
-| 1 | Scope epics | product-strategist | vision | epics.yaml |
+| 1 | Scope epics | feature-steward | vision | epics.yaml |
 | 2 | Assess feasibility | tech-designer | epics.yaml | feasibility.yaml |
-| 3 | Produce brief | product-strategist | epics, feasibility | brief.html |
+| 3 | Produce brief | feature-steward | epics, feasibility | brief.html |
 | — | CHECKPOINT | orchestrator | brief.html | approved_brief |
-| 4 | Produce roadmap | product-strategist | approved brief | roadmap.md |
+| 4 | Produce roadmap | feature-steward | approved brief | roadmap.md |
 ```
 
 ### JSON Contract Rule

@@ -170,7 +170,7 @@ index 14fc8a8..5cf1f2a 100644
  - `scenarios.yaml` — scenario groups with feature_ref, behavior_ref, pass_criteria, automation classification, feature_gates, coverage
  - `plan.yaml` — prerequisites (Phase 0), execution_order as vertical slices (scope items with key_files, exit_gate, scenario_gate), summary table with cumulative_scenarios
  
--**PENDING-REFACTOR (#106):** After Issue #106, prepare-implementation will slim down to: scenarios.yaml + plan.yaml + evals setup ONLY. features.yaml moves to plan-roadmap; architecture.yaml and tech.yaml move to design-arch.
+-**PENDING-REFACTOR (#106):** After Issue #106, prepare-implementation will slim down to: scenarios.yaml + plan.yaml + evals setup ONLY. features.yaml moves to plan-roadmap; architecture.yaml and tech.yaml move to build-arch.
 +**RESOLVED (2026-04-13):** prepare-implementation slim-down dropped. The play keeps its current 5-artifact shape (features, architecture, tech, scenarios, plan). Design plays (see #106) will plug in alongside it, not replace its outputs.
  
  ---

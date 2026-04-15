@@ -47,7 +47,7 @@
 
 **PENDING-REFACTOR (#106):** The current pipeline will be restructured into:
 ```
-discover-product → plan-roadmap (+ features.yaml) → design-ux + design-services + design-arch → prepare-implementation (slim) → implement-epic
+discover-product → plan-roadmap (+ features.yaml) → design-ux + design-services + build-arch → prepare-implementation (slim) → implement-epic
 ```
 See section "SDLC Phases" for the current diagram (marked CURRENT) and the pending restructure notes.
 
@@ -189,11 +189,11 @@ Compound L2:
 **PENDING-REFACTOR (#106):** After Issue #106 is resolved, the pipeline will restructure to:
 ```
 discover-product → plan-roadmap (produces features.yaml here) →
-  design-ux + design-services + design-arch (3 new plays) →
+  design-ux + design-services + build-arch (3 new plays) →
   prepare-implementation (slimmed: scenarios + plan + evals only) →
   implement-epic
 ```
-This moves features.yaml authorship from prepare-implementation to plan-roadmap. The three design plays (design-ux, design-services, design-arch) do not exist yet and will be built in Issue #106.
+This moves features.yaml authorship from prepare-implementation to plan-roadmap. The three design plays (design-ux, design-services, build-arch) do not exist yet and will be built in Issue #106.
 
 ---
 
@@ -321,7 +321,7 @@ Plays are built one at a time. Priority set by user. Existing plays marked for I
 |--------|-------|------------|-------|
 | `design-ux` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new play |
 | `design-services` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new play |
-| `design-arch` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new play |
+| `build-arch` | L2 | Product-2-Design | **PENDING-REFACTOR (#106)** — new play |
 | `plan-sprint` | L1 | Product-2-Design | Sprint planning ceremony |
 | `create-wireframes` | L1 | Design-2-Spec | Standalone UX design |
 | `create-adr` | L1 | Design-2-Spec | Standalone ADR creation |
@@ -575,7 +575,7 @@ failure_conditions:
 **Consumes:** `product.yaml` (must be LOCKED via `--product` argument)
 **Generates:** `roadmap.yaml`, `roadmap-brief.html`, `hub.html`
 
-**NOTE:** Engineering view (formerly in plan-roadmap output) was removed. It will move to `design-arch` in the **PENDING-REFACTOR (#106)** restructure.
+**NOTE:** Engineering view (formerly in plan-roadmap output) was removed. It will move to `build-arch` in the **PENDING-REFACTOR (#106)** restructure.
 
 **Arguments:**
 ```
@@ -867,7 +867,7 @@ Step 19: Write evidence, present final report, evidence self-commit
 **Generates:** PR with dynamic quality checklist, change-specific evidence, embedded eval results
 
 **Key behaviors:**
-- Platform-agnostic (reads `platform:` from core/config.yaml)
+- Platform-agnostic (reads `platform:` from .meridian/core/config.yaml)
 - Checklist items are change-specific (every item has trigger reason tracing to diff)
 - Confidence-gated — high confidence auto-submits; low confidence requires human review
 - Checkpoint SKIPPED when all confidence signals high

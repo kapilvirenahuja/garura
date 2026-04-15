@@ -1,0 +1,50 @@
+name: readiness-brief-generation
+description: >
+  Structure A — Full checkpoint flow. Pre-flight, preparation, checkpoint (skippable),
+  execution, scenario validation, evidence. Use for plays that require human approval
+  before producing final deliverables.
+structure: A
+
+phases:
+  - phase: pre-flight
+    owner_type: play
+    description: >
+      Infrastructure checks before domain work. Play MUST resolve stm_base from
+      .meridian/core/config.yaml (stm.base-path) and hold it for all downstream contract paths.
+      All agent contracts use {stm_base}/{issue}/ — never hardcoded paths.
+      Check for status file and resume if present.
+    required_resolution:
+      stm_base: "stm.base-path from .meridian/core/config.yaml"
+
+  - phase: preparation
+    owner_type: domain-agent
+    description: >
+      Analysis, scoping, feasibility. Domain agents write structured artifacts to STM.
+      Step evals validate each agent's output after completion.
+
+  - phase: checkpoint
+    owner_type: play
+    skippable: true
+    description: >
+      Domain agent creates human-readable brief from STM artifacts.
+      Play presents brief to user. Tether/Vanish.
+      Skippable when confidence is high and no flags exist.
+
+  - phase: execution
+    owner_type: domain-agent
+    description: >
+      Produce final deliverables from STM artifacts. Agents read STM data
+      written during preparation — NEVER the checkpoint brief.
+      Step evals validate output after completion.
+
+  - phase: scenario-validation
+    owner_type: play
+    description: >
+      E2E scenario evals. Validate final artifacts against acceptance scenarios
+      from the compiled play.
+
+  - phase: evidence
+    owner_type: play
+    description: >
+      Write evidence artifacts and checkpoint to STM. All paths use the resolved
+      stm_base. Self-commit evidence files (ADR 012) — non-blocking on failure.

@@ -71,7 +71,7 @@ Skills reference LTM with explicit load directives:
 
 1. **Categorize Each File**
 
-   Load categories from: `~/.meridian/core/memory/standards/commits/categories.md`
+   Load categories from: `~/.meridian/core/memory/standards/rules/commits.md`
 ```
 
 Skills retain a `reference/` directory for skill-specific knowledge that is NOT organizational:
@@ -100,11 +100,11 @@ core/components/skills/{skill-name}/
 
 | Content | LTM Path | Used By |
 |---------|----------|---------|
-| Commit categories | `~/.meridian/core/memory/standards/commits/categories.md` | analyze-changes, analyze-pr |
-| Commit quality rules | `~/.meridian/core/memory/standards/commits/quality-rules.md` | analyze-pr |
-| Branch naming | `~/.meridian/core/memory/standards/git/branching.md` | repo-orchestrator, setup-branch |
-| Issue templates | `~/.meridian/core/memory/formats/github-issue.md` | manage-issue |
-| Architecture reference | `~/.meridian/core/memory/knowledge/architecture/evolutionary-scaling.md` | tech-designer |
+| Commit categories | `~/.meridian/core/memory/standards/rules/commits.md` | analyze-changes, analyze-pr |
+| Commit quality rules | `~/.meridian/core/memory/standards/rules/commits.md` | analyze-pr |
+| Branch naming | `~/.meridian/core/memory/standards/rules/git.md` | repo-orchestrator, setup-branch |
+| Issue templates | `~/.meridian/core/memory/standards/templates/github-issue.md` | manage-issue |
+| Architecture reference | `~/.meridian/core/memory/knowledge/arch/evolutionary-scaling.md` | tech-designer |
 
 ## Consequences
 

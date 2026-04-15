@@ -1,0 +1,608 @@
+step_evals:
+  # ============================================================
+  # Failure-condition evals (one per F, mapped to the skill whose
+  # output would exhibit the failure)
+  # ============================================================
+
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: generate-intent-epics
+    check: >
+      The play completes with zero intent epics in the product output
+      directory.
+    artifact_pattern: "{product_base}/scope/epics/*.yaml"
+    pass_criteria: >
+      At least one intent epic YAML file exists under the epics output
+      directory after generate-intent-epics runs.
+    fail_criteria: >
+      The epics output directory contains zero YAML files, or the directory
+      does not exist.
+
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: validate-intent-epics
+    check: >
+      Any intent epic in the output has one or more mandatory fields that
+      are empty, null, or contain only whitespace or placeholder strings.
+    artifact_pattern: "{product_base}/scope/validation-intent-epics.yaml"
+    pass_criteria: >
+      validation.summary.by_category.missing_field == 0 AND
+      validation.summary.by_category.placeholder_value == 0 in the validation
+      result file.
+    fail_criteria: >
+      validation.summary.by_category.missing_field > 0 OR
+      validation.summary.by_category.placeholder_value > 0.
+
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: validate-intent-epics
+    check: >
+      Any intent epic constraint field (performance, security, accessibility,
+      compliance) contains unquantified language — "fast", "secure",
+      "reliable", or similar prose without a number, standard, or specific
+      control.
+    artifact_pattern: "{product_base}/scope/validation-intent-epics.yaml"
+    pass_criteria: >
+      validation.summary.by_category.unquantified_constraint == 0 in the
+      validation result file.
+    fail_criteria: >
+      validation.summary.by_category.unquantified_constraint > 0.
+
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: validate-intent-epics
+    check: >
+      Any intent epic has fewer than two entries in success_scenarios or
+      fewer than two entries in failure_scenarios.
+    artifact_pattern: "{product_base}/scope/validation-intent-epics.yaml"
+    pass_criteria: >
+      validation.summary.by_category.scenario_count_below_min == 0 in the
+      validation result file.
+    fail_criteria: >
+      validation.summary.by_category.scenario_count_below_min > 0.
+
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: validate-intent-epics
+    check: >
+      Any intent epic's kb_source.capability points at a feature ID that
+      does not exist in the referenced domain-taxonomy file.
+    artifact_pattern: "{product_base}/scope/validation-intent-epics.yaml"
+    pass_criteria: >
+      validation.summary.by_category.dangling_kb_source == 0 in the
+      validation result file.
+    fail_criteria: >
+      validation.summary.by_category.dangling_kb_source > 0.
+
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: configure-capabilities
+    check: >
+      The scope artifact's selected_capabilities list contains an entry
+      that does not correspond to a real feature ID in any domain-taxonomy
+      file.
+    artifact_pattern: "{product_base}/scope/scope.yaml"
+    pass_criteria: >
+      scope.dangling_feature_refs == 0 in the configure-capabilities output
+      contract, AND every entry in scope.selected_capabilities[].id resolves
+      to a real feature ID in a domain-taxonomy markdown file under
+      product_domain_library_path.
+    fail_criteria: >
+      scope.dangling_feature_refs > 0, OR any entry in
+      scope.selected_capabilities[].id has no matching feature block in
+      any domain-taxonomy markdown file under product_domain_library_path.
+
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: null
+    skill: configure-capabilities
+    check: >
+      The scope artifact's constraint_trace section is missing or fails to
+      record every cross-tree constraint that was walked during capability
+      configuration.
+    artifact_pattern: "{product_base}/scope/scope.yaml"
+    pass_criteria: >
+      scope.yaml contains a constraint_trace section with applied and
+      not_applicable sub-sections, AND
+      len(constraint_trace.applied) + len(constraint_trace.not_applicable)
+      equals the total number of constraints in _cross-tree-constraints.yaml.
+    fail_criteria: >
+      constraint_trace section is missing, OR the sum of
+      applied + not_applicable is less than the total constraint count in
+      _cross-tree-constraints.yaml.
+
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: derive-quality-profile-from-epics
+    check: >
+      The quality profile artifact is missing, contains zero entries for
+      at least one ISO 25010 characteristic that is relevant to the
+      selected capabilities, or fails to record the risk register.
+    artifact_pattern: "{product_base}/specification/quality-profile.yaml"
+    pass_criteria: >
+      quality-profile.yaml exists, iso_25010_characteristics_populated >= 1,
+      every relevant ISO 25010 characteristic bucket has at least one target
+      entry, and a risk_register section is present (may be empty list for
+      low-risk projects).
+    fail_criteria: >
+      quality-profile.yaml is missing, OR
+      iso_25010_characteristics_populated < 1, OR any relevant ISO 25010
+      characteristic bucket has zero target entries, OR risk_register section
+      is absent.
+
+  - id: SE-9
+    source_type: failure_condition
+    failure_condition_id: F9
+    constraint_id: null
+    skill: configure-capabilities
+    check: >
+      Any of the four mandatory checkpoint artifacts is missing from the
+      checkpoint directory, or any checkpoint proceeded past its gate
+      without recording a Tether/Vanish/Orbit response.
+    artifact_pattern: "{product_base}/_checkpoints/specify-product/*.md"
+    pass_criteria: >
+      For every checkpoint stage (market review, domain review, capability
+      review, epic review) a corresponding artifact file exists under the
+      checkpoint directory AND each file's final status field is set to
+      APPROVED, REJECTED, or COMPLETED.
+    fail_criteria: >
+      Any mandatory checkpoint artifact is missing, OR any checkpoint file's
+      status is still PENDING_APPROVAL after the play concluded.
+
+  - id: SE-10
+    source_type: failure_condition
+    failure_condition_id: F10
+    constraint_id: null
+    skill: validate-intent-epics
+    check: >
+      An intent epic is locked despite the pre-lock resolution gate reporting
+      unresolved blockers or placeholder values in its mandatory fields.
+    artifact_pattern: "{product_base}/_evidence/specify-product/resolution-gate-*.md"
+    pass_criteria: >
+      After the pre-lock resolution gate runs, every epic either has zero
+      issues or carries a corresponding RESOLVED entry in the resolution
+      audit file. No epic is locked with an unresolved blocker or
+      placeholder value.
+    fail_criteria: >
+      At least one epic is locked while the resolution audit file records
+      an unresolved blocker or placeholder value for that epic.
+
+  - id: SE-11
+    source_type: failure_condition
+    failure_condition_id: F11
+    constraint_id: null
+    skill: configure-capabilities
+    check: >
+      Any artifact is written to a path outside the ADR 017 whitelist, or
+      any evidence / checkpoint / status file is written without going
+      through the scriber agent.
+    artifact_pattern: "{product_base}/**/*"
+    pass_criteria: >
+      Every file produced by this play resides under .meridian/product/
+      per the ADR 017 whitelist, AND every evidence / checkpoint / status
+      file was written via scriber dispatch (recorded in scriber's audit log).
+    fail_criteria: >
+      At least one file produced by the play is outside .meridian/product/,
+      OR at least one evidence / checkpoint / status file was written
+      without a corresponding scriber dispatch entry.
+
+  - id: SE-12
+    source_type: failure_condition
+    failure_condition_id: F12
+    constraint_id: null
+    skill: generate-intent-epics
+    check: >
+      The product scope is handled as a single monolithic package when the
+      selected capabilities clearly warrant sub-issue phasing. The play
+      must surface a phasing recommendation when the epic count exceeds the
+      appetite's reasonable bandwidth.
+    artifact_pattern: "{product_base}/_evidence/specify-product/*.md"
+    pass_criteria: >
+      Either the epic count is within the appetite's reasonable bandwidth,
+      OR the final evidence file surfaces a phasing recommendation naming
+      the capabilities that warrant sub-issue phasing.
+    fail_criteria: >
+      Epic count exceeds the appetite's reasonable bandwidth AND the
+      evidence file does not surface a phasing recommendation.
+
+  - id: SE-13
+    source_type: failure_condition
+    failure_condition_id: F13
+    constraint_id: null
+    skill: configure-capabilities
+    check: >
+      Any file under .meridian/product/research/, .meridian/product/
+      specification/, or .meridian/product/scope/ written by this play
+      contains an implementation-specific token from the abstraction-
+      layer deny-list (specific database engines, SDK method names,
+      framework identifiers, programming-language type signatures,
+      wire-level protocol identifiers, cryptographic construction
+      details, or model version strings).
+    artifact_pattern: "{product_base}/{research,specification,scope}/**/*"
+    pass_criteria: >
+      Every file under product/research/, product/specification/, and
+      product/scope/ authored by this play contains zero implementation-
+      specific tokens from the abstraction-layer deny-list.
+    fail_criteria: >
+      At least one file under product/research/, product/specification/,
+      or product/scope/ authored by this play contains a deny-list token:
+      a specific database engine, SDK method name, framework identifier,
+      programming-language type signature, wire-level protocol identifier,
+      cryptographic construction detail, or model version string.
+
+  # ============================================================
+  # Constraint evals — artifact-verifiable constraints only
+  # (C4, C5, C6, C7, C8, C9, C14, C16)
+  # ============================================================
+
+  - id: SE-14
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C4
+    skill: configure-capabilities
+    check: >
+      Every selected capability must be a real feature ID from an existing
+      domain-taxonomy markdown file. The source may be the LTM catalog or
+      an STM research directory produced by the KB-gap research flow;
+      capabilities sourced from STM research are tagged
+      source: provisional_stm_research and carry a kb_source.provisional
+      flag through downstream epics. The play cannot invent capabilities or
+      pick from a hallucinated catalog.
+    artifact_pattern: "{product_base}/scope/scope.yaml"
+    pass_criteria: >
+      Every entry in scope.selected_capabilities[].id resolves to a real
+      feature ID in an existing domain-taxonomy markdown file (either LTM
+      catalog or the product_domain_library_path); capabilities sourced
+      from STM research carry source: provisional_stm_research.
+    fail_criteria: >
+      At least one entry in scope.selected_capabilities[].id has no
+      matching feature ID in any domain-taxonomy markdown file, OR a
+      capability sourced from STM research is missing the
+      source: provisional_stm_research tag.
+
+  - id: SE-15
+    source_type: both
+    failure_condition_id: F7
+    constraint_id: C5
+    skill: configure-capabilities
+    check: >
+      Every cross-tree constraint defined in the constraints file must be
+      walked explicitly during capability configuration. A constraint whose
+      condition matches the project profile produces its declared
+      include/exclude action, and the action is recorded in the scope
+      artifact's constraint_trace section. Skipping a constraint is a
+      compliance violation.
+    artifact_pattern: "{product_base}/scope/scope.yaml"
+    pass_criteria: >
+      scope.constraint_trace.applied + scope.constraint_trace.not_applicable
+      together cover every constraint in _cross-tree-constraints.yaml;
+      every applied entry has a non-null action_taken field; every
+      not_applicable entry has a non-null why_not_applicable string.
+    fail_criteria: >
+      One or more constraints from _cross-tree-constraints.yaml are absent
+      from both constraint_trace.applied and constraint_trace.not_applicable,
+      OR an applied entry has no action_taken field, OR a not_applicable
+      entry has no why_not_applicable string.
+
+  - id: SE-16
+    source_type: both
+    failure_condition_id: F2
+    constraint_id: C6
+    skill: validate-intent-epics
+    check: >
+      Every intent epic must carry all mandatory fields defined in intent-
+      epic-schema.yaml: id, domain, capability, problem_statement, intent,
+      appetite, in_scope (>=1 entry), anti_goals (>=1 entry),
+      success_scenarios (>=2 entries), failure_scenarios (>=2 entries),
+      constraints (performance, security, accessibility, compliance),
+      business_rules (>=1 entry), hypothesis, assumptions_requiring_validation
+      (>=1 entry), dependencies (may be empty list), kb_source (capability,
+      rules_applied, experiential warnings). Empty mandatory fields are
+      blocking validation failures.
+    artifact_pattern: "{product_base}/scope/validation-intent-epics.yaml"
+    pass_criteria: >
+      validation.status == passed AND
+      validation.summary.by_category.missing_field == 0 AND
+      validation.summary.by_category.scenario_count_below_min == 0 AND
+      validation.summary.by_category.hypothesis_format == 0.
+    fail_criteria: >
+      validation.status == failed, OR
+      validation.summary.by_category.missing_field > 0, OR
+      validation.summary.by_category.scenario_count_below_min > 0, OR
+      validation.summary.by_category.hypothesis_format > 0.
+
+  - id: SE-17
+    source_type: both
+    failure_condition_id: F3
+    constraint_id: C7
+    skill: validate-intent-epics
+    check: >
+      Every constraint in every intent epic must be quantified. Performance
+      values must contain a number and unit. Security values must name a
+      specific standard or control. Accessibility values must reference a
+      WCAG level. Compliance entries must name specific regulations. Vague
+      values ("fast", "secure", "reliable") are blocking validation failures.
+    artifact_pattern: "{product_base}/scope/validation-intent-epics.yaml"
+    pass_criteria: >
+      validation.summary.by_category.unquantified_constraint == 0 in the
+      validation result file, meaning every epic's performance contains a
+      number+unit, every security names a specific standard or control,
+      every accessibility references a WCAG level, and every compliance
+      entry names a specific regulation.
+    fail_criteria: >
+      validation.summary.by_category.unquantified_constraint > 0, meaning
+      at least one epic carries a vague constraint value such as "fast",
+      "secure", or "reliable" without a number, standard, or specific
+      control.
+
+  - id: SE-18
+    source_type: both
+    failure_condition_id: F5
+    constraint_id: C8
+    skill: validate-intent-epics
+    check: >
+      Every intent epic's kb_source.capability field must equal its
+      capability field and must resolve to an existing feature in the
+      referenced domain-taxonomy file. Dangling traceability is a blocking
+      validation failure.
+    artifact_pattern: "{product_base}/scope/validation-intent-epics.yaml"
+    pass_criteria: >
+      validation.summary.by_category.dangling_kb_source == 0 AND for every
+      epic in the validation result, kb_source.capability equals the epic's
+      capability field and resolves to a feature ID present in the
+      referenced domain-taxonomy file.
+    fail_criteria: >
+      validation.summary.by_category.dangling_kb_source > 0, OR any epic
+      has kb_source.capability != capability, OR any epic's capability does
+      not resolve to a feature block in the referenced domain-taxonomy file.
+
+  - id: SE-19
+    source_type: both
+    failure_condition_id: F8
+    constraint_id: C9
+    skill: derive-quality-profile-from-epics
+    check: >
+      The quality profile aggregates constraints across all intent epics
+      into ISO 25010 characteristic buckets (functional suitability,
+      performance efficiency, compatibility, interaction capability,
+      reliability, security, maintainability, flexibility, safety). The
+      risk register aggregates experiential warnings from every selected
+      capability's KB source. Neither is optional; both are produced as
+      artifacts before lock.
+    artifact_pattern: "{product_base}/specification/quality-profile.yaml"
+    pass_criteria: >
+      quality-profile.yaml exists; iso_25010_characteristics_populated >= 1;
+      every relevant ISO 25010 characteristic bucket is populated or marked
+      not_applicable with rationale; risk_register section is present and
+      contains an aggregated entry for every unique experiential warning
+      drawn from the selected capabilities' KB sources.
+    fail_criteria: >
+      quality-profile.yaml is missing, OR
+      iso_25010_characteristics_populated < 1, OR any relevant ISO 25010
+      characteristic bucket is absent without a not_applicable marker, OR
+      risk_register section is missing, OR any experiential warning from
+      the selected capabilities' KB sources is not aggregated into
+      risk_register.
+
+  - id: SE-20
+    source_type: both
+    failure_condition_id: F10
+    constraint_id: C14
+    skill: validate-intent-epics
+    check: >
+      A pre-lock resolution gate runs before the final intent-epic
+      validation pass. It scans for (a) blocker-severity validation issues,
+      (b) warning-severity validation issues, and (c) placeholder values
+      like "TBD" / "unclear" / "to be determined" in any mandatory field.
+      Blockers and placeholders force an interactive RESOLVED-keyword
+      interview; there is no accept-risk bypass for blockers — only
+      RESOLVED or Vanish. The audit artifact records every resolution.
+    artifact_pattern: "{product_base}/_evidence/specify-product/resolution-gate-*.md"
+    pass_criteria: >
+      The resolution-gate audit file exists; every blocker-severity issue
+      and every placeholder value detected by the gate has a matching
+      RESOLVED entry in the audit file; no epic is locked with an
+      unresolved blocker or unresolved placeholder.
+    fail_criteria: >
+      The resolution-gate audit file is missing, OR any blocker-severity
+      issue or placeholder value detected by the gate lacks a matching
+      RESOLVED entry, OR any epic is locked while an unresolved blocker
+      or placeholder remains.
+
+  - id: SE-21
+    source_type: both
+    failure_condition_id: F13
+    constraint_id: C16
+    skill: configure-capabilities
+    check: >
+      Artifacts produced by this play stay implementation-agnostic.
+      No file under .meridian/product/research/, .meridian/product/
+      specification/, or .meridian/product/scope/ may reference a
+      specific database engine, SDK method or parameter, framework,
+      programming language, build tool, table schema with column
+      definitions, wire protocol or endpoint path, cryptographic
+      construction, or model version identifier. Allowed vocabulary is
+      domain-level ("append-only ledger", "pluggable measurement
+      adapter", "structured-output enforcement", "controlled-determinism
+      contract"). Skills that author these artifacts reject outputs
+      containing the deny-list tokens.
+    artifact_pattern: "{product_base}/{research,specification,scope}/**/*"
+    pass_criteria: >
+      Every file under product/research/, product/specification/, and
+      product/scope/ authored by this play is free of the abstraction-
+      layer deny-list tokens: no specific database engine, no specific
+      SDK method or parameter, no specific framework, no specific
+      programming language, no specific build tool, no table schema
+      with column definitions, no wire protocol or endpoint path, no
+      cryptographic construction, and no model version identifier.
+    fail_criteria: >
+      At least one file under product/research/, product/specification/,
+      or product/scope/ contains a deny-list token — a specific database
+      engine, SDK method or parameter, framework, programming language,
+      build tool, table schema with column definitions, wire protocol or
+      endpoint path, cryptographic construction, or model version
+      identifier.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Product Manager
+    artifact_pattern: "{product_base}/scope/epics/*.yaml"
+    check: >
+      Can derive per-epic acceptance criteria for the engineering team
+      directly from each epic's success_scenarios and failure_scenarios
+      without consulting any other source.
+    pass_criteria: >
+      Every intent epic in the epics directory contains success_scenarios
+      and failure_scenarios sections populated with scenario / evidence and
+      scenario / impact / mitigation sub-fields such that per-epic
+      acceptance criteria can be derived from those sections alone.
+    fail_criteria: >
+      At least one intent epic lacks populated success_scenarios or
+      failure_scenarios sub-fields required to derive acceptance criteria
+      without consulting another source.
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Technical Architect
+    artifact_pattern: "{product_base}/specification/quality-profile.yaml"
+    check: >
+      Can make informed decisions on technology stack, data architecture,
+      security architecture, and infrastructure — every architectural
+      decision has a quality-attribute driver that traces to a specific
+      characteristic in the profile.
+    pass_criteria: >
+      quality-profile.yaml aggregates constraints across all selected
+      capabilities and contains measurable targets for every ISO 25010
+      characteristic that is relevant (not marked not_applicable) to the
+      selected capability set, with each target citing its source epic.
+    fail_criteria: >
+      quality-profile.yaml is missing measurable targets for at least one
+      relevant ISO 25010 characteristic, OR targets do not cite their
+      source epic.
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: Product Owner
+    artifact_pattern: "{product_base}/scope/scope.yaml"
+    check: >
+      Can trace every intent epic back to the exact feature ID in the KB
+      that motivated its inclusion, and can defend every capability
+      selection to a stakeholder who asks "why this and not that".
+    pass_criteria: >
+      Every entry in scope.selected_capabilities and scope.rejected_capabilities
+      has a rationale or reason field, AND scope.constraint_trace links each
+      cross-tree-driven decision to the triggering CTC-NNN identifier.
+    fail_criteria: >
+      Any entry in scope.selected_capabilities lacks a rationale, OR any
+      entry in scope.rejected_capabilities lacks a reason, OR
+      scope.constraint_trace fails to link a cross-tree-driven decision to
+      the triggering CTC-NNN identifier.
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Product Manager
+    artifact_pattern: "{product_base}/scope/epics/*.yaml"
+    check: >
+      Can enumerate the error-handling, edge-case, and unhappy-path work
+      that the implementation must cover — no unhappy path is silently
+      skipped, because the validator would have blocked an epic with empty
+      failure_scenarios.
+    pass_criteria: >
+      Every intent epic's failure_scenarios list contains at least 2
+      entries, each with scenario, impact, and mitigation sub-fields
+      populated.
+    fail_criteria: >
+      At least one intent epic has fewer than 2 entries in failure_scenarios,
+      OR any entry is missing scenario, impact, or mitigation sub-fields.
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: Engineering Lead
+    artifact_pattern: "{product_base}/specification/market-brief.md AND {product_base}/scope/scope.yaml"
+    check: >
+      Can assess technical feasibility of the scope within the stated
+      appetite, flag capabilities whose implementation cost exceeds the
+      appetite's bandwidth, and propose either scope cuts or appetite
+      expansion with concrete justification.
+    pass_criteria: >
+      market-brief.md contains quantified TAM/SAM/SOM data AND scope.yaml
+      records capability count and depth caps, together providing enough
+      quantified data for a feasibility-within-appetite assessment.
+    fail_criteria: >
+      market-brief.md lacks quantified TAM/SAM/SOM data, OR scope.yaml
+      omits capability count or depth caps, such that a feasibility-
+      within-appetite assessment cannot be made from these two files alone.
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: Compliance Officer
+    artifact_pattern: "{product_base}/scope/scope.yaml AND {product_base}/scope/epics/*.yaml"
+    check: >
+      Can verify that every applicable cross-tree constraint (MFA for
+      regulated industries, audit logging for HIPAA, data export for GDPR)
+      has been applied and recorded, without re-deriving the compliance
+      mapping from scratch.
+    pass_criteria: >
+      For any project whose profile.industry is in {BFSI, healthcare,
+      government} or whose profile.compliance is non-empty,
+      scope.constraint_trace records the outcome of every cross-tree
+      constraint relevant to the profile with no silent skips.
+    fail_criteria: >
+      For a regulated-industry or compliance-bearing profile,
+      scope.constraint_trace omits the outcome of at least one cross-tree
+      constraint relevant to the profile.
+
+  - id: SCE-7
+    scenario_id: S7
+    persona: Stakeholder (non-technical)
+    artifact_pattern: "{product_base}/_checkpoints/specify-product/stage-3-configure-*.md"
+    check: >
+      Can review phasing decisions (what ships in the first appetite window
+      versus what's deferred) and either Tether to approve, Orbit to push
+      back with specific feedback, or Vanish to abandon — without needing
+      engineering context for the call.
+    pass_criteria: >
+      The capability-configuration checkpoint artifact presents selected
+      capabilities by human-readable name rather than feature ID alone,
+      and is readable without engineering context.
+    fail_criteria: >
+      The capability-configuration checkpoint artifact lists capabilities
+      by feature ID only, without a human-readable name, requiring
+      engineering context for review.
+
+  - id: SCE-8
+    scenario_id: S8
+    persona: Product Manager
+    artifact_pattern: "{product_base}/scope/scope.yaml AND {product_base}/_status/specify-product.json"
+    check: >
+      Can cycle the play back to stage 3 with the exclusion as additional
+      context, re-run capability configuration, and receive an updated
+      scope document that honors the Orbit feedback — without restarting
+      the entire play from stage 1.
+    pass_criteria: >
+      An Orbit response at the capability-configuration checkpoint cycles
+      back to the configure-capabilities step with the toggle decisions
+      passed as optional_capability_selections input; market-brief,
+      domain-selection and earlier stage artifacts are preserved and not
+      regenerated.
+    fail_criteria: >
+      An Orbit response at the capability-configuration checkpoint
+      triggers a full restart from stage 1, OR the Orbit feedback is not
+      passed into configure-capabilities as optional_capability_selections,
+      OR earlier stage artifacts are regenerated.

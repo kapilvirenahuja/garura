@@ -1,0 +1,234 @@
+issue: 214
+branch: feature/214-product-planning-design-pipeline
+total_commits: 11
+
+commits:
+
+  - group_id: G1
+    issue: 214
+    hash: 170b3fa
+    type: feat
+    scope: build-arch
+    subject: "add 5 new skills (logical/physical arch, nfr-spec, quality-vision, design-patterns) + rewrite build-arch intent to v0.3.0 with 5-artifact model"
+    files:
+      - core/components/skills/derive-logical-architecture/SKILL.md
+      - core/components/skills/derive-physical-architecture/SKILL.md
+      - core/components/skills/derive-nfr-spec/SKILL.md
+      - core/components/skills/derive-quality-vision/SKILL.md
+      - core/components/skills/derive-design-patterns/SKILL.md
+      - core/components/plays/build-arch/reference/intent.yaml
+      - core/components/plays/build-arch/SKILL.md
+      - core/components/skills/validate-architecture-spec/SKILL.md
+      - core/components/skills/derive-quality-profile-from-epics/SKILL.md
+      - core/components/skills/draft-technical-approach/SKILL.md
+
+  - group_id: G2
+    issue: 214
+    hash: 7e846d6
+    type: feat
+    scope: dsd
+    subject: "update 10 skills to emit decision-manifest.yaml for Decision Surfacing Discipline (D23)"
+    files:
+      - core/components/skills/analyze-changes/SKILL.md
+      - core/components/skills/analyze-pr/SKILL.md
+      - core/components/skills/compile-design-spec/SKILL.md
+      - core/components/skills/configure-capabilities/SKILL.md
+      - core/components/skills/enrich-capabilities/SKILL.md
+      - core/components/skills/generate-intent-epics/SKILL.md
+      - core/components/skills/generate-screen-inventory/SKILL.md
+      - core/components/skills/generate-wireframes/SKILL.md
+      - core/components/skills/map-user-flows/SKILL.md
+      - core/components/skills/synthesize-personas/SKILL.md
+
+  - group_id: G3
+    issue: 214
+    hash: fcef80f
+    type: feat
+    scope: specify-product
+    subject: "add D23 Decision Surfacing Discipline constraints (C18/C19) and failure conditions (F14/F15) + rebuild SKILL.md"
+    files:
+      - core/components/plays/specify-product/reference/intent.yaml
+      - core/components/plays/specify-product/SKILL.md
+
+  - group_id: G4
+    issue: 214
+    hash: fef6f95
+    type: feat
+    scope: design-exp
+    subject: "add D23 Decision Surfacing Discipline constraints (C17/C18) and failure conditions (F16/F17) + rebuild SKILL.md"
+    files:
+      - core/components/plays/design-exp/reference/intent.yaml
+      - core/components/plays/design-exp/SKILL.md
+
+  - group_id: G5
+    issue: 214
+    hash: f7a54df
+    type: feat
+    scope: memory
+    subject: "add rules/ and templates/ memory modules (architecture, design, commits, epics, features, scenarios), restructure standards index, add arch knowledge pattern"
+    files:
+      - core/components/memory/standards/rules/_index.md
+      - core/components/memory/standards/rules/architecture.md
+      - core/components/memory/standards/rules/commits.md
+      - core/components/memory/standards/rules/design.md
+      - core/components/memory/standards/rules/epics.md
+      - core/components/memory/standards/rules/features.md
+      - core/components/memory/standards/rules/scenarios.md
+      - core/components/memory/standards/schemas/_index.md
+      - core/components/memory/standards/templates/_index.md
+      - core/components/memory/standards/templates/approval-prompt.md
+      - core/components/memory/standards/templates/checkpoint.md
+      - core/components/memory/standards/templates/evidence-file.md
+      - core/components/memory/knowledge/arch/patterns/frontend-component-orchestration.md
+      - core/components/memory/standards/_index.md
+      - core/components/memory/knowledge/_index.md
+      - core/components/memory/knowledge/arch/_index.md
+      - core/components/memory/knowledge/arch/patterns/modular-monolith.md
+      - core/components/memory/knowledge/domain/_cross-tree-constraints.yaml
+      - core/components/memory/knowledge/domain/_index.md
+      - core/components/memory/standards/rules/kb-extension.md
+      - core/components/memory/standards/schemas/intent-epic.yaml
+      - core/components/memory/standards/agent-lifecycle/epic-management-rules.md
+
+  - group_id: G6
+    issue: 214
+    hash: d54ee5a
+    type: feat
+    scope: agents
+    subject: "update tech-architect and tech-designer skill inventories for 5-artifact build-arch; update market-analyst and product-keeper for D23 DSD"
+    files:
+      - core/components/agents/tech-architect.md
+      - core/components/agents/tech-designer.md
+      - core/components/agents/market-analyst.md
+      - core/components/agents/product-keeper.md
+
+  - group_id: G7
+    issue: 214
+    hash: e05b64a
+    type: feat
+    scope: skills
+    subject: "delete orphan skills derive-architecture-spec and derive-quality-standards replaced by 5-artifact model"
+    files:
+      - core/components/skills/derive-architecture-spec/SKILL.md
+      - core/components/skills/derive-quality-standards/SKILL.md
+
+  - group_id: G8
+    issue: 214
+    hash: 08db7bd
+    type: refactor
+    scope: plays
+    subject: "rebuild SKILL.md for 12 plays updated as part of D23 workstream (DSD emission, path fixes, review-pr intent)"
+    files:
+      - core/components/plays/briefs/SKILL.md
+      - core/components/plays/capture-learning/SKILL.md
+      - core/components/plays/commit-code/SKILL.md
+      - core/components/plays/create-play/SKILL.md
+      - core/components/plays/create-play/reference/compiled-example.md
+      - core/components/plays/create-pr/SKILL.md
+      - core/components/plays/fix-it/SKILL.md
+      - core/components/plays/implement-epic/SKILL.md
+      - core/components/plays/merge-pr/SKILL.md
+      - core/components/plays/prepare-implementation/SKILL.md
+      - core/components/plays/report-issue/SKILL.md
+      - core/components/plays/review-pr/SKILL.md
+      - core/components/plays/review-pr/reference/intent.yaml
+      - core/components/plays/ship/SKILL.md
+      - core/components/plays/start-feature-planning/SKILL.md
+      - core/components/plays/start-feature/SKILL.md
+      - core/components/skills/manage-issue/SKILL.md
+      - core/components/skills/quality-check-scoped/SKILL.md
+      - core/components/skills/quality-check-scoped/reference/finding-schema.md
+      - core/components/skills/quality-check-scoped/reference/input-contract.md
+      - core/components/skills/research-market-opportunity/SKILL.md
+      - core/components/skills/validate-intent-epics/SKILL.md
+      - core/components/skills/validate-kb-extension/SKILL.md
+
+  - group_id: G9
+    issue: 214
+    hash: 07be393
+    type: docs
+    scope: framework
+    subject: "update ADR 009, memory.md, plays.md for D23 DSD and 5-artifact architecture changes"
+    files:
+      - docs/adr/009-skill-ltm-organizational-knowledge.md
+      - docs/components/memory.md
+      - docs/components/plays.md
+
+  - group_id: G10
+    issue: 214
+    hash: 05e3a77
+    type: chore
+    scope: stm
+    subject: "update #214 STM evidence and context artifacts from D23 rebuild runs (build-arch, design-exp, specify-product coverage reports, context docs)"
+    files:
+      - .meridian/project/issues/214/context/defects-e2e.md
+      - .meridian/project/issues/214/context/deprecated-play-patterns.md
+      - .meridian/project/issues/214/context/scriber-design.md
+      - .meridian/project/issues/214/context/silent-decision-audit.md
+      - .meridian/project/issues/214/evidence/create-play/build-arch/coverage-matrix.md
+      - .meridian/project/issues/214/evidence/create-play/build-arch/evals.yaml
+      - .meridian/project/issues/214/evidence/create-play/build-arch/rebuild-report.md
+      - .meridian/project/issues/214/evidence/create-play/design-exp/rebuild-report.md
+      - .meridian/project/issues/214/evidence/create-play/specify-product/gap-report.md
+      - .meridian/project/issues/214/evidence/create-play/specify-product/rebuild-report.md
+      - .meridian/project/issues/214/evidence/start-feature-planning/scenario-evals.md
+      - .meridian/project/issues/214/specs/spec.md
+      - .meridian/project/issues/214/specs/tasks.md
+      - .meridian/project/issues/214/specs/verify.md
+
+  - group_id: G11
+    issue: 214
+    hash: 667ed5c
+    type: chore
+    scope: stm
+    subject: "update .gitignore and stale STM artifacts from prior play runs on issues 70/95/127/148/182/183/200/208/212"
+    confidence: medium
+    files:
+      - .gitignore
+      - .claude/specs/fix-strategist/fix-strategist.md
+      - .claude/specs/fix-strategist/fix-strategist_tasks.md
+      - .meridian/project/issues/70/planning/spec.md
+      - .meridian/project/issues/70/planning/tasks.md
+      - .meridian/project/issues/70/planning/verify.md
+      - .meridian/project/issues/95/evidence/create-play/commit-code/play-analysis.md
+      - .meridian/project/issues/127/evidence/create-pr/analysis.yaml
+      - .meridian/project/issues/127/planning/spec.md
+      - .meridian/project/issues/127/planning/tasks.md
+      - .meridian/project/issues/148/planning/spec.md
+      - .meridian/project/issues/148/planning/tasks.md
+      - .meridian/project/issues/148/planning/verify.md
+      - .meridian/project/issues/182/evidence/commit-code/analysis.yaml
+      - .meridian/project/issues/182/evidence/commit-code/commits.yaml
+      - .meridian/project/issues/182/evidence/prepare-implementation/dependency-resolution-report.yaml
+      - .meridian/project/issues/182/evidence/prepare-implementation/resolution-trace.yaml
+      - .meridian/project/issues/182/plan.yaml
+      - .meridian/project/issues/182/simulation/capture-learning/candidates.yaml
+      - .meridian/project/issues/182/tech.yaml
+      - .meridian/project/issues/183/simulation/prepare-implementation/architecture-inference.md
+      - .meridian/project/issues/183/simulation/prepare-implementation/architecture-inference.yaml
+      - .meridian/project/issues/183/simulation/prepare-implementation/blast-radius.yaml
+      - .meridian/project/issues/183/simulation/prepare-implementation/change-surface.yaml
+      - .meridian/project/issues/183/simulation/prepare-implementation/dependency-graph.yaml
+      - .meridian/project/issues/183/simulation/prepare-implementation/ltm-findings.yaml
+      - .meridian/project/issues/183/simulation/prepare-implementation/plan.md
+      - .meridian/project/issues/183/simulation/prepare-implementation/plan.yaml
+      - .meridian/project/issues/183/simulation/prepare-implementation/tech.yaml
+      - .meridian/project/issues/200/evidence/create-play/discover-product/evals.yaml
+      - .meridian/project/issues/200/planning/tasks.md
+      - .meridian/project/issues/208/evidence/commit-code/analysis.yaml
+      - .meridian/project/issues/208/evidence/review-pr/context.yaml
+      - .meridian/project/issues/208/evidence/review-pr/findings.yaml
+      - .meridian/project/issues/212/evidence/commit-code/analysis.yaml
+      - .meridian/project/issues/212/planning/spec.md
+
+meta:
+  created_at: "2026-04-15T00:00:00Z"
+  approval_status:
+    G1-G10: approved
+    G11: approved_by_user (medium confidence, STM housekeeping)
+  notes:
+    - All 11 change groups committed in sequence
+    - Each commit uses conventional format (type(scope): subject)
+    - Each commit references #214 with "Closes #214"
+    - Each commit includes Co-Authored-By footer
+    - G11 (medium confidence) was explicitly approved by user input "tether"

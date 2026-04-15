@@ -1,0 +1,87 @@
+branch: refactor/212-rename-recipes-to-plays
+issue: 212
+total_commits: 9
+working_tree_clean: true
+
+commits:
+  - id: 1
+    hash: d198418
+    type: refactor
+    scope: plays
+    subject: "rename core/components/recipes directory tree to plays (#212)"
+    files_changed: 98
+    renames: 96
+    group: 1
+
+  - id: 2
+    hash: a50fe18
+    type: refactor
+    scope: config
+    subject: "update config.yaml and scripts for plays rename (#212)"
+    files_changed: 5
+    group: 2
+
+  - id: 3
+    hash: 6eeb2a0
+    type: refactor
+    scope: plays
+    subject: "update SKILL.md content — recipe→play terminology (#212)"
+    files_changed: 20
+    group: 3
+
+  - id: 4
+    hash: 39d6b0f
+    type: refactor
+    scope: agents
+    subject: "update agent definitions — recipe→play terminology (#212)"
+    files_changed: 15
+    group: 4
+
+  - id: 5
+    hash: 7223f67
+    type: refactor
+    scope: docs
+    subject: "rename and update documentation — recipe→play terminology (#212)"
+    files_changed: 29
+    renames: 5
+    group: 5
+
+  - id: 6
+    hash: c5961bb
+    type: refactor
+    scope: root
+    subject: "update CLAUDE.md, README.md, AGENTS.md, TODO.md (#212)"
+    files_changed: 4
+    group: 6
+
+  - id: 7
+    hash: b1f204c
+    type: refactor
+    scope: memory
+    subject: "update LTM standards and workflows — recipe→play terminology (#212)"
+    files_changed: 7
+    group: 7
+
+  - id: 8
+    hash: 614f405
+    type: chore
+    scope: stm
+    subject: "rename create-recipe evidence dirs to create-play, update STM content (#212)"
+    files_changed: 473
+    renames: 123
+    group: 8
+
+  - id: 9
+    hash: 10935e5
+    type: chore
+    scope: specs
+    subject: "rename recipe-eval-gen spec dir and update .claude/specs content (#212)"
+    files_changed: 48
+    renames: 3
+    group: 9
+
+validation:
+  all_reference_issue: true
+  conventional_format: true
+  clean_tree_after: true
+  total_files_committed: 699

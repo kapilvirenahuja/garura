@@ -1,6 +1,5 @@
 # features.yaml — Schema Definition
-# Consolidates: epics.yaml + product-spec.md
-# Produced by: /prepare-implementation (Stage 1) + epics from /plan-roadmap
+# Produced by: /prepare-implementation (draft-product-spec skill)
 # Lifecycle: DRAFT → VALIDATED → LOCKED
 # Depends on: product.yaml
 # IMPORTANT: Features do NOT link to scenarios. Scenarios link back here.

@@ -137,7 +137,7 @@ change_surface:
       already_applied: false
       note: "This is a recommended addition, not strictly required for #183 correctness. Reduces future inconsistency."
 
-    - path: "core/components/memory/standards/resolution-protocol.md"
+    - path: "core/components/memory/standards/rules/resolution.md"
       action: MODIFY
       what_changes: >
         The resolution protocol defines R1-R4 hierarchy for AGENT-level knowledge resolution.
