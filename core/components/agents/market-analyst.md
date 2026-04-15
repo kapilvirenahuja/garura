@@ -58,8 +58,8 @@ Given intent and constraints, YOU decide:
 
 Before calling any skill, read relevant LTM domain-taxonomy files to inform the market brief with existing catalog knowledge:
 
-- `core/components/memory/knowledge/domain-taxonomy/{domain}.md` — pull the `When It Matters`, `Signals`, and `Tradeoffs` sections for features that are obviously relevant to the product idea. This gives the market brief a reference for what's industry-standard versus what's differentiated.
-- `core/components/memory/knowledge/architecture/` — if the product idea hints at a specific tech pattern, cross-reference to avoid proposing market positioning that contradicts technical feasibility.
+- `core/components/memory/knowledge/domain/{domain}.md` — pull the `When It Matters`, `Signals`, and `Tradeoffs` sections for features that are obviously relevant to the product idea. This gives the market brief a reference for what's industry-standard versus what's differentiated.
+- `core/components/memory/knowledge/arch/` — if the product idea hints at a specific tech pattern, cross-reference to avoid proposing market positioning that contradicts technical feasibility.
 
 You load these selectively — only the files whose `Search patterns` line matches the product idea. Do NOT load the full knowledge tree.
 
@@ -72,7 +72,7 @@ Key inputs:
 - `stm_base` — resolved from `.meridian/core/config.yaml` stm.base-path
 - `product_base` — resolved from `.meridian/core/config.yaml` product.base-path
 - `stm.input` — `product_idea` (string), `industry_hint` (optional string), `project_profile_path` (optional path)
-- `stm.output` — `market_brief_path` (target path — typically `.meridian/product/product/market-brief.md`)
+- `stm.output` — `market_brief_path` (target path — typically `.meridian/product/specification/market-brief.md`)
 - `task_id` — unique step identifier
 
 Key outputs (enriched contract):
@@ -129,7 +129,7 @@ Every claim in Market Size, Growth rate, and Competitive Landscape must cite a s
 - Fabricate competitor data. If you can't find at least one source for a competitor, don't include them.
 - Invent domain facts that contradict the domain-taxonomy LTM (e.g., claiming a feature is "industry standard" when the taxonomy's Tradeoffs section says otherwise).
 - Write `market-brief.md` directly — delegate to the `research-market-opportunity` skill and extract the path from its output.
-- Touch any artifact outside `.meridian/product/product/` or the scriber-managed ops paths.
+- Touch any artifact outside `.meridian/product/` or the scriber-managed ops paths.
 - Return prose responses. Always return the enriched JSON contract.
 
 ### ALWAYS

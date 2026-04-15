@@ -184,7 +184,7 @@ From the incoming intent or product specification, classify the technical domain
 
 ### Step 2b — LTM Context Resolution (when ltm_context present)
 
-If the contract contains `ltm_context`, follow R1-R4 from `~/.meridian/core/memory/standards/resolution-protocol.md`:
+If the contract contains `ltm_context`, follow R1-R4 from `~/.meridian/core/memory/standards/rules/resolution.md`:
 
 - **R1:** Identify decision domains from task intent + `ltm_context.query_domains`
 - **R2:** For each domain, search `ltm_context.project_base` for relevant files. Check `ltm_context.locked_artifacts` first — if LOCKED, use as authoritative (stop descending). If DRAFT, use as advisory (continue descending).
@@ -202,9 +202,9 @@ Search `~/.meridian/core/memory/` for domain-relevant content using Glob and Gre
 | What to Load | Path Pattern | When |
 |-------------|--------------|------|
 | Standards (coding conventions, quality rules) | `memory/standards/**` | Always — these are universal |
-| Architecture knowledge | `memory/knowledge/architecture/**` | When designing architecture or LLD |
+| Architecture knowledge | `memory/knowledge/arch/**` | When designing architecture or LLD |
 | Technology-specific knowledge | `memory/knowledge/{tech-domain}/**` | If domain directory exists |
-| Output formats | `memory/formats/**` | When skill produces artifacts |
+| Output formats | `memory/standards/templates/**` | When skill produces artifacts |
 
 **Do NOT** load everything. Search by technology keywords, architecture patterns, and skill type. If a file isn't relevant to the current intent, skip it.
 
@@ -271,6 +271,8 @@ When invoked via JSON contract, delegate artifact production to skills:
 | `draft-lld` | `stm.lld_path` is null and `stm.product_spec_path` + `stm.technical_approach_path` are non-null | `product_spec_path`, `technical_approach_path`, `output_base` | `lld.md` at `{output_base}/lld.md` |
 | `research-domain-context` | LTM insufficient for technology selection or architecture decisions | `domain`, `knowledge_gaps`, `problem_statement`, `output_base` | `domain-context.md` at `{output_base}/domain-context.md` |
 | `draft-implementation-plan` | Create execution plan with scope items, file paths, exit gates | `features_yaml_path`, `architecture_yaml_path`, `tech_yaml_path`, `scenarios_yaml_path`, `output_base` | `plan.yaml` at `{output_base}/plan.yaml` |
+| `derive-nfr-spec` | build-arch Stage 3 — NFR re-statement, adjustments, and per-NFR delivery mechanism linkage | `quality_profile_path`, `epics_dir`, `logical_architecture_path`, `physical_architecture_path`, `output_path` | `nfr-spec.yaml` + `decision-manifest-derive-nfr-spec.yaml` |
+| `derive-quality-vision` | build-arch Stage 4 — ISO 25010 vision narrative + per-characteristic design linkage, tooling, thresholds, lifecycle gates | `quality_profile_path`, `nfr_spec_path`, `logical_architecture_path`, `physical_architecture_path`, `ltm_quality_path`, `output_path` | `quality-vision.yaml` + `decision-manifest-derive-quality-vision.yaml` |
 
 **Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract the artifact path from the skill output — do NOT forward the skill's YAML as your response.
 

@@ -64,7 +64,7 @@ You do NOT follow step-by-step workflows. Plays define workflows. You interpret 
 
 ## KB Reading Protocol
 
-The domain-taxonomy catalog is at `core/components/memory/knowledge/domain-taxonomy/`. Each file holds 5-8 features with 9 structured sections per feature (4 prose + 5 programmatic). You READ SELECTIVELY — never load the whole catalog into context at once.
+The domain-taxonomy catalog is at `core/components/memory/knowledge/domain/`. Each file holds 5-8 features with 9 structured sections per feature (4 prose + 5 programmatic). You READ SELECTIVELY — never load the whole catalog into context at once.
 
 **Selective load rules:**
 
@@ -83,7 +83,7 @@ intent: { goal: "configure capabilities", phase: "STAGE-3", audience: "engineeri
 constraints:
   - "Every cross-tree constraint must be walked and recorded"
   - "Every selected capability must be a real feature ID"
-  - "Output to .meridian/product/product/scope.yaml"
+  - "Output to .meridian/product/scope/scope.yaml"
 ```
 
 If the goal doesn't match any skill in your Intent → Skill Mapping, return:
@@ -114,7 +114,7 @@ Key inputs:
 - `task_id` — unique step identifier
 
 Key outputs (enriched contract):
-- `stm.output` paths populated with real artifact paths under `.meridian/product/product/`
+- `stm.output` paths populated with real artifact paths under `.meridian/product/`
 - `notes[]` — up to 3 one-sentence findings
 - `step_failure` — null on success, populated on unrecoverable failure
 
