@@ -1,0 +1,15 @@
+readiness:
+  pr_number: 215
+  pr_state: "OPEN"
+  mergeable: true
+  base_branch: "main"
+  head_branch: "feature/214-product-planning-design-pipeline"
+  pr_title: "feat(build-arch): D23 — 5-artifact architecture contract + Decision Surfacing Discipline (#214)"
+  pr_url: "https://github.com/kapilvirenahuja/meridian-os/pull/215"
+  working_tree_clean: true
+  untracked_only: true
+
+evals:
+  SE-1: "PASS — PR mergeable=true, no conflict state"
+  SE-4: "PASS — working tree has no staged or modified files (untracked only)"
+  SE-5: "PASS — PR exists, pr_number=215 is non-null"
