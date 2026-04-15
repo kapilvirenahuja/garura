@@ -86,7 +86,7 @@ Scriber returns:
 Scriber is the gatekeeper for folder compliance at the write boundary. The `write-evidence` skill it invokes checks `target_path` against the 9 whitelist patterns:
 
 - `.meridian/core/...` — except `.meridian/core/memory/` which is gitignored and managed elsewhere
-- `.meridian/product/product/...`
+- `.meridian/product/...`
 - `.meridian/product/ux/...`
 - `.meridian/product/arch/...`
 - `.meridian/project/issues/{N}/specs/...`

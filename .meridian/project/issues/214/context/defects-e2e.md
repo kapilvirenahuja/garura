@@ -942,6 +942,114 @@ For now the design is recorded; no implementation.
 
 ---
 
+## Defect 11 — build-arch has no grounding / aggressive-questioning constraint (structural silence)
+
+**Observed:** 2026-04-15, Graveyard Crew build-arch test run (stage 1).
+
+**Symptom:** Stage 1 completed cleanly with `architecture.yaml` containing 19 components + 8 ADRs + full stack commitment (Next.js 14, Node.js 20 / Fastify 4, PostgreSQL 16, Redis 7, BullMQ 5, argon2id, LGTM observability, modular-monolith on self-hosted VPS, Playwright + dockerode sandbox). `tech-architect` did not surface a single grounding question or ambiguity note for the user. Validation passed with 0 violations.
+
+**Root cause:** `core/components/plays/build-arch/reference/intent.yaml` contains no Rule-11-equivalent constraint. `grep -i 'aggressive|grounding|inference|question'` returns zero matches. specify-product enforces Rule 11 (Aggressive Questioning on Inference) via C-series constraints; design-exp inherits it via C15; build-arch is the only play in the Specify → Design → Build arc that does NOT enforce it.
+
+**Sourcing audit of the test run:**
+
+- **Grounded from `project-profile.grounded_tools` (6 of ~20 stack/tooling picks):** Playwright (e2e), OpenTelemetry (obs), Prometheus (metrics), Grafana (dashboards), k6 (load), LLM tier policy (Haiku analyst+judge, Sonnet improver).
+- **KB-catalog-picked silently (~8 picks):** Next.js (1 of 4 frontend stacks), Node.js + Fastify (1 of 5 backend stacks), PostgreSQL (1 of N relational options), modular-monolith (1 of 6 architecture patterns), self-hosted VPS (1 of 6 platforms), Docker containerization, ci-cd choices. All were within the KB's legal catalog for `solo + MVP + budget=high`, but the agent picked without surfacing the decision.
+- **Agent-default (not in KB at all, ~6 picks):** BullMQ (queue library), dockerode (Docker SDK), argon2id (password hashing), LGTM stack (Loki+Tempo beyond the OTel+Prometheus+Grafana that IS grounded), version pins (Next.js 14, PG 16, Redis 7, Fastify 4, BullMQ 5, Playwright 1.46).
+
+Total: roughly 30% grounded, 40% KB-catalog-picked-silently, 30% agent-default. For a solo/MVP/budget=high profile, the KB catalog alone offers 4 × 5 × 6 × 6 = 720 legitimate combinations. The agent committed to one without asking.
+
+**Impact:**
+
+- Decisions the user would have pushed back on (e.g., BullMQ vs. a lighter queue, LGTM vs. a single-binary observability option, Fastify 4 vs. Node's stdlib http) never surfaced.
+- Architecture.yaml presents as "fully grounded" because every decision has a cited `driver` — but the drivers are post-hoc rationalizations pointing at legitimate upstream constraints, not evidence the user consented to the specific pick.
+- Downstream plays (prepare-implementation, implement-epic) treat architecture.yaml as LOCKED truth. A silent decision at build-arch becomes an unquestioned assumption at implementation time.
+
+**Structural gap — the three layers missing:**
+
+1. **Layer 1 — Aggressive questioning (Rule 11 parity):** build-arch intent must obligate `tech-architect` to enumerate the KB's legal candidate set for each stack/pattern slot, check grounded_tools for a pin, and if multiple candidates remain, append a question to `{product_base}user-provided/grounding-questions.md` and halt (or checkpoint for user decision) before committing.
+
+2. **Layer 2 — Source-type discipline:** every decision in architecture.yaml must carry a `source_type` enum: `grounded_tools_pin` | `kb_catalog_single_candidate` | `kb_catalog_multi_candidate_user_approved` | `agent_default_with_user_approval` | `agent_default_unilateral`. The last category is a blocker — the play must not complete with any decision tagged `agent_default_unilateral`.
+
+3. **Layer 3 — Scope widening (separate defect overlap — see D12 below):** the current single `architecture.yaml` artifact conflates logical architecture, physical architecture, NFR design response, quality vision, and design patterns across layers. When the artifact is one blob, the agent reasons about tech picks without first committing to logical shape / pattern choice / NFR response — so the picks happen before the user has a handle on what's being picked for. See D12.
+
+**Fix direction:**
+
+1. Add C14 (Aggressive Questioning on Architecture Inference) to build-arch intent.yaml with the explicit rule: "when KB offers multiple valid candidates for a stack/pattern slot AND project-profile.grounded_tools does not pin the choice, the play MUST append a grounding question and halt OR surface the decision at the next checkpoint for explicit user approval before the decision lands in architecture.yaml."
+2. Add C15 (Source-Type Discipline) requiring every decision to carry a `source_type` enum and blocking completion on any `agent_default_unilateral` entries.
+3. Add F16 (Silent Decision Violation) failure condition.
+4. Update `derive-architecture-spec` skill Process section to enumerate candidates explicitly per slot, check grounded_tools, halt on ambiguity.
+5. Update `validate-architecture-spec` skill to lint `source_type` values and reject `agent_default_unilateral` entries.
+6. Rebake build-arch.
+
+**Effort estimate:** 1 intent edit + 2 skill edits + 1 rebake + test-run verification. ~1 day.
+
+**Status:** OPEN. Part of a larger build-arch redesign (see D12 for the output-shape overhaul).
+
+---
+
+## Defect 12 — build-arch output conflates logical / physical / NFR-design / quality-vision / design-patterns
+
+**Observed:** 2026-04-15, Graveyard Crew build-arch test run + user review.
+
+**Symptom:** The current build-arch play produces two artifacts — `architecture.yaml` and `quality-standards.yaml` — where `architecture.yaml` is a single blob conflating multiple distinct concerns that belong at different levels of reasoning:
+
+1. **Logical architecture** — what the system IS (capabilities → components → responsibilities → contracts between components, independent of tech stack).
+2. **Physical architecture** — how the logical shape MANIFESTS in concrete tech (stack choices, deployment topology, infrastructure tier).
+3. **NFR design response** — for each relevant NFR dimension from `quality-profile.yaml`, (a) any adjustments to the NFR target based on what's achievable within the profile, and (b) the design mechanisms that will ENSURE the NFR is met (caching topology for performance, replica strategy for availability, audit-log placement for compliance, etc.).
+4. **Quality Vision** — the per-characteristic articulation of what "quality" means for THIS product (derived from project-profile + quality-profile + scope) AND the design mechanisms that guarantee it. Currently spread thinly across `quality-standards.yaml` as a tooling/threshold list — the VISION (what we're aiming for and why) is absent.
+5. **Design patterns at every layer** — pattern choices cascade:
+   - System-level: microservices vs. modular-monolith vs. serverless vs. event-driven
+   - Service-level: hexagonal vs. layered vs. onion
+   - Module-level: clean architecture vs. feature-sliced vs. DDD tactical
+   - Component-level (frontend): MVC vs. MVVM vs. MVP vs. Flux vs. Redux-style unidirectional
+   - Component-level (backend): Repository + Service + Controller vs. Action-based vs. CQRS command/query split
+   - Code-level: specific GoF / Enterprise / Concurrency patterns per hotspot
+
+Currently the play outputs a stack pick (Next.js + Fastify + PostgreSQL), an ADR for one pattern decision (modular-monolith chosen via ADR-001), and nothing explicit at any of the other layers. The agent implicitly assumes a MVVM or RSC default for the frontend, a Controller-Service-Repository default for the backend, and no articulated code-level patterns at all.
+
+**Root cause:** Defect 12 is structural. `core/components/plays/build-arch/reference/intent.yaml` enumerates `architecture.yaml` and `quality-standards.yaml` as the only two outputs, and the constraints describe WHAT must be present in each file without carving the concerns into distinct layers that force the agent to reason layer-by-layer.
+
+**Impact:**
+
+- Downstream plays read `architecture.yaml` as if it's the full architectural truth. They don't see that logical shape was never separated from physical pick.
+- Implementation-time decisions (e.g., "should this feature use MVVM or classic MVC on the frontend side?") have no canonical source — the implementer invents it ad-hoc.
+- Quality Vision — the thing a PM or EM would read to understand "what does success feel like for this product" — doesn't exist as an artifact. `quality-standards.yaml` has tooling + thresholds, which is the HOW, not the WHAT.
+- NFR adjustments (when a target from `quality-profile.yaml` has to be softened because the profile won't support it) are invisible — the agent either quietly meets a weaker bar or silently commits to an unachievable bar.
+
+**Related reference material:**
+
+- KB has `core/components/memory/knowledge/arch/patterns/*` for system-level patterns (6 files).
+- KB has `core/components/memory/knowledge/arch/stacks/*` for stack choices with "Evolution Paths" sections per stack file (cataloged 2026-03-25 via commit `174be31`).
+- **Note (searched, not found):** there is no standalone "frontend evolution" document in the repository history. `git log --all -S "frontend evolution"` and `git log --all --diff-filter=D` both return nothing. The closest artifacts are the per-stack `Evolution Paths` sections inside each stack file (e.g., `frontend-react-nextjs.md`) and the `patterns/evolutionary-scaling.md` file about evolutionary scaling as an architectural pattern. If the user meant a different doc (e.g., a framework for frontend technology evolution over product lifecycle), it has not been committed. Follow-up: either author it as new KB content or point build-arch at the existing per-stack Evolution Paths sections as the source.
+- No KB content exists for module-level patterns (clean / hexagonal / feature-sliced) or component-level patterns (MVC / MVVM / Flux / Repository-Service). These would need to be authored.
+
+**Fix direction — the 5-output shape:**
+
+Replace the current 2-artifact output with a 5-artifact output, each with its own schema and validator:
+
+1. **`logical-architecture.yaml`** — capabilities → components → responsibilities → contracts. Tech-stack-free. Names components by domain role ("credential store", "experiment queue", "LLM orchestrator"), not by product ("Redis", "BullMQ", "Claude Haiku").
+2. **`physical-architecture.yaml`** — maps logical components to concrete tech, deployment topology, integration points. Every decision carries `source_type` (from D11 fix).
+3. **`nfr-design.md`** — per-NFR section: upstream target from quality-profile.yaml, adjusted target (if any) with reason, design mechanism(s) that ensure the target is met with traceable reference to physical-architecture components.
+4. **`quality-vision.md`** — ISO 25010 characteristic-by-characteristic vision: "what does this characteristic FEEL like for this product" prose, plus the design mechanism(s) that guarantee it with references to physical-architecture or nfr-design. Written so a PM can read it end-to-end.
+5. **`design-patterns.yaml`** — layered pattern choices: system-level, service-level, module-level, component-level (frontend and backend separately), code-level hotspots. Each layer has candidates considered, choice made, and driver cited. Builds on the KB catalog where available; explicitly flags layers where KB content is missing.
+
+`quality-standards.yaml` remains as the tooling + threshold + enforcement artifact — but it becomes the IMPLEMENTATION of `quality-vision.md` rather than the vision itself.
+
+**Effort estimate:**
+
+- New schemas: 5 (one per artifact). ~1 day.
+- Update derive-architecture-spec into 5 sub-skills (or author 3-4 new skills + keep derive-architecture-spec for physical). ~2-3 days.
+- Update build-arch intent.yaml with new constraints for each artifact (mandatory sections, cross-references, coverage rules). ~half-day.
+- Update validate-architecture-spec to lint all 5 artifacts OR split into 5 validators. ~1 day.
+- Author missing KB content for module-level and component-level patterns (2-4 new KB files if we commit to having them). ~1-2 days.
+- Rebake + test run. ~half-day.
+
+**Total: 5-7 days.**
+
+**Status:** OPEN. Paired with D11 — both land together in the build-arch redesign.
+
+---
+
 ## Test environment
 
 - **Temp folder:** `/tmp/graveyard-crew-e2e/`

@@ -36,10 +36,10 @@
 - [ ] `docs/components/plays.md` and `docs/components/agents.md` reflect the deletions — no stale references to deleted components.
 
 ### Sub-issue 214.4 — KB extension (no parallel YAML tree)
-- [ ] `core/components/memory/knowledge/domain-taxonomy/_cross-tree-constraints.yaml` exists (the ONLY new KB file) with ≥5 constraints covering security/compliance/timeline axes, each referencing a real feature ID from the existing domain-taxonomy markdown files (e.g., `UM-F001`, `UM-F004`, `PY-F001`).
-- [ ] Every feature in `core/components/memory/knowledge/domain-taxonomy/user-management.md`, `commerce.md`, `payments.md`, `personalization.md`, `search.md` has been extended with five new structured sections: `### Inclusion` (mandatory/optional/conditional), `### Success Criteria`, `### Failure Scenarios`, `### Cross-Tree Refs`, `### Experiential`. A linter task asserts all five sections are present for every feature.
-- [ ] `core/components/memory/standards/intent-epic-schema.yaml` exists with all mandatory fields marked `required: true` and a `validation_rules` section documenting the quantification rule.
-- [ ] `core/components/memory/standards/screen-inventory-schema.yaml` exists with `states` requiring ≥3 entries.
+- [ ] `core/components/memory/knowledge/domain/_cross-tree-constraints.yaml` exists (the ONLY new KB file) with ≥5 constraints covering security/compliance/timeline axes, each referencing a real feature ID from the existing domain-taxonomy markdown files (e.g., `UM-F001`, `UM-F004`, `PY-F001`).
+- [ ] Every feature in `core/components/memory/knowledge/domain/user-management.md`, `commerce.md`, `payments.md`, `personalization.md`, `search.md` has been extended with five new structured sections: `### Inclusion` (mandatory/optional/conditional), `### Success Criteria`, `### Failure Scenarios`, `### Cross-Tree Refs`, `### Experiential`. A linter task asserts all five sections are present for every feature.
+- [ ] `core/components/memory/standards/schemas/intent-epic.yaml` exists with all mandatory fields marked `required: true` and a `validation_rules` section documenting the quantification rule.
+- [ ] `core/components/memory/standards/schemas/screen-inventory.yaml` exists with `states` requiring ≥3 entries.
 - [ ] `core/components/memory/standards/intent-yaml-schema.yaml` exists (new or updated) reflecting the metadata + 4 content field shape: top-level fields `name`, `description`, `version`, `checksum`, `intent`, `constraints`, `failure_conditions`, `scenarios`. Documents checksum carve-out (checksum is computed over the normalized content zone).
 - [ ] NO new directory `core/components/memory/knowledge/capabilities/` exists — the parallel YAML tree approach is abandoned; the existing markdown tree IS the KB.
 - [ ] `core/components/memory/knowledge/_index.md` + `domain-taxonomy/_index.md` updated to document the extended section conventions.
@@ -53,7 +53,7 @@
 - [ ] Skills exist: `configure-capabilities`, `enrich-capabilities`, `generate-intent-epics`, `validate-intent-epics`, `derive-quality-profile-from-epics`, `research-market-opportunity`. Each has SKILL.md with Purpose / Input / Process / Output / Constraints sections.
 - [ ] `/create-play --review specify-product` (or `--build-check`) prints G1-G11 all PASS.
 - [ ] Plan-product dispatches the scriber agent for evidence writes (confirmed by reading the compiled artifact).
-- [ ] Running `/specify-product "B2B SaaS platform for healthcare appointment scheduling"` end-to-end produces: `market-brief.md`, `scope.yaml`, ≥5 intent epics (each with all mandatory fields filled, ≥2 success scenarios, ≥2 failure scenarios, quantified constraints), `quality-profile.yaml` — all under `.meridian/product/product/`.
+- [ ] Running `/specify-product "B2B SaaS platform for healthcare appointment scheduling"` end-to-end produces: `market-brief.md`, `scope.yaml`, ≥5 intent epics (each with all mandatory fields filled, ≥2 success scenarios, ≥2 failure scenarios, quantified constraints), `quality-profile.yaml` — all under `.meridian/product/`.
 - [ ] `validate-intent-epics` returns structured failure on an epic with an empty mandatory field — play halts, does not proceed to write.
 - [ ] `validate-intent-epics` returns structured failure on an epic with `performance: "fast"` or `security: "secure"` — unquantified constraints.
 - [ ] Every generated intent epic has a `kb_source` field pointing at a real feature ID in a `domain-taxonomy/*.md` file (e.g., `UM-F001`, `CM-F003`).
@@ -74,7 +74,7 @@
 - [ ] `core/components/plays/build-arch/reference/intent.yaml` exists with metadata (name, description, version, checksum) and 4 content fields (intent, constraints, failure_conditions, scenarios).
 - [ ] `core/components/plays/build-arch/` play directory contains compiled artifact (SKILL.md or equivalent), templates (checkpoint, approval-prompt, final-report), and evals.
 - [ ] Any new agents/skills required for build-arch are created (scope determined during 214.7 intent crafting — likely reuses `tech-designer` / `tech-architect` + a handful of new structure-generation skills).
-- [ ] `/build-arch` reads specify-product + design-exp artifacts from the new whitelist-compliant locations (`.meridian/product/product/`, `.meridian/product/ux/`).
+- [ ] `/build-arch` reads specify-product + design-exp artifacts from the new whitelist-compliant locations (`.meridian/product/`, `.meridian/product/ux/`).
 - [ ] `/create-play --review build-arch` (or `--build-check build-arch` depending on final verb) prints G1-G11 all PASS.
 - [ ] End-to-end integration: `/specify-product` → `/design-exp` → `/build-arch` against a fixture produces `architecture.yaml` and `quality-standards.yaml` under `.meridian/product/arch/` with traces back to specify-product quality profile and design-exp screen inventory.
 - [ ] Spec-arch dispatches the `scriber` agent for evidence writes (same pattern as specify-product and design-exp).
@@ -126,7 +126,7 @@ Each acceptance scenario from the issue body (and the to-be-drafted intent.yaml 
 | `/specify-product` invoked against a product that already has locked epics | Pre-flight detects status: LOCKED and halts |
 | KB has zero capability files for a selected domain | `configure-capabilities` returns structured failure; play cycles back with message "domain X has no capabilities in KB — add capability YAML or adjust scope" |
 | Cross-tree constraint references a capability that doesn't exist | Schema validator rejects at bootstrap (214.4 test) |
-| `/design-exp` invoked before `/specify-product` completes | Pre-flight fails with "specify-product artifacts not found at .meridian/product/product/" |
+| `/design-exp` invoked before `/specify-product` completes | Pre-flight fails with "specify-product artifacts not found at .meridian/product/" |
 | Intent epic has 1 success_scenario and 2 failure_scenarios | Validator rejects with "minimum 2 success scenarios required" |
 | Screen has exactly 2 states | validate-screen-coverage rejects with "minimum 3 states required" |
 | Capability has `inclusion: conditional` but no `condition:` field | Schema validator rejects at load time |

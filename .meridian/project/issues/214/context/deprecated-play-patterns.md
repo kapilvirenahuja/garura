@@ -145,7 +145,7 @@ following intent text" lets the user say "no, it's 4" in seconds.
 **How it worked.**
 The cascade lives in `draft-product-vision/SKILL.md` Step 5, called from the play
 in Step 3. Inputs:
-- `profile_knowledge_path` — the LTM directory `~/.meridian/core/memory/knowledge/project-profiling/`
+- `profile_knowledge_path` — the LTM directory `~/.meridian/core/memory/knowledge/product/`
 - The BRD/intent text
 - (For NFR) PP values just derived
 - (For QP) PP and NFR values just derived
@@ -1258,7 +1258,7 @@ should be preserved. Two refinements:
 ### Pattern 6: LTM architecture knowledge matching (When-to-Choose / When-to-Avoid)
 
 **Summary.** Before any technology selection, the play reads LTM architecture
-knowledge from `~/.meridian/core/memory/knowledge/architecture/`. Each architecture
+knowledge from `~/.meridian/core/memory/knowledge/arch/`. Each architecture
 file follows a structured template with "When to Choose" and "When to Avoid" prose
 that the agent matches against the project's profile values (PP, NFR, QP) to
 inform pattern, stack, platform, and data-store selection.
@@ -1271,7 +1271,7 @@ because... Avoid for content-heavy sites because..." The agent reasons over this
 prose using profile values as the matching key.
 
 **How it worked.**
-LTM directory structure (`core/components/memory/knowledge/architecture/`):
+LTM directory structure (`core/components/memory/knowledge/arch/`):
 - `_index.md` — categorical index of all architecture files
 - `patterns/` — modular-monolith, microservices, serverless, event-driven,
   cqrs-event-sourcing, evolutionary-scaling
@@ -1670,8 +1670,8 @@ Plus dependent skills consulted to understand delegated logic:
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/skills/draft-technical-approach/schemas/quality-standards.yaml`
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/skills/draft-quality-standards/SKILL.md`
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/skills/validate-architecture-design/SKILL.md`
-- `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/project-profiling/_index.md`
-- `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/architecture/_index.md`
+- `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/product/_index.md`
+- `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/arch/_index.md`
 
 ### Critical Files for Implementation
 The 5 most critical files for the parent agent to absorb when writing this pattern capture file (and when crafting intent for the three new plays):

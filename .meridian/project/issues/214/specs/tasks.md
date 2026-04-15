@@ -95,7 +95,7 @@ T37 → T38                                                       (Sub-214.7 —
 #### T6: Draft ADR 017 — Strict Folder Whitelist (no amendment)
 - **Sub-issue:** 214.2
 - **Files:** Create `/Users/kapilahuja/cto/builder/meridian-os/docs/adr/017-folder-whitelist.md`
-- **Details:** Full ADR covering (a) the strict `.meridian/` folder whitelist: `core/`, `product/{product,ux,arch}`, `project/issues/{n}/{specs,evidence,checkpoint,context,review}` — and NOTHING ELSE; (b) the explicit rejection of the Plan sub-agent's proposed amendment to add `evidence/checkpoints/status/` as siblings under `.meridian/product/`; (c) the pattern for routing ops artifacts INSIDE the whitelist buckets using underscore-prefixed subfolders (`.meridian/product/product/_checkpoints/specify-product/20260414.md`); (d) migration path from `product.directories` (discovery/roadmap/architecture/briefs) to `product/ux/arch`; (e) migration from `stm.structure` (spec/design/evidence/delivery/checkpoint) to `specs/evidence/checkpoint/context/review`; (f) rationale; (g) related ADRs (008 issue-centric STM, 014 three-axis profiling, 016 agent JSON contract). Status: Proposed.
+- **Details:** Full ADR covering (a) the strict `.meridian/` folder whitelist: `core/`, `product/{product,ux,arch}`, `project/issues/{n}/{specs,evidence,checkpoint,context,review}` — and NOTHING ELSE; (b) the explicit rejection of the Plan sub-agent's proposed amendment to add `evidence/checkpoints/status/` as siblings under `.meridian/product/`; (c) the pattern for routing ops artifacts INSIDE the whitelist buckets using underscore-prefixed subfolders (`.meridian/product/_checkpoints/specify-product/20260414.md`); (d) migration path from `product.directories` (discovery/roadmap/architecture/briefs) to `product/ux/arch`; (e) migration from `stm.structure` (spec/design/evidence/delivery/checkpoint) to `specs/evidence/checkpoint/context/review`; (f) rationale; (g) related ADRs (008 issue-centric STM, 014 three-axis profiling, 016 agent JSON contract). Status: Proposed.
 - **Depends on:** none (depends on 214.1 completing)
 - **Expected Outcome:** A reviewable ADR capturing the decision.
 - **Verification:** File exists; structure matches other ADRs; amendment explicitly rejected.
@@ -292,7 +292,7 @@ T37 → T38                                                       (Sub-214.7 —
 - **Sub-issue:** 214.4
 - **Files:**
   - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/intent-yaml-schema.yaml` (or update if exists) — defines the canonical intent.yaml shape: metadata zone (`name`, `description`, `version`, `checksum`) + content zone (`intent`, `constraints`, `failure_conditions`, `scenarios`). Documents that `checksum` is `sha256` computed over the YAML-normalized content zone (excluding the `checksum` field itself; exact normalization spec: sort keys alphabetically at each nesting level, drop comments, use LF line endings, UTF-8 encoding, then hash the resulting byte stream). The `/create-play --build` step maintains the checksum; drift is detected when the computed checksum differs from the on-disk value.
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/kb-extension-conventions.md` — defines the 5 new markdown sections every feature in `domain-taxonomy/*.md` must carry: `### Inclusion`, `### Success Criteria`, `### Failure Scenarios`, `### Cross-Tree Refs`, `### Experiential`. Documents section schemas (what each section must contain, how to parse them programmatically).
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/rules/kb-extension.md` — defines the 5 new markdown sections every feature in `domain-taxonomy/*.md` must carry: `### Inclusion`, `### Success Criteria`, `### Failure Scenarios`, `### Cross-Tree Refs`, `### Experiential`. Documents section schemas (what each section must contain, how to parse them programmatically).
 - **Details:** This task establishes the schema BEFORE extending markdown files. intent-yaml-schema captures the v2 shape with metadata and the sha256-over-normalized-content-zone checksum algorithm (confirmed at 214 approval gate 2026-04-14). kb-extension-conventions captures the five section headings and their structures. Linter task (T22) reads kb-extension-conventions to validate extended markdown files.
 - **Depends on:** none (depends on 214.3 completing)
 - **Expected Outcome:** Canonical schemas and conventions.
@@ -302,8 +302,8 @@ T37 → T38                                                       (Sub-214.7 —
 #### T19: Write `intent-epic-schema.yaml` and `screen-inventory-schema.yaml`
 - **Sub-issue:** 214.4
 - **Files:**
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/intent-epic-schema.yaml`
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/screen-inventory-schema.yaml`
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/schemas/intent-epic.yaml`
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/schemas/screen-inventory.yaml`
 - **Details:** intent-epic-schema.yaml: all mandatory fields from play-specifications.md lines 309-388 marked `required: true`; `validation_rules` section documenting quantification rule (performance value must contain number+unit, security must reference a standard). screen-inventory-schema.yaml: fields from play-specifications.md lines 569-621; `states` requires ≥3 entries.
 - **Depends on:** T18
 - **Expected Outcome:** Two schema files downstream validators can load.
@@ -313,8 +313,8 @@ T37 → T38                                                       (Sub-214.7 —
 #### T20: Extend `user-management.md` and `commerce.md` with new sections
 - **Sub-issue:** 214.4
 - **Files:**
-  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain-taxonomy/user-management.md`
-  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain-taxonomy/commerce.md`
+  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain/user-management.md`
+  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain/commerce.md`
 - **Details:** For EVERY feature (UM-F001, UM-F002, ..., CM-F001, ...) in both files, add the 5 new structured sections under each feature heading. Format:
   ```
   ### Inclusion
@@ -347,10 +347,10 @@ T37 → T38                                                       (Sub-214.7 —
 #### T21: Extend remaining `domain-taxonomy/*.md` files + write cross-tree constraints
 - **Sub-issue:** 214.4
 - **Files:**
-  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain-taxonomy/payments.md`
-  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain-taxonomy/personalization.md`
-  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain-taxonomy/search.md`
-  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain-taxonomy/_cross-tree-constraints.yaml`
+  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain/payments.md`
+  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain/personalization.md`
+  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain/search.md`
+  - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain/_cross-tree-constraints.yaml`
 - **Details:** Apply the same extension as T20 to payments, personalization, and search markdown files. Write `_cross-tree-constraints.yaml` with ≥5 bootstrap constraints in normalized form:
   ```yaml
   constraints:
@@ -378,7 +378,7 @@ T37 → T38                                                       (Sub-214.7 —
   - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/skills/validate-kb-extension/SKILL.md`
   - Modify `/Users/kapilahuja/cto/builder/meridian-os/docs/components/memory.md`
   - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/_index.md`
-  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain-taxonomy/_index.md`
+  - Modify `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain/_index.md`
 - **Details:**
   - `validate-kb-extension` skill walks every feature in every domain-taxonomy markdown file and asserts all 5 new sections are present with non-empty content. Returns structured failure if any feature is incomplete. Used by 214.4 acceptance check and by specify-product's pre-flight.
   - `memory.md`: add "KB Capability Model via extended domain-taxonomy" section — the 5 sections, cross-tree constraint format, three-subgraph Graphiti mapping (conceptual: domain-taxonomy prose = Community, extended sections = Semantic Entity, Experiential block = Episode), profile-driven configuration flow, Domain → Capability → Intent Epic hierarchy. Note: capabilities/*.yaml tree is explicitly NOT created — the existing markdown tree IS the KB.
@@ -422,7 +422,7 @@ T37 → T38                                                       (Sub-214.7 —
 #### T26: Create `research-market-opportunity` skill
 - **Sub-issue:** 214.5
 - **Files:** Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/skills/research-market-opportunity/SKILL.md`
-- **Details:** SKILL.md absorbing the behavior previously in the deleted `discover-product-opportunity` skill, rewritten fresh and simpler. Input: free-text product idea + industry hint. Process: query web for market size, competitors, analogous products, TAM/SAM estimates; structure as a market brief. Output: `market-brief.md` at `.meridian/product/product/market-brief.md`. Constraints: results must be quantified (TAM in $ or user counts); no speculative projections without sources.
+- **Details:** SKILL.md absorbing the behavior previously in the deleted `discover-product-opportunity` skill, rewritten fresh and simpler. Input: free-text product idea + industry hint. Process: query web for market size, competitors, analogous products, TAM/SAM estimates; structure as a market brief. Output: `market-brief.md` at `.meridian/product/specification/market-brief.md`. Constraints: results must be quantified (TAM in $ or user counts); no speculative projections without sources.
 - **Depends on:** T25
 - **Expected Outcome:** Fresh market-research skill.
 - **Verification:** SKILL.md has Purpose / Input / Process / Output / Constraints.
@@ -433,7 +433,7 @@ T37 → T38                                                       (Sub-214.7 —
 - **Files:**
   - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/skills/configure-capabilities/SKILL.md`
   - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/skills/configure-capabilities/reference/kb-extension-conventions.md` (copy of standards version so the skill is self-contained and knows which markdown sections to parse)
-- **Details:** SKILL.md: input (project profile, selected domains, KB capability files path, `_cross-tree-constraints.yaml` path); process (1. load each capability YAML per domain; 2. auto-include mandatory; 3. auto-include conditional whose condition matches profile; 4. walk each cross-tree constraint: check LHS condition, force-include or exclude RHS; 5. present optional capabilities to user via play checkpoint; 6. return selected set with per-capability rationale); output `.meridian/product/product/scope.yaml` with `selected_capabilities`, `rejected_capabilities`, and `constraint_trace` (which constraints fired, what they forced). Constraints: NEVER invent capabilities outside the KB; NEVER skip a cross-tree constraint.
+- **Details:** SKILL.md: input (project profile, selected domains, KB capability files path, `_cross-tree-constraints.yaml` path); process (1. load each capability YAML per domain; 2. auto-include mandatory; 3. auto-include conditional whose condition matches profile; 4. walk each cross-tree constraint: check LHS condition, force-include or exclude RHS; 5. present optional capabilities to user via play checkpoint; 6. return selected set with per-capability rationale); output `.meridian/product/scope/scope.yaml` with `selected_capabilities`, `rejected_capabilities`, and `constraint_trace` (which constraints fired, what they forced). Constraints: NEVER invent capabilities outside the KB; NEVER skip a cross-tree constraint.
 - **Depends on:** T26
 - **Expected Outcome:** Skill ready.
 - **Verification:** SKILL.md complete; reference file matches standards source.
@@ -448,8 +448,8 @@ T37 → T38                                                       (Sub-214.7 —
   - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/skills/generate-intent-epics/templates/intent-epic.yaml`
   - Create `/Users/kapilahuja/cto/builder/meridian-os/core/components/skills/validate-intent-epics/SKILL.md`
 - **Details:**
-  - `enrich-capabilities`: merges profile overrides into KB capability data; outputs enriched set at `.meridian/product/product/enriched-capabilities.yaml`.
-  - `generate-intent-epics`: instantiates the Intent Epic template for each enriched capability; fills every mandatory field; writes one epic file per capability under `.meridian/product/product/epics/`.
+  - `enrich-capabilities`: merges profile overrides into KB capability data; outputs enriched set at `.meridian/product/scope/enriched-capabilities.yaml`.
+  - `generate-intent-epics`: instantiates the Intent Epic template for each enriched capability; fills every mandatory field; writes one epic file per capability under `.meridian/product/scope/epics/`.
   - `validate-intent-epics`: loads each epic; validates every mandatory field populated; ≥2 success_scenarios; ≥2 failure_scenarios; constraints are quantified (regex-backed: performance value must match `\d+\s*(ms|s|rps|%)`, security must reference a named standard, accessibility must specify WCAG level, compliance must name a regulation). Returns structured failure on any fail — play halts.
 - **Depends on:** T27
 - **Expected Outcome:** Three skills ready; template matches schema 1:1.
@@ -615,8 +615,8 @@ T37 → T38                                                       (Sub-214.7 —
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/agents/scriber.md` — utility agent every new play depends on (214.1).
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/deprecated-play-patterns.md` — captured value from soon-to-be-deleted plays (discover-product, plan-roadmap, discover-product-opportunity, prepare-architecture); input to new plays' intent crafting (214.3 + referenced by 214.7 for build-arch).
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/intent-yaml-schema.yaml` — canonical intent.yaml shape with metadata + 4 content fields (214.4).
-- `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/kb-extension-conventions.md` — the 5 new markdown section headings and their structures (214.4).
-- `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain-taxonomy/_cross-tree-constraints.yaml` — the ONLY new KB file; deterministic profile-driven configuration (214.4).
+- `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/standards/rules/kb-extension.md` — the 5 new markdown section headings and their structures (214.4).
+- `/Users/kapilahuja/cto/builder/meridian-os/core/components/memory/knowledge/domain/_cross-tree-constraints.yaml` — the ONLY new KB file; deterministic profile-driven configuration (214.4).
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/specify-product/reference/intent.yaml` — metadata + 4 content fields; defines all constraints, failure conditions, scenarios (214.5).
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/design-exp/reference/intent.yaml` — metadata + 4 content fields (214.6).
 - `/Users/kapilahuja/cto/builder/meridian-os/core/components/plays/build-arch/reference/intent.yaml` — metadata + 4 content fields; replaces prepare-architecture (214.7).

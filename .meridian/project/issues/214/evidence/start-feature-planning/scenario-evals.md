@@ -60,7 +60,7 @@
 - **Edge Cases table:** 13 edge cases with expected behaviors — specific enough to be testable.
 - **Folder Structure Compliance:** Exhaustive enumeration of allowed directories + 6 grep/yq checks to confirm compliance.
 
-**Spot check on sub-issue 214.5 criteria:** "Running `/plan-product '...'` produces: market-brief.md, scope.yaml, ≥5 intent epics (each with all mandatory fields filled, ≥2 success scenarios, ≥2 failure scenarios, quantified constraints), quality-profile.yaml — all under `.meridian/product/product/`." — Specific paths, specific counts, specific field requirements. Unambiguous.
+**Spot check on sub-issue 214.5 criteria:** "Running `/plan-product '...'` produces: market-brief.md, scope.yaml, ≥5 intent epics (each with all mandatory fields filled, ≥2 success scenarios, ≥2 failure scenarios, quantified constraints), quality-profile.yaml — all under `.meridian/product/`." — Specific paths, specific counts, specific field requirements. Unambiguous.
 
 **Spot check on edge cases:** "Screen has exactly 2 states" → "validate-screen-coverage rejects with 'minimum 3 states required'" — specific input, specific expected behavior. Unambiguous.
 

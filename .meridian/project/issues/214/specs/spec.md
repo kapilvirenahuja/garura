@@ -7,7 +7,7 @@
 
 1. **`.meridian/` folder whitelist — strict, no amendment.** The allowed folders are exactly:
    - `.meridian/core/`
-   - `.meridian/product/product/`
+   - `.meridian/product/`
    - `.meridian/product/ux/`
    - `.meridian/product/arch/`
    - `.meridian/project/issues/{n}/specs/`
@@ -74,7 +74,7 @@ Scope is huge. Strong recommendation: decompose into **six sub-issues** sequence
 | 214.1 | feat(agents): introduce scriber utility agent for background evidence writing | Create `scriber` agent definition; document the dispatch pattern; add a minimal `write-evidence` skill the scriber invokes; update a single existing play (e.g. `commit-code`) as a reference adopter to prove the pattern works end-to-end. | None — first in sequence. | M (2 days) |
 | 214.2 | chore(config): move config to `.meridian/core/`, adopt folder whitelist, retire play levels and "bake" terminology | Move `core/config.yaml` → `.meridian/core/config.yaml` (git mv, update every reference); update `product.directories` to exactly `product/ux/arch`; update `stm.structure` to `specs/evidence/checkpoint/context/review`; grep every play for old path references and update source files; recompile any plays that survive; add ADR 017 (folder whitelist, NO amendment — strict enforcement); remove CLAUDE.md section 4 "Play Constraints" (L1/L2, agent budget); rename `/create-play --bake` → `--build`. | 214.1 | M (3-4 days) |
 | 214.3 | chore(plays): capture production detail from deprecated plays, then delete them | Read `discover-product`, `plan-roadmap`, `discover-product-opportunity` SKILL.md and intent.yaml. Extract every valuable pattern (pre-lock resolution gates, three-axis profile derivation, decision_points, deferred scope enforcement, resolution interview logic) into a design note at `core/components/memory/knowledge/deprecated-play-patterns.md` for later reuse in specify-product intent. Delete the three plays and their directories. Delete the `product-strategist` agent if its entire skill inventory is affected (TBD during execution). Rebake `prepare-architecture` only if it survives — see 214.6. | 214.2 | M (2-3 days) |
-| 214.4 | feat(memory): extend existing KB domain-taxonomy with capability structure + cross-tree constraints | EXTEND existing `core/components/memory/knowledge/domain-taxonomy/*.md` files with new markdown sections for each feature: `Inclusion` (mandatory/optional/conditional), `Success Criteria`, `Failure Scenarios`, `Cross-Tree Refs`, `Experiential`. The existing UM-F001/UM-F002/... feature identifiers become the capability IDs. Add ONE new file: `core/components/memory/knowledge/domain-taxonomy/_cross-tree-constraints.yaml`. Update `_index.md` with the new section conventions. Document in `docs/components/memory.md`. NO parallel YAML capability tree. | 214.3 | M (2-3 days — smaller than originally planned because we reuse existing format) |
+| 214.4 | feat(memory): extend existing KB domain-taxonomy with capability structure + cross-tree constraints | EXTEND existing `core/components/memory/knowledge/domain/*.md` files with new markdown sections for each feature: `Inclusion` (mandatory/optional/conditional), `Success Criteria`, `Failure Scenarios`, `Cross-Tree Refs`, `Experiential`. The existing UM-F001/UM-F002/... feature identifiers become the capability IDs. Add ONE new file: `core/components/memory/knowledge/domain/_cross-tree-constraints.yaml`. Update `_index.md` with the new section conventions. Document in `docs/components/memory.md`. NO parallel YAML capability tree. | 214.3 | M (2-3 days — smaller than originally planned because we reuse existing format) |
 | 214.5 | feat(play): `/specify-product` pipeline — fresh build with Product Keeper and Market Analyst agents | New `intent.yaml` (with metadata: name, description, version, checksum) absorbing captured patterns from 214.3; new agents `product-keeper`, `market-analyst`; new skills `configure-capabilities`, `enrich-capabilities`, `generate-intent-epics`, `validate-intent-epics`, `derive-quality-profile-from-epics`; intent-epic schema + validator; compile the play via `/create-play` (not "bake"); scenario evals. Plays dispatch the `scriber` agent for evidence writes (using the 214.1 pattern). Skills read capability data from the EXTENDED `domain-taxonomy/*.md` files via structured markdown parsing. | 214.4 | XL (5-7 days) |
 | 214.6 | feat(play): `/design-exp` pipeline — fresh build with Designer agent | New `intent.yaml` (with metadata); new Designer agent; new skills `synthesize-personas`, `generate-screen-inventory`, `validate-screen-coverage`, `map-user-flows`, `generate-wireframes`, `compile-design-spec`; screen-inventory schema + validator; compile via `/create-play`; scenario evals. Dispatches scriber for evidence. | 214.5 | L (4-5 days) |
 | 214.7 | feat(play): `/build-arch` — fresh build replacing the deleted `/prepare-architecture` | DELETE `core/components/plays/prepare-architecture/`. Build a new play `/build-arch` from scratch following the same patterns as specify-product/design-exp (4-content-field intent + metadata, scriber dispatch, structural depth enforcement). Consumes the enriched epics + quality-profile from 214.5 and the screen inventory + flows from 214.6 as upstream inputs. Writes architecture.yaml and quality-standards.yaml to `.meridian/product/arch/`. Naming aligns with specify-product and design-exp (verb-noun). Capture any valuable patterns from prepare-architecture into `deprecated-play-patterns.md` (in 214.3) BEFORE deletion. | 214.6 | L (4-5 days — full play) |
@@ -112,9 +112,9 @@ New files (created):
 - `core/components/skills/write-evidence/SKILL.md` — scriber's evidence-write skill (214.1)
 - `docs/adr/017-folder-whitelist.md` — ADR for strict whitelist and terminology rename (214.2)
 - `core/components/memory/knowledge/deprecated-play-patterns.md` — captured value from plays being deleted, including prepare-architecture patterns (214.3)
-- `core/components/memory/knowledge/domain-taxonomy/_cross-tree-constraints.yaml` — the ONLY new KB file (214.4)
-- `core/components/memory/standards/intent-epic-schema.yaml` (214.4) — mandatory-field schema for intent epic validator
-- `core/components/memory/standards/screen-inventory-schema.yaml` (214.4) — mandatory-field schema for screen inventory validator
+- `core/components/memory/knowledge/domain/_cross-tree-constraints.yaml` — the ONLY new KB file (214.4)
+- `core/components/memory/standards/schemas/intent-epic.yaml` (214.4) — mandatory-field schema for intent epic validator
+- `core/components/memory/standards/schemas/screen-inventory.yaml` (214.4) — mandatory-field schema for screen inventory validator
 - `core/components/memory/standards/intent-yaml-schema.yaml` (214.2) — updated canonical intent.yaml schema with metadata + 4 content fields; replaces/updates any existing version
 - `core/components/plays/specify-product/` entire directory (214.5)
 - `core/components/plays/design-exp/` entire directory (214.6)
@@ -125,7 +125,7 @@ New files (created):
 - Spec-arch skills: TBD during 214.7 crafting — likely reuses existing tech-designer/tech-architect agents + a handful of new structure-generation skills.
 
 Modified files:
-- `core/components/memory/knowledge/domain-taxonomy/user-management.md`, `commerce.md`, `payments.md`, `personalization.md`, `search.md` — extended with new structured sections (`Inclusion`, `Success Criteria`, `Failure Scenarios`, `Cross-Tree Refs`, `Experiential`) under each feature. The existing feature IDs (UM-F001, CM-F001, etc.) become capability IDs (214.4).
+- `core/components/memory/knowledge/domain/user-management.md`, `commerce.md`, `payments.md`, `personalization.md`, `search.md` — extended with new structured sections (`Inclusion`, `Success Criteria`, `Failure Scenarios`, `Cross-Tree Refs`, `Experiential`) under each feature. The existing feature IDs (UM-F001, CM-F001, etc.) become capability IDs (214.4).
 - `core/components/memory/knowledge/_index.md` + `domain-taxonomy/_index.md` — document the extended structure (214.4)
 - `.meridian/core/config.yaml` — `product.directories` and `stm.structure` (214.2)
 - `CLAUDE.md` (project root) — remove section 4 "Play Constraints" (L1/L2, budget table); rename "bake" terminology wherever present (214.2)
@@ -166,7 +166,7 @@ Deleted files/directories:
 
 - **`prepare-architecture` → `build-arch` rename with fresh build (214.7).** Per user directive 2026-04-14: prepare-architecture needs overhaul; rename aligns with the verb-noun naming of specify-product / design-exp. `/build-arch` is a fresh play following the same patterns as the other two new plays. Not a simple contract-update on the old play — a full replacement. Rejected alternative: keep-and-update (the original plan's default) — misaligned with naming and user directive.
 
-- **Folder whitelist strict, no amendment.** User's 2026-04-13 declaration: "I dont want to see any other folders. these are core principels." Ops artifacts for product-scoped plays live INSIDE `product/`, `ux/`, or `arch/` — e.g. `.meridian/product/product/_checkpoints/specify-product/20260414.md`. Underscore-prefixed subfolders within the whitelist buckets are acceptable because they do not create new top-level siblings. Rejected alternative: create `.meridian/product/evidence/` (breaks whitelist).
+- **Folder whitelist strict, no amendment.** User's 2026-04-13 declaration: "I dont want to see any other folders. these are core principels." Ops artifacts for product-scoped plays live INSIDE `product/`, `ux/`, or `arch/` — e.g. `.meridian/product/_checkpoints/specify-product/20260414.md`. Underscore-prefixed subfolders within the whitelist buckets are acceptable because they do not create new top-level siblings. Rejected alternative: create `.meridian/product/evidence/` (breaks whitelist).
 
 - **No play levels, no agent budgets. Plays are just plays.** Per user directive 2026-04-14: drop L1/L2 classification and the ≤2/≤5 agent ceilings from `CLAUDE.md`. A play dispatches whatever agents it needs; coherence is enforced by the intent schema and evals, not by an arbitrary ceiling. `/specify-product` dispatches Market Analyst + Product Keeper + judge (3 domain agents + scriber utility). `/design-exp` dispatches Designer + judge (2 + scriber). `/build-arch` dispatches TBD. No budget check anywhere. Rejected alternative: keep budgets as advisory — the budget was doing nothing useful, only creating compliance overhead.
 
@@ -234,7 +234,7 @@ AFTER (new):
 
 For an end-user invoking product planning from zero post-landing:
 
-1. `/specify-product "HealthSync scheduling platform for outpatient clinics"` — runs 6 stages, pauses for human review at 4 checkpoints, produces `market-brief.md`, `scope.yaml`, a directory of `epics/*.yaml` files (one per capability, fully enriched), and `quality-profile.yaml`, all under `.meridian/product/product/`. Evidence is written in background by the scriber.
+1. `/specify-product "HealthSync scheduling platform for outpatient clinics"` — runs 6 stages, pauses for human review at 4 checkpoints, produces `market-brief.md`, `scope.yaml`, a directory of `epics/*.yaml` files (one per capability, fully enriched), and `quality-profile.yaml`, all under `.meridian/product/`. Evidence is written in background by the scriber.
 
 2. `/design-exp` — reads the specify-product artifacts, runs 6 stages, pauses at 3 checkpoints, produces `personas.md`, `screens/*.yaml` (with states), `flows/*.md` (Mermaid), `wireframes/*.md` (structured text), and `design-spec.md` under `.meridian/product/ux/`.
 
@@ -243,7 +243,7 @@ For an end-user invoking product planning from zero post-landing:
 Knowledge flow through the lifecycle:
 
 ```
-KB (core/components/memory/knowledge/domain-taxonomy/*.md + _cross-tree-constraints.yaml)
+KB (core/components/memory/knowledge/domain/*.md + _cross-tree-constraints.yaml)
   │  specify-product stage 3: configure-capabilities reads extended markdown sections + constraints file
   │  specify-product stage 4: enrich-capabilities reads business rules, ux, architecture, experiential sections
   │  design-exp stage 2: generate-screen-inventory reads ux hints from the same markdown files
