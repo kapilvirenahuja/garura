@@ -515,10 +515,26 @@ Commit all changes. Create PR linking to issue #{issue}. PR body includes: probl
 ### Phase: Finalize — PR Review
 
 **Step 13 — PR Review**
-Owner: play (invokes review/analyze-pr skill)
+Owner: `repo-orchestrator`
 Depends on: Step 12
 
-Run PR review analysis. Collect: code quality findings, change summary, risk assessment.
+```json
+{
+  "intent_path": "core/components/plays/enhance/reference/intent.yaml",
+  "stm_base": "{stm_base}",
+  "stm": {
+    "input": {
+      "pr_result": "{stm_base}/{issue}/evidence/enhance/pr-result.yaml"
+    },
+    "output": {
+      "review_result": "{stm_base}/{issue}/evidence/enhance/review-result.yaml"
+    }
+  },
+  "task_id": "pr-review"
+}
+```
+
+Agent invokes `analyze-pr` skill with the PR number from `pr-result.yaml`. Produces review findings: code quality, change summary, risk assessment. Writes results to STM.
 
 ---
 
