@@ -1,12 +1,16 @@
 intent: |
-  Given a completed issue number, archive the issue's STM directory to
-  _archive/{YYYY-MM}/{issue}/ to keep the active workspace clean, then extract
-  and synthesize reusable patterns from resolution traces, present knowledge
-  candidates for human approval, and promote approved candidates to the
-  appropriate LTM layer. The issue must be in a closed state before archival
-  proceeds.
+  Given a completed epic (post-validate), reconcile the full product LTM by
+  comparing what prepare-epic knew at planning time (the context baseline)
+  against what actually happened during implementation and validation. Detect
+  changes across three tiers: foundational artifacts that should NOT have
+  changed (ADR if they did), artifacts that need enrichment from implementation
+  outcomes, and new content that needs to be added. Archive the issue's STM
+  directory after reconciliation. The issue must be in a closed state before
+  any work proceeds.
 
-# --- CONSTRAINTS (archival) ---
+# ═══════════════════════════════════════════════════════════════════════════
+# CONSTRAINTS — Archival (UNCHANGED from original)
+# ═══════════════════════════════════════════════════════════════════════════
 
 constraints:
   - id: C1
@@ -33,52 +37,108 @@ constraints:
       structure. No files are renamed, restructured, or modified during
       the move.
 
-# --- CONSTRAINTS (extraction) ---
+# ═══════════════════════════════════════════════════════════════════════════
+# CONSTRAINTS — Product LTM Reconciliation
+# ═══════════════════════════════════════════════════════════════════════════
 
   - id: C5
-    rule: "STM artifacts are read-only during extraction — the knowledge-extractor reads evidence but does not modify it."
+    rule: >
+      STM artifacts are read-only during analysis. The knowledge-extractor
+      reads context and evidence but does not modify any STM artifact.
 
   - id: C6
-    rule: "Existing knowledge is updated (appended, refined) rather than duplicated. De-duplication check precedes every proposed write."
+    rule: >
+      Three-tier analysis model. Every product LTM artifact is classified
+      into exactly one tier:
+        Tier 1 (foundational, check-only): project-profile, logical-architecture,
+          physical-architecture, nfr-spec, quality-vision, design-patterns.
+          These SHOULD NOT change. If implementation evidence shows they did
+          change, produce an ADR proposal + impact assessment. Never silently
+          update a Tier 1 artifact.
+        Tier 2 (enrichment): research/{domain}.md (Experiential sections),
+          enriched-capabilities, scope/epics/{id}.yaml (post_implementation),
+          quality-profile, mvp-recommendation, scope.yaml.
+          These are updated in place with implementation outcomes.
+        Tier 3 (additions): domain-selection (new domains), new research/{domain}.md,
+          new experience/screens/, new experience/flows/, personas.md, design-spec.md.
+          These are proposed only when implementation evidence demonstrates
+          new content that does not exist in product LTM.
 
   - id: C7
-    rule: "Every knowledge artifact must pass the validation checklist defined in knowledge-file-template.md for its type (Pattern Template for synthesized patterns, Generic Template otherwise). The template is the single source of truth for required fields — this constraint does not enumerate them."
+    rule: >
+      Primary inputs are the context baseline and implementation outcomes.
+      The context baseline is {stm_base}/{issue}/context/ — what prepare-epic
+      curated as the knowledge the epic needed at planning time. Implementation
+      outcomes are the evidence produced by implement-epic and validate-epic:
+      milestones, verdicts, status-reports, e2e-results, arbiter-verdicts,
+      judge-reports, code changes, and test results.
+
+  - id: C8
+    rule: >
+      check-drift spec-correction-manifest is consumed as input when present
+      at {stm_base}/{issue}/evidence/check-drift/. Findings from check-drift
+      are incorporated into the reconciliation — not re-derived. If no
+      check-drift output exists, the play performs its own comparison.
 
   - id: C9
-    rule: "Knowledge is holistic — organized by interconnected decisions, not siloed by tool or technology."
+    rule: >
+      All writes target product LTM ({product_base}/). No writes to global
+      core LTM (~/.meridian/core/memory/). No standalone knowledge files
+      created outside the existing product LTM artifact structure.
 
   - id: C10
-    rule: "Classification (project vs core) is deliberate with stated reasoning. Project-specific names, domain models, file paths → project. Technology/framework patterns → core."
+    rule: >
+      Enrichment proposals follow the format of their target artifact.
+      research/{domain}.md enrichments use the Experiential section format
+      from kb-extension.md. Epic enrichments use the post_implementation
+      schema from intent-epic.yaml. Architecture annotations use the
+      existing YAML structure of the target artifact.
 
   - id: C11
-    rule: "No LTM write without human approval. All candidates are staged in STM for review before any write to project or core LTM."
+    rule: >
+      No product LTM write without human approval. All enrichment proposals
+      are staged in STM as a reconciliation report for review before any
+      write to product LTM.
 
   - id: C12
     rule: >
-      Resolution traces with resolved_from='llm' are the primary promotion signal —
-      decisions where the system lacked stored knowledge. The following evidence artifact
-      types are recognized as secondary extraction sources (listed in descending signal
-      priority): resolution-trace.yaml (primary — LLM fallbacks are the highest-signal
-      source), judge-report*.yaml (failure conditions, remediation strategies, pass/fail
-      patterns), rca.yaml (root cause and approach fields), design.yaml (chosen strategy
-      and alternatives considered), remediation-*.md / remediation-*.yaml (fix approach
-      and risk mitigation), quality-report.yaml (recurring quality issues), drift-report.md
-      (drift patterns). All recognized artifact types contribute raw signals to the
-      synthesis pipeline.
+      Tier 1 changes produce ADR proposals with: what changed, why it
+      changed (evidence from implementation), impact on downstream artifacts,
+      and recommended next steps. ADRs are written to the product's ADR
+      location. An impact assessment identifies which other epics, components,
+      or NFRs are affected by the change.
 
   - id: C13
-    rule: "Knowledge candidates must be synthesized patterns, not individual decision records. Multiple related decisions from the same work MUST consolidate into a single pattern file. Each pattern must include When to Choose, When to Avoid, Key Components, and Tradeoffs sections. Target 3-5 synthesized patterns per extraction, not 10-20 individual records. Test: if the output only documents what was decided (not when to choose it in the future), it belongs in an ADR, not LTM."
+    rule: >
+      If product LTM artifacts for a tier are absent (e.g., build-arch was
+      not run, so architecture/ does not exist), that tier is skipped with
+      a warning in the reconciliation report. Missing product LTM is not
+      a hard failure — the play processes whichever tiers have artifacts.
 
   - id: C14
-    rule: "Every knowledge file written to LTM must have a corresponding entry added to the _index.md in its target directory. An unregistered file is undiscoverable."
+    rule: >
+      Epic post_implementation section is the write target for delivery
+      status and retrospective data. Fields: status (delivered/partial/
+      deferred/cancelled), delivered_scope, deferred_items, scope_additions,
+      hypothesis_result, assumptions_validated, constraints_met, lessons.
+      Schema defined in intent-epic.yaml.
 
   - id: C15
     rule: >
-      When no extractable signals exist across all recognized artifact types, the
-      extraction phase exits cleanly with zero candidates. No files are written to LTM.
-      Evidence records the zero-candidate outcome.
+      When the diff between context baseline and implementation outcomes
+      produces no enrichment candidates across all three tiers, the
+      reconciliation phase exits cleanly with zero proposals. No files
+      are written to product LTM. Evidence records the zero-proposal outcome.
 
-# --- FAILURE CONDITIONS (archival) ---
+  - id: C16
+    rule: >
+      Archival proceeds AFTER reconciliation. The play first analyzes and
+      writes approved enrichments, then archives the STM directory. This
+      ensures the reconciliation can read the full STM before it is moved.
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FAILURE CONDITIONS — Archival (UNCHANGED from original)
+# ═══════════════════════════════════════════════════════════════════════════
 
 failure_conditions:
   - id: F1
@@ -103,30 +163,50 @@ failure_conditions:
 
   - id: F5
     condition: >
-      The play attempts to archive an issue that is not in a closed
-      state.
+      The play attempts to archive an issue that is not in a closed state.
 
-# --- FAILURE CONDITIONS (extraction) ---
+# ═══════════════════════════════════════════════════════════════════════════
+# FAILURE CONDITIONS — Product LTM Reconciliation
+# ═══════════════════════════════════════════════════════════════════════════
 
   - id: F6
-    condition: "Knowledge written to LTM without human approval — candidates bypassed the staging and review checkpoint."
+    condition: >
+      Product LTM artifact written without human approval — enrichment
+      bypassed the staging and review checkpoint.
 
   - id: F7
-    condition: "Duplicate knowledge file created when an existing file covers the same topic — deduplication was skipped or failed."
+    condition: >
+      Standalone knowledge file created outside the product LTM artifact
+      structure (e.g., a new file in global core LTM or an ad-hoc
+      location not in the product_base directory tree).
 
   - id: F8
-    condition: "Knowledge file fails the validation checklist from knowledge-file-template.md for its type — required sections or metadata are absent."
+    condition: >
+      Tier 1 foundational artifact modified without producing an ADR
+      proposal and impact assessment. Silent updates to project-profile,
+      logical-architecture, nfr-spec, quality-vision, or design-patterns
+      are structural failures.
 
   - id: F9
-    condition: "_index.md not updated after new knowledge file written — file is undiscoverable."
+    condition: >
+      Enrichment written to the wrong artifact or wrong section — e.g.,
+      domain learning written to an architecture file, or post_implementation
+      data written to the wrong epic.
 
   - id: F10
-    condition: "Classification missing reasoning — a candidate is marked project or core with no classification_reason."
+    condition: >
+      Tier 1 change detected but no impact assessment produced. The ADR
+      alone is insufficient — downstream impact on other epics, components,
+      and NFRs must be identified.
 
   - id: F11
-    condition: "Knowledge candidates are individual decision records rather than synthesized patterns. Each candidate documents a single choice from one implementation without consolidation into reusable guidance. The output has more than 7 candidates from a single issue."
+    condition: >
+      check-drift findings re-derived instead of consumed from the existing
+      spec-correction-manifest when one is present.
 
-# --- SCENARIOS ---
+# ═══════════════════════════════════════════════════════════════════════════
+# SCENARIOS
+# ═══════════════════════════════════════════════════════════════════════════
 
 scenarios:
   - id: S1
@@ -146,21 +226,38 @@ scenarios:
       the active workspace, reducing noise when navigating current work.
 
   - id: S3
-    persona: "Tech Designer"
-    given: "A completed implement-epic run produced resolution traces with 3 LLM fallback decisions"
-    then: "Can review a staged list of synthesized knowledge candidates, each classified with scope reasoning. After approving candidates, can find them in LTM via _index.md search with correct metadata."
+    persona: "Tech Lead reviewing post-epic reconciliation"
+    given: "A completed epic where implementation deviated from the architecture"
+    then: >
+      Can see Tier 1 check results showing which foundational artifacts
+      were validated, any ADR proposals for detected changes, and impact
+      assessments identifying affected downstream artifacts. Can approve
+      or reject each ADR before it is written.
 
   - id: S4
-    persona: "Developer"
-    given: "A knowledge candidate matches an existing LTM file by search pattern overlap"
-    then: "The knowledge-extractor marks it as 'merge' with the existing file path. On approval, the existing file is updated — no duplicate created."
+    persona: "Developer preparing the next epic in the same domain"
+    given: "capture-learning enriched the domain research file after the prior epic"
+    then: >
+      When prepare-epic runs for the next epic, the Experiential section
+      in research/{domain}.md contains lessons, failure patterns, and
+      capability observations from the prior implementation — so the
+      next epic benefits from what was learned without manual knowledge
+      transfer.
 
   - id: S5
-    persona: "Operator"
-    given: "The capture-learning play runs on an issue with no resolution traces or evidence"
-    then: "Archival completes normally. Extraction phase exits cleanly with 'no candidates extracted' evidence. No files written to LTM."
+    persona: "Operator running capture-learning on a trivial bug fix"
+    given: "The issue produced no meaningful delta between context and outcomes"
+    then: >
+      Reconciliation phase exits cleanly with zero proposals. Archival
+      completes normally. No files written to product LTM. Evidence
+      records the zero-proposal outcome.
 
   - id: S6
-    persona: "Quality Lead"
-    given: "An approved knowledge file is written to core LTM"
-    then: "File passes the full validation checklist from knowledge-file-template.md (Pattern Template for patterns, Generic + Tier 2 for other core files). _index.md in the target directory is updated with the new entry."
+    persona: "PM reviewing delivery status across epics"
+    given: "capture-learning wrote post_implementation to the epic's YAML"
+    then: >
+      Can read the epic file and see: delivery status, which in_scope
+      items were delivered vs deferred, any scope additions with
+      justification, hypothesis validation result, and constraints
+      actually met — all in one structured section alongside the
+      original specification.
