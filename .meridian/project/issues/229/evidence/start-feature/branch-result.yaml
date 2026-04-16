@@ -1,0 +1,12 @@
+result:
+  success: true
+  branch:
+    name: "fix/229-hardcoded-product-base"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/fix/229-hardcoded-product-base"
+  worktree:
+    used: false
+    path: null
+    reason: null
+  error: null
