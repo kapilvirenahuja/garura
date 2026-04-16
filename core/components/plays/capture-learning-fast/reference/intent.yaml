@@ -1,0 +1,69 @@
+intent: >
+  After a PR is merged via ship, perform lightweight learning extraction from
+  the merged PR diff and any available issue STM evidence (from enhance/ or
+  fix-it/ runs). Produce 1–2 staged learning proposals written to issue STM only.
+  Trivial PRs produce no output. This play is fire-and-forget: any failure
+  is caught, logged, and ship continues to scenario validation regardless of
+  outcome. Proposals are staged for optional human review — they are never
+  written directly to product LTM.
+
+constraints:
+  - id: C1
+    rule: >
+      No context/ prerequisite. This play does not require a prepare-epic
+      context baseline. It operates solely on the merged PR diff and whatever
+      STM evidence is available in {stm_base}/{issue}/evidence/ (may be empty).
+      Absence of STM evidence is a valid, non-failing condition.
+
+  - id: C2
+    rule: >
+      Non-blocking always. Any failure at any stage — config resolution, PR diff
+      fetch, knowledge-extractor invocation, proposals write — MUST be caught and
+      logged. The failure MUST NOT propagate to the calling ship play. The play
+      returns { status: "skipped", reason: "<error message>" } on any failure and
+      ship continues to scenario validation.
+
+  - id: C3
+    rule: >
+      Stage-only — no product LTM writes. All output from this play goes to
+      {stm_base}/{issue}/evidence/capture-learning-fast/. No artifact is written
+      to {product_base}. Product LTM is read for reference context only (if needed
+      to identify proposal targets). Any write to product LTM from this play is a
+      hard constraint violation.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      Failure of capture-learning-fast halts or delays ship. This play MUST
+      return gracefully (status: "skipped") on any error. Propagating an exception
+      or non-zero exit to ship's orchestrator is a failure condition.
+
+  - id: F2
+    condition: >
+      Proposals written directly to product LTM. The only valid output path
+      for proposals.yaml is under {stm_base}/{issue}/evidence/capture-learning-fast/.
+      Any write to a path under {product_base} is a structural failure.
+
+scenarios:
+  - id: S1
+    persona: Developer
+    given: >
+      ship completes on a non-trivial PR for an issue that had a prior enhance or
+      fix-it run, with STM evidence available in {stm_base}/{issue}/evidence/
+    then: >
+      Learning proposals are staged at
+      {stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml.
+      The proposals reference specific diff evidence and STM artifacts.
+      The ship evidence file records Mode 1 outcome as "completed" with proposals_path.
+      Product LTM is unchanged.
+
+  - id: S2
+    persona: Developer
+    given: >
+      ship completes on a trivial PR (documentation-only changes, version bump,
+      or formatting fix) with no STM evidence of non-trivial design work
+    then: >
+      No proposals.yaml is written. capture-learning-fast returns
+      { status: "completed", no_learnings: true, proposals_path: null }.
+      Ship evidence file records Mode 1 outcome as "completed — no learnings detected".
+      Product LTM is unchanged.
