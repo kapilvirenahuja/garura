@@ -1,0 +1,97 @@
+status: completed
+
+tasks_completed:
+  - task-1-extend-knowledge-extractor-fast-mode
+  - task-2-create-capture-learning-fast-skill
+  - task-3-create-proposals-output-template
+  - task-4-create-capture-learning-fast-play-intent
+  - task-5-create-capture-learning-fast-play-skill
+  - task-6-update-ship-intent-yaml
+  - task-7-update-ship-skill-md
+
+files_created:
+  - core/components/skills/capture-learning-fast/SKILL.md
+  - core/components/skills/capture-learning-fast/templates/proposals-output.md
+  - core/components/plays/capture-learning-fast/SKILL.md
+  - core/components/plays/capture-learning-fast/reference/intent.yaml
+
+files_modified:
+  - core/components/agents/knowledge-extractor.md
+  - core/components/plays/ship/reference/intent.yaml
+  - core/components/plays/ship/SKILL.md
+
+notes: |
+  All 7 tasks completed per approach.yaml execution plan.
+
+  Task 1 (knowledge-extractor FAST mode):
+  - Added Operating Modes table (ANALYZE/ENRICH/FAST) after the ## Operating Modes header
+  - Added full ### FAST Mode section after ENRICH Mode, before Input Contract
+  - FAST mode documents: input contract (mode, pr_diff, stm_base, product_base, issue_body;
+    no context_base), 4 steps (read stat, assess topology via agent judgment, scan STM
+    evidence, decide/produce), and output contract (no_learnings + proposals_path)
+  - Updated Input Contract to show both ANALYZE/ENRICH and FAST mode variants
+  - Updated Output Contract to show both ANALYZE/ENRICH and FAST mode variants
+  - Updated invalid_mode error type to include "fast" as valid mode
+
+  Task 2 (capture-learning-fast skill):
+  - Created SKILL.md with frontmatter matching analyze-changes pattern
+    (user-invocable: false, model: sonnet, allowed-tools: Bash/Read/Write/Grep/Glob)
+  - Strong decision boundary statement: skill produces proposals, never writes to product LTM
+  - Process steps: assess diff, scan STM evidence, classify learnings, write proposals.yaml
+  - 5 explicit constraints including the product LTM write prohibition and 2-proposal cap
+
+  Task 3 (proposals-output.md template):
+  - Defines full proposals.yaml schema with YAML code block
+  - All required fields: issue, pr_number, analyzed_at, no_learnings, source,
+    stm_evidence_used, proposals[], total_proposals
+  - proposals[] items: target_path, section, proposed_content, evidence_diff_reference,
+    confidence (low/medium/high)
+  - Includes no-learnings case documentation and two worked examples
+  - Forward-compatible keys noted alongside Mode 2's reconciliation-proposals.yaml alignment
+
+  Task 4 (capture-learning-fast play intent.yaml):
+  - Defines C1 (no context/ required), C2 (non-blocking always), C3 (stage-only)
+  - Defines F1 (failure halts ship — forbidden) and F2 (product LTM write — forbidden)
+  - Defines S1 (non-trivial PR with STM evidence → proposals staged) and
+    S2 (trivial PR → no-op, no file written)
+
+  Task 5 (capture-learning-fast play SKILL.md):
+  - Minimal orchestrator play (not complex multi-step)
+  - frontmatter: name: capture-learning-fast, user-invokable: false
+  - Single workflow step invoking knowledge-extractor in FAST mode via JSON contract
+  - Explicit try/catch: returns {status: "skipped", reason: error} on any failure
+  - Output contract: {status: completed|skipped, proposals_path|null, no_learnings, reason}
+  - Pause/Resume notes: no own status file; ship tracks it as task entry using
+    "skipped" (not "failed") for graceful resume behavior
+
+  Task 6 (ship intent.yaml):
+  - Added C8: non-blocking post-merge learning capture constraint
+  - Added S4: post-merge learning scenario (persona: Developer)
+  - Existing C1-C7, F1-F7, S1-S3 untouched and verified
+
+  Task 7 (ship SKILL.md — direct edit, intentional compiled artifact exception):
+  - Added Step 4 "Post-merge Learning Capture" after merge phase, before scenario validation
+  - Non-blocking handler table: pass/no_learnings/skipped all continue to Step 5
+  - Renamed old Step 4 (Scenario Evals) to Step 5; added Depends on: Step 4
+  - Added SCE-4 (S4 eval) to scenario evals section
+  - Renamed old Step 5 (Evidence & Close) to Step 6; added Depends on: Step 5
+  - Updated evidence template to include capture-learning-fast outcome fields
+  - Added SCE-4 to evidence file scenario eval list
+  - Added "capture-learning-fast": { "status": "pending" } to status file JSON schema
+  - Updated executor loop to skip "skipped" status (fire-and-forget semantics)
+  - Updated Compilation Metadata: sub_plays 4→5, scenario_evals 3→4
+  - Added direct-edit deviation note explaining intent_hash mismatch until next /create-play run
+
+  Eval verification:
+  - E1: capture-learning-fast SKILL.md exists, user-invokable: false, JSON contract
+    invokes knowledge-extractor with mode: "fast", intent.yaml has C1/C2/C3/F1/F2/S1/S2 ✓
+  - E2: Ship SKILL.md Step 4 invokes capture-learning-fast, non-blocking handler, old
+    steps renumbered, status file schema updated ✓
+  - E3: knowledge-extractor FAST Mode section exists, input has mode/pr_diff/stm_base/
+    product_base/issue_body (no context_base), output has proposals_path + no_learnings ✓
+  - E4: proposals output path is stm_base not product_base; skill Constraints prohibit
+    product LTM writes; knowledge-extractor FAST mode output path is correct ✓
+  - E5: Trivial detection uses agent judgment, explicitly stated as "no hardcoded file
+    extension lists or regex patterns" in both knowledge-extractor and skill ✓
+  - E6: ship intent.yaml has C8 and S4; C1-C7 and S1-S3 unchanged ✓
+  - E7: Compilation Metadata has direct-edit deviation note and sub_plays = 5 ✓

@@ -1,0 +1,209 @@
+analysis:
+  branch: enhance/240-post-merge-learning
+  base: main
+  branch_pattern: feature  # enhance/* treated as feature branch; standard priorities apply
+  commits: 1
+  changes:
+    files: 7
+    additions: 699
+    deletions: 10
+  suggested_title: "feat(plays): add capture-learning-fast Mode 1 as non-blocking post-merge step in ship (#240)"
+
+  context:
+    file_patterns_matched:
+      - name: Agent Definitions
+        files: 1
+        trigger: "core/components/agents/**/*.md"
+      - name: Skill Definitions
+        files: 1
+        trigger: "core/components/skills/**/*.md"
+      - name: Play/Recipe Definitions
+        files: 2
+        trigger: "core/components/plays/**/SKILL.md"
+      - name: Configuration YAML
+        files: 2
+        trigger: "*.yaml — intent files"
+      - name: Documentation/Templates
+        files: 1
+        trigger: "*.md — proposals-output template"
+      - name: Sync Required
+        files: 7
+        trigger: "core/components/** changed"
+    commit_types:
+      - type: feat
+        count: 1
+        example: "feat(plays): add capture-learning-fast Mode 1 as non-blocking post-merge step in ship (#240)"
+    branch_modifiers:
+      - "feature branch — standard priorities apply (no hotfix/release overrides)"
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: No merge conflicts
+        trigger: Universal — applies to every PR
+        status: PASS
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree hash (exit 0, no conflict markers)"
+
+      - id: no-secrets
+        item: No secrets committed
+        trigger: Universal — applies to every PR
+        status: PASS
+        evidence: "Scanned all 7 changed files for secret patterns (password, token, api_key, private_key) — no matches found"
+
+      - id: agent-frontmatter
+        item: Agent has valid frontmatter (name, domain, role, tools)
+        trigger: "core/components/agents/knowledge-extractor.md changed"
+        status: PASS
+        evidence: "knowledge-extractor.md frontmatter contains: name, domain=knowledge, role=extractor, description, model, tools=[Read,Write,Glob,Grep]"
+
+      - id: agent-boundaries
+        item: Agent has NEVER/ALWAYS boundaries section — boundaries reflect all operating modes
+        trigger: "core/components/agents/knowledge-extractor.md changed"
+        status: REVIEW
+        evidence: |
+          ## Boundaries section exists (lines 542–558) with NEVER and ALWAYS sub-sections.
+          HOWEVER: The boundaries were NOT updated for FAST mode.
+          Three boundary entries now contradict FAST mode semantics:
+            1. "NEVER — Modify STM artifacts" — FAST mode writes proposals.yaml to
+               {stm_base}/{issue}/evidence/capture-learning-fast/; this IS an STM write.
+            2. "NEVER — Write without approval" — FAST mode stages proposals to STM
+               without any human approval gate.
+            3. "ALWAYS — Read context baseline before outcomes" — FAST mode has no
+               context baseline (no prepare-epic prerequisite per C1).
+          The Boundaries section should be updated to carve out FAST mode exceptions
+          or restructure boundaries per-mode.
+
+      - id: skill-frontmatter
+        item: Skill has valid frontmatter (name, description, user-invocable, allowed-tools)
+        trigger: "core/components/skills/capture-learning-fast/SKILL.md is new"
+        status: PASS
+        evidence: "Frontmatter contains: name=capture-learning-fast, description present, user-invocable=false, model=sonnet, allowed-tools=[Bash,Read,Write,Grep,Glob]"
+
+      - id: skill-io
+        item: Skill defines Input and Output sections
+        trigger: "core/components/skills/capture-learning-fast/SKILL.md is new"
+        status: PASS
+        evidence: "## Input section present (lines ~19-26); ## Output section present with template reference"
+
+      - id: recipe-frontmatter
+        item: Play has valid frontmatter (name, description, user-invokable)
+        trigger: "core/components/plays/capture-learning-fast/SKILL.md is new"
+        status: PASS
+        evidence: "Frontmatter contains: name=capture-learning-fast, description present, user-invokable=false. No allowed-tools in play frontmatter — consistent with all other plays in this project (ship, fix-it, enhance, commit-code all omit allowed-tools from play frontmatter)."
+
+      - id: recipe-workflow
+        item: Play defines workflow section
+        trigger: "core/components/plays/capture-learning-fast/SKILL.md is new"
+        status: PASS
+        evidence: "## Workflow section present with Phase: Analysis and Step 1 documented"
+
+      - id: recipe-checkpoint
+        item: Play defines checkpoint behavior
+        trigger: "core/components/plays/capture-learning-fast/SKILL.md is new"
+        status: REVIEW
+        evidence: |
+          Play is user-invokable: false and fire-and-forget. No Tether/Vanish user
+          checkpoint is present. This is intentional per C2 (non-blocking always) —
+          the play must never pause for user input. Failure handling section
+          documents the graceful return pattern. However the quality rule expects
+          checkpoint behavior to be explicitly documented. The play's implicit
+          "never blocks, always returns gracefully" could be more explicitly stated
+          as a checkpoint policy entry (e.g. "No checkpoint: fire-and-forget — see
+          Failure Handling").
+
+      - id: config-valid
+        item: Configuration syntax valid
+        trigger: "*.yaml files changed — capture-learning-fast/reference/intent.yaml and ship/reference/intent.yaml"
+        status: PASS
+        evidence: "python3 yaml.safe_load() validation passed on both intent files (exit 0, no syntax errors)"
+
+      - id: feat-documented
+        item: Feature documented in play definitions and PR body
+        trigger: "feat: commit type"
+        status: PASS
+        evidence: "Feature documented in: ship/SKILL.md (Step 4 added), ship/reference/intent.yaml (C8 + S4), PR body (problem/solution/files table), capture-learning-fast play/skill/intent"
+
+      - id: sync-claude
+        item: Components synced with core/components/ after merge
+        trigger: "core/components/** changed — all 7 files are under core/components/"
+        status: REVIEW
+        evidence: |
+          core/components/ changed in 7 files. /sync-claude (global) or
+          /sync-droids (Factory) must be run after merge to deploy:
+            - ~/.claude/skills/capture-learning-fast/ (new skill)
+            - ~/.factory/skills/capture-learning-fast/ (new skill + play)
+            - ~/.factory/droids/knowledge-extractor.md (updated agent)
+          This is a post-merge action item, not a blocker on the PR itself.
+
+    nice_to_have:
+      - id: agent-naming
+        item: Agent follows {domain}-{role} naming convention
+        trigger: "core/components/agents/knowledge-extractor.md changed"
+        status: PASS
+        evidence: "knowledge-extractor = domain:knowledge + role:extractor — follows convention"
+
+      - id: skill-constraints
+        item: Skill has constraints section
+        trigger: "core/components/skills/capture-learning-fast/SKILL.md is new"
+        status: PASS
+        evidence: "## Constraints section present with 5 numbered constraints including LTM write prohibition and 2-proposal cap"
+
+      - id: recipe-agent-limit
+        item: Play respects agent call limits (L1 ≤2)
+        trigger: "core/components/plays/capture-learning-fast/SKILL.md is new"
+        status: PASS
+        evidence: "capture-learning-fast invokes 1 agent (knowledge-extractor) — within L1 ≤2 limit. Ship (L2) adds 1 sub-play call, staying within L2 ≤5 limit."
+
+      - id: config-documented
+        item: Configuration changes documented
+        trigger: "intent.yaml files changed"
+        status: PASS
+        evidence: "PR body contains files table documenting all 7 changed files with change type descriptions"
+
+      - id: feat-adr
+        item: Significant feature has ADR
+        trigger: "feat: commit with 699 additions introducing new orchestration pattern"
+        status: REVIEW
+        evidence: |
+          PR introduces the non-blocking sub-play pattern (fire-and-forget Step 4 in ship)
+          as a reusable orchestration design. No ADR filed for this architectural decision.
+          The pattern (status: "skipped" for optional steps, try/catch wrapper in
+          orchestrator, fire-and-forget sub-play invocation) is novel and referenced
+          directly in ship's Compilation Metadata deviation note. An ADR would
+          capture the design rationale for future plays using the same pattern.
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Merge — no blocking issues. Three REVIEW items warrant attention post-merge."
+
+  post_merge_actions:
+    - action: Update knowledge-extractor.md Boundaries section
+      priority: high
+      detail: >
+        Add FAST mode exceptions to NEVER/ALWAYS boundaries or restructure
+        boundaries per-mode. Three current boundaries conflict with FAST mode:
+        STM artifact write, write-without-approval, context-baseline requirement.
+    - action: Run /sync-claude and /sync-droids
+      priority: high
+      detail: >
+        Deploy updated core/components/ to ~/.claude/ and ~/.factory/.
+        New components: capture-learning-fast skill, capture-learning-fast play,
+        knowledge-extractor FAST mode.
+    - action: Consider filing ADR for non-blocking sub-play pattern
+      priority: low
+      detail: >
+        The fire-and-forget sub-play with "skipped" status (not "failed") is a
+        novel pattern in this project. An ADR would document it for future plays.
+
+  pr_meta:
+    pr_number: 251
+    pr_url: "https://github.com/kapilvirenahuja/meridian-os/pull/251"
+    title: "feat(plays): add capture-learning-fast Mode 1 as non-blocking post-merge step in ship (#240)"
+    state: OPEN
+    additions: 699
+    deletions: 10
+    judge_confidence: 0.91
+    analyzed_at: "2026-04-16T00:00:00Z"
+    analyzed_by: repo-orchestrator → analyze-pr skill
+    source_pr_data: "gh pr view 251 + gh pr diff 251"

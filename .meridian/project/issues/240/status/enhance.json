@@ -1,0 +1,24 @@
+{
+  "play": "enhance",
+  "issue": "240",
+  "started_at": "2026-04-16T00:00:00Z",
+  "tasks": {
+    "validate-issue": { "status": "completed", "completed_at": "2026-04-16T00:00:00Z" },
+    "create-branch": { "status": "completed", "completed_at": "2026-04-16T00:00:01Z" },
+    "qa-discovery": { "status": "completed", "completed_at": "2026-04-16T00:00:02Z" },
+    "context-assembly": { "status": "completed", "completed_at": "2026-04-16T00:00:03Z" },
+    "scope-gate": { "status": "completed", "completed_at": "2026-04-16T00:00:04Z" },
+    "approach-design": { "status": "completed", "completed_at": "2026-04-16T00:00:05Z" },
+    "mid-checkpoint": { "status": "completed", "completed_at": "2026-04-16T00:00:06Z" },
+    "implement": { "status": "in_progress", "started_at": "2026-04-16T00:00:07Z" },
+    "self-eval": { "status": "pending" },
+    "judge-rating": { "status": "pending" },
+    "judge-gate": { "status": "pending" },
+    "quality-check": { "status": "pending" },
+    "commit-pr": { "status": "pending" },
+    "pr-review": { "status": "pending" },
+    "pr-checkpoint": { "status": "pending" },
+    "ship": { "status": "pending" },
+    "evidence": { "status": "pending" }
+  }
+}

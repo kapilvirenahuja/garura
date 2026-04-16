@@ -1,0 +1,179 @@
+confidence: 0.91
+areas:
+  - name: completeness
+    score: 0.95
+    findings: |
+      All 7 tasks from approach.yaml are implemented. All 4 files created and all 3
+      files modified per the plan. All 7 evals (E1–E7) pass when inspected against
+      the actual files: capture-learning-fast play and skill exist with correct
+      structure; ship SKILL.md has non-blocking Step 4; knowledge-extractor has FAST
+      mode with correct input/output contracts; proposals output path is STM-only;
+      trivial detection is agent-driven; ship intent.yaml has C8 and S4; Compilation
+      Metadata note and sub_plays=5 are present.
+
+      Two minor omissions reduce the score from 1.0:
+      (1) The sub-play chain table in ship SKILL.md's Role section (Steps 1/2/2.5/3)
+      is not updated to include Step 4 (capture-learning-fast). The step is correctly
+      added to the Workflow section but the summary table is stale.
+      (2) The "Compiled From" header in ship SKILL.md still says "Intent defines
+      constraints (C1–C7), failure conditions (F1–F7), and scenarios (S1–S3)." — it
+      should reflect C1–C8 and S1–S4 after this change.
+
+  - name: correctness
+    score: 0.85
+    findings: |
+      Core logic is sound. Non-blocking design is correctly implemented end-to-end:
+      capture-learning-fast play's try/catch returns {status: "skipped"} on any
+      failure; ship's Step 4 handler explicitly continues to Step 5 on all three
+      outcome types (no_learnings, proposals_path, skipped); the executor loop skips
+      "skipped" status on resume — preventing unintended re-attempts. "skipped" vs
+      "failed" status distinction (risk R4 in approach.yaml) is correctly applied.
+
+      Issues found:
+      (1) Sub-play chain table in ship Role section is missing Step 4 — creates
+      a documentation divergence from the actual workflow.
+      (2) "Compiled From" header in ship SKILL.md doesn't reflect C8, S4 additions —
+      minor but visible inconsistency.
+      (3) The `stm_base` field in knowledge-extractor FAST mode documentation has
+      an ambiguity: the input description says "path to {stm_base}/{issue}/ (issue
+      STM root)" but the input contract template just shows `{stm_base}` without
+      the issue number. The FAST mode steps then reference `{stm_base}/{issue}/`
+      which would be correct only if stm_base is the base path, not the issue path.
+      (4) The JSON contract from capture-learning-fast play to knowledge-extractor
+      does not explicitly pass `issue` as a field — it is embedded only in the
+      output proposals_path template `{stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml`.
+      The agent must infer the issue number from context or the path template, which
+      is implicit rather than explicit. Ship's Step 4 passes `issue` in context, so
+      the play has it, but the forwarding to the agent contract is not explicit.
+      (5) Config parsing in capture-learning-fast pre-flight uses grep/head/tail to
+      extract stm_base and product_base — fragile if config ordering changes. However,
+      this is consistent with ship's own pre-flight approach, so it is not a new risk.
+
+  - name: architecture_conformance
+    score: 0.90
+    findings: |
+      Follows all established Meridian patterns:
+
+      Play structure: capture-learning-fast SKILL.md has Compiled From, Role,
+      Pre-flight, Workflow, Failure Handling, Output, Pause and Resume, and
+      Compilation Metadata sections — matching the compiled play format.
+
+      Skill structure: capture-learning-fast skill SKILL.md has correct frontmatter
+      (name, description, user-invocable: false, model: sonnet, allowed-tools) and
+      required sections (Purpose, Input, Process, Output, Constraints, Version) —
+      matches analyze-changes and similar skills.
+
+      Agent extension pattern: knowledge-extractor extended with a new ### FAST Mode
+      section following the ANALYZE/ENRICH section pattern. Operating Modes table
+      updated. Input/Output contracts documented for FAST mode. Failure protocol
+      extended with `invalid_mode` correctly updated to include "fast" as valid.
+
+      Sub-play delegation: capture-learning-fast play correctly delegates to
+      knowledge-extractor agent via JSON contract rather than performing analysis
+      directly — correctly follows the agent-first pattern.
+
+      Deductions:
+      (1) The Compilation Metadata in capture-learning-fast SKILL.md has a
+      placeholder intent_hash: "sha256:{to be computed on next /create-play run}"
+      — non-standard compared to compiled artifacts which have an actual hash (even
+      if stale). This is acceptable for a directly-edited new play but slightly
+      deviates from the canonical pattern.
+      (2) Sub-play chain table in ship Role section not updated — documentation drift
+      from implementation.
+
+  - name: constraint_compliance
+    score: 0.97
+    findings: |
+      All approach.yaml constraints are satisfied:
+
+      C1 (no context/ required): FAST mode input contract has no context_base field.
+      Step 3 in FAST mode explicitly checks for STM evidence as an optional, non-failing
+      condition. Absence of enhance/ or fix-it/ directories is handled gracefully.
+
+      C2 (non-blocking always): Implemented at two layers — capture-learning-fast play
+      has explicit try/catch returning {status: "skipped"} on any failure; ship Step 4
+      has an explicit handler table where all three outcomes continue to Step 5.
+      No code path in ship halts on capture-learning-fast failure.
+
+      C3 (stage-only, no product LTM writes): Enforced at the skill level (Constraints
+      section explicitly: "Never write to product LTM. product_base is read-only
+      reference context. Writing to any path under product_base is a hard constraint
+      violation.") and at knowledge-extractor FAST mode level (output path spec uses
+      {stm_base} only). The ship evidence template confirms product LTM is unchanged
+      as part of SCE-4.
+
+      Risk R4 mitigation (skipped not failed): Correctly implemented — status file
+      schema uses "pending | completed | skipped" and the executor loop explicitly
+      treats "skipped" the same as "completed" for skip-on-resume logic.
+
+      Eval E5 (no hardcoded triviality patterns): Explicitly stated in both
+      capture-learning-fast skill ("Apply agent judgment — do NOT apply hardcoded
+      extension lists or regex patterns") and knowledge-extractor FAST mode Step 2
+      ("using agent judgment — no hardcoded file extension lists or regex patterns").
+
+      Minor deduction: The SCE-4 scenario eval in ship SKILL.md checks "If the PR
+      was non-trivial and STM evidence was available, proposals_path is non-null" —
+      this is a weaker assertion than it could be (it cannot definitively verify
+      product LTM is unchanged without listing all files under product_base before
+      and after). The constraint is structurally enforced but SCE-4 verification
+      relies on the skill's constraint adherence rather than independently verifiable
+      filesystem evidence.
+
+  - name: integration_safety
+    score: 0.88
+    findings: |
+      Integration is clean with low regression risk:
+
+      Step renumbering in ship SKILL.md: correctly done — old Step 4 (Scenario
+      Validation) is now Step 5 with "Depends on: Step 4"; old Step 5 (Evidence &
+      Close) is now Step 6 with "Depends on: Step 5". Step dependencies are updated
+      correctly throughout.
+
+      Scenario eval numbering: SCE-4 added correctly for S4. SCE-1, SCE-2, SCE-3
+      appear unchanged from original SCE-1, SCE-2, SCE-3 (now mapping to S1, S2, S3).
+      Evidence file Step 6 correctly lists SCE-1 through SCE-4.
+
+      Status file schema: "capture-learning-fast": { "status": "pending" } added
+      between merge-pr and scenario-evals in the correct position. Executor loop
+      updated to skip "skipped" status — preserving fire-and-forget semantics on
+      resume.
+
+      knowledge-extractor backward compatibility: ANALYZE and ENRICH mode input/output
+      contracts are unchanged. FAST mode is additive. The `invalid_mode` error type
+      now explicitly lists "fast" as valid, preventing false error classification.
+
+      Sub-play chain table in ship Role section not updated: this is a documentation
+      regression risk. If a future tool reads this table to determine execution order,
+      it will not see Step 4. However, the actual Workflow section is the authoritative
+      source for execution — this is a cosmetic risk, not a runtime risk.
+
+      intent_hash mismatch is acknowledged in the Compilation Metadata note. The note
+      correctly explains that the next /create-play run will reconcile the hash. This
+      is an expected and documented deviation, not a regression.
+
+      Config parsing approach (grep/awk for stm_base and product_base) is consistent
+      with ship's own pre-flight, so no new fragility is introduced.
+
+summary: |
+  The implementation is high quality and well-structured. All 7 planned tasks are
+  complete. All 7 approach evals pass when inspected against actual files. The
+  non-blocking design is correctly implemented end-to-end with proper "skipped" vs
+  "failed" semantics, two-layer failure isolation (play + ship orchestrator), and
+  idempotent resume behavior. Constraint compliance is near-perfect: product LTM
+  write prohibition is enforced at the skill constraint level, no-context requirement
+  is correctly implemented in FAST mode, and trivial detection is agent-driven rather
+  than hardcoded.
+
+  Primary weaknesses are documentation-level rather than logical: (1) the sub-play
+  chain table in ship's Role section does not include Step 4, (2) the "Compiled From"
+  header in ship SKILL.md still references C1–C7 and S1–S3 rather than C1–C8 and
+  S1–S4, and (3) the stm_base vs issue-specific-path ambiguity in the FAST mode
+  documentation creates a readability hazard for future maintainers. None of these
+  affect runtime behavior given the agent-driven execution model.
+
+  The direct-edit deviation to ship SKILL.md (a compiled artifact) is correctly
+  managed: the Compilation Metadata note clearly documents the deviation, the
+  intent_hash mismatch, and the path to reconciliation via the next /create-play run.
+
+  Confidence: 0.91 — Implementation is production-ready with minor documentation
+  cleanup recommended before the next maintainer touches ship SKILL.md.
