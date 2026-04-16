@@ -1,0 +1,135 @@
+chosen_strategy:
+  name: "Add optional pr_number input with PR-scoped mode and branch-diff fallback"
+  description: >
+    Extend the analyze-pr skill's Input section with an optional pr_number
+    parameter. Add a new conditional branch at the top of the Process section:
+    when pr_number is present, read diff and metadata via GitHub CLI
+    (`gh pr diff {pr_number}` and `gh pr view {pr_number} --json`) instead of
+    git diff/log. When pr_number is absent, the skill executes exactly as
+    today (backward compatible). Also fix the enhance play Step 13 JSON
+    contract to include pr_number in stm.input, sourced from pr-result.yaml,
+    so the repo-orchestrator agent can forward it to the skill.
+
+alternatives_considered:
+  - name: "Replace branch-diff entirely with gh pr diff"
+    reason_rejected: >
+      The create-pr play calls analyze-pr BEFORE a PR exists (Step 1 of
+      create-pr is analyze-pr-readiness). Removing branch-diff would break
+      that use case entirely. The two modes are complementary: branch-diff for
+      pre-PR analysis, gh-pr for post-PR review.
+  - name: "Create a separate analyze-pr-by-number skill"
+    reason_rejected: >
+      Both modes share identical logic for context determination, rule loading,
+      checklist evaluation, and output formatting — only the data source differs.
+      Duplicating all of that into a second skill creates maintenance burden and
+      increases surface area for divergence. A single skill with a conditional
+      input is the minimal correct change.
+  - name: "Infer PR number from branch name at runtime"
+    reason_rejected: >
+      Branch names do not reliably encode PR numbers (the PR number is
+      assigned by GitHub after the branch is pushed). Multiple PRs can exist
+      for the same branch. This approach is fragile, fails for cross-developer
+      scenarios, and produces incorrect results silently rather than erroring
+      clearly.
+
+risks:
+  - risk: >
+      gh CLI not installed or not authenticated on the machine where the skill
+      runs — PR-scoped mode will fail at runtime.
+    severity: medium
+    mitigation: >
+      Add an explicit `gh auth status` or equivalent preflight check at the
+      start of PR-scoped mode. If gh is unavailable, emit a clear error
+      (do not silently fall back to branch-diff, which would produce wrong
+      results for the PR context) and halt with an actionable message.
+  - risk: >
+      pr-result.yaml field name for the PR number is unknown or variable —
+      enhance play Step 13 may read the wrong field.
+    severity: medium
+    mitigation: >
+      Inspect submit-pr skill output contract to confirm the exact field name
+      (likely `pr_number` or `number`). Document the exact field in the Step 13
+      contract prose. If the field is missing, the agent falls back to
+      branch-diff gracefully with a warning in review-result.yaml.
+  - risk: >
+      Existing callers of analyze-pr (create-pr play) receive no pr_number and
+      expect branch-diff behavior — backward compat could silently break if
+      fallback logic is incorrect.
+    severity: low
+    mitigation: >
+      The fallback path is the existing code verbatim — it only executes when
+      pr_number is absent. No changes to that path. Test by reading create-pr
+      SKILL.md to confirm it passes no pr_number; confirm branch-diff mode is
+      unchanged.
+
+execution_plan:
+  - step: 1
+    description: >
+      Modify analyze-pr skill: add optional pr_number to Input, add PR-scoped
+      mode to Process section.
+    files:
+      - path: "core/components/skills/analyze-pr/SKILL.md"
+        action: "modify"
+        details: >
+          1. In the Input section, add:
+             - Optional: pr_number (GitHub PR number; when provided, skill
+               uses gh CLI to fetch PR diff and metadata instead of git diff)
+
+          2. In Process section, add new Step 0 before "Step 1 — Read Branch State":
+
+             ### 0. Determine Analysis Mode
+
+             If pr_number was provided:
+               Mode = PR-scoped. Skip Step 1; proceed to Step 0a.
+             If pr_number was not provided:
+               Mode = Branch-diff. Proceed to Step 1 (unchanged).
+
+             ### 0a. Read PR State (PR-scoped mode only)
+
+             ```bash
+             gh pr diff {pr_number}
+             gh pr view {pr_number} --json number,title,body,files,commits,baseRefName,headRefName
+             ```
+
+             Use the files list from `gh pr view` as the equivalent of
+             `git diff --name-only`. Use the diff from `gh pr diff` for
+             content analysis. Use commit messages from `commits` array for
+             commit type analysis.
+
+             Preflight: run `gh auth status` first. If gh is unavailable or
+             unauthenticated, halt with error:
+             "PR-scoped mode requires gh CLI. Run `gh auth login` and retry."
+
+          3. Rename existing "Step 1 — Read Branch State" to
+             "Step 1 — Read Branch State (branch-diff mode only)"
+             with a note that this step is skipped when pr_number is provided.
+
+          4. Update Steps 2-6 to reference "changed files" generically (from
+             either mode), replacing any direct references to git diff output
+             with the mode-neutral "changed files list".
+  - step: 2
+    description: >
+      Modify enhance play Step 13: add pr_number to stm.input contract and
+      add explicit agent instruction to extract and forward it.
+    files:
+      - path: "core/components/plays/enhance/SKILL.md"
+        action: "modify"
+        details: >
+          In the Step 13 — PR Review section, update the JSON contract block:
+
+          Current stm.input:
+            "pr_result": "{stm_base}/{issue}/evidence/enhance/pr-result.yaml"
+
+          Updated stm.input:
+            "pr_result": "{stm_base}/{issue}/evidence/enhance/pr-result.yaml",
+            "pr_number": "read from pr-result.yaml field pr_number"
+
+          Also update the prose instruction after the contract block from:
+            "Agent invokes `analyze-pr` skill with the PR number from
+            `pr-result.yaml`."
+          To:
+            "Agent reads pr_number from pr-result.yaml (field: `pr_number`).
+            Invokes `analyze-pr` skill passing pr_number so the skill uses
+            PR-scoped mode (gh pr diff / gh pr view) instead of branch-diff.
+            If pr_number is absent in pr-result.yaml, agent falls back to
+            branch-diff mode and records a warning in review-result.yaml."

@@ -21,10 +21,40 @@ You DO the analysis work. You do NOT make decisions about what to do with the re
 Receive from agent:
 - Base branch (defaults to `main`)
 - Optional: specific commit range
+- Optional: pr_number (GitHub PR number; when provided, skill uses gh CLI to fetch PR diff and metadata instead of git diff)
 
 ## Process
 
-### 1. Read Branch State
+### 0. Determine Analysis Mode
+
+If `pr_number` was provided in the input:
+- Mode = **PR-scoped**. Skip Step 1; proceed to Step 0a.
+
+If `pr_number` was not provided:
+- Mode = **Branch-diff**. Proceed to Step 1 (unchanged).
+
+### 0a. Read PR State (PR-scoped mode only)
+
+Preflight: verify gh CLI is available and authenticated.
+
+```bash
+gh auth status
+```
+
+If gh is unavailable or unauthenticated, halt with error: "PR-scoped mode requires gh CLI. Run `gh auth login` and retry."
+
+```bash
+gh pr diff {pr_number}
+gh pr view {pr_number} --json number,title,body,files,commits,baseRefName,headRefName
+```
+
+Use the `files` list from `gh pr view` as the changed files list (equivalent of `git diff --name-only`). Use the diff from `gh pr diff` for content analysis. Use commit messages from the `commits` array for commit type analysis.
+
+Proceed to Step 2 with the PR-derived data.
+
+### 1. Read Branch State (branch-diff mode only)
+
+This step is skipped when pr_number is provided — PR-scoped mode uses Step 0a instead.
 
 ```bash
 git diff --stat main..HEAD
@@ -35,7 +65,7 @@ git branch --show-current
 
 ### 2. Analyze Context
 
-Determine which file patterns are affected:
+Using the changed files list (from Step 0a in PR-scoped mode, or Step 1 in branch-diff mode), determine which file patterns are affected:
 - Code files (`*.ts`, `*.js`, `*.py`, `*.java`, `*.go`)
 - API files (`**/api/**`, `**/routes/**`, `**/controllers/**`)
 - Security files (`**/auth/**`, `**/security/**`, `*.pem`, `*.key`)
