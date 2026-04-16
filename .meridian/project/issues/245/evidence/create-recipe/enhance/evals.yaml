@@ -1,0 +1,290 @@
+# Evals for: enhance play
+# Generated from: core/components/plays/enhance/reference/intent.yaml
+# Constraints covered: C1-C18 (all 18)
+# Failure conditions covered: F1-F10 (all 10)
+# Scenarios covered: S1-S7 (all 7)
+
+step_evals:
+
+  # ─── Pre-flight ────────────────────────────────────────────────────────────
+
+  - id: SE-1
+    constraint_refs: [C1]
+    failure_refs: []
+    skill: "validate-issue"
+    check: >
+      issue-read.yaml exists at {stm_base}/{issue}/evidence/enhance/issue-read.yaml
+      and contains a 'state' field equal to 'open'. Confirms the issue number was
+      resolvable and the issue is not closed or missing.
+
+  - id: SE-2
+    constraint_refs: [C2]
+    failure_refs: []
+    skill: "create-branch"
+    check: >
+      After pre-flight, the active git branch is named 'enhance/{issue}-{slug}'
+      and is not 'main', 'master', or the repository's default branch.
+      branch-result.yaml at {stm_base}/{issue}/evidence/enhance/branch-result.yaml
+      confirms the branch was created or already existed with the correct naming pattern.
+
+  - id: SE-3
+    constraint_refs: [C5]
+    failure_refs: []
+    skill: "context-assembly"
+    check: >
+      When {product_base}/architecture/ does not exist or is absent, context assembly
+      completes using core LTM only and does NOT halt the play. understanding.md is
+      still written. When product LTM is present, understanding.md references product
+      architecture. In both cases has_product_ltm flag is set correctly and no hard
+      failure is raised due to missing product LTM.
+
+  # ─── Q&A Discovery ─────────────────────────────────────────────────────────
+
+  - id: SE-4
+    constraint_refs: [C3]
+    failure_refs: [F6]
+    skill: "qa-discovery"
+    check: >
+      discovery.md exists at {stm_base}/{issue}/evidence/enhance/discovery.md.
+      The file contains the issue body text and records at least one answered
+      question covering: what exactly is being built, what existing code it
+      connects to, any constraints, and what success looks like. Approach design
+      does not run before this file is written.
+
+  # ─── Context Assembly ──────────────────────────────────────────────────────
+
+  - id: SE-5
+    constraint_refs: [C4]
+    failure_refs: [F5]
+    skill: "context-assembly"
+    check: >
+      understanding.md exists at {stm_base}/{issue}/context/understanding.md and
+      references at least one specific codebase file path drawn from the issue body
+      or Q&A answers. The implementation step (implement task_id) does not execute
+      unless {stm_base}/{issue}/context/ directory is populated.
+
+  # ─── Scope Gate ────────────────────────────────────────────────────────────
+
+  - id: SE-6
+    constraint_refs: [C6]
+    failure_refs: [F4]
+    skill: "scope-gate"
+    check: >
+      Scope assessment is recorded in STM with all five signals evaluated: files
+      touched, domains crossed, new abstractions, tests impacted, and estimated
+      effort. When any signal places the enhancement out-of-range (files > 15,
+      domains >= 3, effort > 1 day, or new bounded context), the scope assessment
+      table is presented to the user with a recommendation to use /prepare or
+      fix-it, and the play halts — no approach.yaml is created and no implementation
+      is attempted.
+
+  # ─── Approach Design ───────────────────────────────────────────────────────
+
+  - id: SE-7
+    constraint_refs: [C7, C8]
+    failure_refs: [F9]
+    skill: "approach-design"
+    check: >
+      approach.yaml exists at {stm_base}/{issue}/evidence/enhance/approach.yaml
+      with all nine required fields present and non-empty: problem_statement,
+      solution_summary, files_to_create, files_to_modify, connections, tasks,
+      evals, risks, alternatives_considered. The alternatives_considered list
+      contains >= 1 entry, each with a rejection reason. The evals list contains
+      >= 1 entry with both pass and fail criteria defined.
+
+  # ─── Mid-Checkpoint ────────────────────────────────────────────────────────
+
+  - id: SE-8
+    constraint_refs: [C9, C10]
+    failure_refs: [F8]
+    skill: "mid-checkpoint"
+    check: >
+      When the --approve-plan flag is passed, a checkpoint message is presented
+      to the user after approach.yaml is written, showing: problem statement,
+      solution summary, files to create/modify, ordered task list, eval criteria,
+      risks, and alternatives with rejection reasons. If the user responds Vanish,
+      the play halts and build-report.yaml is never created (no implementation ran).
+      When --approve-plan is NOT set, the checkpoint is skipped entirely and
+      implementation begins immediately after approach-design completes.
+
+  # ─── Implementation ────────────────────────────────────────────────────────
+
+  - id: SE-9
+    constraint_refs: [C11]
+    failure_refs: []
+    skill: "implement"
+    check: >
+      The JSON contract sent to code-builder contains only two input paths:
+      'approach' pointing to approach.yaml and 'context' pointing to
+      understanding.md. The contract does not include: self-eval paths,
+      judge-report paths, discovery.md, feature spec paths, or any eval
+      file paths. build-report.yaml is written to STM after the agent completes.
+
+  # ─── Self-Evaluation ───────────────────────────────────────────────────────
+
+  - id: SE-10
+    constraint_refs: [C13]
+    failure_refs: []
+    skill: "self-eval"
+    check: >
+      self-eval.yaml exists at {stm_base}/{issue}/evidence/enhance/self-eval.yaml
+      with a PASS or FAIL verdict recorded for each eval criterion drawn from the
+      'evals' field of approach.yaml. The number of evaluated criteria matches the
+      number of evals in approach.yaml.
+
+  - id: SE-11
+    constraint_refs: [C12]
+    failure_refs: [F3]
+    skill: "self-eval"
+    check: >
+      When self-eval finds failures, the fix loop runs at most 3 iterations.
+      self-eval.yaml records the iteration count. After iteration 3, if failures
+      remain, a structured failure report is presented to the user listing each
+      failing eval with its FAIL status and details — the play halts and does not
+      enter a 4th iteration or proceed to judge-rating.
+
+  # ─── Judge Rating ──────────────────────────────────────────────────────────
+
+  - id: SE-12
+    constraint_refs: [C14]
+    failure_refs: [F10]
+    skill: "judge-rating"
+    check: >
+      judge-report.yaml exists at {stm_base}/{issue}/evidence/enhance/judge-report.yaml
+      containing a numeric confidence score between 0.0 and 1.0 and per-area
+      assessment entries. The JSON contract sent to the judge agent contains only
+      'approach' (path to approach.yaml) and 'project_root' — it does not include
+      self-eval.yaml paths, build-report.yaml paths, builder prompt history, or
+      any implementation rationale.
+
+  # ─── Judge Gate ────────────────────────────────────────────────────────────
+
+  - id: SE-13
+    constraint_refs: [C15]
+    failure_refs: [F2]
+    skill: "judge-gate"
+    check: >
+      When judge confidence score is < 0.6, a human approval checkpoint is
+      presented before PR creation, displaying: the numeric confidence score,
+      per-area findings from judge-report.yaml, and the specific low-confidence
+      areas flagged. The quality-check step and PR creation do not run until the
+      user responds with Tether or Vanish. If Vanish, no PR is created.
+
+  # ─── Quality Check ─────────────────────────────────────────────────────────
+
+  - id: SE-14
+    constraint_refs: [C16]
+    failure_refs: [F7]
+    skill: "quality-check"
+    check: >
+      quality-report.yaml exists at {stm_base}/{issue}/evidence/enhance/quality-report.yaml
+      with four result fields all recorded as PASS: build, lint, typecheck, and tests.
+      The commit-pr step only executes after quality-report.yaml records all-pass status.
+      If any gate fails, the play does not proceed to PR creation.
+
+  # ─── PR Checkpoint ─────────────────────────────────────────────────────────
+
+  - id: SE-15
+    constraint_refs: [C17]
+    failure_refs: [F1]
+    skill: "pr-checkpoint"
+    check: >
+      A PR checkpoint message is always presented to the user — regardless of
+      judge confidence level or whether --approve-plan was used. The checkpoint
+      includes all six required sections: problem statement, solution summary,
+      technical decisions (risks and alternatives from approach.yaml), files
+      changed with rationale, review findings from analyze-pr, judge confidence
+      score, and the PR URL. The ship step only executes after the user responds
+      with Tether. If Vanish, the PR remains open but is not merged.
+
+  # ─── Ship ──────────────────────────────────────────────────────────────────
+
+  - id: SE-16
+    constraint_refs: [C18]
+    failure_refs: []
+    skill: "ship"
+    check: >
+      After Tether at the PR checkpoint, repo-orchestrator merges the PR and
+      deletes the enhance/{issue}-{slug} branch without presenting any additional
+      approval prompt. ship-result.yaml at {stm_base}/{issue}/evidence/enhance/ship-result.yaml
+      records the merge SHA and confirms branch deletion with a boolean field.
+
+scenario_evals:
+
+  - id: SCE-1
+    scenario_ref: S1
+    persona: "Developer enhancing a Meridian play"
+    check: >
+      Full evidence chain is present in STM: issue-read.yaml (state=open),
+      discovery.md (issue body + Q&A), understanding.md (codebase file references),
+      approach.yaml (all nine fields, >= 1 alternative, >= 1 eval), self-eval.yaml
+      (all criteria PASS), judge-report.yaml (confidence >= 0.6), quality-report.yaml
+      (build/lint/typecheck/tests all PASS), pr-result.yaml (PR URL and link to the
+      originating issue number), ship-result.yaml (merge SHA on main, branch deleted=true).
+      No step was skipped and no redirect to fix-it or /prepare occurred.
+
+  - id: SCE-2
+    scenario_ref: S2
+    persona: "Developer with a large enhancement"
+    check: >
+      Scope assessment table was presented to the user showing at least one out-of-range
+      signal (files > 15 or domains crossed >= 3 or effort > 1 day). The assessment
+      includes a recommendation to use /prepare. No approach.yaml was created,
+      no build-report.yaml exists, and no PR was opened for this issue.
+      Play halted after scope-gate step.
+
+  - id: SCE-3
+    scenario_ref: S3
+    persona: "Developer with a trivial fix"
+    check: >
+      Scope assessment table was presented to the user showing that all signals fall
+      in the too-small range (files <= 3, single concern, effort < 1 hour). The
+      assessment includes a recommendation to use fix-it. No approach.yaml was
+      created, no implementation was attempted, and no PR was opened. Play halted
+      after scope-gate step.
+
+  - id: SCE-4
+    scenario_ref: S4
+    persona: "Developer with a risky enhancement"
+    check: >
+      judge-report.yaml records a confidence score < 0.6. A human approval checkpoint
+      was presented before quality-check or PR creation, showing the confidence score,
+      per-area findings, and low-confidence areas from judge-report.yaml. If the user
+      Vanished, no PR was created and quality-check was not run. If the user Tethered,
+      play continued to quality-check only after recording user approval in STM.
+
+  - id: SCE-5
+    scenario_ref: S5
+    persona: "Developer using --approve-plan"
+    check: >
+      A mid-checkpoint message was presented after approach.yaml was written, before
+      any implementation. The checkpoint included: problem statement, solution summary,
+      list of files to create and modify, numbered task list, eval criteria with pass
+      and fail conditions, risks, and alternatives with rejection reasons. If the user
+      Tethered, build-report.yaml was subsequently created (implementation ran). If the
+      user Vanished, build-report.yaml does not exist (play halted before implementation).
+
+  - id: SCE-6
+    scenario_ref: S6
+    persona: "Developer reviewing PR"
+    check: >
+      PR checkpoint message was presented with all six required sections present and
+      non-empty: problem statement (from approach.yaml), solution summary (from
+      approach.yaml), technical decisions (risks and alternatives), files changed with
+      rationale (from approach.yaml files_to_create and files_to_modify), review
+      findings from analyze-pr skill output, and judge confidence score (from
+      judge-report.yaml). PR URL was shown. ship-result.yaml was only written after
+      the user Tethered — not before.
+
+  - id: SCE-7
+    scenario_ref: S7
+    persona: "Developer with eval failures"
+    check: >
+      self-eval.yaml records >= 1 FAIL result on the first evaluation pass. The fix
+      loop ran at least once: a remediation instruction was sent to code-builder (with
+      approach + context + remediation only), and a second self-evaluation was run.
+      If failures resolved before iteration 3, judge-rating proceeded normally. If
+      failures remained after iteration 3, a structured failure report was presented
+      listing each failing eval with PASS/FAIL status and detail — and the play halted
+      without proceeding to judge-rating or PR creation. Iteration count is recorded
+      in self-eval.yaml.
