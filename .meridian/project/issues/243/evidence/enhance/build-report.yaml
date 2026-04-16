@@ -1,0 +1,22 @@
+status: completed
+tasks_completed: [1, 2, 3]
+files_created:
+  - core/grounding/glossary.md
+files_modified:
+  - CLAUDE.md
+  - AGENTS.md
+notes: |
+  Created core/grounding/ directory (new directory, did not exist before).
+  glossary.md contains 78 concept rows across 7 H2 sections with 5-column tables
+  (Concept | Definition | Examples | Relationships | Anti-definition).
+  All eval criteria met:
+    E1: 7 H2 sections, each with 5-column table header
+    E2: 78 rows, no stubs or TBD entries
+    E3: All required Anti-definitions present with NOT: prefix
+    E4: 4 Context sub-entries (Baseline, Crafting, Bundle, ltm_context), each cross-referencing the other three
+    E5: CLAUDE.md ## Reference section has glossary.md as first entry
+    E6: AGENTS.md ## Reference section has glossary.md as first entry
+  Tier disambiguation: Reconciliation Tier (Tiers 1/2/3) row + Tier — Context Audience row.
+  Trinity formally defined (first definition in the codebase).
+  Play maturity levels (L1–L5) marked as superseded by ADR 017.
+  Knowledge vs KB vs Core LTM cluster disambiguated as separate rows with explicit Relationships cross-references.

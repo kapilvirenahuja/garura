@@ -1,0 +1,249 @@
+problem_statement: |
+  Meridian's core concepts are defined implicitly across dozens of files. No single
+  canonical glossary exists. This causes self-development friction — agents re-derive
+  meanings from scattered sources — and runtime inconsistency, where the same concept
+  is framed differently across plays, agents, and documentation. Overloaded terms
+  like "Context" (4 distinct meanings), "Tier" (2 distinct meanings), and the
+  "Knowledge / KB / Core LTM" cluster create silent conflations that propagate into
+  agent reasoning and play design. "Trinity" is referenced in knowledge-extractor.md
+  but never formally defined anywhere. The glossary closes this gap with a single,
+  exhaustive, cross-referenced grounding document in core/grounding/.
+
+solution_summary: |
+  Create core/grounding/glossary.md as an exhaustive grounding document covering
+  ~70 concepts across 7 concept groups: Three-Layer Hierarchy, Memory Architecture,
+  Execution Model, Reconciliation, Protocols, Play Compilation, and Self-Development.
+  Each concept row in the definition tables carries 5 columns: Concept, Definition,
+  Examples, Relationships, Anti-definition. All overloaded terms are disambiguated
+  with explicit sub-entries: Context (4 meanings), Tier (2 meanings), and the
+  Knowledge / KB / Core LTM cluster. No stubs — every concept is fully defined at
+  creation time. CLAUDE.md and AGENTS.md gain a first-position entry in their
+  ## Reference sections pointing to core/grounding/glossary.md. The file lives in
+  core/grounding/ (Meridian self-development tooling, not deployed with the runtime).
+
+files_to_create:
+  - path: core/grounding/glossary.md
+    purpose: |
+      Canonical grounding document defining every Meridian concept. Organized into
+      7 H2 sections by concept group. Each group contains a definition table with
+      columns: Concept | Definition | Examples | Relationships | Anti-definition.
+      Overloaded terms (Context × 4, Tier × 2, Knowledge/KB/Core LTM) have explicit
+      sub-entries to prevent conflation. No frontmatter (not a deployed component).
+      Referenced by CLAUDE.md and AGENTS.md as the primary vocabulary document for
+      anyone working on Meridian internals. Covers all ~70 concepts identified in
+      understanding.md §1.1–§1.8.
+
+files_to_modify:
+  - path: CLAUDE.md
+    changes: |
+      In the ## Reference section, insert as the first entry (before the existing
+      four bullet points):
+        - `core/grounding/glossary.md` — Canonical definitions of every Meridian concept
+      No other changes to CLAUDE.md.
+
+  - path: AGENTS.md
+    changes: |
+      In the ## Reference section, insert as the first entry (before the existing
+      four bullet points):
+        - `core/grounding/glossary.md` — Canonical definitions of every Meridian concept
+      No other changes to AGENTS.md.
+
+connections:
+  - core/grounding/ is a new directory distinct from core/components/ (deployed runtime)
+    and docs/ (external reader documentation); it is Meridian's self-development layer,
+    read by agents working on Meridian itself.
+  - Placing the glossary reference first in CLAUDE.md and AGENTS.md ## Reference sections
+    signals vocabulary primacy — agents working on Meridian read this before any ADR or
+    philosophy doc.
+  - The 5-column table format (Concept, Definition, Examples, Relationships,
+    Anti-definition) mirrors the issue body's explicit requirement and follows the
+    table-heavy style of core/components/memory/standards/rules/ files (e.g.,
+    resolution.md, commits.md), ensuring style consistency.
+  - "Context" disambiguation (4 sub-entries) directly addresses the most overloaded
+    term in the codebase; the Relationships column cross-references each sub-entry to
+    the other three so readers understand the full cluster.
+  - "Trinity" receives its first formal definition here (implement-epic + validate-epic
+    execution cycle), resolving the implicit usage in knowledge-extractor.md.
+
+tasks:
+  - id: 1
+    name: Create core/grounding/ directory and glossary.md skeleton
+    description: |
+      Create the directory core/grounding/ (it does not yet exist). Create
+      core/grounding/glossary.md with the H1 title and all 7 H2 section headings
+      (Three-Layer Hierarchy, Memory Architecture, Execution Model, Reconciliation,
+      Protocols, Play Compilation, Self-Development). Add the 5-column table header
+      row under each section. No frontmatter. File structure establishes the scaffold
+      for task 2 to fill in.
+    depends_on: []
+
+  - id: 2
+    name: Populate all 7 concept groups with ~70 definitions
+    description: |
+      Fill every definition table in glossary.md. Cover all concepts from
+      understanding.md §1.1–§1.8 without stubs. Priority disambiguation entries
+      that must be written explicitly:
+        - Context (4 sub-entries): context bundle, Context Crafting, context baseline,
+          ltm_context — each with distinct definition, examples, and cross-references.
+        - Tier (2 sub-entries): reconciliation tier (Tier 1/2/3) vs audience-separation
+          tier (idsd.md context bundles) — distinguished in the Relationships column.
+        - Knowledge / KB / Core LTM cluster: separate rows for each; Relationships
+          column explicitly states what is NOT the same as what.
+        - Trinity: first formal definition (implement-epic + validate-epic execution
+          cycle); Anti-definition "NOT: the three-layer hierarchy (play/agent/skill)."
+        - Play maturity levels (L1–L5): define with a "(superseded by ADR 017)"
+          note in the Anti-definition column for L1/L2 numeric references.
+      Anti-definition column format: "NOT: {common conflation}" for every concept
+      where conflation risk exists.
+    depends_on: [1]
+
+  - id: 3
+    name: Update CLAUDE.md ## Reference section
+    description: |
+      Edit CLAUDE.md. In the ## Reference section, prepend as the first bullet:
+        - `core/grounding/glossary.md` — Canonical definitions of every Meridian concept
+      Existing four bullets remain unchanged and in their original order.
+    depends_on: [2]
+
+  - id: 4
+    name: Update AGENTS.md ## Reference section
+    description: |
+      Edit AGENTS.md. In the ## Reference section, prepend as the first bullet:
+        - `core/grounding/glossary.md` — Canonical definitions of every Meridian concept
+      Existing four bullets remain unchanged and in their original order.
+    depends_on: [2]
+
+evals:
+  - id: E1
+    description: glossary.md exists at correct location with all 7 concept groups
+    pass_criteria: |
+      File core/grounding/glossary.md exists. It has a plain H1 title (no frontmatter).
+      It contains exactly 7 H2 sections matching: "Three-Layer Hierarchy", "Memory
+      Architecture", "Execution Model", "Reconciliation", "Protocols",
+      "Play Compilation", "Self-Development". Each section contains at least one
+      definition table with 5 columns: Concept | Definition | Examples | Relationships
+      | Anti-definition.
+    fail_criteria: |
+      File missing OR placed in wrong directory (e.g., core/components/ or docs/) OR
+      fewer than 7 H2 sections OR any section lacks the 5-column table structure OR
+      frontmatter YAML block present at top of file.
+
+  - id: E2
+    description: approximately 70 concepts are defined with no stubs
+    pass_criteria: |
+      Total row count across all definition tables is between 65 and 80. No row
+      has "TBD", "to be expanded", "see {file}", or any empty Definition cell.
+      Every row has a non-empty Anti-definition cell (use "None — no common
+      conflation" only if genuinely no conflation risk exists).
+    fail_criteria: |
+      Fewer than 65 concept rows OR any row with empty Definition OR any row with
+      "TBD" or stub marker in any column.
+
+  - id: E3
+    description: Anti-definitions present for all commonly conflated terms
+    pass_criteria: |
+      The following concept rows each contain a non-empty Anti-definition cell with
+      "NOT:" prefix: Skill (NOT: a play), Play (NOT: a skill), STM (NOT: context
+      window or context bundle), LTM (NOT: STM), KB (NOT: Core LTM, NOT: Knowledge
+      folder), Core LTM (NOT: KB), Evidence (NOT: STM itself, NOT: checkpoint),
+      Checkpoint (NOT: evidence), Agent (NOT: skill), Compiled play (NOT: intent.yaml).
+    fail_criteria: |
+      Any of the above concept rows is missing an Anti-definition cell OR has an
+      empty Anti-definition OR lacks the "NOT:" prefix format.
+
+  - id: E4
+    description: "Context" is disambiguated into exactly 4 distinct sub-entries
+    pass_criteria: |
+      The Memory Architecture or Execution Model section contains exactly 4 rows
+      whose Concept cell begins with "Context —" or uses a parenthetical disambiguator:
+      (1) Context — Bundle (≤12K token assembled context for skill invocations),
+      (2) Context — Crafting (Four Crafts step; agent assembles LTM + STM for skill),
+      (3) Context — Baseline (prepare-epic snapshot in {issue}/context/), and
+      (4) Context — ltm_context (optional JSON contract field for R1–R4 resolution).
+      Each sub-entry's Relationships column cross-references the other three.
+    fail_criteria: |
+      Fewer than 4 Context sub-entries OR any sub-entry missing a cross-reference to
+      the others in its Relationships cell OR a single undifferentiated "Context" row
+      that conflates two or more of the four meanings.
+
+  - id: E5
+    description: CLAUDE.md ## Reference section has glossary as first entry
+    pass_criteria: |
+      CLAUDE.md ## Reference section's first bullet is exactly:
+        - `core/grounding/glossary.md` — Canonical definitions of every Meridian concept
+      The existing four reference bullets immediately follow, unchanged.
+    fail_criteria: |
+      Glossary reference missing from CLAUDE.md OR placed as second or later entry
+      OR existing reference entries modified or reordered.
+
+  - id: E6
+    description: AGENTS.md ## Reference section has glossary as first entry
+    pass_criteria: |
+      AGENTS.md ## Reference section's first bullet is exactly:
+        - `core/grounding/glossary.md` — Canonical definitions of every Meridian concept
+      The existing four reference bullets immediately follow, unchanged.
+    fail_criteria: |
+      Glossary reference missing from AGENTS.md OR placed as second or later entry
+      OR existing reference entries modified or reordered.
+
+risks:
+  - description: |
+      Authoring ~70 definitions requires deep reads across docs/, core/components/,
+      and ADRs. Risk of mischaracterizing a concept due to outdated or contradictory
+      source material (e.g., play levels L1/L2 appear in older ADRs but are retired
+      per ADR 017).
+    mitigation: |
+      For each concept, read the primary source identified in understanding.md §1 before
+      writing the definition. When sources contradict, defer to the most recent ADR
+      (highest number). Add a "(superseded by ADR {N})" note in the Anti-definition
+      column for retired concepts rather than omitting them.
+
+  - description: |
+      "Tier" disambiguation is subtle — reconciliation tiers (Tier 1/2/3 in
+      knowledge-extractor) and audience-separation tiers (context bundles in idsd.md)
+      could be silently conflated if the implementer doesn't read both source files.
+    mitigation: |
+      Create two explicit rows: "Tier — Reconciliation" and "Tier — Context Audience".
+      In both rows, the Anti-definition cell must explicitly name the other usage:
+      "NOT: the audience-separation tier in context bundles" and vice versa.
+
+  - description: |
+      The definition tables will be wide (5 columns), which may render poorly in
+      narrow viewports or editors that don't soft-wrap table cells. Very long
+      Anti-definition cells could break table alignment.
+    mitigation: |
+      Keep each table cell to 1–2 sentences maximum. Use line breaks within cells
+      only when a concept truly requires multi-part disambiguation. Prefer "NOT: X.
+      NOT: Y." over a single long cell for multiple conflations.
+
+alternatives_considered:
+  - description: |
+      Place the glossary in docs/philosophy/ alongside architecture.md and idsd.md,
+      where most concept definitions currently live.
+    rejection_reason: |
+      docs/philosophy/ targets external readers and conceptual framing. The glossary
+      is a precise operational reference for agents working on Meridian internals,
+      not a narrative philosophy document. Mixing them would dilute both the
+      philosophical framing and the definitional precision. The discovery.md Q&A
+      explicitly resolves this: "core/grounding/ = what Meridian uses for its own
+      self-development."
+
+  - description: |
+      Place the glossary in core/components/memory/standards/rules/ as a rules file,
+      following the existing pattern of resolution.md and commits.md.
+    rejection_reason: |
+      Standards rules files are deployed with Meridian and loaded as LTM by agents
+      during play execution. The glossary is a self-development document for Meridian
+      authors — it should not be deployed as agent-loadable LTM. Placing it in
+      core/grounding/ maintains the deployment boundary (core/components/ = deployed;
+      core/grounding/ = self-development).
+
+  - description: |
+      Use frontmatter YAML header (title, version, last_updated) for the glossary
+      file, consistent with how some skill SKILL.md files use frontmatter.
+    rejection_reason: |
+      Core grounding files are not deployed components and carry no version lifecycle.
+      The rules files in core/components/memory/standards/rules/ do not use frontmatter,
+      and understanding.md §4 (File Conventions) explicitly states: "No frontmatter
+      (grounding files are not deployed; no YAML header needed)." Frontmatter adds
+      maintenance overhead with no benefit for a self-development document.

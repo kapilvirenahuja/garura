@@ -1,0 +1,32 @@
+number: 243
+title: "Ground Meridian: canonical glossary of core concepts for self-development and runtime"
+state: open
+labels:
+  - enhancement
+body: |
+  ## Problem
+
+  Meridian's core concepts — play, agent, skill, LTM, STM, context, product LTM, core LTM, KB, evidence, trinity, tier, mode, checkpoint, enrichment, reconciliation, resolution protocol, etc. — are defined implicitly across dozens of SKILL.md files, intent.yaml constraints, ADRs, and philosophy docs. There is no single canonical glossary.
+
+  This causes two distinct problems:
+
+  1. **Self-development friction.** When designing or auditing plays (e.g., capture-learning #236, check-drift #237, fix-it #238), every conversation requires re-deriving what these terms mean from scattered sources. Agents designing Meridian's own components lack a grounded vocabulary, leading to ambiguity in constraints, failure conditions, and cross-play references.
+
+  2. **Runtime grounding.** When plays and agents execute, they operate on concepts like "context baseline," "enrichment target," "Tier 1 artifact," "foundational check" — but these are defined locally in each play's SKILL.md. An agent invoked across multiple plays sees different framings of the same concept. A canonical glossary in LTM would let every agent resolve terminology consistently.
+
+  ## Proposed Approach
+
+  Create a grounding document in core memory that defines every Meridian concept with:
+  - Name, Definition, Examples, Relationships, Anti-definitions
+
+  ## Location
+
+  core/components/memory/standards/rules/glossary.md
+
+  ## Acceptance Criteria
+
+  - Every concept listed has a canonical definition
+  - No circular definitions
+  - Document is in core memory, accessible to all agents at runtime
+  - Cross-referenced by at least one play as a grounding source
+  - Anti-definitions prevent common conflations
