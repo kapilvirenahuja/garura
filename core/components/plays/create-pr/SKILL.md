@@ -44,7 +44,8 @@ Execute these checks before any domain work:
 | Commits ahead of base | implicit | Graceful exit — nothing to PR |
 
 ```bash
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | head -1 | awk '{print $2}')
+product_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | tail -1 | awk '{print $2}')
 branch=$(git branch --show-current)
 default_branch=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
 # C8: halt if branch == default_branch or branch == main or branch == master
@@ -86,7 +87,7 @@ Depends on: pre-flight
   },
   "task_id": "analyze-pr-readiness",
   "ltm_context": {
-    "project_base": ".meridian/product/architecture/",
+    "project_base": "{product_base}architecture/",
     "core_base": "~/.meridian/core/memory/",
     "query_domains": ["git", "pr-standards"],
     "locked_artifacts": []
