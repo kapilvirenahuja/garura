@@ -18,8 +18,10 @@ constraints:
 
   - id: C2
     rule: >
-      The process writes only analysis artifacts and briefs. No source code,
-      design specifications, or files outside the analysis output area are modified.
+      The process writes analysis artifacts, briefs, and a spec-correction-manifest
+      to the output area. New ADR files for deliberate design-drift decisions are
+      written additively to {product_base}architecture/ — never overwriting or
+      modifying existing locked files. Source code is never modified.
 
   - id: C3
     rule: >
@@ -77,8 +79,46 @@ constraints:
   - id: C12
     rule: >
       Drift items are categorized by type (context-drift, spec-drift,
-      technology-drift) and severity. This categorization feeds a future
-      project-wide drift snapshot that tracks drift flow across epics and issues.
+      technology-drift, design-drift, evidence-drift) and severity. This
+      categorization feeds a future project-wide drift snapshot that tracks
+      drift flow across epics and issues. design-drift captures locked design
+      artifact (tech.yaml, scenarios.yaml, plan.yaml) vs implementation
+      divergence. evidence-drift captures spec gaps revealed by arbiter
+      spec_ambiguous verdicts and milestone REJECT traceable to spec ambiguity.
+
+  - id: C13
+    rule: >
+      When locked design artifacts from prepare-epic exist at
+      {stm_base}/{issue}/context/design/ (tech.yaml, scenarios.yaml, plan.yaml,
+      epic-spec.yaml, architecture-context.yaml), they are the PRIMARY "what was
+      specified" source. Product-level specs (specification/, scope/, architecture/)
+      are the SECONDARY source. Analysis that ignores locked design artifacts when
+      they exist is a failure (F11).
+
+  - id: C14
+    rule: >
+      All arbiter verdicts at {stm_base}/{issue}/evidence/implement-epic/
+      arbiter-verdict-*.yaml must be consumed. Every verdict with
+      verdict: spec_ambiguous maps to an evidence-drift item — the spec contract
+      was too ambiguous to determine if the implementation was correct or not.
+      This is a direct spec gap signal.
+
+  - id: C15
+    rule: >
+      Analysis must produce spec-correction-manifest.yaml at the output path.
+      The manifest contains proposed corrections to locked design artifacts and
+      product-level specs as structured entries (artifact path, section, proposed
+      change). No locked artifact is modified in-place — the manifest is a
+      human-reviewed proposal. New ADR files for design-drift items representing
+      deliberate decisions are written additively to {product_base}architecture/
+      as new files, never overwriting existing ADRs.
+
+  - id: C16
+    rule: >
+      Drift items must use exactly 5 categories: context-drift, spec-drift,
+      technology-drift, design-drift, evidence-drift. No other categories are
+      valid. Any item that cannot be classified under these 5 types must be
+      escalated as an uncategorized item requiring product decision.
 
 failure_conditions:
   - id: F1
@@ -131,6 +171,27 @@ failure_conditions:
     condition: >
       Defects were created directly in an issue tracker rather than produced
       as a structured manifest for delegation.
+
+  - id: F11
+    condition: >
+      Analysis was performed without reading locked design artifacts when they
+      exist at {stm_base}/{issue}/context/design/. The "what was specified"
+      column of drift items references only product-level specs when issue-scoped
+      locked design artifacts (tech.yaml, scenarios.yaml, plan.yaml) were
+      available and not consulted.
+
+  - id: F12
+    condition: >
+      spec-correction-manifest.yaml is absent from the output directory after
+      analysis completes, regardless of whether any spec corrections were
+      identified. Even when no corrections are needed, the manifest must exist
+      with an empty items list and documented justification.
+
+  - id: F13
+    condition: >
+      Arbiter verdict files exist at the implement-epic evidence path but were
+      not consumed during analysis. spec_ambiguous verdicts that were not
+      translated into evidence-drift items represent missed spec gap signals.
 
 scenarios:
   - id: S1

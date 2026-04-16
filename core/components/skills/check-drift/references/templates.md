@@ -133,7 +133,7 @@ Why it matters:
 
 Tags: [comma-separated searchable keywords]
 
-LTM path: core/components/memory/knowledge/[category]/[filename].md
+LTM path: ~/.meridian/core/memory/knowledge/[category]/[filename].md
 ```
 
 **Scope meanings:**
@@ -142,7 +142,9 @@ LTM path: core/components/memory/knowledge/[category]/[filename].md
 - `project-specific` — only relevant to this project (rarely promoted to LTM)
 
 **LTM path convention:**
-Place items under `core/components/memory/knowledge/` in the appropriate subdirectory:
+Place items under `~/.meridian/core/memory/knowledge/` (deployed path) in the appropriate subdirectory.
+Source authoring path is `core/components/memory/knowledge/` — deployed via `/sync-droids` or `/sync-claude`.
+Subdirectories:
 - `architecture/` — architectural patterns and platform knowledge
 - `domain/` — domain-specific knowledge (experiment platforms, AI agents, etc.)
 - `process/` — development process learnings
@@ -175,4 +177,88 @@ Change: [what to change — specific enough for a developer to execute]
 Priority: P0 | P1 | P2
 Effort: S (< 1 hour) | M (1-4 hours) | L (> 4 hours)
 Related drifts: [DRIFT-xxx]
+```
+
+---
+
+## Design-Drift Item Template
+
+Design-drift captures divergence between locked design artifacts (tech.yaml, scenarios.yaml, plan.yaml from prepare-epic) and the actual implementation.
+
+```markdown
+DESIGN-DRIFT-[ID]: [Title]
+
+Type: design-drift
+Severity: critical | high | medium | low
+Locked artifact: tech.yaml | scenarios.yaml | plan.yaml
+Artifact section: [e.g., interfaces.api_contracts.API-001]
+Linked DRIFT: DRIFT-[ID]
+
+Description:
+[What was locked in the design artifact vs what was built. Cite artifact, section, field.]
+
+RCA:
+[Why the implementation diverged. Options:
+- Locked design was infeasible (design was wrong)
+- Implementation missed the locked contract (implementation error)
+- Constraint discovered during implementation forced a different approach
+- Locked design was ambiguous at this level of detail]
+
+Classification: accepted | forced
+
+Recommendation:
+update-locked-design | update-implementation | spec-correction-needed | no-action
+```
+
+---
+
+## Evidence-Drift Item Template
+
+Evidence-drift captures spec gaps revealed by implement-epic and validate-epic evidence, particularly arbiter `spec_ambiguous` verdicts.
+
+```markdown
+EVIDENCE-DRIFT-[ID]: [Title]
+
+Type: evidence-drift
+Severity: critical | high | medium | low
+Source: arbiter_verdict | milestone_reject | quality_threshold_miss
+Evidence artifact: [path to arbiter-verdict-*.yaml or milestone-verdict.yaml]
+Linked contract: [tech.yaml contract ID, e.g., API-001]
+
+Description:
+[What the evidence shows. For spec_ambiguous: what the contract says, what valid
+interpretations exist, what the implementation chose.]
+
+RCA:
+[What created the ambiguity. Underspecified contract? Missing edge cases?
+Product-level gap or locked-design gap?]
+
+Recommendation:
+update-spec | update-locked-design | update-tests | no-action
+```
+
+---
+
+## Spec-Correction-Manifest Template
+
+The `spec-correction-manifest.yaml` produced in Step 7 follows this schema:
+
+```yaml
+spec_correction_manifest:
+  generated_at: "[ISO-8601 timestamp]"
+  issue: "[issue number]"
+  scope: "[branch or epic ID]"
+  corrections:
+    - id: SC-[N]
+      source_drift: "DRIFT-[ID] or DESIGN-DRIFT-[ID] or EVIDENCE-DRIFT-[ID]"
+      target_artifact: "[exact file path]"
+      target_section: "[section name or field path]"
+      current_text: "[verbatim or reference]"
+      proposed_change: "[specific proposed correction]"
+      priority: P0 | P1 | P2
+      human_review_required: true
+  summary:
+    total_corrections: 0
+    by_artifact: {}
+    note: "[justification if no corrections]"
 ```

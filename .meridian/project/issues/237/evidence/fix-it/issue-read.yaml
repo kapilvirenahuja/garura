@@ -1,0 +1,12 @@
+issue:
+  number: 237
+  title: "[DEF][Critical] check-drift is a pre-pipeline skill with stale paths, no product LTM write-back, and no connection to the epic trinity"
+  state: "OPEN"
+  labels:
+    - "defect"
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/237"
+  body_summary: "check-drift is positioned as the most pivotal play for keeping specs updated — it should compare what was actually built during the epic trinity (prepare-epic → implement-epic → validate-epic) against what was specified, identify divergences, and feed them back into product LTM as spec updates, ADRs, or debt records. In practice, the play has multiple critical gaps including stale LTM paths, no epic trinity artifact awareness, no write-back to product LTM, and incorrect memory layer targeting."
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "fix"
