@@ -50,6 +50,12 @@ On entry, read `intent.yaml` from `intent_path` in the input contract. Extract:
 
 ## Operating Modes
 
+| Mode | Input Prerequisites | Max Proposals | Human Gate |
+|------|---------------------|---------------|------------|
+| ANALYZE | context/ baseline from prepare-epic, milestone verdicts, arbiter verdicts | Unlimited (tiered) | Yes (before ENRICH) |
+| ENRICH | Approved reconciliation-proposals.yaml | N/A (writes only) | Yes (prior step) |
+| FAST | PR diff + issue STM (no context/ required) | 1–2 max | No (staged to STM only) |
+
 ### ANALYZE Mode
 
 **Input:**
@@ -284,7 +290,97 @@ summary indicating clean reconciliation.
 
 3. Return output contract with list of written/modified file paths
 
+### FAST Mode
+
+**Input:**
+- `mode` — must be `"fast"`
+- `pr_diff` — merged PR diff content (from `gh pr diff {pr_number}`)
+- `stm_base` — path to `{stm_base}/{issue}/` (issue STM root)
+- `product_base` — path to product LTM root (read-only reference)
+- `issue_body` — issue description text (for signal context)
+
+No `context_base` required — FAST mode does not depend on prepare-epic artifacts.
+
+**Output:** `proposals.yaml` written to `{stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml`, or no-op return when no learnings detected.
+
+**Steps:**
+
+#### Step 1: Read Diff Summary
+
+Read the merged PR diff summary:
+
+```bash
+git show HEAD --stat
+```
+
+Count total changed lines. If total changed lines exceed 500, analyze the stat summary
+(file names and change counts) rather than the full diff content to limit token usage
+while preserving learning signal detection from file names and change volume.
+
+#### Step 2: Assess Diff Topology
+
+Analyze the diff (or stat summary if large) to detect trivial vs. non-trivial signals
+using **agent judgment** — no hardcoded file extension lists or regex patterns:
+
+- Does the diff touch only documentation, version numbers, or formatting? → likely trivial
+- Are all changed files in non-logic paths (e.g., README, CHANGELOG, lock files)? → likely trivial
+- Does the diff touch core logic, agent behavior, skill definitions, or workflow files? → likely has learnings
+
+The triviality decision is based on agent analysis of diff content and intent, not
+mechanical matching.
+
+#### Step 3: Scan Available STM Evidence
+
+Check for any available issue STM evidence that provides learning context:
+
+```bash
+ls {stm_base}/{issue}/evidence/enhance/ 2>/dev/null
+ls {stm_base}/{issue}/evidence/fix-it/ 2>/dev/null
+```
+
+If STM evidence is present (enhance/ or fix-it/ directories exist and are non-empty):
+- Read key artifacts: any RCA outputs, design decisions, understanding files, approach documents
+- Use evidence to increase proposal confidence and specificity
+
+If no STM evidence is found:
+- Run diff-only analysis
+- Limit to maximum **1 proposal**
+- Set confidence to `"low"` on any proposal produced
+
+#### Step 4: Decide and Produce
+
+**Trivial path:** If diff is assessed as trivial AND no STM evidence signals non-trivial
+work → return `{ "no_learnings": true }` — no proposals.yaml written.
+
+**Non-trivial path:** If diff or STM evidence indicates learnings exist:
+- Invoke `capture-learning-fast` skill with the diff content, issue body, and any
+  available STM evidence paths
+- Produce **1–2 proposals maximum** — breadth over depth is rejected; quality over
+  quantity required
+- Write `proposals.yaml` to `{stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml`
+
+**Low-context variant** (no STM evidence, non-trivial diff): produce at most 1 proposal
+with confidence `"low"` documenting the single most observable learning signal.
+
+**FAST mode output contract:**
+
+```yaml
+# No learnings case
+{
+  "no_learnings": true,
+  "proposals_path": null
+}
+
+# Learnings found case
+{
+  "no_learnings": false,
+  "proposals_path": "{stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml"
+}
+```
+
 ## Input Contract
+
+**ANALYZE / ENRICH mode:**
 
 ```json
 {
@@ -311,7 +407,33 @@ summary indicating clean reconciliation.
 In ENRICH mode: `stm.input.proposals_path` is non-null (points to reviewed
 proposals). `context_base` and `evidence_base` are not read in ENRICH mode.
 
+**FAST mode:**
+
+```json
+{
+  "intent_path": "core/components/plays/capture-learning-fast/reference/intent.yaml",
+  "stm_base": "{stm_base}",
+  "task_id": "{task_id}",
+  "mode": "fast",
+  "stm": {
+    "input": {
+      "pr_diff": "{merged PR diff content}",
+      "product_base": "{product_base}",
+      "issue_body": "{issue description text}"
+    },
+    "output": {
+      "proposals_path": "{stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml"
+    }
+  }
+}
+```
+
+No `context_base`, `evidence_base`, `drift_manifest_path`, or `epic_id` in FAST mode.
+The agent reads `{stm_base}/{issue}/evidence/` directly for enhance/ and fix-it/ sub-directories.
+
 ## Output Contract
+
+**ANALYZE / ENRICH mode:**
 
 ```json
 {
@@ -331,6 +453,27 @@ proposals). `context_base` and `evidence_base` are not read in ENRICH mode.
     "total_proposals": 0,
     "approved_written": 0,
     "tiers_skipped": []
+  },
+  "step_failure": null
+}
+```
+
+**FAST mode:**
+
+```json
+{
+  "status": "completed | failed",
+  "task_id": "{echoed}",
+  "no_learnings": true,
+  "stm": {
+    "output": {
+      "proposals_path": "{path to proposals.yaml or null when no_learnings is true}"
+    }
+  },
+  "summary": {
+    "total_proposals": 0,
+    "stm_evidence_found": false,
+    "diff_assessed_trivial": true
   },
   "step_failure": null
 }
@@ -382,7 +525,7 @@ Error types:
 - `proposals_not_found` — proposals_path does not exist in ENRICH mode
 - `product_base_unreachable` — product_base path cannot be read
 - `artifact_write_failed` — failed to write enrichment to a product LTM artifact
-- `invalid_mode` — mode field is not "analyze" or "enrich"
+- `invalid_mode` — mode field is not "analyze", "enrich", or "fast"
 
 ## Recovery
 
