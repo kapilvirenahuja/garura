@@ -50,6 +50,16 @@ constraints:
     rule: >
       All domain work is delegated to agents. The play orchestrator never
       executes direct git, gh, or codebase analysis commands.
+  - id: C11
+    rule: >
+      The RCA and design agent contract must include ltm_context with
+      project_base pointing to the product's architecture directory (when
+      product architecture artifacts exist) and core_base pointing to core
+      memory. The agent follows the R1-R4 resolution protocol from
+      standards/rules/resolution.md. The resolution trace is written to
+      STM evidence and included in the output contract. When product_base
+      has no architecture artifacts, ltm_context omits project_base and
+      the agent resolves against core LTM only (R3-R4).
 
 failure_conditions:
   - id: F1
@@ -80,6 +90,11 @@ failure_conditions:
     condition: >
       The code-builder agent receives checkpoint brief content in its input
       contract, violating Structure A context isolation.
+  - id: F8
+    condition: >
+      The tech-designer produces RCA or fix design without a resolution trace
+      when ltm_context was provided in the contract. The resolution trace is
+      missing, empty, or contains zero entries.
 
 scenarios:
   - id: S1

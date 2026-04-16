@@ -1,0 +1,12 @@
+result:
+  success: true
+  branch:
+    name: "fix/237-check-drift-ltm"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/fix/237-check-drift-ltm"
+  worktree:
+    used: false
+    path: null
+    reason: "Branch created without checkout — dirty tree (4 files, 288 lines) avoided via non-checkout branch creation"
+  error: null

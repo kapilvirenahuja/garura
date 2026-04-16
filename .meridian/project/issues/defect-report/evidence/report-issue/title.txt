@@ -1,1 +1,1 @@
-[DEF][Critical] prepare-implementation does not set up issue/branch/STM — context stranded in product epics
+[DEF][High] fix-it play does not pass ltm_context to tech-designer — RCA and fix design run without domain or architecture grounding
