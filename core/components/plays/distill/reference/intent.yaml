@@ -26,7 +26,7 @@ constraints:
   - id: C3
     rule: >
       Stage-only — no product LTM writes. All output from this play goes to
-      {stm_base}/{issue}/evidence/capture-learning-fast/. No artifact is written
+      {stm_base}/{issue}/evidence/distill/. No artifact is written
       to {product_base}. Product LTM is read for reference context only (if needed
       to identify proposal targets). Any write to product LTM from this play is a
       hard constraint violation.
@@ -34,14 +34,14 @@ constraints:
 failure_conditions:
   - id: F1
     condition: >
-      Failure of capture-learning-fast halts or delays ship. This play MUST
+      Failure of distill halts or delays ship. This play MUST
       return gracefully (status: "skipped") on any error. Propagating an exception
       or non-zero exit to ship's orchestrator is a failure condition.
 
   - id: F2
     condition: >
       Proposals written directly to product LTM. The only valid output path
-      for proposals.yaml is under {stm_base}/{issue}/evidence/capture-learning-fast/.
+      for proposals.yaml is under {stm_base}/{issue}/evidence/distill/.
       Any write to a path under {product_base} is a structural failure.
 
 scenarios:
@@ -52,7 +52,7 @@ scenarios:
       fix-it run, with STM evidence available in {stm_base}/{issue}/evidence/
     then: >
       Learning proposals are staged at
-      {stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml.
+      {stm_base}/{issue}/evidence/distill/proposals.yaml.
       The proposals reference specific diff evidence and STM artifacts.
       The ship evidence file records Mode 1 outcome as "completed" with proposals_path.
       Product LTM is unchanged.
@@ -63,7 +63,7 @@ scenarios:
       ship completes on a trivial PR (documentation-only changes, version bump,
       or formatting fix) with no STM evidence of non-trivial design work
     then: >
-      No proposals.yaml is written. capture-learning-fast returns
+      No proposals.yaml is written. distill returns
       { status: "completed", no_learnings: true, proposals_path: null }.
       Ship evidence file records Mode 1 outcome as "completed — no learnings detected".
       Product LTM is unchanged.

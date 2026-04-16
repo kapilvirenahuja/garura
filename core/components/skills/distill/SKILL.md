@@ -1,12 +1,12 @@
 ---
-name: capture-learning-fast
+name: distill
 description: Lightweight diff-to-proposal analysis. Reads a merged PR diff and any available issue STM evidence to detect learning signals and produce 1–2 staged proposals.
 user-invocable: false
 model: sonnet
 allowed-tools: Bash, Read, Write, Grep, Glob
 ---
 
-# capture-learning-fast
+# distill
 
 Analyze a merged PR diff and available issue STM evidence to detect whether
 learnings exist, then produce a lightweight `proposals.yaml` staged to STM.
@@ -22,7 +22,7 @@ proposals should be applied to product LTM — that decision belongs to the
 calling agent or a future `/capture-learning --review` invocation.
 
 **Decision boundary:** This skill produces proposals. It NEVER writes to product
-LTM (`product_base`). Proposals go to `{stm_base}/{issue}/evidence/capture-learning-fast/`
+LTM (`product_base`). Proposals go to `{stm_base}/{issue}/evidence/distill/`
 and remain staged until a human reviews them.
 
 ## Input
@@ -88,10 +88,10 @@ Receive from the calling agent (knowledge-extractor in FAST mode):
    If any learnings are classified, write the proposals file using the schema
    defined in `templates/proposals-output.md`.
 
-   Output path: `{stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml`
+   Output path: `{stm_base}/{issue}/evidence/distill/proposals.yaml`
 
    ```bash
-   mkdir -p {stm_base}/{issue}/evidence/capture-learning-fast/
+   mkdir -p {stm_base}/{issue}/evidence/distill/
    ```
 
    If no learnings are classified (trivial diff with no STM signal):
@@ -110,7 +110,7 @@ receiving this output.
 ## Constraints
 
 1. **Never write to product LTM.** `product_base` is read-only reference context.
-   All output goes to `{stm_base}/{issue}/evidence/capture-learning-fast/`. Writing
+   All output goes to `{stm_base}/{issue}/evidence/distill/`. Writing
    to any path under `product_base` is a hard constraint violation.
 
 2. **Maximum 2 proposals.** Exceeding this cap is a constraint violation — it

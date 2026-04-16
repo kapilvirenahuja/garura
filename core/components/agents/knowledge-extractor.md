@@ -301,7 +301,7 @@ summary indicating clean reconciliation.
 
 No `context_base` required — FAST mode does not depend on prepare-epic artifacts.
 
-**Output:** `proposals.yaml` written to `{stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml`, or no-op return when no learnings detected.
+**Output:** `proposals.yaml` written to `{stm_base}/{issue}/evidence/distill/proposals.yaml`, or no-op return when no learnings detected.
 
 **Steps:**
 
@@ -353,11 +353,11 @@ If no STM evidence is found:
 work → return `{ "no_learnings": true }` — no proposals.yaml written.
 
 **Non-trivial path:** If diff or STM evidence indicates learnings exist:
-- Invoke `capture-learning-fast` skill with the diff content, issue body, and any
+- Invoke `distill` skill with the diff content, issue body, and any
   available STM evidence paths
 - Produce **1–2 proposals maximum** — breadth over depth is rejected; quality over
   quantity required
-- Write `proposals.yaml` to `{stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml`
+- Write `proposals.yaml` to `{stm_base}/{issue}/evidence/distill/proposals.yaml`
 
 **Low-context variant** (no STM evidence, non-trivial diff): produce at most 1 proposal
 with confidence `"low"` documenting the single most observable learning signal.
@@ -374,7 +374,7 @@ with confidence `"low"` documenting the single most observable learning signal.
 # Learnings found case
 {
   "no_learnings": false,
-  "proposals_path": "{stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml"
+  "proposals_path": "{stm_base}/{issue}/evidence/distill/proposals.yaml"
 }
 ```
 
@@ -411,7 +411,7 @@ proposals). `context_base` and `evidence_base` are not read in ENRICH mode.
 
 ```json
 {
-  "intent_path": "core/components/plays/capture-learning-fast/reference/intent.yaml",
+  "intent_path": "core/components/plays/distill/reference/intent.yaml",
   "stm_base": "{stm_base}",
   "task_id": "{task_id}",
   "mode": "fast",
@@ -422,7 +422,7 @@ proposals). `context_base` and `evidence_base` are not read in ENRICH mode.
       "issue_body": "{issue description text}"
     },
     "output": {
-      "proposals_path": "{stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml"
+      "proposals_path": "{stm_base}/{issue}/evidence/distill/proposals.yaml"
     }
   }
 }

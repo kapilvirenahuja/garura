@@ -1,16 +1,16 @@
-# proposals-output.md — Output Template for capture-learning-fast Skill
+# proposals-output.md — Output Template for distill Skill
 
 This template defines the schema for `proposals.yaml` produced by the
-`capture-learning-fast` skill. Write the file at:
+`distill` skill. Write the file at:
 
 ```
-{stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml
+{stm_base}/{issue}/evidence/distill/proposals.yaml
 ```
 
 ## Schema
 
 ```yaml
-# Learning proposals staged by capture-learning-fast (Mode 1).
+# Learning proposals staged by distill (Mode 1).
 # These proposals are STAGED ONLY — they are NOT written to product LTM until
 # a human reviews them via /capture-learning --review.
 #
@@ -22,7 +22,7 @@ issue: "{issue number}"                   # Maps to: reconciliation-proposals.ya
 pr_number: "{PR number}"                  # Mode 1 specific — the merged PR this came from
 analyzed_at: "{ISO-8601 timestamp}"       # Maps to: reconciliation-proposals.yaml `analyzed_at`
 no_learnings: false                        # true when no proposals exist (file not written in that case)
-source: "capture-learning-fast"            # Mode discriminant — distinguishes from Mode 2 proposals
+source: "distill"            # Mode discriminant — distinguishes from Mode 2 proposals
 stm_evidence_used: false                   # true when enhance/ or fix-it/ STM evidence was read
 
 proposals:                                 # Maps to: reconciliation-proposals.yaml `proposals[]`
@@ -57,7 +57,7 @@ total_proposals: 1                        # Maps to: reconciliation-proposals.ya
 ## No-Learnings Case
 
 When the skill determines no learnings exist (trivial diff, no STM evidence signal),
-the `capture-learning-fast` skill does **NOT** write a proposals.yaml file.
+the `distill` skill does **NOT** write a proposals.yaml file.
 
 Instead, the calling agent (knowledge-extractor FAST mode) returns:
 ```json
@@ -67,7 +67,7 @@ Instead, the calling agent (knowledge-extractor FAST mode) returns:
 }
 ```
 
-The ship play logs this as: `"capture-learning-fast: no learnings detected"`.
+The ship play logs this as: `"distill: no learnings detected"`.
 
 ## Example — Single Proposal (Low Confidence, Diff-Only)
 
@@ -76,7 +76,7 @@ issue: "240"
 pr_number: "249"
 analyzed_at: "2026-04-16T12:34:56Z"
 no_learnings: false
-source: "capture-learning-fast"
+source: "distill"
 stm_evidence_used: false
 
 proposals:
@@ -100,7 +100,7 @@ issue: "240"
 pr_number: "249"
 analyzed_at: "2026-04-16T12:34:56Z"
 no_learnings: false
-source: "capture-learning-fast"
+source: "distill"
 stm_evidence_used: true
 
 proposals:

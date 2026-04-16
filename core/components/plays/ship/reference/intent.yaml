@@ -46,9 +46,9 @@ constraints:
       verdict MUST halt the ship pipeline before merge-pr.
   - id: C8
     rule: >
-      After merge-pr completes, ship MUST invoke capture-learning-fast
+      After merge-pr completes, ship MUST invoke distill
       as a non-blocking step before scenario validation. Failure of
-      capture-learning-fast (any error at any stage) MUST NOT halt ship
+      distill (any error at any stage) MUST NOT halt ship
       or prevent scenario validation from running. The step is
       fire-and-forget: ship reads the outcome and records it in evidence,
       then continues regardless of whether the outcome is "completed" or
@@ -117,7 +117,7 @@ scenarios:
       evidence directory
     then: >
       Learning proposals are staged at
-      {stm_base}/{issue}/evidence/capture-learning-fast/proposals.yaml.
+      {stm_base}/{issue}/evidence/distill/proposals.yaml.
       The ship evidence file records the Mode 1 outcome (completed with
       proposals_path, or completed with no_learnings, or skipped with reason).
       Product LTM is unchanged — no artifact under {product_base} is

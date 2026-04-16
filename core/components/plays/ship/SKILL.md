@@ -176,11 +176,11 @@ merge-pr reads PR number from STM (written by create-pr). It merges using defaul
 ### Phase: Post-merge Learning Capture
 
 **Step 4 — Capture Learning (non-blocking)**
-Owner: `capture-learning-fast` (sub-play)
+Owner: `distill` (sub-play)
 Depends on: Step 3
 
 ```
-Skill: capture-learning-fast
+Skill: distill
 Context:
   stm_base: {stm_base}
   issue: {issue}
@@ -188,7 +188,7 @@ Context:
 ```
 
 **Non-blocking (C8):** This step is fire-and-forget. Ship invokes
-capture-learning-fast and reads the outcome, then **always continues to Step 5
+distill and reads the outcome, then **always continues to Step 5
 regardless of outcome**.
 
 | Outcome | Ship action |
@@ -197,7 +197,7 @@ regardless of outcome**.
 | `{ status: "completed", proposals_path: "..." }` | Log proposals path, continue |
 | `{ status: "skipped", reason: "..." }` | Log warning with reason, continue |
 
-**On any failure of capture-learning-fast:** Log `"Step 4: capture-learning-fast
+**On any failure of distill:** Log `"Step 4: distill
 skipped — {reason}"` in evidence. Do NOT halt. Continue to Step 5 (Scenario Validation).
 
 ---
@@ -211,7 +211,7 @@ Depends on: Step 4
 - **SCE-1 (S1 — Developer):** Local checkout is on main/default branch. Main is up to date with remote. Feature branch is absent locally and on remote. Feature commits are visible in main's history. Developer can start next feature immediately.
 - **SCE-2 (S2 — Code Reviewer):** PR state on platform is MERGED. PR is linked to the originating issue. Quality checklist is present in PR body. Merge commit is on main. All commits are traceable to the originating issue.
 - **SCE-3 (S3 — Code Reviewer):** When ship ran with `review-pr.bypass == false`, the PR carries a `review-pr` structured comment with P1/P2/P3 sections, a confidence score, and the selected reviewers. Skipped when bypass was true.
-- **SCE-4 (S4 — Developer):** capture-learning-fast outcome is recorded in the evidence file. If the PR was non-trivial and STM evidence was available, proposals_path is non-null. Product LTM contains no new or modified files from this ship run.
+- **SCE-4 (S4 — Developer):** distill outcome is recorded in the evidence file. If the PR was non-trivial and STM evidence was available, proposals_path is non-null. Product LTM contains no new or modified files from this ship run.
 
 If any scenario eval fails: log failure in evidence, present to user.
 
@@ -224,12 +224,12 @@ Owner: play
 Depends on: Step 5
 
 Write evidence to `{stm_base}/{issue}/evidence/ship/{YYYYMMDD-HHMMSS}.md` containing:
-- Pipeline steps completed (commit, PR, review-pr if run, merge, capture-learning-fast)
+- Pipeline steps completed (commit, PR, review-pr if run, merge, distill)
 - `review-pr.bypass` value at run time
 - review-pr routing decision (when run)
 - PR number and merge SHA
 - Branch deletion status
-- capture-learning-fast outcome: status (completed/skipped), proposals_path (if any), no_learnings flag, reason (if skipped)
+- distill outcome: status (completed/skipped), proposals_path (if any), no_learnings flag, reason (if skipped)
 - Scenario eval results (SCE-1, SCE-2, SCE-3, SCE-4)
 - Any failures encountered
 
@@ -259,7 +259,7 @@ Steps are in execution order — run top to bottom.
     "create-pr": { "status": "completed" },
     "review-pr": { "status": "in_progress", "bypass": false, "routing": null },
     "merge-pr": { "status": "pending" },
-    "capture-learning-fast": { "status": "pending" },
+    "distill": { "status": "pending" },
     "scenario-evals": { "status": "pending" },
     "write-evidence": { "status": "pending" }
   }
@@ -275,11 +275,11 @@ check for status file at {stm_base}/{issue}/status/ship.json
 for each step in compiled order:
   if step is review-pr AND bypass == true → skip
   if status file shows step "completed" → skip
-  if status file shows step "skipped" → skip (capture-learning-fast uses "skipped" on failure)
+  if status file shows step "skipped" → skip (distill uses "skipped" on failure)
   if status file shows step "in_progress" → reset to pending
   mark step "in_progress" in status file
   execute step
-  mark step "completed" or "skipped" in status file (capture-learning-fast uses "skipped" on error)
+  mark step "completed" or "skipped" in status file (distill uses "skipped" on error)
 ```
 
 **Fresh start:** No status file → execute all steps, create status file on first step.
@@ -294,11 +294,11 @@ for each step in compiled order:
 | compiled_by | create-play |
 | compiled_at | 2026-04-13 |
 | workflow_structure | C |
-| sub_plays | 5 (commit-code, create-pr, review-pr [conditional], merge-pr, capture-learning-fast [non-blocking]) |
+| sub_plays | 5 (commit-code, create-pr, review-pr [conditional], merge-pr, distill [non-blocking]) |
 | step_evals | 0 (delegated to sub-plays) |
 | scenario_evals | 4 (SCE-1, SCE-2, SCE-3, SCE-4) |
 
-**Direct-edit deviation note:** Step 4 (capture-learning-fast) and Step 5–6 renumbering
+**Direct-edit deviation note:** Step 4 (distill) and Step 5–6 renumbering
 were added by enhance/#240 as a direct edit to this compiled artifact. The intent_hash
 above reflects the pre-#240 intent.yaml and will not match the updated intent.yaml until
 the next `/create-play --build ship` run. This is an intentional exception per the enhance
