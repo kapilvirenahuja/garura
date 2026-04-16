@@ -154,6 +154,7 @@ Always use Task tools for non-trivial work. Plan before executing.
 
 ## Reference
 
+- `core/grounding/glossary.md` — Canonical definitions of every Meridian concept
 - `.meridian/core/config.yaml` — Paths and settings
 - `docs/adr/` — Architecture Decision Records (8 ADRs)
 - `docs/philosophy/` — Core architecture philosophy
