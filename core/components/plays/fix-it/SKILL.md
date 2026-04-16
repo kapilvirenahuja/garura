@@ -309,7 +309,7 @@ Context: approval_override: "auto-proceed"
 
 **Approval override (C7, C9):** Pass `approval_override: "auto-proceed"` to suppress all human checkpoints in the ship sub-play. After the checkpoint was approved via Tether in Step 5, all remaining steps execute without any further human approval.
 
-Ship handles: commit-code → create-pr → merge-pr. The PR links to issue #{issue}.
+Ship handles: commit-code → create-pr → [review-pr when review-pr.bypass=false] → merge-pr. If review-pr returns a `block` or `escalate` verdict, ship halts before merge-pr. The PR links to issue #{issue}.
 
 **Step 7 Eval:**
 - **SE-4 (F4):** Ship evidence artifact shows commit SHA, PR number, PR state as merged, and branch deletion confirmed. No intermediate state — commits exist, PR was created, and PR was merged.

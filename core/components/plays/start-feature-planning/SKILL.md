@@ -145,7 +145,7 @@ Agent reads intent.yaml for C4 (embedded workflow — no separate start-feature)
 
 If branch creation fails → invoke recovery (max 2 retries). After that, HALT.
 
-**Orchestrator initializes STM directory** at `{stm_base}/{issue}/` with subdirectories: `spec/`, `design/`, `evidence/`, `delivery/`, `checkpoint/`, `planning/`.
+**Orchestrator initializes STM directory** at `{stm_base}/{issue}/` with subdirectories: `evidence/`, `checkpoint/`, `planning/`.
 
 Once issue number is known, relocate pending artifacts: `mv {stm_base}/_pending/start-feature-planning/* → {stm_base}/{issue}/evidence/start-feature-planning/`.
 
@@ -225,6 +225,8 @@ Return THREE sections with exact headers:
 ## TASKS
 
 **Intent:** {implement the spec through granular, dependency-ordered tasks}
+
+> **Note:** T1, T2, T3… are informal planning labels for this task breakdown. They are NOT plan.yaml milestone IDs (which use the T-001, T-002 format).
 
 ### Dependency Graph
 T1 -> T2 -> T4
@@ -392,6 +394,8 @@ Invoke `repo-orchestrator` to self-commit evidence and checkpoint files (ADR 012
 Task: "Stage and commit only the listed evidence/checkpoint files with message `chore(stm): record start-feature-planning evidence for #{issue_number}`."
 
 **Non-blocking:** if commit fails, log warning — do NOT halt.
+
+> **Handoff:** The planning artifacts produced here (spec, verify, tasks) are developer guidance for immediate implementation. For the full formal pipeline, the sequence continues with `specify-product` → `design-exp` → `build-arch` → `prepare-epic`.
 
 ## Recovery
 
