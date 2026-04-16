@@ -1,0 +1,23 @@
+files_modified:
+  - path: "core/components/skills/analyze-pr/SKILL.md"
+    changes: >
+      Added optional pr_number to Input section. Added Step 0 (Determine
+      Analysis Mode) before Step 1: when pr_number is present, mode is
+      PR-scoped and Step 1 is skipped. Added Step 0a (Read PR State —
+      PR-scoped mode only) which runs `gh auth status` as a preflight check,
+      then fetches diff and metadata via `gh pr diff {pr_number}` and
+      `gh pr view {pr_number} --json number,title,body,files,commits,
+      baseRefName,headRefName`. Renamed Step 1 to "Read Branch State
+      (branch-diff mode only)" and added a note that it is skipped when
+      pr_number is provided. Updated Step 2 opening sentence to reference
+      the changed files list generically from either mode.
+  - path: "core/components/plays/enhance/SKILL.md"
+    changes: >
+      In Step 13 — PR Review JSON contract, added pr_number field to
+      stm.input (value: "extracted from pr-result.yaml"). Updated prose
+      after the contract block to: agent reads pr_number from pr-result.yaml
+      (field: pr_number), invokes analyze-pr skill passing pr_number so the
+      skill uses PR-scoped mode (gh pr diff / gh pr view) instead of
+      branch-diff; if pr_number is absent, agent falls back to branch-diff
+      mode and records a warning in review-result.yaml.
+status: "completed"

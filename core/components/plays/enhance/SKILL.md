@@ -524,7 +524,8 @@ Depends on: Step 12
   "stm_base": "{stm_base}",
   "stm": {
     "input": {
-      "pr_result": "{stm_base}/{issue}/evidence/enhance/pr-result.yaml"
+      "pr_result": "{stm_base}/{issue}/evidence/enhance/pr-result.yaml",
+      "pr_number": "extracted from pr-result.yaml"
     },
     "output": {
       "review_result": "{stm_base}/{issue}/evidence/enhance/review-result.yaml"
@@ -534,7 +535,7 @@ Depends on: Step 12
 }
 ```
 
-Agent invokes `analyze-pr` skill with the PR number from `pr-result.yaml`. Produces review findings: code quality, change summary, risk assessment. Writes results to STM.
+Agent reads `pr_number` from `pr-result.yaml` (field: `pr_number`). Invokes `analyze-pr` skill passing `pr_number` so the skill uses PR-scoped mode (`gh pr diff` / `gh pr view`) instead of branch-diff. If `pr_number` is absent in `pr-result.yaml`, agent falls back to branch-diff mode and records a warning in `review-result.yaml`.
 
 ---
 
