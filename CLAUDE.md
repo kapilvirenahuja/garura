@@ -144,6 +144,7 @@ When modifying skills or plays, always go through the `intent.yaml` → `/create
 
 ## Reference
 
+- `core/grounding/glossary.md` — Canonical definitions of every Meridian concept
 - `.meridian/core/config.yaml` — Paths and settings
 - `docs/adr/` — Architecture Decision Records (8 ADRs)
 - `docs/philosophy/` — Core architecture philosophy
