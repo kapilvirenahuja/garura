@@ -1,0 +1,62 @@
+play: enhance
+classifications:
+  - id: C1
+    category: pre-flight
+    rationale: "Environmental precondition — issue must exist and be open"
+  - id: C2
+    category: pre-flight
+    rationale: "Environmental precondition — must not be on default branch"
+  - id: C3
+    category: artifact-verifiable
+    rationale: "Observable property — discovery.md must exist with Q&A content"
+  - id: C4
+    category: artifact-verifiable
+    rationale: "Observable property — understanding.md must exist with codebase refs"
+  - id: C5
+    category: pre-flight
+    rationale: "Environmental precondition — product_base resolution, soft failure"
+  - id: C6
+    category: artifact-verifiable
+    rationale: "Observable property — scope assessment with 5 signals"
+  - id: C7
+    category: artifact-verifiable
+    rationale: "Observable property — approach.yaml with all 9 fields + risk schema"
+  - id: C8
+    category: artifact-verifiable
+    rationale: "Observable property — alternatives_considered >= 1"
+  - id: C9
+    category: structural
+    rationale: "Process rule — mid-checkpoint configurability"
+  - id: C10
+    category: structural
+    rationale: "Process rule — Vanish at mid-checkpoint halts"
+  - id: C11
+    category: structural
+    rationale: "Process rule — context isolation for code-builder"
+  - id: C12
+    category: structural
+    rationale: "Process rule — fix loop max 3 iterations"
+  - id: C13
+    category: artifact-verifiable
+    rationale: "Observable property — self-eval.yaml with per-eval verdicts"
+  - id: C14
+    category: structural
+    rationale: "Process rule — judge context isolation"
+  - id: C15
+    category: structural
+    rationale: "Process rule — judge gate at < 0.6"
+  - id: C16
+    category: artifact-verifiable
+    rationale: "Observable property — quality-report.yaml all PASS"
+  - id: C17
+    category: structural
+    rationale: "Process rule — PR checkpoint always presented"
+  - id: C18
+    category: structural
+    rationale: "Process rule — merge after Tether without further approval"
+  - id: C19
+    category: artifact-verifiable
+    rationale: "Observable property — risk entries carry type, action, ltm_reference, generated_evals"
+  - id: C20
+    category: structural
+    rationale: "Process rule — auto-triggered risk checkpoint for approval-required risks"

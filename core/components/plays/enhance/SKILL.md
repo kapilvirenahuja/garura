@@ -315,14 +315,14 @@ Type **Tether** to proceed to implementation, or **Vanish** to halt.
 ```
 
 Parse response:
-- `Tether`/`tether`/`t` → proceed to Step 8
+- `Tether`/`tether`/`t` → proceed to Step 7a
 - `Vanish`/`vanish`/`v` → HALT. No implementation occurs (C10).
 - Else → clarify
 
 If not `--approve-plan`: skip this step entirely.
 
 **Step 7 Eval:**
-- **SE-8 (C9/C10/F8):** When the --approve-plan flag is passed, a checkpoint message is presented to the user after approach.yaml is written, showing: problem statement, solution summary, files to create/modify, ordered task list, eval criteria, risks, and alternatives with rejection reasons. If the user responds Vanish, the play halts and build-report.yaml is never created (no implementation ran). When --approve-plan is NOT set, the checkpoint is skipped entirely and implementation begins immediately after approach-design completes.
+- **SE-8 (C9/C10/F8):** When the --approve-plan flag is passed, a checkpoint message is presented to the user after approach.yaml is written, showing: problem statement, solution summary, files to create/modify, ordered task list, eval criteria, risks, and alternatives with rejection reasons. If the user responds Vanish, the play halts and build-report.yaml is never created (no implementation ran). When --approve-plan is NOT set, the checkpoint is skipped entirely and Step 7a is evaluated next.
 
 ---
 
@@ -688,7 +688,7 @@ Write delivery record to `{stm_base}/{issue}/evidence/enhance/{YYYYMMDD-HHMMSS}.
 - PR number and merge SHA
 - Branch deleted confirmation
 - Step eval results (SE-1 through SE-16)
-- Scenario eval results (SCE-1 through SCE-7)
+- Scenario eval results (SCE-1 through SCE-8)
 
 Present final report to user:
 
@@ -751,6 +751,7 @@ Steps are in execution order — run top to bottom.
     "scope-gate": { "status": "pending" },
     "approach-design": { "status": "pending" },
     "mid-checkpoint": { "status": "pending" },
+    "risk-checkpoint": { "status": "pending" },
     "implement": { "status": "pending" },
     "self-eval": { "status": "pending" },
     "judge-rating": { "status": "pending" },
@@ -786,10 +787,10 @@ for each step in compiled order:
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:recompiled-post-250-risk-classification |
-| compiled_by | enhance/#250 recompilation |
-| compiled_at | 2026-04-16T16:30:00Z |
-| workflow_structure | A (with conditional fix loop and judge gate) |
+| intent_hash | sha256:8385c967d751423c8853e9a36ad768f0a7da302df2f1f7a040ee9e4f9647660c |
+| compiled_by | create-play |
+| compiled_at | 2026-04-16T17:00:00Z |
+| workflow_structure | A (with conditional fix loop, judge gate, and risk checkpoint) |
 | domain_agents | 5 (project-orchestrator, tech-designer, code-builder, judge, quality-auditor) |
 | utility_agents | 1 (repo-orchestrator) |
 | step_evals | 17 (SE-1 through SE-17) |
