@@ -81,13 +81,43 @@ constraints:
       solution_summary, files_to_create, files_to_modify, connections
       (how new code integrates with existing), tasks (ordered
       implementation steps), evals (self-evaluation criteria with
-      pass/fail conditions), risks, alternatives_considered (at least
-      one with rejection reason).
+      pass/fail conditions), risks (each risk entry must carry:
+      description (string), mitigation (string), type
+      (technical|business|architectural), action (eval-driven|approval-
+      required|monitor-only), ltm_reference (string path or null),
+      generated_evals (list, populated when action is eval-driven)),
+      alternatives_considered (at least one with rejection reason).
 
   - id: C8
     rule: >
       Approach must include at least one alternative considered with
       reason it was rejected.
+
+  - id: C19
+    rule: >
+      Risk Classification Constraint. Every risk in approach.yaml MUST
+      carry: type (technical|business|architectural), action (eval-driven|
+      approval-required|monitor-only), ltm_reference (string path or null),
+      mitigation, description, and generated_evals (list). Type taxonomy:
+      type:technical covers code/system-level risks; type:business covers
+      process/outcome-level risks; type:architectural covers component
+      boundary/design-decision-level risks. Action taxonomy: eval-driven —
+      risk is covered by evals, generated_evals field is populated;
+      approval-required — risk blocks implementation without human approval
+      via focused C20 checkpoint; monitor-only — risk is documented with
+      no blocking gate. LTM/KB grounding rule: tech-designer MUST search
+      LTM before assigning type; if a relevant standard is found, set
+      ltm_reference to the path; if not found, set ltm_reference to null.
+      Eval-driven propagation: for each risk with action:eval-driven, all
+      entries in generated_evals MUST be appended to the top-level evals
+      list in approach.yaml at approach design time so C13 self-eval
+      captures them. Backward compatibility: risks without explicit
+      type/action in existing approach.yaml files produced before this
+      constraint was active default to type:technical, action:monitor-only
+      at runtime — this default applies only to historical files; any
+      approach.yaml produced after this constraint is active MUST carry
+      explicit type and action. Override: type and action may differ from
+      defaults with justification documented in mitigation or ltm_reference.
 
 # ═══════════════════════════════════════════════════════════════════════════
 # CONSTRAINTS — Mid-Checkpoint
@@ -102,6 +132,21 @@ constraints:
   - id: C10
     rule: >
       When mid-checkpoint is ON and user Vanishes, halt — do not implement.
+
+  - id: C20
+    rule: >
+      Auto-triggered Risk Checkpoint. When approach.yaml contains any risk
+      with action:approval-required, a focused risk checkpoint MUST fire
+      before implementation begins. This checkpoint is non-configurable —
+      it fires regardless of the --approve-plan (C9) flag. The checkpoint
+      displays ONLY the approval-required risks and their fields: type,
+      description, mitigation, and ltm_reference. It does not display the
+      full approach plan. User Tethers to proceed to implementation or
+      Vanishes to halt and redesign the approach. Explicit orthogonality:
+      C9 and C20 are independent gates; both can fire on the same run when
+      --approve-plan is set AND approval-required risks are present — when
+      both fire, C9 shows the full approach plan and C20 shows only the
+      approval-required risks.
 
 # ═══════════════════════════════════════════════════════════════════════════
 # CONSTRAINTS — Implementation
@@ -209,6 +254,15 @@ failure_conditions:
       Judge receives builder prompts, self-eval results, or implementation
       rationale — context isolation violated.
 
+  - id: F11
+    condition: >
+      One or more risks in approach.yaml have action:approval-required but
+      the focused risk checkpoint (C20) was skipped and implementation
+      proceeded. This is non-configurable — F11 fires regardless of the
+      --approve-plan flag, unlike F8 which only applies when --approve-plan
+      is set. F8 and F11 are distinct failure conditions and can both be
+      violated on the same run.
+
 # ═══════════════════════════════════════════════════════════════════════════
 # SCENARIOS
 # ═══════════════════════════════════════════════════════════════════════════
@@ -275,3 +329,20 @@ scenarios:
       Fix loop iterates: builder reads remediation, fixes issues,
       re-evaluates. After max 3 iterations, if still failing, structured
       failure report presented.
+
+  - id: S8
+    persona: "Developer with an architectural risk flagged approval-required"
+    given: >
+      approach.yaml contains a risk with type:architectural and
+      action:approval-required, and --approve-plan is NOT set.
+    then: >
+      A focused risk checkpoint fires automatically before implementation.
+      The checkpoint displays only the approval-required risk(s) — showing
+      type, description, mitigation, and ltm_reference. User Tethers to
+      proceed to implementation or Vanishes to halt and redesign the
+      approach. The full approach plan is not displayed at this checkpoint —
+      S8 is distinct from S5 (--approve-plan full plan review): S5 is
+      user-requested and shows the complete plan; S8 is play-auto-triggered
+      and shows only approval-required risks. If the user Tethers,
+      implementation proceeds. If the user Vanishes, the play halts and the
+      user must redesign the approach before re-running enhance.
