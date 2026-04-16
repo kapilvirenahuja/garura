@@ -1,5 +1,5 @@
 ---
-name: distill
+name: meridian:distill
 description: Lightweight diff-to-proposal analysis. Reads a merged PR diff and any available issue STM evidence to detect learning signals and produce 1–2 staged proposals.
 user-invocable: false
 model: sonnet
