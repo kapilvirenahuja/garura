@@ -1,0 +1,156 @@
+# Root Cause Analysis — Issue #236
+# capture-learning play is architecturally disconnected from the epic trinity data flow
+# Authored by: tech-designer (fix-it play, RCA step)
+# Date: 2026-04-16
+
+rca:
+  type: "rca"
+  issue: 236
+  summary: >
+    The capture-learning play was designed around resolution-trace.yaml (with resolved_from='llm'
+    entries from the R1-R4 LTM protocol) as its primary extraction signal, but implement-epic
+    (C27) and validate-epic (C15) explicitly forbid all LTM and KB access — meaning resolution
+    traces are never produced by the trinity plays. Simultaneously, the play's write target
+    (standalone files in global ~/.meridian/core/memory/knowledge/) is the wrong layer entirely:
+    the product LTM is stage-organized (.meridian/product/research/, scope/, architecture/) and
+    the KB Experiential sections defined in kb-extension.md are supposed to grow via this play but
+    nothing writes to them. The result is structural deadlock: the play's signal never appears
+    because the plays that produce it are explicitly forbidden from generating it.
+
+  root_cause:
+    primary:
+      what: >
+        C12 in core/components/plays/capture-learning/reference/intent.yaml designates
+        resolution-trace.yaml (resolved_from='llm') as the primary extraction signal.
+        These traces are only produced when agents invoke the R1-R4 LTM resolution protocol.
+      why_wrong: >
+        implement-epic/reference/intent.yaml C27 explicitly states: "KB (~/.meridian/core/memory/)
+        and LTM ({product_base}) are FORBIDDEN. No agent contract in implement-epic may include
+        ltm_context fields, product_base paths, or core/memory paths." validate-epic C15 mirrors
+        this prohibition. Since resolution traces are produced as a side-effect of LTM lookups,
+        and the trinity plays are architecturally forbidden from performing LTM lookups, the primary
+        signal source can never be produced during normal trinity execution. The play's extraction
+        phase always hits the zero-candidate path (C15) because the evidence it needs cannot exist.
+      file: "core/components/plays/capture-learning/reference/intent.yaml"
+      constraint_violated: "C12 — resolution-trace signal is incompatible with trinity's LTM isolation model"
+
+    contributing_causes:
+      - id: RC2
+        what: >
+          The knowledge-extractor agent (core/components/agents/knowledge-extractor.md) EXTRACT
+          mode only knows how to scan for resolved_from='llm' entries. Its Step 2 heuristics for
+          secondary sources (judge-report, rca, design, quality-report, drift-report) match
+          artifact types from pre-trinity plays (fix-it, check-drift) — not the milestone-centric
+          artifacts the trinity produces.
+        why_wrong: >
+          implement-epic produces: status-report.yaml at
+          {stm_base}/{issue}/milestones/{milestone_id}/status-report.yaml and
+          quality-report.yaml. validate-epic produces: milestone-verdict.yaml at
+          {stm_base}/{issue}/milestones/{milestone_id}/milestone-verdict.yaml,
+          e2e-results.yaml in evidence, and judge-reports. None of these paths or naming
+          patterns appear in the knowledge-extractor's recognized artifact list. The agent's
+          file location scan (Step 3 bash find command in SKILL.md) will never locate these
+          artifacts because it searches for different filenames in different directory structures.
+        file: "core/components/agents/knowledge-extractor.md"
+        section: "EXTRACT Mode — Step 2 heuristics"
+
+      - id: RC3
+        what: >
+          The WRITE mode of knowledge-extractor targets
+          {ltm_context.project_base}/knowledge/{domain_slug}.md (project layer) or
+          {ltm_context.core_base}/knowledge/{domain_slug}.md (core layer).
+        why_wrong: >
+          From config.yaml: product.base-path is .meridian/product/, which is organized by
+          stage (research/, scope/, architecture/, experience/, specification/) per the ADR 017
+          folder whitelist. There is no .meridian/product/knowledge/ directory. Writing to
+          ~/.meridian/core/memory/knowledge/ creates standalone files in global LTM, bypassing
+          the product-scoped knowledge layer entirely. Meanwhile, kb-extension.md lines 89-105
+          defines an Experiential section on every KB feature: "Grows over time via
+          /capture-learning and a future /promote-to-kb" — but the knowledge-extractor's WRITE
+          mode has no logic to locate or update this section. The Experiential sections remain
+          permanently at bootstrap values (Usage count: 0, Last promoted: never).
+        file: "core/components/agents/knowledge-extractor.md"
+        section: "WRITE Mode — target path resolution"
+
+      - id: RC4
+        what: >
+          The deduplication protocol in knowledge-extractor searches
+          {ltm_context.project_base} and {ltm_context.core_base} for existing files.
+        why_wrong: >
+          Even if product_base resolves correctly, the search targets the wrong layer.
+          Actual dedup targets are existing product artifacts: epics in
+          .meridian/product/scope/epics/, architecture files in .meridian/product/architecture/,
+          and KB copies in .meridian/product/research/. Checking a knowledge/ directory that
+          doesn't exist produces false "unique" results for every candidate, so all candidates
+          appear novel even when they duplicate existing product knowledge.
+        file: "core/components/agents/knowledge-extractor.md"
+        section: "Deduplication Protocol"
+
+      - id: RC5
+        what: >
+          The intent-epic schema (core/components/memory/standards/schemas/intent-epic.yaml)
+          defines kb_source.experiential_warnings as a read-only field populated from KB
+          feature Experiential sections at epic generation time.
+        why_wrong: >
+          There is no corresponding write-back mechanism. The data flow is one-way:
+          KB → epic at spec time. After implementation completes, the outcomes
+          (which scenarios passed, which failed, what worked, what broke) have no path back
+          to enrich either the KB feature's Experiential section or the epic artifact itself.
+          The post-implementation retrospective layer simply does not exist in any schema.
+        file: "core/components/memory/standards/schemas/intent-epic.yaml"
+        section: "kb_source.experiential_warnings"
+
+  blast_radius:
+    - component: "capture-learning play (SKILL.md)"
+      impact: "Always hits zero-candidate path; extraction phase is structurally inert for trinity issues"
+      severity: "critical"
+
+    - component: "knowledge-extractor agent (knowledge-extractor.md)"
+      impact: "EXTRACT mode logic cannot locate trinity evidence; WRITE mode targets non-existent directory structure"
+      severity: "critical"
+
+    - component: "KB Experiential sections (kb-extension.md)"
+      impact: "Always remain at bootstrap values; kb_source.experiential_warnings is always empty in intent-epics"
+      severity: "high"
+
+    - component: "intent-epic schema (intent-epic.yaml)"
+      impact: "No post_implementation field exists; epic outcomes are not captured in the product artifact"
+      severity: "high"
+
+    - component: "product/architecture/ artifacts"
+      impact: "No implementation_feedback field exists; architectural decisions are never validated against observed behavior"
+      severity: "medium"
+
+    - component: "Product research layer (.meridian/product/research/)"
+      impact: "KB copies are never enriched with implementation outcomes; remain at original specification state"
+      severity: "medium"
+
+  evidence:
+    - artifact: "core/components/plays/implement-epic/reference/intent.yaml"
+      key_constraint: "C27 — KB and LTM are FORBIDDEN for all implement-epic agents"
+      note: "This is the architectural invariant that makes resolution-trace the wrong signal source"
+
+    - artifact: "core/components/plays/validate-epic/reference/intent.yaml"
+      key_constraint: "C15 — KB (~/.meridian/core/memory/) and LTM ({product_base}) are FORBIDDEN"
+      note: "Mirrors implement-epic isolation; both trinity plays prohibit LTM access"
+
+    - artifact: ".meridian/project/issues/ (glob result)"
+      observation: "Only 1 resolution-trace.yaml found across all issues (.meridian/project/issues/182/evidence/prepare-implementation/resolution-trace.yaml)"
+      note: "Issue 182 trace was from prepare-implementation (design play), not trinity execution. Confirms that resolution traces are produced by planning plays, not trinity plays."
+
+    - artifact: "core/components/memory/standards/rules/kb-extension.md lines 89-105"
+      key_statement: "Grows over time via /capture-learning and a future /promote-to-kb. This is the ONLY section that agents writing capability enrichment may touch."
+      note: "The write target is defined but nothing writes to it — design without implementation"
+
+    - artifact: "core/components/agents/knowledge-extractor.md WRITE Mode Step 2b"
+      key_statement: "project: {ltm_context.project_base}/knowledge/{domain_slug}.md"
+      note: "product.base-path is .meridian/product/ per config.yaml — no knowledge/ subdirectory exists there"
+
+  conclusion: >
+    The capture-learning play was architected before the epic trinity existed, targeting a signal
+    (resolution-trace LLM fallbacks from R1-R4 protocol) that the trinity explicitly prohibits and
+    a write target (flat knowledge/ directory in LTM) that the product's stage-organized structure
+    does not support. The fix requires: (1) replacing the signal sources with trinity-produced
+    artifacts, (2) reorienting the write target to in-place enrichment of existing product
+    artifacts, and (3) extending the intent-epic and architecture schemas to support the
+    post-implementation retrospective layer that is currently absent.

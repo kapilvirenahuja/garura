@@ -320,7 +320,42 @@ kb_source:                             # REQUIRED.
 # per-field error messages. The calling play (specify-product) halts and
 # cycles back to generate-intent-epics with the error context.
 
+# ──────────────────────────────────────────────────────────────────────────
+# POST-IMPLEMENTATION — written by capture-learning Mode 2
+# ──────────────────────────────────────────────────────────────────────────
+# This section is OPTIONAL at epic creation time. It is populated by
+# capture-learning after the prepare→implement→validate trinity completes.
+# validate-intent-epics MUST NOT reject epics missing this section.
+
+post_implementation:                   # OPTIONAL. Written by capture-learning.
+  status: <enum>                       # delivered | partial | deferred | cancelled
+  delivered_scope:                     # What was actually implemented.
+    - <string>                         # Each entry maps to an in_scope item.
+  deferred_items:                      # In-scope items NOT delivered in this epic.
+    - item: <string>                   # The in_scope entry that was deferred.
+      reason: <string>                 # Why it was deferred.
+      follow_up: <string>             # Issue/epic ID for the follow-up, or null.
+  scope_additions:                     # Items implemented that were NOT in in_scope.
+    - item: <string>                   # What was added.
+      justification: <string>          # Why it was necessary.
+  hypothesis_result:                   # Was the hypothesis validated?
+    validated: <boolean>               # true | false | null (inconclusive)
+    evidence: <string>                 # How we know — metric, observation, test result.
+  assumptions_validated:               # Which assumptions were confirmed or invalidated.
+    - assumption: <string>             # From assumptions_requiring_validation.
+      result: <enum>                   # confirmed | invalidated | inconclusive
+      evidence: <string>              # Supporting data.
+  constraints_met:                     # Were quantified constraints actually met?
+    performance: <string>              # Actual measured value vs target.
+    security: <string>                 # Compliance status.
+    accessibility: <string>            # Compliance status.
+  lessons:                             # Key learnings from this epic.
+    - <string>                         # Reusable insight for future epics.
+  completed_at: <string>              # ISO-8601 timestamp of epic completion.
+  capture_learning_run: <string>       # Issue number of the capture-learning run.
+
 # Related:
 # - docs/adr/017-folder-whitelist.md (ADR that motivates the new schemas)
 # - core/components/memory/standards/rules/kb-extension.md (KB file structure)
 # - core/components/plays/specify-product/ (consumer — built in 214.5)
+# - core/components/plays/capture-learning/ (producer of post_implementation)

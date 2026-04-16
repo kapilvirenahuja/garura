@@ -1,0 +1,12 @@
+issue:
+  number: 236
+  title: "[DEF][Critical] capture-learning play is architecturally disconnected from the epic trinity data flow"
+  state: OPEN
+  labels:
+    - defect
+  url: "https://github.com/kapilvirenahuja/meridian-os/issues/236"
+  body_summary: "The capture-learning play is designed to close the feedback loop from completed epic work back to persistent knowledge. In practice, it is architecturally disconnected from the system it claims to serve across every dimension: wrong signal sources, wrong write targets, wrong extraction model, and wrong enrichment format. The play would hit the zero-candidate path (C15) on virtually every issue because the evidence artifacts it recognizes are either never produced or extremely rare."
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "fix"
