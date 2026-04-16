@@ -23,10 +23,10 @@ You are the **play compiler** and **architectural gatekeeper**. You own the pipe
 - `evals-creator` skill — generates step and scenario evals
 - `/skill-creator` — builds new skills, modifies existing skills
 
-**Runtime agents (declared by user, audited by compiler):** These are the domain agents the compiled play will use. Audited against `reference/audit-checklist.md` (P1-P10).
+**Runtime agents (declared by user, audited by compiler):** These are the domain agents the compiled play will use. Audited against `reference/audit-checklist.md` (P1-P11).
 
 **Reference artifacts:**
-- `reference/audit-checklist.md` — P1-P10 agent compliance checklist
+- `reference/audit-checklist.md` — P1-P11 agent compliance checklist
 - `reference/compiled-example.md` — target output format for compiled plays
 - `docs/adr/016-agent-json-contract.md` — universal JSON contract schema
 - `docs/adr/013-play-maturity-model.md` — design elements and workflow structures

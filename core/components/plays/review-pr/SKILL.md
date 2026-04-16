@@ -124,15 +124,15 @@ Depends on: Step 0
 }
 ```
 
-Agent reads `.meridian/core/config.yaml` for `review-pr.standards_order`, resolves each entry (`kb`/`ltm`/`stm`) to a directory path. Reads `spec/intent.yaml` for the linked issue if present (else PR body). Emits `context.yaml`:
+Agent reads `.meridian/core/config.yaml` for `review-pr.standards_order`, resolves each entry (`kb`/`ltm`/`stm`) to a directory path. Reads the linked issue's intent source with priority fallback: first `{stm_base}/{issue}/context/design/epic-spec.yaml`, then `{stm_base}/{issue}/planning/spec.md`, else PR body. Emits `context.yaml`:
 ```yaml
 standards_set:
   kb: ~/.meridian/core/memory/knowledge/quality/
   ltm: .meridian/core/memory/knowledge/quality/
-  stm: .meridian/project/issues/{issue}/spec/quality/
+  stm: {stm_base}/{issue}/spec/quality/
 severity_taxonomy_path: ./core/components/memory/standards/rules/pr.md
 intent_summary: "{1–3 sentence summary}"
-intent_source: "spec/intent.yaml" | "pr_body"
+intent_source: "epic-spec.yaml" | "spec.md" | "pr_body"
 ```
 
 **Step 1 Eval — SE-4 (C4):** `context.yaml` lists the resolved `standards_set` paths and the resolved `severity_taxonomy_path`, all originating from `.meridian/core/config.yaml` — no hardcoded paths in `context.yaml`.
