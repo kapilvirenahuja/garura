@@ -1,0 +1,18 @@
+# product.yaml — Schema Variation (v2 style)
+# Uses different field naming and structure than v1
+
+project_name: "TaskFlow Pro"
+project_description: >
+  Enhanced task management for distributed engineering teams.
+
+strategic_goals:
+  - "Reduce engineer context-switching by 40%"
+  - "Automate status reporting"
+  - "Provide AI-driven work prioritization"
+
+project_constraints:
+  - "Local-first architecture"
+  - "No external database"
+
+version: 2
+lifecycle: "active"

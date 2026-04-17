@@ -1,0 +1,28 @@
+# product.yaml — Test Fixture
+# A minimal but realistic Meridian product specification
+
+name: "TaskFlow"
+description: >
+  An intelligent task management platform that helps engineering teams
+  track, prioritize, and execute work across multiple projects with
+  AI-powered insights and automated workflow suggestions.
+
+goals:
+  - id: G1
+    description: "Reduce context-switching overhead for engineers by 40%"
+  - id: G2
+    description: "Provide actionable work prioritization based on project health signals"
+  - id: G3
+    description: "Automate routine status reporting and progress tracking"
+
+constraints:
+  - id: C1
+    description: "Must work offline with local-first data storage"
+  - id: C2
+    description: "No external database dependencies — filesystem and git only"
+  - id: C3
+    description: "Sub-second response times for all non-AI operations"
+
+status: "LOCKED"
+created_at: "2026-01-15"
+updated_at: "2026-02-20"

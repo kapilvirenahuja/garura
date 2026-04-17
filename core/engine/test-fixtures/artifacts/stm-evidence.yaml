@@ -1,0 +1,29 @@
+# STM Evidence — YAML format test fixture
+# Simulates a typical issue evidence file
+
+issue:
+  number: 42
+  title: "Implement task inbox sorting"
+  labels:
+    - feature
+    - priority-high
+  state: closed
+  url: "https://github.com/example/taskflow/issues/42"
+  created: true
+  closed: true
+
+inference:
+  source: branch_name
+  confidence: high
+  candidates_considered: 1
+  note: "Matched from branch feat/42-task-inbox-sorting"
+
+status: completed
+timestamp: "2026-03-15T14:30:00Z"
+artifact_references:
+  - type: feature
+    id: F1
+    path: "features.yaml"
+  - type: scenario
+    id: "SC-TASK-001"
+    path: "scenarios.yaml"

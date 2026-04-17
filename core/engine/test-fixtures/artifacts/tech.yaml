@@ -1,0 +1,96 @@
+# tech.yaml — Test Fixture
+# Low-level design for TaskFlow
+
+slug: "taskflow"
+status: "LOCKED"
+created_at: "2026-02-10"
+features_ref: "features.yaml"
+
+project_structure:
+  create:
+    - path: "src/models/task.ts"
+      component: "task-model"
+      feature: "F1"
+      description: "Core task data model with TypeScript interfaces"
+
+    - path: "src/services/priority.ts"
+      component: "priority-engine"
+      feature: "F2"
+      description: "Priority score computation service"
+
+    - path: "src/api/inbox.ts"
+      component: "inbox-api"
+      feature: "F1"
+      description: "Task inbox REST endpoint with sorting and filtering"
+
+  modify:
+    - path: "src/config.ts"
+      component: "config"
+      description: "Add task storage path configuration"
+
+libraries:
+  - name: "zod"
+    version: "^3.22"
+    purpose: "Runtime schema validation for task data"
+    feature: "F1"
+
+  - name: "date-fns"
+    version: "^3.0"
+    purpose: "Date calculations for deadline proximity scoring"
+    feature: "F2"
+
+data_models:
+  - name: "Task"
+    fields:
+      - name: id
+        type: string
+        description: "Unique task identifier (UUID)"
+      - name: title
+        type: string
+        description: "Human-readable task title"
+      - name: state
+        type: "enum(backlog, in-progress, in-review, done)"
+        description: "Current workflow state"
+      - name: priority_score
+        type: number
+        description: "AI-computed priority (0-100)"
+      - name: project_id
+        type: string
+        description: "Parent project identifier"
+
+  - name: "PrioritySignal"
+    fields:
+      - name: deadline_proximity
+        type: number
+        description: "Days until deadline (0 = today)"
+      - name: blocker_count
+        type: number
+        description: "Number of blocking dependencies"
+      - name: project_health
+        type: number
+        description: "Aggregate project health score (0-1)"
+
+components:
+  - name: "TaskRepository"
+    type: "class"
+    responsibility: "CRUD operations for Task entities"
+    methods:
+      - "findAll(): Task[]"
+      - "findById(id: string): Task | null"
+      - "save(task: Task): void"
+
+  - name: "PriorityCalculator"
+    type: "class"
+    responsibility: "Compute and update priority scores"
+    methods:
+      - "computeScore(task: Task, signals: PrioritySignal): number"
+      - "reRankAll(tasks: Task[]): Task[]"
+
+feature_mapping:
+  F1:
+    - "src/models/task.ts"
+    - "src/api/inbox.ts"
+  F2:
+    - "src/services/priority.ts"
+  F3:
+    - "src/api/webhooks.ts"

@@ -1,0 +1,65 @@
+# features.yaml — Test Fixture
+# Realistic Meridian features specification
+
+slug: "taskflow"
+status: "LOCKED"
+created_at: "2026-01-20"
+updated_at: "2026-02-25"
+product_ref: "product.yaml"
+
+identity:
+  what_it_is: >
+    A structured task management system with AI-powered prioritization
+    and workflow automation for engineering teams.
+  what_it_is_not: >
+    Not a project management suite, issue tracker replacement, or
+    standalone calendar application.
+  core_jobs:
+    - "Help engineers focus on the right task at the right time"
+    - "Surface blockers and dependencies before they become critical"
+    - "Automate repetitive workflow transitions"
+
+invariants:
+  - id: "INV-TF-01"
+    description: "Task state transitions must be atomic and auditable"
+  - id: "INV-TF-02"
+    description: "No data loss on concurrent edits — last-write-wins with conflict log"
+
+features:
+  - id: F1
+    name: "Task Inbox"
+    description: "Unified inbox showing all tasks assigned to the current user across projects"
+    capability_domain: "task-management"
+    behaviors:
+      - id: F1-B1
+        description: "Shows tasks sorted by AI-computed priority score"
+      - id: F1-B2
+        description: "Supports filtering by project, label, and due date"
+    acceptance_criteria:
+      - "Tasks from all linked projects appear in a single view"
+      - "Priority score is recalculated on each inbox open"
+
+  - id: F2
+    name: "Smart Prioritization"
+    description: "AI-powered task ranking based on project health, deadlines, and dependencies"
+    capability_domain: "ai-intelligence"
+    behaviors:
+      - id: F2-B1
+        description: "Computes priority score from deadline proximity, blocker count, and project health"
+      - id: F2-B2
+        description: "Re-ranks on dependency resolution or new blocker detection"
+
+  - id: F3
+    name: "Workflow Automation"
+    description: "Automated task state transitions triggered by git events and CI signals"
+    capability_domain: "automation"
+    behaviors:
+      - id: F3-B1
+        description: "Moves task to 'in review' when PR is opened"
+      - id: F3-B2
+        description: "Moves task to 'done' when PR is merged"
+
+  - id: F4
+    name: "Status Dashboard"
+    description: "Real-time project health dashboard with burndown charts and velocity metrics"
+    capability_domain: "reporting"

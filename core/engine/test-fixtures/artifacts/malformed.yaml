@@ -1,0 +1,7 @@
+name: "Broken Config"
+features:
+  - id: F1
+    name: [unclosed bracket
+    description: "This will fail
+  invalid: {key: missing_close
+  : broken_colon
