@@ -1,0 +1,15 @@
+# Test fixture configuration for MDB
+# Used when MDB_TARGET_REPO points to this test-fixtures directory
+project:
+  name: MDB TaskFlow
+  type: Test Fixtures
+
+stm:
+  base-path: .meridian/project/issues/
+
+product:
+  base-path: .meridian/product/
+
+components:
+  skills: ./core/components/skills/
+  agents: ./core/components/agents/
