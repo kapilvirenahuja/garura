@@ -15,12 +15,17 @@ export function ReadinessGauge({ score }: ReadinessGaugeProps) {
 
   return (
     <div data-testid="readiness-gauge" className="flex flex-col items-center gap-2">
-      <span
-        data-testid="readiness-gauge-score"
-        className="text-4xl font-bold tabular-nums text-white"
-      >
-        {clamped}
-      </span>
+      <div className="flex items-baseline gap-1">
+        <span
+          data-testid="readiness-gauge-score"
+          className="text-5xl font-bold tabular-nums text-white"
+        >
+          {clamped}
+        </span>
+        <span className="text-lg text-gray-500" data-testid="readiness-gauge-denominator">
+          / 100
+        </span>
+      </div>
       <div
         className="relative h-3 w-48 overflow-hidden rounded-full bg-gray-700"
         data-testid="readiness-gauge-track"

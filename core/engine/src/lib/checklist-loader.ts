@@ -57,9 +57,28 @@ export interface PlayValidationResult {
 // Data directory resolution
 // ---------------------------------------------------------------------------
 
-/** Resolve the path to the built-in checklists definitions directory */
+/**
+ * Resolve the path to the built-in checklists definitions directory.
+ *
+ * In Next.js App Router API routes, __dirname may not point to the source tree
+ * (webpack bundles server code). We try __dirname first, then fall back to
+ * process.cwd()-based resolution (core/engine/src/checklist-defs/).
+ */
 function getChecklistsDataDir(): string {
-  return path.join(__dirname, '..', 'checklist-defs');
+  // Primary: relative to this file's compiled location
+  const fromDirname = path.join(__dirname, '..', 'checklist-defs');
+  if (fs.existsSync(fromDirname)) {
+    return fromDirname;
+  }
+
+  // Fallback: relative to process.cwd() (Next.js runs from core/engine/)
+  const fromCwd = path.join(process.cwd(), 'src', 'checklist-defs');
+  if (fs.existsSync(fromCwd)) {
+    return fromCwd;
+  }
+
+  // Last resort: return the __dirname-based path (will fail gracefully downstream)
+  return fromDirname;
 }
 
 // ---------------------------------------------------------------------------

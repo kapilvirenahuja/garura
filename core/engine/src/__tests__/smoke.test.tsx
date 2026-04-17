@@ -313,7 +313,7 @@ describe('Smoke — Greenfield State (VAL-FOUND-075)', () => {
     render(<ChecklistsPage />);
 
     // Wait for async checklist data to load
-    const checklist = await screen.findByTestId('onboarding-checklist');
+    const checklist = await screen.findByTestId('checklist-card');
     expect(checklist).toBeInTheDocument();
 
     // Should contain the heading
@@ -325,7 +325,7 @@ describe('Smoke — Greenfield State (VAL-FOUND-075)', () => {
     render(<ChecklistsPage />);
 
     // Wait for async checklist data to load
-    await screen.findByTestId('onboarding-checklist');
+    await screen.findByTestId('checklist-card');
     const items = screen.getAllByTestId('checklist-item');
     expect(items.length).toBeGreaterThanOrEqual(5);
   });
@@ -344,7 +344,7 @@ describe('Smoke — Greenfield State (VAL-FOUND-075)', () => {
     render(<ChecklistsPage />);
 
     // Wait for async checklist data to load
-    await screen.findByTestId('onboarding-checklist');
+    await screen.findByTestId('checklist-card');
     const items = screen.getAllByTestId('checklist-item');
     // First item should be in-progress
     expect(items[0]).toHaveAttribute('data-state', 'in-progress');
