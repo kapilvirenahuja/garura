@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { ChecklistItem } from '@/components/checklist-item';
 import { ContentSlot } from '@/components/content-slot';
 import { CTAButton } from '@/components/cta-button';
+import { EpicRefLink } from '@/components/epic-ref-link';
 import type { ChecklistItemState } from '@/components/checklist-item';
 import type { ActiveExecution } from '@/hooks/use-step-execution';
 
@@ -18,6 +19,17 @@ export interface ChecklistStepData {
   readonly label: string;
   readonly description: string;
   readonly play: string;
+}
+
+/**
+ * Optional link to a Playbook Reader epic context. When set, the
+ * checklist card renders a clickable chip that navigates to
+ * `/playbook?context=<id>` — satisfying the "entry from Checklists"
+ * expectation for mdb-playbook-entry-points (VAL-PLAY-008, VAL-CROSS-001).
+ */
+export interface ChecklistRelatedEpic {
+  readonly id: string;
+  readonly label?: string;
 }
 
 export interface ChecklistCardProps {
@@ -55,6 +67,12 @@ export interface ChecklistCardProps {
    * visual feedback (VAL-CHECK-043).
    */
   readonly elapsedSeconds?: number;
+  /**
+   * Optional epic reference — when provided, renders an "Open in
+   * Playbook" chip in the header so the user can jump straight to the
+   * AI-composed narrative for that epic. Fulfills VAL-CROSS-001.
+   */
+  readonly relatedEpic?: ChecklistRelatedEpic;
 }
 
 // ---------------------------------------------------------------------------
@@ -114,6 +132,7 @@ export function ChecklistCard({
   activeExecution,
   ctaDisabled = false,
   elapsedSeconds = 0,
+  relatedEpic,
 }: ChecklistCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const statusConfig = STATUS_CONFIG[status];
@@ -148,6 +167,26 @@ export function ChecklistCard({
         muted ? 'border-gray-800 bg-gray-900/30 opacity-60' : 'border-gray-700 bg-gray-900/50'
       }`}
     >
+      {/* Optional related-epic chip — rendered ABOVE the toggle button so
+          it is an independently-clickable <Link>, not nested inside the
+          <button> header (which would be invalid HTML and break keyboard
+          traversal). Only shown when the checklist has an associated
+          epic (VAL-CROSS-001). */}
+      {relatedEpic && (
+        <div
+          data-testid="checklist-related-epic"
+          className={`flex items-center justify-between gap-3 border-b border-gray-800 px-6 py-2 ${muted ? 'bg-gray-950/30' : 'bg-gray-950/40'}`}
+        >
+          <span className="text-[11px] uppercase tracking-wider text-gray-500">Related epic</span>
+          <EpicRefLink
+            epicId={relatedEpic.id}
+            label={relatedEpic.label}
+            variant="compact"
+            testId="checklist-related-epic-link"
+          />
+        </div>
+      )}
+
       {/* Card header — always visible, clickable to toggle */}
       <button
         type="button"

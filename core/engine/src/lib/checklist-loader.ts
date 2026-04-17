@@ -29,6 +29,16 @@ export interface ChecklistStep {
   readonly play: string;
 }
 
+/**
+ * Optional related-epic reference declared on a checklist definition.
+ * When present, the Checklists UI renders a clickable chip that navigates
+ * to `/playbook?context=<id>` — VAL-CROSS-001, VAL-PLAY-008.
+ */
+export interface ChecklistRelatedEpic {
+  readonly id: string;
+  readonly label?: string;
+}
+
 /** A complete checklist definition as stored in YAML */
 export interface ChecklistDefinition {
   readonly id: string;
@@ -36,6 +46,8 @@ export interface ChecklistDefinition {
   readonly description: string;
   readonly category: string;
   readonly steps: ReadonlyArray<ChecklistStep>;
+  /** Optional epic reference that links this checklist to a Playbook context. */
+  readonly relatedEpic?: ChecklistRelatedEpic;
 }
 
 /** Result of loading a checklist — either success or error */
@@ -293,11 +305,37 @@ function normalizeChecklist(raw: Record<string, unknown>): ChecklistDefinition |
     });
   }
 
-  return {
+  const relatedEpic = normalizeRelatedEpic(raw['relatedEpic']);
+
+  const definition: ChecklistDefinition = {
     id: id as string,
     title: title as string,
     description: description as string,
     category: category as string,
     steps: normalizedSteps,
+    ...(relatedEpic ? { relatedEpic } : {}),
   };
+  return definition;
+}
+
+/**
+ * Normalize the optional `relatedEpic` YAML block. Accepts either a bare
+ * string (treated as the epic id) or an object `{ id, label? }`. Invalid
+ * shapes are silently dropped — the checklist still loads, just without
+ * the Playbook chip.
+ */
+function normalizeRelatedEpic(raw: unknown): ChecklistRelatedEpic | null {
+  if (raw == null) return null;
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    return trimmed.length > 0 ? { id: trimmed } : null;
+  }
+  if (typeof raw === 'object') {
+    const rec = raw as Record<string, unknown>;
+    const id = typeof rec['id'] === 'string' ? (rec['id'] as string).trim() : '';
+    if (id.length === 0) return null;
+    const label = typeof rec['label'] === 'string' ? (rec['label'] as string).trim() : '';
+    return label.length > 0 ? { id, label } : { id };
+  }
+  return null;
 }

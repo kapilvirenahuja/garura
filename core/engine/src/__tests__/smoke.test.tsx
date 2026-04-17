@@ -45,6 +45,7 @@ vi.mock('next/navigation', () => ({
     refresh: vi.fn(),
   }),
   usePathname: () => mockPathname(),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 // Mock checklist data for fetch mock

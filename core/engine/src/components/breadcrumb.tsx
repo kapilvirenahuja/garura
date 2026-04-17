@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { INSTRUMENTS } from '@/lib/constants';
+import { useBreadcrumbExtras } from '@/components/breadcrumb-context';
 
 export interface BreadcrumbSegment {
   label: string;
@@ -10,9 +11,19 @@ export interface BreadcrumbSegment {
 }
 
 /**
- * Derives breadcrumb segments from the current pathname.
+ * Derives breadcrumb segments from the current pathname, optionally
+ * appending extra segments pushed by a page (via BreadcrumbExtrasProvider).
+ *
+ * The returned list always has the trailing segment with no `href`
+ * (representing the current location). When `extras` is provided, the
+ * previous trailing segment (the instrument) is re-linked to its root,
+ * matching the VAL-PLAY-022 expectation that clicking "Playbook" from an
+ * epic-level context returns to the Playbook root.
  */
-export function deriveBreadcrumbs(pathname: string): BreadcrumbSegment[] {
+export function deriveBreadcrumbs(
+  pathname: string,
+  extras: ReadonlyArray<BreadcrumbSegment> = [],
+): BreadcrumbSegment[] {
   const segments: BreadcrumbSegment[] = [{ label: 'Home', href: '/checklists' }];
 
   // Find the active instrument
@@ -21,10 +32,18 @@ export function deriveBreadcrumbs(pathname: string): BreadcrumbSegment[] {
     segments.push({ label: instrument.label, href: instrument.href });
   }
 
-  // Future: extract deeper context from pathname (e.g., /playbook?context=E1)
-  // For now, the instrument is the deepest level
+  // Append any extras pushed by a page (e.g. `/playbook?context=E1` adds
+  // an "E1: Authentication" segment). Each extra keeps its declared href
+  // — the last segment in the final list has its href stripped below,
+  // regardless of where it came from.
+  for (const extra of extras) {
+    // shallow-copy so we can safely mutate `href` on the last segment
+    // without affecting the caller's object.
+    segments.push({ label: extra.label, href: extra.href });
+  }
 
-  // The last segment has no href (current location)
+  // The last segment has no href (current location). This applies whether
+  // it came from the instrument list or from extras.
   const lastSegment = segments[segments.length - 1];
   if (lastSegment) {
     delete lastSegment.href;
@@ -43,12 +62,16 @@ export interface BreadcrumbProps {
 /**
  * Breadcrumb navigation bar below the top bar.
  *
- * **Shell mode** (no props): derives segments from current pathname.
+ * **Shell mode** (no props): derives segments from current pathname plus
+ * any extras pushed by the active page through
+ * `useBreadcrumbExtras().setExtras()`.
+ *
  * **Library mode** (`segments` + `onNavigate`): prop-driven, renders buttons.
  */
 export function Breadcrumb({ segments: segmentsProp, onNavigate }: BreadcrumbProps = {}) {
   const pathname = usePathname();
-  const segments = segmentsProp ?? deriveBreadcrumbs(pathname);
+  const { extras } = useBreadcrumbExtras();
+  const segments = segmentsProp ?? deriveBreadcrumbs(pathname, extras);
 
   return (
     <nav aria-label="Breadcrumb" data-testid="breadcrumb">

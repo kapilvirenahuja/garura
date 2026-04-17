@@ -22,12 +22,18 @@ interface ChecklistStepData {
   readonly play: string;
 }
 
+interface RelatedEpicData {
+  readonly id: string;
+  readonly label?: string;
+}
+
 interface ChecklistData {
   readonly id: string;
   readonly title: string;
   readonly description: string;
   readonly category: string;
   readonly steps: ReadonlyArray<ChecklistStepData>;
+  readonly relatedEpic?: RelatedEpicData;
 }
 
 /** Mid-project API response types */
@@ -489,6 +495,7 @@ export default function ChecklistsPage() {
                     totalSteps={item.totalSteps}
                     status={item.status}
                     muted
+                    relatedEpic={item.checklist.relatedEpic}
                   />
                 ))}
               </div>
@@ -548,6 +555,7 @@ export default function ChecklistsPage() {
                     activeExecution={checklistExec}
                     ctaDisabled={thisChecklistExecuting}
                     elapsedSeconds={elapsedSeconds}
+                    relatedEpic={item.checklist.relatedEpic}
                   />
                 );
               })}
@@ -574,6 +582,7 @@ export default function ChecklistsPage() {
                     totalSteps={item.totalSteps}
                     status={item.status}
                     muted
+                    relatedEpic={item.checklist.relatedEpic}
                   />
                 ))}
               </div>

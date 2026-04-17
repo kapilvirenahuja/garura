@@ -15,6 +15,7 @@ vi.mock('next/navigation', () => ({
     refresh: vi.fn(),
   }),
   usePathname: () => '/checklists',
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 describe('Garura Scaffold — Instrument Pages', () => {

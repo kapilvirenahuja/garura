@@ -1,10 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { CrossRefToken } from '@/components/cross-ref-token';
 import { InlineExpansion } from '@/components/inline-expansion';
 import { NarrativeView } from '@/components/narrative-view';
+import { useBreadcrumbExtras } from '@/components/breadcrumb-context';
+import type { BreadcrumbSegment } from '@/components/breadcrumb';
 
 /** Represents a resolved entity detail for display in expansions (foundation sample). */
 interface EntityDetail {
@@ -48,45 +51,196 @@ const SAMPLE_ENTITIES: Readonly<Record<string, EntityDetail>> = {
 /**
  * Playbook Reader instrument page.
  *
- * Renders AI-composed narrative views from the artifact cross-reference graph.
- * - When `?context=<epicId>` is present, the narrative engine composes a
- *   structured narrative via `/api/narrative` with content-hash caching.
- * - When no context is present, a foundation sample narrative with
- *   illustrative cross-reference tokens is shown (primarily for the
- *   foundation smoke tests and the first-visit learning experience).
+ * Supports four entry modes:
+ *   1. `/playbook` (no params)      — empty-state guidance (VAL-PLAY-028)
+ *   2. `/playbook?context=E1`       — AI-composed narrative for an epic
+ *                                     (VAL-PLAY-008, VAL-PLAY-009,
+ *                                     VAL-PLAY-011, VAL-CROSS-001,
+ *                                     VAL-CROSS-003)
+ *   3. `/playbook?context=SC-AUTH-1` — narrative composed around a cross-ref
+ *                                     entity (e.g. scenario clicked in a
+ *                                     search result — VAL-PLAY-010)
+ *   4. `/playbook?query=foo`         — search results view (VAL-CROSS-007)
+ *
+ * Every non-root entry updates the breadcrumb via the BreadcrumbExtras
+ * context so the trail reflects the active context (VAL-PLAY-021). The
+ * trailing segment is current-page (non-clickable); the "Playbook"
+ * segment is linked to `/playbook` for root navigation (VAL-PLAY-022).
+ *
+ * Fulfills: mdb-playbook-entry-points
  */
 export default function PlaybookPage() {
   // usePathname() is retained for test environments that mock it, and to
   // keep the shell consistent with other instruments.
   usePathname();
 
-  // Read the `context` search param from window.location. We deliberately do
-  // not use `useSearchParams()` from next/navigation here because the test
-  // harness mocks `next/navigation` without providing that export — so any
-  // direct call in a component rendered by smoke tests would throw. The
-  // effect below keeps the state in sync with the URL in the browser.
-  const [context, setContext] = useState<string>('');
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    setContext(params.get('context')?.trim() ?? '');
-  }, []);
+  const { setExtras, clearExtras } = useBreadcrumbExtras();
 
+  // Read `context` and `query` search params via Next.js'
+  // `useSearchParams()` hook so that client-side router navigation
+  // (breadcrumb Link clicks, router.push) re-renders this component.
+  // We normalise to trimmed strings and treat blank as absent.
+  const searchParams = useSearchParams();
+  const context = (searchParams?.get('context') ?? '').trim();
+  const query = (searchParams?.get('query') ?? '').trim();
+
+  // Narrative metadata flows back up from NarrativeView once the epic
+  // name is known so the breadcrumb can show "Playbook › E1: Authentication"
+  // (VAL-PLAY-021). While loading, we fall back to the raw id.
+  const [epicName, setEpicName] = useState<string | null>(null);
+
+  const onNarrativeLoaded = useCallback(
+    (loadedContext: string, loadedEpicName: string | undefined) => {
+      if (loadedContext !== context) return;
+      if (loadedEpicName && loadedEpicName.trim().length > 0) {
+        setEpicName(loadedEpicName);
+      }
+    },
+    [context],
+  );
+
+  // Reset name cache when the context changes, so the breadcrumb falls
+  // back to the id until the new narrative loads.
+  useEffect(() => {
+    setEpicName(null);
+  }, [context]);
+
+  // Drive the breadcrumb from (context, query) state.
+  useEffect(() => {
+    if (context) {
+      const label = epicName ? `${context}: ${epicName}` : context;
+      const extras: BreadcrumbSegment[] = [
+        { label, href: `/playbook?context=${encodeURIComponent(context)}` },
+      ];
+      setExtras(extras);
+    } else if (query) {
+      const extras: BreadcrumbSegment[] = [
+        {
+          label: `Search: "${query}"`,
+          href: `/playbook?query=${encodeURIComponent(query)}`,
+        },
+      ];
+      setExtras(extras);
+    } else {
+      clearExtras();
+    }
+    return () => {
+      clearExtras();
+    };
+  }, [context, query, epicName, setExtras, clearExtras]);
+
+  // ---------------------------------------------------------------------
+  // Render — one of four modes based on URL state.
+  // ---------------------------------------------------------------------
   if (context) {
     return (
-      <div data-testid="playbook-view" className="space-y-4">
-        <NarrativeView context={context} />
+      <div data-testid="playbook-view" data-mode="narrative" className="space-y-4">
+        <NarrativeView context={context} onMetaLoaded={onNarrativeLoaded} />
       </div>
     );
   }
 
-  return <PlaybookSampleView />;
+  if (query) {
+    return (
+      <div data-testid="playbook-view" data-mode="search" className="space-y-4">
+        <PlaybookSearchView query={query} />
+      </div>
+    );
+  }
+
+  return (
+    <div data-testid="playbook-view" data-mode="empty">
+      <PlaybookEmptyState />
+      <PlaybookSampleView />
+    </div>
+  );
 }
 
 /**
- * Foundation sample view — shown when no `?context=` query param is present.
- * Preserves the VAL-FOUND-077 wiring: a small narrative with CrossRefToken →
- * InlineExpansion demonstration.
+ * Empty state shown when the reader is opened without a context or query.
+ * Matches VAL-PLAY-028 / VAL-CROSS-015: guidance message with actionable
+ * next steps (jump to Checklists or focus the search bar), not a blank
+ * page.
+ */
+function PlaybookEmptyState() {
+  return (
+    <section
+      data-testid="playbook-empty-state"
+      aria-label="Playbook Reader empty state"
+      className="mb-8 rounded-lg border border-dashed border-gray-700 bg-gray-900/30 px-6 py-10 text-center"
+    >
+      <span className="mb-3 block text-4xl" aria-hidden="true">
+        📖
+      </span>
+      <h2
+        className="text-lg font-semibold text-gray-200"
+        data-testid="playbook-empty-state-heading"
+      >
+        Nothing to read yet
+      </h2>
+      <p className="mx-auto mt-2 max-w-md text-sm text-gray-400">
+        Start from{' '}
+        <Link
+          href="/checklists"
+          data-testid="playbook-empty-state-checklists-link"
+          className="text-blue-400 underline-offset-2 hover:underline"
+        >
+          Checklists
+        </Link>{' '}
+        or search for something using the top-bar search.
+      </p>
+    </section>
+  );
+}
+
+/**
+ * Search results view. A full generative search implementation lands in
+ * the `mdb-generative-search` feature; for the entry-points slice we
+ * present a labelled surface that confirms the search context survived
+ * navigation and offers a link back to the Playbook root
+ * (VAL-PLAY-022).
+ */
+function PlaybookSearchView({ query }: { query: string }) {
+  return (
+    <section
+      data-testid="playbook-search-view"
+      aria-label={`Search results for ${query}`}
+      className="space-y-3 rounded-lg border border-gray-800 bg-gray-900/30 p-6"
+    >
+      <div>
+        <p className="text-xs uppercase tracking-wider text-gray-500">Search</p>
+        <h2 className="mt-1 text-xl font-semibold text-white" data-testid="playbook-search-heading">
+          “{query}”
+        </h2>
+      </div>
+      <p className="text-sm text-gray-400">
+        Generative search snippets will appear here. You can continue to open any epic from{' '}
+        <Link
+          href="/flight-deck"
+          data-testid="playbook-search-flight-deck-link"
+          className="text-blue-400 underline-offset-2 hover:underline"
+        >
+          Flight Deck
+        </Link>{' '}
+        or return to the{' '}
+        <Link
+          href="/playbook"
+          data-testid="playbook-search-root-link"
+          className="text-blue-400 underline-offset-2 hover:underline"
+        >
+          Playbook root
+        </Link>
+        .
+      </p>
+    </section>
+  );
+}
+
+/**
+ * Foundation sample view — shown alongside the empty state when no
+ * `?context=` query param is present. Preserves the VAL-FOUND-077 wiring:
+ * a small narrative with CrossRefToken → InlineExpansion demonstration
+ * for foundation smoke tests.
  */
 function PlaybookSampleView() {
   const [expandedTokens, setExpandedTokens] = useState<Set<string>>(new Set());
@@ -104,7 +258,7 @@ function PlaybookSampleView() {
   }, []);
 
   return (
-    <div data-testid="playbook-view">
+    <div>
       <h2 className="text-2xl font-bold text-white">Playbook Reader</h2>
       <p className="mt-2 text-gray-400">
         AI-composed narrative views from the artifact cross-reference graph. Provide a{' '}

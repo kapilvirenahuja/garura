@@ -35,6 +35,7 @@ vi.mock('next/navigation', () => ({
     refresh: vi.fn(),
   }),
   usePathname: () => '/flight-deck',
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 function mockFetchOnce(payload: FlightDeckData, ok: boolean = true, status: number = 200) {

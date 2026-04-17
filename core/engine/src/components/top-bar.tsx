@@ -1,5 +1,7 @@
 'use client';
 
+import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { InstrumentSwitcher } from '@/components/instrument-switcher';
 import { ReadinessMiniGauge } from '@/components/readiness-mini-gauge';
 import { SearchBar } from '@/components/search-bar';
@@ -20,6 +22,20 @@ export interface TopBarProps {
  */
 export function TopBar({ projectName = 'Untitled Project' }: TopBarProps) {
   const { score } = useReadiness();
+  const router = useRouter();
+
+  // Wire search submission → Playbook Reader with the query as context.
+  // Satisfies VAL-CROSS-007 (global search from any instrument lands in
+  // the Playbook Reader) and the Playbook "entry from search" expectation
+  // in mdb-playbook-entry-points.
+  const handleSearch = useCallback(
+    (query: string) => {
+      const trimmed = query.trim();
+      if (trimmed.length === 0) return;
+      router.push(`/playbook?query=${encodeURIComponent(trimmed)}`);
+    },
+    [router],
+  );
 
   return (
     <header
@@ -42,7 +58,7 @@ export function TopBar({ projectName = 'Untitled Project' }: TopBarProps) {
         <InstrumentSwitcher />
 
         {/* Right: Search */}
-        <SearchBar />
+        <SearchBar onSearch={handleSearch} />
       </div>
     </header>
   );

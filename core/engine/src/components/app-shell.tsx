@@ -3,6 +3,7 @@
 import { TopBar } from '@/components/top-bar';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { ReadinessProvider } from '@/components/readiness-provider';
+import { BreadcrumbExtrasProvider } from '@/components/breadcrumb-context';
 
 export interface AppShellProps {
   children: React.ReactNode;
@@ -21,13 +22,15 @@ export interface AppShellProps {
 export function AppShell({ children, projectName }: AppShellProps) {
   return (
     <ReadinessProvider>
-      <div className="flex min-h-screen flex-col">
-        <TopBar projectName={projectName} />
-        <div className="border-b border-gray-800 bg-gray-950 px-4 py-2">
-          <Breadcrumb />
+      <BreadcrumbExtrasProvider>
+        <div className="flex min-h-screen flex-col">
+          <TopBar projectName={projectName} />
+          <div className="border-b border-gray-800 bg-gray-950 px-4 py-2">
+            <Breadcrumb />
+          </div>
+          <main className="flex-1 p-6">{children}</main>
         </div>
-        <main className="flex-1 p-6">{children}</main>
-      </div>
+      </BreadcrumbExtrasProvider>
     </ReadinessProvider>
   );
 }

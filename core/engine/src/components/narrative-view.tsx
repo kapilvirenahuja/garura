@@ -30,6 +30,13 @@ export interface NarrativeViewProps {
   context: string;
   /** Optional click handler for cross-reference tokens (notification). */
   onTokenClick?: (refId: string) => void;
+  /**
+   * Fired once the narrative has been successfully loaded. Consumers use
+   * this to enrich outer UI (e.g. the breadcrumb) with the resolved epic
+   * name. The callback receives the context id actually loaded and the
+   * narrative's `epicName` — never the raw YAML.
+   */
+  onMetaLoaded?: (context: string, epicName: string) => void;
 }
 
 interface NarrativeApiResponse {
@@ -61,7 +68,7 @@ function makeKey(sectionId: string, refId: string): string {
   return `${sectionId}::${refId}`;
 }
 
-export function NarrativeView({ context, onTokenClick }: NarrativeViewProps) {
+export function NarrativeView({ context, onTokenClick, onMetaLoaded }: NarrativeViewProps) {
   const [state, setState] = useState<LoadState>({ status: 'idle' });
   const [tokenStates, setTokenStates] = useState<ReadonlyMap<string, TokenState>>(new Map());
 
@@ -122,6 +129,9 @@ export function NarrativeView({ context, onTokenClick }: NarrativeViewProps) {
           return;
         }
         setState({ status: 'ready', data: payload });
+        if (payload.narrative.epicName) {
+          onMetaLoaded?.(context, payload.narrative.epicName);
+        }
       } catch (err: unknown) {
         if (cancelled) return;
         const message = err instanceof Error ? err.message : String(err);
@@ -132,7 +142,7 @@ export function NarrativeView({ context, onTokenClick }: NarrativeViewProps) {
     return () => {
       cancelled = true;
     };
-  }, [context]);
+  }, [context, onMetaLoaded]);
 
   if (state.status === 'loading' || state.status === 'idle') {
     return (
