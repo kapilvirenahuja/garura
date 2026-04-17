@@ -12,6 +12,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import yaml from 'js-yaml';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -164,9 +165,11 @@ export const PLAY_REGISTRY: ReadonlyArray<PlayDefinition> = [
 
 /**
  * Check which artifact files exist in the given base path.
+ * Malformed artifacts (exist but contain invalid YAML) are skipped
+ * with a warning logged (VAL-CHECK-042).
  *
  * @param basePath - Absolute path to the product artifacts directory
- * @returns Set of artifact filenames that exist and are non-empty
+ * @returns Set of artifact filenames that exist, are non-empty, and parseable
  */
 export function checkArtifacts(basePath: string): Set<string> {
   const found = new Set<string>();
@@ -186,7 +189,21 @@ export function checkArtifacts(basePath: string): Set<string> {
       const fullPath = path.join(basePath, filename);
       const stat = fs.statSync(fullPath);
       if (stat.isFile() && stat.size > 0) {
-        found.add(filename);
+        // Attempt to read and parse the file to verify it's valid YAML (VAL-CHECK-042)
+        try {
+          const content = fs.readFileSync(fullPath, 'utf-8');
+          // Basic YAML validation — try to parse, skip if malformed
+          const parsed = yaml.load(content);
+          if (parsed !== null && parsed !== undefined) {
+            found.add(filename);
+          } else {
+            console.warn(`[readiness] Skipping malformed artifact: ${filename} (empty YAML)`);
+          }
+        } catch (parseErr: unknown) {
+          const msg = parseErr instanceof Error ? parseErr.message : String(parseErr);
+          console.warn(`[readiness] Skipping malformed artifact: ${filename} — ${msg}`);
+          // Skip this artifact — it's malformed (VAL-CHECK-042)
+        }
       }
     } catch {
       // File doesn't exist or not readable — skip

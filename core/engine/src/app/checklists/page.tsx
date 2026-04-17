@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { ReadinessGauge } from '@/components/readiness-gauge';
 import { ReadinessBreakdown } from '@/components/readiness-breakdown';
 import { ChecklistItem } from '@/components/checklist-item';
@@ -89,7 +89,14 @@ function deriveStepState(index: number, completedCount: number): ChecklistItemSt
  *           VAL-CHECK-022 (completed not retriggerable),
  *           VAL-CHECK-023 (next step unlocks),
  *           VAL-CHECK-024 (one CTA active at a time),
- *           VAL-CHECK-028 (no hardcoded steps)
+ *           VAL-CHECK-028 (no hardcoded steps),
+ *           VAL-CHECK-030 (all-done celebratory state),
+ *           VAL-CHECK-037 (failed play does not mark step done),
+ *           VAL-CHECK-038 (ContentSlot error state),
+ *           VAL-CHECK-039 (network error graceful messaging),
+ *           VAL-CHECK-040 (checklist definition load failure),
+ *           VAL-CHECK-041 (invalid play reference handling),
+ *           VAL-CHECK-043 (long-running play visual feedback)
  */
 export default function ChecklistsPage() {
   const { score, breakdown } = useReadiness();
@@ -104,7 +111,43 @@ export default function ChecklistsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Network error toast (VAL-CHECK-039)
+  const [networkError, setNetworkError] = useState<string | null>(null);
+
+  // Elapsed time tracker for long-running plays (VAL-CHECK-043)
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const isGreenfield = score === 0;
+
+  // Track elapsed time when execution is running (VAL-CHECK-043)
+  useEffect(() => {
+    if (activeExecution?.status === 'running') {
+      setElapsedSeconds(0);
+      elapsedTimerRef.current = setInterval(() => {
+        setElapsedSeconds((prev) => prev + 1);
+      }, 1000);
+    } else {
+      if (elapsedTimerRef.current) {
+        clearInterval(elapsedTimerRef.current);
+        elapsedTimerRef.current = null;
+      }
+      setElapsedSeconds(0);
+    }
+    return () => {
+      if (elapsedTimerRef.current) {
+        clearInterval(elapsedTimerRef.current);
+      }
+    };
+  }, [activeExecution?.status]);
+
+  // Clear network error toast after 5s
+  useEffect(() => {
+    if (networkError) {
+      const timer = setTimeout(() => setNetworkError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [networkError]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -134,6 +177,8 @@ export default function ChecklistsPage() {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       setError(message);
+      // Also set network error toast for UI feedback (VAL-CHECK-039)
+      setNetworkError('Unable to connect — please try again');
     } finally {
       setLoading(false);
     }
@@ -154,21 +199,40 @@ export default function ChecklistsPage() {
     activeExecution?.checklistId === greenfieldChecklistId && activeExecution.status === 'running';
   const greenfieldExecutingStepId = greenfieldExecuting ? activeExecution?.stepId : null;
 
+  // Check if all checklists are completed (all-done state, VAL-CHECK-030)
+  const isAllDone =
+    score === 100 ||
+    (midProjectData !== null &&
+      midProjectData.active.length === 0 &&
+      midProjectData.completed.length > 0);
+
   return (
     <div data-testid="checklists-view">
+      {/* Network error toast (VAL-CHECK-039) */}
+      {networkError && (
+        <div
+          data-testid="network-error-toast"
+          className="fixed right-4 top-4 z-50 rounded-lg border border-red-800 bg-red-900/90 px-4 py-3 shadow-lg"
+        >
+          <p className="text-sm text-red-300">{networkError}</p>
+        </div>
+      )}
+
       {/* Hero readiness gauge — centered prominently (VAL-CHECK-011) */}
       <div className="mb-10 flex flex-col items-center gap-3" data-testid="checklists-hero">
         <ReadinessGauge score={score} />
         <p className="text-center text-sm text-gray-400" data-testid="hero-supporting-text">
-          {score === 0
-            ? "Your project isn't flying yet — let's get started."
-            : `${score}% of plays can run with current artifacts.`}
+          {isAllDone
+            ? 'All clear — your project is fully instrumented.'
+            : score === 0
+              ? "Your project isn't flying yet — let's get started."
+              : `${score}% of plays can run with current artifacts.`}
         </p>
         {/* Per-area breakdown — only show when there is breakdown data (VAL-CHECK-005) */}
         {breakdown.length > 0 && <ReadinessBreakdown breakdown={breakdown} />}
       </div>
 
-      {/* Error state — only when fetch fails */}
+      {/* Error state — when checklist definitions fail to load (VAL-CHECK-040) */}
       {error && !loading && (
         <div
           data-testid="checklists-error"
@@ -271,12 +335,17 @@ export default function ChecklistsPage() {
                     </div>
                   )}
 
-                  {/* Running indicator when step is executing */}
+                  {/* Running indicator when step is executing (VAL-CHECK-043) */}
                   {isStepExecuting && (
                     <div className="mt-2 pl-9" data-testid="step-executing-indicator">
                       <span className="inline-flex items-center gap-2 text-xs text-blue-400">
                         <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-400" />
                         Running {step.play}…
+                        {elapsedSeconds > 0 && (
+                          <span className="tabular-nums text-gray-500" data-testid="elapsed-time">
+                            ({elapsedSeconds}s)
+                          </span>
+                        )}
                       </span>
                     </div>
                   )}
@@ -291,6 +360,20 @@ export default function ChecklistsPage() {
                       />
                     </div>
                   )}
+
+                  {/* ContentSlot error state (VAL-CHECK-038) */}
+                  {activeExecution &&
+                    activeExecution.checklistId === greenfieldChecklistId &&
+                    activeExecution.stepId === step.id &&
+                    activeExecution.status === 'error' && (
+                      <div className="mt-3 pl-9" data-testid="step-error-slot">
+                        <ContentSlot
+                          state="error"
+                          content={activeExecution.output}
+                          errorMessage={activeExecution.error}
+                        />
+                      </div>
+                    )}
                 </div>
               );
             })}
@@ -299,11 +382,60 @@ export default function ChecklistsPage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════
-         MID-PROJECT VIEW (score > 0)
+         ALL-DONE STATE (readiness 100 or all checklists completed)
+         Affirming message with completed checklists collapsed (VAL-CHECK-030)
+         ═══════════════════════════════════════════════════════════════════ */}
+      {!isGreenfield && !loading && !error && midProjectData && isAllDone && (
+        <div className="mx-auto max-w-2xl space-y-6" data-testid="all-done-view">
+          <div
+            data-testid="all-done-message"
+            className="rounded-lg border border-emerald-800 bg-emerald-900/20 px-6 py-8 text-center"
+          >
+            <span className="mb-3 block text-4xl" aria-hidden="true">
+              🎉
+            </span>
+            <h2 className="text-lg font-semibold text-emerald-300" data-testid="all-done-heading">
+              All clear — your project is fully instrumented
+            </h2>
+            <p className="mt-2 text-sm text-gray-400">
+              Every checklist is complete. Your Meridian project has full play readiness.
+            </p>
+          </div>
+
+          {/* All checklists collapsed in completed section (VAL-CHECK-030) */}
+          {midProjectData.completed.length > 0 && (
+            <div data-testid="completed-checklists" className="mt-8">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Completed
+                </span>
+                <div className="h-px flex-1 bg-gray-800" />
+              </div>
+              <div className="space-y-2">
+                {midProjectData.completed.map((item) => (
+                  <ChecklistCard
+                    key={item.checklist.id}
+                    id={item.checklist.id}
+                    title={item.checklist.title}
+                    steps={item.checklist.steps}
+                    completedSteps={item.completedSteps}
+                    totalSteps={item.totalSteps}
+                    status={item.status}
+                    muted
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════
+         MID-PROJECT VIEW (score > 0, not all-done)
          Multiple checklists ranked by readiness impact, generative region,
          completed checklists collapsed at bottom.
          ═══════════════════════════════════════════════════════════════════ */}
-      {!isGreenfield && !loading && !error && midProjectData && (
+      {!isGreenfield && !loading && !error && midProjectData && !isAllDone && (
         <div className="mx-auto max-w-2xl space-y-6" data-testid="midproject-checklists">
           {/* Generative region — explains checklist selection (VAL-CHECK-017) */}
           <div
@@ -347,6 +479,7 @@ export default function ChecklistsPage() {
                     }}
                     activeExecution={activeExecution}
                     ctaDisabled={isExecuting}
+                    elapsedSeconds={elapsedSeconds}
                   />
                 );
               })}

@@ -126,6 +126,7 @@ export function useStepExecution(): StepExecutionApi {
           const decoder = new TextDecoder();
           let accumulated = '';
           let markedComplete = false;
+          let hasError = false;
 
           for (;;) {
             const { done, value } = await reader.read();
@@ -156,6 +157,9 @@ export function useStepExecution(): StepExecutionApi {
                   // Clear active execution after brief delay to show completion state
                   setTimeout(() => setActiveExecution(null), 300);
                 } else if (event.type === 'error') {
+                  // Play failure — step remains active, NOT marked done (VAL-CHECK-037)
+                  hasError = true;
+                  markedComplete = true; // prevent auto-complete fallback
                   setActiveExecution((prev) =>
                     prev
                       ? { ...prev, status: 'error', error: event.message ?? 'Unknown error' }
@@ -170,8 +174,8 @@ export function useStepExecution(): StepExecutionApi {
             }
           }
 
-          // Stream ended without explicit complete event — mark complete
-          if (!markedComplete) {
+          // Stream ended without explicit complete event — mark complete only if no error
+          if (!markedComplete && !hasError) {
             setActiveExecution((prev) => {
               if (prev && prev.status === 'running') {
                 markStepComplete(checklistId);
@@ -184,6 +188,7 @@ export function useStepExecution(): StepExecutionApi {
         })
         .catch((err: Error) => {
           if (err.name === 'AbortError') return;
+          // Network error — step remains active, NOT marked done (VAL-CHECK-039)
           setActiveExecution((prev) =>
             prev ? { ...prev, status: 'error', error: err.message } : null,
           );

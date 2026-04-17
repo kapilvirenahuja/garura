@@ -50,6 +50,11 @@ export interface ChecklistCardProps {
    * (VAL-CHECK-024)
    */
   readonly ctaDisabled?: boolean;
+  /**
+   * Elapsed seconds for current execution — enables long-running play
+   * visual feedback (VAL-CHECK-043).
+   */
+  readonly elapsedSeconds?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -108,6 +113,7 @@ export function ChecklistCard({
   onStepExecute,
   activeExecution,
   ctaDisabled = false,
+  elapsedSeconds = 0,
 }: ChecklistCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const statusConfig = STATUS_CONFIG[status];
@@ -252,12 +258,17 @@ export function ChecklistCard({
                   </div>
                 )}
 
-                {/* Running indicator when step is executing */}
+                {/* Running indicator when step is executing (VAL-CHECK-043) */}
                 {isStepExecuting && (
                   <div className="mt-2 pl-9" data-testid="step-executing-indicator">
                     <span className="inline-flex items-center gap-2 text-xs text-blue-400">
                       <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-400" />
                       Running {step.play}…
+                      {elapsedSeconds > 0 && (
+                        <span className="tabular-nums text-gray-500" data-testid="elapsed-time">
+                          ({elapsedSeconds}s)
+                        </span>
+                      )}
                     </span>
                   </div>
                 )}
@@ -272,6 +283,20 @@ export function ChecklistCard({
                     />
                   </div>
                 )}
+
+                {/* ContentSlot error state (VAL-CHECK-038) */}
+                {activeExecution &&
+                  activeExecution.checklistId === id &&
+                  activeExecution.stepId === step.id &&
+                  activeExecution.status === 'error' && (
+                    <div className="mt-3 pl-9" data-testid="step-error-slot">
+                      <ContentSlot
+                        state="error"
+                        content={activeExecution.output}
+                        errorMessage={activeExecution.error}
+                      />
+                    </div>
+                  )}
               </div>
             );
           })}

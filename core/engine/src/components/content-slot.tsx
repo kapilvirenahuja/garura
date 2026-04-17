@@ -1,6 +1,6 @@
 'use client';
 
-export type ContentSlotState = 'idle' | 'active';
+export type ContentSlotState = 'idle' | 'active' | 'error';
 
 export interface ContentSlotProps {
   /** Current state of the slot. */
@@ -11,18 +11,22 @@ export interface ContentSlotProps {
   placeholder?: string;
   /** Progress fraction 0–1 (shown when active). */
   progress?: number;
+  /** Error message to display in error state (VAL-CHECK-038). */
+  errorMessage?: string;
 }
 
 /**
  * Expandable content area.
  * In **idle** state: shows a muted placeholder.
  * In **active** state: shows streaming content with an optional progress indicator.
+ * In **error** state: shows error styling with error message (VAL-CHECK-038).
  */
 export function ContentSlot({
   state,
   content = '',
   placeholder = 'Waiting for output…',
   progress,
+  errorMessage,
 }: ContentSlotProps) {
   if (state === 'idle') {
     return (
@@ -32,6 +36,35 @@ export function ContentSlot({
         className="rounded-md border border-gray-800 bg-gray-900/50 px-4 py-3 text-sm text-gray-500 italic"
       >
         {placeholder}
+      </div>
+    );
+  }
+
+  if (state === 'error') {
+    return (
+      <div
+        data-testid="content-slot"
+        data-state="error"
+        className="rounded-md border border-red-800 bg-red-900/20 px-4 py-3"
+      >
+        <div className="mb-1 flex items-center gap-2">
+          <span className="text-sm font-medium text-red-400" data-testid="content-slot-error-label">
+            ✗ Execution failed
+          </span>
+        </div>
+        {errorMessage && (
+          <p className="text-sm text-red-300" data-testid="content-slot-error-message">
+            {errorMessage}
+          </p>
+        )}
+        {content && (
+          <pre
+            data-testid="content-slot-content"
+            className="mt-2 whitespace-pre-wrap font-mono text-sm text-gray-400"
+          >
+            {content}
+          </pre>
+        )}
       </div>
     );
   }
