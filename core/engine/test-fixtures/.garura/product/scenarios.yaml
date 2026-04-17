@@ -60,3 +60,33 @@ scenarios:
       - "Task T-42 state changes to 'in-review'"
       - "Transition is logged in audit trail"
     automation: "automated"
+
+  - id: "SC-TASK-016"
+    feature_ref: "F1"
+    behavior_ref: "F1-B1"
+    description: "Inbox session timeout re-prompts the user to re-authenticate"
+    given: "An inbox session that has been idle for longer than the allowed timeout"
+    when: "The user returns and attempts to open the inbox"
+    then: "A re-authentication prompt is shown and the session is refreshed after sign-in"
+    expected_behavior: >
+      When the inbox session has been idle past the configured timeout,
+      the next user action shows a re-authentication prompt before tasks load.
+    pass_criteria:
+      - "Session timeout triggers re-authentication prompt"
+      - "Inbox loads only after the user signs back in"
+    automation: "automated"
+
+  - id: "SC-AUTO-016"
+    feature_ref: "F3"
+    behavior_ref: "F3-B1"
+    description: "Webhook timeout is retried with exponential backoff"
+    given: "The PR open webhook handler does not receive a response within 5 seconds"
+    when: "The webhook times out"
+    then: "The handler retries the webhook call with exponential backoff up to 3 attempts"
+    expected_behavior: >
+      When a PR webhook times out the handler must retry with backoff
+      so that transient network failures do not lose task transitions.
+    pass_criteria:
+      - "Webhook timeout triggers retry with backoff"
+      - "Final failure after 3 retries emits an audit log entry"
+    automation: "automated"

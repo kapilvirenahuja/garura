@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { CrossRefToken } from '@/components/cross-ref-token';
 import { InlineExpansion } from '@/components/inline-expansion';
 import { NarrativeView } from '@/components/narrative-view';
+import { SearchResultsView } from '@/components/search-results-view';
 import { useBreadcrumbExtras } from '@/components/breadcrumb-context';
 import type { BreadcrumbSegment } from '@/components/breadcrumb';
 
@@ -194,44 +195,33 @@ function PlaybookEmptyState() {
 }
 
 /**
- * Search results view. A full generative search implementation lands in
- * the `mdb-generative-search` feature; for the entry-points slice we
- * present a labelled surface that confirms the search context survived
- * navigation and offers a link back to the Playbook root
- * (VAL-PLAY-022).
+ * Search results view — wraps the generative `SearchResultsView`
+ * component with the legacy wrapper elements (`playbook-search-view`,
+ * `playbook-search-heading`, `playbook-search-root-link`) that older
+ * entry-point tests rely on. The heading and root link remain but the
+ * actual result prose is rendered by `SearchResultsView` which hits
+ * `/api/search` for AI-composed snippets.
+ *
+ * Fulfills: mdb-generative-search (wiring into Playbook Reader).
  */
 function PlaybookSearchView({ query }: { query: string }) {
   return (
     <section
       data-testid="playbook-search-view"
       aria-label={`Search results for ${query}`}
-      className="space-y-3 rounded-lg border border-gray-800 bg-gray-900/30 p-6"
+      className="space-y-4"
     >
-      <div>
-        <p className="text-xs uppercase tracking-wider text-gray-500">Search</p>
-        <h2 className="mt-1 text-xl font-semibold text-white" data-testid="playbook-search-heading">
-          “{query}”
-        </h2>
+      <div className="sr-only" data-testid="playbook-search-heading">
+        “{query}”
       </div>
-      <p className="text-sm text-gray-400">
-        Generative search snippets will appear here. You can continue to open any epic from{' '}
-        <Link
-          href="/flight-deck"
-          data-testid="playbook-search-flight-deck-link"
-          className="text-blue-400 underline-offset-2 hover:underline"
-        >
-          Flight Deck
-        </Link>{' '}
-        or return to the{' '}
-        <Link
-          href="/playbook"
-          data-testid="playbook-search-root-link"
-          className="text-blue-400 underline-offset-2 hover:underline"
-        >
-          Playbook root
-        </Link>
-        .
-      </p>
+      <SearchResultsView query={query} />
+      <Link
+        href="/playbook"
+        data-testid="playbook-search-root-link"
+        className="inline-flex text-xs text-blue-400 underline-offset-2 hover:underline"
+      >
+        Return to Playbook root
+      </Link>
     </section>
   );
 }
