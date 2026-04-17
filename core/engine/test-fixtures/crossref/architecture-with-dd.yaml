@@ -1,0 +1,59 @@
+# architecture fixture with both ADR-* and DD-* entries for crossref testing
+
+slug: "taskflow"
+status: "LOCKED"
+
+components:
+  - id: COMP-001
+    name: "Task Service"
+    type: bounded_context
+    responsibility: "Task CRUD, state machine, and query operations"
+    interfaces: ["TaskRepository"]
+    dependencies: ["COMP-002"]
+
+decisions:
+  - id: ADR-001
+    title: "Local-first filesystem storage"
+    status: accepted
+    context: "Need offline-capable storage without external database dependencies"
+    decision: "Use filesystem-based JSON storage with file locking"
+    rationale: "Aligns with C1 (offline) and C2 (no external DB) constraints"
+    consequences:
+      - "Simple deployment — no database setup"
+      - "Limited concurrent write throughput"
+
+  - id: DD-001
+    title: "Use observer pattern for task state notifications"
+    status: accepted
+    context: "Multiple UI components need to react to task state changes"
+    decision: "Implement observer pattern with typed event emitter"
+    rationale: "Decouples state change producers from UI consumers"
+    consequences:
+      - "Loose coupling between service and UI layers"
+      - "Increased complexity in event ordering"
+
+  - id: DD-002
+    title: "Priority score caching strategy"
+    status: accepted
+    context: "Priority computation involves multiple signals and can be expensive"
+    decision: "Cache computed scores with TTL invalidation and on-demand refresh"
+    rationale: "Balances freshness with performance for F2 feature"
+    consequences:
+      - "Faster inbox load times"
+      - "Scores may be slightly stale (max 60s)"
+
+patterns:
+  - id: PAT-001
+    name: "Repository Pattern"
+    scope: "data-access"
+
+nfr_mappings:
+  - nfr_id: "NFR-PERF-01"
+    description: "Sub-second response for non-AI operations"
+    mechanism: "In-memory caching with filesystem persistence"
+    verification: "Load test with 1000 tasks, p99 < 500ms"
+
+  - nfr_id: "NFR-SEC-01"
+    description: "No sensitive data in logs or error messages"
+    mechanism: "Structured logging with field-level redaction"
+    verification: "Log audit scan in CI pipeline"

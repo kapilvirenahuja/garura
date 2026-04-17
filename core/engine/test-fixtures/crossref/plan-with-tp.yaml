@@ -1,0 +1,47 @@
+# plan fixture with TP-* task IDs for crossref testing
+
+slug: "taskflow"
+status: "LOCKED"
+
+prerequisites:
+  - id: P0-S1
+    description: "Set up project directory structure"
+
+execution_order:
+  - id: TP-1
+    feature_id: F1
+    description: "Implement task data model and storage layer"
+    depends_on: []
+    exit_gate: "Task model defined with all required fields"
+    scenario_gate:
+      scenario_ids: []
+      count: 0
+
+  - id: TP-2
+    feature_id: F2
+    description: "Implement priority scoring algorithm"
+    depends_on: ["TP-1"]
+    exit_gate: "Priority scores computed correctly"
+    scenario_gate:
+      scenario_ids: ["SC-AI-001"]
+      count: 1
+
+  - id: TP-3
+    feature_id: F3
+    description: "Build git event webhook handler"
+    depends_on: ["TP-1"]
+    exit_gate: "PR events trigger correct task state transitions"
+    scenario_gate:
+      scenario_ids: ["SC-AUTO-001"]
+      count: 1
+
+milestones:
+  - id: M1
+    name: "Core Data Layer"
+    tasks: ["TP-1"]
+  - id: M2
+    name: "Intelligence Layer"
+    tasks: ["TP-2"]
+  - id: M3
+    name: "Automation Layer"
+    tasks: ["TP-3"]
