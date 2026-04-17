@@ -1,0 +1,62 @@
+# scenarios.yaml — Test Fixture
+# Verification scenarios for TaskFlow
+
+slug: "taskflow"
+status: "LOCKED"
+created_at: "2026-01-25"
+updated_at: "2026-03-01"
+
+scenarios:
+  - id: "SC-TASK-001"
+    feature_ref: "F1"
+    behavior_ref: "F1-B1"
+    description: "Inbox displays tasks sorted by priority"
+    expected_behavior: >
+      User opens inbox. Tasks from all linked projects appear sorted by
+      descending priority score. Higher-priority tasks appear first.
+    pass_criteria:
+      - "Tasks are sorted by priority score descending"
+      - "All linked projects have tasks represented"
+    automation: "automated"
+
+  - id: "SC-TASK-002"
+    feature_ref: "F1"
+    behavior_ref: "F1-B2"
+    description: "Inbox supports project filtering"
+    expected_behavior: >
+      User selects a project filter. Only tasks from the selected project
+      are shown. Removing the filter restores all tasks.
+    pass_criteria:
+      - "Filtered view shows only tasks from selected project"
+      - "Removing filter restores complete task list"
+    automation: "automated"
+
+  - id: "SC-AI-001"
+    feature_ref: "F2"
+    behavior_ref: "F2-B1"
+    description: "Priority score computation uses deadline and blocker signals"
+    given: "A task with an upcoming deadline (2 days) and 2 blockers"
+    when: "The priority score is computed"
+    then: "The score is higher than a task with no deadline and no blockers"
+    expected_behavior: >
+      Given a task with an upcoming deadline (2 days) and 2 blockers,
+      the priority score is higher than a task with no deadline and no blockers.
+    pass_criteria:
+      - "Task with deadline+blockers has higher score"
+      - "Score components are traceable"
+    automation: "automated"
+
+  - id: "SC-AUTO-001"
+    feature_ref: "F3"
+    behavior_ref: "F3-B1"
+    description: "PR open event transitions task to in-review"
+    given: "A PR is opened referencing task T-42"
+    when: "The webhook handler processes the PR open event"
+    then: "Task T-42 state transitions from 'in-progress' to 'in-review'"
+    expected_behavior: >
+      When a PR is opened referencing task T-42, the task state
+      transitions from 'in-progress' to 'in-review' automatically.
+    pass_criteria:
+      - "Task T-42 state changes to 'in-review'"
+      - "Transition is logged in audit trail"
+    automation: "automated"

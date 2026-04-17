@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ReadinessGauge } from '@/components/readiness-gauge';
 import { ReadinessBreakdown } from '@/components/readiness-breakdown';
 import { ChecklistItem } from '@/components/checklist-item';
+import { ChecklistCard } from '@/components/checklist-card';
 import { CTAButton } from '@/components/cta-button';
 import { useReadiness } from '@/components/readiness-provider';
 import type { ChecklistItemState } from '@/components/checklist-item';
@@ -25,6 +26,21 @@ interface ChecklistData {
   readonly description: string;
   readonly category: string;
   readonly steps: ReadonlyArray<ChecklistStepData>;
+}
+
+/** Mid-project API response types */
+interface ChecklistWithMetaData {
+  readonly checklist: ChecklistData;
+  readonly status: 'not-started' | 'in-progress' | 'completed';
+  readonly completedSteps: number;
+  readonly totalSteps: number;
+  readonly readinessImpact: number;
+}
+
+interface MidProjectData {
+  readonly active: ReadonlyArray<ChecklistWithMetaData>;
+  readonly completed: ReadonlyArray<ChecklistWithMetaData>;
+  readonly selectionRationale: string;
 }
 
 /**
@@ -50,14 +66,13 @@ function countDone(_steps: ReadonlyArray<ChecklistStepData>): number {
 /**
  * Checklists instrument page.
  *
- * Displays a readiness gauge and guided procedures mapped to Meridian plays.
- * In greenfield state (readiness 0), shows exactly one onboarding checklist with
- * only the first step actionable (CTA visible) and steps 2–5 locked.
- * No empty sections, skeleton UI, or placeholder content.
+ * Two layouts based on readiness score:
+ * - Greenfield (score === 0): Single onboarding checklist, hero gauge, locked steps.
+ * - Mid-project (score > 0): Multiple checklists ranked by readiness impact,
+ *   generative region explaining selection, completed checklists at bottom.
  *
- * Checklist definitions are loaded from the /api/checklists endpoint, which
- * reads YAML data files at runtime — no step arrays are hardcoded in this
- * component (VAL-CHECK-028).
+ * Checklist definitions are loaded from API endpoints — no step arrays are
+ * hardcoded in this component (VAL-CHECK-028).
  *
  * The readiness score and breakdown are consumed from ReadinessProvider context,
  * ensuring the gauge here is consistent with the mini-gauge in the top bar (VAL-CHECK-003).
@@ -66,23 +81,52 @@ function countDone(_steps: ReadonlyArray<ChecklistStepData>): number {
  *           VAL-CHECK-007 (one checklist in greenfield), VAL-CHECK-008 (5 steps),
  *           VAL-CHECK-009 (first step actionable, rest locked),
  *           VAL-CHECK-010 (no empty sections), VAL-CHECK-011 (hero gauge centered),
+ *           VAL-CHECK-012 (multiple checklists in mid-project),
+ *           VAL-CHECK-013 (title, progress, status without expanding),
+ *           VAL-CHECK-014 (expand/collapse toggling),
+ *           VAL-CHECK-015 (completed checklists at bottom),
+ *           VAL-CHECK-016 (ordered by readiness impact),
+ *           VAL-CHECK-017 (generative region above checklists),
  *           VAL-CHECK-028 (no hardcoded steps)
  */
 export default function ChecklistsPage() {
   const { score, breakdown } = useReadiness();
+
+  // Greenfield data
   const [checklists, setChecklists] = useState<ChecklistData[]>([]);
+
+  // Mid-project data
+  const [midProjectData, setMidProjectData] = useState<MidProjectData | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchChecklists = useCallback(async () => {
+  const isGreenfield = score === 0;
+
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/checklists');
-      if (!res.ok) {
-        throw new Error(`Failed to load checklists: ${res.status}`);
+
+      if (isGreenfield) {
+        // Greenfield: fetch all checklists and show the onboarding one
+        const res = await fetch('/api/checklists');
+        if (!res.ok) {
+          throw new Error(`Failed to load checklists: ${res.status}`);
+        }
+        const data = (await res.json()) as { checklists: ChecklistData[] };
+        setChecklists(data.checklists);
+        setMidProjectData(null);
+      } else {
+        // Mid-project: fetch selected & ordered checklists
+        const res = await fetch('/api/checklists/midproject');
+        if (!res.ok) {
+          throw new Error(`Failed to load mid-project checklists: ${res.status}`);
+        }
+        const data = (await res.json()) as MidProjectData;
+        setMidProjectData(data);
+        setChecklists([]);
       }
-      const data = (await res.json()) as { checklists: ChecklistData[] };
-      setChecklists(data.checklists);
+
       setError(null);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -90,21 +134,16 @@ export default function ChecklistsPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isGreenfield]);
 
   useEffect(() => {
-    void fetchChecklists();
-  }, [fetchChecklists]);
+    void fetchData();
+  }, [fetchData]);
 
-  // In greenfield state (score === 0), show only the onboarding checklist.
-  // When score > 0, mid-project view will be implemented by mdb-checklists-midproject.
-  const isGreenfield = score === 0;
+  // Greenfield state — single onboarding checklist
   const greenfieldChecklist = checklists.find((c) => c.id === 'greenfield-onboarding');
-  const activeChecklist = isGreenfield ? greenfieldChecklist : greenfieldChecklist;
-
-  // Compute done count for progress display
-  const doneCount = activeChecklist ? countDone(activeChecklist.steps) : 0;
-  const totalSteps = activeChecklist ? activeChecklist.steps.length : 0;
+  const doneCount = greenfieldChecklist ? countDone(greenfieldChecklist.steps) : 0;
+  const totalSteps = greenfieldChecklist ? greenfieldChecklist.steps.length : 0;
 
   return (
     <div data-testid="checklists-view">
@@ -130,13 +169,15 @@ export default function ChecklistsPage() {
         </div>
       )}
 
-      {/* Onboarding checklist — exactly one checklist in greenfield (VAL-CHECK-007)
-          No loading skeleton, no empty sections (VAL-CHECK-010) */}
-      {!loading && !error && activeChecklist && (
+      {/* ═══════════════════════════════════════════════════════════════════
+         GREENFIELD VIEW (score === 0)
+         Exactly one onboarding checklist, hero gauge, locked steps.
+         ═══════════════════════════════════════════════════════════════════ */}
+      {isGreenfield && !loading && !error && greenfieldChecklist && (
         <section
           data-testid="checklist-card"
           className="mx-auto max-w-2xl"
-          aria-label={activeChecklist.title}
+          aria-label={greenfieldChecklist.title}
         >
           {/* Checklist card header with title + progress */}
           <div className="rounded-t-lg border border-b-0 border-gray-700 bg-gray-900/80 px-6 py-4">
@@ -145,7 +186,7 @@ export default function ChecklistsPage() {
                 className="text-base font-semibold uppercase tracking-wide text-white"
                 data-testid="checklist-title"
               >
-                {activeChecklist.title}
+                {greenfieldChecklist.title}
               </h2>
               <span className="text-sm tabular-nums text-gray-400" data-testid="checklist-progress">
                 {doneCount} / {totalSteps} done
@@ -158,7 +199,7 @@ export default function ChecklistsPage() {
             className="divide-y divide-gray-800/50 rounded-b-lg border border-gray-700 bg-gray-900/50"
             data-testid="checklist-steps"
           >
-            {activeChecklist.steps.map((step, index) => {
+            {greenfieldChecklist.steps.map((step, index) => {
               const state = deriveStepState(index);
               const isActionable = state === 'in-progress' || state === 'pending';
               const isLocked = state === 'locked';
@@ -206,6 +247,81 @@ export default function ChecklistsPage() {
             })}
           </div>
         </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════
+         MID-PROJECT VIEW (score > 0)
+         Multiple checklists ranked by readiness impact, generative region,
+         completed checklists collapsed at bottom.
+         ═══════════════════════════════════════════════════════════════════ */}
+      {!isGreenfield && !loading && !error && midProjectData && (
+        <div className="mx-auto max-w-2xl space-y-6" data-testid="midproject-checklists">
+          {/* Generative region — explains checklist selection (VAL-CHECK-017) */}
+          <div
+            data-testid="generative-region"
+            className="rounded-lg border border-dashed border-gray-600 bg-gray-900/30 px-5 py-4"
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-lg" aria-hidden="true">
+                🤖
+              </span>
+              <p
+                className="text-sm leading-relaxed text-gray-300"
+                data-testid="selection-rationale"
+              >
+                {midProjectData.selectionRationale}
+              </p>
+            </div>
+          </div>
+
+          {/* Active checklists — ordered by readiness impact (VAL-CHECK-016) */}
+          {midProjectData.active.length > 0 && (
+            <div className="space-y-4" data-testid="active-checklists">
+              {midProjectData.active.map((item, index) => (
+                <ChecklistCard
+                  key={item.checklist.id}
+                  id={item.checklist.id}
+                  title={item.checklist.title}
+                  steps={item.checklist.steps}
+                  completedSteps={item.completedSteps}
+                  totalSteps={item.totalSteps}
+                  status={item.status}
+                  defaultExpanded={index === 0}
+                  onStepExecute={(playName) => {
+                    // Play execution will be implemented by mdb-checklist-step-execution
+                    console.log(`[mdb] Executing play: ${playName}`);
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Completed checklists — collapsed at bottom, muted (VAL-CHECK-015) */}
+          {midProjectData.completed.length > 0 && (
+            <div data-testid="completed-checklists" className="mt-8">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Completed
+                </span>
+                <div className="h-px flex-1 bg-gray-800" />
+              </div>
+              <div className="space-y-2">
+                {midProjectData.completed.map((item) => (
+                  <ChecklistCard
+                    key={item.checklist.id}
+                    id={item.checklist.id}
+                    title={item.checklist.title}
+                    steps={item.checklist.steps}
+                    completedSteps={item.completedSteps}
+                    totalSteps={item.totalSteps}
+                    status={item.status}
+                    muted
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
