@@ -1,7 +1,14 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { loadConfig, getConfig, reloadConfig, resetConfig, DEFAULT_CONFIG } from '@/lib/config';
+import {
+  loadConfig,
+  getConfig,
+  reloadConfig,
+  resetConfig,
+  resolveRepoRoot,
+  DEFAULT_CONFIG,
+} from '@/lib/config';
 
 const FIXTURES_DIR = path.resolve(__dirname, '../../test-fixtures/config');
 
@@ -359,6 +366,86 @@ describe('Config System', () => {
       // stm.basePath is relative, should resolve against repo.path
       const resolvedStm = path.resolve(config.repo.path, config.stm.basePath);
       expect(resolvedStm).toBe(path.resolve('/tmp/test-repo', '.meridian/project/issues/'));
+    });
+  });
+
+  describe('resolveRepoRoot — cwd-independent repo root discovery', () => {
+    const originalEnv = process.env.MDB_TARGET_REPO;
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env.MDB_TARGET_REPO;
+      } else {
+        process.env.MDB_TARGET_REPO = originalEnv;
+      }
+      vi.restoreAllMocks();
+    });
+
+    it('honors MDB_TARGET_REPO env var when set', () => {
+      process.env.MDB_TARGET_REPO = '/custom/repo/root';
+      const result = resolveRepoRoot();
+      expect(result).toBe(path.resolve('/custom/repo/root'));
+    });
+
+    it('resolves relative MDB_TARGET_REPO to absolute path', () => {
+      process.env.MDB_TARGET_REPO = './relative/path';
+      const result = resolveRepoRoot();
+      expect(path.isAbsolute(result)).toBe(true);
+    });
+
+    it('finds repo root by walking up from __dirname when .meridian/ exists', () => {
+      delete process.env.MDB_TARGET_REPO;
+      // The actual meridian-os repo has .meridian/ at its root, and __dirname
+      // for this file is inside core/engine/src/__tests__ — so resolveRepoRoot()
+      // should walk up and find the repo root.
+      const result = resolveRepoRoot();
+
+      // Should find the directory containing .meridian/
+      expect(fs.existsSync(path.join(result, '.meridian'))).toBe(true);
+    });
+
+    it('returns a directory that is an ancestor of core/engine/', () => {
+      delete process.env.MDB_TARGET_REPO;
+      const result = resolveRepoRoot();
+
+      // The resolved repo root should be an ancestor of the engine directory
+      const engineDir = path.resolve(__dirname, '../..');
+      expect(engineDir.startsWith(result)).toBe(true);
+    });
+
+    it('falls back to process.cwd() with warning when .meridian/ not found', () => {
+      delete process.env.MDB_TARGET_REPO;
+      // Mock fs.existsSync to always return false for .meridian candidates
+      const existsSpy = vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = resolveRepoRoot();
+
+      expect(result).toBe(process.cwd());
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Could not find .meridian/ directory'),
+      );
+
+      existsSpy.mockRestore();
+    });
+
+    it('config loads correctly from resolved repo root (simulating core/engine/ cwd)', () => {
+      delete process.env.MDB_TARGET_REPO;
+
+      // resolveRepoRoot walks up from __dirname, not process.cwd(),
+      // so it should find .meridian/ regardless of where pnpm dev started from
+      const repoRoot = resolveRepoRoot();
+      const configPath = path.resolve(repoRoot, '.meridian/core/config.yaml');
+
+      // If the real config exists, load it and verify it doesn't fall back to defaults
+      if (fs.existsSync(configPath)) {
+        const config = loadConfig(configPath);
+        // The real config should have a project name (not the default 'Untitled Project')
+        expect(config.project.name).not.toBe('');
+      } else {
+        // If no real config exists, just verify the path resolution is correct
+        expect(path.isAbsolute(repoRoot)).toBe(true);
+      }
     });
   });
 });

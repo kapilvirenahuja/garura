@@ -9,6 +9,7 @@
  */
 
 import fs from 'node:fs';
+import path from 'node:path';
 import yaml from 'js-yaml';
 
 // ---------------------------------------------------------------------------
@@ -86,6 +87,49 @@ interface RawConfig {
     skills?: string;
     agents?: string;
   };
+}
+
+// ---------------------------------------------------------------------------
+// Repo root resolution
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the repository root directory independently of process.cwd().
+ *
+ * Resolution order:
+ * 1. `MDB_TARGET_REPO` env var — explicit override
+ * 2. Walk up from this file's directory (__dirname) looking for the nearest
+ *    directory containing a `.meridian/` subdirectory.
+ * 3. Fall back to `process.cwd()` with a warning when `.meridian/` cannot be
+ *    found anywhere in the ancestor chain.
+ */
+export function resolveRepoRoot(): string {
+  // 1. Explicit env var override
+  const envRoot = process.env.MDB_TARGET_REPO;
+  if (envRoot) {
+    return path.resolve(envRoot);
+  }
+
+  // 2. Walk up from __dirname to find nearest .meridian/
+  let current = __dirname;
+  const root = path.parse(current).root;
+
+  while (current !== root) {
+    const candidate = path.join(current, '.meridian');
+    if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+      return current;
+    }
+    const parent = path.dirname(current);
+    if (parent === current) break; // safety: reached filesystem root
+    current = parent;
+  }
+
+  // 3. Fallback to cwd with warning
+  console.warn(
+    '[mdb-config] Could not find .meridian/ directory in any ancestor of ' +
+      `${__dirname} — falling back to process.cwd() (${process.cwd()})`,
+  );
+  return process.cwd();
 }
 
 // ---------------------------------------------------------------------------
