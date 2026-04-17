@@ -1,0 +1,6 @@
+# Partial config — only some keys present
+project:
+  name: PartialProject
+
+repo:
+  path: /tmp/partial-repo

@@ -1,0 +1,17 @@
+# Valid test configuration
+project:
+  name: TestProject
+  type: Test Application
+
+repo:
+  path: /tmp/test-repo
+
+stm:
+  base-path: .meridian/project/issues/
+
+product:
+  base-path: .meridian/product/
+
+components:
+  skills: ./core/components/skills/
+  agents: ./core/components/agents/
