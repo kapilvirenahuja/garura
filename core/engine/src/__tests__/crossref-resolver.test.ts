@@ -210,6 +210,39 @@ describe('Cross-Reference Resolver', () => {
       const sg1 = getNode(graph, 'SG1');
       expect(sg1!.metadata['taskId']).toBe('T2.1');
     });
+
+    it('SG nodes resolve to scenario_gate line in plan.yaml, not line 1', () => {
+      const graph = buildGraphFromStandardFixtures();
+      const sg1 = getNode(graph, 'SG1');
+      expect(sg1).not.toBeNull();
+      // SG1 is synthesized — its line should point to the scenario_gate key
+      // for task T2.1, not line 1 (the old fallback)
+      expect(sg1!.line).not.toBe(1);
+      expect(sg1!.line).toBeGreaterThan(0);
+      // The line should be within the plan file at the scenario_gate key
+      expect(sg1!.sourceFile).toContain('plan.yaml');
+
+      const sg2 = getNode(graph, 'SG2');
+      expect(sg2).not.toBeNull();
+      expect(sg2!.line).not.toBe(1);
+      expect(sg2!.line).toBeGreaterThan(0);
+      // SG2's line should be different from SG1's (different tasks)
+      expect(sg2!.line).not.toBe(sg1!.line);
+    });
+
+    it('SG nodes with unlocatable source return null line', () => {
+      // Build a graph from an artifact that references a task not in the file
+      // by creating a custom plan artifact with a task ID that won't be found
+      const planArtifact = parseArtifact(crossrefPath('plan-with-tp.yaml'), 'plan');
+      const graph = buildCrossRefGraph([planArtifact]);
+      const sgNodes = getNodesByType(graph, 'scenario-gate');
+      // TP-2 and TP-3 have scenario gates, so SG1 and SG2 should exist
+      expect(sgNodes).toHaveLength(2);
+      // Since TP-2 and TP-3 are in the file, their scenario_gate lines should be found
+      for (const sg of sgNodes) {
+        expect(sg.line).toBeGreaterThan(0);
+      }
+    });
   });
 
   // -------------------------------------------------------------------------

@@ -179,6 +179,37 @@ describe('parseArtifact — scenarios.yaml (VAL-FOUND-014)', () => {
     expect(featureRefs).toContain('F2');
     expect(featureRefs).toContain('F3');
   });
+
+  it('extracts given/when/then BDD fields when present', () => {
+    const result = parseArtifact<ScenariosContent>(fixturePath('scenarios.yaml'));
+    const content = result.content!;
+
+    // SC-AI-001 has given/when/then
+    const scAi = content.scenarios.find((s) => s.id === 'SC-AI-001')!;
+    expect(scAi.given).toContain('upcoming deadline');
+    expect(scAi.when).toContain('priority score is computed');
+    expect(scAi.then).toContain('score is higher');
+
+    // SC-AUTO-001 also has given/when/then
+    const scAuto = content.scenarios.find((s) => s.id === 'SC-AUTO-001')!;
+    expect(scAuto.given).toContain('PR is opened');
+    expect(scAuto.when).toContain('webhook handler');
+    expect(scAuto.then).toContain('in-review');
+  });
+
+  it('omits given/when/then fields when not present in YAML', () => {
+    const result = parseArtifact<ScenariosContent>(fixturePath('scenarios.yaml'));
+    const content = result.content!;
+
+    // SC-TASK-001 does NOT have given/when/then
+    const scTask = content.scenarios.find((s) => s.id === 'SC-TASK-001')!;
+    expect(scTask.given).toBeUndefined();
+    expect(scTask.when).toBeUndefined();
+    expect(scTask.then).toBeUndefined();
+
+    // existing fields still present
+    expect(scTask.expectedBehavior).toContain('sorted by');
+  });
 });
 
 // ---------------------------------------------------------------------------

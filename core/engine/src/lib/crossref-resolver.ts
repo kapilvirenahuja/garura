@@ -45,7 +45,7 @@ export interface GraphNode {
   readonly id: string;
   readonly type: NodeType;
   readonly sourceFile: string;
-  readonly line: number;
+  readonly line: number | null;
   readonly content: string;
   readonly parentId: string | null;
   readonly metadata: Readonly<Record<string, unknown>>;
@@ -56,7 +56,7 @@ export interface ResolvedReference {
   readonly id: string;
   readonly type: NodeType;
   readonly sourceFile: string;
-  readonly line: number;
+  readonly line: number | null;
   readonly content: string;
 }
 
@@ -86,9 +86,9 @@ export interface CrossRefGraph {
 
 /**
  * Find the 1-based line number where an ID first appears in a file.
- * Returns 0 if the file cannot be read or the ID is not found.
+ * Returns null if the file cannot be read or the ID is not found.
  */
-function findLineForId(filePath: string, id: string): number {
+function findLineForId(filePath: string, id: string): number | null {
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
     const lines = content.split('\n');
@@ -97,9 +97,43 @@ function findLineForId(filePath: string, id: string): number {
         return i + 1;
       }
     }
-    return 1; // fallback to first line if ID pattern not found literally
+    return null; // ID not found in file
   } catch {
-    return 0;
+    return null;
+  }
+}
+
+/**
+ * Find the 1-based line number of the `scenario_gate` key associated with
+ * a given task ID in a file. Searches for the task ID first, then scans
+ * forward for the next `scenario_gate` occurrence.
+ * Returns null if neither can be located.
+ */
+function findLineForScenarioGate(filePath: string, taskId: string): number | null {
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n');
+    let taskLine = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i]?.includes(taskId)) {
+        taskLine = i;
+        break;
+      }
+    }
+    if (taskLine < 0) return null;
+    // Scan forward from task line for scenario_gate key
+    for (let i = taskLine; i < lines.length; i++) {
+      if (lines[i]?.includes('scenario_gate')) {
+        return i + 1;
+      }
+      // Stop if we hit the next task entry (a new `- id:` block)
+      if (i > taskLine && /^\s*-\s+id:/.test(lines[i] ?? '')) {
+        break;
+      }
+    }
+    return null;
+  } catch {
+    return null;
   }
 }
 
@@ -115,9 +149,10 @@ function addNode(
   content: string,
   parentId: string | null,
   metadata: Record<string, unknown>,
+  lineOverride?: number | null,
 ): void {
   if (!id || nodes.has(id)) return;
-  const line = findLineForId(sourceFile, id);
+  const line = lineOverride !== undefined ? lineOverride : findLineForId(sourceFile, id);
   nodes.set(id, { id, type, sourceFile, line, content, parentId, metadata });
 }
 
@@ -233,12 +268,25 @@ function extractFromPlan(
       sgCounter++;
       const sgId = `SG${sgCounter}`;
 
-      addNode(nodes, sgId, 'scenario-gate', filePath, `Scenario gate for ${task.id}`, null, {
-        taskId: task.id,
-        milestoneId,
-        scenarioIds: task.scenarioGate.scenarioIds,
-        count: task.scenarioGate.count,
-      });
+      // SG* IDs are synthesized and won't appear literally in the file.
+      // Resolve line to the task's scenario_gate key instead.
+      const sgLine = findLineForScenarioGate(filePath, task.id);
+
+      addNode(
+        nodes,
+        sgId,
+        'scenario-gate',
+        filePath,
+        `Scenario gate for ${task.id}`,
+        null,
+        {
+          taskId: task.id,
+          milestoneId,
+          scenarioIds: task.scenarioGate.scenarioIds,
+          count: task.scenarioGate.count,
+        },
+        sgLine,
+      );
 
       // Edge: SG references its scenarios
       for (const scenarioId of task.scenarioGate.scenarioIds) {

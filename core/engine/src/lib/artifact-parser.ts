@@ -75,6 +75,9 @@ export interface ScenarioEntry {
   readonly featureRef: string;
   readonly behaviorRef?: string;
   readonly description: string;
+  readonly given?: string;
+  readonly when?: string;
+  readonly then?: string;
   readonly expectedBehavior?: string;
   readonly passCriteria?: ReadonlyArray<string>;
   readonly automation?: string;
@@ -468,11 +471,17 @@ function normalizeScenarios(raw: Record<string, unknown>): ScenariosContent {
   const rawScenarios = asArray<unknown>(raw['scenarios']);
   const scenarios: ScenarioEntry[] = rawScenarios.map((s) => {
     const obj = asRecord(s);
+    const givenVal = obj['given'];
+    const whenVal = obj['when'];
+    const thenVal = obj['then'];
     return {
       id: asString(obj['id']),
       featureRef: asString(obj['feature_ref'] ?? obj['featureRef']),
       behaviorRef: asString(obj['behavior_ref'] ?? obj['behaviorRef']),
       description: asString(obj['description']),
+      ...(givenVal !== undefined && givenVal !== null ? { given: asString(givenVal) } : {}),
+      ...(whenVal !== undefined && whenVal !== null ? { when: asString(whenVal) } : {}),
+      ...(thenVal !== undefined && thenVal !== null ? { then: asString(thenVal) } : {}),
       expectedBehavior: asString(obj['expected_behavior'] ?? obj['expectedBehavior']),
       passCriteria: asArray<string>(obj['pass_criteria'] ?? obj['passCriteria']),
       automation: asString(obj['automation']),

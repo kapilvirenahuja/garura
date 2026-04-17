@@ -35,6 +35,9 @@ scenarios:
     feature_ref: "F2"
     behavior_ref: "F2-B1"
     description: "Priority score computation uses deadline and blocker signals"
+    given: "A task with an upcoming deadline (2 days) and 2 blockers"
+    when: "The priority score is computed"
+    then: "The score is higher than a task with no deadline and no blockers"
     expected_behavior: >
       Given a task with an upcoming deadline (2 days) and 2 blockers,
       the priority score is higher than a task with no deadline and no blockers.
@@ -47,6 +50,9 @@ scenarios:
     feature_ref: "F3"
     behavior_ref: "F3-B1"
     description: "PR open event transitions task to in-review"
+    given: "A PR is opened referencing task T-42"
+    when: "The webhook handler processes the PR open event"
+    then: "Task T-42 state transitions from 'in-progress' to 'in-review'"
     expected_behavior: >
       When a PR is opened referencing task T-42, the task state
       transitions from 'in-progress' to 'in-review' automatically.
