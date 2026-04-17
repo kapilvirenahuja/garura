@@ -141,13 +141,13 @@ package-lock.json
 docs/_build/
 site/
 
-# Meridian specific
+# Garura specific
 temp/*.md
 !temp/README.md
 .trees/
 test-project/
-.meridian/core/memory/
-.meridian/_pending/
+.garura/core/memory/
+.garura/_pending/
 
 # GitHub Actions artifacts (for future contributor automation)
 .github/actions/artifacts/
