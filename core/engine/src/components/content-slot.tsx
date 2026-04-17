@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { CrossRefToken } from '@/components/cross-ref-token';
+import { parseOutputTokens } from '@/lib/output-tokens';
 
 /**
  * Lifecycle states of a ContentSlot.
@@ -43,6 +45,52 @@ export interface ContentSlotProps {
    * finished output (VAL-ACTION-018).
    */
   defaultExpanded?: boolean;
+  /**
+   * When true (the default), scan the streamed output for `[REFID]`
+   * tokens (e.g. `[F1]`, `[SC-AUTH-001]`) and render them as clickable
+   * {@link CrossRefToken}s that navigate to the Playbook Reader with
+   * the referenced entity's context.
+   *
+   * Disable by passing `tokenizeOutput={false}` in contexts where
+   * cross-ref resolution is handled by the caller (e.g. tests).
+   *
+   * Fulfills: VAL-CROSS-002 (checklist/CTA output tokens navigate to Playbook).
+   */
+  tokenizeOutput?: boolean;
+  /**
+   * Optional override for the token click handler. When omitted, the
+   * default handler navigates to `/playbook?context=<refId>` via the
+   * browser's `window.location` — keeping the component usable from any
+   * rendering context (no router provider required).
+   */
+  onTokenClick?: (refId: string) => void;
+}
+
+/**
+ * Renders a streamed output string as a mix of plain text and interactive
+ * CrossRefTokens. Splits the input on the output-token regex and emits a
+ * {@link CrossRefToken} for each recognised `[ID]` pattern. Plain text
+ * flows through as-is so whitespace, newlines, and any ANSI-free output
+ * are preserved.
+ *
+ * When `onTokenClick` is provided it is called with the clicked refId —
+ * otherwise the component falls back to a router push into the Playbook
+ * Reader.
+ */
+function renderOutputWithTokens(
+  text: string,
+  onTokenClick: (refId: string) => void,
+): React.ReactNode {
+  if (!text) return null;
+  const segments = parseOutputTokens(text);
+  if (segments.length === 0) return text;
+  return segments.map((seg, i) =>
+    seg.type === 'text' ? (
+      <span key={i}>{seg.text}</span>
+    ) : (
+      <CrossRefToken key={i} refId={seg.refId} onClick={onTokenClick} />
+    ),
+  );
 }
 
 /**
@@ -91,7 +139,37 @@ export function ContentSlot({
   errorMessage,
   summary,
   defaultExpanded = false,
+  tokenizeOutput = true,
+  onTokenClick,
 }: ContentSlotProps) {
+  // Wire token clicks → Playbook Reader context navigation. We don't
+  // take a dependency on `useRouter` here because ContentSlot is rendered
+  // in many surfaces (tests, Storybook, static snapshots) where the App
+  // Router context may not be mounted. Instead we fall back to the
+  // browser's own navigation, which works anywhere `window` exists.
+  const handleTokenClick = useCallback(
+    (refId: string) => {
+      if (onTokenClick) {
+        onTokenClick(refId);
+        return;
+      }
+      if (typeof window !== 'undefined') {
+        window.location.href = `/playbook?context=${encodeURIComponent(refId)}`;
+      }
+    },
+    [onTokenClick],
+  );
+
+  // Single entry point for token-aware rendering. When tokenisation is
+  // disabled, return the raw text — callers can still read the string
+  // via data-testid="content-slot-content".
+  const renderOutput = useCallback(
+    (text: string): React.ReactNode => {
+      if (!tokenizeOutput) return text;
+      return renderOutputWithTokens(text, handleTokenClick);
+    },
+    [tokenizeOutput, handleTokenClick],
+  );
   // Mount-time entrance animation. `mounted` flips from false → true on
   // the first paint after the DOM node attaches, which drives the
   // opacity + translate transition that gives the slot its smooth
@@ -160,7 +238,7 @@ export function ContentSlot({
             data-testid="content-slot-content"
             className="mt-2 whitespace-pre-wrap font-mono text-sm text-gray-400"
           >
-            {content}
+            {renderOutput(content)}
           </pre>
         )}
       </div>
@@ -222,7 +300,7 @@ export function ContentSlot({
               data-testid="content-slot-content"
               className="max-h-[40rem] overflow-auto border-t border-emerald-800/50 bg-emerald-950/10 px-4 py-3 whitespace-pre-wrap font-mono text-sm text-gray-300"
             >
-              {content}
+              {renderOutput(content)}
             </pre>
           ) : (
             <p className="border-t border-emerald-800/50 px-4 py-3 text-sm text-gray-500 italic">
@@ -267,7 +345,7 @@ export function ContentSlot({
         data-testid="content-slot-content"
         className="whitespace-pre-wrap font-mono text-sm text-gray-300"
       >
-        {content}
+        {renderOutput(content)}
       </pre>
     </div>
   );

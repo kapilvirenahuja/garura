@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ChecklistItem } from '@/components/checklist-item';
 import { ContentSlot } from '@/components/content-slot';
 import { CTAButton } from '@/components/cta-button';
@@ -73,11 +73,30 @@ export interface ChecklistCardProps {
    * AI-composed narrative for that epic. Fulfills VAL-CROSS-001.
    */
   readonly relatedEpic?: ChecklistRelatedEpic;
+  /**
+   * When true, persist the expand/collapse state of this card to
+   * `sessionStorage` under the shared {@link CHECKLIST_EXPANSION_KEY}.
+   * Returning to the Checklists instrument after switching tabs picks
+   * the state back up so the user finds their cards in the same state
+   * they left them (VAL-CROSS-011).
+   *
+   * Defaults to `false` — opt-in at the page level (see ChecklistsPage)
+   * so standalone component tests remain unaffected by cross-run
+   * sessionStorage state.
+   */
+  readonly persistExpansion?: boolean;
 }
 
 // ---------------------------------------------------------------------------
 // Status badge config
 // ---------------------------------------------------------------------------
+
+/**
+ * Key used to persist per-card expansion state across tab switches
+ * (VAL-CROSS-011). The value is a JSON object mapping checklist id →
+ * boolean (`expanded`). Exported so tests can clear state between runs.
+ */
+export const CHECKLIST_EXPANSION_KEY = 'mdb:checklists:expanded';
 
 const STATUS_CONFIG: Record<
   ChecklistCardStatus,
@@ -133,8 +152,45 @@ export function ChecklistCard({
   ctaDisabled = false,
   elapsedSeconds = 0,
   relatedEpic,
+  persistExpansion = false,
 }: ChecklistCardProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
+  // Persist expansion state across tab switches via sessionStorage so
+  // users returning to the Checklists instrument see the same cards
+  // expanded as when they left (VAL-CROSS-011). Opt-in via
+  // `persistExpansion` so standalone component tests can remain
+  // insulated from cross-test state.
+  const [expanded, setExpanded] = useState(() => {
+    if (!persistExpansion || typeof window === 'undefined') return defaultExpanded;
+    try {
+      const raw = window.sessionStorage.getItem(CHECKLIST_EXPANSION_KEY);
+      if (!raw) return defaultExpanded;
+      const parsed = JSON.parse(raw) as unknown;
+      if (!parsed || typeof parsed !== 'object') return defaultExpanded;
+      const map = parsed as Record<string, boolean>;
+      if (Object.prototype.hasOwnProperty.call(map, id)) {
+        return Boolean(map[id]);
+      }
+    } catch {
+      /* ignore */
+    }
+    return defaultExpanded;
+  });
+
+  // Persist expansion changes back to sessionStorage so the next mount
+  // picks them up. We merge with any existing entries so toggling one
+  // card does not wipe sibling card state.
+  useEffect(() => {
+    if (!persistExpansion || typeof window === 'undefined') return;
+    try {
+      const raw = window.sessionStorage.getItem(CHECKLIST_EXPANSION_KEY);
+      const current: Record<string, boolean> =
+        raw && typeof raw === 'string' ? (JSON.parse(raw) as Record<string, boolean>) : {};
+      current[id] = expanded;
+      window.sessionStorage.setItem(CHECKLIST_EXPANSION_KEY, JSON.stringify(current));
+    } catch {
+      /* sessionStorage disabled — ignore */
+    }
+  }, [id, expanded, persistExpansion]);
   const statusConfig = STATUS_CONFIG[status];
 
   // Does the provided execution belong to THIS checklist at all?

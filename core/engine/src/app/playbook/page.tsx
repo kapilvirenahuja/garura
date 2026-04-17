@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CrossRefToken } from '@/components/cross-ref-token';
 import { InlineExpansion } from '@/components/inline-expansion';
@@ -70,12 +70,21 @@ const SAMPLE_ENTITIES: Readonly<Record<string, EntityDetail>> = {
  *
  * Fulfills: mdb-playbook-entry-points
  */
+/**
+ * sessionStorage key holding the last non-trivial Playbook URL
+ * (including `?context=` or `?query=`) so returning to the Playbook tab
+ * via the shell's instrument switcher lands on the last-viewed narrative
+ * rather than the generic empty state (VAL-CROSS-012).
+ */
+const PLAYBOOK_LAST_URL_KEY = 'mdb:playbook:last-url';
+
 export default function PlaybookPage() {
   // usePathname() is retained for test environments that mock it, and to
   // keep the shell consistent with other instruments.
   usePathname();
 
   const { setExtras, clearExtras } = useBreadcrumbExtras();
+  const router = useRouter();
 
   // Read `context` and `query` search params via Next.js'
   // `useSearchParams()` hook so that client-side router navigation
@@ -84,6 +93,45 @@ export default function PlaybookPage() {
   const searchParams = useSearchParams();
   const context = (searchParams?.get('context') ?? '').trim();
   const query = (searchParams?.get('query') ?? '').trim();
+
+  // Last-URL preservation (VAL-CROSS-012).
+  //
+  // When the user is reading a narrative (e.g. `/playbook?context=E1`) and
+  // switches to another instrument via the top-bar tab, the shell's link
+  // points to `/playbook` (base href). On return, React would otherwise
+  // drop them into the empty state — losing the reading context.
+  //
+  // To preserve context, we:
+  //   1. Persist every non-empty context/query URL to sessionStorage.
+  //   2. On entry with NO params (i.e. the user landed on `/playbook`
+  //      root), check sessionStorage and redirect to the last URL if
+  //      one was saved.
+  //
+  // We use `router.replace` so the restored URL does not add a history
+  // entry — the Checklists/Flight-Deck → Playbook tab-switch remains a
+  // single forward navigation from the browser's perspective.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (context || query) {
+      // Save current URL for future restoration.
+      try {
+        const current = `${window.location.pathname}${window.location.search}`;
+        window.sessionStorage.setItem(PLAYBOOK_LAST_URL_KEY, current);
+      } catch {
+        /* sessionStorage disabled — ignore */
+      }
+      return;
+    }
+    // No params — try to restore the last URL.
+    try {
+      const saved = window.sessionStorage.getItem(PLAYBOOK_LAST_URL_KEY);
+      if (saved && saved.startsWith('/playbook?') && saved !== window.location.pathname) {
+        router.replace(saved);
+      }
+    } catch {
+      /* sessionStorage disabled — ignore */
+    }
+  }, [context, query, router]);
 
   // Narrative metadata flows back up from NarrativeView once the epic
   // name is known so the breadcrumb can show "Playbook › E1: Authentication"

@@ -28,6 +28,7 @@ import { CollapsedEntityExpansion, EntityExpansion } from '@/components/entity-e
 import { WikiTagText } from '@/components/wiki-tag-text';
 import { AnnotationLayer } from '@/components/annotation-layer';
 import { NarrativeAnnotationProvider } from '@/components/narrative-annotation-context';
+import { invalidateReadiness } from '@/components/readiness-provider';
 import type { CtaAction } from '@/lib/narrative-ctas';
 import type { Narrative, NarrativeChunk, NarrativeSection } from '@/lib/narrative-engine';
 
@@ -441,6 +442,11 @@ function NarrativeActions({ actions }: NarrativeActionsProps) {
                 // render (VAL-ACTION-018). The full output remains
                 // available inside the expanded body.
                 update((prev) => ({ ...prev, state: 'complete', output: accumulated }));
+                // Play completed from the Playbook Reader — invalidate
+                // the readiness cache so the top-bar mini-gauge and the
+                // Checklists large gauge refresh (VAL-CROSS-005,
+                // VAL-CROSS-010).
+                invalidateReadiness();
               } else if (event.type === 'error') {
                 update((prev) => ({
                   ...prev,
@@ -461,6 +467,8 @@ function NarrativeActions({ actions }: NarrativeActionsProps) {
         update((prev) =>
           prev.state === 'active' ? { ...prev, state: 'complete', output: accumulated } : prev,
         );
+        // Readiness may have changed on implicit completion too.
+        invalidateReadiness();
       })
       .catch((err: Error) => {
         if (err.name === 'AbortError') return;

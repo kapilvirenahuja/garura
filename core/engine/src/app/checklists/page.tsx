@@ -503,6 +503,7 @@ export default function ChecklistsPage() {
                     status={item.status}
                     muted
                     relatedEpic={item.checklist.relatedEpic}
+                    persistExpansion
                   />
                 ))}
               </div>
@@ -563,6 +564,7 @@ export default function ChecklistsPage() {
                     ctaDisabled={thisChecklistExecuting}
                     elapsedSeconds={elapsedSeconds}
                     relatedEpic={item.checklist.relatedEpic}
+                    persistExpansion
                   />
                 );
               })}
@@ -590,6 +592,7 @@ export default function ChecklistsPage() {
                     status={item.status}
                     muted
                     relatedEpic={item.checklist.relatedEpic}
+                    persistExpansion
                   />
                 ))}
               </div>

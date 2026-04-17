@@ -26,6 +26,26 @@ interface ReadinessContextValue {
   readonly refresh: () => void;
 }
 
+/**
+ * Global event fired when the readiness score may have changed (e.g.
+ * after a play execution completes). The `ReadinessProvider` listens
+ * for it and refetches `/api/readiness` so the mini-gauge and large
+ * gauge both update without waiting for the next poll (VAL-CROSS-010).
+ */
+export const READINESS_REFRESH_EVENT = 'mdb:readiness-invalidated';
+
+/** Fire the readiness-refresh event. Safe to call from any client-side
+ *  code path. Does nothing when `window` is unavailable (SSR / tests
+ *  without a DOM). */
+export function invalidateReadiness(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(new Event(READINESS_REFRESH_EVENT));
+  } catch {
+    /* non-DOM test env — ignore */
+  }
+}
+
 const DEFAULT_CONTEXT: ReadinessContextValue = {
   score: 0,
   breakdown: [],
@@ -106,6 +126,25 @@ export function ReadinessProvider({ children, pollInterval = 30000 }: ReadinessP
 
     return () => clearInterval(timer);
   }, [fetchReadiness, pollInterval]);
+
+  // Event-driven refresh — when a play completes (or other code signals
+  // that readiness may have changed), refetch immediately so the
+  // mini-gauge AND the large gauge on Checklists reflect the update
+  // without waiting for the next poll tick (VAL-CROSS-010).
+  //
+  // Emitters dispatch a `mdb:readiness-invalidated` CustomEvent on
+  // `window`. Multiple listeners are safe — every provider instance in
+  // the tree picks up the signal.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (): void => {
+      void fetchReadiness();
+    };
+    window.addEventListener(READINESS_REFRESH_EVENT, handler);
+    return () => {
+      window.removeEventListener(READINESS_REFRESH_EVENT, handler);
+    };
+  }, [fetchReadiness]);
 
   const value: ReadinessContextValue = {
     score,

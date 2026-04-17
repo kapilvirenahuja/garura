@@ -22,6 +22,7 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
+import { invalidateReadiness } from '@/components/readiness-provider';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -230,6 +231,9 @@ export function useStepExecution(): StepExecutionApi {
                     return next;
                   });
                   markStepComplete(checklistId);
+                  // Readiness may have changed — tell every gauge to refetch
+                  // (VAL-CROSS-010). Safe no-op in non-DOM environments.
+                  invalidateReadiness();
                   // NOTE: Execution is intentionally NOT deleted from the map
                   // on completion (VAL-CHECK-021). Keeping the completed output
                   // in state ensures the ContentSlot stays visible after the
@@ -280,6 +284,9 @@ export function useStepExecution(): StepExecutionApi {
               }
               return prev;
             });
+            // Same readiness-invalidation signal as the explicit
+            // `complete` event branch (VAL-CROSS-010).
+            invalidateReadiness();
           }
         })
         .catch((err: Error) => {
