@@ -104,7 +104,10 @@ describe('Git Integration', () => {
         execSync('git config user.name "Test"', { cwd: tempDir, stdio: 'ignore' });
         fs.writeFileSync(path.join(tempDir, 'file.txt'), 'hello');
         execSync('git add . && git commit -m "initial"', { cwd: tempDir, stdio: 'ignore' });
-        const commitHash = execSync('git rev-parse HEAD', { cwd: tempDir, encoding: 'utf-8' }).trim();
+        const commitHash = execSync('git rev-parse HEAD', {
+          cwd: tempDir,
+          encoding: 'utf-8',
+        }).trim();
         // Detach HEAD at the current commit
         execSync(`git checkout --detach ${commitHash}`, { cwd: tempDir, stdio: 'ignore' });
 
