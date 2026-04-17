@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MetricTile } from '@/components/metric-tile';
 import { AttentionCard, OnTrackCard } from '@/components/epic-card';
+import { PlayLogTable } from '@/components/play-log-table';
 import type { FlightDeckData } from '@/lib/flight-deck';
 
 /**
@@ -32,6 +33,10 @@ import type { FlightDeckData } from '@/lib/flight-deck';
  *   VAL-FLIGHT-023  Attention cards show issues
  *   VAL-FLIGHT-024  Open in Reader navigates to Playbook with epic context
  *   VAL-FLIGHT-025  Different CTAs on attention vs on-track
+ *   VAL-FLIGHT-018  Play log table with columns Time/Play/Epic/Status/Duration
+ *   VAL-FLIGHT-019  Play log sorted most-recent first (data-driven)
+ *   VAL-FLIGHT-020  Distinct colored status indicators in the play log
+ *   VAL-FLIGHT-021  Play log empty state message when no plays have run
  *   VAL-FLIGHT-033  Spatial hierarchy
  *   VAL-FLIGHT-034  Responsive layout adapts to viewport widths
  */
@@ -59,6 +64,8 @@ export default function FlightDeckPage() {
         attention: [],
         onTrack: [],
         metrics: { epicsInFlight: 0, activeDevelopers: 0, playsToday: 0, openIssues: 0 },
+        playLog: [],
+        playLogEmpty: true,
         empty: true,
         error: message,
         lastUpdatedIso: new Date().toISOString(),
@@ -205,6 +212,11 @@ export default function FlightDeckPage() {
           </div>
         </section>
       )}
+
+      {/* 4. Recent play activity — bottom of the spatial hierarchy
+          (VAL-FLIGHT-018..021, VAL-FLIGHT-033). Always rendered (either table
+          or empty-state panel) so the Flight Deck layout is consistent. */}
+      {!loading && data && <PlayLogTable entries={data.playLog} empty={data.playLogEmpty} />}
 
       {/* Error strip — visible next to the empty state so the user never sees a blank screen. */}
       {error && !loading && data?.empty && (

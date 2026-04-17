@@ -7,6 +7,7 @@
  *   - summary metric tiles  (epics in flight, active devs, plays today, open issues)
  *   - "Needs Attention"     (epics with failures — expanded cards with diagnostics)
  *   - "On Track"            (compact cards — green for healthy, yellow for stalled)
+ *   - "Recent play activity" (cross-epic play log sorted by most recent first)
  *
  * All values are derived from live discovery data — no hardcoded metrics.
  *
@@ -22,6 +23,10 @@
  *   VAL-FLIGHT-015  Plays Today counter
  *   VAL-FLIGHT-016  Open Issues counter
  *   VAL-FLIGHT-017  Metrics derived, not hardcoded
+ *   VAL-FLIGHT-018  Play log table columns and rendering data shape
+ *   VAL-FLIGHT-019  Play log sorted most-recent first
+ *   VAL-FLIGHT-020  Play log status indicators (DONE/FAIL/WARN/RUNNING)
+ *   VAL-FLIGHT-021  Play log empty state flag
  *   VAL-FLIGHT-022  Required fields on each epic card
  *   VAL-FLIGHT-023  Attention card shows issue references
  *   VAL-FLIGHT-025  Contextual CTA buttons
@@ -70,11 +75,45 @@ export interface FlightDeckMetrics {
   readonly openIssues: number;
 }
 
+/**
+ * Canonical play-log status used by the Flight Deck's "Recent play activity"
+ * table. Raw STM status strings (e.g. "success", "failed", "warn") are
+ * normalized onto this closed set so the UI can render distinct visual
+ * indicators (VAL-FLIGHT-020).
+ */
+export type PlayLogStatus = 'DONE' | 'FAIL' | 'WARN' | 'RUNNING' | 'UNKNOWN';
+
+/** A single denormalized row in the "Recent play activity" table. */
+export interface PlayLogEntry {
+  /** Stable id: `${epicId}|${playName}|${timestamp ?? index}`. */
+  readonly id: string;
+  /** Epic id this play was run under (e.g. "E1"). */
+  readonly epicId: string;
+  /** Display name for the epic (e.g. "E1: auth" or "E1" when slug is empty). */
+  readonly epicLabel: string;
+  /** The play's short name (e.g. "play-quality-check"). */
+  readonly playName: string;
+  /** ISO timestamp of the play run, or null if unknown. */
+  readonly timestamp: string | null;
+  /** Human-readable relative time (e.g. "15m ago") anchored to `now`. */
+  readonly timeLabel: string;
+  /** Canonical status for color coding (VAL-FLIGHT-020). */
+  readonly status: PlayLogStatus;
+  /** Raw status string as recorded in STM evidence. */
+  readonly rawStatus: string;
+  /** Duration in seconds, or null if unknown. */
+  readonly durationSeconds: number | null;
+  /** Formatted duration (e.g. "45s", "2m 30s"), or "—" when unknown. */
+  readonly durationLabel: string;
+}
+
 /** Top-level data model the Flight Deck page consumes. */
 export interface FlightDeckData {
   readonly attention: readonly FlightDeckEpicCard[];
   readonly onTrack: readonly FlightDeckEpicCard[];
   readonly metrics: FlightDeckMetrics;
+  readonly playLog: readonly PlayLogEntry[];
+  readonly playLogEmpty: boolean;
   readonly empty: boolean;
   readonly error: string | null;
   readonly lastUpdatedIso: string;
@@ -266,6 +305,163 @@ export function computeMetrics(epics: readonly EpicInfo[], now: Date): FlightDec
 }
 
 // ---------------------------------------------------------------------------
+// Play log aggregation
+// ---------------------------------------------------------------------------
+
+/**
+ * Normalize a raw STM play status token into the canonical {@link PlayLogStatus}.
+ *
+ * Mapping:
+ *   - success / passed / done / complete / completed / ok / ✓   → DONE
+ *   - fail / failed / failing / error / errored / ✗             → FAIL
+ *   - warn / warning / flaky / partial / ⚠                      → WARN
+ *   - running / in_progress / in-progress / pending / queued /
+ *     started / active / ◐                                      → RUNNING
+ *   - anything else                                              → UNKNOWN
+ *
+ * Fulfills: VAL-FLIGHT-020
+ */
+export function normalizePlayStatus(raw: string | undefined | null): PlayLogStatus {
+  if (!raw) return 'UNKNOWN';
+  const token = raw.toString().toLowerCase().trim();
+  if (token.length === 0) return 'UNKNOWN';
+
+  if (
+    token === 'done' ||
+    token === 'success' ||
+    token === 'succeeded' ||
+    token === 'passed' ||
+    token === 'pass' ||
+    token === 'complete' ||
+    token === 'completed' ||
+    token === 'ok' ||
+    token === '✓'
+  ) {
+    return 'DONE';
+  }
+
+  if (
+    token === 'fail' ||
+    token === 'failed' ||
+    token === 'failing' ||
+    token === 'error' ||
+    token === 'errored' ||
+    token === '✗'
+  ) {
+    return 'FAIL';
+  }
+
+  if (
+    token === 'warn' ||
+    token === 'warning' ||
+    token === 'flaky' ||
+    token === 'partial' ||
+    token === '⚠'
+  ) {
+    return 'WARN';
+  }
+
+  if (
+    token === 'running' ||
+    token === 'in_progress' ||
+    token === 'in-progress' ||
+    token === 'in progress' ||
+    token === 'pending' ||
+    token === 'queued' ||
+    token === 'started' ||
+    token === 'active' ||
+    token === '◐'
+  ) {
+    return 'RUNNING';
+  }
+
+  return 'UNKNOWN';
+}
+
+/**
+ * Format a duration in seconds as a short human-readable label.
+ *
+ *   - < 1s      → "<1s"
+ *   - < 60s     → "Ns"          (e.g. "45s")
+ *   - < 3600s   → "Nm Ss"       (e.g. "2m 30s"), seconds omitted when 0
+ *   - >= 3600s  → "Nh Mm"       (e.g. "1h 5m"), minutes omitted when 0
+ */
+export function formatDuration(seconds: number | null | undefined): string {
+  if (seconds === null || seconds === undefined || !Number.isFinite(seconds) || seconds < 0) {
+    return '—';
+  }
+  if (seconds < 1) return '<1s';
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  if (seconds < 3600) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.round(seconds - m * 60);
+    return s === 0 ? `${m}m` : `${m}m ${s}s`;
+  }
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds - h * 3600) / 60);
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
+
+/**
+ * Build the Flight Deck "Recent play activity" log from discovered epics.
+ *
+ * Collects every play run across every epic, annotates it with epic context,
+ * normalizes its status, and sorts with the most recent entry first. Entries
+ * with missing timestamps sort to the bottom so freshly recorded plays
+ * dominate the view.
+ *
+ * Fulfills:
+ *   VAL-FLIGHT-018  Table columns (Time, Play, Epic, Status, Duration)
+ *   VAL-FLIGHT-019  Sorted most-recent first
+ *   VAL-FLIGHT-020  Canonical status values for color coding
+ */
+export function buildPlayLog(epics: readonly EpicInfo[], now: Date = new Date()): PlayLogEntry[] {
+  const entries: PlayLogEntry[] = [];
+
+  for (const epic of epics) {
+    const epicLabel = epicDisplayName(epic);
+
+    let index = 0;
+    for (const run of epic.stmEvidence.playHistory) {
+      const timestamp = run.timestamp ?? null;
+      const status = normalizePlayStatus(run.status);
+      const durationSeconds =
+        typeof run.durationSeconds === 'number' && Number.isFinite(run.durationSeconds)
+          ? run.durationSeconds
+          : null;
+      entries.push({
+        id: `${epic.id}|${run.name}|${timestamp ?? `idx-${index}`}`,
+        epicId: epic.id,
+        epicLabel,
+        playName: run.name,
+        timestamp,
+        timeLabel: formatRelativeTime(timestamp, now),
+        status,
+        rawStatus: run.status,
+        durationSeconds,
+        durationLabel: formatDuration(durationSeconds),
+      });
+      index += 1;
+    }
+  }
+
+  // Sort most-recent first. Entries without a timestamp sink to the bottom
+  // but preserve their insertion order relative to one another.
+  entries.sort((a, b) => {
+    const at = a.timestamp ? Date.parse(a.timestamp) : NaN;
+    const bt = b.timestamp ? Date.parse(b.timestamp) : NaN;
+    const aValid = !Number.isNaN(at);
+    const bValid = !Number.isNaN(bt);
+    if (aValid && bValid) return bt - at;
+    if (aValid) return -1;
+    if (bValid) return 1;
+    return 0;
+  });
+
+  return entries;
+}
+
+// ---------------------------------------------------------------------------
 // Top-level data builder
 // ---------------------------------------------------------------------------
 
@@ -302,11 +498,14 @@ export function buildFlightDeckData(
     });
 
   const metrics = computeMetrics(result.epics, now);
+  const playLog = buildPlayLog(result.epics, now);
 
   return {
     attention,
     onTrack,
     metrics,
+    playLog,
+    playLogEmpty: playLog.length === 0,
     empty: result.empty,
     error: result.error,
     lastUpdatedIso: now.toISOString(),

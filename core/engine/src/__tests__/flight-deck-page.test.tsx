@@ -72,6 +72,8 @@ function makeData(partial: Partial<FlightDeckData> = {}): FlightDeckData {
     attention: [],
     onTrack: [],
     metrics: { epicsInFlight: 0, activeDevelopers: 0, playsToday: 0, openIssues: 0 },
+    playLog: [],
+    playLogEmpty: true,
     empty: true,
     error: null,
     lastUpdatedIso: '2025-04-17T12:00:00Z',
@@ -275,5 +277,200 @@ describe('Flight Deck page', () => {
       expect(screen.getByTestId('flight-deck-empty-state')).toBeInTheDocument();
     });
     expect(screen.getByTestId('flight-deck-error-note')).toBeInTheDocument();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Play log
+  // ---------------------------------------------------------------------------
+
+  it('renders the play log empty state when no plays have been executed (VAL-FLIGHT-021)', async () => {
+    mockFetchOnce(
+      makeData({
+        empty: false,
+        onTrack: [makeCard({ id: 'E1' })],
+        metrics: { epicsInFlight: 1, activeDevelopers: 1, playsToday: 0, openIssues: 0 },
+        playLog: [],
+        playLogEmpty: true,
+      }),
+    );
+    render(<FlightDeckPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('flight-deck-play-log')).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('flight-deck-play-log-empty')).toBeInTheDocument();
+    expect(screen.getByText(/no play activity yet/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('flight-deck-play-log-table')).not.toBeInTheDocument();
+  });
+
+  it('renders the play log table with the five required columns (VAL-FLIGHT-018)', async () => {
+    mockFetchOnce(
+      makeData({
+        empty: false,
+        onTrack: [makeCard({ id: 'E1' })],
+        metrics: { epicsInFlight: 1, activeDevelopers: 1, playsToday: 1, openIssues: 0 },
+        playLog: [
+          {
+            id: 'E1|play-a|2025-04-17T11:00:00Z',
+            epicId: 'E1',
+            epicLabel: 'E1: auth',
+            playName: 'play-implement-epic',
+            timestamp: '2025-04-17T11:00:00Z',
+            timeLabel: '1h ago',
+            status: 'DONE',
+            rawStatus: 'success',
+            durationSeconds: 45,
+            durationLabel: '45s',
+          },
+        ],
+        playLogEmpty: false,
+      }),
+    );
+    render(<FlightDeckPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('flight-deck-play-log-table')).toBeInTheDocument();
+    });
+    const table = screen.getByTestId('flight-deck-play-log-table');
+    // Column headers
+    expect(within(table).getByText('Time')).toBeInTheDocument();
+    expect(within(table).getByText('Play name')).toBeInTheDocument();
+    expect(within(table).getByText('Epic')).toBeInTheDocument();
+    expect(within(table).getByText('Status')).toBeInTheDocument();
+    expect(within(table).getByText('Duration')).toBeInTheDocument();
+    // Row cells
+    const row = within(table).getByTestId('flight-deck-play-log-row');
+    expect(within(row).getByTestId('play-log-time')).toHaveTextContent('1h ago');
+    expect(within(row).getByTestId('play-log-play-name')).toHaveTextContent('play-implement-epic');
+    expect(within(row).getByTestId('play-log-epic')).toHaveTextContent('E1: auth');
+    expect(within(row).getByTestId('play-log-duration')).toHaveTextContent('45s');
+  });
+
+  it('renders rows in the order supplied (most recent first) (VAL-FLIGHT-019)', async () => {
+    mockFetchOnce(
+      makeData({
+        empty: false,
+        onTrack: [makeCard({ id: 'E1' })],
+        metrics: { epicsInFlight: 1, activeDevelopers: 1, playsToday: 2, openIssues: 0 },
+        playLog: [
+          {
+            id: 'E1|newest|2025-04-17T11:50:00Z',
+            epicId: 'E1',
+            epicLabel: 'E1: auth',
+            playName: 'newest',
+            timestamp: '2025-04-17T11:50:00Z',
+            timeLabel: '10m ago',
+            status: 'RUNNING',
+            rawStatus: 'running',
+            durationSeconds: null,
+            durationLabel: '—',
+          },
+          {
+            id: 'E1|older|2025-04-17T10:00:00Z',
+            epicId: 'E1',
+            epicLabel: 'E1: auth',
+            playName: 'older',
+            timestamp: '2025-04-17T10:00:00Z',
+            timeLabel: '2h ago',
+            status: 'DONE',
+            rawStatus: 'success',
+            durationSeconds: 12,
+            durationLabel: '12s',
+          },
+        ],
+        playLogEmpty: false,
+      }),
+    );
+    render(<FlightDeckPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('flight-deck-play-log-table')).toBeInTheDocument();
+    });
+    const rows = screen.getAllByTestId('flight-deck-play-log-row');
+    expect(rows).toHaveLength(2);
+    // First row corresponds to the newest timestamp
+    expect(rows[0]!.getAttribute('data-timestamp')).toBe('2025-04-17T11:50:00Z');
+    expect(within(rows[0]!).getByTestId('play-log-play-name')).toHaveTextContent('newest');
+    // Parsed timestamps on row 0 are strictly newer than row 1
+    const t0 = Date.parse(rows[0]!.getAttribute('data-timestamp')!);
+    const t1 = Date.parse(rows[1]!.getAttribute('data-timestamp')!);
+    expect(t0).toBeGreaterThan(t1);
+  });
+
+  it('renders all four canonical status indicators with distinct colors (VAL-FLIGHT-020)', async () => {
+    mockFetchOnce(
+      makeData({
+        empty: false,
+        onTrack: [makeCard({ id: 'E1' })],
+        metrics: { epicsInFlight: 1, activeDevelopers: 1, playsToday: 4, openIssues: 0 },
+        playLog: [
+          {
+            id: 'a',
+            epicId: 'E1',
+            epicLabel: 'E1: auth',
+            playName: 'a',
+            timestamp: '2025-04-17T11:00:00Z',
+            timeLabel: '1h ago',
+            status: 'DONE',
+            rawStatus: 'success',
+            durationSeconds: 10,
+            durationLabel: '10s',
+          },
+          {
+            id: 'b',
+            epicId: 'E1',
+            epicLabel: 'E1: auth',
+            playName: 'b',
+            timestamp: '2025-04-17T10:00:00Z',
+            timeLabel: '2h ago',
+            status: 'FAIL',
+            rawStatus: 'failed',
+            durationSeconds: 5,
+            durationLabel: '5s',
+          },
+          {
+            id: 'c',
+            epicId: 'E1',
+            epicLabel: 'E1: auth',
+            playName: 'c',
+            timestamp: '2025-04-17T09:00:00Z',
+            timeLabel: '3h ago',
+            status: 'WARN',
+            rawStatus: 'warn',
+            durationSeconds: 12,
+            durationLabel: '12s',
+          },
+          {
+            id: 'd',
+            epicId: 'E1',
+            epicLabel: 'E1: auth',
+            playName: 'd',
+            timestamp: '2025-04-17T08:00:00Z',
+            timeLabel: '4h ago',
+            status: 'RUNNING',
+            rawStatus: 'running',
+            durationSeconds: null,
+            durationLabel: '—',
+          },
+        ],
+        playLogEmpty: false,
+      }),
+    );
+    render(<FlightDeckPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('flight-deck-play-log-table')).toBeInTheDocument();
+    });
+    const indicators = screen.getAllByTestId('play-log-status');
+    expect(indicators).toHaveLength(4);
+    const kinds = indicators.map((el) => el.getAttribute('data-status'));
+    expect(kinds).toEqual(['DONE', 'FAIL', 'WARN', 'RUNNING']);
+    // Distinct dot colors
+    const dots = screen.getAllByTestId('play-log-status-dot');
+    expect(dots[0]!.className).toMatch(/emerald/);
+    expect(dots[1]!.className).toMatch(/red/);
+    expect(dots[2]!.className).toMatch(/amber/);
+    expect(dots[3]!.className).toMatch(/blue/);
+    // Distinct label colors
+    expect(indicators[0]!.className).toMatch(/emerald/);
+    expect(indicators[1]!.className).toMatch(/red/);
+    expect(indicators[2]!.className).toMatch(/amber/);
+    expect(indicators[3]!.className).toMatch(/blue/);
   });
 });

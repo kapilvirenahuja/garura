@@ -41,6 +41,8 @@ export interface PlayRun {
   readonly name: string;
   readonly status: string;
   readonly timestamp?: string;
+  /** Wall-clock duration of the play run, in seconds. Omitted when unknown. */
+  readonly durationSeconds?: number;
 }
 
 /** A single quality-check evidence entry recovered from STM. */
@@ -400,6 +402,10 @@ export function scanStmEvidence(
       name: derivePlayName(file, parsed),
       status: asString(parsed['status'], 'unknown'),
       timestamp: asString(parsed['timestamp']) || undefined,
+      durationSeconds:
+        asNumber(parsed['durationSeconds']) ??
+        asNumber(parsed['duration_seconds']) ??
+        asNumber(parsed['duration']),
     });
   }
 

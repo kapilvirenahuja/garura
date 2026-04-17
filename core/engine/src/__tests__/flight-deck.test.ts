@@ -22,9 +22,12 @@ import { describe, it, expect } from 'vitest';
 import {
   buildEpicCard,
   buildFlightDeckData,
+  buildPlayLog,
   computeMetrics,
   composeDiagnostic,
   deriveStatusColor,
+  formatDuration,
+  normalizePlayStatus,
   STALE_THRESHOLD_HOURS,
 } from '@/lib/flight-deck';
 import type {
@@ -425,5 +428,223 @@ describe('buildFlightDeckData', () => {
     expect(data.attention).toEqual([]);
     expect(data.onTrack).toEqual([]);
     expect(data.metrics.epicsInFlight).toBe(0);
+    expect(data.playLog).toEqual([]);
+    expect(data.playLogEmpty).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Play log — normalizePlayStatus (VAL-FLIGHT-020)
+// ---------------------------------------------------------------------------
+
+describe('normalizePlayStatus', () => {
+  it('maps success-like tokens to DONE', () => {
+    for (const t of ['done', 'DONE', 'success', 'succeeded', 'passed', 'pass', 'complete', 'ok']) {
+      expect(normalizePlayStatus(t)).toBe('DONE');
+    }
+  });
+
+  it('maps failure-like tokens to FAIL', () => {
+    for (const t of ['fail', 'failed', 'FAILING', 'error', 'errored']) {
+      expect(normalizePlayStatus(t)).toBe('FAIL');
+    }
+  });
+
+  it('maps warning-like tokens to WARN', () => {
+    for (const t of ['warn', 'WARNING', 'flaky', 'partial']) {
+      expect(normalizePlayStatus(t)).toBe('WARN');
+    }
+  });
+
+  it('maps in-progress-like tokens to RUNNING', () => {
+    for (const t of ['running', 'in_progress', 'in-progress', 'pending', 'queued', 'active']) {
+      expect(normalizePlayStatus(t)).toBe('RUNNING');
+    }
+  });
+
+  it('falls back to UNKNOWN for unrecognized or empty tokens', () => {
+    expect(normalizePlayStatus(undefined)).toBe('UNKNOWN');
+    expect(normalizePlayStatus(null)).toBe('UNKNOWN');
+    expect(normalizePlayStatus('')).toBe('UNKNOWN');
+    expect(normalizePlayStatus('mystery')).toBe('UNKNOWN');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Play log — formatDuration
+// ---------------------------------------------------------------------------
+
+describe('formatDuration', () => {
+  it('renders sub-second values as "<1s"', () => {
+    expect(formatDuration(0)).toBe('<1s');
+    expect(formatDuration(0.4)).toBe('<1s');
+  });
+
+  it('renders seconds as integer-seconds', () => {
+    expect(formatDuration(1)).toBe('1s');
+    expect(formatDuration(45)).toBe('45s');
+    expect(formatDuration(59)).toBe('59s');
+  });
+
+  it('renders minutes with optional trailing seconds', () => {
+    expect(formatDuration(60)).toBe('1m');
+    expect(formatDuration(90)).toBe('1m 30s');
+    expect(formatDuration(150)).toBe('2m 30s');
+    expect(formatDuration(600)).toBe('10m');
+  });
+
+  it('renders hours with optional trailing minutes', () => {
+    expect(formatDuration(3600)).toBe('1h');
+    expect(formatDuration(3900)).toBe('1h 5m');
+  });
+
+  it('returns a dash for null/undefined/invalid values', () => {
+    expect(formatDuration(null)).toBe('—');
+    expect(formatDuration(undefined)).toBe('—');
+    expect(formatDuration(-1)).toBe('—');
+    expect(formatDuration(Number.NaN)).toBe('—');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Play log — buildPlayLog (VAL-FLIGHT-018, VAL-FLIGHT-019, VAL-FLIGHT-020)
+// ---------------------------------------------------------------------------
+
+describe('buildPlayLog', () => {
+  it('returns an empty list when no epics have play history', () => {
+    expect(buildPlayLog([], NOW)).toEqual([]);
+    const epic = makeEpic({ id: 'E1' });
+    expect(buildPlayLog([epic], NOW)).toEqual([]);
+  });
+
+  it('flattens play history across epics and attaches epic context (VAL-FLIGHT-018)', () => {
+    const epic1 = makeEpic({
+      id: 'E1',
+      slug: 'auth',
+      stmEvidence: makeStm({
+        playHistory: [
+          {
+            name: 'play-implement-epic',
+            status: 'success',
+            timestamp: '2025-04-17T10:00:00Z',
+            durationSeconds: 45,
+          },
+        ],
+      }),
+    });
+    const epic2 = makeEpic({
+      id: 'E2',
+      slug: 'billing',
+      stmEvidence: makeStm({
+        playHistory: [
+          { name: 'play-quality-check', status: 'failed', timestamp: '2025-04-17T11:00:00Z' },
+        ],
+      }),
+    });
+    const log = buildPlayLog([epic1, epic2], NOW);
+    expect(log).toHaveLength(2);
+    const first = log[0]!;
+    const second = log[1]!;
+    expect(first.epicId).toBe('E2');
+    expect(first.epicLabel).toBe('E2: billing');
+    expect(first.playName).toBe('play-quality-check');
+    expect(first.status).toBe('FAIL');
+    expect(second.epicId).toBe('E1');
+    expect(second.epicLabel).toBe('E1: auth');
+    expect(second.playName).toBe('play-implement-epic');
+    expect(second.status).toBe('DONE');
+    expect(second.durationSeconds).toBe(45);
+    expect(second.durationLabel).toBe('45s');
+  });
+
+  it('sorts entries with the most recent timestamp first (VAL-FLIGHT-019)', () => {
+    const epic = makeEpic({
+      id: 'E1',
+      stmEvidence: makeStm({
+        playHistory: [
+          { name: 'older', status: 'success', timestamp: '2025-04-15T10:00:00Z' },
+          { name: 'newest', status: 'running', timestamp: '2025-04-17T11:50:00Z' },
+          { name: 'middle', status: 'warn', timestamp: '2025-04-16T10:00:00Z' },
+        ],
+      }),
+    });
+    const log = buildPlayLog([epic], NOW);
+    expect(log.map((e) => e.playName)).toEqual(['newest', 'middle', 'older']);
+    // First row holds the latest timestamp
+    expect(log[0]!.timestamp).toBe('2025-04-17T11:50:00Z');
+  });
+
+  it('places entries without timestamps at the bottom', () => {
+    const epic = makeEpic({
+      id: 'E1',
+      stmEvidence: makeStm({
+        playHistory: [
+          { name: 'no-ts', status: 'success' },
+          { name: 'with-ts', status: 'success', timestamp: '2025-04-17T10:00:00Z' },
+        ],
+      }),
+    });
+    const log = buildPlayLog([epic], NOW);
+    expect(log[0]!.playName).toBe('with-ts');
+    expect(log[1]!.playName).toBe('no-ts');
+    expect(log[1]!.timestamp).toBeNull();
+    expect(log[1]!.durationLabel).toBe('—');
+  });
+
+  it('normalizes each raw status into a canonical PlayLogStatus (VAL-FLIGHT-020)', () => {
+    const epic = makeEpic({
+      id: 'E1',
+      stmEvidence: makeStm({
+        playHistory: [
+          { name: 'a', status: 'success', timestamp: '2025-04-17T11:00:00Z' },
+          { name: 'b', status: 'failed', timestamp: '2025-04-17T10:00:00Z' },
+          { name: 'c', status: 'warn', timestamp: '2025-04-17T09:00:00Z' },
+          { name: 'd', status: 'running', timestamp: '2025-04-17T08:00:00Z' },
+          { name: 'e', status: 'mystery', timestamp: '2025-04-17T07:00:00Z' },
+        ],
+      }),
+    });
+    const statuses = buildPlayLog([epic], NOW).map((e) => e.status);
+    expect(statuses).toEqual(['DONE', 'FAIL', 'WARN', 'RUNNING', 'UNKNOWN']);
+  });
+
+  it('uses just the epic id when slug is empty', () => {
+    const epic = makeEpic({
+      id: 'E7',
+      slug: '',
+      stmEvidence: makeStm({
+        playHistory: [{ name: 'p', status: 'success', timestamp: '2025-04-17T10:00:00Z' }],
+      }),
+    });
+    const log = buildPlayLog([epic], NOW);
+    expect(log[0]!.epicLabel).toBe('E7');
+  });
+
+  it('exposes playLog + playLogEmpty on the top-level FlightDeckData', () => {
+    const result: EpicDiscoveryResult = {
+      empty: false,
+      error: null,
+      epics: [
+        makeEpic({
+          id: 'E1',
+          stmEvidence: makeStm({
+            playHistory: [
+              {
+                name: 'play-specify',
+                status: 'success',
+                timestamp: '2025-04-17T10:00:00Z',
+                durationSeconds: 12,
+              },
+            ],
+          }),
+        }),
+      ],
+    };
+    const data = buildFlightDeckData(result, NOW);
+    expect(data.playLog).toHaveLength(1);
+    expect(data.playLog[0]!.playName).toBe('play-specify');
+    expect(data.playLog[0]!.status).toBe('DONE');
+    expect(data.playLog[0]!.durationLabel).toBe('12s');
+    expect(data.playLogEmpty).toBe(false);
   });
 });
