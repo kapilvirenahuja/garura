@@ -137,6 +137,17 @@ describe('StatusBadge — Unknown State (VAL-FOUND-049)', () => {
     render(<StatusBadge status="" />);
     expect(screen.getByTestId('status-badge')).toHaveTextContent('Unknown');
   });
+
+  it('renders fallback for prototype keys like toString and constructor', () => {
+    const protoKeys = ['toString', 'constructor', 'hasOwnProperty', 'valueOf'];
+    protoKeys.forEach((key) => {
+      const { unmount } = render(<StatusBadge status={key} />);
+      const badge = screen.getByTestId('status-badge');
+      expect(badge).toHaveTextContent('Unknown');
+      expect(badge).toHaveAttribute('data-status', 'unknown');
+      unmount();
+    });
+  });
 });
 
 // =============================================================================

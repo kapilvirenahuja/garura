@@ -16,7 +16,7 @@ const STATUS_STYLES: Record<StatusBadgeStatus, { bg: string; text: string; label
 };
 
 function isKnownStatus(s: string): s is StatusBadgeStatus {
-  return s in STATUS_STYLES;
+  return Object.hasOwn(STATUS_STYLES, s);
 }
 
 /**
