@@ -39,6 +39,7 @@ import {
   type StmEvidenceSummaryForNarrative,
   type ToolResolverContext,
 } from './narrative-tools';
+import { selectNarrativeCtas, type CtaAction } from './narrative-ctas';
 
 // ---------------------------------------------------------------------------
 // Types — Narrative tree
@@ -79,6 +80,12 @@ export interface Narrative {
   readonly featureCount: number;
   readonly density: NarrativeDensity;
   readonly sections: readonly NarrativeSection[];
+  /**
+   * Contextual CTAs surfaced at the bottom of the narrative. Selection is
+   * dynamic — driven by the epic's current lifecycle state. Always contains
+   * at least one primary action and one always-available secondary action.
+   */
+  readonly actions: readonly CtaAction[];
   readonly contentHash: string;
   readonly composedAt: string;
   readonly composerMode: 'deterministic' | 'ai';
@@ -619,6 +626,18 @@ export function composeEpicNarrativeDeterministic(ctx: ComposeContext): Narrativ
   const evSection = composeEvidence(evidence);
   if (evSection) sections.push(evSection);
 
+  const actions = selectNarrativeCtas({
+    featureCount: features.length,
+    hasArchitecture: arch.decisions.length + arch.patterns.length + arch.nfrs.length > 0,
+    hasPlan: plan.tasks.length > 0,
+    hasImplementationEvidence: evidence.playHistory.some((p) =>
+      /(^|-)implement(-|$)|implementation/i.test(p.name),
+    ),
+    hasQualityEvidence:
+      evidence.qualityChecks.length > 0 ||
+      evidence.playHistory.some((p) => /quality[-_]?check|validate-epic/i.test(p.name)),
+  });
+
   return {
     epicId: epic.epicId,
     epicName: epic.name,
@@ -626,6 +645,7 @@ export function composeEpicNarrativeDeterministic(ctx: ComposeContext): Narrativ
     featureCount: features.length,
     density,
     sections,
+    actions,
     contentHash: computeContentHash(ctx.artifacts),
     composedAt: new Date().toISOString(),
     composerMode: 'deterministic',

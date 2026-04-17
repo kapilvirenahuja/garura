@@ -20,9 +20,12 @@
  * Fulfills: mdb-progressive-disclosure (client-side disclosure layer).
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CrossRefToken } from '@/components/cross-ref-token';
+import { CTAButton } from '@/components/cta-button';
+import { ContentSlot, type ContentSlotState } from '@/components/content-slot';
 import { CollapsedEntityExpansion, EntityExpansion } from '@/components/entity-expansion';
+import type { CtaAction } from '@/lib/narrative-ctas';
 import type { Narrative, NarrativeChunk, NarrativeSection } from '@/lib/narrative-engine';
 
 export interface NarrativeViewProps {
@@ -245,7 +248,191 @@ export function NarrativeView({ context, onTokenClick, onMetaLoaded }: Narrative
           collapseToken={collapseToken}
         />
       ))}
+
+      {/*
+        Contextual CTAs — dynamically selected based on the epic's current
+        lifecycle state (e.g. "Run prepare-epic" when no plan exists yet,
+        "Run quality-check" when implementation is underway). Rendered at
+        the bottom of the narrative inside an "Actions" section so the
+        narrative above stays visible and scrollable.
+      */}
+      {narrative.actions && narrative.actions.length > 0 ? (
+        <NarrativeActions actions={narrative.actions} />
+      ) : null}
     </article>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// NarrativeActions — renders the contextual CTA buttons at the bottom of the
+// narrative. Each CTA has its own ContentSlot that is initially hidden and
+// only materialises when the user clicks the button. Multiple CTAs can be
+// triggered independently; the narrative sections above stay visible and
+// scrollable during execution.
+//
+// Fulfills: VAL-PLAY-026 (contextual CTAs in narrative),
+//           VAL-PLAY-027 (ContentSlot streaming below CTA),
+//           VAL-ACTION-006 (CTA button rendering),
+//           VAL-ACTION-007 (CTA ContentSlot initially hidden),
+//           VAL-ACTION-008 (contextual CTA placement).
+// ---------------------------------------------------------------------------
+
+interface CtaExecutionEntry {
+  readonly state: ContentSlotState;
+  readonly output: string;
+  readonly error?: string;
+}
+
+interface NarrativeActionsProps {
+  readonly actions: readonly CtaAction[];
+}
+
+function NarrativeActions({ actions }: NarrativeActionsProps) {
+  const [executions, setExecutions] = useState<Map<string, CtaExecutionEntry>>(new Map());
+  const controllersRef = useRef<Map<string, AbortController>>(new Map());
+
+  useEffect(
+    () => () => {
+      // Abort any in-flight streams on unmount — prevents leaked
+      // state updates after the component is gone.
+      for (const controller of controllersRef.current.values()) {
+        controller.abort();
+      }
+      controllersRef.current.clear();
+    },
+    [],
+  );
+
+  const runAction = useCallback((action: CtaAction) => {
+    // One-click-per-CTA: don't re-enter while this CTA is already running.
+    const existing = controllersRef.current.get(action.id);
+    if (existing) return;
+
+    const controller = new AbortController();
+    controllersRef.current.set(action.id, controller);
+
+    setExecutions((prev) => {
+      const next = new Map(prev);
+      next.set(action.id, { state: 'active', output: '' });
+      return next;
+    });
+
+    const update = (updater: (prev: CtaExecutionEntry) => CtaExecutionEntry) => {
+      setExecutions((prev) => {
+        const current = prev.get(action.id);
+        if (!current) return prev;
+        const next = new Map(prev);
+        next.set(action.id, updater(current));
+        return next;
+      });
+    };
+
+    const finish = () => {
+      controllersRef.current.delete(action.id);
+    };
+
+    fetch('/api/checklists/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playName: action.playName }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const text = await response.text().catch(() => `HTTP ${response.status}`);
+          throw new Error(text || `Execution failed: ${response.status}`);
+        }
+        if (!response.body) throw new Error('No response body');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = '';
+
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          for (const line of chunk.split('\n')) {
+            if (!line.startsWith('data: ')) continue;
+            const raw = line.slice(6);
+            try {
+              const event = JSON.parse(raw) as {
+                type: string;
+                content?: string;
+                message?: string;
+              };
+              if (event.type === 'output' && event.content) {
+                accumulated += event.content;
+                update((prev) => ({ ...prev, output: accumulated }));
+              } else if (event.type === 'complete') {
+                update((prev) => ({ ...prev, state: 'active', output: accumulated }));
+              } else if (event.type === 'error') {
+                update((prev) => ({
+                  ...prev,
+                  state: 'error',
+                  error: event.message ?? 'Unknown error',
+                }));
+              }
+            } catch {
+              accumulated += raw + '\n';
+              update((prev) => ({ ...prev, output: accumulated }));
+            }
+          }
+        }
+      })
+      .catch((err: Error) => {
+        if (err.name === 'AbortError') return;
+        update((prev) => ({ ...prev, state: 'error', error: err.message }));
+      })
+      .finally(finish);
+  }, []);
+
+  return (
+    <section
+      data-testid="narrative-actions"
+      aria-label="Actions"
+      className="mt-6 space-y-3 border-t border-gray-800 pt-4"
+    >
+      <h2 className="text-xl font-semibold text-white">Actions</h2>
+      <div
+        className="flex flex-col gap-3"
+        data-testid="narrative-actions-list"
+        data-action-count={actions.length}
+      >
+        {actions.map((action) => {
+          const execution = executions.get(action.id);
+          return (
+            <div
+              key={action.id}
+              data-testid="narrative-cta-group"
+              data-cta-id={action.id}
+              data-cta-primary={action.primary ? 'true' : 'false'}
+              data-cta-reason={action.reason}
+              className="space-y-2"
+            >
+              <div className="flex flex-wrap items-center gap-3">
+                <CTAButton
+                  label={action.label}
+                  playName={action.playName}
+                  onExecute={() => runAction(action)}
+                />
+                <p className="text-xs text-gray-400">{action.description}</p>
+              </div>
+              {execution ? (
+                <div data-testid="narrative-cta-slot" data-cta-id={action.id}>
+                  <ContentSlot
+                    state={execution.state}
+                    content={execution.output}
+                    errorMessage={execution.error}
+                    placeholder="Waiting for play output…"
+                  />
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

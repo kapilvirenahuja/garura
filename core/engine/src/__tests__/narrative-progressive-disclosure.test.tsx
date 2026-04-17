@@ -43,6 +43,7 @@ function makeNarrative(): Narrative {
         ],
       },
     ],
+    actions: [],
     contentHash: 'hash-123',
     composedAt: '2026-04-17T00:00:00.000Z',
     composerMode: 'deterministic',

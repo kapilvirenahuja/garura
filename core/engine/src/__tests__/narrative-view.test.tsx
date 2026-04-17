@@ -64,6 +64,7 @@ function makeNarrative(): Narrative {
         ],
       },
     ],
+    actions: [],
     contentHash: 'abc123',
     composedAt: '2026-04-17T00:00:00.000Z',
     composerMode: 'deterministic',
