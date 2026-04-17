@@ -500,6 +500,112 @@ describe('Git Integration', () => {
   });
 
   // -----------------------------------------------------------------------
+  // Default branch resolution + commits-ahead counting
+  // -----------------------------------------------------------------------
+  describe('getDefaultBranch + countCommitsAhead', () => {
+    /** Build a throwaway temp repo with a `main` branch and an initial commit. */
+    function initThrowawayRepo(): string {
+      const repo = createTempDir();
+      execSync('git init -q', { cwd: repo });
+      execSync('git config user.email "t@test.com"', { cwd: repo });
+      execSync('git config user.name "Test"', { cwd: repo });
+      fs.writeFileSync(path.join(repo, 'README.md'), '# test\n');
+      execSync('git add . && git commit -q -m "init"', { cwd: repo });
+      execSync('git branch -M main', { cwd: repo });
+      return repo;
+    }
+
+    it('getDefaultBranch falls back to local `main` when no origin/HEAD exists', async () => {
+      const repo = initThrowawayRepo();
+      try {
+        const git = createGitIntegration(repo);
+        const defaultBranch = await git.getDefaultBranch();
+        expect(defaultBranch).toBe('main');
+      } finally {
+        removeTempDir(repo);
+      }
+    });
+
+    it('getDefaultBranch falls back to local `master` when only master exists', async () => {
+      const repo = initThrowawayRepo();
+      try {
+        execSync('git branch -M master', { cwd: repo });
+        const git = createGitIntegration(repo);
+        const defaultBranch = await git.getDefaultBranch();
+        expect(defaultBranch).toBe('master');
+      } finally {
+        removeTempDir(repo);
+      }
+    });
+
+    it('getDefaultBranch returns null for a non-git directory', async () => {
+      const tempDir = createTempDir();
+      try {
+        const git = createGitIntegration(tempDir);
+        const defaultBranch = await git.getDefaultBranch();
+        expect(defaultBranch).toBeNull();
+      } finally {
+        removeTempDir(tempDir);
+      }
+    });
+
+    it('countCommitsAhead returns 0 for a branch with no commits ahead of base', async () => {
+      const repo = initThrowawayRepo();
+      try {
+        // Branch off main without adding any new commits.
+        execSync('git checkout -q -b feat/e1-auth', { cwd: repo });
+        execSync('git checkout -q main', { cwd: repo });
+
+        const git = createGitIntegration(repo);
+        const count = await git.countCommitsAhead('feat/e1-auth', 'main');
+        expect(count).toBe(0);
+      } finally {
+        removeTempDir(repo);
+      }
+    });
+
+    it('countCommitsAhead returns the number of new commits on branch vs base', async () => {
+      const repo = initThrowawayRepo();
+      try {
+        execSync('git checkout -q -b feat/e1-auth', { cwd: repo });
+        fs.writeFileSync(path.join(repo, 'a.txt'), 'a\n');
+        execSync('git add . && git commit -q -m "a"', { cwd: repo });
+        fs.writeFileSync(path.join(repo, 'b.txt'), 'b\n');
+        execSync('git add . && git commit -q -m "b"', { cwd: repo });
+        execSync('git checkout -q main', { cwd: repo });
+
+        const git = createGitIntegration(repo);
+        const count = await git.countCommitsAhead('feat/e1-auth', 'main');
+        expect(count).toBe(2);
+      } finally {
+        removeTempDir(repo);
+      }
+    });
+
+    it('countCommitsAhead returns 0 gracefully for a non-existent branch', async () => {
+      const repo = initThrowawayRepo();
+      try {
+        const git = createGitIntegration(repo);
+        const count = await git.countCommitsAhead('feat/nonexistent', 'main');
+        expect(count).toBe(0);
+      } finally {
+        removeTempDir(repo);
+      }
+    });
+
+    it('countCommitsAhead returns 0 when inputs are empty', async () => {
+      const repo = initThrowawayRepo();
+      try {
+        const git = createGitIntegration(repo);
+        expect(await git.countCommitsAhead('', 'main')).toBe(0);
+        expect(await git.countCommitsAhead('main', '')).toBe(0);
+      } finally {
+        removeTempDir(repo);
+      }
+    });
+  });
+
+  // -----------------------------------------------------------------------
   // Factory function & accessors
   // -----------------------------------------------------------------------
   describe('createGitIntegration factory', () => {

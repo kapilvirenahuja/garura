@@ -85,6 +85,12 @@ export interface EpicInfo {
   readonly stage: EpicStage;
   readonly developer: string | null;
   readonly lastCommit: EpicCommit | null;
+  /**
+   * Number of commits on this epic's branch that are ahead of the repository's
+   * default branch (e.g. `main`). Untouched epic branches report `0`; branches
+   * with real implementation commits report the count of new commits. This
+   * intentionally excludes history that was merged in from the default branch.
+   */
   readonly branchCommits: number;
   readonly artifactsPresent: readonly string[];
   readonly stmEvidence: StmEvidenceSummary;
@@ -471,6 +477,13 @@ export async function discoverEpics(options: DiscoverEpicsOptions): Promise<Epic
   const artifactsPresent = checkArtifacts(productBasePath);
   const artifactsList = Array.from(artifactsPresent).sort();
 
+  // Resolve the repository's default branch once; stage inference compares
+  // each epic branch against this to count *new* commits ahead of default.
+  // When no default branch can be resolved (e.g. freshly-initialised repo
+  // with no main/master), ahead-count falls back to 0 — consistent with an
+  // untouched epic branch.
+  const defaultBranch = await git.getDefaultBranch();
+
   const epics: EpicInfo[] = [];
   for (const { ref, hash } of epicCandidates.values()) {
     // Recover commit history from the epic's branch (newest first).
@@ -487,7 +500,14 @@ export async function discoverEpics(options: DiscoverEpicsOptions): Promise<Epic
       : null;
 
     const developer = lastCommit?.author ?? null;
-    const branchCommits = commits.length;
+
+    // Count commits *ahead* of the default branch rather than total reachable
+    // history. A freshly-branched epic with no implementation commits reports
+    // 0 here — which lets inferStage classify it as `Preparing` (tech.yaml
+    // present, no work) rather than `Implementation`.
+    const branchCommits = defaultBranch
+      ? await git.countCommitsAhead(ref.branchName, defaultBranch)
+      : 0;
 
     const stmEvidence = scanStmEvidence(stmBasePath, ref.id, ref.slug);
 

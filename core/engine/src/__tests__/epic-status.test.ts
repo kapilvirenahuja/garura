@@ -51,6 +51,16 @@ function createBranch(repoPath: string, branchName: string, fileName = 'work.txt
   execSync('git checkout -q main', { cwd: repoPath });
 }
 
+/**
+ * Create an epic branch pointed at main's HEAD — i.e. a freshly-branched
+ * epic with zero commits ahead of the default branch. Used to exercise the
+ * "untouched epic branch" path of stage inference.
+ */
+function createEmptyBranch(repoPath: string, branchName: string): void {
+  execSync(`git checkout -q -b "${branchName}"`, { cwd: repoPath });
+  execSync('git checkout -q main', { cwd: repoPath });
+}
+
 function writeYaml(filePath: string, content: string): void {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, content, 'utf-8');
@@ -560,6 +570,103 @@ describe('discoverEpics', { timeout: 15_000 }, () => {
 
     expect(result.epics[0]?.stage).toBe('Validation');
     expect(result.epics[0]?.stmEvidence.qualityChecks.length).toBe(1);
+  });
+
+  it('reports branchCommits as ahead-of-default count, not total reachable history', async () => {
+    // An untouched epic branch (no commits beyond main) should report 0
+    // branchCommits — even though the branch is reachable from several
+    // initial-repo commits. This is the behaviour required for correct
+    // stage inference when tech.yaml is present.
+    initGitRepo(tempRepo);
+    createEmptyBranch(tempRepo, 'feat/e1-auth');
+
+    const result = await discoverEpics({
+      repoPath: tempRepo,
+      productBasePath: path.join(tempRepo, '.garura/product'),
+      stmBasePath: path.join(tempRepo, '.garura/project/issues'),
+    });
+
+    expect(result.epics.length).toBe(1);
+    expect(result.epics[0]?.branchCommits).toBe(0);
+  });
+
+  it('reports non-zero branchCommits for a branch with real implementation commits', async () => {
+    initGitRepo(tempRepo);
+    createBranch(tempRepo, 'feat/e1-auth', 'auth.txt');
+
+    const result = await discoverEpics({
+      repoPath: tempRepo,
+      productBasePath: path.join(tempRepo, '.garura/product'),
+      stmBasePath: path.join(tempRepo, '.garura/project/issues'),
+    });
+
+    expect(result.epics.length).toBe(1);
+    // createBranch commits exactly one new change on top of main.
+    expect(result.epics[0]?.branchCommits).toBe(1);
+  });
+
+  it('classifies an untouched epic branch with tech.yaml as Preparing (not Implementation)', async () => {
+    // Regression guard: previously `branchCommits` reflected total reachable
+    // commits (including main's history), so a fresh epic branch with
+    // tech.yaml was misclassified as Implementation. With ahead-of-default
+    // counting, an empty branch correctly stays in Preparing.
+    initGitRepo(tempRepo);
+    createEmptyBranch(tempRepo, 'feat/e1-auth');
+    writeYaml(
+      path.join(tempRepo, '.garura/product/product.yaml'),
+      `name: Example\ndescription: test\n`,
+    );
+    writeYaml(
+      path.join(tempRepo, '.garura/product/features.yaml'),
+      `features:\n  - id: F1\n    name: Auth\n    description: d\n    capability_domain: auth\n`,
+    );
+    writeYaml(
+      path.join(tempRepo, '.garura/product/architecture.yaml'),
+      `components: []\ndecisions: []\npatterns: []\nnfr_mappings: []\n`,
+    );
+    writeYaml(
+      path.join(tempRepo, '.garura/product/tech.yaml'),
+      `project_structure: {}\ncomponents: []\n`,
+    );
+
+    const result = await discoverEpics({
+      repoPath: tempRepo,
+      productBasePath: path.join(tempRepo, '.garura/product'),
+      stmBasePath: path.join(tempRepo, '.garura/project/issues'),
+    });
+
+    expect(result.epics[0]?.stage).toBe('Preparing');
+    expect(result.epics[0]?.branchCommits).toBe(0);
+  });
+
+  it('classifies an epic branch with real commits and tech.yaml as Implementation', async () => {
+    initGitRepo(tempRepo);
+    createBranch(tempRepo, 'feat/e1-auth', 'auth.txt');
+    writeYaml(
+      path.join(tempRepo, '.garura/product/product.yaml'),
+      `name: Example\ndescription: test\n`,
+    );
+    writeYaml(
+      path.join(tempRepo, '.garura/product/features.yaml'),
+      `features:\n  - id: F1\n    name: Auth\n    description: d\n    capability_domain: auth\n`,
+    );
+    writeYaml(
+      path.join(tempRepo, '.garura/product/architecture.yaml'),
+      `components: []\ndecisions: []\npatterns: []\nnfr_mappings: []\n`,
+    );
+    writeYaml(
+      path.join(tempRepo, '.garura/product/tech.yaml'),
+      `project_structure: {}\ncomponents: []\n`,
+    );
+
+    const result = await discoverEpics({
+      repoPath: tempRepo,
+      productBasePath: path.join(tempRepo, '.garura/product'),
+      stmBasePath: path.join(tempRepo, '.garura/project/issues'),
+    });
+
+    expect(result.epics[0]?.stage).toBe('Implementation');
+    expect(result.epics[0]?.branchCommits).toBeGreaterThan(0);
   });
 
   it('attaches play history from STM evidence to the epic (VAL-FLIGHT-003)', async () => {

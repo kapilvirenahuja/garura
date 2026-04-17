@@ -234,6 +234,74 @@ export class GitIntegration {
   }
 
   // -------------------------------------------------------------------------
+  // Default branch resolution + commit-ahead counting
+  // -------------------------------------------------------------------------
+
+  /**
+   * Resolve the name of the repository's default branch.
+   *
+   * Resolution order:
+   *   1. `refs/remotes/origin/HEAD` symbolic ref, when present, stripped of
+   *      its `origin/` prefix (handles repos cloned with an explicit upstream).
+   *   2. Local branch named `main`, when present.
+   *   3. Local branch named `master`, when present.
+   *   4. `null` when none of the above can be resolved — callers should treat
+   *      this as "no default branch to compare against".
+   */
+  async getDefaultBranch(): Promise<string | null> {
+    try {
+      const isRepo = await this.git.checkIsRepo();
+      if (!isRepo) return null;
+    } catch {
+      return null;
+    }
+
+    // 1. origin/HEAD symbolic ref
+    try {
+      const symref = (
+        await this.git.raw(['symbolic-ref', '--quiet', '--short', 'refs/remotes/origin/HEAD'])
+      ).trim();
+      if (symref.startsWith('origin/')) {
+        const name = symref.slice('origin/'.length).trim();
+        if (name.length > 0) return name;
+      }
+    } catch {
+      // No origin/HEAD (e.g. freshly `git init` repo) → fall through.
+    }
+
+    // 2. Local main / master
+    try {
+      const local = await this.git.branchLocal();
+      if (local.all.includes('main')) return 'main';
+      if (local.all.includes('master')) return 'master';
+    } catch {
+      // Ignore — fall through to null.
+    }
+
+    return null;
+  }
+
+  /**
+   * Count the number of commits on `branch` that are NOT reachable from
+   * `base` — i.e. how many commits the branch is "ahead" of the base.
+   *
+   * Implemented via `git rev-list --count base..branch`. Returns `0` when
+   * the branch has no unique commits relative to the base, and `0` as a
+   * graceful fallback when the underlying git invocation fails (e.g. the
+   * branch does not exist, or the repo is unreadable). Never throws.
+   */
+  async countCommitsAhead(branch: string, base: string): Promise<number> {
+    if (!branch || !base) return 0;
+    try {
+      const output = (await this.git.raw(['rev-list', '--count', `${base}..${branch}`])).trim();
+      const parsed = Number.parseInt(output, 10);
+      return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  // -------------------------------------------------------------------------
   // Change detection (VAL-FOUND-066)
   // -------------------------------------------------------------------------
 
