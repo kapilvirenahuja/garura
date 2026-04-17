@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { ReadinessGauge } from '@/components/readiness-gauge';
 import { ReadinessBreakdown } from '@/components/readiness-breakdown';
 import { ChecklistItem } from '@/components/checklist-item';
@@ -205,13 +205,59 @@ export default function ChecklistsPage() {
   const greenfieldExecuting = greenfieldExecution?.status === 'running';
   const greenfieldExecutingStepId = greenfieldExecuting ? greenfieldExecution?.stepId : null;
 
+  // ---------------------------------------------------------------------------
+  // Client-side completion ordering (VAL-CHECK-015)
+  //
+  // The server returns checklists without step completion data (no persistence
+  // in V1). The useStepExecution hook tracks completedCounts client-side.
+  // We re-derive active vs completed here so completed checklists move to the
+  // bottom in real-time as steps are finished during the session.
+  // ---------------------------------------------------------------------------
+  const { clientActive, clientCompleted } = useMemo(() => {
+    if (!midProjectData) return { clientActive: [], clientCompleted: [] };
+
+    // Merge all checklists from both server-side active and completed arrays
+    const allChecklists = [...midProjectData.active, ...midProjectData.completed];
+
+    const active: ChecklistWithMetaData[] = [];
+    const completed: ChecklistWithMetaData[] = [];
+
+    for (const item of allChecklists) {
+      const hookCount = getCompletedCount(item.checklist.id);
+      const effectiveCompleted = Math.max(hookCount, item.completedSteps);
+      const isCompleted = effectiveCompleted >= item.totalSteps;
+
+      if (isCompleted) {
+        completed.push({
+          ...item,
+          completedSteps: effectiveCompleted,
+          status: 'completed',
+        });
+      } else {
+        // Derive status from effective completed count
+        const status: 'not-started' | 'in-progress' | 'completed' =
+          effectiveCompleted > 0 ? 'in-progress' : item.status;
+        active.push({
+          ...item,
+          completedSteps: effectiveCompleted,
+          status,
+        });
+      }
+    }
+
+    // Preserve impact-based ordering for active checklists
+    active.sort((a, b) => b.readinessImpact - a.readinessImpact);
+
+    return { clientActive: active, clientCompleted: completed };
+  }, [midProjectData, getCompletedCount]);
+
   // Check if all checklists are completed (all-done state, VAL-CHECK-030)
   // Requires BOTH score===100 AND all checklists complete — score alone is not sufficient
   const isAllDone =
     score === 100 &&
     midProjectData !== null &&
-    midProjectData.active.length === 0 &&
-    midProjectData.completed.length > 0;
+    clientActive.length === 0 &&
+    clientCompleted.length > 0;
 
   return (
     <div data-testid="checklists-view">
@@ -410,7 +456,7 @@ export default function ChecklistsPage() {
           </div>
 
           {/* All checklists collapsed in completed section (VAL-CHECK-030) */}
-          {midProjectData.completed.length > 0 && (
+          {clientCompleted.length > 0 && (
             <div data-testid="completed-checklists" className="mt-8">
               <div className="mb-3 flex items-center gap-2">
                 <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -419,7 +465,7 @@ export default function ChecklistsPage() {
                 <div className="h-px flex-1 bg-gray-800" />
               </div>
               <div className="space-y-2">
-                {midProjectData.completed.map((item) => (
+                {clientCompleted.map((item) => (
                   <ChecklistCard
                     key={item.checklist.id}
                     id={item.checklist.id}
@@ -463,13 +509,10 @@ export default function ChecklistsPage() {
           </div>
 
           {/* Active checklists — ordered by readiness impact (VAL-CHECK-016) */}
-          {midProjectData.active.length > 0 && (
+          {clientActive.length > 0 && (
             <div className="space-y-4" data-testid="active-checklists">
-              {midProjectData.active.map((item, index) => {
+              {clientActive.map((item, index) => {
                 const checklistId = item.checklist.id;
-                // Use hook's completed count if available, else fall back to API data
-                const hookCount = getCompletedCount(checklistId);
-                const effectiveCompleted = Math.max(hookCount, item.completedSteps);
 
                 // Per-checklist execution: only disable CTA if THIS checklist is executing
                 const checklistExec = getExecution(checklistId);
@@ -481,7 +524,7 @@ export default function ChecklistsPage() {
                     id={checklistId}
                     title={item.checklist.title}
                     steps={item.checklist.steps}
-                    completedSteps={effectiveCompleted}
+                    completedSteps={item.completedSteps}
                     totalSteps={item.totalSteps}
                     status={item.status}
                     defaultExpanded={index === 0}
@@ -498,7 +541,7 @@ export default function ChecklistsPage() {
           )}
 
           {/* Completed checklists — collapsed at bottom, muted (VAL-CHECK-015) */}
-          {midProjectData.completed.length > 0 && (
+          {clientCompleted.length > 0 && (
             <div data-testid="completed-checklists" className="mt-8">
               <div className="mb-3 flex items-center gap-2">
                 <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -507,7 +550,7 @@ export default function ChecklistsPage() {
                 <div className="h-px flex-1 bg-gray-800" />
               </div>
               <div className="space-y-2">
-                {midProjectData.completed.map((item) => (
+                {clientCompleted.map((item) => (
                   <ChecklistCard
                     key={item.checklist.id}
                     id={item.checklist.id}

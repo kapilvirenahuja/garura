@@ -39,15 +39,10 @@ export async function GET() {
     // Load all built-in checklists
     const { checklists: allChecklists } = getBuiltInChecklists();
 
-    // Select, order, and categorize checklists for mid-project view
-    // TODO: Wire step completion state from a persistence layer (e.g., local JSON file
-    // or SQLite). Currently passing an empty map as placeholder — all checklists will
-    // appear as not-started until persistence is implemented.
-    const stepCompletions = new Map<
-      string,
-      ReadonlyArray<{ readonly stepId: string; readonly completed: boolean }>
-    >();
-    const selection = selectChecklists(allChecklists, readinessResult, stepCompletions);
+    // Select, order, and categorize checklists for mid-project view.
+    // Step completion ordering is handled client-side by useStepExecution hook —
+    // no server-side persistence needed for V1 (session state is sufficient).
+    const selection = selectChecklists(allChecklists, readinessResult);
 
     return NextResponse.json({
       active: selection.active,
