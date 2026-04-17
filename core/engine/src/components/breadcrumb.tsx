@@ -14,11 +14,18 @@ export interface BreadcrumbSegment {
  * Derives breadcrumb segments from the current pathname, optionally
  * appending extra segments pushed by a page (via BreadcrumbExtrasProvider).
  *
- * The returned list always has the trailing segment with no `href`
- * (representing the current location). When `extras` is provided, the
- * previous trailing segment (the instrument) is re-linked to its root,
- * matching the VAL-PLAY-022 expectation that clicking "Playbook" from an
- * epic-level context returns to the Playbook root.
+ * When no extras are provided, the trailing instrument segment has its
+ * `href` stripped — it represents the current location and renders as
+ * plain text, matching standard breadcrumb semantics.
+ *
+ * When extras are provided (e.g. `/playbook?context=E1` adds an
+ * "E1: Authentication" segment), the instrument segment becomes a
+ * clickable parent link and **every extras segment keeps its `href`** —
+ * including the trailing one. This fulfils VAL-PLAY-022: clicking the
+ * epic/context segment navigates to `/playbook?context=<id>` so the
+ * user can re-enter the same context (and browser agents can assert the
+ * link is navigable) without losing the `aria-current="page"` marker
+ * applied by the `Breadcrumb` component itself.
  */
 export function deriveBreadcrumbs(
   pathname: string,
@@ -32,21 +39,22 @@ export function deriveBreadcrumbs(
     segments.push({ label: instrument.label, href: instrument.href });
   }
 
-  // Append any extras pushed by a page (e.g. `/playbook?context=E1` adds
-  // an "E1: Authentication" segment). Each extra keeps its declared href
-  // — the last segment in the final list has its href stripped below,
-  // regardless of where it came from.
+  // Append any extras pushed by a page. Shallow-copy each segment so we
+  // do not mutate the caller's objects.
   for (const extra of extras) {
-    // shallow-copy so we can safely mutate `href` on the last segment
-    // without affecting the caller's object.
     segments.push({ label: extra.label, href: extra.href });
   }
 
-  // The last segment has no href (current location). This applies whether
-  // it came from the instrument list or from extras.
-  const lastSegment = segments[segments.length - 1];
-  if (lastSegment) {
-    delete lastSegment.href;
+  // Only strip the trailing segment's href when no extras were provided.
+  // In that case the last segment is the instrument itself and should
+  // render as current-page plain text. When extras are provided, the
+  // trailing context segment remains clickable (VAL-PLAY-022) while the
+  // Breadcrumb component still marks it with aria-current="page".
+  if (extras.length === 0) {
+    const lastSegment = segments[segments.length - 1];
+    if (lastSegment) {
+      delete lastSegment.href;
+    }
   }
 
   return segments;
@@ -85,12 +93,19 @@ export function Breadcrumb({ segments: segmentsProp, onNavigate }: BreadcrumbPro
                   ›
                 </span>
               )}
-              {segment.href && !isLast ? (
+              {segment.href ? (
                 onNavigate ? (
                   <button
                     type="button"
-                    className="text-gray-400 transition-colors hover:text-gray-200"
-                    data-testid={`breadcrumb-link-${index}`}
+                    className={
+                      isLast
+                        ? 'text-gray-200 transition-colors hover:text-gray-100'
+                        : 'text-gray-400 transition-colors hover:text-gray-200'
+                    }
+                    data-testid={
+                      isLast ? `breadcrumb-current-${index}` : `breadcrumb-link-${index}`
+                    }
+                    aria-current={isLast ? 'page' : undefined}
                     onClick={() => onNavigate(segment.href!)}
                   >
                     {segment.label}
@@ -98,8 +113,15 @@ export function Breadcrumb({ segments: segmentsProp, onNavigate }: BreadcrumbPro
                 ) : (
                   <Link
                     href={segment.href}
-                    className="text-gray-400 transition-colors hover:text-gray-200"
-                    data-testid={`breadcrumb-link-${index}`}
+                    className={
+                      isLast
+                        ? 'text-gray-200 transition-colors hover:text-gray-100'
+                        : 'text-gray-400 transition-colors hover:text-gray-200'
+                    }
+                    data-testid={
+                      isLast ? `breadcrumb-current-${index}` : `breadcrumb-link-${index}`
+                    }
+                    aria-current={isLast ? 'page' : undefined}
                   >
                     {segment.label}
                   </Link>

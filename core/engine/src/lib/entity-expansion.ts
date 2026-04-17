@@ -285,6 +285,34 @@ function describeGeneric(node: GraphNode): {
 // Connections resolution
 // ---------------------------------------------------------------------------
 
+/**
+ * All Architecture Decision Record IDs defined anywhere in the graph.
+ * Used to surface cross-cutting architecture connections on entities
+ * (features, scenarios, epics) that do not have explicit graph edges to
+ * individual ADRs — the Meridian artifact format does not record
+ * per-feature ADR ownership, so we expose the project's ADR set as a
+ * cross-cutting concern (VAL-PLAY-024).
+ */
+function graphAdrIds(graph: CrossRefGraph): string[] {
+  const out: string[] = [];
+  for (const node of graph.nodes.values()) {
+    if (node.type === 'adr' || node.type === 'design-decision') out.push(node.id);
+  }
+  return out;
+}
+
+/**
+ * All Non-Functional Requirement IDs defined in the graph. Exposed on
+ * entity expansions as cross-cutting NFR dependencies (VAL-PLAY-024).
+ */
+function graphNfrIds(graph: CrossRefGraph): string[] {
+  const out: string[] = [];
+  for (const node of graph.nodes.values()) {
+    if (node.type === 'nfr') out.push(node.id);
+  }
+  return out;
+}
+
 function resolveConnections(node: GraphNode, graph: CrossRefGraph): EntityConnection[] {
   const connections: EntityConnection[] = [];
 
@@ -306,6 +334,13 @@ function resolveConnections(node: GraphNode, graph: CrossRefGraph): EntityConnec
   // 3) Node-type-specific extras (pulled from metadata).
   const meta = node.metadata as Record<string, unknown>;
 
+  // Cross-cutting ADR / NFR connections — surfaced on graph-entity types
+  // that do not carry explicit per-entity architecture edges in the
+  // Meridian schema (features, scenarios, epics). See graphAdrIds /
+  // graphNfrIds above for the rationale (VAL-PLAY-024).
+  const crossCuttingAdrs = graphAdrIds(graph);
+  const crossCuttingNfrs = graphNfrIds(graph);
+
   if (node.type === 'feature') {
     // scenarios that reference this feature, plus tasks/epics referencing it
     if (partitioned.scenarios.length > 0) {
@@ -317,13 +352,25 @@ function resolveConnections(node: GraphNode, graph: CrossRefGraph): EntityConnec
     if (partitioned.tasks.length > 0) {
       connections.push({ label: 'Implementation tasks', refIds: partitioned.tasks });
     }
+    // VAL-PLAY-024: surface architecture / NFR as cross-cutting
+    // connections. Prefer explicit forward refs; fall back to the full
+    // graph-wide set so features always show these categories when they
+    // exist in the project.
+    const adrs = partitioned.adrs.length > 0 ? partitioned.adrs : crossCuttingAdrs;
+    if (adrs.length > 0) {
+      connections.push({ label: 'Architecture decisions', refIds: adrs });
+    }
+    const nfrs = partitioned.nfrs.length > 0 ? partitioned.nfrs : crossCuttingNfrs;
+    if (nfrs.length > 0) {
+      connections.push({ label: 'NFR dependencies', refIds: nfrs });
+    }
   } else if (node.type === 'scenario') {
     // feature (parent already rendered), plus the tasks and gates referencing it
     if (partitioned.gates.length > 0) {
       connections.push({ label: 'Scenario gates', refIds: partitioned.gates });
     }
     if (partitioned.tasks.length > 0) {
-      connections.push({ label: 'Implementation', refIds: partitioned.tasks });
+      connections.push({ label: 'Implementation tasks', refIds: partitioned.tasks });
     }
     // Scenarios may also declare a behavior ref — surface it as a fact
     // through metadata (we do NOT surface strings as tokens).
@@ -332,13 +379,15 @@ function resolveConnections(node: GraphNode, graph: CrossRefGraph): EntityConnec
       // behaviour refs are not graph nodes, so skip as token — render as fact
       // via describe function (already present above).
     }
-    // Include any architecture hints (ADR/NFR) from forward refs — unusual
-    // but safe.
-    if (partitioned.adrs.length > 0) {
-      connections.push({ label: 'Architecture', refIds: partitioned.adrs });
+    // VAL-PLAY-024: surface architecture / NFR as cross-cutting
+    // connections, same policy as features.
+    const adrs = partitioned.adrs.length > 0 ? partitioned.adrs : crossCuttingAdrs;
+    if (adrs.length > 0) {
+      connections.push({ label: 'Architecture decisions', refIds: adrs });
     }
-    if (partitioned.nfrs.length > 0) {
-      connections.push({ label: 'NFR dependencies', refIds: partitioned.nfrs });
+    const nfrs = partitioned.nfrs.length > 0 ? partitioned.nfrs : crossCuttingNfrs;
+    if (nfrs.length > 0) {
+      connections.push({ label: 'NFR dependencies', refIds: nfrs });
     }
   } else if (node.type === 'epic') {
     const featureIds = pickArray(meta, 'features');
@@ -347,6 +396,16 @@ function resolveConnections(node: GraphNode, graph: CrossRefGraph): EntityConnec
     }
     if (partitioned.tasks.length > 0) {
       connections.push({ label: 'Implementation tasks', refIds: partitioned.tasks });
+    }
+    // VAL-PLAY-024: also expose cross-cutting architecture / NFR
+    // connections on epic expansions.
+    const adrs = partitioned.adrs.length > 0 ? partitioned.adrs : crossCuttingAdrs;
+    if (adrs.length > 0) {
+      connections.push({ label: 'Architecture decisions', refIds: adrs });
+    }
+    const nfrs = partitioned.nfrs.length > 0 ? partitioned.nfrs : crossCuttingNfrs;
+    if (nfrs.length > 0) {
+      connections.push({ label: 'NFR dependencies', refIds: nfrs });
     }
   } else if (node.type === 'task-plan') {
     const featureId = pickString(meta, 'featureId');

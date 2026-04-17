@@ -253,7 +253,7 @@ describe('deriveBreadcrumbs — extras handling (VAL-PLAY-021, VAL-PLAY-022)', (
     expect(segments[1]?.href).toBeUndefined();
   });
 
-  it('appends an extras segment after Playbook when provided', () => {
+  it('appends an extras segment after Playbook when provided (VAL-PLAY-022)', () => {
     const extras: BreadcrumbSegment[] = [
       { label: 'E1: Authentication', href: '/playbook?context=E1' },
     ];
@@ -262,12 +262,14 @@ describe('deriveBreadcrumbs — extras handling (VAL-PLAY-021, VAL-PLAY-022)', (
     expect(segments[0]).toMatchObject({ label: 'Home', href: '/checklists' });
     // Playbook is now a clickable parent segment.
     expect(segments[1]).toMatchObject({ label: 'Playbook', href: '/playbook' });
-    // Current (last) segment loses its href so it renders as plain text.
+    // Current (last) context segment keeps its href so it is clickable
+    // per VAL-PLAY-022 — the Breadcrumb component applies
+    // aria-current="page" at render time to preserve a11y semantics.
     expect(segments[2]?.label).toBe('E1: Authentication');
-    expect(segments[2]?.href).toBeUndefined();
+    expect(segments[2]?.href).toBe('/playbook?context=E1');
   });
 
-  it('supports multiple extra segments (deep Playbook contexts)', () => {
+  it('supports multiple extra segments (deep Playbook contexts, VAL-PLAY-022)', () => {
     const extras: BreadcrumbSegment[] = [
       { label: 'E1: Authentication', href: '/playbook?context=E1' },
       { label: 'SC-AUTH-016', href: '/playbook?context=SC-AUTH-016' },
@@ -279,11 +281,12 @@ describe('deriveBreadcrumbs — extras handling (VAL-PLAY-021, VAL-PLAY-022)', (
       'E1: Authentication',
       'SC-AUTH-016',
     ]);
-    // All parents keep hrefs; only the last is stripped.
+    // Every segment — including the trailing context segment — keeps its
+    // href so it remains clickable (VAL-PLAY-022).
     expect(segments[0]?.href).toBe('/checklists');
     expect(segments[1]?.href).toBe('/playbook');
     expect(segments[2]?.href).toBe('/playbook?context=E1');
-    expect(segments[3]?.href).toBeUndefined();
+    expect(segments[3]?.href).toBe('/playbook?context=SC-AUTH-016');
   });
 
   it('does not mutate the extras array passed in', () => {

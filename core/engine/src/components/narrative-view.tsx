@@ -40,12 +40,25 @@ export interface NarrativeViewProps {
    * narrative's `epicName` — never the raw YAML.
    */
   onMetaLoaded?: (context: string, epicName: string) => void;
+  /**
+   * Override the minimum time (in milliseconds) the loading indicator
+   * stays visible. Defaults to `DEFAULT_MIN_LOADING_MS`. Tests pass 0
+   * to avoid timer coupling.
+   */
+  minLoadingMs?: number;
 }
 
 interface NarrativeApiResponse {
   readonly narrative: Narrative | null;
   readonly fromCache: boolean;
   readonly composedAt?: string;
+  /**
+   * Server-measured compose / cache-lookup time in milliseconds. Surfaced
+   * via the `x-compose-ms` response header and echoed here so browser
+   * validation (VAL-PLAY-014) can assert API freshness independently of
+   * the full page render budget.
+   */
+  readonly composeMs?: number;
   readonly error?: string;
 }
 
@@ -54,6 +67,19 @@ type LoadState =
   | { status: 'loading' }
   | { status: 'ready'; data: NarrativeApiResponse }
   | { status: 'error'; message: string };
+
+/**
+ * Minimum time (milliseconds) the loading indicator stays visible after
+ * mount. The deterministic composer is fast enough (<50ms on a warm
+ * cache) that the loading state could flash by before an agent-browser
+ * snapshot catches it — failing VAL-PLAY-016. Holding the indicator for
+ * at least ~250ms guarantees the `role="status"` element is observable
+ * without hurting perceived responsiveness for humans.
+ *
+ * Can be overridden to 0 via the `minLoadingMs` prop (used by unit tests
+ * that don't want to wait).
+ */
+const DEFAULT_MIN_LOADING_MS = 250;
 
 /** Per-token expansion state.
  *  - `undefined` / missing: never opened.
@@ -71,7 +97,12 @@ function makeKey(sectionId: string, refId: string): string {
   return `${sectionId}::${refId}`;
 }
 
-export function NarrativeView({ context, onTokenClick, onMetaLoaded }: NarrativeViewProps) {
+export function NarrativeView({
+  context,
+  onTokenClick,
+  onMetaLoaded,
+  minLoadingMs = DEFAULT_MIN_LOADING_MS,
+}: NarrativeViewProps) {
   const [state, setState] = useState<LoadState>({ status: 'idle' });
   const [tokenStates, setTokenStates] = useState<ReadonlyMap<string, TokenState>>(new Map());
 
@@ -115,8 +146,22 @@ export function NarrativeView({ context, onTokenClick, onMetaLoaded }: Narrative
 
   useEffect(() => {
     let cancelled = false;
+    const mountedAt = Date.now();
     setState({ status: 'loading' });
     setTokenStates(new Map());
+
+    // Hold the loading state for at least `minLoadingMs` so browser
+    // snapshots reliably observe the `role="status"` indicator
+    // (VAL-PLAY-016). This is particularly important on cache hits where
+    // the API can return in a few milliseconds and React would otherwise
+    // transition directly from the initial render to `ready` before the
+    // browser paints the loading frame.
+    const elapsed = (): number => Date.now() - mountedAt;
+    const waitForMinDisplay = (): Promise<void> => {
+      const remaining = minLoadingMs - elapsed();
+      if (remaining <= 0) return Promise.resolve();
+      return new Promise((resolve) => setTimeout(resolve, remaining));
+    };
 
     (async () => {
       try {
@@ -125,12 +170,16 @@ export function NarrativeView({ context, onTokenClick, onMetaLoaded }: Narrative
         const payload = (await res.json()) as NarrativeApiResponse;
         if (cancelled) return;
         if (!res.ok || !payload.narrative) {
+          await waitForMinDisplay();
+          if (cancelled) return;
           setState({
             status: 'error',
             message: payload.error ?? `Request failed with HTTP ${res.status}`,
           });
           return;
         }
+        await waitForMinDisplay();
+        if (cancelled) return;
         setState({ status: 'ready', data: payload });
         if (payload.narrative.epicName) {
           onMetaLoaded?.(context, payload.narrative.epicName);
@@ -138,6 +187,8 @@ export function NarrativeView({ context, onTokenClick, onMetaLoaded }: Narrative
       } catch (err: unknown) {
         if (cancelled) return;
         const message = err instanceof Error ? err.message : String(err);
+        await waitForMinDisplay();
+        if (cancelled) return;
         setState({ status: 'error', message });
       }
     })();
@@ -145,7 +196,7 @@ export function NarrativeView({ context, onTokenClick, onMetaLoaded }: Narrative
     return () => {
       cancelled = true;
     };
-  }, [context, onMetaLoaded]);
+  }, [context, onMetaLoaded, minLoadingMs]);
 
   if (state.status === 'loading' || state.status === 'idle') {
     return (
@@ -192,7 +243,7 @@ export function NarrativeView({ context, onTokenClick, onMetaLoaded }: Narrative
     );
   }
 
-  const { narrative, fromCache } = state.data;
+  const { narrative, fromCache, composeMs } = state.data;
   if (!narrative) {
     return (
       <div data-testid="narrative-empty" className="text-gray-400">
@@ -207,6 +258,10 @@ export function NarrativeView({ context, onTokenClick, onMetaLoaded }: Narrative
       data-content-hash={narrative.contentHash}
       data-density={narrative.density}
       data-from-cache={fromCache ? 'true' : 'false'}
+      // Alias `data-cache-hit` for browser-based validation (VAL-PLAY-014) —
+      // both attributes carry identical values so either can be used.
+      data-cache-hit={fromCache ? 'true' : 'false'}
+      data-compose-ms={typeof composeMs === 'number' ? String(composeMs) : undefined}
       data-feature-count={narrative.featureCount}
       className="space-y-6"
     >

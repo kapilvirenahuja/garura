@@ -83,7 +83,7 @@ describe('<NarrativeView />', () => {
     });
     mockFetch(() => pending);
 
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
 
     const loading = await screen.findByTestId('narrative-loading');
     expect(loading).toBeInTheDocument();
@@ -99,7 +99,7 @@ describe('<NarrativeView />', () => {
       Promise.resolve(jsonResponse({ narrative: makeNarrative(), fromCache: false })),
     );
 
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
 
     await screen.findByTestId('narrative-root');
     expect(screen.getByTestId('narrative-title')).toHaveTextContent('Core Task Management');
@@ -119,14 +119,27 @@ describe('<NarrativeView />', () => {
     expect(tokenIds).toContain('EPIC-E1');
   });
 
-  it('shows a cache-hit badge when the API returns fromCache=true (VAL-PLAY-014)', async () => {
+  it('shows a cache-hit badge + data-cache-hit attribute when fromCache=true (VAL-PLAY-014)', async () => {
     mockFetch(() => Promise.resolve(jsonResponse({ narrative: makeNarrative(), fromCache: true })));
 
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
 
     await screen.findByTestId('narrative-root');
     expect(screen.getByTestId('narrative-cache-badge')).toBeInTheDocument();
-    expect(screen.getByTestId('narrative-root').getAttribute('data-from-cache')).toBe('true');
+    const root = screen.getByTestId('narrative-root');
+    expect(root.getAttribute('data-from-cache')).toBe('true');
+    // Alias attribute exposed for browser-based validation (VAL-PLAY-014).
+    expect(root.getAttribute('data-cache-hit')).toBe('true');
+  });
+
+  it('exposes data-cache-hit=false when fromCache=false', async () => {
+    mockFetch(() =>
+      Promise.resolve(jsonResponse({ narrative: makeNarrative(), fromCache: false })),
+    );
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
+    await screen.findByTestId('narrative-root');
+    const root = screen.getByTestId('narrative-root');
+    expect(root.getAttribute('data-cache-hit')).toBe('false');
   });
 
   it('does not emit raw YAML or bracket-ID text in the rendered DOM (VAL-PLAY-023)', async () => {
@@ -134,7 +147,7 @@ describe('<NarrativeView />', () => {
       Promise.resolve(jsonResponse({ narrative: makeNarrative(), fromCache: false })),
     );
 
-    const { container } = render(<NarrativeView context="E1" />);
+    const { container } = render(<NarrativeView context="E1" minLoadingMs={0} />);
     await screen.findByTestId('narrative-root');
 
     // The HTML must not contain YAML-style key-value pairs for our artifact fields,
@@ -163,7 +176,7 @@ describe('<NarrativeView />', () => {
       ),
     );
 
-    render(<NarrativeView context="" />);
+    render(<NarrativeView context="" minLoadingMs={0} />);
     const err = await screen.findByTestId('narrative-error');
     expect(err.textContent).toMatch(/Failed to compose narrative/);
   });
@@ -172,10 +185,24 @@ describe('<NarrativeView />', () => {
     let resolve!: (resp: Response) => void;
     mockFetch(() => new Promise<Response>((r) => (resolve = r)));
 
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
     expect(screen.getByRole('status')).toBeInTheDocument();
 
     // Clean up pending promise.
     resolve(jsonResponse({ narrative: makeNarrative(), fromCache: false }));
+  });
+
+  it('holds the loading indicator for at least minLoadingMs (VAL-PLAY-016)', async () => {
+    // Resolve immediately so the only thing keeping the indicator on
+    // screen is the minimum-display-time guard.
+    mockFetch(() => Promise.resolve(jsonResponse({ narrative: makeNarrative(), fromCache: true })));
+
+    const mountedAt = Date.now();
+    render(<NarrativeView context="E1" minLoadingMs={120} />);
+    expect(screen.getByTestId('narrative-loading')).toBeInTheDocument();
+    await screen.findByTestId('narrative-root');
+    const elapsed = Date.now() - mountedAt;
+    // We should not see `narrative-root` before ~100ms have passed.
+    expect(elapsed).toBeGreaterThanOrEqual(80);
   });
 });

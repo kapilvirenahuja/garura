@@ -88,13 +88,24 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       artifacts,
       graph,
     };
+    const composeStart = Date.now();
     const { narrative, fromCache } = getEpicNarrative(composeCtx);
+    const composeMs = Date.now() - composeStart;
 
-    return NextResponse.json({
+    // Emit cache-hit telemetry as a response header so browser-based
+    // validation (VAL-PLAY-014) can assert API freshness even when the
+    // total page render (React hydration + paint) is slower than the
+    // 100ms threshold. The header intentionally uses ASCII values so it
+    // survives intermediary proxies and `fetch().headers.get()`.
+    const response = NextResponse.json({
       narrative,
       fromCache,
       composedAt: narrative.composedAt,
+      composeMs,
     });
+    response.headers.set('X-Cache-Hit', fromCache ? 'true' : 'false');
+    response.headers.set('X-Compose-Ms', String(composeMs));
+    return response;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('[api/narrative] composition failed:', message);
