@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { CrossRefToken } from '@/components/cross-ref-token';
 import { InlineExpansion } from '@/components/inline-expansion';
+import { NarrativeView } from '@/components/narrative-view';
 
-/** Represents a resolved entity detail for display in expansions. */
+/** Represents a resolved entity detail for display in expansions (foundation sample). */
 interface EntityDetail {
   readonly refId: string;
   readonly type: string;
@@ -14,8 +16,9 @@ interface EntityDetail {
 }
 
 /**
- * Sample entity data for the Playbook Reader foundation.
- * In later milestones, this data comes from the cross-reference resolver + AI.
+ * Sample entity data used for the no-context foundation view.
+ * When an actual epic context is present on the URL, the AI-composed narrative
+ * takes over via `NarrativeView`.
  */
 const SAMPLE_ENTITIES: Readonly<Record<string, EntityDetail>> = {
   F1: {
@@ -46,10 +49,46 @@ const SAMPLE_ENTITIES: Readonly<Record<string, EntityDetail>> = {
  * Playbook Reader instrument page.
  *
  * Renders AI-composed narrative views from the artifact cross-reference graph.
- * Foundation wiring: demonstrates CrossRefToken → InlineExpansion interaction.
- * Full AI composition is wired in the Playbook Reader milestone.
+ * - When `?context=<epicId>` is present, the narrative engine composes a
+ *   structured narrative via `/api/narrative` with content-hash caching.
+ * - When no context is present, a foundation sample narrative with
+ *   illustrative cross-reference tokens is shown (primarily for the
+ *   foundation smoke tests and the first-visit learning experience).
  */
 export default function PlaybookPage() {
+  // usePathname() is retained for test environments that mock it, and to
+  // keep the shell consistent with other instruments.
+  usePathname();
+
+  // Read the `context` search param from window.location. We deliberately do
+  // not use `useSearchParams()` from next/navigation here because the test
+  // harness mocks `next/navigation` without providing that export — so any
+  // direct call in a component rendered by smoke tests would throw. The
+  // effect below keeps the state in sync with the URL in the browser.
+  const [context, setContext] = useState<string>('');
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    setContext(params.get('context')?.trim() ?? '');
+  }, []);
+
+  if (context) {
+    return (
+      <div data-testid="playbook-view" className="space-y-4">
+        <NarrativeView context={context} />
+      </div>
+    );
+  }
+
+  return <PlaybookSampleView />;
+}
+
+/**
+ * Foundation sample view — shown when no `?context=` query param is present.
+ * Preserves the VAL-FOUND-077 wiring: a small narrative with CrossRefToken →
+ * InlineExpansion demonstration.
+ */
+function PlaybookSampleView() {
   const [expandedTokens, setExpandedTokens] = useState<Set<string>>(new Set());
 
   const handleTokenClick = useCallback((refId: string) => {
@@ -68,10 +107,11 @@ export default function PlaybookPage() {
     <div data-testid="playbook-view">
       <h2 className="text-2xl font-bold text-white">Playbook Reader</h2>
       <p className="mt-2 text-gray-400">
-        AI-composed narrative views from the artifact cross-reference graph.
+        AI-composed narrative views from the artifact cross-reference graph. Provide a{' '}
+        <code className="text-blue-400">?context=E1</code> URL parameter to compose the narrative
+        for a specific epic.
       </p>
 
-      {/* Sample narrative with cross-reference tokens */}
       <div className="mt-6 space-y-4" data-testid="playbook-narrative">
         <p className="text-gray-300">
           The system centres on the <CrossRefToken refId="F1" onClick={handleTokenClick} /> feature,
@@ -80,7 +120,6 @@ export default function PlaybookPage() {
           important work first.
         </p>
 
-        {/* Inline expansions for clicked tokens */}
         {expandedTokens.has('F1') && (
           <InlineExpansion summary="F1 — Task Inbox" defaultOpen>
             <EntityExpansionContent entity={SAMPLE_ENTITIES['F1']!} />
