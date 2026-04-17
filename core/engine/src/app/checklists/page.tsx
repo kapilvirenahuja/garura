@@ -200,11 +200,12 @@ export default function ChecklistsPage() {
   const greenfieldExecutingStepId = greenfieldExecuting ? activeExecution?.stepId : null;
 
   // Check if all checklists are completed (all-done state, VAL-CHECK-030)
+  // Requires BOTH score===100 AND all checklists complete — score alone is not sufficient
   const isAllDone =
-    score === 100 ||
-    (midProjectData !== null &&
-      midProjectData.active.length === 0 &&
-      midProjectData.completed.length > 0);
+    score === 100 &&
+    midProjectData !== null &&
+    midProjectData.active.length === 0 &&
+    midProjectData.completed.length > 0;
 
   return (
     <div data-testid="checklists-view">
@@ -313,14 +314,15 @@ export default function ChecklistsPage() {
                     </p>
                   </div>
 
-                  {/* Play reference — visible for non-locked steps (VAL-CHECK-019) */}
-                  {!isLocked && (
-                    <div className="mt-1 pl-9">
-                      <span className="text-xs text-gray-500" data-testid="step-play-ref">
-                        → {step.play}
-                      </span>
-                    </div>
-                  )}
+                  {/* Play reference — visible for ALL steps, dimmed for locked (VAL-CHECK-019) */}
+                  <div className="mt-1 pl-9">
+                    <span
+                      className={`text-xs ${isLocked ? 'text-gray-600' : 'text-gray-500'}`}
+                      data-testid="step-play-ref"
+                    >
+                      → {step.play}
+                    </span>
+                  </div>
 
                   {/* CTA button — only for actionable, non-executing steps (VAL-CHECK-009, VAL-CHECK-024) */}
                   {showCta && (

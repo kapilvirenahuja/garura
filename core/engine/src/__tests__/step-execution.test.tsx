@@ -248,15 +248,15 @@ describe('Step Execution — Step Metadata (VAL-CHECK-019)', () => {
       />,
     );
 
-    // Done steps (1 & 2) and actionable step (3) should show play ref
+    // All steps (done, actionable, and locked) show play reference
     const playRefs = screen.getAllByTestId('step-play-ref');
-    expect(playRefs.length).toBe(3); // 2 done + 1 actionable
+    expect(playRefs.length).toBe(5); // all steps show play ref
     expect(playRefs[0]).toHaveTextContent('→ discover-product');
     expect(playRefs[1]).toHaveTextContent('→ research-market-opportunity');
     expect(playRefs[2]).toHaveTextContent('→ specify-product');
   });
 
-  it('locked steps do not display play reference', () => {
+  it('locked steps display play reference with dimmed styling', () => {
     render(
       <ChecklistCard
         id="test-checklist"
@@ -269,9 +269,16 @@ describe('Step Execution — Step Metadata (VAL-CHECK-019)', () => {
       />,
     );
 
-    // Only the actionable step (step 1) should have play ref visible
+    // All steps show play ref — locked steps have dimmed styling
     const playRefs = screen.getAllByTestId('step-play-ref');
-    expect(playRefs.length).toBe(1);
+    expect(playRefs.length).toBe(5);
+    // First step (actionable) has normal styling
+    expect(playRefs[0]?.className).toContain('text-gray-500');
+    // Locked steps have dimmed styling
+    expect(playRefs[1]?.className).toContain('text-gray-600');
+    expect(playRefs[2]?.className).toContain('text-gray-600');
+    expect(playRefs[3]?.className).toContain('text-gray-600');
+    expect(playRefs[4]?.className).toContain('text-gray-600');
   });
 });
 

@@ -238,14 +238,15 @@ export function ChecklistCard({
                   </p>
                 </div>
 
-                {/* Play reference — visible for non-locked steps (VAL-CHECK-019) */}
-                {!isLocked && (
-                  <div className="mt-1 pl-9">
-                    <span className="text-xs text-gray-500" data-testid="step-play-ref">
-                      → {step.play}
-                    </span>
-                  </div>
-                )}
+                {/* Play reference — visible for ALL steps, dimmed for locked (VAL-CHECK-019) */}
+                <div className="mt-1 pl-9">
+                  <span
+                    className={`text-xs ${isLocked ? 'text-gray-600' : 'text-gray-500'}`}
+                    data-testid="step-play-ref"
+                  >
+                    → {step.play}
+                  </span>
+                </div>
 
                 {/* CTA button — only for actionable, non-executing steps (VAL-CHECK-024) */}
                 {showCta && (

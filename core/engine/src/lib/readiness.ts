@@ -194,10 +194,12 @@ export function checkArtifacts(basePath: string): Set<string> {
           const content = fs.readFileSync(fullPath, 'utf-8');
           // Basic YAML validation — try to parse, skip if malformed
           const parsed = yaml.load(content);
-          if (parsed !== null && parsed !== undefined) {
+          if (parsed !== null && parsed !== undefined && typeof parsed === 'object') {
             found.add(filename);
           } else {
-            console.warn(`[readiness] Skipping malformed artifact: ${filename} (empty YAML)`);
+            console.warn(
+              `[readiness] Skipping malformed artifact: ${filename} (empty or scalar YAML)`,
+            );
           }
         } catch (parseErr: unknown) {
           const msg = parseErr instanceof Error ? parseErr.message : String(parseErr);

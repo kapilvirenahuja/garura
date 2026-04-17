@@ -40,8 +40,14 @@ export async function GET() {
     const { checklists: allChecklists } = getBuiltInChecklists();
 
     // Select, order, and categorize checklists for mid-project view
-    // Step completions are empty for now — will be tracked by mdb-checklist-step-execution
-    const selection = selectChecklists(allChecklists, readinessResult);
+    // TODO: Wire step completion state from a persistence layer (e.g., local JSON file
+    // or SQLite). Currently passing an empty map as placeholder — all checklists will
+    // appear as not-started until persistence is implemented.
+    const stepCompletions = new Map<
+      string,
+      ReadonlyArray<{ readonly stepId: string; readonly completed: boolean }>
+    >();
+    const selection = selectChecklists(allChecklists, readinessResult, stepCompletions);
 
     return NextResponse.json({
       active: selection.active,
