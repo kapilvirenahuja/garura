@@ -257,11 +257,15 @@ describe('Flight Deck page', () => {
       expect(screen.getByTestId('flight-deck-on-track-grid')).toBeInTheDocument();
     });
     const grid = screen.getByTestId('flight-deck-on-track-grid');
-    // Narrow default: single column. Wider breakpoints: 2/3/4 columns.
+    // Narrow default (incl. 768px tablet): single column, cards stack vertically.
+    // VAL-FLIGHT-034 requires 768px to stack, so the first multi-column
+    // breakpoint is `lg` (≥1024px). Wider breakpoints: 2/3/4 columns.
     const cls = grid.className;
     expect(cls).toContain('grid-cols-1');
-    expect(cls).toContain('md:grid-cols-2');
-    expect(cls).toContain('lg:grid-cols-3');
+    // No md:grid-cols-* — would activate at 768px and break VAL-FLIGHT-034.
+    expect(cls).not.toMatch(/(^|\s)md:grid-cols-/);
+    expect(cls).toContain('lg:grid-cols-2');
+    expect(cls).toContain('xl:grid-cols-3');
   });
 
   it('falls back to the empty state when the API errors out', async () => {

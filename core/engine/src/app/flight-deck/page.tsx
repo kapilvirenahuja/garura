@@ -280,14 +280,17 @@ export default function FlightDeckPage() {
           </div>
           {/*
             Responsive grid (VAL-FLIGHT-034):
-              - default (narrow):   single column, cards stack vertically
-              - md (≥768px):        two columns side by side
-              - lg (≥1024px):       three columns side by side
-              - xl (≥1280px):       four columns
+              - default (narrow, incl. 768px tablet): single column, cards stack vertically
+              - lg (≥1024px):       two columns side by side
+              - xl (≥1280px):       three columns
+              - 2xl (≥1536px):      four columns
+            VAL-FLIGHT-034 requires cards to stack at 768px, so the first
+            multi-column breakpoint deliberately starts at `lg` (≥1024px),
+            not Tailwind's default `md` (≥768px).
           */}
           <div
             data-testid="flight-deck-on-track-grid"
-            className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
           >
             {data?.onTrack.map((card) => (
               <OnTrackCard
