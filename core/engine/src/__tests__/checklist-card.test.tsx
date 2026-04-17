@@ -307,7 +307,7 @@ describe('ChecklistCard — step CTA interaction', () => {
     const ctaButton = screen.getByTestId('cta-button');
     fireEvent.click(ctaButton);
 
-    expect(mockExecute).toHaveBeenCalledWith('draft-product-spec');
+    expect(mockExecute).toHaveBeenCalledWith('draft-product-spec', 's1');
   });
 });
 

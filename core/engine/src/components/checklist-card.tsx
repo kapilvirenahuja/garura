@@ -2,8 +2,10 @@
 
 import { useState, useCallback } from 'react';
 import { ChecklistItem } from '@/components/checklist-item';
+import { ContentSlot } from '@/components/content-slot';
 import { CTAButton } from '@/components/cta-button';
 import type { ChecklistItemState } from '@/components/checklist-item';
+import type { ActiveExecution } from '@/hooks/use-step-execution';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -35,8 +37,19 @@ export interface ChecklistCardProps {
   readonly defaultExpanded?: boolean;
   /** Whether this card is in the completed (muted) section */
   readonly muted?: boolean;
-  /** Callback when a step CTA is triggered */
-  readonly onStepExecute?: (playName: string) => void;
+  /** Callback when a step CTA is triggered — receives playName and stepId */
+  readonly onStepExecute?: (playName: string, stepId: string) => void;
+  /**
+   * Active execution state — if the executing step belongs to this checklist,
+   * a ContentSlot renders below the step and the CTA is hidden.
+   */
+  readonly activeExecution?: ActiveExecution | null;
+  /**
+   * Whether CTA interaction is globally disabled (e.g., another checklist
+   * is running a step). Prevents multiple concurrent executions.
+   * (VAL-CHECK-024)
+   */
+  readonly ctaDisabled?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -68,14 +81,20 @@ function deriveStepState(index: number, completedSteps: number): ChecklistItemSt
 // ---------------------------------------------------------------------------
 
 /**
- * Expandable/collapsible checklist card for the mid-project view.
+ * Expandable/collapsible checklist card with step execution support.
  *
  * When collapsed: shows title, progress (N/M done), and status marker.
- * When expanded: shows all steps with their states.
+ * When expanded: shows all steps with states, CTA for actionable step,
+ * ContentSlot below executing step.
  * Completed checklists render with muted styling.
  *
  * Fulfills: VAL-CHECK-013 (title, progress, status without expanding),
- *           VAL-CHECK-014 (expand/collapse toggling)
+ *           VAL-CHECK-014 (expand/collapse toggling),
+ *           VAL-CHECK-018 (sequential unlock),
+ *           VAL-CHECK-019 (step metadata display),
+ *           VAL-CHECK-021 (ContentSlot below active step),
+ *           VAL-CHECK-022 (completed steps show checkmark, not retriggerable),
+ *           VAL-CHECK-024 (one CTA active at a time)
  */
 export function ChecklistCard({
   id,
@@ -87,17 +106,27 @@ export function ChecklistCard({
   defaultExpanded = false,
   muted = false,
   onStepExecute,
+  activeExecution,
+  ctaDisabled = false,
 }: ChecklistCardProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const statusConfig = STATUS_CONFIG[status];
+
+  // Check if this checklist owns the active execution
+  const isExecutingHere =
+    activeExecution != null &&
+    activeExecution.checklistId === id &&
+    activeExecution.status === 'running';
+
+  const executingStepId = isExecutingHere ? activeExecution?.stepId : null;
 
   const handleToggle = useCallback(() => {
     setExpanded((prev) => !prev);
   }, []);
 
   const handleStepExecute = useCallback(
-    (playName: string) => {
-      onStepExecute?.(playName);
+    (playName: string, stepId: string) => {
+      onStepExecute?.(playName, stepId);
     },
     [onStepExecute],
   );
@@ -163,8 +192,14 @@ export function ChecklistCard({
         >
           {steps.map((step, index) => {
             const state = deriveStepState(index, completedSteps);
+            const isDone = state === 'done';
             const isActionable = state === 'in-progress' || state === 'pending';
             const isLocked = state === 'locked';
+            const isStepExecuting = executingStepId === step.id;
+
+            // Show CTA only when actionable, not muted, not executing,
+            // and no other execution is running globally (VAL-CHECK-024)
+            const showCta = isActionable && !muted && !isStepExecuting && !ctaDisabled;
 
             return (
               <div
@@ -174,31 +209,67 @@ export function ChecklistCard({
                 data-step-state={state}
                 className={`px-6 py-4 ${isLocked ? 'opacity-50' : ''}`}
               >
-                {/* Step icon + label */}
+                {/* Step icon + label + completion indicator */}
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 pt-0.5">
                     <ChecklistItem label={step.label} state={state} />
                   </div>
+                  {/* Checkmark badge for completed steps (VAL-CHECK-022) */}
+                  {isDone && (
+                    <span
+                      className="ml-auto text-xs font-medium text-emerald-500"
+                      data-testid="step-complete-badge"
+                    >
+                      ✓
+                    </span>
+                  )}
                 </div>
 
-                {/* Step description */}
+                {/* Step description (VAL-CHECK-019) */}
                 <div className={`mt-1 pl-9 ${isLocked ? 'text-gray-600' : 'text-gray-400'}`}>
                   <p className="text-sm" data-testid="step-description">
                     {step.description}
                   </p>
                 </div>
 
-                {/* CTA button — only for actionable steps */}
-                {isActionable && !muted && (
+                {/* Play reference — visible for non-locked steps (VAL-CHECK-019) */}
+                {!isLocked && (
+                  <div className="mt-1 pl-9">
+                    <span className="text-xs text-gray-500" data-testid="step-play-ref">
+                      → {step.play}
+                    </span>
+                  </div>
+                )}
+
+                {/* CTA button — only for actionable, non-executing steps (VAL-CHECK-024) */}
+                {showCta && (
                   <div className="mt-3 pl-9" data-testid="step-cta-container">
                     <CTAButton
                       label={step.label}
                       playName={step.play}
-                      onExecute={(playName) => handleStepExecute(playName)}
+                      onExecute={(playName) => handleStepExecute(playName, step.id)}
                     />
-                    <span className="ml-3 text-xs text-gray-500" data-testid="step-play-ref">
-                      → {step.play}
+                  </div>
+                )}
+
+                {/* Running indicator when step is executing */}
+                {isStepExecuting && (
+                  <div className="mt-2 pl-9" data-testid="step-executing-indicator">
+                    <span className="inline-flex items-center gap-2 text-xs text-blue-400">
+                      <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-400" />
+                      Running {step.play}…
                     </span>
+                  </div>
+                )}
+
+                {/* ContentSlot — streams output below executing step (VAL-CHECK-021) */}
+                {isStepExecuting && activeExecution && (
+                  <div className="mt-3 pl-9" data-testid="step-content-slot">
+                    <ContentSlot
+                      state="active"
+                      content={activeExecution.output}
+                      placeholder={`Executing ${step.play}…`}
+                    />
                   </div>
                 )}
               </div>

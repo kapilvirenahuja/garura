@@ -5,8 +5,10 @@ import { ReadinessGauge } from '@/components/readiness-gauge';
 import { ReadinessBreakdown } from '@/components/readiness-breakdown';
 import { ChecklistItem } from '@/components/checklist-item';
 import { ChecklistCard } from '@/components/checklist-card';
+import { ContentSlot } from '@/components/content-slot';
 import { CTAButton } from '@/components/cta-button';
 import { useReadiness } from '@/components/readiness-provider';
+import { useStepExecution } from '@/hooks/use-step-execution';
 import type { ChecklistItemState } from '@/components/checklist-item';
 
 // ---------------------------------------------------------------------------
@@ -45,22 +47,15 @@ interface MidProjectData {
 
 /**
  * Derive the display state for each step in a checklist.
- * First step is in-progress (actionable); all others are locked.
- * (Full sequential-unlock logic will be implemented by mdb-checklist-step-execution)
+ * Steps before completedCount are done, the next is in-progress (actionable),
+ * and subsequent ones are locked.
+ *
+ * Fulfills: VAL-CHECK-018 (sequential unlock)
  */
-function deriveStepState(index: number): ChecklistItemState {
-  return index === 0 ? 'in-progress' : 'locked';
-}
-
-/**
- * Count how many steps are completed (currently 0 in greenfield).
- * Used for the "N / M done" progress indicator.
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function countDone(_steps: ReadonlyArray<ChecklistStepData>): number {
-  // In greenfield, no steps are done. Full step-completion tracking
-  // will be implemented by mdb-checklist-step-execution feature.
-  return 0;
+function deriveStepState(index: number, completedCount: number): ChecklistItemState {
+  if (index < completedCount) return 'done';
+  if (index === completedCount) return 'in-progress';
+  return 'locked';
 }
 
 /**
@@ -71,11 +66,12 @@ function countDone(_steps: ReadonlyArray<ChecklistStepData>): number {
  * - Mid-project (score > 0): Multiple checklists ranked by readiness impact,
  *   generative region explaining selection, completed checklists at bottom.
  *
- * Checklist definitions are loaded from API endpoints — no step arrays are
- * hardcoded in this component (VAL-CHECK-028).
- *
- * The readiness score and breakdown are consumed from ReadinessProvider context,
- * ensuring the gauge here is consistent with the mini-gauge in the top bar (VAL-CHECK-003).
+ * Step execution is managed by the useStepExecution hook:
+ * - CTA click triggers play execution via SSE (VAL-CHECK-020)
+ * - ContentSlot streams output below the active step (VAL-CHECK-021)
+ * - Completed steps show checkmark and are not retriggerable (VAL-CHECK-022)
+ * - Next step unlocks on completion (VAL-CHECK-023)
+ * - Only one CTA active at a time (VAL-CHECK-024)
  *
  * Fulfills: VAL-CHECK-001 (greenfield 0), VAL-CHECK-005 (per-area breakdown),
  *           VAL-CHECK-007 (one checklist in greenfield), VAL-CHECK-008 (5 steps),
@@ -87,10 +83,17 @@ function countDone(_steps: ReadonlyArray<ChecklistStepData>): number {
  *           VAL-CHECK-015 (completed checklists at bottom),
  *           VAL-CHECK-016 (ordered by readiness impact),
  *           VAL-CHECK-017 (generative region above checklists),
+ *           VAL-CHECK-018 (sequential unlock),
+ *           VAL-CHECK-020 (CTA triggers play),
+ *           VAL-CHECK-021 (ContentSlot streaming),
+ *           VAL-CHECK-022 (completed not retriggerable),
+ *           VAL-CHECK-023 (next step unlocks),
+ *           VAL-CHECK-024 (one CTA active at a time),
  *           VAL-CHECK-028 (no hardcoded steps)
  */
 export default function ChecklistsPage() {
   const { score, breakdown } = useReadiness();
+  const { activeExecution, executeStep, getCompletedCount, isExecuting } = useStepExecution();
 
   // Greenfield data
   const [checklists, setChecklists] = useState<ChecklistData[]>([]);
@@ -142,8 +145,14 @@ export default function ChecklistsPage() {
 
   // Greenfield state — single onboarding checklist
   const greenfieldChecklist = checklists.find((c) => c.id === 'greenfield-onboarding');
-  const doneCount = greenfieldChecklist ? countDone(greenfieldChecklist.steps) : 0;
+  const greenfieldChecklistId = greenfieldChecklist?.id ?? 'greenfield-onboarding';
+  const doneCount = getCompletedCount(greenfieldChecklistId);
   const totalSteps = greenfieldChecklist ? greenfieldChecklist.steps.length : 0;
+
+  // Greenfield execution state
+  const greenfieldExecuting =
+    activeExecution?.checklistId === greenfieldChecklistId && activeExecution.status === 'running';
+  const greenfieldExecutingStepId = greenfieldExecuting ? activeExecution?.stepId : null;
 
   return (
     <div data-testid="checklists-view">
@@ -171,7 +180,7 @@ export default function ChecklistsPage() {
 
       {/* ═══════════════════════════════════════════════════════════════════
          GREENFIELD VIEW (score === 0)
-         Exactly one onboarding checklist, hero gauge, locked steps.
+         Exactly one onboarding checklist, hero gauge, sequential step unlock.
          ═══════════════════════════════════════════════════════════════════ */}
       {isGreenfield && !loading && !error && greenfieldChecklist && (
         <section
@@ -200,9 +209,14 @@ export default function ChecklistsPage() {
             data-testid="checklist-steps"
           >
             {greenfieldChecklist.steps.map((step, index) => {
-              const state = deriveStepState(index);
+              const state = deriveStepState(index, doneCount);
+              const isDone = state === 'done';
               const isActionable = state === 'in-progress' || state === 'pending';
               const isLocked = state === 'locked';
+              const isStepExecuting = greenfieldExecutingStepId === step.id;
+
+              // Show CTA only when actionable and not currently executing (VAL-CHECK-024)
+              const showCta = isActionable && !isStepExecuting && !isExecuting;
 
               return (
                 <div
@@ -212,34 +226,69 @@ export default function ChecklistsPage() {
                   data-step-state={state}
                   className={`px-6 py-4 ${isLocked ? 'opacity-50' : ''}`}
                 >
-                  {/* Step icon + label */}
+                  {/* Step icon + label + completion indicator */}
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 pt-0.5">
                       <ChecklistItem label={step.label} state={state} />
                     </div>
+                    {/* Checkmark badge for completed steps (VAL-CHECK-022) */}
+                    {isDone && (
+                      <span
+                        className="ml-auto text-xs font-medium text-emerald-500"
+                        data-testid="step-complete-badge"
+                      >
+                        ✓
+                      </span>
+                    )}
                   </div>
 
-                  {/* Step description */}
+                  {/* Step description (VAL-CHECK-019) */}
                   <div className={`mt-1 pl-9 ${isLocked ? 'text-gray-600' : 'text-gray-400'}`}>
                     <p className="text-sm" data-testid="step-description">
                       {step.description}
                     </p>
                   </div>
 
-                  {/* CTA button — only for actionable steps (VAL-CHECK-009) */}
-                  {isActionable && (
+                  {/* Play reference — visible for non-locked steps (VAL-CHECK-019) */}
+                  {!isLocked && (
+                    <div className="mt-1 pl-9">
+                      <span className="text-xs text-gray-500" data-testid="step-play-ref">
+                        → {step.play}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* CTA button — only for actionable, non-executing steps (VAL-CHECK-009, VAL-CHECK-024) */}
+                  {showCta && (
                     <div className="mt-3 pl-9" data-testid="step-cta-container">
                       <CTAButton
                         label={step.label}
                         playName={step.play}
                         onExecute={(playName) => {
-                          // Play execution will be implemented by mdb-checklist-step-execution
-                          console.log(`[mdb] Executing play: ${playName}`);
+                          executeStep(greenfieldChecklistId, step.id, playName);
                         }}
                       />
-                      <span className="ml-3 text-xs text-gray-500" data-testid="step-play-ref">
-                        → {step.play}
+                    </div>
+                  )}
+
+                  {/* Running indicator when step is executing */}
+                  {isStepExecuting && (
+                    <div className="mt-2 pl-9" data-testid="step-executing-indicator">
+                      <span className="inline-flex items-center gap-2 text-xs text-blue-400">
+                        <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-400" />
+                        Running {step.play}…
                       </span>
+                    </div>
+                  )}
+
+                  {/* ContentSlot — streams output below executing step (VAL-CHECK-021) */}
+                  {isStepExecuting && activeExecution && (
+                    <div className="mt-3 pl-9" data-testid="step-content-slot">
+                      <ContentSlot
+                        state="active"
+                        content={activeExecution.output}
+                        placeholder={`Executing ${step.play}…`}
+                      />
                     </div>
                   )}
                 </div>
@@ -277,22 +326,30 @@ export default function ChecklistsPage() {
           {/* Active checklists — ordered by readiness impact (VAL-CHECK-016) */}
           {midProjectData.active.length > 0 && (
             <div className="space-y-4" data-testid="active-checklists">
-              {midProjectData.active.map((item, index) => (
-                <ChecklistCard
-                  key={item.checklist.id}
-                  id={item.checklist.id}
-                  title={item.checklist.title}
-                  steps={item.checklist.steps}
-                  completedSteps={item.completedSteps}
-                  totalSteps={item.totalSteps}
-                  status={item.status}
-                  defaultExpanded={index === 0}
-                  onStepExecute={(playName) => {
-                    // Play execution will be implemented by mdb-checklist-step-execution
-                    console.log(`[mdb] Executing play: ${playName}`);
-                  }}
-                />
-              ))}
+              {midProjectData.active.map((item, index) => {
+                const checklistId = item.checklist.id;
+                // Use hook's completed count if available, else fall back to API data
+                const hookCount = getCompletedCount(checklistId);
+                const effectiveCompleted = Math.max(hookCount, item.completedSteps);
+
+                return (
+                  <ChecklistCard
+                    key={checklistId}
+                    id={checklistId}
+                    title={item.checklist.title}
+                    steps={item.checklist.steps}
+                    completedSteps={effectiveCompleted}
+                    totalSteps={item.totalSteps}
+                    status={item.status}
+                    defaultExpanded={index === 0}
+                    onStepExecute={(playName, stepId) => {
+                      executeStep(checklistId, stepId, playName);
+                    }}
+                    activeExecution={activeExecution}
+                    ctaDisabled={isExecuting}
+                  />
+                );
+              })}
             </div>
           )}
 
