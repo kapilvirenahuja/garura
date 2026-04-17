@@ -8,7 +8,8 @@
  *
  * Enforces:
  * - Sequential unlock (step N+1 only after step N completes)
- * - One CTA active at a time (across all checklists)
+ * - One CTA active per checklist at a time (VAL-CHECK-024)
+ * - Different checklists CAN execute concurrently
  * - Completion state tracking
  *
  * Fulfills: VAL-CHECK-018 (sequential unlock),
@@ -16,7 +17,8 @@
  *           VAL-CHECK-021 (ContentSlot streaming),
  *           VAL-CHECK-022 (completed not retriggerable),
  *           VAL-CHECK-023 (next step unlocks on completion),
- *           VAL-CHECK-024 (one CTA active at a time)
+ *           VAL-CHECK-024 (one CTA active per checklist at a time),
+ *           VAL-CHECK-033 (concurrent ContentSlots render independently)
  */
 
 import { useState, useCallback, useRef } from 'react';
@@ -43,7 +45,13 @@ export interface ActiveExecution {
 
 /** Return value of useStepExecution */
 export interface StepExecutionApi {
-  /** Currently active execution, null if idle */
+  /** Currently active executions keyed by checklistId */
+  readonly activeExecutions: ReadonlyMap<string, ActiveExecution>;
+  /**
+   * Currently active execution for a single checklist, null if idle.
+   * @deprecated Use activeExecutions map and getExecution() instead.
+   * Kept for backward compat — returns the first running execution or null.
+   */
   readonly activeExecution: ActiveExecution | null;
   /** Map of checklistId → number of completed steps */
   readonly completedCounts: ReadonlyMap<string, number>;
@@ -53,6 +61,10 @@ export interface StepExecutionApi {
   readonly getCompletedCount: (checklistId: string) => number;
   /** Whether any execution is running globally */
   readonly isExecuting: boolean;
+  /** Whether a specific checklist is currently executing */
+  readonly isChecklistExecuting: (checklistId: string) => boolean;
+  /** Get the active execution for a specific checklist */
+  readonly getExecution: (checklistId: string) => ActiveExecution | null;
   /** Initialize completed counts (e.g., from API data) */
   readonly initCompletedCounts: (counts: ReadonlyMap<string, number>) => void;
 }
@@ -62,17 +74,40 @@ export interface StepExecutionApi {
 // ---------------------------------------------------------------------------
 
 export function useStepExecution(): StepExecutionApi {
-  const [activeExecution, setActiveExecution] = useState<ActiveExecution | null>(null);
+  const [activeExecutions, setActiveExecutions] = useState<Map<string, ActiveExecution>>(new Map());
   const [completedCounts, setCompletedCounts] = useState<Map<string, number>>(new Map());
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const abortControllersRef = useRef<Map<string, AbortController>>(new Map());
 
-  const isExecuting = activeExecution?.status === 'running';
+  const isExecuting = activeExecutions.size > 0;
+
+  // Backward-compat: return first running execution or null
+  const activeExecution: ActiveExecution | null = (() => {
+    for (const exec of activeExecutions.values()) {
+      if (exec.status === 'running') return exec;
+    }
+    return null;
+  })();
 
   const getCompletedCount = useCallback(
     (checklistId: string): number => {
       return completedCounts.get(checklistId) ?? 0;
     },
     [completedCounts],
+  );
+
+  const isChecklistExecuting = useCallback(
+    (checklistId: string): boolean => {
+      const exec = activeExecutions.get(checklistId);
+      return exec != null && exec.status === 'running';
+    },
+    [activeExecutions],
+  );
+
+  const getExecution = useCallback(
+    (checklistId: string): ActiveExecution | null => {
+      return activeExecutions.get(checklistId) ?? null;
+    },
+    [activeExecutions],
   );
 
   const initCompletedCounts = useCallback((counts: ReadonlyMap<string, number>) => {
@@ -89,21 +124,29 @@ export function useStepExecution(): StepExecutionApi {
 
   const executeStep = useCallback(
     (checklistId: string, stepId: string, playName: string) => {
-      // Prevent concurrent executions (VAL-CHECK-024)
-      if (isExecuting) return;
+      // Prevent concurrent executions within the SAME checklist (VAL-CHECK-024)
+      // Different checklists CAN execute concurrently (VAL-CHECK-033)
+      const existing = activeExecutions.get(checklistId);
+      if (existing?.status === 'running') return;
 
-      // Cancel any previous connection
-      abortControllerRef.current?.abort();
+      // Cancel any previous connection for THIS checklist only
+      abortControllersRef.current.get(checklistId)?.abort();
       const controller = new AbortController();
-      abortControllerRef.current = controller;
+      abortControllersRef.current.set(checklistId, controller);
 
-      // Set initial execution state
-      setActiveExecution({
+      // Set initial execution state for this checklist
+      const newExecution: ActiveExecution = {
         checklistId,
         stepId,
         playName,
         output: '',
         status: 'running',
+      };
+
+      setActiveExecutions((prev) => {
+        const next = new Map(prev);
+        next.set(checklistId, newExecution);
+        return next;
       });
 
       // Stream play output from the execution endpoint
@@ -149,38 +192,77 @@ export function useStepExecution(): StepExecutionApi {
 
                 if (event.type === 'output' && event.content) {
                   accumulated += event.content;
-                  setActiveExecution((prev) => (prev ? { ...prev, output: accumulated } : null));
+                  setActiveExecutions((prev) => {
+                    const current = prev.get(checklistId);
+                    if (!current) return prev;
+                    const next = new Map(prev);
+                    next.set(checklistId, { ...current, output: accumulated });
+                    return next;
+                  });
                 } else if (event.type === 'complete') {
                   markedComplete = true;
-                  setActiveExecution((prev) => (prev ? { ...prev, status: 'complete' } : null));
+                  setActiveExecutions((prev) => {
+                    const current = prev.get(checklistId);
+                    if (!current) return prev;
+                    const next = new Map(prev);
+                    next.set(checklistId, { ...current, status: 'complete' });
+                    return next;
+                  });
                   markStepComplete(checklistId);
-                  // Clear active execution after brief delay to show completion state
-                  setTimeout(() => setActiveExecution(null), 300);
+                  // Clear this checklist's execution after brief delay
+                  setTimeout(() => {
+                    setActiveExecutions((prev) => {
+                      const next = new Map(prev);
+                      next.delete(checklistId);
+                      return next;
+                    });
+                  }, 300);
                 } else if (event.type === 'error') {
                   // Play failure — step remains active, NOT marked done (VAL-CHECK-037)
                   hasError = true;
                   markedComplete = true; // prevent auto-complete fallback
-                  setActiveExecution((prev) =>
-                    prev
-                      ? { ...prev, status: 'error', error: event.message ?? 'Unknown error' }
-                      : null,
-                  );
+                  setActiveExecutions((prev) => {
+                    const current = prev.get(checklistId);
+                    if (!current) return prev;
+                    const next = new Map(prev);
+                    next.set(checklistId, {
+                      ...current,
+                      status: 'error',
+                      error: event.message ?? 'Unknown error',
+                    });
+                    return next;
+                  });
                 }
               } catch {
                 // Non-JSON data line — treat as raw output
                 accumulated += raw + '\n';
-                setActiveExecution((prev) => (prev ? { ...prev, output: accumulated } : null));
+                setActiveExecutions((prev) => {
+                  const current = prev.get(checklistId);
+                  if (!current) return prev;
+                  const next = new Map(prev);
+                  next.set(checklistId, { ...current, output: accumulated });
+                  return next;
+                });
               }
             }
           }
 
           // Stream ended without explicit complete event — mark complete only if no error
           if (!markedComplete && !hasError) {
-            setActiveExecution((prev) => {
-              if (prev && prev.status === 'running') {
+            setActiveExecutions((prev) => {
+              const current = prev.get(checklistId);
+              if (current && current.status === 'running') {
                 markStepComplete(checklistId);
-                setTimeout(() => setActiveExecution(null), 300);
-                return { ...prev, status: 'complete' };
+                const next = new Map(prev);
+                next.set(checklistId, { ...current, status: 'complete' });
+                setTimeout(() => {
+                  setActiveExecutions((p) => {
+                    const n = new Map(p);
+                    n.delete(checklistId);
+                    return n;
+                  });
+                }, 300);
+                return next;
               }
               return prev;
             });
@@ -189,20 +271,27 @@ export function useStepExecution(): StepExecutionApi {
         .catch((err: Error) => {
           if (err.name === 'AbortError') return;
           // Network error — step remains active, NOT marked done (VAL-CHECK-039)
-          setActiveExecution((prev) =>
-            prev ? { ...prev, status: 'error', error: err.message } : null,
-          );
+          setActiveExecutions((prev) => {
+            const current = prev.get(checklistId);
+            if (!current) return prev;
+            const next = new Map(prev);
+            next.set(checklistId, { ...current, status: 'error', error: err.message });
+            return next;
+          });
         });
     },
-    [isExecuting, markStepComplete],
+    [activeExecutions, markStepComplete],
   );
 
   return {
+    activeExecutions,
     activeExecution,
     completedCounts,
     executeStep,
     getCompletedCount,
     isExecuting,
+    isChecklistExecuting,
+    getExecution,
     initCompletedCounts,
   };
 }

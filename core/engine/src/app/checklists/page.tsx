@@ -100,7 +100,8 @@ function deriveStepState(index: number, completedCount: number): ChecklistItemSt
  */
 export default function ChecklistsPage() {
   const { score, breakdown } = useReadiness();
-  const { activeExecution, executeStep, getCompletedCount, isExecuting } = useStepExecution();
+  const { activeExecutions, executeStep, getCompletedCount, isChecklistExecuting, getExecution } =
+    useStepExecution();
 
   // Greenfield data
   const [checklists, setChecklists] = useState<ChecklistData[]>([]);
@@ -120,9 +121,14 @@ export default function ChecklistsPage() {
 
   const isGreenfield = score === 0;
 
-  // Track elapsed time when execution is running (VAL-CHECK-043)
+  // Track whether any execution is running (for elapsed time timer)
+  const hasRunningExecution = Array.from(activeExecutions.values()).some(
+    (exec) => exec.status === 'running',
+  );
+
+  // Track elapsed time when any execution is running (VAL-CHECK-043)
   useEffect(() => {
-    if (activeExecution?.status === 'running') {
+    if (hasRunningExecution) {
       setElapsedSeconds(0);
       elapsedTimerRef.current = setInterval(() => {
         setElapsedSeconds((prev) => prev + 1);
@@ -139,7 +145,7 @@ export default function ChecklistsPage() {
         clearInterval(elapsedTimerRef.current);
       }
     };
-  }, [activeExecution?.status]);
+  }, [hasRunningExecution]);
 
   // Clear network error toast after 5s
   useEffect(() => {
@@ -194,10 +200,10 @@ export default function ChecklistsPage() {
   const doneCount = getCompletedCount(greenfieldChecklistId);
   const totalSteps = greenfieldChecklist ? greenfieldChecklist.steps.length : 0;
 
-  // Greenfield execution state
-  const greenfieldExecuting =
-    activeExecution?.checklistId === greenfieldChecklistId && activeExecution.status === 'running';
-  const greenfieldExecutingStepId = greenfieldExecuting ? activeExecution?.stepId : null;
+  // Greenfield execution state — per-checklist tracking
+  const greenfieldExecution = getExecution(greenfieldChecklistId);
+  const greenfieldExecuting = greenfieldExecution?.status === 'running';
+  const greenfieldExecutingStepId = greenfieldExecuting ? greenfieldExecution?.stepId : null;
 
   // Check if all checklists are completed (all-done state, VAL-CHECK-030)
   // Requires BOTH score===100 AND all checklists complete — score alone is not sufficient
@@ -280,8 +286,8 @@ export default function ChecklistsPage() {
               const isLocked = state === 'locked';
               const isStepExecuting = greenfieldExecutingStepId === step.id;
 
-              // Show CTA only when actionable and not currently executing (VAL-CHECK-024)
-              const showCta = isActionable && !isStepExecuting && !isExecuting;
+              // Show CTA only when actionable and this checklist not currently executing (VAL-CHECK-024)
+              const showCta = isActionable && !isStepExecuting && !greenfieldExecuting;
 
               return (
                 <div
@@ -353,26 +359,25 @@ export default function ChecklistsPage() {
                   )}
 
                   {/* ContentSlot — streams output below executing step (VAL-CHECK-021) */}
-                  {isStepExecuting && activeExecution && (
+                  {isStepExecuting && greenfieldExecution && (
                     <div className="mt-3 pl-9" data-testid="step-content-slot">
                       <ContentSlot
                         state="active"
-                        content={activeExecution.output}
+                        content={greenfieldExecution.output}
                         placeholder={`Executing ${step.play}…`}
                       />
                     </div>
                   )}
 
                   {/* ContentSlot error state (VAL-CHECK-038) */}
-                  {activeExecution &&
-                    activeExecution.checklistId === greenfieldChecklistId &&
-                    activeExecution.stepId === step.id &&
-                    activeExecution.status === 'error' && (
+                  {greenfieldExecution &&
+                    greenfieldExecution.stepId === step.id &&
+                    greenfieldExecution.status === 'error' && (
                       <div className="mt-3 pl-9" data-testid="step-error-slot">
                         <ContentSlot
                           state="error"
-                          content={activeExecution.output}
-                          errorMessage={activeExecution.error}
+                          content={greenfieldExecution.output}
+                          errorMessage={greenfieldExecution.error}
                         />
                       </div>
                     )}
@@ -466,6 +471,10 @@ export default function ChecklistsPage() {
                 const hookCount = getCompletedCount(checklistId);
                 const effectiveCompleted = Math.max(hookCount, item.completedSteps);
 
+                // Per-checklist execution: only disable CTA if THIS checklist is executing
+                const checklistExec = getExecution(checklistId);
+                const thisChecklistExecuting = isChecklistExecuting(checklistId);
+
                 return (
                   <ChecklistCard
                     key={checklistId}
@@ -479,8 +488,8 @@ export default function ChecklistsPage() {
                     onStepExecute={(playName, stepId) => {
                       executeStep(checklistId, stepId, playName);
                     }}
-                    activeExecution={activeExecution}
-                    ctaDisabled={isExecuting}
+                    activeExecution={checklistExec}
+                    ctaDisabled={thisChecklistExecuting}
                     elapsedSeconds={elapsedSeconds}
                   />
                 );

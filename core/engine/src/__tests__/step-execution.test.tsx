@@ -608,9 +608,9 @@ describe('Step Execution — Next Step Unlocks (VAL-CHECK-023)', () => {
 });
 
 // ============================================================================
-// VAL-CHECK-024: One CTA Active at a Time
+// VAL-CHECK-024: One CTA Active Per Checklist at a Time
 // ============================================================================
-describe('Step Execution — One CTA Active (VAL-CHECK-024)', () => {
+describe('Step Execution — One CTA Active Per Checklist (VAL-CHECK-024)', () => {
   it('DOM contains exactly one CTA button within checklist', () => {
     render(
       <ChecklistCard
@@ -674,7 +674,7 @@ describe('Step Execution — One CTA Active (VAL-CHECK-024)', () => {
     expect(ctaButtons).toHaveLength(0);
   });
 
-  it('CTA is hidden when ctaDisabled is true (another checklist executing)', () => {
+  it('CTA is hidden when ctaDisabled is true (same checklist executing)', () => {
     render(
       <ChecklistCard
         id="test-checklist"
@@ -772,5 +772,261 @@ describe('Step Execution — API Endpoint Validation', () => {
     // The callback receives a valid play name from the step data
     expect(mockExecute).toHaveBeenCalledWith('discover-product', 'step-1');
     expect(mockExecute.mock.calls[0]![0]).not.toBe('');
+  });
+});
+
+// ============================================================================
+// VAL-CHECK-033: Concurrent Execution — Different Checklists Execute Together
+// ============================================================================
+describe('Step Execution — Concurrent Execution (VAL-CHECK-033)', () => {
+  it('checklist A shows CTA while checklist B is executing (per-checklist CTA disabling)', () => {
+    // Render checklist A — NOT executing, NOT disabled
+    // (Checklist B is executing elsewhere but that doesn't disable A's CTA)
+    render(
+      <ChecklistCard
+        id="checklist-a"
+        title="Checklist A"
+        steps={MOCK_STEPS}
+        completedSteps={0}
+        totalSteps={5}
+        status="not-started"
+        defaultExpanded
+        activeExecution={null}
+        ctaDisabled={false}
+      />,
+    );
+
+    const cardA = screen.getByTestId('checklist-card');
+    const ctaButtons = within(cardA).queryAllByTestId('cta-button');
+    // Checklist A should still have its CTA even though B is executing
+    expect(ctaButtons).toHaveLength(1);
+    // Verify it references the correct play for checklist A's first step
+    expect(ctaButtons[0]).toHaveAttribute('data-play', 'discover-product');
+  });
+
+  it('two checklists render ContentSlots independently', () => {
+    const executionA: ActiveExecution = {
+      checklistId: 'checklist-a',
+      stepId: 'step-1',
+      playName: 'discover-product',
+      output: 'Output from A...',
+      status: 'running',
+    };
+
+    const executionB: ActiveExecution = {
+      checklistId: 'checklist-b',
+      stepId: 'step-1',
+      playName: 'research-market-opportunity',
+      output: 'Output from B...',
+      status: 'running',
+    };
+
+    const { unmount } = render(
+      <div>
+        <ChecklistCard
+          id="checklist-a"
+          title="Checklist A"
+          steps={MOCK_STEPS}
+          completedSteps={0}
+          totalSteps={5}
+          status="not-started"
+          defaultExpanded
+          activeExecution={executionA}
+          ctaDisabled
+        />
+        <ChecklistCard
+          id="checklist-b"
+          title="Checklist B"
+          steps={MOCK_STEPS}
+          completedSteps={0}
+          totalSteps={5}
+          status="not-started"
+          defaultExpanded
+          activeExecution={executionB}
+          ctaDisabled
+        />
+      </div>,
+    );
+
+    // Both checklists should have ContentSlots
+    const contentSlots = screen.getAllByTestId('step-content-slot');
+    expect(contentSlots).toHaveLength(2);
+
+    // Both should have executing indicators
+    const indicators = screen.getAllByTestId('step-executing-indicator');
+    expect(indicators).toHaveLength(2);
+
+    // Both indicators show the step's play name (from step.play, which is
+    // 'discover-product' for step-1 in both checklists since they share MOCK_STEPS)
+    expect(indicators[0]).toHaveTextContent('Running discover-product');
+    expect(indicators[1]).toHaveTextContent('Running discover-product');
+
+    unmount();
+  });
+
+  it('one checklist completes while another continues running', () => {
+    const executionA: ActiveExecution = {
+      checklistId: 'checklist-a',
+      stepId: 'step-1',
+      playName: 'discover-product',
+      output: 'Completed!',
+      status: 'complete',
+    };
+
+    const executionB: ActiveExecution = {
+      checklistId: 'checklist-b',
+      stepId: 'step-1',
+      playName: 'research-market-opportunity',
+      output: 'Still running...',
+      status: 'running',
+    };
+
+    const { unmount } = render(
+      <div>
+        <ChecklistCard
+          id="checklist-a"
+          title="Checklist A"
+          steps={MOCK_STEPS}
+          completedSteps={0}
+          totalSteps={5}
+          status="not-started"
+          defaultExpanded
+          activeExecution={executionA}
+        />
+        <ChecklistCard
+          id="checklist-b"
+          title="Checklist B"
+          steps={MOCK_STEPS}
+          completedSteps={0}
+          totalSteps={5}
+          status="not-started"
+          defaultExpanded
+          activeExecution={executionB}
+          ctaDisabled
+        />
+      </div>,
+    );
+
+    // Checklist A (complete) should not show running indicator
+    const cards = screen.getAllByTestId('checklist-card');
+    const runningIndicatorA = within(cards[0]!).queryByTestId('step-executing-indicator');
+    expect(runningIndicatorA).toBeNull();
+
+    // Checklist B should still be running (step.play is 'discover-product' from MOCK_STEPS)
+    const runningIndicatorB = within(cards[1]!).queryByTestId('step-executing-indicator');
+    expect(runningIndicatorB).toBeInTheDocument();
+    expect(runningIndicatorB).toHaveTextContent('Running discover-product');
+
+    unmount();
+  });
+
+  it('per-checklist CTA disabling: disabled for executing checklist, enabled for idle', () => {
+    const executionA: ActiveExecution = {
+      checklistId: 'checklist-a',
+      stepId: 'step-1',
+      playName: 'discover-product',
+      output: 'Running...',
+      status: 'running',
+    };
+
+    const { unmount } = render(
+      <div>
+        {/* Checklist A is executing — CTA disabled */}
+        <ChecklistCard
+          id="checklist-a"
+          title="Checklist A"
+          steps={MOCK_STEPS}
+          completedSteps={0}
+          totalSteps={5}
+          status="not-started"
+          defaultExpanded
+          activeExecution={executionA}
+          ctaDisabled
+        />
+        {/* Checklist B is idle — CTA should be available */}
+        <ChecklistCard
+          id="checklist-b"
+          title="Checklist B"
+          steps={MOCK_STEPS}
+          completedSteps={0}
+          totalSteps={5}
+          status="not-started"
+          defaultExpanded
+          activeExecution={null}
+          ctaDisabled={false}
+        />
+      </div>,
+    );
+
+    const cards = screen.getAllByTestId('checklist-card');
+
+    // Checklist A: no CTA (executing)
+    const ctaA = within(cards[0]!).queryAllByTestId('cta-button');
+    expect(ctaA).toHaveLength(0);
+
+    // Checklist B: has CTA (idle, not disabled)
+    const ctaB = within(cards[1]!).queryAllByTestId('cta-button');
+    expect(ctaB).toHaveLength(1);
+
+    unmount();
+  });
+
+  it('abort controllers are per-checklist (error on A does not affect B)', () => {
+    const executionA: ActiveExecution = {
+      checklistId: 'checklist-a',
+      stepId: 'step-1',
+      playName: 'discover-product',
+      output: 'Error output',
+      status: 'error',
+      error: 'Play failed',
+    };
+
+    const executionB: ActiveExecution = {
+      checklistId: 'checklist-b',
+      stepId: 'step-1',
+      playName: 'research-market-opportunity',
+      output: 'Still running fine...',
+      status: 'running',
+    };
+
+    const { unmount } = render(
+      <div>
+        <ChecklistCard
+          id="checklist-a"
+          title="Checklist A"
+          steps={MOCK_STEPS}
+          completedSteps={0}
+          totalSteps={5}
+          status="not-started"
+          defaultExpanded
+          activeExecution={executionA}
+        />
+        <ChecklistCard
+          id="checklist-b"
+          title="Checklist B"
+          steps={MOCK_STEPS}
+          completedSteps={0}
+          totalSteps={5}
+          status="not-started"
+          defaultExpanded
+          activeExecution={executionB}
+          ctaDisabled
+        />
+      </div>,
+    );
+
+    const cards = screen.getAllByTestId('checklist-card');
+
+    // Checklist A: error slot visible
+    const errorSlot = within(cards[0]!).getByTestId('step-error-slot');
+    expect(errorSlot).toBeInTheDocument();
+
+    // Checklist B: still running, no error (step.play is 'discover-product' from MOCK_STEPS)
+    const errorSlotB = within(cards[1]!).queryByTestId('step-error-slot');
+    expect(errorSlotB).toBeNull();
+    const runningB = within(cards[1]!).getByTestId('step-executing-indicator');
+    expect(runningB).toHaveTextContent('Running discover-product');
+
+    unmount();
   });
 });
