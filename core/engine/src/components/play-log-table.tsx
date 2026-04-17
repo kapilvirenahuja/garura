@@ -22,6 +22,13 @@ import type { PlayLogEntry, PlayLogStatus } from '@/lib/flight-deck';
 export interface PlayLogTableProps {
   entries: readonly PlayLogEntry[];
   empty: boolean;
+  /**
+   * Fired when the user clicks (or activates via keyboard) a row in the play
+   * log table. When provided, rows become interactive (role=button, tabIndex=0)
+   * and deep-link into the Playbook Reader with the play's execution context
+   * (VAL-FLIGHT-032).
+   */
+  onEntryClick?: (entry: PlayLogEntry) => void;
 }
 
 interface StatusStyle {
@@ -85,7 +92,7 @@ function PlayLogStatusIndicator({ status }: { status: PlayLogStatus }) {
   );
 }
 
-export function PlayLogTable({ entries, empty }: PlayLogTableProps) {
+export function PlayLogTable({ entries, empty, onEntryClick }: PlayLogTableProps) {
   if (empty || entries.length === 0) {
     return (
       <section
@@ -153,6 +160,29 @@ export function PlayLogTable({ entries, empty }: PlayLogTableProps) {
                 data-epic-id={entry.epicId}
                 data-status={entry.status}
                 data-timestamp={entry.timestamp ?? ''}
+                role={onEntryClick ? 'button' : undefined}
+                tabIndex={onEntryClick ? 0 : undefined}
+                aria-label={
+                  onEntryClick
+                    ? `Open ${entry.playName} for ${entry.epicLabel} in Playbook Reader`
+                    : undefined
+                }
+                onClick={onEntryClick ? () => onEntryClick(entry) : undefined}
+                onKeyDown={
+                  onEntryClick
+                    ? (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onEntryClick(entry);
+                        }
+                      }
+                    : undefined
+                }
+                className={
+                  onEntryClick
+                    ? 'cursor-pointer transition-colors hover:bg-gray-900 focus:bg-gray-900 focus:outline-none'
+                    : undefined
+                }
               >
                 <td
                   data-testid="play-log-time"

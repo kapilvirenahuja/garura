@@ -1,11 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MetricTile } from '@/components/metric-tile';
 import { AttentionCard, OnTrackCard } from '@/components/epic-card';
 import { PlayLogTable } from '@/components/play-log-table';
-import type { FlightDeckData } from '@/lib/flight-deck';
+import type { FlightDeckData, PlayLogEntry } from '@/lib/flight-deck';
+import { formatRelativeTime } from '@/lib/relative-time';
+import { useFlightDeckPersistence } from '@/hooks/use-flight-deck-persistence';
 
 /**
  * Flight Deck — attention-priority live execution dashboard.
@@ -14,6 +16,16 @@ import type { FlightDeckData } from '@/lib/flight-deck';
  *   1. Summary metric tiles (epics, devs, plays today, open issues)
  *   2. Needs Attention — expanded cards with AI diagnostic + issue refs + CTAs
  *   3. On Track — compact cards (side-by-side on wide viewports, stacked on narrow)
+ *   4. Recent play activity — table with clickable rows linking to Playbook
+ *
+ * Data refresh:
+ *   - `/api/flight-deck` is called on mount (tab open) — VAL-FLIGHT-026
+ *   - The "Last updated" indicator shows a relative-time stamp — VAL-FLIGHT-027
+ *   - A manual refresh button triggers a full reload — VAL-FLIGHT-028
+ *   - Scroll + expansion state survive tab switches via sessionStorage — VAL-FLIGHT-029
+ *   - Accessible from top bar at all times — VAL-FLIGHT-030 (via <InstrumentSwitcher/>)
+ *   - Readiness mini-gauge click navigates to Checklists — VAL-FLIGHT-031
+ *   - Play log row click navigates to Playbook Reader — VAL-FLIGHT-032
  *
  * All data derives from `/api/flight-deck` which reads git branches + STM
  * evidence live. No hardcoded values.
@@ -37,6 +49,13 @@ import type { FlightDeckData } from '@/lib/flight-deck';
  *   VAL-FLIGHT-019  Play log sorted most-recent first (data-driven)
  *   VAL-FLIGHT-020  Distinct colored status indicators in the play log
  *   VAL-FLIGHT-021  Play log empty state message when no plays have run
+ *   VAL-FLIGHT-026  Data loads on open
+ *   VAL-FLIGHT-027  Last updated timestamp indicator
+ *   VAL-FLIGHT-028  Manual refresh control
+ *   VAL-FLIGHT-029  Tab-switch state preservation
+ *   VAL-FLIGHT-030  Top-bar accessibility
+ *   VAL-FLIGHT-031  Readiness gauge navigates to Checklists
+ *   VAL-FLIGHT-032  Play log entry click navigates to Playbook Reader
  *   VAL-FLIGHT-033  Spatial hierarchy
  *   VAL-FLIGHT-034  Responsive layout adapts to viewport widths
  */
@@ -45,6 +64,8 @@ export default function FlightDeckPage() {
   const [data, setData] = useState<FlightDeckData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { expanded, toggleExpanded } = useFlightDeckPersistence();
 
   const fetchData = useCallback(async () => {
     try {
@@ -87,11 +108,10 @@ export default function FlightDeckPage() {
   );
 
   const handleRunQaCheck = useCallback((epicId: string) => {
-    // Deeper QA execution lands in a later feature (mdb-play-execution-log
-    // + play execution engine). The debounced CTAButton already records the
-    // click; we surface an optimistic console message so the action is
-    // visible in tests and the browser devtools.
-
+    // Deeper QA execution lands in a later feature (play execution engine).
+    // The debounced CTAButton already records the click; we surface an
+    // optimistic console message so the action is visible in tests and the
+    // browser devtools.
     console.log(`[flight-deck] Run QA Check requested for ${epicId}`);
   }, []);
 
@@ -102,9 +122,36 @@ export default function FlightDeckPage() {
     [router],
   );
 
+  /**
+   * Play-log row click → Playbook Reader with play-execution context.
+   * Query shape: `?context=<epicId>&play=<playName>&timestamp=<iso>`.
+   */
+  const handlePlayEntryClick = useCallback(
+    (entry: PlayLogEntry) => {
+      const params = new URLSearchParams();
+      params.set('context', entry.epicId);
+      params.set('play', entry.playName);
+      if (entry.timestamp) {
+        params.set('timestamp', entry.timestamp);
+      }
+      router.push(`/playbook?${params.toString()}`);
+    },
+    [router],
+  );
+
+  const handleRefresh = useCallback(() => {
+    if (loading) return;
+    void fetchData();
+  }, [fetchData, loading]);
+
   const isEmpty = data !== null && data.empty;
   const hasAttention = (data?.attention.length ?? 0) > 0;
   const hasOnTrack = (data?.onTrack.length ?? 0) > 0;
+
+  const lastUpdatedLabel = useMemo(() => {
+    if (!data?.lastUpdatedIso) return '';
+    return formatRelativeTime(data.lastUpdatedIso) || 'just now';
+  }, [data?.lastUpdatedIso]);
 
   return (
     <div data-testid="flight-deck-view" className="space-y-8">
@@ -114,6 +161,36 @@ export default function FlightDeckPage() {
           <p className="mt-1 text-sm text-gray-400">
             Live execution dashboard — epics, developer activity, and AI diagnostics.
           </p>
+        </div>
+
+        {/* Last updated + manual refresh — VAL-FLIGHT-027, VAL-FLIGHT-028 */}
+        <div className="flex items-center gap-3">
+          {data?.lastUpdatedIso && (
+            <span
+              data-testid="flight-deck-last-updated"
+              data-timestamp={data.lastUpdatedIso}
+              className="text-xs text-gray-500"
+              title={new Date(data.lastUpdatedIso).toLocaleString()}
+            >
+              Last updated: {lastUpdatedLabel}
+            </span>
+          )}
+          <button
+            type="button"
+            data-testid="flight-deck-refresh"
+            onClick={handleRefresh}
+            disabled={loading}
+            aria-label="Refresh Flight Deck data"
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-700 bg-gray-900 px-3 py-1.5 text-xs font-medium text-gray-200 transition-colors hover:border-gray-600 hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <span
+              aria-hidden="true"
+              className={loading ? 'inline-block animate-spin' : 'inline-block'}
+            >
+              ↻
+            </span>
+            {loading ? 'Refreshing…' : 'Refresh'}
+          </button>
         </div>
       </header>
 
@@ -129,7 +206,7 @@ export default function FlightDeckPage() {
         <MetricTile label="Open Issues" value={data?.metrics.openIssues ?? 0} />
       </section>
 
-      {loading && (
+      {loading && !data && (
         <div
           data-testid="flight-deck-loading"
           className="mx-auto max-w-2xl rounded-lg border border-gray-800 bg-gray-900/30 px-6 py-10 text-center"
@@ -160,7 +237,7 @@ export default function FlightDeckPage() {
       )}
 
       {/* 2. Needs Attention — prominent (VAL-FLIGHT-008, VAL-FLIGHT-033) */}
-      {!loading && !isEmpty && hasAttention && (
+      {!isEmpty && hasAttention && (
         <section
           data-testid="flight-deck-attention"
           aria-label="Needs Attention"
@@ -180,6 +257,8 @@ export default function FlightDeckPage() {
                 onOpenInReader={handleOpenInReader}
                 onRunQaCheck={handleRunQaCheck}
                 onViewIssues={handleViewIssues}
+                expanded={expanded.has(card.id)}
+                onToggleExpand={toggleExpanded}
               />
             ))}
           </div>
@@ -187,7 +266,7 @@ export default function FlightDeckPage() {
       )}
 
       {/* 3. On Track — compact grid (VAL-FLIGHT-009, VAL-FLIGHT-034) */}
-      {!loading && !isEmpty && hasOnTrack && (
+      {!isEmpty && hasOnTrack && (
         <section data-testid="flight-deck-on-track" aria-label="On Track" className="space-y-3">
           <div className="flex items-baseline justify-between">
             <h3 className="text-lg font-semibold text-emerald-300">On Track</h3>
@@ -207,16 +286,29 @@ export default function FlightDeckPage() {
             className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
           >
             {data?.onTrack.map((card) => (
-              <OnTrackCard key={card.id} card={card} onOpenInReader={handleOpenInReader} />
+              <OnTrackCard
+                key={card.id}
+                card={card}
+                onOpenInReader={handleOpenInReader}
+                expanded={expanded.has(card.id)}
+                onToggleExpand={toggleExpanded}
+              />
             ))}
           </div>
         </section>
       )}
 
       {/* 4. Recent play activity — bottom of the spatial hierarchy
-          (VAL-FLIGHT-018..021, VAL-FLIGHT-033). Always rendered (either table
-          or empty-state panel) so the Flight Deck layout is consistent. */}
-      {!loading && data && <PlayLogTable entries={data.playLog} empty={data.playLogEmpty} />}
+          (VAL-FLIGHT-018..021, VAL-FLIGHT-032, VAL-FLIGHT-033). Always
+          rendered (either table or empty-state panel) so the Flight Deck
+          layout is consistent. */}
+      {data && (
+        <PlayLogTable
+          entries={data.playLog}
+          empty={data.playLogEmpty}
+          onEntryClick={handlePlayEntryClick}
+        />
+      )}
 
       {/* Error strip — visible next to the empty state so the user never sees a blank screen. */}
       {error && !loading && data?.empty && (

@@ -19,6 +19,10 @@ export interface AttentionCardProps {
   onOpenInReader?: (epicId: string) => void;
   onRunQaCheck?: (epicId: string) => void;
   onViewIssues?: (epicId: string) => void;
+  /** When true, renders the inline `epic-details-<id>` panel. Controlled by the page. */
+  expanded?: boolean;
+  /** Fired when the user clicks the expand/collapse toggle. */
+  onToggleExpand?: (epicId: string) => void;
 }
 
 export function AttentionCard({
@@ -26,6 +30,8 @@ export function AttentionCard({
   onOpenInReader,
   onRunQaCheck,
   onViewIssues,
+  expanded = false,
+  onToggleExpand,
 }: AttentionCardProps) {
   return (
     <article
@@ -124,7 +130,53 @@ export function AttentionCard({
         >
           Open in Reader
         </button>
+        {onToggleExpand && (
+          <button
+            type="button"
+            data-testid="epic-expand-toggle"
+            aria-expanded={expanded}
+            onClick={() => onToggleExpand(card.id)}
+            className="inline-flex items-center gap-2 rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm font-medium text-gray-400 transition-colors hover:border-gray-600 hover:bg-gray-800 hover:text-gray-200"
+          >
+            {expanded ? 'Hide details' : 'Show details'}
+            <span aria-hidden="true">{expanded ? '▲' : '▼'}</span>
+          </button>
+        )}
       </div>
+
+      {expanded && (
+        <dl
+          data-testid={`epic-details-${card.id}`}
+          className="mt-4 grid gap-2 rounded-md border border-gray-800 bg-gray-950/60 p-3 text-xs text-gray-300 sm:grid-cols-2"
+        >
+          <div>
+            <dt className="text-gray-500">Branch</dt>
+            <dd className="mt-0.5 font-mono text-gray-200">{card.branchName}</dd>
+          </div>
+          <div>
+            <dt className="text-gray-500">Stage</dt>
+            <dd className="mt-0.5 text-gray-200">{card.stage}</dd>
+          </div>
+          <div className="sm:col-span-2">
+            <dt className="text-gray-500">Last commit</dt>
+            <dd className="mt-0.5 whitespace-pre-wrap break-words text-gray-200">
+              {card.lastCommitMessage}
+            </dd>
+          </div>
+          {card.failedPlays > 0 && (
+            <div>
+              <dt className="text-gray-500">Failed plays</dt>
+              <dd className="mt-0.5 text-red-300">{card.failedPlays}</dd>
+            </div>
+          )}
+          {card.failedQualityChecks > 0 && (
+            <div>
+              <dt className="text-gray-500">Failed quality checks</dt>
+              <dd className="mt-0.5 text-red-300">{card.failedQualityChecks}</dd>
+            </div>
+          )}
+        </dl>
+      )}
     </article>
   );
 }
@@ -142,6 +194,10 @@ export function AttentionCard({
 export interface OnTrackCardProps {
   card: FlightDeckEpicCard;
   onOpenInReader?: (epicId: string) => void;
+  /** When true, renders the inline `epic-details-<id>` panel. Controlled by the page. */
+  expanded?: boolean;
+  /** Fired when the user clicks the expand/collapse toggle. */
+  onToggleExpand?: (epicId: string) => void;
 }
 
 const STATUS_DOT_CLASSES: Record<FlightDeckEpicCard['statusColor'], string> = {
@@ -150,7 +206,12 @@ const STATUS_DOT_CLASSES: Record<FlightDeckEpicCard['statusColor'], string> = {
   red: 'bg-red-500',
 };
 
-export function OnTrackCard({ card, onOpenInReader }: OnTrackCardProps) {
+export function OnTrackCard({
+  card,
+  onOpenInReader,
+  expanded = false,
+  onToggleExpand,
+}: OnTrackCardProps) {
   return (
     <article
       data-testid="flight-deck-on-track-card"
@@ -198,7 +259,7 @@ export function OnTrackCard({ card, onOpenInReader }: OnTrackCardProps) {
         </p>
       )}
 
-      <div className="mt-3" data-testid="epic-ctas">
+      <div className="mt-3 flex flex-wrap items-center gap-2" data-testid="epic-ctas">
         <button
           type="button"
           data-testid="epic-cta-open-in-reader"
@@ -208,7 +269,37 @@ export function OnTrackCard({ card, onOpenInReader }: OnTrackCardProps) {
           Open in Reader
           <span aria-hidden="true">→</span>
         </button>
+        {onToggleExpand && (
+          <button
+            type="button"
+            data-testid="epic-expand-toggle"
+            aria-expanded={expanded}
+            onClick={() => onToggleExpand(card.id)}
+            className="inline-flex items-center gap-1 rounded-md border border-gray-800 bg-gray-900/50 px-2 py-1.5 text-xs font-medium text-gray-400 transition-colors hover:border-gray-600 hover:bg-gray-800 hover:text-gray-200"
+          >
+            {expanded ? 'Hide' : 'Details'}
+            <span aria-hidden="true">{expanded ? '▲' : '▼'}</span>
+          </button>
+        )}
       </div>
+
+      {expanded && (
+        <dl
+          data-testid={`epic-details-${card.id}`}
+          className="mt-3 grid gap-1.5 rounded-md border border-gray-800 bg-gray-950/60 p-3 text-xs text-gray-300"
+        >
+          <div>
+            <dt className="text-gray-500">Branch</dt>
+            <dd className="mt-0.5 font-mono text-gray-200">{card.branchName}</dd>
+          </div>
+          <div>
+            <dt className="text-gray-500">Last commit</dt>
+            <dd className="mt-0.5 whitespace-pre-wrap break-words text-gray-200">
+              {card.lastCommitMessage}
+            </dd>
+          </div>
+        </dl>
+      )}
     </article>
   );
 }
