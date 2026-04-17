@@ -77,8 +77,19 @@ export function useStepExecution(): StepExecutionApi {
   const [activeExecutions, setActiveExecutions] = useState<Map<string, ActiveExecution>>(new Map());
   const [completedCounts, setCompletedCounts] = useState<Map<string, number>>(new Map());
   const abortControllersRef = useRef<Map<string, AbortController>>(new Map());
+  // Timestamp of the last accepted executeStep call per checklist. Used to
+  // reject rapid clicks that bypass the per-CTAButton ref guard — e.g.
+  // when step N's CTA is clicked, completes instantly, and step N+1's CTA
+  // re-renders in place to be clicked again within the 500ms debounce
+  // window. This is a synchronous, checklist-level debounce (VAL-CHECK-035).
+  const lastExecuteAtRef = useRef<Map<string, number>>(new Map());
 
-  const isExecuting = activeExecutions.size > 0;
+  // `isExecuting` reflects *running* executions only — completed executions
+  // remain in the map so their ContentSlot stays visible after completion
+  // (VAL-CHECK-021), but they should not block new step triggers.
+  const isExecuting = Array.from(activeExecutions.values()).some(
+    (exec) => exec.status === 'running',
+  );
 
   // Backward-compat: return first running execution or null
   const activeExecution: ActiveExecution | null = (() => {
@@ -124,10 +135,20 @@ export function useStepExecution(): StepExecutionApi {
 
   const executeStep = useCallback(
     (checklistId: string, stepId: string, playName: string) => {
+      // Synchronous checklist-level debounce (VAL-CHECK-035). Rejects any
+      // call within 500ms of the previous accepted call on the same
+      // checklist — even if the click came from a different CTA button
+      // that re-rendered after the previous step completed instantly.
+      const now = Date.now();
+      const last = lastExecuteAtRef.current.get(checklistId) ?? 0;
+      if (now - last < 500) return;
+
       // Prevent concurrent executions within the SAME checklist (VAL-CHECK-024)
       // Different checklists CAN execute concurrently (VAL-CHECK-033)
       const existing = activeExecutions.get(checklistId);
       if (existing?.status === 'running') return;
+
+      lastExecuteAtRef.current.set(checklistId, now);
 
       // Cancel any previous connection for THIS checklist only
       abortControllersRef.current.get(checklistId)?.abort();
@@ -209,14 +230,12 @@ export function useStepExecution(): StepExecutionApi {
                     return next;
                   });
                   markStepComplete(checklistId);
-                  // Clear this checklist's execution after brief delay
-                  setTimeout(() => {
-                    setActiveExecutions((prev) => {
-                      const next = new Map(prev);
-                      next.delete(checklistId);
-                      return next;
-                    });
-                  }, 300);
+                  // NOTE: Execution is intentionally NOT deleted from the map
+                  // on completion (VAL-CHECK-021). Keeping the completed output
+                  // in state ensures the ContentSlot stays visible after the
+                  // play finishes, so the user (and browser-based tests) can
+                  // observe the final output. The entry is replaced when the
+                  // next step in the checklist is triggered.
                 } else if (event.type === 'error') {
                   // Play failure — step remains active, NOT marked done (VAL-CHECK-037)
                   hasError = true;
@@ -247,7 +266,9 @@ export function useStepExecution(): StepExecutionApi {
             }
           }
 
-          // Stream ended without explicit complete event — mark complete only if no error
+          // Stream ended without explicit complete event — mark complete only if no error.
+          // As with the explicit 'complete' branch above, the execution entry is retained
+          // so the ContentSlot remains visible after the stream ends (VAL-CHECK-021).
           if (!markedComplete && !hasError) {
             setActiveExecutions((prev) => {
               const current = prev.get(checklistId);
@@ -255,13 +276,6 @@ export function useStepExecution(): StepExecutionApi {
                 markStepComplete(checklistId);
                 const next = new Map(prev);
                 next.set(checklistId, { ...current, status: 'complete' });
-                setTimeout(() => {
-                  setActiveExecutions((p) => {
-                    const n = new Map(p);
-                    n.delete(checklistId);
-                    return n;
-                  });
-                }, 300);
                 return next;
               }
               return prev;

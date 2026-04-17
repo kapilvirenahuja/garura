@@ -21,17 +21,46 @@ export interface CTAButtonProps {
  *
  * Implements rapid click debounce (VAL-CHECK-035): after the first click,
  * the button disables for 500ms to prevent duplicate executions.
+ *
+ * Defense in depth against rapid clicks:
+ * 1. Ref-based guard (synchronous, wins the race when React hasn't re-rendered
+ *    the `disabled` attribute yet between back-to-back click events).
+ * 2. Timestamp check (500ms window) on the ref — ensures any click within
+ *    500ms of the last accepted click is rejected immediately.
+ * 3. React state (`debounced`) — drives the `disabled` attribute so the
+ *    browser itself will suppress clicks once the DOM is updated.
  */
 export function CTAButton({ label, playName, args, onExecute, disabled = false }: CTAButtonProps) {
   const [debounced, setDebounced] = useState(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Synchronous guards — update in the same tick as the click handler.
+  // React state updates are asynchronous; refs are not, which closes the
+  // small window during which rapid back-to-back clicks could both pass the
+  // `debounced`/`disabled` check.
+  const lockedRef = useRef(false);
+  const lastClickTsRef = useRef(0);
 
   const handleClick = useCallback(() => {
+    const now = Date.now();
+
+    // Synchronous ref-based guards (wins the race before React re-renders).
+    if (lockedRef.current) return;
+    if (now - lastClickTsRef.current < 500) return;
+
+    // State-based guards (kept for prop-driven disabling).
     if (debounced || disabled) return;
 
-    // Debounce: prevent rapid clicks (VAL-CHECK-035)
+    // Lock synchronously so subsequent clicks in the same event loop are rejected.
+    lockedRef.current = true;
+    lastClickTsRef.current = now;
+
+    // React state — drives the `disabled` attribute on the next render.
     setDebounced(true);
-    debounceTimer.current = setTimeout(() => setDebounced(false), 500);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebounced(false);
+      lockedRef.current = false;
+    }, 500);
 
     onExecute?.(playName, args);
   }, [debounced, disabled, onExecute, playName, args]);

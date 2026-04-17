@@ -200,10 +200,15 @@ export default function ChecklistsPage() {
   const doneCount = getCompletedCount(greenfieldChecklistId);
   const totalSteps = greenfieldChecklist ? greenfieldChecklist.steps.length : 0;
 
-  // Greenfield execution state — per-checklist tracking
+  // Greenfield execution state — per-checklist tracking.
+  //
+  // `greenfieldExecution` represents the *current or last* execution for this
+  // checklist. It persists after completion (status='complete') so the
+  // ContentSlot stays visible showing the final output (VAL-CHECK-021).
   const greenfieldExecution = getExecution(greenfieldChecklistId);
   const greenfieldExecuting = greenfieldExecution?.status === 'running';
-  const greenfieldExecutingStepId = greenfieldExecuting ? greenfieldExecution?.stepId : null;
+  // The step that currently has (or most recently had) the execution attached.
+  const greenfieldExecutionStepId = greenfieldExecution?.stepId ?? null;
 
   // ---------------------------------------------------------------------------
   // Client-side completion ordering (VAL-CHECK-015)
@@ -330,10 +335,15 @@ export default function ChecklistsPage() {
               const isDone = state === 'done';
               const isActionable = state === 'in-progress' || state === 'pending';
               const isLocked = state === 'locked';
-              const isStepExecuting = greenfieldExecutingStepId === step.id;
+
+              // Is an execution currently/previously attached to THIS step?
+              // Used to gate the visibility of the ContentSlot and execution indicators.
+              const isStepExecutionAttached = greenfieldExecutionStepId === step.id;
+              // Narrower: is this step's execution still running (for CTA gating)?
+              const isStepRunning = isStepExecutionAttached && greenfieldExecuting;
 
               // Show CTA only when actionable and this checklist not currently executing (VAL-CHECK-024)
-              const showCta = isActionable && !isStepExecuting && !greenfieldExecuting;
+              const showCta = isActionable && !greenfieldExecuting;
 
               return (
                 <div
@@ -389,8 +399,8 @@ export default function ChecklistsPage() {
                     </div>
                   )}
 
-                  {/* Running indicator when step is executing (VAL-CHECK-043) */}
-                  {isStepExecuting && (
+                  {/* Running indicator — only while still running (VAL-CHECK-043) */}
+                  {isStepRunning && (
                     <div className="mt-2 pl-9" data-testid="step-executing-indicator">
                       <span className="inline-flex items-center gap-2 text-xs text-blue-400">
                         <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-400" />
@@ -404,20 +414,24 @@ export default function ChecklistsPage() {
                     </div>
                   )}
 
-                  {/* ContentSlot — streams output below executing step (VAL-CHECK-021) */}
-                  {isStepExecuting && greenfieldExecution && (
-                    <div className="mt-3 pl-9" data-testid="step-content-slot">
-                      <ContentSlot
-                        state="active"
-                        content={greenfieldExecution.output}
-                        placeholder={`Executing ${step.play}…`}
-                      />
-                    </div>
-                  )}
+                  {/* ContentSlot — streams output below active step (VAL-CHECK-021).
+                      Remains visible after completion so the user (and
+                      browser-based tests) can observe the final output. */}
+                  {isStepExecutionAttached &&
+                    greenfieldExecution &&
+                    greenfieldExecution.status !== 'error' && (
+                      <div className="mt-3 pl-9" data-testid="step-content-slot">
+                        <ContentSlot
+                          state="active"
+                          content={greenfieldExecution.output}
+                          placeholder={`Executing ${step.play}…`}
+                        />
+                      </div>
+                    )}
 
                   {/* ContentSlot error state (VAL-CHECK-038) */}
-                  {greenfieldExecution &&
-                    greenfieldExecution.stepId === step.id &&
+                  {isStepExecutionAttached &&
+                    greenfieldExecution &&
                     greenfieldExecution.status === 'error' && (
                       <div className="mt-3 pl-9" data-testid="step-error-slot">
                         <ContentSlot

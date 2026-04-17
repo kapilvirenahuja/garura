@@ -118,13 +118,14 @@ export function ChecklistCard({
   const [expanded, setExpanded] = useState(defaultExpanded);
   const statusConfig = STATUS_CONFIG[status];
 
-  // Check if this checklist owns the active execution
-  const isExecutingHere =
-    activeExecution != null &&
-    activeExecution.checklistId === id &&
-    activeExecution.status === 'running';
+  // Does the provided execution belong to THIS checklist at all?
+  // Used to gate ContentSlot visibility (persists after completion so the
+  // slot stays visible — VAL-CHECK-021).
+  const isExecutionAttachedHere = activeExecution != null && activeExecution.checklistId === id;
+  // Narrower: is that execution still running (for CTA gating)?
+  const isExecutingHere = isExecutionAttachedHere && activeExecution?.status === 'running';
 
-  const executingStepId = isExecutingHere ? activeExecution?.stepId : null;
+  const executionStepId = isExecutionAttachedHere ? (activeExecution?.stepId ?? null) : null;
 
   const handleToggle = useCallback(() => {
     setExpanded((prev) => !prev);
@@ -201,11 +202,16 @@ export function ChecklistCard({
             const isDone = state === 'done';
             const isActionable = state === 'in-progress' || state === 'pending';
             const isLocked = state === 'locked';
-            const isStepExecuting = executingStepId === step.id;
+            // Is an execution (running or recently completed) attached to this step?
+            const isStepExecutionAttached = executionStepId === step.id;
+            // Narrower: is the step still running (drives running indicator)?
+            const isStepRunning = isStepExecutionAttached && isExecutingHere;
 
-            // Show CTA only when actionable, not muted, not executing,
-            // and no other execution is running globally (VAL-CHECK-024)
-            const showCta = isActionable && !muted && !isStepExecuting && !ctaDisabled;
+            // Show CTA only when actionable, not muted, and no other execution
+            // is running globally (VAL-CHECK-024). A completed execution
+            // attached to an earlier step does NOT suppress CTAs on later
+            // actionable steps.
+            const showCta = isActionable && !muted && !isStepRunning && !ctaDisabled;
 
             return (
               <div
@@ -259,8 +265,8 @@ export function ChecklistCard({
                   </div>
                 )}
 
-                {/* Running indicator when step is executing (VAL-CHECK-043) */}
-                {isStepExecuting && (
+                {/* Running indicator — only while still running (VAL-CHECK-043) */}
+                {isStepRunning && (
                   <div className="mt-2 pl-9" data-testid="step-executing-indicator">
                     <span className="inline-flex items-center gap-2 text-xs text-blue-400">
                       <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-400" />
@@ -274,21 +280,24 @@ export function ChecklistCard({
                   </div>
                 )}
 
-                {/* ContentSlot — streams output below executing step (VAL-CHECK-021) */}
-                {isStepExecuting && activeExecution && (
-                  <div className="mt-3 pl-9" data-testid="step-content-slot">
-                    <ContentSlot
-                      state="active"
-                      content={activeExecution.output}
-                      placeholder={`Executing ${step.play}…`}
-                    />
-                  </div>
-                )}
+                {/* ContentSlot — streams output below active step (VAL-CHECK-021).
+                    Remains visible after completion so the user (and
+                    browser-based tests) can observe the final output. */}
+                {isStepExecutionAttached &&
+                  activeExecution &&
+                  activeExecution.status !== 'error' && (
+                    <div className="mt-3 pl-9" data-testid="step-content-slot">
+                      <ContentSlot
+                        state="active"
+                        content={activeExecution.output}
+                        placeholder={`Executing ${step.play}…`}
+                      />
+                    </div>
+                  )}
 
                 {/* ContentSlot error state (VAL-CHECK-038) */}
-                {activeExecution &&
-                  activeExecution.checklistId === id &&
-                  activeExecution.stepId === step.id &&
+                {isStepExecutionAttached &&
+                  activeExecution &&
                   activeExecution.status === 'error' && (
                     <div className="mt-3 pl-9" data-testid="step-error-slot">
                       <ContentSlot
