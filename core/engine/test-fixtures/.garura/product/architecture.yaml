@@ -1,0 +1,96 @@
+# architecture.yaml — Product Fixture
+# Combined logical + physical architecture for TaskFlow.
+#
+# This fixture is served to the engine via GARURA_TARGET_REPO during browser
+# user-testing. It must define both ADR-* and NFR-* entries so the Playbook
+# Reader's entity-expansion Connections section can surface
+# "Architecture decisions" and "NFR dependencies" groups on feature,
+# scenario, and epic expansions (VAL-PLAY-024).
+
+slug: "taskflow"
+status: "LOCKED"
+created_at: "2026-02-05"
+
+components:
+  - id: COMP-001
+    name: "Task Service"
+    type: bounded_context
+    responsibility: "Task CRUD, state machine, and query operations"
+    interfaces:
+      - "TaskRepository"
+      - "TaskQueryService"
+    dependencies: ["COMP-003"]
+
+  - id: COMP-002
+    name: "Priority Engine"
+    type: service
+    responsibility: "Score computation and re-ranking logic"
+    interfaces:
+      - "PriorityCalculator"
+    dependencies: ["COMP-001"]
+
+  - id: COMP-003
+    name: "Storage Layer"
+    type: infrastructure
+    responsibility: "Filesystem-based persistence with JSON serialization"
+    interfaces:
+      - "StorageAdapter"
+    dependencies: []
+
+decisions:
+  - id: ADR-001
+    title: "Local-first filesystem storage"
+    status: accepted
+    context: "Need offline-capable storage without external database dependencies"
+    decision: "Use filesystem-based JSON storage with file locking"
+    consequences:
+      - "Simple deployment — no database setup"
+      - "Limited concurrent write throughput"
+    rationale: "Aligns with C1 (offline) and C2 (no external DB) constraints"
+
+  - id: ADR-002
+    title: "Event-driven task state transitions"
+    status: accepted
+    context: "Task state changes triggered by multiple sources (UI, git events, CI)"
+    decision: "Implement event bus pattern for state transition coordination"
+    consequences:
+      - "Decoupled event producers and consumers"
+      - "Audit trail naturally falls out of event log"
+    rationale: "Decoupling keeps F3 workflow automation pluggable"
+
+  - id: ADR-003
+    title: "AI priority scoring runs server-side"
+    status: accepted
+    context: "Priority score computation depends on aggregated project signals"
+    decision: "Compute priority server-side and cache per task"
+    consequences:
+      - "Consistent ranking across clients"
+      - "Requires server-side invalidation hooks"
+    rationale: "Supports F2 Smart Prioritization across devices"
+
+patterns:
+  - id: PAT-001
+    name: "Repository Pattern"
+    scope: "data-access"
+    description: "Abstract storage behind repository interfaces for testability"
+
+  - id: PAT-002
+    name: "Event Sourcing (Lite)"
+    scope: "state-management"
+    description: "Log state transitions as events for audit and replay"
+
+nfr_mappings:
+  - nfr_id: "NFR-PERF-01"
+    description: "Sub-second response for non-AI operations"
+    mechanism: "In-memory caching with filesystem persistence"
+    verification: "Load test with 1000 tasks, p99 < 500ms"
+
+  - nfr_id: "NFR-SEC-01"
+    description: "No sensitive data in logs or error messages"
+    mechanism: "Structured logging with field-level redaction"
+    verification: "Log audit scan in CI pipeline"
+
+  - nfr_id: "NFR-REL-01"
+    description: "Task state transitions are durable across crashes"
+    mechanism: "Append-only event log with fsync on commit"
+    verification: "Chaos test: kill process mid-transition, verify recovery"

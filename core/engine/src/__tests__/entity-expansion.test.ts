@@ -18,6 +18,14 @@ import { buildCrossRefGraph } from '@/lib/crossref-resolver';
 import { composeExplainFurther, resolveEntityExpansion } from '@/lib/entity-expansion';
 
 const FIXTURES_DIR = path.resolve(__dirname, '..', '..', 'test-fixtures', 'artifacts');
+const PRODUCT_FIXTURES_DIR = path.resolve(
+  __dirname,
+  '..',
+  '..',
+  'test-fixtures',
+  '.garura',
+  'product',
+);
 
 function loadArtifacts() {
   return parseArtifacts([
@@ -28,6 +36,24 @@ function loadArtifacts() {
     { path: path.join(FIXTURES_DIR, 'architecture.yaml'), type: 'architecture' },
     { path: path.join(FIXTURES_DIR, 'tech.yaml'), type: 'tech' },
     { path: path.join(FIXTURES_DIR, 'roadmap.yaml'), type: 'roadmap' },
+  ]);
+}
+
+/**
+ * Load artifacts from `test-fixtures/.garura/product/` — the directory the
+ * Next.js dev server actually reads when pointed at the test-fixtures repo
+ * via `GARURA_TARGET_REPO`. This exercises the fix for VAL-PLAY-024 end-to-end
+ * at the fixture layer: if this directory doesn't declare ADR-* / NFR-* the
+ * browser-facing expansion Connections will silently drop those groups.
+ */
+function loadProductFixtureArtifacts() {
+  return parseArtifacts([
+    { path: path.join(PRODUCT_FIXTURES_DIR, 'product.yaml'), type: 'product' },
+    { path: path.join(PRODUCT_FIXTURES_DIR, 'features.yaml'), type: 'features' },
+    { path: path.join(PRODUCT_FIXTURES_DIR, 'scenarios.yaml'), type: 'scenarios' },
+    { path: path.join(PRODUCT_FIXTURES_DIR, 'plan.yaml'), type: 'plan' },
+    { path: path.join(PRODUCT_FIXTURES_DIR, 'architecture.yaml'), type: 'architecture' },
+    { path: path.join(PRODUCT_FIXTURES_DIR, 'roadmap.yaml'), type: 'roadmap' },
   ]);
 }
 
@@ -93,6 +119,54 @@ describe('resolveEntityExpansion', () => {
     expect(features!.refIds).toEqual(expect.arrayContaining(['F1', 'F4']));
   });
 
+  it('surfaces cross-cutting Architecture decisions on a Feature expansion (VAL-PLAY-024)', () => {
+    const artifacts = loadArtifacts();
+    const graph = buildCrossRefGraph(artifacts, null);
+    const data = resolveEntityExpansion('F1', artifacts, graph);
+    const architecture = data.connections.find((c) => c.label === 'Architecture decisions');
+    expect(
+      architecture,
+      'feature expansion should include Architecture decisions group',
+    ).toBeDefined();
+    expect(architecture!.refIds.length).toBeGreaterThan(0);
+    for (const id of architecture!.refIds) {
+      expect(id).toMatch(/^ADR-/);
+    }
+    // Specifically, the fixture declares ADR-001 and ADR-002.
+    expect(architecture!.refIds).toEqual(expect.arrayContaining(['ADR-001', 'ADR-002']));
+  });
+
+  it('surfaces cross-cutting NFR dependencies on a Feature expansion (VAL-PLAY-024)', () => {
+    const artifacts = loadArtifacts();
+    const graph = buildCrossRefGraph(artifacts, null);
+    const data = resolveEntityExpansion('F1', artifacts, graph);
+    const nfrs = data.connections.find((c) => c.label === 'NFR dependencies');
+    expect(nfrs, 'feature expansion should include NFR dependencies group').toBeDefined();
+    expect(nfrs!.refIds.length).toBeGreaterThan(0);
+    for (const id of nfrs!.refIds) {
+      expect(id).toMatch(/^NFR-/);
+    }
+    expect(nfrs!.refIds).toEqual(expect.arrayContaining(['NFR-PERF-01', 'NFR-SEC-01']));
+  });
+
+  it('surfaces cross-cutting Architecture decisions and NFR dependencies on a Scenario expansion (VAL-PLAY-024)', () => {
+    const artifacts = loadArtifacts();
+    const graph = buildCrossRefGraph(artifacts, null);
+    const data = resolveEntityExpansion('SC-AI-001', artifacts, graph);
+    const labels = data.connections.map((c) => c.label);
+    expect(labels).toContain('Architecture decisions');
+    expect(labels).toContain('NFR dependencies');
+  });
+
+  it('surfaces cross-cutting Architecture decisions and NFR dependencies on an Epic expansion (VAL-PLAY-024)', () => {
+    const artifacts = loadArtifacts();
+    const graph = buildCrossRefGraph(artifacts, null);
+    const data = resolveEntityExpansion('EPIC-E1', artifacts, graph);
+    const labels = data.connections.map((c) => c.label);
+    expect(labels).toContain('Architecture decisions');
+    expect(labels).toContain('NFR dependencies');
+  });
+
   it('returns found=false for an unknown reference without throwing', () => {
     const artifacts = loadArtifacts();
     const graph = buildCrossRefGraph(artifacts, null);
@@ -100,6 +174,33 @@ describe('resolveEntityExpansion', () => {
     expect(data.found).toBe(false);
     expect(data.refId).toBe('F999');
     expect(data.connections).toEqual([]);
+  });
+});
+
+describe('resolveEntityExpansion — browser-served product fixture (.garura/product)', () => {
+  it('defines ADR and NFR nodes in the cross-ref graph (VAL-PLAY-024)', () => {
+    const artifacts = loadProductFixtureArtifacts();
+    const graph = buildCrossRefGraph(artifacts, null);
+    const adrs = Array.from(graph.nodes.values()).filter(
+      (n) => n.type === 'adr' || n.type === 'design-decision',
+    );
+    const nfrs = Array.from(graph.nodes.values()).filter((n) => n.type === 'nfr');
+    expect(adrs.length).toBeGreaterThan(0);
+    expect(nfrs.length).toBeGreaterThan(0);
+  });
+
+  it('feature expansion surfaces Architecture decisions and NFR dependencies (VAL-PLAY-024)', () => {
+    const artifacts = loadProductFixtureArtifacts();
+    const graph = buildCrossRefGraph(artifacts, null);
+    const data = resolveEntityExpansion('F1', artifacts, graph);
+    expect(data.found).toBe(true);
+    const labels = data.connections.map((c) => c.label);
+    expect(labels).toContain('Architecture decisions');
+    expect(labels).toContain('NFR dependencies');
+    const architecture = data.connections.find((c) => c.label === 'Architecture decisions')!;
+    const nfrs = data.connections.find((c) => c.label === 'NFR dependencies')!;
+    for (const id of architecture.refIds) expect(id).toMatch(/^ADR-/);
+    for (const id of nfrs.refIds) expect(id).toMatch(/^NFR-/);
   });
 });
 
