@@ -12,6 +12,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { GitIntegration, createGitIntegration } from '@/lib/git-integration';
 import type {
@@ -91,6 +92,61 @@ describe('Git Integration', () => {
         expect(errorResult.error.length).toBeGreaterThan(0);
       } finally {
         removeTempDir(tempDir);
+      }
+    });
+
+    it('correctly parses detached HEAD entries without malformed hash/name pairs', async () => {
+      const tempDir = createTempDir();
+      try {
+        // Create a git repo with a commit, then detach HEAD
+        execSync('git init', { cwd: tempDir, stdio: 'ignore' });
+        execSync('git config user.email "test@test.com"', { cwd: tempDir, stdio: 'ignore' });
+        execSync('git config user.name "Test"', { cwd: tempDir, stdio: 'ignore' });
+        fs.writeFileSync(path.join(tempDir, 'file.txt'), 'hello');
+        execSync('git add . && git commit -m "initial"', { cwd: tempDir, stdio: 'ignore' });
+        const commitHash = execSync('git rev-parse HEAD', { cwd: tempDir, encoding: 'utf-8' }).trim();
+        // Detach HEAD at the current commit
+        execSync(`git checkout --detach ${commitHash}`, { cwd: tempDir, stdio: 'ignore' });
+
+        const git = createGitIntegration(tempDir);
+        const result = await git.listBranches();
+
+        expect(result.ok).toBe(true);
+        const branches = (result as BranchListResult).branches;
+
+        // Should include at least the detached HEAD entry and the main/master branch
+        expect(branches.length).toBeGreaterThanOrEqual(1);
+
+        for (const branch of branches) {
+          // Every hash must be a valid 40-char hex string — not a fragment of the name
+          expect(branch.hash).toMatch(/^[0-9a-f]{40}$/);
+          // Name must be non-empty and not contain the hash
+          expect(branch.name).toBeTruthy();
+          expect(branch.name.length).toBeGreaterThan(0);
+        }
+
+        // The detached HEAD entry (if present) should have the correct hash
+        const detachedEntry = branches.find((b) => b.name.includes('detached'));
+        if (detachedEntry) {
+          expect(detachedEntry.hash).toBe(commitHash);
+        }
+      } finally {
+        removeTempDir(tempDir);
+      }
+    });
+
+    it('normal branch entries continue to parse correctly after detached HEAD fix', async () => {
+      const git = createGitIntegration(REPO_ROOT);
+      const result = await git.listBranches();
+
+      expect(result.ok).toBe(true);
+      const branches = (result as BranchListResult).branches;
+
+      // Verify normal branches still have proper names (no trailing hash fragments)
+      for (const branch of branches) {
+        expect(branch.hash).toMatch(/^[0-9a-f]{40}$/);
+        // Branch names should not contain 40-char hex strings (those belong in hash)
+        expect(branch.name).not.toMatch(/[0-9a-f]{40}/);
       }
     });
   });

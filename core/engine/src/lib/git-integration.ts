@@ -127,10 +127,13 @@ export class GitIntegration {
         .split('\n')
         .filter((line) => line.length > 0)
         .map((line) => {
-          const spaceIndex = line.indexOf(' ');
+          // Use lastIndexOf to handle branch names containing spaces,
+          // such as "(HEAD detached at abc123)". The hash (40-char hex)
+          // is always the last space-delimited token.
+          const lastSpaceIndex = line.lastIndexOf(' ');
           return {
-            name: line.slice(0, spaceIndex),
-            hash: line.slice(spaceIndex + 1),
+            name: line.slice(0, lastSpaceIndex),
+            hash: line.slice(lastSpaceIndex + 1),
           };
         });
 
