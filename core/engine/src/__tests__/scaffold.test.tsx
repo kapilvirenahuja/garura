@@ -1,17 +1,22 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import HomePage from '@/app/page';
+import ChecklistsPage from '@/app/checklists/page';
+import FlightDeckPage from '@/app/flight-deck/page';
+import PlaybookPage from '@/app/playbook/page';
 
-describe('MDB Scaffold', () => {
-  it('renders the home page with title', () => {
-    render(<HomePage />);
-    expect(screen.getByText('MDB — Meridian Artifact Browser')).toBeInTheDocument();
+describe('MDB Scaffold — Instrument Pages', () => {
+  it('renders the Checklists page', () => {
+    render(<ChecklistsPage />);
+    expect(screen.getByText('Checklists')).toBeInTheDocument();
   });
 
-  it('renders the description text', () => {
-    render(<HomePage />);
-    expect(
-      screen.getByText('AI-powered engineering cockpit for Meridian product artifacts'),
-    ).toBeInTheDocument();
+  it('renders the Flight Deck page', () => {
+    render(<FlightDeckPage />);
+    expect(screen.getByText('Flight Deck')).toBeInTheDocument();
+  });
+
+  it('renders the Playbook page', () => {
+    render(<PlaybookPage />);
+    expect(screen.getByText('Playbook')).toBeInTheDocument();
   });
 });
