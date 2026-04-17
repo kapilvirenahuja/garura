@@ -1,7 +1,9 @@
 'use client';
 
 import { ReadinessGauge } from '@/components/readiness-gauge';
+import { ReadinessBreakdown } from '@/components/readiness-breakdown';
 import { ChecklistItem } from '@/components/checklist-item';
+import { useReadiness } from '@/components/readiness-provider';
 import type { ChecklistItemState } from '@/components/checklist-item';
 
 /** Onboarding checklist step definition */
@@ -25,21 +27,27 @@ const ONBOARDING_STEPS: readonly OnboardingStep[] = [
  * Displays a readiness gauge and guided procedures mapped to Meridian plays.
  * In greenfield state (readiness 0), shows the onboarding checklist with
  * only the first step actionable.
+ *
+ * The readiness score and breakdown are consumed from ReadinessProvider context,
+ * ensuring the gauge here is consistent with the mini-gauge in the top bar (VAL-CHECK-003).
+ *
+ * Fulfills: VAL-CHECK-001 (greenfield 0), VAL-CHECK-005 (per-area breakdown)
  */
 export default function ChecklistsPage() {
-  // Foundation: static greenfield state (readiness engine wired in checklists milestone)
-  const readinessScore = 0;
+  const { score, breakdown } = useReadiness();
 
   return (
     <div data-testid="checklists-view">
       {/* Hero readiness gauge */}
-      <div className="mb-8 flex flex-col items-center" data-testid="checklists-hero">
-        <ReadinessGauge score={readinessScore} />
-        <p className="mt-3 text-sm text-gray-400">
-          {readinessScore === 0
+      <div className="mb-8 flex flex-col items-center gap-4" data-testid="checklists-hero">
+        <ReadinessGauge score={score} />
+        <p className="text-sm text-gray-400">
+          {score === 0
             ? "Your project isn't flying yet — let's get started."
-            : `${readinessScore}% of plays can run with current artifacts.`}
+            : `${score}% of plays can run with current artifacts.`}
         </p>
+        {/* Per-area breakdown (VAL-CHECK-005) */}
+        <ReadinessBreakdown breakdown={breakdown} />
       </div>
 
       {/* Onboarding checklist */}

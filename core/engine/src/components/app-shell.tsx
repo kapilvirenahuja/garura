@@ -2,6 +2,7 @@
 
 import { TopBar } from '@/components/top-bar';
 import { Breadcrumb } from '@/components/breadcrumb';
+import { ReadinessProvider } from '@/components/readiness-provider';
 
 export interface AppShellProps {
   children: React.ReactNode;
@@ -12,15 +13,21 @@ export interface AppShellProps {
 /**
  * Persistent application shell wrapping all instrument views.
  * Contains: top bar (project name from config, readiness gauge, tabs, search) and breadcrumb.
+ *
+ * Wraps all content in ReadinessProvider so the readiness score is consistent
+ * across all views — the mini-gauge in the top bar and the large gauge on
+ * Checklists both consume the same context (VAL-CHECK-003).
  */
 export function AppShell({ children, projectName }: AppShellProps) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <TopBar projectName={projectName} />
-      <div className="border-b border-gray-800 bg-gray-950 px-4 py-2">
-        <Breadcrumb />
+    <ReadinessProvider>
+      <div className="flex min-h-screen flex-col">
+        <TopBar projectName={projectName} />
+        <div className="border-b border-gray-800 bg-gray-950 px-4 py-2">
+          <Breadcrumb />
+        </div>
+        <main className="flex-1 p-6">{children}</main>
       </div>
-      <main className="flex-1 p-6">{children}</main>
-    </div>
+    </ReadinessProvider>
   );
 }

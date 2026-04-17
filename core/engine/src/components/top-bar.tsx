@@ -3,6 +3,7 @@
 import { InstrumentSwitcher } from '@/components/instrument-switcher';
 import { ReadinessMiniGauge } from '@/components/readiness-mini-gauge';
 import { SearchBar } from '@/components/search-bar';
+import { useReadiness } from '@/components/readiness-provider';
 
 export interface TopBarProps {
   /** Project name to display in the top bar, derived from config. */
@@ -12,8 +13,14 @@ export interface TopBarProps {
 /**
  * Persistent top bar visible on every screen.
  * Contains: project name (from config), readiness mini-gauge, instrument switcher tabs, and search bar.
+ *
+ * The mini-gauge is wired to the ReadinessProvider context so it shows the
+ * same score on Checklists, Flight Deck, Playbook, and Search views (VAL-CHECK-003).
+ * Clicking the mini-gauge navigates to Checklists (VAL-CHECK-004, VAL-FOUND-011).
  */
 export function TopBar({ projectName = 'Untitled Project' }: TopBarProps) {
+  const { score } = useReadiness();
+
   return (
     <header
       className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/95 backdrop-blur-sm"
@@ -28,7 +35,7 @@ export function TopBar({ projectName = 'Untitled Project' }: TopBarProps) {
           >
             {projectName}
           </h1>
-          <ReadinessMiniGauge score={0} />
+          <ReadinessMiniGauge score={score} />
         </div>
 
         {/* Center: Instrument tabs */}
