@@ -17,7 +17,7 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/checklists',
 }));
 
-describe('MDB Scaffold — Instrument Pages', () => {
+describe('Garura Scaffold — Instrument Pages', () => {
   it('renders the Checklists page', () => {
     render(<ChecklistsPage />);
     expect(screen.getByTestId('checklists-view')).toBeInTheDocument();

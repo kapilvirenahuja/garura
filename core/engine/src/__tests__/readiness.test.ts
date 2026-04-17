@@ -1,5 +1,5 @@
 /**
- * Tests for the MDB Readiness Score Computation Engine.
+ * Tests for the Garura Readiness Score Computation Engine.
  *
  * Fulfills: VAL-CHECK-001, VAL-CHECK-002, VAL-CHECK-003, VAL-CHECK-005,
  *           VAL-CHECK-006, VAL-CHECK-036
@@ -26,7 +26,7 @@ import {
 
 /** Create a temp directory with optional artifact files */
 function createTempArtifactDir(artifacts: string[] = []): string {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mdb-readiness-'));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'garura-readiness-'));
   for (const name of artifacts) {
     fs.writeFileSync(path.join(tmpDir, name), `# ${name}\nstatus: locked\n`, 'utf-8');
   }

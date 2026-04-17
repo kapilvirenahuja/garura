@@ -1,5 +1,5 @@
 /**
- * MDB Foundation — Integration Smoke Tests
+ * Garura Foundation — Integration Smoke Tests
  *
  * Verifies that all foundation pieces work together end-to-end:
  *   1. Application loads with fixture artifacts (all three instruments render)

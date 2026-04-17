@@ -1,8 +1,8 @@
 /**
- * Tests for the MDB Checklist Definitions and Loader System.
+ * Tests for the Garura Checklist Definitions and Loader System.
  *
  * Verifies that built-in checklist YAML files exist, load correctly,
- * and all play references are valid Meridian plays.
+ * and all play references are valid Garura plays.
  *
  * Fulfills: VAL-CHECK-025 (greenfield checklist exists),
  *           VAL-CHECK-026 (brownfield checklist exists),
@@ -99,13 +99,13 @@ describe('Play Registry', () => {
   });
 
   it('scanPlayRegistry finds plays and skills on disk', () => {
-    // Resolve the meridian-os root (4 levels up from src/__tests__)
-    const meridianRoot = path.resolve(__dirname, '..', '..', '..', '..');
-    const playsDir = path.join(meridianRoot, 'core', 'components', 'plays');
+    // Resolve the garura root (4 levels up from src/__tests__)
+    const garuraRoot = path.resolve(__dirname, '..', '..', '..', '..');
+    const playsDir = path.join(garuraRoot, 'core', 'components', 'plays');
 
     // Only run this test if the plays directory exists (it should in the monorepo)
     if (fs.existsSync(playsDir)) {
-      const found = scanPlayRegistry(meridianRoot);
+      const found = scanPlayRegistry(garuraRoot);
       expect(found.size).toBeGreaterThan(0);
       expect(found.has('prepare-epic')).toBe(true);
       expect(found.has('specify-product')).toBe(true);

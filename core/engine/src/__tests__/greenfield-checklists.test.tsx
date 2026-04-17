@@ -9,7 +9,7 @@
  * - Hero gauge centered with 0/100 and supporting text (VAL-CHECK-011)
  * - Readiness score renders as 0 (VAL-CHECK-001)
  *
- * Fulfills: mdb-checklists-greenfield feature
+ * Fulfills: garura-checklists-greenfield feature
  */
 
 import { render, screen, within, fireEvent } from '@testing-library/react';

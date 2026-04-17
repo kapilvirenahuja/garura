@@ -1,5 +1,5 @@
 /**
- * MDB Checklist Loader
+ * Garura Checklist Loader
  *
  * Loads checklist definitions from YAML data files at runtime.
  * All checklists are stored as declarative data — not hardcoded in components.
@@ -112,7 +112,7 @@ export function getChecklistsDataDir(): string {
 // Built-in checklist IDs
 // ---------------------------------------------------------------------------
 
-/** IDs of all built-in checklists shipped with MDB */
+/** IDs of all built-in checklists shipped with Garura */
 export const BUILTIN_CHECKLIST_IDS = [
   'greenfield-onboarding',
   'brownfield-onboarding',

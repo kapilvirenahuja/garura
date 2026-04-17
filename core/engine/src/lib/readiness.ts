@@ -1,7 +1,7 @@
 /**
- * MDB Readiness Score Computation Engine
+ * Garura Readiness Score Computation Engine
  *
- * Calculates a 0-100 readiness score based on the percentage of Meridian plays
+ * Calculates a 0-100 readiness score based on the percentage of Garura plays
  * whose preconditions are satisfied (required artifacts exist and are valid).
  * Includes per-area breakdown (Product, Features, Roadmap, Architecture, Epics)
  * and automatic recalculation via git hash change detection.
@@ -62,7 +62,7 @@ export interface ReadinessResult {
 // ---------------------------------------------------------------------------
 // Play precondition registry
 //
-// Each play entry maps a Meridian play name to the artifact files it requires.
+// Each play entry maps a Garura play name to the artifact files it requires.
 // Artifact keys are relative to the product base path (e.g., "product.yaml").
 // ---------------------------------------------------------------------------
 

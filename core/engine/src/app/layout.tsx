@@ -5,14 +5,14 @@ import { loadConfig, getConfig, resolveRepoRoot } from '@/lib/config';
 import './globals.css';
 
 // Initialise config from the target repo's config file (server component, runs on server only).
-// resolveRepoRoot() walks up from __dirname to find .meridian/, honors MDB_TARGET_REPO env var,
-// and falls back to process.cwd() with a warning when .meridian/ is not found.
+// resolveRepoRoot() walks up from __dirname to find .garura/, honors GARURA_TARGET_REPO env var,
+// and falls back to process.cwd() with a warning when .garura/ is not found.
 const repoRoot = resolveRepoRoot();
-loadConfig(path.resolve(repoRoot, '.meridian/core/config.yaml'));
+loadConfig(path.resolve(repoRoot, '.garura/core/config.yaml'));
 
 export const metadata: Metadata = {
-  title: 'MDB — Meridian Artifact Browser',
-  description: 'AI-powered engineering cockpit for Meridian product artifacts',
+  title: 'Garura',
+  description: 'AI-powered engineering cockpit for Garura product artifacts',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,7 +1,7 @@
 /**
  * API Route: /api/checklists/execute
  *
- * Executes a Meridian play and streams output via Server-Sent Events (SSE).
+ * Executes a Garura play and streams output via Server-Sent Events (SSE).
  * Used by checklist step CTAs to trigger play execution with streaming
  * progress feedback.
  *
@@ -84,11 +84,11 @@ export async function POST(request: NextRequest): Promise<Response> {
       if (!cliCommand) {
         sendEvent({
           type: 'output',
-          content: `[mdb] No CLI command found. Play "${playName}" would be executed here.\n`,
+          content: `[garura] No CLI command found. Play "${playName}" would be executed here.\n`,
         });
         sendEvent({
           type: 'output',
-          content: `[mdb] Install the Factory CLI or Claude CLI to enable headless play execution.\n`,
+          content: `[garura] Install the Factory CLI or Claude CLI to enable headless play execution.\n`,
         });
         sendEvent({ type: 'complete' });
         controller.close();
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
       sendEvent({
         type: 'output',
-        content: `[mdb] Starting play: ${playName}\n`,
+        content: `[garura] Starting play: ${playName}\n`,
       });
 
       try {
@@ -135,19 +135,19 @@ export async function POST(request: NextRequest): Promise<Response> {
           // CLI command not found or spawn failed
           sendEvent({
             type: 'output',
-            content: `[mdb] CLI "${cliCommand}" not available. Simulating play execution.\n`,
+            content: `[garura] CLI "${cliCommand}" not available. Simulating play execution.\n`,
           });
           sendEvent({
             type: 'output',
-            content: `[mdb] Play "${playName}" — this would execute the Meridian play.\n`,
+            content: `[garura] Play "${playName}" — this would execute the Garura play.\n`,
           });
           sendEvent({
             type: 'output',
-            content: `[mdb] To enable real execution, install the Factory or Claude CLI.\n`,
+            content: `[garura] To enable real execution, install the Factory or Claude CLI.\n`,
           });
           sendEvent({
             type: 'output',
-            content: `[mdb] Error: ${err.message}\n`,
+            content: `[garura] Error: ${err.message}\n`,
           });
           sendEvent({ type: 'complete' });
           controller.close();
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         const message = err instanceof Error ? err.message : String(err);
         sendEvent({
           type: 'output',
-          content: `[mdb] Could not start play execution: ${message}\n`,
+          content: `[garura] Could not start play execution: ${message}\n`,
         });
         sendEvent({ type: 'complete' });
         controller.close();

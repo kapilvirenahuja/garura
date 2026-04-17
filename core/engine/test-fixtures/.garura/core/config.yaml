@@ -1,10 +1,8 @@
-# Valid test configuration
+# Test fixture configuration for Garura
+# Used when GARURA_TARGET_REPO points to this test-fixtures directory
 project:
-  name: TestProject
-  type: Test Application
-
-repo:
-  path: /tmp/test-repo
+  name: Garura
+  type: Test Fixtures
 
 stm:
   base-path: .garura/project/issues/

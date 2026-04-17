@@ -1,7 +1,7 @@
 /**
- * MDB Configuration System
+ * Garura Configuration System
  *
- * Reads .meridian/core/config.yaml with path resolution, sensible defaults,
+ * Reads .garura/core/config.yaml with path resolution, sensible defaults,
  * configurable target repository path, reload without restart, and graceful
  * handling of missing/invalid config files.
  *
@@ -16,7 +16,7 @@ import yaml from 'js-yaml';
 // Types
 // ---------------------------------------------------------------------------
 
-export interface MdbConfig {
+export interface GaruraConfig {
   /** Project metadata */
   readonly project: {
     readonly name: string;
@@ -45,7 +45,7 @@ export interface MdbConfig {
 // Defaults
 // ---------------------------------------------------------------------------
 
-export const DEFAULT_CONFIG: MdbConfig = Object.freeze({
+export const DEFAULT_CONFIG: GaruraConfig = Object.freeze({
   project: Object.freeze({
     name: 'Untitled Project',
     type: '',
@@ -54,10 +54,10 @@ export const DEFAULT_CONFIG: MdbConfig = Object.freeze({
     path: process.cwd(),
   }),
   stm: Object.freeze({
-    basePath: '.meridian/project/issues/',
+    basePath: '.garura/project/issues/',
   }),
   product: Object.freeze({
-    basePath: '.meridian/product/',
+    basePath: '.garura/product/',
   }),
   components: Object.freeze({
     skills: './core/components/skills/',
@@ -97,25 +97,25 @@ interface RawConfig {
  * Resolve the repository root directory independently of process.cwd().
  *
  * Resolution order:
- * 1. `MDB_TARGET_REPO` env var — explicit override
+ * 1. `GARURA_TARGET_REPO` env var — explicit override
  * 2. Walk up from this file's directory (__dirname) looking for the nearest
- *    directory containing a `.meridian/` subdirectory.
- * 3. Fall back to `process.cwd()` with a warning when `.meridian/` cannot be
+ *    directory containing a `.garura/` subdirectory.
+ * 3. Fall back to `process.cwd()` with a warning when `.garura/` cannot be
  *    found anywhere in the ancestor chain.
  */
 export function resolveRepoRoot(): string {
   // 1. Explicit env var override
-  const envRoot = process.env.MDB_TARGET_REPO;
+  const envRoot = process.env.GARURA_TARGET_REPO;
   if (envRoot) {
     return path.resolve(envRoot);
   }
 
-  // 2. Walk up from __dirname to find nearest .meridian/
+  // 2. Walk up from __dirname to find nearest .garura/
   let current = __dirname;
   const root = path.parse(current).root;
 
   while (current !== root) {
-    const candidate = path.join(current, '.meridian');
+    const candidate = path.join(current, '.garura');
     if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
       return current;
     }
@@ -126,7 +126,7 @@ export function resolveRepoRoot(): string {
 
   // 3. Fallback to cwd with warning
   console.warn(
-    '[mdb-config] Could not find .meridian/ directory in any ancestor of ' +
+    '[garura-config] Could not find .garura/ directory in any ancestor of ' +
       `${__dirname} — falling back to process.cwd() (${process.cwd()})`,
   );
   return process.cwd();
@@ -136,7 +136,7 @@ export function resolveRepoRoot(): string {
 // Module state
 // ---------------------------------------------------------------------------
 
-let currentConfig: MdbConfig = DEFAULT_CONFIG;
+let currentConfig: GaruraConfig = DEFAULT_CONFIG;
 let currentConfigPath: string | null = null;
 
 // ---------------------------------------------------------------------------
@@ -174,7 +174,7 @@ function validateField<T>(
   }
   if (typeof value !== expectedType) {
     console.warn(
-      `[mdb-config] invalid type for ${fieldPath}: expected ${expectedType}, got ${typeof value} — using default`,
+      `[garura-config] invalid type for ${fieldPath}: expected ${expectedType}, got ${typeof value} — using default`,
     );
     return defaultValue;
   }
@@ -185,7 +185,7 @@ function validateField<T>(
 // Merge helper — fills missing keys with defaults + type validation
 // ---------------------------------------------------------------------------
 
-function mergeWithDefaults(raw: RawConfig): MdbConfig {
+function mergeWithDefaults(raw: RawConfig): GaruraConfig {
   return deepFreeze({
     project: {
       name: validateField(raw.project?.name, 'string', 'project.name', DEFAULT_CONFIG.project.name),
@@ -224,7 +224,7 @@ function mergeWithDefaults(raw: RawConfig): MdbConfig {
         DEFAULT_CONFIG.components.agents,
       ),
     },
-  }) as MdbConfig;
+  }) as GaruraConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -240,14 +240,14 @@ function mergeWithDefaults(raw: RawConfig): MdbConfig {
  * - Logs warnings instead of crashing on errors.
  *
  * @param configPath — Absolute or relative path to config.yaml
- * @returns The resolved MdbConfig
+ * @returns The resolved GaruraConfig
  */
-export function loadConfig(configPath: string): MdbConfig {
+export function loadConfig(configPath: string): GaruraConfig {
   currentConfigPath = configPath;
 
   // Check if file exists
   if (!fs.existsSync(configPath)) {
-    console.warn(`[mdb-config] config file not found: ${configPath} — using defaults`);
+    console.warn(`[garura-config] config file not found: ${configPath} — using defaults`);
     currentConfig = DEFAULT_CONFIG;
     return currentConfig;
   }
@@ -267,7 +267,7 @@ export function loadConfig(configPath: string): MdbConfig {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn(
-      `[mdb-config] Failed to parse config at ${configPath}: ${message} — using defaults`,
+      `[garura-config] Failed to parse config at ${configPath}: ${message} — using defaults`,
     );
     currentConfig = DEFAULT_CONFIG;
     return currentConfig;
@@ -278,7 +278,7 @@ export function loadConfig(configPath: string): MdbConfig {
  * Get the current configuration.
  * Returns defaults if loadConfig has not been called.
  */
-export function getConfig(): MdbConfig {
+export function getConfig(): GaruraConfig {
   return currentConfig;
 }
 
@@ -286,7 +286,7 @@ export function getConfig(): MdbConfig {
  * Reload the configuration from the previously-loaded file path.
  * If no config has been loaded yet, this is a no-op returning defaults.
  */
-export function reloadConfig(): MdbConfig {
+export function reloadConfig(): GaruraConfig {
   if (currentConfigPath) {
     return loadConfig(currentConfigPath);
   }

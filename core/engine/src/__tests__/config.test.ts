@@ -30,13 +30,13 @@ describe('Config System', () => {
       expect(config.project.name).toBe('TestProject');
       expect(config.project.type).toBe('Test Application');
       expect(config.repo.path).toBe('/tmp/test-repo');
-      expect(config.stm.basePath).toBe('.meridian/project/issues/');
-      expect(config.product.basePath).toBe('.meridian/product/');
+      expect(config.stm.basePath).toBe('.garura/project/issues/');
+      expect(config.product.basePath).toBe('.garura/product/');
       expect(config.components.skills).toBe('./core/components/skills/');
       expect(config.components.agents).toBe('./core/components/agents/');
     });
 
-    it('returns config that matches MdbConfig shape', () => {
+    it('returns config that matches GaruraConfig shape', () => {
       const configPath = path.join(FIXTURES_DIR, 'valid-config.yaml');
       const config = loadConfig(configPath);
 
@@ -132,7 +132,7 @@ describe('Config System', () => {
 
   describe('reloadConfig — reload without restart (VAL-FOUND-072)', () => {
     it('picks up updated values on reload', () => {
-      const tmpDir = fs.mkdtempSync(path.join('/tmp', 'mdb-config-test-'));
+      const tmpDir = fs.mkdtempSync(path.join('/tmp', 'garura-config-test-'));
       const tmpConfigPath = path.join(tmpDir, 'config.yaml');
 
       // Write initial config
@@ -158,7 +158,7 @@ describe('Config System', () => {
     });
 
     it('maintains defaults for missing keys after reload', () => {
-      const tmpDir = fs.mkdtempSync(path.join('/tmp', 'mdb-config-test-'));
+      const tmpDir = fs.mkdtempSync(path.join('/tmp', 'garura-config-test-'));
       const tmpConfigPath = path.join(tmpDir, 'config.yaml');
 
       // Write full config
@@ -180,7 +180,7 @@ describe('Config System', () => {
     });
 
     it('falls back to defaults if config file is deleted before reload', () => {
-      const tmpDir = fs.mkdtempSync(path.join('/tmp', 'mdb-config-test-'));
+      const tmpDir = fs.mkdtempSync(path.join('/tmp', 'garura-config-test-'));
       const tmpConfigPath = path.join(tmpDir, 'config.yaml');
 
       // Write initial config
@@ -236,8 +236,8 @@ describe('Config System', () => {
       expect(DEFAULT_CONFIG.project.name).toBe('Untitled Project');
       expect(DEFAULT_CONFIG.project.type).toBe('');
       expect(DEFAULT_CONFIG.repo.path).toBe(process.cwd());
-      expect(DEFAULT_CONFIG.stm.basePath).toBe('.meridian/project/issues/');
-      expect(DEFAULT_CONFIG.product.basePath).toBe('.meridian/product/');
+      expect(DEFAULT_CONFIG.stm.basePath).toBe('.garura/project/issues/');
+      expect(DEFAULT_CONFIG.product.basePath).toBe('.garura/product/');
       expect(DEFAULT_CONFIG.components.skills).toBe('./core/components/skills/');
       expect(DEFAULT_CONFIG.components.agents).toBe('./core/components/agents/');
     });
@@ -331,7 +331,7 @@ describe('Config System', () => {
     it('valid fields are preserved even when other fields have wrong types', () => {
       vi.spyOn(console, 'warn').mockImplementation(() => {});
       // Create a temp config with a mix of valid and invalid fields
-      const tmpDir = fs.mkdtempSync(path.join('/tmp', 'mdb-config-mixed-'));
+      const tmpDir = fs.mkdtempSync(path.join('/tmp', 'garura-config-mixed-'));
       const tmpConfigPath = path.join(tmpDir, 'config.yaml');
 
       fs.writeFileSync(
@@ -365,47 +365,47 @@ describe('Config System', () => {
 
       // stm.basePath is relative, should resolve against repo.path
       const resolvedStm = path.resolve(config.repo.path, config.stm.basePath);
-      expect(resolvedStm).toBe(path.resolve('/tmp/test-repo', '.meridian/project/issues/'));
+      expect(resolvedStm).toBe(path.resolve('/tmp/test-repo', '.garura/project/issues/'));
     });
   });
 
   describe('resolveRepoRoot — cwd-independent repo root discovery', () => {
-    const originalEnv = process.env.MDB_TARGET_REPO;
+    const originalEnv = process.env.GARURA_TARGET_REPO;
 
     afterEach(() => {
       if (originalEnv === undefined) {
-        delete process.env.MDB_TARGET_REPO;
+        delete process.env.GARURA_TARGET_REPO;
       } else {
-        process.env.MDB_TARGET_REPO = originalEnv;
+        process.env.GARURA_TARGET_REPO = originalEnv;
       }
       vi.restoreAllMocks();
     });
 
-    it('honors MDB_TARGET_REPO env var when set', () => {
-      process.env.MDB_TARGET_REPO = '/custom/repo/root';
+    it('honors GARURA_TARGET_REPO env var when set', () => {
+      process.env.GARURA_TARGET_REPO = '/custom/repo/root';
       const result = resolveRepoRoot();
       expect(result).toBe(path.resolve('/custom/repo/root'));
     });
 
-    it('resolves relative MDB_TARGET_REPO to absolute path', () => {
-      process.env.MDB_TARGET_REPO = './relative/path';
+    it('resolves relative GARURA_TARGET_REPO to absolute path', () => {
+      process.env.GARURA_TARGET_REPO = './relative/path';
       const result = resolveRepoRoot();
       expect(path.isAbsolute(result)).toBe(true);
     });
 
-    it('finds repo root by walking up from __dirname when .meridian/ exists', () => {
-      delete process.env.MDB_TARGET_REPO;
-      // The actual meridian-os repo has .meridian/ at its root, and __dirname
+    it('finds repo root by walking up from __dirname when .garura/ exists', () => {
+      delete process.env.GARURA_TARGET_REPO;
+      // The actual garura repo has .garura/ at its root, and __dirname
       // for this file is inside core/engine/src/__tests__ — so resolveRepoRoot()
       // should walk up and find the repo root.
       const result = resolveRepoRoot();
 
-      // Should find the directory containing .meridian/
-      expect(fs.existsSync(path.join(result, '.meridian'))).toBe(true);
+      // Should find the directory containing .garura/
+      expect(fs.existsSync(path.join(result, '.garura'))).toBe(true);
     });
 
     it('returns a directory that is an ancestor of core/engine/', () => {
-      delete process.env.MDB_TARGET_REPO;
+      delete process.env.GARURA_TARGET_REPO;
       const result = resolveRepoRoot();
 
       // The resolved repo root should be an ancestor of the engine directory
@@ -413,9 +413,9 @@ describe('Config System', () => {
       expect(engineDir.startsWith(result)).toBe(true);
     });
 
-    it('falls back to process.cwd() with warning when .meridian/ not found', () => {
-      delete process.env.MDB_TARGET_REPO;
-      // Mock fs.existsSync to always return false for .meridian candidates
+    it('falls back to process.cwd() with warning when .garura/ not found', () => {
+      delete process.env.GARURA_TARGET_REPO;
+      // Mock fs.existsSync to always return false for .garura candidates
       const existsSpy = vi.spyOn(fs, 'existsSync').mockReturnValue(false);
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -423,19 +423,19 @@ describe('Config System', () => {
 
       expect(result).toBe(process.cwd());
       expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Could not find .meridian/ directory'),
+        expect.stringContaining('Could not find .garura/ directory'),
       );
 
       existsSpy.mockRestore();
     });
 
     it('config loads correctly from resolved repo root (simulating core/engine/ cwd)', () => {
-      delete process.env.MDB_TARGET_REPO;
+      delete process.env.GARURA_TARGET_REPO;
 
       // resolveRepoRoot walks up from __dirname, not process.cwd(),
-      // so it should find .meridian/ regardless of where pnpm dev started from
+      // so it should find .garura/ regardless of where pnpm dev started from
       const repoRoot = resolveRepoRoot();
-      const configPath = path.resolve(repoRoot, '.meridian/core/config.yaml');
+      const configPath = path.resolve(repoRoot, '.garura/core/config.yaml');
 
       // If the real config exists, load it and verify it doesn't fall back to defaults
       if (fs.existsSync(configPath)) {

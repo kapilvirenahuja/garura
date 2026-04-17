@@ -1,7 +1,7 @@
 /**
- * MDB Artifact Parser
+ * Garura Artifact Parser
  *
- * Server-side YAML/Markdown parser for all Meridian artifact types.
+ * Server-side YAML/Markdown parser for all Garura artifact types.
  * Uses js-yaml for YAML parsing and gray-matter for Markdown frontmatter extraction.
  * Returns normalized ArtifactResult objects with schema normalization for version variations.
  *
@@ -830,7 +830,7 @@ export function detectArtifactType(filePath: string, hint?: ArtifactType): Artif
 }
 
 /**
- * Parse a single Meridian artifact file.
+ * Parse a single Garura artifact file.
  *
  * @param filePath - Absolute path to the artifact file
  * @param type - Optional artifact type hint (auto-detected from filename if omitted)

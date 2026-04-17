@@ -17,7 +17,7 @@ export const DEFAULT_INSTRUMENT: InstrumentId = 'checklists';
 
 /**
  * @deprecated Use config.project.name via getConfig() instead.
- * Project name is now read from .meridian/core/config.yaml at runtime.
+ * Project name is now read from .garura/core/config.yaml at runtime.
  * This constant is retained only for backward compatibility in tests.
  */
-export const PROJECT_NAME = 'MDB TaskFlow';
+export const PROJECT_NAME = 'Garura';

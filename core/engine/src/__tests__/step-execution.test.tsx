@@ -335,7 +335,7 @@ describe('Step Execution — ContentSlot Streaming (VAL-CHECK-021)', () => {
       checklistId: 'test-checklist',
       stepId: 'step-1',
       playName: 'discover-product',
-      output: '[mdb] Starting play: discover-product\n',
+      output: '[garura] Starting play: discover-product\n',
       status: 'running',
     };
 
@@ -360,7 +360,7 @@ describe('Step Execution — ContentSlot Streaming (VAL-CHECK-021)', () => {
     expect(slot).toHaveAttribute('data-state', 'active');
 
     const content = within(contentSlot).getByTestId('content-slot-content');
-    expect(content).toHaveTextContent('[mdb] Starting play: discover-product');
+    expect(content).toHaveTextContent('[garura] Starting play: discover-product');
   });
 
   it('ContentSlot is inside the correct step', () => {

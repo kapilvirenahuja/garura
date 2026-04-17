@@ -68,7 +68,7 @@ const MOCK_STEPS = [
 
 /** Create a temp directory with optional artifact files */
 function createTempArtifactDir(artifacts: Record<string, string> = {}): string {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mdb-edge-'));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'garura-edge-'));
   for (const [name, content] of Object.entries(artifacts)) {
     fs.writeFileSync(path.join(tmpDir, name), content, 'utf-8');
   }
@@ -215,7 +215,7 @@ describe('Edge Cases — Malformed Artifact Skipped (VAL-CHECK-042)', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// VAL-CHECK-032: Empty Artifact Directory / No .meridian
+// VAL-CHECK-032: Empty Artifact Directory / No .garura
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe('Edge Cases — Empty Artifact Directory (VAL-CHECK-032)', () => {
@@ -283,7 +283,7 @@ describe('Edge Cases — ContentSlot Error State (VAL-CHECK-038)', () => {
     render(
       <ContentSlot
         state="error"
-        content="[mdb] Starting play...\nError: command not found"
+        content="[garura] Starting play...\nError: command not found"
         errorMessage="Non-zero exit"
       />,
     );
@@ -830,7 +830,7 @@ describe('Edge Cases — Checklist Definitions Load Failure (VAL-CHECK-040)', ()
   });
 
   it('loadChecklistFromFile handles corrupted YAML', () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mdb-corrupt-'));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'garura-corrupt-'));
     const filePath = path.join(tmpDir, 'bad-checklist.yaml');
     fs.writeFileSync(filePath, '{{invalid yaml syntax}}}', 'utf-8');
 
@@ -841,7 +841,7 @@ describe('Edge Cases — Checklist Definitions Load Failure (VAL-CHECK-040)', ()
   });
 
   it('loadChecklistFromFile handles missing required fields', () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mdb-incomplete-'));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'garura-incomplete-'));
     const filePath = path.join(tmpDir, 'incomplete.yaml');
     fs.writeFileSync(filePath, 'id: test\ntitle: Incomplete\n', 'utf-8');
 

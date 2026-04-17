@@ -1,5 +1,5 @@
 /**
- * MDB Checklist Engine
+ * Garura Checklist Engine
  *
  * Selects, orders, and manages checklists for the mid-project view.
  * Active checklists are ordered by their impact on the readiness score —

@@ -1,7 +1,7 @@
 /**
- * MDB Play Registry
+ * Garura Play Registry
  *
- * Comprehensive registry of all valid Meridian play and skill names.
+ * Comprehensive registry of all valid Garura play and skill names.
  * Used to validate checklist step references against known plays.
  *
  * The registry is populated from:
@@ -18,15 +18,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 // ---------------------------------------------------------------------------
-// Static registry — all known Meridian play and skill names
+// Static registry — all known Garura play and skill names
 // ---------------------------------------------------------------------------
 
 /**
- * Complete set of valid Meridian play names.
+ * Complete set of valid Garura play names.
  *
  * Includes plays (from core/components/plays/) and skills
  * (from core/components/skills/) since both are invocable via the
- * Meridian execution model.
+ * Garura execution model.
  */
 export const MERIDIAN_PLAY_NAMES: ReadonlySet<string> = new Set([
   // --- Plays (core/components/plays/) ---
@@ -109,7 +109,7 @@ export const MERIDIAN_PLAY_NAMES: ReadonlySet<string> = new Set([
 // ---------------------------------------------------------------------------
 
 /**
- * Check whether a play name is a valid Meridian play or skill.
+ * Check whether a play name is a valid Garura play or skill.
  *
  * @param name - The play name to validate
  * @returns true if the name is in the registry
@@ -133,21 +133,21 @@ export function findInvalidPlays(names: ReadonlyArray<string>): string[] {
 // ---------------------------------------------------------------------------
 
 /**
- * Scan the Meridian source directories for play and skill names.
+ * Scan the Garura source directories for play and skill names.
  *
  * Reads directory names from core/components/plays/ and core/components/skills/
  * to build a dynamic registry. Useful for validation against the actual
  * filesystem state.
  *
- * @param meridianRoot - Path to the meridian-os repository root
+ * @param garuraRoot - Path to the garura repository root
  * @returns Set of play/skill names found on disk
  */
-export function scanPlayRegistry(meridianRoot: string): Set<string> {
+export function scanPlayRegistry(garuraRoot: string): Set<string> {
   const found = new Set<string>();
 
   const dirs = [
-    path.join(meridianRoot, 'core', 'components', 'plays'),
-    path.join(meridianRoot, 'core', 'components', 'skills'),
+    path.join(garuraRoot, 'core', 'components', 'plays'),
+    path.join(garuraRoot, 'core', 'components', 'skills'),
   ];
 
   for (const dir of dirs) {

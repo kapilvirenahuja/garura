@@ -1,5 +1,5 @@
 /**
- * Tests for MDB Search Index
+ * Tests for Garura Search Index
  *
  * Covers: VAL-FOUND-039 through VAL-FOUND-045
  */

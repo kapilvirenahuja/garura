@@ -1,5 +1,5 @@
 /**
- * MDB Cross-Reference Resolver
+ * Garura Cross-Reference Resolver
  *
  * Server-side singleton cross-reference graph builder that scans all parsed artifacts
  * and builds an in-memory graph of convention-based IDs:

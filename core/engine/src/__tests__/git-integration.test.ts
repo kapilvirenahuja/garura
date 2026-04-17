@@ -1,7 +1,7 @@
 /**
- * Tests for MDB Git Integration Layer
+ * Tests for Garura Git Integration Layer
  *
- * Uses the actual meridian-os repository (which this code lives in) as the
+ * Uses the actual garura repository (which this code lives in) as the
  * test git repository, and temp directories for testing non-git / state-file
  * scenarios.
  *
@@ -26,12 +26,12 @@ import type {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** The root of the meridian-os repo — a real git repository */
+/** The root of the garura repo — a real git repository */
 const REPO_ROOT = path.resolve(__dirname, '../../../../');
 
 /** Create a temporary directory for testing */
 function createTempDir(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'mdb-git-test-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'garura-git-test-'));
 }
 
 /** Remove a temporary directory and all contents */
@@ -56,11 +56,11 @@ describe('Git Integration', () => {
       const branches = (result as BranchListResult).branches;
       expect(branches.length).toBeGreaterThanOrEqual(1);
 
-      // Find a branch that should exist (main or feat/mdb-engine)
+      // Find a branch that should exist (main or feat/garura-engine)
       const branchNames = branches.map((b) => b.name);
       const hasExpectedBranch =
         branchNames.includes('main') ||
-        branchNames.includes('feat/mdb-engine') ||
+        branchNames.includes('feat/garura-engine') ||
         branchNames.some((name) => name.startsWith('remotes/'));
       expect(hasExpectedBranch).toBe(true);
     });
@@ -225,7 +225,7 @@ describe('Git Integration', () => {
 
     beforeEach(() => {
       tempDir = createTempDir();
-      stateFilePath = path.join(tempDir, '.mdb-git-state.json');
+      stateFilePath = path.join(tempDir, '.garura-git-state.json');
     });
 
     afterEach(() => {
@@ -271,7 +271,7 @@ describe('Git Integration', () => {
     });
 
     it('creates parent directories if they do not exist', () => {
-      const nestedPath = path.join(tempDir, 'nested', 'dir', '.mdb-state.json');
+      const nestedPath = path.join(tempDir, 'nested', 'dir', '.garura-state.json');
       const git = createGitIntegration(REPO_ROOT, nestedPath);
 
       git.writeLastProcessedHash('nested-hash');
@@ -381,7 +381,7 @@ describe('Git Integration', () => {
     it('returns changed=true when hashes differ', async () => {
       const tempDir = createTempDir();
       try {
-        const stateFilePath = path.join(tempDir, '.mdb-state.json');
+        const stateFilePath = path.join(tempDir, '.garura-state.json');
         const git = createGitIntegration(REPO_ROOT, stateFilePath);
 
         // Write a known-different hash
@@ -402,7 +402,7 @@ describe('Git Integration', () => {
     it('returns changed=false when hashes are the same', async () => {
       const tempDir = createTempDir();
       try {
-        const stateFilePath = path.join(tempDir, '.mdb-state.json');
+        const stateFilePath = path.join(tempDir, '.garura-state.json');
         const git = createGitIntegration(REPO_ROOT, stateFilePath);
 
         // First, detect to get the current hash
@@ -507,7 +507,7 @@ describe('Git Integration', () => {
       const git = createGitIntegration(REPO_ROOT);
       expect(git).toBeInstanceOf(GitIntegration);
       expect(git.getRepoPath()).toBe(REPO_ROOT);
-      expect(git.getStateFilePath()).toBe(path.join(REPO_ROOT, '.mdb-git-state.json'));
+      expect(git.getStateFilePath()).toBe(path.join(REPO_ROOT, '.garura-git-state.json'));
     });
 
     it('creates instance with custom state file path', () => {

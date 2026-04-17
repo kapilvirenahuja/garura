@@ -22,7 +22,7 @@ import type { ChecklistDefinition } from '@/lib/checklist-loader';
 // ---------------------------------------------------------------------------
 
 function createTempDir(files: Record<string, string> = {}): string {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mdb-fix-state-'));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'garura-fix-state-'));
   for (const [name, content] of Object.entries(files)) {
     fs.writeFileSync(path.join(tmpDir, name), content, 'utf-8');
   }

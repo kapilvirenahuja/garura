@@ -1,5 +1,5 @@
 /**
- * MDB Git Integration Layer
+ * Garura Git Integration Layer
  *
  * simple-git wrapper providing branch listing with commit hashes, commit history
  * retrieval (hash, author, timestamp, message in newest-first order), last-processed
@@ -72,7 +72,7 @@ export interface ChangeDetectionResult {
 // Default state file path
 // ---------------------------------------------------------------------------
 
-const DEFAULT_STATE_FILENAME = '.mdb-git-state.json';
+const DEFAULT_STATE_FILENAME = '.garura-git-state.json';
 
 // ---------------------------------------------------------------------------
 // GitIntegration class
@@ -87,7 +87,7 @@ export class GitIntegration {
    * Create a new GitIntegration instance.
    *
    * @param repoPath - Absolute path to the git repository
-   * @param stateFilePath - Optional path for the state file; defaults to `{repoPath}/.mdb-git-state.json`
+   * @param stateFilePath - Optional path for the state file; defaults to `{repoPath}/.garura-git-state.json`
    */
   constructor(repoPath: string, stateFilePath?: string) {
     this.repoPath = repoPath;

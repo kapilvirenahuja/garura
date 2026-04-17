@@ -451,7 +451,7 @@ export default function ChecklistsPage() {
               All clear — your project is fully instrumented
             </h2>
             <p className="mt-2 text-sm text-gray-400">
-              Every checklist is complete. Your Meridian project has full play readiness.
+              Every checklist is complete. Your Garura project has full play readiness.
             </p>
           </div>
 

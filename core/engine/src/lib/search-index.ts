@@ -1,5 +1,5 @@
 /**
- * MDB Search Index
+ * Garura Search Index
  *
  * MiniSearch-based full-text search index that indexes all parsed artifact content
  * on startup with field boosting. Supports relevance ranking, source identification

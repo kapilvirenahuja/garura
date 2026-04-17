@@ -5,7 +5,7 @@ import { useState, useCallback, useRef } from 'react';
 export interface CTAButtonProps {
   /** Button label text. */
   label: string;
-  /** Name of the Meridian play to execute. */
+  /** Name of the Garura play to execute. */
   playName: string;
   /** Optional arguments passed to the play. */
   args?: Record<string, string>;
@@ -16,7 +16,7 @@ export interface CTAButtonProps {
 }
 
 /**
- * Styled call-to-action button mapped to a Meridian play.
+ * Styled call-to-action button mapped to a Garura play.
  * Fires `onExecute` with the play name and optional arguments when clicked.
  *
  * Implements rapid click debounce (VAL-CHECK-035): after the first click,
