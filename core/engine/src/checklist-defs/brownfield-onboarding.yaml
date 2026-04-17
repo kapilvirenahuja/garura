@@ -1,0 +1,36 @@
+# Brownfield Project Onboarding
+#
+# Checklist for onboarding to an existing project that already
+# has code, artifacts, or partial Meridian instrumentation.
+# Focuses on understanding current state and filling gaps.
+
+id: brownfield-onboarding
+title: "Brownfield Project Onboarding"
+description: "Onboard to an existing project — survey the terrain before you fly."
+category: onboarding
+
+steps:
+  - id: scout-project
+    label: "Scout the project"
+    description: "Scan the codebase for architecture, tech stack, constraints, and existing artifacts."
+    play: scout-project
+
+  - id: check-drift
+    label: "Check for specification drift"
+    description: "Compare implementation against specifications to identify divergence."
+    play: check-drift
+
+  - id: run-quality-audit
+    label: "Run quality audit"
+    description: "Assess code quality, test coverage, and adherence to standards."
+    play: quality-check
+
+  - id: capture-learnings
+    label: "Capture learnings from existing work"
+    description: "Extract and archive insights from completed work into long-term memory."
+    play: capture-learning
+
+  - id: plan-next-phase
+    label: "Plan roadmap for next phase"
+    description: "Sequence upcoming epics into a time-phased delivery plan."
+    play: plan-roadmap

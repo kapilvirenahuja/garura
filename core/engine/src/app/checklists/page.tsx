@@ -1,25 +1,39 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
 import { ReadinessGauge } from '@/components/readiness-gauge';
 import { ReadinessBreakdown } from '@/components/readiness-breakdown';
 import { ChecklistItem } from '@/components/checklist-item';
 import { useReadiness } from '@/components/readiness-provider';
 import type { ChecklistItemState } from '@/components/checklist-item';
 
-/** Onboarding checklist step definition */
-interface OnboardingStep {
+// ---------------------------------------------------------------------------
+// Types — mirrors checklist-loader ChecklistDefinition / ChecklistStep
+// ---------------------------------------------------------------------------
+
+interface ChecklistStepData {
+  readonly id: string;
   readonly label: string;
+  readonly description: string;
   readonly play: string;
-  readonly state: ChecklistItemState;
 }
 
-const ONBOARDING_STEPS: readonly OnboardingStep[] = [
-  { label: 'Provide project brief', play: 'discover-product', state: 'in-progress' },
-  { label: 'Review market analysis', play: 'research-market-opportunity', state: 'locked' },
-  { label: 'Lock product spec', play: 'specify-product', state: 'locked' },
-  { label: 'Define features and scenarios', play: 'draft-product-spec', state: 'locked' },
-  { label: 'Plan roadmap', play: 'plan-roadmap', state: 'locked' },
-] as const;
+interface ChecklistData {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+  readonly category: string;
+  readonly steps: ReadonlyArray<ChecklistStepData>;
+}
+
+/**
+ * Derive the display state for each step in a checklist.
+ * First step is in-progress; all others are locked.
+ * (Full sequential-unlock logic will be implemented by mdb-checklist-step-execution)
+ */
+function deriveStepState(index: number): ChecklistItemState {
+  return index === 0 ? 'in-progress' : 'locked';
+}
 
 /**
  * Checklists instrument page.
@@ -28,13 +42,47 @@ const ONBOARDING_STEPS: readonly OnboardingStep[] = [
  * In greenfield state (readiness 0), shows the onboarding checklist with
  * only the first step actionable.
  *
+ * Checklist definitions are loaded from the /api/checklists endpoint, which
+ * reads YAML data files at runtime — no step arrays are hardcoded in this
+ * component (VAL-CHECK-028).
+ *
  * The readiness score and breakdown are consumed from ReadinessProvider context,
  * ensuring the gauge here is consistent with the mini-gauge in the top bar (VAL-CHECK-003).
  *
- * Fulfills: VAL-CHECK-001 (greenfield 0), VAL-CHECK-005 (per-area breakdown)
+ * Fulfills: VAL-CHECK-001 (greenfield 0), VAL-CHECK-005 (per-area breakdown),
+ *           VAL-CHECK-028 (no hardcoded steps)
  */
 export default function ChecklistsPage() {
   const { score, breakdown } = useReadiness();
+  const [checklists, setChecklists] = useState<ChecklistData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchChecklists = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/checklists');
+      if (!res.ok) {
+        throw new Error(`Failed to load checklists: ${res.status}`);
+      }
+      const data = (await res.json()) as { checklists: ChecklistData[] };
+      setChecklists(data.checklists);
+      setError(null);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchChecklists();
+  }, [fetchChecklists]);
+
+  // Select checklist based on readiness state
+  const greenfield = checklists.find((c) => c.id === 'greenfield-onboarding');
+  const activeChecklist = score === 0 ? greenfield : greenfield;
 
   return (
     <div data-testid="checklists-view">
@@ -50,22 +98,42 @@ export default function ChecklistsPage() {
         <ReadinessBreakdown breakdown={breakdown} />
       </div>
 
-      {/* Onboarding checklist */}
-      <section data-testid="onboarding-checklist" className="mx-auto max-w-2xl">
-        <h2 className="mb-4 text-lg font-semibold text-white">
-          Getting Started: Greenfield Onboarding
-        </h2>
-        <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-4">
-          {ONBOARDING_STEPS.map((step) => (
-            <div key={step.play} className="flex items-center gap-2">
-              <ChecklistItem label={step.label} state={step.state} />
-              {step.state !== 'locked' && step.state !== 'done' && (
-                <span className="text-xs text-gray-500">→ {step.play}</span>
-              )}
-            </div>
-          ))}
+      {/* Loading state */}
+      {loading && (
+        <div data-testid="checklists-loading" className="mx-auto max-w-2xl text-center">
+          <p className="text-sm text-gray-500">Loading checklists…</p>
         </div>
-      </section>
+      )}
+
+      {/* Error state */}
+      {error && !loading && (
+        <div
+          data-testid="checklists-error"
+          className="mx-auto max-w-2xl rounded-lg border border-red-800 bg-red-900/20 p-4 text-center"
+        >
+          <p className="text-sm text-red-400">Unable to load checklists: {error}</p>
+        </div>
+      )}
+
+      {/* Onboarding checklist — loaded from data files */}
+      {!loading && !error && activeChecklist && (
+        <section data-testid="onboarding-checklist" className="mx-auto max-w-2xl">
+          <h2 className="mb-4 text-lg font-semibold text-white">{activeChecklist.title}</h2>
+          <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-4">
+            {activeChecklist.steps.map((step, index) => {
+              const state = deriveStepState(index);
+              return (
+                <div key={step.id} className="flex items-center gap-2">
+                  <ChecklistItem label={step.label} state={state} />
+                  {state !== 'locked' && state !== 'done' && (
+                    <span className="text-xs text-gray-500">→ {step.play}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

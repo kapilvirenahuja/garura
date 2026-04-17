@@ -1,0 +1,36 @@
+# Prepare Epic for Implementation
+#
+# Checklist for preparing a specific epic before implementation begins.
+# Each step maps to a Meridian play that produces the required
+# design and planning artifacts for the epic.
+
+id: prepare-epic
+title: "Prepare Epic for Implementation"
+description: "Produce all design artifacts needed before implementation begins."
+category: epic-preparation
+
+steps:
+  - id: lock-features
+    label: "Lock features for the epic"
+    description: "Finalize the feature specification and scope for this epic."
+    play: draft-product-spec
+
+  - id: design-experience
+    label: "Design experience"
+    description: "Synthesize personas, screen inventory, user flows, and wireframes."
+    play: design-exp
+
+  - id: build-architecture
+    label: "Build architecture package"
+    description: "Produce logical architecture, physical architecture, NFR spec, and design patterns."
+    play: build-arch
+
+  - id: prepare-epic-artifacts
+    label: "Prepare epic — generate LLD, scenarios, task plan"
+    description: "Produces tech.yaml, scenarios.yaml, and plan.yaml for the epic."
+    play: prepare-epic
+
+  - id: begin-implementation
+    label: "Begin implementation"
+    description: "Start the implementation loop with eval-driven TDD."
+    play: implement-epic

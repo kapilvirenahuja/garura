@@ -12,7 +12,7 @@
 
 import path from 'node:path';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 
 // --- Foundation lib modules ---
 import { parseArtifacts } from '@/lib/artifact-parser';
@@ -47,9 +47,92 @@ vi.mock('next/navigation', () => ({
   usePathname: () => mockPathname(),
 }));
 
+// Mock checklist data for fetch mock
+const MOCK_CHECKLISTS_RESPONSE = {
+  checklists: [
+    {
+      id: 'greenfield-onboarding',
+      title: 'Getting Started: Greenfield Onboarding',
+      description: 'Onboard a new project from scratch.',
+      category: 'onboarding',
+      steps: [
+        {
+          id: 'provide-brief',
+          label: 'Provide your project brief',
+          description: "Describe what you're building.",
+          play: 'discover-product',
+        },
+        {
+          id: 'review-market',
+          label: 'Review market analysis',
+          description: 'AI analyzes competitors.',
+          play: 'research-market-opportunity',
+        },
+        {
+          id: 'lock-spec',
+          label: 'Lock product spec',
+          description: 'Review and approve.',
+          play: 'specify-product',
+        },
+        {
+          id: 'define-features',
+          label: 'Define features & scope',
+          description: 'Structure capabilities.',
+          play: 'draft-product-spec',
+        },
+        {
+          id: 'plan-roadmap',
+          label: 'Plan roadmap',
+          description: 'Sequence epics.',
+          play: 'plan-roadmap',
+        },
+      ],
+    },
+  ],
+  validation: { valid: true, invalidCount: 0 },
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockPathname.mockReturnValue('/checklists');
+
+  // Mock fetch for /api/checklists (used by ChecklistsPage)
+  vi.spyOn(global, 'fetch').mockImplementation((input: string | URL | Request) => {
+    const url =
+      typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+    if (url === '/api/checklists') {
+      return Promise.resolve(
+        new Response(JSON.stringify(MOCK_CHECKLISTS_RESPONSE), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      );
+    }
+    // For readiness API and others, return a safe default
+    if (url === '/api/readiness') {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            score: 0,
+            totalPlays: 14,
+            runnablePlays: 0,
+            breakdown: [],
+            plays: [],
+            lastGitHash: null,
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+      );
+    }
+    return Promise.reject(new Error(`Unhandled fetch: ${url}`));
+  });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 // ---------------------------------------------------------------------------
@@ -225,21 +308,24 @@ describe('Smoke — Greenfield State (VAL-FOUND-075)', () => {
     expect(scoreText).toHaveTextContent('0');
   });
 
-  it('Checklists page shows onboarding checklist', () => {
+  it('Checklists page shows onboarding checklist', async () => {
     mockPathname.mockReturnValue('/checklists');
     render(<ChecklistsPage />);
 
-    const checklist = screen.getByTestId('onboarding-checklist');
+    // Wait for async checklist data to load
+    const checklist = await screen.findByTestId('onboarding-checklist');
     expect(checklist).toBeInTheDocument();
 
     // Should contain the heading
     expect(screen.getByText('Getting Started: Greenfield Onboarding')).toBeInTheDocument();
   });
 
-  it('onboarding checklist has checklist items', () => {
+  it('onboarding checklist has checklist items', async () => {
     mockPathname.mockReturnValue('/checklists');
     render(<ChecklistsPage />);
 
+    // Wait for async checklist data to load
+    await screen.findByTestId('onboarding-checklist');
     const items = screen.getAllByTestId('checklist-item');
     expect(items.length).toBeGreaterThanOrEqual(5);
   });
@@ -253,10 +339,12 @@ describe('Smoke — Greenfield State (VAL-FOUND-075)', () => {
     ).toBeInTheDocument();
   });
 
-  it('first checklist step is actionable (in-progress), rest are locked', () => {
+  it('first checklist step is actionable (in-progress), rest are locked', async () => {
     mockPathname.mockReturnValue('/checklists');
     render(<ChecklistsPage />);
 
+    // Wait for async checklist data to load
+    await screen.findByTestId('onboarding-checklist');
     const items = screen.getAllByTestId('checklist-item');
     // First item should be in-progress
     expect(items[0]).toHaveAttribute('data-state', 'in-progress');

@@ -1,0 +1,36 @@
+# Getting Started: Greenfield Onboarding
+#
+# The very first checklist for a brand-new Meridian project.
+# Guides the user through initial product discovery and specification.
+# Shown when readiness score is 0 (no artifacts exist).
+
+id: greenfield-onboarding
+title: "Getting Started: Greenfield Onboarding"
+description: "Onboard a new project from scratch — your departure clearance."
+category: onboarding
+
+steps:
+  - id: provide-brief
+    label: "Provide your project brief"
+    description: "Describe what you're building — market, users, goals. This is your departure clearance."
+    play: discover-product
+
+  - id: review-market
+    label: "Review market analysis"
+    description: "AI analyzes competitors, TAM/SAM, and positioning."
+    play: research-market-opportunity
+
+  - id: lock-spec
+    label: "Lock product spec"
+    description: "Review and approve the generated product definition."
+    play: specify-product
+
+  - id: define-features
+    label: "Define features & scope"
+    description: "Structure capabilities, scenarios, and quality constraints."
+    play: draft-product-spec
+
+  - id: plan-roadmap
+    label: "Plan roadmap"
+    description: "Sequence epics into a time-phased delivery plan."
+    play: plan-roadmap
