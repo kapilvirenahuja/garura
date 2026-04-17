@@ -65,7 +65,11 @@ export default function FlightDeckPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { expanded, toggleExpanded } = useFlightDeckPersistence();
+  // Pass the current loading state so the persistence hook can defer
+  // scroll restoration until after the data-driven DOM has rendered —
+  // applying window.scrollTo before the page is tall enough clamps the
+  // browser's effective scroll to 0 (the original VAL-FLIGHT-029 regression).
+  const { expanded, toggleExpanded } = useFlightDeckPersistence(loading);
 
   const fetchData = useCallback(async () => {
     try {

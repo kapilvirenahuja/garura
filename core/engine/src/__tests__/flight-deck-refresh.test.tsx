@@ -307,6 +307,119 @@ describe('Flight Deck — data refresh mechanism', () => {
     });
   });
 
+  it('defers scroll restoration until data has rendered (VAL-FLIGHT-029)', async () => {
+    // Regression test for the original VAL-FLIGHT-029 bug: calling
+    // window.scrollTo during the initial mount (before /api/flight-deck
+    // resolves) clamps the target to 0 because the loading placeholder is
+    // shorter than the saved scroll offset. The hook must hold the saved
+    // target and only apply it once `loading` flips to `false`.
+    sessionStorage.setItem('mdb:flight-deck:scroll-y', '742');
+    const scrollSpy = vi.fn();
+    const original = window.scrollTo;
+    Object.defineProperty(window, 'scrollTo', {
+      configurable: true,
+      value: scrollSpy,
+      writable: true,
+    });
+
+    // Fetch stays pending so the component renders the loading placeholder.
+    let resolver:
+      | ((value: { ok: boolean; status: number; json: () => Promise<unknown> }) => void)
+      | null = null;
+    (fetch as unknown as ReturnType<typeof vi.fn>).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolver = resolve;
+        }),
+    );
+
+    render(<FlightDeckPage />);
+
+    // While loading, the loading placeholder is visible and the saved
+    // scroll target has NOT been applied — this is the defer contract.
+    await waitFor(() => {
+      expect(screen.getByTestId('flight-deck-loading')).toBeInTheDocument();
+    });
+    expect(scrollSpy).not.toHaveBeenCalled();
+
+    // Resolve fetch — `loading` flips to false, DOM becomes tall enough,
+    // and the pending scroll target is applied.
+    await act(async () => {
+      resolver?.({
+        ok: true,
+        status: 200,
+        json: async () =>
+          makeData({
+            empty: false,
+            onTrack: [makeOnTrackCard()],
+            metrics: { epicsInFlight: 1, activeDevelopers: 1, playsToday: 0, openIssues: 0 },
+          }),
+      });
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('flight-deck-on-track')).toBeInTheDocument();
+    });
+
+    expect(scrollSpy).toHaveBeenCalledWith({ top: 742, left: 0, behavior: 'auto' });
+
+    Object.defineProperty(window, 'scrollTo', {
+      configurable: true,
+      value: original,
+      writable: true,
+    });
+  });
+
+  it('does not re-apply the saved scroll on manual refresh (VAL-FLIGHT-029)', async () => {
+    // Once the saved scroll has been consumed, a subsequent loading → false
+    // transition (from clicking the Refresh button) must NOT snap the user
+    // back to the original offset. The user may have scrolled elsewhere.
+    sessionStorage.setItem('mdb:flight-deck:scroll-y', '512');
+    const scrollSpy = vi.fn();
+    const original = window.scrollTo;
+    Object.defineProperty(window, 'scrollTo', {
+      configurable: true,
+      value: scrollSpy,
+      writable: true,
+    });
+
+    mockFetchOnce(
+      makeData({
+        empty: false,
+        onTrack: [makeOnTrackCard()],
+        metrics: { epicsInFlight: 1, activeDevelopers: 1, playsToday: 0, openIssues: 0 },
+      }),
+    );
+    render(<FlightDeckPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('flight-deck-on-track')).toBeInTheDocument();
+    });
+
+    // Initial restoration fired once.
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+
+    // Trigger manual refresh — loading flips true then back to false.
+    mockFetchOnce(
+      makeData({
+        empty: false,
+        onTrack: [makeOnTrackCard()],
+        metrics: { epicsInFlight: 1, activeDevelopers: 1, playsToday: 0, openIssues: 0 },
+      }),
+    );
+    fireEvent.click(screen.getByTestId('flight-deck-refresh'));
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    // Refresh did not cause a second scroll restoration.
+    expect(scrollSpy).toHaveBeenCalledTimes(1);
+
+    Object.defineProperty(window, 'scrollTo', {
+      configurable: true,
+      value: original,
+      writable: true,
+    });
+  });
+
   it('persists expansion state across unmount / remount (VAL-FLIGHT-029)', async () => {
     mockFetchOnce(
       makeData({
