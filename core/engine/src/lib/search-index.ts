@@ -212,6 +212,18 @@ function extractPlanDocuments(artifact: ArtifactResult<PlanContent>): SearchDocu
   const docs: SearchDocument[] = [];
   const file = artifact.path;
 
+  // Prerequisites
+  for (const prereq of content.prerequisites ?? []) {
+    docs.push({
+      id: `${file}::prereq-${prereq.id}`,
+      source_type: 'plan',
+      source_file: file,
+      entity_id: prereq.id,
+      title: prereq.description,
+      content: [prereq.id, prereq.description].filter(Boolean).join(' '),
+    });
+  }
+
   // Tasks
   for (const task of content.executionOrder) {
     const sgText = task.scenarioGate
@@ -413,6 +425,19 @@ function extractRoadmapDocuments(artifact: ArtifactResult<RoadmapContent>): Sear
       entity_id: phase.id,
       title: phase.name,
       content: [phase.name, phase.description ?? ''].filter(Boolean).join(' '),
+    });
+  }
+
+  // Sequencing
+  for (const seq of content.sequencing) {
+    const seqId = `SEQ-${seq.from}-${seq.to}`;
+    docs.push({
+      id: `${file}::${seqId}`,
+      source_type: 'roadmap',
+      source_file: file,
+      entity_id: seqId,
+      title: `Sequencing: ${seq.from} → ${seq.to}`,
+      content: [seq.from, seq.to, seq.reason ?? ''].filter(Boolean).join(' '),
     });
   }
 

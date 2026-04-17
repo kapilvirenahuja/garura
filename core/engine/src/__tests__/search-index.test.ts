@@ -85,6 +85,14 @@ describe('VAL-FOUND-039: Indexes all artifacts on startup', () => {
     expect(planResult).toBeDefined();
   });
 
+  it('indexes plan.yaml prerequisites as searchable documents', () => {
+    const results = searchIndex.search('project directory structure');
+    expect(results.length).toBeGreaterThan(0);
+    const prereqResult = results.find((r) => r.source_type === 'plan' && r.entity_id === 'P0-S1');
+    expect(prereqResult).toBeDefined();
+    expect(prereqResult!.source_file).toContain('plan.yaml');
+  });
+
   it('indexes architecture.yaml content', () => {
     const results = searchIndex.search('filesystem storage');
     expect(results.length).toBeGreaterThan(0);
@@ -104,6 +112,16 @@ describe('VAL-FOUND-039: Indexes all artifacts on startup', () => {
     expect(results.length).toBeGreaterThan(0);
     const roadmapResult = results.find((r) => r.source_type === 'roadmap');
     expect(roadmapResult).toBeDefined();
+  });
+
+  it('indexes roadmap.yaml sequencing entries as searchable documents', () => {
+    const results = searchIndex.search('task data model');
+    expect(results.length).toBeGreaterThan(0);
+    const seqResult = results.find(
+      (r) => r.source_type === 'roadmap' && r.entity_id.startsWith('SEQ-'),
+    );
+    expect(seqResult).toBeDefined();
+    expect(seqResult!.source_file).toContain('roadmap.yaml');
   });
 
   it('indexes STM evidence YAML content', () => {
@@ -560,6 +578,16 @@ describe('extractDocuments', () => {
     expect(milestone).toBeDefined();
   });
 
+  it('extracts plan prerequisite documents', () => {
+    const artifact = parseArtifact(fixturePath('plan.yaml'), 'plan');
+    const docs = extractDocuments(artifact);
+    const prereq = docs.find((d) => d.entity_id === 'P0-S1');
+    expect(prereq).toBeDefined();
+    expect(prereq!.source_type).toBe('plan');
+    expect(prereq!.title).toContain('project directory structure');
+    expect(prereq!.content).toContain('P0-S1');
+  });
+
   it('extracts architecture components, decisions, patterns, and NFRs', () => {
     const artifact = parseArtifact(fixturePath('architecture.yaml'), 'architecture');
     const docs = extractDocuments(artifact);
@@ -580,6 +608,17 @@ describe('extractDocuments', () => {
     const phase = docs.find((d) => d.entity_id === 'phase-1');
     expect(epic).toBeDefined();
     expect(phase).toBeDefined();
+  });
+
+  it('extracts roadmap sequencing documents', () => {
+    const artifact = parseArtifact(fixturePath('roadmap.yaml'), 'roadmap');
+    const docs = extractDocuments(artifact);
+    const seq = docs.find((d) => d.entity_id === 'SEQ-EPIC-E1-EPIC-E2');
+    expect(seq).toBeDefined();
+    expect(seq!.source_type).toBe('roadmap');
+    expect(seq!.title).toContain('EPIC-E1');
+    expect(seq!.title).toContain('EPIC-E2');
+    expect(seq!.content).toContain('AI features depend on task data model');
   });
 
   it('extracts tech components, data models, and libraries', () => {
