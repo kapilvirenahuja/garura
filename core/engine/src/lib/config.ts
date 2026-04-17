@@ -283,6 +283,32 @@ export function getConfig(): GaruraConfig {
 }
 
 /**
+ * Ensure a configuration file has been loaded — lazily loads
+ * `<repoRoot>/.garura/core/config.yaml` on first access when no explicit
+ * loadConfig call has been made. Subsequent calls are cheap no-ops.
+ *
+ * This exists because Next.js may render an API route module in a different
+ * context than `layout.tsx` (which is where the top-level `loadConfig` call
+ * normally runs), leaving API routes with the module-level default config.
+ *
+ * Idempotent and never throws — loadConfig itself falls back to defaults on
+ * any error, and a repeat call here is a no-op once `currentConfigPath` is
+ * set.
+ */
+export function ensureConfigLoaded(): GaruraConfig {
+  if (currentConfigPath === null) {
+    try {
+      const repoRoot = resolveRepoRoot();
+      const candidate = path.join(repoRoot, '.garura', 'core', 'config.yaml');
+      loadConfig(candidate);
+    } catch {
+      // Swallow — loadConfig already falls back to defaults on error.
+    }
+  }
+  return currentConfig;
+}
+
+/**
  * Reload the configuration from the previously-loaded file path.
  * If no config has been loaded yet, this is a no-op returning defaults.
  */

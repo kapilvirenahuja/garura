@@ -15,7 +15,7 @@
 
 import path from 'node:path';
 import { NextResponse } from 'next/server';
-import { getConfig, resolveRepoRoot } from '@/lib/config';
+import { ensureConfigLoaded, getConfig, resolveRepoRoot } from '@/lib/config';
 import { discoverEpics } from '@/lib/epic-status';
 import { buildFlightDeckData } from '@/lib/flight-deck';
 
@@ -28,6 +28,11 @@ function resolveAgainstRoot(repoRoot: string, p: string): string {
 }
 
 export async function GET() {
+  // Ensure config is loaded — layout.tsx's module-level loadConfig does not
+  // necessarily run before an API route in Next.js dev, so routes must
+  // self-initialise to honour GARURA_TARGET_REPO.
+  ensureConfigLoaded();
+
   const repoRoot = resolveRepoRoot();
   const config = getConfig();
 
