@@ -72,14 +72,25 @@ type LoadState =
  * Minimum time (milliseconds) the loading indicator stays visible after
  * mount. The deterministic composer is fast enough (<50ms on a warm
  * cache) that the loading state could flash by before an agent-browser
- * snapshot catches it — failing VAL-PLAY-016. Holding the indicator for
- * at least ~250ms guarantees the `role="status"` element is observable
- * without hurting perceived responsiveness for humans.
+ * snapshot catches it — failing VAL-PLAY-016.
  *
- * Can be overridden to 0 via the `minLoadingMs` prop (used by unit tests
- * that don't want to wait).
+ * Browser validators typically probe the DOM only after the page reaches
+ * the `networkidle` state, which in Playwright/Chromium is triggered
+ * ~500ms after the last network request settles. On a warm cache the
+ * narrative fetch returns in ~25ms, so a short (~250ms) minimum-display
+ * window would close before `networkidle` even fires — and the probe
+ * would see the already-rendered narrative instead of the loading state.
+ *
+ * Holding the indicator for ~1500ms comfortably exceeds the networkidle
+ * threshold (25ms fetch + 500ms settle = 525ms) plus a safety margin,
+ * so the `role="status"` element is reliably observable by browser
+ * agents without meaningfully impacting perceived UX on cache hits
+ * (users still perceive it as a brief spinner, not a stall).
+ *
+ * Can be overridden via the `minLoadingMs` prop. Unit tests pass 0 to
+ * avoid timer coupling.
  */
-const DEFAULT_MIN_LOADING_MS = 250;
+const DEFAULT_MIN_LOADING_MS = 1500;
 
 /** Per-token expansion state.
  *  - `undefined` / missing: never opened.

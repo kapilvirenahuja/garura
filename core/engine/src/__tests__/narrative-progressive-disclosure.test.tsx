@@ -109,7 +109,7 @@ afterEach(() => {
 describe('NarrativeView — progressive disclosure', () => {
   it('click on CrossRefToken opens EntityExpansion in the same section (VAL-PLAY-003)', async () => {
     mockFetchHandlers();
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
     await screen.findByTestId('narrative-root');
 
     // No expansions yet.
@@ -126,7 +126,7 @@ describe('NarrativeView — progressive disclosure', () => {
 
   it('multiple tokens can open simultaneously, each independently closeable (VAL-PLAY-005)', async () => {
     mockFetchHandlers();
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
     await screen.findByTestId('narrative-root');
 
     const tokens = screen.getAllByTestId('cross-ref-token');
@@ -146,7 +146,7 @@ describe('NarrativeView — progressive disclosure', () => {
 
   it('closing an expansion transitions to the collapsed state and re-opens on click (VAL-PLAY-004, VAL-PLAY-006)', async () => {
     mockFetchHandlers();
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
     await screen.findByTestId('narrative-root');
 
     const f1 = screen
@@ -185,7 +185,7 @@ describe('NarrativeView — progressive disclosure', () => {
     if (!hadOriginal) proto.scrollIntoView = () => undefined;
     const spy = vi.spyOn(proto, 'scrollIntoView').mockImplementation(() => undefined);
 
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
     await screen.findByTestId('narrative-root');
 
     const f1 = screen

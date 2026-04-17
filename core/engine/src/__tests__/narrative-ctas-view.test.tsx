@@ -110,7 +110,7 @@ describe('<NarrativeView /> — contextual CTAs', () => {
       ),
     );
 
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
     await screen.findByTestId('narrative-root');
 
     const actionsSection = await screen.findByTestId('narrative-actions');
@@ -145,7 +145,7 @@ describe('<NarrativeView /> — contextual CTAs', () => {
       ),
     );
 
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
     await screen.findByTestId('narrative-actions');
 
     expect(screen.queryAllByTestId('narrative-cta-slot')).toHaveLength(0);
@@ -170,7 +170,7 @@ describe('<NarrativeView /> — contextual CTAs', () => {
       return Promise.reject(new Error(`Unexpected fetch: ${url}`));
     });
 
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
     await screen.findByTestId('narrative-actions');
 
     // Click the primary CTA.
@@ -221,7 +221,7 @@ describe('<NarrativeView /> — contextual CTAs', () => {
     });
     globalThis.fetch = fetchSpy as unknown as typeof fetch;
 
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
     await screen.findByTestId('narrative-actions');
 
     const driftCta = screen
@@ -262,7 +262,7 @@ describe('<NarrativeView /> — contextual CTAs', () => {
       return Promise.reject(new Error(`Unexpected fetch: ${url}`));
     });
 
-    render(<NarrativeView context="E1" />);
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
     await screen.findByTestId('narrative-actions');
 
     const primaryCta = screen

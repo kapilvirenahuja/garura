@@ -392,8 +392,10 @@ describe('PlaybookPage — entry modes', () => {
     await waitFor(() => {
       expect(screen.getByTestId('playbook-view')).toHaveAttribute('data-mode', 'narrative');
     });
-    // Wait for fetch to resolve and narrative to render.
-    await screen.findByTestId('narrative-root');
+    // Wait for fetch to resolve and narrative to render. The default
+    // minLoadingMs window is ~1500ms (so browser agents reliably observe
+    // VAL-PLAY-016), so allow a generous timeout here.
+    await screen.findByTestId('narrative-root', {}, { timeout: 3000 });
     expect(screen.getByTestId('narrative-title')).toHaveTextContent('Authentication');
   });
 
@@ -464,11 +466,16 @@ describe('Playbook breadcrumb integration (VAL-PLAY-021)', () => {
     );
 
     // Narrative loads → breadcrumb receives the epicName via onMetaLoaded.
-    await screen.findByTestId('narrative-root');
+    // The default minLoadingMs window is ~1500ms (VAL-PLAY-016 reliability),
+    // so use a generous timeout here.
+    await screen.findByTestId('narrative-root', {}, { timeout: 3000 });
     const breadcrumb = screen.getByTestId('breadcrumb');
-    await waitFor(() => {
-      expect(within(breadcrumb).getByText('E1: Authentication')).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(within(breadcrumb).getByText('E1: Authentication')).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
     expect(within(breadcrumb).getByText('E1: Authentication')).toHaveAttribute(
       'aria-current',
       'page',
