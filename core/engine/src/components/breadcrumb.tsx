@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { INSTRUMENTS } from '@/lib/constants';
 
-interface BreadcrumbSegment {
+export interface BreadcrumbSegment {
   label: string;
   href?: string;
 }
@@ -33,13 +33,22 @@ export function deriveBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   return segments;
 }
 
+export interface BreadcrumbProps {
+  /** Explicitly provide breadcrumb segments (overrides URL-based derivation). */
+  segments?: BreadcrumbSegment[];
+  /** Callback fired when a breadcrumb link is clicked. When provided, renders buttons instead of links. */
+  onNavigate?: (href: string) => void;
+}
+
 /**
  * Breadcrumb navigation bar below the top bar.
- * Updates to reflect the current navigation path.
+ *
+ * **Shell mode** (no props): derives segments from current pathname.
+ * **Library mode** (`segments` + `onNavigate`): prop-driven, renders buttons.
  */
-export function Breadcrumb() {
+export function Breadcrumb({ segments: segmentsProp, onNavigate }: BreadcrumbProps = {}) {
   const pathname = usePathname();
-  const segments = deriveBreadcrumbs(pathname);
+  const segments = segmentsProp ?? deriveBreadcrumbs(pathname);
 
   return (
     <nav aria-label="Breadcrumb" data-testid="breadcrumb">
@@ -54,13 +63,24 @@ export function Breadcrumb() {
                 </span>
               )}
               {segment.href && !isLast ? (
-                <Link
-                  href={segment.href}
-                  className="text-gray-400 transition-colors hover:text-gray-200"
-                  data-testid={`breadcrumb-link-${index}`}
-                >
-                  {segment.label}
-                </Link>
+                onNavigate ? (
+                  <button
+                    type="button"
+                    className="text-gray-400 transition-colors hover:text-gray-200"
+                    data-testid={`breadcrumb-link-${index}`}
+                    onClick={() => onNavigate(segment.href!)}
+                  >
+                    {segment.label}
+                  </button>
+                ) : (
+                  <Link
+                    href={segment.href}
+                    className="text-gray-400 transition-colors hover:text-gray-200"
+                    data-testid={`breadcrumb-link-${index}`}
+                  >
+                    {segment.label}
+                  </Link>
+                )
               ) : (
                 <span
                   className="text-gray-200"
