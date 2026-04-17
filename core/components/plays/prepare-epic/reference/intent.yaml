@@ -134,7 +134,7 @@ constraints:
 
   - id: C15
     rule: >
-      The play must read LTM at ~/.meridian/core/memory/ for architectural
+      The play must read LTM at ~/.garura/core/memory/ for architectural
       standards, implementation patterns, technology decisions, and prior
       learnings. LTM findings and gaps must both be documented. Gaps tell the
       implementation agent what organizational knowledge is missing.
@@ -294,7 +294,7 @@ constraints:
     rule: >
       prepare-epic must produce a self-contained STM context package at
       {stm_base}/{issue}/context/ that contains everything implement-epic and
-      validate-epic need. No downstream play reads KB (~/.meridian/core/memory/)
+      validate-epic need. No downstream play reads KB (~/.garura/core/memory/)
       or LTM ({product_base}) directly. Specifically, prepare-epic must produce:
       (1) quality-gates.yaml — QP thresholds translated from quality-vision.yaml
       with concrete gate commands and thresholds, ready for the quality-auditor;

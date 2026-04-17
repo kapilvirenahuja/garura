@@ -1,6 +1,6 @@
 # Agents
 
-Agents are autonomous decision-makers in Meridian with domain-specific expertise.
+Agents are autonomous decision-makers in Garura with domain-specific expertise.
 
 ## Philosophy
 
@@ -43,7 +43,7 @@ This pattern ensures:
 
 ### Granularity Principle
 
-Meridian avoids both extremes:
+Garura avoids both extremes:
 
 | Too Narrow | Too Granular | Right Level |
 |------------|--------------|-------------|
@@ -65,11 +65,11 @@ Meridian avoids both extremes:
 | `repo-orchestrator` | repo | orchestrator | sonnet | Autonomous decision-maker for repository operations (commits, branches, PRs, git state) |
 | `project-orchestrator` | project | orchestrator | sonnet | Autonomous decision-maker for project management operations (issues, tracking, planning) |
 | `engineering-manager` | engineering | manager | sonnet | QP compliance certifier — verifies implementation meets Quality Profile standards |
-| `scriber` | infra | evidence-writer | haiku | Utility agent. Writes evidence, checkpoint, and status artifacts to disk for plays, enforcing the `.meridian/` folder whitelist at the write boundary. Runs in the background so orchestrators can continue domain work in parallel with evidence I/O. |
+| `scriber` | infra | evidence-writer | haiku | Utility agent. Writes evidence, checkpoint, and status artifacts to disk for plays, enforcing the `.garura/` folder whitelist at the write boundary. Runs in the background so orchestrators can continue domain work in parallel with evidence I/O. |
 
 ### Scriber dispatch pattern (Utility agent, 214.1)
 
-`scriber` is a utility agent — it performs no domain reasoning and owns no decisions about content. Plays dispatch it via the Agent tool with `run_in_background: true` for every write that lands in the `.meridian/` folder whitelist (evidence, checkpoint, status artifacts). The scriber invokes the `write-evidence` skill, which is the single chokepoint that validates paths against the 9 whitelist patterns before calling `Write`.
+`scriber` is a utility agent — it performs no domain reasoning and owns no decisions about content. Plays dispatch it via the Agent tool with `run_in_background: true` for every write that lands in the `.garura/` folder whitelist (evidence, checkpoint, status artifacts). The scriber invokes the `write-evidence` skill, which is the single chokepoint that validates paths against the 9 whitelist patterns before calling `Write`.
 
 **When to dispatch scriber instead of writing inline:**
 
@@ -95,7 +95,7 @@ Meridian avoids both extremes:
 
 ### Four Crafts: Where Agents Fit
 
-Agents are the primary practitioners of **Context Crafting** — one of the Four Crafts in Meridian's architecture. When an agent receives a JSON contract, its most important work before invoking any skill is assembling complete, accurate context: discovering LTM paths (schemas, templates, standards), reading STM artifacts, and combining them with the slug and base paths into structured skill inputs. This context assembly is the agent's primary value in the play workflow — skills are only as effective as the context the agent gives them.
+Agents are the primary practitioners of **Context Crafting** — one of the Four Crafts in Garura's architecture. When an agent receives a JSON contract, its most important work before invoking any skill is assembling complete, accurate context: discovering LTM paths (schemas, templates, standards), reading STM artifacts, and combining them with the slug and base paths into structured skill inputs. This context assembly is the agent's primary value in the play workflow — skills are only as effective as the context the agent gives them.
 
 For the full Four Crafts explanation (Context Crafting, Intent Crafting, Execution Crafting, Verification Crafting), see `docs/philosophy/architecture.md`.
 
@@ -108,7 +108,7 @@ When a play orchestrates multiple agents, it passes a **JSON contract** as the a
 1. **Read intent.yaml** at `intent_path` from the contract — understand the goal, constraints, failure conditions, and scenarios.
 2. **Identify what to handle** — look at `stm` paths in the contract. Null paths indicate missing artifacts. Based on the goal, the agent's domain, and what is missing, determine what to produce.
 3. **Update task graph** — mark the agent's task as `in_progress` via TaskUpdate. Add new tasks via TaskCreate if additional work is discovered.
-4. **Collect context from LTM** — search `~/.meridian/core/memory/` for domain-relevant standards, templates, and schemas. Pass discovered LTM paths to skills as input. Skills do NOT search LTM themselves.
+4. **Collect context from LTM** — search `~/.garura/core/memory/` for domain-relevant standards, templates, and schemas. Pass discovered LTM paths to skills as input. Skills do NOT search LTM themselves.
 5. **Read existing STM artifacts** — read non-null `stm` paths. Write context to STM if downstream agents need it.
 6. **Call skills** from the agent's skill pool. The agent assembles skill inputs by combining: (1) STM artifact paths from the contract, (2) LTM paths discovered during context loading (schemas, templates, standards), and (3) the product slug and base STM path. The agent is responsible for giving the skill everything it needs — skills do NOT search or load LTM themselves. Skills read from the provided paths, write artifacts, and return a YAML output contract with the artifact path. Do NOT forward skill output as the response — extract only the artifact path.
 7. **Validate outcomes** against failure conditions and scenarios from intent.yaml. Validation is silent — do NOT include validation results in the response. If validation fails, attempt self-recovery (max 2 attempts). If still failing, set `step_failure` in the contract.
@@ -122,14 +122,14 @@ The agent's entire response is ONE JSON object. No prose, no YAML blocks, no val
 ```json
 {
   "intent_path": "core/components/plays/prepare-epic/reference/intent.yaml",
-  "stm_base": ".meridian/project/issues/",
+  "stm_base": ".garura/project/issues/",
   "stm": {
     "input": {
-      "features_yaml_path": ".meridian/project/issues/42/specs/features.yaml"
+      "features_yaml_path": ".garura/project/issues/42/specs/features.yaml"
     },
     "output": {
-      "technical_approach_path": ".meridian/project/issues/42/specs/technical-approach.md",
-      "tech_yaml_path": ".meridian/project/issues/42/specs/tech.yaml"
+      "technical_approach_path": ".garura/project/issues/42/specs/technical-approach.md",
+      "tech_yaml_path": ".garura/project/issues/42/specs/tech.yaml"
     }
   },
   "task_id": "draft-tech-context",
@@ -277,9 +277,9 @@ Play → invokes → Agent → uses → Skills
 ## Context Building
 
 Agents build context by:
-1. Reading `.meridian/core/config.yaml` for platform paths and settings
+1. Reading `.garura/core/config.yaml` for platform paths and settings
 2. Reading intent.yaml from the JSON contract (when in contract mode)
-3. Searching LTM (`~/.meridian/core/memory/`) selectively — by domain keywords, not bulk loading
+3. Searching LTM (`~/.garura/core/memory/`) selectively — by domain keywords, not bulk loading
 4. Reading existing STM artifacts at non-null `stm` paths
 5. Passing discovered LTM paths and STM paths to skills — skills do NOT search LTM themselves
 
@@ -294,7 +294,7 @@ Before invoking any skill, every agent validates all constraints against current
 
 ## Why Not Specialist Agents?
 
-Meridian deprecates specialist patterns (e.g., `bug-analyzer`, `test-writer`) because:
+Garura deprecates specialist patterns (e.g., `bug-analyzer`, `test-writer`) because:
 
 | Problem | Solution |
 |---------|----------|

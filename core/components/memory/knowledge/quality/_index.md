@@ -2,7 +2,7 @@
 
 Assessment criteria for evaluating project quality across 11 dimensions. Used by the `quality-check` skill to drive parallel subagent assessments calibrated by the project's Quality Profile (QP levels 1-5).
 
-**Three-layer search:** Subagents search Project LTM first (`{project}/.meridian/core/memory/knowledge/quality/`) for project-specific overrides, then KB (`~/.meridian/core/memory/knowledge/quality/`) for framework defaults.
+**Three-layer search:** Subagents search Project LTM first (`{project}/.garura/core/memory/knowledge/quality/`) for project-specific overrides, then KB (`~/.garura/core/memory/knowledge/quality/`) for framework defaults.
 
 ## Checklist Convention
 

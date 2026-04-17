@@ -1,6 +1,6 @@
 {
   "expectations": [
-    {"text": "Adapts to project without .meridian/product/ scenarios", "passed": true, "evidence": "Shows roadmap/brief/engineering-view instead. Reports scenarios: 0. No errors from missing files."},
+    {"text": "Adapts to project without .garura/product/ scenarios", "passed": true, "evidence": "Shows roadmap/brief/engineering-view instead. Reports scenarios: 0. No errors from missing files."},
     {"text": "Captures play architecture (three-layer hierarchy)", "passed": true, "evidence": "'Three-layer hierarchy -- High-order plays chain atomic plays, plays invoke Agents (max 2 calls), Agents invoke Skills'"},
     {"text": "Lists all 8 agents", "passed": true, "evidence": "Lists code-builder, doc-builder, intent-crafter, intent-resolver, product-strategist, project-orchestrator, repo-orchestrator, tech-designer"},
     {"text": "Summary under 500 words", "passed": false, "evidence": "622 words — exceeds 500 word limit by 122 words"},

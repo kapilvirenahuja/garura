@@ -27,7 +27,7 @@ Receive from the market-analyst agent:
 - `industry_hint` (string, optional) — e.g., "healthcare", "BFSI", "SaaS"
 - `project_profile_path` (path, optional) — to read geographic scope, audience, timeline
 - `ltm_domain_taxonomy_path` (path, required) — typically `core/components/memory/knowledge/domain/`
-- `output_path` (string, required) — target file path under `.meridian/product/specification/market-brief.md`
+- `output_path` (string, required) — target file path under `.garura/product/specification/market-brief.md`
 
 ## Process
 

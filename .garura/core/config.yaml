@@ -1,13 +1,15 @@
-# Meridian Configuration
+# Garura Configuration
 
 project:
-  name: Meridian
+  name: Garura
   type: Agentic Framework
 
 platform: github
 
 github:
-  repo: https://github.com/kapilvirenahuja/meridian.git
+  repo: https://github.com/kapilvirenahuja/garura.git
+  owner: kapilvirenahuja
+  name: garura
 
 # Source of truth locations
 components:
@@ -39,17 +41,17 @@ global-factory:
 # Long-Term Memory (LTM)
 ltm:
   source: ./core/components/memory/
-  project-target: ./.meridian/core/memory/
-  global-target: ~/.meridian/core/memory/
+  project-target: ./.garura/core/memory/
+  global-target: ~/.garura/core/memory/
 
 # Short-Term Memory (STM) — Issue-centric artifacts (ADR 008, ADR 010, ADR 017)
 # Variables: {stm_base} = base-path, {stm_pending} = pending-path, {stm_archive} = archive-path
 # All agents, plays, and skills resolve these from config — never hardcode paths.
 # Per ADR 017, only 5 structure keys are permitted: specs, evidence, checkpoint, context, review.
 stm:
-  base-path: .meridian/project/issues/
-  pending-path: .meridian/project/issues/_pending/
-  archive-path: .meridian/project/issues/_archive/
+  base-path: .garura/project/issues/
+  pending-path: .garura/project/issues/_pending/
+  archive-path: .garura/project/issues/_archive/
   structure:
     specs: "{issue-number}/specs/"
     evidence: "{issue-number}/evidence/{play-name}/{YYYYMMDD-HHMMSS}.md"
@@ -77,7 +79,7 @@ review-pr:
 # stage layout. The 6 stage folders are all direct children of base-path.
 #
 # Layout (defect D1 fix 2026-04-14; D8/D9 updates 2026-04-14):
-#   .meridian/product/
+#   .garura/product/
 #   ├── user-provided/     user inputs (brief + future notes / questions)
 #   ├── specification/     market-brief, project-profile, quality-profile, domain-selection, domain-grounding (opportunity + domain shape — what the product SPACE is)
 #   ├── scope/             mvp-recommendation, scope.yaml, enriched-capabilities, validation-intent-epics, epics/ (v1 scope contract — what we're BUILDING)
@@ -88,7 +90,7 @@ review-pr:
 #   ├── _evidence/         play-lifecycle (orthogonal to stages)
 #   └── _status/           play-lifecycle (orthogonal to stages)
 product:
-  base-path: .meridian/product/
+  base-path: .garura/product/
   directories:
     user-provided: user-provided/
     specification: specification/

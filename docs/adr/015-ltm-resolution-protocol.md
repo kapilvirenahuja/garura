@@ -1,5 +1,8 @@
 # ADR 015: LTM Resolution Protocol and Learning Play
 
+> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
+
+
 **Status:** Accepted
 **Date:** 2026-03-31
 **Deciders:** Kapil Ahuja

@@ -1,10 +1,10 @@
-# Meridian Architecture
+# Garura Architecture
 
-This document describes the core architecture philosophy of Meridian.
+This document describes the core architecture philosophy of Garura.
 
 ## Overview
 
-Meridian implements Intent-Driven Software Development through a **three-layer hierarchy** that separates workflow orchestration from activity execution and learned capabilities.
+Garura implements Intent-Driven Software Development through a **three-layer hierarchy** that separates workflow orchestration from activity execution and learned capabilities.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -38,8 +38,8 @@ Meridian implements Intent-Driven Software Development through a **three-layer h
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                        MEMORY                               │
-│  LTM: Practices, config (core/memory/, .meridian/core/config.yaml)    │
-│  STM: Artifacts per issue (.meridian/{issue}/)              │
+│  LTM: Practices, config (core/memory/, .garura/core/config.yaml)    │
+│  STM: Artifacts per issue (.garura/{issue}/)              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -90,7 +90,7 @@ Play: analyze-bug
               │
               └── Agent uses skills: do-rca-analysis
               │
-              └── Agent produces: .meridian/{issue}/docs/rca.md
+              └── Agent produces: .garura/{issue}/docs/rca.md
     │
     └── CHECKPOINT: Present RCA for approval
 ```
@@ -169,7 +169,7 @@ Skills receive template and LTM paths from agents via the JSON contract — they
 
 **ADR 009 knowledge boundary (applies to all invocation modes):**
 
-Skill *behavior* (process steps, output format, constraints) stays embedded in the skill definition. *Organizational standards* (commit categories, templates, quality rules) come from LTM at runtime via stable paths under `~/.meridian/core/memory/`. This distinction applies regardless of whether the skill is invoked via JSON contract or directly.
+Skill *behavior* (process steps, output format, constraints) stays embedded in the skill definition. *Organizational standards* (commit categories, templates, quality rules) come from LTM at runtime via stable paths under `~/.garura/core/memory/`. This distinction applies regardless of whether the skill is invoked via JSON contract or directly.
 
 See [ADR 009: Skill LTM Reads](../adr/009-skill-ltm-organizational-knowledge.md) for details.
 
@@ -247,7 +247,7 @@ Play continues until all capabilities complete
 
 ## Four Crafts Architecture
 
-The Four Crafts Architecture describes the four distinct authoring concerns that Meridian separates to achieve deterministic, intent-driven execution.
+The Four Crafts Architecture describes the four distinct authoring concerns that Garura separates to achieve deterministic, intent-driven execution.
 
 ### The Four Crafts
 
@@ -301,7 +301,7 @@ Context Crafting is the agent's responsibility before invoking a skill. The agen
 
 1. Reads `intent.yaml` at `intent_path` from the contract
 2. Reads existing STM artifacts at non-null `stm.*` paths
-3. Loads relevant LTM standards from `~/.meridian/core/memory/`
+3. Loads relevant LTM standards from `~/.garura/core/memory/`
 4. Assembles the complete input the skill needs, including LTM template paths
 
 Skills do not discover LTM themselves — the agent hands them the paths. This is the boundary: agents know what context is needed; skills know how to use context once provided.
@@ -359,7 +359,7 @@ This boundary is not a style preference — it is an architectural rule. If a pl
 
 ## Memory Architecture
 
-Meridian uses a **dual memory system**:
+Garura uses a **dual memory system**:
 
 ### Long-Term Memory (LTM)
 
@@ -375,7 +375,7 @@ Meridian uses a **dual memory system**:
 
 ### Short-Term Memory (STM)
 
-**Location:** `.meridian/{issue_number}/`
+**Location:** `.garura/{issue_number}/`
 
 **Contains:**
 - Documentation (specs, designs, RCA)
@@ -389,7 +389,7 @@ Meridian uses a **dual memory system**:
 ### STM Folder Structure
 
 ```
-.meridian/
+.garura/
 ├── _pending/                # Temporary, pre-issue (two-phase write)
 │   └── {timestamp}/
 └── {issue_number}/
@@ -431,7 +431,7 @@ Meridian uses a **dual memory system**:
 │                    STM (Short-Term Memory)                  │
 │  Created: When play starts                                │
 │  Contains: Artifacts (docs, evidence, checkpoint) per issue │
-│  Location: .meridian/{issue_number}/                        │
+│  Location: .garura/{issue_number}/                        │
 │  Lifecycle: Persists forever (audit trail)                  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -459,7 +459,7 @@ Recovery reasoning is loaded from: `docs/framework/intent-driven-recovery.md`. T
 
 ### Checkpoint Artifact Status Lifecycle
 
-Every checkpoint artifact written to `.meridian/{issue}/checkpoint/{play}/{timestamp}.md` follows a defined status lifecycle:
+Every checkpoint artifact written to `.garura/{issue}/checkpoint/{play}/{timestamp}.md` follows a defined status lifecycle:
 
 | Status | Meaning |
 |--------|---------|
@@ -492,7 +492,7 @@ Traditional AI copilots are non-deterministic — same prompt, different results
 - Human oversight is required
 - Workflows must be auditable
 
-### Meridian Solution
+### Garura Solution
 
 1. **Deterministic workflows** — Plays define exact steps
 2. **Checkpoint model** — Human review at defined points

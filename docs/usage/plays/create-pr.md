@@ -2,7 +2,7 @@
 
 Create pull requests with dynamic, context-aware quality checklists.
 
-> **Golden standard:** `create-pr` is the reference implementation for the Meridian play structure. All plays should follow this pattern.
+> **Golden standard:** `create-pr` is the reference implementation for the Garura play structure. All plays should follow this pattern.
 
 ## Overview
 
@@ -191,7 +191,7 @@ The created PR includes checkboxes grouped by trigger:
 
 ## Project Customization
 
-Override or extend rules in `.meridian/config/quality-gates/pr/rules.md`.
+Override or extend rules in `.garura/config/quality-gates/pr/rules.md`.
 
 ### Add Custom Rules
 

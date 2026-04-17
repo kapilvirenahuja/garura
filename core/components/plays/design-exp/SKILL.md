@@ -6,7 +6,7 @@ user-invokable: true
 
 # design-exp
 
-The DESIGN-stage play in Meridian's 5-stage SDLC (Discover → Specify → Design → Build → Run). Reads locked specify-product output and produces the UX layer: personas narrowed by mvp-recommendation, screens per user-surface capability with visual-first wireframes that a reader sees at a glance, flows for success + recovery paths, and a consolidated design spec. Shallow or incomplete output is structurally impossible — the play halts and cycles back on any validation failure. Visual design (colors, typography, spacing) is explicitly out of scope.
+The DESIGN-stage play in Garura's 5-stage SDLC (Discover → Specify → Design → Build → Run). Reads locked specify-product output and produces the UX layer: personas narrowed by mvp-recommendation, screens per user-surface capability with visual-first wireframes that a reader sees at a glance, flows for success + recovery paths, and a consolidated design spec. Shallow or incomplete output is structurally impossible — the play halts and cycles back on any validation failure. Visual design (colors, typography, spacing) is explicitly out of scope.
 
 ## Compiled From
 
@@ -38,15 +38,15 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` and `product_base` from `.meridian/core/config.yaml` | — | Hard halt — config required |
+| Resolve `stm_base` and `product_base` from `.garura/core/config.yaml` | — | Hard halt — config required |
 | specify-product artifacts exist and are LOCKED: `scope/scope.yaml`, `scope/enriched-capabilities.yaml`, `scope/epics/*.yaml`, `specification/quality-profile.yaml` under `{product_base}` | C1 | Hard halt — "specify-product must complete before design-exp starts" |
 | KB catalog consistency — invoke `validate-kb-extension` skill | C2 | Hard halt — print validator report, block until fixed |
 | `{product_base}experience/` writable; scriber agent reachable | C10, C11 | Hard halt — infrastructure check |
 | `{product_base}scope/mvp-recommendation.md` exists and is non-empty | C15 | Hard halt — "Author scope/mvp-recommendation.md before running design-exp. See rules/product.md Rule 13 and the specify-product play for the expected artifact shape." |
 
 ```bash
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | awk '/stm:/,/base-path/' | tail -1 | awk '{print $2}')
-product_base=$(grep -A1 '^product:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | awk '/stm:/,/base-path/' | tail -1 | awk '{print $2}')
+product_base=$(grep -A1 '^product:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
 
 # C1: verify specify-product artifacts exist AND status is LOCKED
 # Artifacts live under two sub-folders — scope/ and specification/
@@ -548,7 +548,7 @@ Steps execute top-to-bottom. At any point, the play can be interrupted and resum
 
 | Field | Value |
 |-------|-------|
-| intent_hash | `sha256:2e087c9d153cd852f7667981281895f29592f9fa0b34e776181f24aeba143051` |
+| intent_hash | `sha256:e5f1f31a9367c359280e819f25c4b2089c8b82e0ab755231e8988df2d4e70e15` |
 | compiled_by | `/create-play --rebuild design-exp` |
 | compiled_at | `2026-04-15` |
 | workflow_structure | A (full checkpoint flow with 3 human review gates + 5 decision-surfacing sub-gates) |

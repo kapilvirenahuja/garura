@@ -1,8 +1,8 @@
-# Project Planning Summary: Meridian
+# Project Planning Summary: Garura
 
 ## What It Is
 
-Meridian is an agentic framework implementing Intent-Driven Software Development (IDSD) for deterministic AI-assisted code generation. It transforms AI copilots from non-deterministic assistants into predictable, enterprise-grade development partners.
+Garura is an agentic framework implementing Intent-Driven Software Development (IDSD) for deterministic AI-assisted code generation. It transforms AI copilots from non-deterministic assistants into predictable, enterprise-grade development partners.
 
 ## Architecture
 
@@ -24,8 +24,8 @@ Data flow: High-order play chains atomic plays, plays invoke agents, agents invo
 
 ## Memory System
 
-- **Long-Term Memory (LTM)**: Organizational knowledge (practices, templates, quality gates, standards) authored in `core/components/memory/`, deployed to `~/.meridian/core/memory/`.
-- **Short-Term Memory (STM)**: Issue-centric artifacts at `.meridian/project/issues/{issue-number}/` with subdirectories for spec, design, evidence, delivery, and checkpoint.
+- **Long-Term Memory (LTM)**: Organizational knowledge (practices, templates, quality gates, standards) authored in `core/components/memory/`, deployed to `~/.garura/core/memory/`.
+- **Short-Term Memory (STM)**: Issue-centric artifacts at `.garura/project/issues/{issue-number}/` with subdirectories for spec, design, evidence, delivery, and checkpoint.
 
 ## Key Constraints
 

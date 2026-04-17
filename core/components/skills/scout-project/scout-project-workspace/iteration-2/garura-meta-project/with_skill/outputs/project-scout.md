@@ -1,12 +1,12 @@
-# Project Scout: Meridian OS
+# Project Scout: Garura
 
 **Scanned:** 2026-03-14
-**Project root:** /Users/kapilahuja/cto/builder/meridian-os
+**Project root:** /Users/kapilahuja/cto/builder/garura
 **Focus:** architecture
 
 ## Overview
 
-Meridian OS is an agentic framework implementing Intent-Driven Software Development (IDSD) for deterministic AI-assisted development. Vision is LOCKED; roadmap and engineering view are DRAFT with 6 epics planned across Near/Mid/Long horizons.
+Garura is an agentic framework implementing Intent-Driven Software Development (IDSD) for deterministic AI-assisted development. Vision is LOCKED; roadmap and engineering view are DRAFT with 6 epics planned across Near/Mid/Long horizons.
 
 ## Architecture
 

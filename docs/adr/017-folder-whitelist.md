@@ -1,5 +1,8 @@
 # ADR 017 — `.meridian/` Folder Whitelist and Play Terminology Cleanup
 
+> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
+
+
 **Status:** Proposed
 **Date:** 2026-04-14
 **Supersedes:** none (partial overlap with ADR 008 issue-centric STM, ADR 013 play maturity model)

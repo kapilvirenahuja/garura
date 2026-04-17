@@ -1,10 +1,10 @@
 ---
-name: "meridian:fix-it"
+name: "garura:fix-it"
 description: RCA-driven defect resolution — traces root cause, designs fix with alternatives and risks, presents at checkpoint, then implements and ships autonomously. Use when you have an open bug issue to fix.
 user-invokable: true
 ---
 
-# meridian:fix-it
+# garura:fix-it
 
 Given an existing open issue describing a defect, perform thorough root cause analysis tracing symptoms to the specific code and logic that is wrong, design a fix with alternatives considered and risk assessment, present RCA findings and fix design at a single human checkpoint for approval, then upon approval implement the fix and ship it (commit, PR, merge) fully autonomously. The end state is: fix merged to main, feature branch deleted, issue traceable in commit and PR history.
 
@@ -40,18 +40,18 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt — config is required |
-| Resolve `product_base` from `.meridian/core/config.yaml` | C11 | Soft — set `has_product_ltm=false`, continue without product LTM |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt — config is required |
+| Resolve `product_base` from `.garura/core/config.yaml` | C11 | Soft — set `has_product_ltm=false`, continue without product LTM |
 | Issue number resolvable | C1 | Hard halt — "No issue provided. Provide an issue number or run from a fix/ branch." |
 | Issue exists and is open | C1 | Hard halt — "Issue #{n} does not exist or is not open." |
 | Current branch guard | C2 | Create fix/{issue}-{slug} branch via repo-orchestrator |
 
 ```bash
 # Resolve STM base path
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | head -1 | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | head -1 | awk '{print $2}')
 
 # C11: Resolve product base path for LTM grounding
-product_base=$(grep -A1 '^product:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
+product_base=$(grep -A1 '^product:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
 has_product_ltm=false
 if [ -d "${product_base}architecture/" ]; then
   has_product_ltm=true
@@ -155,7 +155,7 @@ Depends on: Step 2
   "task_id": "rca-and-design",
   "ltm_context": {
     "project_base": "{product_base}architecture/",
-    "core_base": "~/.meridian/core/memory/",
+    "core_base": "~/.garura/core/memory/",
     "query_domains": ["architecture", "design-patterns", "quality-standards", "domain-context"],
     "locked_artifacts": ["{locked_artifact_paths}"]
   }
@@ -418,7 +418,7 @@ Steps are in execution order — run top to bottom.
 
 ```json
 {
-  "play": "meridian:fix-it",
+  "play": "garura:fix-it",
   "issue": "{issue}",
   "started_at": "{ISO timestamp}",
   "tasks": {
@@ -456,7 +456,7 @@ for each step in compiled order:
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:91405a990b52a4b3118289754e3c0cade61cf0992800e2fb9f9115750cf909df |
+| intent_hash | sha256:4d9b77d89b49d853087c97aa785875b9236b1a0e99e3b903f93ac97738704d4a |
 | compiled_by | create-play |
 | compiled_at | 2026-04-11T14:30:00Z |
 | workflow_structure | A |

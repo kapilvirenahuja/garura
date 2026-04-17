@@ -1,5 +1,5 @@
 ---
-name: meridian:quality-check
+name: garura:quality-check
 description: Quality assessment framework using 11 parallel explore subagents across code, testing, security, architecture, documentation, operations, frontend, backend, data, performance, and tech-debt governance. Reads KB quality standards calibrated by the project's Quality Profile (quality-standards.yaml). Produces scored assessments with HTML spider chart, JSON, and Markdown reports. Use when assessing project quality, running quality audits, checking production readiness, or evaluating tech debt governance.
 user-invocable: true
 ---
@@ -25,7 +25,7 @@ Determine:
   - Backend frameworks: Express, FastAPI, Django, Spring, .NET, Go, Rails
   - If no frontend detected → frontend subagent returns all N/A
   - If no backend detected → backend subagent returns all N/A
-- **Quality Profile**: Load `quality-standards.yaml` from project root or `.meridian/` directory
+- **Quality Profile**: Load `quality-standards.yaml` from project root or `.garura/` directory
 
 ### Quality Profile Loading
 
@@ -46,8 +46,8 @@ dimensions:
 ## Step 2: Load KB Standards
 
 **Three-layer search order:**
-1. **Project LTM** — `{project}/.meridian/core/memory/knowledge/quality/` — project-specific overrides
-2. **KB (Memory Bank)** — `~/.meridian/core/memory/knowledge/quality/` — framework defaults
+1. **Project LTM** — `{project}/.garura/core/memory/knowledge/quality/` — project-specific overrides
+2. **KB (Memory Bank)** — `~/.garura/core/memory/knowledge/quality/` — framework defaults
 3. If neither found — HALT: "No quality KB found. Run /sync-claude to deploy quality standards."
 
 For each of the 11 domains, load the knowledge files from the resolved path. Filter check items by detected stack (e.g., skip frontend files for backend-only projects).

@@ -1,5 +1,8 @@
 # ADR 009: Skill LTM Reads for Organizational Knowledge
 
+> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
+
+
 ## Status
 
 Accepted

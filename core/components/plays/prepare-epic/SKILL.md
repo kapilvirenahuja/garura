@@ -38,8 +38,8 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt — config required |
-| Resolve `product_base` from `.meridian/core/config.yaml` | — | Hard halt — config required |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt — config required |
+| Resolve `product_base` from `.garura/core/config.yaml` | — | Hard halt — config required |
 | Validate ALL upstream locked artifacts exist | C1, C34 | **Hard halt** — no discovery mode, no fallback |
 | Resolve issue from branch name OR caller input | C29 | Continue to issue creation |
 | Working tree clean check | C30 | Warn or stash |
@@ -50,8 +50,8 @@ Execute these checks before any domain work:
 
 ```bash
 # Resolve paths from config
-stm_base=$(grep 'base-path' .meridian/core/config.yaml | head -1 | awk '{print $2}')
-product_base=$(grep 'base-path' .meridian/core/config.yaml | tail -1 | awk '{print $2}')
+stm_base=$(grep 'base-path' .garura/core/config.yaml | head -1 | awk '{print $2}')
+product_base=$(grep 'base-path' .garura/core/config.yaml | tail -1 | awk '{print $2}')
 
 # specify-product artifacts
 [ -f "${product_base}/scope/epics/${epic_id}.yaml" ] || HALT "Missing: locked epic"
@@ -373,13 +373,13 @@ Runs in parallel with Steps 2, 3, 4, 5
   },
   "task_id": "1E-ltm-consultation",
   "ltm_context": {
-    "core_base": "~/.meridian/core/memory/",
+    "core_base": "~/.garura/core/memory/",
     "query_domains": ["architecture", "implementation-patterns", "quality-standards", "testing-patterns"]
   }
 }
 ```
 
-Agent reads `~/.meridian/core/memory/` for architectural standards, implementation patterns, technology decisions, prior learnings, and quality patterns. Documents both what was found AND what was not found in LTM (gaps). LTM gaps tell the implementation agent what organizational knowledge is missing — they are as important as findings (C15).
+Agent reads `~/.garura/core/memory/` for architectural standards, implementation patterns, technology decisions, prior learnings, and quality patterns. Documents both what was found AND what was not found in LTM (gaps). LTM gaps tell the implementation agent what organizational knowledge is missing — they are as important as findings (C15).
 
 **Step 6 Evals:**
 - ltm-findings.yaml exists
@@ -1590,7 +1590,7 @@ for each step in compiled order:
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:79c9cc4f01eac9d8c7c17d1e4921a2eadb2f1d049235610ac17a3192dff86e9e |
+| intent_hash | sha256:c8e449ea658b2fba9265297c93645ce59d9354d1175b078da57f215d5573fd5d |
 | compiled_by | create-play |
 | compiled_at | 2026-04-15 |
 | workflow_structure | A — Full checkpoint flow (4 checkpoints) |

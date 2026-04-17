@@ -27,7 +27,7 @@ The output MUST conform to `schemas/tech.yaml` in this skill's directory. Read t
 Receive from agent:
 - `features_yaml_path` — (required) Path to features.yaml
 - `architecture_yaml_path` — (required) Path to architecture.yaml
-- `output_base` — (required) Base path for output, e.g., `.meridian/product/architecture/`
+- `output_base` — (required) Base path for output, e.g., `.garura/product/architecture/`
 
 ## Process
 

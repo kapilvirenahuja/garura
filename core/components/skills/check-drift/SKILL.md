@@ -36,9 +36,9 @@ Once scope is resolved, gather these automatically:
 - `git diff main..HEAD` or `git diff` for uncommitted changes
 - All implementation files touched by the branch
 
-### From `.meridian/product/` (product-level specs — SECONDARY source)
+### From `.garura/product/` (product-level specs — SECONDARY source)
 
-Resolve `product_base` from `.meridian/core/config.yaml` → `product.base-path`.
+Resolve `product_base` from `.garura/core/config.yaml` → `product.base-path`.
 
 - `{product_base}specification/quality-profile.yaml` — quality standards, NFR targets
 - `{product_base}specification/market-brief.md` — problem statement, users, strategic goals
@@ -73,13 +73,13 @@ When locked design artifacts from prepare-epic exist, they are the most authorit
 - `{stm_base}/{issue}/evidence/validate-epic/{milestone_id}/e2e-results.yaml` — E2E test results by tier (baseline, new, regression)
 - `{stm_base}/{issue}/evidence/validate-epic/{milestone_id}/judge-report.yaml` — system-level judge evaluation results
 
-### From `.meridian/project/issues/{issue}/` (STM)
+### From `.garura/project/issues/{issue}/` (STM)
 - `{stm_base}/{issue}/milestones/{milestone_id}/CONTEXT.md` — per-milestone implementation context derived from tech.yaml
 - `{stm_base}/{issue}/evidence/` — all play evidence subdirectories
 
 ### From LTM (if available)
-- `~/.meridian/core/memory/knowledge/` — existing architecture knowledge (deployed path)
-- `~/.meridian/core/memory/standards/` — existing standards (deployed path)
+- `~/.garura/core/memory/knowledge/` — existing architecture knowledge (deployed path)
+- `~/.garura/core/memory/standards/` — existing standards (deployed path)
 
 ## Process
 

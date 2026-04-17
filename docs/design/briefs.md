@@ -290,7 +290,7 @@ tr:hover { background: rgba(0,212,255,0.05); }
 
 ### Storage
 
-- **localStorage key:** `meridian-comments-{artifact}-{slug}`
+- **localStorage key:** `garura-comments-{artifact}-{slug}`
 - **Format:** Array of comment objects (id, tab, selected_text, comment, created_at, range data)
 - **Persistence:** Comments survive page reload, browser close/reopen
 - **Clear:** Exporting with an action (tether/vanish/orbit) clears stored comments
@@ -324,7 +324,7 @@ Central navigation page linking to all briefs for a product. Shows status at a g
 ### Location
 
 ```
-.meridian/product/briefs/hub.html
+.garura/product/briefs/hub.html
 ```
 
 ### Layout
@@ -476,14 +476,14 @@ at the top of the Structure tab (already approved in a prior stage).
 ## File Naming
 
 ```
-.meridian/product/briefs/hub.html
-.meridian/product/briefs/product-brief.html
-.meridian/product/briefs/roadmap-brief.html
-.meridian/product/briefs/features-brief.html
-.meridian/product/briefs/architecture-brief.html
-.meridian/product/briefs/tech-brief.html
-.meridian/product/briefs/scenarios-brief.html
-.meridian/product/briefs/plan-brief.html
+.garura/product/briefs/hub.html
+.garura/product/briefs/product-brief.html
+.garura/product/briefs/roadmap-brief.html
+.garura/product/briefs/features-brief.html
+.garura/product/briefs/architecture-brief.html
+.garura/product/briefs/tech-brief.html
+.garura/product/briefs/scenarios-brief.html
+.garura/product/briefs/plan-brief.html
 ```
 
 No timestamps in brief filenames — each brief is the latest view of its YAML.

@@ -1,6 +1,6 @@
 # Memory
 
-Meridian uses a dual memory architecture: Long-Term Memory (LTM) and Short-Term Memory (STM).
+Garura uses a dual memory architecture: Long-Term Memory (LTM) and Short-Term Memory (STM).
 
 ## Philosophy
 
@@ -19,15 +19,15 @@ Memory is **project contextual information** that enables consistent, knowledge-
 
 | Type | Lifecycle | Purpose | Authoring Location | Runtime Location |
 |------|-----------|---------|---------------------|------------------|
-| **LTM** | Project setup → persists | Practices, standards, templates | `core/components/memory/` | `~/.meridian/core/memory/` (global), `.meridian/core/memory/` (project) |
-| **STM** | Play start → play end | Artifacts created during play | N/A | `.meridian/project/issues/{N}/` — ADR 017 whitelist |
+| **LTM** | Project setup → persists | Practices, standards, templates | `core/components/memory/` | `~/.garura/core/memory/` (global), `.garura/core/memory/` (project) |
+| **STM** | Play start → play end | Artifacts created during play | N/A | `.garura/project/issues/{N}/` — ADR 017 whitelist |
 
 ### Folder whitelist (ADR 017)
 
-Per ADR 017 (2026-04-14), `.meridian/` is a strict folder whitelist:
+Per ADR 017 (2026-04-14), `.garura/` is a strict folder whitelist:
 
 ```
-.meridian/
+.garura/
 ├── core/
 │   ├── config.yaml                  # moved from repo root core/config.yaml
 │   └── memory/                      # gitignored; synced from core/components/memory/
@@ -47,13 +47,13 @@ Per ADR 017 (2026-04-14), `.meridian/` is a strict folder whitelist:
             └── review/              # review artifacts
 ```
 
-Operational artifacts for product-scoped plays (checkpoints, status, resume state) live INSIDE the three `product/` buckets using underscore-prefixed subfolders (e.g., `.meridian/product/_checkpoints/specify-product/20260414.md`). No siblings are permitted.
+Operational artifacts for product-scoped plays (checkpoints, status, resume state) live INSIDE the three `product/` buckets using underscore-prefixed subfolders (e.g., `.garura/product/_checkpoints/specify-product/20260414.md`). No siblings are permitted.
 
 The `write-evidence` skill (invoked by the `scriber` agent) is the single chokepoint that enforces whitelist compliance at the write boundary.
 
 ### KB Capability Catalog (domain-taxonomy + cross-tree constraints)
 
-Per ADR 017 and 214.4, the `knowledge/domain-taxonomy/*.md` files are Meridian's **capability catalog** — a human-readable feature catalog that the product-planning pipeline (`specify-product` / `design-exp` / `build-arch`) reads programmatically.
+Per ADR 017 and 214.4, the `knowledge/domain-taxonomy/*.md` files are Garura's **capability catalog** — a human-readable feature catalog that the product-planning pipeline (`specify-product` / `design-exp` / `build-arch`) reads programmatically.
 
 Each feature in a domain file carries NINE sections:
 
@@ -95,7 +95,7 @@ Skills read from LTM only when agents explicitly pass them LTM paths — skills 
 ```
 Agent invoked
     │
-    └── Context Crafting — reads LTM from ~/.meridian/core/memory/:
+    └── Context Crafting — reads LTM from ~/.garura/core/memory/:
           ├── standards/{domain}/      # Cross-cutting rules and quality criteria
           ├── formats/{type}/          # User-facing message formats
           └── knowledge/{domain}/      # Design decisions and patterns
@@ -135,13 +135,13 @@ core/components/memory/
 
 **Deployment:**
 - Source: `core/components/memory/`
-- Global mode (default): `~/.meridian/core/memory/` (shared across all projects, deployed via `/sync-claude`)
-- Project mode (ephemeral): `.meridian/core/memory/` (project-specific, deployed via `/sync-claude --project`, gitignored)
+- Global mode (default): `~/.garura/core/memory/` (shared across all projects, deployed via `/sync-claude`)
+- Project mode (ephemeral): `.garura/core/memory/` (project-specific, deployed via `/sync-claude --project`, gitignored)
 
 **Runtime (where agents read from):**
 ```
-~/.meridian/core/memory/    # Global mode (default)
-.meridian/core/memory/      # Project mode
+~/.garura/core/memory/    # Global mode (default)
+.garura/core/memory/      # Project mode
 ```
 
 ### LTM Access Pattern (ADR 009)
@@ -185,7 +185,7 @@ STM stores:
 ```
 Play starts
     │
-    └── STM folder created: .meridian/{issue}/
+    └── STM folder created: .garura/{issue}/
               │
               ├── L1 step 1 → Creates artifact
               │
@@ -201,7 +201,7 @@ Play ends
 ### STM Organization
 
 ```
-.meridian/{issue}/
+.garura/{issue}/
 ├── spec/           # Specifications, requirements
 ├── design/         # Technical design, architecture
 ├── evidence/       # Implementation evidence per play
@@ -231,7 +231,7 @@ Play ends
 │                    STM (Short-Term Memory)                  │
 │  Created: When play starts                                │
 │  Contains: Artifacts for this issue                         │
-│  Location: .meridian/{issue}/                               │
+│  Location: .garura/{issue}/                               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -271,7 +271,7 @@ Play
     ├── Agent does work
     │
     └── Agent writes STM:
-          └── artifact in .meridian/{issue}/
+          └── artifact in .garura/{issue}/
 ```
 
 ### Play Memory Flow
@@ -303,8 +303,8 @@ core/components/memory/
 ```
 
 **Runtime:** Agents read memory from:
-- `~/.meridian/core/memory/` (global mode, default — shared across all projects)
-- `.meridian/core/memory/` (project mode — project-specific)
+- `~/.garura/core/memory/` (global mode, default — shared across all projects)
+- `.garura/core/memory/` (project mode — project-specific)
 
 See: [docs/usage/memory/](../usage/memory/) for concrete implementations.
 

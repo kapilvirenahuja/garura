@@ -100,7 +100,7 @@ scenarios:
   - id: S1
     persona: Developer
     given: >
-      A developer runs meridian:fix-it against an open bug issue. The play
+      A developer runs garura:fix-it against an open bug issue. The play
       completes all phases: RCA, design, checkpoint approval, implementation,
       and shipping.
     then: >

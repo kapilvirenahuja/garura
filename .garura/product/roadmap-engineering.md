@@ -1,12 +1,12 @@
 ---
 for: Engineering
-product: "Meridian OS"
-slug: "meridian-os"
-roadmap_ref: ".meridian/project/product/meridian-os/roadmap.md"
+product: "Garura"
+slug: "garura"
+roadmap_ref: ".garura/project/product/garura/roadmap.md"
 created: "2026-03-04"
 ---
 
-# Engineering Roadmap View — Meridian OS
+# Engineering Roadmap View — Garura
 
 > This view is for engineering use only. It contains no business context, revenue projections, or market framing.
 
@@ -40,7 +40,7 @@ E6 (Adoption & Onboarding) is the terminal node. It depends on E1, E2, E4, and E
 ## Architecture Impact
 
 **E1 — Persistent Context Engine**
-- Introduces STM and LTM storage layers. STM is issue-scoped (`.meridian/{issue}/`), LTM is project-scoped (`~/.meridian/core/memory/`).
+- Introduces STM and LTM storage layers. STM is issue-scoped (`.garura/{issue}/`), LTM is project-scoped (`~/.garura/core/memory/`).
 - Introduces context loading protocol — determines what gets loaded into AI session context at start.
 - Introduces CLAUDE.md auto-population — writes to `.claude/CLAUDE.md` or project-level CLAUDE.md.
 - New pattern: selective memory retrieval via Glob/Grep against memory indices.

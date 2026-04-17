@@ -39,14 +39,14 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt — config is required |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt — config is required |
 | Working tree is clean | C1 | Hard halt — "Dirty working tree — commit or stash changes before planning a new feature" |
 | Intent is actionable | C2 | Hard halt — "Intent too vague — provide a description or issue number to proceed" |
 | Parse input arguments | — | Determine input pattern (issue number, title, or with --parent modifier) |
 
 ```bash
 # Resolve STM base path
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | awk '{print $2}')
 
 # C1: Working tree clean
 git status --porcelain  # must be empty
@@ -445,7 +445,7 @@ for each step in compiled order:
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:9a7e2bbb99adb01d77832075bba5c98781c27a8a9fad044469a828c41cbc36bc |
+| intent_hash | sha256:0ca93e2bba756cad15649abf817c0534fd4cac1594337d1a7f8844a548c5293f |
 | compiled_by | create-play |
 | compiled_at | 2026-03-06 |
 | workflow_structure | A |

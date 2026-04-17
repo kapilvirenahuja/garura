@@ -28,7 +28,7 @@ Receive from agent:
 - `intent` -- (required) Product intent description
 - `vision_path` -- (optional) Path to a locked vision.md for enrichment
 - `roadmap_path` -- (optional) Path to roadmap artifacts with scoped epics for enrichment
-- `output_base` -- (required) Base path, e.g., `.meridian/product/roadmap/`
+- `output_base` -- (required) Base path, e.g., `.garura/product/roadmap/`
 
 ## Process
 

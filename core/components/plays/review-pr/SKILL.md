@@ -1,6 +1,6 @@
 ---
-name: meridian:review-pr
-description: Diff-scoped quality review for a pull request. Resolves standards from .meridian/core/config.yaml, runs the quality-check-scoped skill against the PR diff, classifies every finding deterministically via the PR severity taxonomy, computes a confidence score, selects top N reviewers from recent committers on changed paths, and posts a structured routing comment to the PR. Halts ship pipeline (when review-pr.bypass=false) on P1 findings or sub-threshold confidence. NEVER runs full-repo quality-check. NEVER modifies create-pr.
+name: garura:review-pr
+description: Diff-scoped quality review for a pull request. Resolves standards from .garura/core/config.yaml, runs the quality-check-scoped skill against the PR diff, classifies every finding deterministically via the PR severity taxonomy, computes a confidence score, selects top N reviewers from recent committers on changed paths, and posts a structured routing comment to the PR. Halts ship pipeline (when review-pr.bypass=false) on P1 findings or sub-threshold confidence. NEVER runs full-repo quality-check. NEVER modifies create-pr.
 user-invocable: true
 ---
 
@@ -47,7 +47,7 @@ Weights sum to 1.0. `citation_rate` carries the highest weight because it direct
 
 ## Pre-flight
 
-Resolve `stm_base` from `.meridian/core/config.yaml` `stm.base-path`. Resolve `review-pr.*` and `standards.pr-severity-taxonomy` from the same file.
+Resolve `stm_base` from `.garura/core/config.yaml` `stm.base-path`. Resolve `review-pr.*` and `standards.pr-severity-taxonomy` from the same file.
 
 | Check | Constraint | Action on Failure |
 |---|---|---|
@@ -59,12 +59,12 @@ Resolve `stm_base` from `.meridian/core/config.yaml` `stm.base-path`. Resolve `r
 | Issue number derived from branch name (e.g., `feature/208-slug` → `208`) for STM keying | — | Hard halt |
 
 ```bash
-stm_base=$(grep -A1 '^stm:' .meridian/core/config.yaml | grep base-path | awk '{print $2}')
-taxonomy_path=$(yq '.standards.pr-severity-taxonomy' .meridian/core/config.yaml)
-bypass=$(yq '.review-pr.bypass' .meridian/core/config.yaml)
-threshold=$(yq '.review-pr.confidence_threshold' .meridian/core/config.yaml)
-reviewer_count=$(yq '.review-pr.reviewer_count' .meridian/core/config.yaml)
-window=$(yq '.review-pr.activity_window_days' .meridian/core/config.yaml)
+stm_base=$(grep -A1 '^stm:' .garura/core/config.yaml | grep base-path | awk '{print $2}')
+taxonomy_path=$(yq '.standards.pr-severity-taxonomy' .garura/core/config.yaml)
+bypass=$(yq '.review-pr.bypass' .garura/core/config.yaml)
+threshold=$(yq '.review-pr.confidence_threshold' .garura/core/config.yaml)
+reviewer_count=$(yq '.review-pr.reviewer_count' .garura/core/config.yaml)
+window=$(yq '.review-pr.activity_window_days' .garura/core/config.yaml)
 test -f "$taxonomy_path" || { echo "Missing taxonomy at $taxonomy_path"; exit 1; }
 ```
 
@@ -118,24 +118,24 @@ Depends on: Step 0
   },
   "task_id": "context-load",
   "config_inputs": {
-    "standards_order": ".meridian/core/config.yaml#review-pr.standards_order",
-    "severity_taxonomy_path": ".meridian/core/config.yaml#standards.pr-severity-taxonomy"
+    "standards_order": ".garura/core/config.yaml#review-pr.standards_order",
+    "severity_taxonomy_path": ".garura/core/config.yaml#standards.pr-severity-taxonomy"
   }
 }
 ```
 
-Agent reads `.meridian/core/config.yaml` for `review-pr.standards_order`, resolves each entry (`kb`/`ltm`/`stm`) to a directory path. Reads the linked issue's intent source with priority fallback: first `{stm_base}/{issue}/context/design/epic-spec.yaml`, then `{stm_base}/{issue}/planning/spec.md`, else PR body. Emits `context.yaml`:
+Agent reads `.garura/core/config.yaml` for `review-pr.standards_order`, resolves each entry (`kb`/`ltm`/`stm`) to a directory path. Reads the linked issue's intent source with priority fallback: first `{stm_base}/{issue}/context/design/epic-spec.yaml`, then `{stm_base}/{issue}/planning/spec.md`, else PR body. Emits `context.yaml`:
 ```yaml
 standards_set:
-  kb: ~/.meridian/core/memory/knowledge/quality/
-  ltm: .meridian/core/memory/knowledge/quality/
+  kb: ~/.garura/core/memory/knowledge/quality/
+  ltm: .garura/core/memory/knowledge/quality/
   stm: {stm_base}/{issue}/spec/quality/
 severity_taxonomy_path: ./core/components/memory/standards/rules/pr.md
 intent_summary: "{1–3 sentence summary}"
 intent_source: "epic-spec.yaml" | "spec.md" | "pr_body"
 ```
 
-**Step 1 Eval — SE-4 (C4):** `context.yaml` lists the resolved `standards_set` paths and the resolved `severity_taxonomy_path`, all originating from `.meridian/core/config.yaml` — no hardcoded paths in `context.yaml`.
+**Step 1 Eval — SE-4 (C4):** `context.yaml` lists the resolved `standards_set` paths and the resolved `severity_taxonomy_path`, all originating from `.garura/core/config.yaml` — no hardcoded paths in `context.yaml`.
 
 ---
 
@@ -158,11 +158,11 @@ Depends on: Step 1
     }
   },
   "task_id": "scoped-quality-eval",
-  "skill_invocation": "meridian:quality-check-scoped"
+  "skill_invocation": "garura:quality-check-scoped"
 }
 ```
 
-Agent invokes `meridian:quality-check-scoped` with the input contract from `core/components/skills/quality-check-scoped/reference/input-contract.md`. The skill runs single-pass diff-bounded evaluation, classifies every finding via the taxonomy, and writes `findings.yaml`. The agent MUST NOT invoke `/quality-check`. The skill's diff scope invariant is enforced by its own contract.
+Agent invokes `garura:quality-check-scoped` with the input contract from `core/components/skills/quality-check-scoped/reference/input-contract.md`. The skill runs single-pass diff-bounded evaluation, classifies every finding via the taxonomy, and writes `findings.yaml`. The agent MUST NOT invoke `/quality-check`. The skill's diff scope invariant is enforced by its own contract.
 
 **Step 2 Evals:**
 - **SE-1 (F1/C2):** Every finding in `findings.yaml` carries a `standard_id` that matches a row in `git/pr-severity-taxonomy.md`. Findings with missing or unknown `standard_id` MUST be absent (rejected by skill).
@@ -190,7 +190,7 @@ Depends on: Step 2
   },
   "task_id": "confidence-routing",
   "config_inputs": {
-    "confidence_threshold": ".meridian/core/config.yaml#review-pr.confidence_threshold"
+    "confidence_threshold": ".garura/core/config.yaml#review-pr.confidence_threshold"
   }
 }
 ```
@@ -241,9 +241,9 @@ Depends on: Step 3
   },
   "task_id": "reviewer-selection",
   "config_inputs": {
-    "reviewer_count": ".meridian/core/config.yaml#review-pr.reviewer_count",
-    "fallback_reviewers": ".meridian/core/config.yaml#review-pr.fallback_reviewers",
-    "activity_window_days": ".meridian/core/config.yaml#review-pr.activity_window_days"
+    "reviewer_count": ".garura/core/config.yaml#review-pr.reviewer_count",
+    "fallback_reviewers": ".garura/core/config.yaml#review-pr.fallback_reviewers",
+    "activity_window_days": ".garura/core/config.yaml#review-pr.activity_window_days"
   }
 }
 ```
@@ -458,7 +458,7 @@ for each step in compiled order:
 
 | Field | Value |
 |---|---|
-| intent_hash | sha256:10922b6450028e1fdcb1f5acfca15f421084eca71002f2d817cb4602d882afaa |
+| intent_hash | sha256:5e4ec9513ece16802882106e9445c94acbc4b1209000fcc5b6c1a5f7b489c215 |
 | compiled_by | create-play |
 | compiled_at | 2026-04-13 |
 | workflow_structure | A |
@@ -466,4 +466,4 @@ for each step in compiled order:
 | utility_agents | 1 (repo-orchestrator for git/PR ops + evidence) |
 | step_evals | 9 (SE-1 through SE-9) |
 | scenario_evals | 4 (SCE-1 through SCE-4) |
-| skills | meridian:quality-check-scoped |
+| skills | garura:quality-check-scoped |

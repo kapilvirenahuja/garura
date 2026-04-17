@@ -22,18 +22,18 @@ Find YAML artifacts by scanning these locations in order (stop at first hit per 
 
 | Category | Search paths (relative to CWD) |
 |----------|-------------------------------|
-| Features & identity | `.meridian/product/roadmap/features.yaml`, `specs/features*` |
-| Architecture | `.meridian/product/architecture/architecture.yaml`, `specs/architecture*` |
-| Low-level design | `.meridian/product/architecture/tech.yaml`, `specs/tech*` |
-| Verification | `.meridian/product/architecture/scenarios.yaml`, `specs/scenarios*` |
-| Execution plan | `.meridian/product/roadmap/plan.yaml`, `specs/plan*` |
-| Product & roadmap | `.meridian/product/discovery/product.yaml`, `.meridian/product/roadmap/roadmap.yaml` |
+| Features & identity | `.garura/product/roadmap/features.yaml`, `specs/features*` |
+| Architecture | `.garura/product/architecture/architecture.yaml`, `specs/architecture*` |
+| Low-level design | `.garura/product/architecture/tech.yaml`, `specs/tech*` |
+| Verification | `.garura/product/architecture/scenarios.yaml`, `specs/scenarios*` |
+| Execution plan | `.garura/product/roadmap/plan.yaml`, `specs/plan*` |
+| Product & roadmap | `.garura/product/discovery/product.yaml`, `.garura/product/roadmap/roadmap.yaml` |
 | Project context | `CLAUDE.md`, `README.md`, `.claude/agents/*.md` |
-| Config/paths | `.meridian/core/config.yaml`, `**/config.yaml`, `**/config.yml` |
+| Config/paths | `.garura/core/config.yaml`, `**/config.yaml`, `**/config.yml` |
 
-Also scan broadly for any `.yaml` files under `.meridian/product/` — artifact filenames should match the standard names above, but discover flexibly and categorize by content if needed.
+Also scan broadly for any `.yaml` files under `.garura/product/` — artifact filenames should match the standard names above, but discover flexibly and categorize by content if needed.
 
-If a product slug is provided as input, narrow the search to that slug's directory. Otherwise, scan all slugs found under `.meridian/`.
+If a product slug is provided as input, narrow the search to that slug's directory. Otherwise, scan all slugs found under `.garura/`.
 
 If zero specification artifacts are found, report that clearly and stop — there is nothing to audit.
 
@@ -104,7 +104,7 @@ Across all artifacts:
 
 ## Output
 
-Write the report to `{discovery_root}/gap-analysis.md` where `discovery_root` is the directory containing the discovered artifacts (e.g., `.meridian/product/`). If artifacts span multiple directories, write to the most specific common parent.
+Write the report to `{discovery_root}/gap-analysis.md` where `discovery_root` is the directory containing the discovered artifacts (e.g., `.garura/product/`). If artifacts span multiple directories, write to the most specific common parent.
 
 Also print a concise summary to the conversation.
 

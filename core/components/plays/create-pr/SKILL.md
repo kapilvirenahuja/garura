@@ -34,7 +34,7 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt |
 | Branch guard | C8 | Hard halt |
 | Working tree is clean | C3 | Hard halt — instruct user to commit first |
 | Branch pushed to remote | C3 | Auto-push (infrastructure, not a halt) |
@@ -44,8 +44,8 @@ Execute these checks before any domain work:
 | Commits ahead of base | implicit | Graceful exit — nothing to PR |
 
 ```bash
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | head -1 | awk '{print $2}')
-product_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | tail -1 | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | head -1 | awk '{print $2}')
+product_base=$(grep '^\s*base-path:' .garura/core/config.yaml | tail -1 | awk '{print $2}')
 branch=$(git branch --show-current)
 default_branch=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
 # C8: halt if branch == default_branch or branch == main or branch == master
@@ -54,7 +54,7 @@ default_branch=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
 git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null
 git log @{u}..HEAD --oneline 2>/dev/null
 # C1: platform config
-platform=$(grep '^platform:' .meridian/core/config.yaml | awk '{print $2}')
+platform=$(grep '^platform:' .garura/core/config.yaml | awk '{print $2}')
 # C1: platform reference exists
 test -f "core/components/skills/submit-pr/reference/${platform}/pr.md"
 # F1: open issues exist
@@ -88,7 +88,7 @@ Depends on: pre-flight
   "task_id": "analyze-pr-readiness",
   "ltm_context": {
     "project_base": "{product_base}architecture/",
-    "core_base": "~/.meridian/core/memory/",
+    "core_base": "~/.garura/core/memory/",
     "query_domains": ["git", "pr-standards"],
     "locked_artifacts": []
   }
@@ -126,7 +126,7 @@ Agent invokes `manage-issue` skill (action: read or resolve_or_create). Writes i
 - **SE-2 (C4, F2):** Checklist items are change-specific — every item has a trigger reason tracing to actual file patterns in the diff. No generic items.
 - **SE-3 (C5, F3):** Every checklist item has evidence backing — Verification Evidence table is complete with non-empty evidence for every item.
 - **SE-4 (C7, F5):** Target branch confidence assessed. If high → checkpoint can be skipped. If less than high → checkpoint required.
-- **SE-5 (C1):** Platform resolved from `.meridian/core/config.yaml`, not hardcoded.
+- **SE-5 (C1):** Platform resolved from `.garura/core/config.yaml`, not hardcoded.
 - **SE-6 (C2):** No code modifications during analysis — git status unchanged after preparation.
 
 ---
@@ -255,7 +255,7 @@ for each step in compiled order:
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:89d9ae81d58c27431bc961084607a6ba988ffb5f807846d5ba864794ce138394 |
+| intent_hash | sha256:a48d3983eb570a6f25f6923c2c2fb80b7361199ede5277cbc5eba7a937d0a31a |
 | compiled_by | create-play |
 | compiled_at | 2026-03-06T20:00:00+0530 |
 | workflow_structure | A |

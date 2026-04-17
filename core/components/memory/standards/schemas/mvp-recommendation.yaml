@@ -9,7 +9,7 @@
 # shape (domain-selection), narrow the capability walk to what v1 will
 # actually ship. The recommendation is a scope-narrowing decision artifact,
 # not an opportunity description — hence it lives in
-# .meridian/product/scope/, not .meridian/product/specification/ (see
+# .garura/product/scope/, not .garura/product/specification/ (see
 # Defect 9).
 #
 # Consumers: configure-capabilities (reads primary use cases to narrow
@@ -25,7 +25,7 @@
 # ──────────────────────────────────────────────────────────────────────────
 #
 # The artifact is authored as a Markdown file at
-# .meridian/product/scope/mvp-recommendation.md. It carries frontmatter
+# .garura/product/scope/mvp-recommendation.md. It carries frontmatter
 # with metadata (slug, status, created_at, provenance) and a body with
 # required structured sections in a specific order.
 #
@@ -63,7 +63,7 @@
 #     section. Architecture directions are described at the capability
 #     level, not the tech-stack level.
 #   - Rule 16 (Pull-to-Product): domain references resolve to
-#     .meridian/product/research/ only.
+#     .garura/product/research/ only.
 #   - User answers captured in user-provided/grounding-questions.md are
 #     the authoritative source for any narrowing decisions that extend
 #     beyond what the brief / project-profile explicitly state.
@@ -200,12 +200,12 @@
 #      layer against the written file.
 #
 #   3. PULL-TO-PRODUCT (Rule 15 / specify-product C17):
-#      Any domain reference resolves to .meridian/product/research/
+#      Any domain reference resolves to .garura/product/research/
 #      (not core/components/memory/knowledge/domain/).
 #
 #   4. PRIMARY-FOCUS NARROWING: section 1.1's use-case list must be a
 #      strict subset of the use cases enumerated in
-#      .meridian/product/user-provided/project-brief.md. The recommender
+#      .garura/product/user-provided/project-brief.md. The recommender
 #      may not invent use cases the brief did not name.
 #
 #   5. DEFERRED-USE-CASE COMPLETENESS: every use case the brief names

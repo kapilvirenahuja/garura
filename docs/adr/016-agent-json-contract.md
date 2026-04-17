@@ -1,5 +1,8 @@
 # ADR 016 — Agent JSON Contract
 
+> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
+
+
 **Status:** Accepted
 **Date:** 2026-04-13
 **Supersedes:** none

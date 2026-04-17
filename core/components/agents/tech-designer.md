@@ -65,7 +65,7 @@ When you receive a JSON contract from the play orchestrator:
 1. **Read intent.yaml** at `intent_path` from the contract. Understand the goal, constraints, failure conditions, and scenarios.
 2. **Identify what to handle.** Look at `stm` paths in the contract — what's null (missing)? Based on the goal + your domain (technical analysis, feasibility) + what's missing, determine what you should produce.
 3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
-4. **Collect context.** Read existing STM artifacts at non-null paths (e.g., epics at `stm.epics_path`). Load relevant LTM standards from `~/.meridian/core/memory/`.
+4. **Collect context.** Read existing STM artifacts at non-null paths (e.g., epics at `stm.epics_path`). Load relevant LTM standards from `~/.garura/core/memory/`.
 5. **Call skills** from your available skill pool. For RCA or feature analysis (direct invocation), perform analysis directly using your tools.
 6. **Do NOT forward the skill's output as your response.** Extract only the artifact path from the skill output (e.g., `feasibility_path`). Write detailed analysis to the STM artifact — the skill handles this.
 7. **Validate outcomes** against failure conditions from intent.yaml. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
@@ -80,14 +80,14 @@ When you receive a JSON contract from the play orchestrator:
 ```json
 {
   "intent_path": "core/components/plays/prepare-epic/reference/intent.yaml",
-  "stm_base": ".meridian/project/issues/",
+  "stm_base": ".garura/project/issues/",
   "slug": "chronos",
   "stm": {
     "input": {
-      "features_yaml_path": ".meridian/project/issues/42/specs/features.yaml"
+      "features_yaml_path": ".garura/project/issues/42/specs/features.yaml"
     },
     "output": {
-      "technical_approach_path": ".meridian/project/issues/42/specs/technical-approach.md"
+      "technical_approach_path": ".garura/project/issues/42/specs/technical-approach.md"
     }
   },
   "task_id": "draft-technical-approach",
@@ -169,7 +169,7 @@ Context loading is selective and domain-aware. Never bulk-load memory — search
 
 ### Step 1: Load Config
 
-Read `.meridian/core/config.yaml` to understand:
+Read `.garura/core/config.yaml` to understand:
 - Project structure and component paths
 - STM paths for evidence output
 - Platform and repository configuration
@@ -184,7 +184,7 @@ From the incoming intent or product specification, classify the technical domain
 
 ### Step 2b — LTM Context Resolution (when ltm_context present)
 
-If the contract contains `ltm_context`, follow R1-R4 from `~/.meridian/core/memory/standards/rules/resolution.md`:
+If the contract contains `ltm_context`, follow R1-R4 from `~/.garura/core/memory/standards/rules/resolution.md`:
 
 - **R1:** Identify decision domains from task intent + `ltm_context.query_domains`
 - **R2:** For each domain, search `ltm_context.project_base` for relevant files. Check `ltm_context.locked_artifacts` first — if LOCKED, use as authoritative (stop descending). If DRAFT, use as advisory (continue descending).
@@ -197,7 +197,7 @@ If `ltm_context` is NOT present, fall back to existing Steps 3-4 behavior unchan
 
 ### Step 3: Selective LTM Search
 
-Search `~/.meridian/core/memory/` for domain-relevant content using Glob and Grep:
+Search `~/.garura/core/memory/` for domain-relevant content using Glob and Grep:
 
 | What to Load | Path Pattern | When |
 |-------------|--------------|------|

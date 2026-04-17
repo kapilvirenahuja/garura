@@ -1,12 +1,12 @@
 ---
-product: Meridian OS
-slug: meridian-os
+product: Garura
+slug: garura
 status: LOCKED
 created: 2026-03-01
 last_updated: 2026-03-04
 ---
 
-# Meridian OS — Product Vision
+# Garura — Product Vision
 
 **Status:** LOCKED
 
@@ -22,7 +22,7 @@ Software teams using AI assistants waste enormous time on context switching, pro
 
 ## Value Proposition
 
-Meridian OS is the operating layer for intent-driven AI development. It gives AI assistants persistent project memory, structured workflows (plays), and a shared understanding of intent — so every AI session starts informed, not blank. Teams stop babysitting AI and start delegating to it.
+Garura is the operating layer for intent-driven AI development. It gives AI assistants persistent project memory, structured workflows (plays), and a shared understanding of intent — so every AI session starts informed, not blank. Teams stop babysitting AI and start delegating to it.
 
 ## Strategic Goals
 
@@ -44,7 +44,7 @@ Meridian OS is the operating layer for intent-driven AI development. It gives AI
 - **GitHub Copilot / Cursor** — IDE-level AI, no persistent project intent, no workflow structure
 - **Linear + Notion** — Project management, not AI orchestration; humans still bridge AI and project context
 - **LangChain / LlamaIndex** — Developer frameworks for building AI apps, not for operating AI-assisted development workflows
-- **Custom CLAUDE.md files** — Ad-hoc, project-specific, non-transferable; Meridian OS is the structured, shareable version of this
+- **Custom CLAUDE.md files** — Ad-hoc, project-specific, non-transferable; Garura is the structured, shareable version of this
 
 ## Key Assumptions
 

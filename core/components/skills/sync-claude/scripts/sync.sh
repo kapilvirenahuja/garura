@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# sync-claude — Pure bash sync of Meridian components
+# sync-claude — Pure bash sync of Garura components
 # Usage: ./sync.sh [--project|--global]
 
 # Resolve project root (where core/components/ lives)
@@ -21,10 +21,10 @@ done
 # Set target directories
 if [ "$MODE" = "global" ]; then
   TARGET_DIR="$HOME/.claude"
-  MEMORY_TARGET="$HOME/.meridian/core/memory"
+  MEMORY_TARGET="$HOME/.garura/core/memory"
 else
   TARGET_DIR="$PROJECT_ROOT/.claude"
-  MEMORY_TARGET="$PROJECT_ROOT/.meridian/core/memory"
+  MEMORY_TARGET="$PROJECT_ROOT/.garura/core/memory"
 fi
 
 SOURCE="$PROJECT_ROOT/core/components"

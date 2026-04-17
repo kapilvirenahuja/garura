@@ -20,7 +20,7 @@ Skills represent the "how" of execution. They are technology or methodology-spec
 
 ## Two Categories
 
-Meridian has two categories of components that deploy as Claude Code skills:
+Garura has two categories of components that deploy as Claude Code skills:
 
 | Category | What It Is | Invocability | Purpose |
 |----------|-----------|--------------|---------|
@@ -31,9 +31,9 @@ Both deploy to `.claude/skills/` but serve fundamentally different roles. This d
 
 ### Meta-Utility Skills (Exception)
 
-Some skills exist to manage the Meridian framework itself. These are classified as **meta-utility skills** and may be `user-invocable: true` despite the general rule that skills are model-invocable only.
+Some skills exist to manage the Garura framework itself. These are classified as **meta-utility skills** and may be `user-invocable: true` despite the general rule that skills are model-invocable only.
 
-Example: `sync-claude` — synchronizes Meridian components to Claude Code directories. It is invoked directly by the user because it manages the deployment pipeline, not a domain task.
+Example: `sync-claude` — synchronizes Garura components to Claude Code directories. It is invoked directly by the user because it manages the deployment pipeline, not a domain task.
 
 Meta-utility skills:
 - Are user-invocable
@@ -75,7 +75,7 @@ Meta-utility skills:
 
 | Skill | User-Invocable | Model | Description |
 |-------|----------------|-------|-------------|
-| `sync-claude` | true | haiku | Sync Meridian components to .claude/ (project mode) or ~/.claude/ (global mode, default) |
+| `sync-claude` | true | haiku | Sync Garura components to .claude/ (project mode) or ~/.claude/ (global mode, default) |
 
 ## Available Plays
 
@@ -96,7 +96,7 @@ Plays are user-invocable workflows that orchestrate agents and skills. They depl
 | `implement-epic` | true | sonnet | Implement a feature through an eval-driven TDD loop |
 | `create-play` | true | sonnet | Compile a new play from an intent.yaml |
 | `briefs` | true | sonnet | Regenerate HTML briefs from product YAML artifacts |
-| `report-issue` | true | sonnet | Report a defect against Meridian OS |
+| `report-issue` | true | sonnet | Report a defect against Garura |
 
 ## Skill Properties
 
@@ -118,7 +118,7 @@ This ensures:
 Skills read templates from LTM (via paths passed by agents), not from local `templates/` directories. This is the pattern established by ADR 009.
 
 When a skill needs an organizational template (e.g., an epic schema, a brief HTML template), the agent:
-1. Searches `~/.meridian/core/memory/` for the relevant template or schema
+1. Searches `~/.garura/core/memory/` for the relevant template or schema
 2. Passes the discovered LTM path to the skill as an input parameter
 
 The skill reads from the provided path. It does NOT search LTM itself. This separation keeps organizational knowledge mutable by adopters while skill logic stays stable.
@@ -143,7 +143,7 @@ Skills return a YAML output contract with artifact paths. Full data is written t
 ```yaml
 # Example skill output contract
 scoped_epics:
-  epics_path: ".meridian/project/product/chronos/epics.yaml"
+  epics_path: ".garura/project/product/chronos/epics.yaml"
   slug: "chronos"
   epic_count: 5
 ```
@@ -351,7 +351,7 @@ Skill loads from its own bundled reference (e.g., `skills/{skill-name}/reference
 |---------------|----------|-------------------|
 | Skill behavior (process, constraints) | Skill-local (embedded) | No — edit skill source |
 | Skill-specific references (risk patterns) | `reference/` directory | No — edit skill source |
-| Organizational standards (categories, schemas) | LTM (`~/.meridian/core/memory/`) | Yes — edit LTM |
+| Organizational standards (categories, schemas) | LTM (`~/.garura/core/memory/`) | Yes — edit LTM |
 | Output format templates | `templates/` directory or LTM | Depends on template type |
 
 ## Skill Qualifiers

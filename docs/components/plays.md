@@ -1,10 +1,10 @@
 # Plays
 
-Plays are human-invocable workflows that define the order of operations for Meridian.
+Plays are human-invocable workflows that define the order of operations for Garura.
 
 ## Philosophy
 
-Plays define **what to do and in what order**. They are the entry points for all Meridian workflows.
+Plays define **what to do and in what order**. They are the entry points for all Garura workflows.
 
 ### Core Principles
 
@@ -72,7 +72,7 @@ The JSON contract is the primary communication mechanism in task-driven plays. A
 ```json
 {
   "intent_path": "reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".garura/project/product/",
   "slug": "<derived from input>",
   "stm": {
     "vision_path": "<input path>",
@@ -226,7 +226,7 @@ failure_conditions:
 
 ## Four Crafts
 
-Meridian plays embody four crafts that work together:
+Garura plays embody four crafts that work together:
 
 | Craft | What | Where |
 |-------|------|-------|
@@ -251,7 +251,7 @@ When a play invokes an agent, the agent does more than "read STM and call a skil
 
 Task-driven plays support resuming from a checkpoint. The `--resume` flag instructs the play to:
 
-1. Find the latest checkpoint artifact in `.meridian/project/product/checkpoint/{play-name}/`, ordered by timestamp (most recent first)
+1. Find the latest checkpoint artifact in `.garura/project/product/checkpoint/{play-name}/`, ordered by timestamp (most recent first)
 2. Reconstruct the JSON contract from checkpoint state
 3. Route based on checkpoint status:
    - `brief_review.status: pending` → re-present the artifact to the user, continue from the feedback loop
@@ -333,20 +333,20 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
 | `implement-epic` | Task-Driven | Implement a feature through an eval-driven TDD loop |
 | `create-play` | Task-Driven | Compile a new play from an intent.yaml |
 | `ship` | Linear (chains atomic plays) | Deliver branch work — commit, PR, review, merge, return |
-| `report-issue` | Linear | Report a defect against Meridian OS |
+| `report-issue` | Linear | Report a defect against Garura |
 
 ## Artifact Locations (per ADR 017 whitelist)
 
 | Artifact Type | Location Pattern |
 |---------------|------------------|
-| Specifications (issue-scoped) | `.meridian/project/issues/{N}/specs/` |
-| Evidence | `.meridian/project/issues/{N}/evidence/{play-name}/{timestamp}.md` |
-| Checkpoints | `.meridian/project/issues/{N}/checkpoint/{play-name}/{timestamp}.md` |
-| Context (prepare-epic, build-arch) | `.meridian/project/issues/{N}/context/` |
-| Review artifacts | `.meridian/project/issues/{N}/review/` |
-| Product planning (specify-product output) | `.meridian/product/` |
-| UX (design-exp output) | `.meridian/product/ux/` |
-| Architecture (build-arch output) | `.meridian/product/arch/` |
+| Specifications (issue-scoped) | `.garura/project/issues/{N}/specs/` |
+| Evidence | `.garura/project/issues/{N}/evidence/{play-name}/{timestamp}.md` |
+| Checkpoints | `.garura/project/issues/{N}/checkpoint/{play-name}/{timestamp}.md` |
+| Context (prepare-epic, build-arch) | `.garura/project/issues/{N}/context/` |
+| Review artifacts | `.garura/project/issues/{N}/review/` |
+| Product planning (specify-product output) | `.garura/product/` |
+| UX (design-exp output) | `.garura/product/ux/` |
+| Architecture (build-arch output) | `.garura/product/arch/` |
 | External | Returned directly (URLs, IDs) |
 
 ## Task Framework Integration
@@ -375,7 +375,7 @@ task:
   owner: string                # "repo-orchestrator"
   blockedBy: [taskId]
   metadata:
-    _meridian:                 # Meridian-internal namespace
+    _garura:                   # Garura-internal namespace
       playId: string         # Links task to play instance
       invocation: number       # 1, 2, ... for resume tracking
       agentId: string          # For resuming agent

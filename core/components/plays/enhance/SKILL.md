@@ -51,18 +51,18 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt — config is required |
-| Resolve `product_base` from `.meridian/core/config.yaml` | C5 | Soft — set `has_product_ltm=false`, continue without product LTM |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt — config is required |
+| Resolve `product_base` from `.garura/core/config.yaml` | C5 | Soft — set `has_product_ltm=false`, continue without product LTM |
 | Issue number resolvable | C1 | Hard halt — "No issue provided. Provide an issue number or run from an enhance/ branch." |
 | Issue exists and is open | C1 | Hard halt — "Issue #{n} does not exist or is not open." |
 | Current branch guard | C2 | Create enhance/{issue}-{slug} branch via repo-orchestrator |
 
 ```bash
 # Resolve STM base path
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | head -1 | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | head -1 | awk '{print $2}')
 
 # C5: Resolve product base path for LTM grounding
-product_base=$(grep -A1 '^product:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
+product_base=$(grep -A1 '^product:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
 has_product_ltm=false
 if [ -d "${product_base}architecture/" ]; then
   has_product_ltm=true
@@ -193,7 +193,7 @@ Depends on: Step 3
   },
   "ltm_context": {
     "product_base": "{product_base}",
-    "core_base": "~/.meridian/core/memory/"
+    "core_base": "~/.garura/core/memory/"
   },
   "task_id": "context-assembly"
 }
@@ -661,7 +661,7 @@ Merge PR, delete branch (C18). No further approval required — Tether at Step 1
 Owner: play
 Depends on: Step 15
 
-- **SCE-1 (S1 — Developer enhancing a Meridian play):** Full evidence chain is present in STM: issue-read.yaml (state=open), discovery.md (issue body + Q&A), understanding.md (codebase file references), approach.yaml (all nine fields, >= 1 alternative, >= 1 eval), self-eval.yaml (all criteria PASS), judge-report.yaml (confidence >= 0.6), quality-report.yaml (build/lint/typecheck/tests all PASS), pr-result.yaml (PR URL and link to the originating issue number), ship-result.yaml (merge SHA on main, branch deleted=true). No step was skipped and no redirect to fix-it or /prepare occurred.
+- **SCE-1 (S1 — Developer enhancing a Garura play):** Full evidence chain is present in STM: issue-read.yaml (state=open), discovery.md (issue body + Q&A), understanding.md (codebase file references), approach.yaml (all nine fields, >= 1 alternative, >= 1 eval), self-eval.yaml (all criteria PASS), judge-report.yaml (confidence >= 0.6), quality-report.yaml (build/lint/typecheck/tests all PASS), pr-result.yaml (PR URL and link to the originating issue number), ship-result.yaml (merge SHA on main, branch deleted=true). No step was skipped and no redirect to fix-it or /prepare occurred.
 - **SCE-2 (S2 — Developer with a large enhancement):** Scope assessment table was presented to the user showing at least one out-of-range signal (files > 15 or domains crossed >= 3 or effort > 1 day). The assessment includes a recommendation to use /prepare. No approach.yaml was created, no build-report.yaml exists, and no PR was opened for this issue. Play halted after scope-gate step.
 - **SCE-3 (S3 — Developer with a trivial fix):** Scope assessment table was presented to the user showing that all signals fall in the too-small range (files <= 3, single concern, effort < 1 hour). The assessment includes a recommendation to use fix-it. No approach.yaml was created, no implementation was attempted, and no PR was opened. Play halted after scope-gate step.
 - **SCE-4 (S4 — Developer with a risky enhancement):** judge-report.yaml records a confidence score < 0.6. A human approval checkpoint was presented before quality-check or PR creation, showing the confidence score, per-area findings, and low-confidence areas from judge-report.yaml. If the user Vanished, no PR was created and quality-check was not run. If the user Tethered, play continued to quality-check only after recording user approval in STM.
@@ -787,7 +787,7 @@ for each step in compiled order:
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:8385c967d751423c8853e9a36ad768f0a7da302df2f1f7a040ee9e4f9647660c |
+| intent_hash | sha256:df3e67c8410905746a572c9939634733bf323777adf6368e97e0bd1d6b2c02ec |
 | compiled_by | create-play |
 | compiled_at | 2026-04-16T17:00:00Z |
 | workflow_structure | A (with conditional fix loop, judge gate, and risk checkpoint) |

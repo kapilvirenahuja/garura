@@ -83,7 +83,7 @@ intent: { goal: "configure capabilities", phase: "STAGE-3", audience: "engineeri
 constraints:
   - "Every cross-tree constraint must be walked and recorded"
   - "Every selected capability must be a real feature ID"
-  - "Output to .meridian/product/scope/scope.yaml"
+  - "Output to .garura/product/scope/scope.yaml"
 ```
 
 If the goal doesn't match any skill in your Intent → Skill Mapping, return:
@@ -107,14 +107,14 @@ Invoked by plays via the standard ADR 016 contract. See `core/components/agents/
 
 Key inputs:
 - `intent_path` — path to specify-product's intent.yaml
-- `stm_base` — resolved from `.meridian/core/config.yaml` stm.base-path
-- `product_base` — resolved from `.meridian/core/config.yaml` product.base-path (typically `.meridian/product/`)
+- `stm_base` — resolved from `.garura/core/config.yaml` stm.base-path
+- `product_base` — resolved from `.garura/core/config.yaml` product.base-path (typically `.garura/product/`)
 - `stm.input` — named paths (e.g., `project_profile_path`, `market_brief_path`, `scope_path`)
 - `stm.output` — named paths (e.g., `scope_path`, `enriched_capabilities_path`, `epics_dir`, `quality_profile_path`)
 - `task_id` — unique step identifier
 
 Key outputs (enriched contract):
-- `stm.output` paths populated with real artifact paths under `.meridian/product/`
+- `stm.output` paths populated with real artifact paths under `.garura/product/`
 - `notes[]` — up to 3 one-sentence findings
 - `step_failure` — null on success, populated on unrecoverable failure
 

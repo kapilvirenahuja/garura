@@ -1,12 +1,12 @@
 ---
-name: "meridian:report-issue"
-description: Report a defect against Meridian OS — files a GitHub Issue on kapilvirenahuja/meridian-os, or produces a portable local fallback file if GitHub is unreachable.
+name: "garura:report-issue"
+description: Report a defect against Garura — files a GitHub Issue on the repository identified by github.owner/github.name in .garura/core/config.yaml, or produces a portable local fallback file if GitHub is unreachable.
 user-invokable: true
 ---
 
-# meridian:report-issue
+# garura:report-issue
 
-Accept a structured defect report from any caller (human or agent), validate required fields and severity, file the defect as a labeled GitHub Issue on the Meridian repository, and confirm the issue URL. If GitHub is unreachable or unauthorized, produce a portable local markdown defect file with sharing instructions.
+Accept a structured defect report from any caller (human or agent), validate required fields and severity, file the defect as a labeled GitHub Issue on the Garura repository, and confirm the issue URL. If GitHub is unreachable or unauthorized, produce a portable local markdown defect file with sharing instructions.
 
 ## Compiled From
 
@@ -33,19 +33,32 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt |
+| Resolve `repo_slug` from `github.owner` + `github.name` in `.garura/core/config.yaml` | C3 | Hard halt — report missing/empty owner or name |
 | Required fields present | C1 | Hard halt — report missing field(s) to caller |
 | Severity is valid | C2 | Hard halt — report invalid value and allowed set |
-| gh CLI available | C3 | Soft — set `gh_available=false`, continue to fallback path |
+| gh CLI available | — | Soft — set `gh_available=false`, continue to fallback path (C7) |
 
 ```bash
 # Resolve STM base path
-config_path=".meridian/core/config.yaml"
+config_path=".garura/core/config.yaml"
 if [ ! -f "$config_path" ]; then
   echo "HALT: Config not found at $config_path"
   exit 1
 fi
 stm_base=$(grep '^\s*base-path:' "$config_path" | head -1 | awk '{print $2}')
+
+# C3: Resolve target repository slug from config (NEVER hardcode)
+# Read github.owner and github.name from .garura/core/config.yaml and build
+# the slug as "{github.owner}/{github.name}". If either is missing or empty,
+# HALT — do not fall back to a hardcoded slug.
+github_owner=$(awk '/^github:/{flag=1;next} /^[^ ]/{flag=0} flag && /^[[:space:]]+owner:/{print $2; exit}' "$config_path")
+github_name=$(awk '/^github:/{flag=1;next} /^[^ ]/{flag=0} flag && /^[[:space:]]+name:/{print $2; exit}' "$config_path")
+if [ -z "$github_owner" ] || [ -z "$github_name" ]; then
+  echo "HALT: github.owner and github.name MUST be set in $config_path"
+  exit 1
+fi
+repo_slug="${github_owner}/${github_name}"
 
 # C1: Validate required fields
 # Required: severity, affected_component, reported_from, problem, expected_behavior, impact
@@ -56,7 +69,7 @@ stm_base=$(grep '^\s*base-path:' "$config_path" | head -1 | awk '{print $2}')
 # Must be one of: Critical, High, Medium, Low (case-sensitive)
 # If invalid → HALT with error naming the invalid value and allowed values.
 
-# C3: Check gh CLI access
+# gh CLI presence (branches C7 fallback, not a constraint)
 gh_available=true
 if ! gh auth status >/dev/null 2>&1; then
   gh_available=false
@@ -156,16 +169,19 @@ Condition: `gh_available == true`
   "task_id": "file-github-issue",
   "config": {
     "platform": "github",
-    "repo": "kapilvirenahuja/meridian-os"
+    "repo": "{repo_slug}"
   }
 }
 ```
+
+The `{repo_slug}` value is the runtime-resolved `"{github.owner}/{github.name}"` produced by pre-flight (C3). The play MUST substitute it into the contract at dispatch time — the literal string `{repo_slug}` MUST NOT be sent to the agent, and no hardcoded owner/name slug may ever appear here (F6).
 
 Agent reads title and body from STM, invokes `manage-issue` skill with `action: create`, `labels: "defect"` (C9). If the `defect` label does not exist, create it (C9).
 
 **Step 2 Eval:**
 - **SE-9 (C9):** The created GitHub Issue has the label "defect" applied.
 - **SE-5 (F5):** The caller receives confirmation containing the created issue URL.
+- **SE-10 (C3/F6):** The GitHub Issue is filed against the repository identified by `github.owner`/`github.name` from `.garura/core/config.yaml`. The compiled play contains no hardcoded owner/name slug — every reference uses the runtime-resolved `repo_slug`.
 
 On agent failure (gh auth, network, permissions):
 - Agent returns structured failure via JSON contract with `status: "failed"`.
@@ -188,7 +204,7 @@ The fallback file contains:
 Tell the caller (C7):
 1. **What failed** — the specific error (auth failure, network timeout, permission denied, etc.)
 2. **Where the file is** — the full path to the fallback markdown file
-3. **How to share it** — "You can: (a) paste the content into a new issue at https://github.com/kapilvirenahuja/meridian-os/issues/new, (b) email it to the maintainer, or (c) share it on Slack."
+3. **How to share it** — "You can: (a) paste the content into a new issue at `https://github.com/{repo_slug}/issues/new` (where `{repo_slug}` is the runtime-resolved `github.owner/github.name` from `.garura/core/config.yaml`), (b) email it to the maintainer, or (c) share it on Slack."
 
 **Step 3 Eval:**
 - **SE-3 (F3/C7):** A local markdown defect file is created and the caller is told what failed and how to share it.
@@ -209,8 +225,9 @@ Depends on: Step 2 (success) or Step 3 (fallback)
 **Issue:** {issue_url}
 **Title:** {title}
 **Labels:** defect
+**Repository:** {repo_slug}
 
-The defect has been filed on kapilvirenahuja/meridian-os.
+The defect has been filed on `{repo_slug}` (resolved from `github.owner/github.name` in `.garura/core/config.yaml`).
 ```
 
 **If fallback file created (Step 3 executed):**
@@ -223,7 +240,7 @@ The defect has been filed on kapilvirenahuja/meridian-os.
 The defect could not be filed on GitHub. A portable markdown file has been created.
 
 **To share:**
-- Paste into a new issue: https://github.com/kapilvirenahuja/meridian-os/issues/new
+- Paste into a new issue: `https://github.com/{repo_slug}/issues/new` (where `{repo_slug}` is the runtime-resolved `github.owner/github.name` from `.garura/core/config.yaml`)
 - Email the file to the maintainer
 - Share on Slack
 ```
@@ -239,11 +256,12 @@ The defect could not be filed on GitHub. A portable markdown file has been creat
 Owner: play
 Depends on: Step 4
 
-- **SCE-1 (S1 — Play consumer agent):** A GitHub Issue is created on kapilvirenahuja/meridian-os with the defect label, structured body containing all provided fields including optional Evidence and Root cause, and the issue URL is returned to the caller.
+- **SCE-1 (S1 — Play consumer agent):** A GitHub Issue is created on the repository identified by `github.owner/github.name` in `.garura/core/config.yaml`, with the defect label, structured body containing all provided fields including optional Evidence and Root cause, and the issue URL is returned to the caller.
 - **SCE-2 (S2 — Human developer):** A GitHub Issue is created with only the required field sections. No empty optional sections appear. The issue URL is returned.
 - **SCE-3 (S3 — Agent with invalid severity):** The play rejects with a clear error identifying the invalid severity and allowed values. No issue or fallback file is produced.
 - **SCE-4 (S4 — Agent with missing field):** The play rejects with a clear error identifying the missing required field. No issue or fallback file is produced.
 - **SCE-5 (S5 — Developer with gh failure):** A local markdown file is created with full defect content. The caller is told what failed and how to share the file.
+- **SCE-6 (S6 — Maintainer audit):** Inspection of this compiled SKILL.md reveals no hardcoded owner/name slug. Every reference to the target repository is expressed via the runtime-resolved `{repo_slug}` built from `github.owner`/`github.name` in `.garura/core/config.yaml`.
 
 ---
 
@@ -267,7 +285,7 @@ Steps are in execution order — run top to bottom.
 
 ```json
 {
-  "play": "meridian:report-issue",
+  "play": "garura:report-issue",
   "issue": "defect-report",
   "started_at": "2026-04-11T12:00:00Z",
   "tasks": {
@@ -299,11 +317,19 @@ for each step in compiled order:
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:48cbe511a9d02a40a36f780d25776e736639fd24fa3f60d37098f1b581f99991 |
-| compiled_by | create-play |
-| compiled_at | 2026-04-11T11:56:32Z |
+| intent_hash | sha256:3cb485475824ab7ed87cdd951c5f4991951c6d0052945ba565ffaa7efa090750 |
+| compiled_by | create-play (rename-operation direct patch — see note) |
+| compiled_at | 2026-04-17T00:00:00Z |
 | workflow_structure | B |
 | domain_agents | 1 (project-orchestrator) |
 | utility_agents | 0 |
-| step_evals | 9 (SE-1 through SE-9) |
-| scenario_evals | 5 (SCE-1 through SCE-5) |
+| step_evals | 10 (SE-1 through SE-10) |
+| scenario_evals | 6 (SCE-1 through SCE-6) |
+
+> **Rename-operation note:** During the Meridian → Garura rebrand, this SKILL.md
+> was updated by direct patch rather than via the interactive
+> `/create-play --rebuild` pipeline, because the rebrand's scope included
+> recompiling many plays simultaneously and the interactive gates would have
+> stalled the batch. The edits align the compiled play with the new
+> intent.yaml (C3/F6/S6 — config-driven repo slug resolution). Subsequent
+> changes MUST go through `/create-play --rebuild report-issue`.

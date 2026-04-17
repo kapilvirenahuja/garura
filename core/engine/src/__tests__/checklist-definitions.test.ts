@@ -25,7 +25,7 @@ import {
   BUILTIN_CHECKLIST_IDS,
 } from '@/lib/checklist-loader';
 import {
-  MERIDIAN_PLAY_NAMES,
+  GARURA_PLAY_NAMES,
   isValidPlay,
   findInvalidPlays,
   scanPlayRegistry,
@@ -37,7 +37,7 @@ import {
 
 describe('Play Registry', () => {
   it('contains at least 50 play/skill names', () => {
-    expect(MERIDIAN_PLAY_NAMES.size).toBeGreaterThanOrEqual(50);
+    expect(GARURA_PLAY_NAMES.size).toBeGreaterThanOrEqual(50);
   });
 
   it('includes core plays from plays directory', () => {
@@ -52,7 +52,7 @@ describe('Play Registry', () => {
       'ship',
     ];
     for (const play of corePlays) {
-      expect(MERIDIAN_PLAY_NAMES.has(play)).toBe(true);
+      expect(GARURA_PLAY_NAMES.has(play)).toBe(true);
     }
   });
 
@@ -66,13 +66,13 @@ describe('Play Registry', () => {
       'configure-capabilities',
     ];
     for (const skill of coreSkills) {
-      expect(MERIDIAN_PLAY_NAMES.has(skill)).toBe(true);
+      expect(GARURA_PLAY_NAMES.has(skill)).toBe(true);
     }
   });
 
   it('includes deployed-only plays', () => {
-    expect(MERIDIAN_PLAY_NAMES.has('discover-product')).toBe(true);
-    expect(MERIDIAN_PLAY_NAMES.has('plan-roadmap')).toBe(true);
+    expect(GARURA_PLAY_NAMES.has('discover-product')).toBe(true);
+    expect(GARURA_PLAY_NAMES.has('plan-roadmap')).toBe(true);
   });
 
   it('isValidPlay returns true for known plays', () => {
@@ -535,7 +535,7 @@ describe('Checklist Loader System', () => {
 // ---------------------------------------------------------------------------
 
 describe('Cross-Validation: Registry Coverage', () => {
-  it('every play referenced in checklists exists in MERIDIAN_PLAY_NAMES', () => {
+  it('every play referenced in checklists exists in GARURA_PLAY_NAMES', () => {
     const { checklists } = getBuiltInChecklists();
     const referencedPlays = new Set<string>();
     for (const checklist of checklists) {
@@ -545,17 +545,17 @@ describe('Cross-Validation: Registry Coverage', () => {
     }
 
     for (const play of referencedPlays) {
-      expect(MERIDIAN_PLAY_NAMES.has(play)).toBe(true);
+      expect(GARURA_PLAY_NAMES.has(play)).toBe(true);
     }
   });
 
   it('checklist play references are a subset of PLAY_REGISTRY plays', () => {
     // Verify that all plays used in checklists also appear in the readiness
-    // PLAY_REGISTRY or the broader MERIDIAN_PLAY_NAMES
+    // PLAY_REGISTRY or the broader GARURA_PLAY_NAMES
     const { checklists } = getBuiltInChecklists();
     for (const checklist of checklists) {
       for (const step of checklist.steps) {
-        expect(MERIDIAN_PLAY_NAMES.has(step.play)).toBe(true);
+        expect(GARURA_PLAY_NAMES.has(step.play)).toBe(true);
       }
     }
   });

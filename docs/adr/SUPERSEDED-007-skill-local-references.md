@@ -1,5 +1,8 @@
 # ADR 007: Skill-Local References with Deployment Sync
 
+> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
+
+
 > **SUPERSEDED by [ADR 009](009-skill-ltm-reads.md).** Skills now read LTM paths directly at runtime instead of relying on deployment-time copy. Do not follow this ADR.
 
 ## Status

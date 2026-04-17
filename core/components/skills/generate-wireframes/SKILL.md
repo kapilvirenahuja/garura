@@ -18,7 +18,7 @@ Wireframes are the bridge from screen specification to buildable UI. This skill 
 
 ## Input
 
-Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.meridian/product/` or assume a working directory.
+Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.garura/product/` or assume a working directory.
 
 - `screens_dir` (path, required) — typically `{product_base}experience/screens/` (contains MD files from Stage 2)
 - `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads UX prose + wireframe hints (from each domain's `Tradeoffs` and `Depth Spectrum` sections) from the product's research folder ONLY — never directly from `core/components/memory/knowledge/domain/`. Passing `ltm_domain_taxonomy_path` is a structural failure (design-exp intent.yaml F13).
@@ -26,7 +26,7 @@ Receive from the designer agent. All paths resolve against `{product_base}` supp
 
 ## Process
 
-Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.meridian/product/` or assume a working directory.
+Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.garura/product/` or assume a working directory.
 
 ### 1. Glob screens
 

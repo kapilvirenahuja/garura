@@ -1,5 +1,8 @@
 # ADR 013: Play Maturity Model — From Compiled Intents to Dark Factories
 
+> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
+
+
 **Status:** Accepted
 **Date:** 2026-03-06
 **Supersedes:** None

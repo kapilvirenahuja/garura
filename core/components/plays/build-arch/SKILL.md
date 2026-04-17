@@ -6,7 +6,7 @@ user-invokable: true
 
 # build-arch
 
-The architecture play in Meridian's 5-stage SDLC (Discover → Specify → Design → Build → Run). Reads locked upstream artifacts from `/specify-product` (under `{product_base}scope/` and `{product_base}specification/`) and `/design-exp` (under `{product_base}experience/`) and produces FIVE canonical artifacts under `{product_base}architecture/`:
+The architecture play in Garura's 5-stage SDLC (Discover → Specify → Design → Build → Run). Reads locked upstream artifacts from `/specify-product` (under `{product_base}scope/` and `{product_base}specification/`) and `/design-exp` (under `{product_base}experience/`) and produces FIVE canonical artifacts under `{product_base}architecture/`:
 
 1. `logical-architecture.yaml` — bounded contexts, components, data model, capability-level API surface, integration points, ADR log. Tech-agnostic.
 2. `physical-architecture.yaml` — named stack picks, deployment topology, runtime tiers, observability, auth infrastructure. Every slot names a specific product; every slot carries `source_type`.
@@ -46,7 +46,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` and `product_base` from `.meridian/core/config.yaml` | — | Hard halt |
+| Resolve `stm_base` and `product_base` from `.garura/core/config.yaml` | — | Hard halt |
 | `/specify-product` scope-stage artifacts LOCKED at `{product_base}scope/` | C1 | Hard halt — "run /specify-product first" |
 | `/specify-product` specification-stage artifacts LOCKED at `{product_base}specification/` | C1 | Hard halt — "run /specify-product first" |
 | `/design-exp` artifacts LOCKED at `{product_base}experience/` | C2 | Hard halt — "run /design-exp first" |
@@ -56,9 +56,9 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 | `{product_base}architecture/` writable; scriber available | C11 | Hard halt |
 
 ```bash
-stm_base=$(grep -A5 '^stm:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
-product_base=$(grep -A2 '^product:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
-ltm_base=$(grep -A5 '^ltm:' .meridian/core/config.yaml | grep 'project-target' | awk '{print $2}')
+stm_base=$(grep -A5 '^stm:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
+product_base=$(grep -A2 '^product:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
+ltm_base=$(grep -A5 '^ltm:' .garura/core/config.yaml | grep 'project-target' | awk '{print $2}')
 
 # C1: verify specify-product scope-stage artifacts exist (LOCKED status)
 for f in scope.yaml enriched-capabilities.yaml; do
@@ -126,7 +126,7 @@ Depends on: pre-flight
   },
   "task_id": "build-arch-stage-1-derive",
   "ltm_context": {
-    "discover_via": "tech-architect agent reads .meridian/core/memory/knowledge/arch/_index.md and pulls relevant pattern + KB files for bounded-context and component-boundary heuristics"
+    "discover_via": "tech-architect agent reads .garura/core/memory/knowledge/arch/_index.md and pulls relevant pattern + KB files for bounded-context and component-boundary heuristics"
   }
 }
 ```
@@ -711,7 +711,7 @@ Invoke `repo-orchestrator` to self-commit per ADR 012:
 
 | Field | Value |
 |-------|-------|
-| intent_hash | `sha256:ba573a93183c7c4341814866042da0b4fe4848125990a1f4108058ee9ff8f169` |
+| intent_hash | `sha256:d5dcc30e473508415d4de2ac1eea761cab566a0c2950322fd8d26d841d57b038` |
 | compiled_by | `/create-play --rebuild build-arch` |
 | compiled_at | `2026-04-15` |
 | workflow_structure | A (full checkpoint flow with 5 human review gates + 5 decision-surfacing sub-steps) |

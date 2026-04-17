@@ -701,7 +701,7 @@ Return JSON only — no markdown, no prose outside the JSON object:
 
 The skill runner must replace these variables before dispatching each subagent:
 - `{repo_path}` — absolute path to the target repository
-- `{kb_base}` — absolute path to the resolved KB root (e.g., `~/.meridian/core/memory/knowledge`)
+- `{kb_base}` — absolute path to the resolved KB root (e.g., `~/.garura/core/memory/knowledge`)
 - `{qp_levels.code_quality}` — from `quality-standards.yaml` → `standards.code_quality.qp_level`
 - `{qp_levels.testing}` — from `quality-standards.yaml` → `standards.testing.qp_level`
 - `{qp_levels.documentation}` — from `quality-standards.yaml` → `standards.documentation.qp_level`

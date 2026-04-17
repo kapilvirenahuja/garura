@@ -1,5 +1,8 @@
 # ADR 006: Naming Conventions
 
+> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
+
+
 ## Status
 
 Accepted

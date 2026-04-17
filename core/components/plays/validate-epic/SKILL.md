@@ -39,8 +39,8 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 - No other cross-agent information flow is permitted (C14).
 
 **FORBIDDEN DATA SOURCES (C15, F13):**
-- `~/.meridian/core/memory/` (KB) — NEVER read by any agent in this play
-- `{product_base}` / `.meridian/product/` (LTM) — NEVER read by any agent in this play
+- `~/.garura/core/memory/` (KB) — NEVER read by any agent in this play
+- `{product_base}` / `.garura/product/` (LTM) — NEVER read by any agent in this play
 - All context comes from STM at `{stm_base}/{issue}/context/` (produced by prepare-epic) plus the deployed environment
 - No agent contract may include `ltm_context` fields
 - If something is missing from STM, the fix is in prepare-epic, not in reading LTM/KB directly
@@ -63,7 +63,7 @@ Execute these checks before any domain work. Orchestrator owns — do not delega
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt — config required |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt — config required |
 | Parse `--milestone` argument | C16 | Hard halt — milestone_id required |
 | Resolve issue from `--issue` arg, branch name, or STM | — | Hard halt if unresolvable |
 | Read plan-milestone-summary.yaml from STM | C16 | Hard halt — milestone must exist in plan |
@@ -74,7 +74,7 @@ Execute these checks before any domain work. Orchestrator owns — do not delega
 | Read scenarios.yaml and scope to this milestone | C13, C16, F15 | Hard halt — no milestone-scoped scenarios to validate |
 
 ```bash
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | awk '{print $2}')
 milestone_id="{--milestone value}"    # e.g., T-001
 issue="{--issue value or extracted from branch}"
 
@@ -723,7 +723,7 @@ Conditional: SCE-4/SCE-7 skip if no fix loop. SCE-9 applicable with multiple mil
 
 | Field | Value |
 |-------|-------|
-| intent_hash | {sha256 of reference/intent.yaml} |
+| intent_hash | sha256:2a38e9ac1565eac0e2fb6420418630ef0fa379a75396ea40c3b6e4c692e20585 |
 | compiled_by | /create-play |
 | compiled_at | 2026-04-15 |
 | workflow_structure | A (conditional fix loop routing to implement-epic per milestone) |

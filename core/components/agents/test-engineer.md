@@ -84,16 +84,16 @@ When you receive a JSON contract from the play orchestrator:
 **Example return** (after blast radius computation):
 ```json
 {
-  "intent_path": ".meridian/project/issues/183/evidence/prepare-epic/intent.yaml",
-  "stm_base": ".meridian/project/issues/",
+  "intent_path": ".garura/project/issues/183/evidence/prepare-epic/intent.yaml",
+  "stm_base": ".garura/project/issues/",
   "stm": {
     "input": {
-      "test_surface_path": ".meridian/project/issues/183/evidence/prepare-epic/test-surface.yaml",
-      "change_surface_path": ".meridian/project/issues/183/evidence/prepare-epic/change-surface.yaml",
-      "dependency_graph_path": ".meridian/project/issues/183/evidence/prepare-epic/dependency-graph.yaml"
+      "test_surface_path": ".garura/project/issues/183/evidence/prepare-epic/test-surface.yaml",
+      "change_surface_path": ".garura/project/issues/183/evidence/prepare-epic/change-surface.yaml",
+      "dependency_graph_path": ".garura/project/issues/183/evidence/prepare-epic/dependency-graph.yaml"
     },
     "output": {
-      "blast_radius_path": ".meridian/project/issues/183/evidence/prepare-epic/blast-radius.yaml"
+      "blast_radius_path": ".garura/project/issues/183/evidence/prepare-epic/blast-radius.yaml"
     }
   },
   "task_id": "blast-radius-computation",
@@ -326,7 +326,7 @@ Context loading is targeted and evidence-based. Never bulk-load files — read w
 
 ### Step 1: Load Config
 
-Read `.meridian/core/config.yaml` to understand:
+Read `.garura/core/config.yaml` to understand:
 - STM base path for evidence artifacts
 - Project structure and component paths
 - **Play constraints** — extract and validate before starting any analysis
@@ -344,7 +344,7 @@ If the contract contains `ltm_context`, check:
 
 - `ltm_context.project_base` for project-specific testing standards, coverage thresholds, and framework conventions
 - `ltm_context.locked_artifacts` — if a testing standards file is LOCKED, use it as authoritative. If DRAFT, use as advisory.
-- `ltm_context.core_base` (always `~/.meridian/core/memory/`) for framework-level testing standards and patterns
+- `ltm_context.core_base` (always `~/.garura/core/memory/`) for framework-level testing standards and patterns
 
 No full R1-R4 resolution trace required. Test-engineer's LTM consultation is lightweight — check for relevant testing standards, apply them, proceed. Do not write a resolution trace.
 

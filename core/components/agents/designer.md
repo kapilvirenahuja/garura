@@ -78,7 +78,7 @@ Invoked by plays via the standard ADR 016 contract.
 
 Key inputs:
 - `intent_path` — path to design-exp's intent.yaml
-- `product_base` — resolved from `.meridian/core/config.yaml product.base-path`
+- `product_base` — resolved from `.garura/core/config.yaml product.base-path`
 - `stm.input` — named paths (epics_dir, scope_path, enriched_capabilities_path, quality_profile_path, personas_path, screens_dir, flows_dir)
 - `stm.output` — named paths where this stage writes its outputs
 - `task_id` — unique step identifier

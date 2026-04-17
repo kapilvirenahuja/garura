@@ -1,5 +1,8 @@
 # ADR 011: STM as Inter-Skill Data Transport (Phoenix Architecture)
 
+> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
+
+
 ## Status
 
 Accepted

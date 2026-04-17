@@ -1,9 +1,9 @@
 ---
 intent: "This roadmap bets that the primary barrier to useful AI-assisted development is not model capability but context continuity. If an AI assistant can start every session already informed — retaining project intent, constraints, and prior decisions — teams will shift from managing AI to delegating to it."
 status: DRAFT
-slug: "meridian-os"
+slug: "garura"
 horizon: "Near → Mid → Long"
-approved_brief: ".meridian/project/product/meridian-os/brief-20260304T120000.md"
+approved_brief: ".garura/project/product/garura/brief-20260304T120000.md"
 created: "2026-03-04"
 ---
 
@@ -21,7 +21,7 @@ E5 (Feature Development Track) is the full end-to-end development pipeline: issu
 
 - **Multi-model support (non-Claude)** — Out of scope for v1 per vision; focus on depth with one platform before breadth
 - **Enterprise features (SSO, audit, compliance)** — Deferred until adoption validates core value proposition
-- **IDE plugin / GUI** — Meridian OS operates through CLI and markdown; no UI investment in this roadmap
+- **IDE plugin / GUI** — Garura operates through CLI and markdown; no UI investment in this roadmap
 - **Replacing project management tools** — Integrates alongside Linear/Jira, does not compete with them
 - **Performance benchmarking / NFR targets** — Not included because they do not change epic sequencing or priority decisions
 
@@ -62,12 +62,12 @@ The user outcome is simple: the engineer opens a session and starts working imme
 ### Constraints
 - In scope: STM storage and retrieval (issue-scoped artifacts), LTM storage and retrieval (project-scoped knowledge), CLAUDE.md auto-population protocol, context loading protocol for session start, memory indexing for selective retrieval
 - Out of scope: Cross-project memory sharing, memory compression or summarization algorithms, user-facing memory management UI
-- Must not break: Existing manual CLAUDE.md workflows must continue to function; any project without Meridian memory must not error
+- Must not break: Existing manual CLAUDE.md workflows must continue to function; any project without Garura memory must not error
 
 ### Acceptance Scenarios
 - Given a project with LTM populated, when a new Claude Code session starts, then the AI loads project intent, constraints, and key decisions without the user re-stating them
 - Given an issue with STM artifacts from a prior session, when the same issue is resumed, then the AI has access to all prior session artifacts (specs, designs, evidence) without re-generation
-- Given a project with no Meridian memory configured, when Claude Code starts, then the session operates normally with no errors or degraded behavior
+- Given a project with no Garura memory configured, when Claude Code starts, then the session operates normally with no errors or degraded behavior
 - Given new knowledge is produced during a session (e.g., a design decision), when the session ends, then the knowledge is persisted to the appropriate memory layer (STM or LTM) without manual user action
 
 ### Failure Conditions
@@ -270,21 +270,21 @@ The user outcome: an engineer runs `/start-feature-planning` with an issue numbe
 
 ### Intent
 
-A powerful system that nobody can set up is a failed system. Today, adopting Meridian OS requires reading documentation, manually creating directory structures, populating CLAUDE.md, understanding the play system, and configuring memory — a process that takes hours and requires significant prior context. This is acceptable for the core team building the system, but it is fatal for adoption.
+A powerful system that nobody can set up is a failed system. Today, adopting Garura requires reading documentation, manually creating directory structures, populating CLAUDE.md, understanding the play system, and configuring memory — a process that takes hours and requires significant prior context. This is acceptable for the core team building the system, but it is fatal for adoption.
 
 The Adoption & Onboarding epic delivers a setup experience that gets a new team from zero to productive in under 30 minutes. A project initialization play handles directory creation, CLAUDE.md population, starter templates, and validation. Progressive enrichment ensures teams start lightweight — no big-bang documentation upfront — and gain depth as they use the system. Setup validation confirms everything is working before the team starts their first real workflow.
 
-The user outcome: a new team runs a single initialization command, answers a few questions about their project, and gets a working Meridian OS setup. They can immediately invoke their first play. The 30-minute promise is met.
+The user outcome: a new team runs a single initialization command, answers a few questions about their project, and gets a working Garura setup. They can immediately invoke their first play. The 30-minute promise is met.
 
 ### Constraints
 - In scope: Project initialization play (`/init` or equivalent), directory structure creation, CLAUDE.md starter population, progressive enrichment templates, setup validation (confirm working state), first-run guided experience
-- Out of scope: Enterprise deployment automation, CI/CD integration for Meridian OS itself, migration tooling from other frameworks, multi-project workspace management
+- Out of scope: Enterprise deployment automation, CI/CD integration for Garura itself, migration tooling from other frameworks, multi-project workspace management
 - Must not break: Existing projects that were set up manually must not require re-initialization; the init play must detect and respect existing configurations
 
 ### Acceptance Scenarios
-- Given a new project with no Meridian OS configuration, when the user runs the initialization play, then the play creates all required directory structures, populates CLAUDE.md with project-relevant context, and produces starter templates — all within 30 minutes of wall-clock time
+- Given a new project with no Garura configuration, when the user runs the initialization play, then the play creates all required directory structures, populates CLAUDE.md with project-relevant context, and produces starter templates — all within 30 minutes of wall-clock time
 - Given initialization is complete, when the user runs setup validation, then the validation confirms all required components are in place and the first play can be invoked successfully
-- Given an existing project with manual Meridian OS configuration, when the user runs the initialization play, then the play detects existing configuration, preserves it, and only fills gaps — no overwrites
+- Given an existing project with manual Garura configuration, when the user runs the initialization play, then the play detects existing configuration, preserves it, and only fills gaps — no overwrites
 - Given a newly initialized project, when the user invokes their first play (e.g., `/discover-product`), then the play executes successfully using the initialized context without additional manual setup
 
 ### Failure Conditions

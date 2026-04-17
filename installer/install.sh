@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Meridian Installer
+# Garura Installer
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/meridian/main/installer/install.sh | bash
-#   curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/meridian/main/installer/install.sh | bash -s -- --project-name my-app
+#   curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/garura/main/installer/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/garura/main/installer/install.sh | bash -s -- --project-name my-app
 
-REPO="kapilvirenahuja/meridian"
+REPO="kapilvirenahuja/garura"
 BRANCH="main"
 EXCLUDED_SKILLS="sync-claude"
 
 # --- Helpers ---
 
-info()  { printf '\033[1;34m[meridian]\033[0m %s\n' "$1"; }
-ok()    { printf '\033[1;32m[meridian]\033[0m %s\n' "$1"; }
-warn()  { printf '\033[1;33m[meridian]\033[0m %s\n' "$1"; }
-err()   { printf '\033[1;31m[meridian]\033[0m %s\n' "$1" >&2; }
+info()  { printf '\033[1;34m[garura]\033[0m %s\n' "$1"; }
+ok()    { printf '\033[1;32m[garura]\033[0m %s\n' "$1"; }
+warn()  { printf '\033[1;33m[garura]\033[0m %s\n' "$1"; }
+err()   { printf '\033[1;31m[garura]\033[0m %s\n' "$1" >&2; }
 
 cleanup() {
   if [ -n "${TMPDIR_WORK:-}" ] && [ -d "$TMPDIR_WORK" ]; then
@@ -53,22 +53,22 @@ fi
 
 # --- Detect mode ---
 
-MERIDIAN_CONFIG="$TARGET_DIR/.meridian/core/config.yaml"
+GARURA_CONFIG="$TARGET_DIR/.garura/core/config.yaml"
 MODE="init"
-if [ -f "$MERIDIAN_CONFIG" ]; then
+if [ -f "$GARURA_CONFIG" ]; then
   MODE="upgrade"
 fi
 
 # --- Download repo archive ---
 
-info "Downloading Meridian from GitHub..."
+info "Downloading Garura from GitHub..."
 TMPDIR_WORK="$(mktemp -d)"
 ARCHIVE_URL="https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz"
 
 curl -fsSL "$ARCHIVE_URL" | tar xz -C "$TMPDIR_WORK"
 
 # The tarball extracts to a directory named <repo>-<branch>
-SRC_DIR="$TMPDIR_WORK/meridian-$BRANCH"
+SRC_DIR="$TMPDIR_WORK/garura-$BRANCH"
 
 if [ ! -d "$SRC_DIR/core" ]; then
   err "Downloaded archive does not contain core/ directory. Something went wrong."
@@ -95,7 +95,7 @@ transform_config() {
     | sed -E "s|^([[:space:]]*skills:[[:space:]]*).+$|\1./.claude/skills/|" \
     | sed -E "s|^([[:space:]]*plays:[[:space:]]*).+$|\1./.claude/skills/|" \
     | sed -E "s|^([[:space:]]*agents:[[:space:]]*).+$|\1./.claude/agents/|" \
-    | sed -E "s|^([[:space:]]*memory:[[:space:]]*).+$|\1~/.meridian/core/memory/|" \
+    | sed -E "s|^([[:space:]]*memory:[[:space:]]*).+$|\1~/.garura/core/memory/|" \
     | sed -E '/^platform:/d' \
     | sed -E '/^github:/,/^[^ ]/{ /^github:/d; /^  /d; }' \
     | sed -E '/^$/N;/^\n$/d'
@@ -121,11 +121,11 @@ with open('$tmpfile', 'r') as f:
     text = f.read()
 
 new_diagram = '''\`\`\`
-.claude/                   # AI components (managed by Meridian)
+.claude/                   # AI components (managed by Garura)
 \u251c\u2500\u2500 agents/               # Agent definitions
 \u2514\u2500\u2500 skills/               # Skills + plays
 
-.meridian/
+.garura/
 \u251c\u2500\u2500 core/
 \u2502   \u251c\u2500\u2500 memory/           # LTM: practices, templates, standards
 \u2502   \u2514\u2500\u2500 config.yaml       # Project configuration
@@ -142,7 +142,7 @@ text = re.sub(r'### 1\. Source of Truth[\s\S]*?(?=### 2\. Execution Model)', '',
 text = re.sub(r'After editing source, run \`/sync-claude\`\.\n*', '', text)
 
 # Update config path references
-text = text.replace('\`.meridian/core/config.yaml\`', '\`.meridian/core/config.yaml\`')
+text = text.replace('\`.garura/core/config.yaml\`', '\`.garura/core/config.yaml\`')
 
 # Remove doc references
 text = re.sub(r'- \`docs/.*\n', '', text)
@@ -179,7 +179,7 @@ deploy_skills() {
 # ===================================================================
 
 if [ "$MODE" = "init" ]; then
-  info "Initializing Meridian in $TARGET_DIR..."
+  info "Initializing Garura in $TARGET_DIR..."
   info "  Project name: $PROJECT_NAME"
 
   # 1. Deploy agents
@@ -206,20 +206,20 @@ if [ "$MODE" = "init" ]; then
   # 4. Deploy memory
   if [ -d "$COMPONENTS_DIR/memory" ]; then
     info "  Deploying memory..."
-    copy_dir "$COMPONENTS_DIR/memory" "$HOME/.meridian/core/memory"
+    copy_dir "$COMPONENTS_DIR/memory" "$HOME/.garura/core/memory"
   fi
 
   # 5. Transform and write config.yaml
-  if [ -f "$SRC_DIR/.meridian/core/config.yaml" ]; then
+  if [ -f "$SRC_DIR/.garura/core/config.yaml" ]; then
     info "  Writing config..."
-    mkdir -p "$TARGET_DIR/.meridian/core"
-    config_content="$(cat "$SRC_DIR/.meridian/core/config.yaml")"
-    transform_config "$config_content" "$PROJECT_NAME" > "$TARGET_DIR/.meridian/core/config.yaml"
+    mkdir -p "$TARGET_DIR/.garura/core"
+    config_content="$(cat "$SRC_DIR/.garura/core/config.yaml")"
+    transform_config "$config_content" "$PROJECT_NAME" > "$TARGET_DIR/.garura/core/config.yaml"
   fi
 
   # 6. Create project directories
   info "  Creating project structure..."
-  mkdir -p "$TARGET_DIR/.meridian/project/specs"
+  mkdir -p "$TARGET_DIR/.garura/project/specs"
   mkdir -p "$TARGET_DIR/src"
 
   # 7. Transform and write CLAUDE.md
@@ -230,19 +230,19 @@ if [ "$MODE" = "init" ]; then
   fi
 
   ok ""
-  ok "Meridian initialized successfully!"
+  ok "Garura initialized successfully!"
   ok ""
   ok "Project structure created:"
   ok "  .claude/agents/      — Agent definitions"
   ok "  .claude/skills/      — Skills and plays"
-  ok "  .meridian/core/    — Memory and config"
-  ok "  .meridian/project/ — Project artifacts"
+  ok "  .garura/core/    — Memory and config"
+  ok "  .garura/project/ — Project artifacts"
   ok "  src/                 — Source code"
   ok "  CLAUDE.md            — AI instructions"
   ok ""
   ok "Next steps:"
   ok "  1. Review and customize CLAUDE.md for your project"
-  ok "  2. Update .meridian/core/config.yaml with your repo details"
+  ok "  2. Update .garura/core/config.yaml with your repo details"
   ok "  3. Start developing with Claude Code!"
 
 # ===================================================================
@@ -250,7 +250,7 @@ if [ "$MODE" = "init" ]; then
 # ===================================================================
 
 else
-  info "Upgrading Meridian in $TARGET_DIR..."
+  info "Upgrading Garura in $TARGET_DIR..."
   info "  Existing installation detected."
 
   # 1. Upgrade agents (overwrite managed files)
@@ -277,14 +277,14 @@ else
   # 4. Upgrade memory
   if [ -d "$COMPONENTS_DIR/memory" ]; then
     info "  Upgrading memory..."
-    copy_dir "$COMPONENTS_DIR/memory" "$HOME/.meridian/core/memory"
+    copy_dir "$COMPONENTS_DIR/memory" "$HOME/.garura/core/memory"
   fi
 
   # 5. Write config.yaml.new for user to diff/merge
-  if [ -f "$SRC_DIR/.meridian/core/config.yaml" ]; then
+  if [ -f "$SRC_DIR/.garura/core/config.yaml" ]; then
     info "  Writing config.yaml.new (review and merge manually)..."
-    config_content="$(cat "$SRC_DIR/.meridian/core/config.yaml")"
-    transform_config "$config_content" "$PROJECT_NAME" > "$TARGET_DIR/.meridian/core/config.yaml.new"
+    config_content="$(cat "$SRC_DIR/.garura/core/config.yaml")"
+    transform_config "$config_content" "$PROJECT_NAME" > "$TARGET_DIR/.garura/core/config.yaml.new"
   fi
 
   # 6. Write CLAUDE.md.new for user to diff/merge
@@ -295,20 +295,20 @@ else
   fi
 
   ok ""
-  ok "Meridian upgraded successfully!"
+  ok "Garura upgraded successfully!"
   ok ""
   ok "Updated (overwritten):"
   ok "  .claude/agents/              — Agent definitions"
   ok "  .claude/skills/              — Skills and plays"
-  ok "  ~/.meridian/core/memory/   — Memory (practices, templates)"
+  ok "  ~/.garura/core/memory/   — Memory (practices, templates)"
   ok ""
   ok "Review these files for changes:"
-  ok "  .meridian/core/config.yaml.new  — diff with config.yaml"
+  ok "  .garura/core/config.yaml.new  — diff with config.yaml"
   ok "  CLAUDE.md.new                     — diff with CLAUDE.md"
   ok ""
   ok "Preserved (not touched):"
-  ok "  .meridian/project/     — Your project artifacts"
-  ok "  .meridian/core/config.yaml — Your config"
+  ok "  .garura/project/     — Your project artifacts"
+  ok "  .garura/core/config.yaml — Your config"
   ok "  CLAUDE.md                — Your AI instructions"
   ok "  .claude/settings.json    — Your Claude settings"
 fi

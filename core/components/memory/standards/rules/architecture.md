@@ -95,7 +95,7 @@ A fifth value — `agent_default_unilateral` — is defined only as the validato
 
 **Grounded-tools pins are authoritative.** When `project-profile.grounded_tools` carries an entry for a slot, architecture.yaml MUST use that exact value. Overriding a pin is a blocking validation failure.
 
-**Multi-candidate resolution requires a user answer.** When the KB catalog offers more than one legitimate candidate for a slot AND `grounded_tools` does not pin it, the derivation skill MUST append a Q-arch-NNN question to `.meridian/product/user-provided/grounding-questions.md` and halt the slot. Silent multi-candidate resolution is a blocking failure.
+**Multi-candidate resolution requires a user answer.** When the KB catalog offers more than one legitimate candidate for a slot AND `grounded_tools` does not pin it, the derivation skill MUST append a Q-arch-NNN question to `.garura/product/user-provided/grounding-questions.md` and halt the slot. Silent multi-candidate resolution is a blocking failure.
 
 **Enforcement:** `derive-physical-architecture` and `derive-design-patterns` walk the decision tree per slot and tag every output; `validate-architecture-spec` rejects any decision with `agent_default_unilateral`, missing `source_type`, a `grounded_tools` override, a mis-tagged `kb_catalog_single_candidate`, or an unapproved `kb_catalog_multi_candidate_user_approved`.
 

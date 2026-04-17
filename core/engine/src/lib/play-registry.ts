@@ -28,7 +28,7 @@ import path from 'node:path';
  * (from core/components/skills/) since both are invocable via the
  * Garura execution model.
  */
-export const MERIDIAN_PLAY_NAMES: ReadonlySet<string> = new Set([
+export const GARURA_PLAY_NAMES: ReadonlySet<string> = new Set([
   // --- Plays (core/components/plays/) ---
   'briefs',
   'build-arch',
@@ -115,7 +115,7 @@ export const MERIDIAN_PLAY_NAMES: ReadonlySet<string> = new Set([
  * @returns true if the name is in the registry
  */
 export function isValidPlay(name: string): boolean {
-  return MERIDIAN_PLAY_NAMES.has(name);
+  return GARURA_PLAY_NAMES.has(name);
 }
 
 /**
@@ -125,7 +125,7 @@ export function isValidPlay(name: string): boolean {
  * @returns Array of invalid play names (empty if all valid)
  */
 export function findInvalidPlays(names: ReadonlyArray<string>): string[] {
-  return names.filter((name) => !MERIDIAN_PLAY_NAMES.has(name));
+  return names.filter((name) => !GARURA_PLAY_NAMES.has(name));
 }
 
 // ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Meridian is an agentic framework implementing **Intent-Driven Software Development** principles for deterministic AI-assisted development. It uses a three-layer hierarchy: **Plays** → **Agents** (domain experts) → **Skills** (learned capabilities).
+Garura is an agentic framework implementing **Intent-Driven Software Development** principles for deterministic AI-assisted development. It uses a three-layer hierarchy: **Plays** → **Agents** (domain experts) → **Skills** (learned capabilities).
 
 ## Architecture
 
@@ -19,14 +19,14 @@ core/components/           # Source of truth (edit here)
 ├── agents/               # Deployed agents
 └── skills/               # Deployed skills + plays
 
-~/.meridian/core/memory/ # Global LTM (via /sync-claude, default)
+~/.garura/core/memory/ # Global LTM (via /sync-claude, default)
 ```
 
-**Note:** `.claude/` and `.meridian/core/memory/` are NO LONGER tracked in the repository. They are gitignored.
+**Note:** `.claude/` and `.garura/core/memory/` are NO LONGER tracked in the repository. They are gitignored.
 - Components deploy to `~/.claude/` (global mode, default) or `.claude/` (project mode, ephemeral)
-- Memory deploys to `~/.meridian/core/memory/` (global mode, default) or `.meridian/core/memory/` (project mode, ephemeral)
+- Memory deploys to `~/.garura/core/memory/` (global mode, default) or `.garura/core/memory/` (project mode, ephemeral)
 
-**Data Flow:** Play → invokes agents via Task tool → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `.meridian/core/config.yaml`)
+**Data Flow:** Play → invokes agents via Task tool → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `.garura/core/config.yaml`)
 
 ## Behavioral Rules
 
@@ -39,7 +39,7 @@ Author all components in `core/components/`. The canonical deployment is `~/.cla
 core/components/skills/   → ~/.claude/skills/          (via /sync-claude)
 core/components/plays/  → ~/.claude/skills/          (via /sync-claude)
 core/components/agents/   → ~/.claude/agents/          (via /sync-claude)
-core/components/memory/   → ~/.meridian/core/memory/ (via /sync-claude)
+core/components/memory/   → ~/.garura/core/memory/ (via /sync-claude)
 ```
 
 **Project mode (ephemeral):**
@@ -47,7 +47,7 @@ core/components/memory/   → ~/.meridian/core/memory/ (via /sync-claude)
 core/components/skills/   → .claude/skills/               (via /sync-claude --project, gitignored)
 core/components/plays/  → .claude/skills/               (via /sync-claude --project, gitignored)
 core/components/agents/   → .claude/agents/               (via /sync-claude --project, gitignored)
-core/components/memory/   → .meridian/core/memory/      (via /sync-claude --project, gitignored)
+core/components/memory/   → .garura/core/memory/      (via /sync-claude --project, gitignored)
 ```
 
 After editing source, run `/sync-claude` to deploy globally. Use `/sync-claude --project` for ephemeral local copies (gitignored).
@@ -144,8 +144,8 @@ When modifying skills or plays, always go through the `intent.yaml` → `/create
 
 ## Reference
 
-- `core/grounding/glossary.md` — Canonical definitions of every Meridian concept
-- `.meridian/core/config.yaml` — Paths and settings
+- `core/grounding/glossary.md` — Canonical definitions of every Garura concept
+- `.garura/core/config.yaml` — Paths and settings
 - `docs/adr/` — Architecture Decision Records (8 ADRs)
 - `docs/philosophy/` — Core architecture philosophy
 - `docs/components/` — Agent, skill, play, memory documentation

@@ -1,5 +1,5 @@
 ---
-name: meridian:quality-check-scoped
+name: garura:quality-check-scoped
 description: Diff-bounded single-pass quality evaluation for PR review. Reads KB standards from standards_order paths resolved from config, filters to domains touched by changed_paths, evaluates standard-ID checks against the diff using mechanical match rules from pr-severity-taxonomy.md, classifies every finding deterministically, and emits findings.yaml. Reuses /quality-check KB data — NOT its 11-subagent execution model. Use only from review-pr play; never invoke standalone for full-repo audits.
 user-invocable: false
 ---
@@ -28,9 +28,9 @@ changed_paths:                                                    # array; absol
   - src/api/users.ts
   - src/db/migrations/0042_add_email.sql
 standards_set:                                                    # resolved from config standards_order
-  kb: ~/.meridian/core/memory/knowledge/quality/
-  ltm: ./.meridian/core/memory/knowledge/quality/
-  stm: .meridian/project/issues/{issue}/specs/quality/
+  kb: ~/.garura/core/memory/knowledge/quality/
+  ltm: ./.garura/core/memory/knowledge/quality/
+  stm: .garura/project/issues/{issue}/specs/quality/
 severity_taxonomy_path: ./core/components/memory/standards/rules/pr.md
 intent_summary: "Add email verification flow"                     # 1–3 sentences from spec/intent.yaml or PR body
 output_path: "{stm_base}/{issue}/evidence/review-pr/findings.yaml"

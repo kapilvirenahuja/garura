@@ -64,7 +64,7 @@ When invoked by a play, you receive a JSON contract:
 | `stm.input` | Yes | Named paths to STM files this agent reads as input |
 | `stm.output` | Yes | Named paths to STM files this agent writes as output |
 | `task_id` | Yes | Task ID for task graph participation |
-| `config` | No | Override config values (platform, base_branch). If absent, read from `.meridian/core/config.yaml` |
+| `config` | No | Override config values (platform, base_branch). If absent, read from `.garura/core/config.yaml` |
 
 ### Output Contract
 
@@ -206,10 +206,10 @@ If `ltm_context` is NOT present, use existing behavior (load standards/git/branc
 
 ### Load Config
 
-Read config from the contract's `config` field first. If absent, read `.meridian/core/config.yaml` to get:
+Read config from the contract's `config` field first. If absent, read `.garura/core/config.yaml` to get:
 - `platform` — Repository platform (github, gitlab, bitbucket)
 - `base_branch` — Default base branch for PRs
-- `stm.base-path` — STM base path for issue artifacts (e.g., `.meridian/project/issues/`). All `{stm_base}` references in contracts resolve to this value.
+- `stm.base-path` — STM base path for issue artifacts (e.g., `.garura/project/issues/`). All `{stm_base}` references in contracts resolve to this value.
 
 ### Inject Context
 
@@ -231,7 +231,7 @@ Input:
 1. **Parse contract** — Extract intent_path, stm paths, task_id, config
 2. **Mark in progress** — TaskUpdate task_id to `in_progress`
 3. **Read intent** — Load `intent.yaml` from `intent_path`; extract constraints, failure conditions, scenarios
-4. **Load context** — Read config from contract or `.meridian/core/config.yaml`, inject to all skill calls
+4. **Load context** — Read config from contract or `.garura/core/config.yaml`, inject to all skill calls
 5. **Read STM inputs** — Load data from each path in `stm.input`
 6. **Check pre-flight** — If intent defines pre-flight conditions, validate them. If ANY is `FAIL`, write structured failure to `stm.output`, return contract with `status: "failed"`
    - If no pre-flight defined, use Bash for read-only queries to evaluate equivalent conditions yourself
@@ -399,7 +399,7 @@ Bash is available for operations **not covered by skills**:
 
 ## Memory
 
-Load from LTM (`~/.meridian/core/memory/`) as needed:
+Load from LTM (`~/.garura/core/memory/`) as needed:
 - `standards/git/branching.md` — Branch naming conventions
 
 Load framework protocols from `docs/framework/` as needed:

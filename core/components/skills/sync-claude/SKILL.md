@@ -1,6 +1,6 @@
 ---
-name: meridian:sync-claude
-description: Sync Meridian components to .claude/ (project mode) or ~/.claude/ (global mode, default)
+name: garura:sync-claude
+description: Sync Garura components to .claude/ (project mode) or ~/.claude/ (global mode, default)
 user-invocable: true
 context: fork
 model: haiku

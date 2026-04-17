@@ -83,7 +83,7 @@ constraints:
   - id: C9
     rule: >
       All writes target product LTM ({product_base}/). No writes to global
-      core LTM (~/.meridian/core/memory/). No standalone knowledge files
+      core LTM (~/.garura/core/memory/). No standalone knowledge files
       created outside the existing product LTM artifact structure.
 
   - id: C10

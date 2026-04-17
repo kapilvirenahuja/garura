@@ -1,8 +1,9 @@
 intent: >
-  Allow any caller — human or agent — to report a defect against Meridian OS
-  by providing structured input. File the defect as a GitHub Issue on the
-  Meridian repository. If GitHub is unreachable or unauthorized, produce a
-  portable local defect file the caller can share manually.
+  Allow any caller — human or agent — to report a defect against the current
+  Garura project by providing structured input. File the defect as a GitHub
+  Issue on the repository identified by github.owner and github.name in
+  .garura/core/config.yaml. If GitHub is unreachable or unauthorized, produce
+  a portable local defect file the caller can share manually.
 
 constraints:
   - id: C1
@@ -14,7 +15,10 @@ constraints:
       Severity MUST be one of: Critical, High, Medium, Low.
   - id: C3
     rule: >
-      The target repository is kapilvirenahuja/meridian-os. Issues are
+      The target repository MUST be resolved at runtime from
+      .garura/core/config.yaml by reading github.owner and github.name and
+      building the slug as "{github.owner}/{github.name}". The repository
+      identifier MUST NEVER be hardcoded in the compiled play. Issues are
       filed via the gh CLI.
   - id: C4
     rule: >
@@ -64,18 +68,23 @@ failure_conditions:
     condition: >
       The play silently succeeds without confirming the issue URL or
       the fallback file path to the caller.
+  - id: F6
+    condition: >
+      The compiled play contains a hardcoded owner/name slug instead of
+      resolving github.owner and github.name from config at runtime.
 
 scenarios:
   - id: S1
     persona: Play consumer (agent in another project)
     given: >
-      An agent in the Phoenix project discovers that a Meridian play
+      An agent in the Phoenix project discovers that a Garura play
       hardcodes paths and wants to report a defect with all required
       fields plus optional Evidence and Root cause sections.
     then: >
-      A GitHub Issue is created on kapilvirenahuja/meridian-os with the
-      defect label, structured body containing all provided fields, and
-      the issue URL is returned to the caller.
+      A GitHub Issue is created on the repository resolved from
+      github.owner/github.name in config, with the defect label, structured
+      body containing all provided fields, and the issue URL is returned
+      to the caller.
   - id: S2
     persona: Human developer
     given: >
@@ -113,3 +122,13 @@ scenarios:
       content, tells the caller exactly what failed (auth/network),
       and provides the file path with instructions to share it
       manually (email, paste into GitHub issue, Slack).
+  - id: S6
+    persona: Project maintainer auditing the play
+    given: >
+      A maintainer inspects the compiled SKILL.md to verify the play
+      can be reused across Garura-based projects without editing code.
+    then: >
+      The compiled play contains no hardcoded owner/name slug. Every
+      reference to the target repository is expressed via
+      github.owner / github.name resolved from .garura/core/config.yaml
+      at runtime.

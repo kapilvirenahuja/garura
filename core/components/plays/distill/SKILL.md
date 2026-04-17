@@ -1,5 +1,5 @@
 ---
-name: meridian:distill
+name: garura:distill
 description: "Lightweight post-merge learning extraction. Reads the merged PR diff and any available issue STM evidence, invokes knowledge-extractor in FAST mode, and stages 1–2 learning proposals to STM. Fire-and-forget: failure returns gracefully, never halts ship."
 user-invokable: false
 ---
@@ -39,8 +39,8 @@ Resolve configuration and gather inputs. All failures return gracefully — do N
 
 ```bash
 # Resolve paths from config
-stm_base=$(grep 'base-path' .meridian/core/config.yaml | head -1 | awk '{print $2}')
-product_base=$(grep 'base-path' .meridian/core/config.yaml | tail -1 | awk '{print $2}')
+stm_base=$(grep 'base-path' .garura/core/config.yaml | head -1 | awk '{print $2}')
+product_base=$(grep 'base-path' .garura/core/config.yaml | tail -1 | awk '{print $2}')
 
 # Extract issue number (from branch or status file context from ship)
 # issue is passed in from ship's context — already resolved
@@ -140,7 +140,7 @@ the analysis is idempotent (proposals.yaml is overwritten if re-run).
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:{to be computed on next /create-play run} |
+| intent_hash | sha256:e6ab821770850a2941d206543d9883cb88279c50d11f1fdb477e4684753a8ba0 be computed on next /create-play run} |
 | compiled_by | create-play |
 | compiled_at | 2026-04-16 |
 | workflow_structure | B |

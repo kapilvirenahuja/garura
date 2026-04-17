@@ -1,5 +1,8 @@
 # ADR 010: STM Archival with Year-Month Bucketing
 
+> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
+
+
 ## Status
 
 Accepted

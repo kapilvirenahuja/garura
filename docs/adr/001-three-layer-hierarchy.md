@@ -1,5 +1,8 @@
 # ADR 001: Three-Layer Hierarchy (L2 → L1 → Skills)
 
+> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
+
+
 ## Status
 
 Accepted

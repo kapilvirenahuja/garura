@@ -11,7 +11,7 @@
     "topology": "┌─────────────────────────────────────────────────┐\n│                   Claude Code                   │\n│              (Play Orchestrator)              │\n└──────────────┬─────────────────────┬────────────┘\n               │                     │\n    ┌──────────▼──────────┐ ┌────────▼──────────┐\n    │    code-builder     │ │  repo-orchestrator │\n    │  (Implementation)   │ │   (Git + GitHub)   │\n    └──────────┬──────────┘ └────────┬───────────┘\n               │                     │\n    ┌──────────▼──────────┐ ┌────────▼───────────┐\n    │  quality-validator  │ │   tech-designer     │\n    │  (Tests + Evals)    │ │  (Design + RCA)     │\n    └─────────────────────┘ └────────────────────┘\n               │\n    ┌──────────▼──────────┐\n    │     STM / LTM       │\n    │  (Artifact Store)   │\n    └─────────────────────┘",
     "deployment_units": [
       {"name": "Claude Code Host", "description": "Primary runtime — Claude Code orchestrates all plays and invokes agents via the Task tool. No separate server required.", "runtime": "claude.ai/code or Claude API", "scaling": "Single user per session; no horizontal scaling needed for CLI usage"},
-      {"name": "Artifact Store", "description": "File-system based STM/LTM for all generated artifacts, intents, and decision trails. STM is per-project, LTM is global.", "runtime": "Local filesystem (~/.meridian/ and .meridian/)", "scaling": "No scaling concern — file I/O is local and fast"}
+      {"name": "Artifact Store", "description": "File-system based STM/LTM for all generated artifacts, intents, and decision trails. STM is per-project, LTM is global.", "runtime": "Local filesystem (~/.garura/ and .garura/)", "scaling": "No scaling concern — file I/O is local and fast"}
     ]
   },
   "nfrs": {
@@ -56,8 +56,8 @@
     ],
     "memory": {
       "approach": "Dual-tier file-system memory: STM for active work, LTM for persistent knowledge",
-      "stm": ".meridian/project/issues/{issue-number}/ — per-issue artifacts including intent files, execution plans, and evidence",
-      "ltm": "~/.meridian/core/memory/ — global standards, templates, agent definitions, and accumulated knowledge",
+      "stm": ".garura/project/issues/{issue-number}/ — per-issue artifacts including intent files, execution plans, and evidence",
+      "ltm": "~/.garura/core/memory/ — global standards, templates, agent definitions, and accumulated knowledge",
       "embeddings": "Not implemented in MVP — full-text search over LTM deferred to post-launch based on scale needs"
     }
   },
@@ -72,7 +72,7 @@
         { "driver": "ltm", "text": "agent-memory.md: 'File-based STM/LTM provides full auditability — every decision is a file you can inspect'" },
         { "driver": "profile", "text": "Explicit state requirement (NFR-1=3) — all decisions must be durable before execution" }
       ],
-      "picked": ["File-system STM at .meridian/project/issues/{issue-number}/", "File-system LTM at ~/.meridian/core/memory/"],
+      "picked": ["File-system STM at .garura/project/issues/{issue-number}/", "File-system LTM at ~/.garura/core/memory/"],
       "rejected": [
         { "option": "REST API between agents", "reason": "unnecessary network overhead for single-user CLI" },
         { "option": "In-memory message passing", "reason": "LLM context windows are ephemeral — state must persist to disk" }

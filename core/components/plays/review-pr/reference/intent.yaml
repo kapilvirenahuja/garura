@@ -1,6 +1,6 @@
 intent: >
   Review a pull request against diff-scoped quality standards resolved
-  from .meridian/core/config.yaml, classify every finding deterministically via
+  from .garura/core/config.yaml, classify every finding deterministically via
   the PR severity taxonomy mapped from existing KB standard IDs, gate
   the result on a confidence score, select the top N reviewers from
   recent committers on the changed paths (excluding the PR author),
@@ -24,7 +24,7 @@ constraints:
     rule: >
       Severity classification is deterministic. The PR severity
       taxonomy at the path resolved from
-      .meridian/core/config.yaml#standards.pr-severity-taxonomy is the only
+      .garura/core/config.yaml#standards.pr-severity-taxonomy is the only
       source of severity. No LLM judgment, no probabilistic
       classification. Two runs on the same diff produce identical
       P1..P4 buckets.
@@ -33,7 +33,7 @@ constraints:
     rule: >
       All standards paths, thresholds, reviewer counts, activity
       windows, fallback reviewers, and bypass flags come from
-      .meridian/core/config.yaml. No hardcoded paths or thresholds in the
+      .garura/core/config.yaml. No hardcoded paths or thresholds in the
       play or its skills.
 
   - id: C5

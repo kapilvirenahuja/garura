@@ -27,20 +27,20 @@ Receive from product-keeper agent:
 - `project_profile_path` (path, required) — frozen project profile YAML
 - `project_brief_path` (path, required) — the user-provided brief; used by the within-domain coverage analysis pass (per `rules/product.md` Rule 10)
 - `market_brief_path` (path, optional) — informs domain selection when market data suggests specific domains
-- `mvp_recommendation_path` (path, required) — typically `.meridian/product/scope/mvp-recommendation.md`. Per `rules/product.md` Rule 13 and C15, this file must exist and be non-empty before capability selection begins. The skill reads the primary use cases and deferred use cases from it and uses them to narrow the capability walk — non-primary capabilities land in `deferred_capabilities` of the output scope.yaml. Missing or empty file returns a structured failure with `what_failed: missing_mvp_recommendation`.
-- `product_domain_library_path` (path, required) — typically `.meridian/product/research/`. Per `rules/product.md` Rule 15 (Pull-to-Product, Defect 8), this is the ONLY read path for domain content during capability selection. Every selected domain must have a corresponding `{domain}.md` file here with a provenance header (either `origin: kb` for a KB copy, or `origin: stm_research` for freshly-authored research). Missing a domain here is a structured failure — the Stage 2 domain-selection step is responsible for populating this directory (either by copying from KB with provenance, or by dispatching research).
+- `mvp_recommendation_path` (path, required) — typically `.garura/product/scope/mvp-recommendation.md`. Per `rules/product.md` Rule 13 and C15, this file must exist and be non-empty before capability selection begins. The skill reads the primary use cases and deferred use cases from it and uses them to narrow the capability walk — non-primary capabilities land in `deferred_capabilities` of the output scope.yaml. Missing or empty file returns a structured failure with `what_failed: missing_mvp_recommendation`.
+- `product_domain_library_path` (path, required) — typically `.garura/product/research/`. Per `rules/product.md` Rule 15 (Pull-to-Product, Defect 8), this is the ONLY read path for domain content during capability selection. Every selected domain must have a corresponding `{domain}.md` file here with a provenance header (either `origin: kb` for a KB copy, or `origin: stm_research` for freshly-authored research). Missing a domain here is a structured failure — the Stage 2 domain-selection step is responsible for populating this directory (either by copying from KB with provenance, or by dispatching research).
 - `ltm_cross_tree_constraints_path` (path, required) — typically `core/components/memory/knowledge/domain/_cross-tree-constraints.yaml`. This is the ONLY file this skill reads from the KB directory. It holds cross-tree constraint rules that apply globally across domains. It is NOT a read path for domain content — domain content comes from `product_domain_library_path` only.
 - `ltm_kb_extension_conventions_path` (path, required) — the parser guide at `core/components/memory/standards/rules/kb-extension.md`
 - `ltm_domain_taxonomy_path` (path, optional, DEPRECATED for this skill's reads) — typically `core/components/memory/knowledge/domain/`. This path exists in the product pipeline but is only used by the Stage 2 domain-selection step to source KB content for copying into `product_domain_library_path`. configure-capabilities itself does NOT read from this path — it reads exclusively from `product_domain_library_path`. The input is accepted for back-compatibility but emits a warning if the upstream Stage 2 step did not populate the product research folder.
 - `selected_domains` (list, required) — the domain names selected in Stage 2 (e.g., `["user-management", "experimentation", "metrics-and-scoring"]`)
 - `optional_capability_selections` (list, optional) — user-approved optional capabilities from checkpoint
-- `output_path` (string, required) — typically `.meridian/product/scope/scope.yaml`
-- `grounding_questions_path` (string, required) — typically `.meridian/product/user-provided/grounding-questions.md`. Per rules/product.md Rule 12, this file is the cumulative question log: the skill READS it at start to pick up prior user answers, APPENDS new questions during Step 1e, and NEVER overwrites existing entries.
-- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifact (e.g., `.meridian/product/scope/decision-manifest-configure-capabilities.yaml`). Exact path is passed by the calling agent.
+- `output_path` (string, required) — typically `.garura/product/scope/scope.yaml`
+- `grounding_questions_path` (string, required) — typically `.garura/product/user-provided/grounding-questions.md`. Per rules/product.md Rule 12, this file is the cumulative question log: the skill READS it at start to pick up prior user answers, APPENDS new questions during Step 1e, and NEVER overwrites existing entries.
+- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifact (e.g., `.garura/product/scope/decision-manifest-configure-capabilities.yaml`). Exact path is passed by the calling agent.
 
 ## Domain Library Reads (single read path per Rule 15 Pull-to-Product)
 
-Per `rules/product.md` Rule 15 and C17, this skill reads the domain library from `product_domain_library_path` (typically `.meridian/product/research/`) ONLY. It does NOT read from the KB directory directly. The KB is the authoring surface for canonical domain content; the product's research folder is the frozen snapshot that this product run consumes.
+Per `rules/product.md` Rule 15 and C17, this skill reads the domain library from `product_domain_library_path` (typically `.garura/product/research/`) ONLY. It does NOT read from the KB directory directly. The KB is the authoring surface for canonical domain content; the product's research folder is the frozen snapshot that this product run consumes.
 
 **Responsibility split:**
 - **Stage 2 domain-selection step (upstream, NOT this skill):** for each selected domain, if the domain exists in the KB, copies the KB file into `product_domain_library_path` with a provenance header (`origin: kb`, `kb_source_path`, `copied_at`, `kb_sha_at_copy`, `editable: false`). If the domain does NOT exist in the KB, dispatches research to author `{product_domain_library_path}/{domain}.md` with `origin: stm_research`, `editable: true`, and the 9 required sections per `kb-extension-conventions.md`.
@@ -54,7 +54,7 @@ Promotion from STM research back to the KB is a separate, user-approved concern 
 
 ### 0. MVP recommendation pre-flight (rules/product.md Rule 13, C15)
 
-- Verify that `mvp_recommendation_path` (typically `.meridian/product/scope/mvp-recommendation.md`) exists and is non-empty. If missing or empty, return structured failure with `what_failed: missing_mvp_recommendation`. The upstream Stage 2.75 step is responsible for authoring it; this skill does NOT author it and does NOT proceed without it.
+- Verify that `mvp_recommendation_path` (typically `.garura/product/scope/mvp-recommendation.md`) exists and is non-empty. If missing or empty, return structured failure with `what_failed: missing_mvp_recommendation`. The upstream Stage 2.75 step is responsible for authoring it; this skill does NOT author it and does NOT proceed without it.
 - Parse the recommendation to extract: primary use cases (with persona, scoring source, rationale), deferred use cases (with defer reason, v1.1+ triggers), and any architecture directions committed at spec time. These become the narrowing filter for the capability walk in later steps.
 
 ### 1. Load and parse
@@ -142,7 +142,7 @@ For each feature in `selected_capabilities`, attach a `provenance` block with:
 
 ### 1e. Capture inferences to user-provided/grounding-questions.md (rules/product.md Rule 12)
 
-Every inference produced in Steps 1b-1d (within-domain gaps, kb_default capabilities, assumption capabilities, kb_default constraints, unexplained numeric values) MUST be appended as a question entry to `.meridian/product/user-provided/grounding-questions.md`. This file is cumulative and durable across pipeline runs — new runs APPEND, never overwrite.
+Every inference produced in Steps 1b-1d (within-domain gaps, kb_default capabilities, assumption capabilities, kb_default constraints, unexplained numeric values) MUST be appended as a question entry to `.garura/product/user-provided/grounding-questions.md`. This file is cumulative and durable across pipeline runs — new runs APPEND, never overwrite.
 
 Per inference, write one question entry:
 
@@ -335,7 +335,7 @@ decision_manifest:
 ## Constraints
 
 - NEVER skip a cross-tree constraint. All constraints are walked, whether or not they fire. Missing from the trace is a compliance violation.
-- NEVER invent feature IDs. Every ID in `selected_capabilities`, `rejected_capabilities`, and `pending_user_selection` must resolve to a real feature in a domain-taxonomy markdown file under `product_domain_library_path` (`.meridian/product/research/`). Features whose source file carries `origin: stm_research` in its provenance header are tagged with `source: provisional_stm_research` in the scope output.
+- NEVER invent feature IDs. Every ID in `selected_capabilities`, `rejected_capabilities`, and `pending_user_selection` must resolve to a real feature in a domain-taxonomy markdown file under `product_domain_library_path` (`.garura/product/research/`). Features whose source file carries `origin: stm_research` in its provenance header are tagged with `source: provisional_stm_research` in the scope output.
 - NEVER read domain content from `core/components/memory/knowledge/domain/` directly. Per `rules/product.md` Rule 15 (Pull-to-Product, Defect 8), the Stage 2 upstream step is responsible for copying KB content into `product_domain_library_path` with a provenance header. This skill reads only from `product_domain_library_path`. Missing domain files there return a structured failure (`what_failed: missing_domain_in_product_research`), NOT a KB fallback read.
 - NEVER proceed without `mvp_recommendation_path`. Per `rules/product.md` Rule 13 / C15, a missing or empty MVP recommendation is a pre-flight structural failure (`what_failed: missing_mvp_recommendation`). The recommendation narrows the capability walk; without it, the skill would produce a bloated scope.
 - NEVER silently exclude a capability. Every exclusion has a `reason` recorded in `rejected_capabilities`.
@@ -350,7 +350,7 @@ decision_manifest:
 - ALWAYS run vertical-vs-component classification (Step 1c) per `rules/epics.md` Rule 1. Every feature is tagged `vertical` or `component`; components carry `rolls_up_into`.
 - ALWAYS attach a `provenance` block to every selected_capability (Step 1d) per `rules/features.md` Rule 8. Every capability has source + source_quote + confidence; never silently accept `assumption` sources in the scope body.
 - NEVER write kb_default or assumption-sourced features / constraints as silent facts. Surface them at the capability-configuration checkpoint under `inferences_pending_review` and wait for user grounding per `rules/product.md` Rule 11.
-- ALWAYS capture every inference as a question in `.meridian/product/user-provided/grounding-questions.md` (Step 1e) per `rules/product.md` Rule 12. Append-only, cumulative across runs. Read the file at the start of every invocation to re-use prior user answers; never re-ask a question the user has already resolved.
+- ALWAYS capture every inference as a question in `.garura/product/user-provided/grounding-questions.md` (Step 1e) per `rules/product.md` Rule 12. Append-only, cumulative across runs. Read the file at the start of every invocation to re-use prior user answers; never re-ask a question the user has already resolved.
 - NEVER commit an inferred decision to the primary artifact (scope.yaml) without recording it in `decision-manifest.yaml` first.
 - NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.
 - ALWAYS include `alternatives_considered` (≥1 entry) for every decision, even high-confidence ones.
