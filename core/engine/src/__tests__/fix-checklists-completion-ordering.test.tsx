@@ -330,9 +330,7 @@ describe('Completion Ordering — Partial completion', () => {
     });
 
     const activeSection = screen.getByTestId('active-checklists');
-    const prepareCard = activeSection.querySelector(
-      '[data-checklist-id="prepare-epic"]',
-    );
+    const prepareCard = activeSection.querySelector('[data-checklist-id="prepare-epic"]');
     expect(prepareCard).toBeTruthy();
     expect(prepareCard!.getAttribute('data-status')).toBe('in-progress');
   });
