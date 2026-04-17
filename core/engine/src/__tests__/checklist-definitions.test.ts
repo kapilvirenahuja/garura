@@ -11,13 +11,14 @@
  *           VAL-CHECK-029 (valid play references)
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
   loadChecklist,
   loadAllChecklists,
   getBuiltInChecklists,
+  getChecklistsDataDir,
   validatePlayReferences,
   validateAllPlayReferences,
   loadChecklistFromFile,
@@ -422,7 +423,7 @@ describe('All Play References (VAL-CHECK-029)', () => {
   });
 
   it('iterate all steps and verify each play resolves to known play', () => {
-    const checklists = getBuiltInChecklists();
+    const { checklists } = getBuiltInChecklists();
     expect(checklists.length).toBeGreaterThanOrEqual(3);
 
     for (const checklist of checklists) {
@@ -433,7 +434,7 @@ describe('All Play References (VAL-CHECK-029)', () => {
   });
 
   it('all unique play references across checklists resolve', () => {
-    const checklists = getBuiltInChecklists();
+    const { checklists } = getBuiltInChecklists();
     const allPlays = new Set<string>();
     for (const checklist of checklists) {
       for (const step of checklist.steps) {
@@ -463,9 +464,10 @@ describe('Checklist Loader System', () => {
     }
   });
 
-  it('getBuiltInChecklists returns only successful loads', () => {
-    const checklists = getBuiltInChecklists();
+  it('getBuiltInChecklists returns checklists and errors', () => {
+    const { checklists, errors } = getBuiltInChecklists();
     expect(checklists.length).toBe(BUILTIN_CHECKLIST_IDS.length);
+    expect(errors).toHaveLength(0);
     for (const checklist of checklists) {
       expect(checklist.id).toBeTruthy();
       expect(checklist.title).toBeTruthy();
@@ -514,7 +516,7 @@ describe('Checklist Loader System', () => {
   });
 
   it('each checklist has a non-empty description', () => {
-    const checklists = getBuiltInChecklists();
+    const { checklists } = getBuiltInChecklists();
     for (const checklist of checklists) {
       expect(checklist.description).toBeTruthy();
       expect(checklist.description.length).toBeGreaterThan(10);
@@ -522,7 +524,7 @@ describe('Checklist Loader System', () => {
   });
 
   it('checklist IDs are unique across all definitions', () => {
-    const checklists = getBuiltInChecklists();
+    const { checklists } = getBuiltInChecklists();
     const ids = checklists.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
@@ -534,7 +536,7 @@ describe('Checklist Loader System', () => {
 
 describe('Cross-Validation: Registry Coverage', () => {
   it('every play referenced in checklists exists in MERIDIAN_PLAY_NAMES', () => {
-    const checklists = getBuiltInChecklists();
+    const { checklists } = getBuiltInChecklists();
     const referencedPlays = new Set<string>();
     for (const checklist of checklists) {
       for (const step of checklist.steps) {
@@ -550,10 +552,115 @@ describe('Cross-Validation: Registry Coverage', () => {
   it('checklist play references are a subset of PLAY_REGISTRY plays', () => {
     // Verify that all plays used in checklists also appear in the readiness
     // PLAY_REGISTRY or the broader MERIDIAN_PLAY_NAMES
-    const checklists = getBuiltInChecklists();
+    const { checklists } = getBuiltInChecklists();
     for (const checklist of checklists) {
       for (const step of checklist.steps) {
         expect(MERIDIAN_PLAY_NAMES.has(step.play)).toBe(true);
+      }
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// CHECKLIST_DEFS_DIR env-var override
+// ---------------------------------------------------------------------------
+
+describe('CHECKLIST_DEFS_DIR env-var override', () => {
+  const originalEnv = process.env.CHECKLIST_DEFS_DIR;
+
+  afterEach(() => {
+    if (originalEnv === undefined) {
+      delete process.env.CHECKLIST_DEFS_DIR;
+    } else {
+      process.env.CHECKLIST_DEFS_DIR = originalEnv;
+    }
+  });
+
+  it('uses env var when set to a valid directory', () => {
+    const dataDir = path.resolve(__dirname, '..', 'checklist-defs');
+    process.env.CHECKLIST_DEFS_DIR = dataDir;
+    const resolved = getChecklistsDataDir();
+    expect(resolved).toBe(dataDir);
+  });
+
+  it('falls back when env var points to nonexistent directory', () => {
+    process.env.CHECKLIST_DEFS_DIR = '/nonexistent/path/checklists';
+    const resolved = getChecklistsDataDir();
+    // Should fall back to __dirname or cwd-based path (not the env var)
+    expect(resolved).not.toBe('/nonexistent/path/checklists');
+  });
+
+  it('resolves relative env-var paths to absolute', () => {
+    // Set to a relative path that resolves to the real data dir
+    const dataDir = path.resolve(__dirname, '..', 'checklist-defs');
+    const relativePath = path.relative(process.cwd(), dataDir);
+    process.env.CHECKLIST_DEFS_DIR = relativePath;
+    const resolved = getChecklistsDataDir();
+    expect(resolved).toBe(dataDir);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Error propagation in getBuiltInChecklists
+// ---------------------------------------------------------------------------
+
+describe('Error propagation in getBuiltInChecklists', () => {
+  it('returns errors array when env var points to empty directory', () => {
+    const tmpDir = path.join(__dirname, '..', '__test-empty-defs');
+    try {
+      fs.mkdirSync(tmpDir, { recursive: true });
+      process.env.CHECKLIST_DEFS_DIR = tmpDir;
+      const { checklists, errors } = getBuiltInChecklists();
+      expect(checklists).toHaveLength(0);
+      expect(errors.length).toBeGreaterThan(0);
+    } finally {
+      delete process.env.CHECKLIST_DEFS_DIR;
+      if (fs.existsSync(tmpDir)) {
+        fs.rmSync(tmpDir, { recursive: true });
+      }
+    }
+  });
+
+  it('returns partial results when some definitions are missing', () => {
+    const tmpDir = path.join(__dirname, '..', '__test-partial-defs');
+    try {
+      fs.mkdirSync(tmpDir, { recursive: true });
+      // Copy only greenfield-onboarding.yaml, skip others
+      const srcDir = path.resolve(__dirname, '..', 'checklist-defs');
+      fs.copyFileSync(
+        path.join(srcDir, 'greenfield-onboarding.yaml'),
+        path.join(tmpDir, 'greenfield-onboarding.yaml'),
+      );
+      process.env.CHECKLIST_DEFS_DIR = tmpDir;
+      const { checklists, errors } = getBuiltInChecklists();
+      expect(checklists.length).toBe(1);
+      expect(checklists[0]!.id).toBe('greenfield-onboarding');
+      // brownfield-onboarding and prepare-epic are missing
+      expect(errors.length).toBe(2);
+    } finally {
+      delete process.env.CHECKLIST_DEFS_DIR;
+      if (fs.existsSync(tmpDir)) {
+        fs.rmSync(tmpDir, { recursive: true });
+      }
+    }
+  });
+
+  it('returns errors for malformed YAML definitions', () => {
+    const tmpDir = path.join(__dirname, '..', '__test-malformed-defs');
+    try {
+      fs.mkdirSync(tmpDir, { recursive: true });
+      // Create malformed YAML files for each built-in ID
+      for (const id of BUILTIN_CHECKLIST_IDS) {
+        fs.writeFileSync(path.join(tmpDir, `${id}.yaml`), '{{invalid yaml', 'utf-8');
+      }
+      process.env.CHECKLIST_DEFS_DIR = tmpDir;
+      const { checklists, errors } = getBuiltInChecklists();
+      expect(checklists).toHaveLength(0);
+      expect(errors.length).toBe(BUILTIN_CHECKLIST_IDS.length);
+    } finally {
+      delete process.env.CHECKLIST_DEFS_DIR;
+      if (fs.existsSync(tmpDir)) {
+        fs.rmSync(tmpDir, { recursive: true });
       }
     }
   });

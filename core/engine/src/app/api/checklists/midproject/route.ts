@@ -37,7 +37,7 @@ export async function GET() {
     const readinessResult = computeReadinessFromPath(productBasePath, gitHash);
 
     // Load all built-in checklists
-    const allChecklists = getBuiltInChecklists();
+    const { checklists: allChecklists } = getBuiltInChecklists();
 
     // Select, order, and categorize checklists for mid-project view
     // Step completions are empty for now — will be tracked by mdb-checklist-step-execution

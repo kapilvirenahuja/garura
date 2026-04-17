@@ -43,6 +43,12 @@ export type ChecklistLoadResult =
   | { readonly ok: true; readonly checklist: ChecklistDefinition }
   | { readonly ok: false; readonly error: string };
 
+/** Result of loading all built-in checklists (success + errors) */
+export interface BuiltInChecklistsResult {
+  readonly checklists: ReadonlyArray<ChecklistDefinition>;
+  readonly errors: ReadonlyArray<string>;
+}
+
 /** Result of validating play references */
 export interface PlayValidationResult {
   readonly valid: boolean;
@@ -60,24 +66,45 @@ export interface PlayValidationResult {
 /**
  * Resolve the path to the built-in checklists definitions directory.
  *
- * In Next.js App Router API routes, __dirname may not point to the source tree
- * (webpack bundles server code). We try __dirname first, then fall back to
- * process.cwd()-based resolution (core/engine/src/checklist-defs/).
+ * Resolution order:
+ *   1. CHECKLIST_DEFS_DIR env var override (explicit user/CI override)
+ *   2. Relative to this file's compiled location (__dirname)
+ *   3. Relative to process.cwd() (Next.js runs from core/engine/)
+ *
+ * Logs an error when no valid directory is found.
  */
-function getChecklistsDataDir(): string {
-  // Primary: relative to this file's compiled location
+export function getChecklistsDataDir(): string {
+  // 1. Env-var override — highest priority, lets CI / deployment pin the path
+  const envDir = process.env.CHECKLIST_DEFS_DIR;
+  if (envDir) {
+    const resolved = path.resolve(envDir);
+    if (fs.existsSync(resolved)) {
+      return resolved;
+    }
+    console.warn(
+      `[checklist-loader] CHECKLIST_DEFS_DIR="${envDir}" does not exist — trying fallbacks`,
+    );
+  }
+
+  // 2. Relative to this file's compiled location
   const fromDirname = path.join(__dirname, '..', 'checklist-defs');
   if (fs.existsSync(fromDirname)) {
     return fromDirname;
   }
 
-  // Fallback: relative to process.cwd() (Next.js runs from core/engine/)
+  // 3. Relative to process.cwd() (Next.js dev server runs from core/engine/)
   const fromCwd = path.join(process.cwd(), 'src', 'checklist-defs');
   if (fs.existsSync(fromCwd)) {
     return fromCwd;
   }
 
-  // Last resort: return the __dirname-based path (will fail gracefully downstream)
+  // No valid directory found — log error and return the __dirname-based path
+  // (will fail gracefully downstream when individual files are loaded)
+  console.error(
+    '[checklist-loader] No valid checklist definitions directory found. ' +
+      'Tried: CHECKLIST_DEFS_DIR env var, __dirname-based path, process.cwd()-based path. ' +
+      `Set CHECKLIST_DEFS_DIR to an absolute path containing checklist YAML files.`,
+  );
   return fromDirname;
 }
 
@@ -147,14 +174,24 @@ export function loadAllChecklists(): ReadonlyArray<ChecklistLoadResult> {
 }
 
 /**
- * Load all built-in checklists that loaded successfully.
+ * Load all built-in checklists, returning both successes and errors.
  *
- * @returns Array of ChecklistDefinition (only successful loads)
+ * @returns Object with `checklists` (successful loads) and `errors` (failure messages)
  */
-export function getBuiltInChecklists(): ReadonlyArray<ChecklistDefinition> {
-  return loadAllChecklists()
-    .filter((result): result is { ok: true; checklist: ChecklistDefinition } => result.ok)
-    .map((result) => result.checklist);
+export function getBuiltInChecklists(): BuiltInChecklistsResult {
+  const results = loadAllChecklists();
+  const checklists: ChecklistDefinition[] = [];
+  const errors: string[] = [];
+
+  for (const result of results) {
+    if (result.ok) {
+      checklists.push(result.checklist);
+    } else {
+      errors.push(result.error);
+    }
+  }
+
+  return { checklists, errors };
 }
 
 // ---------------------------------------------------------------------------
@@ -196,7 +233,7 @@ export function validatePlayReferences(checklist: ChecklistDefinition): PlayVali
  * @returns PlayValidationResult aggregating all checklists
  */
 export function validateAllPlayReferences(): PlayValidationResult {
-  const checklists = getBuiltInChecklists();
+  const { checklists } = getBuiltInChecklists();
   const allInvalid: Array<{
     checklistId: string;
     stepId: string;
