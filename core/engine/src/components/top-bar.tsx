@@ -1,15 +1,19 @@
 'use client';
 
-import { PROJECT_NAME } from '@/lib/constants';
 import { InstrumentSwitcher } from '@/components/instrument-switcher';
 import { ReadinessMiniGauge } from '@/components/readiness-mini-gauge';
 import { SearchBar } from '@/components/search-bar';
 
+export interface TopBarProps {
+  /** Project name to display in the top bar, derived from config. */
+  projectName?: string;
+}
+
 /**
  * Persistent top bar visible on every screen.
- * Contains: project name, readiness mini-gauge, instrument switcher tabs, and search bar.
+ * Contains: project name (from config), readiness mini-gauge, instrument switcher tabs, and search bar.
  */
-export function TopBar() {
+export function TopBar({ projectName = 'Untitled Project' }: TopBarProps) {
   return (
     <header
       className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/95 backdrop-blur-sm"
@@ -22,7 +26,7 @@ export function TopBar() {
             className="text-sm font-semibold tracking-tight text-white"
             data-testid="project-name"
           >
-            {PROJECT_NAME}
+            {projectName}
           </h1>
           <ReadinessMiniGauge score={0} />
         </div>

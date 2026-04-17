@@ -1,0 +1,20 @@
+# Config with wrong types — numbers, booleans, arrays where strings are expected
+project:
+  name: 123
+  type: true
+
+repo:
+  path: 456
+
+stm:
+  base-path:
+    - not
+    - a
+    - string
+
+product:
+  base-path: 789
+
+components:
+  skills: 42
+  agents: false

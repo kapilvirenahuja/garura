@@ -251,6 +251,99 @@ describe('Config System', () => {
     });
   });
 
+  describe('loadConfig — wrong types fallback', () => {
+    it('falls back to default string when repo.path is a number', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const configPath = path.join(FIXTURES_DIR, 'wrong-types-config.yaml');
+      const config = loadConfig(configPath);
+
+      expect(config.repo.path).toBe(DEFAULT_CONFIG.repo.path);
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('invalid type for repo.path'));
+    });
+
+    it('falls back to default string when project.name is a number', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const configPath = path.join(FIXTURES_DIR, 'wrong-types-config.yaml');
+      const config = loadConfig(configPath);
+
+      expect(config.project.name).toBe(DEFAULT_CONFIG.project.name);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('invalid type for project.name'),
+      );
+    });
+
+    it('falls back to default string when project.type is a boolean', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const configPath = path.join(FIXTURES_DIR, 'wrong-types-config.yaml');
+      const config = loadConfig(configPath);
+
+      expect(config.project.type).toBe(DEFAULT_CONFIG.project.type);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('invalid type for project.type'),
+      );
+    });
+
+    it('falls back to default when stm.base-path is an array instead of string', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const configPath = path.join(FIXTURES_DIR, 'wrong-types-config.yaml');
+      const config = loadConfig(configPath);
+
+      expect(config.stm.basePath).toBe(DEFAULT_CONFIG.stm.basePath);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('invalid type for stm.base-path'),
+      );
+    });
+
+    it('falls back to defaults for all invalid-typed fields', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const configPath = path.join(FIXTURES_DIR, 'wrong-types-config.yaml');
+      const config = loadConfig(configPath);
+
+      // Every field in this fixture is the wrong type, so all should be defaults
+      expect(config.project.name).toBe(DEFAULT_CONFIG.project.name);
+      expect(config.project.type).toBe(DEFAULT_CONFIG.project.type);
+      expect(config.repo.path).toBe(DEFAULT_CONFIG.repo.path);
+      expect(config.stm.basePath).toBe(DEFAULT_CONFIG.stm.basePath);
+      expect(config.product.basePath).toBe(DEFAULT_CONFIG.product.basePath);
+      expect(config.components.skills).toBe(DEFAULT_CONFIG.components.skills);
+      expect(config.components.agents).toBe(DEFAULT_CONFIG.components.agents);
+    });
+
+    it('emits console.warn for each invalid field', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const configPath = path.join(FIXTURES_DIR, 'wrong-types-config.yaml');
+      loadConfig(configPath);
+
+      // Should warn for each of the 8 invalid fields
+      const typeWarnings = warnSpy.mock.calls.filter((call) =>
+        String(call[0]).includes('invalid type for'),
+      );
+      expect(typeWarnings.length).toBeGreaterThanOrEqual(7);
+    });
+
+    it('valid fields are preserved even when other fields have wrong types', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      // Create a temp config with a mix of valid and invalid fields
+      const tmpDir = fs.mkdtempSync(path.join('/tmp', 'mdb-config-mixed-'));
+      const tmpConfigPath = path.join(tmpDir, 'config.yaml');
+
+      fs.writeFileSync(
+        tmpConfigPath,
+        'project:\n  name: ValidName\n  type: 123\nrepo:\n  path: 456\n',
+      );
+
+      const config = loadConfig(tmpConfigPath);
+
+      // Valid string field should be kept
+      expect(config.project.name).toBe('ValidName');
+      // Invalid fields should fall back to defaults
+      expect(config.project.type).toBe(DEFAULT_CONFIG.project.type);
+      expect(config.repo.path).toBe(DEFAULT_CONFIG.repo.path);
+
+      fs.rmSync(tmpDir, { recursive: true });
+    });
+  });
+
   describe('getConfig — without loadConfig', () => {
     it('returns defaults when getConfig is called before loadConfig', () => {
       const config = getConfig();

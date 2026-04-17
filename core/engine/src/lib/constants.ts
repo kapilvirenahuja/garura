@@ -15,5 +15,9 @@ export const INSTRUMENTS: readonly InstrumentTab[] = [
 
 export const DEFAULT_INSTRUMENT: InstrumentId = 'checklists';
 
-/** Project name — will be derived from config in future; placeholder for now */
+/**
+ * @deprecated Use config.project.name via getConfig() instead.
+ * Project name is now read from .meridian/core/config.yaml at runtime.
+ * This constant is retained only for backward compatibility in tests.
+ */
 export const PROJECT_NAME = 'MDB TaskFlow';

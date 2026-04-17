@@ -112,27 +112,73 @@ function deepFreeze<T extends object>(obj: T): Readonly<T> {
 }
 
 // ---------------------------------------------------------------------------
-// Merge helper — fills missing keys with defaults
+// Type validation helper
+// ---------------------------------------------------------------------------
+
+/**
+ * Validate that a config value is of the expected type.
+ * Returns the value if valid, otherwise logs a warning and returns the default.
+ */
+function validateField<T>(
+  value: unknown,
+  expectedType: string,
+  fieldPath: string,
+  defaultValue: T,
+): T {
+  if (value === undefined || value === null) {
+    return defaultValue;
+  }
+  if (typeof value !== expectedType) {
+    console.warn(
+      `[mdb-config] invalid type for ${fieldPath}: expected ${expectedType}, got ${typeof value} — using default`,
+    );
+    return defaultValue;
+  }
+  return value as T;
+}
+
+// ---------------------------------------------------------------------------
+// Merge helper — fills missing keys with defaults + type validation
 // ---------------------------------------------------------------------------
 
 function mergeWithDefaults(raw: RawConfig): MdbConfig {
   return deepFreeze({
     project: {
-      name: raw.project?.name ?? DEFAULT_CONFIG.project.name,
-      type: raw.project?.type ?? DEFAULT_CONFIG.project.type,
+      name: validateField(raw.project?.name, 'string', 'project.name', DEFAULT_CONFIG.project.name),
+      type: validateField(raw.project?.type, 'string', 'project.type', DEFAULT_CONFIG.project.type),
     },
     repo: {
-      path: raw.repo?.path ?? DEFAULT_CONFIG.repo.path,
+      path: validateField(raw.repo?.path, 'string', 'repo.path', DEFAULT_CONFIG.repo.path),
     },
     stm: {
-      basePath: raw.stm?.['base-path'] ?? DEFAULT_CONFIG.stm.basePath,
+      basePath: validateField(
+        raw.stm?.['base-path'],
+        'string',
+        'stm.base-path',
+        DEFAULT_CONFIG.stm.basePath,
+      ),
     },
     product: {
-      basePath: raw.product?.['base-path'] ?? DEFAULT_CONFIG.product.basePath,
+      basePath: validateField(
+        raw.product?.['base-path'],
+        'string',
+        'product.base-path',
+        DEFAULT_CONFIG.product.basePath,
+      ),
     },
     components: {
-      skills: raw.components?.skills ?? DEFAULT_CONFIG.components.skills,
-      agents: raw.components?.agents ?? DEFAULT_CONFIG.components.agents,
+      skills: validateField(
+        raw.components?.skills,
+        'string',
+        'components.skills',
+        DEFAULT_CONFIG.components.skills,
+      ),
+      agents: validateField(
+        raw.components?.agents,
+        'string',
+        'components.agents',
+        DEFAULT_CONFIG.components.agents,
+      ),
     },
   }) as MdbConfig;
 }

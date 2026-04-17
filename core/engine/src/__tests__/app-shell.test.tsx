@@ -6,7 +6,7 @@ import { InstrumentSwitcher, resolveActiveInstrument } from '@/components/instru
 import { Breadcrumb, deriveBreadcrumbs } from '@/components/breadcrumb';
 import { TopBar } from '@/components/top-bar';
 import { AppShell } from '@/components/app-shell';
-import { INSTRUMENTS, PROJECT_NAME } from '@/lib/constants';
+import { INSTRUMENTS } from '@/lib/constants';
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -33,9 +33,14 @@ beforeEach(() => {
 // VAL-FOUND-002: Top Bar Renders Project Name
 // ---------------------------------------------------------------------------
 describe('TopBar — Project Name (VAL-FOUND-002)', () => {
-  it('renders the project name in the top bar', () => {
+  it('renders the default project name when no prop is provided', () => {
     render(<TopBar />);
-    expect(screen.getByTestId('project-name')).toHaveTextContent(PROJECT_NAME);
+    expect(screen.getByTestId('project-name')).toHaveTextContent('Untitled Project');
+  });
+
+  it('renders project name from config prop', () => {
+    render(<TopBar projectName="My Custom Project" />);
+    expect(screen.getByTestId('project-name')).toHaveTextContent('My Custom Project');
   });
 
   it('top bar is present with data-testid', () => {
@@ -321,5 +326,23 @@ describe('AppShell — Integration', () => {
     expect(screen.getByTestId('readiness-mini-gauge')).toBeInTheDocument();
     expect(screen.getByTestId('instrument-switcher')).toBeInTheDocument();
     expect(screen.getByTestId('search-bar')).toBeInTheDocument();
+  });
+
+  it('passes projectName prop through to TopBar', () => {
+    render(
+      <AppShell projectName="Config Project Name">
+        <div>Content</div>
+      </AppShell>,
+    );
+    expect(screen.getByTestId('project-name')).toHaveTextContent('Config Project Name');
+  });
+
+  it('shows default project name when projectName prop is not provided', () => {
+    render(
+      <AppShell>
+        <div>Content</div>
+      </AppShell>,
+    );
+    expect(screen.getByTestId('project-name')).toHaveTextContent('Untitled Project');
   });
 });
