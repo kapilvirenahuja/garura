@@ -243,6 +243,61 @@ describe('<NarrativeView /> — contextual CTAs', () => {
     });
   });
 
+  it('transitions the ContentSlot to the compact complete view after the play finishes (VAL-ACTION-018)', async () => {
+    mockFetch((input) => {
+      const url = typeof input === 'string' ? input : (input as URL | Request).toString();
+      if (url.includes('/api/narrative')) {
+        return Promise.resolve(
+          jsonResponse({ narrative: makeNarrativeWithActions(SAMPLE_ACTIONS), fromCache: false }),
+        );
+      }
+      if (url.includes('/api/checklists/execute')) {
+        return Promise.resolve(
+          makeSseResponse([
+            { type: 'output', content: 'Starting prepare-epic...\n' },
+            { type: 'output', content: 'Done.\n' },
+            { type: 'complete' },
+          ]),
+        );
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    });
+
+    render(<NarrativeView context="E1" minLoadingMs={0} />);
+    await screen.findByTestId('narrative-actions');
+
+    const primaryCta = screen
+      .getAllByTestId('cta-button')
+      .find((btn) => btn.getAttribute('data-play') === 'prepare-epic');
+    await act(async () => {
+      primaryCta!.click();
+    });
+
+    const slot = await screen.findByTestId('narrative-cta-slot');
+    await waitFor(() => {
+      const contentSlot = slot.querySelector('[data-testid="content-slot"]');
+      expect(contentSlot?.getAttribute('data-state')).toBe('complete');
+    });
+
+    // Compact post-completion view carries a summary + expand control.
+    expect(slot.querySelector('[data-testid="content-slot-summary"]')).not.toBeNull();
+    const expandBtn = slot.querySelector(
+      '[data-testid="content-slot-expand"]',
+    ) as HTMLButtonElement | null;
+    expect(expandBtn).not.toBeNull();
+    expect(expandBtn?.getAttribute('aria-expanded')).toBe('false');
+
+    // Expand control reveals the accumulated output.
+    await act(async () => {
+      expandBtn!.click();
+    });
+    const body = slot.querySelector('[data-testid="content-slot-expanded-body"]');
+    expect(body?.getAttribute('data-visible')).toBe('true');
+    const content = slot.querySelector('[data-testid="content-slot-content"]');
+    expect(content?.textContent ?? '').toContain('Starting prepare-epic');
+    expect(content?.textContent ?? '').toContain('Done.');
+  });
+
   it('shows an error ContentSlot when the execute endpoint streams a play failure', async () => {
     mockFetch((input) => {
       const url = typeof input === 'string' ? input : (input as URL | Request).toString();

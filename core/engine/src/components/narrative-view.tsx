@@ -432,7 +432,11 @@ function NarrativeActions({ actions }: NarrativeActionsProps) {
                 accumulated += event.content;
                 update((prev) => ({ ...prev, output: accumulated }));
               } else if (event.type === 'complete') {
-                update((prev) => ({ ...prev, state: 'active', output: accumulated }));
+                // Transition the slot to the compact "complete" lifecycle
+                // state so the post-completion summary + expand control
+                // render (VAL-ACTION-018). The full output remains
+                // available inside the expanded body.
+                update((prev) => ({ ...prev, state: 'complete', output: accumulated }));
               } else if (event.type === 'error') {
                 update((prev) => ({
                   ...prev,
@@ -446,6 +450,13 @@ function NarrativeActions({ actions }: NarrativeActionsProps) {
             }
           }
         }
+
+        // Stream ended without an explicit `complete` SSE event — fall
+        // through to the compact "complete" state so the slot collapses
+        // defensively rather than staying stuck in the active phase.
+        update((prev) =>
+          prev.state === 'active' ? { ...prev, state: 'complete', output: accumulated } : prev,
+        );
       })
       .catch((err: Error) => {
         if (err.name === 'AbortError') return;
@@ -492,6 +503,9 @@ function NarrativeActions({ actions }: NarrativeActionsProps) {
                     content={execution.output}
                     errorMessage={execution.error}
                     placeholder="Waiting for play output…"
+                    summary={
+                      execution.state === 'complete' ? `${action.playName} completed` : undefined
+                    }
                   />
                 </div>
               ) : null}

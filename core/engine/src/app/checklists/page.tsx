@@ -422,15 +422,22 @@ export default function ChecklistsPage() {
 
                   {/* ContentSlot — streams output below active step (VAL-CHECK-021).
                       Remains visible after completion so the user (and
-                      browser-based tests) can observe the final output. */}
+                      browser-based tests) can observe the final output.
+                      Post-completion collapses to a compact summary
+                      view with an expand control (VAL-ACTION-018). */}
                   {isStepExecutionAttached &&
                     greenfieldExecution &&
                     greenfieldExecution.status !== 'error' && (
                       <div className="mt-3 pl-9" data-testid="step-content-slot">
                         <ContentSlot
-                          state="active"
+                          state={greenfieldExecution.status === 'complete' ? 'complete' : 'active'}
                           content={greenfieldExecution.output}
                           placeholder={`Executing ${step.play}…`}
+                          summary={
+                            greenfieldExecution.status === 'complete'
+                              ? `${step.play} completed`
+                              : undefined
+                          }
                         />
                       </div>
                     )}

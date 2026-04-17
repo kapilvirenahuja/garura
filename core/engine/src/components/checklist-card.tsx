@@ -321,15 +321,23 @@ export function ChecklistCard({
 
                 {/* ContentSlot — streams output below active step (VAL-CHECK-021).
                     Remains visible after completion so the user (and
-                    browser-based tests) can observe the final output. */}
+                    browser-based tests) can observe the final output.
+                    Post-completion the slot collapses to a compact
+                    summary view with an expand control
+                    (VAL-ACTION-018). */}
                 {isStepExecutionAttached &&
                   activeExecution &&
                   activeExecution.status !== 'error' && (
                     <div className="mt-3 pl-9" data-testid="step-content-slot">
                       <ContentSlot
-                        state="active"
+                        state={activeExecution.status === 'complete' ? 'complete' : 'active'}
                         content={activeExecution.output}
                         placeholder={`Executing ${step.play}…`}
+                        summary={
+                          activeExecution.status === 'complete'
+                            ? `${step.play} completed`
+                            : undefined
+                        }
                       />
                     </div>
                   )}
