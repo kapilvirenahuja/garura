@@ -67,22 +67,33 @@ export function CTAButton({ label, playName, args, onExecute, disabled = false }
 
   const isDisabled = disabled || debounced;
 
+  // Prominent "double-border + accent" styling (VAL-ACTION-006): the
+  // wireframe represents CTAs as ╔══╗ / ╚══╝ — rendered via CSS
+  // `border-double`. Browsers require border width ≥ 3px for the second
+  // line to be painted, hence `border-[3px]`. The accent hue (blue family)
+  // keeps CTAs visually distinct from plain secondary buttons (which use
+  // gray borders) and aligns with the existing action accent palette.
+  const baseClasses =
+    'inline-flex items-center gap-2 rounded-md border-[3px] border-double px-4 py-2 text-sm font-medium transition-colors';
+  const activeClasses =
+    'border-blue-500 bg-blue-900/40 text-blue-200 hover:border-blue-400 hover:bg-blue-900/60';
+  const disabledClasses = 'cursor-not-allowed border-gray-700 bg-gray-800/50 text-gray-500';
+
   return (
     <button
       type="button"
       data-testid="cta-button"
       data-play={playName}
+      data-cta-prominent="true"
       onClick={handleClick}
       disabled={isDisabled}
       aria-disabled={isDisabled}
-      className={`inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors ${
-        isDisabled
-          ? 'cursor-not-allowed border-gray-700 bg-gray-800/50 text-gray-500'
-          : 'border-blue-700 bg-blue-900/50 text-blue-300 hover:border-blue-600 hover:bg-blue-900/70'
-      }`}
+      aria-label={`${label} — ${playName}`}
+      className={`${baseClasses} ${isDisabled ? disabledClasses : activeClasses}`}
     >
       <svg
-        className="h-4 w-4"
+        data-testid="cta-button-icon"
+        className="h-4 w-4 flex-shrink-0"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -101,7 +112,23 @@ export function CTAButton({ label, playName, args, onExecute, disabled = false }
           d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       </svg>
+      {/*
+        Label is kept as a direct text node so consumers that match the
+        button via `getByText(label)` (without a regex) continue to
+        resolve it — testing-library's `getByText` looks at the direct
+        text-node children of each element.
+      */}
       {label}
+      {/*
+        Mapped play name — visible per VAL-ACTION-006. Rendered as a
+        sibling span so the direct-text label above stays intact.
+      */}
+      <span
+        data-testid="cta-button-play"
+        className={`ml-1 font-mono text-xs ${isDisabled ? 'text-gray-500' : 'text-blue-300/80'}`}
+      >
+        → {playName}
+      </span>
     </button>
   );
 }
