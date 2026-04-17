@@ -255,7 +255,13 @@ describe('Flight Deck — data refresh mechanism', () => {
     });
   });
 
-  it('persists scroll position to sessionStorage when the component unmounts (VAL-FLIGHT-029)', async () => {
+  it('captures scroll position on click so Next.js scroll-to-top cannot clobber it (VAL-FLIGHT-029)', async () => {
+    // Real-browser sequence when user clicks a tab link:
+    //   1. `click` event fires with scrollY = 742
+    //   2. Next.js router handler calls scrollTo(0,0), scrollY → 0
+    //   3. Old page unmounts, scrollY stays 0
+    // If we save on unmount we write 0 and lose the position. The fix
+    // captures on the click in the capture phase — before step 2.
     mockFetchOnce(
       makeData({
         empty: false,
@@ -268,11 +274,100 @@ describe('Flight Deck — data refresh mechanism', () => {
       expect(screen.getByTestId('flight-deck-on-track')).toBeInTheDocument();
     });
 
-    // Simulate the user scrolling.
+    // Simulate the user having scrolled to y=742.
     Object.defineProperty(window, 'scrollY', { configurable: true, value: 742 });
-    unmount();
 
+    // User clicks a tab (or any other element) — this must persist the
+    // current scroll offset before any downstream handler runs.
+    fireEvent.click(document.body);
     expect(sessionStorage.getItem('mdb:flight-deck:scroll-y')).toBe('742');
+
+    // Next.js then scrolls to top as part of its navigation handler.
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+
+    // Finally the old page unmounts. The captured value must NOT be
+    // overwritten with 0 by the cleanup effect.
+    unmount();
+    expect(sessionStorage.getItem('mdb:flight-deck:scroll-y')).toBe('742');
+  });
+
+  it('captures scroll position on keydown navigation (VAL-FLIGHT-029)', async () => {
+    // Tab + Enter keyboard navigation follows the same sequence as click —
+    // `keydown` captures first, then Next.js triggers the scroll reset.
+    mockFetchOnce(
+      makeData({
+        empty: false,
+        onTrack: [makeOnTrackCard()],
+        metrics: { epicsInFlight: 1, activeDevelopers: 1, playsToday: 0, openIssues: 0 },
+      }),
+    );
+    render(<FlightDeckPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('flight-deck-on-track')).toBeInTheDocument();
+    });
+
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 612 });
+    fireEvent.keyDown(document.body, { key: 'Enter' });
+    expect(sessionStorage.getItem('mdb:flight-deck:scroll-y')).toBe('612');
+  });
+
+  it('throttled scroll listener persists scroll offsets for back/forward navigation (VAL-FLIGHT-029)', async () => {
+    // When the user navigates via browser back/forward the capture-phase
+    // click handler does not fire, so the hook must also keep
+    // sessionStorage warm via a throttled scroll listener. The throttle
+    // uses requestAnimationFrame, which jsdom advances synchronously
+    // enough that we can observe the value after flushing a frame.
+    mockFetchOnce(
+      makeData({
+        empty: false,
+        onTrack: [makeOnTrackCard()],
+        metrics: { epicsInFlight: 1, activeDevelopers: 1, playsToday: 0, openIssues: 0 },
+      }),
+    );
+    render(<FlightDeckPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('flight-deck-on-track')).toBeInTheDocument();
+    });
+
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 480 });
+    fireEvent.scroll(window);
+    // Let the rAF callback run.
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
+    expect(sessionStorage.getItem('mdb:flight-deck:scroll-y')).toBe('480');
+  });
+
+  it('does not overwrite a captured non-zero scroll when Next.js scrolls to 0 mid-navigation (VAL-FLIGHT-029)', async () => {
+    // Regression guard for the actual in-browser failure mode: after the
+    // user clicked a tab at y=300, Next.js fires a synthetic scroll to 0
+    // before the unmount runs. The scroll listener must NOT persist that
+    // synthetic 0 and wipe out the captured value.
+    mockFetchOnce(
+      makeData({
+        empty: false,
+        onTrack: [makeOnTrackCard()],
+        metrics: { epicsInFlight: 1, activeDevelopers: 1, playsToday: 0, openIssues: 0 },
+      }),
+    );
+    render(<FlightDeckPage />);
+    await waitFor(() => {
+      expect(screen.getByTestId('flight-deck-on-track')).toBeInTheDocument();
+    });
+
+    // User click captures the real offset.
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 300 });
+    fireEvent.click(document.body);
+    expect(sessionStorage.getItem('mdb:flight-deck:scroll-y')).toBe('300');
+
+    // Next.js now snaps to top.
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+    fireEvent.scroll(window);
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => resolve());
+    });
+    // The synthetic 0 must NOT overwrite the captured 300.
+    expect(sessionStorage.getItem('mdb:flight-deck:scroll-y')).toBe('300');
   });
 
   it('restores scroll position from sessionStorage on mount (VAL-FLIGHT-029)', async () => {
