@@ -26,6 +26,8 @@ import { CTAButton } from '@/components/cta-button';
 import { ContentSlot, type ContentSlotState } from '@/components/content-slot';
 import { CollapsedEntityExpansion, EntityExpansion } from '@/components/entity-expansion';
 import { WikiTagText } from '@/components/wiki-tag-text';
+import { AnnotationLayer } from '@/components/annotation-layer';
+import { NarrativeAnnotationProvider } from '@/components/narrative-annotation-context';
 import type { CtaAction } from '@/lib/narrative-ctas';
 import type { Narrative, NarrativeChunk, NarrativeSection } from '@/lib/narrative-engine';
 
@@ -265,68 +267,70 @@ export function NarrativeView({
   }
 
   return (
-    <article
-      data-testid="narrative-root"
-      data-content-hash={narrative.contentHash}
-      data-density={narrative.density}
-      data-from-cache={fromCache ? 'true' : 'false'}
-      // Alias `data-cache-hit` for browser-based validation (VAL-PLAY-014) —
-      // both attributes carry identical values so either can be used.
-      data-cache-hit={fromCache ? 'true' : 'false'}
-      data-compose-ms={typeof composeMs === 'number' ? String(composeMs) : undefined}
-      data-feature-count={narrative.featureCount}
-      className="space-y-6"
-    >
-      <header className="space-y-1">
-        <h2 className="text-2xl font-bold text-white" data-testid="narrative-title">
-          {narrative.epicName}
-        </h2>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400">
-          <span>{narrative.featureCount} features</span>
-          <span>·</span>
-          <span>density: {narrative.density}</span>
-          {narrative.status ? (
-            <>
-              <span>·</span>
-              <span>status: {narrative.status}</span>
-            </>
-          ) : null}
-          {fromCache ? (
-            <>
-              <span>·</span>
-              <span
-                data-testid="narrative-cache-badge"
-                className="rounded bg-emerald-900/30 px-2 py-0.5 text-emerald-300"
-              >
-                cache hit
-              </span>
-            </>
-          ) : null}
-        </div>
-      </header>
+    <NarrativeAnnotationProvider context={context}>
+      <article
+        data-testid="narrative-root"
+        data-content-hash={narrative.contentHash}
+        data-density={narrative.density}
+        data-from-cache={fromCache ? 'true' : 'false'}
+        // Alias `data-cache-hit` for browser-based validation (VAL-PLAY-014) —
+        // both attributes carry identical values so either can be used.
+        data-cache-hit={fromCache ? 'true' : 'false'}
+        data-compose-ms={typeof composeMs === 'number' ? String(composeMs) : undefined}
+        data-feature-count={narrative.featureCount}
+        className="space-y-6"
+      >
+        <header className="space-y-1">
+          <h2 className="text-2xl font-bold text-white" data-testid="narrative-title">
+            {narrative.epicName}
+          </h2>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400">
+            <span>{narrative.featureCount} features</span>
+            <span>·</span>
+            <span>density: {narrative.density}</span>
+            {narrative.status ? (
+              <>
+                <span>·</span>
+                <span>status: {narrative.status}</span>
+              </>
+            ) : null}
+            {fromCache ? (
+              <>
+                <span>·</span>
+                <span
+                  data-testid="narrative-cache-badge"
+                  className="rounded bg-emerald-900/30 px-2 py-0.5 text-emerald-300"
+                >
+                  cache hit
+                </span>
+              </>
+            ) : null}
+          </div>
+        </header>
 
-      {narrative.sections.map((section) => (
-        <NarrativeSectionView
-          key={section.id}
-          section={section}
-          onTokenClick={toggleToken}
-          tokenStates={tokenStates}
-          openToken={openToken}
-          collapseToken={collapseToken}
-        />
-      ))}
+        {narrative.sections.map((section) => (
+          <NarrativeSectionView
+            key={section.id}
+            section={section}
+            onTokenClick={toggleToken}
+            tokenStates={tokenStates}
+            openToken={openToken}
+            collapseToken={collapseToken}
+          />
+        ))}
 
-      {/*
+        {/*
         Contextual CTAs — dynamically selected based on the epic's current
         lifecycle state (e.g. "Run prepare-epic" when no plan exists yet,
         "Run quality-check" when implementation is underway). Rendered at
         the bottom of the narrative inside an "Actions" section so the
         narrative above stays visible and scrollable.
       */}
-      {narrative.actions && narrative.actions.length > 0 ? (
-        <NarrativeActions actions={narrative.actions} />
-      ) : null}
-    </article>
+        {narrative.actions && narrative.actions.length > 0 ? (
+          <NarrativeActions actions={narrative.actions} />
+        ) : null}
+      </article>
+    </NarrativeAnnotationProvider>
   );
 }
 
@@ -547,9 +551,13 @@ function NarrativeSectionView({
     (refId: string) => onTokenClick(section.id, refId),
     [onTokenClick, section.id],
   );
+  // Ref used by the AnnotationLayer to filter text-selection events to
+  // selections whose anchor is inside this section.
+  const sectionDomRef = useRef<HTMLElement | null>(null);
 
   return (
     <section
+      ref={sectionDomRef}
       data-testid="narrative-section"
       data-section-id={section.id}
       data-section-level={section.level}
@@ -558,7 +566,12 @@ function NarrativeSectionView({
       <HeadingTag className={headingClass}>{section.heading}</HeadingTag>
       <p data-testid="narrative-section-text" className="leading-relaxed text-gray-300">
         {section.chunks.map((chunk, idx) => (
-          <ChunkView key={idx} chunk={chunk} onTokenClick={handleClickHere} />
+          <ChunkView
+            key={idx}
+            chunk={chunk}
+            onTokenClick={handleClickHere}
+            sectionId={section.id}
+          />
         ))}
       </p>
 
@@ -569,6 +582,16 @@ function NarrativeSectionView({
         openToken={openToken}
         collapseToken={collapseToken}
       />
+
+      {/*
+        Annotation layer for this section (VAL-ACTION-020 – VAL-ACTION-024).
+        Only rendered under level-2 sections so nested subsections share the
+        parent's annotation surface — this keeps the comment thread close to
+        the enclosing topic rather than sprinkling it through every sub-heading.
+      */}
+      {section.level === 2 ? (
+        <AnnotationLayer sectionId={section.id} sectionRef={sectionDomRef} />
+      ) : null}
 
       {section.subsections?.map((sub) => (
         <NarrativeSectionView
@@ -587,15 +610,16 @@ function NarrativeSectionView({
 interface ChunkProps {
   chunk: NarrativeChunk;
   onTokenClick: (refId: string) => void;
+  sectionId?: string;
 }
 
-function ChunkView({ chunk, onTokenClick }: ChunkProps) {
+function ChunkView({ chunk, onTokenClick, sectionId }: ChunkProps) {
   if (chunk.type === 'text') {
     // Render prose, substituting interactive WikiTagRunner components for
     // any `[[play:prompt]]` patterns we encounter (mdb-wiki-tag-parser).
     return (
       <span>
-        <WikiTagText text={chunk.text} />
+        <WikiTagText text={chunk.text} sectionId={sectionId} />
       </span>
     );
   }

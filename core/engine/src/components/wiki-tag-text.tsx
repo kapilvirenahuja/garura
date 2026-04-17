@@ -27,9 +27,15 @@ import { WikiTagRunner } from '@/components/wiki-tag-runner';
 export interface WikiTagTextProps {
   /** The raw prose string to render. */
   readonly text: string;
+  /**
+   * Optional narrative section id forwarded to every WikiTagRunner so
+   * completed results are persisted against the correct anchor
+   * (VAL-ACTION-025 / VAL-ACTION-026).
+   */
+  readonly sectionId?: string;
 }
 
-export function WikiTagText({ text }: WikiTagTextProps) {
+export function WikiTagText({ text, sectionId }: WikiTagTextProps) {
   const segments = parseWikiTagSegments(text);
 
   // Short-circuit when no tags were detected — avoid wrapping plain text in
@@ -46,7 +52,7 @@ export function WikiTagText({ text }: WikiTagTextProps) {
         seg.type === 'text' ? (
           <React.Fragment key={i}>{seg.text}</React.Fragment>
         ) : (
-          <WikiTagRunner key={i} play={seg.play} prompt={seg.prompt} />
+          <WikiTagRunner key={i} play={seg.play} prompt={seg.prompt} sectionId={sectionId} />
         ),
       )}
     </>
