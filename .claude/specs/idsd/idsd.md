@@ -3,17 +3,17 @@
 **Version:** 3.1.0
 **Date:** 2026-04-13
 **Status:** IN PROGRESS — Major restructure. Core plays complete. Pipeline refactor pending (#106). Recent hardening via #191, #195, #200, #206.
-**Author:** Meridian
+**Author:** Garura
 
 ---
 
 ## Intent
 
-**Intent:** Build a complete AI-native software development lifecycle for Meridian that covers the full journey from product discovery through feature delivery, operations, and learning — where humans express intent and AI agents execute with full traceability, audience separation, and context economy.
+**Intent:** Build a complete AI-native software development lifecycle for Garura that covers the full journey from product discovery through feature delivery, operations, and learning — where humans express intent and AI agents execute with full traceability, audience separation, and context economy.
 
 **Constraints:**
 - MUST follow IDD principles — intent in, quality out
-- MUST respect Meridian architecture: Plays → Agents → Skills
+- MUST respect Garura architecture: Plays → Agents → Skills
 - MUST maintain audience separation — each artifact serves ONE stakeholder
 - MUST maintain context economy — agents load only what they need (≤12K tokens per task)
 - MUST follow play constraints (atomic ≤2 agents, high-order ≤5 agents)
@@ -115,7 +115,7 @@ Full IDD principles: `docs/philosophy/intent-driven-development.md`
 | 2 | Signals | System activates through event-driven triggers, not manual kickoffs | User CLI invocations (`/discover-product`, `/implement-epic`) are the current signal mechanism. Plays are the entry point for all signals. |
 | 3 | Orchestrated Intent | Plays bridge intent and execution at graduated autonomy levels | Atomic plays (≤2 agents), high-order plays (≤5 agents). Three speeds: Fast (minutes), Planned (hours), Strategic (days). 19 prioritized plays across 8 phases (5 primary, 3 supporting). |
 | 4 | Agents | Autonomous decision-makers accept intent and determine HOW within their domain | 11 agents: product-strategist, code-builder, tech-designer, eval-generator, quality-auditor, judge, repo-orchestrator, project-orchestrator, doc-builder, intent-crafter, intent-resolver. Agent-first pattern enforced. |
-| 5 | Memory | Persistent organizational context across sessions | LTM (`core/components/memory/`) for practices, standards, templates. STM (`.meridian/{issue}/`) for per-issue work context. LTM governance via Git: PR-based promotion with tiered review (project-level → team, org-level → engineering leaders). Memory enables deterministic adaptation. |
+| 5 | Memory | Persistent organizational context across sessions | LTM (`core/components/memory/`) for practices, standards, templates. STM (`.garura/{issue}/`) for per-issue work context. LTM governance via Git: PR-based promotion with tiered review (project-level → team, org-level → engineering leaders). Memory enables deterministic adaptation. |
 | 6 | Skills | Bounded, repeatable execution capabilities that agents invoke | Skills execute work; they never decide when they run. Each play lists its skills with input/output contracts. |
 | 7 | Context-Aware Decisions | Every decision accounts for full environmental context | Context bundles ≤12K tokens per agent task. Audience separation (product/architect/implementer/validator). Agents read LTM + STM to build execution context. |
 | 8 | Generation-Verification Loops | Every output passes through quality gates | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per play. Evidence artifacts. Tether/Vanish checkpoints. Eval-driven TDD in implement-epic. |
@@ -378,7 +378,7 @@ Plays are built one at a time. Priority set by user. Existing plays marked for I
 | Compiled At | 2026-03-06 |
 
 **Consumes:** Issue ID, description, or no args (infers from changed files)
-**Generates:** GitHub issue, feature branch (`{type}/{issue}-{slug}`), `.meridian/{issue}/` STM directory
+**Generates:** GitHub issue, feature branch (`{type}/{issue}-{slug}`), `.garura/{issue}/` STM directory
 
 **Arguments:**
 ```
@@ -489,7 +489,7 @@ tools: [Task, Read, Write, Glob, Grep, Skill]
 intent: "Discover product vision, strategic goals, and market positioning"
 constraints:
   - C1: Intent text required for DRAFT — >5 meaningful words
-  - C6: Artifacts go to .meridian/project/product/{slug}/
+  - C6: Artifacts go to .garura/project/product/{slug}/
   - C7: Strategic Goals, not OKRs
   - C10: Interactive HTML brief with inline comment system
 failure_conditions:
@@ -867,7 +867,7 @@ Step 19: Write evidence, present final report, evidence self-commit
 **Generates:** PR with dynamic quality checklist, change-specific evidence, embedded eval results
 
 **Key behaviors:**
-- Platform-agnostic (reads `platform:` from .meridian/core/config.yaml)
+- Platform-agnostic (reads `platform:` from .garura/core/config.yaml)
 - Checklist items are change-specific (every item has trigger reason tracing to diff)
 - Confidence-gated — high confidence auto-submits; low confidence requires human review
 - Checkpoint SKIPPED when all confidence signals high
@@ -969,7 +969,7 @@ Every play → agent invocation uses a JSON contract:
 ```json
 {
   "intent_path": "{play_dir}/reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
+  "stm_base": ".garura/project/product/",
   "slug": "{slug}",
   "task_id": "{task-id}",
   "stm": {

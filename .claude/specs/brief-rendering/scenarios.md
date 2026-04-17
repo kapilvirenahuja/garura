@@ -322,7 +322,7 @@
 
 **Pass Criteria:**
 - Text selection on rendered content triggers the comment popup
-- Comments are saved to localStorage with key `meridian-comments-{artifact}-{slug}`
+- Comments are saved to localStorage with key `garura-comments-{artifact}-{slug}`
 - Comments tab lists all saved comments with tab label and text excerpt
 - Tether/Vanish/Orbit export buttons produce correct JSON payload
 - Comments survive page reload (localStorage persistence)

@@ -1,6 +1,6 @@
-# MDB — Meridian Artifact Browser: ASCII Wireframes
+# Garura: ASCII Wireframes
 
-> Design document for the wiki-like artifact browser for Meridian's structured
+> Design document for the wiki-like artifact browser for Garura's structured
 > YAML/Markdown product lifecycle artifacts. Five scenarios covering the full
 > spectrum from greenfield to dense multi-epic projects.
 

@@ -1,8 +1,5 @@
 # ADR 011: STM as Inter-Skill Data Transport (Phoenix Architecture)
 
-> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
-
-
 ## Status
 
 Accepted
@@ -46,8 +43,8 @@ play passes:   scoped_epics: {from Step 1}
 skill_B receives: scoped_epics in context
 
 ✅ CORRECT — STM transport
-skill_A writes:   .meridian/project/product/{slug}/epics.yaml
-skill_A returns:  { epics_path: ".meridian/..." }
+skill_A writes:   .garura/project/product/{slug}/epics.yaml
+skill_A returns:  { epics_path: ".garura/..." }
 play passes:    epics_path: "{from Step 1}"
 skill_B reads:    Read tool call to epics_path
 ```
@@ -71,8 +68,8 @@ Any skill consuming upstream output must:
 **3. Paths are the contract, not data shapes**
 
 Play context passes paths between steps:
-- `epics_path: ".meridian/project/product/{slug}/epics.yaml"`
-- `feasibility_path: ".meridian/project/product/{slug}/feasibility.yaml"`
+- `epics_path: ".garura/project/product/{slug}/epics.yaml"`
+- `feasibility_path: ".garura/project/product/{slug}/feasibility.yaml"`
 
 Not data blobs like `scoped_epics: {full yaml}`.
 
@@ -80,7 +77,7 @@ Not data blobs like `scoped_epics: {full yaml}`.
 
 Every intermediate artifact has a canonical path pattern:
 ```
-.meridian/project/product/{slug}/{artifact-name}.yaml
+.garura/project/product/{slug}/{artifact-name}.yaml
 ```
 
 These files are:
@@ -136,7 +133,7 @@ The checkpoint (Step 4) stores paths, not data. Resume reads paths from the chec
 
 ### Mitigations
 
-- Path convention is centralized (`.meridian/project/product/{slug}/`) — one place to change
+- Path convention is centralized (`.garura/project/product/{slug}/`) — one place to change
 - `artifact_base` is a single parameter injected once by the play and threaded through
 - I/O overhead is negligible compared to the cost of context reconstruction and failure recovery
 

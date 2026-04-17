@@ -1,4 +1,4 @@
-# MDB v2 — Meridian Artifact Browser: Generative UX Wireframes
+# Garura Engine v2 — Garura Artifact Browser: Generative UX Wireframes
 
 > Complete redesign from v1. Three discrete levels — **Project Cockpit**, **Journey Map**,
 > **Artifact Detail** — with clear transitions. No sidebar file tree. Pages are generatively
@@ -27,7 +27,7 @@
 ┊ 🤖 Generated        ┊
 ┊─────────────────────┊
 
-╔═════════════════════╗     Double border  = CTA / Action button (maps to a Meridian play)
+╔═════════════════════╗     Double border  = CTA / Action button (maps to a Garura play)
 ║  Action Button      ║
 ╚═════════════════════╝
 
@@ -44,7 +44,7 @@ The top bar is a static shell, always present. The readiness gauge updates react
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  ◈ MERIDIAN   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings           │
+│  ◈ GARURA   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings           │
 │                                                  │ 🔍 Search...     │   ▔▔▔▔▔▔▔                         │
 │                                                  └──────────────────┘                                    │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -59,11 +59,11 @@ The top bar is a static shell, always present. The readiness gauge updates react
 
 ## Screen 1: Project Cockpit — Greenfield (Readiness: 0)
 
-*Just installed Meridian. No artifacts, no code detection. Maximum simplicity.*
+*Just installed Garura. No artifacts, no code detection. Maximum simplicity.*
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  ◈ MERIDIAN   My New Project                    ┌──────────────────┐   ◉ 0/100    ⚙ Settings            │
+│  ◈ GARURA   My New Project                    ┌──────────────────┐   ◉ 0/100    ⚙ Settings            │
 │                                                  │ 🔍 Search...     │   ▔▔▔▔▔▔                          │
 │                                                  └──────────────────┘                                    │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -84,10 +84,10 @@ The top bar is a static shell, always present. The readiness gauge updates react
 │                   ┊──────────────────────────────────────────────────────────┊                            │
 │                   ┊  🤖 GENERATIVE: Welcome Message                          ┊                            │
 │                   ┊                                                          ┊                            │
-│                   ┊  Welcome to Meridian.                                    ┊                            │
+│                   ┊  Welcome to Garura.                                    ┊                            │
 │                   ┊  Let's get your project started.                         ┊                            │
 │                   ┊                                                          ┊                            │
-│                   ┊  Meridian guides you from idea to implementation         ┊                            │
+│                   ┊  Garura guides you from idea to implementation         ┊                            │
 │                   ┊  through structured product thinking. Start by           ┊                            │
 │                   ┊  describing what you want to build.                      ┊                            │
 │                   ┊                                                          ┊                            │
@@ -99,7 +99,7 @@ The top bar is a static shell, always present. The readiness gauge updates react
 │                   ┊  ╔══════════════════════════════════════════════════╗     ┊                            │
 │                   ┊  ║  📝  Provide Your Project Brief                 ║     ┊                            │
 │                   ┊  ║                                                  ║     ┊                            │
-│                   ┊  ║  Describe your product idea. Meridian will       ║     ┊                            │
+│                   ┊  ║  Describe your product idea. Garura will       ║     ┊                            │
 │                   ┊  ║  extract market context, users, and scope.      ║     ┊                            │
 │                   ┊  ║                                          → Start ║     ┊                            │
 │                   ┊  ╚══════════════════════════════════════════════════╝     ┊                            │
@@ -110,7 +110,7 @@ The top bar is a static shell, always present. The readiness gauge updates react
 │                   ┊  🤖 GENERATIVE: What Happens Next                        ┊                            │
 │                   ┊                                                          ┊                            │
 │                   ┊  1. You describe your idea in plain language              ┊                            │
-│                   ┊  2. Meridian researches the market & competition          ┊                            │
+│                   ┊  2. Garura researches the market & competition          ┊                            │
 │                   ┊  3. A structured product spec is generated                ┊                            │
 │                   ┊  4. You review and lock the spec                          ┊                            │
 │                   ┊                                                          ┊                            │
@@ -138,11 +138,11 @@ based on what's missing), "What happens next" explanation (adapts to detected pr
 
 ## Screen 2: Project Cockpit — Brownfield (Readiness: 0, code exists)
 
-*Existing codebase detected. No Meridian artifacts yet. Generative engine adapts messaging.*
+*Existing codebase detected. No Garura artifacts yet. Generative engine adapts messaging.*
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  ◈ MERIDIAN   acme-dashboard                    ┌──────────────────┐   ◉ 0/100    ⚙ Settings            │
+│  ◈ GARURA   acme-dashboard                    ┌──────────────────┐   ◉ 0/100    ⚙ Settings            │
 │                                                  │ 🔍 Search...     │   ▔▔▔▔▔▔                          │
 │                                                  └──────────────────┘                                    │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -160,7 +160,7 @@ based on what's missing), "What happens next" explanation (adapts to detected pr
 │                   ┊  🤖 GENERATIVE: Welcome Message (brownfield variant)     ┊                            │
 │                   ┊                                                          ┊                            │
 │                   ┊  We detected an existing codebase.                       ┊                            │
-│                   ┊  Let's onboard it to Meridian.                           ┊                            │
+│                   ┊  Let's onboard it to Garura.                           ┊                            │
 │                   ┊                                                          ┊                            │
 │                   ┊──────────────────────────────────────────────────────────┊                            │
 │                                                                                                          │
@@ -184,7 +184,7 @@ based on what's missing), "What happens next" explanation (adapts to detected pr
 │                   ┊  ╔══════════════════════════════════════════════════╗     ┊                            │
 │                   ┊  ║  🔍  Analyze & Onboard Your Project             ║     ┊                            │
 │                   ┊  ║                                                  ║     ┊                            │
-│                   ┊  ║  Meridian will scan your codebase, infer        ║     ┊                            │
+│                   ┊  ║  Garura will scan your codebase, infer        ║     ┊                            │
 │                   ┊  ║  architecture, detect patterns, and create      ║     ┊                            │
 │                   ┊  ║  a project profile. Then we'll guide you        ║     ┊                            │
 │                   ┊  ║  through specifying what you're building.       ║     ┊                            │
@@ -196,7 +196,7 @@ based on what's missing), "What happens next" explanation (adapts to detected pr
 │                   ┊──────────────────────────────────────────────────────────┊                            │
 │                   ┊  🤖 GENERATIVE: Onboarding Explanation                   ┊                            │
 │                   ┊                                                          ┊                            │
-│                   ┊  During onboarding, Meridian will:                        ┊                            │
+│                   ┊  During onboarding, Garura will:                        ┊                            │
 │                   ┊  • Map your project structure and dependencies            ┊                            │
 │                   ┊  • Detect architectural patterns (React SPA, REST API)   ┊                            │
 │                   ┊  • Identify existing quality signals (67% test coverage) ┊                            │
@@ -230,7 +230,7 @@ and copy vs greenfield), onboarding explanation (references detected specifics l
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  ◈ MERIDIAN   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings            │
+│  ◈ GARURA   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings            │
 │                                                  │ 🔍 Search...     │   ▔▔▔▔▔▔▔                         │
 │                                                  └──────────────────┘                                    │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -327,11 +327,11 @@ buckets (static aggregation bins), breadcrumb, "View Full Journey" link.
 
 ## Screen 4: Journey Map
 
-*Horizontal journey progression. Shows where every epic sits in the Meridian lifecycle.*
+*Horizontal journey progression. Shows where every epic sits in the Garura lifecycle.*
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  ◈ MERIDIAN   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings            │
+│  ◈ GARURA   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings            │
 │                                                  │ 🔍 Search...     │   ▔▔▔▔▔▔▔                         │
 │                                                  └──────────────────┘                                    │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -428,7 +428,7 @@ buckets (static aggregation bins), breadcrumb, "View Full Journey" link.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  ◈ MERIDIAN   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings            │
+│  ◈ GARURA   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings            │
 │                                                  │ 🔍 Search...     │   ▔▔▔▔▔▔▔                         │
 │                                                  └──────────────────┘                                    │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -533,7 +533,7 @@ artifact grid structure (cards in a grid layout).
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  ◈ MERIDIAN   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings            │
+│  ◈ GARURA   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings            │
 │                                                  │ 🔍 Search...     │   ▔▔▔▔▔▔▔                         │
 │                                                  └──────────────────┘                                    │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -646,7 +646,7 @@ artifact grid structure (cards in a grid layout).
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  ◈ MERIDIAN   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings            │
+│  ◈ GARURA   TaskFlow                          ┌──────────────────┐   ◉ 45/100   ⚙ Settings            │
 │                                                  │ 🔍 Search...     │   ▔▔▔▔▔▔▔                         │
 │                                                  └──────────────────┘                                    │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤

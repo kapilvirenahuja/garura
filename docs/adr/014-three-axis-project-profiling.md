@@ -1,8 +1,5 @@
 # ADR 014: Three-Axis Project Profiling Model
 
-> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
-
-
 ## Status
 
 Accepted
@@ -13,7 +10,7 @@ Accepted
 
 ## Context
 
-Meridian previously had Product Profile (PP) and Non-Functional Requirements (NFR) definitions as knowledge-only documents — reference material stored in LTM but not wired into any play workflow. Agents could consult them, but no play stage explicitly derived, stored, or propagated profile values through the pipeline.
+Garura previously had Product Profile (PP) and Non-Functional Requirements (NFR) definitions as knowledge-only documents — reference material stored in LTM but not wired into any play workflow. Agents could consult them, but no play stage explicitly derived, stored, or propagated profile values through the pipeline.
 
 This created two problems:
 

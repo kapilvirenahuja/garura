@@ -28,7 +28,7 @@ C16 (intent.yaml line 103-107) requires vertical-story TDD but does not require 
 
 ### Gap 2: Quality Profile does not flow into quality gates
 
-`prepare-architecture` produces `quality-standards.yaml` at `.meridian/product/architecture/quality-standards.yaml` with 7 QP dimensions, specific levels, coverage targets, and thresholds.
+`prepare-architecture` produces `quality-standards.yaml` at `.garura/product/architecture/quality-standards.yaml` with 7 QP dimensions, specific levels, coverage targets, and thresholds.
 
 `implement-epic` Step 3 (lines 176-197) creates quality gates by sniffing the project toolchain generically:
 
@@ -122,7 +122,7 @@ Produced by orchestrator (Step 3b) by extracting:
 
 **Step 3 redesigned to read quality-standards.yaml:**
 
-1. Check if `.meridian/product/architecture/quality-standards.yaml` exists
+1. Check if `.garura/product/architecture/quality-standards.yaml` exists
 2. If yes: translate QP dimension levels into concrete thresholds (see Section 5)
 3. If no: fall back to current generic toolchain detection (backward compatibility)
 
@@ -153,7 +153,7 @@ quality_gates:
     required: "{true if QP-3 >= 2}"
     api_doc_check: "{from QS}"
 source:
-  quality_standards_path: ".meridian/product/architecture/quality-standards.yaml"
+  quality_standards_path: ".garura/product/architecture/quality-standards.yaml"
   generated_at: "{timestamp}"
 ```
 
@@ -395,7 +395,7 @@ Phase: Scenario Validation + Evidence
 
 **C14 (quality agent scope):** New: "The quality agent receives quality vision gates (which include QP-derived thresholds when quality-standards.yaml is present)."
 
-**C15 (quality gates in STM):** New: "When `.meridian/product/architecture/quality-standards.yaml` exists, gates MUST derive thresholds from it. When absent, gates are detected from toolchain defaults."
+**C15 (quality gates in STM):** New: "When `.garura/product/architecture/quality-standards.yaml` exists, gates MUST derive thresholds from it. When absent, gates are detected from toolchain defaults."
 
 **C16 (vertical story TDD):** Split responsibilities. New: "Each scope item's tests are authored by the test-writer from specifications before the code-builder sees them. The code-builder implements each scope item to make its tests pass. Scope items are not batched."
 

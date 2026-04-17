@@ -19,7 +19,7 @@ Each `intent` field describes a business outcome, not a technical procedure.
 | Rule | Anti-Pattern | Example |
 |------|-------------|---------|
 | No tool names | "Commit using git..." | "Safely persist completed work..." |
-| No file paths | "Write to .meridian/..." | "...with full traceability" |
+| No file paths | "Write to .garura/..." | "...with full traceability" |
 | No HOW prescriptions | "by grouping changes and running..." | "...as conventional commits" |
 | Single statement | Multiple sentences with different goals | One cohesive outcome |
 | Self-evident testability | "Improve the commit process" | "Persist completed work with traceability to a tracked issue" |

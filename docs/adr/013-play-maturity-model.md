@@ -1,8 +1,5 @@
 # ADR 013: Play Maturity Model — From Compiled Intents to Dark Factories
 
-> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
-
-
 **Status:** Accepted
 **Date:** 2026-03-06
 **Supersedes:** None
@@ -18,7 +15,7 @@ The signal from the ground: the cognitive load that specifications add to develo
 
 The core tension: **intent-driven design is the right architecture** (constraints, failure conditions, scenarios give structure and traceability), but **runtime resolution of intent is the wrong execution model** (generating DAGs on every run, caching, managing state across three artifacts — intent.yaml, DAG JSON, SKILL.md — creates overhead that drowns the value).
 
-Meridian experienced this directly:
+Garura experienced this directly:
 
 1. **Linear stage model** (original): Plays defined fixed stages (1-5) with direct execution. Fast, readable, deterministic. But brittle — no formal intent contract, no eval framework, no crash recovery.
 
@@ -28,7 +25,7 @@ The answer is not to abandon intent. The answer is to **compile intent out of th
 
 ### The Maturity Framework
 
-Dan Shapiro's "Five Levels: from Spicy Autocomplete to the Dark Factory" provides a useful framework for mapping play maturity. His model draws from the NHTSA driving automation scale and defines five levels of AI autonomy in software development. We adopt his level definitions as the maturity framework for Meridian's Intent-Driven Software Development (IDSD) plays:
+Dan Shapiro's "Five Levels: from Spicy Autocomplete to the Dark Factory" provides a useful framework for mapping play maturity. His model draws from the NHTSA driving automation scale and defines five levels of AI autonomy in software development. We adopt his level definitions as the maturity framework for Garura's Intent-Driven Software Development (IDSD) plays:
 
 | Level | Shapiro's Analogy | Human Role |
 |-------|-------------------|------------|
@@ -38,7 +35,7 @@ Dan Shapiro's "Five Levels: from Spicy Autocomplete to the Dark Factory" provide
 | 4 | Robotaxi — PM writes spec, leaves for 12 hours | Writes intent, reviews outcomes (not process) |
 | 5 | Fanuc's lights-out factory | System designer. Validates outcomes. May not review code at all. |
 
-This ADR maps these levels to Meridian's play architecture and establishes the maturity model that governs how plays are built and executed.
+This ADR maps these levels to Garura's play architecture and establishes the maturity model that governs how plays are built and executed.
 
 ## Decision
 
@@ -245,7 +242,7 @@ Read intent
 
 ## Where We Are Today
 
-**Meridian is at Level 2.**
+**Garura is at Level 2.**
 
 We attempted to jump to Level 4 (runtime DAG resolution) prematurely. The result:
 - Plays became unreadable

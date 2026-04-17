@@ -59,7 +59,7 @@ These gates apply to all plays and must be satisfied throughout the build.
 - [ ] `judge.md` includes structured failure return section with all required fields
 - [ ] `validator.md` includes structured failure return section when built (P10 prerequisite)
 - [ ] All structured failure returns include: `within_my_domain`, `responsible_domain`, `suggested_agent`
-- [ ] All agents reference `~/.meridian/core/memory/practices/structured-failure-protocol.md`
+- [ ] All agents reference `~/.garura/core/memory/practices/structured-failure-protocol.md`
 - [ ] No agent returns a raw error string — always returns structured failure YAML
 - [ ] All structured failures include: `self_recovery_attempted` and `self_recovery_details` fields
 - [ ] Max 1 self-recovery attempt documented per agent
@@ -484,7 +484,7 @@ These gates apply to all plays and must be satisfied throughout the build.
 - [ ] `draft-ltm-entry` skill output contract declares: ltm_entry with path, title, content, append_or_merge
 - [ ] Generated LTM entries target `core/components/memory/` directory (not STM)
 - [ ] Play does NOT overwrite existing LTM — output contract specifies append or propose merge
-- [ ] Play includes STM→LTM promotion step: issue-specific learnings captured in `.meridian/{issue}/` STM are promoted into long-term organizational memory at `core/components/memory/`
+- [ ] Play includes STM→LTM promotion step: issue-specific learnings captured in `.garura/{issue}/` STM are promoted into long-term organizational memory at `core/components/memory/`
 - [ ] Play documents LTM governance workflow: generated entries staged for PR-based review, NOT written directly to `core/components/memory/`
 - [ ] Play documents tiered review: project-level LTM → team leads review; org-level LTM → engineering leaders/CTOs review
 - [ ] `extract-patterns` skill contract documents semantic overlap detection with existing LTM entries (designed capability — may not be built in v1)
@@ -547,7 +547,7 @@ These gates apply to all plays and must be satisfied throughout the build.
 - [ ] Play embeds start-feature flow: issue resolution + branch creation + STM initialization (does not call start-feature separately)
 - [ ] Plan sub-agent prompt instructs IDD intent header on each planning artifact (spec.md, verify.md, tasks.md)
 - [ ] Planning artifacts are lightweight: no formal gates, no bundles, no audience separation
-- [ ] Planning artifacts stored at `.meridian/{issue}/planning/` (not `.meridian/{issue}/spec/`)
+- [ ] Planning artifacts stored at `.garura/{issue}/planning/` (not `.garura/{issue}/spec/`)
 - [ ] code-builder invocation is scoped to CODE only (no docs, no markdown, no config)
 - [ ] Play builds working code with tests
 - [ ] Play commits via repo-orchestrator (agent-first — not direct git)
@@ -580,7 +580,7 @@ These gates apply to all plays and must be satisfied throughout the build.
 - [x] Play accepts `--phase <draft|validate|lock>` argument
 - [x] Play accepts `--artifact <path>` argument for validate/lock phases
 - [x] Play accepts `[intent]` free-text argument
-- [x] Draft phase output: `.meridian/project/product/{slug}/product.yaml` (status DRAFT) — **NOT vision.md**
+- [x] Draft phase output: `.garura/project/product/{slug}/product.yaml` (status DRAFT) — **NOT vision.md**
 - [x] product.yaml consolidates market context + vision in single file
 - [x] product.yaml includes `strategic_goals[].id` (SG-IDs for downstream reference) — NOT OKRs
 - [x] Draft phase: doc-builder generates `product-brief.html` (tabbed layout: Market Context, Vision, Scope, Comments) — **NOT brief.html**
@@ -689,10 +689,10 @@ These gates apply to all plays and must be satisfied throughout the build.
 - [ ] `backlog-epic.md` template includes story fields with INVEST checklist
 - [ ] `business-review.md` template uses PM-facing language (no technical jargon in PM sections)
 - [ ] `business-review.md` template audience declared: "Product Manager / Business Owner"
-- [ ] Artifacts use storage path: `.meridian/project/product/{slug}/vision.md`
-- [ ] Artifacts use storage path: `.meridian/project/product/{slug}/roadmap.md`
-- [ ] Artifacts use storage path: `.meridian/project/product/{slug}/backlog/{epic}.md`
-- [ ] Business review stored at: `.meridian/project/product/{slug}/reviews/{artifact}-review.md`
+- [ ] Artifacts use storage path: `.garura/project/product/{slug}/vision.md`
+- [ ] Artifacts use storage path: `.garura/project/product/{slug}/roadmap.md`
+- [ ] Artifacts use storage path: `.garura/project/product/{slug}/backlog/{epic}.md`
+- [ ] Business review stored at: `.garura/project/product/{slug}/reviews/{artifact}-review.md`
 - [ ] No template references `okrs.md` path or OKR structure
 
 **Evidence:** `evidence/g-107-product-templates.md` — template file paths, IDD header presence, OKR absence, audience declarations, storage paths
@@ -805,7 +805,7 @@ These gates apply to all plays and must be satisfied throughout the build.
 - [x] roadmap.yaml: `approved_brief_ref` points to approved-roadmap-brief.html
 - [x] roadmap.yaml: feasibility data consolidated from tech-designer output
 - [x] Step 7: scenario evals (SCE-1, SCE-2, SCE-4) recorded with PASS/FAIL
-- [x] Resume: status file at `.meridian/project/product/{slug}/status/plan-roadmap.json`
+- [x] Resume: status file at `.garura/project/product/{slug}/status/plan-roadmap.json`
 - [x] Evidence self-commit via repo-orchestrator (non-blocking)
 - [ ] roadmap.yaml schema validated against `.claude/specs/artifact-schemas/roadmap.yaml`
 - [ ] **PENDING-REFACTOR (#106):** features.yaml will be produced here (not in prepare-implementation) after #106 resolves
@@ -835,7 +835,7 @@ These gates apply to all plays and must be satisfied throughout the build.
 - [ ] Play accepts `--artifact <path>` argument for validate/lock phases
 - [ ] Play accepts `[intent]` or epic description as input
 - [ ] Draft phase: invokes product-strategist → decompose-product-epic → draft-product-stories
-- [ ] Draft phase output: `.meridian/project/product/{slug}/backlog/{epic}.md` (status DRAFT)
+- [ ] Draft phase output: `.garura/project/product/{slug}/backlog/{epic}.md` (status DRAFT)
 - [ ] Validate phase: invokes product-strategist → validate-product-backlog
 - [ ] Lock phase: runs cascade-sync, sets backlog/{epic}.md to LOCKED
 - [ ] Play works with roadmap.md as input OR intent alone (intent-sufficient)
@@ -952,7 +952,7 @@ These gates apply to all plays and must be satisfied throughout the build.
 - [ ] Output contract includes: steps list with step text, status, evidence
 - [ ] Output contract includes: evidence_path (path to evidence file at `evidence/g-{NNN}-*.md`)
 - [ ] Output contract includes: issues list with message, severity, fix_hint
-- [ ] Evidence file created at `.meridian/{issue}/evidence/g-{NNN}-*.md` for each gate verified
+- [ ] Evidence file created at `.garura/{issue}/evidence/g-{NNN}-*.md` for each gate verified
 - [ ] Reference file exists: `verify-gate/reference/gate-patterns.md`
 - [ ] Skill verifies individual gates — called once per gate, not bulk
 - [ ] Skill does NOT modify implementation — read-only verification
@@ -1151,7 +1151,7 @@ These gates apply to all plays and must be satisfied throughout the build.
 - [ ] Output contract includes: delivery_report.pr (url, branch)
 - [ ] Output contract includes: delivery_report.evidence_manifest (path to evidence/)
 - [ ] Delivery report template exists: `templates/delivery-report.md`
-- [ ] Report stored at: `.meridian/{issue}/delivery/delivery-report.md`
+- [ ] Report stored at: `.garura/{issue}/delivery/delivery-report.md`
 - [ ] Report is human-readable markdown (not raw YAML)
 
 **Evidence:** `evidence/g-331-delivery-report-skill.md` — skill file, output contract, template structure, report path
@@ -1332,15 +1332,15 @@ These gates apply to all plays and must be satisfied throughout the build.
 | Depends On | G-100 |
 
 **Verification Steps:**
-- [ ] Product-2-Design artifacts stored at `.meridian/project/product/{slug}/vision.md`
-- [ ] Product-2-Design artifacts stored at `.meridian/project/product/{slug}/roadmap.md`
-- [ ] Product-2-Design artifacts stored at `.meridian/project/product/{slug}/backlog/{epic}.md`
-- [ ] Product-2-Design reviews stored at `.meridian/project/product/{slug}/reviews/{artifact}-review.md`
-- [ ] Per-issue STM directory created at `.meridian/{issue}/` by start-feature
-- [ ] Spec artifacts stored at `.meridian/{issue}/spec/` (business-review, technical-design, ux-spec, verify, tasks, bundles/)
-- [ ] Design artifacts stored at `.meridian/{issue}/design/` (architecture, ux-design)
-- [ ] Evidence artifacts stored at `.meridian/{issue}/evidence/g-{NNN}-*.md`
-- [ ] Delivery artifacts stored at `.meridian/{issue}/delivery/delivery-report.md`
+- [ ] Product-2-Design artifacts stored at `.garura/project/product/{slug}/vision.md`
+- [ ] Product-2-Design artifacts stored at `.garura/project/product/{slug}/roadmap.md`
+- [ ] Product-2-Design artifacts stored at `.garura/project/product/{slug}/backlog/{epic}.md`
+- [ ] Product-2-Design reviews stored at `.garura/project/product/{slug}/reviews/{artifact}-review.md`
+- [ ] Per-issue STM directory created at `.garura/{issue}/` by start-feature
+- [ ] Spec artifacts stored at `.garura/{issue}/spec/` (business-review, technical-design, ux-spec, verify, tasks, bundles/)
+- [ ] Design artifacts stored at `.garura/{issue}/design/` (architecture, ux-design)
+- [ ] Evidence artifacts stored at `.garura/{issue}/evidence/g-{NNN}-*.md`
+- [ ] Delivery artifacts stored at `.garura/{issue}/delivery/delivery-report.md`
 - [ ] LTM (Learn-2-Memory output) stored at `core/components/memory/` (practices/, standards/, templates/)
 - [ ] No artifacts stored at paths that include `okrs.md` or OKR-related paths
 

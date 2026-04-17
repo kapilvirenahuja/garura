@@ -1,8 +1,5 @@
 # ADR 006: Naming Conventions
 
-> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
-
-
 ## Status
 
 Accepted
@@ -13,14 +10,14 @@ Accepted
 
 ## Context
 
-Meridian components (plays, skills, agents) had inconsistent naming patterns, making it difficult to:
+Garura components (plays, skills, agents) had inconsistent naming patterns, making it difficult to:
 - Understand component type from name
 - Follow consistent creation patterns
 - Maintain documentation accuracy
 
 ## Decision
 
-Establish clear naming conventions for all Meridian components.
+Establish clear naming conventions for all Garura components.
 
 ### Play Naming: `{action}-{object}`
 

@@ -28,7 +28,7 @@
 | G-007: Domain Research Skill | PASS | research-domain-context/SKILL.md exists with full conventions |
 | G-008: Multi-Intent | PASS | Decision Framework handles compound intents with dependency ordering and partial failure |
 | G-009: No Bash Section | PASS | No Bash in frontmatter, no BASH USAGE section |
-| G-010: Tech Context | PASS | Step 7 checks `.meridian/{issue}/design/` for tech constraints |
+| G-010: Tech Context | PASS | Step 7 checks `.garura/{issue}/design/` for tech constraints |
 | G-011: Domain Clarification | PASS | Play handles domain_clarification_needed with user interaction loop |
 | G-012: C12 Constraint | PASS | intent.yaml has C12 + "domain unresolvable" failure condition |
 | G-013: P-Label Replacement | PASS | generate-business-review uses play names; final-report.md has no P-labels |

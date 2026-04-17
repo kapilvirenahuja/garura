@@ -1,8 +1,5 @@
 # ADR 007: Skill-Local References with Deployment Sync
 
-> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
-
-
 > **SUPERSEDED by [ADR 009](009-skill-ltm-reads.md).** Skills now read LTM paths directly at runtime instead of relying on deployment-time copy. Do not follow this ADR.
 
 ## Status
@@ -43,7 +40,7 @@ Adopt a **skill-local references with deployment-time sync** pattern:
 ┌─────────────────────────────────────────────────────────────┐
 │                     DEPLOYMENT TIME                         │
 │                                                             │
-│   Memory (overrides)  ──► Meridian Deploy ──► Skills (local) │
+│   Memory (overrides)  ──► Garura Deploy ──► Skills (local) │
 │   core/memory/            checks & syncs     embedded refs  │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
@@ -63,7 +60,7 @@ Adopt a **skill-local references with deployment-time sync** pattern:
 
 2. **Memory contains overrides** — `core/memory/` can contain updated/customized versions of skill references
 
-3. **Deployment syncs overrides** — When Meridian is deployed, it checks if memory has better references and copies them into skill-local locations
+3. **Deployment syncs overrides** — When Garura is deployed, it checks if memory has better references and copies them into skill-local locations
 
 4. **Skills always read locally** — At runtime, skills never reach out to LTM; they read from their local embedded content
 
@@ -112,7 +109,7 @@ core/memory/
 
 ### Deployment Behavior
 
-1. Meridian deployment scans `core/memory/skill-overrides/`
+1. Garura deployment scans `core/memory/skill-overrides/`
 2. For each override, check if skill exists in `core/components/skills/`
 3. If skill exists, copy override content into skill's local references
 4. Run `/sync-claude` to propagate to `.claude/skills/`

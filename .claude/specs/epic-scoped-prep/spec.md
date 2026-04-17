@@ -68,7 +68,7 @@ Always runs. Discovers:
 - **Conventions:** .editorconfig, .prettierrc, tsconfig.json, etc.
 
 ### Step 0.4 — Read LTM
-Read from `~/.meridian/core/memory/`:
+Read from `~/.garura/core/memory/`:
 - `standards/` — architectural standards, coding standards, templates
 - `knowledge/` — architectural patterns, design decisions, prior learnings
 - `formats/` — documentation formats

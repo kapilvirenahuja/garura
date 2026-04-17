@@ -170,7 +170,7 @@ Each fixture must be a valid JSON representation of the corresponding YAML schem
 2. Checksum comparison — unchanged
 3. For each changed YAML:
    a. Convert YAML→JSON (using `yq` or python one-liner: `python3 -c "import sys,yaml,json; json.dump(yaml.safe_load(open(sys.argv[1])),open(sys.argv[2],'w'),indent=2)" file.yaml file.json`)
-   b. Read template from `~/.meridian/core/memory/standards/templates/{artifact}-brief.html`
+   b. Read template from `~/.garura/core/memory/standards/templates/{artifact}-brief.html`
    c. Read `brief-common.css` from templates dir
    d. Inline CSS into template (replace marker)
    e. Write assembled HTML to `{artifact_base}/briefs/{artifact}-brief.html`

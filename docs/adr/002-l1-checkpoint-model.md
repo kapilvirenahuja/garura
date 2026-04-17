@@ -1,13 +1,10 @@
 # ADR 002: L1 Checkpoint Model
 
-> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
-
-
 ## Status
 
 Accepted
 
-**Note:** The checkpoint storage location defined in this ADR has been superseded by [ADR 008: Issue-Centric STM and NWWI](./008-issue-centric-stm-and-nwwi.md). Checkpoints now use `.meridian/{issue}/checkpoint/{play}/{timestamp}.md` instead of the legacy path. The core model (artifact + checkpoint) remains unchanged.
+**Note:** The checkpoint storage location defined in this ADR has been superseded by [ADR 008: Issue-Centric STM and NWWI](./008-issue-centric-stm-and-nwwi.md). Checkpoints now use `.garura/{issue}/checkpoint/{play}/{timestamp}.md` instead of the legacy path. The core model (artifact + checkpoint) remains unchanged.
 
 ## Date
 
@@ -41,7 +38,7 @@ Play: {name}
 
 1. **Every play produces exactly one artifact**
    - Tangible output: document, code, URL, evidence file
-   - Stored in STM: `.meridian/{issue}/docs/` or `.meridian/{issue}/evidence/`
+   - Stored in STM: `.garura/{issue}/docs/` or `.garura/{issue}/evidence/`
 
 2. **Every play stops at a checkpoint**
    - Play execution pauses
@@ -57,8 +54,8 @@ Play: {name}
 
 | Artifact Type | Location |
 |---------------|----------|
-| Documentation (RCA, specs, designs) | `.meridian/{issue}/docs/` |
-| Evidence (tests, validation) | `.meridian/{issue}/evidence/` |
+| Documentation (RCA, specs, designs) | `.garura/{issue}/docs/` |
+| Evidence (tests, validation) | `.garura/{issue}/evidence/` |
 | External (PR URL, Issue URL) | Returned directly |
 
 ## Consequences

@@ -1,4 +1,4 @@
-# MDB v3 — Meridian Artifact Browser: Aircraft Cockpit Wireframes
+# Garura Engine v3 — Garura Artifact Browser: Aircraft Cockpit Wireframes
 
 > Three instruments in one cockpit. The user is a pilot flying a software project.
 > No sidebar. No artifact grid. No journey map. No graph visualization.
@@ -29,7 +29,7 @@
 ┊ 🤖 Generative       ┊
 ┊─────────────────────┊
 
-╔═════════════════════╗     Double border  = CTA / Action button (maps to a Meridian play)
+╔═════════════════════╗     Double border  = CTA / Action button (maps to a Garura play)
 ║  Action Button      ║
 ╚═════════════════════╝
 
@@ -52,7 +52,7 @@ The readiness mini-gauge is always visible — clicking it always returns to Che
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                                              │
-│  ◈ MDB  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
+│  ◈ Garura Engine  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
 │                                                                                     ▔▔▔▔▔▔▔▔▔▔▔▔           │
 │  ┌──────────────────┬──────────────────┬──────────────────┐    ┌──────────────────────────────────┐          │
 │  │   ☑ Checklists   │  ✈ Flight Deck   │  📖 Playbook     │    │  🔍 Search artifacts...          │          │
@@ -71,12 +71,12 @@ The readiness mini-gauge is always visible — clicking it always returns to Che
 
 ## Screen 1: Checklists — Greenfield (Readiness: 0)
 
-*Just installed Meridian. Nothing exists. One checklist. One action. Inviting, not overwhelming.*
+*Just installed Garura. Nothing exists. One checklist. One action. Inviting, not overwhelming.*
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                                              │
-│  ◈ MDB  TaskFlow                                                                   ▰▱▱▱▱▱▱▱▱▱  0           │
+│  ◈ Garura Engine  TaskFlow                                                                   ▰▱▱▱▱▱▱▱▱▱  0           │
 │                                                                                     ▔▔▔▔▔▔▔▔▔▔▔▔           │
 │  ┌━━━━━━━━━━━━━━━━━━┬──────────────────┬──────────────────┐    ┌──────────────────────────────────┐          │
 │  │   ☑ Checklists   │  ✈ Flight Deck   │  📖 Playbook     │    │  🔍 Search artifacts...          │          │
@@ -162,7 +162,7 @@ The readiness mini-gauge is always visible — clicking it always returns to Che
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                                              │
-│  ◈ MDB  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
+│  ◈ Garura Engine  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
 │                                                                                     ▔▔▔▔▔▔▔▔▔▔▔▔           │
 │  ┌━━━━━━━━━━━━━━━━━━┬──────────────────┬──────────────────┐    ┌──────────────────────────────────┐          │
 │  │   ☑ Checklists   │  ✈ Flight Deck   │  📖 Playbook     │    │  🔍 Search artifacts...          │          │
@@ -275,7 +275,7 @@ The readiness mini-gauge is always visible — clicking it always returns to Che
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                                              │
-│  ◈ MDB  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
+│  ◈ Garura Engine  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
 │                                                                                     ▔▔▔▔▔▔▔▔▔▔▔▔           │
 │  ┌──────────────────┬━━━━━━━━━━━━━━━━━━┬──────────────────┐    ┌──────────────────────────────────┐          │
 │  │   ☑ Checklists   │  ✈ Flight Deck   │  📖 Playbook     │    │  🔍 Search artifacts...          │          │
@@ -379,7 +379,7 @@ The readiness mini-gauge is always visible — clicking it always returns to Che
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                                              │
-│  ◈ MDB  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
+│  ◈ Garura Engine  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
 │                                                                                     ▔▔▔▔▔▔▔▔▔▔▔▔           │
 │  ┌──────────────────┬──────────────────┬━━━━━━━━━━━━━━━━━━┐    ┌──────────────────────────────────┐          │
 │  │   ☑ Checklists   │  ✈ Flight Deck   │  📖 Playbook     │    │  🔍 Search artifacts...          │          │
@@ -478,7 +478,7 @@ The readiness mini-gauge is always visible — clicking it always returns to Che
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                                              │
-│  ◈ MDB  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
+│  ◈ Garura Engine  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
 │                                                                                     ▔▔▔▔▔▔▔▔▔▔▔▔           │
 │  ┌──────────────────┬──────────────────┬━━━━━━━━━━━━━━━━━━┐    ┌──────────────────────────────────┐          │
 │  │   ☑ Checklists   │  ✈ Flight Deck   │  📖 Playbook     │    │  🔍 Search artifacts...          │          │
@@ -585,7 +585,7 @@ The readiness mini-gauge is always visible — clicking it always returns to Che
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                                              │
-│  ◈ MDB  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
+│  ◈ Garura Engine  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
 │                                                                                     ▔▔▔▔▔▔▔▔▔▔▔▔           │
 │  ┌──────────────────┬──────────────────┬━━━━━━━━━━━━━━━━━━┐    ┌──────────────────────────────────┐          │
 │  │   ☑ Checklists   │  ✈ Flight Deck   │  📖 Playbook     │    │  🔍 Search artifacts...          │          │
@@ -697,7 +697,7 @@ This screen demonstrates the **action engine within the reader** — three disti
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                                                                                              │
-│  ◈ MDB  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
+│  ◈ Garura Engine  TaskFlow                                                                   ▰▰▰▰▱▱▱▱▱▱ 45          │
 │                                                                                     ▔▔▔▔▔▔▔▔▔▔▔▔           │
 │  ┌──────────────────┬──────────────────┬━━━━━━━━━━━━━━━━━━┐    ┌──────────────────────────────────┐          │
 │  │   ☑ Checklists   │  ✈ Flight Deck   │  📖 Playbook     │    │  🔍 authentication timeout       │          │

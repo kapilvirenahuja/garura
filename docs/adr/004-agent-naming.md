@@ -1,8 +1,5 @@
 # ADR 004: Agent Naming Convention
 
-> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
-
-
 ## Status
 
 Accepted
@@ -13,7 +10,7 @@ Accepted
 
 ## Context
 
-Meridian originally documented a `{domain}-keeper` pattern but used inconsistent naming:
+Garura originally documented a `{domain}-keeper` pattern but used inconsistent naming:
 
 | Documented | Actual Usage |
 |------------|--------------|

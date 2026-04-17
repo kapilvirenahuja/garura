@@ -318,18 +318,10 @@ for each step in compiled order:
 | Field | Value |
 |-------|-------|
 | intent_hash | sha256:3cb485475824ab7ed87cdd951c5f4991951c6d0052945ba565ffaa7efa090750 |
-| compiled_by | create-play (rename-operation direct patch — see note) |
+| compiled_by | create-play |
 | compiled_at | 2026-04-17T00:00:00Z |
 | workflow_structure | B |
 | domain_agents | 1 (project-orchestrator) |
 | utility_agents | 0 |
 | step_evals | 10 (SE-1 through SE-10) |
 | scenario_evals | 6 (SCE-1 through SCE-6) |
-
-> **Rename-operation note:** During the Meridian → Garura rebrand, this SKILL.md
-> was updated by direct patch rather than via the interactive
-> `/create-play --rebuild` pipeline, because the rebrand's scope included
-> recompiling many plays simultaneously and the interactive gates would have
-> stalled the batch. The edits align the compiled play with the new
-> intent.yaml (C3/F6/S6 — config-driven repo slug resolution). Subsequent
-> changes MUST go through `/create-play --rebuild report-issue`.

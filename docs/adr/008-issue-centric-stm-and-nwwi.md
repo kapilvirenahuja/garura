@@ -1,8 +1,5 @@
 # ADR 008: Issue-Centric STM Structure and NWWI Principle
 
-> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
-
-
 ## Status
 
 Accepted
@@ -13,12 +10,12 @@ Accepted
 
 ## Context
 
-ADR 002 established the L1 checkpoint model: every play produces an artifact and stops at a checkpoint for human approval. It defined STM locations as `.meridian/{issue}/docs/` and `.meridian/{issue}/evidence/`.
+ADR 002 established the L1 checkpoint model: every play produces an artifact and stops at a checkpoint for human approval. It defined STM locations as `.garura/{issue}/docs/` and `.garura/{issue}/evidence/`.
 
 However, the actual implementation diverged. Checkpoints were stored at:
 
 ```
-.meridian/project/checkpoints/{play}/{timestamp}.md
+.garura/project/checkpoints/{play}/{timestamp}.md
 ```
 
 This created several problems:
@@ -26,7 +23,7 @@ This created several problems:
 1. **No issue traceability** — Timestamp-named files have no connection to the triggering issue. You must open a file to understand what it relates to.
 2. **Orphaned data** — Checkpoint files with `PENDING_APPROVAL` status are never updated. No mechanism links them back to the workflow that created them.
 3. **No resumability** — Checkpoints capture what was proposed and decided, but not enough state to resume a play after session loss.
-4. **Contradicts ADR 002** — ADR 002 specifies `.meridian/{issue}/` as STM location, but checkpoints bypass this structure entirely.
+4. **Contradicts ADR 002** — ADR 002 specifies `.garura/{issue}/` as STM location, but checkpoints bypass this structure entirely.
 5. **Issue-agnostic** — The structure enables working without an issue, undermining traceability and audit requirements.
 
 Additionally, long-running plays and cross-session workflows need a mechanism to checkpoint execution state and resume later — potentially from a different tool or session.
@@ -45,10 +42,10 @@ All play work that produces checkpoints **must** be associated with a GitHub iss
 
 ### 2. Issue-Centric STM Structure
 
-All STM artifacts are organized under `.meridian/{issue-number}/`:
+All STM artifacts are organized under `.garura/{issue-number}/`:
 
 ```
-.meridian/{issue-number}/
+.garura/{issue-number}/
 ├── docs/                          # Specs, designs, RCA
 │   ├── spec.md
 │   ├── tech-design.md
@@ -65,7 +62,7 @@ All STM artifacts are organized under `.meridian/{issue-number}/`:
 **Example — full lifecycle of issue #37:**
 
 ```
-.meridian/37/
+.garura/37/
 ├── docs/
 │   └── tech-design.md
 ├── evidence/
@@ -93,10 +90,10 @@ All STM artifacts are organized under `.meridian/{issue-number}/`:
 The `start-feature` play creates the issue — but needs working space before the issue number exists. This is resolved with a two-phase write:
 
 1. **Phase 1:** Write to `_pending/` temporary location while issue is being created
-2. **Phase 2:** Move to `.meridian/{issue}/` once the issue number is known (within the same play run)
+2. **Phase 2:** Move to `.garura/{issue}/` once the issue number is known (within the same play run)
 
 ```
-.meridian/
+.garura/
 ├── _pending/                      # Temporary, pre-issue
 │   └── {timestamp}/
 │       └── checkpoint/
@@ -151,7 +148,7 @@ A `/resume` skill provides the resumption interface:
 
 - **Input:** Issue ID (required)
 - **Behavior:**
-  1. Scans `.meridian/{issue}/checkpoint/` for all play checkpoints
+  1. Scans `.garura/{issue}/checkpoint/` for all play checkpoints
   2. Identifies the most recent pending checkpoint
   3. If multiple pending checkpoints exist, presents a list for user selection
   4. Loads the checkpoint context and re-enters the play at the recorded step
@@ -205,9 +202,9 @@ Checkpoint artifacts **persist forever**. They are version controlled and commit
 
 This ADR **supersedes the checkpoint location model** in ADR 002. Specifically:
 
-- ADR 002's artifact locations (`.meridian/{issue}/docs/` and `/evidence/`) remain unchanged
+- ADR 002's artifact locations (`.garura/{issue}/docs/` and `/evidence/`) remain unchanged
 - ADR 002's checkpoint model (artifact + checkpoint) remains unchanged
-- The checkpoint **storage path** changes from `.meridian/project/checkpoints/{play}/{timestamp}.md` to `.meridian/{issue}/checkpoint/{play}/{timestamp}.md`
+- The checkpoint **storage path** changes from `.garura/project/checkpoints/{play}/{timestamp}.md` to `.garura/{issue}/checkpoint/{play}/{timestamp}.md`
 - A new **mandatory checkpoint schema** is introduced
 - A new `/resume` skill is introduced
 
@@ -232,4 +229,4 @@ These items are acknowledged but intentionally deferred for real-world validatio
 
 ## References
 
-- GitHub Issue: [#7 — feat(stm): issue-centric artifact structure with checkpoint-based play resumption](https://github.com/kapilvirenahuja/meridian/issues/7)
+- GitHub Issue: [#7 — feat(stm): issue-centric artifact structure with checkpoint-based play resumption](https://github.com/kapilvirenahuja/garura/issues/7)

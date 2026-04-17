@@ -1,7 +1,4 @@
-# ADR 017 — `.meridian/` Folder Whitelist and Play Terminology Cleanup
-
-> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
-
+# ADR 017 — `.garura/` Folder Whitelist and Play Terminology Cleanup
 
 **Status:** Proposed
 **Date:** 2026-04-14
@@ -10,11 +7,11 @@
 
 ## Context
 
-Three separate frictions accumulated in Meridian's folder and play conventions as the framework matured:
+Three separate frictions accumulated in Garura's folder and play conventions as the framework matured:
 
-1. **Folder drift under `.meridian/`.** Different plays wrote evidence, checkpoints, status files, and product artifacts to ad-hoc locations. `core/config.yaml` enumerated seven product subdirectories (`discovery/`, `roadmap/`, `architecture/`, `evidence/`, `briefs/`, `checkpoints/`, `status/`) that grew organically as plays were added. Issue STM used five keys (`spec/`, `design/`, `evidence/`, `delivery/`, `checkpoint/`) with overlapping meanings. New plays couldn't predict where their artifacts should land.
+1. **Folder drift under `.garura/`.** Different plays wrote evidence, checkpoints, status files, and product artifacts to ad-hoc locations. `core/config.yaml` enumerated seven product subdirectories (`discovery/`, `roadmap/`, `architecture/`, `evidence/`, `briefs/`, `checkpoints/`, `status/`) that grew organically as plays were added. Issue STM used five keys (`spec/`, `design/`, `evidence/`, `delivery/`, `checkpoint/`) with overlapping meanings. New plays couldn't predict where their artifacts should land.
 
-2. **Config file living outside its data.** `core/config.yaml` sat at the repo root inside `core/` — which holds the authored framework components (agents, skills, plays, memory). Its content — STM paths, product paths, review settings, project metadata — is about the `.meridian/` tree. The config's natural home is inside `.meridian/` with the state it describes.
+2. **Config file living outside its data.** `core/config.yaml` sat at the repo root inside `core/` — which holds the authored framework components (agents, skills, plays, memory). Its content — STM paths, product paths, review settings, project metadata — is about the `.garura/` tree. The config's natural home is inside `.garura/` with the state it describes.
 
 3. **Play ceremony inflation.** ADR 013 introduced Level-1 / Level-2 plays with a "≤5 domain agent" budget. In practice the levels added compliance overhead without improving coherence — a well-shaped play fails its scenario evals if it's bloated, regardless of agent count. The "bake" terminology for play compilation (`/create-play --bake`) carried a cooking metaphor that didn't match the sports metaphor the rest of the framework uses (plays are *run*, teams are *built*).
 
@@ -22,12 +19,12 @@ These frictions became blocking when the product-planning pipeline (`specify-pro
 
 ## Decision
 
-### 1. Strict `.meridian/` folder whitelist
+### 1. Strict `.garura/` folder whitelist
 
-The `.meridian/` tree allows ONLY these folders. No other top-level or second-level folders are permitted anywhere under `.meridian/`:
+The `.garura/` tree allows ONLY these folders. No other top-level or second-level folders are permitted anywhere under `.garura/`:
 
 ```
-.meridian/
+.garura/
 ├── core/                                     # framework state (config, synced memory)
 ├── product/                                  # the product being built — all SDLC stages
 │   ├── user-provided/                        # user inputs: project brief + notes + questions
@@ -58,7 +55,7 @@ The `.meridian/` tree allows ONLY these folders. No other top-level or second-le
             └── review/                       # review artifacts
 ```
 
-**Stage-centric vs play-centric:** `.meridian/product/` is organized by SDLC stage (user-provided → specification → scope → architecture → experience), not by play. A single stage folder may hold output from multiple plays — e.g., `specification/` holds market-brief (from specify-product's Stage 1 market-analyst), project-profile (user-provided during pre-flight), quality-profile (from specify-product's Stage 6 product-keeper). The folder name describes *what the artifact is*, not *which play produced it*.
+**Stage-centric vs play-centric:** `.garura/product/` is organized by SDLC stage (user-provided → specification → scope → architecture → experience), not by play. A single stage folder may hold output from multiple plays — e.g., `specification/` holds market-brief (from specify-product's Stage 1 market-analyst), project-profile (user-provided during pre-flight), quality-profile (from specify-product's Stage 6 product-keeper). The folder name describes *what the artifact is*, not *which play produced it*.
 
 **`research/` is the product's frozen domain library (Defect 8 Pull-to-Product).** Per `rules/product.md` Rule 15, every domain the product uses lands here at Stage 2 selection time — whether the content came from the canonical KB (`core/components/memory/knowledge/domain/`) or from fresh research. Each file carries a provenance header: `origin: kb` (with `kb_sha_at_copy`, `editable: false`) for copies, or `origin: stm_research` (editable: true, pending future `/capture-learning` promotion) for freshly-authored content. Stage 3 and every later stage (configure-capabilities, enrich-capabilities, generate-intent-epics) read from this folder ONLY — they do not read from the KB directly. This makes every product run reproducible (a KB edit does not retroactively change historical runs) and gives the product a single read path for domain content regardless of origin.
 
@@ -66,15 +63,15 @@ The `.meridian/` tree allows ONLY these folders. No other top-level or second-le
 
 **`_checkpoints/` / `_evidence/` / `_status/` are orthogonal play-lifecycle folders.** They live at the product root alongside the stage folders, not inside them. A single play writes to all three: it produces Tether artifacts in `_checkpoints/{play-name}/`, evidence at close in `_evidence/{play-name}/`, and a resume status file at `_status/{play-name}.json`. Keeping them at the root reflects that play lifecycle is orthogonal to SDLC stage — a single play can write across multiple stage folders in one run.
 
-**Defect 1 amendment (2026-04-14):** the earlier `.meridian/product/` + `ux/` + `arch/` three-bucket layout is REPLACED by the stage-centric layout above. The doubled `product/product` name was awkward in practice and the play-centric three buckets didn't extend cleanly to cross-stage artifacts. The new layout makes the SDLC visible in the folder structure: a reviewer can walk `user-provided → specification → scope → architecture → experience` and see the product take shape stage by stage.
+**Defect 1 amendment (2026-04-14):** the earlier `.garura/product/` + `ux/` + `arch/` three-bucket layout is REPLACED by the stage-centric layout above. The doubled `product/product` name was awkward in practice and the play-centric three buckets didn't extend cleanly to cross-stage artifacts. The new layout makes the SDLC visible in the folder structure: a reviewer can walk `user-provided → specification → scope → architecture → experience` and see the product take shape stage by stage.
 
 ### 2. Config relocation
 
-`core/config.yaml` is MOVED to `.meridian/core/config.yaml`. The move is a `git mv` to preserve history. Every reference to `core/config.yaml` across `core/components/`, `docs/`, `CLAUDE.md`, and memory workflows is updated.
+`core/config.yaml` is MOVED to `.garura/core/config.yaml`. The move is a `git mv` to preserve history. Every reference to `core/config.yaml` across `core/components/`, `docs/`, `CLAUDE.md`, and memory workflows is updated.
 
-`.meridian/core/memory/` remains gitignored (per the existing pattern). `.meridian/core/config.yaml` is tracked — the gitignore entry for `.meridian/core/memory/` is scoped to that subdirectory only.
+`.garura/core/memory/` remains gitignored (per the existing pattern). `.garura/core/config.yaml` is tracked — the gitignore entry for `.garura/core/memory/` is scoped to that subdirectory only.
 
-Rationale: the config describes `.meridian/` state; it belongs there. Repositioning it also makes it possible (in a follow-up) for per-project configs to diverge — each project has its own `.meridian/core/config.yaml` rather than sharing a framework-wide default.
+Rationale: the config describes `.garura/` state; it belongs there. Repositioning it also makes it possible (in a follow-up) for per-project configs to diverge — each project has its own `.garura/core/config.yaml` rather than sharing a framework-wide default.
 
 ### 3. Config content reconciliation
 
@@ -82,7 +79,7 @@ Rationale: the config describes `.meridian/` state; it belongs there. Reposition
 
 ```yaml
 product:
-  base-path: .meridian/product/
+  base-path: .garura/product/
   directories:
     user-provided: user-provided/
     specification: specification/
@@ -100,9 +97,9 @@ The prior three-key layout (`product / ux / arch`) is superseded. The keys `disc
 
 ```yaml
 stm:
-  base-path: .meridian/project/issues/
-  pending-path: .meridian/project/issues/_pending/
-  archive-path: .meridian/project/issues/_archive/
+  base-path: .garura/project/issues/
+  pending-path: .garura/project/issues/_pending/
+  archive-path: .garura/project/issues/_archive/
   structure:
     specs: "{issue-number}/specs/"
     evidence: "{issue-number}/evidence/{play-name}/{YYYYMMDD-HHMMSS}.md"
@@ -137,7 +134,7 @@ Every doc, agent, skill, and play that references "bake"/"baked"/"baking" in a p
 
 - **Predictable folder shape.** Every play, agent, and skill knows exactly where to write. New plays inherit the three-bucket layout without invention.
 - **Single whitelist enforcement boundary.** The `write-evidence` skill (214.1) validates every write against the whitelist. Folder compliance is checked once, automatically, at the write boundary.
-- **Config lives with its data.** Config relocation aligns `.meridian/core/config.yaml` with the `.meridian/` tree it describes.
+- **Config lives with its data.** Config relocation aligns `.garura/core/config.yaml` with the `.garura/` tree it describes.
 - **Simpler mental model for plays.** No level classification, no budget bookkeeping. Authors think about intent, not ceremony.
 - **Consistent sports metaphor.** Build the play, run the play. No lingering cooking references.
 
@@ -152,8 +149,8 @@ Every doc, agent, skill, and play that references "bake"/"baked"/"baking" in a p
 
 | Alternative | Reason Rejected |
 |-------------|-----------------|
-| Amend whitelist to add `evidence/checkpoints/status/` as siblings under `.meridian/product/` | Breaks the core principle of three buckets. Ops files fit inside the buckets using underscore-prefixed subfolders. |
-| Keep `core/config.yaml` at repo root | Semantic mismatch — config describes `.meridian/` state and should live there. Repo-root `core/` is for authored framework components. |
+| Amend whitelist to add `evidence/checkpoints/status/` as siblings under `.garura/product/` | Breaks the core principle of three buckets. Ops files fit inside the buckets using underscore-prefixed subfolders. |
+| Keep `core/config.yaml` at repo root | Semantic mismatch — config describes `.garura/` state and should live there. Repo-root `core/` is for authored framework components. |
 | Phase the folder migration (dual-path coexistence) | Every play would need to read both old and new paths. Dual-path bugs are easy to write and hard to find. One-shot migration is cleaner. |
 | Keep L1/L2 classification as advisory | The classification was always used as a gate, not advice. "Advisory" in practice means "ignored until it blocks you". Better to delete. |
 | Soft alias `--bake` during migration | Half-state creates ongoing confusion about the canonical verb. Hard cut forces consistency from day one. Users who prefer `--bake` aren't served by silently accepting it. |
@@ -162,7 +159,7 @@ Every doc, agent, skill, and play that references "bake"/"baked"/"baking" in a p
 ## Migration Plan (214.2)
 
 1. **T6** — This ADR (status: Proposed).
-2. **T6a** — `git mv core/config.yaml .meridian/core/config.yaml`; grep-sweep every `core/config.yaml` reference and update.
+2. **T6a** — `git mv core/config.yaml .garura/core/config.yaml`; grep-sweep every `core/config.yaml` reference and update.
 3. **T6b** — Update CLAUDE.md (remove section 4, replace with one sentence, fix bake references).
 4. **T6c** — Grep repo for `--bake` / `--rebake`; rename to `--build`. Update `/create-play` skill.
 5. **T7** — Rewrite `product.directories` block.
@@ -176,7 +173,7 @@ Status flips from Proposed to Accepted when 214.2 merges to main.
 ## References
 
 - Issue #214 — Build product planning and design pipeline (the umbrella issue whose planning surfaced these frictions)
-- `.meridian/project/issues/214/specs/spec.md` — full specification with constraints C1–C13
-- `.meridian/project/issues/214/specs/tasks.md` — T6 through T11 tasks with file-level details
-- `core/components/memory/MEMORY.md` feedback entry: `feedback_meridian_folder_structure.md` (user-declared 2026-04-13)
+- `.garura/project/issues/214/specs/spec.md` — full specification with constraints C1–C13
+- `.garura/project/issues/214/specs/tasks.md` — T6 through T11 tasks with file-level details
+- `core/components/memory/MEMORY.md` feedback entry: `feedback_garura_folder_structure.md` (user-declared 2026-04-13)
 - `core/components/memory/MEMORY.md` feedback entry: `feedback_intent_schema_purity.md` (updated 2026-04-14 with metadata permission)

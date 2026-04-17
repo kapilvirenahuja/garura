@@ -59,14 +59,14 @@ An agent referencing non-existent skills creates false capability awareness. The
 ### D6: LTM Loading Underspecified
 
 **File:** `core/components/agents/product-strategist.md` (lines 100-120)
-**Issue:** "Load from `~/.meridian/core/memory/` when available" is unbounded. No selection criteria, no relevance filtering, no awareness of project lifecycle (early project = thin LTM, mature project = heavy LTM). Loading entire LTM is wasteful and may pollute context.
+**Issue:** "Load from `~/.garura/core/memory/` when available" is unbounded. No selection criteria, no relevance filtering, no awareness of project lifecycle (early project = thin LTM, mature project = heavy LTM). Loading entire LTM is wasteful and may pollute context.
 **Fix:** Redesign Context Loading with a domain-aware loading strategy:
 
 1. **Understand domain** — From the incoming intent and any provided context, identify the vertical domain (BFSI, retail, SaaS, etc.) and product category.
 2. **Selective LTM search** — Search LTM for domain-relevant rules, schemas, templates, and knowledge. Use Glob/Grep to find relevant files, not bulk-load everything. Prioritize: `memory/standards/rules/` (always relevant), `memory/standards/schemas/` (for artifact shape), `memory/standards/templates/` (for output shaping), `memory/knowledge/{domain}/` (if exists).
 3. **Domain confirmation** — If domain is ambiguous (agent cannot confidently classify), return a structured `domain_clarification_needed` response to the play caller. The play handles user interaction. If domain is obvious from context, proceed without confirmation.
 4. **Fallback: Web research** — If LTM has insufficient domain knowledge (no relevant entries or coverage too thin), invoke the `research-domain-context` skill for web-based research. Capture results as STM artifacts for this project.
-5. **Load STM** — Read `.meridian/project/product/` for existing product artifacts that provide enrichment context.
+5. **Load STM** — Read `.garura/project/product/` for existing product artifacts that provide enrichment context.
 6. **Inject context** — Pass relevant LTM + STM + play context to skill invocations. Never pass raw bulk LTM.
 
 ### D7: No Domain Context Injection Mechanism
@@ -80,7 +80,7 @@ An agent referencing non-existent skills creates false capability awareness. The
 **New skill required:** `research-domain-context`
 - Input: `domain`, `knowledge_gaps` (what LTM didn't cover), `problem_statement`
 - Process: WebSearch for market data, competitive landscape, industry trends
-- Output: Structured domain knowledge artifact written to STM at `.meridian/project/product/{slug}/domain-context.md`
+- Output: Structured domain knowledge artifact written to STM at `.garura/project/product/{slug}/domain-context.md`
 - Constraint: Read-only from agent perspective (skill writes to STM)
 
 ### D8: Multi-Intent Handling Not Supported
@@ -119,7 +119,7 @@ Note: If Bash is not needed at all, also remove it from the frontmatter `tools` 
 
 **File:** `core/components/agents/product-strategist.md` (Boundaries section)
 **Issue:** The agent correctly escalates deep engineering analysis to `tech-designer`. But product strategy decisions (build vs buy, known hard problems, platform risk) need lightweight tech awareness. Currently the agent has zero tech context unless STM happens to contain prior tech-designer output.
-**Fix:** In Context Loading, add a step to check for existing technical design artifacts in STM (`.meridian/{issue}/design/`). If they exist, load relevant constraints. If they don't exist, note the gap — the agent should flag "no technical feasibility context available" as an assumption in its output, not silently ignore it.
+**Fix:** In Context Loading, add a step to check for existing technical design artifacts in STM (`.garura/{issue}/design/`). If they exist, load relevant constraints. If they don't exist, note the gap — the agent should flag "no technical feasibility context available" as an assumption in its output, not silently ignore it.
 
 This is NOT about making the strategist do tech analysis. It's about making it aware of tech constraints that already exist in the project's STM.
 

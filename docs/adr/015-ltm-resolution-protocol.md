@@ -1,15 +1,12 @@
 # ADR 015: LTM Resolution Protocol and Learning Play
 
-> **Historical note:** Framework later renamed to Garura. References to "Meridian" / "MDB" in this ADR are preserved verbatim for historical accuracy.
-
-
 **Status:** Accepted
 **Date:** 2026-03-31
 **Deciders:** Kapil Ahuja
 
 ## Context
 
-Meridian agents were making domain decisions without systematically consulting stored knowledge. Three gaps existed:
+Garura agents were making domain decisions without systematically consulting stored knowledge. Three gaps existed:
 
 1. No agent checked project-level LTM artifacts before falling back to LLM reasoning
 2. Core LTM consultation was agent-internal prose, not enforced by the contract schema
@@ -22,8 +19,8 @@ This meant every agent dispatch potentially reinvented decisions that prior work
 ### Resolution Protocol (R1-R4)
 
 We introduced a 3-layer resolution hierarchy enforced through the agent contract schema:
-- **Layer 1 (Project LTM):** .meridian/product/ — LOCKED artifacts are authoritative
-- **Layer 2 (Core LTM):** ~/.meridian/core/memory/ — always advisory
+- **Layer 1 (Project LTM):** .garura/product/ — LOCKED artifacts are authoritative
+- **Layer 2 (Core LTM):** ~/.garura/core/memory/ — always advisory
 - **Layer 3 (LLM reasoning):** fallback, flagged as "ungrounded"
 
 Agents receiving the new `ltm_context` contract field follow the R1-R4 protocol before any domain reasoning. Every domain decision is recorded in a resolution trace.

@@ -39,9 +39,9 @@
 
 ### Step 2 Path Verification:
 - **DEFECT-1 VERIFIED FIXED:**
-  - vision.md at: `{project_root}/.meridian/project/product/ai-commission-tracking-b2b-saas/vision.md` ✓
-  - vision-review.md at: `{project_root}/.meridian/project/product/ai-commission-tracking-b2b-saas/reviews/vision-review.md` ✓
-  - Global `~/.meridian/project/product/ai-commission-tracking-b2b-saas/`: DOES NOT EXIST ✓
+  - vision.md at: `{project_root}/.garura/project/product/ai-commission-tracking-b2b-saas/vision.md` ✓
+  - vision-review.md at: `{project_root}/.garura/project/product/ai-commission-tracking-b2b-saas/reviews/vision-review.md` ✓
+  - Global `~/.garura/project/product/ai-commission-tracking-b2b-saas/`: DOES NOT EXIST ✓
   - Artifacts are project-local, not global
 
 ---
@@ -50,8 +50,8 @@
 
 | Artifact | Path (project-local) | Size | Status |
 |----------|---------------------|------|--------|
-| vision.md | `.meridian/project/product/ai-commission-tracking-b2b-saas/vision.md` | 11.3KB | DRAFT |
-| vision-review.md | `.meridian/project/product/ai-commission-tracking-b2b-saas/reviews/vision-review.md` | 11.3KB | DRAFT |
+| vision.md | `.garura/project/product/ai-commission-tracking-b2b-saas/vision.md` | 11.3KB | DRAFT |
+| vision-review.md | `.garura/project/product/ai-commission-tracking-b2b-saas/reviews/vision-review.md` | 11.3KB | DRAFT |
 
 ---
 
@@ -75,7 +75,7 @@
 
 | Check | First Run | Rerun |
 |-------|-----------|-------|
-| Artifact path | FAIL (global ~/.meridian/) | PASS (project-local .meridian/) |
+| Artifact path | FAIL (global ~/.garura/) | PASS (project-local .garura/) |
 | Multi-intent completion | FAIL (only vision, required resume) | PASS (both artifacts in single call) |
 | Agent calls used | 2 + 1 resume | 2 (clean) |
 | Total constraint compliance | 9/10 | 10/10 |
@@ -86,5 +86,5 @@
 
 **PASS — both defects verified fixed**
 
-- DEFECT-1 (path resolution): Artifacts created at project-local `.meridian/`, not global `~/.meridian/`
+- DEFECT-1 (path resolution): Artifacts created at project-local `.garura/`, not global `~/.garura/`
 - DEFECT-2 (multi-intent): Both skills executed in single agent call with no resume needed
