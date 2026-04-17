@@ -5,7 +5,10 @@
  * /api/narrative?context=<epicId> and renders it as:
  *   - Section headings (H2/H3)
  *   - Prose with interactive CrossRefTokens embedded inline
- *   - InlineExpansion panels when tokens are clicked
+ *   - EntityExpansion panels when tokens are clicked — with progressive
+ *     disclosure: tri-state (unopened → open → collapsed → re-open), nested
+ *     expansions via connection clicks, and an "Explain further" control
+ *     that inserts a deeper composition inline within the expansion.
  *
  * Shows a loading indicator while composition is in progress (cache miss),
  * an error message on failure, and a "Served from cache" badge when the
@@ -13,17 +16,19 @@
  *
  * CRITICAL: The rendered DOM contains no raw YAML — all data comes from
  * the narrative tree (chunks + tokens) which is already structured prose.
+ *
+ * Fulfills: mdb-progressive-disclosure (client-side disclosure layer).
  */
 
 import { useCallback, useEffect, useState } from 'react';
 import { CrossRefToken } from '@/components/cross-ref-token';
-import { InlineExpansion } from '@/components/inline-expansion';
+import { CollapsedEntityExpansion, EntityExpansion } from '@/components/entity-expansion';
 import type { Narrative, NarrativeChunk, NarrativeSection } from '@/lib/narrative-engine';
 
 export interface NarrativeViewProps {
   /** Epic / context identifier (e.g. "E1", "EPIC-E1"). */
   context: string;
-  /** Optional click handler for cross-reference tokens. */
+  /** Optional click handler for cross-reference tokens (notification). */
   onTokenClick?: (refId: string) => void;
 }
 
@@ -40,16 +45,57 @@ type LoadState =
   | { status: 'ready'; data: NarrativeApiResponse }
   | { status: 'error'; message: string };
 
+/** Per-token expansion state.
+ *  - `undefined` / missing: never opened.
+ *  - "open": currently expanded.
+ *  - "collapsed": previously opened, now collapsed (re-open affordance shown).
+ *
+ *  Keyed by `${sectionId}::${refId}` so a token appearing in multiple
+ *  sections opens a separate expansion only under the section that was
+ *  actually clicked — matching the "expansion appears directly below the
+ *  clicked token" wireframe contract.
+ */
+type TokenState = 'open' | 'collapsed';
+
+function makeKey(sectionId: string, refId: string): string {
+  return `${sectionId}::${refId}`;
+}
+
 export function NarrativeView({ context, onTokenClick }: NarrativeViewProps) {
   const [state, setState] = useState<LoadState>({ status: 'idle' });
-  const [expandedTokens, setExpandedTokens] = useState<Set<string>>(new Set());
+  const [tokenStates, setTokenStates] = useState<ReadonlyMap<string, TokenState>>(new Map());
 
-  const handleTokenClick = useCallback(
-    (refId: string) => {
-      setExpandedTokens((prev) => {
-        const next = new Set(prev);
-        if (next.has(refId)) next.delete(refId);
-        else next.add(refId);
+  const openToken = useCallback((sectionId: string, refId: string) => {
+    // Preserve scroll position: expansion grows content downward, the
+    // browser keeps the scroll Y stable as long as we don't trigger
+    // scrollIntoView. We don't manipulate scroll here.
+    setTokenStates((prev) => {
+      const next = new Map(prev);
+      next.set(makeKey(sectionId, refId), 'open');
+      return next;
+    });
+  }, []);
+
+  const collapseToken = useCallback((sectionId: string, refId: string) => {
+    setTokenStates((prev) => {
+      const next = new Map(prev);
+      next.set(makeKey(sectionId, refId), 'collapsed');
+      return next;
+    });
+  }, []);
+
+  const toggleToken = useCallback(
+    (sectionId: string, refId: string) => {
+      // Tri-state toggle:
+      //   unopened → open
+      //   open     → collapsed   (close the panel, keep collapsed indicator)
+      //   collapsed→ open        (re-open previously closed expansion)
+      setTokenStates((prev) => {
+        const next = new Map(prev);
+        const key = makeKey(sectionId, refId);
+        const current = prev.get(key);
+        if (current === 'open') next.set(key, 'collapsed');
+        else next.set(key, 'open');
         return next;
       });
       onTokenClick?.(refId);
@@ -60,7 +106,7 @@ export function NarrativeView({ context, onTokenClick }: NarrativeViewProps) {
   useEffect(() => {
     let cancelled = false;
     setState({ status: 'loading' });
-    setExpandedTokens(new Set());
+    setTokenStates(new Map());
 
     (async () => {
       try {
@@ -183,26 +229,46 @@ export function NarrativeView({ context, onTokenClick }: NarrativeViewProps) {
         <NarrativeSectionView
           key={section.id}
           section={section}
-          onTokenClick={handleTokenClick}
-          expandedTokens={expandedTokens}
+          onTokenClick={toggleToken}
+          tokenStates={tokenStates}
+          openToken={openToken}
+          collapseToken={collapseToken}
         />
       ))}
     </article>
   );
 }
 
+// ---------------------------------------------------------------------------
+// Section view — renders prose with inline tokens, plus expansion panels
+// positioned directly below the paragraph holding the clicked token.
+// ---------------------------------------------------------------------------
+
 interface SectionProps {
   section: NarrativeSection;
-  onTokenClick: (refId: string) => void;
-  expandedTokens: ReadonlySet<string>;
+  onTokenClick: (sectionId: string, refId: string) => void;
+  tokenStates: ReadonlyMap<string, TokenState>;
+  openToken: (sectionId: string, refId: string) => void;
+  collapseToken: (sectionId: string, refId: string) => void;
 }
 
-function NarrativeSectionView({ section, onTokenClick, expandedTokens }: SectionProps) {
+function NarrativeSectionView({
+  section,
+  onTokenClick,
+  tokenStates,
+  openToken,
+  collapseToken,
+}: SectionProps) {
   const HeadingTag = section.level === 2 ? 'h2' : 'h3';
   const headingClass =
     section.level === 2
       ? 'text-xl font-semibold text-white'
       : 'text-base font-semibold text-gray-100';
+
+  const handleClickHere = useCallback(
+    (refId: string) => onTokenClick(section.id, refId),
+    [onTokenClick, section.id],
+  );
 
   return (
     <section
@@ -214,21 +280,26 @@ function NarrativeSectionView({ section, onTokenClick, expandedTokens }: Section
       <HeadingTag className={headingClass}>{section.heading}</HeadingTag>
       <p data-testid="narrative-section-text" className="leading-relaxed text-gray-300">
         {section.chunks.map((chunk, idx) => (
-          <ChunkView key={idx} chunk={chunk} onTokenClick={onTokenClick} />
+          <ChunkView key={idx} chunk={chunk} onTokenClick={handleClickHere} />
         ))}
       </p>
-      {/* Render inline expansions directly below the section for any token clicked inside it. */}
+
+      {/* Inline expansions for every token in this section that has been interacted with. */}
       <SectionExpansions
         section={section}
-        onTokenClick={onTokenClick}
-        expandedTokens={expandedTokens}
+        tokenStates={tokenStates}
+        openToken={openToken}
+        collapseToken={collapseToken}
       />
+
       {section.subsections?.map((sub) => (
         <NarrativeSectionView
           key={sub.id}
           section={sub}
           onTokenClick={onTokenClick}
-          expandedTokens={expandedTokens}
+          tokenStates={tokenStates}
+          openToken={openToken}
+          collapseToken={collapseToken}
         />
       ))}
     </section>
@@ -255,36 +326,62 @@ function ChunkView({ chunk, onTokenClick }: ChunkProps) {
 
 interface SectionExpansionsProps {
   section: NarrativeSection;
-  onTokenClick: (refId: string) => void;
-  expandedTokens: ReadonlySet<string>;
+  tokenStates: ReadonlyMap<string, TokenState>;
+  openToken: (sectionId: string, refId: string) => void;
+  collapseToken: (sectionId: string, refId: string) => void;
 }
 
-function SectionExpansions({ section, onTokenClick, expandedTokens }: SectionExpansionsProps) {
-  const tokensInSection = section.chunks
-    .filter((c): c is Extract<NarrativeChunk, { type: 'token' }> => c.type === 'token')
-    .map((c) => c.token)
-    .filter((t) => expandedTokens.has(t.refId));
-
-  if (tokensInSection.length === 0) return null;
+function SectionExpansions({
+  section,
+  tokenStates,
+  openToken,
+  collapseToken,
+}: SectionExpansionsProps) {
+  // Collect token refIds used in this section (first occurrence preserved)
+  // and filter down to the ones that have a state under THIS section id.
+  const refIds: string[] = [];
+  const seen = new Set<string>();
+  for (const c of section.chunks) {
+    if (c.type === 'token') {
+      if (!seen.has(c.token.refId)) {
+        seen.add(c.token.refId);
+        refIds.push(c.token.refId);
+      }
+    }
+  }
+  const interactedRefIds = refIds.filter((id) => tokenStates.has(makeKey(section.id, id)));
+  if (interactedRefIds.length === 0) return null;
 
   return (
-    <div className="space-y-2" data-testid="narrative-section-expansions">
-      {tokensInSection.map((t) => (
-        <InlineExpansion key={t.refId} summary={`Reference details — [${t.refId}]`} defaultOpen>
-          <button
-            type="button"
-            onClick={() => onTokenClick(t.refId)}
-            className="text-xs text-gray-400 underline-offset-2 hover:text-gray-200 hover:underline"
-          >
-            Close expansion
-          </button>
-          <div className="mt-2 text-sm text-gray-300">
-            Details for <code className="text-blue-400">{t.refId}</code> — the full entity breakdown
-            (connections, linked scenarios, source) is rendered by the milestone
-            progressive-disclosure layer.
-          </div>
-        </InlineExpansion>
-      ))}
+    <div
+      className="space-y-2"
+      data-testid="narrative-section-expansions"
+      data-section-id={section.id}
+      data-expansion-count={interactedRefIds.length}
+    >
+      {interactedRefIds.map((refId) => {
+        const s = tokenStates.get(makeKey(section.id, refId));
+        if (s === 'open') {
+          return (
+            <EntityExpansion
+              key={refId}
+              refId={refId}
+              onClose={() => collapseToken(section.id, refId)}
+            />
+          );
+        }
+        if (s === 'collapsed') {
+          return (
+            <CollapsedEntityExpansion
+              key={refId}
+              refId={refId}
+              summary={`[${refId}] previously opened — click to re-open.`}
+              onReopen={() => openToken(section.id, refId)}
+            />
+          );
+        }
+        return null;
+      })}
     </div>
   );
 }
