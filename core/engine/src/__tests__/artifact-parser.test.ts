@@ -746,3 +746,78 @@ describe('parseArtifact — plan with task_dag and scenario_gate.ids', () => {
     expect(result.content!.executionOrder).toHaveLength(4);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Plan normalization — nested task_dag groups flattening
+// ---------------------------------------------------------------------------
+describe('parseArtifact — plan with nested task_dag groups', () => {
+  it('flattens nested task_dag[].tasks entries into executionOrder', () => {
+    const result = parseArtifact<PlanContent>(fixturePath('plan-nested-taskdag.yaml'), 'plan');
+
+    expect(result.status).toBe('ok');
+    expect(result.content).not.toBeNull();
+
+    const content = result.content!;
+    // 2 tasks from group-data-layer + 1 flat T2.1 + 2 tasks from group-automation = 5
+    expect(content.executionOrder).toHaveLength(5);
+
+    const ids = content.executionOrder.map((t) => t.id);
+    expect(ids).toEqual(['T1.1', 'T1.2', 'T2.1', 'T3.1', 'T3.2']);
+  });
+
+  it('does not emit group entries (with tasks sub-array) as tasks themselves', () => {
+    const result = parseArtifact<PlanContent>(fixturePath('plan-nested-taskdag.yaml'), 'plan');
+    const content = result.content!;
+
+    const ids = content.executionOrder.map((t) => t.id);
+    expect(ids).not.toContain('group-data-layer');
+    expect(ids).not.toContain('group-automation');
+  });
+
+  it('normalizes scenario_gate.ids alias at nested task level', () => {
+    const result = parseArtifact<PlanContent>(fixturePath('plan-nested-taskdag.yaml'), 'plan');
+    const content = result.content!;
+
+    // T3.1 uses scenario_gate.ids — nested inside group-automation
+    const t31 = content.executionOrder.find((t) => t.id === 'T3.1')!;
+    expect(t31.scenarioGate).toBeDefined();
+    expect(t31.scenarioGate!.scenarioIds).toContain('SC-AUTO-001');
+    expect(t31.scenarioGate!.count).toBe(1);
+
+    // T3.2 uses scenario_gate.scenarioIds — nested inside group-automation
+    const t32 = content.executionOrder.find((t) => t.id === 'T3.2')!;
+    expect(t32.scenarioGate).toBeDefined();
+    expect(t32.scenarioGate!.scenarioIds).toContain('SC-AUTO-002');
+    expect(t32.scenarioGate!.count).toBe(1);
+  });
+
+  it('handles mixed flat tasks and grouped tasks correctly', () => {
+    const result = parseArtifact<PlanContent>(fixturePath('plan-nested-taskdag.yaml'), 'plan');
+    const content = result.content!;
+
+    // Flat task T2.1 should have its properties preserved
+    const t21 = content.executionOrder.find((t) => t.id === 'T2.1')!;
+    expect(t21.featureId).toBe('F2');
+    expect(t21.dependsOn).toContain('T1.1');
+    expect(t21.scenarioGate).toBeDefined();
+    expect(t21.scenarioGate!.scenarioIds).toContain('SC-AI-001');
+
+    // Nested task T1.1 should also have its properties preserved
+    const t11 = content.executionOrder.find((t) => t.id === 'T1.1')!;
+    expect(t11.featureId).toBe('F1');
+    expect(t11.dependsOn).toEqual([]);
+    expect(t11.exitGate).toContain('Task model');
+  });
+
+  it('preserves milestones and prerequisites from nested variant', () => {
+    const result = parseArtifact<PlanContent>(fixturePath('plan-nested-taskdag.yaml'), 'plan');
+    const content = result.content!;
+
+    expect(content.milestones).toHaveLength(3);
+    expect(content.milestones[0]!.id).toBe('M1');
+    expect(content.milestones[0]!.name).toBe('Core Data Layer');
+
+    expect(content.prerequisites).toHaveLength(1);
+    expect(content.prerequisites![0]!.id).toBe('P0-S1');
+  });
+});

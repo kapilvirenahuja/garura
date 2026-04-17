@@ -512,34 +512,49 @@ function normalizeScenarios(raw: Record<string, unknown>): ScenariosContent {
   };
 }
 
+/** Normalize a single raw task object into a TaskEntry */
+function normalizeTaskEntry(obj: Record<string, unknown>): TaskEntry {
+  const scenarioGateRaw = asRecord(obj['scenario_gate'] ?? obj['scenarioGate']);
+  return {
+    id: asString(obj['id']),
+    featureId: asString(obj['feature_id'] ?? obj['featureId']),
+    description: asString(obj['description']),
+    dependsOn: asArray<string>(obj['depends_on'] ?? obj['dependsOn']),
+    exitGate: asString(obj['exit_gate'] ?? obj['exitGate']),
+    scenarioGate:
+      Object.keys(scenarioGateRaw).length > 0
+        ? {
+            // Accept ids as alias for scenario_ids
+            scenarioIds: asArray<string>(
+              scenarioGateRaw['scenario_ids'] ??
+                scenarioGateRaw['scenarioIds'] ??
+                scenarioGateRaw['ids'],
+            ),
+            count: typeof scenarioGateRaw['count'] === 'number' ? scenarioGateRaw['count'] : 0,
+          }
+        : undefined,
+  };
+}
+
 function normalizePlan(raw: Record<string, unknown>): PlanContent {
   // Accept task_dag as an alternative key for execution_order
   const rawExecOrder = asArray<unknown>(
     raw['execution_order'] ?? raw['executionOrder'] ?? raw['task_dag'] ?? raw['taskDag'],
   );
-  const executionOrder: TaskEntry[] = rawExecOrder.map((t) => {
+  const executionOrder: TaskEntry[] = [];
+  for (const t of rawExecOrder) {
     const obj = asRecord(t);
-    const scenarioGateRaw = asRecord(obj['scenario_gate'] ?? obj['scenarioGate']);
-    return {
-      id: asString(obj['id']),
-      featureId: asString(obj['feature_id'] ?? obj['featureId']),
-      description: asString(obj['description']),
-      dependsOn: asArray<string>(obj['depends_on'] ?? obj['dependsOn']),
-      exitGate: asString(obj['exit_gate'] ?? obj['exitGate']),
-      scenarioGate:
-        Object.keys(scenarioGateRaw).length > 0
-          ? {
-              // Accept ids as alias for scenario_ids
-              scenarioIds: asArray<string>(
-                scenarioGateRaw['scenario_ids'] ??
-                  scenarioGateRaw['scenarioIds'] ??
-                  scenarioGateRaw['ids'],
-              ),
-              count: typeof scenarioGateRaw['count'] === 'number' ? scenarioGateRaw['count'] : 0,
-            }
-          : undefined,
-    };
-  });
+    const nestedTasks = asArray<unknown>(obj['tasks']);
+    if (nestedTasks.length > 0) {
+      // Group entry: flatten nested tasks, skip the group itself
+      for (const nested of nestedTasks) {
+        executionOrder.push(normalizeTaskEntry(asRecord(nested)));
+      }
+    } else {
+      // Flat task entry
+      executionOrder.push(normalizeTaskEntry(obj));
+    }
+  }
 
   const rawMilestones = asArray<unknown>(raw['milestones']);
   const milestones: MilestoneEntry[] = rawMilestones.map((m) => {
