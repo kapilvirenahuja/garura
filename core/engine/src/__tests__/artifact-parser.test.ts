@@ -625,3 +625,124 @@ describe('parseArtifacts — batch parsing', () => {
     expect((results[0]!.content as ProductContent).name).toBe('TaskFlow Pro');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Tiered scenario normalization
+// ---------------------------------------------------------------------------
+describe('parseArtifact — tiered scenarios normalization', () => {
+  it('merges baseline_scenarios, new_scenarios, regression_scenarios into unified set', () => {
+    const result = parseArtifact<ScenariosContent>(
+      fixturePath('scenarios-tiered.yaml'),
+      'scenarios',
+    );
+
+    expect(result.status).toBe('ok');
+    expect(result.content).not.toBeNull();
+
+    const content = result.content!;
+    // flat scenarios (1) + baseline (2) + new (1) + regression (1) = 5 total
+    expect(content.scenarios).toHaveLength(5);
+
+    // Verify all IDs are present
+    const ids = content.scenarios.map((s) => s.id);
+    expect(ids).toContain('SC-TASK-001'); // from flat scenarios
+    expect(ids).toContain('SC-BASE-001'); // from baseline_scenarios
+    expect(ids).toContain('SC-BASE-002'); // from baseline_scenarios
+    expect(ids).toContain('SC-NEW-001'); // from new_scenarios
+    expect(ids).toContain('SC-REG-001'); // from regression_scenarios
+  });
+
+  it('preserves BDD fields from tiered scenarios', () => {
+    const result = parseArtifact<ScenariosContent>(
+      fixturePath('scenarios-tiered.yaml'),
+      'scenarios',
+    );
+    const content = result.content!;
+
+    const scNew = content.scenarios.find((s) => s.id === 'SC-NEW-001')!;
+    expect(scNew.given).toContain('PR is opened');
+    expect(scNew.when).toContain('webhook handler');
+    expect(scNew.then).toContain('in-review');
+    expect(scNew.featureRef).toBe('F3');
+  });
+
+  it('handles file with only tiered scenarios (no flat scenarios array)', () => {
+    // The existing flat scenarios array should be empty if absent,
+    // and tiered scenarios should still be merged
+    const result = parseArtifact<ScenariosContent>(
+      fixturePath('scenarios-tiered.yaml'),
+      'scenarios',
+    );
+    const content = result.content!;
+
+    // baseline scenarios have correct fields
+    const scBase = content.scenarios.find((s) => s.id === 'SC-BASE-001')!;
+    expect(scBase.featureRef).toBe('F1');
+    expect(scBase.behaviorRef).toBe('F1-B2');
+    expect(scBase.description).toContain('Baseline');
+    expect(scBase.passCriteria).toHaveLength(1);
+  });
+
+  it('works with flat-only scenarios (no tiered keys)', () => {
+    // The original scenarios.yaml has no tiered keys — should still work
+    const result = parseArtifact<ScenariosContent>(fixturePath('scenarios.yaml'));
+    expect(result.status).toBe('ok');
+    expect(result.content!.scenarios).toHaveLength(4);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Plan normalization — task_dag and scenario_gate.ids alias
+// ---------------------------------------------------------------------------
+describe('parseArtifact — plan with task_dag and scenario_gate.ids', () => {
+  it('normalizes task_dag entries to executionOrder', () => {
+    const result = parseArtifact<PlanContent>(fixturePath('plan-taskdag.yaml'), 'plan');
+
+    expect(result.status).toBe('ok');
+    expect(result.content).not.toBeNull();
+
+    const content = result.content!;
+    expect(content.executionOrder).toHaveLength(4);
+
+    const t11 = content.executionOrder[0]!;
+    expect(t11.id).toBe('T1.1');
+    expect(t11.featureId).toBe('F1');
+    expect(t11.dependsOn).toEqual([]);
+    expect(t11.exitGate).toContain('Task model');
+  });
+
+  it('accepts scenario_gate.ids as alias for scenario_gate.scenario_ids', () => {
+    const result = parseArtifact<PlanContent>(fixturePath('plan-taskdag.yaml'), 'plan');
+    const content = result.content!;
+
+    // T2.1 uses scenario_gate.ids instead of scenario_gate.scenario_ids
+    const t21 = content.executionOrder[2]!;
+    expect(t21.id).toBe('T2.1');
+    expect(t21.scenarioGate).toBeDefined();
+    expect(t21.scenarioGate!.scenarioIds).toContain('SC-AI-001');
+    expect(t21.scenarioGate!.count).toBe(1);
+
+    // T3.1 also uses ids alias
+    const t31 = content.executionOrder[3]!;
+    expect(t31.scenarioGate).toBeDefined();
+    expect(t31.scenarioGate!.scenarioIds).toContain('SC-AUTO-001');
+  });
+
+  it('preserves milestones and prerequisites from task_dag variant', () => {
+    const result = parseArtifact<PlanContent>(fixturePath('plan-taskdag.yaml'), 'plan');
+    const content = result.content!;
+
+    expect(content.milestones).toHaveLength(3);
+    expect(content.milestones[0]!.id).toBe('M1');
+    expect(content.milestones[0]!.name).toBe('Core Data Layer');
+
+    expect(content.prerequisites).toHaveLength(1);
+    expect(content.prerequisites![0]!.id).toBe('P0-S1');
+  });
+
+  it('still works with execution_order (original format)', () => {
+    const result = parseArtifact<PlanContent>(fixturePath('plan.yaml'));
+    expect(result.status).toBe('ok');
+    expect(result.content!.executionOrder).toHaveLength(4);
+  });
+});

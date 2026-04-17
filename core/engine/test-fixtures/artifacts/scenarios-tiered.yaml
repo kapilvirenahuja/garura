@@ -1,0 +1,61 @@
+# scenarios-tiered.yaml — Test Fixture
+# Verification scenarios for TaskFlow using tiered scenario collections
+# Tests the baseline_scenarios + new_scenarios + regression_scenarios format
+
+slug: "taskflow"
+status: "LOCKED"
+created_at: "2026-01-25"
+updated_at: "2026-03-01"
+
+# Flat scenarios array (some parsers include both)
+scenarios:
+  - id: "SC-TASK-001"
+    feature_ref: "F1"
+    behavior_ref: "F1-B1"
+    description: "Inbox displays tasks sorted by priority"
+    expected_behavior: "Tasks sorted by descending priority score"
+    pass_criteria:
+      - "Tasks are sorted by priority score descending"
+    automation: "automated"
+
+# Tiered collections
+baseline_scenarios:
+  - id: "SC-BASE-001"
+    feature_ref: "F1"
+    behavior_ref: "F1-B2"
+    description: "Baseline: inbox loads within 2 seconds"
+    expected_behavior: "Inbox page loads and renders within 2 seconds"
+    pass_criteria:
+      - "Page load time under 2 seconds"
+    automation: "automated"
+
+  - id: "SC-BASE-002"
+    feature_ref: "F2"
+    description: "Baseline: priority score is non-negative"
+    expected_behavior: "All priority scores are >= 0"
+    pass_criteria:
+      - "No negative priority scores"
+    automation: "automated"
+
+new_scenarios:
+  - id: "SC-NEW-001"
+    feature_ref: "F3"
+    behavior_ref: "F3-B1"
+    description: "New: PR event triggers task state change"
+    given: "A PR is opened referencing task T-42"
+    when: "The webhook handler processes the PR open event"
+    then: "Task T-42 state transitions to 'in-review'"
+    expected_behavior: "PR open transitions task to in-review"
+    pass_criteria:
+      - "Task state changes to in-review"
+    automation: "automated"
+
+regression_scenarios:
+  - id: "SC-REG-001"
+    feature_ref: "F1"
+    description: "Regression: empty inbox does not crash"
+    expected_behavior: "Empty inbox renders empty state gracefully"
+    pass_criteria:
+      - "No crash on empty inbox"
+      - "Empty state message shown"
+    automation: "automated"

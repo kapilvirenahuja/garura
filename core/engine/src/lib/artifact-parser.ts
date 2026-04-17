@@ -467,26 +467,43 @@ function normalizeFeatures(raw: Record<string, unknown>): FeaturesContent {
   };
 }
 
+function normalizeScenarioEntry(s: unknown): ScenarioEntry {
+  const obj = asRecord(s);
+  const givenVal = obj['given'];
+  const whenVal = obj['when'];
+  const thenVal = obj['then'];
+  return {
+    id: asString(obj['id']),
+    featureRef: asString(obj['feature_ref'] ?? obj['featureRef']),
+    behaviorRef: asString(obj['behavior_ref'] ?? obj['behaviorRef']),
+    description: asString(obj['description']),
+    ...(givenVal !== undefined && givenVal !== null ? { given: asString(givenVal) } : {}),
+    ...(whenVal !== undefined && whenVal !== null ? { when: asString(whenVal) } : {}),
+    ...(thenVal !== undefined && thenVal !== null ? { then: asString(thenVal) } : {}),
+    expectedBehavior: asString(obj['expected_behavior'] ?? obj['expectedBehavior']),
+    passCriteria: asArray<string>(obj['pass_criteria'] ?? obj['passCriteria']),
+    automation: asString(obj['automation']),
+  };
+}
+
+/** Keys for tiered scenario collections that should be merged into the unified set */
+const TIERED_SCENARIO_KEYS = [
+  'baseline_scenarios',
+  'new_scenarios',
+  'regression_scenarios',
+] as const;
+
 function normalizeScenarios(raw: Record<string, unknown>): ScenariosContent {
-  const rawScenarios = asArray<unknown>(raw['scenarios']);
-  const scenarios: ScenarioEntry[] = rawScenarios.map((s) => {
-    const obj = asRecord(s);
-    const givenVal = obj['given'];
-    const whenVal = obj['when'];
-    const thenVal = obj['then'];
-    return {
-      id: asString(obj['id']),
-      featureRef: asString(obj['feature_ref'] ?? obj['featureRef']),
-      behaviorRef: asString(obj['behavior_ref'] ?? obj['behaviorRef']),
-      description: asString(obj['description']),
-      ...(givenVal !== undefined && givenVal !== null ? { given: asString(givenVal) } : {}),
-      ...(whenVal !== undefined && whenVal !== null ? { when: asString(whenVal) } : {}),
-      ...(thenVal !== undefined && thenVal !== null ? { then: asString(thenVal) } : {}),
-      expectedBehavior: asString(obj['expected_behavior'] ?? obj['expectedBehavior']),
-      passCriteria: asArray<string>(obj['pass_criteria'] ?? obj['passCriteria']),
-      automation: asString(obj['automation']),
-    };
-  });
+  // Start with the flat scenarios array
+  const scenarios: ScenarioEntry[] = asArray<unknown>(raw['scenarios']).map(normalizeScenarioEntry);
+
+  // Merge tiered scenario collections
+  for (const key of TIERED_SCENARIO_KEYS) {
+    const tiered = asArray<unknown>(raw[key]);
+    for (const entry of tiered) {
+      scenarios.push(normalizeScenarioEntry(entry));
+    }
+  }
 
   return {
     slug: asString(raw['slug']),
@@ -496,7 +513,10 @@ function normalizeScenarios(raw: Record<string, unknown>): ScenariosContent {
 }
 
 function normalizePlan(raw: Record<string, unknown>): PlanContent {
-  const rawExecOrder = asArray<unknown>(raw['execution_order'] ?? raw['executionOrder']);
+  // Accept task_dag as an alternative key for execution_order
+  const rawExecOrder = asArray<unknown>(
+    raw['execution_order'] ?? raw['executionOrder'] ?? raw['task_dag'] ?? raw['taskDag'],
+  );
   const executionOrder: TaskEntry[] = rawExecOrder.map((t) => {
     const obj = asRecord(t);
     const scenarioGateRaw = asRecord(obj['scenario_gate'] ?? obj['scenarioGate']);
@@ -509,8 +529,11 @@ function normalizePlan(raw: Record<string, unknown>): PlanContent {
       scenarioGate:
         Object.keys(scenarioGateRaw).length > 0
           ? {
+              // Accept ids as alias for scenario_ids
               scenarioIds: asArray<string>(
-                scenarioGateRaw['scenario_ids'] ?? scenarioGateRaw['scenarioIds'],
+                scenarioGateRaw['scenario_ids'] ??
+                  scenarioGateRaw['scenarioIds'] ??
+                  scenarioGateRaw['ids'],
               ),
               count: typeof scenarioGateRaw['count'] === 'number' ? scenarioGateRaw['count'] : 0,
             }
