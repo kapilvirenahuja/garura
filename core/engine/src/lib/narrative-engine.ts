@@ -42,6 +42,71 @@ import {
 import { selectNarrativeCtas, type CtaAction } from './narrative-ctas';
 
 // ---------------------------------------------------------------------------
+// Implementation / quality evidence detection
+// ---------------------------------------------------------------------------
+
+/**
+ * Explicit allow-list of play names that count as implementation evidence.
+ *
+ * We deliberately use an allow-list instead of a regex because substring
+ * matching on "implement" / "implementation" produces false positives for
+ * planning plays whose names merely reference implementation as a topic:
+ *
+ *   • prepare-implementation  — plans for implementation, does NOT implement
+ *   • prepare-epic            — historical alias referencing implementation
+ *   • generate-implementation-brief — produces a review brief
+ *
+ * Mirrors `IMPLEMENTATION_PLAY_NAMES` in `epic-status.ts` so the narrative
+ * CTAs and the Flight Deck stage inference agree on what "implementation"
+ * means.
+ */
+const IMPLEMENTATION_PLAY_NAMES: ReadonlySet<string> = new Set([
+  'implement-epic',
+  'play-implement-epic',
+  'code-builder',
+]);
+
+/**
+ * Explicit allow-list of play names that count as quality / validation
+ * evidence. Narrowed from the previous substring regex so names like
+ * "generate-quality-vision" or "derive-quality-profile-from-epics" (which
+ * analyse quality rather than execute QA) do not get misclassified.
+ */
+const QUALITY_PLAY_NAMES: ReadonlySet<string> = new Set([
+  'quality-check',
+  'quality-check-scoped',
+  'validate-epic',
+]);
+
+/** Minimal play-history shape that the evidence helpers need. */
+interface PlayRunLike {
+  readonly name: string;
+}
+
+/**
+ * True when the play history contains a run of a play that actually performs
+ * implementation work. Planning / preparation plays that only reference
+ * implementation in their name are ignored.
+ *
+ * Exported for regression-test coverage of false positives.
+ */
+export function hasImplementationEvidence(playHistory: ReadonlyArray<PlayRunLike>): boolean {
+  return playHistory.some((p) => IMPLEMENTATION_PLAY_NAMES.has(p.name));
+}
+
+/**
+ * True when STM evidence — either explicit quality-check records or a
+ * quality / validation play in the play history — indicates QA has run.
+ */
+export function hasQualityEvidence(input: {
+  readonly qualityChecksCount: number;
+  readonly playHistory: ReadonlyArray<PlayRunLike>;
+}): boolean {
+  if (input.qualityChecksCount > 0) return true;
+  return input.playHistory.some((p) => QUALITY_PLAY_NAMES.has(p.name));
+}
+
+// ---------------------------------------------------------------------------
 // Types — Narrative tree
 // ---------------------------------------------------------------------------
 
@@ -630,12 +695,11 @@ export function composeEpicNarrativeDeterministic(ctx: ComposeContext): Narrativ
     featureCount: features.length,
     hasArchitecture: arch.decisions.length + arch.patterns.length + arch.nfrs.length > 0,
     hasPlan: plan.tasks.length > 0,
-    hasImplementationEvidence: evidence.playHistory.some((p) =>
-      /(^|-)implement(-|$)|implementation/i.test(p.name),
-    ),
-    hasQualityEvidence:
-      evidence.qualityChecks.length > 0 ||
-      evidence.playHistory.some((p) => /quality[-_]?check|validate-epic/i.test(p.name)),
+    hasImplementationEvidence: hasImplementationEvidence(evidence.playHistory),
+    hasQualityEvidence: hasQualityEvidence({
+      qualityChecksCount: evidence.qualityChecks.length,
+      playHistory: evidence.playHistory,
+    }),
   });
 
   return {

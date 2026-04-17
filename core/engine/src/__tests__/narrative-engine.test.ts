@@ -19,6 +19,8 @@ import {
   composeEpicNarrativeDeterministic,
   computeContentHash,
   getEpicNarrative,
+  hasImplementationEvidence,
+  hasQualityEvidence,
   invalidateNarrativeCache,
   narrativeCacheSize,
   type ComposeContext,
@@ -408,5 +410,178 @@ describe('narrative cache', () => {
     // Re-fetch E1 → miss again; E2 still cached.
     expect(getEpicNarrative(buildCtx('E1')).fromCache).toBe(false);
     expect(getEpicNarrative(buildCtx('E2')).fromCache).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Implementation / quality evidence detection — regression coverage for
+// over-broad substring matching that previously classified planning plays
+// like "prepare-implementation" and "prepare-epic" as implementation work.
+// ---------------------------------------------------------------------------
+
+describe('hasImplementationEvidence — explicit play-name allow-list', () => {
+  it('returns true for an implement-epic run regardless of status', () => {
+    expect(hasImplementationEvidence([{ name: 'implement-epic' }])).toBe(true);
+  });
+
+  it('returns true for play-implement-epic and code-builder aliases', () => {
+    expect(hasImplementationEvidence([{ name: 'play-implement-epic' }])).toBe(true);
+    expect(hasImplementationEvidence([{ name: 'code-builder' }])).toBe(true);
+  });
+
+  it('returns false for prepare-implementation (planning, not implementation)', () => {
+    expect(hasImplementationEvidence([{ name: 'prepare-implementation' }])).toBe(false);
+  });
+
+  it('returns false for prepare-epic even though it is part of the implementation cascade', () => {
+    expect(hasImplementationEvidence([{ name: 'prepare-epic' }])).toBe(false);
+  });
+
+  it('returns false for generate-implementation-brief and other "implementation"-topic plays', () => {
+    expect(
+      hasImplementationEvidence([
+        { name: 'generate-implementation-brief' },
+        { name: 'validate-implementation-design' },
+      ]),
+    ).toBe(false);
+  });
+
+  it('returns false for an empty play history', () => {
+    expect(hasImplementationEvidence([])).toBe(false);
+  });
+
+  it('returns true when a real implement-epic run is present alongside planning plays', () => {
+    expect(
+      hasImplementationEvidence([
+        { name: 'prepare-implementation' },
+        { name: 'prepare-epic' },
+        { name: 'implement-epic' },
+      ]),
+    ).toBe(true);
+  });
+});
+
+describe('hasQualityEvidence — explicit play-name allow-list', () => {
+  it('returns true when at least one quality-check artifact is present', () => {
+    expect(hasQualityEvidence({ qualityChecksCount: 1, playHistory: [] })).toBe(true);
+  });
+
+  it('returns true for quality-check / quality-check-scoped / validate-epic play runs', () => {
+    expect(
+      hasQualityEvidence({
+        qualityChecksCount: 0,
+        playHistory: [{ name: 'quality-check' }],
+      }),
+    ).toBe(true);
+    expect(
+      hasQualityEvidence({
+        qualityChecksCount: 0,
+        playHistory: [{ name: 'quality-check-scoped' }],
+      }),
+    ).toBe(true);
+    expect(
+      hasQualityEvidence({
+        qualityChecksCount: 0,
+        playHistory: [{ name: 'validate-epic' }],
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false for plays that only mention quality in their name', () => {
+    expect(
+      hasQualityEvidence({
+        qualityChecksCount: 0,
+        playHistory: [
+          { name: 'derive-quality-profile-from-epics' },
+          { name: 'derive-quality-vision' },
+          { name: 'prepare-epic' },
+        ],
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('composeEpicNarrativeDeterministic — implementation evidence regression', () => {
+  it('keeps the primary CTA as implement-epic when only prepare-implementation evidence exists', () => {
+    // Build a fixture context, then inject STM evidence entries that contain
+    // the false-positive play names. Because readStmEvidenceForEpic reads
+    // stm-evidence-* artifacts, we synthesize those directly.
+    const baseArtifacts = loadFixtureArtifacts();
+    const injected: ArtifactResult[] = [
+      ...baseArtifacts,
+      {
+        type: 'stm-evidence-yaml',
+        path: '/synthetic/E1/prepare-implementation.yaml',
+        status: 'ok',
+        content: {
+          raw: {
+            play: {
+              name: 'prepare-implementation',
+              status: 'complete',
+              timestamp: '2025-01-01T00:00:00Z',
+            },
+          },
+          status: 'complete',
+          timestamp: '2025-01-01T00:00:00Z',
+        },
+      } as ArtifactResult,
+      {
+        type: 'stm-evidence-yaml',
+        path: '/synthetic/E1/prepare-epic.yaml',
+        status: 'ok',
+        content: {
+          raw: {
+            play: {
+              name: 'prepare-epic',
+              status: 'complete',
+              timestamp: '2025-01-02T00:00:00Z',
+            },
+          },
+          status: 'complete',
+          timestamp: '2025-01-02T00:00:00Z',
+        },
+      } as ArtifactResult,
+    ];
+    const ctx: ComposeContext = {
+      epicId: 'E1',
+      artifacts: injected,
+      graph: buildCrossRefGraph(injected, null),
+    };
+    const narrative = composeEpicNarrativeDeterministic(ctx);
+    const primary = narrative.actions.find((a) => a.primary);
+    expect(primary?.playName).toBe('implement-epic');
+    expect(primary?.reason).toBe('not-implemented');
+  });
+
+  it('advances the primary CTA to quality-check once a real implement-epic run is recorded', () => {
+    const baseArtifacts = loadFixtureArtifacts();
+    const injected: ArtifactResult[] = [
+      ...baseArtifacts,
+      {
+        type: 'stm-evidence-yaml',
+        path: '/synthetic/E1/implement-epic.yaml',
+        status: 'ok',
+        content: {
+          raw: {
+            play: {
+              name: 'implement-epic',
+              status: 'in_progress',
+              timestamp: '2025-01-03T00:00:00Z',
+            },
+          },
+          status: 'in_progress',
+          timestamp: '2025-01-03T00:00:00Z',
+        },
+      } as ArtifactResult,
+    ];
+    const ctx: ComposeContext = {
+      epicId: 'E1',
+      artifacts: injected,
+      graph: buildCrossRefGraph(injected, null),
+    };
+    const narrative = composeEpicNarrativeDeterministic(ctx);
+    const primary = narrative.actions.find((a) => a.primary);
+    expect(primary?.playName).toBe('quality-check');
+    expect(primary?.reason).toBe('no-quality-check');
   });
 });
