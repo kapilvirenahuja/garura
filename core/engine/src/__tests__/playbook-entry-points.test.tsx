@@ -61,6 +61,52 @@ afterEach(() => {
   cleanup();
 });
 
+// Reusable mock for the generative search API. Produces a response the
+// SearchResultsView can render, including two CrossRefToken chunks in
+// the first card so tests can click them to verify navigation wiring.
+function mockSearchFetch(query: string) {
+  const payload = {
+    query,
+    hitCount: 2,
+    composedAt: '2026-04-17T00:00:00.000Z',
+    epics: [{ id: 'EPIC-E1', shortId: 'E1', name: 'Core Task Management' }],
+    results: [
+      {
+        id: 'feature:F1',
+        title: 'Task Inbox',
+        kind: 'feature',
+        relevance: 9.42,
+        primaryRefId: 'F1',
+        chunks: [
+          { type: 'text', text: `Your search for "${query}" surfaces feature ` },
+          { type: 'token', token: { refId: 'F1', dangling: false } },
+          { type: 'text', text: ' — see scenario ' },
+          { type: 'token', token: { refId: 'SC-TASK-001', dangling: false } },
+          { type: 'text', text: '.' },
+        ],
+        sources: [
+          {
+            entityId: 'F1',
+            sourceType: 'features',
+            sourceFile: '/tmp/features.yaml',
+            score: 5,
+            title: 'Task Inbox',
+          },
+        ],
+        epics: [{ id: 'EPIC-E1', shortId: 'E1', name: 'Core Task Management' }],
+      },
+    ],
+  };
+  globalThis.fetch = vi.fn(() =>
+    Promise.resolve(
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    ),
+  ) as unknown as typeof fetch;
+}
+
 // Reusable mock narrative payload. Uses a fresh Response per call so
 // multiple fetch invocations (e.g. React effects firing twice in
 // development mode) don't trip the "body already read" error.
@@ -349,6 +395,7 @@ describe('PlaybookPage — entry modes', () => {
   });
 
   it('renders the search view when ?query=... is present (VAL-PLAY-010, VAL-CROSS-007)', async () => {
+    mockSearchFetch('authentication');
     window.history.replaceState({}, '', '/playbook?query=authentication');
     render(<PlaybookPage />);
     await waitFor(() => {
@@ -359,6 +406,43 @@ describe('PlaybookPage — entry modes', () => {
     // users can return to the empty state (VAL-PLAY-022).
     expect(screen.getByTestId('playbook-search-root-link')).toHaveAttribute('href', '/playbook');
   });
+
+  it(
+    'renders clickable SearchResultsView in search mode and clicking a ' +
+      'CrossRefToken navigates to /playbook?context=<refId> ' +
+      '(VAL-PLAY-010, VAL-PLAY-019, fix-playbook-search-mode)',
+    async () => {
+      mockSearchFetch('timeout');
+      window.history.replaceState({}, '', '/playbook?query=timeout');
+      render(<PlaybookPage />);
+
+      // Search mode activates immediately …
+      await waitFor(() => {
+        expect(screen.getByTestId('playbook-view')).toHaveAttribute('data-mode', 'search');
+      });
+
+      // … and the generative SearchResultsView renders below the legacy
+      // wrapper — this is the wiring the feature "fix-playbook-search-mode"
+      // is guarding against regressing back to a stub.
+      const resultsView = await screen.findByTestId('search-results-view');
+      const firstCard = within(resultsView).getAllByTestId('search-result-card')[0]!;
+      expect(firstCard).toHaveAttribute('data-result-id', 'feature:F1');
+
+      // CrossRefTokens inside the result prose are rendered as real
+      // interactive buttons — not inert text — so clicking the [F1]
+      // token navigates to the playbook narrative context for F1.
+      const tokens = within(firstCard).getAllByTestId('cross-ref-token');
+      expect(tokens[0]).toHaveAttribute('data-ref-id', 'F1');
+      fireEvent.click(tokens[0]!);
+      expect(pushMock).toHaveBeenCalledWith('/playbook?context=F1');
+
+      // The second token drills into a scenario context, exercising the
+      // same wiring for non-feature refIds.
+      expect(tokens[1]).toHaveAttribute('data-ref-id', 'SC-TASK-001');
+      fireEvent.click(tokens[1]!);
+      expect(pushMock).toHaveBeenCalledWith('/playbook?context=SC-TASK-001');
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------
