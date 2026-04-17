@@ -23,6 +23,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CrossRefToken } from '@/components/cross-ref-token';
+import { WikiTagText } from '@/components/wiki-tag-text';
 import type { EntityExpansionData } from '@/lib/entity-expansion';
 
 export interface EntityExpansionProps {
@@ -306,7 +307,12 @@ export function EntityExpansion({ refId, onClose, seed, depth = 0 }: EntityExpan
             className="mt-3 space-y-2 rounded border border-gray-800 bg-black/30 p-3 text-sm leading-relaxed text-gray-200"
           >
             {explain.paragraphs.map((p, i) => (
-              <p key={i}>{p}</p>
+              <p key={i}>
+                {/* Explain-further prose may contain inline [[play:prompt]]
+                   wiki tags. Render them as interactive WikiTagRunners so
+                   they're fully functional inside expansions (VAL-ACTION-031). */}
+                <WikiTagText text={p} />
+              </p>
             ))}
           </div>
         ) : null}

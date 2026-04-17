@@ -25,6 +25,7 @@ import { CrossRefToken } from '@/components/cross-ref-token';
 import { CTAButton } from '@/components/cta-button';
 import { ContentSlot, type ContentSlotState } from '@/components/content-slot';
 import { CollapsedEntityExpansion, EntityExpansion } from '@/components/entity-expansion';
+import { WikiTagText } from '@/components/wiki-tag-text';
 import type { CtaAction } from '@/lib/narrative-ctas';
 import type { Narrative, NarrativeChunk, NarrativeSection } from '@/lib/narrative-engine';
 
@@ -576,7 +577,13 @@ interface ChunkProps {
 
 function ChunkView({ chunk, onTokenClick }: ChunkProps) {
   if (chunk.type === 'text') {
-    return <span>{chunk.text}</span>;
+    // Render prose, substituting interactive WikiTagRunner components for
+    // any `[[play:prompt]]` patterns we encounter (mdb-wiki-tag-parser).
+    return (
+      <span>
+        <WikiTagText text={chunk.text} />
+      </span>
+    );
   }
   return (
     <CrossRefToken
