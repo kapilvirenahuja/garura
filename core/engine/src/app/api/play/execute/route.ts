@@ -1,18 +1,27 @@
 /**
- * API Route: /api/checklists/execute
+ * API Route: /api/play/execute
  *
- * Thin compatibility shim that delegates to the shared play-execution
- * bridge at {@link spawnPlay}. Retained so existing clients (checklist
- * step CTAs, wiki-tag runner) keep working unchanged; it now inherits
- * command whitelisting, argument sanitization, process tracking,
- * execution timeouts, cancellation, and the global concurrent limit
- * from `play-executor`.
+ * Primary SSE endpoint for the Playbook Reader action engine. Delegates
+ * to {@link spawnPlay} for process lifecycle management and streams the
+ * resulting SSE feed straight back to the browser.
  *
- * Request body (JSON): `{ playName: string, prompt?: string, timeoutMs?: number }`.
- * Response: `text/event-stream` (see play-executor.ts for event schema).
+ * Request body (JSON):
+ *   `{ playName: string, prompt?: string, timeoutMs?: number }`
  *
- * Fulfills: VAL-CHECK-020, VAL-ACTION-009 — VAL-ACTION-016, VAL-ACTION-029,
- *           VAL-ACTION-030.
+ * Response:
+ *   - 200 + `text/event-stream` on successful spawn.
+ *     The `X-Execution-Id` response header exposes the server-side
+ *     execution id so the client can correlate cancellation requests
+ *     before consuming the stream.
+ *   - 400 for invalid JSON / invalid play name / invalid prompt.
+ *   - 429 when the concurrent-execution limit is reached
+ *     (`Retry-After` header suggests the client wait).
+ *   - 500 for any other spawn failure.
+ *
+ * Fulfills:
+ *   VAL-ACTION-009, VAL-ACTION-010, VAL-ACTION-011, VAL-ACTION-012,
+ *   VAL-ACTION-013, VAL-ACTION-014, VAL-ACTION-016, VAL-ACTION-029,
+ *   VAL-ACTION-030.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
