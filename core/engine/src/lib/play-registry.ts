@@ -88,6 +88,7 @@ export const GARURA_PLAY_NAMES: ReadonlySet<string> = new Set([
   'setup-branch',
   'submit-pr',
   'sync-claude',
+  'sync-codex',
   'sync-droids',
   'synthesize-personas',
   'validate-abstraction-layer',
