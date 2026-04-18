@@ -27,6 +27,13 @@ export interface ChecklistStep {
   readonly label: string;
   readonly description: string;
   readonly play: string;
+  readonly execution?: ChecklistStepExecution;
+}
+
+/** Optional execution override for a checklist step. */
+export interface ChecklistStepExecution {
+  readonly runner: 'garura' | 'claude-headless';
+  readonly prompt?: string;
 }
 
 /**
@@ -302,6 +309,10 @@ function normalizeChecklist(raw: Record<string, unknown>): ChecklistDefinition |
       label: (step as Record<string, unknown>).label as string,
       description: (step as Record<string, unknown>).description as string,
       play: (step as Record<string, unknown>).play as string,
+      ...(() => {
+        const execution = normalizeStepExecution((step as Record<string, unknown>).execution);
+        return execution ? { execution } : {};
+      })(),
     });
   }
 
@@ -316,6 +327,15 @@ function normalizeChecklist(raw: Record<string, unknown>): ChecklistDefinition |
     ...(relatedEpic ? { relatedEpic } : {}),
   };
   return definition;
+}
+
+function normalizeStepExecution(raw: unknown): ChecklistStepExecution | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const rec = raw as Record<string, unknown>;
+  const runner = rec['runner'];
+  if (runner !== 'garura' && runner !== 'claude-headless') return null;
+  const prompt = typeof rec['prompt'] === 'string' ? rec['prompt'].trim() : '';
+  return prompt.length > 0 ? { runner, prompt } : { runner };
 }
 
 /**

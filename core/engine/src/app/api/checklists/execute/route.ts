@@ -23,6 +23,7 @@ import {
   InvalidPromptError,
   spawnPlay,
 } from '@/lib/play-executor';
+import { resolveRepoRoot } from '@/lib/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +37,12 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   const playName = body.playName;
   const prompt = body.prompt;
+  const sessionId = body.sessionId;
+  const userResponse = body.userResponse;
+  const execution =
+    typeof body.execution === 'object' && body.execution !== null
+      ? (body.execution as Record<string, unknown>)
+      : undefined;
   const rawTimeout = body.timeoutMs;
   const timeoutMs =
     typeof rawTimeout === 'number' && Number.isFinite(rawTimeout) ? rawTimeout : undefined;
@@ -44,6 +51,17 @@ export async function POST(request: NextRequest): Promise<Response> {
     const result = spawnPlay({
       playName: typeof playName === 'string' ? playName : '',
       prompt: typeof prompt === 'string' ? prompt : undefined,
+      sessionId: typeof sessionId === 'string' ? sessionId : undefined,
+      userResponse: typeof userResponse === 'string' ? userResponse : undefined,
+      execution:
+        execution &&
+        (execution.runner === 'garura' || execution.runner === 'claude-headless')
+          ? {
+              runner: execution.runner,
+              prompt: typeof execution.prompt === 'string' ? execution.prompt : undefined,
+            }
+          : undefined,
+      workingDirectory: resolveRepoRoot(),
       timeoutMs,
       signal: request.signal,
     });

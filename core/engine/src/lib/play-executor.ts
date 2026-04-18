@@ -119,6 +119,17 @@ export interface SpawnPlayOptions {
   readonly playName: string;
   /** Optional prompt to forward to the play. Preserved verbatim. */
   readonly prompt?: string;
+  /** Optional resumable session id for headless Claude flows. */
+  readonly sessionId?: string;
+  /** Optional user reply for continuing a paused headless Claude flow. */
+  readonly userResponse?: string;
+  /** Optional execution override for steps that should run via Claude headlessly. */
+  readonly execution?: {
+    readonly runner: 'garura' | 'claude-headless';
+    readonly prompt?: string;
+  };
+  /** Working directory for the spawned child process. */
+  readonly workingDirectory?: string;
   /** Execution timeout in milliseconds. Defaults to 5 minutes. */
   readonly timeoutMs?: number;
   /** CLI binary to spawn (must be whitelisted). Defaults to `factory`. */
@@ -140,6 +151,14 @@ export interface SpawnPlayResult {
   readonly executionId: string;
   readonly record: PlayExecutionRecord;
   readonly stream: ReadableStream<Uint8Array>;
+}
+
+interface ClaudeInteractionSignal {
+  readonly kind: 'question' | 'approval';
+  readonly title: string;
+  readonly summary: string;
+  readonly details: string;
+  readonly prompt: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -329,6 +348,146 @@ export function sanitizePrompt(prompt: unknown): string {
   return prompt;
 }
 
+function buildClaudeArgs(options: {
+  readonly playName: string;
+  readonly sessionId?: string;
+  readonly userResponse?: string;
+  readonly promptOverride?: string;
+  readonly workingDirectory?: string;
+}): string[] {
+  const {
+    playName,
+    sessionId,
+    userResponse,
+    promptOverride,
+    workingDirectory,
+  } = options;
+  const prompt =
+    sessionId && userResponse
+      ? [
+          `Continue the /${playName} workflow using this user response:`,
+          userResponse,
+          '',
+          'If you still need user input or approval, emit the same <garura-signal> block and wait.',
+        ].join('\n')
+      : buildClaudeInitialPrompt(playName, promptOverride, workingDirectory);
+
+  const args = [
+    '-p',
+    '--verbose',
+    '--output-format',
+    'stream-json',
+    '--include-partial-messages',
+    '--permission-mode',
+    'auto',
+  ];
+
+  if (sessionId) {
+    args.push('--resume', sessionId);
+  } else if (workingDirectory) {
+    args.push('--add-dir', workingDirectory);
+  }
+
+  args.push(prompt);
+  return args;
+}
+
+function buildClaudeInitialPrompt(
+  playName: string,
+  promptOverride?: string,
+  workingDirectory?: string,
+): string {
+  const slashCommand = promptOverride && promptOverride.trim().length > 0 ? promptOverride.trim() : `/${playName}`;
+  return [
+    'You are running inside Garura Engine in a headless Claude Code session.',
+    workingDirectory
+      ? `Operate on the repository in the current working directory: ${workingDirectory}`
+      : 'Operate on the repository in the current working directory.',
+    `Run the Garura play ${slashCommand}.`,
+    'If you need user input, stop and emit exactly this XML shape:',
+    '<garura-signal type="question" title="Short title"><summary>One short sentence.</summary><details>Concrete context for the user.</details><prompt>The exact question for the user.</prompt></garura-signal>',
+    'If you need explicit user approval, emit the same shape with type="approval".',
+    'After emitting a <garura-signal> block, end your turn and wait for the next user message.',
+    'Do not ask follow-up questions outside that block.',
+  ].join('\n');
+}
+
+function extractClaudeInteractionSignal(output: string): ClaudeInteractionSignal | null {
+  const match = output.match(
+    /<garura-signal\s+type="(question|approval)"\s+title="([^"]+)">([\s\S]*?)<\/garura-signal>/i,
+  );
+  if (!match) return null;
+  const [, rawKind = 'question', rawTitle = 'Question', inner = ''] = match;
+  const readTag = (tag: string): string => {
+    const tagMatch = inner.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+    return tagMatch ? tagMatch[1]!.trim() : '';
+  };
+  const kind = rawKind === 'approval' ? 'approval' : 'question';
+  return {
+    kind,
+    title: rawTitle.trim(),
+    summary: readTag('summary'),
+    details: readTag('details'),
+    prompt: readTag('prompt') || 'Reply to continue.',
+  };
+}
+
+function handleClaudeJsonEvent(
+  event: Record<string, unknown>,
+  helpers: {
+    readonly executionId: string;
+    readonly safeSend: (data: Record<string, unknown>) => void;
+    readonly onText: (content: string) => void;
+  },
+): void {
+  const { executionId, safeSend, onText } = helpers;
+  const type = typeof event['type'] === 'string' ? (event['type'] as string) : '';
+
+  if (type === 'system' && event['subtype'] === 'init' && typeof event['session_id'] === 'string') {
+    safeSend({ type: 'session', executionId, sessionId: event['session_id'] });
+    return;
+  }
+
+  if (type === 'stream_event') {
+    const inner = event['event'];
+    if (!inner || typeof inner !== 'object') return;
+    const innerRecord = inner as Record<string, unknown>;
+    const innerType =
+      typeof innerRecord['type'] === 'string'
+        ? (innerRecord['type'] as string)
+        : '';
+
+    if (innerType === 'content_block_delta') {
+      const delta = innerRecord['delta'];
+      if (!delta || typeof delta !== 'object') return;
+      const deltaRec = delta as Record<string, unknown>;
+      if (deltaRec['type'] === 'text_delta' && typeof deltaRec['text'] === 'string') {
+        onText(deltaRec['text']);
+      }
+      return;
+    }
+
+    if (innerType === 'content_block_start') {
+      const block = innerRecord['content_block'];
+      if (!block || typeof block !== 'object') return;
+      const blockRec = block as Record<string, unknown>;
+      if (blockRec['type'] === 'tool_use' && typeof blockRec['name'] === 'string') {
+        const input = blockRec['input'];
+        const description =
+          input && typeof input === 'object' && typeof (input as Record<string, unknown>)['description'] === 'string'
+            ? ((input as Record<string, unknown>)['description'] as string)
+            : '';
+        const label = description
+          ? `${blockRec['name']}: ${description}`
+          : `Claude invoked ${blockRec['name']}`;
+        safeSend({ type: 'activity', executionId, label });
+      }
+      return;
+    }
+  }
+
+}
+
 // ---------------------------------------------------------------------------
 // Core — spawnPlay
 // ---------------------------------------------------------------------------
@@ -349,6 +508,10 @@ export function spawnPlay(options: SpawnPlayOptions): SpawnPlayResult {
   const {
     playName,
     prompt = '',
+    sessionId,
+    userResponse,
+    execution,
+    workingDirectory,
     timeoutMs = DEFAULT_TIMEOUT_MS,
     cliCommand = DEFAULT_CLI_COMMAND,
     signal,
@@ -356,10 +519,12 @@ export function spawnPlay(options: SpawnPlayOptions): SpawnPlayResult {
     spawnFn,
   } = options;
   const effectiveSpawn = spawnFn ?? defaultSpawn;
+  const resolvedCommand =
+    execution?.runner === 'claude-headless' ? ('claude' as AllowedCommand) : cliCommand;
 
   // 1. Command whitelist
-  if (!ALLOWED_COMMANDS.includes(cliCommand)) {
-    throw new InvalidCommandError(String(cliCommand));
+  if (!ALLOWED_COMMANDS.includes(resolvedCommand)) {
+    throw new InvalidCommandError(String(resolvedCommand));
   }
 
   // 2. Play name validation
@@ -426,11 +591,20 @@ export function spawnPlay(options: SpawnPlayOptions): SpawnPlayResult {
       // Build the argv array. `spawn(cmd, argv)` is not invoked through
       // a shell, so every element of `args` is passed verbatim — that
       // is the invariant we rely on for VAL-ACTION-011.
-      const args = ['run', playName];
-      if (sanitized.length > 0) args.push(sanitized);
+      const args =
+        execution?.runner === 'claude-headless'
+          ? buildClaudeArgs({
+              playName,
+              sessionId,
+              userResponse,
+              promptOverride: execution.prompt ?? sanitized,
+              workingDirectory,
+            })
+          : ['run', playName, ...(sanitized.length > 0 ? [sanitized] : [])];
 
       const spawnOptions: SpawnOptions = {
         stdio: ['ignore', 'pipe', 'pipe'],
+        cwd: workingDirectory,
         env: {
           ...process.env,
           CI: 'true',
@@ -438,9 +612,12 @@ export function spawnPlay(options: SpawnPlayOptions): SpawnPlayResult {
         },
       };
 
+      let claudeStdoutBuffer = '';
+      let claudeRawOutput = '';
+
       let child: ChildProcess;
       try {
-        child = effectiveSpawn(cliCommand, args, spawnOptions);
+        child = effectiveSpawn(resolvedCommand, args, spawnOptions);
       } catch (err) {
         // Synchronous spawn failures (rare) — translate to an error
         // event and close the stream. The record remains in the
@@ -520,7 +697,33 @@ export function spawnPlay(options: SpawnPlayOptions): SpawnPlayResult {
       }
 
       child.stdout?.on('data', (data: Buffer) => {
-        safeSend({ type: 'output', content: data.toString() });
+        const text = data.toString();
+        if (execution?.runner !== 'claude-headless') {
+          safeSend({ type: 'output', content: text });
+          return;
+        }
+
+        claudeStdoutBuffer += text;
+        const lines = claudeStdoutBuffer.split(/\r?\n/);
+        claudeStdoutBuffer = lines.pop() ?? '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          try {
+            const event = JSON.parse(trimmed) as Record<string, unknown>;
+            handleClaudeJsonEvent(event, {
+              executionId,
+              safeSend,
+              onText: (content) => {
+                claudeRawOutput += content;
+                safeSend({ type: 'output', content });
+              },
+            });
+          } catch {
+            claudeRawOutput += `${line}\n`;
+            safeSend({ type: 'output', content: `${line}\n` });
+          }
+        }
       });
       child.stderr?.on('data', (data: Buffer) => {
         safeSend({ type: 'output', content: data.toString() });
@@ -552,9 +755,41 @@ export function spawnPlay(options: SpawnPlayOptions): SpawnPlayResult {
           safeClose();
           return;
         }
+        if (execution?.runner === 'claude-headless' && claudeStdoutBuffer.trim().length > 0) {
+          try {
+            const event = JSON.parse(claudeStdoutBuffer.trim()) as Record<string, unknown>;
+            handleClaudeJsonEvent(event, {
+              executionId,
+              safeSend,
+              onText: (content) => {
+                claudeRawOutput += content;
+                safeSend({ type: 'output', content });
+              },
+            });
+          } catch {
+            claudeRawOutput += claudeStdoutBuffer;
+            safeSend({ type: 'output', content: claudeStdoutBuffer });
+          }
+        }
+
         if (code === 0 || code === null) {
           record.status = 'complete';
           record.exitCode = code;
+          if (execution?.runner === 'claude-headless') {
+            const signal = extractClaudeInteractionSignal(claudeRawOutput);
+            if (signal) {
+              safeSend({
+                type: signal.kind === 'approval' ? 'needs_approval' : 'needs_input',
+                executionId,
+                title: signal.title,
+                summary: signal.summary,
+                details: signal.details,
+                prompt: signal.prompt,
+              });
+              safeClose();
+              return;
+            }
+          }
           safeSend({ type: 'complete', executionId, exitCode: code });
         } else {
           record.status = 'error';
@@ -593,7 +828,7 @@ export function spawnPlay(options: SpawnPlayOptions): SpawnPlayResult {
           record.errorMessage = err.message;
           safeSend({
             type: 'output',
-            content: `[garura] CLI "${cliCommand}" not available. Simulating play execution.\n`,
+            content: `[garura] CLI "${resolvedCommand}" not available. Simulating play execution.\n`,
           });
           safeSend({
             type: 'output',

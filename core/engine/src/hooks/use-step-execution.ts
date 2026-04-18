@@ -29,6 +29,33 @@ import { invalidateReadiness } from '@/components/readiness-provider';
 // ---------------------------------------------------------------------------
 
 /** Represents an active play execution */
+export interface ExecutionNotification {
+  readonly kind: 'activity' | 'question' | 'approval';
+  readonly title: string;
+  readonly message: string;
+  readonly details?: string;
+  readonly prompt?: string;
+  readonly timestamp: number;
+}
+
+export interface PendingUserInput {
+  readonly kind: 'question' | 'approval';
+  readonly title: string;
+  readonly summary: string;
+  readonly details: string;
+  readonly prompt: string;
+}
+
+export interface StepExecutionConfig {
+  readonly playName: string;
+  readonly execution?: {
+    readonly runner: 'garura' | 'claude-headless';
+    readonly prompt?: string;
+  };
+}
+
+type StepExecutionArg = StepExecutionConfig | string;
+
 export interface ActiveExecution {
   /** Checklist that owns the executing step */
   readonly checklistId: string;
@@ -39,9 +66,15 @@ export interface ActiveExecution {
   /** Accumulated streaming output */
   readonly output: string;
   /** Execution status */
-  readonly status: 'running' | 'complete' | 'error';
+  readonly status: 'running' | 'complete' | 'error' | 'needs-input' | 'needs-approval';
   /** Error message (only when status is 'error') */
   readonly error?: string;
+  /** Claude session id for resumable headless sessions. */
+  readonly sessionId?: string;
+  /** Latest pending question / approval request surfaced by the backend. */
+  readonly pendingUserInput?: PendingUserInput;
+  /** Rolling notifications and activity surfaced during execution. */
+  readonly notifications?: ReadonlyArray<ExecutionNotification>;
 }
 
 /** Return value of useStepExecution */
@@ -57,7 +90,9 @@ export interface StepExecutionApi {
   /** Map of checklistId → number of completed steps */
   readonly completedCounts: ReadonlyMap<string, number>;
   /** Execute a step's play */
-  readonly executeStep: (checklistId: string, stepId: string, playName: string) => void;
+  readonly executeStep: (checklistId: string, stepId: string, config: StepExecutionArg) => void;
+  /** Continue a paused execution with the user's answer / approval text. */
+  readonly respondToExecution: (checklistId: string, response: string) => void;
   /** Get the completed step count for a checklist */
   readonly getCompletedCount: (checklistId: string) => number;
   /** Whether any execution is running globally */
@@ -126,6 +161,22 @@ export function useStepExecution(): StepExecutionApi {
     setCompletedCounts(new Map(counts));
   }, []);
 
+  const appendNotification = useCallback(
+    (checklistId: string, notification: ExecutionNotification) => {
+      setActiveExecutions((prev) => {
+        const current = prev.get(checklistId);
+        if (!current) return prev;
+        const next = new Map(prev);
+        next.set(checklistId, {
+          ...current,
+          notifications: [...(current.notifications ?? []), notification].slice(-8),
+        });
+        return next;
+      });
+    },
+    [],
+  );
+
   const markStepComplete = useCallback((checklistId: string) => {
     setCompletedCounts((prev) => {
       const next = new Map(prev);
@@ -134,8 +185,17 @@ export function useStepExecution(): StepExecutionApi {
     });
   }, []);
 
-  const executeStep = useCallback(
-    (checklistId: string, stepId: string, playName: string) => {
+  const streamExecution = useCallback(
+    (
+      checklistId: string,
+      stepId: string,
+      configOrPlayName: StepExecutionArg,
+      options?: { readonly sessionId?: string; readonly response?: string },
+    ) => {
+      const config =
+        typeof configOrPlayName === 'string'
+          ? ({ playName: configOrPlayName } satisfies StepExecutionConfig)
+          : configOrPlayName;
       // Synchronous checklist-level debounce (VAL-CHECK-035). Rejects any
       // call within 500ms of the previous accepted call on the same
       // checklist — even if the click came from a different CTA button
@@ -160,9 +220,11 @@ export function useStepExecution(): StepExecutionApi {
       const newExecution: ActiveExecution = {
         checklistId,
         stepId,
-        playName,
-        output: '',
+        playName: config.playName,
+        output: existing?.stepId === stepId ? existing.output : '',
         status: 'running',
+        sessionId: options?.sessionId ?? existing?.sessionId,
+        notifications: existing?.stepId === stepId ? [...(existing.notifications ?? [])] : [],
       };
 
       setActiveExecutions((prev) => {
@@ -175,7 +237,12 @@ export function useStepExecution(): StepExecutionApi {
       fetch('/api/checklists/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playName }),
+        body: JSON.stringify({
+          playName: config.playName,
+          execution: config.execution,
+          sessionId: options?.sessionId,
+          userResponse: options?.response,
+        }),
         signal: controller.signal,
       })
         .then(async (response) => {
@@ -210,6 +277,12 @@ export function useStepExecution(): StepExecutionApi {
                   type: string;
                   content?: string;
                   message?: string;
+                  sessionId?: string;
+                  title?: string;
+                  summary?: string;
+                  details?: string;
+                  prompt?: string;
+                  label?: string;
                 };
 
                 if (event.type === 'output' && event.content) {
@@ -221,13 +294,60 @@ export function useStepExecution(): StepExecutionApi {
                     next.set(checklistId, { ...current, output: accumulated });
                     return next;
                   });
+                } else if (event.type === 'session' && event.sessionId) {
+                  setActiveExecutions((prev) => {
+                    const current = prev.get(checklistId);
+                    if (!current) return prev;
+                    const next = new Map(prev);
+                    next.set(checklistId, { ...current, sessionId: event.sessionId });
+                    return next;
+                  });
+                } else if (event.type === 'activity' && event.label) {
+                  appendNotification(checklistId, {
+                    kind: 'activity',
+                    title: 'Claude activity',
+                    message: event.label,
+                    timestamp: Date.now(),
+                  });
+                } else if (event.type === 'needs_input' || event.type === 'needs_approval') {
+                  const kind = event.type === 'needs_approval' ? 'approval' : 'question';
+                  const pendingUserInput: PendingUserInput = {
+                    kind,
+                    title: event.title ?? (kind === 'approval' ? 'Approval needed' : 'Question'),
+                    summary: event.summary ?? '',
+                    details: event.details ?? '',
+                    prompt: event.prompt ?? event.message ?? 'Reply to continue.',
+                  };
+                  setActiveExecutions((prev) => {
+                    const current = prev.get(checklistId);
+                    if (!current) return prev;
+                    const next = new Map(prev);
+                    next.set(checklistId, {
+                      ...current,
+                      status: kind === 'approval' ? 'needs-approval' : 'needs-input',
+                      pendingUserInput,
+                    });
+                    return next;
+                  });
+                  appendNotification(checklistId, {
+                    kind,
+                    title: pendingUserInput.title,
+                    message: pendingUserInput.summary || pendingUserInput.prompt,
+                    details: pendingUserInput.details,
+                    prompt: pendingUserInput.prompt,
+                    timestamp: Date.now(),
+                  });
                 } else if (event.type === 'complete') {
                   markedComplete = true;
                   setActiveExecutions((prev) => {
                     const current = prev.get(checklistId);
                     if (!current) return prev;
                     const next = new Map(prev);
-                    next.set(checklistId, { ...current, status: 'complete' });
+                    next.set(checklistId, {
+                      ...current,
+                      status: 'complete',
+                      pendingUserInput: undefined,
+                    });
                     return next;
                   });
                   markStepComplete(checklistId);
@@ -301,7 +421,35 @@ export function useStepExecution(): StepExecutionApi {
           });
         });
     },
-    [activeExecutions, markStepComplete],
+    [activeExecutions, appendNotification, markStepComplete],
+  );
+
+  const executeStep = useCallback(
+    (checklistId: string, stepId: string, config: StepExecutionArg) => {
+      streamExecution(checklistId, stepId, config);
+    },
+    [streamExecution],
+  );
+
+  const respondToExecution = useCallback(
+    (checklistId: string, response: string) => {
+      const existing = activeExecutions.get(checklistId);
+      if (!existing || !existing.sessionId) return;
+      appendNotification(checklistId, {
+        kind: 'activity',
+        title: 'User reply',
+        message: 'Response sent to Claude',
+        details: response,
+        timestamp: Date.now(),
+      });
+      streamExecution(
+        checklistId,
+        existing.stepId,
+        { playName: existing.playName, execution: { runner: 'claude-headless' } },
+        { sessionId: existing.sessionId, response },
+      );
+    },
+    [activeExecutions, appendNotification, streamExecution],
   );
 
   return {
@@ -309,6 +457,7 @@ export function useStepExecution(): StepExecutionApi {
     activeExecution,
     completedCounts,
     executeStep,
+    respondToExecution,
     getCompletedCount,
     isExecuting,
     isChecklistExecuting,
