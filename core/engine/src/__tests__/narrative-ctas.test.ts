@@ -12,11 +12,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   assertActionsAreRegisteredPlays,
+  assertSuggestionsAreRegisteredPlays,
   selectNarrativeCtas,
+  selectNarrativeWikiTagSuggestions,
   type CtaSelectionInput,
 } from '@/lib/narrative-ctas';
 import { GARURA_PLAY_NAMES } from '@/lib/play-registry';
 import { composeEpicNarrativeDeterministic, type ComposeContext } from '@/lib/narrative-engine';
+import { parseWikiTagSegments } from '@/lib/wiki-tag-parser';
 import path from 'node:path';
 import { parseArtifacts } from '@/lib/artifact-parser';
 import { buildCrossRefGraph } from '@/lib/crossref-resolver';
@@ -136,5 +139,160 @@ describe('narrative CTAs — integration with compose engine', () => {
     );
     expect(actions[0]?.label).toMatch(/prepare-epic/i);
     expect(actions[0]?.description.toLowerCase()).toMatch(/plan|prepare|task/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Wiki-tag suggestions — embedded [[play:prompt]] lifecycle cascade.
+// ---------------------------------------------------------------------------
+
+describe('selectNarrativeWikiTagSuggestions — lifecycle cascade', () => {
+  it('suggests specify-product when no features exist', () => {
+    const [primary] = selectNarrativeWikiTagSuggestions(inputFor({ featureCount: 0 }));
+    expect(primary?.playName).toBe('specify-product');
+    expect(primary?.reason).toBe('no-features');
+  });
+
+  it('suggests build-arch when architecture has not been derived', () => {
+    const [primary] = selectNarrativeWikiTagSuggestions(inputFor({ hasArchitecture: false }));
+    expect(primary?.playName).toBe('build-arch');
+    expect(primary?.reason).toBe('no-architecture');
+  });
+
+  it('suggests prepare-epic when no plan exists', () => {
+    const [primary] = selectNarrativeWikiTagSuggestions(inputFor({ hasPlan: false }));
+    expect(primary?.playName).toBe('prepare-epic');
+    expect(primary?.reason).toBe('no-plan');
+  });
+
+  it('suggests implement-epic when the plan is ready but nothing is implemented', () => {
+    const [primary] = selectNarrativeWikiTagSuggestions(
+      inputFor({ hasImplementationEvidence: false }),
+    );
+    expect(primary?.playName).toBe('implement-epic');
+    expect(primary?.reason).toBe('not-implemented');
+  });
+
+  it('suggests quality-check once implementation evidence exists', () => {
+    const [primary] = selectNarrativeWikiTagSuggestions(
+      inputFor({ hasImplementationEvidence: true, hasQualityEvidence: false }),
+    );
+    expect(primary?.playName).toBe('quality-check');
+    expect(primary?.reason).toBe('no-quality-check');
+  });
+
+  it('suggests validate-epic when QA evidence exists', () => {
+    const [primary] = selectNarrativeWikiTagSuggestions(
+      inputFor({ hasImplementationEvidence: true, hasQualityEvidence: true }),
+    );
+    expect(primary?.playName).toBe('validate-epic');
+    expect(primary?.reason).toBe('ready-to-validate');
+  });
+
+  it('always includes a check-drift secondary suggestion', () => {
+    const suggestions = selectNarrativeWikiTagSuggestions(inputFor({}));
+    const secondary = suggestions.find((s) => s.reason === 'always-available');
+    expect(secondary?.playName).toBe('check-drift');
+  });
+
+  it('returns primary + always-available secondary for every input', () => {
+    const suggestions = selectNarrativeWikiTagSuggestions(inputFor({ featureCount: 0 }));
+    expect(suggestions.length).toBeGreaterThanOrEqual(2);
+    expect(suggestions[0]?.reason).not.toBe('always-available');
+    expect(suggestions.find((s) => s.reason === 'always-available')).toBeDefined();
+  });
+
+  it('never emits prompts containing the wiki-tag closing delimiter', () => {
+    // Any `]]` inside a prompt would break the downstream parser.
+    const cascade: CtaSelectionInput[] = [
+      inputFor({ featureCount: 0 }),
+      inputFor({ hasArchitecture: false }),
+      inputFor({ hasPlan: false }),
+      inputFor({ hasImplementationEvidence: false }),
+      inputFor({ hasImplementationEvidence: true, hasQualityEvidence: false }),
+      inputFor({ hasImplementationEvidence: true, hasQualityEvidence: true }),
+    ];
+    for (const input of cascade) {
+      const suggestions = selectNarrativeWikiTagSuggestions(input);
+      for (const s of suggestions) {
+        expect(s.prompt).not.toContain(']]');
+        expect(s.prompt.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('mirrors the CTA primary playName for every input in the cascade', () => {
+    const cascade: CtaSelectionInput[] = [
+      inputFor({ featureCount: 0 }),
+      inputFor({ hasArchitecture: false }),
+      inputFor({ hasPlan: false }),
+      inputFor({ hasImplementationEvidence: false }),
+      inputFor({ hasImplementationEvidence: true, hasQualityEvidence: false }),
+      inputFor({ hasImplementationEvidence: true, hasQualityEvidence: true }),
+    ];
+    for (const input of cascade) {
+      const [primaryCta] = selectNarrativeCtas(input);
+      const [primarySuggestion] = selectNarrativeWikiTagSuggestions(input);
+      expect(primarySuggestion?.playName).toBe(primaryCta?.playName);
+      expect(primarySuggestion?.reason).toBe(primaryCta?.reason);
+    }
+  });
+
+  it('every suggestion references a registered Garura play', () => {
+    const suggestions = selectNarrativeWikiTagSuggestions(inputFor({}));
+    expect(() => assertSuggestionsAreRegisteredPlays(suggestions)).not.toThrow();
+    for (const s of suggestions) {
+      expect(GARURA_PLAY_NAMES.has(s.playName)).toBe(true);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Wiki-tag embedding — composer must emit [[play:prompt]] patterns.
+// ---------------------------------------------------------------------------
+
+describe('composeEpicNarrativeDeterministic — wiki-tag integration', () => {
+  function buildCtx(epicId: string): ComposeContext {
+    const artifacts = parseArtifacts([
+      { path: path.join(FIXTURES_DIR, 'product.yaml'), type: 'product' },
+      { path: path.join(FIXTURES_DIR, 'features.yaml'), type: 'features' },
+      { path: path.join(FIXTURES_DIR, 'scenarios.yaml'), type: 'scenarios' },
+      { path: path.join(FIXTURES_DIR, 'plan.yaml'), type: 'plan' },
+      { path: path.join(FIXTURES_DIR, 'architecture.yaml'), type: 'architecture' },
+      { path: path.join(FIXTURES_DIR, 'tech.yaml'), type: 'tech' },
+      { path: path.join(FIXTURES_DIR, 'roadmap.yaml'), type: 'roadmap' },
+    ]);
+    return { epicId, artifacts, graph: buildCrossRefGraph(artifacts, null) };
+  }
+
+  it('emits a Next Steps section containing [[play:prompt]] wiki-tag text', () => {
+    const narrative = composeEpicNarrativeDeterministic(buildCtx('E1'));
+    const nextSteps = narrative.sections.find((s) => s.id === 'next-steps');
+    expect(nextSteps).toBeDefined();
+    expect(nextSteps!.heading).toBe('Next Steps');
+
+    const text = nextSteps!.chunks
+      .filter((c) => c.type === 'text')
+      .map((c) => (c as { type: 'text'; text: string }).text)
+      .join('');
+    expect(text).toMatch(/\[\[[a-z0-9-]+:[^\]]+\]\]/);
+  });
+
+  it('produces at least two parseable wiki tags in the narrative', () => {
+    const narrative = composeEpicNarrativeDeterministic(buildCtx('E1'));
+    const text = narrative.sections
+      .flatMap((s) => s.chunks)
+      .filter((c) => c.type === 'text')
+      .map((c) => (c as { type: 'text'; text: string }).text)
+      .join(' ');
+    const tags = parseWikiTagSegments(text).filter((s) => s.type === 'wikitag');
+    expect(tags.length).toBeGreaterThanOrEqual(2);
+    const plays = tags.map((t) => (t as { type: 'wikitag'; play: string }).play);
+    // check-drift is always present as the secondary suggestion.
+    expect(plays).toContain('check-drift');
+    // Every embedded wiki tag must reference a registered Garura play.
+    for (const play of plays) {
+      expect(GARURA_PLAY_NAMES.has(play)).toBe(true);
+    }
   });
 });

@@ -173,6 +173,94 @@ function selectPrimary(input: CtaSelectionInput): CtaAction {
 }
 
 // ---------------------------------------------------------------------------
+// Wiki-tag suggestions — embedded [[play:prompt]] patterns in narrative prose
+// ---------------------------------------------------------------------------
+
+/**
+ * A single wiki-tag suggestion — a contextually relevant play plus a concrete
+ * prompt — that the narrative composer embeds as `[[playName:prompt]]` text
+ * inside a dedicated "Next Steps" section. `WikiTagText` parses this syntax
+ * at render-time and substitutes an interactive {@link WikiTagRunner}, giving
+ * browser validators a live wiki-tag lifecycle to observe (VAL-ACTION-002,
+ * VAL-ACTION-003, VAL-ACTION-004).
+ */
+export interface WikiTagSuggestion {
+  /** Garura play to invoke when the wiki tag is triggered. */
+  readonly playName: string;
+  /** Free-form prompt passed through to the play — embedded verbatim. */
+  readonly prompt: string;
+  /** Short machine-readable reason code — mirrors the CTA selection cascade. */
+  readonly reason: NarrativeStateReason;
+}
+
+/**
+ * Select the wiki-tag suggestions to embed in the narrative's "Next Steps"
+ * section. Mirrors {@link selectNarrativeCtas} so the wiki-tag prompts always
+ * reflect the same lifecycle cascade the CTAs expose — only the format
+ * differs (inline `[[play:prompt]]` wiki tags vs. standalone CTA buttons).
+ *
+ * Contract:
+ *   - Always returns at least two suggestions (primary + always-available).
+ *   - Primary playName matches {@link selectPrimary}'s playName for the same
+ *     input, enforced by test.
+ *   - Prompts never contain `]]` (would break the wiki-tag parser) nor
+ *     leading-dash-colon sequences (would false-positive YAML detection
+ *     in narrative tests).
+ */
+export function selectNarrativeWikiTagSuggestions(input: CtaSelectionInput): WikiTagSuggestion[] {
+  const primary = selectPrimaryWikiTag(input);
+  const secondary: WikiTagSuggestion = {
+    playName: 'check-drift',
+    prompt: 'Detect drift between locked specs and the implemented codebase',
+    reason: 'always-available',
+  };
+  return [primary, secondary];
+}
+
+function selectPrimaryWikiTag(input: CtaSelectionInput): WikiTagSuggestion {
+  if (input.featureCount === 0) {
+    return {
+      playName: 'specify-product',
+      prompt: 'Define product vision',
+      reason: 'no-features',
+    };
+  }
+  if (!input.hasArchitecture) {
+    return {
+      playName: 'build-arch',
+      prompt: 'Derive logical and physical architecture for this epic',
+      reason: 'no-architecture',
+    };
+  }
+  if (!input.hasPlan) {
+    return {
+      playName: 'prepare-epic',
+      prompt: 'Produce implementation plan and task DAG for this epic',
+      reason: 'no-plan',
+    };
+  }
+  if (!input.hasImplementationEvidence) {
+    return {
+      playName: 'implement-epic',
+      prompt: 'Begin the eval-driven TDD implementation loop for this epic',
+      reason: 'not-implemented',
+    };
+  }
+  if (!input.hasQualityEvidence) {
+    return {
+      playName: 'quality-check',
+      prompt: 'Score the current implementation against project standards',
+      reason: 'no-quality-check',
+    };
+  }
+  return {
+    playName: 'validate-epic',
+    prompt: 'Verify scenarios and certify epic readiness',
+    reason: 'ready-to-validate',
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Guards
 // ---------------------------------------------------------------------------
 
@@ -186,6 +274,22 @@ export function assertActionsAreRegisteredPlays(actions: ReadonlyArray<CtaAction
   if (invalid.length > 0) {
     throw new Error(
       `Narrative CTAs reference unknown plays: ${invalid.map((a) => a.playName).join(', ')}`,
+    );
+  }
+}
+
+/**
+ * Assert that every wiki-tag suggestion references a registered Garura play.
+ * Mirrors {@link assertActionsAreRegisteredPlays} for the wiki-tag path so
+ * regressions (e.g. a typo'd play name) fail loudly in tests.
+ */
+export function assertSuggestionsAreRegisteredPlays(
+  suggestions: ReadonlyArray<WikiTagSuggestion>,
+): void {
+  const invalid = suggestions.filter((s) => !isValidPlay(s.playName));
+  if (invalid.length > 0) {
+    throw new Error(
+      `Narrative wiki-tag suggestions reference unknown plays: ${invalid.map((s) => s.playName).join(', ')}`,
     );
   }
 }

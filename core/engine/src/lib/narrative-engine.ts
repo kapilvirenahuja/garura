@@ -39,7 +39,12 @@ import {
   type StmEvidenceSummaryForNarrative,
   type ToolResolverContext,
 } from './narrative-tools';
-import { selectNarrativeCtas, type CtaAction } from './narrative-ctas';
+import {
+  selectNarrativeCtas,
+  selectNarrativeWikiTagSuggestions,
+  type CtaAction,
+  type WikiTagSuggestion,
+} from './narrative-ctas';
 
 // ---------------------------------------------------------------------------
 // Implementation / quality evidence detection
@@ -619,6 +624,68 @@ function composeImplementation(
   };
 }
 
+/**
+ * Build a "Next Steps" narrative section that embeds `[[play:prompt]]`
+ * wiki-tag patterns mirroring the contextual CTA cascade. The prose is a
+ * single text chunk so {@link WikiTagText} parses the literal
+ * `[[play:prompt]]` substrings at render-time and substitutes interactive
+ * WikiTagRunner components — giving browser validators a live
+ * pending → running → complete lifecycle to observe
+ * (VAL-ACTION-002, VAL-ACTION-003, VAL-ACTION-004).
+ *
+ * The section is always emitted so every epic narrative — regardless of
+ * lifecycle stage — surfaces at least one interactive wiki tag.
+ */
+function composeNextSteps(suggestions: readonly WikiTagSuggestion[]): NarrativeSection {
+  const chunks: NarrativeChunk[] = [];
+  const primary = suggestions[0];
+  const secondary = suggestions[1];
+
+  if (primary) {
+    const primaryBlurb = describeWikiTagReason(primary.reason);
+    chunks.push(
+      txt(
+        `${primaryBlurb} Run [[${primary.playName}:${primary.prompt}]] to take the next contextual step on this epic. `,
+      ),
+    );
+  }
+
+  if (secondary) {
+    chunks.push(
+      txt(
+        `You can also run [[${secondary.playName}:${secondary.prompt}]] at any time to audit drift between the locked specs and the implementation.`,
+      ),
+    );
+  }
+
+  return {
+    id: 'next-steps',
+    heading: 'Next Steps',
+    level: 2,
+    chunks,
+  };
+}
+
+/** Conversational preamble matching the lifecycle signal that selected the primary suggestion. */
+function describeWikiTagReason(reason: WikiTagSuggestion['reason']): string {
+  switch (reason) {
+    case 'no-features':
+      return 'No features are scoped yet — start by defining the epic.';
+    case 'no-architecture':
+      return 'Features are in place but architecture has not been derived.';
+    case 'no-plan':
+      return 'Architecture is ready but this epic has no implementation plan.';
+    case 'not-implemented':
+      return 'The plan is ready but nothing has been implemented yet.';
+    case 'no-quality-check':
+      return 'Implementation is underway — quality has not been scored yet.';
+    case 'ready-to-validate':
+      return 'Quality evidence is captured — the epic is ready to validate.';
+    case 'always-available':
+      return 'You can always inspect drift.';
+  }
+}
+
 function composeEvidence(evidence: StmEvidenceSummaryForNarrative): NarrativeSection | null {
   if (evidence.playHistory.length === 0 && evidence.qualityChecks.length === 0) return null;
   const chunks: NarrativeChunk[] = [];
@@ -691,7 +758,7 @@ export function composeEpicNarrativeDeterministic(ctx: ComposeContext): Narrativ
   const evSection = composeEvidence(evidence);
   if (evSection) sections.push(evSection);
 
-  const actions = selectNarrativeCtas({
+  const ctaInput = {
     featureCount: features.length,
     hasArchitecture: arch.decisions.length + arch.patterns.length + arch.nfrs.length > 0,
     hasPlan: plan.tasks.length > 0,
@@ -700,7 +767,15 @@ export function composeEpicNarrativeDeterministic(ctx: ComposeContext): Narrativ
       qualityChecksCount: evidence.qualityChecks.length,
       playHistory: evidence.playHistory,
     }),
-  });
+  };
+  const actions = selectNarrativeCtas(ctaInput);
+
+  // Embed contextual wiki-tag suggestions as `[[play:prompt]]` text inside a
+  // "Next Steps" section so the renderer (`WikiTagText`) can substitute
+  // interactive `WikiTagRunner` components — exposing the wiki-tag lifecycle
+  // for browser validation (VAL-ACTION-002 / VAL-ACTION-003 / VAL-ACTION-004).
+  const wikiTagSuggestions = selectNarrativeWikiTagSuggestions(ctaInput);
+  sections.push(composeNextSteps(wikiTagSuggestions));
 
   return {
     epicId: epic.epicId,
