@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CrossRefToken } from '@/components/cross-ref-token';
@@ -94,7 +94,8 @@ export default function PlaybookPage() {
   const context = (searchParams?.get('context') ?? '').trim();
   const query = (searchParams?.get('query') ?? '').trim();
 
-  // Last-URL preservation (VAL-CROSS-012).
+  // Last-URL preservation (VAL-CROSS-012) with explicit-navigation guard
+  // (fix-playbook-url-restore).
   //
   // When the user is reading a narrative (e.g. `/playbook?context=E1`) and
   // switches to another instrument via the top-bar tab, the shell's link
@@ -103,16 +104,32 @@ export default function PlaybookPage() {
   //
   // To preserve context, we:
   //   1. Persist every non-empty context/query URL to sessionStorage.
-  //   2. On entry with NO params (i.e. the user landed on `/playbook`
-  //      root), check sessionStorage and redirect to the last URL if
-  //      one was saved.
+  //   2. On a FRESH mount with NO params (i.e. the user just returned to
+  //      the Playbook tab), check sessionStorage and redirect to the last
+  //      URL if one was saved.
+  //
+  // However, we must NOT restore when the user is already on the Playbook
+  // page and explicitly navigates to the root (e.g. clicks the Playbook
+  // tab while viewing a narrative, or clicks the "Playbook" breadcrumb
+  // segment). In that case the effect re-runs inside the same mount with
+  // params transitioning from present → absent, and we clear the stored
+  // URL so the user is not trapped on the narrative they were trying to
+  // leave.
   //
   // We use `router.replace` so the restored URL does not add a history
   // entry — the Checklists/Flight-Deck → Playbook tab-switch remains a
   // single forward navigation from the browser's perspective.
+  //
+  // `prevHadParamsRef` tracks whether the previous effect run saw any
+  // context/query params. `null` means "fresh mount" (no previous run).
+  const prevHadParamsRef = useRef<boolean | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (context || query) {
+    const hasParams = Boolean(context || query);
+    const prevHadParams = prevHadParamsRef.current;
+    prevHadParamsRef.current = hasParams;
+
+    if (hasParams) {
       // Save current URL for future restoration.
       try {
         const current = `${window.location.pathname}${window.location.search}`;
@@ -122,7 +139,23 @@ export default function PlaybookPage() {
       }
       return;
     }
-    // No params — try to restore the last URL.
+
+    // No params currently.
+    if (prevHadParams === true) {
+      // Explicit in-mount navigation from a narrative/search view back
+      // to the Playbook root (tab click, breadcrumb click, etc.). Clear
+      // the stored URL and stay on the empty state — do NOT restore.
+      try {
+        window.sessionStorage.removeItem(PLAYBOOK_LAST_URL_KEY);
+      } catch {
+        /* sessionStorage disabled — ignore */
+      }
+      return;
+    }
+
+    // Fresh mount with no params — user just returned to the Playbook
+    // tab from another instrument. Restore the last viewed URL if one
+    // was saved in this session.
     try {
       const saved = window.sessionStorage.getItem(PLAYBOOK_LAST_URL_KEY);
       if (saved && saved.startsWith('/playbook?') && saved !== window.location.pathname) {

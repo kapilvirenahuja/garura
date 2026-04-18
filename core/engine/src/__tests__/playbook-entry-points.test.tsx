@@ -32,12 +32,13 @@ import { AppShell } from '@/components/app-shell';
 // ---------------------------------------------------------------------------
 
 const pushMock = vi.fn();
+const replaceMock = vi.fn();
 const mockPathname = vi.fn<() => string>().mockReturnValue('/playbook');
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: pushMock,
-    replace: vi.fn(),
+    replace: replaceMock,
     prefetch: vi.fn(),
     back: vi.fn(),
     forward: vi.fn(),
@@ -55,6 +56,13 @@ beforeEach(() => {
   mockPathname.mockReturnValue('/playbook');
   // Reset URL so Playbook reads a clean context/query each test.
   window.history.replaceState({}, '', '/playbook');
+  // Reset per-test sessionStorage so the Playbook last-URL preservation
+  // logic starts from a clean slate.
+  try {
+    window.sessionStorage.clear();
+  } catch {
+    /* sessionStorage unavailable — ignore */
+  }
 });
 
 afterEach(() => {
@@ -525,4 +533,121 @@ describe('InstrumentSwitcher — active state when on Playbook (VAL-PLAY-030)', 
     render(<InstrumentSwitcher />);
     expect(screen.getByTestId('tab-playbook')).toHaveAttribute('aria-selected', 'true');
   });
+});
+
+// ---------------------------------------------------------------------------
+// Playbook last-URL preservation — fix-playbook-url-restore
+//
+// The Playbook page saves the current URL to sessionStorage when it has
+// a `?context=` or `?query=` param, and restores it on a FRESH mount
+// with no params (so returning to the Playbook tab from another
+// instrument reopens the last viewed narrative — VAL-CROSS-012).
+//
+// It must NOT restore when the user explicitly navigates to `/playbook`
+// root from within the Playbook page (tab click while already on
+// Playbook, breadcrumb "Playbook" click, etc.), otherwise the user is
+// trapped on the narrative they were trying to leave.
+// ---------------------------------------------------------------------------
+
+const PLAYBOOK_LAST_URL_KEY = 'mdb:playbook:last-url';
+
+describe('PlaybookPage — URL restore guard (fix-playbook-url-restore)', () => {
+  it('restores the last viewed narrative on a fresh mount with no params (VAL-CROSS-012)', () => {
+    // Seed the saved URL as if a previous visit persisted it.
+    window.sessionStorage.setItem(PLAYBOOK_LAST_URL_KEY, '/playbook?context=E1');
+    window.history.replaceState({}, '', '/playbook');
+
+    render(<PlaybookPage />);
+
+    expect(replaceMock).toHaveBeenCalledWith('/playbook?context=E1');
+    // Stored URL remains so subsequent mounts can still restore.
+    expect(window.sessionStorage.getItem(PLAYBOOK_LAST_URL_KEY)).toBe('/playbook?context=E1');
+  });
+
+  it('does nothing on a fresh mount when no URL was saved in the session', () => {
+    window.history.replaceState({}, '', '/playbook');
+
+    render(<PlaybookPage />);
+
+    expect(replaceMock).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem(PLAYBOOK_LAST_URL_KEY)).toBeNull();
+  });
+
+  it('saves the current URL to sessionStorage when a context param is present', async () => {
+    mockNarrativeFetch('Authentication');
+    window.history.replaceState({}, '', '/playbook?context=E1');
+
+    render(<PlaybookPage />);
+
+    await waitFor(() => {
+      expect(window.sessionStorage.getItem(PLAYBOOK_LAST_URL_KEY)).toBe('/playbook?context=E1');
+    });
+    // Fresh mount with params should not trigger a restore.
+    expect(replaceMock).not.toHaveBeenCalled();
+  });
+
+  it(
+    'clears the saved URL and does NOT restore when the user navigates ' +
+      'from a narrative to /playbook root within the same mount ' +
+      '(explicit tab / breadcrumb click)',
+    async () => {
+      mockNarrativeFetch('Authentication');
+      // Start on a narrative so the URL is saved.
+      window.history.replaceState({}, '', '/playbook?context=E1');
+      const { rerender } = render(<PlaybookPage />);
+
+      await waitFor(() => {
+        expect(window.sessionStorage.getItem(PLAYBOOK_LAST_URL_KEY)).toBe('/playbook?context=E1');
+      });
+      expect(replaceMock).not.toHaveBeenCalled();
+
+      // Simulate explicit in-page navigation to /playbook root (e.g. the
+      // user clicks the Playbook tab while reading the narrative).
+      window.history.replaceState({}, '', '/playbook');
+      rerender(<PlaybookPage />);
+
+      // Must NOT redirect back to the narrative — user explicitly asked
+      // for the Playbook root.
+      expect(replaceMock).not.toHaveBeenCalled();
+      // Stored URL cleared so a later tab-switch also lands on the
+      // empty state until a new narrative is opened.
+      expect(window.sessionStorage.getItem(PLAYBOOK_LAST_URL_KEY)).toBeNull();
+    },
+  );
+
+  it(
+    'clears the saved URL when the user leaves a search view for the ' +
+      'Playbook root (search → root explicit navigation)',
+    async () => {
+      mockSearchFetch('timeout');
+      window.history.replaceState({}, '', '/playbook?query=timeout');
+      const { rerender } = render(<PlaybookPage />);
+
+      await waitFor(() => {
+        expect(window.sessionStorage.getItem(PLAYBOOK_LAST_URL_KEY)).toBe(
+          '/playbook?query=timeout',
+        );
+      });
+
+      // User clicks "Return to Playbook root" or the Playbook tab.
+      window.history.replaceState({}, '', '/playbook');
+      rerender(<PlaybookPage />);
+
+      expect(replaceMock).not.toHaveBeenCalled();
+      expect(window.sessionStorage.getItem(PLAYBOOK_LAST_URL_KEY)).toBeNull();
+    },
+  );
+
+  it(
+    'ignores a saved URL that does not target the Playbook page ' +
+      '(defensive — corrupted/cross-instrument value)',
+    () => {
+      window.sessionStorage.setItem(PLAYBOOK_LAST_URL_KEY, '/checklists');
+      window.history.replaceState({}, '', '/playbook');
+
+      render(<PlaybookPage />);
+
+      expect(replaceMock).not.toHaveBeenCalled();
+    },
+  );
 });
