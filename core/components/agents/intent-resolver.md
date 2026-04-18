@@ -38,7 +38,7 @@ The play passes four things:
 {
   "intent_path": "<path to intent.yaml>",
   "workflow_path": "<path to LTM workflow template>",
-  "config_path": "<path to .meridian/core/config.yaml>",
+  "config_path": "<path to .garura/core/config.yaml>",
   "agents": [
     { "name": "feature-steward", "domain": "product" },
     { "name": "tech-designer", "domain": "design" }
@@ -48,7 +48,7 @@ The play passes four things:
 
 1. **intent_path** — Path to the intent.yaml file. Read it to extract goal, constraints, failure conditions, and scenarios.
 2. **workflow_path** — Path to the LTM workflow template. Read it to understand which stages are active, their names, and their owner_type (domain-agent or play).
-3. **config_path** — Path to `.meridian/core/config.yaml`. Read it to resolve `stm.base-path` into the DAG's `stm_base` field. This is the single source of truth for STM path resolution — all downstream contract paths derive from this value.
+3. **config_path** — Path to `.garura/core/config.yaml`. Read it to resolve `stm.base-path` into the DAG's `stm_base` field. This is the single source of truth for STM path resolution — all downstream contract paths derive from this value.
 4. **agents** — Array of available agents with name and domain. Use these — and only these — for domain-agent stage assignments.
 
 ## Output Contract: Task DAG Schema
@@ -82,7 +82,7 @@ Return ONLY this JSON structure. No prose, no explanation, no commentary.
 | Field | Type | Description |
 |-------|------|-------------|
 | `intent_hash` | string | SHA-256 hash of intent.yaml content for cache invalidation |
-| `stm_base` | string | Resolved `stm.base-path` from `.meridian/core/config.yaml`. All STM paths in the DAG and all agent contracts MUST be constructed from this value. The play uses `{stm_base}/{issue}/` as the root for all task artifacts. |
+| `stm_base` | string | Resolved `stm.base-path` from `.garura/core/config.yaml`. All STM paths in the DAG and all agent contracts MUST be constructed from this value. The play uses `{stm_base}/{issue}/` as the root for all task artifacts. |
 | `stm_paths.dag` | string | Where the play should persist this DAG in STM |
 | `notes` | string[] | Max 3 resolver observations (unmatched domains, constraint risks, sequencing notes) |
 | `tasks[].id` | string | Unique task identifier (e.g., `readiness-1`, `gen-2`, `scenario-eval-1`) |
@@ -116,7 +116,7 @@ Infrastructure stages (0, 1, 4, 6, 7) are always owned by `"play"` or `"intent-r
 
 1. Read intent.yaml at `intent_path`. Extract: goal, constraints, failure conditions, scenarios.
 2. Read workflow template at `workflow_path`. Extract: active stages, stage names, owner_type per stage.
-3. Read `.meridian/core/config.yaml` at `config_path`. Extract `stm.base-path` and set as `stm_base` in the output DAG.
+3. Read `.garura/core/config.yaml` at `config_path`. Extract `stm.base-path` and set as `stm_base` in the output DAG.
 4. Parse agents array from input.
 
 ### Step 2: Classify Intent Elements

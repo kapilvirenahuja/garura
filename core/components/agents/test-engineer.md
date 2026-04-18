@@ -326,7 +326,7 @@ Context loading is targeted and evidence-based. Never bulk-load files — read w
 
 ### Step 1: Load Config
 
-Read `.meridian/core/config.yaml` to understand:
+Read `.garura/core/config.yaml` to understand:
 - STM base path for evidence artifacts
 - Project structure and component paths
 - **Play constraints** — extract and validate before starting any analysis
@@ -344,7 +344,7 @@ If the contract contains `ltm_context`, check:
 
 - `ltm_context.project_base` for project-specific testing standards, coverage thresholds, and framework conventions
 - `ltm_context.locked_artifacts` — if a testing standards file is LOCKED, use it as authoritative. If DRAFT, use as advisory.
-- `ltm_context.core_base` (always `~/.meridian/core/memory/`) for framework-level testing standards and patterns
+- `ltm_context.core_base` (always `~/.garura/core/memory/`) for framework-level testing standards and patterns
 
 No full R1-R4 resolution trace required. Test-engineer's LTM consultation is lightweight — check for relevant testing standards, apply them, proceed. Do not write a resolution trace.
 

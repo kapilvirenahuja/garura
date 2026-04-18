@@ -38,7 +38,7 @@ These are the ONLY paths you may write to. Any `target_path` outside this list i
 
 | Pattern | Purpose |
 |---------|---------|
-| `.meridian/core/...` (except `.meridian/core/memory/` which is gitignored) | Core configuration and state |
+| `.meridian/core/...` (except `.garura/core/memory/` which is gitignored) | Core configuration and state |
 | `.meridian/product/...` | Product planning artifacts (specify-product outputs) |
 | `.meridian/product/experience/...` | UX / design artifacts (design-exp outputs, post-D1 folder rename from `ux/`) |
 | `.meridian/product/architecture/...` | Architecture artifacts (build-arch outputs, post-D1 folder rename from `arch/`) |
@@ -61,7 +61,7 @@ This agent communicates with plays via JSON contracts.
 ```json
 {
   "intent_path": "<path to calling play's reference/intent.yaml>",
-  "stm_base": "<resolved from .meridian/core/config.yaml stm.base-path>",
+  "stm_base": "<resolved from .garura/core/config.yaml stm.base-path>",
   "scribe_task": {
     "operation": "write_evidence",
     "target_path": "<absolute or project-relative whitelist-compliant path>",

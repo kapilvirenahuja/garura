@@ -495,7 +495,7 @@ The agent reads `{stm_base}/{issue}/evidence/` directly for enhance/ and fix-it/
 ### What You MUST NOT Do
 
 - Modify STM artifacts (context/, evidence/, status/)
-- Write to global core LTM (~/.meridian/core/memory/)
+- Write to global core LTM (~/.garura/core/memory/)
 - Create standalone knowledge files outside product LTM structure
 - Modify Tier 1 artifacts directly (ADR only — artifact changes need separate effort)
 - Write any proposal without approval_status == "approved"
