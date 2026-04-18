@@ -120,20 +120,21 @@ describe('SearchBar — Rendering (VAL-FOUND-004)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// VAL-FOUND-005: Three Instrument Tabs Render
+// VAL-FOUND-005: Instrument Tabs Render
 // ---------------------------------------------------------------------------
-describe('InstrumentSwitcher — Three Tabs (VAL-FOUND-005)', () => {
-  it('renders exactly three instrument tabs', () => {
+describe('InstrumentSwitcher — Tabs (VAL-FOUND-005)', () => {
+  it('renders exactly four instrument tabs', () => {
     render(<InstrumentSwitcher />);
     const tabs = screen.getAllByRole('tab');
-    expect(tabs).toHaveLength(3);
+    expect(tabs).toHaveLength(4);
   });
 
   it('renders tabs with correct labels', () => {
     render(<InstrumentSwitcher />);
-    expect(screen.getByText('Checklists')).toBeInTheDocument();
-    expect(screen.getByText('Flight Deck')).toBeInTheDocument();
+    expect(screen.getByText('Product')).toBeInTheDocument();
     expect(screen.getByText('Playbook')).toBeInTheDocument();
+    expect(screen.getByText('Auto Pilot')).toBeInTheDocument();
+    expect(screen.getByText('Explorer')).toBeInTheDocument();
   });
 
   it('all tabs are clickable (have href)', () => {
@@ -154,6 +155,13 @@ describe('InstrumentSwitcher — Three Tabs (VAL-FOUND-005)', () => {
 // VAL-FOUND-006, 007, 008: Tab Switch Navigation
 // ---------------------------------------------------------------------------
 describe('InstrumentSwitcher — Tab Switching (VAL-FOUND-006, 007, 008)', () => {
+  it('highlights Product tab when on /product', () => {
+    mockPathname.mockReturnValue('/product');
+    render(<InstrumentSwitcher />);
+    const tab = screen.getByTestId('tab-product');
+    expect(tab).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('highlights Checklists tab when on /checklists', () => {
     mockPathname.mockReturnValue('/checklists');
     render(<InstrumentSwitcher />);
@@ -178,12 +186,14 @@ describe('InstrumentSwitcher — Tab Switching (VAL-FOUND-006, 007, 008)', () =>
   it('non-active tabs are not selected', () => {
     mockPathname.mockReturnValue('/checklists');
     render(<InstrumentSwitcher />);
+    expect(screen.getByTestId('tab-product')).toHaveAttribute('aria-selected', 'false');
     expect(screen.getByTestId('tab-flight-deck')).toHaveAttribute('aria-selected', 'false');
     expect(screen.getByTestId('tab-playbook')).toHaveAttribute('aria-selected', 'false');
   });
 
   it('tab links have correct hrefs for navigation', () => {
     render(<InstrumentSwitcher />);
+    expect(screen.getByTestId('tab-product')).toHaveAttribute('href', '/product');
     expect(screen.getByTestId('tab-checklists')).toHaveAttribute('href', '/checklists');
     expect(screen.getByTestId('tab-flight-deck')).toHaveAttribute('href', '/flight-deck');
     expect(screen.getByTestId('tab-playbook')).toHaveAttribute('href', '/playbook');
@@ -194,6 +204,10 @@ describe('InstrumentSwitcher — Tab Switching (VAL-FOUND-006, 007, 008)', () =>
 // VAL-FOUND-009: Active Tab Persistence on Refresh (URL routing)
 // ---------------------------------------------------------------------------
 describe('InstrumentSwitcher — URL-Based Active State (VAL-FOUND-009)', () => {
+  it('resolves product from /product pathname', () => {
+    expect(resolveActiveInstrument('/product')).toBe('product');
+  });
+
   it('resolves checklists from /checklists pathname', () => {
     expect(resolveActiveInstrument('/checklists')).toBe('checklists');
   });
@@ -220,25 +234,32 @@ describe('InstrumentSwitcher — URL-Based Active State (VAL-FOUND-009)', () => 
 // VAL-FOUND-010: Breadcrumb Updates on Navigation
 // ---------------------------------------------------------------------------
 describe('Breadcrumb — Navigation Path (VAL-FOUND-010)', () => {
-  it('shows Home › Checklists breadcrumb on /checklists', () => {
+  it('shows Home › Product breadcrumb on /product', () => {
+    mockPathname.mockReturnValue('/product');
+    render(<Breadcrumb />);
+    expect(screen.getByText('Home')).toBeInTheDocument();
+    expect(screen.getByText('Product')).toBeInTheDocument();
+  });
+
+  it('shows Home › Playbook breadcrumb on /checklists', () => {
     mockPathname.mockReturnValue('/checklists');
     render(<Breadcrumb />);
     expect(screen.getByText('Home')).toBeInTheDocument();
-    expect(screen.getByText('Checklists')).toBeInTheDocument();
+    expect(screen.getByText('Playbook')).toBeInTheDocument();
   });
 
-  it('shows Home › Flight Deck breadcrumb on /flight-deck', () => {
+  it('shows Home › Auto Pilot breadcrumb on /flight-deck', () => {
     mockPathname.mockReturnValue('/flight-deck');
     render(<Breadcrumb />);
     expect(screen.getByText('Home')).toBeInTheDocument();
-    expect(screen.getByText('Flight Deck')).toBeInTheDocument();
+    expect(screen.getByText('Auto Pilot')).toBeInTheDocument();
   });
 
-  it('shows Home › Playbook breadcrumb on /playbook', () => {
+  it('shows Home › Explorer breadcrumb on /playbook', () => {
     mockPathname.mockReturnValue('/playbook');
     render(<Breadcrumb />);
     expect(screen.getByText('Home')).toBeInTheDocument();
-    expect(screen.getByText('Playbook')).toBeInTheDocument();
+    expect(screen.getByText('Explorer')).toBeInTheDocument();
   });
 
   it('renders separator between segments', () => {
@@ -251,23 +272,28 @@ describe('Breadcrumb — Navigation Path (VAL-FOUND-010)', () => {
     mockPathname.mockReturnValue('/checklists');
     render(<Breadcrumb />);
     // Last segment should have aria-current="page"
-    const currentSegment = screen.getByText('Checklists');
+    const currentSegment = screen.getByText('Playbook');
     expect(currentSegment).toHaveAttribute('aria-current', 'page');
   });
 
   it('breadcrumb derives correct segments', () => {
+    const productSegments = deriveBreadcrumbs('/product');
+    expect(productSegments).toHaveLength(2);
+    expect(productSegments[0]?.label).toBe('Home');
+    expect(productSegments[1]?.label).toBe('Product');
+
     const checklistSegments = deriveBreadcrumbs('/checklists');
     expect(checklistSegments).toHaveLength(2);
     expect(checklistSegments[0]?.label).toBe('Home');
-    expect(checklistSegments[1]?.label).toBe('Checklists');
+    expect(checklistSegments[1]?.label).toBe('Playbook');
 
     const flightDeckSegments = deriveBreadcrumbs('/flight-deck');
     expect(flightDeckSegments).toHaveLength(2);
-    expect(flightDeckSegments[1]?.label).toBe('Flight Deck');
+    expect(flightDeckSegments[1]?.label).toBe('Auto Pilot');
 
     const playbookSegments = deriveBreadcrumbs('/playbook');
     expect(playbookSegments).toHaveLength(2);
-    expect(playbookSegments[1]?.label).toBe('Playbook');
+    expect(playbookSegments[1]?.label).toBe('Explorer');
   });
 
   it('breadcrumb component is present', () => {

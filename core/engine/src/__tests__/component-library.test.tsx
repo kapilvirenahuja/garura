@@ -527,14 +527,15 @@ describe('SearchBar — Interactive (VAL-FOUND-057)', () => {
 // VAL-FOUND-058: InstrumentSwitcher Component
 // =============================================================================
 describe('InstrumentSwitcher — Library Mode (VAL-FOUND-058)', () => {
-  it('renders three instrument tabs', () => {
+  it('renders four instrument tabs', () => {
     render(<InstrumentSwitcher active="checklists" onChange={vi.fn()} />);
     const tabs = screen.getAllByRole('tab');
-    expect(tabs).toHaveLength(3);
+    expect(tabs).toHaveLength(4);
   });
 
   it('highlights the active tab', () => {
     render(<InstrumentSwitcher active="checklists" onChange={vi.fn()} />);
+    expect(screen.getByTestId('tab-product')).toHaveAttribute('aria-selected', 'false');
     expect(screen.getByTestId('tab-checklists')).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByTestId('tab-flight-deck')).toHaveAttribute('aria-selected', 'false');
     expect(screen.getByTestId('tab-playbook')).toHaveAttribute('aria-selected', 'false');
@@ -711,7 +712,7 @@ describe('ChecklistItem — All States (VAL-FOUND-061)', () => {
 describe('Breadcrumb — Library Mode (VAL-FOUND-062)', () => {
   const segments: BreadcrumbSegment[] = [
     { label: 'Home', href: '/checklists' },
-    { label: 'Playbook', href: '/playbook' },
+    { label: 'Explorer', href: '/playbook' },
     { label: 'E1' },
   ];
 

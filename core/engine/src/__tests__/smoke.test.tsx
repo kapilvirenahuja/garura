@@ -2,7 +2,7 @@
  * Garura Foundation — Integration Smoke Tests
  *
  * Verifies that all foundation pieces work together end-to-end:
- *   1. Application loads with fixture artifacts (all three instruments render)
+ *   1. Application loads with fixture artifacts (all four instruments render)
  *   2. Application loads in greenfield state (readiness 0, onboarding checklist visible)
  *   3. Search returns results with fixture data (titles + source provenance)
  *   4. CrossRefToken click in Playbook Reader opens InlineExpansion
@@ -27,6 +27,7 @@ import { TopBar } from '@/components/top-bar';
 import ChecklistsPage from '@/app/checklists/page';
 import FlightDeckPage from '@/app/flight-deck/page';
 import PlaybookPage from '@/app/playbook/page';
+import ProductPage from '@/app/product/page';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -115,11 +116,72 @@ beforeEach(() => {
         new Response(
           JSON.stringify({
             score: 0,
+            band: '0-30',
+            lifecycle: 'greenfield',
             totalPlays: 14,
             runnablePlays: 0,
             breakdown: [],
             plays: [],
             lastGitHash: null,
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+      );
+    }
+    if (url === '/api/product') {
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({
+            summary: {
+              name: 'Garura',
+              slug: 'garura',
+              description: 'Product posture for Garura.',
+              headline: 'Curated product posture',
+              sourceArtifacts: ['.garura/product/vision.md', '.garura/product/posture.yaml'],
+            },
+            updatedAt: '2026-04-18',
+            statusCounts: { live: 1, partial: 1, pilot: 1, planned: 1, dormant: 0 },
+            coverageGaps: [],
+            signalsSummary: {
+              artifactDefined: 1,
+              manuallyCurated: 1,
+              signalSupported: 0,
+              runtimeSignalsConnected: false,
+              note: 'Signals are reserved for OTEL later.',
+            },
+            domains: [
+              {
+                id: 'context',
+                name: 'Context Continuity',
+                description: 'Durable memory posture.',
+                status: 'partial',
+                capabilityIds: ['memory'],
+                evidence: [],
+                capabilities: [
+                  {
+                    id: 'memory',
+                    name: 'Project Memory',
+                    description: 'Persisted context.',
+                    status: 'partial',
+                    featureIds: ['ltm'],
+                    evidence: [],
+                    features: [
+                      {
+                        id: 'ltm',
+                        name: 'LTM Store',
+                        capabilityId: 'memory',
+                        description: '',
+                        status: 'live',
+                        evidence: [],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
           }),
           {
             status: 200,
@@ -231,6 +293,14 @@ describe('Smoke — Application Loads with Fixture Artifacts (VAL-FOUND-074)', (
     expect(container.querySelector('[data-error]')).toBeNull();
   });
 
+  it('renders the Product instrument without errors', async () => {
+    mockPathname.mockReturnValue('/product');
+    const { container } = render(<ProductPage />);
+    expect(screen.getByTestId('product-view')).toBeInTheDocument();
+    await screen.findByText('Garura');
+    expect(container.querySelector('[data-error]')).toBeNull();
+  });
+
   it('renders the Flight Deck instrument without errors', () => {
     mockPathname.mockReturnValue('/flight-deck');
     const { container } = render(<FlightDeckPage />);
@@ -245,13 +315,14 @@ describe('Smoke — Application Loads with Fixture Artifacts (VAL-FOUND-074)', (
     expect(container.querySelector('[data-error]')).toBeNull();
   });
 
-  it('renders all three instrument tabs in the app shell', () => {
+  it('renders all four instrument tabs in the app shell', () => {
     render(
       <AppShell>
         <ChecklistsPage />
       </AppShell>,
     );
 
+    expect(screen.getByTestId('tab-product')).toBeInTheDocument();
     expect(screen.getByTestId('tab-checklists')).toBeInTheDocument();
     expect(screen.getByTestId('tab-flight-deck')).toBeInTheDocument();
     expect(screen.getByTestId('tab-playbook')).toBeInTheDocument();
@@ -336,7 +407,9 @@ describe('Smoke — Greenfield State (VAL-FOUND-075)', () => {
     render(<ChecklistsPage />);
 
     expect(
-      screen.getByText("Your project isn't flying yet — let's get started."),
+      screen.getByText(
+        'This repository still looks early-stage. Garura can help most once the first product artifacts are in place.',
+      ),
     ).toBeInTheDocument();
   });
 

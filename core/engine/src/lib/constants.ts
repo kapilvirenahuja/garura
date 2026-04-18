@@ -1,5 +1,5 @@
 /** Instrument identifiers used for routing and tab switching */
-export type InstrumentId = 'checklists' | 'flight-deck' | 'playbook';
+export type InstrumentId = 'product' | 'checklists' | 'flight-deck' | 'playbook';
 
 export interface InstrumentTab {
   id: InstrumentId;
@@ -8,6 +8,7 @@ export interface InstrumentTab {
 }
 
 export const INSTRUMENTS: readonly InstrumentTab[] = [
+  { id: 'product', label: 'Product', href: '/product' },
   { id: 'checklists', label: 'Playbook', href: '/checklists' },
   { id: 'flight-deck', label: 'Auto Pilot', href: '/flight-deck' },
   { id: 'playbook', label: 'Explorer', href: '/playbook' },
