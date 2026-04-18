@@ -370,8 +370,14 @@ export function spawnPlay(options: SpawnPlayOptions): SpawnPlayResult {
   // 3. Prompt sanitization (throws InvalidPromptError on failure)
   const sanitized = sanitizePrompt(prompt);
 
-  // 4. Concurrency limit
-  if (getRunningCount() >= MAX_CONCURRENT_EXECUTIONS) {
+  // 4. Concurrency limit — gate on the active child-process map, not on
+  //    logical `status`. `status` transitions to `cancelled` / `timeout`
+  //    the moment cancellation is *requested*, but the OS process is
+  //    still alive until SIGTERM (or SIGKILL) is delivered and the
+  //    `close` event fires. Using the active process map means a slot
+  //    is only freed once the child has actually exited, preventing
+  //    more than `MAX_CONCURRENT_EXECUTIONS` live children at a time.
+  if (activeProcesses.size >= MAX_CONCURRENT_EXECUTIONS) {
     throw new ConcurrentLimitError(MAX_CONCURRENT_EXECUTIONS);
   }
 
@@ -574,26 +580,47 @@ export function spawnPlay(options: SpawnPlayOptions): SpawnPlayResult {
           safeClose();
           return;
         }
-        // ENOENT (CLI missing) → degrade gracefully for developer UX.
-        // We surface an explanatory output line, mark the record
-        // `complete`, and close the stream. This preserves the same
-        // behaviour the prior /api/checklists/execute route provided.
+        // Only ENOENT (CLI missing) is allowed to degrade gracefully
+        // into a simulated-complete execution for developer UX —
+        // that preserves the fallback behaviour the prior
+        // /api/checklists/execute route provided when the Factory /
+        // Claude CLI is not installed on a dev box. All other child
+        // errors (EACCES, EPERM, spawn crashes, unexpected I/O
+        // failures, …) must surface as genuine execution failures
+        // rather than being silently swallowed as "complete".
+        const errnoCode = (err as NodeJS.ErrnoException).code;
+        if (errnoCode === 'ENOENT') {
+          record.errorMessage = err.message;
+          safeSend({
+            type: 'output',
+            content: `[garura] CLI "${cliCommand}" not available. Simulating play execution.\n`,
+          });
+          safeSend({
+            type: 'output',
+            content: `[garura] Play "${playName}" — this would execute the Garura play.\n`,
+          });
+          safeSend({
+            type: 'output',
+            content: `[garura] Error: ${err.message}\n`,
+          });
+          record.status = 'complete';
+          record.exitCode = null;
+          safeSend({ type: 'complete', executionId, exitCode: null });
+          safeClose();
+          return;
+        }
+
+        // Non-ENOENT errors → genuine failure. Mark the record as
+        // `error`, emit a structured `error` SSE event so the client
+        // can surface the failure, and close the stream.
+        record.status = 'error';
+        record.exitCode = null;
         record.errorMessage = err.message;
         safeSend({
-          type: 'output',
-          content: `[garura] CLI "${cliCommand}" not available. Simulating play execution.\n`,
+          type: 'error',
+          executionId,
+          message: err.message,
         });
-        safeSend({
-          type: 'output',
-          content: `[garura] Play "${playName}" — this would execute the Garura play.\n`,
-        });
-        safeSend({
-          type: 'output',
-          content: `[garura] Error: ${err.message}\n`,
-        });
-        record.status = 'complete';
-        record.exitCode = null;
-        safeSend({ type: 'complete', executionId, exitCode: null });
         safeClose();
       });
     },

@@ -605,6 +605,48 @@ describe('spawnPlay — error handling (VAL-ACTION-016)', () => {
     const rec = getExecutionRecord(executionId);
     expect(rec?.status).toBe('complete');
   });
+
+  it('marks execution as error (not complete) for non-ENOENT child errors', async () => {
+    // Regression test: previously ALL child-process error events were
+    // swallowed as "complete" via the ENOENT fallback path. Only
+    // ENOENT should degrade gracefully; every other errno (EACCES,
+    // EPERM, EMFILE, …) must surface as a genuine failure.
+    const { spawnFn, handles } = makeFakeSpawn();
+    const { executionId, stream } = spawnPlay({ playName: 'ship', spawnFn });
+    const collector = collectSseEvents(stream);
+    await Promise.resolve();
+    const err = Object.assign(new Error('spawn factory EACCES'), {
+      code: 'EACCES',
+    });
+    handles[0]!.crash(err);
+    const events = await collector.done;
+    // No `complete` — the execution failed.
+    expect(events.find((e) => e.type === 'complete')).toBeUndefined();
+    // A structured error event is emitted instead.
+    const errorEvent = events.find((e) => e.type === 'error');
+    expect(errorEvent).toBeTruthy();
+    expect(errorEvent?.message).toMatch(/EACCES/);
+    // And the record reflects the failure.
+    const rec = getExecutionRecord(executionId);
+    expect(rec?.status).toBe('error');
+    expect(rec?.errorMessage).toMatch(/EACCES/);
+  });
+
+  it('marks execution as error for child errors without an errno code', async () => {
+    // A generic Error (no `code` property) is not ENOENT — it must
+    // fall through to the genuine-failure branch, not the simulated
+    // fallback.
+    const { spawnFn, handles } = makeFakeSpawn();
+    const { executionId, stream } = spawnPlay({ playName: 'ship', spawnFn });
+    const collector = collectSseEvents(stream);
+    await Promise.resolve();
+    handles[0]!.crash(new Error('pipe broke unexpectedly'));
+    const events = await collector.done;
+    expect(events.find((e) => e.type === 'complete')).toBeUndefined();
+    const errorEvent = events.find((e) => e.type === 'error');
+    expect(errorEvent?.message).toMatch(/pipe broke/);
+    expect(getExecutionRecord(executionId)?.status).toBe('error');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -631,6 +673,30 @@ describe('spawnPlay — concurrent-execution limit (VAL-ACTION-030)', () => {
         expect(getRunningCount()).toBeLessThan(MAX_CONCURRENT_EXECUTIONS);
         expect(() => spawnPlay({ playName: 'ship', spawnFn })).not.toThrow();
       });
+  });
+
+  it('does not release a slot when status transitions to cancelled before process exits', () => {
+    // Regression: the concurrency gate used to key off `getRunningCount()`
+    // (status === "running"). cancelExecution / timeout / onAbort all
+    // flip the status the moment cancellation is *requested*, but the
+    // OS child process is still alive until the subsequent `close`
+    // event fires. Gating on the active-process map keeps the slot
+    // reserved for the lifetime of the actual child.
+    const { spawnFn, handles } = makeFakeSpawn();
+    const results = [];
+    for (let i = 0; i < MAX_CONCURRENT_EXECUTIONS; i++) {
+      results.push(spawnPlay({ playName: 'ship', spawnFn }));
+    }
+    // Cancel the first slot — status flips to `cancelled` but the
+    // fake child has not yet emitted `close`.
+    expect(cancelExecution(results[0]!.executionId)).toBe(true);
+    expect(getExecutionRecord(results[0]!.executionId)?.status).toBe('cancelled');
+    // A 4th spawn must still be rejected because the OS-level child
+    // is still alive.
+    expect(() => spawnPlay({ playName: 'ship', spawnFn })).toThrow(ConcurrentLimitError);
+    // Only once the child actually closes is the slot released.
+    handles[0]!.exit(null);
+    expect(() => spawnPlay({ playName: 'ship', spawnFn })).not.toThrow();
   });
 
   it('ConcurrentLimitError carries the limit and an error code', () => {
