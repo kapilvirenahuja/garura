@@ -33,14 +33,14 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt |
 | Required fields present | C1 | Hard halt — report missing field(s) to caller |
 | Severity is valid | C2 | Hard halt — report invalid value and allowed set |
 | gh CLI available | C3 | Soft — set `gh_available=false`, continue to fallback path |
 
 ```bash
 # Resolve STM base path
-config_path=".meridian/core/config.yaml"
+config_path=".garura/core/config.yaml"
 if [ ! -f "$config_path" ]; then
   echo "HALT: Config not found at $config_path"
   exit 1

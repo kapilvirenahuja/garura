@@ -132,7 +132,7 @@ constraints:
   - id: C15
     rule: >
       validate-epic reads ONLY from STM at {stm_base}/{issue}/context/ and the
-      deployed environment. KB (~/.meridian/core/memory/) and LTM ({product_base})
+      deployed environment. KB (~/.garura/core/memory/) and LTM ({product_base})
       are FORBIDDEN. All context — epic specification, scenarios, design context,
       API contracts — must exist in the STM context package produced by
       prepare-epic. No agent contract may include ltm_context fields, product_base
@@ -244,7 +244,7 @@ failure_conditions:
 
   - id: F13
     condition: >
-      Any agent invoked by validate-epic reads from KB (~/.meridian/core/memory/)
+      Any agent invoked by validate-epic reads from KB (~/.garura/core/memory/)
       or LTM ({product_base}). Agent contracts contain ltm_context fields,
       product_base references, or paths outside {stm_base}/{issue}/ and the
       deployed environment URL.

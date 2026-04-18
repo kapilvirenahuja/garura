@@ -21,15 +21,15 @@ Execute these checks before any domain work. Orchestrator owns — do not delega
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `product_base` from `.meridian/core/config.yaml` product.base-path | — | Hard halt — config is required |
-| Resolve `stm_base` from `.meridian/core/config.yaml` stm.base-path | — | Hard halt — config is required |
+| Resolve `product_base` from `.garura/core/config.yaml` product.base-path | — | Hard halt — config is required |
+| Resolve `stm_base` from `.garura/core/config.yaml` stm.base-path | — | Hard halt — config is required |
 | Product directory exists with at least one product artifact | C4 | Graceful halt: "No product artifacts found. Run the product-planning pipeline first to produce product artifacts." |
 | Derive context (branch, issue, epic) | C1 | Continue with full scan if no context derivable |
 
 ```bash
 # Resolve paths from config
-product_base=$(grep -A1 '^product:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
-stm_base=$(grep -A1 '^stm:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
+product_base=$(grep -A1 '^product:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
+stm_base=$(grep -A1 '^stm:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
 
 # C4: Check product directory exists
 # Glob for {product_base}/discovery/product.yaml

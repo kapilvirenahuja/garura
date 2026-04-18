@@ -39,8 +39,8 @@ Resolve configuration and gather inputs. All failures return gracefully — do N
 
 ```bash
 # Resolve paths from config
-stm_base=$(grep 'base-path' .meridian/core/config.yaml | head -1 | awk '{print $2}')
-product_base=$(grep 'base-path' .meridian/core/config.yaml | tail -1 | awk '{print $2}')
+stm_base=$(grep 'base-path' .garura/core/config.yaml | head -1 | awk '{print $2}')
+product_base=$(grep 'base-path' .garura/core/config.yaml | tail -1 | awk '{print $2}')
 
 # Extract issue number (from branch or status file context from ship)
 # issue is passed in from ship's context — already resolved

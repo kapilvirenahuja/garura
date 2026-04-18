@@ -35,7 +35,7 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt — config is required |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt — config is required |
 | Current branch is not main/master/default | C1 | Hard halt with message |
 | Working tree is clean | C3 | Hard halt — instruct user to commit or stash first |
 | Platform config exists and is valid | implicit | Hard halt — no platform configured |
@@ -43,7 +43,7 @@ Execute these checks before any domain work:
 
 ```bash
 # Resolve STM base path from config
-stm_base=$(grep 'base-path' .meridian/core/config.yaml | head -1 | awk '{print $2}')
+stm_base=$(grep 'base-path' .garura/core/config.yaml | head -1 | awk '{print $2}')
 
 # Extract issue number from branch name (e.g., feature/95-some-slug → 95)
 branch=$(git branch --show-current)
@@ -58,7 +58,7 @@ git status --porcelain
 # Halt if output is non-empty
 
 # Platform config
-platform=$(grep '^platform:' .meridian/core/config.yaml | awk '{print $2}')
+platform=$(grep '^platform:' .garura/core/config.yaml | awk '{print $2}')
 # Halt if platform is unset
 
 # C2 — PR exists

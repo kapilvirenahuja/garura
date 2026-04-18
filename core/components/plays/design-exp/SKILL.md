@@ -38,15 +38,15 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` and `product_base` from `.meridian/core/config.yaml` | — | Hard halt — config required |
+| Resolve `stm_base` and `product_base` from `.garura/core/config.yaml` | — | Hard halt — config required |
 | specify-product artifacts exist and are LOCKED: `scope/scope.yaml`, `scope/enriched-capabilities.yaml`, `scope/epics/*.yaml`, `specification/quality-profile.yaml` under `{product_base}` | C1 | Hard halt — "specify-product must complete before design-exp starts" |
 | KB catalog consistency — invoke `validate-kb-extension` skill | C2 | Hard halt — print validator report, block until fixed |
 | `{product_base}experience/` writable; scriber agent reachable | C10, C11 | Hard halt — infrastructure check |
 | `{product_base}scope/mvp-recommendation.md` exists and is non-empty | C15 | Hard halt — "Author scope/mvp-recommendation.md before running design-exp. See rules/product.md Rule 13 and the specify-product play for the expected artifact shape." |
 
 ```bash
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | awk '/stm:/,/base-path/' | tail -1 | awk '{print $2}')
-product_base=$(grep -A1 '^product:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | awk '/stm:/,/base-path/' | tail -1 | awk '{print $2}')
+product_base=$(grep -A1 '^product:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
 
 # C1: verify specify-product artifacts exist AND status is LOCKED
 # Artifacts live under two sub-folders — scope/ and specification/

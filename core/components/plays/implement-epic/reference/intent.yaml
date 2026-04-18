@@ -238,7 +238,7 @@ constraints:
   - id: C27
     rule: >
       implement-epic reads ONLY from STM at {stm_base}/{issue}/context/. KB
-      (~/.meridian/core/memory/) and LTM ({product_base}) are FORBIDDEN. All
+      (~/.garura/core/memory/) and LTM ({product_base}) are FORBIDDEN. All
       context needed for implementation — architecture decisions, quality gates,
       epic specification, design context — must exist in the STM context
       package produced by prepare-epic. No agent contract in implement-epic may
@@ -411,7 +411,7 @@ failure_conditions:
 
   - id: F23
     condition: >
-      Any agent invoked by implement-epic reads from KB (~/.meridian/core/memory/)
+      Any agent invoked by implement-epic reads from KB (~/.garura/core/memory/)
       or LTM ({product_base}). Agent contracts contain ltm_context fields,
       product_base references, or paths outside {stm_base}/{issue}/.
 

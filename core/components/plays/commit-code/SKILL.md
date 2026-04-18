@@ -34,15 +34,15 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt |
 | Branch guard | C1 | Hard halt |
 | Changes exist | C2 | Graceful exit |
 | Sensitive file scan | C4 | Hard block |
 | Open issues exist | C3 | Hard halt |
 
 ```bash
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | head -1 | awk '{print $2}')
-product_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | tail -1 | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | head -1 | awk '{print $2}')
+product_base=$(grep '^\s*base-path:' .garura/core/config.yaml | tail -1 | awk '{print $2}')
 branch=$(git branch --show-current)
 default_branch=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
 # C1: halt if branch == default_branch or branch == main or branch == master
@@ -77,7 +77,7 @@ Depends on: pre-flight
   "task_id": "analyze-changes",
   "ltm_context": {
     "project_base": "{product_base}architecture/",
-    "core_base": "~/.meridian/core/memory/",
+    "core_base": "~/.garura/core/memory/",
     "query_domains": ["commits", "git"],
     "locked_artifacts": []
   }
