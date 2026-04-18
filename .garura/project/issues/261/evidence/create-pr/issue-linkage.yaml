@@ -1,0 +1,15 @@
+issue:
+  number: 261
+  title: "[DEF][Medium] .garura/ vs .meridian/ migration half-done — skills, agents,\
+    \ installer disagree on config path; KB path hardcoded workspace-relative in agents"
+  labels:
+    - defect
+  state: open
+  body_summary: "| Field | Value |\n|-------|-------|\n| **Severity** | Medium |\n\
+    | **Affected Component** | `installer/install.sh`, `.claude/agents/product-keeper.md`\
+    , `.claude/agents/market-analyst.md`, compiled `~/.claude/skills/specify-product/S"
+  url: https://github.com/kapilvirenahuja/garura/issues/261
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: fix

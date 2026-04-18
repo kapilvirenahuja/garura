@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RCA + Design Checkpoint — Issue #261</title>
+  <style>
+    /* =========================================================
+       PHOENIX DESIGN SYSTEM — TOKENS
+       ========================================================= */
+    :root {
+      --bg1: #1A2332;
+      --bg2: #212D3B;
+      --bg3: #2A3645;
+      --bgS: #131C28;
+      --t1: #E8EDF2;
+      --t2: #94A3B8;
+      --t3: #64748B;
+      --a1: #00D4FF;
+      --a2: #E8731A;
+      --a3: #FF3CAC;
+      --a4: #FF6B6B;
+      --a5: #FBBF24;
+      --green: #00D26A;
+      --bdr: #2E3D4F;
+      --glow: rgba(0,212,255,.2);
+      --shd: 0 4px 24px rgba(0,0,0,.3);
+      --status-draft: #FBBF24;
+      --status-validated: #00D26A;
+      --status-locked: #00D4FF;
+      --font-display: 'Space Grotesk', -apple-system, sans-serif;
+      --font-body: 'Space Grotesk', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --sidebar-w: 280px;
+      --tr: .25s cubic-bezier(.4,0,.2,1);
+    }
+
+    [data-theme="light"] {
+      --bg1: #F1F5F9;
+      --bg2: #FFFFFF;
+      --bg3: #FFFFFF;
+      --bgS: #131C28;
+      --t1: #0F172A;
+      --t2: #475569;
+      --t3: #94A3B8;
+      --a1: #00B8D9;
+      --a2: #C06218;
+      --bdr: #CBD5E1;
+      --shd: 0 4px 24px rgba(0,0,0,.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--t1);
+      background: var(--bg1);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    code, pre, .mono { font-family: var(--font-mono); font-size: 13px; }
+
+    /* =========================================================
+       SIDEBAR
+       ========================================================= */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--bgS);
+      border-right: 1px solid var(--bdr);
+      position: fixed;
+      top: 0; left: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid var(--bdr);
+    }
+
+    .sidebar-issue {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--a1);
+      margin-bottom: 6px;
+    }
+
+    .sidebar-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t1);
+      line-height: 1.4;
+    }
+
+    .sidebar-meta {
+      font-size: 11px;
+      color: var(--t3);
+      margin-top: 6px;
+    }
+
+    .sidebar-nav {
+      padding: 16px 0;
+      flex: 1;
+    }
+
+    .nav-section {
+      padding: 6px 20px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t3);
+    }
+
+    .nav-item {
+      display: block;
+      padding: 8px 20px;
+      font-size: 13px;
+      color: var(--t2);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all var(--tr);
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover { color: var(--t1); background: rgba(0,212,255,.05); }
+    .nav-item.active { color: var(--a1); border-left-color: var(--a1); background: rgba(0,212,255,.08); }
+    .nav-item .nav-count {
+      float: right;
+      font-size: 11px;
+      background: var(--bg3);
+      color: var(--t3);
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--bdr);
+    }
+
+    .theme-toggle {
+      display: flex;
+      gap: 6px;
+    }
+
+    .theme-btn {
+      flex: 1;
+      padding: 5px;
+      font-size: 11px;
+      font-family: var(--font-body);
+      border: 1px solid var(--bdr);
+      border-radius: 4px;
+      background: var(--bg2);
+      color: var(--t2);
+      cursor: pointer;
+      transition: all var(--tr);
+      text-align: center;
+    }
+
+    .theme-btn:hover { border-color: var(--a1); color: var(--a1); }
+    .theme-btn.active { background: var(--a1); color: var(--bgS); border-color: var(--a1); font-weight: 700; }
+
+    /* =========================================================
+       MAIN CONTENT
+       ========================================================= */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chapter {
+      display: none;
+      padding: 40px 48px;
+      max-width: 960px;
+    }
+
+    .chapter.active { display: block; }
+
+    .chapter-header {
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--bdr);
+    }
+
+    .chapter-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--a1);
+      margin-bottom: 8px;
+    }
+
+    .chapter-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--t1);
+      margin-bottom: 8px;
+      font-family: var(--font-display);
+    }
+
+    .chapter-subtitle {
+      font-size: 15px;
+      color: var(--t2);
+      line-height: 1.6;
+    }
+
+    /* =========================================================
+       BADGES
+       ========================================================= */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      vertical-align: middle;
+    }
+
+    .badge-high { background: rgba(255,107,107,.15); color: var(--a4); border: 1px solid rgba(255,107,107,.3); }
+    .badge-medium { background: rgba(251,191,36,.15); color: var(--a5); border: 1px solid rgba(251,191,36,.3); }
+    .badge-low { background: rgba(100,116,139,.15); color: var(--t3); border: 1px solid rgba(100,116,139,.3); }
+    .badge-defect { background: rgba(255,60,172,.12); color: var(--a3); border: 1px solid rgba(255,60,172,.3); }
+    .badge-rejected { background: rgba(255,107,107,.1); color: var(--a4); border: 1px solid rgba(255,107,107,.25); }
+    .badge-info { background: rgba(0,212,255,.1); color: var(--a1); border: 1px solid rgba(0,212,255,.25); }
+    .badge-success { background: rgba(0,210,106,.1); color: var(--green); border: 1px solid rgba(0,210,106,.25); }
+
+    /* =========================================================
+       CARDS
+       ========================================================= */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--bdr);
+      border-radius: 8px;
+      box-shadow: var(--shd);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .card:hover { border-color: var(--a1); transition: border-color var(--tr); }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .card-id {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--a1);
+      font-family: var(--font-mono);
+      background: rgba(0,212,255,.08);
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--t1);
+      flex: 1;
+      font-family: var(--font-display);
+    }
+
+    .card-body { font-size: 14px; color: var(--t2); }
+
+    .field { margin-bottom: 14px; }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--t3);
+      margin-bottom: 4px;
+    }
+
+    .field-value { font-size: 14px; color: var(--t2); }
+    .field-value ul { padding-left: 18px; }
+    .field-value li { margin-bottom: 4px; }
+
+    /* =========================================================
+       BLAST RADIUS TABLE
+       ========================================================= */
+    .blast-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .blast-stat {
+      background: var(--bg2);
+      border: 1px solid var(--bdr);
+      border-radius: 8px;
+      padding: 16px 20px;
+      text-align: center;
+    }
+
+    .blast-stat-number {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--a1);
+      font-family: var(--font-mono);
+      line-height: 1;
+    }
+
+    .blast-stat-label {
+      font-size: 12px;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 6px;
+    }
+
+    .blast-note {
+      background: rgba(251,191,36,.08);
+      border: 1px solid rgba(251,191,36,.2);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--a5);
+      margin-bottom: 20px;
+    }
+
+    .blast-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .blast-table th {
+      background: var(--bg3);
+      color: var(--t3);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--bdr);
+    }
+
+    .blast-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--bdr);
+      color: var(--t2);
+      vertical-align: top;
+    }
+
+    .blast-table tr:hover td { background: rgba(0,212,255,.03); }
+
+    .blast-table td.count {
+      font-weight: 700;
+      color: var(--a1);
+      font-family: var(--font-mono);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .file-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .file-list li {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--t3);
+      padding: 2px 0;
+    }
+
+    .file-list li::before {
+      content: "· ";
+      color: var(--t3);
+    }
+
+    /* =========================================================
+       EXECUTION PLAN
+       ========================================================= */
+    .plan-step {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .plan-step::before {
+      content: '';
+      position: absolute;
+      left: 24px;
+      top: 48px;
+      bottom: -20px;
+      width: 2px;
+      background: var(--bdr);
+    }
+
+    .plan-step:last-child::before { display: none; }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--bg3);
+      border: 2px solid var(--bdr);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--a1);
+      font-family: var(--font-mono);
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-content {
+      flex: 1;
+      background: var(--bg2);
+      border: 1px solid var(--bdr);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 0;
+    }
+
+    .step-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--t1);
+      margin-bottom: 8px;
+      font-family: var(--font-display);
+    }
+
+    .step-details { font-size: 13px; color: var(--t2); margin-bottom: 10px; }
+
+    .step-files {
+      font-size: 12px;
+      color: var(--t3);
+      font-family: var(--font-mono);
+      background: var(--bg3);
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+    }
+
+    .step-test {
+      font-size: 12px;
+      color: var(--green);
+      background: rgba(0,210,106,.06);
+      border: 1px solid rgba(0,210,106,.15);
+      border-radius: 4px;
+      padding: 6px 10px;
+    }
+
+    .step-test::before { content: "Self-test: "; font-weight: 700; }
+
+    /* =========================================================
+       ALTERNATIVES
+       ========================================================= */
+    .alt-card {
+      background: var(--bg2);
+      border: 1px solid var(--bdr);
+      border-left: 4px solid rgba(255,107,107,.4);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+
+    .alt-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--t1);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+    }
+
+    .alt-field { margin-bottom: 10px; }
+    .alt-field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--t3); margin-bottom: 3px; }
+    .alt-field-value { font-size: 13px; color: var(--t2); }
+
+    /* =========================================================
+       RISKS
+       ========================================================= */
+    .risk-card {
+      background: var(--bg2);
+      border: 1px solid var(--bdr);
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .risk-severity {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 2px;
+    }
+
+    .risk-body {}
+    .risk-title { font-size: 14px; font-weight: 700; color: var(--t1); margin-bottom: 6px; font-family: var(--font-display); }
+    .risk-desc { font-size: 13px; color: var(--t2); margin-bottom: 8px; }
+    .risk-mitigation { font-size: 12px; color: var(--green); }
+    .risk-mitigation::before { content: "Mitigation: "; font-weight: 700; }
+
+    /* =========================================================
+       CONFIDENCE
+       ========================================================= */
+    .confidence-meter {
+      background: var(--bg2);
+      border: 1px solid var(--bdr);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .confidence-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .confidence-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--t3);
+    }
+
+    .confidence-score {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--green);
+      font-family: var(--font-mono);
+    }
+
+    .confidence-bar-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg3);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .confidence-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--green), var(--a1));
+      transition: width 1s ease;
+    }
+
+    .confidence-rationale { font-size: 13px; color: var(--t2); }
+    .confidence-rationale li { margin-bottom: 6px; }
+    .confidence-caveat {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--a5);
+      background: rgba(251,191,36,.08);
+      border: 1px solid rgba(251,191,36,.2);
+      border-radius: 4px;
+      padding: 8px 12px;
+    }
+
+    /* =========================================================
+       OVERVIEW SECTION
+       ========================================================= */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .overview-stat {
+      background: var(--bg2);
+      border: 1px solid var(--bdr);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .overview-stat-num {
+      font-size: 40px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .overview-stat-label { font-size: 13px; color: var(--t3); }
+
+    .summary-box {
+      background: var(--bg2);
+      border: 1px solid var(--bdr);
+      border-left: 4px solid var(--a1);
+      border-radius: 8px;
+      padding: 20px 24px;
+      font-size: 14px;
+      color: var(--t2);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .rc-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .rc-list-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--bdr);
+      font-size: 13px;
+    }
+
+    .rc-list-item:last-child { border-bottom: none; }
+
+    .rc-tag {
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--a1);
+      background: rgba(0,212,255,.08);
+      padding: 2px 7px;
+      border-radius: 3px;
+      border: 1px solid rgba(0,212,255,.2);
+    }
+
+    .rc-text { color: var(--t2); }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================
+       SIDEBAR
+       ======================================================== -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-issue">Issue #261 &mdash; fix-it</div>
+      <div class="sidebar-title">.garura/ vs .meridian/ Migration</div>
+      <div class="sidebar-meta">RCA + Design Checkpoint &middot; 2026-04-18</div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-section">Contents</div>
+      <a class="nav-item active" onclick="showChapter('overview')">Overview <span class="nav-count">5 RC</span></a>
+      <a class="nav-item" onclick="showChapter('root-causes')">Root Causes <span class="nav-count">5</span></a>
+      <a class="nav-item" onclick="showChapter('blast-radius')">Blast Radius <span class="nav-count">75 files</span></a>
+      <a class="nav-item" onclick="showChapter('execution-plan')">Execution Plan <span class="nav-count">10 steps</span></a>
+      <a class="nav-item" onclick="showChapter('alternatives')">Alternatives <span class="nav-count">2</span></a>
+      <a class="nav-item" onclick="showChapter('risks')">Risks <span class="nav-count">5</span></a>
+      <a class="nav-item" onclick="showChapter('confidence')">Confidence</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="theme-toggle">
+        <button class="theme-btn active" onclick="setTheme('dark', this)">Dark</button>
+        <button class="theme-btn" onclick="setTheme('light', this)">Light</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========================================================
+       MAIN
+       ======================================================== -->
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <section class="chapter active" id="chapter-overview">
+      <div class="chapter-header">
+        <div class="chapter-eyebrow">RCA + Design Checkpoint &mdash; Issue #261</div>
+        <h1 class="chapter-title">.garura/ vs .meridian/ Migration Half-Done</h1>
+        <p class="chapter-subtitle">
+          Four load-bearing defects block Garura bootstrapping in consumer projects.
+          Source components, installer, and sync scripts were never updated during
+          the engine+STM migration to .garura/.
+        </p>
+      </div>
+
+      <div class="overview-grid">
+        <div class="overview-stat">
+          <div class="overview-stat-num" style="color: var(--a4);">5</div>
+          <div class="overview-stat-label">Root Causes Identified</div>
+        </div>
+        <div class="overview-stat">
+          <div class="overview-stat-num" style="color: var(--a5);">75</div>
+          <div class="overview-stat-label">Files Affected (Blast Radius)</div>
+        </div>
+        <div class="overview-stat">
+          <div class="overview-stat-num" style="color: var(--a1);">10</div>
+          <div class="overview-stat-label">Execution Steps</div>
+        </div>
+        <div class="overview-stat">
+          <div class="overview-stat-num" style="color: var(--green);">High</div>
+          <div class="overview-stat-label">Fix Confidence</div>
+        </div>
+      </div>
+
+      <div class="summary-box">
+        The codebase started migrating from .meridian/ to .garura/ (engine reads
+        .garura/core/config.yaml; STM root is .garura/project/issues/; deployed
+        memory is ~/.garura/core/memory/), but source components (66 files), the
+        installer script, sync-claude, and two agents' hardcoded KB paths were
+        never updated. When a consumer project runs the installer it writes
+        .meridian/core/config.yaml, and every play halts reading config. This is a
+        single coherent defect — incomplete migration — with one forward fix
+        direction locked by the runtime.
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Root Cause Summary</span>
+          <span class="badge badge-defect">Defect &middot; Medium</span>
+        </div>
+        <ul class="rc-list">
+          <li class="rc-list-item">
+            <span class="rc-tag">RC1</span>
+            <span class="rc-text">Installer writes .meridian/core/config.yaml; all plays expect .garura/core/config.yaml</span>
+          </li>
+          <li class="rc-list-item">
+            <span class="rc-tag">RC2</span>
+            <span class="rc-text">66 source files hardcode .meridian/core/config.yaml in grep/yq readiness commands</span>
+          </li>
+          <li class="rc-list-item">
+            <span class="rc-tag">RC3</span>
+            <span class="rc-text">Two agents hardcode KB at core/components/memory/knowledge/ — source-repo path, fails in consumer projects</span>
+          </li>
+          <li class="rc-list-item">
+            <span class="rc-tag">RC4</span>
+            <span class="rc-text">sync-claude and sync-droids deploy memory to ~/.meridian/core/memory/, not ~/.garura/core/memory/</span>
+          </li>
+          <li class="rc-list-item">
+            <span class="rc-tag">RC5</span>
+            <span class="rc-text">Garura's own .meridian/core/config.yaml still names itself "Meridian" and targets .meridian/ paths</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Fix Strategy</span>
+          <span class="badge badge-info">Forward Only</span>
+        </div>
+        <div class="card-body">
+          Complete the .meridian/ &rarr; .garura/ migration. Engine runtime, STM root, deployed
+          memory, repo name, and project identity are already at .garura/. Reverting is not viable
+          without reversing engine changes. The fix is a bulk find-replace across 75 files with
+          targeted surgical changes to the installer, sync scripts, and two agents' KB path
+          documentation. All changes are load-bearing (not decorative); post-fix decorative
+          renames are flagged for /enhance.
+        </div>
+      </div>
+    </section>
+
+    <!-- ROOT CAUSES -->
+    <section class="chapter" id="chapter-root-causes">
+      <div class="chapter-header">
+        <div class="chapter-eyebrow">Chapter 1</div>
+        <h1 class="chapter-title">Root Causes</h1>
+        <p class="chapter-subtitle">Five sub-causes comprising a single incomplete migration defect.</p>
+      </div>
+
+      <!-- RC1 -->
+      <div class="card" id="rc1">
+        <div class="card-header">
+          <span class="card-id">RC1</span>
+          <span class="card-title">Installer writes .meridian/ — consumer bootstrapping fails</span>
+        </div>
+        <div class="field">
+          <div class="field-label">Symptom</div>
+          <div class="field-value">Installer writes .meridian/core/config.yaml; all plays expect .garura/core/config.yaml</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Cause</div>
+          <div class="field-value">
+            installer/install.sh was never updated during the engine+STM migration. It still
+            references .meridian/core/config.yaml (lines 56, 98, 209, 217, 280, 287) and downloads
+            from the kapilvirenahuja/meridian repository (line 9). When a consumer runs the
+            installer, it creates a .meridian/ structure that no play can find.
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Files Affected</div>
+          <div class="field-value"><code>installer/install.sh</code></div>
+        </div>
+        <div class="field">
+          <div class="field-label">Why Wrong</div>
+          <div class="field-value">
+            core/engine/src/lib/constants.ts line 28 reads ".garura/core/config.yaml at runtime"
+            per its docblock. STM root (.garura/project/issues/) is hard-coded in the engine.
+            Installer is the entry point for consumer projects — it must write .garura/, not .meridian/.
+          </div>
+        </div>
+      </div>
+
+      <!-- RC2 -->
+      <div class="card" id="rc2">
+        <div class="card-header">
+          <span class="card-id">RC2</span>
+          <span class="card-title">66 source files hardcode .meridian/ in bash readiness commands</span>
+        </div>
+        <div class="field">
+          <div class="field-label">Symptom</div>
+          <div class="field-value">66 source files read .meridian/core/config.yaml; breaks in consumer projects</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Cause</div>
+          <div class="field-value">
+            Every agent markdown file (13), every play SKILL.md (22), and many skill files (15+)
+            contain hardcoded grep/yq commands like:
+            <br><code style="display:block;margin:6px 0;padding:6px 10px;background:var(--bg3);border-radius:4px;">
+              grep -A5 '^stm:' .meridian/core/config.yaml | grep 'base-path'
+            </code>
+            These execute during play initialization. When a consumer project has only .garura/,
+            the grep commands fail with exit code 1 and every play halts.
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Examples</div>
+          <div class="field-value">
+            <ul>
+              <li><code>core/components/plays/fix-it/SKILL.md:51</code> — grep on .meridian/core/config.yaml</li>
+              <li><code>core/components/plays/review-pr/SKILL.md:62-67</code> — five separate yq/grep calls</li>
+              <li><code>core/components/agents/intent-resolver.md:51</code> — documents config_path as .meridian/</li>
+            </ul>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Why Wrong</div>
+          <div class="field-value">
+            These are not decorative prose — they are hardcoded file paths in shell execution
+            context. When the file doesn't exist, the entire play fails before any domain work
+            begins.
+          </div>
+        </div>
+      </div>
+
+      <!-- RC3 -->
+      <div class="card" id="rc3">
+        <div class="card-header">
+          <span class="card-id">RC3</span>
+          <span class="card-title">Two agents hardcode source-repo KB path — unavailable in consumer projects</span>
+        </div>
+        <div class="field">
+          <div class="field-label">Symptom</div>
+          <div class="field-value">Agents reference core/components/memory/knowledge/ — a path only available inside the Garura source repo</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Cause</div>
+          <div class="field-value">
+            product-keeper.md (line 67) and market-analyst.md (lines 61-62) document their KB
+            discovery path as core/components/memory/knowledge/domain/ and
+            core/components/memory/knowledge/arch/. These paths do not exist in consumer projects
+            where core/components/ is never present.
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Files Affected</div>
+          <div class="field-value">
+            <ul>
+              <li><code>core/components/agents/product-keeper.md:67</code></li>
+              <li><code>core/components/agents/market-analyst.md:61-62</code></li>
+            </ul>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Fix Direction</div>
+          <div class="field-value">
+            Replace with deployed path guidance: ~/.garura/core/memory/knowledge/ (global) or
+            .garura/core/memory/knowledge/ (project mode), resolved via ltm_context.core_base
+            at invocation time.
+          </div>
+        </div>
+      </div>
+
+      <!-- RC4 -->
+      <div class="card" id="rc4">
+        <div class="card-header">
+          <span class="card-id">RC4</span>
+          <span class="card-title">Sync scripts deploy memory to ~/.meridian/ — plays find nothing at ~/.garura/</span>
+        </div>
+        <div class="field">
+          <div class="field-label">Symptom</div>
+          <div class="field-value">sync-claude and sync-droids deploy memory to ~/.meridian/core/memory/, not ~/.garura/core/memory/</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Cause</div>
+          <div class="field-value">
+            sync-claude/scripts/sync.sh (lines 24, 27) and sync-droids/scripts/sync.sh (lines 22,
+            25) set MEMORY_TARGET to .meridian/core/memory (project mode) or ~/.meridian/core/memory
+            (global mode). Plays that read from ~/.garura/core/memory/ find nothing after sync.
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Files Affected</div>
+          <div class="field-value">
+            <ul>
+              <li><code>core/components/skills/sync-claude/scripts/sync.sh:24,27</code></li>
+              <li><code>core/components/skills/sync-droids/scripts/sync.sh:22,25</code></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- RC5 -->
+      <div class="card" id="rc5">
+        <div class="card-header">
+          <span class="card-id">RC5</span>
+          <span class="card-title">Garura's own config still named "Meridian" and targets .meridian/ paths</span>
+        </div>
+        <div class="field">
+          <div class="field-label">Symptom</div>
+          <div class="field-value">Project config (.meridian/core/config.yaml) still defines project.name as "Meridian" and all paths as .meridian/</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Cause</div>
+          <div class="field-value">
+            The checked-in config file defines project.name: Meridian, github.repo:
+            kapilvirenahuja/meridian.git, and all ltm/stm/product paths as .meridian/.
+            When garura's own plays run, they read from .meridian/, perpetuating the mixed state
+            and making it impossible to test the framework against its own config.
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">File Affected</div>
+          <div class="field-value"><code>.meridian/core/config.yaml</code> (~60 lines, full rewrite needed)</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Fields to Update</div>
+          <div class="field-value">
+            <ul>
+              <li>project.name: "Meridian" &rarr; "Garura"</li>
+              <li>github.repo: meridian.git &rarr; garura.git</li>
+              <li>ltm.project-target, ltm.global-target: .meridian/ &rarr; .garura/</li>
+              <li>stm.base-path, stm.pending-path, stm.archive-path: .meridian/ &rarr; .garura/</li>
+              <li>product.base-path: .meridian/ &rarr; .garura/</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLAST RADIUS -->
+    <section class="chapter" id="chapter-blast-radius">
+      <div class="chapter-header">
+        <div class="chapter-eyebrow">Chapter 2</div>
+        <h1 class="chapter-title">Blast Radius</h1>
+        <p class="chapter-subtitle">75 files affected across 5 categories. Bulk find-replace is safe and reversible.</p>
+      </div>
+
+      <div class="blast-summary">
+        <div class="blast-stat">
+          <div class="blast-stat-number">75</div>
+          <div class="blast-stat-label">Total Files</div>
+        </div>
+        <div class="blast-stat">
+          <div class="blast-stat-number">5</div>
+          <div class="blast-stat-label">Categories</div>
+        </div>
+        <div class="blast-stat">
+          <div class="blast-stat-number">2</div>
+          <div class="blast-stat-label">Surgical Edits</div>
+        </div>
+      </div>
+
+      <div class="blast-note">
+        Source note: rca.yaml reports 75 total files, but the five category counts sum to 73
+        (4 + 13 + 22 + 16 + 18 = 73). The 2-file discrepancy likely represents files captured
+        in the "Reference docs &amp; templates" category that were not individually enumerated.
+        The 75-file total is the authoritative count from the RCA.
+      </div>
+
+      <table class="blast-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Count</th>
+            <th>Key Files</th>
+            <th>Change Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Installer &amp; Deployment</strong></td>
+            <td class="count">4</td>
+            <td>
+              <ul class="file-list">
+                <li>installer/install.sh</li>
+                <li>skills/sync-claude/scripts/sync.sh</li>
+                <li>skills/sync-droids/scripts/sync.sh</li>
+                <li>.meridian/core/config.yaml</li>
+              </ul>
+            </td>
+            <td>
+              <span class="badge badge-high" style="font-size:10px;">Surgical</span>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Agent Markdown Files</strong></td>
+            <td class="count">13</td>
+            <td>
+              <ul class="file-list">
+                <li>designer.md, doc-builder.md, feature-steward.md</li>
+                <li>intent-resolver.md, knowledge-extractor.md</li>
+                <li>market-analyst.md (KB path fix — surgical)</li>
+                <li>product-keeper.md (KB path fix — surgical)</li>
+                <li>project-orchestrator.md, repo-orchestrator.md</li>
+                <li>scriber.md, tech-architect.md, tech-designer.md, test-engineer.md</li>
+              </ul>
+            </td>
+            <td>
+              <span class="badge badge-medium" style="font-size:10px;">Bulk Replace</span>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Play SKILL.md Files</strong></td>
+            <td class="count">22</td>
+            <td>
+              <ul class="file-list">
+                <li>briefs, build-arch, capture-learning, commit-code</li>
+                <li>create-play, create-pr, design-exp, distill, enhance</li>
+                <li>fix-it, implement-epic, merge-pr, prepare-epic</li>
+                <li>report-issue, review-pr, ship, specify-product</li>
+                <li>start-feature-planning, start-feature, validate-epic</li>
+                <li>+ 2 additional play files</li>
+              </ul>
+            </td>
+            <td>
+              <span class="badge badge-medium" style="font-size:10px;">Bulk Replace</span>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Skill Files</strong></td>
+            <td class="count">16</td>
+            <td>
+              <ul class="file-list">
+                <li>analyze-changes, analyze-pr, audit-spec-gaps</li>
+                <li>check-drift, draft-technical-approach, manage-issue</li>
+                <li>merge-pr, quality-check, quality-check-scoped</li>
+                <li>scout-project, submit-pr, sync-droids</li>
+                <li>write-evidence + 3 others</li>
+              </ul>
+            </td>
+            <td>
+              <span class="badge badge-medium" style="font-size:10px;">Bulk Replace</span>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Reference Docs &amp; Templates</strong></td>
+            <td class="count">18+</td>
+            <td>
+              <ul class="file-list">
+                <li>Various intent.yaml files in play directories</li>
+                <li>input-contract.md reference docs</li>
+                <li>memory/knowledge/quality/_index.md</li>
+                <li>Fixture templates and example paths</li>
+              </ul>
+            </td>
+            <td>
+              <span class="badge badge-low" style="font-size:10px;">Bulk Replace</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- EXECUTION PLAN -->
+    <section class="chapter" id="chapter-execution-plan">
+      <div class="chapter-header">
+        <div class="chapter-eyebrow">Chapter 3</div>
+        <h1 class="chapter-title">Execution Plan</h1>
+        <p class="chapter-subtitle">10-step ordered execution. Steps 1–4 are surgical; steps 6–8 are bulk find-replace. Step 10 is mandatory validation.</p>
+      </div>
+
+      <div class="plan-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <div class="step-title">Update installer script</div>
+          <div class="step-details">
+            Replace all .meridian/ references with .garura/ in installer/install.sh.
+            Key lines: 9 (REPO), 56 (MERIDIAN_CONFIG), 98 (sed for memory path),
+            209-217 (mkdir and transform_config), 280-287 (upgrade mode). Update output messages
+            to say "Garura" instead of "Meridian".
+          </div>
+          <div class="step-files">installer/install.sh</div>
+          <div class="step-test">grep ".garura/core/config.yaml" installer/install.sh should return at least 5 hits. grep ".meridian" installer/install.sh should return 0 hits.</div>
+        </div>
+      </div>
+
+      <div class="plan-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <div class="step-title">Update sync-claude memory target</div>
+          <div class="step-details">
+            Update MEMORY_TARGET paths (lines 24, 27): .meridian/core/memory &rarr; .garura/core/memory
+            for both global (~/.garura) and project (.garura) modes.
+          </div>
+          <div class="step-files">core/components/skills/sync-claude/scripts/sync.sh</div>
+          <div class="step-test">grep "MEMORY_TARGET" sync-claude/scripts/sync.sh should show ~/.garura and .garura paths, no .meridian.</div>
+        </div>
+      </div>
+
+      <div class="plan-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <div class="step-title">Update sync-droids memory target</div>
+          <div class="step-details">
+            Update MEMORY_TARGET paths (lines 22, 25): same change as step 2 but in sync-droids/scripts/sync.sh.
+          </div>
+          <div class="step-files">core/components/skills/sync-droids/scripts/sync.sh</div>
+          <div class="step-test">grep "MEMORY_TARGET" sync-droids/scripts/sync.sh should show ~/.garura and .garura paths, no .meridian.</div>
+        </div>
+      </div>
+
+      <div class="plan-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <div class="step-title">Update garura's project config file</div>
+          <div class="step-details">
+            Full update of .meridian/core/config.yaml: project.name Meridian &rarr; Garura,
+            github.repo meridian.git &rarr; garura.git, all ltm/stm/product paths .meridian/ &rarr; .garura/.
+            This is the only checked-in file where changes are permanent.
+          </div>
+          <div class="step-files">.meridian/core/config.yaml</div>
+          <div class="step-test">grep ".meridian" .meridian/core/config.yaml should return 0. grep ".garura" should return at least 6 hits. yq '.project.name' should print "Garura".</div>
+        </div>
+      </div>
+
+      <div class="plan-step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <div class="step-title">Update KB path references in product-keeper and market-analyst</div>
+          <div class="step-details">
+            product-keeper.md line 67: Replace "core/components/memory/knowledge/domain/" with
+            deployed-path guidance via ltm_context.core_base. market-analyst.md lines 61-62:
+            same replacement for both domain and arch KB paths.
+          </div>
+          <div class="step-files">core/components/agents/product-keeper.md &middot; core/components/agents/market-analyst.md</div>
+          <div class="step-test">grep "core/components/memory/knowledge" in both files should return 0. Both should reference ltm_context.core_base.</div>
+        </div>
+      </div>
+
+      <div class="plan-step">
+        <div class="step-number">6</div>
+        <div class="step-content">
+          <div class="step-title">Bulk update all agent markdown files</div>
+          <div class="step-details">
+            Bulk find-replace across all 13 agent markdown files:
+            .meridian/core/config.yaml &rarr; .garura/core/config.yaml and
+            ~/.meridian/core/memory/ &rarr; ~/.garura/core/memory/
+          </div>
+          <div class="step-files">core/components/agents/*.md (13 files)</div>
+          <div class="step-test">grep -r ".meridian/core/config.yaml|~/.meridian/core/memory" core/components/agents/ should return 0.</div>
+        </div>
+      </div>
+
+      <div class="plan-step">
+        <div class="step-number">7</div>
+        <div class="step-content">
+          <div class="step-title">Bulk update all play SKILL.md and reference files</div>
+          <div class="step-details">
+            Bulk find-replace in bash script sections and documentation across all 22 play SKILL.md
+            files and 8 intent.yaml files: .meridian/core/config.yaml &rarr; .garura/core/config.yaml
+            and ~/.meridian/core/memory/ &rarr; ~/.garura/core/memory/
+          </div>
+          <div class="step-files">core/components/plays/*/SKILL.md (22 files) &middot; core/components/plays/*/reference/intent.yaml (8 files)</div>
+          <div class="step-test">grep -r ".meridian/core/config.yaml|~/.meridian/core/memory" core/components/plays/ should return 0.</div>
+        </div>
+      </div>
+
+      <div class="plan-step">
+        <div class="step-number">8</div>
+        <div class="step-content">
+          <div class="step-title">Bulk update skill files and reference docs</div>
+          <div class="step-details">
+            Bulk find-replace across all 16 skill SKILL.md files and their reference/*.md files.
+            Same substitutions as steps 6 and 7.
+          </div>
+          <div class="step-files">core/components/skills/*/SKILL.md (16 files) &middot; core/components/skills/*/reference/*.md</div>
+          <div class="step-test">grep -r ".meridian/core/config.yaml|~/.meridian/core/memory" core/components/skills/ should return 0 (excluding sync-claude and sync-droids from steps 2-3).</div>
+        </div>
+      </div>
+
+      <div class="plan-step">
+        <div class="step-number">9</div>
+        <div class="step-content">
+          <div class="step-title">Update memory knowledge _index.md</div>
+          <div class="step-details">
+            core/components/memory/knowledge/quality/_index.md line 5: replace
+            {project}/.meridian/core/memory/ &rarr; {project}/.garura/core/memory/ and
+            ~/.meridian/core/memory/knowledge/quality/ &rarr; ~/.garura/core/memory/knowledge/quality/
+          </div>
+          <div class="step-files">core/components/memory/knowledge/quality/_index.md</div>
+          <div class="step-test">grep ".meridian" _index.md should return 0.</div>
+        </div>
+      </div>
+
+      <div class="plan-step">
+        <div class="step-number">10</div>
+        <div class="step-content">
+          <div class="step-title">Validation: grep for remaining .meridian references</div>
+          <div class="step-details">
+            Run final validation across the entire core/components/ tree. Any non-zero results
+            (excluding comments and gitignored files) must be fixed before the commit is made.
+            <code style="display:block;margin-top:8px;padding:8px 12px;background:var(--bg3);border-radius:4px;line-height:1.6;">
+              grep -r "\.meridian/core/config\|\.meridian/core/memory\|~/.meridian" \<br>
+              &nbsp;&nbsp;core/components/ --include="*.md" --include="*.sh" --include="*.yaml"
+            </code>
+          </div>
+          <div class="step-files">Entire core/components/ tree</div>
+          <div class="step-test">The grep command should return 0 results (exit code 0, no lines printed).</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ALTERNATIVES -->
+    <section class="chapter" id="chapter-alternatives">
+      <div class="chapter-header">
+        <div class="chapter-eyebrow">Chapter 4</div>
+        <h1 class="chapter-title">Alternatives Considered</h1>
+        <p class="chapter-subtitle">Two alternatives were evaluated and rejected. Forward migration is the only viable path.</p>
+      </div>
+
+      <div class="alt-card">
+        <div class="alt-title">
+          <span class="badge badge-rejected">Rejected</span>
+          Alternative 1 — Revert all .garura/ references back to .meridian/
+        </div>
+        <div class="alt-field">
+          <div class="alt-field-label">Rationale</div>
+          <div class="alt-field-value">
+            Roll back the engine+STM migration: update constants.ts, all STM paths, and
+            deployed memory to .meridian/. This would make source components consistent
+            with each other again.
+          </div>
+        </div>
+        <div class="alt-field">
+          <div class="alt-field-label">Why Rejected</div>
+          <div class="alt-field-value">
+            Reverting requires changing the engine's constants.ts and all STM paths — out of scope
+            for fix-it. It contradicts the repo naming (garura, not meridian) and all infrastructure
+            decisions already made. The runtime already depends on .garura/; reverting is a larger
+            scope change than completing the migration.
+          </div>
+        </div>
+      </div>
+
+      <div class="alt-card">
+        <div class="alt-title">
+          <span class="badge badge-rejected">Rejected</span>
+          Alternative 2 — Update only installer and sync scripts; leave 66 source files as .meridian/
+        </div>
+        <div class="alt-field">
+          <div class="alt-field-label">Rationale</div>
+          <div class="alt-field-value">
+            Minimal change set: installer writes .garura/, sync-claude/sync-droids deploy to
+            ~/.garura/. Consumer projects would have .garura/ but source components would still
+            reference .meridian/, relying on a symlink or alias from .meridian/ &rarr; .garura/.
+          </div>
+        </div>
+        <div class="alt-field">
+          <div class="alt-field-label">Why Rejected</div>
+          <div class="alt-field-value">
+            Requires either symlink hacks (fragile, breaks on Windows) or dual-path handling
+            (complexity). More critically, the garura repo itself uses these scripts — keeping
+            .meridian/ in source would mean garura's own workflows read from .meridian/ while
+            consumer projects expect .garura/. This perpetuates the inconsistency and makes
+            testing the framework against its own config impossible.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RISKS -->
+    <section class="chapter" id="chapter-risks">
+      <div class="chapter-header">
+        <div class="chapter-eyebrow">Chapter 5</div>
+        <h1 class="chapter-title">Risks</h1>
+        <p class="chapter-subtitle">5 risks identified. 1 high, 2 medium, 2 low. All have mitigations.</p>
+      </div>
+
+      <div class="risk-card">
+        <div class="risk-severity">
+          <span class="badge badge-high">High</span>
+        </div>
+        <div class="risk-body">
+          <div class="risk-title">Breaking change to garura's own config location</div>
+          <div class="risk-desc">
+            After this fix, garura's own plays will read from .garura/core/config.yaml, not
+            .meridian/core/config.yaml. Any local development or CI that expects .meridian/ will
+            break immediately. This is a one-way door within the repo.
+          </div>
+          <div class="risk-mitigation">
+            This is intentional — the fix corrects the inconsistency. The change is documented in
+            the PR and this design. Testing must be done against .garura/ paths from this point
+            forward. The break is expected and bounded to garura's own development workflows.
+          </div>
+        </div>
+      </div>
+
+      <div class="risk-card">
+        <div class="risk-severity">
+          <span class="badge badge-medium">Medium</span>
+        </div>
+        <div class="risk-body">
+          <div class="risk-title">Existing local project deployments change memory target</div>
+          <div class="risk-desc">
+            Project-mode deployments (sync-claude --project, sync-droids --project) will change
+            their memory target from .meridian/core/memory/ to .garura/core/memory/. Existing
+            local projects using .meridian/core/memory/ will not find their deployed memory after
+            this fix.
+          </div>
+          <div class="risk-mitigation">
+            Project mode is ephemeral (gitignored). Re-running /sync-claude --project after the
+            fix will automatically copy memory to the correct location. The sync is idempotent;
+            no data migration needed.
+          </div>
+        </div>
+      </div>
+
+      <div class="risk-card">
+        <div class="risk-severity">
+          <span class="badge badge-medium">Medium</span>
+        </div>
+        <div class="risk-body">
+          <div class="risk-title">Bulk find-replace may miss differently-formatted references</div>
+          <div class="risk-desc">
+            Bulk replace across 75 files carries a risk of missing references wrapped across
+            lines, in comments, or formatted differently than expected (e.g., single quotes,
+            env-var interpolation).
+          </div>
+          <div class="risk-mitigation">
+            Step 10 (mandatory validation grep) catches any missed references before commit.
+            The grep pattern covers the three distinct .meridian path forms used in the codebase.
+          </div>
+        </div>
+      </div>
+
+      <div class="risk-card">
+        <div class="risk-severity">
+          <span class="badge badge-low">Low</span>
+        </div>
+        <div class="risk-body">
+          <div class="risk-title">Decorative .meridian/ references remain in prose and templates</div>
+          <div class="risk-desc">
+            Reference docs, template fixtures, and example paths in comments may still reference
+            .meridian/. These do not break functionality but create documentation inconsistency.
+          </div>
+          <div class="risk-mitigation">
+            Explicitly flagged for /enhance as a post-fix decorative rename pass. Not blocking.
+            All load-bearing references are covered by steps 1–9.
+          </div>
+        </div>
+      </div>
+
+      <div class="risk-card">
+        <div class="risk-severity">
+          <span class="badge badge-low">Low</span>
+        </div>
+        <div class="risk-body">
+          <div class="risk-title">Config file location remains at .meridian/core/config.yaml</div>
+          <div class="risk-desc">
+            The checked-in config file is still physically at .meridian/core/config.yaml after
+            this fix (its contents are corrected, but its location is not moved). This is
+            semantically odd — a .meridian/ file pointing to .garura/ structure.
+          </div>
+          <div class="risk-mitigation">
+            Out of scope for fix-it (would require git mv and repo history impact). Consider a
+            future /enhance task to move .meridian/core/config.yaml &rarr; .garura/core/config.yaml.
+            Functionally harmless during the transition — contents now match .garura/ paths.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIDENCE -->
+    <section class="chapter" id="chapter-confidence">
+      <div class="chapter-header">
+        <div class="chapter-eyebrow">Chapter 6</div>
+        <h1 class="chapter-title">Confidence Assessment</h1>
+        <p class="chapter-subtitle">Synthesized from the depth of the RCA, specificity of line-level citations, and reversibility of the fix.</p>
+      </div>
+
+      <div class="confidence-meter">
+        <div class="confidence-header">
+          <span class="confidence-label">Overall Confidence</span>
+          <span class="confidence-score">High</span>
+        </div>
+        <div class="confidence-bar-track">
+          <div class="confidence-bar-fill" style="width: 85%;"></div>
+        </div>
+        <div class="confidence-rationale">
+          Supporting factors:
+          <ul style="padding-left:20px;margin-top:8px;">
+            <li>Root cause is fully traced with file:line citations for every affected component (e.g., install.sh:9, 56, 98; sync.sh:24,27; constants.ts:28; product-keeper.md:67; market-analyst.md:61-62)</li>
+            <li>Defect has a single coherent root cause: incomplete migration — no ambiguity about what must change</li>
+            <li>Migration direction is locked by the runtime (engine constants.ts already reads .garura/); there is no credible alternative path</li>
+            <li>Fix is reversible at the source component level (re-sync from source); only .meridian/core/config.yaml is a permanent state change</li>
+            <li>Design documents explicit self-tests per step and a final grep validation that will catch any missed references before commit</li>
+            <li>Both alternatives were evaluated and rejected with cited technical reasons</li>
+          </ul>
+        </div>
+        <div class="confidence-caveat">
+          Caveat: Confidence in completeness is bounded by the bulk find-replace approach.
+          The step 10 validation grep is mandatory — without it, residual .meridian/ references
+          in unusually-formatted lines could remain. Confidence assumes step 10 is executed
+          and passes before the PR is created.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Scope Assessment</span>
+          <span class="badge badge-info">Load-Bearing Only</span>
+        </div>
+        <div class="card-body">
+          The blast radius exceeds 15 files, which triggers fix-it's scope limitation constraint
+          (C5). However, all 75 files are interdependent: installer broken &rarr; config missing
+          &rarr; all plays broken. This is treated as a single coherent defect with one root cause.
+          Decorative-only references (prose examples in comments, fixture templates) are explicitly
+          deferred to /enhance to keep this fix-it within its intended scope.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Post-Fix Verification</span>
+          <span class="badge badge-success">Checkable</span>
+        </div>
+        <div class="card-body">
+          <ul style="padding-left:20px;color:var(--t2);font-size:14px;">
+            <li style="margin-bottom:6px;">Step 10 grep returns 0 results in core/components/</li>
+            <li style="margin-bottom:6px;">installer/install.sh creates .garura/core/config.yaml in a clean consumer project</li>
+            <li style="margin-bottom:6px;">sync-claude --global deploys memory to ~/.garura/core/memory/</li>
+            <li style="margin-bottom:6px;">.meridian/core/config.yaml has project.name: Garura and 0 .meridian/ path references</li>
+            <li>A play executed in the garura repo reads config successfully from .garura/core/config.yaml</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Chapter navigation
+    function showChapter(id) {
+      document.querySelectorAll('.chapter').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      var chapter = document.getElementById('chapter-' + id);
+      if (chapter) chapter.classList.add('active');
+      var navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(function(item) {
+        if (item.getAttribute('onclick') && item.getAttribute('onclick').includes("'" + id + "'")) {
+          item.classList.add('active');
+        }
+      });
+    }
+
+    // Theme switcher
+    function setTheme(theme, btn) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.querySelectorAll('.theme-btn').forEach(function(b) {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>

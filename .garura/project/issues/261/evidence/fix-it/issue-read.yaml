@@ -1,0 +1,22 @@
+issue:
+  number: 261
+  title: "[DEF][Medium] .garura/ vs .meridian/ migration half-done — skills, agents,\
+    \ installer disagree on config path; KB path hardcoded workspace-relative in agents"
+  labels:
+    - defect
+  state: OPEN
+  assignees:
+    - kapilvirenahuja
+  url: "https://github.com/kapilvirenahuja/garura/issues/261"
+  body_summary: >
+    Two related hardcoded-path defects block bootstrapping Garura into a new project.
+    (a) The .garura/ vs .meridian/ rename is half-complete — compiled skills and global
+    agents expect .garura/core/config.yaml while the installer still writes
+    .meridian/core/config.yaml and downloads from kapilvirenahuja/meridian.
+    (b) Agents (product-keeper.md, market-analyst.md) hardcode
+    core/components/memory/knowledge/domain/ as the KB root — a path that only exists
+    inside the Garura source repo and is never resolvable in consumer projects.
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "fix"

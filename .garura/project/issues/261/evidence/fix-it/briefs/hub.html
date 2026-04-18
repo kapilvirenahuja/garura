@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hub — fix-261</title>
+  <style>
+    :root {
+      --bg-primary: #1A2332;
+      --bg-secondary: #212D3B;
+      --bg-tertiary: #2A3645;
+      --text-primary: #E8EDF2;
+      --text-secondary: #94A3B8;
+      --text-dimmed: #64748B;
+      --color-air: #00D26A;
+      --color-water: #00D4FF;
+      --color-earth: #94A3B8;
+      --color-fire: #E8731A;
+      --status-draft: #fbbf24;
+      --status-validated: #00D26A;
+      --status-locked: #00D4FF;
+      --border-default: #2E3D4F;
+      --border-accent: #00D4FF;
+      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    body {
+      font-family: 'DM Sans', 'Space Grotesk', -apple-system, sans-serif;
+      font-size: 15px; line-height: 1.6;
+      color: var(--text-primary); background: var(--bg-primary); margin: 0;
+    }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 28px; color: var(--color-water); border-bottom: 1px solid var(--border-default); padding-bottom: 8px; margin-bottom: 4px; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-draft { background: rgba(251,191,36,0.15); color: var(--status-draft); }
+    .badge-validated { background: rgba(0,210,106,0.15); color: var(--status-validated); }
+    .badge-locked { background: rgba(0,212,255,0.15); color: var(--status-locked); }
+    .badge-open { background: rgba(232,115,26,0.15); color: var(--color-fire); border: 1px solid rgba(232,115,26,0.3); }
+    .artifact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+    .artifact-card {
+      background: var(--bg-secondary); border: 1px solid var(--border-default);
+      border-radius: 8px; box-shadow: var(--shadow); padding: 20px;
+      text-decoration: none; color: inherit; transition: border-color 0.15s;
+      display: block;
+    }
+    .artifact-card:hover { border-color: var(--border-accent); }
+    .artifact-card.disabled { opacity: 0.4; pointer-events: none; }
+    .artifact-name { font-size: 16px; font-weight: bold; color: var(--text-primary); margin-bottom: 8px; }
+    .artifact-stat { font-size: 13px; color: var(--text-secondary); }
+    .dep-flow { font-size: 12px; color: var(--text-dimmed); margin-top: 24px; text-align: center; }
+    .generated { font-size: 12px; color: var(--text-dimmed); margin-top: 4px; }
+    .issue-meta { font-size: 13px; color: var(--text-secondary); margin-top: 8px; margin-bottom: 0; }
+    .phase-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dimmed); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Issue #261 &mdash; .garura/ Migration Fix <span class="badge badge-open" style="font-size:13px;vertical-align:middle;">open</span></h1>
+    <p class="generated">fix-261 &mdash; Generated: 2026-04-18 &mdash; Phase: checkpoint</p>
+    <p class="issue-meta">
+      <strong>Slug:</strong> fix-261 &nbsp;&middot;&nbsp;
+      <a href="https://github.com/kapilvirenahuja/garura/issues/261" style="color: var(--color-water); text-decoration: none;" target="_blank">GitHub Issue #261 &rarr;</a>
+    </p>
+
+    <div class="artifact-grid">
+      <a class="artifact-card" href="rca-design-brief.html">
+        <div class="artifact-name">RCA + Design Checkpoint</div>
+        <div class="artifact-stat">5 root causes &middot; 75 files &middot; 10 steps &middot; 2 alts &middot; 5 risks</div>
+        <div class="artifact-stat" style="margin-top:6px;color:var(--color-water);font-size:12px;">rca-design-brief.html</div>
+      </a>
+
+      <div class="artifact-card disabled">
+        <div class="artifact-name">Implementation Evidence</div>
+        <div class="artifact-stat">Not yet generated</div>
+      </div>
+
+      <div class="artifact-card disabled">
+        <div class="artifact-name">Validation Report</div>
+        <div class="artifact-stat">Not yet generated</div>
+      </div>
+
+      <div class="artifact-card disabled">
+        <div class="artifact-name">PR Brief</div>
+        <div class="artifact-stat">Not yet generated</div>
+      </div>
+    </div>
+
+    <p class="dep-flow">rca-design &rarr; implementation &rarr; validation &rarr; pr-brief</p>
+  </div>
+</body>
+</html>

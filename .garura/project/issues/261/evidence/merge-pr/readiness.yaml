@@ -1,0 +1,33 @@
+step: verify-readiness
+task_id: verify-readiness
+timestamp: "2026-04-18"
+
+pr:
+  number: 263
+  url: "https://github.com/kapilvirenahuja/garura/pull/263"
+  title: "fix(migration): complete .meridian → .garura path migration across all components"
+  state: OPEN
+  head_ref: fix/261-garura-meridian-migration-drift
+  base_ref: main
+  mergeable: MERGEABLE
+  merge_state_status: CLEAN
+
+constraint_checks:
+  C1:
+    rule: Must not operate when current branch is main/master/default
+    status: PASS
+    evidence: Current branch is fix/261-garura-meridian-migration-drift
+  C2:
+    rule: A pull request must exist on the platform
+    status: PASS
+    evidence: PR #263 exists and is OPEN
+  C3:
+    rule: Working tree and index must be clean
+    status: PASS
+    evidence: Only untracked STM and core/engine/ items present — expected per task brief, no staged or modified tracked files
+  C4:
+    rule: No merge conflicts
+    status: PASS
+    evidence: mergeStateStatus=CLEAN, mergeable=MERGEABLE
+
+decision: PROCEED
