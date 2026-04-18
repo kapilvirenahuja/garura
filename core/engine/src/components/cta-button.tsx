@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 export interface CTAButtonProps {
   /** Button label text. */
@@ -64,6 +64,21 @@ export function CTAButton({ label, playName, args, onExecute, disabled = false }
 
     onExecute?.(playName, args);
   }, [debounced, disabled, onExecute, playName, args]);
+
+  // Cleanup the debounce timer on unmount. Without this, a click that
+  // schedules `setTimeout(..., 500)` can fire after the component (and in
+  // tests, the whole jsdom environment) is torn down. When that happens the
+  // callback tries to call `setDebounced` → React's scheduler touches the DOM
+  // and crashes with `window is not defined`. Clearing on unmount makes the
+  // timer a no-op after teardown.
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+        debounceTimer.current = null;
+      }
+    };
+  }, []);
 
   const isDisabled = disabled || debounced;
 

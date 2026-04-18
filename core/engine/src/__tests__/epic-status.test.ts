@@ -378,10 +378,11 @@ describe('scanStmEvidence', () => {
 //
 // These tests spawn several real git subprocesses (init, add, commit,
 // checkout, log, rev-parse). Under full-suite parallelism the default 5s
-// vitest timeout can be tight on loaded runners; bump it per-suite to 15s.
+// vitest timeout can be tight on loaded runners; bump it per-suite to 30s
+// so the suite stays stable even when many test files run concurrently.
 // ---------------------------------------------------------------------------
 
-describe('discoverEpics', { timeout: 15_000 }, () => {
+describe('discoverEpics', { timeout: 30_000 }, () => {
   let tempRepo: string;
 
   beforeEach(() => {
