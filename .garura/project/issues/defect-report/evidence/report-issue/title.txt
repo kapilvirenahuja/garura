@@ -1,1 +1,1 @@
-[DEF][High] fix-it play does not pass ltm_context to tech-designer — RCA and fix design run without domain or architecture grounding
+[DEF][High] /implement-epic task prompts lack preconditions/expected-behavior and skip post-implementation green unit-test verification
