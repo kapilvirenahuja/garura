@@ -133,7 +133,7 @@ Why it matters:
 
 Tags: [comma-separated searchable keywords]
 
-LTM path: ~/.meridian/core/memory/knowledge/[category]/[filename].md
+LTM path: ~/.garura/core/memory/knowledge/[category]/[filename].md
 ```
 
 **Scope meanings:**
@@ -142,7 +142,7 @@ LTM path: ~/.meridian/core/memory/knowledge/[category]/[filename].md
 - `project-specific` — only relevant to this project (rarely promoted to LTM)
 
 **LTM path convention:**
-Place items under `~/.meridian/core/memory/knowledge/` (deployed path) in the appropriate subdirectory.
+Place items under `~/.garura/core/memory/knowledge/` (deployed path) in the appropriate subdirectory.
 Source authoring path is `core/components/memory/knowledge/` — deployed via `/sync-droids` or `/sync-claude`.
 Subdirectories:
 - `architecture/` — architectural patterns and platform knowledge

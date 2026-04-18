@@ -42,7 +42,7 @@ Parse and return structured output.
 
 ### Action: `create`
 
-1. Load template from: `~/.meridian/core/memory/standards/templates/github-issue.md`
+1. Load template from: `~/.garura/core/memory/standards/templates/github-issue.md`
 2. Construct issue body from description using template format
 3. Create the issue:
 

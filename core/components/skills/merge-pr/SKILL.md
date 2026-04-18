@@ -30,7 +30,7 @@ This skill supports multiple git platforms. The platform is determined from proj
 
 ```bash
 # Read from project config
-platform=$(grep '^platform:' .meridian/core/config.yaml | awk '{print $2}')
+platform=$(grep '^platform:' .garura/core/config.yaml | awk '{print $2}')
 # Fallback
 platform=${platform:-github}
 ```

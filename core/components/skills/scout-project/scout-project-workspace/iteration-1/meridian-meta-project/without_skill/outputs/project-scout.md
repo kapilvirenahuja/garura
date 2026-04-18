@@ -24,7 +24,7 @@ Data flow: High-order play chains atomic plays, plays invoke agents, agents invo
 
 ## Memory System
 
-- **Long-Term Memory (LTM)**: Organizational knowledge (practices, templates, quality gates, standards) authored in `core/components/memory/`, deployed to `~/.meridian/core/memory/`.
+- **Long-Term Memory (LTM)**: Organizational knowledge (practices, templates, quality gates, standards) authored in `core/components/memory/`, deployed to `~/.garura/core/memory/`.
 - **Short-Term Memory (STM)**: Issue-centric artifacts at `.meridian/project/issues/{issue-number}/` with subdirectories for spec, design, evidence, delivery, and checkpoint.
 
 ## Key Constraints

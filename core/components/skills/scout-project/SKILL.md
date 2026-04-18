@@ -40,11 +40,11 @@ Receive from agent:
    | `.meridian/product/architecture/tech.yaml` | Low-level design, project structure, components, libraries | High — read |
    | `.meridian/product/architecture/scenarios.yaml` | Verification scenarios, feature gates, coverage summary | High — read |
    | `.meridian/product/roadmap/plan.yaml` | Execution order, scope items, exit gates, scenario gates | High — read |
-   | `memory/`, `.meridian/core/memory/` | LTM: standards, knowledge, formats | Medium — scan structure, read key files |
+   | `memory/`, `.garura/core/memory/` | LTM: standards, knowledge, formats | Medium — scan structure, read key files |
    | `agents.md`, `.claude/agents/*.md` | Agent definitions | Medium — list names and domains |
    | `docs/`, `docs/adr/` | Documentation, architecture decision records | Medium — scan titles |
    | `philosophy/`, `principles/` | Foundational principles | Low — note existence, read if relevant to focus |
-   | `.meridian/core/config.yaml`, `package.json`, `pyproject.toml` | Project config, dependencies | Medium — scan for tech stack signals |
+   | `.garura/core/config.yaml`, `package.json`, `pyproject.toml` | Project config, dependencies | Medium — scan for tech stack signals |
 
 2. **Read high-priority files.** Read CLAUDE.md and README.md in full. For artifact YAMLs:
    - `product.yaml`: problem statement, target_users count, strategic_goals, status

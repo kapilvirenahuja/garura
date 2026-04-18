@@ -76,7 +76,7 @@ Using the changed files list (from Step 0a in PR-scoped mode, or Step 1 in branc
 
 Determine branch pattern using: `reference/branch-patterns.md`
 
-Determine commit types from commit messages using: `~/.meridian/core/memory/standards/rules/commits.md`
+Determine commit types from commit messages using: `~/.garura/core/memory/standards/rules/commits.md`
 
 ### 3. Load Rules
 

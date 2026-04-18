@@ -13,10 +13,10 @@ Sync Meridian components from `core/components/` to Factory Droid directories. T
 Run the sync script. Pass arguments through:
 
 ```bash
-# Global mode (default) — deploys to ~/.factory/ and ~/.meridian/core/memory/
+# Global mode (default) — deploys to ~/.factory/ and ~/.garura/core/memory/
 bash core/components/skills/sync-droids/scripts/sync.sh
 
-# Project mode — deploys to .factory/ and .meridian/core/memory/ (gitignored)
+# Project mode — deploys to .factory/ and .garura/core/memory/ (gitignored)
 bash core/components/skills/sync-droids/scripts/sync.sh --project
 ```
 
