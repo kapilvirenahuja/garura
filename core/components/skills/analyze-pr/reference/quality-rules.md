@@ -73,7 +73,7 @@ This ruleset is designed for projects where the primary artifacts are:
 
 ### When: Configuration Changed
 
-**Triggers:** `*.yaml`, `*.yml`, `.meridian/core/config.yaml`
+**Triggers:** `*.yaml`, `*.yml`, `.garura/core/config.yaml`
 
 | ID | Priority | Item | Verification |
 |----|----------|------|--------------|

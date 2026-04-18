@@ -46,7 +46,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` and `product_base` from `.meridian/core/config.yaml` | — | Hard halt |
+| Resolve `stm_base` and `product_base` from `.garura/core/config.yaml` | — | Hard halt |
 | `/specify-product` scope-stage artifacts LOCKED at `{product_base}scope/` | C1 | Hard halt — "run /specify-product first" |
 | `/specify-product` specification-stage artifacts LOCKED at `{product_base}specification/` | C1 | Hard halt — "run /specify-product first" |
 | `/design-exp` artifacts LOCKED at `{product_base}experience/` | C2 | Hard halt — "run /design-exp first" |
@@ -56,9 +56,9 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 | `{product_base}architecture/` writable; scriber available | C11 | Hard halt |
 
 ```bash
-stm_base=$(grep -A5 '^stm:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
-product_base=$(grep -A2 '^product:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
-ltm_base=$(grep -A5 '^ltm:' .meridian/core/config.yaml | grep 'project-target' | awk '{print $2}')
+stm_base=$(grep -A5 '^stm:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
+product_base=$(grep -A2 '^product:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
+ltm_base=$(grep -A5 '^ltm:' .garura/core/config.yaml | grep 'project-target' | awk '{print $2}')
 
 # C1: verify specify-product scope-stage artifacts exist (LOCKED status)
 for f in scope.yaml enriched-capabilities.yaml; do
@@ -126,7 +126,7 @@ Depends on: pre-flight
   },
   "task_id": "build-arch-stage-1-derive",
   "ltm_context": {
-    "discover_via": "tech-architect agent reads .meridian/core/memory/knowledge/arch/_index.md and pulls relevant pattern + KB files for bounded-context and component-boundary heuristics"
+    "discover_via": "tech-architect agent reads .garura/core/memory/knowledge/arch/_index.md and pulls relevant pattern + KB files for bounded-context and component-boundary heuristics"
   }
 }
 ```

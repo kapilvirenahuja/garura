@@ -10,11 +10,11 @@ phases:
     owner_type: play
     description: >
       Infrastructure checks before domain work. Play MUST resolve stm_base from
-      .meridian/core/config.yaml (stm.base-path) and hold it for all downstream contract paths.
+      .garura/core/config.yaml (stm.base-path) and hold it for all downstream contract paths.
       All agent contracts use {stm_base}/{issue}/ — never hardcoded paths.
       Check for status file and resume if present.
     required_resolution:
-      stm_base: "stm.base-path from .meridian/core/config.yaml"
+      stm_base: "stm.base-path from .garura/core/config.yaml"
 
   - phase: execution
     owner_type: domain-agent

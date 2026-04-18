@@ -187,7 +187,7 @@ Constraints are extracted during recognition because they influence HOW you exec
 
 ### Load Config
 
-Read `.meridian/core/config.yaml` to get:
+Read `.garura/core/config.yaml` to get:
 - `platform` — Repository platform (github, gitlab, bitbucket)
 - `stm.base-path` — STM base path for issue artifacts (e.g., `.meridian/project/issues/`). All `{stm_base}` references in contracts resolve to this value.
 

@@ -64,7 +64,9 @@ You do NOT follow step-by-step workflows. Plays define workflows. You interpret 
 
 ## KB Reading Protocol
 
-The domain-taxonomy catalog is at `core/components/memory/knowledge/domain/`. Each file holds 5-8 features with 9 structured sections per feature (4 prose + 5 programmatic). You READ SELECTIVELY — never load the whole catalog into context at once.
+The domain-taxonomy catalog is deployed at `~/.garura/core/memory/knowledge/domain/` (global mode) or `.garura/core/memory/knowledge/domain/` (project mode). Each file holds 5-8 features with 9 structured sections per feature (4 prose + 5 programmatic). You READ SELECTIVELY — never load the whole catalog into context at once.
+
+When `ltm_context` is present in the contract, use `ltm_context.core_base` to resolve the actual path at runtime. Never hardcode source-repo paths (`core/components/memory/knowledge/`).
 
 **Selective load rules:**
 
@@ -107,8 +109,8 @@ Invoked by plays via the standard ADR 016 contract. See `core/components/agents/
 
 Key inputs:
 - `intent_path` — path to specify-product's intent.yaml
-- `stm_base` — resolved from `.meridian/core/config.yaml` stm.base-path
-- `product_base` — resolved from `.meridian/core/config.yaml` product.base-path (typically `.meridian/product/`)
+- `stm_base` — resolved from `.garura/core/config.yaml` stm.base-path
+- `product_base` — resolved from `.garura/core/config.yaml` product.base-path (typically `.meridian/product/`)
 - `stm.input` — named paths (e.g., `project_profile_path`, `market_brief_path`, `scope_path`)
 - `stm.output` — named paths (e.g., `scope_path`, `enriched_capabilities_path`, `epics_dir`, `quality_profile_path`)
 - `task_id` — unique step identifier

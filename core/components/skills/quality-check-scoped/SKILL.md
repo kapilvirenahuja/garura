@@ -28,8 +28,8 @@ changed_paths:                                                    # array; absol
   - src/api/users.ts
   - src/db/migrations/0042_add_email.sql
 standards_set:                                                    # resolved from config standards_order
-  kb: ~/.meridian/core/memory/knowledge/quality/
-  ltm: ./.meridian/core/memory/knowledge/quality/
+  kb: ~/.garura/core/memory/knowledge/quality/
+  ltm: ./.garura/core/memory/knowledge/quality/
   stm: .meridian/project/issues/{issue}/specs/quality/
 severity_taxonomy_path: ./core/components/memory/standards/rules/pr.md
 intent_summary: "Add email verification flow"                     # 1–3 sentences from spec/intent.yaml or PR body

@@ -49,7 +49,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 **Gate logic (C20):** quality-auditor PASS with CERTIFIED → judge EVAL-REVIEW. One gate, not two.
 
 **FORBIDDEN DATA SOURCES (C27, F23):**
-- `~/.meridian/core/memory/` (KB) — NEVER read by any agent
+- `~/.garura/core/memory/` (KB) — NEVER read by any agent
 - `{product_base}` (LTM) — NEVER read by any agent
 - All context from STM at `{stm_base}/{issue}/context/`
 
@@ -69,7 +69,7 @@ The `milestone_id` maps to a feature phase in plan.yaml (e.g., T-001, T-002).
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt |
 | Parse `--milestone` argument | C28 | Hard halt — milestone_id required |
 | Resolve issue from arg, branch, or STM | — | Hard halt |
 | plan.yaml exists at STM | C23 | Hard halt |
@@ -81,7 +81,7 @@ The `milestone_id` maps to a feature phase in plan.yaml (e.g., T-001, T-002).
 | quality-gates.yaml exists in STM | C15 | Hard halt |
 
 ```bash
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | awk '{print $2}')
 milestone_id="{--milestone value}"
 issue="{--issue or from branch}"
 

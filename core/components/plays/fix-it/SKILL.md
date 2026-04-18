@@ -40,18 +40,18 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt — config is required |
-| Resolve `product_base` from `.meridian/core/config.yaml` | C11 | Soft — set `has_product_ltm=false`, continue without product LTM |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt — config is required |
+| Resolve `product_base` from `.garura/core/config.yaml` | C11 | Soft — set `has_product_ltm=false`, continue without product LTM |
 | Issue number resolvable | C1 | Hard halt — "No issue provided. Provide an issue number or run from a fix/ branch." |
 | Issue exists and is open | C1 | Hard halt — "Issue #{n} does not exist or is not open." |
 | Current branch guard | C2 | Create fix/{issue}-{slug} branch via repo-orchestrator |
 
 ```bash
 # Resolve STM base path
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | head -1 | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | head -1 | awk '{print $2}')
 
 # C11: Resolve product base path for LTM grounding
-product_base=$(grep -A1 '^product:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
+product_base=$(grep -A1 '^product:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
 has_product_ltm=false
 if [ -d "${product_base}architecture/" ]; then
   has_product_ltm=true
@@ -155,7 +155,7 @@ Depends on: Step 2
   "task_id": "rca-and-design",
   "ltm_context": {
     "project_base": "{product_base}architecture/",
-    "core_base": "~/.meridian/core/memory/",
+    "core_base": "~/.garura/core/memory/",
     "query_domains": ["architecture", "design-patterns", "quality-standards", "domain-context"],
     "locked_artifacts": ["{locked_artifact_paths}"]
   }

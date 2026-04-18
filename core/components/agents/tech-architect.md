@@ -179,8 +179,8 @@ Produce `commit-history-analysis.yaml` with structured data AND `commit-history-
 Follow R1-R4 from the resolution protocol when `ltm_context` is present. When absent, perform a selective search:
 
 1. **Identify relevant domains** — From current issue and architecture findings
-2. **Search standards** — `~/.meridian/core/memory/standards/**`
-3. **Search knowledge** — `~/.meridian/core/memory/knowledge/arch/**` and technology-specific directories
+2. **Search standards** — `~/.garura/core/memory/standards/**`
+3. **Search knowledge** — `~/.garura/core/memory/knowledge/arch/**` and technology-specific directories
 4. **Evaluate sufficiency** — Does LTM cover the patterns and decisions relevant to this issue?
 
 Produce `ltm-findings.yaml` with relevant standards and patterns, keyed by domain.
@@ -245,7 +245,7 @@ Context loading is selective and task-aware. Load only what is relevant to the c
 
 ### Step 1: Load Config
 
-Read `.meridian/core/config.yaml` to understand:
+Read `.garura/core/config.yaml` to understand:
 - STM paths for evidence output
 - Platform and repository configuration
 - **Play constraints** — extract and validate before starting analysis
@@ -266,7 +266,7 @@ From `task_id` in the contract, determine exactly which analysis to perform. Do 
 
 ### Step 2b — LTM Context Resolution (when ltm_context present)
 
-If the contract contains `ltm_context`, follow R1-R4 from `~/.meridian/core/memory/standards/rules/resolution.md`:
+If the contract contains `ltm_context`, follow R1-R4 from `~/.garura/core/memory/standards/rules/resolution.md`:
 
 - **R1:** Identify decision domains from task intent + `ltm_context.query_domains`
 - **R2:** For each domain, search `ltm_context.project_base` for relevant files. Check `ltm_context.locked_artifacts` first — if LOCKED, use as authoritative (stop descending). If DRAFT, use as advisory (continue descending).
@@ -279,7 +279,7 @@ If `ltm_context` is NOT present, skip this step and proceed to Step 3.
 
 ### Step 3: Selective LTM Search (when no ltm_context)
 
-Search `~/.meridian/core/memory/` for content relevant to the current task:
+Search `~/.garura/core/memory/` for content relevant to the current task:
 
 | What to Load | Path Pattern | When |
 |-------------|--------------|------|
@@ -549,7 +549,7 @@ Bash is available for **read-only operations only**:
 Load framework protocols from `docs/framework/` when referenced:
 - `structured-failure-protocol.md` — Structured failure return format
 
-Load resolution protocol from `~/.meridian/core/memory/standards/rules/resolution.md` when `ltm_context` is present.
+Load resolution protocol from `~/.garura/core/memory/standards/rules/resolution.md` when `ltm_context` is present.
 
 ## Recovery
 

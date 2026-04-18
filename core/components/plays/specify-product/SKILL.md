@@ -45,7 +45,7 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` and `product_base` from `.meridian/core/config.yaml` | — | Hard halt — config required |
+| Resolve `stm_base` and `product_base` from `.garura/core/config.yaml` | — | Hard halt — config required |
 | Product description has >=5 meaningful words | C1 | Hard halt — "Product description too vague; please elaborate" |
 | Project profile is complete (security_level, industry, audience, timeline, scale, compliance, team_size, delivery_ambition) | C2 | Interactive collection loop — pause until complete |
 | KB catalog consistency — invoke `validate-kb-extension` skill | C3 | Hard halt — print validator report, block until fixed |
@@ -53,8 +53,8 @@ Execute these checks before any domain work:
 | `scope/mvp-recommendation.md` exists and is non-empty (gate for Stage 3 — see rules/product.md Rule 13) | C15 | Hard halt — "Author scope/mvp-recommendation.md before proceeding to Stage 3 — see rules/product.md Rule 13 and Defect 6 for the artifact shape" |
 
 ```bash
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | awk '/stm:/,/base-path/' | tail -1 | awk '{print $2}')
-product_base=$(grep -A1 '^product:' .meridian/core/config.yaml | grep 'base-path' | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | awk '/stm:/,/base-path/' | tail -1 | awk '{print $2}')
+product_base=$(grep -A1 '^product:' .garura/core/config.yaml | grep 'base-path' | awk '{print $2}')
 
 # C1: count meaningful words in product description (excluding filler)
 word_count=$(echo "$product_idea" | tr -s ' ' '\n' | grep -v -E '^(a|an|the|of|for|to|in|on|with|and|or|but|is|are|am)$' | wc -l)

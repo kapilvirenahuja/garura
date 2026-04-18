@@ -48,7 +48,7 @@ constraints:
 
   - id: C5
     rule: >
-      product_base resolution from .meridian/core/config.yaml. If product
+      product_base resolution from .garura/core/config.yaml. If product
       LTM absent, context assembly uses core LTM only. Not a hard failure.
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -81,7 +81,7 @@ Invoked by plays via the standard agent contract (ADR 016). See `core/components
 
 Key inputs:
 - `intent_path` — path to calling play's intent.yaml
-- `stm_base` — resolved from `.meridian/core/config.yaml stm.base-path`
+- `stm_base` — resolved from `.garura/core/config.yaml stm.base-path`
 - `stm.input` — named paths to input artifacts (e.g., `product_yaml_path`, `architecture_yaml_path`, `tech_yaml_path`)
 - `stm.output` — named paths where this agent writes its outputs (e.g., `features_yaml_path`, `scenarios_yaml_path`)
 - `task_id` — unique step identifier for the task graph

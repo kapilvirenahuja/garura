@@ -38,7 +38,7 @@ Once scope is resolved, gather these automatically:
 
 ### From `.meridian/product/` (product-level specs — SECONDARY source)
 
-Resolve `product_base` from `.meridian/core/config.yaml` → `product.base-path`.
+Resolve `product_base` from `.garura/core/config.yaml` → `product.base-path`.
 
 - `{product_base}specification/quality-profile.yaml` — quality standards, NFR targets
 - `{product_base}specification/market-brief.md` — problem statement, users, strategic goals
@@ -78,8 +78,8 @@ When locked design artifacts from prepare-epic exist, they are the most authorit
 - `{stm_base}/{issue}/evidence/` — all play evidence subdirectories
 
 ### From LTM (if available)
-- `~/.meridian/core/memory/knowledge/` — existing architecture knowledge (deployed path)
-- `~/.meridian/core/memory/standards/` — existing standards (deployed path)
+- `~/.garura/core/memory/knowledge/` — existing architecture knowledge (deployed path)
+- `~/.garura/core/memory/standards/` — existing standards (deployed path)
 
 ## Process
 

@@ -34,7 +34,7 @@ Receive from agent:
 
 2. **Categorize Each File**
 
-   Load categories from: `~/.meridian/core/memory/standards/rules/commits.md`
+   Load categories from: `~/.garura/core/memory/standards/rules/commits.md`
 
 3. **Detect Risks**
 

@@ -45,7 +45,7 @@ Whitelist patterns (regex-friendly):
 ^\.meridian/project/issues/[^/]+/(specs|evidence|checkpoint|context|review)/.*$
 ```
 
-`.meridian/core/memory/` is gitignored and managed elsewhere — scriber does not touch it.
+`.garura/core/memory/` is gitignored and managed elsewhere — scriber does not touch it.
 
 ### 2. Compute final path (handle collisions)
 

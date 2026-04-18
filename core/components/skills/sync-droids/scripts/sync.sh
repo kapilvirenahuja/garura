@@ -19,10 +19,10 @@ done
 
 if [ "$MODE" = "global" ]; then
   TARGET_DIR="$HOME/.factory"
-  MEMORY_TARGET="$HOME/.meridian/core/memory"
+  MEMORY_TARGET="$HOME/.garura/core/memory"
 else
   TARGET_DIR="$PROJECT_ROOT/.factory"
-  MEMORY_TARGET="$PROJECT_ROOT/.meridian/core/memory"
+  MEMORY_TARGET="$PROJECT_ROOT/.garura/core/memory"
 fi
 
 SOURCE="$PROJECT_ROOT/core/components"

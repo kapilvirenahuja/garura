@@ -58,8 +58,10 @@ Given intent and constraints, YOU decide:
 
 Before calling any skill, read relevant LTM domain-taxonomy files to inform the market brief with existing catalog knowledge:
 
-- `core/components/memory/knowledge/domain/{domain}.md` — pull the `When It Matters`, `Signals`, and `Tradeoffs` sections for features that are obviously relevant to the product idea. This gives the market brief a reference for what's industry-standard versus what's differentiated.
-- `core/components/memory/knowledge/arch/` — if the product idea hints at a specific tech pattern, cross-reference to avoid proposing market positioning that contradicts technical feasibility.
+KB is deployed at `~/.garura/core/memory/knowledge/` in global mode, or `.garura/core/memory/knowledge/` in project mode. Use `ltm_context.core_base` from the contract to resolve the actual deployed path at invocation time. Never hardcode source-repo paths (`core/components/memory/knowledge/`).
+
+- `{ltm_context.core_base}/knowledge/domain/{domain}.md` — pull the `When It Matters`, `Signals`, and `Tradeoffs` sections for features that are obviously relevant to the product idea. This gives the market brief a reference for what's industry-standard versus what's differentiated.
+- `{ltm_context.core_base}/knowledge/arch/` — if the product idea hints at a specific tech pattern, cross-reference to avoid proposing market positioning that contradicts technical feasibility.
 
 You load these selectively — only the files whose `Search patterns` line matches the product idea. Do NOT load the full knowledge tree.
 
@@ -69,8 +71,8 @@ Invoked by plays via the standard ADR 016 contract.
 
 Key inputs:
 - `intent_path` — path to specify-product's intent.yaml
-- `stm_base` — resolved from `.meridian/core/config.yaml` stm.base-path
-- `product_base` — resolved from `.meridian/core/config.yaml` product.base-path
+- `stm_base` — resolved from `.garura/core/config.yaml` stm.base-path
+- `product_base` — resolved from `.garura/core/config.yaml` product.base-path
 - `stm.input` — `product_idea` (string), `industry_hint` (optional string), `project_profile_path` (optional path)
 - `stm.output` — `market_brief_path` (target path — typically `.meridian/product/specification/market-brief.md`)
 - `task_id` — unique step identifier

@@ -6,7 +6,7 @@ user-invokable: true
 
 # ship
 
-Deliver all uncommitted work on the current feature branch to the main branch in a single automated pipeline: commit all changes, create and submit a pull request, optionally run the `review-pr` quality gate, merge the PR, switch to main, pull latest, and delete the feature branch. Auto-proceeds end-to-end unless `review-pr.bypass=false` in `.meridian/core/config.yaml` and `review-pr` returns a `block` or `escalate` verdict. End state: local checkout on main, main up to date with remote, feature branch gone, all work reachable from main's history.
+Deliver all uncommitted work on the current feature branch to the main branch in a single automated pipeline: commit all changes, create and submit a pull request, optionally run the `review-pr` quality gate, merge the PR, switch to main, pull latest, and delete the feature branch. Auto-proceeds end-to-end unless `review-pr.bypass=false` in `.garura/core/config.yaml` and `review-pr` returns a `block` or `escalate` verdict. End state: local checkout on main, main up to date with remote, feature branch gone, all work reachable from main's history.
 
 ## Compiled From
 
@@ -38,16 +38,16 @@ Execute these checks before any sub-play invocation:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt — config is required |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt — config is required |
 | Current branch is not main/master/default | C1 | Hard halt with message |
 | Changed files exist (staged, unstaged, untracked) | implicit | Graceful exit — nothing to ship |
 | Platform config exists | implicit | Hard halt — no platform configured |
-| Resolve `review-pr.bypass` from `.meridian/core/config.yaml` | C7 | Hard halt if key missing — "review-pr.bypass not set in config" |
+| Resolve `review-pr.bypass` from `.garura/core/config.yaml` | C7 | Hard halt if key missing — "review-pr.bypass not set in config" |
 | When `review-pr.bypass == false`: `core/components/plays/review-pr/SKILL.md` exists | C7 | Hard halt — "review-pr play missing; cannot enforce gate" |
 | When `review-pr.bypass == false`: `core/components/memory/standards/rules/pr.md` exists at config-resolved path | C7 | Hard halt — "PR severity taxonomy missing" |
 
 ```bash
-stm_base=$(grep 'base-path' .meridian/core/config.yaml | head -1 | awk '{print $2}')
+stm_base=$(grep 'base-path' .garura/core/config.yaml | head -1 | awk '{print $2}')
 branch=$(git branch --show-current)
 issue=$(echo "$branch" | grep -oE '/[0-9]+' | tr -d '/')
 
@@ -56,13 +56,13 @@ default_branch=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
 
 git status --porcelain  # Graceful exit if empty
 
-grep '^platform:' .meridian/core/config.yaml  # Halt if unset
+grep '^platform:' .garura/core/config.yaml  # Halt if unset
 
 # C7 — resolve bypass
-bypass=$(yq '.review-pr.bypass' .meridian/core/config.yaml)
+bypass=$(yq '.review-pr.bypass' .garura/core/config.yaml)
 if [ "$bypass" = "false" ]; then
   test -f core/components/plays/review-pr/SKILL.md || { echo "review-pr missing"; exit 1; }
-  taxonomy=$(yq '.standards.pr-severity-taxonomy' .meridian/core/config.yaml)
+  taxonomy=$(yq '.standards.pr-severity-taxonomy' .garura/core/config.yaml)
   test -f "$taxonomy" || { echo "Taxonomy missing at $taxonomy"; exit 1; }
 fi
 ```

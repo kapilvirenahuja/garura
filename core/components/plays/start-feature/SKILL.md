@@ -34,7 +34,7 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt — config is required |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt — config is required |
 | Git repository present | — | Hard halt — not a git repo |
 | Platform config exists (`platform: github`) | — | Hard halt — no platform configured |
 | Capture `git status --porcelain` snapshot | C2 | Store as pre-play state for F4 eval |
@@ -42,13 +42,13 @@ Execute these checks before any domain work:
 
 ```bash
 # Resolve STM base path
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | awk '{print $2}')
 
 # Git repo check
 git rev-parse --is-inside-work-tree
 
 # Platform config
-grep '^platform:' .meridian/core/config.yaml
+grep '^platform:' .garura/core/config.yaml
 
 # Snapshot changed files (for F4 eval later)
 pre_state=$(git status --porcelain)

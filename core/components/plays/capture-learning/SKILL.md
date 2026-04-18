@@ -39,17 +39,17 @@ Execute these checks before any domain work:
 
 | Check | Constraint | Action on Failure |
 |-------|-----------|-------------------|
-| Resolve `stm_base` from `.meridian/core/config.yaml` | — | Hard halt — config is required |
-| Resolve `stm_archive` from `.meridian/core/config.yaml` | — | Hard halt — config is required |
-| Resolve `product_base` from `.meridian/core/config.yaml` | — | Hard halt — config is required |
+| Resolve `stm_base` from `.garura/core/config.yaml` | — | Hard halt — config is required |
+| Resolve `stm_archive` from `.garura/core/config.yaml` | — | Hard halt — config is required |
+| Resolve `product_base` from `.garura/core/config.yaml` | — | Hard halt — config is required |
 | Issue number provided as input | — | Hard halt — play requires an issue number |
 | STM directory exists at `{stm_base}/{issue}/` | — | Hard halt — nothing to process |
 | Context directory exists at `{stm_base}/{issue}/context/` | C7 | Hard halt — no context baseline means prepare-epic was never run |
 
 ```bash
-stm_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | head -1 | awk '{print $2}')
-stm_archive=$(grep '^\s*archive-path:' .meridian/core/config.yaml | head -1 | awk '{print $2}')
-product_base=$(grep '^\s*base-path:' .meridian/core/config.yaml | tail -1 | awk '{print $2}')
+stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | head -1 | awk '{print $2}')
+stm_archive=$(grep '^\s*archive-path:' .garura/core/config.yaml | head -1 | awk '{print $2}')
+product_base=$(grep '^\s*base-path:' .garura/core/config.yaml | tail -1 | awk '{print $2}')
 
 issue=$(echo "{input}" | grep -oE '[0-9]+' | head -1)
 
