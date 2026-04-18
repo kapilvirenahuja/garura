@@ -45,6 +45,13 @@ interface PendingSelection {
   readonly text: string;
   readonly offsetStart?: number;
   readonly offsetEnd?: number;
+  /**
+   * Best-effort anchor-node context — captured from the live selection
+   * at the time the range is observed. Retained so the snapshot can
+   * survive a focus change (opening the composer) which would otherwise
+   * collapse `window.getSelection()` and drop the offsets.
+   */
+  readonly anchorContext?: string;
 }
 
 function isSelectionInside(node: HTMLElement | null | undefined): boolean {
@@ -64,6 +71,21 @@ export function AnnotationLayer({ sectionId, sectionRef }: AnnotationLayerProps)
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  /**
+   * Persisted snapshot of the most recently observed non-empty selection.
+   * We read from this at save time instead of `window.getSelection()` /
+   * `selection` state, because focusing the composer textarea collapses
+   * the browser selection and would otherwise erase the anchor offsets
+   * before the payload is posted.
+   */
+  const selectionSnapshotRef = useRef<PendingSelection | null>(null);
+  /**
+   * When the composer is open we stop updating the snapshot — the
+   * textarea focus triggers a follow-up `selectionchange` that we must
+   * ignore, otherwise the frozen anchor would be overwritten with a
+   * collapsed selection and offsets would be lost.
+   */
+  const composerOpenRef = useRef(false);
 
   // Filter down to comments that belong to this section; annotations
   // anchored elsewhere (or globally) are rendered by whichever layer
@@ -75,10 +97,16 @@ export function AnnotationLayer({ sectionId, sectionRef }: AnnotationLayerProps)
 
   // Listen for text selection changes on the document; the affordance
   // only appears when the anchor/focus of the selection is inside the
-  // section we're anchored to.
+  // section we're anchored to. We persist the snapshot into a ref so
+  // the anchor survives the textarea focus that follows opening the
+  // composer (which would otherwise collapse the native selection).
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    const handler = () => {
+    const captureSnapshot = () => {
+      // Once the composer is open, stop mutating the snapshot — the
+      // focus-induced selection collapse would clobber the anchor and
+      // we'd post a payload with no offsets.
+      if (composerOpenRef.current) return;
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
         setSelection(null);
@@ -95,31 +123,58 @@ export function AnnotationLayer({ sectionId, sectionRef }: AnnotationLayerProps)
       }
       let offsetStart: number | undefined;
       let offsetEnd: number | undefined;
+      let anchorContext: string | undefined;
       try {
         const range = sel.getRangeAt(0);
         offsetStart = range.startOffset;
         offsetEnd = range.endOffset;
+        const anchorText = sel.anchorNode?.textContent;
+        if (typeof anchorText === 'string') {
+          anchorContext = anchorText.slice(0, 120);
+        }
       } catch {
         /* ignore — offsets are a best-effort hint */
       }
-      setSelection({ text, offsetStart, offsetEnd });
+      const snapshot: PendingSelection = { text, offsetStart, offsetEnd, anchorContext };
+      selectionSnapshotRef.current = snapshot;
+      setSelection(snapshot);
     };
-    document.addEventListener('selectionchange', handler);
-    return () => document.removeEventListener('selectionchange', handler);
+    document.addEventListener('selectionchange', captureSnapshot);
+    // `mouseup` is a belt-and-suspenders capture point — some browsers
+    // fire `selectionchange` only after the mouse is released, and some
+    // fire it before the range is finalised. Listening to both ensures
+    // we never miss the offsets for a user-driven range.
+    document.addEventListener('mouseup', captureSnapshot);
+    return () => {
+      document.removeEventListener('selectionchange', captureSnapshot);
+      document.removeEventListener('mouseup', captureSnapshot);
+    };
   }, [sectionRef]);
 
   const openComposer = useCallback(() => {
+    // Freeze the selection snapshot *before* we flip the composer flag
+    // and focus the textarea — the upcoming focus will collapse the
+    // native selection, so this is our last chance to capture offsets
+    // derived from the user's range. If `selection` state is populated
+    // we prefer it (it's the value the user just saw in the UI);
+    // otherwise we keep whatever the ref already holds.
+    if (selection) {
+      selectionSnapshotRef.current = selection;
+    }
+    composerOpenRef.current = true;
     setComposerOpen(true);
     setError(null);
     setDraft('');
     // Focus after the next render so the textarea is mounted.
     queueMicrotask(() => textareaRef.current?.focus());
-  }, []);
+  }, [selection]);
 
   const cancelComposer = useCallback(() => {
+    composerOpenRef.current = false;
     setComposerOpen(false);
     setDraft('');
     setError(null);
+    selectionSnapshotRef.current = null;
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -130,13 +185,19 @@ export function AnnotationLayer({ sectionId, sectionRef }: AnnotationLayerProps)
     }
     setSubmitting(true);
     setError(null);
+    // Read the anchor from the persisted snapshot — `selection` state
+    // and `window.getSelection()` are both unreliable here because the
+    // composer textarea has stolen focus and the native range has been
+    // collapsed. The ref is the only source that still carries the
+    // offsets the user originally selected.
+    const anchor = selectionSnapshotRef.current ?? selection;
     const result = await addComment({
       content,
       position: {
         sectionId,
-        selectedText: selection?.text,
-        offsetStart: selection?.offsetStart,
-        offsetEnd: selection?.offsetEnd,
+        selectedText: anchor?.text,
+        offsetStart: anchor?.offsetStart,
+        offsetEnd: anchor?.offsetEnd,
       },
     });
     setSubmitting(false);
@@ -145,8 +206,10 @@ export function AnnotationLayer({ sectionId, sectionRef }: AnnotationLayerProps)
       return;
     }
     setDraft('');
+    composerOpenRef.current = false;
     setComposerOpen(false);
     setSelection(null);
+    selectionSnapshotRef.current = null;
   }, [addComment, draft, sectionId, selection]);
 
   return (

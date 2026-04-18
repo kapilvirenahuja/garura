@@ -201,3 +201,112 @@ describe('<AnnotationLayer /> — existing annotations (VAL-ACTION-024)', () => 
     expect(runner).toHaveAttribute('data-play', 'research');
   });
 });
+
+describe('<AnnotationLayer /> — selection anchor persistence (fix-annotation-selection)', () => {
+  /**
+   * Regression guard for the selection-anchor-lost-on-composer-focus bug.
+   *
+   * Sequence:
+   *   1. User selects text in the narrative section.
+   *   2. `selectionchange` fires — the layer captures offsets.
+   *   3. User clicks "Add comment" — composer opens and focuses the
+   *      textarea, which collapses `window.getSelection()` in real
+   *      browsers. A follow-up `selectionchange` fires with an empty
+   *      range.
+   *   4. User types a comment and clicks Save.
+   *
+   * Before the fix, step 3's collapsed-selection event reset the
+   * component's selection state to `null`, so the payload posted in
+   * step 4 had no `selectedText`, `offsetStart`, or `offsetEnd`.
+   * After the fix, the snapshot is persisted in a ref and survives the
+   * focus change, so the payload carries the original anchor.
+   */
+  it('preserves selection offsets across the composer-focus collapse and posts them on Save', async () => {
+    const captured: Saved[] = [];
+    installFetch([], captured);
+
+    function makeSelection(range: {
+      text: string;
+      startOffset: number;
+      endOffset: number;
+    }): Selection {
+      const anchorNode = document.createTextNode(range.text);
+      return {
+        anchorNode,
+        focusNode: anchorNode,
+        isCollapsed: false,
+        rangeCount: 1,
+        toString: () => range.text,
+        getRangeAt: () =>
+          ({
+            startOffset: range.startOffset,
+            endOffset: range.endOffset,
+          }) as unknown as Range,
+      } as unknown as Selection;
+    }
+
+    function makeCollapsedSelection(): Selection {
+      return {
+        anchorNode: null,
+        focusNode: null,
+        isCollapsed: true,
+        rangeCount: 0,
+        toString: () => '',
+      } as unknown as Selection;
+    }
+
+    // Step 1 — user selects text in the narrative.
+    const activeSelection = makeSelection({
+      text: 'selected passage',
+      startOffset: 12,
+      endOffset: 28,
+    });
+    const getSelectionSpy = vi
+      .spyOn(window, 'getSelection')
+      .mockImplementation(() => activeSelection);
+
+    render(
+      <NarrativeAnnotationProvider context="E1">
+        <AnnotationLayer sectionId="overview" />
+      </NarrativeAnnotationProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByTestId('annotation-add-button')).not.toBeDisabled());
+
+    // Step 2 — the selectionchange handler observes the live selection.
+    await act(async () => {
+      document.dispatchEvent(new Event('selectionchange'));
+    });
+
+    // The selection hint reflects that the layer has captured a range.
+    expect(screen.getByTestId('annotation-selection-hint')).toBeInTheDocument();
+
+    // Step 3 — user clicks "Add comment"; composer opens. Immediately
+    // after, simulate the native selection collapse that happens when
+    // the textarea steals focus.
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('annotation-add-button'));
+    });
+    expect(screen.getByTestId('annotation-composer')).toBeInTheDocument();
+
+    getSelectionSpy.mockImplementation(() => makeCollapsedSelection());
+    await act(async () => {
+      document.dispatchEvent(new Event('selectionchange'));
+    });
+
+    // Step 4 — user types and saves.
+    fireEvent.change(screen.getByTestId('annotation-textarea'), {
+      target: { value: 'Anchor must survive focus change.' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('annotation-save-button'));
+    });
+
+    await waitFor(() => expect(captured).toHaveLength(1));
+    const position = captured[0]?.position as Record<string, unknown>;
+    expect(position.sectionId).toBe('overview');
+    expect(position.selectedText).toBe('selected passage');
+    expect(position.offsetStart).toBe(12);
+    expect(position.offsetEnd).toBe(28);
+  });
+});
