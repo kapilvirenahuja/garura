@@ -1,0 +1,359 @@
+product:
+  name: Garura
+  slug: garura
+  headline: A posture-first map of the Garura product surface.
+  description: Product posture is modeled as a fused hierarchy of domains, capabilities, and features so the engine can later enrich the same surface with live signals.
+
+domains:
+  - id: context-continuity
+    name: Context Continuity
+    description: Preserve engineering intent and project memory across sessions.
+    status: partial
+    capability_ids:
+      - project-memory
+      - session-bootstrap
+    evidence:
+      - kind: artifact-defined
+        label: vision.md
+        detail: Persistent Context is a strategic goal in the product vision.
+      - kind: manually-curated
+        label: posture.yaml
+        detail: Posture curated for the Product instrument.
+
+  - id: workflow-orchestration
+    name: Workflow Orchestration
+    description: Turn AI-assisted work into repeatable, reviewable plays.
+    status: pilot
+    capability_ids:
+      - play-execution
+      - engine-workspace
+    evidence:
+      - kind: artifact-defined
+        label: roadmap.md
+        detail: Play Execution Engine sits on the critical path.
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: product-strategy
+    name: Product Strategy
+    description: Discover, shape, and sequence the product through audience-separated artifacts.
+    status: planned
+    capability_ids:
+      - strategic-planning
+      - roadmap-synthesis
+    evidence:
+      - kind: artifact-defined
+        label: roadmap.md
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: delivery-governance
+    name: Delivery Governance
+    description: Verify, ship, and observe feature delivery with confidence.
+    status: planned
+    capability_ids:
+      - verification-layer
+      - feature-delivery
+    evidence:
+      - kind: artifact-defined
+        label: roadmap-engineering.md
+      - kind: manually-curated
+        label: posture.yaml
+
+capabilities:
+  - id: project-memory
+    domain_id: context-continuity
+    name: Project Memory
+    description: Carry product, technical, and workflow memory forward instead of starting every session from zero.
+    status: partial
+    feature_ids:
+      - ltm-store
+      - stm-store
+      - memory-indexing
+    evidence:
+      - kind: artifact-defined
+        label: vision.md
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: session-bootstrap
+    domain_id: context-continuity
+    name: Session Bootstrap
+    description: Get AI sessions context-ready at the moment they open.
+    status: pilot
+    feature_ids:
+      - claude-bootstrap
+      - context-loading
+    evidence:
+      - kind: artifact-defined
+        label: roadmap-engineering.md
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: play-execution
+    domain_id: workflow-orchestration
+    name: Play Execution Engine
+    description: Execute structured plays with checkpoints, delegation, and audit trails.
+    status: pilot
+    feature_ids:
+      - atomic-plays
+      - approval-checkpoints
+      - headless-discover-product
+    evidence:
+      - kind: artifact-defined
+        label: roadmap.md
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: engine-workspace
+    domain_id: workflow-orchestration
+    name: Engine Workspace
+    description: Present product and delivery state through purpose-built instruments.
+    status: partial
+    feature_ids:
+      - playbook-readiness
+      - product-instrument
+      - explorer-reader
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: strategic-planning
+    domain_id: product-strategy
+    name: Strategic Planning
+    description: Move from product idea to locked product strategy through guided plays.
+    status: partial
+    feature_ids:
+      - discover-product
+      - locked-vision
+    evidence:
+      - kind: artifact-defined
+        label: roadmap.md
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: roadmap-synthesis
+    domain_id: product-strategy
+    name: Roadmap Synthesis
+    description: Generate business and engineering roadmap views from one source of truth.
+    status: planned
+    feature_ids:
+      - product-roadmap
+      - engineering-roadmap
+    evidence:
+      - kind: artifact-defined
+        label: roadmap-engineering.md
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: verification-layer
+    domain_id: delivery-governance
+    name: Verification Layer
+    description: Add structured validation and evidence to every workflow.
+    status: planned
+    feature_ids:
+      - quality-gates
+      - evidence-recording
+    evidence:
+      - kind: artifact-defined
+        label: roadmap.md
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: feature-delivery
+    domain_id: delivery-governance
+    name: Feature Delivery Pipeline
+    description: Carry work from issue to shipped branch with traceable context.
+    status: planned
+    feature_ids:
+      - feature-planning
+      - implementation-pipeline
+      - ship-flow
+    evidence:
+      - kind: artifact-defined
+        label: roadmap-engineering.md
+      - kind: manually-curated
+        label: posture.yaml
+
+features:
+  - id: ltm-store
+    capability_id: project-memory
+    name: Long-term memory store
+    description: Persist durable project knowledge for future sessions.
+    status: live
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: stm-store
+    capability_id: project-memory
+    name: Short-term issue memory
+    description: Capture issue-scoped artifacts and evidence while work is active.
+    status: live
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: memory-indexing
+    capability_id: project-memory
+    name: Selective memory indexing
+    description: Retrieve the right memory slices instead of bulk-loading everything.
+    status: planned
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: claude-bootstrap
+    capability_id: session-bootstrap
+    name: CLAUDE bootstrap protocol
+    description: Hydrate sessions through project-level context bootstrapping.
+    status: pilot
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: context-loading
+    capability_id: session-bootstrap
+    name: Context loading path
+    description: Load relevant STM and LTM context at session start.
+    status: partial
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: atomic-plays
+    capability_id: play-execution
+    name: Atomic play execution
+    description: Run small, deterministic plays with constrained delegation.
+    status: live
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: approval-checkpoints
+    capability_id: play-execution
+    name: Approval checkpoints
+    description: Pause plays at the right moments and wait for explicit Tether/Vanish decisions.
+    status: partial
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: headless-discover-product
+    capability_id: play-execution
+    name: Headless discover-product execution
+    description: Launch discover-product through Claude headless sessions from the engine.
+    status: pilot
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: playbook-readiness
+    capability_id: engine-workspace
+    name: Playbook readiness view
+    description: Readiness-first posture on how prepared a repo is for Garura.
+    status: partial
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: product-instrument
+    capability_id: engine-workspace
+    name: Product posture instrument
+    description: Product hierarchy rendered as posture rather than prose.
+    status: pilot
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: explorer-reader
+    capability_id: engine-workspace
+    name: Explorer reader
+    description: Rich artifact reading and search across product and execution context.
+    status: partial
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: discover-product
+    capability_id: strategic-planning
+    name: Discover product
+    description: Discover opportunity and shape a viable product thesis.
+    status: partial
+    evidence:
+      - kind: artifact-defined
+        label: roadmap.md
+
+  - id: locked-vision
+    capability_id: strategic-planning
+    name: Locked product vision
+    description: Maintain a durable product vision artifact with approval discipline.
+    status: live
+    evidence:
+      - kind: artifact-defined
+        label: vision.md
+
+  - id: product-roadmap
+    capability_id: roadmap-synthesis
+    name: Product roadmap
+    description: Business-facing roadmap with epic strategy and sequencing.
+    status: live
+    evidence:
+      - kind: artifact-defined
+        label: roadmap.md
+
+  - id: engineering-roadmap
+    capability_id: roadmap-synthesis
+    name: Engineering roadmap view
+    description: Technical roadmap view without business framing.
+    status: live
+    evidence:
+      - kind: artifact-defined
+        label: roadmap-engineering.md
+
+  - id: quality-gates
+    capability_id: verification-layer
+    name: Quality gates
+    description: Verification checkpoints embedded in core workflows.
+    status: planned
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: evidence-recording
+    capability_id: verification-layer
+    name: Evidence recording
+    description: Persist workflow evidence and validation outputs.
+    status: partial
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: feature-planning
+    capability_id: feature-delivery
+    name: Feature planning
+    description: Move from issue to implementation-ready planning artifacts.
+    status: planned
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: implementation-pipeline
+    capability_id: feature-delivery
+    name: Implementation pipeline
+    description: Carry scoped work through code generation and validation.
+    status: planned
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+  - id: ship-flow
+    capability_id: feature-delivery
+    name: Ship flow
+    description: Merge verified work through a traceable shipping path.
+    status: planned
+    evidence:
+      - kind: manually-curated
+        label: posture.yaml
+
+updated_at: 2026-04-18
