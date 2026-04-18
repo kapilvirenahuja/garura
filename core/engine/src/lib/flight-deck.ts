@@ -462,6 +462,86 @@ export function buildPlayLog(epics: readonly EpicInfo[], now: Date = new Date())
 }
 
 // ---------------------------------------------------------------------------
+// Active execution aggregation
+// ---------------------------------------------------------------------------
+
+/**
+ * Minimal shape of an in-memory play execution record. Mirrors the public
+ * fields of `PlayExecutionRecord` in `@/lib/play-executor` without pulling
+ * the module-level tracker into the aggregator tests.
+ */
+export interface ActivePlayExecutionRecord {
+  readonly executionId: string;
+  readonly playName: string;
+  readonly startTime: number;
+  readonly status: 'running' | 'complete' | 'error' | 'cancelled' | 'timeout';
+}
+
+/**
+ * Synthesize {@link PlayLogEntry} rows for every currently-running
+ * play execution in the in-memory tracker. These rows surface plays
+ * triggered from the Playbook Reader (via wiki tags / CTAs) and
+ * plays triggered from Checklists before the STM evidence they
+ * eventually write is flushed to disk, so the Flight Deck play log
+ * reflects concurrent activity across instruments in real time.
+ *
+ * Each synthesized row is marked with the canonical `RUNNING` status
+ * (VAL-FLIGHT-020) and carries a synthetic `active-<executionId>`
+ * epic id — active executions are not epic-bound by design, but the
+ * Flight Deck UI still needs a stable row key.
+ *
+ * Fulfills: VAL-CROSS-020 (concurrent play executions visible in log).
+ */
+export function buildActivePlayLogEntries(
+  records: readonly ActivePlayExecutionRecord[],
+  now: Date = new Date(),
+): PlayLogEntry[] {
+  const entries: PlayLogEntry[] = [];
+  for (const r of records) {
+    if (r.status !== 'running') continue;
+    const timestamp = Number.isFinite(r.startTime) ? new Date(r.startTime).toISOString() : null;
+    const durationSeconds =
+      timestamp !== null ? Math.max(0, Math.round((now.getTime() - r.startTime) / 1000)) : null;
+    entries.push({
+      id: `active|${r.executionId}`,
+      epicId: 'active',
+      epicLabel: 'Active execution',
+      playName: r.playName,
+      timestamp,
+      timeLabel: formatRelativeTime(timestamp, now),
+      status: 'RUNNING',
+      rawStatus: 'running',
+      durationSeconds,
+      durationLabel: formatDuration(durationSeconds),
+    });
+  }
+  return entries;
+}
+
+/**
+ * Merge active execution rows into an existing play log, keeping the
+ * most-recent-first ordering. Running executions always sort to the
+ * top because they carry the freshest timestamp.
+ */
+export function mergeActivePlayLog(
+  base: readonly PlayLogEntry[],
+  active: readonly PlayLogEntry[],
+): PlayLogEntry[] {
+  const merged = [...active, ...base];
+  merged.sort((a, b) => {
+    const at = a.timestamp ? Date.parse(a.timestamp) : NaN;
+    const bt = b.timestamp ? Date.parse(b.timestamp) : NaN;
+    const aValid = !Number.isNaN(at);
+    const bValid = !Number.isNaN(bt);
+    if (aValid && bValid) return bt - at;
+    if (aValid) return -1;
+    if (bValid) return 1;
+    return 0;
+  });
+  return merged;
+}
+
+// ---------------------------------------------------------------------------
 // Top-level data builder
 // ---------------------------------------------------------------------------
 
@@ -477,6 +557,7 @@ export function buildPlayLog(epics: readonly EpicInfo[], now: Date = new Date())
 export function buildFlightDeckData(
   result: EpicDiscoveryResult,
   now: Date = new Date(),
+  activeRecords: readonly ActivePlayExecutionRecord[] = [],
 ): FlightDeckData {
   const cards = result.epics.map((e) => buildEpicCard(e, now));
 
@@ -498,7 +579,9 @@ export function buildFlightDeckData(
     });
 
   const metrics = computeMetrics(result.epics, now);
-  const playLog = buildPlayLog(result.epics, now);
+  const baseLog = buildPlayLog(result.epics, now);
+  const activeLog = buildActivePlayLogEntries(activeRecords, now);
+  const playLog = mergeActivePlayLog(baseLog, activeLog);
 
   return {
     attention,

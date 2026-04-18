@@ -8,6 +8,7 @@ import { PlayLogTable } from '@/components/play-log-table';
 import type { FlightDeckData, PlayLogEntry } from '@/lib/flight-deck';
 import { formatRelativeTime } from '@/lib/relative-time';
 import { useFlightDeckPersistence } from '@/hooks/use-flight-deck-persistence';
+import { READINESS_REFRESH_EVENT } from '@/components/readiness-provider';
 
 /**
  * Flight Deck — attention-priority live execution dashboard.
@@ -102,6 +103,26 @@ export default function FlightDeckPage() {
 
   useEffect(() => {
     void fetchData();
+  }, [fetchData]);
+
+  /**
+   * Cross-instrument refresh: when a play completes elsewhere (e.g. a
+   * Checklist step or a Playbook wiki tag), the readiness provider
+   * dispatches `mdb:readiness-invalidated`. The Flight Deck listens so
+   * its play log, metrics, and epic cards reflect the new state without
+   * waiting for the user to click the manual refresh button.
+   *
+   * Fulfills: VAL-CROSS-006 (checklist completion triggers Flight Deck refresh).
+   */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (): void => {
+      void fetchData();
+    };
+    window.addEventListener(READINESS_REFRESH_EVENT, handler);
+    return () => {
+      window.removeEventListener(READINESS_REFRESH_EVENT, handler);
+    };
   }, [fetchData]);
 
   const handleOpenInReader = useCallback(

@@ -17,7 +17,8 @@ import path from 'node:path';
 import { NextResponse } from 'next/server';
 import { ensureConfigLoaded, getConfig, resolveRepoRoot } from '@/lib/config';
 import { discoverEpics } from '@/lib/epic-status';
-import { buildFlightDeckData } from '@/lib/flight-deck';
+import { buildFlightDeckData, type ActivePlayExecutionRecord } from '@/lib/flight-deck';
+import { getProcessTracker } from '@/lib/play-executor';
 
 // Always refresh on each request — Flight Deck is a live view.
 export const dynamic = 'force-dynamic';
@@ -40,13 +41,30 @@ export async function GET() {
   const productBasePath = resolveAgainstRoot(repoRoot, config.product.basePath);
   const stmBasePath = resolveAgainstRoot(repoRoot, config.stm.basePath);
 
+  // Active in-memory play executions (triggered from Playbook wiki tags,
+  // CTAs, or Checklists) surface into the play log immediately so the
+  // Flight Deck shows concurrent activity across instruments without
+  // waiting for STM evidence to be written (VAL-CROSS-020).
+  const activeRecords: ActivePlayExecutionRecord[] = Array.from(getProcessTracker().values()).map(
+    (r) => ({
+      executionId: r.executionId,
+      playName: r.playName,
+      startTime: r.startTime,
+      status: r.status,
+    }),
+  );
+
   try {
     const discovery = await discoverEpics({ repoPath, productBasePath, stmBasePath });
-    const data = buildFlightDeckData(discovery, new Date());
+    const data = buildFlightDeckData(discovery, new Date(), activeRecords);
     return NextResponse.json(data);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    const empty = buildFlightDeckData({ epics: [], empty: true, error: message }, new Date());
+    const empty = buildFlightDeckData(
+      { epics: [], empty: true, error: message },
+      new Date(),
+      activeRecords,
+    );
     return NextResponse.json(empty, { status: 200 });
   }
 }
