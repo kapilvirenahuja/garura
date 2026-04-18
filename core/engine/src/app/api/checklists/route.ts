@@ -13,12 +13,56 @@
  */
 
 import { NextResponse } from 'next/server';
+import fs from 'node:fs';
+import path from 'node:path';
+import { ensureConfigLoaded, getConfig, resolveRepoRoot } from '@/lib/config';
 import { getBuiltInChecklists, validateAllPlayReferences } from '@/lib/checklist-loader';
 
 export const dynamic = 'force-dynamic';
 
+interface BriefArtifactSummary {
+  readonly path: string;
+  readonly title: string;
+  readonly preview: string;
+  readonly content: string;
+}
+
+function discoverBriefArtifacts(): ReadonlyArray<BriefArtifactSummary> {
+  ensureConfigLoaded();
+  const repoRoot = resolveRepoRoot();
+  const config = getConfig();
+  const productRoot = path.resolve(repoRoot, config.product.basePath);
+  const candidateDirs = ['user-provided', 'specification', 'research'].map((dir) =>
+    path.join(productRoot, dir),
+  );
+  const files: BriefArtifactSummary[] = [];
+
+  for (const dir of candidateDirs) {
+    if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) continue;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (!entry.isFile()) continue;
+      if (!/\.(md|markdown|txt|ya?ml)$/i.test(entry.name)) continue;
+      const abs = path.join(dir, entry.name);
+      const raw = fs.readFileSync(abs, 'utf-8').trim();
+      if (!raw) continue;
+      const relative = path.relative(productRoot, abs);
+      const titleLine = raw.split(/\r?\n/).find((line) => line.trim().length > 0) ?? entry.name;
+      files.push({
+        path: relative,
+        title: titleLine.replace(/^#+\s*/, '').slice(0, 120),
+        preview: raw.replace(/\s+/g, ' ').slice(0, 220),
+        content: raw.slice(0, 6000),
+      });
+      if (files.length >= 8) return files;
+    }
+  }
+
+  return files;
+}
+
 export async function GET() {
   try {
+    const briefArtifacts = discoverBriefArtifacts();
     const { checklists, errors } = getBuiltInChecklists();
     const validation = validateAllPlayReferences();
 
@@ -36,6 +80,7 @@ export async function GET() {
       return NextResponse.json(
         {
           checklists: [],
+          briefArtifacts,
           partial: false,
           loadErrors: errors,
           validation: { valid: false, invalidCount: 0 },
@@ -50,6 +95,7 @@ export async function GET() {
 
       return NextResponse.json({
         checklists,
+        briefArtifacts,
         partial: true,
         loadErrors: errors,
         validation: {
@@ -62,6 +108,7 @@ export async function GET() {
     // All OK
     return NextResponse.json({
       checklists,
+      briefArtifacts,
       partial: false,
       validation: {
         valid: validation.valid,
@@ -75,6 +122,7 @@ export async function GET() {
     return NextResponse.json(
       {
         checklists: [],
+        briefArtifacts: [],
         partial: false,
         loadErrors: [message],
         validation: { valid: false, invalidCount: 0 },

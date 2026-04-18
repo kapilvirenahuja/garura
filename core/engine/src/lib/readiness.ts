@@ -11,8 +11,10 @@
  */
 
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import yaml from 'js-yaml';
+import type { LifecycleMode } from '@/lib/engine-state';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -20,6 +22,8 @@ import yaml from 'js-yaml';
 
 /** Capability area grouping for readiness breakdown */
 export type ReadinessArea = 'Product' | 'Features' | 'Roadmap' | 'Architecture' | 'Epics';
+export type ProjectLifecycle = 'greenfield' | 'brownfield';
+export type ReadinessBand = '0-30' | '30-60' | '60-80' | '80-100';
 
 /** Status of a single area in the readiness breakdown */
 export type AreaStatus = 'locked' | 'missing' | 'in-progress' | 'complete';
@@ -52,6 +56,10 @@ export interface AreaBreakdown {
 /** Complete readiness computation result */
 export interface ReadinessResult {
   readonly score: number;
+  readonly band: ReadinessBand;
+  readonly lifecycle: ProjectLifecycle;
+  readonly detectedLifecycle?: ProjectLifecycle;
+  readonly lifecycleMode?: LifecycleMode;
   readonly totalPlays: number;
   readonly runnablePlays: number;
   readonly breakdown: ReadonlyArray<AreaBreakdown>;
@@ -301,6 +309,7 @@ export function computeReadiness(
   availableArtifacts: Set<string>,
   plays: ReadonlyArray<PlayDefinition> = PLAY_REGISTRY,
   gitHash: string | null = null,
+  lifecycle: ProjectLifecycle = 'greenfield',
 ): ReadinessResult {
   const playResults = evaluatePlays(availableArtifacts, plays);
 
@@ -310,11 +319,15 @@ export function computeReadiness(
   // Clamp to [0, 100] — handles edge cases like 0 plays
   const rawScore = totalPlays > 0 ? (runnablePlays / totalPlays) * 100 : 0;
   const score = Math.min(100, Math.max(0, Math.round(rawScore)));
+  const band: ReadinessBand =
+    score < 30 ? '0-30' : score < 60 ? '30-60' : score < 80 ? '60-80' : '80-100';
 
   const breakdown = computeBreakdown(playResults);
 
   return {
     score,
+    band,
+    lifecycle,
     totalPlays,
     runnablePlays,
     breakdown,
@@ -335,7 +348,70 @@ export function computeReadiness(
 export function computeReadinessFromPath(
   productBasePath: string,
   gitHash: string | null = null,
+  lifecycle: ProjectLifecycle = 'greenfield',
 ): ReadinessResult {
   const artifacts = checkArtifacts(productBasePath);
-  return computeReadiness(artifacts, PLAY_REGISTRY, gitHash);
+  return computeReadiness(artifacts, PLAY_REGISTRY, gitHash, lifecycle);
+}
+
+function countFiles(root: string, predicate: (filePath: string) => boolean): number {
+  let count = 0;
+
+  function walk(current: string): void {
+    let entries: fs.Dirent[] = [];
+    try {
+      entries = fs.readdirSync(current, { withFileTypes: true });
+    } catch {
+      return;
+    }
+
+    for (const entry of entries) {
+      if (entry.name.startsWith('.git')) continue;
+      const fullPath = path.join(current, entry.name);
+      const relative = path.relative(root, fullPath);
+      if (relative.startsWith('.garura')) continue;
+
+      if (entry.isDirectory()) {
+        if (entry.name === 'node_modules' || entry.name === 'dist' || entry.name === 'build') continue;
+        walk(fullPath);
+        continue;
+      }
+
+      if (predicate(fullPath)) count += 1;
+    }
+  }
+
+  walk(root);
+  return count;
+}
+
+export function detectProjectLifecycle(repoRoot: string): ProjectLifecycle {
+  const trackedFiles = countFiles(repoRoot, () => true);
+  const sourceFiles = countFiles(repoRoot, (filePath) =>
+    /\.(ts|tsx|js|jsx|py|go|rs|java|rb|php|cs|kt|swift)$/i.test(filePath),
+  );
+  const manifestFiles = countFiles(repoRoot, (filePath) =>
+    /(^|\/)(package\.json|pyproject\.toml|Cargo\.toml|go\.mod|pom\.xml|build\.gradle|Gemfile)$/i.test(
+      filePath,
+    ),
+  );
+
+  let commitCount = 0;
+  try {
+    const output = execFileSync('git', ['rev-list', '--count', 'HEAD'], {
+      cwd: repoRoot,
+      encoding: 'utf-8',
+    }).trim();
+    commitCount = Number.parseInt(output, 10) || 0;
+  } catch {
+    commitCount = 0;
+  }
+
+  const significantWork =
+    commitCount >= 20 ||
+    trackedFiles >= 40 ||
+    sourceFiles >= 20 ||
+    (manifestFiles >= 1 && sourceFiles >= 8);
+
+  return significantWork ? 'brownfield' : 'greenfield';
 }

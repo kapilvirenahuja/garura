@@ -49,7 +49,7 @@ export interface ChecklistCardProps {
   readonly defaultExpanded?: boolean;
   /** Whether this card is in the completed (muted) section */
   readonly muted?: boolean;
-  /** Callback when a step CTA is triggered — receives playName and stepId */
+  /** Callback when a step CTA is triggered — receives playName and stepId. */
   readonly onStepExecute?: (playName: string, stepId: string) => void;
   /**
    * Active execution state — if the executing step belongs to this checklist,
@@ -85,6 +85,8 @@ export interface ChecklistCardProps {
    * sessionStorage state.
    */
   readonly persistExpansion?: boolean;
+  /** Hide checklist actions and keep the card read-only. */
+  readonly showActions?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -153,6 +155,7 @@ export function ChecklistCard({
   elapsedSeconds = 0,
   relatedEpic,
   persistExpansion = false,
+  showActions = true,
 }: ChecklistCardProps) {
   // Persist expansion state across tab switches via sessionStorage so
   // users returning to the Checklists instrument see the same cards
@@ -301,12 +304,18 @@ export function ChecklistCard({
             const isStepExecutionAttached = executionStepId === step.id;
             // Narrower: is the step still running (drives running indicator)?
             const isStepRunning = isStepExecutionAttached && isExecutingHere;
+            const hasActiveDashboard =
+              isStepExecutionAttached &&
+              activeExecution != null &&
+              activeExecution.status !== 'error' &&
+              activeExecution.status !== 'complete';
 
             // Show CTA only when actionable, not muted, and no other execution
             // is running globally (VAL-CHECK-024). A completed execution
             // attached to an earlier step does NOT suppress CTAs on later
             // actionable steps.
-            const showCta = isActionable && !muted && !isStepRunning && !ctaDisabled;
+            const showCta =
+              showActions && isActionable && !muted && !hasActiveDashboard && !ctaDisabled;
 
             return (
               <div
@@ -360,8 +369,7 @@ export function ChecklistCard({
                   </div>
                 )}
 
-                {/* Running indicator — only while still running (VAL-CHECK-043) */}
-                {isStepRunning && (
+                {showActions && isStepRunning && (
                   <div className="mt-2 pl-9" data-testid="step-executing-indicator">
                     <span className="inline-flex items-center gap-2 text-xs text-blue-400">
                       <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-400" />
@@ -381,7 +389,8 @@ export function ChecklistCard({
                     Post-completion the slot collapses to a compact
                     summary view with an expand control
                     (VAL-ACTION-018). */}
-                {isStepExecutionAttached &&
+                {showActions &&
+                  isStepExecutionAttached &&
                   activeExecution &&
                   activeExecution.status !== 'error' && (
                     <div className="mt-3 pl-9" data-testid="step-content-slot">
@@ -399,7 +408,8 @@ export function ChecklistCard({
                   )}
 
                 {/* ContentSlot error state (VAL-CHECK-038) */}
-                {isStepExecutionAttached &&
+                {showActions &&
+                  isStepExecutionAttached &&
                   activeExecution &&
                   activeExecution.status === 'error' && (
                     <div className="mt-3 pl-9" data-testid="step-error-slot">
@@ -410,6 +420,7 @@ export function ChecklistCard({
                       />
                     </div>
                   )}
+
               </div>
             );
           })}

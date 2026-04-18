@@ -121,6 +121,8 @@ function buildReadinessResult(
 
   return {
     score,
+    band: score < 30 ? '0-30' : score < 60 ? '30-60' : score < 80 ? '60-80' : '80-100',
+    lifecycle: 'greenfield',
     totalPlays,
     runnablePlays,
     breakdown,

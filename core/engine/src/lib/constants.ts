@@ -8,9 +8,9 @@ export interface InstrumentTab {
 }
 
 export const INSTRUMENTS: readonly InstrumentTab[] = [
-  { id: 'checklists', label: 'Checklists', href: '/checklists' },
-  { id: 'flight-deck', label: 'Flight Deck', href: '/flight-deck' },
-  { id: 'playbook', label: 'Playbook', href: '/playbook' },
+  { id: 'checklists', label: 'Playbook', href: '/checklists' },
+  { id: 'flight-deck', label: 'Auto Pilot', href: '/flight-deck' },
+  { id: 'playbook', label: 'Explorer', href: '/playbook' },
 ] as const;
 
 export const DEFAULT_INSTRUMENT: InstrumentId = 'checklists';

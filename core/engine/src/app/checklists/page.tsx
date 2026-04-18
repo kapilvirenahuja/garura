@@ -1,15 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ReadinessGauge } from '@/components/readiness-gauge';
 import { ReadinessBreakdown } from '@/components/readiness-breakdown';
 import { ChecklistItem } from '@/components/checklist-item';
 import { ChecklistCard } from '@/components/checklist-card';
-import { ContentSlot } from '@/components/content-slot';
-import { CTAButton } from '@/components/cta-button';
+import { BriefArtifactPanel } from '@/components/brief-artifact-panel';
 import { useReadiness } from '@/components/readiness-provider';
-import { useStepExecution } from '@/hooks/use-step-execution';
 import type { ChecklistItemState } from '@/components/checklist-item';
+import type { LifecycleMode } from '@/lib/engine-state';
 
 // ---------------------------------------------------------------------------
 // Types — mirrors checklist-loader ChecklistDefinition / ChecklistStep
@@ -20,6 +19,13 @@ interface ChecklistStepData {
   readonly label: string;
   readonly description: string;
   readonly play: string;
+}
+
+interface BriefArtifactSummary {
+  readonly path: string;
+  readonly title: string;
+  readonly preview: string;
+  readonly content: string;
 }
 
 interface RelatedEpicData {
@@ -72,12 +78,9 @@ function deriveStepState(index: number, completedCount: number): ChecklistItemSt
  * - Mid-project (score > 0): Multiple checklists ranked by readiness impact,
  *   generative region explaining selection, completed checklists at bottom.
  *
- * Step execution is managed by the useStepExecution hook:
- * - CTA click triggers play execution via SSE (VAL-CHECK-020)
- * - ContentSlot streams output below the active step (VAL-CHECK-021)
- * - Completed steps show checkmark and are not retriggerable (VAL-CHECK-022)
- * - Next step unlocks on completion (VAL-CHECK-023)
- * - Only one CTA active at a time (VAL-CHECK-024)
+ * This surface is intentionally read-only for now. It shows current
+ * checklist status and, when available, lets the user inspect existing
+ * brief artifacts inline instead of mutating project state.
  *
  * Fulfills: VAL-CHECK-001 (greenfield 0), VAL-CHECK-005 (per-area breakdown),
  *           VAL-CHECK-007 (one checklist in greenfield), VAL-CHECK-008 (5 steps),
@@ -105,12 +108,12 @@ function deriveStepState(index: number, completedCount: number): ChecklistItemSt
  *           VAL-CHECK-043 (long-running play visual feedback)
  */
 export default function ChecklistsPage() {
-  const { score, breakdown } = useReadiness();
-  const { activeExecutions, executeStep, getCompletedCount, isChecklistExecuting, getExecution } =
-    useStepExecution();
+  const { score, breakdown, lifecycle, detectedLifecycle, lifecycleMode, setLifecycleMode, band } =
+    useReadiness();
 
   // Greenfield data
   const [checklists, setChecklists] = useState<ChecklistData[]>([]);
+  const [briefArtifacts, setBriefArtifacts] = useState<BriefArtifactSummary[]>([]);
 
   // Mid-project data
   const [midProjectData, setMidProjectData] = useState<MidProjectData | null>(null);
@@ -122,36 +125,7 @@ export default function ChecklistsPage() {
   const [networkError, setNetworkError] = useState<string | null>(null);
 
   // Elapsed time tracker for long-running plays (VAL-CHECK-043)
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const isGreenfield = score === 0;
-
-  // Track whether any execution is running (for elapsed time timer)
-  const hasRunningExecution = Array.from(activeExecutions.values()).some(
-    (exec) => exec.status === 'running',
-  );
-
-  // Track elapsed time when any execution is running (VAL-CHECK-043)
-  useEffect(() => {
-    if (hasRunningExecution) {
-      setElapsedSeconds(0);
-      elapsedTimerRef.current = setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1);
-      }, 1000);
-    } else {
-      if (elapsedTimerRef.current) {
-        clearInterval(elapsedTimerRef.current);
-        elapsedTimerRef.current = null;
-      }
-      setElapsedSeconds(0);
-    }
-    return () => {
-      if (elapsedTimerRef.current) {
-        clearInterval(elapsedTimerRef.current);
-      }
-    };
-  }, [hasRunningExecution]);
+  const isGreenfield = lifecycle === 'greenfield';
 
   // Clear network error toast after 5s
   useEffect(() => {
@@ -171,8 +145,12 @@ export default function ChecklistsPage() {
         if (!res.ok) {
           throw new Error(`Failed to load checklists: ${res.status}`);
         }
-        const data = (await res.json()) as { checklists: ChecklistData[] };
+        const data = (await res.json()) as {
+          checklists: ChecklistData[];
+          briefArtifacts?: BriefArtifactSummary[];
+        };
         setChecklists(data.checklists);
+        setBriefArtifacts(data.briefArtifacts ?? []);
         setMidProjectData(null);
       } else {
         // Mid-project: fetch selected & ordered checklists
@@ -183,6 +161,7 @@ export default function ChecklistsPage() {
         const data = (await res.json()) as MidProjectData;
         setMidProjectData(data);
         setChecklists([]);
+        setBriefArtifacts([]);
       }
 
       setError(null);
@@ -203,64 +182,22 @@ export default function ChecklistsPage() {
   // Greenfield state — single onboarding checklist
   const greenfieldChecklist = checklists.find((c) => c.id === 'greenfield-onboarding');
   const greenfieldChecklistId = greenfieldChecklist?.id ?? 'greenfield-onboarding';
-  const doneCount = getCompletedCount(greenfieldChecklistId);
+  const doneCount = briefArtifacts.length > 0 ? 1 : 0;
   const totalSteps = greenfieldChecklist ? greenfieldChecklist.steps.length : 0;
-
-  // Greenfield execution state — per-checklist tracking.
-  //
-  // `greenfieldExecution` represents the *current or last* execution for this
-  // checklist. It persists after completion (status='complete') so the
-  // ContentSlot stays visible showing the final output (VAL-CHECK-021).
-  const greenfieldExecution = getExecution(greenfieldChecklistId);
-  const greenfieldExecuting = greenfieldExecution?.status === 'running';
-  // The step that currently has (or most recently had) the execution attached.
-  const greenfieldExecutionStepId = greenfieldExecution?.stepId ?? null;
 
   // ---------------------------------------------------------------------------
   // Client-side completion ordering (VAL-CHECK-015)
   //
   // The server returns checklists without step completion data (no persistence
-  // in V1). The useStepExecution hook tracks completedCounts client-side.
-  // We re-derive active vs completed here so completed checklists move to the
-  // bottom in real-time as steps are finished during the session.
+  // Mid-project API already returns the current checklist status/progress.
   // ---------------------------------------------------------------------------
   const { clientActive, clientCompleted } = useMemo(() => {
     if (!midProjectData) return { clientActive: [], clientCompleted: [] };
-
-    // Merge all checklists from both server-side active and completed arrays
-    const allChecklists = [...midProjectData.active, ...midProjectData.completed];
-
-    const active: ChecklistWithMetaData[] = [];
-    const completed: ChecklistWithMetaData[] = [];
-
-    for (const item of allChecklists) {
-      const hookCount = getCompletedCount(item.checklist.id);
-      const effectiveCompleted = Math.max(hookCount, item.completedSteps);
-      const isCompleted = effectiveCompleted >= item.totalSteps;
-
-      if (isCompleted) {
-        completed.push({
-          ...item,
-          completedSteps: effectiveCompleted,
-          status: 'completed',
-        });
-      } else {
-        // Derive status from effective completed count
-        const status: 'not-started' | 'in-progress' | 'completed' =
-          effectiveCompleted > 0 ? 'in-progress' : item.status;
-        active.push({
-          ...item,
-          completedSteps: effectiveCompleted,
-          status,
-        });
-      }
-    }
-
-    // Preserve impact-based ordering for active checklists
-    active.sort((a, b) => b.readinessImpact - a.readinessImpact);
-
-    return { clientActive: active, clientCompleted: completed };
-  }, [midProjectData, getCompletedCount]);
+    return {
+      clientActive: [...midProjectData.active].sort((a, b) => b.readinessImpact - a.readinessImpact),
+      clientCompleted: [...midProjectData.completed],
+    };
+  }, [midProjectData]);
 
   // Check if all checklists are completed (all-done state, VAL-CHECK-030)
   // Requires BOTH score===100 AND all checklists complete — score alone is not sufficient
@@ -269,6 +206,21 @@ export default function ChecklistsPage() {
     midProjectData !== null &&
     clientActive.length === 0 &&
     clientCompleted.length > 0;
+
+  const readinessTone =
+    band === '0-30'
+      ? 'border-rose-900/70 bg-rose-950/20 text-rose-200'
+      : band === '30-60'
+        ? 'border-amber-900/70 bg-amber-950/20 text-amber-200'
+        : band === '60-80'
+          ? 'border-sky-900/70 bg-sky-950/20 text-sky-200'
+          : 'border-emerald-900/70 bg-emerald-950/20 text-emerald-200';
+
+  const lifecycleOptions: ReadonlyArray<{ mode: LifecycleMode; label: string }> = [
+    { mode: 'auto', label: 'Auto' },
+    { mode: 'greenfield', label: 'Greenfield' },
+    { mode: 'brownfield', label: 'Brownfield' },
+  ];
 
   return (
     <div data-testid="checklists-view">
@@ -283,15 +235,66 @@ export default function ChecklistsPage() {
       )}
 
       {/* Hero readiness gauge — centered prominently (VAL-CHECK-011) */}
-      <div className="mb-10 flex flex-col items-center gap-3" data-testid="checklists-hero">
+      <div className="mb-10 mx-auto max-w-4xl space-y-5" data-testid="checklists-hero">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">
+              Product Readiness
+            </p>
+            <h2 className="text-2xl font-semibold tracking-tight text-white">Playbook</h2>
+            <p className="max-w-2xl text-sm leading-relaxed text-gray-400">
+              Inspired by Factory&apos;s readiness model, this view shows how prepared the repo is
+              for Garura to operate effectively across product definition, planning, architecture,
+              and epic execution.
+            </p>
+            <p className="text-xs text-gray-500">
+              Engine-managed state persists the lifecycle mode locally so anomalies can be
+              overridden without fighting auto-detection on every refresh.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {lifecycleOptions.map((option) => {
+                const isActive = lifecycleMode === option.mode;
+                return (
+                  <button
+                    key={option.mode}
+                    type="button"
+                    onClick={() => void setLifecycleMode(option.mode)}
+                    className={`rounded-full border px-3 py-1 text-xs font-medium uppercase tracking-wider transition-colors ${
+                      isActive
+                        ? 'border-blue-600 bg-blue-950/40 text-blue-100'
+                        : 'border-gray-800 bg-gray-950 text-gray-400 hover:border-gray-700 hover:text-gray-200'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-right text-xs text-gray-500">
+              Detected: <span className="text-gray-300">{detectedLifecycle}</span>
+              {' · '}
+              Effective: <span className="text-gray-300">{lifecycle}</span>
+            </div>
+          </div>
+        </div>
+
         <ReadinessGauge score={score} />
-        <p className="text-center text-sm text-gray-400" data-testid="hero-supporting-text">
-          {isAllDone
-            ? 'All clear — your project is fully instrumented.'
-            : score === 0
-              ? "Your project isn't flying yet — let's get started."
-              : `${score}% of plays can run with current artifacts.`}
-        </p>
+        <div className={`rounded-xl border px-4 py-3 text-sm ${readinessTone}`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span data-testid="hero-supporting-text">
+              {isAllDone
+                ? 'Garura has the product, planning, architecture, and epic artifacts it needs to operate at full strength.'
+                : isGreenfield
+                  ? 'This repository still looks early-stage. Garura can help most once the first product artifacts are in place.'
+                  : 'This repository shows signs of significant prior work. Readiness reflects how much of that work Garura can actually build on.'}
+            </span>
+            <span className="rounded-full border border-current/20 px-2.5 py-1 text-xs font-semibold uppercase tracking-wider">
+              Band {band}
+            </span>
+          </div>
+        </div>
         {/* Per-area breakdown — only show when there is breakdown data (VAL-CHECK-005) */}
         {breakdown.length > 0 && <ReadinessBreakdown breakdown={breakdown} />}
       </div>
@@ -342,14 +345,7 @@ export default function ChecklistsPage() {
               const isActionable = state === 'in-progress' || state === 'pending';
               const isLocked = state === 'locked';
 
-              // Is an execution currently/previously attached to THIS step?
-              // Used to gate the visibility of the ContentSlot and execution indicators.
-              const isStepExecutionAttached = greenfieldExecutionStepId === step.id;
-              // Narrower: is this step's execution still running (for CTA gating)?
-              const isStepRunning = isStepExecutionAttached && greenfieldExecuting;
-
-              // Show CTA only when actionable and this checklist not currently executing (VAL-CHECK-024)
-              const showCta = isActionable && !greenfieldExecuting;
+              const shouldShowArtifacts = step.id === 'provide-brief' && briefArtifacts.length > 0;
 
               return (
                 <div
@@ -392,68 +388,11 @@ export default function ChecklistsPage() {
                     </span>
                   </div>
 
-                  {/* CTA button — only for actionable, non-executing steps (VAL-CHECK-009, VAL-CHECK-024) */}
-                  {showCta && (
-                    <div className="mt-3 pl-9" data-testid="step-cta-container">
-                      <CTAButton
-                        label={step.label}
-                        playName={step.play}
-                        onExecute={(playName) => {
-                          executeStep(greenfieldChecklistId, step.id, playName);
-                        }}
-                      />
+                  {shouldShowArtifacts && (
+                    <div className="pl-9">
+                      <BriefArtifactPanel artifacts={briefArtifacts} />
                     </div>
                   )}
-
-                  {/* Running indicator — only while still running (VAL-CHECK-043) */}
-                  {isStepRunning && (
-                    <div className="mt-2 pl-9" data-testid="step-executing-indicator">
-                      <span className="inline-flex items-center gap-2 text-xs text-blue-400">
-                        <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-400" />
-                        Running {step.play}…
-                        {elapsedSeconds > 0 && (
-                          <span className="tabular-nums text-gray-500" data-testid="elapsed-time">
-                            ({elapsedSeconds}s)
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* ContentSlot — streams output below active step (VAL-CHECK-021).
-                      Remains visible after completion so the user (and
-                      browser-based tests) can observe the final output.
-                      Post-completion collapses to a compact summary
-                      view with an expand control (VAL-ACTION-018). */}
-                  {isStepExecutionAttached &&
-                    greenfieldExecution &&
-                    greenfieldExecution.status !== 'error' && (
-                      <div className="mt-3 pl-9" data-testid="step-content-slot">
-                        <ContentSlot
-                          state={greenfieldExecution.status === 'complete' ? 'complete' : 'active'}
-                          content={greenfieldExecution.output}
-                          placeholder={`Executing ${step.play}…`}
-                          summary={
-                            greenfieldExecution.status === 'complete'
-                              ? `${step.play} completed`
-                              : undefined
-                          }
-                        />
-                      </div>
-                    )}
-
-                  {/* ContentSlot error state (VAL-CHECK-038) */}
-                  {isStepExecutionAttached &&
-                    greenfieldExecution &&
-                    greenfieldExecution.status === 'error' && (
-                      <div className="mt-3 pl-9" data-testid="step-error-slot">
-                        <ContentSlot
-                          state="error"
-                          content={greenfieldExecution.output}
-                          errorMessage={greenfieldExecution.error}
-                        />
-                      </div>
-                    )}
                 </div>
               );
             })}
@@ -544,9 +483,6 @@ export default function ChecklistsPage() {
                 const checklistId = item.checklist.id;
 
                 // Per-checklist execution: only disable CTA if THIS checklist is executing
-                const checklistExec = getExecution(checklistId);
-                const thisChecklistExecuting = isChecklistExecuting(checklistId);
-
                 return (
                   <ChecklistCard
                     key={checklistId}
@@ -557,12 +493,7 @@ export default function ChecklistsPage() {
                     totalSteps={item.totalSteps}
                     status={item.status}
                     defaultExpanded={index === 0}
-                    onStepExecute={(playName, stepId) => {
-                      executeStep(checklistId, stepId, playName);
-                    }}
-                    activeExecution={checklistExec}
-                    ctaDisabled={thisChecklistExecuting}
-                    elapsedSeconds={elapsedSeconds}
+                    showActions={false}
                     relatedEpic={item.checklist.relatedEpic}
                     persistExpansion
                   />

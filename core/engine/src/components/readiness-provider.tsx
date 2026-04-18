@@ -1,7 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import type { ReadinessResult, AreaBreakdown } from '@/lib/readiness';
+import type { ReadinessResult, AreaBreakdown, ProjectLifecycle, ReadinessBand } from '@/lib/readiness';
+import type { LifecycleMode } from '@/lib/engine-state';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -12,6 +13,14 @@ interface ReadinessContextValue {
   readonly score: number;
   /** Per-area breakdown */
   readonly breakdown: ReadonlyArray<AreaBreakdown>;
+  /** Readiness band for the current score. */
+  readonly band: ReadinessBand;
+  /** Auto-detected repository lifecycle. */
+  readonly lifecycle: ProjectLifecycle;
+  /** Lifecycle inferred by the engine before any manual override. */
+  readonly detectedLifecycle: ProjectLifecycle;
+  /** Whether lifecycle is auto or manually overridden. */
+  readonly lifecycleMode: LifecycleMode;
   /** Total plays in the registry */
   readonly totalPlays: number;
   /** Plays whose preconditions are met */
@@ -24,6 +33,8 @@ interface ReadinessContextValue {
   readonly error: string | null;
   /** Trigger a manual refresh of the readiness data */
   readonly refresh: () => void;
+  /** Persist a lifecycle mode override through the engine. */
+  readonly setLifecycleMode: (mode: LifecycleMode) => Promise<void>;
 }
 
 /**
@@ -49,12 +60,17 @@ export function invalidateReadiness(): void {
 const DEFAULT_CONTEXT: ReadinessContextValue = {
   score: 0,
   breakdown: [],
+  band: '0-30',
+  lifecycle: 'greenfield',
+  detectedLifecycle: 'greenfield',
+  lifecycleMode: 'auto',
   totalPlays: 0,
   runnablePlays: 0,
   lastGitHash: null,
   loading: true,
   error: null,
   refresh: () => {},
+  setLifecycleMode: async () => {},
 };
 
 // ---------------------------------------------------------------------------
@@ -83,6 +99,10 @@ interface ReadinessProviderProps {
 export function ReadinessProvider({ children, pollInterval = 30000 }: ReadinessProviderProps) {
   const [score, setScore] = useState(0);
   const [breakdown, setBreakdown] = useState<ReadonlyArray<AreaBreakdown>>([]);
+  const [band, setBand] = useState<ReadinessBand>('0-30');
+  const [lifecycle, setLifecycle] = useState<ProjectLifecycle>('greenfield');
+  const [detectedLifecycle, setDetectedLifecycle] = useState<ProjectLifecycle>('greenfield');
+  const [lifecycleMode, setLifecycleModeState] = useState<LifecycleMode>('auto');
   const [totalPlays, setTotalPlays] = useState(0);
   const [runnablePlays, setRunnablePlays] = useState(0);
   const [lastGitHash, setLastGitHash] = useState<string | null>(null);
@@ -99,6 +119,10 @@ export function ReadinessProvider({ children, pollInterval = 30000 }: ReadinessP
 
       setScore(data.score);
       setBreakdown(data.breakdown);
+      setBand(data.band);
+      setLifecycle(data.lifecycle);
+      setDetectedLifecycle(data.detectedLifecycle ?? data.lifecycle);
+      setLifecycleModeState(data.lifecycleMode ?? 'auto');
       setTotalPlays(data.totalPlays);
       setRunnablePlays(data.runnablePlays);
       setLastGitHash(data.lastGitHash);
@@ -115,6 +139,21 @@ export function ReadinessProvider({ children, pollInterval = 30000 }: ReadinessP
   useEffect(() => {
     void fetchReadiness();
   }, [fetchReadiness]);
+
+  const setLifecycleMode = useCallback(
+    async (mode: LifecycleMode) => {
+      const res = await fetch('/api/readiness/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lifecycleMode: mode }),
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to update lifecycle mode: HTTP ${res.status}`);
+      }
+      await fetchReadiness();
+    },
+    [fetchReadiness],
+  );
 
   // Polling
   useEffect(() => {
@@ -149,12 +188,17 @@ export function ReadinessProvider({ children, pollInterval = 30000 }: ReadinessP
   const value: ReadinessContextValue = {
     score,
     breakdown,
+    band,
+    lifecycle,
+    detectedLifecycle,
+    lifecycleMode,
     totalPlays,
     runnablePlays,
     lastGitHash,
     loading,
     error,
     refresh: fetchReadiness,
+    setLifecycleMode,
   };
 
   return <ReadinessContext.Provider value={value}>{children}</ReadinessContext.Provider>;
