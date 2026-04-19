@@ -31,6 +31,15 @@ constraints:
       to identify proposal targets). Any write to product LTM from this play is a
       hard constraint violation.
 
+  - id: C4
+    rule: >
+      After proposals.yaml is written to STM (or no_learnings is confirmed),
+      distill MUST invoke repo-orchestrator to self-commit the evidence files
+      it produced (evidence/distill/ contents). This self-commit is
+      non-blocking — any failure is logged and distill returns gracefully.
+      Commit message: "chore(stm): record distill evidence for #{issue} (#{issue})".
+      Never blocks the ship pipeline.
+
 failure_conditions:
   - id: F1
     condition: >

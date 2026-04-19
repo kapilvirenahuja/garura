@@ -1,0 +1,40 @@
+pr_analysis:
+  issue: 274
+  branch: fix/274-ship-evidence-untracked
+  target_branch: main
+  target_branch_confidence: high
+  generated_at: "2026-04-19T07:10:00Z"
+  pr_title: "fix(plays): add evidence sweep to ship and self-commit to distill"
+  summary: >
+    Extends ship's Step 6 to sweep untracked sub-play evidence files (commit-code,
+    create-pr, merge-pr, distill) and commit them alongside ship's own evidence file.
+    Adds Evidence & Close phase to distill with a non-blocking self-commit step per ADR-012.
+  commits:
+    - sha: "926a4ae"
+      message: "fix(plays): add evidence sweep to ship and self-commit to distill (#274)"
+    - sha: "ddb7c28"
+      message: "chore(stm): record #266 sub-play evidence artifacts (#266)"
+    - sha: "1caee0a"
+      message: "chore(stm): record fix-it evidence for #274 (#274)"
+  checklist:
+    - item: "intent.yaml updated before SKILL.md changes"
+      priority: P1
+      trigger_reason: "ship/intent.yaml and distill/intent.yaml modified — play pipeline rules require intent-first workflow"
+      evidence: "Both intent.yaml files modified in same commit as SKILL.md files; intent hash guard in SKILL.md updated to match"
+    - item: "SKILL.md is compiled artifact only (no direct edits without deviation note)"
+      priority: P1
+      trigger_reason: "SKILL.md files are compiled artifacts — direct edits require documented deviation note"
+      evidence: "Deviation note present in both SKILL.md files per fix-it/#274 approval; deviation caused by Skill tool unavailability in code-builder"
+    - item: "ADR-012 non-blocking constraint preserved for self-commits"
+      priority: P1
+      trigger_reason: "New self-commit logic added to ship Step 6 and distill Evidence phase"
+      evidence: "Both implementations are non-blocking: failure logs warning and continues without halting"
+    - item: "Sweep uses explicit file paths, not git add ."
+      priority: P1
+      trigger_reason: "ADR-012 Rule 1 requires targeted commits, not broad git add"
+      evidence: "Sweep logic enumerates specific sub-play paths from ship.json status; git status --porcelain filtering applied before staging"
+  confidence:
+    overall: high
+    target_branch: high
+    checklist: high
+  blocking_issues: []

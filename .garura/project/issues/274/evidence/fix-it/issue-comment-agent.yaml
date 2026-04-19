@@ -1,0 +1,13 @@
+status: completed
+dispatched_at: "2026-04-19T06:45:00Z"
+completed_at: "2026-04-19T06:47:41Z"
+task_id: issue-comment-dispatch
+template: core/components/memory/standards/templates/issue-comment-rca-approved.md
+issue_comment:
+  issue_number: 274
+  action: comment
+  commented: true
+  comment_url: "https://github.com/kapilvirenahuja/garura/issues/274#issuecomment-4275369355"
+  approved_by: "@kapilvirenahuja"
+  play: "fix-it"
+  stm_evidence: ".garura/project/issues/274/evidence/fix-it/"

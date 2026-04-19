@@ -1,0 +1,67 @@
+analysis:
+  issue: 274
+  branch: fix/274-ship-evidence-untracked
+  generated_at: "2026-04-19T00:00:00Z"
+  groups:
+    - id: G1
+      concern: "Fix ship evidence sweep and distill self-commit (issue #274)"
+      commit_type: fix
+      commit_scope: plays
+      files:
+        - core/components/plays/distill/SKILL.md
+        - core/components/plays/distill/reference/intent.yaml
+        - core/components/plays/ship/SKILL.md
+        - core/components/plays/ship/reference/intent.yaml
+      issue_hint: 274
+    - id: G2
+      concern: "STM evidence artifacts from #266 ship pipeline (previously untracked)"
+      commit_type: chore
+      commit_scope: stm
+      files:
+        - .garura/project/issues/266/evidence/commit-code/commits.yaml
+        - .garura/project/issues/266/evidence/commit-code/analysis.yaml
+        - .garura/project/issues/266/evidence/commit-code/issue-mappings.yaml
+        - .garura/project/issues/266/evidence/distill/proposals.yaml
+        - .garura/project/issues/266/evidence/fix-it/resolution-trace.yaml
+        - .garura/project/issues/266/evidence/fix-it/branch-result.yaml
+        - .garura/project/issues/266/evidence/fix-it/issue-comment-agent.yaml
+        - .garura/project/issues/266/evidence/fix-it/rca.yaml
+        - .garura/project/issues/266/evidence/fix-it/20260419-062932.md
+        - .garura/project/issues/266/evidence/fix-it/implementation-report.yaml
+        - .garura/project/issues/266/evidence/fix-it/design.yaml
+        - .garura/project/issues/266/evidence/fix-it/issue-read.yaml
+        - .garura/project/issues/266/evidence/create-play/garura-capture/agent-audit-project-orchestrator.md
+        - .garura/project/issues/266/evidence/create-play/garura-capture/skill-manifest.yaml
+        - .garura/project/issues/266/evidence/create-play/garura-capture/evals.yaml
+        - .garura/project/issues/266/evidence/create-play/garura-capture/constraint-classifications.yaml
+        - .garura/project/issues/266/evidence/create-play/garura-capture/coverage-matrix.md
+        - .garura/project/issues/266/evidence/create-play/garura-capture/play-analysis.md
+        - .garura/project/issues/266/evidence/merge-pr/readiness.yaml
+        - .garura/project/issues/266/evidence/merge-pr/merge-result.yaml
+        - .garura/project/issues/266/evidence/create-pr/issue-linkage.yaml
+        - .garura/project/issues/266/evidence/create-pr/pr-record.yaml
+        - .garura/project/issues/266/evidence/create-pr/analysis.yaml
+      issue_hint: 266
+    - id: G3
+      concern: "STM evidence artifacts for fix-it #274"
+      commit_type: chore
+      commit_scope: stm
+      files:
+        - .garura/project/issues/274/evidence/fix-it/resolution-trace.yaml
+        - .garura/project/issues/274/evidence/fix-it/issue-comment-agent.yaml
+        - .garura/project/issues/274/evidence/fix-it/rca.yaml
+        - .garura/project/issues/274/evidence/fix-it/implementation-report.yaml
+        - .garura/project/issues/274/evidence/fix-it/design.yaml
+        - .garura/project/issues/274/evidence/fix-it/issue-read.yaml
+        - .garura/project/issues/274/evidence/start-feature/20260419-063912.md
+        - .garura/project/issues/274/evidence/start-feature/issue-resolution.yaml
+        - .garura/project/issues/274/evidence/commit-code/analysis.yaml
+      issue_hint: 274
+  excluded:
+    - path: ".claude/scheduled_tasks.lock"
+      reason: "runtime lock file"
+    - path: ".garura/project/issues/_pending/start-feature/args.yaml"
+      reason: "transient start-feature runtime artifact"
+    - path: ".garura/project/issues/_pending/start-feature/changed-files.txt"
+      reason: "transient start-feature runtime artifact"
+  risks: []

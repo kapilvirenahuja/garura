@@ -1,0 +1,24 @@
+readiness:
+  pr_number: 273
+  pr_title: "refactor(plays): rename report-issue to garura:capture with multi-type support"
+  pr_state: OPEN
+  mergeable: true
+  merge_state_status: CLEAN
+  head_branch: fix/266-report-issue-rename
+  base_branch: main
+  working_tree_clean: true
+  working_tree_notes: "Only untracked files present — no staged or modified tracked files. C3 satisfied."
+  constraints_checked:
+    - id: C1
+      status: PASS
+      note: "Current branch is fix/266-report-issue-rename, not main/master."
+    - id: C2
+      status: PASS
+      note: "PR #273 exists and is OPEN on platform."
+    - id: C3
+      status: PASS
+      note: "No staged or uncommitted tracked changes. Untracked files do not violate C3."
+    - id: C4
+      status: PASS
+      note: "mergeStateStatus=CLEAN — no merge conflicts."
+  verdict: READY_TO_MERGE

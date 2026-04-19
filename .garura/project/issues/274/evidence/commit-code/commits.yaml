@@ -1,0 +1,62 @@
+commits:
+  - id: 1
+    group: G1
+    issue: 274
+    type: fix
+    scope: plays
+    subject: add evidence sweep to ship and self-commit to distill
+    sha: 926a4ae
+    files:
+      - core/components/plays/distill/SKILL.md
+      - core/components/plays/distill/reference/intent.yaml
+      - core/components/plays/ship/SKILL.md
+      - core/components/plays/ship/reference/intent.yaml
+  - id: 2
+    group: G2
+    issue: 266
+    type: chore
+    scope: stm
+    subject: record #266 sub-play evidence artifacts
+    sha: ddb7c28
+    files:
+      - .garura/project/issues/266/evidence/commit-code/commits.yaml
+      - .garura/project/issues/266/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/266/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/266/evidence/distill/proposals.yaml
+      - .garura/project/issues/266/evidence/fix-it/resolution-trace.yaml
+      - .garura/project/issues/266/evidence/fix-it/branch-result.yaml
+      - .garura/project/issues/266/evidence/fix-it/issue-comment-agent.yaml
+      - .garura/project/issues/266/evidence/fix-it/rca.yaml
+      - .garura/project/issues/266/evidence/fix-it/20260419-062932.md
+      - .garura/project/issues/266/evidence/fix-it/implementation-report.yaml
+      - .garura/project/issues/266/evidence/fix-it/design.yaml
+      - .garura/project/issues/266/evidence/fix-it/issue-read.yaml
+      - .garura/project/issues/266/evidence/create-play/garura-capture/agent-audit-project-orchestrator.md
+      - .garura/project/issues/266/evidence/create-play/garura-capture/skill-manifest.yaml
+      - .garura/project/issues/266/evidence/create-play/garura-capture/evals.yaml
+      - .garura/project/issues/266/evidence/create-play/garura-capture/constraint-classifications.yaml
+      - .garura/project/issues/266/evidence/create-play/garura-capture/coverage-matrix.md
+      - .garura/project/issues/266/evidence/create-play/garura-capture/play-analysis.md
+      - .garura/project/issues/266/evidence/merge-pr/readiness.yaml
+      - .garura/project/issues/266/evidence/merge-pr/merge-result.yaml
+      - .garura/project/issues/266/evidence/create-pr/issue-linkage.yaml
+      - .garura/project/issues/266/evidence/create-pr/pr-record.yaml
+      - .garura/project/issues/266/evidence/create-pr/analysis.yaml
+  - id: 3
+    group: G3
+    issue: 274
+    type: chore
+    scope: stm
+    subject: record fix-it evidence for #274
+    sha: 1caee0a
+    files:
+      - .garura/project/issues/274/evidence/fix-it/resolution-trace.yaml
+      - .garura/project/issues/274/evidence/fix-it/issue-comment-agent.yaml
+      - .garura/project/issues/274/evidence/fix-it/rca.yaml
+      - .garura/project/issues/274/evidence/fix-it/implementation-report.yaml
+      - .garura/project/issues/274/evidence/fix-it/design.yaml
+      - .garura/project/issues/274/evidence/fix-it/issue-read.yaml
+      - .garura/project/issues/274/evidence/start-feature/20260419-063912.md
+      - .garura/project/issues/274/evidence/start-feature/issue-resolution.yaml
+      - .garura/project/issues/274/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/274/evidence/commit-code/issue-mappings.yaml

@@ -1,0 +1,25 @@
+issue_mappings:
+  issue: 274
+  generated_at: "2026-04-19T07:00:00Z"
+  mappings:
+    - group_id: G1
+      issue: 274
+      confidence: high
+      reasoning: >
+        4 modified files are the direct implementation of fix for issue #274
+        (ship/distill play updates to add evidence sweep and self-commit).
+    - group_id: G2
+      issue: 266
+      confidence: high
+      reasoning: >
+        All files are under .garura/project/issues/266/evidence/ — STM artifacts
+        produced during the fix-it #266 ship pipeline that were left untracked.
+        This is the reproduction case for #274.
+    - group_id: G3
+      issue: 274
+      confidence: high
+      reasoning: >
+        All files are under .garura/project/issues/274/ — STM evidence artifacts
+        for the current fix-it #274 work (RCA, design, implementation report, etc.).
+  conflicts: []
+  all_high_confidence: true
