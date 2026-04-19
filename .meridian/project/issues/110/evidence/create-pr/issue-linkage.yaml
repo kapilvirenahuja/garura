@@ -1,9 +1,0 @@
-issue:
-  number: 110
-  title: "Play: check-drift — multi-agent implementation alignment analysis"
-  url: "https://github.com/kapilvirenahuja/meridian-os/issues/110"
-  state: "open"
-  labels: ["enhancement"]
-linkage:
-  source: "branch_name"
-  confidence: "high"

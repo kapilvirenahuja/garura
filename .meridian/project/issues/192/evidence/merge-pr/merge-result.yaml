@@ -1,7 +1,0 @@
-result:
-  status: "merged"
-  pr_number: 193
-  merge_sha: "1f131eb6dd41df51855c34a046f2981ded81a59c"
-  base_branch: "main"
-  branch_deleted: true
-  error: null

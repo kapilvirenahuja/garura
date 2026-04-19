@@ -1,6 +1,0 @@
-pr_number: 178
-pr_url: "https://github.com/kapilvirenahuja/meridian-os/pull/178"
-title: "refactor: restructure product artifact directory layout #177"
-base_branch: main
-head_branch: refactor/177-restructure-product-artifact-dirs
-issue_linked: 177

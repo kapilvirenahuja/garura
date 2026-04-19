@@ -1,8 +1,0 @@
-issue:
-  number: 150
-  title: "Follow-up #148: play reviews, evals-creator, draft-quality-standards skill, ADR, taxonomy QP signals, backward compat, sync"
-  body: "## Description\n\nFollow-up work items from issue #148 (three-axis profiling, quality standards plays).\n\n## Acceptance Criteria\n\n- [ ] Run /create-play --review on plan-roadmap, prepare-architecture, prepare-implementation and fix gaps\n- [ ] Run evals-creator for all 4 plays (discover-product, plan-roadmap, prepare-architecture, prepare-implementation) to regenerate evals from source\n- [ ] Create draft-quality-standards skill for deterministic quality standards generation\n- [ ] Write ADR for three-axis profiling decision\n- [ ] Update domain taxonomy files with QP dimension signals\n- [ ] Verify backward compatibility for existing products without profiles\n- [ ] Run /sync-claude and /sync-droids to deploy\n\n---\n\n*Created via Meridian `start-feature` workflow.*"
-  url: "https://github.com/kapilvirenahuja/meridian-os/issues/150"
-  state: "open"
-  created: true
-  type_hint: "chore"

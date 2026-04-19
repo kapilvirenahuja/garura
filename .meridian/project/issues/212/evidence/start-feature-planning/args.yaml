@@ -1,3 +1,0 @@
-input_type: title
-value: "refactor: rename 'recipes' to 'plays' across the entire codebase — every file, directory, config key, doc, and reference"
-parent: null
