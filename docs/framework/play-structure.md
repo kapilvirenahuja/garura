@@ -123,7 +123,7 @@ The sub-play reads `ship_context.auto_approve: true` and writes a checkpoint art
 
 ## Task-Driven DAG Variant
 
-Used by plays like `plan-roadmap` that define a capability graph rather than a fixed step sequence. The play creates the **full task graph upfront** using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order.
+Used by plays like `prepare-epic` that define a capability graph rather than a fixed step sequence. The play creates the **full task graph upfront** using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order.
 
 ### Structure
 

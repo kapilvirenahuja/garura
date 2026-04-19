@@ -191,7 +191,7 @@ The created PR includes checkboxes grouped by trigger:
 
 ## Project Customization
 
-Override or extend rules in `.meridian/config/quality-gates/pr/rules.md`.
+Override or extend rules in `.garura/config/quality-gates/pr/rules.md`.
 
 ### Add Custom Rules
 

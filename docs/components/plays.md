@@ -72,19 +72,22 @@ The JSON contract is the primary communication mechanism in task-driven plays. A
 ```json
 {
   "intent_path": "reference/intent.yaml",
-  "stm_base": ".meridian/project/product/",
-  "slug": "<derived from input>",
+  "stm_base": ".garura/project/issues/",
   "stm": {
-    "vision_path": "<input path>",
-    "epics_path": null,
-    "feasibility_path": null,
-    "brief_path": null,
-    "approved_brief_path": null,
-    "roadmap_path": null,
-    "engineering_view_path": null
+    "input": {
+      "feature_intent_path": "<input path>"
+    },
+    "output": {
+      "features_path": null,
+      "technical_approach_path": null,
+      "tech_path": null,
+      "scenarios_path": null,
+      "plan_path": null,
+      "validation_path": null
+    }
   },
   "checkpoints": [
-    { "name": "brief_review", "status": "pending" }
+    { "name": "design_review", "status": "pending" }
   ],
   "evidence": [
     { "name": "prepare-epic", "location": null }
@@ -100,14 +103,14 @@ The JSON contract is the primary communication mechanism in task-driven plays. A
 |-------|-------|---------|
 | `intent_path` | Play | Path to intent.yaml — agents read it directly |
 | `stm_base` | Play | Base path for all STM artifacts |
-| `slug` | Play | Identifier derived from the input (e.g., vision file name) |
-| `stm.*` | Agents | Artifact paths — agents populate null fields with paths they produce |
+| `stm.input` | Play | Paths to input artifacts populated at play initialization — agents read these |
+| `stm.output` | Agents | Artifact paths — agents populate null fields with paths they produce |
 | `checkpoints` | Play | Checkpoint status — play updates after human review |
 | `evidence` | Play | Evidence paths — play updates at report step |
 | `notes` | Agents | Short observations from the current step (max 3, 1 sentence each). Structured context for downstream agents — not prose. |
 | `step_failure` | Agents | Non-null only when the agent cannot recover. Play reads this to decide retry or halt. |
 
-**Note on LTM paths:** The contract carries STM artifact paths (the `stm.*` fields above). Agents ALSO discover and pass LTM paths to skills as separate input parameters during the Context Crafting step. These LTM paths are NOT stored in the contract — they are assembled by the agent at invocation time. Examples: `epic_schema_path` (the schema the skill must conform to) and `template_path` (the template the skill fills). The contract tells agents WHERE prior artifacts landed; LTM discovery tells agents WHAT standards and templates govern the current step.
+**Note on LTM paths:** The contract carries STM artifact paths (the `stm.input` and `stm.output` fields). Agents ALSO discover and pass LTM paths to skills as separate input parameters during the Context Crafting step. These LTM paths are NOT stored in the contract — they are assembled by the agent at invocation time. Examples: `epic_schema_path` (the schema the skill must conform to) and `template_path` (the template the skill fills). The contract tells agents WHERE prior artifacts landed; LTM discovery tells agents WHAT standards and templates govern the current step.
 
 ### How the Contract Flows
 
@@ -251,7 +254,7 @@ When a play invokes an agent, the agent does more than "read STM and call a skil
 
 Task-driven plays support resuming from a checkpoint. The `--resume` flag instructs the play to:
 
-1. Find the latest checkpoint artifact in `.meridian/project/product/checkpoint/{play-name}/`, ordered by timestamp (most recent first)
+1. Find the latest checkpoint artifact in `.garura/project/issues/{N}/checkpoint/{play-name}/`, ordered by timestamp (most recent first)
 2. Reconstruct the JSON contract from checkpoint state
 3. Route based on checkpoint status:
    - `brief_review.status: pending` → re-present the artifact to the user, continue from the feedback loop
@@ -320,34 +323,41 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
 
 | Play | Pattern | Purpose |
 |--------|---------|---------|
+| `briefs` | Linear | Regenerate HTML briefs from product YAML artifacts |
+| `build-arch` | Task-Driven | Build architecture artifacts (logical, physical, NFR, quality) |
+| `capture` | Linear | Capture any issue type (feature / bug / defect / epic / enhancement) as a labeled GitHub Issue with background dispatch |
+| `capture-learning` | Linear | Capture learnings to LTM (archival) |
+| `check-drift` | Linear | Check for drift between docs and codebase |
 | `commit-code` | Linear | Commit changes grouped by concern with conventional messages |
+| `create-play` | Task-Driven | Compile a new play from an intent.yaml |
 | `create-pr` | Linear | Create a pull request with review checklist |
-| `review-pr` | Linear | Diff-scoped quality review for a pull request |
+| `design-exp` | Task-Driven | Design experience artifacts — personas, screens, flows, wireframes |
+| `distill` | Task-Driven | Distill knowledge into LTM |
+| `enhance` | Task-Driven | RCA-driven enhancement — traces root cause, designs fix, ships |
+| `fix-it` | Task-Driven | RCA-driven defect resolution — root-cause trace, design fix, ship |
+| `implement-epic` | Task-Driven | Implement a feature through an eval-driven TDD loop |
 | `merge-pr` | Linear | Merge a pull request and clean up the branch |
+| `prepare-epic` | Task-Driven | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
+| `report-issue` | Linear | DEPRECATED — alias for `garura:capture`. Available until next major release. Use `/capture` instead. |
+| `review-pr` | Linear | Diff-scoped quality review for a pull request |
+| `ship` | Linear (chains atomic plays) | Deliver branch work — commit, PR, review, merge, return |
+| `specify-product` | Task-Driven | Specify product from brief through scope |
 | `start-feature` | Linear | Start a new feature branch from an issue |
 | `start-feature-planning` | Linear | Plan a feature before implementation |
-| `capture-learning` | Linear | Capture learnings to LTM (archival) |
-| `briefs` | Linear | Regenerate HTML briefs from product YAML artifacts |
-| `fix-it` | Task-Driven | RCA-driven defect resolution — root-cause trace, design fix, ship |
-| `prepare-epic` | Task-Driven | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
-| `implement-epic` | Task-Driven | Implement a feature through an eval-driven TDD loop |
-| `create-play` | Task-Driven | Compile a new play from an intent.yaml |
-| `ship` | Linear (chains atomic plays) | Deliver branch work — commit, PR, review, merge, return |
-| `capture` | Linear | Capture any issue type (feature / bug / defect / epic / enhancement) as a labeled GitHub Issue with background dispatch |
-| `report-issue` | Linear | DEPRECATED — alias for `garura:capture`. Available until next major release. Use `/capture` instead. |
+| `validate-epic` | Task-Driven | Cross-validate epic design artifacts |
 
 ## Artifact Locations (per ADR 017 whitelist)
 
 | Artifact Type | Location Pattern |
 |---------------|------------------|
-| Specifications (issue-scoped) | `.meridian/project/issues/{N}/specs/` |
-| Evidence | `.meridian/project/issues/{N}/evidence/{play-name}/{timestamp}.md` |
-| Checkpoints | `.meridian/project/issues/{N}/checkpoint/{play-name}/{timestamp}.md` |
-| Context (prepare-epic, build-arch) | `.meridian/project/issues/{N}/context/` |
-| Review artifacts | `.meridian/project/issues/{N}/review/` |
-| Product planning (specify-product output) | `.meridian/product/` |
-| UX (design-exp output) | `.meridian/product/ux/` |
-| Architecture (build-arch output) | `.meridian/product/arch/` |
+| Specifications (issue-scoped) | `.garura/project/issues/{N}/specs/` |
+| Evidence | `.garura/project/issues/{N}/evidence/{play-name}/{timestamp}.md` |
+| Checkpoints | `.garura/project/issues/{N}/checkpoint/{play-name}/{timestamp}.md` |
+| Context (prepare-epic, build-arch) | `.garura/project/issues/{N}/context/` |
+| Review artifacts | `.garura/project/issues/{N}/review/` |
+| Product planning (specify-product output) | `.garura/product/` |
+| UX (design-exp output) | `.garura/product/ux/` |
+| Architecture (build-arch output) | `.garura/product/arch/` |
 | External | Returned directly (URLs, IDs) |
 
 ## Task Framework Integration
