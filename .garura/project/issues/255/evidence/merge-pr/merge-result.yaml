@@ -1,0 +1,9 @@
+status: merged
+pr_number: 277
+merge_sha: 2da8e9d
+base_branch: main
+branch_deleted: true
+branch_deletion_note: >
+  gh pr merge --delete-branch handled both local and remote deletion.
+  Subsequent explicit delete attempts returned "not found" — benign per C6.
+merged_at: "2026-04-19"
