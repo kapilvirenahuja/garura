@@ -53,6 +53,21 @@ constraints:
       fire-and-forget: ship reads the outcome and records it in evidence,
       then continues regardless of whether the outcome is "completed" or
       "skipped".
+  - id: C9
+    rule: >
+      After Step 6 (Write Evidence), ship MUST build a sweep list of all
+      sub-play evidence files that exist and are untracked in the working
+      tree. The sweep list is derived from the STM paths known for each
+      sub-play that ran (commit-code, create-pr, merge-pr, distill), using
+      ship.json status to determine which sub-plays completed. If ship.json
+      is absent, fall back to probing known paths directly:
+      evidence/commit-code/, evidence/create-pr/, evidence/merge-pr/,
+      evidence/distill/. All untracked files in these paths (determined by
+      git status --porcelain filtered to these paths) are included in
+      ship's evidence self-commit alongside ship's own evidence file. The
+      sweep commit is non-blocking — any failure is logged and ship
+      continues. If no untracked sub-play files exist, no sweep commit is
+      made.
 
 failure_conditions:
   - id: F1
@@ -82,6 +97,10 @@ failure_conditions:
       Ship completed a merge while review-pr.bypass was false and
       review-pr returned a P1 finding or sub-threshold confidence
       (routing == block or escalate).
+  - id: F8
+    condition: >
+      Ship completes and sub-play evidence files written during the
+      pipeline remain untracked in the working tree.
 
 scenarios:
   - id: S1
