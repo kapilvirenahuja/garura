@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-ADR 008 established issue-centric STM at `.meridian/{issue}/` with a flat directory structure. Retention was declared as "persist forever" with cleanup deferred as an open item.
+ADR 008 established issue-centric STM at `.garura/project/issues/{issue}/` with a flat directory structure. Retention was declared as "persist forever" with cleanup deferred as an open item.
 
 At scale (100s-1000s of issues), this flat structure becomes unmanageable:
 
@@ -22,10 +22,10 @@ At scale (100s-1000s of issues), this flat structure becomes unmanageable:
 
 ### 1. Hybrid Active/Archive Model
 
-Active issues remain flat at `.meridian/{issue}/` — zero path changes to plays, agents, or skills. Archived issues move to `.meridian/_archive/{YYYY-MM}/{issue}/`.
+Active issues remain flat at `.garura/project/issues/{issue}/` — zero path changes to plays, agents, or skills. Archived issues move to `.garura/project/issues/_archive/{YYYY-MM}/{issue}/`.
 
 ```
-.meridian/
+.garura/project/issues/
 ├── 62/                          # active — flat, fast lookup
 ├── 63/                          # active
 ├── _archive/
@@ -35,8 +35,7 @@ Active issues remain flat at `.meridian/{issue}/` — zero path changes to plays
 │   └── 2026-02/
 │       ├── 38/
 │       └── 41/
-├── _pending/                    # unchanged (ADR 008)
-└── core/                        # LTM (unchanged)
+└── _pending/                    # unchanged (ADR 008)
 ```
 
 ### 2. Archival Trigger
@@ -65,7 +64,7 @@ Format: `{YYYY-MM}` — e.g., `2026-02` for work closed in February 2026.
 No play reads from `_archive/` at runtime. The archive exists solely as an audit trail. Finding archived issues:
 
 ```bash
-find .meridian/_archive -name "{issue}" -type d
+find .garura/project/issues/_archive -name "{issue}" -type d
 ```
 
 ### 5. Preservation Guarantee
@@ -90,7 +89,7 @@ All STM contents are preserved during the move — checkpoint, evidence, plannin
 
 This ADR extends [ADR 008: Issue-Centric STM and NWWI](./008-issue-centric-stm-and-nwwi.md). Specifically:
 
-- ADR 008's active STM structure (`.meridian/{issue}/`) is **unchanged**
+- ADR 008's active STM structure (`.garura/project/issues/{issue}/`) is **unchanged**
 - ADR 008's `_pending/` mechanism is **unchanged**
 - ADR 008's "persist forever" retention is refined: active issues persist in-place; closed issues persist in `_archive/` with year-month bucketing
 - ADR 008's open item "Checkpoint cleanup policy" is partially addressed

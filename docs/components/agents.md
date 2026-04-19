@@ -65,11 +65,23 @@ Meridian avoids both extremes:
 | `repo-orchestrator` | repo | orchestrator | sonnet | Autonomous decision-maker for repository operations (commits, branches, PRs, git state) |
 | `project-orchestrator` | project | orchestrator | sonnet | Autonomous decision-maker for project management operations (issues, tracking, planning) |
 | `engineering-manager` | engineering | manager | sonnet | QP compliance certifier — verifies implementation meets Quality Profile standards |
-| `scriber` | infra | evidence-writer | haiku | Utility agent. Writes evidence, checkpoint, and status artifacts to disk for plays, enforcing the `.meridian/` folder whitelist at the write boundary. Runs in the background so orchestrators can continue domain work in parallel with evidence I/O. |
+| `scriber` | infra | evidence-writer | haiku | Utility agent. Writes evidence, checkpoint, and status artifacts to disk for plays, enforcing the `.garura/` folder whitelist at the write boundary. Runs in the background so orchestrators can continue domain work in parallel with evidence I/O. |
+| `designer` | design | designer | sonnet | UX design agent — plans user experience, personas, screens, and flows |
+| `doc-builder` | documentation | builder | haiku | Documentation agent — generates and updates documentation artifacts |
+| `eval-generator` | evaluation | generator | sonnet | Eval generation agent — produces evaluation suites for testing agent behavior |
+| `intent-crafter` | intent | crafter | sonnet | Intent crafting agent — defines goals, constraints, and failure conditions for plays |
+| `intent-resolver` | intent | resolver | sonnet | Intent resolution agent — resolves ambiguous or underspecified intents |
+| `judge` | evaluation | judge | opus | Evaluation judging agent — evaluates agent output against defined criteria |
+| `knowledge-extractor` | knowledge | extractor | sonnet | Knowledge extraction agent — extracts structured knowledge from artifacts |
+| `market-analyst` | market | analyst | sonnet | Market analysis agent — researches and analyzes market opportunities |
+| `product-keeper` | product | keeper | sonnet | Product management agent — maintains product scope, epics, and planning artifacts |
+| `quality-auditor` | quality | auditor | sonnet | Quality audit agent — audits implementation and design artifacts for standards compliance |
+| `tech-architect` | architecture | architect | sonnet | Technical architecture agent — designs system architecture, NFR profiles, and quality standards |
+| `test-engineer` | testing | engineer | sonnet | Test engineering agent — designs and executes test suites for feature verification |
 
 ### Scriber dispatch pattern (Utility agent, 214.1)
 
-`scriber` is a utility agent — it performs no domain reasoning and owns no decisions about content. Plays dispatch it via the Agent tool with `run_in_background: true` for every write that lands in the `.meridian/` folder whitelist (evidence, checkpoint, status artifacts). The scriber invokes the `write-evidence` skill, which is the single chokepoint that validates paths against the 9 whitelist patterns before calling `Write`.
+`scriber` is a utility agent — it performs no domain reasoning and owns no decisions about content. Plays dispatch it via the Agent tool with `run_in_background: true` for every write that lands in the `.garura/` folder whitelist (evidence, checkpoint, status artifacts). The scriber invokes the `write-evidence` skill, which is the single chokepoint that validates paths against the 9 whitelist patterns before calling `Write`.
 
 **When to dispatch scriber instead of writing inline:**
 
@@ -108,7 +120,7 @@ When a play orchestrates multiple agents, it passes a **JSON contract** as the a
 1. **Read intent.yaml** at `intent_path` from the contract — understand the goal, constraints, failure conditions, and scenarios.
 2. **Identify what to handle** — look at `stm` paths in the contract. Null paths indicate missing artifacts. Based on the goal, the agent's domain, and what is missing, determine what to produce.
 3. **Update task graph** — mark the agent's task as `in_progress` via TaskUpdate. Add new tasks via TaskCreate if additional work is discovered.
-4. **Collect context from LTM** — search `~/.meridian/core/memory/` for domain-relevant standards, templates, and schemas. Pass discovered LTM paths to skills as input. Skills do NOT search LTM themselves.
+4. **Collect context from LTM** — search `~/.garura/core/memory/` for domain-relevant standards, templates, and schemas. Pass discovered LTM paths to skills as input. Skills do NOT search LTM themselves.
 5. **Read existing STM artifacts** — read non-null `stm` paths. Write context to STM if downstream agents need it.
 6. **Call skills** from the agent's skill pool. The agent assembles skill inputs by combining: (1) STM artifact paths from the contract, (2) LTM paths discovered during context loading (schemas, templates, standards), and (3) the product slug and base STM path. The agent is responsible for giving the skill everything it needs — skills do NOT search or load LTM themselves. Skills read from the provided paths, write artifacts, and return a YAML output contract with the artifact path. Do NOT forward skill output as the response — extract only the artifact path.
 7. **Validate outcomes** against failure conditions and scenarios from intent.yaml. Validation is silent — do NOT include validation results in the response. If validation fails, attempt self-recovery (max 2 attempts). If still failing, set `step_failure` in the contract.
@@ -122,14 +134,14 @@ The agent's entire response is ONE JSON object. No prose, no YAML blocks, no val
 ```json
 {
   "intent_path": "core/components/plays/prepare-epic/reference/intent.yaml",
-  "stm_base": ".meridian/project/issues/",
+  "stm_base": ".garura/project/issues/",
   "stm": {
     "input": {
-      "features_yaml_path": ".meridian/project/issues/42/specs/features.yaml"
+      "features_yaml_path": ".garura/project/issues/42/specs/features.yaml"
     },
     "output": {
-      "technical_approach_path": ".meridian/project/issues/42/specs/technical-approach.md",
-      "tech_yaml_path": ".meridian/project/issues/42/specs/tech.yaml"
+      "technical_approach_path": ".garura/project/issues/42/specs/technical-approach.md",
+      "tech_yaml_path": ".garura/project/issues/42/specs/tech.yaml"
     }
   },
   "task_id": "draft-tech-context",
@@ -198,6 +210,96 @@ code-builder has no skills — it implements code directly using its tools (Bash
 | Skill | Purpose |
 |-------|---------|
 | `manage-issue` | Read, create, close, or resolve GitHub issues with optional sub-issue attachment |
+
+### engineering-manager Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `build-quality-gate` | Evaluate implementation against the Quality Profile's acceptance criteria |
+| `generate-quality-profile` | Generate a Quality Profile for a product feature |
+
+### designer Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `plan-experience` | Plan user experience artifacts — personas, screens, flows, wireframes |
+
+### doc-builder Skill Pool
+
+doc-builder produces documentation artifacts directly using its tools. See the agent definition for output contracts.
+
+### eval-generator Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `draft-verification-scenarios` | Create evaluation scenarios with pass/fail criteria |
+
+### intent-crafter Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `generate-brief` | Generate a product brief from strategic inputs |
+| `generate-project-profile` | Generate a project profile artifact |
+
+### intent-resolver Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `resolve-domain` | Resolve domain and capability context for a product intent |
+
+### judge Skill Pool
+
+judge evaluates agent output against defined criteria directly using its tools. See the agent definition for evaluation contracts.
+
+### knowledge-extractor Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `distill` | Distill structured knowledge from artifacts into LTM |
+| `wire-ltm-context` | Wire LTM context paths for downstream agent consumption |
+| `resolve-ltm-context` | Resolve the relevant LTM context for a given task |
+| `validate-kb-extension` | Validate a KB extension against the canonical nine-section schema |
+
+### market-analyst Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `research-market` | Research market landscape, competitors, and positioning |
+| `assess-market-opportunity` | Assess the strategic opportunity for a product or feature |
+| `generate-market-brief` | Generate a market brief artifact |
+
+### product-keeper Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `derive-epics` | Derive epics from a product brief and scope |
+| `refine-scope` | Refine product scope based on constraints and priorities |
+| `plan-mvp` | Plan MVP feature set from epics and scope |
+| `scope-capabilities` | Select capabilities from the domain taxonomy for a product |
+| `configure-capabilities` | Configure selected capabilities with feature flags and constraints |
+| `evaluate-scope` | Evaluate scope fit against strategic goals |
+| `validate-scope` | Validate scope artifact against the canonical schema |
+| `derive-nfr-spec` | Derive NFR spec from quality profile and architecture |
+
+### quality-auditor Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `validate-epic-design` | Cross-validate epic design artifacts for standards compliance |
+
+### tech-architect Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `draft-architecture` | Draft architecture artifacts (logical, physical, NFR, quality) |
+| `derive-quality-vision` | Derive quality vision from product and NFR inputs |
+
+### test-engineer Skill Pool
+
+| Skill | Purpose |
+|-------|---------|
+| `write-tests` | Write test suites for feature verification |
+| `execute-test-suite` | Execute a test suite and record results |
 
 ## Agent Definition Structure
 
@@ -277,9 +379,9 @@ Play → invokes → Agent → uses → Skills
 ## Context Building
 
 Agents build context by:
-1. Reading `.meridian/core/config.yaml` for platform paths and settings
+1. Reading `.garura/core/config.yaml` for platform paths and settings
 2. Reading intent.yaml from the JSON contract (when in contract mode)
-3. Searching LTM (`~/.meridian/core/memory/`) selectively — by domain keywords, not bulk loading
+3. Searching LTM (`~/.garura/core/memory/`) selectively — by domain keywords, not bulk loading
 4. Reading existing STM artifacts at non-null `stm` paths
 5. Passing discovered LTM paths and STM paths to skills — skills do NOT search LTM themselves
 

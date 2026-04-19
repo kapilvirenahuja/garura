@@ -568,7 +568,7 @@ This protocol applies universally across all plays. The intent is to make approv
 
 **Evidence Artifacts:**
 
-Every play step that produces work writes an evidence artifact to `.meridian/{issue}/evidence/{play-name}/{YYYYMMDD-HHMMSS}.md`. Evidence captures what was done, not how — it records the outcome for the audit trail:
+Every play step that produces work writes an evidence artifact to `.garura/project/issues/{issue}/evidence/{play-name}/{YYYYMMDD-HHMMSS}.md`. Evidence captures what was done, not how — it records the outcome for the audit trail:
 - What issue and branch the work was for
 - What was produced or executed (commits with hashes, branches created, etc.)
 - Validation results (clean tree, format checks, etc.)

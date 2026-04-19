@@ -19,8 +19,8 @@ This meant every agent dispatch potentially reinvented decisions that prior work
 ### Resolution Protocol (R1-R4)
 
 We introduced a 3-layer resolution hierarchy enforced through the agent contract schema:
-- **Layer 1 (Project LTM):** .meridian/product/ — LOCKED artifacts are authoritative
-- **Layer 2 (Core LTM):** ~/.meridian/core/memory/ — always advisory
+- **Layer 1 (Project LTM):** .garura/product/ — LOCKED artifacts are authoritative
+- **Layer 2 (Core LTM):** ~/.garura/core/memory/ — always advisory
 - **Layer 3 (LLM reasoning):** fallback, flagged as "ungrounded"
 
 Agents receiving the new `ltm_context` contract field follow the R1-R4 protocol before any domain reasoning. Every domain decision is recorded in a resolution trace.

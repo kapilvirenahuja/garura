@@ -52,7 +52,7 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 | 2 | Signals | User CLI invocations (`/build-feature`, `/commit-code`). All signals enter via plays. |
 | 3 | Orchestrated Intent | Play Levels. Three speeds: Fast (minutes), Planned (hours), Strategic (days). |
 | 4 | Agents | 19 agents across 7 roles: code-builder, tech-designer, tech-architect, repo-orchestrator, project-orchestrator, feature-steward, quality-auditor, judge, eval-generator, engineering-manager, test-engineer, designer, doc-builder, product-keeper, market-analyst, knowledge-extractor, scriber, intent-crafter, intent-resolver. Agent-first pattern. |
-| 5 | Memory | Three-layer memory: KB (`~/.meridian/core/memory/`) — global org knowledge. LTM (`{product_base}`) — project-specific. STM (`{stm_base}/{issue}/`) — per-issue. Flow: KB → LTM → STM. |
+| 5 | Memory | Three-layer memory: KB (`~/.garura/core/memory/`) — global org knowledge. LTM (`{product_base}`) — project-specific. STM (`{stm_base}/{issue}/`) — per-issue. Flow: KB → LTM → STM. |
 | 6 | Skills | Bounded capabilities invoked by agents. Each skill has SKILL.md with input/output contracts. |
 | 7 | Context-Aware Decisions | Context bundles ≤12K tokens. Audience separation (Tier 1/2/3). Agents read LTM + STM. |
 | 8 | Generation-Verification | DRAFT → VALIDATE → LOCKED lifecycle. Verification gates per play. Evidence artifacts. Tether/Vanish checkpoints. |
@@ -400,7 +400,7 @@ Output (DRAFT → VALIDATE → LOCKED)
 │  └─────────────┘  └──────────────┘                     │
 │                                                         │
 │  Storage: core/components/memory/{dimension}/           │
-│  Deployed to: ~/.meridian/core/memory/                  │
+│  Deployed to: ~/.garura/core/memory/                    │
 │  Version controlled via Git repository                  │
 │                                                         │
 │  ⛔ FORBIDDEN for implement-epic and validate-epic      │
@@ -416,7 +416,7 @@ Output (DRAFT → VALIDATE → LOCKED)
 │  • Locked architecture (build-arch)                     │
 │  • Epic context packages (prepare-epic)                 │
 │                                                         │
-│  Storage: {product_base} (.meridian/product/)           │
+│  Storage: {product_base} (.garura/product/)             │
 │  Lifecycle: Product-scoped, grows per-epic              │
 │                                                         │
 │  ⛔ FORBIDDEN for implement-epic and validate-epic      │
@@ -484,7 +484,7 @@ PR created for review
             (e.g., "all services use structured JSON logging")
         │
         ▼
-Merged → deployed to ~/.meridian/core/memory/ via /sync-claude
+Merged → deployed to ~/.garura/core/memory/ via /sync-claude
 ```
 
 **Semantic Conflict Detection**: Git catches file-level conflicts, but not semantic contradictions (e.g., one practice says "always use retry logic" while another says "never retry inside transactions"). The `capture-learning` play is designed with an `extract-patterns` skill that should detect semantic overlap with existing KB entries — but this capability is not yet built. Current state: manual review during PR process.
@@ -514,8 +514,8 @@ Each stage is additive — Stage 2 does not replace Stage 1; it adds a server la
 Status: Planned, not designed. Currently relies on manual PR review and the P5 hygiene rule.
 
 Storage paths:
-- KB: `core/components/memory/{dimension}/` → deployed to `~/.meridian/core/memory/`
-- LTM: `{product_base}` (`.meridian/product/`) — project-specific, product-scoped
+- KB: `core/components/memory/{dimension}/` → deployed to `~/.garura/core/memory/`
+- LTM: `{product_base}` (`.garura/product/`) — project-specific, product-scoped
 - STM: `{stm_base}/{issue}/` — per-issue, branch-scoped
 
 ### Audience Separation
@@ -708,7 +708,7 @@ Agent begins execution
 - ICS runs on **business intents**, not SDLC intents (SDLC intents are framework-authored and pre-validated)
 - ICS is mandatory for agents in **Spec-2-Code** and **Design-2-Spec** phases (where intent ambiguity is most costly)
 - ICS is optional for mechanical plays (`commit-code`, `create-pr`) per P7's "when to skip" guidance
-- ICS results are written to STM as evidence: `.meridian/{issue}/ics-assessment.md`
+- ICS results are written to STM as evidence: `.garura/project/issues/{issue}/evidence/ics-assessment.md`
 - Non-Balanced profiles generate a checkpoint; the human can override with Tether or request decomposition
 - For barrier-eligible plays, ICS includes a 6th dimension: **Barrier Integrity** — whether the constraint-failure partition is correctly classified per P4's Classification Rule. Misclassified items trigger the "Barrier Compromised" profile.
 
