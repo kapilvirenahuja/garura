@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Glob, Grep, Edit
 
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Called by `designer` during `design-exp` Stage 4. For every existing screen MD file, appends a `## Wireframe` section describing layout and component placement per state.
+Called by `designer` during `design` Stage 4. For every existing screen MD file, appends a `## Wireframe` section describing layout and component placement per state.
 
 ## Purpose
 
@@ -21,7 +21,7 @@ Wireframes are the bridge from screen specification to buildable UI. This skill 
 Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.meridian/product/` or assume a working directory.
 
 - `screens_dir` (path, required) — typically `{product_base}experience/screens/` (contains MD files from Stage 2)
-- `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads UX prose + wireframe hints (from each domain's `Tradeoffs` and `Depth Spectrum` sections) from the product's research folder ONLY — never directly from `core/components/memory/knowledge/domain/`. Passing `ltm_domain_taxonomy_path` is a structural failure (design-exp intent.yaml F13).
+- `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads UX prose + wireframe hints (from each domain's `Tradeoffs` and `Depth Spectrum` sections) from the product's research folder ONLY — never directly from `core/components/memory/knowledge/domain/`. Passing `ltm_domain_taxonomy_path` is a structural failure (design intent.yaml F13).
 - `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the updated screen files (e.g., `{product_base}experience/decision-manifest-generate-wireframes.yaml`). Exact path is passed by the calling agent.
 
 ## Process
@@ -41,7 +41,7 @@ Read:
 The screen file's skeleton — emitted by `generate-screen-inventory` in Stage 2 — has a `## Wireframe` placeholder directly under the H1, followed by the annotation sections (Purpose, Personas, States, Navigation, Accessibility). This skill produces **two outputs per screen**:
 
 1. **Visual wireframe content** — replaces the `## Wireframe` placeholder at the TOP of the file. This is the human-facing glance-value surface: a reader opens the file and SEES the layout before reading any prose. One Unicode/ASCII box-drawing block per state enumerated in the existing `## States` section.
-2. **Layout spec content** — appended as a NEW `## Layout Spec` section at the BOTTOM of the file (after `## Accessibility`). This is the machine-facing surface: detailed layout pattern, component inventory, per-state spec, interaction patterns, data binding, accessibility notes. Downstream skills (e.g., build-arch) consume this section.
+2. **Layout spec content** — appended as a NEW `## Layout Spec` section at the BOTTOM of the file (after `## Accessibility`). This is the machine-facing surface: detailed layout pattern, component inventory, per-state spec, interaction patterns, data binding, accessibility notes. Downstream skills (e.g., arch) consume this section.
 
 #### 2a. Compose the visual wireframe block (top-of-file)
 

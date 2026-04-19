@@ -1,0 +1,10 @@
+pr_number: 284
+state: "OPEN"
+mergeable: true
+base_branch: "main"
+head_branch: "enhance/91-docs-four-crafts-architecture"
+clean_tree: true
+evals:
+  SE-1: "PASS — PR is MERGEABLE, not in conflict state"
+  SE-4: "PASS — working tree clean (untracked files only, no staged/modified)"
+  SE-5: "PASS — PR exists with valid pr_number 284"

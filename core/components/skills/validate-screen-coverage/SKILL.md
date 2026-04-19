@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Glob, Grep
 
 # validate-screen-coverage
 
-Called by `designer` during `design-exp` after Stage 2 (screen inventory) and after Stage 3 (flows) for a second pass with flow coverage.
+Called by `designer` during `design` after Stage 2 (screen inventory) and after Stage 3 (flows) for a second pass with flow coverage.
 
 ## Purpose
 
@@ -23,7 +23,7 @@ Receive from the designer agent. All paths resolve against `{product_base}` supp
 - `epics_dir` (path, required) — typically `{product_base}scope/epics/`
 - `flows_dir` (path, optional) — typically `{product_base}experience/flows/` (if null, skip flow checks)
 - `ltm_screen_inventory_schema_path` (path, required)
-- `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads domain references from the product's research folder ONLY. Passing `ltm_domain_taxonomy_path` is a structural failure (design-exp intent.yaml F13).
+- `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads domain references from the product's research folder ONLY. Passing `ltm_domain_taxonomy_path` is a structural failure (design intent.yaml F13).
 - `validation_path` (string, required) — validation result YAML written here
 - `mode` (string, optional) — `"strict"` (default) or `"partial"`. In `strict` mode, orphan scenarios (success_scenarios without a flow, failure_scenarios without a recovery flow) flip the overall status to `failed`. In `partial` mode, orphan scenarios are reported in the output but do NOT flip status — useful for iterative/test runs where the flow set is still being built. The validator ALWAYS runs every other check; `mode` only affects how orphan scenarios gate status.
 

@@ -11,7 +11,7 @@ Agents and skills query this category when they need to know: **"What does the o
 | Path | Description | Consumers |
 |------|-------------|-----------|
 | `github-issue.md` | GitHub issue body template and field derivation rules | `manage-issue`, `project-orchestrator` |
-| `approval-prompt.md` | Canonical Tether / Orbit / Vanish approval-prompt template. Every checkpoint-gated play instantiates this instead of inlining prompt text. | `specify-product`, `design-exp`, `build-arch`, `start-feature-planning`, `review-pr`, every checkpoint-gated play |
+| `approval-prompt.md` | Canonical Tether / Orbit / Vanish approval-prompt template. Every checkpoint-gated play instantiates this instead of inlining prompt text. | `specify`, `design`, `arch`, `start-feature-planning`, `review-pr`, every checkpoint-gated play |
 | `checkpoint.md` | Canonical checkpoint artifact format. Written by scriber alongside every approval prompt; retained as STM audit trail. | every checkpoint-gated play + `scriber` agent |
 | `evidence-file.md` | Canonical evidence file format. Written by scriber at play close; contains step/scenario eval results, checkpoint decisions, recovery attempts, next consumers. | every play that closes with an evidence step + `scriber` agent |
 | `knowledge-file.md` | Canonical knowledge-file template. Tier 1 (all files) and Tier 2 (core-scoped) metadata requirements, staleness rules, and index registration conventions. | `knowledge-extractor`, `capture-learning` |
@@ -19,7 +19,7 @@ Agents and skills query this category when they need to know: **"What does the o
 | `commit-message.md` | Canonical commit message shape — `<type>(<scope>): <subject>` format, field rules, and related pointer to `rules/commits.md` quality rules. | `create-commit`, `analyze-changes`, `commit-code`, `repo-orchestrator` |
 | `pr-body.md` | Canonical PR body shape — Summary, Quality Checklist (Required/Optional), Verification Evidence table, Eval Results (conditional), generated-by footer. Includes Eval Results instantiation rules. | `submit-pr`, `analyze-pr` |
 | `pr-review-comment.md` | Canonical PR review comment shape — `<!-- review-pr:marker -->` sentinel (required), Confidence line, P1–P4 sections with counts, Reviewers section. Supports in-place update detection via marker. | `review-pr` |
-| `delivery-report.md` | Canonical human-readable delivery report — Run Summary (play, issue, status, timestamps), Pipeline Steps table, Artifacts Produced table, Next Steps (optional). Per-play field notes for ship, fix-it, implement-epic. | `ship`, `fix-it`, `implement-epic`, every play that closes with a delivery step |
+| `delivery-report.md` | Canonical human-readable delivery report — Run Summary (play, issue, status, timestamps), Pipeline Steps table, Artifacts Produced table, Next Steps (optional). Per-play field notes for ship, fix-it, implement. | `ship`, `fix-it`, `implement`, every play that closes with a delivery step |
 
 ## Scope Notes
 

@@ -1,6 +1,6 @@
 # Architecture Rules
 
-Canonical rules governing the five build-arch artifacts (logical-architecture, physical-architecture, nfr-spec, quality-vision, design-patterns) and their decision manifests. Every skill in the `/build-arch` pipeline loads this file.
+Canonical rules governing the five arch artifacts (logical-architecture, physical-architecture, nfr-spec, quality-vision, design-patterns) and their decision manifests. Every skill in the `/arch` pipeline loads this file.
 
 Consumers: `derive-logical-architecture`, `derive-physical-architecture`, `derive-nfr-spec`, `derive-quality-vision`, `derive-design-patterns`, `validate-architecture-spec`, `tech-architect` agent, `tech-designer` agent.
 
@@ -38,7 +38,7 @@ A component cannot span domains without explicit cross-cutting justification (sa
 
 ## Rule 4: Quality Standards Inherit From Quality Profile
 
-**Every entry in quality-standards.yaml must correspond to an entry in the specify-product `quality-profile.yaml` with the same ISO 25010 characteristic.**
+**Every entry in quality-standards.yaml must correspond to an entry in the specify `quality-profile.yaml` with the same ISO 25010 characteristic.**
 
 The quality standards document translates product-level quality requirements into build-level gates — test coverage minimums, performance budgets, security controls. Every gate must trace to a profile characteristic. Gates without a profile driver are either over-engineering or unfounded.
 
@@ -64,7 +64,7 @@ If one epic requires OWASP ASVS Level 3 and another requires Level 2, the archit
 
 **Every component carries an `observability` block declaring the metrics, logs, and traces it emits.**
 
-An unobservable component is a production liability. The architecture spec must name what each component emits, at what sampling, and to what sink. The build-arch quality standards inherit these declarations as monitoring requirements.
+An unobservable component is a production liability. The architecture spec must name what each component emits, at what sampling, and to what sink. The arch quality standards inherit these declarations as monitoring requirements.
 
 **Enforcement:** `validate-architecture-spec` component schema check.
 
@@ -99,7 +99,7 @@ A fifth value — `agent_default_unilateral` — is defined only as the validato
 
 **Enforcement:** `derive-physical-architecture` and `derive-design-patterns` walk the decision tree per slot and tag every output; `validate-architecture-spec` rejects any decision with `agent_default_unilateral`, missing `source_type`, a `grounded_tools` override, a mis-tagged `kb_catalog_single_candidate`, or an unapproved `kb_catalog_multi_candidate_user_approved`.
 
-**Intent mapping:** build-arch intent.yaml constraints C14, C15, C16 and failure conditions F12, F13, F14, F15.
+**Intent mapping:** arch intent.yaml constraints C14, C15, C16 and failure conditions F12, F13, F14, F15.
 
 ## Related Rules
 

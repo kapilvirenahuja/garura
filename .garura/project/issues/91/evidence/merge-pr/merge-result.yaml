@@ -1,0 +1,9 @@
+status: "merged"
+pr_number: 284
+merge_sha: "7d1ded4ef0530a8a87e5ae2391526e70f94778c2"
+base_branch: "main"
+branch_deleted: true
+evals:
+  SE-2: "PASS — feature branch deleted locally (fast-forward consumed it) and remote (pruned)"
+  SE-3: "PASS — local checkout on main, up to date with origin/main"
+  SE-5: "PASS — PR 284 merged, merge_sha 7d1ded4ef0530a8a87e5ae2391526e70f94778c2 present"

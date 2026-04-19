@@ -183,7 +183,7 @@ Related drifts: [DRIFT-xxx]
 
 ## Design-Drift Item Template
 
-Design-drift captures divergence between locked design artifacts (tech.yaml, scenarios.yaml, plan.yaml from prepare-epic) and the actual implementation.
+Design-drift captures divergence between locked design artifacts (tech.yaml, scenarios.yaml, plan.yaml from prepare) and the actual implementation.
 
 ```markdown
 DESIGN-DRIFT-[ID]: [Title]
@@ -214,7 +214,7 @@ update-locked-design | update-implementation | spec-correction-needed | no-actio
 
 ## Evidence-Drift Item Template
 
-Evidence-drift captures spec gaps revealed by implement-epic and validate-epic evidence, particularly arbiter `spec_ambiguous` verdicts.
+Evidence-drift captures spec gaps revealed by implement and validate evidence, particularly arbiter `spec_ambiguous` verdicts.
 
 ```markdown
 EVIDENCE-DRIFT-[ID]: [Title]

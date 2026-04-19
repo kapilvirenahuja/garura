@@ -1,6 +1,6 @@
 intent: |
   Given a completed epic (post-validate), reconcile the full product LTM by
-  comparing what prepare-epic knew at planning time (the context baseline)
+  comparing what prepare knew at planning time (the context baseline)
   against what actually happened during implementation and validation. Detect
   changes across three tiers: foundational artifacts that should NOT have
   changed (ADR if they did), artifacts that need enrichment from implementation
@@ -67,9 +67,9 @@ constraints:
   - id: C7
     rule: >
       Primary inputs are the context baseline and implementation outcomes.
-      The context baseline is {stm_base}/{issue}/context/ — what prepare-epic
+      The context baseline is {stm_base}/{issue}/context/ — what prepare
       curated as the knowledge the epic needed at planning time. Implementation
-      outcomes are the evidence produced by implement-epic and validate-epic:
+      outcomes are the evidence produced by implement and validate:
       milestones, verdicts, status-reports, e2e-results, arbiter-verdicts,
       judge-reports, code changes, and test results.
 
@@ -110,7 +110,7 @@ constraints:
 
   - id: C13
     rule: >
-      If product LTM artifacts for a tier are absent (e.g., build-arch was
+      If product LTM artifacts for a tier are absent (e.g., arch was
       not run, so architecture/ does not exist), that tier is skipped with
       a warning in the reconciliation report. Missing product LTM is not
       a hard failure — the play processes whichever tiers have artifacts.
@@ -238,7 +238,7 @@ scenarios:
     persona: "Developer preparing the next epic in the same domain"
     given: "capture-learning enriched the domain research file after the prior epic"
     then: >
-      When prepare-epic runs for the next epic, the Experiential section
+      When prepare runs for the next epic, the Experiential section
       in research/{domain}.md contains lessons, failure patterns, and
       capability observations from the prior implementation — so the
       next epic benefits from what was learned without manual knowledge

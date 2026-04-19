@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Glob, Grep
 
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Called by `designer` during `design-exp` Stage 3. Produces one Markdown file per flow under `{product_base}experience/flows/`.
+Called by `designer` during `design` Stage 3. Produces one Markdown file per flow under `{product_base}experience/flows/`.
 
 ## Purpose
 

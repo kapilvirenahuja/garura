@@ -1,13 +1,13 @@
 ---
 name: capture-learning
-description: "Post-epic product LTM reconciliation. Archives completed issue STM, then diffs the context baseline (what prepare-epic knew) against implementation outcomes (what happened) to detect foundational changes (ADR), enrich existing artifacts, and propose additions. Triggers: 'capture learning', 'reconcile', 'post-epic review'."
+description: "Post-epic product LTM reconciliation. Archives completed issue STM, then diffs the context baseline (what prepare knew) against implementation outcomes (what happened) to detect foundational changes (ADR), enrich existing artifacts, and propose additions. Triggers: 'capture learning', 'reconcile', 'post-epic review'."
 user-invocable: true
 model: opus
 ---
 
 # capture-learning
 
-Given a completed epic, reconcile the full product LTM by comparing what prepare-epic knew at planning time against what actually happened during implementation and validation. Three-tier analysis: Tier 1 foundational artifacts are check-only (ADR if changed), Tier 2 artifacts are enriched with implementation outcomes, Tier 3 additions are proposed for new content. After reconciliation and human approval, archive the issue's STM directory. The issue must be in a closed state before any work proceeds.
+Given a completed epic, reconcile the full product LTM by comparing what prepare knew at planning time against what actually happened during implementation and validation. Three-tier analysis: Tier 1 foundational artifacts are check-only (ADR if changed), Tier 2 artifacts are enriched with implementation outcomes, Tier 3 additions are proposed for new content. After reconciliation and human approval, archive the issue's STM directory. The issue must be in a closed state before any work proceeds.
 
 ## Compiled From
 
@@ -44,7 +44,7 @@ Execute these checks before any domain work:
 | Resolve `product_base` from `.garura/core/config.yaml` | — | Hard halt — config is required |
 | Issue number provided as input | — | Hard halt — play requires an issue number |
 | STM directory exists at `{stm_base}/{issue}/` | — | Hard halt — nothing to process |
-| Context directory exists at `{stm_base}/{issue}/context/` | C7 | Hard halt — no context baseline means prepare-epic was never run |
+| Context directory exists at `{stm_base}/{issue}/context/` | C7 | Hard halt — no context baseline means prepare was never run |
 
 ```bash
 stm_base=$(grep '^\s*base-path:' .garura/core/config.yaml | head -1 | awk '{print $2}')
@@ -54,7 +54,7 @@ product_base=$(grep '^\s*base-path:' .garura/core/config.yaml | tail -1 | awk '{
 issue=$(echo "{input}" | grep -oE '[0-9]+' | head -1)
 
 test -d "${stm_base}/${issue}/" || halt "STM directory not found"
-test -d "${stm_base}/${issue}/context/" || halt "No context baseline — prepare-epic was never run for this issue"
+test -d "${stm_base}/${issue}/context/" || halt "No context baseline — prepare was never run for this issue"
 ```
 
 **Resolve epic_id:** Read the epic-spec.yaml or issue metadata from STM to identify which epic this issue implemented. If `{stm_base}/{issue}/context/design/epic-spec.yaml` exists, extract the epic ID from it.
@@ -139,7 +139,7 @@ Mode: `analyze`
 }
 ```
 
-Agent reads context baseline (what prepare-epic knew), reads implementation outcomes (milestones, verdicts, status-reports, e2e-results), consumes check-drift output if present, compares against current product LTM, and produces tiered reconciliation proposals.
+Agent reads context baseline (what prepare knew), reads implementation outcomes (milestones, verdicts, status-reports, e2e-results), consumes check-drift output if present, compares against current product LTM, and produces tiered reconciliation proposals.
 
 **Step 3 Evals:**
 
@@ -301,7 +301,7 @@ Depends on: Step 6
 - **SCE-1 (S1 — Engineering lead):** Archived directory at `{stm_archive}/{YYYY-MM}/{issue}/` is browsable, preserves original structure, contains all files.
 - **SCE-2 (S2 — Developer):** Active STM workspace at `{stm_base}/` does not contain a directory for the archived issue number.
 - **SCE-3 (S3 — Tech Lead):** Tier 1 check results visible — which foundational artifacts were validated, any ADRs produced, impact assessments identifying affected downstream artifacts.
-- **SCE-4 (S4 — Developer):** When prepare-epic runs for the next epic in the same domain, research/{domain}.md contains Experiential observations from this implementation.
+- **SCE-4 (S4 — Developer):** When prepare runs for the next epic in the same domain, research/{domain}.md contains Experiential observations from this implementation.
 - **SCE-5 (S5 — Operator):** Zero-proposal case handled cleanly — archival completes, no files written to product LTM, evidence records the outcome.
 - **SCE-6 (S6 — PM):** Epic file contains post_implementation with delivery status, scope tracking, hypothesis validation, and lessons.
 

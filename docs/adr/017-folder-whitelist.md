@@ -15,7 +15,7 @@ Three separate frictions accumulated in Meridian's folder and play conventions a
 
 3. **Play ceremony inflation.** ADR 013 introduced Level-1 / Level-2 plays with a "≤5 domain agent" budget. In practice the levels added compliance overhead without improving coherence — a well-shaped play fails its scenario evals if it's bloated, regardless of agent count. The "bake" terminology for play compilation (`/create-play --bake`) carried a cooking metaphor that didn't match the sports metaphor the rest of the framework uses (plays are *run*, teams are *built*).
 
-These frictions became blocking when the product-planning pipeline (`specify-product`, `design-exp`, `build-arch`) was designed — the new plays needed a predictable folder layout, a clean config location, and terminology that matched the sports metaphor. Fixing them piecemeal would leave the framework inconsistent during the transition, so the cleanup lands as one ADR.
+These frictions became blocking when the product-planning pipeline (`specify`, `design`, `arch`) was designed — the new plays needed a predictable folder layout, a clean config location, and terminology that matched the sports metaphor. Fixing them piecemeal would leave the framework inconsistent during the transition, so the cleanup lands as one ADR.
 
 ## Decision
 
@@ -36,8 +36,8 @@ The `.meridian/` tree allows ONLY these folders. No other top-level or second-le
 │   │   ├── enriched-capabilities.yaml
 │   │   ├── validation-intent-epics.yaml
 │   │   └── epics/                            # one YAML per intent epic
-│   ├── architecture/                         # architecture-stage output (build-architecture play)
-│   ├── experience/                           # experience-stage output (design-experience play)
+│   ├── architecture/                         # architecture-stage output (architecture play)
+│   ├── experience/                           # experience-stage output (designerience play)
 │   ├── research/                             # product domain library: KB copies + researched domains
 │   │                                         # (Defect 8 Pull-to-Product)
 │   ├── _checkpoints/                         # play-lifecycle: per-stage Tether/Vanish artifacts
@@ -51,11 +51,11 @@ The `.meridian/` tree allows ONLY these folders. No other top-level or second-le
             ├── specs/                        # plans
             ├── evidence/                     # test and eval evidence
             ├── checkpoint/                   # play approval gates
-            ├── context/                      # prepare-epic / build-architecture context
+            ├── context/                      # prepare / architecture context
             └── review/                       # review artifacts
 ```
 
-**Stage-centric vs play-centric:** `.meridian/product/` is organized by SDLC stage (user-provided → specification → scope → architecture → experience), not by play. A single stage folder may hold output from multiple plays — e.g., `specification/` holds market-brief (from specify-product's Stage 1 market-analyst), project-profile (user-provided during pre-flight), quality-profile (from specify-product's Stage 6 product-keeper). The folder name describes *what the artifact is*, not *which play produced it*.
+**Stage-centric vs play-centric:** `.meridian/product/` is organized by SDLC stage (user-provided → specification → scope → architecture → experience), not by play. A single stage folder may hold output from multiple plays — e.g., `specification/` holds market-brief (from specify's Stage 1 market-analyst), project-profile (user-provided during pre-flight), quality-profile (from specify's Stage 6 product-keeper). The folder name describes *what the artifact is*, not *which play produced it*.
 
 **`research/` is the product's frozen domain library (Defect 8 Pull-to-Product).** Per `rules/product.md` Rule 15, every domain the product uses lands here at Stage 2 selection time — whether the content came from the canonical KB (`core/components/memory/knowledge/domain/`) or from fresh research. Each file carries a provenance header: `origin: kb` (with `kb_sha_at_copy`, `editable: false`) for copies, or `origin: stm_research` (editable: true, pending future `/capture-learning` promotion) for freshly-authored content. Stage 3 and every later stage (configure-capabilities, enrich-capabilities, generate-intent-epics) read from this folder ONLY — they do not read from the KB directly. This makes every product run reproducible (a KB edit does not retroactively change historical runs) and gives the product a single read path for domain content regardless of origin.
 
@@ -124,7 +124,7 @@ ADR 013 (Play Maturity Model) is superseded by this decision for the L1/L2 porti
 
 The `/create-play --bake` and `/create-play --rebake` subcommands are renamed to `/create-play --build`. This is a HARD CUT — no alias. After this ADR lands, `/create-play --bake` fails with unknown-option.
 
-Reasoning: the sports metaphor rest of the framework uses (build the team, run the play) is clean; "bake" was a leftover cooking metaphor from early prototypes. Build aligns with (a) the verb sequence `specify-product` → `design-exp` → `build-arch`, and (b) the natural pipeline *create → build → run*.
+Reasoning: the sports metaphor rest of the framework uses (build the team, run the play) is clean; "bake" was a leftover cooking metaphor from early prototypes. Build aligns with (a) the verb sequence `specify` → `design` → `arch`, and (b) the natural pipeline *create → build → run*.
 
 Every doc, agent, skill, and play that references "bake"/"baked"/"baking" in a play-compilation context is updated. User memory ("Recipe changes only through rebake") remains semantically correct — the behavior is still "never edit SKILL.md directly; update intent.yaml and rebuild" — only the verb changes.
 
@@ -154,7 +154,7 @@ Every doc, agent, skill, and play that references "bake"/"baked"/"baking" in a p
 | Phase the folder migration (dual-path coexistence) | Every play would need to read both old and new paths. Dual-path bugs are easy to write and hard to find. One-shot migration is cleaner. |
 | Keep L1/L2 classification as advisory | The classification was always used as a gate, not advice. "Advisory" in practice means "ignored until it blocks you". Better to delete. |
 | Soft alias `--bake` during migration | Half-state creates ongoing confusion about the canonical verb. Hard cut forces consistency from day one. Users who prefer `--bake` aren't served by silently accepting it. |
-| Keep the "bake" metaphor | Inconsistent with the sports metaphor the rest of the framework uses. The verb sequence `specify-product` / `design-exp` / `build-arch` works better with "build" than "bake". |
+| Keep the "bake" metaphor | Inconsistent with the sports metaphor the rest of the framework uses. The verb sequence `specify` / `design` / `arch` works better with "build" than "bake". |
 
 ## Migration Plan (214.2)
 

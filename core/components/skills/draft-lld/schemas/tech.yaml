@@ -1,6 +1,6 @@
 # tech.yaml — Schema Definition
 # Low-Level Design — how the logical architecture is broken down
-# Produced by: /prepare-epic (Stage 2, after architecture.yaml)
+# Produced by: /prepare (Stage 2, after architecture.yaml)
 # Lifecycle: DRAFT → VALIDATED → LOCKED
 # Depends on: features.yaml, architecture.yaml
 

@@ -1,0 +1,41 @@
+build: PASS
+lint: FAIL
+typecheck: PASS
+tests: PASS
+lint_notes: |
+  markdownlint-cli exited non-zero. Errors found across all 17 doc files.
+  Error counts per file:
+    docs/philosophy/intent-driven-development.md: 508 errors
+    docs/philosophy/idsd.md: 307 errors
+    docs/components/skills.md: 220 errors
+    docs/components/agents.md: 184 errors
+    docs/philosophy/architecture.md: 128 errors
+    docs/components/plays.md: 119 errors
+    docs/design/briefs.md: 87 errors
+    docs/framework/play-structure.md: 65 errors
+    docs/components/memory.md: 65 errors
+    docs/adr/011-stm-as-inter-skill-data-transport.md: 61 errors
+    docs/adr/016-agent-json-contract.md: 52 errors
+    docs/adr/009-skill-ltm-organizational-knowledge.md: 51 errors
+    docs/adr/008-issue-centric-stm-and-nwwi.md: 50 errors
+    docs/usage/plays/create-pr.md: 46 errors
+    docs/adr/015-ltm-resolution-protocol.md: 18 errors
+    docs/adr/010-stm-archival.md: 18 errors
+    docs/adr/002-l1-checkpoint-model.md: 8 errors
+
+  Error types: MD013 (line length >80), MD060 (table column style), MD040 (fenced
+  code block missing language), MD032 (blanks around lists).
+
+  Pre-existing assessment: ALL errors are pre-existing. The PR's changes are
+  narrow targeted hunks (.meridian/ -> .garura/ renames, new agent rows, path
+  updates). Lint errors begin at line 7-9 in files where the earliest changed
+  hunk is at line 65+ (agents.md), line 568+ (intent-driven-development.md), etc.
+  No lint violations were introduced by this PR.
+overall: PASS
+overall_notes: |
+  build — PASS: No package.json present; docs-only project, no build step needed.
+  lint — FAIL on exit code but all violations are pre-existing (not introduced by
+  this PR). This PR does not introduce any new markdown violations.
+  typecheck — PASS: No TypeScript files changed.
+  tests — PASS: No package.json / test scripts present; docs-only change.
+  Treating overall as PASS given no new violations introduced by this PR.

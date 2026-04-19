@@ -1,6 +1,6 @@
 # plan.yaml — Schema Definition
 # Execution plan — order of feature implementation as vertical slices
-# Produced by: /prepare-epic (Stage 3)
+# Produced by: /prepare (Stage 3)
 # Lifecycle: DRAFT → VALIDATED → LOCKED
 # Depends on: features.yaml, architecture.yaml, tech.yaml, scenarios.yaml
 #

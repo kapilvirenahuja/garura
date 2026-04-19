@@ -1,0 +1,400 @@
+name: garura:design
+description: >
+  Transform the specify output (intent epics + quality profile + scope)
+  into a complete experience design: JTBD personas, a screen inventory with
+  state coverage, user flows (happy paths and recovery flows), structured
+  wireframes, and interaction patterns. The output is dense enough that a
+  developer reading it can build the right screens without ambiguity.
+version: 0.1.0
+checksum: "<computed by /create-play --build>"
+
+intent: >
+  Given the locked output of /specify (intent epics, scope, quality
+  profile, enriched capabilities), produce a complete experience design:
+  JTBD personas mapped to capabilities; a screen inventory where every
+  capability maps to at least one screen and every screen enumerates at
+  least three states (default, loading, error minimum); user flow diagrams
+  covering every success scenario AND every failure scenario's recovery
+  path; structured text wireframes for every screen with explicit layout,
+  components, data fields, and actions; interaction pattern specifications
+  for validation, loading, error, and empty states; and a consolidated
+  design-spec.md that ties everything together. Shallow or incomplete
+  output is structurally impossible — the play halts and cycles back on
+  any validation failure.
+
+constraints:
+  - id: C1
+    rule: >
+      The specify pipeline artifacts must exist and be locked
+      before design begins. Pre-flight reads
+      .meridian/product/scope/scope.yaml,
+      .meridian/product/scope/enriched-capabilities.yaml,
+      .meridian/product/scope/epics/*.yaml, and
+      .meridian/product/specification/quality-profile.yaml. The post-D1
+      folder layout applies — there is no .meridian/product/product/
+      doubled folder and no single monolithic .meridian/product/ dump;
+      each artifact lives under its SDLC-stage sub-folder per ADR 017.
+      Missing or DRAFT-status artifacts halt pre-flight.
+
+  - id: C2
+    rule: >
+      The KB catalog must be internally consistent per kb-extension-
+      conventions.md. Pre-flight invokes validate-kb-extension and halts on
+      any structural failure.
+
+  - id: C3
+    rule: >
+      Every persona in personas.md must use the Jobs-To-Be-Done format:
+      "When [situation], I want to [motivation], so I can [outcome]". Any
+      demographic-driven persona ("Sarah, 34, marketing manager") is a
+      blocking validation failure.
+
+  - id: C4
+    rule: >
+      Every persona must be mapped to at least one capability from
+      specify's selected_capabilities. Unmapped personas are a
+      validation failure.
+
+  - id: C5
+    rule: >
+      Every capability in scope.selected_capabilities must map to at least
+      one screen in the screen inventory. Capability coverage gaps block
+      the pipeline.
+
+  - id: C6
+    rule: >
+      Every screen must enumerate at least three distinct states. The
+      minimum is default + one loading/initial + one error/lockout state,
+      but additional states (empty, populated, success, mfa_challenge,
+      etc.) are encouraged. Two-state screens fail validation.
+
+  - id: C7
+    rule: >
+      Every success_scenario in every intent epic must map to at least one
+      user flow in flows/. Every failure_scenario must map to at least one
+      recovery flow. Missing flows block the pipeline.
+
+  - id: C8
+    rule: >
+      Every wireframe must specify concrete layout, component list, data
+      fields, and available actions per state. Generic descriptions ("a
+      login form", "a dashboard") are blocking validation failures — the
+      wireframe must name the components (`email-input`, `password-input`,
+      `submit-button`, `error-toast`) and the layout pattern
+      (`centered-card`, `sidebar-content`, `two-column`).
+
+  - id: C9
+    rule: >
+      Every interactive screen (any screen with non-empty actions in its
+      default state) must carry accessibility requirements referencing a
+      specific WCAG level. Screens without accessibility requirements fail
+      validation.
+
+  - id: C10
+    rule: >
+      Design artifacts (personas, screens, flows, wireframes,
+      design-spec) land under .meridian/product/experience/ per
+      ADR 017 post-D1 folder whitelist — the former
+      .meridian/product/ux/ folder was renamed to experience/.
+      Lifecycle artifacts (checkpoints, evidence, status) live at the
+      product root, orthogonal to SDLC stages: checkpoints at
+      .meridian/product/_checkpoints/design/, evidence at
+      .meridian/product/_evidence/design/, status at
+      .meridian/product/_status/design.json. All evidence,
+      checkpoint, and status writes go through the scriber agent. The
+      play never writes these directly.
+
+  - id: C11
+    rule: >
+      Domain work is delegated to the Designer agent. The orchestrator
+      dispatches Designer for stages 1 through 6 and judge for validation.
+      Scriber is dispatched in the background for every evidence,
+      checkpoint, and status write.
+
+  - id: C12
+    rule: >
+      Three human review checkpoints are mandatory: after persona synthesis,
+      after screen inventory generation, and after the final design spec
+      is compiled. Each checkpoint produces a checkpoint artifact before
+      the gate and waits for Tether/Vanish/Orbit. Orbit cycles back to the
+      stage that produced the artifact under review.
+
+  - id: C13
+    rule: >
+      The design spec is LOW-FIDELITY. This play produces layout and
+      component structure, NOT visual design (colors, typography, spacing).
+      Visual design is a separate downstream concern. Wireframes specify
+      what components exist and where; they do not specify pixel-perfect
+      appearance.
+
+  - id: C14
+    rule: >
+      The domain library is read from .meridian/product/research/ only —
+      never directly from core/components/memory/knowledge/domain/. Every
+      stage that needs domain content (synthesize-personas, generate-
+      screen-inventory, map-user-flows, generate-wireframes, validate-
+      screen-coverage) receives the product_research_path input and
+      resolves {product_base}research/{domain}.md for each selected
+      domain. Per rules/product.md Rule 15 (Pull-to-Product Principle /
+      Defect 8), KB-sourced domain definitions are copied into
+      product/research/ at specify Stage 2 with a provenance
+      header; design consumes those frozen copies so a KB edit does
+      not retroactively change an in-flight or historical design run.
+      The play never sends ltm_domain_taxonomy_path to downstream skills;
+      using that input name is a structural failure.
+
+  - id: C15
+    rule: >
+      The MVP recommendation at .meridian/product/scope/mvp-recommendation.md
+      must exist and be non-empty before Stage 1 persona synthesis begins.
+      The recommendation identifies primary use cases and deferred use
+      cases with v1.1+ triggers. design's Stage 1 reads the primary
+      use cases and synthesizes one persona per primary use case (not one
+      per every user-type implied by scope.selected_capabilities).
+      Capabilities that serve only deferred use cases either get skipped
+      (if classification == user_surface AND serves only deferred cases)
+      or surface with a flagged note in the generated design-spec.
+      Stage 3 screen inventory and Stage 6 user flows inherit the same
+      narrowing — flows for deferred-use-case-only scenarios are not
+      authored. Per rules/product.md Rule 13 (MVP Focus / Defect 6),
+      missing or empty mvp-recommendation.md halts pre-flight with a
+      clear message pointing the user at the expected artifact shape.
+
+  - id: C16
+    rule: >
+      Every screen file under {product_base}experience/screens/ is
+      visual-first. The required body section order (after the H1) is:
+      (1) `## Wireframe` containing one Unicode/ASCII box-drawing block
+      per state enumerated in the file's `## States` section;
+      (2) `## Purpose`; (3) `## Personas`; (4) `## States`;
+      (5) `## Navigation`; (6) `## Accessibility`; (7) `## Layout Spec`
+      with the detailed layout pattern, component inventory, per-state
+      spec, interaction patterns, data binding, and accessibility notes.
+      `## Wireframe` is the FIRST body section (a reader opens the file
+      and SEES the layout at a glance before reading any prose);
+      `## Layout Spec` is the LAST body section (machine-parseable
+      surface consumed by downstream skills). generate-screen-inventory
+      emits the skeleton with a `## Wireframe` placeholder comment;
+      generate-wireframes replaces the placeholder with Unicode/ASCII
+      per state AND appends `## Layout Spec` at the bottom.
+      Wireframes use only ASCII-safe Unicode box-drawing characters,
+      stay under 80 columns per line, and carry no visual-design
+      elements (no hex, no pixel/rem, no font-family names).
+
+  - id: C17
+    rule: >
+      Decision Surfacing Discipline. Every inferred decision produced by
+      any skill in this play — every persona synthesis, screen derivation,
+      state enumeration, component naming, layout pattern assignment,
+      flow path tracing, or recovery sequence the agent reasons to
+      rather than reading verbatim from a user-provided artifact — must
+      be tagged with a confidence tier and surfaced to the user before
+      it is committed downstream. Tiers are assigned by grounding source:
+      HIGH when the decision is a direct match against a KB rule, file,
+      or catalog entry; MID when the agent built context via web research
+      because no KB grounding existed; LOW when neither KB nor research
+      yielded a grounding source. Each decision records: tier,
+      grounding_source (KB file path / web citation / "no source"),
+      recommendation, alternatives_considered, and the user's response
+      (accept / override / orbit). The orchestrator presents decisions
+      per tier: HIGH as a batch confirmation (user may Tether all or
+      Orbit any single one to reopen for one-by-one review); MID as a
+      batch with explicit questions and recommendations (user may accept
+      the batch or drill one-by-one); LOW always one-by-one with no
+      batching. High confidence is permission to batch — never permission
+      to skip user review. configure-capabilities is the canonical
+      exemplar for the one-by-one Q&A presentation depth; new and
+      updated skills must match its grounding-question format and
+      recording structure. Decisions that merely echo upstream user
+      input (locked epics, project-profile pins, copying a slug) are
+      not "decided" by the play and are exempt. See Defect 23.
+
+  - id: C18
+    rule: >
+      Every skill that produces inferred decisions must emit a
+      decision-manifest.yaml as part of its output contract, written
+      alongside its primary artifact. Each manifest entry carries:
+      decision_id, decision_type, tier (high|mid|low), grounding_source
+      (kb_path | web_citation | none), recommendation,
+      alternatives_considered, agent_reasoning_summary, and (after the
+      orchestrator drives the surfacing flow) user_response
+      (accept | override | orbit) plus user_response_detail. The play
+      orchestrator walks the manifest after each skill completes and
+      drives the tiered presentation flow defined in C17 before any
+      downstream skill consumes the artifact. A skill that produces
+      inferred decisions and writes no manifest is a structural
+      violation. See Defect 23.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      The play completes with zero personas, zero screens, or zero flows.
+
+  - id: F2
+    condition: >
+      Any persona in personas.md is not in JTBD format — demographic-driven,
+      narrative-only, or missing the "When [situation], I want [motivation],
+      so I can [outcome]" structure.
+
+  - id: F3
+    condition: >
+      Any persona is not mapped to at least one capability from the
+      specify scope.
+
+  - id: F4
+    condition: >
+      Any capability from specify's selected_capabilities has
+      zero screens in the inventory.
+
+  - id: F5
+    condition: >
+      Any screen has fewer than three distinct states.
+
+  - id: F6
+    condition: >
+      Any success_scenario from any intent epic has zero user flows
+      referencing it.
+
+  - id: F7
+    condition: >
+      Any failure_scenario from any intent epic has zero recovery flows
+      referencing it.
+
+  - id: F8
+    condition: >
+      Any wireframe contains vague descriptions ("a form", "the dashboard")
+      without named components and a specific layout pattern.
+
+  - id: F9
+    condition: >
+      Any interactive screen is missing accessibility requirements.
+
+  - id: F10
+    condition: >
+      Any of the three mandatory checkpoint artifacts is missing, or any
+      checkpoint was skipped without a recorded Tether/Vanish/Orbit
+      response.
+
+  - id: F11
+    condition: >
+      An artifact is written to a path outside the ADR 017 whitelist, or
+      any evidence / checkpoint / status file is written without going
+      through the scriber agent.
+
+  - id: F12
+    condition: >
+      The play generates visual design elements (color palettes, typography
+      stacks, spacing scales) — that is out of scope for design and
+      must be deferred to a downstream visual-design play.
+
+  - id: F13
+    condition: >
+      Any stage of the play passes `ltm_domain_taxonomy_path` as a skill
+      input, or any skill reads domain content directly from
+      `core/components/memory/knowledge/domain/` instead of from
+      `{product_base}research/`. This is a violation of C14 / rules/
+      product.md Rule 15 (Pull-to-Product Principle) and breaks the
+      product-run reproducibility guarantee.
+
+  - id: F14
+    condition: >
+      Stage 1 synthesize-personas generates a persona for a use case that
+      is not listed in mvp-recommendation.md's primary_use_cases block,
+      OR Stage 3 generate-screen-inventory creates a user-surface screen
+      for a capability that serves only deferred use cases, OR Stage 6
+      map-user-flows authors a flow for a scenario that belongs to a
+      deferred-use-case-only epic. Any of these is a violation of C15 /
+      rules/product.md Rule 13 (MVP Focus).
+
+  - id: F15
+    condition: >
+      Any screen file under {product_base}experience/screens/ violates
+      the visual-first section order: `## Wireframe` is not the first
+      body section after the H1, OR `## Layout Spec` is missing or not
+      the last body section, OR any state declared in `## States` lacks
+      a corresponding Unicode/ASCII wireframe block in the
+      `## Wireframe` section, OR any wireframe block contains visual-
+      design elements (hex codes, pixel/rem values, font-family names).
+      Violation of C16.
+
+  - id: F16
+    condition: >
+      Any skill commits an inferred decision to a downstream artifact
+      (persona, screen, flow, wireframe, design-spec) without first
+      surfacing it to the user via the tier-appropriate flow defined
+      in C17. Silent commits — including high-confidence auto-resolution
+      and silent KB-single-candidate selection — are blocking failures.
+
+  - id: F17
+    condition: >
+      A skill that produces inferred decisions completes without writing
+      a decision-manifest.yaml, or writes a manifest that omits the
+      tier, grounding_source, recommendation, or alternatives_considered
+      fields for any decision, or fails to update user_response after
+      the orchestrator runs the surfacing flow.
+
+scenarios:
+  - id: S1
+    persona: Developer
+    given: >
+      The screen inventory with all state entries and the wireframe for a
+      specific screen
+    then: >
+      Can build the screen layout directly from the specification —
+      components, data fields, layout pattern, and actions are all explicit
+      — without asking the designer for clarification.
+
+  - id: S2
+    persona: Designer (external, receiving the spec)
+    given: >
+      The personas.md file with JTBD persona profiles and capability
+      mapping
+    then: >
+      Can validate that every target user type is represented, and can add
+      visual design (colors, type, spacing) on top without re-deriving the
+      interaction structure.
+
+  - id: S3
+    persona: Product Manager
+    given: >
+      The user flow diagrams for both success and recovery paths
+    then: >
+      Can trace each persona's journey through the product and verify that
+      every edge case raised in the intent epics has a corresponding flow.
+
+  - id: S4
+    persona: Technical Architect
+    given: >
+      The screen inventory with state counts, data requirements, and
+      action lists
+    then: >
+      Can estimate frontend complexity (state management needs, API
+      surface, routing depth) without needing to see visual mockups.
+
+  - id: S5
+    persona: Accessibility Lead
+    given: >
+      The wireframes and accessibility requirements per screen
+    then: >
+      Can verify WCAG conformance plans for every interactive screen and
+      flag any screen whose requirements fall below the product's
+      accessibility quality target.
+
+  - id: S6
+    persona: Developer
+    given: >
+      The interaction pattern specifications
+    then: >
+      Can implement form validation, loading indicators, error messaging,
+      and empty states consistently across the product without re-inventing
+      patterns per screen.
+
+  - id: S7
+    persona: Product Manager (at final review)
+    given: >
+      The consolidated design-spec.md linking personas, screens, flows,
+      wireframes, and interaction patterns
+    then: >
+      Can approve the full design package in one Tether decision, or Orbit
+      with feedback to a specific stage without losing the context of the
+      unchanged stages.

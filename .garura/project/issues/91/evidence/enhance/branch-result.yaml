@@ -1,0 +1,9 @@
+branch_name: enhance/91-docs-four-crafts-architecture
+base_branch: main
+created: true
+pushed: true
+tracking: origin/enhance/91-docs-four-crafts-architecture
+verification:
+  current_branch: enhance/91-docs-four-crafts-architecture
+  remote: origin
+  merge_ref: refs/heads/enhance/91-docs-four-crafts-architecture

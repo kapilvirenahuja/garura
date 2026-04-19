@@ -79,7 +79,7 @@ When you receive a JSON contract from the play orchestrator:
 **Example return** (after technical-approach drafting):
 ```json
 {
-  "intent_path": "core/components/plays/prepare-epic/reference/intent.yaml",
+  "intent_path": "core/components/plays/prepare/reference/intent.yaml",
   "stm_base": ".meridian/project/issues/",
   "slug": "chronos",
   "stm": {
@@ -271,8 +271,8 @@ When invoked via JSON contract, delegate artifact production to skills:
 | `draft-lld` | `stm.lld_path` is null and `stm.product_spec_path` + `stm.technical_approach_path` are non-null | `product_spec_path`, `technical_approach_path`, `output_base` | `lld.md` at `{output_base}/lld.md` |
 | `research-domain-context` | LTM insufficient for technology selection or architecture decisions | `domain`, `knowledge_gaps`, `problem_statement`, `output_base` | `domain-context.md` at `{output_base}/domain-context.md` |
 | `draft-implementation-plan` | Create execution plan with scope items, file paths, exit gates | `features_yaml_path`, `architecture_yaml_path`, `tech_yaml_path`, `scenarios_yaml_path`, `output_base` | `plan.yaml` at `{output_base}/plan.yaml` |
-| `derive-nfr-spec` | build-arch Stage 3 — NFR re-statement, adjustments, and per-NFR delivery mechanism linkage | `quality_profile_path`, `epics_dir`, `logical_architecture_path`, `physical_architecture_path`, `output_path` | `nfr-spec.yaml` + `decision-manifest-derive-nfr-spec.yaml` |
-| `derive-quality-vision` | build-arch Stage 4 — ISO 25010 vision narrative + per-characteristic design linkage, tooling, thresholds, lifecycle gates | `quality_profile_path`, `nfr_spec_path`, `logical_architecture_path`, `physical_architecture_path`, `ltm_quality_path`, `output_path` | `quality-vision.yaml` + `decision-manifest-derive-quality-vision.yaml` |
+| `derive-nfr-spec` | arch Stage 3 — NFR re-statement, adjustments, and per-NFR delivery mechanism linkage | `quality_profile_path`, `epics_dir`, `logical_architecture_path`, `physical_architecture_path`, `output_path` | `nfr-spec.yaml` + `decision-manifest-derive-nfr-spec.yaml` |
+| `derive-quality-vision` | arch Stage 4 — ISO 25010 vision narrative + per-characteristic design linkage, tooling, thresholds, lifecycle gates | `quality_profile_path`, `nfr_spec_path`, `logical_architecture_path`, `physical_architecture_path`, `ltm_quality_path`, `output_path` | `quality-vision.yaml` + `decision-manifest-derive-quality-vision.yaml` |
 
 **Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract the artifact path from the skill output — do NOT forward the skill's YAML as your response.
 

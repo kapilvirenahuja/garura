@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Bash
 
 # validate-kb-extension
 
-Model-invocable skill for verifying the KB domain-taxonomy catalog conforms to the extension conventions defined in `core/components/memory/standards/rules/kb-extension.md`. Invoked by the `specify-product` play's pre-flight (214.5) and as the 214.4 T22 acceptance check.
+Model-invocable skill for verifying the KB domain-taxonomy catalog conforms to the extension conventions defined in `core/components/memory/standards/rules/kb-extension.md`. Invoked by the `specify` play's pre-flight (214.5) and as the 214.4 T22 acceptance check.
 
 ## Purpose
 

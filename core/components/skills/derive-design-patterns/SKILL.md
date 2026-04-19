@@ -8,7 +8,7 @@ version: 0.1.0
 
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest-derive-design-patterns.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Called by `tech-architect` during `build-arch` Stage 5. Produces `design-patterns.yaml` at `{product_base}architecture/design-patterns.yaml`.
+Called by `tech-architect` during `arch` Stage 5. Produces `design-patterns.yaml` at `{product_base}architecture/design-patterns.yaml`.
 
 ## Purpose
 
@@ -59,7 +59,7 @@ Receive from the tech-architect agent. All paths resolve against `{product_base}
 | `component_level` | At least one entry per declared runtime tier (web, api, worker, data) from `physical-architecture.yaml:deployment_topology.runtime_tiers` |
 | `cross_cutting` | When any NFR names resilience, idempotency, or consistency as a driver (cross-cutting triggers from Step 1) |
 
-An empty layer is F9. "We didn't pick any pattern" is not a valid answer at build-arch time.
+An empty layer is F9. "We didn't pick any pattern" is not a valid answer at arch time.
 
 ### 4. For each slot: check grounded_tools → KB catalog → multi-candidate resolution
 
@@ -253,7 +253,7 @@ Write `design-patterns.yaml` to `{output_path}`:
 slug: "<from project_profile.name>"
 status: DRAFT
 created_at: "<ISO-8601>"
-play: build-arch
+play: arch
 skill: derive-design-patterns
 upstream_artifacts:
   logical_architecture_path: <echoed>

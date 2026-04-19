@@ -80,7 +80,7 @@ Meta-utility skills:
 | `draft-product-spec` | false | sonnet | Create `features.yaml` defining product behaviors, invariants, scope boundaries, and acceptance criteria (implementation-agnostic) |
 | `draft-verification-scenarios` | false | sonnet | Create verification scenarios with pass/fail criteria and automation classification |
 | `research-domain-context` | false | sonnet | Research vertical domain knowledge via web when LTM is insufficient |
-| `validate-implementation-design` | false | sonnet | Cross-validate prepare-epic artifacts for coverage, compartmentalization, and audience separation |
+| `validate-implementation-design` | false | sonnet | Cross-validate prepare artifacts for coverage, compartmentalization, and audience separation |
 
 ### Product / Strategy Skills
 

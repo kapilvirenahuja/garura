@@ -2,7 +2,7 @@
 
 Canonical format for human-approval checkpoints that use the Tether / Orbit / Vanish response protocol. Every play that gates on user approval instantiates this format instead of inlining its own prompt text.
 
-Consumers: `specify-product`, `design-exp`, `build-arch`, `start-feature-planning`, `review-pr`, every checkpoint-gated play.
+Consumers: `specify`, `design`, `arch`, `start-feature-planning`, `review-pr`, every checkpoint-gated play.
 
 ## Shape
 
@@ -54,7 +54,7 @@ The play parses the user response with this protocol:
 
 ## Examples
 
-### Stage 1 market review (specify-product)
+### Stage 1 market review (specify)
 
 ```markdown
 ## Market Brief — graveyard-crew

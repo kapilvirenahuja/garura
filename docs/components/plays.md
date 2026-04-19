@@ -55,7 +55,7 @@ Play context:
 
 ### Pattern B — Task-Driven DAG Plays
 
-Used by plays like `prepare-epic`. The play creates the full task graph upfront using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order. Agents communicate via a **JSON contract** rather than per-step YAML context blocks.
+Used by plays like `prepare`. The play creates the full task graph upfront using TaskCreate with `blockedBy` dependencies, then executes capabilities in dependency order. Agents communicate via a **JSON contract** rather than per-step YAML context blocks.
 
 ```
 Pre-flight → Create Task Graph → Execute Capabilities (in dependency order) → Checkpoint → Execute Post-Checkpoint Capabilities → Report
@@ -90,7 +90,7 @@ The JSON contract is the primary communication mechanism in task-driven plays. A
     { "name": "design_review", "status": "pending" }
   ],
   "evidence": [
-    { "name": "prepare-epic", "location": null }
+    { "name": "prepare", "location": null }
   ],
   "notes": [],
   "step_failure": null
@@ -175,10 +175,10 @@ This separation means agents can read the user contract independently without pa
 
 ### intent.yaml Schema (Task-Driven Plays)
 
-`prepare-epic` uses the canonical intent.yaml shape — metadata plus the four content fields — readable by both agents and users:
+`prepare` uses the canonical intent.yaml shape — metadata plus the four content fields — readable by both agents and users:
 
 ```yaml
-name: prepare-epic
+name: prepare
 description: "Produce implementation-ready design artifacts (features, architecture, tech, scenarios, plan) for a feature."
 version: 0.1.0
 checksum: "<sha256 of normalized content zone>"
@@ -261,17 +261,17 @@ Task-driven plays support resuming from a checkpoint. The `--resume` flag instru
    - `brief_review.status: approved` with downstream `stm` paths null → jump to post-checkpoint execution
 4. Report to user what it is resuming from
 
-If no checkpoint is found, the play halts with a message directing the user to start fresh with the full invocation (e.g., `/prepare-epic`).
+If no checkpoint is found, the play halts with a message directing the user to start fresh with the full invocation (e.g., `/prepare`).
 
 ```
-/prepare-epic --resume
+/prepare --resume
 ```
 
 ## Capability Graph (Task-Driven Plays)
 
 Task-driven plays declare a capability graph that defines the execution DAG. This is the static description of what the play will create when it builds the task graph.
 
-Example from `prepare-epic`:
+Example from `prepare`:
 
 | # | Capability | Agent | Needs | Produces |
 |---|------------|-------|-------|----------|
@@ -324,27 +324,27 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
 | Play | Pattern | Purpose |
 |--------|---------|---------|
 | `briefs` | Linear | Regenerate HTML briefs from product YAML artifacts |
-| `build-arch` | Task-Driven | Build architecture artifacts (logical, physical, NFR, quality) |
+| `arch` | Task-Driven | Build architecture artifacts (logical, physical, NFR, quality) |
 | `capture` | Linear | Capture any issue type (feature / bug / defect / epic / enhancement) as a labeled GitHub Issue with background dispatch |
 | `capture-learning` | Linear | Capture learnings to LTM (archival) |
 | `check-drift` | Linear | Check for drift between docs and codebase |
 | `commit-code` | Linear | Commit changes grouped by concern with conventional messages |
 | `create-play` | Task-Driven | Compile a new play from an intent.yaml |
 | `create-pr` | Linear | Create a pull request with review checklist |
-| `design-exp` | Task-Driven | Design experience artifacts — personas, screens, flows, wireframes |
+| `design` | Task-Driven | Design experience artifacts — personas, screens, flows, wireframes |
 | `distill` | Task-Driven | Distill knowledge into LTM |
 | `enhance` | Task-Driven | RCA-driven enhancement — traces root cause, designs fix, ships |
 | `fix-it` | Task-Driven | RCA-driven defect resolution — root-cause trace, design fix, ship |
-| `implement-epic` | Task-Driven | Implement a feature through an eval-driven TDD loop |
+| `implement` | Task-Driven | Implement a feature through an eval-driven TDD loop |
 | `merge-pr` | Linear | Merge a pull request and clean up the branch |
-| `prepare-epic` | Task-Driven | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
+| `prepare` | Task-Driven | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
 | `report-issue` | Linear | DEPRECATED — alias for `garura:capture`. Available until next major release. Use `/capture` instead. |
 | `review-pr` | Linear | Diff-scoped quality review for a pull request |
 | `ship` | Linear (chains atomic plays) | Deliver branch work — commit, PR, review, merge, return |
-| `specify-product` | Task-Driven | Specify product from brief through scope |
+| `specify` | Task-Driven | Specify product from brief through scope |
 | `start-feature` | Linear | Start a new feature branch from an issue |
 | `start-feature-planning` | Linear | Plan a feature before implementation |
-| `validate-epic` | Task-Driven | Cross-validate epic design artifacts |
+| `validate` | Task-Driven | Cross-validate epic design artifacts |
 
 ## Artifact Locations (per ADR 017 whitelist)
 
@@ -353,11 +353,11 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
 | Specifications (issue-scoped) | `.garura/project/issues/{N}/specs/` |
 | Evidence | `.garura/project/issues/{N}/evidence/{play-name}/{timestamp}.md` |
 | Checkpoints | `.garura/project/issues/{N}/checkpoint/{play-name}/{timestamp}.md` |
-| Context (prepare-epic, build-arch) | `.garura/project/issues/{N}/context/` |
+| Context (prepare, arch) | `.garura/project/issues/{N}/context/` |
 | Review artifacts | `.garura/project/issues/{N}/review/` |
-| Product planning (specify-product output) | `.garura/product/` |
-| UX (design-exp output) | `.garura/product/ux/` |
-| Architecture (build-arch output) | `.garura/product/arch/` |
+| Product planning (specify output) | `.garura/product/` |
+| UX (design output) | `.garura/product/ux/` |
+| Architecture (arch output) | `.garura/product/arch/` |
 | External | Returned directly (URLs, IDs) |
 
 ## Task Framework Integration

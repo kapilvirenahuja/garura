@@ -44,7 +44,7 @@ Every feature in a module file carries NINE required sections — four prose sec
 
 Added in 214.4 per ADR 017. The contract is defined in `core/components/memory/standards/rules/kb-extension.md` and enforced by the `validate-kb-extension` skill.
 
-**Inclusion** — Whether this feature is mandatory / optional / conditional, with `Mandatory when`, `Conditional when`, and `Exclude when` rules referencing `project_profile.*` fields. Drives automatic capability selection in `specify-product` stage 3.
+**Inclusion** — Whether this feature is mandatory / optional / conditional, with `Mandatory when`, `Conditional when`, and `Exclude when` rules referencing `project_profile.*` fields. Drives automatic capability selection in `specify` stage 3.
 
 **Success Criteria** — Measurable outcomes. Every entry must be quantified (number + unit, percentage, or specific threshold). Drives the intent-epic template's success_scenarios field.
 
@@ -56,7 +56,7 @@ Added in 214.4 per ADR 017. The contract is defined in `core/components/memory/s
 
 ### Cross-tree constraints file
 
-`_cross-tree-constraints.yaml` sits alongside the domain-taxonomy files and holds constraint rules in the form `(condition) ⇒ (include/exclude capability X)`. The Product Keeper agent walks each constraint during `specify-product` stage 3, checks the LHS against the project profile and already-selected capabilities, and enforces the RHS. See the file header for the schema and the 10 bootstrap constraints (CTC-001 through CTC-010).
+`_cross-tree-constraints.yaml` sits alongside the domain-taxonomy files and holds constraint rules in the form `(condition) ⇒ (include/exclude capability X)`. The Product Keeper agent walks each constraint during `specify` stage 3, checks the LHS against the project profile and already-selected capabilities, and enforces the RHS. See the file header for the schema and the 10 bootstrap constraints (CTC-001 through CTC-010).
 
 ### Example Feature Entry
 

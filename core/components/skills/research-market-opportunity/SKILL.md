@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Glob, Grep, WebSearch, WebFetch
 
 # research-market-opportunity
 
-Model-invocable skill for producing a market brief from a free-text product idea. Called by the `market-analyst` agent during `specify-product` Stage 1.
+Model-invocable skill for producing a market brief from a free-text product idea. Called by the `market-analyst` agent during `specify` Stage 1.
 
 ## Purpose
 
@@ -115,4 +115,4 @@ market_brief:
 | Version | 0.1.0 |
 | Category | product-planning |
 | Created | 2026-04-14 |
-| Related | `core/components/agents/market-analyst.md`, `core/components/plays/specify-product/` |
+| Related | `core/components/agents/market-analyst.md`, `core/components/plays/specify/` |

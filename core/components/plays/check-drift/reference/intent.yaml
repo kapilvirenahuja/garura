@@ -88,7 +88,7 @@ constraints:
 
   - id: C13
     rule: >
-      When locked design artifacts from prepare-epic exist at
+      When locked design artifacts from prepare exist at
       {stm_base}/{issue}/context/design/ (tech.yaml, scenarios.yaml, plan.yaml,
       epic-spec.yaml, architecture-context.yaml), they are the PRIMARY "what was
       specified" source. Product-level specs (specification/, scope/, architecture/)
@@ -97,7 +97,7 @@ constraints:
 
   - id: C14
     rule: >
-      All arbiter verdicts at {stm_base}/{issue}/evidence/implement-epic/
+      All arbiter verdicts at {stm_base}/{issue}/evidence/implement/
       arbiter-verdict-*.yaml must be consumed. Every verdict with
       verdict: spec_ambiguous maps to an evidence-drift item — the spec contract
       was too ambiguous to determine if the implementation was correct or not.
@@ -189,7 +189,7 @@ failure_conditions:
 
   - id: F13
     condition: >
-      Arbiter verdict files exist at the implement-epic evidence path but were
+      Arbiter verdict files exist at the implement evidence path but were
       not consumed during analysis. spec_ambiguous verdicts that were not
       translated into evidence-drift items represent missed spec gap signals.
 

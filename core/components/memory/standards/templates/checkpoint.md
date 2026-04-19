@@ -2,7 +2,7 @@
 
 Canonical format for checkpoint files written by plays at each human-approval gate. Every checkpoint-gated play writes one of these per gate, written in the background by the scriber agent.
 
-Consumers: `specify-product`, `design-exp`, `build-arch`, `start-feature-planning`, `review-pr`, every checkpoint-gated play.
+Consumers: `specify`, `design`, `arch`, `start-feature-planning`, `review-pr`, every checkpoint-gated play.
 
 ## File path convention
 
@@ -87,7 +87,7 @@ Checkpoint files are NOT ephemeral. They are committed as STM evidence (via the 
 
 | Field | Rule |
 |-------|------|
-| `play` | Exact play slug (e.g. `specify-product`, `design-exp`, `build-arch`). |
+| `play` | Exact play slug (e.g. `specify`, `design`, `arch`). |
 | `stage` | Stage slug within the play. Multiple gates per play produce different stage values. |
 | `cycle` | 1 for the first attempt at this gate; 2+ for Orbit retries. |
 | `status` | Exactly one of the 5 allowed values. Linear progression PENDING → (APPROVED \| REJECTED \| ORBIT_FEEDBACK). COMPLETED is set at play close. |

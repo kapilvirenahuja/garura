@@ -50,9 +50,9 @@ Resolve `product_base` from `.garura/core/config.yaml` → `product.base-path`.
 - `{product_base}architecture/quality-vision.yaml` — quality vision per ISO 25010 characteristic
 - `{product_base}architecture/design-patterns.yaml` — pattern catalog applied to this product
 
-### From locked design artifacts (prepare-epic STM) — PRIMARY spec source
+### From locked design artifacts (prepare STM) — PRIMARY spec source
 
-When locked design artifacts from prepare-epic exist, they are the most authoritative "what was specified" source. Resolved from `stm_base` + issue number:
+When locked design artifacts from prepare exist, they are the most authoritative "what was specified" source. Resolved from `stm_base` + issue number:
 
 - `{stm_base}/{issue}/context/design/tech.yaml` — locked LLD: all API contracts, internal interfaces, frontend/backend/data specs, mock strategy (STATUS: LOCKED)
 - `{stm_base}/{issue}/context/design/scenarios.yaml` — locked 3-tier verification scenarios: baseline, new, regression
@@ -60,18 +60,18 @@ When locked design artifacts from prepare-epic exist, they are the most authorit
 - `{stm_base}/{issue}/context/design/epic-spec.yaml` — scoped epic specification with behaviors, constraints, success/failure scenarios
 - `{stm_base}/{issue}/context/design/architecture-context.yaml` — scoped architecture context for this issue
 
-### From implement-epic evidence
+### From implement evidence
 
-- `{stm_base}/{issue}/evidence/implement-epic/arbiter-verdict-*.yaml` — judge-as-arbiter verdicts; `spec_ambiguous` = direct spec gap signal
-- `{stm_base}/{issue}/evidence/implement-epic/status-report-*.yaml` — per-scope-item pass/fail mapped to tech.yaml contract IDs
-- `{stm_base}/{issue}/evidence/implement-epic/fix-report-*.yaml` — what broke and how it was fixed
+- `{stm_base}/{issue}/evidence/implement/arbiter-verdict-*.yaml` — judge-as-arbiter verdicts; `spec_ambiguous` = direct spec gap signal
+- `{stm_base}/{issue}/evidence/implement/status-report-*.yaml` — per-scope-item pass/fail mapped to tech.yaml contract IDs
+- `{stm_base}/{issue}/evidence/implement/fix-report-*.yaml` — what broke and how it was fixed
 - `{stm_base}/{issue}/milestones/{milestone_id}/status-report.yaml` — milestone completion status
 
-### From validate-epic evidence
+### From validate evidence
 
 - `{stm_base}/{issue}/milestones/{milestone_id}/milestone-verdict.yaml` — per-milestone QA verdict (ACCEPT/REJECT) with e2e results
-- `{stm_base}/{issue}/evidence/validate-epic/{milestone_id}/e2e-results.yaml` — E2E test results by tier (baseline, new, regression)
-- `{stm_base}/{issue}/evidence/validate-epic/{milestone_id}/judge-report.yaml` — system-level judge evaluation results
+- `{stm_base}/{issue}/evidence/validate/{milestone_id}/e2e-results.yaml` — E2E test results by tier (baseline, new, regression)
+- `{stm_base}/{issue}/evidence/validate/{milestone_id}/judge-report.yaml` — system-level judge evaluation results
 
 ### From `.meridian/project/issues/{issue}/` (STM)
 - `{stm_base}/{issue}/milestones/{milestone_id}/CONTEXT.md` — per-milestone implementation context derived from tech.yaml
