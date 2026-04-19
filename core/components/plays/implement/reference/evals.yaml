@@ -1,7 +1,7 @@
 # evals.yaml — implement play
 # Generated from intent.yaml constraints (C1-C26), failure conditions (F1-F22), and scenarios (S1-S12)
 # Aligned with the refactored intent: no separate EM agent, quality-auditor absorbs QP certification,
-# eval-generator scoped to unit test coverage completeness, judge scoped to developer self-review,
+# evals-engineer scoped to unit test coverage completeness, judge scoped to developer self-review,
 # mock setup required, integration test pass required, sequential scope-item TDD cycles.
 
 # =============================================================================
@@ -168,10 +168,10 @@ step_evals:
 
   - id: SE-9
     step: 6
-    name: "Eval-generator scoped to unit test coverage completeness"
+    name: "Evals-engineer scoped to unit test coverage completeness"
     validates: [C4, C8, F7]
     check: >
-      Verify the eval-generator received only: features.yaml behaviors,
+      Verify the evals-engineer received only: features.yaml behaviors,
       scenarios.yaml verification scenarios, feature success/failure conditions,
       and plan.yaml exit gate criteria. Verify it did NOT receive: vision
       documents, design tokens, arch artifacts, tech.yaml, full plan.yaml,
@@ -181,7 +181,7 @@ step_evals:
       'Are edge cases represented in unit tests?' Verify evals do NOT check
       system behavior, deployed endpoints, UI rendering, or e2e flows.
     pass_criteria: >
-      Eval-generator input context contains only the 4 permitted sources. Zero
+      Evals-engineer input context contains only the 4 permitted sources. Zero
       prohibited sources in input. All generated evals are unit-test-coverage
       questions. Zero evals reference deployed environments, HTTP endpoints,
       browser automation, or system-level behavior.
@@ -234,7 +234,7 @@ step_evals:
       it received only: CONTEXT.md (architecture, scope, file ownership,
       conventions) and test file paths (marked read-only). Verify it did NOT
       receive: features.yaml, scenarios.yaml, evaluation criteria, evaluation
-      IDs, judge reports, pass/fail thresholds, eval-generator prompts, or
+      IDs, judge reports, pass/fail thresholds, evals-engineer prompts, or
       quality agent results. Verify the builder implements each scope item to
       make existing tests pass.
     pass_criteria: >
@@ -309,7 +309,7 @@ step_evals:
       report includes a qp_certification section with: overall (CERTIFIED|BLOCKED),
       per-dimension checks with level/threshold/actual_value/status (PASS|FAIL),
       and a blockers list. Verify the quality-auditor did NOT receive: evaluations,
-      builder prompts, builder reasoning, eval-generator prompts, or judge reports.
+      builder prompts, builder reasoning, evals-engineer prompts, or judge reports.
       Verify that if overall is FAIL or qp_certification.overall is BLOCKED, the
       judge does NOT execute.
     pass_criteria: >
@@ -343,7 +343,7 @@ step_evals:
       Inspect the judge agent's input context. Verify it received only:
       (1) encrypted evaluations (decryptable only by judge), (2) implementation
       artifacts (code and build output). Verify it did NOT receive: builder
-      prompts, builder reasoning, implementation rationale, eval-generator
+      prompts, builder reasoning, implementation rationale, evals-engineer
       prompts, or quality agent results. Verify the judge acts as developer
       self-review: checking if unit tests genuinely exercise behavior, if there
       are trivially passing tests, and if coverage aligns with spec. Verify
@@ -432,11 +432,11 @@ step_evals:
       entirely, (2) a fresh evaluation agent with no knowledge of prior
       evaluations generates new evaluations from the original specs, (3) the
       judge runs against the freshly generated evaluations, not the previous
-      iteration's evaluations. Verify the fresh eval-generator has no access
+      iteration's evaluations. Verify the fresh evals-engineer has no access
       to prior eval IDs, prior eval text, or prior judge results.
     pass_criteria: >
       Each fix iteration uses freshly generated evaluations. Old evals are
-      discarded before new generation. Fresh eval-generator has zero knowledge
+      discarded before new generation. Fresh evals-engineer has zero knowledge
       of prior evals. Judge receives only the current iteration's encrypted
       evals. Zero reuse of previous iteration's evaluations.
 
@@ -449,7 +449,7 @@ step_evals:
       orchestrator compares eval count against the original manifest. If the
       count decreased, verify each removed eval ID has a consolidation_rationale
       explaining why it was removed. If no rationale is provided for a removed
-      eval, verify the fresh eval set is rejected and the eval-generator is
+      eval, verify the fresh eval set is rejected and the evals-engineer is
       re-invoked. Verify eval count may increase but may not decrease without
       documented explanation.
     pass_criteria: >
@@ -491,13 +491,13 @@ scenario_evals:
     check: >
       Given a judge report showing evaluation failures after the first attempt:
       verify the fix loop executes. Each iteration must produce fresh evaluations
-      (not reuse prior iteration's evals). The fresh eval-generator has no
+      (not reuse prior iteration's evals). The fresh evals-engineer has no
       knowledge of prior evals. The judge runs against the new evals. The loop
       continues until all evals pass or 3 iterations are exhausted.
     pass_criteria: >
       Fix loop executed at least 1 iteration. Each iteration generated fresh
       evals from original specs. Judge in each iteration ran against that
-      iteration's fresh evals, not prior iteration's. Fresh eval-generator had
+      iteration's fresh evals, not prior iteration's. Fresh evals-engineer had
       zero knowledge of prior evals. Loop terminated when all evals passed or
       after 3 iterations.
 
@@ -524,15 +524,15 @@ scenario_evals:
     check: >
       Inspect the input contexts of all agents: (1) code-builder — zero
       evaluation content, zero features.yaml, zero scenarios.yaml, zero judge
-      reports, (2) eval-generator — zero implementation code, zero builder
+      reports, (2) evals-engineer — zero implementation code, zero builder
       prompts, zero prior eval results, (3) judge — zero builder prompts, zero
       builder reasoning, zero quality results, (4) quality-auditor — zero
-      evals, zero builder prompts, zero eval-generator prompts, zero judge
+      evals, zero builder prompts, zero evals-engineer prompts, zero judge
       reports. Verify security standards from quality vision gates are met.
     pass_criteria: >
       Every agent received only its designated inputs. Zero cross-boundary
       information detected. Builder has zero eval content. Judge has zero
-      builder prompts. Eval-generator has zero implementation code.
+      builder prompts. Evals-engineer has zero implementation code.
       Quality-auditor has zero eval content. Security quality vision gates met.
 
   - id: SCE-5
@@ -653,7 +653,7 @@ scenario_evals:
       Eval-audit artifact exists with original count, fresh count, and delta.
       If delta is negative (evals removed), every removed eval ID has a
       consolidation_rationale. If rationale is missing, the eval set was
-      rejected and eval-generator re-invoked. Eval count may increase but
+      rejected and evals-engineer re-invoked. Eval count may increase but
       never decreases without explanation.
 
   - id: SCE-12
@@ -691,7 +691,7 @@ coverage_summary:
       description: "All prerequisite execution order entries must be complete"
       covered_by: [SE-3]
     C4:
-      description: "Eval-generator receives only specified inputs, scoped to unit test coverage"
+      description: "Evals-engineer receives only specified inputs, scoped to unit test coverage"
       covered_by: [SE-9]
     C5:
       description: "Code-builder receives only CONTEXT.md and read-only test files"
@@ -780,7 +780,7 @@ coverage_summary:
       description: "Judge input contains builder prompts or implementation rationale"
       covered_by: [SE-18]
     F7:
-      description: "Eval-generator input contains implementation code or prior eval results"
+      description: "Evals-engineer input contains implementation code or prior eval results"
       covered_by: [SE-9]
     F8:
       description: "Plan entry status is not LOCKED at implementation start"

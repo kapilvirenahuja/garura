@@ -26,15 +26,15 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 | Agent | Role | Domain | Receives | Does NOT Receive | Phases |
 |-------|------|--------|----------|-----------------|--------|
-| `eval-generator` | System eval generator | System-level evals from specs | This milestone's locked behaviors, scenarios.yaml (scoped to milestone's scenario_gate + cumulative regression), plan.yaml exit gates for this milestone, design-context.yaml screens | Unit test code, builder prompts, prior evals, implementation code, scenarios from other milestones | Preparation |
+| `evals-engineer` | System eval generator | System-level evals from specs | This milestone's locked behaviors, scenarios.yaml (scoped to milestone's scenario_gate + cumulative regression), plan.yaml exit gates for this milestone, design-context.yaml screens | Unit test code, builder prompts, prior evals, implementation code, scenarios from other milestones | Preparation |
 | `test-engineer` | E2E test authorship | Playwright/Cypress scripts from scenarios + screens | This milestone's scenarios from scenarios.yaml, design-context.yaml screens, API contracts from tech.yaml, deployment URL, prior-milestone cumulative scenario IDs for regression | Unit test code, builder prompts, evals | Preparation |
-| `judge` | QA acceptance | Exercises deployed product | Encrypted system evals + deployed env URL/credentials | Builder prompts, unit tests, quality-auditor results from implement, eval-generator prompts | Execution |
+| `judge` | QA acceptance | Exercises deployed product | Encrypted system evals + deployed env URL/credentials | Builder prompts, unit tests, quality-auditor results from implement, evals-engineer prompts | Execution |
 | `feature-steward` | Manual scenario writer | Generates QA checklist | This milestone's success scenarios, plan.yaml exit gate for this milestone | Evals, builder prompts, judge reports | Finalize |
 | `repo-orchestrator` | Git | Evidence self-commit | Evidence files | Everything else | Evidence |
 
 **Context isolation invariants (C3/C6/C14):** The orchestrator is the ONLY entity that touches multiple agent outputs. When passing information between agents, the orchestrator MUST filter:
-- **eval-generator receives:** This milestone's locked behaviors, milestone-scoped scenarios.yaml, plan.yaml exit gates, design-context.yaml screens. Never implementation code, builder prompts, prior evals, quality-auditor results, judge reports, or scenarios from other milestones (C3).
-- **judge receives:** Encrypted system-level evals + deployed env URL/credentials. Never builder prompts, unit tests, quality-auditor results from implement, eval-generator prompts, implementation source code (C6).
+- **evals-engineer receives:** This milestone's locked behaviors, milestone-scoped scenarios.yaml, plan.yaml exit gates, design-context.yaml screens. Never implementation code, builder prompts, prior evals, quality-auditor results, judge reports, or scenarios from other milestones (C3).
+- **judge receives:** Encrypted system-level evals + deployed env URL/credentials. Never builder prompts, unit tests, quality-auditor results from implement, evals-engineer prompts, implementation source code (C6).
 - **test-engineer receives:** This milestone's scenarios from scenarios.yaml, design-context.yaml screens, API contracts from tech.yaml, deployment URL, prior-milestone cumulative scenario IDs. Never unit test code, builder prompts, evals (C4).
 - No other cross-agent information flow is permitted (C14).
 
@@ -171,7 +171,7 @@ Write scoped scenario set to `{evidence_dir}/milestone-scenarios.yaml`.
 ### Phase 1: Preparation
 
 **Step 1 — Generate System-Level Evals**
-Owner: `eval-generator` — **CONTEXT-ISOLATED**
+Owner: `evals-engineer` — **CONTEXT-ISOLATED**
 Depends on: Phase 0
 
 **Critical isolation (C3, F7):** The eval generator receives ONLY: this milestone's locked behaviors, milestone-scoped scenarios (from Step 0d), plan.yaml exit gates for this milestone, and design-context.yaml screens. It does NOT receive: unit test code, builder prompts, prior evals, implementation code, quality-auditor results from implement, judge reports from implement, or scenarios from other milestones.
@@ -360,7 +360,7 @@ Store evidence artifacts in `{evidence_dir}/traces/` (C12, F9).
 Owner: `judge` — **CONTEXT-ISOLATED**
 Depends on: Step 6
 
-**Critical isolation (C6, F6, F8):** The judge receives ONLY encrypted system-level evals + deployed environment URL/credentials. It exercises the running product via HTTP calls and/or browser automation. It does NOT receive: builder prompts, unit tests, quality-auditor results from implement, eval-generator prompts, implementation source code.
+**Critical isolation (C6, F6, F8):** The judge receives ONLY encrypted system-level evals + deployed environment URL/credentials. It exercises the running product via HTTP calls and/or browser automation. It does NOT receive: builder prompts, unit tests, quality-auditor results from implement, evals-engineer prompts, implementation source code.
 
 ```json
 {
@@ -393,7 +393,7 @@ Depends on: Step 6
 ```
 
 **Step 7 Evals:**
-- **SE-9 (C6, F6, F8):** Judge report exists. Evidence contains HTTP responses or screenshots from `{deploy_url}`. Judge's prompt contains zero builder prompts, zero eval-generator prompts, zero unit tests, zero quality-auditor results, zero source code.
+- **SE-9 (C6, F6, F8):** Judge report exists. Evidence contains HTTP responses or screenshots from `{deploy_url}`. Judge's prompt contains zero builder prompts, zero evals-engineer prompts, zero unit tests, zero quality-auditor results, zero source code.
 
 **Gate:** If judge 100% pass → skip to Phase 5 (Finalize). Else → Phase 4 (Fix Loop).
 
@@ -649,7 +649,7 @@ Depends on: Step 13
 
 - **SCE-2 (S2 — QA Engineer):** Manual test scenarios scoped to this milestone. Numbered steps, expected outcomes, pass/fail criteria.
 
-- **SCE-3 (S3 — Security Auditor):** eval-generator has zero implementation code, zero other-milestone scenarios. judge has zero eval-generator prompts, zero unit tests. test-engineer has zero implementation details. No cross-contamination (C14).
+- **SCE-3 (S3 — Security Auditor):** evals-engineer has zero implementation code, zero other-milestone scenarios. judge has zero evals-engineer prompts, zero unit tests. test-engineer has zero implementation details. No cross-contamination (C14).
 
 - **SCE-4 (S4 — Engineering Lead):** If F3 triggered: failure report with persistent failures, remediation history for THIS milestone, recommendation.
 
@@ -727,7 +727,7 @@ Conditional: SCE-4/SCE-7 skip if no fix loop. SCE-9 applicable with multiple mil
 | compiled_by | /create-play |
 | compiled_at | 2026-04-15 |
 | workflow_structure | A (conditional fix loop routing to implement per milestone) |
-| domain_agents | 4 (eval-generator, test-engineer, judge, feature-steward) |
+| domain_agents | 4 (evals-engineer, test-engineer, judge, feature-steward) |
 | utility_agents | 1 (repo-orchestrator) |
 | checkpoints | 0 (automated QA) |
 | step_evals | 14 (SE-1 through SE-14) |

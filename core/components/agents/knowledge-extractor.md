@@ -9,6 +9,7 @@ tools:
   - Write
   - Glob
   - Grep
+  - Skill
 ---
 
 # knowledge-extractor
@@ -479,6 +480,20 @@ The agent reads `{stm_base}/{issue}/evidence/` directly for enhance/ and fix-it/
 }
 ```
 
+## Skill Pool
+
+You assemble context and orchestrate. Artifact authorship happens in skills.
+
+| Skill | When | Input | Produces |
+|-------|------|-------|----------|
+| `diff-context-baseline` | ANALYZE mode Step 4-6 — compare baseline vs. outcomes, classify findings into Tier 1/2/3 | `context_baseline_path`, `milestone_verdicts_paths`, `arbiter_verdicts_paths` (optional), `stm_evidence_root`, `output_base` | `context-diff.yaml` |
+| `draft-enrichment-proposals` | ANALYZE mode Step 7 — turn findings into proposals with target paths, change blocks, impact, and ADR drafts for Tier 1 | `context_diff_path`, `product_ltm_root`, `core_ltm_root` (optional), `adr_template_path` (optional), `output_base` | `reconciliation-proposals.yaml` + `adr-drafts/ADR-NNNN-*.md` |
+| `apply-ltm-enrichment` | ENRICH mode — apply approved proposals to product LTM in place | `reconciliation_proposals_path`, `product_ltm_root`, `output_base`, `dry_run` (optional) | `enrichment-report.yaml`, writes to product LTM |
+
+**Invocation:** Use the Skill tool. Each skill returns a contract with the artifact path. Extract only paths from the skill output — do NOT forward the skill's YAML as your response.
+
+`Write` remains in your tools ONLY for internal bookkeeping (e.g., fast-mode staging notes). Durable artifacts and LTM writes go through skills.
+
 ## Capabilities
 
 ### What You Do
@@ -486,11 +501,10 @@ The agent reads `{stm_base}/{issue}/evidence/` directly for enhance/ and fix-it/
 - Read context baseline ({issue}/context/) to understand the planning-time knowledge
 - Read implementation evidence (milestones, verdicts, status-reports, e2e-results)
 - Consume check-drift findings when present (no re-derivation)
-- Compare baseline against outcomes to surface the learning delta
-- Classify findings into Tier 1 (foundational), Tier 2 (enrichment), Tier 3 (addition)
-- Produce ADR proposals + impact assessments for Tier 1 changes
-- Produce enrichment proposals matching target artifact formats
-- Write approved proposals to product LTM in place (ENRICH mode)
+- Assemble inputs for `diff-context-baseline` and dispatch
+- Assemble inputs for `draft-enrichment-proposals` and dispatch
+- On approval, assemble inputs for `apply-ltm-enrichment` and dispatch
+- Collect and relay the skill output contracts — never re-author the artifacts inline
 
 ### What You MUST NOT Do
 
@@ -501,6 +515,7 @@ The agent reads `{stm_base}/{issue}/evidence/` directly for enhance/ and fix-it/
 - Write any proposal without approval_status == "approved"
 - Re-derive findings that check-drift already produced
 - Skip impact assessment when producing a Tier 1 ADR
+- Author `context-diff.yaml`, `reconciliation-proposals.yaml`, ADR drafts, or LTM writes inline via `Write` — always delegate to the Skill Pool
 
 ## Failure Protocol
 

@@ -68,7 +68,7 @@ Meridian avoids both extremes:
 | `scriber` | infra | evidence-writer | haiku | Utility agent. Writes evidence, checkpoint, and status artifacts to disk for plays, enforcing the `.garura/` folder whitelist at the write boundary. Runs in the background so orchestrators can continue domain work in parallel with evidence I/O. |
 | `designer` | design | designer | sonnet | UX design agent — plans user experience, personas, screens, and flows |
 | `doc-builder` | documentation | builder | haiku | Documentation agent — generates and updates documentation artifacts |
-| `eval-generator` | evaluation | generator | sonnet | Eval generation agent — produces evaluation suites for testing agent behavior |
+| `evals-engineer` | evaluation | engineer | sonnet | Evaluation engineer — reads spec artifacts and dispatches `generate-encrypted-evals` skill to produce encrypted evaluation suites |
 | `intent-crafter` | intent | crafter | sonnet | Intent crafting agent — defines goals, constraints, and failure conditions for plays |
 | `intent-resolver` | intent | resolver | sonnet | Intent resolution agent — resolves ambiguous or underspecified intents |
 | `judge` | evaluation | judge | opus | Evaluation judging agent — evaluates agent output against defined criteria |
@@ -188,8 +188,13 @@ In addition to these skills, `feature-steward` owns a direct role in `implement`
 | `draft-lld` | Draft low-level design from features + technical approach |
 | `research-domain-context` | Research vertical domain knowledge via web when LTM is insufficient |
 | `draft-implementation-plan` | Produce execution plan with scope items, file paths, and exit gates |
+| `derive-nfr-spec` | arch Stage 3 — NFR re-statement and per-NFR delivery mechanism linkage |
+| `derive-quality-vision` | arch Stage 4 — ISO 25010 vision + per-characteristic design linkage |
+| `draft-rca` | fix-it — trace symptom to specific root cause; writes rca.yaml + resolution-trace.yaml |
+| `draft-fix-design` | fix-it — design the fix with alternatives_considered; writes design.yaml |
+| `author-regression-test` | fix-it — author a failing YAML eval-spec regression test, verified red before returning |
 
-For direct invocations (no JSON contract), tech-designer performs RCA and feature analysis directly using its tools rather than via skills.
+If no matching skill exists for an artifact the agent is asked to produce, it returns a structured failure requesting skill creation — it never authors artifacts inline.
 
 ### code-builder Skill Pool
 
@@ -215,8 +220,7 @@ code-builder has no skills — it implements code directly using its tools (Bash
 
 | Skill | Purpose |
 |-------|---------|
-| `build-quality-gate` | Evaluate implementation against the Quality Profile's acceptance criteria |
-| `generate-quality-profile` | Generate a Quality Profile for a product feature |
+| `certify-qp-compliance` | Compare quality-auditor measurements against quality-standards.yaml thresholds via the QP Translation Table; write em-certification.yaml with per-dimension CERTIFIED/BLOCKED and overall verdict |
 
 ### designer Skill Pool
 
@@ -228,18 +232,17 @@ code-builder has no skills — it implements code directly using its tools (Bash
 
 doc-builder produces documentation artifacts directly using its tools. See the agent definition for output contracts.
 
-### eval-generator Skill Pool
+### evals-engineer Skill Pool
 
 | Skill | Purpose |
 |-------|---------|
-| `draft-verification-scenarios` | Create evaluation scenarios with pass/fail criteria |
+| `generate-encrypted-evals` | Generate YAML evals from configured spec sources, encrypt with AES-256-CBC+PBKDF2, delete plaintext, write manifest.json |
 
 ### intent-crafter Skill Pool
 
 | Skill | Purpose |
 |-------|---------|
-| `generate-brief` | Generate a product brief from strategic inputs |
-| `generate-project-profile` | Generate a project profile artifact |
+| `author-intent-yaml` | Write schema-conforming intent.yaml from interview digest; assigns C/F/S IDs |
 
 ### intent-resolver Skill Pool
 
@@ -255,10 +258,9 @@ judge evaluates agent output against defined criteria directly using its tools. 
 
 | Skill | Purpose |
 |-------|---------|
-| `distill` | Distill structured knowledge from artifacts into LTM |
-| `wire-ltm-context` | Wire LTM context paths for downstream agent consumption |
-| `resolve-ltm-context` | Resolve the relevant LTM context for a given task |
-| `validate-kb-extension` | Validate a KB extension against the canonical nine-section schema |
+| `diff-context-baseline` | ANALYZE mode — compare baseline vs. implementation outcomes; write context-diff.yaml with Tier 1/2/3 findings |
+| `draft-enrichment-proposals` | ANALYZE mode — turn findings into reconciliation-proposals.yaml with target paths, impact assessments, and ADR drafts for Tier 1 |
+| `apply-ltm-enrichment` | ENRICH mode — apply approved proposals to product LTM in place; writes enrichment-report.yaml |
 
 ### market-analyst Skill Pool
 
@@ -291,15 +293,26 @@ judge evaluates agent output against defined criteria directly using its tools. 
 
 | Skill | Purpose |
 |-------|---------|
-| `draft-architecture` | Draft architecture artifacts (logical, physical, NFR, quality) |
-| `derive-quality-vision` | Derive quality vision from product and NFR inputs |
+| `research-domain-context` | Research domain knowledge via web when LTM is insufficient |
+| `derive-logical-architecture` | arch Stage 1 — tech-agnostic bounded contexts, components, data model, API surface |
+| `derive-physical-architecture` | arch Stage 2 — specific stack picks, deployment topology, runtime tiers |
+| `derive-design-patterns` | arch Stage 5 — system/layer/component/cross-cutting pattern catalog |
+| `validate-architecture-spec` | arch post-generation — single 20-check pass (V1–V20) across all arch artifacts |
+| `infer-architecture` | brownfield — scan codebase, produce architecture-inference.yaml |
+| `build-dependency-graph` | any stage — enumerate import/call edges, detect cycles and hubs; writes dependency-graph.yaml + .md |
+| `draft-tech-spec` | prepare/arch — author tech.yaml with concrete library picks, build tooling, test frameworks |
+| `draft-implementation-plan` | prepare — author plan.yaml (execution order, scope items, exit gates) |
+
+If no matching skill exists for an artifact the agent is asked to produce, it returns a structured failure requesting skill creation — it never authors artifacts inline.
 
 ### test-engineer Skill Pool
 
 | Skill | Purpose |
 |-------|---------|
-| `write-tests` | Write test suites for feature verification |
-| `execute-test-suite` | Execute a test suite and record results |
+| `map-test-surface` | Phase 1B — inventory existing tests; writes test-surface.yaml |
+| `compute-blast-radius` | Phase 2B — given change surface + dependency graph, compute affected and at-risk tests; writes blast-radius.yaml |
+| `specify-baseline-tests` | Phase 2C — specify tests for coverage gaps that capture CURRENT behavior; writes baseline-tests.yaml |
+| `draft-verification-scenarios` | Phase 3 — author three-tier scenarios (baseline, new, regression); writes scenarios.yaml |
 
 ## Agent Definition Structure
 

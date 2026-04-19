@@ -101,7 +101,7 @@ contract's `stm.output` block (per DD10 in tech.yaml).
 The following agents NEVER receive `ltm_context` from any workflow. No
 play populates this field for them under any circumstances (INV4):
 
-- **eval-generator** — Must not see implementation code or prior outputs
+- **evals-engineer** — Must not see implementation code or prior outputs
 - **judge** — Receives only encrypted evals and the codebase
 
 Any play that attempts to pass `ltm_context` to either agent must be

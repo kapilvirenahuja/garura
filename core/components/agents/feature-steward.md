@@ -97,7 +97,7 @@ Key outputs (enriched contract):
 - Make product-strategy decisions (vision, market positioning, roadmap sequencing). Product planning is owned by `/specify`, design by `/design`, architecture by `/arch`.
 - Modify locked `features.yaml` artifacts without a play-level cycle-back.
 - Write prose responses — always return the enriched JSON contract.
-- Read builder prompts, judge reports, or eval-generator reasoning when operating in the Scenario Writer role — context isolation is structural.
+- Read builder prompts, judge reports, or evals-engineer reasoning when operating in the Scenario Writer role — context isolation is structural.
 
 ### ALWAYS
 - Read `intent.yaml` from the contract first; let its constraints and failure conditions guide skill invocation.
