@@ -1,0 +1,11 @@
+merge_result:
+  issue: 274
+  pr_number: 275
+  status: merged
+  merge_sha: 2e9a6a8b63d1782742b262bd2e6c3342509c312b
+  base_branch: main
+  feature_branch: fix/274-ship-evidence-untracked
+  branch_deleted: true
+  branch_deleted_local: true
+  branch_deleted_remote: true
+  merged_at: "2026-04-19T07:02:12Z"

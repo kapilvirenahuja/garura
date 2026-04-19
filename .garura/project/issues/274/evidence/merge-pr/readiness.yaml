@@ -1,0 +1,11 @@
+readiness:
+  issue: 274
+  pr_number: 275
+  pr_url: https://github.com/kapilvirenahuja/garura/pull/275
+  mergeable: true
+  state: open
+  base_branch: main
+  head_branch: fix/274-ship-evidence-untracked
+  clean_tree: true
+  clean_tree_note: "untracked files are runtime artifacts (.claude/scheduled_tasks.lock, _pending/), not uncommitted work"
+  checked_at: "2026-04-19T07:20:00Z"
