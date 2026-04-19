@@ -1,0 +1,6 @@
+files_modified:
+  - path: docs/components/memory.md
+    action: modified
+    deviation_justification: null
+outcome: success
+self_test: "grep agent-lifecycle docs/components/memory.md returned zero results"
