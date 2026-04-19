@@ -1,0 +1,37 @@
+issue:
+  number: 274
+  title: "[DEF][Low] ship pipeline: sub-play evidence artifacts left untracked after merge"
+  state: "open"
+  labels:
+    - "defect"
+  url: "https://github.com/kapilvirenahuja/garura/issues/274"
+  body: |
+    | Field | Value |
+    |-------|-------|
+    | **Severity** | Low |
+    | **Affected Component** | ship play, sub-plays (commit-code, create-pr, merge-pr, distill) |
+    | **Date** | 2026-04-19 |
+
+    ### Problem
+
+    The ship pipeline leaves sub-play evidence artifacts (commits.yaml, create-pr/, merge-pr/, distill/) untracked after merge. These files are written by sub-plays during execution on the feature branch, after the STM commit (chore(stm)) has already been created. The non-blocking evidence self-commit in each sub-play silently fails or doesn't run in time to capture them.
+
+    ### Evidence
+
+    After the #266 merge, the following untracked files remain:
+    - `.garura/project/issues/266/evidence/commit-code/commits.yaml`
+    - `.garura/project/issues/266/evidence/create-pr/` (analysis.yaml, issue-linkage.yaml, pr-record.yaml)
+    - `.garura/project/issues/266/evidence/merge-pr/` (readiness.yaml, merge-result.yaml)
+    - `.garura/project/issues/266/evidence/distill/` (proposals.yaml)
+
+    ### Expected Behavior
+
+    All sub-play evidence artifacts produced during the ship pipeline are committed to main, either by the ship play's own evidence step or by an explicit trailing commit-and-push after merge.
+
+    ### Impact
+
+    Evidence trail for past issues is incomplete. STM artifacts from sub-plays are lost if the working directory is cleaned.
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "fix"

@@ -1,0 +1,130 @@
+rca:
+  issue: 274
+  title: "ship pipeline: sub-play evidence artifacts left untracked after merge"
+  date: "2026-04-19"
+
+  summary: >
+    Sub-play evidence artifacts produced during the ship pipeline are never
+    committed to main because each sub-play's self-commit either silently
+    fails at the wrong branch state or (for distill) is entirely absent.
+    Ship has no sweep step to recover from these failures before the pipeline
+    ends on main.
+
+  # ── Root Cause ──────────────────────────────────────────────────────────────
+
+  root_cause:
+    primary:
+      what: >
+        Ship's Step 6 (Write Evidence) does not enumerate and commit the
+        evidence files produced by its sub-plays (commit-code, create-pr,
+        merge-pr, distill). After merge-pr completes and the local working
+        tree is on main, orphaned evidence files from all four sub-plays are
+        untracked — but ship only writes and self-commits its own
+        evidence/{ship}/YYYYMMDD-HHMMSS.md file, leaving the sub-play files
+        behind.
+      file: "core/components/plays/ship/SKILL.md"
+      location: "Step 6 — Write Evidence (line 222–240)"
+      why: >
+        The self-commit prescribed by ADR-012 for each sub-play (commit-code
+        Step 8, create-pr Step 7, merge-pr Step 4) is non-blocking. When these
+        self-commits silently fail (or are skipped by the LLM orchestrator),
+        there is no recovery mechanism. Ship's evidence step is the last commit
+        on main but does not include sub-play paths. The result is that all
+        sub-play evidence is orphaned as untracked files on main.
+
+    contributing_factor_1:
+      what: >
+        distill has no self-commit step at all. Unlike commit-code, create-pr,
+        and merge-pr — each of which ends with "Invoke repo-orchestrator to
+        self-commit evidence files (ADR 012)" — distill's workflow (SKILL.md
+        lines 62–105) has no Evidence & Close phase and no self-commit
+        instruction.
+      file: "core/components/plays/distill/SKILL.md"
+      location: "Entire workflow — no Stage 7"
+      why: >
+        distill was compiled as a fire-and-forget sub-play focused on
+        graceful failure. ADR-012 was not applied when distill was built
+        (intent_hash field is a placeholder: "sha256:{to be computed on next
+        /create-play run}"), suggesting the self-commit requirement was
+        overlooked during its compilation.
+
+    contributing_factor_2:
+      what: >
+        The per-sub-play non-blocking self-commits (ADR-012 Rule 2) silently
+        fail when the sub-plays execute inside the ship pipeline. This is
+        evidenced by: all four sub-play evidence directories for issue #266
+        being untracked after merge despite commit-code/create-pr/merge-pr
+        prescribing self-commits.
+      likely_cause: >
+        When invoked as sub-plays inside ship with approval_override:
+        "auto-proceed", the repo-orchestrator self-commit call at the end of
+        each sub-play either: (a) is silently dropped by the LLM when running
+        without user interaction, (b) fails the pre-commit hook and logs a
+        non-fatal warning, or (c) encounters a branch-state mismatch
+        (merge-pr switches branch during execution, making the feature-branch
+        commit invalid mid-flight). Non-blocking semantics mean ship does not
+        surface these failures.
+
+  # ── Blast Radius ────────────────────────────────────────────────────────────
+
+  blast_radius:
+    files_affected:
+      - path: "core/components/plays/ship/reference/intent.yaml"
+        role: "Ship play intent — defines constraints, failure conditions, scenarios"
+        change_needed: >
+          Add C9 constraint requiring ship to sweep and commit all sub-play
+          evidence paths as a final evidence step. Add F8 failure condition
+          for untracked evidence artifacts at pipeline end. Rebuild triggers
+          recompilation of SKILL.md.
+
+      - path: "core/components/plays/ship/SKILL.md"
+        role: "Compiled ship play — DO NOT edit directly"
+        change_needed: >
+          Rebuilt by /create-play --build ship from updated intent.yaml.
+          Step 6 (Write Evidence) must be extended to enumerate sub-play
+          evidence paths from ship.json status file and include them in the
+          self-commit file list.
+
+      - path: "core/components/plays/distill/reference/intent.yaml"
+        role: "Distill play intent — defines constraints and failure conditions"
+        change_needed: >
+          Add self-commit to distill's workflow: after proposals.yaml is
+          written, invoke repo-orchestrator to commit evidence/distill/
+          files (non-blocking). This requires adding a constraint or
+          workflow note, then rebuilding distill.
+
+      - path: "core/components/plays/distill/SKILL.md"
+        role: "Compiled distill play — DO NOT edit directly"
+        change_needed: >
+          Rebuilt by /create-play --build distill from updated intent.yaml.
+          A self-commit step (non-blocking) must be added after proposals.yaml
+          is written.
+
+    files_not_affected:
+      - path: "core/components/plays/commit-code/SKILL.md"
+        reason: >
+          commit-code already prescribes self-commit in Step 8. Its per-play
+          self-commit is redundant with the sweep approach but harmless if it
+          runs. No change needed — reliability of individual sub-play
+          self-commits is a separate concern from the sweep fix.
+      - path: "core/components/plays/create-pr/SKILL.md"
+        reason: "Same as commit-code — already prescribes self-commit in Step 7."
+      - path: "core/components/plays/merge-pr/SKILL.md"
+        reason: "Same as commit-code — already prescribes self-commit in Step 4."
+
+  # ── Evidence Trail ───────────────────────────────────────────────────────────
+
+  evidence:
+    observed:
+      - "git status shows 4 untracked paths for issue #266 after merge and fix-it run"
+      - ".garura/project/issues/266/evidence/commit-code/commits.yaml — untracked"
+      - ".garura/project/issues/266/evidence/create-pr/ (analysis.yaml, issue-linkage.yaml, pr-record.yaml) — untracked"
+      - ".garura/project/issues/266/evidence/merge-pr/ (readiness.yaml, merge-result.yaml) — untracked"
+      - ".garura/project/issues/266/evidence/distill/ (proposals.yaml) — untracked"
+    committed_for_266:
+      - "commit cfdf999 — commit-code/analysis.yaml + issue-mappings.yaml committed by fix-it evidence commit, NOT by commit-code self-commit"
+      - "No chore(stm) commit from ship pipeline for #266 sub-play evidence"
+    confirms: >
+      Per-sub-play self-commits did not run for issue #266. Sub-play evidence
+      files written AFTER the chore(stm) commit in each sub-play are
+      untracked. Ship has no sweep to recover them.

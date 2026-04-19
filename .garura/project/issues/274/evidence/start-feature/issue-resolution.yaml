@@ -1,0 +1,13 @@
+issue:
+  number: 274
+  title: "[DEF][Low] ship pipeline: sub-play evidence artifacts left untracked after merge"
+  labels:
+    - defect
+  state: open
+  url: https://github.com/kapilvirenahuja/garura/issues/274
+  created: true
+  closed: false
+  parent_issue: null
+  type_hint: fix
+  inference_source: changed_files
+  confidence: high
