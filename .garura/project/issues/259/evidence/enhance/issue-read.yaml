@@ -1,0 +1,115 @@
+issue:
+  number: 259
+  title: "[ENH] /fix-it — leaner per-task validation with task-list anchor and failure-triggered re-planning"
+  state: open
+  labels:
+    - enhancement
+  author: kapilvirenahuja
+  created_at: "2026-04-18T07:18:52Z"
+  url: "https://github.com/kapilvirenahuja/garura/issues/259"
+  body: |
+    ## Context
+
+    `/fix-it` is the bug-fix play. Scope is small by design (typically one root cause, 1–3 files, one regression test). The heavier per-task DAG design in #258 (for /enhance) is overkill here, but the core anti-reward-hacking mechanisms and a task-list anchor are still needed to prevent model drift and self-certification.
+
+    This issue captures a leaner version of #258 scoped to /fix-it only.
+
+    ## Proposal
+
+    ### Keep (non-negotiable — anti-reward-hacking core)
+
+    1. **Failing regression test before fix.** `tech-designer` authors the regression test as part of RCA output — same thought process as isolating the bug. Red before green.
+    2. **Validator ≠ implementer.** `code-builder` implements; play or `quality-auditor` runs the test. Builder never reports its own pass/fail.
+    3. **Independent signal over self-report.** Exit code is the verdict. Builder narration is logged but not treated as evidence.
+    4. **Immutable test spec for the implementer.** Builder receives "fix this bug at this location" but does NOT receive test assertions. Prevents teaching-to-the-test.
+
+    ### Add — task list as state anchor (not orchestration ceremony)
+
+    The task list exists even in fix-it's small scope. Reason: models drift when they only have play-step templates and no live state. The task list records what is done vs. what remains; it is the resumable state of this run.
+
+    Typical fix-it task list (initialized from RCA output):
+
+    1. RCA — tech-designer (produces root cause + failing regression test)
+    2. Implement fix — code-builder (no test assertions visible)
+    3. Verify — play or quality-auditor (runs regression test, exit-code verdict)
+    4. Commit + PR — repo-orchestrator
+
+    **Play owns the task list.** Only the play mutates it. Sub-agents may propose new tasks but cannot write to the list.
+
+    ### Re-planning is event-driven, not step-driven
+
+    - After each step: mark complete, move to next. **No per-step re-planning checkpoint.**
+    - **Re-planning fires only on verification failure** after retry exhaustion.
+    - On re-plan, play dispatches to `tech-designer` which may:
+      - Revise the fix approach (same task, new guidance)
+      - Insert a new task (e.g., a related condition also needs fixing)
+      - Declare RCA was wrong → halt, recommend re-open RCA
+
+    ### Retry + re-plan interaction
+
+    - **Node retry cap = 2** (same plan, builder re-attempts with remediation). Cheap, fast — covers the "builder missed a detail" case.
+    - **Re-plan only after retries exhausted** OR when tech-designer flags scope change explicitly.
+    - Keeps the common case cheap; reserves re-planning for the rare case of root-cause misjudgment.
+
+    ### Scope guard — escalate to /enhance if re-plan grows the list
+
+    If re-planning keeps inserting tasks, the bug has outgrown fix-it's scope.
+
+    - Threshold: `>3 tasks inserted by re-plan` OR `total task list >6`.
+    - On threshold breach: halt and recommend `/enhance`. Do NOT grow multi-task machinery back into fix-it.
+
+    ### Dropped from #258 (too heavy for bug scope)
+
+    - Per-step re-planning checkpoint
+    - DAG / chain vocabulary (fix-it is linear)
+    - Complex per-task prompt-capture hierarchy — one prompt-file per task is sufficient
+
+    ## Flow
+
+    ```
+    Init task list ← from play template + RCA output
+        ↓
+    For each pending task:
+        dispatch to sub-agent
+        on completion → mark done, next
+        on failure (verification only):
+            retry ≤2
+            on exhaustion → tech-designer re-plan
+                ├─ revise / insert tasks (≤ threshold)
+                └─ beyond threshold → halt, escalate to /enhance
+        ↓
+    All done → commit + PR
+    ```
+
+    ## Constraints to add to fix-it intent.yaml
+
+    - Play is the sole writer of the fix-it task list. Sub-agents cannot mutate it.
+    - Task list is initialized from the play template and populated from RCA output before implementation runs.
+    - Every implementation task MUST have a failing regression test authored by `tech-designer` before `code-builder` is invoked.
+    - Validation execution MUST NOT be performed by the same agent that implemented the task.
+    - Pass/fail verdict MUST come from independent signal (exit code, validator report) — never from builder self-report.
+    - Code-builder MUST NOT receive test assertions — only the task spec and the test file path.
+    - Only `tech-designer` (via play-initiated re-plan) may modify task validations after initial RCA.
+    - Per-task retry cap = 2.
+    - Re-planning is triggered only on verification failure after retry exhaustion, or on explicit scope-change flag from tech-designer. Not per-step.
+    - If re-plan inserts >3 tasks or the task list exceeds 6 total tasks, the play halts and recommends escalation to `/enhance`.
+
+    ## Out of scope
+
+    - `/enhance` — separately tracked in #258.
+    - `/implement-epic` — separately tracked in #257.
+    - Changing what "bug" means for fix-it intake — scope gate stays as-is at the front.
+
+    ## Why this is worth doing
+
+    - **TDD for bugs:** every fix exits with a GREEN regression test. The bug cannot silently re-break.
+    - **No self-certification:** builder cannot declare "fixed" without an independent test run.
+    - **Anti-drift:** task list keeps the model anchored on what is done vs. what remains.
+    - **Cheap common case:** no per-step re-planning overhead. Re-planning only when verification actually fails.
+    - **Hard scope guard:** fix-it can't silently grow into a multi-task orchestration — it escalates to /enhance instead.
+
+    ## Related
+
+    - #258 — /enhance per-task implementation+validation pairing (heavier parent design)
+    - #257 — /implement-epic task prompt + verification gap
+  type_hint: feature

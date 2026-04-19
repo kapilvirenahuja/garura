@@ -1,0 +1,10 @@
+pr_number: 294
+pr_url: https://github.com/kapilvirenahuja/garura/pull/294
+pr_state: OPEN
+pr_title: "feat(fix-it): add TDD and anti-reward-hacking constraints (#259)"
+head_ref: enhance/259-fix-it-leaner-validation
+base_ref: main
+closes_issue: 259
+references:
+  detailed_pr_record: .garura/project/issues/259/evidence/create-pr/pr-record.yaml
+  commit_record: .garura/project/issues/259/evidence/commit-code/commits.yaml

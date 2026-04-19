@@ -1,0 +1,281 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: manage-issue
+    check: >
+      File {stm_base}/{issue}/evidence/fix-it/issue-read.yaml exists and contains a
+      state field with value open. If the file is absent or state is not open, the
+      play must have halted — evidence of continuation past Step 1 with a non-open
+      or missing issue constitutes a failure.
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/issue-read.yaml"
+    pass_criteria: "File exists and state: open."
+    fail_criteria: "File absent, or state is not open, and the play continued past Step 1."
+
+  - id: SE-2
+    source_type: both
+    failure_condition_id: F2
+    constraint_id: C3
+    skill: tech-designer-rca
+    check: >
+      File {stm_base}/{issue}/evidence/fix-it/rca.yaml exists and its root_cause field
+      is non-empty, names at least one specific file path, identifies the specific
+      logic or code location within that file, and explains why it is wrong — the
+      value must be textually distinct from the title and body fields in
+      {stm_base}/{issue}/evidence/fix-it/issue-read.yaml.
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/rca.yaml"
+    pass_criteria: "root_cause names a specific file path, identifies the specific logic or code location, explains why it is wrong, and is textually distinct from the issue title and body."
+    fail_criteria: "root_cause is empty, restates the issue title or body, or omits file path / logic location / why-wrong."
+
+  - id: SE-3
+    source_type: both
+    failure_condition_id: F3
+    constraint_id: C4
+    skill: tech-designer-design
+    check: >
+      File {stm_base}/{issue}/evidence/fix-it/design.yaml exists and its
+      alternatives_considered field is a non-empty list where each entry contains
+      both an option name/description and a rejection_reason field that is non-empty.
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/design.yaml"
+    pass_criteria: "alternatives_considered is a non-empty list; every entry has an option description and a non-empty rejection_reason."
+    fail_criteria: "alternatives_considered is missing, empty, or any entry lacks an option description or a non-empty rejection_reason."
+
+  - id: SE-4
+    source_type: both
+    failure_condition_id: F8
+    constraint_id: C11
+    skill: tech-designer-rca
+    check: >
+      When the tech-designer contract included an ltm_context block, file
+      {stm_base}/{issue}/evidence/fix-it/resolution-trace.yaml exists and contains a
+      non-empty list of resolution entries. Each entry must include a resolved_from
+      field. When has_product_ltm is true, at least one entry must have resolved_from
+      of "project" or "core" (not every entry may be "llm"). When has_product_ltm is
+      false, the trace must contain at least one entry from "core" or must document
+      "llm" fallback explicitly with a rationale field.
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/resolution-trace.yaml"
+    pass_criteria: "resolution-trace.yaml exists with a non-empty entries list; every entry has resolved_from; has_product_ltm=true → at least one project/core entry; has_product_ltm=false → at least one core entry or an llm entry with rationale."
+    fail_criteria: "Trace missing, empty, or all entries resolved_from=llm without rationale when fallback applies; ltm_context was provided but no trace written."
+
+  - id: SE-5
+    source_type: both
+    failure_condition_id: F9
+    constraint_id: C12
+    skill: play-checkpoint-rendering
+    check: >
+      No file exists under {stm_base}/{issue}/evidence/fix-it/briefs/ after Step 4
+      completes. Additionally, no .html file exists anywhere under
+      {stm_base}/{issue}/evidence/fix-it/. The absence of these paths confirms no
+      standalone HTML artifact was produced.
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/"
+    pass_criteria: "No briefs/ directory exists under evidence/fix-it/, and no .html file exists anywhere under evidence/fix-it/."
+    fail_criteria: "A briefs/ directory exists, or any .html artifact is present under evidence/fix-it/."
+
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: play-approval-gate
+    check: >
+      Status file {stm_base}/{issue}/status/fix-it.json shows approval-gate task with
+      status: completed and a tether_received_at timestamp that precedes the started_at
+      timestamp of the implement-fix task entry. No implementation artifact
+      ({stm_base}/{issue}/evidence/fix-it/implementation-report.yaml) may exist without
+      the approval-gate entry showing a completed Tether event.
+    artifact_pattern: "{stm_base}/{issue}/status/fix-it.json"
+    pass_criteria: "approval-gate.status = completed with tether_received_at strictly earlier than implement-fix.started_at; implementation-report.yaml absent unless approval-gate is completed."
+    fail_criteria: "implementation-report.yaml exists while approval-gate is not completed, or tether_received_at is missing or later than implement-fix.started_at."
+
+  - id: SE-7
+    source_type: both
+    failure_condition_id: F10
+    constraint_id: C13
+    skill: play-background-dispatch
+    check: >
+      File {stm_base}/{issue}/evidence/fix-it/issue-comment-agent.yaml exists before
+      implement-fix transitions to in_progress in the status file. The file must
+      contain status: dispatched (or completed) and a non-empty dispatched_at ISO
+      timestamp. A status: pending or absent file after Tether receipt constitutes a
+      failure.
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/issue-comment-agent.yaml"
+    pass_criteria: "issue-comment-agent.yaml exists with status in {dispatched, completed} and a non-empty dispatched_at ISO timestamp, written before implement-fix goes in_progress."
+    fail_criteria: "File absent after Tether receipt, or status=pending, or dispatched_at missing/empty, or file created after implement-fix started."
+
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: code-builder
+    check: >
+      File {stm_base}/{issue}/evidence/fix-it/implementation-report.yaml exists and
+      its files_modified list contains only files that either (a) appear in
+      design.yaml's affected_files map, or (b) are accompanied by a
+      deviation_justification field on that list entry explaining the undocumented
+      change. An entry in files_modified that is absent from affected_files and has
+      no deviation_justification constitutes a failure.
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/implementation-report.yaml"
+    pass_criteria: "Every entry in files_modified is either present in design.yaml.affected_files or carries a non-empty deviation_justification field."
+    fail_criteria: "Any files_modified entry is absent from affected_files and has no deviation_justification."
+
+  - id: SE-9
+    source_type: both
+    failure_condition_id: F7
+    constraint_id: C8
+    skill: code-builder-contract
+    check: >
+      The code-builder agent invocation contract contains only the STM design paths
+      (design.yaml, rca.yaml) plus the regression_test_path under read_only_files.
+      No checkpoint brief path, no HTML file path, and no inline rendered checkpoint
+      markdown may appear in any field of the contract.
+    artifact_pattern: "code-builder Step 6 JSON contract record"
+    pass_criteria: "stm.input contains only design.yaml and rca.yaml paths; read_only_files contains only regression_test_path; no brief path, HTML path, or inline checkpoint content anywhere in the contract."
+    fail_criteria: "Contract contains a checkpoint brief path, an HTML file path, or inline rendered checkpoint markdown in any field."
+
+  - id: SE-10
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C14
+    skill: tech-designer-regression-test
+    check: >
+      The tech-designer output contract contains a non-empty
+      stm.output.regression_test_path, the file at that path exists on disk, and the
+      regression test is failing prior to code-builder being invoked — the play
+      verifies test existence from the path returned in the tech-designer output
+      contract (stm.output.regression_test_path) before Step 6 begins.
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/regression-test-verification.yaml"
+    pass_criteria: "regression_test_path is set in tech-designer output, the referenced file exists on disk, and the play's pre-Step-6 verification records the test as failing (red) before code-builder is invoked."
+    fail_criteria: "regression_test_path is missing/empty, the file does not exist, or code-builder is invoked without the red-before-green verification recorded in STM."
+
+  - id: SE-11
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C16
+    skill: quality-auditor
+    check: >
+      The pass/fail verdict used by the play to gate shipping comes from
+      quality-auditor's report written to STM (regression_test_verdict: pass | fail).
+      Builder self-report (any claim in code-builder's output that the fix works or
+      tests pass) is not a valid verification signal under any circumstances and
+      MUST NOT be used as the basis for shipping.
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/regression-test-verdict.yaml"
+    pass_criteria: "regression-test-verdict.yaml exists with regression_test_verdict in {pass, fail}, authored by quality-auditor; the play's ship gate references this file — not code-builder's implementation-report."
+    fail_criteria: "Ship proceeds based on code-builder self-report, or quality-auditor verdict file is absent, or the verdict value is something other than pass/fail."
+
+  - id: SE-12
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C17
+    skill: code-builder-contract
+    check: >
+      The code-builder JSON contract includes the source-file paths to modify (via
+      design.yaml affected_files) and the regression-test file path in
+      read_only_files. It MUST NOT include the test file content, test assertion
+      text, or eval entries inline. Only the path reference is permitted in the
+      builder contract.
+    artifact_pattern: "code-builder Step 6 JSON contract record"
+    pass_criteria: "Contract references source files via design.yaml.affected_files and lists the regression-test path in read_only_files; no test file content, assertion text, or inline eval entries appear anywhere in the contract."
+    fail_criteria: "Contract carries inline test content, inline assertion text, or inline eval entries; or the regression-test path is absent from read_only_files."
+
+  - id: SE-13
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C18
+    skill: play-task-list
+    check: >
+      status/fix-it.json is extended with a task_list array. task_list is initialized
+      from RCA output before code-builder is invoked. Each entry contains: id,
+      description, status (pending | in_progress | completed | failed), retry_count,
+      and regression_test_path.
+    artifact_pattern: "{stm_base}/{issue}/status/fix-it.json"
+    pass_criteria: "status/fix-it.json contains a task_list array populated before implement-fix goes in_progress; every entry has id, description, status in {pending, in_progress, completed, failed}, retry_count, and regression_test_path."
+    fail_criteria: "task_list missing, empty at the time implement-fix starts, or any entry is missing one of the required fields (id, description, status, retry_count, regression_test_path)."
+
+  - id: SE-14
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: ship
+    check: >
+      The ship evidence artifact (or {stm_base}/{issue}/evidence/fix-it/ delivery
+      record) contains: a non-empty commit_sha, a non-empty pr_number, a pr_state
+      field equal to merged, and a branch_deleted field equal to true. All four
+      fields must be present — any combination of missing PR, unmerged PR, or
+      surviving branch constitutes a partial-ship failure.
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/{YYYYMMDD-HHMMSS}.md"
+    pass_criteria: "Delivery record contains a non-empty commit_sha, a non-empty pr_number, pr_state = merged, and branch_deleted = true."
+    fail_criteria: "Any of commit_sha, pr_number, pr_state=merged, or branch_deleted=true is missing or false."
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Developer
+    artifact_pattern: "{stm_base}/{issue}/evidence/fix-it/"
+    check: >
+      The evidence directory contains all of: (1) rca.yaml with a non-empty
+      root_cause tracing to specific code, (2) design.yaml with non-empty
+      alternatives_considered, (3) implementation-report.yaml recording files
+      modified, (4) a delivery record file ({YYYYMMDD-HHMMSS}.md) that includes the
+      merge SHA on main and a PR URL, (5) the PR URL in the delivery record must
+      link to issue #{issue} (URL or reference contains the issue number), (6) the
+      delivery record confirms branch_deleted: true, (7) issue-comment-agent.yaml
+      exists with status: dispatched or completed.
+    pass_criteria: "All seven observable properties hold in the evidence directory and delivery record."
+    fail_criteria: "Any of the seven properties is missing — rca missing/empty, alternatives missing, implementation-report missing, delivery record missing merge SHA or PR URL, PR URL not linking to the issue, branch_deleted not true, or issue-comment-agent.yaml missing/pending."
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Tech Lead
+    artifact_pattern: "Step 5 inline checkpoint rendering"
+    check: >
+      The checkpoint inline markdown presented at Step 5 is derived from STM
+      artifacts (no standalone brief file) and contains: (1) a root cause section
+      naming a specific file and logic (from rca.yaml), (2) a blast radius table
+      with at least one affected file row (from design.yaml.affected_files), (3) a
+      proposed fix strategy (from design.yaml), (4) at least one alternative with a
+      rejection reason (from design.yaml.alternatives_considered), (5) a confidence
+      assessment value (from design.yaml.confidence). Enough information to make an
+      informed Tether or Vanish decision.
+    pass_criteria: "All five sections present, all content traceable to STM YAML artifacts, no standalone brief file under evidence/fix-it/briefs/."
+    fail_criteria: "Any of the five sections absent, content not traceable to STM artifacts, or a standalone brief HTML file is present."
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: QA Engineer
+    artifact_pattern: "PR body + {stm_base}/{issue}/evidence/fix-it/{YYYYMMDD-HHMMSS}.md"
+    check: >
+      The PR body contains a reference to issue #{issue} (e.g., Closes #N or Fixes
+      #N) and at least a summary of the root cause and changed files. The evidence
+      delivery record includes: root cause summary, list of files modified, blast
+      radius, and a checkpoint approval timestamp that is strictly earlier than the
+      implement-fix.started_at timestamp in the status file.
+    pass_criteria: "PR body references issue #{issue} and summarizes root cause + changed files; delivery record contains root cause, files modified, blast radius, and a checkpoint approval timestamp strictly earlier than implement-fix.started_at."
+    fail_criteria: "PR body missing issue reference or summary; delivery record missing any of root cause / files / blast radius / approval timestamp; or approval timestamp is at or after implement-fix.started_at."
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: QA Engineer reviewing audit trail
+    artifact_pattern: "GitHub issue #{issue} comment + {stm_base}/{issue}/evidence/fix-it/issue-comment-agent.yaml"
+    check: >
+      The GitHub issue #{issue} carries a comment posted via the background
+      dispatch at Tether time. The comment body contains an Approved by header
+      with a timestamp, the root cause text (matching rca.yaml.root_cause), the fix
+      strategy (from design.yaml), and the "## RCA & Fix Plan — Approved" heading
+      from the issue-comment-rca-approved.md template. The comment's creation
+      timestamp must be earlier than the PR's created_at timestamp.
+      issue-comment-agent.yaml must exist with a dispatched_at value at or before
+      the comment's creation timestamp.
+    pass_criteria: "Comment present with Approved-by header, root cause text matches rca.yaml, fix strategy matches design.yaml, template heading present, comment created before PR; issue-comment-agent.yaml dispatched_at is at or before the comment creation time."
+    fail_criteria: "Comment missing, text mismatch vs. rca/design, template heading absent, comment posted after PR created, or issue-comment-agent.yaml missing or dispatched_at later than comment time."
+
+evals:
+  path: ".garura/project/issues/259/evidence/create-play/fix-it/evals.yaml"
+  step_eval_count: 14
+  scenario_eval_count: 4
+  coverage:
+    failure_conditions_covered: [F1, F2, F3, F4, F5, F6, F7, F8, F9, F10]
+    failure_conditions_uncovered: []
+    constraints_covered: [C3, C4, C8, C11, C12, C13, C14, C16, C17, C18]
+    constraints_uncovered: []
+    scenarios_covered: [S1, S2, S3, S4]
+    scenarios_uncovered: []

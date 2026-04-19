@@ -1,0 +1,8 @@
+issue:
+  number: 259
+  title: "fix-it: add anti-reward-hacking validation (TDD, validator≠implementer)"
+  url: "https://github.com/kapilvirenahuja/garura/issues/259"
+  state: open
+
+confidence: high
+resolution_method: "branch name — enhance/259-fix-it-leaner-validation encodes issue 259 directly"

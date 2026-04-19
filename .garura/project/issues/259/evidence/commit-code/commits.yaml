@@ -1,0 +1,33 @@
+commits:
+  - id: 1
+    hash: 84bdb11
+    full_hash: 84bdb11d628b1f52d0a7d90e81c17e08dcab1a6f
+    type: feat
+    scope: fix-it
+    subject: "add TDD and anti-reward-hacking constraints (#259)"
+    issue: 259
+    files:
+      - core/components/plays/fix-it/reference/intent.yaml
+      - core/components/plays/fix-it/SKILL.md
+      - core/components/agents/tech-designer.md
+    group_id: G1
+
+  - id: 2
+    hash: 89150ba
+    full_hash: 89150ba5f57885cb2ee1e3e49b8f8e71e5e45f82
+    type: chore
+    scope: stm
+    subject: "record enhance evidence for #259"
+    issue: 259
+    files:
+      - .garura/project/issues/259/evidence/enhance/approach.yaml
+      - .garura/project/issues/259/evidence/enhance/build-report.yaml
+      - .garura/project/issues/259/evidence/enhance/judge-report.yaml
+      - .garura/project/issues/259/evidence/enhance/quality-report.yaml
+      - .garura/project/issues/259/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/259/evidence/commit-code/issue-mappings.yaml
+    group_id: G2
+
+branch: enhance/259-fix-it-leaner-validation
+pushed: true
+remote_tracking: origin/enhance/259-fix-it-leaner-validation
