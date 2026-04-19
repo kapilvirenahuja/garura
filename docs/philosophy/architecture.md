@@ -401,7 +401,7 @@ Meridian uses a **dual memory system**:
     ├── checkpoint/          # Per-play checkpoints
     │   └── {play-name}/
     │       └── {YYYYMMDD-HHMMSS}.md
-    ├── context/             # prepare-epic / build-arch context artifacts
+    ├── context/             # prepare / arch context artifacts
     └── review/              # Review artifacts
 ```
 

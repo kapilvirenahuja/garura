@@ -158,10 +158,10 @@ Primary Phases (linear pipeline)
 ────────────────────────────────────────────────────────────────────────────────
 Product-2-Spec    Spec-2-Design   Design-2-Code          Code-2-Test   Test-2-Run
 ┌─────────────┐  ┌─────────────┐  ┌──────────────────┐  ┌──────────┐  ┌──────────┐
-│specify-     │  │design-exp   │  │  Epic Trinity    │  │commit-   │  │merge-pr  │
-│product      │  │build-arch   │  │  prepare-epic    │  │code      │  │capture-  │
-│             │  │             │  │  implement-epic  │  │create-pr │  │learning  │
-│             │  │             │  │  validate-epic   │  │review-pr │  │          │
+│specify      │  │design       │  │  Epic Trinity    │  │commit-   │  │merge-pr  │
+│             │  │arch         │  │  prepare         │  │code      │  │capture-  │
+│             │  │             │  │  implement       │  │create-pr │  │learning  │
+│             │  │             │  │  validate        │  │review-pr │  │          │
 └─────────────┘  └─────────────┘  └──────────────────┘  └──────────┘  └──────────┘
 
 Shortcuts:  /ship    — commit → PR → review → merge in one command
@@ -181,7 +181,7 @@ Run-2-Monitor      Audit-2-Fix              Learn-2-Memory
 The Epic Trinity is the core implementation loop — three sequenced plays that carry a feature from locked design to verified code:
 
 ```
-prepare-epic → implement-epic → validate-epic
+prepare → implement → validate
      │               │                │
      ▼               ▼                ▼
 LLD + plan +    TDD code +       E2E tests +
@@ -195,9 +195,9 @@ Each play has strict memory access rules enforced by the architecture:
 
 | Play | Reads | Writes | Memory Constraint |
 |------|-------|--------|------------------|
-| `prepare-epic` | KB + LTM + STM | STM context package | Bridge layer: reads all sources, writes only to STM |
-| `implement-epic` | STM ONLY | STM (code, tests, evidence) | **KB/LTM FORBIDDEN** |
-| `validate-epic` | STM ONLY + deployed env | STM (QA verdict, evidence) | **KB/LTM FORBIDDEN** |
+| `prepare` | KB + LTM + STM | STM context package | Bridge layer: reads all sources, writes only to STM |
+| `implement` | STM ONLY | STM (code, tests, evidence) | **KB/LTM FORBIDDEN** |
+| `validate` | STM ONLY + deployed env | STM (QA verdict, evidence) | **KB/LTM FORBIDDEN** |
 
 #### Dual-Level Verification
 
@@ -205,16 +205,16 @@ The Trinity enforces verification at two levels:
 
 | Level | Play | Builder | Validator | Scope |
 |-------|------|---------|-----------|-------|
-| Unit | `implement-epic` | code-builder | judge | Unit tests, code quality, eval-driven TDD loop |
-| System | `validate-epic` | implement-epic output | judge | E2E tests, scenario coverage, QA verdict (ACCEPT/REJECT) |
+| Unit | `implement` | code-builder | judge | Unit tests, code quality, eval-driven TDD loop |
+| System | `validate` | implement output | judge | E2E tests, scenario coverage, QA verdict (ACCEPT/REJECT) |
 
 #### Outputs
 
 | Play | Output Artifacts |
 |------|----------------|
-| `prepare-epic` | `tech.yaml` (LLD), `scenarios.yaml`, `plan.yaml`, `context/` package in STM |
-| `implement-epic` | Working code, unit tests, eval evidence in STM |
-| `validate-epic` | QA verdict (ACCEPT or REJECT), E2E test results, scenario coverage report |
+| `prepare` | `tech.yaml` (LLD), `scenarios.yaml`, `plan.yaml`, `context/` package in STM |
+| `implement` | Working code, unit tests, eval evidence in STM |
+| `validate` | QA verdict (ACCEPT or REJECT), E2E test results, scenario coverage report |
 
 ### Planned Phase: Monitor-to-Design
 
@@ -244,9 +244,9 @@ This phase is the operational mechanism for IDD Hypothesis H1 (Memory-Driven Int
 
 | Phase | Type | Focus | Example Plays |
 |-------|------|-------|-----------------|
-| Product-2-Spec | Primary | Product specification, scope, quality profile | specify-product |
-| Spec-2-Design | Primary | UX design, architecture | design-exp, build-arch |
-| Design-2-Code | Primary | Implementation from locked design | prepare-epic, implement-epic, validate-epic |
+| Product-2-Spec | Primary | Product specification, scope, quality profile | specify |
+| Spec-2-Design | Primary | UX design, architecture | design, arch |
+| Design-2-Code | Primary | Implementation from locked design | prepare, implement, validate |
 | Code-2-Test | Primary | Commits, PR creation, code review | commit-code, create-pr, review-pr |
 | Test-2-Run | Primary | Merge, learning capture | merge-pr, capture-learning |
 | Run-2-Monitor | Supporting | Post-deployment incident response | fix-it |
@@ -327,8 +327,8 @@ Under IDD Principle 4, agents are classified by their role in the information ba
 
 | Level | Play | Builder | Validator |
 |-------|------|---------|-----------|
-| Unit | `implement-epic` | code-builder (generates code) | judge (evaluates against failure conditions) |
-| System | `validate-epic` | implement-epic output (code under test) | judge (evaluates E2E scenarios) |
+| Unit | `implement` | code-builder (generates code) | judge (evaluates against failure conditions) |
+| System | `validate` | implement output (code under test) | judge (evaluates E2E scenarios) |
 
 In barrier-exempt plays (commit-code, create-pr, etc.), all agents receive the full intent regardless of classification.
 
@@ -403,7 +403,7 @@ Output (DRAFT → VALIDATE → LOCKED)
 │  Deployed to: ~/.garura/core/memory/                    │
 │  Version controlled via Git repository                  │
 │                                                         │
-│  ⛔ FORBIDDEN for implement-epic and validate-epic      │
+│  ⛔ FORBIDDEN for implement and validate      │
 └─────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐
@@ -411,26 +411,26 @@ Output (DRAFT → VALIDATE → LOCKED)
 │  Project-specific product artifacts                     │
 │  Generated and consumed per product                     │
 │                                                         │
-│  • Locked product spec (specify-product)                │
-│  • Locked UX design (design-exp)                        │
-│  • Locked architecture (build-arch)                     │
-│  • Epic context packages (prepare-epic)                 │
+│  • Locked product spec (specify)                │
+│  • Locked UX design (design)                        │
+│  • Locked architecture (arch)                     │
+│  • Epic context packages (prepare)                 │
 │                                                         │
 │  Storage: {product_base} (.garura/product/)             │
 │  Lifecycle: Product-scoped, grows per-epic              │
 │                                                         │
-│  ⛔ FORBIDDEN for implement-epic and validate-epic      │
+│  ⛔ FORBIDDEN for implement and validate      │
 └─────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐
 │  SHORT-TERM MEMORY (STM)                                │
 │  Per-issue context — self-contained package             │
 │                                                         │
-│  • Context package assembled by prepare-epic            │
+│  • Context package assembled by prepare            │
 │  • Current branch state                                 │
 │  • Active failures and RCA findings                     │
 │  • In-progress code, tests, evidence                    │
-│  • QA verdict from validate-epic                        │
+│  • QA verdict from validate                        │
 │  • Task context and evidence                            │
 │                                                         │
 │  Storage: {stm_base}/{issue}/context/                   │
@@ -441,21 +441,21 @@ Output (DRAFT → VALIDATE → LOCKED)
 
 #### Context Boundary Rule
 
-**`prepare-epic` is the boundary layer.** It is the only play in the Epic Trinity that reads from KB and LTM. It assembles a self-contained context package and writes it to STM. Once the context package exists in STM, `implement-epic` and `validate-epic` operate exclusively from it.
+**`prepare` is the boundary layer.** It is the only play in the Epic Trinity that reads from KB and LTM. It assembles a self-contained context package and writes it to STM. Once the context package exists in STM, `implement` and `validate` operate exclusively from it.
 
 ```
 KB ──────────────────────────────────────────────────┐
                                                       ▼
-LTM ─────────────────────────────────────► prepare-epic → context/ → STM
+LTM ─────────────────────────────────────► prepare → context/ → STM
                                                       │
                                                       ▼
-STM (context/) ──────────────────────────► implement-epic (STM ONLY)
+STM (context/) ──────────────────────────► implement (STM ONLY)
                                                       │
                                                       ▼
-STM (code + env) ────────────────────────► validate-epic (STM ONLY + deployed env)
+STM (code + env) ────────────────────────► validate (STM ONLY + deployed env)
 ```
 
-This boundary is enforced by constraint, not convention: `implement-epic` and `validate-epic` receive STM paths only; KB and LTM paths are never passed to these plays.
+This boundary is enforced by constraint, not convention: `implement` and `validate` receive STM paths only; KB and LTM paths are never passed to these plays.
 
 #### KB Governance via Git
 
@@ -778,13 +778,13 @@ Not all plays benefit from compartmented evaluation. The barrier applies to play
 
 | Play | Barrier? | Reasoning |
 |--------|----------|-----------|
-| prepare-epic | ✓ Eligible | Designer makes architectural and LLD decisions |
-| implement-epic | ✓ Eligible | Builder makes design and implementation decisions |
-| validate-epic | ✓ Eligible | Judge evaluates implement-epic output against scenarios |
+| prepare | ✓ Eligible | Designer makes architectural and LLD decisions |
+| implement | ✓ Eligible | Builder makes design and implementation decisions |
+| validate | ✓ Eligible | Judge evaluates implement output against scenarios |
 | fix-it | ✓ Eligible | Builder chooses fix strategy |
-| specify-product | ✗ Exempt | Product specification — outputs are human-reviewed before implementation |
-| design-exp | ✗ Exempt | UX design — outputs are human-reviewed before implementation |
-| build-arch | ✗ Exempt | Architecture — outputs are human-reviewed before implementation |
+| specify | ✗ Exempt | Product specification — outputs are human-reviewed before implementation |
+| design | ✗ Exempt | UX design — outputs are human-reviewed before implementation |
+| arch | ✗ Exempt | Architecture — outputs are human-reviewed before implementation |
 | commit-code | ✗ Exempt | Mechanical — deterministic output |
 | create-pr | ✗ Exempt | Mechanical — deterministic output |
 | review-pr | ✗ Exempt | Review IS validation — agent is already the validator |
@@ -794,9 +794,9 @@ Not all plays benefit from compartmented evaluation. The barrier applies to play
 
 | Agent | Role in Barrier | Sees Goal+Constraints | Sees Failure Conditions | Notes |
 |-------|----------------|----------------------|------------------------|-------|
-| code-builder | Builder | ✓ | ✗ | Primary builder — implement-epic (unit level) |
-| tech-designer | Builder | ✓ | ✗ | Builder for design decisions — prepare-epic |
-| judge | Validator | ✗ | ✓ | Validator at both unit (implement-epic) and system (validate-epic) levels |
+| code-builder | Builder | ✓ | ✗ | Primary builder — implement (unit level) |
+| tech-designer | Builder | ✓ | ✗ | Builder for design decisions — prepare |
+| judge | Validator | ✗ | ✓ | Validator at both unit (implement) and system (validate) levels |
 | feature-steward | Neutral | ✓ | ✓ | Operates at discovery level — no barrier needed |
 | product-keeper | Neutral | ✓ | ✓ | Product specification — no barrier needed |
 | repo-orchestrator | Neutral | ✓ | ✓ | Mechanical operations — no barrier needed |
@@ -852,20 +852,20 @@ The complete IDSD development loop:
 **Product Planning (once per product):**
 
 ```
-1. specify-product    → locked epics, scope, quality profile
-2. design-exp         → locked UX
-3. build-arch         → locked 5-artifact architecture
+1. specify    → locked epics, scope, quality profile
+2. design         → locked UX
+3. arch         → locked 5-artifact architecture
 ```
 
 **Per Epic:**
 
 ```
 4. start-feature      → issue + branch + STM directory
-5. prepare-epic       → LLD, scenarios, plan, context package
+5. prepare       → LLD, scenarios, plan, context package
                         (reads KB + LTM → writes STM)
-6. implement-epic     → TDD code, unit tests, eval evidence
+6. implement     → TDD code, unit tests, eval evidence
                         (STM ONLY — KB/LTM FORBIDDEN)
-7. validate-epic      → E2E tests, QA verdict (ACCEPT/REJECT)
+7. validate      → E2E tests, QA verdict (ACCEPT/REJECT)
                         (STM ONLY + deployed env — KB/LTM FORBIDDEN)
 8. /ship              → commit → PR → review → merge
 9. capture-learning   → archive STM, promote patterns to LTM

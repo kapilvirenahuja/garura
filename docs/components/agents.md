@@ -53,7 +53,7 @@ Meridian avoids both extremes:
 
 **Principle:** 1 agent = 1 domain expertise, not 1 task.
 
-**Note on play-scoped sub-roles:** Some plays define scoped sub-roles that are not standalone agents. For example, `test-writer` in the implement-epic play is a context-isolated sub-role that only exists within that play's execution. Play-scoped sub-roles follow ADR 004's granularity principle — they are too granular for standalone agents but serve a specific isolation purpose within a play.
+**Note on play-scoped sub-roles:** Some plays define scoped sub-roles that are not standalone agents. For example, `test-writer` in the implement play is a context-isolated sub-role that only exists within that play's execution. Play-scoped sub-roles follow ADR 004's granularity principle — they are too granular for standalone agents but serve a specific isolation purpose within a play.
 
 ## Available Agents
 
@@ -101,7 +101,7 @@ Meridian avoids both extremes:
 
 **Failure semantics:** scriber failure never halts a play. Evidence writes are non-critical by definition. On failure, the orchestrator logs a warning and continues. Exception: if a specific evidence write is required for a downstream step (e.g., self-commit), that specific write is blocking and scriber is awaited synchronously for that call.
 
-**Reference adopter:** the `commit-code` play's `intent.yaml` carries constraint C8 that delegates evidence writes to scriber. This is the first play to adopt the pattern. Future plays (`specify-product`, `design-exp`, `build-arch`) ship with scriber dispatch built in from the start.
+**Reference adopter:** the `commit-code` play's `intent.yaml` carries constraint C8 that delegates evidence writes to scriber. This is the first play to adopt the pattern. Future plays (`specify`, `design`, `arch`) ship with scriber dispatch built in from the start.
 
 ## Agent Behavior
 
@@ -133,7 +133,7 @@ The agent's entire response is ONE JSON object. No prose, no YAML blocks, no val
 
 ```json
 {
-  "intent_path": "core/components/plays/prepare-epic/reference/intent.yaml",
+  "intent_path": "core/components/plays/prepare/reference/intent.yaml",
   "stm_base": ".garura/project/issues/",
   "stm": {
     "input": {
@@ -176,9 +176,9 @@ Each agent owns a set of skills. Agents invoke skills via the **Skill tool** pro
 |-------|---------|
 | `draft-product-spec` | Create `features.yaml` defining product behaviors, invariants, scope boundaries, and acceptance criteria (implementation-agnostic) |
 | `draft-verification-scenarios` | Create verification scenarios with pass/fail criteria and automation classification |
-| `validate-implementation-design` | Cross-validate `prepare-epic` artifacts for coverage, compartmentalization, audience separation |
+| `validate-implementation-design` | Cross-validate `prepare` artifacts for coverage, compartmentalization, audience separation |
 
-In addition to these skills, `feature-steward` owns a direct role in `implement-epic` — the Scenario Writer role — which generates manual test scenarios from feature success scenarios plus the deployed URL. No skill is invoked for that role; the agent produces the scenarios directly.
+In addition to these skills, `feature-steward` owns a direct role in `implement` — the Scenario Writer role — which generates manual test scenarios from feature success scenarios plus the deployed URL. No skill is invoked for that role; the agent produces the scenarios directly.
 
 ### tech-designer Skill Pool
 

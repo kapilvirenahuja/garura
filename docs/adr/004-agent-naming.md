@@ -74,7 +74,7 @@ Note: `quality-validator` was implemented as `quality-auditor` (auditor role) ra
 | `designer` | `bug-implementer` | `tech-designer` |
 | `validator` | `test-writer` | `quality-validator` |
 
-Exception: `test-writer` operates as a play-scoped sub-role within implement-epic. It is not a standalone agent file, but its context isolation requirements (asymmetric information with code-builder) justify its existence as a named role within the play.
+Exception: `test-writer` operates as a play-scoped sub-role within implement. It is not a standalone agent file, but its context isolation requirements (asymmetric information with code-builder) justify its existence as a named role within the play.
 
 ## Consequences
 
