@@ -1,0 +1,80 @@
+distill:
+  issue: 278
+  pr: 279
+  merge_sha: 3143fb13de3789b62110ff918ae75d2cde98cb7d
+  extracted_at: "2026-04-19"
+  no_learnings: false
+
+proposals:
+  - id: P1
+    type: knowledge_file
+    scope: project
+    tier: 1
+    target_path: core/components/memory/knowledge/arch/agentic/meridian-play-naming.md
+    rationale: >
+      The defect root cause is non-obvious: a developer seeing `name: garura:capture`
+      in SKILL.md frontmatter reasonably infers the `name` field controls invocation.
+      It does not. The directory name under `core/components/plays/` is what the
+      Claude Code skill-loading mechanism uses as the slash-command name. This
+      constraint is architectural and not documented anywhere in the knowledge base.
+      Without a knowledge entry, any agent authoring or renaming a play will repeat
+      this mistake.
+    content: |
+      # Meridian Play Invocation Naming
+
+      <!-- knowledge-file: tier=1 scope=project -->
+
+      **When this applies:** When creating, renaming, or debugging a Meridian play
+      (slash command) in the `core/components/plays/` directory.
+
+      **When this does NOT apply:** When working with the `name:` field in SKILL.md
+      frontmatter for display/namespacing purposes only (that field does not govern
+      invocation).
+
+      **Search patterns:** play invocation name, slash command name, play directory,
+      garura-capture, SKILL.md name field, play naming convention
+
+      **Provenance:** Issue #278 — [DEF] garura-capture play invocation name should be 'capture' not 'garura-capture'
+
+      **Created:** 2026-04-19
+
+      ## Content
+
+      Meridian play invocation names (i.e., the `/command` a user types in Claude Code)
+      are determined **solely by the directory name** under `core/components/plays/`.
+
+      The SKILL.md frontmatter `name:` field (e.g., `name: garura:capture`) is a
+      namespacing label used for display, catalog registration, and skill-list output.
+      It does **not** control what name Claude Code uses as the slash command.
+
+      ### Canonical mapping
+
+      | What controls it | What it controls |
+      |------------------|-----------------|
+      | Directory name under `core/components/plays/` | Slash-command invocation (`/capture`) |
+      | SKILL.md `name:` frontmatter field | Display name in skill list only |
+
+      ### Correct authoring pattern
+
+      ```
+      core/components/plays/capture/    ← directory name = invocation name /capture
+        SKILL.md                        ← name: garura:capture (namespace, cosmetic)
+      ```
+
+      A namespaced directory name (e.g., `garura-capture`) produces the invocation
+      `/garura-capture`, regardless of what the `name:` field says.
+
+      ### Fix pattern
+
+      To rename a play's invocation from `/garura-capture` to `/capture`:
+      1. Rename the directory: `mv core/components/plays/garura-capture core/components/plays/capture`
+      2. Update all internal `--build garura-capture` references to `--build capture`
+      3. Re-sync via `/sync-claude` to deploy the renamed directory
+      4. Update any product YAML or documentation referencing the old name
+
+      ## Why It Matters
+
+      The `name:` field is a natural first guess for "what should this command be called".
+      An agent or developer will set `name: garura:capture`, see the field looks correct,
+      and not realize the directory name is the actual invocation key. This produces a
+      silent defect where the command registers under the wrong name with no error.

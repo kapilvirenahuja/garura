@@ -1,0 +1,59 @@
+resolution_trace:
+  issue: 256
+  play: fix-it
+  date: "2026-04-19"
+
+  entries:
+    - domain: "git_tracking_state"
+      question: "Is .factory/ currently tracked in git?"
+      resolved_from: "tool_call"
+      tool: "git ls-files .factory/"
+      finding: "Empty output — no files tracked. Confirmed via git ls-files --error-unmatch."
+
+    - domain: "gitignore_effectiveness"
+      question: "Is the .gitignore entry for .factory/ in effect?"
+      resolved_from: "tool_call"
+      tool: "git check-ignore -v .factory/"
+      finding: ".gitignore:18:.factory/ — rule is active and matching"
+
+    - domain: "git_history"
+      question: "Were .factory/ files ever committed on any branch?"
+      resolved_from: "tool_call"
+      tool: "git log --oneline --all -- .factory/** "
+      finding: "No commits found on any branch for .factory/ paths"
+
+    - domain: "hardcoded_path_audit"
+      question: "Do any core/components/ files hardcode an absolute .factory/ path?"
+      resolved_from: "tool_call"
+      tool: "grep -rn .factory/ core/components/"
+      finding: |
+        sync-droids/scripts/sync.sh uses $PROJECT_ROOT/.factory (dynamic) and
+        $HOME/.factory (global mode). SKILL.md and glossary.md contain documentation
+        references only. No absolute hardcoded paths found.
+
+    - domain: "on_disk_state"
+      question: "Does .factory/ exist on disk with stale content?"
+      resolved_from: "tool_call"
+      tool: "ls -la .factory/"
+      finding: |
+        Tree exists: droids/, init.sh, library/, research/, services.yaml,
+        settings.json, skills/, specs/, validation/. Content is stale
+        Meridian-era artifacts from before the Garura rename sweep.
+
+    - domain: "issue_hypothesis_validation"
+      question: "Is the issue hypothesis correct — .factory/ was committed before gitignore?"
+      resolved_from: "tool_call"
+      tool: "git ls-files .factory/ + git log --all -- .factory/**"
+      finding: |
+        Hypothesis is NOT confirmed for current state. No tracked files found.
+        The gitignore is effective. The actual problem is stale on-disk content
+        only — no git rm required, rm -rf suffices.
+
+    - domain: "fix_strategy"
+      question: "Which fix strategy applies given actual state?"
+      resolved_from: "llm"
+      finding: |
+        rm -rf .factory/ (not git rm) is the correct operation since the tree
+        is untracked. Follow with /sync-droids --project verification.
+        Alternatives rejected: git rm (wrong, would error), leave as-is (stale
+        content persists), automate in sync-droids (unnecessary complexity).

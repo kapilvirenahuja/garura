@@ -1,0 +1,84 @@
+design:
+  summary: |
+    `.factory/` is already gitignored and untracked. No `git rm` is needed.
+    The fix is: (1) delete the stale on-disk tree, (2) verify `/sync-droids --project`
+    regenerates a clean Garura-branded tree. No git index changes will result —
+    this is a local on-disk cleanup only.
+
+  plan: |
+    Strategy: Remove the stale on-disk `.factory/` tree (via `rm -rf .factory/`
+    — NOT `git rm`, since it is not tracked). Then run `/sync-droids --project`
+    to verify the tree regenerates correctly with current Garura-branded content.
+    Since no files are tracked, no git operations are required for the removal.
+    The resulting PR will contain only evidence artifacts (rca.yaml, design.yaml,
+    resolution-trace.yaml) — there will be no diff from the on-disk cleanup itself.
+
+  affected_files:
+    removals:
+      - path: ".factory/"
+        type: "directory tree (gitignored, on-disk only)"
+        action: "delete via rm -rf (not git rm — not tracked)"
+        subdirs:
+          - ".factory/droids/"
+          - ".factory/skills/"
+          - ".factory/library/"
+          - ".factory/research/"
+          - ".factory/validation/"
+          - ".factory/specs/"
+          - ".factory/init.sh"
+          - ".factory/services.yaml"
+          - ".factory/settings.json"
+    modifications: []
+    no_git_index_changes: true
+
+  alternatives_considered:
+    - approach: "git rm -r .factory/ as stated in the issue body"
+      rejection_reason: |
+        `git ls-files .factory/` returns empty — there are no tracked files.
+        Running `git rm -r .factory/` would error with "pathspec did not match
+        any file(s) known to git". This approach was based on an incorrect
+        hypothesis that the tree was committed. The gitignore is already effective.
+    - approach: "Close issue as premise-invalid — already untracked, nothing to fix"
+      rejection_reason: |
+        The stale on-disk tree contains Meridian-branded content skipped during
+        the rename sweep. While harmless to git, it creates confusion for
+        contributors who grep the working tree. Deleting and verifying regeneration
+        is low-risk and completes the cleanup intent stated in the issue.
+    - approach: "Add rm -rf .factory/ to sync-droids --project as a pre-clean step"
+      rejection_reason: |
+        sync-droids already performs a clean before deploying. Automating removal
+        would couple issue cleanup to the sync tool lifecycle. A one-time
+        rm -rf is simpler (Occam's Razor) and does not require modifying sync-droids.
+
+  risks:
+    - risk: "Regeneration fails — sync-droids produces incomplete or broken .factory/ tree"
+      severity: low
+      mitigation: |
+        Verify by running `/sync-droids --project` and checking that
+        .factory/skills/ and .factory/droids/ are populated. If the tree does
+        not regenerate, the issue is in sync-droids, not in this fix.
+    - risk: "Developer has a local .factory/ with uncommitted WIP they want to keep"
+      severity: low
+      mitigation: |
+        .factory/ is gitignored — no WIP could have been committed. Any local
+        content is regenerable via /sync-droids --project.
+    - risk: "config.yaml factory: section paths become stale after removal"
+      severity: none
+      mitigation: |
+        config.yaml declares ./.factory/ as the deployment target — valid after
+        deletion. The config describes WHERE to deploy, not the presence of content.
+
+  confidence: high
+
+  execution_steps:
+    - step: 1
+      title: "Delete the stale on-disk .factory/ tree"
+      action: |
+        Run: rm -rf .factory/
+        This removes the gitignored, on-disk ephemeral directory.
+        Do NOT use `git rm` — the tree is not tracked and that command will error.
+      files:
+        - path: ".factory/"
+          action: "delete (rm -rf, not git rm)"
+      expected_outcome: ".factory/ no longer exists on disk"
+      self_test: "ls .factory/ returns 'No such file or directory'"
