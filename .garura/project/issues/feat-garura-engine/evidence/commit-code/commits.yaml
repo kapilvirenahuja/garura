@@ -1,0 +1,45 @@
+commits:
+  - id: G1
+    sha: 4920a77
+    subject: feat(sync-codex): add sync-codex skill and register it in play-registry
+    type: feat
+    scope: sync-codex
+    issue: 260
+    files_count: 5
+    files:
+      - core/components/skills/sync-codex/SKILL.md
+      - core/components/skills/sync-codex/scripts/sync.sh
+      - core/components/skills/sync-codex/scripts/test-sync.sh
+      - core/components/skills/sync-codex/templates
+      - core/engine/src/lib/play-registry.ts
+    status: success
+    conventional_format: true
+
+  - id: G2
+    sha: 00c9585
+    subject: chore(stm): update defect-report evidence to reflect issue 257 (implement-epic TDD gap)
+    type: chore
+    scope: stm
+    issue: 257
+    files_count: 3
+    files:
+      - .garura/project/issues/defect-report/evidence/report-issue/body.md
+      - .garura/project/issues/defect-report/evidence/report-issue/title.txt
+      - .garura/project/issues/defect-report/evidence/report-issue/issue-result.yaml
+    status: success
+    conventional_format: true
+
+summary:
+  total_commits: 2
+  total_files_committed: 8
+  branch: feat/garura-engine
+  push_status: success
+  push_result: branch created and pushed to origin
+
+validation:
+  F1_unrelated_concerns: pass
+  F2_commit_messages_describe_changes: pass
+  F3_no_uncommitted_files: pass
+  F4_correct_issue_references: pass
+  F5_issue_mapping_conflicts: pass
+  F6_approval_obtained: pass

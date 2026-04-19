@@ -1,0 +1,63 @@
+branch:
+  name: feat/garura-engine
+  issue_from_branch: none_detected
+  is_hotfix: false
+
+change_summary:
+  total_files: 5
+  staged: 0
+  unstaged: 2
+  untracked: 3
+
+groups:
+  - id: G1
+    issue: null
+    confidence: high
+    type: feat
+    scope: sync-codex
+    subject: add sync-codex skill and register it in play-registry
+    files:
+      - path: core/components/skills/sync-codex/SKILL.md
+        status: untracked
+        description: new sync-codex skill definition — syncs Garura components to Codex directories (global and project modes)
+      - path: core/components/skills/sync-codex/scripts/sync.sh
+        status: untracked
+        description: shell script that performs the Codex sync (transformation, managed cleanup, support-skill copying)
+      - path: core/components/skills/sync-codex/scripts/test-sync.sh
+        status: untracked
+        description: test script for sync-codex
+      - path: core/components/skills/sync-codex/templates
+        status: untracked
+        description: templates directory for sync-codex skill
+      - path: core/engine/src/lib/play-registry.ts
+        status: unstaged
+        description: adds 'sync-codex' to GARURA_PLAY_NAMES set — engine registration for the new skill
+
+  - id: G2
+    issue: 257
+    confidence: high
+    type: chore
+    scope: stm
+    subject: update defect-report evidence to reflect issue 257 (implement-epic TDD gap)
+    files:
+      - path: .garura/project/issues/defect-report/evidence/report-issue/body.md
+        status: unstaged
+        description: issue body updated from fix-it/ltm-context defect to implement-epic TDD task-prompt defect (#257)
+      - path: .garura/project/issues/defect-report/evidence/report-issue/title.txt
+        status: unstaged
+        description: title updated to reflect issue #257 subject
+      - path: .garura/project/issues/defect-report/evidence/report-issue/issue-result.yaml
+        status: untracked
+        description: new file — records issue creation result (number 257, url, state) from the report-issue skill run
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+analysis_notes:
+  - "Branch name 'feat/garura-engine' carries no issue number. G1 (sync-codex) is mapped with high confidence as a self-contained new skill + engine registration. G2 (defect-report STM) is operational evidence from a report-issue run, mapped to issue #257 via issue-result.yaml."
+  - "G1 and G2 are genuinely unrelated concerns — new skill authoring vs STM evidence housekeeping — and must not be combined (F1)."
+  - "All 5 changed files are assigned to a group (F3 satisfied)."
+  - "No sensitive files, no breaking changes, no hotfix branch detected."

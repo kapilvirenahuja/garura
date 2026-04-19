@@ -1,0 +1,56 @@
+branch:
+  name: feat/garura-engine
+  issue_from_branch: none_detected
+
+mappings:
+  - group_id: G1
+    issue_number: 260
+    issue_title: "feat: add sync-codex meta-utility skill for Codex deployment"
+    issue_state: open
+    issue_url: https://github.com/kapilvirenahuja/garura/issues/260
+    confidence: high
+    conflict: false
+    type_hint: feature
+    reasoning: >
+      Three independent semantic signals agree on issue #260.
+      Signal 1 (title keyword): issue #260 title contains "sync-codex" — exact
+      match against the group's scope ("sync-codex") and subject.
+      Signal 2 (path match): issue #260 body explicitly references
+      core/components/skills/sync-codex/, which is the root path of all five
+      files in G1.
+      Signal 3 (type alignment): group type is "feat"; issue #260 title is
+      prefixed "feat:" — conventional-commit type parity.
+      No competing issue references sync-codex. Branch carries no issue number,
+      so branch signal is absent, but three semantic signals satisfy the high-
+      confidence threshold without it.
+
+  - group_id: G2
+    issue_number: 257
+    issue_title: "[DEF][High] /implement-epic task prompts lack preconditions/expected-behavior and skip post-implementation green unit-test verification"
+    issue_state: open
+    issue_url: https://github.com/kapilvirenahuja/garura/issues/257
+    confidence: high
+    conflict: false
+    type_hint: fix
+    reasoning: >
+      Direct provenance: .garura/project/issues/defect-report/evidence/
+      report-issue/issue-result.yaml is the physical record produced by the
+      report-issue skill run that created issue #257. The issue number is
+      embedded in the artifact. The accompanying body.md and title.txt are the
+      source inputs for that same run, updated to reflect the #257 defect
+      subject. All three files are STM evidence for that report-issue
+      execution — not independent changes but a single cohesive evidence set
+      for issue #257. Issue #257 is open and confirmed via gh issue list.
+      No competing issue. Confidence is high on direct-provenance grounds alone.
+
+conflicts: []
+
+summary:
+  total_groups: 2
+  mapped: 2
+  no_matching_issue: 0
+  conflicts_detected: 0
+  approval_required: false
+  approval_reason: >
+    All mappings are high confidence. Per constraint C9, the play may
+    proceed without human approval.
