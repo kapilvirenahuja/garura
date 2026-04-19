@@ -50,13 +50,15 @@ constraints:
       high confidence, the play proceeds without approval.
   - id: C10
     rule: >
-      Before writing any Evidence & Close artifacts, the play reads evidence.record
-      from .garura/core/config.yaml (default true when key absent). When false:
-      the delivery record ({YYYYMMDD-HHMMSS}.md) is not written, the status file
-      (commit-code.json) is not written, and the repo-orchestrator self-commit
-      invocation is skipped. The user summary is always presented regardless of flag.
-      analysis.yaml and issue-mappings.yaml are never affected by this flag — they
-      are written unconditionally in Steps 1 and 2.
+      The play reads evidence.record from .garura/core/config.yaml (default true
+      when key absent) and applies it in two places. At Step 5 (Create Commits):
+      when false, commits.yaml is omitted from the repo-orchestrator contract output
+      — the commit_record stm.output key is dropped entirely so no commits.yaml is
+      written. At Step 8 (Evidence & Close): when false, the delivery record
+      ({YYYYMMDD-HHMMSS}.md) is not written, the status file (commit-code.json) is
+      not written, and the repo-orchestrator self-commit invocation is skipped. The
+      user summary is always presented regardless of flag. analysis.yaml and
+      issue-mappings.yaml are never affected — written unconditionally in Steps 1 and 2.
 
 failure_conditions:
   - id: F1

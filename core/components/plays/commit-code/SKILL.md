@@ -151,6 +151,10 @@ Present brief. **Tether** to proceed | **Vanish** to halt.
 Owner: `repo-orchestrator`
 Depends on: Step 4 (or Step 2 if checkpoint skipped)
 
+Read `evidence.record` flag (already resolved in pre-flight bash block; default `true`).
+
+When `evidence.record` is `true` (or absent) — include `commits.yaml` in contract output:
+
 ```json
 {
   "intent_path": "core/components/plays/commit-code/reference/intent.yaml",
@@ -168,9 +172,26 @@ Depends on: Step 4 (or Step 2 if checkpoint skipped)
 }
 ```
 
+When `evidence.record` is `false` — omit `commit_record` from contract output (no `commits.yaml` written):
+
+```json
+{
+  "intent_path": "core/components/plays/commit-code/reference/intent.yaml",
+  "stm_base": "{stm_base}",
+  "stm": {
+    "input": {
+      "analysis": "{stm_base}/{issue}/evidence/commit-code/analysis.yaml",
+      "issue_mappings": "{stm_base}/{issue}/evidence/commit-code/issue-mappings.yaml"
+    },
+    "output": {}
+  },
+  "task_id": "create-commits"
+}
+```
+
 **Critical: Agent reads STM data from Steps 1-2. NEVER reads the brief from Step 3.**
 
-Agent invokes `create-commit` skill for each change group. Writes commit record to STM.
+Agent invokes `create-commit` skill for each change group. Writes commit record to STM when flag is true.
 
 **Step 5 Evals:**
 - **SE-2 (F1):** Each commit stages only files from a single change group. No cross-group contamination.
@@ -277,7 +298,7 @@ for each step in compiled order:
 
 | Field | Value |
 |-------|-------|
-| intent_hash | sha256:0a6b5e07c272131f0b77de9b12d4de8f6c0ba3958cae5a02877ef1d5ab0384cb |
+| intent_hash | sha256:9f534524d0aaff02884564de2bedbb99ef735c3f21935a9bbf69853e83ea390d |
 | compiled_by | create-play |
 | compiled_at | 2026-04-19T00:00:00Z |
 | workflow_structure | A |
