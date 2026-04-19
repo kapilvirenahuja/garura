@@ -1,0 +1,194 @@
+play: fix-it
+generated_at: "2026-04-19T12:30:00Z"
+intent_version: "1.1.0"
+
+# Coverage: 11 step evals (SE-1..SE-11), 4 scenario evals (SCE-1..SCE-4)
+# FC coverage: F1-F10 — all present
+# Artifact-verifiable constraint coverage: C3, C4, C5, C11, C12, C13 — all present
+# Pre-flight constraints (C1, C2) and structural constraints (C6, C7, C8, C9, C10) — no evals required per rules
+# F7 (structural-isolation FC) receives a contract-inspection eval per rules
+
+step_evals:
+
+  # ---- Step 1: validate-issue ----
+
+  - id: SE-1
+    step: validate-issue
+    intent_refs: [F5]
+    check: >
+      File `{stm_base}/{issue}/evidence/fix-it/issue-read.yaml` exists and contains
+      a `state` field with value `open`. If the file is absent or `state` is not `open`,
+      the play must have halted — evidence of continuation past Step 1 with a non-open
+      or missing issue constitutes a failure.
+
+  # ---- Step 3: rca-and-design ----
+
+  - id: SE-2
+    step: rca-and-design
+    intent_refs: [F2, C3]
+    check: >
+      File `{stm_base}/{issue}/evidence/fix-it/rca.yaml` exists and its `root_cause`
+      field is non-empty, names at least one specific file path, identifies the specific
+      logic or code location within that file, and explains why it is wrong — the value
+      must be textually distinct from the `title` and `body` fields in
+      `{stm_base}/{issue}/evidence/fix-it/issue-read.yaml`.
+
+  - id: SE-3
+    step: rca-and-design
+    intent_refs: [F3, C4]
+    check: >
+      File `{stm_base}/{issue}/evidence/fix-it/design.yaml` exists and its
+      `alternatives_considered` field is a non-empty list where each entry contains
+      both an option name/description and a `rejection_reason` field that is non-empty.
+
+  - id: SE-4
+    step: rca-and-design
+    intent_refs: [C5]
+    check: >
+      File `{stm_base}/{issue}/evidence/fix-it/design.yaml` contains a `risks` list
+      with at least one entry. Every entry in the list has a non-empty `severity` field
+      (e.g., `low`, `medium`, `high`, `critical` or equivalent).
+
+  - id: SE-5
+    step: rca-and-design
+    intent_refs: [C11, F8]
+    check: >
+      When the tech-designer contract included a `ltm_context` block, file
+      `{stm_base}/{issue}/evidence/fix-it/resolution-trace.yaml` exists and contains
+      a non-empty list of resolution entries. Each entry must include a `resolved_from`
+      field. When `has_product_ltm` is true, at least one entry must have
+      `resolved_from` of `"project"` or `"core"` (not every entry may be `"llm"`).
+      When `has_product_ltm` is false, the trace must contain at least one entry from
+      `"core"` or must document `"llm"` fallback explicitly with a rationale field.
+
+  # ---- Step 4: prepare-checkpoint ----
+
+  - id: SE-6
+    step: prepare-checkpoint
+    intent_refs: [F9, C12]
+    check: >
+      No file exists under `{stm_base}/{issue}/evidence/fix-it/briefs/` after Step 4
+      completes. Additionally, no `.html` file exists anywhere under
+      `{stm_base}/{issue}/evidence/fix-it/`. The absence of these paths confirms no
+      standalone HTML artifact was produced.
+
+  # ---- Step 5: approval-gate + background-dispatch ----
+
+  - id: SE-7
+    step: approval-gate
+    intent_refs: [F1]
+    check: >
+      Status file `{stm_base}/{issue}/status/fix-it.json` shows `approval-gate` task
+      with `status: completed` and a `tether_received_at` timestamp that precedes the
+      `started_at` timestamp of the `implement-fix` task entry. No implementation
+      artifact (`{stm_base}/{issue}/evidence/fix-it/implementation-report.yaml`) may
+      exist without the approval-gate entry showing a completed Tether event.
+
+  - id: SE-8
+    step: approval-gate
+    intent_refs: [F10, C13]
+    check: >
+      File `{stm_base}/{issue}/evidence/fix-it/issue-comment-agent.yaml` exists before
+      `implement-fix` transitions to `in_progress` in the status file. The file must
+      contain `status: dispatched` (or `completed`) and a non-empty `dispatched_at`
+      ISO timestamp. A `status: pending` or absent file after Tether receipt constitutes
+      a failure.
+
+  # ---- Step 6: implement-fix ----
+
+  - id: SE-9
+    step: implement-fix
+    intent_refs: [F6]
+    check: >
+      File `{stm_base}/{issue}/evidence/fix-it/implementation-report.yaml` exists and
+      its `files_modified` list contains only files that either (a) appear in
+      `design.yaml`'s `affected_files` map, or (b) are accompanied by a
+      `deviation_justification` field on that list entry explaining the undocumented
+      change. An entry in `files_modified` that is absent from `affected_files` and
+      has no `deviation_justification` constitutes a failure.
+
+  - id: SE-10
+    step: implement-fix
+    intent_refs: [F7]
+    check: >
+      The code-builder agent invocation contract (Step 6 JSON) contains only
+      `{stm_base}/{issue}/evidence/fix-it/design.yaml` and
+      `{stm_base}/{issue}/evidence/fix-it/rca.yaml` under `stm.input`. No checkpoint
+      brief path, no HTML file path, and no inline rendered checkpoint markdown may
+      appear in any field of the contract. This is a contract-inspection eval —
+      observable by auditing the Step 6 agent call record.
+
+  # ---- Step 7: ship ----
+
+  - id: SE-11
+    step: ship
+    intent_refs: [F4]
+    check: >
+      The ship evidence artifact (or `{stm_base}/{issue}/evidence/fix-it/` delivery
+      record) contains: a non-empty `commit_sha`, a non-empty `pr_number`, a `pr_state`
+      field equal to `merged`, and a `branch_deleted` field equal to `true`. All four
+      fields must be present — any combination of missing PR, unmerged PR, or surviving
+      branch constitutes a partial-ship failure.
+
+scenario_evals:
+
+  - id: SCE-1
+    scenario: S1
+    persona: Developer
+    check: >
+      The evidence directory `{stm_base}/{issue}/evidence/fix-it/` contains all of:
+      (1) `rca.yaml` with a non-empty `root_cause` tracing to specific code,
+      (2) `design.yaml` with non-empty `alternatives_considered` and `risks`,
+      (3) `implementation-report.yaml` recording files modified,
+      (4) a delivery record file (`{YYYYMMDD-HHMMSS}.md`) that includes the merge SHA
+      on main and a PR URL,
+      (5) the PR URL in the delivery record must link to issue #{issue} (URL contains
+      the issue number),
+      (6) the delivery record confirms `branch_deleted: true`,
+      (7) `issue-comment-agent.yaml` exists with `status: dispatched` or `completed`.
+      All seven observable properties must hold.
+
+  - id: SCE-2
+    scenario: S2
+    persona: Tech Lead
+    check: >
+      The checkpoint inline markdown presented at Step 5 is derived from STM artifacts
+      (no standalone brief file) and contains all six sections:
+      (1) a root cause section naming a specific file and logic (from `rca.yaml`),
+      (2) a blast radius table with at least one affected file row (from `design.yaml`
+      `affected_files`),
+      (3) a proposed fix strategy (from `design.yaml.plan`),
+      (4) at least one alternative with a rejection reason (from
+      `design.yaml.alternatives_considered`),
+      (5) a risk table with at least one row including a severity level (from
+      `design.yaml.risks`),
+      (6) a confidence assessment value (from `design.yaml.confidence`).
+      Observable by auditing the checkpoint output rendered in the session transcript
+      against the STM artifacts.
+
+  - id: SCE-3
+    scenario: S3
+    persona: QA Engineer
+    check: >
+      The PR body contains a reference to issue #{issue} (e.g., `Closes #N` or
+      `Fixes #N`) and at least a summary of the root cause and changed files.
+      The evidence delivery record at `{stm_base}/{issue}/evidence/fix-it/{YYYYMMDD-HHMMSS}.md`
+      includes: root cause summary, list of files modified, blast radius, and a
+      checkpoint approval timestamp that is strictly earlier than the
+      `implement-fix.started_at` timestamp in the status file. All four audit trail
+      elements must be present for full traceability.
+
+  - id: SCE-4
+    scenario: S4
+    persona: QA Engineer reviewing audit trail
+    check: >
+      The GitHub issue #{issue} carries a comment that was posted via the background
+      dispatch at Tether time. The comment body contains an `Approved by` header with
+      a timestamp, the root cause text (matching `rca.yaml.root_cause`), the fix
+      strategy (from `design.yaml.plan`), and the `## RCA & Fix Plan — Approved`
+      heading from the `issue-comment-rca-approved.md` template. The comment's
+      creation timestamp must be earlier than the PR's `created_at` timestamp
+      (observable via `gh issue view {issue} --comments` and `gh pr view {pr_number}`).
+      `{stm_base}/{issue}/evidence/fix-it/issue-comment-agent.yaml` must exist with a
+      `dispatched_at` value at or before the comment's creation timestamp, confirming
+      STM traceability back to the Tether event.
