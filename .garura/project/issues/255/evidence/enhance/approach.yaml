@@ -1,0 +1,417 @@
+problem_statement: >
+  Every commit-code play run writes 3 non-essential evidence artifacts (commits.yaml,
+  delivery record .md, status file .json) to STM with no way to suppress them. On
+  solo-dev workflows or speed-focused runs this creates commit noise (10-14 chore(stm)
+  commits per feature) and wastes tokens on writes that serve no downstream purpose.
+  There is no config flag to skip these writes. The skip must happen at the WRITE level
+  — artifacts never created, never processed — not just at the git-commit level.
+
+solution_summary: >
+  Add a boolean flag `evidence.record` (default true) to `.garura/core/config.yaml`
+  under a new top-level `evidence:` section. When false, the flag causes: (a) create-commit
+  skill to add a step 4 that reads the flag and, when false, signals its caller to skip the
+  commits.yaml write-evidence call; (b) commit-code play Step 8 to skip writing the delivery
+  record .md and status file .json and to skip the repo-orchestrator self-commit invocation.
+  analysis.yaml and issue-mappings.yaml are never skipped — they are required for the play
+  to function. The commit-code SKILL.md is a compiled artifact and must NOT be hand-edited:
+  the change enters via a new C10 constraint in intent.yaml, then /create-play --build
+  commit-code regenerates SKILL.md. create-commit SKILL.md is directly editable (no
+  intent.yaml pipeline). A new file core/grounding/rules/evidence.md documents the
+  behavioral rule for self-development reference only (not deployed via /sync-claude).
+
+files_to_create:
+  - path: core/grounding/rules/evidence.md
+    purpose: >
+      Documents the evidence.record flag: its config key, default, what it controls,
+      which artifacts are skipped (commits.yaml, delivery record .md, status file .json),
+      which are never skipped (analysis.yaml, issue-mappings.yaml), how plays read the
+      flag (bash pattern with yq or grep), and the scope constraint (commit-code is the
+      prototype; other plays addressed in separate issues). Lives in core/grounding/ as a
+      self-development reference — NOT deployed by /sync-claude.
+    note: >
+      core/grounding/rules/ directory does not yet exist. Must be created with the first
+      file. core/grounding/ itself exists (contains glossary.md).
+
+files_to_modify:
+  - path: .garura/core/config.yaml
+    section: new top-level evidence section
+    nature: >
+      Insert a new `evidence:` top-level section after the `review-pr:` block (after line 70)
+      and before the `# Product artifacts` comment block. Follow the review-pr: pattern —
+      a named behavioral-configuration section at the top level with a comment header.
+      Content to add:
+        # Evidence recording — when false, non-essential STM artifacts in commit-code are skipped
+        evidence:
+          record: true
+      Default true is required: existing behavior must be unchanged unless explicitly set to false.
+
+  - path: core/components/skills/create-commit/SKILL.md
+    section: Process section
+    nature: >
+      Add a fourth process step after step 3 (Get Hash). Direct edit — create-commit is a
+      skill with no reference/intent.yaml and is not compiled via /create-play.
+      Step to add:
+        4. Check evidence flag
+           Read evidence.record from .garura/core/config.yaml.
+           If false: include skip_commits_yaml: true in the returned output (via the
+           commit-output.md template response). The caller (repo-orchestrator) reads this
+           signal and omits the write-evidence call for commits.yaml.
+           If true (or key absent): proceed normally — caller writes commits.yaml to STM.
+      Also update the Output section to document that the template response includes
+      skip_commits_yaml when flag is false. Update version field.
+
+  - path: core/components/plays/commit-code/reference/intent.yaml
+    section: constraints
+    nature: >
+      Add C10 — implementation-agnostic, no agent/skill names per intent schema rule.
+      C10 text must be explicit enough to compile a correct Step 8:
+        id: C10
+        rule: >
+          Before writing any Evidence & Close artifacts, the play reads evidence.record
+          from .garura/core/config.yaml (default true when key absent). When false:
+          the delivery record ({YYYYMMDD-HHMMSS}.md) is not written, the status file
+          (commit-code.json) is not written, and the repo-orchestrator self-commit
+          invocation is skipped. The user summary is always presented regardless of flag.
+          analysis.yaml and issue-mappings.yaml are never affected by this flag — they
+          are written unconditionally in Steps 1 and 2.
+      Checksum is recomputed by /create-play --build — leave existing value as-is or remove.
+
+  - path: core/components/plays/commit-code/SKILL.md
+    section: full file
+    nature: >
+      REGENERATED via /create-play --build commit-code. Do NOT hand-edit. This file
+      is listed here to document that it changes as a side effect of recompilation, not
+      a direct edit. Expected changes from rebuild: Step 8 acquires a flag-read block
+      (bash read of evidence.record with default-true fallback) before writing the
+      delivery record and status file; both writes and the repo-orchestrator self-commit
+      invocation are guarded by the flag; the user summary block is unconditional;
+      Compilation Metadata updates intent_hash to reflect new C10.
+
+connections:
+  - from: core/components/plays/commit-code/reference/intent.yaml (C10)
+    to: core/components/plays/commit-code/SKILL.md (Step 8)
+    type: compiles-to
+    description: >
+      intent.yaml is the source of truth for commit-code. /create-play --build reads C10
+      and regenerates SKILL.md. C10 drives the conditional block in Step 8 that guards the
+      delivery record write, status file write, and self-commit invocation.
+
+  - from: .garura/core/config.yaml (evidence.record)
+    to: core/components/skills/create-commit/SKILL.md (step 4)
+    type: read-by
+    description: >
+      create-commit step 4 reads evidence.record from config at runtime. If false, the
+      returned output signals skip_commits_yaml: true to the caller.
+
+  - from: .garura/core/config.yaml (evidence.record)
+    to: core/components/plays/commit-code/SKILL.md (Step 8)
+    type: read-by
+    description: >
+      Compiled Step 8 reads evidence.record using the pre-flight bash convention already
+      established in commit-code. Absence defaults to true (backward compatible).
+
+  - from: core/components/skills/create-commit/SKILL.md (skip_commits_yaml signal)
+    to: core/components/plays/commit-code/SKILL.md (Step 5, repo-orchestrator caller)
+    type: signals
+    description: >
+      When evidence.record is false, create-commit step 4 returns skip_commits_yaml: true
+      in the commit-output.md template response. The repo-orchestrator caller reads this
+      and omits the write-evidence call for commits.yaml. The actual write gate is in
+      the caller, not in create-commit directly — because create-commit does not write
+      commits.yaml itself.
+
+  - from: core/grounding/rules/evidence.md
+    to: .garura/core/config.yaml + core/components/skills/create-commit/SKILL.md + core/components/plays/commit-code/SKILL.md
+    type: documents
+    description: >
+      evidence.md documents the behavioral rule and policy for self-development reference.
+      It is not deployed by /sync-claude. It serves as the canonical reference for any
+      future play that adopts the evidence.record pattern (separate issues per discovery.md scope).
+
+tasks:
+  - id: T1
+    title: "Add evidence.record flag to .garura/core/config.yaml"
+    description: >
+      Edit .garura/core/config.yaml. Insert a new top-level `evidence:` section after the
+      `review-pr:` block (after line 70) and before the `# Product artifacts` comment.
+      Content:
+        # Evidence recording — when false, non-essential STM artifacts in commit-code are skipped
+        evidence:
+          record: true
+      Verify the key is readable: yq '.evidence.record' .garura/core/config.yaml should
+      return 'true'. No other sections should be modified.
+    blocked_by: []
+
+  - id: T2
+    title: "Create core/grounding/rules/evidence.md"
+    description: >
+      Create the directory core/grounding/rules/ (does not yet exist) and write evidence.md.
+      Content must cover: the evidence.record flag and its config key, default value (true),
+      what it controls, which artifacts are skipped when false (commits.yaml, delivery record
+      .md, status file .json), which are never skipped (analysis.yaml, issue-mappings.yaml),
+      how plays read the flag (bash pattern: evidence_record=$(yq '.evidence.record // true'
+      .garura/core/config.yaml)), and the scope constraint (commit-code is the prototype;
+      other plays addressed in separate issues). Do NOT create any _index.md or registry
+      file — core/grounding/ is a self-development reference space, not a deployed component.
+    blocked_by: []
+
+  - id: T3
+    title: "Update create-commit SKILL.md — add step 4 flag check"
+    description: >
+      Direct edit of core/components/skills/create-commit/SKILL.md. Add step 4 to the
+      Process section after step 3 (Get Hash):
+        4. Check evidence flag
+           Read evidence.record from .garura/core/config.yaml.
+           If false: include skip_commits_yaml: true in the returned output template response.
+           If true (or key absent): proceed normally.
+      Update the Output section to note that when evidence.record is false, the template
+      response includes skip_commits_yaml: true as a caller signal.
+      Update the version field (1.0.0 → 1.1.0).
+      Do NOT run /sync-claude as part of this task — that is T5's responsibility.
+    blocked_by: [T1]
+
+  - id: T4
+    title: "Update commit-code intent.yaml — add C10"
+    description: >
+      Edit core/components/plays/commit-code/reference/intent.yaml. Add C10 to the
+      constraints list after C9. C10 text (verbatim — must be explicit enough to compile
+      a correct Step 8):
+        - id: C10
+          rule: >
+            Before writing any Evidence & Close artifacts, the play reads evidence.record
+            from .garura/core/config.yaml (default true when key absent). When false:
+            the delivery record ({YYYYMMDD-HHMMSS}.md) is not written, the status file
+            (commit-code.json) is not written, and the repo-orchestrator self-commit
+            invocation is skipped. The user summary is always presented regardless of flag.
+            analysis.yaml and issue-mappings.yaml are never affected by this flag — they
+            are written unconditionally in Steps 1 and 2.
+      Leave existing checksum value unchanged — /create-play --build recomputes it.
+      No other sections of intent.yaml should be modified.
+    blocked_by: []
+
+  - id: T5
+    title: "Run /create-play --build commit-code and verify recompiled SKILL.md"
+    description: >
+      Invoke: /create-play --build commit-code
+      After recompilation, verify the rebuilt SKILL.md diff against current HEAD. Expected
+      changes are confined to:
+        - Step 8: new flag-read block before delivery record and status file writes; both
+          writes and repo-orchestrator self-commit guarded by flag; user summary unconditional
+        - Compilation Metadata: intent_hash updated to reflect new C10
+      Specifically verify (read-only inspection of rebuilt file):
+        (a) Step 8 contains a bash read of evidence.record with default-true fallback
+        (b) delivery record write is inside a conditional on flag=true
+        (c) status file write is inside the same conditional
+        (d) repo-orchestrator self-commit invocation is inside the same conditional
+        (e) user summary presentation is outside the conditional (always executes)
+        (f) No changes to Steps 1-7, Pause/Resume, Agent Boundaries, or other sections
+      If the rebuild omits the conditional logic: add an explanatory inline_notes hint
+      to intent.yaml C10 making the conditional structure explicit, and re-build once
+      (max 1 retry). Then run /sync-claude to deploy.
+    blocked_by: [T3, T4]
+
+evals:
+  - id: E1
+    description: "evidence.record flag is present in config.yaml and defaults to true"
+    pass: >
+      yq '.evidence.record' .garura/core/config.yaml returns 'true'
+      AND yq '.evidence' .garura/core/config.yaml is not null
+    fail: >
+      Key absent (yq returns null or empty) — flag not added. Or key present but value is
+      not 'true' — backward compatibility violated.
+    linked_task: T1
+
+  - id: E2
+    description: "core/grounding/rules/evidence.md exists and covers required content"
+    pass: >
+      test -f core/grounding/rules/evidence.md returns 0
+      AND file contains 'evidence.record', 'commits.yaml', 'analysis.yaml',
+      'issue-mappings.yaml', and the bash read pattern
+    fail: >
+      File missing (test -f returns 1). Or file exists but omits one or more required
+      content elements (flag key, skippable artifacts, never-skipped artifacts, read pattern).
+    linked_task: T2
+
+  - id: E3
+    description: "create-commit SKILL.md has a step 4 that reads evidence.record"
+    pass: >
+      grep -q "Check evidence flag" core/components/skills/create-commit/SKILL.md returns 0
+      AND grep -q "evidence.record" core/components/skills/create-commit/SKILL.md returns 0
+      AND grep -q "skip_commits_yaml" core/components/skills/create-commit/SKILL.md returns 0
+    fail: >
+      Any of the three greps return non-zero — step 4 not added, flag key not referenced,
+      or caller signal not documented.
+    linked_task: T3
+
+  - id: E4
+    description: "commit-code intent.yaml contains C10 with explicit Step 8 behavior"
+    pass: >
+      grep -q "C10" core/components/plays/commit-code/reference/intent.yaml returns 0
+      AND C10 rule text contains 'evidence.record', 'delivery record', 'status file',
+      and 'self-commit' (or equivalent phrasing covering all three skips)
+    fail: >
+      C10 id absent from constraints block. Or C10 present but text is vague — does not
+      enumerate the three skippable writes. Vague C10 produces unpredictable compiled Step 8.
+    linked_task: T4
+
+  - id: E5
+    description: "Recompiled commit-code SKILL.md Step 8 guards all three skippable writes"
+    pass: >
+      Inspecting rebuilt core/components/plays/commit-code/SKILL.md:
+      (a) Step 8 contains evidence.record read with default-true fallback
+      (b) delivery record .md write is inside a conditional on flag=true
+      (c) status file .json write is inside the same conditional
+      (d) repo-orchestrator self-commit invocation is inside the same conditional
+      (e) user summary is outside the conditional
+    fail: >
+      Any of (a)-(e) absent. Conditional logic not compiled into Step 8. All three writes
+      are unconditional (rebuild did not incorporate C10 correctly).
+    linked_task: T5
+
+  - id: E6
+    description: "Regression — with evidence.record: true (default), all 5 artifact writes proceed"
+    pass: >
+      Reading SKILL.md Step 8: when flag=true, all write paths are reachable:
+      delivery record .md, status file .json, repo-orchestrator self-commit.
+      analysis.yaml and issue-mappings.yaml are unconditional in Steps 1 and 2 (unchanged).
+    fail: >
+      Default-true path inadvertently omits a write. Or analysis.yaml / issue-mappings.yaml
+      conditionally gated by the flag (must never happen).
+    linked_task: T5
+
+  - id: E7
+    description: "Regression — analysis.yaml and issue-mappings.yaml are unconditional in rebuilt SKILL.md"
+    pass: >
+      grep -c "evidence.record" core/components/plays/commit-code/SKILL.md returns exactly 1
+      (only in Step 8, not in Steps 1 or 2)
+      AND Steps 1 and 2 STM output paths for analysis.yaml and issue-mappings.yaml are
+      unchanged in the rebuilt file
+    fail: >
+      evidence.record check appears in Steps 1 or 2. Or the STM output paths for
+      analysis.yaml / issue-mappings.yaml changed from the pre-rebuild values.
+    linked_task: T5
+
+  - id: E8
+    description: "Recompile blast radius contained — only Step 8 and Compilation Metadata changed"
+    pass: >
+      Manual diff of rebuilt SKILL.md against HEAD: only Step 8 conditional block and
+      Compilation Metadata intent_hash field differ. No other sections altered.
+    fail: >
+      Rebuild modified Steps 1-7, Phase headers, Agent Boundaries table, Pause/Resume,
+      or scenario eval sections — indicates rebuild is not idempotent or C10 phrasing
+      caused unintended structural changes.
+    linked_task: T5
+
+risks:
+  - id: R1
+    description: >
+      /create-play --build commit-code recompiles SKILL.md incorrectly — either drops
+      existing correct content (Steps 1-7, Agent Boundaries, Pause/Resume, scenario evals)
+      or fails to incorporate the conditional Step 8 logic from C10. This is the highest
+      risk in this implementation because C10 introduces conditional flow that /create-play
+      has not previously needed to encode from an intent constraint.
+    mitigation: >
+      (1) Write C10 with explicit, concrete phrasing that names all three skippable writes
+      and the conditional structure — vague C10 = unpredictable compile. (2) After rebuild,
+      diff SKILL.md against HEAD (E8) and verify Step 8 conditional logic (E5) before
+      running /sync-claude. (3) If rebuild omits conditional: add an inline_notes hint to
+      intent.yaml C10 making the if/else structure explicit and rebuild once (max 1 retry).
+      (4) If retry fails: escalate. Do not hand-edit SKILL.md — that permanently breaks
+      intent/SKILL.md parity.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E5, E8]
+
+  - id: R2
+    description: >
+      create-commit skill currently returns output via the commit-output.md template as an
+      in-context markdown response to the calling agent. The skip_commits_yaml signal must
+      be added to that template response. If the template (templates/commit-output.md) is
+      not updated alongside SKILL.md, the caller has no structured field to read and the
+      signal is implicit/fragile — dependent on the LLM parsing unstructured text.
+    mitigation: >
+      When editing create-commit SKILL.md (T3), also inspect templates/commit-output.md
+      (if it exists as a file) and add a skip_commits_yaml field to the template when
+      evidence.record is false. If the template is inline in SKILL.md rather than a
+      separate file, ensure the Output section documents the conditional field explicitly.
+      E3 verifies the signal is present in SKILL.md — extend E3 to cover the template
+      if it is a separate file.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E3]
+
+  - id: R3
+    description: >
+      Pause/Resume behavior is implicitly disabled when evidence.record is false because
+      the status file (commit-code.json) is not written. A future invocation of commit-code
+      on the same branch will start fresh (no status file = fresh start per current logic)
+      even if a prior run was partially complete. This is intentional per discovery.md but
+      is undocumented — a future developer may interpret the missing status file as an
+      unexpected side effect.
+    mitigation: >
+      Document the Pause/Resume interaction in core/grounding/rules/evidence.md (T2):
+      "When evidence.record is false, the status file is not written. Pause/Resume is
+      implicitly disabled for that run — a subsequent invocation starts fresh. This is
+      intentional for speed/development use cases." No code change needed.
+    type: business
+    action: monitor-only
+    ltm_reference: null
+    generated_evals: []
+
+  - id: R4
+    description: >
+      The evidence.record flag is global with no per-play or per-invocation override. If a
+      developer sets evidence.record: false for speed during active development and forgets
+      to restore it, future commit-code runs on release/hotfix branches will also skip
+      evidence writes — potentially losing audit trail for important commits.
+    mitigation: >
+      Default is true (backward compatible). The flag is a deliberate, visible config change
+      in .garura/core/config.yaml — not an implicit runtime flag — so it cannot be
+      accidentally applied. core/grounding/rules/evidence.md documents the intended use
+      case (development speed) and the implication for audit trail. No additional guard
+      needed at this scope (commit-code prototype); future issues may add per-branch or
+      per-invocation resolution if the need is demonstrated.
+    type: business
+    action: monitor-only
+    ltm_reference: null
+    generated_evals: []
+
+alternatives_considered:
+  - id: A1
+    approach: "Broader scope — apply evidence.record to all plays (enhance, ship, fix-it, etc.) in this issue"
+    rejection_reason: >
+      Discovery.md explicitly scoped this issue to commit-code only: "commit-code as the
+      first play. Other plays follow in separate issues." Broad scope would require auditing
+      each play's Evidence & Close phase for its skippable artifacts, a different set per
+      play. Surgical precision (one play, verified correct) is the stated design principle.
+      Occam's Razor: fewer changes per issue, faster verification, lower blast radius.
+
+  - id: A2
+    approach: "Per-play flag (e.g., commit-code.evidence.record) instead of global evidence.record"
+    rejection_reason: >
+      Discovery.md constraint: "No per-play or per-invocation override — single global flag."
+      Per-play flags would require each play to declare its own config key, creating an
+      inconsistent namespace and forcing developers to toggle multiple keys. The global flag
+      is the stated design — one key to toggle, one mental model. Future plays adopting
+      the pattern use the same key, not a new one.
+
+  - id: A3
+    approach: "Skip at the git-commit level (never commit evidence files) rather than at the write level"
+    rejection_reason: >
+      Discovery.md constraint: "The skip is at the WRITE level (never written, never
+      processed), not just at the git commit level." Skipping at commit-level still writes
+      artifacts to disk, consumes tokens in write-evidence calls, and leaves STM cluttered
+      with artifacts that are never committed. The write-level skip eliminates all three
+      costs. This was explicitly resolved in the design conversation.
+
+  - id: A4
+    approach: "Hand-edit commit-code SKILL.md directly instead of via intent.yaml → /create-play --build"
+    rejection_reason: >
+      commit-code SKILL.md header states explicitly: "Do NOT edit this file manually —
+      it is a compiled artifact." CLAUDE.md memory rule: "Recipe changes only through
+      rebake — NEVER edit SKILL.md directly. Update intent.yaml → /create-play --build.
+      Always." Hand-edits create intent/SKILL.md drift: future rebuilds silently overwrite
+      the changes. This is not a preference — it is a hard constraint with documented
+      memory enforcement.

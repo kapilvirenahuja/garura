@@ -1,0 +1,208 @@
+pr_number: 277
+pr_title: "feat(evidence): configurable evidence recording flag for commit-code (#255)"
+pr_url: https://github.com/kapilvirenahuja/garura/pull/277
+branch: enhance/255-evidence-commit-flag
+base_branch: main
+branch_pattern: feature
+analyzed_at: "2026-04-19"
+
+summary:
+  commits: 1
+  files_changed: 6
+  additions: 141
+  deletions: 8
+  commit_types:
+    - feat
+
+context:
+  file_patterns_matched:
+    - name: Play Definitions
+      trigger: "core/components/plays/**/*.md"
+      files: 2
+    - name: Skill Definitions
+      trigger: "core/components/skills/**/SKILL.md"
+      files: 2
+    - name: Configuration
+      trigger: "*.yaml"
+      files: 2
+    - name: Documentation
+      trigger: "*.md, **/docs/**"
+      files: 1
+    - name: Sync Required
+      trigger: "core/components/**"
+      files: 6
+
+checklist:
+  must_have:
+    - id: no-conflicts
+      item: No merge conflicts
+      trigger: Universal — always applied
+      status: PASS
+      evidence: "git merge-tree --write-tree main enhance/255-evidence-commit-flag returned clean tree (sha f44b76edf279f95cba4ef88beeb5e534bcd0b3aa)"
+
+    - id: no-secrets
+      item: No secrets committed
+      trigger: Universal — always applied
+      status: PASS
+      evidence: "Pattern scan of all 6 changed files found no API keys, tokens, private keys, or credentials"
+
+    - id: play-frontmatter
+      item: Play has valid frontmatter (name, description, user-invocable, allowed-tools)
+      trigger: "core/components/plays/commit-code/SKILL.md changed"
+      status: PASS
+      evidence: "commit-code SKILL.md has valid frontmatter: name=commit-code, description present, user-invokable=true"
+
+    - id: play-workflow
+      item: Play defines workflow
+      trigger: "core/components/plays/commit-code/SKILL.md changed"
+      status: PASS
+      evidence: "Workflow section present with Steps 1-8 defined"
+
+    - id: play-checkpoint
+      item: Play defines checkpoint behavior
+      trigger: "core/components/plays/commit-code/SKILL.md changed"
+      status: PASS
+      evidence: "Step 4 Human Review checkpoint defined with Tether/Vanish gates"
+
+    - id: skill-frontmatter
+      item: Skill has valid frontmatter (name, description, user-invocable, allowed-tools)
+      trigger: "core/components/skills/create-commit/SKILL.md changed"
+      status: PASS
+      evidence: "create-commit SKILL.md has valid frontmatter: name, description, user-invocable=false, model=haiku, allowed-tools=Bash"
+
+    - id: skill-io
+      item: Skill defines Input and Output sections
+      trigger: "core/components/skills/create-commit/SKILL.md changed"
+      status: PASS
+      evidence: "Both ## Input and ## Output sections present in create-commit SKILL.md"
+
+    - id: config-valid
+      item: Configuration syntax valid
+      trigger: ".garura/core/config.yaml changed"
+      status: PASS
+      evidence: "python3 yaml.safe_load() validation passed — no syntax errors"
+
+    - id: feat-documented
+      item: Feature documented in README or docs
+      trigger: "Commit type is feat"
+      status: PASS
+      evidence: "core/grounding/rules/evidence.md added (87 lines) documenting the behavioral rule, config key, affected artifacts, and bash read pattern"
+
+    - id: sync-claude
+      item: Components synced with core/components/ via /sync-claude
+      trigger: "core/components/** changed (6 files)"
+      status: REVIEW
+      evidence: "core/components/ was modified but there is no evidence in this PR that /sync-claude was run to deploy to ~/.claude/. Sync must be confirmed post-merge."
+
+    - id: signal-handling-gap
+      item: commit-code play reads and acts on skip_commits_yaml signal from create-commit
+      trigger: "create-commit Step 4 adds skip_commits_yaml signal; commit-code play owns commits.yaml write"
+      status: FAIL
+      evidence: >
+        create-commit SKILL.md Step 4 produces skip_commits_yaml: true in its output
+        template when evidence.record is false. However, commit-code SKILL.md Step 5
+        unconditionally declares commits.yaml as an STM output in the JSON contract
+        (stm.output.commit_record) with no conditional guard on the signal.
+        The play never inspects skip_commits_yaml from the create-commit response.
+        Result: even when evidence.record is false, the repo-orchestrator will still
+        attempt to write commits.yaml because the STM output contract instructs it to.
+        The create-commit signal is defined but never consumed — a dead signal.
+
+  nice_to_have:
+    - id: skill-constraints
+      item: Skill has constraints section
+      trigger: "core/components/skills/create-commit/SKILL.md changed"
+      status: PASS
+      evidence: "## Constraints section present in create-commit SKILL.md"
+
+    - id: play-agent-limit
+      item: Play respects agent call limits (L2 <= 5)
+      trigger: "core/components/plays/commit-code/SKILL.md changed"
+      status: PASS
+      evidence: "commit-code uses 2 agents (repo-orchestrator, project-orchestrator) — within L2 budget"
+
+    - id: config-documented
+      item: Configuration changes documented
+      trigger: ".garura/core/config.yaml changed"
+      status: PASS
+      evidence: "evidence.md in core/grounding/rules/ documents the config key behavior, default value, and read pattern"
+
+    - id: feat-adr
+      item: Significant features have ADR
+      trigger: "Commit type is feat; 6 files, cross-component change"
+      status: REVIEW
+      evidence: >
+        No new ADR was added. The change introduces a new global config key (evidence.record)
+        that affects framework-wide behavior across plays. Whether this warrants an ADR
+        is a judgment call — acceptable to defer given evidence.md documents the rule, but
+        an ADR would improve traceability for future maintainers.
+
+findings:
+  - id: F1
+    severity: blocking
+    title: "skip_commits_yaml signal from create-commit is never consumed by commit-code"
+    description: >
+      create-commit Step 4 outputs skip_commits_yaml: true when evidence.record is false.
+      This is intended to signal the caller (repo-orchestrator) to skip writing commits.yaml.
+      However, the commit-code play Step 5 STM contract unconditionally declares commits.yaml
+      as stm.output.commit_record with no guard. The play never reads skip_commits_yaml from
+      the create-commit response. When evidence.record is false, commits.yaml suppression
+      as documented in evidence.md and described in the PR body will NOT actually work —
+      the artifact will still be written by repo-orchestrator following the STM contract.
+    files_affected:
+      - core/components/plays/commit-code/SKILL.md
+      - core/components/skills/create-commit/SKILL.md
+      - core/components/skills/create-commit/templates/commit-output.md
+    recommendation: >
+      Either (a) add a conditional guard in commit-code Step 5 that reads the
+      create-commit response and skips the commits.yaml STM output write when
+      skip_commits_yaml is true, or (b) move the suppression logic entirely into
+      Step 8 of commit-code (where the other two skippable artifacts are already
+      handled) and remove the skip_commits_yaml signal from create-commit entirely —
+      simpler and consistent with how delivery-record and status-file are handled.
+
+  - id: F2
+    severity: informational
+    title: "Pause/Resume is silently disabled when evidence.record: false"
+    description: >
+      evidence.md correctly documents that Pause/Resume is implicitly disabled when
+      evidence.record is false because the status file is not written. However, the
+      commit-code SKILL.md Pause/Resume section does not mention this — a user reading
+      only the play would not know that pause/resume does not function when the flag is off.
+    files_affected:
+      - core/components/plays/commit-code/SKILL.md
+    recommendation: >
+      Add a note to the Pause/Resume section of commit-code SKILL.md: "When
+      evidence.record is false (C10), the status file is not written and Pause/Resume
+      is implicitly disabled for that run."
+
+  - id: F3
+    severity: informational
+    title: "Sync to ~/.claude/ not confirmed in PR"
+    description: >
+      core/components/ was modified (6 files). There is no evidence in the PR that
+      /sync-claude was run. This is standard workflow for this repo — sync is a
+      post-merge manual step — but should be confirmed.
+    files_affected:
+      - core/components/plays/commit-code/SKILL.md
+      - core/components/plays/commit-code/reference/intent.yaml
+      - core/components/skills/create-commit/SKILL.md
+      - core/components/skills/create-commit/templates/commit-output.md
+    recommendation: >
+      Run /sync-claude after merge to deploy updated components to ~/.claude/.
+
+overall_assessment:
+  ready: false
+  blocking_count: 1
+  review_count: 2
+  informational_count: 2
+  summary: >
+    The intent is well-designed — a configurable flag to suppress non-essential STM
+    artifacts is a clean, backward-compatible enhancement. The config key, documentation
+    (evidence.md), intent constraint (C10), and Step 8 conditional guard are all
+    consistent with each other. However, one blocking issue exists: the skip_commits_yaml
+    signal introduced in create-commit is a dead signal — commit-code never reads it,
+    so commits.yaml suppression when evidence.record is false will not work as documented.
+    This must be fixed before merge.
+
+recommendation: request-changes

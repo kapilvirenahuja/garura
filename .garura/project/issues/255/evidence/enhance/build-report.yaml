@@ -1,0 +1,157 @@
+implementation:
+  success: partial
+  steps_completed: 4
+  steps_total: 5
+  changes:
+    - step: T1
+      description: "Added evidence.record flag to .garura/core/config.yaml"
+      files_modified:
+        - path: ".garura/core/config.yaml"
+          action: "modified"
+          summary: "Inserted new top-level evidence: section with record: true after review-pr block and before # Product artifacts comment"
+      verified: true
+      deviation: null
+
+    - step: T2
+      description: "Created core/grounding/rules/evidence.md documenting the evidence.record behavioral rule"
+      files_modified:
+        - path: "core/grounding/rules/evidence.md"
+          action: "created"
+          summary: "New file in new directory core/grounding/rules/. Documents: config key, default true, skippable artifacts (commits.yaml, delivery record .md, status file .json), never-skipped artifacts (analysis.yaml, issue-mappings.yaml), bash read pattern, Pause/Resume interaction, and scope (commit-code prototype only)"
+      verified: true
+      deviation: null
+
+    - step: T3
+      description: "Updated create-commit SKILL.md — added step 4 evidence flag check and updated output section and version"
+      files_modified:
+        - path: "core/components/skills/create-commit/SKILL.md"
+          action: "modified"
+          summary: "Added step 4 'Check evidence flag' with bash read pattern and skip_commits_yaml signal description. Updated Output section to document conditional skip_commits_yaml field. Updated version from 1.0.0 to 1.1.0."
+        - path: "core/components/skills/create-commit/templates/commit-output.md"
+          action: "modified"
+          summary: "Added Evidence Signal section with skip_commits_yaml field to template (R2 mitigation: template updated alongside SKILL.md to prevent implicit/fragile signal)"
+      verified: true
+      deviation: null
+
+    - step: T4
+      description: "Updated commit-code reference/intent.yaml — added C10 constraint"
+      files_modified:
+        - path: "core/components/plays/commit-code/reference/intent.yaml"
+          action: "modified"
+          summary: "Added C10 constraint after C9. C10 text explicitly names all three skippable writes (delivery record .md, status file .json, self-commit invocation), specifies default-true fallback, and declares analysis.yaml + issue-mappings.yaml are unconditional. Existing checksum left unchanged per plan."
+      verified: true
+      deviation: null
+
+    - step: T5
+      description: "Run /create-play --build commit-code to recompile commit-code SKILL.md from updated intent.yaml"
+      files_modified: []
+      verified: false
+      deviation: >
+        T5 NOT EXECUTED. /create-play is a user-invocable Claude Code skill (AI agent),
+        not a bash script. It cannot be invoked via Bash tool. This is structurally outside
+        the code-builder's capability boundary. The parent orchestrator must invoke
+        /create-play --build commit-code via a Claude Code session to complete T5.
+        Prerequisites (T3 intent.yaml with C10, T3 create-commit SKILL.md with step 4) are
+        fully in place — the rebuild can proceed at any time.
+
+  issues_encountered:
+    - description: "T5 (/create-play --build commit-code) cannot be executed by code-builder — /create-play is a user-invocable Claude Code AI skill, not a bash script"
+      resolution: >
+        T1-T4 completed cleanly. All prerequisites for T5 are in place. The parent
+        orchestrator must invoke /create-play --build commit-code to recompile
+        core/components/plays/commit-code/SKILL.md from the updated intent.yaml (now
+        containing C10). After rebuild, verify E5-E8 per approach.yaml evals.
+        If conditional logic is not compiled into Step 8, add an inline_notes hint to
+        C10 in intent.yaml and retry once (max 1 retry per R1 mitigation).
+      severity: "medium"
+
+  files_touched:
+    - path: ".garura/core/config.yaml"
+    - path: "core/grounding/rules/evidence.md"
+    - path: "core/components/skills/create-commit/SKILL.md"
+    - path: "core/components/skills/create-commit/templates/commit-output.md"
+    - path: "core/components/plays/commit-code/reference/intent.yaml"
+
+eval_results:
+  - id: E1
+    description: "evidence.record flag is present in config.yaml and defaults to true"
+    result: PASS
+    evidence: >
+      grep -A2 '^evidence:' .garura/core/config.yaml returns:
+        evidence:
+          record: true
+      Key is present, value is true. Backward compatibility preserved.
+
+  - id: E2
+    description: "core/grounding/rules/evidence.md exists and covers required content"
+    result: PASS
+    evidence: >
+      File exists at core/grounding/rules/evidence.md.
+      Contains: 'evidence.record' (12 occurrences), 'commits.yaml' (3 occurrences),
+      'analysis.yaml' (1 occurrence), 'issue-mappings.yaml' (1 occurrence),
+      bash read pattern with grep -A1 and ${evidence_record:-true} fallback.
+      Pause/Resume interaction documented. Scope constraint documented.
+
+  - id: E3
+    description: "create-commit SKILL.md has a step 4 that reads evidence.record"
+    result: PASS
+    evidence: >
+      grep -q "Check evidence flag" SKILL.md: 0 (found)
+      grep -q "evidence.record" SKILL.md: 0 (found)
+      grep -q "skip_commits_yaml" SKILL.md: 0 (found)
+      Version updated to 1.1.0.
+      templates/commit-output.md updated with Evidence Signal section containing skip_commits_yaml field.
+
+  - id: E4
+    description: "commit-code intent.yaml contains C10 with explicit Step 8 behavior"
+    result: PASS
+    evidence: >
+      C10 present in constraints block.
+      C10 text contains: 'evidence.record', 'delivery record', 'status file', 'self-commit',
+      'analysis.yaml', 'issue-mappings.yaml', default-true fallback.
+      All three skippable writes explicitly named. User summary unconditional clause present.
+
+  - id: E5
+    description: "Recompiled commit-code SKILL.md Step 8 guards all three skippable writes"
+    result: BLOCKED
+    evidence: >
+      T5 not executed — /create-play cannot be invoked via Bash tool.
+      Cannot verify until parent orchestrator runs /create-play --build commit-code.
+
+  - id: E6
+    description: "Regression — with evidence.record: true (default), all 5 artifact writes proceed"
+    result: BLOCKED
+    evidence: >
+      Cannot verify until T5 is complete and rebuilt SKILL.md is available.
+
+  - id: E7
+    description: "Regression — analysis.yaml and issue-mappings.yaml are unconditional in rebuilt SKILL.md"
+    result: BLOCKED
+    evidence: >
+      Cannot verify until T5 is complete and rebuilt SKILL.md is available.
+
+  - id: E8
+    description: "Recompile blast radius contained — only Step 8 and Compilation Metadata changed"
+    result: BLOCKED
+    evidence: >
+      Cannot verify until T5 is complete and rebuilt SKILL.md is available.
+
+t5_escalation:
+  what_failed: "T5 — Run /create-play --build commit-code"
+  why: "/create-play is a user-invocable Claude Code AI skill (not a bash script). It requires a Claude Code session to execute — cannot be run via Bash tool."
+  domain_assessment:
+    within_my_domain: false
+    responsible_domain: "orchestration"
+    suggested_agent: "play orchestrator or human via Claude Code session"
+  context:
+    intent_received: "Add evidence.record flag to commit-code play to make evidence writes optional"
+    self_recovery_attempted: false
+    self_recovery_details: "No self-recovery applicable — structural capability boundary, not a fixable error"
+  suggested_fix: >
+    Invoke /create-play --build commit-code from a Claude Code session.
+    All prerequisites are in place:
+      - core/components/plays/commit-code/reference/intent.yaml now contains C10
+      - core/components/skills/create-commit/SKILL.md now has step 4
+    After rebuild, verify E5-E8 per approach.yaml. If Step 8 conditional logic is absent,
+    add inline_notes to C10 making the if/else structure explicit and rebuild once (max 1 retry).
+    Then run /sync-claude to deploy.

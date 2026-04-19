@@ -1,0 +1,12 @@
+branch_result:
+  issue: 255
+  branch: "enhance/255-evidence-commit-flag"
+  base: main
+  created: true
+  pushed: true
+  tracking: "origin/enhance/255-evidence-commit-flag"
+  created_at: "2026-04-19T00:00:00Z"
+  worktree:
+    used: false
+    path: null
+    reason: "clean working tree — direct checkout used"

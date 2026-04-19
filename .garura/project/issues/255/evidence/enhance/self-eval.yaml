@@ -1,0 +1,48 @@
+play: enhance
+issue: 255
+evaluated_at: "2026-04-19"
+iteration: 1
+
+results:
+  - id: E1
+    description: "evidence.record flag present in config.yaml, defaults to true"
+    verdict: PASS
+    evidence: "grep -A2 '^evidence:' .garura/core/config.yaml returns 'record: true'"
+
+  - id: E2
+    description: "core/grounding/rules/evidence.md exists with required content"
+    verdict: PASS
+    evidence: "File exists; grep -c returns 17 hits across required terms (evidence.record, commits.yaml, analysis.yaml, issue-mappings.yaml, bash read pattern)"
+
+  - id: E3
+    description: "create-commit SKILL.md has step 4 with flag check and skip_commits_yaml signal"
+    verdict: PASS
+    evidence: "grep -c 'Check evidence flag|evidence.record|skip_commits_yaml' returns 6 hits across SKILL.md"
+
+  - id: E4
+    description: "commit-code intent.yaml contains C10 with explicit Step 8 behavior"
+    verdict: PASS
+    evidence: "C10 present; text names delivery record, status file, and self-commit — all three skippable writes enumerated"
+
+  - id: E5
+    description: "Recompiled SKILL.md Step 8 guards all three skippable writes"
+    verdict: PASS
+    evidence: "Step 8 contains: (a) evidence.record read with default-true fallback, (b) delivery record write conditional on flag=true, (c) status file write conditional on flag=true, (d) repo-orchestrator self-commit conditional on flag=true, (e) user summary unconditional"
+
+  - id: E6
+    description: "With evidence.record=true (default), all write paths proceed"
+    verdict: PASS
+    evidence: "Step 8 'if true (or absent)' branch covers all three writes — delivery record, status file, self-commit. Default fallback ensures backward compatibility."
+
+  - id: E7
+    description: "analysis.yaml and issue-mappings.yaml unconditional in rebuilt SKILL.md"
+    verdict: PASS
+    evidence: "evidence.record appears 6 times — all in Step 8 (lines 213-227). Steps 1 and 2 STM output paths for analysis.yaml and issue-mappings.yaml unchanged from pre-rebuild values."
+
+  - id: E8
+    description: "Recompile blast radius contained — only Step 8 and Compilation Metadata changed"
+    verdict: PASS
+    evidence: "git diff shows changes only in Step 8 block (lines 210-238) and Compilation Metadata table. Steps 1-7, Phase headers, Agent Boundaries, Pause/Resume, scenario evals — all unchanged."
+
+overall: PASS
+fix_loop_needed: false
