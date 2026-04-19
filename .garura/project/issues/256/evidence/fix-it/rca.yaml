@@ -1,0 +1,65 @@
+rca:
+  symptom: |
+    The `.factory/` directory exists on disk at the repo root and is populated
+    by `/sync-droids --project`, yet it causes noise in grep-based investigations
+    and was excluded from the Meridian → Garura rename sweep because it is
+    ephemeral/regenerated content. The issue asserts it was committed before
+    the gitignore entry existed, causing it to be tracked.
+
+  root_cause: |
+    ACTUAL STATE (verified via git ls-files and git status): `.factory/` is NOT
+    currently tracked by git. `git ls-files .factory/` returns empty output and
+    `git status --porcelain --ignored .factory/` shows `!! .factory/` (fully
+    ignored). No git history entry for `.factory/**` paths exists on any branch.
+
+    The `.gitignore` line 18 (`.factory/`) is in effect and working correctly.
+    There is NO `git rm -r .factory/` operation needed — the tree is already
+    untracked/ignored.
+
+    What IS present:
+    1. `.factory/` exists on disk (populated by prior `/sync-droids --project` run)
+       with subdirectories: droids/, init.sh, library/, research/, services.yaml,
+       settings.json, skills/, specs/, validation/
+    2. These files contain stale Meridian-branded content (from before the
+       Meridian → Garura rename) but are gitignored so they are never committed.
+
+    Root cause of the original commit (historical, now resolved): The hypothesis
+    in the issue (committed before gitignore entry) cannot be confirmed via git
+    history — no commits touching `.factory/` paths exist on any tracked branch.
+    The `.gitignore` entry is in place and functioning.
+
+    Residual problem (still valid): The on-disk `.factory/` tree contains stale
+    Meridian-referenced content. Contributors who run `/sync-droids --project`
+    will get a fresh tree. The stale on-disk copy is harmless (gitignored) but
+    represents drift between content and the current Garura branding.
+
+  affected_components:
+    - component: ".factory/ (on-disk, gitignored)"
+      role: "Ephemeral Factory Droid deployment target for project mode"
+      state: "Exists on disk with stale Meridian-era content; not tracked by git"
+    - component: "core/components/skills/sync-droids/scripts/sync.sh"
+      role: "Populates .factory/ on demand; references TARGET_DIR=$PROJECT_ROOT/.factory"
+      state: "Correct — reads project root, not hardcoded absolute path"
+    - component: ".garura/core/config.yaml factory: section"
+      role: "Declares .factory/skills/ and .factory/droids/ as factory deployment paths"
+      state: "Used by sync-droids; not a hardcode problem"
+    - component: "core/components/skills/sync-droids/SKILL.md"
+      role: "Documents .factory/ as project-mode target (gitignored)"
+      state: "Correct documentation; no path hardcode issue"
+    - component: "core/grounding/glossary.md"
+      role: "Defines Global mode and Project mode with .factory/ paths"
+      state: "Correct documentation; no path hardcode issue"
+
+  hardcoded_path_audit:
+    finding: |
+      No component in core/components/ hardcodes an absolute path to .factory/.
+      sync.sh uses $PROJECT_ROOT/.factory (dynamic) and $HOME/.factory (global mode).
+      config.yaml declares ./.factory/ as the factory section paths (relative, resolved
+      by sync-droids). All other references are documentation-only (SKILL.md, glossary.md).
+    verdict: "CLEAN — no hardcoded absolute .factory/ paths found"
+
+  git_tracking_audit:
+    git_ls_files_result: "empty — no files under .factory/ are tracked"
+    git_status_result: "!! .factory/ — fully ignored by .gitignore:18"
+    git_log_result: "no commits found for .factory/** on any branch"
+    verdict: "ALREADY UNTRACKED — git rm operation is not required"

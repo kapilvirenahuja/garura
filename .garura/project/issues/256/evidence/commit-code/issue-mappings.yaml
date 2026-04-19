@@ -1,0 +1,10 @@
+mappings:
+  - group_id: fix-256-evidence
+    issue: 256
+    confidence: high
+    rationale: All files are fix-it play evidence artifacts produced directly for issue #256
+
+  - group_id: stm-278-distill
+    issue: 278
+    confidence: high
+    rationale: Files are under .garura/project/issues/278/evidence/distill/ — leftover distill evidence from issue #278
