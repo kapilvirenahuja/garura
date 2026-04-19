@@ -60,6 +60,16 @@ constraints:
       STM evidence and included in the output contract. When product_base
       has no architecture artifacts, ltm_context omits project_base and
       the agent resolves against core LTM only (R3-R4).
+  - id: C12
+    rule: >
+      The checkpoint summary is rendered inline from STM YAML artifacts;
+      no standalone HTML artifact is produced.
+  - id: C13
+    rule: >
+      On Tether approval, the play immediately dispatches a background
+      update to the originating issue thread mirroring the approved RCA
+      and fix plan; this dispatch is tracked in STM and is non-blocking
+      — it does not gate subsequent implementation steps.
 
 failure_conditions:
   - id: F1
@@ -95,6 +105,14 @@ failure_conditions:
       The tech-designer produces RCA or fix design without a resolution trace
       when ltm_context was provided in the contract. The resolution trace is
       missing, empty, or contains zero entries.
+  - id: F9
+    condition: >
+      A standalone HTML artifact exists under the evidence/fix-it/ directory
+      after the checkpoint preparation phase.
+  - id: F10
+    condition: >
+      Tether is received but no issue-comment tracking artifact is written
+      to STM before Step 6 begins.
 
 scenarios:
   - id: S1
@@ -105,19 +123,22 @@ scenarios:
       and shipping.
     then: >
       The fix is merged to main, the PR links to the originating issue, the
-      feature branch is deleted, and the evidence artifact contains the full
-      RCA trace, design rationale, implementation record, and merge SHA.
+      feature branch is deleted, the evidence artifact contains the full
+      RCA trace, design rationale, implementation record, and merge SHA, and
+      issue-comment-agent.yaml exists in evidence tracking background dispatch
+      status.
   - id: S2
     persona: Tech Lead
     given: >
       A tech lead reviews the checkpoint brief during the single approval
       gate.
     then: >
-      The brief shows: root cause traced to specific code (not just symptoms),
-      blast radius of affected files, proposed fix strategy, at least one
-      alternative considered with rejection reason, risk table with severity
-      levels, and confidence assessment. Enough information to make an informed
-      Tether or Vanish decision.
+      The checkpoint shows inline markdown sections rendered directly from STM
+      artifacts: root cause traced to specific code (not just symptoms), blast
+      radius of affected files, proposed fix strategy, at least one alternative
+      considered with rejection reason, risk table with severity levels, and
+      confidence assessment. Enough information to make an informed Tether or
+      Vanish decision.
   - id: S3
     persona: QA Engineer
     given: >
@@ -126,3 +147,15 @@ scenarios:
       The PR body and evidence artifact allow tracing: what was changed, why
       (root cause), what the blast radius was, and that the design was
       approved before implementation. The fix is auditable end-to-end.
+  - id: S4
+    persona: QA Engineer reviewing audit trail
+    given: >
+      fix-it runs to completion: RCA and fix design produced, checkpoint
+      approved via Tether, implementation and shipping complete.
+    then: >
+      The GitHub issue carries a timestamped RCA-approved comment with root
+      cause, fix strategy, and Approved-by header posted at the Tether event
+      — before the PR is opened. The comment is traceable to the STM evidence
+      via the issue-comment-agent.yaml tracking artifact.
+
+version: 1.1.0
