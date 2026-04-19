@@ -1,0 +1,27 @@
+issue: 262
+assessed_at: "2026-04-19T10:30:00Z"
+signals:
+  files_touched:
+    value: 4
+    range: 4-15
+    classification: enhance
+  domains_crossed:
+    value: 2
+    range: 1-2
+    classification: enhance
+  new_abstractions:
+    value: 1
+    range: 0-2
+    classification: enhance
+    note: "issue-comment-rca-approved.md template already created during discovery; possible second abstraction if manage-issue gains a comment action"
+  tests_impacted:
+    value: 2
+    range: 6-30
+    classification: enhance-borderline
+    note: "fix-it play has no unit tests; smoke-check via /create-play --rebuild fix-it validation and manual run"
+  estimated_effort:
+    value: "1-3 hours"
+    range: 1hr-1day
+    classification: enhance
+verdict: right-sized-for-enhance
+recommendation: proceed-to-approach-design
