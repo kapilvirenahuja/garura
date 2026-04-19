@@ -1,0 +1,171 @@
+analysis:
+  branch: fix/266-report-issue-rename
+  base: main
+  issue: 266
+  branch_classification: bugfix
+  suggested_title: "fix(plays): replace report-issue with garura-capture and deprecate alias"
+
+  context:
+    file_patterns_matched:
+      - play_definitions        # core/components/plays/**/*.md, SKILL.md
+      - configuration           # *.yaml files
+      - documentation           # docs/components/plays.md, docs/components/skills.md, *.md
+      - stm_evidence            # .garura/project/issues/266/evidence/**
+    commit_types:
+      - "chore(stm): add STM evidence directory for issue #266"
+      - "refactor(plays): rename report-issue play to garura-capture with expanded issue types"
+    branch_pattern: fix/*       # classified as bugfix — standard priorities apply
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: No merge conflicts with main
+        trigger: Universal — always applied
+        status: PASS
+        evidence: >
+          git merge-tree --write-tree main HEAD returned exit code 0 with tree hash
+          0cc76f767d8297f33b243fb0a8dbed3061874c35. No conflict markers detected.
+
+      - id: no-secrets
+        item: No secrets committed
+        trigger: Universal — always applied
+        status: PASS
+        evidence: >
+          Scanned full diff of 25 changed files for patterns: password, secret, api_key,
+          token, private_key, BEGIN RSA, aws_secret, -----BEGIN. Zero matches found.
+
+      - id: play-frontmatter
+        item: Play definitions have valid frontmatter (name, description, user-invokable, allowed-tools)
+        trigger: Play definitions changed — core/components/plays/garura-capture/SKILL.md and core/components/plays/report-issue/SKILL.md changed
+        status: PASS
+        evidence: >
+          garura-capture/SKILL.md frontmatter: name="garura:capture", description present,
+          user-invokable=true. report-issue/SKILL.md frontmatter: name="meridian:report-issue",
+          description="DEPRECATED — use garura:capture", user-invokable=true, alias=true.
+          Both have valid frontmatter blocks.
+
+      - id: play-workflow
+        item: Play defines workflow section
+        trigger: Play definitions changed — core/components/plays/garura-capture/SKILL.md changed
+        status: PASS
+        evidence: >
+          garura-capture/SKILL.md contains ## Workflow section with 5 phases:
+          Execution-Format, Execution-Dispatch, Confirmation, Scenario Validation,
+          Evidence & Close. report-issue/SKILL.md is a forwarding alias — no independent
+          workflow required per its design (no reference/intent.yaml by design).
+
+      - id: play-checkpoint
+        item: Play defines checkpoint behavior
+        trigger: Play definitions changed — core/components/plays/garura-capture/SKILL.md changed
+        status: PASS
+        evidence: >
+          garura-capture/SKILL.md defines Pause and Resume section with status file at
+          {stm_base}/capture-report/status/garura-capture.json and an executor loop.
+          Checkpoint-gated approval is handled via the human-confirmation-prompt event
+          in inference-trace.yaml for ambiguous human callers (SCE-6).
+
+      - id: config-valid
+        item: Configuration syntax valid (YAML lint)
+        trigger: Configuration files changed — multiple *.yaml files in diff
+        status: FAIL
+        evidence: >
+          YAML validation failed for .garura/product/scope/features.yaml:
+          Parse error at line 1577 col 5: "while parsing a block collection, expected
+          <block end> but found <scalar>" at line 1581 col 16. All other YAML files
+          validated successfully (11 files checked). This file is an incidental change
+          in the PR and not the core subject of the fix, but the invalid YAML is a
+          blocking issue.
+
+      - id: sync-claude
+        item: Components synced with core/components/ via /sync-claude
+        trigger: core/components/** changed — garura-capture and report-issue plays modified
+        status: REVIEW
+        evidence: >
+          core/components/plays/garura-capture/SKILL.md and
+          core/components/plays/garura-capture/reference/intent.yaml were added/modified.
+          core/components/plays/report-issue/SKILL.md and report-issue/reference/intent.yaml
+          were changed. Per CLAUDE.md, after editing core/components/ run /sync-claude
+          to deploy to ~/.claude/. Manual confirmation required that sync was run.
+
+      - id: refactor-no-break
+        item: No breaking changes to play contracts (Output sections unchanged for consumers)
+        trigger: Commit type includes refactor(plays)
+        status: PASS
+        evidence: >
+          report-issue/SKILL.md retains the same user-invokable=true frontmatter and
+          forwards to garura-capture — callers using /report-issue still work.
+          report-issue/reference/intent.yaml was deleted (115 lines) — this is acceptable
+          because the play now has no independent intent (it is an alias), and the
+          SKILL.md explicitly notes "no reference/intent.yaml by design". The
+          garura-capture play is a new artifact, not a renamed one, so no downstream
+          consumer breaks.
+
+      - id: docs-consistent
+        item: Documentation consistent with implementation
+        trigger: Architecture docs changed — docs/components/plays.md and docs/components/skills.md changed
+        status: PASS
+        evidence: >
+          docs/components/plays.md play roster updated: garura-capture row added as
+          "Linear | Capture any issue type..." and report-issue row updated to
+          "DEPRECATED — alias for garura:capture". docs/components/skills.md reflects
+          the same. Consistent with SKILL.md implementations.
+
+    nice_to_have:
+      - id: play-agent-limit
+        item: Play respects agent call limits (domain agents within budget)
+        trigger: Play definitions changed
+        status: PASS
+        evidence: >
+          garura-capture/SKILL.md declares: domain_agents=1 (project-orchestrator),
+          utility_agents=1 (repo-orchestrator, budget-exempt). Domain agent count 1 is
+          within the ≤5 budget noted in quality-rules.md.
+
+      - id: skill-constraints
+        item: Play has constraints section
+        trigger: Play definitions changed
+        status: PASS
+        evidence: >
+          garura-capture/reference/intent.yaml defines constraints C1 through C9 plus
+          Cbg (background dispatch) and Cconf (single-line confirmation). 11 constraints
+          total. Fully constrained.
+
+      - id: config-documented
+        item: Configuration changes documented
+        trigger: Configuration files changed — .garura/product/scope/features.yaml changed
+        status: REVIEW
+        evidence: >
+          features.yaml change is a scope-product artifact update. The change is present
+          but features.yaml has a YAML parse error (see config-valid above). No
+          accompanying documentation comment found in the diff for this change. Low
+          priority — this file is incidental context.
+
+  blocking_issues:
+    - id: config-valid
+      severity: must-have
+      description: >
+        .garura/product/scope/features.yaml has a YAML parse error at line 1577.
+        This file is committed with invalid syntax. While it is incidental to the
+        main fix (report-issue rename), it is a committed artifact with broken
+        YAML and will fail any downstream YAML consumer. Recommend fixing before merge.
+
+    - id: sync-claude
+      severity: must-have
+      description: >
+        Cannot auto-verify that /sync-claude was run after modifying core/components/plays/.
+        Manual confirmation required. If not run, deployed plays at ~/.claude/skills/ will
+        be stale — callers invoking /garura-capture will get the old version.
+
+  ready: false
+  ready_reason: >
+    Two blocking issues prevent auto-submit: (1) features.yaml has a YAML parse error
+    at line 1577 that must be fixed before merge, and (2) /sync-claude execution cannot
+    be auto-verified and requires manual confirmation. Core intent of the PR
+    (report-issue → garura-capture deprecation and alias) is structurally sound — play
+    frontmatter, workflow, checkpoint behavior, and documentation are all correct. Once
+    the two blockers are resolved, confidence will be high.
+
+  confidence: low
+  confidence_reason: >
+    Two must-have checklist items are not PASS: config-valid (FAIL) and sync-claude
+    (REVIEW). Per intent constraint C7, any decision with less than high confidence
+    requires user confirmation before PR submission.

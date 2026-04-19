@@ -1,0 +1,12 @@
+issue:
+  number: 266
+  title: "[DEF][Medium] report-issue play: rename to garura:capture, support issue-type inference, background mode, crisp ID-back confirmation"
+  url: "https://github.com/kapilvirenahuja/garura/issues/266"
+  state: "open"
+  labels:
+    - enhancement
+    - defect
+  type_hint: "fix"
+  created: false
+  closed: false
+  parent_issue: null

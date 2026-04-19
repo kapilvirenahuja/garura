@@ -1,0 +1,46 @@
+result:
+  status: merged
+  pr_number: 273
+  merge_sha: c733617b8839a21c317bab24dda28c8ad1927719
+  base_branch: main
+  branch_deleted: true
+  branch_deletion_notes: >
+    Local branch fix/266-report-issue-rename was already absent (platform merged and cleaned up).
+    Remote branch fix/266-report-issue-rename did not exist on remote (auto-deleted by platform on merge).
+    Both treated as success per C6 — "branch not found" tolerated.
+  local_head: c733617b8839a21c317bab24dda28c8ad1927719
+  remote_head: c733617b8839a21c317bab24dda28c8ad1927719
+  in_sync: true
+  merged_at: "2026-04-19T06:28:31Z"
+
+step_evals:
+  SE-1:
+    constraint: F1
+    status: PASS
+    note: "readiness.yaml confirmed mergeable=true and CLEAN before merge was attempted."
+  SE-2:
+    constraint: F2
+    status: PASS
+    note: "Feature branch absent locally and remote ref does not exist. Platform auto-deleted on merge (C6)."
+  SE-3:
+    constraint: F3
+    status: PASS
+    note: "Local HEAD on main. HEAD SHA matches origin/main SHA (c733617)."
+  SE-4:
+    constraint: F4
+    status: PASS
+    note: "Pre-merge tree had no staged or modified tracked files. Untracked files only."
+  SE-5:
+    constraint: F5
+    status: PASS
+    note: "PR #273 state=MERGED on platform. merge_sha=c733617b8839a21c317bab24dda28c8ad1927719."
+
+scenario_evals:
+  SCE-1:
+    scenario: S1 - Developer
+    status: PASS
+    note: "Local HEAD is on main. HEAD matches origin/main. Feature branch absent locally."
+  SCE-2:
+    scenario: S2 - Code Reviewer
+    status: PASS
+    note: "PR #273 state=MERGED. merge_sha c733617 is present in git log on main."
