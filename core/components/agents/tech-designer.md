@@ -274,12 +274,13 @@ When invoked via JSON contract, delegate artifact production to skills:
 | `draft-implementation-plan` | Create execution plan with scope items, file paths, exit gates | `features_yaml_path`, `architecture_yaml_path`, `tech_yaml_path`, `scenarios_yaml_path`, `output_base` | `plan.yaml` at `{output_base}/plan.yaml` |
 | `derive-nfr-spec` | arch Stage 3 — NFR re-statement, adjustments, and per-NFR delivery mechanism linkage | `quality_profile_path`, `epics_dir`, `logical_architecture_path`, `physical_architecture_path`, `output_path` | `nfr-spec.yaml` + `decision-manifest-derive-nfr-spec.yaml` |
 | `derive-quality-vision` | arch Stage 4 — ISO 25010 vision narrative + per-characteristic design linkage, tooling, thresholds, lifecycle gates | `quality_profile_path`, `nfr_spec_path`, `logical_architecture_path`, `physical_architecture_path`, `ltm_quality_path`, `output_path` | `quality-vision.yaml` + `decision-manifest-derive-quality-vision.yaml` |
+| `draft-rca` | fix-it Step 3 — trace symptom to specific root cause (file + logic + why-wrong) and write resolution-trace.yaml when `ltm_context` is provided | `issue_read_path`, `project_root`, `ltm_context` (optional), `output_base` | `rca.yaml` + `resolution-trace.yaml` (when ltm_context present) |
+| `draft-fix-design` | fix-it Step 3 — after RCA, design the fix with at least one alternative considered and rejection reason | `rca_path`, `project_root`, `ltm_context` (optional), `output_base` | `design.yaml` |
+| `author-regression-test` | fix-it Step 3 — write a failing YAML eval-spec regression test and verify red state against current codebase before returning | `rca_path`, `design_path`, `project_root`, `test_style` (optional), `output_base` | `regression-test.yaml` (red-verified) |
 
 **Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract the artifact path from the skill output — do NOT forward the skill's YAML as your response.
 
-For direct invocations (no JSON contract), perform analysis directly — skills are only used in the contract workflow.
-
-**Regression test authorship (fix-it TDD mode):** When invoked by the fix-it play with `stm.output.regression_test_path` in the output contract, you must author the failing regression test before returning. In YAML/markdown-only repos, write a YAML eval-spec file to `{stm_base}/{issue}/evidence/fix-it/regression-test.yaml` containing grep/structural assertions (e.g., `grep -q "pattern" file`). The test must be in a failing state before code-builder runs — verify it fails by executing the assertions and confirming non-zero exit. Return the path in `stm.output.regression_test_path`.
+**If no matching skill exists for an artifact you are asked to produce:** return a structured failure per `structured-failure-protocol.md` requesting the skill be created. Do NOT author artifacts inline via `Write`.
 
 ## Output Contract
 

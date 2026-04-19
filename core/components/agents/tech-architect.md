@@ -347,10 +347,14 @@ When invoked via JSON contract, delegate artifact production to skills when avai
 | `derive-physical-architecture` | arch Stage 2 — specific stack picks with source_type discipline, deployment topology, runtime tiers | `logical_architecture_path`, `project_profile_path`, `ltm_architecture_path`, `output_path` | `physical-architecture.yaml` + `decision-manifest-derive-physical-architecture.yaml` |
 | `derive-design-patterns` | arch Stage 5 — system/layer/component/cross-cutting pattern catalog with rationale drivers and source_type | `logical_architecture_path`, `physical_architecture_path`, `nfr_spec_path`, `ltm_architecture_path`, `output_path` | `design-patterns.yaml` + `decision-manifest-derive-design-patterns.yaml` |
 | `validate-architecture-spec` | arch post-generation — single 20-check pass (V1-V20) across all 5 artifacts and 5 manifests | `logical_architecture_path`, `physical_architecture_path`, `nfr_spec_path`, `quality_vision_path`, `design_patterns_path`, plus 5 decision manifest paths, `scope_path`, `epics_dir`, `quality_profile_path`, `project_profile_path`, `output_path` | Blocking validator; structured failure on any V violation |
-
-For architecture inference, dependency graph, git history, change surface, tech artifacts, and plan artifacts — perform analysis directly. These are core architect capabilities, not delegated skills.
+| `infer-architecture` | brownfield — scan codebase to produce architecture-inference.yaml (module structure, patterns, framework conventions, LLD patterns) | `project_root`, `focus_paths` (optional), `ltm_architecture_path` (optional), `output_base` | `architecture-inference.yaml` |
+| `build-dependency-graph` | any stage — enumerate import/call edges, collapse to module level, detect cycles and hubs | `project_root`, `focus_paths` (optional), `language_hint` (optional), `output_base` | `dependency-graph.yaml` + `dependency-graph.md` |
+| `draft-tech-spec` | prepare / arch — author tech.yaml with concrete library picks, build tooling, test frameworks, runtime config | `features_yaml_path`, `technical_approach_path` (optional), `architecture_inference_path` (optional), `project_profile_path` (optional), `ltm_architecture_path` (optional), `output_base` | `tech.yaml` |
+| `draft-implementation-plan` | prepare — author plan.yaml (execution order, scope items, file paths, exit gates) | `features_yaml_path`, `architecture_yaml_path`, `tech_yaml_path`, `scenarios_yaml_path`, `output_base` | `plan.yaml` |
 
 **Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract the artifact path from the skill output — do NOT forward the skill's YAML as your response.
+
+**If no matching skill exists for an artifact you are asked to produce:** return a structured failure per `structured-failure-protocol.md` requesting the skill be created. Do NOT author artifacts inline via `Write`. Git history, change-surface reads, and other read-only codebase exploration remain as direct Bash/Grep/Read — those are context-collection, not artifact authorship.
 
 ## Output Contract
 
