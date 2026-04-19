@@ -140,7 +140,7 @@ success_scenarios:
       Scenario eval count equals success_scenario count + failure_scenario count from the
       epic. All evals pass when run against the canonical play trace captured at build time.
   - scenario: >
-      Given a defect filed against a Garura play using the report-issue workflow, when
+      Given a defect filed against a Garura play using the garura:capture workflow, when
       fix-it completes the RCA-driven fix, then a regression test is linked to the defect
       in STM and the fix does not reopen within the same milestone window in ≥ 95% of cases.
     evidence: >

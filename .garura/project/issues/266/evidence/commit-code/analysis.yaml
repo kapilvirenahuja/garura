@@ -1,0 +1,97 @@
+branch:
+  name: fix/266-report-issue-rename
+  issue_number: "266"
+  is_hotfix: false
+
+change_summary:
+  total_files: 9
+  staged: 0
+  unstaged: 7
+  untracked: 2
+
+groups:
+  - id: G1
+    issue: "266"
+    issue_title: "report-issue rename to garura-capture"
+    type: refactor
+    scope: plays
+    subject: "rename report-issue play to garura-capture with expanded issue types"
+    confidence: high
+    files:
+      - path: "core/components/plays/garura-capture/SKILL.md"
+        status: modified
+        description: >
+          Renamed play from meridian:report-issue to garura:capture; expanded
+          to support feature/bug/defect/epic/enhancement types; added background
+          dispatch constraint (Cbg) and single-line confirmation constraint (Cconf);
+          updated STM paths from defect-report to capture-report; updated intent hash.
+      - path: "core/components/plays/garura-capture/reference/intent.yaml"
+        status: modified
+        description: >
+          Expanded intent from defect-only to multi-type capture; updated constraints
+          C1-C9 plus new Cbg/Cconf; updated failure conditions F1-F8; updated scenarios
+          S1-S6; added metadata (name, description, version 1.2.0).
+      - path: "core/components/plays/report-issue/SKILL.md"
+        status: untracked
+        description: >
+          New DEPRECATED forwarding alias — meridian:report-issue now redirects
+          to garura:capture with removal notice for next major release.
+      - path: "docs/components/plays.md"
+        status: modified
+        description: >
+          Updated play registry to list garura-capture as primary entry and
+          report-issue as DEPRECATED alias.
+      - path: "docs/components/skills.md"
+        status: modified
+        description: >
+          Updated skill table to list garura-capture as primary and report-issue
+          as DEPRECATED alias.
+      - path: ".garura/product/scope/features.yaml"
+        status: modified
+        description: >
+          Replaced report-issue references with garura-capture in play list
+          and evidence paths across two capability entries.
+      - path: ".garura/product/scope/epics/epic-work-intelligence-intent-driven-verification-001.yaml"
+        status: modified
+        description: >
+          Updated success scenario to reference garura:capture workflow instead
+          of report-issue workflow.
+      - path: "core/components/memory/standards/templates/github-issue.md"
+        status: modified
+        description: >
+          Expanded label table to include title prefix column and new types:
+          bug, defect, epic, enhancement — supporting the multi-type garura-capture intent.
+
+  - id: G2
+    issue: "266"
+    issue_title: "report-issue rename to garura-capture (STM evidence)"
+    type: chore
+    scope: stm
+    subject: "add STM evidence directory for issue #266"
+    confidence: high
+    notes: >
+      .garura/project/issues/266/ is untracked operational STM. Per grouping rules,
+      STM artifacts for the same issue that are operational (not part of the feature
+      itself) may be split into a separate chore(stm) commit.
+    files:
+      - path: ".garura/project/issues/266/"
+        status: untracked
+        description: >
+          STM evidence and status directories for issue #266 work tracking.
+
+risks:
+  sensitive_files: []
+  breaking_changes:
+    - description: >
+        report-issue play is renamed to garura-capture. Callers using
+        /report-issue or meridian:report-issue will hit the DEPRECATED alias.
+        The alias SKILL.md is present and untracked — it must be committed to
+        preserve backward compatibility until the next major release.
+      files:
+        - core/components/plays/report-issue/SKILL.md
+      severity: medium
+      note: >
+        Not a hard breaking change — the alias file is in the untracked set and
+        will be included in the commit. The slash command still resolves.
+  ambiguous_types: []
+  hotfix_branch: false

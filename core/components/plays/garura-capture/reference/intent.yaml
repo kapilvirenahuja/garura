@@ -1,0 +1,177 @@
+name: garura-capture
+description: >
+  Accept a structured issue capture request from any caller (human or agent),
+  infer or accept explicit issue type, file as a labeled GitHub Issue
+  asynchronously, and return a crisp dispatched confirmation.
+version: 1.2.0
+
+intent: >
+  Accept a structured capture request from any caller (human or agent), infer
+  or accept explicit issue type (feature / bug / defect / epic / enhancement),
+  format the GitHub Issue title and body per type, dispatch the gh filing step
+  asynchronously, and return a crisp single-line dispatched confirmation. If
+  GitHub is unreachable, produce a portable local fallback.
+
+constraints:
+  - id: C1
+    rule: >
+      Required fields are title and problem. Severity is required only when
+      type is "defect". All other fields are optional.
+  - id: C2
+    rule: >
+      Type MUST be one of: feature, bug, defect, epic, enhancement. If not
+      provided by the caller, infer from problem text using keywords: bug /
+      error / broken / crash → defect; feature / add / support / implement →
+      feature; epic / initiative / programme → epic; improvement / enhance /
+      optimize → enhancement; otherwise → bug. If inference is ambiguous (no
+      clear keyword match), default to "bug" for agent callers, prompt human
+      callers to confirm type before proceeding.
+  - id: C3
+    rule: >
+      The target repository slug is read from the Garura config (config.yaml
+      repo field). It is NEVER hardcoded in the play.
+  - id: C4
+    rule: >
+      The date field MUST be auto-generated as the current date (YYYY-MM-DD),
+      never caller-provided.
+  - id: C5
+    rule: >
+      The GitHub Issue body MUST use a structured markdown format — type and
+      metadata as a front table, problem / evidence / expected / impact as
+      labeled sections.
+  - id: C6
+    rule: >
+      Optional fields (Evidence, Root cause, Specific issues) MUST be included
+      only when the caller provides them. They MUST NOT appear as empty sections.
+  - id: C7
+    rule: >
+      If gh CLI access fails (auth, network, repo permissions), the play MUST
+      NOT silently succeed. It MUST create a local markdown fallback file and
+      tell the caller exactly what failed and how to share the file manually
+      (email, Slack, paste into a GitHub issue).
+  - id: C8
+    rule: >
+      The GitHub Issue title prefix is type-driven using the github-issue.md
+      template table: feature → [FEAT], bug → [BUG], defect → [DEF][Severity],
+      epic → [EPIC], enhancement → [ENH].
+  - id: C9
+    rule: >
+      The label applied to the GitHub Issue is type-driven per the github-issue.md
+      template table. If the required label does not exist, create it before
+      filing.
+  - id: Cbg
+    rule: >
+      The gh filing step MUST be dispatched as a background task
+      (run_in_background: true). Control returns to the caller before the
+      GitHub round-trip completes. The issue number is NOT available at
+      confirmation time.
+  - id: Cconf
+    rule: >
+      Confirmation MUST be a single line:
+      "garura:capture dispatched → {stm_tracking_path}"
+      where stm_tracking_path is the STM path where the gh filing result will
+      be written once the background task completes.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      A capture request is submitted with title or problem missing.
+  - id: F2
+    condition: >
+      A capture request specifies type "defect" but omits severity.
+  - id: F3
+    condition: >
+      A capture request provides a type value outside the allowed set
+      (feature / bug / defect / epic / enhancement) and the value cannot be
+      inferred from the problem text.
+  - id: F4
+    condition: >
+      GitHub access fails and the play produces no output — neither a
+      dispatched background task nor a local fallback file.
+  - id: F5
+    condition: >
+      GitHub access fails and the play does not tell the caller what went
+      wrong and how to share the fallback file.
+  - id: F6
+    condition: >
+      The play blocks the caller waiting for the GitHub round-trip to complete
+      (background dispatch constraint Cbg violated).
+  - id: F7
+    condition: >
+      The confirmation returned to the caller contains more than one line or
+      omits the stm_tracking_path (Cconf violated).
+  - id: F8
+    condition: >
+      The caller did not provide a type and the problem text matches no C2
+      keyword, yet the filed issue was labeled/prefixed as a non-bug type
+      (feature, defect, epic, or enhancement) for an agent caller, or was
+      dispatched without a human-confirmed type for a human caller. Ambiguous
+      inference silently resolved against the C2 fallback rule.
+
+scenarios:
+  - id: S1
+    persona: Agent in another play
+    given: >
+      An agent in the fix-it play wants to file a feature request: title
+      "Add telemetry to capture-learning play", problem "Capture-learning
+      produces no structured output agents can consume downstream." Type is
+      not provided.
+    then: >
+      The play infers type "feature" from keyword "Add", prepends [FEAT] to
+      the title, applies label "enhancement", dispatches gh filing as a
+      background task, and immediately returns the single-line confirmation
+      "garura:capture dispatched → {stm_tracking_path}". The caller is not
+      blocked.
+  - id: S2
+    persona: Human developer
+    given: >
+      A developer files a defect: title "Sync script fails on macOS 14",
+      problem "sync.sh exits with code 1 on macOS 14 due to missing realpath.",
+      severity "High". Type is explicitly "defect".
+    then: >
+      The play prefixes title with [DEF][High], applies label "defect",
+      dispatches gh filing as a background task, and returns single-line
+      dispatched confirmation. The developer is not blocked waiting for GH.
+  - id: S3
+    persona: Human developer
+    given: >
+      A developer files an epic: title "Unified telemetry pipeline",
+      problem "No structured observability across Garura plays." Type
+      is explicitly "epic". No severity provided.
+    then: >
+      The play prefixes title with [EPIC], applies label "epic", dispatches
+      gh filing as a background task, and returns single-line dispatched
+      confirmation. Severity is not required for epic type and no error is
+      raised.
+  - id: S4
+    persona: Agent in another play
+    given: >
+      An agent dispatches a capture request and immediately needs to proceed
+      with the next step in its workflow (cannot block on GH round-trip).
+    then: >
+      The play returns the dispatched confirmation before the background gh
+      task completes. The agent reads stm_tracking_path to poll for the
+      issued GitHub issue number after the fact. The caller's workflow is
+      never blocked.
+  - id: S5
+    persona: Human developer
+    given: >
+      The developer's gh CLI is not authenticated or the network is down
+      when they attempt to file a capture request with valid fields.
+    then: >
+      The play creates a local markdown fallback file with the full issue
+      content, tells the caller exactly what failed (auth/network), and
+      provides the file path with instructions to share it manually
+      (email, paste into GitHub issue, Slack).
+  - id: S6
+    persona: Human developer
+    given: >
+      A developer files a capture without specifying type: title "Revisit
+      onboarding", problem "Onboarding needs attention." The problem text
+      matches no C2 keyword (no bug/feature/epic/enhancement cue).
+    then: >
+      Before dispatching, the play surfaces the ambiguity to the developer
+      and asks them to confirm the type. Only after the developer confirms
+      a type does the play prefix the title, apply the label, dispatch the
+      background gh filing, and return the single-line confirmation. No
+      issue is filed with a silently guessed non-bug type.

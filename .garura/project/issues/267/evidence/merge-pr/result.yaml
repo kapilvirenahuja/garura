@@ -1,0 +1,27 @@
+merge_operation: remove_meridian_tree
+status: merged
+issue_number: 267
+pr_number: 268
+pr_url: https://github.com/kapilvirenahuja/garura/pull/268
+merge_sha: 476cbc6f8e36cfd8e4cfc7eae4f034fdee5b3f40
+merge_strategy: squash
+merged_at: "2026-04-19T03:23:42Z"
+merged_by: kapilvirenahuja
+
+feature_branch: fix/267-remove-meridian-tree
+base_branch: main
+branch_deleted_locally: true
+branch_deleted_remotely: true
+
+verification:
+  meridian_files_on_head: 0
+  expected_deletions: 781
+  git_ls_files_meridian: "git ls-files .meridian/ | wc -l"
+  result: "0"
+  status: PASS
+
+post_merge_state:
+  current_branch: main
+  latest_commit: "476cbc6 Remove legacy .meridian/ tree from codebase (#268)"
+  working_tree_clean: true
+  tracking_remote: "origin/main"

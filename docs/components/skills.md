@@ -96,7 +96,8 @@ Plays are user-invocable workflows that orchestrate agents and skills. They depl
 | `implement-epic` | true | sonnet | Implement a feature through an eval-driven TDD loop |
 | `create-play` | true | sonnet | Compile a new play from an intent.yaml |
 | `briefs` | true | sonnet | Regenerate HTML briefs from product YAML artifacts |
-| `report-issue` | true | sonnet | Report a defect against Meridian OS |
+| `garura-capture` | true | sonnet | Capture any issue type (feature / bug / defect / epic / enhancement) as a labeled GitHub Issue with background dispatch |
+| `report-issue` | true | sonnet | DEPRECATED — alias for `garura:capture`. Use `/garura-capture` instead. |
 
 ## Skill Properties
 

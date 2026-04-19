@@ -149,7 +149,7 @@ domains:
               - implement-epic
               - merge-pr
               - prepare-epic
-              - report-issue
+              - garura-capture
               - review-pr
               - ship
               - specify-product
@@ -1206,7 +1206,7 @@ domains:
               Loop automation over repeated defects is not yet present.
             evidence:
               - core/components/plays/fix-it/
-              - core/components/plays/report-issue/
+              - core/components/plays/garura-capture/
             gap_items: []
 
   # ============================================================
@@ -1395,7 +1395,7 @@ domains:
               21 plays exposed as slash commands (/specify-product,
               /start-feature, /ship, /create-play, /fix-it, /enhance,
               /create-pr, /review-pr, /merge-pr, /distill, /capture-learning,
-              /report-issue, etc.).
+              /garura-capture, etc.).
             evidence:
               - core/components/plays/
               - CLAUDE.md
@@ -1578,7 +1578,7 @@ specify_product_enhancements_needed:
     - Enumerate plays/agents/skills under Component Architecture as zoomed-in feature sub-lists. DONE.
     - Distinguish "applied and evolving" from "live and done" as a capability-level status. DONE (new status value).
     - Do not auto-fabricate L4/L5 feature lists; leave empty pending dedicated research. DONE.
-    - "Tether" is a user-convention, not a Garura protocol — describe as human-in-the-loop with bypass config. DONE.
+    - '"Tether" is a user-convention, not a Garura protocol — describe as human-in-the-loop with bypass config. DONE.'
     - Single node per domain in the YAML hierarchy — capabilities nest, no domain-row duplication. DONE.
 
 ambiguous_mappings:
