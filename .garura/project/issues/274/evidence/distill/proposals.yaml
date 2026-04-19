@@ -1,0 +1,26 @@
+proposals:
+  issue: 274
+  pr: 275
+  no_learnings: false
+  generated_at: "2026-04-19T07:25:00Z"
+  entries:
+    - id: P1
+      type: pattern
+      target: "core/memory/standards/rules/play-evidence.md"
+      summary: >
+        Ship pipeline plays MUST have a sweep backstop for sub-play evidence.
+        When sub-plays run inside a pipeline (approval_override: auto-proceed),
+        their non-blocking self-commits may silently fail. The orchestrating
+        play MUST enumerate known sub-play evidence paths and include any
+        untracked files in its own evidence self-commit as a reliable backstop.
+      evidence_ref: ".garura/project/issues/274/evidence/fix-it/design.yaml"
+
+    - id: P2
+      type: pattern
+      target: "core/memory/standards/rules/play-evidence.md"
+      summary: >
+        Every compiled play that produces STM evidence MUST have an Evidence & Close
+        phase with a non-blocking self-commit step (ADR-012). Fire-and-forget plays
+        (e.g., distill) that are invoked as sub-plays are not exempt — they must
+        still attempt to self-commit their own evidence files.
+      evidence_ref: ".garura/project/issues/274/evidence/fix-it/rca.yaml"
