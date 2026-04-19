@@ -327,26 +327,9 @@ Depends on: Step 4 (or Step 4.5 if checkpoint ran)
 }
 ```
 
-Agent constructs the structured comment using the template:
-```markdown
-## review-pr — PR #{pr_number}
+Agent constructs the structured comment by loading `~/.garura/core/memory/standards/templates/pr-review-comment.md` and instantiating with confidence value, threshold, routing decision, findings grouped by severity (P1–P4 with counts), and the selected reviewers list.
 
-**Confidence:** {value} (threshold {threshold}) — routing **{block|escalate|pass}**
-
-### P1 — Blockers ({n})
-- `{file}:{line}` — `{standard_id}` — {evidence}
-
-### P2 — Major ({n})
-- ...
-
-### P3 — Minor ({n})
-- ...
-
-### Reviewers requested
-- {selected_reviewers list}
-
-<!-- review-pr:marker -->
-```
+> **Direct-edit deviation note (fix-it/#209):** Format pointer substitution only. Reconcile at next `/create-play --build review-pr` run.
 
 Agent searches PR comments for the `<!-- review-pr:marker -->` marker. If found, **updates in place** via `gh api repos/{owner}/{repo}/issues/comments/{comment_id} -X PATCH`. If not found, posts a new comment via `gh pr comment`.
 
