@@ -86,7 +86,7 @@ Run these checks against the semantic map. Each check produces a PASS or GAP res
 | **G7 — Contract Schema** | JSON contracts in play steps contain required fields: `intent_path`, `stm_base`, `stm`, `task_id` | Required contract field missing |
 | **G8 — Template References** | Skills/plays that reference templates point to files that exist (now bundled with the owning skill/play under its own `templates/` or `reference/` directory) | Template path referenced but file missing |
 | **G9 — Intent Hash Drift** | Compiled intent_hash in SKILL.md matches current SHA-256 of intent.yaml | Hash mismatch — intent changed since last compilation |
-| **G10 — Required Sections** | Compiled SKILL.md contains all required sections: Frontmatter, Header, Compiled From, Role, Pre-flight, Workflow, Scenario Validation, Pause and Resume, Compilation Metadata | Section missing from compiled play |
+| **G10 — Required Sections** | Compiled SKILL.md contains all required sections: Frontmatter, Header, Compiled From, Role, Pre-flight, Task DAG, Workflow, Scenario Validation, Pause and Resume, Compilation Metadata | Section missing from compiled play |
 | **G11 — Skill LTM Input Coverage** | For every skill a play step invokes, each required/recommended LTM input in the skill's Input section has a corresponding discovery instruction in the play step text (e.g., "agent must glob X and pass as Y") | Skill declares LTM input (e.g., `epic_rules_path`, `domain_taxonomy_paths`) but the play step has no instruction for the agent to discover and pass it |
 
 **Step R3 — Gap Report**
@@ -109,7 +109,7 @@ Present to user:
 | G7 Contract Schema | PASS/GAP | {which contracts have missing fields} |
 | G8 Template References | PASS/GAP | {which templates are missing} |
 | G9 Intent Hash Drift | PASS/GAP | {hash comparison} |
-| G10 Required Sections | PASS/GAP | {which sections are missing} |
+| G10 Required Sections | PASS/GAP | {which sections are missing — Task DAG is now required} |
 | G11 Skill LTM Input Coverage | PASS/GAP | {which skill LTM inputs lack discovery instructions in play steps} |
 
 **Summary:** {X}/11 PASS, {Y} GAPs found
@@ -341,7 +341,8 @@ Write `core/components/plays/{play-name}/SKILL.md` with ALL required sections:
 | Compiled From | Notice: compiled artifact, edit intent.yaml and re-run /create-play |
 | Role + Agent Boundaries | Orchestrator role, agent table with domains and phases |
 | Pre-flight | Baked checks with constraint IDs, bash logic, resume check |
-| Workflow | Sequential steps organized by phase, each with: owner, depends-on, JSON contract (per ADR 016), skill invoked, step eval criteria |
+| Task DAG | TaskCreate calls for ALL steps with blockedBy, ownership rule, TaskUpdate protocol |
+| Workflow | Sequential steps organized by phase, each with: owner, depends-on, JSON contract (per ADR 016), skill invoked, step eval criteria, TaskUpdate calls |
 | Scenario Validation | E2E scenario evals from intent.yaml |
 | Evidence & Close | Write evidence, self-commit (ADR 012), non-blocking |
 | Pause and Resume | Status file format, resume logic |
@@ -364,6 +365,14 @@ Write `core/components/plays/{play-name}/SKILL.md` with ALL required sections:
 - Intent hash in Compilation Metadata section (end of file) for drift detection — NOT in frontmatter
 - **Checkpoint review surface:** Human checkpoints present the YAML artifact file paths as the review surface by default. Domain agents produce artifacts → play presents the artifact paths for human review (Tether/Vanish/Orbit). Users may run `/briefs` separately on demand to generate HTML renderings. Do NOT insert a `doc-builder` step before checkpoints unless intent.yaml explicitly mandates brief generation as a constraint. Briefs are opt-in, not mandatory.
 - **Agent budget — domain vs utility:** The ≤5 agent call limit applies to domain agents only. Utility agents (`repo-orchestrator` for commits/evidence, and `doc-builder` when a play explicitly opts into brief generation) are exempt. Compilation Metadata must list domain and utility agents separately.
+
+**Task DAG rules (compiled into every play):**
+- The compiled play MUST include a `## Task DAG` section immediately after Pre-flight
+- The Task DAG section contains a `TaskCreate` call for EVERY compiled step, with `blockedBy` encoding the dependency order (not the ID sequence)
+- Each task title starts with a sequential ID matching the compiled step: `[T1] Step name`, `[T2] Step name`, etc.
+- Every compiled step in the Workflow section MUST include a `Task:` line: `TaskUpdate [Tn] → in_progress` before dispatch, `TaskUpdate [Tn] → completed` after eval passes
+- The play is the SOLE owner of the task DAG — agents MUST NOT call `TaskUpdate` on play-level tasks; they MAY call `TaskCreate` for discovered sub-work with `addBlockedBy` pointing to the current step
+- On resume: call `TaskList` to see state; skip completed tasks; reset `in_progress` to `pending`
 
 **Pause and Resume (built into compiled play):**
 1. Issue detection in pre-flight (extract from branch name or user input)
