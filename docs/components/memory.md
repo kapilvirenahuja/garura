@@ -114,18 +114,16 @@ Agent invoked
 core/components/memory/
 ├── standards/           # Rules, conventions, quality criteria (cross-cutting only)
 │   ├── _index.md
-│   ├── commits/         # Commit categorization and quality rules
-│   ├── git/             # Branch naming + PR severity taxonomy
-│   ├── agent-lifecycle/ # Epic management rules
-│   ├── intent-schema.yaml          # Canonical intent.yaml contract
-│   ├── knowledge-file-template.md  # Knowledge-file format
-│   └── resolution-protocol.md      # R1–R4 LTM resolution
-├── formats/             # User-facing message formats (issues, PRs, etc.)
-│   ├── _index.md
-│   └── github-issue.md
+│   ├── rules/      # Per-domain canonical rule files (epics, features, product,
+│   │               #   design, architecture, scenarios, commits, git, pr,
+│   │               #   kb-extension, resolution)
+│   ├── schemas/    # YAML schemas for artifact shape (intent, intent-epic,
+│   │               #   screen-inventory)
+│   └── templates/  # Output-shape templates (github-issue, approval-prompt,
+│                   #   checkpoint, evidence, knowledge-file)
 └── knowledge/           # Searchable reference material
     ├── _index.md
-    └── architecture/
+    └── arch/
 
 # Skill/play-specific schemas and templates live with the owning component:
 #   core/components/skills/{skill-name}/reference/{schema-or-spec}.md
