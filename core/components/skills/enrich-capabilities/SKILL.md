@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Grep
 
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Model-invocable skill for context-merging KB capability data with project-specific overrides. Called by `product-keeper` during `specify-product` Stage 4.
+Model-invocable skill for context-merging KB capability data with project-specific overrides. Called by `product-keeper` during `specify` Stage 4.
 
 ## Purpose
 

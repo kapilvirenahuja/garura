@@ -1,6 +1,6 @@
 ---
 name: derive-quality-profile-from-epics
-description: Aggregate constraints and experiential warnings across all intent epics into an ISO 25010 characteristic-based quality profile with a risk register. Produces the quality-profile.yaml handoff artifact consumed by build-arch (214.7).
+description: Aggregate constraints and experiential warnings across all intent epics into an ISO 25010 characteristic-based quality profile with a risk register. Produces the quality-profile.yaml handoff artifact consumed by arch (214.7).
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Glob
@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Glob
 
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Model-invocable skill for deriving the product's quality profile from a validated intent-epic set. Called by `product-keeper` during `specify-product` Stage 6.
+Model-invocable skill for deriving the product's quality profile from a validated intent-epic set. Called by `product-keeper` during `specify` Stage 6.
 
 ## Purpose
 
@@ -168,7 +168,7 @@ risk_register:
     mitigation: ...
   - ...
 handoff_notes:
-  - "Consumers: build-arch (214.7) reads this file for architecture decision drivers"
+  - "Consumers: arch (214.7) reads this file for architecture decision drivers"
   - "Every architectural decision should trace to at least one characteristic or risk"
 ```
 
@@ -194,7 +194,7 @@ decision_manifest:
 - NEVER leave the security profile blank for a characteristic — if no data exists, mark it `not_applicable` with explicit rationale.
 - NEVER merge conflicting targets silently. If epic A says `p95 < 500ms` and epic B says `p95 < 200ms`, record both with the strictest as the product target and the source of the relaxation.
 - ALWAYS classify every risk by severity based on how many epics cite it.
-- ALWAYS produce a handoff_notes section pointing at the downstream consumer (build-arch).
+- ALWAYS produce a handoff_notes section pointing at the downstream consumer (arch).
 - ALWAYS scope output to `{output_path}` — one file, no scattered artifacts.
 - NEVER commit an inferred decision to the primary artifact (quality-profile.yaml) without recording it in `decision-manifest.yaml` first.
 - NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.
@@ -207,4 +207,4 @@ decision_manifest:
 | Version | 0.2.0 |
 | Category | product-planning |
 | Created | 2026-04-14 |
-| Related | `core/components/skills/validate-intent-epics`, `core/components/plays/build-arch/` (consumer in 214.7), ISO/IEC 25010:2023 |
+| Related | `core/components/skills/validate-intent-epics`, `core/components/plays/arch/` (consumer in 214.7), ISO/IEC 25010:2023 |

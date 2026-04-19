@@ -1,6 +1,6 @@
 ---
 name: validate-abstraction-layer
-description: Scan product-stage artifacts (research/, specification/, scope/) for abstraction-layer deny-list tokens — specific database engines, SDK method names, framework identifiers, programming-language type signatures, wire-level protocol identifiers, cryptographic constructions, and model version strings. Deterministic grep-based linter. Called by any producer skill (configure-capabilities, enrich-capabilities, generate-intent-epics, recommend-mvp) after writing an artifact, and as a close-phase check by the specify-product play.
+description: Scan product-stage artifacts (research/, specification/, scope/) for abstraction-layer deny-list tokens — specific database engines, SDK method names, framework identifiers, programming-language type signatures, wire-level protocol identifiers, cryptographic constructions, and model version strings. Deterministic grep-based linter. Called by any producer skill (configure-capabilities, enrich-capabilities, generate-intent-epics, recommend-mvp) after writing an artifact, and as a close-phase check by the specify play.
 user-invocable: false
 model: haiku
 allowed-tools: Read, Write, Grep, Glob
@@ -14,7 +14,7 @@ Deterministic linter that enforces Rule 14 (Abstraction-Layer Boundary, Defect 7
 
 Product-stage artifacts under `.meridian/product/research/`, `.meridian/product/specification/`, and `.meridian/product/scope/` are implementation-agnostic. They describe domain shape, market opportunity, scope decisions, and epic outcomes — not how the work is built. Implementation choices (runtime, framework, database, library, schema design, API wire format, cryptographic construction, model version) need cross-domain tradeoff analysis and user approval at Stage 6 architecture. Leaking them into earlier artifacts prejudges architecture and breaks the stage contract.
 
-This skill is a post-write check. Producer skills invoke it after writing an artifact; if it returns violations, the producer deletes the file and halts with a structured failure. The specify-product play invokes it at close as a final sanity check across all product/ files. The skill is deterministic — no LLM reasoning, just a regex scan against a maintained deny-list — so it can run in CI pipelines without cost or latency concerns.
+This skill is a post-write check. Producer skills invoke it after writing an artifact; if it returns violations, the producer deletes the file and halts with a structured failure. The specify play invokes it at close as a final sanity check across all product/ files. The skill is deterministic — no LLM reasoning, just a regex scan against a maintained deny-list — so it can run in CI pipelines without cost or latency concerns.
 
 ## Input
 
@@ -22,9 +22,9 @@ Receive from the calling agent or skill via the JSON contract. All paths resolve
 
 - `scan_paths` (list, required) — list of file paths OR directory paths to scan. Each entry is either a specific file (scan just that file) or a directory (recursively scan every `.md` and `.yaml` file in that directory). Typical usage patterns:
   - Single file: `["{product_base}scope/scope.yaml"]` (post-write check from a producer skill)
-  - Directory: `["{product_base}research/", "{product_base}specification/", "{product_base}scope/"]` (close-phase sweep from specify-product)
+  - Directory: `["{product_base}research/", "{product_base}specification/", "{product_base}scope/"]` (close-phase sweep from specify)
 - `deny_list_path` (path, optional) — path to a YAML file with the deny-list tokens. When null, the skill uses the baked-in default deny-list documented in the Constants section below. Custom deny-lists let product teams extend or customize the rule for their specific pipeline — the baked-in default is the canonical framework rule.
-- `output_path` (string, required) — where to write the structured violation report. Typically `{stm_base}/{issue}/evidence/validate-abstraction-layer/{YYYYMMDD-HHMMSS}.yaml` or for specify-product close-phase, `{product_base}_evidence/specify-product/abstraction-layer-audit.yaml`.
+- `output_path` (string, required) — where to write the structured violation report. Typically `{stm_base}/{issue}/evidence/validate-abstraction-layer/{YYYYMMDD-HHMMSS}.yaml` or for specify close-phase, `{product_base}_evidence/specify/abstraction-layer-audit.yaml`.
 - `fail_on_violation` (boolean, optional, default true) — when true, any violation flips the output status to `failed` and the calling skill should halt. When false, violations are reported but status remains `passed` (useful for advisory runs or pre-commit checks where the author wants to see the violations before deciding whether to rewrite).
 
 ## Constants — Default Deny-List
@@ -219,4 +219,4 @@ If `fail_on_violation: true` AND `blocking_violations > 0`, the status is `faile
 | Version | 0.1.0 |
 | Category | validation |
 | Created | 2026-04-15 |
-| Related | `core/components/memory/standards/rules/product.md` (Rule 14 Abstraction-Layer Boundary), `core/components/plays/specify-product/reference/intent.yaml` (C16 / F13), `core/components/skills/configure-capabilities/SKILL.md` (caller), `core/components/skills/enrich-capabilities/SKILL.md` (caller), `core/components/skills/generate-intent-epics/SKILL.md` (caller), `core/components/skills/recommend-mvp/SKILL.md` (caller) |
+| Related | `core/components/memory/standards/rules/product.md` (Rule 14 Abstraction-Layer Boundary), `core/components/plays/specify/reference/intent.yaml` (C16 / F13), `core/components/skills/configure-capabilities/SKILL.md` (caller), `core/components/skills/enrich-capabilities/SKILL.md` (caller), `core/components/skills/generate-intent-epics/SKILL.md` (caller), `core/components/skills/recommend-mvp/SKILL.md` (caller) |

@@ -1,6 +1,6 @@
 ---
 name: derive-logical-architecture
-description: Read locked specify-product and design-exp output and produce a technology-agnostic logical architecture: bounded contexts, components with responsibilities, data model, capability-level API surface, integration points, and an ADR log. Every boundary, entity, and grouping decision lands in a decision manifest.
+description: Read locked specify and design output and produce a technology-agnostic logical architecture: bounded contexts, components with responsibilities, data model, capability-level API surface, integration points, and an ADR log. Every boundary, entity, and grouping decision lands in a decision manifest.
 version: 0.1.0
 ---
 
@@ -8,11 +8,11 @@ version: 0.1.0
 
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest-derive-logical-architecture.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Called by `tech-architect` during `build-arch` Stage 1. Produces `logical-architecture.yaml` at `{product_base}architecture/logical-architecture.yaml`.
+Called by `tech-architect` during `arch` Stage 1. Produces `logical-architecture.yaml` at `{product_base}architecture/logical-architecture.yaml`.
 
 ## Purpose
 
-Transform locked specify-product and design-exp artifacts into the technology-agnostic structural view of the system. This artifact is the anchor for every downstream build-arch skill — physical-architecture.yaml references component IDs from here, nfr-spec.yaml cites delivery mechanisms by component, and design-patterns.yaml scopes patterns by runtime tier declared here. Pure structure: no product names, no protocols, no wire formats, no programming languages.
+Transform locked specify and design artifacts into the technology-agnostic structural view of the system. This artifact is the anchor for every downstream arch skill — physical-architecture.yaml references component IDs from here, nfr-spec.yaml cites delivery mechanisms by component, and design-patterns.yaml scopes patterns by runtime tier declared here. Pure structure: no product names, no protocols, no wire formats, no programming languages.
 
 ## Input
 
@@ -151,7 +151,7 @@ api_surface:
       - "terminate-session"
     consumers: [comp-web-frontend]
     rationale: "Design-exp flows show login as an entry gate for all user journeys; grouping these operations together ensures a single service boundary for session lifecycle."
-    driver: "design-exp flows/authentication-flow.md"
+    driver: "design flows/authentication-flow.md"
 ```
 
 **integration_points** — external contracts. NO wire formats. NO SDK method calls:
@@ -204,7 +204,7 @@ Write `logical-architecture.yaml` to `{output_path}` with top-level metadata:
 slug: "<from project_profile.name>"
 status: DRAFT
 created_at: "<ISO-8601>"
-play: build-arch
+play: arch
 skill: derive-logical-architecture
 upstream_artifacts:
   scope_path: <echoed>
@@ -304,7 +304,7 @@ outputs:
 
 - NEVER include any product name, protocol identifier, wire format token, schema column type, or programming language identifier in logical-architecture.yaml. This is the F3 gate — scan and halt if any implementation token is found.
 - NEVER skip a capability. Every entry in `scope.selected_capabilities` must appear in `component_capability_map` with at least one serving component. Orphan capability is an F5 violation.
-- NEVER cite a driver as "general best practice" or similar. Every driver must reference a specific epic ID, quality-profile field, compliance flag, or design-exp artifact.
+- NEVER cite a driver as "general best practice" or similar. Every driver must reference a specific epic ID, quality-profile field, compliance flag, or design artifact.
 - NEVER write outside `{output_path}` and `{decision_manifest_path}`. This skill does not append to grounding-questions.md (no multi-candidate stack picks here — that is physical-architecture territory).
 - NEVER commit an inferred decision to logical-architecture.yaml without recording it in the decision manifest first.
 - NEVER tag a decision `tier: high` unless the `grounding_source.kind` is `kb_path` AND the referenced KB file exists.

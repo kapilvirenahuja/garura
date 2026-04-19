@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Glob, Grep
 
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Called by `designer` during `design-exp` Stage 2. Produces one Markdown file per screen under `{product_base}experience/screens/`.
+Called by `designer` during `design` Stage 2. Produces one Markdown file per screen under `{product_base}experience/screens/`.
 
 ## Purpose
 
@@ -24,7 +24,7 @@ Receive from the designer agent. All paths resolve against `{product_base}` supp
 - `enriched_capabilities_path` (path, required) — typically `{product_base}scope/enriched-capabilities.yaml`
 - `epics_dir` (path, required) — typically `{product_base}scope/epics/`
 - `personas_path` (path, required) — typically `{product_base}experience/personas.md` (from Stage 1)
-- `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads domain UX hints from the product's research folder ONLY — never directly from `core/components/memory/knowledge/domain/`. Passing `ltm_domain_taxonomy_path` is a structural failure (design-exp intent.yaml F13).
+- `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads domain UX hints from the product's research folder ONLY — never directly from `core/components/memory/knowledge/domain/`. Passing `ltm_domain_taxonomy_path` is a structural failure (design intent.yaml F13).
 - `ltm_screen_inventory_schema_path` (path, required) — the schema contract (describes MD section conventions)
 - `screens_dir` (string, required) — typically `{product_base}experience/screens/`
 - `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifacts (e.g., `{product_base}experience/decision-manifest-generate-screen-inventory.yaml`). Exact path is passed by the calling agent.
@@ -76,7 +76,7 @@ Each file has YAML frontmatter with identity (id, capabilities, name) and a Mark
 4. `## States` — structured list of states (default, loading, error, etc.) with per-state description, layout, data, actions, components.
 5. `## Navigation` — entry and exit points.
 6. `## Accessibility` — WCAG level + keyboard + screen-reader notes.
-7. `## Layout Spec` — appended by `generate-wireframes` (Stage 4) below the Accessibility section. Contains the detailed layout pattern, component inventory, per-state layout spec, interaction patterns, data binding, and accessibility details. This is the machine-parseable spec that downstream skills (e.g., `build-arch`) consume.
+7. `## Layout Spec` — appended by `generate-wireframes` (Stage 4) below the Accessibility section. Contains the detailed layout pattern, component inventory, per-state layout spec, interaction patterns, data binding, and accessibility details. This is the machine-parseable spec that downstream skills (e.g., `arch`) consume.
 
 The `capabilities` field in frontmatter is a **list**, not a scalar — most screens list a single capability, but screens that legitimately exercise multiple capabilities (e.g., an `account-setup` screen covering UM-F001 + UM-F002 + UM-F003) MUST list all of them.
 
