@@ -1,0 +1,1 @@
+[DEF][Medium] report-issue play: rename to garura:capture, support issue-type inference, background mode, crisp ID-back confirmation
