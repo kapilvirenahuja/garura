@@ -1,0 +1,242 @@
+# epic-engineering-experience-cli-slash-commands-001.yaml
+# Garura Platform — specify-product Stage 5: Intent Epic
+#
+# Provenance
+# play: specify-product
+# stage: 5-generate-intent-epics
+# agent: product-keeper
+# skill: generate-intent-epics v0.2.0
+# task_id: specify-product-stage-5-generate
+# created_at: 2026-04-18T03:00:00Z
+# kb_source_file: .garura/product/research/engineering-experience.md
+# enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
+
+id: "EPIC-engineering-experience-cli-slash-commands-001"
+domain: "engineering-experience"
+capability: "EE-F015"
+
+provenance:
+  source: brief_explicit
+  source_quote: "engineering-experience / cli-slash-commands (LIVE) — Stage-3 user input"
+  confidence: high
+
+problem_statement: >
+  Developer tools with non-discoverable command surfaces have adoption rates that never
+  recover from the first-session experience. A solo founder evaluating Garura who cannot
+  find a command without reading documentation will abandon the tool at the first interaction.
+  The KB failure scenario is precise: a command not discoverable in the first session
+  represents a permanently missed adoption moment. Compound failure: post-merge learnings
+  are lost when distill (EE-F018) is not invoked — with no distill reminder in the merge-pr
+  play, every closed issue's learnings evaporate before reaching LTM, silently degrading
+  the quality of future KBs.
+
+intent: >
+  Ensure every Garura play is reachable via a slash command listed in /help with < 1s
+  invocation latency, with 0 plays requiring documentation lookup to invoke, and post-merge
+  distill running automatically on 100% of merged PRs.
+
+intent_lock:
+  locked_at: "2026-04-18T05:00:00Z"
+  intent_hash: "sha256:30a4478bca62a209311a9100ffd03c4ec8e860670a242253f5bb945e1bc68920"
+  locked_by: "specify-product-stage-5-validate"
+  immutability_note: >
+    Intent content is immutable after lock. Post-v1 drift requiring a scope change must
+    be handled via a Product-Drift successor epic, not by editing this intent block. The
+    features[] ledger and epic_status rollup below may evolve as capabilities move through
+    PLANNED → PARTIAL → LIVE; the intent itself is sealed.
+
+appetite: "1 week"
+
+in_scope:
+  - "EE-F015 Play Invocation at Standard depth: every play has a slash command; /help lists all available commands with one-line descriptions; invocation latency < 1s"
+  - "EE-F016 Status at Standard depth: every play produces a status.json artifact with consistent schema; status survives session end and is readable by CI"
+  - "EE-F017 Sync at Standard depth: /sync-claude idempotent; drift detected and surfaced; sync completes in < 10s; second run on unchanged source produces zero file-system changes"
+  - "EE-F018 Distill at Standard depth: distill runs post-merge; learnings produce LTM proposals; proposals are reviewable by the developer before promotion"
+  - "/help discoverability audit: all 42+ shipped plays appear in /help listing; no commands missing from the registry"
+
+anti_goals:
+  - "Tab-complete with arg hints — Advanced depth enhancement for EE-F015; post-v1 DX enhancement"
+  - "Governance-gated play invocation — Enterprise depth; requires security_level=high or critical; post-v1 enterprise milestone (Jul 2026)"
+  - "Multi-harness /help unification (Factory, Codex CLI) — each harness has its own command surface; this epic covers Claude Code CLI only"
+  - "Automated distill without review — distill proposals must be reviewable before LTM promotion; auto-promote is a post-v1 enhancement"
+
+must_not_break:
+  - "EPIC-agentic-methodology-component-arch-001 — slash commands invoke plays; the Play→Agent→Skill hierarchy must remain intact for every command invocation; a broken slash command is a broken play"
+  - "Existing ~/.claude/ component layout — /sync-claude must not overwrite or corrupt user-customized components; conflict detection is required before any overwrite"
+
+foundation_investment: false
+
+features:
+  - id: "EE-F015"
+    name: "Play Invocation (slash commands)"
+    status: "LIVE"
+    delivered_at: "2026-01-20"
+    evidence:
+      - path: "core/components/plays/"
+        type: "component"
+      - path: "~/.claude/skills/"
+        type: "deployment"
+    delta_remaining: null
+    intent_fit_rationale: "Delivers the primary user contract — every play reachable via a slash command with < 1s latency."
+  - id: "EE-F016"
+    name: "Play Status (status.json)"
+    status: "LIVE"
+    delivered_at: "2026-02-10"
+    evidence:
+      - path: "core/components/plays/"
+        type: "component"
+      - path: ".garura/project/issues/"
+        type: "artifact"
+    delta_remaining: null
+    intent_fit_rationale: "status.json is the interop contract for CI automation consuming play outcomes; required for multi-step play orchestration."
+  - id: "EE-F017"
+    name: "Sync (/sync-claude)"
+    status: "LIVE"
+    delivered_at: "2026-02-25"
+    evidence:
+      - path: "core/components/plays/sync-claude/"
+        type: "play"
+    delta_remaining: null
+    intent_fit_rationale: "Sync idempotency is the deploy-time contract for harness parity — required so commands reflect source truth."
+  - id: "EE-F018"
+    name: "Distill (post-merge learning)"
+    status: "LIVE"
+    delivered_at: "2026-03-15"
+    evidence:
+      - path: "core/components/plays/distill/"
+        type: "play"
+      - path: "core/components/plays/merge-pr/"
+        type: "play"
+    delta_remaining: null
+    intent_fit_rationale: "Post-merge distill closes the capture loop — every closed issue's learnings reach LTM without manual promotion."
+
+epic_status:
+  live_count: 4
+  partial_count: 0
+  planned_count: 0
+  delivered_pct: 100
+  total_features: 4
+
+success_scenarios:
+  - scenario: >
+      Given a new Garura adopter who has never read the documentation, when they type
+      /help in Claude Code, then they see a complete listing of all available Garura slash
+      commands with one-line descriptions, and the listing loads within 1s.
+    evidence: >
+      /help output contains one entry per shipped Garura play. Verified by counting
+      /help entries against the plays directory listing. Latency measured by timing the
+      /help response from invocation to full output display.
+  - scenario: >
+      Given a developer who runs /sync-claude twice consecutively on an unchanged source
+      directory, when the second sync run starts, then it completes in < 10s with zero
+      file-system changes and a status output showing "no drift detected."
+    evidence: >
+      Second sync-claude run produces 0 file modifications in ~/.claude/. Runtime < 10s
+      measured from invocation to completion. Status output contains "no drift detected"
+      or equivalent zero-change signal.
+
+failure_scenarios:
+  - scenario: >
+      Given a new Garura adopter opening the tool for the first time, when they type
+      /help, then one or more plays are missing from the listing because the command
+      registry was not updated after a new play shipped.
+    impact: >
+      Hidden capability — the adopter cannot find the command without reading full
+      documentation. Solo-dev impact: first-impression failure leads to permanent
+      abandonment; there is no second interaction opportunity once the evaluator leaves.
+    mitigation: >
+      /help registry is generated from the plays directory listing at sync time; a
+      CI check verifies /help entry count equals play count on every play addition;
+      registry is never hand-maintained.
+  - scenario: >
+      Given a developer mid-play who needs to check the play's current status, when
+      status.json is missing for the running play, then the developer cannot determine
+      whether the play succeeded, failed, or is still running.
+    impact: >
+      Developer cannot parse play outcome; CI automation that depends on status.json
+      for pass/fail decisions receives no signal.
+    mitigation: >
+      status.json write is mandatory in every play-step contract; the play blocks
+      if the status write fails; evidence substrate (AM-F009) ensures the write
+      is committed before the step is considered complete.
+  - scenario: >
+      Given a developer who has customized components in ~/.claude/, when /sync-claude
+      runs without conflict detection, then customized components are silently overwritten
+      by the sync.
+    impact: >
+      Lost customization — solo-dev has no backup contributor and no automatic recovery
+      for the overwritten files.
+    mitigation: >
+      Conflict detection before sync: /sync-claude compares checksums of local components
+      against the source; any local modification triggers a Tether/Vanish gate before
+      overwrite.
+  - scenario: >
+      Given a PR merged without distill running, when the next issue starts, then the
+      learnings from the closed issue are unavailable in LTM and the quality of
+      subsequent KB-driven decisions degrades silently.
+    impact: >
+      Learning loss: every merged PR without distill is a missed capture opportunity.
+      On a solo project, the developer is both the executor and the reviewer — there
+      is no peer to notice the missing distill step.
+    mitigation: >
+      Distill reminder step added to the merge-pr play post-merge sequence; the reminder
+      emits a Tether/Vanish gate if distill has not been run within the same session.
+
+constraints:
+  performance:
+    value: "Slash command invocation latency < 1s from invocation to first output; /sync-claude completes in < 10s on unchanged source"
+    source_for_quantification:
+      source: kb_default
+      source_reference: "kb.engineering-experience.EE-F015.success_criteria[2]; kb.engineering-experience.EE-F017.success_criteria[2]"
+      user_grounded: true
+      user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+  security:
+    value: "OWASP ASVS Level 1 — slash commands invoke internal plays; no external network calls; TLS 1.3 for any remote sync if implemented"
+    source_for_quantification:
+      source: profile_nfr
+      source_reference: "profile.security_level=elevated maps to OWASP ASVS Level 1 for internal CLI surfaces"
+  accessibility:
+    value: "WCAG 2.1 AA — /help output is CLI text; AA constraint inherited for any UI rendering of command listings or status output"
+    source_for_quantification:
+      source: profile_nfr
+      source_reference: "profile.audience includes designers and PMs; WCAG 2.1 AA is the org-wide baseline"
+  compliance: []
+
+business_rules:
+  - "Mandatory for all Garura products — slash commands are the primary user UX contract (EE-F015); every play must have an entry point"
+  - "Every play must produce a status.json artifact — mandatory for any multi-step play (EE-F016); CI automation depends on this signal"
+  - "Sync must be idempotent — mandatory for multi-harness deployment (EE-F017); second run on unchanged source must produce zero changes"
+  - "distill runs post-merge — mandatory for any L3+ project (EE-F018); every closed issue's learnings must reach LTM"
+
+hypothesis: >
+  We believe that ensuring every Garura play is reachable via a discoverable slash command
+  with < 1s latency for solo founders and software engineers will result in 0 plays requiring
+  documentation lookup to invoke, and 100% of merged PRs triggering distill for LTM capture.
+  We will know this is true when /help lists all plays, invocation latency is < 1s on all
+  runs, and distill executes within the merge-pr session for every closed issue in a
+  30-day window.
+
+assumptions_requiring_validation:
+  - "New adopters discover Garura capabilities primarily through /help rather than through documentation — if adopters prefer written docs, the /help discoverability investment is less critical than assumed"
+  - "The < 1s invocation latency is achievable on all Claude Code host configurations — this assumes no environment-specific delays in the slash-command dispatch layer"
+  - "Distill adding a reminder gate in merge-pr is sufficient to drive 100% distill execution — if developers consistently skip the gate, the reminder approach needs to be replaced with a blocking requirement"
+
+dependencies: []
+
+depends_on:
+  - "EPIC-agentic-methodology-component-arch-001"
+
+uses_mocks: false
+
+kb_source:
+  capability: "EE-F015"
+  rules_applied:
+    - "EE-F015 mandatory-default: slash commands are the primary UX contract for all Garura products"
+    - "EE-F016 mandatory-default: status.json for every multi-step play"
+    - "EE-F017 mandatory-conditional: idempotent sync for multi-harness deployment"
+    - "EE-F018 mandatory-conditional: distill post-merge for L3+ projects"
+    - "/help discoverability: registry generated from plays directory, not hand-maintained"
+  experiential_warnings:
+    - "Forgetting the slash prefix when invoking plays"
+    - "Editing deployed components in ~/.claude/ directly instead of source"
+    - "Skipping distill after closing an issue"

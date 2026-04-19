@@ -1,0 +1,1163 @@
+# decision-manifest-generate-intent-epics.yaml
+# Garura Platform — specify-product Stage 5: Generate Intent Epics
+#
+# Provenance
+# play: specify-product
+# stage: 5-generate-intent-epics
+# agent: product-keeper
+# skill: generate-intent-epics v0.2.0
+# task_id: specify-product-stage-5-generate
+# created_at: 2026-04-18T03:00:00Z
+#
+# Decision Surfacing Discipline (Defect 23)
+# Every inferred decision produced during epic generation is recorded here with tier,
+# grounding source, recommendation, and alternatives. Decisions are in the D-gie-NNN
+# family: one cluster per capability (001-006 decision types repeated per capability).
+#
+# Step 2b result: ALL 9 capabilities have feature_classification: vertical in scope.yaml.
+# No component capabilities exist. Component-to-parent merge pass is a no-op.
+# No D-gie-006 entries are emitted.
+#
+# Tier legend:
+#   high  — grounding_source.kind: kb_path AND referenced file verified to exist
+#   mid   — grounding_source.kind: web_citation
+#   low   — grounding_source.kind: none
+
+schema_version: "1.0"
+skill: "generate-intent-epics"
+generated_at: "2026-04-18T03:00:00Z"
+
+decisions:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CAPABILITY 1: component-architecture
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - decision_id: "D-gie-001.1"
+    decision_type: "problem-statement-synthesis"
+    capability_slug: "component-architecture"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/agentic-methodology.md"
+      excerpt: "Failure scenario: Play inlines domain logic instead of delegating — play becomes untestable; evidence becomes inconsistent."
+    recommendation: >
+      Problem statement synthesizes: (a) market gap 1 — no competitor codifies methodology
+      across sessions (validated via MemNexus + Cuckoo Network sources in market-brief.md);
+      (b) profile failure scenario — solo-dev compounds technical debt silently when plays
+      inline domain work with no team review; (c) KB impact line — evidence inconsistency
+      and untestable plays. Competitive hook: GitHub Copilot/Cursor operate within single
+      session, discarding all methodology context on close.
+    alternatives_considered:
+      - alt: "Lead with token/governance hook instead of methodology persistence gap"
+        why_not: "Token governance is the audit-attribution epic's hook. Component-architecture problem is about methodology codification enforceability, not compliance."
+    agent_reasoning_summary: >
+      The component-architecture epic's problem is that ad-hoc agentic development produces
+      untraceable, non-reproducible engineering actions. No competitor enforces the
+      Play→Agent→Skill hierarchy with compiled artifacts traceable to intent. The solo-dev
+      context amplifies the impact: without the three-layer invariant, drift compounds with
+      no second reviewer to catch it.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-002.1"
+    decision_type: "intent-phrasing-metric-pick"
+    capability_slug: "component-architecture"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "≥ 95% of engineering actions in a Garura-managed project are invoked via a play (vs ad-hoc tool use)"
+    recommendation: >
+      Intent metric selected: ≥95% of engineering actions invoked via a play. This is the
+      highest-signal metric because it measures the enforcement rate of the entire hierarchy.
+      Phrased as: "Enable a solo founder to invoke ≥ 95% of engineering actions via plays
+      with full KB traceability, reducing ad-hoc tool drift to < 5%."
+    alternatives_considered:
+      - alt: "Use 100% plays-compile-from-intent-yaml metric"
+        why_not: "Compilation completeness is a build metric, not a user-observable outcome. The ≥95% invocation rate is the user-facing behavioral target."
+    agent_reasoning_summary: >
+      The 95% invocation rate is the most meaningful end-state for the component-architecture
+      epic because it measures adoption of the three-layer hierarchy as a whole, not a single
+      feature. It is observable (play invocation logs), quantified (95%), and directly tied
+      to the user's experience of structured vs ad-hoc development.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-003.1"
+    decision_type: "appetite-computation"
+    capability_slug: "component-architecture"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "team_size: solo-dev; timeline.milestones[0].target: 2026-04; 9 capabilities in v1 scope"
+    recommendation: >
+      Appetite computed via heuristic: solo-dev profile, 9 capabilities in scope,
+      April 2026 milestone. 9 capabilities ÷ ~6 weeks available = ~4-5 days per capability
+      at absolute minimum, but component-architecture is the foundational substrate
+      (9 LIVE features, no greenfield build). Selected appetite: "2 weeks" — this covers
+      hardening, test coverage gaps, and evidence pipeline strengthening rather than
+      greenfield feature work. Shape Up semantics: fixed 2 weeks, variable scope.
+    alternatives_considered:
+      - alt: "1 week — all features LIVE, only hardening needed"
+        why_not: "Evidence substrate (AM-F009) and STM folder enforcement (AM-F004) both have PARTIAL gaps. 1 week is insufficient for the quality bar needed before Stage 6."
+      - alt: "4 weeks — large feature count (9 features)"
+        why_not: "Shape Up: features are LIVE. Appetite is a time-box for the CURRENT work remaining, not a function of feature count."
+    agent_reasoning_summary: >
+      2 weeks appetite reflects the hardening scope for 9 LIVE features: fill evidence gaps,
+      enforce STM folder whitelist, strengthen commit hook for AI-authorship trailer.
+      Component-architecture has no greenfield build remaining; the appetite covers the
+      systematic gap-fill to reach the Advanced depth quality bar.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-004.1"
+    decision_type: "success-scenario-phrasing"
+    capability_slug: "component-architecture"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "≥ 95% of engineering actions invoked via play; Play invocation success rate ≥ 90% over rolling 30 days"
+    recommendation: >
+      Scenario 1 maps the 95% invocation criterion to: "Given a solo founder working on
+      a Garura-managed project, when they perform any engineering action (commit, PR, spec,
+      feature), then ≥ 95% of those actions are invoked via a play with a traceable
+      evidence artifact." Evidence: play invocation log shows ≥ 95% play-invoked vs
+      ad-hoc for the session.
+      Scenario 2 maps the 90% rolling success rate: "Given a play invoked by a developer,
+      when the play runs end-to-end, then the invocation succeeds and produces a valid
+      evidence artifact in ≥ 90% of runs over the trailing 30-day window."
+    alternatives_considered:
+      - alt: "Use the compilation metric (100% plays from intent.yaml) as primary success scenario"
+        why_not: "Compilation completeness is a CI-observable internal metric. The user-observable scenario is the invocation-rate adoption metric."
+    agent_reasoning_summary: >
+      Both scenarios translate enriched KB success criteria into binary-testable language.
+      The 95% invocation rate and 90% rolling success rate are the two most product-meaningful
+      observables for the component-architecture epic — one measures adoption, the other
+      measures reliability.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-005.1"
+    decision_type: "hypothesis-template-fill"
+    capability_slug: "component-architecture"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "audience.primary_roles: [software-engineer, solo-founder]; team_size: solo-dev"
+    recommendation: >
+      Persona: solo founder / software engineer. Outcome: ≥ 95% of engineering actions
+      traceable to a play with evidence artifact. Signal: play invocation log for a
+      30-day window shows ≥ 95% play-invoked vs ad-hoc.
+    alternatives_considered:
+      - alt: "Use engineering-lead as persona"
+        why_not: "v1 Apr milestone targets solo-founder segment. The engineering-lead persona is May–Jul horizon."
+    agent_reasoning_summary: >
+      Solo founder is the correct persona for the Apr 2026 hypothesis: they are the first
+      adopter, the most sensitive to methodology overhead, and the one whose behavior the
+      95% invocation rate measures directly.
+    user_response: null
+    user_response_detail: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CAPABILITY 2: l2-spec-driven
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - decision_id: "D-gie-001.2"
+    decision_type: "problem-statement-synthesis"
+    capability_slug: "l2-spec-driven"
+    tier: mid
+    grounding_source:
+      kind: web_citation
+      ref: "https://memnexus.ai/blog/2026-02-20-github-copilot-persistent-memory"
+      excerpt: "Market gap 1 + gap 4: no competitor ships spec-to-test continuity; spec decisions discarded at session end"
+    recommendation: >
+      Problem: When the session ends, AI-assisted spec decisions (which capabilities to build,
+      which constraints to enforce, which scenarios to validate) are discarded. Without a
+      persistent maturity-ladder engine, teams re-litigate the same architectural questions
+      in every session — with no record of the constraints that shaped prior decisions
+      (market brief gap 4 + gap 1). Failure impact from KB: upstream intent change does not
+      propagate to downstream scenarios, causing tests to pass against stale specs silently.
+    alternatives_considered:
+      - alt: "Lead with check-drift capability hook"
+        why_not: "check-drift is an artifact of spec continuity, not the primary user problem. The problem is lack of persistent spec state across sessions."
+    agent_reasoning_summary: >
+      l2-spec-driven's core problem is the volatility of spec decisions. Without the
+      maturity ladder engine and persistent memory substrate, every session starts from
+      scratch. The spec-to-test chain (AM-F012) is the v1 observable deliverable that makes
+      the persistent spec state testable.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-002.2"
+    decision_type: "intent-phrasing-metric-pick"
+    capability_slug: "l2-spec-driven"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "100% of intent epics validate against the schema before lock (AM-F012); check-drift detects ≥ 90% of spec vs implementation drift"
+    recommendation: >
+      Intent metric: 100% of intent epics pass schema validation before lock. This is the
+      most user-verifiable deliverable — the spec-to-test chain is the L2 promise.
+      Supporting: check-drift detects ≥ 90% of spec-implementation drift.
+    alternatives_considered:
+      - alt: "Use ≥ 90% project onboarding within 7 days metric"
+        why_not: "That metric measures adoption rate; the intent of the L2 epic is to deliver the spec continuity capability, not measure its uptake."
+    agent_reasoning_summary: >
+      The L2 epic's output is a working spec-to-test chain. The schema-validation gate
+      (100% epics validated before lock) is the binary signal that the chain is functional.
+      Drift detection (≥ 90%) is the ongoing health signal.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-003.2"
+    decision_type: "appetite-computation"
+    capability_slug: "l2-spec-driven"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "current_level: L2-spec-driven; timeline.milestones[0].target: 2026-04"
+    recommendation: >
+      2 weeks appetite. AM-F010 (Maturity Ladder Engine) and AM-F012 (Spec-to-Test
+      Continuity) are PARTIAL — the auto-propagation and level-up automation need
+      completion. AM-F011 (Persistent Memory) is PARTIAL workflow. 2 weeks covers
+      bringing all three from PARTIAL to LIVE at Advanced depth.
+    alternatives_considered:
+      - alt: "3 weeks — PARTIAL status across all three features"
+        why_not: "The substrate (memory) is already LIVE; only the workflow automation is PARTIAL. 2 weeks is achievable for the automation gaps."
+    agent_reasoning_summary: >
+      l2-spec-driven has the most PARTIAL work remaining of the AM capabilities.
+      2 weeks is the right appetite to bring the spec-continuity chain to a LIVE state
+      that the Level-2 promise requires before the Apr milestone closes.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-004.2"
+    decision_type: "success-scenario-phrasing"
+    capability_slug: "l2-spec-driven"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "100% of intent epics validate against the schema before lock; check-drift detects ≥ 90% of spec vs implementation drift"
+    recommendation: >
+      Scenario 1: spec-lock gate — "Given an intent epic authored for a v1 capability,
+      when the developer invokes the lock gate, then the epic passes validate-intent-epics
+      with 0 schema violations in 100% of runs."
+      Scenario 2: drift detection — "Given a spec previously locked and an implementation
+      branch diverging from it, when check-drift runs post-merge, then ≥ 90% of
+      spec-vs-implementation divergences are surfaced as actionable findings."
+    alternatives_considered:
+      - alt: "Use onboarding-time metric as primary scenario"
+        why_not: "Onboarding time measures adoption, not spec-continuity capability delivery. The spec-lock and drift detection scenarios are the direct output of this epic."
+    agent_reasoning_summary: >
+      Both scenarios are directly traceable to AM-F012 success criteria and are
+      binary-testable by a reviewer running validate-intent-epics and check-drift.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-005.2"
+    decision_type: "hypothesis-template-fill"
+    capability_slug: "l2-spec-driven"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "delivery_ambition.current_level: L2-spec-driven; team_size: solo-dev"
+    recommendation: >
+      Persona: software engineer (solo-dev). Outcome: spec-to-test chain produces
+      zero schema violations before lock. Signal: validate-intent-epics passes on 100%
+      of locked epics over a 30-day window.
+    alternatives_considered:
+      - alt: "Platform engineer persona"
+        why_not: "Platform engineer is the observer of the methodology; software engineer is the practitioner whose spec decisions the chain validates."
+    agent_reasoning_summary: >
+      Solo software engineer is the right persona — they author intent epics, trigger
+      the lock gate, and observe drift reports. The hypothesis tests whether the
+      spec-continuity chain reliably serves that workflow.
+    user_response: null
+    user_response_detail: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CAPABILITY 3: l3-intent-driven
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - decision_id: "D-gie-001.3"
+    decision_type: "problem-statement-synthesis"
+    capability_slug: "l3-intent-driven"
+    tier: mid
+    grounding_source:
+      kind: web_citation
+      ref: "https://memnexus.ai/blog/2026-02-20-github-copilot-persistent-memory"
+      excerpt: "Gap 1: no competitor enforces structured methodology ladder; gap 4: no spec-to-test continuity connected to intent"
+    recommendation: >
+      Problem: Even teams using spec-driven methods hand-author epics that drift from
+      their KB capability definitions. Without automated intent inference and scope
+      auto-narrowing, every specify-product run relies on manual selection that misses
+      cross-tree constraints and produces shallow epics that fail downstream validation.
+      KB failure scenario: constraint references an unknown feature ID, causing
+      specify-product to block.
+    alternatives_considered:
+      - alt: "Lead with WI-F007 (epic decomposition) as the primary problem"
+        why_not: "WI-F007 is an output of the L3 pipeline, not the primary problem. The core problem is scope-narrowing correctness and intent-schema rigor."
+    agent_reasoning_summary: >
+      l3-intent-driven's problem is automating a process (capability-to-epic mapping)
+      that, when done manually, produces shallow or inconsistent artifacts. The KPI
+      is: 100% of generated epics pass validate-intent-epics — a hard binary signal
+      that the automation is working correctly.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-002.3"
+    decision_type: "intent-phrasing-metric-pick"
+    capability_slug: "l3-intent-driven"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "100% of generated epics pass validate-intent-epics (AM-F015); Intent-crafter produces schema-valid output on ≥ 95% of runs"
+    recommendation: >
+      Intent metric: 100% of specify-product runs produce epics that pass
+      validate-intent-epics with zero blocking violations. This is the definitive
+      success signal for the L3 automation chain.
+    alternatives_considered:
+      - alt: "Use 95% intent-crafter success rate as primary metric"
+        why_not: "95% is the operational target. 100% epic validation pass is the quality gate — more directly tied to the user's experience of 'did this run succeed?'"
+    agent_reasoning_summary: >
+      The 100% epic validation pass rate is the binary gate that the L3 automation
+      chain must clear. It encompasses all three AM features (F013, F014, F015) plus
+      WI-F007 — a passing rate means the entire intent pipeline is functioning.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-003.3"
+    decision_type: "appetite-computation"
+    capability_slug: "l3-intent-driven"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "delivery_ambition.roadmap_horizon: L3-intent-driven (building); team_size: solo-dev"
+    recommendation: >
+      2 weeks appetite. AM-F013/F014/F015 are PARTIAL. WI-F007 is LIVE. The 2-week
+      box covers: completing intent-crafter schema coverage, hardening configure-capabilities
+      cross-tree constraint walk, and tightening generate-intent-epics + validate-intent-epics
+      to achieve the 100% pass rate.
+    alternatives_considered:
+      - alt: "3 weeks — AM-F013/F014/F015 are all PARTIAL"
+        why_not: "WI-F007 is already LIVE (generate-intent-epics ships this run). The remaining PARTIAL work for AM-F013/F014/F015 is scoped to constraint-walk hardening and schema coverage, achievable in 2 weeks."
+    agent_reasoning_summary: >
+      2 weeks appetite for the L3 pipeline hardening. The generate-intent-epics skill
+      executing this very run is a LIVE demonstration of the capability; remaining work
+      is gap-filling in intent-crafter coverage and constraint trace completeness.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-004.3"
+    decision_type: "success-scenario-phrasing"
+    capability_slug: "l3-intent-driven"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "100% of generated epics pass validate-intent-epics; 100% of specify-product runs produce scope.yaml with constraint_trace"
+    recommendation: >
+      Scenario 1: epic validation — "Given a specify-product run for any 9-capability
+      product scope, when generate-intent-epics completes, then validate-intent-epics
+      reports 0 blocking violations across all generated epics."
+      Scenario 2: constraint trace — "Given a specify-product Stage 3 run, when
+      configure-capabilities completes, then scope.yaml contains a constraint_trace
+      with a decision entry for every CTC in the cross-tree-constraints file, including
+      constraints that did not fire."
+    alternatives_considered:
+      - alt: "Use the 95% intent-crafter schema-valid run rate as scenario 1"
+        why_not: "The schema-valid rate is an operational metric, not a per-run user-observable outcome. The epic validation gate is the user-visible signal."
+    agent_reasoning_summary: >
+      Both scenarios are directly observable by running specify-product and inspecting
+      the output artifacts. Scenario 1 measures the end-to-end L3 pipeline; scenario 2
+      measures the Stage 3 constraint walk completeness.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-005.3"
+    decision_type: "hypothesis-template-fill"
+    capability_slug: "l3-intent-driven"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "audience.primary_roles: [software-engineer, product-manager]; delivery_ambition: L3"
+    recommendation: >
+      Persona: software engineer / product manager. Outcome: every specify-product run
+      produces validate-clean epics with no manual schema fixes required. Signal:
+      validate-intent-epics exits 0 on the first run for ≥ 95% of specify-product
+      executions over a 30-day window.
+    alternatives_considered:
+      - alt: "Solo founder persona"
+        why_not: "L3 intent automation is used by PMs and engineers, not only solo founders. The product manager is the primary beneficiary of automated epic generation."
+    agent_reasoning_summary: >
+      The product manager and software engineer both consume the L3 epic output.
+      The hypothesis tests whether automation reliably replaces manual epic authoring
+      for these two roles at the L3 delivery ambition level.
+    user_response: null
+    user_response_detail: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CAPABILITY 4: cli-slash-commands
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - decision_id: "D-gie-001.4"
+    decision_type: "problem-statement-synthesis"
+    capability_slug: "cli-slash-commands"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "Failure: Command not discoverable by new adopter — hidden capability without reading full docs"
+    recommendation: >
+      Problem: Solo founders evaluating a new methodology framework face a steep
+      discoverability cliff — if engineering commands are not surfaced as slash commands
+      with /help discoverability, the framework's capabilities remain invisible until
+      the adopter reads full documentation. The KB failure scenario is explicit:
+      a command not discoverable at first invocation represents a missed adoption moment.
+      The distill gap (EE-F018) compounds this: without post-merge learning extraction,
+      every closed issue's learnings evaporate before they reach LTM.
+    alternatives_considered:
+      - alt: "Lead with sync idempotency problem"
+        why_not: "Sync drift is a technical failure mode. The primary adopter-facing problem is discoverability, not sync behavior."
+    agent_reasoning_summary: >
+      CLI / slash commands is the UX contract of the entire platform. The problem is
+      that developer tools with non-discoverable command surfaces have adoption rates
+      that never recover from the first-session experience. Every play that lacks a
+      slash-command entry point is effectively invisible.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-002.4"
+    decision_type: "intent-phrasing-metric-pick"
+    capability_slug: "cli-slash-commands"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "Every play has a slash command; slash commands discoverable via /help; Invocation latency < 1s"
+    recommendation: >
+      Intent metric: every play has a slash command discoverable via /help, with
+      invocation latency < 1s. Phrased as: "Ensure every Garura play is reachable
+      via a slash command discoverable through /help within < 1s latency, with 0 plays
+      requiring documentation lookup to invoke."
+    alternatives_considered:
+      - alt: "Use distill post-merge metric as primary"
+        why_not: "Distill is a learning-extraction capability; the primary intent of this epic is the slash-command UX contract. Distill is in-scope but not the primary metric."
+    agent_reasoning_summary: >
+      The zero-lookup invocability of every play is the most user-observable outcome
+      and the hardest to achieve — it requires /help discoverability AND < 1s latency.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-003.4"
+    decision_type: "appetite-computation"
+    capability_slug: "cli-slash-commands"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "team_size: solo-dev; milestones[0].target: 2026-04; cli-slash-commands features: all 4 LIVE"
+    recommendation: >
+      1 week appetite. All 4 features (EE-F015/F016/F017/F018) are LIVE at Standard depth.
+      Work remaining: /help discoverability gap, status schema consistency check, distill
+      reminder integration in merge-pr. 1 week for hardening 4 LIVE features.
+    alternatives_considered:
+      - alt: "2 weeks — distill workflow needs completion"
+        why_not: "Distill (EE-F018) is LIVE. The remaining work is adding a distill reminder post-merge — a hardening task, not a feature build."
+    agent_reasoning_summary: >
+      1 week appetite for 4 LIVE features at Standard depth. All features are functional;
+      the appetite covers the /help audit, status schema consistency enforcement, and
+      post-merge distill integration.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-004.4"
+    decision_type: "success-scenario-phrasing"
+    capability_slug: "cli-slash-commands"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "Every play has a slash command discoverable via /help; Invocation latency < 1s; Sync idempotent drift < 10s"
+    recommendation: >
+      Scenario 1: discoverability — "Given a new Garura adopter who has never read the
+      documentation, when they type /help in Claude Code, then they see a complete listing
+      of all available Garura slash commands within 1s."
+      Scenario 2: sync idempotency — "Given a developer who runs /sync-claude twice
+      consecutively, when the second sync run starts, then it completes in < 10s with
+      zero file-system changes and a 'no drift detected' status."
+    alternatives_considered:
+      - alt: "Use distill learning-capture as scenario 2"
+        why_not: "Distill is a secondary capability within this epic. Sync idempotency is a direct user-blocking failure mode more critical for scenario coverage."
+    agent_reasoning_summary: >
+      Discoverability and sync idempotency are the two highest-risk user-observable failure
+      modes for CLI / slash commands. Both scenarios are binary-testable and map directly
+      to the enriched KB success criteria.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-005.4"
+    decision_type: "hypothesis-template-fill"
+    capability_slug: "cli-slash-commands"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "audience.primary_roles: [software-engineer, solo-founder]"
+    recommendation: >
+      Persona: solo founder / software engineer. Outcome: invokes any Garura play
+      from /help discovery without reading documentation. Signal: /help listings are
+      complete and invocation latency < 1s measured across all 42 shipped plays.
+    alternatives_considered:
+      - alt: "Designer persona"
+        why_not: "CLI slash commands are an engineering-surface capability. The design team uses the portal and artifact outputs, not the CLI invocation layer."
+    agent_reasoning_summary: >
+      Solo founder and software engineer are the primary CLI users. The hypothesis tests
+      whether the slash-command surface is discoverable enough that a new adopter needs
+      zero supplementary documentation to invoke any play.
+    user_response: null
+    user_response_detail: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CAPABILITY 5: first-run-onboarding
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - decision_id: "D-gie-001.5"
+    decision_type: "problem-statement-synthesis"
+    capability_slug: "first-run-onboarding"
+    tier: mid
+    grounding_source:
+      kind: web_citation
+      ref: ".garura/product/specification/market-brief.md"
+      excerpt: "Market gap 5: The solo-founder-to-enterprise progression is unserved. Most AI dev tools are built for one segment."
+    recommendation: >
+      Problem: Developers evaluating a new DX methodology platform face an
+      install-then-abandon cliff: if the first-run experience requires more than a
+      few minutes of configuration, the solo founder loses the evaluation moment
+      permanently. The KB failure scenario quantifies this: a wizard that asks too many
+      questions causes abandonment at Step 1 — the solo founder evaluating Garura is
+      lost. Market gap 5 validates: no AI dev tool serves the solo-to-enterprise
+      progression, so the greenfield wizard is the entry gate for the entire progression.
+    alternatives_considered:
+      - alt: "Lead with npm install size problem"
+        why_not: "Install size is a technical friction, not the primary adoption problem. The primary problem is the time-to-first-value at onboarding."
+    agent_reasoning_summary: >
+      The first-run-onboarding epic's problem is the solo-founder evaluation drop-off.
+      A 3-minute wizard that produces a valid project_profile is the v1 minimum that
+      converts an evaluator to an adopter. Everything else (npm publish, sync-claude
+      bootstrap) is infrastructure that enables the wizard to land.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-002.5"
+    decision_type: "intent-phrasing-metric-pick"
+    capability_slug: "first-run-onboarding"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "Greenfield wizard completes in < 3 minutes (EE-F010)"
+    recommendation: >
+      Intent metric: greenfield wizard completes in < 3 minutes and produces a valid
+      project_profile. This is the single highest-impact success metric for the
+      solo-founder Apr milestone.
+    alternatives_considered:
+      - alt: "npm install success rate as primary metric"
+        why_not: "npm install is an infrastructure prerequisite. The user-facing metric is wizard completion time — that's what converts evaluators."
+    agent_reasoning_summary: >
+      Sub-3-minute wizard completion is the canonical first-impression metric for
+      developer tools (reference: Stripe's famously short integration time).
+      A valid project_profile as output ensures the wizard is not just fast but
+      produces a functional artifact.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-003.5"
+    decision_type: "appetite-computation"
+    capability_slug: "first-run-onboarding"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "milestones[0]: mvp-solo-greenfield, target: 2026-04; team_size: solo-dev"
+    recommendation: >
+      3 weeks appetite. All 3 features (EE-F010/F011/F012) are PLANNED — this is
+      the only capability group that is fully greenfield in v1. 3 weeks covers:
+      three-question wizard build (EE-F010), npm package publication (EE-F011), and
+      sync-claude one-command bootstrap (EE-F012). This is the critical path for
+      the Apr 2026 milestone.
+    alternatives_considered:
+      - alt: "2 weeks — minimal wizard only"
+        why_not: "npm publish (EE-F011) and sync-claude bootstrap (EE-F012) are both mandatory for the Apr milestone launch. 2 weeks cannot cover all three features at Standard depth."
+      - alt: "4 weeks — more quality buffer"
+        why_not: "Apr milestone is the hard constraint. 3 weeks is aggressive but achievable for Standard-depth features; 4 weeks runs past the milestone."
+    agent_reasoning_summary: >
+      first-run-onboarding is the only fully PLANNED capability — 3 weeks is the minimum
+      viable appetite to ship wizard + npm publish + sync-claude bootstrap at Standard
+      depth before the Apr 2026 milestone closes.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-004.5"
+    decision_type: "success-scenario-phrasing"
+    capability_slug: "first-run-onboarding"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "Greenfield wizard completes in < 3 minutes; npm install garura succeeds; One-command bootstrap from npm"
+    recommendation: >
+      Scenario 1: wizard — "Given a solo founder with a new project directory and no prior
+      Garura configuration, when they run garura init, then they complete a 3-question
+      wizard and see a valid project_profile.yaml written in < 3 minutes."
+      Scenario 2: install — "Given a developer on a supported Node version, when they
+      run npm install garura, then the installation completes with zero errors and all
+      prerequisites verified by the preflight check."
+    alternatives_considered:
+      - alt: "Use sync-claude idempotency as scenario 2"
+        why_not: "sync-claude idempotency is covered under cli-slash-commands (EE-F017). For first-run-onboarding, the install success scenario is the more critical second scenario."
+    agent_reasoning_summary: >
+      Wizard completion and install success are the two gating scenarios for the Apr
+      milestone. Without both passing, the product cannot acquire its first adopter.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-005.5"
+    decision_type: "hypothesis-template-fill"
+    capability_slug: "first-run-onboarding"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "audience.adopter_segments: [solo-founders]; milestones[0]: mvp-solo-greenfield"
+    recommendation: >
+      Persona: solo founder. Outcome: complete Garura initialization and begin first play
+      within 3 minutes of npm install. Signal: wizard completes in < 3 minutes and
+      produces a valid project_profile.yaml on 100% of clean-install runs in CI.
+    alternatives_considered:
+      - alt: "Engineering lead persona"
+        why_not: "First-run onboarding targets solo founders in Apr 2026. Engineering leads are the May–Jul target segment."
+    agent_reasoning_summary: >
+      Solo founder is the v1 Apr adopter. The hypothesis tests whether the onboarding
+      is fast enough to convert the first-session evaluation to a first-use completion.
+    user_response: null
+    user_response_detail: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CAPABILITY 6: ide-integrations
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - decision_id: "D-gie-001.6"
+    decision_type: "problem-statement-synthesis"
+    capability_slug: "ide-integrations"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "Failure: Component drifts between core/components/ and ~/.claude/ — stale behavior in Claude Code"
+    recommendation: >
+      Problem: When a developer deploys updated plays or agents, the harness (Claude Code,
+      Factory, Codex CLI) continues running the stale version until an explicit sync.
+      Without reliable drift detection and idempotent sync, every component update is a
+      deployment risk — the developer cannot know whether the behavior they see in Claude
+      Code matches the source they authored. KB failure scenario: governance data missing
+      from Factory Droid runs violates the ai-usage-traceability compliance category.
+    alternatives_considered:
+      - alt: "Lead with Factory Droids governance attribution gap"
+        why_not: "Factory Droid attribution is a compliance sub-problem. The primary problem is sync reliability across all three harnesses."
+    agent_reasoning_summary: >
+      ide-integrations is the deployment layer. Its core problem is drift — the invisible
+      gap between authored source and running harness behavior. sync-claude zero-drift is
+      the primary observable that proves the deployment layer is reliable.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-002.6"
+    decision_type: "intent-phrasing-metric-pick"
+    capability_slug: "ide-integrations"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "sync-claude completes with zero drift on 100% of runs (EE-F001)"
+    recommendation: >
+      Intent metric: sync-claude completes with zero drift on 100% of runs. This is the
+      definitive harness-reliability signal — zero drift means every developer is running
+      the exact source they authored.
+    alternatives_considered:
+      - alt: "Factory parity test pass rate as primary metric"
+        why_not: "Factory parity is a secondary harness. Claude Code is the reference harness; sync-claude zero-drift is the primary signal."
+    agent_reasoning_summary: >
+      100% zero-drift sync is the strongest possible signal for harness reliability.
+      It encompasses EE-F001 (Claude Code), and any sync-droids / Codex CLI
+      equivalents share the same zero-drift requirement.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-003.6"
+    decision_type: "appetite-computation"
+    capability_slug: "ide-integrations"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "EE-F001: LIVE at Standard; EE-F004: PARTIAL at Standard; EE-F005: PLANNED at Standard"
+    recommendation: >
+      2 weeks appetite. EE-F001 is LIVE; EE-F004 is PARTIAL (sync-droids needs
+      governance signal capture completion); EE-F005 is PLANNED (Codex CLI adapter).
+      2 weeks: EE-F004 governance completion + EE-F005 CLI adapter build.
+    alternatives_considered:
+      - alt: "1 week — EE-F001 is already LIVE"
+        why_not: "EE-F004 PARTIAL and EE-F005 PLANNED both need build work. 1 week is insufficient to complete the governance signal capture and Codex CLI adapter."
+    agent_reasoning_summary: >
+      2 weeks for ide-integrations: EE-F004 governance completion is the compliance-
+      critical work (ai-usage-traceability); EE-F005 Codex CLI adapter is the CI
+      surface expansion. Both are achievable in 2 weeks at solo-dev pace.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-004.6"
+    decision_type: "success-scenario-phrasing"
+    capability_slug: "ide-integrations"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "sync-claude completes with zero drift on 100% of runs; sync-droids parity tests pass on core plays"
+    recommendation: >
+      Scenario 1: sync-claude — "Given a developer who has modified a play source in
+      core/components/, when they run /sync-claude, then every modified component is
+      available in Claude Code within 30s and a drift report shows 0 unexpected changes."
+      Scenario 2: Factory Droid parity — "Given a Factory Droid run executing a Garura
+      play, when the run completes, then governance signals (AI-authorship, token count,
+      invocation context) are captured and retrievable in the audit trail."
+    alternatives_considered:
+      - alt: "Use Codex CLI deterministic behavior as scenario 2"
+        why_not: "Codex CLI (EE-F005) is PLANNED. Factory Droids (EE-F004) PARTIAL governance capture is the more critical in-flight scenario."
+    agent_reasoning_summary: >
+      sync-claude zero-drift and Factory Droids governance capture are the two in-flight
+      delivery scenarios. Both map to KB success criteria and are binary-testable.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-005.6"
+    decision_type: "hypothesis-template-fill"
+    capability_slug: "ide-integrations"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "audience.primary_roles: [software-engineer, platform-engineer]"
+    recommendation: >
+      Persona: software engineer / platform engineer. Outcome: harness always runs
+      the source-authoritative version of every component. Signal: zero drift reports
+      across 100% of sync-claude runs in a 30-day window.
+    alternatives_considered:
+      - alt: "Solo founder persona"
+        why_not: "IDE integrations maintenance is a platform engineering concern. Solo founder uses the CLI surface; platform engineer operates the sync pipeline."
+    agent_reasoning_summary: >
+      Platform engineer and software engineer are the right personas for harness
+      integration reliability. The hypothesis tests whether the sync layer reliably
+      delivers source-authoritative behavior to all connected harnesses.
+    user_response: null
+    user_response_detail: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CAPABILITY 7: audit-attribution
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - decision_id: "D-gie-001.7"
+    decision_type: "problem-statement-synthesis"
+    capability_slug: "audit-attribution"
+    tier: mid
+    grounding_source:
+      kind: web_citation
+      ref: "https://www.augmentcode.com/guides/7-soc-2-ready-ai-coding-tools-for-enterprise-security"
+      excerpt: "Market gap 2: No AI coding tool offers deterministic, auditable workflows for enterprise compliance — AI-vs-human attribution missing from all major tools"
+    recommendation: >
+      Problem: AI coding tool workflows produce commits, evidence files, and decisions
+      with no persistent attribution chain distinguishing AI-generated from human-authored
+      actions. Market gap 2 confirms: as of April 2026, no major AI coding tool provides
+      a built-in compliance surface with AI attribution traces. The KB ratchet fires:
+      the ai-usage-traceability compliance category mandates that 100% of play-produced
+      commits carry an AI-authorship commit trailer — currently PARTIAL enforcement.
+      A solo contributor with 100% unattributed AI commits represents a complete audit
+      trail gap with no triangulation from human-authored commits.
+    alternatives_considered:
+      - alt: "Lead with decision manifest gap (AG-F005)"
+        why_not: "Decision provenance is a secondary attribution problem. The primary compliance blocker is commit-level AI attribution (AG-F004 ratchet)."
+    agent_reasoning_summary: >
+      audit-attribution is the only capability with a compliance ratchet fired. The
+      problem statement anchors on the market gap (no competitor ships this) and the
+      profile mandate (ai-usage-traceability compliance category is not optional for v1).
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-002.7"
+    decision_type: "intent-phrasing-metric-pick"
+    capability_slug: "audit-attribution"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "RATCHETED: 100% of play-produced commits MUST carry AI-authorship commit trailer (AG-F004)"
+    recommendation: >
+      Intent metric: 100% of play-produced commits carry an AI-authorship commit trailer.
+      This is the ratcheted mandate — the compliance category fires it regardless of
+      depth selection. Phrased as: "Ensure 100% of play-produced commits carry an
+      AI-authorship trailer and every inferred decision is recorded in a decision manifest,
+      making the AI-vs-human attribution chain auditable on demand."
+    alternatives_considered:
+      - alt: "Use audit bundle generation on demand as primary metric"
+        why_not: "Bundle generation (AG-F006) is the output; commit trailer enforcement (AG-F004) is the ratcheted input. The primary metric is the enforcement rate."
+    agent_reasoning_summary: >
+      The 100% commit-trailer enforcement rate is the ratcheted compliance mandate.
+      It is the most binding success signal because it was elevated by the profile's
+      ai-usage-traceability compliance category, independent of depth selection.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-003.7"
+    decision_type: "appetite-computation"
+    capability_slug: "audit-attribution"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "compliance.required: true; AG-F004: PARTIAL; AG-F005: LIVE; AG-F006: LIVE"
+    recommendation: >
+      2 weeks appetite. AG-F004 (commit-trailer enforcement) is PARTIAL — the commit
+      hook exists but enforcement is not 100%. AG-F005 and AG-F006 are LIVE. 2 weeks
+      covers: enforcing 100% commit-trailer coverage via pre-commit hook hardening,
+      and wiring decision-manifest generation into all remaining play types.
+    alternatives_considered:
+      - alt: "1 week — AG-F005/F006 already LIVE"
+        why_not: "The ratcheted compliance requirement for 100% commit-trailer enforcement requires systematic hook coverage across all 42+ plays. 1 week is insufficient for the coverage sweep."
+    agent_reasoning_summary: >
+      2 weeks for the compliance ratchet. The 100% commit-trailer enforcement is
+      the critical compliance gap — it requires auditing every play that produces
+      a commit and adding/verifying the hook invocation.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-004.7"
+    decision_type: "success-scenario-phrasing"
+    capability_slug: "audit-attribution"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "100% of play-produced commits carry AI-authorship trailer; Every inferred decision has tier-rationale in decision manifest"
+    recommendation: >
+      Scenario 1: commit attribution — "Given a developer running any Garura play that
+      produces a commit, when the commit lands in the repository, then the commit message
+      carries a valid AI-authorship trailer in 100% of play-produced commits."
+      Scenario 2: decision manifest — "Given a specify-product run that makes inferred
+      decisions about capability selection and depth, when the run completes, then a
+      decision-manifest.yaml exists with a tier-rationale entry for every inferred decision,
+      and 0 decisions are silently resolved."
+    alternatives_considered:
+      - alt: "Use audit bundle generation as scenario 2"
+        why_not: "Bundle generation is downstream of attribution. The decision manifest scenario directly tests the Decision Surfacing Discipline — the compliance gap that is actively in-flight."
+    agent_reasoning_summary: >
+      Commit attribution and decision manifest completeness are the two active compliance
+      gaps. Both map directly to the ratcheted business rules and are binary-testable
+      by inspecting commit logs and decision-manifest.yaml files.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-005.7"
+    decision_type: "hypothesis-template-fill"
+    capability_slug: "audit-attribution"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "audience.secondary_roles: [compliance-officer]; compliance.required: true"
+    recommendation: >
+      Persona: compliance officer / software engineer. Outcome: full AI-vs-human
+      attribution chain auditable from commit history and decision manifests.
+      Signal: 0 play-produced commits missing AI-authorship trailer in a 30-day window,
+      and 0 inferred decisions missing a decision manifest entry.
+    alternatives_considered:
+      - alt: "Engineering director persona"
+        why_not: "The compliance officer is the explicit secondary role for this capability. Engineering director is an adoption-reporting persona, not an audit-trail consumer."
+    agent_reasoning_summary: >
+      The compliance officer is the audit consumer; the software engineer is the
+      workflow executor. The hypothesis tests whether the attribution chain is
+      complete enough to satisfy a compliance review without manual reconstruction.
+    user_response: null
+    user_response_detail: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CAPABILITY 8: quality-signals
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - decision_id: "D-gie-001.8"
+    decision_type: "problem-statement-synthesis"
+    capability_slug: "quality-signals"
+    tier: mid
+    grounding_source:
+      kind: web_citation
+      ref: "https://codepulsehq.com/guides/software-engineering-intelligence-platform-guide"
+      excerpt: "Market gap 3: Engineering observability is split from the developer's workflow — DORA metrics live at the manager layer, disconnected from moment of development"
+    recommendation: >
+      Problem: Quality signals (coverage, lint, security) run in CI but their results
+      are disconnected from the developer's moment of decision. Solo founders operating
+      without a team have no second reviewer to notice when a signal goes silent —
+      a coverage tool format change, for example, can silently eliminate quality visibility
+      for weeks. Market gap 3 confirms: no platform connects methodology operating level
+      to quality observability. The KB failure scenario is precise: high coverage percentage
+      masking shallow test assertions creates false confidence that defects exploit silently.
+    alternatives_considered:
+      - alt: "Lead with security scanner noise problem"
+        why_not: "Scanner noise is a configuration problem, not the primary problem. The primary problem is that quality signals are disconnected from the developer workflow on a solo-dev project."
+    agent_reasoning_summary: >
+      quality-signals is the observability primitive for v1. The problem is signal
+      disconnection — developers see quality metrics in CI dashboards but not in
+      the moment of development. The epic delivers three integrated signals: coverage,
+      lint, and security posture.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-002.8"
+    decision_type: "intent-phrasing-metric-pick"
+    capability_slug: "quality-signals"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "quality-check runs successfully on ≥ 95% of supported stacks (EO-F001); Lint runs on ≥ 95% of supported stacks"
+    recommendation: >
+      Intent metric: quality-check (coverage + lint + security scan) runs successfully
+      on ≥ 95% of supported stacks with results surfaced per PR. Primary metric is the
+      95% stack coverage — one failing stack silently eliminates quality visibility for
+      that language ecosystem.
+    alternatives_considered:
+      - alt: "Use security posture dashboard as primary metric"
+        why_not: "The posture dashboard is a downstream consumer of the signal. The primary observable is signal availability — quality-check running successfully on ≥ 95% of stacks."
+    agent_reasoning_summary: >
+      The 95% stack success rate is the minimum viable quality signal: if quality-check
+      fails on any supported stack, quality visibility for that stack drops to zero.
+      ≥ 95% ensures at least one language ecosystem has complete coverage at launch.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-003.8"
+    decision_type: "appetite-computation"
+    capability_slug: "quality-signals"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "EO-F001: PARTIAL; EO-F002: PARTIAL; EO-F004: PARTIAL; team_size: solo-dev"
+    recommendation: >
+      2 weeks appetite. All 3 features are PARTIAL. EO-F001 (CI threshold), EO-F002
+      (CI lint gate), and EO-F004 (security scan aggregation) need hardening to reach
+      Standard depth quality bar. 2 weeks covers: stack-specific adapter tests, format-
+      change detection, severity policy for security scan, and posture dashboard per project.
+    alternatives_considered:
+      - alt: "3 weeks — all three PARTIAL"
+        why_not: "Standard depth for all three is achievable in 2 weeks at solo-dev pace. The features are functional; only the hardening (stack adapter tests, severity policy) is needed."
+    agent_reasoning_summary: >
+      2 weeks for 3 PARTIAL features at Standard depth. The features are functional but
+      lack stack-adapter resilience and severity-policy configuration. 2 weeks covers
+      the hardening scope without overrunning the Apr milestone.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-004.8"
+    decision_type: "success-scenario-phrasing"
+    capability_slug: "quality-signals"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "quality-check runs on ≥ 95% of supported stacks; lint violations surfaced per PR; scanner integration for ≥ 1 language ecosystem"
+    recommendation: >
+      Scenario 1: coverage + lint — "Given a PR submitted on any Garura-managed project,
+      when quality-check runs in CI, then coverage delta and lint violations are surfaced
+      in the PR within 3 minutes and the check exits with a deterministic pass/fail
+      in ≥ 95% of supported stack runs."
+      Scenario 2: security posture — "Given a Garura-managed project with dependencies,
+      when the security scanner runs in CI, then a severity-tagged vulnerability list
+      is available in the posture dashboard within 5 minutes of the scan completing,
+      for ≥ 1 supported language ecosystem."
+    alternatives_considered:
+      - alt: "Use coverage-masking detection as scenario 2"
+        why_not: "Coverage masking is a known limitation addressed by mutation testing (post-v1). The security posture scenario is the in-scope v1 scenario for EO-F004."
+    agent_reasoning_summary: >
+      Quality-check PR surfacing and security posture availability are the two
+      user-observable quality signal outputs. Both are binary-testable and map to
+      the enriched KB success criteria.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-005.8"
+    decision_type: "hypothesis-template-fill"
+    capability_slug: "quality-signals"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "audience.primary_roles: [software-engineer, engineering-lead]; security_level: elevated"
+    recommendation: >
+      Persona: software engineer / engineering lead. Outcome: every PR receives quality
+      signal coverage (test, lint, security) without manual configuration. Signal:
+      quality-check reports available on ≥ 95% of PRs across supported stacks in
+      a 30-day window.
+    alternatives_considered:
+      - alt: "Compliance officer persona"
+        why_not: "Security posture reporting serves the compliance role; the primary persona for quality-signals is the developer who acts on the signal per PR."
+    agent_reasoning_summary: >
+      Software engineer and engineering lead are the right personas — they act on
+      quality signals per PR. The hypothesis tests whether the signal delivery is
+      reliable enough to trust without manual checks.
+    user_response: null
+    user_response_detail: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CAPABILITY 9: intent-driven-verification
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  - decision_id: "D-gie-001.9"
+    decision_type: "problem-statement-synthesis"
+    capability_slug: "intent-driven-verification"
+    tier: mid
+    grounding_source:
+      kind: web_citation
+      ref: ".garura/product/specification/market-brief.md"
+      excerpt: "Market gap 4: Work intelligence (triage, backlog, test gen) is not connected to intent — no product connects the intent behind a feature to triage and test generation"
+    recommendation: >
+      Problem: Test suites in AI-assisted development are disconnected from the intent
+      that drove the feature — tests are written against the implementation, not the
+      original scenario. Without intent-driven eval generation, a defect can be fixed
+      in a way that satisfies the code but violates the original user scenario. Market
+      gap 4 confirms: no tool connects intent → spec → test in a persistent artifact chain.
+      KB failure scenario: evals drift from intent after an intent.yaml change — false
+      positive passes occur silently, with no second reviewer to notice on a solo project.
+    alternatives_considered:
+      - alt: "Lead with RCA template gap"
+        why_not: "RCA (WI-F012) is a defect resolution feature. The primary intent-driven verification problem is the eval-generation chain, not defect resolution."
+    agent_reasoning_summary: >
+      intent-driven-verification is the verification counterpart to the L3 intent pipeline.
+      The problem is that tests today are written against code, not intent — producing
+      tests that pass but validate the wrong thing. All 4 features are LIVE, so the
+      epic covers hardening the existing chain, not greenfield build.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-002.9"
+    decision_type: "intent-phrasing-metric-pick"
+    capability_slug: "intent-driven-verification"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "Every play has step evals; every capability has scenario evals; evals pass on canonical traces (WI-F010)"
+    recommendation: >
+      Intent metric: every play has step evals generated from intent.yaml, and every
+      capability has scenario evals; evals pass on canonical traces. The highest-impact
+      signal is: evals pass on canonical traces — this is the binary gate that proves
+      intent-to-test chain integrity.
+    alternatives_considered:
+      - alt: "fix-it closes ≥ 95% of defects without reopening"
+        why_not: "fix-it closure rate is the defect-loop metric. The primary metric for this epic is eval generation completeness — the foundation that makes fix-it's regression tests possible."
+    agent_reasoning_summary: >
+      The eval-generation completeness (every play has step evals, every capability has
+      scenario evals) is the primary deliverable. The canonical-trace pass rate is the
+      binary signal that the chain is producing correct evals, not just any evals.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-003.9"
+    decision_type: "appetite-computation"
+    capability_slug: "intent-driven-verification"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "WI-F010/F011/F012/F013: all LIVE; delivery_ambition: Advanced depth"
+    recommendation: >
+      2 weeks appetite. All 4 features are LIVE at Advanced depth. Work: eval coverage
+      sweep (ensure every play has step evals), scenario eval audit (every capability has
+      scenario evals), regression test audit (every defect fix has a linked regression test).
+      2 weeks for the systematic coverage hardening.
+    alternatives_considered:
+      - alt: "1 week — all features LIVE"
+        why_not: "LIVE status means the machinery exists. The 2-week appetite covers the coverage sweep — auditing all 42 plays for eval completeness is non-trivial solo work."
+    agent_reasoning_summary: >
+      2 weeks for the eval coverage sweep. All 4 features are LIVE but the coverage
+      is incomplete — the appetite covers auditing and filling gaps in eval attachment
+      across all plays and capabilities.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-004.9"
+    decision_type: "success-scenario-phrasing"
+    capability_slug: "intent-driven-verification"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/enriched-capabilities.yaml"
+      excerpt: "Every play has step evals; evals pass on canonical traces; fix-it closes ≥ 95% of defects without reopening"
+    recommendation: >
+      Scenario 1: eval generation — "Given any Garura play with a valid intent.yaml,
+      when evals-creator runs, then a step eval file exists for every play step and
+      a scenario eval file exists for every success and failure scenario in the intent,
+      with all evals passing on their canonical traces."
+      Scenario 2: fix-it loop closure — "Given a defect filed against a Garura play,
+      when fix-it completes the RCA-driven fix, then a regression test is linked to
+      the defect in STM and the fix does not reopen within the same milestone window
+      in ≥ 95% of cases."
+    alternatives_considered:
+      - alt: "Use test synthesis language count as scenario 2"
+        why_not: "Language count is a capability boundary, not a user-observable scenario. The fix-it loop closure rate is the end-to-end verification chain observable."
+    agent_reasoning_summary: >
+      Eval generation completeness and fix-it loop closure are the two highest-signal
+      user-observable outcomes for intent-driven verification. Both scenarios are
+      binary-testable and map to the enriched KB success criteria.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-gie-005.9"
+    decision_type: "hypothesis-template-fill"
+    capability_slug: "intent-driven-verification"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/specification/project-profile.yaml"
+      excerpt: "audience.primary_roles: [software-engineer]; delivery_ambition: L3-intent-driven"
+    recommendation: >
+      Persona: software engineer. Outcome: every play run is backed by intent-traceable
+      evals that catch regressions before they reach main. Signal: evals pass on canonical
+      traces for 100% of plays with attached evals, and fix-it closes ≥ 95% of filed
+      defects without reopening in a 30-day window.
+    alternatives_considered:
+      - alt: "Engineering lead persona"
+        why_not: "Intent-driven verification is an engineering execution concern. The software engineer is the practitioner who runs evals and fix-it; the engineering lead observes the defect rate."
+    agent_reasoning_summary: >
+      Software engineer is the primary persona for intent-driven verification —
+      they run evals, interpret failure output, and invoke fix-it. The hypothesis
+      tests whether the verification chain reliably catches regressions before
+      a solo contributor ships them.
+    user_response: null
+    user_response_detail: null
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # D-gie-006: COMPONENT MERGE — NOT APPLICABLE
+  # ═══════════════════════════════════════════════════════════════════════════
+  # All 9 capabilities have feature_classification: vertical in scope.yaml.
+  # No component capabilities exist. The Step 2b merge pass is a no-op.
+  # D-gie-006 decision entries are not emitted.

@@ -1,0 +1,228 @@
+# epic-engineering-experience-ide-integrations-001.yaml
+# Garura Platform — specify-product Stage 5: Intent Epic
+#
+# Provenance
+# play: specify-product
+# stage: 5-generate-intent-epics
+# agent: product-keeper
+# skill: generate-intent-epics v0.2.0
+# task_id: specify-product-stage-5-generate
+# created_at: 2026-04-18T03:00:00Z
+# reconciled_at: 2026-04-18T06:00:00Z  (EE-F004/EE-F005 reclassified LIVE → PARTIAL per user Stage-1/2 authoritative input)
+# kb_source_file: .garura/product/research/engineering-experience.md
+# enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
+
+id: "EPIC-engineering-experience-ide-integrations-001"
+domain: "engineering-experience"
+capability: "EE-F001"
+
+provenance:
+  source: brief_explicit
+  source_quote: "engineering-experience / ide-integrations (EE-F001 LIVE, EE-F004 PARTIAL, EE-F005 PARTIAL) — Stage-3 user input reconciled against Stage-1/2 ground truth"
+  confidence: high
+
+problem_statement: >
+  When a developer deploys updated plays, agents, or skills via /create-play or
+  direct source edits, the harness (Claude Code, Factory Droids, Codex CLI) continues
+  running the stale version until an explicit sync. Without reliable drift detection and
+  idempotent sync across all three harnesses, every component update is a deployment
+  risk — the developer cannot trust that the behavior they observe in Claude Code matches
+  the source they authored. The compliance-critical failure: governance data is missing
+  from Factory Droid runs when sync-droids does not capture invocation context —
+  AI-generated commits from Droids carry no authorship trailer, violating the
+  ai-usage-traceability compliance category.
+
+intent: >
+  Ensure every component update is reflected in Claude Code within 30s of /sync-claude
+  with zero drift, Factory Droid runs capture governance signals on 100% of executions,
+  and a Codex CLI adapter delivers deterministic CI-mode behavior for script-driven workflows.
+
+intent_lock:
+  locked_at: "2026-04-18T05:00:00Z"
+  intent_hash: "sha256:fc58d7d8269970bd1d9fd329f9cc82b4b11a655987f994de360905b24f2c6d4c"
+  locked_by: "specify-product-stage-5-validate"
+  immutability_note: >
+    Intent content is immutable after lock. Post-v1 drift requiring a scope change must
+    be handled via a Product-Drift successor epic, not by editing this intent block. The
+    features[] ledger and epic_status rollup below may evolve as capabilities move through
+    PLANNED → PARTIAL → LIVE; the intent itself is sealed.
+
+appetite: "2 weeks"
+
+in_scope:
+  - "EE-F001 Claude Code Integration at Standard depth: sync-claude completes with zero drift on 100% of runs; every modified component available in Claude Code within 30s of sync; local-edit conflict detection before overwrite"
+  - "EE-F004 Factory Droids Sync at Standard depth: sync-droids completes reliably; parity tests pass on all core plays; governance signals (AI-authorship, token count, invocation context) captured and retrievable in audit trail"
+  - "EE-F005 Codex CLI Adapter at Standard depth: CLI adapter delivers script-friendly output format; CI-mode behavior is deterministic with no interactive prompts; non-interactive policy pre-approvals for CI-invoked plays"
+  - "Invocation-context capture in sync-droids: every Factory Droid play execution records the AI-authorship trailer equivalent for the Droid context"
+
+anti_goals:
+  - "Advanced update/upgrade flow with drift detection for EE-F001 — post-v1; v1 scope is the Standard sync-claude deployment only"
+  - "Multi-tenant Claude Code with governance — Enterprise depth; post-v1 enterprise milestone (Jul 2026)"
+  - "JetBrains, VS Code, or other IDE-specific adapters — v1 targets Claude Code as the reference harness only; other IDEs are post-v1"
+  - "Real-time sync without explicit /sync-claude invocation — always-on sync is a post-v1 enhancement"
+
+must_not_break:
+  - "EPIC-agentic-methodology-component-arch-001 — sync-claude is the deployment mechanism for the three-layer hierarchy; a sync failure that corrupts deployed components breaks all plays"
+  - "EPIC-engineering-experience-cli-slash-commands-001 — /sync-claude runs the same pipeline as the first-run bootstrap; any sync change must preserve /help discoverability and command registry integrity"
+  - "User-customized components in ~/.claude/ — sync must not overwrite local modifications without a Tether/Vanish gate"
+
+foundation_investment: false
+
+features:
+  - id: "EE-F001"
+    name: "Claude Code Integration"
+    status: "LIVE"
+    delivered_at: "2026-01-30"
+    evidence:
+      - path: "core/components/plays/sync-claude/"
+        type: "play"
+      - path: "~/.claude/"
+        type: "deployment"
+    delta_remaining: null
+    intent_fit_rationale: "Claude Code is the reference harness; delivers zero-drift sync target in this epic's intent."
+  - id: "EE-F004"
+    name: "Factory Droids Sync"
+    status: "PARTIAL"
+    delivered_at: null
+    evidence:
+      - path: "core/components/plays/sync-droids/"
+        type: "play"
+    delta_remaining: "Factory harness integration (sync-droids) is wired and parity tests exist, but governance-signal capture (AI-authorship trailer, token count, invocation-context API binding) is incomplete. Full ai-usage-traceability compliance for Droid-produced commits is not yet demonstrable end-to-end."
+    intent_fit_rationale: "Governance-signal capture on Factory Droid runs is the compliance-critical target tied to the ai-usage-traceability ratchet."
+  - id: "EE-F005"
+    name: "Codex CLI Adapter"
+    status: "PARTIAL"
+    delivered_at: null
+    evidence:
+      - path: "core/components/plays/sync-codex/"
+        type: "play"
+    delta_remaining: "Codex harness integration (sync-codex) is wired for interactive use, but CI-mode deterministic behavior (non-interactive flag, Tether/Vanish structured-failure short-circuit, policy pre-approvals) is incomplete. Script-driven CI workflows cannot yet rely on deterministic exits."
+    intent_fit_rationale: "CI-mode non-interactive behavior is required for script-driven workflows named in the intent."
+
+epic_status:
+  live_count: 1
+  partial_count: 2
+  planned_count: 0
+  delivered_pct: 33
+  total_features: 3
+
+success_scenarios:
+  - scenario: >
+      Given a developer who has modified a play source file in core/components/, when
+      they run /sync-claude, then every modified component is available in Claude Code
+      within 30s and the sync status output shows 0 unexpected changes and 0 errors.
+    evidence: >
+      /sync-claude exit code 0. Modified components appear in ~/.claude/ with matching
+      checksums. Sync duration < 30s measured from invocation to completion. Status
+      output shows a diff of changed files and a "0 unexpected changes" summary.
+  - scenario: >
+      Given a Factory Droid run executing any core Garura play in a CI pipeline, when
+      the run completes, then the play's governance signals (AI-authorship identifier,
+      token count, invocation timestamp) are captured in the audit trail and retrievable
+      via the AG-F006 evidence export.
+    evidence: >
+      Governance signal record exists in the audit trail for 100% of Factory Droid play
+      executions. Record contains: AI-authorship identifier, token count, invocation
+      timestamp, play name. Verified by querying the audit trail after a Factory Droid
+      pilot run.
+
+failure_scenarios:
+  - scenario: >
+      Given a developer who has customized a component in ~/.claude/ locally, when
+      /sync-claude runs without conflict detection, then the customized component is
+      silently overwritten by the sync.
+    impact: >
+      Lost customization — solo-dev has no backup contributor and no automatic recovery
+      for the overwritten component. The developer loses trust in the sync pipeline.
+    mitigation: >
+      Conflict detection before sync: /sync-claude checksums all local components against
+      source before any write; any local modification triggers a Tether/Vanish gate
+      showing the diff before overwrite proceeds.
+  - scenario: >
+      Given a Factory Droid run where invocation-context capture is not implemented,
+      when the Droid produces AI-generated commits, then those commits carry no
+      AI-authorship trailer.
+    impact: >
+      Attribution gap breaks audit trail for all Droid-produced commits. This directly
+      violates the ai-usage-traceability compliance category ratchet. Solo-dev impact:
+      Factory Droid commits become indistinguishable from human commits in the audit trail.
+    mitigation: >
+      invocation-context capture implemented in sync-droids before Factory Droid
+      functionality is enabled for any production use; governance signal capture
+      is a blocking requirement for EE-F004 completion.
+  - scenario: >
+      Given a Codex CLI invocation of a Garura play in CI mode, when the play reaches
+      a Tether/Vanish gate, then the play hangs indefinitely waiting for user input
+      that never arrives.
+    impact: >
+      CI pipeline hangs indefinitely; the build never completes. Solo-dev impact:
+      blocked pipelines block all downstream deployments with no team to diagnose.
+    mitigation: >
+      Non-interactive mode flag in Codex CLI adapter; policy pre-approvals configured
+      before CI-mode plays run; any play reaching a Tether/Vanish gate in non-interactive
+      mode emits a structured failure immediately rather than waiting for input.
+
+constraints:
+  performance:
+    value: "sync-claude completes in < 30s; sync-droids parity tests complete in < 2 minutes; Codex CLI non-interactive play exits within the same timeout as interactive mode"
+    source_for_quantification:
+      source: kb_default
+      source_reference: "kb.engineering-experience.EE-F001.success_criteria[0]; 30s derived from developer workflow cadence threshold"
+      user_grounded: true
+      user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+  security:
+    value: "OWASP ASVS Level 1 — sync operates on local file system; no external network calls except to npm registry; TLS 1.3 for all remote sync endpoints; Factory Droid credentials stored in environment variables, not in play files"
+    source_for_quantification:
+      source: profile_nfr
+      source_reference: "profile.security_level=elevated maps to OWASP ASVS Level 1 for local deployment surfaces"
+  accessibility:
+    value: "WCAG 2.1 AA — sync and CLI adapter output is terminal text; AA constraint inherited for any UI-rendered sync status"
+    source_for_quantification:
+      source: profile_nfr
+      source_reference: "profile.audience includes designers and PMs; WCAG 2.1 AA is the org-wide baseline"
+  compliance:
+    - value: "ai-usage-traceability — Factory Droid runs must capture invocation context enabling AI-authorship attribution; zero Droid-produced commits without governance signals"
+      source_for_quantification:
+        source: profile_nfr
+        source_reference: "profile.compliance.categories includes 'ai-usage-traceability'; ratchet applies to all AI-producing surfaces including Factory Droids"
+
+business_rules:
+  - "Mandatory for Garura — Claude Code is the reference harness where every play and agent runs (EE-F001); sync-claude is the sole deployment mechanism"
+  - "sync-claude is read-only on ~/.claude/ relative to the source — no direct edits to deployed components allowed; all changes go through source then sync"
+  - "Factory Droids are optional — conditional on org using Factory; selected because governance signal capture is required by ai-usage-traceability compliance category (EE-F004)"
+  - "Codex CLI adapter is optional — conditional on CI-driven workflow; selected for CI integration completeness (EE-F005)"
+  - "invocation-context capture in sync-droids is non-optional once Factory Droid support is enabled — governance gap is a compliance blocker"
+
+hypothesis: >
+  We believe that delivering zero-drift sync, governance-signal capture for Factory Droids,
+  and non-interactive CI mode for Codex CLI for software engineers and platform engineers
+  operating Garura harnesses will result in every harness always running the source-authoritative
+  version of every component with complete governance attribution. We will know this is true
+  when zero drift reports appear across 100% of /sync-claude runs and 100% of Factory Droid
+  executions produce a governance signal record in a 30-day window.
+
+assumptions_requiring_validation:
+  - "Factory Droids expose sufficient invocation-context APIs for Garura to capture AI-authorship identifiers — if the Factory Droid API does not expose invocation context, the governance signal capture cannot be implemented at Standard depth"
+  - "Codex CLI exposes a non-interactive mode that Garura can detect and use for policy pre-approvals — this has not been verified against the Codex CLI v1 API"
+  - "sync-claude's conflict detection can distinguish user-intentional customizations from accidental file modifications — false positives (treating normal file updates as customizations) would make sync unusable"
+
+dependencies:
+  - "Factory Droids API documentation — EE-F004 requires understanding the Factory invocation-context API for governance signal capture"
+  - "Codex CLI non-interactive mode specification — EE-F005 requires a stable non-interactive mode API"
+
+depends_on:
+  - "EPIC-agentic-methodology-component-arch-001"
+
+uses_mocks: false
+
+kb_source:
+  capability: "EE-F001"
+  rules_applied:
+    - "EE-F001 mandatory-conditional: Garura is the product; Claude Code is the reference harness"
+    - "EE-F004 optional-conditional: org uses Factory Droids; governance-signal capture mandatory when enabled"
+    - "EE-F005 optional-conditional: CI-driven workflow; non-interactive mode required"
+    - "sync-claude read-only: no direct edits to deployed components"
+    - "invocation-context capture: required for Factory Droid governance compliance"
+  experiential_warnings:
+    - "Editing ~/.claude/ directly instead of source then sync-claude"
+    - "Missing invocation-context capture for Factory Droid runs (attribution gap risk)"

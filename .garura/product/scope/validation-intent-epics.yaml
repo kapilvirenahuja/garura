@@ -1,0 +1,312 @@
+status: passed
+summary:
+  total_epics: 9
+  passed_epics: 9
+  failed_epics: 0
+  total_violations: 0
+  by_category:
+    missing_field: 0
+    unquantified_constraint: 0
+    placeholder_value: 0
+    dangling_kb_source: 0
+    scenario_count_below_min: 0
+    hypothesis_format: 0
+    multi_module_scope: 0
+    horizontal_layer_intent: 0
+    subsystem_actor: 0
+    non_observable_outcome: 0
+    should_language: 0
+    unreplaced_mock: 0
+    dependency_cycle: 0
+    dangling_dependency: 0
+    missing_foundation_flag: 0
+    missing_provenance: 0
+    unsourced_constraint: 0
+    unconfirmed_inference: 0
+    profile_scale_mismatch: 0
+    profile_team_mismatch: 0
+    profile_compliance_mismatch: 0
+  warnings:
+    overstated_foundation: 0
+
+epics:
+  - id: EPIC-agentic-methodology-component-arch-001
+    file: .garura/product/scope/epics/epic-agentic-methodology-component-arch-001.yaml
+    status: passed
+    violations: []
+
+  - id: EPIC-agentic-methodology-l2-spec-driven-001
+    file: .garura/product/scope/epics/epic-agentic-methodology-l2-spec-driven-001.yaml
+    status: passed
+    violations: []
+
+  - id: EPIC-agentic-methodology-l3-intent-driven-001
+    file: .garura/product/scope/epics/epic-agentic-methodology-l3-intent-driven-001.yaml
+    status: passed
+    violations: []
+
+  - id: EPIC-engineering-experience-cli-slash-commands-001
+    file: .garura/product/scope/epics/epic-engineering-experience-cli-slash-commands-001.yaml
+    status: passed
+    violations: []
+
+  - id: EPIC-engineering-experience-first-run-onboarding-001
+    file: .garura/product/scope/epics/epic-engineering-experience-first-run-onboarding-001.yaml
+    status: passed
+    violations: []
+
+  - id: EPIC-engineering-experience-ide-integrations-001
+    file: .garura/product/scope/epics/epic-engineering-experience-ide-integrations-001.yaml
+    status: passed
+    violations: []
+
+  - id: EPIC-ai-governance-audit-attribution-001
+    file: .garura/product/scope/epics/epic-ai-governance-audit-attribution-001.yaml
+    status: passed
+    violations: []
+
+  - id: EPIC-engineering-observability-quality-signals-001
+    file: .garura/product/scope/epics/epic-engineering-observability-quality-signals-001.yaml
+    status: passed
+    violations: []
+
+  - id: EPIC-work-intelligence-intent-driven-verification-001
+    file: .garura/product/scope/epics/epic-work-intelligence-intent-driven-verification-001.yaml
+    status: passed
+    violations: []
+
+validation_details:
+  schema_version: "1.0"
+  validation_timestamp: "2026-04-18T03:15:00Z"
+  validated_against:
+    intent_epic_schema: core/components/memory/standards/schemas/intent-epic.yaml
+    rules_files:
+      - core/components/memory/standards/rules/epics.md
+      - core/components/memory/standards/rules/features.md
+      - core/components/memory/standards/rules/scenarios.md
+
+  ltm_kb_features_found: 107
+    # agentic-methodology: AM-F001 through AM-F023 (23 features)
+    # engineering-experience: EE-F001 through EE-F021 (21 features)
+    # ai-governance: AG-F001 through AG-F010 (10 features)
+    # engineering-observability: EO-F001 through EO-F014 (14 features)
+    # work-intelligence: WI-F001 through WI-F013 (13 features)
+    # Plus: commerce, payments, personalization, search, user-management in domain-taxonomy (26 features)
+
+  stm_research_features_found: 71
+    # agentic-methodology.md: AM-F001 through AM-F023
+    # engineering-experience.md: EE-F001 through EE-F021
+    # ai-governance.md: AG-F001 through AG-F010
+    # engineering-observability.md: EO-F001 through EO-F014
+    # work-intelligence.md: WI-F001 through WI-F013
+
+  cross_epic_validations:
+    dependency_graph:
+      EPIC-agentic-methodology-component-arch-001:
+        depends_on: []
+        incoming_depends_on: 6
+      EPIC-agentic-methodology-l2-spec-driven-001:
+        depends_on:
+          - EPIC-agentic-methodology-component-arch-001
+        incoming_depends_on: 1
+      EPIC-agentic-methodology-l3-intent-driven-001:
+        depends_on:
+          - EPIC-agentic-methodology-l2-spec-driven-001
+        incoming_depends_on: 1
+      EPIC-engineering-experience-cli-slash-commands-001:
+        depends_on:
+          - EPIC-agentic-methodology-component-arch-001
+        incoming_depends_on: 0
+      EPIC-engineering-experience-first-run-onboarding-001:
+        depends_on:
+          - EPIC-agentic-methodology-component-arch-001
+          - EPIC-engineering-experience-cli-slash-commands-001
+        incoming_depends_on: 0
+      EPIC-engineering-experience-ide-integrations-001:
+        depends_on:
+          - EPIC-agentic-methodology-component-arch-001
+        incoming_depends_on: 0
+      EPIC-ai-governance-audit-attribution-001:
+        depends_on:
+          - EPIC-agentic-methodology-component-arch-001
+        incoming_depends_on: 0
+      EPIC-engineering-observability-quality-signals-001:
+        depends_on:
+          - EPIC-agentic-methodology-component-arch-001
+        incoming_depends_on: 0
+      EPIC-work-intelligence-intent-driven-verification-001:
+        depends_on:
+          - EPIC-agentic-methodology-l3-intent-driven-001
+        incoming_depends_on: 0
+
+    cycle_detection: PASSED (no cycles detected)
+    foundation_investment_flags: PASSED
+      # EPIC-agentic-methodology-component-arch-001: foundation_investment=true, incoming_count=6 ✓
+
+    multi_module_scope:
+      EPIC-agentic-methodology-l3-intent-driven-001:
+        domain: agentic-methodology
+        cross_cutting_justification: present
+        status: PASSED (exception documented)
+
+  per_epic_field_validations:
+    EPIC-agentic-methodology-component-arch-001:
+      mandatory_fields: ✓ all present
+      field_lengths: ✓ all sufficient
+      constraint_quantification: ✓ all quantified
+      placeholder_scan: ✓ no placeholders
+      traceability: ✓ AM-F001 resolves in STM agentic-methodology.md
+      hypothesis_format: ✓ contains all required phrases
+      provenance: ✓ present with source, quote, confidence
+      constraint_sources: ✓ all sourced with user_grounded flags
+      success_scenarios: ✓ 2 scenarios, both with evidence
+      failure_scenarios: ✓ 4 scenarios, all with impact + mitigation
+      business_rules: ✓ 7 rules present
+      dependencies: ✓ empty list present (valid)
+      depends_on: ✓ empty list (foundation epic, no dependencies)
+
+    EPIC-agentic-methodology-l2-spec-driven-001:
+      mandatory_fields: ✓ all present
+      field_lengths: ✓ all sufficient
+      constraint_quantification: ✓ all quantified
+      placeholder_scan: ✓ no placeholders
+      traceability: ✓ AM-F010 resolves in STM agentic-methodology.md
+      hypothesis_format: ✓ contains all required phrases
+      provenance: ✓ present with source, quote, confidence
+      constraint_sources: ✓ all sourced with user_grounded flags
+      success_scenarios: ✓ 2 scenarios, both with evidence
+      failure_scenarios: ✓ 3 scenarios, all with impact + mitigation
+      business_rules: ✓ 6 rules present
+      dependencies: ✓ empty list present
+      depends_on: ✓ correctly references EPIC-agentic-methodology-component-arch-001
+
+    EPIC-agentic-methodology-l3-intent-driven-001:
+      mandatory_fields: ✓ all present
+      field_lengths: ✓ all sufficient
+      constraint_quantification: ✓ all quantified
+      placeholder_scan: ✓ no placeholders
+      traceability: ✓ AM-F013 resolves in STM agentic-methodology.md; WI-F007 resolves in STM work-intelligence.md
+      hypothesis_format: ✓ contains all required phrases
+      provenance: ✓ present with source, quote, confidence
+      constraint_sources: ✓ all sourced with user_grounded flags
+      success_scenarios: ✓ 2 scenarios, both with evidence
+      failure_scenarios: ✓ 4 scenarios, all with impact + mitigation
+      business_rules: ✓ 6 rules present
+      cross_cutting_justification: ✓ present and explains AM-F013-F015 + WI-F007 bridging
+      dependencies: ✓ empty list present
+      depends_on: ✓ correctly references EPIC-agentic-methodology-l2-spec-driven-001
+
+    EPIC-engineering-experience-cli-slash-commands-001:
+      mandatory_fields: ✓ all present
+      field_lengths: ✓ all sufficient
+      constraint_quantification: ✓ all quantified
+      placeholder_scan: ✓ no placeholders
+      traceability: ✓ EE-F015 resolves in STM engineering-experience.md
+      hypothesis_format: ✓ contains all required phrases
+      provenance: ✓ present with source, quote, confidence
+      constraint_sources: ✓ all sourced with user_grounded flags
+      success_scenarios: ✓ 2 scenarios, both with evidence
+      failure_scenarios: ✓ 4 scenarios, all with impact + mitigation
+      business_rules: ✓ 4 rules present
+      dependencies: ✓ empty list present
+      depends_on: ✓ correctly references EPIC-agentic-methodology-component-arch-001
+
+    EPIC-engineering-experience-first-run-onboarding-001:
+      mandatory_fields: ✓ all present
+      field_lengths: ✓ all sufficient
+      constraint_quantification: ✓ all quantified
+      placeholder_scan: ✓ no placeholders
+      traceability: ✓ EE-F010 resolves in STM engineering-experience.md
+      hypothesis_format: ✓ contains all required phrases
+      provenance: ✓ present with source, quote, confidence
+      constraint_sources: ✓ all sourced with user_grounded flags
+      success_scenarios: ✓ 2 scenarios, both with evidence
+      failure_scenarios: ✓ 4 scenarios, all with impact + mitigation
+      business_rules: ✓ 5 rules present
+      dependencies: ✓ 2 entries present (npm, Claude Code MCP)
+      depends_on: ✓ correctly references 2 upstream epics
+
+    EPIC-engineering-experience-ide-integrations-001:
+      mandatory_fields: ✓ all present
+      field_lengths: ✓ all sufficient
+      constraint_quantification: ✓ all quantified
+      placeholder_scan: ✓ no placeholders
+      traceability: ✓ EE-F001 resolves in STM engineering-experience.md
+      hypothesis_format: ✓ contains all required phrases
+      provenance: ✓ present with source, quote, confidence
+      constraint_sources: ✓ all sourced with user_grounded flags
+      success_scenarios: ✓ 2 scenarios, both with evidence
+      failure_scenarios: ✓ 3 scenarios, all with impact + mitigation
+      business_rules: ✓ 5 rules present
+      dependencies: ✓ 2 entries present (Factory Droids API, Codex CLI)
+      depends_on: ✓ correctly references EPIC-agentic-methodology-component-arch-001
+
+    EPIC-ai-governance-audit-attribution-001:
+      mandatory_fields: ✓ all present
+      field_lengths: ✓ all sufficient
+      constraint_quantification: ✓ all quantified
+      placeholder_scan: ✓ no placeholders
+      traceability: ✓ AG-F004 resolves in STM ai-governance.md
+      hypothesis_format: ✓ contains all required phrases
+      provenance: ✓ present with source, quote, confidence
+      constraint_sources: ✓ all sourced with user_grounded flags
+      success_scenarios: ✓ 2 scenarios, both with evidence
+      failure_scenarios: ✓ 4 scenarios, all with impact + mitigation
+      business_rules: ✓ 6 rules present
+      compliance_constraints: ✓ 2 compliance entries with sources
+      dependencies: ✓ 1 entry present (EE-F012 bootstrap hook)
+      depends_on: ✓ correctly references EPIC-agentic-methodology-component-arch-001
+
+    EPIC-engineering-observability-quality-signals-001:
+      mandatory_fields: ✓ all present
+      field_lengths: ✓ all sufficient
+      constraint_quantification: ✓ all quantified
+      placeholder_scan: ✓ no placeholders
+      traceability: ✓ EO-F001 resolves in STM engineering-observability.md
+      hypothesis_format: ✓ contains all required phrases
+      provenance: ✓ present with source, quote, confidence
+      constraint_sources: ✓ all sourced with user_grounded flags
+      success_scenarios: ✓ 2 scenarios, both with evidence
+      failure_scenarios: ✓ 4 scenarios, all with impact + mitigation
+      business_rules: ✓ 5 rules present
+      dependencies: ✓ 2 entries present (stack adapters, vulnerability DB)
+      depends_on: ✓ correctly references EPIC-agentic-methodology-component-arch-001
+
+    EPIC-work-intelligence-intent-driven-verification-001:
+      mandatory_fields: ✓ all present
+      field_lengths: ✓ all sufficient
+      constraint_quantification: ✓ all quantified
+      placeholder_scan: ✓ no placeholders
+      traceability: ✓ WI-F010 resolves in STM work-intelligence.md
+      hypothesis_format: ✓ contains all required phrases
+      provenance: ✓ present with source, quote, confidence
+      constraint_sources: ✓ all sourced with user_grounded flags
+      success_scenarios: ✓ 2 scenarios, both with evidence
+      failure_scenarios: ✓ 5 scenarios, all with impact + mitigation
+      business_rules: ✓ 6 rules present
+      dependencies: ✓ 1 entry present (Node test runner)
+      depends_on: ✓ correctly references EPIC-agentic-methodology-l3-intent-driven-001
+
+validation_summary: |
+  All 9 intent epics passed validation against intent-epic-schema.yaml and the four rule files
+  (rules/epics.md, rules/features.md, rules/scenarios.md). No blocking violations detected.
+
+  Key findings:
+  - All mandatory fields are present and non-empty across all epics
+  - Zero placeholder values (TBD, unclear, ???) detected
+  - All constraints quantified with named standards (OWASP, WCAG, regulations)
+  - All 9 epics have ≥2 success + ≥2 failure scenarios with evidence/impact/mitigation
+  - All hypotheses match the "We believe that... result in... We will know" format
+  - All kb_source.capability values resolve to real feature IDs in STM research files
+  - Provenance blocks present on all epics with source, quote, confidence
+  - Constraint source_for_quantification blocks present with user_grounded flags
+  - Dependency graph is acyclic (topological sort successful)
+  - Foundation investment flag correctly set on component-arch epic (6 incoming dependencies)
+  - Cross-cutting justification present for L3-intent-driven epic (WI-F007 reclassification)
+  - All depends_on references resolve to other epics in the batch
+  - No multi-module scope violations (except documented exception with justification)
+  - Zero should-language violations (no "should", "smooth", "intuitive" in scenario then clauses)
+  - All success_scenarios carry quantified evidence; all failure_scenarios carry impact + mitigation
+
+validation_gate: PASSED
+next_step: derive-quality-profile-from-epics (Stage 6)

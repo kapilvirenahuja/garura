@@ -1,0 +1,43 @@
+resolution_trace:
+  - decision: "Architecture pattern for config path resolution in consumer projects"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: >
+      No locked or draft project-scoped architecture artifact covers config-path
+      migration conventions. Resolved via general reasoning: the canonical pattern
+      is a single config file at a well-known location read by all agents/plays.
+      The correct location is .garura/core/config.yaml (forward direction, matching
+      deployed engine and STM root already at .garura/).
+
+  - decision: "Design patterns for installer script bootstrap path"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: >
+      No core LTM standard covers installer script conventions. Resolved via
+      general reasoning: installer must write config and create project structure
+      under the same root the runtime components expect (.garura/, not .meridian/).
+
+  - decision: "Quality standards for defect fix scope gate"
+    resolved_from: "core"
+    source: "standards/rules/architecture.md"
+    section: "Scope discipline"
+    authority: "draft"
+    value: >
+      Fix-it play scopes to the specific symptom set in the issue. When blast
+      radius exceeds 15 files or crosses multiple domains, flag for escalation
+      to /enhance while still producing the RCA.
+
+  - decision: "Domain context: migration strategy for file-path rename"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: >
+      No domain KB covers agentic framework rename migrations. Resolved via
+      general reasoning: migration direction is .meridian/ -> .garura/ (forward),
+      evidenced by engine runtime, STM root, deployed memory paths, and repo/project
+      name all already being garura. Source components are the lagging side.

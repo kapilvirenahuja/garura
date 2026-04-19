@@ -1,0 +1,10 @@
+pr:
+  number: 263
+  url: "https://github.com/kapilvirenahuja/garura/pull/263"
+  title: "fix(migration): complete .meridian → .garura path migration across all components"
+  state: open
+  target_branch: main
+  source_branch: fix/261-garura-meridian-migration-drift
+  issue: 261
+  platform: github
+  created_at: "2026-04-18"

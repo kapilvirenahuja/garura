@@ -1,0 +1,12 @@
+result:
+  success: true
+  branch:
+    name: fix/261-garura-meridian-migration-drift
+    base_ref: origin/main
+    pushed: true
+    tracking: origin/fix/261-garura-meridian-migration-drift
+  verification:
+    current_branch: fix/261-garura-meridian-migration-drift
+    remote_config: origin
+    merge_ref: refs/heads/fix/261-garura-meridian-migration-drift
+  timestamp: "2026-04-18T00:00:00Z"

@@ -1,0 +1,324 @@
+# Domain Selection — Garura (specify-product Stage 2)
+#
+# Provenance
+# play: specify-product
+# stage: 2-domain-selection
+# agent: product-keeper
+# created_at: 2026-04-18T00:00:00Z
+# updated_at: 2026-04-18T00:30:00Z
+# update_note: |
+#   Restructured from flat 19-feature catalog to 3-tier Domain → Capability → Feature
+#   model: 5 domains / 21 capabilities / 81 features. First domain renamed from
+#   "ai-methodology-platform" to "agentic-methodology" — the plays/agents/skills/memory
+#   substrate is part of the methodology itself (Component Architecture capability),
+#   not separate infrastructure. All other domain slugs preserved. Engineering
+#   Experience remains elevated as a standalone 5th domain per the prior revision.
+# inputs:
+#   - .garura/product/specification/market-brief.md
+#   - .garura/product/specification/project-profile.yaml
+#   - .garura/product/scope/features.yaml (moved from specification/implementation-inventory.yaml on 2026-04-18)
+#   - core/components/memory/knowledge/domain/*.md
+#
+# Method
+# 1. 3-tier model: Domain → Capability → Feature enforced across all 5 research files.
+# 2. Only Agentic Methodology / Component Architecture carries evidence pointing to
+#    plays/agents/skills/memory paths — these ARE the methodology.
+# 3. All other capabilities are OUTCOME capabilities mapped to ADRs, philosophy docs,
+#    or narrow skills that deliver that outcome.
+# 4. Feature ID allocation follows inventory as the source of truth.
+
+selected_domains:
+  - slug: agentic-methodology
+    origin: stm_research
+    rationale: >
+      Codifies Garura's Agentic Methodology pillar — the component substrate
+      (plays, agents, skills, memory) AND the maturity ladder L1-L5. Core
+      differentiator identified by market brief Gap #1 (no competitor codifies
+      engineering methodology across sessions). Includes the three-layer hierarchy,
+      three memory layers, Tether/Vanish protocol, and evidence & checkpoint
+      substrate as LIVE features — these ARE the methodology, not separate
+      infrastructure.
+    source_path: .garura/product/research/agentic-methodology.md
+    capability_count: 5
+    feature_count: 23
+    feature_ids:
+      [AM-F001, AM-F002, AM-F003, AM-F004, AM-F005, AM-F006, AM-F007, AM-F008, AM-F009,
+       AM-F010, AM-F011, AM-F012,
+       AM-F013, AM-F014, AM-F015,
+       AM-F016, AM-F017, AM-F018, AM-F019,
+       AM-F020, AM-F021, AM-F022, AM-F023]
+    capabilities:
+      - slug: component-architecture
+        feature_count: 9
+        feature_ids: [AM-F001, AM-F002, AM-F003, AM-F004, AM-F005, AM-F006, AM-F007, AM-F008, AM-F009]
+        status: live
+      - slug: l2-spec-driven
+        feature_count: 3
+        feature_ids: [AM-F010, AM-F011, AM-F012]
+        status: live
+      - slug: l3-intent-driven
+        feature_count: 3
+        feature_ids: [AM-F013, AM-F014, AM-F015]
+        status: partial
+      - slug: l4-signal-driven
+        feature_count: 4
+        feature_ids: [AM-F016, AM-F017, AM-F018, AM-F019]
+        status: planned
+      - slug: l5-goal-driven
+        feature_count: 4
+        feature_ids: [AM-F020, AM-F021, AM-F022, AM-F023]
+        status: planned
+
+  - slug: engineering-observability
+    origin: stm_research
+    rationale: >
+      Codifies Garura's Control Tower pillar — cross-project portfolio visibility
+      unifying quality signals, debt signals, methodology posture, and DORA-style
+      delivery signals. Addresses market brief Gap #3 (engineering observability
+      split from the developer's workflow). Distinguishes Garura from
+      Jellyfish/LinearB/Swarmia by treating methodology posture and AI consumption
+      as first-class signals.
+    source_path: .garura/product/research/engineering-observability.md
+    capability_count: 4
+    feature_count: 14
+    feature_ids:
+      [EO-F001, EO-F002, EO-F003, EO-F004,
+       EO-F005, EO-F006, EO-F007,
+       EO-F008, EO-F009, EO-F010,
+       EO-F011, EO-F012, EO-F013, EO-F014]
+    capabilities:
+      - slug: quality-signals
+        feature_count: 4
+        feature_ids: [EO-F001, EO-F002, EO-F003, EO-F004]
+        status: partial
+      - slug: debt-signals
+        feature_count: 3
+        feature_ids: [EO-F005, EO-F006, EO-F007]
+        status: partial
+      - slug: methodology-posture
+        feature_count: 3
+        feature_ids: [EO-F008, EO-F009, EO-F010]
+        status: planned
+      - slug: delivery-signals
+        feature_count: 4
+        feature_ids: [EO-F011, EO-F012, EO-F013, EO-F014]
+        status: partial
+
+  - slug: ai-governance
+    origin: stm_research
+    rationale: >
+      Codifies Garura's Governance pillar — mandatory compliance surface declared
+      in project_profile.compliance.categories (ai-usage-traceability,
+      token-consumption-tracking, audit-trail, memory-governance). Addresses market
+      brief Gap #2 (no AI coding tool offers deterministic, auditable workflows for
+      enterprise compliance). Procurement-blocker-removal surface for enterprise
+      sales in Jul '26 milestone.
+    source_path: .garura/product/research/ai-governance.md
+    capability_count: 3
+    feature_count: 10
+    feature_ids:
+      [AG-F001, AG-F002, AG-F003,
+       AG-F004, AG-F005, AG-F006, AG-F007,
+       AG-F008, AG-F009, AG-F010]
+    capabilities:
+      - slug: consumption-tracking
+        feature_count: 3
+        feature_ids: [AG-F001, AG-F002, AG-F003]
+        status: planned
+      - slug: audit-attribution
+        feature_count: 4
+        feature_ids: [AG-F004, AG-F005, AG-F006, AG-F007]
+        status: partial
+      - slug: memory-governance
+        feature_count: 3
+        feature_ids: [AG-F008, AG-F009, AG-F010]
+        status: planned
+
+  - slug: work-intelligence
+    origin: stm_research
+    rationale: >
+      Codifies Garura's Work Intelligence pillar — intent-anchored triage, agentic
+      planning (PI/sprint), backlog lifecycle, intent-driven verification.
+      Addresses market brief Gap #4 (work intelligence not connected to intent).
+      Differentiated from Linear/Jira by treating every work item as a link in the
+      intent-to-outcome chain.
+    source_path: .garura/product/research/work-intelligence.md
+    capability_count: 4
+    feature_count: 13
+    feature_ids:
+      [WI-F001, WI-F002, WI-F003,
+       WI-F004, WI-F005, WI-F006,
+       WI-F007, WI-F008, WI-F009,
+       WI-F010, WI-F011, WI-F012, WI-F013]
+    capabilities:
+      - slug: intent-anchored-triage
+        feature_count: 3
+        feature_ids: [WI-F001, WI-F002, WI-F003]
+        status: partial
+      - slug: agentic-planning
+        feature_count: 3
+        feature_ids: [WI-F004, WI-F005, WI-F006]
+        status: partial
+      - slug: backlog-lifecycle
+        feature_count: 3
+        feature_ids: [WI-F007, WI-F008, WI-F009]
+        status: partial
+      - slug: intent-driven-verification
+        feature_count: 4
+        feature_ids: [WI-F010, WI-F011, WI-F012, WI-F013]
+        status: partial
+
+  - slug: engineering-experience
+    origin: stm_research
+    rationale: >
+      Codifies Garura's Engineering Experience pillar — role-aware surfaces every
+      adopter segment touches (IDE integrations, Engineering Portal, AI chat,
+      onboarding + installers, CLI / slash commands, design-to-code). Addresses
+      market brief Gap #5 (no platform serves the solo-founder → squad → enterprise
+      progression) and satisfies project_profile's progressive-feature-expansion
+      segmentation model plus the multi-role audience (designers, PMs, engineers,
+      leads, compliance officers, solo founders).
+    source_path: .garura/product/research/engineering-experience.md
+    capability_count: 5
+    feature_count: 21
+    feature_ids:
+      [EE-F001, EE-F002, EE-F003, EE-F004, EE-F005,
+       EE-F006, EE-F007, EE-F008, EE-F009,
+       EE-F010, EE-F011, EE-F012, EE-F013, EE-F014,
+       EE-F015, EE-F016, EE-F017, EE-F018,
+       EE-F019, EE-F020, EE-F021]
+    capabilities:
+      - slug: ide-integrations
+        feature_count: 5
+        feature_ids: [EE-F001, EE-F002, EE-F003, EE-F004, EE-F005]
+        status: partial
+      - slug: engineering-portal
+        feature_count: 4
+        feature_ids: [EE-F006, EE-F007, EE-F008, EE-F009]
+        status: partial
+      - slug: first-run-onboarding
+        feature_count: 5
+        feature_ids: [EE-F010, EE-F011, EE-F012, EE-F013, EE-F014]
+        status: partial
+      - slug: cli-slash-commands
+        feature_count: 4
+        feature_ids: [EE-F015, EE-F016, EE-F017, EE-F018]
+        status: live
+      - slug: design-to-code
+        feature_count: 3
+        feature_ids: [EE-F019, EE-F020, EE-F021]
+        status: partial
+
+rejected_domains:
+  - slug: commerce
+    origin: kb
+    source_path: core/components/memory/knowledge/domain/commerce.md
+    reason: >
+      Covers e-commerce cart, checkout, order, catalog, and promotions — B2C retail
+      surface with zero overlap with AI-assisted engineering tooling.
+
+  - slug: payments
+    origin: kb
+    source_path: core/components/memory/knowledge/domain/payments.md
+    reason: >
+      Covers payment acceptance, PCI scope, refunds, disputes — merchant payments
+      surface. Garura has no payment acceptance surface in v1.
+
+  - slug: personalization
+    origin: kb
+    source_path: core/components/memory/knowledge/domain/personalization.md
+    reason: >
+      Covers recommendation engines, collaborative filtering, personalized ranking
+      for consumer catalogs. Garura's "personalization" is role-based UI adaptation,
+      covered by the engineering-experience domain (EE-F006, EE-F008).
+
+  - slug: search
+    origin: kb
+    source_path: core/components/memory/knowledge/domain/search.md
+    reason: >
+      Covers product catalog search, faceted navigation, e-commerce search-relevance
+      tuning. Garura's search surfaces (memory retrieval, portal search) are
+      substantively different patterns covered by Agentic Methodology (AM-F004/F005/F006).
+
+  - slug: user-management
+    origin: kb
+    source_path: core/components/memory/knowledge/domain/user-management.md
+    reason: >
+      Covers consumer/enterprise user auth, registration, profile, session. Garura's
+      v1 solo-dev profile defers multi-user auth; post-v1 concern.
+
+copy_or_research_actions:
+  - action: authored_research_file
+    domain: agentic-methodology
+    target: .garura/product/research/agentic-methodology.md
+    features_authored: 23
+    capabilities: 5
+    schema: 3-tier Domain → Capability → Feature (9-section per feature)
+    note: >
+      Renamed from ai-methodology-platform.md to agentic-methodology.md during
+      2026-04-18 restructure. Absorbs plays/agents/skills/memory as features under
+      Component Architecture capability.
+
+  - action: authored_research_file
+    domain: engineering-observability
+    target: .garura/product/research/engineering-observability.md
+    features_authored: 14
+    capabilities: 4
+    schema: 3-tier Domain → Capability → Feature (9-section per feature)
+
+  - action: authored_research_file
+    domain: ai-governance
+    target: .garura/product/research/ai-governance.md
+    features_authored: 10
+    capabilities: 3
+    schema: 3-tier Domain → Capability → Feature (9-section per feature)
+
+  - action: authored_research_file
+    domain: work-intelligence
+    target: .garura/product/research/work-intelligence.md
+    features_authored: 13
+    capabilities: 4
+    schema: 3-tier Domain → Capability → Feature (9-section per feature)
+
+  - action: authored_research_file
+    domain: engineering-experience
+    target: .garura/product/research/engineering-experience.md
+    features_authored: 21
+    capabilities: 5
+    schema: 3-tier Domain → Capability → Feature (9-section per feature)
+
+  - action: rejected_kb_copy
+    domains: [commerce, payments, personalization, search, user-management]
+    target: null
+    note: >
+      No KB-sourced domains selected; no copies to .garura/product/research/.
+
+gaps_for_human_followup:
+  - area: cross-tree-constraints
+    description: >
+      All authored features declare Cross-Tree Refs as (none). Before these research
+      domains are promoted to the canonical KB, CTC entries should be authored —
+      candidates noted in research files include: "compliance.categories includes
+      'token-consumption-tracking' IMPLIES AG-F001"; "'designer' in audience.primary_roles
+      IMPLIES EE-F019"; "len(audience.primary_roles) > 2 IMPLIES EE-F006";
+      "delivery_ambition.current_level >= 'L3' IMPLIES AM-F013 + AG-F005 + EO-F008";
+      "compliance.categories includes 'ai-usage-traceability' IMPLIES AG-F004".
+    severity: medium
+    unblocks: promotion of research domains to core/components/memory/knowledge/domain/
+
+  - area: research-domain-context-skill-mismatch
+    description: >
+      The research-domain-context skill writes a domain-context.md in a
+      prose-with-sources format, not the 3-tier Domain → Capability → Feature schema
+      authored here. Skill should be updated or play Stage 2 instructions should
+      call direct authoring as the expected pattern.
+    severity: medium
+    unblocks: future automation of Stage 2 via the skill
+
+  - area: old-file-cleanup
+    description: >
+      .garura/product/research/ai-methodology-platform.md (previous version) is now
+      superseded by agentic-methodology.md. The old file should be deleted or
+      archived as part of next hygiene pass.
+    severity: low
+    unblocks: clean research folder

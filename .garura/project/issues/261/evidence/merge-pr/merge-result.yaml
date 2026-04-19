@@ -1,0 +1,47 @@
+step: execute-merge
+task_id: execute-merge
+timestamp: "2026-04-18T14:48:43Z"
+
+result:
+  status: merged
+  pr_number: 263
+  merge_sha: "53c30071a19aea9ab6326b70be8d1077ee11f420"
+  base_branch: main
+  branch_deleted: true
+
+branch_cleanup:
+  local_deleted: true
+  remote_deleted: true
+  remote_note: Remote branch deleted by platform (--delete-branch flag on merge)
+
+step_evals:
+  SE-1:
+    condition: "F1 — No merge with conflicts"
+    status: PASS
+    evidence: readiness.yaml confirmed CLEAN state before merge
+  SE-2:
+    condition: "F2 — Feature branch deleted"
+    status: PASS
+    evidence: Local branch deleted (was 81f8087); remote absent from ls-remote
+  SE-3:
+    condition: "F3 — Local checkout on base branch, up to date"
+    status: PASS
+    evidence: On main, HEAD=53c3007 matches origin/main
+  SE-4:
+    condition: "F4 — Working tree was clean before merge"
+    status: PASS
+    evidence: readiness.yaml confirmed no staged/modified tracked files
+  SE-5:
+    condition: "F5 — PR merged on platform"
+    status: PASS
+    evidence: PR #263 state=MERGED, mergedAt=2026-04-18T14:48:43Z
+
+scenario_evals:
+  SCE-1:
+    persona: Developer
+    status: PASS
+    evidence: HEAD on main, up to date with origin/main, fix/261-garura-meridian-migration-drift absent locally and remotely
+  SCE-2:
+    persona: Code Reviewer
+    status: PASS
+    evidence: PR #263 reflected as MERGED on platform; merge SHA 53c3007 is HEAD of main

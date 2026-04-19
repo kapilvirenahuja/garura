@@ -1,0 +1,364 @@
+# decision-manifest-enrich-capabilities.yaml
+# Garura Platform — specify-product Stage 4: Enrich Capabilities
+#
+# Provenance
+# play: specify-product
+# stage: 4-enrich-capabilities
+# agent: product-keeper
+# skill: enrich-capabilities v0.2.0
+# task_id: specify-product-stage-4-enrich
+# created_at: 2026-04-18T02:00:00Z
+# user_review_completed_at: 2026-04-18T02:30:00Z
+#
+# Decision Surfacing Discipline (Defect 23)
+# Every inferred decision produced during enrichment is recorded here with tier,
+# grounding source, recommendation, and alternatives. Decisions are in the D-ec-001
+# family: security-compliance-ratchet-selection (one entry per capability).
+#
+# USER REVIEW OUTCOME (2026-04-18): User batch-accepted all 9 HIGH-tier decisions
+# (option A) + all 14 KB-default numeric thresholds in one batch review. All 9
+# entries below carry user_response: accept with the batch rationale recorded in
+# user_response_detail.
+#
+# Tier legend:
+#   high  — grounding_source.kind: kb_path AND referenced file verified to exist
+#   mid   — grounding_source.kind: web_citation
+#   low   — grounding_source.kind: none
+#
+# Ratchet vocabulary (from project profile):
+#   security_level: elevated — does NOT trigger Enterprise-depth ratchets
+#     (ratchet vocabulary is: standard | high | critical; elevated is below high)
+#   compliance.categories: [ai-usage-traceability, token-consumption-tracking,
+#     audit-trail, memory-governance, ci-cd-enforcement, adoption-reporting]
+#   external_regulations_in_scope_v1: [] — no HIPAA/SOC2/GDPR in v1
+#
+# Ratchet fires for: audit-attribution (AG-F004/F005/F006) based on
+#   ai-usage-traceability and audit-trail compliance categories.
+# No ratchet fires for: all other 8 capabilities (compliance categories do not
+#   alter depth-spectrum rules for agentic-methodology, l2-spec-driven,
+#   l3-intent-driven, cli-slash-commands, first-run-onboarding, ide-integrations,
+#   quality-signals, intent-driven-verification).
+
+schema_version: "1.0"
+skill: "enrich-capabilities"
+generated_at: "2026-04-18T02:00:00Z"
+
+decisions:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D-ec-001.1 — component-architecture (AM-F001..AM-F009)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - decision_id: "D-ec-001.1"
+    decision_type: "security-compliance-ratchet-selection"
+    capability_slug: "component-architecture"
+    feature_ids: ["AM-F001", "AM-F002", "AM-F003", "AM-F004", "AM-F005", "AM-F006", "AM-F007", "AM-F008", "AM-F009"]
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/agentic-methodology.md"
+      excerpt: "Inclusion — Default: mandatory for any Garura-based product. All nine features mandatory, never excludable."
+    recommendation: >
+      No ratchet applied. component-architecture features (AM-F001 through AM-F009) are
+      mandatory substrate features with no depth-spectrum level variation and no
+      security/compliance-driven business-rule elevation. security_level=elevated is below
+      the kb ratchet threshold (which requires high or critical). Profile compliance
+      categories (ai-usage-traceability, audit-trail, etc.) do not reference
+      component-architecture features in their ratchet rules. Selected depth: Advanced
+      (reflects the dogfooded, production state of 9 LIVE features and L3 roadmap horizon).
+    alternatives_considered:
+      - alt: "Enterprise depth — add governance agents, approval quorum, signed attestation"
+        why_not: "Enterprise depth requires security_level=high or critical; profile declares elevated. No compliance category triggers enterprise substrate ratchet."
+      - alt: "Standard depth — restrict to core lifecycle plays only"
+        why_not: "Profile declares L3 roadmap_horizon (building) and all 9 features are LIVE; Advanced is the correct depth read."
+    agent_reasoning_summary: >
+      component-architecture is the methodology substrate. All 9 features ship as LIVE.
+      The profile's security_level=elevated is below the KB's ratchet vocabulary threshold.
+      No compliance category in the profile triggers additional rules on substrate features.
+      Advanced depth selected based on LIVE dogfood state and L3 delivery ambition.
+    user_response: accept
+    user_response_detail: "batch-accepted via Stage 4 review — user option A"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D-ec-001.2 — l2-spec-driven (AM-F010..AM-F012)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - decision_id: "D-ec-001.2"
+    decision_type: "security-compliance-ratchet-selection"
+    capability_slug: "l2-spec-driven"
+    feature_ids: ["AM-F010", "AM-F011", "AM-F012"]
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/agentic-methodology.md"
+      excerpt: "AM-F010: Inclusion mandatory when: project_profile.industry == 'developer-tools' and 'methodology' in product_idea; AM-F011: mandatory for any cross-session AI methodology product; AM-F012: mandatory for L2+ projects."
+    recommendation: >
+      No ratchet applied. l2-spec-driven features are methodology ladder rungs, not
+      compliance-gated features. security_level=elevated does not trigger additional
+      business rules in the L2 Depth Spectrum. Profile compliance categories do not
+      reference AM-F010/F011/F012. Selected depth: Advanced for AM-F010 (Maturity Ladder
+      Engine — per-capability climbing declared and L3 roadmap active); Standard for
+      AM-F011 (Persistent Memory Substrate — LIVE substrate, PARTIAL workflow); Advanced
+      for AM-F012 (Spec-to-Test Continuity — PARTIAL auto-propagation, validators ship).
+    alternatives_considered:
+      - alt: "Enterprise depth for AM-F011 — add access control and retention policy"
+        why_not: "Enterprise memory governance deferred (AG-F008 Q3 decision); no compliance category requires it in v1."
+      - alt: "Standard depth for AM-F010 — declared-only maturity ladder without runtime enforcement"
+        why_not: "Profile declares per_capability_climbing: true and roadmap_horizon: L3-intent-driven; Advanced depth matches the active L3 climb."
+    agent_reasoning_summary: >
+      l2-spec-driven features are the methodology ladder substrate. None of the
+      profile's compliance categories alter Depth Spectrum rules for these features.
+      Depths selected reflect actual LIVE/PARTIAL status and L3 delivery ambition.
+      No compliance-driven ratchet fires.
+    user_response: accept
+    user_response_detail: "batch-accepted via Stage 4 review — user option A"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D-ec-001.3 — l3-intent-driven (AM-F013, AM-F014, AM-F015, WI-F007)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - decision_id: "D-ec-001.3"
+    decision_type: "security-compliance-ratchet-selection"
+    capability_slug: "l3-intent-driven"
+    feature_ids: ["AM-F013", "AM-F014", "AM-F015", "WI-F007"]
+    kb_sources:
+      - feature_ids: ["AM-F013", "AM-F014", "AM-F015"]
+        file: ".garura/product/research/agentic-methodology.md"
+      - feature_ids: ["WI-F007"]
+        file: ".garura/product/research/work-intelligence.md"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/agentic-methodology.md"
+      excerpt: "AM-F013: Mandatory when delivery_ambition.roadmap_horizon >= L3. AM-F014: mandatory for any specify-product run. AM-F015: mandatory for any specify-product run at L3+."
+    recommendation: >
+      No ratchet applied. l3-intent-driven features are intent-schema machinery. Profile
+      compliance categories (ai-usage-traceability, audit-trail) attach their ratchet
+      rules to audit-attribution features (AG-F004/F005/F006), not to AM or WI intent
+      features. security_level=elevated is below the KB ratchet threshold.
+      WI-F007 (Epic Decomposition) is enriched from work-intelligence.md even though its
+      capability_slug is l3-intent-driven (per Q2 reclassification). Selected depth:
+      Advanced for all four features (LIVE/PARTIAL status with L3 active roadmap).
+    alternatives_considered:
+      - alt: "Enterprise depth — intent history + learned routing for AM-F013"
+        why_not: "Enterprise requires security_level=high or critical; roadmap_horizon is L3 (not L4/L5). Enterprise intent routing is out of v1 scope."
+      - alt: "Standard depth for WI-F007 — template-filled epic decomposition"
+        why_not: "WI-F007 is LIVE (generate-intent-epics ships today); Advanced depth matches its actual status."
+    agent_reasoning_summary: >
+      l3-intent-driven features are the capability-to-epic automation machinery. No profile
+      compliance category triggers additional business rules on these features. WI-F007 is
+      sourced from work-intelligence.md (its actual file location) despite capability
+      reclassification. Advanced depth for all four features based on LIVE/PARTIAL state
+      and active L3 roadmap.
+    user_response: accept
+    user_response_detail: "batch-accepted via Stage 4 review — user option A"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D-ec-001.4 — cli-slash-commands (EE-F015..EE-F018)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - decision_id: "D-ec-001.4"
+    decision_type: "security-compliance-ratchet-selection"
+    capability_slug: "cli-slash-commands"
+    feature_ids: ["EE-F015", "EE-F016", "EE-F017", "EE-F018"]
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/engineering-experience.md"
+      excerpt: "EE-F015: Depth Spectrum: Standard — slash commands (current). Advanced — tab-complete with arg hints. Enterprise — governance-gated invocation."
+    recommendation: >
+      No ratchet applied. cli-slash-commands features are EX surface features. Profile
+      compliance categories do not reference EE features in their ratchet rules.
+      security_level=elevated is below the KB ratchet threshold for governance-gated
+      invocation (Enterprise). All 4 features are LIVE. Selected depth: Standard
+      (all 4 are LIVE at Standard; Advanced adds tab-complete which is not a v1 milestone
+      commitment; Enterprise governance-gated invocation requires higher security level).
+    alternatives_considered:
+      - alt: "Advanced depth — add tab-complete with arg hints for EE-F015"
+        why_not: "Tab-complete is a DX enhancement not in v1 milestone scope. Standard depth covers LIVE slash commands correctly."
+      - alt: "Enterprise depth — governance-gated invocation"
+        why_not: "Enterprise invocation gating is out of v1 scope. Profile security_level=elevated is below the Enterprise threshold."
+    agent_reasoning_summary: >
+      All 4 CLI/slash-command features are LIVE at Standard depth. No profile compliance
+      category triggers ratchet on these surface features. Standard depth is the correct
+      read for all 4 LIVE features. No ratchet applied.
+    user_response: accept
+    user_response_detail: "batch-accepted via Stage 4 review — user option A"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D-ec-001.5 — first-run-onboarding (EE-F010..EE-F012)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - decision_id: "D-ec-001.5"
+    decision_type: "security-compliance-ratchet-selection"
+    capability_slug: "first-run-onboarding"
+    feature_ids: ["EE-F010", "EE-F011", "EE-F012"]
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/engineering-experience.md"
+      excerpt: "EE-F010: Depth Spectrum: Standard — three-question wizard. EE-F011: Standard — npm publish. EE-F012: Standard — sync-claude (current contributor)."
+    recommendation: >
+      No ratchet applied. first-run-onboarding features are distribution/install surface
+      features. Profile compliance categories do not reference EE-F010/F011/F012 in
+      their ratchet rules. security_level=elevated is below the KB ratchet threshold.
+      All 3 features are PLANNED (v1 Apr milestone — current). Selected depth: Standard
+      for all three (PLANNED at Standard; Advanced adds brownfield scan and one-command
+      bootstrap which are beyond the three-question minimum wizard scope for v1 Apr).
+    alternatives_considered:
+      - alt: "Advanced depth for EE-F012 — one-command bootstrap"
+        why_not: "Advanced for EE-F012 is the one-command bootstrap surface. This is planned for v1 Apr but the Advanced capability adds managed installer with update — out of scope for Apr launch."
+      - alt: "Basic depth for EE-F010 — README only"
+        why_not: "Basic is README. The three-question wizard is the v1 minimum viable onboarding; Standard is the correct depth."
+    agent_reasoning_summary: >
+      first-run-onboarding features are v1 Apr milestone targets at Standard depth.
+      No compliance category alters their business rules. No ratchet applied. Standard depth
+      correctly represents the minimum viable onboarding scope for the solo-founder MVP.
+    user_response: accept
+    user_response_detail: "batch-accepted via Stage 4 review — user option A"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D-ec-001.6 — ide-integrations (EE-F001, EE-F004, EE-F005)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - decision_id: "D-ec-001.6"
+    decision_type: "security-compliance-ratchet-selection"
+    capability_slug: "ide-integrations"
+    feature_ids: ["EE-F001", "EE-F004", "EE-F005"]
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/engineering-experience.md"
+      excerpt: "EE-F001: Depth Spectrum: Standard — sync-claude deployment (current). EE-F004: Standard — sync (current). EE-F005: Standard — CLI adapter (planned)."
+    recommendation: >
+      No ratchet applied. ide-integrations features are harness adapter features.
+      Profile compliance categories do not reference EE adapter features in their ratchet
+      rules. security_level=elevated is below the Enterprise governance-aware threshold.
+      EE-F001 LIVE at Standard; EE-F004 PARTIAL at Standard; EE-F005 PLANNED at Standard.
+      Selected depth: Standard for all three.
+    alternatives_considered:
+      - alt: "Advanced depth for EE-F001 — update/upgrade flow with drift detection"
+        why_not: "Advanced adds update/upgrade flow; v1 scope is the Standard sync-claude deployment. Advanced is post-v1."
+      - alt: "Enterprise depth — multi-tenant Claude Code with governance"
+        why_not: "Enterprise multi-tenant is post-v1 enterprise milestone (Jul '26). Not applicable at solo-dev profile."
+    agent_reasoning_summary: >
+      ide-integrations features are harness adapters (Claude Code, Factory, Codex CLI).
+      No compliance category triggers ratchet. Standard depth matches LIVE/PARTIAL/PLANNED
+      status. No ratchet applied.
+    user_response: accept
+    user_response_detail: "batch-accepted via Stage 4 review — user option A"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D-ec-001.7 — audit-attribution (AG-F004, AG-F005, AG-F006)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - decision_id: "D-ec-001.7"
+    decision_type: "security-compliance-ratchet-selection"
+    capability_slug: "audit-attribution"
+    feature_ids: ["AG-F004", "AG-F005", "AG-F006"]
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/ai-governance.md"
+      excerpt: >
+        AG-F004: Depth Spectrum: Standard — commit trailer for AI-generated commits.
+        Advanced — line-level attribution. Signals: compliance.categories includes
+        'ai-usage-traceability'. Inclusion Mandatory when: compliance.categories
+        includes 'ai-usage-traceability'.
+        AG-F005: Depth Spectrum: Standard — manifest with tier rationale (current).
+        Inclusion Mandatory when: regulated industry or L3+.
+        AG-F006: Depth Spectrum: Standard — structured JSON hub (current briefs).
+        Inclusion Mandatory when: compliance audit required.
+    recommendation: >
+      RATCHET APPLIED. Profile compliance.categories includes 'ai-usage-traceability'
+      and 'audit-trail (AI vs human attribution)'. Per KB AG-F004 Signals section and
+      Inclusion condition, ai-usage-traceability FIRES a mandatory inclusion and drives
+      commit-trailer enforcement (Standard depth business rule). The ratchet for
+      AG-F004 selects Standard depth with commit-trailer enforcement as the mandatory
+      business rule — even though the feature Status is PARTIAL (commit-level attribution
+      not yet enforced). For AG-F005 (Decision Provenance): profile compliance.categories
+      includes audit-trail and profile delivery_ambition.roadmap_horizon is L3 — both
+      fire the AG-F005 mandatory inclusion condition. For AG-F006 (Evidence Export):
+      profile compliance.required=true fires the AG-F006 mandatory inclusion condition.
+      Selected depth: Standard for all three (Advanced/Enterprise require tamper-evident
+      signed attestation, line-level attribution, SOC2 adapters — all post-v1 external
+      regulation targets; v1 has no external regulations in scope).
+      Ratchet summary: compliance.categories['ai-usage-traceability'] → commit-trailer
+      enforcement required on all AI-generated commits (AG-F004 Standard business rule).
+    alternatives_considered:
+      - alt: "Advanced depth for AG-F004 — line-level attribution"
+        why_not: "Line-level attribution adds significant storage and diff-tool complexity. v1 has no external regulations requiring line-level. Standard commit-trailer satisfies the ai-usage-traceability compliance category."
+      - alt: "Enterprise depth for AG-F005 — historical replay with divergence analysis"
+        why_not: "Enterprise historical replay requires signed attestation and cross-play indexing. v1 external_regulations_in_scope_v1=[] — no external framework demands this level. Standard tier-batched manifests satisfy the audit-trail compliance category."
+      - alt: "No ratchet — treat audit-attribution as standard-depth without compliance override"
+        why_not: "Profile explicitly declares compliance.required=true with categories including ai-usage-traceability and audit-trail. These categories directly map to AG-F004 and AG-F006 inclusion conditions. Ignoring them violates the ratchet rule."
+    agent_reasoning_summary: >
+      audit-attribution is the only capability where profile compliance categories directly
+      fire inclusion conditions and business-rule ratchets. 'ai-usage-traceability' maps to
+      AG-F004 mandatory inclusion with commit-trailer enforcement. 'audit-trail' and
+      compliance.required=true map to AG-F005/F006 mandatory inclusions. Standard depth is
+      selected because v1 has no external regulations (no SOC2/GDPR/HIPAA) — the ratchet
+      raises to commit-trailer enforcement (Standard), not tamper-evident storage
+      (Advanced/Enterprise). This is a genuine ratchet: the business rules for commit-trailer
+      enforcement apply regardless of depth selection.
+    user_response: accept
+    user_response_detail: "batch-accepted via Stage 4 review — user option A"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D-ec-001.8 — quality-signals (EO-F001, EO-F002, EO-F004)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - decision_id: "D-ec-001.8"
+    decision_type: "security-compliance-ratchet-selection"
+    capability_slug: "quality-signals"
+    feature_ids: ["EO-F001", "EO-F002", "EO-F004"]
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/engineering-observability.md"
+      excerpt: "EO-F001: mandatory for L2+ projects. EO-F002: mandatory for any L2+ project. EO-F004: mandatory when security is in-scope."
+    recommendation: >
+      No ratchet applied for depth. security_level=elevated does trigger the EO-F004
+      inclusion condition (security is in-scope) — but EO-F004 was already mandatorily
+      selected. No depth elevation beyond Standard is triggered. Selected depth: Standard
+      for EO-F001 (PARTIAL, CI threshold in CI is Standard), Standard for EO-F002
+      (PARTIAL, CI lint gate is Standard), Standard for EO-F004 (PARTIAL, aggregated CVE
+      list is Standard). Advanced (cross-project aggregation, vulnerability prioritization)
+      is post-v1 for all three.
+    alternatives_considered:
+      - alt: "Advanced depth for EO-F004 — vulnerability prioritization"
+        why_not: "Advanced adds vulnerability prioritization engine. v1 scope is per-project scans with aggregation. Prioritization is post-v1 functionality."
+      - alt: "Enterprise depth for EO-F002 — policy-governed lint rules"
+        why_not: "Enterprise lint governance requires multi-team policy management. Solo-dev profile does not have a multi-team structure in v1."
+    agent_reasoning_summary: >
+      quality-signals features are observability primitives. security_level=elevated
+      confirms EO-F004 inclusion (already mandated) but does not push depth above Standard.
+      No compliance category triggers ratchet on observability features. Standard depth
+      matches PARTIAL status for all three features.
+    user_response: accept
+    user_response_detail: "batch-accepted via Stage 4 review — user option A"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # D-ec-001.9 — intent-driven-verification (WI-F010..WI-F013)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - decision_id: "D-ec-001.9"
+    decision_type: "security-compliance-ratchet-selection"
+    capability_slug: "intent-driven-verification"
+    feature_ids: ["WI-F010", "WI-F011", "WI-F012", "WI-F013"]
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/work-intelligence.md"
+      excerpt: "WI-F010: mandatory for L3+. WI-F011: mandatory for L3+. WI-F012: mandatory for L3+. WI-F013: mandatory (production systems)."
+    recommendation: >
+      No ratchet applied. intent-driven-verification features are verification/validation
+      machinery. Profile compliance categories do not reference WI verification features
+      in their ratchet rules. security_level=elevated is below the KB ratchet threshold
+      for mutation testing (Enterprise). All 4 features are LIVE. Selected depth: Advanced
+      for all four (all LIVE — WI-F010 is eval-gen from intent, WI-F011 is test synthesis
+      from scenarios, WI-F012 is RCA template, WI-F013 is fix-it loop closure; Advanced
+      reflects the LIVE state at spec-driven verification level).
+    alternatives_considered:
+      - alt: "Standard depth — eval schema + test skeletons without full synthesis"
+        why_not: "All 4 features are LIVE at Advanced capability level. Standard undersells the shipped state. Advanced (intent-driven eval gen, full test synthesis, RCA template, RCA-driven fix) is the correct depth."
+      - alt: "Enterprise depth — mutation testing, cross-defect correlation, fleet-wide fix loop"
+        why_not: "Enterprise adds mutation testing and cross-defect correlation. These are post-v1 targets. No compliance category triggers them in v1."
+    agent_reasoning_summary: >
+      intent-driven-verification is the only other capability (beyond audit-attribution)
+      where all features are LIVE. Advanced depth selected for all 4 features reflecting
+      their LIVE state. No compliance category triggers ratchet on verification features.
+      No ratchet applied.
+    user_response: accept
+    user_response_detail: "batch-accepted via Stage 4 review — user option A"
