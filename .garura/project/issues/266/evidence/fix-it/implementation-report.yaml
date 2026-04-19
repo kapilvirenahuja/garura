@@ -1,0 +1,57 @@
+issue: 266
+status: completed
+files_modified:
+  - path: core/components/plays/garura-capture/reference/intent.yaml
+    action: rewritten
+    deviation_justification: null
+  - path: core/components/plays/garura-capture/SKILL.md
+    action: not rebuilt — pending manual /create-play --build invocation
+    deviation_justification: >
+      Step 3 requires invoking the create-play skill via the Skill tool, which
+      is not available to code-builder. The existing SKILL.md at this path
+      (moved from report-issue) contains stale content (name: meridian:report-issue,
+      defect-only logic). It is NOT consistent with the new intent.yaml until
+      /create-play --build garura-capture is run by the orchestrator. This is
+      documented as a pending action, not a silent skip.
+  - path: core/components/plays/report-issue/SKILL.md
+    action: created (deprecation shim)
+    deviation_justification: null
+  - path: core/components/memory/standards/templates/github-issue.md
+    action: modified (additive rows + Title Prefix column)
+    deviation_justification: null
+  - path: docs/components/plays.md
+    action: modified
+    deviation_justification: null
+  - path: docs/components/skills.md
+    action: modified
+    deviation_justification: null
+  - path: .garura/product/scope/features.yaml
+    action: modified
+    deviation_justification: null
+  - path: .garura/product/scope/epics/epic-work-intelligence-intent-driven-verification-001.yaml
+    action: modified
+    deviation_justification: null
+
+deviations:
+  - step: 3
+    description: >
+      /create-play --build garura-capture could not be run automatically.
+      code-builder does not have access to the Skill tool to invoke create-play.
+      The garura-capture/SKILL.md currently contains stale content from the
+      pre-rename report-issue play. It must be rebuilt by the orchestrator
+      by invoking: /create-play --build (targeting
+      core/components/plays/garura-capture/reference/intent.yaml).
+    severity: medium
+    pending_action: >
+      Orchestrator must run /create-play --build on garura-capture to regenerate
+      SKILL.md with name: "garura:capture", type-dispatch title/label logic,
+      background dispatch in Step 2, and single-line confirmation in the
+      approval step.
+
+notes: >
+  All other steps completed successfully. /sync-claude --global ran to completion
+  and deployed both garura-capture (65 skills total) and the report-issue
+  deprecation shim. A repo-wide grep confirmed no unintended report-issue
+  references remain in live component files — remaining occurrences are
+  historical evidence artifacts, research notes, and the intentional
+  deprecation alias entries in docs.

@@ -1,0 +1,28 @@
+mappings:
+  - group_id: G1
+    issue_number: "266"
+    confidence: high
+    reasoning: >
+      Branch signal (fix/266-report-issue-rename) directly encodes #266.
+      4 semantic signals: issue title contains garura:capture and report-issue;
+      file paths reference components named in the issue body; label alignment
+      (enhancement + defect both match the rename+expand scope); issue body
+      explicitly describes renaming report-issue to garura:capture with multi-type
+      support — G1 subject matches exactly.
+    conflicts: []
+
+  - group_id: G2
+    issue_number: "266"
+    confidence: high
+    reasoning: >
+      Branch signal (fix/266-report-issue-rename) directly encodes #266.
+      3 semantic signals: group scope is stm, files are under
+      .garura/project/issues/266/ (direct numeric reference); group subject
+      explicitly states "issue #266"; proximity (G1 already maps to #266
+      with high confidence and STM artifacts are operational artifacts for
+      the same issue).
+    conflicts: []
+
+conflicts_detected: false
+all_high_confidence: true
+requires_human_review: false

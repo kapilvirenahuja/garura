@@ -1,0 +1,11 @@
+play: garura-capture
+skills:
+  - name: manage-issue
+    path: core/components/skills/manage-issue/SKILL.md
+    status: existing
+    used_for: Create GitHub issue (action:create) with type-driven title, body, labels
+    invoking_agent: project-orchestrator
+notes: >
+  All needed capabilities covered by manage-issue. Type-dispatch logic, background
+  dispatch, and confirmation rendering are play-owned (orchestrator logic), not
+  skill-owned. No new skills needed.

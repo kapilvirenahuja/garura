@@ -1,0 +1,121 @@
+issue: 266
+
+root_cause: |
+  The play was designed exclusively for defect reporting. All four root causes trace
+  to its original intent being defect-only: (1) intent.yaml constraints C8 and C9
+  hardcode the [DEF] title prefix and "defect" label with no type-dispatch logic;
+  (2) the play name "meridian:report-issue" (SKILL.md frontmatter line 3) encodes
+  the defect-narrow mental model and exposes it as a slash command; (3) the play
+  has no background dispatch mechanism — Step 2 blocks on project-orchestrator until
+  the GitHub round-trip completes; (4) the confirmation in Step 4 (SKILL.md lines
+  204-230) outputs a multi-field markdown block that was designed for human-readable
+  defect confirmation, not for agent-in-flow consumption.
+
+symptoms:
+  - id: S1
+    description: >
+      Scoped to defects only — title prefix [DEF], severity required, label
+      hardcoded to "defect". Cannot file features, bugs, epics, or enhancements.
+    root_cause_trace: >
+      intent.yaml C8 (line 40-42): "title MUST follow pattern [DEF][Severity]
+      Short problem description". intent.yaml C9 (line 43-46): "MUST apply the
+      label 'defect'". SKILL.md line 85: title template "[DEF][{Severity}] {Short
+      problem description}". SKILL.md line 164: labels: "defect" passed to
+      manage-issue skill. No type parameter exists anywhere in constraints,
+      failure_conditions, or workflow. Type inference is architecturally absent.
+
+  - id: S2
+    description: >
+      Name "report-issue" signals narrow scope — reads as "file a defect" not
+      "capture anything the system should know about".
+    root_cause_trace: >
+      SKILL.md line 3: name: "meridian:report-issue". SKILL.md line 4:
+      description "Report a defect against Meridian OS". intent.yaml line 1:
+      "Allow any caller to report a defect". The name and intent statement are
+      both scoped to defects. No alias or forward exists. The slash command
+      exposed is /report-issue which reinforces the narrow framing.
+
+  - id: S3
+    description: >
+      Runs in foreground — Step 2 blocks the caller until GitHub round-trip
+      completes. No background dispatch mode exists.
+    root_cause_trace: >
+      SKILL.md Step 2 (lines 139-169): "Owner: project-orchestrator, Depends
+      on: Step 1" — synchronous Task delegation. The play waits for
+      project-orchestrator to return issue-result.yaml before proceeding to
+      Step 3/4. intent.yaml has no constraint or scenario covering async
+      dispatch or caller-release semantics. The architecture was never designed
+      for background execution.
+
+  - id: S4
+    description: >
+      Verbose confirmation — Step 4 returns a multi-line markdown block with
+      issue URL, title, labels, and repo name. Too verbose for agent-in-flow
+      callers who only need "filed, #N".
+    root_cause_trace: >
+      SKILL.md Step 4 (lines 204-230): the "Defect Filed" template outputs
+      Issue URL, Title, Labels, and a prose sentence "The defect has been
+      filed on kapilvirenahuja/meridian-os". intent.yaml has no constraint
+      on confirmation format or verbosity. The template was written for human
+      consumption, not agent consumption.
+
+blast_radius:
+  - file: core/components/plays/report-issue/reference/intent.yaml
+    role: Intent source of truth — defines constraints, failure conditions, scenarios
+    change_needed: >
+      Full rewrite to change play identity (garura:capture), add type-inference
+      constraint, remove [DEF]-only title/label constraints, add background dispatch
+      constraint, add crisp confirmation constraint. Update all scenarios to cover
+      multi-type and background flows.
+
+  - file: core/components/plays/report-issue/SKILL.md
+    role: Compiled play artifact — DO NOT hand-edit
+    change_needed: >
+      Must be regenerated via /create-play --build after intent.yaml rewrite.
+      Do not edit directly.
+
+  - file: core/components/plays/garura-capture/ (new folder)
+    role: New canonical play folder after git mv
+    change_needed: >
+      git mv core/components/plays/report-issue → core/components/plays/garura-capture.
+      Becomes the rebuild target for /create-play --build.
+
+  - file: core/components/plays/report-issue/ (alias shim)
+    role: Deprecated alias — keeps /report-issue slash command alive for one release
+    change_needed: >
+      Create a thin SKILL.md that forwards to garura:capture with a deprecation
+      notice. No intent.yaml rebuild needed for shim — write shim SKILL.md directly
+      since it is a one-time passthrough artifact.
+
+  - file: core/components/memory/standards/templates/github-issue.md
+    role: Type-to-label mapping template used by manage-issue skill
+    change_needed: >
+      Verify the existing type→label table covers all five types (feature,
+      bug, defect, epic, enhancement). Add epic→epic label if missing. No
+      new mapping should be invented in the play intent — reuse this template.
+
+  - file: docs/components/plays.md
+    role: Documentation listing all plays and their slash commands
+    change_needed: >
+      Update entry: replace report-issue with garura:capture, note
+      /report-issue as deprecated alias.
+
+  - file: docs/components/skills.md
+    role: Documentation referencing play names
+    change_needed: >
+      Update any reference to report-issue → garura:capture.
+
+  - file: .garura/product/scope/features.yaml
+    role: Product scope artifact listing play components as evidence
+    change_needed: >
+      Line 152: replace "report-issue" → "garura-capture" in play list.
+      Line 1209: replace "core/components/plays/report-issue/" path.
+      Line 1398: update slash command list text.
+      Decision: update in this fix to avoid drift between product scope and
+      actual component tree.
+
+  - file: .garura/product/scope/epics/epic-work-intelligence-intent-driven-verification-001.yaml
+    role: Epic referencing report-issue in a scenario description
+    change_needed: >
+      Line 143: update scenario text from "report-issue workflow" →
+      "garura:capture workflow". Low-risk string update.

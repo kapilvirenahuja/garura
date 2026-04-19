@@ -1,0 +1,319 @@
+step_evals:
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: play (pre-flight)
+    check: >
+      A capture request submitted with title or problem missing is rejected before
+      any filing occurs.
+    artifact_pattern: "{stm_base}/capture-report/evidence/garura-capture/rejection.yaml or absence of issue-result.yaml"
+    pass_criteria: >
+      Rejection artifact exists naming the missing required field (title and/or problem).
+      No issue-result.yaml is written — no gh issue was created and no fallback file exists.
+    fail_criteria: >
+      Play proceeds to filing with missing title or missing problem. issue-result.yaml
+      or fallback file exists despite one of the required fields being absent from input.
+
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: play (pre-flight)
+    check: >
+      A capture request with type "defect" and severity omitted is rejected before
+      filing.
+    artifact_pattern: "{stm_base}/capture-report/evidence/garura-capture/rejection.yaml or absence of issue-result.yaml"
+    pass_criteria: >
+      Rejection artifact exists naming severity as the missing required field for defect
+      type. No issue-result.yaml is written.
+    fail_criteria: >
+      Issue is filed with type "defect" when severity was not provided. issue-result.yaml
+      exists or fallback file exists despite severity omission.
+
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: play (pre-flight)
+    check: >
+      A capture request with a type value outside the allowed set (feature / bug /
+      defect / epic / enhancement) that cannot be inferred from problem text is
+      rejected before filing.
+    artifact_pattern: "{stm_base}/capture-report/evidence/garura-capture/rejection.yaml or absence of issue-result.yaml"
+    pass_criteria: >
+      Rejection artifact exists naming the invalid type value and the allowed set.
+      No issue-result.yaml is written.
+    fail_criteria: >
+      Play proceeds to filing with an invalid type value. issue-result.yaml contains
+      a type value outside the allowed set.
+
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: manage-issue
+    check: >
+      When gh access fails, the play produces either a dispatched background task
+      record or a local fallback file — never neither.
+    artifact_pattern: "{stm_base}/capture-report/evidence/garura-capture/issue-result.yaml or fallback-*.md"
+    pass_criteria: >
+      On gh failure, at least one of: issue-comment-agent.yaml with status dispatched,
+      or fallback-{date}.md file under evidence/garura-capture/.
+    fail_criteria: >
+      gh access fails and neither a dispatched task record nor a fallback markdown
+      file exists under the capture evidence directory.
+
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: manage-issue
+    check: >
+      On gh failure, the caller receives a message identifying the specific failure
+      and instructions to share the fallback file manually.
+    artifact_pattern: "caller-facing response + {stm_base}/capture-report/evidence/garura-capture/fallback-*.md"
+    pass_criteria: >
+      Caller response names what failed (auth, network, or permissions) and includes
+      the fallback file path plus sharing instructions (email, Slack, paste into a
+      GitHub issue).
+    fail_criteria: >
+      Caller response on gh failure silently succeeds OR omits the specific failure
+      reason OR omits sharing instructions for the fallback file.
+
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: play (dispatch)
+    check: >
+      The caller receives confirmation before the GitHub round-trip completes —
+      the play never blocks waiting for gh.
+    artifact_pattern: "status file {stm_base}/capture-report/status/garura-capture.json + issue-comment-agent.yaml dispatched_at"
+    pass_criteria: >
+      The confirmation return event precedes the issue-comment-agent.yaml completed_at
+      timestamp. Status file shows dispatch-step completed with the background task
+      still in_progress at the moment the caller received the confirmation.
+    fail_criteria: >
+      Caller confirmation is returned only after the gh filing completes — the
+      dispatch step blocks the caller. issue-comment-agent.yaml completed_at is
+      earlier than or equal to the caller confirmation return event.
+
+  - id: SE-7
+    source_type: both
+    failure_condition_id: F7
+    constraint_id: Cconf
+    skill: play (confirmation)
+    check: >
+      Confirmation returned to the caller is a single line matching
+      "garura:capture dispatched → {stm_tracking_path}" and contains a non-empty
+      stm_tracking_path.
+    artifact_pattern: "caller-facing response string"
+    pass_criteria: >
+      Response contains exactly one line, starts with "garura:capture dispatched →",
+      and the stm_tracking_path after the arrow is a non-empty path ending in
+      issue-result.yaml or issue-comment-agent.yaml.
+    fail_criteria: >
+      Response contains more than one line (newlines in body) OR omits the stm_tracking_path
+      OR the tracking path after the arrow is empty or a literal placeholder.
+
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: play (inference)
+    check: >
+      When the caller did not provide a type and the problem text matches no C2
+      keyword, the filed issue was NOT labeled or prefixed as a non-bug type for
+      agent callers, AND was NOT dispatched without human confirmation for human
+      callers.
+    artifact_pattern: "{stm_base}/capture-report/evidence/garura-capture/issue-result.yaml + inference-trace.yaml"
+    pass_criteria: >
+      For agent callers on ambiguous text: filed issue type is "bug" (label and
+      prefix correspond to bug). For human callers on ambiguous text: a
+      human-confirmation-prompt event exists in the trace before any dispatch.
+    fail_criteria: >
+      Filed issue for an agent caller on ambiguous text has a non-bug type
+      (feature, defect, epic, or enhancement) in labels or prefix, OR filed issue
+      for a human caller on ambiguous text was dispatched without a preceding
+      human-confirmation event in the inference trace.
+
+  - id: SE-9
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C5
+    skill: manage-issue
+    check: >
+      The GitHub Issue body uses a structured markdown format — type and metadata
+      as a front table, problem / evidence / expected / impact as labeled sections.
+    artifact_pattern: "filed issue body text (captured in {stm_base}/capture-report/evidence/garura-capture/issue-result.yaml)"
+    pass_criteria: >
+      Issue body contains a leading markdown table with metadata rows, followed by
+      labeled sections using markdown headings for problem and for any provided
+      evidence / expected behavior / impact fields.
+    fail_criteria: >
+      Issue body omits the front metadata table OR omits labeled section headings
+      for the content fields.
+
+  - id: SE-10
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C6
+    skill: manage-issue
+    check: >
+      Optional fields (Evidence, Root cause, Specific issues) appear in the issue
+      body only when the caller provided them — never as empty sections.
+    artifact_pattern: "filed issue body text (captured in {stm_base}/capture-report/evidence/garura-capture/issue-result.yaml)"
+    pass_criteria: >
+      For each optional field not provided by the caller, the corresponding section
+      heading does not appear in the issue body. Only caller-provided optional
+      fields produce section headings.
+    fail_criteria: >
+      Issue body contains an Evidence, Root cause, or Specific issues section heading
+      with empty content OR with placeholder content when the caller did not provide
+      that field.
+
+  - id: SE-11
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C8
+    skill: manage-issue
+    check: >
+      The GitHub Issue title prefix is type-driven: feature → [FEAT], bug → [BUG],
+      defect → [DEF][Severity], epic → [EPIC], enhancement → [ENH].
+    artifact_pattern: "filed issue title (captured in {stm_base}/capture-report/evidence/garura-capture/issue-result.yaml title field)"
+    pass_criteria: >
+      Filed issue title begins with the correct prefix for the resolved type per
+      the table. For defect type, the prefix contains both [DEF] and [Severity].
+    fail_criteria: >
+      Filed issue title prefix does not match the resolved type OR uses a legacy
+      prefix (e.g., [DEF] on a non-defect type) OR omits [Severity] for defect type.
+
+  - id: SE-12
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C9
+    skill: manage-issue
+    check: >
+      The label applied to the GitHub Issue is type-driven per the github-issue.md
+      template table. If the required label does not exist, it is created before filing.
+    artifact_pattern: "filed issue labels (captured in {stm_base}/capture-report/evidence/garura-capture/issue-result.yaml labels field)"
+    pass_criteria: >
+      Filed issue has at least the type-driven label from the github-issue.md table
+      applied. If the label did not exist prior to filing, a label-create event
+      precedes the issue-create event in the trace.
+    fail_criteria: >
+      Filed issue is missing the type-driven label OR has a different label than
+      what the template table prescribes for the resolved type OR the label did not
+      exist and was not created before filing attempted.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Agent in another play
+    artifact_pattern: "{stm_base}/capture-report/evidence/garura-capture/issue-result.yaml + caller confirmation response"
+    check: >
+      For an agent-dispatched feature request with no type provided, the play
+      infers type "feature" from keyword "Add", the filed issue title begins with
+      [FEAT], the filed issue has label "enhancement", the caller received the
+      single-line dispatched confirmation, and the caller was not blocked.
+    pass_criteria: >
+      issue-result.yaml records type=feature, title begins with [FEAT], labels list
+      contains "enhancement", and the caller confirmation was returned before the
+      issue-comment-agent.yaml completed_at timestamp.
+    fail_criteria: >
+      Type inferred is not "feature", OR title prefix is not [FEAT], OR label is
+      not "enhancement", OR caller confirmation was returned only after the gh
+      filing completed.
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Human developer
+    artifact_pattern: "{stm_base}/capture-report/evidence/garura-capture/issue-result.yaml + caller confirmation response"
+    check: >
+      For a human-filed defect with explicit type "defect" and severity "High",
+      the filed issue title begins with [DEF][High], the filed issue has label
+      "defect", the caller received the single-line dispatched confirmation,
+      and the developer was not blocked waiting for GH.
+    pass_criteria: >
+      issue-result.yaml records type=defect and severity=High, title begins with
+      [DEF][High], labels list contains "defect", caller confirmation returned
+      before issue-comment-agent.yaml completed_at.
+    fail_criteria: >
+      Title prefix is not [DEF][High], OR label is not "defect", OR caller was
+      blocked until gh filing completed.
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: Human developer
+    artifact_pattern: "{stm_base}/capture-report/evidence/garura-capture/issue-result.yaml + caller confirmation response"
+    check: >
+      For a human-filed epic with explicit type "epic" and no severity provided,
+      the filed issue title begins with [EPIC], has label "epic", the caller
+      received single-line dispatched confirmation, and no severity-missing
+      error was raised.
+    pass_criteria: >
+      issue-result.yaml records type=epic, title begins with [EPIC], labels list
+      contains "epic", and no rejection-for-severity artifact exists under the
+      capture evidence directory.
+    fail_criteria: >
+      Title prefix is not [EPIC], OR label is not "epic", OR a severity-missing
+      rejection was produced for the epic-type request.
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Agent in another play
+    artifact_pattern: "caller confirmation response + {stm_base}/capture-report/evidence/garura-capture/issue-comment-agent.yaml"
+    check: >
+      The play returns the dispatched confirmation before the background gh task
+      completes. The confirmation contains stm_tracking_path the agent can poll
+      for the issued GitHub issue number after the fact. The caller's workflow
+      is never blocked.
+    pass_criteria: >
+      Timestamp of caller confirmation return is strictly earlier than
+      issue-comment-agent.yaml completed_at (or, when completed_at exists, its value
+      is after the confirmation return). stm_tracking_path in the confirmation is
+      a valid path under the capture evidence directory.
+    fail_criteria: >
+      Caller confirmation is returned only after issue-comment-agent.yaml records
+      completion OR the stm_tracking_path is missing, empty, or does not resolve
+      to a path under capture-report evidence.
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: Human developer
+    artifact_pattern: "{stm_base}/capture-report/evidence/garura-capture/fallback-*.md + caller-facing response"
+    check: >
+      When gh CLI is unauthenticated or the network is down, the play creates a
+      local markdown fallback file containing the full issue content, tells the
+      caller exactly what failed, and provides the file path with instructions
+      to share it manually (email, paste into a GitHub issue, Slack).
+    pass_criteria: >
+      A fallback-{date}.md file exists under the capture evidence directory with
+      the full issue content. Caller response names the specific failure (auth or
+      network), includes the fallback file path, and lists sharing options
+      including at least email, paste into a GitHub issue, and Slack.
+    fail_criteria: >
+      No fallback file exists on gh failure OR the caller response omits the
+      specific failure reason OR omits the fallback file path OR omits sharing
+      instructions.
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: Human developer
+    artifact_pattern: "{stm_base}/capture-report/evidence/garura-capture/inference-trace.yaml + caller confirmation response"
+    check: >
+      When a human submits a capture without type and the problem text matches no
+      C2 keyword, the play surfaces the ambiguity and prompts for type confirmation
+      before dispatching. Only after the developer confirms a type does the play
+      proceed to prefix the title, apply the label, dispatch the background gh
+      filing, and return the single-line confirmation. No issue is filed with a
+      silently guessed non-bug type.
+    pass_criteria: >
+      inference-trace.yaml contains a human-confirmation-prompt event with an
+      ambiguous_text flag, followed by a human-confirmed type event, followed by
+      the dispatch event. Filed issue type matches the human-confirmed value.
+    fail_criteria: >
+      Play dispatched before a human-confirmation event exists in the trace OR
+      filed issue has a non-bug type without a preceding human-confirmation OR
+      no prompt-for-confirmation event was emitted on ambiguous text.
