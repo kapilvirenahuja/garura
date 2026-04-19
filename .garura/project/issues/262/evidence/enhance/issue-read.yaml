@@ -1,0 +1,53 @@
+number: 262
+title: "[DEF][Medium] /fix-it generates heavy HTML brief instead of inline markdown RCA;\
+  \ missing parallel issue-update on approval"
+state: open
+labels:
+  - name: defect
+    description: Defect report
+    color: d73a4a
+assignees:
+  - login: kapilvirenahuja
+    name: Kapil Viren Ahuja
+created_at: "2026-04-18T14:24:51Z"
+body: |
+  | Field | Value |
+  |-------|-------|
+  | **Severity** | Medium |
+  | **Affected Component** | `core/components/plays/fix-it/` (SKILL.md + intent.yaml), Step 4 (doc-builder brief) and Step 5 (approval gate) |
+  | **Reported From** | User observation during /fix-it run on issue #261 |
+  | **Date** | 2026-04-18 |
+
+  ### Problem
+
+  Two coupled issues in the /fix-it workflow around the approval checkpoint:
+
+  1. **Heavy HTML brief.** Step 4 dispatches `doc-builder` to produce an HTML brief (`briefs/rca-design-brief.html`) from RCA + design YAML. For fix-it's scope (single root cause, linear fix), an HTML artifact is over-engineered — it takes ~5 minutes to generate, produces a file the user mostly won't open, and the orchestrator still has to summarize it inline at the checkpoint anyway. The RCA YAML is already a clear structured artifact; what the user needs at the gate is a concise markdown summary, not a standalone HTML page.
+
+  2. **No issue-record write on approval.** When the user approves (Tether), the RCA and plan never get recorded on the GitHub issue itself. The evidence lives only in local STM (`.garura/project/issues/{n}/evidence/fix-it/`). This breaks audit trail for anyone reading the issue on GitHub — they see the original defect report but not the RCA conclusion or the fix plan until the PR lands.
+
+  ### Expected Behavior
+
+  **Step 4 — replace with inline markdown summary (no doc-builder call):**
+  - The play renders the RCA + fix-design summary directly as markdown in the checkpoint message to the user.
+  - Sections: Root Cause, Blast Radius (table), Proposed Fix (execution steps), Alternatives with rejection reasons, Risks with severity, Confidence.
+  - No HTML generation, no doc-builder invocation, no `briefs/` subdirectory.
+  - Source of truth for the summary is the existing `rca.yaml` and `design.yaml` in STM.
+
+  **Step 5 — on Tether approval, fire parallel sub-agent to record on GitHub issue:**
+  - When the user types Tether, the play dispatches `project-orchestrator` (or `repo-orchestrator` with manage-issue context) via the Agent tool with `run_in_background: true`, so the issue-update runs in parallel with the transition to Step 6 (implementation).
+  - The parallel agent posts a comment on the originating issue containing: RCA root-cause summary, blast radius, fix strategy, approved-by-user timestamp, PR link (when available later — initial comment can be updated or followed up).
+  - Implementation (Step 6) does NOT wait on the issue-update comment.
+
+  ### Impact
+
+  - **Speed:** fix-it loses ~5 minutes per run on HTML generation that adds little value for this play's scope.
+  - **Audit gap:** GitHub issues do not reflect RCA conclusions or approved fix plans — reviewers must open local STM to see what was decided.
+  - **Over-delegation:** doc-builder is an HTML-specialist agent; invoking it for fix-it's simple structured summary is the kind of over-engineering fix-it is explicitly designed to avoid.
+  - **Consistency:** /enhance (heavier play) presents its approach inline at its mid-checkpoint (Step 7) without an HTML brief. /fix-it should follow the same pattern for its lighter scope.
+
+  ### Related
+
+  - #258 (/enhance per-task validation) — analogous simplification philosophy
+  - #259 (/fix-it leaner scope) — same play, same direction of travel
+  - #261 — the /fix-it run that surfaced this defect

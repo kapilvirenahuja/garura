@@ -1,0 +1,507 @@
+# quality-profile.yaml
+# Garura Platform — specify-product Stage 6: Quality Profile
+#
+# Provenance
+# play: specify-product
+# stage: 6-derive-quality-profile-from-epics
+# agent: product-keeper
+# skill: derive-quality-profile-from-epics v0.2.0
+# task_id: specify-product-stage-6-quality
+# created_at: 2026-04-19T00:00:00Z
+# source_epics_dir: .garura/product/scope/epics/
+# decision_manifest: .garura/product/specification/decision-manifest-derive-quality-profile.yaml
+#
+# All inferred decisions are recorded in the decision manifest (written first per DSD / AG-F005).
+
+slug: garura-platform
+status: DRAFT
+created_at: "2026-04-19T00:00:00Z"
+source_epics_count: 9
+source_epics:
+  - EPIC-agentic-methodology-component-arch-001
+  - EPIC-agentic-methodology-l2-spec-driven-001
+  - EPIC-agentic-methodology-l3-intent-driven-001
+  - EPIC-engineering-experience-cli-slash-commands-001
+  - EPIC-engineering-experience-first-run-onboarding-001
+  - EPIC-engineering-experience-ide-integrations-001
+  - EPIC-ai-governance-audit-attribution-001
+  - EPIC-engineering-observability-quality-signals-001
+  - EPIC-work-intelligence-intent-driven-verification-001
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ISO 25010:2023 PROFILE
+# ─────────────────────────────────────────────────────────────────────────────
+
+iso_25010_profile:
+
+  functional_suitability:
+    relevance: high
+    targets:
+      - "≥ 95% of engineering actions invoked via plays with full KB traceability over a 30-day window (source: EPIC-agentic-methodology-component-arch-001)"
+      - "100% of intent epics pass validate-intent-epics schema validation before spec-lock gate with 0 blocking violations on first run (source: EPIC-agentic-methodology-l2-spec-driven-001)"
+      - "100% of specify-product runs produce epics passing validate-intent-epics with zero blocking violations on first run (source: EPIC-agentic-methodology-l3-intent-driven-001)"
+      - "100% of play-produced commits carry AI-authorship commit trailer in a 30-day window (source: EPIC-ai-governance-audit-attribution-001)"
+      - "Every play reachable via a slash command in /help with 0 plays requiring documentation lookup (source: EPIC-engineering-experience-cli-slash-commands-001)"
+      - "Solo founder completes Garura initialization < 3 minutes from npm install to valid project_profile.yaml (source: EPIC-engineering-experience-first-run-onboarding-001)"
+      - "Every component update reflected in every adapter harness (Claude Code, Codex CLI, Factory Droid) within 30s of the corresponding /sync-claude, /sync-codex, or /sync-droid invocation with zero drift (source: EPIC-engineering-experience-ide-integrations-001)"
+      - "Every PR receives quality-check report (coverage delta, lint, security scan) within 3 minutes on ≥ 95% of supported stacks (source: EPIC-engineering-observability-quality-signals-001)"
+      - "fix-it closes ≥ 95% of filed defects without reopening within the same milestone window (source: EPIC-work-intelligence-intent-driven-verification-001)"
+    rationale: >
+      Functional suitability targets are derived from the measurable success criteria embedded
+      in each epic's hypothesis and success_scenarios. These represent the product's core
+      functional contract — every target is traceable to a specific epic's intent statement.
+
+  performance_efficiency:
+    relevance: high
+    targets:
+      - "Slash command invocation latency < 1s from invocation to first output (source: EPIC-engineering-experience-cli-slash-commands-001)"
+      - "/sync-claude, /sync-codex, /sync-droid each complete in < 10s on unchanged source; sync reflects modified components in harness within 30s (source: EPIC-engineering-experience-ide-integrations-001)"
+      - "Play invocation success rate ≥ 90% over rolling 30 days (source: EPIC-agentic-methodology-component-arch-001)"
+      - "Play evidence artifact committed within 30s of step completion (source: EPIC-agentic-methodology-component-arch-001)"
+      - "check-drift surfaces findings within 5 minutes of post-merge run (source: EPIC-agentic-methodology-l2-spec-driven-001)"
+      - "Level-up transitions complete with zero schema-breaking changes in ≥ 95% of transitions (source: EPIC-agentic-methodology-l2-spec-driven-001)"
+      - "Commit hook overhead adds < 200ms to commit time (source: EPIC-ai-governance-audit-attribution-001)"
+      - "Audit bundle generation completes in < 30s for a typical 30-day evidence set (source: EPIC-ai-governance-audit-attribution-001)"
+      - "Greenfield wizard: npm install garura completes in < 2 minutes on 10 Mbps connection (source: EPIC-engineering-experience-first-run-onboarding-001)"
+      - "sync-droids parity tests complete in < 2 minutes (source: EPIC-engineering-experience-ide-integrations-001)"
+      - "quality-check completes in < 3 minutes per PR; security scanner run in < 5 minutes; posture dashboard loads within 5 minutes of scan completion (source: EPIC-engineering-observability-quality-signals-001)"
+      - "evals-creator completes eval generation for a full play in < 2 minutes; synthesized test suite runs in < 5 minutes for a single capability (source: EPIC-work-intelligence-intent-driven-verification-001)"
+    per_play_timing_baselines:
+      note: >
+        Per-play wall-clock timing must be baselined against the current implementation.
+        Values are intentionally left BLANK — first instrumented run of each play records
+        p50/p95/p99 wall-clock time; acceptable thresholds are set from that baseline in
+        the next quality-profile revision. Do NOT fill with guesses; missing measurement
+        is the signal that instrumentation is not yet wired.
+      fields_per_play: [p50_seconds, p95_seconds, p99_seconds, target_p95_seconds, measured_at]
+      plays:
+        specify-product: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        prepare-epic: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        implement-epic: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        validate-epic: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        generate-intent-epics: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        validate-intent-epics: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        configure-capabilities: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        enrich-capabilities: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        derive-quality-profile-from-epics: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        create-play: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        fix-it: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        enhance: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        merge-pr: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        ship: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        commit-code: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        distill: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        capture-learning: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        check-drift: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        sync-claude: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        sync-codex: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        sync-droid: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        garura-capture: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+    rationale: >
+      Performance efficiency covers all time-behavior and throughput constraints across
+      the product. The product-level floor is the strictest (< 1s command invocation
+      latency) per the strictest-wins aggregation logic recorded in D-dqp-001. Per-play
+      wall-clock timing is intentionally baselined-not-guessed: every play ships with
+      null measurements and the first instrumented run populates p50/p95/p99. Acceptable
+      targets follow from the baseline in the next profile revision — this is the only
+      discipline that prevents aspirational numbers from anchoring downstream decisions.
+
+  compatibility:
+    relevance: medium
+    targets:
+      - "sync-claude, sync-codex, and sync-droid must each run idempotently on their respective harness host configurations; second run on unchanged source produces zero file-system changes (source: EPIC-engineering-experience-cli-slash-commands-001 + EPIC-engineering-experience-ide-integrations-001)"
+      - "npm install garura succeeds on all supported Node LTS versions; no partial-install broken state on any supported version (source: EPIC-engineering-experience-first-run-onboarding-001)"
+      - "quality-check runs successfully on ≥ 95% of supported stacks without interfering with existing CI configurations (source: EPIC-engineering-observability-quality-signals-001)"
+      - "Codex CLI adapter delivers deterministic CI-mode behavior compatible with script-driven workflows (source: EPIC-engineering-experience-ide-integrations-001)"
+      - "Factory Droid sync completes reliably with parity tests passing across all core plays (source: EPIC-engineering-experience-ide-integrations-001)"
+    rationale: >
+      Compatibility covers the multi-harness (Claude Code, Factory Droids, Codex CLI) and
+      multi-stack interoperability requirements. Garura must co-exist with existing CI
+      configurations and developer environments without interference. Platform scope is
+      macOS/Linux for v1; Windows is post-v1.
+
+  interaction_capability:
+    relevance: high
+    targets:
+      - "WCAG 2.1 AA — org-wide baseline for all UI-rendered outputs (sourced uniformly across all 9 epics)"
+      - "/help lists all available Garura slash commands with one-line descriptions within 1s (source: EPIC-engineering-experience-cli-slash-commands-001)"
+      - "Wizard asks as many questions as required for correctness — no arbitrary cap. Each question must carry context, grounding source, and a recommended default; abandonment risk is managed by question quality, not question count (source: EPIC-engineering-experience-first-run-onboarding-001; user override 2026-04-19)"
+      - "Security posture dashboard shows only actionable items by default — severity filtering prevents cognitive overload (source: EPIC-engineering-observability-quality-signals-001)"
+      - "Every destructive step uses Tether/Vanish gate, not raw y/n prompts — 100% coverage (source: EPIC-agentic-methodology-component-arch-001)"
+    rationale: >
+      WCAG 2.1 AA is the strictest accessibility level cited across all 9 epics (uniform
+      across the set — no epic cited a higher or lower level). Interaction capability also
+      covers discoverability and learnability constraints: the 3-question wizard maximum
+      is a KB-validated tradeoff critical to solo-founder adoption. The Tether/Vanish
+      protocol protects user error on destructive actions.
+
+  reliability:
+    relevance: high
+    targets:
+      - "Play invocation success rate ≥ 90% over rolling 30 days — failed runs produce explicit failure evidence (source: EPIC-agentic-methodology-component-arch-001)"
+      - "Checkpoint rollback success ≥ 95% of failure cases (source: EPIC-agentic-methodology-component-arch-001)"
+      - "Evidence self-committed per ADR 012 — session-end evidence loss rate = 0 (source: EPIC-agentic-methodology-component-arch-001)"
+      - "STM folder whitelist violations = 0 in rolling 30 days (source: EPIC-agentic-methodology-component-arch-001)"
+      - "validate-intent-epics exits 0 on every locked epic in a 30-day window — spec-lock gate is a hard block (source: EPIC-agentic-methodology-l2-spec-driven-001)"
+      - "Atomic install guarantee — npm install garura either succeeds completely or leaves zero modified files (source: EPIC-engineering-experience-first-run-onboarding-001)"
+      - "Defect reopen rate < 5% measured across all fix-it-closed defects in a 30-day window (source: EPIC-work-intelligence-intent-driven-verification-001)"
+    rationale: >
+      Reliability targets are sourced from business_rules containing lockout/retry/rollback/
+      failover language, and from success_scenarios with explicit evidence-based pass rates.
+      The brownfield context (57% features LIVE) means reliability gates primarily protect
+      LIVE features; PARTIAL/PLANNED features carry delivery risk tracked in the risk register.
+
+  security:
+    relevance: high
+    targets:
+      - "OWASP ASVS Level 1 minimum across all product surfaces — floor set by profile.security_level=elevated across all 9 epics"
+      - "No wrong code committed — every commit produced by a play must pass the quality-check gate (lint, type-check, unit tests, security scan) AND match the active quality-profile.yaml targets before merge-pr or ship can proceed; commits that bypass the gate are a blocking defect (source: EPIC-engineering-observability-quality-signals-001 + EPIC-work-intelligence-intent-driven-verification-001)"
+      - "Quality-profile match check — merge-pr verifies the diff does not regress any ISO 25010 target in the active quality-profile.yaml; regression is a blocking failure requiring a decision-manifest entry to proceed (source: EPIC-engineering-observability-quality-signals-001)"
+      - "TLS 1.3 for all remote endpoints — npm registry, remote audit bundle delivery, sync endpoints (sourced across 5 epics: component-arch, l2-spec-driven, l3-intent-driven, ai-governance-audit-attribution, ide-integrations)"
+      - "100% of play-produced commits carry AI-authorship commit trailer — RATCHETED mandatory compliance requirement (source: EPIC-ai-governance-audit-attribution-001; ratchet: ai-usage-traceability)"
+      - "Evidence files attribute every play step to agent or user — step-level attribution is non-negotiable (source: EPIC-ai-governance-audit-attribution-001)"
+      - "Every inferred decision has tier-rationale in decision-manifest.yaml before primary artifact write — zero silent resolutions (source: EPIC-ai-governance-audit-attribution-001 + EPIC-agentic-methodology-l3-intent-driven-001)"
+      - "Compliance audit bundle generated on demand — mandatory when compliance.required=true (source: EPIC-ai-governance-audit-attribution-001)"
+      - "Factory Droid credentials stored in environment variables, not in play files (source: EPIC-engineering-experience-ide-integrations-001)"
+      - "npm package integrity verified via npm audit on every CI build (source: EPIC-engineering-experience-first-run-onboarding-001)"
+      - "STM artifact access governed by folder whitelist per ADR 017 (source: EPIC-agentic-methodology-component-arch-001)"
+      - "Security scan policy baseline — critical/high findings block PRs; medium/low inform only (source: EPIC-engineering-observability-quality-signals-001)"
+    rationale: >
+      Security characteristic is ratcheted by the compliance-mandate package in
+      EPIC-ai-governance-audit-attribution-001 (AG-F004 RATCHET NOTE). The floor is
+      OWASP ASVS Level 1 elevated by three compliance mandates: ai-usage-traceability,
+      audit-trail, and memory-governance. Full derivation in D-dqp-002.
+
+  maintainability:
+    relevance: high
+    targets:
+      - "Every play is a compiled artifact traceable to intent.yaml — direct SKILL.md edits are forbidden (source: EPIC-agentic-methodology-component-arch-001)"
+      - "100% of domain tasks in plays delegated to agents — inlining domain logic in plays is forbidden (source: EPIC-agentic-methodology-component-arch-001)"
+      - "check-drift detects ≥ 90% of spec-vs-implementation divergences post-merge (source: EPIC-agentic-methodology-l2-spec-driven-001)"
+      - "Per-capability level drift below 10% of all active capabilities (source: EPIC-agentic-methodology-l2-spec-driven-001)"
+      - "Lint violations not suppressible without documented justification comment; global rule disables require decision-manifest entry (source: EPIC-engineering-observability-quality-signals-001)"
+      - "All STM→LTM promotions follow documented canonicalization workflow; no silent promotions (source: EPIC-agentic-methodology-l2-spec-driven-001)"
+      - "evals-creator regenerated on every /create-play --rebuild — rebuilt play with unapplied eval updates is a blocking CI failure (source: EPIC-work-intelligence-intent-driven-verification-001)"
+    rationale: >
+      Maintainability is a core differentiator for Garura. The three-layer hierarchy (Play→Agent
+      →Skill) with compiled artifacts, drift detection, and lint discipline are all maintainability
+      mechanisms. The product is self-referential — Garura's own maintainability is governed by
+      the same constraints it enforces on products it manages.
+
+  flexibility:
+    relevance: medium
+    targets:
+      - "Progressive feature-gating required — solo UX cannot assume enterprise governance load; feature set expands per adopter segment (source: project-profile.yaml, expressed in in_scope/anti_goals across epics)"
+      - "sync-claude / sync-codex / sync-droid idempotent — safe to run at any frequency; zero file-system changes on second run without source modification (source: EPIC-engineering-experience-cli-slash-commands-001 + EPIC-engineering-experience-ide-integrations-001)"
+      - "Garura adopter progression: solo-founder → small-squads → enterprise — architecture must scale horizontally without breaking existing plays (source: EPIC-agentic-methodology-component-arch-001 anti_goals)"
+      - "npm package modular design — optional modules excluded from core bundle; package size monitored in CI (source: EPIC-engineering-experience-first-run-onboarding-001)"
+    rationale: >
+      Flexibility covers adaptability (adopter-segment progression) and scalability (from
+      solo to enterprise without architectural rewrites). The progressive-deployment model
+      is a first-class constraint. v1 targets solo and small-squads; enterprise is July 2026.
+      Post-v1 flexibility items (Windows support, multi-tenant governance, IDE adapters beyond
+      Claude Code) are explicitly deferred in anti_goals across epics.
+
+  safety:
+    relevance: low
+    targets:
+      - "Tether/Vanish protocol mandatory at 100% of destructive steps — AskUserQuestion is forbidden; explicit user gate required before any irreversible action (source: EPIC-agentic-methodology-component-arch-001)"
+      - "Atomic install guarantee — failed installs leave zero modified files; partial-install state is a blocking defect (source: EPIC-engineering-experience-first-run-onboarding-001)"
+      - "Conflict detection before sync — any local modification triggers Tether/Vanish gate before overwrite (source: EPIC-engineering-experience-cli-slash-commands-001 + EPIC-engineering-experience-first-run-onboarding-001)"
+    rationale: >
+      Safety in ISO 25010 covers fail-safe behavior and hazard mitigation. Garura is developer
+      tooling — not safety-critical embedded software. Safety relevance is LOW because there is
+      no risk to human life or physical systems. However, the Tether/Vanish protocol, atomic
+      install, and conflict detection cover the operational safety surface: preventing irreversible
+      data loss or broken installation states. No occupational or operational hazard warnings
+      apply.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SECURITY PROFILE
+# ─────────────────────────────────────────────────────────────────────────────
+
+security_profile:
+  selection: ELEVATED_INTERNAL_TOOLING
+  selection_rationale: >
+    Elevated from STANDARD because profile.compliance.categories carries three mandates
+    (ai-usage-traceability, audit-trail, memory-governance) that fire compliance obligations
+    exceeding baseline posture. Not HIGH_REGULATED because external_regulations_in_scope_v1=[]
+    — SOC2/GDPR/HIPAA are deferred to post-v1 enterprise milestone. Full derivation in D-dqp-004.
+
+  authentication:
+    method: cli-session
+    strength: not_applicable
+    rationale: >
+      No external auth surface in v1. Claude Code harness manages session context.
+      SSO/MFA is Enterprise depth, deferred to July 2026 enterprise milestone.
+
+  authorization:
+    model: flat
+    rationale: >
+      Solo-dev profile (team_size=solo-dev). Single contributor in v1. Progressive RBAC
+      is the post-v1 target for small-squads and enterprise adopter segments.
+
+  data_at_rest:
+    encryption: not_explicitly_mandated_v1
+    rationale: >
+      STM artifacts stored as git objects. Tamper-evident storage is Advanced depth for
+      AG-F004/F005 — explicitly deferred to post-v1 per audit-attribution epic anti_goals.
+      v1 documents this gap in audit bundle's limitations section.
+
+  data_in_transit:
+    encryption: TLS 1.3
+    coverage: >
+      Mandatory for all remote endpoints: npm registry connections, any remote audit bundle
+      delivery, remote sync endpoints (Factory Droids, Codex CLI). Sourced from security
+      constraints across 5 epics (component-arch, l2-spec-driven, l3-intent-driven,
+      ai-governance-audit-attribution, ide-integrations).
+
+  secrets_management:
+    approach: environment-variables-only
+    rationale: >
+      Factory Droid credentials stored in environment variables, not in play files
+      (EE-F004 business rule, source: EPIC-engineering-experience-ide-integrations-001).
+      No secrets management service (Vault, AWS Secrets Manager) in v1 scope.
+
+  audit_trail:
+    coverage: full
+    mechanisms:
+      - "100% of play-produced commits carry AI-authorship commit trailer (RATCHETED — AG-F004)"
+      - "Every play step attributed to agent or user in evidence files (AG-F004)"
+      - "Every inferred decision recorded in decision-manifest.yaml before primary artifact write (AG-F005)"
+      - "Compliance audit bundle generated on demand — includes intent, scope, epics, evidence, decisions (AG-F006)"
+    v1_gaps:
+      - "Tamper-evident storage not implemented in v1 — auditor must trust evidence files are unmodified"
+      - "Line-level AI attribution deferred to post-v1 Advanced depth"
+      - "Historical replay with divergence analysis deferred to Enterprise depth"
+
+  compliance_mandates:
+    - category: ai-usage-traceability
+      status: RATCHETED
+      enforcement: "100% of play-produced commits carry AI-authorship commit trailer regardless of depth selection"
+      source_epic: EPIC-ai-governance-audit-attribution-001
+    - category: audit-trail
+      status: active
+      enforcement: "Every inferred decision in decision-manifest.yaml; step-level attribution in evidence files"
+      source_epics:
+        - EPIC-ai-governance-audit-attribution-001
+        - EPIC-agentic-methodology-l3-intent-driven-001
+        - EPIC-work-intelligence-intent-driven-verification-001
+    - category: memory-governance
+      status: active
+      enforcement: "All STM→LTM promotions follow documented canonicalization workflow; no silent promotions"
+      source_epic: EPIC-agentic-methodology-l2-spec-driven-001
+    - category: token-consumption-tracking
+      status: v1_gap
+      enforcement: "Profile-declared but not yet surfaced in any epic constraint; delivery tracked as post-v1 item"
+      source_epic: null
+    - category: ci-cd-enforcement
+      status: active
+      enforcement: "quality-check as mandatory CI step; EO-F001/F002/F004 coverage; lint blocks on violation"
+      source_epic: EPIC-engineering-observability-quality-signals-001
+    - category: adoption-reporting
+      status: v1_gap
+      enforcement: "Profile-declared but not yet surfaced in any epic constraint; post-v1 item"
+      source_epic: null
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RISK REGISTER
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Risks classified on two axes:
+#   severity: HIGH (3+ epic citations) / MEDIUM (2 citations) / LOW (1 citation)
+#   brownfield_dimension: regression_risk (affects LIVE features) /
+#                         delivery_risk (affects PARTIAL/PLANNED features)
+# Full severity rubric and citation counts in D-dqp-003.
+
+risk_register:
+  - id: RISK-001
+    description: >
+      Developers editing deployed components (e.g., ~/.claude/ files or compiled SKILL.md)
+      directly instead of going through the source-then-sync pipeline, causing silent drift
+      between source and deployed state and losing methodology knowledge in the next rebuild.
+    brownfield_dimension: regression_risk
+    affected_features:
+      - EE-F001 (LIVE — sync-claude deployed state)
+      - EE-F015 (LIVE — play invocation surface)
+      - AM-F001 through AM-F009 (LIVE — component-architecture substrate)
+      - WI-F010 through WI-F013 (LIVE — eval and fix-it plays)
+    source_epics:
+      - EPIC-agentic-methodology-component-arch-001
+      - EPIC-engineering-experience-cli-slash-commands-001
+      - EPIC-engineering-experience-first-run-onboarding-001
+      - EPIC-engineering-experience-ide-integrations-001
+    citation_count: 4
+    severity: high
+    mitigation: >
+      CLAUDE.md hard rule forbids direct edits to deployed components. /create-play --rebuild
+      detects drift and emits Tether/Vanish gate before overwriting. recipe-changes-via-rebake
+      rule enforced in agent system prompt. CI check verifies /help entry count equals play count
+      on every play addition. sync-claude checksums local components before any write.
+
+  - id: RISK-002
+    description: >
+      /sync-claude, /sync-codex, or /sync-droid (or the upgrade flow) overwrites user-customized
+      components in the target harness (~/.claude/, ~/.codex/, Factory Droid workspace) without
+      warning, causing permanent loss of customization with no recovery path for a solo-dev.
+    brownfield_dimension: regression_risk
+    affected_features:
+      - EE-F001 (LIVE — sync-claude)
+      - EE-F017 (LIVE — /sync-claude idempotency surface)
+    source_epics:
+      - EPIC-engineering-experience-cli-slash-commands-001
+      - EPIC-engineering-experience-first-run-onboarding-001
+      - EPIC-engineering-experience-ide-integrations-001
+    citation_count: 3
+    severity: high
+    mitigation: >
+      Conflict detection before sync: /sync-claude, /sync-codex, and /sync-droid each checksum all
+      local components in their respective harness against source before any write; any local
+      modification triggers a Tether/Vanish gate showing the diff before overwrite proceeds.
+      Upgrade flow never silently overwrites customized files across any harness.
+
+  - id: RISK-003
+    description: >
+      AI-authorship attribution gap — Factory Droid runs produce AI-generated commits with no
+      AI-authorship trailer, violating the ai-usage-traceability compliance ratchet. Solo-dev
+      impact: every unattributed Droid commit is a 100% attribution gap for that commit.
+    brownfield_dimension: delivery_risk
+    affected_features:
+      - AG-F004 (PARTIAL — commit hook not yet universally installed)
+      - EE-F004 (PARTIAL — governance-signal capture incomplete for Factory Droids)
+      - AG-F005 (PARTIAL — DSD retroactive audit across 42 plays pending)
+    source_epics:
+      - EPIC-ai-governance-audit-attribution-001
+      - EPIC-engineering-experience-ide-integrations-001
+      - EPIC-agentic-methodology-component-arch-001
+    citation_count: 3
+    severity: high
+    mitigation: >
+      Commit hook enforcement: ship and commit-code plays verify hook is installed before first
+      commit attempt; missing hook is a blocking failure, not a warning. Hook installation is
+      part of first-run onboarding (EE-F012/EE-F011 bootstrap). Factory Droid invocation-context
+      capture is a blocking requirement for EE-F004 completion before Factory Droid functionality
+      is enabled in production.
+
+  - id: RISK-004
+    description: >
+      Developers bypassing schema validation at write time — editing generated epics or downstream
+      artifacts without re-validating against the upstream schema, causing silent drift between
+      spec and implementation that surfaces only at the next spec-review cycle.
+    brownfield_dimension: delivery_risk
+    affected_features:
+      - AM-F010 (PARTIAL — per-capability level enforcement not yet implemented)
+      - AM-F012 (PARTIAL — check-drift scheduled detection not yet wired)
+    source_epics:
+      - EPIC-agentic-methodology-l2-spec-driven-001
+      - EPIC-agentic-methodology-l3-intent-driven-001
+    citation_count: 2
+    severity: medium
+    mitigation: >
+      Lock-gate enforcement is hard: validate-intent-epics must exit 0 before any downstream
+      Stage 5/6 skill can proceed. check-drift scheduled post-merge run in merge-pr play.
+      Quantification regex and no-TBD rule in validate-intent-epics catch schema violations
+      at authoring time.
+
+  - id: RISK-005
+    description: >
+      Skipping distill after merging a PR — learnings from the closed issue evaporate before
+      reaching LTM, degrading the quality of future KB-driven decisions silently with no
+      team reviewer to notice.
+    brownfield_dimension: regression_risk
+    affected_features:
+      - EE-F018 (LIVE — distill post-merge, but reminder-gate may be skipped)
+      - AM-F005 (PARTIAL — automated STM→LTM promotion not fully wired)
+    source_epics:
+      - EPIC-engineering-experience-cli-slash-commands-001
+      - EPIC-agentic-methodology-l2-spec-driven-001
+    citation_count: 2
+    severity: medium
+    mitigation: >
+      Distill reminder step added to merge-pr play post-merge sequence; the reminder emits a
+      Tether/Vanish gate if distill has not been run within the same session. distill and
+      capture-learning plays enforce canonicalization before promotion.
+
+  - id: RISK-006
+    description: >
+      Silent resolution of inferred decisions without writing decision-manifest.yaml — the
+      Decision Surfacing Discipline (Defect 23) is violated, leaving decisions only in
+      conversation history with no durable artifact for compliance review.
+    brownfield_dimension: delivery_risk
+    affected_features:
+      - AG-F005 (PARTIAL — DSD not retroactively audited across all 42 plays)
+    source_epics:
+      - EPIC-ai-governance-audit-attribution-001
+      - EPIC-agentic-methodology-l3-intent-driven-001
+    citation_count: 2
+    severity: medium
+    mitigation: >
+      DSD rule enforced in agent system prompt: every inferred decision goes to
+      decision-manifest.yaml BEFORE the primary artifact write. The skill write order in
+      generate-intent-epics and all other decision-producing skills writes the manifest first.
+      Coverage sweep across all 42+ decision-producing plays is in-scope for the
+      audit-attribution epic's 2-week appetite.
+
+  - id: RISK-007
+    description: >
+      npm package size growth when optional modules are bundled with the core package,
+      causing install times exceeding 5 minutes and triggering first-impression abandonment
+      before the solo-founder evaluator reaches the wizard.
+    brownfield_dimension: delivery_risk
+    affected_features:
+      - EE-F010 (PLANNED — wizard not yet implemented)
+      - EE-F011 (PARTIAL — public npm package not yet published)
+    source_epics:
+      - EPIC-engineering-experience-first-run-onboarding-001
+    citation_count: 1
+    severity: low
+    mitigation: >
+      Optional modules excluded from the core npm package. Package size monitored in CI with a
+      budget threshold that fails the CI step if exceeded. Only required dependencies in the
+      core bundle.
+
+  - id: RISK-008
+    description: >
+      Coverage-percentage masking shallow assertions — high coverage percentages achieved
+      by covering only happy-path code paths, providing false confidence that defects are
+      caught when scenario coverage is actually shallow.
+    brownfield_dimension: delivery_risk
+    affected_features:
+      - EO-F001 (PARTIAL — coverage delta per PR not yet wired; happy-path bias possible)
+    source_epics:
+      - EPIC-engineering-observability-quality-signals-001
+    citation_count: 1
+    severity: low
+    mitigation: >
+      Coverage delta (not absolute percentage) is the primary surfaced metric per PR. Mutation
+      testing is documented as a post-v1 planned enhancement for coverage masking detection.
+      Developers warned in quality-check output that high coverage does not guarantee scenario
+      coverage.
+
+  - id: RISK-009
+    description: >
+      Fixing symptom before completing 5-whys RCA — quick fixes without root-cause analysis
+      are the primary source of reopened defects; recurrence costs the solo contributor full
+      investigation time with no team to share the load.
+    brownfield_dimension: regression_risk
+    affected_features:
+      - WI-F012 (LIVE — RCA template in place but enforcement relies on agent system prompt)
+      - WI-F013 (LIVE — fix-it loop closure, but shallow RCA can slip through)
+    source_epics:
+      - EPIC-work-intelligence-intent-driven-verification-001
+    citation_count: 1
+    severity: low
+    mitigation: >
+      fix-it enforces 5-whys RCA before proposing any fix. The RCA template is a required
+      output before fix-it enters the implementation step. A shallow RCA (fewer than 3 why
+      levels) is a blocking failure requiring the developer to deepen analysis. Regression
+      test mandatory on every fix before fix-it marks the defect as closed.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# HANDOFF NOTES
+# ─────────────────────────────────────────────────────────────────────────────
+
+handoff_notes:
+  - "Primary consumer: build-arch (specify-product Stage 7 / build-arch play, ADR 214.7) — reads this file for architecture decision drivers; every architectural decision should trace to at least one ISO 25010 characteristic or risk register entry"
+  - "Secondary consumer: derive-nfr-spec — reads quality-profile.yaml and intent epics constraints together to produce the NFR specification; the security_profile.compliance_mandates section is the primary NFR input surface"
+  - "Risk register brownfield note: 57% of features are LIVE at the time of this quality profile; regression_risk entries are active threats against shipped code; delivery_risk entries are active threats against unshipped features (PARTIAL/PLANNED); build-arch should weight regression_risks higher in architectural decision gates"

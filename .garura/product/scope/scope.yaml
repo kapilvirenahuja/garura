@@ -1,0 +1,1268 @@
+# scope.yaml — Garura Platform (specify-product Stage 3)
+#
+# Provenance
+# play: specify-product
+# stage: 3-configure-capabilities
+# agent: product-keeper
+# skill: configure-capabilities v0.2.0
+# task_id: specify-product-stage-3-configure
+# created_at: 2026-04-18T00:00:00Z
+# regenerated_at: 2026-04-18T01:00:00Z  (post-Q1-Q4 user decisions)
+# reconciled_at: 2026-04-18T06:00:00Z   (features.yaml/epics reconciliation pass)
+# inputs_consumed:
+#   - .garura/product/specification/project-profile.yaml
+#   - .garura/product/scope/mvp-recommendation.md
+#   - .garura/product/specification/domain-selection.yaml
+#   - .garura/product/research/ (all 5 stm_research files — work-intelligence.md re-read for F011/F012 LIVE corrections)
+#   - core/components/memory/knowledge/domain/_cross-tree-constraints.yaml
+#   - .garura/product/user-provided/project-brief.md
+#   - user Q1-Q4 responses (Stage-3 grounding resolution)
+#   - .garura/product/scope/features.yaml (authoritative for AM l3-intent-driven naming; see reconciliation_notes)
+# mvp_divergence_note: >
+#   MVP recommendation file (mvp-recommendation.md) listed 8 primary capabilities in
+#   its "Capability Narrowing for Stage 3" section that partially differ from the
+#   user's explicit Stage-3 instruction. Governing list is the user's Stage-3 input
+#   as refined by Q1-Q4 answers. Differences: (1) mvp-rec listed "sdlc-phase-coverage"
+#   — does not exist as a capability slug in domain-selection.yaml; dropped.
+#   (2) mvp-rec listed "intent-driven-verification" — initially excluded from user
+#   Stage-3 input, but Q4 answer explicitly INCLUDES it in v1 as the 9th capability
+#   with all 4 features LIVE. (3) mvp-rec listed "agent-integrations" as a separate
+#   capability — absorbed into ide-integrations (scoped to Claude Code + Factory.ai +
+#   Codex CLI) per user Stage-3 input. (4) user Stage-3 input adds "quality-signals"
+#   (not in mvp-rec primary 8); included. (5) WI-F007 reclassified from
+#   work-intelligence/backlog-lifecycle to agentic-methodology/l3-intent-driven per Q2.
+# reconciliation_notes: >
+#   2026-04-18 reconciliation pass (post-regen):
+#   - l3-intent-driven AM numbering reconciled against features.yaml (authoritative
+#     catalog): AM-F013=Intent Compilation, AM-F014=Intent Inference, AM-F015=
+#     Scope Auto-Narrowing, AM-F016=Epic Auto-Generation. Previous scope.yaml used
+#     AM-F013/F014/F015 with the Intent Inference/Scope/Epic names — numbering
+#     shifted by one. AM-F016 added; feature_count 4 → 5 for l3-intent-driven.
+#   - EE-F012 removed from first-run-onboarding: retired in features.yaml (merged
+#     into EE-F011 Installer 2026-04-18). feature_count 3 → 2 for first-run-onboarding.
+
+slug: garura-platform
+status: DRAFT
+created_at: 2026-04-18T00:00:00Z
+regenerated_at: 2026-04-18T01:00:00Z
+reconciled_at: 2026-04-18T06:00:00Z
+project_profile_path: .garura/product/specification/project-profile.yaml
+
+# ─────────────────────────────────────────────────────────────────────────────
+# USER GROUNDING-QUESTION RESOLUTIONS (Q1-Q4)
+# ─────────────────────────────────────────────────────────────────────────────
+# All four grounding questions emitted in the prior run have been answered.
+# Records preserved here for audit; pending_user_selection is now empty.
+
+grounding_question_resolutions:
+
+  - question_id: Q-scope-001
+    feature_id: EO-F003
+    capability_slug: quality-signals
+    question: "Include EO-F003 (Build Health) in v1 quality-signals?"
+    user_decision: DEFER
+    target_window: "v1.1-v1.5"
+    defer_reason: "mvp-rec-strategic-defer-reaffirmed-by-user"
+    v1_1_trigger: "reconsider-at-v1.5-or-when-delivery-ambition-pushes-L4"
+    disposition: moved_to_deferred_capabilities
+
+  - question_id: Q-scope-002
+    feature_id: WI-F007
+    original_capability_slug: backlog-lifecycle
+    question: "Include WI-F007 (Epic Decomposition) in v1 despite backlog-lifecycle capability-level deferral?"
+    user_decision: RECLASSIFY
+    new_capability_slug: l3-intent-driven
+    new_domain: agentic-methodology
+    rationale_from_user: "WI-F007 is methodology substrate, not backlog tooling."
+    disposition: reclassified_and_included_in_v1
+
+  - question_id: Q-scope-003
+    feature_id: AG-F008
+    capability_slug: memory-governance
+    question: "Include AG-F008 (LTM Curation) in v1 despite memory-governance capability-level deferral?"
+    user_decision: DEFER
+    target_window: "v1.5"
+    defer_reason: "solo-profile-and-no-multi-team-memory-sharing"
+    v1_trigger: "when-adopter-base-extends-beyond-solo-dev"
+    disposition: remains_in_deferred_capabilities_memory_governance
+
+  - question_id: Q-scope-004
+    capability_slug: intent-driven-verification
+    question: "Include intent-driven-verification capability in v1?"
+    user_decision: INCLUDE
+    rationale_from_user: >
+      All 4 features are LIVE today. WI-F011 (Test Generation) and WI-F012 (RCA)
+      status corrections applied in work-intelligence.md research file: F011 LIVE
+      via prepare-epic/implement-epic/validate-epic test synthesis; F012 LIVE via
+      fix-it and enhance plays (not a standalone skill/play).
+    disposition: added_as_9th_selected_capability
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CAPABILITY CLASSIFICATION CHANGES
+# ─────────────────────────────────────────────────────────────────────────────
+
+capability_classification_changes:
+  - feature_id: WI-F007
+    feature_name: "Epic Decomposition"
+    from_capability: work-intelligence/backlog-lifecycle
+    to_capability: agentic-methodology/l3-intent-driven
+    rationale: >
+      WI-F007 reclassified: this is methodology substrate, not backlog tooling.
+      Epic decomposition is executed by generate-intent-epics (an L3 skill) and
+      belongs alongside AM-F013 Intent Compilation, AM-F014 Intent Inference,
+      AM-F015 Scope Auto-Narrowing, and AM-F016 Epic Auto-Generation — all of
+      which form the L3 intent-driven pipeline. Placing it under backlog-lifecycle
+      conflated methodology substrate with Jira-style story grooming; this
+      classification reflects how the feature actually operates.
+    source: user-Q2-response
+    decided_at: 2026-04-18T01:00:00Z
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FUTURE CAPABILITIES NOTED (v1.1+ backlog seeds)
+# ─────────────────────────────────────────────────────────────────────────────
+
+future_capabilities_noted:
+  - concept_slug: product-drift
+    provisional_domain: agentic-methodology
+    target_window: post-v1
+    description: >
+      Post-v1 capability where product enhancements that cannot be handled by any
+      existing capability trigger generation of a NEW epic mapped to the existing
+      product. Distinct from backlog-lifecycle (which is about story/grooming
+      ceremonies). Product-drift is about detecting capability-gap against
+      incoming enhancement requests and materializing the gap as a new intent
+      epic bound to the live product taxonomy.
+    relation_to_existing:
+      - "Complements AM-F016 (Epic Auto-Generation) — product-drift triggers F016 for a new capability."
+      - "Distinct from WI-F008 (Epic Grooming) — grooming cleans existing epics; drift creates new ones."
+      - "Distinct from backlog-lifecycle — backlog is story-level; drift is capability-level."
+    recorded_from: user-Q2-response-followup
+    recorded_at: 2026-04-18T01:00:00Z
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SELECTED CAPABILITIES (v1 April 2026)
+# ─────────────────────────────────────────────────────────────────────────────
+
+selected_capabilities:
+
+  # ── Capability: component-architecture (agentic-methodology) ────────────────
+
+  - capability_slug: component-architecture
+    domain: agentic-methodology
+    source: provisional_stm_research
+    provenance:
+      source: brief_explicit
+      source_quote: "agentic-methodology / component-architecture (LIVE) — Stage-3 user input"
+      confidence: high
+    features:
+      - id: AM-F001
+        name: "Plays"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory for any Garura-based product." The plays substrate is the
+          primary user interface with the methodology engine.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F002
+        name: "Agents"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory when: any multi-step engineering workflow."
+          Agents are the domain-reasoning layer in the three-layer hierarchy.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F003
+        name: "Skills"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory when: any reusable artifact-producing capability."
+          Skills are the artifact-production layer; 42 shipped.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F004
+        name: "Memory — STM"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory when: any play that writes artifacts."
+          STM is where all active-issue artifacts live; never excludable.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F005
+        name: "Memory — Project LTM"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory when: any multi-issue project."
+          Project LTM is the decision corpus that survives across sessions.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F006
+        name: "Memory — Global KB"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory when: any project-creating play."
+          Global KB is the cross-project taxonomy that configure-capabilities reads.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F007
+        name: "Three-Layer Hierarchy"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory when: any multi-layer agentic framework."
+          The Play→Agent→Skill hierarchy is the non-negotiable architectural invariant.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F008
+        name: "Tether/Vanish Protocol"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory at any destructive step."
+          Human-approval gates are first-class protocol primitives.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F009
+        name: "Evidence & Checkpoint Substrate"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory when: any multi-step play."
+          Evidence artifacts are the foundation for all downstream compliance features.
+        feature_classification: vertical
+        depth_cap: null
+
+  # ── Capability: l2-spec-driven (agentic-methodology) ────────────────────────
+
+  - capability_slug: l2-spec-driven
+    domain: agentic-methodology
+    source: provisional_stm_research
+    provenance:
+      source: brief_explicit
+      source_quote: "agentic-methodology / l2-spec-driven (LIVE) — Stage-3 user input"
+      confidence: high
+    features:
+      - id: AM-F010
+        name: "Maturity Ladder Engine"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion mandatory when: project_profile.industry == 'developer-tools'
+          and 'methodology' in product_idea. Profile declares industry: developer-tools
+          and product brief explicitly names the maturity ladder as a core capability.
+        rationale: >
+          Maturity ladder (L1–L5) is the backbone of Garura's product differentiation.
+          Profile delivery_ambition.current_level = L2-spec-driven confirms the engine
+          is the active governing mechanism.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F011
+        name: "Persistent Memory Substrate"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory when: any cross-session AI methodology product."
+          Three-tier memory is the architectural differentiator vs Copilot/Cursor/Windsurf.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F012
+        name: "Spec-to-Test Continuity"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory when: delivery_ambition.current_level >= 'L2'."
+          Profile declares current_level: L2-spec-driven.
+        rationale: >
+          Spec-to-test artifact chain (intent → epic → scenarios → tests) with validator
+          enforcement is the core L2 promise. Drift detection and spec-lock gates are
+          in-scope for v1 stabilization.
+        feature_classification: vertical
+        depth_cap: null
+
+  # ── Capability: l3-intent-driven (agentic-methodology) ──────────────────────
+  #   Q2 reclassification: WI-F007 moved here from work-intelligence/backlog-lifecycle.
+  #   2026-04-18 reconciliation: feature numbering aligned with features.yaml
+  #   catalog: AM-F013=Intent Compilation, AM-F014=Intent Inference, AM-F015=
+  #   Scope Auto-Narrowing, AM-F016=Epic Auto-Generation. AM-F016 added to scope.
+
+  - capability_slug: l3-intent-driven
+    domain: agentic-methodology
+    source: provisional_stm_research
+    provenance:
+      source: brief_explicit
+      source_quote: "agentic-methodology / l3-intent-driven (PARTIAL → MOSTLY LIVE after WI-F007 inclusion) — Stage-3 user input + Q2"
+      confidence: high
+    features:
+      - id: AM-F013
+        name: "Intent Compilation"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory when: delivery_ambition.roadmap_horizon >= 'L3'."
+          Profile declares roadmap_horizon: L3-intent-driven (building).
+        rationale: >
+          intent.yaml schema + /create-play compiles intent specifications into
+          executable plays. Every Garura play is a compiled artifact from its
+          reference/intent.yaml. Status LIVE per features.yaml.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F014
+        name: "Intent Inference"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory when: delivery_ambition.roadmap_horizon >= 'L3'."
+          Profile declares roadmap_horizon: L3-intent-driven (building).
+        rationale: >
+          intent-crafter agent interviews users to produce intent.yaml; intent-resolver
+          agent produces task DAGs from intents. Cross-play intent matching is the L4
+          boundary — marked PARTIAL in catalog. Active PARTIAL feature being completed
+          in this stabilization milestone.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F015
+        name: "Scope Auto-Narrowing"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory when: any specify-product run."
+          This skill (configure-capabilities) IS the scope auto-narrowing feature —
+          AM-F015 is the canonical reference to the current execution. Status LIVE.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AM-F016
+        name: "Epic Auto-Generation"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory when: any specify-product run at L3+."
+          Profile roadmap_horizon is L3-intent-driven. Epic auto-generation (Stage 5)
+          is active and in-scope for this run.
+        rationale: >
+          generate-intent-epics skill is the execution surface for AM-F016.
+          One epic per enriched capability; every mandatory field KB-sourced.
+          Status LIVE.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: WI-F007
+        name: "Epic Decomposition"
+        inclusion_basis: reclassified_into_l3
+        kb_source_note: >
+          Feature block authored in .garura/product/research/work-intelligence.md
+          (under original Capability: Backlog Lifecycle header). Reclassified at
+          scope time into l3-intent-driven per user Q2 decision.
+          See capability_classification_changes above for the trail.
+        condition_matched: >
+          Original KB inclusion: "mandatory when: any L3+ product." Profile
+          roadmap_horizon is L3-intent-driven. Condition fires. Reclassification
+          preserves the mandatory-default inclusion basis; only the parent
+          capability changes.
+        rationale: >
+          generate-intent-epics instantiates one epic per enriched capability
+          with full intent schema; every epic is traceable to a KB feature.
+          Status: LIVE (usage: every specify-product run). This is methodology
+          substrate (L3 pipeline component), not backlog tooling. Grouping with
+          AM-F013/F014/F015/F016 produces a cohesive L3 capability story.
+        feature_classification: vertical
+        depth_cap: null
+
+  # ── Capability: cli-slash-commands (engineering-experience) ─────────────────
+
+  - capability_slug: cli-slash-commands
+    domain: engineering-experience
+    source: provisional_stm_research
+    provenance:
+      source: brief_explicit
+      source_quote: "engineering-experience / cli-slash-commands (LIVE) — Stage-3 user input"
+      confidence: high
+    features:
+      - id: EE-F015
+        name: "Play Invocation"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory." Primary UX backbone — slash commands are the
+          user-facing entry point for every play invocation.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: EE-F016
+        name: "Status"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory." Status surface gives users real-time play and issue
+          state from the CLI.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: EE-F017
+        name: "Sync"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory." sync-claude and sync-droids commands are the
+          deployment mechanism for plays/agents/skills to global or project scope.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: EE-F018
+        name: "Distill"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory for L3+." Profile roadmap_horizon is L3-intent-driven.
+          Distill extracts learnings post-epic; mandatory at L3+.
+        rationale: >
+          Distill is the post-epic learning extraction surface — converts shipped
+          work into Project LTM entries. Required at L3+.
+        feature_classification: vertical
+        depth_cap: null
+
+  # ── Capability: first-run-onboarding (engineering-experience) ───────────────
+  #   2026-04-18 reconciliation: EE-F012 removed — retired in features.yaml
+  #   (merged into EE-F011 Installer). feature_count 3 → 2.
+
+  - capability_slug: first-run-onboarding
+    domain: engineering-experience
+    source: provisional_stm_research
+    provenance:
+      source: brief_explicit
+      source_quote: "engineering-experience / first-run-onboarding (net-new build — wizard + unified installer) — Stage-3 user input"
+      confidence: high
+    features:
+      - id: EE-F010
+        name: "Wizard"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory." 3-question greenfield wizard is a net-new v1 build.
+          Install-to-first-spec < 30 min success criterion gates on this feature.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: EE-F011
+        name: "Installer"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory." Unified installer — npm distribution + Claude Code
+          end-user bootstrap are merged into this feature per features.yaml (EE-F012
+          retired). Enables programmatic npm install path and one-command Claude
+          Code bootstrap for the solo-founder segment.
+        feature_classification: vertical
+        depth_cap: null
+
+  # ── Capability: ide-integrations (engineering-experience) ───────────────────
+
+  - capability_slug: ide-integrations
+    domain: engineering-experience
+    source: provisional_stm_research
+    provenance:
+      source: brief_explicit
+      source_quote: >
+        "engineering-experience / ide-integrations (scoped to Claude Code, Codex, Factory.ai) — Stage-3 user input"
+      confidence: high
+    features:
+      - id: EE-F001
+        name: "Claude Code"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory." Claude Code is the anchor integration and the primary
+          AI coding surface for Garura. LIVE and in-scope for stabilization.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: EE-F004
+        name: "Factory.ai"
+        inclusion_basis: user_selected
+        rationale: >
+          Inclusion: "optional." Factory.ai harness integrated (sync-droids ships).
+          Governance features (invocation-context capture, audit retrieval) remain
+          PARTIAL per Stage 1/2 user reconciliation. Selected by user at Stage-3 input.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: EE-F005
+        name: "Codex CLI"
+        inclusion_basis: user_selected
+        rationale: >
+          Inclusion: "optional." Codex harness integrated. CI-mode non-interactive
+          behavior and policy pre-approvals remain PARTIAL per Stage 1/2 user
+          reconciliation. Selected by user at Stage-3 input.
+        feature_classification: vertical
+        depth_cap: null
+
+  # ── Capability: audit-attribution (ai-governance) ───────────────────────────
+
+  - capability_slug: audit-attribution
+    domain: ai-governance
+    source: provisional_stm_research
+    provenance:
+      source: brief_explicit
+      source_quote: "ai-governance / audit-attribution (PARTIAL — governance-hierarchy tiers) — Stage-3 user input"
+      confidence: high
+    features:
+      - id: AG-F004
+        name: "AI-vs-Human Trail"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory when: compliance.categories includes 'ai-usage-traceability'."
+          project-profile.yaml compliance.categories includes "audit-trail (AI vs human attribution)"
+          and "ai-usage-traceability". Condition fires.
+        rationale: >
+          AI-vs-human attribution is a named compliance category in the project profile.
+          Evidence files record agent vs user authorship; commit-level enforcement is the
+          v1 stabilization target per MVP rec.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AG-F005
+        name: "Decision Provenance"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory for L3+." Profile roadmap_horizon is L3-intent-driven.
+          Tier-batched decision manifests (Decision Surfacing Discipline) are the current
+          implementation.
+        rationale: >
+          Decision provenance with tier-stratified manifests is an active feature in use
+          today (every specify-product run emits a decision-manifest.yaml). Extension
+          with per-issue decision-trail brief template is the v1 build target per MVP rec.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: AG-F006
+        name: "Evidence Export"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory for compliance." project-profile.yaml declares
+          compliance.required: true and lists 6 compliance categories including
+          audit-trail and ai-usage-traceability. Condition fires.
+        rationale: >
+          briefs skill is the current evidence export surface (HTML hub). Per MVP rec,
+          v1 extends AG-F006 with a per-issue decision-trail brief template.
+        feature_classification: vertical
+        depth_cap: null
+
+  # ── Capability: quality-signals (engineering-observability) ─────────────────
+  #   Q1 resolution: EO-F003 deferred to v1.1-v1.5 window; not in v1 quality-signals.
+
+  - capability_slug: quality-signals
+    domain: engineering-observability
+    source: provisional_stm_research
+    provenance:
+      source: brief_explicit
+      source_quote: "engineering-observability / quality-signals (PARTIAL) — Stage-3 user input"
+      confidence: high
+    features:
+      - id: EO-F001
+        name: "Test Coverage"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory for L2+ projects."
+          Profile current_level: L2-spec-driven. Condition fires.
+        rationale: >
+          Test coverage measurement via quality-check (11-explore framework) is an
+          active PARTIAL feature. Cross-project aggregation deferred to v1.1; per-project
+          coverage is v1 scope.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: EO-F002
+        name: "Lint"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory." Lint signal via quality-check is active (PARTIAL).
+          No profile conditions restrict this inclusion.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: EO-F004
+        name: "Security Scans"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory." Security scanning (PARTIAL per features.yaml) is a
+          quality signal that supports the audit-attribution compliance requirement.
+          No profile conditions restrict.
+        feature_classification: vertical
+        depth_cap: null
+
+  # ── Capability: intent-driven-verification (work-intelligence) ──────────────
+  #   Q4 resolution: INCLUDE in v1 as 9th capability. All 4 features LIVE.
+  #   F011 (Test Gen) and F012 (RCA) status corrected in research file: LIVE.
+
+  - capability_slug: intent-driven-verification
+    domain: work-intelligence
+    source: provisional_stm_research
+    provenance:
+      source: user-Q4-decision
+      source_quote: >
+        "Q4 — work-intelligence/intent-driven-verification: INCLUDE in v1 as a 9th
+        selected_capability. All 4 features LIVE." (user Stage-3 Q4 response)
+      confidence: high
+    features:
+      - id: WI-F010
+        name: "Eval Generation"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory for L3+." Profile roadmap_horizon is L3-intent-driven.
+          Condition fires.
+        rationale: >
+          evals-creator generates step evals and scenario evals from intent.yaml and
+          scenarios files. Status: LIVE (usage: every /create-play run). Eval
+          generation from intent is the L3 promise — test fixtures derived from spec
+          rather than hand-coded.
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: WI-F011
+        name: "Test Generation"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory for L3+ when test automation exists."
+          Profile roadmap_horizon is L3-intent-driven; Garura has test automation.
+          Condition fires.
+        rationale: >
+          Test case generation from intent — prepare-epic, implement-epic, and
+          validate-epic plays all produce test cases from intent.yaml + verification
+          scenarios. Status: LIVE (features.yaml reconciled 2026-04-18 to LIVE;
+          delivered via play-embedded synthesis rather than a standalone skill).
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: WI-F012
+        name: "RCA"
+        inclusion_basis: mandatory_conditional
+        condition_matched: >
+          Inclusion: "mandatory for L3+ on production systems." Profile roadmap_horizon
+          is L3-intent-driven and Garura ships to production. Condition fires.
+        rationale: >
+          Root-cause analysis delivered via the fix-it and enhance plays — every defect
+          resolution and every enhance invocation performs structured RCA before
+          proposing a change. Status: LIVE (features.yaml reconciled 2026-04-18 to
+          LIVE; delivered as a first-class phase inside fix-it and enhance plays
+          rather than a standalone skill/play).
+        feature_classification: vertical
+        depth_cap: null
+
+      - id: WI-F013
+        name: "Fix-It Loop"
+        inclusion_basis: mandatory_default
+        rationale: >
+          Inclusion: "mandatory on production systems." fix-it play closes the loop
+          from defect → RCA → fix → validate. Status: LIVE (usage: fix-it used in
+          this repo regularly). Loop automation over repeated defects is the
+          Advanced-depth extension not yet shipped; the core loop ships.
+        feature_classification: vertical
+        depth_cap: null
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PENDING USER SELECTION
+# ─────────────────────────────────────────────────────────────────────────────
+# All four grounding questions resolved via Q1-Q4. Zero pending.
+
+pending_user_selection: []
+
+# ─────────────────────────────────────────────────────────────────────────────
+# REJECTED CAPABILITIES (features explicitly excluded)
+# ─────────────────────────────────────────────────────────────────────────────
+
+rejected_capabilities:
+  - id: EE-F002
+    capability_slug: ide-integrations
+    domain: engineering-experience
+    name: "Copilot"
+    reason: >
+      MVP rec explicitly limits v1 ide-integrations to Claude Code, Factory.ai, and Codex
+      CLI. Copilot integration is not in the v1 surface. No auto-include condition fires.
+    source: provisional_stm_research
+
+  - id: EE-F003
+    capability_slug: ide-integrations
+    domain: engineering-experience
+    name: "Cursor"
+    reason: >
+      MVP rec explicitly limits v1 ide-integrations to Claude Code, Factory.ai, and Codex
+      CLI. Cursor integration is not in the v1 surface. No auto-include condition fires.
+    source: provisional_stm_research
+
+  - id: EE-F013
+    capability_slug: first-run-onboarding
+    domain: engineering-experience
+    name: "Bootcamp"
+    reason: >
+      MVP rec: "EE-F013 (Bootcamp) + EE-F014 (Demos) remain deferred to v1.1."
+      Feature is optional; no mandatory condition fires.
+    source: provisional_stm_research
+
+  - id: EE-F014
+    capability_slug: first-run-onboarding
+    domain: engineering-experience
+    name: "Demos"
+    reason: >
+      MVP rec: "EE-F013 (Bootcamp) + EE-F014 (Demos) remain deferred to v1.1."
+      Feature is optional; no mandatory condition fires.
+    source: provisional_stm_research
+
+  - id: AG-F007
+    capability_slug: audit-attribution
+    domain: ai-governance
+    name: "Compliance Reports"
+    reason: >
+      MVP rec: "AG-F007 (Compliance Reports) stays PLANNED." Deferred to v1.2 Jul 2026.
+      Feature conditions reference external frameworks (SOC2/ISO27001/GDPR) not in
+      v1 compliance scope (external_regulations_in_scope_v1: []).
+    source: provisional_stm_research
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DEFERRED CAPABILITIES (capability-level deferrals with v1.1/v1.2/v1.5 triggers)
+# ─────────────────────────────────────────────────────────────────────────────
+
+deferred_capabilities:
+
+  # ── v1.1 May 2026 ────────────────────────────────────────────────────────────
+
+  - capability_slug: l4-signal-driven
+    domain: agentic-methodology
+    features: []
+    defer_reason: >
+      Entirely PLANNED. No concrete feature list yet per features.yaml (l4-signal-driven
+      rollup_notes: "deliberately empty until L4 use cases are elaborated in a
+      dedicated research pass"). Signal ingestion, signal plays, autonomous triggers,
+      and approval gates require an event bus substrate not yet built. No architecture
+      decision committed at spec time for v1.
+    v1_1_trigger: >
+      L4 feature list committed via research pass; at least one signal-to-play mapping
+      validated in dogfooding.
+    target_release: v1.1
+
+  - capability_slug: l5-goal-driven
+    domain: agentic-methodology
+    features: []
+    defer_reason: >
+      No feature list defined yet per features.yaml (l5-goal-driven rollup_notes:
+      "aspirational; no concrete direction"). Architecture supports it but no concrete
+      implementation target until signal-driven (L4) is stable.
+    v1_1_trigger: >
+      L4-signal-driven capability is v1.1 LIVE; goal-driven architecture design
+      approved by product owner.
+    target_release: post-v1
+
+  - capability_slug: debt-signals
+    domain: engineering-observability
+    features: [EO-F005, EO-F006, EO-F007]
+    defer_reason: >
+      PARTIAL. No cross-project aggregation, trend dashboards, or Control Tower
+      surface. MVP rec: "debt-signals deferred to v1.1."
+    v1_1_trigger: >
+      quality-signals cross-project aggregation ships; Control Tower surface
+      design approved.
+    target_release: v1.1
+
+  - capability_slug: methodology-posture
+    domain: engineering-observability
+    features: [EO-F008, EO-F009, EO-F010, EO-F015]
+    defer_reason: >
+      PLANNED (v1.1 May). OTEL integration (EO-F015) and ladder-position +
+      play-success-rate surface not yet designed.
+    v1_1_trigger: >
+      OTEL integration architecture finalized; ladder-position endpoint spec locked.
+    target_release: v1.1
+
+  - capability_slug: delivery-signals
+    domain: engineering-observability
+    features: [EO-F011, EO-F012, EO-F013, EO-F014]
+    defer_reason: >
+      PARTIAL. DORA four metrics, cycle/lead time require cross-project data
+      aggregation not yet built.
+    v1_1_trigger: >
+      Control Tower cross-project aggregation architecture approved.
+    target_release: v1.1
+
+  - capability_slug: consumption-tracking
+    domain: ai-governance
+    features: [AG-F001, AG-F002, AG-F003, AG-F011]
+    defer_reason: >
+      PLANNED (v1.1 May). No token tracking, budget enforcement, cost attribution,
+      or autonomy tracking shipped. Agent invocations are logged structurally but
+      no telemetry backend.
+    v1_1_trigger: >
+      Token-event ingestion per provider defined; budget configuration surface
+      spec approved.
+    target_release: v1.1
+
+  - capability_slug: memory-governance
+    domain: ai-governance
+    features: [AG-F008, AG-F009, AG-F010]
+    defer_reason: >
+      PLANNED. Memory architecture is designed but no formal curation/promotion/
+      demotion workflow or access control surface ships in v1. Q3 user decision:
+      AG-F008 LTM Curation deferred specifically because profile is solo-dev and
+      there is no multi-team memory-sharing use case driving v1 demand. Entire
+      capability remains deferred.
+    v1_1_trigger: >
+      "when-adopter-base-extends-beyond-solo-dev" (per Q3) — curation UI / CLI
+      surface spec approved; promotion reviewer assignment workflow design locked
+      once multi-team memory-sharing becomes a concrete demand.
+    target_release: v1.5
+    user_decision_ref: Q-scope-003
+
+  - capability_slug: governance-hierarchy
+    domain: ai-governance
+    features: [AG-F012, AG-F013, AG-F014, AG-F015, AG-F016]
+    defer_reason: >
+      PLANNED (v1.2 Jul). Multi-tenant aggregation spine (Project → Account →
+      Portfolio → Org) is a cross-cutting governance capability not in v1 scope.
+    v1_1_trigger: >
+      Multi-project adopter demand surfaces; hierarchy schema + artifact tagging
+      contract approved.
+    target_release: v1.2
+
+  - capability_slug: agentic-triage
+    domain: work-intelligence
+    features: [WI-F001, WI-F002, WI-F003]
+    defer_reason: >
+      PARTIAL. Profile-based auto-triage, vision-anchored priority, and agent-time
+      allocation require the agentic-triage capability not in v1 scope.
+    v1_1_trigger: >
+      Small-squads milestone begins; agentic-triage design spec approved.
+    target_release: v1.1
+
+  - capability_slug: agentic-planning
+    domain: work-intelligence
+    features: [WI-F004, WI-F005, WI-F006]
+    defer_reason: >
+      PARTIAL. Release planning, agentic iteration, and people + agent capacity
+      with token budget are v1.2 enterprise features per MVP rec.
+    v1_1_trigger: >
+      Squad milestone v1.1; WI-F004 release planning spec approved.
+    target_release: v1.2
+
+  - capability_slug: backlog-lifecycle
+    domain: work-intelligence
+    features: []
+    defer_reason: >
+      PARTIAL. MVP rec: "deferred for reconsideration (stories, grooming may not
+      belong in agentic world)." Note: WI-F007 (Epic Decomposition) formerly belonged
+      to this capability but was reclassified into agentic-methodology/l3-intent-driven
+      per user Q2 decision — WI-F007 is now in v1 via its new home. Prior WI-F008
+      (Feature Grooming) and WI-F009 (Story Generation) are retired per features.yaml
+      (IDs not reused). No remaining features under this capability.
+    v1_1_trigger: >
+      Product decision on whether backlog grooming / implementation-unit decomposition
+      belong in agentic workflow. Requires user Tether to un-defer.
+    target_release: post-v1
+    user_decision_ref: Q-scope-002
+
+  - capability_slug: engineering-portal
+    domain: engineering-experience
+    features: [EE-F006, EE-F007, EE-F009]
+    defer_reason: >
+      PARTIAL. Role-aware dashboards, project browser, and decision-trail search
+      require web UI surface not in v1 scope. EE-F009 (Decision-Trail Briefs)
+      is mandatory for L3+ but its implementation is the CLI briefs skill (AG-F006);
+      the portal search surface is the deferred piece. EE-F008 retired per features.yaml.
+    v1_1_trigger: >
+      Squad milestone; engineering-portal design spec approved; EE-F009 search
+      surface architecture locked.
+    target_release: v1.1
+
+  - capability_slug: first-run-onboarding-extended
+    domain: engineering-experience
+    features: [EE-F013, EE-F014]
+    defer_reason: >
+      EE-F013 (Bootcamp) and EE-F014 (Demos) are optional features deferred to v1.1
+      per MVP rec. The wizard + unified installer (EE-F010/F011) are selected in v1;
+      this entry covers only the deferred portion of the capability. EE-F012 retired
+      in features.yaml (merged into EE-F011 Installer).
+    v1_1_trigger: >
+      EE-F010 wizard + EE-F011 installer ship and are validated; bootcamp
+      content authored.
+    target_release: v1.1
+
+  - capability_slug: design-to-code
+    domain: engineering-experience
+    features: [EE-F019, EE-F020]
+    defer_reason: >
+      PARTIAL. Figma integration and design tokens require design surface
+      infrastructure not in v1 scope. Deferred to v1.2 per MVP rec. EE-F021
+      retired in features.yaml (folded into sdlc-phase-coverage EE-F024).
+    v1_1_trigger: >
+      design-to-code architecture spec approved; Figma integration contract locked.
+    target_release: v1.2
+
+  - capability_slug: sdlc-phase-coverage
+    domain: engineering-experience
+    features: [EE-F022, EE-F023, EE-F024, EE-F025, EE-F026]
+    defer_reason: >
+      Phase-coverage + penetration capability. Several phases are LIVE / PARTIAL
+      today via their anchoring plays (EE-F022 product-to-spec LIVE; EE-F023
+      spec-to-design LIVE; EE-F024/F025/F026 PARTIAL). The explicit penetration
+      metrics and dashboards are not in v1 scope; the underlying phase plays
+      continue to operate.
+    v1_1_trigger: >
+      Penetration metric definition + dashboard approved; cross-project
+      phase-coverage rollup designed.
+    target_release: v1.2
+
+  # ── Individual feature-level deferral (no capability-level defer) ───────────
+  # EO-F003 deferred alone; its parent capability (quality-signals) is IN v1.
+
+  - capability_slug: quality-signals-build-health
+    domain: engineering-observability
+    parent_capability: quality-signals
+    features: [EO-F003]
+    defer_reason: >
+      "mvp-rec-strategic-defer-reaffirmed-by-user" (per Q1). Although quality-signals
+      is in v1, EO-F003 (Build Health) is individually deferred. Note: EO-F003 is
+      retired in features.yaml per the 2026-04-18 EO feedback pass — this deferred
+      entry retains it as a Q1 audit record even though the catalog has removed it.
+    v1_1_trigger: >
+      "reconsider-at-v1.5-or-when-delivery-ambition-pushes-L4" (per Q1).
+    target_release: "v1.1-v1.5"
+    user_decision_ref: Q-scope-001
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CROSS-TREE CONSTRAINT TRACE
+# ─────────────────────────────────────────────────────────────────────────────
+# All 10 constraints walked; none fire for this product profile.
+
+constraint_trace:
+
+  applied: []
+  # No cross-tree constraints fired. All 10 are not_applicable — see below.
+
+  not_applicable:
+
+    - id: CTC-001
+      description: "High-security profiles require multi-factor authentication"
+      condition_evaluated: "project_profile.security_level in ['high', 'critical']"
+      why_not_applicable: >
+        Profile declares security_level: elevated, not 'high' or 'critical'. The
+        CTC condition uses a string match against a specific allowed-values set;
+        'elevated' is not in that set. MFA (UM-F004) is in the user-management
+        domain, which was rejected in Stage 2. CTC does not fire.
+      source: ltm
+      feature_refs_checked: [UM-F004]
+      feature_ref_resolution: "UM-F004 in rejected domain user-management (Stage 2)"
+      kb_coverage_note: >
+        'elevated' is semantically closer to 'high' than 'standard'. CTC-001's
+        allowed-value set (['high','critical']) does not include 'elevated', which
+        means a project with elevated security profile escapes this constraint.
+        The CTC allowed-value set may warrant extension to include 'elevated' in
+        a future KB update — this is a KB authoring gap, not a product scope gap.
+
+    - id: CTC-002
+      description: "Healthcare compliance (HIPAA) requires audit logging"
+      condition_evaluated: "'HIPAA' in project_profile.compliance"
+      why_not_applicable: >
+        Profile declares compliance.categories without 'HIPAA'; external_regulations_in_scope_v1
+        is explicitly empty ([]) and healthcare is not the industry. Condition does not fire.
+      source: ltm
+      feature_refs_checked: [UM-F008]
+      feature_ref_resolution: "UM-F008 in rejected domain user-management (Stage 2)"
+
+    - id: CTC-003
+      description: "Regulated industries require multi-factor authentication"
+      condition_evaluated: "project_profile.industry in ['BFSI', 'healthcare', 'government']"
+      why_not_applicable: >
+        Profile declares industry: developer-tools. Not in the CTC's regulated-industry
+        set ['BFSI', 'healthcare', 'government']. Condition does not fire.
+      source: ltm
+      feature_refs_checked: [UM-F004]
+      feature_ref_resolution: "UM-F004 in rejected domain user-management (Stage 2)"
+
+    - id: CTC-004
+      description: "Consumer products imply social login for conversion"
+      condition_evaluated: "project_profile.audience == 'B2C' and project_profile.delivery_ambition >= 3"
+      why_not_applicable: >
+        Profile audience is a structured object with primary_roles and adopter_segments,
+        not a scalar 'B2C' string. The product targets developer-tools professionals
+        (B2D/B2B), not B2C consumers. Condition does not fire.
+      source: ltm
+      feature_refs_checked: [UM-F007]
+      feature_ref_resolution: "UM-F007 in rejected domain user-management (Stage 2)"
+
+    - id: CTC-005
+      description: "Tight timeline excludes advanced-depth custom integrations"
+      condition_evaluated: "project_profile.timeline == 'tight'"
+      why_not_applicable: >
+        Profile timeline is a structured object with horizon_months and milestones,
+        not a scalar 'tight' string. The condition expects a scalar string value.
+        Profile does not declare a 'tight' timeline scalar. Condition does not fire.
+      source: ltm
+      feature_refs_checked: []
+      feature_ref_resolution: "no specific feature references — depth modifier only"
+
+    - id: CTC-006
+      description: "GDPR compliance requires profile data export and deletion"
+      condition_evaluated: "'GDPR' in project_profile.compliance or project_profile.geographic_scope contains 'EU'"
+      why_not_applicable: >
+        Profile external_regulations_in_scope_v1: [] — GDPR is on the roadmap
+        (external_regulations_roadmap: [GDPR]) but not in v1 scope. Profile does
+        not declare geographic_scope. Condition does not fire.
+      source: ltm
+      feature_refs_checked: [UM-F005]
+      feature_ref_resolution: "UM-F005 in rejected domain user-management (Stage 2)"
+
+    - id: CTC-007
+      description: "Physical goods commerce requires inventory management"
+      condition_evaluated: "project_profile.business_model in ['ecommerce', 'marketplace', 'retail'] and project_profile.product_type == 'physical_goods'"
+      why_not_applicable: >
+        Garura is a developer-tools DX platform. No business_model or product_type
+        fields are declared in the profile. Commerce and retail are not applicable.
+        Condition does not fire.
+      source: ltm
+      feature_refs_checked: [CM-F004]
+      feature_ref_resolution: "CM-F004 references commerce domain — rejected domain (not selected in Stage 2)"
+
+    - id: CTC-008
+      description: "Marketplace platforms require multi-seller order handling"
+      condition_evaluated: "project_profile.persona_complexity == 5 and project_profile.business_model == 'marketplace'"
+      why_not_applicable: >
+        No persona_complexity or business_model fields declared in profile.
+        Garura is not a marketplace platform. Condition does not fire.
+      source: ltm
+      feature_refs_checked: [CM-F003]
+      feature_ref_resolution: "CM-F003 references commerce domain — rejected domain (not selected in Stage 2)"
+
+    - id: CTC-009
+      description: "Enterprise SSO-only auth excludes password recovery and social login"
+      condition_evaluated: "project_profile.auth_methods == ['sso_only']"
+      why_not_applicable: >
+        Profile does not declare auth_methods. Garura v1 targets solo-dev / small-squads
+        without an enterprise SSO surface. User-management domain rejected in Stage 2.
+        Condition does not fire.
+      source: ltm
+      feature_refs_checked: [UM-F003, UM-F007]
+      feature_ref_resolution: "UM-F003, UM-F007 in rejected domain user-management (Stage 2)"
+
+    - id: CTC-010
+      description: "POC / MVP delivery ambition skips advanced onboarding and personalization"
+      condition_evaluated: "project_profile.delivery_ambition <= 2"
+      why_not_applicable: >
+        Profile delivery_ambition is a structured object (current_level: L2-spec-driven,
+        roadmap_horizon: L3-intent-driven), not a scalar integer <= 2. The CTC condition
+        expects a scalar numeric comparison. Profile schema diverges from CTC expectation.
+        Condition does not fire.
+      source: ltm
+      feature_refs_checked: []
+      feature_ref_resolution: "no specific feature references — depth modifier only"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DEPTH CAPS
+# ─────────────────────────────────────────────────────────────────────────────
+
+depth_caps:
+  global: null
+  per_feature: {}
+  note: >
+    CTC-005 (tight timeline → cap at Standard) and CTC-010 (POC/MVP ambition → cap
+    at Standard) both evaluated as not_applicable. No depth ceilings imposed.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WITHIN-DOMAIN COVERAGE GAPS (Rule 10)
+# ─────────────────────────────────────────────────────────────────────────────
+
+within_domain_coverage_gaps:
+  agentic-methodology:
+    assessment: >
+      Brief Pillar 1 (Codifying methodology) maps completely to domain features.
+      All 9 component-architecture + 3 L2 features + 5 L3 features (AM-F013..F016
+      plus reclassified WI-F007) cover the brief's stated needs.
+    gaps: []
+
+  engineering-experience:
+    assessment: >
+      Selected capabilities (cli-slash-commands, first-run-onboarding, ide-integrations)
+      fully cover their brief-stated surfaces. Engineering-portal and design-to-code
+      are deferred but their brief coverage is acknowledged.
+    gaps:
+      - implied_need: >
+          Engineering portal role-aware dashboards for squad leads and compliance officers
+        source_quote: >
+          "Engineering Portal (web UI for project creation, chat, dashboards, role-aware views)"
+          — project-brief.md Pillar 5
+        closest_existing_feature: EE-F006
+        coverage: partial
+        recommended_action: deferred-to-v1.1
+        notes: >
+          EE-F006 exists in the catalog and is deferred. Not a missing feature;
+          a deferred capability. No new feature needed.
+
+  ai-governance:
+    assessment: >
+      Brief Pillar 3 names token tracking, audit trails, and AI-vs-human traceability.
+      Audit-attribution (AG-F004/F005/F006) covers the traceability and audit items.
+      Token consumption (AG-F001) is a brief-stated need with no v1 coverage.
+    gaps:
+      - implied_need: "Token consumption tracking and budget enforcement"
+        source_quote: >
+          "Token usage tracking (AI consumption)" — project-brief.md Pillar 3 Governance
+        closest_existing_feature: AG-F001
+        coverage: missing
+        recommended_action: deferred-to-v1.1
+        notes: >
+          AG-F001 exists in the catalog under consumption-tracking capability (deferred to v1.1).
+          This is not a catalog gap — it is a v1 scope narrowing. No new feature needed.
+
+  engineering-observability:
+    assessment: >
+      Brief Pillar 2 (Control Tower) describes cross-project observability. Only
+      quality-signals is brought forward to v1; debt-signals, methodology-posture,
+      and delivery-signals are deferred. Coverage within quality-signals is
+      partial (EO-F001, F002, F004 selected; EO-F003 deferred per Q1).
+    gaps:
+      - implied_need: "Cross-project portfolio observability (debt, methodology posture, DORA)"
+        source_quote: >
+          "Cross-project observability. Makes visible and actionable: Quality, Tech debt,
+          Knowledge base health, Project health" — project-brief.md Pillar 2
+        closest_existing_feature: EO-F005
+        coverage: partial
+        recommended_action: deferred-to-v1.1
+        notes: >
+          All EO capabilities other than quality-signals are deferred. Catalog is complete;
+          scope is narrow by intent.
+
+  work-intelligence:
+    assessment: >
+      Brief Pillar 4 names intelligent triage, agentic planning, backlog lifecycle,
+      and test-case generation. Intent-driven verification is IN v1 per Q4 (4 LIVE
+      features). WI-F007 Epic Decomposition reclassified to agentic-methodology/
+      l3-intent-driven per Q2. Remaining WI capabilities (agentic-triage,
+      agentic-planning, backlog-lifecycle) deferred.
+    gaps:
+      - implied_need: "Intelligent triage, release planning, epic grooming"
+        source_quote: >
+          "Intelligent triage/planning/backlog lifecycle" — project-brief.md Pillar 4
+        closest_existing_feature: WI-F001
+        coverage: partial
+        recommended_action: deferred-to-v1.1
+        notes: >
+          Deferred WI capabilities all exist in the catalog; scope is narrow by intent.
+          Verification pillar (WI-F010..F013) is fully covered in v1.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FEATURE CLASSIFICATION
+# ─────────────────────────────────────────────────────────────────────────────
+
+feature_classification:
+  # component-architecture
+  - id: AM-F001
+    type: vertical
+  - id: AM-F002
+    type: vertical
+  - id: AM-F003
+    type: vertical
+  - id: AM-F004
+    type: vertical
+  - id: AM-F005
+    type: vertical
+  - id: AM-F006
+    type: vertical
+  - id: AM-F007
+    type: vertical
+  - id: AM-F008
+    type: vertical
+  - id: AM-F009
+    type: vertical
+  # l2-spec-driven
+  - id: AM-F010
+    type: vertical
+  - id: AM-F011
+    type: vertical
+  - id: AM-F012
+    type: vertical
+  # l3-intent-driven (includes reclassified WI-F007; AM-F016 added per 2026-04-18 reconciliation)
+  - id: AM-F013
+    type: vertical
+  - id: AM-F014
+    type: vertical
+  - id: AM-F015
+    type: vertical
+  - id: AM-F016
+    type: vertical
+  - id: WI-F007
+    type: vertical
+    classification_note: "Reclassified from work-intelligence/backlog-lifecycle per Q2."
+  # cli-slash-commands
+  - id: EE-F015
+    type: vertical
+  - id: EE-F016
+    type: vertical
+  - id: EE-F017
+    type: vertical
+  - id: EE-F018
+    type: vertical
+  # first-run-onboarding (EE-F012 retired per 2026-04-18 reconciliation)
+  - id: EE-F010
+    type: vertical
+  - id: EE-F011
+    type: vertical
+  # ide-integrations
+  - id: EE-F001
+    type: vertical
+  - id: EE-F004
+    type: vertical
+  - id: EE-F005
+    type: vertical
+  # audit-attribution
+  - id: AG-F004
+    type: vertical
+  - id: AG-F005
+    type: vertical
+  - id: AG-F006
+    type: vertical
+  # quality-signals
+  - id: EO-F001
+    type: vertical
+  - id: EO-F002
+    type: vertical
+  - id: EO-F004
+    type: vertical
+  # intent-driven-verification (Q4)
+  - id: WI-F010
+    type: vertical
+  - id: WI-F011
+    type: vertical
+  - id: WI-F012
+    type: vertical
+  - id: WI-F013
+    type: vertical
+
+# ─────────────────────────────────────────────────────────────────────────────
+# INFERENCES PENDING REVIEW
+# ─────────────────────────────────────────────────────────────────────────────
+
+inferences_pending_review: []
+# No assumption-sourced capabilities. All selected capabilities are brief_explicit
+# or user-Q-decision sourced. All four Q-scope-001..004 grounding questions resolved.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# OUTPUT SUMMARY
+# ─────────────────────────────────────────────────────────────────────────────
+
+output_summary:
+  selected_features_count: 36   # 9 + 3 + 5 + 4 + 2 + 3 + 3 + 3 + 4
+  selected_capabilities_count: 9
+  rejected_features_count: 5
+  deferred_capabilities_count: 15
+  pending_user_selection_count: 0
+  constraints_walked: 10
+  constraints_applied: 0
+  constraints_not_applicable: 10
+  dangling_feature_refs: 0
+  inferences_pending_review_count: 0
+  grounding_questions_generated: 4
+  grounding_questions_resolved: 4
+  capability_classification_changes_count: 1
+  future_capabilities_noted_count: 1
+  provisional_stm_research_features: 36
+  decision_manifest_path: .garura/product/scope/decision-manifest-configure-capabilities.yaml
+  feature_count_breakdown:
+    component-architecture: 9
+    l2-spec-driven: 3
+    l3-intent-driven: 5   # AM-F013 Intent Compilation, AM-F014 Intent Inference, AM-F015 Scope Auto-Narrowing, AM-F016 Epic Auto-Generation + reclassified WI-F007
+    cli-slash-commands: 4
+    first-run-onboarding: 2   # EE-F010, EE-F011 (EE-F012 retired; merged into EE-F011)
+    ide-integrations: 3
+    audit-attribution: 3
+    quality-signals: 3    # EO-F003 deferred per Q1
+    intent-driven-verification: 4  # added per Q4

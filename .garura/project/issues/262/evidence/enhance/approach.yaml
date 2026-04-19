@@ -1,0 +1,390 @@
+problem_statement: >
+  The fix-it play generates an HTML brief via doc-builder before its checkpoint, adding
+  an unnecessary agent hop and producing a standalone artifact that is never consumed
+  downstream. On Tether approval, no action is taken on the originating GitHub issue —
+  leaving the audit trail incomplete until the PR is opened. Both gaps contradict the
+  play's own constraints (C10: delegate domain work; C6/C7: lean checkpoint with
+  autonomous post-approval execution).
+
+solution_summary: >
+  Remove the doc-builder dispatch from Step 4 by adding an implementation-agnostic
+  constraint (C12) to fix-it's intent.yaml that forbids standalone HTML artifacts at the
+  checkpoint. Add C13 to require a background issue-update dispatch immediately on Tether
+  so the GitHub issue receives an RCA-approved comment without blocking implementation.
+  Add F9 (HTML brief produced) and F10 (no background dispatch on Tether) as observable
+  failure conditions, update S1/S2 scenario then-clauses, and add S4 for the audit-trail
+  scenario. Run /create-play --build fix-it so SKILL.md is regenerated — not hand-edited.
+  The manage-issue skill comment action decision (extend vs direct gh) is a mid-tier
+  approval-required design decision surfaced explicitly in alternatives_considered and R3.
+
+files_to_create:
+  - path: core/components/memory/standards/templates/issue-comment-rca-approved.md
+    purpose: >
+      Canonical GitHub issue comment shape for RCA-approved events. Defines field
+      derivation rules, follow-up PR-opened comment format, and CLI command.
+    status: already_done
+    note: Written during discovery phase. Registered in templates/_index.md.
+
+files_to_modify:
+  - path: core/components/plays/fix-it/reference/intent.yaml
+    section: constraints
+    nature: >
+      Add C12: "The checkpoint summary is rendered inline from STM YAML artifacts;
+      no standalone HTML artifact is produced." (implementation-agnostic — no agent/skill
+      names per schema rule). Add C13: "On Tether approval, the play immediately dispatches
+      a background update to the originating issue thread mirroring the approved RCA and
+      fix plan; this dispatch is tracked in STM and is non-blocking — it does not gate
+      subsequent implementation steps."
+  - path: core/components/plays/fix-it/reference/intent.yaml
+    section: failure_conditions
+    nature: >
+      Add F9: "A standalone HTML artifact exists under the evidence/fix-it/ directory
+      after the checkpoint preparation phase." Add F10: "Tether is received but no
+      issue-comment tracking artifact is written to STM before Step 6 begins."
+  - path: core/components/plays/fix-it/reference/intent.yaml
+    section: scenarios
+    nature: >
+      Update S2 then-clause: remove reference to HTML brief; replace with "inline markdown
+      sections rendered directly from STM artifacts." Update S1 then-clause: add
+      "issue-comment-agent.yaml exists in evidence tracking background dispatch status."
+      Add S4: persona "QA Engineer reviewing audit trail", given "fix-it runs to completion",
+      then "GitHub issue carries a timestamped RCA-approved comment with root cause, fix
+      strategy, and Approved-by header posted at the Tether event — before the PR is
+      opened."
+  - path: core/components/plays/fix-it/reference/intent.yaml
+    section: version + checksum
+    nature: >
+      Bump version field (semantic increment). Checksum is recomputed automatically by
+      /create-play --build over the content zone — do not compute manually.
+  - path: core/components/plays/fix-it/SKILL.md
+    section: full file
+    nature: >
+      REGENERATED via /create-play --build fix-it. Do NOT hand-edit. Changes reflected
+      in rebuild: Step 4 becomes inline markdown rendering (no doc-builder dispatch);
+      Step 5 adds background agent dispatch block (project-orchestrator,
+      run_in_background: true) writing issue-comment-agent.yaml to STM; Step 5
+      checkpoint template drops the ### Brief subsection and HTML path reference;
+      Step 9 adds issue-comment-agent.yaml status read and non-blocking failure record;
+      Agent Boundaries table removes doc-builder row; status file task list replaces
+      generate-brief with issue-comment-dispatch; Compilation Metadata updates
+      utility_agents count (doc-builder removed), adds SE-10 (F9) and SE-11 (F10).
+  - path: core/components/skills/manage-issue/SKILL.md
+    section: action enum + Process section + Input table
+    nature: >
+      CONDITIONAL on T1 resolution. If manage-issue extension chosen: add `comment`
+      action to Input.action enum; add "Action: comment" Process section with
+      gh issue comment CLI command; update description field to include "comment" verb.
+      If direct gh chosen: this file is NOT modified. Decision gates T3 (conditional task).
+  - path: core/components/memory/standards/templates/_index.md
+    section: Contents table
+    nature: >
+      Already updated during discovery — issue-comment-rca-approved.md row present.
+      No further change needed unless manage-issue comment action requires a new
+      template row (unlikely — it reuses issue-comment-rca-approved.md).
+    status: already_done
+
+connections:
+  - from: core/components/plays/fix-it/reference/intent.yaml (C12, C13, F9, F10)
+    to: core/components/plays/fix-it/SKILL.md
+    type: compiles-to
+    description: >
+      intent.yaml is the source of truth. /create-play --build reads it and regenerates
+      SKILL.md. C12 drives removal of doc-builder dispatch. C13 drives addition of
+      background agent dispatch block. F9/F10 drive addition of SE-10/SE-11 step evals.
+  - from: core/components/memory/standards/templates/issue-comment-rca-approved.md
+    to: core/components/plays/fix-it/SKILL.md (Step 5 background dispatch block)
+    type: referenced-by
+    description: >
+      Rebuilt SKILL.md Step 5 background agent contract must reference the template path
+      so the project-orchestrator background agent knows the comment shape.
+  - from: core/components/skills/manage-issue/SKILL.md (comment action, if added)
+    to: core/components/plays/fix-it/SKILL.md (Step 5 background agent dispatch)
+    type: invoked-by
+    description: >
+      If T1 chooses manage-issue extension, the background agent dispatched at Step 5
+      invokes manage-issue with action: comment. If T1 chooses direct gh, this link
+      does not exist — background agent calls gh issue comment directly via Bash.
+  - from: core/components/agents/scriber.md (run_in_background pattern)
+    to: core/components/plays/fix-it/SKILL.md (Step 5 background dispatch block)
+    type: pattern-authority
+    description: >
+      scriber.md lines 33 and 157 are the only existing documentation of the
+      run_in_background: true dispatch pattern. The rebuild must produce a Step 5
+      dispatch block that matches this pattern shape.
+  - from: ~/.garura/core/memory/ (deployed after /sync-claude)
+    to: deployed ~/.claude/skills/fix-it/SKILL.md
+    type: sync-dependency
+    description: >
+      After rebuild, /sync-claude deploys core/components/plays/fix-it/SKILL.md to
+      ~/.claude/skills/fix-it/SKILL.md. Do NOT edit the deployed artifact directly.
+
+tasks:
+  - id: T1
+    title: "Decide manage-issue extension vs direct gh issue comment"
+    description: >
+      Resolve the design decision: extend manage-issue skill with a `comment` action
+      (preferred for consistency — all issue operations route through one skill), or have
+      the background agent call `gh issue comment` directly via Bash (simpler, no skill
+      change). This is a mid-tier decision (design pattern match but no KB source) and
+      carries action:approval-required (see R3). Present the decision with both options
+      to the user for explicit approval before T3 is unblocked.
+    decision_tier: mid
+    decision_rationale: >
+      Design pattern in LTM (manage-issue as single issue-operations interface) supports
+      extension. No specific KB source for "comment action exists". Lean: extend
+      manage-issue for consistency. Alternative: direct gh for reduced scope. Either
+      path has no downstream blast radius outside fix-it.
+    blocked_by: []
+  - id: T2
+    title: "Edit fix-it intent.yaml — add C12, C13, F9, F10, update S1/S2, add S4"
+    description: >
+      Edit core/components/plays/fix-it/reference/intent.yaml:
+      (a) Add C12 (inline-only checkpoint, no HTML artifact) — implementation-agnostic
+          phrasing, no agent/skill names.
+      (b) Add C13 (background issue-update on Tether, tracked in STM, non-blocking).
+      (c) Add F9 (HTML artifact present after checkpoint prep phase).
+      (d) Add F10 (no issue-comment tracking artifact before Step 6).
+      (e) Update S2 then-clause: remove HTML brief reference, add inline markdown.
+      (f) Update S1 then-clause: add issue-comment-agent.yaml in evidence.
+      (g) Add S4: QA audit trail persona, GitHub issue has RCA-approved comment.
+      (h) Bump version field.
+      Checksum is recomputed by /create-play --build — leave as-is or remove.
+    blocked_by: []
+  - id: T3
+    title: "Extend manage-issue skill with comment action (conditional on T1)"
+    description: >
+      ONLY if T1 resolves to extend manage-issue:
+      Edit core/components/skills/manage-issue/SKILL.md:
+      (a) Add `comment` to Input.action enum.
+      (b) Add "Action: comment" Process section: verify issue open, then
+          gh issue comment {issue_number} --body "{body}". Return confirmation.
+      (c) Update description field: "Read, create, close, comment, or resolve GitHub issues..."
+      (d) Update version field.
+      If T1 resolves to direct gh: skip this task entirely.
+    blocked_by: [T1]
+  - id: T4
+    title: "Run /create-play --build fix-it and verify SKILL.md diff"
+    description: >
+      Invoke: /create-play --build fix-it
+      Verify the rebuild produces expected changes:
+      - Step 4 no longer contains doc-builder contract JSON
+      - Step 5 contains run_in_background: true block in project-orchestrator dispatch
+      - Step 5 checkpoint template has no ### Brief subsection
+      - Step 9 reads issue-comment-agent.yaml and records status non-blocking
+      - Agent Boundaries table has no doc-builder row
+      - status file task list has issue-comment-dispatch instead of generate-brief
+      - Compilation Metadata: utility_agents count decremented, SE-10/SE-11 present
+      If rebuild omits run_in_background flag: add an inline_notes or
+      workflow_structure hint to intent.yaml and rebuild again (max 1 retry).
+    blocked_by: [T2, T3]
+  - id: T5
+    title: "Run /sync-claude to deploy and spot-check rebuilt play"
+    description: >
+      Run /sync-claude (global mode) to deploy core/components/plays/fix-it/SKILL.md
+      to ~/.claude/skills/fix-it/SKILL.md.
+      Spot-check (read-only, do not invoke live):
+      - Confirm no briefs/ directory created under evidence/fix-it/ on fresh run shape
+      - Confirm inline checkpoint rendering shape in SKILL.md Step 5
+      - Confirm background agent dispatch JSON shape in Step 5 has run_in_background: true
+      - If manage-issue extended (T3): confirm comment action is present in
+        ~/.garura/core/memory/ deployed skill (after sync)
+    blocked_by: [T4]
+
+evals:
+  - id: E1
+    description: "fix-it intent.yaml contains new constraints C12 and C13"
+    pass: >
+      grep -q "C12" core/components/plays/fix-it/reference/intent.yaml &&
+      grep -q "C13" core/components/plays/fix-it/reference/intent.yaml
+      → both return 0
+    fail: "Either C12 or C13 is absent from constraints block"
+    linked_task: T2
+
+  - id: E2
+    description: "fix-it intent.yaml contains new failure conditions F9 and F10"
+    pass: >
+      grep -q "F9" core/components/plays/fix-it/reference/intent.yaml &&
+      grep -q "F10" core/components/plays/fix-it/reference/intent.yaml
+      → both return 0
+    fail: "Either F9 or F10 is absent from failure_conditions block"
+    linked_task: T2
+
+  - id: E3
+    description: "Rebuilt SKILL.md references issue-comment-rca-approved.md template in Step 5"
+    pass: >
+      grep -q "issue-comment-rca-approved" core/components/plays/fix-it/SKILL.md
+      → returns 0
+    fail: "Template reference not present in rebuilt SKILL.md"
+    linked_task: T4
+
+  - id: E4
+    description: "Rebuilt SKILL.md contains NO doc-builder invocation"
+    pass: >
+      grep -c "doc-builder" core/components/plays/fix-it/SKILL.md → returns 0
+    fail: "doc-builder string found in rebuilt SKILL.md — Step 4 not cleaned"
+    linked_task: T4
+
+  - id: E5
+    description: "Rebuilt SKILL.md contains run_in_background: true pattern in Step 5"
+    pass: >
+      grep -q "run_in_background.*true" core/components/plays/fix-it/SKILL.md
+      → returns 0
+    fail: "run_in_background pattern absent — background dispatch not compiled into Step 5"
+    linked_task: T4
+
+  - id: E6
+    description: "Template file exists and is registered in _index.md"
+    pass: >
+      test -f core/components/memory/standards/templates/issue-comment-rca-approved.md &&
+      grep -q "issue-comment-rca-approved" core/components/memory/standards/templates/_index.md
+      → both pass
+    fail: "Template file missing or not registered in index"
+    linked_task: T2
+
+  - id: E7
+    description: "manage-issue/SKILL.md has comment action (conditional — only if T1 chose extension)"
+    pass: >
+      grep -q "comment" core/components/skills/manage-issue/SKILL.md
+      and the Process section contains an "Action: comment" subsection
+    fail: "comment action absent when T1 resolved to extend manage-issue"
+    conditional: "Only applies if T1 resolved to manage-issue extension"
+    linked_task: T3
+
+  - id: E8
+    description: "Rebuilt SKILL.md Step 9 reads issue-comment-agent.yaml and records status non-blocking"
+    pass: >
+      grep -q "issue-comment-agent.yaml" core/components/plays/fix-it/SKILL.md
+      → returns 0 (at least one reference in Step 9 context)
+    fail: "issue-comment-agent.yaml reference absent from rebuilt SKILL.md"
+    linked_task: T4
+
+  - id: E9
+    description: "Rebuilt SKILL.md has no ### Brief subsection in Step 5 checkpoint template"
+    pass: >
+      grep -c "### Brief" core/components/plays/fix-it/SKILL.md → returns 0
+    fail: "### Brief subsection still present in checkpoint template"
+    linked_task: T4
+
+  - id: E10
+    description: "R1 eval-driven propagation — rebuild correctness: SKILL.md diff shows only expected sections changed"
+    pass: >
+      Manual diff review: only Step 4, Step 5, Step 9, Agent Boundaries, status tasks,
+      Compilation Metadata sections changed. No other sections altered.
+    fail: "Rebuild modified sections outside the expected change set"
+    linked_task: T4
+
+  - id: E11
+    description: "R2 eval-driven propagation — run_in_background preserved through rebuild (same as E5, linked to risk)"
+    pass: >
+      grep -q "run_in_background.*true" core/components/plays/fix-it/SKILL.md → 0
+    fail: "run_in_background dropped by rebuild — requires intent.yaml hint and re-rebuild"
+    linked_task: T4
+
+risks:
+  - id: R1
+    description: >
+      Rebuild regenerates SKILL.md incorrectly — drops correct existing content (Steps 1-3,
+      6-8, Agent Boundaries for domain agents, Pause/Resume logic, Compilation Metadata
+      version) or fails to incorporate the new C12/C13/F9/F10 intent changes.
+    mitigation: >
+      After rebuild, diff core/components/plays/fix-it/SKILL.md against current HEAD.
+      Verify only Step 4, Step 5, Step 9, Agent Boundaries (utility row), status tasks,
+      and Compilation Metadata changed. If other sections are altered, investigate rebuild
+      log. Max 1 re-build retry with corrected intent before escalating.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E10]
+
+  - id: R2
+    description: >
+      The run_in_background: true flag is not preserved in the compiled SKILL.md Step 5
+      dispatch block — the create-play compiler may not understand this pattern from
+      intent.yaml alone since no compiled play currently demonstrates it.
+    mitigation: >
+      After rebuild, grep for run_in_background pattern (E5/E11). If absent, add an
+      inline_notes entry or explicit workflow_structure note to intent.yaml stating
+      "Step 5 post-Tether dispatch uses run_in_background: true — background agent does
+      not block implementation" and re-build once. Scriber.md lines 33 and 157 are
+      authoritative pattern reference.
+    type: technical
+    action: eval-driven
+    ltm_reference: core/components/agents/scriber.md
+    generated_evals: [E5, E11]
+
+  - id: R3
+    description: >
+      Adding a `comment` action to manage-issue is scope beyond fix-it — it changes a
+      shared skill used by other plays and agents, introducing potential for unintended
+      behavior changes. Choosing direct gh avoids this but diverges from the
+      "route all issue operations through manage-issue" pattern.
+    mitigation: >
+      Explicit T1 decision checkpoint (approval-required) before T3 begins. If manage-issue
+      is extended, the change is additive only — no existing actions modified, no callers
+      break. If direct gh is chosen, document in approach that this is a pragmatic deviation
+      pending a future manage-issue comment action story.
+    type: architectural
+    action: approval-required
+    ltm_reference: null
+    generated_evals: []
+
+  - id: R4
+    description: >
+      Other plays (prepare-epic Steps 12/15) still invoke doc-builder and are unaffected
+      by this change. Risk of accidentally impacting them during /sync-claude or intent
+      edits.
+    mitigation: >
+      Blast radius confirmed during discovery: only fix-it/SKILL.md references doc-builder
+      in a step that is being removed. prepare-epic/SKILL.md is not touched. /sync-claude
+      deploys all components but does not modify prepare-epic's doc-builder invocation.
+    type: business
+    action: monitor-only
+    ltm_reference: null
+    generated_evals: []
+
+alternatives_considered:
+  - id: A1
+    approach: "Hand-edit SKILL.md directly (bypass /create-play --build)"
+    rejection_reason: >
+      Violates the explicit memory rule: "Recipe changes only through rebake — NEVER edit
+      SKILL.md directly. Update intent.yaml → /create-play --build. Always." Shortcutting
+      this would create an intent/SKILL.md drift where the compiled artifact no longer
+      reflects the declared intent. Future rebuilds would silently overwrite the hand-edits.
+      Decision Surfacing Discipline: no pushback needed — this is a hard rule, not a
+      preference.
+
+  - id: A2
+    approach: "Delete doc-builder agent entirely from the framework"
+    rejection_reason: >
+      prepare-epic/SKILL.md Steps 12 and 15 still invoke doc-builder for LLD and Scenarios
+      briefs. doc-builder is still used in two active play steps outside fix-it. Removing it
+      would break prepare-epic with zero benefit to this issue. Discovery confirmed blast
+      radius: only fix-it's Step 4 is in scope.
+
+  - id: A3
+    approach: "Keep doc-builder but have it emit markdown instead of HTML (no HTML artifact)"
+    rejection_reason: >
+      C12 intent is to eliminate the agent hop entirely, not change its output format. Even
+      a markdown-emitting doc-builder is an unnecessary delegation for what is a simple
+      template render from STM YAML. The inline checkpoint rendering is already implemented
+      in SKILL.md Step 5 (lines 239-274) — the content is already there. The briefing step
+      adds latency and an agent invocation for zero incremental value. Occam's Razor:
+      fewer moving parts wins.
+
+  - id: A4
+    approach: "Direct gh issue comment in background agent vs extending manage-issue (T1 decision)"
+    decision_tier: mid
+    decision_status: pending_approval
+    lean: extend-manage-issue
+    lean_rationale: >
+      manage-issue is the declared single interface for GitHub issue operations (C10 pattern).
+      Routing a comment through it maintains consistency and keeps the background agent
+      contract clean (action: comment, body: rendered_template). The change is strictly
+      additive — no existing actions modified. Alternative (direct gh) is simpler to
+      implement and avoids touching a shared skill, but diverges from the established
+      routing pattern. This is a two-way door architecturally (both can be changed later)
+      but the manage-issue extension is the cleaner long-term shape.
+    rejection_reason_if_lean_rejected: >
+      If user approves direct gh: background agent calls gh issue comment directly,
+      manage-issue/SKILL.md is not modified, no T3. Document as pragmatic deviation
+      pending future manage-issue comment action story.

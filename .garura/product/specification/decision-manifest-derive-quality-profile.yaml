@@ -1,0 +1,233 @@
+# decision-manifest-derive-quality-profile.yaml
+# Garura Platform — specify-product Stage 6: Decision Manifest
+#
+# Provenance
+# play: specify-product
+# stage: 6-derive-quality-profile-from-epics
+# agent: product-keeper
+# skill: derive-quality-profile-from-epics v0.2.0
+# task_id: specify-product-stage-6-quality
+# created_at: 2026-04-19T00:00:00Z
+# source_epics_dir: .garura/product/scope/epics/
+# quality_profile_output: .garura/product/specification/quality-profile.yaml
+#
+# DSD COMPLIANCE NOTE (AG-F005): This manifest is written BEFORE the primary artifact
+# (quality-profile.yaml) per the Decision Surfacing Discipline. Every inferred decision
+# made during Steps 3–5 of derive-quality-profile-from-epics is recorded here.
+
+schema_version: "1.0"
+skill: "derive-quality-profile-from-epics"
+generated_at: "2026-04-19T00:00:00Z"
+
+decisions:
+  - decision_id: "D-dqp-001"
+    decision_type: "constraint-aggregation-pick"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: "/Users/kapilahuja/.claude/skills/derive-quality-profile-from-epics/SKILL.md"
+      excerpt: "if multiple epics have comparable targets, keep the strictest. Record the epic ID that sourced the target."
+    recommendation: >
+      Strictest-wins aggregation applied across all 9 epics. For performance_efficiency,
+      the strictest target across comparable dimensions is:
+        - Slash command invocation < 1s (EPIC-engineering-experience-cli-slash-commands-001)
+        - quality-check PR report < 3 minutes (EPIC-engineering-observability-quality-signals-001)
+        - Commit hook overhead < 200ms (EPIC-ai-governance-audit-attribution-001)
+        - Play invocation success >= 90% over rolling 30 days (EPIC-agentic-methodology-component-arch-001)
+        - evals-creator completes full play eval generation < 2 minutes (EPIC-work-intelligence-intent-driven-verification-001)
+      Where two epics named targets for the same dimension (e.g. audit bundle < 30s vs
+      security scanner < 5 min — distinct dimensions, no conflict), both are preserved
+      as separate targets sourced to their originating epic. No conflicting parallel targets
+      were found that required direct strictest-wins arbitration — all performance constraints
+      are for distinct operation types.
+    alternatives_considered:
+      - alt: "Union-preserving aggregation — all targets recorded independently without strictest-wins collapse"
+        why_not: >
+          Union preservation would leave the quality profile as a flat list of 9 epic-scoped
+          targets rather than a coherent product-level contract. Downstream build-arch consumers
+          cannot derive a single performance floor from a union list; they need a deterministic
+          product-level target per dimension.
+      - alt: "Context-scoped targets — different strictness per adopter segment (solo vs enterprise)"
+        why_not: >
+          Profile declares a single security_level=elevated and a single deployment model
+          (progressive). Context-scoping is a post-v1 complexity; v1 quality profile must
+          provide a uniform product floor. Segment-scoped quality profiles are a post-v1
+          enhancement.
+    agent_reasoning_summary: >
+      Each of the 9 epics defines performance constraints for its own operational scope
+      (command invocation, play execution, CI pipeline, eval generation). No two epics
+      name conflicting targets for the exact same operation. The strictest-wins rule is
+      applied as a safeguard but did not need to arbitrate any head-to-head conflict in
+      this epic set. All performance targets are preserved with their source epic cited.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-dqp-002"
+    decision_type: "security-characteristic-ratchet"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: "/Users/kapilahuja/cto/builder/garura/.garura/product/scope/epics/epic-ai-governance-audit-attribution-001.yaml"
+      excerpt: "compliance.categories includes 'ai-usage-traceability'; ratchet fired on AG-F004 per enrich-capabilities Stage 4"
+    recommendation: >
+      Security characteristic floor is OWASP ASVS Level 1, ratcheted to a compliance-mandate
+      package by EPIC-ai-governance-audit-attribution-001. The ratchet does NOT originate from
+      an authentication-strength standard (no epic cites NIST 800-63B AAL3). The ratchet fires
+      from three compliance mandates in profile.compliance.categories:
+        1. ai-usage-traceability — 100% of play-produced commits carry AI-authorship commit
+           trailer (RATCHETED by AG-F004; sourced from EPIC-ai-governance-audit-attribution-001)
+        2. audit-trail — every inferred decision in a decision manifest before primary artifact
+           write; zero silent resolutions (AG-F005; sourced from EPIC-ai-governance-audit-
+           attribution-001 + EPIC-agentic-methodology-l3-intent-driven-001 +
+           EPIC-work-intelligence-intent-driven-verification-001)
+        3. memory-governance — all STM→LTM promotions follow documented canonicalization workflow
+           (sourced from EPIC-agentic-methodology-l2-spec-driven-001)
+      The floor-setting epic is EPIC-ai-governance-audit-attribution-001 (AG-F004), which carries
+      a RATCHET NOTE explicitly in its file header and the strictest compliance posture of any
+      epic in the set. All 9 epics align on OWASP ASVS Level 1 as the base; none downgrade below
+      this floor.
+    alternatives_considered:
+      - alt: >
+          Treat security characteristic as baseline OWASP ASVS Level 1 without ratchet — each
+          epic independently satisfies its own security constraint without product-level uplift
+        why_not: >
+          Profile.compliance.categories carries 3 mandates (ai-usage-traceability, audit-trail,
+          memory-governance) that fire ratchet per AG-F004 enrich logic. A flat ASVS Level 1
+          without compliance-mandate ratchet would be incomplete — the compliance_mandates
+          list in the security_profile must record all three categories regardless of ASVS level.
+      - alt: "Escalate to OWASP ASVS Level 2 given elevated security_level in profile"
+        why_not: >
+          Profile declares security_level=elevated, not 'high' or 'critical'. No external
+          regulations are in scope for v1 (external_regulations_in_scope_v1=[]). ASVS Level 2
+          is appropriate for publicly facing applications with authentication; Garura v1 is
+          developer tooling with no external auth surface in v1. Escalating to Level 2 would
+          impose controls (server-side auth, session tokens) that do not apply to the current
+          product surface. Level 2 is the post-v1 target if SOC2 enters scope.
+    agent_reasoning_summary: >
+      The security ratchet in this quality profile is compliance-mandate-driven, not
+      authentication-strength-driven. The floor-setting epic is audit-attribution (AG-F004),
+      which carries an explicit RATCHET NOTE declaring commit-trailer enforcement as mandatory
+      regardless of depth selection. All 9 epics uniformly cite OWASP ASVS Level 1 as their
+      security floor. The three compliance mandates from profile.compliance.categories are
+      aggregated into the security_profile.compliance_mandates list and propagated as
+      first-class security requirements into the quality profile.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-dqp-003"
+    decision_type: "risk-severity-inference"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: "/Users/kapilahuja/.claude/skills/derive-quality-profile-from-epics/SKILL.md"
+      excerpt: "severity: high | medium | low  # inferred from how many epics cite it (3+ = high)"
+    recommendation: >
+      Severity rubric applied as follows:
+        HIGH (3+ epics cite the warning):
+          - RISK-001: Direct-edit of deployed components (cli-slash-commands, first-run-onboarding,
+            ide-integrations, component-arch = 4 epics) — HIGH
+          - RISK-002: Sync customization overwrite risk (failure_scenarios in cli-slash-commands,
+            first-run-onboarding, ide-integrations = 3 epics) — HIGH
+          - RISK-003: AI-authorship / governance-signal attribution gap (ide-integrations EE-F004,
+            audit-attribution AG-F004, component-arch ai-authorship commit trailer = 3 epics) — HIGH
+        MEDIUM (2 epics cite the warning):
+          - RISK-004: Bypassing spec validation / editing generated artifacts (l2-spec-driven,
+            l3-intent-driven = 2 epics) — MEDIUM
+          - RISK-005: Skipping distill / LTM promotion (cli-slash-commands, l2-spec-driven = 2 epics)
+            — MEDIUM
+          - RISK-006: Silent inferred-decision resolution without decision manifest (audit-attribution,
+            l3-intent-driven = 2 epics) — MEDIUM
+        LOW (1 epic):
+          - RISK-007: npm package size growth from optional module bundling (first-run-onboarding = 1)
+          - RISK-008: Coverage-percentage masking shallow assertions (engineering-observability = 1)
+          - RISK-009: Fixing symptom before completing RCA (work-intelligence = 1)
+      Brownfield dimension applied separately:
+        REGRESSION RISKS (LIVE features at regression exposure): RISK-001, RISK-002 primarily
+          affect LIVE features (EE-F001, EE-F015, EE-F016, EE-F017, EE-F018, AM-F001–F009,
+          WI-F010–F013, AM-F013, AM-F015, AM-F016, WI-F007).
+        DELIVERY RISKS (PARTIAL/PLANNED features at delivery exposure): RISK-003 (AG-F004/F005/F006
+          all PARTIAL, EE-F004/F005 PARTIAL), RISK-004 (AM-F010/F012 PARTIAL), RISK-007 (EE-F010
+          PLANNED, EE-F011 PARTIAL), RISK-008 (EO-F001/F002/F004 all PARTIAL).
+    alternatives_considered:
+      - alt: "Impact-based severity — severity from business impact description rather than citation count"
+        why_not: >
+          Impact-based severity requires subjective judgment without a traceable rubric.
+          Citation-count severity is traceable to the KB experiential_warnings and failure_scenario
+          evidence in the epics. Impact-based scoring is a post-v1 enhancement when the risk
+          register has enough history to calibrate impact multipliers.
+      - alt: "Uniform MEDIUM for all warnings with < 3 citations"
+        why_not: >
+          Flattening LOW and MEDIUM removes signal — a 1-epic warning about npm package size
+          is genuinely lower priority than a 2-epic warning about spec validation bypass.
+          The three-tier system preserves the signal for triage.
+    agent_reasoning_summary: >
+      Citation-count rubric applied directly: walked all 9 epics' kb_source.experiential_warnings
+      and failure_scenario descriptions to identify deduplicated cross-epic patterns.
+      Three HIGH-severity risks emerged (4, 3, and 3 citations respectively). The brownfield
+      split requested by the call context is overlaid as a risk dimension (regression vs delivery
+      risk axis), not as a separate severity multiplier — the two dimensions are orthogonal.
+    user_response: null
+    user_response_detail: null
+
+  - decision_id: "D-dqp-004"
+    decision_type: "security-profile-derivation"
+    tier: mid
+    grounding_source:
+      kind: kb_path
+      ref: "/Users/kapilahuja/cto/builder/garura/.garura/product/specification/project-profile.yaml"
+      excerpt: "security_level: elevated; compliance.categories: [ai-usage-traceability, token-consumption-tracking, audit-trail, memory-governance, ci-cd-enforcement, adoption-reporting]"
+    recommendation: >
+      Security profile derived from aggregation of business_rules and compliance constraints
+      across all 9 epics combined with the project profile:
+        authentication: No external auth surface in v1; internal tooling only; method=cli-session
+          (Claude Code harness manages session context); strength=not_applicable (no credential
+          auth surface exposed to end-users in v1)
+        authorization: Flat model (solo-dev, single contributor in v1); progressive RBAC is the
+          post-v1 target when team_size grows to small-squads
+        data_at_rest: STM artifacts stored as git objects; encryption=not_explicitly_mandated_v1;
+          tamper-evident storage deferred to post-v1 per AG-F004/F005 anti_goals
+        data_in_transit: TLS 1.3 mandated for all remote endpoints — npm registry, any remote
+          audit bundle delivery, remote sync endpoints; sourced from 5 epics naming TLS 1.3
+        secrets_management: Environment variables only; no secrets in play files (EE-F004
+          business rule: "Factory Droid credentials stored in environment variables, not in
+          play files"); no secrets management service in v1
+        audit_trail: Full — every play step attributed to agent or user (AG-F004); every
+          inferred decision in decision-manifest.yaml before primary artifact write (AG-F005);
+          audit bundle on demand (AG-F006); 100% of play-produced commits carry AI-authorship
+          commit trailer (RATCHETED)
+        compliance_mandates:
+          - ai-usage-traceability (RATCHETED — mandatory regardless of depth)
+          - audit-trail (AI vs human attribution)
+          - memory-governance (LTM curation + access control)
+          - token-consumption-tracking (profile-declared; not yet surfaced in epics — v1 gap)
+          - ci-cd-enforcement (profile-declared; EO-F001/F002/F004 CI integration)
+          - adoption-reporting (profile-declared; not yet surfaced in epics — v1 gap)
+      Security profile selection: ELEVATED_INTERNAL_TOOLING (not STANDARD, not HIGH_REGULATED)
+      — elevated from standard because of compliance-mandate ratchet; not high-regulated because
+      external_regulations_in_scope_v1=[] and no auth/PII/PHI surface.
+    alternatives_considered:
+      - alt: "STANDARD security profile (OWASP ASVS Level 1 baseline, no compliance ratchet)"
+        why_not: >
+          Profile.compliance.categories explicitly includes ai-usage-traceability, audit-trail,
+          and memory-governance — all three fire compliance obligations that exceed STANDARD
+          posture. Downgrading to STANDARD would drop the compliance ratchet and miss the
+          AG-F004 mandatory enforcement.
+      - alt: "HIGH_REGULATED profile (OWASP ASVS Level 2, MFA, tamper-evident storage)"
+        why_not: >
+          external_regulations_in_scope_v1=[] explicitly defers SOC2/GDPR/HIPAA to post-v1.
+          ASVS Level 2 controls (server-side session management, strong MFA) do not apply to
+          a CLI developer tooling product with no external auth surface. Over-specifying
+          HIGH_REGULATED in v1 would impose implementation constraints that are premature
+          and not grounded in the current compliance surface.
+    agent_reasoning_summary: >
+      The security profile is aggregated from business_rules fields across all 9 epics
+      (TLS 1.3 appears in 5 epics; env-var secrets management derived from EE-F004 business rule;
+      no external auth surface confirmed by all 9 epics' security constraint descriptions).
+      The compliance_mandates list is taken directly from project-profile.yaml with two v1 gaps
+      noted (token-consumption-tracking and adoption-reporting are profile-declared but not yet
+      surfaced in epic constraints — these are post-v1 delivery items). The ELEVATED_INTERNAL_TOOLING
+      security profile label is an inference from the combination of elevated security_level
+      + compliance mandates + no external auth surface; this label is not a KB-defined category,
+      hence tier=mid rather than high.
+    user_response: null
+    user_response_detail: null

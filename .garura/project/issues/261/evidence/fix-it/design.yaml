@@ -1,0 +1,375 @@
+design:
+  issue_number: 261
+  title: "Fix .garura/ vs .meridian/ migration inconsistencies"
+
+  approach:
+    strategy: >
+      Complete the .meridian/ → .garura/ migration by updating the 75 affected
+      files to reference .garura/ paths consistently. Fix the installer, sync
+      scripts, all agent/play/skill references, and the project's own config file.
+      Two agents' hardcoded KB paths are replaced with deployment-aware paths
+      (resolved at runtime from ltm_context or config). This fix is reversible
+      (two-way door) — the garura repo's own config is the only permanent state
+      change; all source component changes are sync-safe (re-synced from source).
+
+    scope: >
+      LOAD-BEARING FIXES ONLY (C1 from fix-it play). Blast radius exceeds 15 files,
+      so fix-it scope limitation applies per constraint C5. However, all 75 files
+      are interdependent (installer broken → config missing → all plays broken).
+      This is a single coherent defect with one root cause (incomplete migration).
+      Escalation to /enhance is recommended for post-fix decorative renames
+      (example paths in prose, template fixtures, comments), but the load-bearing
+      core fixes must go in now because they block framework bootstrapping.
+
+    migration_direction: ".meridian/ → .garura/ (forward, locked)"
+    rationale: >
+      Engine runtime, STM root, deployed memory, repo name, and project identity
+      are all already at .garura/. Reverting to .meridian/ would require reversing
+      engine changes (out of scope for fix-it). Forward is the only viable direction.
+
+  affected_files:
+    - path: "installer/install.sh"
+      role: "Entry point for consumer projects; writes config and initial structure"
+      change_needed: >
+        Replace all .meridian/ references with .garura/. Specifically:
+        1. Line 9: REPO="kapilvirenahuja/meridian" → REPO="kapilvirenahuja/garura"
+        2. Line 56: MERIDIAN_CONFIG="./.meridian/core/config.yaml" → .garura/core/config.yaml
+        3. Line 98: sed -E "s|^([[:space:]]*memory:[[:space:]]*).+$|\1~/.garura/core/memory/|"
+        4. Lines 209-217: mkdir -p and transform target to .garura/core/
+        5. Lines 280-287: upgrade mode, same changes
+        6. Update all output messages and documentation strings referencing .meridian/
+
+    - path: "core/components/skills/sync-claude/scripts/sync.sh"
+      role: "Deployment script for sync-claude skill; copies memory to global/project location"
+      change_needed: >
+        Update MEMORY_TARGET paths (lines 24, 27):
+        Line 24: MEMORY_TARGET="$HOME/.meridian/core/memory" → "$HOME/.garura/core/memory"
+        Line 27: MEMORY_TARGET="$PROJECT_ROOT/.meridian/core/memory" → "$PROJECT_ROOT/.garura/core/memory"
+
+    - path: "core/components/skills/sync-droids/scripts/sync.sh"
+      role: "Deployment script for sync-droids skill; copies memory to global/project location"
+      change_needed: >
+        Update MEMORY_TARGET paths (lines 22, 25):
+        Line 22: MEMORY_TARGET="$HOME/.meridian/core/memory" → "$HOME/.garura/core/memory"
+        Line 25: MEMORY_TARGET="$PROJECT_ROOT/.meridian/core/memory" → "$PROJECT_ROOT/.garura/core/memory"
+
+    - path: ".meridian/core/config.yaml"
+      role: "Project configuration; source of truth for framework paths in the garura repo"
+      change_needed: >
+        This is the only file where changes are permanent (checked in). Update:
+        1. project.name: "Meridian" → "Garura"
+        2. github.repo: "kapilvirenahuja/meridian.git" → "kapilvirenahuja/garura.git"
+        3. ltm.project-target: "./.meridian/core/memory/" → "./.garura/core/memory/"
+        4. ltm.global-target: "~/.meridian/core/memory/" → "~/.garura/core/memory/"
+        5. stm.base-path: ".meridian/project/issues/" → ".garura/project/issues/"
+        6. stm.pending-path: ".meridian/project/issues/_pending/" → ".garura/project/issues/_pending/"
+        7. stm.archive-path: ".meridian/project/issues/_archive/" → ".garura/project/issues/_archive/"
+        8. product.base-path: ".meridian/product/" → ".garura/product/"
+
+    - path: "core/components/agents/product-keeper.md"
+      role: "Agent that reads domain taxonomy KB during product discovery"
+      change_needed: >
+        Line 67 currently reads: "The domain-taxonomy catalog is at
+        `core/components/memory/knowledge/domain/`." This is a source-repo path.
+        Replace with deployment-aware guidance:
+        "The domain-taxonomy catalog is deployed at ~/.garura/core/memory/knowledge/domain/
+        (global mode) or .garura/core/memory/knowledge/domain/ (project mode).
+        When ltm_context is present in the contract, use ltm_context.core_base to
+        resolve the actual path at runtime. Never hardcode source-repo paths."
+
+    - path: "core/components/agents/market-analyst.md"
+      role: "Agent that reads architecture and domain KB during market analysis"
+      change_needed: >
+        Lines 61-62 currently read hardcoded source paths:
+        "`core/components/memory/knowledge/domain/{domain}.md`" and
+        "`core/components/memory/knowledge/arch/`"
+        Replace with: "KB is deployed at ~/.garura/core/memory/knowledge/ in global mode,
+        or .garura/core/memory/knowledge/ in project mode. Use ltm_context.core_base
+        from the contract to resolve the actual deployed path at invocation time."
+
+    - path: "core/components/agents/* (all 13 agent files)"
+      role: "Domain agents; all reference .meridian/core/config.yaml in documentation"
+      change_needed: >
+        Bulk find-replace in all 13 agent markdown files:
+        ".meridian/core/config.yaml" → ".garura/core/config.yaml"
+        ~/.meridian/core/memory/ → ~/.garura/core/memory/
+        These are documentation-level changes (contract examples, descriptions).
+        The actual bash script execution happens in plays, not agents.
+
+    - path: "core/components/plays/*/SKILL.md (all 22 play files)"
+      role: "Play skill definitions; all have bash script sections reading config"
+      change_needed: >
+        Each play's SKILL.md has a readiness section with grep/yq commands.
+        Bulk find-replace across all 22 play files:
+        grep '^\s*base-path:' .meridian/core/config.yaml → .garura/core/config.yaml
+        grep -A5 '^stm:' .meridian/core/config.yaml → .garura/core/config.yaml
+        grep -A1 '^product:' .meridian/core/config.yaml → .garura/core/config.yaml
+        yq '.review-pr.bypass' .meridian/core/config.yaml → .garura/core/config.yaml
+        yq '.standards.pr-severity-taxonomy' .meridian/core/config.yaml → .garura/core/config.yaml
+        (and all other yq variants)
+
+    - path: "core/components/plays/*/reference/intent.yaml (all 8 intent files)"
+      role: "Play intent definitions; document config path expectations"
+      change_needed: >
+        Bulk find-replace in intent.yaml files:
+        ".meridian/core/config.yaml" → ".garura/core/config.yaml"
+        ~/.meridian/core/memory/ → ~/.garura/core/memory/
+
+    - path: "core/components/skills/*/SKILL.md (16 skill files)"
+      role: "Skill definitions; reference config and KB paths"
+      change_needed: >
+        Bulk find-replace:
+        .meridian/core/config.yaml → .garura/core/config.yaml
+        ~/.meridian/core/memory/ → ~/.garura/core/memory/
+
+    - path: "core/components/skills/*/reference/*.md (input contracts, docs)"
+      role: "Skill reference documentation"
+      change_needed: >
+        Bulk find-replace:
+        .meridian/core/config.yaml → .garura/core/config.yaml
+        ~/.meridian/core/memory/ → ~/.garura/core/memory/
+
+    - path: "core/components/memory/knowledge/quality/_index.md"
+      role: "KB index documentation"
+      change_needed: >
+        Line 5 references "{project}/.meridian/core/memory/knowledge/quality/"
+        Replace with ".garura/core/memory/knowledge/quality/". Also replace
+        "~/.meridian/core/memory/knowledge/quality/" with "~/.garura/core/memory/knowledge/quality/"
+
+  alternatives_considered:
+    - alternative: "Revert all .garura/ references back to .meridian/ (backward migration)"
+      rationale: >
+        The engine runtime, STM root (.garura/project/issues/), and deployed memory
+        (~/.garura/core/memory/) are already using .garura/. Reverting would require
+        changing the engine's constants.ts and all STM paths — out of scope for fix-it,
+        and would contradict the repo naming (garura, not meridian).
+      reason_rejected: >
+        REJECTED. The forward direction (.meridian/ → .garura/) is locked because the
+        runtime already depends on .garura/. Reverting would be a larger scope change
+        (includes engine code, STM structure, and contradicts infrastructure decisions
+        already made). Fix-it scopes to the minimum required to unblock consumer
+        bootstrapping, which is completing the planned migration.
+
+    - alternative: "Keep .meridian/ in source components; only update installer and sync scripts"
+      rationale: >
+        Minimal change set: update installer to write .garura/, and update sync-claude/
+        sync-droids to deploy to ~/.garura/. Consumer projects would have .garura/,
+        but source components would still reference .meridian/, relying on the installer
+        to create a .meridian/core/config.yaml symlink or alias back to .garura/.
+      reason_rejected: >
+        REJECTED. This would require either symlink hacks (fragile) or dual-path handling
+        (complexity). More importantly, the garura repo itself uses these scripts and
+        references — keeping .meridian/ in source would mean garura's own workflows
+        read from .meridian/ while consumer projects expect .garura/. This perpetuates
+        the inconsistency and makes testing impossible. A clean migration (all files
+        updated to .garura/) is simpler, more maintainable, and aligns source with
+        runtime and consumer expectations.
+
+  risks:
+    - risk: "Breaking change to garura's own config location"
+      severity: "high"
+      description: >
+        After this fix, garura's own plays will read from .garura/core/config.yaml,
+        not .meridian/core/config.yaml. Any local development or testing that
+        expects .meridian/ will break.
+      mitigation: >
+        This is intentional — the fix is to correct the inconsistency. The change
+        is documented in the PR and this design. Testing should be done against
+        .garura/ paths from this point forward. The fix is one-way (the repo must
+        adopt the new config location), and it aligns with the engine's expectations.
+
+    - risk: "Sync-claude --project and sync-droids --project now deploy to .garura/core/memory/ instead of .meridian/"
+      severity: "medium"
+      description: >
+        Project-mode deployments (used for local ephemeral setups) will change
+        their memory target. Existing local projects using .meridian/core/memory/
+        will not find their deployed memory after this fix.
+      mitigation: >
+        Project mode is ephemeral (gitignored). Users running /sync-claude --project
+        after the fix will automatically get the new paths. No migration needed;
+        the deployed memory is re-copied from source on the next sync. Local
+        development is unaffected because the sync is idempotent.
+
+    - risk: "Incomplete bulk find-replace could leave .meridian/ references in some files"
+      severity: "medium"
+      description: >
+        Bulk find-replace across 75 files carries a risk of missing some references
+        if they're formatted differently than expected (e.g., wrapped lines, comments).
+      mitigation: >
+        After the fixes are applied, run a final validation grep:
+        `grep -r "\.meridian/core/config\|\.meridian/core/memory\|~/.meridian" core/components/` from
+        the project root. This will catch any missed references. Update those files.
+
+    - risk: "Decorative references in prose and templates remain"
+      severity: "low"
+      description: >
+        Reference docs, template fixtures, and example paths in comments may
+        still reference .meridian/. These don't break functionality but create
+        inconsistency in documentation.
+      mitigation: >
+        Flagged for /enhance as a post-fix decorative rename pass. Not blocking.
+        The load-bearing refs are fixed here.
+
+    - risk: "`.meridian/core/config.yaml` file location is now inconsistent with `.garura/` layout"
+      severity: "low"
+      description: >
+        The checked-in config file is still at `.meridian/core/config.yaml`, but
+        it now references `.garura/` paths. This is semantically odd (a .meridian/
+        file pointing to .garura/ structure), though functionally harmless during
+        the transition.
+      mitigation: >
+        Out of scope for fix-it (would require git mv, repo history impact). Consider
+        in a future /enhance task to move `.meridian/core/config.yaml` → `.garura/core/config.yaml`
+        and update git history if desired. For now, the file is correct internally
+        (contents match .garura/ paths); the location is a legacy artifact.
+
+  execution_plan:
+    - step: 1
+      description: "Update installer script"
+      files:
+        - path: "installer/install.sh"
+          action: "modify"
+          details: >
+            Replace all .meridian/ references with .garura/.
+            Key lines: 9 (REPO), 56 (MERIDIAN_CONFIG), 98 (sed for memory path),
+            209-217 (mkdir and transform_config), 280-287 (upgrade mode equiv).
+            Also update output messages to say "Garura" instead of "Meridian".
+      expected_outcome: "Installer creates .garura/core/config.yaml in consumer projects"
+      self_test: >
+        grep ".garura/core/config.yaml" installer/install.sh should return at least 5 hits.
+        grep ".meridian" installer/install.sh should return 0 hits (except in comments/history).
+
+    - step: 2
+      description: "Update sync-claude memory target"
+      files:
+        - path: "core/components/skills/sync-claude/scripts/sync.sh"
+          action: "modify"
+          details: "Replace lines 24, 27: .meridian/core/memory → .garura/core/memory"
+      expected_outcome: "Sync-claude deploys memory to ~/.garura/core/memory/ or .garura/core/memory/"
+      self_test: >
+        grep "MEMORY_TARGET" core/components/skills/sync-claude/scripts/sync.sh should show
+        ~/.garura and .garura paths, no .meridian.
+
+    - step: 3
+      description: "Update sync-droids memory target"
+      files:
+        - path: "core/components/skills/sync-droids/scripts/sync.sh"
+          action: "modify"
+          details: "Replace lines 22, 25: .meridian/core/memory → .garura/core/memory"
+      expected_outcome: "Sync-droids deploys memory to ~/.garura/core/memory/ or .garura/core/memory/"
+      self_test: >
+        grep "MEMORY_TARGET" core/components/skills/sync-droids/scripts/sync.sh should show
+        ~/.garura and .garura paths, no .meridian.
+
+    - step: 4
+      description: "Update garura's project config file"
+      files:
+        - path: ".meridian/core/config.yaml"
+          action: "modify"
+          details: >
+            Replace all .meridian/ paths with .garura/, and update project metadata:
+            - project.name: Meridian → Garura
+            - github.repo: meridian.git → garura.git
+            - ltm.source, project-target, global-target
+            - stm.base-path, pending-path, archive-path
+            - product.base-path
+      expected_outcome: "Garura's own config points to .garura/ paths"
+      self_test: >
+        grep ".meridian" .meridian/core/config.yaml should return 0.
+        grep ".garura" .meridian/core/config.yaml should return at least 6 hits.
+        yq '.project.name' .meridian/core/config.yaml should print "Garura".
+
+    - step: 5
+      description: "Update KB path references in product-keeper and market-analyst agents"
+      files:
+        - path: "core/components/agents/product-keeper.md"
+          action: "modify"
+          details: >
+            Line 67: Replace hardcoded "core/components/memory/knowledge/domain/" with
+            guidance to use deployed paths (~/.garura/ or .garura/) via ltm_context.core_base.
+        - path: "core/components/agents/market-analyst.md"
+          action: "modify"
+          details: >
+            Lines 61-62: Replace hardcoded "core/components/memory/knowledge/" references
+            with guidance to use deployed paths via ltm_context.core_base.
+      expected_outcome: "Agents no longer reference source-repo KB paths"
+      self_test: >
+        grep "core/components/memory/knowledge" core/components/agents/{product-keeper,market-analyst}.md
+        should return 0. Both files should reference ltm_context.core_base.
+
+    - step: 6
+      description: "Bulk update all agent markdown files"
+      files:
+        - path: "core/components/agents/*.md (all 13 files)"
+          action: "modify (bulk find-replace)"
+          details: >
+            Find: .meridian/core/config.yaml
+            Replace: .garura/core/config.yaml
+            Find: ~/.meridian/core/memory/
+            Replace: ~/.garura/core/memory/
+      expected_outcome: "All agent docs reference .garura/ paths"
+      self_test: >
+        grep -r ".meridian/core/config.yaml\|~/.meridian/core/memory" core/components/agents/
+        should return 0.
+
+    - step: 7
+      description: "Bulk update all play SKILL.md and reference files"
+      files:
+        - path: "core/components/plays/*/SKILL.md (22 files)"
+          action: "modify (bulk find-replace)"
+          details: >
+            In bash script sections and documentation:
+            Find: .meridian/core/config.yaml
+            Replace: .garura/core/config.yaml
+            Find: ~/.meridian/core/memory/
+            Replace: ~/.garura/core/memory/
+        - path: "core/components/plays/*/reference/intent.yaml (8 files)"
+          action: "modify (bulk find-replace)"
+          details: "Same find/replace as SKILL.md"
+      expected_outcome: "All play docs and scripts reference .garura/ paths"
+      self_test: >
+        grep -r ".meridian/core/config.yaml\|~/.meridian/core/memory" core/components/plays/
+        should return 0.
+
+    - step: 8
+      description: "Bulk update skill files and references"
+      files:
+        - path: "core/components/skills/*/SKILL.md (16 files)"
+          action: "modify (bulk find-replace)"
+          details: >
+            Find: .meridian/core/config.yaml
+            Replace: .garura/core/config.yaml
+            Find: ~/.meridian/core/memory/
+            Replace: ~/.garura/core/memory/
+        - path: "core/components/skills/*/reference/*.md"
+          action: "modify (bulk find-replace)"
+          details: "Same find/replace"
+      expected_outcome: "All skill docs reference .garura/ paths"
+      self_test: >
+        grep -r ".meridian/core/config.yaml\|~/.meridian/core/memory" core/components/skills/
+        should return 0 (excluding sync-claude and sync-droids which were updated in steps 2-3).
+
+    - step: 9
+      description: "Update memory knowledge _index.md"
+      files:
+        - path: "core/components/memory/knowledge/quality/_index.md"
+          action: "modify"
+          details: >
+            Replace {project}/.meridian/core/memory/ with {project}/.garura/core/memory/
+            Replace ~/.meridian/core/memory/knowledge/quality/ with ~/.garura/core/memory/knowledge/quality/
+      expected_outcome: "KB index documentation references correct deployed paths"
+      self_test: >
+        grep ".meridian" core/components/memory/knowledge/quality/_index.md should return 0.
+
+    - step: 10
+      description: "Validation: grep for remaining .meridian refs"
+      files: []
+      action: "validate"
+      details: >
+        Run final validation across core/components/:
+        `grep -r "\.meridian/core/config\|\.meridian/core/memory\|~/.meridian" \
+        core/components/ --include="*.md" --include="*.sh" --include="*.yaml"`
+        If any non-zero results (excluding gitignored/node_modules), fix those files.
+      expected_outcome: "No .meridian/ references in executable or documentation paths"
+      self_test: >
+        The grep command should return 0 results (exit code 0, no lines printed).

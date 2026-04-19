@@ -1,0 +1,12 @@
+success: true
+branch:
+  name: enhance/262-fix-it-lean-rca
+  base_ref: main
+  base_sha: 9fd169405a620f32fbd75fe3cd1b7aa71f1caf78
+  pushed: true
+  tracking: origin/enhance/262-fix-it-lean-rca
+worktree:
+  used: false
+  path: null
+  reason: null
+error: null

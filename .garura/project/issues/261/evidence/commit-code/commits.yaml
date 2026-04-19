@@ -1,0 +1,79 @@
+commits:
+  G1:
+    sha: 098849c
+    type: fix
+    scope: installer
+    subject: update installer to reference garura repo and branding
+    files:
+      - installer/install.sh
+
+  G2:
+    sha: 9a66628
+    type: fix
+    scope: sync-scripts
+    subject: update sync scripts to target .garura memory path
+    files:
+      - core/components/skills/sync-claude/scripts/sync.sh
+      - core/components/skills/sync-droids/scripts/sync.sh
+
+  G3:
+    sha: 89d70f7
+    type: fix
+    scope: config
+    subject: rename config file and update all .meridian path references to .garura
+    files:
+      - .garura/core/config.yaml
+
+  G4:
+    sha: 5f93ac4
+    type: fix
+    scope: agents
+    subject: fix KB path references in product-keeper and market-analyst
+    files:
+      - core/components/agents/product-keeper.md
+      - core/components/agents/market-analyst.md
+
+  G5:
+    sha: d9371d8
+    type: refactor
+    scope: agents
+    subject: rename .meridian config path to .garura across agents
+    files:
+      - core/components/agents/designer.md
+      - core/components/agents/doc-builder.md
+      - core/components/agents/feature-steward.md
+      - core/components/agents/intent-resolver.md
+      - core/components/agents/knowledge-extractor.md
+      - core/components/agents/project-orchestrator.md
+      - core/components/agents/repo-orchestrator.md
+      - core/components/agents/scriber.md
+      - core/components/agents/tech-architect.md
+      - core/components/agents/tech-designer.md
+      - core/components/agents/test-engineer.md
+
+  G6:
+    sha: b313e38
+    type: refactor
+    scope: plays
+    subject: rename .meridian path references to .garura across plays
+    files: 33 files
+
+  G7:
+    sha: a227d1b
+    type: refactor
+    scope: skills
+    subject: rename .meridian path references to .garura across skills
+    files: 19 files
+
+  G8:
+    sha: 81f8087
+    type: refactor
+    scope: memory
+    subject: rename .meridian path references to .garura in memory index and fixtures
+    files:
+      - core/components/memory/knowledge/quality/_index.md
+
+branch: fix/261-garura-meridian-migration-drift
+pushed: true
+upstream: origin/fix/261-garura-meridian-migration-drift
+working_tree_clean: true

@@ -1,0 +1,499 @@
+implementation:
+  issue_number: 261
+  task_id: implement-fix
+  success: true
+  steps_completed: 10
+  steps_total: 10
+
+  constraint_conflict:
+    description: >
+      Task validation criterion (grep=0) conflicts with task constraint
+      (do NOT rename .meridian/core/config.yaml — out of scope for fix-it).
+      5 remaining hits in installer/install.sh are constraint-derived, not
+      incomplete work. The installer reads the config from the downloaded
+      GitHub archive; until the file is renamed in the repo (future /enhance),
+      the installer MUST reference $SRC_DIR/.meridian/core/config.yaml.
+    blocker: "design constraint: file rename requires git mv, flagged for /enhance"
+    remaining_hits: 5
+    all_in_single_file: true
+    affected_file: "installer/install.sh"
+    lines: [145, 213, 216, 284, 286]
+    action_for_orchestrator: >
+      These 5 hits do NOT indicate incomplete migration. They are locked by the
+      source file rename constraint. Track as a follow-up /enhance task to rename
+      .meridian/core/config.yaml → .garura/core/config.yaml via git mv, then
+      update these 5 installer lines.
+
+  changes:
+    - step: 1
+      description: "Update installer script"
+      files_modified:
+        - path: "installer/install.sh"
+          action: "modified"
+          summary: >
+            Replaced REPO (kapilvirenahuja/meridian → garura), SRC_DIR variable,
+            info/ok/warn/err log prefixes ([meridian] → [garura]), MERIDIAN_CONFIG path,
+            transform_config sed for memory path (~/.meridian/ → ~/.garura/), Python diagram
+            in transform_claude_md (.meridian/ → .garura/), Python replace call for config
+            path strings, init/upgrade mode messages, mkdir/copy paths for .garura/core/,
+            .garura/project/specs, all output ok() messages referencing directory paths.
+      verified: true
+      deviation: >
+        5 references to $SRC_DIR/.meridian/core/config.yaml remain on lines 213, 216, 284,
+        286 (source archive read path) and line 145 (Python string replacement). These are
+        deliberate exceptions: the file at .meridian/core/config.yaml is intentionally NOT
+        renamed in this fix (design constraint, requires git mv via /enhance). The installer
+        must read the config from wherever it exists in the downloaded archive. Line 145 is
+        functional transform code that correctly rewrites .meridian paths to .garura in the
+        consumer's CLAUDE.md; changing the literal string being searched would break the
+        transform.
+
+    - step: 2
+      description: "Update sync-claude memory target"
+      files_modified:
+        - path: "core/components/skills/sync-claude/scripts/sync.sh"
+          action: "modified"
+          summary: >
+            Line 24: MEMORY_TARGET global mode ~/.meridian/core/memory → ~/.garura/core/memory.
+            Line 27: MEMORY_TARGET project mode $PROJECT_ROOT/.meridian/core/memory → $PROJECT_ROOT/.garura/core/memory.
+      verified: true
+      deviation: null
+
+    - step: 3
+      description: "Update sync-droids memory target"
+      files_modified:
+        - path: "core/components/skills/sync-droids/scripts/sync.sh"
+          action: "modified"
+          summary: >
+            Line 22: MEMORY_TARGET global mode ~/.meridian/core/memory → ~/.garura/core/memory.
+            Line 25: MEMORY_TARGET project mode $PROJECT_ROOT/.meridian/core/memory → $PROJECT_ROOT/.garura/core/memory.
+      verified: true
+      deviation: null
+
+    - step: 4
+      description: "Update garura's project config file contents"
+      files_modified:
+        - path: ".meridian/core/config.yaml"
+          action: "modified"
+          summary: >
+            project.name: Meridian → Garura.
+            Header comment: # Meridian Configuration → # Garura Configuration.
+            github.repo: kapilvirenahuja/meridian.git → kapilvirenahuja/garura.git.
+            ltm.project-target: ./.meridian/core/memory/ → ./.garura/core/memory/.
+            ltm.global-target: ~/.meridian/core/memory/ → ~/.garura/core/memory/.
+            stm.base-path: .meridian/project/issues/ → .garura/project/issues/.
+            stm.pending-path: .meridian/project/issues/_pending/ → .garura/project/issues/_pending/.
+            stm.archive-path: .meridian/project/issues/_archive/ → .garura/project/issues/_archive/.
+            product.base-path: .meridian/product/ → .garura/product/.
+            product section comment (layout diagram): .meridian/product/ → .garura/product/.
+      verified: true
+      deviation: >
+        File path (.meridian/core/config.yaml) is unchanged per design constraint. File
+        contents now point to .garura/ paths. The file location inconsistency is a known
+        low-severity risk documented in the design; flagged for /enhance (git mv).
+
+    - step: 5
+      description: "Update KB path references in product-keeper and market-analyst agents"
+      files_modified:
+        - path: "core/components/agents/product-keeper.md"
+          action: "modified"
+          summary: >
+            Line 67: Replaced hardcoded source-repo path 'core/components/memory/knowledge/domain/'
+            with deployment-aware guidance: deployed at ~/.garura/core/memory/knowledge/domain/
+            (global) or .garura/core/memory/knowledge/domain/ (project). Added instruction to
+            use ltm_context.core_base at runtime.
+        - path: "core/components/agents/market-analyst.md"
+          action: "modified"
+          summary: >
+            Lines 61-62: Replaced hardcoded 'core/components/memory/knowledge/domain/{domain}.md'
+            and 'core/components/memory/knowledge/arch/' with KB deployment guidance block using
+            ltm_context.core_base and {ltm_context.core_base}/knowledge/ path templates.
+      verified: true
+      deviation: null
+
+    - step: 6
+      description: "Bulk update all agent markdown files"
+      files_modified:
+        - path: "core/components/agents/designer.md"
+          action: "modified"
+          summary: "Bulk replaced .meridian/core/config.yaml → .garura/core/config.yaml and ~/.meridian/core/memory/ → ~/.garura/core/memory/"
+        - path: "core/components/agents/doc-builder.md"
+          action: "modified"
+          summary: "Same bulk replacements"
+        - path: "core/components/agents/feature-steward.md"
+          action: "modified"
+          summary: "Same bulk replacements"
+        - path: "core/components/agents/intent-resolver.md"
+          action: "modified"
+          summary: "Same bulk replacements"
+        - path: "core/components/agents/knowledge-extractor.md"
+          action: "modified"
+          summary: "Same bulk replacements"
+        - path: "core/components/agents/market-analyst.md"
+          action: "modified"
+          summary: "Bulk replacements including .meridian/core/config.yaml refs in JSON contract section"
+        - path: "core/components/agents/product-keeper.md"
+          action: "modified"
+          summary: "Bulk replacements for .meridian/core/config.yaml refs in JSON contract section"
+        - path: "core/components/agents/project-orchestrator.md"
+          action: "modified"
+          summary: "Same bulk replacements"
+        - path: "core/components/agents/repo-orchestrator.md"
+          action: "modified"
+          summary: "Same bulk replacements"
+        - path: "core/components/agents/scriber.md"
+          action: "modified"
+          summary: "Same bulk replacements; bare .meridian/core/memory reference also fixed"
+        - path: "core/components/agents/tech-architect.md"
+          action: "modified"
+          summary: "Same bulk replacements"
+        - path: "core/components/agents/tech-designer.md"
+          action: "modified"
+          summary: "Same bulk replacements"
+        - path: "core/components/agents/test-engineer.md"
+          action: "modified"
+          summary: "Same bulk replacements"
+      verified: true
+      deviation: null
+
+    - step: 7
+      description: "Bulk update all play SKILL.md and reference files"
+      files_modified:
+        - path: "core/components/plays/briefs/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/briefs/templates/fixtures/architecture.json"
+          action: "modified"
+          summary: "Fixed ~/.meridian/ in runtime field, .meridian/project/issues/ in stm field, ~/.meridian/core/memory/ in ltm field, and .meridian/project/issues/ in decisions.picked array"
+        - path: "core/components/plays/build-arch/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths including bare .meridian/core/memory"
+        - path: "core/components/plays/build-arch/reference/intent.yaml"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths including bare .meridian/core/memory"
+        - path: "core/components/plays/capture-learning/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/capture-learning/reference/intent.yaml"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/commit-code/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/create-play/reference/audit-checklist.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/create-play/reference/compiled-example.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/create-play/reference/workflows/direct-generation.yaml"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/create-play/reference/workflows/readiness-brief-generation.yaml"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/create-play/reference/workflows/readiness-only.yaml"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/create-pr/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/design-exp/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/distill/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/enhance/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/enhance/reference/intent.yaml"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/fix-it/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/implement-epic/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/implement-epic/reference/intent.yaml"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/merge-pr/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/prepare-epic/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/prepare-epic/reference/intent.yaml"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/report-issue/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/review-pr/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths including bare .meridian/core/memory"
+        - path: "core/components/plays/review-pr/reference/intent.yaml"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/ship/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/ship/reference/intent.yaml"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/specify-product/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/start-feature-planning/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/start-feature/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/validate-epic/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/plays/validate-epic/reference/intent.yaml"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+      verified: true
+      deviation: null
+
+    - step: 8
+      description: "Bulk update skill files and references"
+      files_modified:
+        - path: "core/components/skills/analyze-changes/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/skills/analyze-pr/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/skills/analyze-pr/reference/quality-rules.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/skills/audit-spec-gaps/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/skills/check-drift/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/skills/check-drift/references/templates.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/skills/draft-technical-approach/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/skills/manage-issue/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/skills/merge-pr/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/skills/quality-check-scoped/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths including bare .meridian/core/memory"
+        - path: "core/components/skills/quality-check-scoped/reference/input-contract.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths including bare .meridian/core/memory"
+        - path: "core/components/skills/quality-check/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths including bare .meridian/core/memory"
+        - path: "core/components/skills/quality-check/reference/subagent-prompts.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/skills/scout-project/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths including bare .meridian/core/memory"
+        - path: "core/components/skills/submit-pr/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths"
+        - path: "core/components/skills/sync-droids/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths including bare .meridian/core/memory"
+        - path: "core/components/skills/write-evidence/SKILL.md"
+          action: "modified"
+          summary: "Bulk replaced config and memory paths including bare .meridian/core/memory"
+        - path: "core/components/skills/scout-project/scout-project-workspace/iteration-1/meridian-meta-project/with_skill/outputs/project-scout.md"
+          action: "modified"
+          summary: "Fixed .meridian/core/memory/ reference in workspace output file"
+        - path: "core/components/skills/scout-project/scout-project-workspace/iteration-1/meridian-meta-project/without_skill/outputs/project-scout.md"
+          action: "modified"
+          summary: "Preventive fix — contained .meridian/core/memory/ reference"
+      verified: true
+      deviation: null
+
+    - step: 9
+      description: "Update memory knowledge _index.md"
+      files_modified:
+        - path: "core/components/memory/knowledge/quality/_index.md"
+          action: "modified"
+          summary: >
+            Replaced {project}/.meridian/core/memory/knowledge/quality/ with
+            {project}/.garura/core/memory/knowledge/quality/ and
+            ~/.meridian/core/memory/knowledge/quality/ with ~/.garura/core/memory/knowledge/quality/
+            in the three-layer search description.
+      verified: true
+      deviation: null
+
+    - step: 10
+      description: "Validation: grep for remaining .meridian refs"
+      files_modified: []
+      verified: partial
+      verification_note: >
+        Grep returned 5 hits (non-zero), but ALL 5 are in installer/install.sh and are
+        blocked by the explicit design constraint 'Do NOT rename .meridian/core/config.yaml'.
+        Every hit is accounted for and documented. No unresolved or overlooked references remain.
+        Grep=0 is NOT achievable without also renaming the source file (tracked for /enhance).
+        See constraint_conflict block at top of this report and validation_grep_result below.
+
+  validation_grep_result:
+    command: >
+      grep -rn "\.meridian/core/config\|\.meridian/core/memory\|~/\.meridian"
+      core/components/ installer/
+    exit_code: 1
+    remaining_hits: 5
+    all_in_installer: true
+    hits:
+      - file: "installer/install.sh"
+        line: 145
+        content: "text = text.replace('\\`.meridian/core/config.yaml\\`', '\\`.garura/core/config.yaml\\`')"
+        reason: >
+          Deliberate — Python code inside transform_claude_md() that replaces .meridian
+          references in consumer CLAUDE.md. The string being searched (.meridian/core/config.yaml)
+          IS the old path; the replacement correctly produces .garura/core/config.yaml. Changing
+          the search string would break the CLAUDE.md transform.
+      - file: "installer/install.sh"
+        lines: [213, 216, 284, 286]
+        content: "$SRC_DIR/.meridian/core/config.yaml"
+        reason: >
+          Deliberate — installer reads the config from the downloaded GitHub archive.
+          The source archive will still have the file at .meridian/core/config.yaml until
+          the file is renamed via git mv (out of scope for this fix-it, flagged for /enhance).
+          These lines MUST reference the archive path. When the file is renamed and the archive
+          is re-published, these 4 lines should change to $SRC_DIR/.garura/core/config.yaml.
+
+  files_skipped:
+    - path: "core/engine/src/"
+      reason: "Out of scope per design — engine already uses .garura/"
+    - path: ".garura/project/issues/"
+      reason: "STM data — explicitly excluded from scope"
+    - path: ".claude/"
+      reason: "Gitignored deployment target — excluded from scope"
+    - path: ".factory/"
+      reason: "Gitignored deployment target — excluded from scope"
+    - path: ".meridian/product/"
+      reason: "Out of scope per design risk #5"
+    - path: ".meridian/core/config.yaml (filename)"
+      reason: "File rename (git mv) excluded from fix-it scope — flagged for /enhance"
+
+  requires_human_review:
+    - file: "installer/install.sh"
+      lines: [213, 216, 284, 286]
+      action_needed: >
+        When .meridian/core/config.yaml is renamed to .garura/core/config.yaml via git mv
+        in a future /enhance task, update these 4 lines to reference $SRC_DIR/.garura/core/config.yaml
+        instead of $SRC_DIR/.meridian/core/config.yaml.
+    - file: "installer/install.sh"
+      line: 145
+      action_needed: >
+        When the CLAUDE.md template in the source no longer contains .meridian references,
+        this Python replace call can be removed or updated. Currently it correctly handles
+        the migration transform for consumer projects receiving the old CLAUDE.md.
+
+  files_touched:
+    - path: "installer/install.sh"
+    - path: "core/components/skills/sync-claude/scripts/sync.sh"
+    - path: "core/components/skills/sync-droids/scripts/sync.sh"
+    - path: ".meridian/core/config.yaml"
+    - path: "core/components/agents/product-keeper.md"
+    - path: "core/components/agents/market-analyst.md"
+    - path: "core/components/agents/designer.md"
+    - path: "core/components/agents/doc-builder.md"
+    - path: "core/components/agents/feature-steward.md"
+    - path: "core/components/agents/intent-resolver.md"
+    - path: "core/components/agents/knowledge-extractor.md"
+    - path: "core/components/agents/project-orchestrator.md"
+    - path: "core/components/agents/repo-orchestrator.md"
+    - path: "core/components/agents/scriber.md"
+    - path: "core/components/agents/tech-architect.md"
+    - path: "core/components/agents/tech-designer.md"
+    - path: "core/components/agents/test-engineer.md"
+    - path: "core/components/plays/briefs/SKILL.md"
+    - path: "core/components/plays/briefs/templates/fixtures/architecture.json"
+    - path: "core/components/plays/build-arch/SKILL.md"
+    - path: "core/components/plays/build-arch/reference/intent.yaml"
+    - path: "core/components/plays/capture-learning/SKILL.md"
+    - path: "core/components/plays/capture-learning/reference/intent.yaml"
+    - path: "core/components/plays/commit-code/SKILL.md"
+    - path: "core/components/plays/create-play/reference/audit-checklist.md"
+    - path: "core/components/plays/create-play/reference/compiled-example.md"
+    - path: "core/components/plays/create-play/reference/workflows/direct-generation.yaml"
+    - path: "core/components/plays/create-play/reference/workflows/readiness-brief-generation.yaml"
+    - path: "core/components/plays/create-play/reference/workflows/readiness-only.yaml"
+    - path: "core/components/plays/create-pr/SKILL.md"
+    - path: "core/components/plays/design-exp/SKILL.md"
+    - path: "core/components/plays/distill/SKILL.md"
+    - path: "core/components/plays/enhance/SKILL.md"
+    - path: "core/components/plays/enhance/reference/intent.yaml"
+    - path: "core/components/plays/fix-it/SKILL.md"
+    - path: "core/components/plays/implement-epic/SKILL.md"
+    - path: "core/components/plays/implement-epic/reference/intent.yaml"
+    - path: "core/components/plays/merge-pr/SKILL.md"
+    - path: "core/components/plays/prepare-epic/SKILL.md"
+    - path: "core/components/plays/prepare-epic/reference/intent.yaml"
+    - path: "core/components/plays/report-issue/SKILL.md"
+    - path: "core/components/plays/review-pr/SKILL.md"
+    - path: "core/components/plays/review-pr/reference/intent.yaml"
+    - path: "core/components/plays/ship/SKILL.md"
+    - path: "core/components/plays/ship/reference/intent.yaml"
+    - path: "core/components/plays/specify-product/SKILL.md"
+    - path: "core/components/plays/start-feature-planning/SKILL.md"
+    - path: "core/components/plays/start-feature/SKILL.md"
+    - path: "core/components/plays/validate-epic/SKILL.md"
+    - path: "core/components/plays/validate-epic/reference/intent.yaml"
+    - path: "core/components/skills/analyze-changes/SKILL.md"
+    - path: "core/components/skills/analyze-pr/SKILL.md"
+    - path: "core/components/skills/analyze-pr/reference/quality-rules.md"
+    - path: "core/components/skills/audit-spec-gaps/SKILL.md"
+    - path: "core/components/skills/check-drift/SKILL.md"
+    - path: "core/components/skills/check-drift/references/templates.md"
+    - path: "core/components/skills/draft-technical-approach/SKILL.md"
+    - path: "core/components/skills/manage-issue/SKILL.md"
+    - path: "core/components/skills/merge-pr/SKILL.md"
+    - path: "core/components/skills/quality-check-scoped/SKILL.md"
+    - path: "core/components/skills/quality-check-scoped/reference/input-contract.md"
+    - path: "core/components/skills/quality-check/SKILL.md"
+    - path: "core/components/skills/quality-check/reference/subagent-prompts.md"
+    - path: "core/components/skills/scout-project/SKILL.md"
+    - path: "core/components/skills/scout-project/scout-project-workspace/iteration-1/meridian-meta-project/with_skill/outputs/project-scout.md"
+    - path: "core/components/skills/scout-project/scout-project-workspace/iteration-1/meridian-meta-project/without_skill/outputs/project-scout.md"
+    - path: "core/components/skills/submit-pr/SKILL.md"
+    - path: "core/components/skills/sync-droids/SKILL.md"
+    - path: "core/components/skills/write-evidence/SKILL.md"
+    - path: "core/components/memory/knowledge/quality/_index.md"
+
+  issues_encountered:
+    - description: >
+        Initial bulk sed only replaced ~/.meridian/core/memory/ (with ~/. prefix) but missed
+        bare .meridian/core/memory/ references (without ~/). The validation grep caught 11 additional
+        files with the bare pattern.
+      resolution: >
+        Applied a second sed pass targeting .meridian/core/memory (without ~/) across the 10
+        affected files in core/components/. Also fixed scout-project workspace output files.
+      severity: "low"
+
+    - description: >
+        architecture.json fixture had ~/ prefixed runtime field reference (~/.meridian/ and .meridian/)
+        that wasn't caught by the core/memory or config patterns in the initial bulk sweep.
+      resolution: "Fixed directly with Edit tool targeting the specific string."
+      severity: "low"
+
+    - description: >
+        5 installer references to $SRC_DIR/.meridian/core/config.yaml cannot be changed without
+        also renaming the source file — which is explicitly out of scope for this fix-it.
+      resolution: >
+        Documented as deliberate exceptions in requires_human_review. These will be addressed
+        when .meridian/core/config.yaml is renamed to .garura/core/config.yaml via /enhance.
+      severity: "low"

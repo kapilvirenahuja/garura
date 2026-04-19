@@ -1,6 +1,6 @@
 ---
 name: manage-issue
-description: Read, create, close, or resolve GitHub issues with optional sub-issue attachment
+description: Read, create, close, comment, or resolve GitHub issues with optional sub-issue attachment
 user-invocable: false
 model: sonnet
 allowed-tools: Bash, Read
@@ -12,15 +12,16 @@ Model-invocable skill for managing GitHub issues.
 
 ## Purpose
 
-Read existing issues, create new ones, close issues, or resolve an issue reference (find existing or create new). Supports attaching issues as sub-issues to a parent.
+Read existing issues, create new ones, close issues, post comments, or resolve an issue reference (find existing or create new). Supports attaching issues as sub-issues to a parent.
 
 You DO the issue operations. You do NOT make decisions about what to do with the results.
 
 ## Input
 
 Receive from agent:
-- `action` — `read` | `create` | `close` | `resolve_or_create`
-- `issue_number` — (required for `read` and `close`, optional for `resolve_or_create`)
+- `action` — `read` | `create` | `close` | `comment` | `resolve_or_create`
+- `issue_number` — (required for `read`, `close`, and `comment`, optional for `resolve_or_create`)
+- `body` — (required for `comment`) The comment body to post to the issue
 - `description` — (required for `create`, optional for `resolve_or_create`)
 - `parent_issue_number` — (optional) If provided, attach created/resolved issue as sub-issue
 - `platform` — `github` (from config)
@@ -67,6 +68,23 @@ gh issue create \
    b. If a matching open issue is found → return it
    c. If no match → perform `create` action
 3. If `parent_issue_number` is provided, attach as sub-issue after resolve/create
+
+### Action: `comment`
+
+1. Verify issue exists and is open:
+
+```bash
+gh issue view {issue_number} --json number,title,state,url
+```
+
+2. If issue does not exist or is closed → return output with `commented: false` and reason.
+3. Post the comment:
+
+```bash
+gh issue comment {issue_number} --body "{body}"
+```
+
+4. Return output with `commented: true` and the comment URL.
 
 ### Action: `close`
 
@@ -141,5 +159,5 @@ Load GitHub CLI and API reference from: `reference/github-issue.md`
 
 | Field | Value |
 |-------|-------|
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Category | operations |

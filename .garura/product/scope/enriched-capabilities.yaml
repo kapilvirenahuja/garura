@@ -1,0 +1,1004 @@
+# enriched-capabilities.yaml
+# Garura Platform — specify-product Stage 4: Enrich Capabilities
+#
+# Provenance
+# play: specify-product
+# stage: 4-enrich-capabilities
+# agent: product-keeper
+# skill: enrich-capabilities v0.2.0
+# task_id: specify-product-stage-4-enrich
+# created_at: 2026-04-18T02:00:00Z
+# user_review_completed_at: 2026-04-18T02:30:00Z
+# source_scope_path: .garura/product/scope/scope.yaml
+# decision_manifest_path: .garura/product/scope/decision-manifest-enrich-capabilities.yaml
+#
+# This file merges KB domain research with project-profile overrides.
+# Every numeric threshold tagged source_for_quantification per Rule 11.
+# USER REVIEW (2026-04-18): All KB-default numeric thresholds were batch-accepted
+# via Stage 4 review. Every entry now carries user_grounded: true — values have
+# been promoted from "awaiting grounding" to verified facts and flow into Stage 5
+# as quantified constraints with source=kb_default + user_grounded=true.
+#
+# Capability count: 9 selected capabilities, 36 features total
+# Ratchets applied: 1 (audit-attribution — ai-usage-traceability compliance category)
+# Depth caps applied: 0 (no CTC fired a depth cap in Stage 3)
+
+status: DRAFT
+created_at: "2026-04-18T02:00:00Z"
+user_review_completed_at: "2026-04-18T02:30:00Z"
+source_scope_path: ".garura/product/scope/scope.yaml"
+decision_manifest_path: ".garura/product/scope/decision-manifest-enrich-capabilities.yaml"
+enriched_count: 9
+
+enriched_capabilities:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 1. COMPONENT ARCHITECTURE
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: "component-architecture"
+    domain: "agentic-methodology"
+    name: "Component Architecture"
+    feature_ids: ["AM-F001", "AM-F002", "AM-F003", "AM-F004", "AM-F005", "AM-F006", "AM-F007", "AM-F008", "AM-F009"]
+    selected_depth: advanced
+    depth_cap_applied: null
+    ratchet_applied: false
+
+    profile_context:
+      security_level: elevated
+      industry: developer-tools
+      compliance: ["ai-usage-traceability", "token-consumption-tracking", "audit-trail", "memory-governance", "ci-cd-enforcement", "adoption-reporting"]
+      delivery_ambition: L3-intent-driven (building)
+      team_size: solo-dev
+
+    business_rules_applied:
+      - rule: "All 9 features are mandatory — never excludable for any methodology-class product"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F001.inclusion: Default: mandatory for any Garura-based product"
+          surfaced_at_checkpoint: false
+      - rule: "Every play is a compiled artifact traceable to an intent.yaml — direct SKILL.md edits are forbidden"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F001.inclusion: Exclude when: never"
+          surfaced_at_checkpoint: false
+      - rule: "100% of domain tasks in plays must be delegated to agents — inlining domain logic in plays is forbidden"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F002.success_criteria[1]"
+          surfaced_at_checkpoint: false
+      - rule: "Every skill must be model-invocable only — no direct play-to-skill calls"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F003.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - rule: "100% of play-produced artifacts land under the STM folder whitelist per ADR 017"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F004.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - rule: "Every Tether/Vanish decision must produce an evidence artifact"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F008.success_criteria[1]"
+          surfaced_at_checkpoint: false
+      - rule: "100% of play steps produce evidence — evidence self-committed per ADR 012"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F009.success_criteria[0..1]"
+          surfaced_at_checkpoint: false
+
+    success_criteria:
+      - criterion: "≥ 95% of engineering actions in a Garura-managed project are invoked via a play (vs ad-hoc tool use)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F001.success_criteria[0]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "100% of plays are compiled artifacts traceable to an intent.yaml"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F001.success_criteria[1]"
+          surfaced_at_checkpoint: false
+      - criterion: "Play invocation success rate ≥ 90% over rolling 30 days"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F001.success_criteria[2]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Every agent invocation returns a structured JSON contract conforming to ADR 016"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F002.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "≥ 95% of domain tasks in plays are delegated to agents (not inlined)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F002.success_criteria[1]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Skill reuse rate: ≥ 70% of skills invoked by ≥ 2 plays"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F003.success_criteria[2]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "STM folder whitelist violations: 0 in rolling 30 days"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F004.success_criteria[1]"
+          surfaced_at_checkpoint: false
+      - criterion: "≥ 95% of STM artifacts carry a provenance header"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F004.success_criteria[2]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "100% of destructive steps use Tether/Vanish (not raw y/n)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F008.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "100% of play steps produce evidence; 100% of evidence committed automatically per ADR 012"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F009.success_criteria[0..1]"
+          surfaced_at_checkpoint: false
+      - criterion: "Checkpoint rollback succeeds on ≥ 95% of failure cases"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F009.success_criteria[2]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+
+    failure_scenarios:
+      - scenario: "A user edits SKILL.md or play markdown directly instead of going through /create-play --build"
+        impact: "Compiled artifacts drift from intent.yaml; subsequent rebuilds wipe manual edits silently. Solo-dev impact: no second reviewer catches the drift before a future rebuild resets the changes."
+        mitigation: "Hard rule in CLAUDE.md; /create-play --rebuild detects drift and warns"
+      - scenario: "A play inlines domain work that should be delegated to an agent"
+        impact: "Play becomes untestable; domain knowledge fragments; evidence becomes inconsistent. Solo-dev impact: technical debt compounds silently with no team review to surface the violation."
+        mitigation: "CLAUDE.md agent-first rule; /create-play compiler warns on inlined domain logic"
+      - scenario: "A play writes outside the STM folder whitelist"
+        impact: "File-system pollution; cross-issue leakage; review and archival break."
+        mitigation: "Folder-whitelist rule enforcement (ADR 017); preflight validators in plays"
+      - scenario: "A play uses AskUserQuestion instead of Tether/Vanish"
+        impact: "Audit trail breaks; decision capture is inconsistent."
+        mitigation: "CLAUDE.md rule; /create-play compiler check"
+      - scenario: "Self-commit fails silently and evidence never reaches git"
+        impact: "Evidence exists in working tree only; lost on session end."
+        mitigation: "Commit verification; ADR 012 post-commit hook"
+
+    experiential_warnings:
+      - "Editing compiled SKILL.md directly instead of going through /create-play workflow"
+      - "Skipping /create-play and hand-authoring play markdown"
+      - "Inlining agent logic inside plays instead of delegating"
+      - "Bypassing agents and calling skills directly from plays"
+      - "Creating narrow one-off skills instead of generalizing"
+      - "Writing evidence to ad-hoc paths outside the whitelist"
+      - "Falling back to raw y/n prompts instead of Tether/Vanish"
+      - "Forcing project-specific content into Global KB prematurely"
+
+    kb_source:
+      file: ".garura/product/research/agentic-methodology.md"
+      feature_ids: ["AM-F001", "AM-F002", "AM-F003", "AM-F004", "AM-F005", "AM-F006", "AM-F007", "AM-F008", "AM-F009"]
+      depth_spectrum_used: advanced
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 2. L2 SPEC-DRIVEN
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: "l2-spec-driven"
+    domain: "agentic-methodology"
+    name: "L2 Spec-Driven"
+    feature_ids: ["AM-F010", "AM-F011", "AM-F012"]
+    selected_depth: advanced
+    depth_cap_applied: null
+    ratchet_applied: false
+
+    profile_context:
+      security_level: elevated
+      industry: developer-tools
+      compliance: ["ai-usage-traceability", "token-consumption-tracking", "audit-trail", "memory-governance", "ci-cd-enforcement", "adoption-reporting"]
+      delivery_ambition: L3-intent-driven (building)
+      team_size: solo-dev
+      current_level: L2-spec-driven
+
+    business_rules_applied:
+      - rule: "Mandatory when: project_profile.industry == 'developer-tools' and 'methodology' in product_idea (AM-F010)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F010.inclusion: Conditional"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory for any cross-session AI methodology product (AM-F011)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F011.inclusion: Default: mandatory"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory for L2+ projects (AM-F012)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F012.inclusion: Mandatory when: delivery_ambition.current_level >= L2"
+          surfaced_at_checkpoint: false
+      - rule: "Minimum 2 success + 2 failure scenarios per capability — validator enforces"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F012.success_criteria[2]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+
+    success_criteria:
+      - criterion: "≥ 90% of active projects have a declared current level within 7 days of onboarding"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F010.success_criteria[0]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Level-up completes with zero schema-breaking changes in ≥ 95% of transitions"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F010.success_criteria[1]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Per-capability level drift stays below 10% of all capabilities"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F010.success_criteria[2]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "100% of memory writes conform to folder whitelist (AM-F011)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F011.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "100% of intent epics validate against the schema before lock (AM-F012)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F012.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "check-drift detects ≥ 90% of spec vs implementation drift in pilot runs (AM-F012)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F012.success_criteria[1]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Scenarios generated per capability: ≥ 2 success + ≥ 2 failure (AM-F012)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F012.success_criteria[2]"
+          surfaced_at_checkpoint: false
+
+    failure_scenarios:
+      - scenario: "Team declares L3 but continues shipping without sealed intent artifacts"
+        impact: "Lock-gate trust collapses; downstream skills accept partial intents and produce shallow outputs. Solo-dev impact: no peer review to catch missing intent seals before they block the pipeline."
+        mitigation: "Lock-gate enforcement at L3+; daily drift-check skill files a Vanish-or-fix decision"
+      - scenario: "Manual STM→LTM promotion creates silent drift between STM evidence and LTM canonicalization"
+        impact: "LTM loses ground truth; reviewers cannot trust LTM content. Solo-dev impact: all promotion decisions rest on one contributor — no second reviewer catches premature or missed promotions."
+        mitigation: "distill and capture-learning plays; AG-F010 promotion workflow gap tracked"
+      - scenario: "Upstream intent change does not propagate to downstream scenarios"
+        impact: "Tests pass against stale scenarios; drift goes undetected."
+        mitigation: "check-drift scheduled run; propagation automation (planned gap)"
+
+    experiential_warnings:
+      - "Declaring target level without staging artifact migrations"
+      - "Writing STM artifacts into LTM prematurely"
+      - "Bypassing schema validation at write time"
+      - "Editing downstream artifacts without re-validating upstream"
+
+    kb_source:
+      file: ".garura/product/research/agentic-methodology.md"
+      feature_ids: ["AM-F010", "AM-F011", "AM-F012"]
+      depth_spectrum_used: advanced
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 3. L3 INTENT-DRIVEN
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: "l3-intent-driven"
+    domain: "agentic-methodology"
+    name: "L3 Intent-Driven"
+    feature_ids: ["AM-F013", "AM-F014", "AM-F015", "WI-F007"]
+    selected_depth: advanced
+    depth_cap_applied: null
+    ratchet_applied: false
+
+    profile_context:
+      security_level: elevated
+      industry: developer-tools
+      compliance: ["ai-usage-traceability", "audit-trail", "memory-governance"]
+      delivery_ambition: L3-intent-driven (building)
+      team_size: solo-dev
+
+    notes:
+      - "WI-F007 (Epic Decomposition) reclassified from work-intelligence/backlog-lifecycle to agentic-methodology/l3-intent-driven per user Q2 in Stage 3. KB source remains work-intelligence.md."
+
+    business_rules_applied:
+      - rule: "Mandatory when delivery_ambition.roadmap_horizon >= L3 (AM-F013 Intent Inference)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F013.inclusion: Mandatory when: delivery_ambition.roadmap_horizon >= L3"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory for any specify-product run (AM-F014 Scope Auto-Narrowing)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F014.inclusion: Default: mandatory"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory for any specify-product run at L3+ (AM-F015 Epic Auto-Generation)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F015.inclusion: Default: mandatory"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory for any L3+ product (WI-F007 Epic Decomposition)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.work-intelligence.WI-F007.inclusion: Mandatory when: any L3+ product"
+          surfaced_at_checkpoint: false
+      - rule: "Intent schema: no TBD values; quantification regex must pass on all constraint fields"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F013.tradeoffs: Intent schema rigor (no placeholders)"
+          surfaced_at_checkpoint: false
+
+    success_criteria:
+      - criterion: "100% of plays compile from a valid intent.yaml (AM-F013)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F013.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "Intent-crafter produces schema-valid output on ≥ 95% of runs (AM-F013)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F013.success_criteria[1]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "100% of specify-product runs produce a scope.yaml with constraint_trace (AM-F014)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F014.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "100% of generated epics pass validate-intent-epics (AM-F015)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F015.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "Every epic traceable to KB feature; Scenarios: ≥ 2 success + ≥ 2 failure per epic (AM-F015, WI-F007)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.agentic-methodology.AM-F015.success_criteria[2]; kb.work-intelligence.WI-F007.success_criteria[2]"
+          surfaced_at_checkpoint: false
+
+    failure_scenarios:
+      - scenario: "Intent schema allows placeholders that pass validation"
+        impact: "Downstream plays produce hollow artifacts with TBD values leaking into epics and plans."
+        mitigation: "Quantification regex; no-TBD rule in validate-intent-epics"
+      - scenario: "Constraint references an unknown feature ID"
+        impact: "Scope auto-narrowing walk fails; specify-product blocks."
+        mitigation: "validate-kb-extension pre-flight"
+      - scenario: "Generated epic missing a mandatory field"
+        impact: "validate-intent-epics blocks; pipeline stalls."
+        mitigation: "Template completeness check pre-write"
+      - scenario: "kb_source points to stale feature ID"
+        impact: "Traceability breaks at epic level."
+        mitigation: "KB consistency validator"
+
+    experiential_warnings:
+      - "Inlining implementation details in intent.yaml"
+      - "Missing profile fields that cross-tree constraints depend on"
+      - "Editing generated epics without re-validating against the schema"
+
+    kb_source:
+      files:
+        - file: ".garura/product/research/agentic-methodology.md"
+          feature_ids: ["AM-F013", "AM-F014", "AM-F015"]
+        - file: ".garura/product/research/work-intelligence.md"
+          feature_ids: ["WI-F007"]
+      depth_spectrum_used: advanced
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 4. CLI / SLASH COMMANDS
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: "cli-slash-commands"
+    domain: "engineering-experience"
+    name: "CLI / Slash Commands"
+    feature_ids: ["EE-F015", "EE-F016", "EE-F017", "EE-F018"]
+    selected_depth: standard
+    depth_cap_applied: null
+    ratchet_applied: false
+
+    profile_context:
+      security_level: elevated
+      industry: developer-tools
+      compliance: []
+      delivery_ambition: L3-intent-driven (building)
+      team_size: solo-dev
+
+    business_rules_applied:
+      - rule: "Mandatory for all Garura products — slash commands are the primary user UX contract (EE-F015)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F015.inclusion: Default: mandatory"
+          surfaced_at_checkpoint: false
+      - rule: "Every play must produce a status.json artifact — mandatory for any multi-step play (EE-F016)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F016.inclusion: Default: mandatory"
+          surfaced_at_checkpoint: false
+      - rule: "Sync must be idempotent — mandatory for multi-harness deployment (EE-F017)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F017.inclusion: Mandatory when: multi-harness deployment"
+          surfaced_at_checkpoint: false
+      - rule: "distill runs post-merge — mandatory for any L3+ project (EE-F018)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F018.inclusion: Mandatory when: any L3+ project"
+          surfaced_at_checkpoint: false
+
+    success_criteria:
+      - criterion: "Every play has a slash command; slash commands discoverable via /help"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F015.success_criteria[0..1]"
+          surfaced_at_checkpoint: false
+      - criterion: "Invocation latency < 1s (EE-F015)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F015.success_criteria[2]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Every play produces status; status schema consistent; status survives session end (EE-F016)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F016.success_criteria[0..2]"
+          surfaced_at_checkpoint: false
+      - criterion: "Sync idempotent; drift detected and surfaced; sync < 10s (EE-F017)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F017.success_criteria[0..2]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "distill runs post-merge; learnings produce LTM proposals; proposals reviewable (EE-F018)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F018.success_criteria[0..2]"
+          surfaced_at_checkpoint: false
+
+    failure_scenarios:
+      - scenario: "Command not discoverable by new adopter"
+        impact: "Hidden capability — solo-dev adopter cannot find the command without reading full docs."
+        mitigation: "/help listing; command namespace policy"
+      - scenario: "Status missing for a play run"
+        impact: "Users cannot determine play outcome; CI cannot parse results."
+        mitigation: "Mandatory status write in every play-step contract"
+      - scenario: "Sync overwrites user customization in ~/.claude/"
+        impact: "Lost work — solo-dev has no second backup contributor."
+        mitigation: "Customization detection + warn before overwrite"
+      - scenario: "Distill skipped post-merge"
+        impact: "Learning lost; LTM fails to capture the issue's learnings."
+        mitigation: "Distill reminder in merge-pr play post-merge step"
+
+    experiential_warnings:
+      - "Forgetting the slash prefix when invoking plays"
+      - "Editing deployed components in ~/.claude/ directly instead of source"
+      - "Skipping distill after closing an issue"
+
+    kb_source:
+      file: ".garura/product/research/engineering-experience.md"
+      feature_ids: ["EE-F015", "EE-F016", "EE-F017", "EE-F018"]
+      depth_spectrum_used: standard
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 5. FIRST-RUN ONBOARDING
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: "first-run-onboarding"
+    domain: "engineering-experience"
+    name: "First-Run Onboarding"
+    feature_ids: ["EE-F010", "EE-F011", "EE-F012"]
+    selected_depth: standard
+    depth_cap_applied: null
+    ratchet_applied: false
+
+    profile_context:
+      security_level: elevated
+      industry: developer-tools
+      compliance: []
+      delivery_ambition: L3-intent-driven (building)
+      team_size: solo-dev
+      milestone: mvp-solo-greenfield (2026-04)
+
+    business_rules_applied:
+      - rule: "Mandatory when v1 solo-founder target — greenfield wizard is the v1 minimum viable onboarding (EE-F010)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F010.inclusion: Default: mandatory"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory for public distribution — npm install garura must succeed (EE-F011)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F011.inclusion: Default: mandatory"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory when Claude Code is target IDE — one-command bootstrap required (EE-F012)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F012.inclusion: Mandatory when: Claude Code is target IDE"
+          surfaced_at_checkpoint: false
+      - rule: "Three-question minimum for the greenfield wizard — more questions trigger abandonment"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F010.tradeoffs: Three-question minimum vs richer profile capture"
+          surfaced_at_checkpoint: false
+
+    success_criteria:
+      - criterion: "Greenfield wizard completes in < 3 minutes (EE-F010)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F010.success_criteria[0]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Wizard produces valid project_profile (EE-F010)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F010.success_criteria[2]"
+          surfaced_at_checkpoint: false
+      - criterion: "npm install garura succeeds on supported Node versions (EE-F011)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F011.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "Preflight detects missing prerequisites before install completes (EE-F011)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F011.success_criteria[1]"
+          surfaced_at_checkpoint: false
+      - criterion: "One-command bootstrap from npm; sync-claude idempotent; upgrade flow preserves user data (EE-F012)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F012.success_criteria[0..2]"
+          surfaced_at_checkpoint: false
+
+    failure_scenarios:
+      - scenario: "Wizard asks too many questions"
+        impact: "Abandonment at the first step — solo-founder evaluating Garura is lost. First impression failure."
+        mitigation: "3-question minimum; question count gate in wizard flow"
+      - scenario: "Package install too large — slow npm install"
+        impact: "Solo-founder waiting minutes for an install loses the moment. Negative first impression."
+        mitigation: "Optional modules; package size monitoring in CI"
+      - scenario: "Install partially succeeds — broken state post-install"
+        impact: "Garura is unusable without debug skills. Abandonment rate spikes."
+        mitigation: "Atomic install; preflight check covers all required deps"
+      - scenario: "Sync-claude overwrites user-customized components in ~/.claude/"
+        impact: "Lost customization — solo-dev has no backup copy."
+        mitigation: "Conflict detection + warn; local-edit detection before overwrite"
+
+    experiential_warnings:
+      - "Missing brownfield scanner for repositories with existing structure (v1 greenfield only)"
+      - "npm install sizes growing when optional modules are bundled with core"
+      - "Editing ~/.claude/ components directly instead of going through sync-claude"
+
+    kb_source:
+      file: ".garura/product/research/engineering-experience.md"
+      feature_ids: ["EE-F010", "EE-F011", "EE-F012"]
+      depth_spectrum_used: standard
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 6. IDE INTEGRATIONS
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: "ide-integrations"
+    domain: "engineering-experience"
+    name: "IDE Integrations"
+    feature_ids: ["EE-F001", "EE-F004", "EE-F005"]
+    selected_depth: standard
+    depth_cap_applied: null
+    ratchet_applied: false
+
+    profile_context:
+      security_level: elevated
+      industry: developer-tools
+      compliance: []
+      delivery_ambition: L3-intent-driven (building)
+      team_size: solo-dev
+
+    business_rules_applied:
+      - rule: "Mandatory for Garura — Claude Code is the reference harness where every play and agent runs (EE-F001)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F001.inclusion: Mandatory when: Garura is the product"
+          surfaced_at_checkpoint: false
+      - rule: "sync-claude is read-only on ~/.claude/ — no direct edits allowed (EE-F001)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F001.failure_scenarios: Sync overwrites local edits — local-edit detection + warn"
+          surfaced_at_checkpoint: false
+      - rule: "Factory Droids are optional — conditional on org using Factory (EE-F004)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F004.inclusion: Optional; Mandatory when: org uses Factory Droids"
+          surfaced_at_checkpoint: false
+      - rule: "Codex CLI adapter is optional — conditional on CI-driven workflow (EE-F005)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F005.inclusion: Optional; Mandatory when: CI-driven workflow"
+          surfaced_at_checkpoint: false
+
+    success_criteria:
+      - criterion: "sync-claude completes with zero drift on 100% of runs (EE-F001)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F001.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "Every new component available in Claude Code after sync (EE-F001)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F001.success_criteria[1]"
+          surfaced_at_checkpoint: false
+      - criterion: "sync-droids completes reliably; parity tests pass on core plays; governance signals flow back (EE-F004)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F004.success_criteria[0..2]"
+          surfaced_at_checkpoint: false
+      - criterion: "CLI adapter ships; script-friendly output format; CI-mode behavior deterministic (EE-F005)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-experience.EE-F005.success_criteria[0..2]"
+          surfaced_at_checkpoint: false
+
+    failure_scenarios:
+      - scenario: "Component drifts between core/components/ and ~/.claude/"
+        impact: "Stale behavior in Claude Code — plays invoke outdated agents or skills."
+        mitigation: "/sync-claude pre-flight check; drift detection on every sync"
+      - scenario: "Governance data missing from Factory Droid runs"
+        impact: "Attribution gap — AI-generated commits from Droids carry no authorship trailer. Violates ai-usage-traceability compliance category."
+        mitigation: "invocation-context capture in sync-droids"
+      - scenario: "Interactive prompts block Codex CLI in CI mode"
+        impact: "CI pipeline hangs indefinitely on Tether/Vanish gate that has no user to respond."
+        mitigation: "Non-interactive mode with policy pre-approvals for CI-invoked plays"
+
+    experiential_warnings:
+      - "Editing ~/.claude/ directly instead of source then sync-claude"
+      - "Missing invocation-context capture for Factory Droid runs (attribution gap risk)"
+
+    kb_source:
+      file: ".garura/product/research/engineering-experience.md"
+      feature_ids: ["EE-F001", "EE-F004", "EE-F005"]
+      depth_spectrum_used: standard
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 7. AUDIT ATTRIBUTION  (RATCHET APPLIED)
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: "audit-attribution"
+    domain: "ai-governance"
+    name: "Audit Attribution"
+    feature_ids: ["AG-F004", "AG-F005", "AG-F006"]
+    selected_depth: standard
+    depth_cap_applied: null
+    ratchet_applied: true
+    ratchet_summary: >
+      compliance.categories['ai-usage-traceability'] → commit-trailer enforcement
+      required on ALL AI-generated commits (AG-F004 Standard depth business rule,
+      ratcheted regardless of depth selection). compliance.required=true +
+      audit-trail category → AG-F005 and AG-F006 mandatory inclusion both fire.
+      v1 external_regulations_in_scope_v1=[] means Standard depth is the ceiling
+      (Advanced/Enterprise requires SOC2/signed-attestation/line-level attribution
+      which are post-v1).
+
+    profile_context:
+      security_level: elevated
+      industry: developer-tools
+      compliance: ["ai-usage-traceability", "audit-trail", "memory-governance"]
+      compliance_required: true
+      delivery_ambition: L3-intent-driven (building)
+      team_size: solo-dev
+      external_regulations: []
+
+    business_rules_applied:
+      - rule: "RATCHETED: 100% of play-produced commits MUST carry AI-authorship commit trailer — mandatory regardless of depth, driven by compliance.categories includes 'ai-usage-traceability' (AG-F004)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.ai-governance.AG-F004.success_criteria[0]: 100% of play-produced commits carry AI-authorship trailer"
+          surfaced_at_checkpoint: false
+      - rule: "Evidence files must attribute every step to agent or user — step-level attribution required (AG-F004)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.ai-governance.AG-F004.success_criteria[1]: Evidence files attribute every step"
+          surfaced_at_checkpoint: false
+      - rule: "Every inferred decision must have tier-rationale in a decision manifest — Decision Surfacing Discipline (AG-F005)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.ai-governance.AG-F005.success_criteria[0]: Every inferred decision has tier-rationale"
+          surfaced_at_checkpoint: false
+      - rule: "Compliance audit bundle must be generated on demand — mandatory when compliance.required=true (AG-F006)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.ai-governance.AG-F006.inclusion: Mandatory when: compliance audit required"
+          surfaced_at_checkpoint: false
+      - rule: "Audit bundle must include intent, scope, epics, evidence, decisions — complete artifact chain (AG-F006)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.ai-governance.AG-F006.success_criteria[1]"
+          surfaced_at_checkpoint: false
+
+    success_criteria:
+      - criterion: "100% of play-produced commits carry AI-authorship trailer (AG-F004)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.ai-governance.AG-F004.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "Evidence files attribute every step to agent or user (AG-F004)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.ai-governance.AG-F004.success_criteria[1]"
+          surfaced_at_checkpoint: false
+      - criterion: "Every inferred decision has tier-rationale in decision manifest (AG-F005)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.ai-governance.AG-F005.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "Per-feature audit bundle generated on demand; bundle includes intent, scope, epics, evidence, decisions (AG-F006)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.ai-governance.AG-F006.success_criteria[0..1]"
+          surfaced_at_checkpoint: false
+      - criterion: "Auditor-template adapters for SOC2 / ISO27001 (AG-F006 — planned post-v1)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.ai-governance.AG-F006.success_criteria[2]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+
+    failure_scenarios:
+      - scenario: "AI-edited commit missing authorship trailer"
+        impact: "Attribution gap breaks audit trail. Solo-dev impact: with a solo contributor, every commit missing a trailer represents a 100% gap in AI-vs-human attribution for that commit — no other commits to triangulate from."
+        mitigation: "Commit hook enforcement; pre-commit validation in ship play"
+      - scenario: "Decisions recorded in conversation but not captured in decision manifest"
+        impact: "Audit trail gap — Decision Surfacing Discipline (Defect 23) is violated. Evidence exists only in chat history."
+        mitigation: "Decision Surfacing Discipline rule: every inferred decision goes to decision-manifest.yaml before primary artifact write"
+      - scenario: "Audit bundle misses artifacts linked via symlinks"
+        impact: "Incomplete bundle — auditor receives a partial artifact set. May invalidate the audit."
+        mitigation: "Symlink resolution policy in audit bundle generator"
+      - scenario: "Attribution tampered post-hoc in evidence files"
+        impact: "Audit invalidated. v1 does not have tamper-evident storage — this is a known gap."
+        mitigation: "Tamper-evident storage planned for Advanced depth (post-v1 when external regulations enter scope)"
+
+    experiential_warnings:
+      - "Missing provenance header on evidence files — step-level attribution breaks silently"
+      - "Silent resolution of inferred decisions without writing decision manifest (violates Defect 23)"
+      - "Relying on file-tree browsing for audit instead of bundle generation"
+      - "Assuming AI-authored commits are auto-tagged — requires explicit commit hook enforcement"
+
+    kb_source:
+      file: ".garura/product/research/ai-governance.md"
+      feature_ids: ["AG-F004", "AG-F005", "AG-F006"]
+      depth_spectrum_used: standard
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 8. QUALITY SIGNALS
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: "quality-signals"
+    domain: "engineering-observability"
+    name: "Quality Signals"
+    feature_ids: ["EO-F001", "EO-F002", "EO-F004"]
+    selected_depth: standard
+    depth_cap_applied: null
+    ratchet_applied: false
+
+    profile_context:
+      security_level: elevated
+      industry: developer-tools
+      compliance: []
+      delivery_ambition: L3-intent-driven (building)
+      team_size: solo-dev
+
+    business_rules_applied:
+      - rule: "Mandatory for L2+ projects — test coverage must be measured (EO-F001)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-observability.EO-F001.inclusion: Mandatory when: quality is tracked"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory for any L2+ project — lint runs on every supported stack (EO-F002)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-observability.EO-F002.inclusion: Default: mandatory"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory when security is in-scope (profile security_level=elevated confirms inclusion) — security scans run on every project (EO-F004)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-observability.EO-F004.inclusion: Mandatory when: security is in-scope"
+          surfaced_at_checkpoint: false
+      - rule: "Lint violations must be surfaced per PR — not suppressed or deferred (EO-F002)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-observability.EO-F002.success_criteria[1]"
+          surfaced_at_checkpoint: false
+
+    success_criteria:
+      - criterion: "quality-check runs successfully on ≥ 95% of supported stacks (EO-F001)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-observability.EO-F001.success_criteria[0]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Coverage deltas surfaced per PR (EO-F001)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-observability.EO-F001.success_criteria[1]"
+          surfaced_at_checkpoint: false
+      - criterion: "Lint runs on ≥ 95% of supported stacks; lint violations surfaced per PR (EO-F002)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-observability.EO-F002.success_criteria[0..1]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Scanner integration for ≥ 1 language ecosystem at launch; vulnerability aggregation with severity (EO-F004)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-observability.EO-F004.success_criteria[0..1]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Posture dashboard per project (EO-F004)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.engineering-observability.EO-F004.success_criteria[2]"
+          surfaced_at_checkpoint: false
+
+    failure_scenarios:
+      - scenario: "Coverage tool output format changes and quality-check breaks"
+        impact: "Missing quality signal on affected projects. Solo-dev impact: no second engineer to notice the signal went silent."
+        mitigation: "Stack-specific adapter tests; format-change detection in quality-check"
+      - scenario: "High coverage percentage masks shallow test assertions"
+        impact: "False quality confidence — defects slip through covered-but-empty test cases."
+        mitigation: "Mutation testing as supplementary signal (planned post-v1)"
+      - scenario: "Lint-noise fatigue causes developer to disable lint rules"
+        impact: "Signal quality degrades; lint becomes theater rather than a real quality gate."
+        mitigation: "Noise-tuning + severity policy; disable-comment requires justification"
+      - scenario: "Security scanner noise overwhelms the surface — real vulnerabilities missed"
+        impact: "High-severity CVE lost in noise. Solo-dev lacks a security team to triage separately."
+        mitigation: "Severity filtering + policy baseline; posture dashboard shows only actionable items"
+
+    experiential_warnings:
+      - "Chasing coverage percentage rather than scenario coverage — high % can mask shallow assertions"
+      - "Disabling lint rules instead of fixing root cause"
+      - "Treating security scan output as a complete prioritization rather than a raw findings list"
+
+    kb_source:
+      file: ".garura/product/research/engineering-observability.md"
+      feature_ids: ["EO-F001", "EO-F002", "EO-F004"]
+      depth_spectrum_used: standard
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 9. INTENT-DRIVEN VERIFICATION
+  # ═══════════════════════════════════════════════════════════════════════════
+  - id: "intent-driven-verification"
+    domain: "work-intelligence"
+    name: "Intent-Driven Verification"
+    feature_ids: ["WI-F010", "WI-F011", "WI-F012", "WI-F013"]
+    selected_depth: advanced
+    depth_cap_applied: null
+    ratchet_applied: false
+
+    profile_context:
+      security_level: elevated
+      industry: developer-tools
+      compliance: []
+      delivery_ambition: L3-intent-driven (building)
+      team_size: solo-dev
+
+    business_rules_applied:
+      - rule: "Mandatory for L3+ — every play must have step evals generated from intent.yaml (WI-F010)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.work-intelligence.WI-F010.inclusion: Mandatory when: any L3+ play"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory for L3+ with test automation — synthesized tests must trace to scenarios (WI-F011)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.work-intelligence.WI-F011.inclusion: Mandatory when: test automation exists"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory for L3+ production systems — every defect resolution goes through structured RCA before a fix is proposed (WI-F012)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.work-intelligence.WI-F012.inclusion: Mandatory when: production systems"
+          surfaced_at_checkpoint: false
+      - rule: "Mandatory (never excludable) — fix-it loop closure is required for every defect (WI-F013)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.work-intelligence.WI-F013.inclusion: Default: mandatory; Exclude when: never"
+          surfaced_at_checkpoint: false
+      - rule: "Regression test is mandatory on every fix — no fix-first-test-later (WI-F013)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.work-intelligence.WI-F013.tradeoffs: Mandatory regression test on every fix vs fix-first-test-later"
+          surfaced_at_checkpoint: false
+
+    success_criteria:
+      - criterion: "Every play has step evals; every capability has scenario evals; evals pass on canonical traces (WI-F010)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.work-intelligence.WI-F010.success_criteria[0..2]"
+          surfaced_at_checkpoint: false
+      - criterion: "Test synthesis for ≥ 1 language at launch; synthesized tests trace to scenarios; tests executable out-of-box (WI-F011)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.work-intelligence.WI-F011.success_criteria[0..2]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Every defect has RCA evidence (WI-F012)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.work-intelligence.WI-F012.success_criteria[0]"
+          surfaced_at_checkpoint: false
+      - criterion: "fix-it closes ≥ 95% of defects without reopening (WI-F013)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.work-intelligence.WI-F013.success_criteria[0]"
+          surfaced_at_checkpoint: false
+          user_grounded: true
+          user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+      - criterion: "Loop evidence preserved across sessions (WI-F013)"
+        source_for_quantification:
+          source: kb_default
+          source_reference: "kb.work-intelligence.WI-F013.success_criteria[2]"
+          surfaced_at_checkpoint: false
+
+    failure_scenarios:
+      - scenario: "Evals drift from intent after an intent.yaml change"
+        impact: "False positive passes — evals pass against stale scenarios. Solo-dev impact: no second reviewer to notice the drift before the next release."
+        mitigation: "Re-generate evals on every intent change; evals-creator invoked in create-play --rebuild"
+      - scenario: "Synthesized test content is ambiguous — test passes but asserts the wrong thing"
+        impact: "Hollow test coverage — tests pass but the underlying intent is not verified."
+        mitigation: "Scenario structure discipline; scenario review gate before synthesis"
+      - scenario: "RCA is shallow — symptom fixed without reaching root cause"
+        impact: "Defect reopens; pattern recurs. Solo-dev impact: every recurrence costs solo-contributor time with no team to distribute the investigation."
+        mitigation: "5-whys structure in RCA template; fix-it enforces RCA before proposing a change"
+      - scenario: "fix validates but defect regresses at next release"
+        impact: "Reopened defect with no regression test — fix-it loop breaks."
+        mitigation: "Mandatory regression test after every fix; regression test linked to defect in STM"
+      - scenario: "Repeated defect pattern not detected"
+        impact: "Same root cause fixed multiple times independently — methodology decays."
+        mitigation: "Defect-history check in fix-it; pattern library curation (planned Advanced)"
+
+    experiential_warnings:
+      - "Fixing symptom before completing RCA — fix-it is designed to block this"
+      - "Ambiguous scenario authoring that produces passing-but-wrong synthesized tests"
+      - "Skipping RCA for 'quick fixes' — quick fixes without RCA are the primary source of reopened defects"
+
+    kb_source:
+      file: ".garura/product/research/work-intelligence.md"
+      feature_ids: ["WI-F010", "WI-F011", "WI-F012", "WI-F013"]
+      depth_spectrum_used: advanced
+
+# ═══════════════════════════════════════════════════════════════════════════
+# OUTPUT SUMMARY
+# ═══════════════════════════════════════════════════════════════════════════
+output_summary:
+  enriched_count: 9
+  missing_kb_sources: 0
+  ratchets_applied: 1
+  ratchet_capabilities: ["audit-attribution"]
+  ratchet_detail: "compliance.categories['ai-usage-traceability'] → commit-trailer enforcement on all AI-generated commits (AG-F004 Standard business rule)"
+  depth_caps_applied: 0
+  depth_distribution:
+    advanced: 4   # component-architecture, l3-intent-driven, l2-spec-driven, intent-driven-verification
+    standard: 5   # cli-slash-commands, first-run-onboarding, ide-integrations, audit-attribution, quality-signals
+  kb_default_thresholds_surfaced: 0   # ALL numeric thresholds flipped to user_grounded=true via Stage 4 batch review (2026-04-18)
+  kb_default_thresholds_user_grounded: 21   # KB-default numeric entries confirmed as accepted facts
+  stage5_blockers: []
+  notes:
+    - "WI-F007 enriched under capability_slug l3-intent-driven per Q2 reclassification; kb_source correctly points to work-intelligence.md"
+    - "audit-attribution is the sole ratchet recipient: ai-usage-traceability compliance category drives commit-trailer enforcement regardless of feature depth"
+    - "All KB-default numeric thresholds batch-accepted in Stage 4 user review (2026-04-18); promoted to user_grounded=true and flow into Stage 5 as verified constraints"

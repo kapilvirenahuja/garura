@@ -1,0 +1,1700 @@
+# Features: 3-Tier Domain → Capability → Feature Model
+# Moved from specification/implementation-inventory.yaml (2026-04-18)
+# Renamed to features.yaml per user direction: this is the feature catalog.
+#
+# Totals: 5 domains / 21 capabilities / 81 features
+#
+# MODEL NOTES
+# - Single node per domain (no duplicates). Capabilities nest under domain.capabilities[];
+#   features nest under capability.features[].
+# - Plays, agents, skills, memory layers are methodology components — they surface only
+#   under Agentic Methodology / Component Architecture as features, NOT as evidence
+#   scattered across every capability. Component Architecture enumerates them in the
+#   zoomed-in component lists.
+# - Agentic Methodology capabilities are "applied + evolving via dogfooding" — Garura
+#   uses L2/L3 and extends them as new use cases emerge, but Garura-as-product is not
+#   re-building L2/L3 methodology theory.
+
+summary:
+  domains: 5
+  capabilities: 23
+  features_total: 85
+  features_live: 22
+  features_partial: 14
+  features_planned: 49
+  # Changes 2026-04-18 (EO + AG feedback pass):
+  # - EO-F003 (Build Health) removed (not needed). ID retired.
+  # - EO-F002 (Lint) partial → planned (not started).
+  # - EO-F004 (Security Scans) partial → planned (not started).
+  # - EO-F015 (OpenTelemetry Integration) added under methodology-posture.
+  #   Shared spine with AG consumption-tracking.
+  # - AG-F011 (Autonomy Tracking — cost vs autonomy) added under
+  #   consumption-tracking. Key differentiator metric.
+  # - New capability ai-governance / governance-hierarchy added with
+  #   AG-F012..AG-F016 (Hierarchy Model + 4 tiers: Project → Account →
+  #   Portfolio → Org). Shared concern with Control Tower.
+  #
+  # Changes 2026-04-18 (WI feedback pass):
+  # - Capability intent-anchored-triage renamed → agentic-triage.
+  # - WI-F001 reframed: AI Routing → Profile-Based Auto-Triage (profiles
+  #   of people + agents; automatic routing).
+  # - WI-F002 reframed: Priority Scoring → Vision-Anchored Priority
+  #   (unmapped = BLOCKED hard gate).
+  # - WI-F003 reframed: Blast-Radius Analysis → Agent-Time Allocation
+  #   (status partial → planned; ties to OTEL + autonomy tracking).
+  # - WI-F004 reframed: PI Planning → Release Planning.
+  # - WI-F005 reframed: Sprint Planning → Agentic Iteration Planning
+  #   (status partial → planned; sprints/burndowns open for retirement).
+  # - WI-F006 reframed: Capacity Matching → People + Agent Capacity
+  #   (Token Budget) (Opus vs Sonnet cost; OTEL-driven reverse model).
+  # - WI-F008 (Feature Grooming) and WI-F009 (Story Generation) removed.
+  #   IDs retired. Capability backlog-lifecycle marked
+  #   deferred-for-reconsideration — intentionally not detailed.
+  #
+  # Changes 2026-04-18 (EE feedback pass):
+  # - Capability ide-integrations renamed → agent-integrations. User: these
+  #   are agent surfaces, not IDEs.
+  # - EE-F002 (Copilot) and EE-F003 (Cursor) removed. Autocomplete IDEs,
+  #   not agents. Not planned. IDs retired.
+  # - EE-F004 (Factory.ai) partial → live.
+  # - EE-F005 (Codex) planned → live.
+  # - EE-F008 removed. Reframed to headless channels / remote working,
+  #   but marked not-planned (CC etc. already provide). ID retired.
+  # - EE-F011 (Installer) absorbs EE-F012 (Claude Code Installer).
+  #   Unified installer: npm + Claude Code end-user bootstrap. Status
+  #   now partial (sync-claude exists for contributors). EE-F012 ID retired.
+  # - EE-F021 (Component Generation) removed. Folded into new
+  #   sdlc-phase-coverage capability (see EE-F024 design-to-code).
+  # - New capability engineering-experience / sdlc-phase-coverage added
+  #   with EE-F022..EE-F026 tracking phase coverage + penetration:
+  #   product-to-spec, spec-to-design, design-to-code, code-to-test,
+  #   test-to-run.
+  #
+  # Changes 2026-04-18 (reconciliation pass — user Q-decisions + Stage 1/2
+  # inputs override earlier same-day feedback edits):
+  # - WI-F011 (Test Generation) planned → live — delivered via prepare-epic +
+  #   implement-epic + validate-epic plays; test case generation from
+  #   intent.yaml. (User Q4; supersedes WI feedback pass planned status.)
+  # - WI-F012 (RCA) partial → live — delivered via fix-it + enhance plays;
+  #   RCA as first-class phase, not standalone skill. (User Q4; supersedes
+  #   WI feedback pass partial status.)
+  # - EE-F004 (Factory.ai) live → partial — Factory harness integrated
+  #   but governance features (invocation-context capture for AI-authorship)
+  #   are partial. (Stage 1/2 user input reconciliation; supersedes EE
+  #   feedback pass live status.)
+  # - EE-F005 (Codex) live → partial — Codex integration harness exists
+  #   but CI-mode non-interactive policy pre-approvals are partial.
+  #   (Stage 1/2 user input reconciliation; supersedes EE feedback pass
+  #   live status.)
+  # - EO-F002 (Lint) planned → partial — per Stage 1/2 user input;
+  #   supersedes EO feedback pass planned status.
+  # - EO-F004 (Security Scans) planned → partial — per Stage 1/2 user
+  #   input; supersedes EO feedback pass planned status.
+  key_findings: |
+    Component Architecture is LIVE end-to-end (21 plays + 19 agents + 47 skills +
+    three memory layers + hierarchy + human-in-the-loop + evidence substrate).
+    L2 Spec-Driven is APPLIED (Garura runs on it; not a Garura build target).
+    L3 Intent-Driven is PARTIAL — intent compilation and /create-play LIVE; runtime
+    intent resolution (the defining L4 shift) PLANNED. L4 and L5 feature lists are
+    intentionally empty — architecture direction is known only for L4 (runtime
+    intent-resolution replacing compile-time /create-play); everything else is TBD.
+    The four outcome domains (Engineering Observability, AI Governance, Work
+    Intelligence, Engineering Experience) are predominantly PLANNED with selective
+    PARTIAL capabilities. Control Tower dashboards, Engineering Portal web UI, IDE
+    matrix beyond Claude Code, and AI consumption governance are the largest gaps.
+
+domains:
+
+  # ============================================================
+  # DOMAIN 1: AGENTIC METHODOLOGY (prefix AM)
+  # ============================================================
+
+  - slug: agentic-methodology
+    status: applied-and-evolving
+    rollup_notes: >
+      Agentic Methodology is Garura's core differentiator and substrate. It is not
+      "LIVE and done" — it is applied today and continuously evolves as new
+      dogfooding use cases surface gaps (new plays, new agents, new skills, new KB
+      entries). Component Architecture is fully operational; L2 is applied (not a
+      build target); L3 is partial; L4/L5 are directional with limited detail today.
+    capabilities:
+
+      - slug: component-architecture
+        status: live
+        rollup_notes: >
+          Every feature LIVE and dogfooded. This is the ONLY capability whose
+          features enumerate plays/agents/skills/memory — they ARE the methodology.
+          AM-F005 (Project LTM) and AM-F006 (Global KB) are PARTIAL because their
+          curation/review workflows are still maturing.
+        features:
+
+          - id: AM-F001
+            name: Plays
+            status: live
+            notes: >
+              21 plays ship today. Every play is compiled from intent.yaml via
+              /create-play. Dogfooded — new plays added as new use cases emerge.
+            plays_inventory:
+              - briefs
+              - build-arch
+              - capture-learning
+              - check-drift
+              - commit-code
+              - create-play
+              - create-pr
+              - design-exp
+              - distill
+              - enhance
+              - fix-it
+              - implement-epic
+              - merge-pr
+              - prepare-epic
+              - report-issue
+              - review-pr
+              - ship
+              - specify-product
+              - start-feature
+              - start-feature-planning
+              - validate-epic
+            evidence:
+              - core/components/plays/
+              - docs/adr/001-three-layer-hierarchy.md
+              - docs/adr/013-play-maturity-model.md
+            gap_items: []
+
+          - id: AM-F002
+            name: Agents
+            status: live
+            notes: >
+              19 domain + utility agents ship today. Autonomous per ADR 005;
+              Task-tool invocable with JSON contracts.
+            agents_inventory:
+              - code-builder
+              - designer
+              - doc-builder
+              - engineering-manager
+              - eval-generator
+              - feature-steward
+              - intent-crafter
+              - intent-resolver
+              - judge
+              - knowledge-extractor
+              - market-analyst
+              - product-keeper
+              - project-orchestrator
+              - quality-auditor
+              - repo-orchestrator
+              - scriber
+              - tech-architect
+              - tech-designer
+              - test-engineer
+            evidence:
+              - core/components/agents/
+              - docs/adr/004-agent-naming.md
+              - docs/adr/005-skills-as-capabilities.md
+            gap_items: []
+
+          - id: AM-F003
+            name: Skills
+            status: live
+            notes: >
+              47 skills implementing domain capabilities. Model-invocable,
+              agent-orchestrated. Continuously added as new capabilities surface.
+            skills_inventory:
+              - analyze-changes
+              - analyze-pr
+              - archive-issue-stm
+              - audit-spec-gaps
+              - check-drift
+              - compile-design-spec
+              - configure-capabilities
+              - create-commit
+              - derive-design-patterns
+              - derive-logical-architecture
+              - derive-nfr-spec
+              - derive-physical-architecture
+              - derive-quality-profile-from-epics
+              - derive-quality-vision
+              - distill
+              - draft-implementation-plan
+              - draft-lld
+              - draft-product-spec
+              - draft-technical-approach
+              - draft-verification-scenarios
+              - enrich-capabilities
+              - evals-creator
+              - generate-intent-epics
+              - generate-screen-inventory
+              - generate-wireframes
+              - manage-issue
+              - map-user-flows
+              - merge-pr
+              - quality-check
+              - quality-check-scoped
+              - recommend-mvp
+              - research-domain-context
+              - research-market-opportunity
+              - resolve-issues
+              - scout-project
+              - setup-branch
+              - submit-pr
+              - sync-claude
+              - sync-droids
+              - synthesize-personas
+              - validate-abstraction-layer
+              - validate-architecture-spec
+              - validate-implementation-design
+              - validate-intent-epics
+              - validate-kb-extension
+              - validate-screen-coverage
+              - write-evidence
+            evidence:
+              - core/components/skills/
+              - docs/adr/005-skills-as-capabilities.md
+              - docs/adr/009-skill-ltm-organizational-knowledge.md
+            gap_items: []
+
+          - id: AM-F004
+            name: Memory — STM (Short-Term Memory)
+            status: live
+            notes: >
+              Issue-centric STM under .garura/project/issues/{n}/. Capability is
+              built and done: schema locked, lifecycle defined (archive-issue-stm),
+              folder whitelist enforced (ADR 017).
+            evidence:
+              - .garura/project/issues/
+              - docs/adr/008-issue-centric-stm-and-nwwi.md
+              - docs/adr/017-folder-whitelist.md
+              - core/components/memory/standards/rules/resolution.md
+              - core/components/skills/archive-issue-stm/
+            gap_items: []
+
+          - id: AM-F005
+            name: Memory — Project LTM
+            status: partial
+            notes: >
+              Project-scoped long-term memory under .garura/product/. Structure
+              locked; automated STM→LTM promotion via distill/capture-learning is
+              in flight; retention/archival policy not yet enforced.
+            evidence:
+              - .garura/product/
+              - core/components/memory/standards/rules/
+              - core/components/plays/distill/
+              - core/components/plays/capture-learning/
+            gap_items:
+              - Automated STM→LTM promotion (distill + capture-learning wiring)
+              - LTM retention and archival policy enforcement
+
+          - id: AM-F006
+            name: Memory — Global KB
+            status: partial
+            notes: >
+              Cross-project knowledge base at core/components/memory/knowledge/.
+              Substrate is shipped; several KB entries are actively in review.
+              Open KB-review issues exist — content maturity is mid-flight.
+            evidence:
+              - core/components/memory/knowledge/
+              - core/components/memory/standards/
+              - docs/adr/009-skill-ltm-organizational-knowledge.md
+            gap_items:
+              - Resolve open KB-review issues (domain-taxonomy completeness, CTC gaps)
+              - Standardize promotion workflow from Project LTM → KB
+              - Publish KB review SLA / review queue
+
+          - id: AM-F007
+            name: Three-Layer Hierarchy
+            status: live
+            notes: >
+              Plays → Agents → Skills hierarchy enforced by /create-play compilation
+              and agent-first delegation rules.
+            evidence:
+              - docs/adr/001-three-layer-hierarchy.md
+              - docs/philosophy/architecture.md
+            gap_items: []
+
+          - id: AM-F008
+            name: Human-in-the-Loop Approval
+            status: live
+            notes: >
+              Core principle is human-in-the-loop — every play embeds explicit
+              approval gates at commits, PRs, destructive actions, and multi-phase
+              plan approvals. "Tether/Vanish/Orbit" is a personal convention
+              (user-owned rule), not a protocol Garura imposes; plays accept any
+              configured approval response surface. A bypass configuration is
+              supported for autonomous environments (review-pr.bypass=true per
+              project review feedback).
+            evidence:
+              - core/components/memory/standards/rules/
+              - CLAUDE.md
+              - docs/adr/002-l1-checkpoint-model.md
+            gap_items:
+              - Formalize the approval-response convention as a configurable policy
+              - Document the bypass-configuration contract and audit implications
+
+          - id: AM-F009
+            name: Evidence & Checkpoint Substrate
+            status: live
+            notes: >
+              Every play writes evidence artifacts (write-evidence skill) and stage
+              checkpoints to STM; self-commit of evidence per ADR 012.
+            evidence:
+              - core/components/skills/write-evidence/
+              - docs/adr/002-l1-checkpoint-model.md
+              - docs/adr/012-evidence-self-commit.md
+            gap_items: []
+
+      - slug: l2-spec-driven
+        status: applied
+        rollup_notes: >
+          L2 is the methodology Garura APPLIES — it is not a Garura build target.
+          The L2 pipeline (specify-product → design-exp → build-arch → prepare-epic →
+          implement-epic → validate-epic) runs end-to-end today. Features below
+          describe the L2 invariants Garura guarantees for its own users.
+        features:
+
+          - id: AM-F010
+            name: Maturity Ladder Engine
+            status: partial
+            notes: >
+              Ladder L1-L5 defined in docs/philosophy/idsd.md; referenced in
+              project_profile.delivery_ambition. Runtime per-capability enforcement
+              gates and automated posture measurement are not shipped.
+            evidence:
+              - docs/philosophy/idsd.md
+              - docs/adr/014-three-axis-project-profiling.md
+            gap_items:
+              - Per-capability level enforcement
+              - Level-up / level-down recommendation from observed outcomes
+              - Automated posture measurement against declared level
+
+          - id: AM-F011
+            name: Persistent Memory Substrate
+            status: live
+            notes: >
+              Structured artifact tree (STM + Project LTM + KB) with schema
+              validation, provenance headers, and git-based multi-contributor
+              continuity. This is the L2 invariant — memory persists across
+              sessions and is structurally queryable.
+            evidence:
+              - core/components/memory/
+              - docs/philosophy/architecture.md
+            gap_items: []
+
+          - id: AM-F012
+            name: Spec-to-Test Continuity
+            status: partial
+            notes: >
+              Artifact chain intent → scope → epic → plan → implementation →
+              scenarios → tests is enforced by validators (validate-intent-epics,
+              validate-architecture-spec, validate-screen-coverage, check-drift).
+              Automated propagation on upstream change is incomplete.
+            evidence:
+              - core/components/skills/validate-intent-epics/
+              - core/components/skills/check-drift/
+              - core/components/skills/evals-creator/
+            gap_items:
+              - Automatic drift propagation from upstream artifact changes
+              - Intent-to-test-code synthesis (see WI-F011)
+
+      - slug: l3-intent-driven
+        status: partial
+        rollup_notes: >
+          Intent compilation via /create-play is LIVE. Scope auto-narrowing via
+          configure-capabilities is LIVE. Epic auto-generation via
+          generate-intent-epics is LIVE. Runtime intent inference across plays is
+          PLANNED — that is the boundary to L4.
+        features:
+
+          - id: AM-F013
+            name: Intent Compilation
+            status: live
+            notes: >
+              intent.yaml schema + /create-play compiles intent specifications
+              into executable plays. Every Garura play (21 total) is a compiled
+              artifact from its reference/intent.yaml.
+            evidence:
+              - core/components/plays/create-play/
+              - core/components/memory/standards/schemas/intent-epic.yaml
+              - core/components/plays/{play}/reference/intent.yaml
+            gap_items: []
+
+          - id: AM-F014
+            name: Intent Inference
+            status: partial
+            notes: >
+              intent-crafter agent interviews users to produce intent.yaml;
+              intent-resolver agent produces task DAGs from intents. Cross-play
+              intent matching (which play best serves this intent?) is not yet
+              shipped — that is the L4 transition.
+            evidence:
+              - core/components/agents/intent-crafter.md
+              - core/components/agents/intent-resolver.md
+            gap_items:
+              - Cross-play intent matching
+              - Runtime intent context binding across plays
+
+          - id: AM-F015
+            name: Scope Auto-Narrowing
+            status: live
+            notes: >
+              configure-capabilities skill walks KB cross-tree constraints and
+              auto-selects capabilities based on project_profile; rejected set is
+              recorded with rationale.
+            evidence:
+              - core/components/skills/configure-capabilities/
+              - core/components/memory/knowledge/domain/_cross-tree-constraints.yaml
+            gap_items: []
+
+          - id: AM-F016
+            name: Epic Auto-Generation
+            status: live
+            notes: >
+              generate-intent-epics instantiates one intent epic per enriched
+              capability with every mandatory field populated and KB-sourced.
+            evidence:
+              - core/components/skills/generate-intent-epics/
+              - core/components/skills/validate-intent-epics/
+            gap_items: []
+
+      - slug: l4-signal-driven
+        status: planned
+        rollup_notes: >
+          L4 is directional. The ONE known architectural shift: instead of
+          /create-play (compile-time play authoring), plays are assembled at
+          runtime via intent-resolution — each invocation determines its own
+          path from intent + signals + context. No concrete feature list yet;
+          deliberately empty until L4 use cases are elaborated in a dedicated
+          research pass.
+        target_milestone: post-v1 (TBD)
+        features: []
+
+      - slug: l5-goal-driven
+        status: planned
+        rollup_notes: >
+          L5 is aspirational. No feature list — architecture direction for goal
+          decomposition, self-correction loops, autonomous completion, and
+          outcome verification is not yet articulated in enough detail to
+          commit features. Deliberately empty pending future research pass.
+        target_milestone: post-v1 (TBD)
+        features: []
+
+  # ============================================================
+  # DOMAIN 2: ENGINEERING OBSERVABILITY (prefix EO)
+  # ============================================================
+
+  - slug: engineering-observability
+    status: partial
+    rollup_notes: >
+      quality-check, quality-check-scoped, check-drift, briefs ship as local
+      measurement/rendering substrate. Cross-project aggregation, dashboards,
+      and signal routing are the persistent gap — these are the Control Tower
+      features.
+    capabilities:
+
+      - slug: quality-signals
+        status: partial
+        rollup_notes: >
+          quality-check and quality-check-scoped skills run locally and emit
+          structured findings. No cross-project aggregation, trend tracking, or
+          dashboard surface.
+        features:
+          - id: EO-F001
+            name: Test Coverage
+            status: partial
+            notes: >
+              Per-project coverage measurement via quality-check. Cross-project
+              aggregation and trend tracking not shipped.
+            evidence:
+              - core/components/skills/quality-check/
+              - core/components/memory/knowledge/quality/testing/
+            gap_items:
+              - Cross-project aggregation
+              - Trend tracking
+              - Coverage dashboard
+
+          - id: EO-F002
+            name: Lint
+            status: partial
+            target_milestone: v1.1 May
+            notes: >
+              Per-Stage-1/2 user input reconciliation (2026-04-18): status
+              restored to partial. Lint runs in quality-check for Node/TypeScript
+              stack as part of existing quality-check framework; broader
+              multi-stack adapter coverage, aggregation, and governance surface
+              remain pending.
+            evidence:
+              - core/components/skills/quality-check/
+            gap_items:
+              - Multi-stack lint adapter coverage
+              - Multi-project lint aggregation
+              - Lint trend dashboard
+              - Lint policy enforcement surface
+
+          # EO-F003 (Build Health) removed 2026-04-18 per user feedback: not needed.
+          # ID retired — NOT reused.
+
+          - id: EO-F004
+            name: Security Scans
+            status: partial
+            target_milestone: v1.2 Jul
+            notes: >
+              Per-Stage-1/2 user input reconciliation (2026-04-18): status
+              restored to partial. Security scanning baseline (npm audit)
+              integrated in quality-check for Node ecosystem; broader scanner
+              integration, vulnerability aggregation, and posture dashboard
+              remain pending.
+            evidence:
+              - core/components/skills/quality-check/
+            gap_items:
+              - Additional scanner integration (Snyk/Dependabot equivalent)
+              - Vulnerability aggregation
+              - Security posture dashboard
+
+      - slug: debt-signals
+        status: partial
+        rollup_notes: >
+          check-drift detects spec drift and emits a debt catalog. Tech-debt
+          governance rules exist (Fowler quadrant). No trend dashboard or
+          debt-driven routing.
+        features:
+          - id: EO-F005
+            name: Tech Debt
+            status: partial
+            notes: >
+              check-drift emits tech-debt catalog per project. Trend tracking
+              and cross-project rollup not shipped.
+            evidence:
+              - core/components/skills/check-drift/
+              - core/components/memory/knowledge/quality/tech-debt/
+            gap_items:
+              - Debt trend dashboard
+              - Debt-driven play routing
+
+          - id: EO-F006
+            name: Domain Debt
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: >
+              No first-class domain-debt detection (capability-level drift,
+              taxonomy debt) shipped beyond the general check-drift surface.
+            evidence: []
+            gap_items:
+              - Domain taxonomy drift detection
+              - Capability staleness indicators
+
+          - id: EO-F007
+            name: Spec Debt
+            status: partial
+            notes: >
+              Spec drift (locked spec vs implementation) detected by
+              check-drift. Schema-debt (artifacts with outdated schema
+              versions) not systematically measured.
+            evidence:
+              - core/components/skills/check-drift/
+              - core/components/memory/standards/rules/resolution.md
+            gap_items:
+              - Schema-version audit
+              - Spec-drift dashboard
+
+      - slug: methodology-posture
+        status: planned
+        rollup_notes: >
+          Three-axis project profiling exists. No automated posture assessment
+          against declared ladder level or play-success telemetry.
+        target_milestone: v1.1 May
+        features:
+          - id: EO-F008
+            name: Ladder Position
+            status: planned
+            target_milestone: v1.1 May
+            notes: >
+              Declared level lives in project_profile; measured level (actual
+              artifact completeness vs declared) is not computed.
+            evidence:
+              - docs/adr/014-three-axis-project-profiling.md
+            gap_items:
+              - Posture measurement algorithm
+              - Declared-vs-practiced drift surfacing
+
+          - id: EO-F009
+            name: AI Adoption Maturity
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: >
+              No measurement of how deeply AI agent workflow is adopted
+              (agent-invocation rate, play-usage breadth) per project.
+            evidence: []
+            gap_items:
+              - Agent-invocation telemetry
+              - Adoption-rate dashboard
+
+          - id: EO-F010
+            name: Play Success Rate
+            status: planned
+            target_milestone: v1.1 May
+            notes: >
+              Plays emit status.json files per invocation but success/failure
+              is not aggregated into a success-rate metric.
+            evidence:
+              - .garura/product/_status/
+            gap_items:
+              - Play-outcome telemetry aggregation
+              - Success-rate trend dashboard
+
+          - id: EO-F015
+            name: OpenTelemetry Integration
+            status: planned
+            target_milestone: v1.1 May
+            notes: >
+              OTEL is the telemetry spine for methodology posture (and shared
+              with AI Governance consumption/autonomy tracking — see AG-F011).
+              Plays, agents, and skills emit OTEL spans/metrics/logs; backend
+              and exporters TBD. This is a cross-cutting capability — may be
+              promoted to its own capability in a later pass.
+            evidence: []
+            gap_items:
+              - OTEL instrumentation SDK for plays/agents/skills
+              - Span/metric/log schema (agent.run, play.step, skill.invoke)
+              - Collector + exporter configuration
+              - Cross-reference with AG consumption-tracking spine
+
+      - slug: delivery-signals
+        status: partial
+        rollup_notes: >
+          ship, merge-pr, and validate-epic emit per-invocation status
+          artifacts. DORA aggregation, cycle/lead time calculation, and
+          change-fail rate dashboards are not shipped.
+        features:
+          - id: EO-F011
+            name: DORA Metrics
+            status: planned
+            target_milestone: v1.1 May
+            notes: >
+              DORA four are not computed or surfaced; raw ship/merge events
+              exist in status files but aggregation layer is missing.
+            evidence: []
+            gap_items:
+              - Deployment-frequency calculation
+              - Change-failure-rate calculation
+              - MTTR calculation
+              - DORA dashboard
+
+          - id: EO-F012
+            name: Cycle Time
+            status: planned
+            target_milestone: v1.1 May
+            notes: Cycle time (first commit → merge) not computed from PR/issue events.
+            evidence: []
+            gap_items:
+              - Per-feature cycle-time calculation
+              - Cycle-time trend dashboard
+
+          - id: EO-F013
+            name: Lead Time
+            status: planned
+            target_milestone: v1.1 May
+            notes: Lead time (issue open → ship) not computed.
+            evidence: []
+            gap_items:
+              - Per-feature lead-time calculation
+              - Lead-time trend dashboard
+
+          - id: EO-F014
+            name: Change-Fail Rate
+            status: planned
+            target_milestone: v1.1 May
+            notes: Change-fail rate (rollback / hotfix ratio) not computed.
+            evidence: []
+            gap_items:
+              - Rollback/hotfix event capture
+              - Change-fail rate dashboard
+
+  # ============================================================
+  # DOMAIN 3: AI GOVERNANCE (prefix AG)
+  # ============================================================
+
+  - slug: ai-governance
+    status: partial
+    rollup_notes: >
+      Evidence artifacts with play/agent/step attribution are written to STM.
+      Post-merge learning extraction (distill, capture-learning) exists. Full
+      audit trail, signed attribution, compliance exports, access control, and
+      token/budget governance are not shipped.
+    capabilities:
+
+      - slug: consumption-tracking
+        status: planned
+        rollup_notes: >
+          No token tracking, budget enforcement, or cost attribution shipped.
+          Agent invocations are logged structurally but no telemetry backend.
+        target_milestone: v1.1 May
+        features:
+          - id: AG-F001
+            name: Token Tracking
+            status: planned
+            target_milestone: v1.1 May
+            notes: Per-agent, per-skill token consumption tracking is not shipped.
+            evidence: []
+            gap_items:
+              - Token-event ingestion per provider
+              - Per-feature token attribution
+
+          - id: AG-F002
+            name: Budget Enforcement
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: Soft and hard budget limits per project / team not shipped.
+            evidence: []
+            gap_items:
+              - Budget configuration surface
+              - Soft-warning alerts
+              - Hard-block with admin override
+
+          - id: AG-F003
+            name: Cost Attribution
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: Cost rollup by feature, user, team, cost-center not shipped.
+            evidence: []
+            gap_items:
+              - Cost reconciliation against vendor invoices
+              - Chargeback/showback reports
+
+          - id: AG-F011
+            name: Autonomy Tracking (Cost vs Autonomy)
+            status: planned
+            target_milestone: v1.1 May
+            notes: >
+              KEY DIFFERENTIATOR METRIC. Tracks how effectively the tool is
+              being used by correlating spend (tokens / $) against autonomy
+              level achieved (L1..L5 of work delivered without human rework).
+              Measured per user, then aggregated to project (and up the
+              governance hierarchy — see AG-F012..F015). Answers: "For this
+              $ spent, what fraction of delivered work required no human
+              correction?" High cost + low autonomy = inefficient usage
+              signal; low cost + high autonomy = target state.
+              Shares the OTEL spine with EO-F015.
+            evidence: []
+            gap_items:
+              - Autonomy-level classifier per delivered unit of work
+              - Cost-per-autonomy-level metric
+              - Per-user dashboard + per-project rollup
+              - OTEL event schema for autonomy outcomes
+
+      - slug: audit-attribution
+        status: partial
+        rollup_notes: >
+          Evidence files with play/agent/step attribution written to STM.
+          Full audit trail, signed attribution, and compliance exports not shipped.
+        features:
+          - id: AG-F004
+            name: AI-vs-Human Trail
+            status: partial
+            notes: >
+              Evidence files record agent vs user authorship at step
+              granularity. Commit-level AI-vs-human attribution is not enforced.
+            evidence:
+              - core/components/skills/write-evidence/
+              - docs/adr/012-evidence-self-commit.md
+            gap_items:
+              - Commit-trailer enforcement
+              - Tamper-evident storage
+
+          - id: AG-F005
+            name: Decision Provenance
+            status: partial
+            notes: >
+              Decision Surfacing Discipline (tier-batched manifests) records
+              choices in-play. Cross-play decision search and historical
+              provenance queries not shipped.
+            evidence:
+              - core/components/memory/standards/rules/
+              - core/components/plays/distill/
+            gap_items:
+              - Decision-search CLI/portal surface
+              - Historical decision replay
+
+          - id: AG-F006
+            name: Evidence Export
+            status: partial
+            notes: >
+              briefs skill renders product YAML to JSON + HTML hub. Per-feature
+              audit-bundle export is not shipped.
+            evidence:
+              - core/components/skills/briefs/
+            gap_items:
+              - Per-feature audit bundle generator
+              - Format adapters for auditor templates
+
+          - id: AG-F007
+            name: Compliance Reports
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: SOC2 / ISO27001 / GDPR report templates not shipped.
+            evidence: []
+            gap_items:
+              - SOC2 Type II template
+              - ISO27001 Annex A template
+              - GDPR data-handling report
+
+      - slug: memory-governance
+        status: planned
+        rollup_notes: >
+          Memory architecture designed (ADR 009, ADR 017). No runtime access
+          control, retention policy enforcement, or formal promotion/demotion
+          workflow.
+        target_milestone: v1.1 May
+        features:
+          - id: AG-F008
+            name: LTM Curation
+            status: partial
+            notes: >
+              distill and capture-learning plays extract learnings but explicit
+              curation (approve/reject/promote) surface is not shipped;
+              promotion from Project LTM to Global KB is manual.
+            evidence:
+              - core/components/plays/distill/
+              - core/components/plays/capture-learning/
+            gap_items:
+              - Promotion UI / CLI
+              - Reviewer assignment workflow
+
+          - id: AG-F009
+            name: Access Control
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: File-system permissions only; no role-scoped or purpose-scoped access.
+            evidence: []
+            gap_items:
+              - Role model for memory layers
+              - Query-layer enforcement
+
+          - id: AG-F010
+            name: Promotion/Demotion Workflow
+            status: planned
+            target_milestone: v1.1 May
+            notes: >
+              STM→LTM and LTM→KB promotion is manual; no demotion
+              (archive/retire) workflow beyond archive-issue-stm.
+            evidence:
+              - core/components/skills/archive-issue-stm/
+            gap_items:
+              - Formal promotion proposal + review
+              - Demotion/archival automation
+
+      - slug: governance-hierarchy
+        status: planned
+        target_milestone: v1.2 Jul
+        rollup_notes: >
+          Multi-tenant aggregation spine: Project → Account → Portfolio → Org.
+          Garura example today: Project=Garura; Account="Codifying Software
+          Engineering"; Portfolio=current work theme; Org=self (solo). For a
+          company adopter: Portfolio becomes products / product lines; Org
+          becomes the company. Every metric (consumption, audit, quality,
+          delivery, autonomy) rolls UP this hierarchy. Shared concern with
+          Engineering Observability / Control Tower — this is the aggregation
+          axis that turns single-project telemetry into portfolio view.
+        features:
+          - id: AG-F012
+            name: Hierarchy Model
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: >
+              Four-tier hierarchy schema: Project → Account → Portfolio → Org.
+              Each tier has a canonical identifier and membership rules. Every
+              first-class artifact (metric, event, evidence record) carries
+              hierarchy tags for UP aggregation.
+            evidence: []
+            gap_items:
+              - Hierarchy schema definition
+              - Artifact tagging contract (hierarchy fields on every event)
+              - Tier-boundary policy (who can see what)
+
+          - id: AG-F013
+            name: Project Tier
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: >
+              Project is the base tier — a single codebase / single product
+              instance. Today's Garura runs are all single-project. This tier
+              is the natural home for issue-centric STM, play status, and
+              project-scoped evidence.
+            evidence: []
+            gap_items:
+              - Project registration + unique identifier
+              - Project-level admin surface
+
+          - id: AG-F014
+            name: Account Tier
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: >
+              Account groups related projects under a shared theme or
+              engineering initiative. Garura example — "Codifying Software
+              Engineering" is the account. Account-level metrics aggregate
+              cross-project consumption, autonomy, and quality.
+            evidence: []
+            gap_items:
+              - Account registration + project membership
+              - Account-level dashboard (cross-project rollup)
+
+          - id: AG-F015
+            name: Portfolio Tier
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: >
+              Portfolio groups accounts — for a company adopter this becomes
+              products or product lines. Portfolio-level metrics answer
+              strategic questions (which line is most efficient? where is
+              autonomy highest?).
+            evidence: []
+            gap_items:
+              - Portfolio registration + account membership
+              - Portfolio-level dashboard
+
+          - id: AG-F016
+            name: Org Tier
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: >
+              Org is the top tier — company-wide rollup. For solo users, Org
+              collapses to self. For enterprise, Org is the canonical billing
+              + compliance boundary. All governance reports (SOC2, cost
+              attribution, audit) ultimately roll up here.
+            evidence: []
+            gap_items:
+              - Org registration + portfolio membership
+              - Org-level compliance + billing boundary
+
+  # ============================================================
+  # DOMAIN 4: WORK INTELLIGENCE (prefix WI)
+  # ============================================================
+
+  - slug: work-intelligence
+    status: partial
+    rollup_notes: >
+      manage-issue and scout-project skills provide intake and project
+      context. Epic decomposition, eval generation, and fix-it loop are LIVE.
+      Sprint planning, RCA, and blast-radius analysis are PARTIAL. Routing,
+      scoring, grooming, story generation, and test code synthesis are PLANNED.
+    capabilities:
+
+      - slug: agentic-triage
+        status: planned
+        rollup_notes: >
+          Automatic triage — incoming defects / enhancements / epics routed to
+          the human or agent best suited for the work, based on profiles.
+          Priority is anchored to product vision + roadmap: if a request is
+          not traceable to vision or roadmap, its priority is BLOCKED and
+          work does not proceed. Agent-time allocation follows the same
+          anchor — system priority reflects how the product is progressing,
+          which makes upstream specify-product / market / features artifacts
+          load-bearing for triage.
+          (Renamed from intent-anchored-triage — user feedback: name was
+          unclear.)
+        features:
+          - id: WI-F001
+            name: Profile-Based Auto-Triage
+            status: planned
+            target_milestone: v1.1 May
+            notes: >
+              Profiles of people AND agents — skills, historical fit, current
+              load — used to automatically route defects, enhancements, and
+              epics to the best-suited worker. No human dispatcher in the
+              loop for the routing decision; dispatcher only approves or
+              overrides.
+            evidence:
+              - core/components/skills/manage-issue/
+            gap_items:
+              - Profile schema for people and agents (skills, fit history, load)
+              - Automatic matcher (work item → best-suited profile)
+              - Override + feedback loop (approve/override becomes training signal)
+
+          - id: WI-F002
+            name: Vision-Anchored Priority
+            status: planned
+            target_milestone: v1.1 May
+            notes: >
+              Priority is computed from traceability to product vision +
+              roadmap. Unmapped request → priority=BLOCKED → work does not
+              proceed. This is a hard gate, not a scoring nudge. Makes the
+              specify-product → features → roadmap artifacts load-bearing:
+              if it's not in the plan, it doesn't run.
+            evidence: []
+            gap_items:
+              - Traceability graph (request → vision → roadmap → features)
+              - BLOCKED state semantics in issue lifecycle
+              - Roadmap-change propagation to active priorities
+
+          - id: WI-F003
+            name: Agent-Time Allocation
+            status: planned
+            target_milestone: v1.1 May
+            notes: >
+              Where agents spend time follows product progress. Ties directly
+              to OTEL telemetry (EO-F015) and autonomy tracking (AG-F011) —
+              the system observes where agent-hours land, compares against
+              roadmap priority, and surfaces drift ("agents spent 40% on
+              capability X but X is deferred to v1.2 — why?"). Replaces
+              "blast-radius analysis" as the WI concern — blast-radius is a
+              technical-change concern that stays with PR analysis.
+            evidence:
+              - core/components/skills/analyze-changes/
+              - core/components/skills/analyze-pr/
+            gap_items:
+              - Agent-time accounting against roadmap
+              - Drift detection (time-spent vs priority)
+              - Reallocation surface
+
+      - slug: agentic-planning
+        status: partial
+        rollup_notes: >
+          Planning is AGENTIC — no story backlogs, no burndowns, and sprints
+          themselves are questionable. Agents deliver faster than story-level
+          decomposition assumes, so the planning unit re-anchors to RELEASES
+          (what ships) rather than sprints (what iterates). Capacity is
+          computed across PEOPLE + AGENTS combined, with token budget as a
+          first-class dimension (Opus vs Sonnet cost, per-play token
+          forecast). OTEL telemetry (EO-F015) is the data spine that lets
+          capacity reason run in reverse: observe spend + outcome, then
+          compute "how many people + how many agents do you need?"
+        features:
+          - id: WI-F004
+            name: Release Planning
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: >
+              The planning unit is a RELEASE — what ships. Not a
+              program-increment, not a sprint. Agentic assembly of candidate
+              work items against release target, anchored to roadmap
+              (WI-F002 Vision-Anchored Priority). Replaces the earlier "PI
+              Planning" framing.
+            evidence: []
+            gap_items:
+              - Release schema (date, theme, capability targets)
+              - Release candidate assembly from priority queue
+              - Release-to-roadmap traceability
+
+          - id: WI-F005
+            name: Agentic Iteration Planning
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: >
+              Whether "sprints" and "burndowns" survive is open — the user's
+              position is that they likely do not in an agentic world.
+              start-feature-planning today scaffolds per-feature planning.
+              Target state: the planner is an agent that reasons across
+              people + agents, assembles parallel work bundles against
+              release pressure, and abandons the fixed time-box cadence
+              that sprints imply. Burndowns replaced by spend-vs-outcome
+              tracking (AG-F011 Autonomy Tracking).
+            evidence:
+              - core/components/plays/start-feature-planning/
+            gap_items:
+              - Agentic planner (assembles work bundles from profiles + priority)
+              - Parallel-work coordination surface
+              - Decision: retain or retire sprint cadence
+
+          - id: WI-F006
+            name: People + Agent Capacity (Token Budget)
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: >
+              Capacity is computed across PEOPLE + AGENTS combined. Token
+              budget is a first-class dimension — Opus vs Sonnet cost
+              awareness at planning time. OTEL telemetry (EO-F015) feeds
+              historical spend per play / per capability; the planner
+              reverses that to answer "for this release scope, how many
+              people + how many agents, at which model tiers, within what
+              token budget?" This is where the project-level intelligence
+              accumulates.
+            evidence: []
+            gap_items:
+              - Per-play / per-capability token cost model (Opus vs Sonnet)
+              - Historical-spend ingestion from OTEL
+              - Reverse capacity model (scope → people + agents + budget)
+              - Budget guardrails at play invocation
+
+      - slug: backlog-lifecycle
+        status: deferred-for-reconsideration
+        target_milestone: post-v1 (TBD)
+        rollup_notes: >
+          Deferred for further thought. Traditional backlog-lifecycle (stories,
+          grooming, story-generation) may not be needed in an agentic world —
+          agents deliver faster than story-decomposition assumes, and release
+          planning (WI-F004) + priority (WI-F002) plus epic decomposition
+          (WI-F007, LIVE) may cover the end-to-end flow without a classical
+          backlog. Intentionally NOT detailed out. Retain only the LIVE
+          feature (Epic Decomposition); prior WI-F008 and WI-F009 are
+          dropped pending a later rethink.
+        features:
+          - id: WI-F007
+            name: Epic Decomposition
+            status: live
+            notes: >
+              generate-intent-epics instantiates one epic per enriched
+              capability with full intent schema; every epic is traceable to
+              a KB feature.
+            evidence:
+              - core/components/skills/generate-intent-epics/
+            gap_items: []
+
+          # WI-F008 (Feature Grooming) and WI-F009 (Story Generation) removed
+          # 2026-04-18 per user feedback: "I don't think we need a backlog
+          # life cycle. Put it on the deferred to be thought more in the
+          # stages, but we should not detail that out." IDs retired — NOT
+          # reused.
+
+      - slug: intent-driven-verification
+        status: partial
+        rollup_notes: >
+          Validators (validate-intent-epics, validate-architecture-spec,
+          validate-screen-coverage, validate-implementation-design,
+          validate-abstraction-layer) and evals-creator ship today.
+          Intent-driven test generation, RCA loop, and fix-it closure are partial.
+        features:
+          - id: WI-F010
+            name: Eval Generation
+            status: live
+            notes: >
+              evals-creator generates step evals and scenario evals from
+              intent.yaml and scenarios files.
+            evidence:
+              - core/components/skills/evals-creator/
+              - core/components/skills/draft-verification-scenarios/
+            gap_items: []
+
+          - id: WI-F011
+            name: Test Generation
+            status: live
+            notes: >
+              Delivered via prepare-epic + implement-epic + validate-epic
+              plays; test case generation from intent.yaml (not from code) is
+              executed as part of the play pipeline rather than as a
+              standalone skill. Status corrected 2026-04-18 (reconciliation
+              pass) from planned → live per user Q4 decision.
+            evidence:
+              - core/components/plays/prepare-epic/
+              - core/components/plays/implement-epic/
+              - core/components/plays/validate-epic/
+              - core/components/skills/draft-verification-scenarios/
+            gap_items:
+              - Intent-to-test-code synthesis as a standalone adapter
+              - Language-specific test adapters beyond Node/TypeScript
+
+          - id: WI-F012
+            name: RCA
+            status: live
+            notes: >
+              Delivered via fix-it + enhance plays; RCA is a first-class phase
+              in both plays, not a standalone skill. Every defect resolution
+              and every enhance invocation performs structured RCA (5-whys)
+              before proposing a change. Status corrected 2026-04-18
+              (reconciliation pass) from partial → live per user Q4 decision.
+            evidence:
+              - core/components/plays/fix-it/
+              - core/components/plays/enhance/
+              - core/components/memory/standards/rca-5-whys.md
+            gap_items:
+              - RCA pattern library (cross-defect correlation)
+
+          - id: WI-F013
+            name: Fix-It Loop
+            status: live
+            notes: >
+              fix-it play closes the loop from defect → RCA → fix → validate.
+              Loop automation over repeated defects is not yet present.
+            evidence:
+              - core/components/plays/fix-it/
+              - core/components/plays/report-issue/
+            gap_items: []
+
+  # ============================================================
+  # DOMAIN 5: ENGINEERING EXPERIENCE (prefix EE)
+  # ============================================================
+
+  - slug: engineering-experience
+    status: partial
+    rollup_notes: >
+      Claude Code + CLI / slash commands are the LIVE backbone. Every other
+      surface (other IDEs, portal, onboarding wizard, design-to-code) is
+      PARTIAL or PLANNED.
+    capabilities:
+
+      - slug: agent-integrations
+        status: partial
+        rollup_notes: >
+          Agent integrations — Claude Code is LIVE; Factory.ai and Codex
+          harnesses are integrated but their governance + CI-mode features
+          remain PARTIAL. Copilot and Cursor are NOT planned (they are
+          IDE-autocomplete tools, not agent surfaces Garura drives). Renamed
+          from ide-integrations — these are agents, not IDEs.
+        features:
+          - id: EE-F001
+            name: Claude Code
+            status: live
+            notes: >
+              Every play and agent runs inside Claude Code today; sync-claude
+              skill deploys components to ~/.claude/.
+            evidence:
+              - core/components/skills/sync-claude/
+              - CLAUDE.md
+            gap_items: []
+
+          # EE-F002 (Copilot) and EE-F003 (Cursor) removed 2026-04-18 per user
+          # feedback: these are autocomplete IDEs, not agent surfaces. Not
+          # planned. IDs retired — NOT reused.
+
+          - id: EE-F004
+            name: Factory.ai
+            status: partial
+            notes: >
+              Factory Droid harness is integrated — sync-droids skill deploys
+              Garura components into the Factory harness. Governance features
+              (invocation-context capture for AI-authorship, full audit trail
+              across Droid runs) remain partial. Status reconciled 2026-04-18
+              from live → partial per Stage 1/2 user input: "factory.ai is
+              done" refers to the harness integration, not to the governance
+              feature set.
+            evidence:
+              - core/components/skills/sync-droids/
+            gap_items:
+              - Invocation-context capture for Factory Droid runs (AI-authorship trailer)
+              - Governance signal retrieval in audit trail
+
+          - id: EE-F005
+            name: Codex
+            status: partial
+            notes: >
+              Codex harness integrated. CI-mode non-interactive behavior and
+              policy pre-approvals for CI-invoked plays remain partial. Status
+              reconciled 2026-04-18 from live → partial per Stage 1/2 user
+              input — the harness is done, the governance + CI-mode controls
+              are not. (Renamed from "Codex CLI".)
+            evidence: []
+            gap_items:
+              - Deterministic non-interactive CI mode
+              - Policy pre-approvals for CI-invoked plays
+
+      - slug: engineering-portal
+        status: partial
+        rollup_notes: >
+          briefs skill renders product YAML to JSON + HTML hub. Role-aware
+          dashboards, project browser, chat surface, and decision-trail briefs
+          are not fully shipped.
+        features:
+          - id: EE-F006
+            name: Role-Aware Dashboards
+            status: planned
+            target_milestone: v1.1 May
+            notes: No role selector, no role-scoped dashboards.
+            evidence: []
+            gap_items:
+              - Role model
+              - Per-role default dashboard
+
+          - id: EE-F007
+            name: Project Browser
+            status: planned
+            target_milestone: v1.1 May
+            notes: Multi-project navigation surface not shipped.
+            evidence: []
+            gap_items:
+              - Project index
+              - Cross-project filters
+
+          # EE-F008 removed 2026-04-18 per user feedback:
+          # Originally "Chat" — reframed to "Headless Channels / Remote Working
+          # Integration" (Slack, remote workflows, non-IDE surfaces) but
+          # marked NOT PLANNED. Claude Code and other agent integrations
+          # already provide these surfaces externally — Garura does not need
+          # to build this. ID retired — NOT reused.
+
+          - id: EE-F009
+            name: Decision-Trail Briefs
+            status: partial
+            notes: >
+              briefs skill produces hub.html aggregating product YAML.
+              Decision-search and historical-trail navigation inside briefs is
+              not shipped.
+            evidence:
+              - core/components/skills/briefs/
+            gap_items:
+              - Decision search within briefs
+              - Historical-trail timeline view
+
+      - slug: first-run-onboarding
+        status: partial
+        rollup_notes: >
+          start-feature bootstraps a work context. No interactive wizard,
+          no multi-IDE installers, no bootcamp tutorial or demo projects.
+        features:
+          - id: EE-F010
+            name: Wizard
+            status: planned
+            target_milestone: v1 Apr
+            notes: Three-question greenfield wizard not shipped; brownfield scanner planned later.
+            evidence: []
+            gap_items:
+              - Greenfield wizard flow
+              - Brownfield repo scanner
+
+          - id: EE-F011
+            name: Installer
+            status: partial
+            target_milestone: v1 Apr
+            notes: >
+              Unified installer — npm distribution + Claude Code end-user
+              bootstrap are the SAME feature. sync-claude skill deploys
+              components to ~/.claude/ for contributors today;
+              `npm install garura` + one-command end-user bootstrap is
+              pending. (Merged EE-F012 Claude Code Installer into this
+              feature 2026-04-18 per user feedback — "F012 is part of
+              installer.")
+            evidence:
+              - core/components/skills/sync-claude/
+            gap_items:
+              - npm package publication
+              - End-user Claude Code installer bundle
+              - One-command bootstrap flow
+              - Update/upgrade flow
+              - Preflight environment checks
+
+          # EE-F012 merged into EE-F011 (Installer) on 2026-04-18. ID retired.
+
+          - id: EE-F013
+            name: Bootcamp
+            status: planned
+            target_milestone: v1.1 May
+            notes: Guided bootcamp tutorial walking a new user through methodology ladder not shipped.
+            evidence: []
+            gap_items:
+              - Bootcamp content
+              - Progress tracking
+
+          - id: EE-F014
+            name: Demos
+            status: planned
+            target_milestone: v1.1 May
+            notes: Three demo projects (solo SaaS, small-squad, enterprise pilot) not shipped.
+            evidence: []
+            gap_items:
+              - Demo project scaffolds
+              - Demo-to-real-project migration path
+
+      - slug: cli-slash-commands
+        status: live
+        rollup_notes: >
+          Every play is user-invokable via slash command in Claude Code today.
+          Status, sync, and distill are all LIVE. This is Garura's primary UX.
+        features:
+          - id: EE-F015
+            name: Play Invocation
+            status: live
+            notes: >
+              21 plays exposed as slash commands (/specify-product,
+              /start-feature, /ship, /create-play, /fix-it, /enhance,
+              /create-pr, /review-pr, /merge-pr, /distill, /capture-learning,
+              /report-issue, etc.).
+            evidence:
+              - core/components/plays/
+              - CLAUDE.md
+            gap_items: []
+
+          - id: EE-F016
+            name: Status
+            status: live
+            notes: Per-play status.json files at .garura/product/_status/ and per-issue status within STM.
+            evidence:
+              - .garura/product/_status/
+            gap_items: []
+
+          - id: EE-F017
+            name: Sync
+            status: live
+            notes: sync-claude and sync-droids skills deploy components to target harnesses (Claude Code, Factory Droids).
+            evidence:
+              - core/components/skills/sync-claude/
+              - core/components/skills/sync-droids/
+            gap_items: []
+
+          - id: EE-F018
+            name: Distill
+            status: live
+            notes: distill play extracts post-merge learnings into Project LTM proposals.
+            evidence:
+              - core/components/plays/distill/
+            gap_items: []
+
+      - slug: design-to-code
+        status: partial
+        rollup_notes: >
+          design-exp pipeline (personas → screens → wireframes → design spec)
+          is LIVE. Figma plugin integration, design tokens, and component
+          generation from wireframes are PLANNED.
+        features:
+          - id: EE-F019
+            name: Figma Integration
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: Figma plugin and bidirectional sync not shipped.
+            evidence: []
+            gap_items:
+              - Figma plugin
+              - Bidirectional sync policy
+
+          - id: EE-F020
+            name: Design Tokens
+            status: planned
+            target_milestone: v1.2 Jul
+            notes: Design-token extraction and governance not shipped.
+            evidence: []
+            gap_items:
+              - Token schema
+              - Token sync between Figma and code
+
+          # EE-F021 (Component Generation) removed 2026-04-18 per user
+          # feedback: "this is going to be part of the phases" — folded into
+          # the new sdlc-phase-coverage capability (design-to-code phase,
+          # EE-F024). ID retired.
+
+      - slug: sdlc-phase-coverage
+        status: partial
+        rollup_notes: >
+          Tracks Garura's coverage of each SDLC phase transition and the
+          depth ("penetration") of automation in each. Phases are the
+          transitions the product must support end-to-end:
+          product-to-spec → spec-to-design → design-to-code →
+          code-to-test → test-to-run. Each feature below measures BOTH
+          coverage (do we have the pipeline?) AND penetration (how
+          automated is it? what still needs humans in each step?). This
+          capability subsumes the earlier "component generation" framing
+          (EE-F021 retired).
+        features:
+          - id: EE-F022
+            name: product-to-spec
+            status: live
+            notes: >
+              Phase: product idea + market + profile → product specification
+              (features, scope, intent epics). Anchored by specify-product
+              play (LIVE). Penetration: deep — market brief, domain
+              selection, MVP recommendation, capability configuration,
+              enrichment, intent-epic generation all agentic with human
+              checkpoints.
+            evidence:
+              - core/components/plays/specify-product/
+              - core/components/agents/product-keeper.md
+              - core/components/agents/market-analyst.md
+            gap_items:
+              - Penetration metric definition + dashboard
+              - Cross-project phase-coverage rollup
+
+          - id: EE-F023
+            name: spec-to-design
+            status: live
+            notes: >
+              Phase: product spec → experience design (personas, screen
+              inventory, user flows, wireframes, design spec). Anchored by
+              design-exp play (LIVE). Penetration: moderate — design
+              artifacts generated; human designer review remains the norm.
+            evidence:
+              - core/components/plays/design-exp/
+              - core/components/agents/designer.md
+              - core/components/skills/synthesize-personas/
+              - core/components/skills/generate-screen-inventory/
+              - core/components/skills/generate-wireframes/
+              - core/components/skills/compile-design-spec/
+            gap_items:
+              - Penetration metric (% of design artifacts agent-generated)
+              - Design-token round-trip (tie to EE-F020)
+
+          - id: EE-F024
+            name: design-to-code
+            status: partial
+            notes: >
+              Phase: design spec + architecture → implementation. Anchored
+              by build-arch, prepare-epic, implement-epic plays. Penetration:
+              partial — epic decomposition, LLD, and code generation run
+              agentic; wireframe → code stub generation and design-decision
+              → code traceability are gaps (absorbed from retired
+              EE-F021 Component Generation).
+            evidence:
+              - core/components/plays/build-arch/
+              - core/components/plays/prepare-epic/
+              - core/components/plays/implement-epic/
+              - core/components/agents/tech-architect.md
+              - core/components/agents/code-builder.md
+            gap_items:
+              - Wireframe → code stub generator
+              - Design-decision → code traceability
+              - Penetration metric (% of code agent-authored)
+
+          - id: EE-F025
+            name: code-to-test
+            status: partial
+            notes: >
+              Phase: implementation → verification (evals, scenarios, judge).
+              Anchored by evals-creator, draft-verification-scenarios, judge
+              agent, validate-epic play. Penetration: partial — scenario +
+              eval generation LIVE; test-code synthesis (WI-F011) is PLANNED.
+            evidence:
+              - core/components/skills/evals-creator/
+              - core/components/skills/draft-verification-scenarios/
+              - core/components/agents/judge.md
+              - core/components/plays/validate-epic/
+            gap_items:
+              - Test-code synthesis (see WI-F011)
+              - Penetration metric (% of tests agent-authored)
+
+          - id: EE-F026
+            name: test-to-run
+            status: partial
+            notes: >
+              Phase: verified build → shipped / running. Anchored by ship,
+              merge-pr, commit-code plays. Penetration: partial — PR
+              creation, review, merge, and release commit all agentic;
+              runtime / production surface (deployment, runtime
+              observability) is not yet Garura's scope.
+            evidence:
+              - core/components/plays/ship/
+              - core/components/plays/merge-pr/
+              - core/components/plays/commit-code/
+              - core/components/plays/review-pr/
+              - core/components/plays/create-pr/
+            gap_items:
+              - Deployment / runtime surface (may stay out of scope)
+              - Runtime observability handoff
+              - Penetration metric (% of ship steps agent-driven)
+
+# ============================================================
+
+specify_product_enhancements_needed:
+  description: >
+    Changes applied here reflect user feedback that specify-product (the play)
+    did not produce the right feature catalog on first pass. Track as an
+    enhancement backlog for specify-product itself.
+  items:
+    - Author features.yaml under product/scope/ (not specification/). DONE in this revision.
+    - Enumerate plays/agents/skills under Component Architecture as zoomed-in feature sub-lists. DONE.
+    - Distinguish "applied and evolving" from "live and done" as a capability-level status. DONE (new status value).
+    - Do not auto-fabricate L4/L5 feature lists; leave empty pending dedicated research. DONE.
+    - "Tether" is a user-convention, not a Garura protocol — describe as human-in-the-loop with bypass config. DONE.
+    - Single node per domain in the YAML hierarchy — capabilities nest, no domain-row duplication. DONE.
+
+ambiguous_mappings:
+  - topic: memory as one feature vs three
+    decision: Split into three features (STM AM-F004, Project LTM AM-F005, Global KB AM-F006)
+    rationale: >
+      The three layers have distinct lifecycles, governance, and shipped state.
+      STM is LIVE (built and done); Project LTM and Global KB are PARTIAL.
+      A single combined feature would hide that status nuance.
+
+  - topic: Human-in-the-Loop — own feature or part of Plays?
+    decision: Own feature (AM-F008)
+    rationale: >
+      Human-in-the-loop is a cross-cutting approval convention used by commits,
+      PRs, destructive actions, and multi-phase plan approvals. Bypass config
+      makes it policy-configurable, not a fixed protocol.
+
+  - topic: Evidence & checkpoint substrate — feature or part of Memory?
+    decision: Own feature (AM-F009)
+    rationale: >
+      Evidence is a write-centric concern with a dedicated skill
+      (write-evidence) and a self-commit ADR (012). Distinct from the memory
+      read/query concern.
+
+  - topic: L2 as a build target for Garura
+    decision: Mark capability status=applied (not a Garura build target)
+    rationale: >
+      Garura APPLIES L2 methodology; it does not build L2 theory as a product
+      capability. The pipeline IS L2 in practice — features under this
+      capability describe the invariants, not active build work.
+
+  - topic: L4 / L5 feature enumeration
+    decision: Empty feature list with directional rollup_notes only
+    rationale: >
+      L4's only known shift (runtime intent-resolution replacing /create-play)
+      is too abstract to commit as discrete features. L5 has no concrete
+      direction yet. Fabricating features would be false precision.
+
+  - topic: EE IDE integration features — count as 5 or combine?
+    decision: Five separate features (EE-F001 through EE-F005)
+    rationale: >
+      Each IDE has its own extension API, release cadence, and parity status.
+      Collapsing would hide that Claude Code is LIVE while Copilot/Cursor/
+      Codex are PLANNED — which is the actionable distinction.
+
+decisions_on_status:
+  agentic_methodology_applied_and_evolving: >
+    NOT "live and done" — applied today and continuously evolved via
+    dogfooding. Component Architecture is LIVE end-to-end; L2 is APPLIED
+    (not a build target); L3 is PARTIAL; L4/L5 are directional.
+
+  component_architecture_live: >
+    Every sub-feature ships today and is dogfooded by Garura itself. 21 plays,
+    19 agents, 47 skills, three memory layers (STM live; Project LTM partial;
+    Global KB partial), three-layer hierarchy, human-in-the-loop approval,
+    evidence substrate.
+
+  global_kb_partial_not_live: >
+    Previously marked LIVE; corrected to PARTIAL. KB content maturity is
+    mid-flight with open review issues; substrate is live, content curation is not.
+
+  l2_spec_driven_applied: >
+    Pipeline is end-to-end operational and applied by Garura itself. Not a
+    Garura build target — marked status=applied. Feature-level PARTIALs
+    (Maturity Ladder, Spec-to-Test) are applied-quality gaps, not build work.
+
+  l3_intent_driven_partial: >
+    Intent compilation (/create-play) is LIVE. Scope auto-narrowing and epic
+    auto-generation are LIVE. Cross-play intent inference is PLANNED and
+    constitutes the L4 boundary.
+
+  l4_l5_no_feature_list: >
+    Intentionally empty. L4 direction: runtime intent-resolution replaces
+    /create-play; each play assembles itself at invocation from intent +
+    signals + context. L5 direction: TBD.
+
+  engineering_observability_partial_overall: >
+    quality-check, check-drift, and briefs ship as local measurement and
+    rendering substrate. Cross-project aggregation, dashboards, and signal
+    routing are the persistent gap — these are the Control Tower features.
+
+  ai_governance_mostly_planned: >
+    Only AG-F004 (AI-vs-human trail via evidence), AG-F005 (decision
+    provenance), AG-F006 (evidence export via briefs), AG-F008 (LTM
+    curation via distill) are PARTIAL. All other governance features are PLANNED.
+
+  work_intelligence_mixed: >
+    Epic decomposition, eval generation, and fix-it loop are LIVE. Sprint
+    planning, RCA, and blast-radius analysis are PARTIAL. Routing, scoring,
+    grooming, story generation, and test code synthesis are PLANNED.
+
+  engineering_experience_mixed: >
+    Claude Code + CLI / slash commands are the LIVE backbone. Every other
+    surface (other IDEs, portal, onboarding wizard, design-to-code) is
+    PARTIAL or PLANNED.
+
+notes_on_findings:
+  major_gaps:
+    - Control Tower dashboards do not exist (quality/debt/posture/delivery all partial or planned)
+    - AI consumption tracking and cost attribution are entirely PLANNED
+    - IDE matrix parity beyond Claude Code is PLANNED
+    - Engineering Portal web UI (role-aware dashboards, chat, project browser) is PLANNED
+    - Onboarding wizard + npm installer are PLANNED despite v1 Apr target
+    - L4 signal-driven orchestration has no concrete feature list yet
+    - KB content maturity — several KB entries in active review
+
+  strengths:
+    - Component Architecture is fully LIVE — plays, agents, skills, three memory layers
+    - L2 Spec-Driven pipeline (specify-product → validate-epic) applied end-to-end
+    - L3 scope auto-narrowing and epic auto-generation are LIVE
+    - CLI / slash command surface is Garura's proven UX
+    - Validator suite (intent epics, architecture, screen coverage, implementation design, KB extension, abstraction layer) is comprehensive
+    - Evidence + human-in-the-loop + checkpoint substrate is cross-cutting and reliable
+
+  readiness_for_roadmap:
+    - v1 Apr (solo founder): Wizard + npm installer + Claude Code installer need to ship
+    - v1.1 May (small squads): IDE parity (Copilot, Cursor), Engineering Portal skeleton, DORA metrics, posture metrics
+    - v1.2 Jul (enterprise pilot): Figma integration, AI consumption + budget enforcement, compliance reports, L4 research output
+    - post-v1: L5 Goal-Driven, cross-project benchmarking, design tokens maturity

@@ -1,0 +1,20 @@
+no_learnings: true
+proposals_path: null
+assessed_at: "2026-04-18"
+issue: 261
+pr: 263
+reason: >
+  PR #263 is a mechanical forward migration — 68 files updated via bulk
+  find-replace (.meridian/ -> .garura/). No new architecture, no new domain
+  concepts, no new patterns introduced. The two KB path fixes in product-keeper
+  and market-analyst corrected a pre-diagnosed defect (RC3) whose solution
+  (use ltm_context.core_base) was fully specified in design.yaml before
+  implementation began. The only execution artifact — initial bulk sed missing
+  bare .meridian/core/memory/ references — is a mechanical detail of a
+  find-replace task, not a domain or architectural learning worth staging.
+diff_assessed_trivial: true
+stm_evidence_found: true
+stm_evidence_verdict: >
+  Rich fix-it evidence (rca.yaml, design.yaml, implementation-report.yaml)
+  confirms all changes were pre-planned and executed as specified. No
+  implementation surprises that would constitute new learning.

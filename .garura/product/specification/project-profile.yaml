@@ -1,0 +1,80 @@
+slug: garura-platform
+product_name: Garura
+vision: Codifying Software Engineering
+
+security_level: elevated
+# Rationale: audit trails, token tracking, AI-vs-human traceability are first-class
+# (Governance pillar). Not "high/regulated" — no BFSI/healthcare/gov surface yet,
+# but higher than "standard" because compliance reporting is a core capability.
+
+industry: developer-tools
+# DX platform domain — AI-assisted software engineering tooling.
+
+audience:
+  primary_roles:
+    - software-engineer
+    - engineering-lead
+    - platform-engineer
+    - designer
+    - product-manager
+    - solo-founder
+  secondary_roles:
+    - compliance-officer
+    - engineering-director
+  adopter_segments:
+    - solo-founders
+    - small-squads
+    - enterprise-teams
+  segmentation_model: progressive-feature-expansion
+  # Feature set expands with adopter segment. Solo gets methodology + DX.
+  # Squads add Work Intelligence. Enterprise adds Control Tower + Governance.
+
+timeline:
+  horizon_months: 12
+  milestones:
+    - name: mvp-solo-greenfield
+      target: 2026-04
+      scope: Solo-founder MVP; greenfield project creation
+    - name: small-squads-brownfield
+      target: 2026-05
+      scope: Small-squads ready; brownfield project support
+    - name: enterprise-ready
+      target: 2026-07
+      scope: Enterprise-ready — governance pillar hardened, Control Tower cross-project surfaces
+
+scale:
+  initial_target: solo-founder
+  progression: solo-founder -> small-squads (3-10 eng) -> enterprise (50-500+ eng)
+  deployment_model: progressive
+  # Feature gates by adopter segment — solo surfaces load without governance overhead;
+  # enterprise surfaces load with full audit + token tracking.
+
+compliance:
+  required: true
+  categories:
+    - ai-usage-traceability
+    - token-consumption-tracking
+    - audit-trail (AI vs human attribution)
+    - memory-governance (LTM curation + access control)
+    - ci-cd-enforcement
+    - adoption-reporting
+  external_regulations_in_scope_v1: []
+  # v1 does not target specific external regs (SOC2/GDPR/HIPAA/etc.).
+  # Internal-governance framing is the compliance surface that matters for v1-v1.2.
+  external_regulations_roadmap:
+    - SOC2 (post-v1, enterprise phase)
+    - GDPR (post-v1, if EU customers)
+
+team_size: solo-dev
+# Single contributor building Garura itself.
+
+delivery_ambition:
+  current_level: L2-spec-driven
+  roadmap_horizon: L3-intent-driven (building) -> L4-signal-driven (Q2-Q3 2026) -> L5-goal-driven (architecture supports; not attempted v1)
+  per_capability_climbing: true
+  # Every capability climbs L1-L5 independently — the ladder is cross-cutting.
+
+constraints_inferred:
+  - Multi-role UX must avoid engineering-jargon overload for designers/PMs
+  - Progressive feature-gating required — solo UX cannot assume enterprise governance load
+  - Greenfield-first (Apr) then brownfield-second (May) — init/migration flows are distinct surfaces

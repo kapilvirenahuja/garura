@@ -15,6 +15,7 @@ Agents and skills query this category when they need to know: **"What does the o
 | `checkpoint.md` | Canonical checkpoint artifact format. Written by scriber alongside every approval prompt; retained as STM audit trail. | every checkpoint-gated play + `scriber` agent |
 | `evidence-file.md` | Canonical evidence file format. Written by scriber at play close; contains step/scenario eval results, checkpoint decisions, recovery attempts, next consumers. | every play that closes with an evidence step + `scriber` agent |
 | `knowledge-file.md` | Canonical knowledge-file template. Tier 1 (all files) and Tier 2 (core-scoped) metadata requirements, staleness rules, and index registration conventions. | `knowledge-extractor`, `capture-learning` |
+| `issue-comment-rca-approved.md` | Canonical GitHub issue comment posted when a user approves an RCA + fix plan at the fix-it approval checkpoint; mirrors the decision from STM to the issue thread. | `fix-it`, future plays producing `rca.yaml` + `design.yaml` |
 
 ## Deferred follow-ups (#209)
 

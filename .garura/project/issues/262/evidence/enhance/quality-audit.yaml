@@ -1,0 +1,124 @@
+status: warn
+audited_at: "2026-04-19T00:00:00Z"
+branch: enhance/262-fix-it-lean-rca
+scope: "Documentation/config only — YAML intent files, Markdown SKILL files, template markdown, STM evidence artifacts"
+
+checks:
+  - name: yaml_parseability_intent
+    status: pass
+    files_checked:
+      - core/components/plays/fix-it/reference/intent.yaml
+      - .garura/project/issues/262/evidence/enhance/approach.yaml
+      - .garura/project/issues/262/evidence/enhance/scope-assessment.yaml
+      - .garura/project/issues/262/evidence/enhance/branch-result.yaml
+      - .garura/project/issues/262/evidence/enhance/issue-read.yaml
+      - .garura/project/issues/262/evidence/enhance/judge-report.yaml
+      - .garura/project/issues/262/evidence/enhance/self-eval.yaml
+    detail: "All YAML files in the primary change set parse cleanly via python3 yaml.safe_load"
+
+  - name: yaml_parseability_build_report
+    status: fail
+    file: .garura/project/issues/262/evidence/enhance/build-report.yaml
+    error_location: "line 40, column 46"
+    error_type: "yaml.parser.ParserError: while parsing a block mapping — expected <block end>, but found <scalar>"
+    offending_line: >
+      - Process section: "Action: comment" subsection added between resolve_or_create and close sections
+    root_cause: >
+      The string "Action: comment" is double-quoted inside a YAML block sequence item. The YAML parser
+      interprets the colon following "Action" as a mapping key-value separator, producing a parse error
+      because the resulting implicit mapping is malformed. The fix is to either escape the colon
+      (single-quote the inner string) or restructure the list item to avoid embedding quoted colons
+      without proper escaping.
+    detail: "build-report.yaml at line 40 is invalid YAML. File is an STM evidence artifact (untracked) — not a compiled play file, but it is part of the declared change set for this branch."
+
+  - name: markdown_internal_links
+    status: pass
+    files_checked:
+      - core/components/plays/fix-it/SKILL.md
+      - core/components/skills/manage-issue/SKILL.md
+      - core/components/memory/standards/templates/issue-comment-rca-approved.md
+      - core/components/memory/standards/templates/_index.md
+    detail: "No broken internal (relative file) links found in any modified markdown files. URL links, anchor links, and template placeholder links were excluded from scope."
+
+  - name: no_unintended_files
+    status: pass
+    change_set_observed:
+      modified_tracked:
+        - core/components/memory/standards/templates/_index.md
+        - core/components/plays/fix-it/SKILL.md
+        - core/components/plays/fix-it/reference/intent.yaml
+        - core/components/skills/manage-issue/SKILL.md
+      new_untracked:
+        - .garura/project/issues/262/ (full directory — STM evidence for this work)
+        - core/components/memory/standards/templates/issue-comment-rca-approved.md
+    detail: >
+      All modified and new files are within declared scope. No stray deletions. No binary files.
+      No leaked secrets found (scanned for API key, token, private key, and GitHub/Slack token patterns).
+      The .garura/project/issues/262/ directory is the STM evidence tree for this issue — expected.
+
+  - name: working_tree_cleanliness
+    status: pass
+    detail: >
+      Working tree has no unexpected untracked files outside the declared change scope.
+      No staged changes awaiting commit. Branch HEAD equals main — this branch has been
+      merged or the work was committed directly to main. All change-set files are accounted for.
+
+  - name: intent_schema_validity
+    status: pass
+    detail: >
+      intent.yaml contains all 4 required content fields (intent, constraints, failure_conditions,
+      scenarios) plus version metadata (1.1.0). Constraint IDs C1-C13 are sequential. Failure
+      condition IDs F1-F10 are sequential. Scenario IDs S1-S4 are sequential.
+
+  - name: change_set_evals
+    status: pass
+    detail: >
+      All 9 auto-checkable evals from approach.yaml verified:
+      E1-PASS: C12 and C13 present in intent.yaml.
+      E2-PASS: F9 and F10 present in intent.yaml.
+      E3-PASS: issue-comment-rca-approved.md referenced 3 times in SKILL.md.
+      E4-PASS: no doc-builder string in fix-it/SKILL.md.
+      E5-PASS: run_in_background: true pattern present in SKILL.md (2 occurrences).
+      E6-PASS: template file exists and registered in templates/_index.md.
+      E7-PASS: manage-issue/SKILL.md has comment action and Action comment Process section.
+      E8-PASS: issue-comment-agent.yaml referenced 8 times in SKILL.md.
+      E9-PASS: no ### Brief subsection in SKILL.md.
+      E10/E11-NOT-AUTO-CHECKABLE: observable at runtime only (documented in build-report.yaml).
+
+blockers:
+  - id: BLK-1
+    file: .garura/project/issues/262/evidence/enhance/build-report.yaml
+    line: 40
+    issue: "Invalid YAML — colon inside double-quoted string inside block sequence item causes parse error"
+    fix: >
+      Change the offending list item from:
+        - Process section: "Action: comment" subsection added between resolve_or_create and close sections
+      to one of:
+        - 'Process section: "Action: comment" subsection added between resolve_or_create and close sections'
+      or:
+        - "Process section: 'Action: comment' subsection added between resolve_or_create and close sections"
+    severity: blocking
+    note: >
+      This is an STM evidence artifact, not a compiled play or runtime component. However, the
+      quality scope explicitly includes all YAML files in the change set, and a non-parseable
+      YAML evidence file fails the yaml_parseability gate. Downstream tooling that reads evidence
+      files (check-drift, capture-learning, quality-auditor itself) may fail silently on this file.
+
+non_blocking_findings:
+  - id: NB-1
+    type: deviation
+    file: core/components/plays/fix-it/SKILL.md
+    detail: >
+      SKILL.md was hand-edited (DEV-1 in build-report.yaml) instead of being regenerated via
+      /create-play --build fix-it. The approach acknowledges this as a last-resort path (A1).
+      All E3-E9 evals pass against the hand-edited file. The deviation is documented and reversible.
+      A post-merge /create-play --build fix-it run would produce a fully compiler-audited rebuild.
+    recommendation: "Schedule /create-play --build fix-it interactively post-merge to close the deviation."
+
+  - id: NB-2
+    type: observation
+    detail: >
+      The branch HEAD is identical to main (git rev-parse main HEAD both return 9fd1694).
+      The branch either has been merged or was force-pushed to main. The quality audit covers
+      the files as they exist in the working tree — the audit findings are valid regardless
+      of branch topology.
