@@ -1,0 +1,13 @@
+pr_number: 295
+pr_url: "https://github.com/kapilvirenahuja/garura/pull/295"
+pr_state: open
+base: main
+head: fix/286-skill-delegation-defects
+closed_issues_refs:
+  - 286
+  - 287
+  - 288
+  - 289
+  - 290
+  - 291
+  - 293

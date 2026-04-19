@@ -1,0 +1,93 @@
+meta:
+  skill: resolve-issues
+  version: 1.0.0
+  generated_at: "2026-04-19"
+  source: caller-authoritative
+  note: >
+    Issues #286–#293 were filed and closed in this session. Mappings supplied
+    by caller at high confidence. Closed issues accept commit references for
+    traceability (close commits are idempotent).
+
+mappings:
+  - group_id: A
+    confidence: high
+    issues:
+      - number: "286"
+        title: "tech-designer: authors /fix-it artifacts inline"
+        state: closed
+      - number: "287"
+        title: "eval-generator (now evals-engineer): no Skill tool, inline encryption"
+        state: closed
+      - number: "288"
+        title: "intent-crafter: no Skill tool, writes intent.yaml directly"
+        state: closed
+      - number: "289"
+        title: "knowledge-extractor: no Skill tool, writes LTM inline"
+        state: closed
+      - number: "290"
+        title: "test-engineer: 4 inline artifacts"
+        state: closed
+      - number: "291"
+        title: "engineering-manager: em-certification.yaml inline"
+        state: closed
+      - number: "293"
+        title: "tech-architect: escape-hatch exempts core artifacts"
+        state: closed
+    rationale: >
+      15 new skill definitions address the inline-artifact defects across all
+      7 affected agents. Each skill corresponds to at least one defect issue.
+
+  - group_id: B
+    confidence: high
+    issues:
+      - number: "287"
+        title: "eval-generator (now evals-engineer): no Skill tool, inline encryption"
+        state: closed
+    rationale: >
+      Rename of eval-generator to evals-engineer plus propagation across all
+      cross-references is the primary fix for #287 (agent rename was part of
+      the defect resolution).
+
+  - group_id: C
+    confidence: high
+    issues:
+      - number: "286"
+        title: "tech-designer: authors /fix-it artifacts inline"
+        state: closed
+      - number: "287"
+        title: "eval-generator (now evals-engineer): no Skill tool, inline encryption"
+        state: closed
+      - number: "288"
+        title: "intent-crafter: no Skill tool, writes intent.yaml directly"
+        state: closed
+      - number: "289"
+        title: "knowledge-extractor: no Skill tool, writes LTM inline"
+        state: closed
+      - number: "290"
+        title: "test-engineer: 4 inline artifacts"
+        state: closed
+      - number: "291"
+        title: "engineering-manager: em-certification.yaml inline"
+        state: closed
+      - number: "293"
+        title: "tech-architect: escape-hatch exempts core artifacts"
+        state: closed
+    rationale: >
+      Agent definition edits wire the skill-pool and remove escape-hatches
+      for all 6 agents with skill-delegation defects.
+
+  - group_id: D
+    confidence: high
+    issues:
+      - number: "287"
+        title: "eval-generator (now evals-engineer): no Skill tool, inline encryption"
+        state: closed
+    rationale: >
+      Docs updates propagate the evals-engineer rename through glossary,
+      ADR-015, and component docs. Skill-pool table updates are adjunct to
+      the rename propagation.
+
+approval_required: false
+approval_reason: >
+  All four groups have high confidence issue mappings supplied by caller.
+  No low or medium confidence groups detected.

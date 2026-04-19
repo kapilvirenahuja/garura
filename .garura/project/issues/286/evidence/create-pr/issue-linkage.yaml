@@ -1,0 +1,67 @@
+primary_issue: 286
+
+issues:
+  - number: 286
+    title: "[DEF][Medium] tech-designer authors /fix-it artifacts inline, bypassing skill-delegation principle"
+    state: closed
+    url: "https://github.com/kapilvirenahuja/garura/issues/286"
+    labels:
+      - defect
+    primary: true
+    type_hint: fix
+
+  - number: 287
+    title: "[DEF][High] eval-generator authors YAML evals, encrypts, and writes manifest inline — no Skill tool"
+    state: closed
+    url: "https://github.com/kapilvirenahuja/garura/issues/287"
+    labels:
+      - defect
+    primary: false
+    type_hint: fix
+
+  - number: 288
+    title: "[DEF][High] intent-crafter writes intent.yaml directly — no Skill tool, no skill pool"
+    state: closed
+    url: "https://github.com/kapilvirenahuja/garura/issues/288"
+    labels:
+      - defect
+    primary: false
+    type_hint: fix
+
+  - number: 289
+    title: "[DEF][High] knowledge-extractor writes LTM artifacts in place inline — no Skill tool"
+    state: closed
+    url: "https://github.com/kapilvirenahuja/garura/issues/289"
+    labels:
+      - defect
+    primary: false
+    type_hint: fix
+
+  - number: 290
+    title: "[DEF][High] test-engineer authors 4 YAML artifacts inline despite draft-verification-scenarios skill existing"
+    state: closed
+    url: "https://github.com/kapilvirenahuja/garura/issues/290"
+    labels:
+      - defect
+    primary: false
+    type_hint: fix
+
+  - number: 291
+    title: "[DEF][Medium] engineering-manager authors em-certification.yaml inline — no Skill tool"
+    state: closed
+    url: "https://github.com/kapilvirenahuja/garura/issues/291"
+    labels:
+      - defect
+    primary: false
+    type_hint: fix
+
+  - number: 293
+    title: "[DEF][Medium] tech-architect escape-hatch exempts core artifacts from skill delegation"
+    state: closed
+    url: "https://github.com/kapilvirenahuja/garura/issues/293"
+    labels:
+      - defect
+    primary: false
+    type_hint: fix
+
+pr_closes: "Closes #286, #287, #288, #289, #290, #291, #293"

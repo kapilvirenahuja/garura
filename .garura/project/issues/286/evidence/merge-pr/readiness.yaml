@@ -1,0 +1,30 @@
+pr_number: 295
+mergeable: true
+merge_state_status: CLEAN
+pr_state: OPEN
+base_branch: main
+head_branch: fix/286-skill-delegation-defects
+tree_clean: true
+tree_notes: >
+  Tracked tree is clean (no uncommitted or staged changes).
+  Untracked files exist under .claude/ and .garura/ — these are unrelated
+  to the PR, persist across branch switches, and are safe. Treated as clean
+  per caller validation.
+constraints_checked:
+  - id: C1
+    status: PASS
+    note: Current branch is fix/286-skill-delegation-defects, not main/master
+  - id: C2
+    status: PASS
+    note: PR #295 exists and is OPEN on kapilvirenahuja/garura
+  - id: C3
+    status: PASS
+    note: Tracked working tree and index are clean; untracked-only files are safe
+  - id: C4
+    status: PASS
+    note: mergeStateStatus=CLEAN, no conflicts
+  - id: C5
+    status: PASS
+    note: Will use repository default merge strategy
+warnings: []
+verdict: PROCEED

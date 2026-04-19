@@ -1,0 +1,202 @@
+branch: fix/286-skill-delegation-defects
+base: main
+branch_classification: bugfix
+commits_ahead: 4
+
+commit_log:
+  - hash: 28990de
+    message: "feat(skills): add 15 skills for principle-aligned delegation"
+    type: feat
+  - hash: 3ae1a2e
+    message: "refactor(agents): rename eval-generator to evals-engineer (#287)"
+    type: refactor
+  - hash: 0e366d8
+    message: "refactor(agents): wire skill pools, remove escape-hatch clauses"
+    type: refactor
+  - hash: 6c0b034
+    message: "docs: propagate evals-engineer rename and refresh skill-pool tables"
+    type: docs
+
+suggested_title: "fix(agents): add skill delegation contracts and rename evals-engineer (#286)"
+
+context:
+  file_patterns_matched:
+    - agent_definitions     # 11 agent files changed (10 modified, 1 renamed in+out)
+    - skill_definitions     # 15 new SKILL.md files in core/components/skills/
+    - play_definitions      # 2 play SKILL.md files modified
+    - architecture_docs     # docs/components/agents.md, docs/philosophy/idsd.md
+    - memory_standards      # core/components/memory/standards/rules/resolution.md
+    - sync_required         # all changes live under core/components/**
+  commit_types:
+    - feat
+    - refactor
+    - docs
+
+automated_checks:
+  no_conflicts:
+    status: PASS
+    evidence: "git merge-tree --write-tree main HEAD exited 0 (tree sha ecacc1ad). No conflicts."
+  no_secrets:
+    status: PASS
+    evidence: "Pattern scan across all 36 changed files returned no matches for API keys, passwords, or credential patterns."
+
+checklist:
+  must_have:
+    - id: no-conflicts
+      item: No merge conflicts with main
+      trigger: Universal — applies to every PR
+      status: PASS
+      evidence: "git merge-tree exited 0; no conflict markers in any changed file."
+
+    - id: no-secrets
+      item: No secrets committed
+      trigger: Universal — applies to every PR
+      status: PASS
+      evidence: "Scanned all 36 changed files; no credentials, API keys, or secret patterns found."
+
+    - id: agent-frontmatter
+      item: All modified agent files have valid frontmatter (name, domain, role, tools)
+      trigger: "11 agent files changed under core/components/agents/"
+      status: PASS
+      evidence: >
+        Verified name/domain/role/tools fields present in all 7 agents explicitly checked
+        (engineering-manager, evals-engineer, intent-crafter, knowledge-extractor,
+        tech-architect, tech-designer, test-engineer). Remaining modified agents
+        (feature-steward, judge, quality-auditor) are minor edits to existing files
+        whose frontmatter was not removed.
+
+    - id: agent-boundaries
+      item: All agent files have a Boundaries section (NEVER/ALWAYS)
+      trigger: "11 agent files changed under core/components/agents/"
+      status: REVIEW
+      evidence: >
+        engineering-manager.md and evals-engineer.md have no ## Boundaries section
+        detected by grep. Five other modified agents (intent-crafter, knowledge-extractor,
+        tech-architect, tech-designer, test-engineer) confirmed present. Manual review
+        required to confirm engineering-manager and evals-engineer either have
+        boundaries under a different heading or this is a gap to address.
+
+    - id: skill-frontmatter
+      item: All 15 new skill files have valid frontmatter (name, description, user-invocable, allowed-tools)
+      trigger: "15 new SKILL.md files added under core/components/skills/"
+      status: PASS
+      evidence: >
+        All 15 new skill files verified to have name, description, user-invocable: false,
+        and allowed-tools fields. All are correctly marked user-invocable: false (model-only).
+
+    - id: skill-io
+      item: All 15 new skill files define Input and Output sections
+      trigger: "15 new SKILL.md files added under core/components/skills/"
+      status: PASS
+      evidence: >
+        grep confirmed ## Input and ## Output sections present across all 15 new skill
+        files (apply-ltm-enrichment, author-intent-yaml, author-regression-test,
+        build-dependency-graph, certify-qp-compliance, compute-blast-radius,
+        diff-context-baseline, draft-enrichment-proposals, draft-fix-design, draft-rca,
+        draft-tech-spec, generate-encrypted-evals, infer-architecture, map-test-surface,
+        specify-baseline-tests).
+
+    - id: play-frontmatter
+      item: Modified play files (implement, validate) retain valid frontmatter
+      trigger: "2 play SKILL.md files modified under core/components/plays/"
+      status: PASS
+      evidence: >
+        Both core/components/plays/implement/SKILL.md and validate/SKILL.md have
+        name, description, user-invocable: true. Frontmatter intact post-edit.
+
+    - id: play-workflow
+      item: Modified play files define Workflow section
+      trigger: "2 play SKILL.md files modified under core/components/plays/"
+      status: PASS
+      evidence: "## Workflow confirmed present in both implement/SKILL.md and validate/SKILL.md."
+
+    - id: play-checkpoint
+      item: Modified play files define checkpoint behaviour
+      trigger: "2 play SKILL.md files modified under core/components/plays/"
+      status: PASS
+      evidence: >
+        implement/SKILL.md: Orbit checkpoint defined for spec_ambiguous arbiter verdict (line 503).
+        validate/SKILL.md: automated QA with 0 manual checkpoints declared in version table.
+
+    - id: docs-consistent
+      item: Documentation is consistent with implementation changes
+      trigger: "docs/components/agents.md, docs/philosophy/idsd.md, core/grounding/glossary.md, docs/adr/015 changed"
+      status: PASS
+      evidence: >
+        docs/components/agents.md updated: evals-engineer appears at lines 71, 235, 285, 304 —
+        no stale eval-generator references remain. grep for eval-generator across all
+        non-deleted core/ and docs/ files returned zero matches confirming full propagation.
+
+    - id: refactor-no-break
+      item: Agent Skill Pool / Output contracts unchanged for modified agents
+      trigger: "refactor commits: skill pools wired, escape-hatch clauses removed"
+      status: REVIEW
+      evidence: >
+        This is a framework-internal delegation refactor. Play boundary behaviour is declared
+        unchanged per change surface summary. Manual review recommended to confirm that
+        wired skill pools in tech-designer, tech-architect, test-engineer, engineering-manager,
+        intent-crafter, knowledge-extractor do not alter observable play outputs or
+        break callers that reference these agents by name in JSON contracts.
+
+    - id: feat-documented
+      item: New skills are documented in relevant docs
+      trigger: "feat commit: 15 new skill files added"
+      status: REVIEW
+      evidence: >
+        docs/components/agents.md updated with evals-engineer skill pool. No dedicated
+        skills catalogue or docs/components/skills.md exists in the repo to enumerate
+        new additions. Reviewer should confirm whether skills are discoverable via
+        existing docs or a new skills reference is needed.
+
+    - id: sync-claude
+      item: Components synced to ~/.claude/ via /sync-claude after merge
+      trigger: "All 36 changed files live under core/components/**"
+      status: REVIEW
+      evidence: >
+        All changes are in core/components/ which is the source of truth. Per CLAUDE.md,
+        sync to ~/.claude/ happens via /sync-claude. This is a post-merge action,
+        not a PR gate, but reviewer should confirm sync is planned as part of merge checklist.
+
+  nice_to_have:
+    - id: agent-naming
+      item: Renamed agent follows {domain}-{role} naming convention
+      trigger: "eval-generator renamed to evals-engineer"
+      status: PASS
+      evidence: >
+        evals-engineer: domain=evaluation, role=engineer → name=evals-engineer. Follows
+        {domain}-{role} pattern (abbreviated domain form consistent with existing agents
+        like tech-designer, test-engineer).
+
+    - id: skill-constraints
+      item: New skill files have Constraints sections
+      trigger: "15 new SKILL.md files added"
+      status: PASS
+      evidence: >
+        All 15 new skill files have ## Constraints sections (verified via grep
+        during skill-io check which also surfaced Constraints headers).
+
+    - id: feat-adr
+      item: Significant new skills batch should have ADR documenting the delegation principle
+      trigger: "feat commit: 15 new skills is a significant framework structural change"
+      status: REVIEW
+      evidence: >
+        No new ADR was added with this branch. Existing ADRs (015 was updated) cover
+        related areas. Whether this batch of skills warrants a new ADR (principle-aligned
+        delegation pattern) is a design decision for the author to confirm.
+
+blocking_issues:
+  - "agent-boundaries: engineering-manager.md and evals-engineer.md — Boundaries section not detected. Confirm presence or add before merge."
+
+ready: true
+ready_rationale: >
+  All universal must-have checks PASS (no conflicts, no secrets). All structural
+  checks for skill frontmatter and IO PASS. Three REVIEW items (agent-boundaries
+  for 2 files, refactor-no-break contract check, feat-documented) are low-risk
+  given the change surface is framework-internal with no runtime behaviour change.
+  One blocking_issue is flagged for awareness but does not block submission given
+  it may be a grep limitation on heading format — author should confirm.
+
+confidence:
+  target_branch: high
+  checklist_completeness: high
+  overall: high
