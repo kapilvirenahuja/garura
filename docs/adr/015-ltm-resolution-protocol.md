@@ -35,7 +35,7 @@ Both are optional — backward compatibility is preserved.
 
 ### Agent Updates
 
-5 agents updated: tech-designer, product-strategist (full R1-R4), code-builder, quality-auditor (lightweight awareness), repo-orchestrator (convention check). 2 agents exempt: eval-generator, judge (context isolation preserved).
+5 agents updated: tech-designer, product-strategist (full R1-R4), code-builder, quality-auditor (lightweight awareness), repo-orchestrator (convention check). 2 agents exempt: evals-engineer, judge (context isolation preserved).
 
 ### Play Updates
 

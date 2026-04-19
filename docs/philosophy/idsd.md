@@ -51,7 +51,7 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 | 1 | Intent Layer | Plays — atomic (≤2 agents), high-order (≤5 agents). Every play has IDD intent header (intent/constraints/failure_conditions). |
 | 2 | Signals | User CLI invocations (`/build-feature`, `/commit-code`). All signals enter via plays. |
 | 3 | Orchestrated Intent | Play Levels. Three speeds: Fast (minutes), Planned (hours), Strategic (days). |
-| 4 | Agents | 19 agents across 7 roles: code-builder, tech-designer, tech-architect, repo-orchestrator, project-orchestrator, feature-steward, quality-auditor, judge, eval-generator, engineering-manager, test-engineer, designer, doc-builder, product-keeper, market-analyst, knowledge-extractor, scriber, intent-crafter, intent-resolver. Agent-first pattern. |
+| 4 | Agents | 19 agents across 7 roles: code-builder, tech-designer, tech-architect, repo-orchestrator, project-orchestrator, feature-steward, quality-auditor, judge, evals-engineer, engineering-manager, test-engineer, designer, doc-builder, product-keeper, market-analyst, knowledge-extractor, scriber, intent-crafter, intent-resolver. Agent-first pattern. |
 | 5 | Memory | Three-layer memory: KB (`~/.garura/core/memory/`) — global org knowledge. LTM (`{product_base}`) — project-specific. STM (`{stm_base}/{issue}/`) — per-issue. Flow: KB → LTM → STM. |
 | 6 | Skills | Bounded capabilities invoked by agents. Each skill has SKILL.md with input/output contracts. |
 | 7 | Context-Aware Decisions | Context bundles ≤12K tokens. Audience separation (Tier 1/2/3). Agents read LTM + STM. |
@@ -282,7 +282,7 @@ IDSD maps the AI Squad Framework roles to 19 Meridian agents across 7 roles — 
 | Builder | code-builder | Element 4 |
 | Designer | tech-designer, tech-architect, designer | Element 4 |
 | Specifier | feature-steward, product-keeper | Element 4 |
-| Validator | quality-auditor, judge, eval-generator, engineering-manager, test-engineer | Elements 4 + 8 |
+| Validator | quality-auditor, judge, evals-engineer, engineering-manager, test-engineer | Elements 4 + 8 |
 | Orchestrator | repo-orchestrator, project-orchestrator | Elements 3 + 4 |
 | Knowledge | knowledge-extractor, market-analyst, scriber | Elements 4 + 5 |
 | Framework | doc-builder, intent-crafter, intent-resolver | Element 4 |
@@ -301,7 +301,7 @@ IDSD maps the AI Squad Framework roles to 19 Meridian agents across 7 roles — 
 | product-keeper | product | specifier | Product-2-Spec |
 | quality-auditor | quality | validator | Code-2-Test, Audit-2-Fix |
 | judge | evaluation | validator | Design-2-Code (unit + system) |
-| eval-generator | evaluation | validator | Design-2-Code |
+| evals-engineer | evaluation | validator | Design-2-Code |
 | engineering-manager | quality | validator | Audit-2-Fix |
 | test-engineer | testing | validator | Design-2-Code, Code-2-Test |
 | repo-orchestrator | repo | orchestrator | Universal |
