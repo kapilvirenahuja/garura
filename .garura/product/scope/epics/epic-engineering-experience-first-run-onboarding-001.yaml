@@ -1,0 +1,230 @@
+# epic-engineering-experience-first-run-onboarding-001.yaml
+# Garura Platform — specify-product Stage 5: Intent Epic
+#
+# Provenance
+# play: specify-product
+# stage: 5-generate-intent-epics
+# agent: product-keeper
+# skill: generate-intent-epics v0.2.0
+# task_id: specify-product-stage-5-generate
+# created_at: 2026-04-18T03:00:00Z
+# reconciled_at: 2026-04-18T06:00:00Z  (EE-F012 removed — merged into EE-F011 per features.yaml)
+# kb_source_file: .garura/product/research/engineering-experience.md
+# enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
+
+id: "EPIC-engineering-experience-first-run-onboarding-001"
+domain: "engineering-experience"
+capability: "EE-F010"
+
+provenance:
+  source: brief_explicit
+  source_quote: "engineering-experience / first-run-onboarding (net-new build — wizard + unified installer) — Stage-3 user input"
+  confidence: high
+
+problem_statement: >
+  Solo founders evaluating a new DX methodology platform face an install-then-abandon cliff:
+  if the first-run experience takes more than a few minutes of configuration, the evaluation
+  moment is permanently lost. Market brief gap 5 confirms that no AI dev tool serves the
+  solo-founder-to-enterprise progression — the greenfield wizard is the entry gate for the
+  entire Garura adoption funnel. The KB failure scenario is explicit with a quantified
+  impact: a wizard that asks more than 3 questions causes abandonment at Step 1.
+  Compound failure: if npm install garura partially succeeds or leaves a broken state,
+  Garura is unusable without debug skills and the abandonment rate spikes at the install
+  step — before the developer ever reaches the wizard.
+
+intent: >
+  Enable a solo founder to complete Garura initialization in < 3 minutes from npm install
+  to a valid project_profile.yaml, with 0 partial-install broken states on supported
+  Node versions.
+
+intent_lock:
+  locked_at: "2026-04-18T05:00:00Z"
+  intent_hash: "sha256:2d6f31f68f33e333f330109818370639e792089c041e115712ea625da0abca7d"
+  locked_by: "specify-product-stage-5-validate"
+  immutability_note: >
+    Intent content is immutable after lock. Post-v1 drift requiring a scope change must
+    be handled via a Product-Drift successor epic, not by editing this intent block. The
+    features[] ledger and epic_status rollup below may evolve as capabilities move through
+    PLANNED → PARTIAL → LIVE; the intent itself is sealed.
+
+appetite: "3 weeks"
+
+in_scope:
+  - "EE-F010 Greenfield Wizard at Standard depth: three-question minimum wizard that completes in < 3 minutes and produces a valid project_profile.yaml"
+  - "EE-F011 Unified Installer at Standard depth: npm install garura succeeds on all supported Node versions; preflight check detects missing prerequisites before install completes; one-command Claude Code bootstrap from npm; sync-claude runs idempotently as part of onboarding; upgrade flow preserves user data (absorbs retired EE-F012 Claude Code Installer)"
+  - "Atomic install guarantee: either all required components are installed successfully or the install fails cleanly with no partial state"
+  - "Preflight prerequisite detection: missing Node version, Claude Code version, or git configuration surfaced before install completes"
+
+anti_goals:
+  - "Brownfield project scanner — v1 is greenfield-only; brownfield migration tooling is the May 2026 milestone scope"
+  - "Advanced managed installer with update notifications — EE-F011 Advanced depth; v1 scope is the one-command bootstrap only"
+  - "More than 3 questions in the wizard — KB tradeoff: three-question minimum; additional questions trigger abandonment; any expansion is post-v1"
+  - "SSO or organizational authentication at install time — Enterprise depth; post-v1 enterprise milestone (Jul 2026)"
+  - "Windows installer — v1 targets macOS/Linux; Windows support is post-v1"
+
+must_not_break:
+  - "EPIC-agentic-methodology-component-arch-001 — the bootstrap installs the three-layer hierarchy substrate; the installed state must be identical to the state produced by sync-claude from source"
+  - "EPIC-engineering-experience-cli-slash-commands-001 — the one-command bootstrap must produce a Claude Code environment where /help lists all available Garura plays immediately after install"
+
+foundation_investment: false
+
+features:
+  - id: "EE-F010"
+    name: "Greenfield Wizard"
+    status: "PLANNED"
+    delivered_at: null
+    evidence:
+      - path: ".garura/product/research/engineering-experience.md"
+        type: "kb"
+    delta_remaining: "Wizard not yet implemented; garura init bootstrap is the only initialization path today; 3-question wizard schema to be designed."
+    intent_fit_rationale: "Wizard is the entry gate that delivers the < 3-minute profile creation target in this epic's intent."
+  - id: "EE-F011"
+    name: "Unified Installer"
+    status: "PARTIAL"
+    delivered_at: null
+    evidence:
+      - path: "package.json"
+        type: "config"
+      - path: "core/engine/"
+        type: "component"
+      - path: "core/components/skills/sync-claude/"
+        type: "skill"
+    delta_remaining: "Public npm package not yet published; end-user Claude Code bootstrap bundle (absorbed from retired EE-F012) pending; preflight prerequisite check, atomic install guarantees, and upgrade/update flow all pending. sync-claude ships for contributors today."
+    intent_fit_rationale: "Zero partial-install broken states depend on atomic install behavior at the npm layer AND the one-command Claude Code bootstrap — both are now delivered by this unified installer feature."
+
+epic_status:
+  live_count: 0
+  partial_count: 1
+  planned_count: 1
+  delivered_pct: 0
+  total_features: 2
+
+success_scenarios:
+  - scenario: >
+      Given a solo founder with a new project directory and no prior Garura configuration
+      on a supported Node version, when they run npm install garura followed by garura init,
+      then they complete a 3-question wizard and a valid project_profile.yaml is written
+      to the project directory in < 3 minutes.
+    evidence: >
+      garura init wizard completion time < 3 minutes measured from first prompt to
+      project_profile.yaml write completion. project_profile.yaml validates against the
+      profile schema (required fields present, no null mandatory values). Measured
+      in CI on a clean macOS/Linux environment.
+  - scenario: >
+      Given a developer on a supported Node version who has not installed Garura previously,
+      when they run npm install garura, then the installation completes with exit code 0,
+      all prerequisites are verified by the preflight check, and no partial-install state
+      is left on failure.
+    evidence: >
+      npm install garura exits 0 on all supported Node versions in CI. Preflight check
+      produces a PASS/FAIL status per prerequisite before install proceeds. Failed installs
+      leave zero modified files in node_modules (atomic rollback verified by file-system
+      diff before and after failed install).
+
+failure_scenarios:
+  - scenario: >
+      Given a wizard flow that has grown beyond 3 questions (due to scope creep during
+      implementation), when a solo founder evaluating Garura reaches question 4, then
+      the evaluator abandons the wizard before completing initialization.
+    impact: >
+      Permanent adoption loss — the solo founder who abandoned will not return to
+      re-evaluate. First impression failure is unrecoverable in the solo-founder segment.
+    mitigation: >
+      3-question maximum enforced as a hard constraint in the wizard implementation;
+      question count gate in the wizard flow emits a test failure if question count
+      exceeds 3 in any wizard variant; any additional profile data collected via
+      optional /configure command after onboarding.
+  - scenario: >
+      Given a developer running npm install garura where a prerequisite (Node version,
+      git, Claude Code) is missing, when the install proceeds past the preflight check,
+      then the install partially completes leaving Garura in a broken state.
+    impact: >
+      Garura is unusable without debug skills. Abandonment rate spikes at the install
+      step — before the developer reaches the wizard. Solo-dev impact: debugging a
+      broken install without team support is a high-effort abandon trigger.
+    mitigation: >
+      Preflight check runs before any file writes; install is atomic — all files written
+      or none; failed preflight emits a clear error listing the missing prerequisite
+      and the remediation command.
+  - scenario: >
+      Given a developer running the upgrade flow (npm install garura@latest), when
+      sync-claude runs as part of the upgrade, then user-customized components in ~/.claude/
+      are overwritten without warning.
+    impact: >
+      Lost customization — solo-dev has no backup copy. The upgrade flow becomes
+      destructive and the developer loses trust in auto-upgrade.
+    mitigation: >
+      Conflict detection before sync: sync-claude checksums local components against
+      source before overwrite; any local modification triggers a Tether/Vanish gate;
+      upgrade flow never silently overwrites customized files.
+  - scenario: >
+      Given a developer who installs Garura on a slow network, when npm install takes
+      more than 5 minutes due to large optional module bundles being included in core,
+      then the negative first impression causes the developer to abandon the install.
+    impact: >
+      Solo-founder evaluating Garura loses patience at the install step — before reaching
+      the wizard. Large package = slow install = first-impression failure.
+    mitigation: >
+      Optional modules excluded from the core npm package; package size monitored in CI
+      with a budget threshold that fails the CI step if exceeded; only required dependencies
+      in the core bundle.
+
+constraints:
+  performance:
+    value: "Greenfield wizard completes in < 3 minutes from first prompt to project_profile.yaml write; npm install garura completes in < 2 minutes on a 10 Mbps connection"
+    source_for_quantification:
+      source: kb_default
+      source_reference: "kb.engineering-experience.EE-F010.success_criteria[0]; npm install time target derived from solo-dev usability threshold"
+      user_grounded: true
+      user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+  security:
+    value: "OWASP ASVS Level 1 — install surface has no auth; npm package integrity verified via npm audit on every CI build; TLS 1.3 for npm registry connections"
+    source_for_quantification:
+      source: profile_nfr
+      source_reference: "profile.security_level=elevated maps to OWASP ASVS Level 1 for install-time surfaces; npm audit is standard practice"
+  accessibility:
+    value: "WCAG 2.1 AA — wizard prompts are CLI text; AA constraint inherited for any UI-rendered onboarding surface"
+    source_for_quantification:
+      source: profile_nfr
+      source_reference: "profile.audience includes designers and PMs; WCAG 2.1 AA is the org-wide baseline"
+  compliance: []
+
+business_rules:
+  - "Mandatory when v1 solo-founder target — greenfield wizard is the v1 minimum viable onboarding (EE-F010); 3-question maximum is non-negotiable"
+  - "Mandatory for public distribution — npm install garura must succeed on all supported Node versions (EE-F011) AND the one-command Claude Code bootstrap must produce an installed state equivalent to sync-claude from source"
+  - "Three-question minimum for the greenfield wizard — more questions trigger abandonment; this is a KB-validated tradeoff"
+  - "Install is atomic — either complete success or clean failure with no partial state; partial installs are a blocking defect"
+
+hypothesis: >
+  We believe that delivering a greenfield wizard that completes in < 3 minutes with a 3-question
+  maximum for solo founders evaluating Garura will result in a first-run experience that converts
+  evaluators to active users without documentation lookup. We will know this is true when
+  garura init completes in < 3 minutes producing a valid project_profile.yaml on 100% of
+  clean-install CI runs on supported Node versions.
+
+assumptions_requiring_validation:
+  - "3 questions are sufficient to generate a valid project_profile.yaml with enough information to drive configure-capabilities in Stage 3 — if the profile schema requires more fields, the wizard cannot complete the profile in 3 questions"
+  - "npm install garura will fit within a reasonable package size on all supported Node LTS versions — the size budget has not been measured for the full capability set"
+  - "Solo founders prefer a wizard-based setup over a configuration-file-first setup — this is a UX assumption; if the target audience prefers config files, the wizard approach misses the mark"
+
+dependencies:
+  - "npm registry account and publish credentials — EE-F011 requires a public npm package; publish credentials must be set up before the first release"
+  - "Claude Code MCP slash-command registration protocol — EE-F011 Claude Code bootstrap must register slash commands in the Claude Code environment; this requires a stable slash-command registration API"
+
+depends_on:
+  - "EPIC-agentic-methodology-component-arch-001"
+  - "EPIC-engineering-experience-cli-slash-commands-001"
+
+uses_mocks: false
+
+kb_source:
+  capability: "EE-F010"
+  rules_applied:
+    - "EE-F010 mandatory-default: three-question minimum wizard for v1 solo-founder target"
+    - "EE-F011 mandatory-default: unified installer covering npm publish AND Claude Code end-user bootstrap (absorbs retired EE-F012)"
+    - "atomic install: complete success or clean failure — no partial state"
+    - "3-question maximum: KB-validated tradeoff against richer profile capture"
+  experiential_warnings:
+    - "Missing brownfield scanner for repositories with existing structure (v1 greenfield only)"
+    - "npm install sizes growing when optional modules are bundled with core"
+    - "Editing ~/.claude/ components directly instead of going through sync-claude"

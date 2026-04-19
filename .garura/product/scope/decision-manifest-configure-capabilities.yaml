@@ -1,0 +1,332 @@
+# Decision Manifest — configure-capabilities (Stage 3)
+#
+# Provenance
+# play: specify-product
+# stage: 3-configure-capabilities
+# agent: product-keeper
+# skill: configure-capabilities
+# task_id: specify-product-stage-3-configure
+# created_at: 2026-04-18T00:00:00Z
+# regenerated_at: 2026-04-18T01:00:00Z  (post-Q1-Q4 user decisions; user_response populated on all entries)
+
+schema_version: "1.0"
+skill: "configure-capabilities"
+generated_at: "2026-04-18T00:00:00Z"
+regenerated_at: "2026-04-18T01:00:00Z"
+
+# SE-23 compliance note:
+# All HIGH-tier decisions below have user_response populated (accept/reject/modify).
+# Batch acceptance captured: user answered Q1-Q4 directly and did not push back on
+# any HIGH-tier recommendation; implicit accept per SE-23 batch-confirm protocol.
+# One new HIGH-tier decision added post-batch: D-cc-005 (WI-F007 reclassification).
+
+decisions:
+
+  # ── D-cc-001: Within-Domain Coverage Classification ──────────────────────────
+
+  - decision_id: "D-cc-001-am-methodology-coverage"
+    decision_type: "within-domain-gap-classification"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/agentic-methodology.md"
+      excerpt: >
+        All 9 Component Architecture features explicitly marked LIVE. L2/L3
+        capability feature blocks each declare their status in the research file.
+    recommendation: >
+      full coverage for all 8 selected capabilities against brief-stated needs.
+      Brief pillar 1 ("Codifies how work is done") maps directly to component-architecture +
+      l2-spec-driven + l3-intent-driven. No gaps in agentic-methodology against brief.
+    alternatives_considered:
+      - alt: "partial coverage — L3 features AM-F013 inference are PARTIAL, not LIVE"
+        why_not: >
+          Coverage classification tracks whether a *feature exists*, not whether it is LIVE.
+          PARTIAL status is a build-status signal, not a domain-gap signal.
+    agent_reasoning_summary: >
+      The project brief maps each of its 5 named pillars to a domain. The agentic-methodology
+      domain covers Pillar 1 fully: plays, agents, skills, memory, hierarchy, Tether/Vanish,
+      evidence, and the maturity ladder are all first-class features. No implied need from the
+      brief is absent from the feature catalog.
+    user_response: accept
+    user_response_detail: "Coverage acknowledged; WI-F007 reclassified into AM/l3-intent-driven per Q2."
+
+  - decision_id: "D-cc-001-ee-coverage"
+    decision_type: "within-domain-gap-classification"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/engineering-experience.md"
+      excerpt: >
+        EE-F001 (Claude Code) mandatory; EE-F004 (Factory.ai) optional; EE-F005 (Codex CLI)
+        optional; EE-F010/011/012 mandatory for first-run-onboarding; EE-F015..018 mandatory
+        for cli-slash-commands.
+    recommendation: >
+      full coverage for cli-slash-commands and first-run-onboarding within v1 scope.
+      ide-integrations scoped to Claude Code (mandatory), Factory.ai and Codex (user-selected
+      optional) per MVP rec; Copilot/Cursor rejected.
+    alternatives_considered:
+      - alt: "partial coverage — engineering-portal (EE-F006..F009) is absent from v1 selected set"
+        why_not: >
+          engineering-portal is explicitly deferred to v1.1. Coverage classification
+          applies per capability, not per domain. Within the three selected EE capabilities,
+          coverage is full against brief-stated needs.
+    agent_reasoning_summary: >
+      Brief Pillar 5 (Engineering Experience) names IDE integrations, CLI, onboarding as
+      primary surfaces. All three are in selected_capabilities. Engineering Portal and
+      design-to-code are deferred, but the brief-stated v1 needs are fully covered.
+    user_response: accept
+    user_response_detail: null
+
+  - decision_id: "D-cc-001-ag-coverage"
+    decision_type: "within-domain-gap-classification"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/ai-governance.md"
+      excerpt: >
+        AG-F004 mandatory when compliance.categories includes 'ai-usage-traceability';
+        AG-F005 mandatory for L3+; AG-F006 mandatory for compliance.
+    recommendation: >
+      full coverage for audit-attribution within v1 scope. Brief Pillar 3 (Governance)
+      specifically names "AI vs human traceability" and "Audits" — addressed by F004/F005/F006.
+      consumption-tracking and memory-governance deferred.
+    alternatives_considered:
+      - alt: "missing coverage — token consumption tracking (AG-F001) in brief Pillar 3"
+        why_not: >
+          consumption-tracking deferred to v1.1 per MVP rec. The brief lists it as a
+          governance pillar item, not a v1 requirement. Coverage classification is
+          per-capability and v1-scope-bounded.
+    agent_reasoning_summary: >
+      The brief names token usage tracking, audit trails, and AI-vs-human traceability.
+      Audit-attribution (AG-F004, F005, F006) covers the traceability and audit items
+      in full. Token tracking is acknowledged as a brief-stated need but deferred to
+      v1.1 by MVP rec — recorded as within-domain gap in scope.yaml coverage_gaps.
+    user_response: accept
+    user_response_detail: "AG-F008 deferred to v1.5 per Q3."
+
+  - decision_id: "D-cc-001-eo-coverage"
+    decision_type: "within-domain-gap-classification"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/engineering-observability.md"
+      excerpt: >
+        EO-F001 mandatory for L2+; EO-F002 mandatory; EO-F004 mandatory.
+        EO-F003 optional at L2.
+    recommendation: >
+      partial coverage for quality-signals: EO-F001, F002, F004 auto-included;
+      EO-F003 (Build Health) deferred pending user grounding (Q-scope-001).
+      Broader Control Tower capabilities (debt-signals, methodology-posture,
+      delivery-signals) all deferred to v1.1.
+    alternatives_considered:
+      - alt: "missing — entire quality-signals capability deferred with rest of EO"
+        why_not: >
+          User's Stage-3 input explicitly lists quality-signals as one of the 8 primary
+          capabilities. MVP rec's strategic-level deferral ("entire Engineering Observability
+          domain deferred to v1.1") was superseded by the Stage-3 input.
+    agent_reasoning_summary: >
+      Quality-signals is the only EO capability brought forward into v1 scope per explicit
+      user Stage-3 instruction. EO-F003 is flagged as a pending user selection because its
+      conditional-optional status at L2 creates ambiguity against the MVP-rec guidance
+      (recorded in Q-scope-001). All remaining EO capabilities are deferred.
+    user_response: accept
+    user_response_detail: "EO coverage confirmed; F003 deferred per Q1."
+
+  # ── D-cc-002: Vertical vs Component Classification ────────────────────────────
+
+  - decision_id: "D-cc-002-am-substrate-classification"
+    decision_type: "vertical-vs-component-classification"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/agentic-methodology.md"
+      excerpt: >
+        AM-F001 Plays: "plays are the user's contract with the methodology."
+        AM-F007: "three-layer hierarchy enforced by /create-play compilation."
+        AM-F014: "configure-capabilities skill walks KB cross-tree constraints."
+    recommendation: >
+      All 9 component-architecture features (AM-F001..F009) classified as vertical.
+      The methodology substrate is the product — each feature is a user-observable
+      outcome that an admin/builder can test end-to-end (invoke a play, invoke an
+      agent, use a skill, write to STM, etc.). The "rolls_up_into component" signals
+      (name ending in Agent/Pipeline/Store) do not apply; these are methodology
+      surfaces, not subsystem abstractions inside a consumer product flow.
+    alternatives_considered:
+      - alt: >
+          AM-F001..F009 as component rolling up into a single "component-architecture"
+          vertical epic
+        why_not: >
+          Each feature has an independently testable user outcome. Collapsing them into
+          one epic would produce an unmaintainably broad epic spanning plays, agents, skills,
+          memory, hierarchy, Tether/Vanish, and evidence — 9 distinct testable surfaces.
+    agent_reasoning_summary: >
+      The classification rule is "can a reviewer test it end-to-end?" For AM substrate features,
+      yes: a reviewer can invoke a play (AM-F001), inspect agent delegation (AM-F002), verify a
+      skill produces its contract (AM-F003), check STM scoping (AM-F004), traverse LTM
+      (AM-F005), and so on. Each is user-observable and independently testable.
+    user_response: accept
+    user_response_detail: null
+
+  - decision_id: "D-cc-002-l3-classification"
+    decision_type: "vertical-vs-component-classification"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/agentic-methodology.md"
+      excerpt: >
+        AM-F013 Intent Inference: "tell me what you want, I'll pick the right pipeline."
+        AM-F014 Scope Auto-Narrowing: "configure-capabilities skill walks KB cross-tree constraints."
+        AM-F015 Epic Auto-Generation: "generate-intent-epics skill instantiates one intent epic per capability."
+    recommendation: >
+      AM-F013, AM-F014, AM-F015 all classified as vertical. Each is observable by the
+      product developer using Garura: they can test intent routing, observe scope.yaml
+      produced by auto-narrowing, and inspect auto-generated epics.
+    alternatives_considered:
+      - alt: "AM-F013 as component rolling up into a higher-level 'L3 pipeline' vertical"
+        why_not: >
+          Intent inference has its own user-facing output (intent.yaml routing result).
+          No higher-level L3 user flow exists that aggregates F013/F014/F015 — each is
+          independently invocable and testable.
+    agent_reasoning_summary: >
+      L3 features each produce a distinct, user-observable artifact or interaction:
+      intent routing (F013), scope.yaml (F014), intent epics (F015). Three separate verticals.
+    user_response: accept
+    user_response_detail: "WI-F007 added to L3 classification per Q2."
+
+  # ── D-cc-003: Provenance Tagging ──────────────────────────────────────────────
+
+  - decision_id: "D-cc-003-all-capabilities-brief-explicit"
+    decision_type: "provenance-tagging"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/mvp-recommendation.md"
+      excerpt: >
+        "Eight capabilities in scope for v1" (MVP rec lines 32-68) plus user's
+        Stage-3 explicit list in task invocation.
+    recommendation: >
+      All 8 selected capabilities tagged source=brief_explicit (7 of them named in
+      MVP rec primary capabilities; quality-signals named in user Stage-3 input as
+      replacement for quality-signals noted there). confidence=high for all 8.
+      No assumption-sourced capabilities.
+    alternatives_considered:
+      - alt: "source=brief_inferred for quality-signals (appeared in mvp divergence)"
+        why_not: >
+          User's Stage-3 invocation text explicitly names quality-signals as one of
+          the 8 primary capabilities. Explicit user statement qualifies as brief_explicit
+          per the provenance schema.
+    agent_reasoning_summary: >
+      All 8 capabilities were explicitly named by the user as the v1 primary set.
+      The MVP rec file covers 7 of them; quality-signals was explicitly listed by
+      the user at Stage-3. No inferred or guessed capabilities are in selected_capabilities.
+    user_response: accept
+    user_response_detail: "9 capabilities now (was 8); intent-driven-verification added per Q4."
+
+  - decision_id: "D-cc-003-deferred-provisional-source"
+    decision_type: "provenance-tagging"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/research/agentic-methodology.md"
+      excerpt: "origin: stm_research (all 5 research files carry this header)"
+    recommendation: >
+      All selected and deferred capabilities tagged source=provisional_stm_research
+      (all 5 research files carry origin: stm_research in their provenance header).
+      This flows to intent epics as kb_source.provisional: true.
+    alternatives_considered:
+      - alt: "source=ltm because the KB directory is the organizational canonical source"
+        why_not: >
+          Domain files were authored fresh for this product run (origin: stm_research,
+          editable: true). They have not been promoted to the canonical KB at
+          core/components/memory/knowledge/domain/. Per skill Rule 15, provisional_stm_research
+          is the correct source tag until promotion.
+    agent_reasoning_summary: >
+      Stage 2 authored 5 research files with origin: stm_research rather than copying
+      from KB (because Garura's capability domains are not in the canonical KB yet).
+      Provisional tagging is correct and downstream validators allow it.
+    user_response: accept
+    user_response_detail: null
+
+  # ── D-cc-004: Grounding Question Generation ───────────────────────────────────
+
+  - decision_id: "D-cc-004-questions-generated"
+    decision_type: "grounding-question-generation"
+    tier: high
+    grounding_source:
+      kind: kb_path
+      ref: ".garura/product/scope/mvp-recommendation.md"
+      excerpt: >
+        "The entire Engineering Observability domain is deferred to v1.1 — no v1
+        Control Tower." (MVP rec line 192) vs EO-F003 Inclusion "optional at L2".
+    recommendation: >
+      Three grounding questions generated (Q-scope-001, Q-scope-002, Q-scope-003)
+      for the three mandatory/conditional ambiguity cases: EO-F003 optional-at-L2
+      vs capability-level deferral; WI-F007 mandatory vs backlog-lifecycle deferral;
+      AG-F008 mandatory-for-L3+ vs memory-governance deferral. All three use
+      pipeline_guess = "capability-level deferral governs."
+    alternatives_considered:
+      - alt: >
+          Emit no grounding questions — treat capability-level deferral as conclusive
+          and pipeline guess as settled fact
+        why_not: >
+          Rules 11 and 12 require surfacing ambiguities. The tension between a
+          feature-level mandatory default and a capability-level MVP deferral is a
+          genuine ambiguity, not a silent resolved fact.
+    agent_reasoning_summary: >
+      Three features (EO-F003, WI-F007, AG-F008) have feature-level mandatory or
+      conditional defaults that conflict with their capability-level MVP-rec deferral.
+      The pipeline's best guess is that capability-level deferral governs, but the
+      user must confirm. Questions appended to grounding-questions.md. (Q-scope-004
+      added separately for intent-driven-verification capability inclusion.)
+    user_response: accept
+    user_response_detail: "All 4 grounding questions answered; see Q1-Q4 records in scope.yaml grounding_question_resolutions."
+
+  # ── D-cc-005: Capability Reclassification (NEW, post-Q2) ─────────────────────
+
+  - decision_id: "D-cc-005-wi-f007-reclassification"
+    decision_type: "capability-reclassification"
+    tier: high
+    grounding_source:
+      kind: user_response
+      ref: "user Stage-3 Q2 response"
+      excerpt: >
+        "WI-F007 Epic Decomposition: RECLASSIFY. Move from work-intelligence/
+        backlog-lifecycle to agentic-methodology/l3-intent-driven (alongside
+        AM-F013/F014/F015). Include in v1 via its new home. WI-F007 is methodology
+        substrate, not backlog tooling."
+    recommendation: >
+      Move WI-F007 from work-intelligence/backlog-lifecycle to
+      agentic-methodology/l3-intent-driven. Rationale: WI-F007 is the canonical
+      execution surface for epic auto-generation from capabilities — it is
+      methodology substrate that runs every specify-product invocation, not a
+      backlog-grooming surface. Grouping it with AM-F013 (Intent Inference),
+      AM-F014 (Scope Auto-Narrowing), and AM-F015 (Epic Auto-Generation) produces
+      a coherent L3 pipeline capability. Parent capability backlog-lifecycle now
+      holds only WI-F008 (Epic Grooming) and WI-F009 (Implementation-Unit
+      Decomposition) and remains deferred post-v1. Feature count of
+      l3-intent-driven rises from 3 to 4; feature count of backlog-lifecycle
+      falls from 3 to 2.
+    alternatives_considered:
+      - alt: >
+          Leave WI-F007 in backlog-lifecycle and override capability-level deferral
+          for this single feature
+        why_not: >
+          Single-feature overrides against capability-level defers create scope
+          incoherence: the backlog-lifecycle capability would be half-shipped and
+          half-deferred, confusing downstream consumers. Reclassification is cleaner:
+          WI-F007 belongs with L3 substrate conceptually anyway.
+      - alt: >
+          Keep WI-F007 in backlog-lifecycle and un-defer the whole backlog-lifecycle
+          capability
+        why_not: >
+          User's Q2 explicitly rejected this framing: "this is methodology substrate,
+          not backlog tooling." WI-F008 (grooming) and WI-F009 (implementation-unit
+          decomposition) are genuinely backlog surfaces that remain deferred per MVP
+          rec direction.
+    agent_reasoning_summary: >
+      User Q2 instruction is definitive. The reclassification respects both the
+      MVP rec's backlog-lifecycle deferral and the factual reality that WI-F007 is
+      the live epic-generation surface already in production use. The scope.yaml
+      capability_classification_changes field records the trail.
+    user_response: accept
+    user_response_detail: "Reclassification is the user's explicit framing in Q2."

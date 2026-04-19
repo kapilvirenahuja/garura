@@ -1,0 +1,255 @@
+# epic-ai-governance-audit-attribution-001.yaml
+# Garura Platform — specify-product Stage 5: Intent Epic
+#
+# Provenance
+# play: specify-product
+# stage: 5-generate-intent-epics
+# agent: product-keeper
+# skill: generate-intent-epics v0.2.0
+# task_id: specify-product-stage-5-generate
+# created_at: 2026-04-18T03:00:00Z
+# kb_source_file: .garura/product/research/ai-governance.md
+# enriched_capabilities_path: .garura/product/scope/enriched-capabilities.yaml
+# RATCHET NOTE: compliance.categories['ai-usage-traceability'] fires a ratchet on
+# AG-F004 — commit-trailer enforcement is mandatory regardless of depth selection.
+
+id: "EPIC-ai-governance-audit-attribution-001"
+domain: "ai-governance"
+capability: "AG-F004"
+
+provenance:
+  source: brief_explicit
+  source_quote: "ai-governance / audit-attribution (AG-F004/F005/F006) — ratchet applied: ai-usage-traceability compliance category fires commit-trailer enforcement"
+  confidence: high
+
+problem_statement: >
+  AI coding tool workflows produce commits, evidence files, and decisions with no persistent
+  attribution chain distinguishing AI-generated from human-authored actions. Market brief
+  gap 2 confirms: as of April 2026, no major AI coding tool (GitHub Copilot, Cursor, Windsurf)
+  provides a built-in compliance surface with AI-vs-human attribution traces (validated via
+  Augment Code SOC2 guide, Probo compliance guide). The compliance ratchet fires for this
+  product: profile compliance.categories includes 'ai-usage-traceability', mandating 100%
+  of play-produced commits carry an AI-authorship commit trailer. Current status is PARTIAL —
+  commit-level attribution is not yet enforced across all 42 plays. For a solo contributor,
+  every unattributed AI commit represents a 100% attribution gap for that commit with no
+  human-authored commits to triangulate from.
+
+intent: >
+  Ensure 100% of play-produced commits carry an AI-authorship commit trailer and every
+  inferred decision is recorded in a decision manifest with tier-rationale, making the
+  AI-vs-human attribution chain auditable on demand for compliance officers reviewing
+  a solo-dev Garura-managed project.
+
+intent_lock:
+  locked_at: "2026-04-18T05:00:00Z"
+  intent_hash: "sha256:66b8f1898dbd9614184a50d15e9fb8e86fb31503b567a6fec315232092ad183c"
+  locked_by: "specify-product-stage-5-validate"
+  immutability_note: >
+    Intent content is immutable after lock. Post-v1 drift requiring a scope change must
+    be handled via a Product-Drift successor epic, not by editing this intent block. The
+    features[] ledger and epic_status rollup below may evolve as capabilities move through
+    PLANNED → PARTIAL → LIVE; the intent itself is sealed.
+
+appetite: "2 weeks"
+
+in_scope:
+  - "AG-F004 AI-Authorship Attribution at Standard depth: commit hook enforcement on 100% of play-produced commits; pre-commit validation in ship/commit-code plays; evidence files attribute every play step to agent or user"
+  - "AG-F005 Decision Provenance at Standard depth: decision-manifest.yaml produced on every specify-product run and every inferred-decision-producing play; every decision has tier-rationale (high/mid/low) with grounding source"
+  - "AG-F006 Evidence Export at Standard depth: compliance audit bundle generated on demand; bundle includes intent, scope, epics, evidence, decisions in a structured artifact set"
+  - "Coverage sweep: audit all 42+ plays that produce commits and verify commit hook invocation on each"
+  - "Decision Surfacing Discipline (DSD) enforcement: zero inferred decisions resolved silently — all go to decision-manifest.yaml before primary artifact write"
+
+anti_goals:
+  - "Line-level AI attribution — Advanced depth for AG-F004; requires significant storage and diff-tool complexity; no external regulation demands line-level in v1"
+  - "Tamper-evident signed attestation — Advanced/Enterprise depth for AG-F005/F006; post-v1 when external regulations (SOC2, ISO27001) enter scope"
+  - "SOC2 / ISO27001 auditor template adapters — post-v1; AG-F006 roadmap item for the enterprise milestone (Jul 2026)"
+  - "Historical replay with divergence analysis — Enterprise depth for AG-F005; post-v1 when external regulations require historical audit depth"
+  - "GDPR or HIPAA compliance adapters — external_regulations_in_scope_v1=[] confirms these are out of v1 scope"
+
+must_not_break:
+  - "EPIC-agentic-methodology-component-arch-001 — the evidence substrate (AM-F009) is the foundation for attribution; the commit hook must not interfere with the evidence self-commit pipeline"
+  - "Existing commit hook behavior — the AI-authorship trailer must be appended without breaking existing commit message formats, CI parse rules, or changelog generators"
+
+foundation_investment: false
+
+features:
+  - id: "AG-F004"
+    name: "AI-Authorship Attribution"
+    status: "PARTIAL"
+    delivered_at: null
+    evidence:
+      - path: "core/components/plays/ship/"
+        type: "play"
+      - path: "core/components/plays/commit-code/"
+        type: "play"
+    delta_remaining: "Commit hook not yet installed universally; coverage sweep across all 42+ commit-producing plays pending; Factory Droid invocation-context not yet wired into attribution chain."
+    intent_fit_rationale: "RATCHETED by ai-usage-traceability compliance category — directly delivers the 100% trailer enforcement target."
+  - id: "AG-F005"
+    name: "Decision Provenance"
+    status: "PARTIAL"
+    delivered_at: null
+    evidence:
+      - path: "core/components/memory/standards/decision-manifest.md"
+        type: "standard"
+      - path: "core/components/skills/configure-capabilities/"
+        type: "skill"
+    delta_remaining: "DSD system-prompt rule is in place for new plays, but not retroactively audited across all 42 plays; decision-manifest.yaml write order not yet enforced in every decision-producing skill."
+    intent_fit_rationale: "Delivers tier-rationale and decision-manifest.yaml production target of the intent; closes Defect 23 silent-resolution class."
+  - id: "AG-F006"
+    name: "Evidence Export (audit bundle)"
+    status: "PARTIAL"
+    delivered_at: null
+    evidence:
+      - path: ".garura/project/issues/"
+        type: "artifact-substrate"
+    delta_remaining: "Audit bundle generator not yet implemented; symlink resolution, bundle manifest, and limitations-section scaffolding pending; on-demand export command to be added."
+    intent_fit_rationale: "Makes the attribution chain auditable on demand — required for the compliance-officer audience in this intent."
+
+epic_status:
+  live_count: 0
+  partial_count: 3
+  planned_count: 0
+  delivered_pct: 0
+  total_features: 3
+
+success_scenarios:
+  - scenario: >
+      Given a developer running any Garura play that produces a commit (ship, commit-code,
+      create-commit, or any evidence-committing play), when the commit lands in the repository,
+      then the commit message contains a valid AI-authorship trailer in 100% of play-produced
+      commits within a 30-day window.
+    evidence: >
+      git log --format='%B' for the 30-day window shows an AI-authorship trailer on every
+      play-produced commit. Trailer format matches the canonical format defined in the
+      ship play's commit spec. Zero play-produced commits missing a trailer found by
+      the attribution audit script.
+  - scenario: >
+      Given a specify-product run (or any play that makes inferred decisions about capability
+      selection, depth, or constraint application), when the run completes, then a
+      decision-manifest.yaml exists at the expected path with one entry per inferred decision,
+      and every entry has a non-null tier, grounding_source, and recommendation field.
+    evidence: >
+      decision-manifest.yaml present at the play-specified output path. Entry count equals
+      the count of inferred decisions tracked in the play's decision log. Every entry has
+      tier != null, grounding_source.kind != null, and recommendation.length > 0. Zero
+      silently resolved decisions found by the DSD audit.
+
+failure_scenarios:
+  - scenario: >
+      Given a developer running a Garura play that produces a commit, when the commit hook
+      is not invoked (hook not installed or hook misconfigured), then the play-produced
+      commit lands in the repository without an AI-authorship trailer.
+    impact: >
+      Attribution gap breaks audit trail. Solo-dev impact: with a solo contributor,
+      every commit missing a trailer represents a 100% gap in AI-vs-human attribution
+      for that commit — no other commits to triangulate from. Compliance ratchet violation.
+    mitigation: >
+      Commit hook enforcement: ship and commit-code plays verify the hook is installed
+      before the first commit attempt; a missing hook is a blocking failure, not a warning.
+      Hook installation is part of the first-run onboarding (EE-F012 bootstrap).
+  - scenario: >
+      Given a developer who resolves an inferred decision during a play run without
+      writing it to the decision-manifest.yaml, when the play completes, then the
+      decision exists only in the conversation history.
+    impact: >
+      Audit trail gap — Decision Surfacing Discipline (Defect 23) is violated. The
+      compliance officer reviewing the audit trail cannot find the decision because
+      it was never written to a durable artifact.
+    mitigation: >
+      DSD rule enforced in agent system prompt: every inferred decision goes to
+      decision-manifest.yaml BEFORE the primary artifact write; the skill write order
+      in generate-intent-epics (and all other decision-producing skills) writes the
+      manifest first, then the primary artifacts.
+  - scenario: >
+      Given a compliance officer requesting an audit bundle for a Garura-managed project,
+      when the audit bundle is generated, then symlinked artifacts are not resolved and
+      the bundle is incomplete.
+    impact: >
+      Incomplete bundle — the auditor receives a partial artifact set that may invalidate
+      the audit. Solo-dev impact: the developer must manually reconstruct the missing
+      artifacts, which is a time-intensive recovery.
+    mitigation: >
+      Symlink resolution policy in the audit bundle generator: all symlinks are resolved
+      to their target files before bundle packaging; the bundle manifest lists resolved
+      paths only; no dangling symlinks in the bundle.
+  - scenario: >
+      Given attribution data in evidence files that can be modified post-hoc, when an
+      auditor inspects the attribution chain, then tampered evidence cannot be detected.
+    impact: >
+      Audit invalidated. v1 does not have tamper-evident storage — this is a known v1 gap.
+      The auditor must trust the evidence files are unmodified.
+    mitigation: >
+      Tamper-evident storage is the Advanced depth target for AG-F004/F005 (post-v1,
+      when external regulations enter scope). v1 documents this gap explicitly in the
+      audit bundle's limitations section.
+
+constraints:
+  performance:
+    value: "Commit hook adds < 200ms to commit time; audit bundle generation completes in < 30s for a typical 30-day evidence set"
+    source_for_quantification:
+      source: kb_default
+      source_reference: "200ms hook overhead derived from developer workflow threshold; 30s bundle generation derived from solo-dev usability threshold"
+      user_grounded: true
+      user_grounding_basis: "batch-accepted as KB-default via Stage 4 review"
+  security:
+    value: "OWASP ASVS Level 1 — attribution artifacts are internal git objects; no external auth surface; TLS 1.3 for any remote audit bundle delivery"
+    source_for_quantification:
+      source: profile_nfr
+      source_reference: "profile.security_level=elevated maps to OWASP ASVS Level 1 for internal audit surfaces"
+  accessibility:
+    value: "WCAG 2.1 AA — audit bundle output is structured YAML/JSON; AA constraint inherited for any UI-rendered audit report"
+    source_for_quantification:
+      source: profile_nfr
+      source_reference: "profile.audience includes compliance-officer (secondary role); WCAG 2.1 AA is the org-wide baseline"
+  compliance:
+    - value: "ai-usage-traceability — RATCHETED: 100% of play-produced commits MUST carry AI-authorship commit trailer regardless of depth selection; this is a mandatory business rule, not a best effort target"
+      source_for_quantification:
+        source: profile_nfr
+        source_reference: "profile.compliance.categories includes 'ai-usage-traceability'; ratchet fired on AG-F004 per enrich-capabilities Stage 4"
+    - value: "audit-trail — every inferred decision must have tier-rationale in decision-manifest.yaml before primary artifact write; zero silent resolutions"
+      source_for_quantification:
+        source: profile_nfr
+        source_reference: "profile.compliance.categories includes 'audit-trail (AI vs human attribution)'; AG-F005 mandatory for L3+ delivery ambition"
+
+business_rules:
+  - "RATCHETED: 100% of play-produced commits MUST carry AI-authorship commit trailer — mandatory regardless of depth, driven by compliance.categories includes 'ai-usage-traceability' (AG-F004)"
+  - "Evidence files must attribute every step to agent or user — step-level attribution is a non-negotiable audit requirement (AG-F004)"
+  - "Every inferred decision must have tier-rationale in a decision manifest — Decision Surfacing Discipline (Defect 23) enforcement (AG-F005)"
+  - "Compliance audit bundle must be generated on demand — mandatory when compliance.required=true (AG-F006)"
+  - "Audit bundle must include intent, scope, epics, evidence, decisions — complete artifact chain; incomplete bundles are a compliance defect (AG-F006)"
+  - "decision-manifest.yaml is written BEFORE any primary artifact — write order is enforced in all decision-producing skills"
+
+hypothesis: >
+  We believe that enforcing AI-authorship commit trailers on 100% of play-produced commits
+  and recording every inferred decision in a decision manifest for compliance officers and
+  software engineers operating Garura will result in a fully auditable AI-vs-human
+  attribution chain reviewable on demand. We will know this is true when zero play-produced
+  commits lack an AI-authorship trailer and zero inferred decisions lack a decision manifest
+  entry in a 30-day window.
+
+assumptions_requiring_validation:
+  - "The commit hook can be installed universally as part of the first-run onboarding (EE-F012) — if some play execution contexts (Factory Droids, CI mode) do not run the hook, the 100% enforcement target is unreachable without harness-specific solutions"
+  - "All 42+ plays that produce commits have been identified and audited — if there are commit-producing plays not yet catalogued, the coverage sweep in this epic's appetite will miss them"
+  - "Decision Surfacing Discipline can be enforced via agent system prompt without a runtime gating mechanism — if agents bypass the prompt rule, silent decisions will occur without a technical gate"
+
+dependencies:
+  - "Commit hook installation as part of EE-F012 first-run onboarding — the attribution hook must be installed during garura init; this is a dependency on the first-run-onboarding epic"
+
+depends_on:
+  - "EPIC-agentic-methodology-component-arch-001"
+
+uses_mocks: false
+
+kb_source:
+  capability: "AG-F004"
+  rules_applied:
+    - "AG-F004 ratcheted mandatory: compliance.categories includes 'ai-usage-traceability' → commit-trailer enforcement required"
+    - "AG-F005 mandatory: regulated industry or L3+ delivery ambition fires mandatory inclusion"
+    - "AG-F006 mandatory: compliance.required=true fires mandatory inclusion"
+    - "DSD: decision-manifest.yaml written before primary artifact; zero silent resolutions"
+    - "Audit bundle: complete artifact chain including intent, scope, epics, evidence, decisions"
+  experiential_warnings:
+    - "Missing provenance header on evidence files — step-level attribution breaks silently"
+    - "Silent resolution of inferred decisions without writing decision manifest (violates Defect 23)"
+    - "Relying on file-tree browsing for audit instead of bundle generation"
+    - "Assuming AI-authored commits are auto-tagged — requires explicit commit hook enforcement"
