@@ -1,0 +1,17 @@
+{
+  "play": "meridian:fix-it",
+  "issue": "278",
+  "started_at": "2026-04-19T00:00:00.000Z",
+  "tasks": {
+    "validate-issue": { "status": "completed", "started_at": "2026-04-19T00:00:00.000Z", "completed_at": "2026-04-19T00:00:00.000Z" },
+    "create-branch": { "status": "completed", "started_at": "2026-04-19T00:00:00.000Z", "completed_at": "2026-04-19T00:00:00.000Z" },
+    "rca-and-design": { "status": "completed", "started_at": "2026-04-19T00:00:00.000Z", "completed_at": "2026-04-19T15:00:00.000Z" },
+    "prepare-checkpoint": { "status": "pending" },
+    "issue-comment-dispatch": { "status": "pending" },
+    "approval-gate": { "status": "pending" },
+    "implement-fix": { "status": "completed", "started_at": "2026-04-19T00:00:00.000Z", "completed_at": "2026-04-19T00:00:00.000Z" },
+    "ship": { "status": "pending" },
+    "scenario-evals": { "status": "pending" },
+    "evidence-report": { "status": "pending" }
+  }
+}

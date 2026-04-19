@@ -1,0 +1,22 @@
+status: completed
+files_modified:
+  - core/components/plays/garura-capture/ → core/components/plays/capture/ (rename)
+  - core/components/plays/capture/reference/intent.yaml
+  - core/components/plays/capture/SKILL.md
+  - core/components/plays/report-issue/SKILL.md
+  - docs/components/plays.md
+  - docs/components/skills.md
+  - .garura/product/scope/features.yaml
+  - .garura/product/specification/quality-profile.yaml
+self_tests_passed: true
+remaining_garura_capture_refs: 0
+notes: >
+  All 8 steps executed successfully. The directory was renamed via git mv preserving
+  history. In capture/SKILL.md, all `garura-capture` occurrences (STM paths, rebuild
+  instruction, intent_path contract, status file path, evidence paths) were replaced
+  with `capture`. The frontmatter `name: "garura:capture"` (colon-separated namespace
+  identifier) was correctly preserved — only hyphenated `garura-capture` occurrences
+  were changed. The `garura:capture` display references (lines 7, 13, 217, 223, 263)
+  in SKILL.md are namespace identifiers and were not touched. Final sweep across
+  core/components/, docs/components/, and .garura/product/ returned zero matches.
+  /create-play --build and /sync-claude are deferred to the orchestrator per instructions.

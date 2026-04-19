@@ -1,0 +1,13 @@
+result:
+  success: true
+  branch:
+    name: "fix/278-capture-rename"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/fix/278-capture-rename"
+  worktree:
+    used: false
+    path: null
+    reason: "clean tree — untracked files only, no stash needed"
+  created_at: "2026-04-19T00:00:00.000Z"
+  error: null
