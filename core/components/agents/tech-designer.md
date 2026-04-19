@@ -57,6 +57,7 @@ You produce designs and plans, not code. You answer "what should be built and wh
 | Risk assessment | What could go wrong and how to mitigate |
 | Technical approach | Chosen strategy with alternatives considered |
 | Execution plan | Self-sufficient steps for implementation |
+| Regression test (`regression_test_path`) | Failing test artifact authored before code-builder is invoked; path returned in `stm.output.regression_test_path`. In YAML/markdown-only repos (no unit-test runner), this is a YAML eval-spec file containing grep/structural assertions that quality-auditor executes mechanically — not a code unit test. The test must be authored and in a failing state before implementation begins (red-before-green invariant). |
 
 ## Intent Recognition
 
@@ -277,6 +278,8 @@ When invoked via JSON contract, delegate artifact production to skills:
 **Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract the artifact path from the skill output — do NOT forward the skill's YAML as your response.
 
 For direct invocations (no JSON contract), perform analysis directly — skills are only used in the contract workflow.
+
+**Regression test authorship (fix-it TDD mode):** When invoked by the fix-it play with `stm.output.regression_test_path` in the output contract, you must author the failing regression test before returning. In YAML/markdown-only repos, write a YAML eval-spec file to `{stm_base}/{issue}/evidence/fix-it/regression-test.yaml` containing grep/structural assertions (e.g., `grep -q "pattern" file`). The test must be in a failing state before code-builder runs — verify it fails by executing the assertions and confirming non-zero exit. Return the path in `stm.output.regression_test_path`.
 
 ## Output Contract
 

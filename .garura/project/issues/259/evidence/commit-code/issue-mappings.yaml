@@ -1,0 +1,18 @@
+mappings:
+  - group_id: G1
+    issue: 259
+    confidence: high
+    reasoning: >
+      Branch name encodes issue number directly (enhance/259-fix-it-leaner-validation).
+      The three files — fix-it intent.yaml, SKILL.md, tech-designer.md — are the exact
+      files listed in approach.yaml files_to_modify for issue #259. Zero ambiguity.
+
+  - group_id: G2
+    issue: 259
+    confidence: high
+    reasoning: >
+      STM evidence files are under .garura/project/issues/259/ — the issue number
+      is embedded in the path. These are enhance play artifacts for issue #259.
+
+conflicts: []
+flags: []

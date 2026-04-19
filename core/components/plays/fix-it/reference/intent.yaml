@@ -1,11 +1,11 @@
 intent: >
   Given an existing open issue describing a defect, perform thorough root cause
   analysis tracing symptoms to the specific code and logic that is wrong, design
-  a fix with alternatives considered and risk assessment, present RCA findings
-  and fix design at a single human checkpoint for approval, then upon approval
-  implement the fix and ship it (commit, PR, merge) fully autonomously. The end
-  state is: fix merged to main, feature branch deleted, issue traceable in
-  commit and PR history.
+  a fix with alternatives considered, present RCA findings and fix design at a
+  single human checkpoint for approval, then upon approval implement the fix
+  (with independent verification by quality-auditor) and ship it (commit, PR,
+  merge) fully autonomously. The end state is: fix merged to main, feature
+  branch deleted, issue traceable in commit and PR history.
 
 constraints:
   - id: C1
@@ -25,10 +25,6 @@ constraints:
     rule: >
       Fix design must include at least one alternative considered with the
       reason it was rejected.
-  - id: C5
-    rule: >
-      Fix design must include a risk assessment with severity levels for each
-      identified risk.
   - id: C6
     rule: >
       There is exactly one human checkpoint — after RCA and fix design are
@@ -70,6 +66,50 @@ constraints:
       update to the originating issue thread mirroring the approved RCA
       and fix plan; this dispatch is tracked in STM and is non-blocking
       — it does not gate subsequent implementation steps.
+  - id: C14
+    rule: >
+      TDD invariant: tech-designer MUST author a failing regression-test artifact
+      to the repo's canonical eval path before code-builder is invoked. The play
+      enforces the red-before-green invariant — the regression test must exist and
+      be failing prior to implementation. This is not delegated to builder
+      self-report; the play verifies test existence from the path returned in the
+      tech-designer output contract (stm.output.regression_test_path).
+  - id: C15
+    rule: >
+      Validator-not-implementer: verification MUST be executed by quality-auditor,
+      never by the agent that implemented the fix. code-builder MUST NOT run its
+      own post-implementation verification. quality-auditor receives the
+      regression_test_path and project_root and writes an exit-code-style verdict
+      to STM (regression_test_verdict: pass | fail).
+  - id: C16
+    rule: >
+      Independent signal: the pass/fail verdict MUST come from quality-auditor's
+      report written to STM. Builder self-report (any claim in code-builder's
+      output that the fix works or tests pass) is not a valid verification signal
+      under any circumstances and MUST NOT be used as the basis for shipping.
+  - id: C17
+    rule: >
+      Contract-level test-file isolation: the code-builder JSON contract MUST
+      include the source-file paths to modify (via design.yaml affected_files)
+      and the regression-test file path in read_only_files. It MUST NOT include
+      the test file content, test assertion text, or eval entries inline. Only
+      the path reference is permitted in the builder contract.
+  - id: C18
+    rule: >
+      Play-owned task list: status/fix-it.json is extended with a task_list
+      array. The play is the sole writer of task_list; agents may propose
+      additions but MUST NOT mutate task_list directly. task_list is initialized
+      from RCA output before code-builder is invoked. Each entry contains: id,
+      description, status (pending | in_progress | completed | failed),
+      retry_count, and regression_test_path.
+  - id: C19
+    rule: >
+      Retry cap and re-plan: per-task retry cap is 2. On verification failure
+      after retry exhaustion, the play invokes tech-designer to revise the
+      current task or insert a new task. If the re-plan grows total task_list
+      beyond 6 entries or inserts more than 3 new tasks, the play emits a
+      warning to stdout but DOES NOT halt and DOES NOT escalate to /enhance;
+      it continues with the expanded plan.
 
 failure_conditions:
   - id: F1
@@ -136,9 +176,8 @@ scenarios:
       The checkpoint shows inline markdown sections rendered directly from STM
       artifacts: root cause traced to specific code (not just symptoms), blast
       radius of affected files, proposed fix strategy, at least one alternative
-      considered with rejection reason, risk table with severity levels, and
-      confidence assessment. Enough information to make an informed Tether or
-      Vanish decision.
+      considered with rejection reason, and confidence assessment. Enough
+      information to make an informed Tether or Vanish decision.
   - id: S3
     persona: QA Engineer
     given: >
@@ -158,4 +197,4 @@ scenarios:
       — before the PR is opened. The comment is traceable to the STM evidence
       via the issue-comment-agent.yaml tracking artifact.
 
-version: 1.1.0
+version: 1.2.0
