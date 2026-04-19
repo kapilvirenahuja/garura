@@ -48,6 +48,15 @@ constraints:
       Human approval is required before committing when any change group's
       issue mapping has less than high confidence. When all mappings are
       high confidence, the play proceeds without approval.
+  - id: C10
+    rule: >
+      Before writing any Evidence & Close artifacts, the play reads evidence.record
+      from .garura/core/config.yaml (default true when key absent). When false:
+      the delivery record ({YYYYMMDD-HHMMSS}.md) is not written, the status file
+      (commit-code.json) is not written, and the repo-orchestrator self-commit
+      invocation is skipped. The user summary is always presented regardless of flag.
+      analysis.yaml and issue-mappings.yaml are never affected by this flag — they
+      are written unconditionally in Steps 1 and 2.
 
 failure_conditions:
   - id: F1

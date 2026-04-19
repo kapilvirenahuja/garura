@@ -23,3 +23,7 @@
 ```
 {full commit message}
 ```
+
+## Evidence Signal
+
+- **skip_commits_yaml**: {true when evidence.record is false, omit or false otherwise}

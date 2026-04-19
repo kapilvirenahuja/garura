@@ -45,9 +45,22 @@ Receive from agent:
    git rev-parse --short HEAD
    ```
 
+4. **Check evidence flag**
+   Read `evidence.record` from `.garura/core/config.yaml`:
+   ```bash
+   evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
+   evidence_record=${evidence_record:-true}
+   ```
+   If `false`: include `skip_commits_yaml: true` in the returned output template response.
+   The caller (repo-orchestrator) reads this signal and omits the write-evidence call for `commits.yaml`.
+   If `true` (or key absent): proceed normally — caller writes `commits.yaml` to STM.
+
 ## Output
 
 Return using template: `templates/commit-output.md`
+
+When `evidence.record` is `false`, the template response includes `skip_commits_yaml: true`
+as a caller signal to omit the `commits.yaml` write-evidence call.
 
 ## Constraints
 
@@ -59,5 +72,5 @@ Return using template: `templates/commit-output.md`
 
 | Field | Value |
 |-------|-------|
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Category | operations |
