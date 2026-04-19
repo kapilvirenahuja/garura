@@ -149,7 +149,7 @@ domains:
               - implement-epic
               - merge-pr
               - prepare-epic
-              - report-issue
+              - garura-capture
               - review-pr
               - ship
               - specify-product
@@ -1206,7 +1206,7 @@ domains:
               Loop automation over repeated defects is not yet present.
             evidence:
               - core/components/plays/fix-it/
-              - core/components/plays/report-issue/
+              - core/components/plays/garura-capture/
             gap_items: []
 
   # ============================================================
@@ -1395,7 +1395,7 @@ domains:
               21 plays exposed as slash commands (/specify-product,
               /start-feature, /ship, /create-play, /fix-it, /enhance,
               /create-pr, /review-pr, /merge-pr, /distill, /capture-learning,
-              /report-issue, etc.).
+              /garura-capture, etc.).
             evidence:
               - core/components/plays/
               - CLAUDE.md
