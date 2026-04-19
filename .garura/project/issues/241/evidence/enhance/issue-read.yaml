@@ -1,0 +1,75 @@
+issue:
+  number: 241
+  title: "bootstrap-product: derive full product LTM from existing codebase (capture-learning Mode 3)"
+  state: "OPEN"
+  labels:
+    - "enhancement"
+  body: |
+    ## Problem
+
+    Garura's product LTM (`.garura/product/`) is currently only populated by running the full specify-product → design-exp → build-arch pipeline from a product idea. There is no way to onboard an existing codebase — you cannot point Garura at a repo and have it derive the product specification, architecture decisions, domain knowledge, and quality profile that the code already embodies.
+
+    ## Context
+
+    From the capture-learning overhaul discussion (#236), three modes were identified:
+
+    1. **Mode 1 (#240)** — Fast. Post-merge skill in ship. Surgical learning extraction from a single issue/commit/PR.
+    2. **Mode 2 (#236)** — Middle. Post-epic product reconciliation across the prepare→implement→validate trinity.
+    3. **Mode 3 (this issue)** — Full. Run on any codebase and bootstrap the entire product LTM from scratch.
+
+    Mode 3 is fundamentally different from Modes 1 and 2:
+    - Modes 1-2: outcomes → enrich **existing** LTM
+    - Mode 3: codebase → **create** LTM from scratch
+
+    This means Mode 3 cannot share pre-flight constraints with capture-learning (which requires locked upstream artifacts to exist). It is a separate play.
+
+    ## Proposed Approach
+
+    A new play — `bootstrap-product` (or `derive-product`) — that reverse-engineers what specify-product → design-exp → build-arch would have produced, but from code analysis instead of user intent.
+
+    ### Output: Full product LTM artifact set
+
+    | Directory | Artifacts Derived |
+    |-----------|------------------|
+    | `user-provided/` | `project-profile.yaml` (inferred from code: language, framework, team patterns from git history) |
+    | `specification/` | `domain-selection.yaml`, `quality-profile.yaml` (inferred from tooling, test coverage, lint config) |
+    | `research/` | `{domain}.md` per detected domain (features, capabilities from code structure) |
+    | `scope/` | `scope.yaml`, `epics/{epic-id}.yaml` (inferred from modules/features in codebase) |
+    | `experience/` | `screens/`, `flows/`, `personas.md`, `design-spec.md` (if frontend exists) |
+    | `architecture/` | `logical-architecture.yaml`, `physical-architecture.yaml`, `nfr-spec.yaml`, `quality-vision.yaml`, `design-patterns.yaml` |
+
+    ### Key Design Principles
+
+    - Produces the **same artifact structure** as the specify→design→build pipeline — so Modes 1 and 2 work identically against bootstrapped LTM
+    - Every inferred decision marked with `source_type: inferred_from_code` (not `user_provided` or `kb_sourced`)
+    - Human review checkpoint before any artifact is locked — inference quality varies
+    - Can be run incrementally: bootstrap what's missing, skip what already exists
+    - Does NOT require the full KB domain taxonomy — works on any codebase regardless of whether Garura KB covers that domain
+
+    ### Agents
+
+    | Agent | Role |
+    |-------|------|
+    | `tech-architect` | Architecture inference, dependency graph, pattern detection, technology identification |
+    | `test-engineer` | Test surface mapping, quality profile inference |
+    | `designer` | Screen/flow inference from frontend code (if applicable) |
+    | `product-keeper` | Domain/capability inference, epic structure derivation |
+
+    ## Acceptance Criteria
+
+    - [ ] Separate play exists (`bootstrap-product` or `derive-product`)
+    - [ ] Produces all artifacts under `.garura/product/` matching the specify→design→build output structure
+    - [ ] Every inferred decision carries `source_type: inferred_from_code`
+    - [ ] Human checkpoint before locking any artifact
+    - [ ] Incremental mode: skips artifacts that already exist and are locked
+    - [ ] Modes 1 and 2 (capture-learning) work against bootstrapped LTM without modification
+
+    ## Relationships
+
+    - Depends on: #236 (Mode 2 — defines the canonical artifact inventory and enrichment formats)
+    - Related: #240 (Mode 1 — post-merge learning extraction)
+  url: "https://github.com/kapilvirenahuja/garura/issues/241"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "feature"
