@@ -1,0 +1,88 @@
+root_cause:
+  summary: >
+    The play directory was named `garura-capture` instead of `capture`. In the
+    Meridian framework, the directory name under `core/components/plays/` becomes
+    the slash-command invocation name after sync (e.g., `~/.claude/skills/<dirname>/`).
+    The `name:` frontmatter in SKILL.md controls the display/namespace identifier
+    (`garura:capture`) but does NOT control the invocation path — the directory name
+    does. Because the directory was named `garura-capture`, the deployed skill lives
+    at `~/.claude/skills/garura-capture/` and is invoked as `/garura-capture` rather
+    than the intended `/capture`.
+  specific_files:
+    - path: core/components/plays/garura-capture/
+      role: Play source directory — directory name determines invocation name after sync
+      why_wrong: >
+        Directory is named `garura-capture`. After /sync-claude this deploys to
+        `~/.claude/skills/garura-capture/` making the invocation `/garura-capture`.
+        The intended invocation is `/capture`, so the directory must be named `capture`.
+    - path: core/components/plays/garura-capture/reference/intent.yaml
+      role: Intent source for /create-play --build — contains `name: garura-capture`
+      why_wrong: >
+        The `name:` field here is passed to `/create-play --build <name>` as the build
+        target identifier. After rename it should read `name: capture` to match the
+        new directory. The SKILL.md frontmatter field `name: "garura:capture"` is
+        separate and correct — it is the namespace identifier, not the directory name.
+    - path: core/components/plays/garura-capture/SKILL.md
+      role: Compiled play artifact — contains `--build garura-capture` in rebuild instructions
+      why_wrong: >
+        Line 15: `/create-play --build garura-capture` will be wrong after the rename.
+        Must read `/create-play --build capture`. Also contains numerous STM evidence
+        paths of the form `evidence/garura-capture/` — these are runtime-resolved path
+        segments that embed the old directory name and must be updated to `evidence/capture/`.
+  contributing_context: >
+    The directory was originally named `report-issue` and was renamed to `garura-capture`
+    in issue #266 to align with the namespace. However, the convention for Meridian plays
+    is that the directory name equals the simple invocation name (no namespace prefix),
+    not the full namespaced name. This was not caught during the #266 rename.
+
+blast_radius:
+  - file: core/components/plays/garura-capture/ (entire directory)
+    role: Source play directory — must be renamed to capture/
+    scope: directory rename via git mv
+  - file: core/components/plays/garura-capture/reference/intent.yaml
+    role: Intent source — `name:` field drives --build target
+    scope: change `name: garura-capture` → `name: capture`
+  - file: core/components/plays/garura-capture/SKILL.md
+    role: Compiled artifact — contains rebuild instruction and STM path segments
+    scope: >
+      Line 15: `--build garura-capture` → `--build capture`.
+      All STM paths `evidence/garura-capture/` → `evidence/capture/`.
+      Status file path `status/garura-capture.json` → `status/capture.json`.
+      Agent contract `intent_path` reference to old directory path.
+      Note: SKILL.md frontmatter `name: "garura:capture"` must NOT change.
+  - file: core/components/plays/report-issue/SKILL.md
+    role: Deprecated alias — references `/garura-capture` as the replacement invocation
+    scope: >
+      Line 4: `/garura-capture` → `/capture`.
+      Line 16: `/garura-capture` → `/capture`.
+  - file: docs/components/plays.md
+    role: Play registry documentation
+    scope: >
+      Line 336: entry name `garura-capture` → `capture`.
+      Line 337 (report-issue row): `Use /garura-capture instead` → `Use /capture instead`.
+  - file: docs/components/skills.md
+    role: Skills table documentation
+    scope: >
+      Line 99: entry name `garura-capture` → `capture`.
+      Line 100 (report-issue row): `Use /garura-capture instead` → `Use /capture instead`.
+  - file: .garura/product/scope/features.yaml
+    role: Product scope registry — lists play names and evidence paths
+    scope: >
+      Line 152: `garura-capture` → `capture` in play list.
+      Line 1209: `core/components/plays/garura-capture/` → `core/components/plays/capture/`.
+      Line 1398: `/garura-capture` in notes → `/capture`.
+  - file: .garura/product/specification/quality-profile.yaml
+    role: Quality profile — references play by name for performance metrics
+    scope: >
+      Line 99: key `garura-capture` → `capture` under play metrics map.
+  - file: ~/.claude/skills/garura-capture/ (deployed)
+    role: Deployed skill directory — incorrect invocation name in production
+    scope: >
+      After source rename + /sync-claude, this directory is replaced by
+      ~/.claude/skills/capture/. No manual deletion needed — sync handles it
+      (old directory persists until removed or sync cleans it up — verify post-sync).
+
+out_of_scope:
+  - ".garura/project/issues/266/** — historical evidence, read-only archive, not updated"
+  - ".garura/project/issues/274/** — historical evidence, read-only archive, not updated"
+  - "SKILL.md frontmatter `name: \"garura:capture\"` — correct, must NOT change"

@@ -333,8 +333,8 @@ Recovery reasoning is loaded from LTM: `docs/framework/intent-driven-recovery.md
 | `implement-epic` | Task-Driven | Implement a feature through an eval-driven TDD loop |
 | `create-play` | Task-Driven | Compile a new play from an intent.yaml |
 | `ship` | Linear (chains atomic plays) | Deliver branch work — commit, PR, review, merge, return |
-| `garura-capture` | Linear | Capture any issue type (feature / bug / defect / epic / enhancement) as a labeled GitHub Issue with background dispatch |
-| `report-issue` | Linear | DEPRECATED — alias for `garura:capture`. Available until next major release. Use `/garura-capture` instead. |
+| `capture` | Linear | Capture any issue type (feature / bug / defect / epic / enhancement) as a labeled GitHub Issue with background dispatch |
+| `report-issue` | Linear | DEPRECATED — alias for `garura:capture`. Available until next major release. Use `/capture` instead. |
 
 ## Artifact Locations (per ADR 017 whitelist)
 

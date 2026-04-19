@@ -1,4 +1,4 @@
-name: garura-capture
+name: capture
 description: >
   Accept a structured issue capture request from any caller (human or agent),
   infer or accept explicit issue type, file as a labeled GitHub Issue

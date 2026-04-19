@@ -1,0 +1,8 @@
+pr_number: 277
+state: OPEN
+mergeable: true
+base_ref: main
+head_ref: enhance/255-evidence-commit-flag
+clean_tree: true
+pre_flight_passed: true
+checked_at: "2026-04-19"
