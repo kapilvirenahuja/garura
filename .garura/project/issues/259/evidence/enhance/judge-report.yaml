@@ -1,0 +1,195 @@
+judge_report:
+  timestamp: "2026-04-19T00:00:00Z"
+  issue: 259
+  judge_model: "claude-sonnet-4-6"
+  confidence: 0.88
+
+  eval_results:
+    - id: E1
+      description: "C14 (TDD constraint) present in intent.yaml"
+      status: PASS
+      evidence: "id: C14 found at line 69; 'failing regression' text present in constraint rule"
+
+    - id: E2
+      description: "C15 (validator-not-implementer) present in intent.yaml"
+      status: PASS
+      evidence: "id: C15 found at line 77; 'quality-auditor' referenced in constraint rule"
+
+    - id: E3
+      description: "C19 (retry cap = 2) present in intent.yaml"
+      status: PASS
+      evidence: "id: C19 found at line 105; 'retry cap' phrasing present in constraint text"
+
+    - id: E4
+      description: "C18 (task-list / status/fix-it.json) present in intent.yaml"
+      status: PASS
+      evidence: "id: C18 found at line 97; 'status/fix-it.json' referenced in constraint rule"
+
+    - id: E5
+      description: "C5 (risk assessment) ABSENT from intent.yaml"
+      status: PASS
+      evidence: "grep -q 'id: C5' returns non-zero; no C5 entry exists in constraints list"
+
+    - id: E6
+      description: "Old F4 'risks.*entries.*severity' text ABSENT from intent.yaml"
+      status: PASS
+      evidence: "grep finds no match for 'risks.*entries.*severity' in intent.yaml"
+
+    - id: E7
+      description: "SKILL.md intent_hash matches SHA-256 of intent.yaml"
+      status: PASS
+      evidence: >
+        shasum -a 256 intent.yaml produces hash matching the value embedded in
+        SKILL.md compilation metadata (sha256:9c6df454426df9770fd1d82ac9cde2848f7ae8d61066a34832e69b83832ad89e)
+
+    - id: E8
+      description: "quality-auditor listed in SKILL.md agent boundaries table"
+      status: PASS
+      evidence: "quality-auditor appears in agent boundaries table with domain 'Independent verification of fix'"
+
+    - id: E9
+      description: >
+        Diff-based isolation: regression_test_path in tech-designer output;
+        read_only_files in code-builder contract; test content NOT inlined
+      status: FAIL
+      evidence: >
+        Part 1 PASS: regression_test_path found in SKILL.md (multiple occurrences including
+        Step 3 output contract and Step 6b contract).
+        Part 2 PASS: read_only_files found at line 346 in Step 6 code-builder contract.
+        Part 3 FAIL: grep pattern 'test.*assertion.*inline' matches lines 354 and 362 which
+        are ENFORCEMENT NOTES (SE-12 and C17 constraint text) that say test assertions MUST NOT
+        be inlined. The pattern false-positively matches prohibitory constraint language.
+        Actual isolation is correctly implemented — no test content is inlined into the
+        code-builder contract.
+      severity: eval-command-false-positive
+      actual_compliance: >
+        The implementation correctly enforces C17 isolation. Line 354 reads 'It MUST NOT
+        include the test file content, test assertion text, or inline eval entries anywhere
+        in the contract (C17).' This is prohibition language, not a violation.
+
+  eval_summary:
+    total: 9
+    passed: 8
+    failed: 1
+    note: >
+      E9 failure is a false positive caused by the eval command's exclusion pattern
+      matching constraint enforcement text. The underlying isolation requirement (C17)
+      is correctly implemented in the artifact.
+
+  per_area_assessments:
+    intent-yaml-correctness:
+      rating: excellent
+      finding: >
+        intent.yaml is v1.2.0. C5 is absent. C14-C19 are all present and faithfully
+        reproduce the approach spec language. F4 has been correctly replaced with the
+        partial-shipping failure condition. S2 no longer references risk table. The
+        constraint IDs skip C5 (C1-C4, C6-C19) which is correct — no renumbering gap.
+
+    skill-md-rebake-quality:
+      rating: excellent
+      finding: >
+        SKILL.md was rebuilt (compiled_at 2026-04-19T14:42:48Z). All structural requirements
+        met: Step 6b (verify-fix) exists between implement-fix and ship; retry loop
+        (cap=2 per C19) is documented with explicit semantics; quality-auditor appears
+        in the agent boundaries table (4 domain agents); regression_test_path flows through
+        tech-designer output and code-builder read_only_files; task_list schema is
+        documented in the status file example with all required fields; SE-4 is correctly
+        repurposed to C11/F8 (LTM resolution trace); SE-10 covers C14 TDD invariant;
+        SE-12 covers C17 isolation; SE-13 covers C18 task-list; SE-11 covers C16
+        independent signal. Intent hash matches, confirming atomic rebuild from intent.yaml.
+        Deployed artifact (~/.claude/skills/fix-it/SKILL.md) matches source — sync complete.
+
+    tech-designer-agent-update:
+      rating: good
+      finding: >
+        regression_test_path added to the 'What You Produce' output contract table with
+        full explanatory note including YAML/markdown repo behavior and red-before-green
+        invariant. Skill Pool section has a new 'Regression test authorship (fix-it TDD mode)'
+        subsection with concrete instructions. Deployed artifact matches source.
+        Minor concern: the output contract table row is documentation-only; no separate
+        'stm.output.regression_test_path' field appears in the formal Output Contract section
+        at the bottom — though the Skill Pool note covers it operationally.
+
+    test-isolation-enforcement:
+      rating: excellent
+      finding: >
+        C17 isolation is structurally enforced at three layers: (1) constraint text in intent.yaml
+        forbids test content in builder contract; (2) SE-12 eval verifies it; (3) SKILL.md
+        Step 6 critical-context-isolation note explicitly repeats the prohibition. The
+        code-builder contract only contains read_only_files: ["{regression_test_path}"] —
+        path reference only, no content.
+
+    retry-semantics:
+      rating: excellent
+      finding: >
+        C19 is fully operationalized. SKILL.md documents: retry loop wrapping Steps 6 + 6b,
+        keyed by task_list[i].retry_count; verdict=pass exits loop; verdict=fail AND
+        retry_count < 2 increments and re-runs; verdict=fail AND retry_count=2 triggers
+        tech-designer re-plan; re-plan beyond 6 entries or 3 new tasks emits stdout warning
+        but never halts and never escalates to /enhance. This exactly matches C19 language.
+        Task DAG comment also notes retry loop semantics.
+
+    overall-scope-discipline:
+      rating: good
+      finding: >
+        Changes are confined to the three specified files. No new files created. No other
+        plays or agents modified. The enhancement correctly treats SKILL.md as a derived
+        artifact (compiled via /create-play --build fix-it). Tech-designer change is
+        documentation-only as specified. The one minor scope question: approach spec says
+        "SE-4 eval removed" but SE-4 is retained in SKILL.md repurposed for C11/F8 (LTM
+        resolution trace). This is correct behavior — SE-4 covered risk assessment in the
+        old version; the compiler has retained the SE-4 slot and repurposed it rather than
+        deleting a numbered eval, which is the right call. The approach's intent was to
+        remove the risk-assessment eval coverage requirement, not the ID.
+
+  strengths:
+    - "All 6 new constraints (C14-C19) land in intent.yaml with language that exactly matches the approach spec"
+    - "SKILL.md intent_hash matches the actual SHA-256 of intent.yaml — proves atomic rebuild"
+    - "Step 6b (verify-fix) correctly positioned between implement and ship with full quality-auditor contract"
+    - "task_list schema in status/fix-it.json includes all 5 required fields (id, description, status, retry_count, regression_test_path)"
+    - "Retry semantics (cap=2, warn-not-halt, never escalate to /enhance) are verbatim-faithful to C19"
+    - "tech-designer.md regression_test_path entry includes YAML/markdown repo clarification as specified"
+    - "Deployed artifacts (~/.claude/) match source — /sync-claude was completed"
+    - "C17 isolation enforced at constraint, eval, and play-instruction levels — three-layer redundancy"
+    - "F4 correctly replaced: old risk-severity failure condition removed; new partial-ship failure condition is clean"
+
+  concerns:
+    - severity: low
+      concern: >
+        E9 eval command false positive: the exclusion pattern 'test.*assertion.*inline' matches
+        constraint enforcement text in SKILL.md lines 354 and 362. The actual isolation is
+        correct, but the eval as written would always fail on any SKILL.md that correctly
+        documents the prohibition. The eval should be revised to grep for actual inlined
+        eval content (e.g., 'assert:\|check:\|grep.*inline') in the code-builder contract
+        block rather than globally.
+
+    - severity: low
+      concern: >
+        tech-designer.md output contract formal table (the structured YAML block at end of
+        file under 'Structured Analysis Output') does not have a regression_test_path field.
+        The addition is in the prose table and the Skill Pool subsection, which covers
+        operational behavior. A strict reader of the formal output schema would not see it.
+        Low risk since the Skill Pool note is operationally sufficient and tech-designer
+        uses JSON contract mode (not structured analysis output) when invoked by fix-it.
+
+    - severity: low
+      concern: >
+        The approach spec says approach.tasks[T3].depends_on is T2, but the actual play
+        sequencing has T3 (RCA & Design) correctly blocked on T2 (Create Branch). This
+        is consistent. No concern on execution order.
+
+  low_confidence_areas:
+    - file: core/components/plays/fix-it/SKILL.md
+      area: regression-test-verification.yaml creation
+      note: >
+        SKILL.md Step 3 post-verify note says the play writes 'regression-test-verification.yaml
+        recording failing: true', but this file path is not listed in any step eval. If the play
+        skips this write, SE-10 would not catch it (SE-10 only checks path existence and red state,
+        not the verification record file). Minor gap in eval coverage.
+
+    - file: core/components/agents/tech-designer.md
+      area: output contract formal schema
+      note: >
+        regression_test_path appears in prose/table but not in the formal structured output
+        YAML schema at the bottom of the file. Lower confidence that downstream agents
+        parsing the schema block will discover the field.

@@ -1,0 +1,342 @@
+problem_statement: >
+  The /fix-it play has three anti-patterns that enable reward hacking and produce
+  unverifiable outcomes: (1) code-builder self-certifies its own fix (no
+  independent verification), (2) there is no regression-test artifact anchoring
+  the implementer to a concrete pass condition, (3) the task-list exists only
+  implicitly in the play's execution — there is no durable, play-owned record
+  that agents can read and that the play writes atomically. Additionally,
+  the risk-assessment requirement (C5) adds ceremony with no downstream
+  consumer for lean bug-fix work, and the old scope-guard escalation logic
+  (removed in Q4) was pointing to /enhance rather than warning and continuing.
+  This enhancement adds anti-reward-hacking mechanisms, a file-based task-list
+  anchor, and removes the risk taxonomy — all scoped to /fix-it only.
+
+solution_summary: >
+  Add six new constraints to fix-it/reference/intent.yaml covering: TDD
+  (tech-designer authors failing regression-test artifact before code-builder
+  runs), validator-not-implementer (quality-auditor runs verification, not
+  code-builder), independent-signal verdicts, contract-level test-file isolation
+  (code-builder receives test path in read_only_files but NOT the test content),
+  play-owned task-list in status/fix-it.json, and retry-cap=2 with tech-designer
+  re-plan on exhaustion. Remove C5 (risk assessment), remove F4 (risks
+  failure condition), remove the risk table from S2 checkpoint scenario, and
+  remove SE-4 eval. Rebuild SKILL.md via /create-play --build fix-it (never
+  hand-edited). Apply minimal additions to tech-designer.md (regression-test
+  authorship in output contract) and add quality-auditor as a new domain agent
+  in the play. Issue closes on merge when /ship includes "Closes #259" in
+  the PR body.
+
+files_to_create: []
+
+files_to_modify:
+  - path: core/components/plays/fix-it/reference/intent.yaml
+    role: Source of truth for play behavior — all constraint, failure-condition, and scenario changes land here first
+    changes:
+      - Remove C5 (risk assessment with severity levels)
+      - Add C14: TDD — tech-designer must author a failing regression-test artifact to the repo's
+          canonical eval path before code-builder is invoked; red-before-green invariant is
+          enforced by the play (not delegated to builder self-report)
+      - Add C15: Validator-not-implementer — verification MUST be executed by quality-auditor,
+          never by the agent that implemented the fix; code-builder MUST NOT run its own
+          post-implementation verification
+      - Add C16: Independent signal — pass/fail verdict MUST come from quality-auditor's
+          exit-code-style report written to STM; builder self-report is not a valid
+          verification signal under any circumstances
+      - Add C17: Contract-level test-file isolation — the code-builder JSON contract MUST
+          include the source-file paths to modify (via design.yaml affected_files) and
+          the regression-test file path in read_only_files; it MUST NOT include the
+          test file content, test assertion text, or eval entries inline
+      - Add C18: Play-owned task list — status/fix-it.json is extended with a task_list
+          array; the play is sole writer; agents may propose additions but MUST NOT
+          mutate task_list directly; task_list is initialized from RCA output before
+          code-builder is invoked
+      - Add C19: Retry cap and re-plan — per-task retry cap is 2; on verification failure
+          after retry exhaustion, the play invokes tech-designer to revise the current
+          task or insert a new task; if the re-plan grows total task_list beyond 6 entries
+          or inserts more than 3 new tasks, the play emits a warning to stdout but DOES
+          NOT halt and DOES NOT escalate to /enhance; it continues with the expanded plan
+      - Remove F4 (design.yaml has no risks entries with severity) — was linked to C5
+      - Update S2 scenario: remove "risk table with severity levels" from checkpoint
+          description; keep all other checkpoint content (root cause, blast radius,
+          alternatives, confidence)
+      - Remove SE-4 eval coverage expectation for risk assessment
+      - Bump version: 1.1.0 → 1.2.0
+
+  - path: core/components/plays/fix-it/SKILL.md
+    role: Compiled play artifact — rebuilt via /create-play --build fix-it; NEVER hand-edited
+    changes:
+      - Rebuilt automatically when intent.yaml is updated and /create-play --build fix-it is run
+      - Step 3 (rca-and-design) contract gains stm.output.regression_test_path
+      - Step 3 agent instruction notes tech-designer also authors failing regression-test eval
+      - Step 6 (implement-fix) contract gains read_only_files field listing regression_test_path
+      - New Step 6b (verify-fix) added between implement-fix and ship — quality-auditor contract
+          receives regression_test_path and source_files; returns verdict to STM
+      - Retry loop logic (cap=2) embedded between Step 6 and Step 6b
+      - Checkpoint (Step 5) no longer renders risk table section
+      - Agent boundary table updated to include quality-auditor as domain agent (3→4)
+      - status/fix-it.json schema comment updated to include task_list array
+      - Evidence/close step gains regression_test_verdict field in delivery record
+      - SE-4 eval removed; new evals for C14–C19 generated by evals-creator
+      - intent_hash updated to SHA-256 of new intent.yaml
+
+  - path: core/components/agents/tech-designer.md
+    role: Domain agent — needs minimal addition to declare regression-test authorship as an output
+    changes:
+      - Add regression_test_path to the "What You Produce" output contract table
+      - Add note in Skill Pool or execution instructions that for YAML/markdown-only repos,
+          the regression test is an eval-spec YAML file (not a unit test); it describes
+          grep/structural assertions that quality-auditor executes mechanically
+      - No structural changes to agent behavior; the agent already performs RCA directly
+          (no skill delegation); this is a documentation-level addition to the output contract
+
+connections:
+  - component: quality-auditor agent
+    integration: >
+      New domain agent in fix-it. Receives regression_test_path and project_root in
+      its Step 6b JSON contract. Executes the eval assertions in the regression-test
+      YAML mechanically (grep, yq, shasum) and writes a verdict record to STM
+      (regression_test_verdict: pass | fail). No eval content, builder prompts,
+      or builder reasoning flows into quality-auditor context — isolation maintained.
+
+  - component: code-builder agent
+    integration: >
+      No agent definition changes required. code-builder already supports TDD mode via
+      read_only_files in its contract (existing mechanism at lines 119–128 of agent def).
+      The play's Step 6 contract gains read_only_files: [regression_test_path].
+      code-builder implements to make tests pass and MUST NOT modify the test file.
+      Checksum of regression_test_path is recorded by the play before and after Step 6
+      and verified before quality-auditor runs.
+
+  - component: ship sub-play
+    integration: >
+      No changes to /ship. Step 9 continues to invoke ship with approval_override=auto-proceed.
+      "Closes #259" in the PR body is handled by the play when constructing the PR
+      description passed to ship — this is existing /ship behavior and requires no
+      modification to the ship play itself.
+
+  - component: status/fix-it.json
+    integration: >
+      Extended with task_list array. Structure: each entry has id, description,
+      status (pending | in_progress | completed | failed), retry_count, and
+      regression_test_path. Play writes after RCA (initializes from tech-designer
+      output). Agents receive task_list as read-only context via their input contracts.
+      No existing status fields are removed — task_list is additive.
+
+  - component: evals-creator skill
+    integration: >
+      Called by /create-play --build fix-it during compilation (Step 6b of compiler).
+      Receives new constraints C14–C19 classified as artifact-verifiable. Generates
+      SE-* evals for each. SE-4 (risk assessment) is removed from input; compiler
+      validates coverage matrix after generation. No direct change to evals-creator
+      itself — it responds to the intent.yaml changes correctly given correct
+      constraint classifications.
+
+tasks:
+  - id: T1
+    title: Update core/components/plays/fix-it/reference/intent.yaml
+    description: >
+      Edit intent.yaml to: remove C5 and F4; add C14 (TDD), C15 (validator≠implementer),
+      C16 (independent signal), C17 (contract-level test-file isolation), C18
+      (play-owned task list), C19 (retry cap + re-plan with warning-only sanity check);
+      update S2 to remove risk table mention; bump version to 1.2.0.
+      This is the only file that is hand-edited in this enhancement — all other
+      play artifacts are derived from it.
+    agent: code-builder
+    hard_requirement: >
+      This task MUST be completed before T2. intent.yaml is the source of truth;
+      SKILL.md must never be edited to reflect changes that are not yet in intent.yaml.
+    files:
+      - core/components/plays/fix-it/reference/intent.yaml
+
+  - id: T2
+    title: Rebuild SKILL.md via /create-play --build fix-it
+    description: >
+      Run /create-play --build fix-it. The compiler performs: deep read of existing
+      SKILL.md, gap analysis against updated intent.yaml, recompile with new steps
+      (Step 6b verify-fix, retry loop), updated agent boundary table, removed risk
+      table from S2 checkpoint rendering, updated intent_hash, and invokes
+      evals-creator for new C14–C19 coverage. NEVER hand-edit SKILL.md.
+    agent: code-builder (invokes /create-play skill)
+    depends_on: [T1]
+    hard_requirement: >
+      SKILL.md is a compiled artifact. Any direct edits to SKILL.md are forbidden per
+      project CLAUDE.md and feedback_recipe_changes_via_rebake rule. All behavioral
+      changes flow through intent.yaml → /create-play --build fix-it.
+    files:
+      - core/components/plays/fix-it/SKILL.md (output only — compiler writes this)
+
+  - id: T3
+    title: Update tech-designer.md output contract documentation
+    description: >
+      Add regression_test_path to the "What You Produce" table in tech-designer.md.
+      Add a clarifying note that in YAML/markdown-only repos the regression test is
+      a YAML eval-spec file (not a unit test) containing grep/structural assertions.
+      Keep changes minimal — this is documentation of an existing capability, not
+      a behavioral change to the agent.
+    agent: code-builder
+    depends_on: [T2]
+    rationale: >
+      Doing this after SKILL.md rebuild ensures the compiled play already references
+      regression_test_path correctly; the agent doc update is then a reconciliation
+      step, not a spec-first step. Keeping it after T2 avoids any drift between
+      what the play expects and what the agent declares.
+    files:
+      - core/components/agents/tech-designer.md
+
+  - id: T4
+    title: Status-file schema doc — N/A
+    description: >
+      No status-file schema document exists in the repository (confirmed by glob search).
+      The status/fix-it.json structure is described inline in SKILL.md (compiled in T2).
+      No additional doc update required.
+    agent: N/A
+    depends_on: []
+    status: skipped
+
+  - id: T5
+    title: Deploy via /sync-claude
+    description: >
+      Run /sync-claude to deploy updated components globally:
+      core/components/plays/fix-it/ → ~/.claude/skills/fix-it/
+      core/components/agents/tech-designer.md → ~/.claude/agents/tech-designer.md
+      Run after T3 to ensure all source changes are present before deployment.
+    agent: code-builder (invokes /sync-claude skill)
+    depends_on: [T3]
+    files:
+      - ~/.claude/skills/fix-it/SKILL.md (deployed)
+      - ~/.claude/agents/tech-designer.md (deployed)
+
+  - id: T6
+    title: Ship via /ship — PR with "Closes #259"
+    description: >
+      Run /ship with "Closes #259" in the PR body. /ship invokes commit-pr which
+      creates the PR; on merge, GitHub closes issue #259 automatically.
+      No custom issue-closure logic is added to the fix-it play itself.
+    agent: repo-orchestrator (via /ship)
+    depends_on: [T5]
+
+evals:
+  - id: E1
+    description: C14 (TDD constraint) is present in intent.yaml
+    command: grep -q "id: C14" core/components/plays/fix-it/reference/intent.yaml && grep -q "failing regression" core/components/plays/fix-it/reference/intent.yaml
+    expected_exit_code: 0
+    fails_on_current_main: true
+    passes_after_change: true
+    rationale: C14 does not exist in current intent.yaml (v1.1.0 has C1–C13 only)
+
+  - id: E2
+    description: C15 (validator-not-implementer constraint) is present in intent.yaml
+    command: grep -q "id: C15" core/components/plays/fix-it/reference/intent.yaml && grep -q "quality-auditor" core/components/plays/fix-it/reference/intent.yaml
+    expected_exit_code: 0
+    fails_on_current_main: true
+    passes_after_change: true
+    rationale: C15 and any quality-auditor reference are absent from current intent.yaml
+
+  - id: E3
+    description: C19 (retry cap = 2) is present in intent.yaml
+    command: grep -q "id: C19" core/components/plays/fix-it/reference/intent.yaml && grep -q "retry cap" core/components/plays/fix-it/reference/intent.yaml
+    expected_exit_code: 0
+    fails_on_current_main: true
+    passes_after_change: true
+    rationale: No retry-cap constraint exists in current intent.yaml
+
+  - id: E4
+    description: C18 (task-list naming status/fix-it.json) is present in intent.yaml
+    command: grep -q "id: C18" core/components/plays/fix-it/reference/intent.yaml && grep -q "status/fix-it.json" core/components/plays/fix-it/reference/intent.yaml
+    expected_exit_code: 0
+    fails_on_current_main: true
+    passes_after_change: true
+    rationale: C18 and the status/fix-it.json task_list reference are absent from current intent.yaml
+
+  - id: E5
+    description: C5 (risk assessment) is ABSENT from intent.yaml
+    command: "! grep -q 'id: C5' core/components/plays/fix-it/reference/intent.yaml"
+    expected_exit_code: 0
+    fails_on_current_main: true
+    passes_after_change: true
+    rationale: Current intent.yaml contains C5; after the change C5 must not appear
+
+  - id: E6
+    description: Risk-related failure condition (old F4 referencing risks/severity) is ABSENT from intent.yaml
+    command: "! grep -q 'risks.*entries.*severity' core/components/plays/fix-it/reference/intent.yaml"
+    expected_exit_code: 0
+    fails_on_current_main: true
+    passes_after_change: true
+    rationale: Current intent.yaml F4 references "risks entries with severity"; after removal this string must not appear
+
+  - id: E7
+    description: SKILL.md intent_hash matches SHA-256 of the updated intent.yaml
+    command: >
+      EXPECTED=$(shasum -a 256 core/components/plays/fix-it/reference/intent.yaml | cut -d' ' -f1) &&
+      grep -q "$EXPECTED" core/components/plays/fix-it/SKILL.md
+    expected_exit_code: 0
+    fails_on_current_main: true
+    passes_after_change: true
+    rationale: >
+      After T1 changes intent.yaml, the old hash in SKILL.md no longer matches.
+      After T2 (/create-play --build fix-it), the compiler recomputes and embeds
+      the new hash. This eval fails until both T1 and T2 are complete.
+
+  - id: E8
+    description: quality-auditor is listed in SKILL.md agent boundaries table
+    command: grep -q "quality-auditor" core/components/plays/fix-it/SKILL.md
+    expected_exit_code: 0
+    fails_on_current_main: true
+    passes_after_change: true
+    rationale: quality-auditor does not appear in current SKILL.md (it has 3 domain agents, not 4)
+
+  - id: E9
+    description: >
+      Diff-based isolation check — tech-designer contract in SKILL.md names
+      regression_test_path as an output; code-builder contract does NOT include
+      the test file content inline (only path via read_only_files)
+    command: >
+      grep -q "regression_test_path" core/components/plays/fix-it/SKILL.md &&
+      grep -q "read_only_files" core/components/plays/fix-it/SKILL.md &&
+      ! grep -q "test.*assertion.*inline\|eval.*content.*code-builder" core/components/plays/fix-it/SKILL.md
+    expected_exit_code: 0
+    fails_on_current_main: true
+    passes_after_change: true
+    rationale: >
+      Current SKILL.md has neither regression_test_path nor read_only_files in Step 6.
+      After T2 rebuild, both must appear; test content must not be inlined into
+      code-builder's contract (only path reference permitted).
+
+risks: []
+
+alternatives_considered:
+  - alternative: Keep C5 (risk assessment) but add a skip_risks flag to design.yaml
+    rejection_reason: >
+      Introduces a conditional code path in the play and a new schema field just
+      to suppress output that has no downstream consumer in lean fix-it flows.
+      Occam's Razor: fewer moving parts wins. If risk assessment is not consumed,
+      removing it is cleaner than making it opt-out. A flag would also accumulate
+      technical debt — future maintainers would need to understand the flag's
+      semantics and audit where it is checked. Hard removal is unambiguous.
+
+  - alternative: Use Claude Code TaskCreate instead of file-based task_list in status/fix-it.json
+    rejection_reason: >
+      TaskCreate creates Claude Code native tasks that are visible and mutable by
+      any agent in the session, not just the play. Discovery Q1 explicitly chose
+      file-based because the play must be the sole writer and agents read-only.
+      Claude Code tasks do not provide write-only semantics for a single caller.
+      File-based status/fix-it.json already exists; extending it is additive and
+      consistent with the existing status-tracking pattern.
+
+  - alternative: Name-convention isolation for test-file (e.g., suffix *.regression.yaml) instead of contract exclusion
+    rejection_reason: >
+      Naming conventions are advisory, not enforced. Any agent with file-system
+      access could still read a test file if its path is in context. Contract-level
+      exclusion is the only mechanism that prevents code-builder from receiving
+      test content — the agent only sees what its JSON contract contains.
+      Discovery Q2 explicitly chose contract-level isolation (Option a). Naming
+      convention would be a defense-in-depth addition at best, not a replacement.
+
+  - alternative: Retain scope-guard escalation to /enhance when re-plan grows large
+    rejection_reason: >
+      Discovery Q4 explicitly removed scope-guard escalation. The invoker is
+      expected to choose the right play upfront. An escalation-to-/enhance path
+      inside /fix-it creates a hidden dependency between two plays and confuses
+      the play boundary. Warning-and-continue is a strictly lighter mechanism
+      that satisfies the sanity-check need without coupling plays. The constraint
+      C19 language explicitly prohibits halt and escalation.
