@@ -1,0 +1,5 @@
+pr_number: 279
+state: open
+mergeable: true
+base_branch: main
+clean_tree: true

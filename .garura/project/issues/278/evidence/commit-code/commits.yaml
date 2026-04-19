@@ -1,0 +1,35 @@
+commits:
+  - number: 1
+    sha: 2770514
+    message: "refactor(capture): rename garura-capture play directory to capture (#278)"
+    files:
+      - core/components/plays/capture/SKILL.md
+      - core/components/plays/capture/reference/intent.yaml
+  - number: 2
+    sha: 229d8c1
+    message: "docs(plays): update play and skill docs for capture rename (#278)"
+    files:
+      - docs/components/plays.md
+      - docs/components/skills.md
+  - number: 3
+    sha: a1ae597
+    message: "chore(product): update product artifacts to use capture invocation name (#278)"
+    files:
+      - .garura/product/scope/features.yaml
+      - .garura/product/specification/quality-profile.yaml
+  - number: 4
+    sha: fa41b30
+    message: "chore(report-issue): update deprecated alias to reference /capture (#278)"
+    files:
+      - core/components/plays/report-issue/SKILL.md
+  - number: 5
+    sha: 551ba6a
+    message: "chore(stm): record fix-it evidence for #278"
+    files:
+      - .garura/project/issues/278/evidence/fix-it/branch-result.yaml
+      - .garura/project/issues/278/evidence/fix-it/design.yaml
+      - .garura/project/issues/278/evidence/fix-it/implementation-report.yaml
+      - .garura/project/issues/278/evidence/fix-it/issue-comment-agent.yaml
+      - .garura/project/issues/278/evidence/fix-it/issue-read.yaml
+      - .garura/project/issues/278/evidence/fix-it/rca.yaml
+      - .garura/project/issues/278/evidence/fix-it/resolution-trace.yaml

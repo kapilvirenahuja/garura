@@ -1,0 +1,6 @@
+{
+  "tasks": {
+    "verify-readiness": "completed",
+    "merge-switch-pull-delete": "completed"
+  }
+}
