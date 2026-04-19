@@ -1,0 +1,97 @@
+distill:
+  issue: 256
+  pr: 280
+  extracted_at: "2026-04-19"
+  no_learnings: false
+  mode: fast
+  stm_evidence_found: true
+  diff_assessed_trivial: false
+  diff_note: >
+    PR #280 contains only STM evidence artifacts — the actual fix (rm -rf .factory/)
+    produced no git diff because .factory/ is gitignored. Non-trivial signal comes
+    from the RCA and resolution-trace which corrected a false issue hypothesis and
+    documented a systematic git tracking audit pattern.
+
+proposals:
+  - id: P1
+    type: knowledge_file
+    scope: project
+    tier: 1
+    confidence: high
+    target_path: core/components/memory/knowledge/arch/agentic/git-tracking-audit-pattern.md
+    rationale: >
+      Issue #256 asserted that .factory/ was committed before the gitignore entry.
+      The fix-it play ran a 4-step git tracking audit (git ls-files, git check-ignore,
+      git log --all, on-disk ls) and found the hypothesis was false — the directory
+      was never tracked. This audit pattern is a reusable diagnostic for any issue
+      claiming a directory/file is tracked when it may not be. Without this knowledge
+      entry, an agent will default to running git rm (which would error) based on
+      the issue description alone, rather than verifying the actual tracked state first.
+      The resolution-trace in STM provides the exact verification sequence.
+    content: |
+      # Git Tracking Audit Pattern
+
+      <!-- knowledge-file: tier=1 scope=project -->
+
+      **When this applies:** When an issue or defect report claims that a directory
+      or file is "committed to the repo" and needs `git rm` to remove it.
+
+      **When this does NOT apply:** When git status or git ls-files already confirm
+      the file is tracked — proceed directly to the fix.
+
+      **Search patterns:** git rm, untracked, gitignored, factory tree, committed
+      directory, git ls-files, verify tracked, issue hypothesis, false premise
+
+      **Provenance:** Issue #256 — [TECH-DEBT] Remove .factory/ tree from repo
+
+      **Created:** 2026-04-19
+
+      ## Content
+
+      Before running `git rm` on a directory claimed to be tracked in an issue,
+      run the 4-step git tracking audit to verify the actual state:
+
+      ### Audit Steps
+
+      ```bash
+      # Step 1: Check if any files are tracked
+      git ls-files <path>/
+
+      # Step 2: Check gitignore effectiveness
+      git check-ignore -v <path>/
+
+      # Step 3: Check git history on all branches
+      git log --oneline --all -- <path>/**
+
+      # Step 4: Check on-disk state
+      ls -la <path>/
+      ```
+
+      ### Interpretation
+
+      | git ls-files | check-ignore | Correct action |
+      |-------------|--------------|----------------|
+      | Empty output | Shows ignore rule | Use `rm -rf` (NOT `git rm`) |
+      | Lists files | No ignore rule | Use `git rm -r` |
+      | Empty output | No ignore rule | Untracked but not ignored — use `rm -rf` |
+
+      ### Why this matters
+
+      Issue descriptions often contain hypotheses about git state that were correct
+      at authoring time but are no longer true (e.g., gitignore was added later).
+      Running `git rm -r` on an untracked path errors with "pathspec did not match
+      any file(s) known to git" — an unhelpful failure that does not advance the fix.
+
+      Verifying actual tracked state before choosing the removal command eliminates
+      this class of false-premise errors and produces the correct operation (`rm -rf`
+      vs `git rm -r`) on the first attempt.
+
+      ### Example
+
+      Issue #256 claimed `.factory/` was committed before gitignore. Audit revealed:
+      - `git ls-files .factory/` → empty (no tracked files)
+      - `git check-ignore -v .factory/` → `.gitignore:18:.factory/` (rule in effect)
+      - `git log --all -- .factory/**` → no commits on any branch
+      - `ls .factory/` → directory exists on disk with stale content
+
+      Correct operation: `rm -rf .factory/` (not `git rm -r .factory/`).
