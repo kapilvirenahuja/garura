@@ -24,7 +24,7 @@ intent: >
   The quality-auditor handles both quality gates AND QP certification in a single step — no
   separate engineering-manager agent needed. When failures occur, remediation draws from two
   sources: spec-referenced status reports (behavioral failures mapped to contract IDs) and
-  quality-auditor failures (including QP threshold failures). Eval-generator is scoped to unit
+  quality-auditor failures (including QP threshold failures). Evals-engineer is scoped to unit
   test coverage completeness: 'did you test all behaviors?' Judge eval-review mode is scoped to
   developer self-review: 'are unit tests genuinely covering the spec?' Eval count stability is
   audited across fix iterations to prevent silent eval reduction. System-level verification
@@ -80,7 +80,7 @@ constraints:
       'Does coverage align with the spec, not just hit line count?' In ARBITER mode (invoked per C30
       when same contract fails twice): the judge receives only SPEC contracts from tech.yaml and the
       spec-referenced STATUS REPORT — not implementation code, test code, or eval content. The
-      isolation guarantee — no builder prompts, no reasoning artifacts, no eval-generator content —
+      isolation guarantee — no builder prompts, no reasoning artifacts, no evals-engineer content —
       applies in both modes. The judge does NOT exercise a deployed environment, run browser
       automation, or make HTTP requests to deployed services in either mode.
 
@@ -135,7 +135,7 @@ constraints:
       actual measurements versus thresholds from quality-vision.yaml (from arch output).
       Its report includes a qp_certification section with per-dimension PASS/FAIL, overall
       CERTIFIED|BLOCKED, and blockers list. No separate engineering-manager agent is needed.
-      It does not receive: evaluations, builder prompts, builder reasoning, eval-generator
+      It does not receive: evaluations, builder prompts, builder reasoning, evals-engineer
       prompts, or judge reports.
 
   - id: C15
@@ -198,9 +198,9 @@ constraints:
   - id: C22
     rule: >
       When fresh evals are generated during a fix iteration, the orchestrator compares eval
-      count against the original manifest. If the count decreased, the eval-generator must
+      count against the original manifest. If the count decreased, the evals-engineer must
       provide a consolidation_rationale for each removed eval ID. If no rationale is provided,
-      the fresh eval set is rejected and the eval-generator is re-invoked. Eval count may
+      the fresh eval set is rejected and the evals-engineer is re-invoked. Eval count may
       increase (new behaviors discovered) but may not decrease without documented explanation.
 
   - id: C23

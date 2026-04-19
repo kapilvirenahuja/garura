@@ -29,20 +29,20 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 | Agent | Role | Domain | Receives | Does NOT Receive | Phases |
 |-------|------|--------|----------|-----------------|--------|
 | `tech-designer` | Context assembly | Synthesize CONTEXT.md from tech.yaml contracts | plan.yaml milestone entry, tech.yaml, architecture-context.yaml | TEST-CONTEXT.md, test files, evals, features.yaml behaviors | Preparation (Step 1) |
-| `eval-generator` | Eval authorship | Generate encrypted unit test coverage evals | epic-spec.yaml behaviors, scenarios.yaml, milestone exit gate | Implementation code, builder prompts, prior evals, tech.yaml, plan.yaml | Preparation (Step 4) |
+| `evals-engineer` | Eval authorship | Generate encrypted unit test coverage evals | epic-spec.yaml behaviors, scenarios.yaml, milestone exit gate | Implementation code, builder prompts, prior evals, tech.yaml, plan.yaml | Preparation (Step 4) |
 | `test-writer` (code-builder sub-role) | Test authorship | Author behavioral tests from specs | TEST-CONTEXT.md ONLY (scope descriptions + acceptance criteria + test framework name) | CONTEXT.md "Files You Own", file paths, architecture decisions, tech choices, evals, builder output | Execution (Step 6a) + Fix Loop (conditional) |
 | `code-builder` | Builder | Implement scope items from spec contracts | CONTEXT.md + architecture-context.yaml ONLY | Test files, test code, test assertions, evals, eval IDs, judge reports, pass criteria, scenarios, TEST-CONTEXT.md, mock data patterns | Execution (Step 6b) + Fix Loop (Step 10) |
-| `judge` (EVAL-REVIEW) | Developer self-review | Verify unit test quality | Encrypted evals + implementation artifacts | Builder prompts, eval-generator prompts, quality results | Evaluation (Step 8) + Fresh Judge (Step 13) |
+| `judge` (EVAL-REVIEW) | Developer self-review | Verify unit test quality | Encrypted evals + implementation artifacts | Builder prompts, evals-engineer prompts, quality results | Evaluation (Step 8) + Fresh Judge (Step 13) |
 | `judge` (ARBITER) | Fault attribution | Determine if impl or test is wrong when same contract fails twice | SPEC contracts from tech.yaml + spec-referenced status report | Implementation code, test code, eval content, builder prompts | Execution (Step 6c, conditional) |
-| `quality-auditor` | Quality gate + QP certification | Verify quality vision gates + QP thresholds | Implemented code, quality-gates.yaml | Evals, builder prompts, judge reports, eval-generator prompts | Evaluation (Step 7) |
+| `quality-auditor` | Quality gate + QP certification | Verify quality vision gates + QP thresholds | Implemented code, quality-gates.yaml | Evals, builder prompts, judge reports, evals-engineer prompts | Evaluation (Step 7) |
 | `repo-orchestrator` | Git | Evidence self-commit | Evidence files | Everything else | Evidence |
 
 **Critical isolation invariants:**
 - **test-writer receives:** TEST-CONTEXT.md ONLY — scope descriptions (no file paths), acceptance criteria, test framework name. Never CONTEXT.md, file paths, architecture or tech decisions (C17).
 - **code-builder receives:** CONTEXT.md + architecture-context.yaml ONLY. NEVER test files, test code, test assertions, mock data patterns, evals, eval IDs, judge reports, pass criteria (C5, C29).
-- **judge (EVAL-REVIEW) receives:** Encrypted evals + project code. Never builder prompts, eval-generator prompts, quality results (C6).
+- **judge (EVAL-REVIEW) receives:** Encrypted evals + project code. Never builder prompts, evals-engineer prompts, quality results (C6).
 - **judge (ARBITER) receives:** SPEC contracts from tech.yaml + status report. Never impl code, test code, eval content (C6, C30).
-- **eval-generator receives:** epic-spec.yaml behaviors, scenarios.yaml, exit gate. Never implementation code, builder prompts, prior evals (C4).
+- **evals-engineer receives:** epic-spec.yaml behaviors, scenarios.yaml, exit gate. Never implementation code, builder prompts, prior evals (C4).
 - **quality-auditor receives:** Implemented code, quality-gates.yaml. Never evals, builder prompts, judge reports (C14).
 - **Communication between agents:** ONLY through spec references and status reports (C32). No agent sees another agent's source code, test code, prompts, or reasoning.
 
@@ -239,7 +239,7 @@ Hard halt if mock setup fails — test-writer cannot proceed (F20).
 ---
 
 **Step 4 — Generate Evals**
-Owner: `eval-generator` — **CONTEXT-ISOLATED**
+Owner: `evals-engineer` — **CONTEXT-ISOLATED**
 Depends on: pre-flight
 
 Scoped to unit test coverage completeness for this milestone (C4).
@@ -552,7 +552,7 @@ Depends on: Step 6f (integration pass)
       "Read quality-gates.yaml — execute each gate command",
       "Compare actual measurements against QP thresholds",
       "Produce qp_certification section: per-dimension PASS/FAIL, overall CERTIFIED|BLOCKED",
-      "Do NOT read eval files, builder prompts, judge reports, or eval-generator content"
+      "Do NOT read eval files, builder prompts, judge reports, or evals-engineer content"
     ]
   }
 }
@@ -572,7 +572,7 @@ Depends on: Step 6f (integration pass)
 Owner: `judge` (EVAL-REVIEW mode) — **CONTEXT-ISOLATED**
 Depends on: Step 7 quality-auditor PASS with CERTIFIED
 
-**Isolation (C6):** Receives encrypted evals + project. Never builder prompts, eval-generator prompts, quality results.
+**Isolation (C6):** Receives encrypted evals + project. Never builder prompts, evals-engineer prompts, quality results.
 
 ```json
 {
@@ -596,7 +596,7 @@ Depends on: Step 7 quality-auditor PASS with CERTIFIED
       "For each eval: verify unit test quality — are tests genuinely exercising behavior?",
       "Check for trivially passing tests",
       "Verify coverage aligns with spec, not just line count",
-      "Do NOT read builder prompts, eval-generator prompts, quality-auditor results",
+      "Do NOT read builder prompts, evals-engineer prompts, quality-auditor results",
       "Do NOT exercise deployed environment or run browser automation"
     ]
   }
@@ -604,7 +604,7 @@ Depends on: Step 7 quality-auditor PASS with CERTIFIED
 ```
 
 **Step 8 Evals:**
-- **SE-16 (C6, F6):** Judge report exists. Judge's prompt contains zero builder prompts, zero eval-generator prompts, zero quality-auditor results. Judge operated in EVAL-REVIEW mode.
+- **SE-16 (C6, F6):** Judge report exists. Judge's prompt contains zero builder prompts, zero evals-engineer prompts, zero quality-auditor results. Judge operated in EVAL-REVIEW mode.
 - **SE-17 (F2):** First-run pass rate > 50%. If <= 50% → halt (feature needs restructuring).
 
 **Gate:** If 100% pass → skip to Step 14. Else → outer fix loop (Step 9).
@@ -720,7 +720,7 @@ Same contract as Step 7. Must PASS + CERTIFIED before Step 12.
 ---
 
 **Step 12 — Generate Fresh Evals**
-Owner: `eval-generator` (fresh instance)
+Owner: `evals-engineer` (fresh instance)
 Same contract as Step 4. Old evals discarded (C9).
 
 ---
@@ -959,7 +959,7 @@ Conditional: SCE-2/SCE-5 skip if no fix loop. SCE-6 skip if no performance gates
 | compiled_by | /create-play |
 | compiled_at | 2026-04-15 |
 | workflow_structure | A (per-milestone, spec-driven with judge-as-arbiter) |
-| domain_agents | 6 (tech-designer, eval-generator, test-writer, code-builder, quality-auditor, judge) |
+| domain_agents | 6 (tech-designer, evals-engineer, test-writer, code-builder, quality-auditor, judge) |
 | utility_agents | 1 (repo-orchestrator) |
 | checkpoints | 0 (automated with Orbit escalation for spec_ambiguous) |
 | step_evals | 21 (SE-1 through SE-21) |

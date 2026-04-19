@@ -3,7 +3,7 @@ intent: >
   plan.yaml, identified by milestone_id e.g. T-001) and locked verification scenarios
   for that milestone from prepare, deploy to a preview/staging environment and execute
   system-level verification against that milestone's acceptance criteria. validate
-  accepts a milestone_id and validates ONLY that milestone's scenarios. An eval-generator
+  accepts a milestone_id and validates ONLY that milestone's scenarios. An evals-engineer
   produces system-behavior evals scoped to this milestone's scenario_gate from plan.yaml —
   not all epic scenarios. A test-engineer authors e2e test scripts (Playwright, Cypress, or
   project-appropriate framework) from this milestone's scenarios and design-spec screens,
@@ -37,7 +37,7 @@ constraints:
 
   - id: C3
     rule: >
-      The eval-generator receives ONLY: this milestone's locked behaviors, this milestone's
+      The evals-engineer receives ONLY: this milestone's locked behaviors, this milestone's
       scenarios from scenarios.yaml (scoped to the milestone's scenario_gate from plan.yaml —
       baseline, new, regression tiers for THIS milestone), plan.yaml exit gates for this
       milestone, and design-spec screens relevant to this milestone. It is scoped to SYSTEM
@@ -64,7 +64,7 @@ constraints:
     rule: >
       The judge receives ONLY: encrypted system-level evals and deployed environment access
       (URL, credentials). It does NOT receive: builder prompts, unit test code, quality-auditor
-      results from implement, eval-generator prompts, implementation source code, or
+      results from implement, evals-engineer prompts, implementation source code, or
       prior judge reports from implement. The judge exercises the running product via
       HTTP calls and/or browser automation against the deployed environment.
 
@@ -124,9 +124,9 @@ constraints:
 
   - id: C14
     rule: >
-      Context isolation between eval-generator and judge follows the same compartmented model
-      as implement: eval-generator never sees implementation code or builder prompts,
-      judge never sees eval-generator prompts or quality-auditor results. Each agent operates
+      Context isolation between evals-engineer and judge follows the same compartmented model
+      as implement: evals-engineer never sees implementation code or builder prompts,
+      judge never sees evals-engineer prompts or quality-auditor results. Each agent operates
       in a sealed input context with no cross-contamination.
 
   - id: C15
@@ -208,14 +208,14 @@ failure_conditions:
 
   - id: F7
     condition: >
-      The eval-generator's input context contains implementation code, builder prompts,
+      The evals-engineer's input context contains implementation code, builder prompts,
       unit test code, quality-auditor results from implement, prior judge reports,
-      or scenarios from other milestones. Eval-generator scope is strictly this milestone's
+      or scenarios from other milestones. Evals-engineer scope is strictly this milestone's
       system-behavior from specs.
 
   - id: F8
     condition: >
-      The judge's input context contains eval-generator prompts, builder prompts,
+      The judge's input context contains evals-engineer prompts, builder prompts,
       quality-auditor results from implement, implementation source code, or unit
       test code. Judge scope is strictly deployed-product exercise.
 
@@ -258,7 +258,7 @@ failure_conditions:
   - id: F15
     condition: >
       validate runs ALL epic scenarios instead of milestone-scoped scenarios — the
-      scenario set passed to the eval-generator or test-engineer includes scenarios outside
+      scenario set passed to the evals-engineer or test-engineer includes scenarios outside
       the milestone's scenario_gate plus cumulative regression set. Scope must be strictly
       limited to the designated milestone's scenarios.
 
@@ -291,11 +291,11 @@ scenarios:
   - id: S3
     persona: "Security Auditor"
     given: >
-      The input contexts of all agents (eval-generator, judge, test-engineer) and the
+      The input contexts of all agents (evals-engineer, judge, test-engineer) and the
       compartmented isolation model
     then: >
-      Can verify no agent received information outside its designated scope — eval-generator
-      has zero implementation code, judge has zero eval-generator prompts, test-engineer
+      Can verify no agent received information outside its designated scope — evals-engineer
+      has zero implementation code, judge has zero evals-engineer prompts, test-engineer
       has zero implementation details beyond this milestone's scenarios and design-spec screens
 
   - id: S4
