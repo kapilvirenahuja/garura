@@ -84,16 +84,16 @@ When you receive a JSON contract from the play orchestrator:
 **Example return** (after blast radius computation):
 ```json
 {
-  "intent_path": ".meridian/project/issues/183/evidence/prepare-epic/intent.yaml",
+  "intent_path": ".meridian/project/issues/183/evidence/prepare/intent.yaml",
   "stm_base": ".meridian/project/issues/",
   "stm": {
     "input": {
-      "test_surface_path": ".meridian/project/issues/183/evidence/prepare-epic/test-surface.yaml",
-      "change_surface_path": ".meridian/project/issues/183/evidence/prepare-epic/change-surface.yaml",
-      "dependency_graph_path": ".meridian/project/issues/183/evidence/prepare-epic/dependency-graph.yaml"
+      "test_surface_path": ".meridian/project/issues/183/evidence/prepare/test-surface.yaml",
+      "change_surface_path": ".meridian/project/issues/183/evidence/prepare/change-surface.yaml",
+      "dependency_graph_path": ".meridian/project/issues/183/evidence/prepare/dependency-graph.yaml"
     },
     "output": {
-      "blast_radius_path": ".meridian/project/issues/183/evidence/prepare-epic/blast-radius.yaml"
+      "blast_radius_path": ".meridian/project/issues/183/evidence/prepare/blast-radius.yaml"
     }
   },
   "task_id": "blast-radius-computation",

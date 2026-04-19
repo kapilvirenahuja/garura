@@ -2,7 +2,7 @@
 name: tech-architect
 domain: architecture
 role: architect
-description: "Deep codebase architecture analysis, design pattern recognition, logical architecture inference, LLD production, dependency graph construction, change surface identification, and implementation planning. The heavyweight technical agent for prepare-epic."
+description: "Deep codebase architecture analysis, design pattern recognition, logical architecture inference, LLD production, dependency graph construction, change surface identification, and implementation planning. The heavyweight technical agent for prepare."
 model: opus
 tools:
   - Bash
@@ -97,8 +97,8 @@ When you receive a JSON contract from the play orchestrator:
       "issue_path": ".meridian/project/issues/183/issue.md"
     },
     "output": {
-      "architecture_inference_yaml": ".meridian/project/issues/183/evidence/prepare-epic/architecture-inference.yaml",
-      "architecture_inference_md": ".meridian/project/issues/183/evidence/prepare-epic/architecture-inference.md"
+      "architecture_inference_yaml": ".meridian/project/issues/183/evidence/prepare/architecture-inference.yaml",
+      "architecture_inference_md": ".meridian/project/issues/183/evidence/prepare/architecture-inference.md"
     }
   },
   "task_id": "1A-architecture-inference",
@@ -306,7 +306,7 @@ Input:
   domain: "{identified technical domain}"
   knowledge_gaps: ["{what LTM didn't cover}"]
   problem_statement: "{technical problem from issue or intent}"
-  output_base: "{stm_base}/{issue}/evidence/prepare-epic/"
+  output_base: "{stm_base}/{issue}/evidence/prepare/"
 ```
 
 The skill performs web research, writes `domain-context.md` to STM, and returns coverage metadata. Load the resulting STM artifact as enrichment context.
@@ -343,10 +343,10 @@ When invoked via JSON contract, delegate artifact production to skills when avai
 | Skill | When | Input | Produces |
 |-------|------|-------|----------|
 | `research-domain-context` | LTM insufficient for framework/pattern coverage | `domain`, `knowledge_gaps`, `problem_statement`, `output_base` | `domain-context.md` at `{output_base}/domain-context.md` |
-| `derive-logical-architecture` | build-arch Stage 1 — tech-agnostic bounded contexts, components, data model, capability-level API surface, integration points | `scope_path`, `enriched_capabilities_path`, `epics_dir`, `quality_profile_path`, `design_spec_path`, `screens_dir`, `ltm_architecture_path`, `output_path` | `logical-architecture.yaml` + `decision-manifest-derive-logical-architecture.yaml` |
-| `derive-physical-architecture` | build-arch Stage 2 — specific stack picks with source_type discipline, deployment topology, runtime tiers | `logical_architecture_path`, `project_profile_path`, `ltm_architecture_path`, `output_path` | `physical-architecture.yaml` + `decision-manifest-derive-physical-architecture.yaml` |
-| `derive-design-patterns` | build-arch Stage 5 — system/layer/component/cross-cutting pattern catalog with rationale drivers and source_type | `logical_architecture_path`, `physical_architecture_path`, `nfr_spec_path`, `ltm_architecture_path`, `output_path` | `design-patterns.yaml` + `decision-manifest-derive-design-patterns.yaml` |
-| `validate-architecture-spec` | build-arch post-generation — single 20-check pass (V1-V20) across all 5 artifacts and 5 manifests | `logical_architecture_path`, `physical_architecture_path`, `nfr_spec_path`, `quality_vision_path`, `design_patterns_path`, plus 5 decision manifest paths, `scope_path`, `epics_dir`, `quality_profile_path`, `project_profile_path`, `output_path` | Blocking validator; structured failure on any V violation |
+| `derive-logical-architecture` | arch Stage 1 — tech-agnostic bounded contexts, components, data model, capability-level API surface, integration points | `scope_path`, `enriched_capabilities_path`, `epics_dir`, `quality_profile_path`, `design_spec_path`, `screens_dir`, `ltm_architecture_path`, `output_path` | `logical-architecture.yaml` + `decision-manifest-derive-logical-architecture.yaml` |
+| `derive-physical-architecture` | arch Stage 2 — specific stack picks with source_type discipline, deployment topology, runtime tiers | `logical_architecture_path`, `project_profile_path`, `ltm_architecture_path`, `output_path` | `physical-architecture.yaml` + `decision-manifest-derive-physical-architecture.yaml` |
+| `derive-design-patterns` | arch Stage 5 — system/layer/component/cross-cutting pattern catalog with rationale drivers and source_type | `logical_architecture_path`, `physical_architecture_path`, `nfr_spec_path`, `ltm_architecture_path`, `output_path` | `design-patterns.yaml` + `decision-manifest-derive-design-patterns.yaml` |
+| `validate-architecture-spec` | arch post-generation — single 20-check pass (V1-V20) across all 5 artifacts and 5 manifests | `logical_architecture_path`, `physical_architecture_path`, `nfr_spec_path`, `quality_vision_path`, `design_patterns_path`, plus 5 decision manifest paths, `scope_path`, `epics_dir`, `quality_profile_path`, `project_profile_path`, `output_path` | Blocking validator; structured failure on any V violation |
 
 For architecture inference, dependency graph, git history, change surface, tech artifacts, and plan artifacts — perform analysis directly. These are core architect capabilities, not delegated skills.
 
