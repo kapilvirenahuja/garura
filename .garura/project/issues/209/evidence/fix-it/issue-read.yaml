@@ -1,0 +1,66 @@
+issue:
+  number: 209
+  title: "Formats gap: standardize all user-facing output shapes"
+  state: "OPEN"
+  labels:
+    - "refactor"
+  body: |
+    ## Problem
+
+    `core/components/memory/formats/` currently contains a single file (`github-issue.md`). Almost every other user-visible Meridian surface lacks a canonical format spec — recipes reinvent presentation, drift across implementations, and the same logical artifact (Tether prompts, PR bodies, evidence files) looks different in every recipe.
+
+    ## Surfaces missing canonical formats
+
+    | Surface | Status | Currently lives… |
+    |---|---|---|
+    | GitHub issue body | ✅ have | `formats/github-issue.md` |
+    | Issue list (gh issue list rendering) | ❌ | ad-hoc per skill |
+    | Commit message | ❌ | rules in `standards/commits/quality-rules.md` (not a *format*) |
+    | PR body / checklist | ❌ | each of `create-pr`, `submit-pr`, `analyze-pr` invents its own |
+    | PR review structured comment | ❌ | inlined in `recipes/review-pr/SKILL.md` |
+    | PR severity findings | ❌ | `findings.yaml` schema in `quality-check-scoped/reference/` |
+    | Tether/Vanish approval prompt | ❌ | duplicated in every recipe |
+    | Final delivery report (ship) | ❌ | inlined per recipe |
+    | Evidence file | ❌ | free-form per recipe |
+    | Checkpoint artifact | ❌ | only `start-feature-planning/templates/checkpoint.md` |
+
+    ## Decision needed
+
+    The pattern leaking is: `standards/` = rules ('how things must be'), `formats/` = output shapes ('what things must look like'). `formats/` should hold canonical templates for every user-visible Meridian surface.
+
+    ## Proposed contents of formats/
+
+    - `github-issue.md` (have)
+    - `commit-message.md`
+    - `pr-body.md`
+    - `pr-review-comment.md`
+    - `pr-findings.yaml`
+    - `approval-prompt.md` (Tether/Vanish)
+    - `delivery-report.md`
+    - `evidence-file.md`
+    - `checkpoint.md`
+    - `issue-list.md`
+
+    ## Scope
+
+    Authoring the format files plus updating every recipe to reference them instead of inlining. Paths-only refactor (no logic change), but blast radius is wide — touches most recipes.
+
+    ## Out of scope
+
+    - Changing what each recipe *says* (only standardizing the *shape*)
+    - New surfaces not currently rendered
+
+    ## Acceptance
+
+    - Every user-visible Meridian surface has a canonical entry under `formats/`
+    - Every recipe that produces such a surface references the format file (no inlined duplication)
+    - `formats/_index.md` lists all formats with consumers
+
+    ## Context
+
+    Surfaced during the standards/templates cleanup (issue #208 follow-up, 2026-04-13). The taxonomy file move and brief-templates relocation exposed how thin `formats/` actually is.
+  url: "https://github.com/kapilvirenahuja/garura/issues/209"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "refactor"

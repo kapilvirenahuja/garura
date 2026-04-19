@@ -1,0 +1,325 @@
+design:
+  plan: |
+    Create four missing template files in `core/components/memory/standards/templates/`,
+    route the findings schema to `standards/schemas/`, fix one stale path reference in
+    `checkpoint.md`, update two callers to reference the new templates instead of inlining,
+    and update `templates/_index.md` to close the deferred table.
+
+    `issue-list.md` is deliberately excluded: no play currently renders a user-facing
+    issue list. The `templates/_index.md` rule requires a template to be "instantiated by
+    at least one skill or play" — that condition is unmet. Deferring prevents creating dead
+    templates that never get consumed.
+
+    The caller update strategy uses direct-edit with deviation notes (see Alternatives below).
+    Only two callers inline non-trivial format shapes that warrant a reference update:
+    `submit-pr/SKILL.md` (PR body) and `review-pr/SKILL.md` (PR review comment).
+    All other plays either already reference an existing template or are orchestrators
+    that delegate to skills — no inline shapes to remove.
+
+  confidence: medium
+
+  affected_files:
+    # --- NEW files to create ---
+    - path: "core/components/memory/standards/templates/commit-message.md"
+      action: create
+      details: |
+        Canonical commit message shape file. Extracts the format block that currently lives
+        in rules/commits.md Part 2 and adds consumer and field-rule tables. Shape:
+        `<type>(<scope>): <subject>\n\n[body]\n\n[footer]`. Rules/commits.md keeps its
+        quality rules but gains a pointer to this template.
+      consumers: "create-commit, analyze-changes, commit-code, repo-orchestrator"
+
+    - path: "core/components/memory/standards/templates/pr-body.md"
+      action: create
+      details: |
+        Canonical PR body shape file. Extracts the inline template from
+        `skills/submit-pr/SKILL.md` lines 79-109. Sections: Summary, Quality Checklist
+        (Required / Optional), Verification Evidence table, Eval Results (conditional),
+        Generated-by footer. submit-pr/SKILL.md "Format PR Body" section updated to
+        reference this file instead of inlining markdown.
+      consumers: "submit-pr, analyze-pr"
+
+    - path: "core/components/memory/standards/templates/pr-review-comment.md"
+      action: create
+      details: |
+        Canonical PR review comment shape for review-pr. Extracts the structured comment
+        template from `plays/review-pr/SKILL.md` lines 330-356. Sections: review-pr marker
+        comment, Confidence line, P1 Blockers, P2 Major, P3 Minor, P4 Advisory, Reviewers.
+        review-pr/SKILL.md Step 5 updated to reference this template.
+      consumers: "review-pr"
+
+    - path: "core/components/memory/standards/templates/delivery-report.md"
+      action: create
+      details: |
+        Canonical delivery report shape — the user-facing summary a play emits at close.
+        Currently referenced by name in approval-prompt.md and evidence-file.md but the
+        file does not exist. Sections: Run Summary (play, issue, outcome), Pipeline Steps
+        table (step, status, key output), Artifacts Produced (path, description), and
+        Next Steps (optional free-form). Not the same as the STM evidence file — this is
+        the human-readable terminal output, not the machine-readable audit record.
+      consumers: "ship, fix-it, implement-epic, every play that closes with a delivery step"
+
+    # --- EXISTING files to modify ---
+    - path: "core/components/memory/standards/templates/checkpoint.md"
+      action: modify
+      details: |
+        Line 74: replace `formats/approval-prompt.md` with `templates/approval-prompt.md`.
+        Stale path from before the formats/ → templates/ migration.
+
+    - path: "core/components/memory/standards/templates/_index.md"
+      action: modify
+      details: |
+        1. Add rows for commit-message.md, pr-body.md, pr-review-comment.md,
+           delivery-report.md in the Contents table with their consumers.
+        2. Remove the "Deferred follow-ups (#209)" table entirely — surfaces are either
+           created above or explicitly deferred with documented rationale.
+        3. Add a note that issue-list.md was considered and deferred (no consumer found).
+        4. Add a note that pr-findings is routed to standards/schemas/ not templates/.
+
+    - path: "core/components/memory/standards/rules/commits.md"
+      action: modify
+      details: |
+        Part 2 (Commit Message Format): Replace inline format block with a pointer:
+        "See `templates/commit-message.md` for the canonical shape." Quality rules
+        in Part 3 remain unchanged — rules stay in rules/, shape moves to templates/.
+
+    - path: "core/components/skills/submit-pr/SKILL.md"
+      action: modify
+      details: |
+        "Format PR Body" section (lines 79-109): replace inline markdown block with:
+        "Load `~/.garura/core/memory/standards/templates/pr-body.md` and instantiate
+        with checklist, eval_results, and summary values." This is a direct-edit with
+        a deviation note (same pattern as ship/#274 and enhance/#240).
+
+    - path: "core/components/plays/review-pr/SKILL.md"
+      action: modify
+      details: |
+        Step 5 "Post Comment" section (around lines 330-356): replace inline structured
+        comment template with: "Load `~/.garura/core/memory/standards/templates/
+        pr-review-comment.md` and instantiate." Direct-edit with deviation note.
+
+    # --- NEW file in schemas/ ---
+    - path: "core/components/memory/standards/schemas/pr-findings.yaml"
+      action: create
+      details: |
+        Formal YAML schema contract for the findings.yaml artifact produced by
+        quality-check-scoped. Extracts content from
+        `skills/quality-check-scoped/reference/finding-schema.md` into the canonical
+        schemas/ location so it is accessible from LTM. The existing finding-schema.md
+        in the skill reference directory gains a pointer to this canonical location.
+      consumers: "quality-check-scoped, review-pr, quality-check"
+
+    - path: "core/components/memory/standards/schemas/_index.md"
+      action: modify
+      details: |
+        Add row for pr-findings.yaml with description and consumers.
+
+  alternatives_considered:
+    - option: "Rebake every affected play via intent.yaml → /create-play --build"
+      rejection_reason: |
+        The MEMORY.md rule "never edit SKILL.md directly — update intent.yaml and rebake"
+        is the orthodox path. However, the scope here is format-pointer substitution only —
+        no logic, no constraint, no scenario changes. Rebaking each play triggers full
+        intent-hash recomputation and compiled artifact replacement for what is effectively
+        a three-line text change per caller. The ship/#274 and enhance/#240 deviation notes
+        already establish the pattern of direct-edit-with-deviation-note for minor compiled
+        artifact corrections. Applying that pattern here keeps blast radius contained to
+        exactly the two lines being changed (submit-pr, review-pr) rather than producing
+        full compiled artifact replacements. The deviation note documents the bypass clearly.
+        If a full rebake of submit-pr or review-pr is done later for another reason, the
+        referenced template path will automatically be picked up in the recompile.
+
+    - option: "Route pr-findings.yaml to templates/ as proposed in the original issue"
+      rejection_reason: |
+        templates/_index.md explicitly states: "A file does NOT belong here if it is a
+        YAML schema contract (that's schemas/)." pr-findings.yaml is a typed YAML schema
+        with field-level constraints, rejection rules, and sort-order requirements — it is
+        a schema contract, not an output shape template. The issue (#209) pre-dates the
+        formats/ → templates/ migration that introduced this category distinction. The
+        updated category rule supersedes the original issue proposal. Routing to schemas/
+        is consistent with where intent.yaml, intent-epic.yaml, and mvp-recommendation.yaml
+        already live.
+
+    - option: "Create issue-list.md as proposed in the original issue"
+      rejection_reason: |
+        templates/_index.md requires a template to be "instantiated by at least one skill
+        or play." Exhaustive grep across all plays and skills found no play that renders
+        a user-facing issue list. `gh issue list` is used only for existence checks
+        (commit-code pre-flight, start-feature). Creating a template with no consumer
+        adds dead weight to the templates directory and violates the category rule. Deferred
+        until a play is built that renders issue lists to users.
+
+  risks:
+    - risk: "Direct-edit deviation notes on compiled artifacts become the norm"
+      severity: low
+      mitigation: |
+        Both edits (submit-pr, review-pr) are pointer substitutions — strictly smaller
+        than the deviation notes already accepted in ship and enhance. Code-builder should
+        include a comment in the deviation note that the change should be reconciled at
+        the next full rebake of these plays.
+
+    - risk: "delivery-report.md shape is speculative — no single reference implementation"
+      severity: medium
+      mitigation: |
+        Multiple plays (ship, fix-it, implement-epic) emit delivery reports with slightly
+        different content. The template must be flexible enough to accommodate all of them.
+        Use optional sections (marked clearly as optional) rather than forcing a rigid
+        one-size-fits-all shape. Cross-check ship/SKILL.md Step 6, fix-it/SKILL.md
+        evidence step, and implement-epic/SKILL.md for the union of fields before authoring.
+
+    - risk: "Stale deployed copy in ~/.garura if sync-claude is not run after"
+      severity: low
+      mitigation: |
+        Document in execution plan that /sync-claude must be run after the source edits.
+        The deployed LTM at ~/.garura/core/memory/ would otherwise serve the old content.
+
+    - risk: "pr-review-comment.md scope mismatch — review-pr uses a marker-based update"
+      severity: low
+      mitigation: |
+        The review-pr step posts an HTML-marker comment and may update-in-place. The
+        template must include the `<!-- review-pr:marker -->` sentinel as a required field
+        in the shape, not optional. Code-builder must read the existing inline template
+        carefully before extracting.
+
+  execution_steps:
+    - step: 1
+      description: "Create commit-message.md template"
+      files:
+        - path: "core/components/memory/standards/templates/commit-message.md"
+          action: create
+          details: |
+            Header with description and consumers. Shape section showing the
+            `<type>(<scope>): <subject>` block plus body/footer. Field rules table.
+            Related section pointing to rules/commits.md for quality rules.
+      expected_outcome: "File exists and contains canonical shape, field rules, and consumers"
+      self_test: "File exists; contains ## Shape section with the format block; lists consumers"
+
+    - step: 2
+      description: "Create pr-body.md template"
+      files:
+        - path: "core/components/memory/standards/templates/pr-body.md"
+          action: create
+          details: |
+            Extract the inline markdown block from submit-pr/SKILL.md lines 79-109.
+            Sections: Summary, Quality Checklist (Required / Optional), Verification
+            Evidence table, Eval Results (optional — with conditional rule), footer.
+            Add consumers, field rules, and Related section.
+      expected_outcome: "File exists with all sections; matches the submit-pr inline shape"
+      self_test: "All five sections present; Eval Results marked optional; consumers listed"
+
+    - step: 3
+      description: "Create pr-review-comment.md template"
+      files:
+        - path: "core/components/memory/standards/templates/pr-review-comment.md"
+          action: create
+          details: |
+            Extract from review-pr/SKILL.md lines 330-356. MUST include the
+            `<!-- review-pr:marker -->` HTML comment as a required field. Sections:
+            marker, Confidence line, P1 Blockers, P2 Major, P3 Minor, P4 Advisory,
+            Reviewers. Add consumers and field rules table.
+      expected_outcome: "File includes marker sentinel; all P1-P4 sections; confidence line"
+      self_test: "<!-- review-pr:marker --> present; field rules include marker as required"
+
+    - step: 4
+      description: "Create delivery-report.md template"
+      files:
+        - path: "core/components/memory/standards/templates/delivery-report.md"
+          action: create
+          details: |
+            Read ship/SKILL.md Step 6, fix-it/SKILL.md evidence step, and
+            implement-epic/SKILL.md for the union of fields. Shape: Run Summary (play,
+            issue, status, timestamps), Pipeline Steps table, Artifacts Produced table,
+            Next Steps (optional). Keep sections optional-flagged to allow per-play
+            variation. Add consumers.
+      expected_outcome: "File exists; covers the union of ship, fix-it, implement-epic shapes"
+      self_test: "All sections present; optional sections clearly marked; consumers listed"
+
+    - step: 5
+      description: "Create pr-findings.yaml schema in standards/schemas/"
+      files:
+        - path: "core/components/memory/standards/schemas/pr-findings.yaml"
+          action: create
+          details: |
+            Port content from skills/quality-check-scoped/reference/finding-schema.md into
+            YAML schema format. Include meta fields, findings array schema with all field
+            rules (standard_id required, severity from taxonomy, file in changed_paths,
+            evidence non-empty), counts, sort order, and rejection rules. Add consumers.
+        - path: "core/components/memory/standards/schemas/_index.md"
+          action: modify
+          details: "Add pr-findings.yaml row with description and consumers"
+      expected_outcome: "pr-findings.yaml in schemas/; _index.md references it"
+      self_test: "File at schemas/pr-findings.yaml; _index.md row present"
+
+    - step: 6
+      description: "Fix stale path reference in checkpoint.md"
+      files:
+        - path: "core/components/memory/standards/templates/checkpoint.md"
+          action: modify
+          details: "Line 74: replace `formats/approval-prompt.md` with `templates/approval-prompt.md`"
+      expected_outcome: "No remaining references to the retired formats/ directory in templates/"
+      self_test: "grep 'formats/' templates/checkpoint.md returns empty"
+
+    - step: 7
+      description: "Update rules/commits.md to point to template"
+      files:
+        - path: "core/components/memory/standards/rules/commits.md"
+          action: modify
+          details: |
+            Part 2 (Commit Message Format): Replace the inline format block with a
+            pointer line: "See `templates/commit-message.md` for the canonical shape.
+            The examples below remain for quick reference." Quality rules (Part 3)
+            unchanged.
+      expected_outcome: "rules/commits.md Part 2 references template; rules remain"
+      self_test: "File contains pointer to templates/commit-message.md"
+
+    - step: 8
+      description: "Update submit-pr/SKILL.md to reference pr-body.md"
+      files:
+        - path: "core/components/skills/submit-pr/SKILL.md"
+          action: modify
+          details: |
+            Section "2. Format PR Body": replace lines 79-109 inline markdown with:
+            "Load `~/.garura/core/memory/standards/templates/pr-body.md` and instantiate
+            with `summary`, `checklist.required`, `checklist.optional`, `eval_results`,
+            and the generated-by footer values."
+            Add deviation note: "Direct-edit (format pointer only). Reconcile at next
+            `/create-play --build submit-pr` run."
+      expected_outcome: "submit-pr SKILL.md references template; inline block removed"
+      self_test: "grep '## Summary' submit-pr/SKILL.md returns empty (section removed)"
+
+    - step: 9
+      description: "Update review-pr/SKILL.md to reference pr-review-comment.md"
+      files:
+        - path: "core/components/plays/review-pr/SKILL.md"
+          action: modify
+          details: |
+            Step 5 "Post Comment" section: replace inline structured comment template
+            with: "Load `~/.garura/core/memory/standards/templates/pr-review-comment.md`
+            and instantiate with confidence, findings counts by severity, and reviewers."
+            Add deviation note: "Direct-edit (format pointer only). Reconcile at next
+            `/create-play --build review-pr` run."
+      expected_outcome: "review-pr SKILL.md references template; inline template removed"
+      self_test: "review-pr/SKILL.md Step 5 contains template path reference"
+
+    - step: 10
+      description: "Update templates/_index.md to close the deferred table"
+      files:
+        - path: "core/components/memory/standards/templates/_index.md"
+          action: modify
+          details: |
+            1. Add rows for commit-message.md, pr-body.md, pr-review-comment.md,
+               delivery-report.md to the Contents table with descriptions and consumers.
+            2. Remove the "Deferred follow-ups (#209)" table.
+            3. Add a "Scope notes" section documenting:
+               - issue-list.md deferred (no consumer identified as of #209 closure)
+               - pr-findings.yaml routed to schemas/ (YAML schema contract, not template)
+      expected_outcome: "No deferred table; four new rows; scope notes section present"
+      self_test: "grep 'Deferred follow-ups' _index.md returns empty"
+
+    - step: 11
+      description: "Run /sync-claude to deploy updated LTM to ~/.garura"
+      files: []
+      expected_outcome: "~/.garura/core/memory/standards/templates/ reflects all new files"
+      self_test: |
+        ls ~/.garura/core/memory/standards/templates/ shows commit-message.md,
+        pr-body.md, pr-review-comment.md, delivery-report.md
