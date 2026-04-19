@@ -95,7 +95,7 @@ Depends on: pre-flight
 Agent reads intent.yaml, invokes `manage-issue` (action: read) with the issue number. Writes issue details to STM.
 
 **Step 1 Eval:**
-- **SE-5 (F5):** Issue exists on GitHub and is in an open state — `issue-read.yaml` shows the issue exists with state field equal to open.
+- **SE-1 (F5):** File `{stm_base}/{issue}/evidence/fix-it/issue-read.yaml` exists and contains a `state` field with value `open`. If the file is absent or `state` is not `open`, the play must have halted — evidence of continuation past Step 1 with a non-open or missing issue constitutes a failure.
 
 If issue does not exist or is not open → HALT: "Issue #{n} does not exist or is not open."
 
@@ -179,10 +179,10 @@ Agent reads intent.yaml — applies constraints C3 (RCA depth), C4 (alternatives
 Writes RCA and design artifacts to STM.
 
 **Step 3 Evals:**
-- **SE-2 (F2/C3):** RCA artifact contains root_cause field that identifies a specific file, the specific logic within that file, and an explanation of why it is wrong — distinct from the issue title and problem description.
-- **SE-3 (F3/C4):** Design artifact contains alternatives_considered with at least one entry, and each entry includes the reason it was rejected.
-- **SE-8 (C5):** Design artifact contains a risks section where each identified risk has an associated severity level.
-- **SE-9 (C11/F8):** When `ltm_context` was provided in the contract, `resolution-trace.yaml` exists at the output path with at least one entry. If `project_base` architecture artifacts exist, at least one entry has `resolved_from` of `"project"` or `"core"` (not all LLM fallback). When `has_product_ltm` is false, SE-9 passes if the resolution trace contains at least one entry from core LTM or documents the LLM fallback.
+- **SE-2 (F2/C3):** File `{stm_base}/{issue}/evidence/fix-it/rca.yaml` exists and its `root_cause` field is non-empty, names at least one specific file path, identifies the specific logic or code location within that file, and explains why it is wrong — the value must be textually distinct from the `title` and `body` fields in `{stm_base}/{issue}/evidence/fix-it/issue-read.yaml`.
+- **SE-3 (F3/C4):** File `{stm_base}/{issue}/evidence/fix-it/design.yaml` exists and its `alternatives_considered` field is a non-empty list where each entry contains both an option name/description and a `rejection_reason` field that is non-empty.
+- **SE-4 (C5):** File `{stm_base}/{issue}/evidence/fix-it/design.yaml` contains a `risks` list with at least one entry. Every entry in the list has a non-empty `severity` field (e.g., `low`, `medium`, `high`, `critical` or equivalent).
+- **SE-5 (C11/F8):** When the tech-designer contract included a `ltm_context` block, file `{stm_base}/{issue}/evidence/fix-it/resolution-trace.yaml` exists and contains a non-empty list of resolution entries. Each entry must include a `resolved_from` field. When `has_product_ltm` is true, at least one entry must have `resolved_from` of `"project"` or `"core"` (not every entry may be `"llm"`). When `has_product_ltm` is false, the trace must contain at least one entry from `"core"` or must document `"llm"` fallback explicitly with a rationale field.
 
 If RCA is inconclusive (tech-designer returns structured failure) → HALT: "RCA inconclusive — cannot proceed to fix design."
 
@@ -201,7 +201,7 @@ Read the RCA and design artifacts from STM paths:
 The checkpoint summary is rendered inline from these STM YAML artifacts in Step 5 (C12). No standalone HTML artifact is produced. No agent dispatch is required for this step — the play reads the artifacts directly for inline rendering.
 
 **Step 4 Eval:**
-- **SE-10 (F9/C12):** No file exists at `{stm_base}/{issue}/evidence/fix-it/briefs/` path after this phase — no HTML artifact was produced.
+- **SE-6 (F9/C12):** No file exists under `{stm_base}/{issue}/evidence/fix-it/briefs/` after Step 4 completes. Additionally, no `.html` file exists anywhere under `{stm_base}/{issue}/evidence/fix-it/`. The absence of these paths confirms no standalone HTML artifact was produced.
 
 ---
 
@@ -287,8 +287,8 @@ template: core/components/memory/standards/templates/issue-comment-rca-approved.
 ```
 
 **Step 5 Evals:**
-- **SE-1 (F1):** Checkpoint record exists with approval_status indicating Tether was received before any implementation step began.
-- **SE-11 (F10/C13):** File `{stm_base}/{issue}/evidence/fix-it/issue-comment-agent.yaml` exists with `status: dispatched` before Step 6 begins.
+- **SE-7 (F1):** Status file `{stm_base}/{issue}/status/fix-it.json` shows `approval-gate` task with `status: completed` and a `tether_received_at` timestamp that precedes the `started_at` timestamp of the `implement-fix` task entry. No implementation artifact (`{stm_base}/{issue}/evidence/fix-it/implementation-report.yaml`) may exist without the approval-gate entry showing a completed Tether event.
+- **SE-8 (F10/C13):** File `{stm_base}/{issue}/evidence/fix-it/issue-comment-agent.yaml` exists before `implement-fix` transitions to `in_progress` in the status file. The file must contain `status: dispatched` (or `completed`) and a non-empty `dispatched_at` ISO timestamp. A `status: pending` or absent file after Tether receipt constitutes a failure.
 
 **This is the ONLY approval gate in the play (C6).**
 
@@ -322,8 +322,8 @@ Depends on: Step 5 (Tether only)
 Agent reads the execution plan from `design.yaml`, implements the fix step by step. Writes implementation report to STM.
 
 **Step 6 Evals:**
-- **SE-6 (F6):** Every file in the implementation report's files_modified list appears in the design's affected_files map, or any file not in the map has a documented deviation with justification.
-- **SE-7 (F7):** Code-builder input contract contains STM design artifact paths only, with no checkpoint brief content or HTML brief data present in the input.
+- **SE-9 (F6):** File `{stm_base}/{issue}/evidence/fix-it/implementation-report.yaml` exists and its `files_modified` list contains only files that either (a) appear in `design.yaml`'s `affected_files` map, or (b) are accompanied by a `deviation_justification` field on that list entry explaining the undocumented change. An entry in `files_modified` that is absent from `affected_files` and has no `deviation_justification` constitutes a failure.
+- **SE-10 (F7):** The code-builder agent invocation contract (Step 6 JSON) contains only `{stm_base}/{issue}/evidence/fix-it/design.yaml` and `{stm_base}/{issue}/evidence/fix-it/rca.yaml` under `stm.input`. No checkpoint brief path, no HTML file path, and no inline rendered checkpoint markdown may appear in any field of the contract. This is a contract-inspection eval — observable by auditing the Step 6 agent call record.
 
 If code-builder fails → self-recovery (max 2 retries). If still fails → HALT before shipping.
 
@@ -347,7 +347,7 @@ Context: approval_override: "auto-proceed"
 Ship handles: commit-code → create-pr → [review-pr when review-pr.bypass=false] → merge-pr. If review-pr returns a `block` or `escalate` verdict, ship halts before merge-pr. The PR links to issue #{issue}.
 
 **Step 7 Eval:**
-- **SE-4 (F4):** Ship evidence artifact shows commit SHA, PR number, PR state as merged, and branch deletion confirmed. No intermediate state — commits exist, PR was created, and PR was merged.
+- **SE-11 (F4):** The ship evidence artifact (or `{stm_base}/{issue}/evidence/fix-it/` delivery record) contains: a non-empty `commit_sha`, a non-empty `pr_number`, a `pr_state` field equal to `merged`, and a `branch_deleted` field equal to `true`. All four fields must be present — any combination of missing PR, unmerged PR, or surviving branch constitutes a partial-ship failure.
 
 On ship failure → HALT with ship's failure details. Status file records failure at ship step for resume.
 
@@ -359,10 +359,10 @@ On ship failure → HALT with ship's failure details. Status file records failur
 Owner: play
 Depends on: Step 7
 
-- **SCE-1 (S1 — Developer):** Evidence artifact exists containing: merge SHA on main, PR URL linking to the originating issue, confirmation of feature branch deletion, RCA trace, design rationale, implementation record, and issue-comment-agent.yaml exists in evidence tracking background dispatch status.
-- **SCE-2 (S2 — Tech Lead):** Checkpoint inline markdown sections contain all of: root cause traced to specific code, blast radius of affected files, proposed fix strategy, at least one alternative with rejection reason, risk table with severity levels, and confidence assessment — rendered directly from STM artifacts.
-- **SCE-3 (S3 — QA Engineer):** PR body and evidence artifact together contain: list of changes made, root cause reference, blast radius, and checkpoint approval timestamp preceding implementation timestamp — full audit trail present.
-- **SCE-4 (S4 — QA Engineer reviewing audit trail):** The GitHub issue carries a timestamped RCA-approved comment with root cause, fix strategy, and Approved-by header posted at the Tether event — before the PR is opened. The comment is traceable to the STM evidence via issue-comment-agent.yaml.
+- **SCE-1 (S1 — Developer):** The evidence directory `{stm_base}/{issue}/evidence/fix-it/` contains all of: (1) `rca.yaml` with a non-empty `root_cause` tracing to specific code, (2) `design.yaml` with non-empty `alternatives_considered` and `risks`, (3) `implementation-report.yaml` recording files modified, (4) a delivery record file (`{YYYYMMDD-HHMMSS}.md`) that includes the merge SHA on main and a PR URL, (5) the PR URL in the delivery record must link to issue #{issue} (URL contains the issue number), (6) the delivery record confirms `branch_deleted: true`, (7) `issue-comment-agent.yaml` exists with `status: dispatched` or `completed`. All seven observable properties must hold.
+- **SCE-2 (S2 — Tech Lead):** The checkpoint inline markdown presented at Step 5 is derived from STM artifacts (no standalone brief file) and contains all six sections: (1) a root cause section naming a specific file and logic (from `rca.yaml`), (2) a blast radius table with at least one affected file row (from `design.yaml.affected_files`), (3) a proposed fix strategy (from `design.yaml.plan`), (4) at least one alternative with a rejection reason (from `design.yaml.alternatives_considered`), (5) a risk table with at least one row including a severity level (from `design.yaml.risks`), (6) a confidence assessment value (from `design.yaml.confidence`).
+- **SCE-3 (S3 — QA Engineer):** The PR body contains a reference to issue #{issue} (e.g., `Closes #N` or `Fixes #N`) and at least a summary of the root cause and changed files. The evidence delivery record at `{stm_base}/{issue}/evidence/fix-it/{YYYYMMDD-HHMMSS}.md` includes: root cause summary, list of files modified, blast radius, and a checkpoint approval timestamp that is strictly earlier than the `implement-fix.started_at` timestamp in the status file.
+- **SCE-4 (S4 — QA Engineer reviewing audit trail):** The GitHub issue #{issue} carries a comment posted via the background dispatch at Tether time. The comment body contains an `Approved by` header with a timestamp, the root cause text (matching `rca.yaml.root_cause`), the fix strategy (from `design.yaml.plan`), and the `## RCA & Fix Plan — Approved` heading from the `issue-comment-rca-approved.md` template. The comment's creation timestamp must be earlier than the PR's `created_at` timestamp. `{stm_base}/{issue}/evidence/fix-it/issue-comment-agent.yaml` must exist with a `dispatched_at` value at or before the comment's creation timestamp, confirming STM traceability back to the Tether event.
 
 ---
 
@@ -386,7 +386,7 @@ Write delivery record to `{stm_base}/{issue}/evidence/fix-it/{YYYYMMDD-HHMMSS}.m
 - Branch deleted confirmation
 - Resolution trace summary (domains resolved from project/core/llm)
 - Issue comment dispatch status (from issue-comment-agent.yaml)
-- Step eval results (SE-1 through SE-11)
+- Step eval results (SE-1 through SE-11 — Step-ordered: Step 1 → SE-1, Step 3 → SE-2..SE-5, Step 4 → SE-6, Step 5 → SE-7..SE-8, Step 6 → SE-9..SE-10, Step 7 → SE-11)
 - Scenario eval results (SCE-1 through SCE-4)
 
 Present final report to user:
@@ -478,10 +478,12 @@ for each step in compiled order:
 | Field | Value |
 |-------|-------|
 | intent_hash | sha256:2fe89d691d17664c3184fcf04d675dc80ce75a1148dbc7809b37cd41e024be15 |
-| compiled_by | create-play (hand-updated for issue #262) |
-| compiled_at | 2026-04-19T00:00:00Z |
+| compiled_by | create-play --build fix-it |
+| compiled_at | 2026-04-19T12:30:00Z |
 | workflow_structure | A |
 | domain_agents | 3 (project-orchestrator, tech-designer, code-builder) |
 | utility_agents | 2 (project-orchestrator background dispatch, repo-orchestrator) |
-| step_evals | 11 (SE-1 through SE-11, after Steps 1, 3, 4, 5, 6, 7) |
+| step_evals | 11 (SE-1 through SE-11, step-ordered placement: Step 1 → SE-1; Step 3 → SE-2..SE-5; Step 4 → SE-6; Step 5 → SE-7..SE-8; Step 6 → SE-9..SE-10; Step 7 → SE-11) |
 | scenario_evals | 4 (SCE-1 through SCE-4) |
+| evals_source | .garura/project/issues/262/evidence/create-play/fix-it/evals.yaml |
+| constraint_classifications | .garura/project/issues/262/evidence/create-play/fix-it/constraint-classifications.yaml |
