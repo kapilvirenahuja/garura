@@ -10,7 +10,7 @@ intent: >
 constraints:
   - id: C1
     rule: >
-      No context/ prerequisite. This play does not require a prepare-epic
+      No context/ prerequisite. This play does not require a prepare
       context baseline. It operates solely on the merged PR diff and whatever
       STM evidence is available in {stm_base}/{issue}/evidence/ (may be empty).
       Absence of STM evidence is a valid, non-failing condition.

@@ -199,7 +199,7 @@ Depends on: Step 3
 }
 ```
 
-Agent reads `discovery.md`, reads relevant LTM/KB, reads codebase files mentioned in issue + Q&A. Produces `understanding.md`: relevant architecture, existing patterns, integration points, conventions, domain knowledge. Lightweight — not prepare-epic's full understanding phase.
+Agent reads `discovery.md`, reads relevant LTM/KB, reads codebase files mentioned in issue + Q&A. Produces `understanding.md`: relevant architecture, existing patterns, integration points, conventions, domain knowledge. Lightweight — not prepare's full understanding phase.
 
 **Step 4 Evals:**
 - **SE-3 (C5):** When {product_base}/architecture/ does not exist or is absent, context assembly completes using core LTM only and does NOT halt the play. understanding.md is still written. When product LTM is present, understanding.md references product architecture. In both cases has_product_ltm flag is set correctly and no hard failure is raised due to missing product LTM.
