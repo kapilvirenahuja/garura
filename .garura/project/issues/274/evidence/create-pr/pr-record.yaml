@@ -1,0 +1,9 @@
+pr_record:
+  issue: 274
+  pr_number: 275
+  pr_url: "https://github.com/kapilvirenahuja/garura/pull/275"
+  title: "fix(plays): add evidence sweep to ship and self-commit to distill"
+  state: open
+  base_branch: main
+  head_branch: fix/274-ship-evidence-untracked
+  created_at: "2026-04-19T07:15:00Z"
