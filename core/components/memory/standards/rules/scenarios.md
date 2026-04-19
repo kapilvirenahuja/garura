@@ -89,7 +89,7 @@ An epic covering a payment flow with no concurrency scenario is incomplete. An e
 
 ## Rule 7: Flow Scenarios Reference Epic Scenarios
 
-**Every flow file in `design-exp` output declares a frontmatter `source_scenario: <epic-id>:<scenario-id>` referencing the intent-epic scenario it implements.**
+**Every flow file in `design` output declares a frontmatter `source_scenario: <epic-id>:<scenario-id>` referencing the intent-epic scenario it implements.**
 
 A flow without a source_scenario is orphaned — no one knows why it exists. The `map-user-flows` skill must not produce flows without this reference. The cross-check validator must fail any flow missing it.
 

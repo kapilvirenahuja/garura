@@ -1,6 +1,6 @@
 # Intent Epic Schema — Canonical Contract
 #
-# This is the shape of a single intent epic — the output of /specify-product's
+# This is the shape of a single intent epic — the output of /specify's
 # epic generation step. Every intent epic produced by the pipeline must conform.
 #
 # Enforcement: validate-intent-epics skill (built in 214.5) is a blocking
@@ -317,7 +317,7 @@ kb_source:                             # REQUIRED.
 #      they are a violation category `unconfirmed_inference`.
 #
 # On any violation, validate-intent-epics returns a structured failure with
-# per-field error messages. The calling play (specify-product) halts and
+# per-field error messages. The calling play (specify) halts and
 # cycles back to generate-intent-epics with the error context.
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -357,5 +357,5 @@ post_implementation:                   # OPTIONAL. Written by capture-learning.
 # Related:
 # - docs/adr/017-folder-whitelist.md (ADR that motivates the new schemas)
 # - core/components/memory/standards/rules/kb-extension.md (KB file structure)
-# - core/components/plays/specify-product/ (consumer — built in 214.5)
+# - core/components/plays/specify/ (consumer — built in 214.5)
 # - core/components/plays/capture-learning/ (producer of post_implementation)

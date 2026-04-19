@@ -1,6 +1,6 @@
 # Product Rules
 
-Canonical rules governing how product-planning artifacts (project profile, scope, enriched capabilities, quality profile) are derived. Every skill in the `/specify-product` pipeline loads this file and enforces these rules.
+Canonical rules governing how product-planning artifacts (project profile, scope, enriched capabilities, quality profile) are derived. Every skill in the `/specify` pipeline loads this file and enforces these rules.
 
 Consumers: `configure-capabilities`, `enrich-capabilities`, `derive-quality-profile-from-epics`, `product-keeper` agent.
 
@@ -18,7 +18,7 @@ Capability selection is constrained to what the KB actually contains. The catalo
 
 No constraint is silently skipped. The `constraint_trace` section of scope.yaml records one entry per constraint, with `fired: true | false`, the resolved condition, and the action taken. Missing entries are a compliance violation.
 
-**Enforcement:** `configure-capabilities` returns `constraints_walked == total_constraints_in_file`. The specify-product play's step eval SE-6 enforces this at runtime.
+**Enforcement:** `configure-capabilities` returns `constraints_walked == total_constraints_in_file`. The specify play's step eval SE-6 enforces this at runtime.
 
 ## Rule 3: No Silent Inclusions or Exclusions
 
@@ -58,13 +58,13 @@ The risk register aggregates `experiential_warnings` from every selected capabil
 
 **The planning hierarchy is Domain → Capability → Intent Epic. No Theme, Feature, or Story layer.**
 
-Stories are generated during the build phase by downstream plays. Intent epics are the most granular artifact the specify-product pipeline produces. Adding a Feature or Story layer at product planning time creates premature decomposition — the architecture phase will refactor it anyway.
+Stories are generated during the build phase by downstream plays. Intent epics are the most granular artifact the specify pipeline produces. Adding a Feature or Story layer at product planning time creates premature decomposition — the architecture phase will refactor it anyway.
 
 ## Rule 8: Stage-Centric Folder Layout
 
 **Product artifacts are organized by SDLC stage, not by play.**
 
-The `.meridian/product/` tree uses six stage folders: `user-provided/`, `specification/`, `scope/`, `architecture/`, `experience/`, `research/`. A single stage folder may hold output from multiple plays — e.g., `specification/` holds market-brief (from specify-product's market-analyst), project-profile (user-provided), and quality-profile (from specify-product's product-keeper). The folder name describes *what the artifact is*, not *which play produced it*.
+The `.meridian/product/` tree uses six stage folders: `user-provided/`, `specification/`, `scope/`, `architecture/`, `experience/`, `research/`. A single stage folder may hold output from multiple plays — e.g., `specification/` holds market-brief (from specify's market-analyst), project-profile (user-provided), and quality-profile (from specify's product-keeper). The folder name describes *what the artifact is*, not *which play produced it*.
 
 Play-lifecycle folders (`_checkpoints/`, `_evidence/`, `_status/`) live at the product root alongside the stage folders — they are orthogonal to the SDLC stages, because a single play can write artifacts into multiple stage folders during one run.
 
@@ -103,7 +103,7 @@ Example: Graveyard Crew (a prosumer autonomous experimentation platform) selects
 
 **Enforcement:** `configure-capabilities` runs the within-domain coverage pass as a new Process step after loading domain features and before walking cross-tree constraints. Requires the `project_brief_path` input. Emits `within_domain_coverage_gaps` per domain in `scope.yaml`. The capability-configuration checkpoint presents the gaps to the user.
 
-**Status:** Documented as a rule in this pass; skill-level enforcement is a follow-up (requires project_brief_path to be wired through configure-capabilities' Input and specify-product's Step 5 JSON contract). See Defect 2.
+**Status:** Documented as a rule in this pass; skill-level enforcement is a follow-up (requires project_brief_path to be wired through configure-capabilities' Input and specify's Step 5 JSON contract). See Defect 2.
 
 ## Rule 11: Aggressive Questioning on Inference (anti-hallucination)
 
@@ -215,11 +215,11 @@ Without an MVP recommendation, the capability walk in `configure-capabilities` w
 
 The MVP recommendation artifact lives at `.meridian/product/scope/mvp-recommendation.md` (per Rule 8 stage-centric layout — mvp-recommendation is a scope-narrowing decision, not an opportunity description). It carries: primary use cases with rationale; launch-scope capabilities narrowed to those use cases; deferred use cases with v1.1+ triggers; an architecture direction (only when committed at spec time, e.g., "self-hosted sandbox for web-perf loops"); directional pricing; success criteria for "v1 is successful"; risks that could kill the MVP. Deferred use cases and capabilities are explicit, not implicit — `configure-capabilities` reads the recommendation and pushes non-primary capabilities into `deferred_capabilities` in scope.yaml with rationale.
 
-**Enforcement:** `configure-capabilities` halts pre-flight if `scope/mvp-recommendation.md` is missing or empty. The specify-product play runs Stage 2.75 (mvp-recommendation authoring / review) between Stage 2 (domain-selection) and Stage 3 (configure-capabilities). See Defect 6 and Defect 9.
+**Enforcement:** `configure-capabilities` halts pre-flight if `scope/mvp-recommendation.md` is missing or empty. The specify play runs Stage 2.75 (mvp-recommendation authoring / review) between Stage 2 (domain-selection) and Stage 3 (configure-capabilities). See Defect 6 and Defect 9.
 
 ## Rule 14: Abstraction-Layer Boundary
 
-**Artifacts produced by `specify-product` stay implementation-agnostic. Naming a specific database engine, SDK method, framework, programming language, table schema, wire protocol, cryptographic construction, or model version in any file under `product/research/`, `product/specification/`, or `product/scope/` is a structural failure.**
+**Artifacts produced by `specify` stay implementation-agnostic. Naming a specific database engine, SDK method, framework, programming language, table schema, wire protocol, cryptographic construction, or model version in any file under `product/research/`, `product/specification/`, or `product/scope/` is a structural failure.**
 
 Research files describe a domain — what the problem space looks like, which industry patterns apply, when they matter. Specification files describe the opportunity shape. Scope files describe what v1 builds. None of these layers should commit to how the work is built. Implementation choices (runtime, framework, storage engine, library, schema design, API wire format) need cross-domain tradeoff analysis and user approval at Stage 6 architecture — leaking them into earlier artifacts prejudges architecture and breaks the contract between stages.
 

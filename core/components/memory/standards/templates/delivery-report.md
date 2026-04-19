@@ -2,7 +2,7 @@
 
 Canonical shape for the human-readable terminal report a play presents to the user at close. This is the user-facing output, not the machine-readable STM evidence file (see `templates/evidence-file.md` for that).
 
-Consumers: `ship`, `fix-it`, `implement-epic`, every play that closes with a delivery step.
+Consumers: `ship`, `fix-it`, `implement`, every play that closes with a delivery step.
 
 ## Shape
 
@@ -40,13 +40,13 @@ Consumers: `ship`, `fix-it`, `implement-epic`, every play that closes with a del
 
 | Field | Required | Rule |
 |-------|----------|------|
-| `play` | yes | Exact play slug (e.g. `ship`, `fix-it`, `implement-epic`). |
+| `play` | yes | Exact play slug (e.g. `ship`, `fix-it`, `implement`). |
 | `issue` | yes | Issue number. Required for all project-scoped plays. |
 | `status` | yes | `COMPLETE` when all steps passed; `PARTIAL` when some steps skipped by configuration; `FAILED` when a step halted. |
 | `started` / `completed` | yes | ISO-8601 timestamps. |
 | `pipeline_steps` table | yes | At least one row per major step executed. Status: `PASS`, `FAIL`, or `SKIP`. |
 | `artifacts` table | no | Include when the play produces named artifacts (evidence files, PRs, SHAs). |
-| `next_steps` | no | Optional. Use when there are explicit follow-on actions (e.g., "Run validate-epic after implement-epic"). |
+| `next_steps` | no | Optional. Use when there are explicit follow-on actions (e.g., "Run validate after implement"). |
 
 ## Per-Play Notes
 
@@ -59,7 +59,7 @@ Include in Pipeline Steps: RCA, design, approval gate, implement, quality check,
 Include in Artifacts: PR URL, merge SHA, branch deletion status, issue comment dispatch status.
 Add to Run Summary: Root Cause (summary), Fix Strategy (summary).
 
-### implement-epic
+### implement
 Include in Pipeline Steps: context build, eval generation, test authoring, code authoring, quality audit.
 Include in Artifacts: quality report, judge report, status report.
 Add to Run Summary: Milestone, Scope Items count, Quality status, Judge pass rate.
