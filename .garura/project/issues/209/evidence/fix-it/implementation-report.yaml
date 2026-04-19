@@ -1,0 +1,118 @@
+implementation:
+  success: true
+  steps_completed: 11
+  steps_total: 11
+  changes:
+    - step: 1
+      description: "Create canonical commit message template"
+      files_modified:
+        - path: "core/components/memory/standards/templates/commit-message.md"
+          action: created
+          summary: "Shape block, field rules table (type/scope/subject/body/footer), consumers list, Related pointer to rules/commits.md"
+      verified: true
+      deviation: null
+
+    - step: 2
+      description: "Create canonical PR body template"
+      files_modified:
+        - path: "core/components/memory/standards/templates/pr-body.md"
+          action: created
+          summary: "All five sections (Summary, Quality Checklist Required/Optional, Verification Evidence, Eval Results conditional, footer), Eval Results rules block, consumers, Related section"
+      verified: true
+      deviation: null
+
+    - step: 3
+      description: "Create canonical PR review comment template"
+      files_modified:
+        - path: "core/components/memory/standards/templates/pr-review-comment.md"
+          action: created
+          summary: "Shape with <!-- review-pr:marker --> required sentinel, Confidence line, P1-P4 sections, Reviewers section, field rules (marker as required), update-in-place behavior note"
+      verified: true
+      deviation: null
+
+    - step: 4
+      description: "Create canonical delivery report template"
+      files_modified:
+        - path: "core/components/memory/standards/templates/delivery-report.md"
+          action: created
+          summary: "Run Summary table, Pipeline Steps table, Artifacts Produced table, Next Steps (optional). Per-play notes for ship/fix-it/implement-epic derived from union of fields across all three plays"
+      verified: true
+      deviation: null
+
+    - step: 5
+      description: "Create pr-findings.yaml schema and update schemas/_index.md"
+      files_modified:
+        - path: "core/components/memory/standards/schemas/pr-findings.yaml"
+          action: created
+          summary: "YAML schema with meta fields, findings array (standard_id required, severity from taxonomy, file/line/evidence/taxonomy_rule_id), counts, sort_order, rejection_rules, consumers"
+        - path: "core/components/memory/standards/schemas/_index.md"
+          action: modified
+          summary: "Added row for pr-findings.yaml with description and consumers (quality-check-scoped, review-pr, quality-check)"
+      verified: true
+      deviation: null
+
+    - step: 6
+      description: "Fix stale path reference in checkpoint.md"
+      files_modified:
+        - path: "core/components/memory/standards/templates/checkpoint.md"
+          action: modified
+          summary: "Replaced 'formats/approval-prompt.md' with 'templates/approval-prompt.md' on line 74"
+      verified: true
+      deviation: null
+
+    - step: 7
+      description: "Update rules/commits.md Part 2 to pointer"
+      files_modified:
+        - path: "core/components/memory/standards/rules/commits.md"
+          action: modified
+          summary: "Replaced inline format block in Part 2 with pointer line to templates/commit-message.md; kept examples and all Part 3 quality rules unchanged"
+      verified: true
+      deviation: null
+
+    - step: 8
+      description: "Update submit-pr/SKILL.md to reference pr-body.md"
+      files_modified:
+        - path: "core/components/skills/submit-pr/SKILL.md"
+          action: modified
+          summary: "Replaced inline markdown block (lines 79-114, including Eval Results rules bullet list) with load-and-instantiate pointer to pr-body.md; added direct-edit deviation note"
+      verified: true
+      deviation: "Eval Results rules bullet list (lines 111-114) also replaced, not just lines 79-109. Those rules describe when to include Eval Results (shape concern), so they were moved into pr-body.md to keep the template self-contained."
+
+    - step: 9
+      description: "Update review-pr/SKILL.md to reference pr-review-comment.md"
+      files_modified:
+        - path: "core/components/plays/review-pr/SKILL.md"
+          action: modified
+          summary: "Replaced inline structured comment template block with load-and-instantiate pointer to pr-review-comment.md; kept update-in-place behavior logic; added direct-edit deviation note"
+      verified: true
+      deviation: null
+
+    - step: 10
+      description: "Update templates/_index.md to close deferred table"
+      files_modified:
+        - path: "core/components/memory/standards/templates/_index.md"
+          action: modified
+          summary: "Added rows for commit-message.md, pr-body.md, pr-review-comment.md, delivery-report.md; removed 'Deferred follow-ups (#209)' table entirely; added 'Scope Notes' section documenting issue-list.md deferral and pr-findings.yaml routing to schemas/"
+      verified: true
+      deviation: null
+
+    - step: 11
+      description: "Run /sync-claude to deploy updated LTM to ~/.garura/core/memory/"
+      files_modified: []
+      verified: true
+      deviation: null
+
+  issues_encountered: []
+
+  files_touched:
+    - path: "core/components/memory/standards/templates/commit-message.md"
+    - path: "core/components/memory/standards/templates/pr-body.md"
+    - path: "core/components/memory/standards/templates/pr-review-comment.md"
+    - path: "core/components/memory/standards/templates/delivery-report.md"
+    - path: "core/components/memory/standards/templates/checkpoint.md"
+    - path: "core/components/memory/standards/templates/_index.md"
+    - path: "core/components/memory/standards/rules/commits.md"
+    - path: "core/components/memory/standards/schemas/pr-findings.yaml"
+    - path: "core/components/memory/standards/schemas/_index.md"
+    - path: "core/components/skills/submit-pr/SKILL.md"
+    - path: "core/components/plays/review-pr/SKILL.md"

@@ -11,6 +11,7 @@ Agents and skills query this category when they need to know: **"What does a val
 | `intent.yaml` | Canonical intent.yaml contract — the 4 content fields (intent, constraints, failure_conditions, scenarios) plus the metadata zone (name, description, version, checksum). Produced by `intent-crafter`, consumed by `intent-resolver` and `/create-play`. | `intent-crafter`, `intent-resolver`, `create-play`, every play's `reference/intent.yaml` |
 | `intent-epic.yaml` | Canonical intent-epic contract — identity, WHAT/WHY, boundaries (in_scope/anti_goals/must_not_break), outcomes, constraints, business rules, validation, KB traceability, dependency graph, foundation flag, mock tracking. | `generate-intent-epics`, `validate-intent-epics` |
 | `screen-inventory.yaml` | Canonical screen-inventory contract — per-screen states, data fields, actions, accessibility posture, wireframe reference. | `generate-screen-inventory`, `validate-screen-coverage`, `compile-design-spec` |
+| `pr-findings.yaml` | Canonical schema for the `findings.yaml` artifact produced by `quality-check-scoped`. Defines meta fields, findings array (standard_id, severity, file, line, evidence), counts, sort order, and rejection rules. | `quality-check-scoped`, `review-pr`, `quality-check` |
 
 ## When to Add Here
 

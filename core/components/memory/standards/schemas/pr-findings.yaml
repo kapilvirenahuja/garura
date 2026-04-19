@@ -1,0 +1,96 @@
+# pr-findings.yaml — Canonical Schema
+# Canonical YAML schema for the findings.yaml artifact produced by quality-check-scoped.
+# Every skill that writes a findings.yaml MUST conform to this schema.
+# Every validator that reads a findings.yaml uses this as source of truth.
+#
+# Consumers: quality-check-scoped, review-pr, quality-check
+# Source: extracted from skills/quality-check-scoped/reference/finding-schema.md
+
+schema:
+  name: pr-findings
+  version: "1.0"
+  artifact_filename: findings.yaml
+
+  meta:
+    generated_at:
+      type: string
+      format: ISO-8601
+      required: true
+    diff_path:
+      type: string
+      description: Path to the diff patch file used as input
+      required: true
+    changed_paths_count:
+      type: integer
+      description: Number of files in the diff
+      required: true
+    scan_coverage:
+      type: float
+      description: Fraction of changed paths successfully scanned (0.0–1.0)
+      required: true
+    taxonomy_path:
+      type: string
+      description: Path to the pr severity taxonomy used for this run
+      required: true
+    standards_relevant:
+      type: integer
+      description: Count of taxonomy standards applicable to this diff
+      required: true
+
+  findings:
+    type: array
+    description: List of findings — one entry per violation identified
+    items:
+      standard_id:
+        type: string
+        required: true
+        rule: MUST exist as a row in the pr-severity-taxonomy (pr.md). F3 enforcement — missing standard_id causes finding to be dropped with error logged.
+      severity:
+        type: string
+        required: true
+        allowed_values: [P1, P2, P3, P4]
+        rule: Read from taxonomy. NEVER inferred. Value not in {P1,P2,P3,P4} causes finding to be dropped with error logged.
+      file:
+        type: string
+        required: true
+        rule: MUST be a member of changed_paths. File not in changed_paths causes finding to be dropped with error logged (diff scope invariant breach).
+      line:
+        type: integer
+        required: true
+        description: Line number within the diff hunk
+      evidence:
+        type: string
+        required: true
+        rule: Matched substring (grep:) or matched path (path:). NEVER empty. Missing evidence causes finding to be dropped with warning logged.
+      taxonomy_rule_id:
+        type: string
+        required: true
+        rule: MUST equal standard_id
+
+  counts:
+    type: object
+    description: Aggregate counts by severity — computed from findings array
+    required: true
+    properties:
+      P1: { type: integer, required: true }
+      P2: { type: integer, required: true }
+      P3: { type: integer, required: true }
+      P4: { type: integer, required: true }
+
+sort_order:
+  description: Required sort for determinism. Two runs on the same input produce byte-identical findings.yaml (modulo meta.generated_at).
+  order: "severity asc → file asc → line asc → standard_id asc"
+
+rejection_rules:
+  - condition: "missing standard_id"
+    action: "drop finding"
+    log: "error to STM evidence (F3)"
+  - condition: "missing evidence"
+    action: "drop finding"
+    log: "warning"
+  - condition: "severity not in {P1,P2,P3,P4}"
+    action: "drop finding"
+    log: "error"
+  - condition: "file not in changed_paths"
+    action: "drop finding"
+    log: "error (diff scope invariant breach)"
