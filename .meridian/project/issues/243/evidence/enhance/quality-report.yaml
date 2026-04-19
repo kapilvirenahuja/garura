@@ -1,8 +1,0 @@
-build: PASS
-lint: PASS
-typecheck: PASS
-tests: PASS
-notes: |
-  Markdown/YAML-only repository. No build system, linter, type checker, or test
-  runner. Quality assessed by structural correctness (self-eval E1-E6) and judge
-  rating (0.92). All files are markdown.

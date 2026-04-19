@@ -1,5 +1,0 @@
-branch:
-  name: refactor/212-rename-recipes-to-plays
-  base: main
-  pushed: true
-  url: "https://github.com/kapilvirenahuja/meridian-os/tree/refactor/212-rename-recipes-to-plays"

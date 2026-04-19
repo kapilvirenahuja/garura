@@ -1,5 +1,0 @@
-branch:
-  name: "feature/110-check-drift-play"
-  action: "created"
-  pushed: true
-  changes_preserved: true

@@ -1,5 +1,0 @@
-?? .claude/settings.json
-?? .meridian/project/issues/108/evidence/merge-pr/
-?? .meridian/project/issues/108/status/
-?? core/components/plays/check-drift/
-?? core/components/skills/check-drift/
