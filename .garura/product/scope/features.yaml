@@ -1578,7 +1578,7 @@ specify_product_enhancements_needed:
     - Enumerate plays/agents/skills under Component Architecture as zoomed-in feature sub-lists. DONE.
     - Distinguish "applied and evolving" from "live and done" as a capability-level status. DONE (new status value).
     - Do not auto-fabricate L4/L5 feature lists; leave empty pending dedicated research. DONE.
-    - "Tether" is a user-convention, not a Garura protocol — describe as human-in-the-loop with bypass config. DONE.
+    - '"Tether" is a user-convention, not a Garura protocol — describe as human-in-the-loop with bypass config. DONE.'
     - Single node per domain in the YAML hierarchy — capabilities nest, no domain-row duplication. DONE.
 
 ambiguous_mappings:
