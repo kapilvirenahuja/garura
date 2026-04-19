@@ -1,0 +1,137 @@
+pr_number: 284
+branch: enhance/91-docs-four-crafts-architecture
+base: main
+analysis_mode: pr-scoped
+analyzed_at: "2026-04-19"
+
+# ─── AUTOMATED CHECKS ─────────────────────────────────────────────────────────
+
+automated_checks:
+  no_merge_conflicts:
+    status: PASS
+    evidence: "git merge-tree returned clean sha 218e0c7 — no conflicts with main"
+  no_secrets:
+    status: PASS
+    evidence: "Pattern scan across all 17 changed .md files — no api_key, password, secret, token, credential, or private_key patterns found"
+
+# ─── FINDINGS ─────────────────────────────────────────────────────────────────
+
+findings:
+
+  - area: file-scope-discrepancy
+    severity: info
+    description: >
+      pr-result.yaml reports 14 files changed; actual PR contains 17 files.
+      Three additional files were modified: docs/design/briefs.md,
+      docs/philosophy/intent-driven-development.md, and docs/usage/plays/create-pr.md.
+      All three apply the same .meridian → .garura substitution pattern and are
+      consistent with the stated intent. No functional concern — evidence artifact
+      simply undercounted scope.
+
+  - area: adr-status-format
+    severity: info
+    description: >
+      ADRs 015 and 016 use bold-formatted status ("**Status:** Accepted") rather
+      than the bare-word convention used by ADRs 002-011 ("Accepted" as standalone
+      line). Both formats are semantically valid; the adr-status rule passes.
+      No blocking issue — noting inconsistency in style for awareness.
+
+  - area: docs-consistent
+    severity: info
+    description: >
+      idsd.md (Layer 4) lists 19 agents including feature-steward. agents.md
+      Available Agents table also contains exactly 19 rows including feature-steward.
+      Count and roster are consistent across both files. architecture.md correctly
+      removes phantom agents quality-validator and workflow-guardian. Cross-file
+      consistency PASSES.
+
+  - area: stm-folder-correction
+    severity: info
+    description: >
+      docs/components/memory.md and docs/philosophy/architecture.md both updated
+      STM folder diagram from legacy {spec/, design/, delivery/} to current whitelist
+      {specs/, evidence/, checkpoint/, context/, review/}. Consistent with ADR 017
+      whitelist. PASS.
+
+  - area: json-contract-shape
+    severity: info
+    description: >
+      plays.md and architecture.md JSON contract examples updated from flat stm.*
+      shape to nested stm.input / stm.output per ADR 016. Flow diagram updated to
+      match. All examples internally consistent. PASS.
+
+  - area: capture-learning-flow
+    severity: info
+    description: >
+      architecture.md Memory Flow diagram replaces the "persist skill (STM → LTM)"
+      label with "capture-learning play (promotes learnings to LTM)". This correctly
+      reflects the current framework terminology. Consistent with memory.md which
+      uses the same label. PASS.
+
+# ─── CHECKLIST ────────────────────────────────────────────────────────────────
+
+checklist:
+  must_have:
+    - item: No merge conflicts
+      trigger: Universal — always applied
+      status: PASS
+      evidence: git merge-tree clean against main
+
+    - item: No secrets committed
+      trigger: Universal — always applied
+      status: PASS
+      evidence: Pattern scan across 17 .md files — clean
+
+    - item: ADR has required sections (Status, Context, Decision, Consequences)
+      trigger: docs/adr/*.md changed (7 ADR files)
+      status: PASS
+      evidence: All 7 ADRs contain required sections; ADR 002 verified directly
+
+    - item: ADR has valid status (Accepted/Proposed/Deprecated/Superseded)
+      trigger: docs/adr/*.md changed
+      status: PASS
+      evidence: All 7 ADRs show Accepted status (formats vary but values valid)
+
+    - item: Documentation consistent with implementation
+      trigger: docs/philosophy/*.md, docs/components/*.md changed
+      status: PASS
+      evidence: >
+        Agent count consistent (19 agents) across idsd.md and agents.md;
+        phantom agents removed from architecture.md; folder whitelist updated
+        in memory.md and architecture.md; JSON contract shape updated in
+        plays.md and architecture.md
+
+  nice_to_have:
+    - item: ADR follows numbering convention (NNN-*.md)
+      trigger: docs/adr/*.md changed
+      status: PASS
+      evidence: All 7 modified ADR files match NNN-*.md pattern
+
+    - item: Documentation includes examples
+      trigger: docs/philosophy/*.md, docs/components/*.md changed
+      status: PASS
+      evidence: >
+        agents.md, plays.md, architecture.md all include updated code
+        block examples (JSON contracts, shell paths, flow diagrams)
+
+    - item: No functional changes (docs-only commit)
+      trigger: Commit type is docs
+      status: PASS
+      evidence: All 17 changed files are .md — no code, config, or skill files modified
+
+blocking_issues: []
+
+# ─── VERDICT ──────────────────────────────────────────────────────────────────
+
+overall_quality: high
+
+ready: true
+
+summary: >
+  PR #284 is a clean, surgical documentation refresh that applies the
+  .meridian → .garura rename across 17 files with high internal consistency.
+  All must-have checks pass — no conflicts, no secrets, ADR structure intact,
+  cross-file documentation consistency verified (agent count, folder whitelist,
+  JSON contract shape). The only notes are informational: pr-result.yaml
+  undercounted by 3 files (no functional impact), and two ADRs use a bold-formatted
+  status line vs bare-word convention. No blocking issues. Ready to merge.

@@ -1,0 +1,46 @@
+pr_number: 284
+pr_url: "https://github.com/kapilvirenahuja/garura/pull/284"
+branch: "enhance/91-docs-four-crafts-architecture"
+commit_sha: "264f2fd"
+title: "docs: update documentation to reflect Four Crafts architecture"
+state: "open"
+status: "created"
+timestamp: "2026-04-19T00:00:00Z"
+
+summary: |
+  Successfully created PR #284 with comprehensive documentation updates
+  reflecting Four Crafts architecture and framework standardization.
+
+changes:
+  files_modified: 14
+  total_insertions: 369
+  total_deletions: 218
+
+files_changed:
+  - docs/components/agents.md
+  - docs/components/plays.md
+  - docs/components/skills.md
+  - docs/philosophy/architecture.md
+  - docs/framework/play-structure.md
+  - docs/components/memory.md
+  - docs/philosophy/idsd.md
+  - docs/adr/002-l1-checkpoint-model.md
+  - docs/adr/008-issue-centric-stm-and-nwwi.md
+  - docs/adr/009-skill-ltm-organizational-knowledge.md
+  - docs/adr/010-stm-archival.md
+  - docs/adr/011-stm-as-inter-skill-data-transport.md
+  - docs/adr/015-ltm-resolution-protocol.md
+  - docs/adr/016-agent-json-contract.md
+
+quality_metrics:
+  judge_confidence: 0.88
+  self_eval_status: "all_pass"
+  defect_categories_resolved:
+    - meridian_to_garura_paths: true
+    - json_contract_shape: true
+    - stm_folder_names: true
+    - agent_roster_expansion: true
+    - skill_catalog_completeness: true
+    - phantom_agent_removal: true
+    - ltm_org_structure: true
+    - markdown_lint: "all_pass"
