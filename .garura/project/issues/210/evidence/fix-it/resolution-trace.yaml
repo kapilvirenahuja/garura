@@ -1,0 +1,43 @@
+resolution_trace:
+  - domain: directory_rename_status
+    resolved_from: codebase
+    evidence: |
+      `find core/components/memory/standards/ -type d` shows `rules/` exists; no
+      `agent-lifecycle/` directory present. Confirmed by `ls core/components/memory/standards/rules/`
+      listing all domain rule files (epics.md, features.md, product.md, design.md,
+      architecture.md, scenarios.md, commits.md, git.md, pr.md, kb-extension.md, resolution.md).
+    conclusion: Phase A rename is complete. No directory work remains.
+
+  - domain: stale_references
+    resolved_from: codebase
+    evidence: |
+      `grep -r "agent-lifecycle" --include="*.md" --include="*.yaml" --include="*.yml" -l`
+      returned exactly two files:
+        1. .garura/project/issues/210/evidence/fix-it/issue-read.yaml (STM — expected)
+        2. docs/components/memory.md line 119 (documentation — stale reference)
+      No skill bodies, agent definitions, or play files reference agent-lifecycle.
+    conclusion: One stale reference remains in developer documentation only.
+
+  - domain: deployed_ltm_state
+    resolved_from: codebase
+    evidence: |
+      `ls ~/.garura/core/memory/standards/` shows `rules/`, `schemas/`, `templates/`
+      and no `agent-lifecycle/` directory. Deployed LTM is consistent with source.
+    conclusion: No sync or deployment work needed.
+
+  - domain: phase_b_completion
+    resolved_from: codebase
+    evidence: |
+      `core/components/memory/standards/rules/_index.md` documents all nine current rule files
+      plus two explicitly deferred files (roadmap.md, plan.md) with justification.
+      All rule files named in the issue body exist on disk.
+    conclusion: Phase B substantially complete. Deferred items are intentional, not gaps.
+
+  - domain: history_of_change
+    resolved_from: git_log
+    evidence: |
+      `git log --all -- core/components/memory/standards/agent-lifecycle` traces the deletion
+      to commit f7a54df (feat(memory): add rules/ and templates/ memory modules, 2026-04-15).
+      That commit deleted `agent-lifecycle/epic-management-rules.md` (-109 lines) and created
+      the full `standards/rules/` tree. Closed issue #214.
+    conclusion: Work done in a prior issue (#214). Issue #210 predates that merge.

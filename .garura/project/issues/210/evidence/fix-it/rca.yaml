@@ -1,0 +1,50 @@
+root_cause: |
+  The rename from `standards/agent-lifecycle/` to `standards/rules/` was already completed in
+  commit f7a54df (feat(memory): add rules/ and templates/ memory modules, closed #214).
+  That commit deleted `core/components/memory/standards/agent-lifecycle/epic-management-rules.md`
+  and created the full `standards/rules/` directory with all domain rule files.
+
+  One stale documentation reference survived the migration:
+  `docs/components/memory.md` line 119 still shows the old tree diagram with
+  `agent-lifecycle/ # Epic management rules`. The file also references several other
+  paths that no longer exist in that diagram (commits/, git/ at the top level, formats/,
+  old intent-schema.yaml, etc.) — the entire LTM Organization section is outdated.
+
+symptom: |
+  Issue #210 describes the rename as needed work. The actual directory rename has been done.
+  The remaining gap is a stale ASCII tree diagram in the developer documentation file
+  `docs/components/memory.md` that still shows the old `agent-lifecycle/` path and
+  describes a structure that no longer matches `core/components/memory/`.
+
+  No code path is broken — no agent or skill reads `docs/components/memory.md` at runtime.
+  The staleness is a documentation accuracy problem, not a functional defect.
+
+affected_components:
+  - path: docs/components/memory.md
+    role: Developer documentation describing LTM organization
+    issue: Line 119 references `agent-lifecycle/ # Epic management rules` in an ASCII tree.
+           The broader LTM Organization tree diagram (lines 113-134) is significantly outdated —
+           it shows `commits/`, `git/`, `formats/` as top-level peers but the actual structure
+           now uses `rules/`, `schemas/`, `templates/` subdirectories.
+    change_needed: Replace the stale `agent-lifecycle/` reference and update the LTM
+                   Organization tree to reflect the current `standards/` layout.
+
+already_done:
+  - path: core/components/memory/standards/rules/
+    status: EXISTS — all domain rule files present (epics.md, features.md, product.md,
+            design.md, architecture.md, scenarios.md, commits.md, git.md, pr.md,
+            kb-extension.md, resolution.md)
+  - path: core/components/memory/standards/rules/_index.md
+    status: EXISTS — accurate, complete index describing all rule files and consumers
+  - path: core/components/memory/standards/_index.md
+    status: EXISTS — accurate, no reference to agent-lifecycle
+  - path: ~/.garura/core/memory/standards/rules/
+    status: EXISTS — deployed LTM mirrors source; no agent-lifecycle directory present
+
+phase_b_status: |
+  Phase B (extracting prose constraints from skill bodies into per-domain rule files) is
+  substantially complete as well — the rule files in standards/rules/ already contain
+  canonical rule content. The two deferred files noted in rules/_index.md are:
+  - roadmap.md — not yet authored (no roadmap play exists yet)
+  - plan.md — not yet authored (noted as deferred until plan play is built)
+  These are explicitly deferred, not gaps from the original issue.

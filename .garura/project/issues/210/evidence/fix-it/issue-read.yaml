@@ -1,0 +1,62 @@
+issue:
+  number: 210
+  title: "Rename standards/agent-lifecycle/ → standards/rules/ and fill gaps"
+  state: OPEN
+  labels:
+    - refactor
+  url: https://github.com/kapilvirenahuja/garura/issues/210
+  body: |
+    ## Problem
+
+    `core/components/memory/standards/agent-lifecycle/` is poorly named. It currently holds a single file — `epic-management-rules.md` — but the *category* is 'domain rules our recipes follow.' Epics are one such domain; roadmap, product, architecture, PR, design, scenarios, plan are all peers. The current name implies it's about agent execution lifecycle, which is misleading.
+
+    Worse: most domain rules currently live as prose constraints scattered inside skill bodies, with no canonical statement.
+
+    ## Proposal
+
+    ### Rename
+
+    ```
+    standards/agent-lifecycle/epic-management-rules.md
+            ↓
+    standards/rules/epics.md
+    ```
+
+    ### Fill gaps — one rule file per domain
+
+    ```
+    standards/rules/
+    ├── epics.md            ← migrated from agent-lifecycle/epic-management-rules.md
+    ├── product.md          ← rules for product.yaml derivation
+    ├── roadmap.md          ← rules for roadmap structure
+    ├── architecture.md     ← rules for architecture.yaml
+    ├── features.md         ← rules for features.yaml / IDD
+    ├── scenarios.md        ← rules for verification scenarios
+    ├── plan.md             ← rules for execution plans
+    ├── pr.md               ← rules for PR structure (separate from severity taxonomy)
+    └── design.md           ← rules for design artifacts
+    ```
+
+    Each file: extracted from the prose constraints currently embedded in the corresponding skill(s), promoted to a single canonical statement.
+
+    ## Scope
+
+    Phase A (cheap): rename agent-lifecycle → rules, update ~5-6 ref paths
+    Phase B (real value): extract scattered prose constraints into per-domain rule files, point skills at the canonical statement instead of inlining
+
+    ## Out of scope
+
+    - Changing the rules themselves (just consolidating)
+    - Touching `standards/commits/`, `standards/git/` (already domain-shaped)
+
+    ## Acceptance
+
+    - `standards/agent-lifecycle/` is gone
+    - `standards/rules/` exists with one file per recipe-producing domain
+    - Each rule file is referenced by the skills that enforce it
+    - `_index.md` updated
+
+    ## Context
+
+    Surfaced during the standards/templates cleanup (issue #208 follow-up, 2026-04-13). The standards layout audit exposed that 'agent-lifecycle' was an awkward home for what is really 'domain rules.'
+  type_hint: refactor
