@@ -2,8 +2,8 @@ intent: >
   Given a locked execution plan milestone (a single feature phase identified by milestone_id,
   such as T-001, from plan.yaml) and the milestone's scope items with success scenarios and
   failure conditions, produce a working implementation that passes all independently-generated
-  evaluations and meets project quality standards. implement-epic runs per milestone —
-  after each milestone completes, validate-epic runs for that milestone before the next
+  evaluations and meets project quality standards. implement runs per milestone —
+  after each milestone completes, validate runs for that milestone before the next
   milestone begins.
 
   Test authorship is isolated and spec-driven: a test-writer agent writes behavioral tests from
@@ -28,7 +28,7 @@ intent: >
   test coverage completeness: 'did you test all behaviors?' Judge eval-review mode is scoped to
   developer self-review: 'are unit tests genuinely covering the spec?' Eval count stability is
   audited across fix iterations to prevent silent eval reduction. System-level verification
-  (e2e, integration against real services) is handled by validate-epic, not this play.
+  (e2e, integration against real services) is handled by validate, not this play.
 
 constraints:
   - id: C1
@@ -52,7 +52,7 @@ constraints:
     rule: >
       The evaluation generator receives only: features.yaml behaviors, scenarios.yaml
       verification scenarios, feature success/failure conditions, and plan.yaml exit gate criteria.
-      It does not receive: vision documents, design tokens, build-arch architecture artifacts
+      It does not receive: vision documents, design tokens, arch architecture artifacts
       (logical-architecture.yaml, physical-architecture.yaml, nfr-spec.yaml, quality-vision.yaml,
       design-patterns.yaml), tech.yaml, plan.yaml (full), implementation code, builder prompts,
       or prior evaluation results. Evals are scoped to UNIT TEST COVERAGE COMPLETENESS: 'Does
@@ -132,7 +132,7 @@ constraints:
     rule: >
       The quality-auditor independently verifies linting, unit tests, type checking, build,
       and coverage against the project's quality vision gates. It also checks QP compliance:
-      actual measurements versus thresholds from quality-vision.yaml (from build-arch output).
+      actual measurements versus thresholds from quality-vision.yaml (from arch output).
       Its report includes a qp_certification section with per-dimension PASS/FAIL, overall
       CERTIFIED|BLOCKED, and blockers list. No separate engineering-manager agent is needed.
       It does not receive: evaluations, builder prompts, builder reasoning, eval-generator
@@ -141,7 +141,7 @@ constraints:
   - id: C15
     rule: >
       Project quality standards (quality vision gates) are captured in STM before the quality
-      agent runs. When {product_base}architecture/quality-vision.yaml exists (from build-arch),
+      agent runs. When {product_base}architecture/quality-vision.yaml exists (from arch),
       gates MUST derive thresholds from it using the QP translation table. When absent, gates
       are detected from toolchain defaults. The quality-vision.yaml is the authoritative source
       for coverage targets, complexity limits, and security scan requirements.
@@ -207,7 +207,7 @@ constraints:
     rule: >
       All input design artifacts (plan.yaml, features.yaml, tech.yaml, scenarios.yaml) must
       be sourced from the issue STM at {stm_base}/{issue}/context/design/, where
-      prepare-epic writes them. Build-arch architecture artifacts (logical-architecture.yaml,
+      prepare writes them. Build-arch architecture artifacts (logical-architecture.yaml,
       physical-architecture.yaml, nfr-spec.yaml, quality-vision.yaml, design-patterns.yaml)
       are sourced from {product_base}architecture/ — they are product-level artifacts, not
       issue-specific. The pre-flight must derive artifact_base from the issue STM path.
@@ -237,21 +237,21 @@ constraints:
 
   - id: C27
     rule: >
-      implement-epic reads ONLY from STM at {stm_base}/{issue}/context/. KB
+      implement reads ONLY from STM at {stm_base}/{issue}/context/. KB
       (~/.garura/core/memory/) and LTM ({product_base}) are FORBIDDEN. All
       context needed for implementation — architecture decisions, quality gates,
       epic specification, design context — must exist in the STM context
-      package produced by prepare-epic. No agent contract in implement-epic may
+      package produced by prepare. No agent contract in implement may
       include ltm_context fields, product_base paths, or core/memory paths.
-      Violation of this boundary means prepare-epic's context package is
-      incomplete, not that implement-epic should reach outside STM.
+      Violation of this boundary means prepare's context package is
+      incomplete, not that implement should reach outside STM.
 
   - id: C28
     rule: >
-      implement-epic accepts a milestone_id parameter (e.g., T-001) identifying a single feature
+      implement accepts a milestone_id parameter (e.g., T-001) identifying a single feature
       phase from plan.yaml's execution_order. Each invocation implements ONLY the scope items of
-      the specified milestone. After the milestone completes, validate-epic is called for that
-      milestone before implement-epic is invoked for the next milestone (T-002, T-003, etc.).
+      the specified milestone. After the milestone completes, validate is called for that
+      milestone before implement is invoked for the next milestone (T-002, T-003, etc.).
       The pre-flight step resolves the milestone entry from plan.yaml, confirms its status is
       LOCKED, and verifies all depends_on milestones are COMPLETE per C3.
 
@@ -363,7 +363,7 @@ failure_conditions:
   - id: F14
     condition: >
       The test-writer agent's input context contains file paths from CONTEXT.md 'Files You Own',
-      build-arch architecture artifact references, tech.yaml references, or any implementation-specific
+      arch architecture artifact references, tech.yaml references, or any implementation-specific
       information. TEST-CONTEXT.md contains file paths or technology decisions.
 
   - id: F15
@@ -411,14 +411,14 @@ failure_conditions:
 
   - id: F23
     condition: >
-      Any agent invoked by implement-epic reads from KB (~/.garura/core/memory/)
+      Any agent invoked by implement reads from KB (~/.garura/core/memory/)
       or LTM ({product_base}). Agent contracts contain ltm_context fields,
       product_base references, or paths outside {stm_base}/{issue}/.
 
   - id: F24
     condition: >
       One or more depends_on milestones for the target milestone_id do not have status: "COMPLETE"
-      in plan.yaml at the time implement-epic begins. Milestone dependency pre-flight failed or
+      in plan.yaml at the time implement begins. Milestone dependency pre-flight failed or
       was skipped.
 
   - id: F25
@@ -557,10 +557,10 @@ scenarios:
     when: >
       The engineer triggers milestone-based implementation
     then: >
-      implement-epic is invoked with milestone_id: T-001. Pre-flight confirms T-001's depends_on
+      implement is invoked with milestone_id: T-001. Pre-flight confirms T-001's depends_on
       list is empty (or all satisfied). T-001 scope items are implemented, tested, and verified.
-      validate-epic runs for T-001 and passes. implement-epic is then invoked with milestone_id:
+      validate runs for T-001 and passes. implement is then invoked with milestone_id:
       T-002 — pre-flight confirms T-001 is COMPLETE. T-002 scope items are implemented. This
       pattern continues for each milestone. A milestone cannot begin until its predecessor has
-      both completed implement-epic AND passed validate-epic. Attempting to invoke implement-epic
+      both completed implement AND passed validate. Attempting to invoke implement
       for T-002 before T-001 is COMPLETE halts with F24.

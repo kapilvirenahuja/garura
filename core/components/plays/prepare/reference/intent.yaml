@@ -1,8 +1,8 @@
-name: prepare-epic
+name: garura:prepare
 intent: >
   Produce implementation-ready design artifacts for a single epic. Upstream
-  locked artifacts from specify-product (epics, scope, quality profile),
-  design-exp (design-spec, screens), and build-arch (5 architecture artifacts)
+  locked artifacts from specify (epics, scope, quality profile),
+  design (design-spec, screens), and arch (5 architecture artifacts)
   are REQUIRED inputs — hard halt if absent. Before generating design artifacts,
   deeply understand the codebase through architecture inference (reading locked
   architecture as input), test surface mapping, dependency graph construction,
@@ -17,13 +17,13 @@ intent: >
 constraints:
   - id: C1
     rule: >
-      Upstream locked artifacts from specify-product, design-exp, and build-arch
-      are REQUIRED. specify-product provides locked epics at
+      Upstream locked artifacts from specify, design, and arch
+      are REQUIRED. specify provides locked epics at
       {product_base}scope/epics/{epic_id}.yaml, scope at
       {product_base}scope/scope.yaml, quality profile at
-      {product_base}specification/quality-profile.yaml. design-exp provides
+      {product_base}specification/quality-profile.yaml. design provides
       design-spec at {product_base}experience/design-spec.md, screens at
-      {product_base}experience/screens/*.md. build-arch provides 5 architecture
+      {product_base}experience/screens/*.md. arch provides 5 architecture
       artifacts at {product_base}architecture/: logical-architecture.yaml,
       physical-architecture.yaml, nfr-spec.yaml, quality-vision.yaml,
       design-patterns.yaml. Hard halt if any upstream artifact is missing.
@@ -38,14 +38,14 @@ constraints:
   - id: C3
     rule: >
       Product behaviors, invariants, scope boundaries, and acceptance criteria
-      come from the upstream locked epic produced by specify-product. The play
+      come from the upstream locked epic produced by specify. The play
       does NOT generate features.yaml. The locked epic must not contain
       technology choices, implementation patterns, runtime topology, library
       names, or deployment decisions.
 
   - id: C4
     rule: >
-      tech.yaml must align with the established architecture from build-arch
+      tech.yaml must align with the established architecture from arch
       output (logical-architecture.yaml, physical-architecture.yaml,
       design-patterns.yaml). tech.yaml provides issue-scoped implementation
       detail (interface contracts, component structure, development patterns)
@@ -167,7 +167,7 @@ constraints:
   - id: C19
     rule: >
       Context resolution follows a hierarchy with two levels: "locked"
-      (from upstream plays — specify-product, design-exp, build-arch) and
+      (from upstream plays — specify, design, arch) and
       "issue-scoped" (from codebase analysis — architecture inference, test
       surface mapping, dependency graph, git history). Each source has an
       authority level. The play documents which source provided each piece of
@@ -223,7 +223,7 @@ constraints:
   - id: C26
     rule: >
       All intermediate data collected by agents must be stored in STM on disk
-      at {stm_base}/{issue}/evidence/prepare-epic/. The play
+      at {stm_base}/{issue}/evidence/prepare/. The play
       orchestrates by passing STM paths between agents. Agent outputs are
       never passed through conversation memory.
 
@@ -279,7 +279,7 @@ constraints:
   - id: C34
     rule: >
       Pre-flight must validate that all upstream locked artifacts from
-      specify-product, design-exp, and build-arch exist at their expected
+      specify, design, and arch exist at their expected
       paths. Missing any upstream artifact is a hard halt — not a fallback
       to discovery mode.
 
@@ -292,24 +292,24 @@ constraints:
 
   - id: C36
     rule: >
-      prepare-epic must produce a self-contained STM context package at
-      {stm_base}/{issue}/context/ that contains everything implement-epic and
-      validate-epic need. No downstream play reads KB (~/.garura/core/memory/)
-      or LTM ({product_base}) directly. Specifically, prepare-epic must produce:
+      prepare must produce a self-contained STM context package at
+      {stm_base}/{issue}/context/ that contains everything implement and
+      validate need. No downstream play reads KB (~/.garura/core/memory/)
+      or LTM ({product_base}) directly. Specifically, prepare must produce:
       (1) quality-gates.yaml — QP thresholds translated from quality-vision.yaml
       with concrete gate commands and thresholds, ready for the quality-auditor;
       (2) epic-spec.yaml — the locked epic copied from {product_base}scope/epics/
       with all behaviors, constraints, success scenarios, and failure conditions;
       (3) design-context.yaml — relevant screen references, user flows, and UX
-      decisions from design-exp output scoped to this epic;
+      decisions from design output scoped to this epic;
       (4) architecture-context.yaml — architecture decisions relevant to this epic
-      extracted from build-arch's 5 artifacts, including technology stack, design
+      extracted from arch's 5 artifacts, including technology stack, design
       patterns, and NFR thresholds;
       (5) plan-milestone-summary.yaml — the plan.yaml summary section extracted
       as a standalone artifact, containing per-milestone rows with milestone_id,
       delivers, scenario_gate.ids[], cumulative_scenarios (the running union of
       all scenario IDs from this milestone and all prior milestones), and
-      depends_on references, so that implement-epic and validate-epic can
+      depends_on references, so that implement and validate can
       determine which milestone they are working on, what scenarios belong to
       it, and what scenarios constitute the full regression suite up to that point.
       The STM context directory is the complete input contract for downstream plays.
@@ -322,11 +322,11 @@ constraints:
       (a) milestone_id — the phase identifier matching the feature phase ID
       (e.g., T-001);
       (b) scenario_gate.ids[] — the explicit list of scenario IDs that
-      validate-epic must run when validating this milestone (not counts alone —
-      actual IDs so validate-epic can select the correct scenarios from
+      validate must run when validating this milestone (not counts alone —
+      actual IDs so validate can select the correct scenarios from
       scenarios.yaml);
       (c) depends_on — the milestone_id(s) of prior milestones that must be in
-      ACCEPTED status (as determined by validate-epic) before this milestone
+      ACCEPTED status (as determined by validate) before this milestone
       may begin; the first milestone has an empty or absent depends_on;
       (d) delivers — a one-sentence description of the testable end-to-end
       capability this milestone delivers, sufficient to confirm scope without
@@ -340,10 +340,10 @@ constraints:
       The plan.yaml summary section must include cumulative_scenarios per
       milestone row — the running union of all scenario IDs from this milestone
       and all prior milestones in execution order. This cumulative list is how
-      validate-epic constructs the full regression suite for each milestone:
-      when validating T-002, validate-epic runs T-001's scenarios plus T-002's
+      validate constructs the full regression suite for each milestone:
+      when validating T-002, validate runs T-001's scenarios plus T-002's
       scenarios. The cumulative_scenarios list must be explicit (actual IDs, not
-      counts) in plan-milestone-summary.yaml so that validate-epic can select
+      counts) in plan-milestone-summary.yaml so that validate can select
       and run the complete regression suite without reading scenarios.yaml or
       prior milestones' scenario_gate fields. A summary row with only a
       cumulative scenario count (integer) but no cumulative ID list violates
@@ -355,12 +355,12 @@ constraints:
       not task-completion-based sequencing. The sequential
       implement→validate→implement→validate chain requires that milestone T-002
       cannot begin until milestone T-001 has been explicitly ACCEPTED by
-      validate-epic (ACCEPTED status, not merely all T-001 implementation tasks
+      validate (ACCEPTED status, not merely all T-001 implementation tasks
       marked done). plan.yaml must make acceptance-based dependency explicit in
       the milestone depends_on field. A depends_on that references only
-      implementation tasks (not the prior milestone's validate-epic gate)
+      implementation tasks (not the prior milestone's validate gate)
       does not satisfy this constraint. The milestone dependency chain must be
-      readable by implement-epic and validate-epic directly from
+      readable by implement and validate directly from
       plan-milestone-summary.yaml without parsing the full task DAG.
 
   - id: C40
@@ -384,7 +384,7 @@ constraints:
 failure_conditions:
   - id: F1
     condition: >
-      Locked epic from specify-product contains technology names, library
+      Locked epic from specify contains technology names, library
       names, SDK references, database product names, hosting platform names,
       or deployment patterns detected during pre-flight validation. These
       indicate upstream audience collision.
@@ -393,7 +393,7 @@ failure_conditions:
     condition: >
       tech.yaml contradicts the established architecture context — uses
       different technologies, frameworks, or patterns than those in the
-      build-arch output (logical-architecture.yaml, physical-architecture.yaml,
+      arch output (logical-architecture.yaml, physical-architecture.yaml,
       design-patterns.yaml).
 
   - id: F3
@@ -517,8 +517,8 @@ failure_conditions:
 
   - id: F24
     condition: >
-      Upstream locked artifacts not found at expected paths — specify-product
-      epics, design-exp design-spec, or build-arch architecture files missing.
+      Upstream locked artifacts not found at expected paths — specify
+      epics, design design-spec, or arch architecture files missing.
 
   - id: F25
     condition: >
@@ -537,14 +537,14 @@ failure_conditions:
       fields: milestone_id, scenario_gate.ids[] (actual IDs, not count only),
       depends_on (for any non-first milestone), or delivers. A feature phase
       without all four fields is not milestone-ready and cannot be consumed by
-      implement-epic or validate-epic.
+      implement or validate.
 
   - id: F28
     condition: >
       The plan.yaml summary section (and the derived plan-milestone-summary.yaml
       in the STM context package) does not include cumulative_scenarios as an
       explicit list of scenario IDs per milestone row. Providing only an integer
-      count without the actual ID list prevents validate-epic from constructing
+      count without the actual ID list prevents validate from constructing
       the regression suite for each milestone without re-reading scenarios.yaml
       and all prior milestone scenario_gate fields.
 
@@ -562,7 +562,7 @@ failure_conditions:
 scenarios:
   - id: S1
     persona: Product Owner
-    given: The locked epic from specify-product and scenarios.yaml
+    given: The locked epic from specify and scenarios.yaml
     then: >
       Can confirm that every product behavior in the locked epic has at least
       one testable verification scenario in scenarios.yaml with clear pass/fail
@@ -571,7 +571,7 @@ scenarios:
 
   - id: S2
     persona: Technical Architect
-    given: The locked epic and build-arch 5-artifact output
+    given: The locked epic and arch 5-artifact output
     then: >
       Can evaluate whether the technology stack and architectural decisions
       faithfully implement the product behaviors and invariants defined in
@@ -615,7 +615,7 @@ scenarios:
 
   - id: S7
     persona: Implementation Agent
-    given: The locked artifacts (locked epic, tech, scenarios, plan) and build-arch architecture output
+    given: The locked artifacts (locked epic, tech, scenarios, plan) and arch architecture output
     then: >
       Can implement any task from the DAG using only the provided artifacts
       without scanning the codebase, reading LTM, or resolving dependencies.
@@ -671,7 +671,7 @@ scenarios:
   - id: S13
     persona: Developer
     given: >
-      Developer invokes prepare-epic with no prior start-feature
+      Developer invokes prepare with no prior start-feature
       or start-feature-planning run. No issue exists, no branch exists, no
       STM directory exists.
     then: >

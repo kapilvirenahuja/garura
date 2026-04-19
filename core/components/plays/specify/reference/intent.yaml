@@ -1,4 +1,4 @@
-name: specify-product
+name: garura:specify
 description: >
   Transform a product idea plus project profile into a fully scoped, enriched
   set of intent epics organized by domain and capability. The output is dense

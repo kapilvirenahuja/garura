@@ -1,4 +1,4 @@
-# evals.yaml — implement-epic play
+# evals.yaml — implement play
 # Generated from intent.yaml constraints (C1-C26), failure conditions (F1-F22), and scenarios (S1-S12)
 # Aligned with the refactored intent: no separate EM agent, quality-auditor absorbs QP certification,
 # eval-generator scoped to unit test coverage completeness, judge scoped to developer self-review,
@@ -63,8 +63,8 @@ step_evals:
     validates: [C23]
     check: >
       Verify that plan.yaml, features.yaml, tech.yaml, and scenarios.yaml are
-      read from {stm_base}/{issue}/context/design/ where prepare-epic wrote
-      them. Verify that build-arch architecture artifacts (logical-architecture.yaml,
+      read from {stm_base}/{issue}/context/design/ where prepare wrote
+      them. Verify that arch architecture artifacts (logical-architecture.yaml,
       physical-architecture.yaml, nfr-spec.yaml, quality-vision.yaml,
       design-patterns.yaml) are sourced from {product_base}architecture/. Verify
       the artifact_base is derived from the issue STM path, not hardcoded.
@@ -128,7 +128,7 @@ step_evals:
     check: >
       Read the generated CONTEXT.md. Verify it contains all 6 required sections:
       (1) Scope — what scope items the builder implements, (2) Architecture —
-      relevant architectural decisions from build-arch artifacts, (3) Tech Stack —
+      relevant architectural decisions from arch artifacts, (3) Tech Stack —
       technology choices from tech.yaml, (4) Domain Rules — business rules and
       constraints from features.yaml, (5) Files You Own — specific file paths
       the builder creates or modifies, (6) Conventions — coding standards and
@@ -138,7 +138,7 @@ step_evals:
       All 6 sections present and non-empty. Content references only the target
       feature's scope items, architecture, and file paths. Zero references to
       other features' scope items or files. CONTEXT.md is distilled from
-      plan.yaml entry, build-arch artifacts, and tech.yaml.
+      plan.yaml entry, arch artifacts, and tech.yaml.
 
   # ---------------------------------------------------------------------------
   # Step 5 — TEST-CONTEXT.md generation
@@ -152,7 +152,7 @@ step_evals:
       Read the generated TEST-CONTEXT.md. Verify it contains scope item
       descriptions and acceptance criteria extracted from CONTEXT.md 'Scope'
       section and features.yaml success_scenarios. Scan for prohibited content:
-      file paths from CONTEXT.md 'Files You Own', build-arch architecture
+      file paths from CONTEXT.md 'Files You Own', arch architecture
       artifact references, tech.yaml references, technology choices, framework
       names, implementation-specific information, or structural assertions.
     pass_criteria: >
@@ -174,7 +174,7 @@ step_evals:
       Verify the eval-generator received only: features.yaml behaviors,
       scenarios.yaml verification scenarios, feature success/failure conditions,
       and plan.yaml exit gate criteria. Verify it did NOT receive: vision
-      documents, design tokens, build-arch artifacts, tech.yaml, full plan.yaml,
+      documents, design tokens, arch artifacts, tech.yaml, full plan.yaml,
       implementation code, builder prompts, or prior evaluation results. Verify
       generated evals are scoped to unit test coverage: 'Does every behavior
       have a unit test?', 'Do tests cover success AND failure conditions?',
@@ -214,7 +214,7 @@ step_evals:
       Inspect the test-writer agent's input context for each scope item. Verify
       it received only TEST-CONTEXT.md (behavioral specs). Verify it did NOT
       receive: CONTEXT.md, CONTEXT.md 'Files You Own' section, file paths,
-      architecture decisions, technology choices, build-arch artifact references,
+      architecture decisions, technology choices, arch artifact references,
       tech.yaml references, or any implementation context. Verify test
       assertions are behavioral — they assert on observable outcomes, not
       structural implementation details.

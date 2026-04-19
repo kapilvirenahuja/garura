@@ -1,6 +1,6 @@
-name: build-arch
+name: garura:arch
 description: >
-  Transform locked specify-product and design-exp output into a five-artifact
+  Transform locked specify and design output into a five-artifact
   architecture package: logical architecture, physical architecture, NFR
   specification, quality vision, and design patterns. Every technology choice
   and every architectural decision traces to a specific driver in the upstream
@@ -9,8 +9,8 @@ version: 0.3.0
 checksum: "<computed by /create-play --build>"
 
 intent: >
-  Given the locked output of /specify-product (scope, enriched capabilities,
-  intent epics, quality profile) and /design-exp (personas, screens, flows,
+  Given the locked output of /specify (scope, enriched capabilities,
+  intent epics, quality profile) and /design (personas, screens, flows,
   design spec), produce FIVE canonical architecture artifacts:
 
     (A1) logical-architecture.yaml — the technology-agnostic view: bounded
@@ -64,7 +64,7 @@ intent: >
 constraints:
   - id: C1
     rule: >
-      specify-product artifacts must exist and be LOCKED before build-arch
+      specify artifacts must exist and be LOCKED before arch
       begins. Pre-flight reads
       .meridian/product/scope/scope.yaml,
       .meridian/product/scope/enriched-capabilities.yaml,
@@ -75,7 +75,7 @@ constraints:
 
   - id: C2
     rule: >
-      design-exp artifacts must exist and be LOCKED before build-arch
+      design artifacts must exist and be LOCKED before arch
       begins. Pre-flight reads
       .meridian/product/experience/personas.md,
       .meridian/product/experience/screens/*.md,
@@ -104,7 +104,7 @@ constraints:
 
   - id: C5
     rule: >
-      Every selected capability from specify-product.scope must map to at
+      Every selected capability from specify.scope must map to at
       least one component in logical-architecture.yaml. Orphan capabilities
       are a validation failure. Physical-architecture.yaml and
       design-patterns.yaml reference components by their logical IDs —
@@ -146,7 +146,7 @@ constraints:
       worker, data). Cross-cutting patterns are required when any NFR
       in nfr-spec.yaml names resilience, idempotency, or consistency as
       a driver. An empty layer is a validation failure — "we didn't pick
-      any pattern" is not a valid answer at build-arch time.
+      any pattern" is not a valid answer at arch time.
 
   - id: C10
     rule: >
@@ -188,10 +188,10 @@ constraints:
 
   - id: C14
     rule: >
-      build-arch is the last specify/design-stage play before
+      arch is the last specify/design-stage play before
       implementation. It does NOT produce code. It does NOT produce test
       suites. It produces the five handoff artifacts that
-      prepare-epic reads to scope per-feature implementation
+      prepare reads to scope per-feature implementation
       plans.
 
   - id: C15
@@ -302,7 +302,7 @@ failure_conditions:
 
   - id: F5
     condition: >
-      Any capability from specify-product.scope has zero mappings to
+      Any capability from specify.scope has zero mappings to
       components in logical-architecture.yaml.
 
   - id: F6

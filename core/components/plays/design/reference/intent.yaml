@@ -1,6 +1,6 @@
-name: design-exp
+name: garura:design
 description: >
-  Transform the specify-product output (intent epics + quality profile + scope)
+  Transform the specify output (intent epics + quality profile + scope)
   into a complete experience design: JTBD personas, a screen inventory with
   state coverage, user flows (happy paths and recovery flows), structured
   wireframes, and interaction patterns. The output is dense enough that a
@@ -9,7 +9,7 @@ version: 0.1.0
 checksum: "<computed by /create-play --build>"
 
 intent: >
-  Given the locked output of /specify-product (intent epics, scope, quality
+  Given the locked output of /specify (intent epics, scope, quality
   profile, enriched capabilities), produce a complete experience design:
   JTBD personas mapped to capabilities; a screen inventory where every
   capability maps to at least one screen and every screen enumerates at
@@ -25,8 +25,8 @@ intent: >
 constraints:
   - id: C1
     rule: >
-      The specify-product pipeline artifacts must exist and be locked
-      before design-exp begins. Pre-flight reads
+      The specify pipeline artifacts must exist and be locked
+      before design begins. Pre-flight reads
       .meridian/product/scope/scope.yaml,
       .meridian/product/scope/enriched-capabilities.yaml,
       .meridian/product/scope/epics/*.yaml, and
@@ -52,7 +52,7 @@ constraints:
   - id: C4
     rule: >
       Every persona must be mapped to at least one capability from
-      specify-product's selected_capabilities. Unmapped personas are a
+      specify's selected_capabilities. Unmapped personas are a
       validation failure.
 
   - id: C5
@@ -98,9 +98,9 @@ constraints:
       .meridian/product/ux/ folder was renamed to experience/.
       Lifecycle artifacts (checkpoints, evidence, status) live at the
       product root, orthogonal to SDLC stages: checkpoints at
-      .meridian/product/_checkpoints/design-exp/, evidence at
-      .meridian/product/_evidence/design-exp/, status at
-      .meridian/product/_status/design-exp.json. All evidence,
+      .meridian/product/_checkpoints/design/, evidence at
+      .meridian/product/_evidence/design/, status at
+      .meridian/product/_status/design.json. All evidence,
       checkpoint, and status writes go through the scriber agent. The
       play never writes these directly.
 
@@ -137,8 +137,8 @@ constraints:
       resolves {product_base}research/{domain}.md for each selected
       domain. Per rules/product.md Rule 15 (Pull-to-Product Principle /
       Defect 8), KB-sourced domain definitions are copied into
-      product/research/ at specify-product Stage 2 with a provenance
-      header; design-exp consumes those frozen copies so a KB edit does
+      product/research/ at specify Stage 2 with a provenance
+      header; design consumes those frozen copies so a KB edit does
       not retroactively change an in-flight or historical design run.
       The play never sends ltm_domain_taxonomy_path to downstream skills;
       using that input name is a structural failure.
@@ -148,7 +148,7 @@ constraints:
       The MVP recommendation at .meridian/product/scope/mvp-recommendation.md
       must exist and be non-empty before Stage 1 persona synthesis begins.
       The recommendation identifies primary use cases and deferred use
-      cases with v1.1+ triggers. design-exp's Stage 1 reads the primary
+      cases with v1.1+ triggers. design's Stage 1 reads the primary
       use cases and synthesizes one persona per primary use case (not one
       per every user-type implied by scope.selected_capabilities).
       Capabilities that serve only deferred use cases either get skipped
@@ -239,11 +239,11 @@ failure_conditions:
   - id: F3
     condition: >
       Any persona is not mapped to at least one capability from the
-      specify-product scope.
+      specify scope.
 
   - id: F4
     condition: >
-      Any capability from specify-product's selected_capabilities has
+      Any capability from specify's selected_capabilities has
       zero screens in the inventory.
 
   - id: F5
@@ -284,7 +284,7 @@ failure_conditions:
   - id: F12
     condition: >
       The play generates visual design elements (color palettes, typography
-      stacks, spacing scales) — that is out of scope for design-exp and
+      stacks, spacing scales) — that is out of scope for design and
       must be deferred to a downstream visual-design play.
 
   - id: F13
