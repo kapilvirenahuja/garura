@@ -48,6 +48,17 @@ constraints:
       Human approval is required before committing when any change group's
       issue mapping has less than high confidence. When all mappings are
       high confidence, the play proceeds without approval.
+  - id: C10
+    rule: >
+      The play reads evidence.record from .garura/core/config.yaml (default true
+      when key absent) and applies it in two places. At Step 5 (Create Commits):
+      when false, commits.yaml is omitted from the repo-orchestrator contract output
+      — the commit_record stm.output key is dropped entirely so no commits.yaml is
+      written. At Step 8 (Evidence & Close): when false, the delivery record
+      ({YYYYMMDD-HHMMSS}.md) is not written, the status file (commit-code.json) is
+      not written, and the repo-orchestrator self-commit invocation is skipped. The
+      user summary is always presented regardless of flag. analysis.yaml and
+      issue-mappings.yaml are never affected — written unconditionally in Steps 1 and 2.
 
 failure_conditions:
   - id: F1
