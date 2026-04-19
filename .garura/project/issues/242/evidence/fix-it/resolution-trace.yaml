@@ -1,0 +1,51 @@
+- domain: naming-conventions
+  resolved_from: codebase
+  rationale: |
+    Examined core/components/plays/ directory listing to establish the existing naming pattern.
+    Utility plays (ship, fix-it, enhance, start-feature, capture-learning, check-drift, distill)
+    all use short descriptive single or hyphenated names. The 6 pipeline plays use compound names
+    (specify-product, design-exp, build-arch, prepare-epic, implement-epic, validate-epic).
+    The rename mapping in the issue (specify, design, architect, prepare, implement, validate)
+    follows the established short-name pattern of utility plays. No LTM naming standards file
+    exists that governs play names specifically; the pattern was inferred from the codebase.
+
+- domain: scope-boundaries
+  resolved_from: codebase
+  rationale: |
+    Determined in-scope vs out-of-scope by examining file categories found in grep results.
+    Source files in core/components/ and docs/ are in-scope (canonical definitions, deployed
+    via /sync-claude). Historical STM artifacts in .garura/project/issues/*/evidence/ and
+    .garura/product/_evidence/, _checkpoints/, _status/ are out-of-scope — they are frozen
+    records of past runs. Updating them would falsify historical records. Developer scratch
+    space in .claude/specs/ is out-of-scope. The .garura/product/research/, scope/, and
+    specification/ directories contain locked product artifacts (not play definitions) and
+    are out-of-scope except for incidental references in comments (which we skip).
+
+- domain: architecture
+  resolved_from: llm
+  rationale: |
+    No product architecture LTM was loaded for this analysis. The rename is a mechanical
+    string substitution plus directory rename — no architectural design decisions required.
+    The framework's play-as-SKILL.md architecture was read directly from the codebase
+    (core/components/plays/*/SKILL.md). The intent_path embedding pattern was discovered
+    by reading the SKILL.md files directly, not from architecture LTM.
+
+- domain: cross-reference-completeness
+  resolved_from: codebase
+  rationale: |
+    Used grep -r for each of the 6 old play names across the full repository with
+    --include filters for .md, .yaml, .yml, .json. All 6 names were searched independently.
+    Union of results across all 6 searches produced the complete affected-files list.
+    Files appearing in grep results were individually examined to determine the nature of
+    each reference (structural vs. narrative, path vs. name). Historical STM files were
+    identified as out-of-scope after examining their content (frozen run records).
+
+- domain: risk-assessment
+  resolved_from: codebase
+  rationale: |
+    Key risks (SKILL.md structural path locations, in-flight epic STM directories, evidence
+    path template changes) were identified by reading the SKILL.md files of the 6 pipeline
+    plays directly. The evidence path pattern "evidence/{play-name}/{milestone_id}/" was
+    found in implement-epic/SKILL.md line 114 and validate-epic/SKILL.md line 117.
+    The status file pattern "status/{play-name}-{milestone_id}.json" was found in
+    implement-epic/SKILL.md line 122. These create the in-flight migration boundary risk.

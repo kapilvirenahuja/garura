@@ -1,0 +1,5 @@
+issue_number: 242
+title: "Rename core pipeline plays to short invocation names"
+state: OPEN
+url: "https://github.com/kapilvirenahuja/garura/issues/242"
+closes_syntax: "Closes #242"

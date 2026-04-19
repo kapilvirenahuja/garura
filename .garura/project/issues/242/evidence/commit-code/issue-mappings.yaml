@@ -1,0 +1,26 @@
+mappings:
+  - group_id: 1
+    issue: 242
+    confidence: high
+    reasoning: "Play directory renames (specify-product→specify, design-exp→design, build-arch→arch, prepare-epic→prepare, implement-epic→implement, validate-epic→validate) are the primary rename deliverable for #242"
+  - group_id: 2
+    issue: 242
+    confidence: high
+    reasoning: "Cross-play reference updates in capture-learning, check-drift, distill, enhance, start-feature-planning are direct scope of #242 — updating all internal callers to use new short names"
+  - group_id: 3
+    issue: 242
+    confidence: high
+    reasoning: "Skill file updates across 28 skill components to reference renamed play names are required follow-through of the #242 rename operation"
+  - group_id: 4
+    issue: 242
+    confidence: high
+    reasoning: "Agent definition updates across 9 agents to reference renamed play names are required follow-through of the #242 rename operation"
+  - group_id: 5
+    issue: 242
+    confidence: high
+    reasoning: "Memory standards, schemas, and templates updates (18 files) to use renamed play names are required follow-through of the #242 rename operation"
+  - group_id: 6
+    issue: 242
+    confidence: high
+    reasoning: "Documentation updates across glossary, ADRs, and docs/components (including new ADR-018 documenting the rename decision) complete the #242 rename scope"
+conflicts: []

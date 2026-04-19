@@ -1,0 +1,507 @@
+symptom: |
+  Six core pipeline plays use verbose compound invocation names (specify-product, design-exp,
+  build-arch, prepare-epic, implement-epic, validate-epic) while utility plays use short single-word
+  names (ship, fix-it, enhance). The compound names are inconsistent with the rest of the framework
+  and harder to type as CLI commands. The proposed rename gives each pipeline stage a clean
+  single-word name: specify, design, architect, prepare, implement, validate.
+
+diagnosis: |
+  This is a coordinated rename across the framework: 6 play directories must be renamed, the
+  name: field in 12 frontmatter files (6 SKILL.md + 6 intent.yaml) must change, and all string
+  occurrences of the old names across ~65 source files must be updated. The old names appear as:
+  (a) play invocation slugs in SKILL.md frontmatter, intent.yaml metadata, and evidence/status
+  path templates; (b) narrative references in cross-play SKILL.md descriptions, agent definitions,
+  skill descriptions, memory standards, schema comments, docs, and ADRs; (c) hardcoded path
+  strings embedded in JSON contract intent_path fields within SKILL.md orchestration steps;
+  (d) internal self-references within each play's own SKILL.md (e.g., "run /specify-product first",
+  evidence path templates using the play name as a directory segment).
+
+  Historical STM artifacts under .garura/product/ and .garura/project/issues/*/evidence/ contain
+  the old names frozen in completed-run records. These are historical logs — updating them would
+  falsify the record of past runs. They are OUT OF SCOPE for this rename.
+
+  The .claude/specs/ directory is developer scratch space (gitignored-equivalent) — similarly
+  out of scope.
+
+root_cause: |
+  The six plays were named during early framework design using descriptive compound names that
+  encode both the domain and the artifact type (e.g., "specify-product" = specify + product,
+  "build-arch" = build + arch). As the framework matured, utility plays settled on short names
+  (ship, enhance, fix-it), creating an inconsistency. The compound names are not wrong — they
+  are simply inconsistent with the rest of the framework's naming conventions and verbose for
+  daily CLI use. There is no bug; the rename is a deliberate breaking change to establish
+  consistent, short invocation names across all plays.
+
+affected_files:
+  # ── PLAY DIRECTORIES (rename operations) ──────────────────────────────────────
+  - path: core/components/plays/specify-product/
+    role: Play directory for product specification stage
+    change_needed: Rename directory to core/components/plays/specify/
+
+  - path: core/components/plays/design-exp/
+    role: Play directory for experience design stage
+    change_needed: Rename directory to core/components/plays/design/
+
+  - path: core/components/plays/build-arch/
+    role: Play directory for architecture build stage
+    change_needed: Rename directory to core/components/plays/arch/
+
+  - path: core/components/plays/prepare-epic/
+    role: Play directory for epic preparation stage
+    change_needed: Rename directory to core/components/plays/prepare/
+
+  - path: core/components/plays/implement-epic/
+    role: Play directory for epic implementation stage
+    change_needed: Rename directory to core/components/plays/implement/
+
+  - path: core/components/plays/validate-epic/
+    role: Play directory for epic validation stage
+    change_needed: Rename directory to core/components/plays/validate/
+
+  # ── PLAY SKILL.MD FRONTMATTER (name: field + self-references) ────────────────
+  - path: core/components/plays/specify/SKILL.md
+    role: Compiled play definition; name: field in frontmatter + self-referential invocation strings
+    change_needed: |
+      name: specify-product → name: specify
+      All occurrences of "specify-product" in body text (invocation examples, intent_path strings,
+      status file path templates, rebuild instructions, evidence path templates, handoff text,
+      and description field reference to design-exp and build-arch as downstream)
+
+  - path: core/components/plays/design/SKILL.md
+    role: Compiled play definition; name: field + all self/cross-play references
+    change_needed: |
+      name: design-exp → name: design
+      All occurrences of "design-exp" in body text (invocation examples, intent_path strings,
+      stage task_id strings like "design-exp-stage-1-personas", status path templates,
+      rebuild instructions, references to specify-product as upstream)
+      Cross-reference: "specify-product" → "specify" in pre-flight halt messages and C1 check comments
+
+  - path: core/components/plays/arch/SKILL.md
+    role: Compiled play definition; name: field + all self/cross-play references
+    change_needed: |
+      name: build-arch → name: architect
+      All occurrences of "build-arch" in body text (intent_path strings, rebuild instructions,
+      references to specify-product and design-exp as upstream inputs)
+      Cross-references: "specify-product" → "specify", "design-exp" → "design"
+
+  - path: core/components/plays/prepare/SKILL.md
+    role: Compiled play definition; name: field + all self/cross-play references
+    change_needed: |
+      name: prepare-epic → name: prepare
+      All occurrences of "prepare-epic" in body text (intent_path strings, evidence path
+      templates like "evidence/prepare-epic/", status file paths like "status/prepare-epic.json",
+      rebuild instructions, the _pending/prepare-epic/* mv command, task_id strings)
+      Cross-references: "specify-product" → "specify", "design-exp" → "design", "build-arch" → "architect"
+      Reference to implement-epic as downstream: "implement-epic" → "implement"
+
+  - path: core/components/plays/implement/SKILL.md
+    role: Compiled play definition; name: field + all self/cross-play references
+    change_needed: |
+      name: implement-epic → name: implement
+      All occurrences of "implement-epic" in body text (invocation examples, intent_path strings,
+      evidence path templates like "evidence/implement-epic/{milestone_id}/", status file paths
+      like "status/implement-epic-{milestone_id}.json", task_id strings, rebuild instructions,
+      reference to validate-epic as the downstream consumer)
+      Cross-reference: "validate-epic" → "validate", "prepare-epic" → "prepare"
+
+  - path: core/components/plays/validate/SKILL.md
+    role: Compiled play definition; name: field + all self/cross-play references
+    change_needed: |
+      name: validate-epic → name: validate
+      All occurrences of "validate-epic" in body text (invocation examples, intent_path strings,
+      evidence path templates like "evidence/validate-epic/{milestone_id}/", status file paths
+      like "status/validate-epic-{milestone_id}.json", rebuild instructions, description field)
+      Cross-references: "implement-epic" → "implement", "prepare-epic" → "prepare"
+
+  # ── PLAY INTENT.YAML (name: field) ───────────────────────────────────────────
+  - path: core/components/plays/specify/reference/intent.yaml
+    role: Intent source for specify play; name: metadata field
+    change_needed: name: specify-product → name: specify
+
+  - path: core/components/plays/design/reference/intent.yaml
+    role: Intent source for design play; name: metadata field + cross-play narrative
+    change_needed: |
+      name: design-exp → name: design
+      Body references to "specify-product" → "specify", "build-arch" → "architect"
+
+  - path: core/components/plays/arch/reference/intent.yaml
+    role: Intent source for architect play; name: metadata field + cross-play narrative
+    change_needed: |
+      name: build-arch → name: architect
+      Body references to "specify-product" → "specify", "design-exp" → "design",
+      "prepare-epic" → "prepare"
+
+  - path: core/components/plays/prepare/reference/intent.yaml
+    role: Intent source for prepare play; name: metadata field + cross-play narrative
+    change_needed: |
+      name: prepare-epic → name: prepare
+      Body references to "specify-product" → "specify", "design-exp" → "design",
+      "build-arch" → "architect", "implement-epic" → "implement", "validate-epic" → "validate"
+
+  - path: core/components/plays/implement/reference/intent.yaml
+    role: Intent source for implement play; name: metadata field + cross-play narrative
+    change_needed: |
+      name: implement-epic → name: implement
+      Body references to "prepare-epic" → "prepare", "validate-epic" → "validate",
+      "build-arch" → "architect"
+
+  - path: core/components/plays/validate/reference/intent.yaml
+    role: Intent source for validate play; name: metadata field + cross-play narrative
+    change_needed: |
+      name: validate-epic → name: validate
+      Body references to "implement-epic" → "implement", "prepare-epic" → "prepare"
+
+  # ── PLAY EVALS.YAML (cross-play path references) ─────────────────────────────
+  - path: core/components/plays/prepare/reference/evals.yaml
+    role: Evals for prepare play; may contain cross-play narrative
+    change_needed: Update any occurrences of old play names
+
+  - path: core/components/plays/implement/reference/evals.yaml
+    role: Evals for implement play; contains "build-arch", "prepare-epic", "validate-epic" references
+    change_needed: |
+      "build-arch" → "architect", "prepare-epic" → "prepare", "validate-epic" → "validate"
+
+  - path: core/components/plays/validate/reference/evals.yaml
+    role: Evals for validate play (no separate evals file found, but validate-epic/reference/ should be checked)
+    change_needed: Update any occurrences of old play names
+
+  # ── OTHER PLAYS (cross-references to pipeline play names) ────────────────────
+  - path: core/components/plays/start-feature-planning/SKILL.md
+    role: Utility play that references the full pipeline as a handoff note
+    change_needed: |
+      Update handoff note: "specify-product → design-exp → build-arch → prepare-epic"
+      → "specify → design → architect → prepare"
+
+  - path: core/components/plays/capture-learning/SKILL.md
+    role: Post-epic reconciliation play; references prepare-epic, implement-epic, validate-epic
+    change_needed: |
+      "prepare-epic" → "prepare" (4 occurrences: description, constraint check, bash pre-flight,
+      agent instruction text)
+      "implement-epic" → "implement", "validate-epic" → "validate" (evidence path references)
+
+  - path: core/components/plays/capture-learning/reference/intent.yaml
+    role: Intent for capture-learning; references prepare-epic, implement-epic, validate-epic, build-arch
+    change_needed: |
+      "prepare-epic" → "prepare", "implement-epic" → "implement",
+      "validate-epic" → "validate", "build-arch" → "architect"
+
+  - path: core/components/plays/check-drift/reference/intent.yaml
+    role: Intent for check-drift; references prepare-epic, implement-epic, validate-epic
+    change_needed: |
+      "prepare-epic" → "prepare", "implement-epic" → "implement", "validate-epic" → "validate"
+
+  - path: core/components/plays/distill/reference/intent.yaml
+    role: Intent for distill; references prepare-epic
+    change_needed: "prepare-epic" → "prepare"
+
+  - path: core/components/plays/enhance/SKILL.md
+    role: Enhancement play; references prepare-epic as a contrast in agent instructions
+    change_needed: "prepare-epic" → "prepare"
+
+  # ── SKILLS (cross-references in descriptions and Related sections) ────────────
+  - path: core/components/skills/check-drift/SKILL.md
+    role: Drift analysis skill; references prepare-epic, implement-epic, validate-epic as evidence sources
+    change_needed: |
+      "prepare-epic" → "prepare", "implement-epic" → "implement", "validate-epic" → "validate"
+      (path template strings, narrative text, section headers)
+
+  - path: core/components/skills/check-drift/references/templates.md
+    role: Template reference for check-drift; references prepare-epic, implement-epic, validate-epic
+    change_needed: |
+      "prepare-epic" → "prepare", "implement-epic" → "implement", "validate-epic" → "validate"
+
+  - path: core/components/skills/compile-design-spec/SKILL.md
+    role: Design spec consolidation skill; references design-exp, build-arch, implement-epic
+    change_needed: |
+      "design-exp" → "design", "build-arch" → "architect", "implement-epic" → "implement"
+
+  - path: core/components/skills/derive-logical-architecture/SKILL.md
+    role: Logical architecture derivation skill; references specify-product, design-exp, build-arch
+    change_needed: |
+      "specify-product" → "specify", "design-exp" → "design", "build-arch" → "architect"
+
+  - path: core/components/skills/derive-physical-architecture/SKILL.md
+    role: Physical architecture derivation skill; references design-exp, build-arch
+    change_needed: "design-exp" → "design", "build-arch" → "architect"
+
+  - path: core/components/skills/derive-nfr-spec/SKILL.md
+    role: NFR spec derivation skill; references build-arch
+    change_needed: "build-arch" → "architect"
+
+  - path: core/components/skills/derive-quality-vision/SKILL.md
+    role: Quality vision derivation skill; references build-arch
+    change_needed: "build-arch" → "architect"
+
+  - path: core/components/skills/validate-architecture-spec/SKILL.md
+    role: Architecture validation skill; references build-arch, design-exp
+    change_needed: "build-arch" → "architect", "design-exp" → "design"
+
+  - path: core/components/skills/derive-quality-profile-from-epics/SKILL.md
+    role: Quality profile derivation skill; references build-arch, specify-product
+    change_needed: "build-arch" → "architect", "specify-product" → "specify"
+
+  - path: core/components/skills/generate-intent-epics/SKILL.md
+    role: Intent epic generation skill; references specify-product
+    change_needed: "specify-product" → "specify"
+
+  - path: core/components/skills/validate-intent-epics/SKILL.md
+    role: Intent epic validation skill; references specify-product
+    change_needed: "specify-product" → "specify"
+
+  - path: core/components/skills/enrich-capabilities/SKILL.md
+    role: Capability enrichment skill; references specify-product
+    change_needed: "specify-product" → "specify"
+
+  - path: core/components/skills/configure-capabilities/SKILL.md
+    role: Capability configuration skill; references specify-product
+    change_needed: "specify-product" → "specify"
+
+  - path: core/components/skills/synthesize-personas/SKILL.md
+    role: Persona synthesis skill; references specify-product, design-exp
+    change_needed: "specify-product" → "specify", "design-exp" → "design"
+
+  - path: core/components/skills/recommend-mvp/SKILL.md
+    role: MVP recommendation skill; references specify-product
+    change_needed: "specify-product" → "specify"
+
+  - path: core/components/skills/research-market-opportunity/SKILL.md
+    role: Market research skill; references specify-product
+    change_needed: "specify-product" → "specify"
+
+  - path: core/components/skills/generate-screen-inventory/SKILL.md
+    role: Screen inventory generation skill; references design-exp, build-arch
+    change_needed: "design-exp" → "design", "build-arch" → "architect"
+
+  - path: core/components/skills/map-user-flows/SKILL.md
+    role: User flow mapping skill; references design-exp
+    change_needed: "design-exp" → "design"
+
+  - path: core/components/skills/generate-wireframes/SKILL.md
+    role: Wireframe generation skill; references design-exp, build-arch
+    change_needed: "design-exp" → "design", "build-arch" → "architect"
+
+  - path: core/components/skills/validate-screen-coverage/SKILL.md
+    role: Screen coverage validation skill; references design-exp
+    change_needed: "design-exp" → "design"
+
+  - path: core/components/skills/validate-abstraction-layer/SKILL.md
+    role: Abstraction layer validation skill; references specify-product
+    change_needed: "specify-product" → "specify"
+
+  - path: core/components/skills/validate-kb-extension/SKILL.md
+    role: KB extension validation skill; references specify-product
+    change_needed: "specify-product" → "specify"
+
+  - path: core/components/skills/draft-product-spec/schemas/features.yaml
+    role: Schema file; has "Produced by: /prepare-epic" in header comment
+    change_needed: "/prepare-epic" → "/prepare"
+
+  - path: core/components/skills/draft-verification-scenarios/schemas/scenarios.yaml
+    role: Schema file; has "Produced by: /prepare-epic" in header comment
+    change_needed: "/prepare-epic" → "/prepare"
+
+  - path: core/components/skills/draft-technical-approach/schemas/architecture.yaml
+    role: Schema file; has "Produced by: /prepare-epic" in header comment
+    change_needed: "/prepare-epic" → "/prepare"
+
+  - path: core/components/skills/draft-lld/schemas/tech.yaml
+    role: Schema file; has "Produced by: /prepare-epic" in header comment
+    change_needed: "/prepare-epic" → "/prepare"
+
+  - path: core/components/skills/draft-implementation-plan/schemas/plan.yaml
+    role: Schema file; has "Produced by: /prepare-epic" in header comment
+    change_needed: "/prepare-epic" → "/prepare"
+
+  # ── AGENTS (cross-references in role descriptions and skill tables) ──────────
+  - path: core/components/agents/scriber.md
+    role: Scriber agent; references specify-product, design-exp, build-arch, prepare-epic in STM map table
+    change_needed: |
+      "specify-product" → "specify", "design-exp" → "design",
+      "build-arch" → "architect", "prepare-epic" → "prepare"
+
+  - path: core/components/agents/designer.md
+    role: Designer agent; description, skill table, input section all reference design-exp and specify-product
+    change_needed: |
+      "design-exp" → "design" (multiple occurrences: description, identity, skill table stage column,
+      intent_path field comment, error escalation table)
+      "specify-product" → "specify" (read boundary references)
+      "build-arch" → "architect" (boundary: "do not touch build-arch artifacts")
+
+  - path: core/components/agents/product-keeper.md
+    role: Product keeper agent; description and skill table reference specify-product, design-exp, build-arch
+    change_needed: |
+      "specify-product" → "specify" (multiple: description, skill table stage column, intent_path comment)
+      "design-exp" → "design", "build-arch" → "architect" (boundary references)
+
+  - path: core/components/agents/market-analyst.md
+    role: Market analyst agent; description and skill table reference specify-product
+    change_needed: "specify-product" → "specify" (description, identity, skill table, intent_path comment)
+
+  - path: core/components/agents/feature-steward.md
+    role: Feature steward agent; skill table and boundary references mention prepare-epic, implement-epic,
+      specify-product, design-exp, build-arch
+    change_needed: |
+      "prepare-epic" → "prepare", "implement-epic" → "implement",
+      "specify-product" → "specify", "design-exp" → "design", "build-arch" → "architect"
+
+  - path: core/components/agents/tech-designer.md
+    role: Tech designer agent; references prepare-epic, build-arch
+    change_needed: "prepare-epic" → "prepare", "build-arch" → "architect"
+
+  - path: core/components/agents/tech-architect.md
+    role: Tech architect agent; references build-arch, specify-product, design-exp
+    change_needed: "build-arch" → "architect", "specify-product" → "specify", "design-exp" → "design"
+
+  - path: core/components/agents/test-engineer.md
+    role: Test engineer agent; references prepare-epic
+    change_needed: "prepare-epic" → "prepare"
+
+  - path: core/components/agents/knowledge-extractor.md
+    role: Knowledge extractor agent; references prepare-epic, implement-epic, validate-epic
+    change_needed: |
+      "prepare-epic" → "prepare", "implement-epic" → "implement", "validate-epic" → "validate"
+
+  # ── MEMORY STANDARDS (rules, templates, schemas) ─────────────────────────────
+  - path: core/components/memory/standards/rules/product.md
+    role: Product planning rules; references specify-product pipeline multiple times
+    change_needed: "specify-product" → "specify", "design-exp" → "design", "build-arch" → "architect"
+
+  - path: core/components/memory/standards/rules/architecture.md
+    role: Architecture rules; references build-arch, specify-product
+    change_needed: "build-arch" → "architect", "specify-product" → "specify"
+
+  - path: core/components/memory/standards/rules/design.md
+    role: Design rules; references design-exp
+    change_needed: "design-exp" → "design"
+
+  - path: core/components/memory/standards/rules/epics.md
+    role: Epic rules; references prepare-epic, feature-steward, tech-designer (consumers)
+    change_needed: "prepare-epic" → "prepare"
+
+  - path: core/components/memory/standards/rules/kb-extension.md
+    role: KB extension rules; references specify-product, design-exp, build-arch
+    change_needed: "specify-product" → "specify", "design-exp" → "design", "build-arch" → "architect"
+
+  - path: core/components/memory/standards/rules/scenarios.md
+    role: Scenarios rules; references design-exp
+    change_needed: "design-exp" → "design"
+
+  - path: core/components/memory/standards/rules/_index.md
+    role: Rules index; references prepare-epic
+    change_needed: "prepare-epic" → "prepare"
+
+  - path: core/components/memory/standards/templates/checkpoint.md
+    role: Checkpoint template; references specify-product, design-exp, build-arch as example play slugs
+    change_needed: "specify-product" → "specify", "design-exp" → "design", "build-arch" → "architect"
+
+  - path: core/components/memory/standards/templates/evidence-file.md
+    role: Evidence file template; references specify-product, design-exp, build-arch, implement-epic
+    change_needed: |
+      "specify-product" → "specify", "design-exp" → "design",
+      "build-arch" → "architect", "implement-epic" → "implement"
+
+  - path: core/components/memory/standards/templates/_index.md
+    role: Templates index; references specify-product, design-exp, build-arch, implement-epic
+    change_needed: |
+      "specify-product" → "specify", "design-exp" → "design",
+      "build-arch" → "architect", "implement-epic" → "implement"
+
+  - path: core/components/memory/standards/templates/approval-prompt.md
+    role: Approval prompt template; references specify-product, design-exp, build-arch
+    change_needed: "specify-product" → "specify", "design-exp" → "design", "build-arch" → "architect"
+
+  - path: core/components/memory/standards/templates/delivery-report.md
+    role: Delivery report template; references implement-epic, validate-epic
+    change_needed: "implement-epic" → "implement", "validate-epic" → "validate"
+
+  - path: core/components/memory/standards/schemas/intent.yaml
+    role: Intent schema; has an example comment with "specify-product"
+    change_needed: "specify-product" → "specify"
+
+  - path: core/components/memory/standards/schemas/intent-epic.yaml
+    role: Intent epic schema; references specify-product as producer
+    change_needed: "specify-product" → "specify"
+
+  - path: core/components/memory/standards/schemas/screen-inventory.yaml
+    role: Screen inventory schema; references design-exp, specify-product
+    change_needed: "design-exp" → "design", "specify-product" → "specify"
+
+  - path: core/components/memory/standards/schemas/mvp-recommendation.yaml
+    role: MVP recommendation schema; references specify-product, design-exp, build-arch
+    change_needed: "specify-product" → "specify", "design-exp" → "design", "build-arch" → "architect"
+
+  - path: core/components/memory/knowledge/domain/_cross-tree-constraints.yaml
+    role: Cross-tree constraints; references specify-product configure-capabilities
+    change_needed: "specify-product" → "specify"
+
+  - path: core/components/memory/knowledge/domain/_index.md
+    role: Domain knowledge index; references specify-product
+    change_needed: "specify-product" → "specify"
+
+  # ── GROUNDING ─────────────────────────────────────────────────────────────────
+  - path: core/grounding/glossary.md
+    role: Framework glossary; references all 6 old play names throughout definitions
+    change_needed: |
+      "specify-product" → "specify", "design-exp" → "design", "build-arch" → "architect",
+      "prepare-epic" → "prepare", "implement-epic" → "implement", "validate-epic" → "validate"
+
+  # ── DOCS ─────────────────────────────────────────────────────────────────────
+  - path: docs/components/plays.md
+    role: Plays documentation; references all 6 old play names in pipeline table and examples
+    change_needed: All 6 old names → new names throughout
+
+  - path: docs/components/agents.md
+    role: Agents documentation; references prepare-epic, implement-epic, specify-product, design-exp
+    change_needed: |
+      "prepare-epic" → "prepare", "implement-epic" → "implement",
+      "specify-product" → "specify", "design-exp" → "design", "build-arch" → "architect"
+
+  - path: docs/components/memory.md
+    role: Memory documentation; references specify-product, design-exp, build-arch, prepare-epic
+    change_needed: |
+      "specify-product" → "specify", "design-exp" → "design",
+      "build-arch" → "architect", "prepare-epic" → "prepare"
+
+  - path: docs/components/skills.md
+    role: Skills documentation; references prepare-epic, implement-epic, validate-epic
+    change_needed: "prepare-epic" → "prepare", "implement-epic" → "implement", "validate-epic" → "validate"
+
+  - path: docs/philosophy/idsd.md
+    role: IDSD philosophy; references all 6 old play names
+    change_needed: All 6 old names → new names throughout
+
+  - path: docs/philosophy/architecture.md
+    role: Architecture philosophy; references prepare-epic, build-arch
+    change_needed: "prepare-epic" → "prepare", "build-arch" → "architect"
+
+  - path: docs/adr/017-folder-whitelist.md
+    role: ADR 017; references specify-product, design-exp, build-arch, prepare-epic
+    change_needed: |
+      "specify-product" → "specify", "design-exp" → "design",
+      "build-arch" → "architect", "prepare-epic" → "prepare"
+
+  - path: docs/adr/004-agent-naming.md
+    role: ADR 004; references implement-epic
+    change_needed: "implement-epic" → "implement"
+
+  - path: docs/adr/014-three-axis-project-profiling.md
+    role: ADR 014; references prepare-epic, build-arch
+    change_needed: "prepare-epic" → "prepare", "build-arch" → "architect"
+
+  - path: docs/framework/play-structure.md
+    role: Play structure framework doc; references prepare-epic, build-arch, implement-epic, validate-epic
+    change_needed: |
+      "prepare-epic" → "prepare", "build-arch" → "architect",
+      "implement-epic" → "implement", "validate-epic" → "validate"
+
+  # ── TODO.MD ──────────────────────────────────────────────────────────────────
+  - path: TODO.md
+    role: Dev TODO list; references implement-epic in defect descriptions
+    change_needed: "implement-epic" → "implement"
+
+  # ── OUT OF SCOPE (historical / scratch) ──────────────────────────────────────
+  # .garura/product/_evidence/, .garura/product/_checkpoints/, .garura/product/_status/
+  # .garura/project/issues/*/evidence/  — historical run logs; updating would falsify records
+  # .claude/specs/                      — developer scratch space, not deployed
+  # .garura/product/research/           — frozen domain research, not play definitions
+  # .garura/product/scope/              — locked product artifacts, not play definitions
