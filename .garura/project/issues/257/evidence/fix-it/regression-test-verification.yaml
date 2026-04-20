@@ -1,0 +1,8 @@
+regression_test_path: ".garura/project/issues/257/evidence/fix-it/regression-test.yaml"
+verified_at: "2026-04-20T10:15:57Z"
+failing: true
+assertions:
+  RT-257-A1: red
+  RT-257-A2: red
+  RT-257-A3: red
+  RT-257-A4: red

@@ -1,0 +1,60 @@
+implementation:
+  success: true
+  steps_completed: 1
+  steps_total: 1
+  task_id: implement-fix
+
+  changes:
+    - step: 1
+      description: "Updated core/components/plays/implement/reference/intent.yaml — added C33,
+        refined C5, refined C29, updated F5, added F26"
+      files_modified:
+        - path: core/components/plays/implement/reference/intent.yaml
+          action: modified
+          summary: >
+            (1) REFINED C5: replaced 'test file paths' prohibition with content-specific
+            wording ('test code (test source files, assertion text, mock data patterns derived
+            from test files)') plus scope-directory carve-out for Verification Steps section.
+            (2) REFINED C29: replaced blanket 'test file paths' prohibition with distinction
+            between prohibited test source code / assertion text and permitted scope-directory
+            paths in Verification Steps; clarified pre-invocation check enforces content vs.
+            path distinction.
+            (3) ADDED C33 after C32: new constraint mandating 4-section prompt contract
+            (Description / Preconditions / Expected Behavior / Verification Steps) for every
+            code-builder (Steps 6b, 6d, 10) and test-writer (Steps 6a, 10b) dispatch; omitting
+            or unlabeling any section triggers F26.
+            (4) UPDATED F5: replaced 'any test file path' trigger with content-specific trigger
+            (test source code, assertion text, etc.); added explicit carve-out that bare
+            scope-directory path in Verification Steps is NOT a violation.
+            (5) ADDED F26 after F25: new failure condition for missing or unlabeled sections in
+            task dispatches to code-builder or test-writer.
+      verified: true
+      deviation: null
+
+  yaml_valid: true
+
+  self_tests:
+    - check: "grep -c 'C33' core/components/plays/implement/reference/intent.yaml"
+      result: 1
+      status: PASS
+    - check: "grep -c 'Verification Steps' core/components/plays/implement/reference/intent.yaml"
+      result: 5
+      status: PASS
+    - check: "grep -c 'F26' core/components/plays/implement/reference/intent.yaml"
+      result: 2
+      status: PASS
+    - check: "grep -c 'scope-directory' core/components/plays/implement/reference/intent.yaml"
+      result: 3
+      status: PASS
+    - check: "grep 'test file paths' in C5/C29/F5 (should be zero — replaced)"
+      result: 0
+      status: PASS
+      note: >
+        Remaining 2 occurrences of 'test file paths' in the file are in C18 and F15, which
+        restrict status report content — those were NOT in scope for this fix and are correct
+        as-is.
+
+  issues_encountered: []
+
+  files_touched:
+    - path: core/components/plays/implement/reference/intent.yaml

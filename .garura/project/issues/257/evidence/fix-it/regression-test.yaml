@@ -1,0 +1,68 @@
+regression_test:
+  id: "RT-257"
+  issue: 257
+  description: >
+    Verifies that core/components/plays/implement/reference/intent.yaml contains a
+    constraint that mandates the 4-section prompt contract (Description, Preconditions,
+    Expected Behavior, Verification Steps) for task dispatches to code-builder and
+    test-writer agents. This test is RED before the fix (no such constraint exists)
+    and GREEN after the fix (C33 added to intent.yaml).
+
+  type: grep-eval
+  target_file: "core/components/plays/implement/reference/intent.yaml"
+
+  assertions:
+    - id: "RT-257-A1"
+      description: "intent.yaml contains a constraint referencing 'Verification Steps'
+        in the context of task dispatch framing"
+      command: "grep -l 'Verification Steps' core/components/plays/implement/reference/intent.yaml"
+      expected_exit_code: 0
+      expected_behavior: "File path echoed to stdout — constraint text containing 'Verification
+        Steps' exists in intent.yaml"
+      failure_means: "No constraint references 'Verification Steps' — the 4-section prompt
+        contract has not been added to intent.yaml"
+
+    - id: "RT-257-A2"
+      description: "intent.yaml contains constraint text referencing 'Preconditions' as
+        a required dispatch section"
+      command: "grep -c 'Preconditions' core/components/plays/implement/reference/intent.yaml"
+      expected_exit_code: 0
+      expected_min_count: 1
+      failure_means: "No 'Preconditions' label in intent.yaml — C33 not yet added"
+
+    - id: "RT-257-A3"
+      description: "intent.yaml explicitly permits scope-directory paths in Verification Steps
+        (C5/C29 refinement) — scope-directory carve-out text present"
+      command: "grep -l 'scope-directory' core/components/plays/implement/reference/intent.yaml"
+      expected_exit_code: 0
+      expected_behavior: "File path echoed — C5 or C29 contains the scope-directory carve-out"
+      failure_means: "C5/C29 still use blanket 'test file paths' prohibition without the
+        scope-directory exception — isolation refinement not yet applied"
+
+    - id: "RT-257-A4"
+      description: "intent.yaml contains failure condition for missing/unlabeled sections
+        in task dispatch (F26)"
+      command: "grep -l 'F26' core/components/plays/implement/reference/intent.yaml"
+      expected_exit_code: 0
+      expected_behavior: "File path echoed — F26 failure condition exists"
+      failure_means: "F26 not yet added — no failure condition gates unlabeled dispatch prompts"
+
+  initial_verification:
+    run_date: "2026-04-20"
+    commands_run:
+      - "grep -l 'Verification Steps' core/components/plays/implement/reference/intent.yaml"
+      - "grep -c 'Preconditions' core/components/plays/implement/reference/intent.yaml"
+      - "grep -l 'scope-directory' core/components/plays/implement/reference/intent.yaml"
+      - "grep -l 'F26' core/components/plays/implement/reference/intent.yaml"
+    results:
+      RT-257-A1: "exit code 1 — no match (RED)"
+      RT-257-A2: "exit code 1 — no match (RED)"
+      RT-257-A3: "exit code 1 — no match (RED)"
+      RT-257-A4: "exit code 1 — no match (RED)"
+    initial_state: red
+    all_assertions_red: true
+
+  becomes_green_when: >
+    C33 is added to intent.yaml (adds 'Preconditions' and 'Verification Steps' to constraint
+    text), C5/C29 are refined to include 'scope-directory' carve-out language, and F26 is
+    added. All four grep assertions exit 0 after the fix.

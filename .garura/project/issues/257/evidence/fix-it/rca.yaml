@@ -1,0 +1,78 @@
+rca:
+  issue: 257
+  title: "/implement task prompts lack structured 4-section framing; isolation constraint
+    over-blocks scope-directory paths needed in Verification Steps"
+
+  root_cause: |
+    Two independent defects in `core/components/plays/implement/reference/intent.yaml`:
+
+    1. **No constraint mandates a 4-section prompt contract for task dispatches.**
+       Scanning C1–C32 in full, every constraint governs *what data may or may not be
+       included* in an agent's context (isolation, artifact sources, status-report
+       content). None specifies the *structural framing* of the prompt itself — no
+       constraint requires that each task dispatch include a labeled Description,
+       Preconditions, Expected Behavior, or Verification Steps section. Because
+       SKILL.md is compiled from intent.yaml (per the "Compiled From" header at line
+       15–19 of SKILL.md), the compiled Step 6a and Step 6b `config.instructions`
+       arrays (lines 317–324 and 358–366) contain ad-hoc prose directives but no
+       structured sections. The downstream code-builder and test-writer agents
+       therefore receive under-specified prompts: no explicit statement of what prior
+       state they may depend on, no explicit statement of the observable outcome they
+       must produce, and no procedural exit criterion tied to a specific test directory.
+
+    2. **C5 and C29 blanket-prohibit "test file paths," over-blocking the scope-directory
+       path needed in Verification Steps.**
+       C5 (intent.yaml line 68): "It does not receive: … test file paths …"
+       C29 (intent.yaml line 260): "The code-builder's input context MUST NOT contain
+       test file paths …"
+       F5 (intent.yaml line 319): triggers on "any test file path."
+       These constraints were authored to prevent the builder from reading test *source
+       code*. However, the Verification Steps section must include a scope-directory
+       path (e.g., `tests/unit/scope_item/`) solely to tell the orchestrator *where
+       to run tests* as a procedural exit criterion — not to expose test content. The
+       current wording makes no distinction: any mention of a path under the test tree
+       triggers F5 and aborts the invocation. This means the Verification Steps section
+       cannot be populated safely without violating an intent.yaml constraint, making
+       the 4-section prompt contract unimplementable under the current constraints.
+
+  affected_files:
+    - path: "core/components/plays/implement/reference/intent.yaml"
+      role: "Source of truth for the implement play — all constraints and failure
+        conditions that shape compiled SKILL.md content"
+      defect_location:
+        - "C5 (lines ~63–71): blanket 'test file paths' prohibition"
+        - "C29 (lines ~259–265): same blanket prohibition enforced at runtime"
+        - "F5 (lines ~318–321): abort trigger for any test file path in builder context"
+        - "Absence: no constraint C33 or equivalent specifying the 4-section prompt
+          contract for task dispatches"
+
+    - path: "core/components/plays/implement/SKILL.md"
+      role: "Compiled play artifact — DO NOT EDIT DIRECTLY (see Compiled From header).
+        Reflects current defect because it was compiled from the deficient intent.yaml."
+      defect_location:
+        - "Step 6a config.instructions (lines 317–324): no Description / Preconditions
+          / Expected Behavior / Verification Steps sections"
+        - "Step 6b config.instructions (lines 358–366): same — no structured sections"
+        - "Step 6d fix-loop config.instructions (lines 445–452): same"
+
+  symptom_to_cause_trace:
+    - symptom: "code-builder and test-writer agents receive unstructured prompts with no
+        labeled sections for preconditions, expected behavior, or verification exit criteria"
+    - observation: "Step 6a/6b/6d in compiled SKILL.md contain only ad-hoc instruction
+        strings — no Description, Preconditions, Expected Behavior, or Verification Steps blocks"
+    - cause_layer_1: "SKILL.md is compiled from intent.yaml and must not be edited directly —
+        the absence is in intent.yaml, not SKILL.md"
+    - cause_layer_2: "C1–C32 in intent.yaml govern data isolation only — no constraint
+        specifies prompt structure or mandates the 4-section contract"
+    - cause_layer_3: "C5/C29/F5 explicitly prohibit 'test file paths' with no carve-out for
+        scope-directory paths in procedural (non-content) Verification Steps — the isolation
+        rule cannot be satisfied simultaneously with a Verification Steps section that names
+        the test scope directory"
+
+  claim_disposition:
+    claim_1_task_framing: "VALID — no constraint mandates 4-section prompt structure; fix
+      requires adding a new constraint to intent.yaml and rebuilding"
+    claim_2_post_implementation_green_gate: "STALE / RESOLVED — orchestrator-level green gate
+      already exists via Steps 6c/6d/6f. No fix needed for the gate itself. Verification Steps
+      in the prompt serve a different purpose: telling the orchestrator which test scope to run
+      and what exit criterion to apply — procedural framing, not a new gate."

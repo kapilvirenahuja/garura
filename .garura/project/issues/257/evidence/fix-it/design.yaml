@@ -1,0 +1,217 @@
+design:
+  issue: 257
+  based_on_rca: ".garura/project/issues/257/evidence/fix-it/rca.yaml"
+
+  problem_statement: >
+    Task dispatches in /implement lack a structured 4-section prompt contract
+    (Description, Preconditions, Expected Behavior, Verification Steps), and
+    the existing C5/C29/F5 isolation constraints blanket-prohibit any test file
+    paths — making it impossible to include procedural scope-directory paths in
+    Verification Steps without triggering an abort.
+
+  strategy: >
+    Add a new constraint C33 to intent.yaml that mandates the 4-section prompt
+    contract for every task dispatch (code-builder and test-writer). Refine C5
+    and C29 to distinguish prohibited test *content* (test source code, assertion
+    text, mock data, eval IDs) from permitted scope-directory *paths* when they
+    appear solely within the Verification Steps section as a procedural run
+    directive. Update F5 to match the refined prohibition scope. Then run
+    /create-play --build implement to recompile SKILL.md from the updated intent.yaml.
+    Verify the compiled SKILL.md Step 6a/6b/6d prompt blocks reflect the 4 labeled
+    sections and that scope-directory paths in Verification Steps no longer trigger F5.
+
+  affected_files:
+    "core/components/plays/implement/reference/intent.yaml":
+      role: "Source of truth; all constraint changes must land here first"
+      required_changes:
+        - action: "ADD constraint C33"
+          content: |
+            Every task dispatch to code-builder (Steps 6b, 6d, 10) and test-writer
+            (Steps 6a, 10b) MUST include four labeled sections in this order:
+            (1) Description — one to two sentences stating what the scope item accomplishes,
+                drawn from plan.yaml scope_item_description.
+            (2) Preconditions — prior completed scope items from plan.yaml, tech.yaml interfaces
+                consumed by this scope item (api_contracts / internal_interfaces / service_contracts
+                that this scope item depends on), and relevant architecture constraints from
+                architecture-context.yaml that must hold before this scope item begins.
+            (3) Expected Behavior — the tech.yaml contracts owned by this scope item:
+                api_contracts / internal_interfaces / service_contracts that this scope item
+                is responsible for implementing or satisfying.
+            (4) Verification Steps — PROCEDURAL only: the test scope directory to run
+                (e.g., tests/unit/{scope_item_path}/), the exit criterion (all tests in scope
+                PASS), and the red-path action (abort and enter fix loop). This section
+                conveys WHERE and HOW to verify, not test content, assertion text, or eval criteria.
+            Omitting any section or providing it unlabeled is a failure condition (F26).
+
+        - action: "REFINE constraint C5"
+          location: "C5 rule text — 'test file paths' prohibition"
+          change: |
+            Replace: "It does not receive: features.yaml, scenarios.yaml, TEST-CONTEXT.md,
+            test file paths, test code, test assertions, mock data patterns, evaluation criteria,
+            evaluation IDs, judge reports, or pass/fail thresholds."
+            With: "It does not receive: features.yaml, scenarios.yaml, TEST-CONTEXT.md,
+            test code (test source files, assertion text, mock data patterns derived from test files),
+            evaluation criteria, evaluation IDs, judge reports, or pass/fail thresholds.
+            Exception: the Verification Steps section of the dispatch prompt MAY include a
+            scope-directory path (e.g., tests/unit/{scope_item}/) solely as a procedural run
+            directive — it must not contain test source code, assertion text, or eval content."
+
+        - action: "REFINE constraint C29"
+          location: "C29 rule text — pre-invocation check scope"
+          change: |
+            Replace: "The code-builder's input context MUST NOT contain test file paths, test code,
+            test assertions, mock data patterns derived from test files, evaluation IDs, evaluation
+            text, or eval pass criteria."
+            With: "The code-builder's input context MUST NOT contain test source code, test assertion
+            text, mock data patterns derived from test files, evaluation IDs, evaluation text, or eval
+            pass criteria. A scope-directory path (e.g., tests/unit/{scope_item}/) in the Verification
+            Steps section is permitted; it is a procedural run directive, not test content.
+            The pre-invocation check enforces this distinction: it rejects test source code and
+            assertion text, not bare directory paths."
+
+        - action: "UPDATE failure condition F5"
+          location: "F5 condition text"
+          change: |
+            Replace: "The builder agent's input context contains any test file path, test code,
+            test assertion text, mock data patterns derived from test files, evaluation ID,
+            evaluation text, evaluation pass criteria, or raw judge report content."
+            With: "The builder agent's input context contains test source code, test assertion text,
+            mock data patterns derived from test files, evaluation ID, evaluation text, evaluation
+            pass criteria, or raw judge report content. A bare test scope-directory path in the
+            Verification Steps section is NOT a violation; the pre-invocation check must distinguish
+            content-bearing paths from procedural run directives."
+
+        - action: "ADD failure condition F26"
+          content: |
+            A task dispatch to code-builder or test-writer is missing one or more of the required
+            four sections (Description, Preconditions, Expected Behavior, Verification Steps), or
+            any section is present but unlabeled. Partial or unstructured prompts are not permitted.
+
+    "core/components/plays/implement/SKILL.md":
+      role: "Compiled artifact — must NOT be edited directly. Changes land here only via
+        /create-play --build implement after intent.yaml is updated."
+      required_changes:
+        - action: "REBUILD via /create-play --build implement"
+          expected_outcome: |
+            Step 6a config (test-writer dispatch) will contain 4 labeled sections:
+              Description: {scope_item_description from plan.yaml}
+              Preconditions: {prior scope items completed; TEST-CONTEXT.md behavioral context}
+              Expected Behavior: {behavioral acceptance criteria from TEST-CONTEXT.md}
+              Verification Steps: run tests/{scope_item_path}/ — all tests PASS; abort on red
+            Step 6b config (code-builder dispatch) will contain 4 labeled sections:
+              Description: {scope_item_description from plan.yaml}
+              Preconditions: {prior scope items; tech.yaml interfaces consumed; arch constraints}
+              Expected Behavior: {tech.yaml contracts owned by this scope item}
+              Verification Steps: run tests/{scope_item_path}/ — all tests PASS; abort on red
+            Step 6d fix-loop config will contain same 4 labeled sections plus status_report input
+            Step 10 outer fix-loop config will contain same 4 labeled sections plus remediation input
+
+  alternatives_considered:
+    - option: "A — Direct-edit SKILL.md only, skip intent.yaml changes"
+      rejection_reason: |
+        CLAUDE.md project rule explicitly states: "When modifying plays, always go through
+        the intent.yaml → /create-play --build workflow." The SKILL.md header itself reads
+        "Do NOT edit this file manually — it is a compiled artifact." Any direct edit would
+        be overwritten by the next /create-play --build run. Violates established process
+        (one-way door in the wrong direction).
+
+    - option: "C — Build an orchestrator helper skill that synthesizes the 4 sections from
+        plan.yaml/tech.yaml/test-files-manifest.yaml on each dispatch, rather than encoding
+        the contract in intent.yaml constraints"
+      rejection_reason: |
+        Adds a new skill component and a new data dependency (test-files-manifest.yaml would
+        need to be read to populate Verification Steps, creating a coupling that doesn't exist
+        today). The constraint approach (B — chosen) is simpler: encode the 4-section contract
+        as a declarative rule in intent.yaml so the compiled SKILL.md prompt blocks include the
+        sections as structural invariants. Occam's Razor: declarative constraint in one file
+        beats a new skill with runtime dependencies.
+
+    - option: "D — Add builder self-verify step: code-builder runs its own test suite and
+        reports pass/fail before marking DONE"
+      rejection_reason: |
+        The original Claim 2 (builder self-verify = green gate) is already RESOLVED at the
+        orchestrator level (Steps 6c/6d/6f). Adding builder self-verify would require the
+        builder to know pass criteria and the test scope — precisely what C5/C29 prohibit.
+        This would compromise the isolation invariant that is the core architectural guarantee
+        of the play. The Verification Steps section in the prompt is procedural framing for the
+        orchestrator, not a new builder capability.
+
+    - option: "E — Add the 4-section contract only to code-builder dispatches; leave
+        test-writer dispatches unstructured"
+      rejection_reason: |
+        The defect applies equally to test-writer dispatches: no Preconditions, no Expected
+        Behavior, no Verification Steps. Under-specified test-writer prompts lead to tests
+        that miss edge cases or assert against wrong behaviors. Scope should cover both agents.
+
+  confidence: medium
+  confidence_reasoning: |
+    The core fix (add C33 to intent.yaml) is well-bounded and its effects are local to the
+    compiled Step 6a/6b/6d/10/10b prompt blocks. The C5/C29/F5 refinement is lower-confidence
+    because it touches the pre-invocation check logic — the boundary between "allowed scope path"
+    and "prohibited test content" must be precisely drawn to avoid creating a new loophole (e.g.,
+    an adversarial path like tests/unit/evil.test.ts that happens to be a test source file path
+    and not just a directory reference). The compiled SKILL.md pre-invocation check section
+    (SE-10) will need explicit wording to enforce the distinction at runtime. The rebuild step
+    resolves this by surfacing whether the compiled output correctly captures the refined intent.
+
+  execution_plan:
+    - step: 1
+      description: "Update core/components/plays/implement/reference/intent.yaml — add C33,
+        refine C5, refine C29, update F5, add F26"
+      owner: "code-builder"
+      files:
+        - path: "core/components/plays/implement/reference/intent.yaml"
+          action: modify
+          details: |
+            - Insert C33 after C32 (append to constraints list): 4-section prompt contract
+              mandate for all code-builder and test-writer dispatches
+            - In C5 rule text: replace 'test file paths' with 'test source code ...' plus
+              add scope-directory exception for Verification Steps
+            - In C29 rule text: same refinement — distinguish content from scope-directory path;
+              clarify pre-invocation check logic
+            - In F5 condition text: replace blanket 'test file path' trigger with content-specific
+              trigger; add scope-directory carve-out
+            - Append F26: missing or unlabeled sections in task dispatch is a failure condition
+      expected_outcome: "intent.yaml has C33, updated C5/C29/F5, new F26. File validates as
+        well-formed YAML."
+      self_test: "grep for 'C33' and 'Verification Steps' in intent.yaml returns matches;
+        grep for 'test file paths' in C5/C29/F5 returns zero matches (replaced language)"
+
+    - step: 2
+      description: "Rebuild SKILL.md from updated intent.yaml via /create-play --build implement"
+      owner: "orchestrator"
+      files:
+        - path: "core/components/plays/implement/SKILL.md"
+          action: modify
+          details: "Artifact rebuilt by /create-play — not a manual edit"
+      expected_outcome: "SKILL.md is regenerated. Step 6a, 6b, 6d config.instructions blocks
+        contain four labeled sections (Description, Preconditions, Expected Behavior,
+        Verification Steps). Pre-invocation check in SE-10 reflects the refined C29 wording."
+      self_test: |
+        grep -n 'Description\|Preconditions\|Expected Behavior\|Verification Steps' SKILL.md
+        should return matches in Steps 6a, 6b, 6d, 10, 10b sections.
+
+    - step: 3
+      description: "Run regression test to verify intent.yaml constraint now passes"
+      owner: "orchestrator"
+      files: []
+      expected_outcome: "The grep-based regression test (regression-test.yaml) returns GREEN —
+        the C33 constraint text containing all four required section names now exists in intent.yaml"
+      self_test: |
+        grep -l 'Verification Steps' core/components/plays/implement/reference/intent.yaml
+        exits 0 (GREEN).
+
+    - step: 4
+      description: "Verify isolation refinement — confirm scope-directory path in Verification
+        Steps does NOT trigger F5 abort in SE-10 pre-invocation check wording"
+      owner: "orchestrator"
+      files:
+        - path: "core/components/plays/implement/SKILL.md"
+          action: verify
+          details: |
+            Read recompiled SE-10 eval text. Confirm it checks for: test source code, assertion
+            text, eval IDs, eval text, eval pass criteria — and that it explicitly does NOT flag
+            bare scope-directory paths in the Verification Steps section.
+      expected_outcome: "SE-10 wording in SKILL.md matches the refined C29 intent — content
+        prohibited, scope-directory paths in Verification Steps permitted."
+      self_test: "grep 'scope-directory' SKILL.md returns at least one match in SE-10 section"

@@ -1,0 +1,34 @@
+{
+  "play": "meridian:fix-it",
+  "issue": "257",
+  "started_at": "2026-04-20T10:19:53Z",
+  "tasks": {
+    "validate-issue": { "status": "completed" },
+    "create-branch": { "status": "completed" },
+    "rca-and-design": { "status": "completed" },
+    "prepare-checkpoint": { "status": "completed" },
+    "approval-gate": { "status": "completed", "tether_received_at": "2026-04-20T10:19:53Z" },
+    "issue-comment-dispatch": { "status": "pending" },
+    "implement-fix": { "status": "pending" },
+    "verify-fix": { "status": "pending" },
+    "ship": { "status": "pending" },
+    "scenario-evals": { "status": "pending" },
+    "evidence-report": { "status": "pending" }
+  },
+  "task_list": [
+    {
+      "id": "task-1",
+      "description": "Edit intent.yaml: add C33, refine C5, refine C29, update F5, add F26",
+      "status": "pending",
+      "retry_count": 0,
+      "regression_test_path": ".garura/project/issues/257/evidence/fix-it/regression-test.yaml"
+    },
+    {
+      "id": "task-2",
+      "description": "Rebuild SKILL.md via /create-play --build implement",
+      "status": "pending",
+      "retry_count": 0,
+      "regression_test_path": ".garura/project/issues/257/evidence/fix-it/regression-test.yaml"
+    }
+  ]
+}

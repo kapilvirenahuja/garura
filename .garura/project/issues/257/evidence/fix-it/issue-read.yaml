@@ -1,0 +1,48 @@
+issue:
+  number: 257
+  title: "[DEF][High] /implement-epic task prompts lack preconditions/expected-behavior\
+    \ and skip post-implementation green unit-test verification"
+  state: open
+  labels:
+    - defect
+  url: "https://github.com/kapilvirenahuja/garura/issues/257"
+  body: |
+    | Field | Value |
+    |-------|-------|
+    | **Severity** | High |
+    | **Affected Component** | `core/components/plays/implement-epic/` (SKILL.md + intent.yaml) |
+    | **Reported From** | User observation during /implement-epic runs |
+    | **Date** | 2026-04-18 |
+
+    ### Problem
+
+    When `/implement-epic` dispatches tasks to implementer agents/skills, the generated prompt for each task omits two things that TDD requires:
+
+    1. **Task framing.** The agent prompt does not consistently include (a) a clear task description, (b) preconditions (prior state, artifacts the task depends on, assumptions), and (c) expected behavior (the observable outcome the implementation must produce).
+    2. **Post-implementation verification.** Implementation tasks do not carry an explicit verification step requiring the associated unit tests to execute and pass. Under TDD, the red→green transition is the contract — we should exit every implementation task with a GREEN unit-test run, not just "code written."
+
+    ### Expected Behavior
+
+    For every task that `/implement-epic` dispatches:
+
+    - The prompt handed to the agent/skill MUST include:
+      - **Description** — what the task accomplishes in one or two sentences.
+      - **Preconditions** — prior artifacts, state, or completed tasks the implementation depends on.
+      - **Expected behavior** — the observable outcome / acceptance criteria the implementation must satisfy.
+    - For implementation tasks specifically, the play MUST attach a **verification step** that:
+      - Runs the unit tests associated with the task (the tests that were authored in the red phase of TDD).
+      - Requires a GREEN run before the task is marked completed.
+      - Fails the task (and surfaces the failure to the orchestrator) on a red run.
+
+    Net effect: at the end of any implementation task, we have evidence that the corresponding unit tests executed and passed — not merely that code was written.
+
+    ### Impact
+
+    - TDD discipline is silently broken — implementation tasks can be marked complete without the tests ever running green, defeating the core guarantee of the workflow.
+    - Agents receive under-specified prompts (no preconditions, no expected behavior), which leads to incorrect implementations, missing edge cases, or re-interpretation of intent.
+    - Downstream quality gates (quality-auditor, judge, engineering-manager) see "completed" tasks whose test state is unverified, producing false-positive readiness signals.
+    - Rework cost increases — defects that a GREEN gate would have caught at task exit propagate into later stages.
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "fix"

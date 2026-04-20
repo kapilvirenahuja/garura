@@ -65,10 +65,13 @@ constraints:
       The code-builder receives only: CONTEXT.md (derived from tech.yaml contracts — api_contracts,
       internal_interfaces, service_contracts — plus scope items and architecture decisions) and
       architecture-context.yaml from STM. It does not receive: features.yaml, scenarios.yaml,
-      TEST-CONTEXT.md, test file paths, test code, test assertions, mock data patterns, evaluation
-      criteria, evaluation IDs, judge reports, or pass/fail thresholds. The builder implements each
-      scope item from the SPEC (CONTEXT.md) — never from tests. The builder MUST NOT read or
-      reference any test files.
+      TEST-CONTEXT.md, test code (test source files, assertion text, mock data patterns derived
+      from test files), evaluation criteria, evaluation IDs, judge reports, or pass/fail thresholds.
+      Exception: the Verification Steps section of the dispatch prompt MAY include a scope-directory
+      path (e.g., tests/unit/{scope_item}/) solely as a procedural run directive — it must not
+      contain test source code, assertion text, or eval content. The builder implements each scope
+      item from the SPEC (CONTEXT.md) — never from tests. The builder MUST NOT read or reference
+      any test files.
 
   - id: C6
     rule: >
@@ -257,9 +260,12 @@ constraints:
 
   - id: C29
     rule: >
-      The code-builder's input context MUST NOT contain test file paths, test code, test assertions,
+      The code-builder's input context MUST NOT contain test source code, test assertion text,
       mock data patterns derived from test files, evaluation IDs, evaluation text, or eval pass
-      criteria. The orchestrator performs a hard pre-invocation check before each builder
+      criteria. A scope-directory path (e.g., tests/unit/{scope_item}/) in the Verification Steps
+      section is permitted; it is a procedural run directive, not test content. The pre-invocation
+      check enforces this distinction: it rejects test source code and assertion text, not bare
+      directory paths. The orchestrator performs a hard pre-invocation check before each builder
       invocation: if any prohibited content is detected in the builder context, the invocation is
       aborted and F5 is triggered. This check occurs before every builder invocation — initial
       implementation and remediation iterations alike.
@@ -295,6 +301,25 @@ constraints:
       builder). Orchestrator → Judge (arbiter mode): spec contracts and status report only.
       No agent sees another agent's source code, test code, prompts, or reasoning artifacts.
 
+  - id: C33
+    rule: >
+      Every task dispatch to code-builder (Steps 6b, 6d, 10) and test-writer
+      (Steps 6a, 10b) MUST include four labeled sections in this order:
+      (1) Description — one to two sentences stating what the scope item accomplishes,
+          drawn from plan.yaml scope_item_description.
+      (2) Preconditions — prior completed scope items from plan.yaml, tech.yaml interfaces
+          consumed by this scope item (api_contracts / internal_interfaces / service_contracts
+          that this scope item depends on), and relevant architecture constraints from
+          architecture-context.yaml that must hold before this scope item begins.
+      (3) Expected Behavior — the tech.yaml contracts owned by this scope item:
+          api_contracts / internal_interfaces / service_contracts that this scope item
+          is responsible for implementing or satisfying.
+      (4) Verification Steps — PROCEDURAL only: the test scope directory to run
+          (e.g., tests/unit/{scope_item_path}/), the exit criterion (all tests in scope
+          PASS), and the red-path action (abort and enter fix loop). This section
+          conveys WHERE and HOW to verify, not test content, assertion text, or eval criteria.
+      Omitting any section or providing it unlabeled is a failure condition (F26).
+
 failure_conditions:
   - id: F1
     condition: >
@@ -316,9 +341,11 @@ failure_conditions:
 
   - id: F5
     condition: >
-      The builder agent's input context contains any test file path, test code, test assertion
-      text, mock data patterns derived from test files, evaluation ID, evaluation text, evaluation
-      pass criteria, or raw judge report content.
+      The builder agent's input context contains test source code, test assertion text,
+      mock data patterns derived from test files, evaluation ID, evaluation text, evaluation
+      pass criteria, or raw judge report content. A bare test scope-directory path in the
+      Verification Steps section is NOT a violation; the pre-invocation check must distinguish
+      content-bearing paths from procedural run directives.
 
   - id: F6
     condition: >
@@ -426,6 +453,12 @@ failure_conditions:
       Judge-as-arbiter was invoked after only one failed implementation cycle for a given contract.
       Arbiter escalation is only valid when the same contract ID appears in the status report for
       two consecutive cycles — invocation on a first failure violates C30.
+
+  - id: F26
+    condition: >
+      A task dispatch to code-builder or test-writer is missing one or more of the required
+      four sections (Description, Preconditions, Expected Behavior, Verification Steps), or
+      any section is present but unlabeled. Partial or unstructured prompts are not permitted.
 
 scenarios:
   - id: S1

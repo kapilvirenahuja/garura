@@ -1,0 +1,14 @@
+branch:
+  name: "fix/257-implement-epic-task-prompt-preconditions"
+  base_ref: "main"
+action: "created"
+pushed: true
+tracking:
+  remote: "origin"
+  ref: "refs/heads/fix/257-implement-epic-task-prompt-preconditions"
+changes_preserved: true
+current_branch: "fix/257-implement-epic-task-prompt-preconditions"
+verification:
+  branch_exists_locally: true
+  branch_checked_out: true
+  tracking_configured: true
