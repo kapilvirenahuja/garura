@@ -1,0 +1,10 @@
+status: needs-rebuild
+completed_tasks: [T1, T2]
+pending_orchestrator_tasks: [T3 /create-play --rebuild design, T4 /sync-claude]
+files_created:
+  - core/components/skills/draft-design-system/SKILL.md
+files_modified:
+  - core/components/plays/design/reference/intent.yaml
+notes:
+  - "intent.yaml edit: added C19/C20/C21, updated C13/C10, narrowed F12, added F18/F19, added S8/S9"
+  - "design/SKILL.md intentionally NOT regenerated — orchestrator must invoke /create-play --rebuild design via Skill tool"
