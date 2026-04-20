@@ -1,0 +1,22 @@
+commits:
+  - sha: "03d23fd"
+    type: "chore"
+    scope: "stm"
+    subject: "record SKILL.md evidence for #257"
+    label: "G1"
+    files:
+      - core/components/skills/commit-code/SKILL.md
+
+  - sha: "3364a9d"
+    type: "chore"
+    scope: "stm"
+    subject: "record fix-it + create-play evidence for #257 (#257)"
+    label: "G2"
+    files:
+      - .garura/project/issues/257/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/257/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/257/evidence/create-play/implement/constraint-classifications.yaml
+      - .garura/project/issues/257/evidence/create-play/implement/coverage-matrix.md
+      - .garura/project/issues/257/evidence/create-play/implement/evals.yaml
+      - .garura/project/issues/257/evidence/create-play/implement/play-analysis.md
+      - .garura/project/issues/257/evidence/fix-it/regression-test-verdict.yaml

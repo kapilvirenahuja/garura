@@ -1,0 +1,49 @@
+result:
+  status: merged
+  pr_number: 309
+  merge_sha: 98a46be7fafc889f6cd8c255287331d94ded3d22
+  merged_at: "2026-04-20T10:48:44Z"
+  base_branch: main
+  branch_deleted: true
+  branch_deleted_remote: true
+  branch_deleted_local: true
+  feature_branch: fix/257-implement-epic-task-prompt-preconditions
+
+step_evals:
+  SE-1:
+    condition: F1 — skill did not proceed past conflict state
+    result: PASS
+    evidence: readiness.yaml confirms mergeable=MERGEABLE before merge attempted
+  SE-2:
+    condition: F2 — feature branch deleted
+    result: PASS
+    evidence: branch_deleted=true; deleted locally (was 3364a9d) and remotely from origin
+  SE-3:
+    condition: F3 — local checkout on base branch, up to date
+    result: PASS
+    evidence: switched to main, fast-forward pull to 98a46be; local HEAD matches remote HEAD
+  SE-4:
+    condition: F4 — pre-merge tree state was clean
+    result: PASS
+    evidence: readiness.yaml confirms no uncommitted/staged changes before merge
+  SE-5:
+    condition: F5 — PR merged on platform with pr_number set
+    result: PASS
+    evidence: gh pr view 309 returns state=MERGED, mergeCommit.oid=98a46be7fafc889f6cd8c255287331d94ded3d22
+
+scenario_evals:
+  SCE-1:
+    persona: Developer
+    result: PASS
+    evidence: >
+      Local HEAD is on main (confirmed by git checkout + pull output).
+      git pull completed fast-forward to 98a46be — up to date.
+      fix/257-implement-epic-task-prompt-preconditions absent locally (branch -d confirmed).
+      Remote branch deleted from origin (push --delete confirmed).
+  SCE-2:
+    persona: Code Reviewer
+    result: PASS
+    evidence: >
+      PR #309 state=MERGED on GitHub platform.
+      merge_sha 98a46be7fafc889f6cd8c255287331d94ded3d22 is the HEAD of main
+      after fast-forward pull — present in git log on base branch.

@@ -1,3 +1,4 @@
+name: review-pr
 intent: >
   Review a pull request against diff-scoped quality standards resolved
   from .garura/core/config.yaml, classify every finding deterministically via

@@ -1,0 +1,214 @@
+rca:
+  issue: 310
+  title: "Plays carry stale `meridian:` prefix — should be `garura:` or bare name"
+
+  summary: >
+    Several plays and skills still carry `meridian:` as their frontmatter `name:` prefix,
+    a stale artifact from the Meridian → Garura rename. The leak originates from two
+    distinct source-of-truth locations depending on artifact class: for plays compiled via
+    /create-play --build, the compiled SKILL.md carries the prefix (the compiler uses the
+    `name:` field from intent.yaml when present, or a legacy default when absent); for skills,
+    SKILL.md is the direct source of truth with no upstream intent.yaml to recompile from.
+    The fix path differs per class.
+
+  root_cause:
+    primary: >
+      The affected plays (fix-it, distill, review-pr) were compiled when the framework was
+      still named Meridian. Their `reference/intent.yaml` files do NOT contain a `name:` field
+      — meaning the compiler defaulted to `meridian:{play-name}` at the time of last compile.
+      Since then, the rename to Garura occurred and newer plays (arch, design, scope, specify,
+      prepare, implement, validate) had their intent.yaml updated with `name: garura:{play-name}`
+      before compilation — which is how they got the correct prefix. The old plays were never
+      recompiled after the rename.
+
+    authoritative_sources:
+      - artifact_class: play_compiled
+        plays_affected:
+          - fix-it
+          - distill
+          - review-pr
+        source_of_truth: "core/components/plays/{play}/reference/intent.yaml (name: field)"
+        current_state: "No `name:` field in intent.yaml — compiler used `meridian:` default at last build"
+        evidence:
+          - file: "core/components/plays/fix-it/reference/intent.yaml"
+            line: 1
+            value: "intent: > (no name: field)"
+          - file: "core/components/plays/distill/reference/intent.yaml"
+            line: 1
+            value: "intent: > (no name: field)"
+          - file: "core/components/plays/review-pr/reference/intent.yaml"
+            line: 1
+            value: "intent: > (no name: field)"
+        fix_path: >
+          Add `name: {chosen-convention}` to each intent.yaml, then run
+          `/create-play --build {play}` to regenerate SKILL.md. This is the
+          correct path per CLAUDE.md: never edit play SKILL.md directly.
+
+      - artifact_class: play_deprecated_no_intent
+        plays_affected:
+          - report-issue
+        source_of_truth: "core/components/plays/report-issue/SKILL.md (direct — no intent.yaml exists)"
+        current_state: "`name: \"meridian:report-issue\"` on line 2 of SKILL.md"
+        evidence:
+          - file: "core/components/plays/report-issue/SKILL.md"
+            line: 2
+            value: 'name: "meridian:report-issue"'
+        fix_path: >
+          No intent.yaml exists — direct SKILL.md edit is the only option for this
+          deprecated alias. The play is deprecated (body redirects to garura:capture);
+          direct edit is low-risk.
+
+      - artifact_class: skill_direct_authored
+        skills_affected:
+          - distill
+          - quality-check
+          - quality-check-scoped
+          - sync-claude
+        source_of_truth: "core/components/skills/{skill}/SKILL.md (direct — skills have no intent.yaml)"
+        current_state: "`meridian:` prefix in name field on line 2 of each"
+        evidence:
+          - file: "core/components/skills/distill/SKILL.md"
+            line: 2
+            value: "name: meridian:distill"
+          - file: "core/components/skills/quality-check/SKILL.md"
+            line: 2
+            value: "name: meridian:quality-check"
+          - file: "core/components/skills/quality-check-scoped/SKILL.md"
+            line: 2
+            value: "name: meridian:quality-check-scoped"
+          - file: "core/components/skills/sync-claude/SKILL.md"
+            line: 2
+            value: "name: meridian:sync-claude"
+        fix_path: >
+          Direct SKILL.md edit. The CLAUDE.md "never edit SKILL.md directly" rule is
+          scoped to COMPILED PLAY SKILL.md files — skills are directly authored and
+          have no compilation pipeline. Direct edit is the correct and only path.
+
+  secondary_issues:
+    - id: SI-1
+      file: "core/components/plays/fix-it/reference/intent.yaml"
+      line: 161
+      description: >
+        Scenario S1 references `meridian:fix-it` in the `given:` field. This is inside
+        intent.yaml (the source), not SKILL.md. Must be corrected in intent.yaml before rebuild.
+      severity: medium
+
+    - id: SI-2
+      file: "core/components/plays/review-pr/SKILL.md"
+      lines: [161, 165, 452]
+      description: >
+        review-pr invokes `meridian:quality-check-scoped` by qualified name in three places.
+        This couples review-pr's reference to the skill's own name field. Both must be updated
+        together. The skill's name change (quality-check-scoped SKILL.md) must land before or
+        simultaneously with the review-pr rebuild — otherwise the play references a name that
+        no longer exists.
+      severity: high
+
+    - id: SI-3
+      file: "core/components/skills/setup-branch/SKILL.md"
+      line: 64
+      description: >
+        Contains `meridian: pre-branch stash for {branch_name}` — this is a git stash message
+        string, not a namespace prefix. Different context from the frontmatter name issue.
+        Out of scope for this fix but noted for completeness.
+      severity: low
+
+    - id: SI-4
+      file: "core/components/skills/author-intent-yaml/SKILL.md"
+      line: 25
+      description: >
+        Contains `e.g., meridian:fix-it` as a documentation example in a table. Cosmetic docstring
+        reference. Should be updated to reflect current convention but not a runtime issue.
+      severity: low
+
+    - id: SI-5
+      file: "core/components/skills/sync-claude/SKILL.md"
+      line: 3
+      description: >
+        Description field reads "Sync Meridian components to .claude/..." — the product name
+        "Meridian" in the description body should become "Garura". Not a prefix issue but a
+        co-located rename artifact.
+      severity: low
+
+  affected_files_ordered_by_severity:
+    - file: "core/components/plays/review-pr/SKILL.md"
+      severity: high
+      reason: >
+        Three cross-references to `meridian:quality-check-scoped` (lines 161, 165, 452) plus
+        own name field on line 2. Coupled to skill rename — must be coordinated.
+
+    - file: "core/components/skills/quality-check-scoped/SKILL.md"
+      severity: high
+      reason: >
+        Own name `meridian:quality-check-scoped` on line 2. Referenced by review-pr — rename
+        must be coordinated with review-pr rebuild.
+
+    - file: "core/components/plays/fix-it/SKILL.md"
+      severity: medium
+      reason: >
+        Own name on line 2, H1 header on line 7, status file play field on line 526. Will be
+        regenerated by /create-play --build after intent.yaml is updated.
+
+    - file: "core/components/plays/fix-it/reference/intent.yaml"
+      severity: medium
+      reason: >
+        No `name:` field (compiler used stale default). Also contains `meridian:fix-it` literal
+        in S1 given text (line 161). Both must be fixed before rebuild.
+
+    - file: "core/components/plays/distill/SKILL.md"
+      severity: medium
+      reason: >
+        Own name field on line 2. Will be regenerated by /create-play --build after intent.yaml
+        is updated.
+
+    - file: "core/components/plays/distill/reference/intent.yaml"
+      severity: medium
+      reason: No `name:` field — must be added before rebuild.
+
+    - file: "core/components/plays/review-pr/reference/intent.yaml"
+      severity: medium
+      reason: No `name:` field — must be added before rebuild.
+
+    - file: "core/components/skills/distill/SKILL.md"
+      severity: medium
+      reason: Own name `meridian:distill` on line 2. Direct edit required (no intent.yaml).
+
+    - file: "core/components/skills/quality-check/SKILL.md"
+      severity: medium
+      reason: Own name `meridian:quality-check` on line 2. Direct edit required (no intent.yaml).
+
+    - file: "core/components/skills/sync-claude/SKILL.md"
+      severity: medium
+      reason: >
+        Own name `meridian:sync-claude` on line 2 and "Meridian" in description on line 3.
+        Direct edit required.
+
+    - file: "core/components/plays/report-issue/SKILL.md"
+      severity: medium
+      reason: >
+        Own name `meridian:report-issue` on line 2 and H1 on line 9. Deprecated play — no
+        intent.yaml exists so direct SKILL.md edit is the only path.
+
+    - file: "core/components/skills/author-intent-yaml/SKILL.md"
+      severity: low
+      reason: Docstring example `meridian:fix-it` on line 25. Cosmetic.
+
+    - file: "core/components/skills/setup-branch/SKILL.md"
+      severity: low
+      reason: Git stash message string — different context, out of scope.
+
+  not_affected:
+    - >
+      All plays with `name: garura:{play}` already in intent.yaml (arch, design, prepare, scope,
+      specify, implement, validate, capture) are correctly prefixed and do not need changes.
+    - >
+      Bare-name plays (briefs, capture-learning, commit-code, create-pr, enhance, merge-pr, ship,
+      start-feature, start-feature-planning, check-drift) use bare names in SKILL.md and have no
+      `name:` field in intent.yaml — consistent with compiled-example.md format. Not affected.
+
+  constraint_check:
+    C3_met: true
+    rationale: >
+      Root cause identified at specific files and lines: intent.yaml missing `name:` field
+      (compiler defaulted to stale `meridian:` prefix) for plays; SKILL.md direct authoring
+      for skills (no compilation pipeline). This is NOT a restatement of the issue description.

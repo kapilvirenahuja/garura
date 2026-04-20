@@ -1,0 +1,67 @@
+regression_test_verdict: pass
+verified_at: "2026-04-20T00:00:00Z"
+regression_test_path: ".garura/project/issues/310/evidence/fix-it/regression-test.yaml"
+
+assertions:
+  A1:
+    status: GREEN
+    evidence: "grep -n 'meridian:' core/components/plays/fix-it/reference/intent.yaml — exit_code=1, zero matches"
+  A2:
+    status: GREEN
+    evidence: "grep -n '^name: distill' core/components/plays/distill/reference/intent.yaml — exit_code=0, line 1: name: distill"
+  A3:
+    status: GREEN
+    evidence: "grep -n '^name: review-pr' core/components/plays/review-pr/reference/intent.yaml — exit_code=0, line 1: name: review-pr"
+  A4:
+    status: GREEN
+    evidence: "grep -n '^name:' core/components/plays/fix-it/SKILL.md — line 2: name: fix-it (bare, no meridian: prefix)"
+  A5:
+    status: GREEN
+    evidence: "grep -n '^name:' core/components/plays/distill/SKILL.md — line 2: name: distill (bare)"
+  A6:
+    status: GREEN
+    evidence: "grep -n '^name:' core/components/plays/review-pr/SKILL.md — line 2: name: review-pr (bare)"
+  A7:
+    status: GREEN
+    evidence: "grep -n '^# meridian:' core/components/plays/fix-it/SKILL.md — exit_code=1, zero matches"
+  A8:
+    status: GREEN
+    evidence: "grep -n 'meridian:fix-it' core/components/plays/fix-it/SKILL.md — exit_code=1, zero matches"
+  A9:
+    status: GREEN
+    evidence: "grep -n '^name:' core/components/plays/report-issue/SKILL.md — line 2: name: report-issue (bare)"
+  A10:
+    status: GREEN
+    evidence: "grep -n 'meridian:quality-check-scoped' core/components/plays/review-pr/SKILL.md — exit_code=1, zero matches"
+  A11:
+    status: GREEN
+    evidence: "grep -n '^name:' core/components/skills/quality-check-scoped/SKILL.md — line 2: name: quality-check-scoped (bare)"
+  A12:
+    status: GREEN
+    evidence: "grep -n '^name:' core/components/skills/quality-check/SKILL.md — line 2: name: quality-check (bare)"
+  A13:
+    status: GREEN
+    evidence: "grep -n '^name:' core/components/skills/distill/SKILL.md — line 2: name: distill (bare)"
+  A14:
+    status: GREEN
+    evidence: "grep -n '^name:' core/components/skills/sync-claude/SKILL.md — line 2: name: sync-claude (bare)"
+  A15:
+    status: GREEN
+    evidence: "grep -rn '^name:.*meridian:' core/components/plays/ core/components/skills/ — exit_code=1, zero matches"
+  A16:
+    status: GREEN
+    evidence: "grep -n '^name: fix-it' core/components/plays/fix-it/reference/intent.yaml — exit_code=0, line 1: name: fix-it"
+
+sanity:
+  meridian_occurrences: 1
+  out_of_scope_occurrences:
+    - file: "core/components/skills/setup-branch/SKILL.md"
+      line: 64
+      text: "git stash push -m \"meridian: pre-branch stash for {branch_name}\""
+      reason: "String literal in a git stash message — not a SKILL frontmatter name field. This is a stash message convention string, not the meridian: prefix being eliminated. Out of scope per design."
+  yaml_valid:
+    fix-it-intent: true
+    distill-intent: true
+    review-pr-intent: true
+
+overall: pass

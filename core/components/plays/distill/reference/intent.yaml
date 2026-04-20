@@ -1,3 +1,4 @@
+name: distill
 intent: >
   After a PR is merged via ship, perform lightweight learning extraction from
   the merged PR diff and any available issue STM evidence (from enhance/ or

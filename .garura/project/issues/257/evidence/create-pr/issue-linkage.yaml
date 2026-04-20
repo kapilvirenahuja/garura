@@ -1,0 +1,8 @@
+issue:
+  number: 257
+  title: "[DEF][High] /implement-epic task prompts lack preconditions/expected-behavior and skip post-implementation green unit-test verification"
+  url: "https://github.com/kapilvirenahuja/garura/issues/257"
+  state: open
+  labels:
+    - defect
+  type_hint: fix

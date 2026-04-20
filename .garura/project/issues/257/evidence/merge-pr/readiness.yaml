@@ -1,0 +1,27 @@
+readiness:
+  status: PASS
+  pr:
+    number: 309
+    title: "fix(implement): add 4-section dispatch prompt contract with precondition gate (#257)"
+    state: OPEN
+    mergeable: MERGEABLE
+    head_branch: fix/257-implement-epic-task-prompt-preconditions
+    base_branch: main
+  constraints:
+    C1:
+      rule: Must not operate when current branch is main/master/default
+      result: PASS
+      evidence: Current branch is fix/257-implement-epic-task-prompt-preconditions
+    C2:
+      rule: A pull request must exist on the platform for the current branch
+      result: PASS
+      evidence: PR #309 exists and is OPEN
+    C3:
+      rule: Working tree and index must be clean
+      result: PASS
+      evidence: No staged changes, no modified tracked files. Only untracked STM evidence artifacts present.
+    C4:
+      rule: No merge conflicts present
+      result: PASS
+      evidence: mergeable=MERGEABLE reported by GitHub API
+  checked_at: "2026-04-20"
