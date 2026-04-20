@@ -1,0 +1,9 @@
+type_resolution:
+  caller_provided_type: bug
+  source: explicit
+  ambiguous_text: false
+events:
+  - event: type-resolved
+    value: bug
+    at: "2026-04-19T00:00:00Z"
+caller_kind: human

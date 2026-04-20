@@ -1,0 +1,9 @@
+ M CLAUDE.md
+?? .claude/scheduled_tasks.lock
+?? .garura/project/issues/256/evidence/commit-code/commits.yaml
+?? .garura/project/issues/256/evidence/create-pr/
+?? .garura/project/issues/256/evidence/merge-pr/
+?? .garura/project/issues/265/evidence/enhance/pr-result.yaml
+?? .garura/project/issues/265/evidence/merge-pr/
+?? .garura/project/issues/_pending/
+?? .garura/project/issues/capture-report/

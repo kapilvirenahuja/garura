@@ -1,0 +1,4 @@
+pr_number: 280
+pr_url: https://github.com/kapilvirenahuja/garura/pull/280
+title: "chore: remove stale .factory/ on-disk tree (#256)"
+target_branch: main

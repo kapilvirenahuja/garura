@@ -1,0 +1,20 @@
+---
+# Merge Result — Issue #265 / PR #296
+# Created: 2026-04-19
+
+status: merged
+pr_number: 296
+merge_sha: bd01c53457dac820604c804028d6aae7abbb6fbe
+base_branch: main
+branch_deleted: true
+branch_deleted_local: true
+branch_deleted_remote: true
+
+evals:
+  SE2_branch_deleted: PASS
+  SE3_on_base_up_to_date: PASS
+  SE5_pr_merged: PASS
+
+scenario_evals:
+  SCE1_developer: PASS  # on main, feature branch absent locally and remotely
+  SCE2_code_reviewer: PASS  # PR merged, merge_sha bd01c53 present in main
