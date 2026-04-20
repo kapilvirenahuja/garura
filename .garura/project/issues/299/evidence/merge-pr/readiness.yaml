@@ -1,0 +1,10 @@
+pr_number: 300
+title: "feat: list-product-state skill — render product status tree (#299)"
+state: OPEN
+mergeable: true
+merge_state_status: CLEAN
+head_branch: feat/299-list-product-state-skill
+base_branch: main
+working_tree_clean: true
+ready_to_merge: true
+checked_at: "2026-04-19"
