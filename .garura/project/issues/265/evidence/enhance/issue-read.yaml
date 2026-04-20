@@ -1,0 +1,29 @@
+issue:
+  number: 265
+  title: "/specify must emit scope/features.yaml just before epic generation"
+  state: open
+  labels:
+    - enhancement
+    - play:specify-product
+  author: kapilvirenahuja
+  url: "https://github.com/kapilvirenahuja/garura/issues/265"
+  body: |
+    Today `/specify` does not declare `.meridian/product/scope/features.yaml` as an output. Dogfooding on Garura (Apr 2026) produced `specification/implementation-inventory.yaml`, which had to be hand-moved into `scope/features.yaml`.
+
+    ## Fix
+
+    1. Add a new step in `core/components/plays/specify/reference/intent.yaml` — runs **after `enrich-capabilities`, before `generate-intent-epics`** — that emits `.meridian/product/scope/features.yaml`. Epics are generated from it.
+
+    2. **Schema reference:** `.garura/product/scope/features.yaml` is the canonical shape.
+       - Three tiers: Domain → Capability → Feature
+       - Per-feature fields: `id`, `name`, `status` (`live` / `partial` / `planned`), `notes`, `evidence`, `gap_items`, optional `target_milestone`
+       - Per-capability and per-domain: `slug`, `status`, `rollup_notes`
+
+    3. Retire `specification/implementation-inventory.yaml` — same artifact, misleading name.
+
+    4. Update `generate-intent-epics` SKILL.md to declare `scope/features.yaml` as a required input (in addition to enriched-capabilities).
+
+    ## Scope
+
+    This issue covers **only** the features.yaml emission change. The other pain points from the original issue body (research schema, MVP wiring, CTC coverage, reclassification, etc.) are separate concerns — file separately if still relevant.
+  type_hint: feature

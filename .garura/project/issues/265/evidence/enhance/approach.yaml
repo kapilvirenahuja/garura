@@ -1,0 +1,373 @@
+---
+# Approach — Issue #265
+# /specify must emit scope/features.yaml just before epic generation
+# Authored: 2026-04-19
+
+problem_statement: >
+  The /specify play today stops short of producing a canonical feature catalog.
+  Its Stage 4 (enrich-capabilities) writes enriched-capabilities.yaml but never
+  persists the derived feature set as .meridian/product/scope/features.yaml.
+  Dogfooding on Garura (Apr 2026) revealed this gap: the output landed as
+  specification/implementation-inventory.yaml, which had to be hand-moved into
+  scope/features.yaml after the run. Additionally, generate-intent-epics (Stage
+  5) has no declared dependency on features.yaml, so it cannot cross-check epic
+  KB IDs against declared product features. The existing Garura features.yaml
+  also carries a stale 3-value status vocabulary (live, partial, planned) that
+  predates the 5-point feature-flag vocabulary (planned → development → rollout
+  → released → cleanup) adopted by the new skill. All three defects — missing
+  pipeline step, missing consume-side wiring, and stale vocabulary — must be
+  resolved together.
+
+solution_summary: >
+  Insert a new skill — manage-features — into /specify as Step 8b, positioned
+  after enrich-capabilities (Step 8) and before generate-intent-epics (Step 9).
+  The skill reads enriched-capabilities.yaml and authors .meridian/product/
+  scope/features.yaml using the 5-point status vocabulary; it also emits a
+  decision-manifest.yaml for status inferences (required by C19). A
+  decision-surfacing sub-step (Step 8c) walks the manifest before Step 9 fires
+  (required by C18/F15). generate-intent-epics is updated to declare features_path
+  as a required input. The existing Garura dogfood file is migrated in-place: live
+  → released, partial → rollout per-feature and per-capability; summary counters
+  renamed; domain-level freeform status left untouched. implementation-inventory.yaml
+  is already retired (zero live references confirmed by context assembly). After
+  all intent.yaml edits, /sync-claude deploys components globally.
+
+files_to_create:
+  - path: core/components/skills/manage-features/reference/intent.yaml
+    reason: >
+      New skill intent — drives /create-play --build manage-features to emit
+      SKILL.md. The intent.yaml declares name, description, intent, input/output
+      contract, constraints, failure conditions, success scenarios, and authoring
+      rules for features.yaml entries. SKILL.md is a build output; do NOT create
+      or edit it directly.
+
+files_to_modify:
+  - path: core/components/plays/specify/reference/intent.yaml
+    change: >
+      Insert Step 8b (manage-features dispatch with input: enriched_capabilities_path,
+      project_profile_path, stm_output_base; output: features_path,
+      decision_manifest_path). Insert Step 8c (decision-surfacing sub-step for
+      manage-features manifest — tiered C18 presentation before Step 9 fires).
+      Update Step 9 (generate-intent-epics) input contract to add features_path
+      as required field. SKILL.md is rebuilt via /create-play --rebuild specify.
+
+  - path: core/components/skills/generate-intent-epics/reference/intent.yaml
+    change: >
+      PRECONDITION: this file does not yet exist. Code-builder must reverse-engineer
+      it from the existing SKILL.md (lines 23–60 document the input contract and
+      behavior) and then add features_path (path, required) to the input contract.
+      After authoring, run /create-play --rebuild generate-intent-epics (not --build,
+      since the SKILL.md already exists and --rebuild regenerates it). If the tool
+      treats the presence of reference/intent.yaml as a new skill and requires --build,
+      use --build — the executor should check tool behavior at runtime.
+
+  - path: .garura/product/scope/features.yaml
+    change: >
+      Migrate 5-point vocabulary. Per-feature and per-capability status only:
+      live → released, partial → rollout. Domain-level status (e.g.,
+      "applied-and-evolving") is freeform — do NOT migrate it to the 5-point enum.
+      Rename summary fields: features_live → features_released,
+      features_partial → features_rollout. features_planned unchanged.
+      Update header comment block to reflect the new vocabulary and date.
+      Approximately 85 features and 23 capabilities carry status values; verify
+      grep for `status: live` and `status: partial` returns zero after migration.
+
+connections:
+  - description: >
+      manage-features wires into /specify as Step 8b. The specify orchestrator
+      dispatches manage-features via JSON contract after enrich-capabilities
+      completes. manage-features reads enriched-capabilities.yaml produced by
+      Step 8 and writes .meridian/product/scope/features.yaml. The orchestrator
+      then runs Step 8c to surface the decision-manifest before advancing to
+      Step 9.
+  - description: >
+      generate-intent-epics consumes features_path as a new required input.
+      The path (.meridian/product/scope/features.yaml) is passed in the Step 9
+      dispatch JSON contract from the specify orchestrator. The skill uses it to
+      cross-check epic KB IDs against the declared feature catalog, ensuring
+      every epic traces to a real product feature.
+  - description: >
+      decision-manifest.yaml emitted by manage-features is consumed by the
+      Step 8c surfacing sub-step in the specify orchestrator. The orchestrator
+      walks the manifest and drives the C18 tiered presentation flow
+      (HIGH: batch confirm; MID: batch with questions; LOW: one-by-one) before
+      the features.yaml is considered locked for downstream consumption.
+
+tasks:
+  - id: T1
+    description: >
+      Author core/components/skills/manage-features/reference/intent.yaml.
+      Include: name (garura:manage-features), description, intent (read
+      enriched-capabilities.yaml, produce features.yaml using 3-tier
+      domain/capability/feature schema with 5-point status vocab, emit
+      decision-manifest.yaml for status inferences), input contract
+      (enriched_capabilities_path required, project_profile_path required,
+      stm_output_base required), output contract (features_path, features_count,
+      decision_manifest_path, decisions_recorded), constraints (C1: must not
+      invent feature IDs — copy from enriched record; C2: default status is
+      "planned" for GF projects unless overridden in project_profile; C3:
+      per-feature status must be one of the 5-point enum; C4: domain-level
+      status is freeform, not validated against 5-point enum; C5: skill is
+      not user-invocable — model-invocable only, called by product-keeper
+      during specify), failure conditions (F1: features.yaml not written; F2:
+      any feature status value outside 5-point enum; F3: decision-manifest.yaml
+      not written when any status was inferred), success scenarios (S1:
+      greenfield — all 85 features assigned status planned; manifest records
+      85 high-confidence decisions; S2: brownfield — user-provided statuses
+      passed through; only unresolved statuses inferred), authoring rules
+      (R1: feature IDs must match regex PREFIX-Fnnn where PREFIX is 2–4 uppercase
+      letters matching the domain slug abbreviation; R2: feature name must be
+      a noun phrase of 3–10 words; R3: required fields per feature are id, name,
+      status, notes; R4: map enriched capability slug to domain/capability nesting
+      by reading the KB domain-taxonomy provenance header; R5: do not flatten
+      the 3-tier hierarchy — domain.capabilities[].features[] shape is mandatory).
+    blockedBy: []
+
+  - id: T2
+    description: >
+      Run /create-play --build manage-features to compile SKILL.md from the
+      intent.yaml authored in T1. Verify SKILL.md exists and its header references
+      the intent.yaml checksum. Do NOT edit SKILL.md manually.
+    blockedBy: [T1]
+
+  - id: T3
+    description: >
+      Edit core/components/plays/specify/reference/intent.yaml to insert Step 8b
+      and Step 8c. Step 8b: dispatch manage-features skill; task_id
+      specify-stage-4b-features; agent product-keeper; input JSON contract includes
+      enriched_capabilities_path, project_profile_path, stm_output_base; output
+      contract provides features_path and decision_manifest_path. Step 8c:
+      decision-surfacing sub-step; orchestrator walks manage-features
+      decision-manifest and drives C18 tiered presentation before Step 9 fires.
+      Then update Step 9 (generate-intent-epics) input contract to add
+      features_path as required field. Preserve all existing step numbering and
+      wiring; do not renumber steps beyond inserting 8b and 8c.
+    blockedBy: [T2]
+
+  - id: T4
+    description: >
+      Run /create-play --rebuild specify to regenerate specify/SKILL.md from the
+      updated intent.yaml. Verify Step 8b and Step 8c appear in the compiled output
+      and Step 9 input contract now includes features_path.
+    blockedBy: [T3]
+
+  - id: T5
+    description: >
+      Author core/components/skills/generate-intent-epics/reference/intent.yaml.
+      PRECONDITION: this file does not exist — reverse-engineer it from
+      generate-intent-epics/SKILL.md (input contract documented at lines 23–33,
+      behavior at lines 34–60 of SKILL.md). Declare all existing inputs as required,
+      then ADD features_path (path, required) — the path to
+      .meridian/product/scope/features.yaml produced by manage-features. The skill
+      uses features_path to cross-check epic KB IDs against the feature catalog.
+    blockedBy: [T4]
+
+  - id: T6
+    description: >
+      Run /create-play --rebuild generate-intent-epics to regenerate its SKILL.md
+      from the intent.yaml authored in T5. If the build tool requires --build
+      because the reference/intent.yaml is newly created, use --build instead.
+      Verify SKILL.md now includes features_path in its input contract block.
+    blockedBy: [T5]
+
+  - id: T7
+    description: >
+      Migrate .garura/product/scope/features.yaml to 5-point vocabulary.
+      Per-feature and per-capability status only: live → released, partial → rollout.
+      Domain-level status fields (e.g., "applied-and-evolving") are freeform — leave
+      them untouched. Rename summary keys: features_live → features_released,
+      features_partial → features_rollout; features_planned unchanged.
+      Update the header comment block to document the 5-point vocabulary and migration
+      date. After editing, grep for `status: live` and `status: partial` to confirm
+      zero matches remain at the per-feature and per-capability level.
+    blockedBy: []
+
+  - id: T8
+    description: >
+      Run /sync-claude to deploy all component changes globally (~/.claude/).
+      Run after T2, T4, T6 are all complete (all SKILL.md files rebuilt). T7 does
+      not block sync — the Garura dogfood file is not a component.
+    blockedBy: [T6]
+
+evals:
+  - id: E1
+    description: >
+      manage-features/reference/intent.yaml exists with all required sections:
+      intent, input contract, output contract, constraints, failure conditions,
+      success_scenarios (≥2), and authoring rules section (feature ID regex, name
+      length, required fields, 3-tier hierarchy requirement).
+    pass: All sections present and non-empty; success_scenarios has ≥2 entries.
+    fail: File missing, or any required section absent or empty.
+
+  - id: E2
+    description: >
+      manage-features/SKILL.md exists and was generated by /create-play --build,
+      not hand-edited. The SKILL.md header must reference the intent.yaml checksum.
+      Any orchestrator comment or git diff indicating direct hand-edit is a failure.
+    pass: SKILL.md exists; header contains a checksum reference matching intent.yaml.
+    fail: SKILL.md absent, or header lacks checksum reference, or diff shows manual edits.
+
+  - id: E3
+    description: >
+      specify/reference/intent.yaml contains a step whose owner is the manage-features
+      skill, placed after enrich-capabilities (Step 8) and before generate-intent-epics
+      (Step 9). Step 8c (decision-surfacing) also present, between manage-features
+      dispatch and Step 9.
+    pass: Steps appear in order 8 → 8b (manage-features) → 8c (surfacing) → 9.
+    fail: manage-features step absent; or ordering wrong (8b after 9, or 8c missing).
+
+  - id: E4
+    description: >
+      generate-intent-epics/reference/intent.yaml declares features_path as a
+      required input field. The field must not be marked optional or have a default.
+    pass: features_path present in input contract, required: true or no default value.
+    fail: Field missing, marked optional, or given a default value.
+
+  - id: E5
+    description: >
+      .garura/product/scope/features.yaml contains zero instances of `status: live`
+      and zero instances of `status: partial` at the per-feature and per-capability
+      level. Domain-level status fields are not checked by this eval.
+    pass: grep -n "status: live" and grep -n "status: partial" return zero matches.
+    fail: Any remaining `status: live` or `status: partial` in per-feature/per-capability entries.
+
+  - id: E6
+    description: >
+      .garura/product/scope/features.yaml summary section uses renamed keys.
+      features_released and features_rollout must be present; features_live and
+      features_partial must be absent.
+    pass: features_released and features_rollout present; features_live and features_partial absent.
+    fail: Either old key remains, or either new key is absent.
+
+  - id: E7
+    description: >
+      No file under core/components/ still references implementation-inventory.yaml.
+    pass: grep -r "implementation-inventory" core/components/ returns zero matches.
+    fail: Any match found.
+
+  - id: E8
+    description: >
+      Feature IDs in manage-features/reference/intent.yaml authoring rules declare
+      the regex PREFIX-Fnnn (PREFIX = 2–4 uppercase letters matching the domain slug
+      abbreviation). This anchors the ID format for code-builder.
+    pass: Authoring rules section contains the regex or an equivalent explicit pattern.
+    fail: ID format rule absent or underspecified.
+
+risks:
+  - id: R1
+    description: >
+      Naming overlap: two files named features.yaml exist in the codebase —
+      draft-product-spec/schemas/features.yaml (a schema template under core/components/
+      skills/) and .meridian/product/scope/features.yaml (the manage-features output
+      data file). Agents or code-builders searching by filename alone may load the
+      wrong schema.
+    mitigation: >
+      Rely on path discrimination — the schema template lives under core/components/
+      skills/draft-product-spec/schemas/ and the data file lives under .meridian/
+      product/scope/. Both the manage-features skill intent.yaml and the specify
+      intent.yaml will declare the full canonical path, not just the filename.
+      No rename of either file is required. See alternatives_considered ALT2 for
+      the rejected rename option.
+    type: architectural
+    action: monitor-only
+    ltm_reference: null
+    generated_evals: []
+
+  - id: R2
+    description: >
+      Adding features_path as a required input to generate-intent-epics breaks any
+      existing caller that does not pass it. Currently specify is the only caller, and
+      it will be rebuilt in T4 before generate-intent-epics is rebuilt in T6 — so the
+      specify output contract will include features_path before the skill begins
+      enforcing it. If any other caller exists and is not updated, it will fail at
+      runtime when features_path is missing.
+    mitigation: >
+      E4 ensures the field is declared required (not optional). The task ordering
+      (T3 → T4 before T5 → T6) ensures specify is updated first. A codebase grep for
+      generate-intent-epics callers (outside specify) should be run at T5 time to
+      confirm no undiscovered callers exist.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E4]
+
+  - id: R3
+    description: >
+      Migration of .garura/product/scope/features.yaml covers approximately 85
+      feature entries and 23 capability entries. A mechanical substitution error
+      (e.g., migrating domain-level freeform status, missing an entry, introducing
+      a typo) could corrupt the file silently.
+    mitigation: >
+      E5 and E6 provide explicit post-migration grep checks. The migration task (T7)
+      explicitly calls out that domain-level status is freeform and must not be
+      touched. A pre-migration count of `status: live` and `status: partial` should
+      be recorded so the post-migration count can verify all instances were replaced.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E5, E6]
+
+  - id: R4
+    description: >
+      Rebake rule violation: code-builder may attempt to hand-edit SKILL.md for
+      manage-features or generate-intent-epics instead of running /create-play
+      --build or --rebuild. Hand-edited SKILL.md files lack the intent.yaml
+      checksum reference and are structurally out of sync.
+    mitigation: >
+      E2 checks that manage-features/SKILL.md header contains a checksum reference.
+      Tasks T2, T4, T6 each explicitly name the build command, not a manual edit.
+      The approach files_to_create section explicitly marks SKILL.md as a build
+      output not to be created directly.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E2]
+
+  - id: R5
+    description: >
+      generate-intent-epics/reference/intent.yaml does not exist and must be
+      authored by reverse-engineering from the existing SKILL.md. If the reverse-
+      engineered intent.yaml is incomplete or inaccurate, the subsequent --rebuild
+      may produce a SKILL.md that drops behavior the current SKILL.md implements.
+    mitigation: >
+      Task T5 explicitly cites SKILL.md lines 23–60 as the source. Code-builder
+      must diff the regenerated SKILL.md against the original to confirm no
+      behavioral regression. If divergence is detected, the executor should pause
+      and flag before committing the new SKILL.md.
+    type: technical
+    action: approval-required
+    ltm_reference: null
+    generated_evals: []
+
+alternatives_considered:
+  - id: ALT1
+    description: >
+      Extend enrich-capabilities to also emit features.yaml as a second output
+      artifact instead of creating a new skill.
+    rejected_because: >
+      Blurs skill responsibilities. enrich-capabilities is explicitly scoped to
+      producing enriched-capabilities.yaml — a KB-grounded, annotation-heavy record.
+      features.yaml is a different abstraction: a clean 3-tier product scope catalog
+      with deployment status vocabulary. Combining them makes the skill responsible
+      for two structurally different outputs with different consumers and different
+      update lifecycles. Discovery Q2 explicitly specified a new skill. Occam's
+      Razor favors the new skill because it has fewer coupling side-effects than
+      overloading enrich-capabilities.
+
+  - id: ALT2
+    description: >
+      Rename the manage-features output to feature-catalog.yaml to eliminate the
+      filename collision with draft-product-spec/schemas/features.yaml.
+    decision: rejected
+    rejected_because: >
+      Path discrimination is sufficient. The two files live at structurally distinct
+      paths — core/components/skills/draft-product-spec/schemas/features.yaml
+      (schema template inside a skill package) vs .meridian/product/scope/features.yaml
+      (data artifact in the product directory). No agent or play reads both by filename
+      alone — they always operate on full paths from intent.yaml contracts or config.
+      The existing Garura dogfood file is already named features.yaml and was
+      explicitly renamed from implementation-inventory.yaml to this name per user
+      direction (per features.yaml line 2 comment). Renaming to feature-catalog.yaml
+      would require updating the Garura file, the context docs, and the discovery docs,
+      while providing no structural benefit given path-qualified references throughout
+      the framework. Reversibility bias favors keeping the name already in use.

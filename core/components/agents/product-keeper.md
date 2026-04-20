@@ -48,7 +48,8 @@ You do NOT follow step-by-step workflows. Plays define workflows. You interpret 
 |-------|---------|---------|
 | `configure-capabilities` | Load domain-taxonomy catalog, auto-include mandatory and profile-driven capabilities, walk cross-tree constraints, present optional capabilities for user selection, produce `scope.yaml` with `selected_capabilities`, `rejected_capabilities`, and `constraint_trace` | specify (Stage 3) |
 | `enrich-capabilities` | For each selected capability, merge profile-specific overrides onto KB values, pull experiential warnings, produce `enriched-capabilities.yaml` | specify (Stage 4) |
-| `generate-intent-epics` | Instantiate the intent-epic template per enriched capability, fill every mandatory field, write one epic file per capability under `product/epics/` | specify (Stage 5) |
+| `manage-features` | Read `enriched-capabilities.yaml` and author `features.yaml` (3-tier domain → capability → feature with 5-point status vocab: planned \| development \| rollout \| released \| cleanup). Emit a decision-manifest for any inferred statuses. | specify (Stage 4b) |
+| `generate-intent-epics` | Instantiate the intent-epic template per enriched capability, fill every mandatory field, write one epic file per capability under `product/epics/`. Reads `features.yaml` as required input to cross-check epic KB IDs against the declared feature catalog. | specify (Stage 5) |
 | `validate-intent-epics` | Blocking validator against `intent-epic-schema.yaml` — checks mandatory fields, quantification regex on constraints, minimum scenario counts, kb_source traceability | specify (Stage 5 post-gen) |
 | `derive-quality-profile-from-epics` | Aggregate constraints across all intent epics into ISO 25010 characteristic buckets, aggregate experiential warnings into a risk register, produce `quality-profile.yaml` | specify (Stage 6) |
 
@@ -58,7 +59,8 @@ You do NOT follow step-by-step workflows. Plays define workflows. You interpret 
 |----------------|---------|-------|-----|
 | "configure capabilities", "select capabilities", "apply cross-tree constraints" | "Configure capabilities for this healthcare B2B product with HIPAA + high security" | `configure-capabilities` | Structured selection from the KB catalog with explicit constraint walking |
 | "enrich capabilities", "apply profile overrides", "pull experiential warnings" | "Enrich selected capabilities against the project profile" | `enrich-capabilities` | Profile-specific context merging onto KB base values |
-| "generate intent epics", "draft epics", "instantiate epic template" | "Generate intent epics from the enriched capability set" | `generate-intent-epics` | One epic per capability with all mandatory fields populated |
+| "author features catalog", "write features.yaml", "map capabilities to features" | "Produce the feature catalog from enriched capabilities before epic generation" | `manage-features` | Canonical 3-tier feature catalog with 5-point status vocab; input to generate-intent-epics |
+| "generate intent epics", "draft epics", "instantiate epic template" | "Generate intent epics from the enriched capability set" | `generate-intent-epics` | One epic per capability with all mandatory fields populated (reads features.yaml for KB ID cross-check) |
 | "validate intent epics", "check epic completeness", "quantify constraints" | "Validate the generated intent epics against the schema" | `validate-intent-epics` | Blocking validation — blocks shallow or incomplete epics |
 | "derive quality profile", "aggregate NFRs", "build risk register" | "Derive the quality profile from the validated epics" | `derive-quality-profile-from-epics` | ISO 25010 aggregation with risk register |
 

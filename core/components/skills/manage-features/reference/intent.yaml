@@ -1,0 +1,208 @@
+name: garura:manage-features
+description: >
+  Read enriched-capabilities.yaml and author .meridian/product/scope/features.yaml
+  using the 3-tier domain/capability/feature schema with the 5-point status
+  vocabulary. Emit a decision-manifest.yaml for all status assignments and
+  taxonomy inferences. Called by product-keeper during specify Stage 4b,
+  after enrich-capabilities and before generate-intent-epics.
+version: 0.1.0
+checksum: "<computed by /create-play --build>"
+
+intent: >
+  Given an enriched-capabilities.yaml produced by enrich-capabilities and a
+  project profile, produce a canonical feature catalog at
+  .meridian/product/scope/features.yaml using the 3-tier domain → capability →
+  feature hierarchy and the 5-point status vocabulary (planned | development |
+  rollout | released | cleanup). For greenfield projects the default status is
+  "planned" unless the project profile overrides it; for brownfield projects,
+  user-provided statuses are passed through and only unresolved statuses are
+  inferred. Emit a decision-manifest.yaml recording every status assignment or
+  taxonomy inference made, with tier and grounding source per entry, so the
+  orchestrator can drive the C18 tiered surfacing flow before generate-intent-epics
+  consumes features.yaml.
+
+input_contract:
+  - name: enriched_capabilities_path
+    type: path
+    required: true
+    description: >
+      Path to the enriched-capabilities.yaml produced by enrich-capabilities
+      in Stage 4 (e.g., .meridian/product/scope/enriched-capabilities.yaml).
+
+  - name: project_profile_path
+    type: path
+    required: true
+    description: >
+      Path to the project profile YAML (e.g.,
+      .meridian/product/specification/project-profile.yaml). Used to determine
+      default status logic (greenfield vs brownfield) and to read any
+      feature-status overrides the user declared in the profile.
+
+  - name: stm_output_base
+    type: path
+    required: true
+    description: >
+      Base path for writing output artifacts. features.yaml is written to
+      {stm_output_base}/scope/features.yaml and decision-manifest.yaml is
+      written to {stm_output_base}/scope/decision-manifest-manage-features.yaml.
+
+  - name: ltm_rules_feature_catalog_path
+    type: path
+    required: true
+    description: >
+      Path to the canonical feature-catalog rules document —
+      core/components/memory/standards/rules/feature-catalog.md (LTM). This file
+      defines authoring rules (3-tier hierarchy, ID regex, name format, 5-point
+      status enum, required fields, decision-manifest obligation). The skill
+      loads this file and enforces every rule against its output. When
+      ltm_context is present in the calling contract, the caller resolves the
+      actual path at runtime via ltm_context.core_base. Never hardcode the
+      source-repo path.
+
+output_contract:
+  - name: features_path
+    type: path
+    description: >
+      Absolute path to the written features.yaml file.
+      Typically {stm_output_base}/scope/features.yaml.
+
+  - name: features_count
+    type: integer
+    description: >
+      Total number of feature entries written across all domains and capabilities.
+
+  - name: decision_manifest_path
+    type: path
+    description: >
+      Absolute path to the written decision-manifest.yaml file.
+      Typically {stm_output_base}/scope/decision-manifest-manage-features.yaml.
+
+  - name: decisions_recorded
+    type: integer
+    description: >
+      Count of decision entries written to the manifest. Must be >= 1 when any
+      status was inferred (failure condition F3 fires when this is 0 despite
+      inferences being made).
+
+constraints:
+  - id: C1
+    rule: >
+      Feature IDs must not be invented. They must be copied verbatim from the
+      enriched capability record's feature_id field (as produced by
+      enrich-capabilities). Assigning a new ID that does not appear in
+      enriched-capabilities.yaml is a structural violation.
+
+  - id: C2
+    rule: >
+      For greenfield projects (project_profile.project_type == "greenfield" or
+      absent), the default status for every feature is "planned" unless the
+      project profile explicitly overrides it with a declared feature-status map.
+      For brownfield projects, user-provided statuses in the project profile are
+      used as-is; only features missing from the profile's status map receive
+      an inferred status (default "planned").
+
+  - id: C3
+    rule: >
+      Per-feature and per-capability status values must belong to the 5-point
+      enum: planned | development | rollout | released | cleanup. Any value
+      outside this set is a structural violation and must not be written to
+      features.yaml.
+
+  - id: C4
+    rule: >
+      Domain-level status is freeform and is NOT validated against the 5-point
+      enum. Domain-level status fields (e.g., "applied-and-evolving", "partial",
+      "live") reflect rollup prose and must be passed through unchanged when
+      present in the enriched record or project profile. Do not coerce domain
+      status into the 5-point vocab.
+
+  - id: C5
+    rule: >
+      This skill is not user-invocable. It is model-invocable only, called by
+      product-keeper during the /specify play Stage 4b. Direct user invocation
+      is a protocol violation.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      features.yaml is not written — the file is missing or empty after the
+      skill completes. This is an unconditional failure regardless of other
+      output.
+
+  - id: F2
+    condition: >
+      Any feature entry in features.yaml carries a status value outside the
+      5-point enum (planned | development | rollout | released | cleanup).
+      Domain-level status is exempt.
+
+  - id: F3
+    condition: >
+      decision-manifest.yaml is not written when at least one status was
+      inferred (i.e., the skill assigned a status not verbatim from a
+      user-provided override). Missing manifest when inferences were made
+      is a C19 / F15 structural violation.
+
+success_scenarios:
+  - id: S1
+    persona: Product Manager (greenfield project)
+    given: >
+      An enriched-capabilities.yaml with 23 enriched capabilities across 5
+      domains, a greenfield project profile (no pre-existing feature statuses),
+      and a stm_output_base pointing to the product scope directory.
+    then: >
+      features.yaml is written with all 85 features assigned status "planned",
+      organized in the 3-tier domain → capability → feature hierarchy. The
+      decision-manifest records 85 high-confidence decisions (one per feature,
+      tier: high, grounding_source: project_profile — greenfield default rule).
+      features_count returns 85, decisions_recorded returns 85.
+
+  - id: S2
+    persona: Product Manager (brownfield project)
+    given: >
+      An enriched-capabilities.yaml with enriched capabilities, and a brownfield
+      project profile that explicitly declares status overrides for a subset of
+      features (e.g., 20 features set to "released", 10 to "rollout"). The
+      remaining features have no declared status.
+    then: >
+      features.yaml is written with the 30 user-declared feature statuses passed
+      through unchanged and the remaining features assigned "planned" by inference.
+      The decision-manifest records entries only for inferred statuses (not for
+      user-declared ones). features_path and decision_manifest_path are both
+      present and non-empty in the output contract.
+
+authoring_rules:
+  - id: R1
+    rule: >
+      Feature IDs must match the regex ^[A-Z]{2,4}-F\d{3}$. The PREFIX (2–4
+      uppercase letters) must match the domain slug abbreviation declared in the
+      KB domain-taxonomy provenance header of the enriched record. For example,
+      Agentic Methodology → prefix AM, Engineering Observability → prefix EO,
+      AI Governance → prefix AG, Work Intelligence → prefix WI, Engineering
+      Experience → prefix EE. IDs not matching this regex must not be written.
+
+  - id: R2
+    rule: >
+      Feature name must be a noun phrase of 3–10 words. Verb phrases, imperative
+      phrases, or single nouns are not permitted. Example: "Profile-Based Auto-Triage"
+      (4 words, noun phrase) is valid. "Triage users" (verb phrase) is invalid.
+
+  - id: R3
+    rule: >
+      Every feature entry in features.yaml must carry all four required fields:
+      id, name, status, notes. Optional fields (evidence, gap_items,
+      target_milestone) may be present but are not required. An entry with any
+      required field missing or null is a structural violation.
+
+  - id: R4
+    rule: >
+      Map each enriched capability slug to the correct domain and capability
+      nesting by reading the KB domain-taxonomy provenance header on the enriched
+      record. The provenance header's domain field determines which domain node
+      the capability's features nest under. Do not flatten the 3-tier hierarchy.
+
+  - id: R5
+    rule: >
+      The 3-tier hierarchy shape is mandatory: domains[].capabilities[].features[].
+      Features must not appear at the domain or top level. Capabilities must not
+      appear at the feature level. Flattening the hierarchy (e.g., all features
+      as a single top-level list) is a structural violation.
