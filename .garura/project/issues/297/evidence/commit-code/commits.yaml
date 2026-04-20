@@ -1,0 +1,9 @@
+commits:
+  - hash: dc65043
+    type: docs
+    scope: claude-md
+    subject: reconcile garura paths, approval convention, and play pipeline rules (#297)
+    files:
+      - CLAUDE.md
+    pushed: true
+    remote: origin/fix/297-reconcile-claude-md-approval-convention

@@ -1,0 +1,12 @@
+issue:
+  number: 297
+  title: "fix(claude.md): reconcile approval convention and mirror skill-build rule"
+  labels:
+    - defect
+  state: open
+  body_summary: "Reconcile CLAUDE.md drift surfaced by #265: (1) `product-keeper.md` frames Tether/Vanish as personal convention while project CLAUDE.md §3 mandates it as protocol; (2) §3 omits `Orbit` though flows use it; (3) mirror the `/create-play only"
+  url: "https://github.com/kapilvirenahuja/garura/issues/297"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: fix
