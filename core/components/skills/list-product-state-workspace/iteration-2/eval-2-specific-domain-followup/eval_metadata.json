@@ -1,0 +1,25 @@
+{
+  "eval_id": 2,
+  "eval_name": "specific-domain-followup",
+  "prompt": "Give me the product state tree from .garura/product/scope/features.yaml. Do NOT summarize or narrate -- just the tree. Preserve YAML order, don't sort. If a feature has no `issue` field, skip the `: [#123]` slot entirely (no empty brackets).",
+  "assertions": [
+    {
+      "text": "No feature row contains '[#' (issue slot entirely omitted)"
+    },
+    {
+      "text": "No feature row contains '[]' or empty brackets for the issue slot"
+    },
+    {
+      "text": "Every feature row ends with a status bracket"
+    },
+    {
+      "text": "Features appear in document order from features.yaml (AM-F001 before AM-F002, EO-F001 before EO-F005)"
+    },
+    {
+      "text": "Output is pure tree \u2014 no headers, no prose, no totals, no 'Summary:' line"
+    },
+    {
+      "text": "Uses exact 2-space indent per level \u2014 not tabs, not 4 spaces, not tree-drawing characters like \u251c\u2500\u2500 or \u2514\u2500\u2500"
+    }
+  ]
+}

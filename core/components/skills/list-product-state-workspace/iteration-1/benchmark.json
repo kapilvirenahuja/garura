@@ -1,0 +1,363 @@
+{
+  "metadata": {
+    "skill_name": "list-product-state",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-04-20T01:12:16Z",
+    "evals_run": [
+      0,
+      1,
+      2
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output contains feature AM-F001 on its own row",
+          "passed": true,
+          "evidence": "found AM-F001 row: True"
+        },
+        {
+          "text": "Every feature row ends with a bracketed status like [released], [rollout], [planned], [development], or [cleanup]",
+          "passed": true,
+          "evidence": "78 feature rows; all end with status bracket=True"
+        },
+        {
+          "text": "No feature row contains '[#' (no feature has an issue field, so the issue slot must be entirely omitted)",
+          "passed": true,
+          "evidence": "no [# substring"
+        },
+        {
+          "text": "Empty capabilities l4-signal-driven and l5-goal-driven render '(no features yet)'",
+          "passed": true,
+          "evidence": "placeholder present"
+        },
+        {
+          "text": "Indentation uses exactly 2 spaces per level (domain col 0, capability col 2, feature col 4)",
+          "passed": true,
+          "evidence": "domain=True cap=True feat=True"
+        },
+        {
+          "text": "Output contains no summary line (no 'features_total', no 'Summary:', no total counts rolled up)",
+          "passed": true,
+          "evidence": "no summary markers"
+        },
+        {
+          "text": "Domain and capability rows contain only the slug \u2014 no status in brackets on those rows",
+          "passed": true,
+          "evidence": "domain rows=5 cap rows=23 all clean of brackets=True"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Casual phrasing still triggers the structured tree format (not prose summary)",
+          "passed": true,
+          "evidence": "feat_rows=78 bullets=False headings=False"
+        },
+        {
+          "text": "Output contains the domain slug 'agentic-methodology' as a top-level row",
+          "passed": true,
+          "evidence": "top-level agentic-methodology row"
+        },
+        {
+          "text": "Output contains the domain slug 'engineering-experience' as a top-level row",
+          "passed": true,
+          "evidence": "top-level engineering-experience row"
+        },
+        {
+          "text": "Status strings appear verbatim in brackets (e.g., [rollout] not [partial], [released] not [live])",
+          "passed": true,
+          "evidence": "no legacy status strings"
+        },
+        {
+          "text": "Empty capabilities render '(no features yet)'",
+          "passed": true,
+          "evidence": "placeholder present"
+        },
+        {
+          "text": "No prose narration or bullet-list summary wraps the tree",
+          "passed": true,
+          "evidence": "no headings or bullets"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No feature row contains '[#' (issue slot entirely omitted)",
+          "passed": true,
+          "evidence": "no [# substring"
+        },
+        {
+          "text": "No feature row contains '[]' or empty brackets for the issue slot",
+          "passed": true,
+          "evidence": "no empty brackets in feature rows"
+        },
+        {
+          "text": "Every feature row ends with a status bracket",
+          "passed": true,
+          "evidence": "78 feature rows; all end with status bracket=True"
+        },
+        {
+          "text": "Features appear in document order from features.yaml (AM-F001 before AM-F002, EO-F001 before EO-F005)",
+          "passed": true,
+          "evidence": "document order preserved"
+        },
+        {
+          "text": "Output is pure tree \u2014 no headers, no prose, no totals, no 'Summary:' line",
+          "passed": true,
+          "evidence": "no summary markers"
+        },
+        {
+          "text": "Uses exact 2-space indent per level \u2014 not tabs, not 4 spaces, not tree-drawing characters like \u251c\u2500\u2500 or \u2514\u2500\u2500",
+          "passed": true,
+          "evidence": "domain=True cap=True feat=True"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.14285714285714285,
+        "passed": 1,
+        "failed": 6,
+        "total": 7,
+        "time_seconds": 0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Output contains feature AM-F001 on its own row",
+          "passed": false,
+          "evidence": "found AM-F001 row: False"
+        },
+        {
+          "text": "Every feature row ends with a bracketed status like [released], [rollout], [planned], [development], or [cleanup]",
+          "passed": false,
+          "evidence": "0 feature rows; all end with status bracket=False"
+        },
+        {
+          "text": "No feature row contains '[#' (no feature has an issue field, so the issue slot must be entirely omitted)",
+          "passed": true,
+          "evidence": "no [# substring"
+        },
+        {
+          "text": "Empty capabilities l4-signal-driven and l5-goal-driven render '(no features yet)'",
+          "passed": false,
+          "evidence": "placeholder missing"
+        },
+        {
+          "text": "Indentation uses exactly 2 spaces per level (domain col 0, capability col 2, feature col 4)",
+          "passed": false,
+          "evidence": "domain=False cap=False feat=False"
+        },
+        {
+          "text": "Output contains no summary line (no 'features_total', no 'Summary:', no total counts rolled up)",
+          "passed": false,
+          "evidence": "summary markers present"
+        },
+        {
+          "text": "Domain and capability rows contain only the slug \u2014 no status in brackets on those rows",
+          "passed": false,
+          "evidence": "domain rows=0 cap rows=0 all clean of brackets=True"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.16666666666666666,
+        "passed": 1,
+        "failed": 5,
+        "total": 6,
+        "time_seconds": 0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Casual phrasing still triggers the structured tree format (not prose summary)",
+          "passed": false,
+          "evidence": "feat_rows=0 bullets=True headings=True"
+        },
+        {
+          "text": "Output contains the domain slug 'agentic-methodology' as a top-level row",
+          "passed": false,
+          "evidence": "top-level agentic-methodology row"
+        },
+        {
+          "text": "Output contains the domain slug 'engineering-experience' as a top-level row",
+          "passed": false,
+          "evidence": "top-level engineering-experience row"
+        },
+        {
+          "text": "Status strings appear verbatim in brackets (e.g., [rollout] not [partial], [released] not [live])",
+          "passed": true,
+          "evidence": "no legacy status strings"
+        },
+        {
+          "text": "Empty capabilities render '(no features yet)'",
+          "passed": false,
+          "evidence": "placeholder missing"
+        },
+        {
+          "text": "No prose narration or bullet-list summary wraps the tree",
+          "passed": false,
+          "evidence": "headings or bullets present"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "No feature row contains '[#' (issue slot entirely omitted)",
+          "passed": true,
+          "evidence": "no [# substring"
+        },
+        {
+          "text": "No feature row contains '[]' or empty brackets for the issue slot",
+          "passed": true,
+          "evidence": "no empty brackets in feature rows"
+        },
+        {
+          "text": "Every feature row ends with a status bracket",
+          "passed": false,
+          "evidence": "0 feature rows; all end with status bracket=False"
+        },
+        {
+          "text": "Features appear in document order from features.yaml (AM-F001 before AM-F002, EO-F001 before EO-F005)",
+          "passed": false,
+          "evidence": "document order preserved"
+        },
+        {
+          "text": "Output is pure tree \u2014 no headers, no prose, no totals, no 'Summary:' line",
+          "passed": true,
+          "evidence": "no summary markers"
+        },
+        {
+          "text": "Uses exact 2-space indent per level \u2014 not tabs, not 4 spaces, not tree-drawing characters like \u251c\u2500\u2500 or \u2514\u2500\u2500",
+          "passed": false,
+          "evidence": "domain=False cap=False feat=False"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.2698,
+        "stddev": 0.1997,
+        "min": 0.1429,
+        "max": 0.5
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      },
+      "tokens": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.73",
+      "time_seconds": "+0.0",
+      "tokens": "+0"
+    }
+  },
+  "notes": []
+}

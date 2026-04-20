@@ -1,0 +1,25 @@
+{
+  "eval_id": 1,
+  "eval_name": "natural-language-where-are-we",
+  "prompt": "where are we on the product right now? i want to see what's built vs planned. features live at .garura/product/scope/features.yaml",
+  "assertions": [
+    {
+      "text": "Casual phrasing still triggers the structured tree format (not prose summary)"
+    },
+    {
+      "text": "Output contains the domain slug 'agentic-methodology' as a top-level row"
+    },
+    {
+      "text": "Output contains the domain slug 'engineering-experience' as a top-level row"
+    },
+    {
+      "text": "Status strings appear verbatim in brackets (e.g., [rollout] not [partial], [released] not [live])"
+    },
+    {
+      "text": "Empty capabilities render '(no features yet)'"
+    },
+    {
+      "text": "No prose narration or bullet-list summary wraps the tree"
+    }
+  ]
+}
