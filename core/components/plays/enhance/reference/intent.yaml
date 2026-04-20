@@ -3,7 +3,8 @@ intent: |
   the user via targeted Q&A, assemble a context package from LTM/KB/codebase,
   assess whether the scope is right-sized for this play (redirect to fix-it if
   too small, /prepare if too big), design an approach with tasks and
-  self-evaluation criteria, implement autonomously, have a judge independently
+  evaluation criteria, implement autonomously, have an independent tester agent
+  verify the implementation against those criteria, have a judge independently
   rate solution confidence, and ship via PR with full review. Two approval
   gates: a configurable mid-checkpoint after approach design (default OFF), and
   a mandatory PR checkpoint after review.
@@ -80,7 +81,7 @@ constraints:
       Approach design produces approach.yaml with: problem_statement,
       solution_summary, files_to_create, files_to_modify, connections
       (how new code integrates with existing), tasks (ordered
-      implementation steps), evals (self-evaluation criteria with
+      implementation steps), evals (evaluation criteria with
       pass/fail conditions), risks (each risk entry must carry:
       description (string), mitigation (string), type
       (technical|business|architectural), action (eval-driven|approval-
@@ -110,7 +111,7 @@ constraints:
       ltm_reference to the path; if not found, set ltm_reference to null.
       Eval-driven propagation: for each risk with action:eval-driven, all
       entries in generated_evals MUST be appended to the top-level evals
-      list in approach.yaml at approach design time so C13 self-eval
+      list in approach.yaml at approach design time so the C13 tester verdict
       captures them. Backward compatibility: risks without explicit
       type/action in existing approach.yaml files produced before this
       constraint was active default to type:technical, action:monitor-only
@@ -154,8 +155,13 @@ constraints:
 
   - id: C11
     rule: >
-      code-builder receives approach.yaml + context ONLY. Does not receive
-      evals, judge reports, or feature specs. Context isolation preserved.
+      Two distinct agent roles with disjoint input contracts. Implementer
+      (code-builder) receives impl-context.md + understanding.md ONLY —
+      approach.yaml is not dispatched; evals are stripped before dispatch.
+      Tester (code-builder) receives test-context.md ONLY — does not receive
+      impl-context.md, understanding.md, build-report.yaml, approach.yaml, or
+      any implementer output. Neither contract may include the other's artifact
+      path.
 
   - id: C12
     rule: >
@@ -168,14 +174,19 @@ constraints:
 
   - id: C13
     rule: >
-      After implementation, run self-evaluation using evals from
-      approach.yaml. Record results.
+      After implementation, orchestrator dispatches tester agent with
+      test-context.md only. Tester runs the evaluation against code on disk
+      and writes verification-report.yaml at
+      {stm_base}/{issue}/evidence/enhance/verification-report.yaml with
+      per-eval PASS/FAIL and evidence. Play gates the fix loop on tester
+      verdict — never on builder self-report. Any reference to self-eval.yaml
+      is removed.
 
   - id: C14
     rule: >
       Judge independently rates solution confidence on 0-1 scale. Judge
       receives ONLY the codebase and approach.yaml — not builder prompts,
-      not self-eval results.
+      not the tester's verification-report.yaml.
 
   - id: C15
     rule: >
@@ -195,6 +206,17 @@ constraints:
       overall_confidence per ER-4: any blocker-classified concern →
       overall_confidence ≤ 0.55; else reflect quality across per-area
       assessments."
+
+  - id: C22
+    rule: >
+      Orchestrator derives impl-context.md and test-context.md from
+      approach.yaml before any agent dispatch. impl-context.md must contain
+      solution_summary, tasks, files_to_create, files_to_modify, connections
+      — and must NOT contain evals, risks, or alternatives_considered.
+      test-context.md must contain the evals list with pass/fail criteria and
+      task behavioral descriptions — and must NOT contain file paths from
+      files_to_create or files_to_modify or architectural content from
+      connections. Derivation is orchestrator-direct — no agent performs it.
 
 # ═══════════════════════════════════════════════════════════════════════════
 # CONSTRAINTS — PR & Quality
@@ -264,8 +286,8 @@ failure_conditions:
 
   - id: F10
     condition: >
-      Judge receives builder prompts, self-eval results, or implementation
-      rationale — context isolation violated.
+      Judge receives builder prompts, verification-report.yaml, or
+      implementation rationale — context isolation violated.
 
   - id: F11
     condition: >
@@ -275,6 +297,21 @@ failure_conditions:
       --approve-plan flag, unlike F8 which only applies when --approve-plan
       is set. F8 and F11 are distinct failure conditions and can both be
       violated on the same run.
+
+  - id: F12
+    condition: >
+      Implementer receives test-context.md, evals, or approach.yaml directly
+      — context isolation violated.
+
+  - id: F13
+    condition: >
+      Tester receives impl-context.md, understanding.md, build-report.yaml,
+      or any implementer output — context isolation violated.
+
+  - id: F14
+    condition: >
+      Play gates fix loop on builder self-report instead of tester verdict in
+      verification-report.yaml.
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SCENARIOS
@@ -337,11 +374,13 @@ scenarios:
   - id: S7
     persona: "Developer with eval failures"
     given: >
-      Self-evaluation finds 2 of 5 evals failing after implementation.
+      Tester reports 2 of 5 evals failing in verification-report.yaml.
     then: >
-      Fix loop iterates: builder reads remediation, fixes issues,
-      re-evaluates. After max 3 iterations, if still failing, structured
-      failure report presented.
+      Tester writes verification-report.yaml showing 2 of 5 evals FAIL. Fix
+      loop iterates: orchestrator derives remediation-{N}.md from failing eval
+      IDs, re-dispatches implementer with impl-context.md + understanding.md +
+      remediation-{N}.md. After max 3 iterations, if tester still reports
+      failures, structured failure report presented.
 
   - id: S8
     persona: "Developer with an architectural risk flagged approval-required"
