@@ -231,6 +231,33 @@ constraints:
       inferred decisions and writes no manifest is a structural
       violation. See Defect 23.
 
+  - id: C20
+    rule: >
+      Stage 4b (manage-features) runs as a mandatory step after Stage 4
+      (enrich-capabilities) completes and BEFORE Stage 5 (generate-intent-epics)
+      begins. product-keeper dispatches the manage-features skill with:
+      input contract — enriched_capabilities_path (from Stage 4 output),
+      project_profile_path, stm_output_base; output contract — features_path
+      (written to {product_base}/scope/features.yaml), features_count,
+      decision_manifest_path (written to
+      {product_base}/scope/decision-manifest-manage-features.yaml),
+      decisions_recorded. The task_id for this dispatch is
+      "specify-stage-4b-features". Omitting this step leaves generate-intent-epics
+      without a verified feature catalog and is a structural violation.
+
+  - id: C21
+    rule: >
+      Stage 4c (decision-surfacing for manage-features) runs immediately after
+      Stage 4b completes and BEFORE Stage 5 (generate-intent-epics) begins. The
+      orchestrator reads decision-manifest-manage-features.yaml and drives the
+      C18 tiered presentation flow (HIGH batch confirm → MID batch with questions
+      → LOW one-by-one). Every manifest entry must carry a non-null user_response
+      before Stage 5 is dispatched. generate-intent-epics (Stage 5) receives
+      features_path as a required input — the canonical path is
+      {product_base}/scope/features.yaml. Missing features_path in the Stage 5
+      dispatch contract is a structural violation; generate-intent-epics uses it
+      to cross-check epic KB IDs against the declared product feature catalog.
+
 failure_conditions:
   - id: F1
     condition: >

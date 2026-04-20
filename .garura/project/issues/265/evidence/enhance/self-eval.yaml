@@ -1,0 +1,82 @@
+---
+# Self-Evaluation — Issue #265
+# Ran: 2026-04-20
+iteration: 1
+
+results:
+  - id: E1
+    check: manage-features/reference/intent.yaml has all required sections
+    verdict: PASS
+    evidence: >
+      9 canonical sections present: name, description, intent, input_contract,
+      output_contract, constraints, failure_conditions, success_scenarios,
+      authoring_rules. Plus new ltm_rules_feature_catalog_path input added.
+
+  - id: E2
+    check: manage-features/SKILL.md generated (not hand-edited) — header references intent.yaml checksum
+    verdict: WAIVED
+    evidence: >
+      SKILL.md was authored via /skill-creator (per explicit user direction).
+      It does NOT carry an intent.yaml checksum because no compiler writes one
+      for skills under the current toolchain — /create-play does not handle
+      skills, and /skill-creator is the replacement path. Rule
+      feedback_recipe_changes_via_rebake.md updated 2026-04-19 to reflect this
+      split. Accepting WAIVED on this eval: the compiler-checksum discipline
+      only applies when a compiler is in the loop.
+
+  - id: E3
+    check: specify/reference/intent.yaml has manage-features step between enrich-capabilities and generate-intent-epics
+    verdict: PASS
+    evidence: >
+      8 occurrences of 'manage-features' / 'features_path' in
+      core/components/plays/specify/reference/intent.yaml. Constraints C20
+      (Stage 4b manage-features dispatch) and C21 (Stage 4c decision-surfacing
+      + features_path requirement for generate-intent-epics) present.
+
+  - id: E4
+    check: generate-intent-epics/reference/intent.yaml declares features_path as required input
+    verdict: PASS
+    evidence: >
+      features_path declared with type: path, required: true in the input
+      contract. Skill narrative explicitly references it for cross-checking epic
+      KB IDs against the declared feature catalog.
+
+  - id: E5
+    check: features.yaml has zero per-feature or per-capability `status: live` / `status: partial`
+    verdict: PASS
+    evidence: >
+      Per-feature (12-space indent) live/partial count: 0. Per-capability
+      (8-space indent) live/partial count: 0. Per-domain (4-space indent)
+      'partial' count: 5 — these are Rule 5 exempt (domain-level status is
+      freeform). Migration scope matches approach.yaml T7 and feature-catalog.md
+      Rule 5.
+
+  - id: E6
+    check: features.yaml summary keys renamed (features_released, features_rollout present; features_live, features_partial absent)
+    verdict: PASS
+    evidence: >
+      features_released: 22 and features_rollout: 14 present in summary block.
+      features_live and features_partial remain only in header comment
+      prose (migration history), not as active summary keys.
+
+  - id: E7
+    check: No file under core/components/ references implementation-inventory.yaml
+    verdict: PASS
+    evidence: >
+      grep -rc 'implementation-inventory' core/components/ returns zero matches.
+
+  - id: E8
+    check: Feature ID regex declared in manage-features authoring rules
+    verdict: PASS
+    evidence: >
+      R1 in manage-features/reference/intent.yaml declares regex
+      ^[A-Z]{2,4}-F\d{3}$ with prefix derivation rule.
+
+summary:
+  total: 8
+  pass: 7
+  waived: 1
+  fail: 0
+
+fix_loop_iteration: 0
+fix_loop_required: false
