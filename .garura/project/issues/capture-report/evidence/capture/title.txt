@@ -1,1 +1,1 @@
-[BUG] tech-designer authors fix-it artifacts inline, bypassing skill-delegation principle
+[DEF][Medium] /create-play: templates not enforced in compilation; compilation metadata sits at top of SKILL.md and burns tokens

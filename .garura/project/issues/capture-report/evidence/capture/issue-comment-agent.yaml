@@ -2,3 +2,6 @@ status: dispatched
 dispatched_at: "2026-04-19T00:00:00Z"
 task_id: file-github-issue
 type: bug
+issue_number: 302
+issue_url: "https://github.com/kapilvirenahuja/garura/issues/302"
+result_path: ".garura/project/issues/capture-report/evidence/capture/issue-result.yaml"
