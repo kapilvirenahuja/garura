@@ -1,0 +1,13 @@
+issue:
+  number: 302
+  title: "[BUG] tech-designer authors fix-it artifacts inline, bypassing skill-delegation principle"
+  labels:
+    - defect
+    - create-play
+  state: "open"
+  body_summary: "tech-designer violates the Meridian principle \"agents collect context, skills produce artifacts\" in the /fix-it play. In Step 3 (RCA & Design), tech-designer authors four domain artifacts inline via the"
+  url: "https://github.com/kapilvirenahuja/garura/issues/302"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "fix"

@@ -1,0 +1,77 @@
+commits:
+  - group_id: G1
+    hash: e2b04ef
+    type: fix
+    scope: fix-it
+    subject: "enforce skill delegation — split JSON-contract vs direct-invocation modes (#302)"
+    message: "fix(fix-it): enforce skill delegation — split JSON-contract vs direct-invocation modes (#302)"
+    issue: 302
+    files:
+      - core/components/agents/tech-designer.md
+      - core/components/plays/fix-it/SKILL.md
+
+  - group_id: G2
+    hash: 4175cda
+    type: chore
+    scope: features
+    subject: "capture closed issues #203/#204/#276 as gap_items (#302)"
+    message: "chore(features): capture closed issues #203/#204/#276 as gap_items (#302)"
+    issue: 302
+    files:
+      - .garura/product/scope/features.yaml
+
+  - group_id: G3
+    hash: a5d8a30
+    type: chore
+    scope: stm
+    subject: "record fix-it evidence for #302 (#302)"
+    message: "chore(stm): record fix-it evidence for #302 (#302)"
+    issue: 302
+    files:
+      - .garura/project/issues/302/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/302/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/302/evidence/fix-it/branch-result.yaml
+      - .garura/project/issues/302/evidence/fix-it/design.yaml
+      - .garura/project/issues/302/evidence/fix-it/implementation-report.yaml
+      - .garura/project/issues/302/evidence/fix-it/issue-comment-agent.yaml
+      - .garura/project/issues/302/evidence/fix-it/issue-read.yaml
+      - .garura/project/issues/302/evidence/fix-it/rca.yaml
+      - .garura/project/issues/302/evidence/fix-it/regression-test-path.yaml
+      - .garura/project/issues/302/evidence/fix-it/regression-test-verdict.yaml
+      - .garura/project/issues/302/evidence/fix-it/regression-test-verification.yaml
+      - .garura/project/issues/302/evidence/fix-it/regression-test.yaml
+      - .garura/project/issues/302/evidence/fix-it/resolution-trace.yaml
+      - .garura/project/issues/302/status/fix-it.json
+
+  - group_id: G4
+    hash: 1ef7049
+    type: chore
+    scope: stm
+    subject: "record leftover fix-it evidence from #310 (#302)"
+    message: "chore(stm): record leftover fix-it evidence from #310 (#302)"
+    issue: 302
+    note: "cross-issue housekeeping — files belong to closed #310, committed under #302 as only available open target"
+    files:
+      - .garura/project/issues/310/evidence/commit-code/commits.yaml
+      - .garura/project/issues/310/evidence/create-pr/analysis.yaml
+      - .garura/project/issues/310/evidence/create-pr/pr-record.yaml
+
+  - group_id: G5
+    hash: 3403bae
+    type: chore
+    scope: engine
+    subject: "update engine state after fix-it run (#302)"
+    message: "chore(engine): update engine state after fix-it run (#302)"
+    issue: 302
+    files:
+      - .garura/core/engine-state.json
+
+summary:
+  total_commits: 5
+  branch: fix/302-tech-designer-inline-artifacts
+  working_tree_clean: true
+  files_uncommitted: []
+  se_validation:
+    SE-2: "PASS — all 5 groups committed, 0 files left uncommitted"
+    SE-3: "PASS — all commits reference open issue #302"
+    SE-5: "PASS — working tree clean after all commits"

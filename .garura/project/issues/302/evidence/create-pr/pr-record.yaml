@@ -1,0 +1,13 @@
+result:
+  success: true
+  pr:
+    number: 314
+    url: "https://github.com/kapilvirenahuja/garura/pull/314"
+    state: "open"
+    title: "fix(fix-it): enforce skill delegation — split JSON-contract vs direct-invocation modes"
+  checklist:
+    required_count: 9
+    optional_count: 3
+  issue_linked: 302
+  base_branch: main
+  head_branch: fix/302-tech-designer-inline-artifacts

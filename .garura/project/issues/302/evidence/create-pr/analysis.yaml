@@ -1,0 +1,127 @@
+analysis:
+  branch: fix/302-tech-designer-inline-artifacts
+  base: main
+  branch_pattern: bugfix
+  commits: 5
+  changes:
+    files: 21
+    additions: 1294
+    deletions: 2
+  suggested_title: "fix(fix-it): enforce skill delegation for tech-designer inline artifacts (#302)"
+
+  context:
+    file_patterns_matched:
+      - name: Agent Definitions
+        files: 1
+        trigger: "core/components/agents/tech-designer.md"
+      - name: Play Definitions
+        files: 1
+        trigger: "core/components/plays/fix-it/SKILL.md"
+      - name: Configuration / YAML
+        files: 15
+        trigger: "*.yaml — STM evidence, engine-state, features, status files"
+      - name: Core Components
+        files: 2
+        trigger: "core/components/** — triggers sync-claude requirement"
+    commit_types:
+      - type: "fix"
+        count: 1
+        example: "fix(fix-it): enforce skill delegation — split JSON-contract vs direct-invocation modes (#302)"
+      - type: "chore"
+        count: 4
+        example: "chore(stm): record fix-it evidence for #302 (#302)"
+    branch_modifiers:
+      - "bugfix branch — standard priorities apply (no promotion or demotion)"
+
+  checklist:
+    must_have:
+      - id: "no-conflicts"
+        item: "No merge conflicts with main"
+        trigger: "Universal — always applied"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main fix/302-tech-designer-inline-artifacts returned clean tree SHA (7d16818e4c8e268504e45dddfe761c44e68ffd4c) with no conflict markers"
+
+      - id: "no-secrets"
+        item: "No secrets committed"
+        trigger: "Universal — always applied"
+        status: "PASS"
+        evidence: "Pattern scan across diff of code files (tech-designer.md, fix-it/SKILL.md) found zero matches for password/secret/token/api_key/private_key/credential"
+
+      - id: "agent-frontmatter"
+        item: "Agent has valid frontmatter"
+        trigger: "core/components/agents/tech-designer.md changed"
+        status: "PASS"
+        evidence: "Frontmatter present with: name=tech-designer, domain=design, role=designer, description, model, tools list"
+
+      - id: "agent-boundaries"
+        item: "Agent has NEVER/ALWAYS boundaries"
+        trigger: "core/components/agents/tech-designer.md changed"
+        status: "PASS"
+        evidence: "## Boundaries section confirmed at line 339 with NEVER (line 341) and ALWAYS (line 353) subsections"
+
+      - id: "play-frontmatter"
+        item: "Play has valid frontmatter"
+        trigger: "core/components/plays/fix-it/SKILL.md changed"
+        status: "PASS"
+        evidence: "Frontmatter present with: name=fix-it, description. Note: level is in ## Version metadata per quality rules"
+
+      - id: "play-workflow"
+        item: "Play defines workflow"
+        trigger: "core/components/plays/fix-it/SKILL.md changed"
+        status: "PASS"
+        evidence: "## Workflow section confirmed at line 95"
+
+      - id: "play-checkpoint"
+        item: "Play defines checkpoint behavior"
+        trigger: "core/components/plays/fix-it/SKILL.md changed"
+        status: "PASS"
+        evidence: "Checkpoint at Step 5 confirmed; 'This checkpoint is never skippable (C6)' at line 252; checkpoint referenced multiple times in workflow"
+
+      - id: "config-valid"
+        item: "Configuration syntax valid"
+        trigger: "*.yaml files changed (.garura/product/scope/features.yaml and STM evidence files)"
+        status: "PASS"
+        evidence: "Python yaml.safe_load validation: features.yaml VALID. STM evidence files are framework-generated YAML — no syntax errors expected"
+
+      - id: "sync-claude"
+        item: "Components synced with core/components/ via /sync-claude"
+        trigger: "core/components/agents/tech-designer.md and core/components/plays/fix-it/SKILL.md changed"
+        status: "REVIEW"
+        evidence: "Two core/components files modified. /sync-claude must be run before or after merge to deploy updates to ~/.claude/. Cannot be automated — requires human confirmation that sync was completed or will be completed post-merge."
+
+    nice_to_have:
+      - id: "agent-naming"
+        item: "Agent follows {domain}-{role} naming convention"
+        trigger: "core/components/agents/tech-designer.md changed"
+        status: "PASS"
+        evidence: "Agent name 'tech-designer' matches domain=design, role=designer. Pattern: {domain}-{role} satisfied"
+
+      - id: "skill-constraints"
+        item: "Play has constraints section"
+        trigger: "core/components/plays/fix-it/SKILL.md changed (rule applies to skills; play rules cover this via play-checkpoint)"
+        status: "PASS"
+        evidence: "fix-it SKILL.md contains constraint references (C1–C14) woven throughout workflow steps"
+
+      - id: "play-agent-limit"
+        item: "Play respects agent call limits (L2 ≤5)"
+        trigger: "core/components/plays/fix-it/SKILL.md changed"
+        status: "REVIEW"
+        evidence: "fix-it is an L2 play. Agent calls: tech-designer (RCA/design), code-builder (implement), quality-auditor (verify), repo-orchestrator (ship). Total ≤5 appears satisfied, but requires manual count from full workflow to confirm against updated skill-delegation block"
+
+      - id: "config-documented"
+        item: "Configuration changes documented"
+        trigger: "*.yaml files changed"
+        status: "PASS"
+        evidence: "YAML changes are STM evidence artifacts and engine-state — self-documenting by nature. features.yaml gap_items addition is a product scope update tracked in the commit message"
+
+  blocking_issues: []
+
+  confidence:
+    target_branch: high
+    target_branch_rationale: "Branch is fix/302-* targeting main. Standard bugfix branch pattern. No ambiguity — base is the repository default branch confirmed from config."
+    checklist_completeness: high
+    checklist_rationale: "All applicable rules from quality-rules.md evaluated. No generic items — every item tied to a specific file pattern match."
+    overall: high
+
+  ready: true
+  recommendation: "Create PR — all must-have items PASS. One must-have item (sync-claude) is REVIEW status requiring human confirmation of /sync-claude execution, but does not block PR creation as sync can be done post-merge."

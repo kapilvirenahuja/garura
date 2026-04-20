@@ -1,0 +1,22 @@
+checks:
+  C2_pr_exists:
+    status: PASS
+    evidence: "PR #314 exists on kapilvirenahuja/garura — state: OPEN"
+  C3_clean_tree:
+    status: PASS
+    evidence: "git status --porcelain shows only untracked files (?? entries); no modified or staged changes"
+  C4_no_conflicts:
+    status: PASS
+    evidence: "mergeable: MERGEABLE, mergeStateStatus: CLEAN"
+
+pr:
+  number: 314
+  url: "https://github.com/kapilvirenahuja/garura/pull/314"
+  title: "fix(fix-it): enforce skill delegation — split JSON-contract vs direct-invocation modes"
+  state: OPEN
+  base: main
+  head: fix/302-tech-designer-inline-artifacts
+  mergeable: MERGEABLE
+  merge_state_status: CLEAN
+
+ready: true

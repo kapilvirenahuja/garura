@@ -1,0 +1,19 @@
+pr_number: 314
+merge_sha: b7c498d
+branch_deleted: true
+base_branch: main
+status: merged
+
+details:
+  merge_strategy: default (fast-forward)
+  feature_branch: fix/302-tech-designer-inline-artifacts
+  local_branch_deleted: true
+  remote_branch_deleted: true
+  remote_deletion_note: "Platform had already deleted remote branch — treated as success per C6"
+  local_checkout: main
+  local_base_up_to_date: true
+
+evals:
+  SE-2_branch_deleted: PASS
+  SE-3_checkout_on_base: PASS
+  SE-5_pr_merged_on_platform: PASS
