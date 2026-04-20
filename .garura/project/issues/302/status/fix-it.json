@@ -1,0 +1,34 @@
+{
+  "play": "garura:fix-it",
+  "issue": "302",
+  "started_at": "2026-04-20T23:40:00Z",
+  "tasks": {
+    "validate-issue": { "status": "completed", "completed_at": "2026-04-20T23:40:00Z" },
+    "create-branch": { "status": "completed", "completed_at": "2026-04-20T23:41:00Z" },
+    "rca-and-design": { "status": "completed", "completed_at": "2026-04-20T23:51:00Z" },
+    "prepare-checkpoint": { "status": "completed", "completed_at": "2026-04-20T23:52:00Z" },
+    "approval-gate": { "status": "completed", "tether_received_at": "2026-04-20T23:55:00Z" },
+    "issue-comment-dispatch": { "status": "in_progress", "dispatched_at": "2026-04-20T23:55:30Z" },
+    "implement-fix": { "status": "pending" },
+    "verify-fix": { "status": "pending" },
+    "ship": { "status": "pending" },
+    "scenario-evals": { "status": "pending" },
+    "evidence-report": { "status": "pending" }
+  },
+  "task_list": [
+    {
+      "id": "task-1",
+      "description": "Edit core/components/agents/tech-designer.md line 70 — split JSON-contract vs direct-invocation mode in step 5",
+      "status": "pending",
+      "retry_count": 0,
+      "regression_test_path": ".garura/project/issues/302/evidence/fix-it/regression-test.yaml"
+    },
+    {
+      "id": "task-2",
+      "description": "Edit core/components/plays/fix-it/SKILL.md — insert Skill delegation (mandatory) paragraph in Step 3 naming draft-rca, draft-fix-design, author-regression-test",
+      "status": "pending",
+      "retry_count": 0,
+      "regression_test_path": ".garura/project/issues/302/evidence/fix-it/regression-test.yaml"
+    }
+  ]
+}
