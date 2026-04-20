@@ -1,0 +1,43 @@
+issue: 258
+iteration: 1
+evals:
+  - id: E1
+    description: intent.yaml C11 names two distinct agent roles with disjoint contracts.
+    verdict: PASS
+    evidence: |
+      grep -c 'implementer\|tester' intent.yaml → 10 occurrences.
+      C11 (lines 155-163) names both "Implementer (code-builder)" and "Tester (code-builder)".
+      Implementer contract lists impl-context.md + understanding.md; excludes test-context.md, approach.yaml, evals.
+      Tester contract lists test-context.md only; excludes impl-context.md, understanding.md, build-report.yaml, approach.yaml, implementer output.
+      Final sentence: "Neither contract may include the other's artifact path."
+
+  - id: E2
+    description: intent.yaml C13 dispatches tester agent; no play-direct self-eval.
+    verdict: PASS
+    evidence: |
+      C13 (lines 174-182) rule text: "orchestrator dispatches tester agent with test-context.md only. Tester runs the evaluation against code on disk and writes verification-report.yaml..."
+      Contains phrases: "dispatches tester agent", "verification-report.yaml", "Play gates the fix loop on tester verdict — never on builder self-report".
+      The only remaining "self-eval" string in C13 is the meta-sentence "Any reference to self-eval.yaml is removed." which documents the edit itself.
+
+  - id: E3
+    description: SKILL.md after rebuild references correct artifacts and excludes self-eval.
+    verdict: PASS
+    evidence: |
+      grep -c 'impl-context\.md\|test-context\.md\|verification-report\.yaml' SKILL.md → 30 occurrences.
+      grep -c 'self-eval' SKILL.md → 2 occurrences, both in negation contexts ("No self-eval.yaml is produced." and "no self-eval.yaml is referenced or created by the play").
+      SKILL.md intent_hash = sha256:2bc05173e8632daddfa6fdaa20128d36bab96e3fe170ba25a4be1903e6d87269 matches current intent.yaml hash.
+      New Step (derivation), split Step 8 (implementer) / Step 9 (tester) confirmed present.
+
+  - id: E4
+    description: intent.yaml C22 is present and specifies orchestrator-direct derivation.
+    verdict: PASS
+    evidence: |
+      C22 (lines 210-219) present with required content:
+        - Both impl-context.md and test-context.md referenced.
+        - impl-context.md field-exclusion rules specified (no evals, risks, alternatives_considered).
+        - test-context.md field-exclusion rules specified (no file paths from files_to_create/files_to_modify, no architectural connections).
+        - Contains phrase "Derivation is orchestrator-direct — no agent performs it."
+
+overall_verdict: PASS
+all_evals_passed: true
+fix_loop_iteration: 1

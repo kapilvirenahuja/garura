@@ -1,0 +1,274 @@
+step_evals:
+  # Preserved from prior compilation — SE-1..SE-8 unchanged
+  - id: SE-1
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C1
+    skill: manage-issue
+    check: "issue-read.yaml exists and contains state equal to 'open'"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/issue-read.yaml"
+    pass_criteria: "file exists and 'state' field equals 'open'"
+    fail_criteria: "file missing or 'state' field not equal to 'open'"
+
+  - id: SE-2
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C2
+    skill: setup-branch
+    check: "active branch is enhance/{issue}-{slug} and not main/master/default"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/branch-result.yaml"
+    pass_criteria: "branch-result.yaml records branch name matching enhance/{issue}-{slug} and not equal to the repository default branch"
+    fail_criteria: "branch-result.yaml missing, or branch name is main/master/default, or name does not match enhance/ pattern"
+
+  - id: SE-3
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C5
+    skill: tech-designer
+    check: "When product LTM is absent, context assembly completes using core LTM only and does not halt"
+    artifact_pattern: "{stm_base}/{issue}/context/understanding.md"
+    pass_criteria: "understanding.md written; has_product_ltm flag recorded; no hard failure raised due to missing product LTM"
+    fail_criteria: "play halts on missing product LTM, or understanding.md absent when product LTM missing"
+
+  - id: SE-4
+    source_type: both
+    failure_condition_id: F6
+    constraint_id: C3
+    skill: play
+    check: "discovery.md contains issue body and at least one answered question on what is being built, existing code connection, constraints, and success criteria; approach design does not run before this file is written"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/discovery.md"
+    pass_criteria: "discovery.md exists; contains issue body text; contains recorded Q&A; written before approach.yaml"
+    fail_criteria: "discovery.md missing, empty, or approach.yaml exists without discovery.md"
+
+  - id: SE-5
+    source_type: both
+    failure_condition_id: F5
+    constraint_id: C4
+    skill: tech-designer
+    check: "understanding.md exists and references at least one specific codebase file path from issue body or Q&A; implementation does not run without {issue}/context/ populated"
+    artifact_pattern: "{stm_base}/{issue}/context/understanding.md"
+    pass_criteria: "understanding.md present with concrete file path references; implement task_id runs only after context/ is populated"
+    fail_criteria: "understanding.md absent, or implement runs without context/ populated"
+
+  - id: SE-6
+    source_type: both
+    failure_condition_id: F4
+    constraint_id: C6
+    skill: play
+    check: "Scope assessment records all five signals; when any signal out-of-range, recommendation presented and play halts — no approach.yaml, no implementation"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/scope-assessment.md"
+    pass_criteria: "scope-assessment records files/domains/abstractions/tests/effort; when out-of-range, table presented with fix-it or /prepare recommendation; no approach.yaml created"
+    fail_criteria: "any signal missing; or out-of-range signal detected but play proceeded to approach.yaml or implementation"
+
+  - id: SE-7
+    source_type: both
+    failure_condition_id: F9
+    constraint_id: C7
+    skill: tech-designer
+    check: "approach.yaml contains all nine required fields non-empty, >= 1 alternative_considered with rejection reason, >= 1 eval with pass and fail criteria; every risk carries type, action, ltm_reference, generated_evals (C19); every eval-driven risk's generated_evals entries are present in the top-level evals list"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/approach.yaml"
+    pass_criteria: "all nine fields present and non-empty; alternatives_considered >= 1 with rejection reason; evals >= 1 with pass/fail; every risk has type, action, ltm_reference, generated_evals; eval-driven generated_evals propagated to top-level evals"
+    fail_criteria: "any required field missing or empty; no alternative with rejection; no eval with pass/fail; any risk missing type/action/ltm_reference/generated_evals; eval-driven generated_evals not propagated"
+
+  - id: SE-8
+    source_type: both
+    failure_condition_id: F8
+    constraint_id: C9
+    skill: play
+    check: "When --approve-plan set, checkpoint presents full approach after approach.yaml written; on Vanish no build-report.yaml is created; when --approve-plan not set, checkpoint is skipped entirely"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    pass_criteria: "with --approve-plan: checkpoint message presented with problem/solution/files/tasks/evals/risks/alternatives; Vanish → no build-report.yaml; without --approve-plan: no checkpoint message"
+    fail_criteria: "--approve-plan set but checkpoint skipped; or build-report.yaml created after Vanish; or checkpoint presented when --approve-plan not set"
+
+  # REGENERATED — SE-9 (C11, F12, F13): two-role isolation with disjoint input contracts
+  - id: SE-9
+    source_type: both
+    failure_condition_id: F12
+    constraint_id: C11
+    skill: code-builder
+    check: "Implementer dispatch includes exactly impl-context.md and understanding.md as input paths; does NOT include approach.yaml, evals, test-context.md, verification-report.yaml, or any tester artifact. Tester dispatch includes exactly test-context.md as input path; does NOT include impl-context.md, understanding.md, build-report.yaml, approach.yaml, or any implementer artifact."
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    pass_criteria: "Implementer JSON contract stm.input contains only {impl_context, understanding}; Tester JSON contract stm.input contains only {test_context}; neither contract references the other role's artifacts"
+    fail_criteria: "Implementer contract contains approach.yaml, evals, test-context.md, or any tester artifact path; or Tester contract contains impl-context.md, understanding.md, build-report.yaml, approach.yaml, or any implementer artifact path"
+
+  # NEW — SE-9b (F13): tester-side isolation (split from SE-9 for explicit F13 coverage)
+  - id: SE-9b
+    source_type: failure_condition
+    failure_condition_id: F13
+    constraint_id: null
+    skill: code-builder
+    check: "Tester agent input contract contains only test-context.md and does not include impl-context.md, understanding.md, build-report.yaml, or any implementer output"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    pass_criteria: "Tester dispatch stm.input contains exactly test_context path; all implementer artifact paths absent from contract"
+    fail_criteria: "Tester dispatch stm.input contains any of: impl_context, understanding, build_report, approach, or any other implementer-owned artifact"
+
+  # REGENERATED — SE-10 (C13): tester produces verification-report.yaml; play gates on tester verdict
+  - id: SE-10
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C13
+    skill: code-builder
+    check: "After implementation, orchestrator dispatches tester agent with test-context.md only; tester writes verification-report.yaml with per-eval PASS/FAIL and evidence; no self-eval.yaml is referenced or created by the play"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/verification-report.yaml"
+    pass_criteria: "verification-report.yaml exists at {stm_base}/{issue}/evidence/enhance/verification-report.yaml; contains per-eval PASS/FAIL records with evidence for every eval in approach.yaml; no self-eval.yaml written; play reads verdict from verification-report.yaml"
+    fail_criteria: "verification-report.yaml absent; or missing per-eval PASS/FAIL; or self-eval.yaml present; or play reads verdict from an artifact other than verification-report.yaml"
+
+  # NEW — SE-10b (F14): play never gates on builder self-report
+  - id: SE-10b
+    source_type: failure_condition
+    failure_condition_id: F14
+    constraint_id: null
+    skill: play
+    check: "Fix loop branching decision is derived from verification-report.yaml tester verdict; build-report.yaml or any implementer self-report is never read as the gating artifact"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/verification-report.yaml"
+    pass_criteria: "Play's fix-loop condition reads PASS/FAIL from verification-report.yaml; transcript shows no fix-loop decision based on build-report.yaml or implementer self-report"
+    fail_criteria: "Fix-loop decision is derived from build-report.yaml or any implementer-produced verdict; or verification-report.yaml is ignored in gating"
+
+  # REGENERATED — SE-11 (C12, F3): fix loop gated on verification-report.yaml
+  - id: SE-11
+    source_type: both
+    failure_condition_id: F3
+    constraint_id: C12
+    skill: play
+    check: "When verification-report.yaml records failures, fix loop runs at most 3 iterations; iteration count recorded in verification-report.yaml; after 3 iterations with remaining failures, structured failure report presented and play halts before judge-rating"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/verification-report.yaml"
+    pass_criteria: "verification-report.yaml records iteration count <= 3; if iteration == 3 with failures, failure report listed every failing eval with status and detail; play did not enter a 4th iteration; judge-rating did not run"
+    fail_criteria: "iteration count > 3; or 4th iteration attempted; or judge-rating ran after exhausted fix loop with failures"
+
+  # Preserved — SE-12..SE-17 unchanged
+  - id: SE-12
+    source_type: both
+    failure_condition_id: F10
+    constraint_id: C14
+    skill: judge
+    check: "judge-report.yaml contains numeric confidence 0.0-1.0 and per-area assessments; judge JSON contract includes artifact_paths.approach, project_root, eval_path → solution-rating.yaml, and config.instructions with ER-4 cap rule; contract excludes verification-report.yaml, build-report.yaml, builder prompts, and implementation rationale"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/judge-report.yaml"
+    pass_criteria: "judge-report.yaml present with numeric confidence and per-area assessments; contract fields exactly as specified in C21; no verification-report.yaml path, no build-report.yaml path, no builder prompts in contract"
+    fail_criteria: "judge-report.yaml missing/malformed; or contract missing required fields; or contract includes verification-report.yaml, build-report.yaml, or builder prompts"
+
+  - id: SE-13
+    source_type: both
+    failure_condition_id: F2
+    constraint_id: C15
+    skill: play
+    check: "When judge confidence < 0.6, human approval checkpoint presented before quality-check and PR creation, displaying numeric confidence, per-area findings, and low-confidence areas; quality-check and PR creation do not run until user responds"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/judge-report.yaml"
+    pass_criteria: "confidence < 0.6 → checkpoint presented with required fields; on Vanish no PR created; on Tether approval recorded in STM before proceeding"
+    fail_criteria: "confidence < 0.6 but checkpoint skipped; or quality-report.yaml or pr-result.yaml written before user response"
+
+  - id: SE-14
+    source_type: both
+    failure_condition_id: F7
+    constraint_id: C16
+    skill: quality-auditor
+    check: "quality-report.yaml records build, lint, typecheck, tests all PASS; commit-pr only executes after all-pass recorded"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/quality-report.yaml"
+    pass_criteria: "quality-report.yaml present with all four fields PASS; pr-result.yaml written only after quality-report.yaml all-pass"
+    fail_criteria: "any quality gate FAIL but pr-result.yaml exists; or quality-report.yaml missing when pr-result.yaml exists"
+
+  - id: SE-15
+    source_type: both
+    failure_condition_id: F1
+    constraint_id: C17
+    skill: play
+    check: "PR checkpoint always presented with six required sections: problem statement, solution summary, technical decisions, files changed with rationale, review findings, judge confidence; plus PR URL; ship only runs on Tether"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    pass_criteria: "PR checkpoint presented on every run reaching Step 14 regardless of confidence or flags; all six sections present and non-empty; ship-result.yaml only written after Tether"
+    fail_criteria: "PR checkpoint skipped; or any required section missing; or ship-result.yaml written before Tether"
+
+  - id: SE-16
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C18
+    skill: repo-orchestrator
+    check: "After Tether at PR checkpoint, PR merges and branch is deleted without further approval prompts"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/ship-result.yaml"
+    pass_criteria: "ship-result.yaml records merge SHA and branch deletion boolean; no additional approval prompts between PR checkpoint Tether and merge"
+    fail_criteria: "additional approval requested after Tether; or ship-result.yaml missing merge SHA or branch deletion record"
+
+  - id: SE-17
+    source_type: both
+    failure_condition_id: F11
+    constraint_id: C20
+    skill: play
+    check: "When approach.yaml contains any risk with action:approval-required, focused risk checkpoint fires before implementation showing only approval-required risks with type, description, mitigation, ltm_reference; fires regardless of --approve-plan; on Vanish no implementation; if no such risks, step skipped"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/approach.yaml"
+    pass_criteria: "approval-required risks present → checkpoint fired with required fields only, full plan not shown; Vanish → no build-report.yaml; no approval-required risks → step skipped"
+    fail_criteria: "approval-required risks present but checkpoint skipped; or full approach plan shown at this checkpoint; or implementation ran after Vanish"
+
+  # NEW — SE-18 (C22): orchestrator-direct derivation of impl-context.md and test-context.md
+  - id: SE-18
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C22
+    skill: play
+    check: "Before any agent dispatch in the execution phase, orchestrator derives impl-context.md and test-context.md from approach.yaml. impl-context.md contains solution_summary, tasks, files_to_create, files_to_modify, connections and contains NONE of: evals, risks, alternatives_considered. test-context.md contains the evals list with pass/fail criteria and task behavioral descriptions and contains NONE of: files_to_create paths, files_to_modify paths, connections content. Derivation is orchestrator-direct — no agent is dispatched to produce these files."
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/impl-context.md and {stm_base}/{issue}/evidence/enhance/test-context.md"
+    pass_criteria: "Both files exist before any execution-phase agent dispatch; impl-context.md contains the five allowed fields and lacks evals/risks/alternatives_considered; test-context.md contains evals with pass/fail criteria and task behavioral descriptions and lacks files_to_create/files_to_modify/connections content; no agent dispatch recorded prior to their creation"
+    fail_criteria: "Either file missing before execution-phase dispatch; or impl-context.md contains evals, risks, or alternatives_considered; or test-context.md contains files_to_create paths, files_to_modify paths, or connections content; or an agent was dispatched to produce them"
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: "Developer enhancing a Meridian play"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    check: "Full evidence chain present: issue-read.yaml (state=open), discovery.md (body+Q&A), understanding.md (file refs), approach.yaml (nine fields, >=1 alternative, >=1 eval), verification-report.yaml (all PASS), judge-report.yaml (confidence >=0.6), quality-report.yaml (all PASS), pr-result.yaml (PR URL with issue link), ship-result.yaml (merge SHA, branch deleted)"
+    pass_criteria: "every listed artifact present with specified fields; no redirect to fix-it or /prepare; no step skipped"
+    fail_criteria: "any artifact missing or with wrong field values; or a redirect was issued; or any step was skipped"
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: "Developer with a large enhancement"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/scope-assessment.md"
+    check: "Scope assessment table presented with at least one out-of-range signal and recommendation to use /prepare; no approach.yaml, no build-report.yaml, no PR for this issue"
+    pass_criteria: "scope-assessment.md recorded; /prepare recommendation surfaced; approach.yaml absent; pr-result.yaml absent"
+    fail_criteria: "scope-assessment missing; or approach.yaml or PR created despite out-of-range signals"
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: "Developer with a trivial fix"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/scope-assessment.md"
+    check: "Scope assessment shows all signals in too-small range; recommendation to use fix-it; no approach.yaml, no implementation, no PR"
+    pass_criteria: "scope-assessment.md recorded with too-small signals; fix-it recommendation surfaced; no approach.yaml; no PR"
+    fail_criteria: "signals missing; or approach.yaml or PR created despite too-small signals"
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: "Developer with a risky enhancement"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/judge-report.yaml"
+    check: "judge-report.yaml confidence < 0.6 triggers human approval checkpoint before quality-check or PR; on Vanish no PR and no quality-check; on Tether continuation recorded"
+    pass_criteria: "confidence < 0.6 with checkpoint presented containing score, findings, low-confidence areas; Vanish → no pr-result.yaml, no quality-report.yaml; Tether → STM records approval before continuation"
+    fail_criteria: "low confidence without checkpoint; or PR/quality-check ran before user response"
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: "Developer using --approve-plan"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    check: "Mid-checkpoint presented after approach.yaml and before implementation, showing problem/solution/files/tasks/evals/risks/alternatives; Tether → build-report.yaml subsequently created; Vanish → build-report.yaml absent"
+    pass_criteria: "checkpoint message contains required sections; artifact state matches user response"
+    fail_criteria: "checkpoint skipped despite --approve-plan; or build-report.yaml created after Vanish"
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: "Developer reviewing PR"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    check: "PR checkpoint presents six required sections (problem, solution, technical decisions, files changed with rationale, review findings, judge confidence) plus PR URL; ship-result.yaml written only after Tether"
+    pass_criteria: "all six sections present and non-empty; PR URL shown; ship-result.yaml absent until Tether"
+    fail_criteria: "any section missing; or ship-result.yaml written before Tether"
+
+  # UPDATED — SCE-7 references verification-report.yaml and tester role
+  - id: SCE-7
+    scenario_id: S7
+    persona: "Developer with eval failures"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/verification-report.yaml"
+    check: "verification-report.yaml records >= 1 FAIL on first pass; orchestrator derives remediation-{N}.md from failing eval IDs and re-dispatches implementer with impl-context.md + understanding.md + remediation-{N}.md; tester re-runs and updates verification-report.yaml; fix loop bounded at 3 iterations; after iteration 3 with remaining failures, structured failure report presented and play halts before judge-rating"
+    pass_criteria: "verification-report.yaml records iteration count and per-iteration PASS/FAIL; remediation-{N}.md files exist for each iteration; re-dispatch contract to implementer contains only impl-context.md, understanding.md, and remediation-{N}.md; tester verdict drives loop exit; if failures after 3 iterations, failure report presented and judge-rating did not run"
+    fail_criteria: "no verification-report.yaml; or fix loop exceeded 3 iterations; or remediation-{N}.md missing; or implementer re-dispatched with test-context.md or evals; or judge-rating ran with unresolved tester failures"
+
+  - id: SCE-8
+    scenario_id: S8
+    persona: "Developer with an architectural approval-required risk"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/approach.yaml"
+    check: "approach.yaml contains risk with type:architectural and action:approval-required; --approve-plan not set; focused risk checkpoint fires automatically before implementation showing only approval-required risks with type/description/mitigation/ltm_reference; full approach plan not displayed; Tether → implementation proceeds; Vanish → halt"
+    pass_criteria: "checkpoint fired automatically without --approve-plan; only approval-required risks shown; full plan not shown; artifact state matches user response"
+    fail_criteria: "checkpoint skipped; or full approach plan shown at this checkpoint; or implementation ran after Vanish"
