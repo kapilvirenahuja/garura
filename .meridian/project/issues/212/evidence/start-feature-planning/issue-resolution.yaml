@@ -1,8 +1,0 @@
-issue:
-  number: 212
-  title: "refactor: rename 'recipes' to 'plays' across the entire codebase"
-  body: "## Intent\nRename all references to 'recipes' to 'plays' throughout the Meridian OS codebase. This is a comprehensive rename covering every file, directory, config key, documentation reference, ADR, CLAUDE.md, memory files, skill files, and any other nook and cranny.\n\n## Background\nMeridian OS is moving from a cooking metaphor (recipes/cookbook) to a sports metaphor (plays/playbook). This aligns with how we present the framework to clients: \"you understand your skills, you use skills to create plays, you assemble plays into a playbook — that IS your SDLC.\"\n\n## Scope\n- `core/components/recipes/` directory → `core/components/plays/`\n- All `recipe`/`recipes` references in YAML config, skill files, agent files, docs, ADRs, CLAUDE.md, memory files\n- Config keys in `core/config.yaml` (e.g., `components.recipes`)\n- Any compiled SKILL.md files that reference recipes\n- Internal terminology within skill/recipe content bodies\n\n## Type\nrefactor"
-  url: "https://github.com/kapilvirenahuja/meridian-os/issues/212"
-  state: "open"
-  created: true
-  type_hint: "refactor"

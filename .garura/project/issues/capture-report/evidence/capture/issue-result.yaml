@@ -1,0 +1,13 @@
+issue:
+  number: 302
+  title: "[BUG] tech-designer authors fix-it artifacts inline, bypassing skill-delegation principle"
+  labels:
+    - defect
+    - create-play
+  state: open
+  url: "https://github.com/kapilvirenahuja/garura/issues/302"
+  created: true
+  closed: false
+  parent_issue: null
+  type_hint: "fix"
+  completed_at: "2026-04-19"

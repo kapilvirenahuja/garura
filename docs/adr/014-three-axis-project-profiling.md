@@ -50,7 +50,7 @@ Profiles flow through the play pipeline:
 discover-product    → derives PP, NFR, QP → writes to product.yaml
 plan-roadmap        → reads profiles       → uses for epic depth and phasing reasoning
 prepare-architecture → reads profiles      → selects technology stack and quality standards
-prepare-epic → reads locked architecture → implements within architecture constraints
+prepare → reads locked architecture → implements within architecture constraints
 ```
 
 ## Consequences
@@ -60,7 +60,7 @@ prepare-epic → reads locked architecture → implements within architecture co
 - **discover-product now produces profiles alongside vision** — a single play establishes both product identity and engineering character, ensuring they are always co-derived and consistent
 - **plan-roadmap uses profiles for epic depth reasoning** — epic phasing and scope decisions are informed by the project's actual character rather than generic defaults
 - **prepare-architecture reads profiles for technology and quality standard selection** — architecture decisions (framework choices, testing frameworks, observability stack) are grounded in the project's profile
-- **prepare-epic reads locked architecture** — implementation works within architecture constraints rather than re-deriving them, ensuring consistency across epics
+- **prepare reads locked architecture** — implementation works within architecture constraints rather than re-deriving them, ensuring consistency across epics
 - **Technical debt is measurable** — the gap between QP target levels and implementation state provides a concrete, numeric debt measurement
 - **Pipeline is now clearly sequenced** — discover → roadmap → architecture → implementation, with each stage reading from the previous stage's locked output
 
@@ -86,9 +86,9 @@ Store profiles in a dedicated `profiles.yaml` rather than inside `product.yaml`.
 
 Derive QP during roadmap planning rather than during discovery. Rejected because the Quality Profile derives from PP + NFR, both of which are fully known at discovery time. Deferring QP to plan-roadmap would mean roadmap planning starts without quality context, and the QP derivation would be orphaned from the PP/NFR derivation that informs it.
 
-### All architecture decisions in prepare-epic
+### All architecture decisions in prepare
 
-Keep architecture selection (tech stack, quality standards) inside prepare-epic rather than creating a separate prepare-architecture play. Rejected because architecture is product-scoped, not epic-scoped. An architecture chosen per-epic would risk inconsistency across epics. A single prepare-architecture step after roadmap ensures all epics share a coherent architecture.
+Keep architecture selection (tech stack, quality standards) inside prepare rather than creating a separate prepare-architecture play. Rejected because architecture is product-scoped, not epic-scoped. An architecture chosen per-epic would risk inconsistency across epics. A single prepare-architecture step after roadmap ensures all epics share a coherent architecture.
 
 ## Related ADRs
 

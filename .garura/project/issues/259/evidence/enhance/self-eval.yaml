@@ -1,0 +1,53 @@
+iteration: 1
+verdict: all_pass
+evals:
+  - id: E1
+    description: C14 (TDD constraint) is present in intent.yaml
+    command: 'grep -q "id: C14" core/components/plays/fix-it/reference/intent.yaml && grep -q "failing regression" core/components/plays/fix-it/reference/intent.yaml'
+    exit_code: 0
+    status: PASS
+  - id: E2
+    description: C15 (validator-not-implementer) + quality-auditor in intent.yaml
+    command: 'grep -q "id: C15" core/components/plays/fix-it/reference/intent.yaml && grep -q "quality-auditor" core/components/plays/fix-it/reference/intent.yaml'
+    exit_code: 0
+    status: PASS
+  - id: E3
+    description: C19 retry cap in intent.yaml
+    command: 'grep -q "id: C19" core/components/plays/fix-it/reference/intent.yaml && grep -q "retry cap" core/components/plays/fix-it/reference/intent.yaml'
+    exit_code: 0
+    status: PASS
+  - id: E4
+    description: C18 task-list (status/fix-it.json) in intent.yaml
+    command: 'grep -q "id: C18" core/components/plays/fix-it/reference/intent.yaml && grep -q "status/fix-it.json" core/components/plays/fix-it/reference/intent.yaml'
+    exit_code: 0
+    status: PASS
+  - id: E5
+    description: C5 absent from intent.yaml
+    command: '! grep -q "^  - id: C5$" core/components/plays/fix-it/reference/intent.yaml'
+    exit_code: 0
+    status: PASS
+  - id: E6
+    description: "'risks.*entries.*severity' absent from intent.yaml"
+    command: '! grep -q "risks.*entries.*severity" core/components/plays/fix-it/reference/intent.yaml'
+    exit_code: 0
+    status: PASS
+  - id: E7
+    description: SKILL.md intent_hash matches sha256 of intent.yaml
+    command: 'EXPECTED=$(shasum -a 256 core/components/plays/fix-it/reference/intent.yaml | cut -d'' '' -f1) && grep -q "$EXPECTED" core/components/plays/fix-it/SKILL.md'
+    exit_code: 0
+    expected_hash: 9c6df454426df9770fd1d82ac9cde2848f7ae8d61066a34832e69b83832ad89e
+    status: PASS
+  - id: E8
+    description: quality-auditor listed in SKILL.md
+    command: 'grep -q "quality-auditor" core/components/plays/fix-it/SKILL.md'
+    exit_code: 0
+    status: PASS
+  - id: E9
+    description: regression_test_path + read_only_files present in SKILL.md; no inlined test content
+    command: 'grep -q "regression_test_path" core/components/plays/fix-it/SKILL.md && grep -q "read_only_files" core/components/plays/fix-it/SKILL.md'
+    exit_code: 0
+    status: PASS
+
+pass_count: 9
+fail_count: 0
+fix_loop_iterations: 0

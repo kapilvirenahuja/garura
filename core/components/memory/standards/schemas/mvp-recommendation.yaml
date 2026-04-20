@@ -1,7 +1,7 @@
 # MVP Recommendation Schema — Canonical Contract
 #
 # This is the shape of a single MVP recommendation artifact — the output of
-# /specify-product's recommend-mvp step (Stage 2.75, between Stage 2 domain-
+# /specify's recommend-mvp step (Stage 2.75, between Stage 2 domain-
 # selection and Stage 3 configure-capabilities). Every MVP recommendation
 # produced by the pipeline must conform.
 #
@@ -17,8 +17,8 @@
 # rather than selected_capabilities), generate-intent-epics (honors the
 # narrowing by generating epics only for primary use cases), derive-quality-
 # profile-from-epics (risk register picks up the "deferred use cases are a
-# retention risk" entry), design-exp Stage 1 synthesize-personas (generates
-# one persona per primary use case — see design-exp C15 / Rule 13).
+# retention risk" entry), design Stage 1 synthesize-personas (generates
+# one persona per primary use case — see design C15 / Rule 13).
 #
 # ──────────────────────────────────────────────────────────────────────────
 # FILE FORMAT — Markdown with structured sections
@@ -54,7 +54,7 @@
 #   # MVP Recommendation — <Product Name>
 #
 #   <!--
-#   Stage 2.75 output of specify-product. Bridges Stage 2 domain-selection
+#   Stage 2.75 output of specify. Bridges Stage 2 domain-selection
 #   and Stage 3 configure-capabilities. Narrows the capability walk from
 #   "all brief use cases" to "the use cases v1 will actually ship."
 #
@@ -105,7 +105,7 @@
 #   For each bounded context from domain-grounding.yaml, list the
 #   capabilities that are in v1 scope. Explicitly call out what is OUT
 #   of v1 scope within each bounded context — "out of v1 scope" bullets
-#   are required to prevent scope creep at build-arch time.
+#   are required to prevent scope creep at arch time.
 #
 #   ### 2.2 Epic breakdown (preview — formal list at Stage 5)
 #
@@ -172,15 +172,15 @@
 #
 #   ## 9. Provenance
 #
-#   - **Authored by:** "specify-product Stage 2.75 recommend-mvp skill"
+#   - **Authored by:** "specify Stage 2.75 recommend-mvp skill"
 #   - **Authored on:** <ISO-8601 date>
 #   - **Inputs read:** list of paths to every input consumed
 #   - **User directives explicitly honored:** list of Q-*-NNN ids from
 #     grounding-questions.md that shaped the recommendation
 #   - **Abstraction-layer compliance:** "compliant — no tech bindings"
-#     (Rule 14 / specify-product C16)
+#     (Rule 14 / specify C16)
 #   - **Pull-to-product compliance:** "domain references resolve to
-#     product/research/ only" (Rule 15 / specify-product C17)
+#     product/research/ only" (Rule 15 / specify C17)
 #
 # ──────────────────────────────────────────────────────────────────────────
 # Validation rules (enforced by recommend-mvp skill's self-check +
@@ -192,14 +192,14 @@
 #      carry a single line "none — all architectural choices deferred
 #      to Stage 6").
 #
-#   2. ABSTRACTION-LAYER BOUNDARY (Rule 14 / specify-product C16):
+#   2. ABSTRACTION-LAYER BOUNDARY (Rule 14 / specify C16):
 #      No section contains specific database engines, SDK method names,
 #      framework identifiers, programming-language type signatures, wire-
 #      level protocol identifiers, cryptographic construction details, or
 #      model version strings. Validated by invoking validate-abstraction-
 #      layer against the written file.
 #
-#   3. PULL-TO-PRODUCT (Rule 15 / specify-product C17):
+#   3. PULL-TO-PRODUCT (Rule 15 / specify C17):
 #      Any domain reference resolves to .meridian/product/research/
 #      (not core/components/memory/knowledge/domain/).
 #

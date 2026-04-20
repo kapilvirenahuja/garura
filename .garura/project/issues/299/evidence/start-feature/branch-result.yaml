@@ -1,0 +1,22 @@
+branch:
+  name: "feat/299-list-product-state-skill"
+  action: "created"
+  base_ref: "main"
+  pushed: true
+  tracking: "origin/feat/299-list-product-state-skill"
+worktree:
+  used: false
+  path: null
+  reason: "minor dirty tree (2 files, 17 lines) — stash/pop used instead"
+changes_preserved:
+  strategy: "stash-and-pop"
+  tracked_files_modified: 2
+  untracked_paths:
+    - ".garura/project/issues/299/"
+    - "core/components/memory/standards/templates/feature-tree-output.md"
+    - "core/components/skills/list-product-state-workspace/"
+    - "core/components/skills/list-product-state/"
+  verified: true
+result:
+  success: true
+  error: null

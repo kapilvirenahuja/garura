@@ -1,0 +1,156 @@
+task_id: implement
+status: completed
+steps_completed: 10
+steps_total: 10
+
+changes:
+  - step: 1
+    description: "docs/components/agents.md — Replace 9 .meridian/ paths, expand agent table from 7 to 19, add skill pool subsections for 12 new agents"
+    files_modified:
+      - path: docs/components/agents.md
+        action: modified
+        summary: "Replaced 9 .meridian/ with .garura/ (scriber description, JSON contract example, config.yaml reference, LTM search path); expanded Available Agents table from 7 to 19 agents (added designer, doc-builder, eval-generator, intent-crafter, intent-resolver, judge, knowledge-extractor, market-analyst, product-keeper, quality-auditor, tech-architect, test-engineer); added skill pool subsections for all 12 new agents"
+    verified: true
+    deviation: null
+
+  - step: 2
+    description: "docs/components/plays.md — Replace 10 .meridian/ paths, fix JSON contract to nested stm.input/stm.output, expand play roster from 15 to 22"
+    files_modified:
+      - path: docs/components/plays.md
+        action: modified
+        summary: "Replaced 10 .meridian/ with .garura/ (contract example, resume pattern, artifact locations table); fixed JSON contract from flat stm.vision_path/stm.epics_path shape to nested stm.input/stm.output shape; updated Contract Fields table; expanded Complete Play Roster from 15 to 22 plays (added build-arch, check-drift, design-exp, distill, enhance, specify-product, validate-epic)"
+    verified: true
+    deviation: null
+
+  - step: 3
+    description: "docs/components/skills.md — Replace 3 .meridian/ paths, expand skills from 8 to 46, remove Available Plays section with redirect"
+    files_modified:
+      - path: docs/components/skills.md
+        action: modified
+        summary: "Replaced 3 .meridian/ with .garura/ (LTM template pattern, output contract example, knowledge type table); expanded Available Skills from 8 across 4 categories to 46 across 12 categories; replaced Available Plays section with single redirect sentence to plays.md"
+    verified: true
+    deviation: null
+
+  - step: 4
+    description: "docs/philosophy/architecture.md — Replace 9 .meridian/ paths, fix JSON contract shape, remove phantom agents, remove quality-validator bullet, fix Memory Flow diagram"
+    files_modified:
+      - path: docs/philosophy/architecture.md
+        action: modified
+        summary: "Replaced 9 .meridian/ with .garura/ (MEMORY box, agent produces path, LTM path, context crafting path, STM location, STM folder structure, Memory Flow, Recovery checkpoint path); fixed JSON contract from flat to nested stm.input/stm.output shape; removed quality-validator and workflow-guardian rows from Agents table and removed Status column; removed 'Validation and quality gates → quality-validator' bullet from Orchestrator Tool Restrictions; rewrote Memory Flow diagram removing stale SKILLS box and 'Skill: persist' arrow — replaced with capture-learning play promotion"
+    verified: true
+    deviation: "Per advisor guidance, Agents table was reduced to 4 representative agents with a link to agents.md for the full 19-agent roster, rather than expanding to all 17 non-scriber agents as approach.yaml suggested"
+
+  - step: 5
+    description: "docs/framework/play-structure.md — Replace plan-roadmap with prepare-epic"
+    files_modified:
+      - path: docs/framework/play-structure.md
+        action: modified
+        summary: "Replaced 'plan-roadmap' with 'prepare-epic' in the Task-Driven DAG Variant section description"
+    verified: true
+    deviation: null
+
+  - step: 6
+    description: "docs/components/memory.md — Replace 16 .meridian/ paths, fix STM Organization diagram, add templates/ to LTM org"
+    files_modified:
+      - path: docs/components/memory.md
+        action: modified
+        summary: "Replaced 16 .meridian/ with .garura/ across Memory Types table, context crafting example, LTM deployment paths, LTM runtime paths, STM lifecycle, STM Organization diagram, Memory Flow, Play Memory Pattern, Memory Location section, and ADR 017 folder whitelist section; replaced STM Organization diagram with 5-bucket whitelist (specs/, evidence/, checkpoint/, context/, review/); expanded templates/ listing in LTM Organization under standards/ (10 template files); fixed Memory Flow from 'persist skill' to 'capture-learning play'"
+    verified: true
+    deviation: "ADR 017 folder whitelist section was also updated (lines 27/30/50) as they contained .meridian/ path references — approach.yaml stated these were 'current' but the actual file content showed .meridian/ which needed fixing"
+
+  - step: 7
+    description: "docs/philosophy/idsd.md — Replace 7 .meridian/ paths (path fixes only)"
+    files_modified:
+      - path: docs/philosophy/idsd.md
+        action: modified
+        summary: "Replaced 7 .meridian/ with .garura/ in memory architecture diagrams (KB deployed path, LTM storage path, KB governance deploy path, storage paths section, ICS evidence path)"
+    verified: true
+    deviation: null
+
+  - step: 8
+    description: "7 ADR files — Replace .meridian/ paths in runtime path examples"
+    files_modified:
+      - path: docs/adr/002-l1-checkpoint-model.md
+        action: modified
+        summary: "Replaced .meridian/ with .garura/project/issues/ in all 5 path references (checkpoint location note, rules section, artifact locations table)"
+      - path: docs/adr/008-issue-centric-stm-and-nwwi.md
+        action: modified
+        summary: "Replaced .meridian/ with .garura/project/issues/ across all path references; fixed double-nested path artifact from replacement (.garura/project/issues/project/checkpoints/ → .garura/project/checkpoints/)"
+      - path: docs/adr/009-skill-ltm-organizational-knowledge.md
+        action: modified
+        summary: "Replaced ~/.meridian/core/memory/ with ~/.garura/core/memory/ and .meridian/core/memory/ with .garura/core/memory/ across all 9 LTM path references"
+      - path: docs/adr/010-stm-archival.md
+        action: modified
+        summary: "Replaced .meridian/ with .garura/project/issues/ across path references; removed misplaced core/ entry from directory tree (core/ is not under project/issues/)"
+      - path: docs/adr/011-stm-as-inter-skill-data-transport.md
+        action: modified
+        summary: "Replaced .meridian/ with .garura/ in all code block path examples (correct/wrong examples, rules, STM addressable artifacts, Applied to plan-roadmap table, Mitigations)"
+      - path: docs/adr/015-ltm-resolution-protocol.md
+        action: modified
+        summary: "Replaced .meridian/product/ with .garura/product/ and ~/.meridian/core/memory/ with ~/.garura/core/memory/ in the 3-layer resolution hierarchy"
+      - path: docs/adr/016-agent-json-contract.md
+        action: modified
+        summary: "Replaced .meridian/ with .garura/ in stm_base field description and STM path convention example"
+    verified: true
+    deviation: null
+
+  - step: 9
+    description: "Markdown lint — run on all 14 modified files"
+    files_modified: []
+    verified: true
+    deviation: "All lint errors found are pre-existing — confirmed by running markdownlint on original files before changes. No new lint errors were introduced by this implementation."
+
+  - step: 10
+    description: "Final grep verification — 0 .meridian/ hits, 0 phantom agents, correct contract shape, correct STM folders"
+    files_modified: []
+    verified: true
+    deviation: null
+
+issues_encountered:
+  - description: "Bulk replace .meridian/ → .garura/project/issues/ in ADR 008 corrupted the legacy wrong-path reference: '.meridian/project/checkpoints/' became '.garura/project/issues/project/checkpoints/'"
+    resolution: "Fixed both occurrences of the malformed path to .garura/project/checkpoints/"
+    severity: low
+
+  - description: "ADR 010 bulk replacement placed 'core/' directory under .garura/project/issues/ in directory tree, which is structurally incorrect (core/ is under .garura/, not .garura/project/issues/)"
+    resolution: "Removed the misplaced 'core/' entry from the directory tree — it was a representation artifact of the old .meridian/ root"
+    severity: low
+
+  - description: "approach.yaml stated ADR 017 folder whitelist section in memory.md 'already uses correct keys — do not change', but the actual file content showed .meridian/ as the folder name throughout the whitelist section"
+    resolution: "Fixed .meridian/ → .garura/ in the whitelist section (lines 27, 30, 50) since these were actual defects"
+    severity: low
+
+evals:
+  meridian_path_clean:
+    result: pass
+    evidence: "grep -r '.meridian/' on all 14 target files returns 0 matches"
+  phantom_agents_removed:
+    result: pass
+    evidence: "grep 'quality-validator|workflow-guardian' architecture.md returns 0 matches"
+  contract_shape_correct:
+    result: pass
+    evidence: "stm.input and stm.output present in architecture.md and plays.md JSON contract examples; stm.vision_path/stm.epics_path not found"
+  stm_folders_correct:
+    result: pass
+    evidence: "specs/, evidence/, checkpoint/, context/, review/ present in memory.md and architecture.md; spec/, design/, delivery/ not found in those files"
+  agent_roster_complete:
+    result: pass
+    evidence: "agents.md Available Agents table contains all 19 agents including 12 new additions"
+  play_roster_complete:
+    result: pass
+    evidence: "plays.md Complete Play Roster contains all 22 plays"
+
+files_touched:
+  - path: docs/components/agents.md
+  - path: docs/components/plays.md
+  - path: docs/components/skills.md
+  - path: docs/components/memory.md
+  - path: docs/philosophy/architecture.md
+  - path: docs/philosophy/idsd.md
+  - path: docs/framework/play-structure.md
+  - path: docs/adr/002-l1-checkpoint-model.md
+  - path: docs/adr/008-issue-centric-stm-and-nwwi.md
+  - path: docs/adr/009-skill-ltm-organizational-knowledge.md
+  - path: docs/adr/010-stm-archival.md
+  - path: docs/adr/011-stm-as-inter-skill-data-transport.md
+  - path: docs/adr/015-ltm-resolution-protocol.md
+  - path: docs/adr/016-agent-json-contract.md

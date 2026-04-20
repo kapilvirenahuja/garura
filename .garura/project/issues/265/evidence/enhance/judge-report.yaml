@@ -1,0 +1,186 @@
+---
+judge_report:
+  timestamp: "2026-04-19T00:00:00Z"
+  issue: 265
+  task_id: "judge-rating"
+  overall_confidence: 0.59
+
+  per_area:
+    - area: "skill_spec_coherence"
+      score: 0.90
+      assessment: >
+        manage-features/reference/intent.yaml is comprehensive — all required sections present
+        (intent, input/output contracts, constraints C1-C5, failure_conditions F1-F3, success_scenarios
+        S1 and S2, authoring rules R1-R5). The 5-point status vocab, 3-tier hierarchy, and
+        decision-manifest obligation are all properly declared. SKILL.md body faithfully reflects the
+        intent. Minor deduction: intent.yaml checksum field remains the literal placeholder
+        "<computed by /create-play --build>", indicating --build was not run against the tool that
+        populates checksums; or the framework's create-play tool does not embed a numeric checksum.
+
+    - area: "pipeline_wiring"
+      score: 0.35
+      assessment: >
+        CRITICAL GAP. The approach required two deliverables: (1) specify/reference/intent.yaml
+        updated with Steps 8b and 8c, and (2) specify/SKILL.md rebuilt to reflect them. The
+        specify/reference/intent.yaml was updated — C20 and C21 constraints are present and correctly
+        describe Stage 4b and Stage 4c. However, specify/SKILL.md was NOT rebuilt: it jumps directly
+        from Step 8a (surface enrich-capabilities decisions) to Step 9 (generate intent epics) with
+        no Step 8b or 8c present. Step 9's dispatch contract in the SKILL.md also does NOT include
+        features_path in the input block. The specify SKILL.md is therefore out of sync with its
+        intent.yaml. Eval E3 fails: manage-features step absent from the compiled SKILL.md.
+        Additionally, the Step 9 contract in SKILL.md omits features_path entirely, so the
+        orchestration guidance is incomplete even if the intent.yaml declares it.
+
+    - area: "rules_extraction"
+      score: 0.95
+      assessment: >
+        feature-catalog.md is correctly authored under core/components/memory/standards/rules/.
+        It externalizes all authoring rules: 3-tier hierarchy (Rule 1), ID regex (Rule 2), name
+        format (Rule 3), 5-point vocab (Rule 4), domain-level freeform exemption (Rule 5), required
+        fields (Rule 6), domain mapping (Rule 7), summary counter keys (Rule 8), decision manifest
+        obligation (Rule 9). The file explicitly disambiguates itself from features.md (which governs
+        epic fields) — no collision. Fully covers the approach's intent for this area.
+
+    - area: "agent_awareness"
+      score: 0.95
+      assessment: >
+        product-keeper.md correctly includes manage-features in the Available Skills table with the
+        right purpose statement and usage context (specify Stage 4b). The Intent → Skill Mapping
+        table maps "author features catalog", "write features.yaml", "map capabilities to features"
+        to manage-features. The entry also mentions that generate-intent-epics reads features.yaml
+        as a required input. Agent awareness is fully wired.
+
+    - area: "migration_correctness"
+      score: 0.85
+      assessment: >
+        features.yaml header is updated with the 5-point vocab reference, migration note, and date.
+        Summary keys renamed correctly: features_released and features_rollout present; no
+        features_live or features_partial in the summary block. The 4 remaining `status: partial`
+        instances are all at the domain level (engineering-observability, ai-governance,
+        work-intelligence, engineering-experience) — correctly exempt per approach Rule 5 and
+        feature-catalog.md Rule 5. Grep confirms zero `status: live` instances. Minor deduction:
+        the summary shows capabilities: 23 but features_total: 85 with only 22+14+49=85 confirmed,
+        which is consistent. No structural issues found.
+
+    - area: "r5_risk_generate_intent_epics"
+      score: 0.45
+      assessment: >
+        SIGNIFICANT GAP. generate-intent-epics/reference/intent.yaml was authored (reverse-engineered
+        from SKILL.md) and correctly adds features_path as a required input — eval E4 passes at the
+        intent.yaml level. However, T6 required running /create-play --rebuild to regenerate SKILL.md
+        from the new intent.yaml. The existing generate-intent-epics/SKILL.md does NOT include
+        features_path in its Input section (line 29 refers only to ltm_rules_features_path, not the
+        features catalog path). The SKILL.md also has no checksum field in its frontmatter. This means
+        the SKILL.md was not rebuilt — the R5 risk materialized. The diff safeguard (comparing
+        regenerated SKILL.md against original) was never applied. The behavioral spec is in the
+        intent.yaml but the deployed artifact (SKILL.md) that agents read does not enforce features_path.
+
+  low_confidence_areas:
+    - area: "pipeline_wiring"
+      score: 0.35
+      reason: >
+        specify/SKILL.md was not rebuilt after C20/C21 were added to intent.yaml. Steps 8b and 8c
+        are absent from the compiled play. Step 9 dispatch contract missing features_path. Eval E3
+        fails.
+    - area: "r5_risk_generate_intent_epics"
+      score: 0.45
+      reason: >
+        generate-intent-epics/SKILL.md was not rebuilt after features_path was added to intent.yaml.
+        Deployed skill does not reflect the new required input. R5 risk action was approval-required
+        but the rebuild did not occur.
+
+  eval_results:
+    - eval_id: "E1"
+      status: "PASS"
+      evidence: >
+        manage-features/reference/intent.yaml exists with all required sections: intent, input_contract
+        (3 required paths + ltm_rules_feature_catalog_path), output_contract (4 fields), constraints
+        (C1-C5), failure_conditions (F1-F3), success_scenarios (S1 and S2 = 2 entries), authoring_rules
+        (R1-R5 covering all required content). All sections non-empty.
+
+    - eval_id: "E2"
+      status: "FAIL"
+      evidence: >
+        manage-features/SKILL.md exists and its body references the intent.yaml at line 172 as
+        "Intent source (source of truth)". However, the SKILL.md frontmatter contains NO checksum
+        field. The intent.yaml itself shows checksum: "<computed by /create-play --build>" —
+        the placeholder was never replaced with a computed value. Eval E2 requires the SKILL.md
+        header to contain a checksum reference matching intent.yaml. Neither artifact carries a
+        populated checksum.
+
+    - eval_id: "E3"
+      status: "FAIL"
+      evidence: >
+        specify/reference/intent.yaml contains C20 (Stage 4b / manage-features) and C21 (Stage 4c /
+        decision-surfacing + features_path in Stage 5). However, specify/SKILL.md — the compiled
+        play artifact that orchestrators execute — does NOT contain Step 8b or Step 8c. The SKILL.md
+        jumps from Step 8a directly to Step 9. Step 9's dispatch JSON contract in SKILL.md also
+        omits features_path from the input block. The ordering constraint (8 → 8b → 8c → 9) is not
+        present in the deployed play. T4 (/create-play --rebuild specify) was not run.
+
+    - eval_id: "E4"
+      status: "PASS"
+      evidence: >
+        generate-intent-epics/reference/intent.yaml declares features_path in the input_contract as
+        type: path, required: true, with description citing ".meridian/product/scope/features.yaml
+        produced by manage-features (Stage 4b of the specify play)". Field is not marked optional
+        and has no default value.
+
+    - eval_id: "E5"
+      status: "PASS"
+      evidence: >
+        grep -n "status: live" returns zero matches. grep -n "status: partial" returns 4 matches
+        at lines 504, 735, 992, 1235 — all are domain-level entries (engineering-observability,
+        ai-governance, work-intelligence, engineering-experience). Domain-level status is exempt
+        per the approach and feature-catalog.md Rule 5. Zero per-feature or per-capability
+        `status: partial` instances remain.
+
+    - eval_id: "E6"
+      status: "PASS"
+      evidence: >
+        features.yaml summary block contains features_released: 22 and features_rollout: 14.
+        No features_live or features_partial keys appear in the summary block. Migration note
+        in header confirms the rename.
+
+    - eval_id: "E7"
+      status: "PASS"
+      evidence: >
+        grep -r "implementation-inventory" core/components/ returns zero matches.
+
+    - eval_id: "E8"
+      status: "PASS"
+      evidence: >
+        manage-features/reference/intent.yaml authoring_rules R1 states:
+        "Feature IDs must match the regex ^[A-Z]{2,4}-F\d{3}$" with explicit canonical prefix
+        mapping (AM, EO, AG, WI, EE). The regex and domain-slug abbreviation requirement are
+        present and explicit.
+
+  summary:
+    evals_total: 8
+    passed: 6
+    failed: 2
+    failed_evals: ["E2", "E3"]
+
+  concerns:
+    - id: "CON-1"
+      severity: "critical"
+      description: >
+        specify/SKILL.md not rebuilt (T4 not executed). Steps 8b and 8c do not exist in the deployed
+        play. The specify play as compiled gives no instruction to invoke manage-features or to run
+        the decision-surfacing gate before epic generation. This is the highest-value pipeline
+        change in the entire issue and it was not deployed.
+
+    - id: "CON-2"
+      severity: "high"
+      description: >
+        generate-intent-epics/SKILL.md not rebuilt (T6 not executed). The SKILL.md does not declare
+        features_path in its Input section. Agents invoking the skill via the SKILL.md have no
+        instruction to pass features_path. The intent.yaml is correct but is not the runtime artifact.
+
+    - id: "CON-3"
+      severity: "low"
+      description: >
+        Neither SKILL.md (manage-features nor generate-intent-epics) carries a checksum in its
+        frontmatter. The intent.yaml checksum fields remain as literal placeholders. This indicates
+        /create-play --build and --rebuild were not executed against a tool that computes checksums,
+        or the SKILL.md files were authored without the tool.

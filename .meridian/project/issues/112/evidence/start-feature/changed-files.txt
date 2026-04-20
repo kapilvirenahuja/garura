@@ -1,2 +1,0 @@
-?? .claude/specs/discover-product-rebake/
-?? .claude/specs/play-eval-gen/

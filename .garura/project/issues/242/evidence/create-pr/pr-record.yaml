@@ -1,0 +1,7 @@
+pr_number: 285
+pr_url: https://github.com/kapilvirenahuja/garura/pull/285
+title: "refactor(plays): rename 6 core pipeline plays to short invocation names"
+base_branch: main
+head_branch: fix/242-rename-core-pipeline-plays
+state: open
+issue_number: 242

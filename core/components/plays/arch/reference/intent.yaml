@@ -1,0 +1,459 @@
+name: garura:arch
+description: >
+  Transform locked specify and design output into a five-artifact
+  architecture package: logical architecture, physical architecture, NFR
+  specification, quality vision, and design patterns. Every technology choice
+  and every architectural decision traces to a specific driver in the upstream
+  artifacts. No vague references; no ungrounded choices.
+version: 0.3.0
+checksum: "<computed by /create-play --build>"
+
+intent: >
+  Given the locked output of /specify (scope, enriched capabilities,
+  intent epics, quality profile) and /design (personas, screens, flows,
+  design spec), produce FIVE canonical architecture artifacts:
+
+    (A1) logical-architecture.yaml — the technology-agnostic view: bounded
+         contexts, components with responsibilities, data model (entities,
+         relationships, invariants), capability-level API surface, and
+         integration points. Every selected capability maps to at least one
+         component. No product names, no protocols, no schemas — pure
+         structure.
+
+    (A2) physical-architecture.yaml — the "where it runs" view: specific
+         stack picks (Next.js 14, PostgreSQL 16, etc.) with source_type
+         tagging, deployment topology (hosts, environments, networks),
+         runtime components, data store products, observability stack,
+         auth infrastructure, and scaling strategy. Every slot names a
+         specific product, never a category.
+
+    (A3) nfr-spec.yaml — the NFR contract: re-states intake NFRs from the
+         upstream quality profile, records any adjustments with rationale,
+         and for EVERY NFR names the specific architectural mechanism that
+         delivers it (caching strategy, read-replica, circuit breaker,
+         sandbox tier, etc.) plus the verification method. Unmet NFRs are
+         a blocking failure.
+
+    (A4) quality-vision.yaml — the quality narrative: a vision statement
+         across the ISO 25010 characteristics relevant to this product,
+         plus per-characteristic entries recording the vision, target
+         level, how the design ensures it, concrete tooling, thresholds,
+         and the lifecycle gates that enforce it. This is the merged
+         successor to the prior quality-standards.yaml — it carries BOTH
+         the vision ("why we care") and the enforcement ("how CI will
+         catch it").
+
+    (A5) design-patterns.yaml — the pattern catalog applied to THIS
+         product, at every layer it applies: system-level (monolith vs.
+         modular monolith vs. microservices vs. serverless), layer-level
+         (hexagonal / clean / layered / onion), component-level (MVC /
+         MVVM / repository / CQRS / event-sourcing), cross-cutting
+         (retry, circuit breaker, idempotency key, outbox, saga). Every
+         pattern carries applicability_scope, the driver that justifies
+         it, alternatives_considered, and source_type.
+
+  Plus one ADR log embedded in logical-architecture.yaml (or split if
+  volume demands), and one decision-manifest-{skill}.yaml per emitting
+  skill per Decision Surfacing Discipline.
+
+  Every technology choice names a specific product (not a category); every
+  architectural decision cites the specific epic constraint, scenario,
+  quality target, or design pattern driver that motivated it. Vague
+  choices and ungrounded decisions are blocking validation failures.
+
+constraints:
+  - id: C1
+    rule: >
+      specify artifacts must exist and be LOCKED before arch
+      begins. Pre-flight reads
+      .meridian/product/scope/scope.yaml,
+      .meridian/product/scope/enriched-capabilities.yaml,
+      .meridian/product/scope/epics/*.yaml, and
+      .meridian/product/specification/quality-profile.yaml. The post-D1
+      folder layout applies per ADR 017. Missing or DRAFT-status artifacts
+      halt pre-flight.
+
+  - id: C2
+    rule: >
+      design artifacts must exist and be LOCKED before arch
+      begins. Pre-flight reads
+      .meridian/product/experience/personas.md,
+      .meridian/product/experience/screens/*.md,
+      .meridian/product/experience/flows/*.md, and
+      .meridian/product/experience/design-spec.md per ADR 017. Missing or
+      DRAFT-status artifacts halt pre-flight.
+
+  - id: C3
+    rule: >
+      Every technology choice in physical-architecture.yaml must name a
+      specific product or library — "PostgreSQL 16", "Next.js 14 App
+      Router", "AWS Lambda", "Temporal" — never a category ("a relational
+      database", "a message queue", "a frontend framework").
+      logical-architecture.yaml is the INVERSE: it MUST NOT name any
+      specific product, protocol, wire format, or language. Logical stays
+      tech-agnostic; physical names the products.
+
+  - id: C4
+    rule: >
+      Every architectural decision across all five artifacts must carry
+      rationale that cites at least one specific driver from the upstream
+      artifacts: an epic constraint, a quality-profile target, a screen-
+      inventory complexity hint, a flow-coverage requirement, a compliance
+      mandate, or a design-patterns rationale. Decisions without cited
+      drivers are blocking validation failures.
+
+  - id: C5
+    rule: >
+      Every selected capability from specify.scope must map to at
+      least one component in logical-architecture.yaml. Orphan capabilities
+      are a validation failure. Physical-architecture.yaml and
+      design-patterns.yaml reference components by their logical IDs —
+      logical is the anchor.
+
+  - id: C6
+    rule: >
+      Every NFR in nfr-spec.yaml must name a specific architectural
+      mechanism in physical-architecture.yaml OR a pattern in
+      design-patterns.yaml that delivers it. NFRs without a named
+      delivery mechanism are a blocking failure. Every intent epic's
+      performance constraint must appear as an NFR entry with its
+      delivery mechanism cited.
+
+  - id: C7
+    rule: >
+      Every ISO 25010 characteristic with relevance != 'not_applicable' in
+      the upstream quality-profile.yaml must have a vision entry AND a
+      per-characteristic enforcement section in quality-vision.yaml.
+      Orphan characteristics are a validation failure. Each entry must
+      carry: vision narrative, target level, design_linkage (which
+      components / patterns / NFRs deliver it), tooling, thresholds,
+      lifecycle gates.
+
+  - id: C8
+    rule: >
+      Every entry in quality-vision.yaml must specify concrete standards
+      and named tooling. "Use a linter" is invalid; "ESLint with Airbnb
+      config" is valid. "Test thoroughly" is invalid; "Jest with 80%
+      coverage threshold on new code; Playwright for happy-path E2E" is
+      valid. Vision narrative without concrete enforcement is blocking.
+
+  - id: C9
+    rule: >
+      design-patterns.yaml MUST cover every applicable layer for this
+      product: system-level (at minimum one entry), layer-level (at
+      minimum one entry if the product has a backend), and component-
+      level (at minimum one entry for each runtime tier: web, api,
+      worker, data). Cross-cutting patterns are required when any NFR
+      in nfr-spec.yaml names resilience, idempotency, or consistency as
+      a driver. An empty layer is a validation failure — "we didn't pick
+      any pattern" is not a valid answer at arch time.
+
+  - id: C10
+    rule: >
+      Architectural Decision Records (ADRs) must be produced for every
+      "non-obvious" decision across any of the five artifacts. Non-obvious
+      = at least two viable alternatives existed AND the choice narrows
+      a future path. The ADR log carries the decision, alternatives
+      considered, chosen option, and the upstream driver. ADRs live
+      embedded in logical-architecture.yaml's `adr_log` field.
+
+  - id: C11
+    rule: >
+      Artifacts land under .meridian/product/architecture/ per ADR 017
+      post-D1 folder layout. The five canonical files are
+      logical-architecture.yaml, physical-architecture.yaml, nfr-spec.yaml,
+      quality-vision.yaml, design-patterns.yaml. Companion decision
+      manifests live alongside as decision-manifest-{skill}.yaml. Evidence,
+      checkpoint, and status writes go through the scriber agent. The
+      play never writes evidence files directly.
+
+  - id: C12
+    rule: >
+      Domain work is delegated to agents. The orchestrator dispatches
+      tech-architect for logical, physical, and design-patterns derivation
+      and tech-designer for nfr-spec and quality-vision derivation.
+      Scriber is dispatched in the background for evidence, checkpoint,
+      and status writes.
+
+  - id: C13
+    rule: >
+      Five human review checkpoints are mandatory, one after each
+      artifact is derived, in this order: logical → physical → nfr →
+      quality-vision → design-patterns. Each checkpoint produces a
+      checkpoint artifact and waits for Tether/Vanish/Orbit. Orbit
+      cycles back to the stage that produced the artifact. The
+      dependency order is load-bearing: physical references logical;
+      nfr-spec references both; quality-vision references all prior;
+      design-patterns references all prior.
+
+  - id: C14
+    rule: >
+      arch is the last specify/design-stage play before
+      implementation. It does NOT produce code. It does NOT produce test
+      suites. It produces the five handoff artifacts that
+      prepare reads to scope per-feature implementation
+      plans.
+
+  - id: C15
+    rule: >
+      Aggressive Questioning on Architecture Inference (Rule 11 parity).
+      For every slot the play must fill in physical-architecture.yaml or
+      design-patterns.yaml — system-level pattern, frontend stack,
+      backend stack, data store, queue, cache, observability, platform,
+      auth/crypto, model tier, library pin, layer pattern, component
+      pattern — the derivation agent MUST (a) enumerate the full KB
+      candidate set from .garura/core/memory/knowledge/arch/ that is
+      legitimate for the project-profile dimensions, (b) check
+      project-profile.grounded_tools for a pin — if one exists, it is
+      authoritative, (c) if no pin and the candidate set has more than
+      one member AND the project-profile does not force a single answer,
+      the agent MUST append an inference question to
+      .meridian/product/user-provided/grounding-questions.md per Rule 12
+      and halt the slot OR surface the decision at the next checkpoint
+      for explicit user approval before committing. The agent MAY NOT
+      commit a multi-candidate slot to a single product or pattern name
+      unilaterally.
+
+  - id: C16
+    rule: >
+      Source-Type Discipline. Every decision in physical-architecture.yaml
+      and design-patterns.yaml (every stack pick, every pattern, every
+      component choice, every library pin, every version pin) MUST carry
+      a `source_type` enum field with one of these values:
+        - grounded_tools_pin
+        - kb_catalog_single_candidate
+        - kb_catalog_multi_candidate_user_approved
+        - agent_default_with_user_approval
+        - agent_default_unilateral (BLOCKING — validator must reject)
+      A decision without a source_type field is a schema violation.
+
+  - id: C17
+    rule: >
+      Grounded-Tools Honouring. project-profile.grounded_tools entries are
+      authoritative pins. When a grounded_tool pin exists for a slot,
+      physical-architecture.yaml or design-patterns.yaml MUST use that
+      exact value AND tag the decision with source_type =
+      grounded_tools_pin AND cite the grounded_tools slot. Overriding a
+      grounded_tools pin is a blocking validation failure.
+
+  - id: C18
+    rule: >
+      Decision Surfacing Discipline. Every inferred decision produced by
+      any skill in this play — every component boundary, data model
+      entity, PII tag, API grouping, stack pick, deployment shape,
+      integration mitigation, ADR rationale, NFR mechanism assignment,
+      QP threshold adjustment, ISO 25010 mapping, pattern selection at
+      any layer, or KB candidate filter the agent reasons to rather than
+      reading verbatim from a user-provided artifact — must be tagged
+      with a confidence tier and surfaced to the user before it is
+      committed downstream. Tiers are assigned by grounding source:
+      HIGH when the decision is a direct match against a KB rule, file,
+      or catalog entry (including the kb_catalog_single_candidate path
+      from C15); MID when the agent built context via web research
+      because no KB grounding existed; LOW when neither KB nor research
+      yielded a grounding source. Each decision records: tier,
+      grounding_source, recommendation, alternatives_considered, and the
+      user's response (accept / override / orbit). The orchestrator
+      presents decisions per tier: HIGH as a batch confirmation; MID as
+      a batch with explicit questions and recommendations; LOW always
+      one-by-one with no batching. High confidence is permission to
+      batch — never permission to skip user review. Decisions sourced
+      from grounded_tools_pin are exempt; trivial echoes are exempt.
+      See Defect 23.
+
+  - id: C19
+    rule: >
+      Every skill that produces inferred decisions must emit a
+      decision-manifest-{skill}.yaml as part of its output contract,
+      written alongside its primary artifact. Each manifest entry carries:
+      decision_id, decision_type, tier (high|mid|low), grounding_source
+      (kb_path | web_citation | none), recommendation,
+      alternatives_considered, agent_reasoning_summary, and (after the
+      orchestrator drives the surfacing flow) user_response
+      (accept | override | orbit) plus user_response_detail. A skill
+      that produces inferred decisions and writes no manifest is a
+      structural violation. See Defect 23.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      The play completes with any of the five canonical artifacts missing,
+      empty, or containing zero entries in its primary section (zero
+      components in logical, zero stack picks in physical, zero NFRs in
+      nfr-spec, zero ISO 25010 entries in quality-vision, zero patterns
+      in design-patterns).
+
+  - id: F2
+    condition: >
+      Any technology choice in physical-architecture.yaml uses a category
+      term rather than a specific product name.
+
+  - id: F3
+    condition: >
+      logical-architecture.yaml contains any product name, protocol,
+      wire format, schema column definition, or programming-language
+      identifier. Logical must stay tech-agnostic — implementation
+      tokens in logical are a structural violation.
+
+  - id: F4
+    condition: >
+      Any architectural decision across the five artifacts lacks a cited
+      driver from the upstream artifacts.
+
+  - id: F5
+    condition: >
+      Any capability from specify.scope has zero mappings to
+      components in logical-architecture.yaml.
+
+  - id: F6
+    condition: >
+      Any NFR in nfr-spec.yaml has no named delivery mechanism in
+      physical-architecture.yaml or design-patterns.yaml.
+
+  - id: F7
+    condition: >
+      Any relevant ISO 25010 characteristic from the upstream
+      quality-profile.yaml has no entry in quality-vision.yaml, or any
+      entry lacks vision narrative, design_linkage, tooling, thresholds,
+      or lifecycle gates.
+
+  - id: F8
+    condition: >
+      Any quality-vision entry uses vague language without named tooling,
+      thresholds, or concrete practices.
+
+  - id: F9
+    condition: >
+      design-patterns.yaml is missing a system-level pattern, or missing
+      a layer-level pattern when the product has a backend, or missing
+      a component-level pattern for any declared runtime tier, or
+      missing a cross-cutting pattern when any NFR names resilience,
+      idempotency, or consistency.
+
+  - id: F10
+    condition: >
+      A non-obvious architectural decision ships without an ADR.
+
+  - id: F11
+    condition: >
+      Any of the five mandatory checkpoint artifacts is missing.
+
+  - id: F12
+    condition: >
+      An artifact is written outside the ADR 017 whitelist or any
+      evidence file bypasses the scriber.
+
+  - id: F13
+    condition: >
+      The play produces code, test suites, or implementation-level work
+      products.
+
+  - id: F14
+    condition: >
+      Any decision is committed to a single product or pattern name when
+      the KB catalog offered more than one legitimate candidate for that
+      slot AND project-profile.grounded_tools did not pin the choice AND
+      the user was not asked via grounding-questions.md or a checkpoint.
+
+  - id: F15
+    condition: >
+      Any decision in physical-architecture.yaml or design-patterns.yaml
+      carries source_type = agent_default_unilateral.
+
+  - id: F16
+    condition: >
+      Any decision conflicts with the corresponding project-profile.
+      grounded_tools pin.
+
+  - id: F17
+    condition: >
+      A decision is tagged source_type = kb_catalog_single_candidate but
+      the KB actually offered more than one legitimate candidate for the
+      slot given the project-profile.
+
+  - id: F18
+    condition: >
+      Any skill commits an inferred decision to any of the five artifacts
+      without first surfacing it to the user via the tier-appropriate
+      flow defined in C18.
+
+  - id: F19
+    condition: >
+      A skill that produces inferred decisions completes without writing
+      a decision-manifest-{skill}.yaml, or writes a manifest that omits
+      the tier, grounding_source, recommendation, or alternatives_considered
+      fields for any decision, or fails to update user_response after the
+      orchestrator runs the surfacing flow.
+
+scenarios:
+  - id: S1
+    persona: Technical Architect
+    given: >
+      The locked five-artifact package with logical, physical, nfr,
+      quality-vision, and design-patterns
+    then: >
+      Can present the architectural direction to stakeholders with every
+      decision traced to a business driver — no "we picked X because we
+      like it" — and can walk through the design-patterns file to show
+      exactly what discipline will govern the build.
+
+  - id: S2
+    persona: Engineering Manager
+    given: >
+      quality-vision.yaml with per-characteristic vision, design linkage,
+      named tooling, thresholds, and lifecycle gates
+    then: >
+      Can set up CI/CD gates and code-review standards without re-deriving
+      the thresholds from scratch, and can explain the "why" of each gate
+      to the team from the vision section.
+
+  - id: S3
+    persona: Implementation Lead
+    given: >
+      logical-architecture.yaml components mapped to an epic's capability,
+      physical-architecture.yaml stack for those components, and
+      design-patterns.yaml patterns applicable at the component's layer
+    then: >
+      Can scope the implementation plan knowing which components are
+      touched, which products implement them, and which patterns govern
+      the code structure.
+
+  - id: S4
+    persona: Security Architect
+    given: >
+      nfr-spec.yaml security entries + security-related ADRs + auth
+      section of physical-architecture.yaml
+    then: >
+      Can verify that every security constraint from the upstream epics
+      has a named delivery mechanism and a verification method.
+
+  - id: S5
+    persona: Product Manager
+    given: >
+      The five-artifact package at final review
+    then: >
+      Can assess whether the chosen architecture fits the appetite and
+      team skillset, read the quality-vision narrative in plain English,
+      and push back on over-engineering at the design-patterns checkpoint.
+
+  - id: S6
+    persona: DevOps / Platform Engineer
+    given: >
+      physical-architecture.yaml deployment section + quality-vision.yaml
+      operational standards + cross-cutting patterns from
+      design-patterns.yaml
+    then: >
+      Can plan infrastructure-as-code, observability, on-call procedures,
+      and resilience patterns without needing the architect to clarify
+      intent.
+
+  - id: S7
+    persona: Senior Developer (onboarding)
+    given: >
+      design-patterns.yaml with system-level, layer-level, and component-
+      level patterns plus rationale
+    then: >
+      Can understand the codebase's structural rules before reading a
+      single file — knows whether to expect MVC controllers, hexagonal
+      ports, repository adapters, or event handlers, and why each
+      choice was made.

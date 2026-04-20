@@ -2,6 +2,24 @@
 # Moved from specification/implementation-inventory.yaml (2026-04-18)
 # Renamed to features.yaml per user direction: this is the feature catalog.
 #
+# STATUS VOCABULARY (5-point enum — per-feature and per-capability only):
+#   planned     — not started
+#   development — actively being built
+#   rollout     — built but not fully deployed / partial coverage
+#   released    — fully live
+#   cleanup     — shipped, now winding down / deprecating
+# Domain-level status is freeform (e.g., applied-and-evolving, applied,
+# partial) and is NOT subject to the 5-point enum.
+#
+# MIGRATION NOTE (2026-04-19):
+#   Per-feature and per-capability vocabulary migrated from 3-value
+#   (live, partial, planned) to 5-point enum:
+#     live    → released
+#     partial → rollout
+#   Domain-level status fields were left untouched.
+#   Summary keys renamed: features_live → features_released,
+#   features_partial → features_rollout.
+#
 # Totals: 5 domains / 21 capabilities / 81 features
 #
 # MODEL NOTES
@@ -19,8 +37,8 @@ summary:
   domains: 5
   capabilities: 23
   features_total: 85
-  features_live: 22
-  features_partial: 14
+  features_released: 22
+  features_rollout: 14
   features_planned: 49
   # Changes 2026-04-18 (EO + AG feedback pass):
   # - EO-F003 (Build Health) removed (not needed). ID retired.
@@ -120,7 +138,7 @@ domains:
     capabilities:
 
       - slug: component-architecture
-        status: live
+        status: released
         rollup_notes: >
           Every feature LIVE and dogfooded. This is the ONLY capability whose
           features enumerate plays/agents/skills/memory — they ARE the methodology.
@@ -130,7 +148,7 @@ domains:
 
           - id: AM-F001
             name: Plays
-            status: live
+            status: released
             notes: >
               21 plays ship today. Every play is compiled from intent.yaml via
               /create-play. Dogfooded — new plays added as new use cases emerge.
@@ -149,7 +167,7 @@ domains:
               - implement-epic
               - merge-pr
               - prepare-epic
-              - report-issue
+              - capture
               - review-pr
               - ship
               - specify-product
@@ -164,7 +182,7 @@ domains:
 
           - id: AM-F002
             name: Agents
-            status: live
+            status: released
             notes: >
               19 domain + utility agents ship today. Autonomous per ADR 005;
               Task-tool invocable with JSON contracts.
@@ -196,7 +214,7 @@ domains:
 
           - id: AM-F003
             name: Skills
-            status: live
+            status: released
             notes: >
               47 skills implementing domain capabilities. Model-invocable,
               agent-orchestrated. Continuously added as new capabilities surface.
@@ -256,7 +274,7 @@ domains:
 
           - id: AM-F004
             name: Memory — STM (Short-Term Memory)
-            status: live
+            status: released
             notes: >
               Issue-centric STM under .garura/project/issues/{n}/. Capability is
               built and done: schema locked, lifecycle defined (archive-issue-stm),
@@ -271,7 +289,7 @@ domains:
 
           - id: AM-F005
             name: Memory — Project LTM
-            status: partial
+            status: rollout
             notes: >
               Project-scoped long-term memory under .garura/product/. Structure
               locked; automated STM→LTM promotion via distill/capture-learning is
@@ -287,7 +305,7 @@ domains:
 
           - id: AM-F006
             name: Memory — Global KB
-            status: partial
+            status: rollout
             notes: >
               Cross-project knowledge base at core/components/memory/knowledge/.
               Substrate is shipped; several KB entries are actively in review.
@@ -303,7 +321,7 @@ domains:
 
           - id: AM-F007
             name: Three-Layer Hierarchy
-            status: live
+            status: released
             notes: >
               Plays → Agents → Skills hierarchy enforced by /create-play compilation
               and agent-first delegation rules.
@@ -314,7 +332,7 @@ domains:
 
           - id: AM-F008
             name: Human-in-the-Loop Approval
-            status: live
+            status: released
             notes: >
               Core principle is human-in-the-loop — every play embeds explicit
               approval gates at commits, PRs, destructive actions, and multi-phase
@@ -333,7 +351,7 @@ domains:
 
           - id: AM-F009
             name: Evidence & Checkpoint Substrate
-            status: live
+            status: released
             notes: >
               Every play writes evidence artifacts (write-evidence skill) and stage
               checkpoints to STM; self-commit of evidence per ADR 012.
@@ -354,7 +372,7 @@ domains:
 
           - id: AM-F010
             name: Maturity Ladder Engine
-            status: partial
+            status: rollout
             notes: >
               Ladder L1-L5 defined in docs/philosophy/idsd.md; referenced in
               project_profile.delivery_ambition. Runtime per-capability enforcement
@@ -369,7 +387,7 @@ domains:
 
           - id: AM-F011
             name: Persistent Memory Substrate
-            status: live
+            status: released
             notes: >
               Structured artifact tree (STM + Project LTM + KB) with schema
               validation, provenance headers, and git-based multi-contributor
@@ -382,7 +400,7 @@ domains:
 
           - id: AM-F012
             name: Spec-to-Test Continuity
-            status: partial
+            status: rollout
             notes: >
               Artifact chain intent → scope → epic → plan → implementation →
               scenarios → tests is enforced by validators (validate-intent-epics,
@@ -397,7 +415,7 @@ domains:
               - Intent-to-test-code synthesis (see WI-F011)
 
       - slug: l3-intent-driven
-        status: partial
+        status: rollout
         rollup_notes: >
           Intent compilation via /create-play is LIVE. Scope auto-narrowing via
           configure-capabilities is LIVE. Epic auto-generation via
@@ -407,7 +425,7 @@ domains:
 
           - id: AM-F013
             name: Intent Compilation
-            status: live
+            status: released
             notes: >
               intent.yaml schema + /create-play compiles intent specifications
               into executable plays. Every Garura play (21 total) is a compiled
@@ -420,7 +438,7 @@ domains:
 
           - id: AM-F014
             name: Intent Inference
-            status: partial
+            status: rollout
             notes: >
               intent-crafter agent interviews users to produce intent.yaml;
               intent-resolver agent produces task DAGs from intents. Cross-play
@@ -435,7 +453,7 @@ domains:
 
           - id: AM-F015
             name: Scope Auto-Narrowing
-            status: live
+            status: released
             notes: >
               configure-capabilities skill walks KB cross-tree constraints and
               auto-selects capabilities based on project_profile; rejected set is
@@ -447,7 +465,7 @@ domains:
 
           - id: AM-F016
             name: Epic Auto-Generation
-            status: live
+            status: released
             notes: >
               generate-intent-epics instantiates one intent epic per enriched
               capability with every mandatory field populated and KB-sourced.
@@ -492,7 +510,7 @@ domains:
     capabilities:
 
       - slug: quality-signals
-        status: partial
+        status: rollout
         rollup_notes: >
           quality-check and quality-check-scoped skills run locally and emit
           structured findings. No cross-project aggregation, trend tracking, or
@@ -500,7 +518,7 @@ domains:
         features:
           - id: EO-F001
             name: Test Coverage
-            status: partial
+            status: rollout
             notes: >
               Per-project coverage measurement via quality-check. Cross-project
               aggregation and trend tracking not shipped.
@@ -514,7 +532,7 @@ domains:
 
           - id: EO-F002
             name: Lint
-            status: partial
+            status: rollout
             target_milestone: v1.1 May
             notes: >
               Per-Stage-1/2 user input reconciliation (2026-04-18): status
@@ -535,7 +553,7 @@ domains:
 
           - id: EO-F004
             name: Security Scans
-            status: partial
+            status: rollout
             target_milestone: v1.2 Jul
             notes: >
               Per-Stage-1/2 user input reconciliation (2026-04-18): status
@@ -551,7 +569,7 @@ domains:
               - Security posture dashboard
 
       - slug: debt-signals
-        status: partial
+        status: rollout
         rollup_notes: >
           check-drift detects spec drift and emits a debt catalog. Tech-debt
           governance rules exist (Fowler quadrant). No trend dashboard or
@@ -559,7 +577,7 @@ domains:
         features:
           - id: EO-F005
             name: Tech Debt
-            status: partial
+            status: rollout
             notes: >
               check-drift emits tech-debt catalog per project. Trend tracking
               and cross-project rollup not shipped.
@@ -584,7 +602,7 @@ domains:
 
           - id: EO-F007
             name: Spec Debt
-            status: partial
+            status: rollout
             notes: >
               Spec drift (locked spec vs implementation) detected by
               check-drift. Schema-debt (artifacts with outdated schema
@@ -659,7 +677,7 @@ domains:
               - Cross-reference with AG consumption-tracking spine
 
       - slug: delivery-signals
-        status: partial
+        status: rollout
         rollup_notes: >
           ship, merge-pr, and validate-epic emit per-invocation status
           artifacts. DORA aggregation, cycle/lead time calculation, and
@@ -782,14 +800,14 @@ domains:
               - OTEL event schema for autonomy outcomes
 
       - slug: audit-attribution
-        status: partial
+        status: rollout
         rollup_notes: >
           Evidence files with play/agent/step attribution written to STM.
           Full audit trail, signed attribution, and compliance exports not shipped.
         features:
           - id: AG-F004
             name: AI-vs-Human Trail
-            status: partial
+            status: rollout
             notes: >
               Evidence files record agent vs user authorship at step
               granularity. Commit-level AI-vs-human attribution is not enforced.
@@ -802,7 +820,7 @@ domains:
 
           - id: AG-F005
             name: Decision Provenance
-            status: partial
+            status: rollout
             notes: >
               Decision Surfacing Discipline (tier-batched manifests) records
               choices in-play. Cross-play decision search and historical
@@ -816,7 +834,7 @@ domains:
 
           - id: AG-F006
             name: Evidence Export
-            status: partial
+            status: rollout
             notes: >
               briefs skill renders product YAML to JSON + HTML hub. Per-feature
               audit-bundle export is not shipped.
@@ -847,7 +865,7 @@ domains:
         features:
           - id: AG-F008
             name: LTM Curation
-            status: partial
+            status: rollout
             notes: >
               distill and capture-learning plays extract learnings but explicit
               curation (approve/reject/promote) surface is not shipped;
@@ -1047,7 +1065,7 @@ domains:
               - Reallocation surface
 
       - slug: agentic-planning
-        status: partial
+        status: rollout
         rollup_notes: >
           Planning is AGENTIC — no story backlogs, no burndowns, and sprints
           themselves are questionable. Agents deliver faster than story-level
@@ -1130,7 +1148,7 @@ domains:
         features:
           - id: WI-F007
             name: Epic Decomposition
-            status: live
+            status: released
             notes: >
               generate-intent-epics instantiates one epic per enriched
               capability with full intent schema; every epic is traceable to
@@ -1146,7 +1164,7 @@ domains:
           # reused.
 
       - slug: intent-driven-verification
-        status: partial
+        status: rollout
         rollup_notes: >
           Validators (validate-intent-epics, validate-architecture-spec,
           validate-screen-coverage, validate-implementation-design,
@@ -1155,7 +1173,7 @@ domains:
         features:
           - id: WI-F010
             name: Eval Generation
-            status: live
+            status: released
             notes: >
               evals-creator generates step evals and scenario evals from
               intent.yaml and scenarios files.
@@ -1166,7 +1184,7 @@ domains:
 
           - id: WI-F011
             name: Test Generation
-            status: live
+            status: released
             notes: >
               Delivered via prepare-epic + implement-epic + validate-epic
               plays; test case generation from intent.yaml (not from code) is
@@ -1184,7 +1202,7 @@ domains:
 
           - id: WI-F012
             name: RCA
-            status: live
+            status: released
             notes: >
               Delivered via fix-it + enhance plays; RCA is a first-class phase
               in both plays, not a standalone skill. Every defect resolution
@@ -1200,13 +1218,13 @@ domains:
 
           - id: WI-F013
             name: Fix-It Loop
-            status: live
+            status: released
             notes: >
               fix-it play closes the loop from defect → RCA → fix → validate.
               Loop automation over repeated defects is not yet present.
             evidence:
               - core/components/plays/fix-it/
-              - core/components/plays/report-issue/
+              - core/components/plays/capture/
             gap_items: []
 
   # ============================================================
@@ -1222,7 +1240,7 @@ domains:
     capabilities:
 
       - slug: agent-integrations
-        status: partial
+        status: rollout
         rollup_notes: >
           Agent integrations — Claude Code is LIVE; Factory.ai and Codex
           harnesses are integrated but their governance + CI-mode features
@@ -1232,7 +1250,7 @@ domains:
         features:
           - id: EE-F001
             name: Claude Code
-            status: live
+            status: released
             notes: >
               Every play and agent runs inside Claude Code today; sync-claude
               skill deploys components to ~/.claude/.
@@ -1247,7 +1265,7 @@ domains:
 
           - id: EE-F004
             name: Factory.ai
-            status: partial
+            status: rollout
             notes: >
               Factory Droid harness is integrated — sync-droids skill deploys
               Garura components into the Factory harness. Governance features
@@ -1264,7 +1282,7 @@ domains:
 
           - id: EE-F005
             name: Codex
-            status: partial
+            status: rollout
             notes: >
               Codex harness integrated. CI-mode non-interactive behavior and
               policy pre-approvals for CI-invoked plays remain partial. Status
@@ -1277,7 +1295,7 @@ domains:
               - Policy pre-approvals for CI-invoked plays
 
       - slug: engineering-portal
-        status: partial
+        status: rollout
         rollup_notes: >
           briefs skill renders product YAML to JSON + HTML hub. Role-aware
           dashboards, project browser, chat surface, and decision-trail briefs
@@ -1312,7 +1330,7 @@ domains:
 
           - id: EE-F009
             name: Decision-Trail Briefs
-            status: partial
+            status: rollout
             notes: >
               briefs skill produces hub.html aggregating product YAML.
               Decision-search and historical-trail navigation inside briefs is
@@ -1324,7 +1342,7 @@ domains:
               - Historical-trail timeline view
 
       - slug: first-run-onboarding
-        status: partial
+        status: rollout
         rollup_notes: >
           start-feature bootstraps a work context. No interactive wizard,
           no multi-IDE installers, no bootcamp tutorial or demo projects.
@@ -1341,7 +1359,7 @@ domains:
 
           - id: EE-F011
             name: Installer
-            status: partial
+            status: rollout
             target_milestone: v1 Apr
             notes: >
               Unified installer — npm distribution + Claude Code end-user
@@ -1383,19 +1401,19 @@ domains:
               - Demo-to-real-project migration path
 
       - slug: cli-slash-commands
-        status: live
+        status: released
         rollup_notes: >
           Every play is user-invokable via slash command in Claude Code today.
           Status, sync, and distill are all LIVE. This is Garura's primary UX.
         features:
           - id: EE-F015
             name: Play Invocation
-            status: live
+            status: released
             notes: >
               21 plays exposed as slash commands (/specify-product,
               /start-feature, /ship, /create-play, /fix-it, /enhance,
               /create-pr, /review-pr, /merge-pr, /distill, /capture-learning,
-              /report-issue, etc.).
+              /capture, etc.).
             evidence:
               - core/components/plays/
               - CLAUDE.md
@@ -1403,7 +1421,7 @@ domains:
 
           - id: EE-F016
             name: Status
-            status: live
+            status: released
             notes: Per-play status.json files at .garura/product/_status/ and per-issue status within STM.
             evidence:
               - .garura/product/_status/
@@ -1411,7 +1429,7 @@ domains:
 
           - id: EE-F017
             name: Sync
-            status: live
+            status: released
             notes: sync-claude and sync-droids skills deploy components to target harnesses (Claude Code, Factory Droids).
             evidence:
               - core/components/skills/sync-claude/
@@ -1420,14 +1438,14 @@ domains:
 
           - id: EE-F018
             name: Distill
-            status: live
+            status: released
             notes: distill play extracts post-merge learnings into Project LTM proposals.
             evidence:
               - core/components/plays/distill/
             gap_items: []
 
       - slug: design-to-code
-        status: partial
+        status: rollout
         rollup_notes: >
           design-exp pipeline (personas → screens → wireframes → design spec)
           is LIVE. Figma plugin integration, design tokens, and component
@@ -1459,7 +1477,7 @@ domains:
           # EE-F024). ID retired.
 
       - slug: sdlc-phase-coverage
-        status: partial
+        status: rollout
         rollup_notes: >
           Tracks Garura's coverage of each SDLC phase transition and the
           depth ("penetration") of automation in each. Phases are the
@@ -1473,7 +1491,7 @@ domains:
         features:
           - id: EE-F022
             name: product-to-spec
-            status: live
+            status: released
             notes: >
               Phase: product idea + market + profile → product specification
               (features, scope, intent epics). Anchored by specify-product
@@ -1491,7 +1509,7 @@ domains:
 
           - id: EE-F023
             name: spec-to-design
-            status: live
+            status: released
             notes: >
               Phase: product spec → experience design (personas, screen
               inventory, user flows, wireframes, design spec). Anchored by
@@ -1510,7 +1528,7 @@ domains:
 
           - id: EE-F024
             name: design-to-code
-            status: partial
+            status: rollout
             notes: >
               Phase: design spec + architecture → implementation. Anchored
               by build-arch, prepare-epic, implement-epic plays. Penetration:
@@ -1531,7 +1549,7 @@ domains:
 
           - id: EE-F025
             name: code-to-test
-            status: partial
+            status: rollout
             notes: >
               Phase: implementation → verification (evals, scenarios, judge).
               Anchored by evals-creator, draft-verification-scenarios, judge
@@ -1548,7 +1566,7 @@ domains:
 
           - id: EE-F026
             name: test-to-run
-            status: partial
+            status: rollout
             notes: >
               Phase: verified build → shipped / running. Anchored by ship,
               merge-pr, commit-code plays. Penetration: partial — PR
@@ -1578,7 +1596,7 @@ specify_product_enhancements_needed:
     - Enumerate plays/agents/skills under Component Architecture as zoomed-in feature sub-lists. DONE.
     - Distinguish "applied and evolving" from "live and done" as a capability-level status. DONE (new status value).
     - Do not auto-fabricate L4/L5 feature lists; leave empty pending dedicated research. DONE.
-    - "Tether" is a user-convention, not a Garura protocol — describe as human-in-the-loop with bypass config. DONE.
+    - '"Tether" is a user-convention, not a Garura protocol — describe as human-in-the-loop with bypass config. DONE.'
     - Single node per domain in the YAML hierarchy — capabilities nest, no domain-row duplication. DONE.
 
 ambiguous_mappings:

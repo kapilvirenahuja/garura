@@ -1,0 +1,101 @@
+tasks_completed:
+  - T1: "Edit intent.yaml — remove C5, add C14-C19, bump 1.1.0→1.2.0, update S2 (by code-builder)"
+  - T2: "Rebake SKILL.md via /create-play --build fix-it (by orchestrator — code-builder structured-failed per feedback_recipe_changes_via_rebake)"
+  - T3: "Edit tech-designer.md — regression_test_path row + YAML-eval-spec clarification (by code-builder)"
+  - T4: "SKIPPED — no status-file schema doc exists; schema lives inline in SKILL.md"
+  - T5: "Run /sync-claude — deployed rebuilt fix-it globally (by orchestrator; diff confirmed empty)"
+  - T6: "Deferred to enhance play's own ship step"
+
+files_modified:
+  - path: core/components/plays/fix-it/reference/intent.yaml
+    action: modified
+    summary: >
+      Removed C5 (risk assessment). Added C14-C19. Updated S2 to remove risk-table
+      mention. Updated intent field to drop risk-assessment wording. Bumped version
+      1.1.0 → 1.2.0.
+  - path: core/components/plays/fix-it/SKILL.md
+    action: rebaked
+    summary: >
+      Rebuilt from new intent.yaml via /create-play --build fix-it. 586 lines.
+      intent_hash 9c6df454426df9770fd1d82ac9cde2848f7ae8d61066a34832e69b83832ad89e.
+      14 step evals + 4 scenario evals (verbatim from evals-creator).
+      Agent boundary table expanded to 4 domain agents (added quality-auditor).
+      New Step 6b (verify-fix) with retry loop (cap=2 per C19); warn-and-continue on re-plan.
+      Step 5 checkpoint template no longer renders risk section.
+      Pause/Resume section extended with task_list schema in status/fix-it.json.
+  - path: core/components/agents/tech-designer.md
+    action: modified
+    summary: >
+      Added regression_test_path row to "What You Produce" table with clarifying
+      note that in YAML/markdown-only repos the regression test is an eval-spec
+      YAML (grep/structural assertions executed by quality-auditor), not a unit test.
+
+skills_invoked:
+  - name: create-play
+    mode: "--build fix-it"
+    verdict: success
+    notes: >
+      Orchestrator executed via Skill tool after code-builder's compliant structured
+      failure. Rebake produced evals.yaml, constraint-classifications.yaml, gap-analysis.md,
+      coverage-matrix.md under .garura/project/issues/259/evidence/create-play/fix-it/.
+  - name: sync-claude
+    mode: "global (default)"
+    verdict: success
+    notes: diff -q between source SKILL.md and ~/.claude/skills/fix-it/SKILL.md is empty.
+
+any_deviations:
+  - task: T1
+    description: >
+      approach.yaml listed "Remove F4 (risks FC)". Actual F4 in intent v1.1.0 was a
+      shipping-safety FC (partial-ship), not a risk FC.
+    action_taken: F4 NOT removed (preserved shipping-safety guarantee).
+    deviation_justification: >
+      Primary-source evidence contradicted the approach's description. Removing F4 would
+      regress an unrelated safety condition. E6 eval passes without any F4 change because
+      the 'risks.*entries.*severity' string was never in F4.
+
+  - task: T2
+    description: >
+      approach.yaml cited "current main baseline: 11 step evals". Rebake produced 14 from
+      evals-creator.
+    action_taken: Accepted 14 verbatim; no reformulation.
+    deviation_justification: >
+      Expected growth — 5 new constraints contribute additional SE entries. Per create-play
+      rules, evals MUST be copied verbatim; compiler cannot drop or reformulate.
+
+acceptance_evals_status:
+  - id: E1
+    status: PASS
+    description: C14 (TDD) present in intent.yaml
+  - id: E2
+    status: PASS
+    description: C15 + quality-auditor reference in intent.yaml
+  - id: E3
+    status: PASS
+    description: C19 retry cap in intent.yaml
+  - id: E4
+    status: PASS
+    description: C18 + status/fix-it.json reference in intent.yaml
+  - id: E5
+    status: PASS
+    description: C5 absent from intent.yaml
+  - id: E6
+    status: PASS
+    description: "'risks.*entries.*severity' absent from intent.yaml"
+  - id: E7
+    status: PASS
+    description: SKILL.md intent_hash matches shasum of intent.yaml (9c6df454…)
+  - id: E8
+    status: PASS
+    description: quality-auditor listed in SKILL.md agent boundary table
+  - id: E9
+    status: PASS
+    description: regression_test_path + read_only_files present in SKILL.md; no inlined test content
+
+blockers: []
+
+structured_failures_resolved:
+  - task: T2 (code-builder)
+    resolution: "Orchestrator invoked /create-play --build fix-it via Skill tool directly."
+  - task: T5 (code-builder)
+    resolution: "Orchestrator invoked /sync-claude via Skill tool after T2 completion."

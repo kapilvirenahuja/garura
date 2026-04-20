@@ -1,0 +1,19 @@
+---
+# PR Result — Issue #265
+# Created: 2026-04-19
+
+pr:
+  number: 296
+  url: https://github.com/kapilvirenahuja/garura/pull/296
+  title: "feat(specify): emit scope/features.yaml via new manage-features skill (#265)"
+  state: OPEN
+  branch: enhance/265-specify-emit-features-yaml
+  base: main
+  merged: false
+
+commit:
+  sha: 5a5da29a57a833a9daae51438493223cfb05bb19
+  short: 5a5da29
+  message: "feat(specify): emit scope/features.yaml via new manage-features skill (#265)"
+
+status: success

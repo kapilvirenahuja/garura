@@ -5,6 +5,18 @@ description: >
   (feasibility checks, validation, audits).
 structure: readiness-only
 
+task_management:
+  rule: >
+    Immediately after resolving stm_base (before Step 1), call TaskCreate for EVERY
+    compiled step with correct blockedBy. The play owns this DAG — agents must NOT
+    update play-level tasks. Before each step: TaskUpdate → in_progress. After eval
+    passes: TaskUpdate → completed. On resume: skip completed tasks, reset in_progress
+    to pending.
+  task_ids: "sequential [T1], [T2], ... matching compiled step order"
+  agent_rule: >
+    Agents MAY call TaskCreate for discovered sub-work (addBlockedBy to the current
+    play step). Agents MUST NOT call TaskUpdate on play-level tasks.
+
 phases:
   - phase: pre-flight
     owner_type: play
@@ -13,6 +25,7 @@ phases:
       .garura/core/config.yaml (stm.base-path) and hold it for all downstream contract paths.
       All agent contracts use {stm_base}/{issue}/ — never hardcoded paths.
       Check for status file and resume if present.
+      After resolving stm_base, call TaskCreate for ALL compiled steps (task DAG).
     required_resolution:
       stm_base: "stm.base-path from .garura/core/config.yaml"
 

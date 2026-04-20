@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "Output contains feature AM-F001 on its own row",
+      "passed": false,
+      "evidence": "found AM-F001 row: False"
+    },
+    {
+      "text": "Every feature row ends with a bracketed status like [released], [rollout], [planned], [development], or [cleanup]",
+      "passed": false,
+      "evidence": "0 feature rows; all end with status bracket=False"
+    },
+    {
+      "text": "No feature row contains '[#' (no feature has an issue field, so the issue slot must be entirely omitted)",
+      "passed": true,
+      "evidence": "no [# substring"
+    },
+    {
+      "text": "Empty capabilities l4-signal-driven and l5-goal-driven render '(no features yet)'",
+      "passed": false,
+      "evidence": "placeholder missing"
+    },
+    {
+      "text": "Indentation uses exactly 2 spaces per level (domain col 0, capability col 2, feature col 4)",
+      "passed": false,
+      "evidence": "domain=False cap=False feat=False"
+    },
+    {
+      "text": "Output contains no summary line (no 'features_total', no 'Summary:', no total counts rolled up)",
+      "passed": false,
+      "evidence": "summary markers present"
+    },
+    {
+      "text": "Domain and capability rows contain only the slug \u2014 no status in brackets on those rows",
+      "passed": false,
+      "evidence": "domain rows=0 cap rows=0 all clean of brackets=True"
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 1,
+    "failed": 6,
+    "pass_rate": 0.14285714285714285
+  }
+}

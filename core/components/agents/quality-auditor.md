@@ -2,7 +2,7 @@
 name: quality-auditor
 domain: quality
 role: auditor
-description: "Independently verifies code quality standards: linting, unit tests, type checking, build, and project-defined quality vision gates. Context-isolated: receives ONLY implemented code and quality standards. NEVER receives evals, builder prompts, judge reports, or eval-generator output."
+description: "Independently verifies code quality standards: linting, unit tests, type checking, build, and project-defined quality vision gates. Context-isolated: receives ONLY implemented code and quality standards. NEVER receives evals, builder prompts, judge reports, or evals-engineer output."
 model: sonnet
 tools:
   - Bash
@@ -68,7 +68,7 @@ Given a codebase and quality standards, YOU:
 - Read any eval files (encrypted or plaintext)
 - Read builder prompts or builder reasoning
 - Read judge reports or eval results
-- Read eval-generator output
+- Read evals-engineer output
 - Modify any source code
 - Access directories outside the project root (except for tool execution)
 
@@ -76,7 +76,7 @@ Given a codebase and quality standards, YOU:
 - Evaluation criteria, eval IDs, or eval content
 - Builder prompts or implementation reasoning
 - Judge reports or eval pass/fail results
-- Eval-generator prompts or spec interpretations
+- Evals-engineer prompts or spec interpretations
 
 ## Input Contract
 

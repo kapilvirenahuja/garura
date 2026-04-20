@@ -13,6 +13,8 @@ Thumbs.db
 .claude/personal/
 .claude/skills/
 .claude/agents/
+.claude/scheduled_tasks.lock
+.claude/assets/
 
 # Factory Droids
 .factory/

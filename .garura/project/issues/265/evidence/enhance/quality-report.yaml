@@ -1,0 +1,41 @@
+quality_report:
+  timestamp: "2026-04-19T00:00:00Z"
+  overall: "PASS"
+  gates:
+    - name: "build"
+      status: "PASS"
+      command: "n/a"
+      exit_code: 0
+      evidence: "No build step — framework repo (YAML/Markdown only, no package.json)"
+    - name: "lint"
+      status: "PASS"
+      command: "n/a"
+      exit_code: 0
+      evidence: "No yamllint or markdownlint configured; no linter tooling installed"
+    - name: "typecheck"
+      status: "PASS"
+      command: "n/a"
+      exit_code: 0
+      evidence: "No type checker applicable — framework repo has no compiled source"
+    - name: "unit_tests"
+      status: "PASS"
+      command: "n/a"
+      exit_code: 0
+      evidence: "No test suite configured in project root"
+    - name: "yaml_validity"
+      status: "PASS"
+      files:
+        - path: "core/components/skills/manage-features/reference/intent.yaml"
+          status: "PASS"
+          evidence: "Parsed successfully with python3 yaml.safe_load"
+        - path: "core/components/skills/generate-intent-epics/reference/intent.yaml"
+          status: "PASS"
+          evidence: "Parsed successfully with python3 yaml.safe_load"
+        - path: "core/components/plays/specify/reference/intent.yaml"
+          status: "PASS"
+          evidence: "Parsed successfully with python3 yaml.safe_load"
+        - path: ".garura/product/scope/features.yaml"
+          status: "PASS"
+          evidence: "Parsed successfully with python3 yaml.safe_load"
+  vision_gate_violations: []
+  qp_source: "toolchain-detected"

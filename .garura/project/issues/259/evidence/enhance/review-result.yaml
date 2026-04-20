@@ -1,0 +1,23 @@
+pr_number: 294
+mode: integrated_with_create_pr
+review_skill_invoked: analyze-pr (via create-pr)
+review_artifacts:
+  checklist: .garura/project/issues/259/evidence/create-pr/analysis.yaml
+  issue_linkage: .garura/project/issues/259/evidence/create-pr/issue-linkage.yaml
+  pr_record: .garura/project/issues/259/evidence/create-pr/pr-record.yaml
+findings_summary: >
+  analyze-pr produced a change-specific checklist embedded in the PR body. All
+  acceptance evals (9/9) recorded in the Verification Evidence table. No P1/P2
+  blocking findings. The eval defect surfaced by both judge and quality-auditor
+  (E9 command regex matches prohibition text in SKILL.md) is noted as a
+  follow-up; the underlying C17 isolation is correctly implemented per
+  independent inspection.
+verdict: proceed
+blocking_findings: []
+follow_up_items:
+  - area: tech-designer.md structured-output YAML
+    note: regression_test_path documented in the "What You Produce" table but not yet surfaced in the agent's formal structured-output YAML schema. Low severity (judge).
+  - area: SKILL.md step evals
+    note: regression-test-verification.yaml file produced by Step 6b lacks a corresponding step eval to catch a silent skip. Low severity (judge).
+  - area: approach.yaml E9 command
+    note: regex 'test.*assertion.*inline' matches prohibition text, not actual inlined content. Command itself needs tightening for future rebakes. (quality-auditor)

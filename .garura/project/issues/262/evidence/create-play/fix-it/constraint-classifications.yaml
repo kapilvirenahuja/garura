@@ -1,0 +1,42 @@
+play: fix-it
+classified_at: "2026-04-19T12:00:00Z"
+classifications:
+  - id: C1
+    category: pre-flight
+    note: "Existing open issue is a pre-flight precondition"
+  - id: C2
+    category: pre-flight
+    note: "Branch guard checked pre-flight"
+  - id: C3
+    category: artifact-verifiable
+    note: "RCA artifact must trace symptom → specific file/logic"
+  - id: C4
+    category: artifact-verifiable
+    note: "Design artifact must include alternatives_considered"
+  - id: C5
+    category: artifact-verifiable
+    note: "Design artifact must include risks with severity"
+  - id: C6
+    category: structural
+    note: "Single non-skippable checkpoint is a play-structure rule"
+  - id: C7
+    category: structural
+    note: "No approval after checkpoint — play structure rule"
+  - id: C8
+    category: structural
+    note: "Code-builder contract isolation — structural rule"
+  - id: C9
+    category: structural
+    note: "Ship sub-play with approval_override — structural delegation"
+  - id: C10
+    category: structural
+    note: "Agent delegation discipline — play structure"
+  - id: C11
+    category: artifact-verifiable
+    note: "Resolution trace artifact must exist with entries"
+  - id: C12
+    category: artifact-verifiable
+    note: "No standalone HTML artifact under evidence/fix-it/briefs/"
+  - id: C13
+    category: artifact-verifiable
+    note: "issue-comment-agent.yaml tracking stub must exist at dispatch"

@@ -1,0 +1,81 @@
+issue: 266
+
+entries:
+  - domain: >
+      What is the canonical type→label mapping for GitHub issue types in this
+      codebase, and does it cover feature/bug/defect/epic/enhancement?
+    resolved_from: core
+    source: core/components/memory/standards/templates/github-issue.md
+    rationale: >
+      The template file exists and contains a type→label table. It covers
+      feature, fix, hotfix, docs, refactor, chore but is missing defect, epic,
+      and enhancement rows. Resolution: reuse and extend the existing table
+      rather than inventing a parallel mapping in intent.yaml.
+
+  - domain: >
+      What constraints in intent.yaml specifically lock the play to defect-only
+      behavior, and at which constraint IDs?
+    resolved_from: core
+    source: core/components/plays/report-issue/reference/intent.yaml
+    rationale: >
+      Direct file read. C8 (line 40) hardcodes [DEF] title prefix. C9 (line 43)
+      hardcodes "defect" label. C1 (line 9) lists Severity as required. C2 (line 13)
+      validates severity against Critical/High/Medium/Low. All four constraints
+      must be changed or removed in the rewrite.
+
+  - domain: >
+      Where exactly does SKILL.md hardcode the [DEF] prefix and "defect" label,
+      and what line numbers?
+    resolved_from: core
+    source: core/components/plays/report-issue/SKILL.md
+    rationale: >
+      Direct file read. Title template at line 85: "[DEF][{Severity}] {Short
+      problem description}". Label at line 164: labels: "defect" in the
+      project-orchestrator JSON contract. Note: the issue body cited line 102
+      and line 239 — actual observed lines are 85 and 164 respectively.
+
+  - domain: >
+      What other files in the codebase reference "report-issue" and would
+      need to be updated on rename?
+    resolved_from: core
+    source: grep across repository
+    rationale: >
+      Grep found 13 files. Non-STM, non-evidence production files: SKILL.md,
+      intent.yaml (the play itself), docs/components/skills.md,
+      docs/components/plays.md, .garura/product/scope/features.yaml,
+      .garura/product/scope/epics/epic-work-intelligence-intent-driven-verification-001.yaml,
+      and several product research markdown files (lower priority, deferred).
+
+  - domain: >
+      What deprecated alias mechanism is appropriate for keeping /report-issue
+      alive for one release cycle after rename?
+    resolved_from: llm
+    source: llm-knowledge
+    rationale: >
+      No framework-specific alias pattern found in LTM. Options evaluated: symlink
+      (filesystem brittle), parallel intent.yaml (maintenance overhead), thin shim
+      SKILL.md (explicit, readable, no dependency). Shim pattern chosen.
+
+  - domain: >
+      How should background dispatch work within a play that delegates to
+      project-orchestrator via JSON contract?
+    resolved_from: llm
+    source: llm-knowledge
+    rationale: >
+      No background dispatch pattern in LTM memory or play templates. Resolved
+      via reasoning: validate + write STM synchronously (foreground), dispatch
+      Task delegation with run_in_background semantics, return dispatched
+      confirmation before GH round-trip. The tradeoff (no live #N at confirmation
+      time) is documented in design.yaml risks. Actual mechanism to be confirmed
+      during /create-play --build evals.
+
+  - domain: >
+      Does the existing play folder structure support a folder rename (git mv)
+      without breaking /create-play --build assumptions?
+    resolved_from: core
+    source: core/components/plays/ directory listing
+    rationale: >
+      All plays follow the pattern core/components/plays/{slug}/SKILL.md +
+      reference/intent.yaml. The garura-capture folder will follow the same
+      pattern. No hardcoded folder name references found in the create-play
+      skill or framework config that would break on rename.

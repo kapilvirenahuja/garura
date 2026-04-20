@@ -38,8 +38,8 @@ Meridian implements Intent-Driven Software Development through a **three-layer h
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                        MEMORY                               │
-│  LTM: Practices, config (core/memory/, .meridian/core/config.yaml)    │
-│  STM: Artifacts per issue (.meridian/{issue}/)              │
+│  LTM: Practices, config (core/memory/, .garura/core/config.yaml)    │
+│  STM: Artifacts per issue (.garura/project/issues/{N}/)     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -90,7 +90,7 @@ Play: analyze-bug
               │
               └── Agent uses skills: do-rca-analysis
               │
-              └── Agent produces: .meridian/{issue}/docs/rca.md
+              └── Agent produces: .garura/project/issues/{N}/evidence/rca.md
     │
     └── CHECKPOINT: Present RCA for approval
 ```
@@ -169,7 +169,7 @@ Skills receive template and LTM paths from agents via the JSON contract — they
 
 **ADR 009 knowledge boundary (applies to all invocation modes):**
 
-Skill *behavior* (process steps, output format, constraints) stays embedded in the skill definition. *Organizational standards* (commit categories, templates, quality rules) come from LTM at runtime via stable paths under `~/.meridian/core/memory/`. This distinction applies regardless of whether the skill is invoked via JSON contract or directly.
+Skill *behavior* (process steps, output format, constraints) stays embedded in the skill definition. *Organizational standards* (commit categories, templates, quality rules) come from LTM at runtime via stable paths under `~/.garura/core/memory/`. This distinction applies regardless of whether the skill is invoked via JSON contract or directly.
 
 See [ADR 009: Skill LTM Reads](../adr/009-skill-ltm-organizational-knowledge.md) for details.
 
@@ -187,18 +187,20 @@ A single JSON object that the play creates at the start of execution and passes 
 {
   "intent_path": "<path to reference/intent.yaml>",
   "stm_base": "<base STM directory for this workflow>",
-  "slug": "<derived identifier for this workflow instance>",
   "stm": {
-    "vision_path": "<input artifact — set by play>",
-    "epics_path": null,
-    "feasibility_path": null,
-    "brief_path": null,
-    "approved_brief_path": null,
-    "roadmap_path": null,
-    "engineering_view_path": null
+    "input": {
+      "feature_intent_path": "<input artifact — set by play>"
+    },
+    "output": {
+      "features_path": null,
+      "technical_approach_path": null,
+      "tech_path": null,
+      "scenarios_path": null,
+      "plan_path": null
+    }
   },
   "checkpoints": [
-    { "name": "brief_review", "status": "pending" }
+    { "name": "design_review", "status": "pending" }
   ],
   "evidence": [
     { "name": "<play-name>", "location": null }
@@ -214,8 +216,8 @@ A single JSON object that the play creates at the start of execution and passes 
 |-------|-------|---------|
 | `intent_path` | Play | Path to `reference/intent.yaml` — the user contract |
 | `stm_base` | Play | Base directory for all STM artifacts in this workflow |
-| `slug` | Play | Derived identifier for the workflow instance |
-| `stm.*` | Agents | Artifact paths — agents populate null fields with paths they produce |
+| `stm.input` | Play | Paths to input artifacts — set by play at initialization, read by agents |
+| `stm.output` | Agents | Artifact paths — agents populate null fields with paths they produce |
 | `checkpoints` | Play | Checkpoint status — play updates after human review |
 | `evidence` | Play | Evidence file paths — play updates at report step |
 | `notes` | Agents | Short observations (max 3 items, 1 sentence each) for downstream agents |
@@ -224,20 +226,20 @@ A single JSON object that the play creates at the start of execution and passes 
 ### How It Flows
 
 ```
-Play creates initial contract (vision_path set, all stm.* null)
+Play creates initial contract (stm.input set, all stm.output null)
     │
     ▼
 Agent 1 receives contract as entire prompt
     │  reads intent.yaml
-    │  reads STM artifacts at non-null paths
+    │  reads STM artifacts at stm.input paths
     │  calls skill — skill produces artifact, returns path
-    │  sets stm.epics_path = produced path
+    │  populates stm.output.features_path = produced path
     │  returns enriched contract
     ▼
-Play validates stm.epics_path non-null, step_failure null
+Play validates stm.output.features_path non-null, step_failure null
     │
     ▼
-Agent 2 receives enriched contract (has epics_path now)
+Agent 2 receives enriched contract (has features_path now)
     │  ... same pattern ...
     ▼
 Play continues until all capabilities complete
@@ -300,8 +302,8 @@ Agents have their own definition files and read `intent.yaml`. Adding instructio
 Context Crafting is the agent's responsibility before invoking a skill. The agent:
 
 1. Reads `intent.yaml` at `intent_path` from the contract
-2. Reads existing STM artifacts at non-null `stm.*` paths
-3. Loads relevant LTM standards from `~/.meridian/core/memory/`
+2. Reads existing STM artifacts at non-null `stm.input` and `stm.output` paths
+3. Loads relevant LTM standards from `~/.garura/core/memory/`
 4. Assembles the complete input the skill needs, including LTM template paths
 
 Skills do not discover LTM themselves — the agent hands them the paths. This is the boundary: agents know what context is needed; skills know how to use context once provided.
@@ -324,14 +326,14 @@ Agents are **autonomous decision-makers** with domain expertise.
 
 ### Agent Naming: `{domain}-{role}`
 
-| Agent | Domain | Role | Responsibility | Status |
-|-------|--------|------|----------------|--------|
-| `code-builder` | implementation | builder | Write code, implement features, fix bugs | Implemented |
-| `tech-designer` | design | designer | Technical design, RCA, architecture | Implemented |
-| `project-orchestrator` | project | orchestrator | Issues, tracking, project coordination | Implemented |
-| `repo-orchestrator` | repo | orchestrator | Git operations, commits, branches | Implemented |
-| `quality-validator` | quality | validator | Test, review, validate, quality gates | Planned |
-| `workflow-guardian` | workflow | guardian | Validates approval bypass in L2 | Planned |
+| Agent | Domain | Role | Responsibility |
+|-------|--------|------|----------------|
+| `code-builder` | implementation | builder | Write code, implement features, fix bugs |
+| `tech-designer` | design | designer | Technical design, RCA, architecture |
+| `project-orchestrator` | project | orchestrator | Issues, tracking, project coordination |
+| `repo-orchestrator` | repo | orchestrator | Git operations, commits, branches |
+
+For the complete agent roster (19 agents), see [Agents Component Guide](../components/agents.md).
 
 ### Agent Principles
 
@@ -353,7 +355,6 @@ Plays are orchestrators. They coordinate workflow by delegating to agents — th
 - Issue operations (create, resolve, link) → `project-orchestrator`
 - Code implementation → `code-builder`
 - Technical design and RCA → `tech-designer`
-- Validation and quality gates → `quality-validator`
 
 This boundary is not a style preference — it is an architectural rule. If a play executes git commands directly, the agent layer is bypassed and the audit trail breaks.
 
@@ -375,7 +376,7 @@ Meridian uses a **dual memory system**:
 
 ### Short-Term Memory (STM)
 
-**Location:** `.meridian/{issue_number}/`
+**Location:** `.garura/project/issues/{issue_number}/`
 
 **Contains:**
 - Documentation (specs, designs, RCA)
@@ -389,19 +390,19 @@ Meridian uses a **dual memory system**:
 ### STM Folder Structure
 
 ```
-.meridian/
+.garura/project/issues/
 ├── _pending/                # Temporary, pre-issue (two-phase write)
 │   └── {timestamp}/
 └── {issue_number}/
-    ├── spec/                # Specifications, requirements
-    ├── design/              # Technical design, architecture
-    ├── evidence/            # Implementation evidence per play
+    ├── specs/               # Plans and specifications
+    ├── evidence/            # Per-play evidence
     │   └── {play-name}/
     │       └── {YYYYMMDD-HHMMSS}.md
-    ├── delivery/            # Delivery artifacts (PR details, release)
-    └── checkpoint/          # Play execution state per play
-        └── {play-name}/
-            └── {YYYYMMDD-HHMMSS}.md
+    ├── checkpoint/          # Per-play checkpoints
+    │   └── {play-name}/
+    │       └── {YYYYMMDD-HHMMSS}.md
+    ├── context/             # prepare / arch context artifacts
+    └── review/              # Review artifacts
 ```
 
 ### Memory Flow
@@ -410,28 +411,19 @@ Meridian uses a **dual memory system**:
 ┌─────────────────────────────────────────────────────────────┐
 │                    LTM (Long-Term Memory)                   │
 │  Created: At project setup                                  │
-│  Contains: Practices, standards, skill overrides            │
+│  Contains: Practices, standards, templates                  │
 │  Location: core/memory/                                     │
 │  Role: Source of truth for organizational customizations    │
 └─────────────────────────────────────────────────────────────┘
               │                               ▲
-              │ Deployment sync               │
-              │ (overrides → skills)          │ Skill: persist (STM → LTM)
-              ▼                               │ (converts critical learnings)
-┌─────────────────────────────────────────────────────────────┐
-│                    SKILLS (Local References)                │
-│  Contains: Embedded practices, patterns, standards          │
-│  Location: core/components/skills/{skill}/                  │
-│  Role: Self-contained at runtime                            │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                    Skills produce artifacts
-                              ▼
+              │ Agents read via               │
+              │ Context Crafting              │ capture-learning play
+              ▼                               │ (promotes learnings to LTM)
 ┌─────────────────────────────────────────────────────────────┐
 │                    STM (Short-Term Memory)                  │
-│  Created: When play starts                                │
-│  Contains: Artifacts (docs, evidence, checkpoint) per issue │
-│  Location: .meridian/{issue_number}/                        │
+│  Created: When play starts                                  │
+│  Contains: Artifacts (specs, evidence, checkpoint) per issue│
+│  Location: .garura/project/issues/{issue_number}/           │
 │  Lifecycle: Persists forever (audit trail)                  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -459,7 +451,7 @@ Recovery reasoning is loaded from: `docs/framework/intent-driven-recovery.md`. T
 
 ### Checkpoint Artifact Status Lifecycle
 
-Every checkpoint artifact written to `.meridian/{issue}/checkpoint/{play}/{timestamp}.md` follows a defined status lifecycle:
+Every checkpoint artifact written to `.garura/project/issues/{N}/checkpoint/{play}/{timestamp}.md` follows a defined status lifecycle:
 
 | Status | Meaning |
 |--------|---------|

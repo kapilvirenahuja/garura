@@ -1,0 +1,16 @@
+{
+  "play": "ship",
+  "issue": "242",
+  "started_at": "2026-04-19T12:50:05Z",
+  "feature_branch": "fix/242-rename-core-pipeline-plays",
+  "review_pr_bypass": true,
+  "tasks": {
+    "commit-code": { "status": "in_progress" },
+    "create-pr": { "status": "pending" },
+    "review-pr": { "status": "skipped", "bypass": true },
+    "merge-pr": { "status": "pending" },
+    "distill": { "status": "pending" },
+    "scenario-evals": { "status": "pending" },
+    "write-evidence": { "status": "pending" }
+  }
+}

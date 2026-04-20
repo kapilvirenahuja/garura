@@ -1,0 +1,13 @@
+status: merged
+pr_number: 294
+merge_sha: 969eec25554b287eb6c1a539f85d1f94e874cae2
+base_branch: main
+branch_deleted: true
+branch_name: enhance/259-fix-it-leaner-validation
+evals:
+  SE-2: PASS  # Feature branch deleted — absent locally and on remote
+  SE-3: PASS  # Local checkout on main, up to date with origin/main
+  SE-5: PASS  # PR state == MERGED, pr_number 294 confirmed
+scenario_evals:
+  SCE-1: PASS  # HEAD on main, git pull up to date, feature branch absent
+  SCE-2: PASS  # PR state MERGED on platform, merge_sha 969eec2 present in git log on main

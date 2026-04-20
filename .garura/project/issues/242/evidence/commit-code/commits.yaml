@@ -1,0 +1,61 @@
+commits:
+  - group_id: 1
+    type: refactor
+    scope: plays
+    subject: "rename 6 core pipeline plays to short canonical names"
+    sha: 7a4b782
+    issue: 242
+    files_count: 14
+    description: "Renamed play directories: specify-product→specify, design-exp→design, build-arch→arch, prepare-epic→prepare, implement-epic→implement, validate-epic→validate"
+
+  - group_id: 2
+    type: refactor
+    scope: plays
+    subject: "update cross-referencing plays for renamed pipeline plays"
+    sha: 41ffbf1
+    issue: 242
+    files_count: 6
+    description: "Updated references to renamed plays in: start-feature-planning, capture-learning, check-drift, distill, enhance"
+
+  - group_id: 3
+    type: refactor
+    scope: skills
+    subject: "update skill files to reference renamed pipeline plays"
+    sha: 9d789fb
+    issue: 242
+    files_count: 28
+    description: "Updated play name references across all 28 skill files"
+
+  - group_id: 4
+    type: refactor
+    scope: agents
+    subject: "update agent definitions to reference renamed pipeline plays"
+    sha: 077f009
+    issue: 242
+    files_count: 9
+    description: "Updated play name references across all 9 agent definition files"
+
+  - group_id: 5
+    type: refactor
+    scope: memory
+    subject: "update memory standards, schemas, and templates for play rename"
+    sha: 78e6fd5
+    issue: 242
+    files_count: 18
+    description: "Updated play name references across 18 memory files"
+
+  - group_id: 6
+    type: docs
+    scope: plays
+    subject: "update documentation and add ADR-018 for pipeline play rename"
+    sha: 4d03a0c
+    issue: 242
+    files_count: 13
+    description: "Updated documentation, ADRs, and added new ADR-018 documenting the rename decision"
+
+summary:
+  total_commits: 6
+  total_files: 88
+  branch: fix/242-rename-core-pipeline-plays
+  push_status: success
+  push_ref: "f2036f5..4d03a0c -> fix/242-rename-core-pipeline-plays"

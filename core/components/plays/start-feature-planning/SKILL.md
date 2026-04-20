@@ -395,7 +395,7 @@ Task: "Stage and commit only the listed evidence/checkpoint files with message `
 
 **Non-blocking:** if commit fails, log warning — do NOT halt.
 
-> **Handoff:** The planning artifacts produced here (spec, verify, tasks) are developer guidance for immediate implementation. For the full formal pipeline, the sequence continues with `specify-product` → `design-exp` → `build-arch` → `prepare-epic`.
+> **Handoff:** The planning artifacts produced here (spec, verify, tasks) are developer guidance for immediate implementation. For the full formal pipeline, the sequence continues with `specify` → `design` → `arch` → `prepare`.
 
 ## Recovery
 

@@ -1,0 +1,76 @@
+rca:
+  symptom: |
+    `core/components/memory/formats/` — the original location named in the issue — no longer
+    exists as a directory. During issue #208's structural cleanup the directory was already
+    migrated to `core/components/memory/standards/templates/`. However the migration was
+    partial: six of the nine missing surfaces from the issue table remain uncreated, a stale
+    path reference (`formats/approval-prompt.md`) persists in `templates/checkpoint.md`, and
+    the `templates/_index.md` still carries a "Deferred follow-ups (#209)" table that documents
+    the gap rather than closing it. The net result is identical to the original complaint: most
+    user-visible output shapes are inlined ad-hoc across plays rather than resolved from a
+    canonical template.
+
+  root_cause: |
+    The issue was raised against a directory (`formats/`) that was simultaneously being
+    retired and replaced by `standards/templates/`. The migration created the directory
+    and moved three existing files (github-issue.md, approval-prompt.md, checkpoint.md,
+    evidence-file.md, knowledge-file.md, issue-comment-rca-approved.md — six total) but
+    intentionally deferred the remaining surfaces to "when corresponding plays stabilize".
+    That deferral became permanent because no follow-up issue was created to force closure,
+    leaving the _index.md to document the gap rather than filling it.
+
+    Specifically missing from `core/components/memory/standards/templates/`:
+      - commit-message.md  (format lives in rules/commits.md as rules, not shape)
+      - pr-body.md         (format inlined in skills/submit-pr/SKILL.md lines 79-109)
+      - pr-review-comment.md  (format inlined in plays/review-pr/SKILL.md lines 330-350)
+      - delivery-report.md (referenced by name in approval-prompt.md and evidence-file.md
+                            but the file itself does not exist)
+      - issue-list.md      (proposed in issue #209 but has no identified play consumer —
+                            no play renders a user-facing issue list; deferred)
+
+    Additionally, `pr-findings.yaml` (proposed in issue #209) already exists as a schema
+    document at `skills/quality-check-scoped/reference/finding-schema.md`. Routing it to
+    `templates/` would contradict the category rule in `templates/_index.md` ("YAML schema
+    contracts belong in `schemas/`"); it should be routed to `standards/schemas/` instead.
+
+    One stale path reference: `templates/checkpoint.md` line 74 still reads
+    `formats/approval-prompt.md`; the directory no longer exists — should read
+    `templates/approval-prompt.md`.
+
+  affected_components:
+    - path: "core/components/memory/standards/templates/"
+      role: "Target directory for canonical output-shape templates"
+      gap: "Missing: commit-message.md, pr-body.md, pr-review-comment.md, delivery-report.md"
+
+    - path: "core/components/memory/standards/templates/_index.md"
+      role: "Registry of templates with consumer map"
+      gap: "Deferred table still present; must be updated once templates are created"
+
+    - path: "core/components/memory/standards/templates/checkpoint.md"
+      role: "Checkpoint artifact format"
+      gap: "Stale reference to formats/approval-prompt.md on line 74"
+
+    - path: "core/components/memory/standards/schemas/"
+      role: "YAML schema contracts (distinct from templates)"
+      gap: "pr-findings.yaml not present here; finding-schema.md exists in the skill but
+            not as a global standard accessible from LTM"
+
+    - path: "core/components/skills/submit-pr/SKILL.md"
+      role: "Inlines PR body shape in lines 79-109"
+      gap: "Should reference templates/pr-body.md instead of inlining"
+
+    - path: "core/components/plays/review-pr/SKILL.md"
+      role: "Inlines PR review comment structure in lines 330-350"
+      gap: "Should reference templates/pr-review-comment.md instead of inlining"
+
+    - path: "core/components/plays/ship/SKILL.md"
+      role: "References delivery report by name but no template file exists"
+      gap: "Step 6 says 'Present final delivery report to user' — shape undefined"
+
+    - path: "core/components/plays/commit-code/SKILL.md"
+      role: "Commit messages governed by rules/commits.md rules but no template"
+      gap: "rules/commits.md defines categories and quality rules; no canonical shape file"
+
+    - path: "core/components/memory/standards/rules/commits.md"
+      role: "Commit categorization and quality rules"
+      gap: "Contains format examples inline rather than pointing to templates/commit-message.md"

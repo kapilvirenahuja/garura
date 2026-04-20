@@ -1,0 +1,49 @@
+step: analyze-changes
+issue: 299
+branch: feat/299-list-product-state-skill
+timestamp: "2026-04-19"
+
+groups:
+  - id: A
+    type: feat
+    scope: skills
+    subject: "add list-product-state skill with shared feature-tree template (#299)"
+    files:
+      - core/components/skills/list-product-state/SKILL.md
+      - core/components/skills/list-product-state/evals/evals.json
+      - core/components/memory/standards/templates/feature-tree-output.md
+    body: >
+      Model-invocable skill that renders the 3-tier feature catalog from
+      .garura/product/scope/features.yaml; canonical template at
+      core/components/memory/standards/templates/feature-tree-output.md;
+      reads rules from feature-catalog.md.
+    issue_confidence: high
+    issue_mapping_basis: branch-encoded
+
+  - id: B
+    type: chore
+    scope: stm
+    subject: "record list-product-state skill-creator eval workspace (#299)"
+    files:
+      - core/components/skills/list-product-state-workspace/
+    body: >
+      Iteration-1 and iteration-2 artifacts (benchmarks, per-eval grading,
+      static viewer) plus description-optimization and package logs from
+      skill-creator SOP runs.
+    issue_confidence: high
+    issue_mapping_basis: branch-encoded
+
+  - id: C
+    type: skip
+    reason: >
+      _pending/start-feature/args.yaml and changed-files.txt are scratch state
+      from a different workflow, not work product for #299. Excluded.
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+approval_required: false
+approval_basis: "All mappings high confidence (branch-encoded #299). C9 satisfied."

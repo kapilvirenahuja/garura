@@ -199,7 +199,7 @@ Depends on: Step 3
 }
 ```
 
-Agent reads `discovery.md`, reads relevant LTM/KB, reads codebase files mentioned in issue + Q&A. Produces `understanding.md`: relevant architecture, existing patterns, integration points, conventions, domain knowledge. Lightweight — not prepare-epic's full understanding phase.
+Agent reads `discovery.md`, reads relevant LTM/KB, reads codebase files mentioned in issue + Q&A. Produces `understanding.md`: relevant architecture, existing patterns, integration points, conventions, domain knowledge. Lightweight — not prepare's full understanding phase.
 
 **Step 4 Evals:**
 - **SE-3 (C5):** When {product_base}/architecture/ does not exist or is absent, context assembly completes using core LTM only and does NOT halt the play. understanding.md is still written. When product LTM is present, understanding.md references product architecture. In both cases has_product_ltm flag is set correctly and no hard failure is raised due to missing product LTM.
@@ -441,23 +441,29 @@ Depends on: Step 9
   "stm_base": "{stm_base}",
   "stm": {
     "input": {
-      "approach": "{stm_base}/{issue}/evidence/enhance/approach.yaml",
-      "project_root": "."
+      "artifact_paths": {
+        "approach": "{stm_base}/{issue}/evidence/enhance/approach.yaml"
+      },
+      "project_root": ".",
+      "eval_path": "core/components/plays/enhance/reference/evals/solution-rating.yaml"
     },
     "output": {
       "judge_report": "{stm_base}/{issue}/evidence/enhance/judge-report.yaml"
     }
   },
-  "task_id": "judge-rating"
+  "task_id": "judge-rating",
+  "config": {
+    "instructions": "Rate enhancement solution against the supplied evals. Boundary is the approach.yaml plus project_root. For each ER-N eval, execute its verification procedure against the delivered work and record PASS/FAIL with evidence. Compute overall_confidence per ER-4: any blocker-classified concern → overall_confidence ≤ 0.55; else reflect quality across per-area assessments."
+  }
 }
 ```
 
-**Critical (C14/F10):** Judge receives ONLY `approach.yaml` + project codebase. NOT builder prompts, NOT self-eval results. Context isolation preserved.
+**Critical (C14/C21/F10):** Judge receives `approach.yaml`, project codebase, and the static eval file at `eval_path`. NOT builder prompts, NOT self-eval results. Context isolation preserved.
 
-Judge rates overall solution confidence 0-1. Reports per-area assessment.
+Judge executes each ER-N eval and rates overall solution confidence 0-1. If any blocker concern is found, overall_confidence MUST be ≤ 0.55 per ER-4.
 
 **Step 10 Eval:**
-- **SE-12 (C14/F10):** judge-report.yaml exists at {stm_base}/{issue}/evidence/enhance/judge-report.yaml containing a numeric confidence score between 0.0 and 1.0 and per-area assessment entries. The JSON contract sent to the judge agent contains only 'approach' (path to approach.yaml) and 'project_root' — it does not include self-eval.yaml paths, build-report.yaml paths, builder prompt history, or any implementation rationale.
+- **SE-12 (C14/C21/F10):** judge-report.yaml exists at {stm_base}/{issue}/evidence/enhance/judge-report.yaml containing a numeric confidence score between 0.0 and 1.0 and per-area assessment entries. The JSON contract sent to the judge agent includes 'artifact_paths.approach' (path to approach.yaml), 'project_root', 'eval_path' pointing to solution-rating.yaml, and 'config.instructions' with the ER-4 confidence cap rule. It does not include self-eval.yaml paths, build-report.yaml paths, builder prompt history, or any implementation rationale.
 
 ---
 

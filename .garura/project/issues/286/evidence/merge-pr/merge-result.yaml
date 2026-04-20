@@ -1,0 +1,23 @@
+status: merged
+pr_number: 295
+merge_sha: b920ae3034a979863ec29c6cfbc9368b689b4729
+merged_at: "2026-04-19T15:30:52Z"
+base_branch: main
+branch_deleted:
+  local: true
+  remote: true
+  remote_note: >
+    Remote branch fix/286-skill-delegation-defects was deleted explicitly.
+    No "branch not found" error — deleted cleanly before GitHub's auto-delete fired.
+local_checkout: main
+local_base_up_to_date: true
+evals:
+  SE-1: PASS  # mergeable=true confirmed before merge; no conflict state entered
+  SE-2: PASS  # branch_deleted=true; branch absent locally and on remote
+  SE-3: PASS  # local HEAD on main; local SHA b920ae3 matches origin/main
+  SE-4: PASS  # pre-merge tree was clean (tracked only); confirmed in readiness.yaml
+  SE-5: PASS  # PR #295 state=MERGED on platform; merge_sha present in git log
+scenarios:
+  SCE-1: PASS  # On main, up to date, no 286 branch locally or remotely
+  SCE-2: PASS  # PR #295 shows MERGED on platform; b920ae3 present in git log main
+warnings: []

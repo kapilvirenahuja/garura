@@ -1,0 +1,63 @@
+distill:
+  issue: "305"
+  pr: "306"
+  merge_sha: "704d14d"
+  assessed_at: "2026-04-19"
+  mode: fast
+  stm_evidence_found: true
+  diff_assessed_trivial: false
+
+proposals:
+
+  - id: P1
+    tier: 2
+    confidence: high
+    artifact: "research/design-plays.md (or equivalent design-domain experiential entry)"
+    section: "Experiential — Common Mistakes / Design System boundary"
+    finding: >
+      Judge v1 scored 0.74 because compile-design-spec/SKILL.md did not declare
+      design_system_path as a required input while the play's Step 9 JSON contract
+      passed it. This is a canonical contract-mismatch pattern: the orchestration layer
+      adds an output from a new skill to a downstream skill's call, but the downstream
+      skill's declared input surface is not updated. The fix required an explicit
+      blocker-identified re-judge cycle (v1 → fix commit f422dbe → v2 at 0.92).
+    proposed_enrichment: >
+      When a new skill is introduced that produces an artifact consumed by an existing
+      downstream skill, BOTH the orchestration-layer call AND the downstream skill's
+      declared input section must be updated atomically. A plan task (T2b in this case)
+      that targets the downstream skill must be kept synchronised with the new skill
+      authoring task (T1). Contract mismatch between the caller's JSON and the callee's
+      declared Input is a judge blocker (high severity), not a medium concern — it
+      represents a broken API surface that silently fails at runtime.
+    evidence: >
+      judge-report.yaml C-01 (severity: high), judge-report-v2.yaml resolved concern
+      "compile-design-spec/SKILL.md did not declare design_system_path". Fix commit f422dbe.
+      Score delta: 0.74 → 0.92.
+
+  - id: P2
+    tier: 2
+    confidence: high
+    artifact: "research/design-plays.md (or equivalent design-domain experiential entry)"
+    section: "Experiential — Play-Orchestrator Skill-Tool boundary"
+    finding: >
+      /create-play --rebuild cannot be invoked by sub-agents (code-builder). The enhance
+      play orchestrator owns this step exclusively via the Skill tool. This boundary had
+      to be enforced by task ownership (T3 description + code-builder halt signal) because
+      no runtime guard exists. ALT2 (bash workaround inside code-builder) was explicitly
+      rejected as it bypasses intent_hash/compilation metadata tracking and breaks
+      version updates. The pattern is: code-builder signals status=needs-rebuild and halts;
+      orchestrator picks up T3 via Skill tool.
+    proposed_enrichment: >
+      Play rebuild (/create-play --rebuild <play>) is an orchestrator-tier operation.
+      Task DAGs that include a rebuild step must assign it to the play orchestrator, not
+      to code-builder. Code-builder's completion signal for the preceding task (intent.yaml
+      edit) must explicitly set a status sentinel (e.g., needs-rebuild) to mark the
+      handoff point. The orchestrator must not proceed to /sync-claude (T4) until the
+      rebuild diff has been verified against the prior SKILL.md version.
+    evidence: >
+      approach.yaml tasks T3/T4 (owner: enhance-play-orchestrator, NOT code-builder),
+      alternatives_considered ALT2 (rejected: bash workaround bypasses compilation metadata),
+      build-report.yaml (status: needs-rebuild, pending_orchestrator_tasks: [T3, T4]),
+      judge-report-v2 area "Play-orchestrator boundary" scored HIGH.
+
+  approval_status: pending

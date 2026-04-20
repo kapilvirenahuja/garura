@@ -1,0 +1,18 @@
+pr:
+  number: 298
+  title: "fix(claude.md): reconcile approval convention and mirror skill-build rule"
+  url: "https://github.com/kapilvirenahuja/garura/pull/298"
+  state: OPEN
+  mergeable: MERGEABLE
+  merge_state_status: CLEAN
+  head_branch: fix/297-reconcile-claude-md-approval-convention
+  base_branch: main
+
+constraints:
+  C1: PASS  # not on main/master
+  C2: PASS  # PR #298 exists and is open
+  C3: PASS  # working tree clean (untracked files only, no staged/modified)
+  C4: PASS  # no merge conflicts (CLEAN state)
+  C5: PASS  # default merge strategy will be used
+
+verdict: MERGEABLE

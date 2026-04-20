@@ -10,7 +10,7 @@ intent: >
 constraints:
   - id: C1
     rule: >
-      No context/ prerequisite. This play does not require a prepare-epic
+      No context/ prerequisite. This play does not require a prepare
       context baseline. It operates solely on the merged PR diff and whatever
       STM evidence is available in {stm_base}/{issue}/evidence/ (may be empty).
       Absence of STM evidence is a valid, non-failing condition.
@@ -30,6 +30,15 @@ constraints:
       to {product_base}. Product LTM is read for reference context only (if needed
       to identify proposal targets). Any write to product LTM from this play is a
       hard constraint violation.
+
+  - id: C4
+    rule: >
+      After proposals.yaml is written to STM (or no_learnings is confirmed),
+      distill MUST invoke repo-orchestrator to self-commit the evidence files
+      it produced (evidence/distill/ contents). This self-commit is
+      non-blocking — any failure is logged and distill returns gracefully.
+      Commit message: "chore(stm): record distill evidence for #{issue} (#{issue})".
+      Never blocks the ship pipeline.
 
 failure_conditions:
   - id: F1

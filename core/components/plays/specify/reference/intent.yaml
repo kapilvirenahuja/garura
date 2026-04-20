@@ -1,0 +1,443 @@
+name: garura:specify
+description: >
+  Transform a product idea plus project profile into a fully scoped, enriched
+  set of intent epics organized by domain and capability. The output is dense
+  enough that downstream design and architecture plays can make real decisions
+  without re-deriving the product context.
+version: 0.1.0
+checksum: "<computed by /create-play --build>"
+
+intent: >
+  Given a product idea and a project profile (security level, industry,
+  compliance, audience, timeline, scale, budget, team size), produce a complete
+  product specification composed of: a market brief with quantified landscape
+  data; a scope document listing selected capabilities with rationale; one
+  enriched intent epic per selected capability, each carrying all mandatory
+  fields (problem statement, measurable intent, appetite, in-scope items,
+  anti-goals, success and failure scenarios, quantified constraints, business
+  rules, hypothesis, assumptions, dependencies, KB traceability); and an
+  aggregated quality profile with risk register and security profile. Every
+  epic traces back to a real feature ID in the domain-taxonomy KB catalog so
+  downstream consumers can audit the selection. Shallow or incomplete output
+  is structurally impossible — the play halts and cycles back on any
+  validation failure.
+
+constraints:
+  - id: C1
+    rule: >
+      The product description must be non-trivial — at minimum 5 meaningful
+      words beyond filler. One-word or filler inputs halt pre-flight with a
+      prompt for elaboration.
+
+  - id: C2
+    rule: >
+      The project profile must be complete before capability configuration
+      begins. All required dimensions (security_level, industry, audience,
+      timeline, scale, compliance, team_size, delivery_ambition) must be
+      present. If any are missing, the play enters an interactive collection
+      loop and pauses until the profile is complete.
+
+  - id: C3
+    rule: >
+      The KB capability catalog must be internally consistent before any epic
+      generation begins. Every feature in every domain-taxonomy markdown file
+      must carry all five structured sections defined in kb-extension-
+      conventions.md (Inclusion, Success Criteria, Failure Scenarios, Cross-
+      Tree Refs, Experiential). Every cross-tree constraint reference must
+      resolve to a real feature ID. Validation is pre-flight; failure halts
+      the play with the validator's error report.
+
+  - id: C4
+    rule: >
+      Every selected capability must be a real feature ID from an existing
+      domain-taxonomy markdown file. The source may be the LTM catalog or
+      an STM research directory produced by the KB-gap research flow;
+      capabilities sourced from STM research are tagged
+      source: provisional_stm_research and carry a kb_source.provisional
+      flag through downstream epics. The play cannot invent capabilities or
+      pick from a hallucinated catalog.
+
+  - id: C5
+    rule: >
+      Every cross-tree constraint defined in the constraints file must be
+      walked explicitly during capability configuration. A constraint whose
+      condition matches the project profile produces its declared
+      include/exclude action, and the action is recorded in the scope
+      artifact's constraint_trace section. Skipping a constraint is a
+      compliance violation.
+
+  - id: C6
+    rule: >
+      Every intent epic must carry all mandatory fields defined in intent-
+      epic-schema.yaml: id, domain, capability, problem_statement, intent,
+      appetite, in_scope (≥1 entry), anti_goals (≥1 entry), success_scenarios
+      (≥2 entries), failure_scenarios (≥2 entries), constraints (performance,
+      security, accessibility, compliance), business_rules (≥1 entry),
+      hypothesis, assumptions_requiring_validation (≥1 entry), dependencies
+      (may be empty list), kb_source (capability, rules_applied, experiential
+      warnings). Empty mandatory fields are blocking validation failures.
+
+  - id: C7
+    rule: >
+      Every constraint in every intent epic must be quantified. Performance
+      values must contain a number and unit. Security values must name a
+      specific standard or control. Accessibility values must reference a
+      WCAG level. Compliance entries must name specific regulations. Vague
+      values ("fast", "secure", "reliable") are blocking validation failures.
+
+  - id: C8
+    rule: >
+      Every intent epic's kb_source.capability field must equal its
+      capability field and must resolve to an existing feature in the
+      referenced domain-taxonomy file. Dangling traceability is a blocking
+      validation failure.
+
+  - id: C9
+    rule: >
+      The quality profile aggregates constraints across all intent epics
+      into ISO 25010 characteristic buckets (functional suitability,
+      performance efficiency, compatibility, interaction capability,
+      reliability, security, maintainability, flexibility, safety). The
+      risk register aggregates experiential warnings from every selected
+      capability's KB source. Neither is optional; both are produced as
+      artifacts before lock.
+
+  - id: C10
+    rule: >
+      All product-scoped artifacts land under .meridian/product/ per
+      the ADR 017 whitelist. No writes outside this directory except
+      checkpoint, status, and evidence files that go through the scriber
+      agent. The play never writes evidence files directly — scriber dispatch
+      is the only mechanism.
+
+  - id: C11
+    rule: >
+      Domain work is delegated to agents. The orchestrator dispatches
+      Market Analyst for stage 1, Product Keeper for stages 2 through 6,
+      and judge for validation. The orchestrator itself never calls
+      domain skills directly. Scriber is dispatched in the background for
+      every evidence, checkpoint, and status write.
+
+  - id: C12
+    rule: >
+      Four human-review checkpoints are mandatory: after market brief,
+      after domain selection, after capability configuration, and after
+      intent epic generation. Each checkpoint produces a checkpoint artifact
+      before the gate and waits for a Tether or Vanish response. Orbit
+      (cycle-back with feedback) is allowed and triggers a targeted re-run
+      of the stage that produced the artifact under review.
+
+  - id: C13
+    rule: >
+      The three-layer planning hierarchy is Domain → Capability → Intent
+      Epic. No Theme, Feature, or Story layer. Stories are generated during
+      the build phase by downstream plays, not here. Intent epics are the
+      most granular artifact this play produces.
+
+  - id: C14
+    rule: >
+      A pre-lock resolution gate runs before the final intent-epic
+      validation pass. It scans for (a) blocker-severity validation issues,
+      (b) warning-severity validation issues, and (c) placeholder values
+      like "TBD" / "unclear" / "to be determined" in any mandatory field.
+      Blockers and placeholders force an interactive RESOLVED-keyword
+      interview; there is no accept-risk bypass for blockers — only
+      RESOLVED or Vanish. The audit artifact records every resolution.
+
+  - id: C15
+    rule: >
+      An MVP recommendation artifact must exist at
+      .meridian/product/scope/mvp-recommendation.md before capability
+      configuration (Stage 3) begins. The artifact is authored at
+      Stage 2.75, between domain-selection and configure-capabilities,
+      and identifies the primary use cases, deferred use cases with
+      v1.1+ triggers, and any architecture directions committed at
+      spec time. configure-capabilities reads the recommendation and
+      narrows the capability walk to the primary use cases; non-primary
+      capabilities land in a deferred_capabilities section of scope.yaml
+      with rationale. Missing recommendation halts the play pre-flight
+      for Stage 3 per rules/product.md Rule 13. See Defect 6 and
+      Defect 9.
+
+  - id: C16
+    rule: >
+      Artifacts produced by this play stay implementation-agnostic.
+      No file under .meridian/product/research/, .meridian/product/
+      specification/, or .meridian/product/scope/ may reference a
+      specific database engine, SDK method or parameter, framework,
+      programming language, build tool, table schema with column
+      definitions, wire protocol or endpoint path, cryptographic
+      construction, or model version identifier. Allowed vocabulary is
+      domain-level ("append-only ledger", "pluggable measurement
+      adapter", "structured-output enforcement", "controlled-determinism
+      contract"). Skills that author these artifacts reject outputs
+      containing the deny-list tokens. See rules/product.md Rule 14
+      and Defect 7.
+
+  - id: C17
+    rule: >
+      KB-sourced domain definitions are copied into the product's
+      research folder at selection time, with a provenance header
+      recording origin, KB path, copy timestamp, and KB content hash.
+      Stage 3 and every later stage read the domain library from
+      .meridian/product/research/ only — never directly from
+      core/components/memory/knowledge/domain/. This makes every
+      product run reproducible (a KB edit does not retroactively
+      change historical runs) and gives the product a single read
+      path for domain content regardless of whether a domain arrived
+      from KB or from STM research. See rules/product.md Rule 15 and
+      Defect 8.
+
+  - id: C18
+    rule: >
+      Decision Surfacing Discipline. Every inferred decision produced by
+      any skill in this play — every classification, synthesis, selection,
+      enumeration, or threshold the agent reasons to rather than reading
+      verbatim from a user-provided artifact — must be tagged with a
+      confidence tier and surfaced to the user before it is committed
+      downstream. Tiers are assigned by grounding source: HIGH when the
+      decision is a direct match against a KB rule, file, or catalog entry;
+      MID when the agent built context via web research because no KB
+      grounding existed; LOW when neither KB nor research yielded a
+      grounding source. Each decision records: tier, grounding_source
+      (KB file path / web citation / "no source"), recommendation,
+      alternatives_considered, and the user's response (accept / override
+      / orbit). The orchestrator presents decisions per tier: HIGH as a
+      batch confirmation (user may Tether all or Orbit any single one to
+      reopen for one-by-one review); MID as a batch with explicit
+      questions and recommendations (user may accept the batch or drill
+      one-by-one); LOW always one-by-one with no batching. High confidence
+      is permission to batch — never permission to skip user review.
+      configure-capabilities is the canonical exemplar for the
+      one-by-one Q&A presentation depth; new and updated skills must
+      match its grounding-question format and recording structure.
+      Decisions that merely echo upstream user input — project-profile
+      pins, locked epic fields, copying a slug, assigning a timestamp —
+      are not "decided" by the play and are exempt. See Defect 23.
+
+  - id: C19
+    rule: >
+      Every skill that produces inferred decisions must emit a
+      decision-manifest.yaml as part of its output contract, written
+      alongside its primary artifact. Each manifest entry carries:
+      decision_id, decision_type, tier (high|mid|low), grounding_source
+      (kb_path | web_citation | none), recommendation,
+      alternatives_considered, agent_reasoning_summary, and (after the
+      orchestrator drives the surfacing flow) user_response
+      (accept | override | orbit) plus user_response_detail. The play
+      orchestrator walks the manifest after each skill completes and
+      drives the tiered presentation flow defined in C18 before any
+      downstream skill consumes the artifact. A skill that produces
+      inferred decisions and writes no manifest is a structural
+      violation. See Defect 23.
+
+  - id: C20
+    rule: >
+      Stage 4b (manage-features) runs as a mandatory step after Stage 4
+      (enrich-capabilities) completes and BEFORE Stage 5 (generate-intent-epics)
+      begins. product-keeper dispatches the manage-features skill with:
+      input contract — enriched_capabilities_path (from Stage 4 output),
+      project_profile_path, stm_output_base; output contract — features_path
+      (written to {product_base}/scope/features.yaml), features_count,
+      decision_manifest_path (written to
+      {product_base}/scope/decision-manifest-manage-features.yaml),
+      decisions_recorded. The task_id for this dispatch is
+      "specify-stage-4b-features". Omitting this step leaves generate-intent-epics
+      without a verified feature catalog and is a structural violation.
+
+  - id: C21
+    rule: >
+      Stage 4c (decision-surfacing for manage-features) runs immediately after
+      Stage 4b completes and BEFORE Stage 5 (generate-intent-epics) begins. The
+      orchestrator reads decision-manifest-manage-features.yaml and drives the
+      C18 tiered presentation flow (HIGH batch confirm → MID batch with questions
+      → LOW one-by-one). Every manifest entry must carry a non-null user_response
+      before Stage 5 is dispatched. generate-intent-epics (Stage 5) receives
+      features_path as a required input — the canonical path is
+      {product_base}/scope/features.yaml. Missing features_path in the Stage 5
+      dispatch contract is a structural violation; generate-intent-epics uses it
+      to cross-check epic KB IDs against the declared product feature catalog.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      The play completes with zero intent epics in the product output
+      directory.
+
+  - id: F2
+    condition: >
+      Any intent epic in the output has one or more mandatory fields that
+      are empty, null, or contain only whitespace or placeholder strings.
+
+  - id: F3
+    condition: >
+      Any intent epic constraint field (performance, security, accessibility,
+      compliance) contains unquantified language — "fast", "secure",
+      "reliable", or similar prose without a number, standard, or specific
+      control.
+
+  - id: F4
+    condition: >
+      Any intent epic has fewer than two entries in success_scenarios or
+      fewer than two entries in failure_scenarios.
+
+  - id: F5
+    condition: >
+      Any intent epic's kb_source.capability points at a feature ID that
+      does not exist in the referenced domain-taxonomy file.
+
+  - id: F6
+    condition: >
+      The scope artifact's selected_capabilities list contains an entry
+      that does not correspond to a real feature ID in any domain-taxonomy
+      file.
+
+  - id: F7
+    condition: >
+      The scope artifact's constraint_trace section is missing or fails to
+      record every cross-tree constraint that was walked during capability
+      configuration.
+
+  - id: F8
+    condition: >
+      The quality profile artifact is missing, contains zero entries for
+      at least one ISO 25010 characteristic that is relevant to the
+      selected capabilities, or fails to record the risk register.
+
+  - id: F9
+    condition: >
+      Any of the four mandatory checkpoint artifacts is missing from the
+      checkpoint directory, or any checkpoint proceeded past its gate
+      without recording a Tether/Vanish/Orbit response.
+
+  - id: F10
+    condition: >
+      An intent epic is locked despite the pre-lock resolution gate reporting
+      unresolved blockers or placeholder values in its mandatory fields.
+
+  - id: F11
+    condition: >
+      Any artifact is written to a path outside the ADR 017 whitelist, or
+      any evidence / checkpoint / status file is written without going
+      through the scriber agent.
+
+  - id: F12
+    condition: >
+      The product scope is handled as a single monolithic package when the
+      selected capabilities clearly warrant sub-issue phasing. The play
+      must surface a phasing recommendation when the epic count exceeds the
+      appetite's reasonable bandwidth.
+
+  - id: F13
+    condition: >
+      Any file under .meridian/product/research/, .meridian/product/
+      specification/, or .meridian/product/scope/ written by this play
+      contains an implementation-specific token from the abstraction-
+      layer deny-list (specific database engines, SDK method names,
+      framework identifiers, programming-language type signatures,
+      wire-level protocol identifiers, cryptographic construction
+      details, or model version strings). Output of this shape is a
+      structural failure per C16 / rules/product.md Rule 14.
+
+  - id: F14
+    condition: >
+      Any skill commits an inferred decision to a downstream artifact
+      (epic, scope, quality-profile, grounding-questions) without first
+      surfacing it to the user via the tier-appropriate flow defined in
+      C18. Silent commits — including high-confidence auto-resolution
+      and silent KB-single-candidate selection — are blocking failures.
+
+  - id: F15
+    condition: >
+      A skill that produces inferred decisions completes without writing
+      a decision-manifest.yaml, or writes a manifest that omits the
+      tier, grounding_source, recommendation, or alternatives_considered
+      fields for any decision, or fails to update user_response after
+      the orchestrator runs the surfacing flow.
+
+scenarios:
+  - id: S1
+    persona: Product Manager
+    given: >
+      The enriched intent epics produced by this play for a healthcare B2B
+      SaaS with HIPAA compliance and high security level
+    then: >
+      Can derive per-epic acceptance criteria for the engineering team
+      directly from each epic's success_scenarios and failure_scenarios
+      without consulting any other source.
+
+  - id: S2
+    persona: Technical Architect
+    given: >
+      The quality profile artifact aggregating constraints across all
+      selected capabilities
+    then: >
+      Can make informed decisions on technology stack, data architecture,
+      security architecture, and infrastructure — every architectural
+      decision has a quality-attribute driver that traces to a specific
+      characteristic in the profile.
+
+  - id: S3
+    persona: Product Owner
+    given: >
+      The scope document listing selected capabilities with per-capability
+      rationale and the constraint_trace showing which cross-tree
+      constraints fired
+    then: >
+      Can trace every intent epic back to the exact feature ID in the KB
+      that motivated its inclusion, and can defend every capability
+      selection to a stakeholder who asks "why this and not that".
+
+  - id: S4
+    persona: Product Manager
+    given: >
+      The failure_scenarios sections of every intent epic
+    then: >
+      Can enumerate the error-handling, edge-case, and unhappy-path work
+      that the implementation must cover — no unhappy path is silently
+      skipped, because the validator would have blocked an epic with empty
+      failure_scenarios.
+
+  - id: S5
+    persona: Engineering Lead
+    given: >
+      The market brief with quantified landscape data and the selected
+      capabilities scoped against the project profile
+    then: >
+      Can assess technical feasibility of the scope within the stated
+      appetite, flag capabilities whose implementation cost exceeds the
+      appetite's bandwidth, and propose either scope cuts or appetite
+      expansion with concrete justification.
+
+  - id: S6
+    persona: Compliance Officer
+    given: >
+      The intent epics plus the constraint_trace for a regulated-industry
+      project (healthcare, BFSI, government)
+    then: >
+      Can verify that every applicable cross-tree constraint (MFA for
+      regulated industries, audit logging for HIPAA, data export for GDPR)
+      has been applied and recorded, without re-deriving the compliance
+      mapping from scratch.
+
+  - id: S7
+    persona: Stakeholder (non-technical)
+    given: >
+      The scope document presented at the capability-configuration
+      checkpoint
+    then: >
+      Can review phasing decisions (what ships in the first appetite window
+      versus what's deferred) and either Tether to approve, Orbit to push
+      back with specific feedback, or Vanish to abandon — without needing
+      engineering context for the call.
+
+  - id: S8
+    persona: Product Manager
+    given: >
+      A mid-run Orbit on the capability-configuration checkpoint requesting
+      that a specific capability be excluded
+    then: >
+      Can cycle the play back to stage 3 with the exclusion as additional
+      context, re-run capability configuration, and receive an updated
+      scope document that honors the Orbit feedback — without restarting
+      the entire play from stage 1.

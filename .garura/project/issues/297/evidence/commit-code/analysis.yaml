@@ -1,0 +1,50 @@
+branch:
+  name: fix/297-reconcile-claude-md-approval-convention
+  issue: 297
+  is_hotfix: false
+
+change_summary:
+  total_files: 1
+  staged: 0
+  unstaged: 1
+  untracked: 0
+
+groups:
+  - id: 1
+    issue: 297
+    type: docs
+    scope: claude-md
+    subject: reconcile CLAUDE.md with garura paths, approval convention, and play pipeline rules
+    confidence: high
+    files:
+      - path: CLAUDE.md
+        changes:
+          - ".meridian/ → .garura/ path normalization throughout (memory paths, config reference)"
+          - "§3 Explicit Approvals: removed Tether/Vanish protocol text and parse instructions"
+          - "§4 replaced Task-Driven Workflow section with 'Agents hold the role of Context Crafting'"
+          - "Play Pipeline Rules softened: /create-play --build only required when intent.yaml changes"
+          - "Minor: removed deployment path tables from §1, removed agent-domain table from §2"
+
+risks:
+  sensitive_files: []
+  breaking_changes:
+    - description: >
+        Tether/Vanish approval protocol removed from §3. This is a behavioral
+        contract change — downstream agents and plays referencing this convention
+        will no longer find it in CLAUDE.md. Low blast radius (documentation only),
+        but the removal is not purely cosmetic.
+    - description: >
+        Play Pipeline Rules now permit direct file edits when intent.yaml is
+        unchanged. This relaxes a previously strict gate. Not a breaking change
+        per se, but a constraint weakening that could lead to out-of-sync skill
+        files if misapplied.
+  ambiguous_types: []
+  hotfix_branch: false
+
+recommendation:
+  grouping_decision: >
+    Single group. All four concerns are textually interleaved within one file (CLAUDE.md).
+    Splitting by concern would require cherry-picking line ranges from the same diff, producing
+    artificial commits that cannot be staged independently. One commit captures the full
+    reconciliation intent cleanly.
+  suggested_commit: "docs(claude-md): reconcile garura paths, approval convention, and play pipeline rules (#297)"

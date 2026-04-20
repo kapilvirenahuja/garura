@@ -64,6 +64,23 @@ issue=$(echo "$branch" | grep -oE '/[0-9]+' | tr -d '/')
 
 **Resume check:** If `{stm_base}/{issue}/status/commit-code.json` exists, resume — skip completed steps, reset any `in_progress` to pending, continue from first incomplete.
 
+## Task DAG
+
+Create ALL tasks via `TaskCreate` immediately after resolving `stm_base` — before any domain work begins. The play owns this DAG. Agents must NOT update play-level tasks (they may `TaskCreate` discovered sub-work with `addBlockedBy`, but the play's steps are the play's responsibility).
+
+```
+TaskCreate "[T1] Analyze Changes"           blockedBy: []
+TaskCreate "[T2] Resolve Issues"            blockedBy: [T1]
+TaskCreate "[T3] Create Commits"            blockedBy: [T2]
+TaskCreate "[T4] Push Branch"               blockedBy: [T3]
+TaskCreate "[T5] Scenario Validation"       blockedBy: [T4]
+TaskCreate "[T6] Write Evidence"            blockedBy: [T5]
+```
+
+Mark each task `in_progress` before starting its step. Mark `completed` immediately after. The DAG mirrors the compiled step sequence — no runtime reordering. Parallel steps share the same `blockedBy` predecessor.
+
+On resume: TaskList shows current state. Skip tasks already `completed`. Reset `in_progress` tasks to `pending` (they may not have finished).
+
 ## Workflow
 
 ### Phase: Preparation
@@ -71,6 +88,7 @@ issue=$(echo "$branch" | grep -oE '/[0-9]+' | tr -d '/')
 **Step 1 — Analyze Changes**
 Owner: `repo-orchestrator`
 Depends on: pre-flight
+Task: `TaskUpdate [T1] → in_progress` before dispatch. `TaskUpdate [T1] → completed` after eval passes.
 
 ```json
 {
@@ -97,6 +115,7 @@ Agent invokes `analyze-changes` skill → writes changeset analysis to STM.
 **Step 2 — Resolve Issues**
 Owner: `project-orchestrator`
 Depends on: Step 1
+Task: `TaskUpdate [T2] → in_progress` before dispatch. `TaskUpdate [T2] → completed` after eval passes.
 
 ```json
 {

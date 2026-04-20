@@ -1,0 +1,10 @@
+result:
+  success: true
+  pr:
+    number: 294
+    url: "https://github.com/kapilvirenahuja/garura/pull/294"
+    state: "open"
+    title: "feat(fix-it): add TDD and anti-reward-hacking constraints (#259)"
+  checklist:
+    required_count: 10
+    optional_count: 4

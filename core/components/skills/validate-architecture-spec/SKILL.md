@@ -1,6 +1,6 @@
 ---
 name: validate-architecture-spec
-description: Blocking validator for the five-artifact build-arch output contract (logical-architecture, physical-architecture, nfr-spec, quality-vision, design-patterns) plus their five decision manifests. Enforces all 20 checks derived from build-arch intent.yaml constraints C1-C19 and failure conditions F1-F19.
+description: Blocking validator for the five-artifact arch output contract (logical-architecture, physical-architecture, nfr-spec, quality-vision, design-patterns) plus their five decision manifests. Enforces all 20 checks derived from arch intent.yaml constraints C1-C19 and failure conditions F1-F19.
 user-invocable: false
 model: haiku
 allowed-tools: Read, Write, Glob, Grep
@@ -8,11 +8,11 @@ allowed-tools: Read, Write, Glob, Grep
 
 # validate-architecture-spec
 
-Called by `tech-architect` after all five build-arch derive skills complete. Blocking validator — any blocker violation causes `status: failed` and the calling play cycles back to the relevant stage.
+Called by `tech-architect` after all five arch derive skills complete. Blocking validator — any blocker violation causes `status: failed` and the calling play cycles back to the relevant stage.
 
 ## Purpose
 
-Enforce the `build-arch` intent.yaml contract against the actual five-artifact output. Checks structural completeness, technology discipline, capability coverage, NFR delivery, quality vision, pattern coverage, decision-surfacing discipline, ADR completeness, and driver traceability across every artifact and every decision manifest.
+Enforce the `arch` intent.yaml contract against the actual five-artifact output. Checks structural completeness, technology discipline, capability coverage, NFR delivery, quality vision, pattern coverage, decision-surfacing discipline, ADR completeness, and driver traceability across every artifact and every decision manifest.
 
 ## Input
 
@@ -281,7 +281,7 @@ Scan all decisions in `all_decisions`. For every decision entry where `alternati
 
 For every `driver` / `drivers` field value across all five artifacts and all five manifests:
 
-1. Collect all driver citation strings (e.g., `"EPIC-user-login-001 CTC-001"`, `"quality-profile.security"`, `"project-profile.budget_sensitivity=medium"`, `"design-exp flows/authentication-flow.md"`).
+1. Collect all driver citation strings (e.g., `"EPIC-user-login-001 CTC-001"`, `"quality-profile.security"`, `"project-profile.budget_sensitivity=medium"`, `"design flows/authentication-flow.md"`).
 2. For each citation that references a file path (any citation containing `/` or ending with `.yaml` or `.md`), verify the referenced file exists using Glob. If the file does not exist → **blocker**. Record the missing path and the field that cited it.
 3. For each citation that references a YAML key path (e.g., `quality-profile.security`, `project-profile.team_size`), verify the top-level key exists in the referenced file by reading it. If the top-level key is absent → **blocker**. Record the missing key and the field that cited it.
 4. For citations referencing epic IDs (e.g., `EPIC-user-login-001`), verify a corresponding file exists under `{epics_dir}` that matches the epic ID pattern. If no file matches → **blocker**.

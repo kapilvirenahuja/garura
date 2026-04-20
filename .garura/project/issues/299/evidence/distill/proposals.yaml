@@ -1,0 +1,35 @@
+distill:
+  issue: 299
+  pr: 300
+  mode: fast
+  analyzed_at: "2026-04-19"
+  stm_evidence_found: false
+  diff_assessed_trivial: false
+
+  summary:
+    total_proposals: 1
+    stm_evidence_found: false
+    diff_assessed_trivial: false
+
+  proposals:
+    - id: P1
+      confidence: low
+      tier: 2
+      artifact: "research/skills.md (Experiential section)"
+      artifact_path: ".garura/product/research/skills.md"
+      section: "Experiential"
+      finding: "Shared render templates in LTM standards"
+      proposed_enrichment: |
+        Skills that produce structured text output benefit from externalizing their
+        render template to core/components/memory/standards/templates/ rather than
+        embedding formatting rules in SKILL.md. The list-product-state skill stores
+        its canonical tree format in feature-tree-output.md, allowing the template
+        to be referenced by multiple skills and updated independently of skill logic.
+        Observed pattern: skill SKILL.md declares "read template from
+        memory/standards/templates/{name}.md", keeping SKILL.md focused on trigger
+        conditions and data-source rules only.
+      evidence: >
+        commit-code analysis.yaml group A: core/components/memory/standards/templates/feature-tree-output.md
+        added alongside SKILL.md for the list-product-state skill (#299).
+      source: analyze
+      approval_status: pending

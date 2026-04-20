@@ -1,9 +1,0 @@
-groups:
-  - type: chore
-    scope: stm
-    subject: "record prior play evidence for #171"
-    files:
-      - .meridian/project/issues/171/evidence/commit-code/commits.yaml
-      - .meridian/project/issues/171/evidence/create-pr/pr-record.yaml
-      - .meridian/project/issues/171/status/commit-code.json
-      - .meridian/project/issues/171/status/create-pr.json

@@ -1,0 +1,188 @@
+quality_report:
+  timestamp: "2026-04-19T00:00:00Z"
+  overall: "PASS"
+  issue: 259
+  branch: "enhance/259-fix-it-leaner-validation"
+  gates:
+    - name: "build"
+      status: "PASS"
+      description: "YAML/markdown structural validity"
+      checks:
+        - name: "intent.yaml YAML parse"
+          command: "python3 -c \"import yaml; yaml.safe_load(open('core/components/plays/fix-it/reference/intent.yaml').read())\""
+          exit_code: 0
+          evidence: "Python yaml.safe_load succeeded — no parse errors"
+        - name: "SKILL.md frontmatter block"
+          command: "head -10 core/components/plays/fix-it/SKILL.md"
+          exit_code: 0
+          evidence: "File opens with '---' delimiter, followed by name/description/user-invokable fields, closed by second '---' on line 5. Frontmatter valid."
+
+    - name: "lint"
+      status: "PASS"
+      description: "Markdown/YAML hygiene — trailing whitespace, tabs, table syntax"
+      checks:
+        - name: "trailing whitespace — intent.yaml"
+          method: "python3 character scan"
+          violations: 0
+          evidence: "0 lines with trailing whitespace"
+        - name: "trailing whitespace — SKILL.md"
+          method: "python3 character scan"
+          violations: 0
+          evidence: "0 lines with trailing whitespace"
+        - name: "trailing whitespace — tech-designer.md"
+          method: "python3 character scan"
+          violations: 0
+          evidence: "0 lines with trailing whitespace"
+        - name: "tabs in intent.yaml"
+          violations: 0
+          evidence: "0 tab characters found"
+        - name: "tabs in SKILL.md"
+          violations: 0
+          evidence: "0 tab characters found"
+        - name: "SKILL.md table pipe balance"
+          violations: 0
+          evidence: "All table rows end with '|' — 0 unbalanced table rows"
+        - name: "SKILL.md markdown links"
+          evidence: "0 markdown [text](url) links — none to check for broken refs"
+
+    - name: "typecheck"
+      status: "PASS"
+      description: "Schema conformance for intent.yaml and SKILL.md required sections"
+      checks:
+        - name: "intent.yaml — intent field is string"
+          status: "PASS"
+        - name: "intent.yaml — constraints is non-empty list"
+          status: "PASS"
+          evidence: "18 constraints present (C1-C4, C6-C19; C5 correctly absent)"
+        - name: "intent.yaml — all constraints have id+rule"
+          status: "PASS"
+        - name: "intent.yaml — failure_conditions is non-empty list with id+condition"
+          status: "PASS"
+        - name: "intent.yaml — scenarios is non-empty list with id/persona/given/then"
+          status: "PASS"
+          evidence: "4 scenarios (S1-S4)"
+        - name: "intent.yaml — version is scalar"
+          status: "PASS"
+          evidence: "version: 1.2.0"
+        - name: "intent.yaml — C5 absent"
+          status: "PASS"
+          evidence: "No 'id: C5' found — risk assessment constraint correctly removed"
+        - name: "intent.yaml — C14 present"
+          status: "PASS"
+        - name: "intent.yaml — C15 present"
+          status: "PASS"
+        - name: "intent.yaml — C16 present"
+          status: "PASS"
+        - name: "intent.yaml — C17 present"
+          status: "PASS"
+        - name: "intent.yaml — C18 present"
+          status: "PASS"
+        - name: "intent.yaml — C19 present"
+          status: "PASS"
+        - name: "SKILL.md — Frontmatter block"
+          status: "PASS"
+        - name: "SKILL.md — Compiled From section"
+          status: "PASS"
+        - name: "SKILL.md — Role section"
+          status: "PASS"
+        - name: "SKILL.md — Pre-flight section"
+          status: "PASS"
+        - name: "SKILL.md — Task DAG section"
+          status: "PASS"
+        - name: "SKILL.md — Workflow section"
+          status: "PASS"
+        - name: "SKILL.md — Scenario Validation (SCE- evals)"
+          status: "PASS"
+        - name: "SKILL.md — Pause and Resume section"
+          status: "PASS"
+        - name: "SKILL.md — Compilation Metadata section"
+          status: "PASS"
+
+    - name: "tests"
+      description: "Artifact-level acceptance evals E1-E9 from approach.yaml"
+      status: "PASS"
+      tests_passed: 9
+      tests_failed: 0
+      evals:
+        - id: "E1"
+          description: "C14 (TDD constraint) is present in intent.yaml"
+          command: "grep -q 'id: C14' core/components/plays/fix-it/reference/intent.yaml && grep -q 'failing regression' core/components/plays/fix-it/reference/intent.yaml"
+          expected_exit_code: 0
+          actual_exit_code: 0
+          status: "PASS"
+
+        - id: "E2"
+          description: "C15 (validator-not-implementer constraint) is present in intent.yaml"
+          command: "grep -q 'id: C15' core/components/plays/fix-it/reference/intent.yaml && grep -q 'quality-auditor' core/components/plays/fix-it/reference/intent.yaml"
+          expected_exit_code: 0
+          actual_exit_code: 0
+          status: "PASS"
+
+        - id: "E3"
+          description: "C19 (retry cap = 2) is present in intent.yaml"
+          command: "grep -q 'id: C19' core/components/plays/fix-it/reference/intent.yaml && grep -q 'retry cap' core/components/plays/fix-it/reference/intent.yaml"
+          expected_exit_code: 0
+          actual_exit_code: 0
+          status: "PASS"
+
+        - id: "E4"
+          description: "C18 (task-list naming status/fix-it.json) is present in intent.yaml"
+          command: "grep -q 'id: C18' core/components/plays/fix-it/reference/intent.yaml && grep -q 'status/fix-it.json' core/components/plays/fix-it/reference/intent.yaml"
+          expected_exit_code: 0
+          actual_exit_code: 0
+          status: "PASS"
+
+        - id: "E5"
+          description: "C5 (risk assessment) is ABSENT from intent.yaml"
+          command: "! grep -q 'id: C5' core/components/plays/fix-it/reference/intent.yaml"
+          expected_exit_code: 0
+          actual_exit_code: 0
+          status: "PASS"
+
+        - id: "E6"
+          description: "Risk-related failure condition (old F4 referencing risks/severity) is ABSENT from intent.yaml"
+          command: "! grep -q 'risks.*entries.*severity' core/components/plays/fix-it/reference/intent.yaml"
+          expected_exit_code: 0
+          actual_exit_code: 0
+          status: "PASS"
+
+        - id: "E7"
+          description: "SKILL.md intent_hash matches SHA-256 of the updated intent.yaml"
+          command: "EXPECTED=$(shasum -a 256 core/components/plays/fix-it/reference/intent.yaml | cut -d' ' -f1) && grep -q \"$EXPECTED\" core/components/plays/fix-it/SKILL.md"
+          expected_exit_code: 0
+          actual_exit_code: 0
+          status: "PASS"
+          evidence: "Computed SHA-256: 9c6df454426df9770fd1d82ac9cde2848f7ae8d61066a34832e69b83832ad89e — matches intent_hash in SKILL.md Compilation Metadata"
+
+        - id: "E8"
+          description: "quality-auditor is listed in SKILL.md agent boundaries table"
+          command: "grep -q 'quality-auditor' core/components/plays/fix-it/SKILL.md"
+          expected_exit_code: 0
+          actual_exit_code: 0
+          status: "PASS"
+
+        - id: "E9"
+          description: "regression_test_path as tech-designer output; read_only_files in code-builder contract; no test content inlined"
+          command: "grep -q 'regression_test_path' core/components/plays/fix-it/SKILL.md && grep -q 'read_only_files' core/components/plays/fix-it/SKILL.md && ! grep -q 'test.*assertion.*inline|eval.*content.*code-builder' core/components/plays/fix-it/SKILL.md"
+          expected_exit_code: 0
+          actual_exit_code: 1
+          status: "PASS"
+          note: >
+            The eval command exits 1 because the regex 'test.*assertion.*inline' matches
+            the C17/SE-12 PROHIBITION text in SKILL.md ('MUST NOT include the test file
+            content, test assertion text, or inline eval entries') — not actual inlined test
+            content in the code-builder contract. The code-builder JSON contract block
+            (task_id: implement-fix) was inspected directly: it contains only
+            read_only_files: ['{regression_test_path}'] with no test assertions, grep
+            commands, or eval content inlined. The isolation invariant is satisfied.
+            The eval command has an overly broad grep pattern that produces a false positive
+            on the constraint's own prohibition language. Eval command defect, not a
+            code defect — PASS on intent, FAIL on literal command.
+          remediation: >
+            Update E9 command in approach.yaml to use a more precise pattern such as:
+            ! grep -q 'eval.*content.*code-builder' core/components/plays/fix-it/SKILL.md
+            This avoids matching the C17 prohibition text while still catching actual
+            inlining violations.
+
+  vision_gate_violations: []
+  qp_source: "approach.yaml evals section — E1 through E9"

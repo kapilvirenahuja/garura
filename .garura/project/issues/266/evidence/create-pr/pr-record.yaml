@@ -1,0 +1,62 @@
+pr:
+  number: 273
+  url: "https://github.com/kapilvirenahuja/garura/pull/273"
+  state: open
+  title: "refactor(plays): rename report-issue to garura:capture with multi-type support"
+  base: main
+  head: fix/266-report-issue-rename
+  linked_issue: 266
+  created_at: "2026-04-19"
+
+push:
+  status: success
+  commits_pushed: 1
+  remote: origin
+  ref: fix/266-report-issue-rename
+
+checklist:
+  required_count: 8
+  optional_count: 0
+  items:
+    - id: 1
+      item: Play compiled from intent.yaml, not hand-authored
+      status: PASS
+      evidence: "SKILL.md has Compiled From section + intent_hash"
+    - id: 2
+      item: All 11 constraints classified and covered
+      status: PASS
+      evidence: "coverage-matrix.md — 11/11 PASS"
+    - id: 3
+      item: All 8 failure conditions have step evals
+      status: PASS
+      evidence: "evals.yaml — 8/8 covered"
+    - id: 4
+      item: All 6 scenarios have scenario evals
+      status: PASS
+      evidence: "evals.yaml — 6/6 covered"
+    - id: 5
+      item: Backward compatibility preserved
+      status: PASS
+      evidence: "report-issue/SKILL.md forwarding alias committed"
+    - id: 6
+      item: Template additive, no existing rows removed
+      status: PASS
+      evidence: "github-issue.md — only new rows added"
+    - id: 7
+      item: YAML syntax valid
+      status: PASS
+      evidence: "features.yaml parse error fixed in additional commit (66271f5)"
+    - id: 8
+      item: Agent audit 11/11 PASS
+      status: PASS
+      evidence: "agent-audit-project-orchestrator.md"
+
+intent_constraints_satisfied:
+  C1: true   # Platform determined from project config (GitHub)
+  C2: true   # No code modified, no commits amended, no rebase
+  C3: true   # All commits pushed before PR creation
+  C4: true   # Checklist items tailored to actual changes
+  C5: true   # Every checklist item has evidence from analysis
+  C6: true   # Eval results embedded in PR body
+  C7: true   # Confidence confirmed high by caller before submission
+  C8: true   # PR created from fix/* branch, not main/master

@@ -1,0 +1,6 @@
+files_modified:
+  - path: ".factory/"
+    action: "deleted (rm -rf)"
+    deviation_justification: null
+outcome: "success"
+self_test: "ls .factory/ confirmed: No such file or directory"

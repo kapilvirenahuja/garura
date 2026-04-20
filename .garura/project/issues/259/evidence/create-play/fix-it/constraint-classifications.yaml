@@ -1,0 +1,58 @@
+play: fix-it
+intent_path: core/components/plays/fix-it/reference/intent.yaml
+intent_version: 1.2.0
+constraint_classifications:
+  - id: C1
+    category: pre-flight
+    rationale: "Precondition — existing open issue must resolve. Hard halt at pre-flight if unresolvable."
+  - id: C2
+    category: pre-flight
+    rationale: "Branch guard is an environmental precondition checked before any domain work."
+  - id: C3
+    category: artifact-verifiable
+    rationale: "Observable property of rca.yaml — root cause must trace to file/logic/why-wrong and differ from issue title/body."
+  - id: C4
+    category: artifact-verifiable
+    rationale: "Observable property of design.yaml — alternatives_considered list must be non-empty with rejection reasons."
+  - id: C6
+    category: structural
+    rationale: "Process rule — exactly one, never-skippable checkpoint. Enforced by play structure (single Step 5)."
+  - id: C7
+    category: structural
+    rationale: "Process rule — no further human approval after Tether. Enforced by absence of further approval gates in the compiled play."
+  - id: C8
+    category: artifact-verifiable
+    rationale: "Observable property of the Step 6 agent contract — code-builder's stm.input must not contain checkpoint brief paths or content."
+  - id: C9
+    category: structural
+    rationale: "Process rule — ship sub-play invoked with approval_override=auto-proceed. Enforced by Step 7 structure."
+  - id: C10
+    category: structural
+    rationale: "Orchestrator discipline — forbidden direct git/gh. Enforced by agent boundary table and Role section."
+  - id: C11
+    category: artifact-verifiable
+    rationale: "Observable property of tech-designer contract + resolution-trace.yaml — ltm_context must be present and trace must be written."
+  - id: C12
+    category: artifact-verifiable
+    rationale: "Observable property of STM evidence directory — no HTML brief file may exist under evidence/fix-it/."
+  - id: C13
+    category: artifact-verifiable
+    rationale: "Observable property of STM — issue-comment-agent.yaml tracking artifact must exist before Step 6 begins."
+  - id: C14
+    category: artifact-verifiable
+    rationale: "Observable property of tech-designer output — regression_test_path must be written and the file at that path must exist before Step 6."
+  - id: C15
+    category: structural
+    rationale: "Process rule — verification runs in a separate agent (quality-auditor), not in code-builder. Enforced by Step 6b existing as a distinct step owned by quality-auditor."
+  - id: C16
+    category: artifact-verifiable
+    rationale: "Observable property of STM — the pass/fail verdict must come from quality-auditor's report file, not from code-builder's implementation-report."
+  - id: C17
+    category: artifact-verifiable
+    rationale: "Observable property of the Step 6 agent contract — regression_test_path appears in read_only_files, and no test content/assertion text appears inline."
+  - id: C18
+    category: artifact-verifiable
+    rationale: "Observable property of status/fix-it.json — task_list array present with required entry fields, initialized before Step 6."
+  - id: C19
+    category: structural
+    rationale: "Process rule — retry cap and re-plan semantics. Enforced by retry-loop structure around Steps 6+6b and the warn-and-continue policy (never halt, never escalate)."

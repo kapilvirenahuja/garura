@@ -1,0 +1,501 @@
+confidence: high
+
+plan: |
+  The rename is a three-phase operation: (1) rename the six play directories using git mv so
+  git history is preserved; (2) update all name: fields in SKILL.md and intent.yaml frontmatter
+  inside the renamed directories; (3) do a global string replacement of old play names in all
+  cross-reference files (other plays, skills, agents, memory, docs, grounding). Phase 3 is
+  ordered within itself: update files that reference the old names as strings only — not file paths
+  — so there is no dependency on phase 1 completing first (strings are just text). However,
+  phase 2 depends on phase 1 because the files must be in their new locations before editing.
+
+  IMPORTANT: The SKILL.md files embed the play name in multiple structural locations beyond the
+  name: frontmatter field: intent_path strings (e.g., "core/components/plays/implement-epic/reference/intent.yaml"),
+  evidence path templates ("evidence/implement-epic/{milestone_id}/"), status file path templates
+  ("status/implement-epic-{milestone_id}.json"), _pending path templates ("_pending/prepare-epic/*"),
+  invocation examples ("/implement-epic --milestone"), and rebuild instructions
+  ("/create-play --build implement-epic"). All of these must be updated in Phase 2.
+
+  After all file changes are complete, create an ADR documenting the rename decision as required
+  by the acceptance criteria.
+
+alternatives_considered:
+  - option: Alias approach — keep old names, add short aliases
+    description: |
+      Keep all 6 plays at their current directory names and SKILL.md name: values.
+      Add alias entries in the Claude slash command dispatch layer so /specify routes to
+      specify-product, /design routes to design-exp, etc.
+    rejection_reason: |
+      Aliases don't eliminate the cross-reference inconsistency — all narrative text, schema
+      comments, agent descriptions, docs, and ADRs would still say the old names. The grep
+      acceptance criterion ("grep for old names returns zero hits") would fail by definition.
+      Aliases also require a dispatch mechanism that doesn't exist in the current framework
+      (plays are identified by their SKILL.md name: field, not by aliases). Occam's Razor:
+      renaming is simpler than aliasing.
+
+  - option: Incremental rename — one play per PR
+    description: |
+      Rename the plays in six separate PRs to reduce per-PR blast radius. Each PR renames
+      one directory and updates all references to that one play.
+    rejection_reason: |
+      Intermediate states are broken: between PR 1 (specify → specify) and PR 2 (design-exp →
+      design), build-arch still says "run /specify-product first" in its pre-flight but the
+      play is now named "specify". Cross-reference inconsistencies accumulate until all 6 PRs
+      land. A single atomic PR is safer and simpler. The blast radius is wide but the change
+      type is mechanical — find/replace strings and git mv. Reversibility: a single revert is
+      cleaner than reverting 6 coordinated PRs.
+
+  - option: Automated script — write a shell script to do all replacements
+    description: |
+      Write a bash script that runs git mv for the 6 directories and then runs sed -i across
+      all affected files.
+    rejection_reason: |
+      A script would be appropriate if this were a recurring operation or if there were hundreds
+      of unique substitution patterns. Here, each file has a small, finite set of substitutions
+      and the files need human review anyway (to ensure narrative quality, not just mechanical
+      substitution). code-builder can execute each replacement directly using the Edit tool
+      with full context. Script approach creates a file that must itself be tracked, tested,
+      and removed — overhead not justified by the one-time nature of this change.
+
+risks:
+  - risk: |
+      SKILL.md files contain the play name embedded in multiple structural locations beyond the
+      name: frontmatter field — intent_path strings, evidence path templates, status path templates,
+      and invocation examples. A partial update (only updating the name: field) leaves broken
+      path references that will fail at runtime.
+    mitigation: |
+      The execution plan explicitly calls out each structural location in every SKILL.md.
+      code-builder must grep within each SKILL.md for the old play name before marking that
+      file done, to confirm zero residual hits.
+    severity: high
+
+  - risk: |
+      The six play directories contain SKILL.md files compiled from intent.yaml by /create-play
+      --build. If intent.yaml is updated but SKILL.md is NOT regenerated via /create-play --rebuild,
+      the SKILL.md checksum validation will fail on future rebuilds.
+    mitigation: |
+      This rename is NOT a rebuild — we are editing the name: field and cross-references only,
+      not the intent logic. The SKILL.md is being updated as a source file, matching the intent.yaml
+      changes. No rebuild invocation is required for a name-only change. The checksum embedded in
+      SKILL.md (if any) should be updated to match. Check each SKILL.md for a checksum field
+      and update it if present. If unsure, omit the checksum update and note it as a follow-up.
+    severity: medium
+
+  - risk: |
+      Evidence path templates inside SKILL.md (e.g., "evidence/implement-epic/{milestone_id}/")
+      are used at runtime to create and read evidence files. After the rename, new runs of /implement
+      will write to "evidence/implement/{milestone_id}/". Existing STM evidence directories for
+      in-flight issues will still be at "evidence/implement-epic/{milestone_id}/". This creates
+      a lookup failure for resume operations on any epic that was started before the rename.
+    mitigation: |
+      Any in-flight epic (issue with a started but not closed implement-epic run) must be completed
+      BEFORE the rename is deployed via /sync-claude. Check the .garura/project/issues/ directory
+      for open issues with evidence/implement-epic/ or evidence/validate-epic/ directories that
+      contain incomplete runs. Document them. If none exist, risk does not apply. This is a
+      one-time migration boundary.
+    severity: medium
+
+  - risk: |
+      The glossary.md contains definitions that use the old play names as primary identifiers in
+      the definition structure itself (e.g., "Intent Epic | ... Generated from Capability by
+      specify-product"). A mechanical replacement risks producing grammatically awkward text
+      (e.g., "run /specify first" where "first" is no longer the end of the sentence).
+    mitigation: |
+      For docs, glossary, and ADRs, code-builder should update with awareness of context — not
+      just mechanical substitution. Each occurrence must be read in context to ensure the resulting
+      sentence reads naturally with the new name. The changes are few enough (<100 occurrences
+      per file, most files have <10) that contextual review is feasible per file.
+    severity: low
+
+  - risk: |
+      The capture-learning play's SKILL.md contains a bash pre-flight check:
+      'test -d "${stm_base}/${issue}/context/" || halt "No context baseline — prepare-epic was
+      never run for this issue"'. The halt message will refer to the old name after a naive
+      substitution of just the directory reference.
+    mitigation: |
+      Update the user-facing message string as well as the bash command. The halt message
+      "prepare-epic was never run" → "prepare was never run". code-builder must update
+      user-facing strings, not just code-level path references.
+    severity: low
+
+execution_steps:
+  - step: 1
+    action: |
+      Verify no in-flight epic runs exist that would be broken by the evidence path rename.
+      Check .garura/project/issues/ for any open issues with started but incomplete
+      implement-epic or validate-epic evidence directories.
+    files: []
+    command_hint: |
+      ls /Users/kapilahuja/cto/builder/garura/.garura/project/issues/
+      # For each issue dir, check: ls {issue}/evidence/ | grep -E "implement-epic|validate-epic"
+      # If any exist AND the issue is still open, complete those runs first.
+
+  - step: 2
+    action: |
+      Rename the six play directories using git mv to preserve history.
+      Execute in this order (no dependency between them — all can be done sequentially):
+      specify-product → garura:specify
+      design-exp → garura:design
+      build-arch → garura:arch
+      prepare-epic → garura:prepare
+      implement-epic → garura:implement
+      validate-epic → garura:validate
+    files:
+      - core/components/plays/specify-product/
+      - core/components/plays/design-exp/
+      - core/components/plays/build-arch/
+      - core/components/plays/prepare-epic/
+      - core/components/plays/implement-epic/
+      - core/components/plays/validate-epic/
+    command_hint: |
+      git mv core/components/plays/specify-product core/components/plays/specify
+      git mv core/components/plays/design-exp core/components/plays/design
+      git mv core/components/plays/build-arch core/components/plays/architect
+      git mv core/components/plays/prepare-epic core/components/plays/prepare
+      git mv core/components/plays/implement-epic core/components/plays/implement
+      git mv core/components/plays/validate-epic core/components/plays/validate
+
+  - step: 3
+    action: |
+      Update all files inside core/components/plays/specify/ (formerly specify-product):
+      - SKILL.md: name: field, all occurrences of "specify-product" in body,
+        intent_path strings, status path templates, rebuild instructions,
+        downstream references to "design-exp" (→ "design"), "build-arch" (→ "architect")
+      - reference/intent.yaml: name: field
+      After editing, grep within the directory for "specify-product" to confirm zero hits.
+    files:
+      - core/components/plays/specify/SKILL.md
+      - core/components/plays/specify/reference/intent.yaml
+
+  - step: 4
+    action: |
+      Update all files inside core/components/plays/design/ (formerly design-exp):
+      - SKILL.md: name: field, all occurrences of "design-exp" in body,
+        intent_path strings, stage task_id strings ("design-exp-stage-*"),
+        status path templates ("_status/design-exp.json" → "_status/design.json"),
+        rebuild instructions, upstream reference "specify-product" → "specify"
+      - reference/intent.yaml: name: field, cross-play narrative
+      After editing, grep within the directory for "design-exp" to confirm zero hits.
+    files:
+      - core/components/plays/design/SKILL.md
+      - core/components/plays/design/reference/intent.yaml
+
+  - step: 5
+    action: |
+      Update all files inside core/components/plays/arch/ (formerly build-arch):
+      - SKILL.md: name: field, all occurrences of "build-arch" in body,
+        intent_path strings, rebuild instructions, upstream references
+        "specify-product" → "specify", "design-exp" → "design",
+        downstream reference "prepare-epic" → "prepare"
+      - reference/intent.yaml: name: field, cross-play narrative
+      After editing, grep within the directory for "build-arch" to confirm zero hits.
+    files:
+      - core/components/plays/arch/SKILL.md
+      - core/components/plays/arch/reference/intent.yaml
+
+  - step: 6
+    action: |
+      Update all files inside core/components/plays/prepare/ (formerly prepare-epic):
+      - SKILL.md: name: field, all occurrences of "prepare-epic" in body,
+        intent_path strings ("core/components/plays/prepare-epic/" → "core/components/plays/prepare/"),
+        evidence path templates ("evidence/prepare-epic/" → "evidence/prepare/"),
+        status path templates ("status/prepare-epic.json" → "status/prepare.json"),
+        _pending path templates ("_pending/prepare-epic/" → "_pending/prepare/"),
+        rebuild instructions, upstream references "specify-product" → "specify",
+        "design-exp" → "design", "build-arch" → "architect",
+        downstream reference "implement-epic" → "implement", "validate-epic" → "validate"
+      - reference/intent.yaml: name: field, cross-play narrative
+      - reference/evals.yaml: any old play name references
+      After editing, grep within the directory for "prepare-epic" to confirm zero hits.
+    files:
+      - core/components/plays/prepare/SKILL.md
+      - core/components/plays/prepare/reference/intent.yaml
+      - core/components/plays/prepare/reference/evals.yaml
+
+  - step: 7
+    action: |
+      Update all files inside core/components/plays/implement/ (formerly implement-epic):
+      - SKILL.md: name: field, all occurrences of "implement-epic" in body,
+        intent_path strings, evidence path templates ("evidence/implement-epic/" → "evidence/implement/"),
+        status path templates ("status/implement-epic-{m}.json" → "status/implement-{m}.json"),
+        invocation examples ("/implement-epic" → "/implement"),
+        rebuild instructions, cross-references "validate-epic" → "validate",
+        "prepare-epic" → "prepare"
+      - reference/intent.yaml: name: field, cross-play narrative
+      - reference/evals.yaml: old play name references
+      After editing, grep within the directory for "implement-epic" to confirm zero hits.
+    files:
+      - core/components/plays/implement/SKILL.md
+      - core/components/plays/implement/reference/intent.yaml
+      - core/components/plays/implement/reference/evals.yaml
+
+  - step: 8
+    action: |
+      Update all files inside core/components/plays/validate/ (formerly validate-epic):
+      - SKILL.md: name: field, description field, all occurrences of "validate-epic" in body,
+        intent_path strings, evidence path templates ("evidence/validate-epic/" → "evidence/validate/"),
+        status path templates, invocation examples ("/validate-epic" → "/validate"),
+        rebuild instructions, cross-references "implement-epic" → "implement",
+        "prepare-epic" → "prepare"
+      - reference/intent.yaml: name: field, cross-play narrative
+      After editing, grep within the directory for "validate-epic" to confirm zero hits.
+    files:
+      - core/components/plays/validate/SKILL.md
+      - core/components/plays/validate/reference/intent.yaml
+
+  - step: 9
+    action: |
+      Update other plays that cross-reference the old pipeline play names:
+      - core/components/plays/start-feature-planning/SKILL.md:
+        handoff note pipeline sequence
+      - core/components/plays/capture-learning/SKILL.md:
+        description, constraint check bash, agent instruction text, evidence path references
+      - core/components/plays/capture-learning/reference/intent.yaml:
+        all 4 old names
+      - core/components/plays/check-drift/reference/intent.yaml:
+        prepare-epic, implement-epic, validate-epic path templates
+      - core/components/plays/distill/reference/intent.yaml:
+        prepare-epic reference
+      - core/components/plays/enhance/SKILL.md:
+        prepare-epic contrast reference
+    files:
+      - core/components/plays/start-feature-planning/SKILL.md
+      - core/components/plays/capture-learning/SKILL.md
+      - core/components/plays/capture-learning/reference/intent.yaml
+      - core/components/plays/check-drift/reference/intent.yaml
+      - core/components/plays/distill/reference/intent.yaml
+      - core/components/plays/enhance/SKILL.md
+
+  - step: 10
+    action: |
+      Update skill files that reference old play names in descriptions, Related sections,
+      and path comments. Update each skill file listed in the rca.yaml affected_files.
+      For each: update narrative references and hardcoded path directory names.
+    files:
+      - core/components/skills/check-drift/SKILL.md
+      - core/components/skills/check-drift/references/templates.md
+      - core/components/skills/compile-design-spec/SKILL.md
+      - core/components/skills/derive-logical-architecture/SKILL.md
+      - core/components/skills/derive-physical-architecture/SKILL.md
+      - core/components/skills/derive-nfr-spec/SKILL.md
+      - core/components/skills/derive-quality-vision/SKILL.md
+      - core/components/skills/validate-architecture-spec/SKILL.md
+      - core/components/skills/derive-quality-profile-from-epics/SKILL.md
+      - core/components/skills/generate-intent-epics/SKILL.md
+      - core/components/skills/validate-intent-epics/SKILL.md
+      - core/components/skills/enrich-capabilities/SKILL.md
+      - core/components/skills/configure-capabilities/SKILL.md
+      - core/components/skills/synthesize-personas/SKILL.md
+      - core/components/skills/recommend-mvp/SKILL.md
+      - core/components/skills/research-market-opportunity/SKILL.md
+      - core/components/skills/generate-screen-inventory/SKILL.md
+      - core/components/skills/map-user-flows/SKILL.md
+      - core/components/skills/generate-wireframes/SKILL.md
+      - core/components/skills/validate-screen-coverage/SKILL.md
+      - core/components/skills/validate-abstraction-layer/SKILL.md
+      - core/components/skills/validate-kb-extension/SKILL.md
+      - core/components/skills/draft-product-spec/schemas/features.yaml
+      - core/components/skills/draft-verification-scenarios/schemas/scenarios.yaml
+      - core/components/skills/draft-technical-approach/schemas/architecture.yaml
+      - core/components/skills/draft-lld/schemas/tech.yaml
+      - core/components/skills/draft-implementation-plan/schemas/plan.yaml
+
+  - step: 11
+    action: |
+      Update all agent definition files that reference old play names.
+    files:
+      - core/components/agents/scriber.md
+      - core/components/agents/designer.md
+      - core/components/agents/product-keeper.md
+      - core/components/agents/market-analyst.md
+      - core/components/agents/feature-steward.md
+      - core/components/agents/tech-designer.md
+      - core/components/agents/tech-architect.md
+      - core/components/agents/test-engineer.md
+      - core/components/agents/knowledge-extractor.md
+
+  - step: 12
+    action: |
+      Update memory standards files: rules, templates, schemas, and knowledge index files.
+    files:
+      - core/components/memory/standards/rules/product.md
+      - core/components/memory/standards/rules/architecture.md
+      - core/components/memory/standards/rules/design.md
+      - core/components/memory/standards/rules/epics.md
+      - core/components/memory/standards/rules/kb-extension.md
+      - core/components/memory/standards/rules/scenarios.md
+      - core/components/memory/standards/rules/_index.md
+      - core/components/memory/standards/templates/checkpoint.md
+      - core/components/memory/standards/templates/evidence-file.md
+      - core/components/memory/standards/templates/_index.md
+      - core/components/memory/standards/templates/approval-prompt.md
+      - core/components/memory/standards/templates/delivery-report.md
+      - core/components/memory/standards/schemas/intent.yaml
+      - core/components/memory/standards/schemas/intent-epic.yaml
+      - core/components/memory/standards/schemas/screen-inventory.yaml
+      - core/components/memory/standards/schemas/mvp-recommendation.yaml
+      - core/components/memory/knowledge/domain/_cross-tree-constraints.yaml
+      - core/components/memory/knowledge/domain/_index.md
+
+  - step: 13
+    action: |
+      Update grounding and documentation files.
+    files:
+      - core/grounding/glossary.md
+      - docs/components/plays.md
+      - docs/components/agents.md
+      - docs/components/memory.md
+      - docs/components/skills.md
+      - docs/philosophy/idsd.md
+      - docs/philosophy/architecture.md
+      - docs/adr/017-folder-whitelist.md
+      - docs/adr/004-agent-naming.md
+      - docs/adr/014-three-axis-project-profiling.md
+      - docs/framework/play-structure.md
+      - TODO.md
+
+  - step: 14
+    action: |
+      Create a new ADR documenting the rename decision. File at docs/adr/018-pipeline-play-rename.md
+      (or next available ADR number — check docs/adr/ for the highest existing number).
+      ADR covers: context (compound vs short naming inconsistency), decision (rename 6 plays),
+      rename mapping table, rationale (CLI ergonomics, framework consistency), consequences
+      (breaking rename — /sync-claude required, in-flight epic STM evidence dirs use old names).
+    files:
+      - docs/adr/018-pipeline-play-rename.md
+    command_hint: ls docs/adr/ | sort | tail -3  # confirm next ADR number
+
+  - step: 15
+    action: |
+      Final verification sweep. Run grep for each old name across the entire codebase
+      (excluding .garura/ and .claude/). Confirm zero hits for:
+      specify-product, design-exp, build-arch, prepare-epic, implement-epic, validate-epic.
+      Any remaining hits must be resolved before marking the step complete.
+    files: []
+    command_hint: |
+      for name in specify-product design-exp build-arch prepare-epic implement-epic validate-epic; do
+        echo "=== $name ===" && grep -r "$name" \
+          /Users/kapilahuja/cto/builder/garura/core/ \
+          /Users/kapilahuja/cto/builder/garura/docs/ \
+          /Users/kapilahuja/cto/builder/garura/TODO.md \
+          --include="*.md" --include="*.yaml" --include="*.yml" --include="*.json" -l 2>/dev/null
+      done
+
+affected_files:
+  # Mirrors rca.yaml affected_files for code-builder consumption.
+  # Grouped by change type for execution ordering.
+
+  directories_to_rename:
+    - from: core/components/plays/specify-product/
+      to: core/components/plays/specify/
+    - from: core/components/plays/design-exp/
+      to: core/components/plays/design/
+    - from: core/components/plays/build-arch/
+      to: core/components/plays/arch/
+    - from: core/components/plays/prepare-epic/
+      to: core/components/plays/prepare/
+    - from: core/components/plays/implement-epic/
+      to: core/components/plays/implement/
+    - from: core/components/plays/validate-epic/
+      to: core/components/plays/validate/
+
+  play_internals:
+    - core/components/plays/specify/SKILL.md
+    - core/components/plays/specify/reference/intent.yaml
+    - core/components/plays/design/SKILL.md
+    - core/components/plays/design/reference/intent.yaml
+    - core/components/plays/arch/SKILL.md
+    - core/components/plays/arch/reference/intent.yaml
+    - core/components/plays/prepare/SKILL.md
+    - core/components/plays/prepare/reference/intent.yaml
+    - core/components/plays/prepare/reference/evals.yaml
+    - core/components/plays/implement/SKILL.md
+    - core/components/plays/implement/reference/intent.yaml
+    - core/components/plays/implement/reference/evals.yaml
+    - core/components/plays/validate/SKILL.md
+    - core/components/plays/validate/reference/intent.yaml
+
+  other_plays:
+    - core/components/plays/start-feature-planning/SKILL.md
+    - core/components/plays/capture-learning/SKILL.md
+    - core/components/plays/capture-learning/reference/intent.yaml
+    - core/components/plays/check-drift/reference/intent.yaml
+    - core/components/plays/distill/reference/intent.yaml
+    - core/components/plays/enhance/SKILL.md
+
+  skills:
+    - core/components/skills/check-drift/SKILL.md
+    - core/components/skills/check-drift/references/templates.md
+    - core/components/skills/compile-design-spec/SKILL.md
+    - core/components/skills/derive-logical-architecture/SKILL.md
+    - core/components/skills/derive-physical-architecture/SKILL.md
+    - core/components/skills/derive-nfr-spec/SKILL.md
+    - core/components/skills/derive-quality-vision/SKILL.md
+    - core/components/skills/validate-architecture-spec/SKILL.md
+    - core/components/skills/derive-quality-profile-from-epics/SKILL.md
+    - core/components/skills/generate-intent-epics/SKILL.md
+    - core/components/skills/validate-intent-epics/SKILL.md
+    - core/components/skills/enrich-capabilities/SKILL.md
+    - core/components/skills/configure-capabilities/SKILL.md
+    - core/components/skills/synthesize-personas/SKILL.md
+    - core/components/skills/recommend-mvp/SKILL.md
+    - core/components/skills/research-market-opportunity/SKILL.md
+    - core/components/skills/generate-screen-inventory/SKILL.md
+    - core/components/skills/map-user-flows/SKILL.md
+    - core/components/skills/generate-wireframes/SKILL.md
+    - core/components/skills/validate-screen-coverage/SKILL.md
+    - core/components/skills/validate-abstraction-layer/SKILL.md
+    - core/components/skills/validate-kb-extension/SKILL.md
+    - core/components/skills/draft-product-spec/schemas/features.yaml
+    - core/components/skills/draft-verification-scenarios/schemas/scenarios.yaml
+    - core/components/skills/draft-technical-approach/schemas/architecture.yaml
+    - core/components/skills/draft-lld/schemas/tech.yaml
+    - core/components/skills/draft-implementation-plan/schemas/plan.yaml
+
+  agents:
+    - core/components/agents/scriber.md
+    - core/components/agents/designer.md
+    - core/components/agents/product-keeper.md
+    - core/components/agents/market-analyst.md
+    - core/components/agents/feature-steward.md
+    - core/components/agents/tech-designer.md
+    - core/components/agents/tech-architect.md
+    - core/components/agents/test-engineer.md
+    - core/components/agents/knowledge-extractor.md
+
+  memory_standards:
+    - core/components/memory/standards/rules/product.md
+    - core/components/memory/standards/rules/architecture.md
+    - core/components/memory/standards/rules/design.md
+    - core/components/memory/standards/rules/epics.md
+    - core/components/memory/standards/rules/kb-extension.md
+    - core/components/memory/standards/rules/scenarios.md
+    - core/components/memory/standards/rules/_index.md
+    - core/components/memory/standards/templates/checkpoint.md
+    - core/components/memory/standards/templates/evidence-file.md
+    - core/components/memory/standards/templates/_index.md
+    - core/components/memory/standards/templates/approval-prompt.md
+    - core/components/memory/standards/templates/delivery-report.md
+    - core/components/memory/standards/schemas/intent.yaml
+    - core/components/memory/standards/schemas/intent-epic.yaml
+    - core/components/memory/standards/schemas/screen-inventory.yaml
+    - core/components/memory/standards/schemas/mvp-recommendation.yaml
+    - core/components/memory/knowledge/domain/_cross-tree-constraints.yaml
+    - core/components/memory/knowledge/domain/_index.md
+
+  grounding_and_docs:
+    - core/grounding/glossary.md
+    - docs/components/plays.md
+    - docs/components/agents.md
+    - docs/components/memory.md
+    - docs/components/skills.md
+    - docs/philosophy/idsd.md
+    - docs/philosophy/architecture.md
+    - docs/adr/017-folder-whitelist.md
+    - docs/adr/004-agent-naming.md
+    - docs/adr/014-three-axis-project-profiling.md
+    - docs/framework/play-structure.md
+    - TODO.md
+
+  new_files:
+    - docs/adr/018-pipeline-play-rename.md

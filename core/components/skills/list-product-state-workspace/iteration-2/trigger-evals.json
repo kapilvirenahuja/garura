@@ -1,0 +1,23 @@
+[
+  {"query": "Show me the current product status.", "should_trigger": true},
+  {"query": "What's the status of all features in this project?", "should_trigger": true},
+  {"query": "Where are we on the product right now?", "should_trigger": true},
+  {"query": "Give me a snapshot of what's built vs planned.", "should_trigger": true},
+  {"query": "List every feature with its current state.", "should_trigger": true},
+  {"query": "Render the product state tree from features.yaml.", "should_trigger": true},
+  {"query": "What features have been released so far, and which are still planned?", "should_trigger": true},
+  {"query": "Show the domain-to-capability-to-feature tree with status per feature.", "should_trigger": true},
+  {"query": "Give me the product status report.", "should_trigger": true},
+  {"query": "What's the state of the product catalog?", "should_trigger": true},
+
+  {"query": "Create a new feature called Auto-Triage under the Work Intelligence domain.", "should_trigger": false},
+  {"query": "Change the status of AM-F001 from planned to released in features.yaml.", "should_trigger": false},
+  {"query": "Write the enriched-capabilities.yaml from the scope file.", "should_trigger": false},
+  {"query": "Generate the intent epics for this product.", "should_trigger": false},
+  {"query": "Open a GitHub issue for feature EE-F003.", "should_trigger": false},
+  {"query": "Commit the staged changes with a conventional message.", "should_trigger": false},
+  {"query": "Run the quality check across the whole repo.", "should_trigger": false},
+  {"query": "Refactor the CLI entry point in src/cli.py.", "should_trigger": false},
+  {"query": "Show me open pull requests on GitHub.", "should_trigger": false},
+  {"query": "Fetch the latest prices from the Anthropic API.", "should_trigger": false}
+]

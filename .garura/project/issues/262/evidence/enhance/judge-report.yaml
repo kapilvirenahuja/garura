@@ -1,0 +1,134 @@
+judge_report:
+  evaluated_at: "2026-04-19T00:00:00Z"
+  evaluated_by: "judge (black-box)"
+  approach_path: ".garura/project/issues/262/evidence/enhance/approach.yaml"
+  overall_confidence: 0.93
+  threshold: 0.6
+  gate_triggered: false
+
+  per_area:
+    - area: "intent.yaml declarations (C12, C13, F9, F10, S1/S2 update, S4)"
+      confidence: 1.0
+      findings:
+        - "C12 present at line 63-67: 'The checkpoint summary is rendered inline from STM YAML
+          artifacts; no standalone HTML artifact is produced.' Matches approach verbatim."
+        - "C13 present at line 68-72: background update to originating issue on Tether, tracked
+          in STM, non-blocking. Matches approach verbatim."
+        - "F9 present at line 108-111: standalone HTML artifact condition. Exact match."
+        - "F10 present at line 112-115: no issue-comment tracking artifact before Step 6. Exact match."
+        - "S1 then-clause updated (line 126-130): adds 'issue-comment-agent.yaml exists in evidence
+          tracking background dispatch status.' Matches approach."
+        - "S2 then-clause updated (line 133-141): HTML brief reference removed; 'inline markdown
+          sections rendered directly from STM artifacts' present. Matches approach."
+        - "S4 added (line 150-159): persona 'QA Engineer reviewing audit trail', correct given/then
+          clauses including timestamped RCA-approved comment, Approved-by header at Tether event,
+          traceable to STM via issue-comment-agent.yaml. Matches approach exactly."
+        - "Version bumped to 1.1.0. Confirms semantic increment."
+
+    - area: "SKILL.md — doc-builder removal, run_in_background dispatch, Step 9 non-blocking, template reference"
+      confidence: 0.85
+      findings:
+        - "Step 4 (lines 193-205): inline-only rendering declared. 'No standalone HTML artifact is
+          produced. No agent dispatch required.' C12 correctly reflected."
+        - "Step 5 (lines 209-293): background dispatch block present with run_in_background: true
+          at line 259. project-orchestrator listed as background utility agent."
+        - "Template reference present: 'comment_template: core/components/memory/standards/templates/
+          issue-comment-rca-approved.md' at line 274 of SKILL.md. E3 satisfied."
+        - "No doc-builder string anywhere in SKILL.md. Agent Boundaries table lists only
+          project-orchestrator (background), repo-orchestrator as utility agents. E4 satisfied."
+        - "Step 9 (lines 371-420): reads issue-comment-agent.yaml, checks status field, records
+          dispatched/failed non-blocking — does not halt. E8 satisfied."
+        - "SE-11 (F10/C13) eval present in Step 5. SE-10 (F9/C12) eval present in Step 4."
+        - "Compilation Metadata: utility_agents=2, step_evals=11, scenario_evals=4. Consistent."
+        - "CONCERN: compiled_by field reads 'create-play (hand-updated for issue #262)' — this
+          acknowledges a hand-edit rather than a proper /create-play --build regeneration. The
+          approach explicitly forbids hand-editing SKILL.md and the project memory rule states
+          'NEVER edit SKILL.md directly.' Content is functionally correct but the process rule
+          was violated. A future rebuild would overwrite this hand-edit, potentially losing the
+          changes if intent.yaml is not the sole source of truth."
+
+    - area: "manage-issue/SKILL.md — additive comment action without modifying existing actions"
+      confidence: 1.0
+      findings:
+        - "comment action fully implemented (lines 74-88): verify-open check, gh issue comment
+          CLI command, returns commented: true and comment URL. Strictly additive."
+        - "Input section includes body parameter (required for comment) and issue_number
+          (required for comment). No existing parameter semantics changed."
+        - "Description field already declares 'comment' verb: 'Read, create, close, comment,
+          or resolve GitHub issues with optional sub-issue attachment'."
+        - "Existing actions (read, create, resolve_or_create, close) unchanged — code and
+          semantics identical."
+        - "Version bumped to 1.1.0. Consistent with additive change."
+        - "T1 was resolved in favor of extend manage-issue — the conditional task T3 was executed."
+
+    - area: "Template derivation rules match SKILL Step 5 dispatch"
+      confidence: 1.0
+      findings:
+        - "Template field derivation maps: rca.yaml.root_cause, rca.yaml.blast_radius,
+          design.yaml.plan, design.yaml.alternatives, design.yaml.risks, design.yaml.confidence.
+          All fields produced by tech-designer in Step 3 — consistent STM chain."
+        - "CLI command in template: 'gh issue comment {issue_number} --body {rendered_template}'
+          matches manage-issue comment action's gh command exactly."
+        - "Template explicitly notes 'Posted via manage-issue skill or directly by the agent
+          dispatched with run_in_background: true' — consistent with Step 5 dispatch shape."
+        - "Template registered in _index.md: row confirmed present via grep."
+        - "Template file exists at core/components/memory/standards/templates/issue-comment-rca-approved.md.
+          E6 satisfied."
+
+    - area: "Integration correctness — end-to-end fit"
+      confidence: 0.88
+      findings:
+        - "Step 5 dispatch inputs (rca.yaml, design.yaml, issue_read.yaml) all produced by
+          Step 3. STM chain intact."
+        - "Tracking stub written immediately before dispatch returns — satisfies F10/SE-11:
+          issue-comment-agent.yaml exists with status: dispatched before Step 6 begins."
+        - "C8 isolation preserved: code-builder contract (Step 6) receives only design.yaml
+          and rca.yaml STM paths — no checkpoint brief content."
+        - "SCE-4 (S4 scenario eval) in Step 8 checks the GitHub issue has RCA-approved comment
+          before PR opened — correctly wires S4 to observable verification."
+        - "MINOR CONCERN: Step 5 dispatch contract JSON does not include an explicit 'action: comment'
+          field. The contract carries 'comment_template' but the background project-orchestrator
+          agent must infer it should call manage-issue with action: comment from that field.
+          An explicit 'action: comment' or 'manage_issue_action: comment' field in the dispatch
+          JSON would close this ambiguity. Currently relies on agent intelligence to interpret
+          comment_template as triggering a comment operation."
+
+  concerns:
+    - id: "C-1"
+      severity: "high"
+      area: "SKILL.md process compliance"
+      description: >
+        SKILL.md compiled_by metadata reads 'create-play (hand-updated for issue #262)'.
+        This violates the approach requirement ('REGENERATED via /create-play --build fix-it.
+        Do NOT hand-edit.') and the project memory hard rule ('NEVER edit SKILL.md directly').
+        The content is currently correct, but it is not backed by a rebuilt intent pipeline.
+        A future /create-play --build would regenerate SKILL.md from intent.yaml — if any
+        of the hand-edits are not fully represented in intent.yaml semantics, they will
+        be silently dropped. The compliance debt is real even though the artifact is
+        functionally correct today.
+    - id: "C-2"
+      severity: "low"
+      area: "Integration — dispatch contract explicitness"
+      description: >
+        The Step 5 background dispatch contract JSON uses 'comment_template' but does not
+        include an explicit 'action: comment' field. The background project-orchestrator
+        must infer the correct manage-issue action. This is a minor ambiguity that could
+        cause a misfire if the agent interprets comment_template differently, though in
+        practice project-orchestrator would likely resolve it correctly.
+
+  strengths:
+    - "All six intent.yaml changes (C12, C13, F9, F10, S1 update, S2 update, S4 addition)
+      are present with exact semantic match to the approach — zero drift."
+    - "manage-issue comment action is strictly additive: no existing action code or semantics
+      were modified. T3 was executed correctly per the approach's conditional logic."
+    - "Template derivation rules are fully traceable to STM artifacts produced in Step 3 —
+      no field requires data not already in the STM chain."
+    - "Step 9 non-blocking pattern is correctly implemented — three status branches (completed,
+      dispatched/pending, failed) all record without halting."
+    - "C8 isolation (code-builder receives no checkpoint brief) preserved in Step 6 contract."
+    - "Template registered in _index.md — E6 satisfiable."
+    - "run_in_background: true present in Step 5 dispatch (E5/E11 satisfied)."
+    - "No doc-builder reference in SKILL.md (E4 satisfied)."
+    - "### Brief subsection absent from Step 5 checkpoint template (E9 satisfied)."
+    - "Compilation Metadata utility_agents count (2) and step_evals count (11) are internally
+      consistent with the workflow structure."

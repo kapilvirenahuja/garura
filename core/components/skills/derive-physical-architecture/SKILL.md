@@ -8,7 +8,7 @@ version: 0.1.0
 
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest-derive-physical-architecture.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Called by `tech-architect` during `build-arch` Stage 2. Produces `physical-architecture.yaml` at `{product_base}architecture/physical-architecture.yaml`.
+Called by `tech-architect` during `arch` Stage 2. Produces `physical-architecture.yaml` at `{product_base}architecture/physical-architecture.yaml`.
 
 ## Purpose
 
@@ -88,7 +88,7 @@ Before composing the artifact, enumerate every slot that must be filled. For eac
 - {candidate A} — {one-line why it survives the filter}
 - {candidate B} — {one-line why it survives the filter}
 **Default if forced:** {candidate + rationale}
-**Blocking:** build-arch slot `{slot name}` — physical-architecture.yaml cannot ship until this is answered.
+**Blocking:** arch slot `{slot name}` — physical-architecture.yaml cannot ship until this is answered.
 ```
 
 Append with a stable id (`Q-arch-001`, `Q-arch-002`, …) — never overwrite existing questions. Increment the counter from the last Q-arch-NNN already in the file.
@@ -104,7 +104,7 @@ frontend_stack:
   version: "14.x"
   source_type: kb_catalog_single_candidate
   source_citation: "arch/stacks/frontend-react-nextjs.md — filter on team_size=4, delivery_ambition=MVP, nfr_performance=4 yielded one candidate"
-  rationale: "SSR + ISR covers p95 page load target; App Router co-located routing fits screen count from design-exp"
+  rationale: "SSR + ISR covers p95 page load target; App Router co-located routing fits screen count from design"
   drivers:
     - "EPIC-commerce-catalog constraint: performance"
     - "design-spec screen count: 45 screens / 3-5 states"
@@ -268,7 +268,7 @@ Write `physical-architecture.yaml` to `{output_path}`:
 slug: "<from project_profile.name>"
 status: DRAFT
 created_at: "<ISO-8601>"
-play: build-arch
+play: arch
 skill: derive-physical-architecture
 upstream_artifacts:
   logical_architecture_path: <echoed>

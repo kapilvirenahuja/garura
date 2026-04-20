@@ -1,0 +1,6 @@
+pr_number: 279
+status: merged
+merge_sha: 3143fb13de3789b62110ff918ae75d2cde98cb7d
+base_branch: main
+branch_deleted: true
+feature_branch: fix/278-capture-rename

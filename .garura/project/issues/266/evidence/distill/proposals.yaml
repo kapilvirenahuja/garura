@@ -1,0 +1,114 @@
+issue: 266
+pr: 273
+pr_title: "refactor(plays): rename report-issue to garura:capture with multi-type support"
+extracted_at: "2026-04-19"
+mode: fast
+
+assessment: non_trivial
+assessment_rationale: >
+  PR touched 8 production files including play intent, SKILL.md, memory template,
+  docs, and product scope artifacts. Three distinct learning signals: (1) a gap in
+  the play aliasing mechanism (no alias pattern existed in LTM), (2) a gap in the
+  background dispatch pattern for plays, (3) a standards update to github-issue.md
+  that was needed to support the new play design. All three warrant LTM proposals.
+
+proposals:
+  - id: P1
+    type: standard
+    target: core/components/memory/standards/templates/github-issue.md
+    title: "Expand github-issue.md template with Title Prefix column and full type set"
+    trigger: >
+      During garura-capture implementation, the github-issue.md template was found
+      to cover only: feature, fix, hotfix, docs, refactor, chore. Types defect, epic,
+      and enhancement were absent. This forced the implementor to patch the template
+      as part of the fix-it rather than reusing an already-complete mapping.
+    learning: >
+      The canonical type→label template should be complete before plays that
+      depend on it are authored. Missing rows mean play authors must either patch
+      the template mid-feature (coupling concerns) or define a parallel mapping
+      in the play's intent (violates DRY). The table also lacked a Title Prefix
+      column, which every type-dispatching play will need.
+    proposal: >
+      Verify that github-issue.md now contains rows for all five issue types
+      (feature, bug/fix, defect, epic, enhancement) with both a Label column and
+      a Title Prefix column. If a new type is added to the system, the template
+      MUST be updated before any play intent is authored that references it.
+      Add a comment header to github-issue.md: "Source of truth for type→label
+      and type→prefix mappings. Update here first; plays reference this table."
+    confidence: high
+    effort: low
+
+  - id: P2
+    type: pattern
+    target: core/components/memory/standards/patterns/play-alias-shim.md
+    title: "Document the thin-shim SKILL.md alias pattern for deprecated play renames"
+    trigger: >
+      When report-issue was renamed to garura-capture, there was no established
+      pattern for keeping the old slash command alive through a deprecation cycle.
+      The resolution-trace.yaml records this was resolved via LLM reasoning (no
+      LTM match), choosing a thin shim SKILL.md over symlink or parallel intent.yaml.
+    learning: >
+      Play renames will recur as the framework evolves. Each time, the implementor
+      will face the same three options (symlink, parallel intent, thin shim) and
+      will need to rediscover that the shim is the correct choice. This decision
+      should be codified as a reusable pattern so it is resolved from LTM, not
+      from LLM reasoning every time.
+    proposal: >
+      Create core/components/memory/standards/patterns/play-alias-shim.md
+      documenting: (1) when to use an alias shim (play renamed, one-release
+      deprecation cycle), (2) the canonical shim SKILL.md structure (frontmatter
+      with alias: true + deprecation notice, single-instruction body forwarding
+      to new play), (3) what NOT to do (no intent.yaml, no /create-play --build,
+      no symlinks), (4) removal trigger (next major release). Reference the
+      garura-capture/report-issue rename as the canonical example.
+    confidence: high
+    effort: low
+
+  - id: P3
+    type: pattern
+    target: core/components/memory/standards/patterns/play-background-dispatch.md
+    title: "Document background dispatch pattern for plays that delegate to agents via JSON contract"
+    trigger: >
+      The garura-capture intent introduced a Cbg constraint requiring the GitHub
+      filing step to be dispatched asynchronously. resolution-trace.yaml records
+      this was resolved from LLM knowledge (no LTM match). The design.yaml
+      documents medium-severity risk: "Claude Code's run_in_background semantics
+      for subagent delegation need to be verified" — the mechanism was left to
+      be confirmed during /create-play --build evals. The implementation-report
+      notes that /create-play --build was never executed (step 3 deviation).
+    learning: >
+      Background dispatch is a cross-cutting concern for any play that needs
+      to return to the caller before a slow side-effect (GitHub API, external
+      service) completes. The pattern of "validate + write STM foreground,
+      dispatch Task delegation background, return dispatched confirmation with
+      tracking path" should be in LTM so future play authors can reference it
+      directly from an intent constraint rather than discovering it ad hoc.
+      The unresolved SKILL.md rebuild (step 3 deviation) may mean the Cbg
+      constraint is defined in intent.yaml but not yet wired in the compiled play.
+    proposal: >
+      Create core/components/memory/standards/patterns/play-background-dispatch.md
+      documenting: (1) the validated mechanism for background Task delegation
+      within a play (once confirmed via /create-play --build evals), (2) the
+      STM tracking path convention for async results, (3) the confirmation line
+      format ("dispatched → {stm_tracking_path}"), (4) the tradeoff (no live
+      issue # at confirmation time — callers must poll STM). Also flag: the
+      garura-capture SKILL.md rebuild (step 3 from implementation-report.yaml)
+      is still pending. Until /create-play --build is run, the Cbg constraint
+      exists in intent.yaml but is not reflected in the compiled SKILL.md.
+    confidence: medium
+    effort: medium
+    open_action: >
+      Pending /create-play --build garura-capture — orchestrator must run this
+      to close the step 3 deviation from implementation-report.yaml. Until then,
+      the background dispatch pattern cannot be fully validated.
+
+pending_actions:
+  - id: PA1
+    description: >
+      Run /create-play --build targeting
+      core/components/plays/garura-capture/reference/intent.yaml to regenerate
+      SKILL.md with name: "garura:capture", type-dispatch logic, background
+      dispatch (Cbg), and single-line confirmation (Cconf).
+    source: implementation-report.yaml step 3 deviation
+    severity: medium
+    blocks: [P3]

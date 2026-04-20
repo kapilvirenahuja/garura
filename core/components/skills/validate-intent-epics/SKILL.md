@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Glob, Grep, Bash
 
 # validate-intent-epics
 
-Model-invocable BLOCKING validator for intent epic files. Called by `product-keeper` during `specify-product` Stage 5 after generate-intent-epics runs.
+Model-invocable BLOCKING validator for intent epic files. Called by `product-keeper` during `specify` Stage 5 after generate-intent-epics runs.
 
 ## Purpose
 

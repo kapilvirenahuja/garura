@@ -32,14 +32,18 @@ Standard template for creating GitHub issues via `gh issue create`.
 
 Derived from `type` classification:
 
-| Type | Labels |
-|------|--------|
-| `feature` | `enhancement` |
-| `fix` | `bug` |
-| `hotfix` | `bug`, `priority:critical` |
-| `docs` | `documentation` |
-| `refactor` | `refactor` |
-| `chore` | `chore` |
+| Type | Title Prefix | Labels |
+|------|--------------|--------|
+| `feature` | `[FEAT]` | `enhancement` |
+| `fix` | `[BUG]` | `bug` |
+| `bug` | `[BUG]` | `bug` |
+| `hotfix` | `[FIX]` | `bug`, `priority:critical` |
+| `defect` | `[DEF][Severity]` | `defect` |
+| `epic` | `[EPIC]` | `epic` |
+| `enhancement` | `[ENH]` | `enhancement` |
+| `docs` | `[DOCS]` | `documentation` |
+| `refactor` | `[REFACTOR]` | `refactor` |
+| `chore` | `[CHORE]` | `chore` |
 
 ### Acceptance Criteria
 

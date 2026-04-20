@@ -9,7 +9,7 @@
 # ──────────────────────────────────────────────────────────────────────────
 
 name: <string>                         # Short human-readable play name (kebab-case)
-                                       # Example: "specify-product"
+                                       # Example: "specify"
                                        # Must match the parent directory name in
                                        # core/components/plays/{name}/.
 

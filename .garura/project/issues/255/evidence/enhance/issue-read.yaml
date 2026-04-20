@@ -1,0 +1,61 @@
+issue_read:
+  number: 255
+  title: "feat: configurable evidence recording — single flag to disable evidence commits"
+  url: "https://github.com/kapilvirenahuja/garura/issues/255"
+  state: "open"
+  body: |
+    ## Problem
+
+    Every enhance/ship/fix-it play commits 10-14 evidence files to STM after completion (`chore(stm): record enhance evidence for #N`). This creates commit noise in the git log. There's no way to turn evidence recording off.
+
+    ## Key Design Decision: Grounding Rule, Not Per-Play Change
+
+    Evidence control should be a **grounding rule** — a global instruction in `core/grounding/` that all plays respect. This is NOT a per-play modification. We are introducing the concept of grounding rules that plays read and obey.
+
+    This is a significant design change: plays now consume grounding documents as behavioral configuration, not just glossary/vocabulary reference. The glossary (`core/grounding/glossary.md`) was step 1; this is step 2 — grounding as behavioral configuration.
+
+    ## Proposed Approach
+
+    ### 1. Create grounding rule
+
+    Create `core/grounding/rules/evidence.md` (or similar) that defines the evidence policy:
+
+    ```yaml
+    # Evidence recording policy
+    evidence:
+      commit: true  # When false, plays skip the evidence self-commit step
+    ```
+
+    ### 2. Plays read grounding rules
+
+    All plays that have an "Evidence & Close" phase check the grounding rule before committing evidence. If `evidence.commit` is false:
+    - Plays still write artifacts to STM during execution (needed for resume, self-eval, judge, etc.)
+    - The final evidence self-commit step is skipped
+    - No `chore(stm): record enhance evidence` commit is created
+    - STM files remain on disk but are not committed to git
+
+    ### 3. CLAUDE.md / AGENTS.md reference
+
+    Add grounding rules reference alongside the existing glossary reference:
+    ```
+    - core/grounding/glossary.md — Canonical definitions of every Meridian concept
+    - core/grounding/rules/ — Behavioral rules that all plays must respect
+    ```
+
+    ## Acceptance Criteria
+
+    - [ ] Grounding rule file exists in `core/grounding/rules/`
+    - [ ] All plays with evidence self-commit check the grounding rule
+    - [ ] Default is `true` (backward compatible — no behavior change unless explicitly configured)
+    - [ ] When evidence commit is off, play execution is unaffected (artifacts still written to disk)
+    - [ ] CLAUDE.md and AGENTS.md reference grounding rules
+    - [ ] This is a global mechanism — no per-play code changes for the policy itself
+
+    ## Relationships
+
+    - Builds on: #243 (glossary — established core/grounding/ as self-development reference)
+    - Affects: enhance, ship, fix-it, capture-learning (all plays with evidence self-commit)
+    - Introduces: grounding rules as behavioral configuration for plays
+  labels:
+    - enhancement
+  read_at: "2026-04-19T00:00:00Z"

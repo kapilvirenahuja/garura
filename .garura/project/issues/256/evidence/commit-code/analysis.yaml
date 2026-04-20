@@ -1,0 +1,30 @@
+groups:
+  - id: fix-256-evidence
+    concern: fix-it play evidence for #256
+    files:
+      - .garura/project/issues/256/evidence/fix-it/branch-result.yaml
+      - .garura/project/issues/256/evidence/fix-it/design.yaml
+      - .garura/project/issues/256/evidence/fix-it/implementation-report.yaml
+      - .garura/project/issues/256/evidence/fix-it/issue-comment-agent.yaml
+      - .garura/project/issues/256/evidence/fix-it/issue-read.yaml
+      - .garura/project/issues/256/evidence/fix-it/rca.yaml
+      - .garura/project/issues/256/evidence/fix-it/resolution-trace.yaml
+      - .garura/project/issues/256/status
+      - .garura/project/issues/256/branch-result.yaml
+      - .garura/project/issues/256/design.yaml
+      - .garura/project/issues/256/implementation-report.yaml
+      - .garura/project/issues/256/issue-comment-agent.yaml
+      - .garura/project/issues/256/issue-read.yaml
+      - .garura/project/issues/256/rca.yaml
+      - .garura/project/issues/256/resolution-trace.yaml
+
+  - id: stm-278-distill
+    concern: leftover distill evidence from #278
+    files:
+      - .garura/project/issues/278/evidence/distill/proposals.yaml
+
+excluded:
+  - path: .garura/project/issues/210/
+    reason: not yet started — pre-created STM dir for upcoming work
+  - path: .claude/scheduled_tasks.lock
+    reason: runtime lock file — do not commit

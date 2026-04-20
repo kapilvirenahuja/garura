@@ -1,0 +1,26 @@
+play: scope
+skills:
+  - name: manage-issue
+    path: core/components/skills/manage-issue/SKILL.md
+    status: existing
+    invoked_by: project-orchestrator
+  - name: manage-features
+    path: core/components/skills/manage-features/SKILL.md
+    status: existing
+    invoked_by: product-keeper
+  - name: research-domain-context
+    path: core/components/skills/research-domain-context/SKILL.md
+    status: existing
+    invoked_by: product-keeper
+  - name: generate-intent-epics
+    path: core/components/skills/generate-intent-epics/SKILL.md
+    status: existing
+    invoked_by: product-keeper
+  - name: validate-intent-epics
+    path: core/components/skills/validate-intent-epics/SKILL.md
+    status: existing
+    invoked_by: product-keeper
+  - name: create-commit
+    path: core/components/skills/create-commit/SKILL.md
+    status: existing
+    invoked_by: repo-orchestrator

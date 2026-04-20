@@ -1,0 +1,47 @@
+number: 242
+title: "Rename core pipeline plays to short invocation names"
+state: OPEN
+url: "https://github.com/kapilvirenahuja/garura/issues/242"
+labels:
+  - enhancement
+body: |
+  ## Problem
+
+  Current play names are verbose and inconsistent. The six core SDLC pipeline stages use compound names (`specify-product`, `design-exp`, `build-arch`, `prepare-epic`, `implement-epic`, `validate-epic`) while utility plays use shorter names (`ship`, `start-feature`). The compound names are harder to invoke and don't read as a clean pipeline.
+
+  ## Proposed Rename
+
+  ### Core pipeline stages (short names)
+
+  | Current | New | Stage |
+  |---------|-----|-------|
+  | `specify-product` | `/specify` | Product specification |
+  | `design-exp` | `/design` | Experience design |
+  | `build-arch` | `/architect` | Architecture (`/build` rejected — too easily confused with 'build code') |
+  | `prepare-epic` | `/prepare` | Epic preparation |
+  | `implement-epic` | `/implement` | Implementation |
+  | `validate-epic` | `/validate` | Validation |
+
+  ### Utility plays (no change)
+
+  `ship`, `start-feature`, `start-feature-planning`, `capture-learning`, `check-drift`, `fix-it` — keep descriptive names.
+
+  ## Scope of Change
+
+  This is a breaking rename. Affected locations:
+
+  - `core/components/plays/{name}/` — directory rename
+  - `core/components/plays/{name}/SKILL.md` — `name:` field in frontmatter
+  - `core/components/plays/{name}/reference/intent.yaml` — `name:` field
+  - All cross-references in other plays/skills that mention play names (e.g., prepare-epic references `specify-product`, `design-exp`, `build-arch` as upstream)
+  - Documentation in `docs/` referencing play names
+  - ADRs referencing play names
+  - Agent definitions that reference play names in their domain descriptions
+
+  ## Acceptance Criteria
+
+  - [ ] All 6 core pipeline plays renamed in `core/components/`
+  - [ ] All cross-references updated (grep for old names returns zero hits)
+  - [ ] `/sync-droids` deploys correctly with new names
+  - [ ] No play references old names in constraints, failure conditions, or step descriptions
+  - [ ] ADR recorded for the rename decision

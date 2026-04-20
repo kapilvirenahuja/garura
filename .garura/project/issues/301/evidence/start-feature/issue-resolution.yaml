@@ -1,0 +1,12 @@
+issue:
+  number: 301
+  title: "feat: /scope play — feature-to-epic scoping with catalog match, constraint fit, and KB grounding"
+  url: "https://github.com/kapilvirenahuja/garura/issues/301"
+  state: open
+  created: true
+  type_hint: feature
+inference:
+  source: explicit_title
+  confidence: high
+  candidates_considered: 0
+  ambiguity_resolved_by_user: false

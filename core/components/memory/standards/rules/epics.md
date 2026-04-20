@@ -2,7 +2,7 @@
 
 Canonical rules governing how intent epics are structured, scoped, and delivered. Every skill that creates, refines, or validates epics loads this file and enforces these rules against its output.
 
-Consumers: `generate-intent-epics`, `validate-intent-epics`, `prepare-epic`, `feature-steward`, `tech-designer`.
+Consumers: `generate-intent-epics`, `validate-intent-epics`, `prepare`, `feature-steward`, `tech-designer`.
 
 ## Rule 1: Vertical Slice Delivery
 

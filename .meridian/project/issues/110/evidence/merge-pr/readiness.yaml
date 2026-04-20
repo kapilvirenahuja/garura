@@ -1,7 +1,0 @@
-readiness:
-  pr_number: 111
-  pr_state: "OPEN"
-  mergeable: true
-  base_branch: "main"
-  tree_clean: true
-  conflicts: false

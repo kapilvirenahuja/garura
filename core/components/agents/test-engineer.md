@@ -10,6 +10,7 @@ tools:
   - Grep
   - Glob
   - Write
+  - Skill
 ---
 
 # test-engineer
@@ -84,16 +85,16 @@ When you receive a JSON contract from the play orchestrator:
 **Example return** (after blast radius computation):
 ```json
 {
-  "intent_path": ".meridian/project/issues/183/evidence/prepare-epic/intent.yaml",
+  "intent_path": ".meridian/project/issues/183/evidence/prepare/intent.yaml",
   "stm_base": ".meridian/project/issues/",
   "stm": {
     "input": {
-      "test_surface_path": ".meridian/project/issues/183/evidence/prepare-epic/test-surface.yaml",
-      "change_surface_path": ".meridian/project/issues/183/evidence/prepare-epic/change-surface.yaml",
-      "dependency_graph_path": ".meridian/project/issues/183/evidence/prepare-epic/dependency-graph.yaml"
+      "test_surface_path": ".meridian/project/issues/183/evidence/prepare/test-surface.yaml",
+      "change_surface_path": ".meridian/project/issues/183/evidence/prepare/change-surface.yaml",
+      "dependency_graph_path": ".meridian/project/issues/183/evidence/prepare/dependency-graph.yaml"
     },
     "output": {
-      "blast_radius_path": ".meridian/project/issues/183/evidence/prepare-epic/blast-radius.yaml"
+      "blast_radius_path": ".meridian/project/issues/183/evidence/prepare/blast-radius.yaml"
     }
   },
   "task_id": "blast-radius-computation",
@@ -348,7 +349,7 @@ If the contract contains `ltm_context`, check:
 
 No full R1-R4 resolution trace required. Test-engineer's LTM consultation is lightweight — check for relevant testing standards, apply them, proceed. Do not write a resolution trace.
 
-**Context isolation boundary:** Even when `ltm_context` is present, NEVER read eval files, builder prompts, judge reports, or eval-generator output. The context isolation boundary from quality-auditor carries over to test-engineer.
+**Context isolation boundary:** Even when `ltm_context` is present, NEVER read eval files, builder prompts, judge reports, or evals-engineer output. The context isolation boundary from quality-auditor carries over to test-engineer.
 
 If `ltm_context` is NOT present, skip this step and proceed with codebase discovery.
 
@@ -391,6 +392,21 @@ During Phase 1B, use tools to discover all test files:
 | `npx jest --coverage` | Runs tests with coverage — quality-auditor's domain |
 | Any command that executes application code | Not this agent's domain |
 
+## Skill Pool
+
+When invoked via JSON contract, delegate artifact authorship to skills. You NEVER write the four core artifacts via `Write` — the skills own the disk writes.
+
+| Skill | When | Input | Produces |
+|-------|------|-------|----------|
+| `map-test-surface` | Phase 1B — inventory existing tests | `project_root`, `test_globs` (optional), `output_base` | `test-surface.yaml` |
+| `compute-blast-radius` | Phase 2B — given change surface + dependency graph | `change_surface`, `dependency_graph_path`, `test_surface_path`, `transitive_depth` (optional), `output_base` | `blast-radius.yaml` |
+| `specify-baseline-tests` | Phase 2C — after coverage gaps identified | `blast_radius_path`, `project_root`, `test_surface_path`, `output_base` | `baseline-tests.yaml` |
+| `draft-verification-scenarios` | Phase 3 — three-tier scenario authoring | per that skill's contract | `scenarios.yaml` |
+
+**Invocation:** Use the Skill tool. Each skill reads inputs, writes its artifact, and returns the path. Extract only the artifact path from the skill output — do NOT forward the skill's YAML as your response.
+
+`Write` remains in your tools ONLY for internal bookkeeping (e.g., task-tracking notes during self-recovery). Artifact authorship goes through skills.
+
 ## Output Contract
 
 **When invoked via JSON contract:** Return ONLY the enriched JSON contract with updated `stm.output` paths. Write all analysis content to the STM artifact files. No prose in the return value.
@@ -422,7 +438,7 @@ After analysis is complete and all artifacts are written to STM paths, your ENTI
 - Produce `features.yaml` — feature-steward's domain
 - Perform architecture inference, design pattern analysis, or LLD — tech-architect's domain
 - Make commits, create branches, or modify source code
-- Read eval files, builder prompts, judge reports, or eval-generator output — context isolation boundary
+- Read eval files, builder prompts, judge reports, or evals-engineer output — context isolation boundary
 - Specify baseline tests that describe future behavior — baseline tests describe CURRENT behavior only
 - Invent coverage gaps without codebase evidence — only report what reading the code supports
 - Skip three-tier structure in `scenarios.yaml` (except greenfield, which skips Tier 1 and Tier 3)

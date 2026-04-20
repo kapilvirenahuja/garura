@@ -1,0 +1,67 @@
+analysis:
+  branch: feat/299-list-product-state-skill
+  base: main
+  suggested_title: "feat: list-product-state skill — render product status tree (#299)"
+  context:
+    file_patterns_matched:
+      - skill-definitions   # core/components/skills/list-product-state/SKILL.md
+      - documentation       # core/components/memory/standards/templates/feature-tree-output.md
+      - configuration       # *.yaml (eval workspace, STM evidence)
+      - core-components     # core/components/** → sync-claude required
+    commit_types:
+      - feat    # e2fd69e feat(skills): add list-product-state skill with shared feature-tree template (#299)
+      - chore   # 94663a8 chore(stm): record list-product-state skill-creator eval workspace (#299)
+      - chore   # fcaf491 chore(stm): record start-feature evidence for #299
+  checklist:
+    must_have:
+      - item: "No merge conflicts with main"
+        trigger: "Universal rule — always checked before PR"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD returned clean SHA 7656e883; no conflict markers"
+
+      - item: "No secrets committed"
+        trigger: "Universal rule — always checked before PR"
+        status: "PASS"
+        evidence: "Pattern scan across all changed files: no api_key, secret, password, token, private_key, or PEM headers detected"
+
+      - item: "Skill has valid frontmatter (name, description, user-invocable, allowed-tools)"
+        trigger: "Skill definition changed: core/components/skills/list-product-state/SKILL.md"
+        status: "PASS"
+        evidence: "SKILL.md frontmatter present — name: list-product-state, description: present, user-invocable: false, allowed-tools: Read, Glob"
+
+      - item: "Skill defines Input and Output sections"
+        trigger: "Skill definition changed: core/components/skills/list-product-state/SKILL.md"
+        status: "PASS"
+        evidence: "## Input and ## Output sections both present with required field definitions"
+
+      - item: "Feature documented (feat: commit type)"
+        trigger: "Commit type feat — new feature must have documentation"
+        status: "PASS"
+        evidence: "Shared LTM template feature-tree-output.md added at core/components/memory/standards/templates/; SKILL.md includes ## References pointing to feature-catalog.md rules"
+
+      - item: "Components synced with core/components/"
+        trigger: "core/components/** changed — sync-claude must be run after merge"
+        status: "REVIEW"
+        evidence: "core/components/skills/list-product-state/ and core/components/memory/standards/templates/ changed. Sync must be run post-merge via /sync-claude (global) or /sync-claude --project (ephemeral)"
+
+    nice_to_have:
+      - item: "Skill has Constraints section"
+        trigger: "Skill definition changed — constraints are nice-to-have"
+        status: "PASS"
+        evidence: "## Hard rules section in SKILL.md covers no-network, no-guessing, no-mutation, and verbatim-passthrough constraints"
+
+      - item: "Significant feature has ADR"
+        trigger: "feat commit type — large changes may warrant an ADR"
+        status: "REVIEW"
+        evidence: "Skill is a standalone read-only utility with no architectural impact on agents or plays; no ADR required by this PR's scope"
+
+  blocking_issues: []
+  ready: true
+
+  eval_summary:
+    source: "core/components/skills/list-product-state-workspace/iteration-2/benchmark.md"
+    with_skill_score: "100%"
+    baseline_score: "27%"
+    iterations: 2
+    evals_run: 3
+    outcome: "PASS — skill achieves full coverage across all 3 eval scenarios; baseline fails 2 of 3"

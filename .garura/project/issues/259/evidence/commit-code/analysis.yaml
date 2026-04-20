@@ -1,0 +1,33 @@
+groups:
+  - id: G1
+    type: feat
+    scope: fix-it
+    subject: "add TDD and anti-reward-hacking constraints"
+    issue: 259
+    files:
+      - core/components/plays/fix-it/reference/intent.yaml
+      - core/components/plays/fix-it/SKILL.md
+      - core/components/agents/tech-designer.md
+    rationale: >
+      All three files are part of the same concern: adding anti-reward-hacking
+      constraints (C14-C19) and TDD enforcement to the fix-it play. intent.yaml
+      is the source of truth, SKILL.md is the compiled artifact, and tech-designer.md
+      declares regression_test_path as an output. Single cohesive concern.
+
+  - id: G2
+    type: chore
+    scope: stm
+    subject: "record enhance evidence for #259"
+    issue: 259
+    files:
+      - .garura/project/issues/259/
+    rationale: >
+      All files under .garura/project/issues/259/ are STM evidence artifacts
+      produced during the enhance play run for issue #259. These belong in
+      a single chore(stm) commit per project convention (ADR 012).
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false

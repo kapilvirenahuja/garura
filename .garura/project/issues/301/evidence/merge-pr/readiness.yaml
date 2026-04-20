@@ -1,0 +1,9 @@
+pr_number: 304
+branch: feat/301-scope-play
+base_branch: main
+state: OPEN
+mergeable: MERGEABLE
+working_tree_clean: true
+checks: []
+ready: true
+assessed_at: "2026-04-19"

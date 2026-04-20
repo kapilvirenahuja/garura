@@ -1,0 +1,6 @@
+pr_number: 285
+state: OPEN
+mergeable: true
+base_branch: main
+head_branch: fix/242-rename-core-pipeline-plays
+tree_clean: true

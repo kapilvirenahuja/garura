@@ -1,0 +1,518 @@
+problem_statement: |
+  Seven documentation files (agents.md, plays.md, skills.md, architecture.md,
+  play-structure.md, memory.md, idsd.md) are stale relative to the current
+  codebase after the Four Crafts / task-driven play refactor. Three cross-cutting
+  defect categories affect all files: (1) all .meridian/ paths should be .garura/,
+  (2) JSON contract examples show the old flat stm.* shape instead of the nested
+  stm.input / stm.output shape mandated by ADR 016, (3) STM subfolder names
+  spec/ / design/ / delivery/ are wrong — the whitelist is specs/ / evidence/ /
+  checkpoint/ / context/ / review/. Beyond the cross-cutting issues, agents.md
+  lists 7 of 19 agents; skills.md lists 8 of 46 skills and 16 of 22 plays;
+  architecture.md carries two phantom agents (quality-validator, workflow-guardian)
+  that do not exist; memory.md is missing the templates/ subdirectory and shows
+  stale LTM org structure; play-structure.md and plays.md contain stale .meridian/
+  path examples; idsd.md uses .meridian/ paths throughout its memory architecture
+  diagrams.
+
+solution_summary: |
+  In-place defect patching across all seven target files. Step 1 sweeps all
+  .meridian/ → .garura/ path replacements in a single pass per file so mechanical
+  fixes land first. Steps 2-7 apply file-specific content corrections (roster
+  expansions, JSON contract shape fix, phantom agent removal, LTM org structure,
+  STM folder names). No file rewrites from scratch — each file is approximately
+  90% correct and full rewrites risk regressing working content. Eight ADR files
+  contain .meridian/ references and are in-scope for path fixes per Q2 resolution
+  (fix any contradictions encountered). Markdown linting runs on all modified files
+  after all edits are complete. Final grep verification confirms zero .meridian/
+  hits, correct roster counts, correct contract shape, correct STM folder names.
+
+files_to_create: []
+
+files_to_modify:
+  - path: docs/components/agents.md
+    rationale: |
+      Expand Available Agents table from 7 to all 19 agents (add designer,
+      doc-builder, engineering-manager, eval-generator, intent-crafter,
+      intent-resolver, judge, knowledge-extractor, market-analyst, product-keeper,
+      quality-auditor, tech-architect). Replace .meridian/ paths with .garura/
+      throughout (9 occurrences: JSON contract example on line 125/128/131/132,
+      config.yaml reference on line 280, LTM search path on line 282, scriber
+      description on lines 68/72). Expand skill pool tables for agents added
+      (designer, tech-architect, quality-auditor, judge, eval-generator,
+      test-engineer, engineering-manager, knowledge-extractor, market-analyst,
+      product-keeper, doc-builder, intent-crafter, intent-resolver). Fix scriber
+      description to reference .garura/ folder whitelist.
+
+  - path: docs/components/plays.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ throughout (10 occurrences in
+      contract example, artifact locations table, and STM path references).
+      Expand Complete Play Roster table from 15 to 22 plays (add build-arch,
+      capture-learning, check-drift, design-exp, distill, enhance, validate-epic,
+      which are present in core/components/plays/ but missing from the roster).
+      Fix JSON contract example block to use nested stm.input / stm.output shape
+      (currently shows old flat stm.vision_path / stm.epics_path shape).
+
+  - path: docs/components/skills.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ throughout (3 occurrences in
+      output contract example and LTM template pattern). Expand Available Skills
+      tables from 8 skills across 4 categories to all 46 skills across their
+      actual categories. Remove Available Plays section (plays are documented in
+      plays.md — duplication here is stale; redirect readers to plays.md for the
+      canonical roster).
+
+  - path: docs/philosophy/architecture.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ throughout (9 occurrences in memory
+      architecture boxes and STM folder structure diagram). Fix JSON Contract
+      Structure example from flat stm.* shape to nested stm.input / stm.output
+      shape per ADR 016. Remove quality-validator and workflow-guardian rows from
+      Agents table (neither exists in core/components/agents/); delete "Planned"
+      column or replace with a note pointing to the full 19-agent roster in
+      agents.md. Remove the bullet "Validation and quality gates → quality-validator"
+      from Orchestrator Tool Restrictions section. Fix Memory Flow diagram —
+      currently shows STM → Skills as an LTM sink (stale pre-ADR-009); the
+      correct flow is STM artifacts flow up to LTM via capture-learning, not
+      through skills.
+
+  - path: docs/framework/play-structure.md
+    rationale: |
+      No .meridian/ occurrences (confirmed 0). File is structurally current.
+      Minor correction only: the Task-Driven DAG Variant example references
+      "plan-roadmap" as the canonical example — update to reference "prepare-epic"
+      which is the current canonical task-driven play (plan-roadmap does not
+      exist in the 22-play roster).
+
+  - path: docs/components/memory.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ throughout (16 occurrences across
+      all memory type tables, LTM runtime paths, STM lifecycle diagram, context
+      crafting example, and LTM access pattern). Fix STM Organization section:
+      replace the entire diagram with the authoritative 5-bucket whitelist from
+      ADR 017: specs/, evidence/, checkpoint/, context/, review/. Do not preserve
+      old bucket names (spec/, design/, delivery/). Add templates/ subdirectory to
+      LTM Organization diagram under standards/ (between schemas/ and knowledge/).
+      Folder whitelist diagram already uses correct keys — that section is current
+      and should not be changed.
+
+  - path: docs/philosophy/idsd.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ throughout (7 occurrences in memory
+      architecture diagrams KB/LTM/STM storage paths, STM folder reference, and
+      KB governance paths). No content changes needed — agent count (19) is correct,
+      both JSON contract and YAML bundle patterns are documented, agent taxonomy
+      table lists correct agents, SDLC phase table is current.
+
+  - path: docs/adr/008-issue-centric-stm-and-nwwi.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ per Q2 scope (fix any contradictions
+      encountered). ADR 008 references the STM path convention and will have
+      .meridian/ in path examples.
+
+  - path: docs/adr/009-skill-ltm-organizational-knowledge.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ per Q2 scope. ADR 009 defines the
+      LTM path convention and will have ~/.meridian/core/memory/ references.
+
+  - path: docs/adr/010-stm-archival.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ per Q2 scope. STM archival ADR
+      references .meridian/ issue paths.
+
+  - path: docs/adr/011-stm-as-inter-skill-data-transport.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ per Q2 scope. STM transport ADR
+      references .meridian/ artifact paths.
+
+  - path: docs/adr/015-ltm-resolution-protocol.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ per Q2 scope. LTM resolution ADR
+      references ~/.meridian/core/memory/ runtime path.
+
+  - path: docs/adr/016-agent-json-contract.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ per Q2 scope. ADR 016 defines the
+      JSON contract schema with stm_base resolved from .meridian/core/config.yaml
+      — all such references need path update.
+
+  - path: docs/adr/002-l1-checkpoint-model.md
+    rationale: |
+      Replace .meridian/ paths with .garura/ per Q2 scope. Checkpoint model ADR
+      references .meridian/ checkpoint artifact paths.
+
+connections:
+  - "agents.md JSON contract example (stm_base .garura/) must match architecture.md
+    and plays.md contract examples for consistency — all three should show identical
+    nested stm.input / stm.output shape with .garura/ paths"
+  - "agents.md Available Agents roster (19) is the authoritative agent list;
+    idsd.md agent taxonomy table and architecture.md agent table must all show
+    the same 19 agents with no phantoms"
+  - "skills.md Available Skills tables are the authoritative skill list; any play
+    roster in skills.md must be removed (redirect to plays.md)"
+  - "memory.md LTM organization diagram (templates/ under standards/) must match
+    what agents.md Context Building section says about LTM paths"
+  - "memory.md STM folder names (specs/, evidence/, checkpoint/, context/, review/)
+    must match architecture.md STM Folder Structure diagram — after architecture.md
+    is corrected"
+  - "play-structure.md Task-Driven DAG canonical example must reference prepare-epic,
+    which is the same canonical example used in plays.md Capability Graph section"
+
+tasks:
+  - id: 1
+    description: |
+      docs/components/agents.md — path fixes + agent roster expansion.
+      (a) Replace all 9 occurrences of .meridian/ with .garura/ (lines 68, 72,
+      111, 125, 128, 131, 132, 280, 282).
+      (b) Expand Available Agents table from 7 rows to 19 rows. Add: designer,
+      doc-builder, engineering-manager, eval-generator, intent-crafter,
+      intent-resolver, judge, knowledge-extractor, market-analyst, product-keeper,
+      quality-auditor, tech-architect. Source descriptions from
+      core/components/agents/ definition files.
+      (c) Add skill pool subsections for each new agent that owns skills.
+      (d) Fix scriber description to reference .garura/ folder whitelist.
+
+  - id: 2
+    description: |
+      docs/components/plays.md — path fixes + play roster expansion + contract fix.
+      (a) Replace all 10 occurrences of .meridian/ with .garura/.
+      (b) Fix JSON contract block in the JSON Contract section: replace flat
+      stm.vision_path / stm.epics_path / ... shape with nested stm.input / stm.output
+      shape matching ADR 016 and the enhance/SKILL.md canonical example.
+      (c) Update Contract Fields table to describe stm.input and stm.output keys.
+      (d) Expand Complete Play Roster from 15 to 22 plays. Add: build-arch,
+      capture-learning, check-drift, design-exp, distill, enhance, validate-epic
+      with correct Pattern and Purpose values sourced from core/components/plays/.
+
+  - id: 3
+    description: |
+      docs/components/skills.md — path fixes + skill roster expansion.
+      (a) Replace all 3 occurrences of .meridian/ with .garura/.
+      (b) Remove Available Plays section; replace with a single sentence redirecting
+      to plays.md as the canonical play roster.
+      (c) Expand Available Skills tables to cover all 46 skills. Add missing skills
+      per understanding.md §3 canonical list, organized by their correct categories.
+      The 38 skills not currently listed: assess-market-opportunity, build-quality-gate,
+      capture-issue, check-brief-quality, configure-capabilities, derive-epics,
+      derive-nfr-spec, derive-quality-vision, distill, draft-architecture,
+      draft-verification-scenarios, evaluate-scope, execute-test-suite,
+      generate-brief, generate-market-brief, generate-project-profile,
+      generate-quality-profile, manage-issue (move from Project Management),
+      plan-experience, plan-mvp, read-issue, refine-scope, research-domain-context,
+      research-market, resolve-domain, resolve-ltm-context, scope-capabilities,
+      validate-epic-design, validate-implementation-design, validate-kb-extension,
+      validate-scope, wire-ltm-context, write-evidence, write-implementation,
+      write-tests, archive-issue-stm (already listed), plus sync-claude (already listed).
+
+  - id: 4
+    description: |
+      docs/philosophy/architecture.md — path fixes + phantom agents + contract fix.
+      (a) Replace all 9 occurrences of .meridian/ with .garura/.
+      (b) Fix JSON Contract Structure block: replace flat stm.* fields with nested
+      stm.input / stm.output shape. Update Contract Fields table accordingly.
+      (c) In the Agents table, remove quality-validator and workflow-guardian rows.
+      Add the remaining 13 agents from the 19-agent roster (the current table only
+      lists 4; add designer, doc-builder, engineering-manager, eval-generator,
+      feature-steward, intent-crafter, intent-resolver, judge, knowledge-extractor,
+      market-analyst, product-keeper, quality-auditor, scriber, tech-architect,
+      test-engineer).
+      (d) Remove "Validation and quality gates → quality-validator" bullet from
+      Orchestrator Tool Restrictions section.
+      (e) Fix Memory Flow diagram: remove the "Skills → LTM" arrow (stale
+      pre-ADR-009); the correct write path from STM to LTM is via capture-learning
+      play, not skills.
+
+  - id: 5
+    description: |
+      docs/framework/play-structure.md — canonical example fix only.
+      No .meridian/ occurrences (confirmed 0). In the Task-Driven DAG Variant
+      section, replace "plan-roadmap" with "prepare-epic" as the canonical
+      example play name (plan-roadmap is not in the 22-play roster; prepare-epic
+      is the canonical task-driven play). Verify no other stale play names appear
+      in examples.
+
+  - id: 6
+    description: |
+      docs/components/memory.md — path fixes + STM folder names + LTM org diagram.
+      (a) Replace all 16 occurrences of .meridian/ with .garura/.
+      (b) Replace the entire STM Organization diagram with the authoritative
+          5-bucket whitelist from ADR 017: specs/, evidence/, checkpoint/,
+          context/, review/. Match the exact comment descriptions from ADR 017
+          or .garura/core/config.yaml. Do not preserve or map old bucket names.
+      (c) In LTM Organization — Authoring section, add templates/ subdirectory
+      under standards/ between schemas/ and knowledge/ with comment listing the
+      10 template files.
+      (d) In LTM Organization — Deployment section, fix all runtime path references
+      to use .garura/ instead of .meridian/.
+
+  - id: 7
+    description: |
+      docs/philosophy/idsd.md — path fixes only.
+      Replace all 7 occurrences of .meridian/ with .garura/ in memory architecture
+      diagrams and KB/LTM/STM storage path references. No content changes — agent
+      count (19), agent taxonomy, and SDLC phase documentation are current.
+
+  - id: 8
+    description: |
+      ADR path fixes — docs/adr/008, 009, 010, 011, 015, 016, 002.
+      For each ADR file in scope, replace .meridian/ path occurrences with .garura/
+      where they appear as runtime or artifact path examples. Do NOT change
+      .meridian/ occurrences in docs/adr/017-folder-whitelist.md — that ADR
+      describes the .meridian/ tree structure and the references are intentional
+      historical record. Group all seven ADR edits into a single task to minimize
+      context-switching.
+
+  - id: 9
+    description: |
+      MD lint verification — run markdownlint on all modified files.
+      Run: markdownlint docs/components/agents.md docs/components/plays.md
+      docs/components/skills.md docs/philosophy/architecture.md
+      docs/framework/play-structure.md docs/components/memory.md
+      docs/philosophy/idsd.md docs/adr/008-issue-centric-stm-and-nwwi.md
+      docs/adr/009-skill-ltm-organizational-knowledge.md
+      docs/adr/010-stm-archival.md docs/adr/011-stm-as-inter-skill-data-transport.md
+      docs/adr/015-ltm-resolution-protocol.md docs/adr/016-agent-json-contract.md
+      docs/adr/002-l1-checkpoint-model.md
+      Fix any lint errors before proceeding to grep verification.
+
+  - id: 10
+    description: |
+      Final grep verification — confirm all cross-cutting defects are resolved.
+      Run the following and verify expected results:
+      (1) grep -rn '\.meridian/' docs/ → expected: 0 matches (except 017-folder-whitelist.md)
+      (2) grep -c 'quality-validator\|workflow-guardian' docs/philosophy/architecture.md → expected: 0
+      (3) grep -n '"stm": {' docs/philosophy/architecture.md docs/components/plays.md → inspect
+          that the stm block shows "input" and "output" subkeys, not flat path keys
+      (4) grep -n 'spec/\|design/\|delivery/' docs/components/memory.md → expected: 0
+          (in STM Organization context — code-block comments for specs/, evidence/, etc. are ok)
+      (5) Agent count: grep -c '^| `' docs/components/agents.md → verify 19 agent rows in table
+      (6) Skills count in docs/components/skills.md → verify 46 skill rows across all tables
+      (7) Plays count in docs/components/plays.md → verify 22 play rows in Complete Play Roster table
+
+evals:
+  - id: E1
+    description: No .meridian/ path references remain in any modified file except ADR 017
+    pass: |
+      grep -rn '\.meridian/' docs/ returns zero matches for all files except
+      docs/adr/017-folder-whitelist.md (which describes the migration)
+    fail: |
+      grep -rn '\.meridian/' docs/ returns one or more matches in any of the
+      seven primary target files or the six ADR files in scope
+
+  - id: E2
+    description: agents.md contains exactly 19 agent rows in Available Agents table
+    pass: |
+      The Available Agents table in docs/components/agents.md contains exactly 19
+      data rows — one per agent in the canonical roster from understanding.md §2.
+      All 19 agents present: code-builder, designer, doc-builder, engineering-manager,
+      eval-generator, feature-steward, intent-crafter, intent-resolver, judge,
+      knowledge-extractor, market-analyst, product-keeper, project-orchestrator,
+      quality-auditor, repo-orchestrator, scriber, tech-architect, tech-designer, test-engineer
+    fail: |
+      Table has fewer or more than 19 rows, or any of the 19 agents from the
+      canonical roster is absent
+
+  - id: E3
+    description: skills.md Available Skills tables cover all 46 skills from canonical roster
+    pass: |
+      Total skill rows across all category tables in docs/components/skills.md equals 46.
+      No Available Plays section remains (redirect sentence to plays.md present instead).
+    fail: |
+      Fewer than 46 skill rows, or the Available Plays section remains in the file
+
+  - id: E4
+    description: plays.md Complete Play Roster contains exactly 22 plays
+    pass: |
+      Complete Play Roster table in docs/components/plays.md has exactly 22 data rows
+      matching the canonical 22-play list from understanding.md §4.
+    fail: |
+      Table has fewer or more than 22 rows, or any play from the canonical list is absent
+
+  - id: E5
+    description: architecture.md JSON contract block uses nested stm.input / stm.output shape
+    pass: |
+      The JSON contract code block in docs/philosophy/architecture.md shows
+      "stm": { "input": { ... }, "output": { ... } } with no flat stm.vision_path,
+      stm.epics_path, stm.feasibility_path, or similar flat keys
+    fail: |
+      Any of stm.vision_path, stm.epics_path, stm.feasibility_path, stm.brief_path
+      remain in the architecture.md contract example
+
+  - id: E6
+    description: plays.md JSON contract block uses nested stm.input / stm.output shape
+    pass: |
+      The JSON contract code block in docs/components/plays.md shows nested
+      stm.input / stm.output shape. grep for "stm.vision_path" returns 0 in plays.md.
+    fail: |
+      Flat stm.* field names remain in the plays.md contract example
+
+  - id: E7
+    description: architecture.md contains no phantom agent references
+    pass: |
+      grep -c 'quality-validator\|workflow-guardian' docs/philosophy/architecture.md
+      returns 0. The Agents table has no "Planned" agents; the Orchestrator Tool
+      Restrictions section has no quality-validator bullet.
+    fail: |
+      Either quality-validator or workflow-guardian appears anywhere in
+      docs/philosophy/architecture.md
+
+  - id: E8
+    description: memory.md STM Organization uses correct folder names
+    pass: |
+      STM Organization diagram in docs/components/memory.md shows: specs/, evidence/,
+      checkpoint/, context/, review/ — and does NOT show spec/, design/, delivery/
+    fail: |
+      Any of spec/, design/, or delivery/ appear in the STM Organization section of
+      memory.md in a folder-listing context
+
+  - id: E9
+    description: memory.md LTM organization includes templates/ subdirectory
+    pass: |
+      LTM Organization — Authoring section in docs/components/memory.md shows
+      templates/ as a subdirectory under standards/, alongside rules/ and schemas/
+    fail: |
+      templates/ subdirectory is absent from the LTM organization diagram
+
+  - id: E10
+    description: play-structure.md canonical example references prepare-epic, not plan-roadmap
+    pass: |
+      The Task-Driven DAG Variant section references prepare-epic as the canonical
+      example. grep for plan-roadmap in docs/framework/play-structure.md returns 0.
+    fail: |
+      play-structure.md still references plan-roadmap anywhere as a canonical example
+
+  - id: E11
+    description: Markdown lint passes on all modified files
+    pass: |
+      markdownlint exits with code 0 on all 13 modified files (7 primary targets
+      + 6 ADR files). Zero lint errors reported.
+    fail: |
+      markdownlint exits non-zero or reports any lint error on any modified file
+
+  - id: E12
+    description: idsd.md agent count (19) and agent list remain accurate after path fixes
+    pass: |
+      docs/philosophy/idsd.md still shows "19 Agents" in the IDD→Meridian Mapping
+      table. All 19 agents remain in the Agent Taxonomy table. No agent added or
+      removed — only path strings changed.
+    fail: |
+      idsd.md agent count changes, or an agent row is accidentally deleted during
+      path substitution
+
+risks:
+  - description: |
+      .meridian/ path occurrences inside code-block comments where the
+      surrounding context is explaining the .meridian/ naming convention (e.g.,
+      ADR 017, memory.md Folder whitelist section) — blindly replacing all
+      occurrences would corrupt authoritative explanations.
+    mitigation: |
+      Surgical per-file edits rather than sed-based mass replace. For ADR 017,
+      explicitly skip the file. For memory.md Folder whitelist (ADR 017) section,
+      verify the diagram block is intentional .garura/ already — the discovery
+      confirmed it is already correct and should not be touched.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals:
+      - E1
+
+  - description: |
+      Expanding agents.md skill pool section (task 1c) may introduce inaccurate
+      skill lists for agents whose SKILL.md files were not read. An invented skill
+      pool is worse than an absent one.
+    mitigation: |
+      For each new agent added, read its definition file at
+      core/components/agents/{agent-name}.md before adding its skill pool rows.
+      If the definition is missing or the skill pool is undocumented, add the
+      agent row with a "See agent definition" note rather than guessing.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals:
+      - E2
+
+  - description: |
+      Removing quality-validator and workflow-guardian from architecture.md may
+      leave the "Planned agents" section header orphaned or create a confusing gap
+      in the Agents table (the table has a Status column implying future agents
+      exist). Deleting rows without context may confuse readers about why no
+      planned agents are listed.
+    mitigation: |
+      Delete the "Planned" status rows entirely. Remove the Status column from
+      the table or replace it with a note: "All 19 agents implemented — see
+      agents.md for full roster." This is the cleanest resolution; the "Planned"
+      status is meaningless once the agents it referenced no longer exist.
+    type: architectural
+    action: approval-required
+    ltm_reference: null
+    generated_evals:
+      - E7
+
+  - description: |
+      ADRs are historical records. Modifying path strings in ADR bodies risks
+      making the ADR narrative inconsistent — for example ADR 008 may use
+      .meridian/ as part of explaining the decision (not just as a path example),
+      and changing it alters the historical context of the decision.
+    mitigation: |
+      Only replace .meridian/ in runtime path examples (code blocks, file paths,
+      artifact location strings). Do NOT alter ADR prose that references the
+      historical name .meridian/ when explaining why the decision was made. Read
+      each affected ADR section before editing.
+    type: architectural
+    action: eval-driven
+    ltm_reference: null
+    generated_evals:
+      - E1
+      - E11
+
+  - description: |
+      skills.md removal of Available Plays section (task 3b) removes content
+      that currently provides a cross-reference for users browsing skills. If
+      plays.md is not prominently linked, users lose discoverability.
+    mitigation: |
+      Replace the Available Plays section with a redirect sentence and a link:
+      "For the complete play roster, see [Plays Component Guide](./plays.md)."
+      The Related Documentation section already links plays.md — the redirect
+      keeps navigation intact.
+    type: business
+    action: eval-driven
+    ltm_reference: null
+    generated_evals:
+      - E3
+
+alternatives_considered:
+  - description: |
+      Full rewrite of each file from scratch using the canonical structure
+      (H1 title, H2 sections, H3 subsections, tables, code blocks) rather than
+      in-place defect patching.
+    rejection_reason: |
+      Each file is approximately 90% correct — the structure, philosophy,
+      invocation model, and constraint documentation are all current. Full
+      rewrites would risk regressing working content (e.g., the Four Crafts
+      section in architecture.md, the JSON contract flow explanation in plays.md,
+      the Silent Validation section in skills.md). In-place patching targets only
+      the specific defect categories identified in understanding.md and minimizes
+      blast radius.
+
+  - description: |
+      Sed-based mass replace of .meridian/ → .garura/ across all docs/ in a
+      single shell command, combined with targeted manual fixes for content
+      defects.
+    rejection_reason: |
+      .meridian/ appears in code-block contexts where the surrounding text is
+      explaining the naming convention (ADR 017, memory.md Folder whitelist
+      section). A mass replace would corrupt ADR 017's historical record of the
+      folder naming decision. Surgical per-file edits with explicit skip of
+      ADR 017 is required.
+
+  - description: |
+      Scope cap — treat ADRs as immutable historical records and exclude all 8
+      ADR files from the PR, fixing only the 7 primary target files.
+    rejection_reason: |
+      Q2 resolution explicitly authorizes fixing any docs encountered that
+      contradict current state. ADR files 008, 009, 010, 011, 015, 016, and 002
+      contain .meridian/ runtime path examples that contradict the current
+      .garura/ path convention — the same defect as the primary targets. Leaving
+      ADRs stale while fixing all component docs creates an inconsistent
+      documentation set where ADRs and components disagree on path conventions.
+      ADR 017 is the only ADR that should be left unchanged.

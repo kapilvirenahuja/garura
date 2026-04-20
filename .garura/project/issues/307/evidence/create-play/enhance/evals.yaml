@@ -1,0 +1,457 @@
+step_evals:
+  - id: SE-1
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C3
+    skill: play
+    check: |
+      discovery.md records Q&A covering: what is being built, what existing code
+      it connects to, constraints, and success criteria — filling gaps from the
+      issue body. Play must gather context from the user before design.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/discovery.md"
+    pass_criteria: |
+      discovery.md exists and contains the issue body text plus at least one
+      answered question covering each of: what to build, existing code involved,
+      constraints, success criteria. Approach design does not run before this
+      file is written.
+    fail_criteria: |
+      discovery.md missing, empty, or missing answers for any of the four
+      required context areas; or approach.yaml written before discovery.md.
+
+  - id: SE-2
+    source_type: both
+    failure_condition_id: F5
+    constraint_id: C4
+    skill: draft-technical-approach
+    check: |
+      Context assembly writes context to {stm_base}/{issue}/context/. Context is
+      the ONLY input to implementation — no spec pollution.
+    artifact_pattern: "{stm_base}/{issue}/context/understanding.md"
+    pass_criteria: |
+      understanding.md exists at {stm_base}/{issue}/context/ and references at
+      least one specific codebase file path drawn from the issue body or Q&A
+      answers. Implementation step does not execute unless
+      {stm_base}/{issue}/context/ is populated.
+    fail_criteria: |
+      Context directory missing or empty when implementation runs, OR
+      understanding.md contains no references to specific codebase files from
+      issue/Q&A.
+
+  - id: SE-3
+    source_type: both
+    failure_condition_id: F4
+    constraint_id: C6
+    skill: play
+    check: |
+      Scope assessment uses all five C6 signals: files touched, domains crossed,
+      new abstractions, existing tests impacted, estimated effort. When scope is
+      out-of-range, play presents assessment and recommendation — does not
+      silently halt.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/scope-assessment.md"
+    pass_criteria: |
+      Scope assessment records all five signals with their values. When any
+      signal places the enhancement out-of-range (files >15 or >3, domains 3+
+      or 1 respectively, effort >1 day or <1hr, new bounded context), the
+      assessment table is presented with a recommendation to use /prepare or
+      fix-it, and the play halts — no approach.yaml created, no implementation
+      attempted.
+    fail_criteria: |
+      Fewer than five signals recorded; OR an out-of-range signal present with
+      approach.yaml/build-report.yaml existing; OR play halts on out-of-range
+      without presenting the assessment to the user.
+
+  - id: SE-4
+    source_type: both
+    failure_condition_id: F9
+    constraint_id: C7
+    skill: draft-technical-approach
+    check: |
+      approach.yaml carries all fields C7 requires: problem_statement,
+      solution_summary, files_to_create, files_to_modify, connections, tasks
+      (ordered), evals (with pass/fail), risks with the C7 risk schema
+      (description, mitigation, type, action, ltm_reference, generated_evals),
+      and alternatives_considered.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/approach.yaml"
+    pass_criteria: |
+      approach.yaml exists with all nine fields present and non-empty. Each
+      risk carries description, mitigation, type, action, ltm_reference,
+      generated_evals fields. evals list has ≥1 entry with pass and fail
+      criteria defined.
+    fail_criteria: |
+      approach.yaml missing any of the nine required fields, or risks lack any
+      of the six risk-schema fields, or evals list empty / missing pass-fail
+      criteria.
+
+  - id: SE-5
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C8
+    skill: draft-technical-approach
+    check: |
+      Approach must include at least one alternative considered with reason it
+      was rejected.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/approach.yaml"
+    pass_criteria: |
+      alternatives_considered list in approach.yaml contains ≥1 entry; each
+      entry includes the rejection reason.
+    fail_criteria: |
+      alternatives_considered missing, empty, or contains entries without a
+      rejection reason.
+
+  - id: SE-6
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C19
+    skill: draft-technical-approach
+    check: |
+      Every risk in approach.yaml carries type (technical|business|
+      architectural), action (eval-driven|approval-required|monitor-only),
+      ltm_reference (path or null), mitigation, description, and
+      generated_evals (list). For risks with action:eval-driven, all
+      generated_evals entries are appended to the top-level evals list.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/approach.yaml"
+    pass_criteria: |
+      Each risk entry has all six fields (type, action, ltm_reference,
+      mitigation, description, generated_evals) with values drawn from the
+      taxonomies in C19. For every eval-driven risk, every generated_evals
+      entry appears in the top-level evals list.
+    fail_criteria: |
+      Any risk missing any of the six fields; OR a type or action value outside
+      the declared taxonomies; OR an eval-driven risk with generated_evals
+      entries absent from the top-level evals list.
+
+  - id: SE-7
+    source_type: both
+    failure_condition_id: F6
+    constraint_id: null
+    skill: play
+    check: |
+      Q&A discovery must not be skipped — approach design cannot run without
+      user context.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/discovery.md"
+    pass_criteria: |
+      discovery.md exists and was written before approach.yaml
+      (discovery.md mtime precedes approach.yaml mtime, OR approach.yaml does
+      not exist).
+    fail_criteria: |
+      approach.yaml exists while discovery.md is missing, OR approach.yaml
+      precedes discovery.md in write order.
+
+  - id: SE-8
+    source_type: failure_condition
+    failure_condition_id: F10
+    constraint_id: null
+    skill: play
+    check: |
+      Judge must not receive builder prompts, self-eval results, or
+      implementation rationale — context isolation.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/judge-dispatch.json"
+    pass_criteria: |
+      The recorded JSON contract sent to the judge agent contains NO fields
+      named or referencing: self-eval paths, build-report paths, builder
+      prompts, implementation rationale, or discovery.md. eval_path and
+      config.instructions may be present (per C21) — these do not violate
+      isolation.
+    fail_criteria: |
+      The dispatch contract contains a self-eval path, build-report path,
+      builder prompt, implementation rationale reference, or discovery.md
+      reference.
+
+  - id: SE-9
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C13
+    skill: play
+    check: |
+      After implementation, self-evaluation runs using evals from approach.yaml
+      and records results.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/self-eval.yaml"
+    pass_criteria: |
+      self-eval.yaml exists with a PASS or FAIL verdict recorded for each eval
+      criterion drawn from the 'evals' field of approach.yaml. The number of
+      evaluated criteria matches the number of evals in approach.yaml.
+    fail_criteria: |
+      self-eval.yaml missing; OR a verdict is absent for any eval in
+      approach.yaml; OR the evaluated-criteria count does not match
+      approach.yaml.evals count.
+
+  - id: SE-10
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: play
+    check: |
+      Fix loop must not exceed 3 iterations. After 3 iterations with failures,
+      halt with structured failure report.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/self-eval.yaml"
+    pass_criteria: |
+      self-eval.yaml records an iteration count ≤3. If iteration 3 completed
+      with remaining FAIL results, a structured failure report is presented
+      and judge-rating did not run (judge-report.yaml absent).
+    fail_criteria: |
+      iteration count >3 recorded; OR iteration 3 completed with FAILs and the
+      play continued to judge-rating or PR creation.
+
+  - id: SE-11
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C21
+    skill: play
+    check: |
+      Step 10 (judge-rating) dispatch includes eval_path pointing to
+      core/components/plays/enhance/reference/evals/solution-rating.yaml and
+      config.instructions with the C21 ask: "Rate enhancement solution
+      against the supplied evals. Boundary is the approach.yaml plus
+      project_root. For each ER-N eval, execute its verification procedure
+      against the delivered work and record PASS/FAIL with evidence. Compute
+      overall_confidence per ER-4: any blocker-classified concern →
+      overall_confidence ≤ 0.55; else reflect quality across per-area
+      assessments."
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/judge-dispatch.json"
+    pass_criteria: |
+      The recorded judge dispatch contract contains an `eval_path` field with
+      value `core/components/plays/enhance/reference/evals/solution-rating.yaml`
+      AND a `config.instructions` field whose text matches the C21 ask (rating
+      against supplied evals, ER-N execution, ER-4 overall_confidence cap
+      logic).
+    fail_criteria: |
+      eval_path missing, pointing elsewhere, or not to the solution-rating.yaml
+      file in core/components/plays/enhance/reference/evals/; OR
+      config.instructions missing or not aligned with the C21 ask.
+
+  - id: SE-12
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: play
+    check: |
+      If judge confidence <0.6, play pauses and presents findings to user for
+      approval before proceeding to PR.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/judge-report.yaml"
+    pass_criteria: |
+      judge-report.yaml contains overall_confidence. If overall_confidence <0.6,
+      a checkpoint was presented to the user showing confidence, per-area
+      findings, and low-confidence areas; quality-check and PR creation did
+      not run until the user responded Tether or Vanish; if Vanish, no PR
+      was created.
+    fail_criteria: |
+      overall_confidence <0.6 and PR was created without a recorded user
+      Tether at the low-confidence checkpoint.
+
+  - id: SE-13
+    source_type: both
+    failure_condition_id: F7
+    constraint_id: C16
+    skill: play
+    check: |
+      Quality gates (build, lint, typecheck, tests) must pass before PR
+      creation.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/quality-report.yaml"
+    pass_criteria: |
+      quality-report.yaml exists with four result fields all recorded as PASS:
+      build, lint, typecheck, tests. PR creation step only executes after
+      quality-report.yaml records all-pass.
+    fail_criteria: |
+      Any of build, lint, typecheck, tests recorded as FAIL while pr-result.yaml
+      exists; OR PR created before quality-report.yaml written.
+
+  - id: SE-14
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: play
+    check: |
+      Implementation must not proceed to merge without PR checkpoint approval
+      (Tether received).
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/ship-result.yaml"
+    pass_criteria: |
+      ship-result.yaml exists only when a prior Tether at the PR checkpoint is
+      recorded in the play status. Merge SHA is present and branch_deleted is
+      true. If user Vanished at PR checkpoint, ship-result.yaml is absent.
+    fail_criteria: |
+      ship-result.yaml exists without a recorded Tether response at the PR
+      checkpoint; OR merge executed while PR checkpoint was skipped.
+
+  - id: SE-15
+    source_type: failure_condition
+    failure_condition_id: F8
+    constraint_id: null
+    skill: play
+    check: |
+      When --approve-plan is set, the mid-checkpoint MUST fire after approach
+      design.
+    artifact_pattern: "{stm_base}/{issue}/status/enhance.json"
+    pass_criteria: |
+      When --approve-plan is set, status records that mid-checkpoint executed
+      (status: completed) after approach-design and before implement. If user
+      Vanished, build-report.yaml is absent.
+    fail_criteria: |
+      --approve-plan set but mid-checkpoint status not recorded as executed,
+      OR build-report.yaml present after user Vanished at mid-checkpoint.
+
+  - id: SE-16
+    source_type: failure_condition
+    failure_condition_id: F11
+    constraint_id: null
+    skill: play
+    check: |
+      When approach.yaml contains any risk with action:approval-required, the
+      focused risk checkpoint MUST fire regardless of the --approve-plan flag.
+      F11 is distinct from F8.
+    artifact_pattern: "{stm_base}/{issue}/status/enhance.json"
+    pass_criteria: |
+      When approach.yaml has ≥1 risk with action:approval-required, status
+      records risk-checkpoint as executed before implement. If user Vanished
+      at the risk checkpoint, build-report.yaml is absent.
+    fail_criteria: |
+      approval-required risks present but risk-checkpoint status missing or
+      skipped; OR build-report.yaml present while approval-required risk
+      checkpoint was skipped or user Vanished.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: "Developer enhancing a Meridian play"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    check: |
+      Q&A gathers context; context assembled from LTM and codebase; scope gate
+      confirms right-sized; approach designed with tasks and evals;
+      implemented, judge rates >0.6; quality passes; PR created, reviewed,
+      approved, merged.
+    pass_criteria: |
+      Full evidence chain present: issue-read.yaml (state=open), discovery.md
+      (issue body + Q&A), understanding.md (codebase file references),
+      approach.yaml (all nine fields, ≥1 alternative, ≥1 eval), self-eval.yaml
+      (all criteria PASS), judge-report.yaml (overall_confidence ≥0.6),
+      quality-report.yaml (build/lint/typecheck/tests all PASS), pr-result.yaml
+      (PR URL, linked to issue), ship-result.yaml (merge SHA, branch_deleted=
+      true). No step skipped; no redirect to fix-it or /prepare.
+    fail_criteria: |
+      Any of the listed artifacts missing or with failing values; OR play
+      redirected out of enhance; OR steps skipped.
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: "Developer with a large enhancement"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    check: |
+      Scope gate detects out-of-range; presents assessment exceeding enhance
+      thresholds; recommends /prepare; user redirected — no implementation.
+    pass_criteria: |
+      Scope-assessment.md records ≥1 out-of-range signal (files>15, domains≥3,
+      or effort>1 day) with recommendation to use /prepare. No approach.yaml,
+      no build-report.yaml, no pr-result.yaml for this issue. Play halted after
+      scope-gate step.
+    fail_criteria: |
+      approach.yaml or build-report.yaml or pr-result.yaml exists for an
+      out-of-range enhancement; OR out-of-range detected but no recommendation
+      presented.
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: "Developer with a trivial fix"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    check: |
+      Scope gate detects too small; recommends fix-it; user redirected.
+    pass_criteria: |
+      Scope-assessment.md records all signals in the too-small range (files≤3,
+      single concern, effort<1 hour) with a recommendation to use fix-it. No
+      approach.yaml created, no implementation attempted, no PR opened.
+    fail_criteria: |
+      approach.yaml or build-report.yaml exists for a too-small enhancement;
+      OR fix-it recommendation missing when scope signals all fall in the
+      too-small range.
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: "Developer with a risky enhancement"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/judge-report.yaml"
+    check: |
+      Judge rates confidence <0.6. Play pauses and presents findings. User
+      reviews, decides to iterate or approve.
+    pass_criteria: |
+      judge-report.yaml records overall_confidence <0.6. A human approval
+      checkpoint was presented before quality-check or PR creation, displaying
+      confidence score, per-area findings, and low-confidence areas. If user
+      Vanished, no PR created and quality-check not run. If user Tethered,
+      play continued only after recording approval in STM.
+    fail_criteria: |
+      confidence <0.6 and play proceeded to PR without a recorded user
+      response at the low-confidence checkpoint.
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: "Developer using --approve-plan"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    check: |
+      Mid-checkpoint is ON. After approach design, plan is presented with
+      tasks, files, evals, risks.
+    pass_criteria: |
+      A mid-checkpoint message was presented after approach.yaml was written,
+      before any implementation, containing: problem statement, solution
+      summary, files_to_create and files_to_modify, numbered tasks, eval
+      criteria with pass/fail, risks, alternatives with rejection reasons.
+      If user Tethered, build-report.yaml was subsequently created. If user
+      Vanished, build-report.yaml does not exist.
+    fail_criteria: |
+      --approve-plan set but no mid-checkpoint presented; OR build-report.yaml
+      exists after user Vanished at mid-checkpoint; OR checkpoint presented
+      with any of the seven required sections missing.
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: "Developer reviewing PR"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    check: |
+      PR checkpoint fires with full review — problem statement, solution
+      summary, files, tech decisions, review findings from analyze-pr.
+    pass_criteria: |
+      PR checkpoint presented with all six required sections non-empty: problem
+      statement, solution summary, technical decisions (risks + alternatives),
+      files changed with rationale, review findings from analyze-pr, judge
+      confidence score, and PR URL. ship-result.yaml only written after user
+      Tether.
+    fail_criteria: |
+      PR checkpoint skipped; OR any of the six sections missing; OR
+      ship-result.yaml written before Tether recorded.
+
+  - id: SCE-7
+    scenario_id: S7
+    persona: "Developer with eval failures"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/self-eval.yaml"
+    check: |
+      Self-evaluation finds failures; fix loop iterates; builder reads
+      remediation, fixes, re-evaluates; max 3 iterations, else structured
+      failure report.
+    pass_criteria: |
+      self-eval.yaml records ≥1 FAIL on first pass. Fix loop ran ≥1 iteration
+      with remediation sent to code-builder (approach + context + remediation
+      only). Second self-evaluation recorded. If failures resolved before
+      iteration 3, judge-rating proceeded. If failures remained after
+      iteration 3, a structured failure report was presented and play halted
+      without judge-rating or PR. Iteration count recorded in self-eval.yaml.
+    fail_criteria: |
+      Fix loop did not run despite FAILs; OR iteration count >3; OR play
+      proceeded to judge-rating or PR after iteration 3 with remaining FAILs.
+
+  - id: SCE-8
+    scenario_id: S8
+    persona: "Developer with an architectural risk flagged approval-required"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/approach.yaml"
+    check: |
+      approach.yaml contains a risk with type:architectural and
+      action:approval-required; --approve-plan not set. Focused risk
+      checkpoint fires automatically before implementation, displays only
+      approval-required risks with type/description/mitigation/ltm_reference;
+      full plan not displayed (distinct from S5). Tether proceeds; Vanish
+      halts.
+    pass_criteria: |
+      With an approval-required architectural risk present and --approve-plan
+      unset, the risk checkpoint executed before implement — displaying only
+      approval-required risks (type, description, mitigation, ltm_reference),
+      NOT the full approach plan. If Tether: implementation proceeded. If
+      Vanish: no build-report.yaml exists.
+    fail_criteria: |
+      approval-required risk present but risk checkpoint skipped; OR checkpoint
+      displayed the full approach plan; OR build-report.yaml exists after
+      Vanish at risk checkpoint.

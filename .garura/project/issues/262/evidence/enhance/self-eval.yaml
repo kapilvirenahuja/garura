@@ -1,0 +1,54 @@
+issue: 262
+evaluated_at: "2026-04-19T11:00:00Z"
+iteration: 1
+verdict: pass
+results:
+  - id: E1
+    description: "C12 and C13 present in fix-it intent.yaml"
+    status: PASS
+    evidence: "grep found both id: C12 and id: C13"
+  - id: E2
+    description: "F9 and F10 present in fix-it intent.yaml"
+    status: PASS
+    evidence: "grep found both id: F9 and id: F10"
+  - id: E3
+    description: "SKILL.md references issue-comment-rca-approved template"
+    status: PASS
+    evidence: "3 references found"
+  - id: E4
+    description: "SKILL.md contains no doc-builder invocation"
+    status: PASS
+    evidence: "grep count = 0"
+  - id: E5
+    description: "SKILL.md contains run_in_background: true pattern"
+    status: PASS
+    evidence: "2 references found in Step 5 background dispatch"
+  - id: E6
+    description: "Template file exists and is registered in _index.md"
+    status: PASS
+    evidence: "File present; 1 row in templates index"
+  - id: E7
+    description: "manage-issue SKILL.md has comment action (T1 extend path)"
+    status: PASS
+    evidence: "### Action: `comment` section present"
+  - id: E8
+    description: "SKILL.md Step 9 reads issue-comment-agent.yaml"
+    status: PASS
+    evidence: "8 references found"
+  - id: E9
+    description: "No ### Brief subsection in SKILL.md checkpoint template"
+    status: PASS
+    evidence: "grep count = 0"
+  - id: E10
+    description: "Rebuild correctness — only expected sections changed"
+    status: PASS_MANUAL
+    note: "Hand-edit deviation DEV-1 documented in build-report (interactive /create-play not executable via Bash). Diff scope matches approach: Step 4, Step 5, Step 9, Agent Boundaries, status tasks, Compilation Metadata."
+  - id: E11
+    description: "run_in_background preserved (linked to R2)"
+    status: PASS
+    evidence: "Duplicate of E5 — preserved via hand-edit since rebuild was hand-path"
+summary:
+  total: 11
+  pass: 10
+  pass_manual: 1
+  fail: 0

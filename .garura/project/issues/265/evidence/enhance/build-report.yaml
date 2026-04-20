@@ -1,0 +1,243 @@
+---
+# Build Report — Issue #265
+# /specify must emit scope/features.yaml just before epic generation
+# Generated: 2026-04-19
+
+implementation:
+  success: true
+  steps_completed: 4
+  steps_total: 8
+  # Note: T2, T4, T6, T8 are orchestrator-owned slash commands (/create-play,
+  # /sync-claude) that cannot be executed by code-builder via bash.
+  # They are documented below as requiring orchestrator execution.
+
+tasks:
+  - id: T1
+    status: completed
+    description: >
+      Authored core/components/skills/manage-features/reference/intent.yaml with
+      all required sections: name (garura:manage-features), description, intent,
+      input contract (enriched_capabilities_path, project_profile_path,
+      stm_output_base — all required), output contract (features_path,
+      features_count, decision_manifest_path, decisions_recorded), constraints
+      C1-C5, failure conditions F1-F3, success scenarios S1-S2 (>= 2 verified),
+      authoring rules R1-R5. Feature ID regex ^[A-Z]{2,4}-F\d{3}$ declared in R1.
+      5-point status enum declared in C3. All evals E1, E8 pass.
+    note: null
+
+  - id: T2
+    status: requires_orchestrator
+    description: >
+      Run /create-play --build manage-features to compile SKILL.md from the
+      intent.yaml authored in T1. Verify SKILL.md header contains intent.yaml
+      checksum (E2 eval). Cannot be executed by code-builder — this is a Claude
+      Code slash command requiring interactive agent invocations (intent-crafter,
+      evals-creator), user approval gates, and file compilation by the
+      create-play skill.
+    note: >
+      Orchestrator must run: /create-play --build manage-features
+      After T2, verify: core/components/skills/manage-features/SKILL.md exists
+      and header contains a checksum reference.
+
+  - id: T3
+    status: completed
+    description: >
+      Edited core/components/plays/specify/reference/intent.yaml to insert two
+      new constraints C20 and C21. C20 declares Stage 4b (manage-features) as a
+      mandatory step between Stage 4 (enrich-capabilities) and Stage 5
+      (generate-intent-epics), with full input/output contract and task_id
+      "specify-stage-4b-features". C21 declares Stage 4c (decision-surfacing for
+      manage-features) as a mandatory step before Stage 5, and declares
+      features_path as a required input for generate-intent-epics. Eval E3
+      structure: constraints C20 and C21 encode the ordering requirement that
+      drives step insertion in the rebuild.
+    note: null
+
+  - id: T4
+    status: requires_orchestrator
+    description: >
+      Run /create-play --rebuild specify to regenerate specify/SKILL.md from the
+      updated intent.yaml. Verify Step 8b (manage-features dispatch) and Step 8c
+      (decision-surfacing) appear in the compiled output, and Step 9 input
+      contract includes features_path. Cannot be executed by code-builder.
+    note: >
+      Orchestrator must run: /create-play --rebuild specify
+      After T4, verify: SKILL.md contains manage-features step between Step 8
+      (enrich) and Step 9 (generate-intent-epics), and Step 9 contract includes
+      features_path.
+
+  - id: T5
+    status: completed
+    description: >
+      Authored core/components/skills/generate-intent-epics/reference/intent.yaml
+      by reverse-engineering from the existing SKILL.md (all 218 lines captured).
+      Captured: input contract (9 existing required inputs + features_path as
+      required: true, no default), output_contract (epics block with output_dir /
+      file_count / files[] / quantification_coverage, plus decision_manifest block),
+      full process steps 1, 2, 2b (component merge semantics — rolls_up_into lookup,
+      [component: {component_id}] prefix, dedup rule, merged_into marking,
+      orphan_component structured failure), 3 (field-by-field derivation including
+      security_level critical mapping to "OWASP ASVS Level 3, NIST 800-63B AAL3,
+      argon2id", QP-6 WCAG level mapping, hypothesis three-phrase template), 3b
+      (decision manifest schema with D-gie-001 through D-gie-006 decision types,
+      per-capability repetition note, full YAML schema block), 4, 5. All 18
+      constraints encoded including C19 (grammatical-actor rule: intent subject must
+      be a named persona or canonical user role, not a subsystem name). 8 failure
+      conditions, 3 success scenarios. Saved original SKILL.md to
+      /tmp/generate-intent-epics-SKILL.md.original
+      (MD5: 9cf4ea950a2f2a747c523547e79d439d) for R5 diff comparison.
+      Eval E4: features_path present and required — PASS.
+    note: >
+      Original SKILL.md preserved at /tmp/generate-intent-epics-SKILL.md.original
+      for R5 diff check after T6 runs.
+
+  - id: T6
+    status: requires_orchestrator
+    description: >
+      Run /create-play --rebuild generate-intent-epics to regenerate its SKILL.md.
+      After rebuild: diff regenerated SKILL.md against the original saved at
+      /tmp/generate-intent-epics-SKILL.md.original. Per R5 safeguard: if the diff
+      shows ANYTHING beyond the addition of the features_path input contract block,
+      treat as behavioral regression, HALT, and record under r5_divergence — do NOT
+      commit the regenerated SKILL.md. Cannot be executed by code-builder.
+    note: >
+      Orchestrator must run: /create-play --rebuild generate-intent-epics
+      R5 check: diff /tmp/generate-intent-epics-SKILL.md.original
+      core/components/skills/generate-intent-epics/SKILL.md
+      Expected diff: ONLY the features_path input block addition.
+      Any other diff → record under r5_divergence, HALT.
+
+  - id: T7
+    status: completed
+    description: >
+      Migrated .garura/product/scope/features.yaml to 5-point vocabulary.
+      Pre-flight: 25 instances of status: live and 37 instances of status: partial.
+      Migration applied only to entries with 8+ spaces indentation (capability and
+      feature level). Domain-level entries (4-space indent, 4 entries) left untouched.
+      Changes: live → released (25 entries), partial → rollout (33 entries).
+      Summary keys renamed: features_live → features_released,
+      features_partial → features_rollout. Header comment block updated with
+      5-point vocabulary documentation and 2026-04-19 migration note.
+      Post-migration: E5 PASS (zero status: live or status: partial at 8+ spaces),
+      E6 PASS (features_released and features_rollout present; old keys absent).
+    note: null
+
+  - id: T8
+    status: requires_orchestrator
+    description: >
+      Run /sync-claude to deploy all component changes globally (~/.claude/).
+      Cannot be executed by code-builder — this is a Claude Code slash command.
+    note: >
+      Orchestrator must run: /sync-claude
+      Deploy: core/components/skills/manage-features/ and updated
+      core/components/plays/specify/ and
+      core/components/skills/generate-intent-epics/
+
+files_created:
+  - path: core/components/skills/manage-features/reference/intent.yaml
+    action: created
+    summary: >
+      New skill intent for manage-features. All required sections present.
+      Feature ID regex declared. 5-point enum declared. 2 success scenarios.
+  - path: core/components/skills/generate-intent-epics/reference/intent.yaml
+    action: created
+    summary: >
+      Reverse-engineered from SKILL.md. All existing inputs declared required.
+      features_path added as required input (type: path, no default). 3 success
+      scenarios, 8 failure conditions, 18 constraints.
+
+files_modified:
+  - path: core/components/plays/specify/reference/intent.yaml
+    action: modified
+    summary: >
+      Added constraints C20 (manage-features step ordering and contract) and C21
+      (decision-surfacing step ordering and features_path requirement for
+      generate-intent-epics). No existing content modified.
+  - path: .garura/product/scope/features.yaml
+    action: modified
+    summary: >
+      Migrated per-capability and per-feature status vocabulary: live → released
+      (25 entries), partial → rollout (33 entries). Renamed summary keys:
+      features_live → features_released, features_partial → features_rollout.
+      Updated header with 5-point vocab documentation and migration note.
+      Domain-level status entries (4 entries) left untouched.
+
+build_outputs:
+  - task: T2
+    status: pending_orchestrator
+    command: /create-play --build manage-features
+    expected_output: core/components/skills/manage-features/SKILL.md
+  - task: T4
+    status: pending_orchestrator
+    command: /create-play --rebuild specify
+    expected_output: core/components/plays/specify/SKILL.md (updated with Steps 8b, 8c)
+  - task: T6
+    status: pending_orchestrator
+    command: /create-play --rebuild generate-intent-epics
+    expected_output: core/components/skills/generate-intent-epics/SKILL.md (updated with features_path)
+  - task: T8
+    status: pending_orchestrator
+    command: /sync-claude
+    expected_output: All components deployed to ~/.claude/
+
+r5_divergence: null
+# R5 check deferred to orchestrator — T6 has not run yet.
+# Original SKILL.md saved at: /tmp/generate-intent-epics-SKILL.md.original
+# MD5 of original: 9cf4ea950a2f2a747c523547e79d439d
+# After T6 runs, diff against original. Expected: only features_path block added.
+# If diff shows anything else → set r5_divergence with details and HALT.
+
+evals:
+  - id: E1
+    status: PASS
+    note: >
+      manage-features/reference/intent.yaml has all required sections:
+      intent, input contract (3 fields), output contract (4 fields), constraints
+      (5 entries, C1-C5), failure_conditions (3 entries, F1-F3), success_scenarios
+      (2 entries, >= 2), authoring_rules (5 entries, R1-R5).
+  - id: E2
+    status: DEFERRED
+    note: SKILL.md not yet built (T2 pending orchestrator). Will have checksum after /create-play --build.
+  - id: E3
+    status: PARTIAL
+    note: >
+      specify/reference/intent.yaml constraints C20 and C21 encode the ordering
+      requirement (8b manage-features → 8c surfacing → 9 generate-intent-epics).
+      Full E3 PASS requires T4 (rebuild) to verify steps appear in SKILL.md.
+  - id: E4
+    status: PASS
+    note: >
+      generate-intent-epics/reference/intent.yaml declares features_path as required
+      input (required: true, no default value).
+  - id: E5
+    status: PASS
+    note: >
+      Zero instances of status: live or status: partial at capability/feature level
+      (8+ space indent) in .garura/product/scope/features.yaml.
+  - id: E6
+    status: PASS
+    note: >
+      features_released and features_rollout present in summary; features_live and
+      features_partial absent.
+  - id: E7
+    status: PASS
+    note: >
+      grep -r "implementation-inventory" core/components/ returns zero matches.
+  - id: E8
+    status: PASS
+    note: >
+      manage-features/reference/intent.yaml R1 declares the regex
+      ^[A-Z]{2,4}-F\d{3}$ in the authoring rules section.
+
+anomalies:
+  - description: >
+      T2, T4, T6, T8 require the /create-play and /sync-claude Claude Code slash
+      commands which are interactive orchestrator-level operations. Code-builder
+      cannot execute these via bash. The approach.yaml listed these as tasks but
+      they are inherently orchestrator domain. All authoring work (T1, T3, T5, T7)
+      has been completed. The orchestrator must run the four build/sync commands
+      to complete the pipeline.
+    severity: medium
+    resolution: >
+      Escalation: orchestrator must run T2 → T4 → T6 → T8 in order after this
+      build-report is returned.

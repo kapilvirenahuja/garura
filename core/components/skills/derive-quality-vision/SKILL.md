@@ -8,7 +8,7 @@ version: 0.1.0
 
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest-derive-quality-vision.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Called by `tech-designer` during `build-arch` Stage 4. Produces `quality-vision.yaml` at `{product_base}architecture/quality-vision.yaml`.
+Called by `tech-designer` during `arch` Stage 4. Produces `quality-vision.yaml` at `{product_base}architecture/quality-vision.yaml`.
 
 ## Purpose
 
@@ -286,7 +286,7 @@ Write `quality-vision.yaml` to `{output_path}`:
 slug: "<from project_profile.name>"
 status: DRAFT
 created_at: "<ISO-8601>"
-play: build-arch
+play: arch
 skill: derive-quality-vision
 upstream_artifacts:
   quality_profile_path: <echoed>

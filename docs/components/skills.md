@@ -47,29 +47,95 @@ Meta-utility skills:
 | Skill | User-Invocable | Model | Description |
 |-------|----------------|-------|-------------|
 | `analyze-changes` | false | sonnet | Analyze uncommitted changes for categorization and risk assessment |
-| `create-commit` | false | haiku | Stage files and create a commit |
 | `analyze-pr` | false | sonnet | Analyze branch and generate context-aware quality checklist |
-| `submit-pr` | false | haiku | Push branch and create pull request with formatted checklist |
+| `create-commit` | false | haiku | Stage files and create a commit |
 | `setup-branch` | false | haiku | Create branch, push to origin, optionally use worktree for dirty trees |
+| `submit-pr` | false | haiku | Push branch and create pull request with formatted checklist |
 
 ### Project Management Skills
 
 | Skill | User-Invocable | Model | Description |
 |-------|----------------|-------|-------------|
-| `manage-issue` | false | sonnet | Read, create, close, or resolve GitHub issues with optional sub-issue attachment |
 | `archive-issue-stm` | false | haiku | Archive a closed issue's STM directory into year-month buckets |
+| `capture-issue` | false | sonnet | Capture an issue (feature, bug, defect, epic, enhancement) as a labeled GitHub Issue |
+| `manage-issue` | false | sonnet | Read, create, close, or resolve GitHub issues with optional sub-issue attachment |
+| `read-issue` | false | sonnet | Read a GitHub issue and extract structured context |
+| `write-evidence` | false | haiku | Write evidence, checkpoint, and status artifacts to the `.garura/` folder whitelist |
 
-### Product / Feature / Implementation Design Skills
+### Architecture Skills
 
 | Skill | User-Invocable | Model | Description |
 |-------|----------------|-------|-------------|
+| `derive-nfr-spec` | false | sonnet | Derive NFR spec from quality profile and architecture inputs |
+| `derive-quality-vision` | false | sonnet | Derive quality vision from product and NFR inputs |
+| `draft-architecture` | false | sonnet | Draft architecture artifacts (logical, physical, NFR, quality) |
+| `draft-technical-approach` | false | sonnet | Draft technical approach document from features specification |
+
+### Feature / Implementation Design Skills
+
+| Skill | User-Invocable | Model | Description |
+|-------|----------------|-------|-------------|
+| `draft-implementation-plan` | false | sonnet | Produce execution plan with scope items, file paths, and exit gates |
+| `draft-lld` | false | sonnet | Draft low-level design from features and technical approach |
 | `draft-product-spec` | false | sonnet | Create `features.yaml` defining product behaviors, invariants, scope boundaries, and acceptance criteria (implementation-agnostic) |
 | `draft-verification-scenarios` | false | sonnet | Create verification scenarios with pass/fail criteria and automation classification |
-| `validate-implementation-design` | false | sonnet | Cross-validate prepare-epic artifacts for coverage, compartmentalization, and audience separation |
-| `draft-technical-approach` | false | sonnet | Draft technical approach document from features specification |
-| `draft-lld` | false | sonnet | Draft low-level design from features and technical approach |
-| `draft-implementation-plan` | false | sonnet | Produce execution plan with scope items, file paths, and exit gates |
 | `research-domain-context` | false | sonnet | Research vertical domain knowledge via web when LTM is insufficient |
+| `validate-implementation-design` | false | sonnet | Cross-validate prepare artifacts for coverage, compartmentalization, and audience separation |
+
+### Product / Strategy Skills
+
+| Skill | User-Invocable | Model | Description |
+|-------|----------------|-------|-------------|
+| `assess-market-opportunity` | false | sonnet | Assess the strategic opportunity for a product or feature |
+| `check-brief-quality` | false | sonnet | Check the quality and completeness of a product brief |
+| `configure-capabilities` | false | sonnet | Configure selected capabilities with feature flags and constraints |
+| `derive-epics` | false | sonnet | Derive epics from a product brief and scope |
+| `evaluate-scope` | false | sonnet | Evaluate scope fit against strategic goals |
+| `generate-brief` | false | sonnet | Generate a product brief from strategic inputs |
+| `generate-market-brief` | false | sonnet | Generate a market brief artifact |
+| `generate-project-profile` | false | sonnet | Generate a project profile artifact |
+| `generate-quality-profile` | false | sonnet | Generate a Quality Profile for a product feature |
+| `plan-mvp` | false | sonnet | Plan MVP feature set from epics and scope |
+| `refine-scope` | false | sonnet | Refine product scope based on constraints and priorities |
+| `research-market` | false | sonnet | Research market landscape, competitors, and positioning |
+| `resolve-domain` | false | sonnet | Resolve domain and capability context for a product intent |
+| `scope-capabilities` | false | sonnet | Select capabilities from the domain taxonomy for a product |
+| `validate-scope` | false | sonnet | Validate scope artifact against the canonical schema |
+
+### UX / Design Skills
+
+| Skill | User-Invocable | Model | Description |
+|-------|----------------|-------|-------------|
+| `plan-experience` | false | sonnet | Plan user experience artifacts — personas, screens, flows, wireframes |
+
+### Quality Skills
+
+| Skill | User-Invocable | Model | Description |
+|-------|----------------|-------|-------------|
+| `build-quality-gate` | false | sonnet | Evaluate implementation against the Quality Profile's acceptance criteria |
+| `validate-epic-design` | false | sonnet | Cross-validate epic design artifacts for standards compliance |
+
+### Testing Skills
+
+| Skill | User-Invocable | Model | Description |
+|-------|----------------|-------|-------------|
+| `execute-test-suite` | false | sonnet | Execute a test suite and record results |
+| `write-tests` | false | sonnet | Write test suites for feature verification |
+
+### Knowledge Skills
+
+| Skill | User-Invocable | Model | Description |
+|-------|----------------|-------|-------------|
+| `distill` | false | sonnet | Distill structured knowledge from artifacts into LTM |
+| `resolve-ltm-context` | false | sonnet | Resolve the relevant LTM context for a given task |
+| `validate-kb-extension` | false | sonnet | Validate a KB extension against the canonical nine-section schema |
+| `wire-ltm-context` | false | sonnet | Wire LTM context paths for downstream agent consumption |
+
+### Coding Skills
+
+| Skill | User-Invocable | Model | Description |
+|-------|----------------|-------|-------------|
+| `write-implementation` | false | sonnet | Write implementation code per an execution plan scope item |
 
 ### Meta-Utility Skills
 
@@ -77,26 +143,7 @@ Meta-utility skills:
 |-------|----------------|-------|-------------|
 | `sync-claude` | true | haiku | Sync Meridian components to .claude/ (project mode) or ~/.claude/ (global mode, default) |
 
-## Available Plays
-
-Plays are user-invocable workflows that orchestrate agents and skills. They deploy alongside skills to `.claude/skills/` but are distinct in purpose and invocability.
-
-| Play | User-Invocable | Model | Description |
-|--------|----------------|-------|-------------|
-| `start-feature` | true | sonnet | Create or resume a work context — issue + branch + STM directory |
-| `start-feature-planning` | true | sonnet | Resolve issue, plan with IDD principles, create branch, deliver planning artifacts |
-| `commit-code` | true | sonnet | Commit code changes grouped by issue type with conventional messages |
-| `create-pr` | true | sonnet | Create pull request with dynamic, context-aware quality checklist |
-| `review-pr` | true | sonnet | Diff-scoped quality review for a pull request |
-| `merge-pr` | true | sonnet | Merge a pull request and clean up the branch |
-| `ship` | true | sonnet | Deliver current branch work to main — commit, PR, review, merge, return |
-| `capture-learning` | true | sonnet | Capture learnings from completed work and archive STM directories |
-| `fix-it` | true | sonnet | RCA-driven defect resolution — traces root cause, designs fix, ships |
-| `prepare-epic` | true | sonnet | Produce implementation-ready design artifacts (features, tech, scenarios, plan) |
-| `implement-epic` | true | sonnet | Implement a feature through an eval-driven TDD loop |
-| `create-play` | true | sonnet | Compile a new play from an intent.yaml |
-| `briefs` | true | sonnet | Regenerate HTML briefs from product YAML artifacts |
-| `report-issue` | true | sonnet | Report a defect against Meridian OS |
+For the complete play roster, see [Plays Component Guide](./plays.md).
 
 ## Skill Properties
 
@@ -118,7 +165,7 @@ This ensures:
 Skills read templates from LTM (via paths passed by agents), not from local `templates/` directories. This is the pattern established by ADR 009.
 
 When a skill needs an organizational template (e.g., an epic schema, a brief HTML template), the agent:
-1. Searches `~/.meridian/core/memory/` for the relevant template or schema
+1. Searches `~/.garura/core/memory/` for the relevant template or schema
 2. Passes the discovered LTM path to the skill as an input parameter
 
 The skill reads from the provided path. It does NOT search LTM itself. This separation keeps organizational knowledge mutable by adopters while skill logic stays stable.
@@ -143,7 +190,7 @@ Skills return a YAML output contract with artifact paths. Full data is written t
 ```yaml
 # Example skill output contract
 scoped_epics:
-  epics_path: ".meridian/project/product/chronos/epics.yaml"
+  epics_path: ".garura/project/product/chronos/epics.yaml"
   slug: "chronos"
   epic_count: 5
 ```
@@ -351,7 +398,7 @@ Skill loads from its own bundled reference (e.g., `skills/{skill-name}/reference
 |---------------|----------|-------------------|
 | Skill behavior (process, constraints) | Skill-local (embedded) | No — edit skill source |
 | Skill-specific references (risk patterns) | `reference/` directory | No — edit skill source |
-| Organizational standards (categories, schemas) | LTM (`~/.meridian/core/memory/`) | Yes — edit LTM |
+| Organizational standards (categories, schemas) | LTM (`~/.garura/core/memory/`) | Yes — edit LTM |
 | Output format templates | `templates/` directory or LTM | Depends on template type |
 
 ## Skill Qualifiers

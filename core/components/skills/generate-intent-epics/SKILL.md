@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Glob
 
 > **Defect 23 — Decision Surfacing Discipline (DSD):** This skill emits a `decision-manifest.yaml` alongside its primary artifact. Every inferred decision produced during execution is recorded in the manifest with tier, grounding source, recommendation, and alternatives. The orchestrator drives the tiered surfacing flow after this skill completes.
 
-Model-invocable skill for producing one intent epic YAML file per enriched capability. Called by `product-keeper` during `specify-product` Stage 5.
+Model-invocable skill for producing one intent epic YAML file per enriched capability. Called by `product-keeper` during `specify` Stage 5.
 
 ## Purpose
 

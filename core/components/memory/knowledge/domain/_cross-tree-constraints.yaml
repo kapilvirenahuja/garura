@@ -1,6 +1,6 @@
 # Cross-Tree Constraints — Project Profile → Capability Inclusion Rules
 #
-# Read by /specify-product's configure-capabilities skill during capability
+# Read by /specify's configure-capabilities skill during capability
 # configuration (214.5). The skill walks each constraint, checks the LHS
 # `condition` against the project profile and already-selected capabilities,
 # and forces include or exclude of the RHS capability.

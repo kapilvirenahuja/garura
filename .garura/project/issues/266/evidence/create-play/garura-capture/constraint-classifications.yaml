@@ -1,0 +1,36 @@
+play: garura-capture
+classified_at: "2026-04-19T14:15:00Z"
+classifications:
+  - id: C1
+    category: pre-flight
+    note: "Required fields (title/problem, conditional severity) — checkable before domain work"
+  - id: C2
+    category: pre-flight
+    note: "Type validation and inference — checked before any filing; ambiguous path prompts human before dispatch"
+  - id: C3
+    category: pre-flight
+    note: "Repo slug from config — environmental precondition"
+  - id: C4
+    category: structural
+    note: "Auto-date generation rule — process rule about how date is always generated"
+  - id: C5
+    category: artifact-verifiable
+    note: "Issue body format (structured markdown) — observable in filed issue artifact"
+  - id: C6
+    category: artifact-verifiable
+    note: "Optional sections present only when caller-provided — observable in issue body"
+  - id: C7
+    category: structural
+    note: "Fallback behavior on gh failure — process/architectural rule about failure handling"
+  - id: C8
+    category: artifact-verifiable
+    note: "Type-driven title prefix — observable in filed issue title"
+  - id: C9
+    category: artifact-verifiable
+    note: "Type-driven label — observable in filed issue labels"
+  - id: Cbg
+    category: structural
+    note: "Background dispatch (run_in_background: true) — architectural rule about execution mode"
+  - id: Cconf
+    category: artifact-verifiable
+    note: "Single-line confirmation with stm_tracking_path — observable in confirmation output"

@@ -1,0 +1,343 @@
+problem_statement: >
+  The /design play currently operates only product-wide on locked specify output, prohibits
+  all visual design uniformly (C13), and has no mechanism to detect existing design artifacts
+  before re-running. Issue #305 corrects three design boundaries: (1) scope must be resolvable
+  to a single epic or feature via invocation args, narrowing all downstream skill dispatch
+  without touching skill contracts; (2) brownfield detection must run in pre-flight, scoped
+  strictly to .garura/product/experience/, routing the play to gap-only mode when artifacts
+  are already present; (3) the Design System (tokens, fonts, palette, inspirations) is
+  first-class output — the blanket visual-design prohibition in C13 was over-broad and must
+  be replaced by a dual-surface model where screens remain structural wireframes and the DS
+  is the visual surface, authored in a new dedicated phase between Checkpoint 2 and user-flow
+  mapping; and (4) the DS artifact must join the terminal LOCKED gate. A process constraint
+  governs implementation: /create-play --rebuild design cannot be invoked by sub-agents;
+  the enhance play orchestrator owns that step exclusively via the Skill tool.
+
+solution_summary: >
+  Four coordinated changes implement the evolution. First, a scope-resolution pre-flight step
+  reads invocation args (--epic, --feature, or none) and narrows epics_dir before any skill
+  dispatch — no skill contract changes required. Second, a brownfield pre-flight check tests
+  for populated artifacts under {product_base}experience/ and sets a greenfield|gap-only mode
+  flag; gap-only mode skips LOCKED stages and gates overwrites behind a Tether delta checkpoint.
+  Third, a new draft-design-system skill is authored via /skill-creator to run a structured user
+  interview (color mood, brand adjectives, reference products, font character) and produce
+  design-system.md; this phase inserts between Checkpoint 2 (Step 5) and map-user-flows
+  (Step 6) as Step 5b; C13 is rewritten from a blanket prohibition to a dual-surface rule;
+  compile-design-spec receives design_system_path as a new required input. Fourth, C10 is
+  extended to include design-system.md in the ADR 017 LOCKED whitelist. The process rule for
+  play-owned rebuild is enforced structurally: code-builder signals completion and halts;
+  the enhance play orchestrator then invokes /create-play --rebuild design via the Skill tool.
+
+files_to_create:
+  - path: core/components/skills/draft-design-system/SKILL.md
+    purpose: >
+      New skill for Design System authoring. Runs a structured user interview for color mood,
+      brand adjectives, reference products, and font character. Reads user-provided/
+      grounding-questions.md and project-brief.md as pre-seeding before the interview to
+      avoid re-asking answered questions. Outputs design-system.md with token stubs, font
+      recommendations, palette, and inspiration references. Does NOT produce pixel-level or
+      implementation-level specs. Authored via /skill-creator — never hand-created.
+    authored_via: /skill-creator (NOT /create-play)
+
+files_to_modify:
+  - path: core/components/plays/design/reference/intent.yaml
+    changes:
+      - id: C13_rework
+        description: >
+          Replace blanket "no visual design" prohibition with dual-surface rule:
+          screens are LOW-FIDELITY structural wireframes; the Design System (tokens,
+          fonts, palette, color, inspirations) is in scope and produced by Step 5b.
+          DS tokens do NOT flow into wireframe ASCII blocks. Wireframes remain structural.
+      - id: C10_extension
+        description: >
+          Add {product_base}experience/design-system.md to the ADR 017 LOCKED artifact
+          whitelist. Also add design-system.md to the Step 11 committed file list.
+      - id: C19_add
+        description: >
+          New constraint — scope resolution. Defines three modes (product-wide / epic /
+          feature). Product-wide = no args (existing behaviour). Epic = --epic <epic-id>
+          narrows epics_dir to single epic file. Feature = --feature <feature-id> further
+          narrows to capabilities within that feature's epic. All five existing skills receive
+          the narrowed epics_dir with no contract changes.
+      - id: C20_add
+        description: >
+          New constraint — brownfield detection. Scoped strictly to .garura/product/experience/.
+          Checks personas.md (non-empty), screens/ (contains *.md), design-spec.md. If ANY
+          present → gap-only mode. If NONE → greenfield. Gap-only: skip LOCKED stages; re-run
+          DRAFT or absent stages; require Tether before overwriting any LOCKED artifact.
+      - id: C21_add
+        description: >
+          New constraint — DS authoring. Step 5b runs user interview before draft-design-system
+          dispatch. Interview covers color mood, brand adjectives, reference products, font
+          character. Skill reads user-provided/ as pre-seeds. DS is written before wireframes
+          and is NOT fed into wireframe generation.
+      - id: F12_narrowed
+        description: >
+          Failure condition F12 narrows from "play generates visual design elements" (too broad)
+          to "play generates visual design elements inside wireframe blocks". DS authoring is
+          now explicitly permitted — only visual tokens inside wireframe ASCII fail.
+      - id: F18_add
+        description: >
+          New failure condition — gap-only mode writes an artifact that conflicts with an
+          existing LOCKED artifact without a user Tether at the delta checkpoint.
+      - id: F19_add
+        description: >
+          New failure condition — DS artifact is absent when compile-design-spec runs, OR the
+          DS includes pixel-level or implementation-level specs (rem values, CSS variable names,
+          specific hex codes beyond palette ranges).
+      - id: S8_add
+        description: >
+          New scenario — scoped invocation. Persona: product owner. Given: /design invoked with
+          --epic <id>. Then: only that epic's capabilities are processed; all five skills receive
+          narrowed epics_dir; product-wide artifacts are not written.
+      - id: S9_add
+        description: >
+          New scenario — brownfield gap detection. Persona: product owner. Given: /design invoked
+          on a product with existing LOCKED personas.md and screens/. Then: play enters gap-only
+          mode; persona and screen stages are skipped; DS and flow stages run; no LOCKED artifact
+          is overwritten without Tether.
+      - id: Step5b_insert
+        description: >
+          Insert new phase between Step 5 (Checkpoint 2 — screen review) and Step 6 (map user
+          flows). Step 5b has three sub-steps: (i) user interview for DS inspirations, (ii)
+          draft-design-system skill dispatch, (iii) decision surfacing for DS manifest.
+          Wireframe generation (Step 8) remains unchanged — no DS tokens enter wireframe blocks.
+
+  - path: core/components/skills/compile-design-spec/SKILL.md
+    changes:
+      - id: design_system_path_input
+        description: >
+          Add design_system_path as a required input to the compile-design-spec skill contract.
+          Section 7 (Handoff Notes) gains a DS reference. This ensures the compiled design spec
+          explicitly links to the DS artifact.
+
+connections:
+  draft_design_system_wiring:
+    description: >
+      draft-design-system is dispatched in Step 5b-ii after the user interview completes.
+      The play passes screens_dir (narrowed to scoped screens), personas_path, scope_path,
+      mvp_recommendation_path, and optionally user_provided_path. The skill writes
+      design-system.md and a decision manifest. The play then runs decision surfacing (Step
+      5b-iii) on the manifest before proceeding to Step 6. compile-design-spec receives
+      design_system_path as a new required input in Step 9.
+  brownfield_detection_wiring:
+    description: >
+      Brownfield check runs in pre-flight before Stage 1 (persona synthesis). It is a
+      play-native check (no skill dispatch) — tests file existence under
+      {product_base}experience/ and sets mode flag. All subsequent stage dispatch is
+      conditional on the mode flag. LOCKED stage detection reads artifact headers or status
+      markers rather than invoking a validator skill.
+  scope_resolution_wiring:
+    description: >
+      Scope resolution runs in pre-flight before brownfield detection. It reads invocation
+      args, resolves epics_dir to the full directory (product-wide), a single epic YAML file
+      (--epic), or a filtered capability subset (--feature). The resolved epics_dir is passed
+      identically to all five existing skills and to draft-design-system. No skill contract
+      changes are required — the narrowing is purely orchestration-layer.
+
+tasks:
+  - id: T1
+    title: Author draft-design-system skill via /skill-creator
+    owner: enhance-play-orchestrator (invokes skill-creator via Skill tool)
+    description: >
+      Invoke /skill-creator to author core/components/skills/draft-design-system/SKILL.md.
+      The skill must include: Input contract (screens_dir, personas_path, scope_path,
+      mvp_recommendation_path, user_provided_path optional, design_system_path,
+      decision_manifest_path), Output contract (design_system_path, decision_manifest_path),
+      Process section covering pre-seed read from user-provided/, user interview flow
+      (color mood, brand adjectives, reference products, font character), DS authoring rules
+      (palette ranges allowed, no rem values, no CSS variable names, no specific hex codes),
+      Constraints (user-invocable: false), and frontmatter (name, description, model,
+      allowed-tools). Do NOT create via /create-play. Do NOT hand-write.
+    blocked_by: []
+
+  - id: T2
+    title: Edit design/reference/intent.yaml with all constraint, failure, scenario, and step additions
+    owner: code-builder
+    description: >
+      Edit core/components/plays/design/reference/intent.yaml to add C19 (scope resolution),
+      C20 (brownfield detection), C21 (DS authoring); rewrite C13 (dual-surface rule); extend
+      C10 (add design-system.md to whitelist and Step 11 commit list); narrow F12; add F18
+      and F19; add S8 (scoped invocation) and S9 (brownfield gap detection); insert Step 5b
+      (DS authoring phase with three sub-steps) between Step 5 and Step 6. Code-builder
+      authors the YAML — does NOT attempt to run /create-play --rebuild design.
+    blocked_by: [T1]
+
+  - id: T2b
+    title: Edit compile-design-spec/SKILL.md to add design_system_path input
+    owner: code-builder
+    description: >
+      Add design_system_path as a required input to compile-design-spec/SKILL.md. Update
+      Section 7 (Handoff Notes) to include a DS reference. This is a direct SKILL.md edit —
+      compile-design-spec is not rebuilt via /create-play (it is a skill, not a play).
+    blocked_by: [T1]
+
+  - id: T3
+    title: "PLAY-OWNED: Run /create-play --rebuild design to regenerate design/SKILL.md"
+    owner: enhance-play-orchestrator (Skill tool invocation — NOT code-builder)
+    description: >
+      After code-builder signals completion of T2 and T2b, the enhance play orchestrator
+      invokes /create-play --rebuild design via the Skill tool. This regenerates
+      core/components/plays/design/SKILL.md from the updated intent.yaml. Code-builder
+      CANNOT invoke create-play — if the implementation task reaches this step, code-builder
+      must set status=needs-rebuild and halt. The orchestrator then picks up and runs this step.
+      After regeneration, diff design/SKILL.md against the previous version to confirm Step 5b
+      and draft-design-system dispatch appear in the workflow.
+    blocked_by: [T2, T2b]
+
+  - id: T4
+    title: "PLAY-OWNED: Run /sync-claude to deploy rebuilt design play + new draft-design-system skill"
+    owner: enhance-play-orchestrator (Skill tool invocation)
+    description: >
+      Invoke /sync-claude to deploy core/components/plays/design/SKILL.md and
+      core/components/skills/draft-design-system/SKILL.md globally to ~/.claude/. This makes
+      both the rebuilt play and the new skill available for invocation.
+    blocked_by: [T3]
+
+evals:
+  - id: E1
+    description: >
+      draft-design-system SKILL.md exists with required sections and frontmatter.
+    pass: >
+      File exists at core/components/skills/draft-design-system/SKILL.md AND contains
+      Input, Output, Process, and Constraints sections AND frontmatter includes name,
+      description, user-invocable: false, model, and allowed-tools fields.
+    fail: File missing, or any required section absent, or frontmatter fields missing.
+
+  - id: E2
+    description: >
+      design/reference/intent.yaml contains constraints C19, C20, C21 with non-empty rule text.
+    pass: All three constraints are present with non-empty `rule` or `description` fields.
+    fail: Any of C19, C20, or C21 is absent or has empty rule text.
+
+  - id: E3
+    description: >
+      design/reference/intent.yaml contains failure conditions F18 and F19 with non-empty condition text.
+    pass: Both F18 and F19 are present with non-empty condition text.
+    fail: Either F18 or F19 is absent or has empty condition text.
+
+  - id: E4
+    description: >
+      design/reference/intent.yaml contains scenarios S8 and S9 with populated persona/given/then.
+    pass: Both S8 and S9 are present with non-empty persona, given, and then fields.
+    fail: Either S8 or S9 is absent, or any of persona/given/then is empty.
+
+  - id: E5
+    description: >
+      C13 no longer contains a blanket visual-design prohibition; it now scopes the prohibition
+      to wireframe blocks only, with DS authoring explicitly permitted.
+    pass: >
+      C13 text contains the dual-surface rule (screens = structural wireframes; DS = visual surface
+      in scope) and does NOT contain language that prohibits visual design broadly.
+    fail: C13 still has the blanket prohibition against visual design (colors, typography, spacing).
+
+  - id: E6
+    description: >
+      design/SKILL.md has been regenerated after the intent.yaml edit (not stale).
+    pass: >
+      design/SKILL.md mtime is newer than the mtime of design/reference/intent.yaml at the point
+      of the T3 commit, OR the intent_hash in design/SKILL.md header matches the current
+      intent.yaml checksum.
+    fail: design/SKILL.md is stale — indicates /create-play --rebuild design was never run.
+
+  - id: E7
+    description: >
+      design/SKILL.md references draft-design-system skill dispatch in at least one workflow step.
+    pass: >
+      design/SKILL.md contains a step equivalent to Step 5b that dispatches draft-design-system
+      and includes user interview and decision surfacing sub-steps.
+    fail: Step 5b or equivalent is absent from design/SKILL.md workflow.
+
+risks:
+  - id: R1
+    description: >
+      Sub-agent (code-builder) attempts to invoke /create-play --rebuild design directly via
+      bash or Skill tool instead of signaling back to the orchestrator.
+    type: technical
+    action: approval-required
+    mitigation: >
+      T3 task description explicitly states code-builder CANNOT invoke create-play. If the
+      implementation task reaches this step, code-builder must set status=needs-rebuild and halt.
+      The orchestrator owns T3 exclusively. This boundary is enforced by task ownership, not by
+      a runtime guard.
+    ltm_reference: null
+    generated_evals: []
+
+  - id: R2
+    description: >
+      draft-design-system skill begins emitting implementation-level tokens — rem values, CSS
+      variable names, specific hex codes — violating the DS scope boundary.
+    type: technical
+    action: eval-driven
+    mitigation: >
+      F19 explicitly fails on pixel-level or implementation-level specs. Skill Process section
+      must include a prohibition on rem values, CSS variable names, and specific hex codes
+      (palette ranges permitted). E1 checks that the Constraints section is present and
+      non-empty in the skill.
+    ltm_reference: null
+    generated_evals: [E1]
+
+  - id: R3
+    description: >
+      Brownfield check implementation expands beyond .garura/product/experience/ — scans source
+      code directories or other trees — creating false positives and unexpected gap-only routing.
+    type: technical
+    action: eval-driven
+    mitigation: >
+      C20 explicitly scopes the check to {product_base}experience/ with named file/dir tests.
+      No recursive scan of source trees. The three specific checks (personas.md, screens/,
+      design-spec.md) are enumerated exhaustively in C20 — no wildcard expansion.
+    ltm_reference: null
+    generated_evals: []
+
+  - id: R4
+    description: >
+      design/SKILL.md regeneration via /create-play --rebuild drops existing workflow behavior
+      that was not preserved in the intent.yaml edits (e.g., a step that was implied but not
+      explicitly written in intent.yaml).
+    type: architectural
+    action: approval-required
+    mitigation: >
+      After T3 runs, diff design/SKILL.md against the pre-edit version. Confirm all steps
+      from the original workflow appear in the regenerated output, plus Step 5b additions.
+      If any step is missing, re-edit intent.yaml to make the step explicit and re-run T3.
+      Do not commit evidence until the diff is clean.
+    ltm_reference: null
+    generated_evals: [E6, E7]
+
+alternatives_considered:
+  - id: ALT1
+    description: >
+      Skip the new draft-design-system skill and extend generate-wireframes to also
+      produce a DS artifact as part of the wireframe pass.
+    rejected_because: >
+      Mixes structural and visual concerns in one skill — generate-wireframes is explicitly
+      scoped to structural ASCII output and should not carry DS authoring responsibility.
+      The DS user interview (color mood, brand adjectives, reference products) has no
+      dependency on wireframe structure and should run before wireframes, not inside the
+      wireframe skill. This violates the single-responsibility principle and would require
+      C13 to carry contradictory rules in the same skill invocation.
+
+  - id: ALT2
+    description: >
+      Run /create-play --rebuild design inside code-builder via a direct bash invocation
+      (e.g., bash -c "claude /create-play --rebuild design") as part of the T2 task.
+    rejected_because: >
+      The Skill tool is the official mechanism for play invocation within the Meridian
+      framework. Bash workarounds bypass compilation metadata tracking (intent_hash,
+      version stamping) and break on version updates. The discovery.md clarification
+      (line 19) is explicit: sub-agents cannot invoke the Skill tool for create-play;
+      the enhance play orchestrator owns this step. Encoding a bash workaround creates
+      a permanent maintenance liability and contradicts the framework's agent-first
+      execution model.
+
+  - id: ALT3
+    description: >
+      Extend one of the existing skills (e.g., compile-design-spec) to incorporate DS
+      authoring rather than creating a dedicated draft-design-system skill.
+    rejected_because: >
+      DS authoring must occur before map-user-flows (Step 6), not at compilation time
+      (Step 9). compile-design-spec is a consolidation skill — adding an interactive user
+      interview to a consolidation step creates an ordering violation and breaks the
+      checkpoint-driven sequencing model. The DS phase also requires decision surfacing
+      that is independent of the compile step.

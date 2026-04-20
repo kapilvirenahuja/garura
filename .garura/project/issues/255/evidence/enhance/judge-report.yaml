@@ -1,0 +1,214 @@
+judge_report:
+  timestamp: "2026-04-19T00:00:00Z"
+  issue: 255
+  eval_source: "approach.yaml (evals E1-E8)"
+  total_evals: 8
+  passed: 7
+  failed: 1
+  pass_rate: "87.5%"
+  overall: "PASS"
+  confidence_score: 0.85
+
+  category_breakdown:
+    config_flag:
+      total: 1
+      passed: 1
+      failed: 0
+    documentation:
+      total: 1
+      passed: 1
+      failed: 0
+    create_commit_skill:
+      total: 1
+      passed: 1
+      failed: 0
+    intent_yaml:
+      total: 1
+      passed: 1
+      failed: 0
+    skill_md_step8:
+      total: 2
+      passed: 2
+      failed: 0
+    regression_default_true:
+      total: 1
+      passed: 1
+      failed: 0
+    regression_unconditional:
+      total: 1
+      passed: 0
+      failed: 1
+
+  results:
+    - eval_id: "E1"
+      status: "PASS"
+      description: "evidence.record flag is present in config.yaml and defaults to true"
+      evidence: >
+        grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' returns '  record: true'.
+        Section exists as a top-level block with comment header matching the approach verbatim.
+        Placed after the review-pr: block, before the # Product artifacts comment — correct position.
+      category: config_flag
+
+    - eval_id: "E2"
+      status: "PASS"
+      description: "core/grounding/rules/evidence.md exists and covers required content"
+      evidence: >
+        File exists at core/grounding/rules/evidence.md.
+        Contains all required elements: 'evidence.record' (config key), 'commits.yaml' (skippable),
+        'analysis.yaml' and 'issue-mappings.yaml' (never skipped), bash read pattern
+        (grep -A1 '^evidence:' ... | grep 'record:' | awk '{print $2}' with fallback).
+        Also covers Pause/Resume interaction (R3 mitigation) and scope constraint.
+        note: "The approach specified yq pattern; file uses grep/awk pattern instead — functionally
+          equivalent and consistent with the pattern actually used in SKILL.md. Not a failure."
+      category: documentation
+
+    - eval_id: "E3"
+      status: "PASS"
+      description: "create-commit SKILL.md has step 4 that reads evidence.record"
+      evidence: >
+        grep -q 'Check evidence flag' core/components/skills/create-commit/SKILL.md: PASS (line 48).
+        grep -q 'evidence.record' core/components/skills/create-commit/SKILL.md: PASS (line 49).
+        grep -q 'skip_commits_yaml' core/components/skills/create-commit/SKILL.md: PASS (line 54).
+        Version updated from 1.0.0 to 1.1.0. Output section documents the conditional field.
+        templates/commit-output.md updated with '## Evidence Signal' section containing
+        skip_commits_yaml field — R2 mitigation fully applied.
+      category: create_commit_skill
+
+    - eval_id: "E4"
+      status: "PASS"
+      description: "commit-code intent.yaml contains C10 with explicit Step 8 behavior"
+      evidence: >
+        C10 present in constraints block (line 51-59 of intent.yaml).
+        C10 text contains 'evidence.record', 'delivery record', 'status file', and
+        'self-commit invocation' — all three skippable writes enumerated.
+        Text is verbatim as specified in the approach. Existing checksum left unchanged per instruction.
+      category: intent_yaml
+
+    - eval_id: "E5"
+      status: "PASS"
+      description: "Recompiled commit-code SKILL.md Step 8 guards all three skippable writes"
+      evidence: >
+        (a) Step 8 (lines 213-232) contains bash read of evidence.record with default-true fallback: PASS.
+        (b) delivery record write ('Write delivery record to ... {YYYYMMDD-HHMMSS}.md') is inside
+            'If evidence.record is true' conditional: PASS.
+        (c) status file write ('Write status file to ... commit-code.json') is inside the same
+            conditional block: PASS.
+        (d) repo-orchestrator self-commit invocation is inside the same conditional block: PASS.
+        (e) user summary ('Present summary to user. Always — regardless of flag value.') is outside
+            the conditional, unconditional: PASS.
+        SE-9 eval correctly documents all five checks.
+      category: skill_md_step8
+
+    - eval_id: "E6"
+      status: "PASS"
+      description: "Regression — with evidence.record: true (default), all 5 artifact writes proceed"
+      evidence: >
+        Default-true path (flag=true or absent): all three write paths reachable per SKILL.md Step 8.
+        analysis.yaml is in Step 1 STM output (line 74) — unconditional.
+        issue-mappings.yaml is in Step 2 STM output (line 108) — unconditional.
+        Backward compatibility preserved.
+      category: regression_default_true
+
+    - eval_id: "E7"
+      status: "FAIL"
+      description: "Regression — analysis.yaml and issue-mappings.yaml are unconditional"
+      evidence: >
+        PARTIAL PASS on substance, FAIL on literal check:
+        The approach specifies: "grep -c 'evidence.record' core/components/plays/commit-code/SKILL.md
+        returns exactly 1 (only in Step 8, not in Steps 1 or 2)".
+        Actual count: 6. All 6 occurrences are in Step 8 and SE-9 eval text — NONE in Steps 1 or 2.
+        The eval's intent (guard that analysis.yaml/issue-mappings.yaml are not conditionally gated)
+        is satisfied — Steps 1 and 2 have no evidence.record reference.
+        However, the literal count check fails: the rebuild included the full Step 8 conditional prose
+        plus SE-9 eval text, producing 6 references rather than 1.
+        Substantively: no regression. Steps 1 and 2 STM output paths for analysis.yaml and
+        issue-mappings.yaml are identical to pre-rebuild values. No functional risk.
+        The count=1 criterion in E7 was overly precise — it assumed a minimal compile that yields
+        exactly one occurrence; the actual rebuild produces verbose step prose with multiple references.
+      category: regression_unconditional
+      severity: "minor — no functional regression; eval criterion was over-specified"
+
+    - eval_id: "E8"
+      status: "PASS"
+      description: "Recompile blast radius contained — only Step 8 and Compilation Metadata changed"
+      evidence: >
+        Steps 1-7 content (lines 61-201): unchanged relative to the pre-C10 design.
+        Phase headers, Agent Boundaries table, Pause/Resume section: unchanged.
+        Scenario eval section (SCE-1 through SCE-5): unchanged.
+        Only changes detected: Step 8 acquired the evidence.record flag-read block and
+        conditional guards; SE-9 eval added; Compilation Metadata updated (compiled_at, constraints_covered).
+        Minor inconsistency found: 'Compiled From' header (line 14) still reads 'C1-C7, C9'
+        (pre-existing omission of C8; C10 also not reflected). This is a pre-existing gap
+        (C8 was already absent before this issue) — the rebuild did not make it worse and
+        did not introduce new structural changes. Not a blast radius violation.
+      category: skill_md_step8
+
+  additional_findings:
+    - id: "AF1"
+      area: "SKILL.md Compiled From header"
+      severity: "low"
+      description: >
+        Line 14 of commit-code/SKILL.md reads 'Intent defines constraints (C1-C7, C9)'.
+        C8 was already missing (pre-existing issue). C10 was also not added to this header
+        despite being added to Compilation Metadata (line 287: 'C1-C10 (all 10)').
+        The header and metadata are inconsistent. This is a cosmetic/documentation gap only —
+        the actual Step 8 logic is correct and C10 is fully implemented.
+      recommendation: "Update 'Compiled From' header to read 'C1-C10' on next rebuild."
+
+    - id: "AF2"
+      area: "yq vs grep/awk pattern in evidence.md"
+      severity: "negligible"
+      description: >
+        approach.yaml specified a yq-based bash pattern for the flag read; both evidence.md
+        and the SKILL.md use a grep/awk pattern instead. The two patterns are functionally
+        equivalent and the grep/awk pattern does not require yq installed. Consistent across
+        all three files that reference the pattern.
+
+  per_area_assessment:
+    flag_correctness:
+      score: 1.0
+      notes: >
+        evidence.record is correctly defined, defaults to true, is in the right config position,
+        is read with default-true fallback in both SKILL.md and create-commit, and guards exactly
+        the three artifacts specified in the approach (delivery record, status file, self-commit).
+
+    backward_compatibility:
+      score: 1.0
+      notes: >
+        Default true means zero behavioral change for existing users. analysis.yaml and
+        issue-mappings.yaml are unconditional in Steps 1 and 2 — no regression path exists
+        for play-correctness artifacts.
+
+    blast_radius_containment:
+      score: 0.95
+      notes: >
+        All changes confined to the 5 specified files. No unintended sections of SKILL.md
+        modified. Minor cosmetic issue: 'Compiled From' header not updated with C10.
+        Score reduced slightly for that omission.
+
+    create_commit_signal_mechanism:
+      score: 1.0
+      notes: >
+        Signal mechanism is sound. Step 4 reads the flag, sets skip_commits_yaml: true in output
+        template response. commit-output.md template updated with explicit 'Evidence Signal' section.
+        Caller (repo-orchestrator) has a structured field to read — not implicit text parsing.
+        R2 mitigation fully applied.
+
+    intent_skill_parity:
+      score: 0.9
+      notes: >
+        C10 in intent.yaml compiles to correct Step 8 and SE-9 in SKILL.md — the core parity
+        is maintained. One gap: 'Compiled From' header still lists C1-C7, C9 while Compilation
+        Metadata says C1-C10. Structural parity is sound; header text is stale.
+
+  overall_confidence: 0.85
+  rationale: >
+    All 8 functional evals pass on substance. The single FAIL (E7) is on a literal count check
+    that was over-specified — the intent (no regression to Steps 1/2) is satisfied. The
+    implementation correctly: (1) adds evidence.record to config with backward-compatible default,
+    (2) adds create-commit step 4 with structured signal mechanism, (3) adds C10 to intent.yaml
+    verbatim as designed, (4) recompiles SKILL.md with correct conditional Step 8, (5) documents
+    the rule in evidence.md. The skip_commits_yaml signal in commit-output.md template is properly
+    structured. One cosmetic gap (Compiled From header not updated with C10) reduces confidence
+    marginally. Confidence 0.85 reflects a sound implementation with one minor documentation
+    inconsistency and one over-specified eval criterion.

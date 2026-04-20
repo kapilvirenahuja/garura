@@ -1,7 +1,7 @@
 # Screen Inventory Schema — Canonical Contract
 #
 # This is the shape of a single screen inventory entry — one file per screen,
-# the output of /design-exp's screen-inventory generation step. Every screen
+# the output of /design's screen-inventory generation step. Every screen
 # produced by the pipeline must conform.
 #
 # ──────────────────────────────────────────────────────────────────────────
@@ -206,7 +206,7 @@ purpose: <string>                      # REQUIRED. One sentence explaining what 
 
 personas:                              # REQUIRED. Minimum 1 entry.
   - <string>                           # JTBD persona identifier from personas.md
-                                       # produced in design-exp stage 1.
+                                       # produced in design stage 1.
                                        # Example: "end-user" | "admin" | "support"
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -316,7 +316,7 @@ accessibility:                         # REQUIRED. Minimum 1 entry per interacti
 # Cross-screen rules (computed across all screens in an inventory):
 #
 #   6. CAPABILITY COVERAGE (user_surface only):
-#      Every user_surface capability selected by specify-product must appear
+#      Every user_surface capability selected by specify must appear
 #      in the UNION of every screen file's `capabilities` list. Multi-capability
 #      screens contribute every entry to the union. Screens marked
 #      `capability_classification: substrate | admin_only` still contribute
@@ -339,11 +339,11 @@ accessibility:                         # REQUIRED. Minimum 1 entry per interacti
 #      lists) may skip.
 #
 # On any violation, validate-screen-coverage returns a structured failure with
-# per-screen error messages. The calling play (design-exp) halts and cycles
+# per-screen error messages. The calling play (design) halts and cycles
 # back to generate-screen-inventory with the error context.
 
 # Related:
 # - docs/adr/017-folder-whitelist.md (ADR that motivates the new schemas)
 # - core/components/memory/standards/schemas/intent-epic.yaml (upstream spec)
 # - core/components/memory/standards/rules/kb-extension.md (KB file structure)
-# - core/components/plays/design-exp/ (consumer — built in 214.6)
+# - core/components/plays/design/ (consumer — built in 214.6)

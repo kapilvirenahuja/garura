@@ -1,0 +1,13 @@
+issue:
+  number: 305
+  title: "[ENH] /design play — multi-scenario input (epic/feature), brownfield gap analysis, visual identity / design system in scope"
+  labels:
+    - enhancement
+    - play:design
+  state: "OPEN"
+  body_summary: "Evolve /design to work on multiple scenarios. Four changes: 1. Multi-scenario input boundary (product-wide, epic, or feature). 2. Brownfield + gap analysis on entry. 3. Clarify visual design scope — Design System is first-class. 4. Lock design down at end."
+  url: "https://github.com/kapilvirenahuja/garura/issues/305"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "feature"

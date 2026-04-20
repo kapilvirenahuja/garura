@@ -1,0 +1,10 @@
+status: merged
+pr_number: 300
+merge_sha: 406f68f
+base_branch: main
+branch_deleted: true
+head_branch: feat/299-list-product-state-skill
+branch_deleted_local: true
+branch_deleted_remote: true
+merge_strategy: merge
+checked_at: "2026-04-19"

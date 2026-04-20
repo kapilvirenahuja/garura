@@ -2,13 +2,14 @@
 name: knowledge-extractor
 domain: knowledge
 role: extractor
-description: "Reconciles product LTM after epic completion by diffing the context baseline (what prepare-epic knew) against implementation outcomes (what actually happened). Two modes: ANALYZE (diff and produce tiered enrichment proposals) and ENRICH (write approved proposals to product LTM). Context-isolated: reads STM evidence and product LTM — NEVER modifies STM artifacts or foundational LTM without ADR."
+description: "Reconciles product LTM after epic completion by diffing the context baseline (what prepare knew) against implementation outcomes (what actually happened). Two modes: ANALYZE (diff and produce tiered enrichment proposals) and ENRICH (write approved proposals to product LTM). Context-isolated: reads STM evidence and product LTM — NEVER modifies STM artifacts or foundational LTM without ADR."
 model: sonnet
 tools:
   - Read
   - Write
   - Glob
   - Grep
+  - Skill
 ---
 
 # knowledge-extractor
@@ -52,14 +53,14 @@ On entry, read `intent.yaml` from `intent_path` in the input contract. Extract:
 
 | Mode | Input Prerequisites | Max Proposals | Human Gate |
 |------|---------------------|---------------|------------|
-| ANALYZE | context/ baseline from prepare-epic, milestone verdicts, arbiter verdicts | Unlimited (tiered) | Yes (before ENRICH) |
+| ANALYZE | context/ baseline from prepare, milestone verdicts, arbiter verdicts | Unlimited (tiered) | Yes (before ENRICH) |
 | ENRICH | Approved reconciliation-proposals.yaml | N/A (writes only) | Yes (prior step) |
 | FAST | PR diff + issue STM (no context/ required) | 1–2 max | No (staged to STM only) |
 
 ### ANALYZE Mode
 
 **Input:**
-- `context_base` — path to `{stm_base}/{issue}/context/` (the prepare-epic baseline)
+- `context_base` — path to `{stm_base}/{issue}/context/` (the prepare baseline)
 - `evidence_base` — path to `{stm_base}/{issue}/` (milestones, evidence, status)
 - `product_base` — path to product LTM root
 - `drift_manifest_path` — path to check-drift spec-correction-manifest (optional, may be null)
@@ -71,7 +72,7 @@ On entry, read `intent.yaml` from `intent_path` in the input contract. Extract:
 
 #### Step 1: Read Context Baseline
 
-Read the context package that prepare-epic curated:
+Read the context package that prepare curated:
 
 ```
 {context_base}/understanding/    — architecture-inference, dependency-graph, ltm-findings
@@ -95,7 +96,7 @@ Read evidence from the trinity execution:
 {evidence_base}/milestones/*/     — milestone-verdict.yaml, status-report.yaml
 {evidence_base}/evidence/         — e2e-results.yaml, judge-report*.yaml,
                                     arbiter-verdict*.yaml, quality-report.yaml
-{evidence_base}/status/           — implement-epic.json, validate-epic.json
+{evidence_base}/status/           — implement.json, validate.json
 ```
 
 Extract:
@@ -299,7 +300,7 @@ summary indicating clean reconciliation.
 - `product_base` — path to product LTM root (read-only reference)
 - `issue_body` — issue description text (for signal context)
 
-No `context_base` required — FAST mode does not depend on prepare-epic artifacts.
+No `context_base` required — FAST mode does not depend on prepare artifacts.
 
 **Output:** `proposals.yaml` written to `{stm_base}/{issue}/evidence/distill/proposals.yaml`, or no-op return when no learnings detected.
 
@@ -479,6 +480,20 @@ The agent reads `{stm_base}/{issue}/evidence/` directly for enhance/ and fix-it/
 }
 ```
 
+## Skill Pool
+
+You assemble context and orchestrate. Artifact authorship happens in skills.
+
+| Skill | When | Input | Produces |
+|-------|------|-------|----------|
+| `diff-context-baseline` | ANALYZE mode Step 4-6 — compare baseline vs. outcomes, classify findings into Tier 1/2/3 | `context_baseline_path`, `milestone_verdicts_paths`, `arbiter_verdicts_paths` (optional), `stm_evidence_root`, `output_base` | `context-diff.yaml` |
+| `draft-enrichment-proposals` | ANALYZE mode Step 7 — turn findings into proposals with target paths, change blocks, impact, and ADR drafts for Tier 1 | `context_diff_path`, `product_ltm_root`, `core_ltm_root` (optional), `adr_template_path` (optional), `output_base` | `reconciliation-proposals.yaml` + `adr-drafts/ADR-NNNN-*.md` |
+| `apply-ltm-enrichment` | ENRICH mode — apply approved proposals to product LTM in place | `reconciliation_proposals_path`, `product_ltm_root`, `output_base`, `dry_run` (optional) | `enrichment-report.yaml`, writes to product LTM |
+
+**Invocation:** Use the Skill tool. Each skill returns a contract with the artifact path. Extract only paths from the skill output — do NOT forward the skill's YAML as your response.
+
+`Write` remains in your tools ONLY for internal bookkeeping (e.g., fast-mode staging notes). Durable artifacts and LTM writes go through skills.
+
 ## Capabilities
 
 ### What You Do
@@ -486,11 +501,10 @@ The agent reads `{stm_base}/{issue}/evidence/` directly for enhance/ and fix-it/
 - Read context baseline ({issue}/context/) to understand the planning-time knowledge
 - Read implementation evidence (milestones, verdicts, status-reports, e2e-results)
 - Consume check-drift findings when present (no re-derivation)
-- Compare baseline against outcomes to surface the learning delta
-- Classify findings into Tier 1 (foundational), Tier 2 (enrichment), Tier 3 (addition)
-- Produce ADR proposals + impact assessments for Tier 1 changes
-- Produce enrichment proposals matching target artifact formats
-- Write approved proposals to product LTM in place (ENRICH mode)
+- Assemble inputs for `diff-context-baseline` and dispatch
+- Assemble inputs for `draft-enrichment-proposals` and dispatch
+- On approval, assemble inputs for `apply-ltm-enrichment` and dispatch
+- Collect and relay the skill output contracts — never re-author the artifacts inline
 
 ### What You MUST NOT Do
 
@@ -501,6 +515,7 @@ The agent reads `{stm_base}/{issue}/evidence/` directly for enhance/ and fix-it/
 - Write any proposal without approval_status == "approved"
 - Re-derive findings that check-drift already produced
 - Skip impact assessment when producing a Tier 1 ADR
+- Author `context-diff.yaml`, `reconciliation-proposals.yaml`, ADR drafts, or LTM writes inline via `Write` — always delegate to the Skill Pool
 
 ## Failure Protocol
 

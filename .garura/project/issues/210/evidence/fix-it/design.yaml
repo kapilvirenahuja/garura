@@ -1,0 +1,118 @@
+plan: |
+  The directory rename (Phase A core) is already done. The only remaining work is updating
+  the stale LTM Organization diagram in `docs/components/memory.md` to reflect the current
+  `standards/` layout. No file moves, no path updates in skills/agents — only documentation
+  correction.
+
+  The fix replaces lines 113-134 (the ASCII tree block) with an accurate representation
+  of the current structure: `standards/rules/`, `standards/schemas/`, `standards/templates/`
+  as the three subdirectories, with correct descriptions.
+
+  Phase B (extracting prose constraints from skill bodies) is substantially complete —
+  all rule files named in the issue exist. Only `roadmap.md` and `plan.md` are deferred
+  (by design, per rules/_index.md "Deferred follow-ups" section) pending the corresponding
+  plays being built.
+
+affected_files:
+  - path: docs/components/memory.md
+    action: modify
+    change: Update the LTM Organization ASCII tree block (lines 113-134) to replace
+            `agent-lifecycle/ # Epic management rules` with the current structure showing
+            `rules/`, `schemas/`, `templates/` subdirectories. Remove stale files
+            (intent-schema.yaml, knowledge-file-template.md, resolution-protocol.md,
+            formats/) that no longer exist as described.
+    scope: Documentation only — no runtime impact.
+
+alternatives_considered:
+  - approach: Close as already done; no changes needed
+    rejection_reason: |
+      The stale reference in docs/components/memory.md is a real documentation accuracy
+      problem. Any developer reading that file gets a false picture of the LTM layout.
+      The fix is a 10-line edit — deferring it leaves knowingly incorrect docs in main.
+
+  - approach: Rewrite the entire docs/components/memory.md file
+    rejection_reason: |
+      Only the LTM Organization tree block is stale. The rest of the file accurately
+      describes context loading, runtime access patterns, and ADR references. A full
+      rewrite introduces unnecessary scope and diff noise.
+
+risks:
+  - risk: The updated tree diagram introduces a new inaccuracy
+    mitigation: Cross-check every path shown against actual `ls` output of
+                `core/components/memory/` before committing.
+    severity: low
+
+  - risk: Other documentation files (outside docs/components/memory.md) may also
+           carry stale agent-lifecycle references not caught by grep
+    mitigation: grep ran across all .md, .yaml, .yml in the repo — only one file
+                matched. Risk is low.
+    severity: low
+
+confidence: high
+
+execution_steps:
+  - step: 1
+    description: |
+      Update `docs/components/memory.md` lines 113-134: replace the stale LTM Organization
+      ASCII tree with one that accurately shows the current structure.
+
+      Current (stale) tree shows:
+        standards/
+          ├── _index.md
+          ├── commits/
+          ├── git/
+          ├── agent-lifecycle/ ← THIS IS THE BUG
+          ├── intent-schema.yaml
+          ├── knowledge-file-template.md
+          └── resolution-protocol.md
+        formats/
+          ├── _index.md
+          └── github-issue.md
+        knowledge/
+
+      Replace with (accurate) tree:
+        standards/
+          ├── _index.md
+          ├── rules/      # Per-domain canonical rule files (epics, features, product,
+          │               #   design, architecture, scenarios, commits, git, pr,
+          │               #   kb-extension, resolution)
+          ├── schemas/    # YAML schemas for artifact shape (intent, intent-epic,
+          │               #   screen-inventory)
+          └── templates/  # Output-shape templates (github-issue, approval-prompt,
+                          #   checkpoint, evidence, knowledge-file)
+        knowledge/
+          ├── _index.md
+          └── arch/
+
+      NOTE: `formats/` no longer exists — its content migrated to `standards/templates/`.
+      The standalone files (intent-schema.yaml, knowledge-file-template.md,
+      resolution-protocol.md) no longer live directly in standards/ — they are now
+      inside rules/ and schemas/ respectively.
+    files:
+      - path: docs/components/memory.md
+        action: modify
+        details: Edit lines 113-134 only. Preserve all surrounding context.
+    expected_outcome: docs/components/memory.md accurately reflects current memory layout.
+    self_test: |
+      Run: grep -n "agent-lifecycle" docs/components/memory.md
+      Expected: zero results.
+      Also verify: grep -n "rules/" docs/components/memory.md shows the new entry.
+
+  - step: 2
+    description: |
+      Verify no other files carry stale agent-lifecycle references.
+    files: []
+    expected_outcome: |
+      grep -r "agent-lifecycle" --include="*.md" --include="*.yaml" --include="*.yml"
+      returns zero matches (or only STM evidence files for issue #210 itself).
+    self_test: Run the grep above. Any match outside .garura/ is a blocker.
+
+  - step: 3
+    description: |
+      Commit with conventional message:
+        docs(memory): update LTM organization tree to reflect rules/schemas/templates layout (#210)
+    files:
+      - path: docs/components/memory.md
+        action: modify
+    expected_outcome: Clean commit, issue #210 closeable.
+    self_test: git show HEAD --stat shows only docs/components/memory.md changed.

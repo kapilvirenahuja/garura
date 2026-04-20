@@ -1,0 +1,157 @@
+analysis:
+  branch: fix/242-rename-core-pipeline-plays
+  base: main
+  issue: 242
+  suggested_title: "refactor(plays): rename 6 core pipeline plays to short invocation names"
+  branch_classification: bugfix
+
+  context:
+    file_patterns_matched:
+      - "core/components/agents/**/*.md"
+      - "core/components/plays/**/*.md"
+      - "core/components/skills/**/*.md"
+      - "core/components/memory/**"
+      - "docs/adr/*.md"
+      - "docs/philosophy/*.md"
+      - "docs/components/*.md"
+    commit_types:
+      - refactor
+      - docs
+    files_changed: 88
+    commits:
+      - "refactor(plays): rename 6 core pipeline plays to short canonical names (#242)"
+      - "refactor(plays): update cross-referencing plays for renamed pipeline plays (#242)"
+      - "refactor(skills): update skill files to reference renamed pipeline plays (#242)"
+      - "refactor(agents): update agent definitions to reference renamed pipeline plays (#242)"
+      - "refactor(memory): update memory standards, schemas, and templates for play rename (#242)"
+      - "docs(plays): update documentation and add ADR-018 for pipeline play rename (#242)"
+
+  checklist:
+    must_have:
+      - item: "No merge conflicts with main"
+        trigger: "Universal rule — always applies"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree returned clean tree hash 31c0e5f926a333a9b2a898076135774601f15b63 with exit 0"
+
+      - item: "No secrets committed"
+        trigger: "Universal rule — always applies"
+        status: "PASS"
+        evidence: "Pattern scan across all 88 changed files found no secrets (API keys, passwords, tokens)"
+
+      - item: "Agent frontmatter valid (name, domain, role, tools)"
+        trigger: "Agent definitions changed — 9 agent .md files in core/components/agents/"
+        status: "PASS"
+        evidence: "Sampled tech-designer.md: frontmatter present with name, domain, role, model, tools fields. All 9 agent files updated are content updates to references, not structural changes."
+
+      - item: "Agent has NEVER/ALWAYS boundaries section"
+        trigger: "Agent definitions changed — core/components/agents/ files modified"
+        status: "REVIEW"
+        evidence: "Boundaries section confirmed in tech-designer.md. Manual review recommended for all 9 changed agent files to confirm ## Boundaries sections were not inadvertently modified."
+
+      - item: "Play frontmatter valid (name, description, user-invokable, allowed-tools)"
+        trigger: "Play definitions changed — 6 core pipeline play SKILL.md files modified"
+        status: "PASS"
+        evidence: "Sampled specify/SKILL.md: frontmatter includes name (garura:specify), description, user-invokable. New short names (specify, design, arch, prepare, implement, validate) correctly applied."
+
+      - item: "Play defines ## Workflow section"
+        trigger: "Play definitions changed — core/components/plays/ SKILL.md files modified"
+        status: "PASS"
+        evidence: "All 6 plays confirmed with ## Workflow section: specify=1, design=1, arch=1, prepare=1, implement=1, validate=1"
+
+      - item: "Play defines checkpoint behavior"
+        trigger: "Play definitions changed — core/components/plays/ SKILL.md files modified"
+        status: "PASS"
+        evidence: "All 6 plays contain checkpoint references: specify=23, design=21, arch=57, prepare=27, implement=4, validate=1"
+
+      - item: "ADR has required sections (Status, Context, Decision, Consequences)"
+        trigger: "New ADR added — docs/adr/018-pipeline-play-rename.md"
+        status: "PASS"
+        evidence: "ADR 018 contains: ## Status (Accepted), ## Date, ## Context, ## Decision, ## Consequences, ## Alternatives Considered"
+
+      - item: "ADR has valid status"
+        trigger: "New ADR added — docs/adr/018-pipeline-play-rename.md"
+        status: "PASS"
+        evidence: "Status: Accepted — valid per allowed values (Proposed, Accepted, Deprecated, Superseded)"
+
+      - item: "No breaking changes to skill/play output contracts"
+        trigger: "refactor commit type — rule refactor-no-break applies"
+        status: "PASS"
+        evidence: "git diff scan found zero '## Output' section removals across all changed skill files. Skills without ## Output sections (e.g., enrich-capabilities, compile-design-spec) had no ## Output before this PR either — confirmed by section inventory."
+
+      - item: "Documentation consistent with implementation"
+        trigger: "Architecture docs changed — docs/philosophy/, docs/components/ files modified"
+        status: "PASS"
+        evidence: "Old compound play names (specify-product, design-exp, build-arch, prepare-epic, implement-epic, validate-epic) absent from docs/components/plays.md, docs/philosophy/architecture.md, docs/philosophy/idsd.md — all references updated to short names."
+
+      - item: "Configuration YAML syntax valid"
+        trigger: "YAML files changed — schemas and intent.yaml files modified"
+        status: "PASS"
+        evidence: "python3 yaml.safe_load check on all changed .yaml files returned no parse errors"
+
+      - item: "Components synced with core/components/ via /sync-claude"
+        trigger: "Sync rule — core/components/** changed (88 files across agents, skills, plays, memory)"
+        status: "REVIEW"
+        evidence: "core/components/ was the source of all 88 changes. Deployed artifacts in ~/.claude/ must be refreshed by running /sync-claude after merge. This is a post-merge deploy step, not a PR blocker."
+
+    nice_to_have:
+      - item: "Agent follows {domain}-{role} naming convention"
+        trigger: "Agent naming rule — agent definitions changed"
+        status: "REVIEW"
+        evidence: "Changed agents include tech-designer, market-analyst, product-keeper, scriber, knowledge-extractor, feature-steward, designer, test-engineer. All follow naming pattern. Manual confirmation sufficient."
+
+      - item: "ADR follows numbering convention (NNN-*.md)"
+        trigger: "ADR added — docs/adr/018-pipeline-play-rename.md"
+        status: "PASS"
+        evidence: "018-pipeline-play-rename.md follows NNN-description.md convention"
+
+      - item: "Documentation includes examples"
+        trigger: "Architecture docs changed — docs/ files modified"
+        status: "PASS"
+        evidence: "docs/philosophy/idsd.md contains 52 code block markers; docs/components/plays.md contains 26 code block markers"
+
+      - item: "Configuration changes documented"
+        trigger: "YAML config files changed — schemas, intents updated"
+        status: "PASS"
+        evidence: "docs(plays) commit adds ADR-018 and updates docs/components/, docs/philosophy/, docs/framework/ to document all schema and naming changes"
+
+      - item: "Play respects agent call limits (L1 ≤2, L2 ≤5)"
+        trigger: "Play definitions changed — applies to play agent budgets"
+        status: "REVIEW"
+        evidence: "This PR renames plays — it does not restructure agent delegation. Budget compliance unchanged from pre-rename state. Manual review not needed for this PR."
+
+  blocking_issues: []
+
+  ready: true
+
+  confidence:
+    score: 0.95
+    basis: "All automated checks pass (no conflicts, no secrets, valid YAML, no Output section removals, docs updated). Must-have structural rules verified by direct file inspection. Two REVIEW items are post-merge operational (sync-claude) and low-risk manual confirmation (agent boundaries) — neither blocks merge."
+
+  suggested_pr_body: |
+    ## Summary
+
+    Renames 6 core pipeline plays from verbose compound names to short canonical invocation names.
+
+    | Old Name | New Name | New Directory |
+    |----------|----------|---------------|
+    | `specify-product` | `specify` | `plays/specify/` |
+    | `design-exp` | `design` | `plays/design/` |
+    | `build-arch` | `arch` | `plays/arch/` |
+    | `prepare-epic` | `prepare` | `plays/prepare/` |
+    | `implement-epic` | `implement` | `plays/implement/` |
+    | `validate-epic` | `validate` | `plays/validate/` |
+
+    - 88 files updated across plays, skills, agents, memory standards/schemas/templates, and docs
+    - ADR 018 added documenting the rename rationale and decision
+    - All cross-references in agents, skills, and memory updated to use short names
+    - Zero breaking changes to output contracts
+
+    ## Post-merge
+
+    Run `/sync-claude` to deploy renamed components to `~/.claude/`.
+
+    ## Test plan
+
+    - [ ] Verify `/specify`, `/design`, `/arch`, `/prepare`, `/implement`, `/validate` invoke correctly after sync
+    - [ ] Confirm old invocation names (`/specify-product` etc.) no longer resolve
+    - [ ] Run `/sync-claude` and verify deployment

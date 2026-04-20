@@ -1,0 +1,71 @@
+commits:
+  - id: "1"
+    group: G1
+    hash: daab627
+    type: refactor
+    scope: plays
+    subject: rename report-issue play to garura-capture with expanded issue types
+    message: |
+      refactor(plays): rename report-issue play to garura-capture with expanded issue types
+
+      Closes #266
+
+      Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+    issue: "266"
+    files_staged: 8
+    files:
+      - core/components/plays/garura-capture/SKILL.md
+      - core/components/plays/garura-capture/reference/intent.yaml
+      - core/components/plays/report-issue/SKILL.md
+      - docs/components/plays.md
+      - docs/components/skills.md
+      - .garura/product/scope/features.yaml
+      - .garura/product/scope/epics/epic-work-intelligence-intent-driven-verification-001.yaml
+      - core/components/memory/standards/templates/github-issue.md
+
+  - id: "2"
+    group: G2
+    hash: cfdf999
+    type: chore
+    scope: stm
+    subject: add STM evidence directory for issue #266
+    message: |
+      chore(stm): add STM evidence directory for issue #266
+
+      Refs #266
+
+      Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+    issue: "266"
+    files_staged: 16
+    files:
+      - .garura/project/issues/266/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/266/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/266/evidence/create-play/garura-capture/agent-audit-project-orchestrator.md
+      - .garura/project/issues/266/evidence/create-play/garura-capture/constraint-classifications.yaml
+      - .garura/project/issues/266/evidence/create-play/garura-capture/coverage-matrix.md
+      - .garura/project/issues/266/evidence/create-play/garura-capture/evals.yaml
+      - .garura/project/issues/266/evidence/create-play/garura-capture/play-analysis.md
+      - .garura/project/issues/266/evidence/create-play/garura-capture/skill-manifest.yaml
+      - .garura/project/issues/266/evidence/fix-it/branch-result.yaml
+      - .garura/project/issues/266/evidence/fix-it/design.yaml
+      - .garura/project/issues/266/evidence/fix-it/implementation-report.yaml
+      - .garura/project/issues/266/evidence/fix-it/issue-comment-agent.yaml
+      - .garura/project/issues/266/evidence/fix-it/issue-read.yaml
+      - .garura/project/issues/266/evidence/fix-it/rca.yaml
+      - .garura/project/issues/266/evidence/fix-it/resolution-trace.yaml
+      - .garura/project/issues/266/status/fix-it.json
+
+push:
+  status: success
+  branch: fix/266-report-issue-rename
+  remote: origin
+  result: |
+    To https://github.com/kapilvirenahuja/garura.git
+       40fbd65..cfdf999  fix/266-report-issue-rename -> fix/266-report-issue-rename
+    branch 'fix/266-report-issue-rename' set up to track 'origin/fix/266-report-issue-rename'.
+
+summary:
+  total_commits: 2
+  total_files: 24
+  branch: fix/266-report-issue-rename
+  issue: "266"

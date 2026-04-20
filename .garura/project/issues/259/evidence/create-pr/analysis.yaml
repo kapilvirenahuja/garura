@@ -1,0 +1,102 @@
+branch: enhance/259-fix-it-leaner-validation
+base: main
+suggested_title: "feat(fix-it): add TDD and anti-reward-hacking constraints (#259)"
+
+context:
+  file_patterns_matched:
+    - "core/components/plays/**"
+    - "core/components/agents/**"
+    - "*.yaml"
+  commit_types:
+    - feat
+    - chore
+  branch_classification: feature
+
+checklist:
+  must_have:
+    - item: "No merge conflicts with main"
+      trigger: "Universal — always checked"
+      status: "PASS"
+      evidence: "git merge-tree --write-tree main HEAD exit 0; merge SHA returned cleanly"
+
+    - item: "No secrets committed"
+      trigger: "Universal — always checked"
+      status: "PASS"
+      evidence: "Pattern scan (secret/password/token/api_key/private_key/BEGIN PRIVATE/AWS_) on all 9 changed files — 0 matches"
+
+    - item: "Play has valid frontmatter"
+      trigger: "Play Definitions Changed: core/components/plays/fix-it/SKILL.md matched **/plays/**/SKILL.md"
+      status: "PASS"
+      evidence: "SKILL.md lines 1-5: name='meridian:fix-it', description present, user-invokable=true. Frontmatter block delimited by ---"
+
+    - item: "Play defines workflow"
+      trigger: "Play Definitions Changed: core/components/plays/fix-it/SKILL.md"
+      status: "PASS"
+      evidence: "## Workflow section found at line 95 of SKILL.md"
+
+    - item: "Play defines checkpoint behavior"
+      trigger: "Play Definitions Changed: core/components/plays/fix-it/SKILL.md"
+      status: "PASS"
+      evidence: "Phase: Checkpoint defined at line 240; marked non-skippable (C6)"
+
+    - item: "Agent has valid frontmatter"
+      trigger: "Agent Definitions Changed: core/components/agents/tech-designer.md matched **/agents/**/*.md"
+      status: "PASS"
+      evidence: "tech-designer.md: name=tech-designer, domain=design, role=designer, description present"
+
+    - item: "Agent has NEVER/ALWAYS boundaries"
+      trigger: "Agent Definitions Changed: core/components/agents/tech-designer.md"
+      status: "PASS"
+      evidence: "grep count for NEVER|ALWAYS in tech-designer.md = 4 matches"
+
+    - item: "Configuration syntax valid"
+      trigger: "Configuration Changed: core/components/plays/fix-it/reference/intent.yaml is a .yaml file"
+      status: "PASS"
+      evidence: "python3 yaml.safe_load succeeded — no parse errors"
+
+    - item: "Components synced with core/components/"
+      trigger: "Sync Required: core/components/** changed"
+      status: "PASS"
+      evidence: "diff -q ~/.claude/agents/tech-designer.md core/components/agents/tech-designer.md — empty; diff -q ~/.claude/skills/fix-it/SKILL.md core/components/plays/fix-it/SKILL.md — empty. /sync-claude was run during build."
+
+    - item: "Feature documented in README or docs"
+      trigger: "New Feature: commit 84bdb11 has type feat"
+      status: "REVIEW"
+      evidence: >
+        No standalone docs/ or README changes. However, the changed artifacts ARE the
+        documentation: intent.yaml is the canonical behavior spec; SKILL.md is the compiled
+        play artifact (human-readable); tech-designer.md is the agent doc. All behavioral
+        additions (C14-C19) are documented inline in intent.yaml and reflected in SKILL.md.
+        Manual reviewer should assess whether a separate docs/ entry is needed.
+
+  nice_to_have:
+    - item: "Agent follows {domain}-{role} naming"
+      trigger: "Agent Definitions Changed"
+      status: "PASS"
+      evidence: "tech-designer.md filename: tech-designer — matches {domain}-{role} pattern (tech=domain, designer=role)"
+
+    - item: "Play respects agent call limits"
+      trigger: "Play Definitions Changed"
+      status: "PASS"
+      evidence: "fix-it is L2 (domain play). Agent boundaries table lists 4 domain agents + 1 utility (project-orchestrator). Domain agent count = 4. L2 ≤5 limit respected."
+
+    - item: "Configuration changes documented"
+      trigger: "Configuration Changed: intent.yaml"
+      status: "PASS"
+      evidence: "intent.yaml version bumped 1.1.0 → 1.2.0. All changes reflected in SKILL.md compilation metadata. Changelog implicit in commit message and PR body."
+
+    - item: "Significant features have ADR"
+      trigger: "New Feature: feat commit type"
+      status: "REVIEW"
+      evidence: >
+        No new ADR created. The changes (anti-reward-hacking constraints, TDD enforcement
+        within fix-it) are scoped enhancements to an existing play's constraint set rather
+        than a new architectural pattern. Existing ADRs cover play compilation and agent
+        boundaries. Manual reviewer should assess whether C14-C19 warrant a new ADR.
+
+blocking_issues: []
+
+ready: true
+confidence: high
+target_branch: main
+target_branch_confidence: high

@@ -1,0 +1,10 @@
+result:
+  success: true
+  pr:
+    number: 300
+    url: "https://github.com/kapilvirenahuja/garura/pull/300"
+    state: "open"
+    title: "feat: list-product-state skill — render product status tree (#299)"
+  checklist:
+    required_count: 6
+    optional_count: 2

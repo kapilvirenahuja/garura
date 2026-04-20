@@ -96,7 +96,7 @@ iso_25010_profile:
         sync-claude: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
         sync-codex: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
         sync-droid: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
-        garura-capture: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
+        capture: { p50_seconds: null, p95_seconds: null, p99_seconds: null, target_p95_seconds: null, measured_at: null }
     rationale: >
       Performance efficiency covers all time-behavior and throughput constraints across
       the product. The product-level floor is the strictest (< 1s command invocation

@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "No feature row contains '[#' (issue slot entirely omitted)",
+      "passed": true,
+      "evidence": "no [# substring"
+    },
+    {
+      "text": "No feature row contains '[]' or empty brackets for the issue slot",
+      "passed": true,
+      "evidence": "no empty brackets in feature rows"
+    },
+    {
+      "text": "Every feature row ends with a status bracket",
+      "passed": false,
+      "evidence": "0 feature rows; all end with status bracket=False"
+    },
+    {
+      "text": "Features appear in document order from features.yaml (AM-F001 before AM-F002, EO-F001 before EO-F005)",
+      "passed": false,
+      "evidence": "document order preserved"
+    },
+    {
+      "text": "Output is pure tree \u2014 no headers, no prose, no totals, no 'Summary:' line",
+      "passed": true,
+      "evidence": "no summary markers"
+    },
+    {
+      "text": "Uses exact 2-space indent per level \u2014 not tabs, not 4 spaces, not tree-drawing characters like \u251c\u2500\u2500 or \u2514\u2500\u2500",
+      "passed": false,
+      "evidence": "domain=False cap=False feat=False"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "passed": 3,
+    "failed": 3,
+    "pass_rate": 0.5
+  }
+}

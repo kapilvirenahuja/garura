@@ -1,0 +1,10 @@
+pr_number: 294
+pr_state: OPEN
+mergeable: true
+head_ref: enhance/259-fix-it-leaner-validation
+base_ref: main
+clean_tree: true
+evals:
+  SE-1: PASS  # PR not in conflict state — mergeable == true
+  SE-4: PASS  # Working tree clean — no uncommitted/staged changes
+  SE-5: PASS  # PR exists with valid pr_number 294

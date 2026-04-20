@@ -1,3 +1,0 @@
-input_type: "title"
-value: "Fix self-validation pattern: replace same-agent validation with context-isolated judge across discover-product, plan-roadmap, prepare-architecture"
-parent: null

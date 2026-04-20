@@ -37,7 +37,7 @@ Allow skills to read from LTM at runtime for **organizational knowledge** — st
 
 2. **Organizational standards come from LTM** — Content that an adopter would reasonably customize to teach the system their preferences lives in LTM and is referenced by path.
 
-3. **LTM paths are stable conventions** — Skills reference LTM via well-known paths under `~/.meridian/core/memory/` (global) or `.meridian/core/memory/` (project). These paths are treated as API contracts.
+3. **LTM paths are stable conventions** — Skills reference LTM via well-known paths under `~/.garura/core/memory/` (global) or `.garura/core/memory/` (project). These paths are treated as API contracts.
 
 4. **Failure is loud** — If an LTM reference file is missing, the skill fails visibly (file not found), not silently. This is acceptable because LTM is deployed via `/sync-claude`.
 
@@ -46,7 +46,7 @@ Allow skills to read from LTM at runtime for **organizational knowledge** — st
 ### LTM Reference Paths
 
 ```
-~/.meridian/core/memory/
+~/.garura/core/memory/
 ├── standards/               # Rules, conventions, quality criteria
 │   ├── commits/
 │   │   ├── categories.md    # Used by analyze-changes, analyze-pr, create-commit
@@ -71,7 +71,7 @@ Skills reference LTM with explicit load directives:
 
 1. **Categorize Each File**
 
-   Load categories from: `~/.meridian/core/memory/standards/rules/commits.md`
+   Load categories from: `~/.garura/core/memory/standards/rules/commits.md`
 ```
 
 Skills retain a `reference/` directory for skill-specific knowledge that is NOT organizational:
@@ -100,11 +100,11 @@ core/components/skills/{skill-name}/
 
 | Content | LTM Path | Used By |
 |---------|----------|---------|
-| Commit categories | `~/.meridian/core/memory/standards/rules/commits.md` | analyze-changes, analyze-pr |
-| Commit quality rules | `~/.meridian/core/memory/standards/rules/commits.md` | analyze-pr |
-| Branch naming | `~/.meridian/core/memory/standards/rules/git.md` | repo-orchestrator, setup-branch |
-| Issue templates | `~/.meridian/core/memory/standards/templates/github-issue.md` | manage-issue |
-| Architecture reference | `~/.meridian/core/memory/knowledge/arch/evolutionary-scaling.md` | tech-designer |
+| Commit categories | `~/.garura/core/memory/standards/rules/commits.md` | analyze-changes, analyze-pr |
+| Commit quality rules | `~/.garura/core/memory/standards/rules/commits.md` | analyze-pr |
+| Branch naming | `~/.garura/core/memory/standards/rules/git.md` | repo-orchestrator, setup-branch |
+| Issue templates | `~/.garura/core/memory/standards/templates/github-issue.md` | manage-issue |
+| Architecture reference | `~/.garura/core/memory/knowledge/arch/evolutionary-scaling.md` | tech-designer |
 
 ## Consequences
 

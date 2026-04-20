@@ -1,0 +1,1 @@
+[DEF][Medium] /create-play: templates not enforced in compilation; compilation metadata sits at top of SKILL.md and burns tokens

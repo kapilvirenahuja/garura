@@ -1,0 +1,352 @@
+analysis:
+  branch: fix/242-rename-core-pipeline-plays
+  issue: 242
+  is_hotfix: false
+  total_files: 88
+  staged: 0
+  unstaged: 87
+  untracked: 1
+
+  groups:
+    - id: 1
+      type: refactor
+      scope: plays
+      subject: rename 6 core pipeline plays to short canonical names
+      confidence: high
+      files:
+        # specify-product → specify
+        - path: "core/components/plays/specify-product/SKILL.md -> core/components/plays/specify/SKILL.md"
+          status: RM
+          note: renamed play SKILL.md
+        - path: "core/components/plays/specify-product/reference/intent.yaml -> core/components/plays/specify/reference/intent.yaml"
+          status: RM
+          note: renamed play intent.yaml
+        # design-exp → design
+        - path: "core/components/plays/design-exp/SKILL.md -> core/components/plays/design/SKILL.md"
+          status: RM
+          note: renamed play SKILL.md
+        - path: "core/components/plays/design-exp/reference/intent.yaml -> core/components/plays/design/reference/intent.yaml"
+          status: RM
+          note: renamed play intent.yaml
+        # build-arch → arch
+        - path: "core/components/plays/build-arch/SKILL.md -> core/components/plays/arch/SKILL.md"
+          status: RM
+          note: renamed play SKILL.md
+        - path: "core/components/plays/build-arch/reference/intent.yaml -> core/components/plays/arch/reference/intent.yaml"
+          status: RM
+          note: renamed play intent.yaml
+        # prepare-epic → prepare
+        - path: "core/components/plays/prepare-epic/SKILL.md -> core/components/plays/prepare/SKILL.md"
+          status: RM
+          note: renamed play SKILL.md
+        - path: "core/components/plays/prepare-epic/reference/evals.yaml -> core/components/plays/prepare/reference/evals.yaml"
+          status: RM
+          note: renamed play evals.yaml
+        - path: "core/components/plays/prepare-epic/reference/intent.yaml -> core/components/plays/prepare/reference/intent.yaml"
+          status: RM
+          note: renamed play intent.yaml
+        # implement-epic → implement
+        - path: "core/components/plays/implement-epic/SKILL.md -> core/components/plays/implement/SKILL.md"
+          status: RM
+          note: renamed play SKILL.md
+        - path: "core/components/plays/implement-epic/reference/evals.yaml -> core/components/plays/implement/reference/evals.yaml"
+          status: RM
+          note: renamed play evals.yaml
+        - path: "core/components/plays/implement-epic/reference/intent.yaml -> core/components/plays/implement/reference/intent.yaml"
+          status: RM
+          note: renamed play intent.yaml
+        # validate-epic → validate
+        - path: "core/components/plays/validate-epic/SKILL.md -> core/components/plays/validate/SKILL.md"
+          status: RM
+          note: renamed play SKILL.md
+        - path: "core/components/plays/validate-epic/reference/intent.yaml -> core/components/plays/validate/reference/intent.yaml"
+          status: RM
+          note: renamed play intent.yaml
+      file_count: 14
+
+    - id: 2
+      type: refactor
+      scope: plays
+      subject: update cross-referencing play files to use renamed play names
+      confidence: high
+      files:
+        - path: core/components/plays/capture-learning/SKILL.md
+          status: M
+          note: updated references to renamed plays
+        - path: core/components/plays/capture-learning/reference/intent.yaml
+          status: M
+          note: updated references to renamed plays
+        - path: core/components/plays/check-drift/reference/intent.yaml
+          status: M
+          note: updated references to renamed plays
+        - path: core/components/plays/distill/reference/intent.yaml
+          status: M
+          note: updated references to renamed plays
+        - path: core/components/plays/enhance/SKILL.md
+          status: M
+          note: updated references to renamed plays
+        - path: core/components/plays/start-feature-planning/SKILL.md
+          status: M
+          note: updated references to renamed plays
+      file_count: 6
+
+    - id: 3
+      type: refactor
+      scope: skills
+      subject: update skill files to reference renamed play names
+      confidence: high
+      files:
+        - path: core/components/skills/check-drift/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/check-drift/references/templates.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/compile-design-spec/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/configure-capabilities/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/derive-design-patterns/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/derive-logical-architecture/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/derive-nfr-spec/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/derive-physical-architecture/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/derive-quality-profile-from-epics/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/derive-quality-vision/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/draft-implementation-plan/schemas/plan.yaml
+          status: M
+          note: updated play name references
+        - path: core/components/skills/draft-lld/schemas/tech.yaml
+          status: M
+          note: updated play name references
+        - path: core/components/skills/draft-product-spec/schemas/features.yaml
+          status: M
+          note: updated play name references
+        - path: core/components/skills/draft-technical-approach/schemas/architecture.yaml
+          status: M
+          note: updated play name references
+        - path: core/components/skills/draft-verification-scenarios/schemas/scenarios.yaml
+          status: M
+          note: updated play name references
+        - path: core/components/skills/enrich-capabilities/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/generate-intent-epics/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/generate-screen-inventory/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/generate-wireframes/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/map-user-flows/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/recommend-mvp/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/research-market-opportunity/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/synthesize-personas/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/validate-abstraction-layer/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/validate-architecture-spec/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/validate-intent-epics/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/validate-kb-extension/SKILL.md
+          status: M
+          note: updated play name references
+        - path: core/components/skills/validate-screen-coverage/SKILL.md
+          status: M
+          note: updated play name references
+      file_count: 28
+
+    - id: 4
+      type: refactor
+      scope: agents
+      subject: update agent definitions to reference renamed play names
+      confidence: high
+      files:
+        - path: core/components/agents/designer.md
+          status: M
+          note: updated play name references
+        - path: core/components/agents/feature-steward.md
+          status: M
+          note: updated play name references
+        - path: core/components/agents/knowledge-extractor.md
+          status: M
+          note: updated play name references
+        - path: core/components/agents/market-analyst.md
+          status: M
+          note: updated play name references
+        - path: core/components/agents/product-keeper.md
+          status: M
+          note: updated play name references
+        - path: core/components/agents/scriber.md
+          status: M
+          note: updated play name references
+        - path: core/components/agents/tech-architect.md
+          status: M
+          note: updated play name references
+        - path: core/components/agents/tech-designer.md
+          status: M
+          note: updated play name references
+        - path: core/components/agents/test-engineer.md
+          status: M
+          note: updated play name references
+      file_count: 9
+
+    - id: 5
+      type: refactor
+      scope: memory
+      subject: update memory standards, schemas, and templates to use renamed play names
+      confidence: high
+      files:
+        - path: core/components/memory/knowledge/domain/_cross-tree-constraints.yaml
+          status: M
+          note: updated play name references
+        - path: core/components/memory/knowledge/domain/_index.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/rules/_index.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/rules/architecture.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/rules/design.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/rules/epics.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/rules/kb-extension.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/rules/product.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/rules/scenarios.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/schemas/intent-epic.yaml
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/schemas/intent.yaml
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/schemas/mvp-recommendation.yaml
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/schemas/screen-inventory.yaml
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/templates/_index.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/templates/approval-prompt.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/templates/checkpoint.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/templates/delivery-report.md
+          status: M
+          note: updated play name references
+        - path: core/components/memory/standards/templates/evidence-file.md
+          status: M
+          note: updated play name references
+      file_count: 18
+
+    - id: 6
+      type: docs
+      scope: plays
+      subject: update docs, grounding, ADRs and add ADR-018 for pipeline play rename
+      confidence: high
+      files:
+        - path: core/grounding/glossary.md
+          status: M
+          note: updated play name references
+        - path: docs/adr/004-agent-naming.md
+          status: M
+          note: updated play name references
+        - path: docs/adr/014-three-axis-project-profiling.md
+          status: M
+          note: updated play name references
+        - path: docs/adr/017-folder-whitelist.md
+          status: M
+          note: updated play name references
+        - path: docs/adr/018-pipeline-play-rename.md
+          status: "??"
+          note: new ADR documenting the rename decision
+        - path: docs/components/agents.md
+          status: M
+          note: updated play name references
+        - path: docs/components/memory.md
+          status: M
+          note: updated play name references
+        - path: docs/components/plays.md
+          status: M
+          note: updated play name references
+        - path: docs/components/skills.md
+          status: M
+          note: updated play name references
+        - path: docs/design/briefs.md
+          status: M
+          note: updated play name references
+        - path: docs/framework/play-structure.md
+          status: M
+          note: updated play name references
+        - path: docs/philosophy/architecture.md
+          status: M
+          note: updated play name references
+        - path: docs/philosophy/idsd.md
+          status: M
+          note: updated play name references
+      file_count: 13
+
+  total_tracked_in_groups: 88
+
+  risks:
+    sensitive_files: []
+    breaking_changes:
+      - description: "6 pipeline play directory renames (RM status) — external references to old play names (specify-product, design-exp, build-arch, prepare-epic, implement-epic, validate-epic) will break if any callers outside this repo or in ~/.claude/ still use old names"
+        severity: medium
+        note: "All internal references updated in this branch; deployment via /sync-claude required after merge"
+    ambiguous_types: []
+    hotfix_branch: false
+
+  excluded_untracked:
+    - path: .claude/scheduled_tasks.lock
+      reason: operational lock file, not part of this issue
+    - path: .garura/project/issues/256/evidence/commit-code/commits.yaml
+      reason: different issue (256), not part of this change set
+    - path: .garura/project/issues/256/evidence/create-pr/
+      reason: different issue (256)
+    - path: .garura/project/issues/256/evidence/merge-pr/
+      reason: different issue (256)
+    - path: .garura/project/issues/_pending/
+      reason: project management directory, not part of this issue
+    - path: .garura/project/issues/242/
+      reason: STM evidence for this issue — committed separately as chore(stm)

@@ -1,0 +1,250 @@
+problem_statement: |
+  Judge agent has 4 hardcoded modes (only Mode 1 is production-used by implement/validate).
+  The enhance play dispatches judge with a contract matching no declared mode, so judge
+  free-forms severity. In #305 this produced three concerns labeled "follow-up" that were
+  actually blockers — contract mismatch at skill boundary, intent-propagation break, stale
+  agent boundary — and overall confidence was 0.74 (above the C15 0.6 gate), shipping a
+  broken enhancement.
+
+solution_summary: |
+  Collapse judge to a single generic eval executor. Accept a superset contract that covers
+  today's implement/validate dispatches unchanged. Delete dead Modes 2 and 3. Extract Mode
+  4's coverage-diff logic into a new non-user-invocable skill diff-artifacts. Author a
+  static severity-framing eval file at the enhance play's reference directory encoding three
+  blocker rules (contract mismatch, intent-propagation break, stale boundary contradicting
+  new rule) plus a confidence-cap rule (any blocker → overall ≤0.55). Wire enhance Step 10
+  via intent.yaml + play rebuild to pass the static eval path to judge.
+
+files_to_create:
+  - path: core/components/skills/diff-artifacts/SKILL.md
+    description: |
+      Non-user-invocable skill. Model-reasoned coverage/diff skill.
+      Inputs: input_path, output_path, check_type (free-text), output_report_path.
+      Output schema: copy coverage-check.yaml schema verbatim from current
+      core/components/agents/judge.md lines 262–288.
+      Frontmatter: name=diff-artifacts, user-invocable=false, model=sonnet,
+      allowed-tools=[Read, Grep, Glob, Write].
+      NO reference/intent.yaml — skill is non-user-invocable.
+
+  - path: core/components/plays/enhance/reference/evals/solution-rating.yaml
+    description: |
+      Static authored evals. Four entries:
+        ER-1 (contract mismatch, severity_if_fail=blocker)
+        ER-2 (intent-propagation break, severity_if_fail=blocker)
+        ER-3 (stale boundary contradicting new rule, severity_if_fail=blocker)
+        ER-4 (overall confidence aggregation — any blocker → overall_confidence ≤0.55)
+      Each eval carries: id, name, severity_if_fail, verification (free-text procedure),
+      pass_criteria, fail_criteria, example_fail (citing #305 anchors).
+      ER-1 example: /design Step 9 passed design_system_path, compile-design-spec Input
+        did not declare it.
+      ER-2 example: draft-design-system wrote design-system.md, compile-design-spec had
+        no hook to read it.
+      ER-3 example: designer.md "never add visual design" contradicted revised C13.
+
+files_to_modify:
+  - path: core/components/agents/judge.md
+    description: |
+      Delete 4-mode enumeration in Identity; delete Mode 2/3/4 blocks and their
+      Input/Output contracts and the Mode 2 skill inventory table and Mode 4 coverage
+      schema. Replace with single generic operation: one Identity paragraph, one Operating
+      Procedure (accept superset contract fields, decrypt if encrypted, dispatch
+      diff-artifacts if prompt asks for diff, else execute evals against boundary), one
+      generic Input Contract (superset of today's implement/validate fields — eval_path,
+      manifest_path, project_root, deploy_url, credentials, config.instructions,
+      config.decryption_key, all optional), one generic Output Contract (the existing
+      judge_report schema at current lines 290–316, preserved).
+      Keep unchanged: Core Principle, What You MUST NOT Do, What You MUST NOT Receive,
+      Failure Protocol, Recovery, Task Tracking, Decryption Protocol.
+      Add: Available Skills table with one entry — diff-artifacts.
+
+  - path: core/components/plays/enhance/reference/intent.yaml
+    description: |
+      Edit Step 10 (judge-rating) dispatch to add eval_path pointing to
+      core/components/plays/enhance/reference/evals/solution-rating.yaml, and add
+      config.instructions describing the ask ("rate enhancement solution against supplied
+      evals; boundary is approach.yaml + project_root; compute overall_confidence per
+      ER-4"). Rebuild via /create-play --rebuild enhance after edit (step encoded in tasks).
+
+connections:
+  - |
+    Judge rewritten → implement/SKILL.md + validate/SKILL.md dispatches unchanged
+    (their field shape is the happy path of the new generic contract).
+  - |
+    Judge → new diff-artifacts skill via Skill tool dispatch when prompt indicates diff.
+  - |
+    Enhance Step 10 → solution-rating.yaml (static evals) → judge executes →
+    judge-report.yaml encodes severity per ER rules.
+
+tasks:
+  - id: T1
+    title: "[T1] Pre-check: grep score-epic-confidence, check-input-output-coverage, validate-artifact across core/ + docs/"
+    description: |
+      Confirm no external references to the three Mode 2/3/4 skill names before deletion.
+      Already verified clean during discovery — re-verify before delete.
+    blocked_by: []
+
+  - id: T2
+    title: "[T2] Write core/components/plays/enhance/reference/evals/solution-rating.yaml"
+    description: |
+      Author static eval file with four entries: ER-1, ER-2, ER-3, ER-4.
+      Each entry contains: id, name, severity_if_fail, verification, pass_criteria,
+      fail_criteria, example_fail.
+    blocked_by: [T1]
+
+  - id: T3
+    title: "[T3] Write core/components/skills/diff-artifacts/SKILL.md"
+    description: |
+      Create new non-user-invocable skill. Include frontmatter (name=diff-artifacts,
+      user-invocable=false, model=sonnet, allowed-tools=[Read, Grep, Glob, Write]).
+      Include inputs: input_path, output_path, check_type, output_report_path.
+      Output schema copied verbatim from current judge.md lines 262–288
+      (coverage-check.yaml schema). No reference/intent.yaml.
+    blocked_by: [T1]
+
+  - id: T4
+    title: "[T4] Rewrite core/components/agents/judge.md per spec"
+    description: |
+      Delete Mode 2/3/4 blocks, enumerations, skill inventory table, coverage schema.
+      Replace with single generic operation, generic Input/Output contracts (superset).
+      Preserve: Core Principle, MUST NOT sections, Failure Protocol, Recovery, Task
+      Tracking, Decryption Protocol, judge_report schema. Add Available Skills table
+      with diff-artifacts.
+    blocked_by: [T2, T3]
+
+  - id: T5
+    title: "[T5] Edit core/components/plays/enhance/reference/intent.yaml Step 10 dispatch"
+    description: |
+      Add eval_path pointing to solution-rating.yaml. Add config.instructions with
+      the rating ask and ER-4 confidence computation instruction.
+    blocked_by: [T2, T4]
+
+  - id: T6
+    title: "[T6] Run /create-play --rebuild enhance"
+    description: |
+      Regenerate enhance/SKILL.md from updated intent.yaml. Verify Step 10 JSON
+      contract block in output contains eval_path.
+    blocked_by: [T5]
+
+  - id: T7
+    title: "[T7] Run /sync-claude (global) to deploy"
+    description: |
+      Deploy updated components to ~/.claude/. Confirm no deployment errors.
+    blocked_by: [T6]
+
+  - id: T8
+    title: "[T8] Self-verification"
+    description: |
+      Confirm: new eval file loads, judge.md grammar-checks, enhance SKILL.md
+      regenerated cleanly, implement + validate dispatches still present with
+      unchanged shape.
+    blocked_by: [T7]
+
+evals:
+  - id: E1
+    description: |
+      (ER-1 authoring) solution-rating.yaml exists, contains ER-1 with
+      severity_if_fail=blocker and non-empty verification/pass/fail fields.
+
+  - id: E2
+    description: |
+      (ER-2 authoring) ER-2 present with severity_if_fail=blocker and non-empty fields.
+
+  - id: E3
+    description: |
+      (ER-3 authoring) ER-3 present with severity_if_fail=blocker and non-empty fields.
+
+  - id: E4
+    description: |
+      (ER-4 cap) ER-4 explicitly states overall_confidence ≤0.55 when any blocker.
+
+  - id: E5
+    description: |
+      (judge collapse) judge.md no longer contains strings "Mode 2:", "Mode 3:",
+      "Mode 4:", "score-epic-confidence", "check-input-output-coverage",
+      "validate-artifact".
+
+  - id: E6
+    description: |
+      (judge preservation) judge.md retains strings "MUST NOT Receive",
+      "Decryption Protocol", "Failure Protocol", "Task Tracking", and the judge_report
+      schema fields (eval_source, total_evals, results, plaintext_deleted).
+
+  - id: E7
+    description: |
+      (generic contract documented) judge.md Input Contract documents eval_path,
+      project_root, config.instructions, config.decryption_key as part of one superset
+      contract.
+
+  - id: E8
+    description: |
+      (diff-artifacts skill) core/components/skills/diff-artifacts/SKILL.md exists with
+      frontmatter user-invocable: false and contains Mode 4's coverage-check.yaml schema
+      fields (covered, partial, dropped, drifted).
+
+  - id: E9
+    description: |
+      (no intent.yaml for skill) path
+      core/components/skills/diff-artifacts/reference/intent.yaml does NOT exist
+      (non-user-invocable exemption).
+
+  - id: E10
+    description: |
+      (enhance Step 10 wiring) enhance/reference/intent.yaml Step 10 dispatches judge
+      with eval_path referencing solution-rating.yaml.
+
+  - id: E11
+    description: |
+      (rebuild) enhance/SKILL.md regenerated; Step 10 JSON contract block contains
+      eval_path pointing to solution-rating.yaml.
+
+  - id: E12
+    description: |
+      (implement/validate unchanged) grep confirms implement/SKILL.md L577–604 and
+      validate/SKILL.md L365–392 are byte-identical to pre-change (no incidental edits).
+
+  - id: E13
+    description: |
+      (mode cleanup grep) grep across entire core/ and docs/ for
+      "score-epic-confidence", "check-input-output-coverage", "validate-artifact"
+      returns zero matches.
+
+risks:
+  - id: R1
+    type: architectural
+    action: eval-driven
+    ltm_reference: null
+    description: |
+      Deleting Mode 2/3/4 stubs could leave orphan references in unrelated docs or plays.
+    mitigation: |
+      Grep across core/ + docs/ before delete; re-verify after changes.
+    generated_evals:
+      - E13
+
+  - id: R2
+    type: technical
+    action: monitor-only
+    ltm_reference: null
+    description: |
+      implement + validate dispatches could drift if generic contract misses a quirk.
+    mitigation: |
+      Do not edit implement/validate SKILL.md; judge must accept their exact field shape.
+    generated_evals:
+      - E12
+
+alternatives_considered:
+  - id: ALT1
+    description: Keep 4 modes and add Mode 5 for enhance rating.
+    reason_rejected: |
+      Perpetuates the carveout problem and does not address the underlying framing that
+      judge should be a generic eval executor.
+
+  - id: ALT2
+    description: Put severity-framing rules inline in judge.md prompt.
+    reason_rejected: |
+      Creates reward-hacking surface since judge would grade solutions using rules from
+      its own prompt, same reasoning loop; rules must live in externally-authored evals.
+
+  - id: ALT3
+    description: Make diff-artifacts a block inside judge.md rather than extracting to its own skill.
+    reason_rejected: |
+      Violates single-operation identity of the rewritten judge and keeps the agent bloated.

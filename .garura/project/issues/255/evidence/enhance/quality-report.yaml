@@ -1,0 +1,124 @@
+quality_report:
+  timestamp: "2026-04-19T08:32:35Z"
+  branch: "enhance/255-evidence-commit-flag"
+  project_root: "/Users/kapilahuja/cto/builder/garura"
+  overall: "PASS"
+
+  tooling_discovery:
+    package_json: false
+    makefile: false
+    test_scripts: false
+    pyproject_toml: false
+    go_mod: false
+    shell_scripts_present: true
+    shell_scripts_note: >
+      Shell scripts exist under .claude/skills/sync-claude/scripts/sync.sh,
+      installer/install.sh, and .factory/ paths. These are deployment/sync
+      scripts, not build or test runners. No build system or test framework
+      is present. Repository is a pure markdown/YAML agentic framework.
+    lint_tooling: "python3 yaml.safe_load (stdlib) — yamllint and markdownlint not installed"
+    typecheck_tooling: "not applicable — no typed language source files"
+
+  gates:
+    - name: "build"
+      status: "PASS"
+      command: "not applicable — no compiled artifacts"
+      exit_code: 0
+      evidence: >
+        Repository contains only markdown (.md) and YAML (.yaml) skill/play files.
+        No package.json, Makefile, go.mod, pyproject.toml, or any build system was found
+        at any depth under the project root. No compilation step is defined or required.
+        No applicable tooling = PASS per gate contract.
+
+    - name: "lint"
+      status: "PASS"
+      command: "python3 -c 'import yaml; yaml.safe_load(open(...))' — run against all modified YAML files"
+      exit_code: 0
+      violations: 0
+      evidence: >
+        All modified and newly added YAML files parsed without error using Python's
+        yaml.safe_load (strict parser). Files checked:
+          - .garura/core/config.yaml: PASS
+          - core/components/plays/commit-code/reference/intent.yaml: PASS
+        All modified markdown files checked for structural integrity (balanced code fences):
+          - core/components/plays/commit-code/SKILL.md: PASS
+          - core/components/skills/create-commit/SKILL.md: PASS
+          - core/components/skills/create-commit/templates/commit-output.md: PASS
+          - core/grounding/rules/evidence.md: PASS
+        yamllint and markdownlint are not installed; python3 stdlib yaml parser used as
+        available linting tool. Zero violations found.
+      static_analysis:
+        tool: "python3 yaml.safe_load"
+        critical: 0
+        high: 0
+        evidence: "All YAML files well-formed. No structural defects in markdown files."
+
+    - name: "typecheck"
+      status: "PASS"
+      command: "not applicable — no typed language source files"
+      exit_code: 0
+      evidence: >
+        No TypeScript, Python with type annotations, Go, or other statically-typed
+        language source files are present in the repository. The codebase consists
+        exclusively of markdown and YAML artifact files. No typecheck tooling is
+        defined or applicable. No applicable tooling = PASS per gate contract.
+
+    - name: "unit_tests"
+      status: "PASS"
+      command: "not applicable — no test runner or test files present"
+      exit_code: 0
+      tests_passed: 0
+      tests_failed: 0
+      evidence: >
+        No test files (*.test.*, *_test.*, spec files), no test framework configuration
+        (jest.config, pytest.ini, vitest.config, go test, etc.), and no test runner scripts
+        were found at any depth under the project root. This repository is a pure
+        markdown/YAML agentic framework where correctness is verified through play evals
+        and judge scoring, not compiled unit tests. No applicable tooling = PASS per gate
+        contract.
+      coverage:
+        statements: null
+        branches: null
+        functions: null
+        lines: null
+      threshold:
+        min_coverage: null
+        source: "no coverage tooling present — quality-profile.yaml defines no unit test threshold"
+      threshold_met: true
+
+  files_changed_on_branch:
+    - path: "core/components/plays/commit-code/SKILL.md"
+      change_type: "modified"
+      yaml_valid: "not applicable (markdown)"
+      structure_valid: true
+    - path: "core/components/plays/commit-code/reference/intent.yaml"
+      change_type: "modified"
+      yaml_valid: true
+      structure_valid: true
+    - path: "core/components/skills/create-commit/SKILL.md"
+      change_type: "modified"
+      yaml_valid: "not applicable (markdown)"
+      structure_valid: true
+    - path: "core/components/skills/create-commit/templates/commit-output.md"
+      change_type: "modified"
+      yaml_valid: "not applicable (markdown)"
+      structure_valid: true
+    - path: ".garura/core/config.yaml"
+      change_type: "modified"
+      yaml_valid: true
+      structure_valid: true
+    - path: "core/grounding/rules/evidence.md"
+      change_type: "untracked (new)"
+      yaml_valid: "not applicable (markdown)"
+      structure_valid: true
+
+  vision_gate_violations: []
+
+  qp_source: ".garura/product/specification/quality-profile.yaml"
+  qp_note: >
+    quality-profile.yaml defines runtime/behavioral quality targets (play invocation
+    rates, evidence attribution, commit trailer coverage, etc.) that are not verifiable
+    via static code quality gates. The four gates (build, lint, typecheck, unit_tests)
+    are gated on available tooling per the gate contract; no applicable tooling was
+    found for build, typecheck, or unit_tests. Lint was exercised via python3 YAML
+    parser — the only available static analysis tool.

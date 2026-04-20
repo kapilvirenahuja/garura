@@ -1,0 +1,91 @@
+analysis:
+  branch: feat/301-scope-play
+  base: main
+  suggested_title: "feat: /scope play — feature-to-epic scoping with catalog match, constraint fit, KB grounding (#301)"
+  context:
+    file_patterns_matched:
+      - play_definitions      # core/components/plays/scope/SKILL.md
+      - configuration         # core/components/plays/scope/reference/intent.yaml
+      - stm_evidence          # .garura/project/issues/301/evidence/**
+      - gitignore             # .gitignore
+    commit_types:
+      - feat     # 9abb9b8, 26ccfad, 1b3d843
+      - chore    # 842b7d8, 4a29710, dccfde3
+    branch_classification: feature
+    commits_ahead: 6
+    files_changed: 17
+    insertions: 1578
+    deletions: 56
+
+  checklist:
+    must_have:
+      - item: "No merge conflicts"
+        trigger: "Universal rule — always applies"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree (93f9017b80bc4bd7d5c63f28069457e9c4b79a6b)"
+
+      - item: "No secrets committed"
+        trigger: "Universal rule — always applies"
+        status: "PASS"
+        evidence: "Pattern scan across changed files found no password/secret/api_key/token/private_key patterns"
+
+      - item: "Play has valid frontmatter"
+        trigger: "Play definition changed: core/components/plays/scope/SKILL.md"
+        status: "PASS"
+        evidence: "Frontmatter present with: name=garura:scope, description (present), user-invokable=true, model=opus, allowed-tools (Task, Read, Write, Grep, Glob, Skill, SendMessage, Bash)"
+
+      - item: "Play defines workflow"
+        trigger: "Play definition changed: core/components/plays/scope/SKILL.md"
+        status: "PASS"
+        evidence: "## Workflow section present at line 100; 11 phases (Phase 0–Phase 10)"
+
+      - item: "Play defines checkpoint behavior"
+        trigger: "Play definition changed: core/components/plays/scope/SKILL.md"
+        status: "PASS"
+        evidence: "49 references to checkpoint/Tether/Vanish/Orbit; explicit Tether/Vanish/Orbit gates at Phase 5 and Phase 9"
+
+      - item: "Configuration syntax valid"
+        trigger: "YAML files changed: reference/intent.yaml"
+        status: "PASS"
+        evidence: "python3 yaml.safe_load() passed on core/components/plays/scope/reference/intent.yaml"
+
+      - item: "Components synced with core/components/"
+        trigger: "core/components/** changed"
+        status: "REVIEW"
+        evidence: "core/components/plays/scope/ is new content. /sync-claude must be run post-merge to deploy to ~/.claude/skills/"
+
+      - item: "Feature documented in README or docs"
+        trigger: "commit type feat — feat-documented rule"
+        status: "PASS"
+        evidence: "SKILL.md itself is the canonical documentation for the /scope play; intent.yaml provides full constraint/scenario spec. STM evidence in .garura/project/issues/301/evidence/create-play/scope/ records evals, coverage matrix, agent audits."
+
+    nice_to_have:
+      - item: "Play respects agent call limits"
+        trigger: "Play definition changed — play-agent-limit rule"
+        status: "PASS"
+        evidence: "Compilation metadata: domain_agents=2 (project-orchestrator, product-keeper) ≤ L2 limit of 5; repo-orchestrator is utility agent, exempt from budget per memory/feedback_agent_budget_scope.md"
+
+      - item: "Skill has constraints"
+        trigger: "Play/skill definition changed"
+        status: "PASS"
+        evidence: "16 constraints (C1–C16) defined in intent.yaml and enforced throughout SKILL.md workflow"
+
+      - item: "Significant features have ADR"
+        trigger: "feat commit type — feat-adr nice-to-have rule"
+        status: "REVIEW"
+        evidence: "No new ADR committed in this branch. /scope is a new play (not an architecture-level decision); existing ADR-008/010/017 cover the STM and play-pipeline patterns it builds on. No ADR gap identified."
+
+  blocking_issues: []
+  ready: true
+
+meta:
+  analyzed_at: "2026-04-19"
+  skill_version: "1.0.0"
+  evals_recorded:
+    step_evals: 12
+    scenario_evals: 6
+    all_pass: true
+  play_compilation:
+    constraints_covered: "C1–C16"
+    failure_conditions_covered: "F1–F10"
+    scenarios_covered: "S1–S6"

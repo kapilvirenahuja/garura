@@ -38,13 +38,7 @@ When files span multiple types:
 
 ## Part 2 — Commit Message Format
 
-```
-<type>(<scope>): <subject>
-
-[optional body]
-
-[optional footer]
-```
+See `templates/commit-message.md` for the canonical shape. The examples below remain for quick reference.
 
 ### Examples
 

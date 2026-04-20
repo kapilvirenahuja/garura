@@ -1,0 +1,144 @@
+judge_report_v2:
+  timestamp: "2026-04-19T00:00:00Z"
+  task_id: "judge-rating-v2"
+  re_judge_of: "judge-report-v1 (prior overall_confidence: 0.74)"
+  fix_commit: "f422dbe"
+  overall_confidence: 0.92
+
+  previously_blocking_concerns:
+    - concern: "compile-design-spec/SKILL.md did not declare design_system_path as a required input"
+      fix_commit: "f422dbe"
+      status: resolved
+      notes: >
+        Line 29 of compile-design-spec/SKILL.md now declares `design_system_path (path, required)`
+        with explicit contract-failure language: "Missing this path is a contract failure — the spec
+        cannot be compiled without the DS reference." Section 2 Step 1.6 reads the DS and extracts
+        sections; Section 7 (Visual Identity) references the DS by path; Section 8 (Handoff Notes)
+        names the DS artifact explicitly with its authorship step. Fully resolved.
+
+    - concern: "compile-design-spec Section 7/Handoff Notes said 'visual design NOT included' — directly contradicting the DS as first-class output"
+      fix_commit: "f422dbe"
+      status: resolved
+      notes: >
+        The 'visual design NOT included' language is gone. Section 7 is now 'Visual Identity' with
+        an explicit DS path reference and summary of what downstream implementors consult it for.
+        Section 8 Handoff Notes explicitly scopes visual design to the DS artifact and states
+        "Screens remain structural wireframes; the DS is the visual surface." Fully resolved.
+
+    - concern: "designer.md skill pool did not list draft-design-system, and the NEVER boundary carried a blanket no-visual-design prohibition that conflicted with C13 revision"
+      fix_commit: "f422dbe"
+      status: resolved
+      notes: >
+        designer.md now lists `draft-design-system` in its Available Skills table (line 50) and in
+        the Intent→Skill Mapping table (line 62). The NEVER boundary (line 99) is now scoped: it
+        prohibits colors/typography/pixel values inside wireframe ASCII blocks only, then explicitly
+        permits the DS: "The Design System artifact IS in scope and is produced by dispatching the
+        draft-design-system skill during /design Step 5b. DS tokens/ranges/inspirations go in the
+        design-system.md artifact, not in wireframe blocks." The ALWAYS section (line 111) adds:
+        "Honor the low-fidelity discipline for wireframes. When in doubt about whether something is
+        visual vs structural in a wireframe block, keep it structural. Visual surface (colors, fonts,
+        tokens) belongs in design-system.md, produced by draft-design-system in Stage 5b." Fully
+        resolved.
+
+  per_area:
+    - area: "intent.yaml changes correctness (C19/C20/C21/C13/F12/F18/F19/S8/S9)"
+      score: HIGH
+      assessment: >
+        All nine elements verified present and substantive in design/reference/intent.yaml.
+        C19 defines three invocation modes (product-wide / --epic / --feature) with clear
+        narrowing rules. C20 enumerates exactly the four artifact checks (personas.md, screens/,
+        design-spec.md, design-system.md) scoped strictly to {product_base}experience/ per the
+        approach. C21 prescribes the user interview + user-provided/ pre-seed + five DS sections.
+        C13 is correctly rewritten to the dual-surface rule — screens=structural wireframes,
+        DS=visual surface, prohibition scoped to in-wireframe tokens only. F12 narrows from
+        "play generates visual design elements" to "INSIDE wireframe ASCII blocks." F18 gates
+        LOCKED overwrite on delta Tether or --force-stage. F19 forbids pixel-level specs in DS.
+        S8 (single-epic scope) and S9 (brownfield re-entry) have populated persona/given/then.
+        No gaps detected.
+
+    - area: "draft-design-system skill design"
+      score: HIGH
+      assessment: >
+        SKILL.md at core/components/skills/draft-design-system/SKILL.md is well-formed.
+        Frontmatter: name, description, user-invocable: false, model, allowed-tools — all present.
+        Input contract: screens_dir, personas_path, scope_path, mvp_recommendation_path,
+        user_provided_path (optional), design_system_path, decision_manifest_path — all declared.
+        Output contract: design_system_path, decision_manifest_path, decisions_recorded — returned.
+        Process: 5-step flow covering context load, user-provided scan, interview (all 4
+        dimensions), DS authoring (5 sections), manifest emit. C1 (no pixel specs), C2 (DS not
+        in wireframe), C3 (user-invocable=false) explicitly stated. F1, F2 failure conditions
+        present. S1 (fresh product) and S2 (existing brief) success scenarios present.
+        One minor observation: `design_system_path` typo in Section 4 header ("Write
+        `design-system_path`") — this is cosmetic and does not affect the contract surface.
+
+    - area: "Compiled /design SKILL.md integrity"
+      score: HIGH
+      assessment: >
+        SKILL.md is confirmed compiled by /create-play --rebuild design (compilation metadata
+        section states compiled_at: 2026-04-19 and compiled_by: /create-play --rebuild design).
+        Step 5b is present between Checkpoint 2 (Step 5) and Step 6 (map-user-flows). The
+        Step 5b JSON contract dispatches draft-design-system with all required inputs. Decision
+        surfacing sub-gate 5b-a is present. Step 9 JSON contract includes design_system_path as
+        an input. All 31 step evals (SE-1..SE-31) and 9 scenario evals (SCE-1..SCE-9) are
+        embedded. Drift Notice documents all changes. The SKILL.md also contains an honest
+        agent-audit-gap notice for designer.md (now moot after f422dbe). The intent_hash
+        `sha256:7560d9b0efdc98b05c6d0e70036ccdf081ebb1ce0eeee879b9122c5ebae48876` is recorded.
+        No staleness indicators found.
+
+    - area: "Regression risk"
+      score: MEDIUM
+      assessment: >
+        C1..C12, C14..C18 and F1..F11, F13..F17 confirmed unchanged per Drift Notice. S1..S7
+        scenarios unchanged. JSON contract surfaces for the six prior skills are unchanged per
+        the Drift Notice and confirmed by inspection of Steps 1, 3, 6, 7, 8 contracts. The
+        compile-design-spec contract has gained design_system_path — this is a new required input,
+        meaning any caller that does not pass it will receive a contract failure. This is the
+        intended semantics (approach.yaml explicitly calls it out as a required input), but it is a
+        breaking contract change for any existing non-design-play caller of compile-design-spec.
+        In this codebase, compile-design-spec is only called by the /design play and designer agent,
+        both of which now supply the path. MEDIUM rather than HIGH because the risk is real but
+        the actual call surface is narrow and controlled.
+
+    - area: "Play-orchestrator boundary"
+      score: HIGH
+      assessment: >
+        The T3/T4 ownership boundary (enhance-play-orchestrator owns /create-play --rebuild and
+        /sync-claude; code-builder cannot invoke them) is clearly documented in approach.yaml tasks
+        T3 and T4, enforced by task ownership. SKILL.md Drift Notice confirms the rebuild ran at
+        the orchestrator level. The SKILL.md carries the compiled_by metadata. No evidence of
+        code-builder invoking create-play directly. The "Forbidden" section of design/SKILL.md
+        correctly delegates domain tasks to the designer agent and does not mention create-play
+        as an orchestrator tool (correct — the boundary is enforced at the enhance play level,
+        not within the design play itself).
+
+  any_new_blockers: []
+
+  concerns:
+    - id: NC-1
+      severity: low
+      area: "draft-design-system skill"
+      description: >
+        Typo in SKILL.md Section 4 header: "Write `design-system_path`" should be
+        "Write `design_system_path`" (underscore instead of hyphen before 'path'). Cosmetic
+        only — the contract variable name `design_system_path` is correctly declared in the
+        Input section and used throughout the Process section.
+
+    - id: NC-2
+      severity: low
+      area: "Regression risk — compile-design-spec breaking change"
+      description: >
+        design_system_path is now a required input in compile-design-spec. Any play or agent
+        outside the /design pipeline that calls compile-design-spec without this new field will
+        receive a contract failure. Current call surface appears limited to the /design play only,
+        so practical risk is low. Worth noting for any future caller.
+
+    - id: NC-3
+      severity: low
+      area: "designer.md — Input Reading Protocol not updated for Stage 5b"
+      description: >
+        The Input Reading Protocol section of designer.md (lines 69-75) lists Stages 1-4 and 6
+        but has no entry for Stage 5b (draft-design-system). The skill pool and intent→skill
+        mapping are correct; this is a documentation gap in the reading protocol only. No
+        behavioral impact since the skill dispatch contract is complete.
+
+  plaintext_deleted: true

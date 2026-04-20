@@ -39,16 +39,16 @@ These are the ONLY paths you may write to. Any `target_path` outside this list i
 | Pattern | Purpose |
 |---------|---------|
 | `.meridian/core/...` (except `.garura/core/memory/` which is gitignored) | Core configuration and state |
-| `.meridian/product/...` | Product planning artifacts (specify-product outputs) |
-| `.meridian/product/experience/...` | UX / design artifacts (design-exp outputs, post-D1 folder rename from `ux/`) |
-| `.meridian/product/architecture/...` | Architecture artifacts (build-arch outputs, post-D1 folder rename from `arch/`) |
+| `.meridian/product/...` | Product planning artifacts (specify outputs) |
+| `.meridian/product/experience/...` | UX / design artifacts (design outputs, post-D1 folder rename from `ux/`) |
+| `.meridian/product/architecture/...` | Architecture artifacts (arch outputs, post-D1 folder rename from `arch/`) |
 | `.meridian/project/issues/{N}/specs/...` | Issue-scoped plans |
 | `.meridian/project/issues/{N}/evidence/...` | Issue-scoped test/eval evidence |
 | `.meridian/project/issues/{N}/checkpoint/...` | Issue-scoped play approval gates |
-| `.meridian/project/issues/{N}/context/...` | Issue-scoped prepare-epic context |
+| `.meridian/project/issues/{N}/context/...` | Issue-scoped prepare context |
 | `.meridian/project/issues/{N}/review/...` | Issue-scoped review artifacts |
 
-Underscore-prefixed subdirectories INSIDE the product root are allowed (e.g., `.meridian/product/_checkpoints/specify-product/20260414.md` lives at the product root alongside the stage folders and is therefore legal).
+Underscore-prefixed subdirectories INSIDE the product root are allowed (e.g., `.meridian/product/_checkpoints/specify/20260414.md` lives at the product root alongside the stage folders and is therefore legal).
 
 Any other path — including `.meridian/product/evidence/`, `.meridian/product/checkpoints/`, or any file outside `.meridian/` entirely — is rejected with `status: failed` and `failure_reason: "target_path outside whitelist"`.
 

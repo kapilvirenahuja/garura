@@ -1,0 +1,107 @@
+evals:
+  - id: ER-1
+    name: Contract Mismatch at Skill Boundary
+    severity_if_fail: blocker
+    verification: |
+      For each skill boundary in the delivered enhancement (caller → callee),
+      read the caller's dispatch contract and the callee skill's declared Input
+      Contract. Check that every field the caller passes is declared in the
+      callee's Input Contract. Check that every required field in the callee's
+      Input Contract is supplied by the caller. Flag any field passed but not
+      declared, or any required field missing from the dispatch.
+    pass_criteria: |
+      Every field passed at every skill boundary is declared in the target
+      skill's Input Contract. No required callee input fields are absent from
+      the caller's dispatch contract.
+    fail_criteria: |
+      Any caller passes a field not declared in the callee's Input Contract
+      (undeclared field), OR any required callee input field is absent from
+      the caller's dispatch (missing field), at any skill boundary in the
+      delivered work.
+    example_fail: |
+      #305 anchor C-01: /design Step 9 passed `design_system_path` to the
+      compile-design-spec skill dispatch, but compile-design-spec's Input
+      Contract did not declare `design_system_path`. The field was silently
+      ignored at runtime — a contract mismatch at the skill boundary.
+
+  - id: ER-2
+    name: Intent-Propagation Break in Agent-to-Agent Handoff
+    severity_if_fail: blocker
+    verification: |
+      For each agent-to-agent handoff in the delivered enhancement where
+      Agent A writes an artifact that Agent B is supposed to consume, verify
+      that Agent B's Input Contract or dispatch contract explicitly references
+      or includes a path to the artifact Agent A wrote. A handoff where the
+      upstream artifact exists on disk but the downstream agent has no declared
+      input pointing to it is an intent-propagation break.
+    pass_criteria: |
+      For every upstream artifact produced by an agent in the enhancement,
+      at least one downstream agent's Input Contract or dispatch explicitly
+      declares a path or reference to that artifact. No produced artifact is
+      an orphan with zero downstream consumers declared.
+    fail_criteria: |
+      Any upstream agent writes an artifact that no downstream agent's
+      declared Input Contract or dispatch references — meaning the output
+      exists but the pipeline has no hook to read it, silently dropping the
+      upstream intent.
+    example_fail: |
+      #305 anchor C-01b: draft-design-system wrote design-system.md to STM,
+      but compile-design-spec's dispatch contract had no `design_system_path`
+      or equivalent field — compile-design-spec had no declared hook to read
+      the file. The intent carried by design-system.md was silently dropped
+      at the handoff boundary.
+
+  - id: ER-3
+    name: Stale Agent Boundary Contradicting New Rule
+    severity_if_fail: blocker
+    verification: |
+      For each agent touched or extended by the enhancement, read the agent's
+      MUST NOT Do / MUST NOT Receive / constraint list (or equivalent boundary
+      section). Compare each boundary statement against the new constraints
+      and rules introduced in the enhancement (new C-IDs, new skill contracts,
+      revised intent.yaml rules). Flag any agent boundary statement that
+      contradicts or is superseded by a newly introduced rule without being
+      updated.
+    pass_criteria: |
+      No agent boundary statement (MUST NOT / constraint) in any agent
+      touched by this enhancement contradicts a constraint or rule introduced
+      by the same enhancement. If the enhancement relaxes or changes an
+      existing prohibition, the relevant agent's boundary section reflects
+      the updated rule.
+    fail_criteria: |
+      Any agent's MUST NOT / boundary section contains a prohibition that
+      directly contradicts a rule introduced or revised by this enhancement,
+      leaving the agent with stale guidance that conflicts with the new
+      intended behavior.
+    example_fail: |
+      #305 anchor C-02: designer.md's MUST NOT section said "NEVER add visual
+      design elements". The enhancement introduced C13, which explicitly permits
+      the Design System (visual design artifact). The MUST NOT statement was
+      never updated — it remained as a stale prohibition contradicting the
+      newly-permitted behavior established by C13.
+
+  - id: ER-4
+    name: Overall Confidence Aggregation Cap
+    severity_if_fail: blocker
+    verification: |
+      Review the per-area assessments recorded for ER-1, ER-2, and ER-3.
+      If any of those evals is rated as a blocker-level concern (i.e., a
+      failure or a concern classified at blocker severity), the overall
+      confidence score MUST be capped at 0.55 or below. If no blocker
+      concerns exist across ER-1 through ER-3, overall confidence may
+      reflect the quality across all per-area assessments without the cap.
+    pass_criteria: |
+      If ER-1, ER-2, and ER-3 all pass with no blocker concerns: overall
+      confidence is uncapped and reflects the quality of the delivered work.
+      If any of ER-1, ER-2, or ER-3 records a blocker concern or failure:
+      overall_confidence ≤ 0.55.
+    fail_criteria: |
+      Any of ER-1, ER-2, or ER-3 records a blocker concern or failure AND
+      the overall_confidence score reported is greater than 0.55.
+    example_fail: |
+      #305 baseline: ER-1, ER-2, and ER-3 concerns were all present (contract
+      mismatch, intent-propagation break, stale boundary) but were labeled
+      "follow-up" rather than blockers, and overall confidence was reported
+      as 0.74 — above the C15 gate of 0.6. Under this eval, the correct
+      overall_confidence would have been ≤ 0.55, triggering the C15 gate
+      and requiring human review before PR.

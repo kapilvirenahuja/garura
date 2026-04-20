@@ -1,0 +1,286 @@
+design:
+  issue: 274
+  date: "2026-04-19"
+  type: "fix"
+  summary: >
+    Add a ship-level evidence sweep step (Step 6a) that enumerates all
+    sub-play evidence paths based on ship.json status and commits them to
+    main in a single targeted chore(stm) commit. Separately, add a
+    non-blocking self-commit to distill for proposals.yaml.
+
+  # ── Chosen Strategy ─────────────────────────────────────────────────────────
+
+  strategy:
+    name: "Ship-level sweep + distill self-commit"
+    description: >
+      Ship's Step 6 (Write Evidence) is extended to build a consolidated list
+      of sub-play evidence files from the known STM paths (derived from
+      ship.json task statuses). All sub-play files that exist and are untracked
+      are included in ship's own evidence self-commit alongside ship's evidence
+      file. This is one targeted commit on main after the pipeline ends.
+      Separately, distill's intent.yaml is updated to add a non-blocking
+      self-commit step for proposals.yaml, aligning it with ADR-012.
+
+    rationale: >
+      Occam's Razor: one sweep commit in ship's existing Step 6 is simpler than
+      making per-sub-play self-commits more reliable (requires debugging
+      non-blocking failures inside an auto-proceed pipeline, which is hard to
+      test). ADR-012 Rule 2 (non-blocking) is preserved — per-sub-play commits
+      remain non-blocking best-effort, and ship's sweep is the reliable backstop.
+      The sweep is explicit (enumerated paths from ship.json), not broad (never
+      git add .).
+
+    constraint_alignment:
+      - "ADR-012 Rule 1 (targeted, not broad): sweep enumerates explicit known paths"
+      - "ADR-012 Rule 2 (non-blocking): sweep is non-blocking on failure, like other self-commits"
+      - "ADR-012: Evidence lands on main — ship's Step 6 already runs on main"
+      - "CLAUDE.md Play Pipeline Rules: intent.yaml updated, /create-play --build run, never edit SKILL.md"
+
+  # ── Alternatives Considered ─────────────────────────────────────────────────
+
+  alternatives_considered:
+    - approach: "Make per-sub-play self-commits blocking (Option A)"
+      description: >
+        Change ADR-012 Rule 2 for sub-plays inside ship to be blocking instead
+        of non-blocking. If a self-commit fails, the sub-play halts and ship
+        halts.
+      rejected_because: >
+        Reversibility bias: this changes ADR-012 semantics for ALL invocations
+        of commit-code, create-pr, merge-pr (not just when run inside ship).
+        A standalone commit-code run failing because of an evidence self-commit
+        failure would be confusing and undesirable — the feature commits already
+        landed. Also does not fix distill's absence of any self-commit.
+      principle_cited: "Reversibility bias — changes shared ADR semantics with broad blast radius"
+
+    - approach: "Both per-play reliability fixes AND ship sweep (Option C)"
+      description: >
+        Fix per-sub-play self-commits to be more reliable AND add ship sweep.
+      rejected_because: >
+        Occam's Razor: the sweep already covers all cases. Debugging why
+        LLM orchestrators silently drop non-blocking calls is underdetermined
+        and adds complexity without additional reliability — the sweep is the
+        authoritative backstop regardless. Two fixes for the same gap is
+        unnecessary.
+      principle_cited: "Occam's Razor — sweep alone is sufficient; belt-and-suspenders adds no reliability guarantee"
+
+    - approach: "Add a dedicated Step 6.5 sweep before ship's evidence"
+      description: >
+        Insert a new step between distill and scenario validation (Step 4.5)
+        or between scenario evals and evidence (Step 5.5) to sweep sub-play
+        evidence.
+      rejected_because: >
+        Abstraction later, not sooner: extending ship's existing Step 6
+        self-commit to include sub-play paths is simpler than a new step.
+        The file list is already known at Step 6 time. No new orchestration
+        step needed.
+      principle_cited: "Abstraction later, not sooner — existing commit step already handles ship's own file; extend it"
+
+  # ── Risks ───────────────────────────────────────────────────────────────────
+
+  risks:
+    - risk: >
+        ship.json status file may not exist (fresh run or status write failed)
+        — sweep cannot enumerate which sub-plays ran.
+      mitigation: >
+        Sweep falls back to probing known paths directly:
+        evidence/commit-code/, evidence/create-pr/, evidence/merge-pr/,
+        evidence/distill/. If a path exists and contains untracked files,
+        include them. Non-blocking on failure — if sweep itself fails,
+        ship logs a warning and exits successfully.
+      severity: "low"
+
+    - risk: >
+        Intent hash for ship/SKILL.md is already stale (enhance/#240 direct
+        edit deviation noted in SKILL.md line 301-305). Running
+        /create-play --build ship will recompile from intent.yaml, possibly
+        discarding the direct-edit changes (distill and renumbering added by
+        enhance/#240).
+      mitigation: >
+        Before running /create-play --build ship: manually diff the current
+        SKILL.md against what the updated intent.yaml would produce to
+        identify enhance/#240 additions that must be re-expressed in intent.yaml.
+        Specifically: distill step (Step 4), scenario SCE-4, Step 5-6
+        renumbering. These must be in intent.yaml before --build runs,
+        otherwise they are lost. This is a prerequisite in the execution plan.
+      severity: "high"
+
+    - risk: >
+        Distill runs on main (post-merge). A self-commit in distill on main
+        requires an additional push to origin. If origin main is protected,
+        the push fails silently (non-blocking).
+      mitigation: >
+        Distill's self-commit is non-blocking. If it fails, ship's sweep
+        step (in Step 6) picks up proposals.yaml as an untracked file and
+        includes it in ship's evidence sweep commit. Double coverage.
+      severity: "low"
+
+    - risk: >
+        Ship's sweep commit will include files that were already committed by
+        sub-play self-commits (if those succeed on a future run). git add on
+        an already-committed, unmodified file is a no-op — no duplicate commit.
+      mitigation: >
+        Before committing, filter the sweep list to only files that are
+        actually untracked (git status --porcelain). Already-committed files
+        will not appear as untracked.
+      severity: "low"
+
+  # ── Execution Plan ──────────────────────────────────────────────────────────
+
+  execution_plan:
+    - step: 1
+      description: "Pre-work: reconcile enhance/#240 direct-edit additions into ship's intent.yaml"
+      owner: "code-builder"
+      files:
+        - path: "core/components/plays/ship/reference/intent.yaml"
+          action: "modify"
+          details: >
+            Read current SKILL.md to identify the enhance/#240 direct-edit additions:
+            (a) Step 4 — distill invocation (C8),
+            (b) SCE-4 — distill outcome scenario eval,
+            (c) Step 5 — renumbered scenario evals,
+            (d) Step 6 — renumbered evidence write.
+            If any of these are absent from the current intent.yaml, add them
+            as constraints (C8) and scenarios (S4) before the next step.
+            The intent.yaml already contains C8 and S4 — verify they match
+            SKILL.md. If they match, no change needed here.
+        - path: "core/components/plays/ship/SKILL.md"
+          action: "read-only reference"
+          details: "Read lines 178–239 to verify distill/SCE-4 are in scope"
+      expected_outcome: >
+        intent.yaml accurately represents the current SKILL.md behavior
+        including distill (C8) and SCE-4 (S4). No drift before rebuild.
+      self_test: >
+        diff the C8 constraint text in intent.yaml against Step 4 in SKILL.md;
+        diff S4 text against SCE-4 in SKILL.md. If aligned, step passes.
+
+    - step: 2
+      description: "Update ship/intent.yaml to add evidence sweep constraint and failure condition"
+      owner: "code-builder"
+      files:
+        - path: "core/components/plays/ship/reference/intent.yaml"
+          action: "modify"
+          details: >
+            Add constraint C9:
+              id: C9
+              rule: >
+                After Step 6 (Write Evidence), ship MUST build a sweep list of
+                all sub-play evidence files that exist and are untracked in the
+                working tree. The sweep list is derived from the STM paths
+                known for each sub-play that ran (commit-code, create-pr,
+                merge-pr, distill), using ship.json status to determine which
+                sub-plays completed. All untracked files in these paths are
+                included in ship's evidence self-commit alongside ship's own
+                evidence file. The sweep commit is non-blocking. If no untracked
+                sub-play files exist, no sweep commit is made.
+
+            Add failure condition F8:
+              id: F8
+              condition: >
+                Ship completes and sub-play evidence files written during the
+                pipeline remain untracked in the working tree.
+      expected_outcome: >
+        intent.yaml has C9 and F8 defined correctly.
+      self_test: >
+        Read intent.yaml — C9 and F8 are present with the correct text.
+
+    - step: 3
+      description: "Rebuild ship SKILL.md from updated intent.yaml"
+      owner: "code-builder"
+      files:
+        - path: "core/components/plays/ship/SKILL.md"
+          action: "modify (via /create-play --build)"
+          details: >
+            Run: /create-play --build ship
+            This recompiles SKILL.md from the updated intent.yaml.
+            Verify that the recompiled SKILL.md's Step 6 (Write Evidence) now
+            includes the sweep logic: enumerate sub-play paths from ship.json,
+            check each for untracked files (git status --porcelain filtered
+            to evidence/{sub-play}/ paths), include in the repo-orchestrator
+            self-commit file list alongside ship's own evidence file.
+            If /create-play does not auto-generate the sweep logic into Step 6,
+            file a follow-up — the intent constraint (C9) establishes the
+            requirement; the compiled play should implement it.
+      expected_outcome: >
+        SKILL.md Step 6 contains sweep logic addressing C9. Intent hash in
+        compilation metadata is updated to reflect new intent.yaml.
+      self_test: >
+        Read rebuilt SKILL.md. Verify: (1) Step 6 references C9 sweep;
+        (2) intent_hash in Compilation Metadata matches sha256 of updated
+        intent.yaml; (3) C8/distill step and SCE-4 are still present
+        (not dropped by recompile).
+
+    - step: 4
+      description: "Update distill/intent.yaml to add self-commit after proposals.yaml write"
+      owner: "code-builder"
+      files:
+        - path: "core/components/plays/distill/reference/intent.yaml"
+          action: "modify"
+          details: >
+            Add constraint C4:
+              id: C4
+              rule: >
+                After proposals.yaml is written to STM (or no_learnings is
+                confirmed), distill MUST invoke repo-orchestrator to self-commit
+                the evidence files it produced (evidence/distill/ contents).
+                This self-commit is non-blocking — any failure is logged and
+                distill returns gracefully. Never blocks the ship pipeline.
+            This makes the self-commit an explicit constraint so /create-play
+            compiles it into the workflow.
+      expected_outcome: >
+        distill/intent.yaml has C4 defined.
+      self_test: >
+        Read distill/intent.yaml — C4 is present.
+
+    - step: 5
+      description: "Rebuild distill SKILL.md from updated intent.yaml"
+      owner: "code-builder"
+      files:
+        - path: "core/components/plays/distill/SKILL.md"
+          action: "modify (via /create-play --build)"
+          details: >
+            Run: /create-play --build distill
+            Verify that the recompiled SKILL.md includes a self-commit step
+            (non-blocking) after proposals.yaml is written:
+              "Invoke repo-orchestrator to self-commit evidence files (ADR 012).
+               Non-blocking on failure."
+            The commit message should follow the ADR-012 pattern:
+              "chore(stm): record distill evidence for #{issue} (#{issue})"
+      expected_outcome: >
+        distill SKILL.md has a self-commit step after proposals.yaml write.
+        intent_hash is updated.
+      self_test: >
+        Read rebuilt distill/SKILL.md. Verify self-commit step present with
+        non-blocking semantics. Verify intent_hash updated.
+
+    - step: 6
+      description: "Validate fix against issue #274 reproduction case"
+      owner: "code-builder"
+      files:
+        - path: ".garura/project/issues/266/evidence/"
+          action: "read-only verification reference"
+          details: >
+            The untracked files for issue #266 (listed in issue-read.yaml)
+            are the reproduction case. After the fix ships, a new ship run
+            should NOT leave sub-play evidence files untracked. This step
+            is a design-level verification only — confirm the sweep logic
+            in the rebuilt SKILL.md would have captured the #266 files if
+            it had been active during that run.
+            Verify by tracing: ship.json status for #266 would show
+            commit-code/create-pr/merge-pr/distill as "completed" → sweep
+            would probe evidence/commit-code/, evidence/create-pr/,
+            evidence/merge-pr/, evidence/distill/ → untracked files found →
+            included in ship's self-commit.
+      expected_outcome: >
+        Sweep logic in rebuilt SKILL.md would have captured all four
+        evidence paths from the #266 reproduction case.
+      self_test: >
+        Trace sweep logic against #266 evidence paths manually — each path
+        exists and contains untracked files that sweep would pick up.
+
+  estimated_scope:
+    files_touched: 4
+    complexity: "low"
+    note: >
+      Core change is 2 intent.yaml edits (< 10 lines each) + 2 /create-play
+      --build runs. The high severity risk (enhance/#240 drift) is a
+      prerequisite verification, not additional implementation work.

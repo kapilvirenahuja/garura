@@ -1,0 +1,83 @@
+resolution_trace:
+  issue: 274
+  date: "2026-04-19"
+  play: "fix-it"
+  agent: "tech-designer"
+  task_id: "rca-and-design"
+
+  ltm_context_provided: true
+  query_domains:
+    - "architecture"
+    - "design-patterns"
+
+  # ── R1: Decision Domains ─────────────────────────────────────────────────────
+
+  r1_decision_domains:
+    - domain: "evidence-self-commit-pattern"
+      source: "ADR-012 (docs/adr/012-evidence-self-commit.md)"
+      relevance: "Defines the self-commit pattern all plays must follow"
+    - domain: "play-compilation-workflow"
+      source: "CLAUDE.md Play Pipeline Rules"
+      relevance: "Governs how play changes must flow through intent.yaml + /create-play --build"
+    - domain: "sub-play-chaining"
+      source: "ship/SKILL.md — Structure C play orchestration"
+      relevance: "Governs how ship chains sub-plays and what each sub-play is responsible for"
+
+  # ── R2: Project LTM (locked artifacts) ─────────────────────────────────────
+
+  r2_project_ltm:
+    searched_base: ".garura/project/"
+    locked_artifacts_checked: []
+    findings:
+      - "No locked architecture artifacts for the ship pipeline domain"
+
+  # ── R3: Core LTM ────────────────────────────────────────────────────────────
+
+  r3_core_ltm:
+    searched_base: "~/.garura/core/memory/"
+    files_consulted:
+      - path: "docs/adr/012-evidence-self-commit.md"
+        resolved_from: "direct read"
+        coverage: "Full — defines self-commit rules (targeted, non-blocking, no recursion, applies to all plays with Stage 7)"
+      - path: "CLAUDE.md"
+        resolved_from: "project instructions"
+        coverage: "Play Pipeline Rules — never edit SKILL.md, use intent.yaml + /create-play --build"
+    gaps: []
+
+  # ── R4: Unresolved Domains ───────────────────────────────────────────────────
+
+  r4_unresolved_domains: []
+
+  # ── Key Decisions ────────────────────────────────────────────────────────────
+
+  key_decisions:
+    - decision: "Fix via ship-level sweep (Option B), not per-play reliability hardening (Option A or C)"
+      confidence: "high"
+      resolved_from: "ADR-012 + Occam's Razor"
+      rationale: >
+        ADR-012 Rule 2 preserves non-blocking self-commits. Ship's sweep is
+        the authoritative backstop. One sweep commit is simpler and covers
+        all cases including distill's absence of any self-commit.
+
+    - decision: "Distill needs its own self-commit added to intent.yaml"
+      confidence: "high"
+      resolved_from: "direct read of distill/SKILL.md"
+      rationale: >
+        Distill has no Evidence & Close phase. Its intent_hash is a placeholder.
+        This is an explicit gap — distill was never aligned with ADR-012.
+
+    - decision: "enhance/#240 drift must be resolved before /create-play --build ship"
+      confidence: "high"
+      resolved_from: "ship/SKILL.md lines 301-305 direct-edit deviation note"
+      rationale: >
+        ship/SKILL.md's intent_hash is already stale. Running /create-play
+        --build without first verifying intent.yaml covers enhance/#240 additions
+        risks dropping distill step and SCE-4. This is the highest-severity risk.
+
+    - decision: "Do NOT modify commit-code/create-pr/merge-pr SKILL.md files"
+      confidence: "high"
+      resolved_from: "blast radius analysis"
+      rationale: >
+        These sub-plays already prescribe self-commits. The sweep is a backstop
+        for when those fail. Changing their behavior requires separate intent
+        changes and /create-play --build runs — out of scope for this defect.

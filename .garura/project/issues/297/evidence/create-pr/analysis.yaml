@@ -1,0 +1,88 @@
+analysis:
+  branch: fix/297-reconcile-claude-md-approval-convention
+  base: main
+  branch_pattern: bugfix
+  commits: 3
+  changes:
+    files: 4
+    additions: 86
+    deletions: 81
+
+  suggested_title: "docs(claude-md): reconcile garura paths, approval convention, and play pipeline rules (#297)"
+
+  context:
+    file_patterns_matched:
+      - name: Architecture Docs
+        files: 1
+        trigger: "CLAUDE.md matches docs/components/*.md, README.md, CLAUDE.md pattern"
+      - name: STM Evidence
+        files: 3
+        trigger: ".garura/project/issues/297/evidence/start-feature/* — STM artifacts"
+    commit_types:
+      - type: docs
+        count: 1
+        example: "docs(claude-md): reconcile garura paths, approval convention, and play pipeline rules (#297)"
+      - type: chore
+        count: 1
+        example: "chore(stm): record start-feature evidence for #297"
+      - type: merge
+        count: 1
+        example: "merge: sync fix/297 with origin/main (4 commits)"
+    branch_modifiers:
+      - "bugfix branch — standard priorities apply, no promotions or demotions"
+      - "commit type 'docs' triggers docs-only nice-to-have rule"
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: No merge conflicts
+        trigger: "Universal rule — always applied"
+        status: PASS
+        evidence: "git merge-tree --write-tree main HEAD → clean tree SHA c8785c8 (no conflict markers)"
+
+      - id: no-secrets
+        item: No secrets committed
+        trigger: "Universal rule — always applied"
+        status: PASS
+        evidence: "Scanned CLAUDE.md diff — only documentation path references (~/.garura/..., .garura/core/config.yaml). No credentials, keys, tokens, or secret patterns detected."
+
+      - id: docs-consistent
+        item: Documentation consistent with implementation
+        trigger: "CLAUDE.md changed — Architecture Docs rule triggered"
+        status: REVIEW
+        evidence: >
+          CLAUDE.md updated 5 path references from ~/.meridian/core/memory/ → ~/.garura/core/memory/
+          and .meridian/core/config.yaml → .garura/core/config.yaml. Manual check needed:
+          (1) Verify ~/.garura/core/memory/ is the canonical deployed path used by /sync-claude.
+          (2) Verify Play Pipeline Rules change (direct edits allowed when intent.yaml unchanged) aligns with
+          current framework behavior. (3) Verify Section 4 rewrite ('Agents hold the role of Context Crafting')
+          matches deployed agent definitions.
+
+    nice_to_have:
+      - id: docs-examples
+        item: Documentation includes examples
+        trigger: "CLAUDE.md changed — Architecture Docs rule triggered"
+        status: PASS
+        evidence: "CLAUDE.md retains code block examples for agent delegation pattern (WRONG vs CORRECT blocks) and sync-claude usage."
+
+      - id: docs-only
+        item: No functional changes (docs commit type)
+        trigger: "Commit type 'docs' — docs-only rule triggered"
+        status: REVIEW
+        evidence: >
+          3 of 4 changed files are STM evidence artifacts (non-functional). CLAUDE.md changes are
+          documentation-only. However, Play Pipeline Rules section was substantively relaxed:
+          old text said 'Never edit skill files directly'; new text says 'we can edit files directly'
+          when intent.yaml is unchanged. This is a behavioral policy change documented in CLAUDE.md —
+          a human reviewer should confirm this relaxation is intentional and consistent with
+          the framework's locked conventions.
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Create PR — no blocking issues. One must-have REVIEW item (docs-consistent) and one nice-to-have REVIEW item (behavioral policy relaxation in Play Pipeline Rules section) require human sign-off during review, not pre-merge blocking."
+
+  target_branch_confidence:
+    branch: main
+    confidence: high
+    reason: "fix/* branch targeting main is the standard pattern for this repo. Recent merged PRs (#287, #286) confirm fix/* → main convention."

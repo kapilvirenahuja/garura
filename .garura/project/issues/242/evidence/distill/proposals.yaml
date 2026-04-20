@@ -1,0 +1,31 @@
+no_learnings: false
+proposals:
+  - type: feedback
+    title: Core pipeline plays use short bare names with garura: namespace prefix in name: field
+    body: |
+      The 6 core pipeline plays were renamed from verbose compound identifiers to short
+      bare invocation names. The new names are: specify, design, arch, prepare, implement,
+      validate. The name: frontmatter field uses the garura: namespace prefix
+      (e.g., garura:specify), while all narrative references, path templates, evidence
+      directories, and invocation examples use the bare short name without the prefix.
+
+      Utility plays (ship, fix-it, enhance, distill) retain their existing short names
+      unchanged — the rename was targeted at the pipeline plays only.
+
+      Naming rule for new plays: pipeline plays use a single short verb/noun (no compound
+      names, no domain suffixes like -product or -exp, no scope suffixes like -epic).
+      The garura: prefix applies only in the name: frontmatter field; everywhere else the
+      bare name is used.
+
+      ADR-018 (docs/adr/018-pipeline-play-rename.md) documents the full rationale and
+      rename mapping. The rename required atomic updates across ~88 files — SKILL.md,
+      intent.yaml, evals.yaml, skill files, agent files, memory standards, schemas,
+      grounding, and documentation — all in one PR to avoid intermediate broken states.
+
+      Migration boundary: evidence path templates inside SKILL.md change with the rename
+      (e.g., evidence/implement-epic/ → evidence/implement/). Any in-flight play run
+      started before /sync-claude deploys the rename will not be resumable; it must be
+      completed or restarted. A pre-flight check for open in-flight runs is required
+      before deploying any play rename via /sync-claude.
+    confidence: high
+    source: pr/285
