@@ -1,0 +1,15 @@
+branch:
+  name: "fix/297-reconcile-claude-md-approval-convention"
+  action: created
+  pushed: true
+  tracking: "origin/fix/297-reconcile-claude-md-approval-convention"
+  changes_preserved: true
+
+worktree:
+  used: false
+  reason: "Minor changes (1 tracked file, 95 lines) — stash strategy applied"
+
+stash:
+  used: true
+  message: "meridian: pre-branch stash for fix/297-reconcile-claude-md-approval-convention"
+  popped: true
