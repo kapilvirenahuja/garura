@@ -1,0 +1,128 @@
+judge_report:
+  timestamp: "2026-04-19T00:00:00+0530"
+  task_id: "judge-rating"
+  mode: "enhance-rating"
+  rated_play: "/design (garura:design)"
+  source_artifacts:
+    - .garura/project/issues/305/evidence/enhance/approach.yaml
+    - core/components/plays/design/reference/intent.yaml
+    - core/components/skills/draft-design-system/SKILL.md
+    - core/components/plays/design/SKILL.md
+    - core/components/skills/compile-design-spec/SKILL.md
+
+  overall_confidence: 0.74
+
+  per_area:
+
+    - area: "Intent.yaml changes correctness"
+      score: 0.78
+      assessment: >
+        C19 (scope resolution), C20 (brownfield detection), and C21 (DS authoring) are all
+        present in intent.yaml with non-empty rule text — E2 passes. F18 and F19 are present
+        with clear, binary-testable condition text — E3 passes. S8 and S9 are present with
+        populated persona/given/then fields — E4 passes. C13 is correctly rewritten as a
+        dual-surface rule: wireframes remain structural ASCII; DS-as-separate-artifact is
+        explicitly permitted — E5 passes. F12 is narrowed correctly to visual elements inside
+        wireframe ASCII blocks. C10 is extended to include design-system.md in the ADR 017
+        whitelist. One gap: compile-design-spec/SKILL.md (T2b target) does NOT list
+        design_system_path as a required input — the input section (personas_path, screens_dir,
+        flows_dir, scope_path, quality_profile_path, design_spec_path, decision_manifest_path)
+        has no design_system_path entry, and Section 7 Handoff Notes still reads "Visual design
+        is NOT included", which is stale vs. revised C13. The play's Step 9 JSON contract passes
+        design_system_path, creating a contract mismatch. T2b was a stated deliverable in the
+        approach; its absence is a propagation gap that reduces correctness confidence.
+
+    - area: "draft-design-system skill design"
+      score: 0.91
+      assessment: >
+        SKILL.md exists at core/components/skills/draft-design-system/SKILL.md. Frontmatter is
+        complete: name, description, user-invocable=false, model=sonnet, allowed-tools. Required
+        sections all present: Purpose, Input, Output, Process (5 numbered steps), Constraints
+        (C1-C3), Failure Conditions (F1-F2), Success Scenarios (S1-S2), References. Boundary is
+        clean: skill explicitly prohibits specific hex codes (outside Inspirations), CSS variable
+        names, rem/px values, font-family declarations. DS-does-not-flow-into-wireframes boundary
+        is stated in both Purpose and C2. Pre-seeding from user-provided/ is clearly specified.
+        Decision manifest schema and per-dimension recording are defined. One minor issue:
+        S2 scenario shows decisions_recorded >= 4 (3 pre-seeded + 1 interview) — the accounting
+        is illustrative and correct. No pixel spec leakage observed. Skill was authored via
+        /skill-creator per the approach (referenced intent source at
+        core/components/skills/draft-design-system/reference/intent.yaml).
+
+    - area: "Compiled /design SKILL.md integrity"
+      score: 0.85
+      assessment: >
+        Step 5b is present, correctly positioned between Step 5 (Checkpoint 2) and Step 6 (map
+        user flows). JSON contract for Step 5b-ii passes screens_dir, personas_path, scope_path,
+        mvp_recommendation_path, user_provided_path (optional). Step 5b-a decision surfacing
+        is present with correct tier-mapping. Pre-flight table includes both PF-1 (scope
+        resolution) and PF-6 (brownfield detection) in the correct sequence (PF-1 before PF-6).
+        Gap-only mode rules are clearly stated. Evals cover new constraints: SE-25 (C19),
+        SE-26 (C20), SE-27 (C21), SE-28 (F19), SE-29 (F18), SE-30 (C13 revised). 31 step evals
+        + 9 scenario evals (SCE-8, SCE-9 for S8/S9). Compilation metadata present with
+        intent_hash and compiled_at. Step 9 JSON contract passes design_system_path as required
+        input — this is correct for the /design orchestration. Minor: Step 9 downstream contract
+        passes design_system_path but compile-design-spec SKILL.md does not declare it in its
+        Input section (T2b gap propagated here). The designer agent boundary table still references
+        only 2 domain agents; the Drift Notice explicitly flags that designer.md does not list
+        draft-design-system in its skill pool.
+
+    - area: "Regression risk"
+      score: 0.82
+      assessment: >
+        Drift Notice explicitly declares what did NOT change: C1-C12, C14-C18, F1-F11, F13-F17,
+        S1-S7, and all 6 prior JSON contract input surfaces. The workflow structure (3 human
+        checkpoints + tiered decision-surfacing sub-gates) is preserved. SE-1 through SE-24 map
+        to F1-F17 and C17-C18 from prior bake. SE-31 covers C12 (3 checkpoints). Verified: Step 3
+        screen inventory still dispatches generate-screen-inventory with unchanged input surface.
+        Step 8 wireframe generation still dispatches generate-wireframes. Step 9 compile-design-spec
+        still dispatched. One known regression-adjacent gap: designer.md agent doesn't list
+        draft-design-system in its skill pool and its "Never add visual design elements" boundary
+        is stale vs revised C13. The play flags this explicitly ("known agent-audit gap") and notes
+        it does not block the rebuild since the orchestration layer dispatches draft-design-system
+        directly. This is a declared follow-up, not a hidden regression. Score withheld from perfect
+        because the agent boundary staleness could produce confusion in real executions.
+
+    - area: "Play-orchestrator boundary"
+      score: 0.88
+      assessment: >
+        Approach.yaml T3 is unambiguously owned by "enhance-play-orchestrator (Skill tool
+        invocation — NOT code-builder)". ALT2 explicitly rejects bash workaround. R1 documents
+        the risk and mitigation. T2 constrains code-builder: "does NOT attempt to run /create-play
+        --rebuild design". The compiled SKILL.md does not need to re-document the code-builder
+        prohibition (that constraint lives in the enhance play, not the /design play) — absence
+        is correct per framework. The SKILL.md Compiled From block states the regeneration path
+        and instructs future editors to update intent.yaml and re-run /create-play --rebuild design.
+        The boundary is sufficiently clear.
+
+  low_confidence_areas: []
+
+  concerns:
+    - id: C-01
+      severity: high
+      area: "compile-design-spec skill — T2b gap"
+      detail: >
+        compile-design-spec/SKILL.md Input section does not include design_system_path as a
+        required input. The approach (T2b) listed this as a stated deliverable. The play's Step 9
+        JSON contract passes design_system_path, but the skill contract does not declare it —
+        a contract mismatch. Section 7 Handoff Notes also retains stale language ("Visual design
+        is NOT included") which conflicts with revised C13. T2b was not fully propagated.
+
+    - id: C-02
+      severity: medium
+      area: "designer.md agent staleness"
+      detail: >
+        designer.md agent does not list draft-design-system in its skill pool and retains a
+        "Never add visual design elements" boundary that is stale vs revised C13. Flagged by
+        the Drift Notice. Does not block operation (orchestration dispatches directly) but should
+        be resolved in a follow-up to avoid agent confusion.
+
+    - id: C-03
+      severity: low
+      area: "compile-design-spec Handoff Notes section 7"
+      detail: >
+        Section 7 currently says "Visual design is NOT included. Downstream visual-design work
+        (colors, typography, brand) layers on top of this structural spec." This is not wrong
+        for the design-spec itself, but it creates ambiguity now that design-system.md is
+        produced. A reader could interpret this as meaning /design produces nothing visual.
+        Should reference design-system.md as the visual artifact that coexists with this
+        structural spec.

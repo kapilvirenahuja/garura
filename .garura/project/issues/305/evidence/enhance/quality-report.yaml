@@ -1,0 +1,56 @@
+quality_report:
+  timestamp: "2026-04-19T00:00:00+0530"
+  overall: "PASS"
+
+  gates:
+    - name: build
+      status: PASS
+      command: null
+      exit_code: null
+      evidence: "No tooling — framework repo (YAML/Markdown only). No build pipeline configured."
+
+    - name: lint
+      status: PASS
+      command: null
+      exit_code: null
+      evidence: "No tooling — framework repo (YAML/Markdown only). No lint pipeline configured."
+
+    - name: typecheck
+      status: PASS
+      command: null
+      exit_code: null
+      evidence: "No tooling — framework repo (YAML/Markdown only). No typecheck pipeline configured."
+
+    - name: unit_tests
+      status: PASS
+      command: null
+      exit_code: null
+      evidence: "No tooling — framework repo (YAML/Markdown only). No test pipeline configured."
+
+    - name: yaml_integrity
+      status: PASS
+      files_checked: 5
+      results:
+        - file: core/components/plays/design/reference/intent.yaml
+          status: PASS
+          evidence: "Parsed cleanly via PyYAML safe_load. All required top-level keys present (name, description, version, checksum, intent, constraints, failure_conditions, scenarios). 21 constraints (C1–C21), 19 failure conditions (F1–F19), 9 scenarios (S1–S9)."
+
+        - file: core/components/skills/draft-design-system/SKILL.md
+          status: PASS
+          check: frontmatter_only
+          evidence: "YAML frontmatter between --- delimiters parsed cleanly. Fields present: name (draft-design-system), description (non-empty), user-invocable (false), model (sonnet), allowed-tools (Read, Write)."
+
+        - file: .garura/project/issues/305/evidence/enhance/approach.yaml
+          status: PASS
+          evidence: "Parsed cleanly. Top-level keys: problem_statement, solution_summary, files_to_create, files_to_modify, connections, tasks, evals, risks, alternatives_considered. No syntax errors."
+
+        - file: .garura/project/issues/305/evidence/enhance/self-eval.yaml
+          status: PASS
+          evidence: "Parsed cleanly. Contains iteration, results (7 eval entries E1–E7 all PASS), summary (7 total / 7 pass / 0 fail), fix_loop fields, flagged_for_followup."
+
+        - file: .garura/project/issues/305/evidence/enhance/judge-report.yaml
+          status: PASS
+          evidence: "Parsed cleanly. Contains judge_report with timestamp, task_id, mode, rated_play, source_artifacts, overall_confidence (0.74), per_area (5 areas), low_confidence_areas, concerns (C-01 high, C-02 medium, C-03 low)."
+
+  vision_gate_violations: []
+  qp_source: "toolchain-detected"

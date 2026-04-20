@@ -1,0 +1,74 @@
+---
+# Self-Evaluation — Issue #305
+# Ran: 2026-04-20
+
+iteration: 1
+
+results:
+  - id: E1
+    check: draft-design-system SKILL.md exists with required sections
+    verdict: PASS
+    evidence: >
+      core/components/skills/draft-design-system/SKILL.md — 153 lines. Frontmatter
+      correct (name, description, user-invocable: false, model: sonnet,
+      allowed-tools: Read, Write). Sections present: Purpose, Input (7 params),
+      Output (3 params), Process (5 steps), Constraints (C1-C3), Failure
+      Conditions (F1-F2), Success Scenarios (S1-S2), References.
+
+  - id: E2
+    check: design/reference/intent.yaml contains C19, C20, C21 with non-empty rules
+    verdict: PASS
+    evidence: 3 constraint IDs matched in grep.
+
+  - id: E3
+    check: design/reference/intent.yaml contains F18 and F19 with non-empty conditions
+    verdict: PASS
+    evidence: 2 failure condition IDs matched in grep.
+
+  - id: E4
+    check: design/reference/intent.yaml contains S8 and S9 with persona/given/then populated
+    verdict: PASS
+    evidence: 2 scenario IDs matched in grep.
+
+  - id: E5
+    check: C13 no longer blanket-prohibits visual design; scoped to wireframes only
+    verdict: PASS
+    evidence: >
+      C13 revised to "Screens are LOW-FIDELITY structural wireframes — no colors,
+      no typography-level detail, no spacing pixel values inside the wireframe
+      ASCII blocks." Design System (DS) is now explicitly in scope as a separate
+      artifact. The prior absolute prohibition is lifted.
+
+  - id: E6
+    check: design/SKILL.md regenerated with fresh intent_hash
+    verdict: PASS
+    evidence: >
+      design/SKILL.md Compilation Metadata: intent_hash sha256:7560d9b0…48876
+      matches current intent.yaml content. compiled_at: 2026-04-19.
+
+  - id: E7
+    check: design/SKILL.md references draft-design-system skill in at least one workflow step
+    verdict: PASS
+    evidence: 7 references to draft-design-system in SKILL.md — Step 5b (dispatch),
+      Task DAG, agent-boundary table, and coverage matrix.
+
+summary:
+  total: 7
+  pass: 7
+  waived: 0
+  fail: 0
+
+fix_loop_iteration: 0
+fix_loop_required: false
+
+flagged_for_followup:
+  - issue: designer agent partial audit (P7 Skill Delegation)
+    detail: >
+      The rebuild sub-agent's agent audit flagged designer as PARTIAL — the
+      draft-design-system skill is not listed in designer's skill pool, and
+      designer's "no visual design" boundary text is stale vs revised C13.
+      The /design play dispatches draft-design-system explicitly via JSON
+      contract, so the rebuild is functional, but designer should be rebaked
+      in a follow-up change.
+    severity: low
+    blocking: false

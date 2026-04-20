@@ -1,0 +1,191 @@
+play: design
+intent_hash: "sha256:7560d9b0efdc98b05c6d0e70036ccdf081ebb1ce0eeee879b9122c5ebae48876"
+step_evals:
+  # F1 coverage
+  - id: SE-1
+    source: F1
+    step: 1
+    check: "personas.md exists and persona count >= 1"
+  - id: SE-2
+    source: F1
+    step: 3
+    check: "screens/ exists and contains >= 1 screen MD file"
+  - id: SE-3
+    source: F1
+    step: 6
+    check: "flows/ exists and contains >= 1 flow MD file"
+
+  # F2-F9
+  - id: SE-4
+    source: F2
+    step: 1
+    check: "Every persona uses JTBD 'When … I want … so I can …' format"
+  - id: SE-5
+    source: F3
+    step: 1
+    check: "Every persona is mapped to >= 1 capability from scope.selected_capabilities"
+  - id: SE-6
+    source: F4
+    step: 3
+    check: "Every capability has >= 1 screen"
+  - id: SE-7
+    source: F5
+    step: 3
+    check: "Every screen enumerates >= 3 distinct states"
+  - id: SE-8
+    source: F6
+    step: 6
+    check: "Every success_scenario has >= 1 flow"
+  - id: SE-9
+    source: F7
+    step: 6
+    check: "Every failure_scenario has >= 1 recovery flow"
+  - id: SE-10
+    source: F8
+    step: 8
+    check: "No vague wireframe descriptions; every wireframe names components + layout pattern"
+  - id: SE-11
+    source: F9
+    step: 8
+    check: "Every interactive screen carries WCAG-level accessibility requirements"
+
+  # F10-F13
+  - id: SE-12
+    source: F10
+    step: 10
+    check: "All 3 human checkpoint artifacts exist with recorded Tether/Vanish/Orbit"
+  - id: SE-13
+    source: F11
+    step: 11
+    check: "No artifact written outside ADR 017 whitelist; all evidence/checkpoint/status went through scriber"
+  - id: SE-14
+    source: F12
+    step: 8
+    check: "No visual-design elements (hex, px/rem, font-family) inside wireframe ASCII blocks (revised: DS-as-sibling is allowed elsewhere)"
+  - id: SE-15
+    source: F13
+    step: all
+    check: "No skill receives ltm_domain_taxonomy_path; no skill reads directly from core/components/memory/knowledge/domain/"
+
+  # F14 (MVP Focus)
+  - id: SE-16
+    source: F14
+    step: 1
+    check: "No persona generated for a use case absent from mvp-recommendation.md primary_use_cases"
+  - id: SE-17
+    source: F14
+    step: 3
+    check: "No user-surface screen created for a capability serving only deferred use cases"
+  - id: SE-18
+    source: F14
+    step: 6
+    check: "No flow authored for a scenario belonging to a deferred-use-case-only epic"
+
+  # F15 (visual-first screens)
+  - id: SE-19
+    source: F15
+    step: 3
+    check: "generate-screen-inventory emits `## Wireframe` as the FIRST body section after H1 (placeholder ok)"
+  - id: SE-20
+    source: F15
+    step: 8
+    check: "generate-wireframes full shape: Wireframe first, Layout Spec last, every declared state has a wireframe block, no visual-design tokens inside wireframes"
+
+  # C17/C18/F16/F17 (decision surfacing)
+  - id: SE-21
+    source: C17
+    step: all-inferred
+    check: "Every inferred decision has tier + grounding_source + recommendation + alternatives_considered; surfacing flow ran per tier before downstream consume"
+  - id: SE-22
+    source: C18
+    step: all-inferred
+    check: "Every inferred-decision skill wrote decision-manifest.yaml with all required fields populated for every entry"
+  - id: SE-23
+    source: F16
+    step: all-inferred
+    check: "No inferred decision was silently committed; user_response non-null for every entry before next step"
+  - id: SE-24
+    source: F17
+    step: all-inferred
+    check: "No manifest is missing, malformed, or has un-surfaced entries"
+
+  # C19 (scope resolution pre-flight)
+  - id: SE-25
+    source: C19
+    step: pre-flight
+    check: "When invoked with --epic <id> or --feature <id>, scope-resolver narrows epics_dir (epic mode) or capabilities-set (feature mode) before dispatching skills; skill contracts receive the narrowed epics_dir"
+
+  # C20 (brownfield detection)
+  - id: SE-26
+    source: C20
+    step: pre-flight
+    check: "Pre-flight scans {product_base}experience/ only; sets mode=greenfield|gap-only; in gap-only mode skips LOCKED-artifact stages unless --force-stage"
+
+  # C21 + F19 (DS authoring)
+  - id: SE-27
+    source: C21
+    step: 5b
+    check: "After Checkpoint 2 and before Step 6, designer invokes draft-design-system; design-system.md exists with sections Palette, Typography, Tokens, Inspirations, Open Questions"
+  - id: SE-28
+    source: F19
+    step: 5b
+    check: "design-system.md contains no specific hex codes outside Inspirations section, no rem/px values, no CSS variable names, no font-family declarations"
+
+  # F18 (gap-only LOCKED protection)
+  - id: SE-29
+    source: F18
+    step: pre-flight/all
+    check: "In gap-only mode, no stage overwrites a LOCKED artifact without an explicit delta checkpoint Tether or --force-stage flag"
+
+  # Remaining constraint evals (revised C13 + artifact-verifiable)
+  - id: SE-30
+    source: C13
+    step: 5b/8
+    check: "Revised C13 holds: DS lives at {product_base}experience/design-system.md as a sibling artifact; DS tokens do NOT flow into wireframe ASCII; wireframes remain structural"
+  - id: SE-31
+    source: C12
+    step: 10
+    check: "Exactly 3 human-review checkpoints (after personas, after screens, after final spec) with recorded responses"
+
+scenario_evals:
+  - id: SCE-1
+    source: S1
+    persona: Developer
+    check: "A developer can build a screen's layout directly from ## Wireframe + ## Layout Spec without asking for clarification"
+  - id: SCE-2
+    source: S2
+    persona: External Designer
+    check: "personas.md uses JTBD format throughout; every persona maps to a capability; capability→persona map covers all scope capabilities"
+  - id: SCE-3
+    source: S3
+    persona: Product Manager
+    check: "Every intent-epic success_scenario and failure_scenario has a matching flow file referencing it via frontmatter source_scenario"
+  - id: SCE-4
+    source: S4
+    persona: Technical Architect
+    check: "Every screen discloses state count, data requirements per state, and action lists per state; navigation points listed"
+  - id: SCE-5
+    source: S5
+    persona: Accessibility Lead
+    check: "Every interactive screen's ## Accessibility references a WCAG level matching or exceeding the product's quality-profile.interaction_capability target"
+  - id: SCE-6
+    source: S6
+    persona: Developer
+    check: "design-spec.md section 5 'Interaction Patterns' has a single product-wide decision per pattern (validation, loading, error placement, empty states, transitions)"
+  - id: SCE-7
+    source: S7
+    persona: Product Manager (final review)
+    check: "design-spec.md contains sections 1–7 including Handoff Notes; Checkpoint 3 captures a single Tether"
+  - id: SCE-8
+    source: S8
+    persona: Product owner scoping a single epic
+    check: "Invocation with --epic <id> narrows pre-flight to a single epic file; artifacts for other epics' capabilities are not touched; design-spec covers only the scoped epic"
+  - id: SCE-9
+    source: S9
+    persona: Designer re-entering a brownfield product
+    check: "Pre-flight detects brownfield; LOCKED personas.md and screens/ skipped; play proceeds through DS (Step 5b) → flows → wireframes → compile-spec; delivery record notes skipped stages"
+
+summary:
+  step_eval_count: 31
+  scenario_eval_count: 9
+  total: 40

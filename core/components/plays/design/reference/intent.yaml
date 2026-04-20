@@ -93,7 +93,7 @@ constraints:
   - id: C10
     rule: >
       Design artifacts (personas, screens, flows, wireframes,
-      design-spec) land under .meridian/product/experience/ per
+      design-spec, design-system.md) land under .meridian/product/experience/ per
       ADR 017 post-D1 folder whitelist — the former
       .meridian/product/ux/ folder was renamed to experience/.
       Lifecycle artifacts (checkpoints, evidence, status) live at the
@@ -121,11 +121,16 @@ constraints:
 
   - id: C13
     rule: >
-      The design spec is LOW-FIDELITY. This play produces layout and
-      component structure, NOT visual design (colors, typography, spacing).
-      Visual design is a separate downstream concern. Wireframes specify
-      what components exist and where; they do not specify pixel-perfect
-      appearance.
+      Screens are LOW-FIDELITY structural wireframes — no colors, no
+      typography-level detail, no spacing pixel values inside the
+      wireframe ASCII blocks. The Design System (tokens, palette,
+      typography, inspirations) IS in scope and is produced by Step 5b
+      as a separate artifact at {product_base}experience/design-system.md.
+      The DS does NOT flow into wireframe ASCII — wireframes remain
+      structural; the DS is a sibling artifact consumed by downstream
+      visual-design and implementation work. The prior absolute
+      prohibition on visual design is revised — only visual-in-wireframes
+      is forbidden; DS-as-separate-artifact is first-class.
 
   - id: C14
     rule: >
@@ -225,6 +230,41 @@ constraints:
       inferred decisions and writes no manifest is a structural
       violation. See Defect 23.
 
+  - id: C19
+    rule: >
+      Scope-resolution pre-flight. /design accepts three invocation modes:
+      (a) no args → product-wide (existing behavior; reads all epics under
+      {product_base}scope/epics/); (b) --epic <epic-id> → narrows epics_dir
+      to the single epic file; (c) --feature <feature-id> → narrows to the
+      capability(ies) whose features.yaml entries include <feature-id>.
+      The orchestration layer narrows the input set before dispatching any
+      skill. Skills receive the same epics_dir parameter they always did —
+      the narrowing is orchestration-only, no skill contract changes.
+
+  - id: C20
+    rule: >
+      Brownfield detection. On pre-flight after scope resolution, check
+      {product_base}experience/ for existing artifacts — specifically
+      personas.md, screens/, design-spec.md, design-system.md. If ANY
+      exist and are non-empty, set mode = "gap-only"; else mode =
+      "greenfield". In gap-only mode, skip stages whose artifacts are
+      LOCKED unless --force-stage is passed; re-run stages whose artifacts
+      are DRAFT or absent. The detection is scoped strictly to
+      {product_base}experience/ — do NOT scan source code or other trees.
+
+  - id: C21
+    rule: >
+      Design System authoring (Step 5b). After Checkpoint 2 (screen
+      inventory review) and before Step 6 (map user flows), the designer
+      agent invokes the draft-design-system skill. The skill runs a user
+      interview for inspirations (color mood, brand adjectives, font
+      character, reference products) and writes
+      {product_base}experience/design-system.md with sections Palette,
+      Typography, Tokens, Inspirations, Open Questions. Pre-interview, the
+      skill scans {product_base}user-provided/ to seed the interview with
+      any existing brand hints — user does not get re-asked what they
+      already told the PM-interview skill.
+
 failure_conditions:
   - id: F1
     condition: >
@@ -283,9 +323,10 @@ failure_conditions:
 
   - id: F12
     condition: >
-      The play generates visual design elements (color palettes, typography
-      stacks, spacing scales) — that is out of scope for design and
-      must be deferred to a downstream visual-design play.
+      The play generates visual design elements (colors, typography, spacing
+      pixel values) INSIDE wireframe ASCII blocks. Wireframes stay structural
+      (layout, hierarchy, placement). Visual tokens live in the Design System
+      artifact produced by Step 5b — not in wireframes.
 
   - id: F13
     condition: >
@@ -332,6 +373,22 @@ failure_conditions:
       tier, grounding_source, recommendation, or alternatives_considered
       fields for any decision, or fails to update user_response after
       the orchestrator runs the surfacing flow.
+
+  - id: F18
+    condition: >
+      Gap-only mode runs a stage whose output overwrites an existing
+      LOCKED artifact without the user having Tethered the delta at a
+      delta checkpoint. LOCKED artifacts may only be re-written through
+      explicit --force-stage or explicit delta approval.
+
+  - id: F19
+    condition: >
+      The Design System artifact at {product_base}experience/design-system.md
+      contains pixel-level or implementation-level specs (specific CSS
+      variable names, specific rem values, specific hex codes outside the
+      Inspirations section). DS is token-ranges + inspiration references
+      only; implementation-level detail belongs to implementation plays,
+      not to /design.
 
 scenarios:
   - id: S1
@@ -398,3 +455,30 @@ scenarios:
       Can approve the full design package in one Tether decision, or Orbit
       with feedback to a specific stage without losing the context of the
       unchanged stages.
+
+  - id: S8
+    persona: Product owner scoping a single epic for design
+    given: >
+      The product has many epics but the PO wants design artifacts for just
+      one — e.g., EPIC-WI-intent-driven-verification-001. They invoke
+      /design --epic EPIC-WI-intent-driven-verification-001.
+    then: >
+      Pre-flight resolves scope to that single epic file. Personas, screens,
+      flows, wireframes, DS, and design-spec are produced scoped to the
+      capabilities in that epic only. The play does not touch other epics'
+      design artifacts. If {product_base}experience/ already has design
+      artifacts for other epics, those are left untouched — only the artifacts
+      for the scoped epic's capabilities are created/updated.
+
+  - id: S9
+    persona: Designer re-entering an in-progress product
+    given: >
+      {product_base}experience/ already contains LOCKED personas.md and
+      screens/ from a prior /design run, but design-spec.md and
+      design-system.md are absent. The designer invokes /design.
+    then: >
+      Pre-flight detects brownfield mode. Personas and screens stages are
+      skipped (LOCKED). The play proceeds directly to Step 5b (DS
+      authoring), Step 6 (flows), Step 8 (wireframes), Step 9 (compile
+      spec). The delivery record notes the stages that were skipped due to
+      LOCKED predecessors.

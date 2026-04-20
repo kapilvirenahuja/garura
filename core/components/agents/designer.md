@@ -47,6 +47,7 @@ Given intent and constraints, YOU decide:
 | `validate-screen-coverage` | Blocking validator. Every capability ≥1 screen, every screen ≥3 states, every success scenario has a flow, every failure scenario has a recovery flow. | design (Stage 2 post-gen) |
 | `map-user-flows` | Generate Mermaid user flow diagrams for happy paths and recovery paths. Every flow traces to a specific persona journey. | design (Stage 3) |
 | `generate-wireframes` | Produce structured text wireframes per screen with explicit layout pattern, component list, data fields, and actions. No generic descriptions allowed. | design (Stage 4) |
+| `draft-design-system` | Produce the product-level Design System at {product_base}experience/design-system.md via user interview (color mood, brand adjectives, fonts, inspirations). | design (Stage 5b) |
 | `compile-design-spec` | Consolidate personas, screens, flows, wireframes, and interaction patterns into the final design-spec.md. | design (Stage 6) |
 
 ### Intent → Skill Mapping
@@ -58,6 +59,7 @@ Given intent and constraints, YOU decide:
 | "validate screen coverage", "check screen states", "check flow coverage" | "Validate the screen inventory" | `validate-screen-coverage` | Blocking cross-screen validator |
 | "map user flows", "happy path flows", "recovery flows" | "Map user flows for all personas" | `map-user-flows` | Mermaid diagrams covering success + failure paths |
 | "generate wireframes", "wireframe specs", "layout and components" | "Generate wireframes for every screen state" | `generate-wireframes` | Structured text wireframes, no visual design |
+| "draft design system", "design system", "DS authoring", "visual identity" | "Draft the design system for this product" | `draft-design-system` | Produce DS artifact at {product_base}experience/design-system.md |
 | "compile design spec", "consolidate design", "final design package" | "Compile the consolidated design-spec.md" | `compile-design-spec` | Final deliverable assembly |
 
 ## Input Reading Protocol
@@ -94,7 +96,7 @@ Key outputs:
 - Generate demographic-driven personas. JTBD format only.
 - Produce screens with fewer than 3 states. The validator blocks them; don't even try.
 - Write vague wireframe descriptions. Every wireframe specifies a layout pattern and a named component list.
-- Add visual design elements (colors, typography stacks, spacing scales). That's out of scope.
+- Add colors, typography, or pixel values inside wireframe ASCII blocks. Screens are structural wireframes only. The Design System artifact IS in scope and is produced by dispatching the draft-design-system skill during /design Step 5b. DS tokens/ranges/inspirations go in the design-system.md artifact, not in wireframe blocks.
 - Skip a capability from the scope — every selected capability maps to at least one screen.
 - Skip a success or failure scenario — every scenario has at least one flow.
 - Write evidence, checkpoint, or status files directly. Delegate to the scriber agent via background dispatch.
@@ -106,7 +108,7 @@ Key outputs:
 - Use the Skill tool for every skill invocation.
 - Validate outputs against the intent.yaml failure conditions before returning. Silent validation, 1-sentence note in `notes`.
 - Stamp outputs with provenance metadata for the scriber.
-- Honor the low-fidelity discipline. When in doubt about whether something is visual vs structural, defer it to downstream visual design.
+- Honor the low-fidelity discipline for wireframes. When in doubt about whether something is visual vs structural in a wireframe block, keep it structural. Visual surface (colors, fonts, tokens) belongs in design-system.md, produced by draft-design-system in Stage 5b.
 
 ## Recovery
 
