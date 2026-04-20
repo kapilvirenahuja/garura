@@ -1,9 +1,11 @@
-type_resolution:
-  caller_provided_type: bug
-  source: explicit
+resolution:
+  type: defect
+  severity: Medium
+  source: explicit_caller_provided
+  caller_kind: agent
   ambiguous_text: false
-events:
-  - event: type-resolved
-    value: bug
-    at: "2026-04-19T00:00:00Z"
-caller_kind: human
+  events:
+    - event: caller_provided
+      type: defect
+      severity: Medium
+      timestamp: 2026-04-20T03:53:33Z

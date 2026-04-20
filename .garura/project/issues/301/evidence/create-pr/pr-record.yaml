@@ -1,0 +1,15 @@
+result:
+  success: true
+  pr:
+    number: 304
+    url: "https://github.com/kapilvirenahuja/garura/pull/304"
+    state: "open"
+    title: "feat: /scope play — feature-to-epic scoping with catalog match, constraint fit, KB grounding (#301)"
+  checklist:
+    required_count: 8
+    optional_count: 3
+  evals:
+    step_evals: 12
+    scenario_evals: 6
+    all_pass: true
+  recorded_at: "2026-04-19"

@@ -1,64 +1,34 @@
 | Field | Value |
 |-------|-------|
-| **Type** | bug |
-| **Reported From** | /fix-it execution-path audit vs. agent-compliance audit reconciliation |
-| **Date** | 2026-04-19 |
+| **Type** | defect |
+| **Severity** | Medium |
+| **Reported From** | /scope compilation (#301) |
+| **Date** | 2026-04-20 |
 
 ### Problem
 
-`tech-designer` violates the Meridian principle **"agents collect context, skills produce artifacts"** in the `/fix-it` play. In Step 3 (RCA & Design), tech-designer authors four domain artifacts inline via the `Write` tool and invokes no skill:
+Two issues surfaced in `/create-play` while compiling `/scope` for #301.
 
-- `{stm_base}/{issue}/evidence/fix-it/rca.yaml`
-- `{stm_base}/{issue}/evidence/fix-it/design.yaml`
-- `{stm_base}/{issue}/evidence/fix-it/resolution-trace.yaml`
-- `{stm_base}/{issue}/evidence/fix-it/regression-test.yaml`
+**(1) Templates not enforced.** The compiler produced `core/components/plays/scope/SKILL.md` with zero references to LTM templates under `core/components/memory/standards/templates/`. User-facing surfaces (checkpoint files, approval prompts, delivery reports, evidence files) were emitted as inline prose. Other plays (`fix-it`, `review-pr`, `start-feature-planning`) DO reference these templates — the house pattern exists but `/create-play`'s compiler doesn't synthesize template references unless intent.yaml explicitly names them. This produces drift between plays and bloats every compiled SKILL.md with duplicated prose.
 
-The `/fix-it` hot path (RCA → Design → Implement → Verify) has **zero skill invocations** for domain artifact production — the clearest violation of the principle in the codebase, on a shipped, actively-used play.
+**(2) Compilation metadata at top of SKILL.md burns tokens.** The `Compiled From`, `Role`, intent hash, `compiled_by`, `compiled_at`, `workflow_structure`, agent counts, eval counts — all sit near the top of every compiled SKILL.md. Claude loads this text into context on every play invocation but it has zero runtime value — it's build metadata for humans auditing drift. Should move to the end of SKILL.md or to a sibling `reference/compilation.yaml` / `reference/compilation.md` that is NOT loaded by the Skill tool.
 
-### Root Cause
+### Evidence
 
-1. **Skill Pool is prepare/arch-only.** `core/components/agents/tech-designer.md:265-276` lists only `draft-technical-approach`, `draft-lld`, `draft-implementation-plan`, `derive-nfr-spec`, `derive-quality-vision`, `research-domain-context`. None cover fix-it outputs (RCA, fix design with alternatives, LTM resolution trace, failing regression-test).
-
-2. **Escape-hatch language in agent definition.** Two carve-outs let tech-designer bypass the principle whenever a matching skill does not exist:
-   - `tech-designer.md:280` — *"For direct invocations (no JSON contract), perform analysis directly — skills are only used in the contract workflow."*
-   - `tech-designer.md:282` — *"Regression test authorship (fix-it TDD mode): … write a YAML eval-spec file to `{stm_base}/{issue}/evidence/fix-it/regression-test.yaml` containing grep/structural assertions."*
-
-Because the escape hatch exists, the Skill Pool never grows to cover new plays — new domain artifacts inherit the exemption.
-
-### Specific Issues
-
-- `rca.yaml` has a well-defined shape (root_cause, blast radius, specific file/logic, why-wrong) but no `draft-rca` skill exists.
-- `design.yaml` has a well-defined shape (`alternatives_considered` with `rejection_reason`, `affected_files` map, execution steps) but no `draft-fix-design` skill exists.
-- `regression-test.yaml` has a well-defined shape (failing YAML eval-spec with grep/structural assertions, red-state verified) but no `author-regression-test` skill exists.
-- `resolution-trace.yaml` has a well-defined shape (R1–R4 per-domain resolution source) but is authored inline as a side-effect of RCA rather than via a dedicated skill.
-
-Related (lower severity) on the same play:
-- `code-builder` authors `implementation-report.yaml` inline in Step 6 (no skill).
-- `quality-auditor` authors `regression-test-verdict.yaml` inline in Step 6b (no skill; artifact is tiny but still an inline write).
+- `/scope` SKILL.md: zero grep hits for `standards/templates`, `checkpoint.md`, `approval-prompt.md`, `delivery-report.md`, `evidence-file.md`.
+- House pattern exists: `fix-it/SKILL.md`, `review-pr/SKILL.md`, `start-feature-planning/SKILL.md` reference templates.
+- `manage-issue` already loads `github-issue.md` at line 46 of its SKILL.md — template loading works end-to-end when wired.
+- Every compiled play under `core/components/plays/*/SKILL.md` starts with a `Compiled From` + metadata block.
 
 ### Expected Behavior
 
-tech-designer should be a pure context-assembly shell that invokes specialized skills for every domain artifact. Proposed fix:
+**(1)** `/create-play` compiler should automatically synthesize template references for every user-facing surface. Either via a built-in compiler rule ("if play has a checkpoint phase, emit template reference to checkpoint.md") or by requiring intent.yaml to declare a template_map and rejecting compilation if the map is missing for surfaces the play produces.
 
-1. **Create three specialized skills** and wire them into tech-designer's Skill Pool:
-
-   | New skill | Input | Output |
-   |-----------|-------|--------|
-   | `draft-rca` | `issue_read_path`, `ltm_context`, `output_base` | `rca.yaml` + `resolution-trace.yaml` |
-   | `draft-fix-design` | `rca_path`, `output_base` | `design.yaml` with `alternatives_considered`, `affected_files`, execution steps |
-   | `author-regression-test` | `rca_path`, `design_path`, `output_base` | `regression-test.yaml` (failing YAML eval-spec) + red-state verification |
-
-2. **Delete the escape-hatch language.** Remove `tech-designer.md:280` ("perform analysis directly") and `tech-designer.md:282` (regression-test inline carve-out). Replace with: *"If no matching skill exists, return a structured failure requesting the skill be created — do not author artifacts inline."*
-
-3. **Rebuild `/fix-it`** via `/create-play --rebuild fix-it` so SKILL.md Step 3 reflects skill delegation.
-
-User directive: **individual specialised skills are required** — do not merge into a single combined skill.
+**(2)** Compiled SKILL.md should start with frontmatter + Header + Role (what Claude needs at runtime) and push build metadata to the bottom of the file, or to a sibling `reference/compilation.yaml` / `reference/compilation.md` not loaded by the Skill tool.
 
 ### Impact
 
-- Principle erosion: the escape hatch invites every new play to skip skill authoring, compounding drift.
-- Testability: inline artifact authorship is harder to test in isolation than a skill with a fixed input/output contract.
-- Consistency: /specify delegates every artifact through a product-keeper skill; /fix-it has zero — the framework is internally inconsistent.
-- Reuse: other plays that need RCA, fix design, or failing-test authoring cannot reuse tech-designer's logic without copy-pasting the inline implementation.
+- **(1)** Format drift across plays — each compiler run produces slightly different inline prose for the same conceptual surface. Users see inconsistent checkpoint layouts, and template updates don't propagate.
+- **(2)** Every play invocation burns tokens on metadata the runtime doesn't need. Across 20+ plays this is a measurable context cost with zero execution value.
 
-Related audit context: of 19 agents reviewed, 4 VIOLATE (eval-generator, intent-crafter, knowledge-extractor, test-engineer) and 4 are PARTIAL (engineering-manager, intent-resolver, tech-architect, tech-designer). tech-designer is called out as most severe because of fix-it's active use.
+Both issues apply to the generic `/create-play` — fixes benefit every compiled play in the repo.

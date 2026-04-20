@@ -1,0 +1,9 @@
+issue_linkage:
+  issue_number: 301
+  pr_number: 304
+  pr_url: "https://github.com/kapilvirenahuja/garura/pull/304"
+  branch: feat/301-scope-play
+  base: main
+  closes: true
+  linked_via: "Closes #301 in PR body"
+  recorded_at: "2026-04-19"
