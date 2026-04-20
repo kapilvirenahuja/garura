@@ -196,6 +196,11 @@ Task: `TaskUpdate [T3] → in_progress` before dispatch. `TaskUpdate [T3] → co
 
 Agent reads intent.yaml — applies constraints C3 (RCA depth), C4 (alternatives), C11 (LTM grounding), C14 (failing regression-test authored to canonical eval path). Reads the issue from STM. Follows R1-R4 resolution protocol before analysis. Performs:
 
+**Skill delegation (mandatory):** Invoke the three fix-it skills in order via the Skill tool — do NOT author these artifacts inline:
+1. `draft-rca` → produces `rca.yaml` + `resolution-trace.yaml` (when ltm_context present)
+2. `draft-fix-design` → produces `design.yaml`
+3. `author-regression-test` → produces `regression-test.yaml` (red-verified)
+
 1. **Root Cause Analysis** — trace from symptom to specific root cause: the file, the logic, and why it is wrong (C3). Not a restatement of the issue title.
 2. **Blast Radius** — affected files map with roles and required changes.
 3. **Fix Design** — chosen strategy with at least one alternative considered and reason rejected (C4).
