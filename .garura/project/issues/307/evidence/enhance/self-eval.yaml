@@ -1,0 +1,45 @@
+self_eval:
+  timestamp: "2026-04-20T00:00:00Z"
+  iteration: 1
+  overall: PASS
+  results:
+    - id: E1
+      status: PASS
+      evidence: "solution-rating.yaml contains ER-1 with severity_if_fail: blocker"
+    - id: E2
+      status: PASS
+      evidence: "ER-2 present with severity_if_fail: blocker"
+    - id: E3
+      status: PASS
+      evidence: "ER-3 present with severity_if_fail: blocker"
+    - id: E4
+      status: PASS
+      evidence: "ER-4 present; aggregation rule encodes 0.55 cap (grep hit count 12 includes ER-4 + 0.55 reference)"
+      note: "Builder labeled ER-4 severity_if_fail=blocker; approach suggested n/a. Semantically harmless — ER-4 is an aggregation rule not a concern."
+    - id: E5
+      status: PASS
+      evidence: "grep for Mode 2:/Mode 3:/Mode 4:/score-epic-confidence/check-input-output-coverage/validate-artifact returned 0 hits in judge.md"
+    - id: E6
+      status: PASS
+      evidence: "9 hits across MUST NOT Receive / Decryption Protocol / Failure Protocol / Task Tracking / plaintext_deleted / eval_source / total_evals"
+    - id: E7
+      status: PASS
+      evidence: "8 hits for generic contract fields in judge.md Input Contract"
+    - id: E8
+      status: PASS
+      evidence: "diff-artifacts/SKILL.md exists with user-invocable: false and covered/partial/dropped/drifted schema terms"
+    - id: E9
+      status: PASS
+      evidence: "core/components/skills/diff-artifacts/reference/ does not exist"
+    - id: E10
+      status: PASS
+      evidence: "intent.yaml C21 mandates eval_path + ER-4 cap in Step 10 dispatch"
+    - id: E11
+      status: PASS
+      evidence: "enhance/SKILL.md Step 10 JSON contract block contains eval_path: core/components/plays/enhance/reference/evals/solution-rating.yaml"
+    - id: E12
+      status: PASS
+      evidence: "git diff --stat of implement/SKILL.md validate/SKILL.md returned empty — byte-identical to pre-change"
+    - id: E13
+      status: PASS
+      evidence: "grep across core/ + docs/ for deleted mode names returned 0 hits"

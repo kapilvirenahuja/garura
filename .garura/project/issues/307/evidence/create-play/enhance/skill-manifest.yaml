@@ -1,0 +1,26 @@
+play: enhance
+skills:
+  - name: manage-issue
+    path: core/components/skills/manage-issue/SKILL.md
+    status: existing
+  - name: setup-branch
+    path: core/components/skills/setup-branch/SKILL.md
+    status: existing
+  - name: draft-technical-approach
+    path: core/components/skills/draft-technical-approach/SKILL.md
+    status: existing
+  - name: create-commit
+    path: core/components/skills/create-commit/SKILL.md
+    status: existing
+  - name: submit-pr
+    path: core/components/skills/submit-pr/SKILL.md
+    status: existing
+  - name: analyze-pr
+    path: core/components/skills/analyze-pr/SKILL.md
+    status: existing
+  - name: merge-pr
+    path: core/components/skills/merge-pr/SKILL.md
+    status: existing
+  - name: diff-artifacts
+    path: core/components/skills/diff-artifacts/SKILL.md
+    status: new

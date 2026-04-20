@@ -1,0 +1,152 @@
+judge_report:
+  timestamp: "2026-04-20T00:00:00Z"
+  eval_source: "core/components/plays/enhance/reference/evals/solution-rating.yaml"
+  iteration: 2
+  total_evals: 4
+  passed: 4
+  failed: 0
+  pass_rate: "100%"
+  overall: "PASS"
+
+  er_verdicts:
+    - eval_id: ER-1
+      name: Contract Mismatch at Skill Boundary
+      severity_if_fail: blocker
+      status: PASS
+      evidence: |
+        Boundary checked: enhance Step 10 (caller) → judge (callee).
+        Caller (enhance/SKILL.md lines 438-459) passes: stm.input.artifact_paths.approach,
+        stm.input.project_root, stm.input.eval_path, stm.output.judge_report, task_id,
+        config.instructions.
+        Callee (judge.md Input Contract lines 80-112) explicitly declares all five field
+        groups: artifact_paths (line 90, with named entries under stm.input.artifact_paths),
+        project_root (optional), eval_path (required for eval execution), judge_report
+        (stm.output), config.instructions (optional).
+        The original v1 blocker — enhance passing artifact_paths.approach while judge.md
+        Input Contract did not declare artifact_paths — is resolved. artifact_paths is now
+        a declared field in the Input Contract with accompanying explanatory note at line 112.
+        No undeclared fields passed. No required callee fields absent from caller.
+        Secondary boundary (judge → diff-artifacts via Skill tool) is not a direct
+        JSON-contract dispatch in the same way; judge invokes diff-artifacts via the Skill
+        tool passing whatever fields the caller provides, which is the correct pattern for
+        skill invocation and not a contract-mismatch surface.
+
+    - eval_id: ER-2
+      name: Intent-Propagation Break in Agent-to-Agent Handoff
+      severity_if_fail: blocker
+      status: PASS
+      evidence: |
+        Checked all agent-to-agent handoffs in the delivered enhancement:
+        1. enhance Step 8 (code-builder) → Step 9 (self-eval, play-owned): build-report.yaml
+           written, consumed by play. No break.
+        2. enhance Step 9 (self-eval) produces self-eval.yaml. By design (C14/F10), this
+           artifact is intentionally NOT passed to judge. No downstream consumer needed —
+           this is context isolation, not a propagation break.
+        3. enhance Step 10 (judge) produces judge-report.yaml. Step 10a (judge gate,
+           lines 470-500 of SKILL.md) explicitly reads judge-report.yaml for the gate
+           display: "Read the approach, build report, judge report, and PR review findings."
+           Declared downstream consumer exists.
+        4. Judge → diff-artifacts: invoked inline via Skill tool; skill writes
+           coverage-check.yaml to output_report_path. This is a within-agent-invocation
+           output, not a multi-agent handoff producing an orphaned artifact.
+        No upstream artifact produced by the enhancement is an orphan with zero declared
+        downstream consumers.
+
+    - eval_id: ER-3
+      name: Stale Agent Boundary Contradicting New Rule
+      severity_if_fail: blocker
+      status: PASS
+      evidence: |
+        Verified judge.md MUST NOT Do and MUST NOT Receive sections against all new
+        rules introduced by this enhancement.
+        grep for "Mode 2", "Mode 3", "Mode 4", "score-epic-confidence",
+        "check-input-output-coverage", "validate-artifact" across judge.md returns
+        zero matches — stale Mode references fully removed.
+        The enhancement adds: (a) C21 requiring artifact_paths.approach in Step 10 dispatch,
+        (b) diff-artifacts as an invocable skill. Neither is prohibited by any MUST NOT
+        boundary statement in judge.md.
+        "What You Do" section (lines 43-54) includes "Invoke side skills (e.g.
+        diff-artifacts) via Skill tool when config.instructions asks for it" — consistent
+        with the new capability and not contradicted by any MUST NOT entry.
+        The v1 follow-up issue ("stale Mode 2 line in What You Do") is resolved: grep
+        for "Mode 2" in judge.md returns no matches.
+        No agent boundary statement in any agent touched by this enhancement contradicts
+        a constraint or rule introduced by the same enhancement.
+
+    - eval_id: ER-4
+      name: Overall Confidence Aggregation Cap
+      severity_if_fail: blocker
+      status: PASS
+      evidence: |
+        ER-1, ER-2, and ER-3 all PASS with no blocker concerns recorded.
+        Per ER-4 pass criteria: "If ER-1, ER-2, and ER-3 all pass with no blocker
+        concerns: overall confidence is uncapped and reflects the quality of the
+        delivered work."
+        No blocker cap applies. Overall confidence computed from quality of per-area
+        assessments below.
+
+  per_area:
+    - area: contract_boundary
+      confidence: 0.95
+      assessment: |
+        Enhance Step 10 → judge boundary is fully declared on both sides. artifact_paths
+        is a first-class Input Contract field in judge.md with documented usage. All fields
+        in the dispatch are traceable to declared contract entries. The enhance/SKILL.md
+        compiled Step 10 JSON block matches C21 requirements verbatim.
+
+    - area: agent_boundary_hygiene
+      confidence: 0.92
+      assessment: |
+        Judge.md MUST NOT sections are clean. No stale mode language. diff-artifacts skill
+        is properly declared non-user-invocable. The Available Skills table in judge.md
+        contains exactly one entry (diff-artifacts), correctly scoped. No contradictions
+        between boundary statements and new constraints.
+
+    - area: intent_propagation
+      confidence: 0.92
+      assessment: |
+        All artifacts in the delivery pipeline have declared downstream consumers or are
+        intentionally isolated by design (self-eval → judge isolation is C14-mandated, not
+        a bug). The judge-report.yaml produced in Step 10 is consumed at Step 10a and
+        Step 14. No orphaned outputs.
+
+    - area: eval_file_quality
+      confidence: 0.90
+      assessment: |
+        solution-rating.yaml contains all four required evals (ER-1 through ER-4) with
+        non-empty verification, pass_criteria, fail_criteria, and example_fail fields.
+        Each ER-1/2/3 carries severity_if_fail=blocker. ER-4 explicitly states the
+        overall_confidence ≤ 0.55 cap when any blocker is present. The example_fail
+        entries cite #305 anchors (C-01, C-01b, C-02) as specified in approach.yaml.
+
+    - area: scope_completeness
+      confidence: 0.88
+      assessment: |
+        All tasks T1-T8 from approach.yaml are traceable to delivered artifacts.
+        T2: solution-rating.yaml exists. T3: diff-artifacts/SKILL.md exists with
+        user-invocable=false and coverage-check.yaml schema. T4: judge.md rewritten
+        with single generic operation and superset contract. T5: intent.yaml C21 added.
+        T6: enhance/SKILL.md rebuilt with Step 10 containing eval_path + artifact_paths.
+        Minor: T7 (sync-claude) and T8 (self-verification) are runtime deployment steps
+        not directly observable in static artifacts; their outcomes are inferred from
+        the consistent state of all modified files.
+
+  concerns: []
+
+  low_confidence_areas: []
+
+  overall_confidence: 0.91
+
+  remediation_since_v1:
+    - item: "artifact_paths declared in judge.md Input Contract"
+      status: resolved
+      evidence: "judge.md lines 90-92 and line 112 explicitly declare artifact_paths with named entries"
+    - item: "Stale Mode 2 line removed from What You Do section"
+      status: resolved
+      evidence: "grep for 'Mode 2' in judge.md returns zero matches"
+    - item: "enhance Step 10 passes artifact_paths.approach under stm.input"
+      status: resolved
+      evidence: "enhance/SKILL.md lines 443-446 confirm the field is passed correctly"
+    - item: "C21 added to intent.yaml mandating the new dispatch shape"
+      status: resolved
+      evidence: "intent.yaml C21 at lines 187-197 mandates eval_path + artifact_paths.approach + config.instructions"

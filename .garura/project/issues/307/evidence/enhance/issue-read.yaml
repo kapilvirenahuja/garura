@@ -1,0 +1,18 @@
+number: 307
+title: "[ENH] judge agent — escalate contract-mismatch + downstream-break concerns as blockers, not follow-ups"
+state: open
+labels:
+  - enhancement
+  - agent:judge
+url: https://github.com/kapilvirenahuja/garura/issues/307
+body: |
+  During /enhance #305 the judge agent rated the enhancement 0.74/1.0 and flagged three concerns as "follow-ups":
+  1. compile-design-spec skill missing `design_system_path` in Input — contract mismatch with the play's dispatch
+  2. designer agent stale (no draft-design-system in skill pool, blanket no-visual-design text)
+  3. compile-design-spec Section 7 text contradicts new framing
+
+  These were downstream-pipeline-breaking — the DS authoring skill would emit design-system.md but no downstream consumer was wired to read it, meaning the core enhancement intent would not be realized end-to-end.
+
+  User correctly flagged that all three were blockers, not follow-ups. Judge's per-area scores were individually above 0.6 but the downstream impact analysis was missing.
+
+  Expected behavior: when judge finds a contract mismatch at a skill boundary, OR when a flagged gap means the enhancement's core intent won't propagate end-to-end, the concern MUST be marked blocking and confidence MUST reflect that. Soft-passing contract mismatches as "follow-ups" is a severity-framing error the judge agent should learn.

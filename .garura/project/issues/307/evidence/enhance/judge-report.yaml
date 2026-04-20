@@ -1,0 +1,154 @@
+judge_report:
+  timestamp: "2026-04-20T00:00:00Z"
+  eval_source: "core/components/plays/enhance/reference/evals/solution-rating.yaml"
+  approach_source: ".garura/project/issues/307/evidence/enhance/approach.yaml"
+  overall_confidence: 0.50
+  overall: "FAIL"
+  total_evals: 4
+  passed: 3
+  failed: 1
+
+  er_verdicts:
+    - eval_id: "ER-1"
+      status: "FAIL"
+      severity: "blocker"
+      evidence: |
+        The enhance Step 10 dispatch (SKILL.md lines 438-457) passes
+        `stm.input.approach` pointing to approach.yaml. Judge's declared
+        Input Contract (judge.md lines 85-96) lists only these fields under
+        stm.input: eval_path, manifest_path, project_root, deploy_url,
+        credentials. The field `approach` is NOT declared. The escape-hatch
+        note at line 109 says "Additional `artifact_*` paths may be passed"
+        — but the passed field is named `approach`, not `artifact_*`, so
+        the escape hatch does not cover it. This is an undeclared field
+        passed at a skill boundary, matching ER-1 fail_criteria exactly.
+
+    - eval_id: "ER-2"
+      status: "PASS"
+      evidence: |
+        ER-2 checks that the upstream artifact (approach.yaml produced by
+        tech-designer in Step 6) has a declared downstream hook. The enhance
+        Step 10 dispatch explicitly passes `stm.input.approach` (SKILL.md
+        line 444), creating a declared hook in the dispatch contract. The
+        artifact is not orphaned — the pipeline references it. ER-2
+        fail_criteria requires no downstream declaration in "Input Contract
+        OR dispatch contract"; the dispatch contract here explicitly declares
+        the path. PASS.
+
+    - eval_id: "ER-3"
+      status: "PASS"
+      evidence: |
+        Read judge.md MUST NOT Do (lines 54-61) and MUST NOT Receive (lines
+        63-70). No prohibition in either section contradicts any new rule
+        introduced by this enhancement (diff-artifacts skill, single-operation
+        framing, generic Input Contract, eval_path wiring). The stale
+        reference "Invoke validation skills via Skill tool when dispatched in
+        Mode 2" (line 50) appears in the "What You Do" capabilities list —
+        a positive capability description, not a prohibition. ER-3
+        fail_criteria targets stale prohibitions, not capability statements.
+        PASS.
+
+    - eval_id: "ER-4"
+      status: "PASS"
+      evidence: |
+        ER-1 is a blocker-classified failure. Per ER-4 rule, any blocker
+        concern → overall_confidence ≤ 0.55. This report sets
+        overall_confidence = 0.50, which satisfies the cap. ER-4 is
+        evaluated as PASS because the scoring rule is being correctly
+        applied here (the concern about ER-4 would only fire if a blocker
+        existed AND the reported confidence exceeded 0.55).
+
+  per_area:
+    - area: "judge.md rewrite quality"
+      score: 0.65
+      assessment: |
+        The four-mode enumeration has been removed. Identity is now a single
+        generic eval executor paragraph. Operating Procedure is clean:
+        decrypt-if-needed → diff-if-asked → execute-evals → write-report.
+        Core Principle, MUST NOT sections, Failure Protocol, Recovery, Task
+        Tracking, and Decryption Protocol are all preserved. The generic
+        Input Contract documents eval_path, project_root, config.instructions,
+        config.decryption_key. Available Skills table added with diff-artifacts.
+        Two defects: (1) the Input Contract does not declare the `approach`
+        field that enhance Step 10 passes — a blocker contract gap (ER-1).
+        (2) Line 50 retains "Invoke validation skills via Skill tool when
+        dispatched in Mode 2" — a stale Mode 2 reference in the capabilities
+        list, contradicting the single-operation framing. Not a MUST NOT
+        violation but misleading.
+
+    - area: "solution-rating.yaml eval quality"
+      score: 0.95
+      assessment: |
+        All four evals (ER-1 through ER-4) are present with severity_if_fail
+        fields. ER-1, ER-2, ER-3 are all severity_if_fail: blocker. ER-4
+        articulates the confidence cap rule (any blocker → overall ≤ 0.55)
+        with pass_criteria and fail_criteria. Each eval carries verification
+        procedure, pass_criteria, fail_criteria, and example_fail citing #305
+        anchors. Evals are operational: verification procedures are specific
+        and executable (read caller dispatch, read callee Input Contract,
+        compare fields). No vagueness detected.
+
+    - area: "diff-artifacts skill completeness"
+      score: 0.93
+      assessment: |
+        Skill exists at core/components/skills/diff-artifacts/SKILL.md.
+        Frontmatter: name=diff-artifacts, user-invocable=false, model=sonnet,
+        allowed-tools=[Read, Grep, Glob, Write]. All four required inputs
+        declared: input_path, output_path, check_type, output_report_path.
+        Coverage-check.yaml schema preserved verbatim from Mode 4 with all
+        required fields: covered, partial, dropped, drifted, summary with
+        coverage_score formula. No reference/intent.yaml exists (correct for
+        non-user-invocable). Constraints C1 (model-reasoned) and C2 (write
+        only to output_report_path) are present. Failure conditions declared.
+        Minor: output_report_path is required but not marked "required" in
+        the input table row — `check_type` row correctly shows "yes" but
+        `output_report_path` row also shows "yes", so this is fine on
+        review. No material gap.
+
+    - area: "enhance Step 10 wiring"
+      score: 0.70
+      assessment: |
+        eval_path is present in the dispatch pointing to the correct file
+        (core/components/plays/enhance/reference/evals/solution-rating.yaml).
+        config.instructions is populated with the correct ER-4 confidence
+        cap instruction. intent.yaml C21 constraint encodes the mandatory
+        wiring requirement. The compiled SKILL.md Step 10 JSON contract
+        block contains both eval_path and config.instructions. The wiring
+        is functionally correct for delivering evals to judge. Defect: the
+        dispatch passes `stm.input.approach` which is not declared in
+        judge's Input Contract — the field label is undeclared at the
+        boundary (ER-1). This reduces wiring quality despite the contract
+        intent being correct.
+
+  concerns:
+    - id: "C-01"
+      severity: "blocker"
+      area: "judge.md rewrite quality / enhance Step 10 wiring"
+      detail: |
+        The enhance Step 10 dispatch passes `stm.input.approach` to judge,
+        but judge's Input Contract does not declare an `approach` field under
+        stm.input. The `artifact_*` escape hatch (judge.md line 109) uses
+        the `artifact_*` naming pattern — the bare name `approach` does not
+        satisfy it. Fix: add `approach` to judge's Input Contract under
+        stm.input (e.g., `"approach": "<path to approach.yaml — optional>"`),
+        or rename the dispatch field to `artifact_approach` to satisfy the
+        declared escape hatch.
+
+    - id: "C-02"
+      severity: "follow-up"
+      area: "judge.md rewrite quality"
+      detail: |
+        Line 50 of judge.md retains the text "Invoke validation skills via
+        Skill tool when dispatched in Mode 2" in the What You Do capabilities
+        list. This is a stale reference to Mode 2, which was deleted in this
+        enhancement. The line contradicts the single-operation framing of the
+        rewritten judge. Should be replaced with "Invoke the diff-artifacts
+        skill via Skill tool when config.instructions indicates a coverage
+        diff task." (Not an ER-3 blocker — the stale text is a capability
+        description, not a MUST NOT prohibition — but it is misleading.)
+
+  low_confidence_areas:
+    - "judge.md Input Contract (undeclared `approach` field)"
+    - "enhance Step 10 dispatch field alignment with judge Input Contract"
+
+  plaintext_deleted: true

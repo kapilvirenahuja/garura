@@ -1,0 +1,57 @@
+quality_report:
+  timestamp: "2026-04-20T00:00:00Z"
+  overall: "PASS"
+  gates:
+    - name: build
+      status: "PASS"
+      command: "N/A"
+      evidence: >
+        No build tooling exists in the repository (no package.json, Makefile,
+        pyproject.toml, go.mod, or Cargo.toml). This is a pure
+        markdown/YAML-based agentic framework. No compilation or build step
+        applies to the changed files. Gate marked PASS (N/A).
+
+    - name: lint
+      status: "PASS"
+      command: "python3 -c \"import yaml; yaml.safe_load(open(path))\""
+      violations: 0
+      evidence: >
+        All modified/new files validated:
+        (1) core/components/plays/enhance/reference/intent.yaml — YAML parses
+            cleanly with python3 yaml.safe_load. No syntax errors.
+        (2) core/components/plays/enhance/reference/evals/solution-rating.yaml
+            — YAML parses cleanly. Top-level key 'evals' present; all four
+            eval entries (ER-1 through ER-4) are well-formed with id, name,
+            severity_if_fail, verification, pass_criteria, fail_criteria,
+            example_fail fields.
+        (3) core/components/agents/judge.md — YAML frontmatter parses cleanly.
+            Required fields present: name, domain, role, description, model,
+            tools. Body is syntactically valid markdown.
+        (4) core/components/plays/enhance/SKILL.md — YAML frontmatter parses
+            cleanly. Required fields: name, description, user-invocable, model.
+            Body is valid markdown with structured sections.
+        (5) core/components/skills/diff-artifacts/SKILL.md — YAML frontmatter
+            parses cleanly. Required fields: name, user-invocable, model,
+            allowed-tools. Body is valid markdown.
+        Zero lint violations across all five files.
+
+    - name: typecheck
+      status: "PASS"
+      command: "N/A"
+      evidence: >
+        No TypeScript, Python, or statically-typed source files are present or
+        changed. Type checking does not apply to markdown/YAML framework
+        artifacts. Gate marked PASS (N/A).
+
+    - name: tests
+      status: "PASS"
+      command: "N/A"
+      evidence: >
+        No test suite exists in the repository for framework artifact files
+        (no test/ directory, no *.test.* files, no pytest/jest/vitest config).
+        The changed files are agent prompts, skill prompts, a play intent, a
+        compiled play, and a static eval YAML — none are covered by automated
+        tests. Gate marked PASS (N/A).
+
+  vision_gate_violations: []
+  qp_source: "toolchain-detected"
