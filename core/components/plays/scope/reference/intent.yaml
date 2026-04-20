@@ -1,0 +1,379 @@
+name: garura:scope
+description: >
+  Take a feature idea (free-text description or a FEAT-ID from the product's
+  feature catalog) and turn it into a fully scoped feature entry plus a
+  validated intent epic ready for /prepare. Feature work is anchored to a
+  GitHub issue from the first phase; the catalog carries that issue number
+  so every feature can be traced back to its tracking record.
+version: 0.1.0
+checksum: "<computed by /create-play --build>"
+
+intent: >
+  Given either a free-text feature description or a FEAT-ID referencing an
+  existing entry in the product's feature catalog, produce: a feature row
+  in features.yaml carrying id, name, status, notes, evidence, gap_items,
+  target_milestone, and an `issue` field linking to the GH issue that
+  anchors the work; a corresponding enriched-capabilities.yaml entry if a
+  new capability was introduced; a domain-selection.yaml extension if a new
+  domain was introduced; an intent epic YAML under the product epics
+  directory that passes validate-intent-epics; and STM evidence recording
+  the catalog-match, constraint-fit, grounding, and decision history for
+  the scoping session. The play is the single doorway from raw feature
+  idea to /prepare-ready scope. All file paths resolve through
+  .garura/core/config.yaml — never hardcoded.
+
+path_resolution:
+  description: >
+    Every path reference in the constraints, failure conditions, and
+    scenarios below is a template that resolves at runtime from
+    .garura/core/config.yaml. The play must read config at pre-flight and
+    carry the resolved values through every phase. Tokens:
+  tokens:
+    "{stm_base}": "config.stm.base-path (e.g. .garura/project/issues/)"
+    "{product_base}": "config.product.base-path (e.g. .garura/product/)"
+    "{product.scope}": "config.product.directories.scope (relative to product_base)"
+    "{product.specification}": "config.product.directories.specification"
+    "{product.user-provided}": "config.product.directories.user-provided"
+    "{product.research}": "config.product.directories.research"
+    "{product.architecture}": "config.product.directories.architecture"
+    "{product.experience}": "config.product.directories.experience"
+    "{ltm.project-target}": "config.ltm.project-target (e.g. .garura/core/memory/)"
+    "{ltm.global-target}": "config.ltm.global-target (e.g. ~/.garura/core/memory/)"
+  composed_paths_used_by_this_play:
+    features_catalog: "{product_base}{product.scope}features.yaml"
+    enriched_capabilities: "{product_base}{product.scope}enriched-capabilities.yaml"
+    epics_dir: "{product_base}{product.scope}epics/"
+    domain_selection: "{product_base}{product.specification}domain-selection.yaml"
+    project_profile: "{product_base}{product.specification}project-profile.yaml"
+    quality_profile: "{product_base}{product.specification}quality-profile.yaml"
+    user_provided_for_issue: "{product_base}{product.user-provided}{issue}/"
+    stm_for_issue: "{stm_base}{issue}/"
+    stm_scope_evidence: "{stm_base}{issue}/evidence/scope/"
+    kb_domain_taxonomy: "{ltm.project-target}knowledge/domain/"
+    kb_cross_tree_constraints: "{ltm.project-target}knowledge/domain/_cross-tree-constraints.yaml"
+
+constraints:
+  - id: C1
+    rule: >
+      The play must resolve or create a GH issue in its first phase and
+      anchor all subsequent STM under {stm_base}{issue}/. If the input is a
+      FEAT-ID and the feature already carries an `issue` field, that
+      existing issue is reused — the feature is evolving, not being
+      re-created. If the feature has no linked issue, one is created and
+      written back to the feature catalog in Phase 6.
+
+  - id: C2
+    rule: >
+      Intake depth is agentic. The play continues interviewing the user
+      until it has enough to classify the feature (catalog match) and
+      scope it (constraint fit). No hard minimum or maximum question
+      count — the play decides when the intake files contain enough to
+      proceed, and the decision is recorded in evidence.
+
+  - id: C3
+    rule: >
+      Intake output is written to the user-provided directory resolved
+      from config: {product_base}{product.user-provided}{issue}/brief.md
+      and {product_base}{product.user-provided}{issue}/grounding-questions.md.
+      File names are fixed; the folder is the issue number. Both files are
+      self-committed as soon as the first interview turn produces content.
+
+  - id: C4
+    rule: >
+      Catalog match reads exactly three sources — all resolved from
+      config — and classifies the feature into one of five buckets:
+      exact_match, extension, new_feature_in_existing_capability,
+      new_capability_in_existing_domain, new_domain. The three sources
+      are {product_base}{product.scope}features.yaml,
+      {product_base}{product.scope}enriched-capabilities.yaml, and
+      {product_base}{product.specification}domain-selection.yaml. The
+      classification with rationale is written to
+      {stm_base}{issue}/evidence/scope/catalog-match.yaml.
+
+  - id: C5
+    rule: >
+      Constraint-fit check reads {product_base}{product.specification}project-profile.yaml
+      and {product_base}{product.specification}quality-profile.yaml and
+      verifies the feature against: declared security_level, declared
+      compliance.categories (including any ratchets that must apply such
+      as ai-usage-traceability), team_size, delivery_ambition.current_level,
+      one of timeline.milestones (which becomes the feature's
+      target_milestone), and no regression against any ISO 25010 target
+      in the quality profile. Output lands at
+      {stm_base}{issue}/evidence/scope/constraint-fit.yaml.
+
+  - id: C6
+    rule: >
+      Grounding via KB + LTM runs only when the catalog-match classification
+      is new_capability_in_existing_domain or new_domain. In those cases the
+      play walks the KB domain-taxonomy catalog at
+      {ltm.project-target}knowledge/domain/ and
+      {ltm.project-target}knowledge/domain/_cross-tree-constraints.yaml, and
+      invokes research-domain-context if LTM coverage is thin. For
+      exact_match, extension, or new_feature_in_existing_capability,
+      grounding is skipped — the existing catalog already carries the
+      context.
+
+  - id: C7
+    rule: >
+      Placement is a one-way door. The placement checkpoint (Phase 5) is
+      always presented to the user. Tether authorises the spec updates in
+      Phase 6; Vanish halts the play AND closes the GH issue that was
+      opened in Phase 0. Orbit loops back to intake with the
+      play-captured objection as context.
+
+  - id: C8
+    rule: >
+      Product-spec updates in Phase 6 are delegated to product-keeper. The
+      agent decides agentically whether to upsert a single feature, extend
+      an existing enriched-capabilities record, or emit a fresh capability
+      or domain entry — no mode flag is passed to manage-features. A
+      decision manifest is emitted to STM evidence for every inferred
+      placement, status assignment, or capability-level creation.
+
+  - id: C9
+    rule: >
+      Every feature row written in Phase 6 carries an `issue` field with
+      the integer GH issue number resolved in Phase 0. This is the feature
+      ↔ issue linkage. If the feature already had an `issue` value and a
+      different issue was resolved in Phase 0 (impossible under C1 but
+      guarded for defensiveness), the play halts with a structured
+      conflict report.
+
+  - id: C10
+    rule: >
+      Epic generation is scoped to the target capability, not the entire
+      catalog. generate-intent-epics is invoked with a target_capability_id
+      filter; if an epic for that capability already exists in
+      {product_base}{product.scope}epics/, the agent decides whether to
+      extend it or regenerate. Every epic must pass validate-intent-epics
+      before the play continues.
+
+  - id: C11
+    rule: >
+      The epic checkpoint (Phase 9) is always presented, regardless of epic
+      generation confidence. The user reviews the updated features.yaml
+      entry, any capability/domain changes, and the epic YAML as a bundle.
+      Tether authorises close; Vanish halts the play and leaves the GH
+      issue open (user iterates); Orbit loops back to Phase 6 with the
+      captured objection.
+
+  - id: C12
+    rule: >
+      All working artifacts (catalog-match, constraint-fit, grounding,
+      decision manifests, delivery record) live under
+      {stm_base}{issue}/evidence/scope/. Product-level LTM updates
+      (features.yaml, enriched-capabilities.yaml, domain-selection.yaml,
+      the epic file) live under {product_base}. No working artifact
+      leaks into product LTM.
+
+  - id: C13
+    rule: >
+      Domain work is delegated to agents. The play orchestrates phases and
+      checkpoints; project-orchestrator owns Phase 0 issue work;
+      product-keeper owns Phases 2-7 catalog and epic work;
+      repo-orchestrator owns Phase 10 evidence commits. The play never
+      invokes git, gh, or spec-editing tools directly.
+
+  - id: C14
+    rule: >
+      Missing product-LTM artifacts are not a halt condition. If
+      features.yaml, enriched-capabilities.yaml, domain-selection.yaml,
+      or a per-capability epic file does not exist at the expected
+      config-resolved path when the play needs to read or write it, the
+      play creates the artifact with the minimum valid schema and
+      continues. A new-domain case creates a new research file under
+      {product_base}{product.research}; a new-capability case creates or
+      extends enriched-capabilities.yaml; a new-feature case upserts into
+      features.yaml. Creation events are recorded in the decision manifest
+      for transparency. Only malformed (existing but schema-invalid)
+      artifacts block the play.
+
+  - id: C15
+    rule: >
+      All file paths referenced in this play — constraints, failure
+      conditions, scenarios, JSON contracts, and runtime logic — resolve
+      from .garura/core/config.yaml tokens declared in path_resolution
+      above. The play must read config at pre-flight and carry the
+      resolved values through every phase. Hardcoded paths anywhere in
+      the compiled play or its agent dispatches are a compilation
+      violation.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      Phase 0 ends without a resolved-or-created open GH issue. All
+      subsequent STM paths depend on the issue number; without it the play
+      cannot proceed and halts with a structured failure.
+
+  - id: F2
+    condition: >
+      Intake produces zero content — both brief.md and grounding-questions.md
+      remain empty after the interview concludes. This is a failed
+      interview, not a missing file: files are created empty at start;
+      the failure is that no user input produced any scopable content.
+
+  - id: F3
+    condition: >
+      Catalog-match classification is missing or outside the five declared
+      buckets. Downstream phases depend on the bucket to route grounding
+      (C6) and product-spec updates (C8). This is an agent output failure,
+      not a missing-source-file failure — C14 covers missing sources.
+
+  - id: F4
+    condition: >
+      Constraint-fit check finds a hard regression against an ISO 25010
+      target in quality-profile.yaml AND the user does not resolve it at
+      the placement checkpoint. The play cannot ship a feature that
+      regresses declared quality targets — Vanish closes the issue.
+
+  - id: F5
+    condition: >
+      Feature row is written to features.yaml without an `issue` field.
+      The feature ↔ issue linkage (C9) is non-negotiable.
+
+  - id: F6
+    condition: >
+      Epic fails validate-intent-epics after generation or extension, and
+      the gap interview (Phase 8) does not resolve the missing fields
+      within a single interview loop. Halt the play — the epic is not
+      /prepare-ready. This is a validator failure on a written artifact,
+      not a missing-epic-file failure (missing epics are generated per
+      C14).
+
+  - id: F7
+    condition: >
+      Working artifact (catalog-match, constraint-fit, grounding,
+      decision manifest) is written under {product_base} instead of
+      {stm_base}{issue}/evidence/scope/. C12 is violated — STM vs LTM
+      separation is a hard rule.
+
+  - id: F8
+    condition: >
+      User responds Vanish at Phase 5 (placement) and the GH issue is not
+      closed. C7 requires closure; failure to close leaves an orphaned
+      issue in the tracker.
+
+  - id: F9
+    condition: >
+      A product-LTM artifact exists at its config-resolved path but fails
+      its schema on read (malformed YAML, missing required top-level
+      keys, corrupted structure). C14 allows the play to create missing
+      artifacts but not to proceed against a broken one — the play halts
+      with the validator's error report and a pointer to the offending
+      file.
+
+scenarios:
+  - id: S1
+    persona: >
+      Product owner with a raw feature idea, no FEAT-ID yet.
+    given: >
+      Product owner runs /scope with a free-text description of a new
+      feature they want scoped. No existing features.yaml entry matches
+      the description.
+    then: >
+      Phase 0 creates a new GH issue and initialises STM at
+      {stm_base}{issue}/. Phase 1 interviews the product owner until the
+      brief and grounding-questions files contain enough to classify.
+      Phase 2 classifies as new_feature_in_existing_capability (or one
+      of the other four buckets). Phase 3 assigns a target_milestone from
+      {product_base}{product.specification}project-profile.yaml
+      timeline.milestones. Phase 5 placement checkpoint is approved.
+      Phase 6 upserts the feature row with the new issue number in the
+      `issue` field. Phase 7 extends or generates an epic for the target
+      capability. Phase 9 epic checkpoint is approved. Phase 10 commits
+      the delivery record and the play exits with "ready for /prepare".
+
+  - id: S2
+    persona: >
+      Developer picking up an existing planned feature.
+    given: >
+      Developer runs /scope with FEAT-ID WI-F001 (Profile-Based Auto-Triage,
+      status=planned). WI-F001 does not yet carry an `issue` field in the
+      feature catalog. Its capability (agentic-triage) does not have an
+      epic.
+    then: >
+      Phase 0 creates a new GH issue anchored to WI-F001 and initialises
+      STM. Phase 1 runs a gap interview only — notes and target_milestone
+      are the known missing fields; the feature already has a description
+      and capability mapping. Phase 2 classifies as exact_match. Phase 3
+      confirms constraint fit. Phase 4 is skipped (C6 exact_match).
+      Phase 5 is approved. Phase 6 writes the `issue` field into WI-F001
+      and fills the gap fields. Phase 7 runs generate-intent-epics scoped
+      to the agentic-triage capability; epic passes validation. Phase 9
+      is approved. Phase 10 closes with "ready for /prepare".
+
+  - id: S3
+    persona: >
+      Developer evolving an existing feature that already has a linked
+      issue.
+    given: >
+      Developer runs /scope with FEAT-ID AM-F014 (Intent Inference,
+      status=rollout, issue=N). The feature's notes need to expand to
+      cover a new sub-concern the developer has identified.
+    then: >
+      Phase 0 reuses the existing issue N (feature is evolving, not being
+      re-created). Phase 1 runs a narrow gap interview on the new
+      sub-concern. Phase 2 classifies as extension. Phase 3 confirms
+      constraint fit with existing quality targets. Phase 5 placement
+      checkpoint shows the proposed notes expansion with rationale.
+      Phase 6 updates the notes + gap_items on AM-F014; `issue` field
+      unchanged. Phase 7 checks whether the existing l3-intent-driven
+      epic covers the new sub-concern; extends if needed. Phase 9 is
+      approved. Phase 10 closes with "ready for /prepare".
+
+  - id: S4
+    persona: >
+      Product owner proposing a feature that needs a new capability.
+    given: >
+      Product owner runs /scope with a free-text description whose subject
+      matter does not fit any existing capability under any selected
+      domain, but does fit under engineering-experience domain as a new
+      capability. No existing enriched-capabilities.yaml record covers
+      this capability.
+    then: >
+      Phase 0 creates a new GH issue. Phase 1 interviews until the
+      classification is clear. Phase 2 classifies as
+      new_capability_in_existing_domain. Phase 3 verifies no
+      constraint-fit conflicts. Phase 4 invokes KB grounding via
+      {ltm.project-target}knowledge/domain/ and, if thin,
+      research-domain-context — the grounding pack is written to STM
+      evidence. Phase 5 surfaces the new-capability proposal with business
+      rules, success criteria, and failure scenarios derived from
+      grounding; user Tethers. Phase 6 extends (or creates, per C14)
+      enriched-capabilities.yaml with the new record AND upserts the
+      feature row. Phase 7 generates a fresh epic for the new capability.
+      Phase 9 is approved. Phase 10 closes with "ready for /prepare".
+
+  - id: S5
+    persona: >
+      Product owner whose feature idea regresses a declared quality
+      target.
+    given: >
+      Product owner runs /scope with a free-text description whose subject
+      matter regresses an ISO 25010 target declared in
+      {product_base}{product.specification}quality-profile.yaml, and the
+      product owner does not agree to adjust the quality profile.
+    then: >
+      Phases 0-4 proceed as normal and the constraint-fit check in Phase 3
+      flags the regression. Phase 5 placement checkpoint surfaces the
+      regression finding with the specific target and the conflict.
+      Product owner Vanishes. Phases 6-10 do NOT run. The play closes the
+      GH issue opened in Phase 0 per C7 and writes a delivery record to
+      STM evidence noting the Vanish reason.
+
+  - id: S6
+    persona: >
+      Developer scoping a feature into a greenfield product with no
+      existing features.yaml.
+    given: >
+      Developer runs /scope with a free-text description on a new product
+      where {product_base}{product.scope}features.yaml does not yet exist.
+    then: >
+      Phase 0 creates a new GH issue. Phase 1 completes intake. Phase 2
+      detects features.yaml is missing; per C14 the play creates it with
+      the minimum valid schema (summary counters zeroed, empty domains
+      list) and proceeds with classification. The new feature is then
+      the first entry. Subsequent phases run normally. The delivery
+      record notes the auto-creation of features.yaml as a decision
+      manifest entry.
