@@ -199,6 +199,55 @@ constraints:
       the compiled play or its agent dispatches are a compilation
       violation.
 
+  - id: C16
+    rule: >
+      All user-facing surfaces produced by this play load their format
+      from LTM templates under {ltm.project-target}standards/templates/
+      — never inline prose. The compiled play references the template
+      file by path; the executing orchestrator fills the template slots
+      at runtime. This enforces the house pattern shared across fix-it,
+      review-pr, and start-feature-planning. The surface-to-template map
+      below is authoritative; every surface listed must appear in the
+      compiled SKILL.md with its corresponding template path.
+
+    template_map:
+      phase-0-gh-issue-body:
+        surface: "GH issue body at creation (Phase 0)"
+        template: "handled inside manage-issue via github-issue.md — no additional wiring in /scope"
+        note: "manage-issue already loads {ltm.project-target}standards/templates/github-issue.md at its SKILL.md line 46"
+
+      phase-5-vanish-gh-issue-close-comment:
+        surface: "GH issue close comment on Phase 5 Vanish"
+        template: "handled inside manage-issue comment action — close_comment string passed through unchanged"
+        note: "single-line close reason; no template slot fill needed"
+
+      phase-5-placement-checkpoint:
+        surface: "Checkpoint file written when placement gate fires"
+        template: "{ltm.project-target}standards/templates/checkpoint.md"
+        destination: "{stm_base}{issue}/checkpoint/scope/{YYYYMMDD-HHMMSS}.md"
+
+      phase-5-approval-prompt:
+        surface: "Tether/Vanish/Orbit prompt shown to user at placement gate"
+        template: "{ltm.project-target}standards/templates/approval-prompt.md"
+
+      phase-9-epic-checkpoint:
+        surface: "Checkpoint file written when epic gate fires"
+        template: "{ltm.project-target}standards/templates/checkpoint.md"
+        destination: "{stm_base}{issue}/checkpoint/scope/{YYYYMMDD-HHMMSS}.md"
+
+      phase-9-approval-prompt:
+        surface: "Tether/Vanish/Orbit prompt shown to user at epic gate"
+        template: "{ltm.project-target}standards/templates/approval-prompt.md"
+
+      phase-10-delivery-report:
+        surface: "Terminal delivery report shown to user at close"
+        template: "{ltm.project-target}standards/templates/delivery-report.md"
+
+      phase-10-evidence-file:
+        surface: "Evidence markdown written to STM at close"
+        template: "{ltm.project-target}standards/templates/evidence-file.md"
+        destination: "{stm_base}{issue}/evidence/scope/{YYYYMMDD-HHMMSS}.md"
+
 failure_conditions:
   - id: F1
     condition: >
@@ -262,6 +311,14 @@ failure_conditions:
       artifacts but not to proceed against a broken one — the play halts
       with the validator's error report and a pointer to the offending
       file.
+
+  - id: F10
+    condition: >
+      Any user-facing surface (checkpoint file, approval prompt, delivery
+      report, evidence file) is emitted as inline prose in the compiled
+      SKILL.md instead of loaded from the template path declared in C16's
+      template_map. Violates the house pattern and produces drift across
+      plays.
 
 scenarios:
   - id: S1
