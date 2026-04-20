@@ -183,6 +183,19 @@ constraints:
       user for approval before proceeding to PR. This is non-configurable
       — always fires when confidence is low.
 
+  - id: C21
+    rule: >
+      Step 10 (judge-rating) dispatch MUST include eval_path pointing to
+      core/components/plays/enhance/reference/evals/solution-rating.yaml,
+      artifact_paths.approach pointing to the issue's approach.yaml, and
+      config.instructions with the following ask: "Rate enhancement solution
+      against the supplied evals. Boundary is the approach.yaml plus
+      project_root. For each ER-N eval, execute its verification procedure
+      against the delivered work and record PASS/FAIL with evidence. Compute
+      overall_confidence per ER-4: any blocker-classified concern →
+      overall_confidence ≤ 0.55; else reflect quality across per-area
+      assessments."
+
 # ═══════════════════════════════════════════════════════════════════════════
 # CONSTRAINTS — PR & Quality
 # ═══════════════════════════════════════════════════════════════════════════
