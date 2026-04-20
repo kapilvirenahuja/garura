@@ -1,0 +1,10 @@
+readiness:
+  pr_number: 306
+  pr_state: OPEN
+  mergeable: MERGEABLE
+  branch: enhance/305-design-multi-scenario
+  tree_clean: true
+  untracked_evidence_files: []
+  pre_merge_commit_needed: false
+  ready: true
+  checked_at: "2026-04-19"

@@ -1,0 +1,19 @@
+merge_result:
+  status: merged
+  pr_number: 306
+  merge_sha: 704d14d
+  base_branch: main
+  branch_deleted: true
+  branch_deletion_notes: >
+    Remote branch was already deleted by platform on merge (auto-delete).
+    Treated as success per C6. Stale local remote-tracking ref pruned via git remote prune origin.
+  evals:
+    SE-1: PASS  # PR state: MERGEABLE before merge, no conflict markers
+    SE-2: PASS  # Feature branch absent locally and from remote (pruned)
+    SE-3: PASS  # Local checkout on main, fast-forward merge, up to date with remote
+    SE-4: PASS  # Tree was clean before merge (confirmed in readiness.yaml)
+    SE-5: PASS  # PR #306 reflected as merged on platform, merge_sha present in git log
+  scenario_evals:
+    SCE-1: PASS  # On main, feature branch absent — ready for new branch
+    SCE-2: PASS  # PR #306 merged on platform, 704d14d in git log on main
+  completed_at: "2026-04-19"
