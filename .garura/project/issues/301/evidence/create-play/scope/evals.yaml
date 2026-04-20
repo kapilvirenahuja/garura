@@ -130,7 +130,7 @@ scenario_evals:
 
   - id: SCE-2
     scenario_id: S2
-    persona: "Developer picking up an existing planned feature."
+    persona: "Product manager preparing an existing planned feature for build."
     artifact_pattern: "{stm_base}{issue}/evidence/scope/delivery-record.yaml, {product_base}{product.scope}features.yaml, {product_base}{product.scope}epics/*agentic-triage*.yaml, {product_base}{product.scope}validation-intent-epics.yaml"
     check: "Phase 0 created a new GH issue anchored to WI-F001 and initialised STM; Phase 1 ran a gap interview only; Phase 2 classified as exact_match; Phase 3 confirmed constraint fit; Phase 4 was skipped; Phase 5 was approved; Phase 6 wrote the issue field into WI-F001 and filled the gap fields; Phase 7 ran generate-intent-epics scoped to the agentic-triage capability; epic passed validation; Phase 9 was approved; Phase 10 closed with \"ready for /prepare\"."
     pass_criteria: "delivery-record.yaml records bucket=exact_match, Phase 4 skipped, features.yaml WI-F001 row has the new issue field populated and gap fields filled, an epic file for the agentic-triage capability exists and validation-intent-epics.yaml reports PASS for it, and the record ends with \"ready for /prepare\"."
@@ -138,7 +138,7 @@ scenario_evals:
 
   - id: SCE-3
     scenario_id: S3
-    persona: "Developer evolving an existing feature that already has a linked issue."
+    persona: "Product owner evolving an existing feature that already has a linked issue."
     artifact_pattern: "{stm_base}{issue}/evidence/scope/delivery-record.yaml, {product_base}{product.scope}features.yaml, {product_base}{product.scope}epics/l3-intent-driven*.yaml"
     check: "Phase 0 reused the existing issue N; Phase 1 ran a narrow gap interview; Phase 2 classified as extension; Phase 3 confirmed constraint fit; Phase 5 showed the proposed notes expansion with rationale; Phase 6 updated notes + gap_items on AM-F014 with the issue field unchanged; Phase 7 extended the existing l3-intent-driven epic if needed; Phase 9 was approved; Phase 10 closed with \"ready for /prepare\"."
     pass_criteria: "delivery-record.yaml records Phase-0 reuse of issue N, bucket=extension, features.yaml AM-F014 row has notes + gap_items updated with the issue field equal to its prior value N, epic for the target capability is present (extended as needed) and validates, and the record ends with \"ready for /prepare\"."
@@ -162,7 +162,7 @@ scenario_evals:
 
   - id: SCE-6
     scenario_id: S6
-    persona: "Developer scoping a feature into a greenfield product with no existing features.yaml."
+    persona: "Product owner scoping a feature into a greenfield product with no existing features.yaml."
     artifact_pattern: "{product_base}{product.scope}features.yaml, {stm_base}{issue}/evidence/scope/delivery-record.yaml, {stm_base}{issue}/evidence/scope/decision-manifest-manage-features.yaml"
     check: "Phase 0 created a new GH issue; Phase 2 detected features.yaml was missing and per C14 created it with the minimum valid schema (summary counters zeroed, empty domains list) and proceeded with classification; subsequent phases ran normally; the delivery record notes the auto-creation of features.yaml as a decision-manifest entry."
     pass_criteria: "features.yaml exists after the play with the new feature as its first entry and a summary with initialised counters; delivery-record.yaml includes a decision-manifest entry recording the auto-creation of features.yaml; record ends with \"ready for /prepare\"."

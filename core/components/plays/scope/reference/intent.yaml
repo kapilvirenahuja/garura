@@ -343,41 +343,44 @@ scenarios:
 
   - id: S2
     persona: >
-      Developer picking up an existing planned feature.
+      Product manager preparing an existing planned feature for build.
     given: >
-      Developer runs /scope with FEAT-ID WI-F001 (Profile-Based Auto-Triage,
-      status=planned). WI-F001 does not yet carry an `issue` field in the
-      feature catalog. Its capability (agentic-triage) does not have an
-      epic.
+      Product manager runs /scope with FEAT-ID WI-F001 (Profile-Based
+      Auto-Triage, status=planned). WI-F001 does not yet carry an `issue`
+      field in the feature catalog. Its capability (agentic-triage) does
+      not have an epic.
     then: >
       Phase 0 creates a new GH issue anchored to WI-F001 and initialises
-      STM. Phase 1 runs a gap interview only — notes and target_milestone
-      are the known missing fields; the feature already has a description
-      and capability mapping. Phase 2 classifies as exact_match. Phase 3
-      confirms constraint fit. Phase 4 is skipped (C6 exact_match).
-      Phase 5 is approved. Phase 6 writes the `issue` field into WI-F001
-      and fills the gap fields. Phase 7 runs generate-intent-epics scoped
-      to the agentic-triage capability; epic passes validation. Phase 9
-      is approved. Phase 10 closes with "ready for /prepare".
+      STM. Phase 1 runs a gap interview with the product manager —
+      notes and target_milestone are the known missing fields; the
+      feature already has a description and capability mapping. Phase 2
+      classifies as exact_match. Phase 3 confirms constraint fit.
+      Phase 4 is skipped (C6 exact_match). Phase 5 is approved. Phase 6
+      writes the `issue` field into WI-F001 and fills the gap fields.
+      Phase 7 runs generate-intent-epics scoped to the agentic-triage
+      capability; epic passes validation. Phase 9 is approved. Phase 10
+      closes with "ready for /prepare".
 
   - id: S3
     persona: >
-      Developer evolving an existing feature that already has a linked
-      issue.
+      Product owner evolving an existing feature that already has a
+      linked issue.
     given: >
-      Developer runs /scope with FEAT-ID AM-F014 (Intent Inference,
+      Product owner runs /scope with FEAT-ID AM-F014 (Intent Inference,
       status=rollout, issue=N). The feature's notes need to expand to
-      cover a new sub-concern the developer has identified.
+      cover a new sub-concern surfaced from customer or stakeholder
+      feedback.
     then: >
       Phase 0 reuses the existing issue N (feature is evolving, not being
-      re-created). Phase 1 runs a narrow gap interview on the new
-      sub-concern. Phase 2 classifies as extension. Phase 3 confirms
-      constraint fit with existing quality targets. Phase 5 placement
-      checkpoint shows the proposed notes expansion with rationale.
-      Phase 6 updates the notes + gap_items on AM-F014; `issue` field
-      unchanged. Phase 7 checks whether the existing l3-intent-driven
-      epic covers the new sub-concern; extends if needed. Phase 9 is
-      approved. Phase 10 closes with "ready for /prepare".
+      re-created). Phase 1 runs a narrow gap interview with the product
+      owner on the new sub-concern. Phase 2 classifies as extension.
+      Phase 3 confirms constraint fit with existing quality targets.
+      Phase 5 placement checkpoint shows the proposed notes expansion
+      with rationale. Phase 6 updates the notes + gap_items on AM-F014;
+      `issue` field unchanged. Phase 7 checks whether the existing
+      l3-intent-driven epic covers the new sub-concern; extends if
+      needed. Phase 9 is approved. Phase 10 closes with "ready for
+      /prepare".
 
   - id: S4
     persona: >
@@ -421,11 +424,12 @@ scenarios:
 
   - id: S6
     persona: >
-      Developer scoping a feature into a greenfield product with no
+      Product owner scoping a feature into a greenfield product with no
       existing features.yaml.
     given: >
-      Developer runs /scope with a free-text description on a new product
-      where {product_base}{product.scope}features.yaml does not yet exist.
+      Product owner runs /scope with a free-text description on a new
+      product where {product_base}{product.scope}features.yaml does not
+      yet exist.
     then: >
       Phase 0 creates a new GH issue. Phase 1 completes intake. Phase 2
       detects features.yaml is missing; per C14 the play creates it with
