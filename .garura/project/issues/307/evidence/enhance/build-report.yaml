@@ -1,0 +1,165 @@
+build_report:
+  task_id: implement
+  issue: "307"
+  status: completed
+  timestamp: "2026-04-20"
+
+files_created:
+  - path: core/components/plays/enhance/reference/evals/solution-rating.yaml
+    description: >
+      Static authored eval file with four entries: ER-1 (contract mismatch,
+      severity_if_fail=blocker), ER-2 (intent-propagation break,
+      severity_if_fail=blocker), ER-3 (stale boundary contradicting new rule,
+      severity_if_fail=blocker), ER-4 (overall confidence aggregation cap —
+      any blocker → overall_confidence ≤ 0.55). Each entry includes id, name,
+      severity_if_fail, verification, pass_criteria, fail_criteria,
+      example_fail citing #305 anchors.
+
+  - path: core/components/skills/diff-artifacts/SKILL.md
+    description: >
+      Non-user-invocable skill. Frontmatter: name=diff-artifacts,
+      user-invocable=false, model=sonnet, allowed-tools=[Read, Grep, Glob,
+      Write]. Inputs: input_path, output_path, check_type, output_report_path.
+      Output schema copied verbatim from judge.md lines 262-288
+      (coverage-check.yaml schema). No reference/intent.yaml created.
+
+files_modified:
+  - path: core/components/agents/judge.md
+    description: >
+      Rewrote to generic eval executor. Deleted: 4-mode Identity enumeration
+      (lines 20-25), Mode 1/2/3/4 header blocks under Core Principle (lines
+      34-72), Skill Inventory (Mode 2) table (lines 105-110), all 4 Input/
+      Output contracts and coverage-check.yaml schema (lines 112-288).
+      Added: new 2-sentence Identity paragraph, 5-step Operating Procedure,
+      single superset Input Contract, single Output Contract, Available Skills
+      table with diff-artifacts. Preserved verbatim: Core Principle, What You
+      Do (including legacy Mode 2 Skill tool line — verbatim per plan),
+      What You MUST NOT Do, What You MUST NOT Receive, Judge Report Schema,
+      Failure Protocol, Recovery, Task Tracking, Decryption Protocol.
+
+  - path: core/components/plays/enhance/reference/intent.yaml
+    description: >
+      Added constraint C21 (after C15) mandating Step 10 judge-rating dispatch
+      includes eval_path pointing to solution-rating.yaml and config.instructions
+      with the ER-4 confidence cap ask. Expressed as a play constraint, not as
+      inline JSON (intent.yaml is constraint-only, no JSON dispatch blocks).
+
+  - path: core/components/plays/enhance/SKILL.md
+    description: >
+      Manually applied Step 10 edits (T6 fallback path — CLI rebuild produced
+      no output). Updated Step 10 JSON contract to add eval_path and
+      config.instructions fields. Updated Step 10 Eval (SE-12) to reference
+      C21 and describe the expanded contract. Updated Critical note to reference
+      C21 and ER-4 confidence cap rule.
+
+task_completion:
+  - id: T1
+    title: "Pre-check grep"
+    status: completed
+    result: Zero matches for score-epic-confidence, check-input-output-coverage,
+      validate-artifact across core/ + docs/ (excluding judge.md). Safe to proceed.
+
+  - id: T2
+    title: "Write solution-rating.yaml"
+    status: completed
+    result: File created at core/components/plays/enhance/reference/evals/solution-rating.yaml
+      with ER-1 through ER-4, all fields populated, #305 anchors cited.
+
+  - id: T3
+    title: "Write diff-artifacts/SKILL.md"
+    status: completed
+    result: File created at core/components/skills/diff-artifacts/SKILL.md.
+      Coverage-check.yaml schema copied verbatim from judge.md lines 262-288.
+      No reference/intent.yaml created (non-user-invocable).
+
+  - id: T4
+    title: "Rewrite judge.md"
+    status: completed
+    result: Mode 2/3/4 blocks deleted. Generic single-operation agent with superset
+      Input Contract. All preserved sections verified by grep. E5 and E6 pass.
+
+  - id: T5
+    title: "Edit enhance/reference/intent.yaml"
+    status: completed
+    result: Added C21 constraint mandating eval_path and config.instructions in
+      Step 10 dispatch. Note: intent.yaml uses constraint format only — no JSON
+      dispatch blocks exist in this file. C21 encodes the mandate at constraint
+      level; compiled SKILL.md carries the JSON.
+
+  - id: T6
+    title: "Run /create-play --rebuild enhance"
+    status: completed_via_fallback
+    result: >
+      CLI command 'claude --dangerously-skip-permissions -p "/create-play --rebuild
+      enhance"' was dispatched as background task but produced no output (silent
+      exit — likely CLI limitation in this environment). Fallback taken: manually
+      applied Step 10 contract edits to core/components/plays/enhance/SKILL.md to
+      match updated intent.yaml. eval_path and config.instructions now present in
+      Step 10 JSON block. E11 verified by grep.
+
+  - id: T7
+    title: "Run /sync-claude (global)"
+    status: completed
+    result: >
+      CLI command 'claude --dangerously-skip-permissions -p "/sync-claude"' ran
+      successfully (exit code 0, output "Command completed"). Verified deployed:
+      ~/.claude/agents/judge.md (no Mode 2/3/4 strings),
+      ~/.claude/skills/diff-artifacts/SKILL.md (user-invocable: false),
+      ~/.claude/skills/enhance/SKILL.md (eval_path in Step 10).
+
+  - id: T8
+    title: "Self-verification"
+    status: completed
+    result: |
+      E5 PASS: judge.md contains no "Mode 2:", "Mode 3:", "Mode 4:",
+        "score-epic-confidence", "check-input-output-coverage", "validate-artifact"
+      E6 PASS: judge.md retains "MUST NOT Receive", "Decryption Protocol",
+        "Failure Protocol", "Task Tracking", "eval_source", "plaintext_deleted"
+      E7 PASS: judge.md Input Contract documents eval_path, project_root,
+        config.instructions, config.decryption_key
+      E8 PASS: diff-artifacts/SKILL.md has user-invocable: false and
+        covered/partial/dropped/drifted schema fields
+      E9 PASS: core/components/skills/diff-artifacts/reference/intent.yaml
+        does NOT exist
+      E10 PASS: enhance/reference/intent.yaml C21 references solution-rating.yaml
+      E11 PASS: enhance/SKILL.md Step 10 JSON contains eval_path pointing to
+        solution-rating.yaml
+      E12 PASS: git diff confirms implement/SKILL.md and validate/SKILL.md
+        are byte-identical to pre-change (no modifications)
+      E13 PASS: Post-change grep for score-epic-confidence,
+        check-input-output-coverage, validate-artifact returns zero matches
+
+deviations:
+  - id: D1
+    task: T5
+    description: >
+      intent.yaml does not support inline JSON dispatch blocks — it is a
+      constraint-only file (intent, constraints, failure_conditions, scenarios).
+      The task description said "add eval_path to stm.input" but that field
+      shape lives in compiled SKILL.md. Resolution: added constraint C21 to
+      intent.yaml encoding the mandate at constraint level; applied the JSON
+      changes directly to enhance/SKILL.md as the T6 fallback. This is
+      consistent with the project convention (intent.yaml → SKILL.md compile
+      flow) and aligns with the advisor guidance received before implementation.
+
+  - id: D2
+    task: T6
+    description: >
+      CLI rebuild via 'claude --dangerously-skip-permissions -p "/create-play
+      --rebuild enhance"' produced no output. Took the documented fallback:
+      manually applied Step 10 JSON contract edits to enhance/SKILL.md directly.
+      Per approach.yaml task T6: "If that CLI form fails in your environment,
+      instead manually apply the Step 10 edits to core/components/plays/enhance/
+      SKILL.md to match the updated intent.yaml."
+
+commands_run:
+  - command: "grep -rn 'score-epic-confidence|check-input-output-coverage|validate-artifact' core/ docs/ | grep -v 'judge.md'"
+    result: zero matches (T1 pre-check passed)
+  - command: "claude --dangerously-skip-permissions -p '/create-play --rebuild enhance'"
+    result: No output (background task, silent exit — fallback taken)
+  - command: "claude --dangerously-skip-permissions -p '/sync-claude'"
+    result: exit code 0, "Command completed"
+  - command: "git diff -- core/components/plays/implement/SKILL.md core/components/plays/validate/SKILL.md"
+    result: empty diff (E12 PASS — both files unchanged)
+
+errors_encountered: []
