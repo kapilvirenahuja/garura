@@ -1,0 +1,16 @@
+commits:
+  - order: 1
+    sha: 8888d20
+    type: chore
+    scope: stm
+    subject: record fix-it evidence for #256
+    issue: 256
+    files_count: 9
+
+  - order: 2
+    sha: 7a97233
+    type: chore
+    scope: stm
+    subject: record distill evidence for #278
+    issue: 278
+    files_count: 1
