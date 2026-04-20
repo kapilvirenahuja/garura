@@ -1,0 +1,33 @@
+task_id: verify-readiness
+status: ready
+
+pr:
+  number: 312
+  title: "refactor(plays): drop meridian: prefix — adopt bare names (#310)"
+  state: OPEN
+  head_branch: fix/310-meridian-prefix-cleanup
+  base_branch: main
+  mergeable: MERGEABLE
+  merge_state_status: CLEAN
+
+constraints:
+  C1:
+    rule: Must not operate when current branch is main/master/default
+    current_branch: fix/310-meridian-prefix-cleanup
+    status: PASS
+  C2:
+    rule: A pull request must exist on the platform for the current branch
+    pr_found: true
+    status: PASS
+  C3:
+    rule: Working tree and index must be clean (no uncommitted, no staged changes)
+    untracked_only: true
+    staged_changes: false
+    modified_tracked_files: false
+    status: PASS
+  C4:
+    rule: No merge conflicts
+    merge_state_status: CLEAN
+    status: PASS
+
+verdict: PROCEED

@@ -1,0 +1,34 @@
+task_id: execute-merge
+status: merged
+
+pr:
+  number: 312
+  state: MERGED
+  merged_at: "2026-04-20T13:34:09Z"
+
+merge:
+  sha: 29af572aacb65937f5c7d40d0b9eb011b1216121
+  strategy: merge (default, C5)
+
+branch:
+  feature: fix/310-meridian-prefix-cleanup
+  base: main
+  local_deleted: true
+  remote_deleted: true
+
+post_merge:
+  current_branch: main
+  local_sha: 29af572aacb65937f5c7d40d0b9eb011b1216121
+  remote_sha: 29af572aacb65937f5c7d40d0b9eb011b1216121
+  in_sync: true
+
+step_evals:
+  SE-1_F1: PASS  # mergeable=true confirmed before merge
+  SE-2_F2: PASS  # branch_deleted=true, absent locally and remotely
+  SE-3_F3: PASS  # local HEAD=main, local SHA matches remote SHA
+  SE-4_F4: PASS  # no uncommitted/staged changes pre-merge
+  SE-5_F5: PASS  # PR #312 merged, pr_number non-null
+
+scenario_evals:
+  SCE-1_S1: PASS  # on main, git pull up to date, feature branch absent
+  SCE-2_S2: PASS  # PR state=MERGED, merge SHA 29af572 present in git log on main
