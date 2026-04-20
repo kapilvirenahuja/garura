@@ -1,0 +1,64 @@
+branch:
+  name: fix/257-implement-epic-task-prompt-preconditions
+  issue_from_branch: 257
+  is_hotfix: false
+
+change_summary:
+  total_files: 6
+  staged: 0
+  unstaged: 1
+  untracked: 5
+
+groups:
+  - id: G1
+    issue: 257
+    type: fix
+    scope: implement
+    subject: add dispatch prompt contract with 4-section precondition gate to implement play
+    confidence: high
+    files:
+      - path: core/components/plays/implement/SKILL.md
+        status: modified
+        description: >
+          Compiled play rebuild — updates constraint reference from C1-C32 to C1-C33,
+          narrows code-builder isolation rule (C5/C29/F5), adds dispatch prompt contract
+          section (C33/F26) with 4-labeled-section gate, expands test-writer dispatch
+          instructions to include Description/Preconditions/Expected Behavior/Verification
+          Steps sections, and adds SE-22 eval for dispatch contract compliance.
+
+  - id: G2
+    issue: 257
+    type: chore
+    scope: stm
+    subject: record create-play rebake and fix-it regression verdict evidence for #257
+    confidence: high
+    files:
+      - path: .garura/project/issues/257/evidence/create-play/implement/constraint-classifications.yaml
+        status: untracked
+        description: create-play rebake evidence — constraint classifications for implement play rebuild
+      - path: .garura/project/issues/257/evidence/create-play/implement/coverage-matrix.md
+        status: untracked
+        description: create-play rebake evidence — coverage matrix for implement play rebuild
+      - path: .garura/project/issues/257/evidence/create-play/implement/evals.yaml
+        status: untracked
+        description: create-play rebake evidence — evals artifact for implement play rebuild
+      - path: .garura/project/issues/257/evidence/create-play/implement/play-analysis.md
+        status: untracked
+        description: create-play rebake evidence — play analysis for implement play rebuild
+      - path: .garura/project/issues/257/evidence/fix-it/regression-test-verdict.yaml
+        status: untracked
+        description: quality-auditor regression test verdict for fix-it resolution of #257
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+recommendation:
+  checkpoint_needed: false
+  reason: >
+    All changes map to issue #257 with high confidence. Branch name encodes the issue
+    unambiguously. Two groups are warranted: G1 is the substantive fix (implement play
+    rebuild), G2 is operational STM evidence (chore). No sensitive files, no breaking
+    changes, no type ambiguity, not a hotfix branch.

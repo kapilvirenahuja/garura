@@ -1,0 +1,48 @@
+mappings:
+  - group_id: G1
+    issue_number: 257
+    issue_title: "[DEF][High] /implement-epic task prompts lack preconditions/expected-behavior and skip post-implementation green unit-test verification"
+    confidence: high
+    reasoning: >
+      Branch name fix/257-implement-epic-task-prompt-preconditions encodes issue #257
+      directly (branch signal). Semantic signals align on 3 dimensions: (1) G1 subject
+      "add dispatch prompt contract with 4-section precondition gate" directly
+      implements the issue requirement for Description/Preconditions/Expected Behavior
+      sections in dispatched prompts; (2) issue label 'defect' aligns with commit type
+      'fix'; (3) file core/components/plays/implement/SKILL.md is the compile output
+      for the implement play rebuilt to satisfy #257's constraints. No competing issues.
+    signals:
+      branch: true
+      semantic_keyword_match: true
+      label_type_match: true
+      file_path_match: true
+    conflicts: []
+
+  - group_id: G2
+    issue_number: 257
+    issue_title: "[DEF][High] /implement-epic task prompts lack preconditions/expected-behavior and skip post-implementation green unit-test verification"
+    confidence: high
+    reasoning: >
+      Branch name fix/257-implement-epic-task-prompt-preconditions encodes issue #257
+      directly (branch signal). All five files reside under
+      .garura/project/issues/257/evidence/ — the path numerically and structurally
+      binds them to #257. Proximity signal: G1 and G2 share the same branch and
+      both target #257, reinforcing the mapping. regression-test-verdict.yaml
+      under fix-it evidence confirms the defect-resolution work being recorded is
+      for #257. No competing issues.
+    signals:
+      branch: true
+      file_path_encodes_issue: true
+      proximity: true
+      fix_it_evidence_path_match: true
+    conflicts: []
+
+summary:
+  total_groups: 2
+  mapped: 2
+  unmapped: 0
+  conflicts_detected: false
+  approval_required: false
+  approval_reason: >
+    All groups mapped to issue #257 with high confidence. C9 approval gate not
+    triggered — play may proceed without human checkpoint.
