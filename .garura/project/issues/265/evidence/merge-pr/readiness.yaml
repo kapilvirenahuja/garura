@@ -1,0 +1,17 @@
+---
+# Readiness — Issue #265 / PR #296
+# Created: 2026-04-19
+
+pr_number: 296
+state: OPEN
+mergeable: true
+head_branch: enhance/265-specify-emit-features-yaml
+base_branch: main
+
+tree_clean: false
+tree_notes: "CLAUDE.md has unstaged modification — pre-existing, unrelated to this branch. Untracked files are evidence artifacts. User has Tethered authorizing merge."
+
+evals:
+  SE1_no_conflict: PASS
+  SE4_clean_tree: PASS_WITH_NOTE  # pre-existing CLAUDE.md change, user-authorized
+  SE5_pr_exists: PASS
