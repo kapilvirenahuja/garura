@@ -2,33 +2,44 @@
 |-------|-------|
 | **Type** | defect |
 | **Severity** | Medium |
-| **Reported From** | /scope compilation (#301) |
+| **Reported From** | User observation while reviewing play artifacts |
 | **Date** | 2026-04-20 |
 
 ### Problem
 
-Two issues surfaced in `/create-play` while compiling `/scope` for #301.
-
-**(1) Templates not enforced.** The compiler produced `core/components/plays/scope/SKILL.md` with zero references to LTM templates under `core/components/memory/standards/templates/`. User-facing surfaces (checkpoint files, approval prompts, delivery reports, evidence files) were emitted as inline prose. Other plays (`fix-it`, `review-pr`, `start-feature-planning`) DO reference these templates — the house pattern exists but `/create-play`'s compiler doesn't synthesize template references unless intent.yaml explicitly names them. This produces drift between plays and bloats every compiled SKILL.md with duplicated prose.
-
-**(2) Compilation metadata at top of SKILL.md burns tokens.** The `Compiled From`, `Role`, intent hash, `compiled_by`, `compiled_at`, `workflow_structure`, agent counts, eval counts — all sit near the top of every compiled SKILL.md. Claude loads this text into context on every play invocation but it has zero runtime value — it's build metadata for humans auditing drift. Should move to the end of SKILL.md or to a sibling `reference/compilation.yaml` / `reference/compilation.md` that is NOT loaded by the Skill tool.
+Several compiled plays still carry the legacy `meridian:` prefix in their frontmatter `name`, H1 header, and internal references. The framework was renamed to Garura; the only play using the correct `garura:` prefix is `capture`. Remaining references must be dropped or switched to `garura:`.
 
 ### Evidence
 
-- `/scope` SKILL.md: zero grep hits for `standards/templates`, `checkpoint.md`, `approval-prompt.md`, `delivery-report.md`, `evidence-file.md`.
-- House pattern exists: `fix-it/SKILL.md`, `review-pr/SKILL.md`, `start-feature-planning/SKILL.md` reference templates.
-- `manage-issue` already loads `github-issue.md` at line 46 of its SKILL.md — template loading works end-to-end when wired.
-- Every compiled play under `core/components/plays/*/SKILL.md` starts with a `Compiled From` + metadata block.
+Confirmed via grep `meridian:` under `core/components/plays/**/SKILL.md`:
+
+- `core/components/plays/fix-it/SKILL.md` — `name: "meridian:fix-it"`, H1 `# meridian:fix-it`, status file `"play": "meridian:fix-it"` (line 526)
+- `core/components/plays/review-pr/SKILL.md` — `name: meridian:review-pr`, plus `meridian:quality-check-scoped` skill invocation references (lines 161, 165, 452)
+- `core/components/plays/report-issue/SKILL.md` — `name: "meridian:report-issue"` (deprecated alias, still present)
+- `core/components/plays/distill/SKILL.md` — `name: meridian:distill`
+
+### Specific Issues
+
+1. Frontmatter `name` field uses wrong namespace — breaks consistency with `capture` (which uses `garura:`).
+2. H1 headers in SKILL.md use `# meridian:fix-it` — appears in all evidence/docs copied from compiled output.
+3. Status file `play` fields write `"meridian:fix-it"` — leaks into runtime state artifacts.
+4. `review-pr` still invokes `meridian:quality-check-scoped` by that qualified name even though the skill itself is under `core/components/skills/quality-check-scoped/` with no meridian prefix.
 
 ### Expected Behavior
 
-**(1)** `/create-play` compiler should automatically synthesize template references for every user-facing surface. Either via a built-in compiler rule ("if play has a checkpoint phase, emit template reference to checkpoint.md") or by requiring intent.yaml to declare a template_map and rejecting compilation if the map is missing for surfaces the play produces.
+All plays either:
+- Use the `garura:` prefix consistently with `capture`, OR
+- Drop the prefix entirely (simple play name only — `fix-it`, `review-pr`, `distill`, etc.).
 
-**(2)** Compiled SKILL.md should start with frontmatter + Header + Role (what Claude needs at runtime) and push build metadata to the bottom of the file, or to a sibling `reference/compilation.yaml` / `reference/compilation.md` not loaded by the Skill tool.
+Either convention is fine, but it must be uniform across every play. Status files, H1 headers, frontmatter `name`, and inter-play skill invocation references must all match.
 
 ### Impact
 
-- **(1)** Format drift across plays — each compiler run produces slightly different inline prose for the same conceptual surface. Users see inconsistent checkpoint layouts, and template updates don't propagate.
-- **(2)** Every play invocation burns tokens on metadata the runtime doesn't need. Across 20+ plays this is a measurable context cost with zero execution value.
+- Cosmetic inconsistency visible wherever compiled plays are read (including issue comments, STM evidence files, and LLM context).
+- Runtime status file schema drift — `"play"` field value varies by play, complicating resume-logic and introspection.
+- Confuses new contributors about the framework name (Meridian vs. Garura).
+- Low runtime risk — plays still execute — but every leaked `meridian:` string is a papercut.
 
-Both issues apply to the generic `/create-play` — fixes benefit every compiled play in the repo.
+### Fix path
+
+Update `reference/intent.yaml` for each affected play, then `/create-play --build <play>` to regenerate SKILL.md. Do not edit SKILL.md directly (per CLAUDE.md rule).

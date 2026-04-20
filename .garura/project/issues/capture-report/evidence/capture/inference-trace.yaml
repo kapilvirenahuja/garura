@@ -1,11 +1,10 @@
-resolution:
-  type: defect
-  severity: Medium
-  source: explicit_caller_provided
-  caller_kind: agent
-  ambiguous_text: false
-  events:
-    - event: caller_provided
-      type: defect
-      severity: Medium
-      timestamp: 2026-04-20T03:53:33Z
+events:
+  - at: "2026-04-20T12:23:18Z"
+    kind: explicit-type
+    type: defect
+    severity: Medium
+    source: orchestrator-inferred-from-user-statement
+    note: "User explicitly said 'this is wrong' — unambiguous defect statement"
+ambiguous_text: false
+final_type: defect
+final_severity: Medium
