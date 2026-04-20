@@ -1,5 +1,6 @@
 ---
 name: diff-artifacts
+description: Model-reasoned coverage diff between two artifacts. Given an input and output artifact, classifies each input element as covered, partial, or dropped, flags drifted output content, and writes a coverage-check report. Invoked by the judge agent when config.instructions asks for an artifact diff, or directly by any caller that needs coverage analysis.
 user-invocable: false
 model: sonnet
 allowed-tools:
