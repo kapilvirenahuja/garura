@@ -1,10 +1,10 @@
 ---
-name: "meridian:fix-it"
+name: fix-it
 description: RCA-driven defect resolution — traces root cause, designs fix with alternatives considered, presents at a single checkpoint, then implements with independent verification and ships autonomously. Use when you have an open bug issue to fix.
 user-invokable: true
 ---
 
-# meridian:fix-it
+# fix-it
 
 Given an existing open issue describing a defect, perform thorough root cause analysis tracing symptoms to the specific code and logic that is wrong, design a fix with alternatives considered, present RCA findings and fix design at a single human checkpoint for approval, then upon approval implement the fix (with independent verification by quality-auditor) and ship it (commit, PR, merge) fully autonomously. The end state is: fix merged to main, feature branch deleted, issue traceable in commit and PR history.
 
@@ -523,7 +523,7 @@ Steps are in execution order — run top to bottom.
 
 ```json
 {
-  "play": "meridian:fix-it",
+  "play": "fix-it",
   "issue": "{issue}",
   "started_at": "{ISO timestamp}",
   "tasks": {

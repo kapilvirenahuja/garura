@@ -22,7 +22,7 @@ Receive from the agent:
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `name` | yes | Dotted identifier for the intent (e.g., `meridian:fix-it`) |
+| `name` | yes | Dotted identifier for the intent (e.g., `fix-it`) |
 | `description` | yes | One-paragraph description of the intent |
 | `intent_statement` | yes | Free-text "what must be true when done" — the goal |
 | `constraints` | yes | List of `{rule: string}` — agent-sharpened constraint text. IDs (C1, C2, …) are assigned by this skill. |

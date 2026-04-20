@@ -1,12 +1,12 @@
 ---
-name: "meridian:report-issue"
+name: report-issue
 description: >
   DEPRECATED — use garura:capture (/capture). This alias will be
   removed in the next major release. Forwarding play.
 user-invokable: true
 alias: true
 ---
-# meridian:report-issue (DEPRECATED)
+# report-issue (DEPRECATED)
 
 This play is a deprecated alias for `garura:capture`.
 

@@ -1,5 +1,5 @@
 ---
-name: meridian:review-pr
+name: review-pr
 description: Diff-scoped quality review for a pull request. Resolves standards from .garura/core/config.yaml, runs the quality-check-scoped skill against the PR diff, classifies every finding deterministically via the PR severity taxonomy, computes a confidence score, selects top N reviewers from recent committers on changed paths, and posts a structured routing comment to the PR. Halts ship pipeline (when review-pr.bypass=false) on P1 findings or sub-threshold confidence. NEVER runs full-repo quality-check. NEVER modifies create-pr.
 user-invocable: true
 ---
@@ -158,11 +158,11 @@ Depends on: Step 1
     }
   },
   "task_id": "scoped-quality-eval",
-  "skill_invocation": "meridian:quality-check-scoped"
+  "skill_invocation": "quality-check-scoped"
 }
 ```
 
-Agent invokes `meridian:quality-check-scoped` with the input contract from `core/components/skills/quality-check-scoped/reference/input-contract.md`. The skill runs single-pass diff-bounded evaluation, classifies every finding via the taxonomy, and writes `findings.yaml`. The agent MUST NOT invoke `/quality-check`. The skill's diff scope invariant is enforced by its own contract.
+Agent invokes `quality-check-scoped` with the input contract from `core/components/skills/quality-check-scoped/reference/input-contract.md`. The skill runs single-pass diff-bounded evaluation, classifies every finding via the taxonomy, and writes `findings.yaml`. The agent MUST NOT invoke `/quality-check`. The skill's diff scope invariant is enforced by its own contract.
 
 **Step 2 Evals:**
 - **SE-1 (F1/C2):** Every finding in `findings.yaml` carries a `standard_id` that matches a row in `git/pr-severity-taxonomy.md`. Findings with missing or unknown `standard_id` MUST be absent (rejected by skill).
@@ -449,4 +449,4 @@ for each step in compiled order:
 | utility_agents | 1 (repo-orchestrator for git/PR ops + evidence) |
 | step_evals | 9 (SE-1 through SE-9) |
 | scenario_evals | 4 (SCE-1 through SCE-4) |
-| skills | meridian:quality-check-scoped |
+| skills | quality-check-scoped |
