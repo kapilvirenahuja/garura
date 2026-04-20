@@ -1,0 +1,34 @@
+step: create-commits
+issue: 299
+branch: feat/299-list-product-state-skill
+timestamp: "2026-04-19"
+
+commits:
+  - order: 1
+    hash: e2fd69e
+    type: feat
+    scope: skills
+    subject: "add list-product-state skill with shared feature-tree template (#299)"
+    files_changed: 3
+    lines_added: 141
+    validation:
+      conventional_format: true
+      issue_referenced: true
+      clean_tree: true
+
+  - order: 2
+    hash: 94663a8
+    type: chore
+    scope: stm
+    subject: "record list-product-state skill-creator eval workspace (#299)"
+    files_changed: 49
+    lines_added: 5227
+    validation:
+      conventional_format: true
+      issue_referenced: true
+      clean_tree: true
+
+push:
+  branch: feat/299-list-product-state-skill
+  remote: origin
+  status: pushed
