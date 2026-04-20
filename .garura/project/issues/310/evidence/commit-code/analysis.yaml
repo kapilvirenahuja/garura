@@ -1,0 +1,119 @@
+branch:
+  name: fix/310-meridian-prefix-cleanup
+  issue_from_branch: "310"
+  is_hotfix: false
+
+change_summary:
+  total_files: 33
+  staged: 0
+  unstaged: 16
+  untracked: 17
+
+groups:
+  - id: G1
+    issue: "310"
+    type: refactor
+    scope: plays
+    subject: "drop meridian: prefix from play and skill frontmatter names (#310)"
+    confidence: high
+    files:
+      - path: core/components/plays/fix-it/SKILL.md
+        change: "rename meridian:fix-it → fix-it in frontmatter name, H1 header, and status file play field"
+      - path: core/components/plays/fix-it/reference/intent.yaml
+        change: "add name: fix-it field; update S1 scenario reference from meridian:fix-it to fix-it"
+      - path: core/components/plays/distill/SKILL.md
+        change: "rename meridian:distill → distill in frontmatter name"
+      - path: core/components/plays/distill/reference/intent.yaml
+        change: "add name: distill field"
+      - path: core/components/plays/review-pr/SKILL.md
+        change: "rename meridian:review-pr → review-pr in frontmatter; rename meridian:quality-check-scoped → quality-check-scoped in skill invocation references (3 occurrences)"
+      - path: core/components/plays/review-pr/reference/intent.yaml
+        change: "add name: review-pr field"
+      - path: core/components/plays/report-issue/SKILL.md
+        change: "rename meridian:report-issue → report-issue in frontmatter name and H1"
+      - path: core/components/skills/author-intent-yaml/SKILL.md
+        change: "update example in docs from meridian:fix-it to fix-it"
+      - path: core/components/skills/distill/SKILL.md
+        change: "rename meridian:distill → distill in frontmatter name"
+      - path: core/components/skills/quality-check-scoped/SKILL.md
+        change: "rename meridian:quality-check-scoped → quality-check-scoped in frontmatter name"
+      - path: core/components/skills/quality-check/SKILL.md
+        change: "rename meridian:quality-check → quality-check in frontmatter name"
+      - path: core/components/skills/sync-claude/SKILL.md
+        change: "rename meridian:sync-claude → sync-claude; update description from Meridian to Garura"
+
+  - id: G2
+    issue: "310"
+    type: chore
+    scope: stm
+    subject: "record fix-it evidence for #310"
+    confidence: high
+    files:
+      - path: .garura/project/issues/310/evidence/fix-it/branch-result.yaml
+        change: "untracked STM evidence artifact"
+      - path: .garura/project/issues/310/evidence/fix-it/design.yaml
+        change: "untracked STM evidence artifact"
+      - path: .garura/project/issues/310/evidence/fix-it/implementation-report.yaml
+        change: "untracked STM evidence artifact"
+      - path: .garura/project/issues/310/evidence/fix-it/issue-comment-agent.yaml
+        change: "untracked STM evidence artifact"
+      - path: .garura/project/issues/310/evidence/fix-it/issue-read.yaml
+        change: "untracked STM evidence artifact"
+      - path: .garura/project/issues/310/evidence/fix-it/rca.yaml
+        change: "untracked STM evidence artifact"
+      - path: .garura/project/issues/310/evidence/fix-it/regression-test-path.yaml
+        change: "untracked STM evidence artifact"
+      - path: .garura/project/issues/310/evidence/fix-it/regression-test-verdict.yaml
+        change: "untracked STM evidence artifact"
+      - path: .garura/project/issues/310/evidence/fix-it/regression-test.yaml
+        change: "untracked STM evidence artifact"
+      - path: .garura/project/issues/310/evidence/fix-it/resolution-trace.yaml
+        change: "untracked STM evidence artifact"
+      - path: .garura/project/issues/310/status/fix-it.json
+        change: "untracked status file"
+
+  - id: G3
+    issue: capture-report
+    type: chore
+    scope: stm
+    subject: "update capture evidence for capture-report issue"
+    confidence: high
+    files:
+      - path: .garura/project/issues/capture-report/evidence/capture/body.md
+        change: "updated issue body — content revised to describe meridian prefix cleanup (distinct from prior scope/create-play issue)"
+      - path: .garura/project/issues/capture-report/evidence/capture/inference-trace.yaml
+        change: "updated inference trace for revised capture"
+      - path: .garura/project/issues/capture-report/evidence/capture/issue-comment-agent.yaml
+        change: "updated agent output for revised capture"
+      - path: .garura/project/issues/capture-report/evidence/capture/title.txt
+        change: "updated issue title for revised capture"
+
+  - id: G4
+    issue: "257"
+    type: chore
+    scope: stm
+    subject: "record commit-code and create-pr evidence for #257"
+    confidence: high
+    files:
+      - path: .garura/project/issues/257/evidence/commit-code/commits.yaml
+        change: "untracked STM evidence from prior commit-code run"
+      - path: .garura/project/issues/257/evidence/create-pr/analysis.yaml
+        change: "untracked STM evidence from prior create-pr run"
+      - path: .garura/project/issues/257/evidence/create-pr/issue-linkage.yaml
+        change: "untracked STM evidence from prior create-pr run"
+      - path: .garura/project/issues/257/evidence/create-pr/pr-record.yaml
+        change: "untracked STM evidence from prior create-pr run"
+
+excluded:
+  - path: .garura/core/engine-state.json
+    reason: "operational engine state file — no issue mapping, not a feature or fix artifact. Exclude from all commits."
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+recommendation:
+  checkpoint_needed: false
+  reason: "All four groups have high-confidence issue mappings. G1 is a pure rename refactor on a single issue (#310). G2, G3, G4 are chore(stm) operational artifacts each mapped to their respective issue with no ambiguity. No sensitive files, no breaking changes, no type ambiguity."

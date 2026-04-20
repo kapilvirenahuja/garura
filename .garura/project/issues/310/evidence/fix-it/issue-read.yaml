@@ -1,0 +1,23 @@
+issue:
+  number: 310
+  title: "[DEF][Medium] Plays carry stale `meridian:` prefix \u2014 should be `garura:` or bare name"
+  state: open
+  labels:
+  - defect
+  url: https://github.com/kapilvirenahuja/garura/issues/310
+  body: "| Field | Value |\n|-------|-------|\n| **Type** | defect |\n| **Severity** | Medium |\n| **Reported From** | User observation while reviewing play artifacts |\n| **Date** | 2026-04-20 |\n\n###\
+    \ Problem\n\nSeveral compiled plays still carry the legacy `meridian:` prefix in their frontmatter `name`, H1 header, and internal references. The framework was renamed to Garura; the only play using\
+    \ the correct `garura:` prefix is `capture`. Remaining references must be dropped or switched to `garura:`.\n\n### Evidence\n\nConfirmed via grep `meridian:` under `core/components/plays/**/SKILL.md`:\n\
+    \n- `core/components/plays/fix-it/SKILL.md` \u2014 `name: \"meridian:fix-it\"`, H1 `# meridian:fix-it`, status file `\"play\": \"meridian:fix-it\"` (line 526)\n- `core/components/plays/review-pr/SKILL.md`\
+    \ \u2014 `name: meridian:review-pr`, plus `meridian:quality-check-scoped` skill invocation references (lines 161, 165, 452)\n- `core/components/plays/report-issue/SKILL.md` \u2014 `name: \"meridian:report-issue\"\
+    ` (deprecated alias, still present)\n- `core/components/plays/distill/SKILL.md` \u2014 `name: meridian:distill`\n\n### Specific Issues\n\n1. Frontmatter `name` field uses wrong namespace \u2014 breaks\
+    \ consistency with `capture` (which uses `garura:`).\n2. H1 headers in SKILL.md use `# meridian:fix-it` \u2014 appears in all evidence/docs copied from compiled output.\n3. Status file `play` fields\
+    \ write `\"meridian:fix-it\"` \u2014 leaks into runtime state artifacts.\n4. `review-pr` still invokes `meridian:quality-check-scoped` by that qualified name even though the skill itself is under `core/components/skills/quality-check-scoped/`\
+    \ with no meridian prefix.\n\n### Expected Behavior\n\nAll plays either:\n- Use the `garura:` prefix consistently with `capture`, OR\n- Drop the prefix entirely (simple play name only \u2014 `fix-it`,\
+    \ `review-pr`, `distill`, etc.).\n\nEither convention is fine, but it must be uniform across every play. Status files, H1 headers, frontmatter `name`, and inter-play skill invocation references must\
+    \ all match.\n\n### Impact\n\n- Cosmetic inconsistency visible wherever compiled plays are read (including issue comments, STM evidence files, and LLM context).\n- Runtime status file schema drift \u2014\
+    \ `\"play\"` field value varies by play, complicating resume-logic and introspection.\n- Confuses new contributors about the framework name (Meridian vs. Garura).\n- Low runtime risk \u2014 plays still\
+    \ execute \u2014 but every leaked `meridian:` string is a papercut.\n\n### Fix path\n\nUpdate `reference/intent.yaml` for each affected play, then `/create-play --build <play>` to regenerate SKILL.md.\
+    \ Do not edit SKILL.md directly (per CLAUDE.md rule)."
+  created: false
+  closed: false

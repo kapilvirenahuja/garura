@@ -1,0 +1,173 @@
+regression_test:
+  issue: 310
+  title: "meridian: prefix elimination — regression assertions"
+  state: RED  # assertions fail pre-fix; must be GREEN post-fix
+
+  description: >
+    Grep-based assertions verifying zero `meridian:` prefix occurrences in affected
+    files after the fix lands. Assertions verified RED at 2026-04-20 by tech-designer
+    during RCA sweep. Quality-auditor must run each grep post-fix and confirm GREEN state.
+
+  verification_note: >
+    Two assertion patterns are used:
+    (1) "must not exist" — grep returns exit_code=0 (matches found) = RED; exit_code=1 (no matches) = GREEN.
+    (2) "must equal value" — grep output is compared to expected_post_fix_value.
+    Quality-auditor confirms GREEN when: exit_code=1 for must-not-exist, output matches expected for must-equal.
+
+  red_state_confirmation:
+    confirmed_at: "2026-04-20"
+    method: "grep sweep performed by tech-designer during RCA"
+    result: "All assertions A1,A4-A15 currently FAIL (prefix present). A2/A3 reframed as name: presence checks — currently RED."
+
+  assertions:
+    # === INTENT.YAML: name: field presence ===
+    - id: A1
+      description: "fix-it intent.yaml must not contain `meridian:` anywhere"
+      command: "grep -n 'meridian:' core/components/plays/fix-it/reference/intent.yaml"
+      pattern: must_not_exist
+      expected_post_fix_exit_code: 1
+      current_exit_code: 0  # line 161: S1 scenario text
+      current_state: RED
+
+    - id: A2
+      description: "distill intent.yaml must contain `name: distill` as first line"
+      command: "grep -n '^name: distill' core/components/plays/distill/reference/intent.yaml"
+      pattern: must_exist
+      expected_post_fix_exit_code: 0
+      current_exit_code: 1  # no name: field currently present
+      current_state: RED
+
+    - id: A3
+      description: "review-pr intent.yaml must contain `name: review-pr` as first line"
+      command: "grep -n '^name: review-pr' core/components/plays/review-pr/reference/intent.yaml"
+      pattern: must_exist
+      expected_post_fix_exit_code: 0
+      current_exit_code: 1  # no name: field currently present
+      current_state: RED
+
+    # === PLAYS: SKILL.md name field ===
+    - id: A4
+      description: "fix-it SKILL.md name field must be bare (no meridian: prefix)"
+      command: "grep -n '^name:' core/components/plays/fix-it/SKILL.md"
+      pattern: must_equal
+      expected_post_fix_value: "name: fix-it"
+      current_value: 'name: "meridian:fix-it"'
+      current_state: RED
+
+    - id: A5
+      description: "distill play SKILL.md name field must be bare"
+      command: "grep -n '^name:' core/components/plays/distill/SKILL.md"
+      pattern: must_equal
+      expected_post_fix_value: "name: distill"
+      current_value: "name: meridian:distill"
+      current_state: RED
+
+    - id: A6
+      description: "review-pr SKILL.md name field must be bare"
+      command: "grep -n '^name:' core/components/plays/review-pr/SKILL.md"
+      pattern: must_equal
+      expected_post_fix_value: "name: review-pr"
+      current_value: "name: meridian:review-pr"
+      current_state: RED
+
+    - id: A7
+      description: "fix-it SKILL.md H1 header must not reference meridian:"
+      command: "grep -n '^# meridian:' core/components/plays/fix-it/SKILL.md"
+      pattern: must_not_exist
+      expected_post_fix_exit_code: 1
+      current_exit_code: 0  # line 7: # meridian:fix-it
+      current_state: RED
+
+    - id: A8
+      description: "fix-it SKILL.md status file play field must not reference meridian:fix-it"
+      command: "grep -n 'meridian:fix-it' core/components/plays/fix-it/SKILL.md"
+      pattern: must_not_exist
+      expected_post_fix_exit_code: 1
+      current_exit_code: 0  # line 526: "play": "meridian:fix-it"
+      current_state: RED
+
+    - id: A9
+      description: "report-issue SKILL.md name field must be bare"
+      command: "grep -n '^name:' core/components/plays/report-issue/SKILL.md"
+      pattern: must_equal
+      expected_post_fix_value: "name: report-issue"
+      current_value: 'name: "meridian:report-issue"'
+      current_state: RED
+
+    - id: A10
+      description: "review-pr SKILL.md must not reference meridian:quality-check-scoped"
+      command: "grep -n 'meridian:quality-check-scoped' core/components/plays/review-pr/SKILL.md"
+      pattern: must_not_exist
+      expected_post_fix_exit_code: 1
+      current_exit_code: 0  # lines 161, 165, 452
+      current_state: RED
+
+    # === SKILLS: name field ===
+    - id: A11
+      description: "quality-check-scoped SKILL.md name field must be bare"
+      command: "grep -n '^name:' core/components/skills/quality-check-scoped/SKILL.md"
+      pattern: must_equal
+      expected_post_fix_value: "name: quality-check-scoped"
+      current_value: "name: meridian:quality-check-scoped"
+      current_state: RED
+
+    - id: A12
+      description: "quality-check SKILL.md name field must be bare"
+      command: "grep -n '^name:' core/components/skills/quality-check/SKILL.md"
+      pattern: must_equal
+      expected_post_fix_value: "name: quality-check"
+      current_value: "name: meridian:quality-check"
+      current_state: RED
+
+    - id: A13
+      description: "skills/distill SKILL.md name field must be bare"
+      command: "grep -n '^name:' core/components/skills/distill/SKILL.md"
+      pattern: must_equal
+      expected_post_fix_value: "name: distill"
+      current_value: "name: meridian:distill"
+      current_state: RED
+
+    - id: A14
+      description: "sync-claude SKILL.md name field must be bare"
+      command: "grep -n '^name:' core/components/skills/sync-claude/SKILL.md"
+      pattern: must_equal
+      expected_post_fix_value: "name: sync-claude"
+      current_value: "name: meridian:sync-claude"
+      current_state: RED
+
+    # === AGGREGATE SWEEPS ===
+    - id: A15
+      description: >
+        Full sweep: zero `meridian:` in any frontmatter `name:` field across all plays and skills
+      command: "grep -rn '^name:.*meridian:' core/components/plays/ core/components/skills/"
+      pattern: must_not_exist
+      expected_post_fix_exit_code: 1
+      current_exit_code: 0
+      current_state: RED
+
+    - id: A16
+      description: >
+        fix-it intent.yaml contains correct name: field after fix
+      command: "grep -n '^name: fix-it' core/components/plays/fix-it/reference/intent.yaml"
+      pattern: must_exist
+      expected_post_fix_exit_code: 0
+      current_exit_code: 1  # no name: field currently
+      current_state: RED
+
+  post_fix_acceptance_criteria:
+    - "A1 passes: no meridian: in fix-it/reference/intent.yaml"
+    - "A2 passes: distill intent.yaml has `name: distill`"
+    - "A3 passes: review-pr intent.yaml has `name: review-pr`"
+    - "A4 passes: fix-it SKILL.md name is `fix-it`"
+    - "A5 passes: distill SKILL.md name is `distill`"
+    - "A6 passes: review-pr SKILL.md name is `review-pr`"
+    - "A7 passes: no `# meridian:` H1 in fix-it SKILL.md"
+    - "A8 passes: no `meridian:fix-it` in fix-it SKILL.md status field"
+    - "A9 passes: report-issue SKILL.md name is `report-issue`"
+    - "A10 passes: review-pr SKILL.md has no meridian:quality-check-scoped references"
+    - "A11 passes: quality-check-scoped skill name is bare"
+    - "A12 passes: quality-check skill name is bare"
+    - "A13 passes: skills/distill name is bare"
+    - "A14 passes: sync-claude name is bare"
+    - "A15 passes: aggregate sweep finds zero `^name:.*meridian:` matches"
+    - "A16 passes: fix-it intent.yaml has `name: fix-it`"

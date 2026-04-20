@@ -1,0 +1,117 @@
+resolution_trace:
+  issue: 310
+  play: fix-it
+  agent: tech-designer
+  ltm_context_provided: true
+  project_base: null  # has_product_ltm=false
+  core_base: "~/.garura/core/memory/"
+  generated_at: "2026-04-20"
+
+  entries:
+    - domain: "source_of_truth_for_play_names"
+      question: "Where is the authoritative source for a play's name field in SKILL.md?"
+      resolution:
+        source: "codebase"
+        method: >
+          Direct inspection of intent.yaml files across all 22 plays. Plays with
+          `name:` field in intent.yaml get that value compiled into SKILL.md. Plays
+          without `name:` in intent.yaml had the compiler use a default (historically
+          `meridian:{play-name}`). Confirmed by comparing capture (intent: `name: capture`,
+          SKILL: `name: "garura:capture"`) vs. fix-it (intent: no name field,
+          SKILL: `name: "meridian:fix-it"`).
+        resolved_from: "codebase_primary_source"
+        confidence: high
+      finding: >
+        Source of truth for compiled plays is intent.yaml `name:` field. When absent,
+        compiler uses a default that was `meridian:{play-name}` at legacy build time.
+
+    - domain: "source_of_truth_for_skill_names"
+      question: "Where is the authoritative source for a skill's name field?"
+      resolution:
+        source: "codebase"
+        method: >
+          Checked for intent.yaml under core/components/skills/{skill}/reference/ for
+          all four meridian-named skills (distill, quality-check, quality-check-scoped,
+          sync-claude). All four have no intent.yaml. Skills are directly authored —
+          SKILL.md is both the source and the artifact.
+        resolved_from: "codebase_primary_source"
+        confidence: high
+      finding: >
+        Skills have no compilation pipeline. SKILL.md is the direct source of truth.
+        The CLAUDE.md "never edit SKILL.md directly" rule is scoped to compiled play
+        SKILL.md files only — direct skill edits are the correct path.
+
+    - domain: "naming_convention_dominant_pattern"
+      question: "What is the dominant naming convention across all plays?"
+      resolution:
+        source: "codebase"
+        method: >
+          Full sweep of all play SKILL.md name fields. Results: bare names = 10 plays
+          (briefs, capture-learning, commit-code, create-play, create-pr, enhance,
+          merge-pr, ship, start-feature, start-feature-planning); garura: prefix = 8
+          plays (arch, capture, design, implement, prepare, scope, specify, validate);
+          meridian: prefix = 4 plays (fix-it, distill, review-pr, report-issue).
+          Compiled-example.md uses bare name.
+        resolved_from: "codebase_primary_source"
+        confidence: high
+      finding: >
+        Bare names are the plurality (10 of 22). The task prompt's claim that `garura:`
+        is dominant is incorrect — garura: is 8 plays vs bare 10. Drop-prefix strategy
+        aligns with the plurality and compiled-example.md canonical reference.
+
+    - domain: "coupling_between_review_pr_and_quality_check_scoped"
+      question: "Does renaming quality-check-scoped require coordinated review-pr rebuild?"
+      resolution:
+        source: "codebase"
+        method: >
+          Grep of review-pr/SKILL.md for `meridian:quality-check-scoped`. Found on lines
+          161, 165, and 452. The play references the skill by its full name. Renaming the
+          skill without rebuilding the play would leave dangling references.
+        resolved_from: "codebase_primary_source"
+        confidence: high
+      finding: >
+        Ordering constraint: quality-check-scoped skill rename (E1) MUST precede review-pr
+        rebuild (E5). The rebuild will regenerate the play from intent.yaml and will reference
+        quality-check-scoped by name from the skill manifest — the old name must not exist.
+
+    - domain: "report_issue_fix_path"
+      question: "How is report-issue fixed when it has no intent.yaml?"
+      resolution:
+        source: "llm"
+        rationale: >
+          The play directory contains only SKILL.md (confirmed via ls). No intent.yaml exists.
+          There is no compilation pipeline to invoke. Direct SKILL.md edit is the only option.
+          LTM has no specific guidance for deprecated-play handling; conclusion reached via
+          analysis of available artifacts.
+        resolved_from: "llm"
+        confidence: medium
+      finding: >
+        Direct SKILL.md edit for report-issue is both necessary and acceptable — the CLAUDE.md
+        rule ("never edit SKILL.md directly") targets compiled plays with upstream intent.yaml.
+        Deprecated alias with no compilation source is a legitimate exception.
+
+    - domain: "play_scenario_text_meridian_reference"
+      question: "Does the meridian: reference in fix-it intent.yaml S1 scenario need fixing?"
+      resolution:
+        source: "codebase"
+        method: >
+          Read fix-it/reference/intent.yaml lines 157-168. S1 given text explicitly reads
+          `A developer runs meridian:fix-it against an open bug issue.` This is in the source
+          file (intent.yaml), not SKILL.md. It will propagate into the rebuilt SKILL.md scenario
+          section unchanged unless corrected.
+        resolved_from: "codebase_primary_source"
+        confidence: high
+      finding: >
+        The scenario text in fix-it/reference/intent.yaml line 161 must be updated before
+        /create-play --build — otherwise the rebuilt SKILL.md will re-introduce `meridian:fix-it`
+        in the scenario validation section.
+
+  unresolved: []
+
+  summary: >
+    Five decisions resolved: 4 from codebase primary source (high confidence), 1 from LLM
+    reasoning (medium confidence — report-issue exception to direct-edit rule). No core LTM
+    standards were consulted as the issues are codebase-structural, not standards/architecture
+    decisions. The task prompt's stated root cause (intent.yaml name: field as authoritative
+    source for all plays) is partially correct but incomplete — skills have no intent.yaml and
+    require direct SKILL.md edits, and report-issue has no intent.yaml at all.

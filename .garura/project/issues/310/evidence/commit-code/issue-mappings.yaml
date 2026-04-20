@@ -1,0 +1,46 @@
+mappings:
+  - group_id: G1
+    issue: "310"
+    confidence: high
+    reasoning: |
+      Branch is fix/310-meridian-prefix-cleanup — direct numeric match to #310.
+      Semantic signals: all 12 files are play/skill component renames removing the
+      meridian: prefix, which is the exact defect described in #310. Type (refactor)
+      and scope (plays/skills) align with the issue's stated fix surface.
+      Two corroborating signals: branch reference + semantic alignment.
+
+  - group_id: G2
+    issue: "310"
+    confidence: high
+    reasoning: |
+      Branch is fix/310-meridian-prefix-cleanup — direct numeric match to #310.
+      Semantic signals: files are STM evidence artifacts produced during the fix-it
+      workflow for #310 (rca, design, implementation-report, regression-test, etc.),
+      plus the status/fix-it.json tracking file. All artifacts are namespaced under
+      .garura/project/issues/310/. Two corroborating signals: branch reference +
+      issue-namespaced paths.
+
+  - group_id: G3
+    issue: capture-report
+    confidence: high
+    reasoning: |
+      All four files live under .garura/project/issues/capture-report/evidence/capture/.
+      The issue namespace is the primary mapping signal. The body.md and title.txt
+      were updated to describe the meridian prefix cleanup (distinct from a prior
+      scope/create-play capture), so these are operational STM artifacts for the
+      capture-report pseudo-issue. Two signals: path namespace + semantic content
+      describing the same meridian-prefix defect that triggered the capture workflow.
+
+  - group_id: G4
+    issue: "257"
+    confidence: high
+    reasoning: |
+      All four files live under .garura/project/issues/257/evidence/ — direct
+      issue-namespace match. The files are leftover STM artifacts from a prior
+      commit-code and create-pr run against #257 that were never committed.
+      Two corroborating signals: path namespace + artifact types (commits.yaml,
+      pr-record.yaml) that are standard STM evidence for the ship workflow of #257.
+
+conflicts: []
+
+unmapped: []

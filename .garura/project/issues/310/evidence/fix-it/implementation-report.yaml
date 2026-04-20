@@ -1,0 +1,167 @@
+implementation:
+  success: true
+  steps_completed: 8
+  steps_total: 8
+  task_id: implement-fix
+  issue: 310
+
+  yaml_valid:
+    fix-it/reference/intent.yaml: true
+    distill/reference/intent.yaml: true
+    review-pr/reference/intent.yaml: true
+
+  grep_meridian_count: 1
+  grep_meridian_note: >
+    One remaining match in core/components/skills/setup-branch/SKILL.md line 64:
+    `git stash push -m "meridian: pre-branch stash for {branch_name}"` — this is a
+    git stash message string, not a namespace prefix. Explicitly out of scope per
+    design.yaml `out_of_scope` entry. Not a deviation.
+
+  changes:
+    - step: E1
+      description: "Update quality-check-scoped/SKILL.md name field — ordering constraint: must precede E4b"
+      files_modified:
+        - path: "core/components/skills/quality-check-scoped/SKILL.md"
+          action: modified
+          summary: "Line 2: meridian:quality-check-scoped → quality-check-scoped"
+      verified: true
+      deviation: null
+
+    - step: E2a
+      description: "Add name: fix-it as first line of fix-it/reference/intent.yaml; fix S1 given text"
+      files_modified:
+        - path: "core/components/plays/fix-it/reference/intent.yaml"
+          action: modified
+          summary: "Added name: fix-it as first line; changed S1 given from meridian:fix-it to fix-it"
+      verified: true
+      deviation: null
+
+    - step: E2b
+      description: "Update fix-it/SKILL.md: name field, H1, and status play field"
+      files_modified:
+        - path: "core/components/plays/fix-it/SKILL.md"
+          action: modified
+          summary: >
+            Line 2: name: \"meridian:fix-it\" → name: fix-it;
+            Line 7: # meridian:fix-it → # fix-it;
+            Line 526: \"play\": \"meridian:fix-it\" → \"play\": \"fix-it\"
+      verified: true
+      deviation: null
+
+    - step: E3a
+      description: "Add name: distill as first line of distill/reference/intent.yaml"
+      files_modified:
+        - path: "core/components/plays/distill/reference/intent.yaml"
+          action: modified
+          summary: "Added name: distill as first line"
+      verified: true
+      deviation: null
+
+    - step: E3b
+      description: "Update distill/SKILL.md name field; H1 already correct"
+      files_modified:
+        - path: "core/components/plays/distill/SKILL.md"
+          action: modified
+          summary: "Line 2: name: meridian:distill → name: distill; H1 was already '# distill' — no change needed"
+      verified: true
+      deviation: >
+        H1 header in distill/SKILL.md was already '# distill' (not '# meridian:distill').
+        No H1 edit was required. Plan cited H1 as needing update but current state was already correct.
+        deviation_justification: Pre-existing correct state — no change applied, no drift introduced.
+
+    - step: E4a
+      description: "Add name: review-pr as first line of review-pr/reference/intent.yaml"
+      files_modified:
+        - path: "core/components/plays/review-pr/reference/intent.yaml"
+          action: modified
+          summary: "Added name: review-pr as first line"
+      verified: true
+      deviation: null
+
+    - step: E4b
+      description: "Update review-pr/SKILL.md: name field and three quality-check-scoped references; H1 already correct"
+      files_modified:
+        - path: "core/components/plays/review-pr/SKILL.md"
+          action: modified
+          summary: >
+            Line 2: name: meridian:review-pr → name: review-pr;
+            Lines 161, 165, 452: meridian:quality-check-scoped → quality-check-scoped (replace_all);
+            H1 was already '# Review PR' — no change needed
+      verified: true
+      deviation: >
+        H1 header in review-pr/SKILL.md was already '# Review PR' (not '# meridian:review-pr').
+        No H1 edit was required.
+        deviation_justification: Pre-existing correct state — no change applied, no drift introduced.
+
+    - step: E5
+      description: "Update report-issue/SKILL.md: name field and H1"
+      files_modified:
+        - path: "core/components/plays/report-issue/SKILL.md"
+          action: modified
+          summary: >
+            Line 2: name: \"meridian:report-issue\" → name: report-issue;
+            Line 9: # meridian:report-issue (DEPRECATED) → # report-issue (DEPRECATED)
+      verified: true
+      deviation: null
+
+    - step: E6
+      description: "Update quality-check/SKILL.md name field"
+      files_modified:
+        - path: "core/components/skills/quality-check/SKILL.md"
+          action: modified
+          summary: "Line 2: name: meridian:quality-check → name: quality-check"
+      verified: true
+      deviation: null
+
+    - step: E7
+      description: "Update skills/distill/SKILL.md name field"
+      files_modified:
+        - path: "core/components/skills/distill/SKILL.md"
+          action: modified
+          summary: "Line 2: name: meridian:distill → name: distill"
+      verified: true
+      deviation: null
+
+    - step: E8
+      description: "Update sync-claude/SKILL.md name field and description"
+      files_modified:
+        - path: "core/components/skills/sync-claude/SKILL.md"
+          action: modified
+          summary: "Line 2: name: meridian:sync-claude → name: sync-claude; Line 3: Sync Meridian components → Sync Garura components"
+      verified: true
+      deviation: null
+
+    - step: E_LOW_SEVERITY
+      description: "Update author-intent-yaml/SKILL.md docstring example (low severity, in design.yaml affected_files)"
+      files_modified:
+        - path: "core/components/skills/author-intent-yaml/SKILL.md"
+          action: modified
+          summary: "Line 25: example meridian:fix-it → fix-it in description table"
+      verified: true
+      deviation: null
+
+  files_touched:
+    - path: "core/components/skills/quality-check-scoped/SKILL.md"
+    - path: "core/components/plays/fix-it/reference/intent.yaml"
+    - path: "core/components/plays/fix-it/SKILL.md"
+    - path: "core/components/plays/distill/reference/intent.yaml"
+    - path: "core/components/plays/distill/SKILL.md"
+    - path: "core/components/plays/review-pr/reference/intent.yaml"
+    - path: "core/components/plays/review-pr/SKILL.md"
+    - path: "core/components/plays/report-issue/SKILL.md"
+    - path: "core/components/skills/quality-check/SKILL.md"
+    - path: "core/components/skills/distill/SKILL.md"
+    - path: "core/components/skills/sync-claude/SKILL.md"
+    - path: "core/components/skills/author-intent-yaml/SKILL.md"
+
+  issues_encountered:
+    - description: >
+        distill/SKILL.md H1 was already '# distill' — plan stated it needed updating
+        from '# meridian:distill', but current state was already correct.
+      resolution: "No edit applied — pre-existing correct state."
+      severity: low
+    - description: >
+        review-pr/SKILL.md H1 was '# Review PR' — plan stated it needed updating
+        from '# meridian:review-pr', but current state was already correct.
+      resolution: "No edit applied — pre-existing correct state."
+      severity: low
