@@ -1,0 +1,14 @@
+result:
+  success: true
+  pr:
+    number: 312
+    url: "https://github.com/kapilvirenahuja/garura/pull/312"
+    state: "open"
+    title: "refactor(plays): drop meridian: prefix — adopt bare names (#310)"
+  branch:
+    head: "fix/310-meridian-prefix-cleanup"
+    base: "main"
+    platform: "github"
+  checklist:
+    required_count: 0
+    optional_count: 0

@@ -1,0 +1,96 @@
+style: yaml_eval_spec
+target_issue: 302
+based_on:
+  rca: ".garura/project/issues/302/evidence/fix-it/rca.yaml"
+  design: ".garura/project/issues/302/evidence/fix-it/design.yaml"
+
+description: >
+  Regression test for #302. Verifies that (A1) the escape-hatch phrase that allows
+  inline analysis is absent from the JSON-contract branch of tech-designer.md,
+  (A2) no unguarded "direct invocation" carve-out for inline analysis remains in
+  tech-designer.md, and (A3) fix-it SKILL.md Step 3 explicitly names all three
+  delegating skills. All three assertions fail on the unfixed codebase.
+
+assertions:
+  - id: A1
+    description: >
+      tech-designer.md must NOT contain the escape-hatch phrase
+      "perform analysis directly using your tools" on any line that lacks a
+      "no JSON contract" qualifier. After the fix, this phrase is only permitted
+      inside the direct-invocation branch (the sentence that begins "When invoked
+      directly (no JSON contract)"). A match on a line WITHOUT "no JSON contract"
+      means the escape hatch is still active in the contract path.
+    kind: grep_absent
+    spec:
+      # Matches lines containing "perform analysis directly" that do NOT also
+      # contain the guard phrase "no JSON contract". Uses a negative-lookahead
+      # via grep -P to exclude guarded lines.
+      pattern: "perform analysis directly"
+      path: "core/components/agents/tech-designer.md"
+      exclude_lines_containing: "no JSON contract"
+      evaluation_command: >
+        grep -n "perform analysis directly" core/components/agents/tech-designer.md
+        | grep -v "no JSON contract"
+      pass_condition: "command produces zero output (exit 1 from final grep)"
+      fail_condition: "command produces one or more lines"
+
+  - id: A2
+    description: >
+      tech-designer.md must NOT contain the unguarded carve-out clause
+      "For RCA or feature analysis (direct invocation), perform analysis directly".
+      This is the exact pre-fix phrasing at line 70 that allowed inline authoring
+      without a JSON-contract guard. After the fix, this phrase is replaced by the
+      mode-split sentence and must not appear anywhere in the file.
+    kind: grep_absent
+    spec:
+      pattern: "For RCA or feature analysis.*perform analysis directly"
+      path: "core/components/agents/tech-designer.md"
+      evaluation_command: >
+        grep -n "For RCA or feature analysis.*perform analysis directly"
+        core/components/agents/tech-designer.md
+      pass_condition: "command produces zero output (exit 1)"
+      fail_condition: "command produces one or more lines"
+
+  - id: A3
+    description: >
+      fix-it SKILL.md Step 3 agent instruction MUST explicitly reference all three
+      delegating skills by their exact identifiers: draft-rca, draft-fix-design, and
+      author-regression-test. After the fix, the mandatory skill-delegation paragraph
+      names each skill. Before the fix, zero occurrences exist.
+    kind: grep_present
+    spec:
+      pattern: "draft-rca"
+      path: "core/components/plays/fix-it/SKILL.md"
+      evaluation_command: >
+        grep -c "draft-rca" core/components/plays/fix-it/SKILL.md &&
+        grep -c "draft-fix-design" core/components/plays/fix-it/SKILL.md &&
+        grep -c "author-regression-test" core/components/plays/fix-it/SKILL.md
+      pass_condition: "all three commands return count >= 1"
+      fail_condition: "any command returns 0"
+
+pass_when: all_assertions_pass
+
+# Red-state verification (executed against unfixed codebase before writing this file)
+red_state_verification:
+  verified_at: "2026-04-20T00:00:00Z"
+  results:
+    - assertion: A1
+      command_run: "grep -n 'perform analysis directly' core/components/agents/tech-designer.md | grep -v 'no JSON contract'"
+      output: "70:5. **Call skills** from your available skill pool. For RCA or feature analysis (direct invocation), perform analysis directly using your tools."
+      state: red
+      reason: "Escape-hatch phrase found on line 70 without 'no JSON contract' guard — assertion correctly FAILS on unfixed code"
+    - assertion: A2
+      command_run: "grep -n 'For RCA or feature analysis.*perform analysis directly' core/components/agents/tech-designer.md"
+      output: "70:5. **Call skills** from your available skill pool. For RCA or feature analysis (direct invocation), perform analysis directly using your tools."
+      state: red
+      reason: "Unguarded carve-out phrase found at line 70 — assertion correctly FAILS on unfixed code"
+    - assertion: A3
+      command_run: "grep -c 'draft-rca' core/components/plays/fix-it/SKILL.md && grep -c 'draft-fix-design' core/components/plays/fix-it/SKILL.md && grep -c 'author-regression-test' core/components/plays/fix-it/SKILL.md"
+      output: "0 (all three commands returned 0 — no matches in SKILL.md)"
+      state: red
+      reason: "None of the three skill names appear in fix-it SKILL.md — assertion correctly FAILS on unfixed code"
+  overall_state: red
+  all_assertions_red: true
+
+expected_state_before_fix: red
+expected_state_after_fix: green

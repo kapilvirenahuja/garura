@@ -1,0 +1,198 @@
+{
+  "lifecycleMode": "brownfield",
+  "readinessCache": {
+    "gitHash": "58a08cb972dbcf338e2896708ca9b929011dac62",
+    "artifactFingerprint": "product.yaml:missing|features.yaml:missing|scenarios.yaml:missing|plan.yaml:missing|architecture.yaml:missing|tech.yaml:missing|roadmap.yaml:missing",
+    "lifecycle": "brownfield",
+    "score": 0,
+    "band": "0-30",
+    "totalPlays": 14,
+    "runnablePlays": 0,
+    "breakdown": [
+      {
+        "area": "Product",
+        "status": "missing",
+        "totalPlays": 2,
+        "runnablePlays": 0,
+        "percentage": 0
+      },
+      {
+        "area": "Features",
+        "status": "missing",
+        "totalPlays": 3,
+        "runnablePlays": 0,
+        "percentage": 0
+      },
+      {
+        "area": "Roadmap",
+        "status": "missing",
+        "totalPlays": 2,
+        "runnablePlays": 0,
+        "percentage": 0
+      },
+      {
+        "area": "Architecture",
+        "status": "missing",
+        "totalPlays": 3,
+        "runnablePlays": 0,
+        "percentage": 0
+      },
+      {
+        "area": "Epics",
+        "status": "missing",
+        "totalPlays": 4,
+        "runnablePlays": 0,
+        "percentage": 0
+      }
+    ],
+    "plays": [
+      {
+        "name": "research-market-opportunity",
+        "area": "Product",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml"
+        ]
+      },
+      {
+        "name": "specify-product",
+        "area": "Product",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml"
+        ]
+      },
+      {
+        "name": "draft-product-spec",
+        "area": "Features",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml"
+        ]
+      },
+      {
+        "name": "configure-capabilities",
+        "area": "Features",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml",
+          "features.yaml"
+        ]
+      },
+      {
+        "name": "draft-verification-scenarios",
+        "area": "Features",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "features.yaml"
+        ]
+      },
+      {
+        "name": "plan-roadmap",
+        "area": "Roadmap",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml",
+          "features.yaml"
+        ]
+      },
+      {
+        "name": "scout-project",
+        "area": "Roadmap",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml"
+        ]
+      },
+      {
+        "name": "build-arch",
+        "area": "Architecture",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml",
+          "features.yaml",
+          "roadmap.yaml"
+        ]
+      },
+      {
+        "name": "draft-technical-approach",
+        "area": "Architecture",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml",
+          "features.yaml"
+        ]
+      },
+      {
+        "name": "check-drift",
+        "area": "Architecture",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "features.yaml",
+          "architecture.yaml"
+        ]
+      },
+      {
+        "name": "prepare-epic",
+        "area": "Epics",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml",
+          "features.yaml",
+          "roadmap.yaml",
+          "architecture.yaml"
+        ]
+      },
+      {
+        "name": "implement-epic",
+        "area": "Epics",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml",
+          "features.yaml",
+          "roadmap.yaml",
+          "architecture.yaml",
+          "tech.yaml",
+          "scenarios.yaml",
+          "plan.yaml"
+        ]
+      },
+      {
+        "name": "validate-epic",
+        "area": "Epics",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml",
+          "features.yaml",
+          "scenarios.yaml",
+          "plan.yaml",
+          "tech.yaml"
+        ]
+      },
+      {
+        "name": "quality-check",
+        "area": "Epics",
+        "runnable": false,
+        "satisfiedPreconditions": [],
+        "missingPreconditions": [
+          "product.yaml",
+          "features.yaml"
+        ]
+      }
+    ],
+    "computedAt": "2026-04-20T12:47:05.753Z"
+  }
+}

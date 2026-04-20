@@ -1,0 +1,57 @@
+regression_test_verdict: pass
+verified_at: "2026-04-20T10:00:00Z"
+regression_test_path: ".garura/project/issues/302/evidence/fix-it/regression-test.yaml"
+
+assertions:
+  - id: A1
+    description: >
+      tech-designer.md must NOT contain "perform analysis directly" on any line
+      without "no JSON contract" qualifier (escape-hatch phrase absent from contract path).
+    kind: grep_absent
+    command_run: >
+      grep -n "perform analysis directly" core/components/agents/tech-designer.md
+      | grep -v "no JSON contract"
+    output: "(no output)"
+    exit_code: 1
+    status: PASS
+    reason: >
+      Pipeline returned exit 1 with zero output — the unguarded escape-hatch phrase
+      no longer exists in the JSON-contract execution path.
+
+  - id: A2
+    description: >
+      tech-designer.md must NOT contain the exact unguarded clause
+      "For RCA or feature analysis.*perform analysis directly".
+    kind: grep_absent
+    command_run: >
+      grep -n "For RCA or feature analysis.*perform analysis directly"
+      core/components/agents/tech-designer.md
+    output: "(no output)"
+    exit_code: 1
+    status: PASS
+    reason: >
+      grep returned exit 1 with zero output — the pre-fix carve-out phrase at
+      the former line 70 is no longer present in the file.
+
+  - id: A3
+    description: >
+      fix-it SKILL.md Step 3 must explicitly reference draft-rca, draft-fix-design,
+      and author-regression-test.
+    kind: grep_present
+    command_run: >
+      grep -c "draft-rca" core/components/plays/fix-it/SKILL.md &&
+      grep -c "draft-fix-design" core/components/plays/fix-it/SKILL.md &&
+      grep -c "author-regression-test" core/components/plays/fix-it/SKILL.md
+    output: "1\n1\n1"
+    exit_code: 0
+    status: PASS
+    reason: >
+      All three skill identifiers return count >= 1. Each delegating skill is
+      now explicitly named in the SKILL.md Step 3 agent instruction.
+
+overall_verdict: PASS
+all_assertions_pass: true
+notes: >
+  Independent verification performed without consulting implementation-report.yaml.
+  Results derived solely from grep exit codes and stdout. All three assertions
+  transitioned from red-state (pre-fix) to green-state (post-fix) as expected.

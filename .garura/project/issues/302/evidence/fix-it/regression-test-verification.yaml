@@ -1,0 +1,15 @@
+regression_test_path: .garura/project/issues/302/evidence/fix-it/regression-test.yaml
+verified_at: "2026-04-20T23:51:00Z"
+failing: true
+assertions:
+  - id: A1
+    state: red
+    evidence: "Line 70 of tech-designer.md contains 'perform analysis directly' without 'no JSON contract' guard"
+  - id: A2
+    state: red
+    evidence: "Line 70 matches unguarded carve-out pattern"
+  - id: A3
+    state: red
+    evidence: "fix-it/SKILL.md contains 0 occurrences of draft-rca / draft-fix-design / author-regression-test"
+overall_state: red
+verified_by: play (post-verify per C14)

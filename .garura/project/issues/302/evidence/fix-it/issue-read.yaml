@@ -1,0 +1,20 @@
+issue:
+  number: 302
+  title: "[BUG] tech-designer authors fix-it artifacts inline, bypassing skill-delegation principle"
+  labels:
+    - defect
+    - create-play
+  state: open
+  body_summary: >
+    tech-designer violates the Meridian "agents collect context, skills produce artifacts"
+    principle in /fix-it. In Step 3 (RCA & Design), tech-designer authors four domain
+    artifacts inline via the Write tool and invokes no skill: rca.yaml, design.yaml,
+    resolution-trace.yaml, regression-test.yaml. The fix-it hot path has zero skill
+    invocations for domain artifact production.
+  url: "https://github.com/kapilvirenahuja/garura/issues/302"
+  author: kapilvirenahuja
+  created_at: "2026-04-20T03:55:36Z"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: fix

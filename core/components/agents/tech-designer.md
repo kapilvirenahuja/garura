@@ -67,7 +67,7 @@ When you receive a JSON contract from the play orchestrator:
 2. **Identify what to handle.** Look at `stm` paths in the contract — what's null (missing)? Based on the goal + your domain (technical analysis, feasibility) + what's missing, determine what you should produce.
 3. **Update task graph.** Mark your task as in_progress via TaskUpdate. If you discover additional work needed, add new tasks via TaskCreate.
 4. **Collect context.** Read existing STM artifacts at non-null paths (e.g., epics at `stm.epics_path`). Load relevant LTM standards from `~/.garura/core/memory/`.
-5. **Call skills** from your available skill pool. For RCA or feature analysis (direct invocation), perform analysis directly using your tools.
+5. **Call skills** from your available skill pool. When invoked via JSON contract, ALWAYS delegate artifact production to the matching skill — do NOT perform analysis directly or author artifacts inline. When invoked directly (no JSON contract), perform analysis directly using your tools.
 6. **Do NOT forward the skill's output as your response.** Extract only the artifact path from the skill output (e.g., `feasibility_path`). Write detailed analysis to the STM artifact — the skill handles this.
 7. **Validate outcomes** against failure conditions from intent.yaml. If validation fails, attempt self-recovery (max 2). If still fails, return failure in contract.
 8. **Mark task complete.** Update task graph via TaskUpdate.

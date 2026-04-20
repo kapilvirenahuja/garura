@@ -359,7 +359,8 @@ domains:
               - core/components/skills/write-evidence/
               - docs/adr/002-l1-checkpoint-model.md
               - docs/adr/012-evidence-self-commit.md
-            gap_items: []
+            gap_items:
+              - Extend evidence.record flag to all plays (enhance, fix-it, ship, create-pr, merge-pr, review-pr, distill, prepare-epic, implement-epic, validate-epic, start-feature, start-feature-planning, capture, capture-learning, specify-product, build-arch, design-exp) — prototype landed on commit-code/create-commit; follow-on from #255
 
       - slug: l2-spec-driven
         status: applied
@@ -529,6 +530,7 @@ domains:
               - Cross-project aggregation
               - Trend tracking
               - Coverage dashboard
+              - Remediation play for quality-check findings (address-qa-findings) — classifies findings Tier 1 (auto-fix) / Tier 2 (draft-for-review) / Tier 3 (escalate as GitHub issue); closes the measure→fix loop
 
           - id: EO-F002
             name: Lint
@@ -675,6 +677,7 @@ domains:
               - Span/metric/log schema (agent.run, play.step, skill.invoke)
               - Collector + exporter configuration
               - Cross-reference with AG consumption-tracking spine
+              - Parent span naming must include consumer prefix ([consumer]:[recipe_name]) so traces from multiple consumers of the same recipe are distinguishable in Langfuse/OTel backends
 
       - slug: delivery-signals
         status: rollout

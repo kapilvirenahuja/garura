@@ -1,0 +1,44 @@
+implementation:
+  success: true
+  steps_completed: 2
+  steps_total: 2
+  changes:
+    - step: step-1
+      description: >
+        Replaced escape-hatch clause on line 70 of tech-designer.md with a mode-aware
+        split sentence that explicitly separates JSON-contract behavior (always delegate
+        to skills) from direct-invocation behavior (perform analysis directly).
+      files_modified:
+        - path: core/components/agents/tech-designer.md
+          action: modified
+          summary: >
+            Line 70: replaced "For RCA or feature analysis (direct invocation), perform
+            analysis directly using your tools." with two mode-aware sentences distinguishing
+            JSON-contract invocation (mandatory skill delegation) from direct invocation
+            (perform analysis directly using your tools).
+      verified: true
+      deviation: null
+
+    - step: step-2
+      description: >
+        Inserted "Skill delegation (mandatory)" paragraph in fix-it SKILL.md immediately
+        after the opening agent-instruction sentence at line 197, before the existing
+        numbered task list. Names all three skills by exact identifiers with output artifacts.
+      files_modified:
+        - path: core/components/plays/fix-it/SKILL.md
+          action: modified
+          summary: >
+            After line 197 (agent-instruction opening sentence), inserted a new paragraph
+            naming draft-rca, draft-fix-design, and author-regression-test with their
+            respective output artifacts. Existing numbered list and all surrounding prose
+            preserved unchanged.
+      verified: true
+      deviation: null
+
+  issues_encountered: []
+
+  files_touched:
+    - path: core/components/agents/tech-designer.md
+    - path: core/components/plays/fix-it/SKILL.md
+
+produced_at: "2026-04-21T00:00:00Z"

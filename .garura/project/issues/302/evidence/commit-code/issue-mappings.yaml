@@ -1,0 +1,131 @@
+mappings:
+  - group_id: G1
+    issue_number: 302
+    issue_title: "[BUG] tech-designer authors fix-it artifacts inline, bypassing skill-delegation principle"
+    issue_state: open
+    confidence: high
+    signals:
+      branch: "fix/302-tech-designer-inline-artifacts — explicit issue number in branch name"
+      semantic:
+        - "Group scope 'tech-designer' matches issue title keyword 'tech-designer'"
+        - "Group type 'fix' matches issue label 'defect' (→ fix type)"
+        - "File core/components/agents/tech-designer.md directly corresponds to the component named in the issue"
+        - "File core/components/plays/fix-it/SKILL.md corresponds to the play named in the issue"
+    conflict: null
+    reasoning: >
+      Four independent signals agree: branch number, file-level component match (tech-designer.md),
+      play-level component match (fix-it/SKILL.md), and type/label alignment (fix/defect).
+      Strongest possible mapping — no competing issues.
+
+  - group_id: G2
+    issue_number: 302
+    issue_title: "[BUG] tech-designer authors fix-it artifacts inline, bypassing skill-delegation principle"
+    issue_state: open
+    confidence: medium
+    signals:
+      branch: "fix/302-tech-designer-inline-artifacts — issue number in branch name"
+      semantic:
+        - "Committed during the #302 fix-it session — proximity signal"
+        - "Issues #203, #204, #276 referenced in the gap_items are all CLOSED — cannot be open targets per C3"
+        - "features.yaml is a product artifact, not a code artifact — indirect semantic match to #302"
+    conflict: null
+    reasoning: >
+      Branch number is present (→ #302) but semantic alignment is indirect: this is meta-work
+      (recording close-outs) committed during the #302 session, not a direct code fix for the
+      issue. Referenced issues #203/#204/#276 are closed and not valid targets per C3. #302 is
+      the only viable open issue. Branch signal + proximity = medium per confidence table
+      (branch present, semantic ambiguous). Human approval required per C9 before committing
+      this group.
+
+  - group_id: G3
+    issue_number: 302
+    issue_title: "[BUG] tech-designer authors fix-it artifacts inline, bypassing skill-delegation principle"
+    issue_state: open
+    confidence: high
+    signals:
+      branch: "fix/302-tech-designer-inline-artifacts — issue number in branch name"
+      semantic:
+        - "File path .garura/project/issues/302/ contains the issue number directly"
+        - "STM evidence directories are explicitly scoped to their owning issue by path convention"
+        - "Group description 'STM evidence directory for this fix-it run' names #302 explicitly"
+    conflict: null
+    reasoning: >
+      Three mutually reinforcing signals: branch number, file path containing /302/, and
+      explicit mention of #302 in the group description. Canonical high-confidence mapping —
+      STM evidence paths are a direct artifact of the issue they belong to.
+
+  - group_id: G4
+    issue_number: 302
+    issue_title: "[BUG] tech-designer authors fix-it artifacts inline, bypassing skill-delegation principle"
+    issue_state: open
+    confidence: low
+    signals:
+      branch: "fix/302-tech-designer-inline-artifacts — current branch is #302, not #310"
+      semantic:
+        - "File paths .garura/project/issues/310/evidence/ contain issue number #310 — not #302"
+        - "Issue #310 is CLOSED — not a valid target per C3 (every commit must reference an existing open issue)"
+        - "These are leftover artifacts from a prior completed ship run — housekeeping, not active work"
+    conflict:
+      description: >
+        File paths directly reference issue #310 (closed), but C3 prohibits referencing closed issues.
+        The branch is #302. The only open issue available is #302, but the semantic content belongs
+        to #310's completed work. This creates a cross-issue commit: files from one issue's session
+        committed under another issue's branch as a housekeeping action.
+      competing_issues:
+        - number: 310
+          reason: "File paths belong to this issue's STM — but it is CLOSED, invalid per C3"
+        - number: 302
+          reason: "Only open issue available; current branch; housekeeping umbrella"
+      resolution_note: >
+        Mapping to #302 as best available open target. Commit message should explicitly note
+        these are leftover artifacts from #310's ship run being cleaned up in the #302 session.
+        Human approval required per C9 before committing.
+    reasoning: >
+      Single usable open target (#302) but semantic content clearly belongs to a different closed
+      issue (#310). Only 1 signal (branch) points to #302; file paths actively point away from it.
+      Low confidence by definition — competing signals, only 1 weak positive signal for #302.
+
+  - group_id: G5
+    issue_number: 302
+    issue_title: "[BUG] tech-designer authors fix-it artifacts inline, bypassing skill-delegation principle"
+    issue_state: open
+    confidence: high
+    signals:
+      branch: "fix/302-tech-designer-inline-artifacts — issue number in branch name"
+      semantic:
+        - "Group description explicitly states 'engine state mutated during fix-it run for #302'"
+        - "File .garura/core/engine-state.json is session-scoped — mutated as a side-effect of this specific run"
+        - "Proximity: all other groups in this session map to #302"
+    conflict: null
+    reasoning: >
+      Branch signal plus explicit issue reference in the group description plus session proximity
+      — three corroborating signals. Engine state is a side-effect artifact of the fix-it run
+      itself, making the causal link to #302 direct.
+
+summary:
+  total_groups: 5
+  mappings_by_confidence:
+    high: [G1, G3, G5]
+    medium: [G2]
+    low: [G4]
+    none: []
+  conflicts:
+    - group_id: G4
+      type: cross_issue_housekeeping
+      description: >
+        Files from closed issue #310 being committed on branch #302. Only viable open target
+        is #302, but semantic content does not align with #302's bug fix scope.
+  approval_required:
+    - group_id: G2
+      reason: "Medium confidence — branch present but semantic alignment indirect (meta-work, closed-issue close-outs)"
+    - group_id: G4
+      reason: "Low confidence — file paths reference closed #310, mapped to #302 as only available open target"
+  c3_violations_detected: false
+  c3_note: >
+    No group is unmappable — all 5 groups have a valid open issue (#302). However G2 and G4
+    require human approval per C9 before committing (medium and low confidence respectively).
+
+se_validation:
+  SE-6: "PASS — all 5 groups covered; no group silently dropped"
+  SE-7: "PASS — G4 conflict explicitly flagged with competing issues and resolution note"
+  SE-8: "PASS — confidence levels match signal count: G1/G3/G5 have 3+ signals (high); G2 has branch+proximity (medium); G4 has 1 positive signal with active counter-signals (low)"

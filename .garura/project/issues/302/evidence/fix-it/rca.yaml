@@ -1,0 +1,112 @@
+issue_number: 302
+summary: >
+  tech-designer's Intent Recognition step 5 contains an escape-hatch clause ("For RCA or
+  feature analysis (direct invocation), perform analysis directly using your tools") that
+  permits inline artifact authoring even when a JSON contract is present and matching skills
+  exist in the skill pool; simultaneously, fix-it SKILL.md Step 3 never names the three
+  delegating skills, so tech-designer receives no explicit instruction to invoke them.
+
+root_cause:
+  primary:
+    file: core/components/agents/tech-designer.md
+    line_range: "70"
+    logic: >
+      Step 5 of Intent Recognition reads: "Call skills from your available skill pool.
+      For RCA or feature analysis (direct invocation), perform analysis directly using
+      your tools." The conditional clause "For RCA or feature analysis (direct invocation),
+      perform analysis directly" is an escape hatch that fires when the invocation pattern
+      looks like a direct call — but nothing prevents a JSON-contract invocation from also
+      matching this pattern. The clause has no guard that says "ONLY if no skill exists for
+      this task." Because fix-it Step 3 passes a JSON contract, and because the three skills
+      (draft-rca, draft-fix-design, author-regression-test) are in the pool at lines 277-279,
+      the agent should be invoking skills. The escape-hatch clause at line 70 contradicts the
+      anti-inline guard at line 283 ("Do NOT author artifacts inline via Write") and creates
+      an ambiguous reading where the agent may choose inline authoring and still be
+      technically compliant with step 5.
+    why_wrong: >
+      The phrase "perform analysis directly using your tools" was written before the three
+      fix-it skills existed. It was a valid description of behavior for non-fix-it contexts
+      (e.g., someone asks for a quick analysis without a play contract). When the three skills
+      were added (lines 277-279, partial fix), the escape-hatch text was not updated to
+      restrict its scope. The result: step 5 simultaneously says "call skills from your pool"
+      AND "for RCA, do it directly" — a direct contradiction when fix-it invokes tech-designer
+      via contract. A model reading step 5 can satisfy the direct-analysis clause and never
+      reach the skill-pool table.
+  secondary:
+    file: core/components/plays/fix-it/SKILL.md
+    line_range: "197-205"
+    logic: >
+      Step 3 description tells tech-designer to "Perform: Root Cause Analysis ... Blast
+      Radius ... Fix Design ... Failing Regression Test ... Execution Plan" and "Writes
+      RCA, design, resolution-trace, and regression-test artifacts to STM." It does not
+      name draft-rca, draft-fix-design, or author-regression-test anywhere. The play
+      contracts tech-designer to produce outputs, but never instructs it to use the
+      delegating skills to do so.
+    why_wrong: >
+      The play was compiled before the three skills existed (compiled_at: 2026-04-19) but
+      the SKILL.md was not updated post-skill-registration. tech-designer's skill pool is
+      the agent's own property — it knows the skills exist. But with the escape-hatch at
+      line 70 in scope and no explicit instruction from the play, the agent has no strong
+      reason to use them. The fix-it SKILL.md must be re-compiled or patched to explicitly
+      name the delegation path.
+  tertiary_lower_severity:
+    - file: core/components/agents/code-builder.md
+      line_range: "191-213"
+      assessment: >
+        code-builder writes implementation-report.yaml inline via Write. This is its native
+        output contract — it IS the execution agent, and implementation-report.yaml is the
+        record of its work, not a domain analysis artifact. This is analogous to how
+        quality-auditor writes regression-test-verdict.yaml. Both agents produce their own
+        execution output records; this is expected behavior, not a skill-delegation
+        violation. Lower severity — does not require a delegating skill.
+    - file: core/components/agents/quality-auditor.md
+      line_range: "102-115"
+      assessment: >
+        quality-auditor writes regression-test-verdict.yaml as its own output contract.
+        quality-auditor IS the verification skill-equivalent in the fix-it play — it doesn't
+        orchestrate further; it executes and reports. This is expected behavior.
+        Lower severity — does not require a delegating skill.
+
+trace:
+  - step: >
+      Symptom: fix-it Step 3 produces rca.yaml, design.yaml, resolution-trace.yaml, and
+      regression-test.yaml with zero skill invocations (the hot path).
+  - step: >
+      Trace to tech-designer.md step 5 (line 70): the escape-hatch clause allows inline
+      authoring. The three skills at lines 277-279 exist in the pool but are not
+      mandatorily triggered.
+  - step: >
+      Trace to fix-it SKILL.md lines 197-205: the play's Step 3 description lists the four
+      artifacts to produce but never names draft-rca, draft-fix-design, or
+      author-regression-test. Without explicit delegation instruction in the play, and with
+      the escape hatch in the agent, the agent defaults to inline.
+  - step: >
+      Root cause converges: the escape-hatch clause at tech-designer.md:70 was not
+      restricted when the three skills were added (partial fix), AND fix-it SKILL.md Step 3
+      was not re-compiled to name the skills after they were registered.
+
+blast_radius:
+  - path: core/components/agents/tech-designer.md
+    role: Agent definition — governs tech-designer behavior for all plays
+    change_needed: >
+      Rewrite step 5 (line 70) to split contract-mode and direct-invocation mode:
+      in contract mode, always use the skill pool (no inline option); in direct-invocation
+      mode (no JSON contract), perform analysis directly. Eliminate the unconditional
+      escape hatch.
+  - path: core/components/plays/fix-it/SKILL.md
+    role: Compiled play artifact — governs fix-it orchestration
+    change_needed: >
+      Re-compile or patch Step 3 description to explicitly name the three delegating skills:
+      draft-rca → rca.yaml + resolution-trace.yaml; draft-fix-design → design.yaml;
+      author-regression-test → regression-test.yaml. Add explicit skill-invocation
+      instruction to the agent instruction paragraph at lines 197-205.
+  - path: core/components/plays/fix-it/reference/intent.yaml
+    role: Intent source for re-compile — if SKILL.md is re-compiled, no changes needed here
+    change_needed: >
+      No change needed if SKILL.md is patched directly (it is a compiled artifact; direct
+      patch is permissible for an agent-instruction prose change that does not affect
+      constraints, failure conditions, or scenarios). If a full rebuild is desired,
+      intent.yaml stays as-is — the constraint that defines this behavior is already
+      captured in the agent definition, not the intent.
+
+produced_at: "2026-04-20T00:00:00Z"

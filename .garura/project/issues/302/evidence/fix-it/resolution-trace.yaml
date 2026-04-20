@@ -1,0 +1,90 @@
+resolution_trace:
+
+  # R1 — Decision domains from query_domains + task intent
+  # Domains: architecture, design-patterns, quality-standards, domain-context
+  # Task-implied: agent/skill boundary principle, escape-hatch pattern analysis,
+  #               play/agent/skill delegation hierarchy
+
+  - decision: "What architectural principle governs whether an agent performs work inline vs. delegates to a skill?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: >
+      The "agents collect context, skills produce artifacts" principle is defined in
+      CLAUDE.md (project instructions) and in the Meridian framework's CLAUDE.md
+      (garura/CLAUDE.md). It is not codified in ~/.garura/core/memory/ standards or
+      knowledge files. Searched: standards/rules/*.md, knowledge/quality/architecture/*.md,
+      standards/rules/_index.md — no matching file found. Fallback to LLM reasoning:
+      agents are context-crafters; skills are the artifact-production mechanism.
+      This is a knowledge gap — a candidate for the `learn` play.
+    rationale: >
+      Exhaustive search of core LTM conducted before fallback. The principle exists in
+      agent definitions (tech-designer.md:267-283, code-builder.md boundaries section)
+      and CLAUDE.md, but not as a standalone LTM rule file. LLM fallback is justified
+      and explicitly documented per SE-4 requirement (has_product_ltm=false: trace must
+      document llm fallback with a rationale field).
+
+  - decision: "Does a separation-of-concerns principle in core LTM apply to agent/skill boundaries?"
+    resolved_from: "core"
+    source: "knowledge/quality/architecture/separation-of-concerns.md"
+    section: "Assessment Checklist — ARCH-04, ARCH-05"
+    authority: "draft"
+    value: >
+      ARCH-04: Business logic should not be embedded in route handlers or controllers.
+      ARCH-05: A service layer should mediate between API and data layers. By analogy,
+      agent orchestration logic (context gathering) should not embed artifact production
+      (the domain of skills). This provides a supporting principle for the fix — the
+      violation is structurally equivalent to a fat controller (agent doing skill's work).
+      The analogy is non-exact; this entry remains advisory.
+
+  - decision: "Are there any locked product architecture artifacts that constrain this RCA?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: >
+      has_product_ltm=false. No .garura/product/architecture/ directory exists.
+      locked_artifacts=[]. R2 step skipped — no project-scoped knowledge to query.
+      Proceeding to R3 only.
+
+  - decision: "What quality standard governs escape-hatch language in agent definitions?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: >
+      No rule file in core LTM covers agent-definition prose quality or escape-hatch
+      language patterns. Searched standards/rules/*.md — no matching content.
+      LLM reasoning: an escape hatch in step 5 that contradicts line 283 (the anti-inline
+      guard) creates ambiguity. Ambiguous instructions are a quality defect in agent
+      definitions — the agent cannot safely choose between two valid-seeming paths.
+    rationale: >
+      No core LTM source available for this decision domain. Documented as llm fallback
+      per SE-4.
+
+  - decision: "Does the fix-it play's compilation process define what should happen when new skills are added post-compile?"
+    resolved_from: "llm"
+    source: null
+    section: null
+    authority: "none"
+    value: >
+      The fix-it SKILL.md compilation metadata (compiled_at: 2026-04-19T14:42:48Z) predates
+      the skill registration. No LTM rule covers post-compile drift detection for play
+      artifacts. LLM reasoning: when new skills are registered in an agent's pool, any
+      play that delegates to that agent should be reviewed and re-compiled or patched to
+      name the new skills. This is currently a manual process.
+    rationale: >
+      No core LTM source available. Documented as llm fallback per SE-4.
+
+produced_at: "2026-04-20T00:00:00Z"
+ltm_context_used:
+  project_base: null
+  core_base: "~/.garura/core/memory/"
+  has_product_ltm: false
+  core_resolved_count: 1
+  llm_fallback_count: 4
+  note: >
+    Per SE-4: has_product_ltm=false — trace contains at least one core-resolved entry
+    (separation-of-concerns.md) and documents all llm fallbacks with explicit rationale fields.
+    SE-4 compliance: satisfied.

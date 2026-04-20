@@ -1,0 +1,75 @@
+branch:
+  name: fix/302-tech-designer-inline-artifacts
+  issue_from_branch: 302
+  is_hotfix: false
+
+change_summary:
+  total_files: 8
+  staged: 0
+  unstaged: 3
+  untracked: 5
+
+groups:
+  - id: G1
+    issue: 302
+    type: fix
+    scope: tech-designer
+    subject: "split inline vs delegated artifact modes in tech-designer and fix-it skill delegation (#302)"
+    confidence: high
+    files:
+      - path: core/components/agents/tech-designer.md
+        description: "mode-split at line 70 — separates inline artifact handling from delegated artifact handling"
+      - path: core/components/plays/fix-it/SKILL.md
+        description: "add skill delegation paragraph for #302 fix"
+
+  - id: G2
+    issue: 302
+    type: chore
+    scope: scope
+    subject: "record gap_item close-outs for #203, #204, #276 in features.yaml (#302)"
+    confidence: high
+    files:
+      - path: .garura/product/scope/features.yaml
+        description: "adds gap_items capturing closed issues #203, #204, #276"
+
+  - id: G3
+    issue: 302
+    type: chore
+    scope: stm
+    subject: "record fix-it evidence for #302"
+    confidence: high
+    files:
+      - path: .garura/project/issues/302/
+        description: "STM evidence directory for this fix-it run — untracked"
+
+  - id: G4
+    issue: 310
+    type: chore
+    scope: stm
+    subject: "record leftover ship evidence for #310"
+    confidence: high
+    files:
+      - path: .garura/project/issues/310/evidence/commit-code/commits.yaml
+        description: "leftover commit-code evidence from prior #310 ship — untracked"
+      - path: .garura/project/issues/310/evidence/create-pr/
+        description: "leftover create-pr evidence from prior #310 ship — untracked"
+
+  - id: G5
+    issue: 302
+    type: chore
+    scope: engine
+    subject: "update engine state after fix-it run (#302)"
+    confidence: high
+    files:
+      - path: .garura/core/engine-state.json
+        description: "engine state mutated during fix-it run for #302 — untracked"
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+se_validation:
+  SE-1: "PASS — each group contains a single concern: code fix, scope capture, stm evidence (#302), stm evidence (#310), engine state"
+  SE-4: "PASS — all 8 files covered across 5 groups; engine-state.json assigned to G5"

@@ -1,0 +1,148 @@
+analysis:
+  branch: fix/310-meridian-prefix-cleanup
+  base: main
+  branch_pattern: bugfix
+  commits: 4
+  changes:
+    files: 33
+    additions: 1512
+    deletions: 48
+  suggested_title: "refactor(plays): drop meridian: prefix — adopt bare names (#310)"
+
+  context:
+    file_patterns_matched:
+      - name: "Play Definitions"
+        files: 7
+        trigger: "**/plays/**/*.md"
+      - name: "Skill Definitions"
+        files: 5
+        trigger: "**/skills/**/*.md"
+      - name: "Configuration / YAML"
+        files: 21
+        trigger: "*.yaml"
+      - name: "core/components sync trigger"
+        files: 12
+        trigger: "core/components/**"
+    commit_types:
+      - type: "refactor"
+        count: 1
+        example: "refactor(plays): drop meridian: prefix — adopt bare names (#310)"
+      - type: "chore"
+        count: 3
+        example: "chore(stm): record fix-it evidence for #310"
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: No merge conflicts
+        trigger: Universal rule — always applied
+        status: PASS
+        evidence: "git merge-tree --write-tree main fix/310-meridian-prefix-cleanup returned clean tree hash addfcbf05caefa3d760b94880b2ed3aeb752f3fa, exit 0"
+
+      - id: no-secrets
+        item: No secrets committed
+        trigger: Universal rule — always applied
+        status: PASS
+        evidence: "Pattern scan across all 33 changed files: no matches for password|secret|api_key|token|private_key|-----BEGIN in any changed file"
+
+      - id: play-frontmatter
+        item: Play has valid frontmatter (name, description, user-invocable/user-invokable, allowed-tools)
+        trigger: Play definitions changed — distill/SKILL.md, fix-it/SKILL.md, report-issue/SKILL.md, review-pr/SKILL.md
+        status: PASS
+        evidence: |
+          All 4 changed plays have valid frontmatter:
+          - distill: name=distill, description=present, user-invokable=false
+          - fix-it: name=fix-it, description=present, user-invokable=true
+          - report-issue: name=report-issue, description=present, user-invokable=true
+          - review-pr: name=review-pr, description=present, user-invocable=true
+
+      - id: play-workflow
+        item: Play defines workflow
+        trigger: Play definitions changed
+        status: PASS
+        evidence: |
+          fix-it/SKILL.md: ## Workflow section present at line 95
+          review-pr/SKILL.md: ## Workflow section present at line 75
+          distill: lightweight wrapper, workflow defined inline
+          report-issue: deprecated alias, no workflow required
+
+      - id: play-checkpoint
+        item: Play defines checkpoint behavior
+        trigger: Play definitions changed
+        status: PASS
+        evidence: |
+          fix-it/SKILL.md: Checkpoint defined at Step 5 — "This checkpoint is never skippable (C6)"
+          review-pr/SKILL.md: Checkpoint-capable confirmed in header "Structure A (checkpoint-capable, multi-agent, confidence-gated)"
+
+      - id: skill-frontmatter
+        item: Skill has valid frontmatter (name, description, user-invocable, allowed-tools)
+        trigger: Skill definitions changed — distill, quality-check-scoped, quality-check, sync-claude, author-intent-yaml
+        status: PASS
+        evidence: |
+          All 5 changed skills have valid frontmatter with name, description, user-invocable fields.
+          sync-claude additionally has allowed-tools=Bash, model=haiku.
+          distill has allowed-tools, model=sonnet.
+
+      - id: skill-io
+        item: Skill defines Input and Output sections
+        trigger: Skill definitions changed
+        status: PASS
+        evidence: "Spot-checked distill, quality-check-scoped, quality-check — all have ## Input and ## Output (or equivalent Purpose/Process/Output) sections. sync-claude is a simple execution wrapper with no I/O sections by design (fire-and-forget)."
+
+      - id: config-valid
+        item: Configuration syntax valid
+        trigger: 21 YAML files changed
+        status: PASS
+        evidence: "python3 yaml.safe_load validation passed for all 21 changed .yaml files — all returned OK"
+
+      - id: sync-claude
+        item: Components synced with core/components/ — run /sync-claude post-merge
+        trigger: core/components/** files changed (12 files in plays/ and skills/)
+        status: REVIEW
+        evidence: "This is a post-merge action. /sync-claude must be run after PR is merged to re-deploy renamed plays/skills to ~/.claude. Not blocking PR creation."
+
+      - id: refactor-no-break
+        item: No breaking changes to contracts — Output sections unchanged
+        trigger: Commit type refactor present
+        status: PASS
+        evidence: |
+          Full diff review of all changed skill/play files shows ONLY frontmatter name field changes:
+          - meridian:distill → distill
+          - meridian:fix-it → fix-it
+          - meridian:report-issue → report-issue
+          - meridian:review-pr → review-pr
+          - meridian:quality-check-scoped → quality-check-scoped
+          - meridian:quality-check → quality-check
+          - meridian:sync-claude → sync-claude (plus description: Meridian → Garura)
+          No Output sections modified. No workflow logic changed. No contract signatures altered.
+          One inline reference in review-pr/SKILL.md updated: "meridian:quality-check-scoped" → "quality-check-scoped" in prose and table.
+
+    nice_to_have:
+      - id: play-agent-limit
+        item: Play respects agent call limits (L1 ≤2, L2 ≤5)
+        trigger: Play definitions changed
+        status: PASS
+        evidence: "No agent call counts changed — only name fields updated in frontmatter. Existing limits are unchanged."
+
+      - id: skill-constraints
+        item: Skill has constraints section
+        trigger: Skill definitions changed
+        status: PASS
+        evidence: "Constraints sections verified present in distill, quality-check-scoped, quality-check. sync-claude is a fire-and-forget execution skill with no constraint section by design."
+
+      - id: config-documented
+        item: Configuration changes documented
+        trigger: YAML config files changed (intent.yaml files)
+        status: PASS
+        evidence: "intent.yaml changes add name field consistency — mechanical, no behavior change. Referenced in commit message and issue #310."
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Create PR — all must-have checks PASS. One REVIEW item (sync-claude) is a documented post-merge action, not a blocker."
+
+  notes:
+    - "Branch pattern: fix/* → bugfix classification. Standard priorities apply (no hotfix demotion)."
+    - "One residual meridian: reference in setup-branch/SKILL.md line 64 (git stash message string literal) is intentionally out of scope — literal string, not frontmatter field."
+    - "RT-310 regression test (16 grep assertions) reported GREEN by quality-auditor in fix-it evidence."
+    - "STM evidence files for issues #257 and #310 are included in the branch — these are chore(stm) commits, not functional."
