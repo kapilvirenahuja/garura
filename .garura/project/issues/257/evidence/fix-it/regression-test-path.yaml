@@ -1,0 +1,17 @@
+regression_test_path: ".garura/project/issues/257/evidence/fix-it/regression-test.yaml"
+initial_state: red
+verified_at: "2026-04-20"
+verification_method: "ran all 4 grep assertions against current intent.yaml — all exit code 1"
+assertions_checked:
+  - id: RT-257-A1
+    command: "grep -l 'Verification Steps' core/components/plays/implement/reference/intent.yaml"
+    result: "exit 1 (RED)"
+  - id: RT-257-A2
+    command: "grep -c 'Preconditions' core/components/plays/implement/reference/intent.yaml"
+    result: "exit 1 (RED)"
+  - id: RT-257-A3
+    command: "grep -l 'scope-directory' core/components/plays/implement/reference/intent.yaml"
+    result: "exit 1 (RED)"
+  - id: RT-257-A4
+    command: "grep -l 'F26' core/components/plays/implement/reference/intent.yaml"
+    result: "exit 1 (RED)"

@@ -1,4 +1,1 @@
- M .garura/project/issues/_pending/start-feature/changed-files.txt
-?? core/components/memory/standards/templates/feature-tree-output.md
-?? core/components/skills/list-product-state-workspace/
-?? core/components/skills/list-product-state/
+

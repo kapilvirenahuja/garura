@@ -1,0 +1,23 @@
+regression_test_verdict: pass
+verified_at: "2026-04-20T10:00:00Z"
+regression_test_path: ".garura/project/issues/257/evidence/fix-it/regression-test.yaml"
+assertions:
+  RT-257-A1:
+    status: pass
+    exit_code: 0
+    evidence: "grep -l 'Verification Steps' returned file path — constraint text containing 'Verification Steps' exists in intent.yaml"
+  RT-257-A2:
+    status: pass
+    exit_code: 0
+    evidence: "grep -c 'Preconditions' returned 2 — 'Preconditions' appears 2 times in intent.yaml (expected_min_count: 1 met)"
+  RT-257-A3:
+    status: pass
+    exit_code: 0
+    evidence: "grep -l 'scope-directory' returned file path — C5/C29 scope-directory carve-out text is present in intent.yaml"
+  RT-257-A4:
+    status: pass
+    exit_code: 0
+    evidence: "grep -l 'F26' returned file path — F26 failure condition exists in intent.yaml"
+sanity_checks:
+  skill_md_sections_count: 15
+  skill_md_has_se22_c33: true

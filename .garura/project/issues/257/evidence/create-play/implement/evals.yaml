@@ -1,0 +1,381 @@
+# implement play — step evals + scenario evals
+# Regenerated for #257 rebake: SE-10, SE-19 reworded (C5/C29/F5 content-vs-path),
+# SE-22 added (C33 four-section dispatch), SE-23 added (F26 missing/unlabeled section).
+
+step_evals:
+  - id: SE-1
+    source_type: constraint
+    failure_condition_id: F8
+    constraint_id: C1
+    skill: pre-flight
+    check: milestone_id resolves to a plan.yaml execution_order entry with status LOCKED
+    artifact_pattern: "{stm_dir}/context/design/plan.yaml"
+    pass_criteria: entry exists and status == LOCKED
+    fail_criteria: entry missing or status != LOCKED
+
+  - id: SE-2
+    source_type: constraint
+    failure_condition_id: F24
+    constraint_id: C3
+    skill: pre-flight
+    check: every depends_on milestone has status COMPLETE
+    artifact_pattern: "{stm_dir}/context/design/plan.yaml"
+    pass_criteria: all depends_on statuses == COMPLETE
+    fail_criteria: any depends_on status != COMPLETE
+
+  - id: SE-3
+    source_type: constraint
+    failure_condition_id: F9
+    constraint_id: C2
+    skill: pre-flight
+    check: feature has success scenarios, failure conditions, and exit gate
+    artifact_pattern: "{stm_dir}/context/design/epic-spec.yaml + plan.yaml"
+    pass_criteria: non-empty success_scenarios[], failure_conditions[], exit_gate
+    fail_criteria: any is empty or missing
+
+  - id: SE-4
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C13
+    skill: tech-designer
+    check: CONTEXT.md exists and contains api_contracts, internal_interfaces, service_contracts sections; zero behavioral descriptions from features.yaml; zero KB/LTM references (C27)
+    artifact_pattern: "{stm_dir}/CONTEXT-{milestone_id}.md"
+    pass_criteria: all three contract sections present; zero features.yaml behavioral prose; zero ~/.garura/core/memory/ or product_base references
+    fail_criteria: any contract section missing OR behavioral prose present OR KB/LTM reference present
+
+  - id: SE-5
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C15
+    skill: pre-flight
+    check: quality-gates.yaml exists in STM with build, typecheck, lint, unit_tests entries; no product_base or KB references (C19, C27)
+    artifact_pattern: "{stm_dir}/context/design/quality-gates.yaml"
+    pass_criteria: file exists; all four gate entries present; zero external path references
+    fail_criteria: file missing OR any gate entry missing OR external path reference present
+
+  - id: SE-6
+    source_type: both
+    failure_condition_id: F14
+    constraint_id: C17
+    skill: orchestrator
+    check: TEST-CONTEXT.md exists; zero file paths (no "/", ".ts", ".py", ".js" tokens); zero architecture references; zero technology decisions; only behavioral descriptions / acceptance criteria / failure conditions / test framework name
+    artifact_pattern: "{stm_dir}/TEST-CONTEXT-{milestone_id}.md"
+    pass_criteria: file exists and contains only allowed content categories
+    fail_criteria: any file path, architecture ref, or technology decision present
+
+  - id: SE-7
+    source_type: constraint
+    failure_condition_id: F20
+    constraint_id: C24
+    skill: orchestrator
+    check: mock setup report exists; every external_service in tech.yaml mock_strategy has a functioning mock; every test_double available
+    artifact_pattern: "{evidence_dir}/mock-setup-report.yaml"
+    pass_criteria: report exists; every mock_strategy entry has corresponding mock/double
+    fail_criteria: report missing OR any entry lacks mock/double
+
+  - id: SE-8
+    source_type: both
+    failure_condition_id: F4
+    constraint_id: C7
+    skill: evals-engineer
+    check: eval file stored outside repo tree (C8); manifest count > 0; zero implementation code in generator prompt (F7); plaintext deleted after encryption (F4)
+    artifact_pattern: "{eval_dir}/implement-{milestone_id}.yaml + {eval_dir}/manifest.json"
+    pass_criteria: eval_dir outside repo; manifest.count > 0; no impl code in prompt; no plaintext on disk
+    fail_criteria: eval content inside repo OR manifest empty OR impl code in prompt OR plaintext present
+
+  - id: SE-9
+    source_type: both
+    failure_condition_id: F14
+    constraint_id: C17
+    skill: code-builder
+    check: test-writer contract contains ONLY test_context_path; no context_path; no file paths from "Files You Own"; no architecture references; tests are behavioral
+    artifact_pattern: "{evidence_dir}/test-writer-contract-{scope_item_id}.json"
+    pass_criteria: contract.stm.input contains only test_context_path; authored tests assert observable outcomes
+    fail_criteria: contract includes context_path OR file paths OR architecture content
+
+  - id: SE-10
+    source_type: both
+    failure_condition_id: F5
+    constraint_id: C29
+    skill: code-builder
+    check: >
+      code-builder dispatch context contains ZERO test source code, ZERO test assertion text,
+      ZERO mock data patterns derived from test files, ZERO evaluation IDs, ZERO evaluation text,
+      ZERO eval pass criteria, ZERO raw judge report content.
+      A bare test scope-directory path (e.g., tests/unit/{scope_item}/) appearing in the
+      Verification Steps section is PERMITTED — it is a procedural run directive, not test content.
+      The pre-invocation check MUST distinguish content-bearing paths (paths paired with
+      assertion text, test source, or eval content) from bare scope-directory paths.
+    artifact_pattern: "code-builder JSON contract (stm.input + config.instructions) for Steps 6b, 6d, 10"
+    pass_criteria: >
+      stm.input contains only context_path, architecture_context_path, and (for fix loops)
+      status_report / remediation_path. config.instructions contains no test source code,
+      no assertion text, no mock data, no eval IDs, no eval text, no pass criteria.
+      Any scope-directory path in Verification Steps appears without adjacent test content.
+    fail_criteria: >
+      Any test source code, assertion text, mock data pattern, eval ID, eval text, or pass
+      criterion is detected in the builder's dispatch context.
+
+  - id: SE-11
+    source_type: both
+    failure_condition_id: F15
+    constraint_id: C18
+    skill: orchestrator
+    check: status report exists; references contract IDs from tech.yaml; zero test source code; zero assertion text; zero test file paths; zero mock data patterns
+    artifact_pattern: "{evidence_dir}/status-report-{scope_item_id}-cycle-{N}.yaml"
+    pass_criteria: file exists; every result.contract_ref matches a tech.yaml contract ID; no test/assertion/mock content
+    fail_criteria: any test source, assertion text, test path, or mock pattern present
+
+  - id: SE-12
+    source_type: both
+    failure_condition_id: F25
+    constraint_id: C30
+    skill: judge
+    check: arbiter verdict artifact exists ONLY after the same contract_ref appears in two consecutive status reports; verdict is one of implementation_wrong / implementation_correct_per_spec / spec_ambiguous; arbiter prompt contains zero implementation code and zero test code
+    artifact_pattern: "{evidence_dir}/arbiter-verdict-{scope_item_id}-{contract_ref}.yaml"
+    pass_criteria: verdict file exists only when 2-cycle precondition met; verdict value is one of the three allowed; prompt excludes impl/test code
+    fail_criteria: verdict produced after single failure OR verdict value outside allowed set OR impl/test code in prompt
+
+  - id: SE-13
+    source_type: both
+    failure_condition_id: F21
+    constraint_id: C25
+    skill: orchestrator
+    check: integration test suite ran covering this milestone's scope items plus regression from prior milestones; on failure, fix loop entered
+    artifact_pattern: "{evidence_dir}/integration-test-report-{milestone_id}.yaml"
+    pass_criteria: report exists; scope coverage == all milestone scope items + prior milestone regression
+    fail_criteria: report missing OR scope incomplete OR failure without fix-loop entry
+
+  - id: SE-14
+    source_type: both
+    failure_condition_id: F17
+    constraint_id: C14
+    skill: quality-auditor
+    check: quality report exists with all gate categories; qp_certification section present when quality-vision.yaml exists (C26); if overall FAIL or qp_certification BLOCKED, judge was NOT executed (C20); quality-auditor input excluded evals / builder prompts / judge reports
+    artifact_pattern: "{evidence_dir}/quality-report-{milestone_id}.yaml + presence/absence of {evidence_dir}/judge-report-{milestone_id}.yaml"
+    pass_criteria: quality report complete; qp_certification present when vision exists; judge-report absent when quality FAIL/BLOCKED
+    fail_criteria: judge-report present despite quality FAIL/BLOCKED OR missing qp_certification when vision exists
+
+  - id: SE-15
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: C12
+    skill: quality-auditor
+    check: build passes; type-check passes
+    artifact_pattern: "{evidence_dir}/quality-report-{milestone_id}.yaml"
+    pass_criteria: build.status == PASS AND typecheck.status == PASS
+    fail_criteria: either has errors
+
+  - id: SE-16
+    source_type: both
+    failure_condition_id: F6
+    constraint_id: C6
+    skill: judge
+    check: judge report exists; judge prompt contains zero builder prompts, zero evals-engineer prompts, zero quality-auditor results; mode == EVAL-REVIEW
+    artifact_pattern: "{evidence_dir}/judge-report-{milestone_id}.yaml + judge contract JSON"
+    pass_criteria: report exists; prompt excludes all listed sources; mode field == EVAL-REVIEW
+    fail_criteria: any prohibited content in prompt OR missing mode
+
+  - id: SE-17
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: judge
+    check: first-run judge pass rate > 50%
+    artifact_pattern: "{evidence_dir}/judge-report-{milestone_id}.yaml"
+    pass_criteria: pass_rate > 50%
+    fail_criteria: pass_rate <= 50% — halt, feature needs restructuring
+
+  - id: SE-18
+    source_type: both
+    failure_condition_id: F18
+    constraint_id: C21
+    skill: orchestrator
+    check: remediation file exists; entries from every failing source (status reports + quality-report) present; zero eval IDs; zero raw judge report content
+    artifact_pattern: "{evidence_dir}/remediation-{milestone_id}-{iteration}.md"
+    pass_criteria: file exists; every failing source has at least one entry; no eval IDs or raw judge content
+    fail_criteria: file missing OR failing source omitted OR eval IDs/judge content present
+
+  - id: SE-19
+    source_type: both
+    failure_condition_id: F5
+    constraint_id: C29
+    skill: code-builder
+    check: >
+      code-builder fix-loop dispatch context (Step 10) contains ZERO test files, ZERO test code,
+      ZERO test assertions, ZERO mock data patterns, ZERO eval IDs, ZERO eval text, ZERO pass
+      criteria, ZERO raw judge report content. A bare test scope-directory path in the
+      Verification Steps section is PERMITTED as a procedural run directive.
+    artifact_pattern: "code-builder JSON contract for Step 10 (fix iteration)"
+    pass_criteria: >
+      stm.input contains only context_path, architecture_context_path, remediation_path.
+      config.instructions has no prohibited content. Any scope-directory path in Verification
+      Steps appears without adjacent test content.
+    fail_criteria: any prohibited content detected
+
+  - id: SE-20
+    source_type: both
+    failure_condition_id: F19
+    constraint_id: C22
+    skill: orchestrator
+    check: eval-audit artifact exists after every fix iteration; if delta < 0, consolidation_rationale covers each removed eval ID
+    artifact_pattern: "{evidence_dir}/eval-audit-{milestone_id}-{iteration}.yaml"
+    pass_criteria: audit exists; delta >= 0 OR consolidation_rationale covers every removed ID
+    fail_criteria: audit missing OR delta < 0 without rationale for each removed ID
+
+  - id: SE-21
+    source_type: both
+    failure_condition_id: F3
+    constraint_id: C11
+    skill: orchestrator
+    check: if fix loop ran, fresh evals were generated each iteration (not reused); max 3 outer iterations; if exhausted, failure report exists
+    artifact_pattern: "{evidence_dir}/remediation-*.md + {eval_dir}/manifest.json history + optional {evidence_dir}/failure-report-{milestone_id}.md"
+    pass_criteria: each iteration has a fresh manifest hash; outer_iteration <= 3; on 3-exhausted, failure report exists
+    fail_criteria: manifest reused across iterations OR > 3 iterations OR exhausted without failure report
+
+  - id: SE-22
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C33
+    skill: code-builder
+    check: >
+      Every dispatch to code-builder (Steps 6b, 6d, 10) and test-writer (Steps 6a, 10b) contains
+      four labeled sections in this order: (1) "Description" — 1-2 sentences from
+      plan.yaml scope_item_description; (2) "Preconditions" — prior completed scope items,
+      tech.yaml interfaces consumed, architecture constraints from architecture-context.yaml;
+      (3) "Expected Behavior" — tech.yaml contracts owned by this scope item; (4)
+      "Verification Steps" — procedural only: test scope directory, exit criterion
+      (all tests PASS), red-path action (abort and enter fix loop).
+      Each section MUST be explicitly labeled with its section name.
+    artifact_pattern: "dispatch JSON contract config.instructions for Steps 6a, 6b, 6d, 10, 10b"
+    pass_criteria: >
+      All four section labels present, in the specified order, each followed by
+      non-empty content drawn from the specified source (scope_item_description / tech.yaml /
+      architecture-context.yaml / procedural directive).
+    fail_criteria: any section missing, unlabeled, out of order, or with empty content
+
+  - id: SE-23
+    source_type: failure_condition
+    failure_condition_id: F26
+    constraint_id: null
+    skill: code-builder
+    check: >
+      No dispatch to code-builder or test-writer proceeds when any of the four required
+      sections (Description, Preconditions, Expected Behavior, Verification Steps) is
+      missing or unlabeled. The orchestrator halts before invocation when this is detected.
+    artifact_pattern: "orchestrator pre-dispatch log + dispatch JSON contract"
+    pass_criteria: every dispatched contract passes the 4-section gate; any partial dispatch produces a structured halt (F26) and no agent invocation occurs
+    fail_criteria: any dispatch proceeds with missing/unlabeled section (violates F26)
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: Engineer
+    artifact_pattern: "{stm_dir}/milestones/{milestone_id}/status-report.yaml"
+    check: milestone implemented; all evals pass on first judge run; zero fix loop iterations; code committed
+    pass_criteria: status == COMPLETE; judge_eval_review.iterations == 0; commit recorded
+    fail_criteria: any of the above absent
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: Engineer
+    artifact_pattern: "{evidence_dir}/remediation-*.md + eval manifest history"
+    check: fix loop ran up to 3 iterations; fresh evals each iteration; judge re-ran after each fix
+    pass_criteria: N_iterations in [1..3]; each iteration has fresh manifest hash and fresh judge report
+    fail_criteria: reused manifest OR > 3 iterations OR missing judge rerun
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: QA Engineer
+    artifact_pattern: "scenarios.yaml + deployed environment verification results"
+    check: scenarios.yaml verification scenarios executable against deployed env; behaviors match spec; no codebase reading, no eval decryption
+    pass_criteria: every scenario has executable steps; results map to spec behaviors
+    fail_criteria: any scenario not executable OR requires codebase access
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: Security Auditor
+    artifact_pattern: "all agent JSON contracts under {evidence_dir}/"
+    check: test-writer contract has only test_context_path; code-builder contract has only context_path + architecture_context_path; judge contracts have only eval/manifest/project or spec/status inputs; zero cross-contamination
+    pass_criteria: every contract's stm.input matches the allowed shape for its agent role
+    fail_criteria: any contract includes disallowed inputs
+
+  - id: SCE-5
+    scenario_id: S5
+    persona: Engineering Lead
+    artifact_pattern: "{evidence_dir}/failure-report-{milestone_id}.md"
+    check: after 3 iterations exhausted, failure report lists persistent failures, remediation history, recommendation
+    pass_criteria: file exists; contains iterations 1-3 rows with status + remediation summary; includes recommendation
+    fail_criteria: any element missing
+
+  - id: SCE-6
+    scenario_id: S6
+    persona: Performance Auditor
+    artifact_pattern: "{evidence_dir}/quality-report-{milestone_id}.yaml"
+    check: quality gates include performance metrics traceable to quality-vision.yaml
+    pass_criteria: qp_certification section includes performance dimension with threshold and actual_value
+    fail_criteria: performance metrics absent when quality-vision declares them
+
+  - id: SCE-7
+    scenario_id: S7
+    persona: Evals Engineer
+    artifact_pattern: "{evidence_dir}/judge-report-{milestone_id}.yaml"
+    check: every eval executed; every feature behavior has eval coverage; pass rate meets threshold
+    pass_criteria: executed_count == total_count; behaviors_covered == all; pass_rate >= threshold
+    fail_criteria: any eval skipped OR behavior uncovered OR pass_rate below threshold
+
+  - id: SCE-8
+    scenario_id: S8
+    persona: Quality Lead
+    artifact_pattern: "{evidence_dir}/quality-report-{milestone_id}.yaml"
+    check: qp_certification exists with per-dimension PASS/FAIL; overall CERTIFIED; no dimension skipped when quality-vision declares level >= 2
+    pass_criteria: every QP dimension with level >= 2 has concrete threshold + actual_value; overall == CERTIFIED
+    fail_criteria: any dimension skipped OR threshold null OR actual_value missing
+
+  - id: SCE-9
+    scenario_id: S9
+    persona: Testing Architect
+    artifact_pattern: "test-writer + code-builder contracts; status reports; test files manifest"
+    check: test files authored by test-writer from TEST-CONTEXT.md only; code-builder NEVER received test files; status reports mapped failures to tech.yaml contract IDs; tests assert behavioral outcomes
+    pass_criteria: test-writer stm.input == {test_context_path}; code-builder stm.input excludes any test-file reference; status reports reference contract IDs
+    fail_criteria: any violation of the above
+
+  - id: SCE-10
+    scenario_id: S10
+    persona: Build Engineer
+    artifact_pattern: "quality-report + judge-report presence"
+    check: if quality-auditor FAIL or BLOCKED, judge did NOT execute; one gate controls judge access
+    pass_criteria: judge-report present ONLY when quality-report shows PASS + CERTIFIED
+    fail_criteria: judge executed while quality FAIL/BLOCKED
+
+  - id: SCE-11
+    scenario_id: S11
+    persona: Eval Auditor
+    artifact_pattern: "{evidence_dir}/eval-audit-*.yaml"
+    check: eval-audit exists per fix iteration; consolidation rationale covers every removed eval
+    pass_criteria: audit present; every removed eval ID has rationale
+    fail_criteria: audit missing OR removed eval without rationale
+
+  - id: SCE-12
+    scenario_id: S12
+    persona: Developer
+    artifact_pattern: "mock-setup-report + TEST-CONTEXT.md + CONTEXT.md + status reports"
+    check: mock infrastructure set up before test-writer; code-builder implemented against same mocked dependencies described in CONTEXT.md; mock details never appear in status reports or builder context
+    pass_criteria: mock-setup-report timestamp precedes test-writer invocation; CONTEXT.md references mock_strategy service contracts; status reports contain zero mock data patterns
+    fail_criteria: mock setup after test-writer OR mock details leaked into status reports
+
+  - id: SCE-13
+    scenario_id: S13
+    persona: Engineer
+    artifact_pattern: "pre-flight log + plan.yaml milestone statuses"
+    check: pre-flight confirmed milestone_id resolves to LOCKED entry; all depends_on milestones COMPLETE; invoking T-002 before T-001 COMPLETE halts with F24
+    pass_criteria: pre-flight log records milestone status == LOCKED and depends_on all COMPLETE; out-of-order invocation halts with F24
+    fail_criteria: pre-flight skipped OR out-of-order invocation proceeded
+
+coverage:
+  failure_conditions_covered: [F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F14, F15, F17, F18, F19, F20, F21, F24, F25, F26]
+  failure_conditions_uncovered: [F11, F12, F13, F16, F22, F23]  # see coverage-matrix.md for cross-cover mapping
+  constraints_covered_artifact_verifiable: [C4, C5, C6, C7, C8, C10, C13, C14, C17, C18, C19, C21, C22, C24, C26, C27, C29, C33]
+  constraints_uncovered_artifact_verifiable: []
+  scenarios_covered: [S1, S2, S3, S4, S5, S6, S7, S8, S9, S10, S11, S12, S13]
+  scenarios_uncovered: []

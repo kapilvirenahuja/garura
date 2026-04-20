@@ -1,0 +1,87 @@
+# Constraint classifications for implement intent.yaml
+# Classification rules (from evals-creator):
+#   pre-flight          — checked before workflow begins; enforced by pre-flight gate
+#   artifact-verifiable — observable in a produced artifact at runtime; generates an SE
+#   structural          — enforced by workflow structure itself (step ordering, contract shape)
+
+classifications:
+  - id: C1
+    category: pre-flight          # plan.yaml milestone status LOCKED
+  - id: C2
+    category: pre-flight          # feature has success scenarios + failure conditions
+  - id: C3
+    category: pre-flight          # depends_on milestones COMPLETE
+  - id: C4
+    category: artifact-verifiable # evals-engineer input scoped to unit test coverage
+  - id: C5
+    category: artifact-verifiable # builder input excludes test content; permits scope-dir path
+  - id: C6
+    category: artifact-verifiable # judge input excludes builder/evals-engineer prompts
+  - id: C7
+    category: artifact-verifiable # evals encrypted at rest; plaintext deleted
+  - id: C8
+    category: artifact-verifiable # evals stored outside repo tree
+  - id: C9
+    category: structural          # fresh evals each fix iteration (workflow ordering)
+  - id: C10
+    category: artifact-verifiable # remediation is spec-referenced only
+  - id: C11
+    category: structural          # max 3 outer fix iterations
+  - id: C12
+    category: pre-flight          # build passes pre-flight; also re-verified by quality-auditor
+  - id: C13
+    category: artifact-verifiable # CONTEXT.md contents
+  - id: C14
+    category: artifact-verifiable # quality-auditor isolation
+  - id: C15
+    category: pre-flight          # quality-gates.yaml exists in STM
+  - id: C16
+    category: structural          # per-scope-item cycle ordering
+  - id: C17
+    category: artifact-verifiable # test-writer input excludes file paths/architecture
+  - id: C18
+    category: artifact-verifiable # status report contents
+  - id: C19
+    category: artifact-verifiable # QP translation applied when quality-vision.yaml exists
+  - id: C20
+    category: structural          # gate logic: quality-auditor PASS+CERTIFIED before judge
+  - id: C21
+    category: artifact-verifiable # remediation draws from both sources
+  - id: C22
+    category: artifact-verifiable # eval count audit
+  - id: C23
+    category: pre-flight          # STM artifact base resolved
+  - id: C24
+    category: artifact-verifiable # mock infra exists
+  - id: C25
+    category: structural          # integration test pass after scope items
+  - id: C26
+    category: artifact-verifiable # qp_certification section present
+  - id: C27
+    category: artifact-verifiable # zero KB/LTM references anywhere
+  - id: C28
+    category: pre-flight          # milestone_id argument resolution
+  - id: C29
+    category: artifact-verifiable # builder pre-invocation check (content-vs-path aware)
+  - id: C30
+    category: structural          # arbiter invocation only after 2 consecutive failures
+  - id: C31
+    category: structural          # both agents derive from SPEC (cross-agent isolation)
+  - id: C32
+    category: structural          # inter-agent communication channel shape
+  - id: C33
+    category: artifact-verifiable # dispatch prompts contain 4 labeled sections in order
+
+notes: |
+  C33 is artifact-verifiable: the dispatch prompt's `config.instructions` array
+  is a concrete textual artifact (present in SKILL.md and present in the
+  runtime JSON contract). Presence and labeling of the four sections can be
+  mechanically checked without running the agent.
+
+  F26 (mirror of C33) is covered via the same SE — a dispatch missing any
+  of the four labeled sections triggers F26.
+
+  C5/C29 refinement (content-vs-path) does not change their classification —
+  still artifact-verifiable — but the SE language is updated to prohibit
+  test source / assertion text / mock data / eval IDs / eval text / pass
+  criteria while permitting bare scope-directory paths in Verification Steps.

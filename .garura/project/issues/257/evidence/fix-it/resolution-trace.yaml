@@ -1,0 +1,87 @@
+resolution_trace:
+  issue: 257
+  play: fix-it
+  task: rca-and-design
+  ltm_context:
+    core_base: "~/.garura/core/memory/"
+    query_domains:
+      - architecture
+      - design-patterns
+      - quality-standards
+      - domain-context
+    has_product_ltm: false
+
+  r1_domains_identified:
+    - "play-constraint-authoring: rules for how constraints must be structured in intent.yaml"
+    - "prompt-contract-design: what a well-structured agent dispatch prompt requires"
+    - "isolation-invariant-design: rules for context isolation between agents in a pipeline"
+    - "play-rebuild-workflow: process rule for how play SKILL.md files are modified"
+
+  r2_skipped: true
+  r2_reason: "has_product_ltm=false — no project_base exists. Skipping R2 entirely per protocol."
+
+  r3_queries:
+    - domain: "play-constraint-authoring"
+      searched: "~/.garura/core/memory/standards/rules/"
+      files_checked:
+        - "architecture.md"
+        - "features.md"
+        - "scenarios.md"
+      match_found: false
+      notes: "No rule file covers constraint authoring for plays specifically. Rules cover
+        artifact content (features, architecture, scenarios) not play intent.yaml structure."
+
+    - domain: "play-rebuild-workflow"
+      searched: "~/.garura/core/memory/standards/rules/ + CLAUDE.md"
+      files_checked:
+        - "CLAUDE.md (project instructions)"
+      match_found: true
+      resolved_from: "core"
+      authority: "draft"
+      source: "CLAUDE.md (project-level instruction, garura repo)"
+      section: "Play Pipeline Rules"
+      value: "When modifying plays, always go through the intent.yaml → /create-play --build
+        workflow if there are changes to intent.yaml. Changes to SKILL.md directly are
+        forbidden — it is a compiled artifact."
+
+    - domain: "isolation-invariant-design"
+      searched: "~/.garura/core/memory/knowledge/arch/"
+      files_checked: []
+      match_found: false
+      notes: "No specific isolation-invariant design knowledge found in core LTM arch/."
+
+    - domain: "prompt-contract-design"
+      searched: "~/.garura/core/memory/knowledge/"
+      files_checked: []
+      match_found: false
+      notes: "No prompt-contract-design knowledge file in core LTM. Resolved via LLM reasoning."
+
+  r4_llm_fallbacks:
+    - decision: "What should the 4-section prompt contract look like for agent task dispatches?"
+      resolved_from: "llm"
+      source: null
+      section: null
+      authority: none
+      value: |
+        Description (from plan.yaml scope_item_description), Preconditions (prior scope items +
+        interfaces consumed + architecture constraints), Expected Behavior (tech.yaml contracts
+        owned by this scope item), Verification Steps (procedural: test directory to run, exit
+        criterion, red-path action). This is consistent with standard TDD task specification
+        practice and the existing data model (plan.yaml, tech.yaml) already contains the source
+        data for each section.
+      knowledge_gap: "No persistent KB record of what a well-structured agent dispatch prompt
+        requires. Candidate for /learn capture after fix ships."
+
+    - decision: "How to distinguish scope-directory paths from test content for isolation purposes"
+      resolved_from: "llm"
+      source: null
+      section: null
+      authority: none
+      value: |
+        A scope-directory path is a bare filesystem path (e.g., tests/unit/scope_item/) used as
+        a procedural run directive — it does not expose test source code, assertion text, or eval
+        content. The prohibition in C5/C29 was aimed at content exposure; a directory path conveys
+        only WHERE to run, not WHAT the tests assert. The distinction can be enforced by checking
+        for file extensions (.ts, .py, .js, .spec.) and content keywords (expect, assert, mock)
+        rather than any path string starting with 'test'.
+      knowledge_gap: "No KB rule codifying the content vs. path distinction for isolation checks."
