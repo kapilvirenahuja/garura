@@ -1,0 +1,75 @@
+commits:
+  - commit_1:
+      sha: "39a07e5"
+      type: refactor
+      scope: plays
+      subject: "drop meridian: prefix — adopt bare names (#310)"
+      issue: "310"
+      files_count: 12
+      files:
+        - core/components/plays/fix-it/SKILL.md
+        - core/components/plays/fix-it/reference/intent.yaml
+        - core/components/plays/distill/SKILL.md
+        - core/components/plays/distill/reference/intent.yaml
+        - core/components/plays/review-pr/SKILL.md
+        - core/components/plays/review-pr/reference/intent.yaml
+        - core/components/plays/report-issue/SKILL.md
+        - core/components/skills/author-intent-yaml/SKILL.md
+        - core/components/skills/distill/SKILL.md
+        - core/components/skills/quality-check-scoped/SKILL.md
+        - core/components/skills/quality-check/SKILL.md
+        - core/components/skills/sync-claude/SKILL.md
+
+  - commit_2:
+      sha: "9be3cf7"
+      type: chore
+      scope: stm
+      subject: "record fix-it evidence for #310 (#310)"
+      issue: "310"
+      files_count: 13
+      files:
+        - .garura/project/issues/310/evidence/fix-it/branch-result.yaml
+        - .garura/project/issues/310/evidence/fix-it/design.yaml
+        - .garura/project/issues/310/evidence/fix-it/implementation-report.yaml
+        - .garura/project/issues/310/evidence/fix-it/issue-comment-agent.yaml
+        - .garura/project/issues/310/evidence/fix-it/issue-read.yaml
+        - .garura/project/issues/310/evidence/fix-it/rca.yaml
+        - .garura/project/issues/310/evidence/fix-it/regression-test-path.yaml
+        - .garura/project/issues/310/evidence/fix-it/regression-test-verdict.yaml
+        - .garura/project/issues/310/evidence/fix-it/regression-test.yaml
+        - .garura/project/issues/310/evidence/fix-it/resolution-trace.yaml
+        - .garura/project/issues/310/status/fix-it.json
+        - .garura/project/issues/310/evidence/commit-code/analysis.yaml
+        - .garura/project/issues/310/evidence/commit-code/issue-mappings.yaml
+
+  - commit_3:
+      sha: "911fe4d"
+      type: chore
+      scope: stm
+      subject: "record capture evidence for #310 meridian prefix defect"
+      issue: capture-report
+      files_count: 4
+      files:
+        - .garura/project/issues/capture-report/evidence/capture/body.md
+        - .garura/project/issues/capture-report/evidence/capture/inference-trace.yaml
+        - .garura/project/issues/capture-report/evidence/capture/issue-comment-agent.yaml
+        - .garura/project/issues/capture-report/evidence/capture/title.txt
+
+  - commit_4:
+      sha: "1dd59ab"
+      type: chore
+      scope: stm
+      subject: "record leftover ship evidence for #257"
+      issue: "257"
+      files_count: 4
+      files:
+        - .garura/project/issues/257/evidence/commit-code/commits.yaml
+        - .garura/project/issues/257/evidence/create-pr/analysis.yaml
+        - .garura/project/issues/257/evidence/create-pr/issue-linkage.yaml
+        - .garura/project/issues/257/evidence/create-pr/pr-record.yaml
+
+summary:
+  total_commits: 4
+  total_files: 33
+  branch: "fix/310-meridian-prefix-cleanup"
+  base: "main"
