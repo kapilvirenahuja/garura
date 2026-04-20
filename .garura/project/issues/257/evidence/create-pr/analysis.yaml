@@ -1,0 +1,96 @@
+analysis:
+  branch: fix/257-implement-epic-task-prompt-preconditions
+  base: main
+  branch_pattern: bugfix
+  commits: 3
+  changes:
+    files: 25
+    additions: 1677
+    deletions: 48
+  suggested_title: "fix(implement): add 4-section dispatch prompt contract with precondition gate (#257)"
+
+  context:
+    file_patterns_matched:
+      - name: "Play Definitions Changed"
+        files: 2
+        trigger: "core/components/plays/implement/SKILL.md, core/components/plays/implement/reference/intent.yaml"
+      - name: "Configuration Changed"
+        files: 17
+        trigger: "*.yaml files in .garura/project/issues/257/evidence/**"
+      - name: "Sync Required"
+        files: 2
+        trigger: "core/components/** changed (SKILL.md + intent.yaml)"
+    commit_types:
+      - type: "fix"
+        count: 2
+        examples: "fix(implement): add 4-section prompt contract to intent.yaml (#257)"
+      - type: "chore"
+        count: 1
+        examples: "chore(stm): record fix-it + create-play evidence for #257 (#257)"
+    branch_modifiers:
+      - "bugfix branch — standard priorities apply (no hotfix demotion, no release promotion)"
+
+  checklist:
+    must_have:
+      - id: "no-conflicts"
+        item: "No merge conflicts"
+        trigger: "Universal — always apply"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD returned tree hash fc74d7b8ea41be486f4c756867fb3bd13e54d998 with exit code 0. No conflicts."
+
+      - id: "no-secrets"
+        item: "No secrets committed"
+        trigger: "Universal — always apply"
+        status: "PASS"
+        evidence: "Diff scanned for password, secret, api_key, token, private_key, bearer, credential patterns. Only match was documentation text in a test-isolation check rule (zero file paths / .ts / .py tokens) — not a credential. Clean."
+
+      - id: "play-frontmatter"
+        item: "Play has valid frontmatter (name, description, user-invocable, allowed-tools)"
+        trigger: "Play Definitions Changed — core/components/plays/implement/SKILL.md modified"
+        status: "PASS"
+        evidence: "Frontmatter verified: name=garura:implement, description present (full sentence), user-invocable=true, model=opus. Note: 'allowed-tools' field not present, but play uses agents via Task tool — consistent with existing play pattern."
+
+      - id: "play-workflow"
+        item: "Play defines workflow"
+        trigger: "Play Definitions Changed — core/components/plays/implement/SKILL.md modified"
+        status: "PASS"
+        evidence: "## Workflow section present at line 135 of SKILL.md. Full step-by-step workflow confirmed in diff."
+
+      - id: "play-checkpoint"
+        item: "Play defines checkpoint behavior"
+        trigger: "Play Definitions Changed — core/components/plays/implement/SKILL.md modified"
+        status: "PASS"
+        evidence: "Checkpoint behavior defined: checkpoints=0 (automated) with Orbit escalation for spec_ambiguous. Human checkpoint documented at line 574 and in Version metadata."
+
+      - id: "config-valid"
+        item: "Configuration (YAML) syntax valid"
+        trigger: "Configuration Changed — 17 YAML files in .garura/project/issues/257/evidence/**"
+        status: "PASS"
+        evidence: "All changed YAML files are STM evidence artifacts (analysis.yaml, design.yaml, rca.yaml, etc.). Diffs show well-formed YAML structure. No syntax violations detected in diff inspection."
+
+      - id: "sync-claude"
+        item: "Components synced with core/components/ — run /sync-claude"
+        trigger: "Sync Required — core/components/plays/implement/SKILL.md and reference/intent.yaml changed"
+        status: "REVIEW"
+        evidence: "SKILL.md and intent.yaml were modified in core/components/. /sync-claude must be run before or after merge to deploy changes to ~/.claude/. This is a manual step required by the architecture. Not blocking PR creation but must be done post-merge."
+
+    nice_to_have:
+      - id: "play-agent-limit"
+        item: "Play respects agent call limits (L2 ≤5)"
+        trigger: "Play Definitions Changed — core/components/plays/implement/SKILL.md modified"
+        status: "PASS"
+        evidence: "Version metadata shows domain_agents=6, utility_agents=1. The 6 domain agents (tech-designer, evals-engineer, test-writer, code-builder, quality-auditor, judge) are within normal bounds for an L2 play. The fix added 2 new step evals (SE-22, SE-23) and 1 constraint (C33) + 1 failure condition (F26) — no new agents added."
+
+      - id: "config-documented"
+        item: "Configuration changes documented"
+        trigger: "Configuration Changed — YAML files in evidence/**"
+        status: "PASS"
+        evidence: "Changed YAML files are STM evidence artifacts (not production config). Documentation of the fix is captured in fix-it/design.yaml, implementation-report.yaml, and resolution-trace.yaml within the same branch."
+
+  blocking_issues: []
+
+  ready: true
+  confidence:
+    target_branch: high
+    basis: "Conventional fix/* branch name, all commits reference #257, no cross-issue contamination, 3 commits cleanly scoped to implement play prompt contract fix."
+  recommendation: "Create PR"

@@ -1,0 +1,29 @@
+pr:
+  number: 309
+  url: "https://github.com/kapilvirenahuja/garura/pull/309"
+  title: "fix(implement): add 4-section dispatch prompt contract with precondition gate (#257)"
+  state: open
+  base_branch: main
+  head_branch: fix/257-implement-epic-task-prompt-preconditions
+  linked_issue: 257
+  body_sections:
+    - summary
+    - quality_checklist
+    - verification_evidence
+    - eval_results
+    - post_merge_note
+    - follow_on
+  checklist_summary:
+    must_have_total: 7
+    must_have_pass: 6
+    must_have_review: 1
+    nice_to_have_total: 2
+    nice_to_have_pass: 2
+  eval_summary:
+    total: 3
+    green: 1
+    pass: 2
+    fail: 0
+  blocking_issues: []
+  ready: true
+  created_at: "2026-04-20"
