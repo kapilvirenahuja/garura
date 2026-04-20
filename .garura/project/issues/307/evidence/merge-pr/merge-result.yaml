@@ -1,0 +1,14 @@
+result:
+  status: merged
+  pr_number: 308
+  merge_sha: "170a63f3ffa8621fd457d372ab48e38b9ea2d9ae"
+  merge_commit_url: "https://github.com/kapilvirenahuja/garura/pull/308"
+  base_branch: main
+  branch_deleted: true
+  branch_deleted_local: true
+  branch_deleted_remote: true
+  evals:
+    SE-2: PASS  # branch deleted locally and remotely
+    SE-3: PASS  # local on main, up to date with remote
+    SE-5: PASS  # PR status is merged, pr_number=308 present
+  merged_at: "2026-04-20"

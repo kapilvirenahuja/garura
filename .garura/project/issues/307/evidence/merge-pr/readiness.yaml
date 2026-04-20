@@ -1,0 +1,12 @@
+readiness:
+  pr_number: 308
+  pr_state: open
+  mergeable: true
+  base_branch: main
+  head_branch: enhance/307-judge-severity-framing
+  clean_tree: true
+  evals:
+    SE-1: PASS  # PR is mergeable — no conflict state
+    SE-4: PASS  # working tree is clean
+    SE-5: PASS  # PR exists with valid pr_number (308)
+  assessed_at: "2026-04-20"
