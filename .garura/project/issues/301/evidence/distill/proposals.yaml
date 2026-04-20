@@ -1,0 +1,46 @@
+proposals:
+  - id: P1
+    confidence: high
+    source: stm_evidence
+    pattern: template-map constraint pattern for user-facing surfaces
+    learning: >
+      When a play emits any user-facing surface (checkpoint file, approval prompt,
+      delivery report, evidence file), encoding those surfaces as a declared
+      template_map in the intent constraint (C16 pattern) — with each key mapped
+      to a path under standards/templates/ — eliminates inline prose drift between
+      play builds. The compiled SKILL.md references each template path at the
+      phase that emits that surface; evals structurally grep-verify coverage.
+      Six commits + three rebuilds were required to converge because C14/C15/C16
+      were added late in the intent iteration cycle, demonstrating that
+      template-map and config-path-token constraints must be authored before the
+      first build, not added during rebuild cycles.
+    where_observed:
+      - core/components/plays/scope/reference/intent.yaml (C14, C15, C16)
+      - .garura/project/issues/301/evidence/create-play/scope/coverage-matrix.md (C16 table)
+      - .garura/project/issues/301/evidence/create-play/scope/evals.yaml (SE-12)
+    proposed_ltm_target: >
+      research/plays.md — Experiential section: add common_mistakes entry for
+      "template-map constraints added after first build cause rebuild churn;
+      author C14/C15/C16-equivalent constraints before /create-play --build"
+
+  - id: P2
+    confidence: high
+    source: stm_evidence
+    pattern: feature-to-issue linkage as a first-class constraint
+    learning: >
+      The feature↔issue linkage (C9 / F5 / SE-5) — writing the GH issue number
+      into every features.yaml row produced by the play — is the mechanism that
+      makes the LTM traceable back to the work item that caused the change.
+      Without this, enriched-capabilities.yaml and features.yaml entries have no
+      auditable origin. The /scope play makes this explicit as an artifact-
+      verifiable constraint with a dedicated step eval. This pattern should be
+      propagated to any play that writes product-LTM artifacts: each write must
+      carry the originating issue number as a field.
+    where_observed:
+      - .garura/project/issues/301/evidence/create-play/scope/evals.yaml (SE-5, SE-9)
+      - .garura/project/issues/301/evidence/create-play/scope/coverage-matrix.md (C9 row)
+      - .garura/project/issues/301/evidence/create-play/scope/play-analysis.md (C9 row)
+    proposed_ltm_target: >
+      research/plays.md — Experiential section: add scenarios_observed entry for
+      "plays that write product-LTM artifacts must carry originating issue number
+      as an artifact-verifiable constraint (C9/F5 pattern from /scope)"
