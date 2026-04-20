@@ -1,0 +1,13 @@
+---
+# Ship Result — Issue #265 / Enhance Play Step 15
+# Created: 2026-04-19
+
+pr_number: 296
+merge_sha: bd01c53457dac820604c804028d6aae7abbb6fbe
+merged: true
+branch: enhance/265-specify-emit-features-yaml
+base_branch: main
+branch_deleted: true
+timestamp: "2026-04-19T00:00:00Z"
+
+status: completed
