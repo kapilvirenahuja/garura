@@ -1,9 +1,4 @@
- M CLAUDE.md
-?? .claude/scheduled_tasks.lock
-?? .garura/project/issues/256/evidence/commit-code/commits.yaml
-?? .garura/project/issues/256/evidence/create-pr/
-?? .garura/project/issues/256/evidence/merge-pr/
-?? .garura/project/issues/265/evidence/enhance/pr-result.yaml
-?? .garura/project/issues/265/evidence/merge-pr/
-?? .garura/project/issues/_pending/
-?? .garura/project/issues/capture-report/
+ M .garura/project/issues/_pending/start-feature/changed-files.txt
+?? core/components/memory/standards/templates/feature-tree-output.md
+?? core/components/skills/list-product-state-workspace/
+?? core/components/skills/list-product-state/
