@@ -1,0 +1,199 @@
+problem_statement: >
+  /enhance dispatches a single code-builder that receives approach.yaml directly —
+  which includes the full evals list. The same play context that ran the builder
+  also grades it via self-eval. This allows the builder to optimise toward known
+  criteria and yields no independent verdict. See understanding.md §2 for the
+  full structural analysis:
+  .garura/project/issues/258/context/understanding.md
+
+solution_summary: >
+  Split Steps 8 and 9 so implementation and testing run as two separate agents
+  with disjoint input contracts. The orchestrator derives impl-context.md
+  (evals stripped) and test-context.md (file paths and connections stripped)
+  from approach.yaml before any agent dispatch. The implementer receives only
+  impl-context.md. A new tester agent receives only test-context.md and writes
+  verification-report.yaml. The play gates the fix loop on the tester verdict,
+  never on builder self-report. Changes are limited to intent.yaml constraints
+  C11, C13, and a new C22; SKILL.md is regenerated via /create-play --rebuild.
+
+files_to_create: []
+# No new source files. impl-context.md and test-context.md are runtime STM
+# artifacts derived by the orchestrator — they are not source files.
+
+files_to_modify:
+  - path: core/components/plays/enhance/reference/intent.yaml
+    role: >
+      Modify C11 to name two distinct agent roles (implementer, tester) with
+      disjoint input contracts. Modify C13 to replace play-direct self-eval
+      with tester agent dispatch writing verification-report.yaml. Add C22 for
+      the orchestrator derivation rule (impl-context / test-context stripping).
+      Update failure_conditions F3/F9 and scenario S7 references from
+      self-eval.yaml to verification-report.yaml.
+
+  - path: core/components/plays/enhance/SKILL.md
+    role: >
+      Regenerated via /create-play --rebuild enhance — not manually edited.
+      After rebuild, SKILL.md must reference impl-context.md in the Step 8
+      implementer dispatch, test-context.md in the Step 9 tester dispatch, and
+      verification-report.yaml as the fix-loop gate. Must not reference
+      self-eval.yaml in any implementer or tester contract.
+
+connections: >
+  At runtime, before Step 8, the orchestrator reads approach.yaml and derives
+  two artifacts inline (no agent):
+    impl-context.md — contains solution_summary, tasks, files_to_create,
+      files_to_modify, connections. Evals, risks, alternatives_considered are
+      stripped. Written to {stm_base}/{issue}/context/impl-context.md.
+    test-context.md — contains evals list (pass/fail criteria per eval ID) and
+      task behavioral descriptions. File paths from files_to_create/
+      files_to_modify and architectural content from connections are stripped.
+      Written to {stm_base}/{issue}/context/test-context.md.
+  Step 8 dispatches the implementer (code-builder) with impl-context.md only.
+  Step 9 dispatches the tester (code-builder, sub-role tester) with
+    test-context.md only. Tester writes verification-report.yaml.
+  The fix loop (Step 9a) gates on verification-report.yaml. Remediation sent
+    to the implementer is derived by the orchestrator from failing eval IDs and
+    their expected behaviours — no test source, no assertion text, no tester
+    output leaks into the re-dispatch.
+  Step 10 (judge) input is unchanged: approach.yaml + project_root +
+    solution-rating.yaml. verification-report.yaml does NOT join judge inputs,
+    preserving C14/F10 isolation.
+  Step 11 (quality-auditor) is unchanged.
+
+tasks:
+  - id: T1
+    description: >
+      Update intent.yaml C11. Replace "code-builder receives approach.yaml +
+      context ONLY" with the two-role contract from understanding.md §3d:
+      implementer receives impl-context.md + understanding.md only; tester
+      receives test-context.md only. Name both agent roles explicitly. State
+      neither contract may include the other's artifact path.
+
+  - id: T2
+    description: >
+      Update intent.yaml C13. Replace play-direct self-eval rule with tester
+      agent dispatch rule: after implementation, orchestrator dispatches tester
+      agent with test-context.md only; tester writes verification-report.yaml
+      with per-eval PASS/FAIL; play gates on tester verdict, never on builder
+      self-report. Remove all reference to self-eval.yaml from C13.
+
+  - id: T3
+    description: >
+      Add intent.yaml C22: orchestrator derives impl-context.md and
+      test-context.md from approach.yaml before any agent dispatch.
+      impl-context.md must not contain evals, risks, or
+      alternatives_considered. test-context.md must not contain file paths
+      from files_to_create/files_to_modify or architectural connections.
+      Derivation is orchestrator-direct — no agent performs it.
+
+  - id: T4
+    description: >
+      Update intent.yaml failure_conditions and scenarios. Replace self-eval.yaml
+      references in F3 (fix loop exhausted) and S7 (eval failures scenario)
+      with verification-report.yaml. Confirm F10 (judge isolation) and F9
+      (missing evals) remain accurate against the new structure.
+
+  - id: T5
+    description: >
+      Run /create-play --rebuild enhance to regenerate SKILL.md from the
+      updated intent.yaml. Verify the rebuilt SKILL.md references
+      impl-context.md in Step 8, test-context.md in Step 9, and
+      verification-report.yaml as the fix-loop gate. Confirm no occurrence
+      of self-eval.yaml in implementer or tester dispatch contracts.
+
+  - id: T6
+    description: >
+      Run /sync-claude to deploy the rebuilt play globally. Confirm the
+      deployed ~/.claude/skills/enhance/SKILL.md matches the source artifact.
+
+evals:
+  - id: E1
+    description: >
+      intent.yaml C11 names two distinct agent roles with disjoint contracts.
+    pass: >
+      Grep confirms C11 contains both "implementer" and "tester" role names.
+      Implementer contract lists impl-context.md but not test-context.md or
+      approach.yaml. Tester contract lists test-context.md but not
+      impl-context.md, understanding.md, build-report.yaml, or approach.yaml.
+    fail: >
+      C11 still references approach.yaml as a direct dispatch artifact, or
+      either contract contains an artifact belonging to the other role.
+
+  - id: E2
+    description: >
+      intent.yaml C13 dispatches tester agent; no play-direct self-eval.
+    pass: >
+      C13 rule text includes "dispatch tester agent" and "verification-report.yaml"
+      and contains no reference to "self-eval" or "self-evaluation" or
+      "approach.yaml evals".
+    fail: >
+      C13 still assigns evaluation to the play directly, or references
+      self-eval.yaml, or instructs reading evals from approach.yaml.
+
+  - id: E3
+    description: >
+      SKILL.md after rebuild references correct artifacts and excludes self-eval.
+    pass: >
+      Rebuilt SKILL.md contains impl-context.md in the Step 8 implementer
+      dispatch block, test-context.md in the Step 9 tester dispatch block,
+      verification-report.yaml as the fix-loop gate input. Zero occurrences
+      of self-eval.yaml in any implementer or tester contract block.
+    fail: >
+      SKILL.md references self-eval.yaml in implementer or tester contracts,
+      or approach.yaml appears as a direct implementer input, or
+      verification-report.yaml is absent from the fix-loop gate.
+
+  - id: E4
+    description: >
+      intent.yaml C22 is present and specifies orchestrator-direct derivation.
+    pass: >
+      C22 rule text includes both "impl-context.md" and "test-context.md",
+      specifies which fields each must exclude, and states "orchestrator-direct
+      — no agent performs it".
+    fail: >
+      C22 is absent, or it delegates derivation to an agent, or it omits the
+      field-exclusion rules for either artifact.
+
+risks:
+  - id: R1
+    description: >
+      /create-play --rebuild may restructure SKILL.md in ways that affect
+      downstream plays or tooling that invoke /enhance programmatically.
+    mitigation: >
+      No known downstream plays invoke /enhance programmatically. Verify by
+      grepping core/components/plays/ for "enhance" references before rebuild.
+      Manual check via /sync-claude deployment confirms deployed artifact
+      matches source.
+    type: architectural
+    action: monitor-only
+    ltm_reference: null
+    generated_evals: []
+
+  - id: R2
+    description: >
+      If /create-play --rebuild emits derivation steps for impl-context.md /
+      test-context.md that are inconsistent with C22 (e.g., delegating
+      derivation to an agent instead of orchestrator-direct), the context
+      isolation contract breaks silently.
+    mitigation: >
+      Eval E3 explicitly checks the compiled SKILL.md for correct field
+      stripping and correct dispatch contracts. If E3 fails, T5 is blocked
+      until the SKILL.md output is corrected or C22 wording is tightened.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals:
+      - E3
+
+alternatives_considered:
+  - approach: >
+      Keep the single code-builder but add an independent judge-as-verifier step
+      after implementation — have the judge evaluate evals before its standard
+      confidence rating.
+    reason_rejected: >
+      The judge already exists as a separate rater in Step 10 and is scoped to
+      overall solution confidence (C14/C21). Expanding its role to per-eval
+      PASS/FAIL verdict conflates two distinct responsibilities and would require
+      the judge to receive implementation details that currently violate F10
+      (judge isolation). The two-agent split mirrors /implement's proven pattern
+      and keeps each agent's contract clean and purpose-singular.

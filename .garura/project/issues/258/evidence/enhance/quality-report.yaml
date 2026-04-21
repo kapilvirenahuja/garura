@@ -1,0 +1,32 @@
+issue: 258
+gates:
+  build:
+    status: N/A
+    note: Garura repo has no build pipeline (no package.json, Makefile, or pyproject). Change is YAML + markdown only.
+  lint:
+    status: N/A
+    note: No linter configured. YAML syntax validated via python yaml.safe_load — PASS.
+  typecheck:
+    status: N/A
+    note: No typed language in repo.
+  tests:
+    status: N/A
+    note: No test runner configured in repo.
+
+play_specific_gates:
+  - id: Q1
+    description: intent.yaml is valid YAML.
+    verdict: PASS
+    evidence: "python3 yaml.safe_load succeeded"
+  - id: Q2
+    description: Deployed SKILL.md byte-matches source.
+    verdict: PASS
+    evidence: "diff core/components/plays/enhance/SKILL.md ~/.claude/skills/enhance/SKILL.md → no output"
+  - id: Q3
+    description: intent_hash in SKILL.md matches current intent.yaml SHA-256.
+    verdict: PASS
+    evidence: |
+      current intent.yaml sha256: 2bc05173e8632daddfa6fdaa20128d36bab96e3fe170ba25a4be1903e6d87269
+      SKILL.md intent_hash:      sha256:2bc05173e8632daddfa6fdaa20128d36bab96e3fe170ba25a4be1903e6d87269
+
+overall_verdict: PASS

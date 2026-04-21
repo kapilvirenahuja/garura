@@ -1,0 +1,127 @@
+judge_report:
+  timestamp: "2026-04-21T00:00:00Z"
+  eval_source: "core/components/plays/enhance/reference/evals/solution-rating.yaml"
+  total_evals: 4
+  passed: 4
+  failed: 0
+  pass_rate: "100%"
+  overall: "PASS"
+  overall_confidence: 0.88
+
+  per_area_assessments:
+
+    - eval_id: "ER-1"
+      name: "Contract Mismatch at Skill Boundary"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: |
+        Checked all skill dispatch contracts in SKILL.md:
+
+        Implementer dispatch (Step 8):
+          stm.input: { impl_context: "{stm_base}/{issue}/evidence/enhance/impl-context.md",
+                       understanding: "{stm_base}/{issue}/context/understanding.md" }
+          stm.output: { build_report: "{stm_base}/{issue}/evidence/enhance/build-report.yaml" }
+          No extra fields passed. No undeclared fields.
+
+        Tester dispatch (Step 9):
+          stm.input: { test_context: "{stm_base}/{issue}/evidence/enhance/test-context.md" }
+          stm.output: { verification_report: "{stm_base}/{issue}/evidence/enhance/verification-report.yaml" }
+          No extra fields passed. No undeclared fields.
+
+        Judge dispatch (Step 10):
+          stm.input.artifact_paths.approach, project_root, eval_path — all canonical fields
+          per C21. No extra fields passed.
+
+        Tech-designer dispatch (Step 4 context): stm.input = discovery + issue_read → context_path.
+        Tech-designer dispatch (Step 6 approach): stm.input = discovery + context → approach.
+        Repo-orchestrator (Step 2): stm.input = issue_read → branch_result.
+        Quality-auditor (Step 11): stm.input = project_root → quality_report.
+
+        No field passed at any boundary is absent from the receiving skill's declared
+        Input Contract role. No required callee input field is missing from any dispatch.
+        Contract mismatch: NONE FOUND.
+
+    - eval_id: "ER-2"
+      name: "Intent-Propagation Break in Agent-to-Agent Handoff"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: |
+        Traced all upstream artifacts to downstream consumers:
+
+        issue-read.yaml  → Step 2 (repo-orchestrator) stm.input.issue_read + Step 4
+                           stm.input.issue_read. Declared.
+        discovery.md     → Step 4 stm.input.discovery + Step 6 stm.input.discovery. Declared.
+        understanding.md → Step 8 stm.input.understanding. Declared.
+        approach.yaml    → Step 10 stm.input.artifact_paths.approach + Step 12
+                           stm.input.approach. Declared.
+        impl-context.md  → Step 8 stm.input.impl_context. Declared.
+        test-context.md  → Step 9 stm.input.test_context. Declared.
+        build-report.yaml→ Step 12 stm.input.build_report. Declared.
+        verification-report.yaml → Step 9a fix loop reads verdict; Step 9 Eval SE-10
+                                   confirms gating. Declared.
+        pr-result.yaml   → Step 13 stm.input.pr_result + Step 15 stm.input.pr_result.
+                           Declared.
+
+        No produced artifact is an orphan. Every handoff has a declared downstream hook.
+        Intent-propagation break: NONE FOUND.
+
+    - eval_id: "ER-3"
+      name: "Stale Agent Boundary Contradicting New Rule"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: |
+        The enhancement introduces these new rules: C11 (two-role disjoint contracts),
+        C13 (tester dispatch + verification-report.yaml), C22 (orchestrator-direct
+        derivation), F12, F13, F14.
+
+        Agents touched by the enhancement:
+        - code-builder: dispatched in two roles. SKILL.md Step 8 explicitly states
+          Critical (C11, F12): "MUST NOT include: approach.yaml, evals, test-context.md,
+          verification-report.yaml". Step 9 states Critical (C11, C13, F13): "MUST NOT
+          include: impl-context.md, understanding.md, build-report.yaml, approach.yaml".
+          No stale prohibition contradicting new rules found.
+        - judge: C14/F10 boundary updated — "NOT builder prompts, NOT
+          verification-report.yaml, NOT build-report.yaml". F10 failure condition
+          updated to reference verification-report.yaml. Consistent with C14/C21.
+        - play (orchestrator): Role section explicitly states "You DO perform
+          orchestrator-direct derivation of context artifacts (impl-context.md,
+          test-context.md, remediation-{N}.md) from approach.yaml — these are
+          orchestration artifacts, not domain work (C22)". No stale MUST NOT
+          prohibition blocks this explicitly-permitted orchestrator-direct action.
+
+        No agent boundary statement contradicts a newly introduced rule.
+        Stale boundary contradiction: NONE FOUND.
+
+    - eval_id: "ER-4"
+      name: "Overall Confidence Aggregation Cap"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: |
+        ER-1 result: PASS — no blocker concern.
+        ER-2 result: PASS — no blocker concern.
+        ER-3 result: PASS — no blocker concern.
+
+        No blocker-level concern recorded across ER-1 through ER-3.
+        Per ER-4 rule: overall_confidence is uncapped and reflects the quality of
+        the delivered work. Set to 0.88 based on:
+        - All claimed constraints (C11, C13, C22) land correctly in intent.yaml
+          with no contradictions.
+        - SKILL.md dispatch contracts are internally consistent and correctly
+          field-stripped (impl-context.md excludes evals; test-context.md contract
+          excludes implementer artifacts).
+        - Deployed ~/.claude/skills/enhance/SKILL.md is byte-for-byte identical
+          to core/components/plays/enhance/SKILL.md (diff returned MATCH).
+        - evals.yaml and coverage-matrix.md cover all 22 constraints, 14 failure
+          conditions, and 8 scenarios with no gaps.
+        - One minor note (non-blocker): impl-context.md path is written to
+          evidence/enhance/ in SKILL.md but C22 does not specify a subpath —
+          this is an implementation decision consistent with the established
+          STM evidence directory convention and does not constitute a contract
+          mismatch or rule violation.
+
+        overall_confidence cap does not apply. Confidence: 0.88.
+
+  blocker_concerns: []
+
+  plaintext_deleted: false
+  note: "No encrypted eval file was used — eval_path was supplied in plaintext per contract."

@@ -1,0 +1,19 @@
+issue:
+  number: 258
+  title: "[ENH] /enhance — per-task implementation+validation pairing with node-level retry and prompt capture"
+  labels:
+    - enhancement
+  state: "open"
+  body_summary: >
+    Today `/enhance` hands the whole plan to one builder, lets it run, then asks "did it work?"
+    at the end. This issue fixes two problems: (1) failure isn't localized to a specific task,
+    and (2) the builder can game its own grade. The proposal makes each task a sealed unit —
+    a failing test written first by a different agent, the builder implements without seeing
+    the test assertions, an independent runner decides pass/fail, one task at a time with a
+    real gate between each. Scope is `/enhance` only.
+  url: "https://github.com/kapilvirenahuja/garura/issues/258"
+  author: "kapilvirenahuja"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "feature"

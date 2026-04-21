@@ -1,0 +1,83 @@
+implementation:
+  success: true
+  steps_completed: 4
+  steps_total: 4
+
+  changes:
+    - step: T1
+      description: >
+        Rewrote C11 to name two distinct agent roles (implementer and tester)
+        with disjoint input contracts. Implementer receives impl-context.md +
+        understanding.md only. Tester receives test-context.md only. Neither
+        contract may include the other's artifact path. approach.yaml is no
+        longer a dispatch artifact.
+      files_modified:
+        - path: core/components/plays/enhance/reference/intent.yaml
+          action: modified
+          summary: C11 rule replaced with two-role disjoint contract definition
+      verified: true
+      deviation: null
+
+    - step: T2
+      description: >
+        Rewrote C13 to replace play-direct self-evaluation with tester agent
+        dispatch. New rule states orchestrator dispatches tester agent with
+        test-context.md only; tester writes verification-report.yaml with
+        per-eval PASS/FAIL; play gates fix loop on tester verdict, never on
+        builder self-report. All reference to self-eval.yaml removed.
+      files_modified:
+        - path: core/components/plays/enhance/reference/intent.yaml
+          action: modified
+          summary: C13 rule replaced with tester dispatch and verification-report.yaml gate
+      verified: true
+      deviation: null
+
+    - step: T3
+      description: >
+        Added new constraint C22 after C21 in the Self-Evaluation & Judge
+        section. C22 specifies orchestrator-direct derivation of impl-context.md
+        and test-context.md from approach.yaml before any agent dispatch, with
+        explicit field inclusion and exclusion rules for each artifact.
+      files_modified:
+        - path: core/components/plays/enhance/reference/intent.yaml
+          action: modified
+          summary: C22 inserted after C21, before PR & Quality section banner
+      verified: true
+      deviation: null
+
+    - step: T4
+      description: >
+        Verified F3 — no reference to self-eval.yaml found; rule left verbatim.
+        Verified F9 and F10 — unchanged as directed. Added F12, F13, F14 after
+        F11 covering implementer isolation, tester isolation, and fix-loop gate
+        violations respectively. Updated S7 'then' clause to use tester/
+        verification-report.yaml language and orchestrator remediation derivation.
+        S7 'given' clause retained as-is (self-evaluation phrasing) per scope
+        boundary — noted below as a flag.
+      files_modified:
+        - path: core/components/plays/enhance/reference/intent.yaml
+          action: modified
+          summary: >
+            F12/F13/F14 added after F11; S7 'then' updated to tester/
+            verification-report.yaml language; F3/F9/F10 unchanged
+      verified: true
+      deviation: >
+        S7 'given' clause still reads "Self-evaluation finds 2 of 5 evals
+        failing after implementation." Task scope was to update the 'then'
+        clause only. The 'given' terminology mismatch (self-evaluation vs
+        tester dispatch) is flagged for orchestrator review — it is a
+        consistency issue, not a constraint violation introduced by this build.
+
+  issues_encountered:
+    - description: >
+        F3 did not reference self-eval.yaml. Task T4 said "Leave rule intact
+        but if it anywhere references self-eval.yaml, replace." It does not.
+        F3 was left verbatim.
+      resolution: No change made to F3. Noted explicitly.
+      severity: low
+
+  files_touched:
+    - path: core/components/plays/enhance/reference/intent.yaml
+
+terminal_self_report: >
+  implementation attempted — orchestrator will verify.
