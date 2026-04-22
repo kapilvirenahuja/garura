@@ -1,0 +1,37 @@
+generated_at: "2026-04-22T15:56:20Z"
+issue: 311
+
+status: merged
+pr_number: 318
+merge_sha: "f97dc5714c9b29a8902002527337969dfe17886f"
+merge_method: squash
+merged_at: "2026-04-22T15:56:20Z"
+
+base_branch: main
+head_branch: enhance/311-reap-capture-learning
+
+branch_deleted: true
+branch_deleted_remote: true
+branch_deleted_local: true
+
+local_state:
+  current_branch: main
+  head_sha: "f97dc5714c9b29a8902002527337969dfe17886f"
+  synced_with_remote: true
+
+evals:
+  SE-2:
+    id: SE-2
+    condition: "Feature branch deleted locally and on remote"
+    status: PASS
+    evidence: "Remote branch returned 404 on GitHub API; local branch was not created (gh pr merge switched to main); stale tracking ref pruned via git remote prune"
+  SE-3:
+    id: SE-3
+    condition: "Local checkout on base branch, up to date with remote"
+    status: PASS
+    evidence: "Local main HEAD = f97dc5714c9b29a8902002527337969dfe17886f, matches origin/main after git pull --rebase"
+  SE-5:
+    id: SE-5
+    condition: "PR merged on platform"
+    status: PASS
+    evidence: "gh pr view 318 returned state=MERGED, mergeCommit.oid=f97dc5714c9b29a8902002527337969dfe17886f, mergedAt=2026-04-22T15:56:20Z"

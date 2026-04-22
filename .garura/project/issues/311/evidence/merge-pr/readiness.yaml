@@ -1,0 +1,29 @@
+generated_at: "2026-04-22T00:00:00Z"
+issue: 311
+play: merge-pr
+
+pr_number: 318
+pr_state: "OPEN"
+base_branch: main
+head_branch: enhance/311-reap-capture-learning
+mergeable: true
+
+working_tree_clean: true
+untracked_files_only: true
+
+evals:
+  SE-1:
+    id: SE-1
+    condition: "PR not in conflict state before merge attempted"
+    status: PASS
+    evidence: "gh pr view 318 returned mergeable=MERGEABLE"
+  SE-4:
+    id: SE-4
+    condition: "Pre-merge tree state was clean"
+    status: PASS
+    evidence: "git status --porcelain returned only untracked files (no staged/modified changes)"
+  SE-5:
+    id: SE-5
+    condition: "PR exists and has a valid pr_number"
+    status: PASS
+    evidence: "PR #318 confirmed open at https://github.com/kapilvirenahuja/garura/pull/318"

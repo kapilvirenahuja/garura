@@ -1,0 +1,12 @@
+generated_at: "2026-04-22T15:56:20Z"
+issue: 311
+
+pr_number: 318
+merge_sha: "f97dc5714c9b29a8902002527337969dfe17886f"
+merge_method: squash
+branch_deleted_remote: true
+branch_deleted_local: true
+merged_at: "2026-04-22T15:56:20Z"
+
+base_branch: main
+head_branch: enhance/311-reap-capture-learning
