@@ -1,0 +1,34 @@
+generated_at: "2026-04-22T00:00:00Z"
+issue: 311
+
+pr:
+  number: 318
+  url: "https://github.com/kapilvirenahuja/garura/pull/318"
+  title: "reap: refactor capture-learning into post-epic extraction (Learning Pipeline L2)"
+  state: open
+  base_branch: main
+  head_branch: enhance/311-reap-capture-learning
+
+commits:
+  - sha: "402e788"
+    type: feat
+    scope: reap
+    subject: "add reap play, retire capture-learning, rewire knowledge-extractor"
+  - sha: "e85a947"
+    type: feat
+    scope: reap
+    subject: "extend learning taxonomy in diff-context-baseline and draft-enrichment-proposals"
+  - sha: "a4ce91f"
+    type: chore
+    scope: stm
+    subject: "record enhance evidence for #311"
+
+summary:
+  total_commits: 3
+  total_files_changed: 21
+  insertions: 3542
+  deletions: 747
+  breaking_changes:
+    - "capture-learning play deleted (intentional)"
+    - "dimension field replaced by learning_category + sub_category (intentional)"
+    - "draft-enrichment-proposals output filename changed: reconciliation-proposals.yaml → proposals.yaml (intentional)"
