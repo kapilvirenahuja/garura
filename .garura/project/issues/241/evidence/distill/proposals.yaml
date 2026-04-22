@@ -1,0 +1,41 @@
+issue: "241"
+pr_number: "320"
+analyzed_at: "2026-04-22T00:00:00Z"
+no_learnings: false
+source: "distill"
+stm_evidence_used: false
+
+proposals:
+  - target_path: ".garura/product/research/agentic-methodology.md"
+    section: "Experiential — AM-F003: Skills"
+    proposed_content: |
+      scenarios_observed:
+        - profile: brownfield-codebase-bootstrap
+          outcome: success
+          learnings: >
+            When a skill must reason about a large artifact (a codebase, a document
+            set) without navigating it directly, the bounded-index intermediary
+            pattern works: a deterministic pre-pass (no LLM) extracts structured
+            facts into a bounded JSON index; all downstream LLM-based inference
+            skills consume only that index. This eliminates unbounded codebase
+            navigation from skills entirely. Codified in /codify as scan.py →
+            scan-index.json → 16 infer-*-from-code skills.
+      common_mistakes:
+        - Letting inference skills navigate the codebase at large instead of
+          consuming a bounded scan artifact — LLM hallucination risk grows
+          proportionally to unconstrained read surface.
+        - Merging the deterministic extraction step into the first inference skill
+          rather than making it a separate, play-level scan step — this collapses
+          the auditable boundary between what the LLM was shown and what it inferred.
+    evidence_diff_reference: >
+      core/components/plays/codify/lib/scan.py header: "this script never reads
+      source files into the LLM; it only extracts structured facts."
+      infer-logical-architecture-from-code/SKILL.md: agents "MUST NOT navigate
+      the codebase at large." codify SKILL.md (Compilation Metadata): lists all
+      16 infer-*-from-code skills as new_skills consuming scan-index.json via
+      the same agent-dispatch pattern across tech-architect, test-engineer,
+      product-keeper, and designer — confirming the pattern is enforced uniformly,
+      not observed only in the one skill read directly.
+    confidence: "low"
+
+total_proposals: 1
