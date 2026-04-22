@@ -1,0 +1,12 @@
+{
+  "name": "lint-components",
+  "version": "1.0.0",
+  "description": "Deterministic linter for Garura components (plays, agents, skills)",
+  "main": "index.js",
+  "bin": {
+    "lint-components": "./index.js"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

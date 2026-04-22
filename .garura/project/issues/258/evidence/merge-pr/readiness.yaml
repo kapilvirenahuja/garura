@@ -1,0 +1,18 @@
+readiness:
+  pr_number: 315
+  pr_title: "feat(enhance): split implementer and tester into two isolated agents (#258)"
+  pr_state: OPEN
+  mergeable: true
+  head_branch: enhance/258-per-task-implementation-validation-pairing
+  base_branch: main
+  working_tree_clean: true
+  untracked_files_present: true
+  untracked_files_note: >
+    Two untracked files present (.garura/project/issues/258/evidence/enhance/pr-result.yaml
+    and review-result.yaml). These are not uncommitted changes — C3 is satisfied.
+  constraints_checked:
+    C1: PASS  # not on main/master
+    C2: PASS  # PR #315 exists and is open
+    C3: PASS  # no uncommitted or staged changes
+    C4: PASS  # PR is MERGEABLE (no conflicts)
+  ready: true

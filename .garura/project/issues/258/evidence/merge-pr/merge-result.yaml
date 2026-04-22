@@ -1,0 +1,19 @@
+result:
+  status: merged
+  pr_number: 315
+  merge_sha: 1ea5036ceb74d7e0f59260c3c836fda0ebfbcabe
+  base_branch: main
+  branch_deleted: true
+  remote_branch_deleted: true
+  error: null
+
+evals:
+  SE-1-no-conflict: PASS    # PR was MERGEABLE before merge; no conflict markers present
+  SE-2-branch-deleted: PASS  # Feature branch deleted locally and from remote
+  SE-3-on-base-up-to-date: PASS  # Local HEAD is on main, fast-forward pull succeeded
+  SE-4-clean-tree-premarge: PASS  # Readiness check confirmed no uncommitted/staged changes
+  SE-5-pr-merged-on-platform: PASS  # PR #315 state is MERGED, merge_sha confirmed
+
+scenario_evals:
+  SCE-1-developer: PASS  # HEAD on main, branch absent locally and remotely, ready for new feature
+  SCE-2-reviewer: PASS   # PR #315 is merged on platform; merge SHA 1ea5036 present in git log on main
