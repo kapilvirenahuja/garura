@@ -1,0 +1,5 @@
+pr_number: 315
+pr_url: https://github.com/kapilvirenahuja/garura/pull/315
+commit_sha: 8837315774309a4f1fa1e2ac4f2d1e661d6d0e53
+status: open
+title: "feat(enhance): split implementer and tester into two isolated agents (#258)"
