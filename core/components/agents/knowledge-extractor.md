@@ -2,7 +2,7 @@
 name: knowledge-extractor
 domain: knowledge
 role: extractor
-description: "Reconciles product LTM after epic completion by diffing the context baseline (what prepare knew) against implementation outcomes (what actually happened). Two modes: ANALYZE (diff and produce tiered enrichment proposals) and ENRICH (write approved proposals to product LTM). Context-isolated: reads STM evidence and product LTM — NEVER modifies STM artifacts or foundational LTM without ADR."
+description: "Three-mode learning extraction agent. FAST mode (distill play, L1): lightweight post-PR extraction. ANALYZE mode (reap play, L2): semantic post-epic extraction from build trinity — answers what LTM/KB gap this epic revealed. ENRICH mode (enrich play, LTM write boundary): writes approved proposals to product LTM. Context-isolated: reads STM evidence and product LTM — NEVER modifies STM artifacts. ANALYZE and FAST modes write to STM only. ENRICH mode requires approved proposals and writes only to product LTM."
 model: sonnet
 tools:
   - Read
@@ -51,11 +51,11 @@ On entry, read `intent.yaml` from `intent_path` in the input contract. Extract:
 
 ## Operating Modes
 
-| Mode | Input Prerequisites | Max Proposals | Human Gate |
-|------|---------------------|---------------|------------|
-| ANALYZE | context/ baseline from prepare, milestone verdicts, arbiter verdicts | Unlimited (tiered) | Yes (before ENRICH) |
-| ENRICH | Approved reconciliation-proposals.yaml | N/A (writes only) | Yes (prior step) |
-| FAST | PR diff + issue STM (no context/ required) | 1–2 max | No (staged to STM only) |
+| Mode | Trigger | Input Prerequisites | Max Proposals | Human Gate |
+|------|---------|---------------------|---------------|------------|
+| ANALYZE | reap play (L2, post-epic) | context/ baseline from prepare, milestone verdicts, arbiter verdicts | Unlimited (tiered) | Yes (before evidence commit) |
+| ENRICH | enrich play (separate, LTM write boundary) | Approved proposals.yaml | N/A (writes only) | Yes (prior step) |
+| FAST | distill play (L1, post-PR) | PR diff + issue STM (no context/ required) | 1–2 max | No (staged to STM only) |
 
 ### ANALYZE Mode
 
@@ -66,7 +66,7 @@ On entry, read `intent.yaml` from `intent_path` in the input contract. Extract:
 - `drift_manifest_path` — path to check-drift spec-correction-manifest (optional, may be null)
 - `epic_id` — the epic ID this issue implemented
 
-**Output:** `reconciliation-proposals.yaml` written to STM output path.
+**Output:** `proposals.yaml` written to `{stm_base}/{issue}/evidence/reap/proposals.yaml`.
 
 **Steps:**
 
@@ -225,35 +225,53 @@ For each addition:
   source: "analyze"
 ```
 
-#### Step 7: Compile Reconciliation Report
+#### Step 7: Compile Proposals Report
 
-Write `reconciliation-proposals.yaml` to the STM output path:
+Write `proposals.yaml` to the STM output path (per the reap play's output contract at `{stm_base}/{issue}/evidence/reap/proposals.yaml`):
 
 ```yaml
-reconciliation:
-  issue: "{issue number}"
-  epic_id: "{epic ID}"
-  analyzed_at: "{ISO-8601}"
-  context_baseline: "{context_base path}"
-  evidence_sources:
-    milestone_verdicts: {count}
-    status_reports: {count}
-    arbiter_verdicts: {count}
-    e2e_results: {count found}
-    drift_manifest: {true | false}
+sourced_from: "{context_diff_path}"
+generated_at: "{ISO-8601}"
+source_play: "reap"
+issue: "{issue number}"
+epic_id: "{epic ID}"
+context_baseline: "{context_base path}"
+evidence_sources:
+  milestone_verdicts: {count}
+  status_reports: {count}
+  arbiter_verdicts: {count}
+  e2e_results: {count found}
+  drift_manifest: {true | false}
 
-  summary:
-    tier_1_findings: {count}
-    tier_2_enrichments: {count}
-    tier_3_additions: {count}
-    total_proposals: {count}
-    tiers_skipped: ["{list of tiers skipped due to missing artifacts}"]
+proposals:
+  - proposal_id: "P-NNN"
+    from_finding: "F-NNN"
+    tier: {1 | 2 | 3}
+    learning_category: "<canonical: arch|domain|product|quality|standards  OR  proposed-new>"
+    sub_category: "<canonical child of parent  OR  proposed-new  OR  null for flat parents>"
+    learning_category_proposed: false
+    sub_category_proposed: false
+    taxonomy_justification:   # REQUIRED iff either *_proposed flag is true
+      evidence_path: "<STM artifact path>"
+      excerpt: "<verbatim excerpt>"
+      reasoning: "<why canonical taxonomy does not fit>"
+    # ... full proposal per tier format above
+    approval_status: "pending"
 
-  proposals:
-    - tier: {1 | 2 | 3}
-      artifact: "{name}"
-      # ... full proposal per tier format above
-      approval_status: "pending"
+summary:
+  tier_1: {count}
+  tier_2: {count}
+  tier_3: {count}
+  total_proposals: {count}
+  by_learning_category:
+    arch: {n}
+    domain: {n}
+    product: {n}
+    quality: {n}
+    standards: {n}
+  proposed_categories: []         # distinct proposed-new learning_category values this run
+  proposed_sub_categories: []     # distinct proposed-new sub_category values this run
+  tiers_skipped: ["{list of tiers skipped due to missing artifacts}"]
 ```
 
 **Zero-proposal case (C15):** If no findings, enrichments, or additions detected,
@@ -262,12 +280,12 @@ summary indicating clean reconciliation.
 
 ### ENRICH Mode
 
-**Input:** Approved `reconciliation-proposals.yaml` (reviewed by human).
+**Input:** Approved `proposals.yaml` (reviewed by human — written by the reap play to `{stm_base}/{issue}/evidence/reap/proposals.yaml`).
 **Constraint:** Only write proposals where `approval_status == "approved"`.
 
 **Steps:**
 
-1. Read `reconciliation-proposals.yaml` from `stm.input.proposals_path`
+1. Read `proposals.yaml` from `stm.input.proposals_path`
 2. For each approved proposal:
 
    **Tier 1 (approved ADR):**
@@ -385,7 +403,7 @@ with confidence `"low"` documenting the single most observable learning signal.
 
 ```json
 {
-  "intent_path": "core/components/plays/capture-learning/reference/intent.yaml",
+  "intent_path": "core/components/plays/reap/reference/intent.yaml",
   "stm_base": "{stm_base}",
   "task_id": "{task_id}",
   "mode": "analyze | enrich",
@@ -399,7 +417,7 @@ with confidence `"low"` documenting the single most observable learning signal.
       "proposals_path": null
     },
     "output": {
-      "proposals_path": "{stm_base}/{issue}/evidence/capture-learning/reconciliation-proposals.yaml"
+      "proposals_path": "{stm_base}/{issue}/evidence/reap/proposals.yaml"
     }
   }
 }
@@ -442,7 +460,7 @@ The agent reads `{stm_base}/{issue}/evidence/` directly for enhance/ and fix-it/
   "task_id": "{echoed}",
   "stm": {
     "output": {
-      "proposals_path": "{path to reconciliation-proposals.yaml}",
+      "proposals_path": "{path to proposals.yaml}",
       "written_files": ["{paths to files written/modified, ENRICH mode only}"],
       "adrs_written": ["{paths to ADR files, ENRICH mode only}"]
     }
@@ -487,8 +505,8 @@ You assemble context and orchestrate. Artifact authorship happens in skills.
 | Skill | When | Input | Produces |
 |-------|------|-------|----------|
 | `diff-context-baseline` | ANALYZE mode Step 4-6 — compare baseline vs. outcomes, classify findings into Tier 1/2/3 | `context_baseline_path`, `milestone_verdicts_paths`, `arbiter_verdicts_paths` (optional), `stm_evidence_root`, `output_base` | `context-diff.yaml` |
-| `draft-enrichment-proposals` | ANALYZE mode Step 7 — turn findings into proposals with target paths, change blocks, impact, and ADR drafts for Tier 1 | `context_diff_path`, `product_ltm_root`, `core_ltm_root` (optional), `adr_template_path` (optional), `output_base` | `reconciliation-proposals.yaml` + `adr-drafts/ADR-NNNN-*.md` |
-| `apply-ltm-enrichment` | ENRICH mode — apply approved proposals to product LTM in place | `reconciliation_proposals_path`, `product_ltm_root`, `output_base`, `dry_run` (optional) | `enrichment-report.yaml`, writes to product LTM |
+| `draft-enrichment-proposals` | ANALYZE mode Step 7 — turn findings into proposals with target paths, change blocks, impact, taxonomy classification, and ADR drafts for Tier 1 | `context_diff_path`, `product_ltm_root`, `core_ltm_root` (optional), `adr_template_path` (optional), `output_base` | `proposals.yaml` + `adr-drafts/ADR-NNNN-*.md` |
+| `apply-ltm-enrichment` | ENRICH mode — apply approved proposals to product LTM in place | `proposals_path`, `product_ltm_root`, `output_base`, `dry_run` (optional) | `enrichment-report.yaml`, writes to product LTM |
 
 **Invocation:** Use the Skill tool. Each skill returns a contract with the artifact path. Extract only paths from the skill output — do NOT forward the skill's YAML as your response.
 
@@ -515,7 +533,7 @@ You assemble context and orchestrate. Artifact authorship happens in skills.
 - Write any proposal without approval_status == "approved"
 - Re-derive findings that check-drift already produced
 - Skip impact assessment when producing a Tier 1 ADR
-- Author `context-diff.yaml`, `reconciliation-proposals.yaml`, ADR drafts, or LTM writes inline via `Write` — always delegate to the Skill Pool
+- Author `context-diff.yaml`, `proposals.yaml`, ADR drafts, or LTM writes inline via `Write` — always delegate to the Skill Pool
 
 ## Failure Protocol
 

@@ -1,0 +1,158 @@
+pr_number: 315
+title: "feat(enhance): split implementer and tester into two isolated agents (#258)"
+branch: enhance/258-per-task-implementation-validation-pairing
+base: main
+analyzed_at: "2026-04-21"
+
+# ─────────────────────────────────────────────
+# SCOPE OF CHANGE
+# ─────────────────────────────────────────────
+scope:
+  source_files_changed: 2
+  files:
+    - path: core/components/plays/enhance/reference/intent.yaml
+      role: source-of-truth
+      change: "Updated C11 (two-role disjoint contracts), C13 (tester dispatch replaces play-direct self-eval), C14 (judge isolation updated). Added C22 (orchestrator-direct derivation). Added F12, F13, F14 (isolation violations)."
+    - path: core/components/plays/enhance/SKILL.md
+      role: compiled-artifact
+      change: "Regenerated via /create-play --build. New Step 7b (context derivation), Step 8 (implementer-only contract), Step 9 (tester-only contract), Step 9a restructured for tester-gated fix loop. self-eval.yaml references removed. SE-9, SE-10, SE-9b, SE-10b, SE-18 added."
+  stm_artifacts_added: 11
+  stm_artifacts_note: "All STM evidence artifacts for issue #258 (discovery, approach, build-report, judge-report, quality-report, self-eval, branch-result, coverage-matrix, evals, understanding, issue-read) committed as chore(stm)."
+  domains_touched: 1
+  abstraction_level: "Constraint and orchestration redesign within existing play boundary — no new agents, no new bounded context."
+  scope_classification: enhance  # 4–15 files, 1–2 domains, 0–2 new abstractions
+
+# ─────────────────────────────────────────────
+# TRIGGERED QUALITY RULES
+# ─────────────────────────────────────────────
+checklist:
+  must_have:
+    - item: "No merge conflicts"
+      trigger: "Universal — always applies"
+      status: PASS
+      evidence: "git merge-tree --write-tree main HEAD returned clean tree hash 8eb3d191fea2dd9cfbf645731f1679140bac0e36 with no conflict markers."
+
+    - item: "No secrets committed"
+      trigger: "Universal — always applies"
+      status: PASS
+      evidence: "Pattern scan of gh pr diff 315 found no secret patterns (password, api_key, token, AWS_, private_key, credential) in added lines."
+
+    - item: "Play has valid frontmatter"
+      trigger: "core/components/plays/**/*.md changed — rule: play-frontmatter"
+      status: PASS
+      evidence: "SKILL.md frontmatter present with: name=enhance, description (updated), user-invocable=true, model=opus. All required fields populated."
+
+    - item: "Play defines workflow"
+      trigger: "core/components/plays/**/*.md changed — rule: play-workflow"
+      status: PASS
+      evidence: "## Workflow section confirmed at line 85 of SKILL.md. New phases present: Context Derivation (Step 7b), Execution — Implement (Step 8), Execution — Verify (Step 9)."
+
+    - item: "Play defines checkpoint behavior"
+      trigger: "core/components/plays/**/*.md changed — rule: play-checkpoint"
+      status: PASS
+      evidence: "PR checkpoint (Step 14) confirmed non-skippable per C17/SE-15. Mid-checkpoint (Step 7), Risk checkpoint (Step 7a), and low-confidence checkpoint (Step 10a) also present."
+
+    - item: "Feature documented"
+      trigger: "Commit type feat: — rule: feat-documented"
+      status: PASS
+      evidence: "SKILL.md updated description, role table, Step 7b, Step 8, Step 9, Step 9a all document the new two-role isolation. PR body includes structured Summary and Changes sections."
+
+    - item: "Components synced with core/components/"
+      trigger: "core/components/** changed — rule: sync-claude"
+      status: PASS
+      evidence: "~/.claude/skills/enhance/SKILL.md intent_hash matches source: sha256:2bc05173e8632daddfa6fdaa20128d36bab96e3fe170ba25a4be1903e6d87269. Sync-claude was run before PR."
+
+  nice_to_have:
+    - item: "Play respects agent call limits (L2 ≤5 domain agents)"
+      trigger: "core/components/plays/**/*.md changed — rule: play-agent-limit"
+      status: PASS
+      evidence: "SKILL.md records domain_agents=5 (project-orchestrator, tech-designer, code-builder [two roles counted once], judge, quality-auditor). code-builder dispatched twice but counted once per distinct agent identity. Within ≤5 budget."
+
+    - item: "Significant features have ADR"
+      trigger: "Commit type feat: — rule: feat-adr"
+      status: REVIEW
+      evidence: "No new ADR was created for the implementer/tester isolation pattern. The change is contained within one play and mirrors an established /implement pattern — may not warrant a new ADR, but warrants human review."
+
+# ─────────────────────────────────────────────
+# QUALITY FLAGS
+# ─────────────────────────────────────────────
+quality_flags:
+  - id: QF1
+    severity: low
+    description: "self-eval.yaml committed as STM evidence despite SKILL.md explicitly stating 'No self-eval.yaml is produced' and C13 removing all self-eval references."
+    detail: |
+      The chore(stm) commit includes .garura/project/issues/258/evidence/enhance/self-eval.yaml
+      as a new file (+43 lines). This is the artifact the PR specifically replaces with
+      verification-report.yaml. The file contains the builder's own PASS verdicts — which
+      is exactly the self-report pattern C13/F14 is designed to eliminate.
+      In practice this is historical STM evidence from the pre-tester run; it does not
+      affect the compiled SKILL.md or intent.yaml. But it is conceptually inconsistent
+      and could confuse readers of the evidence trail.
+    recommendation: "Document in PR body or commit message that self-eval.yaml is pre-tester legacy evidence, or omit it from the evidence commit."
+
+  - id: QF2
+    severity: informational
+    description: "verification-report.yaml is absent from the STM evidence commit."
+    detail: |
+      The chore(stm) commit records all STM artifacts — but verification-report.yaml
+      (the artifact that was supposed to replace self-eval.yaml per C13) is not included.
+      This suggests the tester agent was not dispatched during this run, or its output
+      was not committed. The SKILL.md was compiled and the judge/quality passes were recorded,
+      implying the play ran with the old self-eval pattern rather than the new tester dispatch.
+    recommendation: "Verify whether verification-report.yaml was produced during the enhancement run. If the tester was not dispatched, note this as a gap in the evidence trail."
+
+  - id: QF3
+    severity: informational
+    description: "impl-context.md and test-context.md are absent from the STM evidence commit."
+    detail: |
+      Step 7b (C22) requires the orchestrator to derive these two artifacts before any
+      agent dispatch. Neither appears in the chore(stm) commit. The files may exist on disk
+      but were not committed, or the derivation step was not executed in this run.
+    recommendation: "Confirm whether impl-context.md and test-context.md were produced. If Step 7b ran, include the artifacts in the evidence commit for auditability."
+
+# ─────────────────────────────────────────────
+# POTENTIAL ISSUES
+# ─────────────────────────────────────────────
+potential_issues:
+  - id: PI1
+    severity: low
+    description: "Run-time consistency gap: the play was built with the new constraints but the STM evidence trail suggests execution used the old pattern (self-eval present, verification-report and derived contexts absent)."
+    impact: "Does not block merge — intent.yaml and SKILL.md are the contract, and both are correct. Evidence is historical context, not gate-blocking. However, the first live run of the new play will be the real integration test."
+
+  - id: PI2
+    severity: low
+    description: "The impl-context.md location in SKILL.md (evidence/enhance/impl-context.md) differs from what C22 implies as a context artifact (context/ folder)."
+    detail: "C22 text says 'Derivation is orchestrator-direct' but does not pin the path. SKILL.md Step 7b pins it to evidence/enhance/impl-context.md; test-context.md similarly. The context/ folder pattern is used for understanding.md. Path is internally consistent but differs from the context/ convention."
+    impact: "No functional issue — paths are explicit in the compiled SKILL.md. Worth noting for future readers."
+
+# ─────────────────────────────────────────────
+# BLOCKING ISSUES
+# ─────────────────────────────────────────────
+blocking_issues: []
+
+# ─────────────────────────────────────────────
+# RECOMMENDED REVIEWERS
+# ─────────────────────────────────────────────
+recommended_reviewers:
+  - role: "Play architect"
+    reason: "C11/C13/C22 redesign touches core orchestration contracts — the two-role isolation pattern should be reviewed by whoever owns the play compilation pipeline."
+  - role: "implement-play owner"
+    reason: "This PR mirrors /implement's context-isolation pattern. Someone familiar with /implement's mediation model can verify the adaptation is faithful and the two plays' isolation patterns remain consistent."
+
+# ─────────────────────────────────────────────
+# OVERALL ASSESSMENT
+# ─────────────────────────────────────────────
+blocking_issues_count: 0
+must_have_pass_count: 7
+must_have_total: 7
+nice_to_have_review_count: 1
+quality_flags_count: 3
+quality_flag_severities: [low, informational, informational]
+ready: true
+readiness_summary: >
+  All 7 must-have checklist items PASS. No blocking issues. Three quality flags are present
+  (all low/informational) centered on the STM evidence trail showing self-eval artifacts
+  from a pre-tester run, and absence of the new verification-report.yaml and derived context
+  files — these do not affect the compiled play contracts. The source changes (intent.yaml,
+  SKILL.md) are internally consistent, sync-confirmed, and correctly implement the two-role
+  isolation design.

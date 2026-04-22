@@ -1,0 +1,12 @@
+issue:
+  number: 311
+  title: "reap: refactor capture-learning into post-epic build-trinity extraction (Learning Pipeline L2)"
+  labels:
+    - enhancement
+  state: "open"
+  body_summary: "`capture-learning` is being decomposed as part of the Learning Pipeline redesign. Its ANALYZE half becomes **reap** (this issue); its ENRICH half becomes the **enrich** play (separate issue). The current capture-learning play"
+  url: "https://github.com/kapilvirenahuja/garura/issues/311"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "feature"

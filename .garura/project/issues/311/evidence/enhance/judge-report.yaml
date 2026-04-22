@@ -1,0 +1,129 @@
+judge_report:
+  timestamp: "2026-04-22T00:00:00Z"
+  eval_source: "core/components/plays/enhance/reference/evals/solution-rating.yaml"
+  total_evals: 4
+  passed: 4
+  failed: 0
+  pass_rate: "100%"
+  overall: "PASS"
+  overall_confidence: 0.82
+
+  category_breakdown:
+    er_evals:
+      total: 4
+      passed: 4
+      failed: 0
+
+  per_area_assessments:
+    reap_play_structure:
+      confidence: 0.95
+      notes: >
+        intent.yaml exists with 15 constraints (C1–C15 including C7a, C7b), 10 failure
+        conditions (F1–F10), and 6 scenarios (S1–S6). SKILL.md exists and is compiled.
+        Intent hash ec45c97ebfbb3ea57a3ff469a2a4270890a86d3a5ebae605f501205da2708236
+        matches sha256 of reference/intent.yaml exactly. All required workflow sections
+        present. capture-learning deleted. apply-ltm-enrichment not referenced in reap
+        play directory.
+
+    taxonomy_schema_delivery:
+      confidence: 0.93
+      notes: >
+        Both diff-context-baseline and draft-enrichment-proposals correctly carry the
+        full five-field taxonomy (learning_category, sub_category, learning_category_proposed,
+        sub_category_proposed, taxonomy_justification). Canonical taxonomy tree with all 5
+        top-level values and correct children (arch→6, quality→11, standards→3) documented
+        in both skills. dimension field retired in both. Invention-with-justification rule
+        documented and enforced at both skill boundaries.
+
+    knowledge_extractor_update:
+      confidence: 0.72
+      notes: >
+        The four targeted changes from approach.yaml were delivered: frontmatter description
+        updated to three-mode framing, Operating Modes table references reap as ANALYZE
+        trigger, intent_path updated to core/components/plays/reap/reference/intent.yaml,
+        and ANALYZE output path updated to evidence/reap/proposals.yaml. Non-blocker
+        observation: multiple internal body sections still reference the old
+        reconciliation-proposals.yaml filename — Step 7 schema (line 230), ENRICH mode
+        input reference (lines 265, 270), Output Contract comment (line 445), Skill Pool
+        produces-column (line 490), and MUST NOT list (line 518). The declared contracts
+        are correct; the body inconsistencies are stale naming rather than boundary
+        contradictions. The MUST NOT list uses old filename but does not contradict any
+        newly permitted behavior — it still correctly prohibits inline authoring.
+
+  observations:
+    - id: OBS-1
+      severity: non_blocker
+      description: >
+        knowledge-extractor.md Step 7 of ANALYZE mode (line 230) instructs the agent to
+        "Write reconciliation-proposals.yaml to the STM output path" with a reconciliation:
+        root-key schema. The enhancement updated draft-enrichment-proposals/SKILL.md so the
+        skill output is proposals.yaml with a proposals: root schema — but the agent's internal
+        Step 7 process body was not updated. An agent following Step 7 literally would attempt
+        to write the old schema. This is an internal process inconsistency in the agent body;
+        the declared Input/Output contracts (lines 69, 402) are correctly updated and will
+        govern runtime behavior. Not a boundary statement contradiction per ER-3, but a
+        stale internal implementation detail that could cause confusion.
+
+  results:
+    - eval_id: "ER-1"
+      status: "PASS"
+      category: "er_evals"
+      severity_if_fail: "blocker"
+      evidence: >
+        Three skill boundaries examined. (1) reap SKILL.md → knowledge-extractor: caller passes
+        intent_path, stm_base, task_id, mode, stm.input.{context_base, evidence_base, product_base,
+        drift_manifest_path, epic_id, proposals_path}, stm.output.proposals_path — all declared
+        in knowledge-extractor ANALYZE Input Contract. No undeclared fields; no required fields
+        missing. (2) knowledge-extractor → diff-context-baseline: Skill Pool declares
+        context_baseline_path (req), milestone_verdicts_paths (req), arbiter_verdicts_paths (opt),
+        stm_evidence_root (req), output_base (req) — all declared in diff-context-baseline Input
+        Contract with matching required/optional designations. (3) knowledge-extractor →
+        draft-enrichment-proposals: Skill Pool declares context_diff_path (req), product_ltm_root
+        (req), core_ltm_root (opt), adr_template_path (opt), output_base (req) — all declared
+        in draft-enrichment-proposals Input Contract with matching designations. No undeclared
+        fields passed at any boundary; no required fields absent.
+
+    - eval_id: "ER-2"
+      status: "PASS"
+      category: "er_evals"
+      severity_if_fail: "blocker"
+      evidence: >
+        diff-context-baseline writes context-diff.yaml to output_base. draft-enrichment-proposals
+        declares context_diff_path as required input — the downstream hook explicitly references
+        the upstream artifact. knowledge-extractor Skill Pool table (line 490) lists context_diff_path
+        as the input to draft-enrichment-proposals, confirming the handoff is declared. The
+        proposals.yaml output is declared in knowledge-extractor Output Contract (stm.output.proposals_path
+        at evidence/reap/proposals.yaml, line 402) and is explicitly presented to the user by
+        reap SKILL.md Step 3 checkpoint. No orphan artifact: every upstream output has a declared
+        downstream consumer. No intent-propagation break found.
+
+    - eval_id: "ER-3"
+      status: "PASS"
+      category: "er_evals"
+      severity_if_fail: "blocker"
+      evidence: >
+        knowledge-extractor.md MUST NOT / What You MUST NOT Do / NEVER boundary sections were
+        examined (lines 509–519, 559–567). No MUST NOT statement contradicts a rule introduced
+        or revised by this enhancement. The MUST NOT list (line 518) says "do not author
+        reconciliation-proposals.yaml inline" — this uses the old filename but the prohibition
+        itself (inline authoring must go through the skill pool) is not contradicted by any
+        newly introduced rule. The new rule from draft-enrichment-proposals is that the output
+        is proposals.yaml, not that inline authoring is newly permitted. The pattern required
+        for ER-3 failure (prohibition X contradicts new permission Y, as in the #305 C-02
+        example) is not present. The stale filename in the prohibition is a naming inconsistency,
+        not a permit-versus-prohibit contradiction. Stale naming in the Step 7 process body
+        (OBS-1) is noted as a non-blocker observation but is not a boundary statement.
+
+    - eval_id: "ER-4"
+      status: "PASS"
+      category: "er_evals"
+      severity_if_fail: "blocker"
+      evidence: >
+        ER-1, ER-2, and ER-3 all pass with no blocker concerns. Per ER-4 pass criteria, the
+        overall_confidence is uncapped and reflects the quality of delivered work across all
+        per-area assessments. overall_confidence is set to 0.82, reflecting: reap play structure
+        (0.95), taxonomy schema delivery (0.93), and knowledge-extractor update (0.72, discounted
+        for stale internal body sections). The cap criterion (confidence must be ≤0.55 when any
+        ER-1/2/3 blocker exists) does not apply since no blockers are present.
+
+  plaintext_deleted: false

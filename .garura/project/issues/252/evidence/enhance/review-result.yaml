@@ -1,0 +1,114 @@
+task_id: pr-review
+issue: 252
+pr_number: 316
+pr_url: https://github.com/kapilvirenahuja/garura/pull/316
+branch: enhance/252-component-linting
+base: main
+
+checklist:
+  must_have:
+    - id: no-conflicts
+      item: No merge conflicts
+      status: PASS
+      evidence: "git merge-tree returned clean tree hash (6419df4a); no conflict markers in diff"
+
+    - id: no-secrets
+      item: No secrets committed
+      status: PASS
+      evidence: "Scanned diff for api_key, secret, password, token, private_key, aws_, credential — zero matches"
+
+    - id: skill-frontmatter
+      item: Skill has valid frontmatter
+      status: PASS
+      evidence: "lint-components/SKILL.md has: name, description, user-invocable=false, model=sonnet, allowed-tools=Bash,Read — all required fields present"
+
+    - id: skill-io
+      item: Skill defines Input and Output
+      status: PASS
+      evidence: "## Input and ## Output sections confirmed in SKILL.md"
+
+    - id: sync-claude
+      item: "Components synced with core/components/ via /sync-claude"
+      status: FAIL
+      evidence: "core/components/skills/lint-components/ was added in this PR, but ~/.claude/skills/lint-components/ does not exist — skill has not been deployed to the global Claude deployment. Trigger: core/components/** changed."
+
+    - id: feat-documented
+      item: "Feature documented in README or docs"
+      status: FAIL
+      evidence: "No changes to docs/ or README.md in the PR. The new lint-components tool and skill have no documentation update. Trigger: feat: commit type."
+
+  nice_to_have:
+    - id: skill-constraints
+      item: Skill has Constraints section
+      status: PASS
+      evidence: "## Constraints section present in lint-components/SKILL.md"
+
+    - id: feat-adr
+      item: Significant features have ADR
+      status: REVIEW
+      evidence: "New linting infrastructure (Node.js CLI tool + skill) is a meaningful new capability. No ADR added. For a solo-dev repo this may be acceptable, but worth considering given the architectural nature of adding a new tool layer."
+
+findings:
+  - category: deployment
+    severity: error
+    description: >
+      The lint-components skill was added to core/components/skills/ but was NOT
+      synced to the global deployment at ~/.claude/skills/. The sync-claude rule
+      (triggered by core/components/** changes) requires /sync-claude to be run
+      before or after merging. Without sync, the skill is invisible to agents and
+      the enhance pipeline's quality-check step cannot invoke it.
+
+  - category: documentation
+    severity: warning
+    description: >
+      No documentation update accompanies this feat: commit. The new
+      core/tools/lint-components/ directory introduces a Node.js dependency
+      (js-yaml) and a CLI tool with its own usage contract. Neither docs/ nor
+      README.md was updated to describe the tool, how to run it manually, or
+      how the skill integrates with the pipeline.
+
+  - category: stray-commit
+    severity: warning
+    description: >
+      The PR includes a commit "chore(stm): record merge-pr evidence for #258"
+      (SHA a77ead0) that pre-dates this branch and adds files under
+      .garura/project/issues/258/evidence/merge-pr/. This evidence is for a
+      different issue (#258) and is unrelated to issue #252 (component linting).
+      It appears the branch was created from a point that included uncommitted
+      #258 evidence. This is low-risk (STM files only) but is noise in this PR's
+      commit history and diff.
+
+  - category: tool-hygiene
+    severity: info
+    description: >
+      node_modules/ is correctly gitignored (line 23 of .gitignore). However,
+      package-lock.json is also gitignored (line 140). For a tool intended to
+      be run in CI or shared contexts, omitting package-lock.json means
+      dependency resolution is non-deterministic (npm install could resolve
+      js-yaml to a different minor/patch than intended). Informational only —
+      acceptable for an internal dev tool.
+
+  - category: code-quality
+    severity: info
+    description: >
+      structural.js contains a contradictory inline comment block (lines ~330-338)
+      that argues both ways about which spelling (user-invocable vs user-invokable)
+      is the majority form, then defers to impl-context. The comment is confusing
+      and could mislead future maintainers. The behavior is correct per the
+      implementation contract, but the comment should be cleaned up.
+
+summary: >
+  PR #316 delivers a well-structured two-layer component linting system: a
+  deterministic Node.js CLI tool (core/tools/lint-components/) and a wrapping
+  skill (core/components/skills/lint-components/SKILL.md). The implementation
+  is coherent, the skill frontmatter is valid, and no secrets or merge conflicts
+  are present. Two blocking findings require attention before merge: (1) the
+  skill has not been deployed via /sync-claude — it will be invisible to the
+  framework until synced; (2) no documentation update accompanies the new
+  tool/skill. A stray #258 evidence commit is included in the diff but is
+  low-risk STM noise.
+
+overall: CONCERNS
+blocking_issues:
+  - "sync-claude not run — lint-components skill not deployed to ~/.claude/skills/"
+  - "feat: commit missing documentation update (docs/ or README)"

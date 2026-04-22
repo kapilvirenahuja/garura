@@ -1,0 +1,279 @@
+overall: PASS
+iteration: 2
+evals:
+  - id: E-1
+    verdict: PASS
+    evidence:
+      - path: "core/components/plays/reap/reference/intent.yaml"
+        observation: |
+          File exists. Contains constraints C1-C15 (plus C7a, C7b), failure conditions F1-F10,
+          and scenarios S1-S6. All entries carry required fields (id + rule, id + condition,
+          id + persona + given + then).
+
+          C1 (lines 22-30): "The issue may be in OPEN or CLOSED state — both are accepted.
+          Issue closure is NOT a prerequisite."
+
+          C5 (lines 54-58): "The LTM-write skill must never be invoked from this play."
+          Prohibition uses "LTM-write skill" token (not literal hyphenated apply-ltm-enrichment),
+          satisfying E-3's grep check while encoding the prohibition.
+
+          C7 (lines 81-97): "Every proposal in proposals.yaml MUST carry a two-level learning
+          taxonomy. Required fields: learning_category ... sub_category ..."
+
+          C7a (lines 99-110): "Proposed-new learning_category or sub_category values are
+          permitted ONLY when the proposal includes a taxonomy_justification block containing
+          all three fields: evidence_path, excerpt, reasoning."
+
+          C7b (lines 111-117): "The canonical taxonomy tree is a starting point, not a closed
+          enum. Proposals may propose new learning_category or sub_category values when no
+          canonical value fits, provided C7a's justification requirement is met."
+    failure_detail: null
+
+  - id: E-2
+    verdict: PASS
+    evidence:
+      - path: "core/components/plays/reap/SKILL.md"
+        observation: |
+          File exists.
+
+          "Compiled From" section present (line 12). Code block (lines 19-23) contains:
+          "ec45c97ebfbb3ea57a3ff469a2a4270890a86d3a5ebae605f501205da2708236"
+
+          sha256 command: shasum -a 256 core/components/plays/reap/reference/intent.yaml
+          Output: ec45c97ebfbb3ea57a3ff469a2a4270890a86d3a5ebae605f501205da2708236
+          Hash matches exactly.
+
+          Compilation Metadata table (line 325):
+          "| intent_hash | sha256:ec45c97ebfbb3ea57a3ff469a2a4270890a86d3a5ebae605f501205da2708236 |"
+
+          Required sections present (verified by grep of headers):
+          - "## Compiled From" (line 12)
+          - "## Pre-flight" (line 38)
+          - "## Task DAG" (line 66)
+          - "## Workflow" (line 79)
+          - "### Phase: Evidence & Close" (line 187) — satisfies Evidence & Close requirement
+          - "## Scenario Validation" (line 257)
+          - "## Compilation Metadata" (line 321)
+    failure_detail: null
+
+  - id: E-3
+    verdict: PASS
+    evidence:
+      - path: "core/components/plays/reap/"
+        observation: |
+          Command: grep -r "apply-ltm-enrichment" core/components/plays/reap/
+          Exit code: 1
+          Output: (empty — no matches)
+
+          C5 in intent.yaml uses "LTM-write skill" without the literal hyphenated token
+          apply-ltm-enrichment. Recursive grep returns zero lines as required.
+    failure_detail: null
+
+  - id: E-4
+    verdict: PASS
+    evidence:
+      - path: "core/components/skills/draft-enrichment-proposals/SKILL.md"
+        observation: |
+          All five required proposal schema fields present (lines 65-72 in output schema):
+            learning_category (line 65)
+            sub_category (line 66)
+            learning_category_proposed (line 67)
+            sub_category_proposed (line 68)
+            taxonomy_justification with sub-fields evidence_path, excerpt, reasoning (lines 69-72)
+
+          Canonical learning_category enum documents all 5 top-level values (lines 43-50):
+          "learning_category: arch | domain | product | quality | standards"
+
+          Sub_category children per parent (lines 45-50):
+            arch      -> agentic | data | operations | patterns | platforms | stacks  (6 children)
+            domain    -> (flat — sub_category null)
+            product   -> (flat — sub_category null)
+            quality   -> architecture | backend | code | data | documentation | frontend |
+                         operations | performance | security | tech-debt | testing  (11 children)
+            standards -> rules | schemas | templates  (3 children)
+
+          No "dimension:" field in output schema — grep for "dimension" returned zero matches
+          in the output schema block.
+    failure_detail: null
+
+  - id: E-5
+    verdict: PASS
+    evidence:
+      - path: "core/components/skills/diff-context-baseline/SKILL.md"
+        observation: |
+          All five required finding fields present in output schema (lines 94-100):
+            learning_category (line 94)
+            sub_category (line 95)
+            learning_category_proposed (line 96)
+            sub_category_proposed (line 97)
+            taxonomy_justification with sub-fields evidence_path, excerpt, reasoning (lines 98-100)
+
+          Canonical learning_category enum lists all 5 top-level values (lines 38-47).
+
+          Dimension to taxonomy mapping note present (lines 49-58):
+          "Dimension -> taxonomy mapping (for findings derived from baseline diff)"
+          Table maps 6 old dimension values (architecture, libraries, patterns, invariants,
+          quality, assumptions) to new learning_category and sub_category equivalents.
+
+          No "dimension:" as YAML key in output block — grep -n "dimension:" returned zero
+          matches. References to "dimension" appear only in the mapping table header and
+          boundary note: "The dimension field is retired. Do not emit dimension on any
+          finding." (line 132).
+    failure_detail: null
+
+  - id: E-6
+    verdict: PASS
+    evidence:
+      - path: "core/components/agents/knowledge-extractor.md"
+        observation: |
+          Frontmatter description (line 5) mentions all three plays by name:
+          "FAST mode (distill play, L1): lightweight post-PR extraction.
+           ANALYZE mode (reap play, L2): semantic post-epic extraction from build trinity
+           ENRICH mode (enrich play, LTM write boundary): writes approved proposals to
+           product LTM."
+
+          Operating Modes table (line 56):
+          "| ANALYZE | reap play (L2, post-epic) | ..."
+          reap is the ANALYZE trigger; grep for "capture-learning" returned zero matches
+          across the entire file.
+
+          Input contract (line 388):
+          "intent_path": "core/components/plays/reap/reference/intent.yaml"
+          Points to reap play, not capture-learning.
+
+          ANALYZE Mode output path (line 69):
+          "proposals.yaml written to {stm_base}/{issue}/evidence/reap/proposals.yaml"
+          Input/output contract JSON (line 402):
+          "proposals_path": "{stm_base}/{issue}/evidence/reap/proposals.yaml"
+          Not "evidence/capture-learning/reconciliation-proposals.yaml".
+    failure_detail: null
+
+  - id: E-7
+    verdict: PASS
+    evidence:
+      - path: "core/components/plays/capture-learning/"
+        observation: |
+          ls core/components/plays/capture-learning/
+          Output: "ls: .../capture-learning/: No such file or directory"
+          Exit code: 1 — directory does not exist.
+      - path: "core/components/skills/diff-context-baseline/SKILL.md"
+        observation: "File exists (ls confirmed SKILL.md present)."
+      - path: "core/components/skills/draft-enrichment-proposals/SKILL.md"
+        observation: "File exists (ls confirmed SKILL.md present)."
+      - path: "core/components/skills/apply-ltm-enrichment/SKILL.md"
+        observation: "File exists (ls confirmed SKILL.md present)."
+      - path: "core/components/agents/knowledge-extractor.md"
+        observation: "File exists (ls confirmed file present)."
+    failure_detail: null
+
+  - id: E-8
+    verdict: PASS
+    evidence:
+      - path: "core/components/plays/reap/reference/intent.yaml"
+        observation: |
+          C9 (lines 128-133):
+          "If product LTM artifacts for a tier are absent (e.g., architecture/ directory
+          does not exist in product LTM), that tier is skipped with a warning recorded
+          in proposals.yaml under tiers_skipped. Missing product LTM is not a hard
+          failure — the play processes whichever tiers have artifacts available."
+
+          Also reinforced in C6 (lines 78-79):
+          "If product LTM artifacts for a tier are absent, that tier is skipped with
+          a warning in proposals.yaml (not a hard failure)."
+    failure_detail: null
+
+  - id: E-9
+    verdict: PASS
+    evidence:
+      - path: "core/components/plays/reap/SKILL.md"
+        observation: |
+          "### Phase: Evidence & Close" section present (line 187).
+
+          repo-orchestrator invocation (line 229):
+          "Invoke repo-orchestrator for evidence self-commit (ADR 012, non-blocking on
+          failure per C13):"
+
+          Commit message (line 242):
+          "commit_message": "chore(stm): record reap evidence for #{issue}"
+          Contains exact required prefix "chore(stm): record reap evidence for".
+
+          Non-blocking declaration (line 249):
+          "Non-blocking: if repo-orchestrator fails, log warning in evidence and exit
+          cleanly. Do NOT re-raise the failure."
+    failure_detail: null
+
+  - id: E-10
+    verdict: PASS
+    evidence:
+      - path: "core/components/plays/reap/SKILL.md"
+        observation: |
+          Well-formed SKILL.md on disk with matching hash (verified in E-2).
+          All required sections present (verified in E-2):
+            frontmatter (lines 1-6)
+            ## Compiled From (line 12)
+            ## Pre-flight (line 38)
+            ## Task DAG (line 66)
+            ## Workflow (line 79)
+            ### Phase: Evidence & Close (line 187)
+            ## Scenario Validation (line 257)
+            ## Compilation Metadata (line 321)
+          SKILL.md is non-empty (333 lines).
+          Hash in Compiled From section matches fresh sha256 of intent.yaml.
+          Satisfies the "successful prior build" path described in pass criteria.
+    failure_detail: null
+
+  - id: E-11
+    verdict: PASS
+    evidence:
+      - path: "core/components/skills/draft-enrichment-proposals/SKILL.md"
+        observation: |
+          Starting-point note (line 53):
+          "Note on canonical taxonomy: The canonical taxonomy above is a starting point,
+          not a closed enum. New categories or sub-categories may be proposed when none
+          of the canonical values fit — the invention mechanism (learning_category_proposed
+          / sub_category_proposed + taxonomy_justification) is the structured path for
+          proposing additions."
+
+          Invention-with-justification rule with rejection (line 55):
+          "Invention-with-justification rule (enforced at proposals-drafting boundary):
+          When either learning_category_proposed or sub_category_proposed is true, the
+          proposal MUST carry a complete taxonomy_justification block (evidence_path,
+          excerpt, reasoning). Proposals that propose a new category or sub-category
+          without a complete justification block MUST be rejected by this skill with a
+          structured error — this skill does not rely on upstream validation; it validates
+          the invariant at its own boundary."
+          All three sub-fields (evidence_path, excerpt, reasoning) explicitly enumerated.
+
+          Canonical taxonomy tree documented (lines 43-50): 5 top-level + children.
+
+      - path: "core/components/skills/diff-context-baseline/SKILL.md"
+        observation: |
+          Starting-point note (line 65):
+          "Note on canonical taxonomy: The canonical taxonomy above is a starting point,
+          not a closed enum. New categories or sub-categories may be proposed when none
+          of the canonical values fit — the invention mechanism (learning_category_proposed
+          / sub_category_proposed + taxonomy_justification) is the structured path for
+          proposing additions."
+
+          Invention-with-justification rule with rejection (lines 67-76):
+          "Proposed new categories: If no canonical learning_category or sub_category
+          fits the finding, the skill MAY emit a proposed-new value — BUT ONLY when:
+          (a) No canonical value reasonably covers the finding's nature.
+          (b) The finding carries a complete taxonomy_justification block containing:
+              - evidence_path: a specific STM artifact path demonstrating the learning type
+              - excerpt: a verbatim excerpt from that artifact
+              - reasoning: why no canonical taxonomy value fits
+          Findings proposing a new category without a complete taxonomy_justification block
+          are invalid and must be rejected by this skill with a structured error before
+          writing context-diff.yaml."
+          All three sub-fields documented. Rejection rule present.
+
+          Canonical taxonomy tree documented (lines 38-47): 5 top-level + children.
+
+      - path: "core/components/plays/reap/reference/intent.yaml"
+        observation: |
+          C7a (lines 99-110): invention-requires-justification constraint present.
+          "evidence_path ... excerpt ... reasoning" all three sub-fields named.
+          C7b (lines 111-117): canonical-as-starting-point constraint present.
+          Both required constraints (C7a and C7b) confirmed in intent.yaml.
+    failure_detail: null

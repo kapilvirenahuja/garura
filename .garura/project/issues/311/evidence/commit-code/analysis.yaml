@@ -1,0 +1,73 @@
+generated_at: "2026-04-22T00:00:00Z"
+branch: "enhance/311-reap-capture-learning"
+issue: 311
+
+groups:
+  - id: G1
+    type: feat
+    scope: reap
+    subject: "add reap play, retire capture-learning, rewire knowledge-extractor"
+    issue: 311
+    confidence: high
+    files:
+      # New files
+      - path: core/components/plays/reap/reference/intent.yaml
+        change: created
+      - path: core/components/plays/reap/SKILL.md
+        change: created
+      # Deleted files
+      - path: core/components/plays/capture-learning/SKILL.md
+        change: deleted
+      - path: core/components/plays/capture-learning/reference/intent.yaml
+        change: deleted
+      # Modified
+      - path: core/components/agents/knowledge-extractor.md
+        change: modified
+
+  - id: G2
+    type: feat
+    scope: reap
+    subject: "extend learning taxonomy in diff-context-baseline and draft-enrichment-proposals"
+    issue: 311
+    confidence: high
+    files:
+      - path: core/components/skills/diff-context-baseline/SKILL.md
+        change: modified
+      - path: core/components/skills/draft-enrichment-proposals/SKILL.md
+        change: modified
+
+  - id: G3
+    type: chore
+    scope: stm
+    subject: "record enhance evidence for #311"
+    issue: 311
+    confidence: high
+    files:
+      - path: .garura/project/issues/311/
+        change: untracked (directory — all files within)
+
+  - id: G4
+    type: chore
+    scope: stm
+    subject: "record merge-pr evidence for #252"
+    issue: 252
+    confidence: high
+    files:
+      - path: .garura/project/issues/252/evidence/merge-pr/merge-result.yaml
+        change: untracked
+      - path: .garura/project/issues/252/evidence/merge-pr/readiness.yaml
+        change: untracked
+
+risks:
+  sensitive_files: []
+  breaking_changes:
+    - "capture-learning play directory deleted — any caller referencing it must update (intentional per issue #311 scope)"
+    - "draft-enrichment-proposals output filename changed: reconciliation-proposals.yaml → proposals.yaml"
+    - "diff-context-baseline output schema: dimension field replaced by learning_category + sub_category"
+  ambiguous_types: []
+  hotfix_branch: false
+
+scope_guard_note: >
+  G4 (.garura/project/issues/252/) is unrelated to issue #311. It is scoped to a
+  separate issue (#252) and must be committed independently. Do NOT mix G4 with
+  G1/G2/G3 commits.

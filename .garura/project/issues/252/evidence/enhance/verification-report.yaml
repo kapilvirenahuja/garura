@@ -1,0 +1,86 @@
+task_id: verify
+issue: 252
+iteration: 1
+overall: PASS
+evals:
+  - id: EVAL-01
+    status: PASS
+    evidence:
+      - "Command: node core/tools/lint-components/index.js --target core/components --output json"
+      - "stdout is valid JSON (parsed successfully via JSON.parse)"
+      - "Top-level key 'violations' is an array with 108 entries"
+      - "Top-level key 'summary' is an object with integer fields: {errors: 88, warnings: 20, infos: 0}"
+      - "All summary fields (errors, warnings, infos) are typeof 'number'"
+      - "Process exited with code 1 (violations present — acceptable per eval criteria)"
+      - "stderr was empty — no uncaught exceptions"
+
+  - id: EVAL-02
+    status: PASS
+    evidence:
+      - "Created /tmp/lint-test/skills/test-skill/SKILL.md with all required frontmatter fields except 'name'"
+      - "Run: node core/tools/lint-components/index.js --target /tmp/lint-test --output json"
+      - "violations array contains entry for /tmp/lint-test/skills/test-skill/SKILL.md"
+      - "Violation: {rule: 'structural/missing-frontmatter-field', severity: 'error', message: 'Missing required frontmatter field: name', line: 1}"
+      - "severity is 'error' as required"
+      - "message references the missing required field 'name'"
+      - "Temp files cleaned up from /tmp/lint-test/"
+
+  - id: EVAL-03
+    status: PASS
+    evidence:
+      - "Created /tmp/lint-test/plays/test-play/SKILL.md with required sections (Compiled From, Role, Pre-flight) and Skill Pool table referencing '`nonexistent-skill-xyz`'"
+      - "Run: node core/tools/lint-components/index.js --target /tmp/lint-test --output json"
+      - "violations array contains entry for /tmp/lint-test/plays/test-play/SKILL.md"
+      - "Violation: {rule: 'semantic/skill-not-found', severity: 'error', message: \"Skill reference 'nonexistent-skill-xyz' not found in core/components/skills/\", line: 19}"
+      - "severity is 'error' as required"
+      - "message explicitly names 'nonexistent-skill-xyz' as the missing/unresolvable skill reference"
+      - "Temp files cleaned up from /tmp/lint-test/"
+
+  - id: EVAL-04
+    status: PASS
+    evidence:
+      - "Created /tmp/lint-test/plays/test-play/reference/intent.yaml with two constraints both having id: C1"
+      - "Run: node core/tools/lint-components/index.js --target /tmp/lint-test --output json"
+      - "violations array contains entry for /tmp/lint-test/plays/test-play/reference/intent.yaml"
+      - "Violation: {rule: 'cross-ref/duplicate-constraint-id', severity: 'error', message: 'Duplicate constraint ID: C1', line: 1}"
+      - "severity is 'error' as required"
+      - "message explicitly names 'C1' as the duplicate"
+      - "Temp files cleaned up from /tmp/lint-test/"
+
+  - id: EVAL-05
+    status: PASS
+    evidence:
+      - "Run: node core/tools/lint-components/index.js --target core/components --output json (no modifications)"
+      - "Corpus confirmed to contain both spellings: files using 'user-invocable' (validate, capture-learning, prepare, review-pr, implement, ...) and 'user-invokable' (design, capture, commit-code, distill, scope, ...)"
+      - "13 violations with rule 'structural/spelling-inconsistency' found in output"
+      - "All 13 violations have severity: 'warning' — no 'error' severity for spelling variant"
+      - "No play flagged as error solely for using user-invokable or user-invocable"
+      - "Both spellings accepted as structurally valid at individual file level"
+      - "Example warning: {file: '.../plays/arch/SKILL.md', rule: 'structural/spelling-inconsistency', severity: 'warning', message: 'Corpus uses mixed spellings for user-invocable/user-invokable. This file uses `user-invokable` (minority form).'}"
+
+  - id: EVAL-06
+    status: PASS
+    evidence:
+      - "Run: node core/tools/lint-components/index.js --target core/components/skills/lint-components --output json"
+      - "Output: {violations: [], summary: {errors: 0, warnings: 0, infos: 0}}"
+      - "Zero ERROR-level violations for core/components/skills/lint-components/SKILL.md"
+      - "SKILL.md contains required sections: '## Input' (line 15), '## Process' (line 31), '## Output' (line 85)"
+      - "Frontmatter field 'name: lint-components' is present"
+      - "Frontmatter field 'user-invocable: false' is present"
+      - "Frontmatter field 'model: sonnet' is present"
+      - "Frontmatter field 'allowed-tools: Bash, Read' is present"
+
+  - id: EVAL-07
+    status: PASS
+    evidence:
+      - "SKILL.md Process step 4 (line 55): explicitly reads '.garura/product/specification/quality-profile.yaml' and extracts the 'status' field"
+      - "SKILL.md Process step 5: classifies error-severity violations as 'blocker', warning/info-severity as 'informational'"
+      - "SKILL.md Process step 6: logs 'quality_profile_status' field (sourced from profile's status field) in the output artifact"
+      - "Output schema includes 'quality_profile_status' field (line 67 of SKILL.md)"
+      - "Output schema includes per-violation 'classification: blocker|informational' (equivalent to severity_policy section)"
+      - "Output schema includes 'summary.blockers' (count of error violations) and 'summary.informational' (count of warning+info violations)"
+      - "quality-profile.yaml exists at .garura/product/specification/quality-profile.yaml with 'status: DRAFT'"
+      - "Constraints section confirms: 'Quality profile path must be resolvable: .garura/product/specification/quality-profile.yaml'"
+      - "ERROR violations classified as blockers; WARNING violations classified as informational — traceable to quality profile read"
+
+failing_evals: []

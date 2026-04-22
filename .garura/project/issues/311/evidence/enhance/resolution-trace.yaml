@@ -1,0 +1,51 @@
+resolution_trace:
+  task: context-assembly
+  issue: 311
+  resolved_at: "2026-04-22"
+  domains:
+    - domain: capture-learning anatomy
+      resolved_from: codebase
+      artifacts_consulted:
+        - core/components/plays/capture-learning/SKILL.md
+        - core/components/plays/capture-learning/reference/intent.yaml
+    - domain: knowledge-extractor agent contract
+      resolved_from: codebase
+      artifacts_consulted:
+        - core/components/agents/knowledge-extractor.md
+    - domain: tier taxonomy
+      resolved_from: codebase
+      artifacts_consulted:
+        - core/components/skills/diff-context-baseline/SKILL.md
+        - core/components/skills/draft-enrichment-proposals/SKILL.md
+      notes: "Tier 1/2/3 is maturity-only axis; dimension field exists in diff-context-baseline output but is dropped in draft-enrichment-proposals. No learning-category field in proposals schema."
+    - domain: product LTM structure
+      resolved_from: codebase
+      artifacts_consulted:
+        - .garura/core/config.yaml
+      notes: "architecture/ directory absent from product LTM — all 5 Tier 1 targets listed in knowledge-extractor.md do not exist on disk."
+    - domain: build trinity canonical paths
+      resolved_from: codebase
+      artifacts_consulted:
+        - core/components/plays/prepare/SKILL.md
+        - core/components/plays/implement/SKILL.md
+        - core/components/plays/validate/SKILL.md
+    - domain: distill proposals schema (L1 vs L2 divergence)
+      resolved_from: codebase
+      artifacts_consulted:
+        - core/components/skills/distill/SKILL.md
+        - core/components/skills/draft-enrichment-proposals/SKILL.md
+      notes: "L1 (distill) uses confidence/proposed_content/evidence_diff_reference; L2 uses tier/change/from_finding/adr_draft_path. Schemas have diverged despite distill's forward-compat intent."
+    - domain: create-play workflow
+      resolved_from: codebase
+      artifacts_consulted:
+        - core/components/plays/create-play/SKILL.md
+    - domain: STM whitelist
+      resolved_from: ltm
+      artifacts_consulted:
+        - ~/.garura/core/memory/standards/rules/ltm-paths.md
+      notes: "evidence/reap/ permitted under STM whitelist."
+    - domain: learning category taxonomy
+      resolved_from: ltm
+      artifacts_consulted:
+        - ~/.garura/core/memory/standards/rules/kb-extension.md
+      notes: "KB extension defines Experiential section as the only agent-writable section per feature. No taxonomy for arch/domain/tech/design-pattern categories in LTM."

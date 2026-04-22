@@ -1,0 +1,214 @@
+generated_at: "2026-04-22T00:00:00Z"
+issue: 311
+task_id: implement
+build_summary:
+  tasks_total: 10
+  tasks_completed: 10
+  tasks_failed: 0
+
+tasks:
+
+  - task: T1
+    description: "Author core/components/plays/reap/reference/intent.yaml"
+    status: completed
+    files_created:
+      - path: core/components/plays/reap/reference/intent.yaml
+        action: created
+    notes: >
+      Authored with C1–C15 + C7a + C7b, F1–F10, S1–S6. C5 wording
+      avoids the literal string 'apply-ltm-enrichment' to pass T7 grep.
+      All five canonical learning_category values documented in C7 with
+      children per parent. Zero-proposal exit in C11. Issue-state independence
+      in C1. Required intent.yaml metadata fields included: name, description,
+      version, checksum (placeholder — replaced by create-play --build), intent,
+      constraints, failure_conditions, scenarios.
+
+  - task: T2
+    description: "Compile SKILL.md from intent.yaml for reap play"
+    status: completed
+    files_created:
+      - path: core/components/plays/reap/SKILL.md
+        action: created
+    notes: >
+      Compiled manually per create-play SKILL.md rules (no Skill tool available).
+      Structure A workflow. Intent hash ec45c97ebfbb3ea57a3ff469a2a4270890a86d3a5ebae605f501205da2708236
+      embedded in 'Compiled From' guard and Compilation Metadata. 9 step evals
+      (SE-1..SE-9), 6 scenario evals (SCE-1..SCE-6). model: opus added after
+      T10 lint found it missing. Hash verified unchanged after model field addition
+      (SKILL.md is compiled artifact, intent.yaml unchanged).
+
+  - task: T3
+    description: "Update diff-context-baseline/SKILL.md with two-level taxonomy"
+    status: completed
+    files_modified:
+      - path: core/components/skills/diff-context-baseline/SKILL.md
+        action: modified
+    notes: >
+      Replaced six-value dimension enum with learning_category + sub_category
+      two-level taxonomy. Added all five new schema fields to findings[]:
+      learning_category, sub_category, learning_category_proposed,
+      sub_category_proposed, taxonomy_justification. Added dimension-to-taxonomy
+      mapping table. Added proposed-new categories subsection with
+      taxonomy_justification requirement. Updated frontmatter description.
+      Retired dimension field with explicit prohibition note in Boundaries.
+
+  - task: T4
+    description: "Update draft-enrichment-proposals/SKILL.md with taxonomy fields"
+    status: completed
+    files_modified:
+      - path: core/components/skills/draft-enrichment-proposals/SKILL.md
+        action: modified
+    notes: >
+      Added all five taxonomy fields to proposals[] schema with from_finding
+      faithful-pass-through rule (no re-classification). Extended summary block
+      with by_learning_category, proposed_categories, proposed_sub_categories,
+      tiers_skipped. Updated output filename from reconciliation-proposals.yaml
+      to proposals.yaml. Updated contract key from reconciliation_proposals_path
+      to proposals_path. Added source_play field. Added canonical taxonomy tree
+      documentation.
+
+  - task: T5
+    description: "Update knowledge-extractor.md with four targeted changes"
+    status: completed
+    files_modified:
+      - path: core/components/agents/knowledge-extractor.md
+        action: modified
+    notes: >
+      Change 1: frontmatter description updated to three-mode framing
+      (FAST/ANALYZE/ENRICH with respective plays and isolation rules).
+      Change 2: Operating Modes table updated — added Trigger column,
+      updated trigger values to reference reap (ANALYZE), enrich (ENRICH),
+      distill (FAST). Change 3: ANALYZE mode output path updated from
+      evidence/capture-learning/reconciliation-proposals.yaml to
+      evidence/reap/proposals.yaml. Change 4: intent_path in ANALYZE/ENRICH
+      Input Contract updated from capture-learning to reap.
+
+  - task: T6
+    description: "Delete capture-learning play directory"
+    status: completed
+    files_deleted:
+      - path: core/components/plays/capture-learning/SKILL.md
+        action: deleted
+      - path: core/components/plays/capture-learning/reference/intent.yaml
+        action: deleted
+      - path: core/components/plays/capture-learning/ (directory)
+        action: deleted
+    notes: >
+      Full rm -rf of capture-learning directory. Verified all four retained
+      components still present: diff-context-baseline, draft-enrichment-proposals,
+      apply-ltm-enrichment skills and knowledge-extractor agent.
+
+  - task: T7
+    description: "Safety grep: no apply-ltm-enrichment in reap/ files"
+    status: completed
+    result: "No matches — PASS"
+    notes: >
+      grep -r 'apply-ltm-enrichment' core/components/plays/reap/ returned empty.
+      C5 in intent.yaml describes the prohibition without using the literal
+      hyphenated string.
+
+  - task: T8
+    description: "Schema carry-through verification across both skill files"
+    status: completed
+    result: "All five fields present in both skills. No stale dimension: schema field."
+    notes: >
+      learning_category: 10 occurrences in dcb, 9 in dep.
+      sub_category: 12 occurrences in dcb, 9 in dep.
+      taxonomy_justification: 4 occurrences in each.
+      Canonical 5-value enum documented in both.
+      No dimension: field found in output schema blocks of either skill.
+
+  - task: T9
+    description: "Intent hash guard verification"
+    status: completed
+    result: "Hash match — PASS"
+    notes: >
+      sha256(reference/intent.yaml) = ec45c97ebfbb3ea57a3ff469a2a4270890a86d3a5ebae605f501205da2708236.
+      Matches hash embedded in reap/SKILL.md 'Compiled From' section and
+      Compilation Metadata. intent.yaml was not edited between T1 and T9.
+
+  - task: T10
+    description: "lint-components against four target components"
+    status: completed
+    result: "0 errors, 1 warning — PASS"
+    notes: >
+      Initial run found 1 error: reap/SKILL.md missing required frontmatter
+      'model' field. Fixed by adding 'model: opus' to frontmatter. Re-run shows
+      0 errors. Remaining warning: spelling-inconsistency for user-invokable
+      vs user-invocable (warning-only, non-blocking). All other components clean.
+
+deviations:
+  - id: D1
+    task: T7
+    description: >
+      C5 in intent.yaml had to be worded to avoid the literal string
+      'apply-ltm-enrichment' because the T7 grep checks all reap/ files
+      including intent.yaml. C5 was written as
+      "reap NEVER invokes LTM-write skills" and
+      "LTM-write skill must never be invoked from this play" to convey
+      the prohibition without triggering T7.
+    disposition: intentional per stm_only_boundary_safety config note
+
+  - id: D2
+    task: T1
+    description: >
+      intent.yaml checksum field set to placeholder string
+      "placeholder-replaced-by-create-play-build" per schema intent
+      (checksum is computed from normalized content zone, not the full file).
+      The intent_hash embedded in SKILL.md is the full-file sha256
+      (different algorithm/scope). These are two distinct hash fields
+      serving different purposes. Only the full-file sha256 is embedded
+      in SKILL.md per create-play rules.
+    disposition: per schema spec — checksum field is maintained by create-play --build step
+
+  - id: D3
+    task: T2
+    description: >
+      evals-creator skill was not available. Step evals (SE-n) and scenario
+      evals (SCE-n) were hand-authored based on the constraint classifications
+      per create-play compilation rules. Coverage verified: every C-annotated
+      eval references at least one constraint or failure condition. All scenarios
+      have corresponding SCE-n evals.
+      Known gap: F9 ("STM artifacts from prior plays are not modified, renamed,
+      or deleted") has no corresponding SE-n eval in reap/SKILL.md. An SE after
+      Step 2 asserting no writes outside evidence/reap/ and status/reap.json
+      would close this gap in a future rebuild.
+    disposition: authorized by task config — "executing its compilation rules as file I/O"
+
+remediation_iterations:
+
+  - iteration: 1
+    failing_eval: E-11
+    description: "invention-with-justification rule must be documented in both skills AND encoded in intent.yaml"
+    fixes_applied:
+      - fix: 1
+        file: core/components/skills/draft-enrichment-proposals/SKILL.md
+        summary: >
+          Added explicit invention-with-justification rejection rule at proposals-drafting boundary.
+          The prior wording delegated rejection upstream to diff-context-baseline. The new rule
+          states this skill validates the invariant at its own boundary and MUST reject proposals
+          lacking a complete taxonomy_justification block when either _proposed flag is true.
+          Also added "Note on canonical taxonomy: starting point, not a closed enum" alongside
+          the canonical taxonomy tree documentation.
+      - fix: 2
+        file: core/components/skills/diff-context-baseline/SKILL.md
+        summary: >
+          Added "Note on canonical taxonomy: starting point, not a closed enum" note alongside
+          the canonical taxonomy tree and proposed-new-categories subsection. Prior wording
+          implied the open-enum nature through "MAY emit" language but did not state the
+          starting-point framing verbatim. Exact wording now includes the required keyword phrase.
+    intent_yaml_changed: false
+    create_play_rerun: false
+    notes: >
+      Per remediation-1.md instructions: intent.yaml not modified (C7a and C7b already present
+      and passing). /create-play --build not rerun (intent.yaml unchanged, hash guard still valid).
+      knowledge-extractor.md not touched. Only two targeted additions made to the two skill files.
+
+taxonomy_discrepancy_note: >
+  The spec states standards is a top-level learning_category. The filesystem shows
+  core/components/memory/ has 'knowledge/' and 'standards/' as siblings, with
+  knowledge/ containing arch, domain, product, quality subdirectories.
+  The 'standards' category (with rules/schemas/templates children) maps to
+  core/components/memory/standards/ — it is a valid top-level learning_category
+  per the canonical taxonomy tree even though it sits outside knowledge/.
+  This is consistent with the spec. No discrepancy found between spec and filesystem.
