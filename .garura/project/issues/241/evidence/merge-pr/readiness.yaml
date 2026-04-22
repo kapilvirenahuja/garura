@@ -1,0 +1,35 @@
+readiness:
+  assessed_at: "2026-04-22"
+  issue: 241
+  pr_number: 320
+
+  checks:
+    - id: C1
+      rule: "Must not operate when current branch is main, master, or repository default"
+      branch: "feat/241-codify-brownfield"
+      status: PASS
+      evidence: "Current branch is a feature branch, not main/master"
+
+    - id: C2
+      rule: "A pull request must exist on the platform before any merge is attempted"
+      status: PASS
+      evidence: "PR #320 exists, state=OPEN, title='feat(codify): brownfield LTM bootstrap play (#241)'"
+
+    - id: C3
+      rule: "Working tree and index must be clean before any operation begins"
+      status: PASS
+      evidence: "git status: nothing to commit, working tree clean"
+
+    - id: C4
+      rule: "If PR has merge conflicts, no merge is attempted"
+      status: PASS
+      evidence: "PR mergeable=MERGEABLE, no conflicts detected"
+
+  overall: PASS
+  pr:
+    number: 320
+    url: "https://github.com/kapilvirenahuja/garura/pull/320"
+    state: OPEN
+    mergeable: MERGEABLE
+    base: main
+    head: feat/241-codify-brownfield

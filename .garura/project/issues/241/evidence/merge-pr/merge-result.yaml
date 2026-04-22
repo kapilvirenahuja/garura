@@ -1,0 +1,28 @@
+result:
+  status: merged
+  pr_number: 320
+  pr_url: "https://github.com/kapilvirenahuja/garura/pull/320"
+  merge_sha: "2e8ff1c1a528c9b0bb8ae73469df268e794b8137"
+  base_branch: main
+  feature_branch: feat/241-codify-brownfield
+  branch_deleted: true
+  remote_branch_deleted: true
+  remote_deletion_note: "Remote branch was auto-deleted by GitHub on merge; 'branch not found' treated as success per C6"
+  local_state:
+    current_branch: main
+    up_to_date_with_remote: true
+    working_tree_clean: true
+
+evals:
+  SE-2:
+    id: "F2 — feature branch deleted"
+    status: PASS
+    evidence: "git branch -a shows no feat/241-codify-brownfield locally or on remote after fetch --prune"
+  SE-3:
+    id: "F3 — local checkout on base branch, up to date"
+    status: PASS
+    evidence: "git branch --show-current=main; git status: up to date with origin/main"
+  SE-5:
+    id: "F5 — PR merged on platform"
+    status: PASS
+    evidence: "gh pr view 320 state=MERGED, mergeCommit.oid=2e8ff1c1a528c9b0bb8ae73469df268e794b8137"
