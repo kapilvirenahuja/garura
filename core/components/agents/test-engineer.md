@@ -402,6 +402,7 @@ When invoked via JSON contract, delegate artifact authorship to skills. You NEVE
 | `compute-blast-radius` | Phase 2B — given change surface + dependency graph | `change_surface`, `dependency_graph_path`, `test_surface_path`, `transitive_depth` (optional), `output_base` | `blast-radius.yaml` |
 | `specify-baseline-tests` | Phase 2C — after coverage gaps identified | `blast_radius_path`, `project_root`, `test_surface_path`, `output_base` | `baseline-tests.yaml` |
 | `draft-verification-scenarios` | Phase 3 — three-tier scenario authoring | per that skill's contract | `scenarios.yaml` |
+| `infer-quality-profile-from-code` | `/codify brownfield — infer ISO 25010 quality targets + risk register from tooling posture (lint/type/test/CI configs + deps + patterns)` | `scan_index_path`, `stm_base`, `issue`, `ltm_context`, `output_path`, `decision_manifest_path`, `resolution_trace_path` | `quality-profile.yaml` (proposal under STM) + decision manifest + resolution trace |
 
 **Invocation:** Use the Skill tool. Each skill reads inputs, writes its artifact, and returns the path. Extract only the artifact path from the skill output — do NOT forward the skill's YAML as your response.
 

@@ -1,0 +1,6 @@
+branch_name: enhance/241-codify-derive-product-ltm
+base_branch: main
+pushed: true
+remote_url: https://github.com/kapilvirenahuja/garura.git
+issue_number: 241
+tracking: origin/enhance/241-codify-derive-product-ltm

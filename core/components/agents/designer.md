@@ -90,6 +90,18 @@ Key outputs:
 - `notes[]` — up to 3 one-sentence findings
 - `step_failure` — null on success, populated on unrecoverable failure
 
+## Skill Pool
+
+When invoked via JSON contract, delegate artifact production to skills when available:
+
+| Skill | When | Input | Produces |
+|-------|------|-------|----------|
+| `infer-experience-from-code` | /codify brownfield — ONLY when scan-index frontend_detection is true for at least one repo; produces structural experience artifacts (personas, screens, flows, design-system, design-spec) with knowledge_gap markers on wireframes and visual design | `scan_index_path`, `stm_base`, `issue`, `related_proposal_paths` (features, enriched-capabilities, domain-selection), `ltm_context`, `experience_output_dir`, `decision_manifest_path`, `resolution_trace_path` | `experience/*` proposals (multiple files) + decision manifest + resolution trace; OR short-circuits with `status: "skipped: no_frontend"` when no frontend detected |
+
+**Invocation:** Use the Skill tool. The skill reads from STM, writes the artifact, and returns a YAML output contract with the path. Extract the artifact path from the skill output — do NOT forward the skill's YAML as your response.
+
+**If no matching skill exists for an artifact you are asked to produce:** return a structured failure per `structured-failure-protocol.md` requesting the skill be created. Do NOT author artifacts inline via `Write`.
+
 ## Boundaries
 
 ### NEVER
