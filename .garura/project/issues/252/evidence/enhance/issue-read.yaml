@@ -1,0 +1,49 @@
+issue:
+  number: 252
+  title: "feat: component linting for plays, agents, and skills"
+  labels:
+    - enhancement
+  state: "open"
+  body_summary: "There is no validation layer for authored components (plays, agents, skills). Structural and semantic errors — missing frontmatter fields, inconsistent agent boundary declarations, broken cross-references between skills and plays, constraint ID collisions — are only caught downstream when something breaks at runtime or during PR review."
+  body: |
+    ## Problem
+
+    There is no validation layer for authored components (plays, agents, skills). Structural and semantic errors — missing frontmatter fields, inconsistent agent boundary declarations, broken cross-references between skills and plays, constraint ID collisions — are only caught downstream when something breaks at runtime or during PR review.
+
+    Example from enhance/#240: the knowledge-extractor agent was extended with a FAST mode, but the Boundaries section ("NEVER Modify STM artifacts", "ALWAYS Read context baseline") was not updated to reflect FAST mode's different contract. No lint caught this contradiction — it was only surfaced during PR review.
+
+    ## What Needs Linting
+
+    ### Structural (per-file)
+    - Frontmatter completeness: required fields present (`name`, `description`, `user-invokable`/`user-invocable`, `model`, `allowed-tools`)
+    - Required sections present (Purpose, Input, Process, Output, Constraints, Version for skills; Role, Pre-flight, Workflow, Pause and Resume, Compilation Metadata for plays)
+    - YAML validity in intent.yaml files
+    - Constraint/scenario ID uniqueness within a file
+
+    ### Semantic (cross-file)
+    - Agent boundaries consistent with operating modes (if agent has N modes, boundaries apply to all or are mode-scoped)
+    - Skills referenced in plays actually exist at the declared path
+    - Agents referenced in plays exist and have the required mode/capability
+    - Intent.yaml constraints covered by SKILL.md steps (no orphaned constraints)
+    - Template files referenced in Output sections exist
+
+    ### Cross-reference integrity
+    - Ship sub-play chain matches declared sub_plays in Compilation Metadata
+    - Status file JSON schema matches declared task entries in Workflow
+    - Scenario IDs in intent.yaml correspond to SCE-N entries in SKILL.md
+
+    ## Context
+
+    - `create-play` is the existing build step (intent.yaml → SKILL.md compilation)
+    - Linting should be a separate concern from compilation — invocable standalone, in CI, or as a pre-compile gate
+    - The quality-check step in enhance runs build/lint/typecheck/tests, but currently all pass trivially because there's no lint tooling
+
+    ## Relationships
+
+    - Related: #240 (first enhance run that surfaced the gap via PR review)
+    - Related: #250 (risk classification — a linter could validate risk schema)
+  url: "https://github.com/kapilvirenahuja/garura/issues/252"
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "feature"

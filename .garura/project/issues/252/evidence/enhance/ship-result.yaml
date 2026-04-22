@@ -1,0 +1,6 @@
+task_id: ship
+issue: 252
+pr_number: 316
+merge_sha: 16339457ef12cc04b13b3b273b738f02aea78804
+branch_deleted: true
+branch: enhance/252-component-linting

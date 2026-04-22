@@ -1,0 +1,166 @@
+judge_report:
+  timestamp: "2026-04-22T00:00:00Z"
+  eval_source: "core/components/plays/enhance/reference/evals/solution-rating.yaml"
+  task_id: "judge-rating"
+  issue: 252
+  total_evals: 4
+  passed: 4
+  failed: 0
+  pass_rate: "100%"
+  overall: "PASS"
+  blocker_found: false
+  overall_confidence: 0.87
+
+  per_area_assessments:
+
+    - eval_id: ER-1
+      name: Contract Mismatch at Skill Boundary
+      status: PASS
+      severity_if_fail: blocker
+      evidence: >
+        The enhancement delivers one new skill (lint-components/SKILL.md) with no existing
+        callers in the codebase. The skill's Input Contract declares two required fields:
+        project_root (string) and output_path (string). There are no upstream callers
+        dispatching to this skill — it is a standalone invocable unit per the approach
+        (connections section: "pipelines that want to gate on lint results invoke this skill").
+        With no caller-to-callee dispatch chains present in the delivered code, there are
+        no contract mismatches to flag. The skill's own Input/Output sections are internally
+        consistent. Minor documentation note: the Input table declares output_path as an
+        STM input field, but the YAML example places lint_report under stm.output rather
+        than stm.input — this is a documentation inconsistency, not a contract mismatch
+        at a code boundary, and does not rise to a blocker.
+
+    - eval_id: ER-2
+      name: Intent-Propagation Break in Agent-to-Agent Handoff
+      status: PASS
+      severity_if_fail: blocker
+      evidence: >
+        The enhancement introduces no agent-to-agent handoffs. It delivers a Node.js CLI
+        tool and a skill wrapper. The skill produces one output artifact (lint report YAML)
+        written to the STM output path. The approach explicitly states no agent modifications
+        (files_to_modify: []) and no existing pipelines are changed. Git status confirms:
+        core/components/agents/ has no modifications. There are no upstream artifacts
+        written by one agent and silently ignored by a downstream agent. The eval condition
+        (upstream artifact exists on disk but downstream agent has no declared input
+        pointing to it) does not apply to any handoff in this enhancement.
+
+    - eval_id: ER-3
+      name: Stale Agent Boundary Contradicting New Rule
+      status: PASS
+      severity_if_fail: blocker
+      evidence: >
+        The approach declares files_to_modify: [] — no existing agents were touched.
+        Git status confirms core/components/agents/ has zero modifications. No agent
+        boundary statements were introduced or changed by this enhancement. No new
+        constraints (C-IDs) were introduced that could contradict existing agent MUST NOT
+        sections. The enhancement is entirely additive: new tool code and a new skill.
+        No stale boundary conditions can exist when no agent boundaries were touched.
+
+    - eval_id: ER-4
+      name: Overall Confidence Aggregation Cap
+      status: PASS
+      severity_if_fail: blocker
+      evidence: >
+        ER-1, ER-2, and ER-3 all passed with no blocker-level concerns. Per ER-4 pass
+        criteria, overall_confidence is uncapped and reflects quality across all assessments.
+        overall_confidence set to 0.87, reflecting: (1) full behavioral correctness of the
+        Node.js linter tool — all six evals from approach.yaml EVAL-01 through EVAL-06 pass
+        on live execution; (2) clean self-lint (zero errors when linter runs against itself);
+        (3) all three rule tiers implemented and functional; (4) quality profile integration
+        logic specified in SKILL.md Process section with fallback documented. Confidence
+        below 1.0 due to: the documentation inconsistency in the Input Contract (output_path
+        declared as stm.input field but example shows stm.output), and ER-7 (quality profile
+        classification) is design-time only — no live invocation test was run.
+
+  behavioral_verification:
+    EVAL-01:
+      status: PASS
+      evidence: >
+        Executed: node core/tools/lint-components/index.js --target core/components --output json
+        Exit code: 0. Output is valid JSON with keys: violations (108 items), summary
+        (errors: 88, warnings: 20, infos: 0). JSON parseable without error. All required
+        top-level keys present.
+
+    EVAL-02:
+      status: PASS
+      evidence: >
+        Copied lint-components SKILL.md to /tmp/lint-test-er2/skills/test-skill/SKILL.md,
+        removed the 'name' field from frontmatter. Ran linter against /tmp/lint-test-er2.
+        Result: violation with file=test-skill/SKILL.md, rule=structural/missing-frontmatter-field,
+        severity=error, message='Missing required frontmatter field: name'. Confirmed severity
+        is ERROR not WARNING.
+
+    EVAL-03:
+      status: PASS
+      evidence: >
+        Created /tmp/lint-test-er3/plays/test-play/SKILL.md with a Skill Pool table
+        referencing 'nonexistent-skill-xyz'. Ran linter. Result: violation with
+        rule=semantic/skill-not-found, severity=error,
+        message="Skill reference 'nonexistent-skill-xyz' not found in core/components/skills/".
+        Confirmed ERROR severity. The conservative extraction pattern (Skill Pool table
+        matching) worked correctly.
+
+    EVAL-04:
+      status: PASS
+      evidence: >
+        Created /tmp/lint-test-er4 with an intent.yaml containing two constraints both
+        with id: C1. Ran linter. Result: violation with rule=cross-ref/duplicate-constraint-id,
+        severity=error, message='Duplicate constraint ID: C1'. Also correctly emitted a
+        WARNING for scenario S1 having no corresponding SCE-1 entry (cross-ref/uncovered-scenario).
+
+    EVAL-05:
+      status: PASS
+      evidence: >
+        Ran linter against core/components/ without modification. Found 13 violations
+        with rule=structural/spelling-inconsistency and severity=warning (not error).
+        Confirmed all=True for severity==warning across all spelling violations. Zero
+        ERROR violations for plays solely due to spelling. Both user-invocable and
+        user-invokable are accepted as structurally valid — only the inconsistency triggers
+        a WARNING on the minority form (user-invokable).
+
+    EVAL-06:
+      status: PASS
+      evidence: >
+        Ran linter against core/components/skills/lint-components/ (self-lint).
+        Result: 0 violations, 0 errors. Verified SKILL.md contains all required sections
+        (## Input, ## Process, ## Output) and valid frontmatter: name=lint-components,
+        user-invocable=false, model=sonnet, allowed-tools='Bash, Read'.
+
+    EVAL-07:
+      status: PASS_WITH_NOTE
+      evidence: >
+        The SKILL.md Process section step 4–6 explicitly describes reading quality-profile.yaml,
+        extracting the status field, classifying ERROR violations as blockers and WARNING as
+        informational per quality-profile-derived policy, and logging quality_profile_status
+        in the output artifact. The quality-profile.yaml exists at
+        .garura/product/specification/quality-profile.yaml (status: DRAFT). The skill
+        describes severity_policy derivation in the output artifact schema. No live
+        invocation was performed (skill is invoked by an LLM agent, not a CLI). Rated
+        CONDITIONAL_PASS — design-time specification is correct and complete; runtime
+        behavior depends on LLM execution of the Process steps.
+
+  concerns:
+    - id: C1
+      severity: minor
+      description: >
+        Input Contract documentation inconsistency: the Input table declares output_path
+        as an STM input field (stm.input.output_path), but the YAML example shows
+        lint_report under stm.output (stm.output.lint_report). A caller following the
+        example would place the path in stm.output, not stm.input. The Process section
+        says "Write lint report to STM output path" without resolving which field key
+        to read from the invocation context. This does not block current functionality
+        (the skill is not yet called by any pipeline) but creates ambiguity for the
+        first integrator.
+      blocker: false
+
+    - id: C2
+      severity: minor
+      description: >
+        EVAL-07 (quality profile classification) cannot be verified behaviorally without
+        an LLM invocation of the skill. The skill's SKILL.md correctly specifies the
+        classification logic, but the output artifact's severity_policy section presence
+        depends on the LLM following the Process steps. This is inherent to skill-as-LLM-instruction
+        architecture and is not a defect — it is an untestable-at-rest characteristic.
+      blocker: false
+
+  plaintext_deleted: not_applicable  # eval file was not encrypted

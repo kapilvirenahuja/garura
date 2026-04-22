@@ -1,0 +1,487 @@
+---
+# approach.yaml — Issue #252: Component Linting for Garura Components
+# Authored by: tech-designer
+# Play: enhance
+# Date: 2026-04-22
+
+problem_statement: >
+  Garura components (plays, agents, skills under core/components/) have no validation layer.
+  Structural errors (missing frontmatter fields, wrong section structure), semantic errors
+  (broken cross-references between plays and skills, missing agents), and cross-reference
+  integrity violations (constraint ID collisions, orphaned scenario IDs) are only caught
+  at runtime or PR review. The enhance pipeline's quality-check step currently passes
+  trivially because no lint tooling exists. This creates silent drift and forces human
+  reviewers to be the last line of defense against malformed components.
+
+solution_summary: >
+  Deliver a two-layer linting capability: (1) a deterministic Node.js CLI tool at
+  core/tools/lint-components/ that parses and validates all Garura components against
+  structural, semantic, and cross-reference rules, emitting structured JSON output; and
+  (2) a lint-components skill at core/components/skills/lint-components/SKILL.md that
+  wraps the Node tool, reads the quality profile to classify violation severities, and
+  produces a structured lint report artifact usable from enhance, review, pr-review, and
+  ship pipelines. No changes to create-play or CI/CD are required for this issue.
+
+files_to_create:
+  - path: core/tools/lint-components/package.json
+    rationale: >
+      Node.js package manifest for the linter tool. No package.json exists at repo root or
+      in core/tools/ — this is a fresh Node module. Declares js-yaml and any other parsing
+      dependencies. Sets main entry point to index.js and defines a lint bin script.
+
+  - path: core/tools/lint-components/index.js
+    rationale: >
+      CLI entry point. Accepts --target (default: core/components) and --output (json|text,
+      default: json) flags. Orchestrates the three validation tiers (structural, semantic,
+      cross-reference) by loading component discovery, running rule sets, and emitting the
+      structured JSON result: { violations: [{file, rule, severity, message, line}],
+      summary: {errors, warnings, infos} }. Exit code 0 if no errors; 1 if any errors present.
+
+  - path: core/tools/lint-components/lib/discover.js
+    rationale: >
+      Component discovery module. Walks core/components/ to enumerate all skills (SKILL.md
+      under skills/*/), plays (SKILL.md under plays/*/), agents (.md under agents/), and
+      intent.yaml files (plays/*/reference/intent.yaml). Returns a structured component
+      map used by all rule modules.
+
+  - path: core/tools/lint-components/lib/parse-frontmatter.js
+    rationale: >
+      Frontmatter parser. Extracts YAML between triple-dash delimiters from Markdown files.
+      Uses js-yaml for YAML parsing. Returns { parsed: {...}, raw: string, error: null|string }.
+      Handles the case where no frontmatter is present (returns null parsed with a parse error).
+
+  - path: core/tools/lint-components/lib/rules/structural.js
+    rationale: >
+      Structural rule set (per-file). Validates: (a) frontmatter completeness per component
+      type — skills require name, description, user-invocable, model, allowed-tools as comma
+      string; agents require name, domain, role, description, model, tools as YAML list; plays
+      require name, description, user-invocable or user-invokable, model; (b) required sections
+      per type — skills require ## Input, ## Process, ## Output; plays require ## Compiled From,
+      ## Role, ## Pre-flight; (c) intent.yaml schema validity — required top-level keys intent,
+      constraints, failure_conditions, scenarios with correct sub-field shapes; (d) user-invocable
+      vs user-invokable spelling inconsistency in plays flagged as WARNING (not ERROR) since both
+      spellings already exist in the codebase; (e) allowed-tools must be comma string for skills,
+      tools must be YAML list for agents (ERROR if wrong format).
+
+  - path: core/tools/lint-components/lib/rules/semantic.js
+    rationale: >
+      Semantic rule set (cross-file). Validates: (a) skill references in play SKILL.md bodies
+      — any skill name referenced must have a corresponding core/components/skills/{name}/SKILL.md;
+      (b) agent references in play Boundaries tables — agent names listed must exist at
+      core/components/agents/{name}.md; (c) template file references in skills — paths
+      beginning with ~/.garura/core/memory/standards/templates/ must resolve on disk.
+
+  - path: core/tools/lint-components/lib/rules/cross-reference.js
+    rationale: >
+      Cross-reference integrity rule set. Validates: (a) constraint ID uniqueness within each
+      intent.yaml — duplicate C{N} IDs are an ERROR; (b) failure_condition ID uniqueness —
+      duplicate F{N} IDs are an ERROR; (c) scenario ID uniqueness — duplicate S{N} IDs are an
+      ERROR; (d) play sub_plays chain in Compilation Metadata matches declared sub_plays listing
+      (when present); (e) scenario ID coverage — scenario IDs declared in intent.yaml should
+      have corresponding SCE-{N} entries in the compiled SKILL.md (flagged as WARNING if
+      SCE entries are absent, not ERROR, because new plays may not yet have evals).
+
+  - path: core/tools/lint-components/lib/reporter.js
+    rationale: >
+      Output formatter. Converts the internal violations array into either JSON (default,
+      for skill/agent consumption) or human-readable text (for developer CLI use). JSON format:
+      { violations: [{file, rule, severity, message, line}], summary: {errors, warnings, infos} }.
+
+  - path: core/components/skills/lint-components/SKILL.md
+    rationale: >
+      The skill wrapper. Invokes the Node.js tool via Bash, reads the quality profile at
+      .garura/product/specification/quality-profile.yaml to map violation severities to
+      pass/fail/warn policy (ERROR violations checked against maintainability and security
+      targets in the quality profile; WARNING violations are informational unless the quality
+      profile mandates stricter treatment), and produces a structured lint report artifact
+      written to the STM output path provided in the skill invocation context.
+
+files_to_modify:
+  []
+
+connections:
+  - component: core/tools/lint-components/index.js
+    connects_to: core/tools/lint-components/lib/discover.js
+    how: >
+      index.js calls discover() to enumerate all component files in the target directory
+      before running any rule set. Discovery returns the component map that flows through
+      all three rule modules.
+
+  - component: core/tools/lint-components/index.js
+    connects_to: core/tools/lint-components/lib/rules/structural.js
+    how: >
+      index.js passes each discovered component (with its parsed frontmatter) to the
+      structural rule set. Violations are accumulated into the shared violations array.
+
+  - component: core/tools/lint-components/index.js
+    connects_to: core/tools/lint-components/lib/rules/semantic.js
+    how: >
+      index.js passes the full component map (all discovered skills, plays, agents) to the
+      semantic rule set for cross-component reference validation. Semantic rules need global
+      context (all known skill names, all known agent names) to validate references.
+
+  - component: core/tools/lint-components/index.js
+    connects_to: core/tools/lint-components/lib/rules/cross-reference.js
+    how: >
+      index.js passes parsed intent.yaml data and compiled SKILL.md content for each play
+      to the cross-reference rule set. Cross-reference rules need both files for the same
+      play to check scenario ID coverage.
+
+  - component: core/tools/lint-components/lib/rules/structural.js
+    connects_to: core/tools/lint-components/lib/parse-frontmatter.js
+    how: >
+      Structural rules call parse-frontmatter.js for every SKILL.md and agent .md file
+      to extract the YAML frontmatter block before validating required fields.
+
+  - component: core/tools/lint-components/index.js
+    connects_to: core/tools/lint-components/lib/reporter.js
+    how: >
+      After all rule sets complete, index.js passes the accumulated violations array to
+      reporter.js for formatting. The formatted output is written to stdout. The JSON output
+      is what the lint-components skill consumes.
+
+  - component: core/components/skills/lint-components/SKILL.md
+    connects_to: core/tools/lint-components/index.js
+    how: >
+      The skill invokes the Node tool via Bash: `node core/tools/lint-components/index.js
+      --target core/components --output json`. The skill captures stdout as the lint result.
+
+  - component: core/components/skills/lint-components/SKILL.md
+    connects_to: .garura/product/specification/quality-profile.yaml
+    how: >
+      The skill reads the quality profile to derive severity policy. Specifically it checks
+      maintainability targets ("lint violations not suppressible without documented justification")
+      and security targets ("critical/high findings block PRs; medium/low inform only") to
+      classify which violation severities constitute blockers vs. warnings in the current run.
+
+  - component: core/components/skills/lint-components/SKILL.md
+    connects_to: existing enhance/review/pr-review/ship pipelines
+    how: >
+      The skill is a standalone invocable unit. It produces a lint report artifact to the
+      STM output path. Pipelines that want to gate on lint results invoke this skill and
+      check the artifact's summary.errors count against their blocking threshold.
+
+tasks:
+  - id: T1
+    title: Create core/tools/lint-components/ Node.js package skeleton
+    description: >
+      Create the directory, package.json (with js-yaml dependency), and index.js CLI entry
+      point with --target and --output flag parsing. The index.js stub should call discover,
+      run all three rule sets, and emit JSON output. At this stage the rule sets can be empty
+      stubs — the goal is a runnable CLI that emits { violations: [], summary: { errors: 0,
+      warnings: 0, infos: 0 } } against core/components/.
+    files:
+      - core/tools/lint-components/package.json
+      - core/tools/lint-components/index.js
+    exit_gate: >
+      Running `node core/tools/lint-components/index.js --target core/components --output json`
+      exits 0 and produces valid JSON on stdout with the required top-level shape.
+
+  - id: T2
+    title: Implement parse-frontmatter.js and discover.js
+    description: >
+      Implement the frontmatter parser (triple-dash YAML extraction + js-yaml parse) and
+      the component discovery walker. discover.js must classify each found file as skill,
+      play, agent, or intent-yaml and return the structured component map. Test by running
+      index.js and verifying component counts match the known totals (19 agents, 22+ plays,
+      92+ skills).
+    files:
+      - core/tools/lint-components/lib/parse-frontmatter.js
+      - core/tools/lint-components/lib/discover.js
+    depends_on: [T1]
+    exit_gate: >
+      index.js with discover wired produces component counts: agents ~19, plays ~22, skills ~92+.
+      No discovery errors on current core/components/ state.
+
+  - id: T3
+    title: Implement structural rule set
+    description: >
+      Implement lib/rules/structural.js with all per-file rules: frontmatter required fields
+      per component type (skills, plays, agents), required sections per type, intent.yaml
+      schema validity, user-invocable vs user-invokable warning for plays, and allowed-tools
+      format enforcement (comma string for skills, YAML list for agents). The user-invocable
+      spelling inconsistency must produce severity WARNING not ERROR.
+    files:
+      - core/tools/lint-components/lib/rules/structural.js
+    depends_on: [T2]
+    exit_gate: >
+      Running against core/components/ produces violations for the known user-invokable
+      spelling inconsistency as WARNINGs. Deliberately removing the `name` field from a
+      skill's frontmatter in a test copy produces an ERROR violation for that file.
+
+  - id: T4
+    title: Implement semantic rule set
+    description: >
+      Implement lib/rules/semantic.js. Build the global index of known skill names and agent
+      names from the discovery map. Then scan each play SKILL.md body for skill name
+      references (pattern: referenced in Task tool JSON blocks and skill invocation prose)
+      and Boundaries table agent references. Flag missing skill/agent files as ERROR violations.
+      Also check template file references against the deployed path.
+    files:
+      - core/tools/lint-components/lib/rules/semantic.js
+    depends_on: [T2]
+    exit_gate: >
+      Renaming a skill directory temporarily causes the semantic rule to emit an ERROR for
+      any play that references that skill name. Restoring the directory clears the violation.
+
+  - id: T5
+    title: Implement cross-reference rule set
+    description: >
+      Implement lib/rules/cross-reference.js. For each play, parse its intent.yaml and
+      compiled SKILL.md. Check constraint ID uniqueness (C{N}), failure_condition ID
+      uniqueness (F{N}), scenario ID uniqueness (S{N}) within each intent.yaml. Check that
+      scenario IDs have corresponding SCE-{N} entries in the play's SKILL.md (WARNING if
+      absent). Check sub_plays chain in Compilation Metadata when declared.
+    files:
+      - core/tools/lint-components/lib/rules/cross-reference.js
+    depends_on: [T2]
+    exit_gate: >
+      Introducing a duplicate constraint ID (e.g., two C1 entries) in a test intent.yaml
+      copy produces an ERROR violation. A scenario ID with no SCE entry in SKILL.md
+      produces a WARNING violation.
+
+  - id: T6
+    title: Implement reporter.js and wire all rule sets into index.js
+    description: >
+      Implement lib/reporter.js with JSON and text formatters. Wire all three rule sets
+      (structural, semantic, cross-reference) into index.js so they run sequentially, their
+      violations are merged, and the final output is passed to the reporter. Ensure exit code
+      is 1 when summary.errors > 0 and 0 otherwise.
+    files:
+      - core/tools/lint-components/lib/reporter.js
+      - core/tools/lint-components/index.js (wiring update)
+    depends_on: [T3, T4, T5]
+    exit_gate: >
+      Full run against core/components/ produces valid JSON with the complete violations list.
+      Text output format is human-readable. Exit code is 0 on clean run (or 1 if existing
+      violations are present — acceptable as long as output is correct).
+
+  - id: T7
+    title: Author lint-components SKILL.md
+    description: >
+      Author core/components/skills/lint-components/SKILL.md with full skill structure.
+      Required sections: ## Purpose, ## Input, ## Process, ## Output, ## Constraints.
+      Process must: (1) invoke the Node tool via Bash, (2) read the quality profile to
+      derive severity policy (ERROR violations are blockers per maintainability targets;
+      WARNING violations are informational; the quality profile's security target
+      "critical/high findings block PRs" maps to lint ERRORs), (3) write the lint report
+      artifact to the STM output path, (4) return a structured result indicating pass/fail.
+      Frontmatter: name: lint-components, user-invocable: false, model: sonnet,
+      allowed-tools: Bash, Read.
+    files:
+      - core/components/skills/lint-components/SKILL.md
+    depends_on: [T6]
+    exit_gate: >
+      SKILL.md passes structural lint (correct frontmatter, required sections present).
+      Skill is invocable as a slash command stub. Process section clearly describes quality
+      profile severity mapping logic.
+
+evals:
+  - id: EVAL-01
+    description: Node tool produces valid JSON output when run against core/components/
+    command: node core/tools/lint-components/index.js --target core/components --output json
+    pass_criteria: >
+      stdout is parseable JSON with top-level keys: violations (array) and summary (object
+      with errors, warnings, infos integer fields). Exit code is 0 or 1 (1 acceptable if
+      existing violations are present; what matters is valid JSON output, not zero violations).
+    fail_criteria: >
+      stdout is not valid JSON, or required top-level keys are absent, or process throws
+      an uncaught exception.
+    severity: error
+
+  - id: EVAL-02
+    description: Missing required frontmatter field is caught
+    setup: >
+      Copy a skill SKILL.md to a temp location. Remove the `name` field from its frontmatter.
+      Run linter against the temp directory (or the full target and grep for the test file).
+    command: node core/tools/lint-components/index.js --target core/components --output json
+    pass_criteria: >
+      The violations array contains an entry with file matching the modified skill,
+      rule referencing frontmatter completeness or missing-required-field, and severity ERROR.
+    fail_criteria: >
+      The modified skill's missing name field produces no violation, or the violation
+      has severity WARNING instead of ERROR.
+    severity: error
+
+  - id: EVAL-03
+    description: Broken skill reference is caught
+    setup: >
+      In a test play SKILL.md (or temp copy), reference a skill name that does not exist
+      under core/components/skills/ (e.g., "nonexistent-skill-xyz"). Run the linter.
+    pass_criteria: >
+      The violations array contains an entry for that play file with severity ERROR,
+      rule referencing skill-reference or cross-reference integrity, and message identifying
+      "nonexistent-skill-xyz" as the missing skill.
+    fail_criteria: >
+      The broken reference produces no violation, or produces only a WARNING.
+    severity: error
+
+  - id: EVAL-04
+    description: Constraint ID collision (duplicate IDs in one intent.yaml) is caught
+    setup: >
+      In a test intent.yaml (or temp copy), introduce two constraints both with id: "C1".
+      Run the linter.
+    pass_criteria: >
+      The violations array contains an entry for that intent.yaml with severity ERROR,
+      rule referencing ID uniqueness or duplicate-constraint-id, and message identifying
+      the duplicate "C1".
+    fail_criteria: >
+      The duplicate ID produces no violation, or produces only a WARNING.
+    severity: error
+
+  - id: EVAL-05
+    description: Spell variant user-invocable vs user-invokable is flagged as WARNING not ERROR
+    setup: >
+      Run linter against core/components/ without any modification. The 14 plays that use
+      user-invokable spelling already exist.
+    pass_criteria: >
+      The violations for plays with user-invokable (or user-invocable) spelling inconsistency
+      have severity WARNING. No play is flagged as ERROR solely for the spelling variant.
+      Both spellings are accepted as structurally valid — only the inconsistency is warned.
+    fail_criteria: >
+      Any play is flagged as ERROR for having user-invokable spelling (as opposed to
+      user-invocable), or no warning is emitted for the spelling inconsistency at all.
+    severity: error
+
+  - id: EVAL-06
+    description: lint-components skill exists at correct path with required SKILL.md sections
+    command: >
+      node core/tools/lint-components/index.js --target core/components/skills/lint-components
+      --output json
+    pass_criteria: >
+      The lint result for the skill itself shows zero ERROR violations. The SKILL.md contains
+      all required sections (## Input, ## Process, ## Output) and valid frontmatter with
+      name: lint-components, user-invocable: false, model: sonnet, allowed-tools: Bash, Read.
+    fail_criteria: >
+      The skill's own SKILL.md fails structural lint (missing sections or invalid frontmatter).
+      This is the self-referential integrity check — the linter must lint itself cleanly.
+    severity: error
+
+  - id: EVAL-07
+    description: Skill reads quality profile and classifies violations
+    setup: >
+      Invoke lint-components skill in a test context. Provide a mock lint result containing
+      one ERROR violation and one WARNING violation. The quality profile at
+      .garura/product/specification/quality-profile.yaml exists and is readable.
+    pass_criteria: >
+      The skill's output artifact classifies the ERROR violation as a blocker (traceable
+      to the quality profile's maintainability or security targets). The WARNING violation
+      is classified as informational. The output includes a severity_policy section showing
+      how the quality profile informed the classification.
+    fail_criteria: >
+      The skill ignores the quality profile and uses hardcoded severity thresholds, or
+      the output artifact contains no evidence that the quality profile was read.
+    severity: warning
+
+risks:
+  - description: >
+      Skill/agent reference extraction from play SKILL.md bodies is fragile. Play bodies
+      are free-form prose + JSON blocks. Regex or string matching to identify referenced
+      skill names may produce false positives (skill name appears in a comment or description)
+      or false negatives (reference in an unusual format).
+    mitigation: >
+      Use conservative extraction: only flag as a violation if a pattern clearly matches
+      a skill invocation context (e.g., inside a Skill tool call, inside a declared
+      Skill Pool table, or inside a JSON contract block with a known field like
+      "subagent_type"). Document the extraction patterns in lib/rules/semantic.js.
+      Accept that coverage is best-effort for free-form prose references — structural
+      and cross-reference tiers provide stronger guarantees.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals:
+      - EVAL-03
+
+  - description: >
+      The user-invocable vs user-invokable spelling handling must not regress. If the
+      linter treats one as correct and the other as an ERROR, it will flag 14 plays (or
+      9 plays) as broken — producing false positives that block the skill from being
+      usable in the enhance pipeline.
+    mitigation: >
+      Structural rule set accepts both spellings as structurally valid. The warning is
+      emitted for the presence of inconsistency across the file set (i.e., if both
+      spellings appear in the corpus), not for any individual file. No individual file
+      is an ERROR for its chosen spelling. Eval EVAL-05 verifies this behavior.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals:
+      - EVAL-05
+
+  - description: >
+      Node.js is not currently a declared dependency of this repository. Introducing
+      package.json in core/tools/lint-components/ creates a new npm module that must
+      be installed (npm install) before the linter can run. If the install step is not
+      documented, agents and CI will fail to invoke the tool with a missing module error.
+    mitigation: >
+      The lint-components SKILL.md Process section must include an explicit step to run
+      `npm install` in core/tools/lint-components/ before invoking index.js (or check if
+      node_modules exists and skip if already installed). The README or skill notes must
+      document the one-time install. The package.json should minimize dependencies
+      (js-yaml only) to keep install time negligible.
+    type: architectural
+    action: eval-driven
+    ltm_reference: null
+    generated_evals:
+      - EVAL-01
+
+  - description: >
+      Template file reference validation requires resolving paths beginning with
+      ~/.garura/core/memory/standards/templates/. In CI or non-interactive environments,
+      the ~ expansion may resolve differently than expected, or the templates may not
+      be deployed. False positives would flag valid skills as broken.
+    mitigation: >
+      Make template reference validation opt-in (controlled by a --validate-templates flag,
+      off by default). The skill can enable it in local runs where deployment state is known.
+      When disabled, template references are skipped with an informational note in the
+      output summary. This prevents CI failures due to undeployed templates.
+    type: technical
+    action: monitor-only
+    ltm_reference: null
+    generated_evals: []
+
+  - description: >
+      The quality profile is DRAFT status. If the lint-components skill reads severity
+      policy from a DRAFT quality profile, the policy thresholds may change in a future
+      quality-profile revision, silently changing what constitutes a blocker in the
+      skill's output.
+    mitigation: >
+      The skill logs the quality profile's status field in its output artifact so downstream
+      consumers can see that policy was derived from a DRAFT profile. When the profile
+      reaches a non-draft status, no code change is needed — the skill reads it dynamically.
+      This is acceptable given the quality profile's own maintainability rationale notes
+      that thresholds evolve with successive revisions.
+    type: business
+    action: monitor-only
+    ltm_reference: .garura/product/specification/quality-profile.yaml
+    generated_evals: []
+
+alternatives_considered:
+  - approach: YAML-only config file approach (rules defined in a lint-config.yaml, no code)
+    reason_rejected: >
+      Rules require imperative logic: regex extraction of skill references from play bodies,
+      YAML frontmatter parsing, file system traversal, cross-file reference resolution.
+      A declarative YAML config can express field lists but cannot express the logic needed
+      to validate cross-references or extract structured data from Markdown prose. This
+      approach would either require a YAML schema interpreter (adding hidden complexity) or
+      leave the hardest rules unimplementable. Occam's Razor: a simple Node.js script with
+      direct logic is fewer moving parts than a YAML config + interpreter pair.
+
+  - approach: Python instead of Node.js
+    reason_rejected: >
+      Discovery Q&A explicitly selected Node.js (Q6 answer: "Node.js"). Beyond the explicit
+      decision, Node is better suited here because the existing tooling in the repo that
+      involves scripting (brief-render.js) is already Node.js, and Markdown/YAML processing
+      is a first-class Node ecosystem capability via js-yaml and gray-matter. Python would
+      require verifying Python version availability across developer environments where Node
+      is already confirmed present (npm install garura is a first-run onboarding requirement
+      in the quality profile).
+
+  - approach: MCP tool rather than a Bash-invocable script
+    reason_rejected: >
+      MCP tools require a persistent server process and are invoked via the MCP protocol, not
+      Bash. The lint-components skill wraps the tool via Bash — a Bash-invocable script is the
+      correct interface. An MCP tool would add the MCP server lifecycle to the invocation path,
+      introduce startup latency, and require MCP server configuration in every environment that
+      wants to run lint. Reversibility bias: a Bash-invocable Node script can be promoted to an
+      MCP tool later if needed, but the reverse migration is costly. The simpler path wins now.

@@ -1,0 +1,6 @@
+task_id: commit-pr
+issue: 252
+pr_number: 316
+pr_url: https://github.com/kapilvirenahuja/garura/pull/316
+commit_sha: 7ae5609
+branch: enhance/252-component-linting
