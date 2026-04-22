@@ -1,0 +1,101 @@
+quality_report:
+  timestamp: "2026-04-22T00:00:00Z"
+  overall: "PASS"
+  qp_source: "toolchain-detected"
+  quality_profile_status: "DRAFT"
+
+  gates:
+    - name: "build"
+      status: "SKIP"
+      command: null
+      exit_code: null
+      evidence: >
+        This is a markdown/YAML-first component framework repository. There is no
+        compile step, no transpiler, and no runtime binary to produce. Build gate
+        is not applicable for this repo type.
+
+    - name: "typecheck"
+      status: "SKIP"
+      command: null
+      exit_code: null
+      evidence: >
+        No TypeScript, Python, or other typed language sources are present. All
+        authored components are markdown and YAML. Type checking is not applicable
+        for this repo type.
+
+    - name: "lint"
+      status: "PASS"
+      command: "node core/tools/lint-components/index.js --target <component> --output json"
+      exit_code: 0
+      violations: 0
+      evidence: |
+        Ran lint-components (v1.0.0) individually against each of the 4 changed
+        components from project_root /Users/kapilahuja/cto/builder/garura.
+        All invocations exited 0 with zero violations.
+
+        Target: core/components/plays/reap/
+          {"violations":[],"summary":{"errors":0,"warnings":0,"infos":0}}
+          exit_code: 0
+
+        Target: core/components/agents/knowledge-extractor.md
+          {"violations":[],"summary":{"errors":0,"warnings":0,"infos":0}}
+          exit_code: 0
+
+        Target: core/components/skills/diff-context-baseline/
+          {"violations":[],"summary":{"errors":0,"warnings":0,"infos":0}}
+          exit_code: 0
+
+        Target: core/components/skills/draft-enrichment-proposals/
+          {"violations":[],"summary":{"errors":0,"warnings":0,"infos":0}}
+          exit_code: 0
+      static_analysis:
+        tool: "lint-components (Garura deterministic component linter)"
+        critical: 0
+        high: 0
+        evidence: >
+          No structural, semantic, or cross-reference rule violations detected
+          across any of the 4 target components.
+
+    - name: "unit_tests"
+      status: "PASS"
+      command: "node core/tools/lint-components/index.js --target <component> --output json"
+      exit_code: 0
+      tests_passed: 4
+      tests_failed: 0
+      evidence: |
+        Per config.instructions: "structural validation of the 4 target components
+        via lint-components is the test." Lint-components serves as structural
+        validation for this markdown/YAML repo — there is no separate test runner.
+        All 4 target components validated without errors.
+
+        Targets validated:
+          - core/components/plays/reap/         PASS (0 errors, 0 warnings, 0 infos)
+          - core/components/agents/knowledge-extractor.md  PASS (0 errors, 0 warnings, 0 infos)
+          - core/components/skills/diff-context-baseline/  PASS (0 errors, 0 warnings, 0 infos)
+          - core/components/skills/draft-enrichment-proposals/  PASS (0 errors, 0 warnings, 0 infos)
+
+    - name: "complexity"
+      required: false
+      status: "SKIPPED"
+      evidence: >
+        No cyclomatic complexity threshold defined in project quality standards.
+        The quality-standards.yaml found at
+        core/components/skills/draft-technical-approach/schemas/quality-standards.yaml
+        is a schema template (placeholder values), not an active project standard.
+        No active complexity gate to enforce.
+
+    - name: "security"
+      required: false
+      status: "SKIPPED"
+      evidence: >
+        No dependency executable binary or runtime present; no npm audit applicable
+        to authored components. SAST not configured. The quality-standards.yaml is
+        a schema template, not an active standard.
+
+    - name: "documentation"
+      required: false
+      status: "SKIPPED"
+      evidence: >
+        Documentation gate not defined in active project quality standards.
+
+  vision_gate_violations: []

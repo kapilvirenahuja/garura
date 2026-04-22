@@ -1,0 +1,722 @@
+problem_statement: |
+  The capture-learning play conflates two distinct concerns — semantic learning extraction
+  and LTM promotion — in a single run. This conflation means every post-epic reconciliation
+  must either complete a full LTM promotion cycle (with human approval for each proposal)
+  or do nothing at all. It also means the extraction output carries no categorization of
+  *what type* of learning was captured, making downstream routing (to knowledge-extractor
+  ENRICH mode, or to a stakeholder reviewing proposals) an implicit inference exercise.
+
+  The Learning Pipeline redesign (April 2026) separates these concerns cleanly: extraction
+  plays (distill L1, reap L2, codify L3) write proposals to STM only; the enrich play is
+  the sole LTM write boundary. reap is the L2 extraction play — invoked manually post-epic,
+  after the build trinity (prepare→implement→validate) has run. Its job is to answer
+  "what did this epic reveal that was missing or incomplete in our LTM/KB?" and stage
+  that answer as proposals.yaml in STM, ready for enrich to consume. capture-learning is
+  deprecated and deleted as part of this issue.
+
+solution_summary: |
+  The core design is a two-level learning taxonomy landing in the proposals schema,
+  aligned to Garura's actual KB structure at core/components/memory/. Each proposal
+  carries BOTH a top-level learning_category AND a sub_category that route it to a
+  specific LTM path.
+
+  Canonical taxonomy (starting point — NOT a closed enum):
+    learning_category: arch | domain | product | quality | standards
+    sub_category per parent:
+      arch      → agentic | data | operations | patterns | platforms | stacks
+      domain    → (flat — sub_category null/empty)
+      product   → (flat — sub_category null/empty)
+      quality   → architecture | backend | code | data | documentation | frontend |
+                  operations | performance | security | tech-debt | testing
+      standards → rules | schemas | templates
+
+  Invention is permitted but structurally constrained: if a proposal does not fit any
+  canonical value, the play may emit a proposed new learning_category or sub_category,
+  BUT the proposal MUST carry a justification block with (a) evidence — a specific
+  file path + excerpt from the build trinity that manifests this learning type, and
+  (b) reasoning — why the canonical taxonomy does not fit. This honors the framework
+  rule: cite or don't invent. A reviewer can accept, remap, or reject the invention.
+  The invention flag surfaces explicitly in proposals.yaml so reviewers never mistake
+  a proposed-new category for a canonical one.
+
+  The field pair replaces the existing six-value `dimension` field in diff-context-baseline
+  findings and carries forward into draft-enrichment-proposals output. The mapping from
+  old dimension to new pair is content-routed (not a pure rename): architecture→arch,
+  libraries→arch+stacks, patterns→arch+patterns, invariants→domain, quality→quality (with
+  sub derived from finding content), assumptions→domain default. Unlike the earlier
+  4-value proposal, quality now has its own top-level home — the lossy collapse concern
+  is substantially reduced.
+
+  The play scaffold follows Structure A (Pre-flight → Preparation → Checkpoint → Execution
+  → Evidence). Pre-flight checks for validate evidence existence (not GitHub issue state —
+  rationale: reap is post-validate extraction; archival requiring CLOSED state is now
+  archive-issue-stm's concern). Preparation reads epic_id from context/design/epic-spec.yaml.
+  The Checkpoint is human-gated: proposals are staged in STM, user reviews, Tethers to
+  complete and commit evidence or Vanishes to halt. Execution is knowledge-extractor ANALYZE
+  mode with the updated learning_category-aware skill chain. Evidence is self-committed via
+  repo-orchestrator (non-blocking).
+
+  capture-learning is deleted entirely — its play directory is removed. The three skills it
+  used (diff-context-baseline, draft-enrichment-proposals, apply-ltm-enrichment) remain;
+  the knowledge-extractor agent remains; only the play orchestration wrapper is gone.
+  This creates a deliberate ENRICH gap until the enrich play ships (separate issue). This
+  gap is surfaced as a named risk (not hidden). The proposals output path is
+  {stm_base}/{issue}/evidence/reap/proposals.yaml — consistent with distill's naming
+  convention (proposals.yaml), forward-compatible with enrich consumption, and within the
+  STM folder whitelist.
+
+files_to_create:
+  - path: core/components/plays/reap/reference/intent.yaml
+    purpose: >
+      Source of truth for the reap play. Defines: intent (semantic learning extraction
+      from build trinity, post-epic), constraints (C1–C15 below), failure conditions
+      (F1–F10), and scenarios (S1–S6). This file is the input to /create-play --build.
+      Must include: pre-flight constraint requiring validate evidence presence (not
+      issue-closed state), STM-only write constraint, learning_category field requirement
+      on proposals, C13-style skip-with-warning for absent product LTM architecture/,
+      evidence self-commit requirement, and the three operating mode semantics for
+      knowledge-extractor (FAST→distill, ANALYZE→reap, ENRICH→enrich).
+    intent_constraints:
+      - "C1: validate evidence must exist at {stm_base}/{issue}/evidence/validate/ (at least one milestone-verdict.yaml). Issue OPEN or CLOSED is accepted."
+      - "C2: context/ baseline must exist at {stm_base}/{issue}/context/ (prepare must have run)."
+      - "C3: STM artifacts are read-only during extraction. reap reads context and evidence but does not modify any STM artifact from prior runs."
+      - "C4: All output goes to {stm_base}/{issue}/evidence/reap/. No writes to product LTM ({product_base}). No writes to core LTM (~/.garura/core/memory/)."
+      - "C5: reap NEVER invokes apply-ltm-enrichment. ENRICH mode is the exclusive domain of the enrich play (separate issue)."
+      - "C6: Three-tier analysis model inherited from capture-learning C6. Tier 1 (foundational check-only), Tier 2 (enrichment), Tier 3 (addition)."
+      - "C7: Every proposal in proposals.yaml MUST carry a two-level taxonomy: learning_category (canonical: arch|domain|product|quality|standards) and sub_category (canonical child for arch/quality/standards; null for flat parents domain/product)."
+      - "C7a: Proposed-new learning_category or sub_category values are permitted ONLY when the proposal includes a taxonomy_justification block with evidence_path (STM artifact), verbatim excerpt, and reasoning. Findings/proposals lacking this block when a _proposed flag is true must be rejected as invalid."
+      - "C7b: Canonical taxonomy tree is the starting point, not a closed enum. Proposals MAY propose new categories or sub-categories but the proposal is the reviewer's signal to evolve the KB — reap does not promote proposed values to canonical."
+      - "C8: check-drift spec-correction-manifest consumed as input when present at {stm_base}/{issue}/evidence/check-drift/. Not re-derived. If absent, play performs own comparison."
+      - "C9: If product LTM artifacts for a tier are absent (e.g., architecture/ directory does not exist), that tier is skipped with a warning in proposals.yaml. Missing product LTM is not a hard failure."
+      - "C10: Human checkpoint before evidence commit. proposals.yaml staged in STM; user reviews; Tether to finalize and self-commit or Vanish to halt."
+      - "C11: Zero-proposal exit is valid. If no learnings detected across all tiers, write proposals.yaml with total_proposals: 0 and empty proposals list."
+      - "C12: Primary inputs are the context baseline ({stm_base}/{issue}/context/) and build trinity outcomes (implement milestones + validate verdicts). epic_id resolved from context/design/epic-spec.yaml."
+      - "C13: evidence self-commit via repo-orchestrator is non-blocking. Any commit failure is logged and the play exits cleanly."
+      - "C14: proposals output path is {stm_base}/{issue}/evidence/reap/proposals.yaml."
+      - "C15: knowledge-extractor ANALYZE mode is the extraction engine. reap is the calling play; it does not perform extraction logic inline."
+
+  - path: core/components/plays/reap/SKILL.md
+    purpose: >
+      Compiled play orchestration artifact. DO NOT EDIT MANUALLY — generated by
+      /create-play --build reap from reference/intent.yaml. Includes: pre-flight checks
+      with intent hash guard, Task DAG, workflow phases (Pre-flight → Preparation →
+      Checkpoint → Execution → Evidence), scenario validation, Evidence & Close phase
+      with repo-orchestrator self-commit, pause/resume at {stm_base}/{issue}/status/reap.json,
+      and compilation metadata.
+
+files_to_modify:
+  - path: core/components/agents/knowledge-extractor.md
+    changes:
+      - section: frontmatter description field (line 5)
+        change: >
+          Update description to: "Three-mode learning extraction agent. FAST mode (distill
+          play, L1): lightweight post-PR extraction. ANALYZE mode (reap play, L2): semantic
+          post-epic extraction from build trinity — answers what LTM/KB gap this epic
+          revealed. ENRICH mode (enrich play, LTM write boundary): writes approved proposals
+          to product LTM. Context-isolated: reads STM evidence and product LTM — NEVER modifies
+          STM artifacts. ANALYZE and FAST modes write to STM only. ENRICH mode requires
+          approved proposals and writes only to product LTM."
+      - section: Operating Modes table
+        change: >
+          Update Mode column labels and Trigger column to reflect three-play split:
+          ANALYZE | Trigger: reap play (L2, post-epic) | FAST | Trigger: distill play
+          (L1, post-PR) | ENRICH | Trigger: enrich play (separate, LTM write boundary).
+          Remove "Two modes: ANALYZE (diff and produce tiered enrichment proposals) and
+          ENRICH" language from description — it no longer reflects the full three-mode reality.
+      - section: ANALYZE Mode output path in Input/Output contract
+        change: >
+          Update output path from
+          {stm_base}/{issue}/evidence/capture-learning/reconciliation-proposals.yaml
+          to {stm_base}/{issue}/evidence/reap/proposals.yaml.
+      - section: intent_path in ANALYZE/ENRICH mode Input Contract
+        change: >
+          Update intent_path from core/components/plays/capture-learning/reference/intent.yaml
+          to core/components/plays/reap/reference/intent.yaml.
+
+  - path: core/components/skills/diff-context-baseline/SKILL.md
+    changes:
+      - section: description (frontmatter)
+        change: >
+          Update to note that dimension field is replaced by a two-level learning taxonomy
+          (learning_category + sub_category) aligned to core/components/memory/ KB structure.
+      - section: Step 3 — Diff by dimension (Process step 3)
+        change: >
+          Rename "Diff by dimension" to "Classify by learning category." Replace the
+          six-value dimension enum with the canonical two-level taxonomy (5 top-level
+          + sub-category children per the parent table in solution_summary). Add a
+          mapping note describing content-routed translation from old dimension values:
+          architecture→arch (sub content-routed), libraries→arch+stacks, patterns→arch+patterns,
+          invariants→domain, quality→quality (sub content-routed), assumptions→domain default.
+          Add a "Proposed new categories" subsection describing when/how the skill may
+          emit a proposed-new value — ONLY when no canonical value fits, AND the finding
+          MUST carry a justification block (evidence_path, excerpt, reasoning).
+      - section: Output schema in Step 5 (context-diff.yaml findings block)
+        change: >
+          Replace `dimension: ...` with a pair of fields:
+            learning_category: "<canonical-or-proposed>"
+            sub_category: "<canonical-or-proposed>" | null
+          Add three sibling fields on each finding:
+            learning_category_proposed: false   # true iff category is not in canonical enum
+            sub_category_proposed: false        # true iff sub is not in canonical children for parent
+            taxonomy_justification:             # REQUIRED iff either _proposed flag is true
+              evidence_path: "<path to STM artifact>"
+              excerpt: "<verbatim excerpt demonstrating the learning type>"
+              reasoning: "<why canonical taxonomy does not fit>"
+          learning_category is REQUIRED. sub_category is required when parent has children
+          (arch, quality, standards) and null/empty for flat parents (domain, product).
+          Findings failing these rules must be rejected by the skill with a structured error.
+
+  - path: core/components/skills/draft-enrichment-proposals/SKILL.md
+    changes:
+      - section: Step 6 — reconciliation-proposals.yaml schema
+        change: >
+          Add the two-level taxonomy pair plus proposal/justification fields to each
+          proposal entry:
+            learning_category: "<canonical-or-proposed>"
+            sub_category: "<canonical-or-proposed>" | null
+            learning_category_proposed: false
+            sub_category_proposed: false
+            taxonomy_justification:                 # REQUIRED iff either flag is true
+              evidence_path: "<path to STM artifact>"
+              excerpt: "<verbatim excerpt>"
+              reasoning: "<why canonical does not fit>"
+          All five taxonomy fields are sourced from the originating finding in
+          context-diff.yaml via from_finding link — the skill does NOT re-classify;
+          it faithfully carries the finding's classification forward. Also update the output filename from
+          reconciliation-proposals.yaml to proposals.yaml to align with distill
+          convention and forward-compat with enrich.
+      - section: Summary block (proposals.yaml footer)
+        change: >
+          Extend summary with a by_learning_category breakdown (counts per canonical
+          category), a proposed_categories list (distinct proposed-new learning_category
+          values seen in this run, with their justification evidence_paths), and a
+          proposed_sub_categories list (same for sub-categories). Also carry forward
+          the existing tier_1/tier_2/tier_3 counts and tiers_skipped list.
+      - section: Output contract
+        change: >
+          Update reconciliation_proposals_path key to proposals_path in the output contract
+          and reflect new filename (proposals.yaml vs reconciliation-proposals.yaml).
+
+files_to_delete_or_deprecate:
+  strategy: delete
+  rationale: >
+    The acceptance criteria for this issue are explicit: "capture-learning play is
+    deprecated/removed." There is no behavioral overlap to preserve — the ANALYZE half
+    becomes reap; the ENRICH half is intentionally deferred to the enrich play (separate
+    issue). All three skills (diff-context-baseline, draft-enrichment-proposals,
+    apply-ltm-enrichment) are reused directly; the knowledge-extractor agent is reused
+    directly. The only artifact being discarded is the play orchestration wrapper.
+    A shim is rejected (see alternatives_considered) because it would leave a partially-
+    functioning play in the component tree that appears to support ENRICH when that
+    mode is no longer present, creating confusion for any operator who invokes it.
+  enrich_gap: >
+    Deleting capture-learning means there is no LTM-write play from the time this issue
+    ships until the enrich play is built (separate issue). This gap is intentional and
+    acknowledged. Proposals from reap (and distill) will accumulate in STM and require
+    the enrich play to drain them. This is surfaced as a risk entry (R2) below.
+  files_to_delete:
+    - core/components/plays/capture-learning/SKILL.md
+    - core/components/plays/capture-learning/reference/intent.yaml
+    - core/components/plays/capture-learning/ (directory)
+  files_to_retain:
+    - core/components/skills/diff-context-baseline/ (reused by reap)
+    - core/components/skills/draft-enrichment-proposals/ (reused by reap)
+    - core/components/skills/apply-ltm-enrichment/ (reused by future enrich play)
+    - core/components/agents/knowledge-extractor.md (reused with description update)
+
+connections:
+  data_flow: |
+    /reap <issue>
+      → Pre-flight: verify context/ exists AND validate/ evidence exists
+      → Preparation: read epic_id from {stm_base}/{issue}/context/design/epic-spec.yaml
+      → knowledge-extractor (ANALYZE mode)
+          → diff-context-baseline skill
+              reads: {stm_base}/{issue}/context/ (prepare baseline)
+              reads: {stm_base}/{issue}/milestones/*/ (milestone-verdict.yaml)
+              reads: {stm_base}/{issue}/evidence/implement/*/ (arbiter-verdicts)
+              reads: {stm_base}/{issue}/evidence/check-drift/spec-correction-manifest.yaml (optional)
+              writes: {stm_base}/{issue}/evidence/reap/context-diff.yaml
+              output fields per finding: learning_category + sub_category +
+                                          *_proposed flags + taxonomy_justification
+                                          (canonical taxonomy: arch|domain|product|quality|standards
+                                           with validated children; proposed-new allowed only with
+                                           evidence_path + excerpt + reasoning)
+          → draft-enrichment-proposals skill
+              reads: {stm_base}/{issue}/evidence/reap/context-diff.yaml
+              reads: {product_base}/ (read-only, to identify proposal targets)
+              writes: {stm_base}/{issue}/evidence/reap/proposals.yaml
+              writes: {stm_base}/{issue}/evidence/reap/adr-drafts/*.md (Tier 1 only)
+              output: full taxonomy pair + justification carried forward per proposal
+                      (no re-classification — faithful pass-through from findings)
+      → Checkpoint: present proposals.yaml to user (Tether/Vanish)
+      → Evidence & Close (on Tether):
+          repo-orchestrator self-commit (non-blocking)
+          commit message: "chore(stm): record reap evidence for #{issue}"
+          status file: {stm_base}/{issue}/status/reap.json
+
+  proposals_yaml_contract: |
+    # Output schema for {stm_base}/{issue}/evidence/reap/proposals.yaml
+    sourced_from: "{context_diff_path}"
+    generated_at: "{ISO-8601}"
+    source_play: "reap"
+    proposals:
+      - proposal_id: P-001
+        from_finding: F-001
+        tier: 1 | 2 | 3
+        learning_category: "<canonical: arch|domain|product|quality|standards  OR  proposed-new>"
+        sub_category: "<canonical child of parent  OR  proposed-new  OR  null for flat parents>"
+        learning_category_proposed: false         # true iff category is not in canonical set
+        sub_category_proposed: false              # true iff sub is not in canonical children for parent
+        taxonomy_justification:                   # REQUIRED iff either *_proposed flag is true
+          evidence_path: "<STM artifact path>"
+          excerpt: "<verbatim excerpt demonstrating the learning type>"
+          reasoning: "<why canonical taxonomy does not fit>"
+        target_path: "{LTM artifact path}"
+        action: modify | add | contradict_with_adr
+        change: |
+          {block or diff}
+        impact:
+          downstream_artifacts: [...]
+          plays_affected: [...]
+          risk: low | medium | high
+        adr_draft_path: "{path, Tier 1 only}"
+        approval_status: pending
+    summary:
+      tier_1: {n}
+      tier_2: {n}
+      tier_3: {n}
+      by_learning_category:
+        arch: {n}
+        domain: {n}
+        product: {n}
+        quality: {n}
+        standards: {n}
+      proposed_categories:                         # distinct proposed-new learning_category values this run
+        - value: "<proposed name>"
+          count: {n}
+          first_evidence_path: "<path>"
+      proposed_sub_categories:                     # distinct proposed-new sub_category values this run
+        - parent: "<learning_category>"
+          value: "<proposed name>"
+          count: {n}
+          first_evidence_path: "<path>"
+      tiers_skipped: ["{list of tiers skipped due to missing artifacts}"]
+
+  gap_resolution:
+    gap_3_issue_state: >
+      reap does NOT check GitHub issue state. Pre-flight gates on
+      evidence/validate/ presence (at least one milestone-verdict.yaml). Open
+      issues are accepted post-validate. This breaks from capture-learning C1
+      (issue must be CLOSED) because archival — which required close — is no
+      longer part of this play.
+    gap_4_schema_divergence: >
+      reap keeps the reconciliation-proposals schema (tier + from_finding +
+      impact block) rather than unifying with distill's schema (confidence +
+      evidence_diff_reference). learning_category is added to both — this is the
+      only cross-L1/L2 field alignment done in this issue. Full schema unification
+      is deferred to a future issue to be filed when enrich is designed, since
+      enrich will need to normalize on ingestion regardless.
+    gap_5_drift_manifest: >
+      Preserved. knowledge-extractor ANALYZE mode C8 (consume spec-correction-manifest
+      when present, do not re-derive) is unchanged. reap's intent.yaml re-declares
+      this constraint (as C8 above).
+
+tasks:
+  - id: T1
+    title: Author core/components/plays/reap/reference/intent.yaml
+    description: >
+      Author the intent.yaml with constraints C1–C15 (with C7, C7a, C7b covering the
+      two-level taxonomy + invention-with-justification rule), failure conditions
+      F1–F10, and scenarios S1–S6 as specified in files_to_create above. The intent
+      must include: validate-evidence pre-flight gate, STM-only write constraint,
+      apply-ltm-enrichment prohibition, two-level taxonomy (learning_category +
+      sub_category) requirement, invention-with-justification constraint (C7a), the
+      "canonical is starting point" constraint (C7b), C9-style architecture-absent
+      skip, human checkpoint, zero-proposal exit, and evidence self-commit. Document
+      the full canonical taxonomy tree (5 top-level with children per parent) as part
+      of C7 or an appended reference block. Use the intent.yaml schema from
+      ~/.garura/core/memory/standards/schemas/intent.yaml.
+    acceptance_signal: >
+      File exists at the path. Has at least 1 constraint, 1 failure condition,
+      1 scenario. Contains C7, C7a, C7b covering the taxonomy contract. Documents
+      the canonical taxonomy tree with all 5 top-level values and their children
+      (arch→6 children, quality→11, standards→3; domain and product flat). Does
+      not contain any reference to apply-ltm-enrichment as a called component (it
+      may reference it in prohibitions). Does not require issue-closed state —
+      accepts OPEN or CLOSED.
+    blockedBy: []
+
+  - id: T2
+    title: Run /create-play --build reap to produce compiled SKILL.md
+    description: >
+      Invoke the create-play skill with `--build reap` against the intent.yaml authored
+      in T1. The compiled SKILL.md must be written to
+      core/components/plays/reap/SKILL.md. Do not author SKILL.md manually.
+    acceptance_signal: >
+      core/components/plays/reap/SKILL.md exists, contains a "Compiled From" section
+      with an intent hash, and the intent hash matches sha256(reference/intent.yaml).
+      File contains pre-flight, Task DAG, workflow, scenario validation, evidence &
+      close sections.
+    blockedBy: [T1]
+
+  - id: T3
+    title: Update diff-context-baseline/SKILL.md — replace dimension with two-level taxonomy + invention fields
+    description: >
+      Modify core/components/skills/diff-context-baseline/SKILL.md per files_to_modify
+      above. Replace the six-value dimension enum with the two-level taxonomy
+      (learning_category with canonical values arch|domain|product|quality|standards
+      plus sub_category with validated children per parent). Add learning_category_proposed,
+      sub_category_proposed, and taxonomy_justification fields to the findings[] output
+      schema. Document the canonical taxonomy tree, the dimension→taxonomy mapping,
+      and the invention-with-justification rule. Update frontmatter description.
+    acceptance_signal: >
+      File no longer contains `dimension:` as a schema field in the output block.
+      File contains the canonical taxonomy tree with all 5 top-level values and
+      their children documented. File's findings[] schema contains learning_category,
+      sub_category, both _proposed flags, and taxonomy_justification. File contains
+      the mapping note and the invention-with-justification rule documented.
+    blockedBy: []
+
+  - id: T4
+    title: Update draft-enrichment-proposals/SKILL.md — carry two-level taxonomy + invention fields through proposals schema
+    description: >
+      Modify core/components/skills/draft-enrichment-proposals/SKILL.md per
+      files_to_modify above. Add the full set of taxonomy fields (learning_category,
+      sub_category, learning_category_proposed, sub_category_proposed,
+      taxonomy_justification) to the proposals[] item schema in Step 6, sourced from
+      the corresponding finding via from_finding link (no re-classification — faithful
+      pass-through). Extend the summary block with by_learning_category counts,
+      proposed_categories list, and proposed_sub_categories list. Update output
+      filename from reconciliation-proposals.yaml to proposals.yaml. Update output
+      contract key from reconciliation_proposals_path to proposals_path.
+    acceptance_signal: >
+      proposals[] item schema contains all 5 taxonomy fields (learning_category,
+      sub_category, both _proposed flags, taxonomy_justification) and documents
+      the canonical 5-top-level taxonomy enum. Summary block includes by_learning_category,
+      proposed_categories, and proposed_sub_categories. No reference to
+      `reconciliation-proposals.yaml` as the output filename. Output contract uses
+      `proposals_path` key.
+    blockedBy: [T3]
+
+  - id: T5
+    title: Update knowledge-extractor.md — description, mode table, output path, intent_path
+    description: >
+      Modify core/components/agents/knowledge-extractor.md per files_to_modify above.
+      Four targeted changes: (1) frontmatter description update to three-mode framing,
+      (2) Operating Modes table trigger column update, (3) ANALYZE mode output path
+      from evidence/capture-learning/ to evidence/reap/, (4) intent_path in Input
+      Contract from capture-learning to reap.
+    acceptance_signal: >
+      Frontmatter description references FAST/ANALYZE/ENRICH with their respective plays.
+      Operating Modes table references reap as ANALYZE trigger.
+      Input/Output contract output path is evidence/reap/proposals.yaml.
+      intent_path is core/components/plays/reap/reference/intent.yaml.
+    blockedBy: [T1]
+
+  - id: T6
+    title: Delete core/components/plays/capture-learning/ directory
+    description: >
+      Delete the entire capture-learning play directory:
+      core/components/plays/capture-learning/SKILL.md,
+      core/components/plays/capture-learning/reference/intent.yaml,
+      and the directory itself. Verify that diff-context-baseline, draft-enrichment-proposals,
+      apply-ltm-enrichment skills, and knowledge-extractor agent are NOT deleted —
+      only the play wrapper is removed.
+    acceptance_signal: >
+      core/components/plays/capture-learning/ does not exist.
+      core/components/skills/diff-context-baseline/ still exists.
+      core/components/skills/draft-enrichment-proposals/ still exists.
+      core/components/skills/apply-ltm-enrichment/ still exists.
+      core/components/agents/knowledge-extractor.md still exists.
+    blockedBy: [T2, T5]
+
+  - id: T7
+    title: Verify reap play does not reference apply-ltm-enrichment
+    description: >
+      Grep core/components/plays/reap/ for any reference to apply-ltm-enrichment.
+      This is the primary safety check for the STM-only boundary. Any reference
+      to this skill in the reap play directory is a constraint violation.
+    acceptance_signal: >
+      grep -r "apply-ltm-enrichment" core/components/plays/reap/ returns no results.
+    blockedBy: [T2]
+
+  - id: T8
+    title: Verify proposals schema carries the two-level taxonomy + invention fields end-to-end
+    description: >
+      Verify that both updated skills carry the full schema through the pipeline:
+      (1) diff-context-baseline findings schema contains all five fields
+          (learning_category, sub_category, learning_category_proposed,
+           sub_category_proposed, taxonomy_justification);
+      (2) draft-enrichment-proposals proposals schema contains the same five fields
+          sourced via from_finding;
+      (3) canonical taxonomy tree is documented in both (5 top-level + children
+          per parent);
+      (4) C7a-equivalent invention-justification rule is documented in both;
+      (5) no file still shows the six-value dimension enum in the output schema block.
+    acceptance_signal: >
+      grep for learning_category, sub_category, taxonomy_justification in both SKILL.md
+      files returns matches. Canonical enum in both lists all 5 values
+      (arch, domain, product, quality, standards). Neither file still documents
+      `dimension:` as an output schema field.
+    blockedBy: [T3, T4]
+
+  - id: T9
+    title: Verify SKILL.md compilation is current (intent hash guard)
+    description: >
+      Confirm the compiled SKILL.md's recorded intent hash matches
+      sha256(core/components/plays/reap/reference/intent.yaml) after all intent.yaml
+      changes are finalized. If intent.yaml was edited after initial compilation in T2,
+      rerun /create-play --build reap.
+    acceptance_signal: >
+      sha256 of reference/intent.yaml equals the hash embedded in the
+      "Compiled From" section of SKILL.md.
+    blockedBy: [T2, T5]
+
+  - id: T10
+    title: Run lint-components to validate all modified/created components
+    description: >
+      Run /lint-components (or the lint-components skill) against:
+        core/components/plays/reap/
+        core/components/agents/knowledge-extractor.md
+        core/components/skills/diff-context-baseline/SKILL.md
+        core/components/skills/draft-enrichment-proposals/SKILL.md
+      Fix any schema violations, missing required fields, or structural errors
+      before evidence commit.
+    acceptance_signal: >
+      lint-components reports no errors for all four target components.
+    blockedBy: [T2, T3, T4, T5]
+
+evals:
+  - id: E-1
+    description: reap/reference/intent.yaml exists with required structure
+    pass_criteria: >
+      File exists at core/components/plays/reap/reference/intent.yaml.
+      Contains at minimum: 1 constraint with id+rule, 1 failure condition with id+condition,
+      1 scenario with id+persona+given+then. Contains constraint that prohibits
+      apply-ltm-enrichment invocation. Contains constraint that accepts issue state
+      OPEN or CLOSED (does not require CLOSED). Contains constraint requiring
+      learning_category on proposals.
+    fail_criteria: >
+      File does not exist, or is missing any of: constraints, failure_conditions, scenarios.
+      Or file requires issue-closed state. Or file references apply-ltm-enrichment
+      as a called component.
+
+  - id: E-2
+    description: reap/SKILL.md exists and is compiled (intent hash matches)
+    pass_criteria: >
+      File exists at core/components/plays/reap/SKILL.md.
+      Contains "Compiled From" section with intent_hash.
+      sha256(core/components/plays/reap/reference/intent.yaml) == intent_hash in SKILL.md.
+      File contains Pre-flight, Task DAG, Workflow, Scenario Validation,
+      Evidence & Close, and Compilation Metadata sections.
+    fail_criteria: >
+      File does not exist, or lacks "Compiled From" section, or intent hash does not
+      match current reference/intent.yaml.
+
+  - id: E-3
+    description: reap does NOT invoke apply-ltm-enrichment
+    pass_criteria: >
+      grep -r "apply-ltm-enrichment" core/components/plays/reap/ returns empty output.
+    fail_criteria: >
+      Any match found for "apply-ltm-enrichment" in the reap play directory.
+
+  - id: E-4
+    description: proposals schema includes full two-level taxonomy + invention fields in draft-enrichment-proposals
+    pass_criteria: >
+      core/components/skills/draft-enrichment-proposals/SKILL.md output schema for
+      proposals[] item contains ALL of: `learning_category`, `sub_category`,
+      `learning_category_proposed`, `sub_category_proposed`, and `taxonomy_justification`
+      (with evidence_path, excerpt, reasoning sub-fields). learning_category documents
+      the canonical set: arch, domain, product, quality, standards (all 5 present).
+      sub_category documents canonical children per parent (arch→6 children, quality→11,
+      standards→3) and null-allowed for domain and product. No `dimension:` field present
+      in the output schema block.
+    fail_criteria: >
+      Any of the five proposal fields missing from schema, or canonical enum lists
+      fewer than 5 learning_category values, or canonical sub_category enumeration
+      incomplete, or `dimension:` still present as a schema field.
+
+  - id: E-5
+    description: two-level taxonomy + invention fields present in diff-context-baseline output schema
+    pass_criteria: >
+      core/components/skills/diff-context-baseline/SKILL.md findings[] output schema
+      contains `learning_category`, `sub_category`, `learning_category_proposed`,
+      `sub_category_proposed`, and `taxonomy_justification` fields. Canonical
+      learning_category enum lists all five values (arch, domain, product, quality, standards)
+      in the skill documentation. Mapping note from old dimension to new taxonomy is
+      present. `dimension:` field no longer appears in the output block.
+    fail_criteria: >
+      Any of the five finding fields missing from schema, canonical enum incomplete,
+      mapping note absent, or `dimension:` still present in the output block.
+
+  - id: E-6
+    description: knowledge-extractor.md reflects the three-mode play split
+    pass_criteria: >
+      core/components/agents/knowledge-extractor.md frontmatter description mentions
+      all three plays: distill (FAST mode), reap (ANALYZE mode), enrich (ENRICH mode).
+      Operating Modes table shows reap as the ANALYZE trigger.
+      Input contract shows intent_path pointing to reap (not capture-learning).
+      Output path in ANALYZE contract shows evidence/reap/proposals.yaml.
+    fail_criteria: >
+      Agent description still references capture-learning as the ANALYZE trigger,
+      or output path still shows evidence/capture-learning/reconciliation-proposals.yaml.
+
+  - id: E-7
+    description: capture-learning play directory is deleted
+    pass_criteria: >
+      core/components/plays/capture-learning/ directory does not exist.
+      core/components/skills/diff-context-baseline/ still exists (not deleted).
+      core/components/skills/draft-enrichment-proposals/ still exists (not deleted).
+      core/components/skills/apply-ltm-enrichment/ still exists (not deleted).
+      core/components/agents/knowledge-extractor.md still exists (not deleted).
+    fail_criteria: >
+      capture-learning/ directory still exists, or any of the four retained
+      components (three skills, one agent) was deleted.
+
+  - id: E-8
+    description: product LTM architecture/ absence does not hard-fail the play
+    pass_criteria: >
+      reap/reference/intent.yaml contains a constraint (C9 or equivalent) that
+      explicitly states: if product LTM tier artifacts are absent, skip that tier
+      with a warning — not a hard failure. Text must match the C13-style semantics.
+    fail_criteria: >
+      No constraint for absent-tier handling, or constraint treats absent architecture/
+      as a hard failure condition.
+
+  - id: E-9
+    description: Evidence self-commit is wired in the compiled SKILL.md
+    pass_criteria: >
+      core/components/plays/reap/SKILL.md contains an Evidence & Close section
+      that references repo-orchestrator and a non-blocking self-commit.
+      Commit message pattern includes "chore(stm): record reap evidence for".
+    fail_criteria: >
+      SKILL.md has no Evidence & Close section, or section does not invoke
+      repo-orchestrator, or commit is marked as blocking.
+
+  - id: E-10
+    description: /create-play --build reap workflow produces compiled SKILL.md cleanly
+    pass_criteria: >
+      Running /create-play --build reap against the authored intent.yaml completes
+      without error and produces a non-empty SKILL.md with all required sections
+      (frontmatter, pre-flight, task DAG, workflow, scenario validation, evidence & close,
+      compilation metadata).
+    fail_criteria: >
+      /create-play --build reports an error, or produces an incomplete SKILL.md
+      missing any of the required sections.
+
+  - id: E-11
+    description: invention-with-justification rule is enforced in both skills
+    pass_criteria: >
+      Both diff-context-baseline/SKILL.md and draft-enrichment-proposals/SKILL.md
+      contain explicit documentation stating: when learning_category_proposed is true
+      OR sub_category_proposed is true, the taxonomy_justification block (evidence_path,
+      excerpt, reasoning) is REQUIRED and findings/proposals lacking it must be rejected.
+      Both skills also document the canonical taxonomy tree (5 top-level + children)
+      as the starting point, with the explicit note that canonical is the baseline, not
+      a closed enum. reap/reference/intent.yaml constraints C7a and C7b encode the same
+      rule at the play level.
+    fail_criteria: >
+      Either skill is silent on the invention-justification rule, or canonical taxonomy
+      not documented, or intent.yaml missing C7a or C7b constraints, or the rule is
+      stated but without the evidence_path/excerpt/reasoning requirement explicit.
+
+risks:
+  - id: R1
+    description: >
+      The two-level taxonomy + invention-with-justification schema is a contract
+      change that the future enrich play will depend on. If the field shape or
+      canonical enum drifts between reap (this issue) and enrich (future issue),
+      enrich will fail to route proposals correctly. This is an architectural risk
+      because it defines the interface between two plays across a pipeline boundary,
+      and the invention fields add new contract surface beyond a simple enum.
+    mitigation: >
+      The full schema — canonical taxonomy tree, sub_category child enums per parent,
+      _proposed flags, and taxonomy_justification block — is locked in this issue via
+      evals E-4, E-5, and E-11. Fields are declared required (or conditionally required
+      per C7a) in both diff-context-baseline and draft-enrichment-proposals schemas.
+      enrich's author (separate future issue) must read this approach.yaml and the
+      resulting reap intent.yaml as input before designing the intake contract. The
+      schema is surfaced for explicit human approval via the C20 risk checkpoint
+      before implementation begins.
+    type: architectural
+    action: approval-required
+    ltm_reference: null
+    generated_evals: [E-4, E-5, E-11]
+
+  - id: R2
+    description: >
+      Deleting capture-learning creates an ENRICH gap: from the time this issue ships
+      until the enrich play is built (separate issue), there is no supported play for
+      writing approved proposals to product LTM. Proposals from reap (and distill) will
+      accumulate in STM with no drain path.
+    mitigation: >
+      This gap is intentional per the Learning Pipeline redesign and the acceptance
+      criteria for this issue. The risk is documented here for stakeholder awareness.
+      Proposals are non-destructive — they accumulate in STM without side effects.
+      Priority and timeline for the enrich play is a product decision, not a technical
+      failure. Any operator attempting to run enrichment post-reap must be informed
+      that enrich is the path forward and capture-learning is no longer available.
+    type: architectural
+    action: monitor-only
+    ltm_reference: null
+    generated_evals: []
+
+  - id: R3
+    description: >
+      Replacing the six-value dimension enum with a two-level taxonomy preserves
+      most fidelity (quality has its own top-level; libraries/patterns route to
+      arch sub-categories) but introduces a new failure mode: the invention escape
+      hatch may be over-used. If the play emits many proposed-new categories or
+      sub-categories without rigorous justification, the taxonomy fragments and
+      enrich (and human reviewers) see noise rather than signal. A secondary risk:
+      the content-routed sub_category derivation for quality findings (security vs
+      performance vs testing etc.) is implicit and may misclassify without explicit
+      rules.
+    mitigation: >
+      Invention is structurally gated by C7a — a proposed-new value MUST carry
+      taxonomy_justification with evidence_path + excerpt + reasoning, or be rejected.
+      E-11 verifies this rule is documented in both skills and encoded in reap's
+      intent.yaml. The summary.proposed_categories and proposed_sub_categories blocks
+      in proposals.yaml surface every invention for reviewer attention — no invention
+      is hidden. For quality sub-category routing, diff-context-baseline documents the
+      content-routing heuristic (e.g., performance keywords → quality+performance;
+      security keywords → quality+security) so misclassification is auditable.
+      E-5 verifies the mapping note is present in the skill.
+    type: technical
+    action: eval-driven
+    ltm_reference: null
+    generated_evals: [E-5, E-11]
+
+alternatives_considered:
+  - alternative: Absorb reap into distill rather than create a new play
+    rationale_rejected: >
+      distill is explicitly fire-and-forget, non-blocking, lightweight (1–2 proposals max,
+      no context/ prerequisite, no human checkpoint). reap requires a full context/
+      baseline read, processes unlimited proposals across three tiers, and includes a human
+      review checkpoint before evidence commit. These operational requirements are
+      incompatible — absorbing reap into distill would force distill to be blocking,
+      context-dependent, and potentially long-running. The Learning Pipeline architecture
+      separates L1 (distill, post-PR) from L2 (reap, post-epic) precisely because the
+      evidence available and the depth of extraction differ fundamentally.
+
+  - alternative: Keep capture-learning, only rename to reap and strip ENRICH phase
+    rationale_rejected: >
+      A rename-and-strip preserves the archival machinery (C1 issue-closed, C2/C3/C4
+      archival constraints, F1–F5 archival failure conditions) that is no longer reap's
+      concern. This bloats the play with dead constraints, creates confusion about why
+      issue-closed is required, and leaves archival code that must be removed in a future
+      issue. A clean rebuild from intent.yaml produces exactly the right play with no
+      accumulated legacy — and is the correct workflow per CLAUDE.md (new plays go through
+      intent.yaml → /create-play --build). The rename approach also does not give a
+      natural checkpoint to resolve the seven design tensions surfaced in understanding.md.
+
+  - alternative: Defer learning_category to a future issue and ship reap as a 1:1 refactor
+    rationale_rejected: >
+      The user's reframe (2026-04-22) is explicit: "what's most important are learnings
+      around architecture, domain, tech, design patterns." A reap play that produces proposals
+      without learning_category is not useful — the reviewer and the downstream enrich play
+      have no way to route proposals to the correct KB section. The schema extension is
+      the semantic payload of the reframe; shipping without it delivers a mechanical diff
+      under a new name, not the semantic learning extraction the issue requires. The
+      extension is scoped to two skills (diff-context-baseline and draft-enrichment-proposals)
+      and is well-bounded — deferral provides no meaningful risk reduction.
