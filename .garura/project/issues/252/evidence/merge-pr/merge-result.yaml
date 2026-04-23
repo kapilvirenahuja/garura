@@ -1,0 +1,10 @@
+status: merged
+pr_number: 316
+merge_sha: 16339457ef12cc04b13b3b273b738f02aea78804
+base_branch: main
+branch_deleted: true
+feature_branch: enhance/252-component-linting
+evals:
+  SE-2: PASS  # branch_deleted == true, absent locally and on remote
+  SE-3: PASS  # local checkout on main, up to date with origin/main
+  SE-5: PASS  # PR state == MERGED, pr_number == 316

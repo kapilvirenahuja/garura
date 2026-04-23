@@ -1,0 +1,10 @@
+pr_number: 316
+state: OPEN
+mergeable: true
+base_branch: main
+head_branch: enhance/252-component-linting
+clean_tree: true
+evals:
+  SE-1: PASS  # PR not in conflict state
+  SE-4: PASS  # working tree clean (no staged/modified files)
+  SE-5: PASS  # PR exists with valid pr_number
