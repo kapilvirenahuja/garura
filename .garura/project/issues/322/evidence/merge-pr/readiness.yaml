@@ -1,0 +1,20 @@
+readiness:
+  pr_number: 323
+  branch: feat/322-decode-play
+  base_branch: main
+  mergeable: true
+  pr_state: OPEN
+  clean_tree: true
+  uncommitted_changes: false
+  staged_changes: false
+  preflight_checks:
+    branch_not_default: true
+    clean_working_tree: true
+    platform_config_valid: true
+    pr_exists: true
+    pr_not_conflicted: true
+  evals:
+    SE-1: PASS  # mergeable == true before merge attempted
+    SE-4: PASS  # working tree clean confirmed
+    SE-5: PASS  # pr_number is non-null (323)
+  timestamp: "2026-04-29T00:00:00Z"
