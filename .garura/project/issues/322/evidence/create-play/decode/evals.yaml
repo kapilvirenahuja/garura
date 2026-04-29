@@ -1,0 +1,483 @@
+step_evals:
+  # ===== Failure-condition-driven step evals (F0–F24) =====
+
+  - id: SE-1
+    source_type: "failure_condition"
+    failure_condition_id: "F0"
+    constraint_id: null
+    skill: "scan-codebase"
+    check: "Status file at {stm_base}/{issue}/status/decode.json exists and contains issue_number before any decode skill writes to proposals/."
+    artifact_pattern: "{stm_base}/{issue}/status/decode.json"
+    pass_criteria: "decode.json exists with issue_number field populated before the first scan or extraction artifact is written."
+    fail_criteria: "Any decode proposal artifact exists under {stm_base}/{issue}/evidence/decode/proposals/ while decode.json is absent or missing issue_number."
+
+  - id: SE-2
+    source_type: "both"
+    failure_condition_id: "F1"
+    constraint_id: null
+    skill: "aggregate-decode-proposals"
+    check: "No writes to product_base or ~/.garura/core/memory/ or core/components/skills/ or ~/.claude/skills/ occurred during the play run."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml"
+    pass_criteria: "All emitted proposal artifact_path values are rooted under {stm_base}/{issue}/evidence/decode/."
+    fail_criteria: "Any artifact_path in proposals.yaml lives under product_base, ~/.garura/core/memory/, core/components/skills/, or ~/.claude/skills/ (non-decode-temp)."
+
+  - id: SE-3
+    source_type: "failure_condition"
+    failure_condition_id: "F2"
+    constraint_id: null
+    skill: "extract-feature-behavior-spec"
+    check: "features.yaml was resolved from product_base/scope/features.yaml or --features-from override before extraction dispatched."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/features-resolution.yaml"
+    pass_criteria: "features-resolution.yaml shows source=(product_base | features_from) and features_path points to a readable YAML."
+    fail_criteria: "extract-feature-behavior-spec was dispatched and produced a spec while features-resolution.yaml is absent or records resolution_failed."
+
+  - id: SE-4
+    source_type: "failure_condition"
+    failure_condition_id: "F3"
+    constraint_id: null
+    skill: "scan-codebase"
+    check: "At least one feature selector (--feature | --capability | --domain | --all) was supplied in the invocation."
+    artifact_pattern: "{stm_base}/{issue}/status/decode.json"
+    pass_criteria: "status file records invocation.feature_selectors with a non-empty list."
+    fail_criteria: "status file shows extraction dispatches with empty invocation.feature_selectors."
+
+  - id: SE-5
+    source_type: "both"
+    failure_condition_id: "F4"
+    constraint_id: "C5"
+    skill: "extract-feature-behavior-spec"
+    check: "Every entry in business_rules[], scenarios[], data_contracts[], integration_behaviors[], edge_cases[] carries a non-empty cited_locations[]."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/behaviors/*.yaml"
+    pass_criteria: "Every enumerated entry has cited_locations with length >= 1 and each citation has file, line_start, line_end, excerpt."
+    fail_criteria: "Any rule, scenario, contract, integration, or edge case is emitted with empty or absent cited_locations."
+
+  - id: SE-6
+    source_type: "both"
+    failure_condition_id: "F4"
+    constraint_id: "C5"
+    skill: "extract-flow-spec"
+    check: "Every flow step, trigger, success_criterion, and failure_path entry carries a non-empty cited_locations[]."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/flows/*.yaml"
+    pass_criteria: "Every enumerated entry has cited_locations with length >= 1."
+    fail_criteria: "Any step, trigger, or success_criterion is emitted without citations."
+
+  - id: SE-7
+    source_type: "both"
+    failure_condition_id: "F4"
+    constraint_id: "C5"
+    skill: "extract-aspect-spec"
+    check: "Every policy field, bypass_condition, and applies_to entry carries a non-empty cited_locations[]."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/aspects/*.yaml"
+    pass_criteria: "Every policy field and bypass condition has cited_locations with length >= 1."
+    fail_criteria: "Any aspect policy field or bypass condition is emitted without citations."
+
+  - id: SE-8
+    source_type: "both"
+    failure_condition_id: "F5"
+    constraint_id: "C6"
+    skill: "validate-abstraction-layer"
+    check: "Every prose field across behaviors/, flows/, and aspects/ passes validate-abstraction-layer. Framework/SDK/library names appear only inside cited_locations.excerpt."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/{behaviors,flows,aspects}/*.yaml"
+    pass_criteria: "validate-abstraction-layer reports zero deny-list token hits in rule statements, scenario narratives, contract descriptions, integration behavior descriptions, flow step descriptions, aspect policy descriptions, and decorator_pattern text."
+    fail_criteria: "validate-abstraction-layer reports at least one deny-list token in any prose field (excluding cited_locations.excerpt)."
+
+  - id: SE-9
+    source_type: "both"
+    failure_condition_id: "F6"
+    constraint_id: "C9"
+    skill: "extract-feature-behavior-spec"
+    check: "Test-code drift is recorded in ambiguities[] with BOTH citations (test and source) and BOTH excerpts; drift was not silently resolved into scenarios[]."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/behaviors/*.yaml"
+    pass_criteria: "When tests and source disagree for a scenario, the spec has an ambiguities[] entry with test_citation and source_citation both populated."
+    fail_criteria: "A scenario is present in scenarios[] whose test assertion and source behavior disagree, with no corresponding ambiguities[] entry."
+
+  - id: SE-10
+    source_type: "both"
+    failure_condition_id: "F7"
+    constraint_id: "C8"
+    skill: "verify-citation-integrity"
+    check: "Every cited_locations entry resolves against current source: file exists, line range exists, excerpt matches."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/citation-integrity-reports/{unit-id}.yaml"
+    pass_criteria: "citation-integrity-report.summary.integrity_status = pass and all per-citation check_result = match."
+    fail_criteria: "Any citation has check_result in {file_missing, line_range_invalid, excerpt_mismatch} AND the unit's spec was still emitted."
+
+  - id: SE-11
+    source_type: "failure_condition"
+    failure_condition_id: "F8"
+    constraint_id: null
+    skill: "aggregate-decode-proposals"
+    check: "Every captured spec contains its stream's mandatory sections per C4a/C4b/C4c."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml"
+    pass_criteria: "Every proposal entry's spec file contains all mandatory sections for its stream (feature: meta+business_rules+scenarios+data_contracts+integration_behaviors+test_coverage+edge_cases+ambiguities+knowledge_gaps; flow: meta+trigger+participating_features+traversing_aspects+steps+success_criteria+failure_paths+ambiguities+knowledge_gaps+generated_tests_ref; aspect: meta+applies_to+policy+decorator_pattern+bypass_conditions+ambiguities+knowledge_gaps+generated_tests_ref)."
+    fail_criteria: "Any proposal entry's spec file is missing any mandatory section."
+
+  - id: SE-12
+    source_type: "failure_condition"
+    failure_condition_id: "F9"
+    constraint_id: null
+    skill: "aggregate-decode-proposals"
+    check: "Every captured spec in proposals.yaml has either generated_tests_refs[] populated OR cited_existing references for stack-coupled rules."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml"
+    pass_criteria: "For every proposal entry, generated_tests_refs[] is non-empty OR the entry carries cited_existing references."
+    fail_criteria: "A proposal entry exists with no generated_tests_refs[] AND no cited_existing references."
+
+  - id: SE-13
+    source_type: "both"
+    failure_condition_id: "F10"
+    constraint_id: "C25"
+    skill: "aggregate-decode-proposals"
+    check: "Every captured proposal in proposals.yaml has baseline_green = true."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml"
+    pass_criteria: "For every proposal NOT in skipped_units, baseline_green field equals true."
+    fail_criteria: "A proposal is marked captured (not skipped) and baseline_green is false or absent."
+
+  - id: SE-14
+    source_type: "failure_condition"
+    failure_condition_id: "F11"
+    constraint_id: null
+    skill: "generate-unit-pure-tests"
+    check: "Stack-coupled units (Tier D) have NO generated test files; only cited_existing entries in cited-specs sidecar."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/generated-tests/unit-pure/*__cited-specs.yaml"
+    pass_criteria: "Every rule classified stack_coupled appears only under cited_existing_for_stack_coupled[] and has no corresponding generated test file."
+    fail_criteria: "A rule classified stack_coupled has a generated test file at generated-tests/unit-pure/."
+
+  - id: SE-15
+    source_type: "failure_condition"
+    failure_condition_id: "F12"
+    constraint_id: null
+    skill: "run-generated-tests-isolated"
+    check: "test-runner's JSON contract contains ONLY {test_files, test_harness_path, codebase_root} — no spec paths, no extraction context paths."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/test-run-reports/*.yaml"
+    pass_criteria: "Dispatch log for every test-runner invocation shows stm.input keys limited to test_files, test_harness_path, codebase_root (plus optional install_if_missing, timeout_seconds)."
+    fail_criteria: "Any test-runner dispatch log shows stm.input containing behaviors/, flows/, aspects/, context-assembly.yaml, test-surface.yaml, or blast-radius.yaml paths."
+
+  - id: SE-16
+    source_type: "failure_condition"
+    failure_condition_id: "F13"
+    constraint_id: "C4d"
+    skill: "aggregate-decode-proposals"
+    check: "Cross-stream linking populated: feature-specs list participates_in_flows[] and governed_by_aspects[], flow-specs list participating_features[] and traversing_aspects[], aspect-specs list applies_to.{routes,components,features}[] — when the codebase contains those links."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml"
+    pass_criteria: "For every spec, cross-link fields are populated OR explicit empty-with-reason entry in knowledge_gaps[]."
+    fail_criteria: "A spec has empty cross-link fields and no corresponding knowledge_gaps entry explaining why."
+
+  - id: SE-17
+    source_type: "failure_condition"
+    failure_condition_id: "F14"
+    constraint_id: null
+    skill: "synthesize-tech-skill-from-playbook"
+    check: "temp-skills/ contains at least one synthesized skill (extract-from-{stack_id}/SKILL.md) before any extract-* skill dispatches."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/temp-skills/*/SKILL.md"
+    pass_criteria: "status file shows synthesize-tech-skill-from-playbook completed and temp-skills/ has at least one extract-from-* directory before the first extract-feature-behavior-spec / extract-flow-spec / extract-aspect-spec dispatch."
+    fail_criteria: "An extract-* skill dispatched while temp-skills/ is empty."
+
+  - id: SE-18
+    source_type: "failure_condition"
+    failure_condition_id: "F15"
+    constraint_id: null
+    skill: "detect-tech-stacks-from-physical-architecture"
+    check: "Every detected stack has detection_status in {resolved}. No stack with detection_status in {playbook_missing, unknown} proceeded to extraction."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/stacks-detected.yaml"
+    pass_criteria: "stacks-detected.yaml summary shows playbook_missing = 0 and unknown = 0 OR the play halted with structured error."
+    fail_criteria: "stacks-detected.yaml shows playbook_missing > 0 or unknown > 0 AND extraction proceeded for those stacks."
+
+  - id: SE-19
+    source_type: "failure_condition"
+    failure_condition_id: "F16"
+    constraint_id: null
+    skill: "synthesize-tech-skill-from-playbook"
+    check: "Synthesized skill output_skill_dir is under {stm_base}/{issue}/evidence/decode/temp-skills/ and no synthesized skill was written to core/components/skills/ or ~/.claude/skills/ (global)."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/temp-skills/*/synthesis-record.yaml"
+    pass_criteria: "Every synthesis-record.yaml shows output_skill_path rooted at {stm_base}/{issue}/evidence/decode/temp-skills/. claude_link_path is null OR rooted at .claude/skills/decode-temp-*."
+    fail_criteria: "Any synthesized skill path lies under core/components/skills/, ~/.claude/skills/ without decode-temp- prefix, or any path outside STM + project .claude/skills/decode-temp-*."
+
+  - id: SE-20
+    source_type: "failure_condition"
+    failure_condition_id: "F17"
+    constraint_id: null
+    skill: "cleanup-temp-skills"
+    check: "After final Tether, cleanup-report.yaml exists and shows status: success; temp-skills/ and .claude/skills/decode-temp-*/ are removed."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/cleanup-report.yaml"
+    pass_criteria: "cleanup-report.yaml shows status = success and both stm_removed and claude_links_removed count fields reflect complete removal."
+    fail_criteria: "cleanup-report.yaml is absent after final Tether OR reports partial_cleanup without corresponding warning in evidence."
+
+  - id: SE-21
+    source_type: "failure_condition"
+    failure_condition_id: "F18"
+    constraint_id: null
+    skill: "detect-test-harness"
+    check: "test-harness.yaml's runnability_summary is runnable OR prereq-missing-with-install-command. not-detectable halts the play."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/test-harness.yaml"
+    pass_criteria: "runnability_summary in {runnable, prereq-missing} with a populated install_command for prereq-missing; OR play halted before extraction with structured error."
+    fail_criteria: "runnability_summary = not-detectable AND play proceeded to emit specs."
+
+  - id: SE-22
+    source_type: "both"
+    failure_condition_id: "F19"
+    constraint_id: "C10"
+    skill: "aggregate-decode-proposals"
+    check: "Every proposal in proposals.yaml has learning_category = product and sub_category = null."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml"
+    pass_criteria: "Every proposal entry has learning_category = product AND sub_category = null."
+    fail_criteria: "Any proposal has learning_category != product OR sub_category != null."
+
+  - id: SE-23
+    source_type: "failure_condition"
+    failure_condition_id: "F20"
+    constraint_id: null
+    skill: "extract-feature-behavior-spec"
+    check: "Every agent dispatch that received ltm_context produced a resolution-trace.yaml at its declared output path."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/resolution-traces/*.yaml"
+    pass_criteria: "resolution-traces/ contains one trace file per dispatch that carried ltm_context in its contract."
+    fail_criteria: "A dispatch with ltm_context completed without a corresponding resolution-trace.yaml."
+
+  - id: SE-24
+    source_type: "failure_condition"
+    failure_condition_id: "F21"
+    constraint_id: null
+    skill: "aggregate-decode-proposals"
+    check: "status/decode.json shows checkpoint-phase-1 and checkpoint-phase-2 both completed before any evidence-commit task ran."
+    artifact_pattern: "{stm_base}/{issue}/status/decode.json"
+    pass_criteria: "Both checkpoint-phase-1.status and checkpoint-phase-2.status equal completed before evidence-commit.status transitions to in_progress."
+    fail_criteria: "evidence-commit ran while either checkpoint phase is pending or skipped (even for zero-unit exits)."
+
+  - id: SE-25
+    source_type: "failure_condition"
+    failure_condition_id: "F22"
+    constraint_id: null
+    skill: "aggregate-decode-proposals"
+    check: "Checkpoint Phase 1 1-by-1 surfacing recorded per-unit decisions for every flagged unit (low-confidence, ambiguities-present, citation-integrity-warning, deferred, no-tests, over-budget-proceed)."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/checkpoint-decisions.yaml"
+    pass_criteria: "checkpoint-decisions.yaml has one entry per flagged unit with decision in {accept, reject, defer}."
+    fail_criteria: "A unit meeting any flag criterion has no entry in checkpoint-decisions.yaml."
+
+  - id: SE-26
+    source_type: "failure_condition"
+    failure_condition_id: "F23"
+    constraint_id: null
+    skill: "aggregate-decode-proposals"
+    check: "proposals.yaml exists at {stm_base}/{issue}/evidence/decode/proposals.yaml after final Tether. Zero-unit runs still write the index."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml"
+    pass_criteria: "File exists; if total_units = 0 then extraction_complete = true and alignment_confirmed = true."
+    fail_criteria: "File absent after Tether OR zero-unit run without alignment_confirmed flag."
+
+  - id: SE-27
+    source_type: "failure_condition"
+    failure_condition_id: "F24"
+    constraint_id: null
+    skill: "aggregate-decode-proposals"
+    check: "For every unit marked completed in status file, spec_path exists on disk, generated_tests_refs resolve, and baseline_green = true."
+    artifact_pattern: "{stm_base}/{issue}/status/decode.json"
+    pass_criteria: "Every units[].status = completed entry has a spec file at spec_path, every generated_tests_ref exists, and baseline_green = true."
+    fail_criteria: "Any completed unit is missing its spec file, missing a generated test file, or has baseline_green != true."
+
+  # ===== Constraint-only evals (artifact-verifiable constraints not covered above) =====
+
+  - id: SE-28
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C4"
+    skill: "aggregate-decode-proposals"
+    check: "Three-stream output present in proposals.yaml: behaviors, flows, aspects streams each populated (or zero-with-justification)."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml"
+    pass_criteria: "proposals.yaml decode_run.streams contains behaviors, flows, aspects counts; any zero count is accompanied by a note in skipped_units or a knowledge_gap."
+    fail_criteria: "A stream is silently zero when the codebase contains that concern."
+
+  - id: SE-29
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C4a"
+    skill: "extract-feature-behavior-spec"
+    check: "Every behaviors/{feature-id}.yaml contains all mandatory sections: meta, business_rules, scenarios, data_contracts, integration_behaviors, edge_cases, ambiguities, knowledge_gaps, test_coverage."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/behaviors/*.yaml"
+    pass_criteria: "Every behaviors spec has all 9 mandatory top-level sections."
+    fail_criteria: "Any behaviors spec is missing any of the 9 mandatory sections."
+
+  - id: SE-30
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C4b"
+    skill: "extract-flow-spec"
+    check: "Every flows/{flow-id}.yaml contains all mandatory sections: meta, trigger, participating_features, traversing_aspects, steps, success_criteria, failure_paths, ambiguities, knowledge_gaps, generated_tests_ref."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/flows/*.yaml"
+    pass_criteria: "Every flows spec has all 10 mandatory top-level sections."
+    fail_criteria: "Any flows spec is missing any of the 10 mandatory sections."
+
+  - id: SE-31
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C4c"
+    skill: "extract-aspect-spec"
+    check: "Every aspects/{aspect-id}.yaml contains all mandatory sections: meta, applies_to, policy, decorator_pattern, bypass_conditions, ambiguities, knowledge_gaps, generated_tests_ref."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/aspects/*.yaml"
+    pass_criteria: "Every aspects spec has all 8 mandatory top-level sections."
+    fail_criteria: "Any aspects spec is missing any of the 8 mandatory sections."
+
+  - id: SE-32
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C7"
+    skill: "extract-feature-behavior-spec"
+    check: "Scenarios in behavior-specs reflect tests-first reading order — scenarios carry source field in {test_extracted, code_extracted, both} with test_extracted preferred when tests exist in file_surface."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/behaviors/*.yaml"
+    pass_criteria: "When the feature's test_surface is non-empty, at least one scenario has source = test_extracted OR source = both."
+    fail_criteria: "A feature has non-empty test_surface AND all scenarios have source = code_extracted only."
+
+  - id: SE-33
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C11"
+    skill: "extract-feature-behavior-spec"
+    check: "Per-unit LOC pre-check was performed before extraction; over-budget units surfaced to user before dispatch."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/loc-precheck-reports/{unit-id}.yaml"
+    pass_criteria: "Every unit has a loc-precheck report with file_surface_loc recorded; units exceeding the soft cap have a user_decision field populated before extraction."
+    fail_criteria: "A unit was extracted and its file_surface_loc exceeds the soft cap without a recorded user_decision."
+
+  - id: SE-34
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C12"
+    skill: "aggregate-decode-proposals"
+    check: "Runtime extraction_budget_exhausted failures result in deferred status, not completed — deferred units appear in skipped_units with reason extraction_budget_exhausted and partial output under proposals/deferred/."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml"
+    pass_criteria: "Units with extraction_budget_exhausted appear in skipped_units with status=deferred; partial output exists at proposals/deferred/{unit-id}/."
+    fail_criteria: "A unit returned extraction_budget_exhausted AND appears as captured in proposals.yaml."
+
+  - id: SE-35
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C16"
+    skill: "aggregate-decode-proposals"
+    check: "Zero-unit exits are recorded as valid outcomes — total_units=0 and extraction_complete=true."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml"
+    pass_criteria: "When selectors match zero features/flows/aspects, proposals.yaml has total_units = 0 and extraction_complete = true and alignment_confirmed = true."
+    fail_criteria: "A zero-unit run produces an error or absent proposals.yaml instead of the zero-unit exit record."
+
+  - id: SE-36
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C24"
+    skill: "generate-contract-tests"
+    check: "Contract tests (Tier A) generated for every exposed API endpoint in feature-specs and every outbound integration_behavior."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/generated-tests/contract/*.*"
+    pass_criteria: "For every inbound endpoint in any behavior-spec's integration_behaviors with direction=inbound, a matching contract test file exists. For every outbound integration_behavior, a contract test file exists."
+    fail_criteria: "An inbound endpoint or outbound integration in a feature-spec has no corresponding contract test."
+
+  - id: SE-37
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C24"
+    skill: "generate-flow-tests"
+    check: "Flow tests (Tier B) generated for every flow-spec — one success test plus one per documented failure_paths entry."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/generated-tests/flow/*.*"
+    pass_criteria: "Every flow-spec has one success-path test file plus one file per entry in its failure_paths[]."
+    fail_criteria: "A flow-spec has no success test OR has fewer failure tests than entries in its failure_paths[]."
+
+  - id: SE-38
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C24"
+    skill: "generate-unit-pure-tests"
+    check: "Pure-logic unit tests (Tier C) selectively generated for non-trivial rules classified as pure; stack-coupled rules (Tier D) have only cited_existing references."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/generated-tests/unit-pure/*__cited-specs.yaml"
+    pass_criteria: "Every cited-specs sidecar lists rules_classified.pure > 0 (when pure rules exist) and cited_existing_for_stack_coupled for every stack_coupled rule."
+    fail_criteria: "A rule classified as pure has no corresponding generated test file OR a stack_coupled rule has a generated test file."
+
+  - id: SE-39
+    source_type: "constraint"
+    failure_condition_id: null
+    constraint_id: "C33"
+    skill: "extract-feature-behavior-spec"
+    check: "Stack-to-path dispatch map is recorded per unit — every file in file_surface is either dispatched to a matching temp skill or flagged unmapped_stack."
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/dispatch-plans/{unit-id}.yaml"
+    pass_criteria: "Every file in file_surface appears in dispatch-plans/{unit-id}.yaml with either a temp_skill assignment or an unmapped_stack flag."
+    fail_criteria: "A file in file_surface is extracted without a dispatch record."
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: "S1"
+    persona: "Migration lead extracting a single high-value feature on a single-stack codebase"
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml"
+    check: "After /decode --issue 500 --feature MEM-F001-signup on a Spring Boot codebase with features.yaml in LTM, one feature-spec is produced, temp skills synthesized from spring-boot-3 playbook and cleaned up on final Tether, contract+unit-pure tests generated and green, summary shown and Tethered, evidence committed."
+    pass_criteria: "proposals.yaml contains exactly one feature proposal with baseline_green=true, citation_integrity=pass; synthesis-record.yaml for extract-from-spring-boot-3 was created and cleanup-report.yaml shows that synthesis removed; status/decode.json shows evidence-commit completed."
+    fail_criteria: "Multiple feature proposals present, baseline_green false, temp skill not cleaned up, or evidence not committed."
+
+  - id: SCE-2
+    scenario_id: "S2"
+    persona: "Platform engineer extracting an entire capability on a multi-stack codebase"
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml + status/decode.json"
+    check: "After /decode --issue 500 --capability CMS on a multi-stack monorepo (Express+Ember+React): 3 temp skills synthesized, per-feature specs + flows + aspects produced, per-unit tests at correct tiers, test-runner all green, resume works after mid-run interrupt, all 3 temp skills cleaned up on final Tether."
+    pass_criteria: "stacks-detected.yaml lists ≥3 stacks all resolved; temp-skills/ contained 3 synthesized skills; status file shows resume from first non-completed unit; cleanup-report.yaml shows 3 temp skills removed."
+    fail_criteria: "Any stack unresolved, resume re-extracts completed units, or cleanup leaves stale temp skills."
+
+  - id: SCE-3
+    scenario_id: "S3"
+    persona: "Reviewer examining a test/code drift finding"
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/behaviors/{feature-id}.yaml + checkpoint-decisions.yaml"
+    check: "For a feature whose test asserts HTTP 402 but source returns HTTP 403, the ambiguity is recorded with both citations, no replacement test is auto-generated, the feature surfaces at Phase 1, and only after user decision is a conforming test generated and verified green."
+    pass_criteria: "behaviors/{feature-id}.yaml ambiguities[] has one entry with test_citation (402) and source_citation (403). checkpoint-decisions.yaml records user decision on this ambiguity. Final generated test reflects the chosen truth source."
+    fail_criteria: "Ambiguity absent from ambiguities[], or test generated before user decision, or scenarios[] contains a conflicting scenario without the ambiguity entry."
+
+  - id: SCE-4
+    scenario_id: "S4"
+    persona: "Reviewer examining a horizontal aspect"
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/aspects/ASP-rate-limit-001.yaml"
+    check: "For Ghost-style rate-limit aspect via express-brute plus admin-bypass: aspect-spec captures full policy (routes, limits, storage, bypass), applies_to.routes populated from every registration site, Tier A test verifies rate-limit on representative endpoint (not every endpoint)."
+    pass_criteria: "aspects/ASP-rate-limit-001.yaml has non-empty policy with limit+window+storage_backend+bypass_conditions fields; applies_to.routes length > 1; generated-tests/contract has exactly one rate-limit assertion test (not one-per-endpoint)."
+    fail_criteria: "Policy fields empty, applies_to.routes empty when registration sites exist, or rate-limit tests generated redundantly per endpoint."
+
+  - id: SCE-5
+    scenario_id: "S5"
+    persona: "Reviewer examining a user flow that crosses features"
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/scope/flows/FLOW-first-post-001.yaml"
+    check: "For new-member-first-post flow spanning 5 features: flow-spec has participating_features ordered, each feature-spec lists this flow in participates_in_flows, traversing_aspects populated, Tier B E2E test generated and green."
+    pass_criteria: "flows/FLOW-first-post-001.yaml participating_features length = 5 in execution order; each of the 5 feature-specs has FLOW-first-post-001 in participates_in_flows; traversing_aspects has ≥1 entry; generated-tests/flow/FLOW-first-post-001__success.* exists and test-run-report shows green."
+    fail_criteria: "participating_features missing or unordered, cross-link absent on any feature-spec, aspects empty, or E2E test missing/red."
+
+  - id: SCE-6
+    scenario_id: "S6"
+    persona: "Tech lead running /decode against a stack with no playbook"
+    artifact_pattern: "{stm_base}/{issue}/status/decode.json + stacks-detected.yaml"
+    check: "For a codebase using Laravel (no playbook at core/components/memory/knowledge/tech/laravel-10.md), play halts before extraction with structured error listing the missing playbook path."
+    pass_criteria: "stacks-detected.yaml records laravel-10 with detection_status = playbook_missing; status/decode.json shows halt_reason = missing_tech_playbook with kb_playbook_path expected; no extract-* skills dispatched."
+    fail_criteria: "Extract skills dispatched for a stack with missing playbook OR the halt is generic without naming the missing playbook."
+
+  - id: SCE-7
+    scenario_id: "S7"
+    persona: "Reviewer whose generated test fails on current code"
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/test-run-reports/{unit-id}.yaml + proposals.yaml"
+    check: "When a generated Tier-C unit test FAILS against current code (rule says reject, code allows): baseline-green gate halts the feature; user presented options (revise spec, revise test, drop rule, defer); the 'rule-not-enforced' finding moves to ambiguities."
+    pass_criteria: "test-run-report shows failed > 0; proposals.yaml does NOT mark that unit captured; ambiguities[] contains the drop-or-revise decision with both citations."
+    fail_criteria: "Unit marked captured with baseline_green=true while test-run-report shows failures, OR no ambiguity recorded after drop-rule decision."
+
+  - id: SCE-8
+    scenario_id: "S8"
+    persona: "Tech lead Vanishing mid-run and resuming later"
+    artifact_pattern: "{stm_base}/{issue}/status/decode.json + {stm_base}/{issue}/evidence/decode/temp-skills/"
+    check: "After Vanishing at Phase 2 with 5/12 features complete: temp skills preserved; re-invocation resumes from feature 6 with zero re-extraction of completed units; temp skills cleaned up on the later final Tether."
+    pass_criteria: "After Vanish, temp-skills/ still present with all synthesized skill files. After re-run + Tether, status/decode.json shows the initial 5 features retain their original completed_at timestamps; cleanup-report.yaml removes temp skills after the final Tether."
+    fail_criteria: "Temp skills removed on Vanish, completed units re-extracted on resume, or original completed_at timestamps overwritten."
+
+  - id: SCE-9
+    scenario_id: "S9"
+    persona: "Migration lead encountering a flow with no existing E2E tests"
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals/generated-tests/flow/FLOW-checkout-001__success.* + test-run-reports/FLOW-checkout-001-*.yaml"
+    check: "For a checkout flow with no existing Playwright tests: generate-flow-tests emits a new E2E test using detected Playwright framework; test-runner provisions and executes; on success, flow captured."
+    pass_criteria: "generated-tests/flow/FLOW-checkout-001__success.spec.ts exists with Playwright idioms; test-run-report shows passed=1 failed=0 for this flow; proposals.yaml shows flow captured with baseline_green=true."
+    fail_criteria: "No generated flow test file OR test-run-report shows failure AND flow still captured."
+
+  - id: SCE-10
+    scenario_id: "S10"
+    persona: "Tech lead using /decode immediately after /codify, before /enrich"
+    artifact_pattern: "{stm_base}/{issue}/evidence/decode/proposals.yaml + features-resolution.yaml"
+    check: "When /decode runs with --features-from pointing to codify STM features.yaml (not yet enriched), the play accepts the override and all units are classified Tier 3 (addition)."
+    pass_criteria: "features-resolution.yaml records source=features_from; every proposal in proposals.yaml has tier=3."
+    fail_criteria: "features-resolution records source=product_base despite --features-from, OR any proposal is tier=2 while the corresponding feature has no product_base entry."
+
+  - id: SCE-11
+    scenario_id: "S11"
+    persona: "Tech lead running /decode against a non-runnable environment"
+    artifact_pattern: "{stm_base}/{issue}/status/decode.json + test-harness.yaml"
+    check: "On a repo with no installed deps and no discoverable manifest, detect-test-harness reports runnability_summary=not-detectable; play halts with prerequisites error; no specs emitted; no tests generated."
+    pass_criteria: "test-harness.yaml runnability_summary = not-detectable; status/decode.json shows halt_reason = test_harness_not_runnable; proposals/ directory is empty."
+    fail_criteria: "Specs emitted while runnability_summary = not-detectable, OR play proceeded with a warning instead of halting."
