@@ -1,0 +1,155 @@
+---
+name: generate-contract-tests
+description: "Generate Tier-A contract tests — HTTP request/response assertions at the API boundary — for every exposed endpoint in a behavior-spec and every outbound integration_behavior. Tests are portable across backend stacks (they assert wire contracts, not implementation). Test framework is chosen from detected TEST_HARNESS. Generated tests must pass green against the current codebase before capture (C25). Owned by test-engineer."
+user-invocable: false
+model: opus
+allowed-tools: Read, Write, Grep, Glob
+---
+
+# generate-contract-tests
+
+Owned by the `test-engineer` agent. Invoked once per feature whose behavior-spec contains exposed API endpoints or outbound integrations. Generates the most portable tier of test the migration will rely on.
+
+## Purpose
+
+Contract tests are the migration contract. They assert what a HTTP endpoint accepts and what it returns — nothing about how it is implemented. That makes them survive a stack transform unchanged (except possibly test-framework syntax adjustments, which are mechanical). /decode generates contract tests aggressively (C24 Tier A): one per exposed endpoint traversed by a feature or flow, one per outbound integration boundary.
+
+Generated tests must pass green against the current codebase before /decode considers the spec captured (C25). Red baseline is the absolute gate.
+
+## Input
+
+Receive via JSON contract from test-engineer.
+
+- `behavior_spec_path` (path, required) — the feature's spec from `extract-feature-behavior-spec`.
+- `test_harness_path` (path, required) — `{stm_base}/{issue}/evidence/decode/test-harness.yaml`.
+- `codebase_root` (path, required).
+- `output_dir` (path, required) — `{stm_base}/{issue}/evidence/decode/proposals/generated-tests/contract/`.
+- `ltm_context` (object, required).
+
+## Process
+
+### 1. Validate inputs
+
+- Confirm `behavior_spec_path` parses as YAML and has the C4a shape.
+- Confirm `test_harness_path` is present and its `harnesses[]` includes at least one with role `unit` or `integration` suitable for HTTP testing (supertest, requests, MockMvc, etc.).
+
+### 2. Enumerate contract sites
+
+From the behavior-spec:
+
+**Inbound API endpoints** — extract from `integration_behaviors[]` entries where `direction: inbound`, plus any API routes implied by data_contracts with CRUD semantics. For each endpoint:
+- method (GET | POST | PUT | PATCH | DELETE)
+- path (possibly with path parameters)
+- request body schema (from data_contracts)
+- response body schema (from scenarios' "then" assertions)
+- error envelope shape (from edge_cases + error_envelope aspect, cross-linked)
+
+**Outbound integrations** — extract from `integration_behaviors[]` entries where `direction: outbound`. For each:
+- external endpoint (method + URL pattern)
+- request body shape
+- retry/idempotency/timeout semantics
+- expected response
+
+For outbound integrations, generate contract tests against a mock of the external boundary (not against the live external service). The mock is configured to assert the outgoing request shape.
+
+### 3. Select test framework
+
+From test_harness_path, pick a harness whose role is unit or integration. Framework mapping:
+- `jest-node` + `supertest` (detect supertest in manifests) → jest + supertest
+- `vitest-node` + `supertest` → vitest + supertest
+- `pytest-python` + `requests` or `httpx` → pytest + requests
+- `junit-maven` + MockMvc (detect Spring) → JUnit + MockMvc
+- `rspec-ruby` + `rack-test` → rspec + rack-test
+
+Fallback: the test framework with no HTTP testing library requires the skill to generate tests using the framework's native HTTP facility or flag as `framework_gap` in the test file header.
+
+### 4. Generate one test file per endpoint
+
+For each inbound endpoint, produce a test file at:
+
+```
+{output_dir}/{feature-id}__{method}-{normalized-path}.{ext}
+```
+
+Example: `MEM-F001-signup__POST-api-v1-members.spec.ts`.
+
+The test file contains:
+- One test per scenario in behavior-spec that traverses this endpoint.
+- One test per edge_case whose trigger is an HTTP request shape (e.g., "reject when email domain is blocklisted").
+- One test per error_envelope shape (if the error_envelope aspect is in scope for this feature).
+
+Each test follows the detected framework's idioms. Contract assertions:
+- Status code expected.
+- Response body shape (fields present, types correct — NOT exact values except where the spec's cited_locations shows literal values).
+- Response headers if specified (Location, Content-Type, Cache-Control).
+- Side-effects verifiable via subsequent GET (when safe; otherwise skip the side-effect assertion and document as test_coverage knowledge gap).
+
+For each outbound integration, produce:
+
+```
+{output_dir}/{feature-id}__outbound-{boundary}.spec.{ext}
+```
+
+With mock assertions on the outgoing request.
+
+### 5. Annotate every test with cited_specs
+
+Every generated test includes a comment header linking it back to the spec scenarios it covers:
+
+```
+// Generated by /decode — DO NOT HAND-EDIT; rerun the play
+// covers:
+//   - behavior_spec: {behavior_spec_path}
+//   - scenarios: [SC-MEM-F001-001, SC-MEM-F001-002]
+//   - edge_cases: [EC-MEM-F001-003]
+```
+
+This cited_specs mapping is also recorded in a sidecar file at:
+
+```
+{output_dir}/{feature-id}__cited-specs.yaml
+```
+
+listing every generated test file and the scenario IDs it covers. Consumed by `aggregate-decode-proposals`.
+
+### 6. Wire into test harness
+
+If the detected harness requires test discovery paths (jest's testMatch, pytest collect_ignore, etc.), emit a `test-harness-extension.yaml` instructing the play how to add the generated-tests/contract/ directory to the harness's discovery. The play applies this extension before the test-runner executes.
+
+### 7. Return contract
+
+```yaml
+feature_id: "{feature_id}"
+generated_files:
+  - path: "{output_dir}/MEM-F001-signup__POST-api-v1-members.spec.ts"
+    covers_scenarios: ["SC-MEM-F001-001", "SC-MEM-F001-002"]
+    endpoint: "POST /api/v1/members"
+  # ...
+total_files: <int>
+covered_scenario_ids: [...]
+framework: "jest+supertest"
+status: "success"
+```
+
+## Output
+
+Primary artifacts: test files at `{output_dir}/`.
+Companion: `{output_dir}/{feature-id}__cited-specs.yaml`.
+
+## Failure Modes
+
+```yaml
+status: failure
+what_failed: "no_api_endpoints_in_spec | harness_unsuitable | framework_gap"
+detail: "<specific>"
+evidence: {...}
+```
+
+`no_api_endpoints_in_spec` is not always a failure — a feature might have zero inbound endpoints (pure logic unit, or backend-only queue processor). The skill returns `status: empty` in that case, not failure — /decode handles empty output by relying on Tier C pure-unit test generation for coverage.
+
+## Notes
+
+- Contract tests are deliberately shallow — they assert the contract, not implementation correctness. Deep scenario coverage of business rules is Tier C's job.
+- Request/response schemas come from the behavior-spec's data_contracts and scenarios. When the spec does not fully specify a schema (common for error envelopes not cross-linked to an aspect), the test asserts only what IS specified and records the gap in the test file's comment.
+- Generated tests are authored to pass on the CURRENT codebase. That is the baseline-green gate (C25). If a generated test fails against current code, the extraction was wrong — /decode halts the feature and routes back to tech-architect.
+- When the existing codebase already has a matching contract test (detected via map-test-surface), the generator notes it in the test file header as "prior: existing test at {path}" and emits a complementary test rather than a duplicate. Deduplication is a future enhancement; the initial implementation generates without de-dup and leaves de-dup to /enrich's review.
