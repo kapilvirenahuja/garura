@@ -1,2 +1,0 @@
-?? .garura/project/issues/317/evidence/merge-pr/
-?? .garura/project/issues/322/evidence/create-pr/
