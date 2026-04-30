@@ -1,0 +1,12 @@
+issue:
+  number: 324
+  title: "[CHORE] Rename /scope play to /define"
+  labels:
+    - refactor
+  state: open
+  body_summary: "The current /scope play handles both new feature scoping and re-scoping/extending existing FEAT-IDs (5-bucket classification). The name \"scope\" is mislead"
+  url: "https://github.com/kapilvirenahuja/garura/issues/324"
+  created: true
+  closed: false
+  parent_issue: null
+  type_hint: "refactor"
