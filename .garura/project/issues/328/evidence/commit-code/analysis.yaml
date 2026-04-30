@@ -1,0 +1,55 @@
+branch:
+  name: fix/328-lint-sce-range-expansion
+  issue: 328
+  is_hotfix: false
+
+change_summary:
+  total_files: 4
+  staged: 3
+  unstaged: 0
+  untracked: 1  # .garura/project/issues/328/ directory tree
+
+groups:
+  - id: G1
+    issue: 328
+    type: fix
+    scope: lint-components
+    subject: expand scenario-coverage rule to recognise SCE range expressions
+    confidence: high
+    files:
+      - path: core/tools/lint-components/lib/rules/cross-reference.js
+        description: >
+          New collectCoveredScenarioNumbers() function adds range-expansion
+          logic for "SCE-N through/to/../–/— SCE-M" patterns. Replaces the
+          previous plain-string-include check with a Set-based lookup so
+          ranges (e.g. SCE-1 through SCE-5) are expanded and each covered
+          scenario number is individually recorded.
+
+  - id: G2
+    issue: 328
+    type: chore
+    scope: stm
+    subject: record start-feature and commit-code evidence for #328
+    confidence: high
+    files:
+      - path: .garura/project/issues/_pending/start-feature/args.yaml
+        description: Deleted — moved to issue-scoped path under issues/328/
+      - path: .garura/project/issues/_pending/start-feature/changed-files.txt
+        description: Deleted — moved to issue-scoped path under issues/328/
+      - path: .garura/project/issues/328/
+        description: >
+          Untracked directory tree — contains start-feature evidence
+          (args.yaml, branch-result.yaml, changed-files.txt,
+          issue-resolution.yaml, 20260430-232711.md) and the
+          commit-code analysis artifact being written now.
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+notes: >
+  G1 is the substantive fix; G2 is purely operational STM bookkeeping.
+  No secrets, no exported-API removals, no schema changes detected.
+  Branch name and file scope both map unambiguously to issue #328.
