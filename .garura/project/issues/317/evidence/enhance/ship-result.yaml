@@ -1,0 +1,8 @@
+pr_number: 326
+pr_state: "merged"
+merge_sha: "2d8504d6e5408139ef08a5a93ea0dbdee9d61ba0"
+branch: "enhance/317-document-lint-components"
+branch_deleted: true
+issue_state: "closed"
+switched_to_main: true
+main_synced: true

@@ -1,0 +1,12 @@
+result:
+  success: true
+  branch:
+    name: "enhance/317-document-lint-components"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/enhance/317-document-lint-components"
+  worktree:
+    used: false
+    path: null
+    reason: "Working tree was clean (only untracked files); direct checkout used"
+  error: null

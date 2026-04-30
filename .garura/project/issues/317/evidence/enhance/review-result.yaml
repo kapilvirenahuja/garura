@@ -1,0 +1,121 @@
+generated_at: "2026-04-30T00:00:00Z"
+pr_number: 326
+branch: enhance/317-document-lint-components
+base: main
+
+analysis:
+  branch: enhance/317-document-lint-components
+  base: main
+  branch_pattern: feature  # enhance/* maps to feature classification; standard priorities apply
+  commits: 1
+  changes:
+    files: 2
+    additions: 264
+    deletions: 0
+  suggested_title: "docs: document lint-components tool and skill (#317)"
+
+  context:
+    file_patterns_matched:
+      - name: Documentation
+        files: 2
+        trigger: "*.md, **/docs/**"
+    commit_types:
+      - type: docs
+        count: 1
+        example: "docs: document lint-components tool and skill (#317)"
+    branch_modifiers: []
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: No merge conflicts with main
+        trigger: Universal rule — always applied
+        status: PASS
+        evidence: "git merge-tree --write-tree returned clean tree hash d7b097af; no conflict markers"
+
+      - id: no-secrets
+        item: No secrets committed
+        trigger: Universal rule — always applied
+        status: PASS
+        evidence: "Pattern scan of both .md files: no matches for api_key, secret, password, token, private_key, bearer, aws_, BEGIN private key"
+
+      - id: docs-consistent
+        item: Documentation consistent with implementation
+        trigger: "docs/philosophy/*.md, docs/components/*.md pattern matched (architecture docs changed)"
+        status: PASS
+        evidence: |
+          Verified all factual claims against source:
+          - --validate-templates: "Accepted by parser but not yet implemented; flag stored, no rule module reads it" — CONFIRMED against index.js lines 15, 28-29; grep of all lib/rules/*.js shows zero reads of validateTemplates
+          - Node version: "No engines field declared in package.json" — CONFIRMED; package.json has no engines field
+          - Rule IDs (structural, semantic, cross-ref): all 14 rule IDs in doc verified against lib/rules/structural.js, semantic.js, cross-reference.js — zero fabricated IDs
+          - Pillar slug "agentic-methodology": CONFIRMED at .garura/product/scope/features.yaml line 130 (slug: agentic-methodology)
+          - Cross-links: tool doc → ../../usage/skills/lint-components.md resolves to docs/usage/skills/lint-components.md (file exists); skill doc → ../../agentic-methodology/tools/lint-components.md resolves to docs/agentic-methodology/tools/lint-components.md (file exists) — bidirectional links PASS
+          - Source code unmodified: gh pr view 326 --json files shows exactly 2 files added, 0 deletions, both .md docs — no source code touched
+
+      - id: docs-only
+        item: No functional changes — docs commit type
+        trigger: "Commit type is docs:"
+        status: PASS
+        evidence: "Only docs/agentic-methodology/tools/lint-components.md and docs/usage/skills/lint-components.md added. Zero deletions. Zero source code files modified."
+
+    nice_to_have:
+      - id: docs-examples
+        item: Documentation includes examples
+        trigger: "Architecture docs changed"
+        status: PASS
+        evidence: "Tool doc includes bash code blocks for install, invocation, JSON output example, text format example. Skill doc includes YAML contract example and sample violation entry."
+
+  focused_checks:
+    - id: FC1
+      check: Both docs exist and are reachable from PR diff
+      status: PASS
+      evidence: "Both docs/agentic-methodology/tools/lint-components.md (+146 lines) and docs/usage/skills/lint-components.md (+118 lines) appear in PR diff and are confirmed on disk."
+
+    - id: FC2
+      check: Cross-links use correct relative paths
+      status: PASS
+      evidence: |
+        Tool doc (docs/agentic-methodology/tools/) links to ../../usage/skills/lint-components.md → resolves to docs/usage/skills/lint-components.md — EXISTS.
+        Skill doc (docs/usage/skills/) links to ../../agentic-methodology/tools/lint-components.md → resolves to docs/agentic-methodology/tools/lint-components.md — EXISTS.
+        Both paths confirmed on disk.
+
+    - id: FC3
+      check: No source code unintentionally modified
+      status: PASS
+      evidence: "PR touches exactly 2 files (gh pr view --json files), both .md docs. Deletions=0. No .js, .yaml, .json, or other source files changed."
+
+    - id: FC4
+      check: No fabricated rule IDs
+      status: PASS
+      evidence: |
+        All rule IDs in both docs verified against actual source:
+        structural.js: structural/frontmatter-parse-error, structural/missing-frontmatter-field, structural/allowed-tools-must-be-string, structural/missing-section, structural/tools-must-be-array, structural/yaml-parse-error, structural/invalid-structure, structural/missing-intent-key, structural/spelling-inconsistency — all match doc.
+        semantic.js: semantic/skill-not-found, semantic/agent-not-found — match doc.
+        cross-reference.js: cross-ref/duplicate-constraint-id, cross-ref/duplicate-failure-condition-id, cross-ref/duplicate-scenario-id, cross-ref/uncovered-scenario — all match doc.
+        Zero IDs in docs that do not exist in source.
+
+    - id: FC5
+      check: No fabricated Node.js version
+      status: PASS
+      evidence: "Doc states: 'No engines field is declared in package.json. The minimum Node.js version requirement is unstated in the manifest.' Confirmed: package.json has no engines field. Honest disclosure, not a fabricated version number."
+
+    - id: FC6
+      check: --validate-templates description is accurate, not misleading
+      status: PASS
+      evidence: "Doc states: 'Accepted by the parser but not yet implemented. The flag is stored but no rule module reads it — it has no effect on output.' Verified: index.js parses and stores the flag (lines 15, 28-29) but no lib/rules/*.js file references validateTemplates. Description is precise and accurate."
+
+    - id: FC7
+      check: Pillar slug agentic-methodology matches features.yaml
+      status: PASS
+      evidence: ".garura/product/scope/features.yaml line 130: 'slug: agentic-methodology' — exact match to docs/agentic-methodology/ directory name."
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Approve and merge"
+  confidence: 1.0
+  notes: |
+    Pure docs PR — no code changes. All focused review checks PASS with primary-source evidence.
+    The six disclosed implementation gaps in the PR description are honest and accurate disclosures
+    (validated against tool source). No misleading claims, no fabricated IDs, no fabricated versions.
+    Cross-links resolve correctly. Pillar slug matches. No source code touched.

@@ -1,0 +1,46 @@
+scope_assessment:
+  files_touched: 2
+  domains_crossed: 1
+  new_abstractions: 0
+  tests_impacted: 0
+  estimated_effort: "1-2 hours"
+  signals:
+    files_touched:
+      value: 2
+      detail: |
+        - docs/usage/skills/lint-components.md (new)
+        - docs/agentic-methodology/tools/lint-components.md (new; creates docs/agentic-methodology/ + tools/ subdir)
+      verdict: "fix-it eligible by file count, but..."
+    domains_crossed:
+      value: 1
+      detail: "documentation only"
+      verdict: "fix-it eligible"
+    new_abstractions:
+      value: 0
+      verdict: "fix-it eligible"
+    tests_impacted:
+      value: 0
+      detail: "no test harness for markdown content"
+      verdict: "fix-it eligible"
+    estimated_effort:
+      value: "1-2 hours"
+      detail: |
+        Writing two solid docs with examples, citing rule IDs and CLI behavior accurately,
+        plus inventing the new pillar directory structure (a one-time scaffolding decision
+        that affects future docs).
+      verdict: "borderline (>1 hr lands in enhance territory)"
+
+  recommendation: "enhance"
+
+  rationale: |
+    Mechanical signals lean fix-it (2 files, 1 domain, 0 tests, 0 abstractions). But:
+    1. The pillar-organized structure (`docs/agentic-methodology/`) is a NEW directory
+       convention being introduced by this PR — that's a structural decision worth
+       /enhance's design phase and judge review, not a fix-it shortcut.
+    2. Docs need to be honest about implementation gaps (no-op flag, missing engines,
+       info severity unused, etc.) without fabricating — requires careful drafting,
+       not a one-shot fix-it edit.
+    3. Two distinct audiences (CLI users vs skill consumers) with two distinct files
+       benefit from /enhance's two-context implementer/tester separation.
+
+    Stays in /enhance. Not redirecting.

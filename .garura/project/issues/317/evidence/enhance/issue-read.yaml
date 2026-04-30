@@ -1,0 +1,22 @@
+number: 317
+title: "docs: document lint-components tool and skill introduced in #252"
+state: open
+url: "https://github.com/kapilvirenahuja/garura/issues/317"
+labels:
+  - enhancement
+body: |
+  ## Description
+
+  The component linting feature (#252) shipped a new Node.js CLI tool at `core/tools/lint-components/` and a new skill `lint-components`. Neither has documentation beyond inline comments and the SKILL.md Process section. This issue tracks adding user-facing documentation covering: (1) how to invoke the linter CLI directly, (2) how to invoke the lint-components skill from other plays/skills, (3) what each rule tier checks (structural/semantic/cross-reference), (4) how to interpret the quality-profile severity mapping in the lint report, (5) how to run `npm install` for the tool on first use. Related: #252.
+
+  ## Acceptance Criteria
+
+  - [ ] Document how to invoke the linter CLI directly
+  - [ ] Document how to invoke the lint-components skill from other plays/skills
+  - [ ] Document what each rule tier checks (structural/semantic/cross-reference)
+  - [ ] Document how to interpret the quality-profile severity mapping in the lint report
+  - [ ] Document how to run `npm install` for the tool on first use
+
+  ---
+
+  *Created via Meridian `start-feature` workflow.*

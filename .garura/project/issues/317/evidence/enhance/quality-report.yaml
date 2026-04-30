@@ -1,0 +1,110 @@
+quality_report:
+  timestamp: "2026-04-30T00:00:00Z"
+  issue: "317"
+  overall: "PASS"
+  scope: "Pure documentation — two new Markdown files added to docs/"
+
+  gates:
+    - name: build
+      status: SKIPPED
+      reason: "No compiled artefacts. Pure documentation work."
+
+    - name: typecheck
+      status: SKIPPED
+      reason: "No TypeScript sources. Pure documentation work."
+
+    - name: lint
+      status: SKIPPED
+      reason: >
+        No markdown linter configured in the project (no package.json at root,
+        no .markdownlint* config, markdownlint and remark both absent globally).
+        Structural sanity checked manually under markdown_structural gate below.
+      static_analysis:
+        tool: "null"
+        critical: 0
+        high: 0
+        evidence: "No markdown linter toolchain present."
+
+    - name: unit_tests
+      status: SKIPPED
+      reason: "No test harness for Markdown. Pure documentation work."
+
+    - name: complexity
+      required: false
+      status: SKIPPED
+      reason: "Not applicable to Markdown files."
+
+    - name: security
+      required: false
+      status: SKIPPED
+      reason: "Not applicable to Markdown files."
+
+    - name: documentation
+      required: false
+      status: PASS
+      evidence: >
+        Both new files exist and are non-empty.
+        docs/agentic-methodology/tools/lint-components.md — 147 lines.
+        docs/usage/skills/lint-components.md — 119 lines.
+
+    - name: markdown_structural
+      status: PASS
+      files_checked:
+        - path: "docs/agentic-methodology/tools/lint-components.md"
+          fenced_code_blocks: PASS
+          heading_level_skips: PASS
+          table_structure: PASS
+          evidence: >
+            All fenced code blocks are balanced (7 open/close pairs, all closed).
+            Heading levels progress H1→H2→H3 with no skips.
+            All 4 tables have consistent column counts throughout.
+        - path: "docs/usage/skills/lint-components.md"
+          fenced_code_blocks: PASS
+          heading_level_skips: PASS
+          table_structure: PASS
+          evidence: >
+            All fenced code blocks are balanced (4 open/close pairs, all closed).
+            Heading levels progress H1→H2→H3 with no skips.
+            All 3 tables have consistent column counts throughout.
+
+    - name: cross_links
+      status: PASS
+      links_checked:
+        - source: "docs/agentic-methodology/tools/lint-components.md"
+          link_text: "For skill invocation (JSON contract), see the lint-components skill doc"
+          relative_url: "../../usage/skills/lint-components.md"
+          resolved_to: "docs/usage/skills/lint-components.md"
+          exists: true
+          status: PASS
+        - source: "docs/usage/skills/lint-components.md"
+          link_text: "For CLI install and rule tier reference, see the lint-components tool doc"
+          relative_url: "../../agentic-methodology/tools/lint-components.md"
+          resolved_to: "docs/agentic-methodology/tools/lint-components.md"
+          exists: true
+          status: PASS
+
+    - name: lint_components_repo
+      status: PASS
+      command: "node core/tools/lint-components/index.js --output json"
+      exit_code: 1
+      note: >
+        Exit code 1 indicates pre-existing violations (not new ones introduced by this PR).
+        The lint-components tool only scans core/components/ — it does not scan docs/.
+        This PR adds no files under core/components/, so it cannot introduce new violations.
+      pre_existing_errors: 88
+      pre_existing_warnings: 21
+      new_errors_introduced: 0
+      new_warnings_introduced: 0
+      threshold_met: true
+
+    - name: working_tree_cleanliness
+      status: PASS
+      evidence: >
+        New untracked entries under docs/ are exactly:
+          docs/agentic-methodology/  (new directory, contains only tools/lint-components.md)
+          docs/usage/skills/lint-components.md
+        No orphaned content. No unexpected additions to other directories.
+        docs/agentic-methodology/tools/ contains exactly one file: lint-components.md.
+
+  vision_gate_violations: []
+  qp_source: "toolchain-detected (no quality-gates.yaml provided in contract)"

@@ -1,0 +1,74 @@
+build_report:
+  tasks:
+    - id: T1
+      status: completed
+      detail: >
+        Created docs/agentic-methodology/ and docs/agentic-methodology/tools/.
+        No sibling pillar directories created. Verified with ls.
+
+    - id: T2
+      status: completed
+      detail: >
+        Written docs/agentic-methodology/tools/lint-components.md (163 lines).
+        Sections: Overview, Install, Usage (with Flags H3), Output (with JSON format,
+        Text format, Exit codes H3s), Rule Tiers (with Structural H3 → Skills/Agents/
+        Plays/Intents H4s, Semantic H3, Cross-Reference H3), Related.
+        All 15 distinct rule IDs from understanding.md §1 enumerated verbatim.
+        --validate-templates flagged as accepted-but-no-op. Node version gap disclosed.
+        info severity gap disclosed. Single-level scan constraint noted. Cross-link to
+        skill doc present.
+
+    - id: T3
+      status: completed
+      detail: >
+        Written docs/usage/skills/lint-components.md (119 lines).
+        Sections: Overview, Metadata, Invocation (with Input fields and Example STM
+        contract H3s), Process, Severity and Classification (with Mapping H3),
+        Output (with Artifact shape and Sample violation entry H3s), Related.
+        No mention of --validate-templates. info gap disclosed. No reference/intent.yaml
+        gap disclosed. Exit code 1 handling clarified. All field names match SKILL.md
+        verbatim. Cross-link to tool doc present.
+
+    - id: T4
+      status: completed
+      detail: >
+        grep confirmed both cross-links present.
+        Tool doc line 163: ../../usage/skills/lint-components.md
+        Skill doc line 118: ../../agentic-methodology/tools/lint-components.md
+        Both paths resolve correctly from each doc's location.
+
+    - id: T5
+      status: completed
+      detail: >
+        Both docs verified against all six checks:
+        (1) Heading hierarchy: H1->H2->H3->H4 in tool doc (no skipped levels);
+        H1->H2->H3 in skill doc. Pass.
+        (2) Fenced code blocks: all blocks balanced (5 in tool doc, 2 in skill doc). Pass.
+        (3) Tables: all have header rows and separator rows; column counts consistent. Pass.
+        (4) No raw HTML in either doc. Pass.
+        (5) Rule IDs verified against understanding.md §1 — all verbatim, none fabricated. Pass.
+        (6) --validate-templates: tool doc flags it as not yet implemented; skill doc omits it
+        entirely. Pass.
+
+  files_created:
+    - docs/agentic-methodology/tools/lint-components.md
+    - docs/usage/skills/lint-components.md
+
+  files_modified: []
+
+  notes: >
+    understanding.md §4 states "14 rule IDs" but §1 enumerates 15 distinct rule ID strings
+    once all component types are counted (structural/missing-frontmatter-field and
+    structural/frontmatter-parse-error each appear in multiple contexts but are the same
+    ID string; however structural/missing-section appears for both skills and plays with
+    different required sections). The tool doc does not assert a total count — it enumerates
+    all IDs per tier and component type, following the source structure. This avoids baking
+    in an incorrect count claim.
+
+    Gap 4 (no reference/intent.yaml for the skill) is disclosed in the Metadata section of
+    the skill doc rather than as a standalone gap section, keeping it close to where a reader
+    might look for it.
+
+    Gap 5 (structural/spelling-inconsistency comment inconsistency) is handled by describing
+    the implemented behavior (warns on user-invokable minority files) without mentioning the
+    conflicting source comments.

@@ -1,0 +1,121 @@
+judge_report:
+  timestamp: "2026-04-30T00:00:00Z"
+  eval_source: "core/components/plays/enhance/reference/evals/solution-rating.yaml"
+  task_id: "judge-rating"
+  total_evals: 4
+  passed: 4
+  failed: 0
+  pass_rate: "100%"
+  overall: "PASS"
+  overall_confidence: 0.88
+
+  category_breakdown:
+    contract_integrity:
+      total: 1
+      passed: 1
+      failed: 0
+    intent_propagation:
+      total: 1
+      passed: 1
+      failed: 0
+    agent_boundary:
+      total: 1
+      passed: 1
+      failed: 0
+    confidence_aggregation:
+      total: 1
+      passed: 1
+      failed: 0
+
+  results:
+    - eval_id: "ER-1"
+      name: "Contract Mismatch at Skill Boundary"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: >
+        The delivered enhancement consists of two new Markdown documentation files only
+        (docs/agentic-methodology/tools/lint-components.md and
+        docs/usage/skills/lint-components.md). No new skill dispatch contracts are
+        introduced and no existing dispatch contracts are modified. The approach.yaml
+        confirms files_to_modify is empty. The existing lint-components SKILL.md
+        (core/components/skills/lint-components/SKILL.md) is referenced as a
+        documentation source only — its Input Contract (project_root, output_path)
+        is unchanged. There are no skill boundaries in this enhancement to evaluate
+        for contract mismatch. PASS by absence of any skill boundary.
+
+    - eval_id: "ER-2"
+      name: "Intent-Propagation Break in Agent-to-Agent Handoff"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: >
+        The delivered enhancement produces no new pipeline artifacts and introduces
+        no agent-to-agent handoffs. Both delivered files are end-user documentation
+        (one for CLI consumers, one for skill/play authors) — not intermediate STM
+        artifacts consumed by downstream agents. The approach.yaml confirms
+        files_to_modify is empty and no agent files are involved. There are no
+        upstream→downstream artifact handoffs in this enhancement to evaluate.
+        PASS by absence of any agent-to-agent handoff.
+
+    - eval_id: "ER-3"
+      name: "Stale Agent Boundary Contradicting New Rule"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: >
+        No agent files are touched or extended by this enhancement. The approach.yaml
+        explicitly records files_to_modify as empty. No new C-IDs, no revised
+        constraints, and no new rules are introduced — the enhancement is purely
+        additive documentation with no behavioral rules changes. Git working tree
+        confirms only docs/agentic-methodology/tools/lint-components.md and
+        docs/usage/skills/lint-components.md are new/modified. No agent boundary
+        statements can be stale relative to rules that were not introduced.
+        PASS by absence of any agent file modification.
+
+    - eval_id: "ER-4"
+      name: "Overall Confidence Aggregation Cap"
+      status: "PASS"
+      severity_if_fail: blocker
+      evidence: >
+        ER-1, ER-2, and ER-3 all PASS with no blocker concerns. The confidence cap
+        of 0.55 therefore does not apply. Overall confidence is set to 0.88,
+        reflecting the following quality signals observed across the delivered work:
+
+        Positive signals driving confidence up:
+        - All 14 rule IDs in docs/agentic-methodology/tools/lint-components.md
+          match source verbatim (cross-checked against structural.js, semantic.js,
+          cross-reference.js). No fabricated rule IDs detected.
+        - Bidirectional cross-links verified: tool doc links to
+          ../../usage/skills/lint-components.md (line 146); skill doc links to
+          ../../agentic-methodology/tools/lint-components.md (line 118).
+          Relative paths are correct given each file's location.
+        - Six honesty disclosures confirmed present:
+            Gap 1 (--validate-templates): line 49 tool doc — "not yet implemented"
+            Gap 2 (Node version): line 27 tool doc — "unstated in the manifest"
+            Gap 3 (info severity): tool doc line 93, skill doc line 79 — "no
+              current rule emits it"
+            Gap 6 (single-level scan): tool doc line 14 — "exactly one level deep"
+            (Gaps 4 and 5 are internal to implementation notes, not doc-facing.)
+        - Severity/classification mapping (error→blocker, warning→informational,
+          info→informational) matches SKILL.md steps 5 and source code exactly.
+        - Heading hierarchies are clean in both docs: H1 once at top, H2 for major
+          sections, H3 for sub-sections only, no skipped levels, no H4+.
+        - package.json confirmed to have no engines field — tool doc's "unstated"
+          claim is accurate and not fabricated.
+        - SKILL.md metadata (name, user-invocable, model, allowed-tools) correctly
+          transcribed in skill doc Metadata table.
+        - Output artifact shape (generated_at, quality_profile_status, summary,
+          pass, violations with all sub-fields) matches SKILL.md step 7 verbatim.
+        - Exit-code-1 handling ("must not treat as failure") explicitly documented
+          in skill doc Process step 2.
+
+        Minor factors holding confidence below 0.90:
+        - No live render check performed; fenced-code-block balance is structurally
+          evident from read but not mechanically verified.
+        - Structural/spelling-inconsistency behavior description in the tool doc
+          (line 111) describes the "minority form" as user-invokable — this matches
+          the impl-context contract in structural.js (lines 331 "minorityFiles =
+          invokableFiles"), though the source comment acknowledges confusion between
+          counts. The doc is internally consistent with the compiled code path, not
+          the confusing comment text. Acceptable but noted.
+
+  plaintext_deleted: false
+  note: "Eval file was not encrypted; no decryption was performed and no plaintext cleanup is applicable."

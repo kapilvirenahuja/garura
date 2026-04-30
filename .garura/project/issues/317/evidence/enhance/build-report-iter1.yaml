@@ -1,0 +1,15 @@
+build_report_iter1:
+  fix_applied: true
+  changes:
+    - file: docs/agentic-methodology/tools/lint-components.md
+      summary: >
+        Replaced the four H4 subsections (Skills, Agents, Plays, Intents) inside
+        ### Structural with a single flat table using columns Rule ID, Component Type,
+        Severity, What it checks. All 14 rule IDs and their severities are preserved.
+        No other sections were modified.
+      h4_count_before: 4
+      h4_count_after: 0
+  verified: true
+  notes: >
+    grep -c "^#### " returned 0 after the edit. The ### Semantic and
+    ### Cross-Reference sections were already H4-free and were not touched.
