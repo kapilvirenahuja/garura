@@ -1,0 +1,10 @@
+pr_number: 326
+pr_state: "OPEN"
+base_ref: "main"
+head_ref: "enhance/317-document-lint-components"
+mergeable: true
+clean_tree: true
+evals:
+  SE-1: "PASS — mergeable == true before any merge attempted"
+  SE-4: "PASS — working tree has only untracked files, no staged or unstaged changes"
+  SE-5: "PASS — PR #326 exists with valid pr_number"
