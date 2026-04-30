@@ -1,0 +1,7 @@
+pr_number: 329
+pr_url: "https://github.com/kapilvirenahuja/garura/pull/329"
+title: "fix(lint-components): expand SCE-N range expressions in scenario-coverage check"
+target_branch: main
+head_branch: fix/328-lint-sce-range-expansion
+state: open
+created_at: "2026-04-30T18:08:11Z"

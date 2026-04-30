@@ -1,0 +1,10 @@
+{
+  "play": "create-pr",
+  "issue": 328,
+  "tasks": {
+    "analyze-pr-readiness": { "status": "completed" },
+    "resolve-issue-linkage": { "status": "completed" },
+    "create-pr": { "status": "completed" },
+    "write-evidence": { "status": "completed" }
+  }
+}

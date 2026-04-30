@@ -1,0 +1,7 @@
+issue:
+  number: 328
+  title: "fix(lint-components): expand SCE-N range expressions in scenario-coverage check"
+  url: "https://github.com/kapilvirenahuja/garura/issues/328"
+  state: open
+  body_summary: "The scenario-coverage rule in lint-components checked coverage using a literal substring match for 'SCE-N'. Plays expressing coverage as a range (e.g., 'SCE-1 through SCE-7') had middle scena"
+  type_hint: fix
