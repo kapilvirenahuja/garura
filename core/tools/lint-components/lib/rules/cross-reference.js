@@ -32,6 +32,35 @@ function extractIds(arr) {
 }
 
 /**
+ * Collect the set of SCE-N scenario numbers covered by a play's SKILL.md.
+ * Recognises explicit `SCE-N` mentions and range expressions of the form
+ * `SCE-N <sep> SCE-M`, where <sep> is `through`, `to`, `..`, `–` (en dash),
+ * or `—` (em dash). Ranges are expanded inclusively.
+ *
+ * @param {string} content
+ * @returns {Set<number>}
+ */
+function collectCoveredScenarioNumbers(content) {
+  const covered = new Set();
+
+  const rangeRe = /SCE-(\d+)\s*(?:through|to|\.\.|–|—)\s*SCE-(\d+)/gi;
+  let m;
+  while ((m = rangeRe.exec(content)) !== null) {
+    const start = parseInt(m[1], 10);
+    const end = parseInt(m[2], 10);
+    const [lo, hi] = start <= end ? [start, end] : [end, start];
+    for (let n = lo; n <= hi; n++) covered.add(n);
+  }
+
+  const singleRe = /SCE-(\d+)/g;
+  while ((m = singleRe.exec(content)) !== null) {
+    covered.add(parseInt(m[1], 10));
+  }
+
+  return covered;
+}
+
+/**
  * Run cross-reference integrity checks.
  *
  * @param {{ skills, plays, agents, intents }} components
@@ -108,25 +137,26 @@ function check(components) {
     }
 
     // Check scenario coverage: for each scenario ID S{N} in intent.yaml,
-    // check if SCE-{N} appears in the corresponding play's SKILL.md body
+    // check if SCE-{N} appears in the corresponding play's SKILL.md body.
+    // Coverage is established by either an explicit `SCE-N` mention or a
+    // range expression like `SCE-N through SCE-M`, `SCE-N to SCE-M`,
+    // `SCE-N..SCE-M`, `SCE-N – SCE-M`, or `SCE-N — SCE-M` that includes N.
     const play = playByName[intent.name];
     if (play && scenarioIds.length > 0) {
       const playContent = fs.readFileSync(play.file, 'utf8');
+      const covered = collectCoveredScenarioNumbers(playContent);
 
       for (const scenarioId of scenarioIds) {
-        // scenarioId is like "S1", "S2", etc.
         const match = scenarioId.match(/^S(\d+)$/i);
         if (!match) continue;
 
-        const scenarioNum = match[1];
-        const scePattern = `SCE-${scenarioNum}`;
-
-        if (!playContent.includes(scePattern)) {
+        const scenarioNum = parseInt(match[1], 10);
+        if (!covered.has(scenarioNum)) {
           violations.push({
             file: play.file,
             rule: 'cross-ref/uncovered-scenario',
             severity: 'warning',
-            message: `Scenario ${scenarioId} in intent.yaml has no corresponding ${scePattern} entry in SKILL.md`,
+            message: `Scenario ${scenarioId} in intent.yaml has no corresponding SCE-${scenarioNum} entry in SKILL.md`,
             line: 1,
           });
         }
