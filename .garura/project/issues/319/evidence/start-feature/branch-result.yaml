@@ -1,0 +1,15 @@
+branch:
+  name: feature/319-enrich-promote-approved-learning-proposals
+  action: created
+  pushed: true
+  tracking: origin/feature/319-enrich-promote-approved-learning-proposals
+  changes_preserved: true
+
+worktree:
+  used: false
+  path: null
+  reason: untracked-only working tree carries forward without stash
+
+result:
+  success: true
+  error: null
