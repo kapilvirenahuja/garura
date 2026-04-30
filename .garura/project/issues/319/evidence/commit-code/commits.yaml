@@ -1,0 +1,84 @@
+commits:
+  - id: G1
+    issue: 319
+    hash: daa7c05
+    type: feat
+    scope: enrich
+    subject: add enrich play and normalize/promote-adr-draft skills for LTM enrichment pipeline
+    message: |
+      feat(enrich): add enrich play and normalize/promote-adr-draft skills for LTM enrichment pipeline
+
+      Refs #319
+    files_staged:
+      - core/components/plays/enrich/SKILL.md
+      - core/components/plays/enrich/reference/intent.yaml
+      - core/components/skills/normalize-proposals-for-enrichment/SKILL.md
+      - core/components/skills/promote-adr-draft/SKILL.md
+      - core/components/agents/knowledge-extractor.md
+
+  - id: G2
+    issue: 319
+    hash: 72734f9
+    type: chore
+    scope: stm
+    subject: record create-play evidence for #319
+    message: |
+      chore(stm): record create-play evidence for #319
+
+      Refs #319
+    files_staged:
+      - .garura/project/issues/319/evidence/create-play/enrich/skill-manifest.yaml
+      - .garura/project/issues/319/evidence/create-play/enrich/evals.yaml
+      - .garura/project/issues/319/evidence/create-play/enrich/coverage-matrix.md
+      - .garura/project/issues/319/evidence/create-play/enrich/agent-audit-knowledge-extractor.md
+
+  - id: G3
+    issue: 317
+    hash: 081a6dd
+    type: chore
+    scope: stm
+    subject: record merge-pr evidence for #317
+    message: |
+      chore(stm): record merge-pr evidence for #317
+
+      Refs #317
+    files_staged:
+      - .garura/project/issues/317/evidence/merge-pr/readiness.yaml
+      - .garura/project/issues/317/evidence/merge-pr/merge-result.yaml
+
+  - id: G4
+    issue: 322
+    hash: 170d11a
+    type: chore
+    scope: stm
+    subject: record create-pr evidence for #322
+    message: |
+      chore(stm): record create-pr evidence for #322
+
+      Refs #322
+    files_staged:
+      - .garura/project/issues/322/evidence/create-pr/analysis.yaml
+      - .garura/project/issues/322/evidence/create-pr/issue-linkage.yaml
+      - .garura/project/issues/322/evidence/create-pr/pr-record.yaml
+
+  - id: G5
+    issue: 319
+    hash: c0177f1
+    type: chore
+    scope: stm
+    subject: record start-feature pending artifacts for #319
+    message: |
+      chore(stm): record start-feature pending artifacts for #319
+
+      Refs #319
+    files_staged:
+      - .garura/project/issues/_pending/start-feature/args.yaml
+      - .garura/project/issues/_pending/start-feature/changed-files.txt
+
+summary:
+  total_commits: 5
+  total_files: 20
+  primary_issue: 319
+  supporting_issues:
+    - 317
+    - 322

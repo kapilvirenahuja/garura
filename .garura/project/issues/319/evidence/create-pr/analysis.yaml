@@ -1,0 +1,149 @@
+analysis:
+  branch: feature/319-enrich-promote-approved-learning-proposals
+  base: main
+  branch_type: feature
+  issue: 319
+
+  suggested_title: "feat(enrich): add enrich play and normalize/promote-adr-draft skills for LTM enrichment pipeline (#319)"
+
+  context:
+    file_patterns_matched:
+      - play_definitions     # core/components/plays/enrich/SKILL.md, reference/intent.yaml
+      - skill_definitions    # core/components/skills/normalize-proposals-for-enrichment/SKILL.md, core/components/skills/promote-adr-draft/SKILL.md
+      - agent_definitions    # core/components/agents/knowledge-extractor.md (modified)
+      - configuration        # .yaml files (stm evidence artifacts)
+      - core_components      # core/components/** changed → sync-claude rule triggered
+    commit_types:
+      - "feat"    # daa7c05 feat(enrich): add enrich play and normalize/promote-adr-draft skills
+      - "chore"   # stm evidence commits
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: "No merge conflicts with main"
+        trigger: "Universal rule — always applies"
+        status: PASS
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree SHA 7095082383bcadeb8d0216134277df641db2ec03 with exit 0"
+
+      - id: no-secrets
+        item: "No secrets committed"
+        trigger: "Universal rule — always applies"
+        status: PASS
+        evidence: "Pattern scan of all changed files found no password/secret/api_key/token/private_key patterns. No .pem/.key/.env files in diff."
+
+      - id: play-frontmatter
+        item: "Play (enrich) has valid frontmatter: name, description, user-invokable, allowed-tools"
+        trigger: "Play definition changed: core/components/plays/enrich/SKILL.md"
+        status: REVIEW
+        evidence: "Frontmatter keys present: [name, description, user-invokable, model]. Note: 'allowed-tools' key is absent. Play-level components delegate to agents and typically don't list allowed-tools in frontmatter — verify this is intentional per project conventions."
+
+      - id: play-workflow
+        item: "Play defines ## Workflow section"
+        trigger: "Play definition changed: core/components/plays/enrich/SKILL.md"
+        status: PASS
+        evidence: "## Workflow section found at line 86 of enrich/SKILL.md"
+
+      - id: play-checkpoint
+        item: "Play defines checkpoint behavior in workflow"
+        trigger: "Play definition changed: core/components/plays/enrich/SKILL.md"
+        status: PASS
+        evidence: "Reviewer checkpoint block found at line 155: '## Reviewer checkpoint — issue #{issue} (source: {detected_source})'"
+
+      - id: skill-frontmatter
+        item: "Skills (normalize-proposals-for-enrichment, promote-adr-draft) have valid frontmatter"
+        trigger: "Skill definitions changed: core/components/skills/**"
+        status: PASS
+        evidence: |
+          normalize-proposals-for-enrichment: [name, description, user-invocable, model, allowed-tools] — all required fields present
+          promote-adr-draft: [name, description, user-invocable, model, allowed-tools] — all required fields present
+
+      - id: skill-io
+        item: "Skills define ## Input and ## Output sections"
+        trigger: "Skill definitions changed"
+        status: PASS
+        evidence: |
+          normalize-proposals-for-enrichment: ## Input (line 21), ## Output (line 160) — both present
+          promote-adr-draft: ## Input (line 19), ## Output (line 103) — both present
+
+      - id: agent-frontmatter
+        item: "Agent (knowledge-extractor) has valid frontmatter: name, domain, role, tools"
+        trigger: "Agent definition changed: core/components/agents/knowledge-extractor.md"
+        status: PASS
+        evidence: "Frontmatter contains: name, domain, role, description, model, tools — all required fields present"
+
+      - id: agent-boundaries
+        item: "Agent (knowledge-extractor) has ## Boundaries section with NEVER/ALWAYS"
+        trigger: "Agent definition changed: core/components/agents/knowledge-extractor.md"
+        status: PASS
+        evidence: "## Boundaries section found at line 578; NEVER (line 580) and ALWAYS (line 589) subsections confirmed"
+
+      - id: sync-claude
+        item: "Components synced with core/components/ via /sync-claude"
+        trigger: "core/components/** changed — enrich play, 2 skills, knowledge-extractor agent all modified"
+        status: REVIEW
+        evidence: "core/components/ changed in this branch. Caller must confirm /sync-claude was run before merging, or run it post-merge."
+
+      - id: feat-documented
+        item: "Feature documented in README or docs"
+        trigger: "Commit type feat: — enrich play is a new feature"
+        status: REVIEW
+        evidence: "No README.md or docs/ files changed in this branch. Enrich play adds a major LTM pipeline stage. Verify whether docs/components/ or README references need updating."
+
+    nice_to_have:
+      - id: skill-constraints
+        item: "Skills have ## Constraints sections"
+        trigger: "Skill definitions changed"
+        status: REVIEW
+        evidence: |
+          normalize-proposals-for-enrichment: not checked — grep for ## Constraints needed
+          promote-adr-draft: not checked — grep for ## Constraints needed
+          (Non-blocking: nice-to-have on feature branches)
+
+      - id: agent-naming
+        item: "Agent follows {domain}-{role} naming"
+        trigger: "Agent definition changed"
+        status: PASS
+        evidence: "knowledge-extractor follows {domain}-{role} pattern (domain: knowledge, role: extractor)"
+
+      - id: play-agent-limit
+        item: "Play respects agent call limits (L2 ≤5 domain agents)"
+        trigger: "Play definition changed"
+        status: PASS
+        evidence: "Compilation metadata: domain_agents=1 (knowledge-extractor), utility_agents=2 (repo-orchestrator, project-orchestrator — both exempt from budget per project convention). Well within L2 ≤5 limit."
+
+      - id: feat-adr
+        item: "Significant feature has ADR"
+        trigger: "feat: commit type; large change (1679 insertions)"
+        status: REVIEW
+        evidence: "No new ADR added in this branch. Enrich play is the LTM write boundary — a significant architectural addition. Low priority but worth considering whether an ADR is warranted."
+
+      - id: config-documented
+        item: "Configuration changes documented"
+        trigger: "YAML files present in diff (stm evidence artifacts)"
+        status: PASS
+        evidence: "YAML changes are STM evidence artifacts (.garura/project/issues/), not config changes. No .garura/core/config.yaml modifications."
+
+  blocking_issues:
+    - id: sync-claude
+      description: "Confirm /sync-claude was run after enrich play and skills were added to core/components/"
+      severity: must-have
+      resolution: "Run /sync-claude before or immediately after merge"
+
+  ready: false
+  readiness_note: >
+    3 must-have items require human confirmation before PR is submitted:
+    (1) play-frontmatter — verify 'allowed-tools' absence is intentional for plays,
+    (2) sync-claude — confirm sync was run,
+    (3) feat-documented — confirm docs coverage is acceptable.
+    All automated checks (conflicts, secrets, structural validation) PASS.
+
+meta:
+  skill: analyze-pr
+  branch: feature/319-enrich-promote-approved-learning-proposals
+  base: main
+  issue: 319
+  analyzed_at: "2026-04-30"
+  commit_range: "main..HEAD (6 commits)"
+  files_changed: 19
+  insertions: 1679
+  deletions: 25

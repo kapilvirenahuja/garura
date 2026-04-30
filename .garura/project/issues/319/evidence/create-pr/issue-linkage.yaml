@@ -1,0 +1,11 @@
+issue:
+  number: 319
+  title: "enrich: promote approved learning proposals from STM to product LTM (Learning Pipeline terminal stage)"
+  url: "https://github.com/kapilvirenahuja/garura/issues/319"
+  state: "OPEN"
+  labels:
+    - "enhancement"
+  type_hint: "feature"
+  created: false
+  closed: false
+  parent_issue: null
