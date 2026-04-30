@@ -1,6 +1,6 @@
 # Playbook Catalog — Design Note (Draft)
 
-**Status:** Discovery draft. Not scoped, not implemented. Pre-feature artifact to capture thinking for later mapping into a scope/domain via `/scope`.
+**Status:** Discovery draft. Not scoped, not implemented. Pre-feature artifact to capture thinking for later mapping into a scope/domain via `/define`.
 
 **Date:** 2026-04-23
 
@@ -21,7 +21,7 @@ This document:
 - Proposes 19 draft playbooks covering greenfield, brownfield, specialized, ops, and feedback scenarios.
 - Flags which steps rely on existing plays and which would require new plays, tiered by criticality.
 
-This is not a feature spec. It is material to feed into `/scope` when we decide to turn it into one.
+This is not a feature spec. It is material to feed into `/define` when we decide to turn it into one.
 
 ---
 
@@ -337,7 +337,7 @@ Applying Occam's razor and "abstraction later, not sooner":
 
 ## 8. Open questions when this moves to scope
 
-When `/scope` picks this up, the following decisions are pending:
+When `/define` picks this up, the following decisions are pending:
 
 1. **Which form do playbooks take?**
    - (a) Markdown under `docs/usage/playbooks/` — human-readable, not executable
@@ -358,7 +358,7 @@ When `/scope` picks this up, the following decisions are pending:
 - Not a specification. No intent.yaml, no decision manifests.
 - Not a commitment to build anything. The 20 missing plays are candidates, not a backlog.
 - Not complete. Ops concerns (incident, runbook), compliance, and data-plane operations need their own design passes before being treated as normal plays.
-- Not a replacement for `/scope`. This is input material for a future scope session.
+- Not a replacement for `/define`. This is input material for a future scope session.
 
 ---
 
@@ -367,5 +367,5 @@ When `/scope` picks this up, the following decisions are pending:
 1. Review this draft and prune / add playbooks and gap candidates.
 2. Resolve the form question (markdown / YAML / meta-plays).
 3. Map the work to a domain and capability in the product LTM.
-4. Run `/scope` with this document as the intake material.
+4. Run `/define` with this document as the intake material.
 5. If approved, split into intent epics (likely one for the playbook catalog itself, one per Tier-1 missing play).

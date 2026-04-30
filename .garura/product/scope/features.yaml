@@ -160,6 +160,7 @@ domains:
               - commit-code
               - create-play
               - create-pr
+              - define
               - design-exp
               - distill
               - enhance

@@ -1,4 +1,4 @@
-name: garura:scope
+name: garura:define
 description: >
   Take a feature idea (free-text description or a FEAT-ID from the product's
   feature catalog) and turn it into a fully scoped feature entry plus a
@@ -48,7 +48,7 @@ path_resolution:
     quality_profile: "{product_base}{product.specification}quality-profile.yaml"
     user_provided_for_issue: "{product_base}{product.user-provided}{issue}/"
     stm_for_issue: "{stm_base}{issue}/"
-    stm_scope_evidence: "{stm_base}{issue}/evidence/scope/"
+    stm_define_evidence: "{stm_base}{issue}/evidence/define/"
     kb_domain_taxonomy: "{ltm.project-target}knowledge/domain/"
     kb_cross_tree_constraints: "{ltm.project-target}knowledge/domain/_cross-tree-constraints.yaml"
 
@@ -88,7 +88,7 @@ constraints:
       {product_base}{product.scope}enriched-capabilities.yaml, and
       {product_base}{product.specification}domain-selection.yaml. The
       classification with rationale is written to
-      {stm_base}{issue}/evidence/scope/catalog-match.yaml.
+      {stm_base}{issue}/evidence/define/catalog-match.yaml.
 
   - id: C5
     rule: >
@@ -100,7 +100,7 @@ constraints:
       one of timeline.milestones (which becomes the feature's
       target_milestone), and no regression against any ISO 25010 target
       in the quality profile. Output lands at
-      {stm_base}{issue}/evidence/scope/constraint-fit.yaml.
+      {stm_base}{issue}/evidence/define/constraint-fit.yaml.
 
   - id: C6
     rule: >
@@ -162,7 +162,7 @@ constraints:
     rule: >
       All working artifacts (catalog-match, constraint-fit, grounding,
       decision manifests, delivery record) live under
-      {stm_base}{issue}/evidence/scope/. Product-level LTM updates
+      {stm_base}{issue}/evidence/define/. Product-level LTM updates
       (features.yaml, enriched-capabilities.yaml, domain-selection.yaml,
       the epic file) live under {product_base}. No working artifact
       leaks into product LTM.
@@ -213,7 +213,7 @@ constraints:
     template_map:
       phase-0-gh-issue-body:
         surface: "GH issue body at creation (Phase 0)"
-        template: "handled inside manage-issue via github-issue.md — no additional wiring in /scope"
+        template: "handled inside manage-issue via github-issue.md — no additional wiring in /define"
         note: "manage-issue already loads {ltm.project-target}standards/templates/github-issue.md at its SKILL.md line 46"
 
       phase-5-vanish-gh-issue-close-comment:
@@ -224,7 +224,7 @@ constraints:
       phase-5-placement-checkpoint:
         surface: "Checkpoint file written when placement gate fires"
         template: "{ltm.project-target}standards/templates/checkpoint.md"
-        destination: "{stm_base}{issue}/checkpoint/scope/{YYYYMMDD-HHMMSS}.md"
+        destination: "{stm_base}{issue}/checkpoint/define/{YYYYMMDD-HHMMSS}.md"
 
       phase-5-approval-prompt:
         surface: "Tether/Vanish/Orbit prompt shown to user at placement gate"
@@ -233,7 +233,7 @@ constraints:
       phase-9-epic-checkpoint:
         surface: "Checkpoint file written when epic gate fires"
         template: "{ltm.project-target}standards/templates/checkpoint.md"
-        destination: "{stm_base}{issue}/checkpoint/scope/{YYYYMMDD-HHMMSS}.md"
+        destination: "{stm_base}{issue}/checkpoint/define/{YYYYMMDD-HHMMSS}.md"
 
       phase-9-approval-prompt:
         surface: "Tether/Vanish/Orbit prompt shown to user at epic gate"
@@ -246,7 +246,7 @@ constraints:
       phase-10-evidence-file:
         surface: "Evidence markdown written to STM at close"
         template: "{ltm.project-target}standards/templates/evidence-file.md"
-        destination: "{stm_base}{issue}/evidence/scope/{YYYYMMDD-HHMMSS}.md"
+        destination: "{stm_base}{issue}/evidence/define/{YYYYMMDD-HHMMSS}.md"
 
 failure_conditions:
   - id: F1
@@ -294,7 +294,7 @@ failure_conditions:
     condition: >
       Working artifact (catalog-match, constraint-fit, grounding,
       decision manifest) is written under {product_base} instead of
-      {stm_base}{issue}/evidence/scope/. C12 is violated — STM vs LTM
+      {stm_base}{issue}/evidence/define/. C12 is violated — STM vs LTM
       separation is a hard rule.
 
   - id: F8
@@ -325,7 +325,7 @@ scenarios:
     persona: >
       Product owner with a raw feature idea, no FEAT-ID yet.
     given: >
-      Product owner runs /scope with a free-text description of a new
+      Product owner runs /define with a free-text description of a new
       feature they want scoped. No existing features.yaml entry matches
       the description.
     then: >
@@ -345,7 +345,7 @@ scenarios:
     persona: >
       Product manager preparing an existing planned feature for build.
     given: >
-      Product manager runs /scope with FEAT-ID WI-F001 (Profile-Based
+      Product manager runs /define with FEAT-ID WI-F001 (Profile-Based
       Auto-Triage, status=planned). WI-F001 does not yet carry an `issue`
       field in the feature catalog. Its capability (agentic-triage) does
       not have an epic.
@@ -366,7 +366,7 @@ scenarios:
       Product owner evolving an existing feature that already has a
       linked issue.
     given: >
-      Product owner runs /scope with FEAT-ID AM-F014 (Intent Inference,
+      Product owner runs /define with FEAT-ID AM-F014 (Intent Inference,
       status=rollout, issue=N). The feature's notes need to expand to
       cover a new sub-concern surfaced from customer or stakeholder
       feedback.
@@ -386,7 +386,7 @@ scenarios:
     persona: >
       Product owner proposing a feature that needs a new capability.
     given: >
-      Product owner runs /scope with a free-text description whose subject
+      Product owner runs /define with a free-text description whose subject
       matter does not fit any existing capability under any selected
       domain, but does fit under engineering-experience domain as a new
       capability. No existing enriched-capabilities.yaml record covers
@@ -410,7 +410,7 @@ scenarios:
       Product owner whose feature idea regresses a declared quality
       target.
     given: >
-      Product owner runs /scope with a free-text description whose subject
+      Product owner runs /define with a free-text description whose subject
       matter regresses an ISO 25010 target declared in
       {product_base}{product.specification}quality-profile.yaml, and the
       product owner does not agree to adjust the quality profile.
@@ -427,7 +427,7 @@ scenarios:
       Product owner scoping a feature into a greenfield product with no
       existing features.yaml.
     given: >
-      Product owner runs /scope with a free-text description on a new
+      Product owner runs /define with a free-text description on a new
       product where {product_base}{product.scope}features.yaml does not
       yet exist.
     then: >
