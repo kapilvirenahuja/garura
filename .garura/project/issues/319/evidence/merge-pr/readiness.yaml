@@ -1,0 +1,32 @@
+readiness:
+  ready: true
+  pr:
+    number: 327
+    title: "feat(enrich): add enrich play and normalize/promote-adr-draft skills for LTM enrichment pipeline (#319)"
+    state: OPEN
+    mergeable: MERGEABLE
+    head_branch: feature/319-enrich-promote-approved-learning-proposals
+    base_branch: main
+  constraints_checked:
+    C1:
+      rule: Must not operate when on main/master/default branch
+      status: PASS
+      evidence: Current branch is feature/319-enrich-promote-approved-learning-proposals
+    C2:
+      rule: A pull request must exist on the platform
+      status: PASS
+      evidence: PR #327 exists and is OPEN
+    C3:
+      rule: Working tree and index must be clean
+      status: PASS
+      evidence: Caller confirmed working tree is clean
+    C4:
+      rule: No merge conflicts present
+      status: PASS
+      evidence: PR mergeable field is MERGEABLE
+    C5:
+      rule: Use repository default merge strategy
+      status: PASS
+      evidence: Will use default merge strategy (no override)
+  ci_checks: []
+  blocking_issues: []

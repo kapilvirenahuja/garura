@@ -1,0 +1,47 @@
+sourced_from: "pr_diff:327"
+generated_at: "2026-04-30T00:00:00Z"
+source_play: "distill"
+issue: "319"
+no_learnings: false
+stm_evidence_found: false
+diff_assessed_trivial: false
+
+proposals:
+  - proposal_id: "P-001"
+    tier: 2
+    confidence: "low"
+    learning_category: "arch"
+    sub_category: "pipeline"
+    learning_category_proposed: false
+    sub_category_proposed: false
+    finding: >
+      The enrich play splits ENRICH mode across two phases — normalization
+      (pre-review, via normalize-proposals-for-enrichment) and application
+      (post-review, via apply-ltm-enrichment + promote-adr-draft). The
+      knowledge-extractor agent dispatches a different skill depending on the
+      phase field in its input contract. This two-phase split is the structural
+      mechanism that enforces the human gate: the first skill produces a
+      reconciliation file ready for reviewer approval; the second only writes
+      what was explicitly approved.
+    artifact: "enrich play intent"
+    artifact_path: "core/components/plays/enrich/reference/intent.yaml"
+    section: "constraints"
+    evidence: >
+      enrich SKILL.md Step 2 (normalize-proposals-for-enrichment, pre_review phase)
+      and Step 4 (apply-ltm-enrichment + promote-adr-draft, post_review phase).
+      knowledge-extractor AGENT.md ENRICH mode section.
+    proposed_enrichment: >
+      Document that the two-phase ENRICH mode (pre_review / post_review) is the
+      canonical pattern for any LTM write boundary play. The phase field in the
+      input contract is what gates human approval — knowledge-extractor dispatches
+      a different skill per phase. Extractors that follow this pattern can compose
+      with enrich without modification.
+    approval_status: "pending"
+
+summary:
+  total_proposals: 1
+  by_learning_category:
+    arch: 1
+  stm_evidence_found: false
+  diff_assessed_trivial: false
+  low_context_variant: true
