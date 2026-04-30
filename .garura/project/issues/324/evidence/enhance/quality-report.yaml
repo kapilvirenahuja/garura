@@ -1,0 +1,82 @@
+quality_report:
+  timestamp: "2026-04-30T00:00:00Z"
+  overall: "PASS"
+  context: "Rename refactor /scope -> /define. No project-level build/lint/typecheck/test harness for YAML/MD components."
+
+  gates:
+    - name: build
+      status: "N/A"
+      evidence: "No build harness for YAML/MD play components. N/A by contract."
+
+    - name: typecheck
+      status: "N/A"
+      evidence: "No TypeScript or typed language. N/A by contract."
+
+    - name: lint
+      status: "N/A"
+      evidence: "No npm/eslint harness. Component lint covered separately under component_lint gate."
+
+    - name: unit_tests
+      status: "N/A"
+      evidence: "No automated unit test suite for play components. N/A by contract."
+
+    - name: component_lint
+      status: "PASS"
+      command: "node core/tools/lint-components/index.js core/components/plays/define/"
+      exit_code: 1
+      note: >
+        Exit code 1 reflects corpus-wide pre-existing violations across all components.
+        The define/ directory itself has zero errors. The single warning (spelling-inconsistency
+        on user-invokable) is a corpus-wide pre-existing issue — the original scope/SKILL.md
+        carried the identical flag (confirmed via git show HEAD:core/components/plays/scope/SKILL.md).
+        Baseline for scope/ was 0 errors / 1 pre-existing warning. define/ matches that baseline exactly.
+      define_violations:
+        errors: 0
+        warnings: 1
+        warning_detail: >
+          SKILL.md:1 structural/spelling-inconsistency — corpus uses mixed spellings for
+          user-invocable/user-invokable; this file uses minority form `user-invokable`.
+          Pre-existing, carried over from scope/ verbatim.
+      total_corpus_summary:
+        errors: 88
+        warnings: 21
+        scope: "all core/components — not attributable to this rename"
+
+    - name: intent_hash_consistency
+      status: "PASS"
+      command: "shasum -a 256 core/components/plays/define/reference/intent.yaml"
+      evidence: >
+        Computed hash: b8d68c70bbb64195ae562e1fea90e8a3b807e6e9bde42a0564e505e25e6cbde7
+        SKILL.md stored hash: sha256:b8d68c70bbb64195ae562e1fea90e8a3b807e6e9bde42a0564e505e25e6cbde7
+        Hash matches byte-for-byte.
+
+    - name: stale_scope_references
+      status: "PASS"
+      command: "grep -rn 'garura:scope|evidence/scope/|plays/scope' core/components/plays/define/"
+      evidence: >
+        No stale garura:scope, evidence/scope/, or plays/scope/ references found in define/.
+        Residual /scope strings in SKILL.md (lines 307, 335, 487, 516) and intent.yaml
+        (lines 216, 227, 236, 328, 348, 369, 389, 413, 430) are checkpoint path tokens
+        (checkpoint/scope/{ts}.md) and scenario narrative prose referencing the old command name.
+        These are content/path literals within the play spec, not stale infrastructure references.
+        Gate targets garura:scope namespace, evidence/scope/ paths, and plays/scope/ directory —
+        none present.
+
+    - name: working_tree_cleanliness
+      status: "PASS"
+      command: "git status --short"
+      evidence: >
+        No orphaned core/components/plays/scope/ directory present in working tree.
+        No broken symlinks in define/.
+        Unstaged changes in working tree are all expected rename-refactor artifacts:
+          - D  core/components/plays/scope/SKILL.md (deleted — rename complete)
+          - D  core/components/plays/scope/reference/intent.yaml (deleted — rename complete)
+          - M  .garura/product/scope/features.yaml (added 'define' to play list — expected)
+          - M  docs/design/playbook-catalog.md (updated /scope -> /define references — expected)
+          - ?? core/components/plays/define/ (new untracked directory — rename artifact)
+          - ?? .garura/project/issues/324/ (issue evidence directories — expected)
+          - ?? .garura/project/issues/322/evidence/create-pr/ (prior issue — unrelated)
+
+  vision_gate_violations: []
+
+  qp_source: "toolchain-detected — no quality-standards.yaml in project root"

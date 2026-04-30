@@ -1,0 +1,32 @@
+remediation:
+  trigger: judge ER-3 FAIL
+  applied_at: "2026-04-30"
+  applied_by: orchestrator (direct)
+  rationale: |
+    Implementer's deterministic SKILL.md substitution updated `evidence/scope/` →
+    `evidence/define/` in the compiled artifact but NOT in the source intent.yaml.
+    This created compile drift: SKILL.md and intent.yaml were inconsistent. Judge
+    flagged ER-3 FAIL. Fixed inline rather than entering fix loop because:
+    - Fix is 6 path string replacements + 1 key rename + hash recompute
+    - Code-builder fix loop won't add value over deterministic edits
+    - Confidence still 0.78 (≥0.6 judge gate threshold), no blocker classification
+
+  changes:
+    - file: core/components/plays/define/reference/intent.yaml
+      edits:
+        - line 51: `stm_scope_evidence:` → `stm_define_evidence:` (key rename)
+        - all 6 occurrences: `evidence/scope/` → `evidence/define/`
+    - file: core/components/plays/define/SKILL.md
+      edits:
+        - intent_hash updated to sha256:b8d68c70bbb64195ae562e1fea90e8a3b807e6e9bde42a0564e505e25e6cbde7
+          (matches new shasum of intent.yaml byte-for-byte)
+
+  verification:
+    - intent.yaml: 0 remaining `evidence/scope/` occurrences (was 6)
+    - intent.yaml: 0 remaining `stm_scope_evidence` occurrences (was 1)
+    - SKILL.md intent_hash matches shasum -a 256 of intent.yaml: PASS
+
+  deferred:
+    - ~/.claude/skills/define/ has stale paths (deployed before this remediation).
+      Re-running /sync-claude after merge will refresh. Not blocking PR — source-of-truth
+      is now correct, and post-merge sync is the natural deploy point.

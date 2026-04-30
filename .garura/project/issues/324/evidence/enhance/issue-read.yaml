@@ -1,0 +1,22 @@
+number: 324
+title: "[CHORE] Rename /scope play to /define"
+state: open
+url: "https://github.com/kapilvirenahuja/garura/issues/324"
+labels:
+  - refactor
+body: |
+  ## Description
+
+  The current /scope play handles both new feature scoping and re-scoping/extending existing FEAT-IDs (5-bucket classification). The name "scope" is misleading — users read it as "add new". Rename the play to /define so the doorway works equally well for new and WIP features needing extension. Touches: core/components/plays/scope/ rename, intent.yaml name field, all cross-references in plays/skills/docs, then /create-play --rebuild and /sync-claude.
+
+  ## Acceptance Criteria
+
+  - [ ] core/components/plays/scope/ directory renamed to define/
+  - [ ] reference/intent.yaml name field updated to /define
+  - [ ] All cross-references in plays, skills, and docs updated
+  - [ ] /create-play --rebuild executed for the renamed play
+  - [ ] /sync-claude run to deploy updated play globally
+
+  ---
+
+  *Created via Meridian `start-feature` workflow.*

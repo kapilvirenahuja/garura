@@ -1,0 +1,212 @@
+analysis:
+  branch: refactor/324-rename-scope-to-define
+  base: main
+  branch_pattern: refactor
+  pr_number: 325
+  pr_url: https://github.com/kapilvirenahuja/garura/pull/325
+  mode: PR-scoped
+  commits: 2
+  changes:
+    files: 7
+    additions: 133
+    deletions: 73
+
+  suggested_title: "refactor(plays): rename /scope to /define"
+
+  context:
+    file_patterns_matched:
+      - name: "Play definitions"
+        files: 2
+        trigger: "**/plays/**/SKILL.md, **/plays/**/reference/*.yaml"
+        matched:
+          - core/components/plays/define/SKILL.md
+          - core/components/plays/define/reference/intent.yaml
+      - name: "Configuration (YAML)"
+        files: 1
+        trigger: "*.yaml"
+        matched:
+          - .garura/product/scope/features.yaml
+      - name: "Documentation"
+        files: 1
+        trigger: "*.md, **/docs/**"
+        matched:
+          - docs/design/playbook-catalog.md
+      - name: "STM evidence files"
+        files: 3
+        trigger: ".garura/project/**"
+        matched:
+          - .garura/project/issues/324/evidence/start-feature/20260430-173155.md
+          - .garura/project/issues/324/evidence/start-feature/branch-result.yaml
+          - .garura/project/issues/324/evidence/start-feature/issue-resolution.yaml
+
+    commit_types:
+      - type: "chore"
+        count: 1
+        example: "chore(stm): record start-feature evidence for #324"
+      - type: "refactor"
+        count: 1
+        example: "refactor(plays): rename /scope to /define (#324)"
+
+    branch_modifiers:
+      - "refactor branch — standard priorities apply; refactor-no-break rule active"
+
+  checklist:
+    must_have:
+      - id: "no-conflicts"
+        item: "No merge conflicts"
+        trigger: "Universal rule — always applied"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main refactor/324-rename-scope-to-define returned clean tree SHA (7903fdacd4018a5db2f5f7704154143817a1303a). No conflict markers."
+
+      - id: "no-secrets"
+        item: "No secrets committed"
+        trigger: "Universal rule — always applied"
+        status: "PASS"
+        evidence: "Scanned all changed files for password/secret/api_key/token/private_key patterns. No matches found."
+
+      - id: "play-frontmatter"
+        item: "Play has valid frontmatter"
+        trigger: "**/plays/**/SKILL.md matched — core/components/plays/define/SKILL.md"
+        status: "PASS"
+        evidence: "Frontmatter present with: name=garura:define, description present, user-invokable=true, model=opus, allowed-tools=Task,Read,Write,Grep,Glob,Skill,SendMessage,Bash. All required fields populated."
+
+      - id: "play-workflow"
+        item: "Play defines workflow"
+        trigger: "**/plays/**/SKILL.md matched — core/components/plays/define/SKILL.md"
+        status: "PASS"
+        evidence: "SKILL.md contains ## Compiled From, ## Role, ## Task DAG, ## Workflow sections."
+
+      - id: "play-checkpoint"
+        item: "Play defines checkpoint behavior"
+        trigger: "**/plays/**/SKILL.md matched — core/components/plays/define/SKILL.md"
+        status: "PASS"
+        evidence: "SKILL.md contains explicit Tether/Vanish/Orbit checkpoint logic at Phase 5 (placement-checkpoint) and Phase 9 (epic-checkpoint). checkpoint_dest updated to evidence/define/ paths."
+
+      - id: "config-valid"
+        item: "Configuration syntax valid"
+        trigger: "*.yaml files changed — features.yaml and intent.yaml"
+        status: "PASS"
+        evidence: "Both .garura/product/scope/features.yaml and core/components/plays/define/reference/intent.yaml validated clean via python3 yaml.safe_load. No parse errors."
+
+      - id: "refactor-no-break"
+        item: "No breaking changes to contracts"
+        trigger: "Commit type refactor — refactor/324-rename-scope-to-define branch"
+        status: "PASS"
+        evidence: "Agent call contracts in SKILL.md updated isomorphically — only intent_path and STM evidence paths changed from scope/ to define/. Output field names, agent roles, task IDs, and all behavioral logic are structurally identical. No agent contract shapes were altered."
+
+      - id: "sync-claude"
+        item: "Components synced with core/components/"
+        trigger: "core/components/** changed — plays/define/ files modified"
+        status: "PASS"
+        evidence: "PR body confirms: '/sync-claude already deployed; ~/.claude/skills/scope/ removed, ~/.claude/skills/define/ live'. Verified locally: ~/.claude/skills/define/ exists with SKILL.md + reference/; ~/.claude/skills/scope/ is absent."
+
+      # === Rename-specific checks (focus areas from task) ===
+
+      - id: "rename-completeness-skillmd"
+        item: "No orphan /scope refs in SKILL.md (source-of-truth)"
+        trigger: "Rename refactor — completeness check on primary artifact"
+        status: "PASS"
+        evidence: >
+          grep '/scope|garura:scope|evidence/scope|plays/scope' on PR branch SKILL.md returned zero matches.
+          All 27 internal evidence path references updated from evidence/scope/ to evidence/define/.
+          status file updated from status/scope.json to status/define.json.
+          checkpoint paths updated from checkpoint/scope/ to checkpoint/define/.
+          compiled_by updated from /create-play --build scope to /create-play --build define.
+          rebuild instruction updated from --rebuild scope to --rebuild define.
+
+      - id: "rename-completeness-intentyaml"
+        item: "No orphan /scope refs in intent.yaml (source-of-truth)"
+        trigger: "Rename refactor — completeness check on primary artifact"
+        status: "PASS"
+        evidence: >
+          grep '/scope|garura:scope|evidence/scope|stm_scope' on PR branch intent.yaml returned zero matches.
+          name field updated to garura:define.
+          path_resolution key stm_scope_evidence renamed to stm_define_evidence.
+          All C4/C5/C12 constraint references updated from evidence/scope/ to evidence/define/.
+          All template_map destination paths updated (phase-5-placement-checkpoint, phase-9-epic-checkpoint,
+          phase-10-evidence-file) from checkpoint/scope/ and evidence/scope/ to define equivalents.
+          All 6 scenario given: blocks updated from /scope to /define.
+
+      - id: "hash-consistency"
+        item: "intent.yaml hash matches SKILL.md intent_hash field"
+        trigger: "Rename refactor — hash integrity check"
+        status: "PASS"
+        evidence: >
+          shasum -a 256 core/components/plays/define/reference/intent.yaml = 2cf062a27587b806d0c12385d55a5bbe1e3b21c9dc74709e0d5f89053555e312.
+          SKILL.md intent_hash field = sha256:2cf062a27587b806d0c12385d55a5bbe1e3b21c9dc74709e0d5f89053555e312.
+          Exact match. Hash is consistent with the live intent.yaml bytes.
+
+      - id: "playbook-catalog-refs"
+        item: "Cross-reference edits in docs/design/playbook-catalog.md correct"
+        trigger: "Rename refactor — docs cross-reference update"
+        status: "PASS"
+        evidence: >
+          5 /scope references updated to /define in playbook-catalog.md:
+          (1) Status line: "mapping into a scope/domain via /define" — correct.
+          (2) Footer: "material to feed into /define when we decide..." — correct.
+          (3) Section heading prose: "When /define picks this up..." — correct.
+          (4) Footer disclaimer: "Not a replacement for /define." — correct.
+          (5) Next steps: "Run /define with this document..." — correct.
+          grep '/scope\b' on PR branch playbook-catalog.md returned zero matches.
+          Note: remaining uses of "scope" as a noun/verb (e.g., "scope/domain", "scope session") are
+          intentional English prose — not command references. Correctly left unchanged.
+
+      - id: "features-yaml-edit"
+        item: "features.yaml plays_inventory edit syntactically clean and correct"
+        trigger: "Rename refactor — catalog registration"
+        status: "PASS"
+        evidence: >
+          Single line added: '- define' under AM-F001 plays_inventory.
+          Alphabetical position: after 'create-pr', before 'design-exp' — correct (d before de alphabetically).
+          No 'scope' entry existed in plays_inventory on main to remove; this is a net-new registration.
+          YAML syntax valid (python3 yaml.safe_load: VALID).
+          No duplicate entry. No indentation errors.
+          Note: start-feature-planning present on main but absent from PR branch plays_inventory — this is a
+          pre-existing delta unrelated to this PR (scope of change is only the +define line).
+
+    nice_to_have:
+      - id: "play-agent-limit"
+        item: "Play respects agent call limits (L2 ≤5)"
+        trigger: "**/plays/**/SKILL.md matched"
+        status: "PASS"
+        evidence: "SKILL.md Version metadata shows domain_agents: 2 (project-orchestrator, product-keeper). L2 ≤5 limit respected."
+
+      - id: "config-documented"
+        item: "Configuration changes documented"
+        trigger: "*.yaml files changed"
+        status: "PASS"
+        evidence: "features.yaml change (adding 'define' to plays_inventory) is described in PR body under Changes section."
+
+      - id: "docs-consistent"
+        item: "Documentation consistent with implementation"
+        trigger: "docs/design/playbook-catalog.md changed"
+        status: "PASS"
+        evidence: "playbook-catalog.md updated in the same commit as the play rename. All user-facing references consistently point to /define."
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Ready to merge"
+
+  review_notes:
+    - note: "start-feature-planning absent from PR branch plays_inventory"
+      severity: "informational"
+      detail: >
+        main's plays_inventory contains start-feature-planning; PR branch does not.
+        This is a pre-existing difference not introduced by this PR (the diff only adds 'define').
+        Not a concern for this PR's scope.
+    - note: "No old 'scope' entry removal in features.yaml"
+      severity: "informational"
+      detail: >
+        'scope' was never registered in plays_inventory on main (confirmed by grep on main branch).
+        Therefore no deletion was needed — only the new 'define' addition. Correct behavior.
+    - note: "E13 lint warning (user-invokable) — inherited, not introduced"
+      severity: "informational"
+      detail: >
+        PR body notes 175 files use the user-invokable pattern flagged by lint.
+        The rename does not introduce new violations. Pre-existing corpus-wide condition.
+    - note: "E14 git --follow — passes post-commit"
+      severity: "informational"
+      detail: >
+        git rename detection requires committed state. Passes after commit as expected.
+        Standard behavior for git --follow with git mv renames.

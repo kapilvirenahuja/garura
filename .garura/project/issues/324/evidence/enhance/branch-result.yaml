@@ -1,0 +1,17 @@
+branch:
+  name: "refactor/324-rename-scope-to-define"
+  action: "reused"
+  pushed: true
+  changes_preserved: true
+deviation:
+  expected_pattern: "enhance/{issue}-{slug}"
+  actual_pattern: "refactor/{issue}-{slug}"
+  rationale: |
+    User explicitly chose to keep the existing refactor/324 branch (created by /start-feature)
+    rather than create a new enhance/324 branch. Reasons:
+    - Preserves the start-feature evidence commit dcfdcff already on this branch
+    - Issue link via #324 in PR title/body works regardless of branch prefix
+    - Rename work fits the "refactor" semantic prefix more accurately than "enhance" anyway
+    SE-2 deviation accepted by user at /enhance pre-flight.
+  approved_by: user
+  approved_at: "2026-04-30"

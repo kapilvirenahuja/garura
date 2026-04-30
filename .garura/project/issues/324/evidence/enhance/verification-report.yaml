@@ -1,0 +1,108 @@
+verification_report:
+  iteration: 1
+  evals:
+    - id: E1
+      status: PASS
+      check_command: "test ! -d core/components/plays/scope/ && echo PASS || echo FAIL"
+      observed_output: "PASS"
+      evidence: "Directory core/components/plays/scope/ does not exist — old play directory was removed."
+
+    - id: E2
+      status: PASS
+      check_command: "test -d core/components/plays/define/ && echo PASS || echo FAIL"
+      observed_output: "PASS"
+      evidence: "Directory core/components/plays/define/ exists — new play directory is present."
+
+    - id: E3
+      status: PASS
+      check_command: "grep -q \"^name: garura:define\" core/components/plays/define/reference/intent.yaml && echo PASS || echo FAIL"
+      observed_output: "PASS"
+      evidence: "intent.yaml frontmatter contains 'name: garura:define'."
+
+    - id: E4
+      status: PASS
+      check_command: "grep -q \"^name: garura:define\" core/components/plays/define/SKILL.md && echo PASS || echo FAIL"
+      observed_output: "PASS"
+      evidence: "SKILL.md frontmatter contains 'name: garura:define'."
+
+    - id: E5
+      status: PASS
+      check_command: "test \"$(grep -r 'garura:scope' core/components/plays/define/ | wc -l | tr -d ' ')\" = \"0\" && echo PASS || echo FAIL"
+      observed_output: "PASS"
+      evidence: "No occurrences of 'garura:scope' found in the define play directory."
+
+    - id: E6
+      status: PASS
+      check_command: "test \"$(grep -r 'garura:scope' core/components/ | wc -l | tr -d ' ')\" = \"0\" && echo PASS || echo FAIL"
+      observed_output: "PASS"
+      evidence: "No occurrences of 'garura:scope' found anywhere in core/components/."
+
+    - id: E7
+      status: PASS
+      check_command: "test \"$(grep 'plays/scope/' core/components/plays/define/SKILL.md | wc -l | tr -d ' ')\" = \"0\" && echo PASS || echo FAIL"
+      observed_output: "PASS"
+      evidence: "No 'plays/scope/' path references found in the compiled SKILL.md."
+
+    - id: E8
+      status: PASS
+      check_command: "test \"$(grep -c '`/scope`' docs/design/playbook-catalog.md)\" = \"0\" && echo PASS || echo FAIL"
+      observed_output: "PASS"
+      evidence: "Zero occurrences of the old '/scope' slash-command in playbook-catalog.md."
+
+    - id: E9
+      status: PASS
+      check_command: "count=$(grep -c '`/define`' docs/design/playbook-catalog.md); [ \"$count\" = \"5\" ] && echo PASS || echo \"FAIL (count=$count)\""
+      observed_output: "PASS"
+      evidence: "Exactly 5 occurrences of '/define' slash-command found in playbook-catalog.md."
+
+    - id: E10
+      status: PASS
+      check_command: "awk '/id: AM-F001/,/id: AM-F002/' .garura/product/scope/features.yaml | grep -qE \"^\\s*- define$\" && echo PASS || echo FAIL"
+      observed_output: "PASS"
+      evidence: "features.yaml AM-F001 plays_inventory contains 'define'."
+
+    - id: E11
+      status: PASS
+      check_command: "test ! -d ~/.claude/skills/scope/ && echo PASS || echo FAIL"
+      observed_output: "PASS"
+      evidence: "Directory ~/.claude/skills/scope/ does not exist — stale deployed skill was removed by /sync-claude."
+
+    - id: E12
+      status: PASS
+      check_command: "grep -q \"^name: garura:define\" ~/.claude/skills/define/SKILL.md && echo PASS || echo FAIL"
+      observed_output: "PASS"
+      evidence: "Deployed ~/.claude/skills/define/SKILL.md contains 'name: garura:define' — new skill is present."
+
+    - id: E13
+      status: FAIL
+      check_command: "node core/tools/lint-components/index.js --target core/components --output json (filtered for plays/define)"
+      observed_output: |
+        violations for plays/define:
+          - file: plays/define/SKILL.md
+            rule: structural/spelling-inconsistency
+            severity: warning
+            message: "Corpus uses mixed spellings for user-invocable/user-invokable. This file uses `user-invokable` (minority form)."
+        summary: { errors: 0, warnings: 1 }
+      evidence: |
+        The define play has 0 errors but 1 warning (spelling-inconsistency for user-invokable vs user-invocable).
+        This is a corpus-wide issue (14 total occurrences across other components), inherited from the original
+        scope play's SKILL.md. The criterion requires 0 errors AND 0 warnings — 1 warning means FAIL on strict
+        literal reading. Note: this warning predates the rename and is not introduced by it.
+
+    - id: E14
+      status: FAIL
+      check_command: "git log --follow --oneline core/components/plays/define/reference/intent.yaml | head -1 | grep -qv \"^$\" && echo PASS || echo FAIL"
+      observed_output: "FAIL"
+      evidence: |
+        git log --follow returns empty output — no commit history exists for this file.
+        The files are staged (shown in git status as 'new file: core/components/plays/define/SKILL.md'
+        and 'new file: core/components/plays/define/reference/intent.yaml') but not yet committed.
+        Without a commit, --follow cannot traverse any rename history. This will pass once the changes
+        are committed with git mv semantics.
+
+  summary:
+    total: 14
+    passed: 12
+    failed: 2
+
+  overall: FAIL

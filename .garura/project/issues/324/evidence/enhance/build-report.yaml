@@ -1,0 +1,126 @@
+build_report:
+  tasks:
+    - id: T1
+      status: completed
+      detail: >
+        Ran `git mv core/components/plays/scope core/components/plays/define` from the
+        repository root. Git tracked the rename for both files in the directory.
+      git_status_excerpt: |
+        renamed:    core/components/plays/scope/SKILL.md -> core/components/plays/define/SKILL.md
+        renamed:    core/components/plays/scope/reference/intent.yaml -> core/components/plays/define/reference/intent.yaml
+
+    - id: T2
+      status: completed
+      detail: >
+        Edited `core/components/plays/define/reference/intent.yaml` using the Edit tool.
+        Changed the single line `name: garura:scope` to `name: garura:define`. No other
+        content in the file was modified.
+      exit_gate_verified: "grep '^name:' returns exactly `name: garura:define`"
+
+    - id: T3
+      status: completed
+      detail: >
+        Used deterministic fallback (sed + Edit tool). Did NOT attempt the full
+        /create-play --rebuild orchestration inline. Applied the following substitutions
+        to core/components/plays/define/SKILL.md:
+          1. Frontmatter `name: garura:scope` → `name: garura:define`
+          2. `# scope` heading → `# define`
+          3. Compiled From section build reference: `--build scope` → `--build define`
+          4. Compiled From section rebuild reference: `--rebuild scope` → `--rebuild define`
+          5. All `intent_path: core/components/plays/scope/reference/intent.yaml`
+             → `core/components/plays/define/reference/intent.yaml` (6 occurrences)
+          6. All `evidence/scope/` paths → `evidence/define/` (runtime STM evidence dir)
+          7. `status/scope.json` → `status/define.json`
+          8. `"play": "scope"` → `"play": "define"`
+          9. `play=scope` template comment → `play=define`
+         10. intent_hash updated:
+               old: sha256:35759da02963bd53340c7c12e2260ee44064f476575c883512b22b4f3bd0a246
+               new: sha256:f893c2ada79d4f8320e7c2463ed79b001b614767bba4021e4b4559e793db46c8
+               (shasum -a 256 of updated intent.yaml)
+         11. Compilation Metadata table `compiled_by` row: `--build scope` → `--build define`
+      t3_method: >
+        deterministic-fallback — sed-based substitution for all field types
+        (frontmatter name, intent_path refs, compiled_by, play name refs in prose,
+        evidence paths, intent_hash). Full /create-play --rebuild orchestration
+        was not attempted inline per contract guidance.
+      exit_gates_verified:
+        - "grep '^name:' SKILL.md returns `name: garura:define` ✓"
+        - "grep 'garura:scope' SKILL.md returns 0 lines ✓"
+        - "grep 'intent_path' SKILL.md shows paths containing 'define/' only ✓"
+
+    - id: T4
+      status: completed
+      detail: >
+        Ran `node core/tools/lint-components/index.js --target core/components --output json`
+        against the full core/components tree (which includes the renamed define/ play).
+        Checked violations scoped to core/components/plays/define/SKILL.md only.
+      lint_results_for_define_play:
+        errors: 0
+        warnings: 1
+        warning_detail: >
+          structural/spelling-inconsistency — corpus uses mixed spellings for
+          user-invocable/user-invokable; this file uses `user-invokable` (minority form).
+          This is a pre-existing corpus-wide inconsistency, not introduced by the rename.
+      note: >
+        Overall corpus lint shows 88 errors and 21 warnings — all pre-existing in other
+        components (primarily quality-check-scoped). The define play itself has 0 errors.
+
+    - id: T5
+      status: completed
+      detail: >
+        Made 5 surgical edits to docs/design/playbook-catalog.md replacing `/scope`
+        (slash-command form) with `/define` on lines 3, 24, 340, 361, 370.
+      exit_gates_verified:
+        - "grep -n '/scope' returns 0 lines ✓"
+        - "grep -n '/define' returns exactly 5 lines at correct positions ✓"
+
+    - id: T6
+      status: completed
+      detail: >
+        Edited .garura/product/scope/features.yaml. Inserted `- define` in the
+        AM-F001 plays_inventory list between `- create-pr` and `- design-exp`
+        (alphabetical position: c < d < de, and "define" < "design-exp").
+        Note: impl-context.md described inserting between `- decode` and `- design-exp`
+        but `decode` is not present in the inventory; the correct alphabetical slot is
+        between `create-pr` and `design-exp`.
+      exit_gate_verified: "grep of features.yaml AM-F001 block contains `- define` at line 163 ✓"
+
+    - id: T7
+      status: completed
+      detail: >
+        Ran `bash core/components/skills/sync-claude/scripts/sync.sh` (global mode, no
+        --project flag). Script wiped ~/.claude/skills/* and ~/.claude/agents/* then
+        re-copied from source. `define` appears in the synced skills list; `scope` does
+        not appear.
+      exit_gates_verified:
+        - "~/.claude/skills/scope/ does not exist (ls returns No such file or directory) ✓"
+        - "~/.claude/skills/define/SKILL.md exists ✓"
+        - "grep '^name:' ~/.claude/skills/define/SKILL.md returns `name: garura:define` ✓"
+
+  files_modified:
+    - core/components/plays/scope/SKILL.md (renamed to core/components/plays/define/SKILL.md — then modified)
+    - core/components/plays/scope/reference/intent.yaml (renamed to core/components/plays/define/reference/intent.yaml — then modified)
+    - core/components/plays/define/SKILL.md
+    - core/components/plays/define/reference/intent.yaml
+    - docs/design/playbook-catalog.md
+    - .garura/product/scope/features.yaml
+
+  files_created: []
+
+  notes: |
+    t3_method: deterministic-fallback
+    The full /create-play --rebuild orchestration was not executed inline. Instead,
+    all field-level substitutions (frontmatter name, intent_path refs, compiled_by,
+    play name prose refs, evidence paths, intent_hash) were applied deterministically
+    via sed and the Edit tool. The new intent_hash was computed with:
+      shasum -a 256 core/components/plays/define/reference/intent.yaml | awk '{print $1}'
+    Result: f893c2ada79d4f8320e7c2463ed79b001b614767bba4021e4b4559e793db46c8
+
+    T6 alphabetical position deviation: impl-context.md specified insertion between
+    `- decode` and `- design-exp`, but the AM-F001 plays_inventory does not contain
+    `- decode`. The actual insertion was between `- create-pr` and `- design-exp`,
+    which is the correct alphabetical position for `define` in the existing list.
+
+    T4 baseline: The define play lints with 0 errors and 1 pre-existing spelling warning
+    (corpus-wide user-invokable vs user-invocable inconsistency). This matches the
+    expected baseline (the original scope play had the same warning).
