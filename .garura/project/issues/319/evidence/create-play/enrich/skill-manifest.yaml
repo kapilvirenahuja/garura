@@ -1,0 +1,18 @@
+play: enrich
+skills:
+  - name: normalize-proposals-for-enrichment
+    path: core/components/skills/normalize-proposals-for-enrichment/SKILL.md
+    status: new
+    role: Detect source (distill/reap/codify/decode), map native shape onto reconciliation-proposals shape, validate taxonomy, init approval_status=pending.
+  - name: apply-ltm-enrichment
+    path: core/components/skills/apply-ltm-enrichment/SKILL.md
+    status: existing
+    role: Write approved reconciliation-proposals entries to product LTM artifacts in place.
+  - name: promote-adr-draft
+    path: core/components/skills/promote-adr-draft/SKILL.md
+    status: new
+    role: Create new ADR file in docs/adr/ from an approved T1 proposal's adr_draft_path, with sequential numbering and idempotency.
+  - name: archive-issue-stm
+    path: core/components/skills/archive-issue-stm/SKILL.md
+    status: existing
+    role: Move processed issue STM to {stm_archive}/{YYYY-MM}/{issue}/ after enrichment success.

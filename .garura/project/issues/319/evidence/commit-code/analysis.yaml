@@ -1,0 +1,90 @@
+branch:
+  name: feature/319-enrich-promote-approved-learning-proposals
+  issue_from_branch: 319
+  is_hotfix: false
+
+change_summary:
+  total_files: 11
+  staged: 0
+  unstaged: 1
+  untracked: 10
+
+groups:
+  - id: G1
+    issue: 319
+    type: feat
+    scope: enrich
+    subject: "add enrich play and normalize/promote-adr-draft skills for LTM enrichment pipeline (#319)"
+    confidence: high
+    files:
+      - path: core/components/plays/enrich/SKILL.md
+        description: new enrich play definition
+      - path: core/components/plays/enrich/reference/intent.yaml
+        description: enrich play intent with constraints and scenarios
+      - path: core/components/skills/normalize-proposals-for-enrichment/SKILL.md
+        description: new skill — normalizes native proposals into reconciliation shape for ENRICH pre-review phase
+      - path: core/components/skills/promote-adr-draft/SKILL.md
+        description: new skill — promotes approved Tier 1 ADR drafts into docs/adr archive
+      - path: core/components/agents/knowledge-extractor.md
+        description: updated ENRICH mode — two-phase flow (pre_review/post_review), delegates to new skills, adds promote-adr-draft to skill table
+
+  - id: G2
+    issue: 319
+    type: chore
+    scope: stm
+    subject: "record create-play evidence for #319"
+    confidence: high
+    files:
+      - path: .garura/project/issues/319/evidence/create-play/enrich/skill-manifest.yaml
+        description: skill manifest produced by create-play for enrich play
+      - path: .garura/project/issues/319/evidence/create-play/enrich/evals.yaml
+        description: evals produced by create-play for enrich play
+      - path: .garura/project/issues/319/evidence/create-play/enrich/coverage-matrix.md
+        description: coverage matrix for enrich play
+      - path: .garura/project/issues/319/evidence/create-play/enrich/agent-audit-knowledge-extractor.md
+        description: agent audit for knowledge-extractor during create-play
+
+  - id: G3
+    issue: 317
+    type: chore
+    scope: stm
+    subject: "record merge-pr evidence for #317"
+    confidence: high
+    files:
+      - path: .garura/project/issues/317/evidence/merge-pr/readiness.yaml
+        description: merge readiness check artifact for #317
+      - path: .garura/project/issues/317/evidence/merge-pr/merge-result.yaml
+        description: merge result record for #317
+
+  - id: G4
+    issue: 322
+    type: chore
+    scope: stm
+    subject: "record create-pr evidence for #322"
+    confidence: high
+    files:
+      - path: .garura/project/issues/322/evidence/create-pr/analysis.yaml
+        description: PR analysis artifact for #322
+      - path: .garura/project/issues/322/evidence/create-pr/issue-linkage.yaml
+        description: issue linkage record for #322
+      - path: .garura/project/issues/322/evidence/create-pr/pr-record.yaml
+        description: PR creation record for #322
+
+  - id: G5
+    issue: null
+    type: chore
+    scope: stm
+    subject: "record start-feature pending artifacts (issue unknown)"
+    confidence: low
+    confidence_reason: "Files live under .garura/project/issues/_pending/ — no issue number. Cannot map to an existing issue without user input."
+    files:
+      - path: .garura/project/issues/_pending/start-feature/args.yaml
+        description: start-feature invocation args pending issue assignment
+      - path: .garura/project/issues/_pending/start-feature/changed-files.txt
+        description: changed-files snapshot pending issue assignment
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false

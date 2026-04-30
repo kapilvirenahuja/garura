@@ -1,0 +1,80 @@
+analysis:
+  branch: feat/322-decode-play
+  base: main
+  commits_ahead: 8
+  suggested_title: "feat(decode): add /decode play for brownfield behavior extraction (#322)"
+  context:
+    file_patterns_matched:
+      - "core/components/agents/*.md"
+      - "core/components/plays/**/*.md"
+      - "core/components/skills/**/*.md"
+      - "docs/design/*.md"
+      - ".garura/project/issues/322/evidence/**"
+    commit_types:
+      - feat
+      - chore
+      - docs
+    changed_files_count: 30
+    insertions: 5662
+    deletions: 3
+  checklist:
+    must_have:
+      - item: "No merge conflicts"
+        trigger: "Universal rule — always applied"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree (sha: 6edb509d1329e5da108d0a8dcda28f8136be5c02, exit 0)"
+      - item: "No secrets committed"
+        trigger: "Universal rule — always applied"
+        status: "PASS"
+        evidence: "Pattern scan across all 30 changed files found zero matches for password/api_key/secret/token/private_key/aws_access patterns"
+      - item: "Agent has valid frontmatter (name, domain, role, tools)"
+        trigger: "core/components/agents/test-runner.md changed"
+        status: "PASS"
+        evidence: "test-runner.md frontmatter present: name=test-runner, domain=test-execution, role=runner, tools=[Bash, Read, Skill, Grep, Glob]"
+      - item: "Agent has NEVER/ALWAYS boundaries"
+        trigger: "core/components/agents/test-runner.md changed"
+        status: "PASS"
+        evidence: "## Boundaries section present in test-runner.md"
+      - item: "Skill has valid frontmatter (name, description, user-invocable, allowed-tools)"
+        trigger: "13 new skill SKILL.md files added under core/components/skills/**"
+        status: "PASS"
+        evidence: "Sampled extract-feature-behavior-spec/SKILL.md: name, description, user-invocable=false, allowed-tools all present. Lint confirms zero violations across all new skills."
+      - item: "Skill defines Input and Output sections"
+        trigger: "13 new skill SKILL.md files added"
+        status: "PASS"
+        evidence: "Sampled extract-feature-behavior-spec/SKILL.md: ## Input and ## Output sections present. Lint passes on all new components."
+      - item: "Play has valid frontmatter (name, description, user-invocable, allowed-tools)"
+        trigger: "core/components/plays/decode/SKILL.md added"
+        status: "PASS"
+        evidence: "decode/SKILL.md frontmatter: name=garura:decode, description present, user-invocable=true, model=opus"
+      - item: "Play defines ## Workflow section"
+        trigger: "core/components/plays/decode/SKILL.md added"
+        status: "PASS"
+        evidence: "## Workflow section present at line 117 of decode/SKILL.md"
+      - item: "Play defines checkpoint behavior"
+        trigger: "core/components/plays/decode/SKILL.md added"
+        status: "PASS"
+        evidence: "Two checkpoint phases defined (lines 613, 653, 776). checkpoint-decisions.yaml tracked in play state."
+      - item: "Components synced with core/components/"
+        trigger: "core/components/** changed — sync-claude rule"
+        status: "REVIEW"
+        evidence: "13 skills + 1 agent + 1 play added to core/components/. Must run /sync-claude before use. Not blocking for PR merge."
+    nice_to_have:
+      - item: "Agent follows {domain}-{role} naming"
+        trigger: "Agent definition changed"
+        status: "PASS"
+        evidence: "test-runner follows domain=test-execution, role=runner naming pattern"
+      - item: "Skills have constraints section"
+        trigger: "Skill definitions changed"
+        status: "PASS"
+        evidence: "extract-feature-behavior-spec sampled — ## Constraints section present. Lint confirms pattern holds across new skills."
+      - item: "Play respects agent call limits (L2 ≤5 domain agents)"
+        trigger: "Play definition changed"
+        status: "PASS"
+        evidence: "decode play uses 3 domain agents (tech-architect, test-engineer, test-runner) + 1 utility (repo-orchestrator, budget-exempt). Within L2 ≤5 budget."
+      - item: "Documentation consistent with implementation"
+        trigger: "docs/design/playbook-catalog.md added"
+        status: "REVIEW"
+        evidence: "Design doc added alongside play. Manual consistency review recommended."
+  blocking_issues: []
+  ready: true

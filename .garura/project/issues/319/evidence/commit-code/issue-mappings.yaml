@@ -1,0 +1,97 @@
+branch:
+  name: feature/319-enrich-promote-approved-learning-proposals
+  issue_from_branch: 319
+
+mappings:
+  - group_id: G1
+    issue: 319
+    issue_title: "enrich: promote approved learning proposals from STM to product LTM (Learning Pipeline terminal stage)"
+    confidence: high
+    reasoning: >
+      Branch name contains #319 (branch signal — strongest signal). Semantic alignment
+      is exact: the group's files are the enrich play (SKILL.md + intent.yaml),
+      normalize-proposals-for-enrichment skill, promote-adr-draft skill, and
+      knowledge-extractor agent update — all directly implementing the work described
+      in issue #319. Two corroborating signals satisfy the high-confidence threshold.
+    type: feat
+    scope: enrich
+    subject: "add enrich play and normalize/promote-adr-draft skills for LTM enrichment pipeline (#319)"
+
+  - group_id: G2
+    issue: 319
+    issue_title: "enrich: promote approved learning proposals from STM to product LTM (Learning Pipeline terminal stage)"
+    confidence: high
+    reasoning: >
+      Branch signal (#319) present. File paths are explicitly under
+      .garura/project/issues/319/evidence/create-play/enrich/ — the issue number
+      is embedded in the path (path signal). Both signals agree on #319. Two
+      corroborating signals satisfy the high-confidence threshold.
+    type: chore
+    scope: stm
+    subject: "record create-play evidence for #319"
+
+  - group_id: G3
+    issue: 317
+    issue_title: "docs: document lint-components tool and skill introduced in #252"
+    confidence: high
+    reasoning: >
+      File paths are explicitly under .garura/project/issues/317/evidence/merge-pr/ —
+      issue number is embedded in the path. Files are merge-pr evidence artifacts
+      (readiness.yaml, merge-result.yaml) which are standard post-merge records for
+      that issue. Path signal + artifact-type semantic match (merge-pr stage for #317).
+      Two corroborating signals satisfy the high-confidence threshold. Issue #317 is
+      closed (expected — merge-pr evidence records a completed merge).
+    type: chore
+    scope: stm
+    subject: "record merge-pr evidence for #317"
+
+  - group_id: G4
+    issue: 322
+    issue_title: "New play: /decode — extract business logic from code for migration"
+    confidence: high
+    reasoning: >
+      File paths are explicitly under .garura/project/issues/322/evidence/create-pr/ —
+      issue number is embedded in the path. Files are create-pr evidence artifacts
+      (analysis.yaml, issue-linkage.yaml, pr-record.yaml) which are standard
+      create-pr stage records for that issue. Path signal + artifact-type semantic
+      match (create-pr stage for #322). Two corroborating signals satisfy the
+      high-confidence threshold. Issue #322 is closed (expected — PR was created
+      as part of closing this issue).
+    type: chore
+    scope: stm
+    subject: "record create-pr evidence for #322"
+
+  - group_id: G5
+    issue: 319
+    issue_title: "enrich: promote approved learning proposals from STM to product LTM (Learning Pipeline terminal stage)"
+    confidence: medium
+    reasoning: >
+      Files live under .garura/project/issues/_pending/start-feature/ — no issue
+      number in path. Mapped to #319 via auto-proceed override: these are transient
+      scaffolding artifacts from the start-feature run that opened branch
+      feature/319-enrich-promote-approved-learning-proposals. The branch signal
+      identifies #319 as the active branch issue. Auto-proceed override applied —
+      attach as scaffolding cleanup to the active branch issue. Medium confidence
+      because the path does not independently confirm the issue number; the mapping
+      relies on the branch signal + override.
+    type: chore
+    scope: stm
+    subject: "record start-feature pending artifacts for #319"
+    override_applied: true
+    override_source: auto-proceed
+
+conflicts: []
+
+summary:
+  total_groups: 5
+  high_confidence: 4
+  medium_confidence: 1
+  low_confidence: 0
+  none_confidence: 0
+  unmapped: 0
+  requires_approval: false
+  approval_reason: >
+    All mappings are high or medium confidence. Per intent C9, human approval is
+    required only when confidence is less than high. The single medium-confidence
+    mapping (G5) has auto-proceed override applied, which the calling play has
+    authorized. No approval gate needed.

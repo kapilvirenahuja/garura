@@ -1,0 +1,25 @@
+pr:
+  number: 327
+  url: "https://github.com/kapilvirenahuja/garura/pull/327"
+  state: "open"
+  title: "feat(enrich): add enrich play and normalize/promote-adr-draft skills for LTM enrichment pipeline (#319)"
+  base: main
+  branch: feature/319-enrich-promote-approved-learning-proposals
+  issue: 319
+  draft: false
+
+checklist:
+  required_count: 11
+  optional_count: 5
+  pass_count: 9
+  review_count: 6
+  fail_count: 0
+
+post_merge_actions:
+  - action: "Run /sync-claude to deploy enrich play and new skills to ~/.claude/"
+    severity: required
+
+meta:
+  skill: submit-pr
+  created_at: "2026-04-30"
+  platform: github

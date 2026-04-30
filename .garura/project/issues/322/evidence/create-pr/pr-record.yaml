@@ -1,0 +1,18 @@
+result:
+  success: true
+  pr:
+    number: 323
+    url: "https://github.com/kapilvirenahuja/garura/pull/323"
+    state: open
+    title: "feat(decode): add /decode play for brownfield behavior extraction (#322)"
+    base: main
+    head: feat/322-decode-play
+  checklist:
+    required_count: 10
+    optional_count: 4
+    required_passed: 9
+    required_review: 1
+    optional_passed: 3
+    optional_review: 1
+  issue_linked: 322
+  closes_keyword: "Closes #322"
