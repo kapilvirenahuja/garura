@@ -1,0 +1,17 @@
+status: merged
+pr_number: 325
+merge_sha: dd25c91328e513eb796b2e18e530538a3c7dd590
+branch: refactor/324-rename-scope-to-define
+base_branch: main
+branch_deleted: true
+switched_to_main: true
+main_synced: true
+issue_state: CLOSED
+evals:
+  SE-2: PASS  # Feature branch deleted — absent locally and on remote
+  SE-3: PASS  # Local checkout on main, up to date with origin/main
+  SE-5: PASS  # PR state is MERGED, pr_number 325 confirmed
+scenario_evals:
+  SCE-1: PASS  # HEAD on main, git pull up to date, feature branch absent
+  SCE-2: PASS  # Platform PR state MERGED, merge_sha dd25c91 present in git log on main
+merged_at: "2026-04-30"

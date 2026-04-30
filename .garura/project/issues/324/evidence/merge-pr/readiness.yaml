@@ -1,0 +1,11 @@
+pr_number: 325
+branch: refactor/324-rename-scope-to-define
+base_ref: main
+state: OPEN
+mergeable: true
+clean_tree: true
+evals:
+  SE-1: PASS  # PR is MERGEABLE — no conflict state
+  SE-4: PASS  # Working tree clean (no uncommitted/staged changes; untracked STM files are non-blocking)
+  SE-5: PASS  # PR exists with valid pr_number 325
+checked_at: "2026-04-30"

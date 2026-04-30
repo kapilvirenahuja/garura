@@ -1,0 +1,9 @@
+pr_number: 325
+pr_state: merged
+merge_sha: dd25c91328e513eb796b2e18e530538a3c7dd590
+branch: refactor/324-rename-scope-to-define
+branch_deleted: true
+issue_state: CLOSED
+switched_to_main: true
+main_synced: true
+shipped_at: "2026-04-30"
