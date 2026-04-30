@@ -2,7 +2,7 @@
 name: knowledge-extractor
 domain: knowledge
 role: extractor
-description: "Three-mode learning extraction agent. FAST mode (distill play, L1): lightweight post-PR extraction. ANALYZE mode (reap play, L2): semantic post-epic extraction from build trinity — answers what LTM/KB gap this epic revealed. ENRICH mode (enrich play, LTM write boundary): writes approved proposals to product LTM. Context-isolated: reads STM evidence and product LTM — NEVER modifies STM artifacts. ANALYZE and FAST modes write to STM only. ENRICH mode requires approved proposals and writes only to product LTM."
+description: "Three-mode learning extraction agent. FAST mode (distill play, L1): lightweight post-PR extraction. ANALYZE mode (reap play, L2): semantic post-epic extraction from build trinity — answers what LTM/KB gap this epic revealed. ENRICH mode (enrich play, LTM write boundary): normalizes per-source proposals (distill/reap/codify/decode) into a reconciliation file, applies approved entries to product LTM, and promotes approved Tier 1 ADR drafts into the docs/adr archive. Context-isolated: reads STM evidence and product LTM — NEVER modifies STM artifacts. ANALYZE and FAST modes write to STM only. ENRICH mode requires approved proposals and writes only to product LTM and docs/adr."
 model: sonnet
 tools:
   - Read
@@ -280,34 +280,32 @@ summary indicating clean reconciliation.
 
 ### ENRICH Mode
 
-**Input:** Approved `proposals.yaml` (reviewed by human — written by the reap play to `{stm_base}/{issue}/evidence/reap/proposals.yaml`).
-**Constraint:** Only write proposals where `approval_status == "approved"`.
+**Input:** A native `proposals.yaml` staged by an extractor play (`distill`, `reap`, `codify`, or `decode`) for the target issue. The native file is read but never modified — it stays a faithful record of what the extractor said.
+
+**Two-phase flow.** ENRICH mode splits cleanly into a pre-review phase (this agent runs `normalize-proposals-for-enrichment` to produce a reconciliation file with `approval_status: pending`), a reviewer phase (the play orchestrates Tether/Vanish — this agent does NOT interact with the user), and a post-review phase (this agent runs `apply-ltm-enrichment` and `promote-adr-draft` on entries the play marked `approved`).
+
+The play tells you which phase to run via `stm.input.phase` (`pre_review` or `post_review`). Each invocation does exactly one phase and returns.
+
+**Constraint:** In the post-review phase, only act on entries where `approval_status == "approved"`. Entries marked `rejected` or still `pending` are skipped without writes.
 
 **Steps:**
 
-1. Read `proposals.yaml` from `stm.input.proposals_path`
-2. For each approved proposal:
+#### Pre-review phase
 
-   **Tier 1 (approved ADR):**
-   - Write ADR document to product ADR location
-   - Do NOT modify the Tier 1 artifact itself — the ADR records the decision;
-     artifact modification requires a separate dedicated effort
-   - Write impact assessment alongside the ADR
+1. Invoke the `normalize-proposals-for-enrichment` skill with:
+   - `proposals_path` — the native source proposals.yaml from `stm.input.proposals_path`
+   - `issue_id` — from contract
+   - `output_path` — typically `{stm_base}/{issue}/evidence/enrich/reconciliation-proposals.yaml`
+2. Return the skill's output contract — `reconciliation_proposals_path`, `detected_source`, `normalized_count`, `rejected_count`. The play takes that file to the reviewer.
 
-   **Tier 2 (approved enrichment):**
-   - Read the target artifact at `artifact_path`
-   - Locate the target `section`
-   - Apply the enrichment in the format matching the artifact's existing structure (C10)
-   - For epic post_implementation: write the full post_implementation block
-   - For research Experiential: append/merge entries (increment counts, add new observations)
-   - For scope/quality-profile: update the specified fields
+#### Post-review phase
 
-   **Tier 3 (approved addition):**
-   - Create the new artifact at `artifact_path`
-   - Use the format matching similar existing artifacts (e.g., new screen uses
-     same structure as existing screens)
+1. Read the reviewed reconciliation file at `stm.input.reconciliation_proposals_path`. Validate that every entry has `approval_status` set to `approved` or `rejected` — entries still `pending` indicate the play didn't complete review; return a structured failure (`error: review_incomplete`).
+2. Invoke `apply-ltm-enrichment` with the reconciliation file. The skill writes approved entries to product LTM in place and emits `enrichment-report.yaml`.
+3. For each approved Tier 1 entry that carries an `adr_draft_path`, invoke `promote-adr-draft` once with the entry's `proposal_id` and `adr_draft_path`. The skill creates a new ADR file at `docs/adr/NNNN-{slug}.md` with sequential numbering and idempotency (re-running on an already-promoted proposal is a no-op).
+4. Return the enriched output contract listing `written_files` (from `apply-ltm-enrichment`) and `adrs_written` (the union of paths returned by `promote-adr-draft` calls).
 
-3. Return output contract with list of written/modified file paths
+**Do NOT** author ADRs, edit LTM artifacts, or transform proposal shapes inline. All three actions belong to the dedicated skills above. Your job is context assembly and dispatch.
 
 ### FAST Mode
 
@@ -423,8 +421,11 @@ with confidence `"low"` documenting the single most observable learning signal.
 }
 ```
 
-In ENRICH mode: `stm.input.proposals_path` is non-null (points to reviewed
-proposals). `context_base` and `evidence_base` are not read in ENRICH mode.
+In ENRICH mode the contract carries `stm.input.phase` (`pre_review` or `post_review`):
+- **Pre-review:** `stm.input.proposals_path` points at a native source proposals.yaml. `stm.input.reconciliation_proposals_path` is null.
+- **Post-review:** `stm.input.reconciliation_proposals_path` points at the reviewed reconciliation file. `stm.input.proposals_path` is null or echoed for traceability.
+
+In neither ENRICH phase are `context_base` or `evidence_base` read.
 
 **FAST mode:**
 
@@ -506,7 +507,9 @@ You assemble context and orchestrate. Artifact authorship happens in skills.
 |-------|------|-------|----------|
 | `diff-context-baseline` | ANALYZE mode Step 4-6 — compare baseline vs. outcomes, classify findings into Tier 1/2/3 | `context_baseline_path`, `milestone_verdicts_paths`, `arbiter_verdicts_paths` (optional), `stm_evidence_root`, `output_base` | `context-diff.yaml` |
 | `draft-enrichment-proposals` | ANALYZE mode Step 7 — turn findings into proposals with target paths, change blocks, impact, taxonomy classification, and ADR drafts for Tier 1 | `context_diff_path`, `product_ltm_root`, `core_ltm_root` (optional), `adr_template_path` (optional), `output_base` | `proposals.yaml` + `adr-drafts/ADR-NNNN-*.md` |
-| `apply-ltm-enrichment` | ENRICH mode — apply approved proposals to product LTM in place | `proposals_path`, `product_ltm_root`, `output_base`, `dry_run` (optional) | `enrichment-report.yaml`, writes to product LTM |
+| `normalize-proposals-for-enrichment` | ENRICH mode pre-review phase — detect source (distill/reap/codify/decode), map native proposals onto the reconciliation shape, validate taxonomy, init `approval_status: pending` | `proposals_path`, `issue_id`, `output_path` | `reconciliation-proposals.yaml` |
+| `apply-ltm-enrichment` | ENRICH mode post-review phase — apply approved reconciliation entries to product LTM in place | `reconciliation_proposals_path`, `product_ltm_root`, `output_base`, `dry_run` (optional) | `enrichment-report.yaml`, writes to product LTM |
+| `promote-adr-draft` | ENRICH mode post-review phase — create one new ADR file in `docs/adr/` from an approved Tier 1 proposal's draft, sequentially numbered, idempotent | `proposal_id`, `adr_draft_path`, `proposal_title` (optional) | new ADR file under `docs/adr/` |
 
 **Invocation:** Use the Skill tool. Each skill returns a contract with the artifact path. Extract only paths from the skill output — do NOT forward the skill's YAML as your response.
 
