@@ -1,0 +1,5 @@
+issue_number: 334
+title: "[DEFECT] create-pr play missing garura: name prefix"
+url: https://github.com/kapilvirenahuja/garura/issues/334
+state: open
+close_keyword: "Fixes #334"

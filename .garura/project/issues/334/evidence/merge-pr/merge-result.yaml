@@ -1,0 +1,9 @@
+status: merged
+pr_number: 335
+merge_sha: 13fdc25abab39f63a1664777c9b3f580ae1b74ea
+base_branch: main
+branch_deleted: true
+notes: >
+  Remote branch was deleted by GitHub during merge (--delete-branch flag).
+  Local branch deleted via git branch -d.
+  Local main is now at merge SHA 13fdc25.

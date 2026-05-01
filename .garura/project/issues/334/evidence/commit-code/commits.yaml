@@ -1,0 +1,30 @@
+commits:
+  - group: 1
+    description: "fix: add garura: name prefix to create-pr play"
+    hash: 6eb867d
+    type: fix
+    scope: create-pr
+    subject: "add garura: name prefix to play"
+    issue: "334"
+    files:
+      - core/components/plays/create-pr/SKILL.md
+    message: "fix(create-pr): add garura: name prefix to play (#334)"
+    status: created
+
+  - group: 2
+    description: "chore: add pre-push hook to block direct main commits"
+    hash: b9d1c4f
+    type: chore
+    scope: githooks
+    subject: "add pre-push hook blocking direct pushes to main"
+    issue: "334"
+    files:
+      - .githooks/pre-push
+    message: "chore(githooks): add pre-push hook blocking direct pushes to main (#334)"
+    status: created
+
+branch: fix/334-create-pr-garura-prefix
+base_branch: main
+pushed: true
+push_target: origin
+timestamp: 2026-05-01T10:25:00Z

@@ -1,0 +1,41 @@
+mappings:
+  - group_id: group-1
+    files:
+      - core/components/plays/create-pr/SKILL.md
+    description: "Adds garura: prefix to the play name field in SKILL.md, changing name: create-pr to name: garura:create-pr"
+    issue:
+      number: 334
+      title: "[DEFECT] create-pr play missing garura: name prefix"
+      url: https://github.com/kapilvirenahuja/garura/issues/334
+      labels:
+        - defect
+      state: OPEN
+    confidence: high
+    reasoning: >
+      Four corroborating signals: (1) branch name fix/334-create-pr-garura-prefix contains issue
+      number 334, (2) group description directly matches issue title — both describe adding the
+      garura: prefix to the create-pr play name, (3) file path core/components/plays/create-pr/SKILL.md
+      is explicitly named in the issue body as the file requiring the one-line edit, (4) defect
+      label aligns with this being a direct bug fix.
+    type_hint: fix
+
+  - group_id: group-2
+    files:
+      - .githooks/pre-push
+    description: "New pre-push hook blocking direct pushes to main/master as a prevention measure"
+    issue:
+      number: 334
+      title: "[DEFECT] create-pr play missing garura: name prefix"
+      url: https://github.com/kapilvirenahuja/garura/issues/334
+      labels:
+        - defect
+      state: OPEN
+    confidence: high
+    reasoning: >
+      Two corroborating signals: (1) branch name fix/334-create-pr-garura-prefix contains issue
+      number 334, (2) proximity signal — this group lives on the same branch as group-1, which
+      has strong semantic alignment to #334. The hook is a prevention measure added alongside
+      the primary defect fix as part of the same work unit, scoped to branch fix/334.
+    type_hint: fix
+
+conflicts: []

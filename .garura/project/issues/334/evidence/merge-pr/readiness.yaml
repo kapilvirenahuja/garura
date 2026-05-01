@@ -1,0 +1,16 @@
+pr:
+  number: 335
+  state: OPEN
+  mergeable: MERGEABLE
+  merge_state_status: CLEAN
+  head_ref: fix/334-create-pr-garura-prefix
+  base_ref: main
+  title: "fix(create-pr): add garura: name prefix and pre-push hook"
+
+working_tree:
+  clean: false
+  notes: >
+    Modified engine-state.json (tracked) and untracked STM files present.
+    Neither blocks the merge — no staged changes, no conflicts.
+
+verdict: READY

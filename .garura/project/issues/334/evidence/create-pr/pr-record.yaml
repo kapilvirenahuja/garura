@@ -1,0 +1,8 @@
+pr_number: 335
+pr_url: https://github.com/kapilvirenahuja/garura/pull/335
+state: open
+title: "fix(create-pr): add garura: name prefix and pre-push hook"
+base: main
+branch: fix/334-create-pr-garura-prefix
+created_at: "2026-05-01"
+closes_issue: 334

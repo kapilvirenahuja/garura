@@ -1,0 +1,77 @@
+branch: fix/334-create-pr-garura-prefix
+base: main
+analyzed_at: "2026-05-01"
+
+suggested_title: "fix(create-pr): add garura: name prefix and pre-push hook (#334)"
+
+target_branch:
+  name: main
+  confidence: high
+  reason: "Branch name pattern fix/334-* matches fix-branch convention; base is main per config."
+
+context:
+  commits:
+    - "fix(create-pr): add garura: name prefix to play (#334)"
+    - "chore(githooks): add pre-push hook blocking direct pushes to main (#334)"
+  commit_types:
+    - fix
+    - chore
+  files_changed:
+    - core/components/plays/create-pr/SKILL.md
+    - .githooks/pre-push
+  file_patterns_matched:
+    - plays_definition: "core/components/plays/**/*.md"
+    - core_components: "core/components/**"
+    - shell_script: ".githooks/pre-push"
+
+checklist:
+  must_have:
+    - item: "No merge conflicts"
+      trigger: "Universal rule — always applied"
+      status: "PASS"
+      evidence: "git merge-tree --write-tree main HEAD returned clean tree (sha: 852258d)"
+
+    - item: "No secrets committed"
+      trigger: "Universal rule — always applied"
+      status: "PASS"
+      evidence: "Pattern scan of .githooks/pre-push and core/components/plays/create-pr/SKILL.md found no password/secret/token/api_key/private_key/credential matches."
+
+    - item: "Play has valid frontmatter"
+      trigger: "Play definition changed — core/components/plays/create-pr/SKILL.md matches '**/plays/**/SKILL.md'"
+      status: "PASS"
+      evidence: "Frontmatter contains: name=garura:create-pr, description present, user-invokable=true. Note: allowed-tools not present in frontmatter (plays use agent-delegation model, not direct tools — consistent with other garura: plays)."
+
+    - item: "Play defines workflow"
+      trigger: "Play definition changed — core/components/plays/create-pr/SKILL.md"
+      status: "PASS"
+      evidence: "SKILL.md contains ## Workflow section with Phases: Preparation, Checkpoint, Execution, Scenario Validation, Evidence & Close."
+
+    - item: "Play defines checkpoint behavior"
+      trigger: "Play definition changed — core/components/plays/create-pr/SKILL.md"
+      status: "PASS"
+      evidence: "Checkpoint phase present with Step 3 (Draft Brief) and Step 4 (Human Review). Skip condition defined: 'skip when: all confidence signals are high AND no blocking issues'."
+
+    - item: "Components synced with core/components/"
+      trigger: "core/components/** changed — sync-claude rule triggered"
+      status: "REVIEW"
+      evidence: "core/components/plays/create-pr/SKILL.md was modified. /sync-claude must be run to deploy to ~/.claude/skills/. Manual verification required after merge."
+
+    - item: "SKILL.md naming convention matches other garura: plays"
+      trigger: "Specific to this fix — change was adding the garura: prefix"
+      status: "PASS"
+      evidence: "name: garura:create-pr confirmed in frontmatter. All other plays use same pattern: garura:codify, garura:arch, garura:decode, garura:implement, garura:design, garura:define, garura:prepare, garura:validate, garura:specify."
+
+    - item: "pre-push hook is executable and correctly guards main/master"
+      trigger: "New shell script added at .githooks/pre-push"
+      status: "PASS"
+      evidence: "File permissions: -rwxr-xr-x (executable). Guards both 'main' and 'master' branches. Uses git symbolic-ref to detect current branch. Exits 1 with clear error message on protected branch push. Exits 0 otherwise."
+
+  nice_to_have:
+    - item: "Play respects agent call limits"
+      trigger: "Play definition changed — play-agent-limit rule"
+      status: "PASS"
+      evidence: "SKILL.md Compilation Metadata shows agents: 2 (repo-orchestrator, project-orchestrator). L2 limit is ≤5. Compliant."
+
+blocking_issues: []
+
+ready: true

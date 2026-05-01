@@ -1,0 +1,61 @@
+branch:
+  name: fix/334-create-pr-garura-prefix
+  issue: "334"
+  is_hotfix: false
+
+change_summary:
+  total_files: 3
+  staged: 0
+  unstaged: 2
+  untracked: 1
+  note: >
+    engine-state.json is also modified (computed cache file — not part of this issue).
+    .githooks/pre-push is untracked (new file).
+    Capture-report evidence files are untracked but belong to a different issue — excluded.
+
+groups:
+  - id: 1
+    issue: "334"
+    type: fix
+    scope: create-pr
+    subject: "add garura: namespace prefix to create-pr play name"
+    confidence: high
+    files:
+      - path: core/components/plays/create-pr/SKILL.md
+        change: "Changed `name: create-pr` to `name: garura:create-pr` in frontmatter — corrects missing namespace prefix defect"
+
+  - id: 2
+    issue: "334"
+    type: chore
+    scope: githooks
+    subject: "add pre-push hook to block direct pushes to main/master"
+    confidence: high
+    files:
+      - path: .githooks/pre-push
+        change: "New executable bash script — exits 1 if current branch is main or master, preventing direct pushes"
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+  concerns:
+    - file: .garura/core/engine-state.json
+      concern: >
+        Modified but NOT part of issue #334. This is a computed cache file
+        (gitHash, timestamps, lifecycleMode). It should NOT be staged for the
+        issue commit. The caller must explicitly exclude it.
+    - files:
+        - .garura/project/issues/capture-report/evidence/capture/body-1.md
+        - .garura/project/issues/capture-report/evidence/capture/body-2.md
+        - .garura/project/issues/capture-report/evidence/capture/issue-result-1.yaml
+        - .garura/project/issues/capture-report/evidence/capture/issue-result-2.yaml
+        - .garura/project/issues/capture-report/evidence/capture/title-1.txt
+        - .garura/project/issues/capture-report/evidence/capture/title-2.txt
+      concern: >
+        Untracked files from a different issue (capture-report). Must NOT be
+        staged for this commit.
+
+intended_files:
+  - core/components/plays/create-pr/SKILL.md
+  - .githooks/pre-push
