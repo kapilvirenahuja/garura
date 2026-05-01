@@ -1,15 +1,33 @@
 #!/usr/bin/env bash
 # Prevent direct pushes to main/master. Use a feature branch and PR instead.
+# Exception: chore(stm): commits are STM evidence written after issue closure — allowed on main.
 
 protected_branches="main master"
 current_branch=$(git symbolic-ref HEAD 2>/dev/null | sed 's|refs/heads/||')
 
+is_protected=false
 for branch in $protected_branches; do
   if [ "$current_branch" = "$branch" ]; then
-    echo "ERROR: Direct push to '$branch' is not allowed."
-    echo "       Create a feature/fix branch and open a PR."
-    exit 1
+    is_protected=true
+    break
   fi
 done
+
+if [ "$is_protected" = true ]; then
+  # Allow if every commit being pushed is a chore(stm): evidence commit
+  while read local_ref local_sha remote_ref remote_sha; do
+    if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+      range="$local_sha"
+    else
+      range="$remote_sha..$local_sha"
+    fi
+    non_stm=$(git log --format="%s" "$range" 2>/dev/null | grep -v '^chore(stm):')
+    if [ -n "$non_stm" ]; then
+      echo "ERROR: Direct push to '$current_branch' is not allowed."
+      echo "       Create a feature/fix branch and open a PR."
+      exit 1
+    fi
+  done
+fi
 
 exit 0
