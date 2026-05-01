@@ -1,5 +1,5 @@
 ---
-name: garura:create-pr
+name: create-pr
 description: Create pull request with dynamic, context-aware quality checklist. Use when your branch is ready and you want to open a PR with tailored checklist, evidence, and eval results.
 user-invokable: true
 ---
