@@ -1,0 +1,7 @@
+branch:
+  name: fix/336-allow-stm-commits-on-main
+  action: created
+  pushed: true
+  changes_preserved: true
+  base: main
+  tracking: origin/fix/336-allow-stm-commits-on-main
