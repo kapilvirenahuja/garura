@@ -1,0 +1,13 @@
+issue:
+  number: 336
+  title: "allow chore(stm): evidence commits on main in pre-push hook"
+  url: "https://github.com/kapilvirenahuja/garura/issues/336"
+  state: open
+  created: true
+  labels:
+    - bug
+  type_hint: fix
+
+inference:
+  source: label
+  confidence: high
