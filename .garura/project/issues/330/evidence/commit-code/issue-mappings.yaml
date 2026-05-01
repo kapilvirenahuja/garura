@@ -1,0 +1,34 @@
+mappings:
+  - group_id: G1
+    issue:
+      number: 330
+      title: "fix(lint-components): plays should not require model frontmatter field"
+      state: open
+      url: "https://github.com/kapilvirenahuja/garura/issues/330"
+      labels:
+        - bug
+      type_hint: fix
+    confidence: high
+    rationale: >
+      Branch name encodes issue #330. Single file change directly implements
+      the fix: drops `model` from requiredFields for plays, with explanatory
+      comment that plays inherit model from the harness session.
+
+  - group_id: G2
+    issue:
+      number: 330
+      title: "fix(lint-components): plays should not require model frontmatter field"
+      state: open
+      url: "https://github.com/kapilvirenahuja/garura/issues/330"
+      labels:
+        - bug
+      type_hint: chore
+    confidence: high
+    rationale: >
+      STM evidence directory created by start-feature play for issue #330.
+      Operational artifact — not part of the linter fix itself.
+
+approval_required: false
+rationale: >
+  All change groups map to issue #330 with high confidence. Per constraint C9,
+  no human approval is required.

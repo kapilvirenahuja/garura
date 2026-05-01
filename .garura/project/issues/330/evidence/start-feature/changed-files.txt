@@ -1,0 +1,2 @@
+ M core/tools/lint-components/lib/rules/structural.js
+?? .garura/project/issues/_pending/start-feature/

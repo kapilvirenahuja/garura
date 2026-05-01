@@ -186,8 +186,9 @@ function checkPlay(component) {
 
   const fm = frontmatter.parsed;
 
-  // Required fields: name, description, model
-  const requiredFields = ['name', 'description', 'model'];
+  // Required fields: name, description (model is intentionally NOT required —
+  // plays inherit the model from the user's harness session).
+  const requiredFields = ['name', 'description'];
   for (const field of requiredFields) {
     if (fm[field] === undefined || fm[field] === null) {
       violations.push({
