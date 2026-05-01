@@ -1,0 +1,10 @@
+result:
+  success: true
+  pr:
+    number: 337
+    url: "https://github.com/kapilvirenahuja/garura/pull/337"
+    state: "open"
+    title: "fix(githooks): allow chore(stm): evidence commits on main"
+  checklist:
+    required_count: 5
+    optional_count: 1

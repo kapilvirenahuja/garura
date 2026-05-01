@@ -1,0 +1,15 @@
+result:
+  status: "merged"
+  pr_number: 337
+  merge_sha: "e568ad468fc7bb96dfdcf23e8de067c0461d28cf"
+  base_branch: "main"
+  branch_deleted: true
+  branch_deletion_notes: >
+    Remote branch deleted by gh pr merge --delete-branch flag.
+    Local branch was auto-removed during fast-forward merge.
+    Subsequent explicit delete commands returned 'not found' — expected per C6 tolerance.
+  error: null
+  evals:
+    SE-2: "PASS — branch_deleted=true, fix/336-allow-stm-commits-on-main absent locally and remotely"
+    SE-3: "PASS — local HEAD e568ad4 matches origin/main e568ad4, on main branch"
+    SE-5: "PASS — PR #337 state=MERGED, merge_sha=e568ad468fc7bb96dfdcf23e8de067c0461d28cf"

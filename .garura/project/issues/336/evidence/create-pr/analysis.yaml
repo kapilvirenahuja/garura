@@ -1,0 +1,80 @@
+analysis:
+  branch: fix/336-allow-stm-commits-on-main
+  base: main
+  branch_pattern: fix
+  commits: 3
+  changes:
+    files: 9
+    additions: 43
+    deletions: 76
+  suggested_title: "fix(githooks): allow chore(stm): evidence commits on main (#336)"
+
+  context:
+    file_patterns_matched:
+      - name: "git hooks / shell scripts"
+        files: 1
+        trigger: ".githooks/pre-push"
+      - name: "STM evidence (YAML)"
+        files: 5
+        trigger: ".garura/project/issues/**/*.yaml"
+      - name: "STM evidence (text)"
+        files: 3
+        trigger: ".garura/project/issues/**/*.{md,txt}"
+    commit_types:
+      - type: "chore(githooks)"
+        count: 1
+      - type: "chore(stm)"
+        count: 2
+    branch_modifiers: []
+
+  checklist:
+    must_have:
+      - id: "no-conflicts"
+        item: "No merge conflicts"
+        trigger: "Universal rule — always applied"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD exited 0 (sha e2b75c94bc2fe3f09f739af09b2d7b06966b0be5)"
+
+      - id: "no-secrets"
+        item: "No secrets committed"
+        trigger: "Universal rule — always applied"
+        status: "PASS"
+        evidence: "Pattern scan of diff found no secret tokens, API keys, passwords, or private key headers"
+
+      - id: "stm-allows-chore-stm"
+        item: "pre-push hook correctly allows chore(stm): commits on main"
+        trigger: "Issue #336 — core requirement"
+        status: "PASS"
+        evidence: >
+          .githooks/pre-push reads git log --format='%s' for the push range and uses
+          grep -v '^chore(stm):' to filter. If non_stm is empty (all commits are
+          chore(stm):), the hook exits 0 and allows the push. Logic is correct.
+
+      - id: "stm-blocks-other-main-pushes"
+        item: "pre-push hook still blocks all other direct main pushes"
+        trigger: "Issue #336 — must not weaken main branch protection"
+        status: "PASS"
+        evidence: >
+          If any commit subject does NOT start with 'chore(stm):', grep -v produces
+          non-empty output → hook echoes ERROR and exits 1. Protection intact for
+          feat, fix, refactor, docs, chore (non-stm), and all other types.
+
+      - id: "target-branch-main"
+        item: "Target branch is main (high confidence)"
+        trigger: "fix/* branches target main by convention"
+        status: "PASS"
+        evidence: "Branch name fix/336-allow-stm-commits-on-main follows fix/* pattern; config base_branch=main"
+
+    nice_to_have:
+      - id: "config-documented"
+        item: "Configuration change documented (hook behavior comment)"
+        trigger: "Shell script changed (.githooks/pre-push)"
+        status: "PASS"
+        evidence: >
+          pre-push line 3 comment reads: 'Exception: chore(stm): commits are STM
+          evidence written after issue closure — allowed on main.' Self-documented.
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Create PR"

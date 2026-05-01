@@ -1,0 +1,13 @@
+readiness:
+  pr_number: 337
+  pr_state: "OPEN"
+  base_branch: "main"
+  mergeable: true
+  clean_tree: true
+  uncommitted_changes: false
+  untracked_files:
+    - ".garura/project/issues/336/evidence/create-pr/pr-record.yaml"
+  evals:
+    SE-1: "PASS — PR is in MERGEABLE state, no conflicts detected"
+    SE-4: "PASS — Working tree has no staged or uncommitted changes"
+    SE-5: "PASS — PR #337 exists with valid pr_number"
