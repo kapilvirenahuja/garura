@@ -61,20 +61,25 @@ git status --porcelain
 platform=$(grep '^platform:' .garura/core/config.yaml | awk '{print $2}')
 # Halt if platform is unset
 
-# C2 — PR exists
-gh pr view --json number,state,baseRefName,mergeable 2>/dev/null
+# C2 + C4 — PR exists and is mergeable
+pr_info=$(gh pr view --json number,state,baseRefName,mergeable 2>/dev/null)
 # Halt if no PR found for current branch
+# Halt if pr_info.state != "OPEN"
+# Halt if pr_info.mergeable == "CONFLICTING"
+pr_number=$(echo "$pr_info" | jq -r '.number')
 ```
 
 **Resume check:** If `{stm_base}/{issue}/status/merge-pr.json` exists, resume — skip completed steps, reset any `in_progress` to pending, continue from first incomplete.
 
 ## Workflow
 
-### Phase: Readiness
+### Phase: Execution
 
-**Step 1 — Verify PR & Check Mergeable**
+**Step 1 — Merge, Switch, Pull, Delete**
 Owner: `repo-orchestrator`
 Depends on: pre-flight
+
+Pre-flight has already verified PR exists, state is OPEN, and mergeable is not CONFLICTING (C2, C4). Agent invokes `merge-pr` skill to: merge PR using default strategy (C5), switch to base branch, pull latest, delete feature branch locally and remotely (tolerating "branch not found" on remote per C6). Writes merge result to STM.
 
 ```json
 {
@@ -83,39 +88,6 @@ Depends on: pre-flight
   "stm": {
     "input": {},
     "output": {
-      "readiness": "{stm_base}/{issue}/evidence/merge-pr/readiness.yaml"
-    }
-  },
-  "task_id": "verify-readiness"
-}
-```
-
-Agent invokes `merge-pr` skill in read mode to verify: PR exists (C2), PR is not in conflict state (C4), working tree is clean (C3). Writes readiness status to STM.
-
-**Step 1 Evals:**
-- **SE-1 (F1):** Skill did not proceed past conflict state — `readiness.yaml` shows mergeable == true before any merge attempted
-- **SE-4 (F4):** Pre-merge tree state was clean — `readiness.yaml` confirms no uncommitted/staged changes
-- **SE-5 (F5):** PR exists and has a valid pr_number — `readiness.yaml` shows pr_number is non-null
-
-If any eval fails: halt with structured message identifying which condition failed.
-
----
-
-### Phase: Execution
-
-**Step 2 — Merge, Switch, Pull, Delete**
-Owner: `repo-orchestrator`
-Depends on: Step 1
-
-```json
-{
-  "intent_path": "core/components/plays/merge-pr/reference/intent.yaml",
-  "stm_base": "{stm_base}",
-  "stm": {
-    "input": {
-      "readiness": "{stm_base}/{issue}/evidence/merge-pr/readiness.yaml"
-    },
-    "output": {
       "merge_result": "{stm_base}/{issue}/evidence/merge-pr/merge-result.yaml"
     }
   },
@@ -123,11 +95,11 @@ Depends on: Step 1
 }
 ```
 
-Agent reads readiness from STM, invokes `merge-pr` skill to: merge PR using default strategy (C5), switch to base branch, pull latest, delete feature branch locally and remotely (tolerating "branch not found" on remote per C6). Writes merge result to STM.
-
-**Step 2 Evals:**
+**Step 1 Evals:**
+- **SE-1 (F1):** No merge attempted past conflict state — enforced by pre-flight halt on `mergeable == CONFLICTING`
 - **SE-2 (F2):** Feature branch deleted — `merge-result.yaml` shows `branch_deleted == true`, branch absent locally and on remote
 - **SE-3 (F3):** Local checkout on base branch, up to date — `merge-result.yaml` shows `base_branch` set, local SHA matches remote SHA
+- **SE-4 (F4):** Pre-merge tree was clean — enforced by pre-flight halt on dirty tree
 - **SE-5 (F5):** PR merged on platform — `merge-result.yaml` shows `status == "merged"` and `pr_number` is set
 
 If any eval fails: write structured failure to STM, present to user.
@@ -136,9 +108,9 @@ If any eval fails: write structured failure to STM, present to user.
 
 ### Phase: Scenario Validation
 
-**Step 3 — Scenario Evals**
+**Step 2 — Scenario Evals**
 Owner: play
-Depends on: Step 2
+Depends on: Step 1
 
 - **SCE-1 (S1 — Developer):** Local HEAD is on base branch. `git pull` returns up to date. Feature branch absent from local and remote listing.
 - **SCE-2 (S2 — Code Reviewer):** Platform PR state for the merged PR is "merged". `merge_sha` from `merge-result.yaml` is present in `git log` on base branch.
@@ -149,9 +121,9 @@ If either scenario eval fails: log failure in evidence, present to user. Do not 
 
 ### Phase: Evidence & Close
 
-**Step 4 — Write Evidence**
+**Step 3 — Write Evidence**
 Owner: play
-Depends on: Step 3
+Depends on: Step 2
 
 Write evidence to `{stm_base}/{issue}/evidence/merge-pr/{YYYYMMDD-HHMMSS}.md` containing:
 - Branch merged and base branch switched to
@@ -163,7 +135,7 @@ Write evidence to `{stm_base}/{issue}/evidence/merge-pr/{YYYYMMDD-HHMMSS}.md` co
 
 Present summary to user.
 
-Invoke `repo-orchestrator` to self-commit evidence files (ADR 012). Non-blocking on failure.
+Evidence files are committed by ship's final sweep (C9).
 
 ## Pause and Resume
 
@@ -179,7 +151,6 @@ Steps are in execution order — run top to bottom.
   "issue": "{issue}",
   "started_at": "{ISO timestamp}",
   "tasks": {
-    "verify-readiness": { "status": "completed", "completed_at": "..." },
     "execute-merge": { "status": "in_progress", "started_at": "..." },
     "scenario-evals": { "status": "pending" },
     "write-evidence": { "status": "pending" }

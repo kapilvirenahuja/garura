@@ -112,26 +112,7 @@ catch any error:
 
 ## Evidence & Close
 
-**Step 2 — Self-commit evidence files (non-blocking, C4)**
-Owner: play (via `repo-orchestrator`)
-Depends on: Step 1 (always runs — even if Step 1 produced no_learnings or was skipped)
-
-After proposals.yaml is written (or no_learnings is confirmed), invoke `repo-orchestrator`
-to self-commit the distill evidence files:
-
-```
-try:
-  Invoke repo-orchestrator to commit:
-    files: [{stm_base}/{issue}/evidence/distill/]
-    message: "chore(stm): record distill evidence for #{issue} (#{issue})"
-  Log: "Step 2: distill evidence self-committed"
-catch any error:
-  log warning: "Step 2: distill evidence self-commit failed — {error message} (non-blocking)"
-  # Do NOT propagate — ship.sweep provides backstop coverage
-```
-
-**Non-blocking:** Any failure here is logged and distill returns gracefully (C2). Ship's
-sweep step (C9) provides backstop coverage for any evidence files not committed here.
+Evidence files are committed by ship's final sweep (C9). Distill writes proposals.yaml to STM and returns — no self-commit step.
 
 ## Output
 

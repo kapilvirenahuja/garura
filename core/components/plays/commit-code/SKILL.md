@@ -52,6 +52,12 @@ default_branch=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
 
 # Extract issue number from branch name (e.g., feature/95-some-slug -> 95)
 issue=$(echo "$branch" | grep -oE '/[0-9]+' | tr -d '/')
+
+# Short-circuit: skip project-orchestrator when issue is derivable from branch name
+auto_issue_resolved=false
+if [ -n "$issue" ]; then
+  auto_issue_resolved=true
+fi
 ```
 
 **Resume check:** If `{stm_base}/{issue}/status/commit-code.json` exists, resume — skip completed steps, reset any `in_progress` to pending, continue from first incomplete.
@@ -95,6 +101,19 @@ Agent invokes `analyze-changes` skill. Writes changeset analysis (groups, risks)
 **Step 2 — Resolve Issues**
 Owner: `project-orchestrator`
 Depends on: Step 1
+**Skip when: `auto_issue_resolved == true`** (issue number derived from branch name)
+
+When skipped, the play writes a synthetic `issue-mappings.yaml` directly to STM — no agent spawn:
+
+```yaml
+auto_resolved: true
+source: branch-name
+issue: {issue}
+confidence: high
+mappings: []  # all change groups map to #{issue}
+```
+
+When not skipped (branch name contains no issue number):
 
 ```json
 {
@@ -168,7 +187,8 @@ When `evidence.record` is `true` (or absent) — include `commits.yaml` in contr
       "commit_record": "{stm_base}/{issue}/evidence/commit-code/commits.yaml"
     }
   },
-  "task_id": "create-commits"
+  "task_id": "create-commits-and-push",
+  "push_branch": true
 }
 ```
 
@@ -185,37 +205,28 @@ When `evidence.record` is `false` — omit `commit_record` from contract output 
     },
     "output": {}
   },
-  "task_id": "create-commits"
+  "task_id": "create-commits-and-push",
+  "push_branch": true
 }
 ```
 
 **Critical: Agent reads STM data from Steps 1-2. NEVER reads the brief from Step 3.**
 
-Agent invokes `create-commit` skill for each change group. Writes commit record to STM when flag is true.
+Agent invokes `create-commit` skill for each change group, then pushes the branch to remote in the same dispatch. Writes commit record to STM when flag is true. Push failure logs a warning but does not halt (C7).
 
 **Step 5 Evals:**
 - **SE-2 (F1):** Each commit stages only files from a single change group. No cross-group contamination.
 - **SE-3 (F2):** Each commit message subject describes the specific change, not a generic issue reference.
 - **SE-5 (F3):** After all commits, no previously changed files remain uncommitted without a stated exclusion reason.
-
----
-
-**Step 6 — Push Branch**
-Owner: `repo-orchestrator`
-Depends on: Step 5
-
-Agent pushes branch to remote.
-
-**Step 6 Eval:**
 - **C7:** Local HEAD matches remote HEAD after push. Non-blocking: push failure logs warning, does not halt.
 
 ---
 
 ### Phase: Scenario Validation
 
-**Step 7 — Scenario Evals**
+**Step 6 — Scenario Evals**
 Owner: play
-Depends on: Step 6
+Depends on: Step 5
 
 - **SCE-1 (S1):** Each commit has a conventional type, meaningful scope, and descriptive subject. A code reviewer can understand the change from the log alone.
 - **SCE-2 (S1):** Every commit contains a traceable issue reference to an existing issue.
@@ -227,9 +238,9 @@ Depends on: Step 6
 
 ### Phase: Evidence & Close
 
-**Step 8 — Write Evidence**
+**Step 7 — Write Evidence**
 Owner: play
-Depends on: Step 7
+Depends on: Step 6
 
 Read the `evidence.record` flag from `.garura/core/config.yaml`. Default to `true` when key is absent:
 
@@ -243,17 +254,17 @@ Present summary to user. Always — regardless of flag value.
 If `evidence.record` is `true` (or absent):
 - Write delivery record to `{stm_base}/{issue}/evidence/commit-code/{YYYYMMDD-HHMMSS}.md`
 - Write status file to `{stm_base}/{issue}/status/commit-code.json`
-- Invoke `repo-orchestrator` to self-commit evidence files (ADR 012). Non-blocking on failure.
 
 If `evidence.record` is `false`:
 - Skip delivery record — do not write
 - Skip status file — do not write
-- Skip `repo-orchestrator` self-commit invocation
+
+Evidence files are committed by ship's final sweep (C9).
 
 `analysis.yaml` and `issue-mappings.yaml` are never affected by this flag — they are written unconditionally in Steps 1 and 2.
 
-**Step 8 Eval:**
-- **SE-9 (C10):** When evidence.record is false in .garura/core/config.yaml, the delivery record ({YYYYMMDD-HHMMSS}.md) is not written, the status file (commit-code.json) is not written, and the repo-orchestrator self-commit is not invoked. The user summary is presented regardless of flag value. When evidence.record is true (or absent), all three writes proceed as before — backward compatibility preserved. analysis.yaml and issue-mappings.yaml are unconditional in both cases.
+**Step 7 Eval:**
+- **SE-9 (C10):** When evidence.record is false in .garura/core/config.yaml, the delivery record ({YYYYMMDD-HHMMSS}.md) is not written and the status file (commit-code.json) is not written. The user summary is presented regardless of flag value. When evidence.record is true (or absent), both writes proceed as before. analysis.yaml and issue-mappings.yaml are unconditional in both cases.
 
 ## Pause and Resume
 
