@@ -28,6 +28,7 @@ You are the orchestrator of a Structure C play. You chain compiled plays in sequ
 | Step | Play | What It Does | Conditional |
 |------|--------|--------------|---|
 | 1 | `commit-code` | Commit all changes grouped by concern, mapped to issues, push branch | always |
+| 1b | `distill` | Learning extraction — dispatched in background after Step 1, parallel with Step 2 | always (non-blocking) |
 | 2 | `create-pr` | Create PR with quality checklist and evidence | always |
 | 2.5 | `review-pr` | Diff-scoped quality review; emits findings + confidence + reviewers | only when `review-pr.bypass == false` (C7) |
 | 3 | `merge-pr` | Merge PR, switch to main, pull latest, delete feature branch | always (gated by 2.5 verdict) |
@@ -87,6 +88,16 @@ Context: approval_override: "auto-proceed"
 **Approval override (C2):** Pass `approval_override: "auto-proceed"` to suppress all human checkpoints. Even low-confidence groupings and issue mappings auto-proceed.
 
 **On failure:** Ship halts immediately with commit-code's failure details. Do not continue.
+
+**After Step 1 — dispatch distill concurrently:** Immediately after commit-code completes, dispatch `distill` in the background (fire-and-forget). Distill uses `git diff` and does not need a PR to exist. Ship does NOT wait for distill before proceeding to Step 2.
+
+```
+Skill: distill (background)
+Context:
+  stm_base: {stm_base}
+  issue: {issue}
+  product_base: {product_base}
+```
 
 **Step 1 pipeline checks:**
 - commit-code ran its own step evals (SE-1 through SE-8) — if any failed, it halted, and ship halts.
@@ -175,30 +186,23 @@ merge-pr reads PR number from STM (written by create-pr). It merges using defaul
 
 ### Phase: Post-merge Learning Capture
 
-**Step 4 — Capture Learning (non-blocking)**
-Owner: `distill` (sub-play)
+**Step 4 — Read Distill Outcome (non-blocking)**
+Owner: play
 Depends on: Step 3
 
-```
-Skill: distill
-Context:
-  stm_base: {stm_base}
-  issue: {issue}
-  product_base: {product_base}
-```
+Distill was dispatched in the background after Step 1. By the time Step 4 is reached it will usually have completed. Read its outcome from STM:
 
-**Non-blocking (C8):** This step is fire-and-forget. Ship invokes
-distill and reads the outcome, then **always continues to Step 5
-regardless of outcome**.
+```bash
+proposals_path="{stm_base}/{issue}/evidence/distill/proposals.yaml"
+```
 
 | Outcome | Ship action |
 |---------|-------------|
-| `{ status: "completed", no_learnings: true }` | Log "no learnings detected", continue |
-| `{ status: "completed", proposals_path: "..." }` | Log proposals path, continue |
-| `{ status: "skipped", reason: "..." }` | Log warning with reason, continue |
+| `proposals.yaml` exists | Log proposals path, continue |
+| No file, distill still running | Log "distill pending", continue |
+| No file, distill skipped | Log warning with reason, continue |
 
-**On any failure of distill:** Log `"Step 4: distill
-skipped — {reason}"` in evidence. Do NOT halt. Continue to Step 5 (Scenario Validation).
+**Always non-blocking (C8).** Do NOT halt regardless of distill outcome.
 
 ---
 

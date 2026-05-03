@@ -1,0 +1,6 @@
+pr_number: 344
+status: merged
+merge_sha: e222c7d2fb16998f6be8f8a2e85946936549903e
+base_branch: main
+branch_deleted: true
+local_sha_matches_remote: true

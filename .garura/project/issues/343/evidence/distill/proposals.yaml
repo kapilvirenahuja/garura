@@ -1,0 +1,101 @@
+sourced_from: "git diff main~4..main -- core/components/plays/"
+generated_at: "2026-05-04T00:00:00Z"
+source_play: "distill"
+issue: "343"
+epic_id: null
+context_baseline: null
+evidence_sources:
+  milestone_verdicts: 0
+  status_reports: 0
+  arbiter_verdicts: 0
+  e2e_results: 0
+  drift_manifest: false
+  stm_evidence_found: false
+  diff_assessed_trivial: false
+
+proposals:
+  - proposal_id: "P-001"
+    tier: 3
+    learning_category: "standards"
+    sub_category: "play-orchestration"
+    learning_category_proposed: false
+    sub_category_proposed: true
+    taxonomy_justification:
+      evidence_path: "core/components/plays/commit-code/SKILL.md"
+      excerpt: |
+        # Extract issue number from branch name (e.g., feature/95-some-slug -> 95)
+        issue=$(echo "$branch" | grep -oE '/[0-9]+' | tr -d '/')
+
+        # Short-circuit: skip project-orchestrator when issue is derivable from branch name
+        auto_issue_resolved=false
+        if [ -n "$issue" ]; then
+          auto_issue_resolved=true
+        fi
+        ...
+        **Step 2 — Resolve Issues**
+        Owner: `project-orchestrator`
+        **Skip when: `auto_issue_resolved == true`** (issue number derived from branch name)
+
+        When skipped, the play writes a synthetic `issue-mappings.yaml` directly to STM — no agent spawn
+      reasoning: >
+        The canonical sub-categories under "standards" (commits, pr, etc.) cover artifact
+        format rules, not play-level dispatch decisions. The pattern here — skipping agent
+        invocation when context is deterministically derivable from environment signals — is
+        a play-orchestration principle with no existing home in the standards tree.
+    artifact: "play-orchestration principles"
+    artifact_path: "core/components/memory/standards/rules/play-orchestration.md"
+    proposed_content: |
+      # Play Orchestration Principles
+
+      Guidelines for orchestrators when deciding whether to spawn an agent vs. short-circuit.
+
+      ## Short-Circuit Agent Dispatch on Deterministic Context
+
+      When an agent's sole purpose is to resolve a value that is already
+      deterministically derivable from an environment signal (branch name, file path,
+      config key, etc.), skip the agent invocation and synthesize the expected output
+      artifact inline.
+
+      **Rule:** If the answer can be extracted with a regex or config lookup at the
+      orchestrator level with high confidence, do not spawn the agent.
+
+      **Requirement:** The synthesized artifact must be contract-compatible with what
+      the agent would have produced — downstream steps must not know or care whether
+      resolution was real or synthetic.
+
+      **Example (commit-code, issue #343):**
+      - `project-orchestrator` is normally spawned to fetch open issues and
+        semantically score issue-to-change-group mappings.
+      - When the branch name encodes the issue number (e.g. `feature/95-slug`),
+        the issue is resolved via regex with `confidence: high`.
+      - The play writes a synthetic `issue-mappings.yaml` with `auto_resolved: true`
+        and `source: branch-name` and skips the agent entirely.
+      - This eliminates one `gh` API call and one LLM semantic-scoring step from the
+        hot path without any change to downstream contracts.
+
+      **Scope:** Applies to any agent whose primary output is a resolved scalar or
+      simple mapping derivable from pre-execution context signals.
+    evidence: >
+      core/components/plays/commit-code/SKILL.md lines 53-61 (auto_issue_resolved
+      short-circuit in pre-flight) and lines 101-115 (Step 2 skip-when clause and
+      synthetic issue-mappings.yaml). Issue body: "skip issue resolution in
+      commit-code when branch encodes issue number — removes a gh API call +
+      semantic scoring step from the ship pipeline."
+    source: "distill"
+    confidence: "low"
+    approval_status: "pending"
+
+summary:
+  tier_1: 0
+  tier_2: 0
+  tier_3: 1
+  total_proposals: 1
+  by_learning_category:
+    arch: 0
+    domain: 0
+    product: 0
+    quality: 0
+    standards: 1
+  proposed_categories: []
+  proposed_sub_categories: ["play-orchestration"]
+  tiers_skipped: ["tier_1", "tier_2"]
