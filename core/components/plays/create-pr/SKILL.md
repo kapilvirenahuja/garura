@@ -232,8 +232,22 @@ Depends on: Step 5
 Owner: play
 Depends on: Step 6
 
-Write evidence to `{stm_base}/{issue}/evidence/create-pr/{YYYYMMDD-HHMMSS}.md`.
-Present PR summary to user (PR URL, number, title, checklist counts, eval summary).
+Read the `evidence.record` flag from `.garura/core/config.yaml`. Default to `true` when key is absent:
+
+```bash
+evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
+evidence_record=${evidence_record:-true}
+```
+
+Present PR summary to user (PR URL, number, title, checklist counts, eval summary). Always — regardless of flag value.
+
+If `evidence.record` is `true` (or absent):
+- Write evidence to `{stm_base}/{issue}/evidence/create-pr/{YYYYMMDD-HHMMSS}.md`
+
+If `evidence.record` is `false`:
+- Skip evidence file — do not write
+
+The PR itself is created unconditionally. Only the local STM evidence file is suppressed.
 
 Evidence files are committed by ship's final sweep (C9).
 
@@ -286,3 +300,5 @@ for each step in compiled order:
 | agents | 2 (repo-orchestrator, project-orchestrator) |
 | step_evals | 10 (SE-1 through SE-10, after Steps 1-2 and Step 5) |
 | scenario_evals | 2 (SCE-1, SCE-2) |
+
+**Direct-edit deviation note (#346):** evidence.record config gate added to Step 7 (Write Evidence) as a direct edit. The intent of the play is unchanged — this is a config-driven suppression of the local STM evidence file write only. No intent.yaml update required.

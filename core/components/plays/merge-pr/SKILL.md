@@ -125,15 +125,28 @@ If either scenario eval fails: log failure in evidence, present to user. Do not 
 Owner: play
 Depends on: Step 2
 
-Write evidence to `{stm_base}/{issue}/evidence/merge-pr/{YYYYMMDD-HHMMSS}.md` containing:
-- Branch merged and base branch switched to
-- PR number and merge SHA
-- Branch deletion status
-- Step eval results (SE-1 through SE-5)
-- Scenario eval results (SCE-1, SCE-2)
-- Any failures encountered
+Read the `evidence.record` flag from `.garura/core/config.yaml`. Default to `true` when key is absent:
 
-Present summary to user.
+```bash
+evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
+evidence_record=${evidence_record:-true}
+```
+
+Present summary to user. Always — regardless of flag value.
+
+If `evidence.record` is `true` (or absent):
+- Write evidence to `{stm_base}/{issue}/evidence/merge-pr/{YYYYMMDD-HHMMSS}.md` containing:
+  - Branch merged and base branch switched to
+  - PR number and merge SHA
+  - Branch deletion status
+  - Step eval results (SE-1 through SE-5)
+  - Scenario eval results (SCE-1, SCE-2)
+  - Any failures encountered
+
+If `evidence.record` is `false`:
+- Skip evidence file — do not write
+
+`merge-result.yaml` (written by repo-orchestrator in Step 1) is never affected — written unconditionally.
 
 Evidence files are committed by ship's final sweep (C9).
 
@@ -186,3 +199,5 @@ for each step in compiled order:
 | agents | 1 (repo-orchestrator) |
 | step_evals | 5 (SE-1 through SE-5, after Steps 1–2) |
 | scenario_evals | 2 (SCE-1, SCE-2) |
+
+**Direct-edit deviation note (#346):** evidence.record config gate added to Step 3 (Write Evidence) as a direct edit. merge-result.yaml is unconditional. No intent.yaml update required.

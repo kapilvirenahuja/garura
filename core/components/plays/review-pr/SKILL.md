@@ -369,6 +369,15 @@ Depends on: Step 5
 Owner: play → `repo-orchestrator` (utility)
 Depends on: Step 6
 
+Read the `evidence.record` flag from `.garura/core/config.yaml`. Default to `true` when key is absent:
+
+```bash
+evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
+evidence_record=${evidence_record:-true}
+```
+
+If `evidence.record` is `true` (or absent):
+
 Write evidence to `{stm_base}/{issue}/evidence/review-pr/{YYYYMMDD-HHMMSS}.md`:
 - PR number, title, branch
 - Findings counts by severity
@@ -392,6 +401,12 @@ Invoke `repo-orchestrator` to self-commit STM evidence (ADR 012):
 Task: "Stage and commit only the listed evidence files for review-pr with message `chore(stm): record review-pr evidence for #{issue}`."
 
 **Non-blocking:** if commit fails, log warning — do NOT halt.
+
+If `evidence.record` is `false`:
+- Skip evidence file — do not write
+- Skip self-commit — nothing to commit
+
+The PR comment posted to GitHub is unconditional — only the local STM evidence file is suppressed.
 
 ## Recovery
 
@@ -450,3 +465,5 @@ for each step in compiled order:
 | step_evals | 9 (SE-1 through SE-9) |
 | scenario_evals | 4 (SCE-1 through SCE-4) |
 | skills | quality-check-scoped |
+
+**Direct-edit deviation note (#346):** evidence.record config gate added to Step 7 (Write Evidence and Self-commit) as a direct edit. The PR comment on GitHub is unconditional — only the local STM evidence file and self-commit are suppressed when false. No intent.yaml update required.

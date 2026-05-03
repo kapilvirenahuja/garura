@@ -66,6 +66,10 @@ if [ "$bypass" = "false" ]; then
   taxonomy=$(yq '.standards.pr-severity-taxonomy' .garura/core/config.yaml)
   test -f "$taxonomy" || { echo "Taxonomy missing at $taxonomy"; exit 1; }
 fi
+
+# Resolve evidence.record flag (default true when absent)
+evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
+evidence_record=${evidence_record:-true}
 ```
 
 Ship's pre-flight is lighter than individual sub-play pre-flights because each sub-play runs its own. Ship validates only cross-cutting concerns plus the gate-conditional preconditions.
@@ -227,6 +231,10 @@ If any scenario eval fails: log failure in evidence, present to user.
 Owner: play
 Depends on: Step 5
 
+Present final delivery report to user. Always — regardless of `evidence.record` flag value.
+
+If `evidence.record` is `true` (or absent):
+
 Write evidence to `{stm_base}/{issue}/evidence/ship/{YYYYMMDD-HHMMSS}.md` containing:
 - Pipeline steps completed (commit, PR, review-pr if run, merge, distill)
 - `review-pr.bypass` value at run time
@@ -236,8 +244,6 @@ Write evidence to `{stm_base}/{issue}/evidence/ship/{YYYYMMDD-HHMMSS}.md` contai
 - distill outcome: status (completed/skipped), proposals_path (if any), no_learnings flag, reason (if skipped)
 - Scenario eval results (SCE-1, SCE-2, SCE-3, SCE-4)
 - Any failures encountered
-
-Present final delivery report to user.
 
 **Evidence lands on main.** Because ship ends on main after merge, the evidence self-commit goes directly to main. This is expected — the delivery record belongs alongside the merge commit.
 
@@ -265,6 +271,11 @@ Present final delivery report to user.
 This sweep is non-blocking — any failure in the sweep enumeration is logged and ship continues. If no untracked files are found across all paths, no sweep commit is made beyond ship's own evidence file.
 
 Invoke `repo-orchestrator` to self-commit the consolidated file list (ship evidence + any swept sub-play files) (ADR 012). Non-blocking on failure. Commit message: `chore(stm): record ship evidence for #{issue} (#{issue})`.
+
+If `evidence.record` is `false`:
+- Skip ship evidence file — do not write
+- Skip sub-play evidence sweep (C9) — no sub-play evidence files will have been written
+- Skip self-commit — nothing to commit
 
 ## Pause and Resume
 
@@ -334,3 +345,5 @@ direct edit to this compiled artifact. The Skill tool was unavailable in the cod
 subagent context — `/create-play --build ship` could not be invoked. The intent_hash above
 reflects the updated intent.yaml (sha256:ef460ada...) after adding C9 and F8. The next
 `/create-play --build ship` run will recompile and reconcile the full artifact.
+
+**Direct-edit deviation note (#346):** evidence.record config gate added to pre-flight (bash block) and Step 6 (Write Evidence) as a direct edit. When false, ship's evidence file, C9 sweep, and self-commit are all skipped. Final delivery report to user is unconditional. No intent.yaml update required.

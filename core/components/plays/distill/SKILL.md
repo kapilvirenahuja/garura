@@ -52,7 +52,19 @@ default_branch=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | awk '
 pr_diff=$(git diff ${default_branch}...HEAD 2>/dev/null)
 ```
 
-**On any pre-flight failure:** Return `{ "status": "skipped", "reason": "<error>" }`.
+Read the `evidence.record` flag from `.garura/core/config.yaml`. Default to `true` when key is absent:
+
+```bash
+evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
+evidence_record=${evidence_record:-true}
+```
+
+When `evidence.record` is `false`, return immediately without invoking knowledge-extractor or writing proposals.yaml:
+```
+{ "status": "skipped", "reason": "evidence.record=false" }
+```
+
+**On any other pre-flight failure:** Return `{ "status": "skipped", "reason": "<error>" }`.
 Do not halt. Do not propagate the error.
 
 ## Workflow
@@ -158,3 +170,5 @@ a direct edit to this compiled artifact. The Skill tool was unavailable in the c
 subagent context — `/create-play --build distill` could not be invoked. The intent_hash
 above reflects the updated intent.yaml (sha256:99320d95...) after adding C4. The next
 `/create-play --build distill` run will recompile and reconcile the full artifact.
+
+**Direct-edit deviation note (#346):** evidence.record config gate added to pre-flight as a direct edit. When false, distill returns immediately without invoking knowledge-extractor — treated as graceful skip. No intent.yaml update required.
