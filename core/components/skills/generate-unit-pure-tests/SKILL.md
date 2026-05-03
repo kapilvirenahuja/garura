@@ -58,7 +58,7 @@ For each entry in `behavior_spec.business_rules[]`:
 Classification output per rule:
 - `pure` → queued for generation.
 - `stack_coupled` → excluded with reason recorded in the sidecar for cited_existing references.
-- `borderline` → generate with caution and mark the test with a `// TIER C candidate — review for portability` comment. /enrich can reclassify at review time.
+- `borderline` → generate with caution and mark the test with a `// TIER C candidate — review for portability` comment. /garura:enrich can reclassify at review time.
 
 ### 3. Locate the pure-testable unit
 
@@ -128,7 +128,7 @@ cited_existing_for_stack_coupled:
     existing_test_ref: "tests/middleware/jwt-guard.spec.ts:L42-L78"
 ```
 
-The `cited_existing_for_stack_coupled` list satisfies /decode's C24 discipline — stack-coupled rules are NOT tested by new generation, only cited against pre-existing tests. /enrich and /validate consume this to know which rules rely on old-stack tests.
+The `cited_existing_for_stack_coupled` list satisfies /decode's C24 discipline — stack-coupled rules are NOT tested by new generation, only cited against pre-existing tests. /garura:enrich and /validate consume this to know which rules rely on old-stack tests.
 
 ### 7. Return contract
 
@@ -169,7 +169,7 @@ evidence: {...}
 
 ## Notes
 
-- The pure/stack-coupled classification is the most important discipline in this skill. Generating a stack-coupled test in error means test count goes up but migration portability goes down. When in doubt, classify as stack_coupled and let /enrich review at review time — it is easier to upgrade from cited-existing to generated than to retract a bad generated test.
+- The pure/stack-coupled classification is the most important discipline in this skill. Generating a stack-coupled test in error means test count goes up but migration portability goes down. When in doubt, classify as stack_coupled and let /garura:enrich review at review time — it is easier to upgrade from cited-existing to generated than to retract a bad generated test.
 - Pure-unit tests are NOT concerned with performance, concurrency, or non-functional properties. Those are NFR concerns tracked elsewhere. A pure-unit test asserts functional correctness only.
 - Existing pure-unit tests in the codebase (from map-test-surface, test_type: "unit") are preferred — when the existing test already covers a scenario, the skill references it in cited_specs rather than generating a duplicate. Generation fills gaps.
 - Test-runner isolation (C15) applies: test-runner runs the generated pure-unit tests against the current codebase with no knowledge of the spec. If they pass, the rule is verified. If they fail, /decode halts the feature per C25.

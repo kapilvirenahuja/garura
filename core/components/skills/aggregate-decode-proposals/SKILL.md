@@ -1,6 +1,6 @@
 ---
 name: aggregate-decode-proposals
-description: Walk the /decode proposals tree (behaviors/, flows/, aspects/, generated-tests/) plus per-unit test-run reports and citation-integrity reports, then produce a master proposals.yaml — the single artifact /enrich consumes to promote /decode output to product LTM. Pattern matches aggregate-codify-proposals. Deterministic — no LLM reasoning.
+description: Walk the /decode proposals tree (behaviors/, flows/, aspects/, generated-tests/) plus per-unit test-run reports and citation-integrity reports, then produce a master proposals.yaml — the single artifact /garura:enrich consumes to promote /decode output to product LTM. Pattern matches aggregate-codify-proposals. Deterministic — no LLM reasoning.
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write, Grep, Glob
@@ -12,7 +12,7 @@ Called by the `/decode` play after all units have completed extraction, test gen
 
 ## Purpose
 
-Each extracted unit (feature, flow, aspect) writes its spec under `proposals/scope/{stream}/{unit-id}.yaml` and its generated tests under `proposals/generated-tests/{tier}/`. Verification artifacts land under `test-run-reports/` and `citation-integrity-reports/`. This skill walks that tree, joins every unit's spec with its verification outcomes, classifies each proposal against the /reap two-level taxonomy, and writes `proposals.yaml` — the single artifact /enrich reads when promoting /decode output to product LTM.
+Each extracted unit (feature, flow, aspect) writes its spec under `proposals/scope/{stream}/{unit-id}.yaml` and its generated tests under `proposals/generated-tests/{tier}/`. Verification artifacts land under `test-run-reports/` and `citation-integrity-reports/`. This skill walks that tree, joins every unit's spec with its verification outcomes, classifies each proposal against the /reap two-level taxonomy, and writes `proposals.yaml` — the single artifact /garura:enrich reads when promoting /decode output to product LTM.
 
 ## Input
 
@@ -63,7 +63,7 @@ Any unit whose report is missing (and unit is not deferred) is a structural fail
 
 Tier is assigned by presence in product LTM:
 - `Tier 2` (enrichment) — the unit has a matching entry in `{product_base}/scope/{stream}/{unit-id}.*` already (or is a feature whose entry exists in `features.yaml`, same test for behaviors). The behavior-spec enriches an existing LTM record.
-- `Tier 3` (addition) — the unit exists only in STM features.yaml (from a prior /codify run) or is a new flow/aspect with no LTM entry. /enrich promotes the feature and its behavior spec together.
+- `Tier 3` (addition) — the unit exists only in STM features.yaml (from a prior /codify run) or is a new flow/aspect with no LTM entry. /garura:enrich promotes the feature and its behavior spec together.
 
 ### 6. Compute proposal_id
 
@@ -110,7 +110,7 @@ proposals:
     stream: "behaviors | flows | aspects"
     unit_id: "<id>"
     spec_path: "<relative to proposals_root>"
-    target_path: "scope/{stream}/{unit-id}.yaml"   # destination under product_base post-/enrich
+    target_path: "scope/{stream}/{unit-id}.yaml"   # destination under product_base post-/garura:enrich
     generated_tests_refs:
       - tier: "contract"
         file: "proposals/generated-tests/contract/..."
@@ -149,5 +149,5 @@ evidence: { offending_path: "<path>", offending_field: "<field>" }
 
 - Zero-unit case (total_units: 0) is valid per /decode C15. Emits an empty proposals list with alignment_confirmed: true.
 - The aggregator enforces structural validation only. Semantic correctness of each spec is the authoring skill's responsibility; baseline-green is the test-runner's responsibility; citation integrity is its own skill's responsibility. This skill joins their outputs, not re-runs their logic.
-- `source_type` is uniformly `extracted_from_code` — distinct from /codify's `inferred_from_code` so /enrich routes behavior output through its own consumption path.
+- `source_type` is uniformly `extracted_from_code` — distinct from /codify's `inferred_from_code` so /garura:enrich routes behavior output through its own consumption path.
 - The skill does not mutate any input artifact — it is strictly a reader + writer for its own output.

@@ -4,7 +4,7 @@ description: >
   an existing codebase — producing the same file set that /specify + /design +
   /arch would have produced, but via code inference rather than user interview.
   All output is staged as proposals in STM. Nothing is written to product LTM
-  during this play — the /enrich play is the only promotion gate.
+  during this play — the /garura:enrich play is the only promotion gate.
 
 version: "0.1.0"
 
@@ -24,9 +24,9 @@ intent: >
   are staged under {stm_base}/{issue}/evidence/codify/proposals/ with a master
   proposals.yaml index classified by the same two-level learning taxonomy used
   by /reap. A single Tether/Vanish checkpoint gates evidence commit. No writes
-  to product LTM occur during this play — the /enrich play is the sole
+  to product LTM occur during this play — the /garura:enrich play is the sole
   promotion path from STM proposals to product LTM. codify is the /specify +
-  /design + /arch equivalent for brownfield; /enrich is the next step in that
+  /design + /arch equivalent for brownfield; /garura:enrich is the next step in that
   pipeline. /check-drift has no role in the brownfield flow — it is used later,
   on ongoing work, to detect divergence between code and already-established
   product LTM.
@@ -95,7 +95,7 @@ constraints:
         specification/market-brief.md
         scope/mvp-recommendation.md
         scope/scope.yaml
-        scope/enriched-capabilities.yaml
+        scope/garura:enriched-capabilities.yaml
         scope/features.yaml
         scope/epics/{epic-id}.yaml            (one file per derived epic)
         research/{domain}.md                   (one file per detected domain)
@@ -121,7 +121,7 @@ constraints:
           architecture/nfr-spec, architecture/quality-vision,
           architecture/design-patterns.
         Tier 2 (enrichment): specification/quality-profile, scope/scope,
-          scope/enriched-capabilities, scope/features, scope/mvp-recommendation,
+          scope/garura:enriched-capabilities, scope/features, scope/mvp-recommendation,
           research/{domain}.md, scope/epics/{id}.yaml.
         Tier 3 (addition): new domains not present in KB, new epics, new
           experience artifacts for frontends.
@@ -187,7 +187,7 @@ constraints:
       present but not LOCKED — inference proceeds and produces a fresh proposal.
       codify does NOT compare fresh inferences against existing DRAFT artifacts
       or produce deltas. Reconciliation of a fresh proposal against any existing
-      DRAFT LTM is the exclusive responsibility of /enrich, which is the sole
+      DRAFT LTM is the exclusive responsibility of /garura:enrich, which is the sole
       promotion gate from STM to product LTM.
 
   - id: C12
@@ -272,7 +272,7 @@ constraints:
       fields: proposal_id, target_path (relative to product LTM),
       learning_category, sub_category, tier, source_type, confidence,
       evidence_paths, resolution_trace_path, notes. The master index is the
-      only artifact /enrich needs to consume — individual proposal files are
+      only artifact /garura:enrich needs to consume — individual proposal files are
       reachable via the target_path / proposal_id tuple.
 
 failure_conditions:
@@ -381,7 +381,7 @@ scenarios:
       epics, research/{domain}.md for every detected domain, and all 5
       architecture artifacts. Every proposal carries source_type, evidence,
       confidence. Validators pass. A summary checkpoint shows counts by tier.
-      On Tether, evidence commits and /enrich can later consume the proposals.
+      On Tether, evidence commits and /garura:enrich can later consume the proposals.
 
   - id: S2
     persona: "Platform engineer onboarding a multi-repo monolith"
@@ -453,7 +453,7 @@ scenarios:
       The 4 missing scope artifacts plus research/{domain}.md proposals are
       produced as fresh inferences. proposals.yaml reflects the mixed outcome.
       Reconciling the fresh scope proposals with any DRAFT scope content is
-      left to /enrich — codify does not compare against DRAFT LTM.
+      left to /garura:enrich — codify does not compare against DRAFT LTM.
 
   - id: S8
     persona: "Tech lead invoking codify with a single-artifact target"

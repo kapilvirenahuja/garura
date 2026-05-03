@@ -1,0 +1,14 @@
+status: completed
+no_learnings: true
+proposals_path: null
+generated_at: "2026-05-03"
+issue: "333"
+reason: >
+  PR adds a new optional play (algorithm) using established Garura patterns:
+  Structure B (direct-generation), evidence.record gate (already in commit-code),
+  tech-architect agent reuse, and a skill modeled explicitly on draft-lld.
+  The one non-obvious design choice — heuristic-scan with explicit-override-flag
+  as escape hatch — is deliberate and fully documented in the spec and intent.yaml,
+  not a discovered learning. No rework, no surprises, no post-hoc
+  corrections surfaced in the STM evidence. Diff assessed as non-trivial but
+  carrying no learnings beyond what the spec already captures.

@@ -1,6 +1,6 @@
 ---
 name: infer-enriched-capabilities-from-code
-description: Infer per-capability enrichment (business rules, depth spectrum cap, experiential warnings) during /codify by merging KB base values from core/components/memory/knowledge/domain/{domain}.md with project-specific overrides evidenced in scan-index.json. Produces scope/enriched-capabilities.yaml. Used exclusively by product-keeper in the /codify play.
+description: Infer per-capability enrichment (business rules, depth spectrum cap, experiential warnings) during /codify by merging KB base values from core/components/memory/knowledge/domain/{domain}.md with project-specific overrides evidenced in scan-index.json. Produces scope/garura:enriched-capabilities.yaml. Used exclusively by product-keeper in the /codify play.
 version: 0.1.0
 user-invocable: false
 model: sonnet
@@ -9,7 +9,7 @@ allowed-tools: Read, Write, Grep, Glob
 
 # infer-enriched-capabilities-from-code
 
-Called by `product-keeper` during /codify after `infer-scope-from-code`. Produces `scope/enriched-capabilities.yaml` at `{stm_base}/{issue}/evidence/codify/proposals/scope/enriched-capabilities.yaml`.
+Called by `product-keeper` during /codify after `infer-scope-from-code`. Produces `scope/garura:enriched-capabilities.yaml` at `{stm_base}/{issue}/evidence/codify/proposals/scope/garura:enriched-capabilities.yaml`.
 
 ## Purpose
 
@@ -28,7 +28,7 @@ Receive from `product-keeper` via JSON contract.
 | `issue` | yes | Issue number driving /codify. |
 | `related_proposal_paths` | yes | List of upstream proposal paths — MUST include the codify proposals for `scope.yaml`, `domain-selection.yaml`, `project-profile.yaml`. |
 | `kb_domain_dir` | yes | `core/components/memory/knowledge/domain/` — the canonical per-domain capability KB. |
-| `output_path` | yes | `{stm_base}/{issue}/evidence/codify/proposals/scope/enriched-capabilities.yaml`. |
+| `output_path` | yes | `{stm_base}/{issue}/evidence/codify/proposals/scope/garura:enriched-capabilities.yaml`. |
 | `decision_manifest_path` | yes | `decision-manifest-infer-enriched-capabilities-from-code.yaml` alongside the artifact. |
 | `ltm_context` | yes | `{product_base, core_base, query_domains, locked_artifacts}`. Presence triggers the Resolution Protocol. |
 | `resolution_trace_path` | yes | Where `resolution-trace.yaml` is written. |

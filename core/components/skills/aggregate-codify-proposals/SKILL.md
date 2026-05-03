@@ -1,6 +1,6 @@
 ---
 name: aggregate-codify-proposals
-description: Walk the inference-output directory under STM, read every proposal artifact each infer-*-from-code skill produced, and compose the master proposals.yaml index classified by the two-level learning taxonomy (learning_category + sub_category). This is the artifact that /enrich consumes. Used exclusively by the /codify play.
+description: Walk the inference-output directory under STM, read every proposal artifact each infer-*-from-code skill produced, and compose the master proposals.yaml index classified by the two-level learning taxonomy (learning_category + sub_category). This is the artifact that /garura:enrich consumes. Used exclusively by the /codify play.
 version: 0.1.0
 user-invocable: false
 model: sonnet
@@ -9,11 +9,11 @@ allowed-tools: Read, Write, Grep, Glob
 
 # aggregate-codify-proposals
 
-Called by the `/codify` play after all inference agents finish. Produces `proposals.yaml` — the master index that /enrich reads to promote proposals into product LTM. Every inferred LTM artifact is catalogued here with its tier, taxonomy, evidence, confidence, and target LTM path.
+Called by the `/codify` play after all inference agents finish. Produces `proposals.yaml` — the master index that /garura:enrich reads to promote proposals into product LTM. Every inferred LTM artifact is catalogued here with its tier, taxonomy, evidence, confidence, and target LTM path.
 
 ## Purpose
 
-Each `infer-*-from-code` skill writes one artifact under `{stm_base}/{issue}/evidence/codify/proposals/<target-path>`. Those files are the proposals themselves. This skill walks that tree, reads each file, extracts its metadata block, classifies each proposal against /reap's two-level learning taxonomy, groups by tier, and writes a single master index. The master index is what downstream consumers (the user at the checkpoint; /enrich later) read.
+Each `infer-*-from-code` skill writes one artifact under `{stm_base}/{issue}/evidence/codify/proposals/<target-path>`. Those files are the proposals themselves. This skill walks that tree, reads each file, extracts its metadata block, classifies each proposal against /reap's two-level learning taxonomy, groups by tier, and writes a single master index. The master index is what downstream consumers (the user at the checkpoint; /garura:enrich later) read.
 
 ## Input
 
@@ -66,7 +66,7 @@ Confirm each proposal's declared tier matches the /reap tier table:
 | `specification/domain-selection.yaml` | 2 |
 | `specification/market-brief.md` | 2 |
 | `scope/scope.yaml` | 2 |
-| `scope/enriched-capabilities.yaml` | 2 |
+| `scope/garura:enriched-capabilities.yaml` | 2 |
 | `scope/features.yaml` | 2 |
 | `scope/mvp-recommendation.md` | 2 |
 | `scope/epics/*.yaml` | 2 |
@@ -156,4 +156,4 @@ evidence:
 
 - Zero-proposal case is valid: if `proposals_root` is empty (e.g., fully aligned LTM in incremental mode), write `total_proposals: 0` and `alignment_confirmed: true`. Do NOT raise a failure.
 - This skill enforces structural validation only. Semantic correctness of each proposal's content is the originating infer-*-from-code skill's responsibility.
-- `proposals.yaml` is the single artifact /enrich consumes. Treat its schema as a stable contract.
+- `proposals.yaml` is the single artifact /garura:enrich consumes. Treat its schema as a stable contract.

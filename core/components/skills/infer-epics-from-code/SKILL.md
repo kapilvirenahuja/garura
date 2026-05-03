@@ -29,7 +29,7 @@ Epics authored from code are **MINIMAL intent-epic stubs**. Fields like
 `success_scenarios`, `failure_scenarios`, `hypothesis`, `intent_lock`, and
 the features ledger are NOT inferable from code alone — asserting them would
 be fabrication, not inference. This skill marks scenario fields with
-`knowledge_gap: true` and leaves them for /enrich to surface to stakeholders.
+`knowledge_gap: true` and leaves them for /garura:enrich to surface to stakeholders.
 Nothing is filled in speculatively; a gap is recorded as a gap.
 
 Tier-2 inference with `learning_category: product` and `sub_category: null`.
@@ -112,12 +112,12 @@ For each surviving candidate, emit one YAML file to
 - `business_rules`: rules traceable to KB entries or code-evidenced
   invariants (e.g., enforcing middleware); else `[]`.
 - `success_scenarios` / `failure_scenarios`: marked `knowledge_gap: true`
-  with a `note` pointing /enrich at the gap. NEVER populated from code.
+  with a `note` pointing /garura:enrich at the gap. NEVER populated from code.
 - `evidence_paths`: scan-index pointers and file paths that drove the boundary.
 
 Do NOT emit `intent_lock`, `appetite`, `features[]` ledger, `hypothesis`,
 `assumptions_requiring_validation`, `kb_source`, `epic_status` — those are
-/enrich and /specify concerns.
+/garura:enrich and /specify concerns.
 
 ### 5. Write artifacts, decision manifest, resolution trace
 
@@ -150,16 +150,16 @@ epic:
   business_rules: []     # evidenced only; empty if no code-invariant or KB hit
   success_scenarios:
     knowledge_gap: true
-    note: "Not inferable from code alone. Stakeholder input required at /enrich."
+    note: "Not inferable from code alone. Stakeholder input required at /garura:enrich."
   failure_scenarios:
     knowledge_gap: true
-    note: "Not inferable from code alone. Stakeholder input required at /enrich."
+    note: "Not inferable from code alone. Stakeholder input required at /garura:enrich."
   evidence_paths:
     - "<path into scan index or repo>"
 ```
 
 Comment header in every file: `# Minimal intent-epic stub. Scenarios are
-knowledge gaps, not placeholders — /enrich must surface them to stakeholders.`
+knowledge gaps, not placeholders — /garura:enrich must surface them to stakeholders.`
 
 ### Decision manifest — `decision-manifest-infer-epics.yaml`
 
@@ -217,6 +217,6 @@ Codes:
 - Writes MULTIPLE files under `output_dir` plus one decision manifest and one
   resolution trace. Never writes to `.garura/product/` in place.
 - Emits minimal stubs — NEVER fabricates scenario fields. Those are explicit
-  knowledge gaps routed to /enrich for stakeholder input.
+  knowledge gaps routed to /garura:enrich for stakeholder input.
 - Does NOT re-run `scan.py`; stale scan-index is the orchestrator's concern.
-- Does NOT promote any epic to product LTM — that is /enrich's job.
+- Does NOT promote any epic to product LTM — that is /garura:enrich's job.

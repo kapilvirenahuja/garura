@@ -21,7 +21,7 @@ Turn enriched capabilities into concrete screens. Every capability maps to at le
 Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.meridian/product/` or assume a working directory.
 
 - `scope_path` (path, required) — typically `{product_base}scope/scope.yaml`
-- `enriched_capabilities_path` (path, required) — typically `{product_base}scope/enriched-capabilities.yaml`
+- `enriched_capabilities_path` (path, required) — typically `{product_base}scope/garura:enriched-capabilities.yaml`
 - `epics_dir` (path, required) — typically `{product_base}scope/epics/`
 - `personas_path` (path, required) — typically `{product_base}experience/personas.md` (from Stage 1)
 - `product_research_path` (path, required) — `{product_base}research/` (the product's frozen domain library per rules/product.md Rule 15 Pull-to-Product). This skill reads domain UX hints from the product's research folder ONLY — never directly from `core/components/memory/knowledge/domain/`. Passing `ltm_domain_taxonomy_path` is a structural failure (design intent.yaml F13).

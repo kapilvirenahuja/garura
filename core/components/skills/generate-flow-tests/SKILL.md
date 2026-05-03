@@ -159,4 +159,4 @@ evidence: {...}
 - Flow tests are mostly portable across E2E frameworks. Migration-time porting from Cypress to Playwright (or vice versa) is mostly syntax substitution — the test intent is preserved. That is the Tier B promise.
 - One test per flow per path (success + one per failure) keeps test count bounded. Extensive edge-case permutations are Tier C pure-unit tests' job, not flow tests.
 - Environment provisioning (starting the app, seeding data) is NOT this skill's job. /decode's test-runner reads the env-requirements.yaml and either provisions the environment (if configured) or marks the flow deferred.
-- When the codebase already has E2E tests for the flow (detected via map-test-surface matching the trigger), the skill produces a complementary test and records "prior: existing e2e at {path}" in the header. Deduplication review happens at /enrich time.
+- When the codebase already has E2E tests for the flow (detected via map-test-surface matching the trigger), the skill produces a complementary test and records "prior: existing e2e at {path}" in the header. Deduplication review happens at /garura:enrich time.

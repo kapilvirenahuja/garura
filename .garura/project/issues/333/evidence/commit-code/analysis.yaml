@@ -1,0 +1,51 @@
+branch:
+  name: feature/333-reference-algorithm-play
+  issue: "333"
+  is_hotfix: false
+
+change_summary:
+  total_files: 5
+  staged: 0
+  unstaged: 1
+  untracked: 4
+
+groups:
+  - id: 1
+    issue: "333"
+    type: feat
+    scope: algorithm
+    subject: "add algorithm play, draft-reference-algorithms skill, and register skill in tech-architect (#333)"
+    confidence: high
+    files:
+      - path: "core/components/plays/algorithm/"
+        description: "new algorithm play (SKILL.md + reference/intent.yaml)"
+      - path: "core/components/skills/draft-reference-algorithms/"
+        description: "new draft-reference-algorithms skill (SKILL.md)"
+      - path: "core/components/agents/tech-architect.md"
+        description: "1-line addition registering draft-reference-algorithms in tech-architect skill pool"
+
+  - id: 2
+    issue: "333"
+    type: chore
+    scope: stm
+    subject: "record create-play evidence for algorithm play (#333)"
+    confidence: high
+    files:
+      - path: ".garura/project/issues/333/evidence/create-play/"
+        description: "STM artifacts from create-play run: skill-manifest.yaml, evals.yaml, agent-audit-tech-architect.md, coverage-matrix.md"
+
+  - id: 3
+    issue: "333"
+    type: chore
+    scope: stm
+    subject: "record pending start-feature-planning artifacts (#333)"
+    confidence: high
+    files:
+      - path: ".garura/project/issues/_pending/start-feature-planning/"
+        description: "pending STM artifacts: args.yaml, issue-resolution.yaml"
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false

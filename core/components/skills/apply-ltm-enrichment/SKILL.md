@@ -57,7 +57,7 @@ Given a human-approved `reconciliation-proposals.yaml`, apply each approved prop
 ## Output
 
 ```yaml
-enrichment_report_path: "{output_base}/enrichment-report.yaml"
+enrichment_report_path: "{output_base}/garura:enrichment-report.yaml"
 applied_count: {n}
 skipped_count: {n}
 failed_count: {n}

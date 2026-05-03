@@ -19,7 +19,7 @@ Transform locked specify and design artifacts into the technology-agnostic struc
 Receive from the tech-architect agent. All paths resolve against `{product_base}` and `{ltm_base}` supplied by the play via JSON contract.
 
 - `scope_path` (path, required) — `{product_base}scope/scope.yaml`
-- `enriched_capabilities_path` (path, required) — `{product_base}scope/enriched-capabilities.yaml`
+- `enriched_capabilities_path` (path, required) — `{product_base}scope/garura:enriched-capabilities.yaml`
 - `epics_dir` (path, required) — `{product_base}scope/epics/`
 - `quality_profile_path` (path, required) — `{product_base}specification/quality-profile.yaml`
 - `design_spec_path` (path, required) — `{product_base}experience/design-spec.md`

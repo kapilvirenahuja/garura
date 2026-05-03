@@ -1,13 +1,13 @@
 ---
 name: garura:codify
-description: Brownfield bootstrap. Reverse-engineer a product's full LTM artifact tree from an existing codebase — producing the same file set that /specify + /design + /arch would have produced, but via code inference rather than user interview. All output is staged as proposals in STM. /enrich is the only promotion gate to product LTM.
+description: Brownfield bootstrap. Reverse-engineer a product's full LTM artifact tree from an existing codebase — producing the same file set that /specify + /design + /arch would have produced, but via code inference rather than user interview. All output is staged as proposals in STM. /garura:enrich is the only promotion gate to product LTM.
 user-invocable: true
 model: opus
 ---
 
 # codify
 
-Given an existing codebase (single repo or multi-repo, any size from 10k to millions of LOC), reverse-engineer the Meridian product LTM that the code already embodies. codify is the brownfield counterpart to the /specify + /design + /arch trinity — it produces the same artifact shape via code inference instead of user interview. Every proposal is staged under `{stm_base}/{issue}/evidence/codify/proposals/` with `source_type: inferred_from_code`. No writes to product LTM occur during this play — /enrich is the sole promotion path.
+Given an existing codebase (single repo or multi-repo, any size from 10k to millions of LOC), reverse-engineer the Meridian product LTM that the code already embodies. codify is the brownfield counterpart to the /specify + /design + /arch trinity — it produces the same artifact shape via code inference instead of user interview. Every proposal is staged under `{stm_base}/{issue}/evidence/codify/proposals/` with `source_type: inferred_from_code`. No writes to product LTM occur during this play — /garura:enrich is the sole promotion path.
 
 ## Compiled From
 
@@ -269,7 +269,7 @@ Dispatch product-keeper with three sequential skill invocations (each depends on
     },
     "output": {
       "scope": "{stm_base}/{issue}/evidence/codify/proposals/scope/scope.yaml",
-      "enriched_capabilities": "{stm_base}/{issue}/evidence/codify/proposals/scope/enriched-capabilities.yaml",
+      "enriched_capabilities": "{stm_base}/{issue}/evidence/codify/proposals/scope/garura:enriched-capabilities.yaml",
       "features": "{stm_base}/{issue}/evidence/codify/proposals/scope/features.yaml"
     }
   },
@@ -553,7 +553,7 @@ Present aggregate summary:
 **Master index:** `{stm_base}/{issue}/evidence/codify/proposals.yaml`
 
 ---
-Type **Tether** to commit evidence (proposals become visible to /enrich), or **Vanish** to halt without committing.
+Type **Tether** to commit evidence (proposals become visible to /garura:enrich), or **Vanish** to halt without committing.
 ```
 
 **Step 17 Evals:**
@@ -588,7 +588,7 @@ Depends on: Step 17 (Tether)
 
 Task: "Stage and commit only the listed evidence files with the given message."
 
-**Non-blocking (C17):** If commit fails, log warning — do NOT halt. proposals.yaml remains on disk for /enrich.
+**Non-blocking (C17):** If commit fails, log warning — do NOT halt. proposals.yaml remains on disk for /garura:enrich.
 
 **Step 18 Eval:**
 - **SE-18 (C17):** Evidence commit runs after Tether. Commit failure is logged in status file, does not roll back proposals.yaml, does not halt the play.

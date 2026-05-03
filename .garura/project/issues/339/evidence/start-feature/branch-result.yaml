@@ -1,0 +1,16 @@
+result:
+  success: true
+  branch:
+    name: "chore/339-rename-enrich-to-garura-prefix"
+    base_ref: "main"
+    pushed: true
+    tracking: "origin/chore/339-rename-enrich-to-garura-prefix"
+  worktree:
+    used: false
+    path: null
+    reason: "Minor dirty tree (4 items, 1 line changed) — stash approach used"
+  uncommitted_changes:
+    preserved: true
+    strategy: "stash-and-pop"
+    stash_message: "garura: pre-branch stash for chore/339-rename-enrich-to-garura-prefix"
+  error: null

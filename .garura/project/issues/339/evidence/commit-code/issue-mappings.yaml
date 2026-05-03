@@ -1,0 +1,32 @@
+mappings:
+  - group_id: G1
+    issue: 339
+    confidence: high
+    reasoning: >
+      Branch name 'chore/339-rename-enrich-to-garura-prefix' contains explicit issue reference #339.
+      Issue #339 title '[CHORE] Rename enrich to have the prefix garura:' directly matches the
+      group's scope — renaming /enrich to /garura:enrich across 30 play and skill SKILL.md files
+      and intent.yaml files. Acceptance criteria in issue body specifically mention 'garura:enrich'
+      and 'all references updated'. Three corroborating signals: branch number, title keyword match,
+      and acceptance criteria alignment.
+    conflicts: []
+
+  - group_id: G2
+    issue: 339
+    confidence: high
+    reasoning: >
+      Branch name 'chore/339-rename-enrich-to-garura-prefix' contains explicit issue reference #339.
+      Files are STM evidence artifacts for issue #339 (start-feature evidence, status, pending queue
+      entry) plus supporting evidence for the prior #333 issue. Paths under
+      .garura/project/issues/339/ directly encode the issue number. Proximity signal is strong:
+      both groups are part of the same feature work on #339. Two corroborating signals: branch
+      number and path-based issue encoding.
+    conflicts: []
+
+summary:
+  total_groups: 2
+  mapped: 2
+  unmapped: 0
+  conflicts: 0
+  requires_approval: false
+  approval_reason: null

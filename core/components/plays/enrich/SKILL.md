@@ -1,13 +1,13 @@
 ---
-name: enrich
+name: garura:enrich
 description: Terminal stage of the Learning Pipeline. Promote tier-classified, taxonomy-tagged proposals staged in per-issue STM by distill, reap, codify, or decode into product LTM artifacts under reviewer control, then archive the processed issue STM. Sole LTM write boundary.
 user-invokable: true
 model: opus
 ---
 
-# enrich
+# garura:enrich
 
-Terminal stage of the Learning Pipeline. Reads native proposals staged by `distill`, `reap`, `codify`, or `decode` for one or more issues, normalizes each into a reconciliation file, surfaces them to the reviewer at tier-appropriate granularity, applies approved entries to product LTM, promotes approved Tier 1 ADR drafts into the ADR archive, and archives the processed issue STM. Two invocation modes: single-issue (`/enrich <issue>`) and sweep (`/enrich`, processes every active issue under the issues area excluding the archived and pending subtrees). Idempotency comes from archival — once an issue is archived, re-running finds no source to re-apply.
+Terminal stage of the Learning Pipeline. Reads native proposals staged by `distill`, `reap`, `codify`, or `decode` for one or more issues, normalizes each into a reconciliation file, surfaces them to the reviewer at tier-appropriate granularity, applies approved entries to product LTM, promotes approved Tier 1 ADR drafts into the ADR archive, and archives the processed issue STM. Two invocation modes: single-issue (`/garura:enrich <issue>`) and sweep (`/garura:enrich`, processes every active issue under the issues area excluding the archived and pending subtrees). Idempotency comes from archival — once an issue is archived, re-running finds no source to re-apply.
 
 ## Compiled From
 
@@ -346,7 +346,7 @@ Every archived issue contains a reconciliation file with each entry's final `app
 Steps are in execution order — run top to bottom per issue.
 
 **Issue detection:**
-- Single mode: `<issue>` is provided as input when the user invokes `/enrich <issue>`.
+- Single mode: `<issue>` is provided as input when the user invokes `/garura:enrich <issue>`.
 - Sweep mode: no argument; the play enumerates active issues at pre-flight time and processes each in turn.
 
 **Status file (per issue):** `{stm_base}/{issue}/status/enrich.json` while the issue is active; moves to `{stm_archive}/{YYYY-MM}/{issue}/status/enrich.json` after Step 5.

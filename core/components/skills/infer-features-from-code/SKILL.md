@@ -237,6 +237,6 @@ overall_confidence: "high" | "medium" | "low"
 
 - Read-only against `scan_index_path`, `related_proposal_paths`, and (for
   R2) `{product_base}/scope/features.yaml`. Emits a proposal only — writing
-  to `.garura/product/scope/features.yaml` is a downstream `/enrich` action.
+  to `.garura/product/scope/features.yaml` is a downstream `/garura:enrich` action.
 - Does NOT re-run `scan.py`, invent capabilities or domains outside the
   sibling proposals, or produce intent epics.

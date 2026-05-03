@@ -67,7 +67,7 @@ constraints:
       specify artifacts must exist and be LOCKED before arch
       begins. Pre-flight reads
       .meridian/product/scope/scope.yaml,
-      .meridian/product/scope/enriched-capabilities.yaml,
+      .meridian/product/scope/garura:enriched-capabilities.yaml,
       .meridian/product/scope/epics/*.yaml, and
       .meridian/product/specification/quality-profile.yaml. The post-D1
       folder layout applies per ADR 017. Missing or DRAFT-status artifacts

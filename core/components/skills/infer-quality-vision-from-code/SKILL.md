@@ -248,7 +248,7 @@ Codes:
   `git.commits_analyzed` feed this skill. Other fields are out of scope.
 - **Read-only against the codebase.** Source files are not opened.
 - **Writes stay under `{stm_base}/{issue}/evidence/codify/proposals/architecture/`.**
-  Never writes to `.garura/product/`. Promotion is /enrich's job.
+  Never writes to `.garura/product/`. Promotion is /garura:enrich's job.
 - **Knowledge gaps are gaps, not placeholders.** When upstream is silent, emit
   `knowledge_gap: true` with a pointer — never fabricate to close the gap.
 - **Does not re-run `scan.py`.** Stale scan-index is the orchestrator's concern.
