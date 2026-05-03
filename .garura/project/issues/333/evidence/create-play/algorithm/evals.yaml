@@ -1,0 +1,325 @@
+step_evals:
+  # --- Failure Condition Evals ---
+
+  - id: SE-1
+    source_type: failure_condition
+    failure_condition_id: F1
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: >
+      Verify that `stm_base` can be resolved from `.garura/core/config.yaml`
+      before the skill is invoked. If the play reaches skill dispatch without a
+      resolved `stm_base`, the play has not halted as required by F1.
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: >
+      `stm_base` is resolved from `.garura/core/config.yaml` and the skill
+      receives a non-empty `stm_base` value in its input contract. No
+      `reference-algorithms.md` artifact exists at an unresolvable path.
+    fail_criteria: >
+      The skill is dispatched with a blank, null, or placeholder `stm_base`, or
+      the play proceeds past the pre-flight check without a resolved `stm_base`.
+
+  - id: SE-2
+    source_type: failure_condition
+    failure_condition_id: F2
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: >
+      Verify that `tech.yaml` exists at
+      `{stm_base}/{issue}/context/design/tech.yaml` before the skill is
+      dispatched. If the play dispatches the skill when `tech.yaml` is absent,
+      F2 hard-halt has not occurred.
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/tech.yaml"
+    pass_criteria: >
+      `tech.yaml` is present and non-empty at the expected path before skill
+      dispatch. If absent, the play halts with the message "prepare must run
+      before algorithm" and the skill is never invoked.
+    fail_criteria: >
+      The skill is invoked despite `tech.yaml` being absent at the expected path,
+      or the play proceeds silently without a hard halt.
+
+  - id: SE-3
+    source_type: failure_condition
+    failure_condition_id: F3
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: >
+      Verify that `tech.yaml` is parseable YAML and non-empty before the skill
+      is dispatched. If `tech.yaml` exists but contains no valid YAML structure,
+      the play must hard-halt before dispatching.
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/tech.yaml"
+    pass_criteria: >
+      `tech.yaml` is present, non-empty, and parseable as valid YAML. The skill
+      receives a non-empty `interface_ids` list derived from that file.
+    fail_criteria: >
+      The skill is dispatched despite `tech.yaml` being empty or containing
+      unparseable YAML, or the play proceeds silently past the validation step.
+
+  - id: SE-4
+    source_type: failure_condition
+    failure_condition_id: F4
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: >
+      Verify that when no complexity indicators are found in any
+      `internal_interfaces[].behavior_contracts` field AND no
+      `algorithm_spec_required: true` flag is present, the play exits gracefully
+      without dispatching the skill.
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: >
+      No `reference-algorithms.md` artifact is created at the output path, the
+      skill is never invoked, and the play exits with code 0 and the message
+      "No algorithmic complexity detected — skipping."
+    fail_criteria: >
+      The skill is dispatched despite no complexity indicators and no
+      `algorithm_spec_required: true` flag, or `reference-algorithms.md` is
+      created when no qualifying interfaces were detected.
+
+  - id: SE-5
+    source_type: failure_condition
+    failure_condition_id: F5
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: >
+      Verify that when `draft-reference-algorithms` returns an error after 2
+      recovery attempts, the play hard-halts and reports the failing
+      `interface_ids` rather than silently succeeding or retrying further.
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: >
+      The play halts with a structured failure message that includes the list of
+      `interface_ids` that the skill failed to process. No partial
+      `reference-algorithms.md` is treated as a success.
+    fail_criteria: >
+      The play treats a skill error as a success, retries more than 2 times, or
+      fails to report which `interface_ids` were unresolved.
+
+  - id: SE-6
+    source_type: failure_condition
+    failure_condition_id: F6
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: >
+      After skill execution completes without a reported error, verify that
+      `reference-algorithms.md` is present at
+      `{stm_base}/{issue}/context/design/reference-algorithms.md`. If the file
+      is absent after a non-error skill return, F6 hard-halt must have triggered.
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: >
+      `reference-algorithms.md` exists at
+      `{stm_base}/{issue}/context/design/reference-algorithms.md` after skill
+      execution. The file is non-empty.
+    fail_criteria: >
+      Skill execution completes without error but `reference-algorithms.md` is
+      absent or empty at the expected output path, and the play does not halt
+      with an evidence integrity violation.
+
+  - id: SE-7
+    source_type: failure_condition
+    failure_condition_id: F7
+    constraint_id: null
+    skill: draft-reference-algorithms
+    check: >
+      When `plan.yaml` or `scenarios.yaml` are missing alongside `tech.yaml`,
+      verify the play continues and dispatches the skill (warn-and-continue
+      behavior) rather than halting.
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: >
+      The play issues a warning about the incomplete context package but
+      continues to dispatch `draft-reference-algorithms` using only `tech.yaml`.
+      `reference-algorithms.md` is written to the output path.
+    fail_criteria: >
+      The play halts when `plan.yaml` or `scenarios.yaml` are missing, or it
+      skips the warning and proceeds silently without any notification.
+
+  # --- Constraint Evals (artifact-verifiable only) ---
+
+  - id: SE-8
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C5
+    skill: draft-reference-algorithms
+    check: >
+      After skill execution, verify that `tech.yaml` at
+      `{stm_base}/{issue}/context/design/tech.yaml` is unchanged. The skill
+      MUST NOT modify `tech.yaml` or any other artifact produced by `prepare`.
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/tech.yaml"
+    pass_criteria: >
+      The content and last-modified timestamp of `tech.yaml` is identical before
+      and after skill execution. No other `prepare` artifact has been modified.
+    fail_criteria: >
+      `tech.yaml` or any other `prepare` artifact has been modified (content
+      differs or last-modified timestamp is newer) after skill execution.
+
+  - id: SE-9
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C6
+    skill: draft-reference-algorithms
+    check: >
+      After skill execution, verify that the output artifact is written to
+      `{stm_base}/{issue}/context/design/reference-algorithms.md` — the correct
+      path sibling to `tech.yaml`.
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: >
+      `reference-algorithms.md` exists at
+      `{stm_base}/{issue}/context/design/reference-algorithms.md` and no other
+      output file has been written outside this path.
+    fail_criteria: >
+      `reference-algorithms.md` is absent at the expected path, or an additional
+      copy has been written to any other location.
+
+  - id: SE-10
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C9
+    skill: draft-reference-algorithms
+    check: >
+      After skill execution, verify that `reference-algorithms.md` is structured
+      by interface ID: one `## {interface_id}` section per qualifying interface,
+      each containing a complexity classification, a language-agnostic pseudocode
+      block, an invariants list, and an edge cases list.
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: >
+      For every `interface_id` in the skill's input list: a `## {interface_id}`
+      heading exists in `reference-algorithms.md`, the section contains a
+      complexity classification field, a pseudocode block delimited by a code
+      fence using uppercase keywords only, an Invariants sub-section with at
+      least one entry, and an Edge Cases sub-section with at least one entry.
+    fail_criteria: >
+      Any qualifying interface is missing its `## {interface_id}` section, or
+      any section is missing its complexity classification, pseudocode block,
+      Invariants list, or Edge Cases list.
+
+  - id: SE-11
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C14
+    skill: draft-reference-algorithms
+    check: >
+      After play execution, verify that the Evidence & Close phase behavior
+      matches the `evidence.record` flag from `.garura/core/config.yaml`. When
+      `true`: evidence file, status file, and self-commit are all present. When
+      `false`: none of those three artifacts exist.
+    artifact_pattern: ".garura/project/issues/{issue}/evidence/"
+    pass_criteria: >
+      When `evidence.record` is `true`: an evidence file exists under the issue's
+      evidence path, a status file exists, and a self-commit was recorded by
+      repo-orchestrator. When `evidence.record` is `false`: none of those three
+      artifacts exist.
+    fail_criteria: >
+      Evidence, status file, or self-commit are present when `evidence.record` is
+      `false`, or any of those three are absent when `evidence.record` is `true`.
+
+  - id: SE-12
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C16
+    skill: draft-reference-algorithms
+    check: >
+      After skill execution, verify that `reference-algorithms.md` contains
+      `status: DRAFT` in its file header, confirming the output is marked DRAFT
+      and the approval step has not yet been bypassed.
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    pass_criteria: >
+      `reference-algorithms.md` contains `status: DRAFT` in its header section.
+      The approval gate has not been bypassed and no `status: LOCKED` marker is
+      present before user approval.
+    fail_criteria: >
+      `reference-algorithms.md` contains `status: LOCKED` prior to user approval,
+      or the status field is absent entirely.
+
+  - id: SE-13
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C17
+    skill: draft-reference-algorithms
+    check: >
+      After play execution, verify that `plan.yaml` and any milestone status
+      files in the STM have not had any `status` field added or altered by the
+      play or skill.
+    artifact_pattern: ".garura/project/issues/{issue}/context/plan.yaml"
+    pass_criteria: >
+      All `status` fields in `plan.yaml` and milestone status files are identical
+      before and after play execution. No new `status` field has been written by
+      the play or skill.
+    fail_criteria: >
+      Any `status` field in `plan.yaml` or any milestone status file differs from
+      its pre-execution value, or a new `status` field has been written by the
+      play or skill.
+
+scenario_evals:
+  - id: SCE-1
+    scenario_id: S1
+    persona: "Lead developer"
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    check: >
+      Verify that when the issue's `tech.yaml` contains only CRUD
+      `internal_interfaces` (no indicator terms, no `algorithm_spec_required:
+      true`), the play exits with code 0, issues a skip notice, and produces no
+      `reference-algorithms.md`.
+    pass_criteria: >
+      No `reference-algorithms.md` artifact exists at
+      `{stm_base}/{issue}/context/design/reference-algorithms.md`. The play
+      output includes a skip notice. No agent dispatch has occurred (no evidence
+      of a tech-architect invocation in the play's run log).
+    fail_criteria: >
+      `reference-algorithms.md` exists at the output path, or the play did not
+      emit a skip notice, or a tech-architect dispatch is recorded despite
+      CRUD-only interfaces.
+
+  - id: SCE-2
+    scenario_id: S2
+    persona: "Lead developer"
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    check: >
+      Verify that when `tech.yaml` has an `internal_interfaces` entry whose
+      `behavior_contracts` contains 'state machine transitions', `reference-algorithms.md`
+      is written to `context/design/` with a `## {interface_id}` section for
+      that interface.
+    pass_criteria: >
+      `reference-algorithms.md` exists at
+      `{stm_base}/{issue}/context/design/reference-algorithms.md`, contains a
+      `## {interface_id}` heading for the matching interface, and the file header
+      contains `status: DRAFT`.
+    fail_criteria: >
+      `reference-algorithms.md` is absent at the output path, lacks a
+      `## {interface_id}` section for the state-machine interface, or is not in
+      DRAFT status after skill execution.
+
+  - id: SCE-3
+    scenario_id: S3
+    persona: "Lead developer"
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    check: >
+      Verify that when an `internal_interfaces` entry has
+      `algorithm_spec_required: true` but no indicator terms in
+      `behavior_contracts`, the play treats the entry as qualifying and
+      dispatches tech-architect.
+    pass_criteria: >
+      `reference-algorithms.md` exists at
+      `{stm_base}/{issue}/context/design/reference-algorithms.md` with a section
+      for the `algorithm_spec_required: true` interface. The play did not exit
+      with a skip notice.
+    fail_criteria: >
+      The play exits with a skip notice, does not dispatch tech-architect, or
+      `reference-algorithms.md` is absent when the interface carried
+      `algorithm_spec_required: true`.
+
+  - id: SCE-4
+    scenario_id: S4
+    persona: "Lead developer"
+    artifact_pattern: ".garura/project/issues/{issue}/context/design/reference-algorithms.md"
+    check: >
+      Verify that when `reference-algorithms.md` exists in `context/design/`,
+      the `implement` play runs normally without consuming or being altered by
+      that file, and tech-designer's input contract is unchanged compared to a
+      run where the file is absent.
+    pass_criteria: >
+      `reference-algorithms.md` remains unmodified in `context/design/` after
+      `implement` runs. The tech-designer input contract written during
+      `implement` does not reference `reference-algorithms.md` and is identical
+      in structure to what it would be without the file present.
+    fail_criteria: >
+      `reference-algorithms.md` is modified or consumed during `implement`, or
+      the tech-designer input contract references `reference-algorithms.md` in a
+      way that changes implement's behavior.
