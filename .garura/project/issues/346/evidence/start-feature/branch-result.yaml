@@ -1,0 +1,12 @@
+branch:
+  name: "feature/346-add-evidence-record-config-check"
+  action: "created"
+  pushed: true
+  changes_preserved: true
+  tracking:
+    remote: "origin"
+    merge: "refs/heads/feature/346-add-evidence-record-config-check"
+  verification:
+    current_branch: "feature/346-add-evidence-record-config-check"
+    exists_locally: true
+    exists_remotely: true
