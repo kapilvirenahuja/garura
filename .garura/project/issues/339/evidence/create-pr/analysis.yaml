@@ -1,0 +1,120 @@
+analysis:
+  branch: chore/339-rename-enrich-to-garura-prefix
+  base: main
+  branch_pattern: chore
+  commits: 2
+  changes:
+    files: 41
+    additions: 445
+    deletions: 88
+  suggested_title: "refactor(components): rename /enrich to /garura:enrich prefix across plays and skills (#339)"
+
+  context:
+    file_patterns_matched:
+      - name: "Play definitions"
+        files: 12
+        trigger: "**/plays/**/*.md, **/plays/**/SKILL.md"
+      - name: "Skill definitions"
+        files: 18
+        trigger: "**/skills/**/*.md, **/skills/**/SKILL.md"
+      - name: "Configuration / YAML"
+        files: 7
+        trigger: "*.yaml, *.yml, reference/intent.yaml"
+      - name: "STM artifacts"
+        files: 11
+        trigger: ".garura/project/issues/**"
+    commit_types:
+      - type: refactor
+        count: 1
+        example: "rename /enrich to /garura:enrich and update enriched-capabilities path prefix across plays and skills"
+      - type: chore
+        count: 1
+        example: "record start-feature evidence and pending queue entry for #339"
+    branch_modifiers:
+      - "chore branch — standard priorities apply (no hotfix demotion, no release promotion)"
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: No merge conflicts with main
+        trigger: Universal rule — always checked
+        status: PASS
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree SHA a1611cbf54d017973c20b1a5ed37bf094d6ae879 with exit code 0"
+
+      - id: no-secrets
+        item: No secrets committed
+        trigger: Universal rule — always checked
+        status: PASS
+        evidence: "Pattern scan on all 41 changed files. 'password' matches traced to skill example content in generate-screen-inventory/SKILL.md (login screen examples, forgot-password UI labels) and design/reference/intent.yaml (component naming examples). No actual credentials, API keys, private keys, or AWS secrets found."
+
+      - id: play-frontmatter
+        item: Play definitions have valid frontmatter (name, description, user-invokable/user-invocable)
+        trigger: "Play definitions changed: arch, codify, decode, design, enrich, specify SKILL.md files"
+        status: PASS
+        evidence: "All 6 changed play SKILL.md files have name, description, and user-invokable/user-invocable fields confirmed. Note: 'level' is in ## Version metadata per quality-rules.md, not frontmatter — rule acknowledged."
+
+      - id: play-workflow
+        item: Play definitions have ## Workflow section
+        trigger: "Play definitions changed: arch, codify, decode, design, enrich, specify SKILL.md files"
+        status: PASS
+        evidence: "grep confirmed ## Workflow section present in all 6 changed play files"
+
+      - id: play-checkpoint
+        item: Play definitions define checkpoint behavior
+        trigger: "Play definitions changed: arch, codify, decode, design, enrich, specify SKILL.md files"
+        status: PASS
+        evidence: "Checkpoint/tether references confirmed: arch=70, codify=24, decode=22, design=35, enrich=6, specify=37 occurrences"
+
+      - id: skill-frontmatter
+        item: Skill definitions have valid frontmatter (name, description, user-invocable, allowed-tools)
+        trigger: "Skill definitions changed: 18 skills modified"
+        status: REVIEW
+        evidence: "17 of 18 skills have full frontmatter. derive-logical-architecture is missing user-invocable and allowed-tools fields — was already missing these on main branch before this PR, so this is a pre-existing gap, not introduced by this change. Recommend noting in PR body."
+
+      - id: skill-io
+        item: Skill definitions have ## Input and ## Output sections
+        trigger: "Skill definitions changed: 18 skills modified"
+        status: REVIEW
+        evidence: "enrich-capabilities and generate-screen-inventory lack a top-level ## Output header but do define output behavior inline in their ## Input and process sections. The output contract (file paths, formats) is present in the body. Structural header is missing — same gap existed on main pre-change. Not introduced by this PR."
+
+      - id: refactor-no-break
+        item: No breaking changes to skill output contracts
+        trigger: "Commit type is refactor"
+        status: PASS
+        evidence: "All diffs reviewed. Changes are strictly limited to: (1) renaming /enrich → /garura:enrich in description text and cross-references, (2) renaming enriched-capabilities.yaml → garura:enriched-capabilities.yaml in output_path fields and Input parameter descriptions. Output schemas, return formats, and STM path structures are unchanged. The path rename is a consistent, coordinated update across all consumers."
+
+      - id: sync-claude
+        item: Components synced with core/components/ via /sync-claude
+        trigger: "core/components/** changed — 30 component files modified"
+        status: REVIEW
+        evidence: "Cannot verify at analysis time whether /sync-claude has been run post-commit. This must be confirmed by the author before merging. Failure to sync means ~/.claude/skills/ and ~/.claude/plays/ will be out of date with the renamed garura: namespace."
+
+      - id: config-valid
+        item: YAML configuration syntax valid
+        trigger: "YAML files changed: 7 intent.yaml and status/evidence files"
+        status: PASS
+        evidence: "python3 yaml.safe_load validated all 8 YAML files successfully: codify/intent.yaml, decode/intent.yaml, arch/intent.yaml, design/intent.yaml, enrich/intent.yaml, manage-features/intent.yaml, branch-result.yaml, ship.json"
+
+    nice_to_have:
+      - id: play-agent-limit
+        item: Play respects agent call limits (L1 ≤2, L2 ≤5)
+        trigger: "Play definitions changed"
+        status: REVIEW
+        evidence: "Play SKILL.md files were not substantively restructured — only cross-reference text was updated. Agent call limits are unchanged. Manual verification of agent counts not triggered since this is a rename-only change."
+
+      - id: skill-constraints
+        item: Skills have ## Constraints section
+        trigger: "Skill definitions changed"
+        status: REVIEW
+        evidence: "Not all skills have a dedicated ## Constraints section — this pre-dates this PR. Not introduced by this change."
+
+      - id: config-documented
+        item: Configuration changes documented in related docs
+        trigger: "YAML files changed (intent.yaml files)"
+        status: PASS
+        evidence: "The intent.yaml changes are self-documenting — they update skill invocation references to use the garura: prefix. No separate documentation update needed for an internal namespace rename."
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Create PR — one REVIEW item (sync-claude verification) requires author confirmation in PR body, two REVIEW items (derive-logical-architecture frontmatter gaps, missing ## Output headers in 2 skills) are pre-existing and not introduced by this PR"
