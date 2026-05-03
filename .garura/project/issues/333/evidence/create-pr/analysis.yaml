@@ -1,0 +1,147 @@
+analysis:
+  branch: feature/333-reference-algorithm-play
+  base: main
+  branch_pattern: feature
+  commits: 4
+  changes:
+    files: 18
+    additions: 1429
+    deletions: 0
+
+  suggested_title: "feat(algorithm): add algorithm play and draft-reference-algorithms skill (#333)"
+
+  context:
+    file_patterns_matched:
+      - name: play-definitions
+        files: 2
+        trigger: "core/components/plays/algorithm/SKILL.md, core/components/plays/algorithm/reference/intent.yaml"
+      - name: skill-definitions
+        files: 1
+        trigger: "core/components/skills/draft-reference-algorithms/SKILL.md"
+      - name: agent-definitions
+        files: 1
+        trigger: "core/components/agents/tech-architect.md"
+      - name: configuration-yaml
+        files: 1
+        trigger: "core/components/plays/algorithm/reference/intent.yaml"
+      - name: stm-evidence
+        files: 13
+        trigger: ".garura/project/issues/333/evidence/**, .garura/project/issues/333/planning/**, .garura/project/issues/333/checkpoint/**, .garura/project/issues/_pending/**"
+
+    commit_types:
+      - type: feat
+        count: 1
+        example: "feat(algorithm): add algorithm play and draft-reference-algorithms skill (#333)"
+      - type: chore
+        count: 3
+        example: "chore(stm): record create-play evidence for algorithm (#333)"
+
+    branch_modifiers:
+      - "feature branch — standard priorities apply (no demotions or promotions)"
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: No merge conflicts with main
+        trigger: "Universal rule — always checked"
+        status: PASS
+        evidence: "git merge-tree --write-tree main HEAD exited 0 with clean tree sha 5bbeb89c0685d13689b4f5dd9fd7d8dc645cc6e0"
+
+      - id: no-secrets
+        item: No secrets committed
+        trigger: "Universal rule — always checked"
+        status: PASS
+        evidence: "Pattern scan (api_key, secret, password, token, private_key, PEM headers, sk-/ghp_ prefixes) across all 18 changed files returned zero matches"
+
+      - id: play-frontmatter
+        item: Play has valid frontmatter (name, description, user-invokable)
+        trigger: "core/components/plays/algorithm/SKILL.md matches **/plays/**/*.md trigger"
+        status: PASS
+        evidence: "Frontmatter present with name=garura:algorithm, description=present, user-invokable=true. Note: quality-rules.md specifies 'level is in ## Version metadata, not frontmatter' — level is absent from frontmatter and correctly present in Compilation Metadata table (domain_agents, utility_agents counts)."
+
+      - id: play-workflow
+        item: Play defines workflow section
+        trigger: "core/components/plays/algorithm/SKILL.md matches **/plays/**/*.md trigger"
+        status: PASS
+        evidence: "## Workflow section found at line 82 in SKILL.md"
+
+      - id: play-checkpoint
+        item: Play defines checkpoint/approval behavior
+        trigger: "core/components/plays/algorithm/SKILL.md matches **/plays/**/*.md trigger"
+        status: PASS
+        evidence: "Approval gate defined at Phase: Approval (line 123). Human-gated confirmation before locking reference-algorithms.md from DRAFT to LOCKED status."
+
+      - id: skill-frontmatter
+        item: Skill has valid frontmatter (name, description, user-invocable, allowed-tools)
+        trigger: "core/components/skills/draft-reference-algorithms/SKILL.md matches **/skills/**/*.md trigger"
+        status: PASS
+        evidence: "Frontmatter present: name=draft-reference-algorithms, description=present, user-invocable=false, model=sonnet, allowed-tools=[Read, Write]"
+
+      - id: skill-io
+        item: Skill defines Input and Output sections
+        trigger: "core/components/skills/draft-reference-algorithms/SKILL.md matches **/skills/**/*.md trigger"
+        status: PASS
+        evidence: "## Input found at line 19, ## Output found at line 68 in draft-reference-algorithms/SKILL.md"
+
+      - id: feat-documented
+        item: Feature documented in README or docs
+        trigger: "feat: commit type found (feat(algorithm) commit) — feat-documented rule applies"
+        status: PASS
+        evidence: "New play and skill are self-documenting via their SKILL.md files. tech-architect.md skill registry updated at line 354 with draft-reference-algorithms entry. Play intent documented in core/components/plays/algorithm/reference/intent.yaml."
+
+      - id: sync-claude
+        item: Components synced with core/components/ via /sync-claude
+        trigger: "core/components/** files changed (play, skill, agent all under core/components/)"
+        status: REVIEW
+        evidence: "3 core components changed: core/components/plays/algorithm/SKILL.md, core/components/skills/draft-reference-algorithms/SKILL.md, core/components/agents/tech-architect.md. Cannot verify sync state from git history — /sync-claude must be run before or immediately after merge to deploy to ~/.claude/."
+
+      - id: config-valid
+        item: Configuration (YAML) syntax valid
+        trigger: "core/components/plays/algorithm/reference/intent.yaml matches *.yaml trigger"
+        status: PASS
+        evidence: "python3 yaml.safe_load() on intent.yaml returned no errors — VALID"
+
+    nice_to_have:
+      - id: play-agent-limit
+        item: Play respects agent call limits (L2 ≤5 domain agents)
+        trigger: "core/components/plays/algorithm/SKILL.md matches **/plays/**/*.md trigger"
+        status: PASS
+        evidence: "Compilation Metadata confirms domain_agents=1 (tech-architect), utility_agents=1 (repo-orchestrator, exempt from budget). Well within L2 limit of ≤5."
+
+      - id: skill-constraints
+        item: Skill has Constraints section
+        trigger: "core/components/skills/draft-reference-algorithms/SKILL.md matches **/skills/**/*.md trigger"
+        status: PASS
+        evidence: "## Constraints section found at line 115 in draft-reference-algorithms/SKILL.md with SCOPE subsection"
+
+      - id: feat-adr
+        item: Significant new feature has ADR
+        trigger: "feat: commit type — feat-adr nice-to-have rule applies; new play is a significant framework extension"
+        status: REVIEW
+        evidence: "No new ADR found for the algorithm play. The play introduces a new optional phase in the pipeline (between prepare and implement). An ADR documenting the decision to add this phase and the complexity-detection approach would be appropriate but is not blocking."
+
+      - id: agent-naming
+        item: Agent follows {domain}-{role} naming convention
+        trigger: "core/components/agents/tech-architect.md matches **/agents/**/*.md trigger"
+        status: PASS
+        evidence: "Agent name 'tech-architect' follows {domain}-{role} pattern. Change is additive only (one row added to skill registry table)."
+
+      - id: config-documented
+        item: Configuration changes documented
+        trigger: "intent.yaml *.yaml match — config-documented nice-to-have rule"
+        status: PASS
+        evidence: "intent.yaml is the source artifact for the play — it IS the documentation. The compiled SKILL.md references it explicitly."
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: "Create PR"
+
+  confidence:
+    target_branch:
+      value: high
+      rationale: "Branch is feature/333-reference-algorithm-play, base is main. No ambiguity — feature branches PR to main per project convention."
+    checklist_completeness:
+      value: high
+      rationale: "All triggered rules evaluated. Zero FAIL items. Two REVIEW items (sync-claude, feat-adr) are not blocking — sync-claude is a post-merge operational step, feat-adr is nice-to-have."
+    overall: high

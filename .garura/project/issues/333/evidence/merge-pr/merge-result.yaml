@@ -1,0 +1,9 @@
+merge:
+  pr_number: 338
+  merged: true
+  merge_sha: "4395ca6"
+  base_branch: main
+  feature_branch: feature/333-reference-algorithm-play
+  remote_branch_deleted: true
+  local_branch_deleted: true
+  current_branch: main

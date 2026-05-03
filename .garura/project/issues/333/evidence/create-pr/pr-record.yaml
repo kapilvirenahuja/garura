@@ -1,0 +1,7 @@
+pr:
+  number: 338
+  url: https://github.com/kapilvirenahuja/garura/pull/338
+  title: "feat(algorithm): add algorithm play and draft-reference-algorithms skill (#333)"
+  state: open
+  base_branch: main
+  head_branch: feature/333-reference-algorithm-play
