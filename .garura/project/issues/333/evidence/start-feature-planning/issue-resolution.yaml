@@ -1,0 +1,37 @@
+issue:
+  number: 333
+  title: "[FEAT] No home for reference algorithm spec — new optional play needed between prepare and implement"
+  body: |
+    | Field | Value |
+    |-------|-------|
+    | **Type** | feature |
+    | **Date** | 2026-05-01 |
+    | **Reported From** | Symphony SPEC gap analysis |
+
+    ### Problem
+
+    Algorithm-level behavioral specification — the equivalent of Symphony's Section 16 (Reference Algorithms) — has no home in the current pipeline. The gap sits between prepare and implement: prepare produces interface-level LLD (tech.yaml), and implement writes code, but nothing in between produces reference pseudocode or algorithmic contracts for complex behavioral components (state machines, scheduling loops, retry/backoff algorithms, reconciliation logic).
+
+    ### Specific Issues
+
+    - **prepare** stops at interface level by design — it produces API contracts, internal interfaces, and service contracts, but not the "how does this algorithm work" detail.
+    - **implement** owns the final code, but giving implementers no reference algorithm for complex logic (e.g. an orchestration state machine with 5 states and 6 transition triggers) forces them to invent the algorithm rather than implement a specified one.
+    - The behavioral specification layer between arch (component design) and implement (code) currently has no owner.
+
+    ### Expected Behavior
+
+    A new **optional play** between prepare and implement that:
+
+    - Is owned by the "underlying kit" — the framework or runtime the product is built on, not always required for every epic.
+    - Produces language-agnostic reference pseudocode for algorithmically complex behaviors identified in the LLD (tech.yaml).
+    - Is triggered when the prepare LLD contains components flagged as requiring algorithm-level specification (e.g. state machines, schedulers, reconciliation loops).
+    - Outputs a `reference-algorithms.md` artifact alongside the existing context package, consumed by implement as normative guidance.
+    - Optional to run — straightforward CRUD epics don't need it; orchestration/scheduling/consensus epics do.
+
+    ### Impact
+
+    Without this, implementers of complex behavioral components either invent the algorithm (risking divergence from the architectural intent captured in arch) or over-interpret the interface contracts in tech.yaml. A reference algorithm play closes the spec-to-code gap for the class of systems where behavioral correctness matters most.
+  url: "https://github.com/kapilvirenahuja/garura/issues/333"
+  state: "open"
+  created: false
+  type_hint: "feature"
