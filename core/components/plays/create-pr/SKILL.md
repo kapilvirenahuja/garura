@@ -63,6 +63,12 @@ git log ${default_branch}..HEAD --oneline
 
 # Extract issue number from branch name (e.g., feature/95-some-slug -> 95)
 issue=$(echo "$branch" | grep -oE '/[0-9]+' | tr -d '/')
+
+# Short-circuit: if commit-code already resolved the issue, skip project-orchestrator
+issue_linkage_resolved=false
+if [ -f "${stm_base}/${issue}/evidence/commit-code/issue-mappings.yaml" ]; then
+  issue_linkage_resolved=true
+fi
 ```
 
 **Resume check:** If `{stm_base}/{issue}/status/create-pr.json` exists, resume — skip completed steps, reset any `in_progress` to pending, continue from first incomplete.
@@ -102,6 +108,24 @@ Agent invokes `analyze-pr` skill. Writes PR analysis (checklist, evidence, targe
 **Step 2 — Resolve Issue Linkage**
 Owner: `project-orchestrator`
 Depends on: pre-flight
+**Skip when: `issue_linkage_resolved == true`** (commit-code already resolved this issue)
+
+When skipped, the play reads the issue number from commit-code's STM artifact and writes a synthetic `issue-linkage.yaml` directly — no agent spawn:
+
+```bash
+issue_number=$(grep '^issue:' ${stm_base}/${issue}/evidence/commit-code/issue-mappings.yaml | awk '{print $2}')
+# Write synthetic issue-linkage.yaml reading title/url from gh issue view ${issue_number}
+```
+
+```yaml
+issue:
+  number: {issue_number}
+  title: "{from gh issue view}"
+  url: "{from gh issue view}"
+  source: commit-code-stm
+```
+
+When not skipped (commit-code STM absent — create-pr invoked standalone):
 
 ```json
 {
@@ -211,7 +235,7 @@ Depends on: Step 6
 Write evidence to `{stm_base}/{issue}/evidence/create-pr/{YYYYMMDD-HHMMSS}.md`.
 Present PR summary to user (PR URL, number, title, checklist counts, eval summary).
 
-Invoke `repo-orchestrator` to self-commit evidence files (ADR 012). Non-blocking on failure.
+Evidence files are committed by ship's final sweep (C9).
 
 ## Pause and Resume
 
