@@ -27,7 +27,7 @@ input_contract:
     required: true
     description: >
       Path to the enriched-capabilities.yaml produced by enrich-capabilities
-      in Stage 4 (e.g., .meridian/product/scope/enriched-capabilities.yaml).
+      in Stage 4 (e.g., .meridian/product/scope/garura:enriched-capabilities.yaml).
 
   - name: project_profile_path
     type: path

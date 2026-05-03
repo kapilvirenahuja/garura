@@ -24,7 +24,7 @@ to that domain, the canonical KB entry (when one exists), and any ADR / README
 material matching the domain's search patterns. Every output carries the five
 KB-extension sections from `core/components/memory/standards/rules/kb-extension.md`;
 where scan evidence cannot populate a section, it is emitted with an inline
-`knowledge_gap: true` marker so `/enrich` surfaces the gap rather than silently
+`knowledge_gap: true` marker so `/garura:enrich` surfaces the gap rather than silently
 resolving it. Tier-2 inference, `learning_category: domain`, `sub_category: null`.
 
 ## Input
@@ -71,7 +71,7 @@ to `resolution_trace_path` with `source`, `path`, `outcome`, payload.
   `inferred_domain_new: true` → no KB base; structure directly from
   `kb-extension.md` and emit `knowledge_gap: true` on every section without
   a code signal.
-- **R4 — Web.** Not invoked. Gaps route through `/enrich` to a human.
+- **R4 — Web.** Not invoked. Gaps route through `/garura:enrich` to a human.
 
 ### 3. Attribute scan evidence per domain
 
@@ -110,7 +110,7 @@ fabricating content when evidence is absent.
   be in `selected_domains`.
 - **Success Criteria** — derived from detected test patterns and assertion
   counts where attributable. Otherwise emit one bullet: `- knowledge_gap:
-  true — no measurable success criteria observable from scan; defer to /enrich`.
+  true — no measurable success criteria observable from scan; defer to /garura:enrich`.
 - **Failure Scenarios** — derived from try/catch clusters, error-taxonomy
   modules, or ADRs naming failure modes. Usually absent; emit
   `knowledge_gap: true` with pointers to insufficient-but-present signals
@@ -200,14 +200,14 @@ path / field). Codes:
 - `scan_index_missing` — `scan_index_path` absent or not valid JSON.
 - `insufficient_signal` — domain-selection declares domains but every
   per-domain evidence bundle is empty; would produce pure knowledge_gap
-  stubs. Fall back to /enrich.
+  stubs. Fall back to /garura:enrich.
 - `output_path_unwritable` — `output_dir` cannot be created.
 
 ## Boundaries
 
 - Read-only against `scan_index_path`, `kb_domain_dir`, and `related_proposal_paths`.
 - Emits proposals, never canonical LTM. Promotion from STM proposals to
-  `.garura/product/research/` is handled downstream by `/enrich`.
+  `.garura/product/research/` is handled downstream by `/garura:enrich`.
 - Does NOT re-run `scan.py`, consult the web, or modify the canonical KB even
   when `inferred_domain_new: true` — new canonical entries are created only
   after human promotion.

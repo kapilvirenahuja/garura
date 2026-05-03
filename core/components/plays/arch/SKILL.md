@@ -110,7 +110,7 @@ Depends on: pre-flight
   "stm": {
     "input": {
       "scope_path": "{product_base}scope/scope.yaml",
-      "enriched_capabilities_path": "{product_base}scope/enriched-capabilities.yaml",
+      "enriched_capabilities_path": "{product_base}scope/garura:enriched-capabilities.yaml",
       "epics_dir": "{product_base}scope/epics/",
       "quality_profile_path": "{product_base}specification/quality-profile.yaml",
       "design_spec_path": "{product_base}experience/design-spec.md",

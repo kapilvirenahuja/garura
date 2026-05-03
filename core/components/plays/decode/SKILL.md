@@ -7,7 +7,7 @@ model: opus
 
 # decode
 
-Given an existing codebase whose feature catalog exists (in product LTM post-/enrich, or in STM from a prior /codify run), reverse-engineer the business logic the code encodes as three cross-linked artifact streams (feature specs, user-flow specs, cross-cutting aspect specs) plus a tiered suite of generated tests that must run green against the current codebase before each spec is considered captured. The play is tech-agnostic at compile time; tech-aware extraction skills are synthesized at runtime from KB playbooks per detected stack and cleaned up on final Tether. Every rule, scenario, contract, integration, and step cites source at file:line. Test/code drift surfaces as ambiguities, never silent resolution. Output is staged under `{stm_base}/{issue}/evidence/decode/proposals/` with a master proposals.yaml index. No writes to product LTM — /enrich is the sole promotion gate.
+Given an existing codebase whose feature catalog exists (in product LTM post-/garura:enrich, or in STM from a prior /codify run), reverse-engineer the business logic the code encodes as three cross-linked artifact streams (feature specs, user-flow specs, cross-cutting aspect specs) plus a tiered suite of generated tests that must run green against the current codebase before each spec is considered captured. The play is tech-agnostic at compile time; tech-aware extraction skills are synthesized at runtime from KB playbooks per detected stack and cleaned up on final Tether. Every rule, scenario, contract, integration, and step cites source at file:line. Test/code drift surfaces as ambiguities, never silent resolution. Output is staged under `{stm_base}/{issue}/evidence/decode/proposals/` with a master proposals.yaml index. No writes to product LTM — /garura:enrich is the sole promotion gate.
 
 ## Compiled From
 
@@ -43,7 +43,7 @@ Domain agents: 3 (tech-architect, test-engineer, test-runner). Utility: 1 (repo-
 
 - `--issue` — optional. Anchor STM output paths. Resolved from arg, branch `decode/{issue}-*` or `feat/{issue}-decode-*`, else project-orchestrator creates one.
 - `--feature` / `--capability` / `--domain` / `--all` — at least ONE is required (C1). Feature-scope input is mandatory; no unbounded invocations.
-- `--features-from` — optional override for features.yaml location (C2 path b). Used when /codify STM features.yaml is the input before /enrich promotion.
+- `--features-from` — optional override for features.yaml location (C2 path b). Used when /codify STM features.yaml is the input before /garura:enrich promotion.
 - `--loc-soft-cap` — per-unit LOC pre-check soft cap (default 5000). C11.
 - `--workspace` — optional workspace root when the base repo lacks installed deps (C26 fallback).
 - `--install-if-missing` — allow test-runner to invoke harness install command. Default false.
@@ -60,7 +60,7 @@ Execute these checks before any domain work:
 | Resolve `core_base` (`~/.garura/core/memory/`) | C21 | Hard halt — LTM Resolution Protocol requires it |
 | Resolve issue number per C0 | C0, F0 | Delegate to project-orchestrator; if both fail, hard halt |
 | Confirm at least one feature selector supplied | C1, F3 | Hard halt — feature scope is mandatory |
-| Resolve features.yaml per C2 order | C2, F2 | Hard halt — /codify + /enrich prerequisite |
+| Resolve features.yaml per C2 order | C2, F2 | Hard halt — /codify + /garura:enrich prerequisite |
 | Verify physical-architecture.yaml exists for tech-skill synthesis | C29 | Hard halt — decode cannot dispatch without detected stacks |
 | Verify every detected stack has a playbook at `core/components/memory/knowledge/tech/{stack}.md` | C30, F15 | Hard halt — prompt user to author the missing playbook |
 | Detect TEST_HARNESS (framework + runner command + runnability) | C26, F18 | Hard halt — specs that cannot be verified green are not captured |
@@ -241,7 +241,7 @@ Owner: play (inline)
 Depends on: Step 3
 
 Expand feature selectors against features.yaml to produce the target feature set. Discovery for flows and aspects:
-- Flows: sourced from `{product_base}/experience/flows/*.md` (post-/enrich) OR inferred from E2E tests OR explicit `--flow` args (future).
+- Flows: sourced from `{product_base}/experience/flows/*.md` (post-/garura:enrich) OR inferred from E2E tests OR explicit `--flow` args (future).
 - Aspects: discovered via scan-index decorator/middleware registration patterns + aspect-kind catalog.
 
 Emit `{stm_base}/{issue}/evidence/decode/target-units.yaml` with feature_ids[], flow_ids[], aspect_ids[]. Zero-unit case (total_units=0) is valid per C16.
@@ -720,7 +720,7 @@ At play end, assert the 11 scenarios hold against evidence:
 - **SCE-7 (S7 — Generated test fails on current code):** See evals.yaml SCE-7. Baseline-green halts unit, options presented, ambiguity after drop-rule.
 - **SCE-8 (S8 — Vanish + resume):** See evals.yaml SCE-8. Temp skills preserved on Vanish, resume skips completed, cleanup only on Tether.
 - **SCE-9 (S9 — Flow with no existing E2E):** See evals.yaml SCE-9. Generated Playwright test passes, flow captured.
-- **SCE-10 (S10 — /decode after /codify before /enrich):** See evals.yaml SCE-10. --features-from accepted, all units Tier 3.
+- **SCE-10 (S10 — /decode after /codify before /garura:enrich):** See evals.yaml SCE-10. --features-from accepted, all units Tier 3.
 - **SCE-11 (S11 — Non-runnable environment):** See evals.yaml SCE-11. Hard halt with prerequisites error, no specs emitted.
 
 ---

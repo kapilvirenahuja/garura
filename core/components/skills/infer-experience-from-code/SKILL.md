@@ -39,7 +39,7 @@ copy, and interaction polish are NEVER inferable from code. Output is limited
 to: screen inventory with state-list stubs (default / loading / error minimum),
 Mermaid flow diagrams routing between screens, JTBD persona stubs, and a
 design-system token INVENTORY harvested from config. Everything visual is a
-knowledge gap routed to /enrich. Asserting visuals here is fabrication.
+knowledge gap routed to /garura:enrich. Asserting visuals here is fabrication.
 
 ## Input
 
@@ -178,7 +178,7 @@ whole inventory and confidence `low`.
 `{experience_output_dir}/design-spec.md` is a NAVIGATIONAL consolidator:
 standard `meta:` block plus `## Personas`, `## Screens`, `## Flows`,
 `## Design System` sections listing every file produced with 1-line summaries
-and confidence tags. Downstream readers (arch, /enrich) land here first.
+and confidence tags. Downstream readers (arch, /garura:enrich) land here first.
 
 ### 9. Write decision manifest
 
@@ -277,7 +277,7 @@ Codes:
 
 - Read-only against `scan_index_path`, upstream proposals, `kb_base`, resolved LTM paths.
 - Writes MULTIPLE files under `experience_output_dir` (nested `screens/` and `flows/`) plus one decision manifest and one resolution trace. NEVER writes to `.garura/product/experience/` in place.
-- Emits STRUCTURAL stubs only — NEVER fabricates wireframes, brand tokens absent from config, persona demographics, flow failure-recovery branches, or state copy. Those are knowledge gaps routed to /enrich.
+- Emits STRUCTURAL stubs only — NEVER fabricates wireframes, brand tokens absent from config, persona demographics, flow failure-recovery branches, or state copy. Those are knowledge gaps routed to /garura:enrich.
 - Does NOT re-run `scan.py`; stale scan-index is the orchestrator's concern.
-- Does NOT promote any artifact to product LTM. Promotion is /enrich's job.
+- Does NOT promote any artifact to product LTM. Promotion is /garura:enrich's job.
 - On `no_frontend` short-circuit, writes the resolution trace but NOT the decision manifest — there are no decisions to record when the skill does not execute.

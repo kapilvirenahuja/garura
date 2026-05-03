@@ -52,7 +52,7 @@ Execute these checks **in order** before any domain work:
 |------|-------|-----------|-------------------|
 | PF-0 | Resolve `stm_base` and `product_base` from `.garura/core/config.yaml` | — | Hard halt — config required |
 | PF-1 | Resolve invocation mode (product-wide / --epic / --feature) and narrow scope set | C19 | Hard halt with id + scope-file pointer on unresolvable id |
-| PF-2 | specify artifacts exist and are LOCKED: `scope/scope.yaml`, `scope/enriched-capabilities.yaml`, `scope/epics/*.yaml` (restricted to the narrowed set), `specification/quality-profile.yaml` under `{product_base}` | C1 | Hard halt — "specify must complete before design starts" |
+| PF-2 | specify artifacts exist and are LOCKED: `scope/scope.yaml`, `scope/garura:enriched-capabilities.yaml`, `scope/epics/*.yaml` (restricted to the narrowed set), `specification/quality-profile.yaml` under `{product_base}` | C1 | Hard halt — "specify must complete before design starts" |
 | PF-3 | KB catalog consistency — invoke `validate-kb-extension` skill | C2 | Hard halt — print validator report, block until fixed |
 | PF-4 | `{product_base}experience/` writable; scriber agent reachable | C10, C11 | Hard halt — infrastructure check |
 | PF-5 | `{product_base}scope/mvp-recommendation.md` exists and is non-empty | C15 | Hard halt — "Author scope/mvp-recommendation.md before running design. See rules/product.md Rule 13 and the specify play for the expected artifact shape." |
@@ -176,7 +176,7 @@ Stage 3 narrows screen generation to capabilities serving at least one primary u
   "stm": {
     "input": {
       "scope_path": "{product_base}scope/scope.yaml",
-      "enriched_capabilities_path": "{product_base}scope/enriched-capabilities.yaml",
+      "enriched_capabilities_path": "{product_base}scope/garura:enriched-capabilities.yaml",
       "epics_dir": "{product_base}scope/epics/",
       "personas_path": "{product_base}experience/personas.md",
       "product_research_path": "{product_base}research/",

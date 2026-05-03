@@ -253,7 +253,7 @@ overall_confidence: "high" | "medium" | "low"
   LTM, and core KB. Never rescans the repo.
 - Emits a proposal, NOT canonical product LTM. Writing to
   `.garura/product/architecture/design-patterns.yaml` is a downstream
-  `/enrich` action.
+  `/garura:enrich` action.
 - Does NOT invent patterns absent from both the mapping table and the KB
   catalogue — an unnamed structural observation is recorded in the manifest
   as an open question, never promoted into `design_patterns`.

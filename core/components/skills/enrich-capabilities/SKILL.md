@@ -23,7 +23,7 @@ Receive from product-keeper:
 - `project_profile_path` (path, required) — frozen project profile YAML
 - `ltm_domain_taxonomy_path` (path, required) — `core/components/memory/knowledge/domain/`
 - `market_brief_path` (path, optional) — used for additional context
-- `output_path` (string, required) — `.meridian/product/scope/enriched-capabilities.yaml`
+- `output_path` (string, required) — `.meridian/product/scope/garura:enriched-capabilities.yaml`
 - `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifact (e.g., `.meridian/product/scope/decision-manifest-enrich-capabilities.yaml`). Exact path is passed by the calling agent.
 
 ## Process

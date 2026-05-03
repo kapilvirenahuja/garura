@@ -217,6 +217,6 @@ Codes:
 ## Boundaries
 
 - Read-only against `scan_index_path` and `kb_domain_dir`.
-- Emits proposals, not canonical KB entries. Promoting an `inferred_domain_new` domain into the KB is a human decision handled downstream by /enrich.
+- Emits proposals, not canonical KB entries. Promoting an `inferred_domain_new` domain into the KB is a human decision handled downstream by /garura:enrich.
 - Does NOT re-run `scan.py`; stale `scan_index_path` is the orchestrator's concern.
 - All writes land under `{stm_base}/{issue}/evidence/codify/proposals/`; never modifies `.garura/product/` in place.

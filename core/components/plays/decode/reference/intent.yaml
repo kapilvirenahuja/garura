@@ -1,7 +1,7 @@
 name: decode
 description: >
   Brownfield behavior extraction with executable verification. Given a
-  codebase's feature catalog (from /codify + /enrich, or directly from /codify
+  codebase's feature catalog (from /codify + /garura:enrich, or directly from /codify
   STM), /decode extracts the business logic the code encodes and emits it as
   three cross-linked artifact streams — feature specs, user-flow specs, and
   cross-cutting aspect specs — plus a tiered suite of generated tests that
@@ -71,7 +71,7 @@ intent: >
   the extraction is fixed or dropped, never committed with a red baseline.
 
   Outputs are staged under {stm_base}/{issue}/evidence/decode/proposals/ with
-  a master proposals.yaml index. No writes to product LTM — /enrich is the
+  a master proposals.yaml index. No writes to product LTM — /garura:enrich is the
   sole promotion gate. Processing is per-feature and per-flow, resumable via
   status file. Downstream, locked specs plus the generated test suite feed
   /prepare as the migration contract: /prepare plans LLD against the new
@@ -110,11 +110,11 @@ constraints:
   - id: C2
     rule: >
       features.yaml must be resolvable. Resolution order:
-        (a) {product_base}/scope/features.yaml (post-/enrich, canonical);
+        (a) {product_base}/scope/features.yaml (post-/garura:enrich, canonical);
         (b) --features-from <path> (explicit override, e.g. STM output from
             a prior /codify run);
         (c) if neither resolves, hard halt with a clear error pointing at
-            /codify + /enrich as the prerequisite.
+            /codify + /garura:enrich as the prerequisite.
 
   - id: C3
     rule: >
@@ -368,7 +368,7 @@ constraints:
     rule: >
       Evidence self-commit via repo-orchestrator is non-blocking. Commit
       failure is logged and the play exits cleanly. proposals.yaml, specs,
-      and generated tests remain on disk for /enrich to consume.
+      and generated tests remain on disk for /garura:enrich to consume.
 
   - id: C20
     rule: >
@@ -383,7 +383,7 @@ constraints:
       {product_base}/scope/ (features/flows/aspects); Tier 3 when the unit
       exists only in STM from a prior /codify run (fresh addition).
       source_type is uniformly "extracted_from_code" — distinct from
-      /codify's "inferred_from_code" so /enrich routes behavior output
+      /codify's "inferred_from_code" so /garura:enrich routes behavior output
       through its own consumption path.
 
   - id: C21
@@ -569,7 +569,7 @@ failure_conditions:
     condition: >
       features.yaml cannot be resolved from either
       {product_base}/scope/features.yaml or --features-from. Hard halt with
-      /codify + /enrich prerequisite guidance.
+      /codify + /garura:enrich prerequisite guidance.
 
   - id: F3
     condition: >
@@ -833,15 +833,15 @@ scenarios:
       C25; on green, flow is captured.
 
   - id: S10
-    persona: "Tech lead using /decode immediately after /codify, before /enrich"
+    persona: "Tech lead using /decode immediately after /codify, before /garura:enrich"
     given: >
-      /codify completed on issue 321 producing STM features.yaml. /enrich
+      /codify completed on issue 321 producing STM features.yaml. /garura:enrich
       NOT yet run. User invokes /decode --issue 500
       --features-from .garura/project/issues/321/evidence/codify/proposals/scope/features.yaml
       --all.
     then: >
       Play accepts STM-sourced features.yaml per C2(b). All units tier 3
-      (addition). /enrich later promotes features + behaviors + flows +
+      (addition). /garura:enrich later promotes features + behaviors + flows +
       aspects + generated tests together.
 
   - id: S11

@@ -381,7 +381,7 @@ Depends on: Step 7 (Tether)
       "market_brief_path": "{product_base}/specification/market-brief.md"
     },
     "output": {
-      "enriched_capabilities_path": "{product_base}/scope/enriched-capabilities.yaml",
+      "enriched_capabilities_path": "{product_base}/scope/garura:enriched-capabilities.yaml",
       "decision_manifest_path": "{product_base}/scope/decision-manifest-enrich-capabilities.yaml"
     }
   },
@@ -420,7 +420,7 @@ Depends on: Step 8
   "product_base": "{product_base}",
   "stm": {
     "input": {
-      "enriched_capabilities_path": "{product_base}/scope/enriched-capabilities.yaml",
+      "enriched_capabilities_path": "{product_base}/scope/garura:enriched-capabilities.yaml",
       "project_profile_path": "{product_base}/specification/project-profile.yaml",
       "market_brief_path": "{product_base}/specification/market-brief.md",
       "ltm_intent_epic_schema_path": "core/components/memory/standards/schemas/intent-epic.yaml",
@@ -650,7 +650,7 @@ Invoke `repo-orchestrator` to self-commit the STM + product artifacts per ADR 01
     "{product_base}/research/*.md",
     "{product_base}/scope/mvp-recommendation.md",
     "{product_base}/scope/scope.yaml",
-    "{product_base}/scope/enriched-capabilities.yaml",
+    "{product_base}/scope/garura:enriched-capabilities.yaml",
     "{product_base}/scope/epics/*.yaml",
     "{product_base}/specification/quality-profile.yaml",
     "{product_base}/scope/validation-intent-epics.yaml",
