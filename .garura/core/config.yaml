@@ -70,9 +70,9 @@ review-pr:
   fallback_reviewers: []
   activity_window_days: 90
 
-# Evidence recording — when false, non-essential STM artifacts in commit-code are skipped
+# Evidence recording — when false, STM evidence writes are skipped across ship and all sub-plays
 evidence:
-  record: true
+  record: false
 
 # Product artifacts — parallel to project, not nested (ADR 017 whitelist)
 # Stage-centric sub-folders, one per SDLC stage. Operational artifacts
