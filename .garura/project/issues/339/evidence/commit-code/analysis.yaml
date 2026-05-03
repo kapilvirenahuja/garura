@@ -1,0 +1,101 @@
+branch:
+  name: chore/339-rename-enrich-to-garura-prefix
+  issue: 339
+  is_hotfix: false
+
+change_summary:
+  total_files: 34
+  staged: 0
+  unstaged: 31
+  untracked: 3  # directories: .garura/project/issues/333/evidence/commit-code/, .garura/project/issues/333/evidence/distill/, .garura/project/issues/339/
+
+groups:
+  - id: G1
+    issue: 339
+    type: refactor
+    scope: components
+    subject: "rename /enrich to /garura:enrich and update enriched-capabilities path prefix across plays and skills"
+    confidence: high
+    files:
+      - path: core/components/plays/arch/SKILL.md
+        change: updated enriched_capabilities_path reference to garura:enriched-capabilities.yaml
+      - path: core/components/plays/arch/reference/intent.yaml
+        change: updated enriched-capabilities.yaml path reference to garura:enriched-capabilities.yaml
+      - path: core/components/plays/codify/SKILL.md
+        change: renamed /enrich to /garura:enrich in description and body references (4 occurrences)
+      - path: core/components/plays/codify/reference/intent.yaml
+        change: renamed /enrich to /garura:enrich and enriched-capabilities to garura:enriched-capabilities (8 occurrences)
+      - path: core/components/plays/decode/SKILL.md
+        change: renamed /enrich to /garura:enrich in description and body references (4 occurrences)
+      - path: core/components/plays/decode/reference/intent.yaml
+        change: renamed /enrich to /garura:enrich and updated features.yaml path reference
+      - path: core/components/plays/design/SKILL.md
+        change: renamed /enrich to /garura:enrich references
+      - path: core/components/plays/design/reference/intent.yaml
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/plays/enrich/SKILL.md
+        change: renamed /enrich to /garura:enrich in self-description references
+      - path: core/components/plays/enrich/reference/intent.yaml
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/plays/specify/SKILL.md
+        change: renamed /enrich to /garura:enrich references
+      - path: core/components/skills/aggregate-codify-proposals/SKILL.md
+        change: renamed /enrich to /garura:enrich in description
+      - path: core/components/skills/aggregate-decode-proposals/SKILL.md
+        change: renamed /enrich to /garura:enrich in description
+      - path: core/components/skills/apply-ltm-enrichment/SKILL.md
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/skills/derive-logical-architecture/SKILL.md
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/skills/enrich-capabilities/SKILL.md
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/skills/generate-contract-tests/SKILL.md
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/skills/generate-flow-tests/SKILL.md
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/skills/generate-screen-inventory/SKILL.md
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/skills/generate-unit-pure-tests/SKILL.md
+        change: renamed /enrich to /garura:enrich references
+      - path: core/components/skills/infer-design-patterns-from-code/SKILL.md
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/skills/infer-domain-selection-from-code/SKILL.md
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/skills/infer-enriched-capabilities-from-code/SKILL.md
+        change: renamed /enrich to /garura:enrich references
+      - path: core/components/skills/infer-epics-from-code/SKILL.md
+        change: renamed /enrich to /garura:enrich and enriched-capabilities path references
+      - path: core/components/skills/infer-experience-from-code/SKILL.md
+        change: renamed /enrich to /garura:enrich references
+      - path: core/components/skills/infer-features-from-code/SKILL.md
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/skills/infer-quality-vision-from-code/SKILL.md
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/skills/infer-research-from-code/SKILL.md
+        change: renamed /enrich to /garura:enrich references
+      - path: core/components/skills/manage-features/SKILL.md
+        change: renamed /enrich to /garura:enrich reference
+      - path: core/components/skills/manage-features/reference/intent.yaml
+        change: renamed /enrich to /garura:enrich reference
+
+  - id: G2
+    issue: 339
+    type: chore
+    scope: stm
+    subject: "record start-feature evidence and pending queue entry for #339; add commit-code and distill evidence for #333"
+    confidence: high
+    files:
+      - path: .garura/project/issues/_pending/start-feature/args.yaml
+        change: updated queue entry value to reflect #339 rename-enrich task
+      - path: .garura/project/issues/333/evidence/commit-code/
+        change: untracked commit-code evidence artifacts (analysis.yaml, commits.yaml, issue-mappings.yaml)
+      - path: .garura/project/issues/333/evidence/distill/
+        change: untracked distill evidence artifact (result.yaml)
+      - path: .garura/project/issues/339/
+        change: untracked start-feature evidence and status for #339
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false

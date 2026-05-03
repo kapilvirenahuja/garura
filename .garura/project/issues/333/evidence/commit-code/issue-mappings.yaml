@@ -1,0 +1,30 @@
+mappings:
+  - group_id: 1
+    issue: "333"
+    confidence: high
+    rationale: >
+      Branch is feature/333-reference-algorithm-play. Changes introduce the algorithm play,
+      draft-reference-algorithms skill, and tech-architect registration — all directly
+      implementing the work tracked in #333.
+
+  - group_id: 2
+    issue: "333"
+    confidence: high
+    rationale: >
+      STM evidence artifacts from the create-play run are scoped to
+      .garura/project/issues/333/ — unambiguously tied to #333.
+
+  - group_id: 3
+    issue: "333"
+    confidence: high
+    rationale: >
+      Pending start-feature-planning artifacts (args.yaml, issue-resolution.yaml) are
+      bootstrap artifacts for the #333 feature session and belong to #333.
+
+conflicts: []
+
+summary:
+  total_groups: 3
+  all_high_confidence: true
+  approval_required: false
+  constraint_c9_satisfied: true

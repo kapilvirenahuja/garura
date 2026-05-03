@@ -1,0 +1,11 @@
+issue:
+  number: 339
+  title: "[CHORE] Rename enrich to have the prefix garura:"
+  labels: []
+  state: "open"
+  body_summary: "Rename the `enrich` skill to have the prefix `garura:` to align with the namespacing convention used across the framework."
+  url: "https://github.com/kapilvirenahuja/garura/issues/339"
+  created: true
+  closed: false
+  parent_issue: null
+  type_hint: "chore"

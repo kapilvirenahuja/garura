@@ -1,0 +1,47 @@
+commits:
+  - group_id: 1
+    hash: ff9039d
+    type: feat
+    scope: algorithm
+    subject: "add algorithm play and draft-reference-algorithms skill (#333)"
+    issue: "333"
+    files_changed: 4
+    insertions: 589
+    files:
+      - core/components/plays/algorithm/SKILL.md
+      - core/components/plays/algorithm/reference/intent.yaml
+      - core/components/skills/draft-reference-algorithms/SKILL.md
+      - core/components/agents/tech-architect.md
+
+  - group_id: 2
+    hash: ff2a7dc
+    type: chore
+    scope: stm
+    subject: "record create-play evidence for algorithm (#333)"
+    issue: "333"
+    files_changed: 4
+    insertions: 403
+    files:
+      - .garura/project/issues/333/evidence/create-play/algorithm/agent-audit-tech-architect.md
+      - .garura/project/issues/333/evidence/create-play/algorithm/coverage-matrix.md
+      - .garura/project/issues/333/evidence/create-play/algorithm/evals.yaml
+      - .garura/project/issues/333/evidence/create-play/algorithm/skill-manifest.yaml
+
+  - group_id: 3
+    hash: 318e7a8
+    type: chore
+    scope: stm
+    subject: "add pending start-feature-planning artifacts for #333"
+    issue: "333"
+    files_changed: 2
+    insertions: 40
+    files:
+      - .garura/project/issues/_pending/start-feature-planning/args.yaml
+      - .garura/project/issues/_pending/start-feature-planning/issue-resolution.yaml
+
+push:
+  status: success
+  remote: origin
+  branch: feature/333-reference-algorithm-play
+  base_sha: b48c889
+  head_sha: 318e7a8
