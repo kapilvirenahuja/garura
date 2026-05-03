@@ -1,0 +1,82 @@
+sourced_from: "PR #342 diff — core/components/plays/refactor/SKILL.md + intent.yaml"
+generated_at: "2026-05-03T00:00:00Z"
+source_play: "distill"
+issue: "341"
+mode: "fast"
+
+context:
+  stm_evidence_found: false
+  diff_assessed_trivial: false
+  diff_summary: >
+    New play garura:refactor added. Structure A workflow (Preparation → Checkpoint →
+    Execution), 4 domain agents, 10 skills, 22 step evals, 6 scenario evals,
+    14 constraints (C1–C14), 12 failure conditions (F1–F12). Also STM evidence
+    files for issue #341.
+  confidence: "low"
+  max_proposals_allowed: 1
+
+proposals:
+  - proposal_id: "P-001"
+    tier: 2
+    learning_category: "arch"
+    sub_category: "play-patterns"
+    learning_category_proposed: false
+    sub_category_proposed: true
+    taxonomy_justification:
+      evidence_path: "core/components/plays/refactor/SKILL.md"
+      excerpt: >
+        "Each refactor commit contains exactly one refactor move, is prefixed `refactor:`,
+        and leaves the test suite green on its own. (C5) ... After every commit, the test
+        count must equal or exceed the baseline count, the suite must be green, the
+        type-checker/compiler must be clean, lint must show no new violations, and total
+        test runtime must remain within approximately 10% of the baseline. (C11)"
+      reasoning: >
+        This is an architectural pattern governing how plays are structured — specifically,
+        how a play handles multi-commit output sequences. It does not fit canonical
+        sub-categories (which cover individual component types: agents, skills, evals)
+        because it spans the entire play execution model. "play-patterns" is proposed
+        as a new sub-category of "arch" to capture cross-play structural decisions.
+    artifact: "research/arch.md"
+    artifact_path: ".garura/product/research/arch.md"
+    section: "Experiential"
+    finding: >
+      garura:refactor is the first play in the framework that produces a multi-commit
+      output sequence. All prior plays (algorithm, prepare, implement, etc.) produce
+      at most one commit per run. The refactor play enforces a per-commit green gate:
+      after each `refactor:` commit lands, the full test suite (plus type-check and
+      lint) must pass before the next step starts. This gate is encoded in C5 and C11
+      of intent.yaml and verified by 22 step-level evals. The commit-prefix sequencing
+      (`test:` before `refactor:`) is itself a constraint (C4 / F7) when baseline
+      coverage is thin.
+    proposed_enrichment: >
+      When a play must produce N independent commits (rather than one), use a
+      per-commit green gate: after each commit, run the full test suite (plus
+      type-check and lint) and fail the step — not the play — if any check is red.
+      The refactor play (garura:refactor, issue #341) established this pattern.
+      Each commit is one atomic move; the gate between commits prevents compounding
+      failures and makes each commit independently revertable. Characterization test
+      commits (`test:` prefix) precede refactor commits (`refactor:` prefix) when
+      baseline coverage is thin — this ordering is enforced as a constraint, not a
+      convention.
+    evidence: >
+      core/components/plays/refactor/SKILL.md — Step 2 SE-11 eval, C5 and C11;
+      core/components/plays/refactor/reference/intent.yaml — constraints C4, C5, C11,
+      failure conditions F7, F11.
+    approval_status: "pending"
+
+summary:
+  tier_1: 0
+  tier_2: 1
+  tier_3: 0
+  total_proposals: 1
+  by_learning_category:
+    arch: 1
+    domain: 0
+    product: 0
+    quality: 0
+    standards: 0
+  proposed_categories: []
+  proposed_sub_categories: ["play-patterns"]
+  tiers_skipped: ["tier_1", "tier_3"]
+  stm_evidence_found: false
+  diff_assessed_trivial: false
