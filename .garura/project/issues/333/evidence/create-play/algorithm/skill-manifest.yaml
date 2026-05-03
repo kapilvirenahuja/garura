@@ -1,0 +1,5 @@
+play: algorithm
+skills:
+  - name: draft-reference-algorithms
+    path: core/components/skills/draft-reference-algorithms/SKILL.md
+    status: new

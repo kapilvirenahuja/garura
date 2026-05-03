@@ -1,0 +1,5 @@
+branch:
+  name: feature/333-reference-algorithm-play
+  base: main
+  pushed: true
+  created_at: "2026-05-03T00:00:00Z"
