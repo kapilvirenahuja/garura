@@ -1,0 +1,201 @@
+intent: >
+  Given a target scope (files, modules, or functions), a stated smell or
+  restructuring goal, explicit constraints, an out-of-scope list, and a
+  time-box, produce a series of atomic, behaviour-preserving refactor
+  commits that improve internal structure without altering observable
+  behaviour. The play establishes a green baseline, pins existing
+  behaviour with characterization tests where coverage is thin, maps
+  blast radius, executes a small numbered plan of independently shippable
+  steps, and delivers a final report of what changed structurally, what
+  did not change, and what was deferred. The public API surface,
+  dependencies, features, and bug behaviour are preserved exactly unless
+  the user has explicitly authorised changes.
+
+constraints:
+  - id: C1
+    rule: >
+      The play only restructures existing code. It does not add features,
+      fix bugs, upgrade dependencies, or change framework choices unless
+      the user has explicitly authorised that change in the task
+      description.
+  - id: C2
+    rule: >
+      The play must not begin restructuring on a red baseline. If any
+      test is failing before refactoring starts, the play halts and
+      reports.
+  - id: C3
+    rule: >
+      The working tree must be clean before refactoring begins. If
+      uncommitted changes exist, the play halts and asks the user.
+  - id: C4
+    rule: >
+      Where the target scope has thin test coverage, characterization
+      tests pinning current behaviour (including edge cases and error
+      paths) must be authored and committed before any refactor commit,
+      in a commit prefixed `test:`.
+  - id: C5
+    rule: >
+      Each refactor commit contains exactly one refactor move, is
+      prefixed `refactor:`, and leaves the test suite green on its own.
+  - id: C6
+    rule: >
+      Behaviour changes (bug fixes, feature additions) are never mixed
+      into a refactor commit. Discovered bugs are recorded and proposed
+      as separate `fix:` commits only after explicit user confirmation.
+  - id: C7
+    rule: >
+      The public API surface — exported names, signatures, return shapes,
+      error types, HTTP routes, CLI flags, DB columns, and
+      wire/serialization contracts — must remain unchanged unless the
+      out-of-scope authorisation explicitly permits a named change.
+  - id: C8
+    rule: >
+      Tests must not be deleted, skipped, or weakened to make a commit
+      pass. If a previously green test goes red, the refactor commit is
+      reverted.
+  - id: C9
+    rule: >
+      No new dependency, framework, or architectural pattern is
+      introduced unless the user explicitly asked for it. Extract,
+      rename, inline, and move are preferred over new abstractions;
+      shared abstractions follow the rule of three.
+  - id: C10
+    rule: >
+      Out-of-scope cleanups, opportunistic edits, and "while I'm here"
+      changes are not included in the diff. They are recorded in
+      FOLLOWUPS.md instead.
+  - id: C11
+    rule: >
+      After every commit, the test count must equal or exceed the
+      baseline count, the suite must be green, the type-checker/compiler
+      must be clean, lint must show no new violations, and total test
+      runtime must remain within approximately 10% of the baseline.
+  - id: C12
+    rule: >
+      The execution plan presented before editing must consist of 3 to 7
+      numbered, independently shippable steps. If more steps are
+      required, a Mikado-style prerequisite graph is reported and
+      execution does not begin until the user has seen it.
+  - id: C13
+    rule: >
+      Blast radius — every caller of the public surface in scope and
+      every wire, serialization, or DB contract that touches it — must
+      be mapped and reported before any edit.
+  - id: C14
+    rule: >
+      When the time-box is exceeded, the play stops at the last green
+      commit and reports. It does not push past the time-box to finish
+      a step.
+
+failure_conditions:
+  - id: F1
+    condition: >
+      The play completed but at least one commit on the produced history
+      leaves the test suite red.
+  - id: F2
+    condition: >
+      The play completed but the public API surface differs from the
+      baseline in ways not covered by an explicit user authorisation.
+  - id: F3
+    condition: >
+      The play completed but a test that was green at baseline is
+      missing, skipped, or weakened in the final state.
+  - id: F4
+    condition: >
+      The play completed but at least one commit mixes a behaviour change
+      (feature, bug fix, dependency change) with refactor work, judged
+      by commit message and diff content.
+  - id: F5
+    condition: >
+      The play completed but the final test count is lower than the
+      baseline test count.
+  - id: F6
+    condition: >
+      The play completed but commits are not atomic single refactor
+      moves, or commit messages are not prefixed `refactor:`, `test:`,
+      or `fix:` as appropriate.
+  - id: F7
+    condition: >
+      The play completed but the target scope had thin coverage at start
+      and no characterization tests were committed before the first
+      refactor commit.
+  - id: F8
+    condition: >
+      The play completed but a new dependency, framework, or pattern was
+      introduced without explicit user authorisation.
+  - id: F9
+    condition: >
+      The play completed but out-of-scope edits appear in the diff
+      instead of being deferred to FOLLOWUPS.md.
+  - id: F10
+    condition: >
+      The play began executing refactor commits without first reporting
+      the baseline test result, the blast-radius map, and a 3-to-7-step
+      plan (or a Mikado prerequisite graph) to the user.
+  - id: F11
+    condition: >
+      The play executed refactor commits despite a red baseline test
+      suite or an unclean working tree at start.
+  - id: F12
+    condition: >
+      The final report omits any of: baseline metrics, the executed plan
+      with commit references, before/after structural summary, an
+      explicit statement of what did not change, deferred follow-ups, and
+      the self-check results.
+
+scenarios:
+  - id: S1
+    persona: Developer
+    given: >
+      The git history of a refactor session targeting a specified module,
+      with a clean working tree and a green test suite at the start.
+    then: >
+      Can review a sequence of small `refactor:` (and possibly `test:`)
+      commits, each of which can be checked out independently and runs
+      green, and can confidently revert any single commit without
+      breaking the build.
+  - id: S2
+    persona: Tech Lead
+    given: >
+      The final report produced by the refactor play.
+    then: >
+      Can verify behaviour preservation at a glance — baseline vs final
+      test counts and runtime, a public-API diff that is empty or matches
+      the authorised list, and an explicit list of what did NOT change —
+      without having to re-derive any of it from the diff.
+  - id: S3
+    persona: Reviewer of the resulting pull request
+    given: >
+      The diff and commit log produced by the play.
+    then: >
+      Can confirm that every commit is a single refactor move with a
+      conventional prefix, no test was deleted or weakened, no new
+      dependency was added, and any deferred work appears in FOLLOWUPS.md
+      rather than being smuggled into the diff.
+  - id: S4
+    persona: Developer
+    given: >
+      A target scope where the existing test suite was already failing
+      before the play was invoked.
+    then: >
+      Receives an immediate halt with a clear report that refactoring on
+      red is forbidden, and no commits have been made to the branch.
+  - id: S5
+    persona: Developer
+    given: >
+      A target scope with thin test coverage and a stated refactor goal.
+    then: >
+      Receives, before any structural change, a `test:` commit (or
+      commits) introducing characterization tests that pin the current
+      behaviour, so the subsequent refactor commits are protected by an
+      explicit safety net.
+  - id: S6
+    persona: Product Owner
+    given: >
+      The deployed application after the refactor branch has been merged.
+    then: >
+      Observes no change in features, no change in API contracts, no
+      change in user-facing behaviour, and no change in upstream/
+      downstream integrations.
+
+version: 1.0.0

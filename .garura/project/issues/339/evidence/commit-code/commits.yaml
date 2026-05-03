@@ -1,0 +1,49 @@
+commits:
+  - group_id: G1
+    issue: 339
+    type: refactor
+    scope: components
+    subject: "rename /enrich to /garura:enrich and update enriched-capabilities path prefix across plays and skills"
+    hash: 176dc06
+    timestamp: 2026-05-03
+    files_count: 30
+    message: |
+      refactor(components): rename /enrich to /garura:enrich and update enriched-capabilities path prefix across plays and skills
+
+      This commit updates all references to the /enrich skill to use the new /garura:enrich namespace
+      across all play and skill definitions. The enriched-capabilities path has been renamed to
+      garura:enriched-capabilities to align with the framework's namespace conventions.
+
+      Issue: #339
+    validation:
+      conventional_format: true
+      includes_issue_reference: true
+      clean_tree_after: true
+
+  - group_id: G2
+    issue: 339
+    type: chore
+    scope: stm
+    subject: "record start-feature evidence and pending queue entry for #339; add commit-code and distill evidence for #333"
+    hash: 8376475
+    timestamp: 2026-05-03
+    files_count: 11
+    message: |
+      chore(stm): record start-feature evidence and pending queue entry for #339; add commit-code and distill evidence for #333
+
+      This commit records STM evidence artifacts for issue #339 (start-feature evidence, status,
+      and pending queue entry) as well as supporting evidence files for the prior issue #333
+      (commit-code analysis and distill results).
+
+      Issue: #339
+    validation:
+      conventional_format: true
+      includes_issue_reference: true
+      clean_tree_after: true
+
+summary:
+  total_commits: 2
+  total_files_changed: 41
+  branch: chore/339-rename-enrich-to-garura-prefix
+  pushed: true
+  all_high_confidence: true

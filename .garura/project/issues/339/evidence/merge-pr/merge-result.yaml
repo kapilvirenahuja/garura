@@ -1,0 +1,61 @@
+result:
+  status: merged
+  pr_number: 340
+  merge_sha: 32df777d8011d2a0ab58644eb7e98c7e40ff27de
+  merged_at: "2026-05-03T18:00:40Z"
+  base_branch: main
+  feature_branch: chore/339-rename-enrich-to-garura-prefix
+  branch_deleted: true
+
+evals:
+  SE-1:
+    constraint: F1
+    description: PR was not in conflict state — mergeable=MERGEABLE before merge
+    status: PASS
+    evidence: "readiness.yaml confirmed mergeable=MERGEABLE; no conflict markers in merge result"
+  SE-2:
+    constraint: F2
+    description: Feature branch deleted locally and on remote
+    status: PASS
+    evidence: >
+      git ls-remote returned empty for chore/339-rename-enrich-to-garura-prefix.
+      git branch shows no local 339 branch.
+      git remote prune origin pruned the stale tracking ref.
+  SE-3:
+    constraint: F3
+    description: Local checkout on base branch, up to date with remote
+    status: PASS
+    evidence: >
+      git branch --show-current = main.
+      git stash pop output: "Your branch is up to date with 'origin/main'."
+  SE-4:
+    constraint: F4
+    description: Working tree was clean (stashed) before merge operation began
+    status: PASS
+    evidence: >
+      git stash -u stashed all dirty files before merge.
+      git status --porcelain returned empty before gh pr merge was invoked.
+  SE-5:
+    constraint: F5
+    description: PR merged on platform with valid merge commit
+    status: PASS
+    evidence: "gh pr view 340 returned state=MERGED, mergeCommit.oid=32df777d8011d2a0ab58644eb7e98c7e40ff27de"
+
+scenario_evals:
+  SCE-1:
+    scenario: S1 (Developer)
+    status: PASS
+    evidence: >
+      Local HEAD is on main. Branch is up to date with origin/main.
+      Feature branch chore/339-rename-enrich-to-garura-prefix absent locally and on remote.
+  SCE-2:
+    scenario: S2 (Code Reviewer)
+    status: PASS
+    evidence: >
+      Platform PR #340 state=MERGED.
+      merge_sha 32df777d8011d2a0ab58644eb7e98c7e40ff27de present on main via fast-forward merge.
+
+stm_note: >
+  Stashed STM evidence files (modified ship.json + untracked commit-code/create-pr/merge-pr artifacts)
+  with 'git stash -u' before merge. Popped with 'git stash pop' after switching to main.
+  These files are now on main and ready for the ship play C9 evidence self-commit sweep.

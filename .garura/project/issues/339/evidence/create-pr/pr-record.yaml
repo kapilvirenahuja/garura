@@ -1,0 +1,13 @@
+result:
+  success: true
+  pr:
+    number: 340
+    url: "https://github.com/kapilvirenahuja/garura/pull/340"
+    state: "open"
+    title: "refactor(components): rename /enrich to /garura:enrich prefix across plays and skills (#339)"
+  checklist:
+    required_count: 10
+    optional_count: 3
+  issue_linked: 339
+  base_branch: main
+  head_branch: chore/339-rename-enrich-to-garura-prefix

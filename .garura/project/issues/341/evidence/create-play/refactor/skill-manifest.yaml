@@ -1,0 +1,61 @@
+play: garura:refactor
+skills:
+  - name: detect-test-harness
+    path: core/components/skills/detect-test-harness/SKILL.md
+    status: existing
+    used_by: test-runner
+    purpose: detect how to run the project's test suite (baseline + post-commit)
+
+  - name: run-generated-tests-isolated
+    path: core/components/skills/run-generated-tests-isolated/SKILL.md
+    status: existing
+    used_by: test-runner
+    purpose: execute test suite, capture count/runtime metrics for baseline and post-commit verification
+
+  - name: map-test-surface
+    path: core/components/skills/map-test-surface/SKILL.md
+    status: existing
+    used_by: test-engineer
+    purpose: inventory existing tests, identify coverage of target scope
+
+  - name: specify-baseline-tests
+    path: core/components/skills/specify-baseline-tests/SKILL.md
+    status: existing
+    used_by: test-engineer
+    purpose: specify characterization tests for thin-coverage targets
+
+  - name: author-regression-test
+    path: core/components/skills/author-regression-test/SKILL.md
+    status: existing
+    used_by: test-engineer
+    purpose: author and commit characterization tests (prefixed test:)
+
+  - name: build-dependency-graph
+    path: core/components/skills/build-dependency-graph/SKILL.md
+    status: existing
+    used_by: tech-designer
+    purpose: map import/call graph to identify blast radius callers
+
+  - name: compute-blast-radius
+    path: core/components/skills/compute-blast-radius/SKILL.md
+    status: existing
+    used_by: tech-designer
+    purpose: compute affected callers, wire/serialization/DB contracts for target scope
+
+  - name: draft-technical-approach
+    path: core/components/skills/draft-technical-approach/SKILL.md
+    status: existing
+    used_by: tech-designer
+    purpose: produce numbered 3-7 step refactor plan with Mikado graph if needed
+
+  - name: create-commit
+    path: core/components/skills/create-commit/SKILL.md
+    status: existing
+    used_by: code-builder
+    purpose: create atomic refactor commits (prefixed refactor:/test:/fix:)
+
+  - name: quality-check-scoped
+    path: core/components/skills/quality-check-scoped/SKILL.md
+    status: existing
+    used_by: code-builder
+    purpose: post-commit lint, type-checker verification scoped to changed files

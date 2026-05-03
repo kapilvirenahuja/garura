@@ -1,0 +1,54 @@
+readiness:
+  ready: false
+  branch: chore/339-rename-enrich-to-garura-prefix
+  base_branch: main
+
+  pr:
+    exists: true
+    number: 340
+    title: "refactor(components): rename /enrich to /garura:enrich prefix across plays and skills (#339)"
+    state: OPEN
+    mergeable: MERGEABLE
+
+  constraints:
+    - id: C1
+      rule: Must not operate when current branch is main/master/default
+      status: PASS
+      evidence: "Current branch is chore/339-rename-enrich-to-garura-prefix — not a protected branch"
+    - id: C2
+      rule: A pull request must exist on the platform for the current branch
+      status: PASS
+      evidence: "PR #340 exists and is OPEN"
+    - id: C3
+      rule: Working tree and index must be clean before any operation begins
+      status: FAIL
+      evidence: |
+        Modified file: .garura/project/issues/339/status/ship.json
+        Untracked files:
+          .garura/project/issues/339/evidence/commit-code/20260503-231500.md
+          .garura/project/issues/339/evidence/commit-code/commits.yaml
+          .garura/project/issues/339/evidence/create-pr/ (directory)
+          .garura/project/issues/339/status/commit-code.json
+          .garura/project/issues/339/status/create-pr.json
+    - id: C4
+      rule: No merge attempted if PR has merge conflicts
+      status: PASS
+      evidence: "Platform reports mergeable: MERGEABLE — no conflicts"
+    - id: C5
+      rule: Default merge strategy used — no override
+      status: PASS
+      evidence: "No strategy override applied"
+    - id: C6
+      rule: Remote branch-not-found on deletion treated as success
+      status: PASS
+      evidence: "Pre-condition only — applies post-merge; no action required now"
+
+  blocking_issues:
+    - constraint: C3
+      description: >
+        The working tree is not clean. There is one modified file and five untracked
+        paths under .garura/project/issues/339/. These must be committed or discarded
+        before merge-pr can proceed.
+      action_required: >
+        Commit the pending STM evidence files (ship.json, commit-code artifacts,
+        create-pr artifacts, status files) using create-commit, then re-run readiness check.
