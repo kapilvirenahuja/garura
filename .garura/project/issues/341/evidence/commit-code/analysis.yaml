@@ -1,0 +1,62 @@
+branch:
+  name: refactor/341-garura-refactor-play
+  issue_from_branch: 341
+  is_hotfix: false
+
+change_summary:
+  total_files: 10
+  staged: 1
+  unstaged: 0
+  untracked: 9
+
+groups:
+  - id: 1
+    issue: 341
+    type: feat
+    scope: refactor-play
+    subject: add garura:refactor play with intent and SKILL.md
+    confidence: high
+    files:
+      - path: core/components/plays/refactor/SKILL.md
+        description: compiled play definition for the new garura:refactor play
+      - path: core/components/plays/refactor/reference/intent.yaml
+        description: intent, constraints, failure conditions, and scenarios for the refactor play
+
+  - id: 2
+    issue: 341
+    type: chore
+    scope: stm
+    subject: record start-feature and create-play evidence for garura:refactor (#341)
+    confidence: high
+    files:
+      - path: .garura/project/issues/341/evidence/create-play/refactor/agent-audit-summary.md
+        description: audit summary from create-play skill run
+      - path: .garura/project/issues/341/evidence/create-play/refactor/coverage-verification.yaml
+        description: coverage verification artifact from create-play
+      - path: .garura/project/issues/341/evidence/create-play/refactor/evals.yaml
+        description: evals artifact from create-play
+      - path: .garura/project/issues/341/evidence/create-play/refactor/skill-manifest.yaml
+        description: skill manifest artifact from create-play
+      - path: .garura/project/issues/341/evidence/start-feature/20260503-232500.md
+        description: start-feature delivery record
+      - path: .garura/project/issues/341/evidence/start-feature/branch-result.yaml
+        description: branch creation result from start-feature
+      - path: .garura/project/issues/341/evidence/start-feature/issue-resolution.yaml
+        description: issue resolution artifact from start-feature
+      - path: .garura/project/issues/_pending/start-feature/args.yaml
+        description: pending start-feature args updated to reflect shift from enrich-rename to garura:refactor play
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+recommendation:
+  checkpoint_needed: false
+  reason: >
+    All changes map to a single issue (#341) extracted with high confidence from the
+    branch name. Two groups are warranted within this issue: the play source files
+    (feat) and the operational STM evidence plus pending-queue update (chore). No
+    sensitive files, no breaking changes, no hotfix branch. All mappings are high
+    confidence — no approval gate required.
