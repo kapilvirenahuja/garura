@@ -47,11 +47,9 @@ product_base=$(grep 'base-path' .garura/core/config.yaml | tail -1 | awk '{print
 # Extract issue number (from branch or status file context from ship)
 # issue is passed in from ship's context — already resolved
 
-# Read PR number from create-pr STM evidence
-pr_number=$(cat {stm_base}/{issue}/evidence/create-pr/*.yaml 2>/dev/null | grep 'pr_number' | head -1 | awk '{print $2}')
-
-# Fetch PR diff
-pr_diff=$(gh pr diff ${pr_number} 2>/dev/null)
+# Resolve default branch and get diff from git (no PR required — runs before PR creation)
+default_branch=$(git remote show origin 2>/dev/null | grep 'HEAD branch' | awk '{print $NF}')
+pr_diff=$(git diff ${default_branch}...HEAD 2>/dev/null)
 ```
 
 **On any pre-flight failure:** Return `{ "status": "skipped", "reason": "<error>" }`.
@@ -73,7 +71,7 @@ Depends on: pre-flight (graceful on failure)
   "mode": "fast",
   "stm": {
     "input": {
-      "pr_diff": "{pr_diff content from pre-flight}",
+      "git_diff": "{pr_diff content from pre-flight — git diff default_branch...HEAD}",
       "product_base": "{product_base}",
       "issue_body": "{issue description — read from STM or passed from ship context}"
     },
@@ -84,7 +82,7 @@ Depends on: pre-flight (graceful on failure)
 }
 ```
 
-Agent reads the PR diff and available STM evidence, assesses trivial vs.
+Agent reads the git diff and available STM evidence, assesses trivial vs.
 non-trivial, invokes `distill` skill for proposal generation,
 and writes `proposals.yaml` to the output path (or returns `no_learnings: true`).
 
