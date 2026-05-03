@@ -1,0 +1,85 @@
+analysis:
+  branch: perf/343-skip-issue-resolution-when-branch-encodes-issue
+  base: main
+  issue: 343
+  confidence: high
+
+  suggested_title: "perf(ship-pipeline): skip issue resolution when branch or STM encodes issue (#343)"
+
+  context:
+    file_patterns_matched:
+      - plays (core/components/plays/**/*.md)
+      - stm_artifacts (.garura/project/issues/343/evidence/start-feature/*)
+    commit_types:
+      - chore
+      - perf
+    commits_ahead: 3
+    files_changed:
+      - core/components/plays/commit-code/SKILL.md
+      - core/components/plays/create-pr/SKILL.md
+      - core/components/plays/distill/SKILL.md
+      - core/components/plays/merge-pr/SKILL.md
+      - .garura/project/issues/343/evidence/start-feature/20260504-004952.md
+      - .garura/project/issues/343/evidence/start-feature/args.yaml
+      - .garura/project/issues/343/evidence/start-feature/branch-result.yaml
+      - .garura/project/issues/343/evidence/start-feature/changed-files.txt
+      - .garura/project/issues/343/evidence/start-feature/issue-resolution.yaml
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: No merge conflicts with main
+        trigger: Universal — always applied
+        status: PASS
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree SHA aeaad63969d41c9b84115682e8add587a92b92c3 with no conflict markers"
+
+      - id: no-secrets
+        item: No secrets committed
+        trigger: Universal — always applied
+        status: PASS
+        evidence: "Scanned all changed SKILL.md diffs for password/secret/token/api_key/private_key/cert patterns — zero matches"
+
+      - id: play-frontmatter
+        item: All modified plays have valid frontmatter
+        trigger: play definitions changed (core/components/plays/**/*.md)
+        status: PASS
+        evidence: "commit-code, create-pr, distill, merge-pr all have name/description/user-invokable in YAML frontmatter. Verified via head -30 on each file."
+
+      - id: play-workflow
+        item: All modified plays define a Workflow section
+        trigger: play definitions changed
+        status: PASS
+        evidence: "grep '## Workflow' confirms presence in commit-code, create-pr, distill, merge-pr (1 match each)"
+
+      - id: play-checkpoint
+        item: All modified plays define checkpoint / pause-and-resume behavior
+        trigger: play definitions changed
+        status: PASS
+        evidence: "commit-code has 'checkpoint' keyword (1 match); merge-pr has '## Pause and Resume' section; distill has '## Pause and Resume' section; create-pr has '## Pause and Resume' section"
+
+      - id: sync-claude
+        item: Sync core/components/ to ~/.claude/ before merging
+        trigger: core/components/** files changed (4 SKILL.md files)
+        status: REVIEW
+        evidence: "4 plays modified in core/components/plays/. Deployed copies in ~/.claude/ are not auto-updated. Run /sync-claude after merge."
+
+    nice_to_have:
+      - id: play-agent-limit
+        item: Play respects agent call limits (L2 ≤5)
+        trigger: play definitions changed
+        status: PASS
+        evidence: |
+          commit-code: 3 agent dispatches (Owner: repo-orchestrator x3, project-orchestrator x1 — but Step 2 is now skippable when auto_issue_resolved=true)
+          create-pr: 3 agent dispatches (repo-orchestrator x2, project-orchestrator x1 — Step 2 skippable when issue_linkage_resolved=true)
+          merge-pr: 1 agent dispatch (repo-orchestrator x1 — Step 1 readiness check collapsed into pre-flight)
+          All well within L2 ≤5 budget.
+
+  blocking_issues: []
+
+  ready: true
+
+  summary: >
+    This PR contains play orchestration optimizations only — no runtime code, no tests, no API surface changes.
+    All 4 modified SKILL.md files pass frontmatter, workflow, and checkpoint checks. No merge conflicts.
+    No secrets found. The one manual action required before or after merge: run /sync-claude to deploy
+    the updated plays from core/components/ to ~/.claude/.
