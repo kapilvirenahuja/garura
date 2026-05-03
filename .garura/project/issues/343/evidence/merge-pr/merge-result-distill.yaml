@@ -1,0 +1,5 @@
+pr_number: 345
+status: merged
+merge_sha: 429127fb85be25e9a44f036e33fe5831488dab66
+base_branch: main
+branch_deleted: true
