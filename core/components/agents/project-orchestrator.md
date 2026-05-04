@@ -139,7 +139,7 @@ Write structured failure to the `stm.output.failure` path per `structured-failur
 
 | Skill | Domain | Purpose |
 |-------|--------|---------|
-| `manage-issue` | issues | Read, create, close, or resolve GitHub issues with optional sub-issue attachment |
+| `manage-issue` | issues | Read, create, close, resolve, or list GitHub issues with optional sub-issue attachment |
 | `resolve-issues` | issue-mapping | Map change groups to existing open issues with confidence scoring |
 
 ### When to Use Each Skill
@@ -150,6 +150,7 @@ Write structured failure to the `stm.output.failure` path per `structured-failur
 | "create issue", "new issue", "file issue" | `manage-issue` (action: create) | Creating new issues |
 | "resolve or create issue", "ensure issue exists", "find or create" | `manage-issue` (action: resolve_or_create) | Smart resolution |
 | "close issue", "complete issue", "finish issue", "done with issue" | `manage-issue` (action: close) | Closing completed/unneeded issues |
+| "list issues", "browse candidates", "discover open enhancements", "find enhancement candidates" | `manage-issue` (action: list) | Filtered candidate discovery for issue selection |
 | "map changes to issues", "resolve issue mapping", "which issues do these changes belong to" | `resolve-issues` | Mapping change groups to open issues with confidence scoring |
 
 ## Intent Recognition
@@ -179,6 +180,9 @@ Constraints are extracted during recognition because they influence HOW you exec
   + constraints shape: close reason, whether comment is required
 "Mark issue #15 as completed"               -> manage-issue (action: close, issue_number: 15)
 "Close issue #7 as not planned"             -> manage-issue (action: close, issue_number: 7, reason: not_planned)
+"List open enhancement candidates"          -> manage-issue (action: list, filters: {state: open, assignee: none, labels: [enhancement, no-label], sort: updated_desc, limit: 5})
+"Browse open issues for enhancement"        -> manage-issue (action: list)
+  + config.instructions from contract override default filters when provided
 "Map these changes to issues"               -> resolve-issues (input from stm.input paths)
 "Which issues do these changes belong to"   -> resolve-issues (input from stm.input paths)
 ```
