@@ -1,0 +1,10 @@
+description: "Verify play-orchestration principles are present in philosophy doc and create-play"
+test_commands:
+  - cmd: "grep -q 'Play Orchestration' docs/philosophy/architecture.md"
+    purpose: "Philosophy doc must contain the play orchestration section"
+  - cmd: "grep -q 'Short-Circuit' docs/philosophy/architecture.md"
+    purpose: "Must contain short-circuit principle"
+  - cmd: "grep -q 'short-circuit' core/components/plays/create-play/SKILL.md"
+    purpose: "create-play must reference the short-circuit check"
+expected_state_before_fix: failing
+expected_state_after_fix: passing

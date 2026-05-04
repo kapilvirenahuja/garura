@@ -1,0 +1,7 @@
+root_cause: |
+  core/components/memory/standards/rules/play-orchestration.md does not exist.
+  The principle was extracted and approved during /enrich on 2026-05-04 but
+  could not be written to core/ due to enrich's write boundary constraint (SE-10).
+  Staged content exists at .garura/product/research/standards/play-orchestration.md.
+affected_file: core/components/memory/standards/rules/play-orchestration.md
+symptom: KB missing play-orchestration principles — orchestrators have no canonical reference for short-circuit patterns

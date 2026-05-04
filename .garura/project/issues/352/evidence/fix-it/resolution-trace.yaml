@@ -1,0 +1,7 @@
+entries:
+  - domain: "file-location"
+    resolved_from: "stm"
+    artifact: ".garura/project/issues/352/evidence/fix-it/issue-read.yaml"
+  - domain: "content-source"
+    resolved_from: "project"
+    artifact: ".garura/product/research/standards/play-orchestration.md"

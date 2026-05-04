@@ -1,0 +1,35 @@
+strategy: |
+  The play-orchestration principle belongs in two places:
+  1. docs/philosophy/architecture.md — as a new "Play Orchestration Principles" section
+     after the "Orchestrator Tool Restrictions" section, establishing the short-circuit
+     pattern as a first-class philosophy alongside the existing agent delegation rules.
+  2. core/components/plays/create-play/SKILL.md — as a design-time check in Step 4
+     (Agent Declaration & Audit), so play authors are prompted to ask whether each
+     agent they declare could be short-circuited when its output is deterministically
+     derivable from context.
+
+  Content comes from the approved, staged file:
+  .garura/product/research/standards/play-orchestration.md
+
+affected_files:
+  - docs/philosophy/architecture.md
+  - core/components/plays/create-play/SKILL.md
+
+execution_steps:
+  - step: 1
+    action: "Add 'Play Orchestration Principles' section to docs/philosophy/architecture.md
+             after the Orchestrator Tool Restrictions section"
+  - step: 2
+    action: "Add deterministic short-circuit check to Step 4 (Agent Declaration & Audit)
+             in core/components/plays/create-play/SKILL.md"
+
+alternatives_considered:
+  - option: "Create core/components/memory/standards/rules/play-orchestration.md"
+    rejection_reason: "rules/ files must be enforced by at least one skill. This principle
+                       is a design guideline for play authors, not a machine-enforced rule.
+                       Putting it there would violate the rules/ authoring criteria."
+  - option: "Keep content only in .garura/product/research/standards/"
+    rejection_reason: "Product-scoped research — not visible to play authors. Would not
+                       inform future play compilation."
+
+confidence: high

@@ -1,0 +1,5 @@
+failing: true
+verified_at: "2026-05-04T00:00:00Z"
+regression_test_path: ".garura/project/issues/352/evidence/fix-it/regression-test.yaml"
+check: "test -f core/components/memory/standards/rules/play-orchestration.md"
+result: "exit code 1 — file does not exist"

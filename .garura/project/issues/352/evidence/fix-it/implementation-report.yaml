@@ -1,0 +1,6 @@
+files_modified:
+  - path: docs/philosophy/architecture.md
+    change: "Added Play Orchestration Principles section"
+  - path: core/components/plays/create-play/SKILL.md
+    change: "Added short-circuit check in Step 4"
+completed_at: "2026-05-04T00:00:00Z"
