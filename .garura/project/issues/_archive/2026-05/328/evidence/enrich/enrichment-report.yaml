@@ -1,0 +1,21 @@
+sourced_from: ".garura/project/issues/328/evidence/enrich/reconciliation-proposals.yaml"
+applied_at: "2026-05-04T00:00:00Z"
+dry_run: false
+
+writes:
+  - proposal_id: "enrich-328-P-001"
+    target_path: ".garura/product/specification/quality-profile.yaml"
+    action: modify
+    status: applied
+    section: "iso_25010_profile.maintainability.targets"
+    detail: >
+      Appended set-based scenario-coverage target as the 9th entry under
+      iso_25010_profile.maintainability.targets. Change establishes the canonical
+      lint-components implementation rule: range-regex set expansion first, then set
+      membership check — never substring includes(). Source: PR #329,
+      cross-reference.js collectCoveredScenarioNumbers().
+
+summary:
+  applied: 1
+  skipped: 0
+  failed: 0

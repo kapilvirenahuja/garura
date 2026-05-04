@@ -1,0 +1,13 @@
+play: enrich
+issue: "341"
+mode: single
+detected_source: distill
+reconciliation_path: ".garura/project/issues/_archive/2026-05/341/evidence/enrich/reconciliation-proposals.yaml"
+enrichment_report_path: ".garura/project/issues/_archive/2026-05/341/evidence/enrich/enrichment-report.yaml"
+summary:
+  normalized: 1
+  rejected_at_normalize: 0
+  approved: 1
+  applied: 1
+  adrs_written: 0
+completed_at: "2026-05-04T00:00:00Z"

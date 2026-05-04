@@ -1,0 +1,21 @@
+sourced_from: ".garura/project/issues/322/evidence/enrich/reconciliation-proposals.yaml"
+applied_at: "2026-05-04T00:00:00Z"
+dry_run: false
+
+writes:
+  - proposal_id: enrich-322-P-001
+    target_path: ".garura/product/research/arch.md"
+    action: modify
+    status: applied
+    reason: null
+
+  - proposal_id: enrich-322-P-002
+    target_path: ".garura/product/specification/quality-profile.yaml"
+    action: modify
+    status: applied
+    reason: null
+
+summary:
+  applied: 2
+  skipped: 0
+  failed: 0

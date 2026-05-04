@@ -1,0 +1,21 @@
+mappings:
+  - group_id: 1
+    issue_number: 341
+    issue_title: "[REFACTOR] Build a new play /garura:refactor"
+    confidence: high
+    rationale: >
+      Branch name refactor/341-garura-refactor-play explicitly encodes issue #341.
+      Files SKILL.md and intent.yaml directly implement the garura:refactor play
+      that issue #341 calls for — this is the primary deliverable of the issue.
+
+  - group_id: 2
+    issue_number: 341
+    issue_title: "[REFACTOR] Build a new play /garura:refactor"
+    confidence: high
+    rationale: >
+      Branch name refactor/341-garura-refactor-play explicitly encodes issue #341.
+      STM evidence files (create-play artifacts, start-feature records, pending-queue
+      update) are operational artifacts produced while building the garura:refactor play
+      — all trace directly to the same issue.
+
+checkpoint_needed: false

@@ -1,0 +1,236 @@
+# Constraint classifications for /decode compile.
+# Categories: pre-flight | artifact-verifiable | structural
+# Drives evals-creator input and the compile coverage matrix.
+
+constraint_classifications:
+
+  # ===== Pre-flight (checkable before domain work) =====
+  - id: C0
+    category: pre-flight
+    rationale: >
+      Issue resolution MUST happen before any domain work. Status file
+      must contain issue_number before any scan or extraction runs.
+
+  - id: C1
+    category: pre-flight
+    rationale: >
+      Feature-scope selector presence is a pre-condition on invocation
+      arguments. Absence halts the play before any work.
+
+  - id: C2
+    category: pre-flight
+    rationale: >
+      features.yaml resolvability is a pre-condition. Checked before
+      scan or dispatch.
+
+  # ===== Structural (play architecture, not artifact content) =====
+  - id: C3
+    category: structural
+    rationale: >
+      Write-boundary enforcement is a play-architecture rule. Appears
+      in play-level output-path governance.
+
+  - id: C13
+    category: structural
+    rationale: >
+      Single extraction ownership (tech-architect) is an agent-boundary
+      rule. Encoded in the agent boundary table.
+
+  - id: C14
+    category: structural
+    rationale: >
+      test-engineer role scoping is an agent-boundary rule.
+
+  - id: C15
+    category: structural
+    rationale: >
+      test-runner context isolation is an agent-boundary rule plus an
+      agent-definition rule (enforced in test-runner agent).
+
+  - id: C18
+    category: structural
+    rationale: >
+      Non-blocking evidence commit is a play-workflow rule.
+
+  - id: C20
+    category: structural
+    rationale: >
+      proposals.yaml field-set is the aggregator skill's output contract.
+      Play references the aggregator and verifies output shape at the
+      aggregation step.
+
+  - id: C21
+    category: structural
+    rationale: >
+      LTM Resolution Protocol dispatch populates ltm_context in every
+      agent dispatch — an agent-dispatch-shape rule.
+
+  - id: C22
+    category: structural
+    rationale: >
+      Per-unit resumability via status file is a play-execution-model
+      rule (Pause and Resume section).
+
+  - id: C28
+    category: structural
+    rationale: >
+      Tech-agnostic play — no tech-specific skills compiled. An
+      agent-boundary/play-compilation rule. Enforced by the compiler
+      (create-play) itself, not at runtime.
+
+  # ===== Artifact-verifiable (observable in skill outputs) =====
+  - id: C4
+    category: artifact-verifiable
+    rationale: >
+      Three-stream output presence checked by aggregator and compile.
+      proposals.yaml streams field populated.
+
+  - id: C4a
+    category: artifact-verifiable
+    rationale: >
+      Feature-spec mandatory sections — observable via structural YAML
+      validation on each behaviors/{feature-id}.yaml.
+
+  - id: C4b
+    category: artifact-verifiable
+    rationale: >
+      Flow-spec mandatory sections — observable via YAML validation.
+
+  - id: C4c
+    category: artifact-verifiable
+    rationale: >
+      Aspect-spec mandatory sections — observable via YAML validation.
+
+  - id: C4d
+    category: artifact-verifiable
+    rationale: >
+      Cross-stream linking populated — observable at aggregation.
+
+  - id: C5
+    category: artifact-verifiable
+    rationale: >
+      cited_locations presence per entry — observable structurally
+      (verify-citation-integrity skill enforces presence as a
+      pre-condition, and the YAML schema requires non-empty lists).
+
+  - id: C6
+    category: artifact-verifiable
+    rationale: >
+      Framework-agnostic prose — observable via
+      validate-abstraction-layer on prose fields of every spec.
+
+  - id: C7
+    category: artifact-verifiable
+    rationale: >
+      Tests-first reading is encoded by the extraction skills'
+      process section. Observable via the scenarios[].source field
+      (test_extracted | code_extracted | both) in the produced spec.
+
+  - id: C8
+    category: artifact-verifiable
+    rationale: >
+      Citation integrity — observable via
+      citation-integrity-report.yaml per unit; the aggregator reports
+      citation_integrity_status.
+
+  - id: C9
+    category: artifact-verifiable
+    rationale: >
+      Test-code drift surfacing — observable via ambiguities[]
+      population when drift is present.
+
+  - id: C10
+    category: artifact-verifiable
+    rationale: >
+      learning_category=product, sub_category=null — observable in
+      every spec's meta block.
+
+  - id: C11
+    category: artifact-verifiable
+    rationale: >
+      LOC pre-check — observable via pre-check record in evidence;
+      over-budget flag populated before dispatch.
+
+  - id: C12
+    category: artifact-verifiable
+    rationale: >
+      Runtime budget overrun handling — observable via deferred unit
+      entries in proposals.yaml and proposals/deferred/ contents.
+
+  - id: C16
+    category: artifact-verifiable
+    rationale: >
+      Zero-unit exit — observable when total_units=0 and
+      extraction_complete=true in proposals.yaml.
+
+  - id: C17
+    category: structural
+    rationale: >
+      Two-phase checkpoint is a play-workflow rule. Phases are compiled
+      into the play structure.
+
+  - id: C19
+    category: structural
+    rationale: >
+      Decision Surfacing Discipline for Phase 1 is a play-workflow
+      rule (checkpoint behavior).
+
+  - id: C23
+    category: structural
+    rationale: >
+      Test generation is hard requirement — a play-structure rule
+      (no flags, no spec-only mode).
+
+  - id: C24
+    category: artifact-verifiable
+    rationale: >
+      Tier rules — observable via generated-tests/{tier}/ directory
+      population and cited_existing records for stack-coupled units.
+
+  - id: C25
+    category: artifact-verifiable
+    rationale: >
+      Baseline-green gate — observable via test-run-reports and the
+      aggregator's baseline_green field per proposal.
+
+  - id: C26
+    category: pre-flight
+    rationale: >
+      TEST_HARNESS detection runs before extraction. Absence of a
+      runnable harness halts the play (F18) — a pre-flight check.
+
+  - id: C27
+    category: structural
+    rationale: >
+      Metric is scenario coverage not line coverage — a specification
+      rule encoded in the play's success criteria, not in each spec.
+
+  - id: C29
+    category: structural
+    rationale: >
+      Runtime tech-skill synthesis is a play-workflow rule (phase
+      between pre-flight and extraction).
+
+  - id: C30
+    category: pre-flight
+    rationale: >
+      Playbook-presence check per detected stack is pre-flight —
+      missing playbook halts before extraction.
+
+  - id: C31
+    category: structural
+    rationale: >
+      Temp skills location + boundary is a play write-boundary rule.
+      Enforced in the play's pre-flight / cleanup sections.
+
+  - id: C32
+    category: structural
+    rationale: >
+      Cleanup trigger is a play-workflow rule tied to checkpoint
+      Phase 2 Tether.
+
+  - id: C33
+    category: artifact-verifiable
+    rationale: >
+      Stack-to-path dispatch map — observable via dispatch-plan.yaml
+      produced by extraction skills during each unit's extraction.

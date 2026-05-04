@@ -1,0 +1,13 @@
+sourced_from: ".garura/project/issues/341/evidence/enrich/reconciliation-proposals.yaml"
+applied_at: "2026-05-04T00:00:00Z"
+dry_run: false
+writes:
+  - proposal_id: enrich-341-P-001
+    target_path: ".garura/product/research/arch.md"
+    action: add
+    status: applied
+    reason: "File did not exist; created with provenance header and Experiential section containing the per-commit green gate pattern."
+summary:
+  applied: 1
+  skipped: 0
+  failed: 0

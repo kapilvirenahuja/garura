@@ -1,0 +1,61 @@
+sourced_from: "gh pr diff 329 (inline analysis — no STM enhance/fix-it evidence found)"
+generated_at: "2026-04-30T00:00:00Z"
+source_play: "distill"
+issue: 328
+epic_id: null
+context_baseline: null
+evidence_sources:
+  milestone_verdicts: 0
+  status_reports: 0
+  arbiter_verdicts: 0
+  e2e_results: 0
+  drift_manifest: false
+  stm_evidence_found: false
+  diff_assessed_trivial: false
+
+proposals:
+  - proposal_id: "P-001"
+    from_finding: "F-001"
+    tier: 2
+    learning_category: "standards"
+    sub_category: "linting"
+    learning_category_proposed: false
+    sub_category_proposed: false
+    artifact: "lint-components scenario-coverage rule"
+    artifact_path: "core/tools/lint-components/lib/rules/cross-reference.js"
+    section: "scenario coverage matching"
+    confidence: "low"
+    current_content: |
+      Scenario coverage was checked via literal substring: playContent.includes("SCE-N").
+      This failed silently for plays that express coverage as ranges (e.g., "SCE-1 through SCE-7")
+      — scenarios in the middle of a range were reported as uncovered.
+    proposed_enrichment: |
+      Scenario coverage checks must be set-based, not substring-based. When a play expresses
+      coverage as a range ("SCE-N through SCE-M", "SCE-N to SCE-M", "SCE-N..SCE-M", en-dash, or
+      em-dash variants), all integers in that range are covered. The correct pattern:
+      (1) parse the play content with a range regex to build an inclusive integer set,
+      (2) then check set membership — never use includes() for this. Any future extension to
+      coverage-check logic (new separators, nested ranges, wildcards) must follow the same
+      set-expansion-first approach to avoid the same class of false-positive.
+    evidence: |
+      PR #329, single-file change to cross-reference.js. Introduced
+      collectCoveredScenarioNumbers() with rangeRe=/SCE-(\d+)\s*(?:through|to|\.\.|–|—)\s*SCE-(\d+)/gi
+      followed by singleRe for residual explicit mentions. Previously the caller used
+      playContent.includes(`SCE-${scenarioNum}`) directly.
+    source: "analyze"
+    approval_status: "pending"
+
+summary:
+  tier_1: 0
+  tier_2: 1
+  tier_3: 0
+  total_proposals: 1
+  by_learning_category:
+    arch: 0
+    domain: 0
+    product: 0
+    quality: 0
+    standards: 1
+  proposed_categories: []
+  proposed_sub_categories: []
+  tiers_skipped: ["tier_1", "tier_3"]

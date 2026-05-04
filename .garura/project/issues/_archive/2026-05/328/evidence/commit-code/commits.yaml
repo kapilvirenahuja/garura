@@ -1,0 +1,24 @@
+commits:
+  - sha: a93b7bd
+    type: fix
+    scope: lint-components
+    subject: expand SCE-N range expressions in scenario-coverage check
+    issue: 328
+    files:
+      - core/tools/lint-components/lib/rules/cross-reference.js
+
+  - sha: c9d4c34
+    type: chore
+    scope: stm
+    subject: record start-feature and commit-code evidence for #328
+    issue: 328
+    files:
+      - .garura/project/issues/_pending/start-feature/args.yaml
+      - .garura/project/issues/_pending/start-feature/changed-files.txt
+      - .garura/project/issues/328/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/328/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/328/evidence/start-feature/20260430-232711.md
+      - .garura/project/issues/328/evidence/start-feature/args.yaml
+      - .garura/project/issues/328/evidence/start-feature/branch-result.yaml
+      - .garura/project/issues/328/evidence/start-feature/changed-files.txt
+      - .garura/project/issues/328/evidence/start-feature/issue-resolution.yaml

@@ -1,0 +1,8 @@
+pr:
+  number: 342
+  url: "https://github.com/kapilvirenahuja/garura/pull/342"
+  title: "feat(refactor-play): add garura:refactor play (#341)"
+  state: open
+  base: main
+  branch: refactor/341-garura-refactor-play
+  closes_issue: 341

@@ -1,0 +1,107 @@
+commits:
+  - sequence: 1
+    hash: 88c5fd7
+    type: feat
+    scope: decode
+    subject: "add /decode play — brownfield behavior extraction (#322)"
+    files_changed: 2
+    files:
+      - core/components/plays/decode/SKILL.md
+      - core/components/plays/decode/reference/intent.yaml
+    insertions: 1683
+    deletions: 0
+
+  - sequence: 2
+    hash: 15d27ff
+    type: feat
+    scope: decode
+    subject: "add test-runner agent for context-isolated baseline-green verification (#322)"
+    files_changed: 1
+    files:
+      - core/components/agents/test-runner.md
+    insertions: 242
+    deletions: 0
+
+  - sequence: 3
+    hash: ecea66b
+    type: feat
+    scope: decode
+    subject: "add 7 infrastructure skills for tech-stack detection, synthesis, citation-integrity, and aggregation (#322)"
+    files_changed: 7
+    files:
+      - core/components/skills/aggregate-decode-proposals/SKILL.md
+      - core/components/skills/cleanup-temp-skills/SKILL.md
+      - core/components/skills/detect-tech-stacks-from-physical-architecture/SKILL.md
+      - core/components/skills/detect-test-harness/SKILL.md
+      - core/components/skills/run-generated-tests-isolated/SKILL.md
+      - core/components/skills/synthesize-tech-skill-from-playbook/SKILL.md
+      - core/components/skills/verify-citation-integrity/SKILL.md
+    insertions: 896
+    deletions: 0
+
+  - sequence: 4
+    hash: 764e34f
+    type: feat
+    scope: decode
+    subject: "add 3 extraction skills for feature-behavior, flow, and aspect specs (#322)"
+    files_changed: 3
+    files:
+      - core/components/skills/extract-aspect-spec/SKILL.md
+      - core/components/skills/extract-feature-behavior-spec/SKILL.md
+      - core/components/skills/extract-flow-spec/SKILL.md
+    insertions: 521
+    deletions: 0
+
+  - sequence: 5
+    hash: 95594d9
+    type: feat
+    scope: decode
+    subject: "add 3 test-generation skills for contract, flow, and unit-pure tiers (#322)"
+    files_changed: 3
+    files:
+      - core/components/skills/generate-contract-tests/SKILL.md
+      - core/components/skills/generate-flow-tests/SKILL.md
+      - core/components/skills/generate-unit-pure-tests/SKILL.md
+    insertions: 492
+    deletions: 0
+
+  - sequence: 6
+    hash: 665b433
+    type: docs
+    scope: decode
+    subject: "add playbook catalog design doc (#322)"
+    files_changed: 1
+    files:
+      - docs/design/playbook-catalog.md
+    insertions: 371
+    deletions: 0
+
+  - sequence: 7
+    hash: 4f0f54a
+    type: chore
+    scope: stm
+    subject: "record create-play and start-feature evidence for #322"
+    files_changed: 12
+    files:
+      - .garura/project/issues/322/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/322/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/322/evidence/create-play/decode/agent-audit.md
+      - .garura/project/issues/322/evidence/create-play/decode/constraint-classifications.yaml
+      - .garura/project/issues/322/evidence/create-play/decode/coverage-matrix.yaml
+      - .garura/project/issues/322/evidence/create-play/decode/evals.yaml
+      - .garura/project/issues/322/evidence/create-play/decode/skill-manifest.yaml
+      - .garura/project/issues/322/evidence/start-feature/20260423-065500.md
+      - .garura/project/issues/322/evidence/start-feature/branch-result.yaml
+      - .garura/project/issues/322/evidence/start-feature/issue-resolution.yaml
+    insertions: 1350
+    deletions: 3
+
+summary:
+  total_commits: 7
+  total_files_changed: 29
+  total_insertions: 5555
+  total_deletions: 3
+  branch: feat/322-decode-play
+  base_branch: main
+  all_issues: [322]
+  checkpoint_phase: skipped
