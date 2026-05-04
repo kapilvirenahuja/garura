@@ -1,0 +1,14 @@
+auto_resolved: true
+source: branch-name
+issue: 332
+confidence: high
+mappings:
+  - group: 1
+    issue: 332
+    confidence: high
+  - group: 2
+    issue: 332
+    confidence: high
+  - group: 3
+    issue: 348
+    confidence: high

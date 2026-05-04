@@ -1,0 +1,42 @@
+issue:
+  number: 332
+  title: "[ENH] Config key reference artifact missing — pipeline has no classification of config levels"
+  state: "OPEN"
+  url: "https://github.com/kapilvirenahuja/garura/issues/332"
+  labels:
+    - "enhancement"
+  body: |
+    | Field | Value |
+    |-------|-------|
+    | **Type** | enhancement |
+    | **Date** | 2026-05-01 |
+    | **Reported From** | Symphony SPEC gap analysis |
+
+    ### Problem
+
+    The specify → design → arch → prepare pipeline doesn't produce a consolidated config key reference, and has no concept of config classification by level. Configs in a real product exist at four distinct levels with different ownership, change frequency, and deployment implications — and none of the current plays surface or separate them.
+
+    ### Specific Issues
+
+    **The four config levels (from most technical to most user-facing):**
+
+    1. **Dev configs** — change code behavior, vary env-to-env (e.g. port numbers, database URLs). Changing these requires a code deployment.
+    2. **System configs** — managed by sys admins (e.g. thread pool sizes, timeouts, resource limits). May require a deployment or service restart.
+    3. **Feature configs** — managed by product owners or business (e.g. feature flags, behavioral toggles). No deployment — hot-reloadable at runtime.
+    4. **Content/editorial configs** — managed closest to the user (e.g. copy, limits, default values visible to end users). No deployment — live editable.
+
+    Currently, config keys appear implicitly in intent epics as constraints and in physical-architecture.yaml as stack picks, but the four-level classification, ownership model, and reload semantics are never formally produced by any play.
+
+    ### Expected Behavior
+
+    - **specify**: The product/feature profile should drive config classification. If a capability has configurable behavior, its intent epic should declare which level(s) its configs belong to.
+    - **arch**: Should produce a config taxonomy section (in physical-architecture.yaml or a dedicated config-spec artifact) that groups keys by level, names ownership, and specifies reload semantics (deployment-required vs hot-reload).
+    - **prepare**: LLD (tech.yaml) should produce the typed key reference for each config in scope for the epic, tagged with its level.
+
+    ### Impact
+
+    Without this classification, implementations treat all configs as equivalent — leading to either over-engineering (restarting services for content changes) or under-engineering (exposing dev-level configs to product owners). The four-level model is a well-understood industry pattern and should be a first-class artifact in the pipeline.
+  created: false
+  closed: false
+  parent_issue: null
+  type_hint: "feature"

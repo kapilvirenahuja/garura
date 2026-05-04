@@ -1,0 +1,14 @@
+query_filters:
+  state: "open"
+  assignee: "none"
+  labels: ["enhancement", "no-label"]
+sort: "updated_desc"
+candidate_count: 1
+candidates:
+  - number: 332
+    title: "[ENH] Config key reference artifact missing — pipeline has no classification of config levels"
+    updated_at: "2026-05-01T03:31:44Z"
+presentation_format: "numbered"
+user_response: "1"
+selected_issue_number: 332
+halt_reason: null
