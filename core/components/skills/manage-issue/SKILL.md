@@ -1,6 +1,6 @@
 ---
 name: manage-issue
-description: Read, create, close, comment, or resolve GitHub issues with optional sub-issue attachment
+description: Read, create, close, comment, resolve, or list GitHub issues with optional sub-issue attachment
 user-invocable: false
 model: sonnet
 allowed-tools: Bash, Read
@@ -19,7 +19,7 @@ You DO the issue operations. You do NOT make decisions about what to do with the
 ## Input
 
 Receive from agent:
-- `action` — `read` | `create` | `close` | `comment` | `resolve_or_create`
+- `action` — `read` | `create` | `close` | `comment` | `resolve_or_create` | `list`
 - `issue_number` — (required for `read`, `close`, and `comment`, optional for `resolve_or_create`)
 - `body` — (required for `comment`) The comment body to post to the issue
 - `description` — (required for `create`, optional for `resolve_or_create`)
@@ -28,6 +28,12 @@ Receive from agent:
 - `labels` — (optional) Comma-separated labels to apply on create
 - `reason` — (optional, `close` only) Close reason: `completed` (default) or `not_planned`
 - `comment` — (optional, `close` only) Comment to add when closing the issue
+- `filters` — (optional, `list` only) Object with optional fields:
+  - `state` — default: `open`
+  - `assignee` — default: `none` (unassigned issues only)
+  - `labels` — default: `["enhancement", "no-label"]` (enhancement label OR no label)
+  - `sort` — default: `updated_desc`
+  - `limit` — default: `5` (maximum: 5)
 
 ## Process
 
@@ -56,6 +62,67 @@ gh issue create \
 ```
 
 4. If `parent_issue_number` is provided, attach as sub-issue (see Sub-Issue Attachment below)
+
+### Action: `list`
+
+Return a filtered, sorted list of open issues for candidate selection. GitHub's CLI does not support `label:X OR no:label` in a single query, so this action runs two separate queries and merges the results.
+
+**Step 1 — Query labeled candidates:**
+
+```bash
+gh issue list \
+  --state open \
+  --label "enhancement" \
+  --search "no:assignee" \
+  --json number,title,updatedAt,labels,state \
+  --limit 10
+```
+
+**Step 2 — Query unlabeled candidates:**
+
+```bash
+gh issue list \
+  --state open \
+  --search "no:assignee no:label" \
+  --json number,title,updatedAt,labels,state \
+  --limit 10
+```
+
+**Step 3 — Merge and sort:**
+
+1. Combine both result sets
+2. Deduplicate by `number` (keep one entry per issue)
+3. Sort by `updatedAt` descending
+4. Take the top `limit` entries (default: 5, hard cap: 5)
+
+Apply any caller-provided overrides to `state`, `assignee`, `labels`, `sort`, or `limit` before running the queries. When `limit` exceeds 5, cap it at 5 silently.
+
+**Output** (written to the calling agent's designated STM path):
+
+```yaml
+candidates:
+  - number: 42
+    title: "Add OAuth login"
+    updated_at: "2026-04-28T10:30:00Z"
+    labels: ["enhancement"]
+    state: "open"
+  - number: 37
+    title: "Improve error messages"
+    updated_at: "2026-04-25T08:15:00Z"
+    labels: []
+    state: "open"
+candidate_count: 2
+query_filters:
+  state: open
+  assignee: none
+  labels: [enhancement, no-label]
+  sort: updated_desc
+  limit: 5
+```
+
+If both queries return zero results, `candidate_count` is `0` and `candidates` is an empty list.
+
+---
 
 ### Action: `resolve_or_create`
 
@@ -159,5 +226,5 @@ Load GitHub CLI and API reference from: `reference/github-issue.md`
 
 | Field | Value |
 |-------|-------|
-| Version | 1.1.0 |
+| Version | 1.2.0 |
 | Category | operations |

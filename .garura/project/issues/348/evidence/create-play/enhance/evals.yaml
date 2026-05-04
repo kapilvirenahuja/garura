@@ -1,0 +1,127 @@
+step_evals:
+  # === C1 split: Path A retains SE-1 (existing); Path B gets SE-1b (new) ===
+  - id: SE-1
+    source_type: both
+    failure_condition_id: F1
+    constraint_id: C1
+    skill: manage-issue
+    check: >
+      Path A — when an issue number is resolvable from the invocation
+      argument or current working branch name, issue-read.yaml exists at
+      {stm_base}/{issue}/evidence/enhance/issue-read.yaml and contains a
+      'state' field equal to 'open'.
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/issue-read.yaml"
+    pass_criteria: >
+      issue-read.yaml exists and state == 'open'.
+    fail_criteria: >
+      issue-read.yaml missing OR state != 'open'.
+
+  - id: SE-1b
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C1
+    skill: manage-issue
+    check: >
+      Path B — when no issue number is resolvable from either invocation
+      argument or working branch name, the play does NOT hard halt immediately;
+      instead it triggers issue discovery (C23), records the discovery result
+      and the user's selection in STM, and proceeds with the selected issue
+      which is re-validated as open. Hard halt fires only when zero candidates
+      are returned OR the user declines all candidates.
+    artifact_pattern: "{stm_base}/_pending/enhance/discovery-result.yaml"
+    pass_criteria: >
+      discovery-result.yaml exists with candidates list (0-5) and either a
+      selected_issue_number field (numeric, with downstream issue-read.yaml
+      confirming open) OR a halt_reason field with value
+      'zero_candidates' or 'user_declined'.
+    fail_criteria: >
+      discovery-result.yaml missing when no issue was supplied; OR play
+      proceeded to Q&A/context/design without selected_issue_number; OR
+      play halted without recording a halt_reason.
+
+  # === C23 (new): discovery query, presentation, selection, re-validation ===
+  - id: SE-19
+    source_type: constraint
+    failure_condition_id: null
+    constraint_id: C23
+    skill: manage-issue
+    check: >
+      When C1 Path B triggers, discovery query is filtered to state=open
+      AND no assignee AND (labeled 'enhancement' OR no label), results are
+      sorted by most-recently-updated, capped at 5 candidates, and presented
+      as a numbered list (1 through N, N <= 5) showing issue number, title,
+      and last-updated date for each entry. User selection is recorded as a
+      number 1-5 or 'none'. A numeric selection is fed back into C1
+      open-state validation (issue must still be confirmed open at the
+      moment of selection).
+    artifact_pattern: "{stm_base}/_pending/enhance/discovery-result.yaml"
+    pass_criteria: >
+      discovery-result.yaml records: query_filters (state=open,
+      assignee=none, labels=['enhancement', 'no-label']), sort=updated_desc,
+      candidate_count <= 5, candidates list with each entry carrying
+      number/title/updated_at, presentation_format=numbered, and
+      user_response=(1..5|'none'). When user_response is numeric, downstream
+      issue-read.yaml for the selected number exists and shows state=open.
+    fail_criteria: >
+      Any required filter missing; sort not by updated_desc; candidate_count
+      > 5; presentation not numbered or missing required fields; selection
+      outside the allowed set; numeric selection not re-validated against
+      open-state.
+
+  # === F15 (new): zero candidates halt enforcement ===
+  - id: SE-20
+    source_type: failure_condition
+    failure_condition_id: F15
+    constraint_id: null
+    skill: manage-issue
+    check: >
+      When discovery (C1 Path B) returns zero candidates, the play hard halts
+      and produces NO enhance-stage artifacts for an unselected issue under
+      {stm_base}/. No subsequent step (Q&A discovery, context assembly,
+      approach design, implementation, verification, judge, quality, PR) runs.
+    artifact_pattern: "{stm_base}/"
+    pass_criteria: >
+      discovery-result.yaml records candidate_count == 0 AND halt_reason ==
+      'zero_candidates'; no enhance-stage artifacts (discovery.md,
+      understanding.md, approach.yaml, build-report.yaml, etc.) exist for
+      any unselected issue under {stm_base}/.
+    fail_criteria: >
+      discovery-result.yaml records candidate_count == 0 AND any
+      enhance-stage artifact exists under {stm_base}/ that was not produced
+      under a separately-resolved issue number.
+
+scenario_evals:
+  # === S9 (new): browse-before-enhancing ===
+  - id: SCE-9
+    scenario_id: S9
+    persona: "Developer who wants to browse issues before enhancing"
+    artifact_pattern: "{stm_base}/{issue}/evidence/enhance/"
+    check: >
+      When developer invokes the play with no issue argument and is not on a
+      branch whose name yields an issue number, the play queries the
+      project's open issues for enhancement candidates (open state, no
+      assignee, labeled 'enhancement' or no label), sorts by
+      most-recently-updated, caps at 5, presents as a numbered list with
+      issue number/title/last-updated date, accepts a numeric pick (1-5) or
+      'none', confirms the selected issue is open, and then proceeds
+      normally through Q&A discovery, context assembly, scope gate, approach
+      design, implementation, verification, judge rating, and PR
+      checkpoint as in S1. Typing 'none' or zero candidates causes hard halt
+      with NO enhance-stage artifacts produced.
+    pass_criteria: >
+      discovery-result.yaml exists at {stm_base}/_pending/enhance/ with the
+      filtered/sorted/capped candidates and presentation_format=numbered;
+      EITHER (a) user_response is numeric AND issue-read.yaml for the
+      selected number shows state=open AND the full SCE-1 evidence chain
+      exists for that issue (discovery.md, understanding.md, approach.yaml,
+      impl-context.md, test-context.md, build-report.yaml,
+      verification-report.yaml all PASS, judge-report.yaml confidence >=
+      0.6, quality-report.yaml all PASS, pr-result.yaml, ship-result.yaml
+      with merge SHA and branch deleted), OR (b) user_response == 'none' OR
+      candidate_count == 0 AND halt_reason recorded AND no enhance-stage
+      artifacts were produced.
+    fail_criteria: >
+      discovery-result.yaml missing; OR candidates not filtered/sorted/capped
+      per C23; OR play proceeded after 'none' or zero candidates; OR
+      selected issue not re-validated as open; OR full SCE-1 evidence
+      chain missing for the selected issue.

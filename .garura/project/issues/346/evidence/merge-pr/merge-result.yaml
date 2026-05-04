@@ -1,0 +1,6 @@
+pr_number: 347
+merge_sha: 6fbc0943f43dac578a3e87b01848c59d77ae81d6
+base_branch: main
+feature_branch: feature/346-add-evidence-record-config-check
+branch_deleted: true
+status: merged

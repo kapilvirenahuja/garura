@@ -1,0 +1,45 @@
+branch:
+  name: feature/346-add-evidence-record-config-check
+  issue: 346
+  is_hotfix: false
+
+change_summary:
+  total_files: 6
+  staged: 0
+  unstaged: 6
+  untracked: 0
+
+groups:
+  - id: 1
+    issue: 346
+    type: feat
+    scope: plays
+    subject: "gate evidence recording behind evidence.record config flag across all sub-plays"
+    confidence: high
+    files:
+      - path: .garura/core/config.yaml
+        description: changed evidence.record from true to false; updated comment to clarify flag applies across ship and all sub-plays
+      - path: core/components/plays/create-pr/SKILL.md
+        description: added evidence.record flag gate in Step 7 Write Evidence
+      - path: core/components/plays/distill/SKILL.md
+        description: added evidence.record flag gate in pre-flight; skips entire run when false
+      - path: core/components/plays/merge-pr/SKILL.md
+        description: added evidence.record flag gate in Step 3 Write Evidence
+      - path: core/components/plays/review-pr/SKILL.md
+        description: added evidence.record flag gate in Step 7 Write Evidence and Self-commit
+      - path: core/components/plays/ship/SKILL.md
+        description: added evidence.record flag read in pre-flight and gate in Step 6 Write Evidence
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false
+
+grouping_notes: >
+  All six files belong to issue #346. The config change and the five play-level
+  gates are a single cohesive concern — the flag value in config.yaml is what
+  the gates in each SKILL.md read and act on. Splitting config from plays would
+  create an incoherent commit that enables the flag but contains no gates (or vice
+  versa). Dominant type is feat: the flag gate is new observable behavior added
+  to the play pipeline.

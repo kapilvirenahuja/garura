@@ -1,0 +1,25 @@
+play: "enhance"
+skills:
+  - name: "manage-issue"
+    path: "core/components/skills/manage-issue/SKILL.md"
+    status: modified
+  - name: "setup-branch"
+    path: "core/components/skills/setup-branch/SKILL.md"
+    status: existing
+  - name: "draft-technical-approach"
+    path: "core/components/skills/draft-technical-approach/SKILL.md"
+    status: existing
+  - name: "commit-code"
+    path: "core/components/skills/commit-code/SKILL.md"
+    status: existing
+  - name: "create-pr"
+    path: "core/components/skills/create-pr/SKILL.md"
+    status: existing
+  - name: "analyze-pr"
+    path: "core/components/skills/analyze-pr/SKILL.md"
+    status: existing
+  - name: "merge-pr"
+    path: "core/components/skills/merge-pr/SKILL.md"
+    status: existing
+
+notes: "manage-issue extended to v1.2.0 with new `list` action. C23 discovery is satisfied by manage-issue (action: list) with default filters (state=open, assignee=none, labels=[enhancement,no-label], sort=updated_desc, limit=5). All other skills unchanged."

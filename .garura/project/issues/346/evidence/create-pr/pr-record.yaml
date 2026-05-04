@@ -1,0 +1,10 @@
+result:
+  success: true
+  pr:
+    number: 347
+    url: "https://github.com/kapilvirenahuja/garura/pull/347"
+    state: "open"
+    title: "feat(plays): gate evidence recording behind evidence.record config flag (#346)"
+  checklist:
+    required_count: 8
+    optional_count: 3
