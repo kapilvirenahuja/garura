@@ -1,0 +1,2 @@
+ M core/components/plays/commit-code/SKILL.md
+?? .garura/project/issues/_pending/start-feature/changed-files.txt
