@@ -1,4 +1,0 @@
-pr_number: 342
-mergeable: true
-clean_tree: true
-notes: Untracked STM evidence files stashed with git stash -u before merge; will be restored with git stash pop after switching to main.

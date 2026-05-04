@@ -1,5 +1,0 @@
-issue:
-  number: 343
-  title: "perf: skip issue resolution in commit-code when branch encodes issue number"
-  url: "https://github.com/kapilvirenahuja/garura/issues/343"
-  source: commit-code-stm

@@ -1,2 +1,0 @@
- M .garura/project/issues/_pending/start-feature/changed-files.txt
- M core/tools/lint-components/lib/rules/cross-reference.js

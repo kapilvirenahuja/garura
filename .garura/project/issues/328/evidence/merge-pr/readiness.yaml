@@ -1,8 +1,0 @@
-pr_number: 329
-state: open
-mergeable: true
-merge_state_status: CLEAN
-base_branch: main
-head_branch: fix/328-lint-sce-range-expansion
-working_tree_clean: true
-conflicts: false

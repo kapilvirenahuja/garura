@@ -1,9 +1,0 @@
-branch:
-  name: "fix/328-lint-sce-range-expansion"
-  action: "created"
-  pushed: true
-  changes_preserved: true
-  tracking_branch: "origin/fix/328-lint-sce-range-expansion"
-metadata:
-  issue_number: 328
-  timestamp: "2026-04-30"

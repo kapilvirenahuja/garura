@@ -1,5 +1,0 @@
-branch:
-  name: "perf/343-skip-issue-resolution-when-branch-encodes-issue"
-  action: "created"
-  pushed: false
-  changes_preserved: true
