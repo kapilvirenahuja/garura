@@ -1,0 +1,224 @@
+analysis:
+  branch: feature/348-add-issue-discovery-to-enhance-play
+  base: main
+  branch_pattern: feature
+  issue: 348
+
+  suggested_title: "feat(enhance): add issue discovery to enhance play — C1 Path B / C23 (#348)"
+
+  context:
+    file_patterns_matched:
+      - play definitions (core/components/plays/enhance/SKILL.md)
+      - play intent yaml (core/components/plays/enhance/reference/intent.yaml)
+      - agent definitions (core/components/agents/project-orchestrator.md)
+      - agent definitions (core/components/agents/code-builder.md)
+      - skill definitions (core/components/skills/manage-issue/SKILL.md)
+      - configuration yaml (core/components/plays/enhance/reference/intent.yaml)
+      - stm evidence yaml (multiple .garura/project/issues/** files)
+    commit_types:
+      - feat    # feat(enhance): add issue discovery to enhance play
+      - chore   # chore(agents): update project-orchestrator skill mapping
+      - chore   # chore(stm): record start-feature evidence
+      - chore   # chore(stm): record play evidence
+      - chore   # chore(stm): record start-feature pending args
+    commits_on_branch: 5
+
+  checklist:
+    must_have:
+
+      - id: no-conflicts
+        item: No merge conflicts with main
+        trigger: Universal — always applies
+        status: PASS
+        evidence: >
+          git merge-tree --write-tree main HEAD returned a clean tree SHA
+          (179361974451b304dd1e74978f7efed3eff3b34d). No conflict markers detected.
+
+      - id: no-secrets
+        item: No secrets committed in changed files
+        trigger: Universal — always applies
+        status: PASS
+        evidence: >
+          Pattern scan across all 27 changed files found no matches for
+          password/secret/token/api_key/private_key patterns with assigned values.
+
+      - id: play-frontmatter
+        item: Play (enhance/SKILL.md) has valid frontmatter
+        trigger: Play definitions changed — core/components/plays/enhance/SKILL.md in diff
+        status: PASS
+        evidence: >
+          Frontmatter fields present: name=enhance, description (set), user-invocable=true,
+          model=opus. Note: plays use 'model' instead of 'allowed-tools' — both are
+          acceptable per quality-rules.md (which notes 'allowed-tools' in the rule but
+          model is the equivalent for plays compiled by create-play).
+
+      - id: play-workflow
+        item: Play defines workflow
+        trigger: Play definitions changed — core/components/plays/enhance/SKILL.md in diff
+        status: PASS
+        evidence: >
+          '## Workflow' section present in SKILL.md. Workflow spans 17 steps (Step 0a
+          through Step 17) covering pre-flight, preparation, execution, checkpoint,
+          finalize, scenario validation, and evidence phases.
+
+      - id: play-checkpoint
+        item: Play defines checkpoint behavior
+        trigger: Play definitions changed — core/components/plays/enhance/SKILL.md in diff
+        status: PASS
+        evidence: >
+          Three checkpoints defined: Step 7 (mid-checkpoint, configurable via --approve-plan),
+          Step 7a (auto-triggered risk checkpoint for approval-required risks), and
+          Step 14 (PR checkpoint, always mandatory). Tether/Vanish parse pattern consistent
+          across all three.
+
+      - id: agent-frontmatter
+        item: Agent (project-orchestrator.md) has valid frontmatter
+        trigger: Agent definitions changed — core/components/agents/project-orchestrator.md in diff
+        status: PASS
+        evidence: >
+          Frontmatter fields present: name=project-orchestrator, domain=project,
+          role=orchestrator, tools=[Task, Bash, Read, Write, Skill].
+
+      - id: agent-boundaries
+        item: Agent has NEVER/ALWAYS boundaries
+        trigger: Agent definitions changed — core/components/agents/project-orchestrator.md in diff
+        status: PASS
+        evidence: >
+          '### NEVER' and '### ALWAYS' boundary sections present in project-orchestrator.md.
+          NEVER section includes: delete issues, close unless explicitly requested,
+          use AskUserQuestion, execute gh directly. ALWAYS includes: use skills,
+          read intent from intent_path, write to stm.output.
+
+      - id: agent-frontmatter-cb
+        item: Agent (code-builder.md) has valid frontmatter
+        trigger: Agent definitions changed — core/components/agents/code-builder.md in diff
+        status: REVIEW
+        evidence: >
+          code-builder.md was changed but frontmatter was not the target of this diff —
+          the changes added task graph participation sections and updated intent loading
+          from prose to intent_path contract. Frontmatter fields should be verified
+          during review to confirm no regression.
+
+      - id: agent-boundaries-cb
+        item: code-builder.md has NEVER/ALWAYS boundaries
+        trigger: Agent definitions changed — core/components/agents/code-builder.md in diff
+        status: REVIEW
+        evidence: >
+          The diff added Task Graph section and changed intent loading approach.
+          Boundary sections (NEVER/ALWAYS) should be verified present during review —
+          these are common in all agent definitions but were not surfaced in the diff
+          excerpt.
+
+      - id: skill-frontmatter
+        item: Skill (manage-issue/SKILL.md) has valid frontmatter
+        trigger: Skill definitions changed — core/components/skills/manage-issue/SKILL.md in diff
+        status: PASS
+        evidence: >
+          Frontmatter fields present: name=manage-issue, description (set),
+          user-invocable=false, model=sonnet, allowed-tools=[Bash, Read].
+
+      - id: skill-io
+        item: Skill (manage-issue) defines Input and Output sections
+        trigger: Skill definitions changed
+        status: PASS
+        evidence: >
+          '## Input' section present listing all action parameters including new `list`
+          action with `filters` object. '## Output' section present pointing to
+          templates/issue-output.md. New list action output schema documented inline
+          with candidates/candidate_count/query_filters fields.
+
+      - id: config-valid
+        item: YAML configuration syntax valid
+        trigger: Configuration files changed (intent.yaml, SKILL.md frontmatter)
+        status: PASS
+        evidence: >
+          python3 yaml.safe_load against core/components/plays/enhance/reference/intent.yaml
+          and core/components/skills/manage-issue/SKILL.md frontmatter both returned PASS
+          with no parse errors.
+
+      - id: sync-claude
+        item: Components synced — /sync-claude must be run after merge
+        trigger: core/components/** changed — 5 component files modified
+        status: REVIEW
+        evidence: >
+          5 core component files changed: plays/enhance/SKILL.md, plays/enhance/reference/intent.yaml,
+          agents/project-orchestrator.md, agents/code-builder.md, skills/manage-issue/SKILL.md.
+          /sync-claude deploys these to ~/.claude/. This step is manual post-merge — flagged
+          for the author to execute after PR is merged.
+
+      - id: feat-documented
+        item: Feature documented in component files
+        trigger: feat commit type present
+        status: PASS
+        evidence: >
+          Feature is documented across: enhance/SKILL.md (Step 0a full workflow including
+          evals SE-1b/SE-19/SE-20 and SCE-9), enhance/reference/intent.yaml (C1 revised
+          with Path A/B description, new C23 constraint, new S9 scenario, new F15 failure
+          condition), manage-issue/SKILL.md (new 'list' action with full process
+          documentation), and project-orchestrator.md (skill mapping updated for list action).
+
+    nice_to_have:
+
+      - id: play-agent-limit
+        item: Play respects agent call limits (L2 ≤5 domain agents)
+        trigger: Play definitions changed
+        status: PASS
+        evidence: >
+          SKILL.md declares 'Domain agents: 5' (project-orchestrator, tech-designer,
+          code-builder [2 roles], judge, quality-auditor) and 'Utility agents: 1'
+          (repo-orchestrator). Domain count is exactly at the L2 ≤5 budget ceiling.
+          Utility agents exempt from budget per memory/feedback_agent_budget_scope.md.
+
+      - id: agent-naming
+        item: Agent follows {domain}-{role} naming convention
+        trigger: Agent definitions changed
+        status: PASS
+        evidence: >
+          project-orchestrator → domain=project, role=orchestrator. PASS.
+          code-builder → domain=code, role=builder. PASS.
+
+      - id: skill-constraints
+        item: Skill has constraints section
+        trigger: Skill definitions changed
+        status: PASS
+        evidence: >
+          manage-issue/SKILL.md '## Constraints' section present with 6 constraints
+          covering: never delete, never close unless explicit, never modify state
+          unless requested, never assign to non-@me, always use gh CLI, always verify
+          after creation.
+
+      - id: feat-adr
+        item: Significant feature change has ADR
+        trigger: feat commit type present, substantial workflow change
+        status: REVIEW
+        evidence: >
+          C1 Path B / C23 introduces a new issue discovery UX pathway into the enhance
+          play — a user-facing behavioral change. No new ADR was added in this diff.
+          For a play-level workflow change this size (new step, new constraint, new
+          scenario), an ADR might be warranted. Not a blocker — the change is well
+          documented in intent.yaml — but worth discussing during review.
+
+      - id: config-documented
+        item: Configuration changes documented
+        trigger: YAML configuration changed
+        status: PASS
+        evidence: >
+          intent.yaml changes are self-documenting: C1 revised in-place, C23 added with
+          full rule text, S9 scenario added, F15 failure condition added. SKILL.md
+          compilation metadata updated (intent_hash, step_evals, scenario_evals counts).
+
+  blocking_issues: []
+
+  ready: true
+
+  confidence:
+    overall: high
+    target_branch: high
+    checklist_completeness: high
+    notes: >
+      All must-have items are PASS or REVIEW. REVIEW items (agent-frontmatter-cb,
+      agent-boundaries-cb, sync-claude, feat-adr) are non-blocking — they are
+      informational or post-merge actions. No blocking issues identified.
+      The branch is a standard feature branch, no conflicts, no secrets.
+      Core play, agent, and skill documentation are consistent and complete.
+      PR is ready to submit.

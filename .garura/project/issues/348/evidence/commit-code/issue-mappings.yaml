@@ -1,0 +1,16 @@
+auto_resolved: true
+source: analysis-derived
+confidence: high
+mappings:
+  - group_id: 1
+    issue: 346
+    confidence: high
+    reasoning: >
+      STM evidence artifacts from the commit-code, create-pr, and merge-pr play phases
+      for issue #346. Not committed during that play run. Identified by STM path prefix.
+  - group_id: 2
+    issue: 348
+    confidence: high
+    reasoning: >
+      Operational start-feature artifact for the active branch issue (#348).
+      Belongs to _pending/ which is scoped to the current work session.

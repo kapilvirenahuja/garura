@@ -1,0 +1,9 @@
+status: merged
+pr_number: 349
+merge_sha: 9f4fdfe48e1c82d39b1d137512e11954d08785d4
+base_branch: main
+branch_deleted:
+  local: true
+  local_note: branch was already deleted by gh pr merge --delete-branch
+  remote: true
+  remote_note: branch was already deleted by gh pr merge --delete-branch (C6 applied)
