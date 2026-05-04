@@ -5,9 +5,13 @@ intent: |
   too small, /prepare if too big), design an approach with tasks and
   evaluation criteria, implement autonomously, have an independent tester agent
   verify the implementation against those criteria, have a judge independently
-  rate solution confidence, and ship via PR with full review. Two approval
-  gates: a configurable mid-checkpoint after approach design (default OFF), and
-  a mandatory PR checkpoint after review.
+  rate solution confidence, and ship via PR with full review. When the user
+  invokes the play without supplying an issue and no issue can be derived from
+  the working branch, the play discovers candidate open issues from the
+  project's issue tracker and surfaces the most recently updated ones for the
+  user to choose from before proceeding. Two approval gates: a configurable
+  mid-checkpoint after approach design (default OFF), and a mandatory PR
+  checkpoint after review.
 
 # ═══════════════════════════════════════════════════════════════════════════
 # CONSTRAINTS — Issue & Branch
@@ -16,8 +20,16 @@ intent: |
 constraints:
   - id: C1
     rule: >
-      Must have an existing open issue. If no issue is resolvable from the
-      branch name or arguments, hard halt immediately.
+      Must operate against an existing open issue. Two resolution paths:
+      Path A — when the issue number is resolvable from the invocation
+      argument or from the current working branch name, the play proceeds
+      with that issue (must confirm the issue is open). Path B — when no
+      issue number is resolvable from either source, the play MUST NOT hard
+      halt immediately; instead it MUST trigger issue discovery against the
+      project's open issues (see C23), present candidates to the user, and
+      proceed with the user's selection (which then re-enters the Path A
+      open-state validation). Hard halt only fires under Path B when zero
+      candidates are returned OR the user declines all candidates.
 
   - id: C2
     rule: >
@@ -219,6 +231,29 @@ constraints:
       connections. Derivation is orchestrator-direct — no agent performs it.
 
 # ═══════════════════════════════════════════════════════════════════════════
+# CONSTRAINTS — Issue Discovery
+# ═══════════════════════════════════════════════════════════════════════════
+
+  - id: C23
+    rule: >
+      Issue Discovery Constraint. When C1 Path B triggers (no issue
+      resolvable from invocation argument or working branch), the play MUST
+      query the project's open issues filtered to: state=open, no assignee,
+      and either labeled "enhancement" OR carrying no label (the
+      no-label branch ensures the search is broad enough to surface
+      uncategorized work). Results MUST be sorted by most-recently-updated
+      and capped at 5 candidates. Candidates MUST be presented to the user
+      as a numbered list (1 through N, where N ≤ 5), each entry showing
+      the issue number, title, and last-updated date. The user selects a
+      single candidate by typing its number (1-5) or types "none" to
+      decline all candidates. A "none" response, or zero candidates
+      returned by the query, MUST cause the play to hard halt with a
+      message stating no issue was selected. A numeric selection MUST be
+      fed back into the C1 open-state validation before proceeding — the
+      selected issue must still be confirmed open at the moment of
+      selection.
+
+# ═══════════════════════════════════════════════════════════════════════════
 # CONSTRAINTS — PR & Quality
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -313,6 +348,15 @@ failure_conditions:
       Play gates fix loop on builder self-report instead of tester verdict in
       verification-report.yaml.
 
+  - id: F15
+    condition: >
+      Issue discovery (C1 Path B) returned zero candidates and the play
+      proceeded to subsequent steps (Q&A, context assembly, design, or
+      implementation) instead of hard halting. The presence of any
+      enhance-stage artifact for an unselected issue under
+      {stm_base}/ when discovery returned zero candidates constitutes
+      this failure.
+
 # ═══════════════════════════════════════════════════════════════════════════
 # SCENARIOS
 # ═══════════════════════════════════════════════════════════════════════════
@@ -398,3 +442,22 @@ scenarios:
       and shows only approval-required risks. If the user Tethers,
       implementation proceeds. If the user Vanishes, the play halts and the
       user must redesign the approach before re-running enhance.
+
+  - id: S9
+    persona: "Developer who wants to browse issues before enhancing"
+    given: >
+      Developer invokes the play with no issue argument and is not on a
+      branch whose name yields an issue number — there is no resolvable
+      issue at invocation time.
+    then: >
+      Play queries the project's open issues for enhancement candidates
+      (open state, no assignee, label "enhancement" or no label),
+      sorted by most-recently-updated, capped at 5. Candidates are
+      presented as a numbered list with issue number, title, and
+      last-updated date. The developer picks one by number; the selected
+      issue is confirmed open and the play proceeds normally from that
+      point — Q&A discovery, context assembly, scope gate, approach
+      design, implementation, verification, judge rating, and PR
+      checkpoint all run as in S1. If the developer types "none" or
+      zero candidates were returned, the play hard halts with a clear
+      message and no enhance-stage artifacts are produced.

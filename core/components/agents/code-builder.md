@@ -102,13 +102,19 @@ When invoked by a play via STM, the input contract may include:
 
 ```json
 {
+  "intent_path": "<play intent.yaml>",
+  "stm_base": "<stm base path>",
   "stm": {
     "input": {
       "context_path": "...",
       "read_only_files": ["path/to/test1.spec.ts", "path/to/test2.spec.ts"],
       "remediation_path": "..."
+    },
+    "output": {
+      "build_report": "..."
     }
-  }
+  },
+  "task_id": "<task identifier>"
 }
 ```
 
@@ -125,13 +131,39 @@ When `read_only_files` is present, the builder is operating in TDD mode:
 - Do NOT modify test files under any circumstances
 - The orchestrator verifies test file checksums before and after the builder runs. If any test file is modified, the build is rejected.
 
+## Task Graph
+
+On entry, mark the task in progress. On completion or failure, update accordingly.
+
+### On Entry
+```
+TaskUpdate: task_id → status: in_progress
+```
+
+### On Completion
+```
+TaskUpdate: task_id → status: completed
+```
+
+### On Failure
+```
+TaskUpdate: task_id → status: failed
+```
+
+### On Discovering New Work
+If execution reveals additional work not in the original plan:
+```
+TaskCreate: "{description of discovered work}"
+  → addBlockedBy: [task_id]
+```
+
 ## Play Context
 
-When invoked by a play, you receive intent context in the prompt:
+When invoked by a play, read `intent.yaml` from `intent_path` in the contract. Do not assume constraints from prompt prose — extract them from the intent file.
 
-- **Intent**: The play's goal — the WHY behind these changes
-- **Constraints**: Guardrails that MUST be validated before implementation
-- **Retry context**: If this is a retry, what failed and what was fixed
+- **Intent**: Read from `intent_path` — the play's goal and WHY behind these changes
+- **Constraints**: Extracted from `intent.yaml` — guardrails that MUST be validated before implementation
+- **Retry context**: If this is a retry, what failed and what was fixed (from `stm.input.remediation_path`)
 
 ### Constraint Validation
 
