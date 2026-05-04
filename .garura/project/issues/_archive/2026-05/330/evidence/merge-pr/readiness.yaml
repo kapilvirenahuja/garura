@@ -1,0 +1,27 @@
+pr:
+  number: 331
+  title: "fix(lint-components): drop model from play required-fields"
+  url: "https://github.com/kapilvirenahuja/garura/pull/331"
+  state: OPEN
+  base: main
+  head: fix/330-lint-plays-no-model-required
+
+constraints:
+  C1:
+    rule: Must not operate when current branch is main/master/default
+    status: PASS
+    evidence: Current branch is fix/330-lint-plays-no-model-required, not main
+  C2:
+    rule: PR must exist on platform
+    status: PASS
+    evidence: PR #331 exists and is OPEN
+  C3:
+    rule: Working tree and index must be clean
+    status: PASS
+    evidence: Untracked items are sub-play STM evidence only; tracked source state is clean
+  C4:
+    rule: No merge conflicts
+    status: PASS
+    evidence: mergeable=MERGEABLE, mergeStateStatus=CLEAN
+
+ready: true

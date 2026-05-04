@@ -165,7 +165,7 @@ iso_25010_profile:
       - "Factory Droid credentials stored in environment variables, not in play files (source: EPIC-engineering-experience-ide-integrations-001)"
       - "npm package integrity verified via npm audit on every CI build (source: EPIC-engineering-experience-first-run-onboarding-001)"
       - "STM artifact access governed by folder whitelist per ADR 017 (source: EPIC-agentic-methodology-component-arch-001)"
-      - "Security scan policy baseline — critical/high findings block PRs; medium/low inform only (source: EPIC-engineering-observability-quality-signals-001)"
+      - "Security scan policy baseline — critical/high findings block PRs; medium/low inform only (source: EPIC-engineering-observability-quality-ratings-001)"
     rationale: >
       Security characteristic is ratcheted by the compliance-mandate package in
       EPIC-ai-governance-audit-attribution-001 (AG-F004 RATCHET NOTE). The floor is
@@ -182,6 +182,7 @@ iso_25010_profile:
       - "Lint violations not suppressible without documented justification comment; global rule disables require decision-manifest entry (source: EPIC-engineering-observability-quality-signals-001)"
       - "All STM→LTM promotions follow documented canonicalization workflow; no silent promotions (source: EPIC-agentic-methodology-l2-spec-driven-001)"
       - "evals-creator regenerated on every /create-play --rebuild — rebuilt play with unapplied eval updates is a blocking CI failure (source: EPIC-work-intelligence-intent-driven-verification-001)"
+      - "Play frontmatter requires name, description, and user-invocable only — model is intentionally absent because plays inherit the model from the user's harness session at runtime. Skill and agent frontmatter still require model as a fixed binding. The lint-components checkPlay function enforces this distinction; adding model to play frontmatter is a lint violation (source: PR #331, structural.js line 189-191)."
     rationale: >
       Maintainability is a core differentiator for Garura. The three-layer hierarchy (Play→Agent
       →Skill) with compiled artifacts, drift detection, and lint discipline are all maintainability

@@ -1,0 +1,7 @@
+issue:
+  number: 330
+  title: "fix(lint-components): plays should not require model frontmatter field"
+  url: "https://github.com/kapilvirenahuja/garura/issues/330"
+  state: "open"
+  body_summary: "The checkPlay function in structural.js incorrectly lists model as a required frontmatter field for plays. Plays inherit the harness model from the running session — only skills and agents need model. Fix: remove model from play required-fields."
+  type_hint: "fix"
