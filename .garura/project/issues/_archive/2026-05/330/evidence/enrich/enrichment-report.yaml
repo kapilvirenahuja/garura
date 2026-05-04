@@ -1,0 +1,16 @@
+sourced_from: ".garura/project/issues/330/evidence/enrich/reconciliation-proposals.yaml"
+applied_at: "2026-05-04T00:00:00Z"
+dry_run: false
+
+writes:
+  - proposal_id: enrich-330-P-001
+    target_path: ".garura/product/specification/quality-profile.yaml"
+    action: modify
+    section: "iso_25010_profile.maintainability.targets"
+    status: applied
+    verification: confirmed — new bullet present at iso_25010_profile.maintainability.targets (8th entry)
+
+summary:
+  applied: 1
+  skipped: 0
+  failed: 0

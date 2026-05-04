@@ -1,0 +1,47 @@
+branch:
+  name: feature/348-add-issue-discovery-to-enhance-play
+  issue: 348
+  hotfix: false
+
+change_summary:
+  total_files: 8
+  staged: 0
+  unstaged: 0
+  untracked: 8
+
+groups:
+  - id: 1
+    issue: 346
+    type: chore
+    scope: stm
+    subject: record play evidence for #346
+    confidence: high
+    files:
+      - .garura/project/issues/346/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/346/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/346/evidence/create-pr/analysis.yaml
+      - .garura/project/issues/346/evidence/create-pr/issue-linkage.yaml
+      - .garura/project/issues/346/evidence/create-pr/pr-record.yaml
+      - .garura/project/issues/346/evidence/merge-pr/merge-result.yaml
+    notes: >
+      STM evidence artifacts produced during the commit-code, create-pr, and
+      merge-pr play phases for issue #346. Not committed during that play run.
+
+  - id: 2
+    issue: 348
+    type: chore
+    scope: stm
+    subject: record start-feature pending args for #348
+    confidence: high
+    files:
+      - .garura/project/issues/_pending/start-feature/args.yaml
+      - .garura/project/issues/_pending/start-feature/changed-files.txt
+    notes: >
+      Operational artifact capturing start-feature invocation args for the
+      current issue (#348). Belongs to the active branch issue, not #346.
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false

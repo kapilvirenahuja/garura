@@ -1,0 +1,35 @@
+sourced_from: ".garura/project/issues/330/evidence/distill/proposals.yaml"
+detected_source: distill
+issue_id: "330"
+generated_at: "2026-05-04T00:00:00Z"
+
+proposals:
+  - proposal_id: "enrich-330-P-001"
+    source_play: distill
+    source_proposal_id: "P-001"
+    tier: 2
+    learning_category: "standards"
+    sub_category: "linting"
+    learning_category_proposed: false
+    sub_category_proposed: false
+    target_path: ".garura/product/specification/quality-profile.yaml"
+    action: modify
+    change: |
+      Under iso_25010_profile.maintainability.targets, append the following entry:
+
+      - "Play frontmatter requires name, description, and user-invocable only — model is
+        intentionally absent because plays inherit the model from the user's harness session
+        at runtime. Skill and agent frontmatter still require model as a fixed binding. The
+        lint-components checkPlay function enforces this distinction; adding model to play
+        frontmatter is a lint violation (source: PR #331, structural.js line 189-191)."
+    impact:
+      downstream_artifacts: []
+      plays_affected: []
+      risk: low
+    approval_status: approved
+
+rejected: []
+
+summary:
+  normalized: 1
+  rejected: 0

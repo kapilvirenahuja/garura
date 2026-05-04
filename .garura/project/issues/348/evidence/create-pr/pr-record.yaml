@@ -1,0 +1,9 @@
+pr:
+  number: 349
+  url: "https://github.com/kapilvirenahuja/garura/pull/349"
+  title: "feat(enhance): add issue discovery to enhance play — C1 Path B / C23 (#348)"
+  state: open
+  base: main
+  branch: feature/348-add-issue-discovery-to-enhance-play
+  issue: 348
+  merge_sha: null
