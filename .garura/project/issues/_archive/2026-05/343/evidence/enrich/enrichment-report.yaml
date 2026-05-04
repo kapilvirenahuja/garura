@@ -1,0 +1,13 @@
+sourced_from: ".garura/project/issues/343/evidence/enrich/reconciliation-proposals.yaml"
+applied_at: "2026-05-04T00:00:00Z"
+dry_run: false
+writes:
+  - proposal_id: "enrich-343-P-001"
+    target_path: ".garura/product/research/standards/play-orchestration.md"
+    action: create
+    status: applied
+    reason: null
+summary:
+  applied: 1
+  skipped: 0
+  failed: 0

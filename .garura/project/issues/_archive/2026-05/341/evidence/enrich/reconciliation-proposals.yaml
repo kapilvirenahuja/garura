@@ -1,0 +1,57 @@
+sourced_from: ".garura/project/issues/341/evidence/distill/proposals.yaml"
+detected_source: distill
+issue_id: "341"
+generated_at: "2026-05-04T00:00:00Z"
+
+proposals:
+  - proposal_id: "enrich-341-P-001"
+    source_play: distill
+    source_proposal_id: "P-001"
+    tier: 2
+    learning_category: "arch"
+    sub_category: "play-patterns"
+    learning_category_proposed: false
+    sub_category_proposed: true
+    taxonomy_justification:
+      evidence_path: "core/components/plays/refactor/SKILL.md"
+      excerpt: >
+        "Each refactor commit contains exactly one refactor move, is prefixed `refactor:`,
+        and leaves the test suite green on its own. (C5) ... After every commit, the test
+        count must equal or exceed the baseline count, the suite must be green, the
+        type-checker/compiler must be clean, lint must show no new violations, and total
+        test runtime must remain within approximately 10% of the baseline. (C11)"
+      reasoning: >
+        This is an architectural pattern governing how plays are structured — specifically,
+        how a play handles multi-commit output sequences. It does not fit canonical
+        sub-categories (which cover individual component types: agents, skills, evals)
+        because it spans the entire play execution model. "play-patterns" is proposed
+        as a new sub-category of "arch" to capture cross-play structural decisions.
+    target_path: ".garura/product/research/arch.md"
+    action: modify
+    change: |
+      Section: Experiential
+
+      When a play must produce N independent commits (rather than one), use a
+      per-commit green gate: after each commit, run the full test suite (plus
+      type-check and lint) and fail the step — not the play — if any check is red.
+      The refactor play (garura:refactor, issue #341) established this pattern.
+      Each commit is one atomic move; the gate between commits prevents compounding
+      failures and makes each commit independently revertable. Characterization test
+      commits (`test:` prefix) precede refactor commits (`refactor:` prefix) when
+      baseline coverage is thin — this ordering is enforced as a constraint, not a
+      convention.
+
+      Evidence: core/components/plays/refactor/SKILL.md — Step 2 SE-11 eval, C5 and C11;
+      core/components/plays/refactor/reference/intent.yaml — constraints C4, C5, C11,
+      failure conditions F7, F11.
+    impact:
+      downstream_artifacts: []
+      plays_affected: []
+      risk: low
+    approval_status: approved
+
+rejected: []
+
+summary:
+  normalized: 1
+  rejected: 0

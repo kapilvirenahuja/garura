@@ -1,0 +1,125 @@
+groups:
+  - id: g1
+    concern: "docs: add play orchestration principles section to architecture philosophy"
+    files:
+      - docs/philosophy/architecture.md
+    type: docs
+    scope: philosophy
+    risk: low
+
+  - id: g2
+    concern: "chore: add short-circuit check to create-play agent declaration step"
+    files:
+      - core/components/plays/create-play/SKILL.md
+    type: chore
+    scope: create-play
+    risk: low
+
+  - id: g3
+    concern: "chore(stm): remove previously-tracked issue evidence artifacts for closed issues 322, 328, 341, 343"
+    files:
+      - .garura/project/issues/322/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/322/evidence/commit-code/commits.yaml
+      - .garura/project/issues/322/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/322/evidence/create-play/decode/agent-audit.md
+      - .garura/project/issues/322/evidence/create-play/decode/constraint-classifications.yaml
+      - .garura/project/issues/322/evidence/create-play/decode/coverage-matrix.md
+      - .garura/project/issues/322/evidence/create-play/decode/evals.yaml
+      - .garura/project/issues/322/evidence/create-play/decode/skill-manifest.yaml
+      - .garura/project/issues/322/evidence/create-pr/analysis.yaml
+      - .garura/project/issues/322/evidence/create-pr/issue-linkage.yaml
+      - .garura/project/issues/322/evidence/create-pr/pr-record.yaml
+      - .garura/project/issues/322/evidence/distill/proposals.yaml
+      - .garura/project/issues/322/evidence/merge-pr/20260429-182121.md
+      - .garura/project/issues/322/evidence/merge-pr/merge-result.yaml
+      - .garura/project/issues/322/evidence/merge-pr/readiness.yaml
+      - .garura/project/issues/322/evidence/start-feature/20260423-065500.md
+      - .garura/project/issues/322/evidence/start-feature/branch-result.yaml
+      - .garura/project/issues/322/evidence/start-feature/issue-resolution.yaml
+      - .garura/project/issues/328/evidence/commit-code/20260430-233347.md
+      - .garura/project/issues/328/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/328/evidence/commit-code/commits.yaml
+      - .garura/project/issues/328/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/328/evidence/create-pr/20260430-233844.md
+      - .garura/project/issues/328/evidence/create-pr/analysis.yaml
+      - .garura/project/issues/328/evidence/create-pr/issue-linkage.yaml
+      - .garura/project/issues/328/evidence/create-pr/pr-record.yaml
+      - .garura/project/issues/328/evidence/distill/proposals.yaml
+      - .garura/project/issues/328/evidence/merge-pr/20260430-234102.md
+      - .garura/project/issues/328/evidence/merge-pr/merge-result.yaml
+      - .garura/project/issues/328/evidence/merge-pr/readiness.yaml
+      - .garura/project/issues/328/evidence/ship/20260430-234304.md
+      - .garura/project/issues/328/evidence/start-feature/20260430-232711.md
+      - .garura/project/issues/328/evidence/start-feature/args.yaml
+      - .garura/project/issues/328/evidence/start-feature/branch-result.yaml
+      - .garura/project/issues/328/evidence/start-feature/changed-files.txt
+      - .garura/project/issues/328/evidence/start-feature/issue-resolution.yaml
+      - .garura/project/issues/328/status/commit-code.json
+      - .garura/project/issues/328/status/create-pr.json
+      - .garura/project/issues/328/status/merge-pr.json
+      - .garura/project/issues/328/status/ship.json
+      - .garura/project/issues/341/evidence/commit-code/20260504-000000.md
+      - .garura/project/issues/341/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/341/evidence/commit-code/commits.yaml
+      - .garura/project/issues/341/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/341/evidence/create-play/refactor/agent-audit-summary.md
+      - .garura/project/issues/341/evidence/create-play/refactor/coverage-verification.yaml
+      - .garura/project/issues/341/evidence/create-play/refactor/evals.yaml
+      - .garura/project/issues/341/evidence/create-play/refactor/skill-manifest.yaml
+      - .garura/project/issues/341/evidence/create-pr/analysis.yaml
+      - .garura/project/issues/341/evidence/create-pr/issue-linkage.yaml
+      - .garura/project/issues/341/evidence/create-pr/pr-record.yaml
+      - .garura/project/issues/341/evidence/distill/proposals.yaml
+      - .garura/project/issues/341/evidence/merge-pr/merge-result.yaml
+      - .garura/project/issues/341/evidence/merge-pr/readiness.yaml
+      - .garura/project/issues/341/evidence/ship/20260504-000000.md
+      - .garura/project/issues/341/evidence/start-feature/20260503-232500.md
+      - .garura/project/issues/341/evidence/start-feature/branch-result.yaml
+      - .garura/project/issues/341/evidence/start-feature/issue-resolution.yaml
+      - .garura/project/issues/343/evidence/commit-code/20260504-012427.md
+      - .garura/project/issues/343/evidence/commit-code/analysis.yaml
+      - .garura/project/issues/343/evidence/commit-code/commits.yaml
+      - .garura/project/issues/343/evidence/commit-code/issue-mappings.yaml
+      - .garura/project/issues/343/evidence/create-pr/20260504-012727.md
+      - .garura/project/issues/343/evidence/create-pr/analysis.yaml
+      - .garura/project/issues/343/evidence/create-pr/issue-linkage.yaml
+      - .garura/project/issues/343/evidence/create-pr/pr-record.yaml
+      - .garura/project/issues/343/evidence/distill/proposals.yaml
+      - .garura/project/issues/343/evidence/merge-pr/20260504-012839.md
+      - .garura/project/issues/343/evidence/merge-pr/merge-result-distill.yaml
+      - .garura/project/issues/343/evidence/merge-pr/merge-result.yaml
+      - .garura/project/issues/343/evidence/ship/20260504-012901.md
+      - .garura/project/issues/343/evidence/start-feature/20260504-004952.md
+      - .garura/project/issues/343/evidence/start-feature/args.yaml
+      - .garura/project/issues/343/evidence/start-feature/branch-result.yaml
+      - .garura/project/issues/343/evidence/start-feature/changed-files.txt
+      - .garura/project/issues/343/evidence/start-feature/issue-resolution.yaml
+      - .garura/project/issues/343/status/commit-code.json
+      - .garura/project/issues/343/status/create-pr.json
+    type: chore
+    scope: stm
+    risk: low
+
+  - id: g4
+    concern: "chore(stm): untracked fix-it evidence artifacts for issue 352"
+    files:
+      - .garura/project/issues/352/status/fix-it.json
+      - .garura/project/issues/352/evidence/fix-it/resolution-trace.yaml
+      - .garura/project/issues/352/evidence/fix-it/regression-test-verification.yaml
+      - .garura/project/issues/352/evidence/fix-it/branch-result.yaml
+      - .garura/project/issues/352/evidence/fix-it/regression-test.yaml
+      - .garura/project/issues/352/evidence/fix-it/issue-comment-agent.yaml
+      - .garura/project/issues/352/evidence/fix-it/regression-test-verdict.yaml
+      - .garura/project/issues/352/evidence/fix-it/rca.yaml
+      - .garura/project/issues/352/evidence/fix-it/implementation-report.yaml
+      - .garura/project/issues/352/evidence/fix-it/design.yaml
+      - .garura/project/issues/352/evidence/fix-it/issue-read.yaml
+    type: chore
+    scope: stm
+    risk: low
+
+risks:
+  sensitive_files: []
+  breaking_changes: []
+  ambiguous_types: []
+  hotfix_branch: false

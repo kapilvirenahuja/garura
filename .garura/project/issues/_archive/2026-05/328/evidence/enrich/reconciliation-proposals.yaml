@@ -1,0 +1,40 @@
+sourced_from: ".garura/project/issues/328/evidence/distill/proposals.yaml"
+detected_source: distill
+issue_id: "328"
+generated_at: "2026-05-04T00:00:00Z"
+
+proposals:
+  - proposal_id: "enrich-328-P-001"
+    source_play: distill
+    source_proposal_id: "P-001"
+    tier: 2
+    learning_category: "standards"
+    sub_category: "linting"
+    learning_category_proposed: false
+    sub_category_proposed: false
+    target_path: ".garura/product/specification/quality-profile.yaml"
+    action: modify
+    change: |
+      Under iso_25010_profile.maintainability.targets, add the following entry:
+
+      - "lint-components scenario-coverage checks must be set-based, not substring-based.
+        When a play expresses coverage as a range ('SCE-N through SCE-M', 'SCE-N to SCE-M',
+        'SCE-N..SCE-M', en-dash, or em-dash variants), all integers in that range are
+        covered. The correct implementation: (1) parse play content with a range regex to
+        build an inclusive integer set, (2) check set membership — never use includes() for
+        scenario number matching. Any future extension to coverage-check logic (new
+        separators, nested ranges, wildcards) must follow the same set-expansion-first
+        approach to avoid false-positive uncovered-scenario reports.
+        (source: PR #329, cross-reference.js — collectCoveredScenarioNumbers()
+        with rangeRe + singleRe pattern replacing playContent.includes() direct call)"
+    impact:
+      downstream_artifacts: []
+      plays_affected: []
+      risk: low
+    approval_status: approved
+
+rejected: []
+
+summary:
+  normalized: 1
+  rejected: 0

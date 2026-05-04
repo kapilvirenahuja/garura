@@ -1,0 +1,33 @@
+{
+  "play": "fix-it",
+  "issue": "352",
+  "started_at": "2026-05-04T00:00:00Z",
+  "tasks": {
+    "validate-issue": { "status": "completed", "completed_at": "2026-05-04T00:00:00Z" },
+    "create-branch": { "status": "completed", "completed_at": "2026-05-04T00:00:00Z" },
+    "rca-and-design": { "status": "completed", "completed_at": "2026-05-04T00:00:00Z" },
+    "prepare-checkpoint": { "status": "pending" },
+    "approval-gate": { "status": "pending" },
+    "implement-fix": { "status": "pending" },
+    "verify-fix": { "status": "pending" },
+    "ship": { "status": "pending" },
+    "scenario-evals": { "status": "pending" },
+    "evidence-report": { "status": "pending" }
+  },
+  "task_list": [
+    {
+      "id": "task-1",
+      "description": "Create core/components/memory/standards/rules/play-orchestration.md with content from staged file",
+      "status": "pending",
+      "retry_count": 0,
+      "regression_test_path": ".garura/project/issues/352/evidence/fix-it/regression-test.yaml"
+    },
+    {
+      "id": "task-2",
+      "description": "Add entry for play-orchestration.md to core/components/memory/standards/rules/_index.md",
+      "status": "pending",
+      "retry_count": 0,
+      "regression_test_path": ".garura/project/issues/352/evidence/fix-it/regression-test.yaml"
+    }
+  ]
+}

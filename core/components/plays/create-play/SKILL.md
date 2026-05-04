@@ -232,6 +232,8 @@ For agents with failures, present options:
 
 For new agents: interview user for name, domain, skills it needs. Build definition at `core/components/agents/{name}.md` following all 11 principles. Audit to confirm.
 
+**Short-circuit check (pre-declaration):** Before declaring an agent, ask: "Is this agent's sole output a value derivable deterministically from context — branch name, file path, config key, or another environment signal?" If yes, the play should short-circuit rather than spawn the agent. Write a synthetic output artifact inline at the orchestrator level. Only declare the agent if the output genuinely requires LLM reasoning or external system calls that cannot be avoided.
+
 **Gate:** ALL agents pass ALL 11 principles. No exceptions.
 
 ### Step 5 — Workflow Selection
