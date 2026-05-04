@@ -1,0 +1,6 @@
+issue:
+  number: 346
+  title: "[FEAT] Add evidence.record config check to /ship and all its sub-plays"
+  url: "https://github.com/kapilvirenahuja/garura/issues/346"
+  state: open
+  source: commit-code-stm

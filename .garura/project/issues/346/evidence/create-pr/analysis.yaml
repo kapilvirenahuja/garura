@@ -1,0 +1,147 @@
+analysis:
+  branch: feature/346-add-evidence-record-config-check
+  base: main
+  branch_pattern: feature
+  commits: 2
+  changes:
+    files: 11
+    additions: 160
+    deletions: 15
+  suggested_title: "feat(plays): gate evidence recording behind evidence.record config flag (#346)"
+
+  context:
+    file_patterns_matched:
+      - name: "Play Definitions"
+        files: 5
+        trigger: "**/plays/**/SKILL.md"
+      - name: "Configuration"
+        files: 1
+        trigger: ".garura/core/config.yaml"
+      - name: "STM Evidence (start-feature)"
+        files: 5
+        trigger: ".garura/project/issues/**"
+    commit_types:
+      - type: "feat"
+        count: 1
+        example: "feat(plays): gate evidence recording behind evidence.record config flag across all sub-plays (#346)"
+      - type: "chore"
+        count: 1
+        example: "chore(stm): record start-feature evidence for #346 (#346)"
+    branch_modifiers: []
+
+  checklist:
+    must_have:
+      - id: "no-conflicts"
+        item: "No merge conflicts with main"
+        trigger: "Universal — always apply"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD returned clean tree SHA 185b9b7f224b89ce2d763463fdb74549d09f5a2a — no conflict markers"
+
+      - id: "no-secrets"
+        item: "No secrets committed"
+        trigger: "Universal — always apply"
+        status: "PASS"
+        evidence: "Scanned all changed files for password/secret/token/api_key/private_key/credential patterns. Diff contains only bash variable references (evidence_record) and YAML config flags. No secrets found."
+
+      - id: "play-frontmatter"
+        item: "All changed plays have valid frontmatter"
+        trigger: "Play Definitions changed — **/plays/**/SKILL.md"
+        status: "PASS"
+        evidence: |
+          All 5 SKILL.md files verified:
+          - create-pr: name=garura:create-pr, description present, user-invokable=true
+          - distill: name=distill, description present, user-invokable=false
+          - merge-pr: name=merge-pr, description present, user-invokable=true
+          - review-pr: name=review-pr, description present, user-invocable=true
+          - ship: name=ship, description present, user-invokable=true
+
+      - id: "play-workflow"
+        item: "All changed plays define a workflow"
+        trigger: "Play Definitions changed — **/plays/**/SKILL.md"
+        status: "PASS"
+        evidence: |
+          All 5 SKILL.md files have ## Workflow section:
+          - create-pr: line 76
+          - distill: line 70
+          - merge-pr: line 74
+          - review-pr: line 75
+          - ship: line 79
+
+      - id: "play-checkpoint"
+        item: "Play checkpoint behavior defined"
+        trigger: "Play Definitions changed — **/plays/**/SKILL.md"
+        status: "PASS"
+        evidence: |
+          Checkpoint and Pause/Resume sections confirmed in all changed plays:
+          - create-pr: confidence-gated checkpoint (line 152), ## Pause and Resume (line 254)
+          - distill: ## Pause and Resume (line 142)
+          - merge-pr: ## Pause and Resume (line 153)
+          - review-pr: checkpoint at step 4.5, ## Pause and Resume (line 418)
+          - ship: ## Pause and Resume (line 280), approval_override for checkpoint suppression
+
+      - id: "config-valid"
+        item: "Configuration YAML is syntactically valid"
+        trigger: "Configuration changed — .garura/core/config.yaml"
+        status: "PASS"
+        evidence: "python3 yaml.safe_load() returned without error. evidence.record changed from true to false; comment updated to reflect scope (ship and all sub-plays, not just commit-code)."
+
+      - id: "sync-claude"
+        item: "Components synced to ~/.claude/ via /sync-claude"
+        trigger: "core/components/** changed — 5 play SKILL.md files modified"
+        status: "REVIEW"
+        evidence: "Changes are in core/components/plays/. Deployment to ~/.claude/skills/ is required for plays to pick up the evidence.record gates at runtime. Cannot verify sync state from analysis — must run /sync-claude before or after merge."
+
+      - id: "feat-documented"
+        item: "Feature behavior documented in changed play files"
+        trigger: "Commit type feat — feature should be documented"
+        status: "PASS"
+        evidence: |
+          Each modified SKILL.md carries a Direct-edit deviation note (#346) at the bottom documenting:
+          - What was added (evidence.record gate)
+          - Where it was added (step number or pre-flight)
+          - What is unconditional (PR creation, delivery report, merge-result.yaml)
+          - Rationale (no intent.yaml update required — suppression of STM write only)
+          Config comment updated to accurately describe scope (was: commit-code; now: ship and all sub-plays).
+
+    nice_to_have:
+      - id: "play-agent-limit"
+        item: "Play respects agent call limits (L1 ≤2, L2 ≤5)"
+        trigger: "Play Definitions changed"
+        status: "PASS"
+        evidence: |
+          Agent limits unchanged by this PR — only evidence-write steps were modified.
+          create-pr: 2 agents (repo-orchestrator, project-orchestrator) — within L2 ≤5
+          merge-pr: 1 agent (repo-orchestrator) — within L1 ≤2
+          review-pr: agents unchanged
+          ship: agents unchanged
+          distill: no agent limit metadata change
+
+      - id: "config-documented"
+        item: "Configuration change accompanied by docs or in-file comment"
+        trigger: "Configuration changed — .garura/core/config.yaml"
+        status: "PASS"
+        evidence: "Config comment on the evidence: block updated from 'non-essential STM artifacts in commit-code are skipped' to 'STM evidence writes are skipped across ship and all sub-plays'. No separate ADR needed — behavior is config-flag driven suppression, not an architectural change."
+
+      - id: "feat-adr"
+        item: "Significant feature has ADR"
+        trigger: "Commit type feat — large cross-cutting change"
+        status: "REVIEW"
+        evidence: |
+          Change touches 5 plays + config. No new ADR was created.
+          Assessment: this is a config-flag suppression (not a structural change to architecture or contracts),
+          consistent with existing ADR 017 (folder whitelist) and ADR 016 (agent contracts) which remain valid.
+          ADR is optional here — the change is bounded and reversible (flip evidence.record back to true).
+          Reviewer should confirm this is below the ADR threshold.
+
+  blocking_issues: []
+
+  ready: true
+  confidence: high
+  target_branch: main
+  target_branch_confidence: high
+  recommendation: "Create PR"
+
+  notes:
+    - "sync-claude must run (before or after merge) to deploy the updated SKILL.md files to ~/.claude/skills/"
+    - "feat-adr is a REVIEW item — no ADR created; reviewer to confirm this is below the ADR threshold"
+    - "STM evidence files from start-feature (.garura/project/issues/346/evidence/start-feature/*) are included in the diff — these are expected artifacts from play execution"
