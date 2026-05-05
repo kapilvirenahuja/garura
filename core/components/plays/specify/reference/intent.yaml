@@ -104,7 +104,7 @@ constraints:
 
   - id: C10
     rule: >
-      All product-scoped artifacts land under .meridian/product/ per
+      All product-scoped artifacts land under .garura/product/ per
       the ADR 017 whitelist. No writes outside this directory except
       checkpoint, status, and evidence files that go through the scriber
       agent. The play never writes evidence files directly — scriber dispatch
@@ -147,7 +147,7 @@ constraints:
   - id: C15
     rule: >
       An MVP recommendation artifact must exist at
-      .meridian/product/scope/mvp-recommendation.md before capability
+      .garura/product/scope/mvp-recommendation.md before capability
       configuration (Stage 3) begins. The artifact is authored at
       Stage 2.75, between domain-selection and configure-capabilities,
       and identifies the primary use cases, deferred use cases with
@@ -162,8 +162,8 @@ constraints:
   - id: C16
     rule: >
       Artifacts produced by this play stay implementation-agnostic.
-      No file under .meridian/product/research/, .meridian/product/
-      specification/, or .meridian/product/scope/ may reference a
+      No file under .garura/product/research/, .garura/product/
+      specification/, or .garura/product/scope/ may reference a
       specific database engine, SDK method or parameter, framework,
       programming language, build tool, table schema with column
       definitions, wire protocol or endpoint path, cryptographic
@@ -180,7 +180,7 @@ constraints:
       research folder at selection time, with a provenance header
       recording origin, KB path, copy timestamp, and KB content hash.
       Stage 3 and every later stage read the domain library from
-      .meridian/product/research/ only — never directly from
+      .garura/product/research/ only — never directly from
       core/components/memory/knowledge/domain/. This makes every
       product run reproducible (a KB edit does not retroactively
       change historical runs) and gives the product a single read
@@ -330,8 +330,8 @@ failure_conditions:
 
   - id: F13
     condition: >
-      Any file under .meridian/product/research/, .meridian/product/
-      specification/, or .meridian/product/scope/ written by this play
+      Any file under .garura/product/research/, .garura/product/
+      specification/, or .garura/product/scope/ written by this play
       contains an implementation-specific token from the abstraction-
       layer deny-list (specific database engines, SDK method names,
       framework identifiers, programming-language type signatures,

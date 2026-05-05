@@ -56,7 +56,7 @@
     ],
     "memory": {
       "approach": "Dual-tier file-system memory: STM for active work, LTM for persistent knowledge",
-      "stm": ".meridian/project/issues/{issue-number}/ — per-issue artifacts including intent files, execution plans, and evidence",
+      "stm": ".garura/project/issues/{issue-number}/ — per-issue artifacts including intent files, execution plans, and evidence",
       "ltm": "~/.garura/core/memory/ — global standards, templates, agent definitions, and accumulated knowledge",
       "embeddings": "Not implemented in MVP — full-text search over LTM deferred to post-launch based on scale needs"
     }

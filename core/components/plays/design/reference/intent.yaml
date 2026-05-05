@@ -27,12 +27,12 @@ constraints:
     rule: >
       The specify pipeline artifacts must exist and be locked
       before design begins. Pre-flight reads
-      .meridian/product/scope/scope.yaml,
-      .meridian/product/scope/garura:enriched-capabilities.yaml,
-      .meridian/product/scope/epics/*.yaml, and
-      .meridian/product/specification/quality-profile.yaml. The post-D1
-      folder layout applies — there is no .meridian/product/product/
-      doubled folder and no single monolithic .meridian/product/ dump;
+      .garura/product/scope/scope.yaml,
+      .garura/product/scope/garura:enriched-capabilities.yaml,
+      .garura/product/scope/epics/*.yaml, and
+      .garura/product/specification/quality-profile.yaml. The post-D1
+      folder layout applies — there is no .garura/product/product/
+      doubled folder and no single monolithic .garura/product/ dump;
       each artifact lives under its SDLC-stage sub-folder per ADR 017.
       Missing or DRAFT-status artifacts halt pre-flight.
 
@@ -93,14 +93,14 @@ constraints:
   - id: C10
     rule: >
       Design artifacts (personas, screens, flows, wireframes,
-      design-spec, design-system.md) land under .meridian/product/experience/ per
+      design-spec, design-system.md) land under .garura/product/experience/ per
       ADR 017 post-D1 folder whitelist — the former
-      .meridian/product/ux/ folder was renamed to experience/.
+      .garura/product/ux/ folder was renamed to experience/.
       Lifecycle artifacts (checkpoints, evidence, status) live at the
       product root, orthogonal to SDLC stages: checkpoints at
-      .meridian/product/_checkpoints/design/, evidence at
-      .meridian/product/_evidence/design/, status at
-      .meridian/product/_status/design.json. All evidence,
+      .garura/product/_checkpoints/design/, evidence at
+      .garura/product/_evidence/design/, status at
+      .garura/product/_status/design.json. All evidence,
       checkpoint, and status writes go through the scriber agent. The
       play never writes these directly.
 
@@ -134,7 +134,7 @@ constraints:
 
   - id: C14
     rule: >
-      The domain library is read from .meridian/product/research/ only —
+      The domain library is read from .garura/product/research/ only —
       never directly from core/components/memory/knowledge/domain/. Every
       stage that needs domain content (synthesize-personas, generate-
       screen-inventory, map-user-flows, generate-wireframes, validate-
@@ -150,7 +150,7 @@ constraints:
 
   - id: C15
     rule: >
-      The MVP recommendation at .meridian/product/scope/mvp-recommendation.md
+      The MVP recommendation at .garura/product/scope/mvp-recommendation.md
       must exist and be non-empty before Stage 1 persona synthesis begins.
       The recommendation identifies primary use cases and deferred use
       cases with v1.1+ triggers. design's Stage 1 reads the primary

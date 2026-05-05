@@ -40,7 +40,7 @@ You are the orchestrator. You own the workflow. You delegate domain tasks to age
 
 **FORBIDDEN DATA SOURCES (C15, F13):**
 - `~/.garura/core/memory/` (KB) — NEVER read by any agent in this play
-- `{product_base}` / `.meridian/product/` (LTM) — NEVER read by any agent in this play
+- `{product_base}` / `.garura/product/` (LTM) — NEVER read by any agent in this play
 - All context comes from STM at `{stm_base}/{issue}/context/` (produced by prepare) plus the deployed environment
 - No agent contract may include `ltm_context` fields
 - If something is missing from STM, the fix is in prepare, not in reading LTM/KB directly

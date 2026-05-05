@@ -21,7 +21,7 @@
     {"description": "Enterprise adoption requires SOC2 compliance which is not yet achieved"},
     {"description": "Competing tools may adopt similar memory and workflow features"}
   ],
-  "value_proposition": "Meridian eliminates the context-switching tax in AI-assisted development by providing persistent project memory and deterministic workflows that produce consistent, auditable outputs across sessions and team members.",
+  "value_proposition": "Garura eliminates the context-switching tax in AI-assisted development by providing persistent project memory and deterministic workflows that produce consistent, auditable outputs across sessions and team members.",
   "strategic_goals": [
     {"id": "SG1", "title": "Eliminate Context Loss", "description": "AI assistants retain full project context across sessions", "metric": "Context rebuild time per session", "target": "<30 seconds", "measurement": "Time from session start to first productive output"},
     {"id": "SG2", "title": "Deterministic Workflows", "description": "Same inputs produce consistent outputs regardless of who runs them", "metric": "Output variance across runs", "target": "<5% semantic deviation", "measurement": "Automated diff analysis of outputs from identical inputs"},
