@@ -227,7 +227,7 @@ Good commit history is a treasure trove — it reveals intent, coupling patterns
 ### Step 1E — LTM Consultation
 **Agent: tech-architect**
 
-Read LTM at `~/.meridian/core/memory/` for:
+Read LTM at `~/.Garura/core/memory/` for:
 - Architectural standards and decisions
 - Implementation patterns and conventions
 - Prior learnings from related work

@@ -90,7 +90,7 @@ If `success: false` → invoke recovery (see Recovery section). Max 2 retries.
 **Before:**
 ```
 ### Step 4 — Report
-Write evidence to `.meridian/{issue}/evidence/start-feature/{ts}.md`:
+Write evidence to `.Garura/{issue}/evidence/start-feature/{ts}.md`:
 - Mode (NEW / RESUME)
 - Issue number and title
 - Branch created or checked out
@@ -102,13 +102,13 @@ Present final report to user using `templates/feature-started.md`.
 **After:**
 ```
 ### Step 4 — Report
-Write evidence to `.meridian/{issue}/evidence/start-feature/{ts}.md`:
+Write evidence to `.Garura/{issue}/evidence/start-feature/{ts}.md`:
 - Mode (NEW / RESUME)
 - Issue number and title
 - Branch created or checked out
 - STM initialized or verified
 
-Update checkpoint artifact `.meridian/{issue}/checkpoint/start-feature/{same-timestamp}.md` (NEW mode only):
+Update checkpoint artifact `.Garura/{issue}/checkpoint/start-feature/{same-timestamp}.md` (NEW mode only):
 - Append branch created and STM initialized with confirmation status
 
 Present final report to user using `templates/feature-started.md`.
@@ -120,12 +120,12 @@ Present final report to user using `templates/feature-started.md`.
 
 **Before:**
 ```
-Write checkpoint artifact to `.meridian/{issue}/checkpoint/start-feature/{ts}.md` with Status: `PENDING_APPROVAL`.
+Write checkpoint artifact to `.Garura/{issue}/checkpoint/start-feature/{ts}.md` with Status: `PENDING_APPROVAL`.
 ```
 
 **After:**
 ```
-Write checkpoint artifact to `.meridian/{issue}/checkpoint/start-feature/{ts}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
+Write checkpoint artifact to `.Garura/{issue}/checkpoint/start-feature/{ts}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
 ```
 
 ✅ **Result:** Template usage now explicit in Step 2.
@@ -178,13 +178,13 @@ Present plan summary using `templates/approval-prompt.md`. Do NOT use EnterPlanM
 Parse: `Tether`/`tether` → proceed to Step 5. `Vanish`/`vanish` → halt, checkpoint REJECTED. Else → clarify.
 
 ### Step 5 — Create Branch
-Write checkpoint artifact to `.meridian/{issue}/checkpoint/start-feature-planning/{ts}.md` using `templates/checkpoint.md` with Status: APPROVED. Do not delegate this write.
+Write checkpoint artifact to `.Garura/{issue}/checkpoint/start-feature-planning/{ts}.md` using `templates/checkpoint.md` with Status: APPROVED. Do not delegate this write.
 ```
 
 **After:**
 ```
 ### Step 4 — Checkpoint
-Write checkpoint artifact to `.meridian/{issue}/checkpoint/start-feature-planning/{ts}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
+Write checkpoint artifact to `.Garura/{issue}/checkpoint/start-feature-planning/{ts}.md` using `templates/checkpoint.md` with Status: `PENDING_APPROVAL`.
 
 Present plan summary using `templates/approval-prompt.md`. Do NOT use EnterPlanMode or AskUserQuestion.
 
@@ -222,7 +222,7 @@ If `success: false` → invoke recovery (see Recovery section). Max 2 retries.
 **Before:**
 ```
 ### Step 6 — Report
-Write evidence to `.meridian/{issue}/evidence/start-feature-planning/{ts}.md`:
+Write evidence to `.Garura/{issue}/evidence/start-feature-planning/{ts}.md`:
 - Issue number and title
 - Branch created
 - Planning artifacts written (spec, verify, tasks)
@@ -233,12 +233,12 @@ Present final report to user using `templates/feature-started.md`.
 **After:**
 ```
 ### Step 6 — Report
-Write evidence to `.meridian/{issue}/evidence/start-feature-planning/{ts}.md`:
+Write evidence to `.Garura/{issue}/evidence/start-feature-planning/{ts}.md`:
 - Issue number and title
 - Branch created
 - Planning artifacts written (spec, verify, tasks — with file paths)
 
-Update checkpoint artifact `.meridian/{issue}/checkpoint/start-feature-planning/{same-timestamp}.md`:
+Update checkpoint artifact `.Garura/{issue}/checkpoint/start-feature-planning/{same-timestamp}.md`:
 - Append branch created and planning artifacts written with confirmation status
 
 Present final report to user using `templates/feature-started.md`.

@@ -7,7 +7,7 @@ Use for: repo-orchestrator, project-orchestrator
 ```markdown
 ## Memory
 
-Load practices from `~/.meridian/core/memory/practices/` as needed:
+Load practices from `~/.Garura/core/memory/practices/` as needed:
 - `intent-driven-recovery.md` — Recovery reasoning loop
 - `structured-failure-protocol.md` — Structured failure return format
 - {domain-specific practices}
@@ -63,7 +63,7 @@ Use for: code-builder
 ```markdown
 ## Memory
 
-Load practices from `~/.meridian/core/memory/practices/` when referenced:
+Load practices from `~/.Garura/core/memory/practices/` when referenced:
 - `structured-failure-protocol.md` — Structured failure return format
 
 ## Recovery
@@ -103,7 +103,7 @@ Use for: tech-designer
 ```markdown
 ## Memory
 
-Load practices from `~/.meridian/core/memory/practices/` when referenced:
+Load practices from `~/.Garura/core/memory/practices/` when referenced:
 - `structured-failure-protocol.md` — Structured failure return format
 
 ## Recovery

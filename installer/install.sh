@@ -53,9 +53,9 @@ fi
 
 # --- Detect mode ---
 
-MERIDIAN_CONFIG="$TARGET_DIR/.garura/core/config.yaml"
+GARURA_CONFIG="$TARGET_DIR/.garura/core/config.yaml"
 MODE="init"
-if [ -f "$MERIDIAN_CONFIG" ]; then
+if [ -f "$GARURA_CONFIG" ]; then
   MODE="upgrade"
 fi
 

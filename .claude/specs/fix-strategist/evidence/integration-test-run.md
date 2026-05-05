@@ -41,11 +41,11 @@
 - **Result:** PASS
 - **Checkpoint written before user presentation:** Yes (C8 compliant)
 - **Status flow:** PENDING_APPROVAL → APPROVED (user typed "T" / Tether)
-- **Checkpoint artifact:** `.meridian/project/product/checkpoint/discover-product/20260225-225900.md`
+- **Checkpoint artifact:** `.Garura/project/product/checkpoint/discover-product/20260225-225900.md`
 
 ### Step 4: Report
 - **Result:** PASS
-- **Evidence artifact written:** `.meridian/project/product/evidence/discover-product/20260225-225900.md`
+- **Evidence artifact written:** `.Garura/project/product/evidence/discover-product/20260225-225900.md`
 - **Execution trace, constraint compliance, next steps all documented**
 
 ---
@@ -54,10 +54,10 @@
 
 | Artifact | Path (project-local) | Size | Status |
 |----------|---------------------|------|--------|
-| vision.md | `.meridian/project/product/ai-commission-tracking-b2b-saas/vision.md` | 9.8KB | DRAFT |
-| vision-review.md | `.meridian/project/product/ai-commission-tracking-b2b-saas/reviews/vision-review.md` | 12KB | DRAFT |
-| checkpoint | `.meridian/project/product/checkpoint/discover-product/20260225-225900.md` | — | APPROVED |
-| evidence | `.meridian/project/product/evidence/discover-product/20260225-225900.md` | — | Complete |
+| vision.md | `.Garura/project/product/ai-commission-tracking-b2b-saas/vision.md` | 9.8KB | DRAFT |
+| vision-review.md | `.Garura/project/product/ai-commission-tracking-b2b-saas/reviews/vision-review.md` | 12KB | DRAFT |
+| checkpoint | `.Garura/project/product/checkpoint/discover-product/20260225-225900.md` | — | APPROVED |
+| evidence | `.Garura/project/product/evidence/discover-product/20260225-225900.md` | — | Complete |
 
 ---
 
@@ -67,10 +67,10 @@
 
 **Severity:** High
 **Location:** Play orchestrator (path construction during mkdir + agent invocation)
-**Expected:** Artifacts at `.meridian/project/product/` (relative to project root)
-**Actual:** Artifacts at `~/.meridian/project/product/` (user home directory)
-**Root cause:** Orchestrator used absolute path `/Users/kapilahuja/.meridian/` instead of project-relative `.meridian/`. The `artifact_base` passed to the agent was an absolute path rooted at home.
-**Fix needed:** Play orchestrator must resolve `.meridian/` relative to the current working directory (project root), not as a global path. The play SKILL.md Step 2 specifies `artifact_base: ".meridian/project/product/"` — a relative path — but the orchestrator expanded it incorrectly.
+**Expected:** Artifacts at `.Garura/project/product/` (relative to project root)
+**Actual:** Artifacts at `~/.Garura/project/product/` (user home directory)
+**Root cause:** Orchestrator used absolute path `/Users/kapilahuja/.Garura/` instead of project-relative `.Garura/`. The `artifact_base` passed to the agent was an absolute path rooted at home.
+**Fix needed:** Play orchestrator must resolve `.Garura/` relative to the current working directory (project root), not as a global path. The play SKILL.md Step 2 specifies `artifact_base: ".Garura/project/product/"` — a relative path — but the orchestrator expanded it incorrectly.
 **Remediation:** Artifacts moved to correct project-local path post-execution.
 
 ### DEFECT-2: Multi-intent compound execution incomplete on first invocation
@@ -92,7 +92,7 @@
 | C2: Valid phase | PASS | draft |
 | C4: Delegate to product-strategist | PASS | 2 agent calls made |
 | C5: Max 2 agent calls | PASS | 2 used (resume doesn't count as new call) |
-| C6: Artifact path .meridian/project/product/ | **FAIL** | Created at ~/.meridian/ — DEFECT-1 |
+| C6: Artifact path .Garura/project/product/ | **FAIL** | Created at ~/.Garura/ — DEFECT-1 |
 | C7: Strategic Goals, no OKRs | PASS | Vision uses "Strategic Goals" throughout |
 | C8: Checkpoint before presentation | PASS | Written with PENDING_APPROVAL before user prompt |
 | C10: No engineering in review | PASS | Business review contains no code/architecture |

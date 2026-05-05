@@ -904,7 +904,7 @@ Lock phase MUST run cascade-sync before setting LOCKED status.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  MERIDIAN INTERFACE (Enterprise Layer)                      │
+│  GARURA INTERFACE (Enterprise Layer)                        │
 │                                                             │
 │  Governance        │ Quality Gates    │ Memory Federation   │
 │  Policies,         │ Validation       │ KB deployed to      │
