@@ -1,0 +1,5 @@
+issue:
+  number: 358
+  title: "[CHORE] Fix remaining Meridian references in installer, docs, and specs"
+  url: "https://github.com/kapilvirenahuja/garura/issues/358"
+  source: commit-code-stm

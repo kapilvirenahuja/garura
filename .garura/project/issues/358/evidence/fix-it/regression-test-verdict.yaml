@@ -1,0 +1,12 @@
+regression_test_verdict: pass
+verified_at: "2026-05-05T00:00:00Z"
+regression_test_path: ".garura/project/issues/358/evidence/fix-it/regression-test.sh"
+exit_code: 0
+output: |
+  PASS: installer/install.sh: MERIDIAN_CONFIG absent
+  PASS: installer/install.sh: GARURA_CONFIG present (2 occurrence(s))
+  PASS: docs/philosophy/idsd.md: MERIDIAN INTERFACE absent
+  PASS: docs/philosophy/idsd.md: GARURA INTERFACE present (1 occurrence(s))
+  PASS: .claude/specs/: no meridian references found
+
+  Results: 5 passed, 0 failed

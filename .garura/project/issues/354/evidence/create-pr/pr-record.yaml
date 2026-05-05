@@ -1,0 +1,5 @@
+pr_number: 355
+pr_url: "https://github.com/kapilvirenahuja/garura/pull/355"
+title: "chore: replace all stale .meridian/ paths and Meridian name references with Garura (#354)"
+state: open
+base: main

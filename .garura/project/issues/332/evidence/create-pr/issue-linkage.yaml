@@ -1,0 +1,5 @@
+issue:
+  number: 332
+  title: "[ENH] Config key reference artifact missing — pipeline has no classification of config levels"
+  url: "https://github.com/kapilvirenahuja/garura/issues/332"
+  source: commit-code-stm

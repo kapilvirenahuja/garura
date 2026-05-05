@@ -1,0 +1,75 @@
+analysis:
+  branch: enhance/332-config-key-reference-artifact
+  base: main
+  branch_pattern: enhance  # non-standard; closest classification is feature (standard priorities apply)
+  commits: 4
+  changes:
+    files: 31
+    additions: 469
+    deletions: 1
+
+  suggested_title: "chore(ltm): record enhance play evidence and enrich quality profile for #332"
+
+  context:
+    file_patterns_matched:
+      - name: Configuration
+        files: 1
+        trigger: "*.yaml"
+        note: ".garura/product/specification/quality-profile.yaml modified"
+      - name: STM evidence artifacts
+        files: 30
+        trigger: ".garura/project/issues/**"
+        note: "STM artifacts for issues #332, #348, and archived #330 — chore(stm) / chore(ltm) commits"
+    commit_types:
+      - type: chore
+        count: 4
+        examples:
+          - "chore(stm): record commit-code, create-pr, and merge-pr evidence artifacts for #348"
+          - "chore(stm): record enhance play evidence artifacts for #332"
+          - "chore(stm): delete stale evidence and status artifacts for issue #330"
+          - "chore(ltm): enrich applied proposals from #330"
+    branch_modifiers:
+      - "enhance/* branch maps to feature classification — standard priorities apply"
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: No merge conflicts with main
+        trigger: Universal rule — applies to all PRs
+        status: PASS
+        evidence: "git merge-tree --write-tree main HEAD exited 0 with tree SHA 7812ec6f3366cdde5c5f0de2d4f0ad156e43bd8a — clean merge"
+
+      - id: no-secrets
+        item: No secrets committed
+        trigger: Universal rule — applies to all PRs
+        status: PASS
+        evidence: "Pattern scan on all 31 changed files found no matches for password|secret|token|api_key|private_key. All changed files are STM YAML evidence artifacts and one spec YAML — no credentials expected or found."
+
+      - id: config-valid
+        item: Configuration syntax valid (quality-profile.yaml)
+        trigger: "*.yaml changed — quality-profile.yaml modified with 2 substantive edits"
+        status: PASS
+        evidence: "git diff confirms well-formed YAML: one inline string value corrected (EPIC source ref renamed quality-signals → quality-ratings), one new bullet string added under maintainability. No structural YAML changes. File is a plain YAML document with no anchors or complex types affected."
+
+    nice_to_have:
+      - id: config-documented
+        item: Configuration change documented
+        trigger: "quality-profile.yaml changed — two edits: source ref correction and new play frontmatter policy bullet"
+        status: PASS
+        evidence: |
+          Change 1: Source ref correction (quality-signals → quality-ratings) is a naming-accuracy fix; no separate doc needed.
+          Change 2: New maintainability bullet documents the play frontmatter model-field policy (PR #331, lint-components structural.js line 189-191). The bullet IS the documentation — it is self-describing and cites the source PR and code location. No separate docs update required.
+
+  blocking_issues: []
+
+  ready: true
+  recommendation: Create PR
+
+  confidence:
+    target_branch:
+      level: high
+      reason: "Branch enhance/332-config-key-reference-artifact is clearly a feature branch targeting main. No ambiguity."
+    checklist_completeness:
+      level: high
+      reason: "All 31 changed files are either STM YAML evidence artifacts (chore(stm)/chore(ltm) commits) or the quality-profile.yaml spec update. No agent/skill/play definitions changed, no ADRs changed, no core/components changed — rule triggers are narrow and fully evaluated."
+    overall: high

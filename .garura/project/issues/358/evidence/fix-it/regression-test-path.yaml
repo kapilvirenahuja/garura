@@ -1,0 +1,15 @@
+path: ".garura/project/issues/358/evidence/fix-it/regression-test.sh"
+note: "Test verifies absence of stale Meridian references. Green in current working tree (changes already applied). Would be red against HEAD (pre-fix state)."
+pre_fix_state: "changes_in_working_tree"
+checks:
+  - id: 1
+    description: "installer/install.sh: MERIDIAN_CONFIG absent"
+  - id: 2
+    description: "installer/install.sh: GARURA_CONFIG present"
+  - id: 3
+    description: "docs/philosophy/idsd.md: MERIDIAN INTERFACE absent"
+  - id: 4
+    description: "docs/philosophy/idsd.md: GARURA INTERFACE present"
+  - id: 5
+    description: ".claude/specs/: zero case-insensitive meridian references"
+produced_at: "2026-05-05T10:30:00Z"

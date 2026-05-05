@@ -1,0 +1,26 @@
+target_branch: main
+confidence: high
+pr_title: "docs(philosophy): add play orchestration principles and short-circuit check (#352)"
+checklist:
+  - item: "Philosophy doc updated with play orchestration principles"
+    trigger: "docs/philosophy/architecture.md modified — new 'Play Orchestration Principles' section added"
+    evidence: "Section present with short-circuit rule, contract-compatibility requirement, and concrete example (commit-code, issue #343 branch-name regex resolution)"
+    priority: P2
+  - item: "create-play compiler updated with short-circuit pre-declaration check"
+    trigger: "core/components/plays/create-play/SKILL.md modified — Step 4 (agent declaration) updated"
+    evidence: "Short-circuit check paragraph inserted before the agent declaration gate — asks 'Is this agent's sole output a value derivable deterministically from context?'"
+    priority: P2
+  - item: "STM evidence committed and archived"
+    trigger: "chore(stm) commits present — fix-it evidence recorded and archived issue STM removed from tracking"
+    evidence: "Commits ec9b0f6 and 82f1415 on branch cover STM housekeeping"
+    priority: P3
+summary: "Adds play orchestration philosophy (short-circuit agent dispatch on deterministic context) to the architecture doc and the create-play compiler. Content approved during /enrich from issue #343. Two content commits plus two STM housekeeping commits."
+commits:
+  - hash: "6bdce1d"
+    message: "docs(philosophy): add play orchestration principles to architecture doc (#352)"
+  - hash: "3c5a742"
+    message: "chore(create-play): add short-circuit check to agent declaration step (#352)"
+  - hash: "82f1415"
+    message: "chore(stm): remove archived issue STM from git tracking (#352)"
+  - hash: "ec9b0f6"
+    message: "chore(stm): record fix-it evidence for #352 (#352)"

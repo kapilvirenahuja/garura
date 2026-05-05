@@ -1,0 +1,91 @@
+analysis:
+  branch: fix/358-fix-meridian-references
+  base: main
+  branch_classification: bugfix
+  suggested_title: "chore: fix remaining Meridian references in installer, docs, and specs (#358)"
+  confidence: high
+
+  context:
+    file_patterns_matched:
+      - documentation (*.md, docs/**)
+      - specs (.claude/specs/**)
+      - installer (installer/install.sh)
+    commit_types:
+      - chore(installer)
+      - chore(docs)
+      - chore(specs)
+    change_summary: >
+      Terminology cleanup across 30 files — replacing stale "Meridian" references
+      with "Garura" following project rename. No functional or API changes.
+      Touches installer env var rename (MERIDIAN_CONFIG → GARURA_CONFIG),
+      docs/philosophy/idsd.md interface name update, and 28 .claude/specs/ files.
+
+  commits:
+    - hash: 20147ec
+      message: "chore(installer): rename MERIDIAN_CONFIG to GARURA_CONFIG (#358)"
+    - hash: e0a4727
+      message: "chore(docs): replace MERIDIAN INTERFACE with GARURA INTERFACE in idsd.md (#358)"
+    - hash: 9278917
+      message: "chore(specs): replace meridian references across .claude/specs/ files (#358)"
+
+  files_changed: 30
+  insertions: 114
+  deletions: 114
+
+  checklist:
+    must_have:
+      - id: no-conflicts
+        item: "No merge conflicts with main"
+        trigger: "Universal rule — always applied"
+        status: PASS
+        evidence: >
+          git merge-tree --write-tree main HEAD returned clean tree SHA
+          (89441ebd9ec3fd9c4b7dda994dec0b045e1e80bd). No conflict markers present.
+
+      - id: no-secrets
+        item: "No secrets committed"
+        trigger: "Universal rule — always applied"
+        status: PASS
+        evidence: >
+          Pattern scan across all 30 changed files. No matches for AKIA*, password=,
+          secret=, api_key=, or private_key patterns. Clean.
+
+      - id: docs-consistent
+        item: "Documentation consistent with implementation"
+        trigger: "docs/philosophy/*.md changed (docs/philosophy/idsd.md)"
+        status: PASS
+        evidence: >
+          Change is a pure terminology rename (MERIDIAN INTERFACE → GARURA INTERFACE).
+          The surrounding context and structure of idsd.md is unchanged. Consistent
+          with the broader project rename that has already landed on main.
+
+    nice_to_have:
+      - id: docs-only
+        item: "No functional changes — only terminology cleanup"
+        trigger: "All commits are chore type; insertions == deletions (114 each)"
+        status: PASS
+        evidence: >
+          git diff --stat shows 114 insertions and 114 deletions across 30 files.
+          Symmetrical diff is characteristic of a pure string substitution with no
+          logic changes. installer/install.sh only renames the env var reference,
+          not its usage logic.
+
+      - id: docs-examples
+        item: "Documentation retains examples"
+        trigger: "Architecture docs changed (docs/philosophy/idsd.md)"
+        status: PASS
+        evidence: >
+          The idsd.md change is a single-line label rename. Examples, code blocks,
+          and structure are preserved.
+
+  blocking_issues: []
+
+  ready: true
+
+  notes: >
+    This is a straightforward chore PR — 30 files, 114 symmetric substitutions,
+    zero functional delta. No conditional rules for agents, skills, plays, ADRs,
+    or configuration files are triggered because none of those file patterns are
+    in the changed set. The installer change (MERIDIAN_CONFIG → GARURA_CONFIG)
+    is the only non-doc file; it is a variable name rename with no logic change.
+    No sync-claude rule applies because core/components/** was not changed.

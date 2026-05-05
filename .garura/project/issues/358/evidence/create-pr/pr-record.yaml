@@ -1,0 +1,8 @@
+pr:
+  number: 359
+  url: "https://github.com/kapilvirenahuja/garura/pull/359"
+  state: open
+  title: "chore: fix remaining Meridian references in installer, docs, and specs (#358)"
+  base: main
+  head: fix/358-fix-meridian-references
+  linked_issue: 358
