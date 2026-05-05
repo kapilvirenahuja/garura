@@ -107,7 +107,7 @@ In Available Skills "Used By" column, use full play names.
 
 2. **Assess Confidence** — If domain classification is high-confidence (clear industry markers, specific user types), proceed without confirmation. If ambiguous, return `domain_clarification_needed` structured response to play with top 2-3 candidate domains.
 
-3. **Selective LTM Search** — Search `~/.meridian/core/memory/` using Glob/Grep for domain-relevant content:
+3. **Selective LTM Search** — Search `~/.Garura/core/memory/` using Glob/Grep for domain-relevant content:
    - `memory/standards/rules/` — always load (rules for every domain surface)
    - `memory/standards/schemas/` — load when writing YAML artifacts
    - `memory/standards/templates/` — load relevant output templates
@@ -119,9 +119,9 @@ In Available Skills "Used By" column, use full play names.
    - Skill performs web research and writes domain context to STM
    - Load resulting STM artifact as enrichment
 
-5. **Load STM** — Read `.meridian/project/product/` for existing product artifacts (vision, roadmap, reviews).
+5. **Load STM** — Read `.Garura/project/product/` for existing product artifacts (vision, roadmap, reviews).
 
-6. **Check Tech Context** — Read `.meridian/{issue}/design/` if exists for technical constraints. Flag absence as assumption if no tech artifacts found.
+6. **Check Tech Context** — Read `.Garura/{issue}/design/` if exists for technical constraints. Flag absence as assumption if no tech artifacts found.
 
 7. **Inject Context** — Compose filtered context (relevant LTM + STM + domain research + tech constraints) and pass to skill invocations. Never pass raw bulk content.
 
@@ -206,7 +206,7 @@ allowed-tools: WebSearch, WebFetch, Read, Write
 - `domain` (required): Identified vertical domain (e.g., "BFSI", "retail SaaS", "healthcare")
 - `knowledge_gaps` (required): What LTM didn't cover (e.g., "competitive landscape", "market size", "regulatory requirements")
 - `problem_statement` (required): Original problem for context
-- `output_base` (required): STM path (e.g., `.meridian/project/product/{slug}/`)
+- `output_base` (required): STM path (e.g., `.Garura/project/product/{slug}/`)
 
 **Process:**
 1. Construct targeted search queries from domain + knowledge gaps

@@ -4,7 +4,7 @@
 
 Agents (repo-orchestrator, project-orchestrator, code-builder, tech-designer) have no awareness of:
 - The Three Elements of Intent (intent, constraints, failure_conditions)
-- The LTM system (`~/.meridian/core/memory/`)
+- The LTM system (`~/.Garura/core/memory/`)
 - Intent-driven recovery reasoning
 
 Currently, recovery is handled entirely at the play/orchestrator level. If an agent encounters an obstacle during its own execution, it either fails, returns an error, or asks the caller for clarification. It cannot reason about the intent behind its invocation to find alternate paths.
@@ -181,7 +181,7 @@ Agents need a standard way to load LTM:
 # In agent definition
 ## Memory
 
-Load practices from `~/.meridian/core/memory/practices/` as needed.
+Load practices from `~/.Garura/core/memory/practices/` as needed.
 
 Available practices:
 - `intent-driven-recovery.md` — Recovery reasoning loop

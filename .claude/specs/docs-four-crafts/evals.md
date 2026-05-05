@@ -82,7 +82,7 @@ Documentation update to reflect Four Crafts architecture and current component s
 - `standards/templates/` listed as a directory under LTM structure
 - At least `roadmap-brief.html` and `epic-schema.md` mentioned as templates
 - ADR 009 referenced as the governing decision for template location
-- Deployment paths documented: `~/.meridian/core/memory/` (global) and `.meridian/core/memory/` (project)
+- Deployment paths documented: `~/.Garura/core/memory/` (global) and `.Garura/core/memory/` (project)
 
 **Test:** Grep for "templates/" and "ADR 009" in `docs/components/memory.md`. Both must be present.
 

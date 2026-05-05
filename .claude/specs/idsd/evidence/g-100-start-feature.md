@@ -21,11 +21,11 @@
 | 8 | Play failure_conditions include: "Issue ID not found (resume mode)" | PASS | `failure_conditions: - Issue ID not found (resume mode)` — exact match on line 28. |
 | 9 | NEW mode: play creates GitHub issue via project-orchestrator | PASS | Agents table explicitly maps `project-orchestrator` to "Issue resolution/creation". Outcomes section states "Issue exists on GitHub — created or resolved from input." |
 | 10 | NEW mode: play creates feature branch via repo-orchestrator | PASS | Agents table maps `repo-orchestrator` to "Branch creation, checkout, push to origin". Outcomes state "Branch exists on origin — follows naming convention, pushed with tracking." |
-| 11 | NEW mode: play creates `.meridian/{issue}/` STM directory | PASS | STM Directory Structure contract defined (lines 93–102). NEW mode outcome: "STM directory initialized — `.meridian/{issue}/` with required subdirectories." |
+| 11 | NEW mode: play creates `.Garura/{issue}/` STM directory | PASS | STM Directory Structure contract defined (lines 93–102). NEW mode outcome: "STM directory initialized — `.Garura/{issue}/` with required subdirectories." |
 | 12 | RESUME mode: play accepts `--resume <issue-id>` argument | PASS | Input Patterns table lists `--resume 42` as RESUME mode. Example: `/start-feature --resume 42`. |
 | 13 | RESUME mode: play resolves existing issue, checkouts branch, verifies STM dir exists | PASS | RESUME Mode outcomes (lines 73–78): "Issue resolved", "On the correct branch — existing branch checked out", "STM directory verified — exists with required subdirectories; created if missing." |
 | 14 | Play accepts `[description]` argument for NEW mode | PASS | Input Patterns table shows `"Add OAuth login"` → NEW mode. Example: `/start-feature "Add OAuth login"`. |
-| 15 | Play links to roadmap/epic if available in project context | PASS | NEW mode outcome #5: "Roadmap link offered — if `.meridian/project/product/` exists, user was offered the option to link issue to a roadmap feature." |
+| 15 | Play links to roadmap/epic if available in project context | PASS | NEW mode outcome #5: "Roadmap link offered — if `.Garura/project/product/` exists, user was offered the option to link issue to a roadmap feature." |
 | 16 | Play shows Tether/Vanish checkpoint after issue + branch creation | PASS | User Approval section (Contract #5) specifies output ending with: `Type **Tether** to create the branch or **Vanish** to cancel.` This is the output-and-wait pattern. |
 | 17 | Play propagates intent to all agent invocations | PASS | Agents section states: "Intent must be propagated to every agent invocation: `'Intent: {action}: {context}'`" — directive is explicit. Format matches spec requirement. |
 

@@ -21,7 +21,7 @@
 | 8 | Embeds start-feature flow (issue + branch + STM) | PASS — Step 1 resolves issue, creates STM |
 | 9 | Plan sub-agent IDD intent headers on artifacts | PASS — SPEC/VERIFY/TASKS each have IDD header |
 | 10 | Lightweight artifacts (no gates, no bundles, no audience separation) | PASS |
-| 11 | Artifacts at `.meridian/{issue}/planning/` | PASS |
+| 11 | Artifacts at `.Garura/{issue}/planning/` | PASS |
 | 12 | code-builder scoped to CODE only | PASS — routing table + workflow both explicit |
 | 13 | Builds working code with tests | PASS — failure condition "Implementation fails tests" |
 | 14 | Commits via repo-orchestrator (agent-first) | PASS |

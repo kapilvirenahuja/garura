@@ -107,7 +107,7 @@ discover-product handles both market-facing products and internal libraries/comp
   persona: Engineering Lead
   given: >
     A LOCKED vision artifact at
-    .meridian/project/product/{slug}/product.yaml
+    .Garura/project/product/{slug}/product.yaml
   then: >
     Can use the locked vision as authoritative input for roadmap
     planning — strategic goals, success metrics, and scope boundaries
@@ -123,7 +123,7 @@ discover-product handles both market-facing products and internal libraries/comp
   persona: Engineering Lead
   given: >
     A LOCKED vision artifact for an internal library at
-    .meridian/project/product/{slug}/product.yaml with type "library"
+    .Garura/project/product/{slug}/product.yaml with type "library"
   then: >
     Can use the locked vision as authoritative input for roadmap
     planning — strategic goals with IDs, value proposition, and
