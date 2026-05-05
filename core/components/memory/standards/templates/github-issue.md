@@ -17,7 +17,7 @@ Standard template for creating GitHub issues via `gh issue create`.
 
 ---
 
-*Created via Meridian `start-feature` workflow.*
+*Created via Garura `start-feature` workflow.*
 ```
 
 ## Field Derivation Rules

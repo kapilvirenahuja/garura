@@ -64,7 +64,7 @@ Stories are generated during the build phase by downstream plays. Intent epics a
 
 **Product artifacts are organized by SDLC stage, not by play.**
 
-The `.meridian/product/` tree uses six stage folders: `user-provided/`, `specification/`, `scope/`, `architecture/`, `experience/`, `research/`. A single stage folder may hold output from multiple plays — e.g., `specification/` holds market-brief (from specify's market-analyst), project-profile (user-provided), and quality-profile (from specify's product-keeper). The folder name describes *what the artifact is*, not *which play produced it*.
+The `.garura/product/` tree uses six stage folders: `user-provided/`, `specification/`, `scope/`, `architecture/`, `experience/`, `research/`. A single stage folder may hold output from multiple plays — e.g., `specification/` holds market-brief (from specify's market-analyst), project-profile (user-provided), and quality-profile (from specify's product-keeper). The folder name describes *what the artifact is*, not *which play produced it*.
 
 Play-lifecycle folders (`_checkpoints/`, `_evidence/`, `_status/`) live at the product root alongside the stage folders — they are orthogonal to the SDLC stages, because a single play can write artifacts into multiple stage folders during one run.
 
@@ -160,11 +160,11 @@ INFERRED CONSTRAINTS (no source in brief or profile — confirm, replace, or dro
 
 ## Rule 12: User Questions Are First-Class Artifacts
 
-**Every question the pipeline asks the user is captured in `.meridian/product/user-provided/grounding-questions.md` with a unique ID, a slot for the user's answer, and durable retention across pipeline runs.**
+**Every question the pipeline asks the user is captured in `.garura/product/user-provided/grounding-questions.md` with a unique ID, a slot for the user's answer, and durable retention across pipeline runs.**
 
 The pipeline runs are interactive but ephemeral. Questions that the pipeline surfaces at a checkpoint — "what's the real concurrent-session target?", "is OAuth linking in scope?", "what cost budget defaults apply?" — currently live only in the prompt text and disappear when the user responds. If the user answers "unknown" or if the checkpoint session ends before answering, the question is lost. The next run re-asks it from scratch, and nothing learns.
 
-**The rule:** every time the pipeline produces an inference (Rule 11), it also appends an entry to `.meridian/product/user-provided/grounding-questions.md`. The entry carries:
+**The rule:** every time the pipeline produces an inference (Rule 11), it also appends an entry to `.garura/product/user-provided/grounding-questions.md`. The entry carries:
 
 ```yaml
 - id: Q-<topic>-<sequence>              # unique, stable across runs
@@ -184,7 +184,7 @@ The pipeline runs are interactive but ephemeral. Questions that the pipeline sur
 
 **Durable across runs:** the file is cumulative — new runs APPEND new questions, do NOT overwrite old ones. Questions answered in prior runs carry `user_decision` and `user_answer` from that prior run and are NOT re-asked; the pipeline reads their answers as facts. Questions marked `deferred` or left `null` are re-surfaced at the next checkpoint until the user resolves them.
 
-**User-provided is write-twice:** the user directly edits this file to answer questions (the `user_decision` and `user_answer` fields). The pipeline reads those answers on the next run. This is the only artifact where user and pipeline share write access — the pipeline appends questions, the user fills in answers. All other `.meridian/product/` files are pipeline-produced.
+**User-provided is write-twice:** the user directly edits this file to answer questions (the `user_decision` and `user_answer` fields). The pipeline reads those answers on the next run. This is the only artifact where user and pipeline share write access — the pipeline appends questions, the user fills in answers. All other `.garura/product/` files are pipeline-produced.
 
 **Checkpoint integration:** at the capability-configuration checkpoint (and at any future stage-end checkpoint that encounters inferences), the prompt must list every unresolved question from `grounding-questions.md` with the question text and the user's decision options. The user either:
 - Tethers with answers (fills in user_answer inline or edits the file) → pipeline proceeds with the answers as facts
@@ -213,7 +213,7 @@ The pipeline runs are interactive but ephemeral. Questions that the pipeline sur
 
 Without an MVP recommendation, the capability walk in `configure-capabilities` walks all features for all selected domains indiscriminately and produces a bloated v1 scope that tries to serve every use case the brief names. The result is an epic inventory that exceeds the appetite and a scope contract the team cannot ship.
 
-The MVP recommendation artifact lives at `.meridian/product/scope/mvp-recommendation.md` (per Rule 8 stage-centric layout — mvp-recommendation is a scope-narrowing decision, not an opportunity description). It carries: primary use cases with rationale; launch-scope capabilities narrowed to those use cases; deferred use cases with v1.1+ triggers; an architecture direction (only when committed at spec time, e.g., "self-hosted sandbox for web-perf loops"); directional pricing; success criteria for "v1 is successful"; risks that could kill the MVP. Deferred use cases and capabilities are explicit, not implicit — `configure-capabilities` reads the recommendation and pushes non-primary capabilities into `deferred_capabilities` in scope.yaml with rationale.
+The MVP recommendation artifact lives at `.garura/product/scope/mvp-recommendation.md` (per Rule 8 stage-centric layout — mvp-recommendation is a scope-narrowing decision, not an opportunity description). It carries: primary use cases with rationale; launch-scope capabilities narrowed to those use cases; deferred use cases with v1.1+ triggers; an architecture direction (only when committed at spec time, e.g., "self-hosted sandbox for web-perf loops"); directional pricing; success criteria for "v1 is successful"; risks that could kill the MVP. Deferred use cases and capabilities are explicit, not implicit — `configure-capabilities` reads the recommendation and pushes non-primary capabilities into `deferred_capabilities` in scope.yaml with rationale.
 
 **Enforcement:** `configure-capabilities` halts pre-flight if `scope/mvp-recommendation.md` is missing or empty. The specify play runs Stage 2.75 (mvp-recommendation authoring / review) between Stage 2 (domain-selection) and Stage 3 (configure-capabilities). See Defect 6 and Defect 9.
 
@@ -229,13 +229,13 @@ Allowed vocabulary is domain-level: "append-only ledger", "pluggable measurement
 
 ## Rule 15: Pull-to-Product Principle
 
-**Any KB-sourced domain the product uses is copied into `.meridian/product/research/` at selection time, with a provenance header recording its origin, KB path, copy timestamp, and KB content hash. Stage 3 and every later stage read from `.meridian/product/research/` only — never directly from `core/components/memory/knowledge/`.**
+**Any KB-sourced domain the product uses is copied into `.garura/product/research/` at selection time, with a provenance header recording its origin, KB path, copy timestamp, and KB content hash. Stage 3 and every later stage read from `.garura/product/research/` only — never directly from `core/components/memory/knowledge/`.**
 
-A reference-only pointer from `domain-selection.yaml` to a KB file path is non-reproducible: a KB edit retroactively changes old product runs, and downstream stages must merge two read paths (KB + STM research) for domains that arrive from different sources. The fix is symmetric — every domain the product uses, whether KB-sourced or freshly researched, lands as a real file in `.meridian/product/research/`. The folder becomes the product's frozen domain library for this run.
+A reference-only pointer from `domain-selection.yaml` to a KB file path is non-reproducible: a KB edit retroactively changes old product runs, and downstream stages must merge two read paths (KB + STM research) for domains that arrive from different sources. The fix is symmetric — every domain the product uses, whether KB-sourced or freshly researched, lands as a real file in `.garura/product/research/`. The folder becomes the product's frozen domain library for this run.
 
 The provenance header distinguishes origins: `origin: kb` + `kb_sha_at_copy` for copies (editable: false by default), or `origin: stm_research` for freshly-authored research (editable: true, pending promotion by a future capture-learning pass). A future promotion flow (NOT this rule's concern) skips kb-origin files whose sha matches current KB and promotes the rest.
 
-**Enforcement:** the Stage 2 domain-selection step performs the copy with provenance. `configure-capabilities` reads from `.meridian/product/research/` only; missing domain files at that path are a structured failure (the upstream Stage 2 step should have pulled them). See Defect 8.
+**Enforcement:** the Stage 2 domain-selection step performs the copy with provenance. `configure-capabilities` reads from `.garura/product/research/` only; missing domain files at that path are a structured failure (the upstream Stage 2 step should have pulled them). See Defect 8.
 
 ## Related Rules
 
