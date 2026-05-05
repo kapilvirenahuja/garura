@@ -175,5 +175,5 @@ Status flips from Proposed to Accepted when 214.2 merges to main.
 - Issue #214 — Build product planning and design pipeline (the umbrella issue whose planning surfaced these frictions)
 - `.garura/project/issues/214/specs/spec.md` — full specification with constraints C1–C13
 - `.garura/project/issues/214/specs/tasks.md` — T6 through T11 tasks with file-level details
-- `core/components/memory/MEMORY.md` feedback entry: `feedback_meridian_folder_structure.md` (user-declared 2026-04-13)
+- `core/components/memory/MEMORY.md` feedback entry: `feedback_garura_folder_structure.md` (user-declared 2026-04-13)
 - `core/components/memory/MEMORY.md` feedback entry: `feedback_intent_schema_purity.md` (updated 2026-04-14 with metadata permission)
