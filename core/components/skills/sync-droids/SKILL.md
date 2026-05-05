@@ -1,12 +1,12 @@
 ---
 name: sync-droids
-description: Sync Meridian components to .factory/ (project mode) or ~/.factory/ (global mode, default) with Claude Code to Factory Droid transformation
+description: Sync Garura components to .factory/ (project mode) or ~/.factory/ (global mode, default) with Claude Code to Factory Droid transformation
 user-invocable: true
 ---
 
 # sync-droids
 
-Sync Meridian components from `core/components/` to Factory Droid directories. Transforms Claude Code agent definitions into Factory Droid format during deployment (tool names, model IDs, frontmatter fields).
+Sync Garura components from `core/components/` to Factory Droid directories. Transforms Claude Code agent definitions into Factory Droid format during deployment (tool names, model IDs, frontmatter fields).
 
 ## Usage
 

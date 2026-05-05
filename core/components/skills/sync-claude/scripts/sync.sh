@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# sync-claude — Pure bash sync of Meridian components
+# sync-claude — Pure bash sync of Garura components
 # Usage: ./sync.sh [--project|--global]
 
 # Resolve project root (where core/components/ lives)

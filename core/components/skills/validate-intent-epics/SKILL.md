@@ -17,14 +17,14 @@ Enforce the `intent-epic-schema.yaml` contract. "Sounds good, means nothing" sha
 ## Input
 
 Receive from product-keeper:
-- `epics_dir` (path, required) — typically `.meridian/product/scope/epics/`
+- `epics_dir` (path, required) — typically `.garura/product/scope/epics/`
 - `ltm_intent_epic_schema_path` (path, required) — `core/components/memory/standards/schemas/intent-epic.yaml`
 - `ltm_rules_epics_path` (path, required) — `core/components/memory/standards/rules/epics.md`
 - `ltm_rules_features_path` (path, required) — `core/components/memory/standards/rules/features.md`
 - `ltm_rules_scenarios_path` (path, required) — `core/components/memory/standards/rules/scenarios.md`
 - `ltm_domain_taxonomy_path` (path, required) — for kb_source traceability check (LTM)
 - `stm_research_dir` (path, optional) — for kb_source traceability check (STM) when epics carry `kb_source.provisional: true`
-- `output_path` (string, required) — validation result YAML, typically `.meridian/product/scope/validation-intent-epics.yaml`
+- `output_path` (string, required) — validation result YAML, typically `.garura/product/scope/validation-intent-epics.yaml`
 
 ## Process
 

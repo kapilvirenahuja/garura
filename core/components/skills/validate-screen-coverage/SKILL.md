@@ -16,7 +16,7 @@ Enforce the structural coverage rules from `screen-inventory-schema.yaml`. Runs 
 
 ## Input
 
-Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.meridian/product/` or assume a working directory.
+Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.garura/product/` or assume a working directory.
 
 - `screens_dir` (path, required) — typically `{product_base}experience/screens/`
 - `scope_path` (path, required) — typically `{product_base}scope/scope.yaml`
@@ -29,7 +29,7 @@ Receive from the designer agent. All paths resolve against `{product_base}` supp
 
 ## Process
 
-Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.meridian/product/` or assume a working directory.
+Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.garura/product/` or assume a working directory.
 
 ### 1. Load schema + epics + scope
 

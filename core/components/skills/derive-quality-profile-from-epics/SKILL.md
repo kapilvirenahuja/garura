@@ -22,8 +22,8 @@ Receive from product-keeper:
 - `epics_dir` (path, required) — validated intent epics directory
 - `project_profile_path` (path, required) — for profile-level NFR levels
 - `validation_path` (path, required) — the validation result from validate-intent-epics (used to confirm all epics are passed before aggregation)
-- `output_path` (string, required) — typically `.meridian/product/specification/quality-profile.yaml`
-- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifact (e.g., `.meridian/product/specification/decision-manifest-derive-quality-profile.yaml`). Exact path is passed by the calling agent.
+- `output_path` (string, required) — typically `.garura/product/specification/quality-profile.yaml`
+- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifact (e.g., `.garura/product/specification/decision-manifest-derive-quality-profile.yaml`). Exact path is passed by the calling agent.
 
 ## Process
 

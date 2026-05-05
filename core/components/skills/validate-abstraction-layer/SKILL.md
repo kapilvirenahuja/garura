@@ -12,13 +12,13 @@ Deterministic linter that enforces Rule 14 (Abstraction-Layer Boundary, Defect 7
 
 ## Purpose
 
-Product-stage artifacts under `.meridian/product/research/`, `.meridian/product/specification/`, and `.meridian/product/scope/` are implementation-agnostic. They describe domain shape, market opportunity, scope decisions, and epic outcomes — not how the work is built. Implementation choices (runtime, framework, database, library, schema design, API wire format, cryptographic construction, model version) need cross-domain tradeoff analysis and user approval at Stage 6 architecture. Leaking them into earlier artifacts prejudges architecture and breaks the stage contract.
+Product-stage artifacts under `.garura/product/research/`, `.garura/product/specification/`, and `.garura/product/scope/` are implementation-agnostic. They describe domain shape, market opportunity, scope decisions, and epic outcomes — not how the work is built. Implementation choices (runtime, framework, database, library, schema design, API wire format, cryptographic construction, model version) need cross-domain tradeoff analysis and user approval at Stage 6 architecture. Leaking them into earlier artifacts prejudges architecture and breaks the stage contract.
 
 This skill is a post-write check. Producer skills invoke it after writing an artifact; if it returns violations, the producer deletes the file and halts with a structured failure. The specify play invokes it at close as a final sanity check across all product/ files. The skill is deterministic — no LLM reasoning, just a regex scan against a maintained deny-list — so it can run in CI pipelines without cost or latency concerns.
 
 ## Input
 
-Receive from the calling agent or skill via the JSON contract. All paths resolve against `{product_base}` supplied by the caller — do not hard-code `.meridian/product/` or assume a working directory.
+Receive from the calling agent or skill via the JSON contract. All paths resolve against `{product_base}` supplied by the caller — do not hard-code `.garura/product/` or assume a working directory.
 
 - `scan_paths` (list, required) — list of file paths OR directory paths to scan. Each entry is either a specific file (scan just that file) or a directory (recursively scan every `.md` and `.yaml` file in that directory). Typical usage patterns:
   - Single file: `["{product_base}scope/scope.yaml"]` (post-write check from a producer skill)
@@ -100,7 +100,7 @@ Pattern → Violation: specific model identifiers.
 
 ## Process
 
-Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.meridian/product/` or assume a working directory.
+Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.garura/product/` or assume a working directory.
 
 ### 1. Load the deny-list
 
@@ -114,8 +114,8 @@ For each entry in `scan_paths`:
 
 - If it's a file path, add it to the scan queue.
 - If it's a directory path, recursively glob for `*.md` and `*.yaml` files under it and add each to the scan queue.
-- Exclude `.meridian/product/_checkpoints/`, `.meridian/product/_evidence/`, `.meridian/product/_status/` by default — those are lifecycle files, not product-stage artifacts, and may legitimately contain tech references in evidence reports.
-- Exclude `.meridian/product/user-provided/` — user inputs are whatever the user wrote, not pipeline output.
+- Exclude `.garura/product/_checkpoints/`, `.garura/product/_evidence/`, `.garura/product/_status/` by default — those are lifecycle files, not product-stage artifacts, and may legitimately contain tech references in evidence reports.
+- Exclude `.garura/product/user-provided/` — user inputs are whatever the user wrote, not pipeline output.
 - Build the final scan queue as an explicit list of file paths.
 
 ### 3. Scan each file

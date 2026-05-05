@@ -85,7 +85,7 @@ input_contract:
     required: true
     description: >
       Directory path for writing epic YAML files. Typically
-      .meridian/product/scope/epics/. One file per vertical capability written
+      .garura/product/scope/epics/. One file per vertical capability written
       as epic-{domain}-{capability-slug}-001.yaml.
 
   - name: decision_manifest_path
@@ -94,13 +94,13 @@ input_contract:
     description: >
       Path for the decision-manifest.yaml output file. Written alongside the
       primary epic artifacts. Typically
-      .meridian/product/scope/decision-manifest-generate-intent-epics.yaml.
+      .garura/product/scope/decision-manifest-generate-intent-epics.yaml.
 
   - name: features_path
     type: path
     required: true
     description: >
-      Path to .meridian/product/scope/features.yaml produced by manage-features
+      Path to .garura/product/scope/features.yaml produced by manage-features
       (Stage 4b of the specify play). Used to cross-check epic KB IDs against
       the declared product feature catalog — every epic's capability field must
       trace to a real feature ID in this catalog.

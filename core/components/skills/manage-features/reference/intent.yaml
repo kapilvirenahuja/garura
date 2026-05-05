@@ -1,6 +1,6 @@
 name: garura:manage-features
 description: >
-  Read enriched-capabilities.yaml and author .meridian/product/scope/features.yaml
+  Read enriched-capabilities.yaml and author .garura/product/scope/features.yaml
   using the 3-tier domain/capability/feature schema with the 5-point status
   vocabulary. Emit a decision-manifest.yaml for all status assignments and
   taxonomy inferences. Called by product-keeper during specify Stage 4b,
@@ -11,7 +11,7 @@ checksum: "<computed by /create-play --build>"
 intent: >
   Given an enriched-capabilities.yaml produced by enrich-capabilities and a
   project profile, produce a canonical feature catalog at
-  .meridian/product/scope/features.yaml using the 3-tier domain → capability →
+  .garura/product/scope/features.yaml using the 3-tier domain → capability →
   feature hierarchy and the 5-point status vocabulary (planned | development |
   rollout | released | cleanup). For greenfield projects the default status is
   "planned" unless the project profile overrides it; for brownfield projects,
@@ -27,14 +27,14 @@ input_contract:
     required: true
     description: >
       Path to the enriched-capabilities.yaml produced by enrich-capabilities
-      in Stage 4 (e.g., .meridian/product/scope/garura:enriched-capabilities.yaml).
+      in Stage 4 (e.g., .garura/product/scope/garura:enriched-capabilities.yaml).
 
   - name: project_profile_path
     type: path
     required: true
     description: >
       Path to the project profile YAML (e.g.,
-      .meridian/product/specification/project-profile.yaml). Used to determine
+      .garura/product/specification/project-profile.yaml). Used to determine
       default status logic (greenfield vs brownfield) and to read any
       feature-status overrides the user declared in the profile.
 

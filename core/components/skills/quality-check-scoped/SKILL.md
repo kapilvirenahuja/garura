@@ -30,7 +30,7 @@ changed_paths:                                                    # array; absol
 standards_set:                                                    # resolved from config standards_order
   kb: ~/.garura/core/memory/knowledge/quality/
   ltm: ./.garura/core/memory/knowledge/quality/
-  stm: .meridian/project/issues/{issue}/specs/quality/
+  stm: .garura/project/issues/{issue}/specs/quality/
 severity_taxonomy_path: ./core/components/memory/standards/rules/pr.md
 intent_summary: "Add email verification flow"                     # 1–3 sentences from spec/intent.yaml or PR body
 output_path: "{stm_base}/{issue}/evidence/review-pr/findings.yaml"

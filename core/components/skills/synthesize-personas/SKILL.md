@@ -18,7 +18,7 @@ Extract user types from the intent epics' success_scenarios and failure_scenario
 
 ## Input
 
-Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.meridian/product/` or assume a working directory.
+Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.garura/product/` or assume a working directory.
 
 - `epics_dir` (path, required) — typically `{product_base}scope/epics/`
 - `scope_path` (path, required) — typically `{product_base}scope/scope.yaml`
@@ -31,7 +31,7 @@ Receive from the designer agent. All paths resolve against `{product_base}` supp
 
 ### 1. Load inputs
 
-Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.meridian/product/` or assume a working directory.
+Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.garura/product/` or assume a working directory.
 
 - Glob `{epics_dir}/*.yaml` and load each intent epic.
 - Load `scope.yaml` for the selected capability list.

@@ -26,7 +26,7 @@ Receive via JSON contract from tech-architect.
 - `temp_skills_dir` (path, required) — `{stm_base}/{issue}/evidence/decode/temp-skills/` (for dispatching tech-aware extraction).
 - `codebase_root` (path, required).
 - `output_path` (path, required) — `{stm_base}/{issue}/evidence/decode/proposals/scope/behaviors/{feature-id}.yaml`.
-- `ltm_context` (object, required) — standard Meridian LTM resolution block (product_base, core_base, query_domains).
+- `ltm_context` (object, required) — standard Garura LTM resolution block (product_base, core_base, query_domains).
 
 ## Process
 

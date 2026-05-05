@@ -28,8 +28,8 @@ Receive from product-keeper:
 - `ltm_rules_epics_path` (path, required) — `core/components/memory/standards/rules/epics.md`
 - `ltm_rules_features_path` (path, required) — `core/components/memory/standards/rules/features.md`
 - `ltm_rules_scenarios_path` (path, required) — `core/components/memory/standards/rules/scenarios.md`
-- `epics_output_dir` (string, required) — typically `.meridian/product/scope/epics/`
-- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifacts (e.g., `.meridian/product/scope/decision-manifest-generate-intent-epics.yaml`). Exact path is passed by the calling agent.
+- `epics_output_dir` (string, required) — typically `.garura/product/scope/epics/`
+- `decision_manifest_path` (path, required) — path for the `decision-manifest.yaml` output, written alongside the primary artifacts (e.g., `.garura/product/scope/decision-manifest-generate-intent-epics.yaml`). Exact path is passed by the calling agent.
 
 ## Process
 

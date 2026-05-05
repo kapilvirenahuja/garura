@@ -1,6 +1,6 @@
 ---
 name: author-intent-yaml
-description: Author a structured intent.yaml file from interview material. Takes an extracted interview digest (goal, constraints, failure conditions, scenarios) and produces a well-formed intent.yaml conforming to the Meridian intent schema.
+description: Author a structured intent.yaml file from interview material. Takes an extracted interview digest (goal, constraints, failure conditions, scenarios) and produces a well-formed intent.yaml conforming to the Garura intent schema.
 user-invocable: false
 model: sonnet
 allowed-tools: Read, Write
