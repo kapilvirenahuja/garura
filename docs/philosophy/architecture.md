@@ -1,10 +1,10 @@
-# Meridian Architecture
+# Garura Architecture
 
-This document describes the core architecture philosophy of Meridian.
+This document describes the core architecture philosophy of Garura.
 
 ## Overview
 
-Meridian implements Intent-Driven Software Development through a **three-layer hierarchy** that separates workflow orchestration from activity execution and learned capabilities.
+Garura implements Intent-Driven Software Development through a **three-layer hierarchy** that separates workflow orchestration from activity execution and learned capabilities.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -249,7 +249,7 @@ Play continues until all capabilities complete
 
 ## Four Crafts Architecture
 
-The Four Crafts Architecture describes the four distinct authoring concerns that Meridian separates to achieve deterministic, intent-driven execution.
+The Four Crafts Architecture describes the four distinct authoring concerns that Garura separates to achieve deterministic, intent-driven execution.
 
 ### The Four Crafts
 
@@ -378,7 +378,7 @@ When an agent's sole purpose is to resolve a value that is already deterministic
 
 ## Memory Architecture
 
-Meridian uses a **dual memory system**:
+Garura uses a **dual memory system**:
 
 ### Long-Term Memory (LTM)
 
@@ -502,7 +502,7 @@ Traditional AI copilots are non-deterministic — same prompt, different results
 - Human oversight is required
 - Workflows must be auditable
 
-### Meridian Solution
+### Garura Solution
 
 1. **Deterministic workflows** — Plays define exact steps
 2. **Checkpoint model** — Human review at defined points

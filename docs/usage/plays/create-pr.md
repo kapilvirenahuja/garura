@@ -2,7 +2,7 @@
 
 Create pull requests with dynamic, context-aware quality checklists.
 
-> **Golden standard:** `create-pr` is the reference implementation for the Meridian play structure. All plays should follow this pattern.
+> **Golden standard:** `create-pr` is the reference implementation for the Garura play structure. All plays should follow this pattern.
 
 ## Overview
 

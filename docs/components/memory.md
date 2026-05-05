@@ -1,6 +1,6 @@
 # Memory
 
-Meridian uses a dual memory architecture: Long-Term Memory (LTM) and Short-Term Memory (STM).
+Garura uses a dual memory architecture: Long-Term Memory (LTM) and Short-Term Memory (STM).
 
 ## Philosophy
 
@@ -53,7 +53,7 @@ The `write-evidence` skill (invoked by the `scriber` agent) is the single chokep
 
 ### KB Capability Catalog (domain-taxonomy + cross-tree constraints)
 
-Per ADR 017 and 214.4, the `knowledge/domain-taxonomy/*.md` files are Meridian's **capability catalog** — a human-readable feature catalog that the product-planning pipeline (`specify` / `design` / `arch`) reads programmatically.
+Per ADR 017 and 214.4, the `knowledge/domain-taxonomy/*.md` files are Garura's **capability catalog** — a human-readable feature catalog that the product-planning pipeline (`specify` / `design` / `arch`) reads programmatically.
 
 Each feature in a domain file carries NINE sections:
 

@@ -229,4 +229,4 @@ These items are acknowledged but intentionally deferred for real-world validatio
 
 ## References
 
-- GitHub Issue: [#7 — feat(stm): issue-centric artifact structure with checkpoint-based play resumption](https://github.com/kapilvirenahuja/meridian/issues/7)
+- GitHub Issue: [#7 — feat(stm): issue-centric artifact structure with checkpoint-based play resumption](https://github.com/kapilvirenahuja/garura/issues/7)

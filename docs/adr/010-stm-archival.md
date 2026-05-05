@@ -100,4 +100,4 @@ This ADR extends [ADR 008: Issue-Centric STM and NWWI](./008-issue-centric-stm-a
 
 ## References
 
-- GitHub Issue: [#63 — feat: archive STM directories on issue close with year-month bucketing](https://github.com/kapilvirenahuja/meridian-os/issues/63)
+- GitHub Issue: [#63 — feat: archive STM directories on issue close with year-month bucketing](https://github.com/kapilvirenahuja/garura-os/issues/63)
