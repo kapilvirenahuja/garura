@@ -74,7 +74,7 @@ Key inputs:
 - `stm_base` — resolved from `.garura/core/config.yaml` stm.base-path
 - `product_base` — resolved from `.garura/core/config.yaml` product.base-path
 - `stm.input` — `product_idea` (string), `industry_hint` (optional string), `project_profile_path` (optional path)
-- `stm.output` — `market_brief_path` (target path — typically `.meridian/product/specification/market-brief.md`)
+- `stm.output` — `market_brief_path` (target path — typically `.garura/product/specification/market-brief.md`)
 - `task_id` — unique step identifier
 
 Key outputs (enriched contract):
@@ -131,7 +131,7 @@ Every claim in Market Size, Growth rate, and Competitive Landscape must cite a s
 - Fabricate competitor data. If you can't find at least one source for a competitor, don't include them.
 - Invent domain facts that contradict the domain-taxonomy LTM (e.g., claiming a feature is "industry standard" when the taxonomy's Tradeoffs section says otherwise).
 - Write `market-brief.md` directly — delegate to the `research-market-opportunity` skill and extract the path from its output.
-- Touch any artifact outside `.meridian/product/` or the scriber-managed ops paths.
+- Touch any artifact outside `.garura/product/` or the scriber-managed ops paths.
 - Return prose responses. Always return the enriched JSON contract.
 
 ### ALWAYS

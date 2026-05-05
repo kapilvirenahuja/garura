@@ -94,11 +94,11 @@ When you receive a JSON contract from the play orchestrator:
   "status": "completed",
   "stm": {
     "input": {
-      "issue_path": ".meridian/project/issues/183/issue.md"
+      "issue_path": ".garura/project/issues/183/issue.md"
     },
     "output": {
-      "architecture_inference_yaml": ".meridian/project/issues/183/evidence/prepare/architecture-inference.yaml",
-      "architecture_inference_md": ".meridian/project/issues/183/evidence/prepare/architecture-inference.md"
+      "architecture_inference_yaml": ".garura/project/issues/183/evidence/prepare/architecture-inference.yaml",
+      "architecture_inference_md": ".garura/project/issues/183/evidence/prepare/architecture-inference.md"
     }
   },
   "task_id": "1A-architecture-inference",
