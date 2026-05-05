@@ -1,4 +1,4 @@
-# Meridian OS — Defects
+# Garura OS — Defects
 
 ## DEF-001: Hardcoded paths in play pre-flight sections
 
@@ -9,30 +9,30 @@
 
 ### Problem
 
-Multiple plays hardcode `.meridian/` directory paths in their pre-flight bash snippets instead of reading them from the project's `.meridian/core/config.yaml`. This breaks when a project's directory structure doesn't match the hardcoded assumptions.
+Multiple plays hardcode `.garura/` directory paths in their pre-flight bash snippets instead of reading them from the project's `.garura/core/config.yaml`. This breaks when a project's directory structure doesn't match the hardcoded assumptions.
 
 ### Specific issues
 
 **1. Config path resolution**
-- Plays reference `.meridian/core/config.yaml` but the actual location is `.meridian/core/config.yaml`
+- Plays reference `.garura/core/config.yaml` but the actual location is `.garura/core/config.yaml`
 - No play reads a `product.base-path` from config — `product_base` is hardcoded
 
 **2. Product base path hardcoded**
-- `implement-epic` hardcodes `product_base=".meridian/product"`
-- Actual Phoenix layout: `.meridian/project/product/phoenix`
-- The play should read `product.base-path` from `.meridian/core/config.yaml`
+- `implement-epic` hardcodes `product_base=".garura/product"`
+- Actual Phoenix layout: `.garura/project/product/phoenix`
+- The play should read `product.base-path` from `.garura/core/config.yaml`
 
 **3. Subdirectory assumptions**
 - `implement-epic` expects `{product_base}/architecture/architecture.yaml` and `{product_base}/roadmap/epics/{id}/`
 - Phoenix uses a flat layout: `architecture.yaml` and `epics/{id}/` directly under the product base — no `architecture/` or `roadmap/` subdirectories
 
 **4. STM base path**
-- `start-feature` greps `.meridian/core/config.yaml` for `stm.base-path` — correct approach, but the config file path itself is wrong (should be `.meridian/core/config.yaml`)
+- `start-feature` greps `.garura/core/config.yaml` for `stm.base-path` — correct approach, but the config file path itself is wrong (should be `.garura/core/config.yaml`)
 
 ### Expected behavior
 
 All plays should:
-1. Resolve config from `.meridian/core/config.yaml` (project-local)
+1. Resolve config from `.garura/core/config.yaml` (project-local)
 2. Read `product.base-path` from config instead of hardcoding
 3. Read `stm.base-path` from config (already done, but via wrong config path)
 4. Not assume subdirectory structure — use paths as declared in config

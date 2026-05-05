@@ -4,7 +4,7 @@ This file provides guidance to Factory Droids when working with code in this rep
 
 ## Overview
 
-Meridian is an agentic framework implementing **Intent-Driven Software Development** principles for deterministic AI-assisted development. It uses a three-layer hierarchy: **Plays** → **Agents** (domain experts) → **Skills** (learned capabilities).
+Garura is an agentic framework implementing **Intent-Driven Software Development** principles for deterministic AI-assisted development. It uses a three-layer hierarchy: **Plays** → **Agents** (domain experts) → **Skills** (learned capabilities).
 
 ## Architecture
 
@@ -19,15 +19,15 @@ core/components/           # Source of truth (edit here)
 ├── droids/               # Deployed agents (transformed from Claude Code format)
 └── skills/               # Deployed skills + plays
 
-~/.meridian/core/memory/   # Global LTM (via /sync-droids, default)
+~/.garura/core/memory/   # Global LTM (via /sync-droids, default)
 ```
 
-**Note:** `.factory/` and `.meridian/core/memory/` are NOT tracked in the repository. They are gitignored.
+**Note:** `.factory/` and `.garura/core/memory/` are NOT tracked in the repository. They are gitignored.
 - Components deploy to `~/.factory/` (global mode, default) or `.factory/` (project mode, ephemeral)
-- Memory deploys to `~/.meridian/core/memory/` (global mode, default) or `.meridian/core/memory/` (project mode, ephemeral)
+- Memory deploys to `~/.garura/core/memory/` (global mode, default) or `.garura/core/memory/` (project mode, ephemeral)
 - The `sync-droids` script transforms Claude Code agents into Factory Droid format during deployment
 
-**Data Flow:** High-order play → chains atomic plays → play invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `.meridian/core/config.yaml`)
+**Data Flow:** High-order play → chains atomic plays → play invokes ≤2 agents → agents invoke skills → skills produce artifacts to STM (`{stm_base}/{issue}/` — resolved from `stm.base-path` in `.garura/core/config.yaml`)
 
 ## Tool Name Mapping
 
@@ -57,7 +57,7 @@ Author all components in `core/components/`. The canonical deployment is `~/.fac
 core/components/skills/   → ~/.factory/skills/          (via /sync-droids)
 core/components/plays/  → ~/.factory/skills/          (via /sync-droids)
 core/components/agents/   → ~/.factory/droids/          (via /sync-droids, transformed)
-core/components/memory/   → ~/.meridian/core/memory/    (via /sync-droids)
+core/components/memory/   → ~/.garura/core/memory/    (via /sync-droids)
 ```
 
 **Project mode (ephemeral):**
@@ -65,7 +65,7 @@ core/components/memory/   → ~/.meridian/core/memory/    (via /sync-droids)
 core/components/skills/   → .factory/skills/            (via /sync-droids --project, gitignored)
 core/components/plays/  → .factory/skills/            (via /sync-droids --project, gitignored)
 core/components/agents/   → .factory/droids/            (via /sync-droids --project, gitignored)
-core/components/memory/   → .meridian/core/memory/      (via /sync-droids --project, gitignored)
+core/components/memory/   → .garura/core/memory/      (via /sync-droids --project, gitignored)
 ```
 
 After editing source, run `/sync-droids` to deploy globally. Use `/sync-droids --project` for ephemeral local copies (gitignored).
@@ -154,8 +154,8 @@ Always use Task tools for non-trivial work. Plan before executing.
 
 ## Reference
 
-- `core/grounding/glossary.md` — Canonical definitions of every Meridian concept
-- `.meridian/core/config.yaml` — Paths and settings
+- `core/grounding/glossary.md` — Canonical definitions of every Garura concept
+- `.garura/core/config.yaml` — Paths and settings
 - `docs/adr/` — Architecture Decision Records (8 ADRs)
 - `docs/philosophy/` — Core architecture philosophy
 - `docs/components/` — Agent, skill, play, memory documentation

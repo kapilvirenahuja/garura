@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Meridian is an agentic framework implementing **Intent-Driven Software Development** principles for deterministic AI-assisted development. It uses a three-layer hierarchy: **Plays** → **Agents** (domain experts) → **Skills** (learned capabilities).
+Garura is an agentic framework implementing **Intent-Driven Software Development** principles for deterministic AI-assisted development. It uses a three-layer hierarchy: **Plays** → **Agents** (domain experts) → **Skills** (learned capabilities).
 
 ## Architecture
 
@@ -77,7 +77,7 @@ When modifying plays, always go through the `intent.yaml` → `/create-play --bu
 
 ## Reference
 
-- `core/grounding/glossary.md` — Canonical definitions of every Meridian concept
+- `core/grounding/glossary.md` — Canonical definitions of every Garura concept
 - `.garura/core/config.yaml` — Paths and settings
 - `docs/adr/` — Architecture Decision Records (8 ADRs)
 - `docs/philosophy/` — Core architecture philosophy
