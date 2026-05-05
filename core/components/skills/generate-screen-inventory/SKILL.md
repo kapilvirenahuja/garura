@@ -18,7 +18,7 @@ Turn enriched capabilities into concrete screens. Every capability maps to at le
 
 ## Input
 
-Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.meridian/product/` or assume a working directory.
+Receive from the designer agent. All paths resolve against `{product_base}` supplied by the play via the JSON contract — do not hard-code `.garura/product/` or assume a working directory.
 
 - `scope_path` (path, required) — typically `{product_base}scope/scope.yaml`
 - `enriched_capabilities_path` (path, required) — typically `{product_base}scope/garura:enriched-capabilities.yaml`
@@ -31,7 +31,7 @@ Receive from the designer agent. All paths resolve against `{product_base}` supp
 
 ## Process
 
-Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.meridian/product/` or assume a working directory.
+Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.garura/product/` or assume a working directory.
 
 ### 1. Load inputs
 

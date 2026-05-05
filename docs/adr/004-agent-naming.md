@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-Meridian originally documented a `{domain}-keeper` pattern but used inconsistent naming:
+Garura originally documented a `{domain}-keeper` pattern but used inconsistent naming:
 
 | Documented | Actual Usage |
 |------------|--------------|

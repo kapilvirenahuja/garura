@@ -1,4 +1,4 @@
-# Meridian
+# Garura
 
 **Your OS for intent-driven development** - An agentic system that defines how to build software deterministically for enterprise-grade delivery.
 
@@ -30,9 +30,9 @@ IDSD approach: `Start with intent → Agentic System selects method → Workflow
 
 Read more: [`docs/philosophy/architecture.md`](docs/philosophy/architecture.md)
 
-## What is Meridian
+## What is Garura
 
-Meridian is an agentic framework that implements Intent-Driven Software Development principles. It orchestrates specialized AI agents through cognitive flows to deliver enterprise-grade code generation.
+Garura is an agentic framework that implements Intent-Driven Software Development principles. It orchestrates specialized AI agents through cognitive flows to deliver enterprise-grade code generation.
 
 ### Key Features
 
@@ -44,7 +44,7 @@ Meridian is an agentic framework that implements Intent-Driven Software Developm
 
 ### AI-Native SDLC
 
-Meridian follows a 5-step AI-Native SDLC for all development workflows:
+Garura follows a 5-step AI-Native SDLC for all development workflows:
 
 ```
 DISCOVER ──► SPECIFY ──► DESIGN ──► BUILD ──► RUN
@@ -60,7 +60,7 @@ DISCOVER ──► SPECIFY ──► DESIGN ──► BUILD ──► RUN
 
 ### Core Components
 
-Meridian uses a **three-layer hierarchy** for deterministic workflows:
+Garura uses a **three-layer hierarchy** for deterministic workflows:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -91,8 +91,8 @@ Meridian uses a **three-layer hierarchy** for deterministic workflows:
 ┌─────────────────────────────────────────────────────────────┐
 │                      MEMORY                                 │
 │  LTM (authoring): core/components/memory/                   │
-│  LTM (runtime): ~/.meridian/core/memory/ (global default) │
-│  STM: Artifacts per issue (.meridian/{issue}/)            │
+│  LTM (runtime): ~/.garura/core/memory/ (global default) │
+│  STM: Artifacts per issue (.garura/{issue}/)            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -106,7 +106,7 @@ Meridian uses a **three-layer hierarchy** for deterministic workflows:
 
 ### Agent Roles
 
-Meridian agents follow the `{domain}-{role}` naming pattern:
+Garura agents follow the `{domain}-{role}` naming pattern:
 
 | Agent | Domain | Role | Responsibility |
 |-------|--------|------|----------------|
@@ -117,17 +117,17 @@ Meridian agents follow the `{domain}-{role}` naming pattern:
 
 ### Memory System
 
-Meridian uses a dual memory architecture:
+Garura uses a dual memory architecture:
 
-- **Short-Term Memory (STM)**: Issue-specific artifacts stored in `.meridian/{issue}/` with subdirectories for `docs/`, `evidence/`, and `checkpoint/` (see ADR 008)
-- **Long-Term Memory (LTM)**: Organizational knowledge — authored in `core/components/memory/`, synced to `~/.meridian/core/memory/` (global) or `.meridian/core/memory/` (project). Contains skill overrides, standards, templates, practices.
+- **Short-Term Memory (STM)**: Issue-specific artifacts stored in `.garura/{issue}/` with subdirectories for `docs/`, `evidence/`, and `checkpoint/` (see ADR 008)
+- **Long-Term Memory (LTM)**: Organizational knowledge — authored in `core/components/memory/`, synced to `~/.garura/core/memory/` (global) or `.garura/core/memory/` (project). Contains skill overrides, standards, templates, practices.
 
 **Skill-Memory Pattern**: Skills embed their own references locally. LTM contains overrides that are synced to skills at deployment time. Skills never read from LTM at runtime — they are self-contained.
 
 
 ## Supported AI Agents
 
-Meridian is designed to work with multiple AI agent platforms:
+Garura is designed to work with multiple AI agent platforms:
 
 - **Claude Code**: Anthropic's official CLI for Claude
 - **Factory Droids**: Factory.AI Droid platform
@@ -146,20 +146,20 @@ Run the installer in your project directory:
 
 ```bash
 cd /path/to/your-project
-curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/meridian/main/installer/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/garura/main/installer/install.sh | bash
 ```
 
 Optionally specify a project name:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/meridian/main/installer/install.sh | bash -s -- --project-name my-app
+curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/garura/main/installer/install.sh | bash -s -- --project-name my-app
 ```
 
 This scaffolds the following structure in your project:
 
 ```
 your-project/
-├── .meridian/
+├── .garura/
 │   ├── core/
 │   │   ├── config.yaml    # Project configuration (customizable)
 │   │   └── memory/        # LTM: practices, templates, standards (gitignored ephemeral copy)
@@ -174,7 +174,7 @@ your-project/
 **After installation:**
 
 1. Review and customize `CLAUDE.md` for your project
-2. Update `.meridian/core/config.yaml` with your repository details
+2. Update `.garura/core/config.yaml` with your repository details
 3. Start developing with Claude Code
 
 ### Upgrade an Existing Installation
@@ -182,17 +182,17 @@ your-project/
 Run the same installer again — it detects the existing installation and performs a non-destructive upgrade:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/meridian/main/installer/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kapilvirenahuja/garura/main/installer/install.sh | bash
 ```
 
 **What gets upgraded (overwritten):**
 - `~/.claude/agents/` — Agent definitions (global deployment)
 - `~/.claude/skills/` — Skills and plays (global deployment)
-- `~/.meridian/core/memory/` — Memory (practices, templates, global)
+- `~/.garura/core/memory/` — Memory (practices, templates, global)
 
 **What gets preserved:**
-- `.meridian/project/` — Your project artifacts
-- `.meridian/core/config.yaml` — Your config (new version written as `config.yaml.new`)
+- `.garura/project/` — Your project artifacts
+- `.garura/core/config.yaml` — Your config (new version written as `config.yaml.new`)
 - `CLAUDE.md` — Your AI instructions (new version written as `CLAUDE.md.new`)
 - `.claude/settings.json` — Your Claude settings
 
@@ -200,12 +200,12 @@ Review the `.new` files and merge any changes you want to keep.
 
 ### Install from Source (for Contributors)
 
-If you want to develop Meridian itself:
+If you want to develop Garura itself:
 
 ```bash
 # Clone the repository
-git clone https://github.com/kapilvirenahuja/meridian.git
-cd meridian
+git clone https://github.com/kapilvirenahuja/garura.git
+cd garura
 
 # Sync components to .claude/ directory
 claude /sync-claude
@@ -214,7 +214,7 @@ claude /sync-claude
 ## Repository Structure
 
 ```
-meridian/
+garura/
 ├── installer/
 │   └── install.sh             # Curl-based installer script
 ├── core/
@@ -270,7 +270,7 @@ meridian/
 
 ## Contributing
 
-We welcome contributions to Meridian! Whether you're fixing bugs, improving documentation, or proposing new features, please submit pull requests to the main branch.
+We welcome contributions to Garura! Whether you're fixing bugs, improving documentation, or proposing new features, please submit pull requests to the main branch.
 
 ### Guidelines for Contributors
 
@@ -288,7 +288,7 @@ We welcome contributions to Meridian! Whether you're fixing bugs, improving docu
 
 MIT License
 
-Copyright (c) 2026 Meridian Contributors
+Copyright (c) 2026 Garura Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -310,4 +310,4 @@ SOFTWARE.
 
 ## Support
 
-For issues and questions, please visit: https://github.com/kapilvirenahuja/meridian/issues
+For issues and questions, please visit: https://github.com/kapilvirenahuja/garura/issues

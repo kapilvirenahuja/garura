@@ -1,6 +1,6 @@
 # Usage
 
-Concrete implementations and examples for Meridian components.
+Concrete implementations and examples for Garura components.
 
 ## Structure
 

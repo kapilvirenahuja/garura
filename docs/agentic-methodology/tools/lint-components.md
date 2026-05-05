@@ -1,6 +1,6 @@
 # lint-components
 
-Validate Meridian component contracts — plays, skills, agents, and intent files — from the command line.
+Validate Garura component contracts — plays, skills, agents, and intent files — from the command line.
 
 ## Overview
 

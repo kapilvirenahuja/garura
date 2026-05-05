@@ -1,10 +1,10 @@
 # Plays
 
-Plays are human-invocable workflows that define the order of operations for Meridian.
+Plays are human-invocable workflows that define the order of operations for Garura.
 
 ## Philosophy
 
-Plays define **what to do and in what order**. They are the entry points for all Meridian workflows.
+Plays define **what to do and in what order**. They are the entry points for all Garura workflows.
 
 ### Core Principles
 
@@ -229,7 +229,7 @@ failure_conditions:
 
 ## Four Crafts
 
-Meridian plays embody four crafts that work together:
+Garura plays embody four crafts that work together:
 
 | Craft | What | Where |
 |-------|------|-------|
@@ -386,7 +386,7 @@ task:
   owner: string                # "repo-orchestrator"
   blockedBy: [taskId]
   metadata:
-    _meridian:                 # Meridian-internal namespace
+    _meridian:                 # Garura-internal namespace
       playId: string         # Links task to play instance
       invocation: number       # 1, 2, ... for resume tracking
       agentId: string          # For resuming agent

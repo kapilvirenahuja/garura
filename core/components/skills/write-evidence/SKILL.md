@@ -1,6 +1,6 @@
 ---
 name: write-evidence
-description: Write a content string to a target path inside the `.meridian/` folder whitelist. Enforces whitelist compliance at the write boundary. Used by the scriber agent.
+description: Write a content string to a target path inside the `.garura/` folder whitelist. Enforces whitelist compliance at the write boundary. Used by the scriber agent.
 user-invocable: false
 model: haiku
 allowed-tools: Write, Bash
@@ -12,9 +12,9 @@ Model-invocable skill for writing evidence, checkpoint, and status files on beha
 
 ## Purpose
 
-Write a content string to a target path inside the `.meridian/` folder whitelist. Reject any path outside the whitelist. Create parent directories if needed. Return a structured result.
+Write a content string to a target path inside the `.garura/` folder whitelist. Reject any path outside the whitelist. Create parent directories if needed. Return a structured result.
 
-This skill is the single chokepoint for evidence writes in Meridian. No other skill or agent writes directly to evidence/checkpoint/status paths. This makes folder-whitelist compliance auditable.
+This skill is the single chokepoint for evidence writes in Garura. No other skill or agent writes directly to evidence/checkpoint/status paths. This makes folder-whitelist compliance auditable.
 
 ## Input
 
@@ -34,15 +34,15 @@ Check `target_path` matches one of the 9 whitelist patterns (list below). If it 
 status: failed
 failure_reason: whitelist_violation
 attempted_path: "{target_path}"
-details: "target_path is outside the .meridian/ folder whitelist"
+details: "target_path is outside the .garura/ folder whitelist"
 ```
 
 Whitelist patterns (regex-friendly):
 
 ```
-^\.meridian/core/(?!memory/).*$
-^\.meridian/product/(product|ux|arch)/.*$
-^\.meridian/project/issues/[^/]+/(specs|evidence|checkpoint|context|review)/.*$
+^\.garura/core/(?!memory/).*$
+^\.garura/product/(product|ux|arch)/.*$
+^\.garura/project/issues/[^/]+/(specs|evidence|checkpoint|context|review)/.*$
 ```
 
 `.garura/core/memory/` is gitignored and managed elsewhere — scriber does not touch it.
@@ -58,7 +58,7 @@ Whitelist patterns (regex-friendly):
 mkdir -p "$(dirname "{final_path}")"
 ```
 
-Only run this inside `.meridian/` — the whitelist check already confirmed the path is inside. If `mkdir` fails (permission denied), return:
+Only run this inside `.garura/` — the whitelist check already confirmed the path is inside. If `mkdir` fails (permission denied), return:
 
 ```yaml
 status: failed

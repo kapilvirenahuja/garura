@@ -33,13 +33,13 @@ Receive from agent:
    |---|---|---|
    | `CLAUDE.md`, `.claude/CLAUDE.md` | Project-level instructions, constraints, coding rules | High — read fully |
    | `README.md` | Project overview, purpose, quick-start | High — read fully |
-   | `.meridian/product/discovery/product.yaml` | Product definition — problem, users, goals, status | High — read |
-   | `.meridian/product/roadmap/roadmap.yaml` | Roadmap thesis, horizon sequencing, feasibility | High — read |
-   | `.meridian/product/roadmap/features.yaml` | Features, invariants, scope, IDD fields | High — read |
-   | `.meridian/product/architecture/architecture.yaml` | System architecture, stack, platforms, agentic design | High — read |
-   | `.meridian/product/architecture/tech.yaml` | Low-level design, project structure, components, libraries | High — read |
-   | `.meridian/product/architecture/scenarios.yaml` | Verification scenarios, feature gates, coverage summary | High — read |
-   | `.meridian/product/roadmap/plan.yaml` | Execution order, scope items, exit gates, scenario gates | High — read |
+   | `.garura/product/discovery/product.yaml` | Product definition — problem, users, goals, status | High — read |
+   | `.garura/product/roadmap/roadmap.yaml` | Roadmap thesis, horizon sequencing, feasibility | High — read |
+   | `.garura/product/roadmap/features.yaml` | Features, invariants, scope, IDD fields | High — read |
+   | `.garura/product/architecture/architecture.yaml` | System architecture, stack, platforms, agentic design | High — read |
+   | `.garura/product/architecture/tech.yaml` | Low-level design, project structure, components, libraries | High — read |
+   | `.garura/product/architecture/scenarios.yaml` | Verification scenarios, feature gates, coverage summary | High — read |
+   | `.garura/product/roadmap/plan.yaml` | Execution order, scope items, exit gates, scenario gates | High — read |
    | `memory/`, `.garura/core/memory/` | LTM: standards, knowledge, formats | Medium — scan structure, read key files |
    | `agents.md`, `.claude/agents/*.md` | Agent definitions | Medium — list names and domains |
    | `docs/`, `docs/adr/` | Documentation, architecture decision records | Medium — scan titles |

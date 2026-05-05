@@ -1,0 +1,7 @@
+ M CLAUDE.md
+ M docs/philosophy/architecture.md
+?? .garura/project/issues/332/evidence/create-pr/
+?? .garura/project/issues/332/evidence/merge-pr/
+?? .garura/project/issues/352/evidence/create-pr/
+?? .garura/project/issues/352/evidence/merge-pr/
+?? .garura/project/issues/capture-report/

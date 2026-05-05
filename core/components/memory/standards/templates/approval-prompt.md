@@ -65,7 +65,7 @@ The play parses the user response with this protocol:
 **Top risks:** category-creation risk, regulatory risk (minimal v1), cost risk (LLM overnight spend)
 
 **Artifacts under review:**
-- `.meridian/product/specification/market-brief.md` — full brief with TAM/SAM/SOM, competitive matrix, risks, sources
+- `.garura/product/specification/market-brief.md` — full brief with TAM/SAM/SOM, competitive matrix, risks, sources
 
 ---
 
@@ -82,9 +82,9 @@ Type **Tether** to proceed, **Orbit** with feedback to re-run Stage 1, or **Vani
 **Execution:** dependency graph T1→T3, T2→T4, ...
 
 **Artifacts under review:**
-- `.meridian/project/issues/214/specs/spec.md`
-- `.meridian/project/issues/214/specs/verify.md`
-- `.meridian/project/issues/214/specs/tasks.md`
+- `.garura/project/issues/214/specs/spec.md`
+- `.garura/project/issues/214/specs/verify.md`
+- `.garura/project/issues/214/specs/tasks.md`
 
 ---
 

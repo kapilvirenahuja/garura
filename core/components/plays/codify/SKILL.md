@@ -7,7 +7,7 @@ model: opus
 
 # codify
 
-Given an existing codebase (single repo or multi-repo, any size from 10k to millions of LOC), reverse-engineer the Meridian product LTM that the code already embodies. codify is the brownfield counterpart to the /specify + /design + /arch trinity — it produces the same artifact shape via code inference instead of user interview. Every proposal is staged under `{stm_base}/{issue}/evidence/codify/proposals/` with `source_type: inferred_from_code`. No writes to product LTM occur during this play — /garura:enrich is the sole promotion path.
+Given an existing codebase (single repo or multi-repo, any size from 10k to millions of LOC), reverse-engineer the Garura product LTM that the code already embodies. codify is the brownfield counterpart to the /specify + /design + /arch trinity — it produces the same artifact shape via code inference instead of user interview. Every proposal is staged under `{stm_base}/{issue}/evidence/codify/proposals/` with `source_type: inferred_from_code`. No writes to product LTM occur during this play — /garura:enrich is the sole promotion path.
 
 ## Compiled From
 

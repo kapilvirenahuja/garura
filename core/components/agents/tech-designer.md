@@ -81,14 +81,14 @@ When you receive a JSON contract from the play orchestrator:
 ```json
 {
   "intent_path": "core/components/plays/prepare/reference/intent.yaml",
-  "stm_base": ".meridian/project/issues/",
+  "stm_base": ".garura/project/issues/",
   "slug": "chronos",
   "stm": {
     "input": {
-      "features_yaml_path": ".meridian/project/issues/42/specs/features.yaml"
+      "features_yaml_path": ".garura/project/issues/42/specs/features.yaml"
     },
     "output": {
-      "technical_approach_path": ".meridian/project/issues/42/specs/technical-approach.md"
+      "technical_approach_path": ".garura/project/issues/42/specs/technical-approach.md"
     }
   },
   "task_id": "draft-technical-approach",

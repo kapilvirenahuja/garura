@@ -25,7 +25,7 @@ Determine:
   - Backend frameworks: Express, FastAPI, Django, Spring, .NET, Go, Rails
   - If no frontend detected → frontend subagent returns all N/A
   - If no backend detected → backend subagent returns all N/A
-- **Quality Profile**: Load `quality-standards.yaml` from project root or `.meridian/` directory
+- **Quality Profile**: Load `quality-standards.yaml` from project root or `.garura/` directory
 
 ### Quality Profile Loading
 

@@ -1,6 +1,6 @@
 ---
 name: recommend-mvp
-description: Produce the MVP recommendation artifact at .meridian/product/scope/mvp-recommendation.md. Narrows the capability walk by selecting primary use cases from the brief, deferring the rest with v1.1+ triggers, and recording any architecture directions committed at spec time. Called by product-keeper during specify Stage 2.75 (between domain-selection and configure-capabilities).
+description: Produce the MVP recommendation artifact at .garura/product/scope/mvp-recommendation.md. Narrows the capability walk by selecting primary use cases from the brief, deferring the rest with v1.1+ triggers, and recording any architecture directions committed at spec time. Called by product-keeper during specify Stage 2.75 (between domain-selection and configure-capabilities).
 user-invocable: false
 model: opus
 allowed-tools: Read, Write, Grep, Glob
@@ -14,11 +14,11 @@ Model-invocable skill for authoring the MVP recommendation — the scope-narrowi
 
 Without an MVP recommendation, `configure-capabilities` walks every feature of every selected domain indiscriminately and produces a bloated v1 scope that tries to serve every use case the brief names. The result is an epic inventory that exceeds the project-profile's team_size × delivery_ambition × timeline envelope and a scope contract the team cannot ship. The MVP recommendation artifact is the bridge: it reads the opportunity landscape + domain shape + user-provided grounding answers and commits to a narrowed v1 scope with explicit deferrals.
 
-This skill produces `.meridian/product/scope/mvp-recommendation.md` conforming to `core/components/memory/standards/schemas/mvp-recommendation.yaml`. It does NOT make architectural choices — it commits to a product scope. Any architecture direction it records is capability-level, not tech-stack level (Rule 14 / specify C16 Abstraction-Layer Boundary).
+This skill produces `.garura/product/scope/mvp-recommendation.md` conforming to `core/components/memory/standards/schemas/mvp-recommendation.yaml`. It does NOT make architectural choices — it commits to a product scope. Any architecture direction it records is capability-level, not tech-stack level (Rule 14 / specify C16 Abstraction-Layer Boundary).
 
 ## Input
 
-Receive from the `product-keeper` agent via the play's JSON contract. All paths resolve against `{product_base}` supplied by the play — do not hard-code `.meridian/product/` or assume a working directory.
+Receive from the `product-keeper` agent via the play's JSON contract. All paths resolve against `{product_base}` supplied by the play — do not hard-code `.garura/product/` or assume a working directory.
 
 - `project_brief_path` (path, required) — typically `{product_base}user-provided/project-brief.md`. The authoritative source for use cases, target audience, stated constraints, and the product's positioning. Every narrowing decision MUST trace to a quote or an absence in this file.
 - `market_brief_path` (path, required) — typically `{product_base}specification/market-brief.md`. Provides the risk register, competitive landscape, and market gaps. The risks in particular seed the "risks that could kill this MVP" section of the output.
@@ -32,7 +32,7 @@ Receive from the `product-keeper` agent via the play's JSON contract. All paths 
 
 ## Process
 
-Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.meridian/product/` or assume a working directory.
+Resolve each input path by substituting `{product_base}` from the incoming JSON contract; do not re-prefix with `.garura/product/` or assume a working directory.
 
 ### 1. Load inputs
 

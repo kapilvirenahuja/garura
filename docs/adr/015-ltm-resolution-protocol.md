@@ -6,7 +6,7 @@
 
 ## Context
 
-Meridian agents were making domain decisions without systematically consulting stored knowledge. Three gaps existed:
+Garura agents were making domain decisions without systematically consulting stored knowledge. Three gaps existed:
 
 1. No agent checked project-level LTM artifacts before falling back to LLM reasoning
 2. Core LTM consultation was agent-internal prose, not enforced by the contract schema

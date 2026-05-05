@@ -66,10 +66,10 @@ constraints:
     rule: >
       specify artifacts must exist and be LOCKED before arch
       begins. Pre-flight reads
-      .meridian/product/scope/scope.yaml,
-      .meridian/product/scope/garura:enriched-capabilities.yaml,
-      .meridian/product/scope/epics/*.yaml, and
-      .meridian/product/specification/quality-profile.yaml. The post-D1
+      .garura/product/scope/scope.yaml,
+      .garura/product/scope/garura:enriched-capabilities.yaml,
+      .garura/product/scope/epics/*.yaml, and
+      .garura/product/specification/quality-profile.yaml. The post-D1
       folder layout applies per ADR 017. Missing or DRAFT-status artifacts
       halt pre-flight.
 
@@ -77,10 +77,10 @@ constraints:
     rule: >
       design artifacts must exist and be LOCKED before arch
       begins. Pre-flight reads
-      .meridian/product/experience/personas.md,
-      .meridian/product/experience/screens/*.md,
-      .meridian/product/experience/flows/*.md, and
-      .meridian/product/experience/design-spec.md per ADR 017. Missing or
+      .garura/product/experience/personas.md,
+      .garura/product/experience/screens/*.md,
+      .garura/product/experience/flows/*.md, and
+      .garura/product/experience/design-spec.md per ADR 017. Missing or
       DRAFT-status artifacts halt pre-flight.
 
   - id: C3
@@ -159,7 +159,7 @@ constraints:
 
   - id: C11
     rule: >
-      Artifacts land under .meridian/product/architecture/ per ADR 017
+      Artifacts land under .garura/product/architecture/ per ADR 017
       post-D1 folder layout. The five canonical files are
       logical-architecture.yaml, physical-architecture.yaml, nfr-spec.yaml,
       quality-vision.yaml, design-patterns.yaml. Companion decision
@@ -208,7 +208,7 @@ constraints:
       authoritative, (c) if no pin and the candidate set has more than
       one member AND the project-profile does not force a single answer,
       the agent MUST append an inference question to
-      .meridian/product/user-provided/grounding-questions.md per Rule 12
+      .garura/product/user-provided/grounding-questions.md per Rule 12
       and halt the slot OR surface the decision at the next checkpoint
       for explicit user approval before committing. The agent MAY NOT
       commit a multi-candidate slot to a single product or pattern name

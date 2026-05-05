@@ -142,7 +142,7 @@ text = re.sub(r'### 1\. Source of Truth[\s\S]*?(?=### 2\. Execution Model)', '',
 text = re.sub(r'After editing source, run \`/sync-claude\`\.\n*', '', text)
 
 # Update config path references
-text = text.replace('\`.meridian/core/config.yaml\`', '\`.garura/core/config.yaml\`')
+text = text.replace('\`.garura/core/config.yaml\`', '\`.garura/core/config.yaml\`')
 
 # Remove doc references
 text = re.sub(r'- \`docs/.*\n', '', text)
@@ -210,10 +210,10 @@ if [ "$MODE" = "init" ]; then
   fi
 
   # 5. Transform and write config.yaml
-  if [ -f "$SRC_DIR/.meridian/core/config.yaml" ]; then
+  if [ -f "$SRC_DIR/.garura/core/config.yaml" ]; then
     info "  Writing config..."
     mkdir -p "$TARGET_DIR/.garura/core"
-    config_content="$(cat "$SRC_DIR/.meridian/core/config.yaml")"
+    config_content="$(cat "$SRC_DIR/.garura/core/config.yaml")"
     transform_config "$config_content" "$PROJECT_NAME" > "$TARGET_DIR/.garura/core/config.yaml"
   fi
 
@@ -281,9 +281,9 @@ else
   fi
 
   # 5. Write config.yaml.new for user to diff/merge
-  if [ -f "$SRC_DIR/.meridian/core/config.yaml" ]; then
+  if [ -f "$SRC_DIR/.garura/core/config.yaml" ]; then
     info "  Writing config.yaml.new (review and merge manually)..."
-    config_content="$(cat "$SRC_DIR/.meridian/core/config.yaml")"
+    config_content="$(cat "$SRC_DIR/.garura/core/config.yaml")"
     transform_config "$config_content" "$PROJECT_NAME" > "$TARGET_DIR/.garura/core/config.yaml.new"
   fi
 

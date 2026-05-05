@@ -1,6 +1,6 @@
 # Agents
 
-Agents are autonomous decision-makers in Meridian with domain-specific expertise.
+Agents are autonomous decision-makers in Garura with domain-specific expertise.
 
 ## Philosophy
 
@@ -43,7 +43,7 @@ This pattern ensures:
 
 ### Granularity Principle
 
-Meridian avoids both extremes:
+Garura avoids both extremes:
 
 | Too Narrow | Too Granular | Right Level |
 |------------|--------------|-------------|
@@ -107,7 +107,7 @@ Meridian avoids both extremes:
 
 ### Four Crafts: Where Agents Fit
 
-Agents are the primary practitioners of **Context Crafting** — one of the Four Crafts in Meridian's architecture. When an agent receives a JSON contract, its most important work before invoking any skill is assembling complete, accurate context: discovering LTM paths (schemas, templates, standards), reading STM artifacts, and combining them with the slug and base paths into structured skill inputs. This context assembly is the agent's primary value in the play workflow — skills are only as effective as the context the agent gives them.
+Agents are the primary practitioners of **Context Crafting** — one of the Four Crafts in Garura's architecture. When an agent receives a JSON contract, its most important work before invoking any skill is assembling complete, accurate context: discovering LTM paths (schemas, templates, standards), reading STM artifacts, and combining them with the slug and base paths into structured skill inputs. This context assembly is the agent's primary value in the play workflow — skills are only as effective as the context the agent gives them.
 
 For the full Four Crafts explanation (Context Crafting, Intent Crafting, Execution Crafting, Verification Crafting), see `docs/philosophy/architecture.md`.
 
@@ -409,7 +409,7 @@ Before invoking any skill, every agent validates all constraints against current
 
 ## Why Not Specialist Agents?
 
-Meridian deprecates specialist patterns (e.g., `bug-analyzer`, `test-writer`) because:
+Garura deprecates specialist patterns (e.g., `bug-analyzer`, `test-writer`) because:
 
 | Problem | Solution |
 |---------|----------|

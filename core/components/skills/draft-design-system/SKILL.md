@@ -22,8 +22,8 @@ Receive from the Designer agent:
 
 - `screens_dir` (path, required) — `{product_base}experience/screens/` directory containing the screen inventory produced by Stage 3. The skill reads screen slugs to understand the surface area (context only — not for generating pixel specs).
 - `personas_path` (path, required) — `{product_base}experience/personas.md`. Read to understand user archetypes and their brand expectations.
-- `scope_path` (path, required) — `.meridian/product/scope/scope.yaml`. Provides the product name and selected capabilities for context framing.
-- `mvp_recommendation_path` (path, required) — `.meridian/product/scope/mvp-recommendation.md`. Informs tone and positioning of the design identity.
+- `scope_path` (path, required) — `.garura/product/scope/scope.yaml`. Provides the product name and selected capabilities for context framing.
+- `mvp_recommendation_path` (path, required) — `.garura/product/scope/mvp-recommendation.md`. Informs tone and positioning of the design identity.
 - `user_provided_path` (path, optional) — `{product_base}user-provided/`. When present, the skill scans for any existing brand hints (project-brief.md, grounding-questions.md, or any *.md file that mentions color, font, or brand) before opening the interview. Prevents re-asking questions the user already answered during PM-interview.
 - `design_system_path` (path, required) — target write path for `design-system.md`, typically `{product_base}experience/design-system.md`.
 - `decision_manifest_path` (path, required) — target write path for `decision-manifest-draft-design-system.yaml`, written alongside the DS artifact.

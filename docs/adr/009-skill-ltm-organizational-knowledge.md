@@ -16,7 +16,7 @@ In practice, two issues emerged:
 
 1. **Shared organizational knowledge gets duplicated** — `commit-categories.md` existed identically in both `analyze-changes/reference/` and `analyze-pr/reference/`. Any change required updating both copies with drift risk.
 
-2. **Organizational knowledge ≠ skill knowledge** — Commit categories, issue templates, and quality standards are organizational decisions, not skill capabilities. When someone adopts Meridian and wants to customize commit categories, they're teaching the system their organizational standards — that's a Long-Term Memory (LTM) concern, not a skill concern.
+2. **Organizational knowledge ≠ skill knowledge** — Commit categories, issue templates, and quality standards are organizational decisions, not skill capabilities. When someone adopts Garura and wants to customize commit categories, they're teaching the system their organizational standards — that's a Long-Term Memory (LTM) concern, not a skill concern.
 
 3. **The deploy-time sync from ADR 007 was never built** — Memory overrides via `core/memory/skill-overrides/` were designed but not implemented. Skills were manually keeping copies in sync.
 
@@ -60,7 +60,7 @@ Allow skills to read from LTM at runtime for **organizational knowledge** — st
         └── evolutionary-scaling.md  # Application architecture decisions
 ```
 
-**Note:** Framework protocols (intent-driven-recovery.md, structured-failure-protocol.md, play-structure.md) are NOT organizational knowledge — they are Meridian internals and live in `docs/framework/`.
+**Note:** Framework protocols (intent-driven-recovery.md, structured-failure-protocol.md, play-structure.md) are NOT organizational knowledge — they are Garura internals and live in `docs/framework/`.
 
 ### Skill Reference Pattern
 

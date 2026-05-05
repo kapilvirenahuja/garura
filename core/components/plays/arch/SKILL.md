@@ -6,7 +6,7 @@ user-invokable: true
 
 # arch
 
-The architecture play in Meridian's 5-stage SDLC (Discover → Specify → Design → Build → Run). Reads locked upstream artifacts from `/specify` (under `{product_base}scope/` and `{product_base}specification/`) and `/design` (under `{product_base}experience/`) and produces FIVE canonical artifacts under `{product_base}architecture/`:
+The architecture play in Garura's 5-stage SDLC (Discover → Specify → Design → Build → Run). Reads locked upstream artifacts from `/specify` (under `{product_base}scope/` and `{product_base}specification/`) and `/design` (under `{product_base}experience/`) and produces FIVE canonical artifacts under `{product_base}architecture/`:
 
 1. `logical-architecture.yaml` — bounded contexts, components, data model, capability-level API surface, integration points, ADR log. Tech-agnostic.
 2. `physical-architecture.yaml` — named stack picks, deployment topology, runtime tiers, observability, auth infrastructure. Every slot names a specific product; every slot carries `source_type`.

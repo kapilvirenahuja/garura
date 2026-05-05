@@ -5,7 +5,7 @@
 ```yaml
 meta:
   generated_at: "2026-04-13T19:30:00+05:30"
-  diff_path: ".meridian/project/issues/208/evidence/review-pr/diff.patch"
+  diff_path: ".garura/project/issues/208/evidence/review-pr/diff.patch"
   changed_paths_count: 12
   scan_coverage: 0.83
   taxonomy_path: "./core/components/memory/standards/rules/pr.md"

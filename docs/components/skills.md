@@ -20,7 +20,7 @@ Skills represent the "how" of execution. They are technology or methodology-spec
 
 ## Two Categories
 
-Meridian has two categories of components that deploy as Claude Code skills:
+Garura has two categories of components that deploy as Claude Code skills:
 
 | Category | What It Is | Invocability | Purpose |
 |----------|-----------|--------------|---------|
@@ -31,9 +31,9 @@ Both deploy to `.claude/skills/` but serve fundamentally different roles. This d
 
 ### Meta-Utility Skills (Exception)
 
-Some skills exist to manage the Meridian framework itself. These are classified as **meta-utility skills** and may be `user-invocable: true` despite the general rule that skills are model-invocable only.
+Some skills exist to manage the Garura framework itself. These are classified as **meta-utility skills** and may be `user-invocable: true` despite the general rule that skills are model-invocable only.
 
-Example: `sync-claude` — synchronizes Meridian components to Claude Code directories. It is invoked directly by the user because it manages the deployment pipeline, not a domain task.
+Example: `sync-claude` — synchronizes Garura components to Claude Code directories. It is invoked directly by the user because it manages the deployment pipeline, not a domain task.
 
 Meta-utility skills:
 - Are user-invocable
@@ -141,7 +141,7 @@ Meta-utility skills:
 
 | Skill | User-Invocable | Model | Description |
 |-------|----------------|-------|-------------|
-| `sync-claude` | true | haiku | Sync Meridian components to .claude/ (project mode) or ~/.claude/ (global mode, default) |
+| `sync-claude` | true | haiku | Sync Garura components to .claude/ (project mode) or ~/.claude/ (global mode, default) |
 
 For the complete play roster, see [Plays Component Guide](./plays.md).
 

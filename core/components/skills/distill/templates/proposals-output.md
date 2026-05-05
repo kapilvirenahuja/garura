@@ -27,8 +27,8 @@ stm_evidence_used: false                   # true when enhance/ or fix-it/ STM e
 
 proposals:                                 # Maps to: reconciliation-proposals.yaml `proposals[]`
   - target_path: "{path to product LTM artifact to enrich}"
-    # Example: .meridian/product/meridian-os/research/knowledge-management.md
-    # Example: .meridian/product/meridian-os/architecture/design-patterns.yaml
+    # Example: .garura/product/garura-os/research/knowledge-management.md
+    # Example: .garura/product/garura-os/architecture/design-patterns.yaml
 
     section: "{which section within the target artifact}"
     # Example: Experiential
@@ -80,7 +80,7 @@ source: "distill"
 stm_evidence_used: false
 
 proposals:
-  - target_path: ".meridian/product/meridian-os/research/knowledge-management.md"
+  - target_path: ".garura/product/garura-os/research/knowledge-management.md"
     section: "Experiential"
     proposed_content: |
       common_mistakes:
@@ -104,7 +104,7 @@ source: "distill"
 stm_evidence_used: true
 
 proposals:
-  - target_path: ".meridian/product/meridian-os/research/agent-design.md"
+  - target_path: ".garura/product/garura-os/research/agent-design.md"
     section: "Experiential"
     proposed_content: |
       scenarios_observed:
@@ -117,7 +117,7 @@ proposals:
     evidence_diff_reference: "enhance/approach.yaml risk R4 mitigation — explicitly documented in risks section"
     confidence: "high"
 
-  - target_path: ".meridian/product/meridian-os/architecture/design-patterns.yaml"
+  - target_path: ".garura/product/garura-os/architecture/design-patterns.yaml"
     section: "non_blocking_orchestration"
     proposed_content: |
       pattern: non_blocking_step

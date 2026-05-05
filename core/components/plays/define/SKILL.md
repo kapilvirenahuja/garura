@@ -8,7 +8,7 @@ allowed-tools: Task, Read, Write, Grep, Glob, Skill, SendMessage, Bash
 
 # define
 
-The SCOPE-stage play in Meridian's product-configuration flow. Takes a feature idea (free-text description OR a FEAT-ID referencing an existing entry in the product catalog) and produces: a feature row in `features.yaml` with an `issue` field linking to the anchoring GH issue, any new capability/domain extensions, an intent epic under the product epics directory that passes `validate-intent-epics`, and STM evidence recording the catalog-match, constraint-fit, grounding, and decision history for the scoping session. The play is the single doorway from raw feature idea to `/prepare`-ready scope.
+The SCOPE-stage play in Garura's product-configuration flow. Takes a feature idea (free-text description OR a FEAT-ID referencing an existing entry in the product catalog) and produces: a feature row in `features.yaml` with an `issue` field linking to the anchoring GH issue, any new capability/domain extensions, an intent epic under the product epics directory that passes `validate-intent-epics`, and STM evidence recording the catalog-match, constraint-fit, grounding, and decision history for the scoping session. The play is the single doorway from raw feature idea to `/prepare`-ready scope.
 
 ## Compiled From
 

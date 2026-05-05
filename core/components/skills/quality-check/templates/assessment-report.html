@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Meridian Quality Assessment</title>
+  <title>Garura Quality Assessment</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* ── Reset & tokens ──────────────────────────────────────────────── */
@@ -321,7 +321,7 @@
 
   <!-- HEADER -->
   <div class="report-header" id="report-header">
-    <h1 id="report-title">Meridian Quality Assessment</h1>
+    <h1 id="report-title">Garura Quality Assessment</h1>
     <div class="meta">
       <span><b id="meta-timestamp">—</b> Generated</span>
       <span>Repository: <b id="meta-repo">—</b></span>
@@ -442,7 +442,7 @@ const assessmentData = {{DATA}};
 /* ═══════════════════════════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════════════════════════ */
-const STORAGE_KEY = 'meridian-qa-overrides';
+const STORAGE_KEY = 'garura-qa-overrides';
 let overrides = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
 /* deep-clone data and apply persisted overrides */
@@ -516,7 +516,7 @@ function toast(msg) {
 ═══════════════════════════════════════════════════════════════════════ */
 function renderHeader() {
   const m = data.metadata;
-  document.getElementById('report-title').textContent = m.title || 'Meridian Quality Assessment';
+  document.getElementById('report-title').textContent = m.title || 'Garura Quality Assessment';
   document.getElementById('meta-timestamp').textContent = m.timestamp || '—';
   document.getElementById('meta-repo').textContent = m.repository || '—';
   document.getElementById('meta-stack').textContent =
@@ -792,7 +792,7 @@ function refreshAll() {
 function exportMarkdown() {
   const m  = data.metadata;
   const ov = computeOverall();
-  let md = `# ${m.title || 'Meridian Quality Assessment'}\n\n`;
+  let md = `# ${m.title || 'Garura Quality Assessment'}\n\n`;
   md += `**Generated:** ${m.timestamp || '—'}  \n`;
   md += `**Repository:** ${m.repository || '—'}  \n`;
   md += `**Overall Grade:** ${ov.grade} | Compliance: ${ov.compliance.toFixed(1)}%  \n\n`;

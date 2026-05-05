@@ -22,7 +22,7 @@ None. Any extra fields are ignored.
 ## Example
 
 ```yaml
-diff_path: .meridian/project/issues/208/evidence/review-pr/diff.patch
+diff_path: .garura/project/issues/208/evidence/review-pr/diff.patch
 changed_paths:
   - src/api/users.ts
   - src/db/migrations/0042_add_email.sql
@@ -30,8 +30,8 @@ changed_paths:
 standards_set:
   kb: ~/.garura/core/memory/knowledge/quality/
   ltm: .garura/core/memory/knowledge/quality/
-  stm: .meridian/project/issues/208/spec/quality/
+  stm: .garura/project/issues/208/spec/quality/
 severity_taxonomy_path: ./core/components/memory/standards/rules/pr.md
 intent_summary: "Add email verification flow with token expiry."
-output_path: .meridian/project/issues/208/evidence/review-pr/findings.yaml
+output_path: .garura/project/issues/208/evidence/review-pr/findings.yaml
 ```

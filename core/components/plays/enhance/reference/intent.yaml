@@ -363,7 +363,7 @@ failure_conditions:
 
 scenarios:
   - id: S1
-    persona: "Developer enhancing a Meridian play"
+    persona: "Developer enhancing a Garura play"
     given: >
       An open issue describing a new skill to add to an existing play.
     then: >

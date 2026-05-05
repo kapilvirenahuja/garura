@@ -1136,7 +1136,7 @@ IDD rests on three testable hypotheses. These are not proven — they are the be
 
 ---
 
-> For how these principles are implemented in Meridian, see the IDSD methodology: `docs/philosophy/idsd.md`
+> For how these principles are implemented in Garura, see the IDSD methodology: `docs/philosophy/idsd.md`
 
 ---
 

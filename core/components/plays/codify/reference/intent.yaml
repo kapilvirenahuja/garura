@@ -12,7 +12,7 @@ checksum: "placeholder-replaced-by-create-play-build"
 
 intent: >
   A product owner with an existing codebase — from a single 10k-LOC service to
-  a million-LOC multi-repo monolith — invokes /codify to derive the Meridian
+  a million-LOC multi-repo monolith — invokes /codify to derive the Garura
   product LTM that the code already embodies. The play executes a deterministic
   scan of the codebase via a companion scan script, builds a bounded structured
   index (scan-index.json), and then delegates inference of each LTM artifact to
@@ -374,7 +374,7 @@ scenarios:
     persona: "Product owner onboarding a single-service brownfield codebase"
     given: >
       A ~50k-LOC single-repo service with a README, a package.json, a src/
-      directory, tests, and a Dockerfile. No prior Meridian LTM exists.
+      directory, tests, and a Dockerfile. No prior Garura LTM exists.
     then: >
       /codify produces a full proposal set: project-profile, domain-selection,
       quality-profile, scope.yaml with 3-5 capabilities, features.yaml, 2-4

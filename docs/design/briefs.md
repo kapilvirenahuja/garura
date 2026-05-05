@@ -290,7 +290,7 @@ tr:hover { background: rgba(0,212,255,0.05); }
 
 ### Storage
 
-- **localStorage key:** `meridian-comments-{artifact}-{slug}`
+- **localStorage key:** `garura-comments-{artifact}-{slug}`
 - **Format:** Array of comment objects (id, tab, selected_text, comment, created_at, range data)
 - **Persistence:** Comments survive page reload, browser close/reopen
 - **Clear:** Exporting with an action (tether/vanish/orbit) clears stored comments

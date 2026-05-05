@@ -1,5 +1,5 @@
 /**
- * Meridian Brief Rendering Library
+ * Garura Brief Rendering Library
  * Shared rendering primitives + SPA navigation + tab system for all Phoenix Design System brief templates.
  * Vanilla JS — no dependencies — referenced externally by all brief templates.
  */

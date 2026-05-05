@@ -1,15 +1,15 @@
 # IDSD — Intent Driven Software Development
 
-> **Scope**: Meridian Methodology
+> **Scope**: Garura Methodology
 > **Status**: Active
 > **Last Updated**: 2026-04-15
 > **Foundation**: IDD (Intent-Driven Development) — see `intent-driven-development.md`
 
 ## Overview
 
-IDSD (Intent Driven Software Development) is the **methodology** that operationalizes IDD principles into a complete, enterprise-grade software development lifecycle within Meridian.
+IDSD (Intent Driven Software Development) is the **methodology** that operationalizes IDD principles into a complete, enterprise-grade software development lifecycle within Garura.
 
-**Analogy**: IDD is to IDSD as Agile is to Scrum. IDD defines the principles; IDSD defines how to follow them when building software with Meridian.
+**Analogy**: IDD is to IDSD as Agile is to Scrum. IDD defines the principles; IDSD defines how to follow them when building software with Garura.
 
 **One-liner**: IDD principles operationalized into a complete AI-native SDLC.
 
@@ -17,7 +17,7 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 
 ---
 
-## IDD → Meridian Mapping
+## IDD → Garura Mapping
 
 ### The 8 IDD Elements in IDSD
 
@@ -46,7 +46,7 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 └─────────────────────────────────────────────────────────────┘
 ```
 
-| # | IDD Element (Principle) | IDSD Implementation (Meridian) |
+| # | IDD Element (Principle) | IDSD Implementation (Garura) |
 |---|------------------------|----------------------------------|
 | 1 | Intent Layer | Plays — atomic (≤2 agents), high-order (≤5 agents). Every play has IDD intent header (intent/constraints/failure_conditions). |
 | 2 | Signals | User CLI invocations (`/build-feature`, `/commit-code`). All signals enter via plays. |
@@ -59,7 +59,7 @@ Full IDSD build specification: `.claude/specs/idsd/idsd.md`
 
 ### Element-to-Component Matrix
 
-| # | IDD Element | Meridian Component | Layer | Owner |
+| # | IDD Element | Garura Component | Layer | Owner |
 |---|-------------|---------------------|-------|-------|
 | 1 | Intent Layer | Plays | Orchestration | Human |
 | 2 | Signals | Signals | Perception | System |
@@ -265,7 +265,7 @@ See [Intent Primacy and Play Evolution](./architecture.md#intent-primacy-and-pla
 
 ---
 
-## Meridian Architecture
+## Garura Architecture
 
 ### Component Hierarchy
 
@@ -275,9 +275,9 @@ Plays → Agents → Skills → Memory (LTM + STM)
 
 ### Agent Taxonomy (IDSD-specific)
 
-IDSD maps the AI Squad Framework roles to 19 Meridian agents across 7 roles — all implemented:
+IDSD maps the AI Squad Framework roles to 19 Garura agents across 7 roles — all implemented:
 
-| Role | Meridian Agent(s) | IDD Element |
+| Role | Garura Agent(s) | IDD Element |
 |------|-------------------|----|
 | Builder | code-builder | Element 4 |
 | Designer | tech-designer, tech-architect, designer | Element 4 |

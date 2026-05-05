@@ -6,7 +6,7 @@ user-invokable: true
 
 # specify
 
-The SPECIFY-stage play in Meridian's 5-stage SDLC (Discover → Specify → Design → Build → Run). Transforms a product idea plus project profile into a complete product specification: market intelligence, selected capabilities traced to the KB catalog, an MVP recommendation that narrows the capability walk, enriched intent epics with quantified constraints, and an aggregated quality profile. Shallow output is structurally impossible — the play halts and cycles back on any validation failure.
+The SPECIFY-stage play in Garura's 5-stage SDLC (Discover → Specify → Design → Build → Run). Transforms a product idea plus project profile into a complete product specification: market intelligence, selected capabilities traced to the KB catalog, an MVP recommendation that narrows the capability walk, enriched intent epics with quantified constraints, and an aggregated quality profile. Shallow output is structurally impossible — the play halts and cycles back on any validation failure.
 
 ## Compiled From
 
@@ -49,7 +49,7 @@ Execute these checks before any domain work:
 | Product description has >=5 meaningful words | C1 | Hard halt — "Product description too vague; please elaborate" |
 | Project profile is complete (security_level, industry, audience, timeline, scale, compliance, team_size, delivery_ambition) | C2 | Interactive collection loop — pause until complete |
 | KB catalog consistency — invoke `validate-kb-extension` skill | C3 | Hard halt — print validator report, block until fixed |
-| `.meridian/product/` writable; scriber agent reachable | C10, C11 | Hard halt — infrastructure check |
+| `.garura/product/` writable; scriber agent reachable | C10, C11 | Hard halt — infrastructure check |
 | `scope/mvp-recommendation.md` exists and is non-empty (gate for Stage 3 — see rules/product.md Rule 13) | C15 | Hard halt — "Author scope/mvp-recommendation.md before proceeding to Stage 3 — see rules/product.md Rule 13 and Defect 6 for the artifact shape" |
 
 ```bash
@@ -65,7 +65,7 @@ word_count=$(echo "$product_idea" | tr -s ' ' '\n' | grep -v -E '^(a|an|the|of|f
 
 # C3: invoke validate-kb-extension via Skill tool — abort on status: failed
 
-# C10, C11: test write access to .meridian/product/ and scriber availability
+# C10, C11: test write access to .garura/product/ and scriber availability
 
 # C15: Stage-3 pre-flight — run before Step 6 (Configure capabilities).
 # The MVP recommendation artifact is authored at Stage 2.75 (play-owned verify
@@ -295,7 +295,7 @@ Agent invokes `configure-capabilities` skill → walks every cross-tree constrai
 
 - **SE-7 (F7):** Scope's `constraint_trace` is present AND `len(applied) + len(not_applicable) == total_constraints_in _cross-tree-constraints.yaml` — every cross-tree constraint was walked and recorded in one bucket or the other.
 - **SE-9 (F9):** Every mandatory checkpoint artifact exists under the checkpoint directory AND each final status is APPROVED / REJECTED / COMPLETED.
-- **SE-11 (F11):** Every file the play produced resides under `.meridian/product/` per the ADR 017 whitelist; every evidence / checkpoint / status file was written via scriber dispatch.
+- **SE-11 (F11):** Every file the play produced resides under `.garura/product/` per the ADR 017 whitelist; every evidence / checkpoint / status file was written via scriber dispatch.
 - **SE-13 (F13):** Every file under `product/research/`, `product/specification/`, and `product/scope/` authored by this play is free of abstraction-layer deny-list tokens (specific database engines, SDK method names, framework identifiers, programming-language type signatures, wire-level protocol identifiers, cryptographic construction details, model version strings).
 - **SE-14 (C4):** Every entry in `scope.selected_capabilities[].id` resolves to a real feature ID in an existing domain-taxonomy markdown file (either LTM catalog or the product_domain_library_path); capabilities sourced from STM research carry `source: provisional_stm_research`.
 - **SE-15 (C5 / F7):** Every cross-tree constraint from `_cross-tree-constraints.yaml` appears in scope's `constraint_trace.applied` or `constraint_trace.not_applicable`; applied entries have a non-null `action_taken`; not-applicable entries have a non-null `why_not_applicable` string.

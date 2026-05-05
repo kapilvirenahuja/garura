@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# sync-droids — Sync Meridian components to Factory Droid directories
+# sync-droids — Sync Garura components to Factory Droid directories
 # Transforms Claude Code agents into Factory Droid format during deployment.
 # Usage: ./sync.sh [--project|--global]
 

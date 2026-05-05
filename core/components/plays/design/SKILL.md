@@ -6,7 +6,7 @@ user-invokable: true
 
 # design
 
-The DESIGN-stage play in Meridian's 5-stage SDLC (Discover → Specify → Design → Build → Run). Reads locked specify output and produces the UX layer: personas narrowed by mvp-recommendation, screens per user-surface capability with visual-first wireframes, flows for success + recovery paths, a product Design System (tokens + inspirations), and a consolidated design spec. Shallow or incomplete output is structurally impossible — the play halts and cycles back on any validation failure. Visual tokens belong to the Design System artifact; wireframe ASCII remains structural.
+The DESIGN-stage play in Garura's 5-stage SDLC (Discover → Specify → Design → Build → Run). Reads locked specify output and produces the UX layer: personas narrowed by mvp-recommendation, screens per user-surface capability with visual-first wireframes, flows for success + recovery paths, a product Design System (tokens + inspirations), and a consolidated design spec. Shallow or incomplete output is structurally impossible — the play halts and cycles back on any validation failure. Visual tokens belong to the Design System artifact; wireframe ASCII remains structural.
 
 ## Compiled From
 
