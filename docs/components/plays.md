@@ -386,7 +386,7 @@ task:
   owner: string                # "repo-orchestrator"
   blockedBy: [taskId]
   metadata:
-    _meridian:                 # Garura-internal namespace
+    _garura:                   # Garura-internal namespace
       playId: string         # Links task to play instance
       invocation: number       # 1, 2, ... for resume tracking
       agentId: string          # For resuming agent
