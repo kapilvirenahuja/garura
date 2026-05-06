@@ -365,7 +365,7 @@ Write `core/components/plays/{play-name}/SKILL.md` with ALL required sections:
 - No runtime DAG — task ordering is built into SKILL.md
 - No runtime intent resolution — everything the play needs is compiled in
 - Intent hash in Compilation Metadata section (end of file) for drift detection — NOT in frontmatter
-- **Checkpoint review surface:** Human checkpoints present the YAML artifact file paths as the review surface by default. Domain agents produce artifacts → play presents the artifact paths for human review (Tether/Vanish/Orbit). Users may run `/briefs` separately on demand to generate HTML renderings. Do NOT insert a `doc-builder` step before checkpoints unless intent.yaml explicitly mandates brief generation as a constraint. Briefs are opt-in, not mandatory.
+- **Checkpoint review surface:** Human checkpoints present the YAML artifact file paths as the review surface by default. Domain agents produce artifacts → play presents the artifact paths for human review (Tether/Vanish/Orbit). Do NOT insert a `doc-builder` step before checkpoints unless intent.yaml explicitly mandates brief generation as a constraint. Briefs are opt-in, not mandatory.
 - **Agent budget — domain vs utility:** The ≤5 agent call limit applies to domain agents only. Utility agents (`repo-orchestrator` for commits/evidence, and `doc-builder` when a play explicitly opts into brief generation) are exempt. Compilation Metadata must list domain and utility agents separately.
 
 **Task DAG rules (compiled into every play):**

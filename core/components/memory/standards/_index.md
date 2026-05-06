@@ -34,4 +34,4 @@ A file belongs under `standards/` if:
 - `workflows/` — play-level recipe orchestration
 
 > **Note:** The `agent-contract.md` JSON schema previously in this directory is now **ADR 016** (`docs/adr/016-agent-json-contract.md`) — it is foundational architecture, not organizational standards.
-> Brief presentation rules previously in `brief-principles.md` are now `docs/design/briefs.md`. Brief HTML/CSS/JS templates live with the `briefs` play at `core/components/plays/briefs/templates/`.
+> Brief presentation rules previously in `brief-principles.md` are now `docs/design/briefs.md`. Brief HTML/CSS/JS templates live with the `doc-builder` agent at `core/components/agents/doc-builder/templates/`.
