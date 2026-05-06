@@ -1,0 +1,179 @@
+analysis:
+  branch: chore/360-remove-briefs-play
+  base: main
+  branch_pattern: chore
+  commits: 5
+  changes:
+    files: 40
+    additions: 359
+    deletions: 610
+
+  suggested_title: "chore(plays): remove briefs play and migrate templates to doc-builder (#360)"
+
+  context:
+    file_patterns_matched:
+      - name: "Play Definitions (deleted)"
+        files: 2
+        trigger: "**/plays/**/*.md, **/plays/**/SKILL.md"
+        note: "core/components/plays/briefs/SKILL.md and reference/intent.yaml deleted"
+      - name: "Play Definitions (modified)"
+        files: 1
+        trigger: "**/plays/**/*.md, **/plays/**/SKILL.md"
+        note: "core/components/plays/create-play/SKILL.md updated to remove /briefs reference"
+      - name: "Agent Definitions (modified)"
+        files: 1
+        trigger: "**/agents/**/*.md"
+        note: "core/components/agents/doc-builder.md updated with new template path"
+      - name: "Documentation"
+        files: 1
+        trigger: "*.md, **/docs/**"
+        note: "core/components/memory/standards/_index.md updated"
+      - name: "Core Components (sync trigger)"
+        files: 40
+        trigger: "core/components/**"
+        note: "All substantive changes are under core/components/ — sync required"
+      - name: "HTML Templates / CSS / JS"
+        files: 19
+        trigger: "*.html, *.css, *.js"
+        note: "Brief templates migrated from briefs play to doc-builder/templates/"
+      - name: "Fixture JSON Files"
+        files: 11
+        trigger: "*.json"
+        note: "Fixture data migrated from briefs/templates/fixtures/ to doc-builder/templates/fixtures/"
+
+    commit_types:
+      - type: "chore"
+        count: 5
+        examples:
+          - "chore(plays): remove briefs play (#360)"
+          - "chore(doc-builder): migrate brief templates from briefs play (#360)"
+          - "chore(docs): update template path references after briefs play removal (#360)"
+          - "chore(stm): update start-feature pending artifacts (#360)"
+          - "chore(stm): record start-feature evidence for #360 (#360)"
+
+    branch_modifiers:
+      - "chore branch — standard priorities apply (no hotfix demotion, no release promotion)"
+
+  checklist:
+    must_have:
+      - id: "no-conflicts"
+        item: "No merge conflicts with main"
+        trigger: "Universal — always applied"
+        status: "PASS"
+        evidence: "git merge-tree --write-tree main HEAD returned tree hash 2d2b2c13404b781c177dd7c61e200442599e10b4 with no conflict markers"
+
+      - id: "no-secrets"
+        item: "No secrets committed"
+        trigger: "Universal — always applied"
+        status: "PASS"
+        evidence: >
+          Pattern scan on diff detected token/password/key references only within fixture JSON files
+          (doc-builder/templates/fixtures/). All matches are sample data describing authentication
+          requirements (bcrypt hashing, JWT expiry, SENDGRID_API_KEY as env var name reference) —
+          no real credentials. No .env, .pem, or key files present in the diff.
+
+      - id: "play-frontmatter"
+        item: "Play has valid frontmatter (name, description, user-invocable, allowed-tools)"
+        trigger: "Play definitions changed — core/components/plays/create-play/SKILL.md modified"
+        status: "PASS"
+        evidence: >
+          create-play/SKILL.md was modified only to remove the /briefs mention from checkpoint
+          guidance (one-line chore edit). The SKILL.md file itself was not structurally changed —
+          frontmatter and Version metadata remain intact. The deleted briefs/SKILL.md is removed
+          entirely so its frontmatter no longer needs to satisfy this rule.
+
+      - id: "play-workflow"
+        item: "Play defines workflow"
+        trigger: "Play definitions changed — create-play/SKILL.md modified"
+        status: "PASS"
+        evidence: >
+          Only the checkpoint surface guidance text in create-play/SKILL.md was changed (removal
+          of /briefs reference). Workflow section structure unchanged.
+
+      - id: "play-checkpoint"
+        item: "Play defines checkpoint behavior"
+        trigger: "Play definitions changed — create-play/SKILL.md modified"
+        status: "PASS"
+        evidence: >
+          Checkpoint behavior in create-play/SKILL.md unchanged. The edit only removed a reference
+          to /briefs as an example in checkpoint review surface guidance.
+
+      - id: "agent-frontmatter"
+        item: "Agent has valid frontmatter (name, domain, role, tools)"
+        trigger: "Agent definition changed — core/components/agents/doc-builder.md modified"
+        status: "PASS"
+        evidence: >
+          doc-builder.md frontmatter verified: name=doc-builder, domain=documentation, role=builder,
+          tools=[Read, Write, Skill, Glob], model=sonnet. All required fields present and valid.
+
+      - id: "agent-boundaries"
+        item: "Agent has NEVER/ALWAYS boundaries"
+        trigger: "Agent definition changed — core/components/agents/doc-builder.md modified"
+        status: "PASS"
+        evidence: >
+          doc-builder.md contains ## Boundaries section at line 283 with ### NEVER (line 285)
+          and ### ALWAYS (line 294) subsections. Boundaries present and intact.
+
+      - id: "sync-claude"
+        item: "Components synced with core/components/ via /sync-claude"
+        trigger: "core/components/** changed — 40 files changed under core/components/"
+        status: "REVIEW"
+        evidence: >
+          All substantive changes (briefs play deletion, doc-builder templates, doc-builder.md,
+          _index.md, create-play/SKILL.md) are under core/components/. This must be synced to
+          ~/.claude/ after merge via /sync-claude (global). Cannot be automated from branch diff
+          alone — requires manual confirmation post-merge.
+
+      - id: "docs-consistent"
+        item: "Documentation consistent with implementation after briefs play removal"
+        trigger: "Play deleted and agent definition updated — cross-file consistency required"
+        status: "PASS"
+        evidence: >
+          Three reference files updated in commit 3 (chore(docs)): doc-builder.md template path
+          updated from ~/.claude/skills/briefs/templates/ to ~/.claude/agents/doc-builder/templates/;
+          _index.md footer note updated to reflect templates now live with doc-builder agent;
+          create-play/SKILL.md /briefs reference removed. Migration is internally consistent —
+          deletion (group 1) paired with migration (group 2) paired with reference updates (group 3).
+
+    nice_to_have:
+      - id: "play-agent-limit"
+        item: "Play respects agent call limits (L1 ≤2, L2 ≤5)"
+        trigger: "Play definitions changed"
+        status: "PASS"
+        evidence: >
+          Only create-play/SKILL.md had a one-line edit. No agent call limit changes introduced.
+          The deleted briefs play no longer applies.
+
+      - id: "agent-naming"
+        item: "Agent follows {domain}-{role} naming convention"
+        trigger: "Agent definition changed — doc-builder.md"
+        status: "PASS"
+        evidence: >
+          doc-builder follows the {domain}-{role} pattern (doc=documentation domain, builder=role).
+          No change to agent naming in this PR.
+
+      - id: "docs-examples"
+        item: "Documentation includes examples where appropriate"
+        trigger: "Documentation changed — _index.md and doc-builder.md updated"
+        status: "PASS"
+        evidence: >
+          doc-builder.md retains its existing examples. The _index.md change is a footer path
+          update — examples not applicable to a footer note. Acceptable as-is.
+
+  blocking_issues: []
+
+  ready: true
+  confidence: high
+  recommendation: "Create PR"
+
+  notes:
+    - >
+      The breaking change (deletion of /briefs skill from ~/.claude/skills/briefs/) is
+      intentional and self-contained. All known callers are updated in this same PR.
+      The sync-claude REVIEW item is standard post-merge housekeeping, not a blocker.
+    - >
+      STM commits (groups 4 and 5) are evidence artifacts — no quality rules apply to
+      .garura/ files. These are correctly scoped to chore(stm) commits.
+    - >
+      Target branch main selected with high confidence — chore branch completing a
+      planned cleanup task (#360), no experimental or release-gating factors.

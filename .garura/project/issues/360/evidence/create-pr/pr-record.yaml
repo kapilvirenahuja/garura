@@ -1,0 +1,16 @@
+pr:
+  number: 361
+  url: "https://github.com/kapilvirenahuja/garura/pull/361"
+  title: "chore(plays): remove briefs play and migrate templates to doc-builder (#360)"
+  state: open
+  base: main
+  branch: chore/360-remove-briefs-play
+  issue: 360
+  checklist:
+    required_count: 8
+    optional_count: 3
+    blocking_items: []
+    review_items:
+      - id: sync-claude
+        item: "Components synced with core/components/ via /sync-claude"
+        note: "Must be run post-merge by developer"

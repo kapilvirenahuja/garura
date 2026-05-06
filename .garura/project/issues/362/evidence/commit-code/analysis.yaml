@@ -1,0 +1,64 @@
+branch:
+  name: chore/362-remove-report-issue-play
+  issue: 362
+  is_hotfix: false
+
+change_summary:
+  total_files: 6
+  staged: 0
+  unstaged: 3
+  untracked: 3
+
+groups:
+  - id: 1
+    type: chore
+    scope: plays
+    subject: "remove report-issue deprecated alias play (#362)"
+    issue: 362
+    confidence: high
+    files:
+      - path: core/components/plays/report-issue/SKILL.md
+        status: deleted
+        description: deprecated alias play file removed
+
+  - id: 2
+    type: chore
+    scope: stm
+    subject: "update start-feature pending artifacts (#362)"
+    issue: 362
+    confidence: high
+    files:
+      - path: .garura/project/issues/_pending/start-feature/args.yaml
+        status: modified
+        description: updated args
+      - path: .garura/project/issues/_pending/start-feature/changed-files.txt
+        status: modified
+        description: updated changed files list
+
+  - id: 3
+    type: chore
+    scope: stm
+    subject: "record issue #360 and #362 STM evidence (#362)"
+    issue: 362
+    confidence: high
+    files:
+      - path: .garura/project/issues/360/evidence/create-pr/
+        status: untracked
+        description: PR creation evidence for #360
+      - path: .garura/project/issues/360/evidence/merge-pr/
+        status: untracked
+        description: merge PR evidence for #360
+      - path: .garura/project/issues/362/
+        status: untracked
+        description: STM directory for issue #362
+
+risks:
+  sensitive_files: []
+  breaking_changes:
+    - file: core/components/plays/report-issue/SKILL.md
+      description: "Deleted deprecated alias play — intentional, low risk"
+  hotfix_branch: false
+
+recommendation:
+  checkpoint_needed: false
+  reason: "Single-issue branch, no secrets, deletion is intentional deprecated alias removal. Three groups reflect distinct concerns: play removal, pending artifact update, STM evidence."
