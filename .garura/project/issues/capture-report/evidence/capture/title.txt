@@ -1,0 +1,1 @@
+[ENH] enrich write boundary does not cover core KB — no promotion path for KB-level learnings

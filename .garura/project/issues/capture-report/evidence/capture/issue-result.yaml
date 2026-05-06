@@ -1,0 +1,11 @@
+issue:
+  number: 351
+  title: "[ENH] enrich write boundary does not cover core KB — no promotion path for KB-level learnings"
+  labels:
+    - enhancement
+  state: open
+  url: "https://github.com/kapilvirenahuja/garura/issues/351"
+  created: true
+  closed: false
+  parent_issue: null
+  type_hint: "feature"

@@ -1,0 +1,161 @@
+branch:
+  name: chore/360-remove-briefs-play
+  issue: 360
+  is_hotfix: false
+
+change_summary:
+  total_files: 31
+  staged: 0
+  unstaged: 29
+  untracked: 3
+
+groups:
+  - id: 1
+    issue: 360
+    type: chore
+    scope: briefs
+    subject: "remove briefs play from core components"
+    confidence: high
+    concern: "Deletion of the entire briefs play — SKILL.md, intent.yaml, all HTML templates, CSS, JS, and fixture JSON files"
+    files:
+      - path: core/components/plays/briefs/SKILL.md
+        status: deleted
+        note: play skill definition
+      - path: core/components/plays/briefs/reference/intent.yaml
+        status: deleted
+        note: play intent definition
+      - path: core/components/plays/briefs/templates/architecture-brief.html
+        status: deleted
+        note: HTML template
+      - path: core/components/plays/briefs/templates/brief-common.css
+        status: deleted
+        note: shared stylesheet
+      - path: core/components/plays/briefs/templates/brief-render.js
+        status: deleted
+        note: client-side render script
+      - path: core/components/plays/briefs/templates/features-brief.html
+        status: deleted
+        note: HTML template
+      - path: core/components/plays/briefs/templates/hub.html
+        status: deleted
+        note: HTML template
+      - path: core/components/plays/briefs/templates/plan-brief.html
+        status: deleted
+        note: HTML template
+      - path: core/components/plays/briefs/templates/product-brief.html
+        status: deleted
+        note: HTML template
+      - path: core/components/plays/briefs/templates/roadmap-brief.html
+        status: deleted
+        note: HTML template
+      - path: core/components/plays/briefs/templates/scenarios-brief.html
+        status: deleted
+        note: HTML template
+      - path: core/components/plays/briefs/templates/tech-brief.html
+        status: deleted
+        note: HTML template
+      - path: core/components/plays/briefs/templates/fixtures/architecture.json
+        status: deleted
+        note: fixture data
+      - path: core/components/plays/briefs/templates/fixtures/features.json
+        status: deleted
+        note: fixture data
+      - path: core/components/plays/briefs/templates/fixtures/hub.json
+        status: deleted
+        note: fixture data
+      - path: core/components/plays/briefs/templates/fixtures/plan.json
+        status: deleted
+        note: fixture data
+      - path: core/components/plays/briefs/templates/fixtures/product-empty.json
+        status: deleted
+        note: fixture data
+      - path: core/components/plays/briefs/templates/fixtures/product.json
+        status: deleted
+        note: fixture data
+      - path: core/components/plays/briefs/templates/fixtures/quality-standards.json
+        status: deleted
+        note: fixture data
+      - path: core/components/plays/briefs/templates/fixtures/roadmap.json
+        status: deleted
+        note: fixture data
+      - path: core/components/plays/briefs/templates/fixtures/scenarios.json
+        status: deleted
+        note: fixture data
+      - path: core/components/plays/briefs/templates/fixtures/tech.json
+        status: deleted
+        note: fixture data
+
+  - id: 2
+    issue: 360
+    type: chore
+    scope: doc-builder
+    subject: "migrate brief templates to doc-builder agent"
+    confidence: high
+    concern: "New doc-builder agent templates directory — the HTML/CSS/JS/fixture files migrated from the deleted briefs play now live under the doc-builder agent"
+    files:
+      - path: core/components/agents/doc-builder/
+        status: untracked
+        note: "new directory containing templates/ subdirectory with all migrated brief templates and fixtures"
+
+  - id: 3
+    issue: 360
+    type: chore
+    scope: docs
+    subject: "update references from briefs play to doc-builder agent"
+    confidence: high
+    concern: "Reference updates — three files updated to point template paths from the deleted briefs play to the new doc-builder agent location"
+    files:
+      - path: core/components/agents/doc-builder.md
+        status: modified
+        note: "template lookup path updated from ~/.claude/skills/briefs/templates/ to ~/.claude/agents/doc-builder/templates/"
+      - path: core/components/memory/standards/_index.md
+        status: modified
+        note: "footer note updated to reflect templates now live with doc-builder agent"
+      - path: core/components/plays/create-play/SKILL.md
+        status: modified
+        note: "removed mention of /briefs slash command in checkpoint review surface guidance"
+
+  - id: 4
+    issue: 360
+    type: chore
+    scope: stm
+    subject: "update start-feature pending artifacts for issue #360"
+    confidence: high
+    concern: "STM pending artifacts for the start-feature play — args.yaml and changed-files.txt updated to reflect the current issue context"
+    files:
+      - path: .garura/project/issues/_pending/start-feature/args.yaml
+        status: modified
+        note: "value updated from 'fixing instances of meridian' to 'delete the brief play.'"
+      - path: .garura/project/issues/_pending/start-feature/changed-files.txt
+        status: modified
+        note: "changed-files list replaced; now contains only the capture-report untracked entry"
+
+  - id: 5
+    issue: 360
+    type: chore
+    scope: stm
+    subject: "record stm artifacts for issue #360"
+    confidence: high
+    concern: "Untracked STM issue directories — evidence and context directories created during this feature's execution"
+    files:
+      - path: .garura/project/issues/360/
+        status: untracked
+        note: "STM directory for issue #360 — contains evidence and context artifacts produced during this play"
+      - path: .garura/project/issues/capture-report/
+        status: untracked
+        note: "STM directory for capture-report play artifacts"
+
+risks:
+  sensitive_files: []
+  breaking_changes:
+    - description: "Deleted briefs play removes the /briefs skill entirely — any caller referencing ~/.claude/skills/briefs/ will break if not updated"
+      severity: medium
+      files:
+        - core/components/plays/briefs/SKILL.md
+        - core/components/plays/briefs/reference/intent.yaml
+  ambiguous_types: []
+  hotfix_branch: false
+
+recommendation:
+  checkpoint_needed: false
+  reason: "All changes belong to a single issue (#360). The deletion is intentional (the play is being removed and templates migrated to doc-builder). No sensitive files, no secrets. The breaking change is self-contained — the reference updates in group 3 are the corrective counterpart to the deletion in group 1, so the set is internally consistent."
