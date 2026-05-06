@@ -1,0 +1,136 @@
+issue_number: 358
+strategy: >
+  All three categories of stale Meridian references have already been corrected in the
+  working tree: (1) installer/install.sh MERIDIAN_CONFIG → GARURA_CONFIG on lines 56-58,
+  (2) docs/philosophy/idsd.md MERIDIAN INTERFACE → GARURA INTERFACE on line 907,
+  (3) 28 .claude/specs/ files via case-aware sed find-replace. Code-builder's task is to
+  confirm these working-tree changes are correct and complete, then stage them for shipping.
+
+alternatives_considered:
+  - option: "Scripted batch rename via git filter-branch or BFG"
+    rejection_reason: >
+      Rewrites history — unnecessary for these changes which have no security or correctness
+      impact on historical commits. Reversibility principle: rewriting history is a one-way
+      door; a simple working-tree patch is fully reversible.
+  - option: "Leave .claude/specs/ unchanged since they are gitignored local state"
+    rejection_reason: >
+      The .claude/specs/ directory IS tracked in this repo (not in .gitignore). Leaving stale
+      Meridian references in tracked spec documents contradicts the project rename and breaks
+      spec documents that reference file paths (e.g., ~/.meridian/). Confirmed via git ls-files.
+
+affected_files:
+  - path: "installer/install.sh"
+    change: "MERIDIAN_CONFIG → GARURA_CONFIG (variable name, lines 56 and 58)"
+  - path: "docs/philosophy/idsd.md"
+    change: "MERIDIAN INTERFACE → GARURA INTERFACE (ASCII art label, line 907)"
+  - path: ".claude/specs/agent-idd/evidence/t2-recovery-templates.md"
+    change: "Replace ~/.meridian/ with ~/.garura/ and all meridian/Meridian references throughout."
+  - path: ".claude/specs/agent-idd/spec.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/agent-idd/spec_tasks.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/agent-idd/spec_verify.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/artifact-schemas/brief-principles.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/brief-rendering/scenarios.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/brief-rendering/tasks.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/discover-product-rebake/spec.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/docs-four-crafts/evals.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/epic-scoped-prep/spec.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/fix-strategist/evidence/g010-tech-context.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/fix-strategist/evidence/integration-test-rerun.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/fix-strategist/evidence/integration-test-run.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/fix-strategist/fix-strategist.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/fix-strategist/fix-strategist_tasks.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/idsd/evidence/g-100-start-feature.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/idsd/evidence/g-103-start-planned-feature.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/idsd/evidence/g-104-discover-product.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/idsd/evidence/g-112-create-pr.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/idsd/evidence/idsd-vs-neursdlc-comparison.html"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/idsd/evidence/idsd-vs-neursdlc-comparison.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/idsd/evidence/workflow-standardization-p1-p4-p11.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/idsd/idsd-tasks.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/idsd/idsd-verify.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/idsd/idsd.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/implement-epic-tdd/spec.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/prepare-implementation-redesign/spec.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+  - path: ".claude/specs/three-elements/three-elements_verify.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents."
+
+confidence: high
+
+execution_plan:
+  - step: 1
+    action: >
+      Verify installer/install.sh: confirm MERIDIAN_CONFIG does NOT appear and GARURA_CONFIG
+      DOES appear on lines ~56-58.
+      Command: grep -n "MERIDIAN_CONFIG\|GARURA_CONFIG" installer/install.sh
+      Expected: lines 56 and 58 show GARURA_CONFIG only; no MERIDIAN_CONFIG match.
+  - step: 2
+    action: >
+      Verify docs/philosophy/idsd.md line 907: confirm MERIDIAN INTERFACE does NOT appear,
+      GARURA INTERFACE DOES appear.
+      Command: grep -n "MERIDIAN INTERFACE\|GARURA INTERFACE" docs/philosophy/idsd.md
+      Expected: one match on ~line 907 reading GARURA INTERFACE; no MERIDIAN INTERFACE match.
+  - step: 3
+    action: >
+      Verify .claude/specs/ files: run grep -ri "meridian" .claude/specs/ — must return empty.
+      Expected: zero lines of output (all 111 occurrences removed by working-tree changes).
+  - step: 4
+    action: >
+      Stage all verified modified files:
+        git add installer/install.sh
+        git add docs/philosophy/idsd.md
+        git add .claude/specs/agent-idd/evidence/t2-recovery-templates.md
+        git add .claude/specs/agent-idd/spec.md
+        git add .claude/specs/agent-idd/spec_tasks.md
+        git add .claude/specs/agent-idd/spec_verify.md
+        git add .claude/specs/artifact-schemas/brief-principles.md
+        git add .claude/specs/brief-rendering/scenarios.md
+        git add .claude/specs/brief-rendering/tasks.md
+        git add .claude/specs/discover-product-rebake/spec.md
+        git add .claude/specs/docs-four-crafts/evals.md
+        git add .claude/specs/epic-scoped-prep/spec.md
+        git add .claude/specs/fix-strategist/evidence/g010-tech-context.md
+        git add .claude/specs/fix-strategist/evidence/integration-test-rerun.md
+        git add .claude/specs/fix-strategist/evidence/integration-test-run.md
+        git add .claude/specs/fix-strategist/fix-strategist.md
+        git add .claude/specs/fix-strategist/fix-strategist_tasks.md
+        git add .claude/specs/idsd/evidence/g-100-start-feature.md
+        git add .claude/specs/idsd/evidence/g-103-start-planned-feature.md
+        git add .claude/specs/idsd/evidence/g-104-discover-product.md
+        git add .claude/specs/idsd/evidence/g-112-create-pr.md
+        git add ".claude/specs/idsd/evidence/idsd-vs-neursdlc-comparison.html"
+        git add ".claude/specs/idsd/evidence/idsd-vs-neursdlc-comparison.md"
+        git add .claude/specs/idsd/evidence/workflow-standardization-p1-p4-p11.md
+        git add .claude/specs/idsd/idsd-tasks.md
+        git add .claude/specs/idsd/idsd-verify.md
+        git add .claude/specs/idsd/idsd.md
+        git add .claude/specs/implement-epic-tdd/spec.md
+        git add .claude/specs/prepare-implementation-redesign/spec.md
+        git add .claude/specs/three-elements/three-elements_verify.md
+
+produced_at: "2026-05-05T10:30:00Z"

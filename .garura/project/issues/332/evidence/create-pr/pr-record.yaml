@@ -1,0 +1,8 @@
+pr:
+  number: 350
+  url: "https://github.com/kapilvirenahuja/garura/pull/350"
+  title: "chore(ltm): record enhance play evidence and enrich quality profile for #332"
+  state: open
+  base: main
+  branch: enhance/332-config-key-reference-artifact
+  linked_issue: 332

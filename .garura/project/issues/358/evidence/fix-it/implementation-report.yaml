@@ -1,0 +1,109 @@
+files_modified:
+  - path: "installer/install.sh"
+    change: "MERIDIAN_CONFIG renamed to GARURA_CONFIG (lines 56, 58)"
+    staged: true
+  - path: "docs/philosophy/idsd.md"
+    change: "MERIDIAN INTERFACE renamed to GARURA INTERFACE (line 907)"
+    staged: true
+  - path: ".claude/specs/agent-idd/evidence/t2-recovery-templates.md"
+    change: "Replace ~/.meridian/ with ~/.garura/ and all meridian/Meridian references throughout"
+    staged: true
+  - path: ".claude/specs/agent-idd/spec.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/agent-idd/spec_tasks.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/agent-idd/spec_verify.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/artifact-schemas/brief-principles.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/brief-rendering/scenarios.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/brief-rendering/tasks.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/discover-product-rebake/spec.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/docs-four-crafts/evals.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/epic-scoped-prep/spec.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/fix-strategist/evidence/g010-tech-context.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/fix-strategist/evidence/integration-test-rerun.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/fix-strategist/evidence/integration-test-run.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/fix-strategist/fix-strategist.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/fix-strategist/fix-strategist_tasks.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/idsd/evidence/g-100-start-feature.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/idsd/evidence/g-103-start-planned-feature.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/idsd/evidence/g-104-discover-product.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/idsd/evidence/g-112-create-pr.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/idsd/evidence/idsd-vs-neursdlc-comparison.html"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/idsd/evidence/idsd-vs-neursdlc-comparison.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/idsd/evidence/workflow-standardization-p1-p4-p11.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/idsd/idsd-tasks.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/idsd/idsd-verify.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/idsd/idsd.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/implement-epic-tdd/spec.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/prepare-implementation-redesign/spec.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+  - path: ".claude/specs/three-elements/three-elements_verify.md"
+    change: "Replace meridian/Meridian/MERIDIAN references with garura/Garura/GARURA equivalents"
+    staged: true
+
+staged_count: 30
+
+verification_results:
+  install_sh:
+    check: "grep -n MERIDIAN_CONFIG|GARURA_CONFIG installer/install.sh"
+    result: "GARURA_CONFIG on lines 56 and 58; no MERIDIAN_CONFIG found"
+    passed: true
+  idsd_md:
+    check: "grep -n 'MERIDIAN INTERFACE|GARURA INTERFACE' docs/philosophy/idsd.md"
+    result: "GARURA INTERFACE on line 907; no MERIDIAN INTERFACE found"
+    passed: true
+  claude_specs:
+    check: "grep -ri meridian .claude/specs/"
+    result: "zero lines of output — all references removed"
+    passed: true
+
+deviations: []

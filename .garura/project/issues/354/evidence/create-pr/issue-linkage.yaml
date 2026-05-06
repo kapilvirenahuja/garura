@@ -1,0 +1,5 @@
+issue:
+  number: 354
+  title: "[CHORE] Remove all stale .meridian path and Meridian name references across source files"
+  url: "https://github.com/kapilvirenahuja/garura/issues/354"
+  source: commit-code-stm

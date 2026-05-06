@@ -1,0 +1,20 @@
+type_resolution:
+  caller: human
+  provided_type: null
+  inferred_type: enhancement
+  inference_source: keyword-match
+  keywords_matched: []
+  fallback_applied: false
+  reasoning: >
+    Problem text describes a missing pipeline capability (no promotion path for KB-level
+    learnings). No explicit bug/defect/crash keywords. "Does not cover" and "no promotion
+    path" map closest to enhancement — a gap in existing functionality, not a broken
+    behavior. Human caller; type inferred without ambiguity prompt because enhancement
+    is clear from context.
+  ambiguous_text: false
+events:
+  - event: type-inferred
+    type: enhancement
+    timestamp: "2026-05-04T00:00:00Z"
+  - event: dispatch
+    timestamp: "2026-05-04T00:00:00Z"

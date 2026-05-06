@@ -1,0 +1,55 @@
+issue: 358
+branch: fix/358-fix-meridian-references
+groups:
+  - id: installer
+    type: chore
+    scope: installer
+    subject: rename MERIDIAN_CONFIG to GARURA_CONFIG
+    files:
+      - installer/install.sh
+    confidence: high
+  - id: docs
+    type: chore
+    scope: docs
+    subject: replace MERIDIAN INTERFACE with GARURA INTERFACE in idsd.md
+    files:
+      - docs/philosophy/idsd.md
+    confidence: high
+  - id: specs
+    type: chore
+    scope: specs
+    subject: replace meridian references across .claude/specs/ files
+    files:
+      - .claude/specs/agent-idd/evidence/t2-recovery-templates.md
+      - .claude/specs/agent-idd/spec.md
+      - .claude/specs/agent-idd/spec_tasks.md
+      - .claude/specs/agent-idd/spec_verify.md
+      - .claude/specs/artifact-schemas/brief-principles.md
+      - .claude/specs/brief-rendering/scenarios.md
+      - .claude/specs/brief-rendering/tasks.md
+      - .claude/specs/discover-product-rebake/spec.md
+      - .claude/specs/docs-four-crafts/evals.md
+      - .claude/specs/epic-scoped-prep/spec.md
+      - .claude/specs/fix-strategist/evidence/g010-tech-context.md
+      - .claude/specs/fix-strategist/evidence/integration-test-rerun.md
+      - .claude/specs/fix-strategist/evidence/integration-test-run.md
+      - .claude/specs/fix-strategist/fix-strategist.md
+      - .claude/specs/fix-strategist/fix-strategist_tasks.md
+      - .claude/specs/idsd/evidence/g-100-start-feature.md
+      - .claude/specs/idsd/evidence/g-103-start-planned-feature.md
+      - .claude/specs/idsd/evidence/g-104-discover-product.md
+      - .claude/specs/idsd/evidence/g-112-create-pr.md
+      - .claude/specs/idsd/evidence/idsd-vs-neursdlc-comparison.html
+      - .claude/specs/idsd/evidence/idsd-vs-neursdlc-comparison.md
+      - .claude/specs/idsd/evidence/workflow-standardization-p1-p4-p11.md
+      - .claude/specs/idsd/idsd-tasks.md
+      - .claude/specs/idsd/idsd-verify.md
+      - .claude/specs/idsd/idsd.md
+      - .claude/specs/implement-epic-tdd/spec.md
+      - .claude/specs/prepare-implementation-redesign/spec.md
+      - .claude/specs/three-elements/three-elements_verify.md
+    confidence: high
+risks: []
+sensitive_files: []
+breaking_changes: false
+checkpoint_needed: false

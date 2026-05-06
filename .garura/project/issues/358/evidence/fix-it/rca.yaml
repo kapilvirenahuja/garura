@@ -1,0 +1,177 @@
+issue_number: 358
+summary: >
+  The project-wide rename from Meridian→Garura (issue #354) was performed via path-string
+  find-and-replace passes that updated `.meridian/` path literals but missed three categories
+  of stale reference: a shell variable named MERIDIAN_CONFIG in installer/install.sh (variable
+  name, not a path string), an ASCII art label "MERIDIAN INTERFACE" in docs/philosophy/idsd.md,
+  and 111 occurrences across 28 .claude/specs/ files which were scoped out of the rename pass.
+
+root_cause:
+  primary:
+    file: "installer/install.sh"
+    logic: >
+      Line 56: `MERIDIAN_CONFIG="$TARGET_DIR/.garura/core/config.yaml"`. The rename script
+      at commit 098849c updated the variable's *value* from `.meridian/` to `.garura/` but
+      left the *variable name* itself as MERIDIAN_CONFIG. Commit b0bff41 (the root-files rename
+      pass for #354) used a pattern that matched `.meridian` path strings, which did not match
+      the all-caps variable identifier MERIDIAN_CONFIG. The variable is used on line 58 as
+      the file-existence check controlling init vs. upgrade mode — a stale name that conveys
+      wrong project identity to anyone reading or modifying the installer.
+    why_wrong: >
+      A shell variable named MERIDIAN_CONFIG implies the installer is for a project called
+      Meridian. After renaming the project to Garura, any reader or automated tool scanning
+      the installer for Meridian references will find this name as a false positive, and the
+      semantic disconnect between the variable name and its value (which correctly points to
+      `.garura/`) makes the installer harder to maintain. The rename was incomplete because
+      the grep pattern used for the #354 pass targeted path-component strings (`.meridian`)
+      rather than token-boundary identifiers (`MERIDIAN`).
+    line_range: "56-59"
+  secondary:
+    - file: "docs/philosophy/idsd.md"
+      logic: >
+        Line 907 inside an ASCII art box: `│  MERIDIAN INTERFACE (Enterprise Layer)`. The
+        rename pass for docs (#354, commit 964260c) replaced prose occurrences of "Meridian"
+        but the all-caps label inside a code-fenced diagram was not matched by the pattern
+        used for that pass.
+      why_wrong: >
+        The ASCII art box is the public-facing conceptual diagram for the framework's enterprise
+        layer. Labelling it "MERIDIAN INTERFACE" after rebranding to Garura is a documentation
+        correctness failure — any reader of the philosophy doc sees the old brand name.
+      line_range: "907"
+    - file: ".claude/specs/ (28 files)"
+      logic: >
+        111 occurrences of "meridian"/"Meridian"/"MERIDIAN" remain across 28 spec files
+        (agent-idd, artifact-schemas, brief-rendering, discover-product-rebake, docs-four-crafts,
+        epic-scoped-prep, fix-strategist, idsd, implement-epic-tdd, prepare-implementation-redesign,
+        three-elements). The #354 rename passes targeted core/components/, docs/, memory/, and
+        root files. The .claude/specs/ directory was not included in any of those passes — it
+        was either treated as transient/gitignored working state or simply overlooked.
+      why_wrong: >
+        .claude/specs/ files contain spec documents and evaluation evidence that reference
+        framework paths (e.g., `~/.meridian/core/memory/`) and brand names. Leaving these
+        stale means spec documents contradict the renamed codebase, breaking anyone who follows
+        the spec paths literally.
+
+trace:
+  - step: >
+      Symptom: git status shows uncommitted modifications to installer/install.sh,
+      docs/philosophy/idsd.md, and 28 .claude/specs/ files.
+  - step: >
+      git show HEAD:installer/install.sh | grep MERIDIAN_CONFIG confirms HEAD has
+      MERIDIAN_CONFIG as a variable name on lines 56 and 58, while the value correctly
+      references .garura/.
+  - step: >
+      git show 098849c -- installer/install.sh shows that commit updated the variable
+      *value* (`.meridian/` → `.garura/`) but not the variable *name* (MERIDIAN_CONFIG stayed).
+  - step: >
+      git show b0bff41 --stat confirms that commit touched installer/install.sh as part of
+      the root-files rename pass but its diff shows only path-string replacements, not the
+      variable name — the all-caps token was not in scope of the grep pattern.
+  - step: >
+      git show HEAD:docs/philosophy/idsd.md | grep -n MERIDIAN confirms a single stale label
+      on line 907 inside a code-fenced ASCII art block — not matched by prose-replacement
+      patterns used in the docs rename pass (commit 964260c).
+  - step: >
+      git status --short .claude/specs/ shows 28 files modified in the working tree; grep
+      on HEAD confirms all 111 occurrences of "meridian" are present in HEAD, absent from the
+      working tree — the .claude/specs/ directory was never included in any #354 rename pass.
+  - step: >
+      Root cause confirmed: the rename was executed as a series of scoped passes (agents, skills,
+      plays, memory, docs, root files, gitignore/ADR stragglers) but the scoping excluded
+      (a) variable-name tokens that are not path strings, (b) content inside code-fenced ASCII
+      art blocks, and (c) the .claude/specs/ working directory entirely.
+
+blast_radius:
+  - path: "installer/install.sh"
+    role: "Project installer — detects init vs. upgrade mode; the stale variable name is cosmetic
+           but creates a brand inconsistency and a false positive for any meridian-reference scanner."
+    change_needed: "Rename MERIDIAN_CONFIG → GARURA_CONFIG on lines 56 and 58."
+  - path: "docs/philosophy/idsd.md"
+    role: "Core philosophy document; the ASCII art box on line 907 labels the enterprise layer."
+    change_needed: "Replace 'MERIDIAN INTERFACE' with 'GARURA INTERFACE' in the ASCII art label."
+  - path: ".claude/specs/agent-idd/evidence/t2-recovery-templates.md"
+    role: "Spec evidence for agent IDD — contains memory path references."
+    change_needed: "Replace ~/.meridian/ with ~/.garura/ throughout."
+  - path: ".claude/specs/agent-idd/spec.md"
+    role: "Spec for agent IDD feature."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/agent-idd/spec_tasks.md"
+    role: "Task list for agent IDD spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/agent-idd/spec_verify.md"
+    role: "Verification criteria for agent IDD spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/artifact-schemas/brief-principles.md"
+    role: "Brief rendering principles spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/brief-rendering/scenarios.md"
+    role: "Scenarios for brief rendering spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/brief-rendering/tasks.md"
+    role: "Tasks for brief rendering spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/discover-product-rebake/spec.md"
+    role: "Spec for discover-product-rebake feature."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/docs-four-crafts/evals.md"
+    role: "Evals for docs-four-crafts spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/epic-scoped-prep/spec.md"
+    role: "Spec for epic-scoped-prep feature."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/fix-strategist/evidence/g010-tech-context.md"
+    role: "Evidence artifact for fix-strategist spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/fix-strategist/evidence/integration-test-rerun.md"
+    role: "Evidence artifact for fix-strategist spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/fix-strategist/evidence/integration-test-run.md"
+    role: "Evidence artifact for fix-strategist spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/fix-strategist/fix-strategist.md"
+    role: "Main spec for fix-strategist feature."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/fix-strategist/fix-strategist_tasks.md"
+    role: "Tasks for fix-strategist spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/idsd/evidence/g-100-start-feature.md"
+    role: "IDSD evidence artifact."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/idsd/evidence/g-103-start-planned-feature.md"
+    role: "IDSD evidence artifact."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/idsd/evidence/g-104-discover-product.md"
+    role: "IDSD evidence artifact."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/idsd/evidence/g-112-create-pr.md"
+    role: "IDSD evidence artifact."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/idsd/evidence/idsd-vs-neursdlc-comparison.html"
+    role: "IDSD comparison HTML evidence."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/idsd/evidence/idsd-vs-neursdlc-comparison.md"
+    role: "IDSD comparison markdown evidence."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/idsd/evidence/workflow-standardization-p1-p4-p11.md"
+    role: "IDSD evidence artifact."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/idsd/idsd-tasks.md"
+    role: "Tasks for IDSD spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/idsd/idsd-verify.md"
+    role: "Verification for IDSD spec."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/idsd/idsd.md"
+    role: "Main IDSD spec document."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/implement-epic-tdd/spec.md"
+    role: "Spec for implement-epic-tdd feature."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/prepare-implementation-redesign/spec.md"
+    role: "Spec for prepare-implementation-redesign feature."
+    change_needed: "Replace meridian references with garura equivalents."
+  - path: ".claude/specs/three-elements/three-elements_verify.md"
+    role: "Verification for three-elements spec."
+    change_needed: "Replace meridian references with garura equivalents."
+
+produced_at: "2026-05-05T10:24:12Z"

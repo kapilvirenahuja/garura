@@ -1,0 +1,7 @@
+status: merged
+pr_number: 359
+merge_sha: ff98bd1
+base_branch: main
+feature_branch: fix/358-fix-meridian-references
+branch_deleted: true
+merged_at: "2026-05-05T10:41:41Z"

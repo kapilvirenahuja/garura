@@ -1,0 +1,18 @@
+number: 358
+title: "[CHORE] Fix remaining Meridian references in installer, docs, and specs"
+state: open
+url: "https://github.com/kapilvirenahuja/garura/issues/358"
+body: |
+  ## Description
+
+  The codebase was renamed from Meridian to Garura. A cleanup pass fixed remaining "meridian" references in installer/install.sh, docs/philosophy/idsd.md, and 28 .claude/specs/ files to complete the rename across the project.
+
+  ## Acceptance Criteria
+
+  - [ ] All meridian references in installer/install.sh replaced with garura equivalents
+  - [ ] All meridian references in docs/philosophy/idsd.md updated
+  - [ ] All 28 .claude/specs/ files updated to use garura naming
+
+  ---
+
+  *Created via Garura `start-feature` workflow.*

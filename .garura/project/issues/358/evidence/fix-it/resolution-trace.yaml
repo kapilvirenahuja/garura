@@ -1,0 +1,35 @@
+issue_number: 358
+has_product_ltm: false
+ltm_fallback_reason: >
+  No product architecture artifacts present in .garura/product/ for this project.
+  All domains resolved via LLM reasoning, grounded in CLAUDE.md, recent commit history,
+  and the RCA trace (rca.yaml).
+
+resolution_entries:
+  - domain: "architecture"
+    question: "What is the correct naming convention after project rename?"
+    resolved_from: "llm"
+    rationale: >
+      No product architecture artifacts present (has_product_ltm=false). LLM fallback:
+      project is named Garura per CLAUDE.md and recent commit history (commits b0bff41,
+      964260c, e117537 all bear 'Meridian→Garura' messaging). The correct identifier is
+      'Garura' (title case), 'garura' (lower), 'GARURA' (all-caps), and '.garura/'
+      (path prefix). All instances of 'Meridian', 'meridian', 'MERIDIAN', and '.meridian/'
+      are stale.
+  - domain: "design-patterns"
+    question: "What pattern should govern the rename fix approach?"
+    resolved_from: "llm"
+    rationale: >
+      No core LTM pattern for rename fixes. Applied Occam's Razor (simplest fix:
+      working-tree patch) over alternatives (history rewrite via git filter-branch/BFG).
+      Working-tree patch is reversible (two-way door); history rewrite is a one-way door
+      per the reversibility bias principle in CLAUDE.md.
+  - domain: "scope"
+    question: "Is .claude/specs/ tracked in git and therefore in scope for this fix?"
+    resolved_from: "llm"
+    rationale: >
+      Confirmed via git status showing .claude/specs/ files as modified (tracked). The
+      directory is not in .gitignore. RCA trace confirmed all 111 occurrences were present
+      in HEAD and absent from working tree after the fix pass. Scope is confirmed.
+
+produced_at: "2026-05-05T10:30:00Z"
