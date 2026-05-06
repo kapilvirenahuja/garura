@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artifact Hub — Garura</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./brief-common.css">
+  <style>
+/* =========================================================
+   HUB-SPECIFIC: ARTIFACT GRID + CARDS
+   ========================================================= */
+.artifact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.artifact-card {
+  display: block;
+  padding: 1.25rem;
+  background: var(--bg2);
+  border: 1px solid var(--bdr);
+  border-radius: var(--radius, 8px);
+  text-decoration: none;
+  color: var(--t1);
+  transition: all 0.2s;
+}
+
+.artifact-card:hover {
+  border-color: var(--a1);
+  box-shadow: 0 0 20px var(--glow);
+}
+
+.artifact-card-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.artifact-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.artifact-card-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.artifact-card-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.artifact-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--a1);
+}
+
+.artifact-stat-label {
+  font-size: 0.8rem;
+  color: var(--t3);
+}
+
+.epic-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--bdr);
+}
+
+.epic-section h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--a1);
+  margin-bottom: var(--space-sm);
+}
+
+@media (max-width: 900px) {
+  .artifact-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .artifact-grid { grid-template-columns: 1fr; }
+}
+  </style>
+</head>
+<body>
+
+<button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="6" fill="#E8731A" opacity="0.15"/>
+          <path d="M8 24L16 8L24 24" stroke="#E8731A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10.5 19H21.5" stroke="#00D4FF" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="sidebar-logo-text">Garura</span>
+      </div>
+      <div class="sidebar-meta">
+        <span id="sidebar-product-name" style="color:var(--t2);font-size:13px;font-family:var(--font-display);font-weight:600;"></span>
+        <span style="margin-top:4px;">Artifact Hub</span>
+        <span id="hub-timestamp"></span>
+      </div>
+    </div>
+
+    <div class="theme-switcher">
+      <button class="theme-btn active" data-theme="dark" onclick="setTheme('dark')">Dark</button>
+      <button class="theme-btn" data-theme="light" onclick="setTheme('light')">Light</button>
+      <button class="theme-btn" data-theme="vibrant" onclick="setTheme('vibrant')">Vibrant</button>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <div class="nav-section-label">Sections</div>
+      <a href="#product-section" class="nav-item">Product Artifacts</a>
+      <div id="sidebar-epic-links"></div>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="content">
+
+      <!-- Header -->
+      <div class="brief-header">
+        <div class="brief-title" id="hub-title">Artifact Hub</div>
+        <div class="brief-subtitle">All product and epic artifacts — active and pending</div>
+      </div>
+
+      <!-- Product-level artifacts -->
+      <section id="product-section">
+        <h2 style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--a1);margin-bottom:var(--space-sm);">Product Artifacts</h2>
+        <div id="product-artifacts"></div>
+      </section>
+
+      <!-- Epic sections -->
+      <div id="epic-sections"></div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="./brief-render.js"></script>
+<script>
+// ─── Hub rendering ────────────────────────────────────────────────────────────
+
+function renderArtifactCard(a) {
+  var isActive = a.has_brief;
+  var cls = isActive ? 'artifact-card' : 'artifact-card artifact-card-disabled';
+  var html = isActive
+    ? '<a href="' + esc(a.brief_path) + '" class="' + cls + '">'
+    : '<div class="' + cls + '">';
+
+  html += '<div class="artifact-card-header">';
+  html += '<div class="artifact-card-name">' + esc(a.artifact) + '</div>';
+  if (a.status) {
+    html += '<span class="badge ' + badgeClass(a.status) + '">' + esc(a.status) + '</span>';
+  }
+  html += '</div>';
+
+  html += '<div class="artifact-card-stat">';
+  if (a.stat_value != null) {
+    html += '<span class="artifact-stat-value">' + esc(a.stat_value) + '</span>';
+  }
+  if (a.stat_label) {
+    html += '<span class="artifact-stat-label">' + esc(a.stat_label) + '</span>';
+  }
+  html += '</div>';
+
+  html += isActive ? '</a>' : '</div>';
+  return html;
+}
+
+async function render() {
+  var data;
+  try {
+    data = await fetch('./hub.json').then(function(r) { return r.json(); });
+  } catch (e) {
+    el('hub-title').textContent = 'Failed to load hub.json';
+    return;
+  }
+
+  // Header
+  var productName = data.product_name || data.slug || 'Artifact Hub';
+  el('hub-title').textContent = productName;
+  el('sidebar-product-name').textContent = productName;
+
+  var ts = data.generated_at || '';
+  el('hub-timestamp').textContent = ts;
+
+  // Product-level cards
+  var productGrid = el('product-artifacts');
+  if (data.product_level && data.product_level.length > 0) {
+    var html = '<div class="artifact-grid">';
+    for (var i = 0; i < data.product_level.length; i++) {
+      html += renderArtifactCard(data.product_level[i]);
+    }
+    html += '</div>';
+    productGrid.innerHTML = html;
+  }
+
+  // Epic sections
+  var epicsContainer = el('epic-sections');
+  var sidebarEpicLinks = el('sidebar-epic-links');
+  if (data.epics && data.epics.length > 0) {
+    var ehtml = '';
+    var navHtml = '<div class="nav-section-label" style="margin-top:var(--space-lg);">Epics</div>';
+
+    for (var e = 0; e < data.epics.length; e++) {
+      var epic = data.epics[e];
+      var epicId = 'epic-' + esc(epic.epic_id).replace(/\s+/g, '-').toLowerCase();
+
+      ehtml += '<section class="epic-section" id="' + epicId + '">';
+      ehtml += '<h2>Epic: ' + esc(epic.epic_id) + '</h2>';
+      ehtml += '<div class="artifact-grid">';
+      if (epic.artifacts && epic.artifacts.length > 0) {
+        for (var j = 0; j < epic.artifacts.length; j++) {
+          ehtml += renderArtifactCard(epic.artifacts[j]);
+        }
+      }
+      ehtml += '</div></section>';
+
+      navHtml += '<a href="#' + epicId + '" class="nav-item">' + esc(epic.epic_id) + '</a>';
+    }
+
+    epicsContainer.innerHTML = ehtml;
+    sidebarEpicLinks.innerHTML = navHtml;
+  }
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+
+document.getElementById('hamburger').addEventListener('click', toggleSidebar);
+
+initBrief();
+render();
+</script>
+
+</body>
+</html>

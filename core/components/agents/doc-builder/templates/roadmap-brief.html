@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roadmap Brief</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./brief-common.css">
+</head>
+<body>
+
+<div id="toast"></div>
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 4C16 4 12 8 10 12C8 16 9 18 11 19C9 17 10 14 12 11C14 8 16 6 16 6C16 6 18 8 20 11C22 14 23 17 21 19C23 18 24 16 22 12C20 8 16 4 16 4Z" fill="#E8731A" opacity=".9"/><path d="M16 8C16 8 13 12 12 15C11 18 12 20 14 21C12.5 19.5 13 17 14.5 14C15.5 12 16 10 16 10C16 10 16.5 12 17.5 14C19 17 19.5 19.5 18 21C20 20 21 18 20 15C19 12 16 8 16 8Z" fill="#FFB84D" opacity=".8"/><path d="M16 14C15 16 14.5 18 15 20C15.5 22 16 24 16 28C16 24 16.5 22 17 20C17.5 18 17 16 16 14Z" fill="#00D4FF" opacity=".7"/><path d="M8 16C6 14 5 12 6 10L9 14L8 16Z" fill="#00D4FF" opacity=".5"/><path d="M24 16C26 14 27 12 26 10L23 14L24 16Z" fill="#00D4FF" opacity=".5"/></svg>
+        <span class="sidebar-logo-text">Roadmap Brief</span>
+      </div>
+      <div class="sidebar-meta">
+        <span id="meta-slug"></span>
+        <span><span id="meta-status" class="badge"></span></span>
+        <span id="meta-generated-at"></span>
+      </div>
+    </div>
+    <div class="theme-switcher">
+      <button class="theme-btn active" data-theme="dark" onclick="setTheme('dark')">Dark</button>
+      <button class="theme-btn" data-theme="light" onclick="setTheme('light')">Light</button>
+      <button class="theme-btn" data-theme="vibrant" onclick="setTheme('vibrant')">Neon</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Chapters</div>
+      <a class="nav-item" href="#strategy">1. Strategy</a>
+      <a class="nav-item" href="#timeline">2. Timeline</a>
+      <a class="nav-item" href="#epics">3. Epics</a>
+      <a class="nav-item" href="#feasibility">4. Feasibility</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-label">Review Decision</div>
+      <div class="action-btns">
+        <button class="action-btn action-btn-tether" onclick="exportAction('tether', _exportSlug, 'roadmap-brief')">Tether</button>
+        <button class="action-btn action-btn-vanish" onclick="exportAction('vanish', _exportSlug, 'roadmap-brief')">Vanish</button>
+        <button class="action-btn action-btn-orbit" onclick="exportAction('orbit', _exportSlug, 'roadmap-brief')">Orbit</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main"><div class="content">
+    <div class="brief-header">
+      <div class="brief-title"><span id="brief-title"></span> <span id="brief-status" class="badge"></span></div>
+      <div class="brief-subtitle">Strategic epic sequencing, timeline, and feasibility assessment</div>
+      <div class="source-path">Source: epics.yaml + feasibility.yaml</div>
+    </div>
+
+    <section class="chapter" id="strategy">
+      <div class="chapter-number">01</div>
+      <div class="chapter-title">Strategy</div>
+
+      <h2>The Bet</h2>
+      <div id="thesis"></div>
+
+      <h2>The Story</h2>
+      <div id="narrative"></div>
+
+      <h2>Assumptions</h2>
+      <div class="card card-water"><div id="assumptions"></div></div>
+
+      <h2>Exclusions</h2>
+      <div class="card card-earth"><div id="exclusions"></div></div>
+
+    </section>
+
+    <section class="chapter" id="timeline">
+      <div class="chapter-number">02</div>
+      <div class="chapter-title">Timeline</div>
+      <div id="timeline-tabs"></div>
+    </section>
+
+    <section class="chapter" id="epics">
+      <div class="chapter-number">03</div>
+      <div class="chapter-title">Epics</div>
+      <div id="epics-tabs"></div>
+    </section>
+
+    <section class="chapter" id="feasibility">
+      <div class="chapter-number">04</div>
+      <div class="chapter-title">Feasibility</div>
+
+      <h2>Risk Summary</h2>
+      <div id="risk-summary"></div>
+
+      <h2>Per-Feature Feasibility</h2>
+      <div id="feasibility-cards"></div>
+
+      <h2>Critical Blockers</h2>
+      <div id="critical-blockers"></div>
+
+      <h2>Open Questions</h2>
+      <div id="open-questions"></div>
+
+    </section>
+
+  </div></main>
+</div>
+
+<script src="./brief-render.js"></script>
+<script>
+  // ─── Roadmap-specific renderers ───────────────────────────────────────────────
+
+  var _exportSlug = '';
+
+  function renderEpicPanel(panelId, epic) {
+    var container = el(panelId);
+    if (!container || !epic) return;
+    var e = epic;
+    var html = '<div class="epic-card">';
+    html += '<div class="epic-header">';
+    html += '<div style="display:flex;align-items:center;gap:8px;">';
+    html += '<span class="badge badge-near">' + esc(e.id) + '</span>';
+    html += '<h3>' + esc(e.name) + '</h3>';
+    html += '</div>';
+    html += '<div class="epic-badges">';
+    if (e.horizon) html += '<span class="badge ' + horizonBadge(e.horizon) + '">' + esc(e.horizon) + '</span>';
+    html += '</div>';
+    html += '</div>';
+    if (e.description) html += '<div class="card-field"><div class="card-field-label">Description</div><div class="card-field-value">' + esc(e.description) + '</div></div>';
+    if (e.strategic_goal_ref) html += '<div class="card-field"><div class="card-field-label">Strategic Goal</div><div class="card-field-value">' + esc(e.strategic_goal_ref) + '</div></div>';
+    if (e.strategic_goal_refs && e.strategic_goal_refs.length) html += '<div class="card-field"><div class="card-field-label">Strategic Goals</div><div class="card-field-value"><div class="tag-list">' + e.strategic_goal_refs.map(function(g) { return '<span class="tag">' + esc(g) + '</span>'; }).join('') + '</div></div></div>';
+    if (e.depends_on && e.depends_on.length) html += '<div class="card-field"><div class="card-field-label">Depends On</div><div class="card-field-value"><div class="tag-list">' + e.depends_on.map(function(d) { return '<span class="tag">' + esc(d) + '</span>'; }).join('') + '</div></div></div>';
+    // IDD: Intent
+    if (e.intent) {
+      html += '<div class="idd-section">';
+      html += '<div class="card-field-label">Intent</div>';
+      if (e.intent.p1) html += '<div class="card-field"><div class="card-field-label">Problem Today</div><div class="card-field-value">' + esc(e.intent.p1) + '</div></div>';
+      if (e.intent.p2) html += '<div class="card-field"><div class="card-field-label">Outcome After</div><div class="card-field-value">' + esc(e.intent.p2) + '</div></div>';
+      if (e.intent.p3) html += '<div class="card-field"><div class="card-field-label">Strategic Connection</div><div class="card-field-value">' + esc(e.intent.p3) + '</div></div>';
+      html += '</div>';
+    }
+    // IDD: Constraints
+    if (e.constraints) {
+      html += '<div class="idd-section">';
+      html += '<div class="card-field-label">Constraints</div>';
+      if (e.constraints.in_scope) html += '<div class="card-field"><div class="card-field-label">In Scope</div><div class="card-field-value">' + renderValue(e.constraints.in_scope) + '</div></div>';
+      if (e.constraints.out_of_scope) html += '<div class="card-field"><div class="card-field-label">Out of Scope</div><div class="card-field-value">' + renderValue(e.constraints.out_of_scope) + '</div></div>';
+      if (e.constraints.must_not_break) html += '<div class="card-field"><div class="card-field-label">Must Not Break</div><div class="card-field-value">' + renderValue(e.constraints.must_not_break) + '</div></div>';
+      html += '</div>';
+    }
+    // Success Scenarios
+    if (e.success_scenarios && e.success_scenarios.length) {
+      html += '<div class="idd-section">';
+      html += '<div class="card-field-label">Success Scenarios</div>';
+      for (var s = 0; s < e.success_scenarios.length; s++) {
+        var sc = e.success_scenarios[s];
+        var scText = typeof sc === 'string' ? sc : (sc.given ? 'Given ' + sc.given + ' — when ' + sc.when + ' — then ' + sc.then : JSON.stringify(sc));
+        html += '<div class="scenario-item">' + esc(scText) + '</div>';
+      }
+      html += '</div>';
+    }
+    // Failure Conditions
+    if (e.failure_conditions && e.failure_conditions.length) {
+      html += '<div class="idd-section">';
+      html += '<div class="card-field-label">Failure Conditions</div>';
+      for (var fc = 0; fc < e.failure_conditions.length; fc++) {
+        html += '<div class="failure-item">' + esc(e.failure_conditions[fc]) + '</div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  function renderTimelineByHorizon(panelIds, timeline) {
+    // panelIds: [decisionsId, nearId, midId, longId]
+    var horizons = { near: [], mid: [], long: [] };
+    if (timeline && timeline.length) {
+      for (var i = 0; i < timeline.length; i++) {
+        var entry = timeline[i];
+        var h = entry.horizon ? String(entry.horizon).toLowerCase() : '';
+        if (horizons[h]) {
+          horizons[h].push(entry);
+        }
+      }
+    }
+    _renderHorizonGroup(panelIds[1], 'near', horizons.near);
+    _renderHorizonGroup(panelIds[2], 'mid', horizons.mid);
+    _renderHorizonGroup(panelIds[3], 'long', horizons.long);
+  }
+
+  function _renderHorizonGroup(containerId, horizon, entries) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!entries || entries.length === 0) {
+      container.innerHTML = '<p style="color:var(--t3);font-size:14px;">No items in this horizon.</p>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < entries.length; i++) {
+      var entry = entries[i];
+      var hCls = horizonBadge(horizon);
+      html += '<div class="card">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">';
+      html += '<span class="badge ' + hCls + '">' + esc(entry.horizon || horizon) + '</span>';
+      if (entry.label) html += '<span style="font-family:var(--font-display);font-weight:700;color:var(--t1);">' + esc(entry.label) + '</span>';
+      html += '</div>';
+      if (entry.feature_refs && entry.feature_refs.length) {
+        html += '<div class="card-field-label">Feature Refs</div>';
+        html += '<div class="tag-list">';
+        for (var j = 0; j < entry.feature_refs.length; j++) {
+          html += '<span class="tag">' + esc(entry.feature_refs[j]) + '</span>';
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  function renderFeasibilityCards(containerId, feasibility) {
+    var container = el(containerId);
+    if (!container) return;
+    if (!feasibility || !feasibility.length) {
+      container.innerHTML = '<p style="color:var(--t3);font-size:14px;">No feasibility data.</p>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < feasibility.length; i++) {
+      var f = feasibility[i];
+      var riskCls = severityBadge(f.risk_level);
+      html += '<div class="feasibility-card">';
+      html += '<div class="feasibility-header">';
+      html += '<div>';
+      if (f.feature_ref) html += '<div class="feasibility-feature-ref">' + esc(f.feature_ref) + '</div>';
+      html += '</div>';
+      if (f.risk_level) html += '<span class="badge ' + riskCls + '">' + esc(f.risk_level) + '</span>';
+      html += '</div>';
+      // Technical risks table
+      if (f.technical_risks && f.technical_risks.length) {
+        html += '<div class="card-field-label" style="margin-bottom:8px;">Technical Risks</div>';
+        html += '<table class="risk-table"><thead><tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr></thead><tbody>';
+        for (var r = 0; r < f.technical_risks.length; r++) {
+          var risk = f.technical_risks[r];
+          var rSev = severityBadge(risk.severity);
+          html += '<tr>';
+          html += '<td>' + esc(risk.risk || risk.description || '') + '</td>';
+          html += '<td>' + (risk.severity ? '<span class="badge ' + rSev + '">' + esc(risk.severity) + '</span>' : '') + '</td>';
+          html += '<td>' + esc(risk.mitigation || '') + '</td>';
+          html += '</tr>';
+        }
+        html += '</tbody></table>';
+      }
+      // Blockers
+      if (f.blockers && f.blockers.length) {
+        html += '<div class="card card-fire" style="margin-bottom:12px;">';
+        html += '<div class="card-field-label">Blockers</div>';
+        html += renderValue(f.blockers);
+        html += '</div>';
+      }
+      // Sequencing constraints
+      if (f.sequencing_constraints) {
+        html += '<div class="card-field"><div class="card-field-label">Sequencing</div><div class="card-field-value">' + esc(f.sequencing_constraints) + '</div></div>';
+      }
+      // Architecture impact
+      if (f.architecture_impact) {
+        html += '<div class="card-field"><div class="card-field-label">Architecture Impact</div><div class="card-field-value">' + esc(f.architecture_impact) + '</div></div>';
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  // ─── render() — fetches data and populates all sections ──────────────────────
+
+  function render() {
+    Promise.all([
+      fetch('./roadmap.json').then(function(r) { return r.json(); }).catch(function() { return null; }),
+      fetch('../product.json').then(function(r) { return r.json(); }).catch(function() { return null; })
+    ]).then(function(results) {
+      var data = results[0] || {};
+
+      // Meta
+      populateMeta(data);
+      _exportSlug = data.slug || '';
+
+      // ── Chapter 1: Strategy ──────────────────────────────────────────────────
+      renderText('thesis', data.thesis, 'card card-air');
+      renderText('narrative', data.narrative, 'card card-water');
+      renderList('assumptions', data.assumptions, 'item-list');
+      renderList('exclusions', data.exclusions, 'item-list');
+
+      // ── Chapter 2: Timeline — tabs: Decisions, MVP (near), MVP-Beyond (mid), Future (long) ──
+      var timelinePanelIds = renderStaticTabs('timeline-tabs', [
+        { id: 'decisions', label: 'Decisions' },
+        { id: 'near',      label: 'MVP' },
+        { id: 'mid',       label: 'MVP-Beyond' },
+        { id: 'long',      label: 'Future' }
+      ]);
+
+      // Build decisions from epics
+      var decisions = [];
+      if (data.epics && data.epics.length) {
+        for (var i = 0; i < data.epics.length; i++) {
+          var e = data.epics[i];
+          decisions.push({
+            epic: (e.id || '') + ' — ' + (e.name || ''),
+            horizon: e.horizon || '',
+            strategic_goal: e.strategic_goal_ref || (e.strategic_goal_refs ? e.strategic_goal_refs.join(', ') : ''),
+            depends_on: e.depends_on ? e.depends_on.join(', ') : '—',
+            description: e.description || ''
+          });
+        }
+      }
+
+      // Render decisions table into the first panel
+      if (timelinePanelIds[0]) {
+        renderTable(timelinePanelIds[0], decisions, [
+          { key: 'epic',          label: 'Epic' },
+          { key: 'horizon',       label: 'Horizon' },
+          { key: 'strategic_goal', label: 'Strategic Goal' },
+          { key: 'depends_on',    label: 'Depends On' },
+          { key: 'description',   label: 'Description' }
+        ]);
+      }
+
+      // Render horizon groups into the remaining panels
+      renderTimelineByHorizon(timelinePanelIds, data.timeline);
+
+      // ── Chapter 3: Epics — one tab per epic ──────────────────────────────────
+      var epicPanelIds = renderTabBar('epics-tabs', data.epics || [], 'id', 'name');
+      for (var j = 0; j < epicPanelIds.length; j++) {
+        renderEpicPanel(epicPanelIds[j], (data.epics || [])[j]);
+      }
+
+      // ── Chapter 4: Feasibility ───────────────────────────────────────────────
+      var rs = data.risk_summary || {};
+      renderStatGrid('risk-summary', [
+        { value: rs.total_features   != null ? String(rs.total_features)   : '—', label: 'Total Features' },
+        { value: rs.high_risk_count  != null ? String(rs.high_risk_count)  : '—', label: 'High Risk',      colorClass: 'stat-fire' },
+        { value: rs.medium_risk_count != null ? String(rs.medium_risk_count) : '—', label: 'Medium Risk' },
+        { value: rs.blocker_count    != null ? String(rs.blocker_count)    : '—', label: 'Blockers',       colorClass: 'stat-fire' }
+      ]);
+      renderFeasibilityCards('feasibility-cards', data.feasibility);
+      renderCards('critical-blockers', data.critical_blockers, 'card-fire', {
+        blocker:           'title:',
+        severity:          'badge:severityBadge',
+        affected_features: 'tags:',
+        resolution:        'Resolution'
+      });
+      renderList('open-questions', data.open_questions, 'item-list');
+    });
+  }
+
+  // ─── Boot ─────────────────────────────────────────────────────────────────────
+
+  (function() {
+    initBrief();
+    render();
+  })();
+</script>
+
+</body>
+</html>

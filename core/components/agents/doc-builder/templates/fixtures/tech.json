@@ -1,0 +1,101 @@
+{
+  "slug": "test-product",
+  "status": "DRAFT",
+  "features_ref": "features.yaml",
+  "architecture_ref": "architecture.yaml",
+  "project_structure": {
+    "directories": [
+      {"path": "src/routes/", "purpose": "Express route handlers — one file per feature domain (auth.ts, dashboard.ts, settings.ts)"},
+      {"path": "src/services/", "purpose": "Business logic layer — pure functions with no Express dependency, independently testable"},
+      {"path": "src/components/", "purpose": "React component tree — organized by feature with shared UI components in src/components/ui/"},
+      {"path": "src/middleware/", "purpose": "Express middleware — JWT validation, rate limiting, request logging, error handling"}
+    ],
+    "key_files": [
+      {"path": "prisma/schema.prisma", "purpose": "Canonical database schema — all entities, fields, indexes, and relations defined here"},
+      {"path": "src/middleware/jwt.ts", "purpose": "JWT validation middleware applied to all protected routes — extracts and verifies user identity"},
+      {"path": "src/lib/email.ts", "purpose": "SendGrid client wrapper — single integration point for all transactional email sending"}
+    ]
+  },
+  "libraries": [
+    {"name": "jsonwebtoken", "version": "9.0.2", "purpose": "JWT signing and verification for stateless authentication sessions"},
+    {"name": "bcrypt", "version": "5.1.1", "purpose": "Password hashing with configurable cost factor — used at registration and password change"},
+    {"name": "zod", "version": "3.22.4", "purpose": "Runtime schema validation for all API request bodies — prevents invalid data from reaching services"},
+    {"name": "pino", "version": "8.19.0", "purpose": "Structured JSON logging with low overhead — replaces console.log across all backend modules"}
+  ],
+  "data_model": {
+    "entities": [
+      {
+        "name": "User",
+        "fields": [
+          {"name": "id", "type": "UUID", "constraints": "PRIMARY KEY, auto-generated"},
+          {"name": "email", "type": "VARCHAR(255)", "constraints": "UNIQUE, NOT NULL, indexed"},
+          {"name": "password_hash", "type": "VARCHAR(255)", "constraints": "NOT NULL, bcrypt hash stored — never plaintext"}
+        ],
+        "indexes": ["idx_users_email (email) — used on every login and registration check"]
+      },
+      {
+        "name": "UserSettings",
+        "fields": [
+          {"name": "id", "type": "UUID", "constraints": "PRIMARY KEY, auto-generated"},
+          {"name": "user_id", "type": "UUID", "constraints": "FOREIGN KEY -> User.id, ON DELETE CASCADE"},
+          {"name": "notifications_enabled", "type": "BOOLEAN", "constraints": "NOT NULL, DEFAULT true"}
+        ],
+        "indexes": ["idx_user_settings_user_id (user_id) — used on every settings read/write"]
+      }
+    ],
+    "relationships": [
+      {"from": "User", "to": "UserSettings", "type": "one-to-one", "description": "Each user has exactly one settings record created on registration"},
+      {"from": "User", "to": "PasswordResetToken", "type": "one-to-many", "description": "A user may have multiple pending reset tokens but only the latest is valid"}
+    ],
+    "migration_notes": "Migrations run via prisma migrate deploy in CI before application startup. All migrations are idempotent — safe to re-run if deployment fails mid-way."
+  },
+  "components": [
+    {
+      "name": "AuthService",
+      "type": "backend-service",
+      "responsibility": "Handles all authentication business logic — registration, login validation, password hashing, JWT issuance, and reset token lifecycle",
+      "interfaces": ["register(email, password): {userId, token}", "login(email, password): {token}", "initiateReset(email): void", "completeReset(token, newPassword): void"],
+      "dependencies": ["bcrypt for password hashing", "jsonwebtoken for token signing", "Prisma client for user persistence", "EmailService for reset notifications"],
+      "key_files": ["src/services/auth-service.ts", "src/routes/auth.ts"]
+    },
+    {
+      "name": "DashboardService",
+      "type": "backend-service",
+      "responsibility": "Aggregates project metrics, activity feed items, and widget configuration for the authenticated user's dashboard view",
+      "interfaces": ["getMetrics(userId): DashboardMetrics", "getActivity(userId, limit): ActivityItem[]", "getWidgetLayout(userId): WidgetLayout", "saveWidgetLayout(userId, layout): void"],
+      "dependencies": ["Prisma client for data queries", "WebSocket server for real-time push"],
+      "key_files": ["src/services/stats-service.ts", "src/routes/dashboard.ts"]
+    },
+    {
+      "name": "Dashboard",
+      "type": "frontend-component",
+      "responsibility": "Primary UI component rendering the authenticated user's dashboard with configurable widget grid, real-time data, and empty state handling",
+      "interfaces": ["Props: { userId: string }", "Emits: onWidgetReorder(layout: WidgetLayout)"],
+      "dependencies": ["React 18 for rendering", "SWR for data fetching with revalidation", "WebSocket hook for real-time updates"],
+      "key_files": ["src/components/Dashboard.tsx", "src/components/widgets/MetricWidget.tsx", "src/components/widgets/ActivityWidget.tsx"]
+    }
+  ],
+  "design_decisions": [
+    {
+      "id": "DD1",
+      "decision": "Use Prisma ORM over raw SQL for all database operations",
+      "context": "Team needs type-safe database access without writing verbose SQL; migration management must be version-controlled",
+      "alternatives_considered": ["Raw pg driver with hand-written SQL", "TypeORM with decorator-based models"],
+      "rationale": "Prisma schema is the single source of truth for both TypeScript types and database structure — eliminates class of bugs where code and DB drift apart. Migration workflow is simpler than TypeORM's ActiveRecord pattern.",
+      "consequences": ["Prisma client must be regenerated after every schema change (handled in CI)", "Complex queries require raw SQL escape hatch via prisma.$queryRaw"]
+    },
+    {
+      "id": "DD2",
+      "decision": "Store widget layout as JSON in PostgreSQL rather than normalized rows",
+      "context": "Dashboard widget configuration is user-specific and has no cross-user query requirements",
+      "alternatives_considered": ["Normalized widget_preferences table with one row per widget", "Separate Redis store for ephemeral layout state"],
+      "rationale": "Layout is read and written as a complete unit — normalization would require assembling the grid from multiple rows on every dashboard load with no query benefit. JSON column with Prisma is type-safe and simpler.",
+      "consequences": ["Layout validation happens in application layer (Zod schema)", "Cannot query individual widget settings across users — acceptable given no cross-user reporting requirement"]
+    }
+  ],
+  "feature_mapping": [
+    {"feature_ref": "F1", "components": ["AuthService", "src/routes/auth.ts", "src/middleware/jwt.ts"], "data_entities": ["User", "PasswordResetToken"], "key_files": ["src/services/auth-service.ts", "src/routes/auth.ts", "src/middleware/jwt.ts", "prisma/schema.prisma"]},
+    {"feature_ref": "F2", "components": ["DashboardService", "Dashboard"], "data_entities": ["User", "UserSettings"], "key_files": ["src/services/stats-service.ts", "src/routes/dashboard.ts", "src/components/Dashboard.tsx"]},
+    {"feature_ref": "F3", "components": ["AuthService (password change)", "src/routes/settings.ts"], "data_entities": ["User", "UserSettings"], "key_files": ["src/routes/settings.ts", "src/components/Settings.tsx"]}
+  ]
+}

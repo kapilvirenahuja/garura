@@ -1,0 +1,128 @@
+{
+  "slug": "test-product",
+  "status": "DRAFT",
+  "features_ref": "features.yaml",
+  "principles": [
+    {"id": "TP1", "name": "Separation of Concerns by Agent Domain", "description": "Each agent owns a distinct domain — code-builder writes code, repo-orchestrator manages git state, quality-validator runs tests. No agent crosses domain boundaries.", "rationale": "Cross-domain agents create unpredictable behavior and make debugging impossible — domain isolation makes every action attributable"},
+    {"id": "TP2", "name": "Explicit Over Implicit State", "description": "All state transitions are written to disk before being acted upon. No in-memory-only state for decisions that affect the repository.", "rationale": "LLM context windows are ephemeral — durability of decisions requires persistence before execution"},
+    {"id": "TP3", "name": "Human Approval at Boundary Crossings", "description": "Every action that crosses a system boundary (commit, push, PR creation, external API call) requires explicit human approval via Tether/Vanish gate.", "rationale": "Autonomous agents operating at boundaries without oversight create irreversible changes — the cost of one mistake exceeds the benefit of many saved approvals"}
+  ],
+  "architecture": {
+    "topology": "┌─────────────────────────────────────────────────┐\n│                   Claude Code                   │\n│              (Play Orchestrator)              │\n└──────────────┬─────────────────────┬────────────┘\n               │                     │\n    ┌──────────▼──────────┐ ┌────────▼──────────┐\n    │    code-builder     │ │  repo-orchestrator │\n    │  (Implementation)   │ │   (Git + GitHub)   │\n    └──────────┬──────────┘ └────────┬───────────┘\n               │                     │\n    ┌──────────▼──────────┐ ┌────────▼───────────┐\n    │  quality-validator  │ │   tech-designer     │\n    │  (Tests + Evals)    │ │  (Design + RCA)     │\n    └─────────────────────┘ └────────────────────┘\n               │\n    ┌──────────▼──────────┐\n    │     STM / LTM       │\n    │  (Artifact Store)   │\n    └─────────────────────┘",
+    "deployment_units": [
+      {"name": "Claude Code Host", "description": "Primary runtime — Claude Code orchestrates all plays and invokes agents via the Task tool. No separate server required.", "runtime": "claude.ai/code or Claude API", "scaling": "Single user per session; no horizontal scaling needed for CLI usage"},
+      {"name": "Artifact Store", "description": "File-system based STM/LTM for all generated artifacts, intents, and decision trails. STM is per-project, LTM is global.", "runtime": "Local filesystem (~/.garura/ and .garura/)", "scaling": "No scaling concern — file I/O is local and fast"}
+    ]
+  },
+  "nfrs": {
+    "performance": [
+      {"requirement": "Dashboard load completes within 2 seconds on standard broadband", "measurement": "Lighthouse performance score >= 85, measured in CI"},
+      {"requirement": "API endpoints respond within 200ms at p95 under 50 concurrent users", "measurement": "k6 load test targeting /api/* routes in staging environment"}
+    ],
+    "scalability": [
+      {"requirement": "System handles 10x current projected load without architectural changes", "measurement": "Load test at 500 concurrent users with <5% error rate and p95 < 500ms"}
+    ],
+    "security": [
+      {"requirement": "All API endpoints require authenticated JWT — no unauthenticated data access", "measurement": "Automated security scan with OWASP ZAP in CI pipeline"},
+      {"requirement": "Passwords stored as bcrypt hashes with cost factor >= 12 — never plaintext", "measurement": "Code review gate + automated secret scanning in pre-commit hook"}
+    ]
+  },
+  "stack": [
+    {"layer": "Frontend", "technology": "React 18 + TypeScript", "version": "18.2.0", "rationale": "Strong typing reduces runtime errors in complex state management; React ecosystem provides mature component libraries"},
+    {"layer": "Backend", "technology": "Node.js + Express", "version": "20.x LTS", "rationale": "Unified TypeScript across stack reduces context switching; Express is minimal and well-understood by the team"},
+    {"layer": "Database", "technology": "PostgreSQL + Prisma ORM", "version": "PostgreSQL 15, Prisma 5.x", "rationale": "Relational model fits structured user and settings data; Prisma provides type-safe queries and migration management"},
+    {"layer": "Authentication", "technology": "JWT + bcrypt", "version": "jsonwebtoken 9.x, bcrypt 5.x", "rationale": "Stateless JWT reduces backend complexity for session management; bcrypt is the industry standard for password hashing"}
+  ],
+  "platforms": [
+    {"name": "GitHub Actions", "purpose": "CI/CD pipeline — runs tests, linting, and build on every PR; deploys to staging on merge to main", "configuration": ".github/workflows/ci.yml"},
+    {"name": "Vercel", "purpose": "Frontend hosting with automatic preview deployments per PR branch; production deployment from main", "configuration": "vercel.json"}
+  ],
+  "integrations": [
+    {"name": "SendGrid", "purpose": "Transactional email for password reset and notification delivery", "interface": "REST API v3", "auth": "API key stored in environment variable SENDGRID_API_KEY"},
+    {"name": "Sentry", "purpose": "Error tracking and performance monitoring for both frontend and backend", "interface": "SDK initialization in app entry points", "auth": "DSN stored in environment variable SENTRY_DSN"}
+  ],
+  "agentic": {
+    "perception": [
+      {"input": "Intent files (intent.yaml)", "description": "Plays read intent.yaml to understand goals, constraints, and failure conditions before delegating to agents"},
+      {"input": "Git repository state", "description": "repo-orchestrator reads git status, diff, and log to understand current branch state before any commit or PR action"}
+    ],
+    "cognition": [
+      {"capability": "Plan decomposition", "description": "tech-designer decomposes high-level feature intents into step-by-step execution plans with file-level specificity"},
+      {"capability": "Deviation detection", "description": "quality-validator compares actual outputs against expected outcomes in scenario definitions and flags deviations"}
+    ],
+    "action": [
+      {"capability": "Code implementation", "description": "code-builder writes, edits, and deletes files per execution plan using Read/Edit/Write/Bash tools"},
+      {"capability": "Repository management", "description": "repo-orchestrator stages files, creates commits, manages branches, and opens PRs via git and gh CLI"}
+    ],
+    "memory": {
+      "approach": "Dual-tier file-system memory: STM for active work, LTM for persistent knowledge",
+      "stm": ".garura/project/issues/{issue-number}/ — per-issue artifacts including intent files, execution plans, and evidence",
+      "ltm": "~/.garura/core/memory/ — global standards, templates, agent definitions, and accumulated knowledge",
+      "embeddings": "Not implemented in MVP — full-text search over LTM deferred to post-launch based on scale needs"
+    }
+  },
+  "decisions_summary": "A Claude Code agent framework using file-system STM/LTM, PostgreSQL + Prisma for structured data, React 18 on Vercel, Tether/Vanish/Orbit approval gates, and GitHub Actions CI/CD — built for single-user CLI usage with full decision auditability.",
+  "decisions": [
+    {
+      "question": "Should agents communicate via API calls or file-system artifacts?",
+      "answer": "File-system artifacts — STM for active work, LTM for persistent knowledge",
+      "drivers": ["profile", "ltm"],
+      "reasons": [
+        { "driver": "profile", "text": "Single-user CLI tool (PP-1=1) — no network overhead needed, file I/O is local and fast" },
+        { "driver": "ltm", "text": "agent-memory.md: 'File-based STM/LTM provides full auditability — every decision is a file you can inspect'" },
+        { "driver": "profile", "text": "Explicit state requirement (NFR-1=3) — all decisions must be durable before execution" }
+      ],
+      "picked": ["File-system STM at .garura/project/issues/{issue-number}/", "File-system LTM at ~/.garura/core/memory/"],
+      "rejected": [
+        { "option": "REST API between agents", "reason": "unnecessary network overhead for single-user CLI" },
+        { "option": "In-memory message passing", "reason": "LLM context windows are ephemeral — state must persist to disk" }
+      ]
+    },
+    {
+      "question": "What database should back the structured data layer?",
+      "answer": "PostgreSQL with Prisma ORM for type-safe queries and migration management",
+      "drivers": ["ltm", "budget"],
+      "reasons": [
+        { "driver": "ltm", "text": "backend-nodejs.md: 'Prisma provides type-safe queries and migration management for TypeScript projects'" },
+        { "driver": "budget", "text": "Small team — Prisma's auto-generated types reduce integration bugs without manual schema maintenance" },
+        { "driver": "ltm", "text": "databases.md: 'PostgreSQL for structured relational data with complex queries'" }
+      ],
+      "picked": ["PostgreSQL 15", "Prisma ORM 5.x"],
+      "rejected": [
+        { "option": "MongoDB", "reason": "relational model fits structured user and settings data better" },
+        { "option": "Raw SQL queries", "reason": "loses type safety guarantees across frontend-backend boundary" }
+      ]
+    },
+    {
+      "question": "How should plays enforce human oversight at system boundaries?",
+      "answer": "Tether/Vanish/Orbit gate at every boundary crossing — commits, PRs, external APIs",
+      "drivers": ["user-decision", "profile"],
+      "reasons": [
+        { "driver": "user-decision", "text": "Principle TP3: 'Every action that crosses a system boundary requires explicit human approval'" },
+        { "driver": "profile", "text": "Business-grade security (NFR-2=3) — autonomous agents at boundaries create irreversible changes" },
+        { "driver": "user-decision", "text": "Chosen over auto-approve because cost of one mistake exceeds benefit of many saved approvals" }
+      ],
+      "picked": ["Tether (proceed) / Vanish (cancel) / Orbit (defer) pattern", "Clipboard-based export for decision capture"],
+      "rejected": [
+        { "option": "Auto-approve all actions", "reason": "one irreversible mistake (force push, wrong PR) costs more than approval overhead" },
+        { "option": "Interactive terminal prompts", "reason": "breaks agent pipeline flow — clipboard export is non-blocking" }
+      ]
+    }
+  ],
+  "technical_risks": [
+    {"risk": "LLM non-determinism causes play outputs to vary across runs", "likelihood": "Medium", "impact": "High", "mitigation": "Play evals with semantic diff scoring; structured output schemas constrain variation surface area"},
+    {"risk": "Prisma migration failures on production database during deployment", "likelihood": "Low", "impact": "High", "mitigation": "All migrations run in transactions with automatic rollback; staging environment runs migration before production"}
+  ],
+  "deployment": [
+    {"environment": "Staging", "trigger": "Merge to main branch", "process": "GitHub Actions runs tests → builds Docker image → deploys to Vercel preview → runs smoke tests against staging URL"},
+    {"environment": "Production", "trigger": "Manual promotion via GitHub release tag", "process": "Requires explicit approval gate in GitHub Actions → deploys to Vercel production → Sentry release created for error tracking"}
+  ],
+  "observability": {
+    "tracing": "Sentry distributed tracing with correlation IDs propagated from frontend requests through API to database queries",
+    "metrics": [
+      {"metric": "API response time (p50, p95, p99)", "tool": "Sentry Performance", "alert_threshold": "p95 > 500ms triggers PagerDuty"},
+      {"metric": "Error rate per endpoint", "tool": "Sentry Issues", "alert_threshold": ">1% error rate on any endpoint triggers immediate alert"}
+    ],
+    "logging": "Structured JSON logging via pino — all log entries include correlation_id, user_id (hashed), endpoint, and duration_ms"
+  }
+}

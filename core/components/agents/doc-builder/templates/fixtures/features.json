@@ -1,0 +1,154 @@
+{
+  "slug": "test-product",
+  "status": "VALIDATED",
+  "product_ref": "product.yaml",
+  "identity": {
+    "what_it_is": "A structured AI development framework that provides persistent memory and deterministic workflows for software teams",
+    "what_it_is_not": "A code generation tool or a replacement for developer judgment and decision-making",
+    "core_jobs": [
+      "Maintain project context across sessions so developers never re-explain what they are building",
+      "Orchestrate multi-step development workflows that produce auditable, consistent outputs"
+    ],
+    "non_goals": [
+      "Generating production-ready code without human review and approval gates",
+      "Replacing project management tools or serving as a team communication platform"
+    ]
+  },
+  "invariants": [
+    {"id": "INV-1", "description": "Every workflow step must have an explicit human approval gate before destructive operations (commits, PRs, branch changes)"},
+    {"id": "INV-2", "description": "All AI-generated outputs must be traceable to the intent that produced them — no orphaned artifacts"},
+    {"id": "INV-3", "description": "Agent domain boundaries are enforced — no agent may perform work outside its declared responsibility"}
+  ],
+  "scope": {
+    "in_scope": [
+      "User authentication and session management for web dashboard",
+      "Dashboard overview with real-time project metrics and status widgets",
+      "User settings management for preferences and notification configuration"
+    ],
+    "out_of_scope": [
+      "Mobile application — web-only for initial release",
+      "Third-party SSO integration — email/password only for MVP"
+    ],
+    "deferred": [
+      {"capability": "Team collaboration features (shared workspaces, role-based access)", "rationale": "Requires multi-tenancy architecture not included in MVP scope"},
+      {"capability": "Webhook integrations with external project management tools", "rationale": "Deferred until API stability is confirmed post-launch"}
+    ]
+  },
+  "features": [
+    {
+      "id": "F1",
+      "name": "User Authentication",
+      "strategic_goal_ref": "SG1",
+      "description": "Complete authentication system allowing users to register, login, and recover access via email/password credentials with JWT session management",
+      "priority": "P1",
+      "depends_on": [],
+      "foundation": true,
+      "blast_radius": {
+        "existing_systems": ["None — greenfield feature"],
+        "affected_workflows": ["All subsequent features depend on authenticated user context"],
+        "integration_points": ["Email service for password reset", "JWT middleware for session validation"],
+        "migration_required": false,
+        "notes": "Must be implemented first — all other features gate on authenticated sessions"
+      },
+      "intent": {
+        "p1": "Users must be able to create accounts and authenticate securely so the system can maintain per-user context and project associations",
+        "p2": "Authentication failures must surface clear, actionable errors so users can self-recover without support intervention",
+        "p3": "Session tokens must expire and rotate to prevent unauthorized access from stale credentials"
+      },
+      "constraints": {
+        "in_scope": ["Email/password registration and login", "JWT token issuance with 24-hour expiry", "Password reset via email link"],
+        "out_of_scope": ["OAuth providers (Google, GitHub)", "Multi-factor authentication", "Biometric login"],
+        "must_not_break": ["Existing database schema if any migrations run", "CI pipeline green status"]
+      },
+      "success_scenarios": [
+        {"given": "A new user visits the registration page", "when": "They submit valid email and password", "then": "Account is created and user receives a JWT token to access the dashboard"},
+        {"given": "A registered user attempts login with correct credentials", "when": "They submit the login form", "then": "Server returns a valid JWT and user is redirected to the dashboard"},
+        {"given": "A user has forgotten their password", "when": "They submit their email to the reset flow", "then": "They receive a reset link and can set a new password within 1 hour"}
+      ],
+      "failure_conditions": [
+        "Registration with duplicate email returns a 409 conflict — not a 500 server error",
+        "Login with invalid credentials returns 401 — not a generic error that leaks account existence"
+      ],
+      "behaviors": [
+        {"id": "F1-B1", "description": "Rate limit login attempts to prevent brute force", "interaction": "User submits more than 5 failed login attempts within 10 minutes", "observable_outcome": "Account is temporarily locked and user receives an email notification"},
+        {"id": "F1-B2", "description": "Token refresh before expiry", "interaction": "Client detects token expiry approaching within 5 minutes", "observable_outcome": "Client silently refreshes token without requiring re-login"}
+      ]
+    },
+    {
+      "id": "F2",
+      "name": "Dashboard Overview",
+      "strategic_goal_ref": "SG2",
+      "description": "Primary landing page displaying real-time project metrics, workflow status, and activity feed in a configurable widget grid layout",
+      "priority": "P1",
+      "depends_on": ["F1"],
+      "foundation": false,
+      "blast_radius": {
+        "existing_systems": ["Requires F1 authentication to be in place"],
+        "affected_workflows": ["First screen seen after login — directly impacts onboarding experience"],
+        "integration_points": ["Stats aggregation API", "WebSocket for real-time updates"],
+        "migration_required": false,
+        "notes": "Widget layout preferences stored per-user — requires user settings table"
+      },
+      "intent": {
+        "p1": "Authenticated users must see an immediate overview of their project health so they can orient quickly at the start of each session",
+        "p2": "Dashboard data must reflect the current state without requiring a manual refresh so users trust the information",
+        "p3": "Widget layout must be persistent across sessions so users do not re-configure their view each time"
+      },
+      "constraints": {
+        "in_scope": ["Metrics widgets for feature count, open issues, and recent activity", "Configurable widget grid with drag-and-drop reordering", "Real-time updates via WebSocket for active sessions"],
+        "out_of_scope": ["Custom widget development by end users", "Embedding external dashboards via iframe"],
+        "must_not_break": ["Authentication flow established by F1", "API response time SLA of <200ms for dashboard load"]
+      },
+      "success_scenarios": [
+        {"given": "An authenticated user navigates to the dashboard", "when": "The page loads", "then": "All widgets display current data within 2 seconds with no loading errors"},
+        {"given": "A user has configured a custom widget layout", "when": "They log out and log back in", "then": "Their configured layout is restored exactly as they left it"}
+      ],
+      "failure_conditions": [
+        "If the stats API is slow, widgets degrade gracefully with skeleton loaders — the page never shows a blank screen",
+        "WebSocket disconnect shows a reconnecting indicator — not a stale data warning that alarms the user"
+      ],
+      "behaviors": [
+        {"id": "F2-B1", "description": "Widget data refresh on tab focus", "interaction": "User switches back to the dashboard tab after being away for more than 5 minutes", "observable_outcome": "All widgets silently refresh their data without a full page reload"},
+        {"id": "F2-B2", "description": "Empty state for new users", "interaction": "A newly registered user views the dashboard before creating any projects", "observable_outcome": "Dashboard shows an onboarding prompt rather than empty widgets"}
+      ]
+    },
+    {
+      "id": "F3",
+      "name": "Settings Management",
+      "strategic_goal_ref": "SG3",
+      "description": "User preference management system allowing profile editing, notification configuration, and account management actions",
+      "priority": "P2",
+      "depends_on": ["F1"],
+      "foundation": false,
+      "blast_radius": {
+        "existing_systems": ["Reads and writes to user record established by F1"],
+        "affected_workflows": ["Notification preferences affect email delivery for password reset and alerts"],
+        "integration_points": ["Email service for notification delivery", "User table for profile updates"],
+        "migration_required": false,
+        "notes": "Non-blocking — can ship after F1 and F2 without impacting core workflows"
+      },
+      "intent": {
+        "p1": "Users must be able to update their profile information so the system reflects accurate identity data across all artifacts",
+        "p2": "Notification preferences must be respected immediately so users are not spammed after opting out",
+        "p3": "Account deletion must be available so users can exercise data control in compliance with privacy requirements"
+      },
+      "constraints": {
+        "in_scope": ["Profile editing (display name, email, avatar URL)", "Notification preference toggles (email alerts on/off)", "Password change from within settings"],
+        "out_of_scope": ["Team/organization settings", "API key management", "Billing and subscription management"],
+        "must_not_break": ["Email used for notifications must remain consistent with authentication email unless explicitly changed"]
+      },
+      "success_scenarios": [
+        {"given": "An authenticated user opens the settings page", "when": "They update their display name and save", "then": "The new name appears immediately in the navigation and all subsequent views"},
+        {"given": "A user disables email notifications", "when": "A system event that would trigger a notification occurs", "then": "No email is sent to the user"}
+      ],
+      "failure_conditions": [
+        "Changing email requires re-verification — the old email remains active until the new one is confirmed",
+        "Account deletion is a two-step confirmation — not a single click action"
+      ],
+      "behaviors": [
+        {"id": "F3-B1", "description": "Unsaved changes warning", "interaction": "User edits settings but navigates away without saving", "observable_outcome": "Browser confirms navigation with a warning that changes will be lost"},
+        {"id": "F3-B2", "description": "Immediate preference propagation", "interaction": "User toggles a notification setting", "observable_outcome": "Preference is persisted and applied to the next eligible event without requiring page reload"}
+      ]
+    }
+  ]
+}
