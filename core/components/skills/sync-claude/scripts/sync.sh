@@ -35,9 +35,20 @@ if [ ! -d "$SOURCE" ]; then
   exit 1
 fi
 
-# Step 1: Clean existing
+# Step 1: Delete only folders/files that exist in source (never delete the parent folders)
 mkdir -p "$TARGET_DIR/skills" "$TARGET_DIR/agents"
-rm -rf "${TARGET_DIR:?}/skills"/* "${TARGET_DIR:?}/agents"/* 2>/dev/null || true
+
+for dir in "$SOURCE/skills"/*/; do
+  [ -d "$dir" ] && rm -rf "$TARGET_DIR/skills/$(basename "$dir")" 2>/dev/null || true
+done
+
+for dir in "$SOURCE/plays"/*/; do
+  [ -d "$dir" ] && rm -rf "$TARGET_DIR/skills/$(basename "$dir")" 2>/dev/null || true
+done
+
+for file in "$SOURCE/agents"/*.md; do
+  [ -f "$file" ] && rm -f "$TARGET_DIR/agents/$(basename "$file")" 2>/dev/null || true
+done
 
 # Step 2: Copy skills
 cp -R "$SOURCE/skills"/* "$TARGET_DIR/skills/" 2>/dev/null || true

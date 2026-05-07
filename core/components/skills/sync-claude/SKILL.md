@@ -1,7 +1,7 @@
 ---
 name: sync-claude
 description: Sync Garura components to .claude/ (project mode) or ~/.claude/ (global mode, default)
-user-invocable: true
+user-invocable: false
 context: fork
 model: haiku
 allowed-tools: Bash
