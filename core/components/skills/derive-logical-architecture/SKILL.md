@@ -2,6 +2,7 @@
 name: derive-logical-architecture
 description: Read locked specify and design output and produce a technology-agnostic logical architecture: bounded contexts, components with responsibilities, data model, capability-level API surface, integration points, and an ADR log. Every boundary, entity, and grouping decision lands in a decision manifest.
 version: 0.1.0
+user-invocable: false
 ---
 
 # derive-logical-architecture

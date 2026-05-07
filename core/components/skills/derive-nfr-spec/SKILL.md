@@ -2,6 +2,7 @@
 name: derive-nfr-spec
 description: Read the upstream quality profile, intent epics constraints block, and physical architecture to produce nfr-spec.yaml — a per-NFR contract that re-states intake targets, records any agent adjustments with rationale, and for every NFR names the specific architectural mechanism that delivers it plus the verification method.
 version: 0.1.0
+user-invocable: false
 ---
 
 # derive-nfr-spec

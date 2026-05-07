@@ -1,7 +1,7 @@
 ---
 name: merge-pr
 description: Merge the current branch's PR, switch to main, pull latest, and delete the feature branch. Use when your PR is approved and you want to complete the merge lifecycle.
-user-invokable: true
+user-invocable: true
 ---
 
 # merge-pr

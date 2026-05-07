@@ -1,7 +1,7 @@
 ---
 name: audit-spec-gaps
 description: Identify gaps, ambiguities, and open questions in YAML implementation artifacts that could block implementation. Use this skill before starting implementation, when reviewing artifacts for readiness, when onboarding to a new project's design docs, or when the user says "what's missing", "gaps", "blockers", "spec review", or "implementation readiness".
-user-invocable: true
+user-invocable: false
 model: sonnet
 allowed-tools: Read, Glob, Grep
 category: analysis

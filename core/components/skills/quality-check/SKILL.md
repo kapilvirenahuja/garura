@@ -1,7 +1,7 @@
 ---
 name: quality-check
 description: Quality assessment framework using 11 parallel explore subagents across code, testing, security, architecture, documentation, operations, frontend, backend, data, performance, and tech-debt governance. Reads KB quality standards calibrated by the project's Quality Profile (quality-standards.yaml). Produces scored assessments with HTML spider chart, JSON, and Markdown reports. Use when assessing project quality, running quality audits, checking production readiness, or evaluating tech debt governance.
-user-invocable: true
+user-invocable: false
 ---
 
 # Quality Check

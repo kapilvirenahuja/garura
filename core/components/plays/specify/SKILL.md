@@ -1,7 +1,7 @@
 ---
 name: garura:specify
 description: Transform a product idea plus project profile into a fully scoped, enriched set of intent epics organized by domain and capability. Produces market brief, MVP recommendation, scope, intent epics, and quality profile dense enough that design and arch can make real decisions.
-user-invokable: true
+user-invocable: true
 ---
 
 # specify

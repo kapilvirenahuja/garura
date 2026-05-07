@@ -1,7 +1,7 @@
 ---
 name: create-play
 description: Compile a new play from intent — interview for intent, identify skills and agents, select workflow, compile a deterministic SKILL.md. Use when building a new play, rebuilding an existing one, or reviewing a play for gaps.
-user-invokable: true
+user-invocable: true
 ---
 
 # create-play

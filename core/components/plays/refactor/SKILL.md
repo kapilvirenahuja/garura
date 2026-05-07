@@ -6,7 +6,7 @@ description: >
   time-box, produce a series of atomic refactor commits that improve internal
   structure without altering observable behaviour. Use when code is hard to read
   or change but its tests are green.
-user-invokable: true
+user-invocable: true
 ---
 
 # garura:refactor

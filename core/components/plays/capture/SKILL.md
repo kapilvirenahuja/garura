@@ -1,7 +1,7 @@
 ---
 name: "garura:capture"
 description: Accept a structured capture request from any caller, infer or accept issue type, file as a labeled GitHub Issue asynchronously, and return a crisp single-line dispatched confirmation.
-user-invokable: true
+user-invocable: true
 ---
 
 # garura:capture

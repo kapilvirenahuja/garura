@@ -1,7 +1,7 @@
 ---
 name: fix-it
 description: RCA-driven defect resolution — traces root cause, designs fix with alternatives considered, presents at a single checkpoint, then implements with independent verification and ships autonomously. Use when you have an open bug issue to fix.
-user-invokable: true
+user-invocable: true
 ---
 
 # fix-it
