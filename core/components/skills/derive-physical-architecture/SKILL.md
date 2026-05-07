@@ -2,6 +2,7 @@
 name: derive-physical-architecture
 description: Read logical-architecture.yaml and project-profile grounded tools to produce physical-architecture.yaml — every stack pick, deployment topology, data store, cache, queue, observability stack, auth infrastructure, and scaling strategy. Every slot names a specific product, never a category. Every decision carries source_type.
 version: 0.1.0
+user-invocable: false
 ---
 
 # derive-physical-architecture

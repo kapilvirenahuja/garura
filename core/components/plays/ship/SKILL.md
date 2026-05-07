@@ -1,7 +1,7 @@
 ---
 name: ship
 description: Deliver current branch work to main — commit, PR, optional review-pr quality gate, merge, and cleanup in one command. Auto-proceeds end-to-end unless review-pr.bypass=false and review-pr blocks.
-user-invokable: true
+user-invocable: true
 ---
 
 # ship

@@ -1,7 +1,7 @@
 ---
 name: garura:define
 description: Take a feature idea (free-text description or a FEAT-ID from the product's feature catalog) and turn it into a fully scoped feature entry plus a validated intent epic ready for /prepare. Feature work is anchored to a GitHub issue from the first phase; the catalog carries that issue number so every feature can be traced back to its tracking record.
-user-invokable: true
+user-invocable: true
 model: opus
 allowed-tools: Task, Read, Write, Grep, Glob, Skill, SendMessage, Bash
 ---

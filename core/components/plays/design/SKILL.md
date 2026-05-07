@@ -1,7 +1,7 @@
 ---
 name: garura:design
 description: Transform specify output (intent epics + scope + quality profile) into a complete experience design — JTBD personas, screen inventory with state coverage and visual-first wireframes, user flows covering success and recovery, a product-level Design System, and a consolidated design specification. Low-fidelity structural design only.
-user-invokable: true
+user-invocable: true
 ---
 
 # design

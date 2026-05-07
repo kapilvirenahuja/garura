@@ -2,6 +2,7 @@
 name: derive-design-patterns
 description: Read logical architecture, physical architecture, and nfr-spec to produce design-patterns.yaml — the pattern catalog applied to this product at every applicable layer: system-level, layer-level, component-level (per runtime tier), and cross-cutting. Every pattern carries applicability scope, a cited driver, alternatives considered, and source_type.
 version: 0.1.0
+user-invocable: false
 ---
 
 # derive-design-patterns

@@ -1,6 +1,7 @@
 ---
 name: resolve-issues
 description: Map change groups to existing open issues with confidence scoring. Use when you have grouped file changes and need to determine which issue each group belongs to before committing.
+user-invocable: false
 ---
 
 # resolve-issues

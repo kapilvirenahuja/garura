@@ -1,7 +1,7 @@
 ---
 name: commit-code
 description: Commit changes grouped by concern with conventional messages and issue references. Use when you have uncommitted changes.
-user-invokable: true
+user-invocable: true
 ---
 
 # commit-code

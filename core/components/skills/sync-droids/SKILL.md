@@ -1,7 +1,7 @@
 ---
 name: sync-droids
 description: Sync Garura components to .factory/ (project mode) or ~/.factory/ (global mode, default) with Claude Code to Factory Droid transformation
-user-invocable: true
+user-invocable: false
 ---
 
 # sync-droids

@@ -1,7 +1,7 @@
 ---
 name: garura:arch
 description: Transform locked specify and design output into a five-artifact architecture package — logical-architecture.yaml, physical-architecture.yaml, nfr-spec.yaml, quality-vision.yaml, and design-patterns.yaml — with one decision manifest per emitting skill. Every technology choice names a specific product; every architectural decision cites an upstream driver; every inferred decision is surfaced to the user via the tier-appropriate flow before commit. Five human review checkpoints in dependency order.
-user-invokable: true
+user-invocable: true
 ---
 
 # arch

@@ -1,7 +1,7 @@
 ---
 name: distill
 description: "Lightweight post-merge learning extraction. Reads the merged PR diff and any available issue STM evidence, invokes knowledge-extractor in FAST mode, and stages 1–2 learning proposals to STM. Fire-and-forget: failure returns gracefully, never halts ship."
-user-invokable: false
+user-invocable: true
 ---
 
 # distill
