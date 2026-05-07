@@ -1,11 +1,6 @@
-issue:
-  number: 351
-  title: "[ENH] enrich write boundary does not cover core KB — no promotion path for KB-level learnings"
-  labels:
-    - enhancement
-  state: open
-  url: "https://github.com/kapilvirenahuja/garura/issues/351"
-  created: true
-  closed: false
-  parent_issue: null
-  type_hint: "feature"
+status: completed
+type: bug
+title: "[BUG] Duplicate distill component — play and skill share the same name"
+url: "https://github.com/kapilvirenahuja/garura/issues/366"
+labels: [bug]
+completed_at: "2026-05-07T00:00:00Z"

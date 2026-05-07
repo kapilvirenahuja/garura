@@ -1,1 +1,1 @@
-[ENH] enrich write boundary does not cover core KB — no promotion path for KB-level learnings
+[BUG] Duplicate distill component — play and skill share the same name

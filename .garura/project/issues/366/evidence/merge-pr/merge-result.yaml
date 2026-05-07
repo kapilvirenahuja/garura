@@ -1,0 +1,18 @@
+result:
+  status: merged
+  pr_number: 367
+  merge_sha: fbfc069d5516c3c7fb16a36d93cacb405ea11bd0
+  base_branch: main
+  branch_deleted: true
+  error: null
+
+evals:
+  SE-1: PASS  # No merge past conflict — pre-flight confirmed MERGEABLE
+  SE-2: PASS  # Feature branch deleted locally and from remote
+  SE-3: PASS  # On main, HEAD fbfc069 matches origin/main
+  SE-4: PASS  # Pre-merge tree was clean (STM artifacts only, no code changes)
+  SE-5: PASS  # PR 367 state is MERGED with merge commit present
+
+scenarios:
+  SCE-1: PASS  # On main, up to date, fix/366-duplicate-distill-component absent everywhere
+  SCE-2: PASS  # PR 367 state MERGED, merge SHA fbfc069 present in git log on main
