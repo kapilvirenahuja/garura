@@ -370,7 +370,7 @@ If no STM evidence is found:
 work → return `{ "no_learnings": true }` — no proposals.yaml written.
 
 **Non-trivial path:** If diff or STM evidence indicates learnings exist:
-- Invoke `distill` skill with the diff content, issue body, and any
+- Invoke `draft-distill-proposals` skill with the diff content, issue body, and any
   available STM evidence paths
 - Produce **1–2 proposals maximum** — breadth over depth is rejected; quality over
   quantity required

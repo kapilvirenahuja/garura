@@ -1,12 +1,12 @@
 ---
-name: distill
+name: draft-distill-proposals
 description: Lightweight diff-to-proposal analysis. Reads a merged PR diff and any available issue STM evidence to detect learning signals and produce 1–2 staged proposals.
 user-invocable: false
 model: sonnet
 allowed-tools: Bash, Read, Write, Grep, Glob
 ---
 
-# distill
+# draft-distill-proposals
 
 Analyze a merged PR diff and available issue STM evidence to detect whether
 learnings exist, then produce a lightweight `proposals.yaml` staged to STM.
