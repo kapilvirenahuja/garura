@@ -1394,9 +1394,42 @@ After locking design artifacts, produce 5 additional context artifacts that make
 
 ### Phase 7: Evidence & Close
 
----
+This phase closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts), not
+prose. See `standards/rules/play-close.md`.
 
-**Step 19 — Write Evidence (play inline)**
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# prepare is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/prepare/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/prepare/${ts}.md"
+```
+
+**Step C2 — Delivery report (ALWAYS — skip only when running as a sub-play,
+i.e. `parent_run_id` present).** Fill `delivery-report.md` and output it to the
+user. Do NOT hand-author prose:
+- `## Prepare Delivered — #{issue}`
+- Run Summary: Play `prepare`, Issue `#{issue}`, Status (COMPLETE | PARTIAL |
+  FAILED), Started (per the started_at precedence in play-close.md), Completed
+  (now).
+- Pipeline Steps: derived from prepare's task DAG — Pre-flight, Read Upstream
+  Locked Artifacts, Context Resolution (Steps 2-7), Blast Radius Analysis
+  (Steps 8-10), LLD Draft (Steps 11-12), Scenarios + Plan Draft (Steps 13-15),
+  Cross-Validate + Pre-Lock Resolution (Steps 16-17b), Auto-Lock (Steps
+  18-18b), Evidence & Close (Steps 19-20). Status PASS/SKIP/FAIL per task
+  state; Key Output best-effort (locked artifact paths, blast-radius summary).
+- Artifacts Produced: tech.yaml, scenarios.yaml, plan.yaml (all LOCKED), the
+  STM context package artifacts, self-commit SHA (if any), and the evidence
+  file pointer.
+- Next Steps: only real follow-ons (e.g., "Run implement per milestone from
+  plan.yaml"). Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}`.
+
+**Step 19 — Write Evidence (play inline) — C1**
 Owner: play
 Depends on: Step 18
 
@@ -1517,6 +1550,10 @@ Commit message: `chore(stm): lock prepare artifacts for #{issue}`
 
 **Non-blocking:** If `repo-orchestrator` returns failure or `committed: false`, log as warning — do NOT halt. All artifacts are already locked and written to disk. A missing evidence commit is not fatal.
 
+```bash
+# --- end Standard Play Close ---
+```
+
 ---
 
 ## Pause and Resume
@@ -1605,3 +1642,5 @@ for each step in compiled order:
 | stm_context_artifacts | quality-gates.yaml, epic-spec.yaml, design-context.yaml, architecture-context.yaml, plan-milestone-summary.yaml |
 | dual_format_artifacts | architecture-inference, dependency-graph, commit-history-analysis, tech, plan |
 | stm_evidence_artifacts | test-surface, context-assembly, change-surface, blast-radius, baseline-tests, validation-report, pre-lock-resolutions |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/sweep/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

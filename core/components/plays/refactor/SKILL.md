@@ -794,6 +794,41 @@ Owner: play
 Depends on: Step 10
 Task: `TaskUpdate [T11] → in_progress` before writing. `TaskUpdate [T11] → completed` after commit.
 
+This run closes with the **Standard Play Close**. refactor is run directly by
+the user (`/garura:refactor`) — it is not a sub-play.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# refactor is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/refactor/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/refactor/play-evidence.md"
+```
+
+**Step C2 — Delivery report.** **Skipped when `parent_run_id` is present in
+the input contract** (sub-play use — the parent's close report absorbs it);
+**emitted when refactor is run directly by the user** (no `parent_run_id` —
+the normal path). C2 is never gated by `evidence.record`. Fill
+`delivery-report.md` and output it to the user:
+- `## Refactor Delivered — #{issue}`
+- Run Summary: Play `refactor`, Issue `#{issue}`, Status, Started (per the
+  started_at precedence in play-close.md), Completed (now).
+- Pipeline Steps: derived from refactor's task DAG ([T1]..[T11]). Status
+  PASS/SKIP/FAIL per task state; Key Output best-effort.
+- Artifacts Produced: refactor commit SHAs, optional `test:` commit, final
+  report, FOLLOWUPS.md (if any), evidence file pointer, self-commit SHA (or
+  `N/A — commit failed`).
+- Next Steps: deferred follow-ups from FOLLOWUPS.md, if any. Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}`.
+
+The user-facing summary below is preserved as the legacy presentation; the
+canonical three-table report above supersedes it for the close.
+
+**Step C1 — Write evidence file and self-commit.**
+
 Write evidence to `{stm_base}/{issue}/evidence/refactor/play-evidence.md` containing:
 - Target scope and restructuring goal
 - Baseline metrics (test count, runtime, type-check, lint)
@@ -823,6 +858,10 @@ Present summary to user:
 
 Invoke `repo-orchestrator` to self-commit evidence files (ADR 012). Non-blocking on
 failure. Commit message: `chore(stm): record garura:refactor evidence for #{issue} (#{issue})`.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Pause and Resume
 
@@ -898,3 +937,5 @@ have produced a commit) and re-execute.
 | step_evals | 22 (SE-1 through SE-22, covering F1-F12 and C4-C13) |
 | scenario_evals | 6 (SCE-1 through SCE-6, covering S1-S6) |
 | constraints_covered | C1 (structural), C2 (pre-flight), C3 (pre-flight), C4-C13 (artifact-verifiable), C14 (structural) |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence/return-struct/commit logic preserved as the C1 slot fill; C2 runtime-gated by parent_run_id for sub-play use. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

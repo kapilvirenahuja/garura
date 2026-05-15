@@ -191,6 +191,39 @@ Owner: play + `repo-orchestrator` (utility)
 Depends on: Step 3 (Tether)
 Task: `TaskUpdate [T4] → in_progress` before. `TaskUpdate [T4] → completed` after.
 
+This run closes with the **Standard Play Close**. reap is run directly by the
+user (`/reap <issue>`) — it is not a sub-play.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# reap is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/reap/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/reap/evidence.yaml"
+```
+
+**Step C2 — Delivery report.** **Skipped when `parent_run_id` is present in
+the input contract** (sub-play use — the parent's close report absorbs it);
+**emitted when reap is run directly by the user** (no `parent_run_id` — the
+normal path). C2 is never gated by `evidence.record`. Fill
+`delivery-report.md` and output it to the user:
+- `## Reap Delivered — #{issue}`
+- Run Summary: Play `reap`, Issue `#{issue}`, Status, Started (per the
+  started_at precedence in play-close.md), Completed (now).
+- Pipeline Steps: derived from reap's task DAG ([T1]..[T4]). Status
+  PASS/SKIP/FAIL per task state; Key Output best-effort.
+- Artifacts Produced: `proposals.yaml` path, `adr-drafts/` (if Tier 1
+  findings), evidence file pointer, self-commit SHA (or `N/A — commit
+  failed`).
+- Next Steps: only real follow-ons (e.g. `/garura:enrich {issue}` to promote
+  approved proposals). Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}`.
+
+**Step C1 — Write evidence file and self-commit.**
+
 Write evidence file to `{stm_base}/{issue}/evidence/reap/evidence.yaml`:
 
 ```yaml
@@ -251,6 +284,10 @@ Non-blocking: if `repo-orchestrator` fails, log warning in evidence and exit cle
 **Step 4 Eval — SE-9 (C13, F1):**
 - `proposals.yaml` exists at `{stm_base}/{issue}/evidence/reap/proposals.yaml` regardless of whether the self-commit succeeded.
 - Evidence file exists at `{stm_base}/{issue}/evidence/reap/evidence.yaml`.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ---
 
@@ -330,3 +367,5 @@ for each step in compiled order:
 | utility_agents | 1 (repo-orchestrator — evidence self-commit, exempt from ≤5 budget) |
 | step_evals | 9 (SE-1 through SE-9) |
 | scenario_evals | 6 (SCE-1 through SCE-6) |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence/return-struct/commit logic preserved as the C1 slot fill; C2 runtime-gated by parent_run_id for sub-play use. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

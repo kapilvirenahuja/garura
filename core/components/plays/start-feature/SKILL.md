@@ -252,6 +252,42 @@ Only the scenario matching the current input pattern is evaluated. Others are sk
 Owner: play
 Depends on: Step 5
 
+This run closes with the **Standard Play Close**. start-feature is run
+directly by the user (`/start-feature`) — it is not a sub-play.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# start-feature is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/start-feature/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/start-feature/${ts}.md"
+```
+
+**Step C2 — Delivery report.** **Skipped when `parent_run_id` is present in
+the input contract** (sub-play use — the parent's close report absorbs it);
+**emitted when start-feature is run directly by the user** (no
+`parent_run_id` — the normal path). C2 is never gated by `evidence.record`.
+Fill `delivery-report.md` and output it to the user:
+- `## Start-Feature Delivered — #{issue}`
+- Run Summary: Play `start-feature`, Issue `#{issue}`, Status, Started (per
+  the started_at precedence in play-close.md), Completed (now).
+- Pipeline Steps: derived from start-feature's task DAG. Status
+  PASS/SKIP/FAIL per task state; Key Output best-effort (issue #, branch
+  name).
+- Artifacts Produced: resolved issue, feature branch, STM directory, evidence
+  file pointer, self-commit SHA (or `N/A — commit failed`).
+- Next Steps: e.g. begin work, or `/start-feature-planning` for a planned
+  approach. Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}`.
+
+The legacy summary below is preserved; the canonical three-table report above
+supersedes it for the close.
+
+**Step C1 — Write evidence file and self-commit.**
+
 Write evidence to `{stm_base}/{issue}/evidence/start-feature/{YYYYMMDD-HHMMSS}.md` containing:
 - Input pattern used
 - Issue resolution result (number, title, created/resolved, confidence)
@@ -273,6 +309,10 @@ Ready to work.
 ```
 
 Invoke `repo-orchestrator` to self-commit evidence files (ADR 012). Non-blocking on failure.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Pause and Resume
 
@@ -327,3 +367,5 @@ for each step in compiled order:
 | agents | 2 (project-orchestrator, repo-orchestrator) |
 | step_evals | 10 (after Steps 2, 3, 4) |
 | scenario_evals | 5 (S1-S5, context-selected) |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence/return-struct/commit logic preserved as the C1 slot fill; C2 runtime-gated by parent_run_id for sub-play use. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

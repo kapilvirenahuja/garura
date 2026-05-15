@@ -245,6 +245,43 @@ Depends on: Step 3
 Owner: play
 Depends on: Step 4
 
+This run closes with the **Standard Play Close**. capture is fixed-slug
+scoped (`capture-report`) — it has no per-issue STM; its evidence lands under
+`{stm_base}/capture-report/evidence/capture/`.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# capture is fixed-slug scoped (no per-issue STM):
+#   evidence_base="{stm_base}/capture-report/evidence/capture/"   ;   slug="capture-report"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/capture-report/evidence/capture/${ts}.md"
+```
+
+**Step C2 — Delivery report.** capture is frequently invoked by another play
+or an agent caller. **Skip C2 when `parent_run_id` is present in the input
+contract** (running as a sub-play / dispatched caller — the parent absorbs the
+returned dispatch confirmation); **emit C2 when capture is run directly by the
+user** (no `parent_run_id`). C2 is never gated by `evidence.record`. Fill
+`delivery-report.md` and output it to the user:
+- `## Capture Delivered — capture-report` (surface the filed issue number in
+  the Run Summary when `issue-result.yaml` records one).
+- Run Summary: Play `capture`, Slug `capture-report` (Issue `#{filed}` when
+  known), Status, Started (per the started_at precedence in play-close.md),
+  Completed (now).
+- Pipeline Steps: derived from capture's task DAG (format-capture,
+  dispatch-filing, return-confirmation, scenario-evals, write-evidence).
+  Status PASS/SKIP/FAIL per task state; Key Output best-effort.
+- Artifacts Produced: filed issue URL/number (or fallback markdown file path
+  on gh failure), dispatch record, evidence file pointer, self-commit SHA (or
+  `N/A — commit failed`).
+- Next Steps: only real follow-ons. Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}`.
+
+**Step C1 — Write evidence file and self-commit.**
+
 Write evidence summary to `{stm_base}/capture-report/evidence/capture/{YYYYMMDD-HHMMSS}.md` containing:
 - Resolved type and source (explicit / inferred / human-confirmed)
 - Title and label applied
@@ -254,6 +291,10 @@ Write evidence summary to `{stm_base}/capture-report/evidence/capture/{YYYYMMDD-
 - Any fallback or failure notes
 
 Invoke `repo-orchestrator` to self-commit evidence files (ADR 012). Non-blocking on failure.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Pause and Resume
 
@@ -298,3 +339,5 @@ Because dispatch-filing runs in background, the play records the dispatch stub a
 | utility_agents | 1 (repo-orchestrator) |
 | step_evals | 12 (SE-1 through SE-12) |
 | scenario_evals | 6 (SCE-1 through SCE-6) |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence/return-struct/commit logic preserved as the C1 slot fill; C2 runtime-gated by parent_run_id for sub-play use. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

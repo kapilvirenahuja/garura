@@ -822,7 +822,43 @@ Depends on: Step 15
 
 ### Phase: Evidence & Close
 
-**Step 17 — Write Evidence and Report**
+This phase closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts), not
+prose. See `standards/rules/play-close.md`.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# enhance is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/enhance/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/enhance/${ts}.md"
+```
+
+**Step C2 — Delivery report (ALWAYS — skip only when running as a sub-play,
+i.e. `parent_run_id` present).** Fill `delivery-report.md` and output it to the
+user. Do NOT hand-author prose:
+- `## Enhance Delivered — #{issue}`
+- Run Summary: Play `enhance`, Issue `#{issue}`, Status (COMPLETE | PARTIAL |
+  FAILED), Started (per the started_at precedence in play-close.md), Completed
+  (now). Add Problem (summary), Solution (summary), Judge Confidence.
+- Pipeline Steps: derived from enhance's task DAG (the status-file tasks
+  sequence) — Discover Issue (SKIP when not Path B), Validate Issue, Create
+  Branch, Q&A Discovery, Context Assembly, Scope Gate, Approach Design,
+  Mid-Checkpoint, Risk Checkpoint (SKIP when not triggered), Derive Contexts,
+  Implement, Verify, Judge Rating, Judge Gate, Quality Check, Commit + PR, PR
+  Review, PR Checkpoint, Ship, Evidence. Status PASS/SKIP/FAIL per task state;
+  Key Output best-effort (judge confidence, PR #, merge SHA, branch status).
+- Artifacts Produced: approach.yaml, build-report.yaml,
+  verification-report.yaml, judge-report.yaml, quality-report.yaml, PR URL,
+  merge SHA, branch deletion status, self-commit SHA (if any), and the evidence
+  file pointer.
+- Next Steps: only real follow-ons. Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}`.
+
+**Step 17 — Write Evidence and Report — C1**
 Owner: play
 Depends on: Step 16
 
@@ -838,20 +874,8 @@ Write delivery record to `{stm_base}/{issue}/evidence/enhance/{YYYYMMDD-HHMMSS}.
 - Step eval results (SE-1 through SE-18, including SE-9b, SE-10b)
 - Scenario eval results (SCE-1 through SCE-8)
 
-Present final report to user:
-
-```markdown
-## Enhancement Delivered: #{issue} — {title}
-
-**Problem:** {problem_statement}
-**Solution:** {solution_summary}
-**Judge Confidence:** {score}/1.0
-**PR:** {pr_url} (merged)
-**Merge SHA:** {sha}
-**Branch:** enhance/{issue}-{slug} (deleted)
-
-All step evals passed. Enhancement is merged to main.
-```
+The user-facing summary is emitted by Step C2 above (canonical three-table
+delivery report) — do NOT hand-author a separate prose summary here.
 
 Invoke `repo-orchestrator` to self-commit evidence files:
 
@@ -870,6 +894,10 @@ Invoke `repo-orchestrator` to self-commit evidence files:
 Task: "Stage and commit only the listed evidence files with message `chore(stm): record enhance evidence for #{issue}`."
 
 **Non-blocking:** if commit fails, log warning — do NOT halt.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Recovery
 
@@ -947,3 +975,5 @@ for each step in compiled order:
 | scenario_evals | 9 (SCE-1 through SCE-9) |
 | constraints_covered | C1-C23 (all 23) |
 | failure_conditions_covered | F1-F15 (all 15) |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/sweep/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

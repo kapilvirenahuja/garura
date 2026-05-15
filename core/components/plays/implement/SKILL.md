@@ -923,7 +923,41 @@ Remove `## Active Implementation` from CLAUDE.md. Archive CONTEXT.md and TEST-CO
 
 ---
 
-**Step 16 — Write Evidence**
+This milestone closes with the **Standard Play Close** — the user-facing report
+is the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
+not prose. See `standards/rules/play-close.md`.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# implement is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/implement/{milestone_id}/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="${evidence_dir}/${ts}.md"
+```
+
+**Step C2 — Delivery report (ALWAYS — skip only when running as a sub-play,
+i.e. `parent_run_id` present).** Fill `delivery-report.md` and output it to the
+user. Do NOT hand-author prose:
+- `## Implement Delivered — #{issue} (Milestone {milestone_id})`
+- Run Summary: Play `implement`, Issue `#{issue}`, Status (COMPLETE | PARTIAL |
+  FAILED), Started (per the started_at precedence in play-close.md), Completed
+  (now). Add Milestone, Scope Items count, Quality status, Judge pass rate.
+- Pipeline Steps: derived from implement's task DAG — Build CONTEXT.md,
+  Generate Evals, Execution (per-scope cycles), Integration Tests,
+  Quality-Audit, Judge EVAL-REVIEW, Outer Fix Loop (SKIP when not run), Write
+  Status Report, Write Evidence. Status PASS/SKIP/FAIL per task state; Key
+  Output best-effort (quality CERTIFIED, judge pass rate, commit SHA).
+- Artifacts Produced: status-report.yaml, quality-report-{milestone_id}.yaml,
+  judge-report-{milestone_id}.yaml, test-files-manifest.yaml, self-commit SHA
+  (if any), and the evidence file pointer.
+- Next Steps: only real follow-ons (e.g., "Run validate for milestone
+  {milestone_id}"). Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}`.
+
+**Step 16 — Write Evidence — C1**
 Owner: orchestrator
 
 Write evidence to `{evidence_dir}/{YYYYMMDD-HHMMSS}.md`:
@@ -966,23 +1000,17 @@ Write evidence to `{evidence_dir}/{YYYYMMDD-HHMMSS}.md`:
 | SCE-13 | Engineer | {PASS/FAIL/SKIP} |
 ```
 
-Present:
-
-```markdown
-## implement complete — Milestone {milestone_id}
-
-**Milestone:** {milestone_id}
-**Quality:** CERTIFIED
-**Judge:** {pass_rate}
-**Fix Iterations:** {count}
-
-Milestone is ready for validate.
-```
+The user-facing summary is emitted by Step C2 above (canonical three-table
+delivery report) — do NOT hand-author a separate prose summary here.
 
 ---
 
-**Step 17 — Self-Commit Evidence**
+**Step 17 — Self-Commit Evidence — C1 (commit)**
 Owner: `repo-orchestrator` (non-blocking)
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ---
 
@@ -1089,3 +1117,5 @@ Conditional: SCE-2/SCE-5 skip if no fix loop. SCE-6 skip if no performance gates
 | failure_conditions_covered | F1-F26 (all 26) |
 | fix_loop_max | 3 per-scope-item cycles + 3 outer iterations |
 | output_artifacts | status-report.yaml, quality-report.yaml, judge-report.yaml |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/sweep/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

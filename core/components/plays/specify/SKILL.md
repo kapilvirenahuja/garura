@@ -625,11 +625,57 @@ After all steps complete, run the scenario evals. These are E2E checks against t
 
 ## Evidence & Close
 
-**Step 14 — Write evidence and self-commit**
+**Step 14 — Standard Play Close**
 Owner: play
 Depends on: all scenario evals pass
 
-Dispatch scriber to write evidence file: `{product_base}/_evidence/specify/{YYYYMMDD-HHMMSS}.md` with:
+This run closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
+not prose. See `standards/rules/play-close.md`. specify's existing scriber
+evidence dispatch and repo-orchestrator self-commit are preserved as the C1
+slot fill.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# specify is PRODUCT-scoped:
+#   evidence_base="{product_base}_evidence/specify/"   ;   slug="${product_slug}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{product_base}_evidence/specify/${ts}.md"
+```
+
+**Step 14a — C2 Delivery report (ALWAYS — never gated; skip only when running
+as a sub-play, i.e. `parent_run_id` present).** Fill `delivery-report.md` and
+output it to the user:
+- `## Specify Delivered — ${product_slug}`
+- Run Summary: Play `specify`, Slug `${product_slug}`, Status (COMPLETE |
+  PARTIAL | FAILED), Started (per the started_at precedence in
+  play-close.md), Completed (now).
+- Pipeline Steps: derived from specify's own steps (its Task DAG) —
+  Step 1 Market Research, Step 2 Market Review checkpoint, Step 3 Select
+  domains, Step 4 Domain Review checkpoint, Step 5 Verify/author MVP
+  recommendation, Step 6 Configure capabilities, Step 6a Surface
+  configure-capabilities decisions, Step 7 Capability Review checkpoint,
+  Step 8 Enrich capabilities, Step 8a Surface enrich decisions, Step 9
+  Generate intent epics, Step 9a Surface epic-gen decisions, Step 10
+  Validate intent epics, Step 11 Pre-lock resolution gate, Step 12 Epic
+  Review checkpoint, Step 13 Derive quality profile, Step 13a Surface
+  quality-profile decisions. Status PASS/SKIP/FAIL per task state; Key
+  Output best-effort (artifact path or `—`).
+- Artifacts Produced: market brief, mvp-recommendation, domain-selection,
+  product/research copies, scope, enriched capabilities, epics dir, quality
+  profile, all 4 decision manifests, plus the self-commit SHA and the
+  evidence file pointer.
+- Next Steps: only real follow-ons (e.g. design / arch consume these
+  artifacts). Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}` — or the
+  literal `evidence skipped (record=false)` when C1 is gated off.
+
+**Step 14b — C1 Evidence file + self-commit.**
+
+Dispatch scriber to write evidence file at `{product_base}/_evidence/specify/{YYYYMMDD-HHMMSS}.md` with:
 - Product idea and profile summary
 - List of artifacts produced (market brief, mvp-recommendation, domain-selection, product/research copies, scope, enriched capabilities, epics dir, quality profile, all 4 decision manifests)
 - Step eval results (SE-1 through SE-27)
@@ -665,7 +711,11 @@ Invoke `repo-orchestrator` to self-commit the STM + product artifacts per ADR 01
 }
 ```
 
-**Non-blocking:** if commit fails (pre-commit hook, etc.), log a warning and continue — evidence is still written to disk.
+**Non-blocking:** if the evidence write or commit fails (pre-commit hook, etc.), log a warning and continue — the run still closes and C2 is still emitted.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Pause and Resume
 
@@ -737,3 +787,5 @@ Stage `stage-2-75-mvp-recommendation` is a play-owned verify step — on resume,
 - **D9 — MVP recommendation location under scope/.** `scope/mvp-recommendation.md` (not `specification/`) per rules/product.md Rule 13 and ADR 017 whitelist (updated separately).
 
 All earlier in-place edits to this compiled SKILL.md are now SUPERSEDED. The only source of truth is `intent.yaml` → `/create-play --rebuild specify`. Edit intent.yaml and re-run the rebuild for any future change to this play. The stored `intent_hash` matches `shasum -a 256` of the current `intent.yaml` byte-for-byte.
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/scriber/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

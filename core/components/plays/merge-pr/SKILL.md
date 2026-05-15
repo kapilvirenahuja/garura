@@ -125,14 +125,45 @@ If either scenario eval fails: log failure in evidence, present to user. Do not 
 Owner: play
 Depends on: Step 2
 
-Read the `evidence.record` flag from `.garura/core/config.yaml`. Default to `true` when key is absent:
+This run closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
+not prose. See `standards/rules/play-close.md`.
 
 ```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# merge-pr is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/merge-pr/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/merge-pr/${ts}.md"
+
+# Resolve evidence.record (default true when absent)
 evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
 evidence_record=${evidence_record:-true}
 ```
 
-Present summary to user. Always — regardless of flag value.
+**Step 3a — C2 Delivery report.** merge-pr runs mostly as a sub-play of
+`ship`. **Skip C2 when `parent_run_id` is present in the input contract**
+(running as a sub-play — ship's close report absorbs a compact result struct);
+**emit C2 when merge-pr is run directly by the user** (no `parent_run_id`).
+C2 is ALWAYS emitted when run directly — never gated by `evidence.record`.
+Fill `delivery-report.md` and output it to the user:
+- `## Merge-Pr Delivered — #{issue}`
+- Run Summary: Play `merge-pr`, Issue `#{issue}`, Status (COMPLETE | PARTIAL |
+  FAILED), Started (per the started_at precedence in play-close.md),
+  Completed (now).
+- Pipeline Steps: derived from merge-pr's task DAG — Execute Merge, Scenario
+  Evals, Write Evidence. Status PASS/SKIP/FAIL per task state; Key Output
+  best-effort (PR #, merge SHA, branch deletion status).
+- Artifacts Produced: PR number, merge SHA, branch deletion status, and the
+  evidence file pointer.
+- Next Steps: only real follow-ons. Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}` — or the
+  literal `evidence skipped (record=false)` when C1 is gated off.
+
+**Step 3b — C1 Evidence file (gated by `evidence.record`).**
 
 If `evidence.record` is `true` (or absent):
 - Write evidence to `{stm_base}/{issue}/evidence/merge-pr/{YYYYMMDD-HHMMSS}.md` containing:
@@ -145,10 +176,15 @@ If `evidence.record` is `true` (or absent):
 
 If `evidence.record` is `false`:
 - Skip evidence file — do not write
+- Record `evidence skipped (record=false)` in the C2 pointer line
 
 `merge-result.yaml` (written by repo-orchestrator in Step 1) is never affected — written unconditionally.
 
 Evidence files are committed by ship's final sweep (C9).
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Pause and Resume
 
@@ -201,3 +237,5 @@ for each step in compiled order:
 | scenario_evals | 2 (SCE-1, SCE-2) |
 
 **Direct-edit deviation note (#346):** evidence.record config gate added to Step 3 (Write Evidence) as a direct edit. merge-result.yaml is unconditional. No intent.yaml update required.
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence/return-struct/commit logic preserved as the C1 slot fill; C2 runtime-gated by parent_run_id for sub-play use. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

@@ -238,18 +238,31 @@ Depends on: Step 5
 
 ### Phase: Evidence & Close
 
-**Step 7 — Write Evidence**
+**Step 7 — Standard Play Close**
 Owner: play
 Depends on: Step 6
 
-Read the `evidence.record` flag from `.garura/core/config.yaml`. Default to `true` when key is absent:
+commit-code closes with the canonical Standard Play Close (see
+`standards/rules/play-close.md`). It normally runs as a sub-play of `ship`.
 
 ```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# commit-code is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/commit-code/"  ;  slug="#{issue}"
 evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
 evidence_record=${evidence_record:-true}
 ```
 
-Present summary to user. Always — regardless of flag value.
+**C2 — Delivery report (ALWAYS; skip only when `parent_run_id` present →
+running as a sub-play of ship, the normal path).** When run directly, fill
+`delivery-report.md` and present it to the user: Run Summary, Pipeline Steps
+from commit-code's task DAG (Preparation, Checkpoint, Execution), Artifacts
+Produced (commits created, branch), Next Steps. When invoked by ship
+(`parent_run_id` present), skip the full report — ship's close report absorbs
+it — but still present the brief summary line. The summary is presented
+regardless of the `evidence.record` flag value.
+
+**C1 — Evidence (gated by `evidence.record`).**
 
 If `evidence.record` is `true` (or absent):
 - Write delivery record to `{stm_base}/{issue}/evidence/commit-code/{YYYYMMDD-HHMMSS}.md`
@@ -262,6 +275,10 @@ If `evidence.record` is `false`:
 Evidence files are committed by ship's final sweep (C9).
 
 `analysis.yaml` and `issue-mappings.yaml` are never affected by this flag — they are written unconditionally in Steps 1 and 2.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 **Step 7 Eval:**
 - **SE-9 (C10):** When evidence.record is false in .garura/core/config.yaml, the delivery record ({YYYYMMDD-HHMMSS}.md) is not written and the status file (commit-code.json) is not written. The user summary is presented regardless of flag value. When evidence.record is true (or absent), both writes proceed as before. analysis.yaml and issue-mappings.yaml are unconditional in both cases.
@@ -317,3 +334,5 @@ for each step in compiled order:
 | step_evals | 9 (SE-1 through SE-9, after Steps 1, 2, 5, 8) |
 | scenario_evals | 5 (SCE-1 through SCE-5) |
 | constraints_covered | C1-C10 (all 10) |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. The existing `evidence.record` gate, the ship-C9-sweep commit note, the unconditional analysis.yaml/issue-mappings.yaml note, and the SE-9 step eval are all preserved as the C1 slot fill / step eval. C2 is runtime-gated by `parent_run_id` (commit-code normally runs as a ship sub-play). Non-intent format change — no constraint/failure/scenario/eval text altered, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

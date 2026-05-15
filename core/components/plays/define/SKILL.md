@@ -588,7 +588,14 @@ TaskUpdate T12 → in_progress → completed.
 
 Per C16, both user-facing surfaces emitted here are loaded from LTM templates — never inlined as prose (F10).
 
-**Step 13a — Write evidence file (C16 phase-10-evidence-file).**
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# define already conforms in substance: Step 13a = C1 (evidence-file.md,
+# evidence.record-gated), Step 13b = C2 (delivery-report.md, always). These
+# anchors make that explicit and satisfy the corpus close-block lint rule.
+```
+
+**Step 13a — Write evidence file (C16 phase-10-evidence-file) — this is C1.**
 
 ```bash
 evidence_template_path="${ltm_project_target}standards/templates/evidence-file.md"
@@ -630,6 +637,10 @@ delivery_template=$(cat "$delivery_template_path")
 Update `{stm_base}{issue}/status/define.json` → terminal phase marked `completed`. The commit from Phase 10 already persisted the evidence; this step just finalizes the status file and surfaces the delivery report.
 
 TaskUpdate T13 → in_progress → completed.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Pause and Resume
 
@@ -693,3 +704,5 @@ Phase 0 is idempotent — on resume with a completed status, the issue number is
 | templates_loaded | `standards/templates/checkpoint.md` (phase 5 + phase 9), `standards/templates/approval-prompt.md` (phase 5 + phase 9), `standards/templates/delivery-report.md` (phase 10), `standards/templates/evidence-file.md` (phase 10), plus `standards/templates/github-issue.md` via `manage-issue` in phase 0 |
 
 The stored `intent_hash` matches `shasum -a 256` of the current `intent.yaml` byte-for-byte. If intent.yaml changes, re-run `/create-play --rebuild define` — never hand-edit this compiled file.
+
+**Direct-edit deviation note (play-close standardization, #371):** the Standard Play Close anchor pair was added around the existing Step 13a/13b close (which already loaded `evidence-file.md` + `delivery-report.md` per C16) to satisfy the corpus-wide close-block lint rule. Behavior unchanged — no constraint/failure/scenario/eval touched, no intent.yaml change. `/create-play` is converged (G12) to reproduce the standard close block, so the next `/create-play --build define` regenerates this region consistently rather than clobbering it.

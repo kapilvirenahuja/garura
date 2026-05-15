@@ -369,12 +369,44 @@ Depends on: Step 5
 Owner: play → `repo-orchestrator` (utility)
 Depends on: Step 6
 
-Read the `evidence.record` flag from `.garura/core/config.yaml`. Default to `true` when key is absent:
+This run closes with the **Standard Play Close**. review-pr runs mostly as a
+sub-play of `ship` (the conditional quality gate).
 
 ```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# review-pr is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/review-pr/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/review-pr/${ts}.md"
+
+# Read evidence.record flag (default true when key absent)
 evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
 evidence_record=${evidence_record:-true}
 ```
+
+**Step 7a — C2 Delivery report.** review-pr runs mostly as a sub-play of
+`ship`. **Skip C2 when `parent_run_id` is present in the input contract**
+(running as a sub-play — ship's close report absorbs a compact result struct);
+**emit C2 when review-pr is run directly by the user** (no `parent_run_id`).
+C2 is ALWAYS emitted when run directly — never gated by `evidence.record`.
+Fill `delivery-report.md` and output it to the user:
+- `## Review-Pr Delivered — #{issue}`
+- Run Summary: Play `review-pr`, Issue `#{issue}`, Status, Started (per the
+  started_at precedence in play-close.md), Completed (now).
+- Pipeline Steps: derived from review-pr's task DAG. Status PASS/SKIP/FAIL
+  per task state; Key Output best-effort (PR #, routing decision,
+  confidence).
+- Artifacts Produced: `findings.yaml`, `confidence.yaml`, `reviewers.yaml`,
+  PR comment ID, evidence file pointer, self-commit SHA (or `N/A — commit
+  failed`).
+- Next Steps: only real follow-ons. Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}` — or the
+  literal `evidence skipped (record=false)` when C1 is gated off.
+
+**Step 7b — C1 Evidence file and self-commit (gated by `evidence.record`).**
 
 If `evidence.record` is `true` (or absent):
 
@@ -405,8 +437,13 @@ Task: "Stage and commit only the listed evidence files for review-pr with messag
 If `evidence.record` is `false`:
 - Skip evidence file — do not write
 - Skip self-commit — nothing to commit
+- Record `evidence skipped (record=false)` in the C2 pointer line
 
 The PR comment posted to GitHub is unconditional — only the local STM evidence file is suppressed.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Recovery
 
@@ -467,3 +504,5 @@ for each step in compiled order:
 | skills | quality-check-scoped |
 
 **Direct-edit deviation note (#346):** evidence.record config gate added to Step 7 (Write Evidence and Self-commit) as a direct edit. The PR comment on GitHub is unconditional — only the local STM evidence file and self-commit are suppressed when false. No intent.yaml update required.
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence/return-struct/commit logic preserved as the C1 slot fill; C2 runtime-gated by parent_run_id for sub-play use. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

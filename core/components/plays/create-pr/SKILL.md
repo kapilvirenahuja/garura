@@ -232,24 +232,61 @@ Depends on: Step 5
 Owner: play
 Depends on: Step 6
 
-Read the `evidence.record` flag from `.garura/core/config.yaml`. Default to `true` when key is absent:
+This run closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
+not prose. See `standards/rules/play-close.md`.
 
 ```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# create-pr is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/create-pr/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/create-pr/${ts}.md"
+
+# Resolve evidence.record (default true when absent)
 evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
 evidence_record=${evidence_record:-true}
 ```
 
-Present PR summary to user (PR URL, number, title, checklist counts, eval summary). Always — regardless of flag value.
+**Step 7a — C2 Delivery report.** create-pr runs mostly as a sub-play of
+`ship`. **Skip C2 when `parent_run_id` is present in the input contract**
+(running as a sub-play — ship's close report absorbs a compact result struct);
+**emit C2 when create-pr is run directly by the user** (no `parent_run_id`).
+C2 is ALWAYS emitted when run directly — never gated by `evidence.record`.
+Fill `delivery-report.md` and output it to the user:
+- `## Create-Pr Delivered — #{issue}`
+- Run Summary: Play `create-pr`, Issue `#{issue}`, Status (COMPLETE | PARTIAL
+  | FAILED), Started (per the started_at precedence in play-close.md),
+  Completed (now).
+- Pipeline Steps: derived from create-pr's task DAG — Analyze PR Readiness,
+  Resolve Issue Linkage, Create PR (and any later steps in the compiled
+  order). Status PASS/SKIP/FAIL per task state; Key Output best-effort
+  (PR URL, PR number, checklist counts).
+- Artifacts Produced: PR URL/number, linked issue, and the evidence file
+  pointer.
+- Next Steps: only real follow-ons. Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}` — or the
+  literal `evidence skipped (record=false)` when C1 is gated off.
+
+**Step 7b — C1 Evidence file (gated by `evidence.record`).**
 
 If `evidence.record` is `true` (or absent):
 - Write evidence to `{stm_base}/{issue}/evidence/create-pr/{YYYYMMDD-HHMMSS}.md`
 
 If `evidence.record` is `false`:
 - Skip evidence file — do not write
+- Record `evidence skipped (record=false)` in the C2 pointer line
 
 The PR itself is created unconditionally. Only the local STM evidence file is suppressed.
 
 Evidence files are committed by ship's final sweep (C9).
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Pause and Resume
 
@@ -302,3 +339,5 @@ for each step in compiled order:
 | scenario_evals | 2 (SCE-1, SCE-2) |
 
 **Direct-edit deviation note (#346):** evidence.record config gate added to Step 7 (Write Evidence) as a direct edit. The intent of the play is unchanged — this is a config-driven suppression of the local STM evidence file write only. No intent.yaml update required.
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence/return-struct/commit logic preserved as the C1 slot fill; C2 runtime-gated by parent_run_id for sub-play use. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

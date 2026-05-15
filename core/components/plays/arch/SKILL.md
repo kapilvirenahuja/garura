@@ -621,9 +621,54 @@ Run SCE-1 through SCE-7 from `evals.yaml`. Each scenario eval validates the five
 
 ## Evidence & Close
 
-**Step 8 — Write evidence and self-commit**
+**Step 8 — Standard Play Close**
 Owner: play
 Depends on: Step 7 (all scenario evals passed)
+
+This run closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
+not prose. See `standards/rules/play-close.md`. arch's existing scriber
+`write_evidence` dispatch and repo-orchestrator self-commit are preserved as
+the C1 slot fill.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# arch is PRODUCT-scoped:
+#   evidence_base="{product_base}_evidence/arch/"   ;   slug="${product_slug}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved
+# (this play already resolves ltm_base at pre-flight).
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{product_base}_evidence/arch/${ts}.md"
+```
+
+**Step 8a — C2 Delivery report (ALWAYS — never gated; skip only when running
+as a sub-play, i.e. `parent_run_id` present).** Fill `delivery-report.md` and
+output it to the user:
+- `## Arch Delivered — ${product_slug}`
+- Run Summary: Play `arch`, Slug `${product_slug}`, Status (COMPLETE |
+  PARTIAL | FAILED), Started (per the started_at precedence in
+  play-close.md), Completed (now).
+- Pipeline Steps: derived from arch's own steps (its Task DAG) — Stage 1
+  Derive logical-architecture (Step 1) + Surface (1b) + Checkpoint 1 (1c),
+  Stage 2 Derive physical-architecture (2) + Surface (2b) + Checkpoint 2
+  (2c), Stage 3 Derive nfr-spec (3) + Surface (3b) + Checkpoint 3 (3c),
+  Stage 4 Derive quality-vision (4) + Surface (4b) + Checkpoint 4 (4c),
+  Stage 5 Derive design-patterns (5) + Surface (5b) + Checkpoint 5 (5c),
+  Step 6 Validate the five-artifact package, Step 7 Scenario evals. Status
+  PASS/SKIP/FAIL per task state; Key Output best-effort (artifact path or
+  `—`).
+- Artifacts Produced: the five architecture artifacts (logical, physical,
+  nfr-spec, quality-vision, design-patterns), five decision manifests,
+  validation-result.yaml, plus the self-commit SHA and the evidence file
+  pointer.
+- Next Steps: only real follow-ons (e.g. prepare/implement consume the
+  architecture package). Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}` — or the
+  literal `evidence skipped (record=false)` when C1 is gated off.
+
+**Step 8b — C1 Evidence file + self-commit.**
 
 Dispatch scriber:
 
@@ -671,7 +716,11 @@ Invoke `repo-orchestrator` to self-commit per ADR 012:
 }
 ```
 
-**Non-blocking:** if commit fails, log warning and continue.
+**Non-blocking:** if the evidence write or commit fails, log warning and continue — the run still closes and C2 is still emitted.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Pause and Resume
 
@@ -727,3 +776,5 @@ Invoke `repo-orchestrator` to self-commit per ADR 012:
 | artifact_verifiable_constraints | C3 (V3 + V5), C4 (V19), C5 (V4), C6 (V9 + V20), C7 (V10 + V11), C8 (V12), C9 (V13), C10 (V17 + V18), C16 (V6 + V14), C17 (V7) |
 | coverage_notes | F1 → SE-1 (V1/V2). F2 → SE-2 (V5). F3 → SE-3 (V3). F4 → SE-4 (V19). F5 → SE-5 (V4). F6 → SE-6 (V9 + V20). F7 → SE-7 (V10 + V11). F8 → SE-8 (V12). F9 → SE-9 (V13). F10 → SE-10 (V17 + V18). F11 → SE-11 (checkpoint files). F12 → SE-12 (whitelist + scriber). F13 → SE-13 (no code). F14 → SE-14 (multi-candidate manifest). F15 → SE-15 (V6 + V14). F16 → SE-16 (V7). F17 → SE-17 (V8). F18 → SE-18 (V15 + V16). F19 → SE-19 (V15 + manifest existence). All 19 failure conditions and all 7 scenarios mapped; coverage matrix at `{stm_base}214/evidence/create-play/arch/coverage-matrix.md`. |
 | rebuild_defect | 5-artifact landing — collapses prior 2-file shape into intent v0.3.0 canonical 5-artifact contract; preserves D11 Phase A grounding + source-type discipline and D23 DSD/manifest emission across all five manifests |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/scriber/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

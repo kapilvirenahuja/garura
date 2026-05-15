@@ -122,7 +122,45 @@ catch any error:
 
 ## Evidence & Close
 
-Evidence files are committed by ship's final sweep (C9). Distill writes proposals.yaml to STM and returns — no self-commit step.
+This run closes with the **Standard Play Close**. Distill is a fire-and-forget
+sub-play of `ship` — it is almost always invoked with `parent_run_id` in its
+input contract.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# distill is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/distill/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/distill/${ts}.md"
+```
+
+**Step C1 — Sub-play result (fire-and-forget).** Distill writes
+`proposals.yaml` to `{stm_base}/{issue}/evidence/distill/` and returns the
+outcome struct (see the `## Output` section below) to ship — there is no
+self-commit step. **Evidence files are committed by ship's final sweep (C9).**
+This return-struct is distill's C1-equivalent when running as a sub-play.
+
+**Step C2 — Delivery report.** **Skipped when `parent_run_id` is present in
+the input contract** (the normal path — ship dispatches distill in the
+background and absorbs the returned outcome struct into ship's own close
+report). **Emitted only when distill is run directly by the user** (no
+`parent_run_id`): fill `delivery-report.md` and output it —
+- `## Distill Delivered — #{issue}`
+- Run Summary: Play `distill`, Issue `#{issue}`, Status (COMPLETE | SKIPPED),
+  Started (per the started_at precedence in play-close.md), Completed (now).
+- Pipeline Steps: derived from distill's task DAG. Status PASS/SKIP/FAIL.
+- Artifacts Produced: `proposals.yaml` path (or `none — no_learnings`).
+- End with a pointer to `proposals.yaml`.
+
+Fire-and-forget semantics are unchanged: any failure returns gracefully with
+`status: "skipped"` and never halts ship.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Output
 
@@ -172,3 +210,5 @@ above reflects the updated intent.yaml (sha256:99320d95...) after adding C4. The
 `/create-play --build distill` run will recompile and reconcile the full artifact.
 
 **Direct-edit deviation note (#346):** evidence.record config gate added to pre-flight as a direct edit. When false, distill returns immediately without invoking knowledge-extractor — treated as graceful skip. No intent.yaml update required.
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence/return-struct/commit logic preserved as the C1 slot fill; C2 runtime-gated by parent_run_id for sub-play use. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

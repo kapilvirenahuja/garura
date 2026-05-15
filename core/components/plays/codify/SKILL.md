@@ -563,9 +563,55 @@ Type **Tether** to commit evidence (proposals become visible to /garura:enrich),
 
 ### Phase: Evidence & Close (C17)
 
-**Step 18 — Evidence Self-Commit**
-Owner: `repo-orchestrator`
+**Step 18 — Standard Play Close**
+Owner: `repo-orchestrator` (C1 self-commit) + play (C2 report)
 Depends on: Step 17 (Tether)
+
+This run closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
+not prose. See `standards/rules/play-close.md`. codify's existing
+repo-orchestrator evidence self-commit (its only close action — its
+"evidence" is the proposals tree + proposals.yaml, no scriber summary md is
+authored) is preserved verbatim as the C1 slot fill.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# codify is PROJECT/issue-scoped — its evidence lives under the resolved issue's
+# STM, not product LTM (codify writes ZERO files to {product_base}):
+#   evidence_base="{stm_base}/{issue}/evidence/codify/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/codify/${ts}.md"
+```
+
+**Step 18a — C2 Delivery report (ALWAYS — never gated; skip only when running
+as a sub-play, i.e. `parent_run_id` present).** Fill `delivery-report.md` and
+output it to the user:
+- `## Codify Delivered — #{issue}`
+- Run Summary: Play `codify`, Issue `#{issue}`, Status (COMPLETE | PARTIAL |
+  FAILED), Started (per the started_at precedence in play-close.md),
+  Completed (now).
+- Pipeline Steps: derived from codify's Task DAG (T1–T18) — T1 Resolve/
+  create issue, T2 Codebase scan, T3 Scan-status checkpoint (SKIP when scan
+  complete), T4 Foundation inference, T5 Scope+capabilities+features, T6
+  Epics+research, T7 Quality profile, T8 Logical architecture, T9 Physical
+  architecture, T10 NFR spec, T11 Design patterns, T12 Quality vision, T13
+  Experience (SKIP when no frontend), T14 Schema validation, T15 Aggregate
+  proposals.yaml, T16 Checkpoint Phase 1 (SKIP when no flagged), T17
+  Checkpoint Phase 2, T18 Evidence self-commit. Status PASS/SKIP/FAIL per
+  task state; Key Output best-effort (artifact path or `—`).
+- Artifacts Produced: the proposals tree under
+  `{stm_base}/{issue}/evidence/codify/proposals/`, the master
+  `proposals.yaml` index, scan-index.json, plus the self-commit SHA and the
+  evidence file pointer.
+- Next Steps: `/garura:enrich` is the sole promotion gate that consumes
+  proposals.yaml. Omit only if zero proposals.
+- End with a pointer to the evidence file at `${evidence_dest}` — or the
+  literal `evidence skipped (record=false)` when C1 is gated off.
+
+**Step 18b — C1 Evidence self-commit.**
 
 ```json
 {
@@ -588,10 +634,14 @@ Depends on: Step 17 (Tether)
 
 Task: "Stage and commit only the listed evidence files with the given message."
 
-**Non-blocking (C17):** If commit fails, log warning — do NOT halt. proposals.yaml remains on disk for /garura:enrich.
+**Non-blocking (C17):** If commit fails, log warning — do NOT halt. proposals.yaml remains on disk for /garura:enrich. The run still closes and C2 is still emitted.
 
 **Step 18 Eval:**
 - **SE-18 (C17):** Evidence commit runs after Tether. Commit failure is logged in status file, does not roll back proposals.yaml, does not halt the play.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ---
 
@@ -692,3 +742,5 @@ for each step in compiled order:
 | failure_conditions_covered | F0-F14 (all 15) |
 | new_skills | 18 (scan-codebase, aggregate-codify-proposals, infer-project-profile-from-code, infer-domain-selection-from-code, infer-market-brief-from-code, infer-mvp-recommendation-from-code, infer-scope-from-code, infer-enriched-capabilities-from-code, infer-features-from-code, infer-epics-from-code, infer-research-from-code, infer-quality-profile-from-code, infer-logical-architecture-from-code, infer-physical-architecture-from-code, infer-nfr-spec-from-code, infer-quality-vision-from-code, infer-design-patterns-from-code, infer-experience-from-code) |
 | companion_script | core/components/plays/codify/lib/scan.py |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/scriber/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

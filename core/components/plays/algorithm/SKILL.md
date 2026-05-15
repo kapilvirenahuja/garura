@@ -159,14 +159,44 @@ Owner: play
 Depends on: Step 2 (Tether)
 Task: `TaskUpdate [T3] → in_progress` before writing. `TaskUpdate [T3] → completed` after evidence written.
 
-Present summary to user — always, regardless of `evidence.record` flag.
-
-Read `evidence.record` flag from `.garura/core/config.yaml`. Default to `true` when key is absent:
+This run closes with the **Standard Play Close**. algorithm is run directly by
+the user (`/algorithm`) — it is not a sub-play.
 
 ```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# algorithm is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/algorithm/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/algorithm/${ts}.md"
+
+# Read evidence.record flag (default true when key absent)
 evidence_record=$(grep -A1 '^evidence:' .garura/core/config.yaml | grep 'record:' | awk '{print $2}')
 evidence_record=${evidence_record:-true}
 ```
+
+**Step C2 — Delivery report.** **Skipped when `parent_run_id` is present in
+the input contract** (sub-play use — the parent's close report absorbs it);
+**emitted when algorithm is run directly by the user** (no `parent_run_id` —
+the normal path). C2 is ALWAYS emitted when run directly — never gated by
+`evidence.record`. Fill `delivery-report.md` and output it to the user:
+- `## Algorithm Delivered — #{issue}`
+- Run Summary: Play `algorithm`, Issue `#{issue}`, Status, Started (per the
+  started_at precedence in play-close.md), Completed (now).
+- Pipeline Steps: derived from algorithm's task DAG ([T1]..[T3]). Status
+  PASS/SKIP/FAIL per task state; Key Output best-effort.
+- Artifacts Produced: `reference-algorithms.md` path (or skip notice when no
+  complexity indicators found), evidence file pointer, self-commit SHA (or
+  `N/A — commit failed`).
+- Next Steps: only real follow-ons. Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}` — or the
+  literal `evidence skipped (record=false)` when C1 is gated off.
+
+**Step C1 — Write evidence file and self-commit (gated by `evidence.record`).**
+
+Present summary to user — always, regardless of `evidence.record` flag.
 
 **If `evidence.record` is `true` (or absent):**
 
@@ -212,6 +242,10 @@ Skip evidence file write, status file write, and `repo-orchestrator` self-commit
 - **SE-7 (F7):** The play issues a warning about the incomplete context package but continues to dispatch `draft-reference-algorithms` using only `tech.yaml`. `reference-algorithms.md` is written to the output path.
 - **SE-11 (C14):** When `evidence.record` is `true`: an evidence file exists under the issue's evidence path, a status file exists, and a self-commit was recorded by repo-orchestrator. When `evidence.record` is `false`: none of those three artifacts exist.
 - **SE-13 (C17):** All `status` fields in `plan.yaml` and milestone status files are identical before and after play execution. No new `status` field has been written by the play or skill.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Scenario Validation
 
@@ -273,3 +307,5 @@ for each step in compiled order:
 | constraints | 17 (C1-C17) |
 | failure_conditions | 7 (F1-F7) |
 | scenarios | 4 (S1-S4) |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence/return-struct/commit logic preserved as the C1 slot fill; C2 runtime-gated by parent_run_id for sub-play use. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.
