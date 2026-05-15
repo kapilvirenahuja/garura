@@ -234,6 +234,36 @@ function checkPlay(component) {
     }
   }
 
+  // Standard Play Close block — canonical close, see standards/rules/play-close.md.
+  // Anchors must match byte-for-byte, appear exactly once each, opener before closer.
+  const closeOpener =
+    '# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---';
+  const closeCloser = '# --- end Standard Play Close ---';
+  const openerCount = body.split(closeOpener).length - 1;
+  const closerCount = body.split(closeCloser).length - 1;
+  if (openerCount !== 1 || closerCount !== 1) {
+    violations.push({
+      file: component.file,
+      rule: 'structural/missing-standard-play-close',
+      severity: 'error',
+      message:
+        `Standard Play Close anchors must appear exactly once each ` +
+        `(found opener ${openerCount}, closer ${closerCount}). ` +
+        `See standards/rules/play-close.md.`,
+      line: 1,
+    });
+  } else if (body.indexOf(closeOpener) >= body.indexOf(closeCloser)) {
+    violations.push({
+      file: component.file,
+      rule: 'structural/standard-play-close-order',
+      severity: 'error',
+      message:
+        'Standard Play Close opener anchor must appear before the closer anchor. ' +
+        'See standards/rules/play-close.md.',
+      line: 1,
+    });
+  }
+
   return { violations, spellingUsed };
 }
 
