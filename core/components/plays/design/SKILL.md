@@ -539,11 +539,59 @@ After all steps complete, run the scenario evals (SCE-1..SCE-9). S8 (single-epic
 
 ## Evidence & Close
 
-**Step 11 — Write evidence and self-commit**
+**Step 11 — Standard Play Close**
 Owner: play
 Depends on: all scenario evals pass
 
-Dispatch scriber to write evidence file: `{product_base}_evidence/design/{YYYYMMDD-HHMMSS}.md` with:
+This run closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
+not prose. See `standards/rules/play-close.md`. design's existing scriber
+evidence dispatch and repo-orchestrator self-commit are preserved as the C1
+slot fill.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# design is PRODUCT-scoped:
+#   evidence_base="{product_base}_evidence/design/"   ;   slug="${product_slug}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{product_base}_evidence/design/${ts}.md"
+```
+
+**Step 11a — C2 Delivery report (ALWAYS — never gated; skip only when running
+as a sub-play, i.e. `parent_run_id` present).** Fill `delivery-report.md` and
+output it to the user:
+- `## Design Delivered — ${product_slug}`
+- Run Summary: Play `design`, Slug `${product_slug}`, Status (COMPLETE |
+  PARTIAL | FAILED), Started (per the started_at precedence in
+  play-close.md), Completed (now). Note invocation mode (product-wide /
+  --epic / --feature) and brownfield mode in the summary.
+- Pipeline Steps: derived from design's own steps (its Task DAG) — Step 1
+  Synthesize personas, Step 1a Decision Surfacing (personas), Step 2
+  Persona Review checkpoint, Step 3 Generate screen inventory, Step 3a
+  Decision Surfacing (screens), Step 4 Validate screen coverage, Step 5
+  Screen Inventory Review checkpoint, Step 5b Draft design system, Step
+  5b-a Decision Surfacing (design system), Step 6 Map user flows, Step 6a
+  Decision Surfacing (flows), Step 7 Validate flow coverage, Step 8
+  Generate wireframes, Step 8a Decision Surfacing (wireframes), Step 9
+  Compile design spec, Step 9a Decision Surfacing (design spec), Step 10
+  Final Design Review checkpoint. Status PASS/SKIP/FAIL per task state
+  (gap-only LOCKED-skip stages show SKIP); Key Output best-effort (artifact
+  path or `—`).
+- Artifacts Produced: personas, screens dir, flows dir, design-system.md,
+  design-spec.md, decision manifests, plus the self-commit SHA and the
+  evidence file pointer.
+- Next Steps: only real follow-ons (e.g. arch consumes design-spec.md and
+  experience artifacts; in gap-only mode, list skipped stages). Omit if
+  none.
+- End with a pointer to the evidence file at `${evidence_dest}` — or the
+  literal `evidence skipped (record=false)` when C1 is gated off.
+
+**Step 11b — C1 Evidence file + self-commit.**
+
+Dispatch scriber to write evidence file at `{product_base}_evidence/design/{YYYYMMDD-HHMMSS}.md` with:
 - Product slug + design run summary
 - Invocation mode (product-wide / --epic / --feature) + brownfield mode + skipped stages (if any)
 - Artifacts produced (personas, screens dir, flows dir, design-system.md, design-spec.md)
@@ -575,7 +623,11 @@ Invoke `repo-orchestrator` to self-commit the design-experience artifacts per AD
 }
 ```
 
-**Non-blocking:** if commit fails, log warning and continue.
+**Non-blocking:** if the evidence write or commit fails, log warning and continue — the run still closes and C2 is still emitted.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Pause and Resume
 
@@ -651,3 +703,5 @@ This compiled SKILL.md supersedes the D23 Decision-Surfacing rebuild. It was reg
 **Known agent-audit gap (flagged for parent):** The designer agent (`core/components/agents/designer.md`) does not list `draft-design-system` in its skill pool or intent→skill mapping, and its "Never add visual design elements" boundary is stale vs revised C13. The orchestration layer dispatches `draft-design-system` explicitly via the JSON contract so this does not block rebuild, but the designer agent should be rebaked in a follow-up to land the revised surface. See `.garura/project/issues/305/evidence/create-play/design/agent-audit-designer.md`.
 
 Any prior manual edits to this file are obsolete. Do not hand-edit this file; update `reference/intent.yaml` and re-run `/create-play --rebuild design` for any future change to this play.
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/scriber/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

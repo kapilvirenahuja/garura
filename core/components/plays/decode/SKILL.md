@@ -675,9 +675,61 @@ On Vanish, this step is skipped (temp skills preserved for resume). On `--force-
 
 **Step 22 Eval — SE-20 (F17):** cleanup-report.yaml status = success after Tether; temp-skills/ removed.
 
-**Step 23 — Evidence Self-Commit (C18)**
-Owner: `repo-orchestrator`
+**Step 23 — Standard Play Close (C18)**
+Owner: `repo-orchestrator` (C1 self-commit) + play (C2 report)
 Depends on: Step 22
+
+This run closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
+not prose. See `standards/rules/play-close.md`. decode's existing
+repo-orchestrator evidence self-commit (its only close write — its "evidence"
+is the proposals tree + proposals.yaml + integrity/test-run reports, no
+scriber summary md is authored) is preserved verbatim as the C1 slot fill.
+Step 22 (Cleanup Temp Skills) remains a distinct close-phase step that runs
+BEFORE this block on final Tether.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# decode is PROJECT/issue-scoped — its evidence lives under the resolved issue's
+# STM, not product LTM (decode writes ZERO files to {product_base}):
+#   evidence_base="{stm_base}/{issue}/evidence/decode/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/decode/${ts}.md"
+```
+
+**Step 23a — C2 Delivery report (ALWAYS — never gated; skip only when running
+as a sub-play, i.e. `parent_run_id` present).** Fill `delivery-report.md` and
+output it to the user:
+- `## Decode Delivered — #{issue}`
+- Run Summary: Play `decode`, Issue `#{issue}`, Status (COMPLETE | PARTIAL |
+  FAILED), Started (per the started_at precedence in play-close.md),
+  Completed (now).
+- Pipeline Steps: derived from decode's Task DAG (T1–T23) — T1 Resolve/
+  create issue, T2 Validate invocation args, T3 Resolve features.yaml, T4
+  Codebase scan, T5 Detect tech stacks, T6 Synthesize temp tech skills, T7
+  Detect test harness, T8 Enumerate target units, T9 LOC pre-check, T10
+  Feature extraction loop, T11 Flow extraction loop, T12 Aspect extraction
+  loop, T13 Citation integrity verification, T14 Test surface mapping, T15
+  Generate contract tests (Tier A), T16 Generate flow tests (Tier B), T17
+  Generate unit-pure tests (Tier C), T18 Baseline-green verification, T19
+  Aggregate proposals.yaml, T20 Checkpoint Phase 1 (SKIP when no flagged
+  units), T21 Checkpoint Phase 2, T22 Cleanup temp skills (SKIP on Vanish),
+  T23 Evidence self-commit. Status PASS/SKIP/FAIL per task state; Key
+  Output best-effort (artifact path or `—`).
+- Artifacts Produced: the proposals tree under
+  `{stm_base}/{issue}/evidence/decode/proposals/`, the master
+  `proposals.yaml` index, citation-integrity reports, test-run reports,
+  cleanup-report.yaml, plus the self-commit SHA and the evidence file
+  pointer.
+- Next Steps: `/garura:enrich` is the sole promotion gate that consumes
+  proposals.yaml. Omit only if zero units matched.
+- End with a pointer to the evidence file at `${evidence_dest}` — or the
+  literal `evidence skipped (record=false)` when C1 is gated off.
+
+**Step 23b — C1 Evidence self-commit.**
 
 ```json
 {
@@ -703,7 +755,11 @@ Depends on: Step 22
 }
 ```
 
-Non-blocking per C18. Commit failure logged; play exits cleanly.
+Non-blocking per C18. Commit failure logged; play exits cleanly and C2 is still emitted.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ---
 
@@ -824,3 +880,5 @@ for each step in compiled order:
 | new_agents | 1 (test-runner) |
 | reused_skills | 3 (scan-codebase, map-test-surface, validate-abstraction-layer) |
 | prerequisite | Tech playbooks at `core/components/memory/knowledge/tech/{stack}.md` for every stack this play encounters. None ship by default — playbooks are authored as needed. |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/scriber/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

@@ -270,6 +270,43 @@ Owner: play + `repo-orchestrator` (utility, non-blocking per C10)
 Depends on: Step 5
 Task: `TaskUpdate [T6] → in_progress` before. `TaskUpdate [T6] → completed` after.
 
+This run closes with the **Standard Play Close**. enrich is run directly by
+the user (`/garura:enrich`) — it is not a sub-play. Note enrich's evidence
+lands in the **archived** subtree, not the active issue STM (Step 5 moved the
+issue into `{stm_archive}`).
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# enrich is PROJECT-scoped, but its evidence lands in the ARCHIVED subtree
+# (Step 5 archives the issue before close):
+#   evidence_base="{stm_archive}/{YYYY-MM}/{issue}/evidence/enrich/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_archive}/{YYYY-MM}/{issue}/evidence/enrich/evidence.yaml"
+```
+
+**Step C2 — Delivery report.** **Skipped when `parent_run_id` is present in
+the input contract** (sub-play use — the parent's close report absorbs it);
+**emitted when enrich is run directly by the user** (no `parent_run_id` — the
+normal path). C2 is never gated by `evidence.record`. In sweep mode, render
+one delivery report per processed issue. Fill `delivery-report.md` and output
+it to the user:
+- `## Enrich Delivered — #{issue}`
+- Run Summary: Play `enrich`, Issue `#{issue}`, Mode (single | sweep),
+  Status, Started (per the started_at precedence in play-close.md),
+  Completed (now).
+- Pipeline Steps: derived from enrich's task DAG ([T1]..[T6]). Status
+  PASS/SKIP/FAIL per task state; Key Output best-effort.
+- Artifacts Produced: archived reconciliation file, enrichment report,
+  evidence.yaml, any ADRs written under `docs/adr/`, self-commit SHA (or
+  `N/A — commit failed`).
+- Next Steps: only real follow-ons. Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}`.
+
+**Step C1 — Write evidence file and self-commit.**
+
 The reconciliation file and enrichment report are already inside the issue STM and were moved by Step 5 into `{stm_archive}/{YYYY-MM}/{issue}/evidence/enrich/`. Add a per-issue evidence summary `evidence.yaml` to the same archived directory and write the per-run status file.
 
 ```yaml
@@ -312,6 +349,10 @@ Invoke `repo-orchestrator` for evidence self-commit (ADR 012, non-blocking per C
 ```
 
 Non-blocking: if `repo-orchestrator` fails, log warning in evidence and exit cleanly. Do NOT re-raise the failure (C10).
+
+```bash
+# --- end Standard Play Close ---
+```
 
 In sweep mode, after Step 6 completes for the current issue, return to Step 1 with the next enumerated issue. When the sweep list is exhausted, the play exits.
 
@@ -400,3 +441,5 @@ for each target issue (single mode = [issue_arg]; sweep mode = enumerated list):
 | utility_agents | 2 (repo-orchestrator — archive + self-commit; project-orchestrator — sweep enumeration; both exempt from ≤5 budget) |
 | step_evals | 15 (SE-1 through SE-15) |
 | scenario_evals | 6 (SCE-1 through SCE-6) |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence/return-struct/commit logic preserved as the C1 slot fill; C2 runtime-gated by parent_run_id for sub-play use. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

@@ -564,7 +564,26 @@ Write to `{stm_base}/{issue}/milestones/{milestone_id}/milestone-verdict.yaml` (
 
 ### Phase 6: Evidence & Close
 
-**Step 13 — Write Evidence**
+This phase closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
+not prose. See `standards/rules/play-close.md`. validate's existing
+orchestrator-direct evidence write, the final-report presentation, and the
+repo-orchestrator self-commit are preserved as the C1 slot fill.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# validate is PROJECT/milestone-scoped — evidence lives under the issue STM,
+# in a per-milestone subdirectory (matches {evidence_dir} resolved at pre-flight):
+#   evidence_base="{stm_base}/{issue}/evidence/validate/{milestone_id}/"
+#   slug="#{issue} milestone {milestone_id}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{evidence_dir}/${ts}.md"
+```
+
+**Step 13 — Write Evidence (C1)**
 Owner: orchestrator
 Depends on: Step 12
 
@@ -616,30 +635,46 @@ Write evidence to `{evidence_dir}/{YYYYMMDD-HHMMSS}.md`:
 | SCE-9 | Engineering Lead | {PASS/FAIL/SKIP} |
 ```
 
-Present final report:
-
-```markdown
-## validate complete — Milestone {milestone_id}
-
-**Milestone:** {milestone_id}
-**Verdict:** {ACCEPT/REJECT}
-**E2E:** {passed}/{total} PASS
-**Judge:** {rate}
-**Baseline Regression:** {PASS/FAIL} ({N} prior milestones)
-**Fix Iterations:** {count}
-
-{If ACCEPT: Proceed to next milestone or finalize epic if all milestones ACCEPTED.}
-{If REJECT: See milestone-verdict.yaml.}
-```
-
 **Step 13 Eval:**
 - **SE-14:** Evidence file exists with all artifact references and milestone summary.
 
 ---
 
-**Step 14 — Self-Commit Evidence**
+**Step 13c — C2 Delivery report (ALWAYS — never gated; skip only when running
+as a sub-play, i.e. `parent_run_id` present).** Fill `delivery-report.md` and
+output it to the user (this replaces the prior free-form "validate complete"
+report with the canonical three-table shape):
+- `## Validate Delivered — #{issue} milestone {milestone_id}`
+- Run Summary: Play `validate`, Issue `#{issue} milestone {milestone_id}`,
+  Status (COMPLETE | PARTIAL | FAILED — derived from the ACCEPT/REJECT
+  verdict), Started (per the started_at precedence in play-close.md),
+  Completed (now).
+- Pipeline Steps: derived from validate's own steps (its Task DAG) — Step 0
+  Setup (resolve issue / verify milestone / verify deployment / scope
+  scenarios), Step 1 Generate system-level evals, Step 2 Author E2E tests,
+  Step 3 Run baseline (Tier 1), Step 4 Run new (Tier 2), Step 5 Run
+  regression (Tier 3), Step 6 Collect E2E results, Step 7 Judge evaluation,
+  Step 8–10 Fix loop (SKIP when no failures), Step 11 Generate manual test
+  scenarios, Step 12 Produce per-milestone verdict. Status PASS/SKIP/FAIL
+  per task state; Key Output best-effort (verdict, pass counts, or `—`).
+- Artifacts Produced: e2e-results.yaml, judge-report.yaml,
+  manual-test-scenarios.md, milestone-verdict.yaml, e2e-test-manifest.yaml,
+  traces dir, plus the self-commit SHA and the evidence file pointer.
+- Next Steps: If ACCEPT — proceed to next milestone or finalize epic when
+  all milestones ACCEPTED. If REJECT — see milestone-verdict.yaml. Omit if
+  self-contained.
+- End with a pointer to the evidence file at `${evidence_dest}` — or the
+  literal `evidence skipped (record=false)` when C1 is gated off.
+
+---
+
+**Step 14 — C1 Self-Commit Evidence**
 Owner: `repo-orchestrator` (non-blocking)
 Depends on: Step 13
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ---
 
@@ -736,3 +771,5 @@ Conditional: SCE-4/SCE-7 skip if no fix loop. SCE-9 applicable with multiple mil
 | failure_conditions_covered | F1-F16 (all 16) |
 | fix_loop_max | 3 iterations per milestone |
 | output_artifacts | e2e-results.yaml, judge-report.yaml, manual-test-scenarios.md, milestone-verdict.yaml |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/scriber/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.

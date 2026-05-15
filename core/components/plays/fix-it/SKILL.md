@@ -452,7 +452,40 @@ Task: `TaskUpdate [T9] → in_progress` before evaluation. `TaskUpdate [T9] → 
 
 ### Phase: Evidence & Close
 
-**Step 9 — Write Evidence and Report**
+This phase closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts), not
+prose. See `standards/rules/play-close.md`.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# fix-it is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/fix-it/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/fix-it/${ts}.md"
+```
+
+**Step C2 — Delivery report (ALWAYS — skip only when running as a sub-play,
+i.e. `parent_run_id` present).** Fill `delivery-report.md` and output it to the
+user. Do NOT hand-author prose:
+- `## Fix-It Delivered — #{issue}`
+- Run Summary: Play `fix-it`, Issue `#{issue}`, Status (COMPLETE | PARTIAL |
+  FAILED), Started (per the started_at precedence in play-close.md), Completed
+  (now). Add Root Cause (summary) and Fix Strategy (summary).
+- Pipeline Steps: derived from fix-it's task DAG — Validate Issue (T1), Create
+  Branch (T2), RCA & Design (T3), Prepare Inline Checkpoint (T4), Approval Gate
+  (T5), Implement Fix (T6), Verify Fix (T7), Ship (T8), Scenario Validation
+  (T9), Write Evidence (T10). Status PASS/SKIP/FAIL per task state; Key Output
+  best-effort (PR #, merge SHA, branch status, regression verdict).
+- Artifacts Produced: rca.yaml, design.yaml, regression test path, PR URL,
+  merge SHA, branch deletion status, issue-comment dispatch status, self-commit
+  SHA (if any), and the evidence file pointer.
+- Next Steps: only real follow-ons. Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}`.
+
+**Step 9 — Write Evidence and Report — C1**
 Owner: play
 Depends on: Step 8
 Task: `TaskUpdate [T10] → in_progress` before writing. `TaskUpdate [T10] → completed` after report presented.
@@ -476,20 +509,8 @@ Write delivery record to `{stm_base}/{issue}/evidence/fix-it/{YYYYMMDD-HHMMSS}.m
 - Scenario eval results (SCE-1 through SCE-4)
 - Final `task_list` state (id, description, status, retry_count, regression_test_path)
 
-Present final report to user:
-
-```markdown
-## Fix Delivered: #{issue} — {title}
-
-**Root Cause:** {summary}
-**Fix:** {strategy}
-**Verification:** quality-auditor verdict = {pass|fail} at {regression_test_path}
-**PR:** {pr_url} (merged)
-**Merge SHA:** {sha}
-**Branch:** fix/{issue}-{slug} (deleted)
-
-All step evals passed. Fix is merged to main.
-```
+The user-facing summary is emitted by Step C2 above (canonical three-table
+delivery report) — do NOT hand-author a separate prose summary here.
 
 Invoke `repo-orchestrator` to self-commit evidence files (ADR 012):
 
@@ -508,6 +529,10 @@ Invoke `repo-orchestrator` to self-commit evidence files (ADR 012):
 Task: "Stage and commit only the listed evidence files with message `chore(stm): record fix-it evidence for #{issue}`."
 
 **Non-blocking:** if commit fails, log warning — do NOT halt.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Recovery
 
@@ -589,3 +614,5 @@ for each step in compiled order:
 | scenario_evals | 4 (SCE-1 through SCE-4) |
 | evals_source | .garura/project/issues/259/evidence/create-play/fix-it/evals.yaml |
 | constraint_classifications | .garura/project/issues/259/evidence/create-play/fix-it/constraint-classifications.yaml |
+
+**Direct-edit deviation note (play-close standardization, #371):** Evidence & Close restructured into the canonical Standard Play Close block per standards/rules/play-close.md. Existing evidence content/sweep/commit logic preserved as the C1 slot fill. Non-intent format change — no constraint/failure/scenario/eval affected, no intent.yaml update required. /create-play is converged (G12) to reproduce this block; do not rebuild this play until then.
