@@ -215,14 +215,41 @@ Depends on: Step 6
 
 ### Phase: Evidence & Close
 
-**Step 8 — Write Evidence**
+**Step 8 — Standard Play Close**
 Owner: play
 Depends on: Step 7
 
-Write evidence to `{stm_base}/{issue}/evidence/commit-code/{YYYYMMDD-HHMMSS}.md`.
-Present summary to user.
+This run closes with the canonical **Standard Play Close** (see
+`standards/rules/play-close.md`). C2 (the user-facing three-table delivery
+report) is always emitted; C1 (the evidence file) honors `evidence.record`.
 
-Invoke `repo-orchestrator` to self-commit evidence files (ADR 012). Non-blocking on failure.
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# commit-code is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/commit-code/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/commit-code/${ts}.md"
+```
+
+**C2 — Delivery report (ALWAYS; skip only when `parent_run_id` present →
+running as a sub-play).** Fill `delivery-report.md` and output it to the user:
+Run Summary (play, issue, status, started per precedence, completed),
+Pipeline Steps (derived from this play's task DAG), Artifacts Produced,
+optional Next Steps, ending with a pointer to `${evidence_dest}`.
+
+**C1 — Evidence file (gated by `evidence.record`).** When true (or absent),
+fill `evidence-file.md` slots (artifacts, evals, checkpoint decisions, commit
+SHAs, terminal status) and write to `${evidence_dest}`; then invoke
+`repo-orchestrator` to self-commit evidence files (ADR 012, non-blocking).
+When false, skip the write and record `evidence skipped (record=false)` in the
+C2 pointer line.
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Pause and Resume
 
