@@ -231,7 +231,40 @@ If any scenario eval fails: log failure in evidence, present to user.
 Owner: play
 Depends on: Step 5
 
-Present final delivery report to user. Always — regardless of `evidence.record` flag value.
+This run closes with the **Standard Play Close** — the user-facing report is
+the canonical three-table shape (Run Summary / Pipeline Steps / Artifacts),
+not prose. See `standards/rules/play-close.md`.
+
+```bash
+# --- Standard Play Close (canonical; see standards/rules/play-close.md) ---
+# ship is PROJECT-scoped:
+#   evidence_base="{stm_base}/{issue}/evidence/ship/"   ;   slug="#{issue}"
+# Resolve ltm_project_target from .garura/core/config.yaml if not already resolved.
+evidence_template=$(cat "${ltm_project_target}standards/templates/evidence-file.md")
+delivery_template=$(cat "${ltm_project_target}standards/templates/delivery-report.md")
+ts=$(date -u +%Y%m%d-%H%M%S)
+evidence_dest="{stm_base}/{issue}/evidence/ship/${ts}.md"
+```
+
+**Step 6a — C2 Delivery report (ALWAYS — never gated by `evidence.record`;
+skip only when running as a sub-play, i.e. `parent_run_id` present).** Fill
+`delivery-report.md` and output it to the user:
+- `## Ship Delivered — #{issue}`
+- Run Summary: Play `ship`, Issue `#{issue}`, Status (COMPLETE | PARTIAL |
+  FAILED), Started (per the started_at precedence in play-close.md),
+  Completed (now).
+- Pipeline Steps: derived from ship's task DAG — Commit, Pull Request,
+  Quality Gate (SKIP when `review-pr.bypass==true`), Merge & Cleanup,
+  Post-merge Learning (distill; SKIP when no learnings). Status PASS/SKIP/FAIL
+  per task state; Key Output best-effort (PR #, merge SHA, branch status).
+- Artifacts Produced: PR URL/number, merge SHA, branch deletion status,
+  distill `proposals_path` (if any), and the evidence file pointer.
+- Next Steps: only real follow-ons (open defects, uncommitted artifacts).
+  Omit if none.
+- End with a pointer to the evidence file at `${evidence_dest}` — or the
+  literal `evidence skipped (record=false)` when C1 is gated off.
+
+**Step 6b — C1 Evidence file (gated by `evidence.record`).**
 
 If `evidence.record` is `true` (or absent):
 
@@ -276,6 +309,11 @@ If `evidence.record` is `false`:
 - Skip ship evidence file — do not write
 - Skip sub-play evidence sweep (C9) — no sub-play evidence files will have been written
 - Skip self-commit — nothing to commit
+- C2 delivery report (Step 6a) is still emitted — it is never gated
+
+```bash
+# --- end Standard Play Close ---
+```
 
 ## Pause and Resume
 
@@ -347,3 +385,5 @@ reflects the updated intent.yaml (sha256:ef460ada...) after adding C9 and F8. Th
 `/create-play --build ship` run will recompile and reconcile the full artifact.
 
 **Direct-edit deviation note (#346):** evidence.record config gate added to pre-flight (bash block) and Step 6 (Write Evidence) as a direct edit. When false, ship's evidence file, C9 sweep, and self-commit are all skipped. Final delivery report to user is unconditional. No intent.yaml update required.
+
+**Direct-edit deviation note (play-close standardization, pilot from #369):** Step 6 (Evidence & Close) restructured into the canonical Standard Play Close block — C2 (3-table user-facing delivery report from `delivery-report.md`) + C1 (evidence file from `evidence-file.md`, honoring `evidence.record`). ship's existing C9 sub-play sweep, evidence.record gate, lands-on-main note, and repo-orchestrator self-commit are preserved unchanged. This is a non-intent format/scaffolding change per `standards/rules/play-close.md` and the play-pipeline boundary rule — no constraint/failure/scenario/eval affected. No intent.yaml update required. `/create-play` will be made to emit this same block (convergence, T19) so a future rebuild does not clobber it; until then do NOT run `/create-play --build ship`.
