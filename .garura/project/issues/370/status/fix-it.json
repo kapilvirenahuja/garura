@@ -49,7 +49,8 @@
       "SCE-4": "pass"
     },
     "evidence-report": {
-      "status": "in_progress"
+      "status": "completed",
+      "evidence_commit": "278ade8"
     }
   },
   "task_list": [

@@ -1,0 +1,36 @@
+## SIMULATION ARTIFACT — not a real run
+## Step 2: auto_issue_resolved=true — project-orchestrator SKIPPED
+## Issue derived directly from branch name: feature/370-improve-commit-code-play
+
+simulated: true
+auto_resolved: true
+source: branch-name
+issue: 370
+confidence: high
+
+mappings:
+  - group_id: group-a
+    issue: 370
+    confidence: high
+    reasoning: "Branch name is the authoritative signal. All files in this group belong to the commit-code play which is the focus of this issue."
+  - group_id: group-b
+    issue: 370
+    confidence: high
+    reasoning: "analyze-changes skill is a dependency of commit-code — changes here co-evolve with the play."
+  - group_id: group-c
+    issue: 370
+    confidence: high
+    reasoning: "ADR-018 documents the architectural decision driving this issue's changes."
+
+conflicts: []
+
+evals:
+  SE-6:
+    verdict: PASS
+    note: "Each mapped issue is semantically related — branch name + file paths confirm alignment."
+  SE-7:
+    verdict: PASS
+    note: "No conflicts — single issue, all high confidence."
+  SE-8:
+    verdict: PASS
+    note: "All mappings carry explicit confidence: high. No sub-high-confidence mappings present."
