@@ -1,0 +1,22 @@
+branch:
+  name: fix/373-product-keeper-audit-drift
+  base_ref: main
+  pushed: true
+  tracking: origin/fix/373-product-keeper-audit-drift
+
+worktree:
+  used: false
+  path: null
+  reason: "Minor dirty tree (3 items) — stash/pop used instead"
+
+working_tree_preserved:
+  strategy: stash_pop
+  files_carried:
+    - .garura/project/issues/370/status/fix-it.json
+    - .garura/project/issues/370/simulation/
+    - .garura/project/issues/373/
+  stash_dropped: true
+
+result:
+  success: true
+  error: null

@@ -1,0 +1,41 @@
+implementation:
+  success: true
+  steps_completed: 2
+  steps_total: 2
+  changes:
+    - step: 1
+      description: >
+        Added research-domain-context row to the Available Skills table in product-keeper.md,
+        immediately after the derive-quality-profile-from-epics row and before the
+        infer-project-profile-from-code row. Fixes RC1 / P7 audit failure.
+      files_modified:
+        - path: "core/components/agents/product-keeper.md"
+          action: modified
+          summary: >
+            Inserted one new table row for research-domain-context between the
+            derive-quality-profile-from-epics row and the /codify inference skills block.
+            The Available Skills table now contains 14 rows (was 13).
+      verified: true
+      deviation: null
+
+    - step: 2
+      description: >
+        Appended a Task Graph section at the end of product-keeper.md with On Entry,
+        On Completion, and On Failure subsections, each containing a TaskUpdate code block.
+        Matches the canonical scriber/judge pattern. Fixes RC2 / P10 audit failure.
+      files_modified:
+        - path: "core/components/agents/product-keeper.md"
+          action: modified
+          summary: >
+            Appended ## Task Graph section after the final "Do NOT return raw errors" line.
+            Section contains three subsections (On Entry, On Completion, On Failure) with
+            TaskUpdate calls for in_progress, completed, and failed states respectively.
+      verified: true
+      deviation: null
+
+  issues_encountered: []
+
+  files_touched:
+    - path: "core/components/agents/product-keeper.md"
+
+produced_at: "2026-05-16T00:00:00Z"

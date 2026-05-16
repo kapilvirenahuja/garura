@@ -1,0 +1,34 @@
+auto_resolved: true
+source: branch-name+concern-split
+issue: 373
+confidence: high
+note: >
+  Branch fix/373-product-keeper-audit-drift derives issue #373. The working tree
+  also carried pre-existing unrelated #370 STM artifacts (a separate concern
+  flagged by analyze-changes). To preserve commit-issue traceability (F4), the
+  #370 group is mapped to #370 rather than blanket-mapped to #373.
+mappings:
+  - group: "fix(product-keeper) — #373 defect fix"
+    files:
+      - core/components/agents/product-keeper.md
+    issue: 373
+    confidence: high
+    reasoning: >
+      Adds research-domain-context skill row (RC1/P7) and Task Graph section
+      (RC2/P10) — the exact fix for issue #373.
+  - group: "chore(stm) — #373 fix-it evidence"
+    files:
+      - .garura/project/issues/373/
+    issue: 373
+    confidence: high
+    reasoning: fix-it STM evidence and status files for issue #373.
+  - group: "chore(stm) — #370 pre-existing artifacts"
+    files:
+      - .garura/project/issues/370/status/fix-it.json
+      - .garura/project/issues/370/simulation/
+    issue: 370
+    confidence: high
+    reasoning: >
+      Pre-existing uncommitted #370 STM artifacts present in the tree before
+      this fix-it run started. Semantically belong to issue #370, not #373.
+conflicts: []

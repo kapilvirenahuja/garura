@@ -1,0 +1,104 @@
+issue_number: 373
+summary: >
+  product-keeper.md declares its skill inventory and execution model incompletely:
+  it lists 13 skills but omits research-domain-context (which define/SKILL.md
+  explicitly delegates to it in Phase 4), and it has no Task Graph section
+  instructing it to call TaskUpdate — so the agent runs tasks silently, never
+  marking them in_progress or completed as the audit requires.
+
+root_cause:
+  - id: RC1
+    label: "P7 — research-domain-context absent from Available Skills table"
+    file: "core/components/agents/product-keeper.md"
+    logic: >
+      Lines 47-64 define the Available Skills table. The table covers configure-capabilities,
+      enrich-capabilities, manage-features, generate-intent-epics, validate-intent-epics,
+      derive-quality-profile-from-epics, and six /codify inference skills. research-domain-context
+      is not present anywhere in the file.
+    why_wrong: >
+      define/SKILL.md line 260 explicitly assigns Phase 4 (KB/LTM Grounding) to product-keeper
+      with the instruction "If coverage is thin, invoke research-domain-context skill."
+      P7 of the audit-checklist requires that an agent's declared skill inventory includes
+      every skill it actually invokes at runtime. Because research-domain-context is absent
+      from the table, create-play's audit cannot verify the delegation chain is intact,
+      and a future editor reading only product-keeper.md would not know the agent uses
+      that skill — creating a documentation gap that directly breaks the P7 audit gate.
+    line_range: "47-64"
+
+  - id: RC2
+    label: "P10 — no Task Graph section and no TaskUpdate protocol"
+    file: "core/components/agents/product-keeper.md"
+    logic: >
+      The entire file (176 lines) contains no TaskUpdate call, no Task Graph section,
+      and no in_progress/completed lifecycle instruction. The only task-related text
+      is task_id being echoed in an error-return example (line 113) and listed as a
+      key input field (line 127) — neither of which constitutes task graph participation.
+    why_wrong: >
+      P10 of the audit-checklist requires agents to mark tasks in_progress at start
+      and completed on success via TaskUpdate. Every other domain agent (tech-designer,
+      judge, scriber, test-engineer, quality-auditor, project-orchestrator,
+      evals-engineer) has this protocol. Without it, when a calling play invokes
+      product-keeper with a task_id, the task silently runs to completion — the play
+      orchestrator cannot distinguish "running" from "stalled" or "done" from "never
+      started." This is a structural gap in the agent's execution model, not a
+      documentation cosmetic issue.
+    line_range: "1-176"
+
+trace:
+  - step: >
+      create-play audit P7 checks whether product-keeper delegates to skills for
+      artifact production. It looks for research-domain-context in the agent's
+      declared skill inventory.
+  - step: >
+      product-keeper.md Available Skills table (lines 47-64) lists 13 skills.
+      research-domain-context is not among them.
+  - step: >
+      define/SKILL.md Phase 4 (line 260) assigns ownership to product-keeper and
+      instructs it to invoke research-domain-context when LTM coverage is thin.
+      The skill therefore IS used by this agent at runtime, but the agent's own
+      definition does not declare it.
+  - step: >
+      P7 audit fails because the inventory diverges from the actual invocation path —
+      the checklist cannot confirm delegation compliance when the skill isn't declared.
+  - step: >
+      Separately, create-play audit P10 checks for TaskUpdate / Task Graph participation.
+      Grepping product-keeper.md for TaskUpdate, "task graph", in_progress, completed
+      returns zero results (only task_id echo in error contract — not a lifecycle call).
+  - step: >
+      All sibling agents have explicit Task Graph sections or lifecycle bullet points
+      (e.g., scriber lines 130-146, judge lines 189-191, test-engineer line 461).
+      product-keeper was authored without this section, likely because it was written
+      before the Task Graph participation requirement was standardised across agents.
+
+blast_radius:
+  - path: "core/components/agents/product-keeper.md"
+    role: "Agent definition — the file that must be fixed"
+    change_needed: >
+      1) Add research-domain-context row to Available Skills table with purpose
+      and used-by context. 2) Add a Task Graph section instructing TaskUpdate
+      calls at task start (in_progress) and task end (completed/failed).
+
+  - path: "core/components/plays/define/SKILL.md"
+    role: "Calling play that delegates Phase 4 to product-keeper"
+    change_needed: >
+      No code change required. Phase 4 already correctly describes the
+      research-domain-context invocation. This file is read-only for blast-radius
+      awareness only.
+
+  - path: "core/components/plays/design/SKILL.md"
+    role: "Sibling play that also uses product-keeper"
+    change_needed: >
+      No code change required. Fix in product-keeper.md covers all callers.
+      Verify no conflicting instructions if design play has its own Phase 4 analog.
+
+  - path: "core/components/plays/arch/SKILL.md"
+    role: "Sibling play that also uses product-keeper"
+    change_needed: >
+      No code change required. Same rationale as design/SKILL.md.
+
+  - path: "core/components/plays/specify/SKILL.md"
+    role: "Sibling play that also uses product-keeper"
+    change_needed: >
+      No code change required. Fix is contained to the agent definition.
+
+produced_at: "2026-05-16T00:00:00Z"

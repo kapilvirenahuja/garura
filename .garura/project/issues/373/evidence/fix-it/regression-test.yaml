@@ -1,0 +1,62 @@
+style: yaml_eval_spec
+target_issue: 373
+based_on:
+  rca: "/Users/kapilahuja/cto/builder/garura/.garura/project/issues/373/evidence/fix-it/rca.yaml"
+  design: "/Users/kapilahuja/cto/builder/garura/.garura/project/issues/373/evidence/fix-it/design.yaml"
+
+# What this test guards against:
+# RC1 (P7): product-keeper.md Available Skills table omits research-domain-context,
+#            which define/SKILL.md Phase 4 explicitly delegates to this agent.
+# RC2 (P10): product-keeper.md has no Task Graph section and no TaskUpdate protocol,
+#             unlike every other domain agent in the codebase.
+#
+# All three assertions were verified RED on the unfixed codebase (2026-05-16):
+#   grep "research-domain-context" core/components/agents/product-keeper.md  → exit 1 (not found)
+#   grep "TaskUpdate"              core/components/agents/product-keeper.md  → exit 1 (not found)
+#   grep "Task Graph"              core/components/agents/product-keeper.md  → exit 1 (not found)
+
+assertions:
+  - id: A1
+    description: >
+      research-domain-context must appear in the Available Skills table of product-keeper.md.
+      This is the RC1 fix: the skill is invoked at runtime by define Phase 4 and must be
+      declared in the agent's inventory to satisfy P7 of the create-play audit checklist.
+    kind: grep_present
+    spec:
+      pattern: "research-domain-context"
+      path: "core/components/agents/product-keeper.md"
+    red_state_confirmed: true
+    red_exit_code: 1
+    red_verified_at: "2026-05-16T00:00:00Z"
+
+  - id: A2
+    description: >
+      TaskUpdate must appear at least once in product-keeper.md to satisfy P10 of the
+      create-play audit checklist. This is the RC2 fix: the agent must have explicit
+      lifecycle calls (in_progress, completed, failed) so the calling play can track
+      task state. Sibling agents scriber, judge, test-engineer all have this.
+    kind: grep_present
+    spec:
+      pattern: "TaskUpdate"
+      path: "core/components/agents/product-keeper.md"
+    red_state_confirmed: true
+    red_exit_code: 1
+    red_verified_at: "2026-05-16T00:00:00Z"
+
+  - id: A3
+    description: >
+      A "Task Graph" section heading must exist in product-keeper.md. This ensures the
+      TaskUpdate protocol is structured as a proper section (matching scriber.md pattern),
+      not just an inline mention that could be ambiguous about scope or intent.
+    kind: grep_present
+    spec:
+      pattern: "Task Graph"
+      path: "core/components/agents/product-keeper.md"
+    red_state_confirmed: true
+    red_exit_code: 1
+    red_verified_at: "2026-05-16T00:00:00Z"
+
+pass_when: all_assertions_pass
+verified_red_at: "2026-05-16T00:00:00Z"
+expected_state_before_fix: red
+expected_state_after_fix: green

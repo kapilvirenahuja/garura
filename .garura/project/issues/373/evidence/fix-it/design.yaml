@@ -1,0 +1,155 @@
+based_on_rca: "/Users/kapilahuja/cto/builder/garura/.garura/project/issues/373/evidence/fix-it/rca.yaml"
+
+strategy: >
+  Make two additive changes to core/components/agents/product-keeper.md only.
+  First, insert a new row for research-domain-context into the Available Skills table
+  immediately after the existing derive-quality-profile-from-epics row (line 54), before
+  the /codify inference skills block. This makes the P7 inventory match actual runtime
+  behaviour as defined in define/SKILL.md Phase 4. Second, append a Task Graph section
+  at the end of the file following the canonical scriber/judge pattern, with explicit
+  TaskUpdate calls for in_progress (on entry), completed (on success), and failed (on
+  failure). Both changes are purely additive — no existing lines removed, no callers
+  modified, no runtime behaviour altered. The fix closes both P7 and P10 audit failures
+  with minimum blast radius.
+
+alternatives_considered:
+  - option: >
+      Update all four calling plays (define, specify, design, arch) to explicitly remind
+      product-keeper to call TaskUpdate, rather than fixing the agent definition itself.
+    rejection_reason: >
+      Distributes the fix across four files instead of one, violates the principle that
+      agent definitions are the single source of truth for agent behaviour. Future callers
+      would also need the same reminder, making the fix non-durable. The root cause is in
+      the agent definition — the fix belongs there.
+
+  - option: >
+      Create a new shared agent-contract mixin or base template that all agents inherit,
+      adding TaskUpdate boilerplate via a code-generation step rather than editing each
+      agent file individually.
+    rejection_reason: >
+      Over-engineered for a two-line addition to one file. The framework has no mixin or
+      inheritance mechanism for agent .md files; introducing one would be an architectural
+      change requiring a new ADR and broader discussion. Occam's Razor — direct edit wins.
+
+  - option: >
+      Mark the P7 gap as documented with a note "research-domain-context is invoked
+      conditionally and therefore intentionally omitted from the inventory" rather than
+      adding the row.
+    rejection_reason: >
+      The audit-checklist P7 rule has no carve-out for conditional invocations. The skill
+      is used at runtime — any runtime usage must appear in the inventory. A documentation
+      note that contradicts the audit rule would not make the audit pass and would
+      introduce a silent exception not backed by any framework standard.
+
+affected_files:
+  - path: "core/components/agents/product-keeper.md"
+    role: "The only agent definition file that fails P7 and P10 audit checks"
+    action: modify
+    change: >
+      RC1 fix: Insert one new row in the Available Skills table after line 54
+      (derive-quality-profile-from-epics row), before the /codify block:
+        | `research-domain-context` | When LTM coverage is thin for a new-capability or new-domain classification, perform web research and produce a domain-context.md grounding pack. Invoked conditionally in Phase 4 (KB/LTM Grounding). | define (Phase 4) |
+      RC2 fix: Append a new ## Task Graph section at end of file (after line 175 "Do NOT
+      return raw errors. Always return structured failures in the contract.") with the
+      scriber-style explicit protocol:
+        ## Task Graph
+        This agent participates in the calling play's task graph.
+        ### On Entry
+        TaskUpdate task_id -> status: in_progress
+        ### On Completion
+        TaskUpdate task_id -> status: completed
+        ### On Failure
+        TaskUpdate task_id -> status: failed
+    risk: low
+    risk_rationale: >
+      Both changes are additive only. No existing content removed. No runtime behaviour
+      changed (the agent already invokes research-domain-context; we are only declaring it.
+      TaskUpdate calls are already expected by the framework; we are only documenting them).
+      Four calling plays are unaffected.
+
+execution_plan:
+  - id: step-1
+    description: >
+      Add research-domain-context to the Available Skills table in product-keeper.md.
+      Open core/components/agents/product-keeper.md. Locate the row for
+      derive-quality-profile-from-epics (line 54, starts with "| `derive-quality-profile-from-epics`").
+      Insert the following new row IMMEDIATELY AFTER that line, before the next row
+      (infer-project-profile-from-code):
+        | `research-domain-context` | When LTM coverage is thin for a new-capability or new-domain classification, perform web research and produce a domain-context.md grounding pack. Invoked conditionally in Phase 4 (KB/LTM Grounding). | define (Phase 4) |
+    files:
+      - path: "core/components/agents/product-keeper.md"
+        action: modify
+        details: >
+          Insert one table row after line 54. The row must follow the exact pipe-delimited
+          format of the surrounding rows. Do not alter any other lines.
+    expected_outcome: >
+      The Available Skills table now contains 14 rows (was 13). research-domain-context
+      appears between derive-quality-profile-from-epics and infer-project-profile-from-code.
+    self_test: >
+      grep -c "research-domain-context" core/components/agents/product-keeper.md
+      Expected output: 1 (exactly one occurrence, in the table).
+
+  - id: step-2
+    description: >
+      Add a Task Graph section to the end of product-keeper.md. Locate the last line of the
+      file (currently line 175: "Do NOT return raw errors. Always return structured failures
+      in the contract."). Append the following block after that line, maintaining a blank
+      line separator:
+
+        ## Task Graph
+
+        This agent participates in the calling play's task graph.
+
+        ### On Entry
+        ```
+        TaskUpdate task_id -> status: in_progress
+        ```
+
+        ### On Completion
+        ```
+        TaskUpdate task_id -> status: completed
+        ```
+
+        ### On Failure
+        ```
+        TaskUpdate task_id -> status: failed
+        ```
+    files:
+      - path: "core/components/agents/product-keeper.md"
+        action: modify
+        details: >
+          Append Task Graph section at end of file. Match the exact heading level and
+          code-block format used in scriber.md (lines 130-146) for consistency.
+    expected_outcome: >
+      product-keeper.md ends with a ## Task Graph section containing three subsections
+      (On Entry, On Completion, On Failure) each with a code block showing the TaskUpdate
+      call. File grows from 176 lines to approximately 192 lines.
+    self_test: >
+      grep -c "TaskUpdate" core/components/agents/product-keeper.md
+      Expected output: 3 (one per lifecycle state: in_progress, completed, failed).
+      Also verify: grep "Task Graph" core/components/agents/product-keeper.md returns a match.
+
+  - id: step-3
+    description: >
+      Verify the complete fix satisfies both P7 and P10 audit criteria by running the
+      two structural checks that the regression test asserts.
+    files: []
+    expected_outcome: >
+      grep "research-domain-context" core/components/agents/product-keeper.md returns 1+ match.
+      grep "TaskUpdate" core/components/agents/product-keeper.md returns 3 matches.
+      Both checks pass — the regression test file at
+      .garura/project/issues/373/evidence/fix-it/regression-test.yaml should now report
+      green when quality-auditor evaluates it.
+    self_test: >
+      Run both greps and confirm non-zero exit codes.
+      grep -q "research-domain-context" core/components/agents/product-keeper.md && echo PASS || echo FAIL
+      grep -q "TaskUpdate" core/components/agents/product-keeper.md && echo PASS || echo FAIL
+
+confidence: high
+confidence_rationale: >
+  Both root causes are unambiguous gaps in a single Markdown file. The fix is two additive
+  insertions with no logic changes, no API surface changes, and no caller modifications
+  required. Pattern for both insertions is directly evidenced from sibling agents in the
+  same directory. Zero risk of introducing regressions in the four calling plays.
+
+produced_at: "2026-05-16T00:00:00Z"

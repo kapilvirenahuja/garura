@@ -1,0 +1,3 @@
+regression_test_path: "/Users/kapilahuja/cto/builder/garura/.garura/project/issues/373/evidence/fix-it/regression-test.yaml"
+style: yaml_eval_spec
+red_verified: true
